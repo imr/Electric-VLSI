@@ -49,7 +49,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -58,7 +57,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -933,7 +931,7 @@ public class TechToLib
         aIn.skipSizeInPalette = ap.isSkipSizeInPalette();
         aIn.slidable = ap.isSlidable();
         aIn.angInc = ap.getAngleIncrement();
-        aIn.antennaRatio = ERC.getERCTool().getAntennaRatio(ap);
+        aIn.antennaRatio = ap.getAntennaRatio();
         aIn.arcDetails = new ArcInfo.LayerDetails[ap.getNumArcLayers()];
         for(int i=0; i<aIn.arcDetails.length; i++) {
             ArcInfo.LayerDetails ald = new ArcInfo.LayerDetails();

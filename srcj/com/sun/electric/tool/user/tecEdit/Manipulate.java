@@ -49,7 +49,6 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ComponentMenu;
@@ -2800,7 +2799,7 @@ public class Manipulate
                     // Function
                     func = ap.getFunction().toString();
                     // Antenna
-                    antenna = TextUtils.formatDouble(ERC.getERCTool().getAntennaRatio(ap));
+                    antenna = TextUtils.formatDouble(ap.getAntennaRatio());
                 }
 
                 // Arc name

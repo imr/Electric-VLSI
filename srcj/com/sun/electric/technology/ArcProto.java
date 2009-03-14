@@ -30,15 +30,14 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.tool.erc.ERC;
 
+import com.sun.electric.tool.erc.ERCAntenna;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -260,7 +259,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
     /** Pref for arc end extension. */                          private Pref defaultExtendedPref;
 //  /** Pref for arc negation. */                               private final defaultNegatedPref;
     /** Pref for arc directionality. */                         private final Pref defaultDirectionalPref;
-
+    /** Pref for overridable pin corresponding to this arc */   private final Pref arcPinPref;
+	/** Pref for arc antenna ratio. */                          private Pref defaultAntennaRatioPref;
 
 	// the meaning of the "userBits" field:
 //	/** these arcs are fixed-length */							private static final int WANTFIX  =            01;
@@ -302,7 +302,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
         computeLayerGridExtendRange();
         defaultExtendPref = Pref.makeDoubleServerPref("DefaultExtendFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), 0);
-        defaultDirectionalPref = getArcProtoBitPref("Directional", false);
+        defaultDirectionalPref = makeArcProtoBitPref("Directional", false);
+        arcPinPref = Pref.makeStringPref("PinFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), "");
 	}
 
     private void computeLayerGridExtendRange() {
@@ -496,36 +497,38 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
     public int getMaxLayerGridExtend() { return maxLayerGridExtend; }
 
-    /*
-	private Pref getArcProtoAntennaPref()
-	{
-		Pref pref = defaultAntennaRatioPrefs.get(this);
-		if (pref == null)
-		{
-			double factory = ERCAntenna.DEFPOLYRATIO;
-			if (function.isMetal()) factory = ERCAntenna.DEFMETALRATIO;
-			pref = Pref.makeDoublePref("DefaultAntennaRatioFor" + protoName + "IN" + tech.getTechName(), ERC.tool.prefs, factory);
-			defaultAntennaRatioPrefs.put(this, pref);
-		}
-		return pref;
-	}
-    */
+    /**
+	 * Method to set the factory antenna ratio of this ArcProto.
+	 * Antenna ratios are used in antenna checks that make sure the ratio of the area of a layer is correct.
+	 * @param ratio the antenna ratio of this ArcProto.
+	 */
+    public void setFactoryAntennaRatio(double ratio) {
+        assert defaultAntennaRatioPref == null;
+		defaultAntennaRatioPref = Pref.makeDoublePref("DefaultAntennaRatioFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), ratio);
+    }
 
 	/**
 	 * Method to set the antenna ratio of this ArcProto.
 	 * Antenna ratios are used in antenna checks that make sure the ratio of the area of a layer is correct.
 	 * @param ratio the antenna ratio of this ArcProto.
 	 */
-	//public void setAntennaRatio(double ratio) { getArcProtoAntennaPref().setDouble(ratio); }
+	public void setAntennaRatio(double ratio) { defaultAntennaRatioPref.setDouble(ratio); }
 
 	/**
 	 * Method to tell the antenna ratio of this ArcProto.
 	 * Antenna ratios are used in antenna checks that make sure the ratio of the area of a layer is correct.
 	 * @return the antenna ratio of this ArcProto.
 	 */
-	//public double getAntennaRatio() { return getArcProtoAntennaPref().getDouble(); }
+	public double getAntennaRatio() { return defaultAntennaRatioPref.getDouble(); }
 
-	private Pref getArcProtoBitPref(String what, boolean factory)
+    /**
+	 * Method to tell the default antenna ratio of this ArcProto.
+	 * Antenna ratios are used in antenna checks that make sure the ratio of the area of a layer is correct.
+	 * @return the default antenna ratio of this ArcProto.
+	 */
+	public double getFactoryAntennaRatio() { return defaultAntennaRatioPref.getDoubleFactoryValue(); }
+
+	private Pref makeArcProtoBitPref(String what, boolean factory)
 	{
 		return Pref.makeBooleanServerPref("Default" + what + "For" + getName() + "IN" + tech.getTechName(), tech.getTechnologyUserPreferences(), factory);
 	}
@@ -537,7 +540,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
 	public void setFactoryRigid(boolean rigid) {
         assert defaultRigidPref == null;
-        defaultRigidPref = getArcProtoBitPref("Rigid", rigid);
+        defaultRigidPref = makeArcProtoBitPref("Rigid", rigid);
     }
 
 	/**
@@ -569,7 +572,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
 	public void setFactoryFixedAngle(boolean fixed) {
         assert defaultFixedAnglePref == null;
-        defaultFixedAnglePref = getArcProtoBitPref("FixedAngle", fixed);
+        defaultFixedAnglePref = makeArcProtoBitPref("FixedAngle", fixed);
     }
 
 	/**
@@ -605,7 +608,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
 	public void setFactorySlidable(boolean slidable) {
         assert defaultSlidablePref == null;
-        defaultSlidablePref = getArcProtoBitPref("Slidable", slidable);
+        defaultSlidablePref = makeArcProtoBitPref("Slidable", slidable);
     }
 
 	/**
@@ -643,7 +646,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
 	public void setFactoryExtended(boolean extended) {
         assert defaultExtendedPref == null;
-        defaultExtendedPref = getArcProtoBitPref("Extended", extended);
+        defaultExtendedPref = makeArcProtoBitPref("Extended", extended);
     }
 
 	/**
@@ -912,19 +915,6 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 		return defaultAnglePref != null ? defaultAnglePref.getIntFactoryValue() : 90;
 	}
 
-	HashMap<ArcProto,Pref> arcPinPrefs = new HashMap<ArcProto,Pref>();
-
-	private Pref getArcPinPref()
-	{
-		Pref pref = arcPinPrefs.get(this);
-		if (pref == null)
-		{
-			pref = Pref.makeStringPref("PinFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), "");
-			arcPinPrefs.put(this, pref);
-		}
-		return pref;
-	}
-
 	/**
 	 * Method to set the default pin node to use for this ArcProto.
 	 * The pin node is used for making bends in wires.
@@ -934,8 +924,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
 	public void setPinProto(PrimitiveNode np)
 	{
-		Pref pref = getArcPinPref();
-		pref.setString(np.getName());
+		arcPinPref.setString(np.getName());
 	}
 
 	/**
@@ -948,8 +937,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	public PrimitiveNode findOverridablePinProto()
 	{
 		// see if there is a default on this arc proto
-		Pref pref = getArcPinPref();
-		String primName = pref.getString();
+		String primName = arcPinPref.getString();
 		if (primName != null && primName.length() > 0)
 		{
 			PrimitiveNode np = tech.findNodeProto(primName);
@@ -1261,6 +1249,11 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
             setFactorySlidable(true);
         if (defaultExtendedPref == null)
             setFactoryExtended(true);
+        if (defaultAntennaRatioPref == null) {
+            double ratio = ERCAntenna.DEFPOLYRATIO;
+            if (function.isMetal()) ratio = ERCAntenna.DEFMETALRATIO;
+            setFactoryAntennaRatio(ratio);
+        }
     }
 
 	/**
@@ -1335,7 +1328,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         a.extended = isExtended();
         a.fixedAngle = isFixedAngle();
         a.angleIncrement = getAngleIncrement();
-        a.antennaRatio = ERC.getERCTool().getAntennaRatio(this);
+        a.antennaRatio = getAntennaRatio();
         for (Technology.ArcLayer arcLayer: layers)
             a.arcLayers.add(arcLayer.makeXml());
 //        if (arcPin != null) {

@@ -60,7 +60,6 @@ import com.sun.electric.technology.technologies.GEM;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.ToolSettings;
-import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
@@ -946,8 +945,8 @@ public class Technology implements Comparable<Technology>, Serializable
     /** TechFactory which created this Technology */        protected final TechFactory techFactory;
     /** Params of this Technology */                        private State currentState;
     /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
-    /** Preference for saving component menus */			private Pref componentMenuPref = null;
-    /** Preference for saving layer order */				private Pref layerOrderPref = null;
+    /** Preference for saving component menus */			private final Pref componentMenuPref;
+    /** Preference for saving layer order */				private final Pref layerOrderPref;
 
 	/****************************** CONTROL ******************************/
 
@@ -1009,16 +1008,17 @@ public class Technology implements Comparable<Technology>, Serializable
 
         cacheMaxSeriesResistance = makeParasiticSetting("MaxSeriesResistance", 10.0);
         cacheGateLengthSubtraction = makeParasiticSetting("GateLengthSubtraction", 0.0);
-		cacheIncludeGate = makeParasiticSetting("Gate Inclusion", false);
-		cacheIncludeGnd = makeParasiticSetting("Ground Net Inclusion", false);
-//		cacheGlobalFanout = makeLESetting("GlobalFanout", DEFAULT_GLOBALFANOUT);
+        cacheIncludeGate = makeParasiticSetting("Gate Inclusion", false);
+        cacheIncludeGnd = makeParasiticSetting("Ground Net Inclusion", false);
+//      cacheGlobalFanout = makeLESetting("GlobalFanout", DEFAULT_GLOBALFANOUT);
 //		cacheConvergenceEpsilon = makeLESetting("ConvergenceEpsilon", DEFAULT_EPSILON);
 //		cacheMaxIterations = makeLESetting("MaxIterations", DEFAULT_MAXITER);
 //		cacheGateCapacitance = makeLESetting("GateCapacitance", DEFAULT_GATECAP);
 //		cacheWireRatio = makeLESetting("WireRatio", DEFAULT_WIRERATIO);
 //		cacheDiffAlpha = makeLESetting("DiffAlpha", DEFAULT_DIFFALPHA);
 //        cacheKeeperRatio = makeLESetting("KeeperRatio", DEFAULT_KEEPERRATIO);
-		layerOrderPref = Pref.makeStringPref("LayerOrderfor"+getTechName(), prefs, "");
+        layerOrderPref = Pref.makeStringPref("LayerOrderfor"+getTechName(), prefs, "");
+        componentMenuPref = Pref.makeStringPref("ComponentMenuXMLfor"+getTechName(), prefs, "");
 	}
 
     protected Object writeReplace() { return new TechnologyKey(this); }
@@ -1103,7 +1103,7 @@ public class Technology implements Comparable<Technology>, Serializable
             ap.setFactoryExtended(a.extended);
             ap.setFactoryFixedAngle(a.fixedAngle);
             ap.setFactoryAngleIncrement(a.angleIncrement);
-            ERC.getERCTool().setAntennaRatio(ap, a.antennaRatio);
+            ap.setFactoryAntennaRatio(a.antennaRatio);
 //            if (a.arcPin != null)
 //                ap.makeWipablePin(a.arcPin.name, a.arcPin.portName, a.arcPin.elibSize, makeConnections(a.arcPin.portArcs, arcs));
         }
@@ -1276,7 +1276,7 @@ public class Technology implements Comparable<Technology>, Serializable
 //                changeBatch.add(setting, setting.getValueFromPreferences());
 //            database.implementSettingChanges(changeBatch);
 //        }
-        
+
 		// set the current technology, given priority to user defined
         curLayoutTech = getMocmosTechnology();
         Technology  tech = Technology.findTechnology(User.getDefaultTechnology());
@@ -1386,6 +1386,8 @@ public class Technology implements Comparable<Technology>, Serializable
         if (cacheGateCapacitance == null || cacheWireRatio == null || cacheDiffAlpha == null) {
             setFactoryLESettings(DEFAULT_GATECAP, DEFAULT_WIRERATIO, DEFAULT_DIFFALPHA);
         }
+		if (prefResolution == null)
+            setFactoryResolution(0);
         layersAllocationLocked = true;
         for (Foundry foundry: foundries) {
             foundry.finish();
@@ -1398,6 +1400,8 @@ public class Technology implements Comparable<Technology>, Serializable
             arcProto.finish();
 
         rootSettings.lock();
+        for (Pref.Group group: getTechnologyAllPreferences())
+            group.lockCreation();
 
         check();
 	}
@@ -4822,7 +4826,6 @@ public class Technology implements Comparable<Technology>, Serializable
      */
 	public void setResolution(double resolution)
 	{
-		if (prefResolution == null) setFactoryResolution(0);
 		prefResolution.setDouble(resolution);
 	}
 
@@ -4833,7 +4836,6 @@ public class Technology implements Comparable<Technology>, Serializable
      */
     public double getResolution()
 	{
-        if (prefResolution == null) setFactoryResolution(0);
 		return prefResolution.getDouble();
 	}
 
@@ -4844,7 +4846,6 @@ public class Technology implements Comparable<Technology>, Serializable
      */
     public double getFactoryResolution()
 	{
-        if (prefResolution == null) setFactoryResolution(0);
 		return prefResolution.getDoubleFactoryValue();
 	}
 
@@ -5558,8 +5559,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	public void setNodesGrouped(Object[][] ng, String xml)
 	{
 		nodeGroups = ng;
-		if (componentMenuPref == null)
-			componentMenuPref = Pref.makeStringPref("ComponentMenuXMLfor"+getTechName(), prefs, "");
 		componentMenuPref.setString(xml);
 	}
 
@@ -5569,8 +5568,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public String getNodesGroupedXML()
 	{
-		if (componentMenuPref == null)
-			componentMenuPref = Pref.makeStringPref("ComponentMenuXMLfor"+getTechName(), prefs, "");
 		return componentMenuPref.getString();
 	}
 

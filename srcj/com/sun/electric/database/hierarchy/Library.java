@@ -106,7 +106,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 		if (allPrefs == null) allPrefs = Preferences.userNodeForPackage(getClass());
         prefs = allPrefs.node(getName());
         prefs.put("LIB", getName());
-        prefsGroup = new Pref.Group(prefs);
+        prefsGroup = new Pref.Group(prefs, false);
 	}
 
 	/**

@@ -94,7 +94,7 @@ public class ERCAntenna
 			for(int i=0; i<depth; i++) hierstack[i] = stack[i];
 		}
 	};
-	
+
 	/** default maximum ratio of poly to gate area */		public static final double DEFPOLYRATIO  = 200;
 	/** default maximum ratio of metal to gate area */		public static final double DEFMETALRATIO = 400;
 	/** default poly thickness for side-area */				public static final double DEFPOLYTHICKNESS  = 2;
@@ -106,7 +106,7 @@ public class ERCAntenna
 	/** search was aborted */								private static final int ERCABORTED       = 3;
 
 	/** head of linked list of antenna objects to spread */	private List<AntennaObject>     firstSpreadAntennaObj;
-	/** current technology being considered */				private Technology              curTech;	
+	/** current technology being considered */				private Technology              curTech;
 	/** accumulated gate area */							private double                  totalGateArea;
 	/** the worst ratio found */							private double                  worstRatio;
 	/** A list of AntennaObjects to process. */				private List<AntennaObject>     pathList;
@@ -302,7 +302,7 @@ public class ERCAntenna
 								AffineTransform rTrans = ao.hierstack[i].rotateOut();
 								trans.concatenate(rTrans);
 							}
-	
+
 							Technology tech = ai.getProto().getTechnology();
 							if (tech != curTech) continue;
 							Poly [] polyList = tech.getShapeOfArc(ai);
@@ -360,7 +360,7 @@ public class ERCAntenna
 				}
 			}
 		}
-	
+
 		// now look at subcells
 		fsCell.add(cell);
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
@@ -369,12 +369,12 @@ public class ERCAntenna
 			if (!ni.isCellInstance()) continue;
 			Cell subCell = (Cell)ni.getProto();
 			if (fsCell.contains(subCell)) continue;
-	
+
 			if (checkThisCell(subCell, lay, job)) return true;
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to follow a node around the cell.
 	 * @param ni the NodeInst to follow.
@@ -393,7 +393,7 @@ public class ERCAntenna
 		firstSpreadAntennaObj = new ArrayList<AntennaObject>();
 		NodeInst [] antstack = new NodeInst[200];
 		int depth = 0;
-	
+
 		// keep walking along the nodes and arcs
 		for(;;)
 		{
@@ -409,7 +409,7 @@ public class ERCAntenna
 				thisni = ((Export)pp).getOriginalPort().getNodeInst();
 				pp = ((Export)pp).getOriginalPort().getPortProto();
 			}
-	
+
 			// see if we hit a transistor
 			boolean seen = false;
 			if (thisni.getFunction().isFET())
@@ -432,7 +432,7 @@ public class ERCAntenna
 				if (hasDiffusion(thisni)) return ERCANTPATHACTIVE;
 				AntennaObject ao = new AntennaObject(ni);
 				ao.loadAntennaObject(antstack, depth);
-	
+
 				if (haveAntennaObject(ao))
 				{
 					// already in the list
@@ -443,7 +443,7 @@ public class ERCAntenna
 					addAntennaObject(ao);
 				}
 			}
-	
+
 			// look at all arcs on the node
 			if (!seen)
 			{
@@ -455,12 +455,12 @@ public class ERCAntenna
 					if (found == ERCANTPATHACTIVE) return found;
 				}
 			}
-	
+
 			// look for an unspread antenna object and keep walking
 			if (firstSpreadAntennaObj.size() == 0) break;
 			AntennaObject ao = firstSpreadAntennaObj.get(0);
 			firstSpreadAntennaObj.remove(0);
-	
+
 			ArcInst ai = (ArcInst)ao.geom;
 			ni = ai.getPortInst(ao.otherend).getNodeInst();
 			pp = ai.getPortInst(ao.otherend).getPortProto();
@@ -470,7 +470,7 @@ public class ERCAntenna
 		}
 		return ret;
 	}
-	
+
 	/**
 	 * Method to tell whether a NodeInst has diffusion on it.
 	 * @param ni the NodeInst in question.
@@ -480,7 +480,7 @@ public class ERCAntenna
 	{
 		// stop if this is a pin
 		if (ni.getFunction() == PrimitiveNode.Function.PIN) return false;
-	
+
 		// analyze to see if there is diffusion here
 		Technology tech = ni.getProto().getTechnology();
 		Poly [] polyList = tech.getShapeOfNode(ni);
@@ -546,7 +546,7 @@ public class ERCAntenna
 		}
 		return ERCANTPATHNULL;
 	}
-	
+
 	/**
 	 * Method to tell whether an AntennaObject is in the active list.
 	 * @param ao the AntennaObject.
@@ -555,7 +555,7 @@ public class ERCAntenna
 	private boolean haveAntennaObject(AntennaObject ao)
 	{
 		for(AntennaObject oAo : pathList)
-		{	
+		{
 			if (oAo.geom == ao.geom && oAo.depth == ao.depth)
 			{
 				boolean found = true;
@@ -573,7 +573,7 @@ public class ERCAntenna
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to add an AntennaObject to the list of antenna objects on this path.
 	 * @param ao the AntennaObject to add.
@@ -595,7 +595,7 @@ public class ERCAntenna
 		if (ap == null) return 0;
 
 		// return its ratio
-		return ERC.tool.getAntennaRatio(ap);
+		return ap.getAntennaRatio();
 	}
 
 }

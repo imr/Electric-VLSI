@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 
+import com.sun.electric.tool.user.ActivityLogger;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
@@ -99,14 +100,23 @@ import org.xml.sax.SAXParseException;
 public class Pref
 {
     public static class Group {
+        private final boolean isTechGroup;
+        private boolean lockCreation;
         Preferences preferences;
         private final TreeMap<String,Pref> prefs = new TreeMap<String,Pref>();
 
-        public Group(Preferences preferences) { this.preferences = preferences; }
+        public Group(Preferences preferences, boolean isTechGroup) {
+            this.preferences = preferences;
+            this.isTechGroup = isTechGroup;
+        }
         public String absolutePath() { return preferences.absolutePath(); }
 
         public Collection<Pref> getPrefs() {
             return Collections.unmodifiableCollection(prefs.values());
+        }
+
+        public void lockCreation() {
+            lockCreation = true;
         }
 
         private void setCachedObjsFromPreferences() {
@@ -196,12 +206,12 @@ public class Pref
     public static Group groupForPackage(Class classFromPackage, boolean techGroup) {
         Preferences prefs = Preferences.userNodeForPackage(classFromPackage);
         if (techGroup)
-            return new Group(prefs);
+            return new Group(prefs, true);
         synchronized(allGroups) {
             for (Group group: allGroups)
                 if (group.preferences == prefs)
                     return group;
-            Group newGroup = new Group(prefs);
+            Group newGroup = new Group(prefs, false);
             allGroups.add(newGroup);
             return newGroup;
         }
@@ -235,6 +245,8 @@ public class Pref
 	 * @param name the name of this Pref.
 	 */
 	protected Pref(Group group, String name, boolean serverAccessible, PrefType type, Object factoryObj) {
+        if (group.lockCreation)
+            throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" was created from improper place");
         this.name = name;
         this.group = group;
         this.serverAccessible = serverAccessible;

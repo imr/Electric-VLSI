@@ -27,7 +27,6 @@ import com.sun.electric.database.text.TempPref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.event.ActionEvent;
@@ -98,7 +97,7 @@ public class AntennaRulesTab extends PreferencePanel
 				ArcProto ap = it.next();
 				ArcProto.Function fun = ap.getFunction();
 				if (!fun.isMetal() && fun != ArcProto.Function.POLY1) continue;
-				double ratio = ERC.getERCTool().getAntennaRatio(ap);
+				double ratio = ap.getAntennaRatio();
 				TempPref pref = TempPref.makeDoublePref(ratio);
 				antennaOptions.put(ap, pref);
 			}
@@ -129,7 +128,7 @@ public class AntennaRulesTab extends PreferencePanel
 		{
 			antennaArcList.setSelectedIndex(0);
 			antennaArcListClick();
-		}		
+		}
 	}
 
 	private void antennaArcListClick()
@@ -200,7 +199,7 @@ public class AntennaRulesTab extends PreferencePanel
 		{
 			TempPref pref = antennaOptions.get(ap);
 			if (pref.getDoubleFactoryValue() != pref.getDouble())
-				ERC.getERCTool().setAntennaRatio(ap, pref.getDouble());
+				ap.setAntennaRatio(pref.getDouble());
 		}
 	}
 
@@ -209,7 +208,6 @@ public class AntennaRulesTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		ERC erc = ERC.getERCTool();
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = tIt.next();
@@ -218,8 +216,8 @@ public class AntennaRulesTab extends PreferencePanel
 				ArcProto ap = it.next();
 				ArcProto.Function fun = ap.getFunction();
 				if (!fun.isMetal() && fun != ArcProto.Function.POLY1) continue;
-				if (erc.getFactoryAntennaRatio(ap) != erc.getAntennaRatio(ap))
-					erc.setAntennaRatio(ap, erc.getFactoryAntennaRatio(ap));
+				if (ap.getFactoryAntennaRatio() != ap.getAntennaRatio())
+					ap.setAntennaRatio(ap.getFactoryAntennaRatio());
 			}
 		}
 	}

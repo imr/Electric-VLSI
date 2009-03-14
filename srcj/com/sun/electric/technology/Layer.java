@@ -709,15 +709,15 @@ public class Layer
 		this.graphics = graphics;
         this.factoryGraphics = new EGraphics(graphics);
 		this.nonPseudoLayer = this;
-        usePatternDisplayPref = getBooleanPref("UsePatternDisplay", graphics.isPatternedOnDisplay());
-        usePatternPrinterPref = getBooleanPref("UsePatternPrinter", graphics.isPatternedOnPrinter());
-        outlinePatternPref = getIntegerPref("OutlinePattern", graphics.getOutlined().getIndex());
-        transparentLayerPref = getIntegerPref("TransparentLayer", graphics.getTransparentLayer());
-        opacityPref = getDoublePref("Opacity", graphics.getOpacity());
-        colorPref = getIntegerPref("Color", graphics.getRGB());
-        patternPref = getStringPref("Pattern", graphics.getPatternString());
+        usePatternDisplayPref = makeBooleanPref("UsePatternDisplay", graphics.isPatternedOnDisplay());
+        usePatternPrinterPref = makeBooleanPref("UsePatternPrinter", graphics.isPatternedOnPrinter());
+        outlinePatternPref = makeIntegerPref("OutlinePattern", graphics.getOutlined().getIndex());
+        transparentLayerPref = makeIntegerPref("TransparentLayer", graphics.getTransparentLayer());
+        opacityPref = makeDoublePref("Opacity", graphics.getOpacity());
+        colorPref = makeIntegerPref("Color", graphics.getRGB());
+        patternPref = makeStringPref("Pattern", graphics.getPatternString());
 
-		layerVisibilityPref = getBooleanPref("Visibility", true);
+		layerVisibilityPref = makeBooleanPref("Visibility", true);
         visible = layerVisibilityPref == null || layerVisibilityPref.getBoolean();
 		this.dimmed = false;
 		this.function = Function.UNKNOWN;
@@ -1134,48 +1134,48 @@ public class Layer
     }
 
     /**
-	 * Method to get a string preference for this Layer and a specific purpose.
+	 * Method to make a string preference for this Layer and a specific purpose.
 	 * @param what the purpose of the preference.
 	 * @param factory the factory default value for this Layer/purpose.
 	 * @return the string Pref object for this Layer/purpose.
 	 */
-    private Pref getStringPref(String what, String factory)
+    private Pref makeStringPref(String what, String factory)
 	{
         if (isFree()) return null;
         return Pref.makeStringPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
     /**
-	 * Method to get a boolean preference for this Layer and a specific purpose.
+	 * Method to make a boolean preference for this Layer and a specific purpose.
 	 * @param what the purpose of the preference.
 	 * @param factory the factory default value for this Layer/purpose.
 	 * @return the boolean Pref object for this Layer/purpose.
 	 */
-    private Pref getBooleanPref(String what, boolean factory)
+    private Pref makeBooleanPref(String what, boolean factory)
 	{
         if (isFree()) return null;
         return Pref.makeBooleanPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
 	/**
-	 * Method to get a double-precision preference for this Layer and a specific purpose.
+	 * Method to make a double-precision preference for this Layer and a specific purpose.
 	 * @param what the purpose of the preference.
 	 * @param factory the factory default value for this Layer/purpose.
 	 * @return the double-precision Pref object for this Layer/purpose.
 	 */
-	private Pref getDoublePref(String what, double factory)
+	private Pref makeDoublePref(String what, double factory)
 	{
         if (isFree()) return null;
         return Pref.makeDoublePref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
 	/**
-	 * Method to get an integer preference for this Layer and a specific purpose.
+	 * Method to make an integer preference for this Layer and a specific purpose.
 	 * @param what the purpose of the preference.
 	 * @param factory the factory default value for this Layer/purpose.
 	 * @return the integer Pref object for this Layer/purpose.
 	 */
-	private Pref getIntegerPref(String what, int factory)
+	private Pref makeIntegerPref(String what, int factory)
 	{
         if (isFree()) return null;
         return Pref.makeIntPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
@@ -1198,10 +1198,10 @@ public class Layer
         if (mode == null)
             mode = DEFAULT_MODE;
         // We don't call setDistance and setThickness directly here due to reflection code.
-        layer3DDistancePref = getDoublePref("Distance", distance);
-		layer3DThicknessPref = getDoublePref("Thickness", thickness);
-        layer3DTransModePref = getStringPref("3DTransparencyMode", mode);
-        layer3DTransFactorPref =  getDoublePref("3DTransparencyFactor", factor);
+        layer3DDistancePref = makeDoublePref("Distance", distance);
+		layer3DThicknessPref = makeDoublePref("Thickness", thickness);
+        layer3DTransModePref = makeStringPref("3DTransparencyMode", mode);
+        layer3DTransFactorPref =  makeDoublePref("3DTransparencyFactor", factor);
 //        getDoublePref("Distance", layer3DDistancePrefs, distance).setFactoryDouble(distance);
 //		getDoublePref("Thickness", layer3DThicknessPrefs, thickness).setFactoryDouble(thickness);
 //            setTransparencyMode(mode);
@@ -1590,7 +1590,7 @@ public class Layer
             setFactory3DInfo(thickness, distance, mode, factor);
         }
         if (areaCoveragePref == null)
-            areaCoveragePref = getDoublePref("AreaCoverageJob", DEFAULT_AREA_COVERAGE);
+            areaCoveragePref = makeDoublePref("AreaCoverageJob", DEFAULT_AREA_COVERAGE);
     }
 
 	/**

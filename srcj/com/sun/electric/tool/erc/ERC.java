@@ -24,12 +24,7 @@
 package com.sun.electric.tool.erc;
 
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * This is the Electrical Rule Checker tool.
@@ -37,7 +32,6 @@ import java.util.Map;
 public class ERC extends Tool
 {
 	/** the ERC tool. */					protected static ERC tool = new ERC();
-	/** Pref map for arc antenna ratio. */	private static Map<ArcProto,Pref> defaultAntennaRatioPrefs = new HashMap<ArcProto,Pref>();
 
 	/**
 	 * The constructor sets up the ERC tool.
@@ -239,41 +233,4 @@ public class ERC extends Tool
 	 * @return true if ERC should check DRC Spacing condition by default.
 	 */
 	public static boolean isFactoryDRCCheck() { return cacheDRCCheck.getBooleanFactoryValue(); }
-
-    /**** ANTENNA Preferences ***/
-	private Pref getArcProtoAntennaPref(ArcProto ap)
-	{
-		Pref pref = defaultAntennaRatioPrefs.get(ap);
-		if (pref == null)
-		{
-			double factory = ERCAntenna.DEFPOLYRATIO;
-			if (ap.getFunction().isMetal()) factory = ERCAntenna.DEFMETALRATIO;
-            Technology tech = ap.getTechnology();
-			pref = Pref.makeDoublePref("DefaultAntennaRatioFor" + ap.getName() + "IN" + tech.getTechName(),
-                    tech.getTechnologyPreferences(), factory);
-			defaultAntennaRatioPrefs.put(ap, pref);
-		}
-		return pref;
-	}
-
-    /**
-	 * Method to set the antenna ratio of this ArcProto.
-	 * Antenna ratios are used in antenna checks that make sure the ratio of the area of a layer is correct.
-	 * @param ratio the antenna ratio of this ArcProto.
-	 */
-	public void setAntennaRatio(ArcProto ap, double ratio) { getArcProtoAntennaPref(ap).setDouble(ratio); }
-
-    /**
-	 * Method to tell the antenna ratio of this ArcProto.
-	 * Antenna ratios are used in antenna checks that make sure the ratio of the area of a layer is correct.
-	 * @return the antenna ratio of this ArcProto.
-	 */
-	public double getAntennaRatio(ArcProto ap) { return getArcProtoAntennaPref(ap).getDouble(); }
-
-    /**
-	 * Method to tell the default antenna ratio of this ArcProto.
-	 * Antenna ratios are used in antenna checks that make sure the ratio of the area of a layer is correct.
-	 * @return the default antenna ratio of this ArcProto.
-	 */
-	public double getFactoryAntennaRatio(ArcProto ap) { return getArcProtoAntennaPref(ap).getDoubleFactoryValue(); }
 }
