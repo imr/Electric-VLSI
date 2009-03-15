@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+BUG: (3/15/09, DN) MultiDRC regression failed because tech.getResolution() was factory default.
+FIX: In DRCToolTest.basicMTDRCTest explicitly set resolution to 0.0 .  
+
+IMP: (3/14/09, DN) Loading technology options from Java Preferences is moved to GUI thread
+
 BUG: (3/15/09, SMR) "Cell" component menu item may be too long and does not scroll (Bug #2082).
 FIX: Now use the same code for scrollable popup menus as the "Pure" component menu.
 
