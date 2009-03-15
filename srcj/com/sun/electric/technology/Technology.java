@@ -60,6 +60,7 @@ import com.sun.electric.technology.technologies.GEM;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.ToolSettings;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
@@ -886,6 +887,7 @@ public class Technology implements Comparable<Technology>, Serializable
     /** Setting Group for this Technology */                private final Setting.Group settings;
 	/** preferences group for this technology */            private final Pref.Group prefs;
     /** User preferences group for this tecnology */        private final Pref.Group userPrefs;
+    /** DRC preferences group for this tecnology */         private final Pref.Group drcPrefs;
 	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
 	/** the color map for this technology */				private Color [] colorMap;
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
@@ -908,6 +910,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */						private String [] spiceHeaderLevel3;
     /** resolution for this Technology */                   private Pref prefResolution;
+	/** overrides of DRC rules preference. */               private Pref prefDRCOverride;
     /** static list of all Manufacturers in Electric */     protected final List<Foundry> foundries = new ArrayList<Foundry>();
     /** default foundry Setting for this Technology */      private final Setting cacheFoundry;
     /** default foundry name for this Technology */         protected String paramFoundry;
@@ -998,7 +1001,7 @@ public class Technology implements Comparable<Technology>, Serializable
         settings = rootSettings.node(getTechName());
 		prefs = Pref.groupForPackage(Generic.class, true);
         userPrefs = Pref.groupForPackage(User.class, true);
-//        ercPrefs = Pref.groupForPackage(ERC.class, true);
+        drcPrefs = Pref.groupForPackage(DRC.class, true);
         cacheFoundry = makeStringSetting("SelectedFoundryFor"+getTechName(),
         	"Technology tab", getTechName() + " foundry", "Foundry", defaultFoundry.getName());
         paramFoundry = defaultFoundry.getName();
@@ -1019,6 +1022,7 @@ public class Technology implements Comparable<Technology>, Serializable
 //        cacheKeeperRatio = makeLESetting("KeeperRatio", DEFAULT_KEEPERRATIO);
         layerOrderPref = Pref.makeStringPref("LayerOrderfor"+getTechName(), prefs, "");
         componentMenuPref = Pref.makeStringPref("ComponentMenuXMLfor"+getTechName(), prefs, "");
+        prefDRCOverride = Pref.makeStringServerPref("DRCOverridesFor" + getTechName(), getTechnologyDRCPreferences(), "");
 	}
 
     protected Object writeReplace() { return new TechnologyKey(this); }
@@ -1716,7 +1720,7 @@ public class Technology implements Comparable<Technology>, Serializable
         if (pref == null) return;
         while (indent-- > 0)
             out.print("\t");
-        out.println(pref.getPrefName() + "=" + pref.getValue() + "(" + pref.getFactoryValue() + ")");
+        out.println(pref.getPrefName() + "=" + pref.getFactoryValue() + "(" + pref.getFactoryValue() + ")");
     }
 
     private static void printMenuEntry(PrintWriter out, Object entry) {
@@ -4293,7 +4297,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * the technologies (they are all in the same package).
 	 * @return the Pref object associated with all Technologies.
 	 */
-	public Pref.Group getTechnologyUserPreferences() { return userPrefs; }
+	Pref.Group getTechnologyUserPreferences() { return userPrefs; }
 
 	/**
 	 * Method to return the Pref group associated with this Technology.
@@ -4302,7 +4306,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * the technologies (they are all in the same package).
 	 * @return the Pref object associated with all Technologies.
 	 */
-//	public Pref.Group getTechnologyErcPreferences() { return ercPrefs; }
+	Pref.Group getTechnologyDRCPreferences() { return drcPrefs; }
 
 	/**
 	 * Method to return the Pref object associated with all Technologies.
@@ -4312,7 +4316,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * @return the Pref object associated with all Technologies.
 	 */
 	public Pref.Group[] getTechnologyAllPreferences() {
-        return new Pref.Group[] {prefs, userPrefs}; //, ercPrefs};
+        return new Pref.Group[] {prefs, userPrefs, drcPrefs};
     }
 
 	/**
@@ -5180,6 +5184,26 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * @param newRules
 	 */
 	public void setRuleVariables(DRCRules newRules) {}
+
+	/**
+	 * Method to get the DRC overrides from the preferences for this technology.
+	 * @return a Pref describing DRC overrides for the Technology.
+	 */
+	public String getDRCOverrides() {
+        return prefDRCOverride.getString();
+	}
+
+	/**
+	 * Method to set the DRC overrides for a this technology.
+	 * @param overrides the overrides.
+	 */
+	public void setDRCOverrides(String overrides) {
+		if (overrides.length() >= Preferences.MAX_VALUE_LENGTH) {
+			System.out.println("Warning: Design rule overrides are too complex to be saved (are " +
+				overrides.length() + " long which is more than the limit of " + Preferences.MAX_VALUE_LENGTH + ")");
+		}
+		prefDRCOverride.setString(overrides);
+	}
 
 	/**
 	 * Returns the color map for transparent layers in this technology.

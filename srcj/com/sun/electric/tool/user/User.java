@@ -2067,7 +2067,7 @@ public class User extends Listener
 	 */
 	public static int getFactorySmartHorizontalPlacementExport() { return cacheSmartHorizontalPlacementExport.getIntFactoryValue(); }
 
-	private static Pref cacheSmartVerticalPlacementArc = Pref.makeIntPref("SmartVerticalPlacementArc", tool.prefs, 0);
+	private static Pref cacheSmartVerticalPlacementArc = Pref.makeIntServerPref("SmartVerticalPlacementArc", tool.prefs, 0);
 	/**
 	 * Method to tell what type of "smart" text placement should be done for vertical Arcs.
 	 * The values can be 0: place text inside; 1: place text to left; 2: place text to right.
@@ -2088,7 +2088,7 @@ public class User extends Listener
 	 */
 	public static int getFactorySmartVerticalPlacementArc() { return cacheSmartVerticalPlacementArc.getIntFactoryValue(); }
 
-	private static Pref cacheSmartHorizontalPlacementArc = Pref.makeIntPref("SmartHorizontalPlacementArc", tool.prefs, 0);
+	private static Pref cacheSmartHorizontalPlacementArc = Pref.makeIntServerPref("SmartHorizontalPlacementArc", tool.prefs, 0);
 	/**
 	 * Method to tell what type of "smart" text placement should be done for horizontal Arcs.
 	 * The values can be 0: place text inside; 1: place text above; 2: place text below.
@@ -2468,7 +2468,7 @@ public class User extends Listener
 
 	/****************************** UNITS PREFERENCES ******************************/
 
-	private static Pref cacheDistanceUnits = Pref.makeIntPref("DistanceUnit", tool.prefs, -1);
+	private static Pref cacheDistanceUnits = Pref.makeIntServerPref("DistanceUnit", tool.prefs, -1);
 	/**
 	 * Method to get current distance units.
 	 * The default is "scalable units".
@@ -2702,7 +2702,7 @@ public class User extends Listener
 //		return list.iterator();
 //	}
 
-	private static Pref cacheWorkingDirectory = Pref.makeStringServerPref("WorkingDirectory", tool.prefs, java.lang.System.getProperty("user.dir"));
+	private static Pref cacheWorkingDirectory = Pref.makeStringPref("WorkingDirectory", tool.prefs, java.lang.System.getProperty("user.dir"));
 	/**
 	 * Method to get the path of the current working directory.
 	 * The default is the Java "user directory".
@@ -2984,7 +2984,7 @@ public class User extends Listener
 		cacheDefaultMessagesYSize.setInt(sz.height);
 	}
 
-	private static Pref cachePlayClickSoundsWhenCreatingArcs = Pref.makeBooleanPref("PlayClickSoundsWhenCreatingArcs", tool.prefs, true);
+	private static Pref cachePlayClickSoundsWhenCreatingArcs = Pref.makeBooleanServerPref("PlayClickSoundsWhenCreatingArcs", tool.prefs, true);
 	/**
 	 * Method to tell whether to play a "click" sound when an arc is created.
 	 * The default is "true".
@@ -3475,7 +3475,7 @@ public class User extends Listener
 	 */
 	public static boolean isFactoryCheckCellDates() { return cacheCheckCellDates.getBooleanFactoryValue(); }
 
-	private static Pref cacheDisallowModificationLockedPrims = Pref.makeBooleanPref("DisallowModificationLockedPrims", tool.prefs, false);
+	private static Pref cacheDisallowModificationLockedPrims = Pref.makeBooleanServerPref("DisallowModificationLockedPrims", tool.prefs, false);
 	/**
 	 * Method to tell whether locked primitives can be modified.
 	 * Locked primitives occur in array-technologies such as FPGA.
@@ -3496,7 +3496,7 @@ public class User extends Listener
 	 */
 	public static boolean isFactoryDisallowModificationLockedPrims() { return cacheDisallowModificationLockedPrims.getBooleanFactoryValue(); }
 
-	private static Pref cacheDisallowModificationComplexNodes = Pref.makeBooleanPref("DisallowModificationComplexNodes", tool.prefs, false);
+	private static Pref cacheDisallowModificationComplexNodes = Pref.makeBooleanServerPref("DisallowModificationComplexNodes", tool.prefs, false);
 	/**
 	 * Method to tell whether complex nodes can be modified.
 	 * Complex nodes are cell instances and advanced primitives (transistors, etc.)

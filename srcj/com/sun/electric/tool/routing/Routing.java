@@ -758,7 +758,7 @@ public class Routing extends Listener
 						{
 							if (nm.ni.getFunction() == ni.getFunction()) toNi.add(ni);
 						}
-					}					
+					}
 				}
 
 				// if lists are not the same length, give a warning
@@ -873,7 +873,7 @@ public class Routing extends Listener
 								{
 									if (nm.otherNi.getNumPortInsts() == 1) piDest = nm.otherNi.getOnlyPortInst();
 								}
-								if (piDest != null) endSet.add(piDest);	
+								if (piDest != null) endSet.add(piDest);
 							}
 						}
 					}
@@ -962,7 +962,7 @@ public class Routing extends Listener
 
 	/****************************** GENERAL ROUTING OPTIONS ******************************/
 
-	private static Pref cachePreferredRoutingArc = Pref.makeStringPref("PreferredRoutingArc", Routing.tool.prefs, "");
+	private static Pref cachePreferredRoutingArc = Pref.makeStringServerPref("PreferredRoutingArc", Routing.tool.prefs, "");
 	/**
 	 * Method to return the name of the arc that should be used as a default by the stitching routers.
 	 * The default is "".
@@ -1418,7 +1418,7 @@ public class Routing extends Listener
 	public static double getSunRouterTilesPerPinMedNet() { return cacheSLRTilesPerPinMedNet.getDouble(); }
 	public static void setSunRouterTilesPerPinMedNet(double r) { cacheSLRTilesPerPinMedNet.setDouble(r); }
 	public static double getFactorySunRouterTilesPerPinMedNet() { return cacheSLRTilesPerPinMedNet.getDoubleFactoryValue(); }
-	
+
 	private static Pref cacheSLROneTileFactor = Pref.makeDoublePref("SunRouterOneTileFactor", Routing.getRoutingTool().prefs, 2.65);
 	public static double getSunRouterOneTileFactor() { return cacheSLROneTileFactor.getDouble(); }
 	public static void setSunRouterOneTileFactor(double r) { cacheSLROneTileFactor.setDouble(r); }

@@ -357,7 +357,7 @@ public class NetworkTool extends Tool
 	/****************************** OPTIONS ******************************/
 
     private final static boolean BUS_ASCENDING_DEFAULT = false;
-	private static Pref cacheBusAscending = Pref.makeBooleanPref("BusAscending", NetworkTool.tool.prefs, BUS_ASCENDING_DEFAULT);
+	private static Pref cacheBusAscending = Pref.makeBooleanServerPref("BusAscending", NetworkTool.tool.prefs, BUS_ASCENDING_DEFAULT);
 	/**
 	 * Method to tell whether unnamed busses should be numbered ascending.
 	 * The alternative is descending.

@@ -671,7 +671,7 @@ public class Layer
 	private Function function;
     private static final int NO_FUNCTION_EXTRAS = 0;
     private int functionExtras;
-    private boolean pseudo;
+    private final boolean pseudo;
 	private Setting cifLayerSetting;
 	private Setting dxfLayerSetting;
 //	private String gdsLayer;
@@ -694,14 +694,14 @@ public class Layer
     private Pref layer3DTransModePref; // NONE is the default
     private Pref layer3DTransFactorPref; // 0 is the default
 
-    private Pref areaCoveragePref;  // Used by area coverage tool
+    private final Pref areaCoveragePref;  // Used by area coverage tool
 	/** the pseudo layer (if exists) */                                     private Layer pseudoLayer;
 	/** the "real" layer (if this one is pseudo) */							private Layer nonPseudoLayer;
 	/** true if this layer is visible */									private boolean visible;
 	/** true if dimmed (drawn darker) undimmed layers are highlighted */	private boolean dimmed;
 	/** the pure-layer node that contains just this layer */				private PrimitiveNode pureLayerNode;
 
-	private Layer(String name, boolean isFree, Technology tech, EGraphics graphics)
+	private Layer(String name, boolean isFree, boolean pseudo, Technology tech, EGraphics graphics)
 	{
 		this.name = name;
         this.isFree = isFree;
@@ -709,6 +709,7 @@ public class Layer
 		this.graphics = graphics;
         this.factoryGraphics = new EGraphics(graphics);
 		this.nonPseudoLayer = this;
+        this.pseudo = pseudo;
         usePatternDisplayPref = makeBooleanPref("UsePatternDisplay", graphics.isPatternedOnDisplay());
         usePatternPrinterPref = makeBooleanPref("UsePatternPrinter", graphics.isPatternedOnPrinter());
         outlinePatternPref = makeIntegerPref("OutlinePattern", graphics.getOutlined().getIndex());
@@ -721,6 +722,7 @@ public class Layer
         visible = true;
 		this.dimmed = false;
 		this.function = Function.UNKNOWN;
+        areaCoveragePref = makeDoubleServerPref("AreaCoverageJob", DEFAULT_AREA_COVERAGE);
 	}
 
 	/**
@@ -739,7 +741,7 @@ public class Layer
             if ((colorFromMap.getRGB() & 0xFFFFFF) != graphics.getRGB())
                 throw new IllegalArgumentException();
         }
-		Layer layer = new Layer(name, false, tech, graphics);
+		Layer layer = new Layer(name, false, false, tech, graphics);
 		tech.addLayer(layer);
         if (graphics.getLayer() == null) {
 //            layer.loadGraphicsFromPrefs();
@@ -757,7 +759,7 @@ public class Layer
 	 */
 	public static Layer newInstanceFree(Technology tech, String name, EGraphics graphics)
 	{
-		Layer layer = new Layer(name, true, tech, graphics);
+		Layer layer = new Layer(name, true, false, tech, graphics);
 		graphics.setLayer(layer);
 		return layer;
 	}
@@ -769,8 +771,8 @@ public class Layer
     public Layer makePseudo() {
             assert pseudoLayer == null;
         String pseudoLayerName = "Pseudo-" + name;
-        pseudoLayer = new Layer(pseudoLayerName, false, tech, graphics);
-        pseudoLayer.setFunction(function, functionExtras, true);
+        pseudoLayer = new Layer(pseudoLayerName, false, true, tech, graphics);
+        pseudoLayer.setFunction(function, functionExtras);
         pseudoLayer.nonPseudoLayer = this;
         return pseudoLayer;
     }
@@ -836,21 +838,7 @@ public class Layer
 	 * @param function the Function of this Layer.
 	 * @param functionExtras extra bits to describe the Function of this Layer.
 	 */
-	public void setFunction(Function function, int functionExtras)
-    {
-        setFunction(function, functionExtras, false);
-    }
-
-	/**
-	 * Method to set the Function of this Layer when the function is complex.
-	 * Some layer functions have extra bits of information to describe them.
-	 * For example, P-Type Diffusion has the Function DIFF but the extra bits PTYPE.
-	 * @param function the Function of this Layer.
-	 * @param functionExtras extra bits to describe the Function of this Layer.
-     * @param pseudo true if the Layer is pseudo-layer
-	 */
-	public void setFunction(Function function, int functionExtras, boolean pseudo)
-	{
+	public void setFunction(Function function, int functionExtras) {
 		this.function = function;
         int numBits = 0;
         for (int i = 0; i < 32; i++) {
@@ -863,7 +851,6 @@ public class Layer
                 numBits == 1 && Function.getExtraConstantName(functionExtras).length() == 0)
             throw new IllegalArgumentException("functionExtras=" + Integer.toHexString(functionExtras));
         this.functionExtras = functionExtras;
-        this.pseudo = pseudo;
 	}
 
 	/**
@@ -1143,7 +1130,7 @@ public class Layer
 	 */
     private Pref makeStringPref(String what, String factory)
 	{
-        if (isFree()) return null;
+        if (isFree() || isPseudoLayer()) return null;
         return Pref.makeStringPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
@@ -1155,7 +1142,7 @@ public class Layer
 	 */
     private Pref makeBooleanPref(String what, boolean factory)
 	{
-        if (isFree()) return null;
+        if (isFree() || isPseudoLayer()) return null;
         return Pref.makeBooleanPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
@@ -1167,7 +1154,7 @@ public class Layer
 	 */
 	private Pref makeDoublePref(String what, double factory)
 	{
-        if (isFree()) return null;
+        if (isFree() || isPseudoLayer()) return null;
         return Pref.makeDoublePref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
@@ -1179,8 +1166,20 @@ public class Layer
 	 */
 	private Pref makeIntegerPref(String what, int factory)
 	{
-        if (isFree()) return null;
+        if (isFree() || isPseudoLayer()) return null;
         return Pref.makeIntPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
+	}
+
+	/**
+	 * Method to make a double-precision server preference for this Layer and a specific purpose.
+	 * @param what the purpose of the preference.
+	 * @param factory the factory default value for this Layer/purpose.
+	 * @return the double-precision Pref object for this Layer/purpose.
+	 */
+	private Pref makeDoubleServerPref(String what, double factory)
+	{
+        if (isFree() || isPseudoLayer()) return null;
+        return Pref.makeDoubleServerPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
 	/**
@@ -1200,8 +1199,8 @@ public class Layer
         if (mode == null)
             mode = DEFAULT_MODE;
         // We don't call setDistance and setThickness directly here due to reflection code.
-        layer3DDistancePref = makeDoublePref("Distance", distance);
-		layer3DThicknessPref = makeDoublePref("Thickness", thickness);
+        layer3DDistancePref = makeDoubleServerPref("Distance", distance);
+		layer3DThicknessPref = makeDoubleServerPref("Thickness", thickness);
         layer3DTransModePref = makeStringPref("3DTransparencyMode", mode);
         layer3DTransFactorPref =  makeDoublePref("3DTransparencyFactor", factor);
 //        getDoublePref("Distance", layer3DDistancePrefs, distance).setFactoryDouble(distance);
@@ -1591,8 +1590,6 @@ public class Layer
             double factor = layer3DTransFactorPref != null ? getTransparencyFactor() : DEFAULT_FACTOR;
             setFactory3DInfo(thickness, distance, mode, factor);
         }
-        if (areaCoveragePref == null)
-            areaCoveragePref = makeDoublePref("AreaCoverageJob", DEFAULT_AREA_COVERAGE);
     }
 
 	/**
@@ -1647,13 +1644,13 @@ public class Layer
             out.print(" " + Integer.toHexString(p));
         out.println();
         if (layer3DDistancePref != null)
-            out.println("\tdistance3D=" + getDistance());
+            out.println("\tdistance3D=" + getFactoryDistance());
         if (layer3DThicknessPref != null)
-            out.println("\tthickness3D=" + getThickness());
+            out.println("\tthickness3D=" + getFactoryThickness());
         if (layer3DTransModePref != null)
-            out.println("\tmode3D=" + getTransparencyMode());
+            out.println("\tmode3D=" + getFactoryTransparencyMode());
         if (layer3DTransFactorPref != null)
-            out.println("\tfactor3D=" + getTransparencyFactor());
+            out.println("\tfactor3D=" + getFactoryTransparencyFactor());
 
         if (getPseudoLayer() != null)
             out.println("\tpseudoLayer=" + getPseudoLayer().getName());
@@ -1669,12 +1666,12 @@ public class Layer
         l.function = getFunction();
         l.extraFunction = getFunctionExtras();
         l.desc = getGraphics();
-        if (getThickness() != DEFAULT_THICKNESS || getDistance() != DEFAULT_DISTANCE ||
-                !getTransparencyMode().equals(DEFAULT_MODE) || getTransparencyFactor() != DEFAULT_FACTOR) {
-            l.thick3D = getThickness();
-            l.height3D = getDistance();
-            l.mode3D = getTransparencyMode();
-            l.factor3D = getTransparencyFactor();
+        if (getFactoryThickness() != DEFAULT_THICKNESS || getFactoryDistance() != DEFAULT_DISTANCE ||
+                !getFactoryTransparencyMode().equals(DEFAULT_MODE) || getFactoryTransparencyFactor() != DEFAULT_FACTOR) {
+            l.thick3D = getFactoryThickness();
+            l.height3D = getFactoryDistance();
+            l.mode3D = getFactoryTransparencyMode();
+            l.factor3D = getFactoryTransparencyFactor();
         }
         l.cif = (String)getCIFLayerSetting().getFactoryValue();
         l.skill = (String)getSkillLayerSetting().getFactoryValue();

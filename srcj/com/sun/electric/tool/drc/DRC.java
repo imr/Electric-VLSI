@@ -65,7 +65,6 @@ import java.io.Serializable;
 public class DRC extends Listener
 {
 	/** the DRC tool. */								     protected static DRC tool = new DRC();
-	/** overrides of rules for each technology. */		     private static Map<Technology,Pref> prefDRCOverride = new HashMap<Technology,Pref>();
 	/** map of cells and their objects to DRC */		     private static Map<Cell,Set<Geometric>> cellsToCheck = new HashMap<Cell,Set<Geometric>>();
     /** to temporary store DRC dates for spacing checking */ private static Map<Cell,StoreDRCInfo> storedSpacingDRCDate = new HashMap<Cell,StoreDRCInfo>();
     /** to temporary store DRC dates for area checking */    private static Map<Cell,StoreDRCInfo> storedAreaDRCDate = new HashMap<Cell,StoreDRCInfo>();
@@ -1320,8 +1319,8 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 		if (currentRules != null)
 		{
 			// add overrides
-			StringBuffer override = getDRCOverrides(tech);
-			currentRules.applyDRCOverrides(override.toString(), tech);
+			String override = tech.getDRCOverrides();
+			currentRules.applyDRCOverrides(override, tech);
 		}
 
 		// remember technology whose rules are cached
@@ -1341,19 +1340,19 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 		DRCRules factoryRules = tech.getFactoryDesignRules();
 
 		// determine override differences from the factory rules
-		StringBuffer changes = Technology.getRuleDifferences(factoryRules, newRules);
+		String changes = Technology.getRuleDifferences(factoryRules, newRules).toString();
 
         if (Job.LOCALDEBUGFLAG)
             System.out.println("This function needs attention");
 
 		// get current overrides of factory rules
-		StringBuffer override = getDRCOverrides(tech);
+		String override = tech.getDRCOverrides();
 
 		// if the differences are the same as before, stop
-		if (changes.toString().equals(override.toString())) return;
+		if (changes.equals(override)) return;
 
 		// update the preference for the rule overrides
-		setDRCOverrides(changes, tech);
+		tech.setDRCOverrides(changes);
 
 		// update variables on the technology
 		tech.setRuleVariables(newRules);
@@ -1528,45 +1527,6 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	}
 
 	/****************************** SUPPORT FOR DESIGN RULES ******************************/
-
-	/**
-	 * Method to get the DRC overrides from the preferences for a given technology.
-	 * @param tech the Technology on which to get overrides.
-	 * @return a Pref describing DRC overrides for the Technology.
-	 */
-	private static StringBuffer getDRCOverrides(Technology tech)
-	{
-		Pref pref = prefDRCOverride.get(tech);
-		if (pref == null)
-		{
-			pref = Pref.makeStringPref("DRCOverridesFor" + tech.getTechName(), tool.prefs, "");
-			prefDRCOverride.put(tech, pref);
-		}
-		StringBuffer sb = new StringBuffer();
-		sb.append(pref.getString());
-		return sb;
-	}
-
-	/**
-	 * Method to set the DRC overrides for a given technology.
-	 * @param sb the overrides (a StringBuffer).
-	 * @param tech the Technology on which to get overrides.
-	 */
-	private static void setDRCOverrides(StringBuffer sb, Technology tech)
-	{
-		if (sb.length() >= Preferences.MAX_VALUE_LENGTH)
-		{
-			System.out.println("Warning: Design rule overrides are too complex to be saved (are " +
-				sb.length() + " long which is more than the limit of " + Preferences.MAX_VALUE_LENGTH + ")");
-		}
-		Pref pref = prefDRCOverride.get(tech);
-		if (pref == null)
-		{
-			pref = Pref.makeStringPref("DRCOverridesFor" + tech.getTechName(), tool.prefs, "");
-			prefDRCOverride.put(tech, pref);
-		}
-		pref.setString(sb.toString());
-	}
 
     /**
      * Method to clean those cells that were marked with a valid date due to
@@ -1914,7 +1874,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 
     /****************************** OPTIONS ******************************/
 
-	private static Pref cacheIncrementalDRCOn = Pref.makeBooleanPref("IncrementalDRCOn", tool.prefs, false);
+	private static Pref cacheIncrementalDRCOn = Pref.makeBooleanServerPref("IncrementalDRCOn", tool.prefs, false);
 	/**
 	 * Method to tell whether DRC should be done incrementally.
 	 * The default is "false".
@@ -1951,7 +1911,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	public static boolean isFactoryInteractiveDRCDragOn() { return cacheInteractiveDRCDragOn.getBooleanFactoryValue(); }
 
     /** Logging Type **/
-    private static Pref cacheErrorLoggingType = Pref.makeStringPref("ErrorLoggingType", tool.prefs,
+    private static Pref cacheErrorLoggingType = Pref.makeStringServerPref("ErrorLoggingType", tool.prefs,
             DRCCheckLogging.DRC_LOG_PER_CELL.name());
 	/**
 	 * Method to retrieve logging type in DRC
@@ -1971,7 +1931,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	public static DRCCheckLogging getFactoryErrorLoggingType() {return DRCCheckLogging.valueOf(cacheErrorLoggingType.getStringFactoryValue());}
 
     /** ErrorLevel **/
-    private static Pref cacheErrorCheckLevel = Pref.makeIntPref("ErrorCheckLevel", tool.prefs,
+    private static Pref cacheErrorCheckLevel = Pref.makeIntServerPref("ErrorCheckLevel", tool.prefs,
             DRCCheckMode.ERROR_CHECK_DEFAULT.mode());
 	/**
 	 * Method to retrieve checking level in DRC.
@@ -2006,7 +1966,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         return null;
     }
 
-	private static Pref cacheIgnoreCenterCuts = Pref.makeBooleanPref("IgnoreCenterCuts", tool.prefs, false);
+	private static Pref cacheIgnoreCenterCuts = Pref.makeBooleanServerPref("IgnoreCenterCuts", tool.prefs, false);
 //    static { cacheIgnoreCenterCuts.attachToObject(tool, "Tools/DRC tab", "DRC ignores center cuts in large contacts"); }
 	/**
 	 * Method to tell whether DRC should ignore center cuts in large contacts.
@@ -2028,7 +1988,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	 */
 	public static boolean isFactoryIgnoreCenterCuts() { return cacheIgnoreCenterCuts.getBooleanFactoryValue(); }
 
-    private static Pref cacheIgnoreAreaChecking = Pref.makeBooleanPref("IgnoreAreaCheck", tool.prefs, false);
+    private static Pref cacheIgnoreAreaChecking = Pref.makeBooleanServerPref("IgnoreAreaCheck", tool.prefs, false);
 //    static { cacheIgnoreAreaChecking.attachToObject(tool, "Tools/DRC tab", "DRC ignores area checking"); }
 	/**
 	 * Method to tell whether DRC should ignore minimum/enclosed area checking.
@@ -2047,7 +2007,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	 */
 	public static boolean isFactoryIgnoreAreaChecking() { return cacheIgnoreAreaChecking.getBooleanFactoryValue(); }
 
-    private static Pref cacheIgnoreExtensionRuleChecking = Pref.makeBooleanPref("IgnoreExtensionRuleCheck", tool.prefs, false);
+    private static Pref cacheIgnoreExtensionRuleChecking = Pref.makeBooleanServerPref("IgnoreExtensionRuleCheck", tool.prefs, false);
 //    static { cacheIgnoreExtensionRuleChecking.attachToObject(tool, "Tools/DRC tab", "DRC extension rule checking"); }
 	/**
 	 * Method to tell whether DRC should check extension rules.
@@ -2066,7 +2026,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	 */
 	public static boolean isFactoryIgnoreExtensionRuleChecking() { return cacheIgnoreExtensionRuleChecking.getBooleanFactoryValue(); }
 
-    private static Pref cacheStoreDatesInMemory = Pref.makeBooleanPref("StoreDatesInMemory", tool.prefs, false);
+    private static Pref cacheStoreDatesInMemory = Pref.makeBooleanServerPref("StoreDatesInMemory", tool.prefs, false);
     /**
      * Method to tell whether DRC dates should be stored in memory or not.
      * The default is "false".
@@ -2084,7 +2044,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
      */
     public static boolean isFactoryDatesStoredInMemory() { return cacheStoreDatesInMemory.getBooleanFactoryValue(); }
 
-    private static Pref cacheInteractiveLog = Pref.makeBooleanPref("InteractiveLog", tool.prefs, false);
+    private static Pref cacheInteractiveLog = Pref.makeBooleanServerPref("InteractiveLog", tool.prefs, false);
     /**
      * Method to tell whether DRC loggers should be displayed in Explorer immediately
      * The default is "false".
@@ -2102,7 +2062,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
      */
     public static boolean isFactoryInteractiveLoggingOn() { return cacheInteractiveLog.getBooleanFactoryValue(); }
 
-    private static Pref cacheMinAreaAlgo = Pref.makeStringPref("MinAreaAlgorithm", tool.prefs, DRCCheckMinArea.AREA_LOCAL.name());
+    private static Pref cacheMinAreaAlgo = Pref.makeStringServerPref("MinAreaAlgorithm", tool.prefs, DRCCheckMinArea.AREA_LOCAL.name());
     /**
      * Method to tell which min area algorithm to use.
      * The default is AREA_BASIC which is the brute force version

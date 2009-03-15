@@ -94,7 +94,7 @@ public class LayerCoverageTool extends Tool
 
     // Default value is in um to be technology independent
     private static final double defaultSize = 50000;
-    private static Pref cacheDeltaX = Pref.makeDoublePref("DeltaX", tool.prefs, defaultSize);
+    private static Pref cacheDeltaX = Pref.makeDoubleServerPref("DeltaX", tool.prefs, defaultSize);
 	/**
 	 * Method to get user preference for deltaX.
 	 * The default is 50 mm.
@@ -121,7 +121,7 @@ public class LayerCoverageTool extends Tool
         return cacheDeltaX.getDoubleFactoryValue()/tech.getScale();
     }
 
-    private static Pref cacheDeltaY = Pref.makeDoublePref("DeltaY", tool.prefs, defaultSize);
+    private static Pref cacheDeltaY = Pref.makeDoubleServerPref("DeltaY", tool.prefs, defaultSize);
 	/**
 	 * Method to get user preference for deltaY.
 	 * The default is 50 mm.
@@ -148,7 +148,7 @@ public class LayerCoverageTool extends Tool
         return cacheDeltaY.getDoubleFactoryValue()/tech.getScale();
     }
 
-    private static Pref cacheWidth = Pref.makeDoublePref("Width", tool.prefs, defaultSize);
+    private static Pref cacheWidth = Pref.makeDoubleServerPref("Width", tool.prefs, defaultSize);
 	/**
 	 * Method to get user preference for deltaY.
 	 * The default is 50 mm.
@@ -175,7 +175,7 @@ public class LayerCoverageTool extends Tool
         return cacheWidth.getDoubleFactoryValue()/tech.getScale();
     }
 
-    private static Pref cacheHeight = Pref.makeDoublePref("Height", tool.prefs, defaultSize);
+    private static Pref cacheHeight = Pref.makeDoubleServerPref("Height", tool.prefs, defaultSize);
 	/**
 	 * Method to get user preference for deltaY.
 	 * The default is 50 mm.
@@ -225,7 +225,7 @@ public class LayerCoverageTool extends Tool
         }
         return null;
     }
-    
+
     /**
      * Method to kick area coverage per layer in a cell. It has to be public due to regressions.
      * @param cell

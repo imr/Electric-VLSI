@@ -38,13 +38,13 @@ import java.io.Serializable;
  * A typesafe enum class that describes the types of files that can be read or written.
  */
 public class FileType implements Serializable {
-    private static final FileTypeGroup DATABASEGRP = new FileTypeGroup("Database", User.getWorkingDirectory());
-    private static final FileTypeGroup OTHERSIMGRP = new FileTypeGroup("Others Simulation", User.getWorkingDirectory()); // other simulation tools
-    private static final FileTypeGroup SPICESIMGRP = new FileTypeGroup("SPICE Simulation", User.getWorkingDirectory()); // SPICE simulation tool
-    private static final FileTypeGroup BUILTINSIMGRP = new FileTypeGroup("Built-In Simulation", User.getWorkingDirectory()); // Built-in simulation tools
-    private static final FileTypeGroup VERILOGSIMGRP = new FileTypeGroup("Verilog Simulation", User.getWorkingDirectory()); // Verilog simulation tools
-    private static final FileTypeGroup EXPORTIMPORTGRP = new FileTypeGroup("Export-Import", User.getWorkingDirectory()); // Export/Import formats
-    private static final FileTypeGroup JARGRP = new FileTypeGroup("Electric Build", User.getWorkingDirectory()); // Export/Import formats
+    private static final FileTypeGroup DATABASEGRP = new FileTypeGroup("Database"/*, User.getWorkingDirectory()*/);
+    private static final FileTypeGroup OTHERSIMGRP = new FileTypeGroup("Others Simulation"/*, User.getWorkingDirectory()*/); // other simulation tools
+    private static final FileTypeGroup SPICESIMGRP = new FileTypeGroup("SPICE Simulation"/*, User.getWorkingDirectory()*/); // SPICE simulation tool
+    private static final FileTypeGroup BUILTINSIMGRP = new FileTypeGroup("Built-In Simulation"/*, User.getWorkingDirectory()*/); // Built-in simulation tools
+    private static final FileTypeGroup VERILOGSIMGRP = new FileTypeGroup("Verilog Simulation"/*, User.getWorkingDirectory()*/); // Verilog simulation tools
+    private static final FileTypeGroup EXPORTIMPORTGRP = new FileTypeGroup("Export-Import"/*, User.getWorkingDirectory()*/); // Export/Import formats
+    private static final FileTypeGroup JARGRP = new FileTypeGroup("Electric Build"/*, User.getWorkingDirectory()*/); // Export/Import formats
     private static final Object[] fileTypeGroups = {DATABASEGRP, OTHERSIMGRP, SPICESIMGRP, BUILTINSIMGRP, VERILOGSIMGRP, EXPORTIMPORTGRP, JARGRP};
 
     public static Object[] getFileTypeGroups() { return fileTypeGroups; }
@@ -189,10 +189,11 @@ public class FileType implements Serializable {
         private static HashMap<FileTypeGroup,Pref> groupPrefs = new HashMap<FileTypeGroup,Pref>();
 
         String groupName;
-        FileTypeGroup(String grpName, String factory)
+        FileTypeGroup(String grpName/*, String factory*/)
         {
 //            if (prefs == null) prefs = Pref.groupForPackage(FileType.class);
             groupName = grpName;
+            String factory = System.getProperty("user.dir");
             Pref path = Pref.makeStringPref("FileTypeGroup"+groupName, IOTool.getIOTool().prefs, factory);
             groupPrefs.put(this, path);
         }
@@ -200,7 +201,7 @@ public class FileType implements Serializable {
         public String toString()
         {
             return groupName;
-        }                         
+        }
 
         void setPath(String p)
         {
@@ -294,7 +295,7 @@ public class FileType implements Serializable {
         }
         return this;
     }
-    
+
 	/**
 	 * Returns a printable version of this Type.
 	 * @return a printable version of this Type.

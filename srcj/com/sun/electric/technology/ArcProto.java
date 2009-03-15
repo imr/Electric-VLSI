@@ -872,7 +872,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	public void setFactoryAngleIncrement(int angle)
 	{
         assert defaultAnglePref == null;
-		defaultAnglePref = Pref.makeIntPref("DefaultAngleFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyUserPreferences(), angle);
+		defaultAnglePref = Pref.makeIntServerPref("DefaultAngleFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyUserPreferences(), angle);
 	}
 
 	/**
@@ -1325,10 +1325,10 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
             a.diskOffset.put(Integer.valueOf(1), correction1);
         if (correction2 != 0)
             a.diskOffset.put(Integer.valueOf(2), correction2);
-        a.extended = isExtended();
-        a.fixedAngle = isFixedAngle();
-        a.angleIncrement = getAngleIncrement();
-        a.antennaRatio = getAntennaRatio();
+        a.extended = isFactoryExtended();
+        a.fixedAngle = isFactoryFixedAngle();
+        a.angleIncrement = getFactoryAngleIncrement();
+        a.antennaRatio = getFactoryAntennaRatio();
         for (Technology.ArcLayer arcLayer: layers)
             a.arcLayers.add(arcLayer.makeXml());
 //        if (arcPin != null) {

@@ -44,6 +44,7 @@ import java.util.Date;
 public class IOTool extends Tool
 {
 	/** the IO tool. */										private static IOTool tool = new IOTool();
+    static { FileType.getFileTypeGroups(); } // Preallocate preferences
 
 	/** Varible key for true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = Variable.newKey("IO_true_library");
 
@@ -194,7 +195,7 @@ public class IOTool extends Tool
 
 	/****************************** GENERAL IO PREFERENCES ******************************/
 
-	private static Pref cacheBackupRedundancy = Pref.makeIntPref("OutputBackupRedundancy", IOTool.tool.prefs, 0);
+	private static Pref cacheBackupRedundancy = Pref.makeIntServerPref("OutputBackupRedundancy", IOTool.tool.prefs, 0);
 	/**
 	 * Method to tell what kind of redundancy to apply when writing library files.
 	 * The value is:
