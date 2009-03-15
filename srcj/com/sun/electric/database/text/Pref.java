@@ -119,7 +119,7 @@ public class Pref
             lockCreation = true;
         }
 
-        private void setCachedObjsFromPreferences() {
+        public void setCachedObjsFromPreferences() {
             for(Pref pref : prefs.values())
                 pref.setCachedObjFromPreferences();
         }
@@ -143,7 +143,7 @@ public class Pref
             else
                 queueForFlushing.add(preferences);
         }
-        
+
         private Object getValue(String key, Object def) {
             if (preferences == null) return def;
             Object value = def;
@@ -173,7 +173,7 @@ public class Pref
             }
             return value;
         }
-        
+
         private void remove(String key) {
             if (preferences == null) return;
             preferences.remove(key);
@@ -220,7 +220,7 @@ public class Pref
 	 */
 	protected Pref(Group group, String name, boolean serverAccessible, Object factoryObj) {
         if (group.lockCreation)
-            throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" was created from improper place");
+            throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" is created from improper place");
         this.name = name;
         this.group = group;
         this.serverAccessible = serverAccessible;
@@ -229,7 +229,8 @@ public class Pref
             assert !group.prefs.containsKey(name);
             group.prefs.put(name, this);
         }
-        setCachedObjFromPreferences();
+        if (!group.isTechGroup)
+            setCachedObjFromPreferences();
 //        if (lockCreation && serverAccessible && Job.getDebug()) {
 //            try {
 //                throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" was created from improper place");
@@ -290,13 +291,12 @@ public class Pref
                 for (Technology tech: database.getTechnologies()) {
                     for (Group group: tech.getTechnologyAllPreferences())
                         group.setCachedObjsFromPreferences();
+        			// recache technology color information
+                    tech.cacheTransparentLayerColors();
                 }
                 database.getEnvironment().saveToPreferences();
             }
 			resumePrefFlushing();
-
-			// recache technology color information
-            Technology.cacheTransparentLayerColors();
 		} catch (InvalidPreferencesFormatException e)
 		{
 			String message = "Invalid preferences format";
@@ -587,7 +587,16 @@ public class Pref
 	 * @return the Object value of this Pref object.
 	 */
 	public Object getValue() {
-        if (Job.getDebug() && !serverAccessible && lockCreation && Job.inServerThread() && !reportedAccess.contains(this)) {
+        if (group.isTechGroup) {
+            if (!group.lockCreation)
+                throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" is accessed from improper place");
+            if (Job.getDebug() && !serverAccessible && Job.inServerThread() && !reportedAccess.contains(this)) {
+                String msg = getPrefName() + " is accessed from " + Job.getRunningJob();
+                ActivityLogger.logMessage(msg);
+                System.out.println(msg);
+                reportedAccess.add(this);
+            }
+        } else if (Job.getDebug() && !serverAccessible && lockCreation && Job.inServerThread() && !reportedAccess.contains(this)) {
             String msg = getPrefName() + " is accessed from " + Job.getRunningJob();
 //            ActivityLogger.logMessage(msg);
 //            System.out.println(msg);
@@ -774,7 +783,15 @@ public class Pref
     }
 
     private void checkModify() {
-        if (Job.getDebug() && lockCreation && Job.inServerThread()) {
+        if (group.isTechGroup) {
+            if (!group.lockCreation)
+                throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" is modified from improper place");
+            if (Job.getDebug() && Job.inServerThread()) {
+                String msg = getPrefName() + " is modified in " + Job.getRunningJob();
+                ActivityLogger.logMessage(msg);
+                System.out.println(msg);
+            }
+       } else if (Job.getDebug() && lockCreation && Job.inServerThread()) {
             String msg = getPrefName() + " is modified in " + Job.getRunningJob();
 //            ActivityLogger.logMessage(msg);
 //            System.out.println(msg);

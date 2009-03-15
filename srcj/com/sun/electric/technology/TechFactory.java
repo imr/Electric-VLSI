@@ -106,7 +106,8 @@ public abstract class TechFactory {
                 System.out.println("GNU Release can't find extra technologies");
         } catch (Exception e) {
             System.out.println("Exceptions while importing extra technologies");
-//            ActivityLogger.logException(e);
+            if (Job.getDebug())
+                ActivityLogger.logException(e);
         } finally {
             Environment.setThreadEnvironment(oldEnvironment);
             Pref.resumePrefFlushing();

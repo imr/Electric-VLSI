@@ -36,6 +36,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
@@ -576,7 +577,9 @@ public class UserInterfaceMain extends AbstractUserInterface
      * @param newSnapshot new snapshot.
      */
     public void showSnapshot(Snapshot newSnapshot, boolean undoRedo) {
-            SwingUtilities.invokeLater(new DatabaseChangeRun(newSnapshot, undoRedo));
+        assert SwingUtilities.isEventDispatchThread();
+        new DatabaseChangeRun(newSnapshot, undoRedo).run();
+//        SwingUtilities.invokeLater(new DatabaseChangeRun(newSnapshot, undoRedo));
     }
 
     @Override
@@ -698,6 +701,11 @@ public class UserInterfaceMain extends AbstractUserInterface
             if (newSnapshot.environment != currentSnapshot.environment) {
                 Environment.setThreadEnvironment(newSnapshot.environment);
                 if (newSnapshot.techPool != currentSnapshot.techPool) {
+                    for (Technology tech: newSnapshot.techPool.values()) {
+                        for (Pref.Group group: tech.getTechnologyAllPreferences())
+                            group.setCachedObjsFromPreferences();
+                        tech.cacheTransparentLayerColors();
+                    }
                     User.technologyChanged();
                     WindowFrame.updateTechnologyLists();
                     WindowFrame.repaintAllWindows();

@@ -1118,7 +1118,6 @@ public class Technology implements Comparable<Technology>, Serializable
             if (l.pureLayerNode.oldName != null)
                 oldNodeNames.put(l.pureLayerNode.oldName, pn);
         }
-        convertMenuPalette(t.menuPalette);
         for (Xml.SpiceHeader h: t.spiceHeaders) {
             String[] spiceLines = h.spiceLines.toArray(new String[h.spiceLines.size()]);
             switch (h.level) {
@@ -4816,7 +4815,7 @@ public class Technology implements Comparable<Technology>, Serializable
      */
     protected void setFactoryResolution(double factory)
     {
-        prefResolution = Pref.makeDoublePref("ResolutionValueFor"+getTechName(), prefs, factory);
+        prefResolution = Pref.makeDoubleServerPref("ResolutionValueFor"+getTechName(), prefs, factory);
     }
 
     /**
@@ -4950,9 +4949,9 @@ public class Technology implements Comparable<Technology>, Serializable
 		for(int i=0; i<layers.length; i++)
 		{
 			transparentColorPrefs[i] = Pref.makeIntPref("TransparentLayer"+(i+1)+"For"+getTechName(), prefs, layers[i].getRGB());
-			layers[i] = new Color(transparentColorPrefs[i].getInt());
+			layers[i] = new Color(transparentColorPrefs[i].getIntFactoryValue());
 		}
-		setColorMapFromLayers(layers);
+		setColorMap(getColorMap(layers, transparentLayers));
 	}
 
 	/**
@@ -4986,26 +4985,22 @@ public class Technology implements Comparable<Technology>, Serializable
 	/**
 	 * Method to reload the color map when the layer color preferences have changed.
 	 */
-	public static void cacheTransparentLayerColors()
+	public void cacheTransparentLayerColors()
 	{
         // recache technology color information
-        for(Iterator<Technology> it = getTechnologies(); it.hasNext(); )
+        for(Iterator<Layer> lIt = getLayers(); lIt.hasNext(); )
         {
-            Technology tech = it.next();
-            for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-            {
-                Layer layer = lIt.next();
-                layer.loadGraphicsFromPrefs();
-            }
-
-            if (tech.transparentColorPrefs == null || tech.transparentColorPrefs.length <= 0) continue;
-            Color [] layers = new Color[tech.transparentColorPrefs.length];
-            for(int i=0; i<tech.transparentColorPrefs.length; i++)
-            {
-                layers[i] = new Color(tech.transparentColorPrefs[i].getInt());
-            }
-            tech.setColorMapFromLayers(layers);
+            Layer layer = lIt.next();
+            layer.loadGraphicsFromPrefs();
         }
+
+        if (transparentColorPrefs == null || transparentColorPrefs.length <= 0) return;
+        Color [] layers = new Color[transparentColorPrefs.length];
+        for(int i=0; i<transparentColorPrefs.length; i++)
+        {
+            layers[i] = new Color(transparentColorPrefs[i].getInt());
+        }
+        setColorMapFromLayers(layers);
 	}
 
 	public Color [] getFactoryColorMap()
@@ -5630,6 +5625,11 @@ public class Technology implements Comparable<Technology>, Serializable
 	public Object[][] getDefaultNodesGrouped()
 	{
 		if (factoryNodeGroups != null) return factoryNodeGroups;
+        if (xmlTech.menuPalette != null) {
+            convertMenuPalette(xmlTech.menuPalette);
+            assert factoryNodeGroups != null;
+            return factoryNodeGroups;
+        }
 
 		// compute palette information automatically
 		List<Object> things = new ArrayList<Object>();

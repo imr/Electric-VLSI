@@ -718,7 +718,7 @@ public class Layer
         patternPref = makeStringPref("Pattern", graphics.getPatternString());
 
 		layerVisibilityPref = makeBooleanPref("Visibility", true);
-        visible = layerVisibilityPref == null || layerVisibilityPref.getBoolean();
+        visible = true;
 		this.dimmed = false;
 		this.function = Function.UNKNOWN;
 	}
@@ -742,7 +742,7 @@ public class Layer
 		Layer layer = new Layer(name, false, tech, graphics);
 		tech.addLayer(layer);
         if (graphics.getLayer() == null) {
-            layer.loadGraphicsFromPrefs();
+//            layer.loadGraphicsFromPrefs();
             graphics.setLayer(layer);
         }
 		return layer;
@@ -1003,6 +1003,7 @@ public class Layer
         opacityPref.factoryReset();
         colorPref.factoryReset();
         patternPref.factoryReset();
+        layerVisibilityPref.factoryReset();
 
         loadGraphicsFromPrefs();
 	}
@@ -1042,6 +1043,7 @@ public class Layer
         graphics.setOpacity(opacity);
         graphics.setRGB(colorRGB);
         graphics.setPattern(patternStr);
+        visible = layerVisibilityPref.getBoolean();
     }
 
 	/**
