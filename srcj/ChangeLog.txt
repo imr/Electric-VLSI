@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+BUG: (3/15/09, SMR) "Cell" component menu item may be too long and does not scroll (Bug #2082).
+FIX: Now use the same code for scrollable popup menus as the "Pure" component menu.
+
 IMP: (3/14/09, DN) Boolean pref values are stored as Boolean (was Integer).
 
 IMP: (3/13/09, DN) Technology preferences are preallocated in tech constructor.

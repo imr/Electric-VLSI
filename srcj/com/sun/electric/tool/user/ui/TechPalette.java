@@ -344,24 +344,28 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 			} else if (msg.equals(Technology.SPECIALMENUCELL))
 			{
 				// get current cell type
-				View view = null;
-				Cell curCell = WindowFrame.getCurrentCell();
-				if (curCell != null)
-				{
-					if (curCell.getTechnology().isLayout()) view = View.LAYOUT; else
-						if (curCell.getTechnology().isSchematics()) view = View.ICON;
-				}
-				JPopupMenu cellMenu = new JPopupMenu("Cells");
-				for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
-				{
-					Cell cell = it.next();
-                    if (cell == curCell) continue; // ignore same cell to avoid the recursive case
-                    if (view != null && cell.getView() != view) continue;
-					menuItem = new JMenuItem(cell.describe(false));
-					menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, cell));
-					cellMenu.add(menuItem);
-				}
-				cellMenu.show(panel, e.getX(), e.getY());
+//				View view = null;
+//				Cell curCell = WindowFrame.getCurrentCell();
+//				if (curCell != null)
+//				{
+//					if (curCell.getTechnology().isLayout()) view = View.LAYOUT; else
+//						if (curCell.getTechnology().isSchematics()) view = View.ICON;
+//				}
+//				JPopupMenu cellMenu = new JPopupMenu("Cells");
+//				for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
+//				{
+//					Cell cell = it.next();
+//                    if (cell == curCell) continue; // ignore same cell to avoid the recursive case
+//                    if (view != null && cell.getView() != view) continue;
+//					menuItem = new JMenuItem(cell.describe(false));
+//					menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, cell));
+//					cellMenu.add(menuItem);
+//				}
+//				cellMenu.show(panel, e.getX(), e.getY());
+				new LongListPopup(panel, e.getX(), e.getY(), false);
+			} else if (msg.equals(Technology.SPECIALMENUPURE))
+			{
+				new LongListPopup(panel, e.getX(), e.getY(), true);
 			} else if (msg.equals(Technology.SPECIALMENUMISC))
 			{
 				JPopupMenu specialMenu = new JPopupMenu("Miscellaneous");
@@ -432,22 +436,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().unroutedPinNode));
 				specialMenu.add(menuItem);
 				specialMenu.show(panel, e.getX(), e.getY());
-			} else if (msg.equals(Technology.SPECIALMENUPURE))
-			{
-//				JPopupMenu pureMenu = new JPopupMenu("pure");
-//				for(PrimitiveNode np : Technology.getCurrent().getNodesSortedByName())
-//				{
-//					if (np.isNotUsed()) continue;
-//					if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
-//					Technology.NodeLayer layer = np.getLayers()[0];
-//					if (layer.getLayer().getFunction().isContact()) continue;
-//					menuItem = new JMenuItem(np.describe(false));
-//					menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, np));
-//					pureMenu.add(menuItem);
-//				}
-//				pureMenu.show(panel, e.getX(), e.getY());
-
-				new PurePopup(panel, e.getX(), e.getY());
 			} if (msg.equals(Technology.SPECIALMENUSPICE))
 			{
 				JPopupMenu cellMenu = new JPopupMenu("Spice");
@@ -503,13 +491,13 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
      * of pure-layer nodes may be very large, and JPopupMenu doesn't show a scroll-bar
      * or otherwise shorten the list.
      */
-    private static class PurePopup extends EDialog
+    private static class LongListPopup extends EDialog
     {
     	private JList pureList;
 		private TechPalette panel;
-		private List<PrimitiveNode> popupPures;
+		private List<NodeProto> popupPures;
    
-    	private PurePopup(TechPalette panel, int x, int y)
+    	private LongListPopup(TechPalette panel, int x, int y, boolean pures)
         {
     		super(TopLevel.getCurrentJFrame(), false);
     		this.panel = panel;
@@ -550,18 +538,37 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 			});
 			addWindowFocusListener(new DialogFocusHandler());
 
-            popupPures = new ArrayList<PrimitiveNode>();
-			for(PrimitiveNode np : Technology.getCurrent().getNodesSortedByName())
-			{
-				if (np.isNotUsed()) continue;
-				if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
-				Technology.NodeLayer layer = np.getLayers()[0];
-				Layer.Function lf = layer.getLayer().getFunction();
-				if (lf.isContact()) continue;
-				popupPures.add(np);
-			}
-			Collections.sort(popupPures, new LayersByImportance());
-			for(PrimitiveNode np : popupPures)
+            popupPures = new ArrayList<NodeProto>();
+            if (pures)
+            {
+				for(PrimitiveNode np : Technology.getCurrent().getNodesSortedByName())
+				{
+					if (np.isNotUsed()) continue;
+					if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
+					Technology.NodeLayer layer = np.getLayers()[0];
+					Layer.Function lf = layer.getLayer().getFunction();
+					if (lf.isContact()) continue;
+					popupPures.add(np);
+				}
+				Collections.sort(popupPures, new LayersByImportance());
+            } else
+            {
+				View view = null;
+				Cell curCell = WindowFrame.getCurrentCell();
+				if (curCell != null)
+				{
+					if (curCell.getTechnology().isLayout()) view = View.LAYOUT; else
+						if (curCell.getTechnology().isSchematics()) view = View.ICON;
+				}
+				for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
+				{
+					Cell cell = it.next();
+                    if (cell == curCell) continue; // ignore same cell to avoid the recursive case
+                    if (view != null && cell.getView() != view) continue;
+					popupPures.add(cell);
+				}
+            }
+			for(NodeProto np : popupPures)
 				pureModel.addElement(np.describe(false));
 			pureList.setSelectedIndex(0);
             pack();
@@ -581,15 +588,15 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 		/**
 		 * Comparator class for sorting pure-layer-nodes by their importance.
 		 */
-		public static class LayersByImportance implements Comparator<PrimitiveNode>
+		public static class LayersByImportance implements Comparator<NodeProto>
 		{
 			/**
 			 * Method to sort pure-layer-nodes by their importance.
 			 */
-			public int compare(PrimitiveNode np1, PrimitiveNode np2)
+			public int compare(NodeProto np1, NodeProto np2)
 			{
-				Technology.NodeLayer layer1 = np1.getLayers()[0];
-				Technology.NodeLayer layer2 = np2.getLayers()[0];
+				Technology.NodeLayer layer1 = ((PrimitiveNode)np1).getLayers()[0];
+				Technology.NodeLayer layer2 = ((PrimitiveNode)np2).getLayers()[0];
 				int imp1 = getCode(layer1.getLayer());
 				int imp2 = getCode(layer2.getLayer());
 				if (imp1 == 3 && imp2 == 3)
@@ -631,55 +638,13 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             String selected = (String)pureList.getSelectedValue();
 			for(int i=0; i<popupPures.size(); i++)
 			{
-				PrimitiveNode np = popupPures.get(i);
+				NodeProto np = popupPures.get(i);
 				if (np.describe(false).equals(selected))
 					PaletteFrame.placeInstance(np, panel, false);
 			}
             setVisible(false);
     	}
     }
-
-//    private static class PurePopupOld
-//	{
-//		private List<PrimitiveNode> popupPures;
-//		private BasicComboPopup myPopup;
-//		private JComboBox comboBox;
-//		private TechPalette panel;
-//
-//		PurePopupOld(TechPalette panel, int x, int y)
-//		{
-//			this.panel = panel;
-//			popupPures = new ArrayList<PrimitiveNode>();
-//			for(PrimitiveNode np : Technology.getCurrent().getNodesSortedByName())
-//			{
-//				if (np.isNotUsed()) continue;
-//				if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
-//				Technology.NodeLayer layer = np.getLayers()[0];
-//				if (layer.getLayer().getFunction().isContact()) continue;
-//				popupPures.add(np);
-//			}
-//			String[] popupStringArray = new String[popupPures.size()];
-//			for(int i=0; i<popupPures.size(); i++) popupStringArray[i] = popupPures.get(i).describe(false);
-//			comboBox = new JComboBox(popupStringArray);
-//			myPopup = new BasicComboPopup(comboBox);
-//			comboBox.addActionListener(new ActionListener()
-//			{
-//				public void actionPerformed(ActionEvent e) { clickedOnEntry(); }
-//			});
-//			myPopup.show(panel, x, y);
-//		}
-//
-//		private void clickedOnEntry()
-//		{
-//			for(int i=0; i<popupPures.size(); i++)
-//			{
-//				PrimitiveNode np = popupPures.get(i);
-//				if (np.describe(false).equals(comboBox.getSelectedItem()))
-//					PaletteFrame.placeInstance(np, panel, false);
-//			}
-//			myPopup.hide();
-//		}
-//	}
 
 	private void makeExport(String type)
 	{
