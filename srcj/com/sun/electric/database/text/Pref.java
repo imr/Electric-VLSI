@@ -115,6 +115,10 @@ public class Pref
             return Collections.unmodifiableCollection(prefs.values());
         }
 
+        /**
+         * Prefs can be created only at initialization phase.
+         * This method forbids further cration of Prefs.
+         */
         public void lockCreation() {
             lockCreation = true;
         }
@@ -219,7 +223,7 @@ public class Pref
 	 * @param name the name of this Pref.
 	 */
 	protected Pref(Group group, String name, boolean serverAccessible, Object factoryObj) {
-        if (group.lockCreation)
+        if (group.isTechGroup ? group.lockCreation : lockCreation && serverAccessible)
             throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" is created from improper place");
         this.name = name;
         this.group = group;
@@ -231,13 +235,6 @@ public class Pref
         }
         if (!group.isTechGroup)
             setCachedObjFromPreferences();
-//        if (lockCreation && serverAccessible && Job.getDebug()) {
-//            try {
-//                throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" was created from improper place");
-//            } catch (IllegalStateException e) {
-//                ActivityLogger.logException(e);
-//            }
-//        }
     }
 
     /**
@@ -587,19 +584,12 @@ public class Pref
 	 * @return the Object value of this Pref object.
 	 */
 	public Object getValue() {
-        if (group.isTechGroup) {
-            if (!group.lockCreation)
-                throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" is accessed from improper place");
-            if (Job.getDebug() && !serverAccessible && Job.inServerThread() && !reportedAccess.contains(this)) {
-                String msg = getPrefName() + " is accessed from " + Job.getRunningJob();
-                ActivityLogger.logMessage(msg);
-                System.out.println(msg);
-                reportedAccess.add(this);
-            }
-        } else if (Job.getDebug() && !serverAccessible && lockCreation && Job.inServerThread() && !reportedAccess.contains(this)) {
+        if (group.isTechGroup && !group.lockCreation)
+            throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" is accessed from improper place");
+        if (Job.getDebug() && !serverAccessible && Job.inServerThread() && !reportedAccess.contains(this)) {
             String msg = getPrefName() + " is accessed from " + Job.getRunningJob();
-//            ActivityLogger.logMessage(msg);
-//            System.out.println(msg);
+            ActivityLogger.logMessage(msg);
+            System.out.println(msg);
             reportedAccess.add(this);
         }
         return cachedObj;
@@ -783,18 +773,12 @@ public class Pref
     }
 
     private void checkModify() {
-        if (group.isTechGroup) {
-            if (!group.lockCreation)
-                throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" is modified from improper place");
-            if (Job.getDebug() && Job.inServerThread()) {
-                String msg = getPrefName() + " is modified in " + Job.getRunningJob();
-                ActivityLogger.logMessage(msg);
-                System.out.println(msg);
-            }
-       } else if (Job.getDebug() && lockCreation && Job.inServerThread()) {
+        if (group.isTechGroup && !group.lockCreation)
+            throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" is modified from improper place");
+        if (Job.getDebug() && !serverAccessible && Job.inServerThread()) {
             String msg = getPrefName() + " is modified in " + Job.getRunningJob();
-//            ActivityLogger.logMessage(msg);
-//            System.out.println(msg);
+            ActivityLogger.logMessage(msg);
+            System.out.println(msg);
         }
     }
 

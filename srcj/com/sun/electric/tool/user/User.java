@@ -2702,7 +2702,7 @@ public class User extends Listener
 //		return list.iterator();
 //	}
 
-	private static Pref cacheWorkingDirectory = Pref.makeStringPref("WorkingDirectory", tool.prefs, java.lang.System.getProperty("user.dir"));
+	private static Pref cacheWorkingDirectory = Pref.makeStringServerPref("WorkingDirectory", tool.prefs, java.lang.System.getProperty("user.dir"));
 	/**
 	 * Method to get the path of the current working directory.
 	 * The default is the Java "user directory".
@@ -2715,6 +2715,27 @@ public class User extends Listener
 	 * @param dir the path of the current working directory.
 	 */
 	public static void setWorkingDirectory(String dir) { cacheWorkingDirectory.setString(dir); }
+
+    /** Root path to the regression directory */
+	private static Pref cacheRegressionPath = Pref.makeStringServerPref("Regression Path", User.getUserTool().prefs, "<set me up>");
+	/**
+	 * Method to get the path of the regression tests directory.
+	 * The default is a String with invalid path.
+	 * @return the path of the regression tests directory.
+	 */
+	public static String getRegressionPath()
+	{
+		return cacheRegressionPath.getString();
+	}
+
+	/**
+	 * Method to set the path of the regression tests directory.
+	 * @param dir the path of the regression tests directory.
+	 */
+	public static void setRegressionPath(String s)
+	{
+		cacheRegressionPath.setString(s);
+	}
 
 	private static Pref cacheRecentlyOpenedLibraries = Pref.makeStringPref("RecentlyOpenedLibraries", tool.prefs, "");
 

@@ -303,7 +303,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         computeLayerGridExtendRange();
         defaultExtendPref = Pref.makeDoubleServerPref("DefaultExtendFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), 0);
         defaultDirectionalPref = makeArcProtoBitPref("Directional", false);
-        arcPinPref = Pref.makeStringPref("PinFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), "");
+        arcPinPref = Pref.makeStringServerPref("PinFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), "");
 	}
 
     private void computeLayerGridExtendRange() {

@@ -42,7 +42,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -103,16 +102,16 @@ public class Compaction extends Tool
 		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.getCurrentCell();
 		if (cell == null) return;
-		compactNow(cell);
+		compactNow(cell, isAllowsSpreading());
 	}
 
 	/**
 	 * Method to compact the requested cell.
 	 */
-	public static void compactNow(Cell cell)
+	public static void compactNow(Cell cell, boolean allowSpreading)
 	{
 		// do the compaction in a job
-		CompactCellJob job = new CompactCellJob(cell, true, CompactCell.Axis.HORIZONTAL);
+		CompactCellJob job = new CompactCellJob(cell, true, CompactCell.Axis.HORIZONTAL, allowSpreading);
         job.startJob();
 	}
 
@@ -123,21 +122,23 @@ private static int limitLoops = 10;
 	private static class CompactCellJob extends Job
 	{
 		private Cell cell;
-		private boolean lastTime;
+		private final boolean lastTime;
 		private CompactCell.Axis curAxis;
+        private final boolean allowSpreading;
 
-		private CompactCellJob(Cell cell, boolean lastTime, CompactCell.Axis curAxis)
+		private CompactCellJob(Cell cell, boolean lastTime, CompactCell.Axis curAxis, boolean allowSpreading)
 		{
 			super("Compact " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.lastTime = lastTime;
 			this.curAxis = curAxis;
+            this.allowSpreading = allowSpreading;
 		}
 
 		public boolean doIt() throws JobException
 		{
 			// make the compaction object for the cell
-			CompactCell cc = new CompactCell(cell);
+			CompactCell cc = new CompactCell(cell, allowSpreading);
 
 			// alternate vertical then horizontal compaction
 			boolean change = cc.compactOneDirection(curAxis);
@@ -145,7 +146,7 @@ if (--limitLoops <= 0) change = false;
 			if (lastTime || change)
 			{
 				curAxis = (curAxis == CompactCell.Axis.HORIZONTAL) ? CompactCell.Axis.VERTICAL : CompactCell.Axis.HORIZONTAL;
-				CompactCellJob job = new CompactCellJob(cell, change, curAxis);
+				CompactCellJob job = new CompactCellJob(cell, change, curAxis, allowSpreading);
                 job.startJobOnMyResult();
 			} else
 			{
@@ -217,10 +218,12 @@ if (--limitLoops <= 0) change = false;
 		/** counter for unique network numbers */				private int     flatIndex;
 		/** current axis of compaction */						private Axis    curAxis;
 		/** cell being compacted */								private Cell    cell;
+        /** true if spreading is allowed */                     private boolean spread;
 
-		private CompactCell(Cell cell)
+		private CompactCell(Cell cell, boolean spread)
 		{
 			this.cell = cell;
+            this.spread = spread;
 		}
 
 		/**
@@ -350,8 +353,6 @@ if (--limitLoops <= 0) change = false;
 //                    System.out.print(" " + obj.inst);
 //                System.out.println();
 //            }
-           
-			boolean spread = isAllowsSpreading();
 
 			// loop through all lines that may compact
 			for(Line curLine = line.nextLine; curLine != null; curLine = curLine.nextLine)
