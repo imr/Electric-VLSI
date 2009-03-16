@@ -33,7 +33,6 @@ import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
-import com.sun.electric.database.text.Setting;
 import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
@@ -46,7 +45,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.*;
