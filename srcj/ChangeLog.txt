@@ -4,13 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
-IMP: (3/16/09, DN) Factory menu pf technology is stored as Xml.MenuPalette .
+IMP: (3/16/09, DN) Remove unnecessary saving of Prefs and Settings in ExportGDS_CIFTest.
+
+IMP: (3/16/09, DN) Factory menu of technology is stored as Xml.MenuPalette.
 
 IMP: (3/15/09, DN) LibraryFiles.readLibrary doesn't try to access CellModelPrefs on server side.
     They are filled on client side in FileMenu.ReadLibrary.terminateOk .
 
 BUG: (3/15/09, DN) MultiDRC regression failed because tech.getResolution() was factory default.
-FIX: In DRCToolTest.basicMTDRCTest explicitly set resolution to 0.0 .  
+FIX: In DRCToolTest.basicMTDRCTest explicitly set resolution to 0.0 .
 
 IMP: (3/14/09, DN) Loading technology options from Java Preferences is moved to GUI thread
 
