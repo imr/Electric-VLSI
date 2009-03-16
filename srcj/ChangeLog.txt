@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+BUG: (3/16/09, SMR) Transistor extraction fails if there is just one active layer (Bug #2078).
+FIX: Reorder examination of layers so that single active layer is detected.
+
 IMP: (3/16/09, DN) Remove unnecessary saving of Prefs and Settings in ExportGDS_CIFTest.
 
 IMP: (3/16/09, DN) Factory menu of technology is stored as Xml.MenuPalette.

@@ -182,8 +182,7 @@ public class Connectivity
 
 		public boolean doIt() throws JobException
 		{
-			Connectivity c = new Connectivity(cell, this, errorLogger, smallestPolygonSize, activeHandling,
-				gridAlignExtraction, approximateCuts);
+			// get pattern for matching cells to expand
 			Pattern pat = null;
 			if (expansionPattern.length() > 0)
 			{
@@ -195,6 +194,7 @@ public class Connectivity
 					System.out.println("Pattern syntax error on '" + expansionPattern + "': " + e.getMessage());
 				}
 			}
+
 			if (DEBUGSTEPS)
 			{
 				addedBatchRectangles = new ArrayList<List<ERectangle>>();
@@ -203,8 +203,8 @@ public class Connectivity
 			}
 			Job.getUserInterface().startProgressDialog("Extracting", null);
 
-			// determine if this is a "P-well" or "N-well" process
-			c.findMissingWells(cell, recursive, pat, activeHandling);
+			Connectivity c = new Connectivity(cell, this, errorLogger, smallestPolygonSize, activeHandling,
+				gridAlignExtraction, approximateCuts, recursive, pat);
 
 			newCell = c.doExtract(cell, recursive, pat, flattenPcells, true, this, addedBatchRectangles, addedBatchLines, addedBatchNames);
 			Job.getUserInterface().stopProgressDialog();
@@ -253,7 +253,7 @@ public class Connectivity
 	 * @param tech the Technology to extract to.
 	 */
 	private Connectivity(Cell cell, Job j, ErrorLogger eLog, double smallestPolygonSize, int activeHandling,
-		boolean gridAlignExtraction, boolean approximateCuts)
+		boolean gridAlignExtraction, boolean approximateCuts, boolean recursive, Pattern pat)
 	{
 		this.gridAlignExtraction = gridAlignExtraction;
 		this.approximateCuts = approximateCuts;
@@ -284,6 +284,9 @@ public class Connectivity
 			}
 			if (!validLayers) ignoreNodes.add(np);
 		}
+
+		// determine if this is a "P-well" or "N-well" process
+		findMissingWells(cell, recursive, pat, activeHandling);
 
 		// find important layers
 		polyLayer = null;
@@ -778,9 +781,7 @@ public class Connectivity
 		{
 			pWellProcess = true;
 			System.out.println("Presuming a P-well process");
-			return;
-		}
-		if (!hasNWell && !hasWell)
+		} else if (!hasNWell && !hasWell)
 		{
 			nWellProcess = true;
 			System.out.println("Presuming an N-well process");
@@ -810,7 +811,7 @@ public class Connectivity
 		examineCellForMissingWells(cell);
 		if (recursive)
 		{
-			// first see if subcells need to be converted
+			// now see if subcells need to be converted
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = it.next();
@@ -2356,7 +2357,6 @@ public class Connectivity
 			Layer.Function fun = layer.getFunction();
 			if (fun == Layer.Function.WELLP && pWellProcess) continue;
 			if (fun == Layer.Function.WELLN && nWellProcess) continue;
-
 			originalMerge.intersectLayers(layer, tempLayer1, tempLayer1);
 		}
 
