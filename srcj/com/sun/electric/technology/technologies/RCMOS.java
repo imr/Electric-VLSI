@@ -1078,19 +1078,7 @@ public class RCMOS extends Technology
 //		passivation_lay.setPureLayerNode(passivation_node);		// Passivation-Node
 
         // Information for palette
-        int maxY = 2 /*metal arcs*/ + 4 /* active arcs */ + 2 /* transistor arcs*/ + 1 /* poly*/;
-        factoryNodeGroups = new Object[maxY][3];
-        int count = -1;
-
-        factoryNodeGroups[++count][0] = sTransistor_arc; factoryNodeGroups[count][1] = sTransistorPin_node; factoryNodeGroups[count][2] = Technology.SPECIALMENUPURE;
-        factoryNodeGroups[++count][0] = dTransistor_arc; factoryNodeGroups[count][1] = dTransistorPin_node; factoryNodeGroups[count][2] = Technology.SPECIALMENUMISC;
-        factoryNodeGroups[++count][0] = wellActive_arc; factoryNodeGroups[count][1] = wellActivePin_node; factoryNodeGroups[count][2] = metal1WellCon_node;
-        factoryNodeGroups[++count][0] = sActive_arc; factoryNodeGroups[count][1] = sActivePin_node; factoryNodeGroups[count][2] = metal1SActiveCon_node;
-        factoryNodeGroups[++count][0] = dActive_arc; factoryNodeGroups[count][1] = dActivePin_node; factoryNodeGroups[count][2] = metal1DActiveCon_node;
-        factoryNodeGroups[++count][0] = substrateActive_arc; factoryNodeGroups[count][1] = substrateActivePin_node; factoryNodeGroups[count][2] = metal1SubstrateCon_node;
-        factoryNodeGroups[++count][0] = polysilicon_arc; factoryNodeGroups[count][1] = polysiliconPin_node; factoryNodeGroups[count][2] = metal1PolyCon_node;
-        factoryNodeGroups[++count][0] = metal1_arc; factoryNodeGroups[count][1] = metal1Pin_node; factoryNodeGroups[count][2] = metal1Metal2Con_node;
-        factoryNodeGroups[++count][0] = metal2_arc; factoryNodeGroups[count][1] = metal2Pin_node; factoryNodeGroups[count][2] = Technology.SPECIALMENUCELL;
+        loadFactoryMenuPalette(RCMOS.class.getResource("rcmosMenu.xml"));
 
         //Foundry
         newFoundry(Foundry.Type.NONE, null);

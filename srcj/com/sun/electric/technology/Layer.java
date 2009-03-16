@@ -1690,10 +1690,7 @@ public class Layer
             }
             l.pureLayerNode.style = pureLayerNode.getLayers()[0].getStyle();
             l.pureLayerNode.port = pureLayerNode.getPort(0).getName();
-//            if (pureLayerNodeXmlSize != null)
-//                l.pureLayerNode.size.assign(pureLayerNodeXmlSize);
-//            else
-                l.pureLayerNode.size.addLambda(pureLayerNode.getDefWidth());
+            l.pureLayerNode.size.addLambda(DBMath.gridToLambda(2*pureLayerNode.getFactoryDefaultGridExtendX()));
             for (ArcProto ap: pureLayerNode.getPort(0).getConnections()) {
                 if (ap.getTechnology() != tech) continue;
                 l.pureLayerNode.portArcs.add(ap.getName());

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+IMP: (3/16/09, DN) Factory menu pf technology is stored as Xml.MenuPalette .
+
 IMP: (3/15/09, DN) LibraryFiles.readLibrary doesn't try to access CellModelPrefs on server side.
     They are filled on client side in FileMenu.ReadLibrary.terminateOk .
 

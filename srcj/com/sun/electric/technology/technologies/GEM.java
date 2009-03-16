@@ -290,18 +290,7 @@ public class GEM extends Technology
 		g_node.setFunction(PrimitiveNode.Function.UNKNOWN);
 
         // Building information for palette
-        factoryNodeGroups = new Object[9][2];
-        int count = -1;
-
-        factoryNodeGroups[++count][0] = General_arc; factoryNodeGroups[count][1] = gp_node;
-        factoryNodeGroups[++count][0] = Temporal_arc; factoryNodeGroups[count][1] = tp_node;
-        factoryNodeGroups[++count][0] = Causal_arc; factoryNodeGroups[count][1] = cp_node;
-        factoryNodeGroups[++count][0] = Prerequisite_arc; factoryNodeGroups[count][1] = pp_node;
-        factoryNodeGroups[++count][0] = Nondeterministic_arc; factoryNodeGroups[count][1] = np_node;
-        factoryNodeGroups[++count][0] = Nondeterministic_fork_arc; factoryNodeGroups[count][1] = fp_node;
-        factoryNodeGroups[++count][0] = Technology.SPECIALMENUCELL; factoryNodeGroups[count][1] = e_node;
-        factoryNodeGroups[++count][0] = Technology.SPECIALMENUMISC; factoryNodeGroups[count][1] = g_node;
-        factoryNodeGroups[++count][0] = Technology.SPECIALMENUPURE;
+        loadFactoryMenuPalette(GEM.class.getResource("gemMenu.xml"));
 
         //Foundry
         newFoundry(Foundry.Type.NONE, null);

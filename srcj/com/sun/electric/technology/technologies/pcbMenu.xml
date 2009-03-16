@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: pcbMenu.xml
+ * pcb technology menu description
+ * Generated automatically from a library
+ *
+ * Copyright (c) 2009 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+-->
+
+    <menuPalette numColumns="4">
+
+        <menuBox>
+            <menuArc>Signal-1</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuArc>Power-1</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Signal-1-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Power-1-Pin" function="PIN"/>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Signal-2</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuArc>Power-2</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Signal-2-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Power-2-Pin" function="PIN"/>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Signal-3</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuArc>Power-3</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Signal-3-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Power-3-Pin" function="PIN"/>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Signal-4</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuArc>Power-4</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Signal-4-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Power-4-Pin" function="PIN"/>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Signal-5</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuArc>Power-5</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Signal-5-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Power-5-Pin" function="PIN"/>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Signal-6</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuArc>Power-6</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Signal-6-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Power-6-Pin" function="PIN"/>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Signal-7</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuArc>Power-7</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Signal-7-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Power-7-Pin" function="PIN"/>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Signal-8</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuArc>Power-8</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Signal-8-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Power-8-Pin" function="PIN"/>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Top-Silk</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Top-Silk-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuArc>Bottom-Silk</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Bottom-Silk-Pin" function="PIN"/>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Top-Solder</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Top-Solder-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuArc>Bottom-Solder</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Bottom-Solder-Pin" function="PIN"/>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Drawing</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Drill-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="NonPlated-Drill-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Engineering-Drawing-Pin" function="PIN"/>
+        </menuBox>
+
+        <menuBox>
+            <menuText>Pure</menuText>
+        </menuBox>
+        <menuBox>
+            <menuText>Misc.</menuText>
+        </menuBox>
+        <menuBox>
+            <menuText>Cell</menuText>
+        </menuBox>
+        <menuBox/>
+
+    </menuPalette>

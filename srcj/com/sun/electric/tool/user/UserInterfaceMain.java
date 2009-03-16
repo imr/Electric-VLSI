@@ -170,6 +170,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         }
         public void run() {
             assert SwingUtilities.isEventDispatchThread();
+            Pref.setClientThread(Thread.currentThread());
             // see if there is a Mac OS/X interface
             if (Client.isOSMac()) {
                 try {

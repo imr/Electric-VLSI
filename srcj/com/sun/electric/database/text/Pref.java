@@ -27,8 +27,8 @@ import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
-
 import com.sun.electric.tool.user.ActivityLogger;
+
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
@@ -97,8 +97,10 @@ import org.xml.sax.SAXParseException;
  * </LI>
  * </UL>
  */
-public class Pref
-{
+public class Pref {
+    public final static boolean FROM_THREAD_ENVIRONMENT = false;
+    private static Thread clientThread;
+
     public static class Group {
         private final boolean isTechGroup;
         private boolean lockCreation;
@@ -243,6 +245,10 @@ public class Pref
      */
     public static void lockCreation() {
         lockCreation = true;
+    }
+
+    public static void setClientThread(Thread clientThread) {
+        Pref.clientThread = clientThread;
     }
 
     /**
@@ -586,11 +592,15 @@ public class Pref
 	public Object getValue() {
         if (group.isTechGroup && !group.lockCreation)
             throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" is accessed from improper place");
-        if (Job.getDebug() && !serverAccessible && Job.inServerThread() && !reportedAccess.contains(this)) {
-            String msg = getPrefName() + " is accessed from " + Job.getRunningJob();
-            ActivityLogger.logMessage(msg);
-            System.out.println(msg);
-            reportedAccess.add(this);
+        if (Thread.currentThread() != clientThread) {
+            if (!serverAccessible && !reportedAccess.contains(this)) {
+                String msg = getPrefName() + " is accessed from " + Job.getRunningJob();
+                if (Job.getDebug()) {
+//                    ActivityLogger.logMessage(msg);
+//                    System.out.println(msg);
+                }
+                reportedAccess.add(this);
+            }
         }
         return cachedObj;
     }
@@ -775,10 +785,14 @@ public class Pref
     private void checkModify() {
         if (group.isTechGroup && !group.lockCreation)
             throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" is modified from improper place");
-        if (Job.getDebug() && !serverAccessible && Job.inServerThread()) {
-            String msg = getPrefName() + " is modified in " + Job.getRunningJob();
-            ActivityLogger.logMessage(msg);
-            System.out.println(msg);
+        if (Thread.currentThread() != clientThread) {
+            if (!serverAccessible) {
+                String msg = getPrefName() + " is modified in " + Job.getRunningJob();
+                if (Job.getDebug()) {
+                    ActivityLogger.logMessage(msg);
+                    System.out.println(msg);
+                }
+            }
         }
     }
 

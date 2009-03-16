@@ -1136,25 +1136,7 @@ public class PCB extends Technology
 //		D1_lay.setPureLayerNode(edn_node);		// Drawing
 
         // Building information for palette
-        factoryNodeGroups = new Object[12][4];
-        int count = -1;
-
-        for (int i = 0; i < snNodes.length; i++)
-        {
-            // signal and power arcs
-            factoryNodeGroups[++count][0] = SignalArcs[i]; factoryNodeGroups[count][1] = PowerArcs[i];
-            // signal and power pins
-            factoryNodeGroups[count][2] = spinNodes[i]; factoryNodeGroups[count][3] = ppinNodes[i];
-        }
-        factoryNodeGroups[++count][0] = Top_Silk_arc; factoryNodeGroups[count][1] = tspinNodes[0];
-        factoryNodeGroups[count][2] = Bottom_Silk_arc; factoryNodeGroups[count][3] = bspinNodes[0];
-        factoryNodeGroups[++count][0] = Top_Solder_arc; factoryNodeGroups[count][1] = tspinNodes[1];
-        factoryNodeGroups[count][2] = Bottom_Solder_arc; factoryNodeGroups[count][3] = bspinNodes[1];
-        factoryNodeGroups[++count][0] = Drawing_arc; factoryNodeGroups[count][1] = dp_node;
-        factoryNodeGroups[count][2] = ndp_node; factoryNodeGroups[count][3] = edp_node;
-        factoryNodeGroups[++count][0] = Technology.SPECIALMENUPURE;
-        factoryNodeGroups[count][1] = Technology.SPECIALMENUMISC;
-        factoryNodeGroups[count][2] = Technology.SPECIALMENUCELL;
+        loadFactoryMenuPalette(PCB.class.getResource("pcbMenu.xml"));
 
         //Foundry
         newFoundry(Foundry.Type.NONE, null);

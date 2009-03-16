@@ -1291,7 +1291,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 
         Technology.printlnPref(out, 1, defaultExtendPref);
         out.println("\tbaseExtend=" + getLambdaBaseExtend());
-        out.println("\tdefaultLambdaBaseWidth=" + getDefaultLambdaBaseWidth());
+        out.println("\tdefaultLambdaBaseWidth=" + getFactoryDefaultLambdaBaseWidth());
         out.println("\tdiskOffset1=" + DBMath.round(getLambdaBaseExtend() + 0.5*getLambdaElibWidthOffset()));
         out.println("\tdiskOffset2=" + getLambdaBaseExtend());
         Technology.printlnPref(out, 1, defaultAnglePref);

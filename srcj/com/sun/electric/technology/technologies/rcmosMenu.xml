@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: rcmosMenu.xml
+ * rcmos technology menu description
+ * Generated automatically from a library
+ *
+ * Copyright (c) 2009 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+-->
+
+    <menuPalette numColumns="3">
+
+        <menuBox>
+            <menuArc>S-Transistor</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="S-Transistor" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuText>Pure</menuText>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>D-Transistor</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="D-Transistor" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuText>Misc.</menuText>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Well-Active</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Well-Active-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNode>Metal-1-Well-Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>S-Active</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="S-Active-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNode>Metal-1-S-Active-Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>D-Active</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="D-Active-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNode>Metal-1-D-Active-Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Substrate-Active</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Substrate-Active-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNode>Metal-1-Substrate-Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Polysilicon</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Polysilicon-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNode>Metal-1-Polysilicon-Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Metal-1</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Metal-1-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNode>Metal-1-Metal-2-Con</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>Metal-2</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNodeInst protoName="Metal-2-Pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuText>Cell</menuText>
+        </menuBox>
+
+    </menuPalette>

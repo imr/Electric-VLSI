@@ -2284,8 +2284,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             ng.diskOffset.put(Integer.valueOf(1), p1);
         if (!p2.equals(EPoint.ORIGIN))
             ng.diskOffset.put(Integer.valueOf(2), p2);
-        ng.defaultWidth.addLambda(DBMath.round(getDefWidth() - 2*minFullSize.getLambdaX()));
-        ng.defaultHeight.addLambda(DBMath.round(getDefHeight() - 2*minFullSize.getLambdaY()));
+        ng.defaultWidth.addLambda(DBMath.gridToLambda(2*getFactoryDefaultGridExtendX()));
+        ng.defaultHeight.addLambda(DBMath.gridToLambda(2*getFactoryDefaultGridExtendY()));
 
         List<Technology.NodeLayer> nodeLayers = Arrays.asList(getLayers());
         List<Technology.NodeLayer> electricalNodeLayers = nodeLayers;

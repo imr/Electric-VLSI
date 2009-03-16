@@ -395,17 +395,7 @@ public class EFIDO extends Technology
 		p0_node.setFunction(PrimitiveNode.Function.CONNECT);
 
         // Building information for palette
-        factoryNodeGroups = new Object[8][2];
-        int count = -1;
-
-        factoryNodeGroups[++count][0] = wire_arc; factoryNodeGroups[count][1] = m_node;
-        factoryNodeGroups[++count][0] = bus_arc; factoryNodeGroups[count][1] = t_node;
-        factoryNodeGroups[++count][0] = Technology.SPECIALMENUCELL; factoryNodeGroups[count][1] = m0_node;
-        factoryNodeGroups[++count][0] = Technology.SPECIALMENUMISC; factoryNodeGroups[count][1] = s_node;
-        factoryNodeGroups[++count][0] = Technology.SPECIALMENUPURE; factoryNodeGroups[count][1] = d_node;
-        factoryNodeGroups[++count][0] = wp_node; factoryNodeGroups[count][1] = p_node;
-        factoryNodeGroups[++count][0] = bp_node; factoryNodeGroups[count][1] = p0_node;
-        factoryNodeGroups[++count][0] = a_node;
+        loadFactoryMenuPalette(EFIDO.class.getResource("efidoMenu.xml"));
 
         //Foundry
         newFoundry(Foundry.Type.NONE, null);

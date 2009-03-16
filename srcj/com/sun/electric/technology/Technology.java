@@ -66,7 +66,9 @@ import com.sun.electric.tool.user.User;
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.PrintWriter;
@@ -940,7 +942,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** Default Logical effort diff alpha. */				private static double DEFAULT_DIFFALPHA    = 0.7;
 
 	/** To group elements for the component menu */         protected Object[][] nodeGroups;
-	/** Default element groups for the component menu */    protected Object[][] factoryNodeGroups;
 	/** indicates n-type objects. */						public static final int N_TYPE = 1;
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
 	/** Factory rules for the technology. */		        protected XMLRules factoryRules = null;
@@ -948,6 +949,7 @@ public class Technology implements Comparable<Technology>, Serializable
     /** TechFactory which created this Technology */        protected final TechFactory techFactory;
     /** Params of this Technology */                        private State currentState;
     /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
+    /** Xml representation of menu palette */               protected Xml.MenuPalette factoryMenuPalette;
     /** Preference for saving component menus */			private final Pref componentMenuPref;
     /** Preference for saving layer order */				private final Pref layerOrderPref;
 
@@ -1055,6 +1057,7 @@ public class Technology implements Comparable<Technology>, Serializable
     public Technology(Generic generic, TechFactory techFactory, Map<TechFactory.Param,Object> techParams, Xml.Technology t) {
         this(generic, techFactory, techParams, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
         xmlTech = t;
+        factoryMenuPalette = t.menuPalette;
         setTechShortName(t.shortTechName);
         setTechDesc(t.description);
         setFactoryScale(t.scaleValue, t.scaleRelevant);
@@ -1183,8 +1186,8 @@ public class Technology implements Comparable<Technology>, Serializable
         return new EdgeV(y.k*0.5, y.value - correction.getLambdaY()*y.k);
     }
 
-    private void convertMenuPalette(Xml.MenuPalette menuPalette) {
-        if (menuPalette == null) return;
+    private Object[][] convertMenuPalette(Xml.MenuPalette menuPalette) {
+        if (menuPalette == null) return null;
         int numColumns = menuPalette.numColumns;
         ArrayList<Object[]> rows = new ArrayList<Object[]>();
         Object[] row = null;
@@ -1208,7 +1211,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 row[column] = list;
             }
         }
-        nodeGroups = factoryNodeGroups = rows.toArray(new Object[rows.size()][]);
+        return rows.toArray(new Object[rows.size()][]);
     }
 
     private Object convertMenuItem(Object menuItem) {
@@ -1669,24 +1672,28 @@ public class Technology implements Comparable<Technology>, Serializable
         printSpiceHeader(out, 2, getSpiceHeaderLevel2());
         printSpiceHeader(out, 3, getSpiceHeaderLevel3());
 
-        Object[][] menu = getDefaultNodesGrouped();
-        if (menu != null) {
-            for (int i = 0; i < menu.length; i++) {
-                Object[] nodeLine = menu[i];
-                for (int j = 0; j < nodeLine.length; j++) {
-                    Object entry = nodeLine[j];
-                    if (entry == null) continue;
-                    out.print(" menu " + i + " " + j);
-                    if (entry instanceof List) {
-                        List<?> list = (List<?>)entry;
-                        for (Object o: list)
-                            printMenuEntry(out, o);
-                    } else {
-                        printMenuEntry(out, entry);
-                    }
-                    out.println();
+        Xml.MenuPalette menuPalette = getFactoryMenuPalette();
+        for (int i = 0; i < menuPalette.menuBoxes.size(); i++) {
+            List<?> menuBox = menuPalette.menuBoxes.get(i);
+            if (menuBox == null || menuBox.isEmpty()) continue;
+            out.print(" menu " + (i/menuPalette.numColumns) + " " + (i%menuPalette.numColumns));
+            for (Object menuItem: menuBox) {
+                if (menuItem instanceof Xml.ArcProto) {
+                    out.print(" arc " + ((Xml.ArcProto)menuItem).name);
+                } else if (menuItem instanceof Xml.PrimitiveNode) {
+                    out.print(" node " + ((Xml.PrimitiveNode)menuItem).name);
+                } else if (menuItem instanceof Xml.MenuNodeInst) {
+                    Xml.MenuNodeInst n = (Xml.MenuNodeInst)menuItem;
+                    boolean display = n.text != null && n.fontSize != 0;
+                    out.print(" nodeInst " + n.protoName + ":" + n.function + ":" + Orientation.fromAngle(n.rotation));
+                    if (n.text != null)
+                        out.print(":" + n.text + ":" + display + ":" + n.fontSize);
+                } else {
+                    assert menuItem instanceof String;
+                    out.print(" " + menuItem);
                 }
             }
+            out.println();
         }
 
         for (Iterator<Foundry> it = getFoundries(); it.hasNext();) {
@@ -1721,28 +1728,6 @@ public class Technology implements Comparable<Technology>, Serializable
         while (indent-- > 0)
             out.print("\t");
         out.println(pref.getPrefName() + "=" + pref.getFactoryValue() + "(" + pref.getFactoryValue() + ")");
-    }
-
-    private static void printMenuEntry(PrintWriter out, Object entry) {
-        if (entry instanceof ArcProto) {
-            out.print(" arc " + ((ArcProto)entry).getName());
-        } else if (entry instanceof PrimitiveNode) {
-            out.print(" node " + ((PrimitiveNode)entry).getName());
-        } else if (entry instanceof NodeInst) {
-            NodeInst ni = (NodeInst)entry;
-            PrimitiveNode pn = (PrimitiveNode)ni.getProto();
-            out.print(" nodeInst " + pn.getName() + ":" + ni.getFunction() + ":" + ni.getOrient());
-            for (Iterator<Variable> it = ni.getVariables(); it.hasNext(); ) {
-                Variable var = it.next();
-                Object value = var.getObject();
-                String s = value instanceof Object[] ? Arrays.toString((Object[])value) : value.toString();
-                out.print(":" + s + ":" + var.isDisplay() + ":" + var.getSize().getSize());
-            }
-        } else if (entry instanceof String) {
-            out.print(" " + entry);
-        } else {
-            assert false;
-        }
     }
 
     protected static void printlnBits(PrintWriter out, String[] bitNames, int bits) {
@@ -1833,28 +1818,7 @@ public class Technology implements Comparable<Technology>, Serializable
         addSpiceHeader(t, 2, getSpiceHeaderLevel2());
         addSpiceHeader(t, 3, getSpiceHeaderLevel3());
 
-        Object[][] origPalette = getDefaultNodesGrouped();
-        int numRows = origPalette.length;
-        int numCols = origPalette[0].length;
-        for (Object[] row: origPalette) {
-            assert row.length == numCols;
-        }
-        t.menuPalette = new Xml.MenuPalette();
-        t.menuPalette.numColumns = numCols;
-        for (int row = 0; row < numRows; row++) {
-            for (int col = 0; col < numCols; col++) {
-                Object origEntry = origPalette[row][col];
-                ArrayList<Object> newBox = new ArrayList<Object>();
-                if (origEntry instanceof List) {
-                    List<?> list = (List<?>)origEntry;
-                    for (Object o: list)
-                        newBox.add(makeMenuEntry(t, o));
-                } else if (origEntry != null) {
-                    newBox.add(makeMenuEntry(t, origEntry));
-                }
-                t.menuPalette.menuBoxes.add(newBox);
-            }
-        }
+        t.menuPalette = getFactoryMenuPalette();
 
         for (Iterator<Foundry> it = getFoundries(); it.hasNext(); ) {
             Foundry foundry = it.next();
@@ -1887,45 +1851,6 @@ public class Technology implements Comparable<Technology>, Serializable
         for (String spiceLine: spiceLines)
             spiceHeader.spiceLines.add(spiceLine);
         t.spiceHeaders.add(spiceHeader);
-    }
-
-    private static Object makeMenuEntry(Xml.Technology t, Object entry) {
-        if (entry instanceof ArcProto)
-            return t.findArc(((ArcProto)entry).getName());
-        if (entry instanceof PrimitiveNode) {
-            PrimitiveNode pn = (PrimitiveNode)entry;
-            if (pn.getFunction() == PrimitiveNode.Function.PIN) {
-                Xml.MenuNodeInst n = new Xml.MenuNodeInst();
-                n.protoName = pn.getName();
-                n.function = PrimitiveNode.Function.PIN;
-                return n;
-            }
-            return t.findNode(((PrimitiveNode)entry).getName());
-        }
-        if (entry instanceof NodeInst) {
-            NodeInst ni = (NodeInst)entry;
-            Xml.MenuNodeInst n = new Xml.MenuNodeInst();
-            n.protoName = ni.getProto().getName();
-            n.function = ni.getFunction();
-            n.techBits = ni.getTechSpecific();
-            n.rotation = ni.getOrient().getAngle();
-            for (Iterator<Variable> it = ni.getVariables(); it.hasNext(); )
-            {
-                Variable var = it.next();
-                if (var.getObject() instanceof String)
-                {
-                    n.text = (String)var.getObject();
-                    n.fontSize = var.getSize().getSize();
-                }
-                else
-                {
-                    System.out.println("Variable " + var.getTrueName() + " in " + ni.getName() + " can't be exported in XML");
-                }
-            }
-            return n;
-        }
-        assert entry instanceof String;
-        return entry;
     }
 
     /****************************** LAYERS ******************************/
@@ -5606,6 +5531,27 @@ public class Technology implements Comparable<Technology>, Serializable
 		if (nodeGroupXML.length() == 0) return;
 
 		// parse the preference and build a component menu
+		Xml.MenuPalette xx = parseComponentMenuXML(nodeGroupXML);
+        nodeGroups = convertMenuPalette(xx);
+	}
+
+    protected void loadFactoryMenuPalette(URL menuURL) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(menuURL.openConnection().getInputStream()));
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            while ((line = reader.readLine()) != null)
+                sb.append(line);
+            reader.close();
+            factoryMenuPalette = parseComponentMenuXML(sb.toString());
+        } catch (IOException e) {
+            System.out.println("Error parsing XML component menu data");
+            e.printStackTrace();
+        }
+    }
+
+    private Xml.MenuPalette parseComponentMenuXML(String nodeGroupXML) {
+		// parse the preference and build a component menu
         List<Xml.PrimitiveNodeGroup> xmlNodeGroups = new ArrayList<Xml.PrimitiveNodeGroup>();
         HashSet<PrimitiveNodeGroup> groupsDone = new HashSet<PrimitiveNodeGroup>();
         for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); ) {
@@ -5638,9 +5584,8 @@ public class Technology implements Comparable<Technology>, Serializable
             xap.name = ap.getName();
             xmlArcs.add(xap);
         }
-		Xml.MenuPalette xx = Xml.parseComponentMenuXMLTechEdit(nodeGroupXML, xmlNodeGroups, xmlArcs);
-        convertMenuPalette(xx);
-	}
+		return Xml.parseComponentMenuXMLTechEdit(nodeGroupXML, xmlNodeGroups, xmlArcs);
+    }
 
 	/**
 	 * Method to construct a default group of elements for the palette.
@@ -5648,19 +5593,32 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public Object[][] getDefaultNodesGrouped()
 	{
-		if (factoryNodeGroups != null) return factoryNodeGroups;
-        if (xmlTech.menuPalette != null) {
-            convertMenuPalette(xmlTech.menuPalette);
-            assert factoryNodeGroups != null;
-            return factoryNodeGroups;
-        }
+        return convertMenuPalette(getFactoryMenuPalette());
+    }
 
+
+	/**
+	 * Method to construct a default Xml menynu palette.
+	 * @return the default Xml menynu palette.
+	 */
+    public Xml.MenuPalette getFactoryMenuPalette() {
+        if (factoryMenuPalette == null)
+            makeDummyFactoryMenuPalette();
+        assert factoryMenuPalette != null;
+        return factoryMenuPalette;
+    }
+
+    private void makeDummyFactoryMenuPalette() {
 		// compute palette information automatically
-		List<Object> things = new ArrayList<Object>();
+        List<List<?>> things = new ArrayList<List<?>>();
 		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = it.next();
-			if (!ap.isNotUsed()) things.add(ap);
+			if (ap.isNotUsed()) continue;
+            Xml.ArcProto xap = new Xml.ArcProto();
+            xap.name = ap.getName();
+            List<Xml.ArcProto> list = Collections.singletonList(xap);
+            things.add(list);
 		}
 		Set<PrimitiveNodeGroup> groups = new HashSet<PrimitiveNodeGroup>();
 		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
@@ -5670,39 +5628,41 @@ public class Technology implements Comparable<Technology>, Serializable
 			if (np.getFunction() == PrimitiveNode.Function.NODE) continue;
             if (np.group != null)
             {
-            	if (!groups.contains(np.group))
-            	{
-                	groups.add(np.group);
-	                for (PrimitiveNodeGroup group : groups)
-	                {
-	                    List<Object> tmp = new ArrayList<Object>();
-	                    for (PrimitiveNode gnp: group.getNodes())
-	                        tmp.add(makeNodeInst(gnp));
-	                    things.add(tmp);
-	                }
-            	}
-            	continue;
+               	if (groups.contains(np.group)) continue;
+                groups.add(np.group);
+                List<Xml.MenuNodeInst> list = new ArrayList<Xml.MenuNodeInst>();
+                for (PrimitiveNode gnp: np.group.getNodes()) {
+                    Xml.MenuNodeInst xnp = new Xml.MenuNodeInst();
+                    xnp.protoName = gnp.getName();
+                    xnp.function = gnp.getFunction();
+                    list.add(xnp);
+                }
+                things.add(list);
+            } else
+            {
+                List<Xml.PrimitiveNode> list = new ArrayList<Xml.PrimitiveNode>();
+                Xml.PrimitiveNode xpn = new Xml.PrimitiveNode();
+                xpn.name = np.getName();
+                list.add(xpn);
+                things.add(list);
             }
-            things.add(np);
 		}
-		things.add(SPECIALMENUPURE);
-		things.add(SPECIALMENUMISC);
-		things.add(SPECIALMENUCELL);
+		things.add(Collections.singletonList(SPECIALMENUPURE));
+		things.add(Collections.singletonList(SPECIALMENUMISC));
+		things.add(Collections.singletonList(SPECIALMENUCELL));
 		int columns = (things.size()+13) / 14;
 		int rows = (things.size() + columns-1) / columns;
-		factoryNodeGroups = new Object[rows][columns];
-		int rowPos = 0, colPos = 0;
-		for(Object obj : things)
-		{
-			factoryNodeGroups[rowPos][colPos] = obj;
-			rowPos++;
-			if (rowPos >= rows)
-			{
-				rowPos = 0;
-				colPos++;
-			}
-		}
-		return factoryNodeGroups;
+        while (things.size() < columns*rows)
+            things.add(null);
+
+        factoryMenuPalette = new Xml.MenuPalette();
+        factoryMenuPalette.numColumns = columns;
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < columns; col++) {
+                List<?> list = things.get(col*rows + row);
+                factoryMenuPalette.menuBoxes.add(list);
+            }
+        }
 	}
 
 	/**
