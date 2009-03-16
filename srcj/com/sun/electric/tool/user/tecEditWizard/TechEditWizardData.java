@@ -134,14 +134,13 @@ public class TechEditWizardData
     private static class Contact
     {
         String prefix;
-        ContactNode verticalLayer; // low metal!
-        ContactNode horizontalLayer;
+        List<ContactNode> layers;
 
         // odd metals go vertical
-        Contact (String p, ContactNode v, ContactNode h)
+        Contact (String p)
         {
             prefix = p;
-            verticalLayer = v; horizontalLayer = h;
+            layers = new ArrayList<ContactNode>();
         }
     }
     private Map<String,List<Contact>> metalContacts;
@@ -894,20 +893,29 @@ public class TechEditWizardData
                 while (p.hasMoreTokens())
                 {
                     String pair = p.nextToken();
-                    // getting metal numbers {a,b}
-                    index = pair.indexOf(",");  // only works with two layers
-                    String layer1 = pair.substring(0, index);
-                    String layer2 = pair.substring(index+1);
+                    // getting metal numbers {a,b,c}
+                    StringTokenizer n = new StringTokenizer(pair, ", ", false); // getting the layer names
+                    List<String> layerNames = new ArrayList<String>();
 
-                    assert(nodeList.size() == 2);
-                    ContactNode tmp = nodeList.get(0);
-                    ContactNode node1 = new ContactNode(layer1, tmp.overX.v,  tmp.overX.rule,
-                        tmp.overY.v,  tmp.overY.rule);
-                    tmp = nodeList.get(1);
-                    ContactNode node2 = new ContactNode(layer2, tmp.overX.v,  tmp.overX.rule,
-                        tmp.overY.v,  tmp.overY.rule);
+                    while (n.hasMoreTokens())
+                    {
+                        String l = n.nextToken();
+                        layerNames.add(l);
 
-                    Contact cont = new Contact(prefix, node1, node2);
+                    }
+                    assert (nodeList.size() == layerNames.size());
+                    Contact cont = new Contact(prefix);
+                    for (int i = 0; i < layerNames.size(); i++)
+                    {
+                        String name = layerNames.get(i);
+                        ContactNode tmp = nodeList.get(i);
+                        ContactNode node = new ContactNode(name,  tmp.overX.v,  tmp.overX.rule,
+                        tmp.overY.v,  tmp.overY.rule);
+                        cont.layers.add(node);
+                    }
+
+                    String layer1 = layerNames.get(0);
+                    String layer2 = layerNames.get(1); // n/p plus regions should go at the end
                     // Always store them by lowMetal-highMetal if happens
                     if (layer1.compareToIgnoreCase(layer2) > 0) // layer1 name is second
                     {
@@ -2176,83 +2184,76 @@ public class TechEditWizardData
                 Xml.Layer ly = null, lx = null;
                 Xml.Layer conLay = diffConLayer;
                 PaletteGroup g = null;
+                ContactNode metalLayer = c.layers.get(0);
+                ContactNode otherLayer = c.layers.get(1);
 
-                if (TextUtils.isANumber(c.verticalLayer.layer))
+                if (!TextUtils.isANumber(metalLayer.layer)) // horizontal must be!
                 {
-                    int m1 = Integer.valueOf(c.verticalLayer.layer);
-                    ly = metalLayers.get(m1-1);
-                    String layerName = c.horizontalLayer.layer;
-                    if (layerName.equals(diffLayers[0].name))
-                    {
-                        lx = diffLayers[0];
-                        g = diffPalette[0];
-                    }
-                    else if (layerName.equals(diffLayers[1].name))
-                    {
-                        lx = diffLayers[1];
-                        g = diffPalette[1];
-                    }
-                    else if (layerName.equals(polyLayer.name))
-                    {
-                        lx = polyLayer;
-                        conLay = polyConLayer;
-                        g = polyGroup;
-                    }
-                    else
-                        assert(false); // it should not happen
-                    name = ly.name + "-" + lx.name;
+                    assert (TextUtils.isANumber(otherLayer.layer));
+                    metalLayer = c.layers.get(1);
+                    otherLayer = c.layers.get(0);
                 }
-                else if (TextUtils.isANumber(c.horizontalLayer.layer))
+
+                int m1 = Integer.valueOf(metalLayer.layer);
+                ly = metalLayers.get(m1-1);
+                String layerName = otherLayer.layer;
+                if (layerName.equals(diffLayers[0].name))
                 {
-                    int m1 = Integer.valueOf(c.horizontalLayer.layer);
-                    ly = metalLayers.get(m1-1);
-                    String layerName = c.verticalLayer.layer;
-                    if (layerName.equals(diffLayers[0].name))
-                    {
-                        lx = diffLayers[0];
-                        g = diffPalette[0];
-                    }
-                    else if (layerName.equals(diffLayers[1].name))
-                    {
-                        lx = diffLayers[1];
-                        g = diffPalette[1];
-                    }
-                    else if (layerName.equals(polyLayer.name))
-                    {
-                        lx = polyLayer;
-                        conLay = polyConLayer;
-                        g = polyGroup;
-                    }
-                    else
-                        assert(false); // it should not happen
-                    name = lx.name + "-" + ly.name;
+                    lx = diffLayers[0];
+                    g = diffPalette[0];
+                }
+                else if (layerName.equals(diffLayers[1].name))
+                {
+                    lx = diffLayers[1];
+                    g = diffPalette[1];
+                }
+                else if (layerName.equals(polyLayer.name))
+                {
+                    lx = polyLayer;
+                    conLay = polyConLayer;
+                    g = polyGroup;
                 }
                 else
                     assert(false); // it should not happen
-                double h1x = scaledValue(contact_size.v/2 + c.verticalLayer.overX.v);
-                double h1y = scaledValue(contact_size.v/2 + c.verticalLayer.overY.v);
-                double h2x = scaledValue(contact_size.v/2 + c.horizontalLayer.overX.v);
-                double h2y = scaledValue(contact_size.v/2 + c.horizontalLayer.overY.v);
+                name = ly.name + "-" + lx.name;
+                double h1x = scaledValue(contact_size.v/2 + metalLayer.overX.v);
+                double h1y = scaledValue(contact_size.v/2 + metalLayer.overY.v);
+                double h2x = scaledValue(contact_size.v/2 + otherLayer.overX.v);
+                double h2y = scaledValue(contact_size.v/2 + otherLayer.overY.v);
 
-                double longX = scaledValue(DBMath.isGreaterThan(c.verticalLayer.overX.v, c.horizontalLayer.overX.v) ? c.verticalLayer.overX.v : c.horizontalLayer.overX.v);
-                double longY = scaledValue(DBMath.isGreaterThan(c.verticalLayer.overY.v, c.horizontalLayer.overY.v) ? c.verticalLayer.overY.v : c.horizontalLayer.overY.v);
+                double longX = DBMath.isGreaterThan(metalLayer.overX.v, otherLayer.overX.v) ? metalLayer.overX.v : otherLayer.overX.v;
+                double longY = DBMath.isGreaterThan(metalLayer.overY.v, otherLayer.overY.v) ? metalLayer.overY.v : otherLayer.overY.v;
 
                 portNames.clear();
                 portNames.add(lx.name);
                 portNames.add(ly.name);
+                Xml.NodeLayer extraN = null;
+                if (c.layers.size() == 3) // easy solution for now
+                {
+                    ContactNode node = c.layers.get(2);
+                    Xml.Layer lz = (diffLayers[0] == lx) ? plusLayers[0] : plusLayers[1];
+                    double h3x = scaledValue(contact_size.v/2 + node.overX.v);
+                    double h3y = scaledValue(contact_size.v/2 + node.overY.v);
+                    extraN = makeXmlNodeLayer(h3x, h3x, h3y, h3y, lz, Poly.Type.FILLED, true);
+                    longX = DBMath.isGreaterThan(longX, node.overX.v) ? longX : node.overX.v;
+                    longY = DBMath.isGreaterThan(longY, node.overY.v) ? longX : node.overY.v;
+                }
+                longX = scaledValue(longX);
+                longY = scaledValue(longY);
 
                 g.addElement(makeXmlPrimitiveCon(t.nodeGroups, c.prefix + name, -1, -1,
                     new SizeOffset(longX, longX, longY, longY), portNames,
                 makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED, true), // layer1
                 makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED, true), // layer2
+                    extraN,
                 makeXmlMulticut(conLay, contSize, contSpacing, contArraySpacing))); // contact
             }
         }
 
         /**************************** N/P-Well Contacts ***********************************************/
         nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_n.v);
-        nso = scaledValue(nwell_overhang_diff_n.v); // valid for elements that have nwell layers
-        pso = (!pWellFlag)?nso:scaledValue(nplus_overhang_diff.v);
+        nso = scaledValue(diff_contact_overhang.v + nwell_overhang_diff_n.v); // valid for elements that have nwell layers
+        pso = (!pWellFlag)?nso:scaledValue(diff_contact_overhang.v + nplus_overhang_diff.v);
         double[] wellSos = {pso, nso};
         PaletteGroup[] wellPalette = new PaletteGroup[2];
 
@@ -2349,8 +2350,12 @@ public class TechEditWizardData
             for (Contact c : e.getValue())
             {
                 // We know those layer names are numbers!
-                int i = Integer.valueOf(c.verticalLayer.layer);
-                int j = Integer.valueOf(c.horizontalLayer.layer);
+                assert(c.layers.size() == 2);
+                ContactNode verticalLayer = c.layers.get(0);
+                ContactNode horizontalLayer = c.layers.get(1);
+
+                int i = Integer.valueOf(verticalLayer.layer);
+                int j = Integer.valueOf(horizontalLayer.layer);
                 Xml.Layer ly = metalLayers.get(i-1);
                 Xml.Layer lx = metalLayers.get(j-1);
                 String name = (j>i)?ly.name + "-" + lx.name:lx.name + "-" + ly.name;
@@ -2359,13 +2364,13 @@ public class TechEditWizardData
                 double spacing = scaledValue(via_inline_spacing[via-1].v);
                 double arraySpacing = scaledValue(via_array_spacing[via-1].v);
                 Xml.Layer conLayer = viaLayers.get(via-1);
-                double h1x = scaledValue(via_size[via-1].v/2 + c.verticalLayer.overX.v);
-                double h1y = scaledValue(via_size[via-1].v/2 + c.verticalLayer.overY.v);
-                double h2x = scaledValue(via_size[via-1].v/2 + c.horizontalLayer.overX.v);
-                double h2y = scaledValue(via_size[via-1].v/2 + c.horizontalLayer.overY.v);
+                double h1x = scaledValue(via_size[via-1].v/2 + verticalLayer.overX.v);
+                double h1y = scaledValue(via_size[via-1].v/2 + verticalLayer.overY.v);
+                double h2x = scaledValue(via_size[via-1].v/2 + horizontalLayer.overX.v);
+                double h2y = scaledValue(via_size[via-1].v/2 + horizontalLayer.overY.v);
 
-                double longX = scaledValue(DBMath.isGreaterThan(c.verticalLayer.overX.v, c.horizontalLayer.overX.v) ? c.verticalLayer.overX.v : c.horizontalLayer.overX.v);
-                double longY = scaledValue(DBMath.isGreaterThan(c.verticalLayer.overY.v, c.horizontalLayer.overY.v) ? c.verticalLayer.overY.v : c.horizontalLayer.overY.v);
+                double longX = scaledValue(DBMath.isGreaterThan(verticalLayer.overX.v, horizontalLayer.overX.v) ? verticalLayer.overX.v : horizontalLayer.overX.v);
+                double longY = scaledValue(DBMath.isGreaterThan(verticalLayer.overY.v, horizontalLayer.overY.v) ? verticalLayer.overY.v : horizontalLayer.overY.v);
 
                 metalPalette[via-1].addElement(makeXmlPrimitiveCon(t.nodeGroups, c.prefix + name, -1, -1,
                     new SizeOffset(longX, longX, longY, longY),
