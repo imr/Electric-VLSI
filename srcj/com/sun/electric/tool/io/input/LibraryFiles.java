@@ -58,8 +58,6 @@ import com.sun.electric.tool.cvspm.CVSLibrary;
 import com.sun.electric.tool.cvspm.Update;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.output.Verilog;
-import com.sun.electric.tool.io.output.CellModelPrefs;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.CircuitChangeJobs;
@@ -1060,27 +1058,6 @@ public abstract class LibraryFiles extends Input
 					sb.append(" " + cell.noLibDescribe());
 				}
 				System.out.println(sb.toString());
-			}
-		}
-
-		// convert Spice model file data (was on cells, now in preferences)
-		Variable.Key SPICE_MODEL_FILE_KEY = Variable.newKey("SIM_spice_behave_file");
-		for(LibraryFiles reader : libsBeingRead)
-		{
-			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
-			{
-				Cell cell = reader.nodeProtoList[cellIndex];
-				if (cell == null) continue;
-				String spiceModelFile = cell.getVarValue(SPICE_MODEL_FILE_KEY, String.class);
-				if (spiceModelFile != null)
-				{
-					CellModelPrefs.spiceModelPrefs.setModelFile(cell, spiceModelFile, false, false);
-				}
-                String verilogModelFile = cell.getVarValue(Verilog.VERILOG_BEHAVE_FILE_KEY, String.class);
-                if (verilogModelFile != null)
-                {
-                    CellModelPrefs.verilogModelPrefs.setModelFile(cell, verilogModelFile, false, false);
-                }
 			}
 		}
 

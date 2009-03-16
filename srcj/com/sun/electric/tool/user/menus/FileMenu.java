@@ -51,8 +51,11 @@ import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.GDSMap;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.LibraryFiles;
+import com.sun.electric.tool.io.output.CellModelPrefs;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.output.PostScript;
+import com.sun.electric.tool.io.output.Spice;
+import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.project.AddCellJob;
 import com.sun.electric.tool.project.AddLibraryJob;
 import com.sun.electric.tool.project.CancelCheckOutJob;
@@ -99,6 +102,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -479,6 +483,7 @@ public class FileMenu {
         private RenameAndSaveLibraryTask saveTask;
         private String cellName; // cell to view once the library is open
         private Library lib;
+        private HashSet<Library> newLibs;
 
 		public ReadLibrary(URL fileURL, FileType type, String cellName) {
             this(fileURL, type, null, null, null, cellName);
@@ -525,6 +530,9 @@ public class FileMenu {
             // read project settings
             if (projsettings != null)
                 ProjSettings.readSettings(projsettings, getDatabase(), false);
+            HashSet<Library> oldLibs = new HashSet<Library>();
+            for (Iterator<Library> it = getDatabase().getLibraries(); it.hasNext(); )
+                oldLibs.add(it.next());
             lib = LibraryFiles.readLibrary(fileURL, null, type, false);
             if (lib == null)
             {
@@ -532,6 +540,13 @@ public class FileMenu {
                 return false;
             }
             fieldVariableChanged("lib");
+            newLibs = new HashSet<Library>();
+            for (Iterator<Library> it = getDatabase().getLibraries(); it.hasNext(); ) {
+                Library lib = it.next();
+                if (!oldLibs.contains(lib))
+                    newLibs.add(lib);
+            }
+            fieldVariableChanged("newLibs");
 
              // new library open: check for default "noname" library and close if empty
             Library noname = Library.findLibrary("noname");
@@ -558,6 +573,7 @@ public class FileMenu {
                     lib.findNodeProto(cellName) :
                     Job.getUserInterface().getCurrentCell(lib);
         	doneOpeningLibrary(showThisCell);
+            convertVarsToModelFiles(newLibs);
 
             // Repair libraries.
             CircuitChanges.checkAndRepairCommand(true);
@@ -566,6 +582,20 @@ public class FileMenu {
             updateRecentlyOpenedLibrariesList();
         }
 	}
+
+    private static void convertVarsToModelFiles(Collection<Library> newLibs) {
+        for (Library lib: newLibs) {
+            for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+                Cell cell = it.next();
+				String spiceModelFile = cell.getVarValue(Spice.SPICE_MODEL_FILE_KEY, String.class);
+				if (spiceModelFile != null)
+					CellModelPrefs.spiceModelPrefs.setModelFile(cell, spiceModelFile, false, false);
+                String verilogModelFile = cell.getVarValue(Verilog.VERILOG_BEHAVE_FILE_KEY, String.class);
+                if (verilogModelFile != null)
+                    CellModelPrefs.verilogModelPrefs.setModelFile(cell, verilogModelFile, false, false);
+            }
+        }
+    }
 
     public static void updateRecentlyOpenedLibrariesList() {
         String [] recentLibs = User.getRecentlyOpenedLibraries();
@@ -653,7 +683,7 @@ public class FileMenu {
 			} else {
 				createLib = Input.importLibrary(fileURL, type);
 			}
-			
+
 			if (createLib == null) return false;
 
             // new library open: check for default "noname" library and close if empty
@@ -743,7 +773,7 @@ public class FileMenu {
 	 */
 	public static void importToCurrentCellCommand(FileType type)
 	{
-		        
+
 		String fileName = null;
 		if (type == FileType.DAIS)
 		{
@@ -958,7 +988,7 @@ public class FileMenu {
         String fileName = null;
         if (!saveAs && lib.isFromDisk())
         {
-        	if (type == FileType.JELIB || type == FileType.DELIB || 
+        	if (type == FileType.JELIB || type == FileType.DELIB ||
         		(type == FileType.ELIB && !compatibleWith6))
 	        {
 	            fileName = lib.getLibFile().getPath();
@@ -1034,13 +1064,13 @@ public class FileMenu {
             User.fixStaleCellReferences(idMapper);
         }
     }
-    
+
     private static class RenameAndSaveLibraryTask implements Serializable {
         private Library lib;
         private String newName;
         private FileType type;
         private boolean compatibleWith6;
-        
+
         private RenameAndSaveLibraryTask(Library lib, String newName, FileType type, boolean compatibleWith6)
         {
             this.lib = lib;
@@ -1048,7 +1078,7 @@ public class FileMenu {
             this.type = type;
             this.compatibleWith6 = compatibleWith6;
         }
-        
+
         private IdMapper renameAndSave() throws JobException {
             IdMapper idMapper = null;
             boolean success = false;
@@ -1512,7 +1542,7 @@ public class FileMenu {
     public static class QuitJob extends Job
     {
         private Collection<RenameAndSaveLibraryTask> saveTasks;
-        
+
     	public QuitJob(Collection<RenameAndSaveLibraryTask> saveTasks)
         {
             super("Quitting", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1747,7 +1777,7 @@ public class FileMenu {
         }
         return ok;
     }
-    
+
 //    public static boolean forceSave(boolean confirm) {
 //        boolean dirty = false;
 //        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )

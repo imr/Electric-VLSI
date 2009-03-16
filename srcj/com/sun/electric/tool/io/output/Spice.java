@@ -111,6 +111,7 @@ public class Spice extends Topology
 	/** key of Variable holding SPICE declaration. */			public static final Variable.Key SPICE_DECLARATION_KEY = Variable.newKey("SIM_spice_declaration");
 	/** key of Variable holding SPICE model. */					public static final Variable.Key SPICE_MODEL_KEY = Variable.newKey("SIM_spice_model");
 	/** key of Variable holding SPICE flat code. */				public static final Variable.Key SPICE_CODE_FLAT_KEY = Variable.newKey("SIM_spice_code_flat");
+	/** key of deprected Variable holding model file */         public static final Variable.Key SPICE_MODEL_FILE_KEY = Variable.newKey("SIM_spice_behave_file");
     /** key of Variable holding generic CDL templates. */		public static final Variable.Key CDL_TEMPLATE_KEY = Variable.newKey("ATTR_CDL_template");
 	/** Prefix for spice extension. */                          public static final String SPICE_EXTENSION_PREFIX = "Extension ";
 	/** Prefix for spice null extension. */                     public static final String SPICE_NOEXTENSION_PREFIX = "N O N E ";
@@ -667,7 +668,7 @@ public class Spice extends Topology
                     // Preparing code for bug #1828
 //					if (!Simulation.isSpiceWritePwrGndInTopCell() && pp!= null && subCS.isGlobal() && (subCS.isGround() || subCS.isPower()))
 //						continue;
-                        
+
                     Network net;
                     int exportIndex = subCS.getExportIndex();
 
@@ -1148,11 +1149,11 @@ public class Spice extends Topology
 	                {
 	                    double l = maskScale * size.getDoubleLength();
 	                    l -= lengthSubtraction;
-	
+
 	                    // make into microns (convert to nanometers then divide by 1000)
 	                    if (!Simulation.isSpiceWriteTransSizeInLambda())
 	                        l *= layoutTechnology.getScale() / 1000.0;
-	
+
 	                    if (fun == PrimitiveNode.Function.TRANMOS  || fun == PrimitiveNode.Function.TRA4NMOS ||
 	                        fun == PrimitiveNode.Function.TRAPMOS || fun == PrimitiveNode.Function.TRA4PMOS ||
 	                        fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRA4DMOS ||
@@ -1197,11 +1198,11 @@ public class Spice extends Topology
 	                if (size.getDoubleWidth() > 0)
 	                {
 	                    double w = maskScale * size.getDoubleWidth();
-	
+
 	                    // make into microns (convert to nanometers then divide by 1000)
 	                    if (!Simulation.isSpiceWriteTransSizeInLambda())
 	                        w *= layoutTechnology.getScale() / 1000.0;
-	
+
 	                    if (fun == PrimitiveNode.Function.TRANMOS  || fun == PrimitiveNode.Function.TRA4NMOS ||
 	                        fun == PrimitiveNode.Function.TRAPMOS || fun == PrimitiveNode.Function.TRA4PMOS ||
 	                        fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRA4DMOS ||
