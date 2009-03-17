@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -58,35 +59,57 @@ public class DXF extends Output
 	private String defaultDXFLayerName;
 	private static String [] ignorefromheader = {"$DWGCODEPAGE", "$HANDSEED", "$SAVEIMAGES"};
 
-	/**
-	 * The main entry point for DXF deck writing.
-	 * @param cell the top-level cell to write.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
-	 */
-	public static Output writeDXFFile(Cell cell, String filePath)
-	{
-		DXF out = new DXF();
-		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+	private DXFPreferences localPrefs;
 
-		out.writeDXF(cell);
+	public static class DXFPreferences extends OutputPreferences
+    {
+		int dxfScale;
 
-		if (out.closeTextOutputStream()) return out.finishWrite();
-		System.out.println(filePath + " written");
-        return out.finishWrite();
+		DXFPreferences()
+		{
+			dxfScale = IOTool.getDXFScale();
+		}
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		DXF out = new DXF(this);
+    		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+
+    		out.writeDXF(cell);
+
+    		if (out.closeTextOutputStream()) return out.finishWrite();
+    		System.out.println(filePath + " written");
+            return out.finishWrite();
+        }
     }
 
 	/**
 	 * Creates a new instance of the DXF netlister.
 	 */
-	DXF()
-	{
-    }
+	DXF(DXFPreferences dp) { localPrefs = dp; }
+
+//	/**
+//	 * The main entry point for DXF deck writing.
+//	 * @param cell the top-level cell to write.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeDXFFile(Cell cell, String filePath)
+//	{
+//		DXF out = new DXF();
+//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+//
+//		out.writeDXF(cell);
+//
+//		if (out.closeTextOutputStream()) return out.finishWrite();
+//		System.out.println(filePath + " written");
+//        return out.finishWrite();
+//    }
 
 	private void writeDXF(Cell cell)
 	{
 		// set the scale
-		dxfDispUnit = TextUtils.UnitScale.findFromIndex(IOTool.getDXFScale());
+		dxfDispUnit = TextUtils.UnitScale.findFromIndex(localPrefs.dxfScale);
 
 		// write the header
 		Variable varheadertext = cell.getLibrary().getVar(DXF_HEADER_TEXT_KEY);

@@ -64,25 +64,37 @@ public class Eagle extends Output
 	/** key of Variable holding pin information. */			public static final Variable.Key PIN_KEY = Variable.newKey("ATTR_pin");
 
 	private List<NetNames> networks;
+	private EaglePreferences localPrefs;
 
+	public static class EaglePreferences extends OutputPreferences
+    {
+		EaglePreferences() {}
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		Eagle out = new Eagle(this);
+    		out.writeNetlist(cell, context, filePath);
+            return out;
+        }
+    }
 	/**
 	 * Creates a new instance of Eagle netlister.
 	 */
-	private Eagle() {}
+	private Eagle(EaglePreferences ep) { localPrefs = ep; }
 
-	/**
-	 * The main entry point for Eagle deck writing.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
-	 */
-	public static Output writeEagleFile(Cell cell, VarContext context, String filePath)
-	{
-		Eagle out = new Eagle();
-		out.writeNetlist(cell, context, filePath);
-        return out;
-    }
+//	/**
+//	 * The main entry point for Eagle deck writing.
+//     * @param cell the top-level cell to write.
+//     * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeEagleFile(Cell cell, VarContext context, String filePath)
+//	{
+//		Eagle out = new Eagle();
+//		out.writeNetlist(cell, context, filePath);
+//        return out;
+//    }
 
 	private void writeNetlist(Cell cell, VarContext context, String filePath)
 	{

@@ -66,30 +66,49 @@ public class Tegas extends Topology
 	private HashMap<Nodable,Integer> nodeNames;
 	private HashMap<ArcInst,Integer> implicitInverters;
 	private Netlist netList;
+	private TegasPreferences localPrefs;
 
-	/**
-	 * The main entry point for Tegas deck writing.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
-	 */
-	public static Output writeTegasFile(Cell cell, VarContext context, String filePath)
-	{
-		Tegas out = new Tegas();
-		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-		if (out.writeCell(cell, context)) return out.finishWrite();
-		if (out.closeTextOutputStream()) return out.finishWrite();
-		System.out.println(filePath + " written");
-        return out.finishWrite();
+	public static class TegasPreferences extends OutputPreferences
+    {
+		String workingDirectory;
+
+		TegasPreferences()
+		{
+			workingDirectory = User.getWorkingDirectory();
+		}
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		Tegas out = new Tegas(this);
+    		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+    		if (out.writeCell(cell, context)) return out.finishWrite();
+    		if (out.closeTextOutputStream()) return out.finishWrite();
+    		System.out.println(filePath + " written");
+            return out.finishWrite();
+        }
     }
 
 	/**
 	 * Creates a new instance of the Tegas netlister.
 	 */
-	Tegas()
-	{
-	}
+	Tegas(TegasPreferences tp) { localPrefs = tp; }
+
+//	/**
+//	 * The main entry point for Tegas deck writing.
+//     * @param cell the top-level cell to write.
+//     * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeTegasFile(Cell cell, VarContext context, String filePath)
+//	{
+//		Tegas out = new Tegas();
+//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+//		if (out.writeCell(cell, context)) return out.finishWrite();
+//		if (out.closeTextOutputStream()) return out.finishWrite();
+//		System.out.println(filePath + " written");
+//        return out.finishWrite();
+//    }
 
 	protected void start()
 	{
@@ -774,7 +793,7 @@ public class Tegas extends Topology
 			reservedWords = new ArrayList<String>();
 			try
 			{
-				File f = new File(User.getWorkingDirectory() + File.separator + "reservedwords.dat");
+				File f = new File(localPrefs.workingDirectory + File.separator + "reservedwords.dat");
 				FileReader fr = new FileReader(f);
 				BufferedReader br = new BufferedReader(fr);
 				for(;;)

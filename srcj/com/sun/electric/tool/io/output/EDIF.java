@@ -56,7 +56,6 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -174,6 +173,7 @@ public class EDIF extends Topology
     EDIFEquiv equivs;
     private final HashMap<Library,LibToWrite> libsToWrite; // key is Library, Value is LibToWrite
     private final List<Library> libsToWriteOrder; // list of libraries to write, in order
+	private EDIFPreferences localPrefs;
 
     private static class LibToWrite {
         private final List<CellToWrite> cellsToWrite;
@@ -195,32 +195,55 @@ public class EDIF extends Topology
         }
     }
 
-	/**
-	 * The main entry point for EDIF deck writing.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
-	 */
-	public static Output writeEDIFFile(Cell cell, VarContext context, String filePath)
-	{
-		EDIF out = new EDIF();
-		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-		if (out.writeCell(cell, context)) return out.finishWrite();
-		if (out.closeTextOutputStream()) return out.finishWrite();
-		System.out.println(filePath + " written");
-        return out.finishWrite();
+	public static class EDIFPreferences extends OutputPreferences
+    {
+		boolean edifUseSchematicView;
+		boolean edifCadenceCompatibility;
+
+		EDIFPreferences()
+		{
+			edifUseSchematicView = IOTool.isEDIFUseSchematicView();
+			edifCadenceCompatibility = IOTool.isEDIFCadenceCompatibility();
+		}
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		EDIF out = new EDIF(this);
+    		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+    		if (out.writeCell(cell, context)) return out.finishWrite();
+    		if (out.closeTextOutputStream()) return out.finishWrite();
+    		System.out.println(filePath + " written");
+            return out.finishWrite();
+        }
     }
 
 	/**
 	 * Creates a new instance of the EDIF netlister.
 	 */
-	EDIF()
+	EDIF(EDIFPreferences ep)
 	{
+		localPrefs = ep;
         libsToWrite = new HashMap<Library,LibToWrite>();
         libsToWriteOrder = new ArrayList<Library>();
         equivs = new EDIFEquiv();
 	}
+
+//	/**
+//	 * The main entry point for EDIF deck writing.
+//     * @param cell the top-level cell to write.
+//     * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeEDIFFile(Cell cell, VarContext context, String filePath)
+//	{
+//		EDIF out = new EDIF();
+//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+//		if (out.writeCell(cell, context)) return out.finishWrite();
+//		if (out.closeTextOutputStream()) return out.finishWrite();
+//		System.out.println(filePath + " written");
+//        return out.finishWrite();
+//    }
 
 	protected void start()
 	{
@@ -258,7 +281,7 @@ public class EDIF extends Topology
 
 		// write the header
 		String header = "Electric VLSI Design System";
-		if (User.isIncludeDateAndVersionInOutput())
+		if (localPrefs.includeDateAndVersionInOutput)
 		{
 			header += ", version " + Version.getVersion();
 		}
@@ -270,12 +293,12 @@ public class EDIF extends Topology
         blockPut("edifLevel", "0");
         blockOpen("technology");
         blockOpen("numberDefinition");
-        if (IOTool.isEDIFUseSchematicView())
+        if (localPrefs.edifUseSchematicView)
         {
             writeScale(Technology.getCurrent());
         }
         blockClose("numberDefinition");
-        if (IOTool.isEDIFUseSchematicView())
+        if (localPrefs.edifUseSchematicView)
         {
             writeFigureGroup(EGART);
             writeFigureGroup(EGWIRE);
@@ -299,7 +322,7 @@ public class EDIF extends Topology
 		        blockPut("edifLevel", "0");
 		        blockOpen("technology");
 			        blockOpen("numberDefinition");
-				        if (IOTool.isEDIFUseSchematicView())
+				        if (localPrefs.edifUseSchematicView)
 				            writeScale(Technology.getCurrent());
 			        blockClose("numberDefinition");
 		        blockClose("technology");
@@ -311,7 +334,7 @@ public class EDIF extends Topology
 				blockPut("cellType", "RIPPER");
 				blockOpen("view");
 				blockPutIdentifier("symbol");
-				blockPut("viewType", IOTool.isEDIFUseSchematicView() ? "SCHEMATIC" : "NETLIST");
+				blockPut("viewType", localPrefs.edifUseSchematicView ? "SCHEMATIC" : "NETLIST");
 		        blockOpen("interface");
 
 				blockOpen("port");
@@ -396,7 +419,7 @@ public class EDIF extends Topology
             blockPut("edifLevel", "0");
             blockOpen("technology");
             blockOpen("numberDefinition");
-            if (IOTool.isEDIFUseSchematicView())
+            if (localPrefs.edifUseSchematicView)
             {
                 writeScale(Technology.getCurrent());
             }
@@ -440,12 +463,12 @@ public class EDIF extends Topology
             blockPut("edifLevel", "0");
             blockOpen("technology");
             blockOpen("numberDefinition", false);
-            if (IOTool.isEDIFUseSchematicView())
+            if (localPrefs.edifUseSchematicView)
             {
                 writeScale(Technology.getCurrent());
             }
             blockClose("numberDefinition");
-            if (IOTool.isEDIFUseSchematicView())
+            if (localPrefs.edifUseSchematicView)
             {
                 writeFigureGroup(EGART);
                 writeFigureGroup(EGWIRE);
@@ -481,7 +504,7 @@ public class EDIF extends Topology
 		blockPut("cellType", "generic");
 		blockOpen("view");
 		blockPutIdentifier("symbol");
-		blockPut("viewType", IOTool.isEDIFUseSchematicView() ? "SCHEMATIC" : "NETLIST");
+		blockPut("viewType", localPrefs.edifUseSchematicView ? "SCHEMATIC" : "NETLIST");
 
 		// write out the interface description
 		blockOpen("interface");
@@ -526,7 +549,7 @@ public class EDIF extends Topology
 				}
 			}
 		}
-		if (IOTool.isEDIFUseSchematicView())
+		if (localPrefs.edifUseSchematicView)
 		{
             for (Iterator<Variable> it = cell.getParametersAndVariables(); it.hasNext(); ) {
                 Variable var = it.next();
@@ -563,7 +586,7 @@ public class EDIF extends Topology
 
 		// write cell contents
         blockOpen("contents");
-        if (IOTool.isEDIFUseSchematicView()) {
+        if (localPrefs.edifUseSchematicView) {
             blockOpen("page");
             blockPutIdentifier("SH1");
         }
@@ -745,7 +768,7 @@ public class EDIF extends Topology
             blockClose("viewRef");
 
 			// now graphical information
-			if (IOTool.isEDIFUseSchematicView())
+			if (localPrefs.edifUseSchematicView)
 			{
                 NodeInst ni = no;
                 blockOpen("transform");
@@ -762,7 +785,7 @@ public class EDIF extends Topology
 			}
 
 			// check for variables to write as properties
-			if (IOTool.isEDIFUseSchematicView())
+			if (localPrefs.edifUseSchematicView)
 			{
 				// do all display variables first
                 NodeInst ni = no;
@@ -936,7 +959,7 @@ public class EDIF extends Topology
 			}
 			blockClose("joined");
 
-			if (IOTool.isEDIFUseSchematicView())
+			if (localPrefs.edifUseSchematicView)
 			{
 				// output net graphic information for all arc instances connected to this net
 				egraphic = EGUNKNOWN;
@@ -1016,7 +1039,7 @@ public class EDIF extends Topology
 				blockClose("joined");
 
 				// now graphics for the bus
-				if (IOTool.isEDIFUseSchematicView())
+				if (localPrefs.edifUseSchematicView)
 				{
 					// output net graphic information for all arc instances connected to this net
 					egraphic = EGUNKNOWN;
@@ -1082,7 +1105,7 @@ public class EDIF extends Topology
 				}
 
 				// now graphics for the bus
-				if (IOTool.isEDIFUseSchematicView())
+				if (localPrefs.edifUseSchematicView)
 				{
 					// output net graphic information for all arc instances connected to this net
 					egraphic = EGUNKNOWN;
@@ -1111,7 +1134,7 @@ public class EDIF extends Topology
 //            }
 //        }
 
-        if (IOTool.isEDIFUseSchematicView()) {
+        if (localPrefs.edifUseSchematicView) {
             blockClose("page");
         }
         blockClose("contents");
@@ -1168,7 +1191,7 @@ public class EDIF extends Topology
         blockClose("comment");
 		blockOpen("view");
 		blockPutIdentifier("symbol");
-		blockPut("viewType", IOTool.isEDIFUseSchematicView() ? "SCHEMATIC" : "NETLIST");
+		blockPut("viewType", localPrefs.edifUseSchematicView ? "SCHEMATIC" : "NETLIST");
 		blockOpen("interface");
 
 		int firstPortIndex = 0;
@@ -1208,7 +1231,7 @@ public class EDIF extends Topology
         blockPut("cellType", "generic");
         blockOpen("view");
         blockPutIdentifier(extView);
-        if (viewType == null) viewType = IOTool.isEDIFUseSchematicView() ? "SCHEMATIC" : "NETLIST";
+        if (viewType == null) viewType = localPrefs.edifUseSchematicView ? "SCHEMATIC" : "NETLIST";
         blockPut("viewType", viewType);
 
         // write interface
@@ -1355,7 +1378,7 @@ public class EDIF extends Topology
 	 */
 	private String convertBusName(String busName, Netlist netlist, ElectricObject eObj)
 	{
-		if (IOTool.isEDIFCadenceCompatibility())
+		if (localPrefs.edifCadenceCompatibility)
 		{
 			// see if the bus is simple
 			int firstOpen = busName.indexOf('[');
@@ -1905,7 +1928,7 @@ public class EDIF extends Topology
 		}
 		if (type.isText())
 		{
-            if (IOTool.isEDIFCadenceCompatibility() && obj.getDisplayedText() != null) {
+            if (localPrefs.edifCadenceCompatibility && obj.getDisplayedText() != null) {
                 // Properties in Cadence do not have position info, Cadence
                 // determines position automatically and cannot be altered by user.
                 // There also does not seem to be any way to set the 'display' so

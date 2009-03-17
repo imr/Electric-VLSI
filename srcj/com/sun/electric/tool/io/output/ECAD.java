@@ -62,27 +62,37 @@ public class ECAD extends Output
 	/** key of Variable holding pin information. */			public static final Variable.Key PIN_KEY = Variable.newKey("ATTR_pin");
 
 	private List<NetNames> networks;
+	private ECADPreferences localPrefs;
 
+	public static class ECADPreferences extends OutputPreferences
+    {
+		ECADPreferences() {}
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		ECAD out = new ECAD(this);
+    		out.writeNetlist(cell, context, filePath);
+            return out;
+        }
+    }
 	/**
 	 * Creates a new instance of ECAD netlister.
 	 */
-	private ECAD()
-	{
-    }
+	private ECAD(ECADPreferences ep) { localPrefs = ep; }
 
-	/**
-	 * The main entry point for ECAD deck writing.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
-	 */
-	public static Output writeECADFile(Cell cell, VarContext context, String filePath)
-	{
-		ECAD out = new ECAD();
-		out.writeNetlist(cell, context, filePath);
-        return out;
-    }
+//	/**
+//	 * The main entry point for ECAD deck writing.
+//     * @param cell the top-level cell to write.
+//     * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeECADFile(Cell cell, VarContext context, String filePath)
+//	{
+//		ECAD out = new ECAD();
+//		out.writeNetlist(cell, context, filePath);
+//        return out;
+//    }
 
 	private void writeNetlist(Cell cell, VarContext context, String filePath)
 	{
@@ -91,8 +101,6 @@ public class ECAD extends Output
 		networks = new ArrayList<NetNames>();
 		ECADNetlister netlister = new ECADNetlister();
 		HierarchyEnumerator.enumerateCell(cell, context, netlister, Netlist.ShortResistors.ALL);
-//		Netlist netlist = cell.getNetlist(true);
-//		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
 		printWriter.println("| end of part list");
 
 		// warn the user if nets not found

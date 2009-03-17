@@ -39,7 +39,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.User;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -57,6 +56,8 @@ public class FastHenry extends Output
 	/** key of Variable holding height subdivisions. */	public static final Variable.Key HEIGHT_SUBDIVS_KEY = Variable.newKey("SIM_fasthenry_height_subdivs");
 	/** key of Variable holding the head Z value. */	public static final Variable.Key ZHEAD_KEY = Variable.newKey("SIM_fasthenry_z_head");
 	/** key of Variable holding the tail Z value. */	public static final Variable.Key ZTAIL_KEY = Variable.newKey("SIM_fasthenry_z_tail");
+
+	private FastHenryPreferences localPrefs;
 
 	/**
 	 * Class for managing FastHenry information on arcs.
@@ -137,35 +138,63 @@ public class FastHenry extends Output
 		}
 	}
 
-	/**
-	 * The main entry point for FastHenry deck writing.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
-	 */
-	public static Output writeFastHenryFile(Cell cell, VarContext context, String filePath)
-	{
-		FastHenry out = new FastHenry();
-		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-		out.writeFH(cell, context);
-		if (out.closeTextOutputStream()) return out.finishWrite();
-		System.out.println(filePath + " written");
-        return out.finishWrite();
+	public static class FastHenryPreferences extends OutputPreferences
+    {
+		int widthSubdivisions, heightSubdivisions;
+		double defThickness;
+		boolean useSingleFrequency;
+		double startFrequency, endFrequency;
+		int runsPerDecade;
+
+		FastHenryPreferences()
+		{
+			widthSubdivisions = Simulation.getFastHenryWidthSubdivisions();
+			heightSubdivisions = Simulation.getFastHenryHeightSubdivisions();
+			defThickness = Simulation.getFastHenryDefThickness();
+			useSingleFrequency = Simulation.isFastHenryUseSingleFrequency();
+			startFrequency = Simulation.getFastHenryStartFrequency();
+			endFrequency = Simulation.getFastHenryEndFrequency();
+			runsPerDecade = Simulation.getFastHenryRunsPerDecade();
+		}
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		FastHenry out = new FastHenry(this);
+    		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+    		out.writeFH(cell, context);
+    		if (out.closeTextOutputStream()) return out.finishWrite();
+    		System.out.println(filePath + " written");
+            return out.finishWrite();
+        }
     }
 
 	/**
 	 * Creates a new instance of the FastHenry netlister.
 	 */
-	FastHenry()
-	{
-	}
+	FastHenry(FastHenryPreferences fp) { localPrefs = fp; }
+
+//	/**
+//	 * The main entry point for FastHenry deck writing.
+//     * @param cell the top-level cell to write.
+//     * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeFastHenryFile(Cell cell, VarContext context, String filePath)
+//	{
+//		FastHenry out = new FastHenry();
+//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+//		out.writeFH(cell, context);
+//		if (out.closeTextOutputStream()) return out.finishWrite();
+//		System.out.println(filePath + " written");
+//        return out.finishWrite();
+//    }
 
 	protected void writeFH(Cell cell, VarContext context)
 	{
 		printWriter.println("* FastHenry for " + cell);
 		emitCopyright("* ", "");
-		if (User.isIncludeDateAndVersionInOutput())
+		if (localPrefs.includeDateAndVersionInOutput)
 		{
 			printWriter.println("* Cell created on " + TextUtils.formatDate(cell.getCreationDate()));
 			printWriter.println("* Cell last modified on " + TextUtils.formatDate(cell.getRevisionDate()));
@@ -182,24 +211,24 @@ public class FastHenry extends Output
 		// write default width and height subdivisions
 		printWriter.println("");
 		printWriter.println("* Default number of subdivisions");
-		printWriter.println(".Default nwinc=" + Simulation.getFastHenryWidthSubdivisions() +
-			" nhinc=" + Simulation.getFastHenryHeightSubdivisions() +
-			" h=" + TextUtils.formatDouble(Simulation.getFastHenryDefThickness()));
+		printWriter.println(".Default nwinc=" + localPrefs.widthSubdivisions +
+			" nhinc=" + localPrefs.heightSubdivisions +
+			" h=" + TextUtils.formatDouble(localPrefs.defThickness));
 	
 		// reset flags for cells that have been written
 		sim_writefhcell(cell);
 	
 		// write frequency range
 		printWriter.println("");
-		if (!Simulation.isFastHenryUseSingleFrequency())
+		if (!localPrefs.useSingleFrequency)
 		{
-			printWriter.println(".freq fmin=" + TextUtils.formatDouble(Simulation.getFastHenryStartFrequency()) +
-				" fmax=" + TextUtils.formatDouble(Simulation.getFastHenryEndFrequency()) +
-				" ndec=" + Integer.toString(Simulation.getFastHenryRunsPerDecade()));
+			printWriter.println(".freq fmin=" + TextUtils.formatDouble(localPrefs.startFrequency) +
+				" fmax=" + TextUtils.formatDouble(localPrefs.endFrequency) +
+				" ndec=" + Integer.toString(localPrefs.runsPerDecade));
 		} else
 		{
-			printWriter.println(".freq fmin=" + TextUtils.formatDouble(Simulation.getFastHenryStartFrequency()) +
-				" fmax=" + TextUtils.formatDouble(Simulation.getFastHenryStartFrequency()) + " ndec=1");
+			printWriter.println(".freq fmin=" + TextUtils.formatDouble(localPrefs.startFrequency) +
+				" fmax=" + TextUtils.formatDouble(localPrefs.endFrequency) + " ndec=1");
 		}
 	
 		// clean up

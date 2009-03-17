@@ -43,7 +43,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.user.User;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,33 +59,52 @@ public class Sim extends Output
 	private int globalNetVDD, globalNetGND, globalNetPhi1H, globalNetPhi1L, globalNetPhi2H, globalNetPhi2L;
 	/** key of Variable holding COSMOS attributes. */	private static final Variable.Key COSMOS_ATTRIBUTE_KEY = Variable.newKey("SIM_cosmos_attribute");
 
-	/**
-	 * The main entry point for Sim deck writing.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create with Sim.
-	 * @param type the type of deck being written.
-     * @return the Output object used for writing
-	 */
-	public static Output writeSimFile(Cell cell, VarContext context, String filePath, FileType type)
-	{
-		Sim out = new Sim();
-		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+	private SimPreferences localPrefs;
 
-		out.init(cell, filePath, type);
-		HierarchyEnumerator.enumerateCell(cell, context, new Visitor(out, type), Netlist.ShortResistors.ALL);
+	public static class SimPreferences extends OutputPreferences
+    {
+		private FileType type;
+		SimPreferences(FileType type) { this.type = type; }
 
-		if (out.closeTextOutputStream()) return out.finishWrite();
-		System.out.println(filePath + " written");
-        return out.finishWrite();
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		Sim out = new Sim(this);
+    		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+
+    		out.init(cell, filePath, type);
+    		HierarchyEnumerator.enumerateCell(cell, context, new Visitor(out, type), Netlist.ShortResistors.ALL);
+
+    		if (out.closeTextOutputStream()) return out.finishWrite();
+    		System.out.println(filePath + " written");
+            return out.finishWrite();
+        }
     }
 
 	/**
 	 * Creates a new instance of the Sim netlister.
 	 */
-	Sim()
-	{
-    }
+	Sim(SimPreferences sp) { localPrefs = sp; }
+
+//	/**
+//	 * The main entry point for Sim deck writing.
+//     * @param cell the top-level cell to write.
+//     * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create with Sim.
+//	 * @param type the type of deck being written.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeSimFile(Cell cell, VarContext context, String filePath, FileType type)
+//	{
+//		Sim out = new Sim();
+//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+//
+//		out.init(cell, filePath, type);
+//		HierarchyEnumerator.enumerateCell(cell, context, new Visitor(out, type), Netlist.ShortResistors.ALL);
+//
+//		if (out.closeTextOutputStream()) return out.finishWrite();
+//		System.out.println(filePath + " written");
+//        return out.finishWrite();
+//    }
 
 	private static class Visitor extends HierarchyEnumerator.Visitor
 	{
@@ -116,7 +134,7 @@ public class Sim extends Output
 
 		printWriter.println("| Cell " + cell.describe(false));
 		emitCopyright("| ", "");
-		if (User.isIncludeDateAndVersionInOutput())
+		if (localPrefs.includeDateAndVersionInOutput)
 		{
 			printWriter.println("| Cell created " + TextUtils.formatDate(cell.getCreationDate()));
 			printWriter.println("| Version " + cell.getVersion() + " last revised " + TextUtils.formatDate(cell.getRevisionDate()));

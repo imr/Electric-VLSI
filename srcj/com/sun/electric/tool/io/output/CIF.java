@@ -32,7 +32,6 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Geometric;
@@ -41,7 +40,6 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -74,48 +72,84 @@ public class CIF extends Geometry
 
 	/** illegal characters in names (not really illegal but can cause problems) */
 	private static final String badNameChars = ":{}/\\";
+	private CIFPreferences localPrefs;
 
-	/**
-	 * User Interface independent entry point for CIF output.
-	 * @param cell the top-level cell to write.
-	 * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-	 * @return the Output object used for writing
-	 */
-	public static Output writeCIFFile(Cell cell, VarContext context, String filePath)
-	{
-		CIF out = new CIF();
-		if (!out.openTextOutputStream(filePath)) // no error
+	public static class CIFPreferences extends OutputPreferences
+    {
+		int cifScale;
+		boolean cifOutInstantiatesTopLevel;
+		boolean cifOutMergesBoxes;
+		boolean cifOutMimicsDisplay;
+
+		CIFPreferences()
+		{
+			cifScale = IOTool.getCIFOutScaleFactor();
+			cifOutInstantiatesTopLevel = IOTool.isCIFOutInstantiatesTopLevel();
+			cifOutMergesBoxes = IOTool.isCIFOutMergesBoxes();
+			cifOutMimicsDisplay = IOTool.isCIFOutMimicsDisplay();
+		}
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
         {
-            CIFVisitor visitor = out.makeCIFVisitor(getMaxHierDepth(cell));
-            if (!out.writeCell(cell, context, visitor)) // no error
+    		CIF out = new CIF(this);
+    		if (!out.openTextOutputStream(filePath)) // no error
             {
-                if (!out.closeTextOutputStream()) // no error
+                CIFVisitor visitor = out.makeCIFVisitor(getMaxHierDepth(cell));
+                if (!out.writeCell(cell, context, visitor)) // no error
                 {
-                    System.out.println(filePath + " written");
-                    if (out.errorLogger.getNumErrors() != 0)
-                        System.out.println(out.errorLogger.getNumErrors() + " CIF RESOLUTION ERRORS FOUND");
+                    if (!out.closeTextOutputStream()) // no error
+                    {
+                        System.out.println(filePath + " written");
+                        if (out.errorLogger.getNumErrors() != 0)
+                            System.out.println(out.errorLogger.getNumErrors() + " CIF RESOLUTION ERRORS FOUND");
+                    }
                 }
             }
+            return out.finishWrite();
         }
-        return out.finishWrite();
-	}
+    }
+
+//	/**
+//	 * User Interface independent entry point for CIF output.
+//	 * @param cell the top-level cell to write.
+//	 * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//	 * @return the Output object used for writing
+//	 */
+//	public static Output writeCIFFile(Cell cell, VarContext context, String filePath)
+//	{
+//		CIF out = new CIF();
+//		if (!out.openTextOutputStream(filePath)) // no error
+//        {
+//            CIFVisitor visitor = out.makeCIFVisitor(getMaxHierDepth(cell));
+//            if (!out.writeCell(cell, context, visitor)) // no error
+//            {
+//                if (!out.closeTextOutputStream()) // no error
+//                {
+//                    System.out.println(filePath + " written");
+//                    if (out.errorLogger.getNumErrors() != 0)
+//                        System.out.println(out.errorLogger.getNumErrors() + " CIF RESOLUTION ERRORS FOUND");
+//                }
+//            }
+//        }
+//        return out.finishWrite();
+//	}
 
 	/**
 	 * Creates a new instance of CIF
 	 */
-	CIF()
+	CIF(CIFPreferences cp)
 	{
+		localPrefs = cp;
         cellNumbers = new HashMap<Cell,Integer>();
 
 		// scale is in centimicrons, technology scale is in nanometers
-		int cifScale = IOTool.getCIFOutScaleFactor();
-		scaleFactor = Technology.getCurrent().getScale() / 10 * cifScale;
+		scaleFactor = Technology.getCurrent().getScale() / 10 * localPrefs.cifScale;
     }
 
 	protected void start()
 	{
-		if (User.isIncludeDateAndVersionInOutput())
+		if (localPrefs.includeDateAndVersionInOutput)
 		{
 			writeLine("( Electric VLSI Design System, version " + Version.getVersion() + " );");
 			Date now = new Date();
@@ -144,7 +178,7 @@ public class CIF extends Geometry
 
 	protected void done()
 	{
-		if (IOTool.isCIFOutInstantiatesTopLevel())
+		if (localPrefs.cifOutInstantiatesTopLevel)
 			writeLine("C " + cellNumber + ";");
 		writeLine("E");
 
@@ -170,8 +204,7 @@ public class CIF extends Geometry
 	protected void writeCellGeom(CellGeom cellGeom)
 	{
 		cellNumber++;
-		int cifScale = IOTool.getCIFOutScaleFactor();
-		writeLine("DS " + cellNumber + " 1 " + cifScale + ";");
+		writeLine("DS " + cellNumber + " 1 " + localPrefs.cifScale + ";");
 		String cellName = (cellGeom.nonUniqueName ? (cellGeom.cell.getLibrary().getName() + ":") : "") +
 			cellGeom.cell.getName() + ";";
 
@@ -222,7 +255,7 @@ public class CIF extends Geometry
 	 */
 	protected boolean mergeGeom(int hierLevelsFromBottom)
 	{
-		return IOTool.isCIFOutMergesBoxes();
+		return localPrefs.cifOutMergesBoxes;
 	}
 	   
 	/**
@@ -232,7 +265,7 @@ public class CIF extends Geometry
 	 */
 	protected boolean includeGeometric()
 	{
-		return !IOTool.isCIFOutMergesBoxes();
+		return !localPrefs.cifOutMergesBoxes;
 	}
 
 	/**
@@ -302,7 +335,7 @@ public class CIF extends Geometry
 		Cell cell = (Cell)ni.getProto();
 
 		// if mimicing display and unexpanded, draw outline
-		if (!ni.isExpanded() && IOTool.isCIFOutMimicsDisplay())
+		if (!ni.isExpanded() && localPrefs.cifOutMimicsDisplay)
 		{
 			Rectangle2D bounds = ni.getBounds();
 			Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
@@ -449,7 +482,7 @@ public class CIF extends Geometry
 			NodeInst ni = (NodeInst)no;
 			if (ni.isCellInstance())
 			{
-				if (!ni.isExpanded() && IOTool.isCIFOutMimicsDisplay())
+				if (!ni.isExpanded() && localPrefs.cifOutMimicsDisplay)
 				{
 					return false;
 				}

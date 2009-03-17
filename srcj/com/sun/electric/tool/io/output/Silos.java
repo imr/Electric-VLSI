@@ -42,7 +42,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.User;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -63,30 +62,44 @@ public class Silos extends Topology
 	/** key of Variable holding global names. */	public static final Variable.Key SILOS_GLOBAL_NAME_KEY = Variable.newKey("SIM_silos_global_name");
 	/** key of Variable holding behavior file. */	public static final Variable.Key SILOS_BEHAVIOR_FILE_KEY = Variable.newKey("SIM_silos_behavior_file");
 	/** key of Variable holding model. */			public static final Variable.Key SILOS_MODEL_KEY = Variable.newKey("SC_silos");
+	private SilosPreferences localPrefs;
 
-	/**
-	 * The main entry point for Silos deck writing.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
-	 */
-	public static Output writeSilosFile(Cell cell, VarContext context, String filePath)
-	{
-		Silos out = new Silos();
-		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-		if (out.writeCell(cell, context)) return out.finishWrite();
-		if (out.closeTextOutputStream()) return out.finishWrite();
-		System.out.println(filePath + " written");
-        return out.finishWrite();
+	public static class SilosPreferences extends OutputPreferences
+    {
+		SilosPreferences() {}
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		Silos out = new Silos(this);
+    		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+    		if (out.writeCell(cell, context)) return out.finishWrite();
+    		if (out.closeTextOutputStream()) return out.finishWrite();
+    		System.out.println(filePath + " written");
+            return out.finishWrite();
+        }
     }
 
 	/**
 	 * Creates a new instance of the Silos netlister.
 	 */
-	Silos()
-	{
-	}
+	Silos(SilosPreferences sp) { localPrefs = sp; }
+
+//	/**
+//	 * The main entry point for Silos deck writing.
+//     * @param cell the top-level cell to write.
+//     * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeSilosFile(Cell cell, VarContext context, String filePath)
+//	{
+//		Silos out = new Silos();
+//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+//		if (out.writeCell(cell, context)) return out.finishWrite();
+//		if (out.closeTextOutputStream()) return out.finishWrite();
+//		System.out.println(filePath + " written");
+//        return out.finishWrite();
+//    }
 
 	protected void start()
 	{
@@ -98,7 +111,7 @@ public class Silos extends Topology
 		writeWidthLimited("\n$ CELL " + topCell.describe(false) +
 			" FROM LIBRARY " + topCell.getLibrary().getName() + "\n");
 		emitCopyright("$ ", "");
-		if (User.isIncludeDateAndVersionInOutput())
+		if (localPrefs.includeDateAndVersionInOutput)
 		{
 			writeWidthLimited("$ CELL CREATED ON " + TextUtils.formatDate(topCell.getCreationDate()) + "\n");
 			writeWidthLimited("$ VERSION " + topCell.getVersion() + "\n");

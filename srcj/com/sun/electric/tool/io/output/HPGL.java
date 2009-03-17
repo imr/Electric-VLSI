@@ -35,7 +35,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -84,39 +83,68 @@ public class HPGL extends Output
 	};
 
 	private PenColor [] penColorTable;
+	private HPGLPreferences localPrefs;
 
+	public static class HPGLPreferences extends OutputPreferences
+    {
+		boolean textVisibilityOnExport;
+		int exportDisplayLevel;
 
-	/**
-	 * Main entry point for HPGL output.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
-	 */
-	public static Output writeHPGLFile(Cell cell, VarContext context, String filePath)
-	{
-		HPGL out = new HPGL();
-		out.cell = cell;
-		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-		HPGLVisitor visitor = out.makeHPGLVisitor();
+		HPGLPreferences()
+		{
+			textVisibilityOnExport = User.isTextVisibilityOnExport();
+			exportDisplayLevel = User.getExportDisplayLevel();
+		}
 
-		// gather all geometry
-		out.start();
-		HierarchyEnumerator.enumerateCell(cell, context, visitor);
-//		HierarchyEnumerator.enumerateCell(cell, context, null, visitor);
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		HPGL out = new HPGL(this);
+    		out.cell = cell;
+    		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+    		HPGLVisitor visitor = out.makeHPGLVisitor();
 
-		// write the geometry
-		out.done();
+    		// gather all geometry
+    		out.start();
+    		HierarchyEnumerator.enumerateCell(cell, context, visitor);
 
-		if (out.closeTextOutputStream()) return out.finishWrite();
-		System.out.println(filePath + " written");
-        return out.finishWrite();
+    		// write the geometry
+    		out.done();
+
+    		if (out.closeTextOutputStream()) return out.finishWrite();
+    		System.out.println(filePath + " written");
+            return out.finishWrite();
+        }
     }
 
 	/** Creates a new instance of HPGL */
-	private HPGL()
-	{
-	}
+	private HPGL(HPGLPreferences hp) { localPrefs = hp; }
+
+//	/**
+//	 * Main entry point for HPGL output.
+//     * @param cell the top-level cell to write.
+//     * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeHPGLFile(Cell cell, VarContext context, String filePath)
+//	{
+//		HPGL out = new HPGL();
+//		out.cell = cell;
+//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+//		HPGLVisitor visitor = out.makeHPGLVisitor();
+//
+//		// gather all geometry
+//		out.start();
+//		HierarchyEnumerator.enumerateCell(cell, context, visitor);
+////		HierarchyEnumerator.enumerateCell(cell, context, null, visitor);
+//
+//		// write the geometry
+//		out.done();
+//
+//		if (out.closeTextOutputStream()) return out.finishWrite();
+//		System.out.println(filePath + " written");
+//        return out.finishWrite();
+//    }
 
 	protected void start()
 	{
@@ -277,15 +305,14 @@ public class HPGL extends Output
 				}
 
 				// draw any exports from the node
-				if (info.isRootCell() && User.isTextVisibilityOnExport())
+				if (info.isRootCell() && localPrefs.textVisibilityOnExport)
 				{
-					int exportDisplayLevel = User.getExportDisplayLevel();
 					for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 					{
 						Export e = eIt.next();
 						Poly poly = e.getNamePoly();
 						List<PolyBase> layerList = getListForLayer(null);
-						if (exportDisplayLevel == 2)
+						if (localPrefs.exportDisplayLevel == 2)
 						{
 							// draw port as a cross
 							poly.setStyle(Poly.Type.CROSS);
@@ -293,7 +320,7 @@ public class HPGL extends Output
 						} else
 						{
 							// draw port as text
-							if (exportDisplayLevel == 1)
+							if (localPrefs.exportDisplayLevel == 1)
 							{
 								// use shorter port name
 								String portName = e.getShortName();

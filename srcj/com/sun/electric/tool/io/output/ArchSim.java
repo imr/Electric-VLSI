@@ -34,7 +34,7 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.database.variable.VarContext;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,28 +46,47 @@ import java.util.List;
  */
 public class ArchSim extends Output
 {
-	/**
-	 * The main entry point for ArchSim deck writing.
-     * @param cell the top-level cell to write.
-	 * @param fileP the disk file to create with ArchSim.
-     * @return the Output object used for writing
-	 */
-	public static Output writeArchSimFile(Cell cell, String fileP)
-	{
-		ArchSim out = new ArchSim();
-		if (!out.openTextOutputStream(fileP)) // no error
+	private ArchSimPreferences localPrefs;
+
+	public static class ArchSimPreferences extends OutputPreferences
+    {
+    	ArchSimPreferences() {}
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
         {
-            out.writeFlatCell(cell);
-            if (!out.closeTextOutputStream()) // no error
-                System.out.println(fileP + " written");
+    		ArchSim out = new ArchSim(this);
+    		if (!out.openTextOutputStream(filePath)) // no error
+            {
+                out.writeFlatCell(cell);
+                if (!out.closeTextOutputStream()) // no error
+                    System.out.println(filePath + " written");
+            }
+            return out.finishWrite();
         }
-        return out.finishWrite();
     }
 
 	/**
 	 * Creates a new instance of ArchSim.
 	 */
-	ArchSim() {}
+	ArchSim(ArchSimPreferences ap) { localPrefs = ap; }
+
+//    /**
+//	 * The main entry point for ArchSim deck writing.
+//     * @param cell the top-level cell to write.
+//	 * @param fileP the disk file to create with ArchSim.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeArchSimFile(Cell cell, String fileP, ArchSimPreferences asp)
+//	{
+//		ArchSim out = new ArchSim(asp);
+//		if (!out.openTextOutputStream(fileP)) // no error
+//        {
+//            out.writeFlatCell(cell);
+//            if (!out.closeTextOutputStream()) // no error
+//                System.out.println(fileP + " written");
+//        }
+//        return out.finishWrite();
+//    }
 
 	private void writeFlatCell(Cell cell)
 	{
@@ -78,7 +97,7 @@ public class ArchSim extends Output
 		printWriter.println();
 		printWriter.println("<!-- Cell: " + cell.describe(true) + " -->");
 		emitCopyright("<!-- ", " -->");
-		if (User.isIncludeDateAndVersionInOutput())
+		if (localPrefs.includeDateAndVersionInOutput)
 		{
 			printWriter.println("<!-- Created on " + TextUtils.formatDate(cell.getCreationDate()) + " -->");
 			printWriter.println("<!-- Last revised on " + TextUtils.formatDate(cell.getRevisionDate()) + " -->");

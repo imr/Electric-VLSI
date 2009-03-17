@@ -107,12 +107,111 @@ public class Output
      * @param fileP the path to the disk file to be written.
      * @param type the format of the output file.
      * @param override a list of Polys to draw instead of the cell contents.
+     * @param prefs the preferences package for this writer.
     */
-    public static void exportCellCommand(Cell cell, VarContext context, String fileP,
-                                         FileType type, List<PolyBase> override)
+    public static void exportCellCommand(Cell cell, VarContext context, String fileP, FileType type, List<PolyBase> override)
     {
     	new OutputCellInfo(cell, context, fileP, type, override);
     }
+
+    public static OutputPreferences getOutputPreferences(FileType type, List<PolyBase> override)
+    {
+        if (type == FileType.ARCHSIM) return new ArchSim.ArchSimPreferences();
+		if (type == FileType.CDL) return new Spice.SpicePreferences(true);
+		if (type == FileType.CIF) return new CIF.CIFPreferences();
+		if (type == FileType.COSMOS || type == FileType.ESIM || type == FileType.RSIM) return new Sim.SimPreferences(type);
+		if (type == FileType.DXF) return new DXF.DXFPreferences();
+		if (type == FileType.EAGLE) return new Eagle.EaglePreferences();
+		if (type == FileType.ECAD) return new ECAD.ECADPreferences();
+		if (type == FileType.EDIF) return new EDIF.EDIFPreferences();
+		if (type == FileType.FASTHENRY) return new FastHenry.FastHenryPreferences();
+		if (type == FileType.HPGL) return new HPGL.HPGLPreferences();
+		if (type == FileType.GDS) return new GDS.GDSPreferences();
+		if (type == FileType.IRSIM) return new IRSIM.IRSIMPreferences();
+		if (type == FileType.L) return new L.LPreferences();
+		if (type == FileType.LEF) return new LEF.LEFPreferences();
+		if (type == FileType.MAXWELL) return new Maxwell.MaxwellPreferences();
+		if (type == FileType.MOSSIM) return new MOSSIM.MOSSIMPreferences();
+		if (type == FileType.PADS) return new Pads.PadsPreferences();
+		if (type == FileType.PAL) return new PAL.PALPreferences();
+		if (type == FileType.POSTSCRIPT || type == FileType.EPS) return new PostScript.PostScriptPreferences(override);
+		if (type == FileType.SILOS) return new Silos.SilosPreferences();
+		if (type == FileType.SKILL) return new IOTool.SkillPreferences(false);
+        if (type == FileType.SKILLEXPORTSONLY) return new IOTool.SkillPreferences(true);
+		if (type == FileType.SPICE) return new Spice.SpicePreferences(false);
+		if (type == FileType.TEGAS) return new Tegas.TegasPreferences();
+		if (type == FileType.VERILOG) return new Verilog.VerilogPreferences();
+        return null;
+    }
+
+    /**
+     * Class to define cell information during output.
+     */
+    private static class OutputCellInfo extends Job
+    {
+        private Cell cell;
+        private VarContext context;
+        private String filePath;
+        private OutputPreferences prefs;
+
+        /**
+         * @param cell the Cell to be written.
+         * @param context the VarContext of the Cell (its position in the hierarchy above it).
+         * @param filePath the path to the disk file to be written.
+         * @param override the list of Polys to write instead of cell contents.
+         */
+        public OutputCellInfo(Cell cell, VarContext context, String filePath, FileType type, List<PolyBase> override)
+        {
+            super("Export "+cell+" ("+type+")", IOTool.getIOTool(), Job.Type.EXAMINE, null, null, Priority.USER);
+            this.cell = cell;
+            this.context = context;
+            this.filePath = filePath;
+            prefs = getOutputPreferences(type, override);
+            if (prefs != null) startJob();
+        }
+
+        public boolean doIt() throws JobException
+        {
+        	prefs.doOutput(cell, context, filePath);
+//            writeCell(cell, context, filePath, type, prefs);
+            return true;
+        }
+    }
+
+//    /**
+//     * Method to write a Cell to a file with a particular format.
+//	 * In addition to the specified Cell, these formats typically
+//	 * also include the hierarchy below it.
+//	 * The alternative is to write the entire library, regardless of
+//	 * hierarchical structure (use "WriteLibrary").
+//     * @param cell the Cell to be written.
+//     * @param context the VarContext of the Cell (its position in the hierarchy above it).
+//     * @param filePath the path to the disk file to be written.
+//     * @param type the format of the output file.
+//     * NOTE: Keep public for regressions
+//     */
+//    public static Output writeCell(Cell cell, VarContext context, String filePath, FileType type, OutputPreferences op)
+//    {
+//        Output out = op.doOutput(cell, context, filePath);
+//        return out;
+//    }
+
+    public static class OutputPreferences
+	{
+        protected boolean useCopyrightMessage;
+        protected boolean includeDateAndVersionInOutput;
+
+        public OutputPreferences()
+        {
+        	useCopyrightMessage = IOTool.isUseCopyrightMessage();
+        	includeDateAndVersionInOutput = User.isIncludeDateAndVersionInOutput();
+        }
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+        	return null;
+        }
+	}
 
 	/** file path */									protected String filePath;
 	/** for writing text files */						protected PrintWriter printWriter;
@@ -419,106 +518,6 @@ public class Output
         Constraints.getCurrent().writeLibrary(lib);
 		return false;
 	}
-
-    /**
-     * Method to write a Cell to a file with a particular format.
-	 * In addition to the specified Cell, these formats typically
-	 * also include the hierarchy below it.
-	 * The alternative is to write the entire library, regardless of
-	 * hierarchical structure (use "WriteLibrary").
-     * @param cell the Cell to be written.
-     * @param context the VarContext of the Cell (its position in the hierarchy above it).
-     * @param filePath the path to the disk file to be written.
-     * @param type the format of the output file.
-     * @param override a list of overriding polygons to write.
-     * NOTE: Keep public for regressions
-     */
-    public static Output writeCell(Cell cell, VarContext context, String filePath, FileType type, List<PolyBase> override)
-    {
-        Output out = null;
-
-        if (type == FileType.ARCHSIM)
-		{
-			out = ArchSim.writeArchSimFile(cell, filePath);
-		} else if (type == FileType.CDL)
-		{
-			out = Spice.writeSpiceFile(cell, context, filePath, true);
-		} else if (type == FileType.CIF)
-		{
-			out = CIF.writeCIFFile(cell, context, filePath);
-		} else if (type == FileType.COSMOS)
-		{
-			out = Sim.writeSimFile(cell, context, filePath, type);
-		} else if (type == FileType.DXF)
-		{
-			out = DXF.writeDXFFile(cell, filePath);
-		} else if (type == FileType.EAGLE)
-		{
-			out = Eagle.writeEagleFile(cell, context, filePath);
-		} else if (type == FileType.ECAD)
-		{
-			out = ECAD.writeECADFile(cell, context, filePath);
-		} else if (type == FileType.EDIF)
-		{
-			out = EDIF.writeEDIFFile(cell, context, filePath);
-		} else if (type == FileType.ESIM || type == FileType.RSIM)
-		{
-			out = Sim.writeSimFile(cell, context, filePath, type);
-		} else if (type == FileType.FASTHENRY)
-		{
-			out = FastHenry.writeFastHenryFile(cell, context, filePath);
-		} else if (type == FileType.HPGL)
-		{
-			out = HPGL.writeHPGLFile(cell, context, filePath);
-		} else if (type == FileType.GDS)
-		{
-			out = GDS.writeGDSFile(cell, context, filePath);
-		} else if (type == FileType.IRSIM)
-		{
-            Technology layoutTech = Schematics.getDefaultSchematicTechnology();
-			out = IRSIM.writeIRSIMFile(cell, context, layoutTech, filePath);
-		} else if (type == FileType.L)
-		{
-			out = L.writeLFile(cell, filePath);
-		} else if (type == FileType.LEF)
-		{
-			out = LEF.writeLEFFile(cell, context, filePath);
-		} else if (type == FileType.MAXWELL)
-		{
-			out = Maxwell.writeMaxwellFile(cell, context, filePath);
-		} else if (type == FileType.MOSSIM)
-		{
-			out = MOSSIM.writeMOSSIMFile(cell, context, filePath);
-		} else if (type == FileType.PADS)
-		{
-			out = Pads.writePadsFile(cell, context, filePath);
-		} else if (type == FileType.PAL)
-		{
-			out = PAL.writePALFile(cell, context, filePath);
-		} else if (type == FileType.POSTSCRIPT || type == FileType.EPS)
-		{
-			out = PostScript.writePostScriptFile(cell, filePath, override);
-		} else if (type == FileType.SILOS)
-		{
-			out = Silos.writeSilosFile(cell, context, filePath);
-		} else if (type == FileType.SKILL)
-		{
-			out = IOTool.writeSkill(cell, filePath, false);
-        } else if (type == FileType.SKILLEXPORTSONLY)
-        {
-            out = IOTool.writeSkill(cell, filePath, true);
-		} else if (type == FileType.SPICE)
-		{
-			out = Spice.writeSpiceFile(cell, context, filePath, false);
-		} else if (type == FileType.TEGAS)
-		{
-			out = Tegas.writeTegasFile(cell, context, filePath);
-		} else if (type == FileType.VERILOG)
-		{
-			out = Verilog.writeVerilogFile(cell, context, filePath);
-		}
-        return out;
-    }
 
 	/**
 	 * Returns variable disk name. Usually it is variable name.
@@ -844,42 +843,6 @@ public class Output
 		}
 		return bounds;
 	}
-
-    /**
-     * Class to define cell information during output.
-     */
-    public static class OutputCellInfo extends Job
-    {
-        private Cell cell;
-        private VarContext context;
-        private String filePath;
-        private FileType type;
-        private List<PolyBase> override;
-
-        /**
-         * @param cell the Cell to be written.
-         * @param context the VarContext of the Cell (its position in the hierarchy above it).
-         * @param filePath the path to the disk file to be written.
-         * @param override the list of Polys to write instead of cell contents.
-         */
-        public OutputCellInfo(Cell cell, VarContext context, String filePath, FileType type, List<PolyBase> override)
-        {
-            super("Export "+cell+" ("+type+")", IOTool.getIOTool(), Job.Type.EXAMINE, null, null, Priority.USER);
-            this.cell = cell;
-            this.context = context;
-            this.filePath = filePath;
-            this.type = type;
-            this.override = override;
-            startJob();
-        }
-
-        public boolean doIt() throws JobException
-        {
-            writeCell(cell, context, filePath, type, override);
-            return true;
-        }
-
-    }
 
 	/**
 	 * Class to write a library in a CHANGE Job.

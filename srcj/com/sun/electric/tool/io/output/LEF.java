@@ -46,7 +46,6 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -72,33 +71,54 @@ public class LEF extends Output
 	private Layer io_lefoutcurlayer;
 	private Set<NodeInst> nodesSeen;
 	private Set<ArcInst> arcsSeen;
+	private LEFPreferences localPrefs;
 
-	/**
-	 * The main entry point for LEF deck writing.
-	 * @param cell the top-level cell to write.
-	 * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
-	 */
-	public static Output writeLEFFile(Cell cell, VarContext context, String filePath)
-	{
-		LEF out = new LEF();
-		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+	public static class LEFPreferences extends OutputPreferences
+    {
+		LEFPreferences() {}
 
-		Netlist netlist = cell.getNetlist(Netlist.ShortResistors.ALL);
-		out.init(netlist);
-		HierarchyEnumerator.enumerateCell(netlist, context, new Visitor(out));
-		out.term(cell);
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		LEF out = new LEF(this);
+    		if (out.openTextOutputStream(filePath)) return out.finishWrite();
 
-		if (out.closeTextOutputStream()) return out.finishWrite();;
-		System.out.println(filePath + " written");
-        return out.finishWrite();
+    		Netlist netlist = cell.getNetlist(Netlist.ShortResistors.ALL);
+    		out.init(netlist);
+    		HierarchyEnumerator.enumerateCell(netlist, context, new Visitor(out));
+    		out.term(cell);
+
+    		if (out.closeTextOutputStream()) return out.finishWrite();;
+    		System.out.println(filePath + " written");
+            return out.finishWrite();
+        }
     }
 
 	/**
 	 * Creates a new instance of the LEF netlister.
 	 */
-	LEF() {}
+	LEF(LEFPreferences lp) { localPrefs = lp; }
+
+//	/**
+//	 * The main entry point for LEF deck writing.
+//	 * @param cell the top-level cell to write.
+//	 * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeLEFFile(Cell cell, VarContext context, String filePath)
+//	{
+//		LEF out = new LEF();
+//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+//
+//		Netlist netlist = cell.getNetlist(Netlist.ShortResistors.ALL);
+//		out.init(netlist);
+//		HierarchyEnumerator.enumerateCell(netlist, context, new Visitor(out));
+//		out.term(cell);
+//
+//		if (out.closeTextOutputStream()) return out.finishWrite();;
+//		System.out.println(filePath + " written");
+//        return out.finishWrite();
+//    }
 
 	private static class Visitor extends HierarchyEnumerator.Visitor
 	{
@@ -123,7 +143,7 @@ public class LEF extends Output
 	private void init(Netlist netList)
 	{
 		// write header information
-		if (User.isIncludeDateAndVersionInOutput())
+		if (localPrefs.includeDateAndVersionInOutput)
 		{
 			printWriter.println("# Electric VLSI Design System, version " + Version.getVersion());
 			printWriter.println("# " + TextUtils.formatDate(new Date()));

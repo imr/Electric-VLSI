@@ -29,28 +29,25 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.Version;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Class to generate Maxwell netlists.
@@ -60,37 +57,57 @@ public class Maxwell extends Output
 	HashMap<Integer,List<Integer>> maxNetMap;
 	HashMap<Integer,String> boxNames;
 	int boxNumber;
+	private MaxwellPreferences localPrefs;
 
-	/**
-	 * Main entry point for Maxwell output.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
-	 */
-	public static Output writeMaxwellFile(Cell cell, VarContext context, String filePath)
-	{
-		Maxwell out = new Maxwell();
-		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-		out.initialize(cell);
+	public static class MaxwellPreferences extends OutputPreferences
+    {
+		MaxwellPreferences() {}
 
-		// enumerate the hierarchy below here
-		Visitor wcVisitor = new Visitor(out);
-		HierarchyEnumerator.enumerateCell(cell, context, wcVisitor);
-//		HierarchyEnumerator.enumerateCell(cell, context, null, wcVisitor);
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		Maxwell out = new Maxwell(this);
+    		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+    		out.initialize(cell);
 
-		out.terminate();
-		if (out.closeTextOutputStream()) return out.finishWrite();
-		System.out.println(filePath + " written");
-        return out.finishWrite();
+    		// enumerate the hierarchy below here
+    		Visitor wcVisitor = new Visitor(out);
+    		HierarchyEnumerator.enumerateCell(cell, context, wcVisitor);
+
+    		out.terminate();
+    		if (out.closeTextOutputStream()) return out.finishWrite();
+    		System.out.println(filePath + " written");
+            return out.finishWrite();
+        }
     }
 
 	/**
 	 * Creates a new instance of Maxwell
 	 */
-	Maxwell()
-	{
-	}
+	Maxwell(MaxwellPreferences mp) { localPrefs = mp; }
+
+//	/**
+//	 * Main entry point for Maxwell output.
+//     * @param cell the top-level cell to write.
+//     * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeMaxwellFile(Cell cell, VarContext context, String filePath)
+//	{
+//		Maxwell out = new Maxwell();
+//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+//		out.initialize(cell);
+//
+//		// enumerate the hierarchy below here
+//		Visitor wcVisitor = new Visitor(out);
+//		HierarchyEnumerator.enumerateCell(cell, context, wcVisitor);
+////		HierarchyEnumerator.enumerateCell(cell, context, null, wcVisitor);
+//
+//		out.terminate();
+//		if (out.closeTextOutputStream()) return out.finishWrite();
+//		System.out.println(filePath + " written");
+//        return out.finishWrite();
+//    }
 
 	private void initialize(Cell cell)
 	{
@@ -99,7 +116,7 @@ public class Maxwell extends Output
 		boxNumber = 1;
 
 		printWriter.print("# Maxwell netlist for cell " + cell.noLibDescribe() + " from library " + cell.getLibrary().getName() + "\n");
-		if (User.isIncludeDateAndVersionInOutput())
+		if (localPrefs.includeDateAndVersionInOutput)
 		{
 			printWriter.print("# CELL CREATED ON " + TextUtils.formatDate(cell.getCreationDate()) + "\n");
 			printWriter.print("# LAST REVISED ON " + TextUtils.formatDate(cell.getRevisionDate()) + "\n");

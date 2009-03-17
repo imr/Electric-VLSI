@@ -38,6 +38,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -60,27 +61,43 @@ public class L extends Output
 	private static final int OTHERNODE  = 4;
 	private Set<Cell> cellsSeen;
 	/** the results of calling "transistorPorts". */	private PortInst gateLeft, gateRight, activeTop, activeBottom;
+	private LPreferences localPrefs;
 
-	/**
-	 * The main entry point for L deck writing.
-     * @param cell the top-level cell to write.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
-	 */
-	public static Output writeLFile(Cell cell, String filePath)
-	{
-		L out = new L();
-		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-		out.writeLCells(cell);
-		if (out.closeTextOutputStream()) return out.finishWrite();
-		System.out.println(filePath + " written");
-        return out.finishWrite();
+	public static class LPreferences extends OutputPreferences
+    {
+		LPreferences() {}
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		L out = new L(this);
+    		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+    		out.writeLCells(cell);
+    		if (out.closeTextOutputStream()) return out.finishWrite();
+    		System.out.println(filePath + " written");
+            return out.finishWrite();
+        }
     }
 
 	/**
 	 * Creates a new instance of the L netlister.
 	 */
-	L() {}
+	L(LPreferences lp) { localPrefs = lp; }
+
+//	/**
+//	 * The main entry point for L deck writing.
+//     * @param cell the top-level cell to write.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeLFile(Cell cell, String filePath)
+//	{
+//		L out = new L();
+//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+//		out.writeLCells(cell);
+//		if (out.closeTextOutputStream()) return out.finishWrite();
+//		System.out.println(filePath + " written");
+//        return out.finishWrite();
+//    }
 
 	/**
 	 * Method to write all cells below a given Cell.

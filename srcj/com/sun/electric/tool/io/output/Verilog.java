@@ -53,7 +53,6 @@ import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 import com.sun.electric.tool.io.input.verilog.VerilogData;
 import com.sun.electric.tool.io.input.verilog.VerilogReader;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.BusParameters;
 
 import java.util.ArrayList;
@@ -198,37 +197,52 @@ public class Verilog extends Topology
 	/** those cells that have primitives defined */			private Map<Cell,VerilogData.VerilogModule> definedPrimitives = new HashMap<Cell,VerilogData.VerilogModule>(); // key: module name, value: VerilogModule
 	/** map of cells that are or contain standard cells */  private SCLibraryGen.StandardCellHierarchy standardCells = new SCLibraryGen.StandardCellHierarchy();
     /** file we are writing to */                           private String filePath;
+	private VerilogPreferences localPrefs;
 
-    public static String getVerilogSafeName(String name, boolean isNode, boolean isBus) {
-    	Verilog v = new Verilog();
-    	if (isNode) return v.getSafeCellName(name);
-    	return v.getSafeNetName(name, isBus);
-    }
+	public static class VerilogPreferences extends OutputPreferences
+    {
+		public VerilogPreferences() {}
 
-	/**
-	 * The main entry point for Verilog deck writing.
-	 * @param cell the top-level cell to write.
-	 * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
-	 */
-	public static Output writeVerilogFile(Cell cell, VarContext context, String filePath)
-	{
-		Verilog out = new Verilog();
-        if (out.openTextOutputStream(filePath)) return out.finishWrite();
-        out.filePath = filePath;
-		if (out.writeCell(cell, context)) return out.finishWrite();
-		if (out.closeTextOutputStream()) return out.finishWrite();
-		System.out.println(filePath + " written");
-        return out.finishWrite();
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		Verilog out = new Verilog(this);
+            if (out.openTextOutputStream(filePath)) return out.finishWrite();
+            out.filePath = filePath;
+    		if (out.writeCell(cell, context)) return out.finishWrite();
+    		if (out.closeTextOutputStream()) return out.finishWrite();
+    		System.out.println(filePath + " written");
+            return out.finishWrite();
+        }
     }
 
 	/**
 	 * Creates a new instance of Verilog
 	 */
-	Verilog()
-	{
-	}
+	Verilog(VerilogPreferences vp) { localPrefs = vp; }
+
+    public static String getVerilogSafeName(String name, boolean isNode, boolean isBus) {
+    	Verilog v = new Verilog(new VerilogPreferences());
+    	if (isNode) return v.getSafeCellName(name);
+    	return v.getSafeNetName(name, isBus);
+    }
+
+//	/**
+//	 * The main entry point for Verilog deck writing.
+//	 * @param cell the top-level cell to write.
+//	 * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeVerilogFile(Cell cell, VarContext context, String filePath)
+//	{
+//		Verilog out = new Verilog();
+//        if (out.openTextOutputStream(filePath)) return out.finishWrite();
+//        out.filePath = filePath;
+//		if (out.writeCell(cell, context)) return out.finishWrite();
+//		if (out.closeTextOutputStream()) return out.finishWrite();
+//		System.out.println(filePath + " written");
+//        return out.finishWrite();
+//    }
 
 	protected void start()
 	{
@@ -239,7 +253,7 @@ public class Verilog extends Topology
 		// write header information
 		printWriter.println("/* Verilog for " + topCell + " from " + topCell.getLibrary() + " */");
 		emitCopyright("/* ", " */");
-		if (User.isIncludeDateAndVersionInOutput())
+		if (localPrefs.includeDateAndVersionInOutput)
 		{
 			printWriter.println("/* Created on " + TextUtils.formatDate(topCell.getCreationDate()) + " */");
 			printWriter.println("/* Last revised on " + TextUtils.formatDate(topCell.getRevisionDate()) + " */");

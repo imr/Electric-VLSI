@@ -60,20 +60,51 @@ public class IRSIM extends Output
     private VarContext context;
     private List<Object> components;
     private Technology technology;
+	private IRSIMPreferences localPrefs;
+
+	public static class IRSIMPreferences extends OutputPreferences
+    {
+		Technology layoutTech;
+		Technology schematicTech;
+
+		IRSIMPreferences()
+		{
+            layoutTech = Schematics.getDefaultSchematicTechnology();
+            schematicTech = User.getSchematicTechnology();
+		}
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		IRSIM out = new IRSIM(this);
+    		out.technology = cell.getTechnology();
+    		if (out.technology == Schematics.tech()) out.technology = schematicTech;
+            out.writeNetlist(cell, context, layoutTech, filePath);
+            return out.finishWrite();
+        }
+    }
 
 	/**
-	 * The main entry point for IRSIM deck writing.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
+	 * Creates a new instance of IRSIM
 	 */
-	public static Output writeIRSIMFile(Cell cell, VarContext context, Technology layoutTech, String filePath)
+	private IRSIM(IRSIMPreferences ip)
 	{
-		IRSIM out = new IRSIM(cell);
-        out.writeNetlist(cell, context, layoutTech, filePath);
-        return out.finishWrite();
-    }
+		localPrefs = ip;
+        context = null;
+	}
+
+//	/**
+//	 * The main entry point for IRSIM deck writing.
+//     * @param cell the top-level cell to write.
+//     * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeIRSIMFile(Cell cell, VarContext context, Technology layoutTech, String filePath)
+//	{
+//		IRSIM out = new IRSIM(cell);
+//        out.writeNetlist(cell, context, layoutTech, filePath);
+//        return out.finishWrite();
+//    }
 
 	/**
 	 * The main entry point for IRSIM extraction.
@@ -84,7 +115,10 @@ public class IRSIM extends Output
 	public static List<Object> getIRSIMComponents(Cell cell, VarContext context)
 	{
 		// gather all components
-		IRSIM out = new IRSIM(cell);
+		IRSIMPreferences ip = new IRSIMPreferences();
+		IRSIM out = new IRSIM(ip);
+		out.technology = cell.getTechnology();
+		if (out.technology == Schematics.tech()) out.technology = ip.schematicTech;
 		return out.getNetlist(cell, context);
 	}
 
@@ -110,7 +144,7 @@ public class IRSIM extends Output
 		printWriter.println("| IRSIM file for cell " + cell.noLibDescribe() +
 			" from library " + cell.getLibrary().getName());
 		emitCopyright("| ", "");
-		if (User.isIncludeDateAndVersionInOutput())
+		if (localPrefs.includeDateAndVersionInOutput)
 		{
 			printWriter.println("| Created on " + TextUtils.formatDate(cell.getCreationDate()));
 			printWriter.println("| Last revised on " + TextUtils.formatDate(cell.getRevisionDate()));
@@ -133,18 +167,6 @@ public class IRSIM extends Output
 		System.out.println(filePath + " written");
         ParasiticTool.getParasiticErrorLogger().sortLogs();
         ParasiticTool.getParasiticErrorLogger().termLogging(true);
-	}
-
-	/**
-	 * Creates a new instance of IRSIM
-	 */
-	private IRSIM(Cell cell)
-	{
-        context = null;
-
-        technology = cell.getTechnology();
-		if (technology == Schematics.tech())
-			technology = User.getSchematicTechnology();
 	}
 
     //---------------------------- ParasiticGenerator interface --------------------

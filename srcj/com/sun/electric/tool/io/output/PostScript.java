@@ -41,6 +41,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -88,7 +89,6 @@ public class PostScript extends Output
 	/** true to generate merged color PostScript. */					private boolean psUseColorMerge;
 	/** the Cell being written. */										private Cell cell;
 	private Rectangle2D printBounds;
-	/** list of Polys to use instead of cell contents. */				private List<PolyBase> override;
 	/** the EditWindow_ in which the cell resides. */					private EditWindow_ wnd;
 	/** number of patterns emitted so far. */							private int psNumPatternsEmitted;
 	/** list of patterns emitted so far. */								private HashMap<EGraphics,Integer> patternsEmitted;
@@ -99,21 +99,45 @@ public class PostScript extends Output
 	/** matrix from database units to PS units. */						private AffineTransform matrix;
 	/** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstanceFree(null, "black",
 		new EGraphics(false, false, null, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
+	private PostScriptPreferences localPrefs;
+
+	public static class PostScriptPreferences extends OutputPreferences
+    {
+		/** list of Polys to use instead of cell contents. */				private List<PolyBase> override;
+
+		PostScriptPreferences(List<PolyBase> override) { this.override = override; }
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		PostScript out = new PostScript(this);
+    		out.cell = cell;
+    		writeCellToFile(out, cell, filePath);
+            return out.finishWrite();
+        }
+    }
 
 	/**
-	 * Main entry point for PostScript output.
-	 * @param cell the top-level cell to write.
-	 * @param filePath the disk file to create.
-	 * @param override a list of overriding polygons to write.
-     * @return the Output object used for writing
+	 * PostScript constructor.
 	 */
-	public static Output writePostScriptFile(Cell cell, String filePath, List<PolyBase> override)
+	private PostScript(PostScriptPreferences pp)
 	{
-		// just do this file
-		PostScript out = new PostScript(cell, override);
-		writeCellToFile(out, cell, filePath);
-        return out.finishWrite();
-    }
+		localPrefs = pp;
+	}
+
+//	/**
+//	 * Main entry point for PostScript output.
+//	 * @param cell the top-level cell to write.
+//	 * @param filePath the disk file to create.
+//	 * @param override a list of overriding polygons to write.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writePostScriptFile(Cell cell, String filePath, List<PolyBase> override)
+//	{
+//		// just do this file
+//		PostScript out = new PostScript(cell, override);
+//		writeCellToFile(out, cell, filePath);
+//        return out.finishWrite();
+//    }
 
 	/**
 	 * Internal method for PostScript output.
@@ -167,15 +191,6 @@ public class PostScript extends Output
 	}
 
 	/**
-	 * PostScript constructor.
-	 */
-	private PostScript(Cell cell, List<PolyBase> override)
-	{
-		this.cell = cell;
-		this.override = override;
-	}
-
-	/**
 	 * Method to initialize for writing a cell.
 	 * @return false to abort the process.
 	 */
@@ -218,11 +233,11 @@ public class PostScript extends Output
 
 		// determine the area of interest
 		printBounds = null;
-		if (override != null)
+		if (localPrefs.override != null)
 		{
 			double lX=0, hX=0, lY=0, hY=0;
 			boolean first = true;
-			for(PolyBase poly : override)
+			for(PolyBase poly : localPrefs.override)
 			{
 				Point2D [] points = poly.getPoints();
 				for(int i=0; i<points.length; i++)
@@ -276,7 +291,7 @@ public class PostScript extends Output
 		}
 
 		// for pure color plotting, use special merging code
-		if (psUseColorMerge && override == null)
+		if (psUseColorMerge && localPrefs.override == null)
 		{
 			PostScriptColor.psColorPlot(this, cell, epsFormat, usePlotter, pageWid, pageHei, pageMarginPS);
 			return false;
@@ -324,7 +339,7 @@ public class PostScript extends Output
 		if (epsFormat) printWriter.println("%!PS-Adobe-2.0 EPSF-2.0"); else
 			printWriter.println("%!PS-Adobe-1.0");
 		printWriter.println("%%Title: " + cell.describe(false));
-		if (User.isIncludeDateAndVersionInOutput())
+		if (localPrefs.includeDateAndVersionInOutput)
 		{
 			printWriter.println("%%Creator: Electric VLSI Design System version " + Version.getVersion());
 			Date now = new Date();
@@ -576,9 +591,9 @@ public class PostScript extends Output
 	{
 		lastColor = -1;
 
-		if (override != null)
+		if (localPrefs.override != null)
 		{
-			for (PolyBase poly : override)
+			for (PolyBase poly : localPrefs.override)
 			{
 				Point2D [] pts = poly.getPoints();
 				for(int i=0; i<pts.length; i++)
@@ -627,9 +642,9 @@ public class PostScript extends Output
 	private int recurseCircuitLevel(Cell cell, AffineTransform trans, boolean topLevel, boolean real, long progressTotal)
 	{
 		int numObjects = 0;
-		if (override != null)
+		if (localPrefs.override != null)
 		{
-			for (PolyBase poly : override)
+			for (PolyBase poly : localPrefs.override)
 			{
 				if (real) psPoly(poly);
 				numObjects++;
@@ -912,6 +927,7 @@ public class PostScript extends Output
 	private static boolean synchronizeEPSFiles()
 	{
 		// synchronize all cells
+		PostScriptPreferences psp = new PostScriptPreferences(null);
 		int numSyncs = 0;
 		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
@@ -929,7 +945,8 @@ public class PostScript extends Output
 					Date lastChangeDate = oCell.getRevisionDate();
 					if (lastSavedDate.after(lastChangeDate)) continue;
 				}
-                PostScript out = new PostScript(oCell, null);
+                PostScript out = new PostScript(psp);
+                out.cell = oCell;
                 boolean err = writeCellToFile(out, oCell, syncFileName);
 				if (err) return true;
 

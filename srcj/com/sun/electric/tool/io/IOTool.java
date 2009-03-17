@@ -28,10 +28,14 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.ToolSettings;
+import com.sun.electric.tool.io.output.ArchSim;
 import com.sun.electric.tool.io.output.Output;
+import com.sun.electric.tool.io.output.ArchSim.ArchSimPreferences;
+import com.sun.electric.tool.io.output.Output.OutputPreferences;
 
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -108,28 +112,53 @@ public class IOTool extends Tool
 	 	return true;
 	}
 
-	/**
-	 * Method to invoke the Skill output module via reflection.
-	 * @param cell the Cell to write in Skill.
-	 * @param fileName the name of the file to write.
-     * @return the Output object used for writing
-	 */
-	public static Output writeSkill(Cell cell, String fileName, boolean exportsOnly)
-	{
-		if (!hasSkill()) return null;
-        Output out = null;
-        try
-		{
-			out = (Output)skillOutputMethod.invoke(skillClass, new Object[] {cell, fileName, Boolean.valueOf(exportsOnly)});
-		} catch (Exception e)
-		{
-            String msg = "Unable to run the Skill output module";
-            if (out != null)
-                out.reportError(msg);
-            else
-                System.out.println(msg);
-		}
-        return out;
+//	/**
+//	 * Method to invoke the Skill output module via reflection.
+//	 * @param cell the Cell to write in Skill.
+//	 * @param fileName the name of the file to write.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeSkill(Cell cell, String fileName, boolean exportsOnly)
+//	{
+//		if (!hasSkill()) return null;
+//        Output out = null;
+//        try
+//		{
+//			out = (Output)skillOutputMethod.invoke(skillClass, new Object[] {cell, fileName, Boolean.valueOf(exportsOnly)});
+//		} catch (Exception e)
+//		{
+//            String msg = "Unable to run the Skill output module";
+//            if (out != null)
+//                out.reportError(msg);
+//            else
+//                System.out.println(msg);
+//		}
+//        return out;
+//    }
+
+	public static class SkillPreferences extends OutputPreferences
+    {
+		private boolean exportsOnly;
+
+		public SkillPreferences(boolean exportsOnly) { this.exportsOnly = exportsOnly; }
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		if (!hasSkill()) return null;
+            Output out = null;
+            try
+    		{
+    			out = (Output)skillOutputMethod.invoke(skillClass, new Object[] {cell, filePath, Boolean.valueOf(exportsOnly)});
+    		} catch (Exception e)
+    		{
+                String msg = "Unable to run the Skill output module";
+                if (out != null)
+                    out.reportError(msg);
+                else
+                    System.out.println(msg);
+    		}
+            return out;
+        }
     }
 
 	/****************************** DAIS FORMAT INTERFACE ******************************/

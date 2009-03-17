@@ -136,57 +136,102 @@ public class GDS extends Geometry
 	/** layer number map */						private Map<Layer,GDSLayers> layerNumbers;
     /** separator string for lib + cell concatanated cell names */  public static final String concatStr = ".";
     /** Name remapping if NCC annotation */     private Map<String,Set<String>> nameRemapping;
-    /** write pins at Export locations ? */     private final boolean writeExportPins;
-    /** converts bracket to underscores in export names.*/ private final boolean convertBracketsInExports;
-    
-	/**
-	 * Main entry point for GDS output.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
-	 */
-	public static Output writeGDSFile(Cell cell, VarContext context, String filePath)
-	{
-        return writeGDSFile(cell, context, filePath, IOTool.isGDSOutWritesExportPins(), IOTool.getGDSOutputConvertsBracketsInExports());
-	}
+	private GDSPreferences localPrefs;
 
-	/**
-	 * Main entry point for GDS output.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-     * @param writeExportPins write pins at Export locations.
-     * @param convertBracketsInExports converts bracket to underscores in export names.
-	 */
-	public static Output writeGDSFile(Cell cell, VarContext context, String filePath,
-            boolean writeExportPins, boolean convertBracketsInExports)
-	{
-		if (cell.getView() != View.LAYOUT)
-		{
-			System.out.println("Can only write GDS for layout cells");
-			return null;
-		}
-		GDS out = new GDS(writeExportPins, convertBracketsInExports);
-		if (out.openBinaryOutputStream(filePath)) return null;
-		BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cell));
-		if (out.writeCell(cell, context, visitor)) return null;
-		if (out.closeBinaryOutputStream()) return null;
-		System.out.println(filePath + " written");
+	public static class GDSPreferences extends OutputPreferences
+    {
+	    /** write pins at Export locations? */     public boolean writeExportPins;
+	    /** converts bracket to underscores in export names.*/ public boolean convertBracketsInExports;
+	    boolean convertNCCExportsConnectedByParentPins;
+	    boolean collapseVddGndPinNames;
+	    int outDefaultTextLayer;
+	    boolean outMergesBoxes;
+	    int cellNameLenMax;
+	    boolean outUpperCase;
 
-		// warn if library name was changed
-		String topCellName = cell.getName();
-		String mangledTopCellName = makeGDSName(topCellName, HDR_M_ASCII);
-		if (!topCellName.equals(mangledTopCellName))
-			out.reportWarning("Warning: library name in this file is " + mangledTopCellName +
-				" (special characters were changed)");
-        return out.finishWrite();
-	}
+	    public GDSPreferences()
+	    {
+	        writeExportPins = IOTool.isGDSOutWritesExportPins();
+	        convertBracketsInExports = IOTool.getGDSOutputConvertsBracketsInExports();
+	        convertNCCExportsConnectedByParentPins = IOTool.getGDSConvertNCCExportsConnectedByParentPins();
+	        collapseVddGndPinNames = IOTool.isGDSColapseVddGndPinNames();
+	        outDefaultTextLayer = IOTool.getGDSOutDefaultTextLayer();
+	        outMergesBoxes = IOTool.isGDSOutMergesBoxes();
+	        cellNameLenMax = IOTool.getGDSCellNameLenMax();
+	        outUpperCase = IOTool.isGDSOutUpperCase();
+	    }
 
-    private GDS(boolean writeExportPins, boolean convertBracketsInExports) {
-        this.writeExportPins = writeExportPins;
-        this.convertBracketsInExports = convertBracketsInExports;
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		if (cell.getView() != View.LAYOUT)
+    		{
+    			System.out.println("Can only write GDS for layout cells");
+    			return null;
+    		}
+    		GDS out = new GDS(this);
+    		if (out.openBinaryOutputStream(filePath)) return null;
+    		BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cell));
+    		if (out.writeCell(cell, context, visitor)) return null;
+    		if (out.closeBinaryOutputStream()) return null;
+    		System.out.println(filePath + " written");
+
+    		// warn if library name was changed
+    		String topCellName = cell.getName();
+    		String mangledTopCellName = makeGDSName(topCellName, HDR_M_ASCII);
+    		if (!topCellName.equals(mangledTopCellName))
+    			out.reportWarning("Warning: library name in this file is " + mangledTopCellName +
+    				" (special characters were changed)");
+            return out.finishWrite();
+       }
     }
+
+    private GDS(GDSPreferences gp)
+    {
+    	localPrefs = gp;
+    }
+
+//    /**
+//	 * Main entry point for GDS output.
+//     * @param cell the top-level cell to write.
+//     * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeGDSFile(Cell cell, VarContext context, String filePath)
+//	{
+//	}
+
+//	/**
+//	 * Main entry point for GDS output.
+//     * @param cell the top-level cell to write.
+//     * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//     * @param writeExportPins write pins at Export locations.
+//     * @param convertBracketsInExports converts bracket to underscores in export names.
+//	 */
+//	public static Output writeGDSFile(Cell cell, VarContext context, String filePath,
+//            boolean writeExportPins, boolean convertBracketsInExports)
+//	{
+//		if (cell.getView() != View.LAYOUT)
+//		{
+//			System.out.println("Can only write GDS for layout cells");
+//			return null;
+//		}
+//		GDS out = new GDS(writeExportPins, convertBracketsInExports);
+//		if (out.openBinaryOutputStream(filePath)) return null;
+//		BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cell));
+//		if (out.writeCell(cell, context, visitor)) return null;
+//		if (out.closeBinaryOutputStream()) return null;
+//		System.out.println(filePath + " written");
+//
+//		// warn if library name was changed
+//		String topCellName = cell.getName();
+//		String mangledTopCellName = makeGDSName(topCellName, HDR_M_ASCII);
+//		if (!topCellName.equals(mangledTopCellName))
+//			out.reportWarning("Warning: library name in this file is " + mangledTopCellName +
+//				" (special characters were changed)");
+//        return out.finishWrite();
+//	}
 
 	protected void start()
 	{
@@ -206,8 +251,8 @@ public class GDS extends Geometry
 		// write this cell
 		Cell cell = cellGeom.cell;
 		outputBeginStruct(cell);
-        boolean renamePins = (cell == topCell && IOTool.getGDSConvertNCCExportsConnectedByParentPins());
-        boolean colapseGndVddNames = (cell == topCell && IOTool.isGDSColapseVddGndPinNames());
+        boolean renamePins = (cell == topCell && localPrefs.convertNCCExportsConnectedByParentPins);
+        boolean colapseGndVddNames = (cell == topCell && localPrefs.collapseVddGndPinNames);
 
         if (renamePins) {
             // rename pins to allow external LVS programs to virtually connect nets as specified
@@ -249,7 +294,7 @@ public class GDS extends Geometry
 		}
 
 		// now write exports
-		if (IOTool.getGDSOutDefaultTextLayer() >= 0)
+		if (localPrefs.outDefaultTextLayer >= 0)
 		{
 			for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 			{
@@ -266,13 +311,13 @@ public class GDS extends Geometry
 				Layer layer = nLay[0].getLayer().getNonPseudoLayer();
 				selectLayer(layer);
 
-//				int textLayer = IOTool.getGDSOutDefaultTextLayer(), textType = 0;
+//				int textLayer = localPrefs.outDefaultTextLayer, textType = 0;
 //				if (currentLayerNumbers.getTextLayer() != -1)
 //				{
 //					textLayer = currentLayerNumbers.getTextLayer() & 0xFFFF;
 //					textType = (currentLayerNumbers.getTextLayer() >> 16) & 0xFFFF;
 //				}
-				int pinLayer = IOTool.getGDSOutDefaultTextLayer(), pinType = 0;
+				int pinLayer = localPrefs.outDefaultTextLayer, pinType = 0;
 				if (currentLayerNumbers.getPinLayer() != -1)
 				{
 					pinLayer = currentLayerNumbers.getPinLayer() & 0xFFFF;
@@ -280,7 +325,7 @@ public class GDS extends Geometry
 				}
 
 				// put out a pin if requested
-				if (writeExportPins)
+				if (localPrefs.writeExportPins)
                 {
 					writeExportOnLayer(pp, pinLayer, pinType, renamePins, colapseGndVddNames);
 
@@ -366,7 +411,7 @@ public class GDS extends Geometry
                 //System.out.println("Remapping export "+pp.getName()+" to "+str);
             }
         }
-        if (convertBracketsInExports) {
+        if (localPrefs.convertBracketsInExports) {
             // convert brackets to underscores
             str = str.replaceAll("[\\[\\]]", "_");
         }
@@ -386,7 +431,7 @@ public class GDS extends Geometry
 	 */
 	protected boolean mergeGeom(int hierLevelsFromBottom)
 	{
-		return IOTool.isGDSOutMergesBoxes();
+		return localPrefs.outMergesBoxes;
 	}
 	   
     /**
@@ -754,7 +799,7 @@ public class GDS extends Geometry
             name = makeUniqueName(cell, cellNames);
             cellNames.put(cell, name);
         }
-		outputName(HDR_STRNAME, name, IOTool.getGDSCellNameLenMax());
+		outputName(HDR_STRNAME, name, localPrefs.cellNameLenMax);
 	}
 
 	/**
@@ -1018,7 +1063,7 @@ public class GDS extends Geometry
 
         assert( (j%2) == 0);
 		int i = 0;
-		if (IOTool.isGDSOutUpperCase())
+		if (localPrefs.outUpperCase)
 		{
 			// convert to upper case
 			for( ; i<str.length(); i++)

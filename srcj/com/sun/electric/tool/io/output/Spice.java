@@ -144,124 +144,240 @@ public class Spice extends Topology
     /** map of "parameterized" cells not covered by Topology */	private Map<Cell,Cell> uniquifyCells;
     /** uniqueID */                                             private int uniqueID;
     /** map of shortened instance names */                      private Map<String,Integer> uniqueNames;
+    /** local copy of preferences */                            private SpicePreferences localPrefs;
+
+	public static class SpicePreferences extends OutputPreferences
+    {
+		boolean cdl;
+
+		public SpicePreferences(boolean cdl)
+		{
+			this.cdl = cdl;
+		}
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		Spice out = new Spice(this);
+    		out.useCDL = cdl;
+    		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+    		if (out.writeCell(cell, context)) return out.finishWrite();
+    		if (out.closeTextOutputStream()) return out.finishWrite();
+    		System.out.println(filePath + " written");
+
+    		// write CDL support file if requested
+    		if (out.useCDL)
+    		{
+    			// write the control files
+    			String deckFile = filePath;
+    			String deckPath = "";
+    			int lastDirSep = deckFile.lastIndexOf(File.separatorChar);
+    			if (lastDirSep > 0)
+    			{
+    				deckPath = deckFile.substring(0, lastDirSep);
+    				deckFile = deckFile.substring(lastDirSep+1);
+    			}
+
+    			String templateFile = deckPath + File.separator + cell.getName() + ".cdltemplate";
+    			if (out.openTextOutputStream(templateFile)) return out.finishWrite();
+
+    			String libName = Simulation.getCDLLibName();
+    			String libPath = Simulation.getCDLLibPath();
+    			out.printWriter.print("cdlInKeys = list(nil\n");
+    			out.printWriter.print("    'searchPath             \"" + deckFile + "");
+    			if (libPath.length() > 0)
+    				out.printWriter.print("\n                             " + libPath);
+    			out.printWriter.print("\"\n");
+    			out.printWriter.print("    'cdlFile                \"" + deckPath + File.separator + deckFile + "\"\n");
+    			out.printWriter.print("    'userSkillFile          \"\"\n");
+    			out.printWriter.print("    'opusLib                \"" + libName + "\"\n");
+    			out.printWriter.print("    'primaryCell            \"" + cell.getName() + "\"\n");
+    			out.printWriter.print("    'caseSensitivity        \"lower\"\n");
+    			out.printWriter.print("    'hierarchy              \"flatten\"\n");
+    			out.printWriter.print("    'cellTable              \"\"\n");
+    			out.printWriter.print("    'viewName               \"netlist\"\n");
+    			out.printWriter.print("    'viewType               \"\"\n");
+    			out.printWriter.print("    'pr                     nil\n");
+    			out.printWriter.print("    'skipDevice             nil\n");
+    			out.printWriter.print("    'schemaLib              \"sample\"\n");
+    			out.printWriter.print("    'refLib                 \"\"\n");
+    			out.printWriter.print("    'globalNodeExpand       \"full\"\n");
+    			out.printWriter.print(")\n");
+    			if (out.closeTextOutputStream()) return out.finishWrite();
+    			System.out.println(templateFile + " written");
+    		}
+
+            String runSpice = Simulation.getSpiceRunChoice();
+            if (!runSpice.equals(Simulation.spiceRunChoiceDontRun)) {
+                String command = Simulation.getSpiceRunProgram() + " " + Simulation.getSpiceRunProgramArgs();
+
+                // see if user specified custom dir to run process in
+                String workdir = User.getWorkingDirectory();
+                String rundir = workdir;
+                if (Simulation.getSpiceUseRunDir()) {
+                    rundir = Simulation.getSpiceRunDir();
+                }
+                File dir = new File(rundir);
+
+                int start = filePath.lastIndexOf(File.separator);
+                if (start == -1) start = 0; else {
+                    start++;
+                    if (start > filePath.length()) start = filePath.length();
+                }
+                int end = filePath.lastIndexOf(".");
+                if (end == -1) end = filePath.length();
+                String filename_noext = filePath.substring(start, end);
+                String filename = filePath.substring(start, filePath.length());
+
+                // replace vars in command and args
+                command = command.replaceAll("\\$\\{WORKING_DIR}", workdir);
+                command = command.replaceAll("\\$\\{USE_DIR}", rundir);
+                command = command.replaceAll("\\$\\{FILENAME}", filename);
+                command = command.replaceAll("\\$\\{FILENAME_NO_EXT}", filename_noext);
+
+                // set up run probe
+                FileType type = Simulate.getCurrentSpiceOutputType();
+                String [] extensions = type.getExtensions();
+                String outFile = rundir + File.separator + filename_noext + "." + extensions[0];
+                Exec.FinishedListener l = new SpiceFinishedListener(cell, type, outFile);
+
+                if (runSpice.equals(Simulation.spiceRunChoiceRunIgnoreOutput)) {
+                    Exec e = new Exec(command, null, dir, null, null);
+                    if (Simulation.getSpiceRunProbe()) e.addFinishedListener(l);
+                    e.start();
+                }
+                if (runSpice.equals(Simulation.spiceRunChoiceRunReportOutput)) {
+                    ExecDialog dialog = new ExecDialog(TopLevel.getCurrentJFrame(), false);
+                    if (Simulation.getSpiceRunProbe()) dialog.addFinishedListener(l);
+                    dialog.startProcess(command, null, dir);
+                }
+                System.out.println("Running spice command: "+command);
+            }
+
+            if (Simulation.isParasiticsBackAnnotateLayout() && out.parasiticInfo != null)
+            {
+                out.parasiticInfo.backAnnotate();
+            }
+            return out.finishWrite();
+        }
+    }
 
 	/**
 	 * Constructor for the Spice netlister.
 	 */
-	Spice() {}
+	Spice(SpicePreferences sp) { localPrefs = sp; }
 
-	/**
-	 * The main entry point for Spice deck writing.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-	 * @param fileP the disk file to create.
-	 * @param cdl true if this is CDL output (false for Spice).
-     * @return the Output object used for writing
-	 */
-	public static Output writeSpiceFile(Cell cell, VarContext context, String fileP, boolean cdl)
-	{
-		Spice out = new Spice();
-		out.useCDL = cdl;
-		if (out.openTextOutputStream(fileP)) return out.finishWrite();
-		if (out.writeCell(cell, context)) return out.finishWrite();
-		if (out.closeTextOutputStream()) return out.finishWrite();
-		System.out.println(fileP + " written");
-
-		// write CDL support file if requested
-		if (out.useCDL)
-		{
-			// write the control files
-			String deckFile = fileP;
-			String deckPath = "";
-			int lastDirSep = deckFile.lastIndexOf(File.separatorChar);
-			if (lastDirSep > 0)
-			{
-				deckPath = deckFile.substring(0, lastDirSep);
-				deckFile = deckFile.substring(lastDirSep+1);
-			}
-
-			String templateFile = deckPath + File.separator + cell.getName() + ".cdltemplate";
-			if (out.openTextOutputStream(templateFile)) return out.finishWrite();
-
-			String libName = Simulation.getCDLLibName();
-			String libPath = Simulation.getCDLLibPath();
-			out.printWriter.print("cdlInKeys = list(nil\n");
-			out.printWriter.print("    'searchPath             \"" + deckFile + "");
-			if (libPath.length() > 0)
-				out.printWriter.print("\n                             " + libPath);
-			out.printWriter.print("\"\n");
-			out.printWriter.print("    'cdlFile                \"" + deckPath + File.separator + deckFile + "\"\n");
-			out.printWriter.print("    'userSkillFile          \"\"\n");
-			out.printWriter.print("    'opusLib                \"" + libName + "\"\n");
-			out.printWriter.print("    'primaryCell            \"" + cell.getName() + "\"\n");
-			out.printWriter.print("    'caseSensitivity        \"lower\"\n");
-			out.printWriter.print("    'hierarchy              \"flatten\"\n");
-			out.printWriter.print("    'cellTable              \"\"\n");
-			out.printWriter.print("    'viewName               \"netlist\"\n");
-			out.printWriter.print("    'viewType               \"\"\n");
-			out.printWriter.print("    'pr                     nil\n");
-			out.printWriter.print("    'skipDevice             nil\n");
-			out.printWriter.print("    'schemaLib              \"sample\"\n");
-			out.printWriter.print("    'refLib                 \"\"\n");
-			out.printWriter.print("    'globalNodeExpand       \"full\"\n");
-			out.printWriter.print(")\n");
-			if (out.closeTextOutputStream()) return out.finishWrite();
-			System.out.println(templateFile + " written");
-		}
-
-        String runSpice = Simulation.getSpiceRunChoice();
-        if (!runSpice.equals(Simulation.spiceRunChoiceDontRun)) {
-            String command = Simulation.getSpiceRunProgram() + " " + Simulation.getSpiceRunProgramArgs();
-
-            // see if user specified custom dir to run process in
-            String workdir = User.getWorkingDirectory();
-            String rundir = workdir;
-            if (Simulation.getSpiceUseRunDir()) {
-                rundir = Simulation.getSpiceRunDir();
-            }
-            File dir = new File(rundir);
-
-            int start = fileP.lastIndexOf(File.separator);
-            if (start == -1) start = 0; else {
-                start++;
-                if (start > fileP.length()) start = fileP.length();
-            }
-            int end = fileP.lastIndexOf(".");
-            if (end == -1) end = fileP.length();
-            String filename_noext = fileP.substring(start, end);
-            String filename = fileP.substring(start, fileP.length());
-
-            // replace vars in command and args
-            command = command.replaceAll("\\$\\{WORKING_DIR}", workdir);
-            command = command.replaceAll("\\$\\{USE_DIR}", rundir);
-            command = command.replaceAll("\\$\\{FILENAME}", filename);
-            command = command.replaceAll("\\$\\{FILENAME_NO_EXT}", filename_noext);
-
-            // set up run probe
-            FileType type = Simulate.getCurrentSpiceOutputType();
-            String [] extensions = type.getExtensions();
-            String outFile = rundir + File.separator + filename_noext + "." + extensions[0];
-            Exec.FinishedListener l = new SpiceFinishedListener(cell, type, outFile);
-
-            if (runSpice.equals(Simulation.spiceRunChoiceRunIgnoreOutput)) {
-                Exec e = new Exec(command, null, dir, null, null);
-                if (Simulation.getSpiceRunProbe()) e.addFinishedListener(l);
-                e.start();
-            }
-            if (runSpice.equals(Simulation.spiceRunChoiceRunReportOutput)) {
-                ExecDialog dialog = new ExecDialog(TopLevel.getCurrentJFrame(), false);
-                if (Simulation.getSpiceRunProbe()) dialog.addFinishedListener(l);
-                dialog.startProcess(command, null, dir);
-            }
-            System.out.println("Running spice command: "+command);
-        }
-
-        if (Simulation.isParasiticsBackAnnotateLayout() && out.parasiticInfo != null)
-        {
-            out.parasiticInfo.backAnnotate();
-        }
-        return out.finishWrite();
-    }
+//	/**
+//	 * The main entry point for Spice deck writing.
+//     * @param cell the top-level cell to write.
+//     * @param context the hierarchical context to the cell.
+//	 * @param fileP the disk file to create.
+//	 * @param cdl true if this is CDL output (false for Spice).
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writeSpiceFile(Cell cell, VarContext context, String fileP, boolean cdl)
+//	{
+//		Spice out = new Spice();
+//		out.useCDL = cdl;
+//		if (out.openTextOutputStream(fileP)) return out.finishWrite();
+//		if (out.writeCell(cell, context)) return out.finishWrite();
+//		if (out.closeTextOutputStream()) return out.finishWrite();
+//		System.out.println(fileP + " written");
+//
+//		// write CDL support file if requested
+//		if (out.useCDL)
+//		{
+//			// write the control files
+//			String deckFile = fileP;
+//			String deckPath = "";
+//			int lastDirSep = deckFile.lastIndexOf(File.separatorChar);
+//			if (lastDirSep > 0)
+//			{
+//				deckPath = deckFile.substring(0, lastDirSep);
+//				deckFile = deckFile.substring(lastDirSep+1);
+//			}
+//
+//			String templateFile = deckPath + File.separator + cell.getName() + ".cdltemplate";
+//			if (out.openTextOutputStream(templateFile)) return out.finishWrite();
+//
+//			String libName = Simulation.getCDLLibName();
+//			String libPath = Simulation.getCDLLibPath();
+//			out.printWriter.print("cdlInKeys = list(nil\n");
+//			out.printWriter.print("    'searchPath             \"" + deckFile + "");
+//			if (libPath.length() > 0)
+//				out.printWriter.print("\n                             " + libPath);
+//			out.printWriter.print("\"\n");
+//			out.printWriter.print("    'cdlFile                \"" + deckPath + File.separator + deckFile + "\"\n");
+//			out.printWriter.print("    'userSkillFile          \"\"\n");
+//			out.printWriter.print("    'opusLib                \"" + libName + "\"\n");
+//			out.printWriter.print("    'primaryCell            \"" + cell.getName() + "\"\n");
+//			out.printWriter.print("    'caseSensitivity        \"lower\"\n");
+//			out.printWriter.print("    'hierarchy              \"flatten\"\n");
+//			out.printWriter.print("    'cellTable              \"\"\n");
+//			out.printWriter.print("    'viewName               \"netlist\"\n");
+//			out.printWriter.print("    'viewType               \"\"\n");
+//			out.printWriter.print("    'pr                     nil\n");
+//			out.printWriter.print("    'skipDevice             nil\n");
+//			out.printWriter.print("    'schemaLib              \"sample\"\n");
+//			out.printWriter.print("    'refLib                 \"\"\n");
+//			out.printWriter.print("    'globalNodeExpand       \"full\"\n");
+//			out.printWriter.print(")\n");
+//			if (out.closeTextOutputStream()) return out.finishWrite();
+//			System.out.println(templateFile + " written");
+//		}
+//
+//        String runSpice = Simulation.getSpiceRunChoice();
+//        if (!runSpice.equals(Simulation.spiceRunChoiceDontRun)) {
+//            String command = Simulation.getSpiceRunProgram() + " " + Simulation.getSpiceRunProgramArgs();
+//
+//            // see if user specified custom dir to run process in
+//            String workdir = User.getWorkingDirectory();
+//            String rundir = workdir;
+//            if (Simulation.getSpiceUseRunDir()) {
+//                rundir = Simulation.getSpiceRunDir();
+//            }
+//            File dir = new File(rundir);
+//
+//            int start = fileP.lastIndexOf(File.separator);
+//            if (start == -1) start = 0; else {
+//                start++;
+//                if (start > fileP.length()) start = fileP.length();
+//            }
+//            int end = fileP.lastIndexOf(".");
+//            if (end == -1) end = fileP.length();
+//            String filename_noext = fileP.substring(start, end);
+//            String filename = fileP.substring(start, fileP.length());
+//
+//            // replace vars in command and args
+//            command = command.replaceAll("\\$\\{WORKING_DIR}", workdir);
+//            command = command.replaceAll("\\$\\{USE_DIR}", rundir);
+//            command = command.replaceAll("\\$\\{FILENAME}", filename);
+//            command = command.replaceAll("\\$\\{FILENAME_NO_EXT}", filename_noext);
+//
+//            // set up run probe
+//            FileType type = Simulate.getCurrentSpiceOutputType();
+//            String [] extensions = type.getExtensions();
+//            String outFile = rundir + File.separator + filename_noext + "." + extensions[0];
+//            Exec.FinishedListener l = new SpiceFinishedListener(cell, type, outFile);
+//
+//            if (runSpice.equals(Simulation.spiceRunChoiceRunIgnoreOutput)) {
+//                Exec e = new Exec(command, null, dir, null, null);
+//                if (Simulation.getSpiceRunProbe()) e.addFinishedListener(l);
+//                e.start();
+//            }
+//            if (runSpice.equals(Simulation.spiceRunChoiceRunReportOutput)) {
+//                ExecDialog dialog = new ExecDialog(TopLevel.getCurrentJFrame(), false);
+//                if (Simulation.getSpiceRunProbe()) dialog.addFinishedListener(l);
+//                dialog.startProcess(command, null, dir);
+//            }
+//            System.out.println("Running spice command: "+command);
+//        }
+//
+//        if (Simulation.isParasiticsBackAnnotateLayout() && out.parasiticInfo != null)
+//        {
+//            out.parasiticInfo.backAnnotate();
+//        }
+//        return out.finishWrite();
+//    }
 
 	/**
 	 * Method called once by the traversal mechanism.
@@ -2376,7 +2492,7 @@ public class Spice extends Topology
 		multiLinePrint(true, "*** SPICE deck for cell " + cell.noLibDescribe() +
 			" from library " + cell.getLibrary().getName() + "\n");
 		emitCopyright("*** ", "");
-		if (User.isIncludeDateAndVersionInOutput())
+		if (localPrefs.includeDateAndVersionInOutput)
 		{
 			multiLinePrint(true, "*** Created on " + TextUtils.formatDate(topCell.getCreationDate()) + "\n");
 			multiLinePrint(true, "*** Last revised on " + TextUtils.formatDate(topCell.getRevisionDate()) + "\n");

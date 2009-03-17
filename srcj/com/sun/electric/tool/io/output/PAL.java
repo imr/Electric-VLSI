@@ -52,33 +52,50 @@ public class PAL extends Output
 	private List<String> equations;
 	private Set<String> internalSymbols;
 	private Set<String> externalSymbols;
+	private PALPreferences localPrefs;
 
-	/**
-	 * The main entry point for PAL deck writing.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
-	 */
-	public static Output writePALFile(Cell cell, VarContext context, String filePath)
-	{
-		PAL out = new PAL();
-		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-		out.initialize(cell);
-		PALNetlister netlister = new PALNetlister(out);
-		HierarchyEnumerator.enumerateCell(cell, context, netlister, Netlist.ShortResistors.ALL);
-		out.terminate(cell);
-		if (out.closeTextOutputStream()) return out.finishWrite();
-		System.out.println(filePath + " written");
-        return out.finishWrite();
+	public static class PALPreferences extends OutputPreferences
+    {
+		PALPreferences() {}
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		PAL out = new PAL(this);
+    		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+    		out.initialize(cell);
+    		PALNetlister netlister = new PALNetlister(out);
+    		HierarchyEnumerator.enumerateCell(cell, context, netlister, Netlist.ShortResistors.ALL);
+    		out.terminate(cell);
+    		if (out.closeTextOutputStream()) return out.finishWrite();
+    		System.out.println(filePath + " written");
+            return out.finishWrite();
+        }
     }
 
 	/**
 	 * Creates a new instance of the PAL netlister.
 	 */
-	PAL()
-	{
-	}
+	PAL(PALPreferences pp) { localPrefs = pp; }
+
+//	/**
+//	 * The main entry point for PAL deck writing.
+//     * @param cell the top-level cell to write.
+//     * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writePALFile(Cell cell, VarContext context, String filePath)
+//	{
+//		PAL out = new PAL();
+//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+//		out.initialize(cell);
+//		PALNetlister netlister = new PALNetlister(out);
+//		HierarchyEnumerator.enumerateCell(cell, context, netlister, Netlist.ShortResistors.ALL);
+//		out.terminate(cell);
+//		if (out.closeTextOutputStream()) return out.finishWrite();
+//		System.out.println(filePath + " written");
+//        return out.finishWrite();
+//    }
 
 	private void initialize(Cell cell)
 	{

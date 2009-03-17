@@ -66,27 +66,37 @@ public class Pads extends Output
 	/** key of Variable holding pin information. */			public static final Variable.Key PIN_KEY = Variable.newKey("ATTR_pin");
 
 	private List<NetNames> networks;
+	private PadsPreferences localPrefs;
 
+	public static class PadsPreferences extends OutputPreferences
+    {
+		PadsPreferences() {}
+
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		Pads out = new Pads(this);
+    		out.writeNetlist(cell, context, filePath);
+            return out.finishWrite();
+        }
+    }
 	/**
 	 * Creates a new instance of Pads netlister.
 	 */
-	private Pads()
-	{
-	}
+	private Pads(PadsPreferences pp) { localPrefs = pp; }
 
-	/**
-	 * The main entry point for Pads deck writing.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
-     * @return the Output object used for writing
-	 */
-	public static Output writePadsFile(Cell cell, VarContext context, String filePath)
-	{
-		Pads out = new Pads();
-		out.writeNetlist(cell, context, filePath);
-        return out.finishWrite();
-    }
+//	/**
+//	 * The main entry point for Pads deck writing.
+//     * @param cell the top-level cell to write.
+//     * @param context the hierarchical context to the cell.
+//	 * @param filePath the disk file to create.
+//     * @return the Output object used for writing
+//	 */
+//	public static Output writePadsFile(Cell cell, VarContext context, String filePath)
+//	{
+//		Pads out = new Pads();
+//		out.writeNetlist(cell, context, filePath);
+//        return out.finishWrite();
+//    }
 
 	private void writeNetlist(Cell cell, VarContext context, String filePath)
 	{
