@@ -801,13 +801,15 @@ public class Pref {
     private static int numValueStrings = 0;
     private static int lenValueStrings = 0;
 
-    public static void printAllPrefs(PrintStream out, EDatabase database) {
+    public static void printAllPrefs(PrintStream out, EDatabase database, boolean all) {
         numValueStrings = lenValueStrings = 0;
         TreeMap<String,Pref> sortedPrefs = new TreeMap<String,Pref>();
         synchronized (allGroups) {
             for (Group group: allGroups) {
-                for (Pref pref: group.prefs.values())
+                for (Pref pref: group.prefs.values()) {
+                    if (!all && !pref.serverAccessible) continue;
                     sortedPrefs.put(pref.group.absolutePath() + "/" + pref.name, pref);
+                }
             }
         }
         Preferences rootNode = Preferences.userRoot().node("com/sun/electric");
@@ -827,8 +829,10 @@ public class Pref {
         for (Technology tech: database.getTechnologies()) {
             i = 0;
             for (Pref.Group group: tech.getTechnologyAllPreferences()) {
-                for (Pref pref: group.prefs.values())
+                for (Pref pref: group.prefs.values()) {
+                    if (!all && !pref.serverAccessible) continue;
                     out.println((i++) + pref.group.absolutePath() + " " + tech + " " + pref.name + " " + pref.cachedObj);
+                }
             }
         }
     }
