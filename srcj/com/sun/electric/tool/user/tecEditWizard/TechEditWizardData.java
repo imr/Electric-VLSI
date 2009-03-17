@@ -1616,7 +1616,7 @@ public class TechEditWizardData
 
     /**
      * Method to create the XML versio nof PrimitivePort
-     * @return
+     * @return New Xml.PrimitivePort
      */
     private Xml.PrimitivePort makeXmlPrimitivePort(String name, int portAngle, int portRange, int portTopology,
                                                    EPoint minFullSize, double lx, double hx, double ly, double hy,
@@ -2417,6 +2417,7 @@ public class TechEditWizardData
 
             double protectDist = scaledValue(poly_protection_spacing.v);
             double extraSelX = 0, extraSelY = 0;
+            PrimitiveNode.Function func = null;
 
             if (i==0)
 			{
@@ -2426,6 +2427,7 @@ public class TechEditWizardData
                 selectLayer = pplusLayer;
                 extraSelX = pplus_overhang_poly.v;
                 extraSelY = pplus_overhang_diff.v;
+                func = PrimitiveNode.Function.TRAPMOS;
             } else
 			{
 				name = "N";
@@ -2435,6 +2437,7 @@ public class TechEditWizardData
                 selectLayer = nplusLayer;
                 extraSelX = nplus_overhang_poly.v;
                 extraSelY = nplus_overhang_diff.v;
+                func = PrimitiveNode.Function.TRANMOS;
             }
 
             selectx = scaledValue((gate_width.v/2+(poly_endcap.v+extraSelX)));
@@ -2485,7 +2488,11 @@ public class TechEditWizardData
             }
 
             // Active layers
-            nodesList.add(makeXmlNodeLayer(impx, impx, impy, impy, activeLayer, Poly.Type.FILLED, true));
+            nodesList.add(makeXmlNodeLayer(impx, impx, impy, impy, activeLayer, Poly.Type.FILLED, false));
+            // electrical active layers
+            nodesList.add(makeXmlNodeLayer(impx, impx, impy, 0, activeLayer, Poly.Type.FILLED, true));
+            nodesList.add(makeXmlNodeLayer(impx, impx, 0, impy, activeLayer, Poly.Type.FILLED, true));
+
             // top port
             portNames.clear();
             portNames.add(activeLayer.name);
@@ -2521,7 +2528,7 @@ public class TechEditWizardData
             nodesList.add(xTranSelLayer);
 
             // Standard Transistor
-            Xml.PrimitiveNodeGroup n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
+            Xml.PrimitiveNodeGroup n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
             g.addElement(n);
 
@@ -2553,7 +2560,7 @@ public class TechEditWizardData
                    polyLayer, Poly.Type.FILLED, false));
                 // Adding left
                 nodesList.add(bOrL);
-                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-L", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
+                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-L", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                 g.addElement(n);
 
@@ -2565,13 +2572,13 @@ public class TechEditWizardData
 
                 // Adding both
                 nodesList.add(tOrR);
-                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-LR", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
+                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-LR", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                 g.addElement(n);
 
                 // Adding right
                 nodesList.remove(bOrL);
-                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-R", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
+                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-R", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                 g.addElement(n);
             }
