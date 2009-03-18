@@ -16,11 +16,13 @@ public class SpiceParasiticsGeneral
 	/** key of wire capacitance. */	protected static final Variable.Key ATTR_C = Variable.newKey("ATTR_C");
     /** key of wire resistance. */	protected static final Variable.Key ATTR_R = Variable.newKey("ATTR_R");
 
+    /** SpicePreferences. */        protected Spice.SpicePreferences localPrefs;
 	/** List of segmented nets */	protected List<SpiceSegmentedNets> segmentedParasiticInfo;
 	/** current segmented nets */	protected SpiceSegmentedNets curSegmentedNets;
 
-	SpiceParasiticsGeneral()
+	SpiceParasiticsGeneral(Spice.SpicePreferences localPrefs)
 	{
+        this.localPrefs =localPrefs;
 		segmentedParasiticInfo = new ArrayList<SpiceSegmentedNets>();
 	}
 

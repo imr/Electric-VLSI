@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -148,17 +149,110 @@ public class Spice extends Topology
 
 	public static class SpicePreferences extends OutputPreferences
     {
-		boolean cdl;
+		public boolean                      cdl;
+        public Simulation.SpiceEngine       engine = Simulation.getFactorySpiceEngine();
+        public String                       level = Simulation.getFactorySpiceLevel();
+        public String                       outputFormat = Simulation.getFactorySpiceOutputFormat();
+        public int                          shortResistors = Simulation.getFactorySpiceShortResistors();
+        public String                       runChoice = Simulation.getFactorySpiceRunChoice();
+        public String                       runDir = Simulation.getFactorySpiceRunDir();
+        public boolean                      useRunDir = Simulation.getFactorySpiceUseRunDir();
+        public boolean                      outputOverwrite = Simulation.getFactorySpiceOutputOverwrite();
+        public boolean                      runProbe = Simulation.getFactorySpiceRunProbe();
+        public String                       runProgram = Simulation.getFactorySpiceRunProgram();
+        public String                       runProgramArgs = Simulation.getFactorySpiceRunProgramArgs();
+        public String                       partsLibrary = Simulation.getFactorySpicePartsLibrary();
+        public String                       headerCardInfo = Simulation.getFactorySpiceHeaderCardInfo();
+        public String                       trailerCardInfo = Simulation.getFactorySpiceTrailerCardInfo();
+
+        public Simulation.SpiceParasitics   parasiticsLevel = Simulation.getFactorySpiceParasiticsLevel();
+    	public boolean                      parasiticsUseVerboseNaming = Simulation.isFactoryParasiticsUseVerboseNaming();
+        public boolean                      parasiticsBackAnnotateLayout = Simulation.isFactoryParasiticsBackAnnotateLayout();
+        public boolean                      parasiticsExtractPowerGrownd = Simulation.isFactoryParasiticsExtractPowerGround();
+        public boolean                      parasiticsUseExemptedNetsFile = Simulation.isFactoryParasiticsUseExemptedNetsFile();
+        public boolean                      parasiticsIgnoreExemptedNets = Simulation.isFactoryParasiticsIgnoreExemptedNets();
+        public boolean                      parasiticsExtractsR = Simulation.isFactoryParasiticsExtractsR();
+        public boolean                      parasiticsExtractsC = Simulation.isFactoryParasiticsExtractsC();
+
+        public Simulation.SpiceGlobal       globalTreatment = Simulation.getFactorySpiceGlobalTreatment();
+        public boolean                      writePwrGndInTopCell = Simulation.isFactorySpiceWritePwrGndInTopCell();
+        public boolean                      useCellParameters = Simulation.isFactorySpiceUseCellParameters();
+        public boolean                      writeTransSizeInLambda = Simulation.isFactorySpiceWriteTransSizeInLambda();
+        public boolean                      writeSubcktTopCell = Simulation.isFactorySpiceWriteSubcktTopCell();
+        public boolean                      writeTopCellInstance = true;
+        public boolean                      writeEmptySubckts = true;
+        public boolean                      writeFinalDotEnd = true;
+        public boolean                      ignoreParasiticResistors = false;
+        public int                          epicMemorySize = Simulation.getFactorySpiceEpicMemorySize();
+        public String                       extractedNetDelimiter = Simulation.getFactorySpiceExtractedNetDelimiter();
+
+        public String                       cdlLibName = Simulation.getFactoryCDLLibName();
+        public String                       cdlLibPath = Simulation.getFactoryCDLLibPath();
+        public boolean                      cdlConvertBrackets = Simulation.isFactoryCDLConvertBrackets();
+        public String                       cdlIncludeFile = Simulation.getFactoryCDLIncludeFile();
+        public boolean                      cdlIgnoreResistors = false;
+
+        public Map<Cell,String>             modelFiles = Collections.emptyMap();
 
 		public SpicePreferences(boolean cdl)
 		{
 			this.cdl = cdl;
 		}
 
+        @Override
+        public void fillPrefs() {
+            super.fillPrefs();
+            engine                          = Simulation.getSpiceEngine();
+            level                           = Simulation.getSpiceLevel();
+            outputFormat                    = Simulation.getSpiceOutputFormat();
+            shortResistors                  = Simulation.getSpiceShortResistors();
+            runChoice                       = Simulation.getSpiceRunChoice();
+            runDir                          = Simulation.getSpiceRunDir();
+            useRunDir                       = Simulation.getSpiceUseRunDir();
+            outputOverwrite                 = Simulation.getSpiceOutputOverwrite();
+            runProbe                        = Simulation.getSpiceRunProbe();
+            runProgram                      = Simulation.getSpiceRunProgram();
+            runProgramArgs                  = Simulation.getSpiceRunProgramArgs();
+            partsLibrary                    = Simulation.getSpicePartsLibrary();
+            headerCardInfo                  = Simulation.getSpiceHeaderCardInfo();
+            trailerCardInfo                 = Simulation.getSpiceTrailerCardInfo();
+
+            parasiticsLevel                 = Simulation.getSpiceParasiticsLevel();
+            parasiticsUseVerboseNaming      = Simulation.isParasiticsUseVerboseNaming();
+            parasiticsBackAnnotateLayout    = Simulation.isParasiticsBackAnnotateLayout();
+            parasiticsExtractPowerGrownd    = Simulation.isParasiticsExtractPowerGround();
+            parasiticsUseExemptedNetsFile   = Simulation.isParasiticsUseExemptedNetsFile();
+            parasiticsIgnoreExemptedNets    = Simulation.isParasiticsIgnoreExemptedNets();
+            parasiticsExtractsR             = Simulation.isParasiticsExtractsR();
+            parasiticsExtractsC             = Simulation.isParasiticsExtractsC();
+
+            globalTreatment                 = Simulation.getSpiceGlobalTreatment();
+            writePwrGndInTopCell            = Simulation.isSpiceWritePwrGndInTopCell();
+            useCellParameters               = Simulation.isSpiceUseCellParameters();
+            writeTransSizeInLambda          = Simulation.isSpiceWriteTransSizeInLambda();
+            writeSubcktTopCell              = Simulation.isSpiceWriteSubcktTopCell();
+            writeTopCellInstance            = Simulation.isSpiceWriteTopCellInstance();
+            writeEmptySubckts               = Simulation.isSpiceWriteEmtpySubckts();
+            writeFinalDotEnd                = Simulation.isSpiceWriteFinalDotEnd();
+            ignoreParasiticResistors        = Simulation.isSpiceIgnoreParasiticResistors();
+            epicMemorySize                  = Simulation.getSpiceEpicMemorySize();
+            extractedNetDelimiter           = Simulation.getSpiceExtractedNetDelimiter();
+
+            cdlLibName                      = Simulation.getCDLLibName();
+            cdlLibPath                      = Simulation.getCDLLibPath();
+            cdlConvertBrackets              = Simulation.isCDLConvertBrackets();
+            cdlIncludeFile                  = Simulation.getCDLIncludeFile();
+            cdlIgnoreResistors              = Simulation.isCDLConvertBrackets();
+
+            modelFiles                      = CellModelPrefs.spiceModelPrefs.getUnfilteredFileNames(EDatabase.clientDatabase());
+        }
+
+        @Override
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		Spice out = new Spice(this);
     		out.useCDL = cdl;
+            out.spiceEngine = engine;
     		if (out.openTextOutputStream(filePath)) return out.finishWrite();
     		if (out.writeCell(cell, context)) return out.finishWrite();
     		if (out.closeTextOutputStream()) return out.finishWrite();
@@ -180,8 +274,8 @@ public class Spice extends Topology
     			String templateFile = deckPath + File.separator + cell.getName() + ".cdltemplate";
     			if (out.openTextOutputStream(templateFile)) return out.finishWrite();
 
-    			String libName = Simulation.getCDLLibName();
-    			String libPath = Simulation.getCDLLibPath();
+    			String libName = cdlLibName;
+    			String libPath = cdlLibPath;
     			out.printWriter.print("cdlInKeys = list(nil\n");
     			out.printWriter.print("    'searchPath             \"" + deckFile + "");
     			if (libPath.length() > 0)
@@ -206,15 +300,15 @@ public class Spice extends Topology
     			System.out.println(templateFile + " written");
     		}
 
-            String runSpice = Simulation.getSpiceRunChoice();
+            String runSpice = runChoice;
             if (!runSpice.equals(Simulation.spiceRunChoiceDontRun)) {
-                String command = Simulation.getSpiceRunProgram() + " " + Simulation.getSpiceRunProgramArgs();
+                String command = runProgram + " " + runProgramArgs;
 
                 // see if user specified custom dir to run process in
                 String workdir = User.getWorkingDirectory();
                 String rundir = workdir;
-                if (Simulation.getSpiceUseRunDir()) {
-                    rundir = Simulation.getSpiceRunDir();
+                if (useRunDir) {
+                    rundir = runDir;
                 }
                 File dir = new File(rundir);
 
@@ -235,25 +329,25 @@ public class Spice extends Topology
                 command = command.replaceAll("\\$\\{FILENAME_NO_EXT}", filename_noext);
 
                 // set up run probe
-                FileType type = Simulate.getCurrentSpiceOutputType();
+                FileType type = Simulate.getSpiceOutputType(outputFormat, engine);
                 String [] extensions = type.getExtensions();
                 String outFile = rundir + File.separator + filename_noext + "." + extensions[0];
                 Exec.FinishedListener l = new SpiceFinishedListener(cell, type, outFile);
 
                 if (runSpice.equals(Simulation.spiceRunChoiceRunIgnoreOutput)) {
                     Exec e = new Exec(command, null, dir, null, null);
-                    if (Simulation.getSpiceRunProbe()) e.addFinishedListener(l);
+                    if (runProbe) e.addFinishedListener(l);
                     e.start();
                 }
                 if (runSpice.equals(Simulation.spiceRunChoiceRunReportOutput)) {
                     ExecDialog dialog = new ExecDialog(TopLevel.getCurrentJFrame(), false);
-                    if (Simulation.getSpiceRunProbe()) dialog.addFinishedListener(l);
+                    if (runProbe) dialog.addFinishedListener(l);
                     dialog.startProcess(command, null, dir);
                 }
                 System.out.println("Running spice command: "+command);
             }
 
-            if (Simulation.isParasiticsBackAnnotateLayout() && out.parasiticInfo != null)
+            if (parasiticsBackAnnotateLayout && out.parasiticInfo != null)
             {
                 out.parasiticInfo.backAnnotate();
             }
@@ -392,7 +486,6 @@ public class Spice extends Topology
             layoutTechnology = Schematics.getDefaultSchematicTechnology();
 
 		// make sure key is cached
-		spiceEngine = Simulation.getSpiceEngine();
 		preferedEngineTemplateKey = SPICE_TEMPLATE_KEY;
         assuraHSpice = false;
 		switch (spiceEngine)
@@ -410,7 +503,7 @@ public class Spice extends Topology
             preferedEngineTemplateKey = CDL_TEMPLATE_KEY;
         }
         if (assuraHSpice || (useCDL && !CDLWRITESEMPTYSUBCKTS) ||
-            (!useCDL && !Simulation.isSpiceWriteEmtpySubckts())) {
+            (!useCDL && !localPrefs.writeEmptySubckts)) {
             writeEmptySubckts = false;
         }
 
@@ -434,13 +527,13 @@ public class Spice extends Topology
 		if (useCDL)
 		{
 			// setup bracket conversion for CDL
-			if (Simulation.isCDLConvertBrackets())
+			if (localPrefs.cdlConvertBrackets)
 				legalSpiceChars = CDLNOBRACKETLEGALCHARS;
 
 			multiLinePrint(true, "* First line is ignored\n");
             // see if include file specified
             String headerPath = TextUtils.getFilePath(topCell.getLibrary().getLibFile());
-            String filePart = Simulation.getCDLIncludeFile();
+            String filePart = localPrefs.cdlIncludeFile;
             if (!filePart.equals("")) {
                 String fileName = headerPath + filePart;
                 File test = new File(fileName);
@@ -460,7 +553,7 @@ public class Spice extends Topology
             spiceCodeFlat.close();
 		}
 
-        if (Simulation.isParasiticsUseExemptedNetsFile()) {
+        if (localPrefs.parasiticsUseExemptedNetsFile) {
             String headerPath = TextUtils.getFilePath(topCell.getLibrary().getLibFile());
             exemptedNets = new SpiceExemptedNets(new File(headerPath + File.separator + "exemptedNets.txt"));
         }
@@ -474,7 +567,7 @@ public class Spice extends Topology
 		if (!useCDL)
 		{
 			writeTrailer(topCell);
-            if (Simulation.isSpiceWriteFinalDotEnd())
+            if (localPrefs.writeFinalDotEnd)
                 multiLinePrint(false, ".END\n");
 		}
 	}
@@ -492,7 +585,7 @@ public class Spice extends Topology
             Netlist netList = cni.getNetList();
             Global.Set globals = netList.getGlobals();
             int globalSize = globals.size();
-    		if (Simulation.getSpiceGlobalTreatment() == Simulation.SpiceGlobal.USEGLOBALBLOCK)
+    		if (localPrefs.globalTreatment == Simulation.SpiceGlobal.USEGLOBALBLOCK)
             {
                 if (globalSize > 0)
                 {
@@ -530,7 +623,7 @@ public class Spice extends Topology
         }
 
         // for non-simple parasitics, create a SpiceSegmentedNets object to deal with them
-        Simulation.SpiceParasitics spLevel = Simulation.getSpiceParasiticsLevel();
+        Simulation.SpiceParasitics spLevel = localPrefs.parasiticsLevel;
         if (useCDL || cell.getView() != View.LAYOUT) spLevel = Simulation.SpiceParasitics.SIMPLE;
         SpiceSegmentedNets segmentedNets = null;
         if (spLevel != Simulation.SpiceParasitics.SIMPLE)
@@ -540,10 +633,10 @@ public class Spice extends Topology
             {
                 if (spLevel == Simulation.SpiceParasitics.RC_PROXIMITY)
                 {
-            		parasiticInfo = new SpiceParasitic();
+            		parasiticInfo = new SpiceParasitic(localPrefs);
                 } else if (spLevel == Simulation.SpiceParasitics.RC_CONSERVATIVE)
                 {
-            		parasiticInfo = new SpiceRCSimple();
+            		parasiticInfo = new SpiceRCSimple(localPrefs);
                 }
             }
             segmentedNets = parasiticInfo.initializeSegments(cell, cni, layoutTechnology, exemptedNets, info);
@@ -628,9 +721,9 @@ public class Spice extends Topology
 		}
 
 		// generate header for subckt or top-level cell
-        boolean forceEval = useCDL || !Simulation.isSpiceUseCellParameters() || detectSpiceParams(cell) == UNIQUIFY_MARK;
+        boolean forceEval = useCDL || !localPrefs.useCellParameters || detectSpiceParams(cell) == UNIQUIFY_MARK;
         String topLevelInstance = "";
-		if (cell == topCell && !useCDL && !Simulation.isSpiceWriteSubcktTopCell())
+		if (cell == topCell && !useCDL && !localPrefs.writeSubcktTopCell)
 		{
 			multiLinePrint(true, "\n*** TOP LEVEL CELL: " + cell.describe(false) + "\n");
 		} else
@@ -662,12 +755,12 @@ public class Spice extends Topology
 
 			Global.Set globals = netList.getGlobals();
 			int globalSize = globals.size();
-            if (cell == topCell && Simulation.isSpiceWriteSubcktTopCell()) {
+            if (cell == topCell && localPrefs.writeSubcktTopCell) {
                 // create top level instantiation
-                if (Simulation.isSpiceWriteTopCellInstance())
+                if (localPrefs.writeTopCellInstance)
                     topLevelInstance = infstr.toString().replaceFirst("\\.SUBCKT ", "X") + " " + cellName;
             }
-			if (!useCDL && Simulation.isSpiceUseCellParameters())
+			if (!useCDL && localPrefs.useCellParameters)
 			{
 				// add in parameters to this cell
                 Set<Variable.Key> spiceParams = detectSpiceParams(cell);
@@ -687,7 +780,7 @@ public class Spice extends Topology
 			multiLinePrint(false, infstr.toString());
 
 			// write global comments
-			if (Simulation.getSpiceGlobalTreatment() == Simulation.SpiceGlobal.USEGLOBALBLOCK)
+			if (localPrefs.globalTreatment == Simulation.SpiceGlobal.USEGLOBALBLOCK)
 			{
 				for(int i=0; i<globalSize; i++)
 				{
@@ -860,7 +953,7 @@ public class Spice extends Topology
                 if (useCDL) infstr.append(" /"); else infstr.append(" ");
                 infstr.append(subCni.getParameterizedName());
 
-				if (!useCDL && Simulation.isSpiceUseCellParameters())
+				if (!useCDL && localPrefs.useCellParameters)
 				{
 					// add in parameters to this instance
                     Set<Variable.Key> spiceParams = detectSpiceParams(subCell);
@@ -938,7 +1031,7 @@ public class Spice extends Topology
                             extra = evalParam(context, ni, resistVar, forceEval);
                         } else {
                             if (resistVar.getCode() == CodeExpression.Code.SPICE) {
-                                if (!useCDL && Simulation.isSpiceUseCellParameters()) {
+                                if (!useCDL && localPrefs.useCellParameters) {
                                     Object obj = context.evalSpice(resistVar, false);
                                     extra = String.valueOf(obj);
                                 } else {
@@ -972,7 +1065,7 @@ public class Spice extends Topology
                             partName = "XR";
                             double width = ni.getLambdaBaseYSize();
                             double length = ni.getLambdaBaseXSize();
-                            if (Simulation.isSpiceWriteTransSizeInLambda())
+                            if (localPrefs.writeTransSizeInLambda)
                             {
                                 extra = " L="+length+" W="+width;
                             } else
@@ -1005,7 +1098,7 @@ public class Spice extends Topology
                             extra = evalParam(context, no, capacVar, forceEval);
                         } else {
                             if (capacVar.getCode() == CodeExpression.Code.SPICE) {
-                                if (!useCDL && Simulation.isSpiceUseCellParameters()) {
+                                if (!useCDL && localPrefs.useCellParameters) {
                                     Object obj = context.evalSpice(capacVar, false);
                                     extra = String.valueOf(obj);
                                 } else {
@@ -1033,7 +1126,7 @@ public class Spice extends Topology
                             extra = evalParam(context, no, inductVar, forceEval);
                         } else {
                             if (inductVar.getCode() == CodeExpression.Code.SPICE) {
-                                if (!useCDL && Simulation.isSpiceUseCellParameters()) {
+                                if (!useCDL && localPrefs.useCellParameters) {
                                     Object obj = context.evalSpice(inductVar, false);
                                     extra = String.valueOf(obj);
                                 } else {
@@ -1252,7 +1345,7 @@ public class Spice extends Topology
             	Double foundLen = null;
                 Variable varLen = ni.getVar(Schematics.ATTR_LENGTH);
                 if (varLen != null && varLen.getCode() == CodeExpression.Code.SPICE &&
-                	!useCDL && Simulation.isSpiceUseCellParameters())
+                	!useCDL && localPrefs.useCellParameters)
                 {
                 	// write as a parameter
                     infstr.append(" L=" + evalParam(context, no, varLen, forceEval));
@@ -1267,7 +1360,7 @@ public class Spice extends Topology
 	                    l -= lengthSubtraction;
 
 	                    // make into microns (convert to nanometers then divide by 1000)
-	                    if (!Simulation.isSpiceWriteTransSizeInLambda())
+	                    if (!localPrefs.writeTransSizeInLambda)
 	                        l *= layoutTechnology.getScale() / 1000.0;
 
 	                    if (fun == PrimitiveNode.Function.TRANMOS  || fun == PrimitiveNode.Function.TRA4NMOS ||
@@ -1285,7 +1378,7 @@ public class Spice extends Topology
 	                        } else
 	                        {
 	                            infstr.append(" L=" + TextUtils.formatDouble(l));
-	                            if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
+	                            if (!localPrefs.writeTransSizeInLambda && !st090laytrans) infstr.append("U");
 	                        }
 	                    }
 	                	foundLen = new Double(l);
@@ -1304,7 +1397,7 @@ public class Spice extends Topology
             	Double foundWid = null;
                 Variable varWid = ni.getVar(Schematics.ATTR_WIDTH);
                 if (varWid != null && varWid.getCode() == CodeExpression.Code.SPICE &&
-                	!useCDL && Simulation.isSpiceUseCellParameters())
+                	!useCDL && localPrefs.useCellParameters)
                 {
                 	// write as a parameter
                     infstr.append(" W=" + evalParam(context, no, varWid, forceEval));
@@ -1316,7 +1409,7 @@ public class Spice extends Topology
 	                    double w = maskScale * size.getDoubleWidth();
 
 	                    // make into microns (convert to nanometers then divide by 1000)
-	                    if (!Simulation.isSpiceWriteTransSizeInLambda())
+	                    if (!localPrefs.writeTransSizeInLambda)
 	                        w *= layoutTechnology.getScale() / 1000.0;
 
 	                    if (fun == PrimitiveNode.Function.TRANMOS  || fun == PrimitiveNode.Function.TRA4NMOS ||
@@ -1330,7 +1423,7 @@ public class Spice extends Topology
 	                            infstr.append(" W="+formatParam((String)size.getWidth(), TextDescriptor.Unit.DISTANCE, false));
 	                        } else {
 	                            infstr.append(" W=" + TextUtils.formatDouble(w));
-	                            if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
+	                            if (!localPrefs.writeTransSizeInLambda && !st090laytrans) infstr.append("U");
 	                        }
 	                    }
 	                	foundWid = new Double(w);
@@ -1350,7 +1443,7 @@ public class Spice extends Topology
                 	if (foundLen != null && foundWid != null)
                 	{
     	                infstr.append(" AREA=" + TextUtils.formatDouble(foundLen.doubleValue()*foundWid.doubleValue()));
-    	                if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
+    	                if (!localPrefs.writeTransSizeInLambda) infstr.append("P");
                 	}
                 }
             }
@@ -1373,7 +1466,7 @@ public class Spice extends Topology
 					{
 						as = spNetSource.diffArea / spNetSource.transistorCount;
 						ps = spNetSource.diffPerim / spNetSource.transistorCount;
-						if (!Simulation.isSpiceWriteTransSizeInLambda())
+						if (!localPrefs.writeTransSizeInLambda)
 						{
 							as *= layoutTechnology.getScale() * layoutTechnology.getScale() / 1000000.0;
 							ps *= layoutTechnology.getScale() / 1000.0;
@@ -1383,7 +1476,7 @@ public class Spice extends Topology
 					{
 						ad = spNetDrain.diffArea / spNetDrain.transistorCount;
 						pd = spNetDrain.diffPerim / spNetDrain.transistorCount;
-						if (!Simulation.isSpiceWriteTransSizeInLambda())
+						if (!localPrefs.writeTransSizeInLambda)
 						{
 							ad *= layoutTechnology.getScale() * layoutTechnology.getScale() / 1000000.0;
 							pd *= layoutTechnology.getScale() / 1000.0;
@@ -1392,22 +1485,22 @@ public class Spice extends Topology
 					if (as > 0.0)
 					{
 						infstr.append(" AS=" + TextUtils.formatDouble(as));
-						if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("P");
+						if (!localPrefs.writeTransSizeInLambda && !st090laytrans) infstr.append("P");
 					}
 					if (ad > 0.0)
 					{
 						infstr.append(" AD=" + TextUtils.formatDouble(ad));
-						if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("P");
+						if (!localPrefs.writeTransSizeInLambda && !st090laytrans) infstr.append("P");
 					}
 					if (ps > 0.0)
 					{
 						infstr.append(" PS=" + TextUtils.formatDouble(ps));
-						if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
+						if (!localPrefs.writeTransSizeInLambda && !st090laytrans) infstr.append("U");
 					}
 					if (pd > 0.0)
 					{
 						infstr.append(" PD=" + TextUtils.formatDouble(pd));
-						if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
+						if (!localPrefs.writeTransSizeInLambda && !st090laytrans) infstr.append("U");
 					}
 				}
 			}
@@ -1539,11 +1632,11 @@ public class Spice extends Topology
         }
 
 		// now we're finished writing the subcircuit.
-		if (cell != topCell || useCDL || Simulation.isSpiceWriteSubcktTopCell())
+		if (cell != topCell || useCDL || localPrefs.writeSubcktTopCell)
 		{
 			multiLinePrint(false, ".ENDS " + cni.getParameterizedName() + "\n");
 		}
-        if (cell == topCell && Simulation.isSpiceWriteSubcktTopCell()) {
+        if (cell == topCell && localPrefs.writeSubcktTopCell) {
             multiLinePrint(false, "\n\n"+topLevelInstance+"\n\n");
         }
 	}
@@ -1565,7 +1658,7 @@ public class Spice extends Topology
             VarContext vc = context.push(no);
             uniqueCellName.append("_"+vc.getInstPath("."));
         } else {
-            boolean useCellParams = !useCDL && Simulation.isSpiceUseCellParameters();
+            boolean useCellParams = !useCDL && localPrefs.useCellParameters;
             if (canParameterizeNames() && no.isCellInstance() && !SCLibraryGen.isStandardCell(cell))
             {
                 // if there are parameters, append them to this name
@@ -2011,7 +2104,7 @@ public class Spice extends Topology
                         pVal = evalParam(context, no, attrVar, forceEval, true, infstr.inParens());
                         if (infstr.inQuotes()) pVal = trimSingleQuotes(pVal);
                     } else {
-                        if (!useCDL && Simulation.isSpiceUseCellParameters() &&
+                        if (!useCDL && localPrefs.useCellParameters &&
                                 parentVar.getCode() == CodeExpression.Code.SPICE) {
                             Object obj = context.evalSpice(attrVar, false);
                             if (obj != null)
@@ -2325,8 +2418,9 @@ public class Spice extends Topology
 
 		// look for a model file for the current cell, can come from pref or on cell
         String fileName = null;
-        if (CellModelPrefs.spiceModelPrefs.isUseModelFromFile(cell)) {
-            fileName = CellModelPrefs.spiceModelPrefs.getModelFile(cell);
+        String unfilteredFileName = localPrefs.modelFiles.get(cell);
+        if (CellModelPrefs.isUseModelFromFile(unfilteredFileName)) {
+            fileName = CellModelPrefs.getModelFile(unfilteredFileName);
         }
         varTemplate = cell.getVar(SPICE_NETLIST_FILE_KEY);
         if (varTemplate != null) {
@@ -2428,10 +2522,10 @@ public class Spice extends Topology
 //    		case 2: return Netlist.ShortResistors.ALL;
 //    	}
 
-    	if (useCDL && Simulation.getCDLIgnoreResistors())
+    	if (useCDL && localPrefs.cdlIgnoreResistors)
             return Netlist.ShortResistors.PARASITIC;
         // this option is used for writing spice netlists for LVS and RCX (it always returns FALSE)
-        if (Simulation.isSpiceIgnoreParasiticResistors())
+        if (localPrefs.ignoreParasiticResistors)
             return Netlist.ShortResistors.PARASITIC;
         return Netlist.ShortResistors.NO;
     }
@@ -2448,7 +2542,7 @@ public class Spice extends Topology
 	protected int maxNameLength() { if (useCDL) return CDLMAXLENSUBCKTNAME; return SPICEMAXLENSUBCKTNAME; }
 
     protected boolean enumerateLayoutView(Cell cell) {
-        return (CellModelPrefs.spiceModelPrefs.isUseLayoutView(cell));
+        return CellModelPrefs.isUseLayoutView(localPrefs.modelFiles.get(cell));
     }
 
     private Netlist.ShortResistors getShortResistorsFlat() {
@@ -2508,7 +2602,7 @@ public class Spice extends Topology
         multiLinePrint(true, "*** UC SPICE *** , MIN_RESIST " + layoutTechnology.getMinResistance() +
 			", MIN_CAPAC " + layoutTechnology.getMinCapacitance() + "FF\n");
         boolean useParasitics = !useCDL &&
-        	Simulation.getSpiceParasiticsLevel() != Simulation.SpiceParasitics.SIMPLE &&
+        	localPrefs.parasiticsLevel != Simulation.SpiceParasitics.SIMPLE &&
             cell.getView() == View.LAYOUT;
         if (useParasitics) {
             for (Layer layer : layoutTechnology.getLayersSortedByHeight()) {
@@ -2523,11 +2617,11 @@ public class Spice extends Topology
         }
         multiLinePrint(false, ".OPTIONS NOMOD NOPAGE\n");
 
-        if (Simulation.isSpiceUseCellParameters()) {
+        if (localPrefs.useCellParameters) {
             multiLinePrint(false, ".options parhier=local\n");
         }
         // if sizes to be written in lambda, tell spice conversion factor
-		if (Simulation.isSpiceWriteTransSizeInLambda())
+		if (localPrefs.writeTransSizeInLambda)
 		{
 			double scale = layoutTechnology.getScale();
 			multiLinePrint(true, "*** Lambda Conversion ***\n");
@@ -2535,7 +2629,7 @@ public class Spice extends Topology
 		}
 
 		// see if spice model/option cards from file if specified
-		String headerFile = Simulation.getSpiceHeaderCardInfo();
+		String headerFile = localPrefs.headerCardInfo;
 		if (headerFile.length() > 0 && !headerFile.startsWith(SPICE_NOEXTENSION_PREFIX))
 		{
 			if (headerFile.startsWith(SPICE_EXTENSION_PREFIX))
@@ -2568,7 +2662,7 @@ public class Spice extends Topology
 		}
 
 		// no header files: write predefined header for this level and technology
-		int level = TextUtils.atoi(Simulation.getSpiceLevel());
+		int level = TextUtils.atoi(localPrefs.level);
 		String [] header = null;
 		switch (level)
 		{
@@ -2594,7 +2688,7 @@ public class Spice extends Topology
 	private void writeTrailer(Cell cell)
 	{
 		// get spice trailer cards from file if specified
-		String trailerFile = Simulation.getSpiceTrailerCardInfo();
+		String trailerFile = localPrefs.trailerCardInfo;
 		if (trailerFile.length() > 0 && !trailerFile.startsWith(SPICE_NOEXTENSION_PREFIX))
 		{
 			if (trailerFile.startsWith(SPICE_EXTENSION_PREFIX))
@@ -2774,7 +2868,7 @@ public class Spice extends Topology
 	 */
     private boolean ignoreSubcktPort(CellSignal cs)
     {
-		if (Simulation.getSpiceGlobalTreatment() != Simulation.SpiceGlobal.USESUBCKTPORTS)
+		if (localPrefs.globalTreatment != Simulation.SpiceGlobal.USESUBCKTPORTS)
 		{
 	        // ignore networks that aren't exported
 	        PortProto pp = cs.getExport();
@@ -2834,7 +2928,7 @@ public class Spice extends Topology
         boolean empty = true;
 
         boolean useParasitics = !useCDL &&
-            Simulation.getSpiceParasiticsLevel() != Simulation.SpiceParasitics.SIMPLE &&
+            localPrefs.parasiticsLevel != Simulation.SpiceParasitics.SIMPLE &&
             cell.getView() == View.LAYOUT;
         if (useParasitics) return false;
 
@@ -2912,12 +3006,12 @@ public class Spice extends Topology
      * Method to adjust a network name to be safe for Spice output.
      * Spice has a list of legal punctuation characters that it allows.
      */
-    public static String getSafeNetName(String name)
+    public static String getSafeNetName(String name, Simulation.SpiceEngine engine)
     {
         String legalSpiceChars = SPICELEGALCHARS;
-        if (Simulation.getSpiceEngine() == Simulation.SpiceEngine.SPICE_ENGINE_P)
+        if (engine == Simulation.SpiceEngine.SPICE_ENGINE_P)
             legalSpiceChars = PSPICELEGALCHARS;
-        return getSafeNetName(name, false, legalSpiceChars, Simulation.getSpiceEngine());
+        return getSafeNetName(name, false, legalSpiceChars, engine);
     }
 
     /**

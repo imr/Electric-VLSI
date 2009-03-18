@@ -40,8 +40,6 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
@@ -114,6 +112,12 @@ public class Output
     	new OutputCellInfo(cell, context, fileP, type, override);
     }
 
+    /**
+     * Return factory default OutputPreferences for a specified FileType
+     * @param type specified file type
+     * @param override the list of Polys to write instead of cell contents.
+     * @return
+     */
     public static OutputPreferences getOutputPreferences(FileType type, List<PolyBase> override)
     {
         if (type == FileType.ARCHSIM) return new ArchSim.ArchSimPreferences();
@@ -198,13 +202,19 @@ public class Output
 
     public static class OutputPreferences
 	{
-        protected boolean useCopyrightMessage;
-        protected boolean includeDateAndVersionInOutput;
+        public boolean useCopyrightMessage;
+        public boolean includeDateAndVersionInOutput;
 
-        public OutputPreferences()
+        protected OutputPreferences()
         {
         	useCopyrightMessage = IOTool.isUseCopyrightMessage();
         	includeDateAndVersionInOutput = User.isIncludeDateAndVersionInOutput();
+        }
+
+        /**
+         * Fill these Output preeferences with default values from Prefs
+         */
+        public void fillPrefs() {
         }
 
         public Output doOutput(Cell cell, VarContext context, String filePath)

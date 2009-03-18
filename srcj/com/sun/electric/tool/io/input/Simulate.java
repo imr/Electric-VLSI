@@ -58,7 +58,9 @@ public class Simulate extends Input
 	 */
 	public static void plotSpiceResults()
 	{
-		FileType type = getCurrentSpiceOutputType();
+		String format = Simulation.getSpiceOutputFormat();
+		Simulation.SpiceEngine engine = Simulation.getSpiceEngine();
+		FileType type = getSpiceOutputType(format, engine);
 		if (type == null) return;
 		plotSimulationResults(type, null, null, null);
 	}
@@ -71,7 +73,9 @@ public class Simulate extends Input
 		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
-		FileType type = getCurrentSpiceOutputType();
+		String format = Simulation.getSpiceOutputFormat();
+		Simulation.SpiceEngine engine = Simulation.getSpiceEngine();
+		FileType type = getSpiceOutputType(format, engine);
 		if (type == null) return;
 		plotSimulationResults(type, cell, null, null);
 	}
@@ -255,7 +259,7 @@ public class Simulate extends Input
 			}
 			return true;
 		}
-        
+
         public void terminateOK() {
             if (sd != null)
                 Simulation.showSimulationData(sd, ww);
@@ -271,10 +275,8 @@ public class Simulate extends Input
 		return null;
 	}
 
-	public static FileType getCurrentSpiceOutputType()
+	public static FileType getSpiceOutputType(String format, Simulation.SpiceEngine engine)
 	{
-		String format = Simulation.getSpiceOutputFormat();
-		Simulation.SpiceEngine engine = Simulation.getSpiceEngine();
 		if (format.equalsIgnoreCase("Standard"))
 		{
 			if (engine == Simulation.SpiceEngine.SPICE_ENGINE_H)
@@ -322,7 +324,7 @@ public class Simulate extends Input
 		updateProgressDialog(bytesRead);
 		return sb.toString();
 	}
-    
+
 	/**
 	 * Method to remove the leading "x" character in each dotted part of a string.
 	 * HSpice decides to add "x" in front of every cell name, so the path "me.you"

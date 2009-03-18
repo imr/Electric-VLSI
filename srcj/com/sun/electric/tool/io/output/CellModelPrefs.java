@@ -24,10 +24,13 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.io.FileType;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -60,25 +63,32 @@ public class CellModelPrefs {
     public boolean isCanLayoutFromNetlist() { return canLayoutFromNetlist; }
 
     public boolean isUseModelFromFile(Cell cell) {
-        String fileName = getModelFileUnfiltered(cell);
-        if (fileName.length() > 0 && !fileName.startsWith("-----") && !fileName.startsWith("+++++"))
-            return true;
-        return false;
+        return isUseModelFromFile(getModelFileUnfiltered(cell));
+    }
+
+    public static boolean isUseModelFromFile(String unfilteredFileName) {
+        return unfilteredFileName != null &&  unfilteredFileName.length() > 0 &&
+                !unfilteredFileName.startsWith("-----") && !unfilteredFileName.startsWith("+++++");
     }
 
     public boolean isUseLayoutView(Cell cell) {
-        String fileName = getModelFileUnfiltered(cell);
-        if (fileName.length() > 0 && fileName.startsWith("+++++"))
-            return true;
-        return false;
+        return isUseLayoutView(getModelFileUnfiltered(cell));
+    }
+
+    public static boolean isUseLayoutView(String unfilteredFileName) {
+        return unfilteredFileName != null && unfilteredFileName.length() > 0 &&
+                unfilteredFileName.startsWith("+++++");
     }
 
     public String getModelFile(Cell cell) {
-        String fileName = getModelFileUnfiltered(cell);
-        if (fileName.length() > 0 &&
-            (fileName.startsWith("+++++") || fileName.startsWith("-----")))
-            return fileName.substring(5);
-        return fileName;
+        return getModelFile(getModelFileUnfiltered(cell));
+    }
+
+    public static String getModelFile(String unfilteredFileName) {
+        if (unfilteredFileName != null && unfilteredFileName.length() > 0 &&
+            (unfilteredFileName.startsWith("+++++") || unfilteredFileName.startsWith("-----")))
+            return unfilteredFileName.substring(5);
+        return unfilteredFileName;
     }
 
     public void setModelFile(Cell cell, String fileName, boolean useModelFromFile, boolean useLayoutView) {
@@ -95,6 +105,23 @@ public class CellModelPrefs {
         if (!useModelFromFile && !useLayoutView)
             fileName = "-----" + fileName;
         modelPref.setString(fileName);
+    }
+
+    public Map<Cell,String> getUnfilteredFileNames(EDatabase database) {
+        HashMap<Cell,String> m = new HashMap<Cell,String>();
+        for (Iterator<Library> lit = database.getLibraries(); lit.hasNext(); ) {
+            Library lib = lit.next();
+            for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); ) {
+                Cell cell= cit.next();
+                String prefName = type + "ModelFileFor_" + cell.getLibrary().getName() +"_" + cell.getName() + "_" + cell.getView().getAbbreviation();
+                Pref modelPref = modelFilePrefs.get(prefName);
+                if (modelPref == null) continue;
+                String unfilterdFileName = modelPref.getString();
+                if (unfilterdFileName.length() == 0) continue;
+                m.put(cell, unfilterdFileName);
+            }
+        }
+        return m;
     }
 
     private String getModelFileUnfiltered(Cell cell) {

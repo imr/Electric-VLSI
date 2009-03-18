@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+IMP: (3/18/09, DN) Fix Spice writer to new preferences schemae.
+
 IMP: (3/17/09, GVG) TechEditorWizard issues reported in Bug #2078.
 
 IMP: (3/17/09, SMR) Restructured output tool to package preferences for server.

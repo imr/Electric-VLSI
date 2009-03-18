@@ -2396,7 +2396,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	public static String getSpiceNetName(Network net)
 	{
-		return Spice.getSafeNetName(net.getName());
+		return Spice.getSafeNetName(net.getName(), Simulation.getSpiceEngine());
 	}
 
 	/**
@@ -2468,7 +2468,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (context == VarContext.globalContext || isGlobal)
 			return getSpiceNetName(net);
         else if (assuraRCXFormat) return contextStr + "/" + getSpiceNetName(net);
-        else if (starRCXTFormat) return contextStr + "/" + getSpiceNetName(net); 
+        else if (starRCXTFormat) return contextStr + "/" + getSpiceNetName(net);
         else return contextStr + "." + getSpiceNetName(net);
 	}
 

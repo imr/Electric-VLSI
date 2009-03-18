@@ -60,8 +60,9 @@ import java.util.Set;
  */
 public class SpiceRCSimple extends SpiceParasiticsGeneral
 {
-	SpiceRCSimple()
+	SpiceRCSimple(Spice.SpicePreferences localPrefs)
 	{
+        super(localPrefs);
 		segmentedParasiticInfo = new ArrayList<SpiceSegmentedNets>();
 	}
 
@@ -80,8 +81,8 @@ public class SpiceRCSimple extends SpiceParasiticsGeneral
 		SpiceExemptedNets exemptedNets, Topology.MyCellInfo info)
 	{
 		// first create a set of segmentedNets for the Cell
-        boolean verboseSegmentNames = Simulation.isParasiticsUseVerboseNaming();
-        Simulation.SpiceParasitics spLevel = Simulation.getSpiceParasiticsLevel();
+        boolean verboseSegmentNames = localPrefs.parasiticsUseVerboseNaming;
+        Simulation.SpiceParasitics spLevel = localPrefs.parasiticsLevel;
         SpiceSegmentedNets segmentedNets = new SpiceSegmentedNets(cell, verboseSegmentNames, cni, spLevel);
         segmentedParasiticInfo.add(segmentedNets);
         curSegmentedNets = segmentedNets;
@@ -104,10 +105,10 @@ public class SpiceRCSimple extends SpiceParasiticsGeneral
 			Network net = netList.getNetwork(ai, 0);
 			double cap = 0;
 			double res = 0;
-			if (extractNet && Simulation.isParasiticsUseExemptedNetsFile())
+			if (extractNet && localPrefs.parasiticsUseExemptedNetsFile)
 			{
 				// ignore nets in exempted nets file
-				if (Simulation.isParasiticsIgnoreExemptedNets())
+				if (localPrefs.parasiticsIgnoreExemptedNets)
 				{
 					// check if this net is exempted
 					if (exemptedNets.isExempted(info.getNetID(net)))
@@ -165,13 +166,13 @@ public class SpiceRCSimple extends SpiceParasiticsGeneral
 
 				if (!layer.isDiffusionLayer())
 				{
-					if (Simulation.isParasiticsExtractsC())
+					if (localPrefs.parasiticsExtractsC)
 					{
 						double areacap = area * layer.getCapacitance();
 						double fringecap = fringe * layer.getEdgeCapacitance();
 						cap = areacap + fringecap;
 					}
-					if (Simulation.isParasiticsExtractsR())
+					if (localPrefs.parasiticsExtractsR)
 					{
 						res = length/width * layer.getResistance();
 					}
@@ -287,7 +288,7 @@ public class SpiceRCSimple extends SpiceParasiticsGeneral
 			}
 			shortedExports.add(e.getName());
 		}
-	
+
 		// record shorted exports
 		for (List<String> shortedExports : shortedExportsMap.values())
 		{

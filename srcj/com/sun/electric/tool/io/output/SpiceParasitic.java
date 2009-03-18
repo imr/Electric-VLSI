@@ -59,7 +59,7 @@ import java.util.Set;
  * This is the simple-RC parasitics extractor for the Spice netlist writer.
  */
 public class SpiceParasitic extends SpiceParasiticsGeneral
-{	
+{
 	/** List of networks analyzed. */  								private List<Network> networkList;
 	/** List of arcs analyzed. */        							private List<ArcInst> arcList;
 	/** Parasitic component count. */    							int tLineCount = 0;
@@ -70,9 +70,10 @@ public class SpiceParasitic extends SpiceParasiticsGeneral
 	/** The current arc being analyzed */							ArcInst currAi = null;
 	/** Whether or not the subckt spice code is already printed  */ boolean alreadyPrinted = false;
 //	private List<Connection> conList;
-	
-	SpiceParasitic()
+
+	SpiceParasitic(Spice.SpicePreferences localPrefs)
 	{
+        super(localPrefs);
 		segmentedParasiticInfo = new ArrayList<SpiceSegmentedNets>();
 	}
 
@@ -91,8 +92,8 @@ public class SpiceParasitic extends SpiceParasiticsGeneral
 		SpiceExemptedNets exemptedNets, Topology.MyCellInfo info)
 	{
 		// first create a set of segmentedNets for the Cell
-        boolean verboseSegmentNames = Simulation.isParasiticsUseVerboseNaming();
-        Simulation.SpiceParasitics spLevel = Simulation.getSpiceParasiticsLevel();
+        boolean verboseSegmentNames = localPrefs.parasiticsUseVerboseNaming;
+        Simulation.SpiceParasitics spLevel = localPrefs.parasiticsLevel;
         SpiceSegmentedNets segmentedNets = new SpiceSegmentedNets(cell, verboseSegmentNames, cni, spLevel);
         segmentedParasiticInfo.add(segmentedNets);
         curSegmentedNets = segmentedNets;
@@ -115,10 +116,10 @@ public class SpiceParasitic extends SpiceParasiticsGeneral
 			Network net = netList.getNetwork(ai, 0);
 			double cap = 0;
 			double res = 0;
-			if (extractNet && Simulation.isParasiticsUseExemptedNetsFile())
+			if (extractNet && localPrefs.parasiticsUseExemptedNetsFile)
 			{
 				// ignore nets in exempted nets file
-				if (Simulation.isParasiticsIgnoreExemptedNets())
+				if (localPrefs.parasiticsIgnoreExemptedNets)
 				{
 					// check if this net is exempted
 					if (exemptedNets.isExempted(info.getNetID(net)))
@@ -176,13 +177,13 @@ public class SpiceParasitic extends SpiceParasiticsGeneral
 
 				if (!layer.isDiffusionLayer())
 				{
-					if (Simulation.isParasiticsExtractsC())
+					if (localPrefs.parasiticsExtractsC)
 					{
 						double areacap = area * layer.getCapacitance();
 						double fringecap = fringe * layer.getEdgeCapacitance();
 						cap = areacap + fringecap;
 					}
-					if (Simulation.isParasiticsExtractsR())
+					if (localPrefs.parasiticsExtractsR)
 					{
 						res = length/width * layer.getResistance();
 					}
@@ -194,12 +195,12 @@ public class SpiceParasitic extends SpiceParasiticsGeneral
 			// add caps
 			segmentedNets.putSegment(ai.getHeadPortInst(), cap/(arcPImodels+1));
 			segmentedNets.putSegment(ai.getTailPortInst(), cap/(arcPImodels+1));
-	
+
 			//system.out.println("Using resistance of "+res+" for arc "+ai.getName());
 			segmentedNets.addArcRes(ai, res);
-				
+
 			segmentedNets.addArcCap(ai, cap);       // need to store cap later to break it up
-			
+
 			segmentedNets.addExtractedNet(net);
 		}
 
@@ -292,7 +293,7 @@ public class SpiceParasitic extends SpiceParasiticsGeneral
 			}
 			shortedExports.add(e.getName());
 		}
-	
+
 		// record shorted exports
 		for (List<String> shortedExports : shortedExportsMap.values())
 		{
@@ -460,39 +461,39 @@ public class SpiceParasitic extends SpiceParasiticsGeneral
             return true;
         }
     }
-	
+
 	/**
-	 * Method to print the netlist considering the metal lines as distribute RC(transmission lines) 
+	 * Method to print the netlist considering the metal lines as distribute RC(transmission lines)
 	 */
 	public void writeNewSpiceCode(Cell cell,CellNetInfo cni,Technology layoutTechnology, Spice out)
 	{
-		double scale = layoutTechnology.getScale(); 
+		double scale = layoutTechnology.getScale();
 
 		networkList = new ArrayList<Network>();
 		arcList = new ArrayList<ArcInst>();
 
 		for (SpiceSegmentedNets segmentedNets : segmentedParasiticInfo)
         {
-			if (segmentedNets.getCell() != cell) continue;   
+			if (segmentedNets.getCell() != cell) continue;
 			for( Iterator<Network> itNet = cni.getNetList().getNetworks();itNet.hasNext();)
 			{
 				Network net = itNet.next();
 				Iterator<ArcInst> itArc = net.getArcs();
 				ArcInst FirstAi = itArc.next();
-			
+
             	double sqrs =0;
         		double cap=0;
         		double res=0;
         		boolean startAgain=false;
-        
+
                 ArcInst MainAi = FirstAi;
                 ArcInst CurrAi = MainAi;
-                
+
                 // Start with the head port instance of the first arc
                 Iterator<Connection> ConIT = MainAi.getHeadPortInst().getConnections();
                 PortInst MainPI = MainAi.getHeadPortInst();
                 n0 = segmentedNets.getNetName(MainAi.getHeadPortInst());
-                
+
                 // If this network is not already analyzed
                 if (networkList == null || !networkList.contains(net))
                 {
@@ -501,7 +502,7 @@ public class SpiceParasitic extends SpiceParasiticsGeneral
                 	{
                    		Connection conn = ConIT.next();
                 		CurrAi = conn.getArc();
-                		
+
                 		// If this arc is not already analyzed.
                 		if (!arcList.contains(CurrAi))
                 		{
@@ -511,8 +512,8 @@ public class SpiceParasitic extends SpiceParasiticsGeneral
                     		Poly poly = polya[0];
                     		if (poly.isPseudoLayer()) continue;
                     		String curLayer = poly.getLayer().getName();
-                    		
-                    		// If both the arcs are of the same layer ,add resistance, 
+
+                    		// If both the arcs are of the same layer ,add resistance,
                     		// capacitance and no. of squares and continue traversing.
                     		// Else print the existing data and start afresh.
                 			if((preLayer == curLayer) || preLayer == "") {
@@ -538,29 +539,29 @@ public class SpiceParasitic extends SpiceParasiticsGeneral
                     	   		res += segmentedNets.getRes(CurrAi).doubleValue();
                     	   		cap += segmentedNets.getArcCap(CurrAi);
                 			}
-                			
+
                 			// Decide which port of the current arc to use to continue traversing the network
                 			if (MainPI == CurrAi.getHeadPortInst()) {
                 				MainAi = CurrAi;
-                				MainPI = MainAi.getTailPortInst(); 
+                				MainPI = MainAi.getTailPortInst();
                 				ConIT = MainAi.getTailPortInst().getConnections();
                 				n1 = segmentedNets.getNetName(MainAi.getTailPortInst());
                 			} else {
                 				MainAi = CurrAi;
-                				MainPI = MainAi.getHeadPortInst(); 
+                				MainPI = MainAi.getHeadPortInst();
                 				ConIT = MainAi.getHeadPortInst().getConnections();
                 				n1 = segmentedNets.getNetName(MainAi.getHeadPortInst());
                 			}
                 		}
-                		
-                		// Once, one end of the network is reached, start traversing from the 
+
+                		// Once, one end of the network is reached, start traversing from the
                 		// head port instance of the first arc in the other direction now.
                 		if (!ConIT.hasNext() && !startAgain)
         				{
         					ConIT = FirstAi.getHeadPortInst().getConnections();
         					MainPI = FirstAi.getHeadPortInst();
         					startAgain = true;
-        					
+
         					if(sqrs > 3) {
         						out.multiLinePrint(false, "XP" + tLineCount + " " + n0 + " " + n1 +" RCLINE R=" + TextUtils.formatDouble(res/sqrs, 2) + " C=" + TextUtils.formatDouble(cap/sqrs, 2) + "fF len=" + TextUtils.formatDouble(sqrs, 2) + "\n");
         						tLineCount++;
@@ -571,7 +572,7 @@ public class SpiceParasitic extends SpiceParasiticsGeneral
                     		cap = 0;
                     		n0=segmentedNets.getNetName(FirstAi.getHeadPortInst());
         				}
-                	}	
+                	}
                    	if(sqrs > 3 && res > 0 && cap >0 ) {
                    		out.multiLinePrint(false, "XP" + tLineCount + " " + n0 + " " + n1 +" RCLINE R=" + TextUtils.formatDouble(res/sqrs, 2) + " C=" + TextUtils.formatDouble(cap/sqrs, 2) + "fF len=" + TextUtils.formatDouble(sqrs, 2) + "\n");
                    	    tLineCount++;
