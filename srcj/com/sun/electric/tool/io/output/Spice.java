@@ -1087,12 +1087,12 @@ public class Spice extends Topology
 			if (fun == PrimitiveNode.Function.TRANSREF)					// self-referential transistor
 			{
 				modelChar = "X";
-				biasCs = cni.getCellSignal(groundNet);
+				if (biasCs == null) biasCs = cni.getCellSignal(groundNet);
 				modelName = niProto.getName();
 			} else if (fun == PrimitiveNode.Function.TRANMOS)			// NMOS (Enhancement) transistor
 			{
 				modelChar = "M";
-				biasCs = cni.getCellSignal(groundNet);
+				if (biasCs == null) biasCs = cni.getCellSignal(groundNet);
                 defaultBulkName = "gnd";
 				if (modelName == null) modelName = "N";
                 if (st090laytrans) {
@@ -1116,7 +1116,7 @@ public class Spice extends Topology
 			} else if (fun == PrimitiveNode.Function.TRADMOS)			// DMOS (Depletion) transistor
 			{
 				modelChar = "M";
-				biasCs = cni.getCellSignal(groundNet);
+				if (biasCs == null) biasCs = cni.getCellSignal(groundNet);
 				if (modelName == null) modelName = "D";
 			} else if (fun == PrimitiveNode.Function.TRA4DMOS)			// DMOS (Depletion) 4-port transistor
 			{
@@ -1125,7 +1125,7 @@ public class Spice extends Topology
 			} else if (fun == PrimitiveNode.Function.TRAPMOS)			// PMOS (Complementary) transistor
 			{
 				modelChar = "M";
-				biasCs = cni.getCellSignal(powerNet);
+				if (biasCs == null) biasCs = cni.getCellSignal(powerNet);
                 defaultBulkName = "vdd";
 				if (modelName == null) modelName = "P";
                 if (st090laytrans) {
