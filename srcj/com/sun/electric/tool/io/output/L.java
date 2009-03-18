@@ -61,7 +61,7 @@ public class L extends Output
 	private static final int OTHERNODE  = 4;
 	private Set<Cell> cellsSeen;
 	/** the results of calling "transistorPorts". */	private PortInst gateLeft, gateRight, activeTop, activeBottom;
-	private LPreferences localPrefs;
+//	private LPreferences localPrefs;
 
 	public static class LPreferences extends OutputPreferences
     {
@@ -81,23 +81,7 @@ public class L extends Output
 	/**
 	 * Creates a new instance of the L netlister.
 	 */
-	L(LPreferences lp) { localPrefs = lp; }
-
-//	/**
-//	 * The main entry point for L deck writing.
-//     * @param cell the top-level cell to write.
-//	 * @param filePath the disk file to create.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeLFile(Cell cell, String filePath)
-//	{
-//		L out = new L();
-//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-//		out.writeLCells(cell);
-//		if (out.closeTextOutputStream()) return out.finishWrite();
-//		System.out.println(filePath + " written");
-//        return out.finishWrite();
-//    }
+	L(LPreferences lp) { /* localPrefs = lp; */ }
 
 	/**
 	 * Method to write all cells below a given Cell.

@@ -85,27 +85,6 @@ public class Sim extends Output
 	 */
 	Sim(SimPreferences sp) { localPrefs = sp; }
 
-//	/**
-//	 * The main entry point for Sim deck writing.
-//     * @param cell the top-level cell to write.
-//     * @param context the hierarchical context to the cell.
-//	 * @param filePath the disk file to create with Sim.
-//	 * @param type the type of deck being written.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeSimFile(Cell cell, VarContext context, String filePath, FileType type)
-//	{
-//		Sim out = new Sim();
-//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-//
-//		out.init(cell, filePath, type);
-//		HierarchyEnumerator.enumerateCell(cell, context, new Visitor(out, type), Netlist.ShortResistors.ALL);
-//
-//		if (out.closeTextOutputStream()) return out.finishWrite();
-//		System.out.println(filePath + " written");
-//        return out.finishWrite();
-//    }
-
 	private static class Visitor extends HierarchyEnumerator.Visitor
 	{
 		private Sim generator;

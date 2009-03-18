@@ -95,7 +95,6 @@ public class PostScript extends Output
 	/** current layer number (-1: do all; 0: cleanup). */				private int currentLayer;
 	/** the last color written out. */									private int lastColor;
 	/** the normal width of lines. */									private int lineWidth;
-	/** true to plot date information in the corner. */					private boolean plotDates;
 	/** matrix from database units to PS units. */						private AffineTransform matrix;
 	/** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstanceFree(null, "black",
 		new EGraphics(false, false, null, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
@@ -104,14 +103,43 @@ public class PostScript extends Output
 	public static class PostScriptPreferences extends OutputPreferences
     {
 		/** list of Polys to use instead of cell contents. */				private List<PolyBase> override;
+		/** true to plot date information in the corner. */					private boolean plotDates;
+		private boolean textVisibilityOnInstance, textVisibilityOnNode, textVisibilityOnExport,
+			textVisibilityOnPort, textVisibleOnArc, textVisibleOnCell;
+		private int exportDisplayLevel, portDisplayLevel;
+		private int printColorMethod;
+		private boolean printForPlotter;
+		private boolean printEncapsulate;
+		private double pageWidth, pageHeight, printMargin;
+		private double printPSLineWidth;
+		private int printRotation;
 
-		PostScriptPreferences(List<PolyBase> override) { this.override = override; }
+		PostScriptPreferences(List<PolyBase> override)
+		{
+			this.override = override;
+			textVisibilityOnInstance = User.isTextVisibilityOnInstance();
+			textVisibilityOnNode = User.isTextVisibilityOnNode();
+			textVisibilityOnExport = User.isTextVisibilityOnExport();
+			textVisibilityOnPort = User.isTextVisibilityOnPort();
+			textVisibleOnArc = User.isTextVisibilityOnArc();
+			textVisibleOnCell = User.isTextVisibilityOnCell();
+			exportDisplayLevel = User.getExportDisplayLevel();
+			portDisplayLevel = User.getPortDisplayLevel();
+			printColorMethod = IOTool.getPrintColorMethod();
+			printForPlotter = IOTool.isPrintForPlotter();
+			plotDates = IOTool.isPlotDate();
+			printEncapsulate = IOTool.isPrintEncapsulated();
+			pageWidth = IOTool.getPrintWidth();
+			pageHeight = IOTool.getPrintHeight();
+			printMargin = IOTool.getPrintMargin();
+			printRotation = IOTool.getPrintRotation();
+			printPSLineWidth = IOTool.getPrintPSLineWidth();
+		}
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
-    		PostScript out = new PostScript(this);
-    		out.cell = cell;
-    		writeCellToFile(out, cell, filePath);
+    		PostScript out = new PostScript(this, cell);
+    		out.writeCellToFile(filePath);
             return out.finishWrite();
         }
     }
@@ -119,49 +147,33 @@ public class PostScript extends Output
 	/**
 	 * PostScript constructor.
 	 */
-	private PostScript(PostScriptPreferences pp)
+	private PostScript(PostScriptPreferences pp, Cell cell)
 	{
 		localPrefs = pp;
+        this.cell = cell;
 	}
-
-//	/**
-//	 * Main entry point for PostScript output.
-//	 * @param cell the top-level cell to write.
-//	 * @param filePath the disk file to create.
-//	 * @param override a list of overriding polygons to write.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writePostScriptFile(Cell cell, String filePath, List<PolyBase> override)
-//	{
-//		// just do this file
-//		PostScript out = new PostScript(cell, override);
-//		writeCellToFile(out, cell, filePath);
-//        return out.finishWrite();
-//    }
 
 	/**
 	 * Internal method for PostScript output.
-     * @param out PostScript object to write
-	 * @param cell the top-level cell to write.
 	 * @param filePath the disk file to create.
 	 */
-	private static boolean writeCellToFile(PostScript out, Cell cell, String filePath)
+	private boolean writeCellToFile(String filePath)
 	{
 		boolean error = false;
-		if (out.openTextOutputStream(filePath)) error = true; else
+		if (openTextOutputStream(filePath)) error = true; else
 		{
 			// write out the cell
 			if (cell.getView().isTextView())
 			{
 				// text cell
-				out.printWriter.println("Library: " + cell.getLibrary().getName() + "   Cell: " + cell.noLibDescribe());
+				printWriter.println("Library: " + cell.getLibrary().getName() + "   Cell: " + cell.noLibDescribe());
 
-				if (User.isIncludeDateAndVersionInOutput())
+				if (localPrefs.includeDateAndVersionInOutput)
 				{
-					out.printWriter.println("   Created: " + TextUtils.formatDate(cell.getCreationDate()) +
+					printWriter.println("   Created: " + TextUtils.formatDate(cell.getCreationDate()) +
 						"   Revised: " + TextUtils.formatDate(cell.getRevisionDate()));
 				}
-				out.printWriter.println("\n\n");
+				printWriter.println("\n\n");
 
 				// print the text of the cell
 				Variable var = cell.getVar(Cell.CELL_TEXT_KEY);
@@ -169,19 +181,19 @@ public class PostScript extends Output
 				{
 					String [] strings = (String [])var.getObject();
 					for(int i=0; i<strings.length; i++)
-						out.printWriter.println(strings[i]);
+						printWriter.println(strings[i]);
 				}
 			} else
 			{
 				// layout/schematics cell
-				if (out.start())
+				if (start())
 				{
-					out.scanCircuit();
-					out.done();
+					scanCircuit();
+					done();
 				}
 			}
 
-			if (out.closeTextOutputStream()) error = true;
+			if (closeTextOutputStream()) error = true;
 		}
 		if (!error)
 		{
@@ -210,7 +222,7 @@ public class PostScript extends Output
 
 		// get control options
 		psUseColor = psUseColorMerge = false;
-		switch (IOTool.getPrintColorMethod())
+		switch (localPrefs.printColorMethod)
 		{
 			case 1:		// color
 				psUseColor = true;
@@ -222,13 +234,9 @@ public class PostScript extends Output
 				psUseColor = psUseColorMerge = true;
 				break;
 		}
-		boolean usePlotter = IOTool.isPrintForPlotter();
-		plotDates = IOTool.isPlotDate();
-		boolean epsFormat = IOTool.isPrintEncapsulated();
-
-		double pageWid = IOTool.getPrintWidth() * 75;
-		double pageHei = IOTool.getPrintHeight() * 75;
-		double pageMarginPS = IOTool.getPrintMargin() * 75;
+		double pageWid = localPrefs.pageWidth * 75;
+		double pageHei = localPrefs.pageHeight * 75;
+		double pageMarginPS = localPrefs.printMargin * 75;
 		double pageMargin = pageMarginPS;		// not right!!!
 
 		// determine the area of interest
@@ -266,20 +274,20 @@ public class PostScript extends Output
 		if (printBounds == null) return false;
 
 		boolean rotatePlot = false;
-		switch (IOTool.getPrintRotation())
+		switch (localPrefs.printRotation)
 		{
 			case 1:		// rotate 90 degrees
 				rotatePlot = true;
 				break;
 			case 2:		// auto-rotate
-				if (((pageHei > pageWid || usePlotter) && printBounds.getWidth() > printBounds.getHeight()) ||
+				if (((pageHei > pageWid || localPrefs.printForPlotter) && printBounds.getWidth() > printBounds.getHeight()) ||
 					(pageWid > pageHei && printBounds.getHeight() > printBounds.getWidth()))
 						rotatePlot = true;
 				break;
 		}
 
 		// if plotting, compute height from width
-		if (usePlotter)
+		if (localPrefs.printForPlotter)
 		{
 			if (rotatePlot)
 			{
@@ -293,7 +301,7 @@ public class PostScript extends Output
 		// for pure color plotting, use special merging code
 		if (psUseColorMerge && localPrefs.override == null)
 		{
-			PostScriptColor.psColorPlot(this, cell, epsFormat, usePlotter, pageWid, pageHei, pageMarginPS);
+			PostScriptColor.psColorPlot(this, cell, localPrefs.printEncapsulate, localPrefs.printForPlotter, pageWid, pageHei, pageMarginPS);
 			return false;
 		}
 
@@ -302,7 +310,7 @@ public class PostScript extends Output
 		double cY = printBounds.getCenterY();
 		double unitsX = (pageWid-pageMargin*2) * PSSCALE;
 		double unitsY = (pageHei-pageMargin*2) * PSSCALE;
-		if (epsFormat)
+		if (localPrefs.printEncapsulate)
 		{
 			double scale = IOTool.getPrintEPSScale(cell);
 			if (scale != 0)
@@ -312,7 +320,7 @@ public class PostScript extends Output
 			}
 		}
 		double i, j;
-		if (usePlotter)
+		if (localPrefs.printForPlotter)
 		{
 			i = unitsX / printBounds.getWidth();
 			j = unitsX / printBounds.getHeight();
@@ -326,7 +334,7 @@ public class PostScript extends Output
 		double matrix10 = 0;   double matrix11 = i;
 		double matrix20 = - i * cX + unitsX / 2 + pageMarginPS * PSSCALE;
 		double matrix21;
-		if (usePlotter)
+		if (localPrefs.printForPlotter)
 		{
 			matrix21 = - i * printBounds.getMinY() + pageMarginPS * PSSCALE;
 		} else
@@ -336,7 +344,7 @@ public class PostScript extends Output
 		matrix = new AffineTransform(matrix00, matrix01, matrix10, matrix11, matrix20, matrix21);
 
 		// write PostScript header
-		if (epsFormat) printWriter.println("%!PS-Adobe-2.0 EPSF-2.0"); else
+		if (localPrefs.printEncapsulate) printWriter.println("%!PS-Adobe-2.0 EPSF-2.0"); else
 			printWriter.println("%!PS-Adobe-1.0");
 		printWriter.println("%%Title: " + cell.describe(false));
 		if (localPrefs.includeDateAndVersionInOutput)
@@ -348,7 +356,7 @@ public class PostScript extends Output
 		{
 			printWriter.println("%%Creator: Electric VLSI Design System");
 		}
-		if (epsFormat) printWriter.println("%%Pages: 0"); else
+		if (localPrefs.printEncapsulate) printWriter.println("%%Pages: 0"); else
 			printWriter.println("%%Pages: 1");
 		emitCopyright("% ", "");
 
@@ -386,14 +394,12 @@ public class PostScript extends Output
 		bbhx = bbhx / (PSSCALE * 75.0) * 72.0 * (bbhx>=0 ? 1 : -1);
 		bbhy = bbhy / (PSSCALE * 75.0) * 72.0 * (bbhy>=0 ? 1 : -1);
 
-		/*
-		 * Increase the size of the bbox by one "pixel" to
-		 * prevent the edges from being obscured by some drawing tools
-		 */
+		// Increase the size of the bbox by one "pixel" to
+		// prevent the edges from being obscured by some drawing tools
 		printWriter.println("%%BoundingBox: " + (int)(bblx-1) + " " + (int)(bbly-1) + " " + (int)(bbhx+1) + " " + (int)(bbhy+1));
 		printWriter.println("%%DocumentFonts: " + DEFAULTFONT);
 		printWriter.println("%%EndComments");
-		if (!epsFormat) printWriter.println("%%Page: 1 1");
+		if (!localPrefs.printEncapsulate) printWriter.println("%%Page: 1 1");
 
 		// PostScript: add some debugging info
 		if (cell != null)
@@ -404,7 +410,7 @@ public class PostScript extends Output
 		}
 
 		// disclaimers
-		if (epsFormat)
+		if (localPrefs.printEncapsulate)
 		{
 			printWriter.println("% The EPS header should declare a private dictionary.");
 		} else
@@ -415,7 +421,7 @@ public class PostScript extends Output
 		printWriter.println("%");
 
 		// set the page size if this is a plotter
-		if (usePlotter)
+		if (localPrefs.printForPlotter)
 		{
 			printWriter.println("<< /PageSize [" + (int)(pageWid * 72 / 75) + " " + (int)(pageHei * 72 / 75) + "] >> setpagedevice");
 		}
@@ -430,7 +436,7 @@ public class PostScript extends Output
 		printWriter.println("    exch scalefont setfont} def");
 
 		// make the line width proper
-		lineWidth = (int)(PSSCALE/2 * IOTool.getPrintPSLineWidth());
+		lineWidth = (int)(PSSCALE/2 * localPrefs.printPSLineWidth);
 		printWriter.println(lineWidth + " setlinewidth");
 
 		// make the line ends look right
@@ -439,7 +445,7 @@ public class PostScript extends Output
 		// rotate the image if requested
 		if (rotatePlot)
 		{
-			if (usePlotter)
+			if (localPrefs.printForPlotter)
 			{
 				printWriter.println((pageWid/75) + " 300 mul " + ((pageHei-pageWid)/2/75) + " 300 mul translate 90 rotate");
 			} else
@@ -504,7 +510,7 @@ public class PostScript extends Output
 		pf.renderFrame();
 
 		// put out dates if requested
-		if (plotDates)
+		if (localPrefs.plotDates)
 		{
 			putPSHeader(HEADERSTRING);
 			printWriter.print("0 " + (2 * CORNERDATESIZE * PSSCALE) + " ");
@@ -701,7 +707,7 @@ public class PostScript extends Output
 						psPoly(poly);
 
 						// Only when the instance names flag is on
-						if (User.isTextVisibilityOnInstance())
+						if (localPrefs.textVisibilityOnInstance)
 						{
 							poly.setStyle(Poly.Type.TEXTBOX);
 							TextDescriptor td = TextDescriptor.getInstanceTextDescriptor().withAbsSize(24);
@@ -722,7 +728,7 @@ public class PostScript extends Output
 			}
 
 			// draw any displayable variables on the node
-			if (/* topLevel && */ real && User.isTextVisibilityOnNode())
+			if (/* topLevel && */ real && localPrefs.textVisibilityOnNode)
 			{
 				Poly [] textPolys = ni.getDisplayableVariables(wnd);
 				for (int i=0; i<textPolys.length; i++)
@@ -733,23 +739,22 @@ public class PostScript extends Output
 			}
 
 			// draw any exports from the node
-			if (topLevel && User.isTextVisibilityOnExport())
+			if (topLevel && localPrefs.textVisibilityOnExport)
 			{
-				int exportDisplayLevel = User.getExportDisplayLevel();
 				for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 				{
 					Export e = eIt.next();
 					if (real)
 					{
 						Poly poly = e.getNamePoly();
-						if (exportDisplayLevel == 2)
+						if (localPrefs.exportDisplayLevel == 2)
 						{
 							// draw port as a cross
 							drawCross(poly.getCenterX(), poly.getCenterY(), false);
 						} else
 						{
 							// draw port as text
-							if (exportDisplayLevel == 1)
+							if (localPrefs.exportDisplayLevel == 1)
 							{
 								// use shorter port name
 								String portName = e.getShortName();
@@ -794,7 +799,7 @@ public class PostScript extends Output
 				}
 
 				// draw any displayable variables on the arc
-				if (topLevel && User.isTextVisibilityOnArc())
+				if (topLevel && localPrefs.textVisibleOnArc)
 				{
 					Poly[] textPolys = ai.getDisplayableVariables(wnd);
 					for (int i=0; i<textPolys.length; i++)
@@ -811,7 +816,7 @@ public class PostScript extends Output
 		}
 
 		// show cell variables if at the top level
-		if (topLevel && real && User.isTextVisibilityOnCell())
+		if (topLevel && real && localPrefs.textVisibleOnCell)
 		{
 			// show displayable variables on the instance
 			Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
@@ -839,7 +844,6 @@ public class PostScript extends Output
 			PortInst pi = exp.getOriginalPort();
 			shownPorts[pi.getPortIndex()] = true;
 		}
-		int portDisplayLevel = User.getPortDisplayLevel();
 		for(int i = 0; i < numPorts; i++)
 		{
 			if (shownPorts[i]) continue;
@@ -851,14 +855,14 @@ public class PostScript extends Output
 			Color portColor = col;
 			if (portColor == null) portColor = pp.getBasePort().getPortColor();
 			setColor(portColor);
-			if (portDisplayLevel == 2)
+			if (localPrefs.portDisplayLevel == 2)
 			{
 				// draw port as a cross
 				drawCross(portPoly.getCenterX(), portPoly.getCenterY(), false);
 			} else
 			{
 				// draw port as text
-				if (User.isTextVisibilityOnPort())
+				if (localPrefs.textVisibilityOnPort)
 				{
 					// combine all features of port text with color of the port
 					TextDescriptor descript = portPoly.getTextDescriptor();
@@ -866,7 +870,7 @@ public class PostScript extends Output
 					Poly.Type type = descript.getPos().getPolyType();
 					portPoly.setStyle(type);
 					String portName = pp.getName();
-					if (portDisplayLevel == 1)
+					if (localPrefs.portDisplayLevel == 1)
 					{
 						// use shorter port name
 						portName = pp.getShortName();
@@ -945,9 +949,8 @@ public class PostScript extends Output
 					Date lastChangeDate = oCell.getRevisionDate();
 					if (lastSavedDate.after(lastChangeDate)) continue;
 				}
-                PostScript out = new PostScript(psp);
-                out.cell = oCell;
-                boolean err = writeCellToFile(out, oCell, syncFileName);
+                PostScript out = new PostScript(psp, oCell);
+                boolean err = out.writeCellToFile(syncFileName);
 				if (err) return true;
 
 				// mark the synchronized date

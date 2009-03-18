@@ -48,6 +48,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /** 
@@ -67,7 +68,7 @@ public class CIF extends Geometry
 
 	// cif output data
 	/** cell number */									private int cellNumber = 100;
-	/** cell to cell number map */						private HashMap<Cell,Integer> cellNumbers;
+	/** cell to cell number map */						private Map<Cell,Integer> cellNumbers;
 	/** scale factor from internal units. */			private double scaleFactor;
 
 	/** illegal characters in names (not really illegal but can cause problems) */
@@ -108,32 +109,6 @@ public class CIF extends Geometry
             return out.finishWrite();
         }
     }
-
-//	/**
-//	 * User Interface independent entry point for CIF output.
-//	 * @param cell the top-level cell to write.
-//	 * @param context the hierarchical context to the cell.
-//	 * @param filePath the disk file to create.
-//	 * @return the Output object used for writing
-//	 */
-//	public static Output writeCIFFile(Cell cell, VarContext context, String filePath)
-//	{
-//		CIF out = new CIF();
-//		if (!out.openTextOutputStream(filePath)) // no error
-//        {
-//            CIFVisitor visitor = out.makeCIFVisitor(getMaxHierDepth(cell));
-//            if (!out.writeCell(cell, context, visitor)) // no error
-//            {
-//                if (!out.closeTextOutputStream()) // no error
-//                {
-//                    System.out.println(filePath + " written");
-//                    if (out.errorLogger.getNumErrors() != 0)
-//                        System.out.println(out.errorLogger.getNumErrors() + " CIF RESOLUTION ERRORS FOUND");
-//                }
-//            }
-//        }
-//        return out.finishWrite();
-//	}
 
 	/**
 	 * Creates a new instance of CIF

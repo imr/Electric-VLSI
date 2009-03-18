@@ -70,24 +70,6 @@ public class ArchSim extends Output
 	 */
 	ArchSim(ArchSimPreferences ap) { localPrefs = ap; }
 
-//    /**
-//	 * The main entry point for ArchSim deck writing.
-//     * @param cell the top-level cell to write.
-//	 * @param fileP the disk file to create with ArchSim.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeArchSimFile(Cell cell, String fileP, ArchSimPreferences asp)
-//	{
-//		ArchSim out = new ArchSim(asp);
-//		if (!out.openTextOutputStream(fileP)) // no error
-//        {
-//            out.writeFlatCell(cell);
-//            if (!out.closeTextOutputStream()) // no error
-//                System.out.println(fileP + " written");
-//        }
-//        return out.finishWrite();
-//    }
-
 	private void writeFlatCell(Cell cell)
 	{
 		// write header information

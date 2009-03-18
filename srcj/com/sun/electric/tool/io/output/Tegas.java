@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -63,8 +64,8 @@ public class Tegas extends Topology
 	private static final int MAXLENGTH    = 80;
 	private static final int MAXNAMECHARS = 12;
 
-	private HashMap<Nodable,Integer> nodeNames;
-	private HashMap<ArcInst,Integer> implicitInverters;
+	private Map<Nodable,Integer> nodeNames;
+	private Map<ArcInst,Integer> implicitInverters;
 	private Netlist netList;
 	private TegasPreferences localPrefs;
 
@@ -92,23 +93,6 @@ public class Tegas extends Topology
 	 * Creates a new instance of the Tegas netlister.
 	 */
 	Tegas(TegasPreferences tp) { localPrefs = tp; }
-
-//	/**
-//	 * The main entry point for Tegas deck writing.
-//     * @param cell the top-level cell to write.
-//     * @param context the hierarchical context to the cell.
-//	 * @param filePath the disk file to create.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeTegasFile(Cell cell, VarContext context, String filePath)
-//	{
-//		Tegas out = new Tegas();
-//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-//		if (out.writeCell(cell, context)) return out.finishWrite();
-//		if (out.closeTextOutputStream()) return out.finishWrite();
-//		System.out.println(filePath + " written");
-//        return out.finishWrite();
-//    }
 
 	protected void start()
 	{

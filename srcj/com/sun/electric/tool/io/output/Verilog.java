@@ -201,7 +201,18 @@ public class Verilog extends Topology
 
 	public static class VerilogPreferences extends OutputPreferences
     {
-		public VerilogPreferences() {}
+		public boolean stopAtStandardCells;
+		public boolean useTrireg;
+		public boolean useAssign;
+		public boolean parameterizeModuleNames;
+
+		public VerilogPreferences()
+		{
+			stopAtStandardCells = Simulation.getVerilogStopAtStandardCells();
+			useTrireg = Simulation.getVerilogUseTrireg();
+			useAssign = Simulation.getVerilogUseAssign();
+			parameterizeModuleNames = Simulation.getVerilogParameterizeModuleNames();
+		}
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
@@ -226,24 +237,6 @@ public class Verilog extends Topology
     	return v.getSafeNetName(name, isBus);
     }
 
-//	/**
-//	 * The main entry point for Verilog deck writing.
-//	 * @param cell the top-level cell to write.
-//	 * @param context the hierarchical context to the cell.
-//	 * @param filePath the disk file to create.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeVerilogFile(Cell cell, VarContext context, String filePath)
-//	{
-//		Verilog out = new Verilog();
-//        if (out.openTextOutputStream(filePath)) return out.finishWrite();
-//        out.filePath = filePath;
-//		if (out.writeCell(cell, context)) return out.finishWrite();
-//		if (out.closeTextOutputStream()) return out.finishWrite();
-//		System.out.println(filePath + " written");
-//        return out.finishWrite();
-//    }
-
 	protected void start()
 	{
 		// parameters to the output-line-length limit and how to break long lines
@@ -264,7 +257,7 @@ public class Verilog extends Topology
 			printWriter.println("/* Written by Electric VLSI Design System */");
 		}
 
-		if (Simulation.getVerilogStopAtStandardCells()) {
+		if (localPrefs.stopAtStandardCells) {
 			// enumerate to find which cells contain standard cells
 			HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, standardCells);
 			for (Cell acell : standardCells.getDoesNotContainStandardCellsInHier()) {
@@ -286,7 +279,7 @@ public class Verilog extends Topology
 
         // do not netlist contents of standard cells
         // also, if writing a standard cell netlist, ignore all verilog views, verilog templates, etc.
-        if (Simulation.getVerilogStopAtStandardCells()) {
+        if (localPrefs.stopAtStandardCells) {
             if (!standardCells.containsStandardCell(cell)) {
                 return true;
             } else {
@@ -385,7 +378,7 @@ public class Verilog extends Topology
 				for(int i=0; i<globalsToWrite.size(); i++)
 				{
 					Global global = globalsToWrite.get(i);
-					if (Simulation.getVerilogUseTrireg())
+					if (localPrefs.useTrireg)
 					{
 						printWriter.println("    trireg " + global.getName() + ";");
 					} else
@@ -412,7 +405,7 @@ public class Verilog extends Topology
 				if (ni.getProto() == Schematics.tech().bufferNode || ni.getProto() == Schematics.tech().andNode ||
 					ni.getProto() == Schematics.tech().orNode || ni.getProto() == Schematics.tech().xorNode)
 				{
-					if (Simulation.getVerilogUseAssign()) continue;
+					if (localPrefs.useAssign) continue;
 					if (pi.getPortProto().getName().equals("y")) continue;
 				}
 
@@ -544,7 +537,7 @@ public class Verilog extends Topology
 		if (!first) printWriter.println();
 
 		// if writing standard cell netlist, do not netlist contents of standard cells
-		if (Simulation.getVerilogStopAtStandardCells())
+		if (localPrefs.stopAtStandardCells)
 		{
 			if (SCLibraryGen.isStandardCell(cell)) {
 				printWriter.println("endmodule   /* " + cni.getParameterizedName() + " */");
@@ -558,7 +551,7 @@ public class Verilog extends Topology
 
 		// determine whether to use "wire" or "trireg" for networks
 		String wireType = "wire";
-		if (Simulation.getVerilogUseTrireg()) wireType = "trireg";
+		if (localPrefs.useTrireg) wireType = "trireg";
 
 		// write "wire/trireg" declarations for internal single-wide signals
 		int localWires = 0;
@@ -638,7 +631,7 @@ public class Verilog extends Topology
 		}
 
 		// add in any user-specified declarations and code
-        if (!Simulation.getVerilogStopAtStandardCells()) {
+        if (!localPrefs.stopAtStandardCells) {
             // STA does not like general verilog code (like and #delay out ina inb etc)
             first = includeTypedCode(cell, VERILOG_DECLARATION_KEY, "declarations");
 		    first |= includeTypedCode(cell, VERILOG_CODE_KEY, "code");
@@ -689,7 +682,7 @@ public class Verilog extends Topology
 			{
 				// if writing standard cell netlist, do not write out cells that
 				// do not contain standard cells
-				if (Simulation.getVerilogStopAtStandardCells())
+				if (localPrefs.stopAtStandardCells)
 				{
 					if (!standardCells.containsStandardCell((Cell)niProto) &&
 						!SCLibraryGen.isStandardCell((Cell)niProto)) continue;
@@ -767,7 +760,7 @@ public class Verilog extends Topology
             }
 
 			// use "assign" statement if requested
-			if (Simulation.getVerilogUseAssign())
+			if (localPrefs.useAssign)
 			{
 				if (nodeType == PrimitiveNode.Function.GATEAND || nodeType == PrimitiveNode.Function.GATEOR ||
 					nodeType == PrimitiveNode.Function.GATEXOR || nodeType == PrimitiveNode.Function.BUFFER)
@@ -1729,11 +1722,11 @@ public class Verilog extends Topology
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
 	 */
 	protected boolean canParameterizeNames() {
-		if (Simulation.getVerilogStopAtStandardCells())
+		if (localPrefs.stopAtStandardCells)
 			return false;
 
 		// Check user preference
-		if (Simulation.getVerilogParameterizeModuleNames()) return true;
+		if (localPrefs.parameterizeModuleNames) return true;
 		return false;
 	}
 

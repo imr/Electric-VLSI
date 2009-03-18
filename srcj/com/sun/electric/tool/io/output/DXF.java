@@ -88,24 +88,6 @@ public class DXF extends Output
 	 */
 	DXF(DXFPreferences dp) { localPrefs = dp; }
 
-//	/**
-//	 * The main entry point for DXF deck writing.
-//	 * @param cell the top-level cell to write.
-//	 * @param filePath the disk file to create.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeDXFFile(Cell cell, String filePath)
-//	{
-//		DXF out = new DXF();
-//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-//
-//		out.writeDXF(cell);
-//
-//		if (out.closeTextOutputStream()) return out.finishWrite();
-//		System.out.println(filePath + " written");
-//        return out.finishWrite();
-//    }
-
 	private void writeDXF(Cell cell)
 	{
 		// set the scale

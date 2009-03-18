@@ -98,28 +98,6 @@ public class LEF extends Output
 	 */
 	LEF(LEFPreferences lp) { localPrefs = lp; }
 
-//	/**
-//	 * The main entry point for LEF deck writing.
-//	 * @param cell the top-level cell to write.
-//	 * @param context the hierarchical context to the cell.
-//	 * @param filePath the disk file to create.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeLEFFile(Cell cell, VarContext context, String filePath)
-//	{
-//		LEF out = new LEF();
-//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-//
-//		Netlist netlist = cell.getNetlist(Netlist.ShortResistors.ALL);
-//		out.init(netlist);
-//		HierarchyEnumerator.enumerateCell(netlist, context, new Visitor(out));
-//		out.term(cell);
-//
-//		if (out.closeTextOutputStream()) return out.finishWrite();;
-//		System.out.println(filePath + " written");
-//        return out.finishWrite();
-//    }
-
 	private static class Visitor extends HierarchyEnumerator.Visitor
 	{
 		private LEF generator;

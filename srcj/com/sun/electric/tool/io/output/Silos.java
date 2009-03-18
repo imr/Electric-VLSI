@@ -84,23 +84,6 @@ public class Silos extends Topology
 	 */
 	Silos(SilosPreferences sp) { localPrefs = sp; }
 
-//	/**
-//	 * The main entry point for Silos deck writing.
-//     * @param cell the top-level cell to write.
-//     * @param context the hierarchical context to the cell.
-//	 * @param filePath the disk file to create.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeSilosFile(Cell cell, VarContext context, String filePath)
-//	{
-//		Silos out = new Silos();
-//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-//		if (out.writeCell(cell, context)) return out.finishWrite();
-//		if (out.closeTextOutputStream()) return out.finishWrite();
-//		System.out.println(filePath + " written");
-//        return out.finishWrite();
-//    }
-
 	protected void start()
 	{
 		// parameters to the output-line-length limit and how to break long lines
@@ -218,10 +201,7 @@ public class Silos extends Topology
 			}
 		}
 
-		/*
-		 * There was no behavior file...
-		 * Get the SILOS model from the library if it exists
-		 */
+		// There was no behavior file, get the SILOS model from the library if it exists
 		for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
 		{
 			Cell oCell = it.next();
@@ -686,19 +666,6 @@ public class Silos extends Topology
 		// nothing connected to this port...leave a position
 		return " .SKIP";
 	}
-
-//	/**
-//	 * Method to check if a port of an instance is connected to one of
-//	 * the ports of the containing instance. If so, get rid of the '[]' format;
-//	 * replace '[' with '__', ignore ']'.
-//	 */
-//	private String adjustPortName(Cell np, String portName)
-//	{
-//		if (portName.indexOf('[') < 0) return portName;
-//		PortProto pp = np.findPortProto(portName);
-//		if (pp != null) return convertSubscripts(portName);
-//		return portName;
-//	}
 
 	/**
 	 * Method returns a string containing the rise time, as stored in

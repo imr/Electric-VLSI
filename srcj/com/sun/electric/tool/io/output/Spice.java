@@ -360,119 +360,6 @@ public class Spice extends Topology
 	 */
 	Spice(SpicePreferences sp) { localPrefs = sp; }
 
-//	/**
-//	 * The main entry point for Spice deck writing.
-//     * @param cell the top-level cell to write.
-//     * @param context the hierarchical context to the cell.
-//	 * @param fileP the disk file to create.
-//	 * @param cdl true if this is CDL output (false for Spice).
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeSpiceFile(Cell cell, VarContext context, String fileP, boolean cdl)
-//	{
-//		Spice out = new Spice();
-//		out.useCDL = cdl;
-//		if (out.openTextOutputStream(fileP)) return out.finishWrite();
-//		if (out.writeCell(cell, context)) return out.finishWrite();
-//		if (out.closeTextOutputStream()) return out.finishWrite();
-//		System.out.println(fileP + " written");
-//
-//		// write CDL support file if requested
-//		if (out.useCDL)
-//		{
-//			// write the control files
-//			String deckFile = fileP;
-//			String deckPath = "";
-//			int lastDirSep = deckFile.lastIndexOf(File.separatorChar);
-//			if (lastDirSep > 0)
-//			{
-//				deckPath = deckFile.substring(0, lastDirSep);
-//				deckFile = deckFile.substring(lastDirSep+1);
-//			}
-//
-//			String templateFile = deckPath + File.separator + cell.getName() + ".cdltemplate";
-//			if (out.openTextOutputStream(templateFile)) return out.finishWrite();
-//
-//			String libName = Simulation.getCDLLibName();
-//			String libPath = Simulation.getCDLLibPath();
-//			out.printWriter.print("cdlInKeys = list(nil\n");
-//			out.printWriter.print("    'searchPath             \"" + deckFile + "");
-//			if (libPath.length() > 0)
-//				out.printWriter.print("\n                             " + libPath);
-//			out.printWriter.print("\"\n");
-//			out.printWriter.print("    'cdlFile                \"" + deckPath + File.separator + deckFile + "\"\n");
-//			out.printWriter.print("    'userSkillFile          \"\"\n");
-//			out.printWriter.print("    'opusLib                \"" + libName + "\"\n");
-//			out.printWriter.print("    'primaryCell            \"" + cell.getName() + "\"\n");
-//			out.printWriter.print("    'caseSensitivity        \"lower\"\n");
-//			out.printWriter.print("    'hierarchy              \"flatten\"\n");
-//			out.printWriter.print("    'cellTable              \"\"\n");
-//			out.printWriter.print("    'viewName               \"netlist\"\n");
-//			out.printWriter.print("    'viewType               \"\"\n");
-//			out.printWriter.print("    'pr                     nil\n");
-//			out.printWriter.print("    'skipDevice             nil\n");
-//			out.printWriter.print("    'schemaLib              \"sample\"\n");
-//			out.printWriter.print("    'refLib                 \"\"\n");
-//			out.printWriter.print("    'globalNodeExpand       \"full\"\n");
-//			out.printWriter.print(")\n");
-//			if (out.closeTextOutputStream()) return out.finishWrite();
-//			System.out.println(templateFile + " written");
-//		}
-//
-//        String runSpice = Simulation.getSpiceRunChoice();
-//        if (!runSpice.equals(Simulation.spiceRunChoiceDontRun)) {
-//            String command = Simulation.getSpiceRunProgram() + " " + Simulation.getSpiceRunProgramArgs();
-//
-//            // see if user specified custom dir to run process in
-//            String workdir = User.getWorkingDirectory();
-//            String rundir = workdir;
-//            if (Simulation.getSpiceUseRunDir()) {
-//                rundir = Simulation.getSpiceRunDir();
-//            }
-//            File dir = new File(rundir);
-//
-//            int start = fileP.lastIndexOf(File.separator);
-//            if (start == -1) start = 0; else {
-//                start++;
-//                if (start > fileP.length()) start = fileP.length();
-//            }
-//            int end = fileP.lastIndexOf(".");
-//            if (end == -1) end = fileP.length();
-//            String filename_noext = fileP.substring(start, end);
-//            String filename = fileP.substring(start, fileP.length());
-//
-//            // replace vars in command and args
-//            command = command.replaceAll("\\$\\{WORKING_DIR}", workdir);
-//            command = command.replaceAll("\\$\\{USE_DIR}", rundir);
-//            command = command.replaceAll("\\$\\{FILENAME}", filename);
-//            command = command.replaceAll("\\$\\{FILENAME_NO_EXT}", filename_noext);
-//
-//            // set up run probe
-//            FileType type = Simulate.getCurrentSpiceOutputType();
-//            String [] extensions = type.getExtensions();
-//            String outFile = rundir + File.separator + filename_noext + "." + extensions[0];
-//            Exec.FinishedListener l = new SpiceFinishedListener(cell, type, outFile);
-//
-//            if (runSpice.equals(Simulation.spiceRunChoiceRunIgnoreOutput)) {
-//                Exec e = new Exec(command, null, dir, null, null);
-//                if (Simulation.getSpiceRunProbe()) e.addFinishedListener(l);
-//                e.start();
-//            }
-//            if (runSpice.equals(Simulation.spiceRunChoiceRunReportOutput)) {
-//                ExecDialog dialog = new ExecDialog(TopLevel.getCurrentJFrame(), false);
-//                if (Simulation.getSpiceRunProbe()) dialog.addFinishedListener(l);
-//                dialog.startProcess(command, null, dir);
-//            }
-//            System.out.println("Running spice command: "+command);
-//        }
-//
-//        if (Simulation.isParasiticsBackAnnotateLayout() && out.parasiticInfo != null)
-//        {
-//            out.parasiticInfo.backAnnotate();
-//        }
-//        return out.finishWrite();
-//    }
-
 	/**
 	 * Method called once by the traversal mechanism.
 	 * Initializes Spice netlisting and writes headers.
@@ -816,7 +703,6 @@ public class Spice extends Topology
 		{
 			Nodable no = nIt.next();
 			NodeProto niProto = no.getProto();
-//            boolean includePwrVdd = Simulation.isSpiceWritePwrGndInTopCell();
 
             // handle sub-cell calls
 			if (no.isCellInstance())
@@ -875,7 +761,7 @@ public class Spice extends Topology
 
 	                // If global pwr/vdd will be included in the subcircuit
                     // Preparing code for bug #1828
-//					if (!Simulation.isSpiceWritePwrGndInTopCell() && pp!= null && subCS.isGlobal() && (subCS.isGround() || subCS.isPower()))
+//					if (!localPrefs.writePwrGndInTopCell && pp!= null && subCS.isGlobal() && (subCS.isGround() || subCS.isPower()))
 //						continue;
 
                     Network net;
@@ -2514,8 +2400,8 @@ public class Spice extends Topology
     /** Tell the Hierarchy enumerator how to short resistors */
     @Override
     protected Netlist.ShortResistors getShortResistors() {
-    	// TODO use the value of Simulation.getSpiceShortResistors()
-//    	switch (Simulation.getSpiceShortResistors())
+    	// TODO use the value of localPrefs.shortResistors
+//    	switch (localPrefs.shortResistors)
 //    	{
 //    		case 0: return Netlist.ShortResistors.NO;
 //    		case 1: return Netlist.ShortResistors.PARASITIC;

@@ -98,6 +98,7 @@ import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.fill.StitchFillJob;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.GenerateVHDL;
@@ -1984,7 +1985,8 @@ public class ToolMenu {
         Cell cell = wnd.getCell();
         if (cell == null) return;
         HashMap<Cell,String> mangledNames = new HashMap<Cell,String>();
-        com.sun.electric.tool.io.output.GDS.buildUniqueNames(cell, mangledNames);
+        com.sun.electric.tool.io.output.GDS.buildUniqueNames(cell, mangledNames,
+        	IOTool.getGDSCellNameLenMax(), IOTool.isGDSOutUpperCase());
         AssuraDrcErrors.importErrors(fileName, mangledNames, "DRC");
     }
 
@@ -1999,7 +2001,8 @@ public class ToolMenu {
         if (wnd == null) return;
         Cell cell = wnd.getCell();
         HashMap<Cell,String> mangledNames = new HashMap<Cell,String>();
-        com.sun.electric.tool.io.output.GDS.buildUniqueNames(cell, mangledNames);
+        com.sun.electric.tool.io.output.GDS.buildUniqueNames(cell, mangledNames,
+        	IOTool.getGDSCellNameLenMax(), IOTool.isGDSOutUpperCase());
         CalibreDrcErrors.importErrors(fileName, mangledNames, "DRC", false);
     }
 

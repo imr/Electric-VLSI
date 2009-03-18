@@ -48,14 +48,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class to generate Maxwell netlists.
  */
 public class Maxwell extends Output
 {	
-	HashMap<Integer,List<Integer>> maxNetMap;
-	HashMap<Integer,String> boxNames;
+	Map<Integer,List<Integer>> maxNetMap;
+	Map<Integer,String> boxNames;
 	int boxNumber;
 	private MaxwellPreferences localPrefs;
 
@@ -84,30 +85,6 @@ public class Maxwell extends Output
 	 * Creates a new instance of Maxwell
 	 */
 	Maxwell(MaxwellPreferences mp) { localPrefs = mp; }
-
-//	/**
-//	 * Main entry point for Maxwell output.
-//     * @param cell the top-level cell to write.
-//     * @param context the hierarchical context to the cell.
-//	 * @param filePath the disk file to create.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeMaxwellFile(Cell cell, VarContext context, String filePath)
-//	{
-//		Maxwell out = new Maxwell();
-//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-//		out.initialize(cell);
-//
-//		// enumerate the hierarchy below here
-//		Visitor wcVisitor = new Visitor(out);
-//		HierarchyEnumerator.enumerateCell(cell, context, wcVisitor);
-////		HierarchyEnumerator.enumerateCell(cell, context, null, wcVisitor);
-//
-//		out.terminate();
-//		if (out.closeTextOutputStream()) return out.finishWrite();
-//		System.out.println(filePath + " written");
-//        return out.finishWrite();
-//    }
 
 	private void initialize(Cell cell)
 	{
@@ -154,7 +131,6 @@ public class Maxwell extends Output
         if (poly.isPseudoLayer()) return;
 		Layer layer = poly.getLayer();
 		if (layer.getTechnology() != Technology.getCurrent()) return;
-//		if (layer.isPseudoLayer()) return;
 		Rectangle2D box = poly.getBox();
 		if (box == null) return;
 		Color color = layer.getGraphics().getColor();

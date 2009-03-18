@@ -119,33 +119,6 @@ public class HPGL extends Output
 	/** Creates a new instance of HPGL */
 	private HPGL(HPGLPreferences hp) { localPrefs = hp; }
 
-//	/**
-//	 * Main entry point for HPGL output.
-//     * @param cell the top-level cell to write.
-//     * @param context the hierarchical context to the cell.
-//	 * @param filePath the disk file to create.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeHPGLFile(Cell cell, VarContext context, String filePath)
-//	{
-//		HPGL out = new HPGL();
-//		out.cell = cell;
-//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-//		HPGLVisitor visitor = out.makeHPGLVisitor();
-//
-//		// gather all geometry
-//		out.start();
-//		HierarchyEnumerator.enumerateCell(cell, context, visitor);
-////		HierarchyEnumerator.enumerateCell(cell, context, null, visitor);
-//
-//		// write the geometry
-//		out.done();
-//
-//		if (out.closeTextOutputStream()) return out.finishWrite();
-//		System.out.println(filePath + " written");
-//        return out.finishWrite();
-//    }
-
 	protected void start()
 	{
 		cellGeoms = new HashMap<Layer,List<PolyBase>>();
@@ -713,7 +686,6 @@ public class HPGL extends Output
 
 	private void writeLine(String line)
 	{
-//		printWriter.println(line);
 		printWriter.print(line + "\r\n");
 	}
 }

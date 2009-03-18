@@ -57,7 +57,7 @@ public class MOSSIM extends Topology
 {
 	/** key of Variable holding node or arc strength. */	public static final Variable.Key MOSSIM_STRENGTH_KEY = Variable.newKey("SIM_mossim_strength");
 
-	private MOSSIMPreferences localPrefs;
+//	private MOSSIMPreferences localPrefs;
 
 	public static class MOSSIMPreferences extends OutputPreferences
     {
@@ -77,32 +77,11 @@ public class MOSSIM extends Topology
 	/**
 	 * Creates a new instance of the MOSSIM netlister.
 	 */
-	MOSSIM(MOSSIMPreferences mp) { localPrefs = mp; }
+	MOSSIM(MOSSIMPreferences mp) { /* localPrefs = mp; */ }
 
-//	/**
-//	 * The main entry point for MOSSIM deck writing.
-//     * @param cell the top-level cell to write.
-//     * @param context the hierarchical context to the cell.
-//	 * @param filePath the disk file to create.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeMOSSIMFile(Cell cell, VarContext context, String filePath)
-//	{
-//		MOSSIM out = new MOSSIM();
-//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-//		if (out.writeCell(cell, context)) return out.finishWrite();
-//		if (out.closeTextOutputStream()) return out.finishWrite();
-//		System.out.println(filePath + " written");
-//        return out.finishWrite();
-//    }
+	protected void start() {}
 
-	protected void start()
-	{
-	}
-
-	protected void done()
-	{
-	}
+	protected void done() {}
 
 	/**
 	 * Method to write cellGeom

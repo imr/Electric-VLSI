@@ -173,23 +173,6 @@ public class FastHenry extends Output
 	 */
 	FastHenry(FastHenryPreferences fp) { localPrefs = fp; }
 
-//	/**
-//	 * The main entry point for FastHenry deck writing.
-//     * @param cell the top-level cell to write.
-//     * @param context the hierarchical context to the cell.
-//	 * @param filePath the disk file to create.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeFastHenryFile(Cell cell, VarContext context, String filePath)
-//	{
-//		FastHenry out = new FastHenry();
-//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-//		out.writeFH(cell, context);
-//		if (out.closeTextOutputStream()) return out.finishWrite();
-//		System.out.println(filePath + " written");
-//        return out.finishWrite();
-//    }
-
 	protected void writeFH(Cell cell, VarContext context)
 	{
 		printWriter.println("* FastHenry for " + cell);
@@ -234,15 +217,6 @@ public class FastHenry extends Output
 		// clean up
 		printWriter.println("");
 		printWriter.println(".end");
-	
-//		// generate invocation for fasthenry
-//		if ((options&FHMAKEMULTIPOLECKT) != 0)
-//		{
-//			fh_process.addArgument( x_("-r") );
-//			esnprintf(txtpoles, 20, x_("%ld"), numpoles);
-//			fh_process.addArgument( txtpoles );
-//			fh_process.addArgument( x_("-M") );
-//		}
 	}
 	
 	/**

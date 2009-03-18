@@ -228,23 +228,6 @@ public class EDIF extends Topology
         equivs = new EDIFEquiv();
 	}
 
-//	/**
-//	 * The main entry point for EDIF deck writing.
-//     * @param cell the top-level cell to write.
-//     * @param context the hierarchical context to the cell.
-//	 * @param filePath the disk file to create.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeEDIFFile(Cell cell, VarContext context, String filePath)
-//	{
-//		EDIF out = new EDIF();
-//		if (out.openTextOutputStream(filePath)) return out.finishWrite();
-//		if (out.writeCell(cell, context)) return out.finishWrite();
-//		if (out.closeTextOutputStream()) return out.finishWrite();
-//		System.out.println(filePath + " written");
-//        return out.finishWrite();
-//    }
-
 	protected void start()
 	{
 		// If this is a layout representation, then create the footprint
@@ -255,14 +238,6 @@ public class EDIF extends Topology
 
 			// calculate the actual routing grid in microns
 			double route = rgrid / 100;
-
-//			String iname = name + ".foot";
-//			io_fileout = xcreate(iname, io_filetypeedif, "EDIF File", &truename);
-//			if (io_fileout == NULL)
-//			{
-//				if (truename != 0) ttyputerr(_("Cannot write %s"), iname);
-//				return(TRUE);
-//			}
 
 			// write the header
 			System.out.println("Writing footprint for cell " + makeToken(topCell.getName()));
@@ -309,7 +284,7 @@ public class EDIF extends Topology
         writeAllPrims(topCell, primsFound);
         blockClose("library");
 
-		// TODO (DONE) initialize rippers library
+		// initialize rippers library
 		if (ADD_RIPPERS)
 		{
 			// figure out how many bus rippers are needed
@@ -450,8 +425,8 @@ public class EDIF extends Topology
         l.add(new CellToWrite(cell, cni, context));
     }
 
-    protected void done() {
-
+    protected void done()
+    {
         // Note: if there are cross dependencies between libraries, there is no
         // way to write out valid EDIF without changing the cell organization of the libraries
         for (Library lib : libsToWriteOrder) {
@@ -591,7 +566,7 @@ public class EDIF extends Topology
             blockPutIdentifier("SH1");
         }
 
-		// TODO (DONE) add ripper instances
+		// add ripper instances
 		if (ADD_RIPPERS)
 		{
 			int splitterIndex = 1;
@@ -854,7 +829,7 @@ public class EDIF extends Topology
 				Nodable no = nIt.next();
 				NodeProto niProto = no.getProto();
 
-				// TODO (DONE) mention connectivity to a bus ripper
+				// mention connectivity to a bus ripper
 				if (no instanceof NodeInst)
 				{
 					BusRipper br = BusRipper.findBusRipper((NodeInst)no, net);
@@ -991,7 +966,7 @@ public class EDIF extends Topology
 		// write busses
 		if (ADD_RIPPERS)
 		{
-			// TODO (DONE) the new way
+			// the new way
 			HashSet<ArcInst> bussesSeen = new HashSet<ArcInst>();
 			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
@@ -1126,14 +1101,6 @@ public class EDIF extends Topology
 			}
 		}
 
-//        // write text
-//        Poly [] text = cell.getAllText(true, null);
-//        if (text != null) {
-//            for (int i=0; i<text.length; i++) {
-//                Poly p = text[i];
-//            }
-//        }
-
         if (localPrefs.edifUseSchematicView) {
             blockClose("page");
         }
@@ -1225,7 +1192,8 @@ public class EDIF extends Topology
 	}
 
     // ports is a list of EDIFEquiv.Port objects
-    private void writeExternalDef(String extCell, String extView, String viewType, List<EDIFEquiv.Port> ports) {
+    private void writeExternalDef(String extCell, String extView, String viewType, List<EDIFEquiv.Port> ports)
+    {
         blockOpen("cell");
         blockPutIdentifier(extCell);
         blockPut("cellType", "generic");
@@ -1269,7 +1237,6 @@ public class EDIF extends Topology
 			{
                 if (equivs.getNodeEquivalence(ni) != null) continue;        // will be defined by external reference
                 PrimitiveNode pn = (PrimitiveNode)np;
-//                PrimitiveNode.Function fun = pn.getTechnology().getPrimitiveFunction(pn, ni.getTechSpecific());
 				PrimitiveNode.Function fun = ni.getFunction();
 				int i = 1;
 				if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR)
@@ -1355,7 +1322,6 @@ public class EDIF extends Topology
         if (ni.isCellInstance()) return null;
         PrimitiveNode pn = (PrimitiveNode)ni.getProto();
         PrimitiveNode.Function func = ni.getFunction();
-//        PrimitiveNode.Function func = pn.getTechnology().getPrimitiveFunction(pn, ni.getTechSpecific());
         String key = pn.getTechnology().getTechShortName() + "_" + pn.getName() + "_" + func.getConstantName() + "_" +i;
         return key;
     }
@@ -1472,22 +1438,6 @@ public class EDIF extends Topology
 	{
 		return (int)(val*scale);
 	}
-
-//	/**
-//	 * Establish whether port 'e' is a global port or not
-//	 */
-//	private boolean isGlobalExport(Export e)
-//	{
-//		// pp is a global port if it is marked global
-//		if (e.isBodyOnly()) return true;
-//
-//		// or if it does not exist on the icon
-//		Cell parent = e.getParent();
-//		Cell inp = parent.iconView();
-//		if (inp == null) return false;
-//		if (e.getEquivalent() == null) return true;
-//		return false;
-//	}
 
 	/**
 	 * Method to properly identify an instance of a primitive node
@@ -2071,10 +2021,9 @@ public class EDIF extends Topology
         return scaleValue(height);
     }
 
-
-
     private static final Pattern atPat = Pattern.compile("@(\\w+)");
     private static final Pattern pPat = Pattern.compile("(P|PAR)\\(\"(\\w+)\"\\)");
+
     /**
      * Convert a property in Electric, with parameter passing, to
      * Cadence parameter passing syntax

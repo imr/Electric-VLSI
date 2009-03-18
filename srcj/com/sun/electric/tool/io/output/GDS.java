@@ -177,7 +177,7 @@ public class GDS extends Geometry
 
     		// warn if library name was changed
     		String topCellName = cell.getName();
-    		String mangledTopCellName = makeGDSName(topCellName, HDR_M_ASCII);
+    		String mangledTopCellName = makeGDSName(topCellName, HDR_M_ASCII, outUpperCase);
     		if (!topCellName.equals(mangledTopCellName))
     			out.reportWarning("Warning: library name in this file is " + mangledTopCellName +
     				" (special characters were changed)");
@@ -189,49 +189,6 @@ public class GDS extends Geometry
     {
     	localPrefs = gp;
     }
-
-//    /**
-//	 * Main entry point for GDS output.
-//     * @param cell the top-level cell to write.
-//     * @param context the hierarchical context to the cell.
-//	 * @param filePath the disk file to create.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeGDSFile(Cell cell, VarContext context, String filePath)
-//	{
-//	}
-
-//	/**
-//	 * Main entry point for GDS output.
-//     * @param cell the top-level cell to write.
-//     * @param context the hierarchical context to the cell.
-//	 * @param filePath the disk file to create.
-//     * @param writeExportPins write pins at Export locations.
-//     * @param convertBracketsInExports converts bracket to underscores in export names.
-//	 */
-//	public static Output writeGDSFile(Cell cell, VarContext context, String filePath,
-//            boolean writeExportPins, boolean convertBracketsInExports)
-//	{
-//		if (cell.getView() != View.LAYOUT)
-//		{
-//			System.out.println("Can only write GDS for layout cells");
-//			return null;
-//		}
-//		GDS out = new GDS(writeExportPins, convertBracketsInExports);
-//		if (out.openBinaryOutputStream(filePath)) return null;
-//		BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cell));
-//		if (out.writeCell(cell, context, visitor)) return null;
-//		if (out.closeBinaryOutputStream()) return null;
-//		System.out.println(filePath + " written");
-//
-//		// warn if library name was changed
-//		String topCellName = cell.getName();
-//		String mangledTopCellName = makeGDSName(topCellName, HDR_M_ASCII);
-//		if (!topCellName.equals(mangledTopCellName))
-//			out.reportWarning("Warning: library name in this file is " + mangledTopCellName +
-//				" (special characters were changed)");
-//        return out.finishWrite();
-//	}
 
 	protected void start()
 	{
@@ -328,9 +285,6 @@ public class GDS extends Geometry
 				if (localPrefs.writeExportPins)
                 {
 					writeExportOnLayer(pp, pinLayer, pinType, renamePins, colapseGndVddNames);
-
-                    // write the text
-                    //writeExportOnLayer(pp, textLayer, textType);
                 }
 			}
 		}
@@ -639,7 +593,7 @@ public class GDS extends Geometry
 
 		// make a hashmap of all names to use for cells
 		cellNames = new HashMap<Cell,String>();
-        buildUniqueNames(topCell, cellNames);
+        buildUniqueNames(topCell, cellNames, localPrefs.cellNameLenMax, localPrefs.outUpperCase);
 	}
 
     /**
@@ -648,9 +602,10 @@ public class GDS extends Geometry
      * @param cell the cell whose nodes and subnode cells will be given unique names.
      * @param cellNames a hashmap, key: cell, value: unique name (String).
      */
-    public static void buildUniqueNames(Cell cell, Map<Cell,String> cellNames) {
+    public static void buildUniqueNames(Cell cell, Map<Cell,String> cellNames, int maxLen, boolean upperCase)
+    {
         if (!cellNames.containsKey(cell))
-            cellNames.put(cell, makeUniqueName(cell, cellNames));
+            cellNames.put(cell, makeUniqueName(cell, cellNames, maxLen, upperCase));
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
             NodeInst ni = it.next();
             if (ni.isCellInstance()) {
@@ -658,15 +613,15 @@ public class GDS extends Geometry
                 Cell cproto = c.contentsView();
                 if (cproto == null) cproto = c;
                 if (!cellNames.containsKey(cproto))
-                    cellNames.put(cproto, makeUniqueName(cproto, cellNames));
-                buildUniqueNames(cproto, cellNames);
+                    cellNames.put(cproto, makeUniqueName(cproto, cellNames, maxLen, upperCase));
+                buildUniqueNames(cproto, cellNames, maxLen, upperCase);
             }
         }
     }
 
-	public static String makeUniqueName(Cell cell, Map<Cell,String> cellNames)
+	public static String makeUniqueName(Cell cell, Map<Cell,String> cellNames, int maxLen, boolean upperCase)
 	{
-		String name = makeGDSName(cell.getName(), IOTool.getGDSCellNameLenMax());
+		String name = makeGDSName(cell.getName(), maxLen, upperCase);
 		if (cell.getNewestVersion() != cell)
 			name += "_" + cell.getVersion();
 
@@ -676,7 +631,7 @@ public class GDS extends Geometry
 
 		// try prepending the library name first
         if (existing.contains(name)) {
-            int liblen = IOTool.getGDSCellNameLenMax() - (name.length() + concatStr.length());  // space for lib name
+            int liblen = maxLen - (name.length() + concatStr.length());  // space for lib name
             if (liblen > 0) {
                 String lib = cell.getLibrary().getName();
                 liblen = (liblen > lib.length()) ? lib.length() : liblen;
@@ -692,7 +647,7 @@ public class GDS extends Geometry
 		{
 			if (!existing.contains(name)) break;
 			name = baseName + "_" + index;
-            int extra = name.length() - IOTool.getGDSCellNameLenMax();
+            int extra = name.length() - maxLen;
             if (extra > 0)
 			{
 				name = baseName.substring(0, baseName.length()-extra);
@@ -710,7 +665,7 @@ public class GDS extends Geometry
 	 * from input string str.
 	 * Uses only 'A'-'Z', '_', $, ?, and '0'-'9'
 	 */
-	private static String makeGDSName(String str, int maxLen)
+	private static String makeGDSName(String str, int maxLen, boolean upperCase)
 	{
 		// filter the name string for the GDS output cell
 		StringBuffer ret = new StringBuffer();
@@ -719,7 +674,7 @@ public class GDS extends Geometry
 		for(int k=0; k<max; k++)
 		{
 			char ch = str.charAt(k);
-			if (IOTool.isGDSOutUpperCase()) ch = Character.toUpperCase(ch);
+			if (upperCase) ch = Character.toUpperCase(ch);
 			if (ch != '$' && !TextUtils.isDigit(ch) && ch != '?' && !Character.isLetter(ch))
 				ch = '_';
 			ret.append(ch);
@@ -770,7 +725,7 @@ public class GDS extends Geometry
 		outputHeader(HDR_BGNLIB, 0);
 		outputDate(cell.getCreationDate());
 		outputDate(cell.getRevisionDate());
-		outputName(HDR_LIBNAME, makeGDSName(cell.getName(), HDR_M_ASCII), HDR_M_ASCII);
+		outputName(HDR_LIBNAME, makeGDSName(cell.getName(), HDR_M_ASCII, localPrefs.outUpperCase), HDR_M_ASCII);
 		outputShort(HDR_N_UNITS);
 		outputShort(HDR_UNITS);
 
@@ -796,7 +751,7 @@ public class GDS extends Geometry
         if (name == null) {
             reportWarning("Warning, sub"+cell+" in hierarchy is not the same view" +
                     " as top level cell");
-            name = makeUniqueName(cell, cellNames);
+            name = makeUniqueName(cell, cellNames, localPrefs.cellNameLenMax, localPrefs.outUpperCase);
             cellNames.put(cell, name);
         }
 		outputName(HDR_STRNAME, name, localPrefs.cellNameLenMax);

@@ -64,7 +64,7 @@ public class Eagle extends Output
 	/** key of Variable holding pin information. */			public static final Variable.Key PIN_KEY = Variable.newKey("ATTR_pin");
 
 	private List<NetNames> networks;
-	private EaglePreferences localPrefs;
+//	private EaglePreferences localPrefs;
 
 	public static class EaglePreferences extends OutputPreferences
     {
@@ -80,21 +80,7 @@ public class Eagle extends Output
 	/**
 	 * Creates a new instance of Eagle netlister.
 	 */
-	private Eagle(EaglePreferences ep) { localPrefs = ep; }
-
-//	/**
-//	 * The main entry point for Eagle deck writing.
-//     * @param cell the top-level cell to write.
-//     * @param context the hierarchical context to the cell.
-//	 * @param filePath the disk file to create.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeEagleFile(Cell cell, VarContext context, String filePath)
-//	{
-//		Eagle out = new Eagle();
-//		out.writeNetlist(cell, context, filePath);
-//        return out;
-//    }
+	private Eagle(EaglePreferences ep) { /* localPrefs = ep; */ }
 
 	private void writeNetlist(Cell cell, VarContext context, String filePath)
 	{
@@ -103,8 +89,6 @@ public class Eagle extends Output
 		networks = new ArrayList<NetNames>();
 		EagleNetlister netlister = new EagleNetlister();
 		HierarchyEnumerator.enumerateCell(cell, context, netlister, Netlist.ShortResistors.ALL);
-//		Netlist netlist = cell.getNetlist(true);
-//		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
 		printWriter.println(";");
 
 		// warn the user if nets not found

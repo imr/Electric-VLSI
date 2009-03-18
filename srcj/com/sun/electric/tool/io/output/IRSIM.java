@@ -54,8 +54,7 @@ import java.util.List;
 /**
  * Class to write IRSIM netlists.
  */
-public class IRSIM extends Output
-        implements ParasiticGenerator
+public class IRSIM extends Output implements ParasiticGenerator
 {
     private VarContext context;
     private List<Object> components;
@@ -91,20 +90,6 @@ public class IRSIM extends Output
 		localPrefs = ip;
         context = null;
 	}
-
-//	/**
-//	 * The main entry point for IRSIM deck writing.
-//     * @param cell the top-level cell to write.
-//     * @param context the hierarchical context to the cell.
-//	 * @param filePath the disk file to create.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeIRSIMFile(Cell cell, VarContext context, Technology layoutTech, String filePath)
-//	{
-//		IRSIM out = new IRSIM(cell);
-//        out.writeNetlist(cell, context, layoutTech, filePath);
-//        return out.finishWrite();
-//    }
 
 	/**
 	 * The main entry point for IRSIM extraction.
@@ -315,13 +300,11 @@ public class IRSIM extends Output
 					}
 				}
                 rcValue = TextUtils.parsePostFixNumber(extra, null).doubleValue();
-                //rcValue = TextUtils.atof(extra);
 
                 if (fun.isResistor())
                 {
                     type = 'r';
-                }
-                else
+                } else
                 {
                     type = 'C';
                     rcValue = Math.rint((rcValue/ 1e-15) * 1000) / 1000;
