@@ -171,7 +171,11 @@ public class Output
             this.context = context;
             this.filePath = filePath;
             prefs = getOutputPreferences(type, override);
-            if (prefs != null) startJob();
+            if (prefs != null)
+            {
+            	prefs.fillPrefs();
+            	startJob();
+            }
         }
 
         public boolean doIt() throws JobException
