@@ -57,7 +57,6 @@ public class TechEditWizardData
 	private String tech_description;
 	private int num_metal_layers;
 	private int stepsize;
-    private double scalefactor;
     private boolean pWellFlag = true; // to control if process is a pwell process or not. If true, Tech Creation Wizard will not create pwell layers
     private boolean horizontalFlag = true; // to control if transistor gates are aligned horizontally. True by default
     private boolean extraInfoFlag = false; // to control if protection polys are added to transistors. False by default
@@ -264,7 +263,6 @@ public class TechEditWizardData
     public TechEditWizardData()
 	{
 		stepsize = 100;
-        scalefactor = 1.0;
         num_metal_layers = 2;
 		metal_width = new WizardField[num_metal_layers];
 		metal_spacing = new WizardField[num_metal_layers];
@@ -310,9 +308,6 @@ public class TechEditWizardData
 
 	public int getStepSize() { return stepsize; }
 	public void setStepSize(int n) { stepsize = n; }
-
-    public int getScaleFactor() { return stepsize; }
-	public void setScaleFactor(double f) { scalefactor = f; }
 
     public int getNumMetalLayers() { return num_metal_layers; }
 	public void setNumMetalLayers(int n)
@@ -517,7 +512,6 @@ public class TechEditWizardData
 		// check the General data
 		if (tech_name == null || tech_name.length() == 0) return "General panel: No technology name";
 		if (stepsize == 0) return "General panel: Invalid unit size";
-        if (DBMath.areEquals(scalefactor, 0)) return "General panel: Invalid scale factor";
 
         // check the Active data
 		if (diff_width.v == 0) return "Active panel: Invalid width";
@@ -616,7 +610,6 @@ public class TechEditWizardData
                     if (varName.equalsIgnoreCase("horizontal_transistors")) setHorizontalTransistors(Boolean.valueOf(varValue)); else
                     if (varName.equalsIgnoreCase("extra_info")) setExtraInfoFlag(Boolean.valueOf(varValue)); else
                     if (varName.equalsIgnoreCase("stepsize")) setStepSize(TextUtils.atoi(varValue)); else
-                    if (varName.equalsIgnoreCase("scalefactor")) setScaleFactor(TextUtils.atof(varValue)); else
 
                     if (varName.equalsIgnoreCase("diff_width")) diff_width.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("diff_width_rule")) diff_width.rule = stripQuotes(varValue); else
@@ -1041,8 +1034,6 @@ public class TechEditWizardData
 		pw.println("## stepsize is minimum granularity that will be used as movement grid");
 		pw.println("## set to manufacturing grid or lowest common denominator with design rules");
 		pw.println("$stepsize = " + stepsize + ";");
-        pw.println("## scale factor");
-        pw.println("$scalefactor = " + scalefactor + " ;");
         pw.println();
 		pw.println("######  DIFFUSION RULES  #####");
 		pw.println("$diff_width = " + TextUtils.formatDouble(diff_width.v) + ";");
@@ -2381,7 +2372,6 @@ public class TechEditWizardData
                 double longX = scaledValue(DBMath.isGreaterThan(verticalLayer.overX.v, horizontalLayer.overX.v) ? verticalLayer.overX.v : horizontalLayer.overX.v);
                 double longY = scaledValue(DBMath.isGreaterThan(verticalLayer.overY.v, horizontalLayer.overY.v) ? verticalLayer.overY.v : horizontalLayer.overY.v);
 
-
                 portNames.clear();
                 portNames.add(lx.name);
                 portNames.add(ly.name);
@@ -2736,5 +2726,5 @@ public class TechEditWizardData
         }
     }
 
-    private double scaledValue(double val) { return DBMath.round(val * scalefactor); }
+    private double scaledValue(double val) { return DBMath.round(val / stepsize); }
 }
