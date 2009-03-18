@@ -41,8 +41,10 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.simulation.Simulation;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -78,7 +80,7 @@ public class FastHenry extends Output
 		public double getZTail() { return zTail; }
 		public double getZDefault() { return zDefault; }
 
-		public FastHenryArcInfo(ArcInst ai)
+		public FastHenryArcInfo(ArcInst ai, FastHenryPreferences prefs)
 		{
 			Technology tech = ai.getProto().getTechnology();
 
@@ -132,7 +134,8 @@ public class FastHenry extends Output
 				Poly poly = polys[i];
 				Layer layer = poly.getLayer();
 				if (layer == null) continue;
-				zDefault = layer.getDepth();
+				Double depth = prefs.layerDepth.get(layer);
+				if (depth != null) zDefault = depth.doubleValue();
 				break;
 			}
 		}
@@ -145,6 +148,7 @@ public class FastHenry extends Output
 		boolean useSingleFrequency;
 		double startFrequency, endFrequency;
 		int runsPerDecade;
+		Map<Layer,Double> layerDepth;
 
 		FastHenryPreferences()
 		{
@@ -155,6 +159,17 @@ public class FastHenry extends Output
 			startFrequency = Simulation.getFastHenryStartFrequency();
 			endFrequency = Simulation.getFastHenryEndFrequency();
 			runsPerDecade = Simulation.getFastHenryRunsPerDecade();
+			layerDepth = new HashMap<Layer,Double>();
+			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+			{
+				Technology tech = it.next();
+				for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
+				{
+					Layer layer = lIt.next();
+					double depth = layer.getDepth();
+					layerDepth.put(layer, new Double(depth));
+				}
+			}
 		}
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
@@ -237,7 +252,7 @@ public class FastHenry extends Output
 			{
 				Connection con = cIt.next();
 				ArcInst ai = con.getArc();
-				FastHenryArcInfo fhai = new FastHenryArcInfo(ai);
+				FastHenryArcInfo fhai = new FastHenryArcInfo(ai, localPrefs);
 				if (fhai.getGroupName() == null) continue;
 				double zVal = fhai.getZDefault();
 				if (con.getEndIndex() == ArcInst.HEADEND && fhai.getZHead() >= 0) zVal = fhai.getZHead();
@@ -274,7 +289,7 @@ public class FastHenry extends Output
 		{
 			ArcInst ai = it.next();
 			// get info about this arc, stop if not part of the FastHenry output
-			FastHenryArcInfo fhai = new FastHenryArcInfo(ai);
+			FastHenryArcInfo fhai = new FastHenryArcInfo(ai, localPrefs);
 			if (fhai.getGroupName() == null) continue;
 	
 			// get size
