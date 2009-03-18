@@ -134,8 +134,14 @@ public class FastHenry extends Output
 				Poly poly = polys[i];
 				Layer layer = poly.getLayer();
 				if (layer == null) continue;
-				Double depth = prefs.layerDepth.get(layer);
-				if (depth != null) zDefault = depth.doubleValue();
+				if (prefs == null)
+				{
+					zDefault = layer.getDepth();
+				} else
+				{
+					Double depth = prefs.layerDepth.get(layer);
+					if (depth != null) zDefault = depth.doubleValue();
+				}
 				break;
 			}
 		}
