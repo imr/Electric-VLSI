@@ -718,6 +718,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		// see if the old arcs can connect to ports
 		double arcDx = 0, arcDy = 0;
 		int arcCount = 0;
+		String portMismatchError = null;
+		List<String> arcMismatchErrors = null;
 		for(Iterator<Connection> it = getConnections(); it.hasNext(); )
 		{
 			Connection con = it.next();
@@ -729,9 +731,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			if (index >= oldAssoc.length || oldAssoc[index].assn == null)
 			{
 				if (allowMissingPorts) continue;
-				System.out.println("No port on new node has same name and location as old node port: " + con.getPortInst().getPortProto().getName());
-				newNi.kill();
-				return null;
+				if (portMismatchError != null) portMismatchError += ","; else
+					portMismatchError = "No port on new node has same name and location as old node port(s):";
+				portMismatchError += " " + con.getPortInst().getPortProto().getName();
+				continue;
 			}
 
 			// make sure the arc can connect to this type of port
@@ -740,10 +743,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			if (!opi.getPortProto().connectsTo(ai.getProto()))
 			{
 				if (allowMissingPorts) continue;
-				System.out.println(ai + " on old port " + con.getPortInst().getPortProto().getName() +
+				if (arcMismatchErrors == null)
+					arcMismatchErrors = new ArrayList<String>();
+				arcMismatchErrors.add(ai + " on old port " + con.getPortInst().getPortProto().getName() +
 					" cannot connect to new port " + opi.getPortProto().getName());
-				newNi.kill();
-				return null;
+				continue;
 			}
 
 			// see if the arc fits in the new port
@@ -758,8 +762,16 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			}
 			arcCount++;
 		}
+		if (portMismatchError != null || arcMismatchErrors != null)
+		{
+			if (portMismatchError != null) System.out.println(portMismatchError);
+			if (arcMismatchErrors != null) for(String err : arcMismatchErrors) System.out.println(err);
+			newNi.kill();
+			return null;
+		}
 
 		// see if the old exports have the same connections
+		List<String> exportErrors = null;
 		for(Iterator<Export> it = getExports(); it.hasNext(); )
 		{
 			Export pp = it.next();
@@ -770,10 +782,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 				if (oldAssoc[index].portInst == pp.getOriginalPort()) break;
 			if (index >= oldAssoc.length || oldAssoc[index].assn == null)
 			{
-				System.out.println("No port on new node has same name and location as old node port: " +
+				if (exportErrors == null)
+					exportErrors = new ArrayList<String>();
+				exportErrors.add("No port on new node has same name and location as old node port: " +
 					pp.getOriginalPort().getPortProto().getName());
-				newNi.kill();
-				return null;
+				continue;
 			}
 			PortInst opi = oldAssoc[index].assn;
 
@@ -783,6 +796,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 				newNi.kill();
 				return null;
 			}
+		}
+		if (exportErrors != null)
+		{
+			for(String msg : exportErrors) System.out.println(msg);
+			newNi.kill();
+			return null;
 		}
 
 		// now replace all of the arcs
