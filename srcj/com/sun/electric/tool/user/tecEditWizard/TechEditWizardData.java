@@ -2381,6 +2381,11 @@ public class TechEditWizardData
                 double longX = scaledValue(DBMath.isGreaterThan(verticalLayer.overX.v, horizontalLayer.overX.v) ? verticalLayer.overX.v : horizontalLayer.overX.v);
                 double longY = scaledValue(DBMath.isGreaterThan(verticalLayer.overY.v, horizontalLayer.overY.v) ? verticalLayer.overY.v : horizontalLayer.overY.v);
 
+
+                portNames.clear();
+                portNames.add(lx.name);
+                portNames.add(ly.name);
+
                 metalPalette[via-1].addElement(makeXmlPrimitiveCon(t.nodeGroups, c.prefix + name, -1, -1,
                     new SizeOffset(longX, longX, longY, longY),
                     portNames,
