@@ -117,8 +117,8 @@ public class UserInterfaceMain extends AbstractUserInterface
         // Only valid for Mac OS X
         if (!Client.isOSMac()) return;
 
-        if (mode != Mode.MDI)
-            new EventProcessor();
+//        if (mode != Mode.MDI)
+//            new EventProcessor();
 
         SwingUtilities.invokeLater(new InitializationSetJob(job));
     }
