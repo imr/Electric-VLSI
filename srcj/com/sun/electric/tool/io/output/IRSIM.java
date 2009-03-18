@@ -63,11 +63,12 @@ public class IRSIM extends Output implements ParasiticGenerator
 
 	public static class IRSIMPreferences extends OutputPreferences
     {
-		Technology layoutTech;
-		Technology schematicTech;
+		Technology layoutTech = Schematics.getDefaultSchematicTechnology();
+		Technology schematicTech = User.getFactorySchematicTechnology();
 
-		IRSIMPreferences()
-		{
+		public void fillPrefs()
+        {
+            super.fillPrefs();
             layoutTech = Schematics.getDefaultSchematicTechnology();
             schematicTech = User.getSchematicTechnology();
 		}

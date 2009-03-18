@@ -64,6 +64,7 @@ public class Sim extends Output
 	public static class SimPreferences extends OutputPreferences
     {
 		private FileType type;
+
 		SimPreferences(FileType type) { this.type = type; }
 
         public Output doOutput(Cell cell, VarContext context, String filePath)

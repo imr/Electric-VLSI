@@ -75,8 +75,6 @@ public class LEF extends Output
 
 	public static class LEFPreferences extends OutputPreferences
     {
-		LEFPreferences() {}
-
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		LEF out = new LEF(this);

@@ -50,8 +50,6 @@ public class ArchSim extends Output
 
 	public static class ArchSimPreferences extends OutputPreferences
     {
-    	ArchSimPreferences() {}
-
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		ArchSim out = new ArchSim(this);

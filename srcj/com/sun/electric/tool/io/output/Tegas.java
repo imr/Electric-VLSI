@@ -71,10 +71,11 @@ public class Tegas extends Topology
 
 	public static class TegasPreferences extends OutputPreferences
     {
-		String workingDirectory;
+		String workingDirectory = "";
 
-		TegasPreferences()
-		{
+		public void fillPrefs()
+        {
+            super.fillPrefs();
 			workingDirectory = User.getWorkingDirectory();
 		}
 

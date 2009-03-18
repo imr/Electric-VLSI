@@ -206,19 +206,16 @@ public class Output
 
     public static class OutputPreferences
 	{
-        public boolean useCopyrightMessage;
-        public boolean includeDateAndVersionInOutput;
-
-        protected OutputPreferences()
-        {
-        	useCopyrightMessage = IOTool.isUseCopyrightMessage();
-        	includeDateAndVersionInOutput = User.isIncludeDateAndVersionInOutput();
-        }
+        public boolean useCopyrightMessage = ((Boolean)IOTool.getUseCopyrightMessageSetting().getFactoryValue()).booleanValue();
+        public boolean includeDateAndVersionInOutput = ((Boolean)User.getIncludeDateAndVersionInOutputSetting().getFactoryValue()).booleanValue();
 
         /**
          * Fill these Output preeferences with default values from Prefs
          */
-        public void fillPrefs() {
+        public void fillPrefs()
+        {
+        	useCopyrightMessage = IOTool.isUseCopyrightMessage();
+        	includeDateAndVersionInOutput = User.isIncludeDateAndVersionInOutput();
         }
 
         public Output doOutput(Cell cell, VarContext context, String filePath)

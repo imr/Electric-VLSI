@@ -102,21 +102,34 @@ public class PostScript extends Output
 
 	public static class PostScriptPreferences extends OutputPreferences
     {
-		/** list of Polys to use instead of cell contents. */				private List<PolyBase> override;
-		/** true to plot date information in the corner. */					private boolean plotDates;
-		private boolean textVisibilityOnInstance, textVisibilityOnNode, textVisibilityOnExport,
-			textVisibilityOnPort, textVisibleOnArc, textVisibleOnCell;
-		private int exportDisplayLevel, portDisplayLevel;
-		private int printColorMethod;
-		private boolean printForPlotter;
-		private boolean printEncapsulate;
-		private double pageWidth, pageHeight, printMargin;
-		private double printPSLineWidth;
-		private int printRotation;
+		/** list of Polys to use instead of cell contents. */				List<PolyBase> override;
+		boolean plotDates = IOTool.isFactoryPlotDate();
+		boolean textVisibilityOnInstance = User.isFactoryTextVisibilityOnInstance();
+		boolean textVisibilityOnNode = User.isFactoryTextVisibilityOnNode();
+		boolean textVisibilityOnExport = User.isFactoryTextVisibilityOnExport();
+		boolean textVisibilityOnPort = User.isFactoryTextVisibilityOnPort();
+		boolean textVisibleOnArc = User.isFactoryTextVisibilityOnArc();
+		boolean textVisibleOnCell = User.isFactoryTextVisibilityOnCell();
+		int exportDisplayLevel = User.getFactoryExportDisplayLevel();
+		int portDisplayLevel = User.getFactoryPortDisplayLevel();
+		int printColorMethod = IOTool.getFactoryPrintColorMethod();
+		boolean printForPlotter = IOTool.isFactoryPrintForPlotter();
+		boolean printEncapsulate = IOTool.isFactoryPrintEncapsulated();
+		double pageWidth = IOTool.getFactoryPrintWidth();
+		double pageHeight = IOTool.getFactoryPrintHeight();
+		double printMargin = IOTool.getFactoryPrintMargin();
+		int printRotation = IOTool.getFactoryPrintRotation();
+		double printPSLineWidth = IOTool.getFactoryPrintPSLineWidth();
 
 		PostScriptPreferences(List<PolyBase> override)
 		{
 			this.override = override;
+		}
+
+		public void fillPrefs()
+        {
+            super.fillPrefs();
+			plotDates = IOTool.isPlotDate();
 			textVisibilityOnInstance = User.isTextVisibilityOnInstance();
 			textVisibilityOnNode = User.isTextVisibilityOnNode();
 			textVisibilityOnExport = User.isTextVisibilityOnExport();
@@ -127,7 +140,6 @@ public class PostScript extends Output
 			portDisplayLevel = User.getPortDisplayLevel();
 			printColorMethod = IOTool.getPrintColorMethod();
 			printForPlotter = IOTool.isPrintForPlotter();
-			plotDates = IOTool.isPlotDate();
 			printEncapsulate = IOTool.isPrintEncapsulated();
 			pageWidth = IOTool.getPrintWidth();
 			pageHeight = IOTool.getPrintHeight();

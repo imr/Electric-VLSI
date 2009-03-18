@@ -70,8 +70,6 @@ public class Pads extends Output
 
 	public static class PadsPreferences extends OutputPreferences
     {
-		PadsPreferences() {}
-
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		Pads out = new Pads(this);
@@ -79,6 +77,7 @@ public class Pads extends Output
             return out.finishWrite();
         }
     }
+
 	/**
 	 * Creates a new instance of Pads netlister.
 	 */

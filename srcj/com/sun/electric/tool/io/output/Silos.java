@@ -66,8 +66,6 @@ public class Silos extends Topology
 
 	public static class SilosPreferences extends OutputPreferences
     {
-		SilosPreferences() {}
-
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		Silos out = new Silos(this);

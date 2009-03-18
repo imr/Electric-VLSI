@@ -140,17 +140,20 @@ public class GDS extends Geometry
 
 	public static class GDSPreferences extends OutputPreferences
     {
-	    /** write pins at Export locations? */     public boolean writeExportPins;
-	    /** converts bracket to underscores in export names.*/ public boolean convertBracketsInExports;
-	    boolean convertNCCExportsConnectedByParentPins;
-	    boolean collapseVddGndPinNames;
-	    int outDefaultTextLayer;
-	    boolean outMergesBoxes;
-	    int cellNameLenMax;
-	    boolean outUpperCase;
+	    /** write pins at Export locations? */
+		public boolean writeExportPins = ((Boolean)IOTool.getGDSOutWritesExportPinsSetting().getFactoryValue()).booleanValue();
+	    /** converts bracket to underscores in export names.*/
+		public boolean convertBracketsInExports = ((Boolean)IOTool.getGDSOutputConvertsBracketsInExportsSetting().getFactoryValue()).booleanValue();
+	    boolean convertNCCExportsConnectedByParentPins = IOTool.getFactoryGDSConvertNCCExportsConnectedByParentPins();
+	    boolean collapseVddGndPinNames = IOTool.isFactoryGDSColapseVddGndPinNames();
+	    int outDefaultTextLayer = ((Integer)IOTool.getGDSOutDefaultTextLayerSetting().getFactoryValue()).intValue();
+	    boolean outMergesBoxes = ((Boolean)IOTool.getGDSOutMergesBoxesSetting().getFactoryValue()).booleanValue();
+	    int cellNameLenMax = ((Integer)IOTool.getGDSCellNameLenMaxSetting().getFactoryValue()).intValue();
+	    boolean outUpperCase = ((Boolean)IOTool.getGDSOutUpperCaseSetting().getFactoryValue()).booleanValue();
 
-	    public GDSPreferences()
-	    {
+		public void fillPrefs()
+        {
+            super.fillPrefs();
 	        writeExportPins = IOTool.isGDSOutWritesExportPins();
 	        convertBracketsInExports = IOTool.getGDSOutputConvertsBracketsInExports();
 	        convertNCCExportsConnectedByParentPins = IOTool.getGDSConvertNCCExportsConnectedByParentPins();

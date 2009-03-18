@@ -77,13 +77,14 @@ public class CIF extends Geometry
 
 	public static class CIFPreferences extends OutputPreferences
     {
-		int cifScale;
-		boolean cifOutInstantiatesTopLevel;
-		boolean cifOutMergesBoxes;
-		boolean cifOutMimicsDisplay;
+		int cifScale = ((Integer)IOTool.getCIFOutScaleFactorSetting().getFactoryValue()).intValue();
+		boolean cifOutInstantiatesTopLevel = ((Boolean)IOTool.getCIFOutInstantiatesTopLevelSetting().getFactoryValue()).booleanValue();
+		boolean cifOutMergesBoxes = ((Boolean)IOTool.getCIFOutMergesBoxesSetting().getFactoryValue()).booleanValue();
+		boolean cifOutMimicsDisplay = ((Boolean)IOTool.getCIFOutMimicsDisplaySetting().getFactoryValue()).booleanValue();
 
-		CIFPreferences()
-		{
+		public void fillPrefs()
+        {
+            super.fillPrefs();
 			cifScale = IOTool.getCIFOutScaleFactor();
 			cifOutInstantiatesTopLevel = IOTool.isCIFOutInstantiatesTopLevel();
 			cifOutMergesBoxes = IOTool.isCIFOutMergesBoxes();

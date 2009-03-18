@@ -37,6 +37,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.simulation.Simulation;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -63,12 +64,13 @@ public class DXF extends Output
 
 	public static class DXFPreferences extends OutputPreferences
     {
-		int dxfScale;
+		int dxfScale = ((Integer)IOTool.getDXFScaleSetting().getFactoryValue()).intValue();
 
-		DXFPreferences()
-		{
+		public void fillPrefs()
+        {
+            super.fillPrefs();
 			dxfScale = IOTool.getDXFScale();
-		}
+        }
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {

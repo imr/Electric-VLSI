@@ -68,8 +68,6 @@ public class Eagle extends Output
 
 	public static class EaglePreferences extends OutputPreferences
     {
-		EaglePreferences() {}
-
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		Eagle out = new Eagle(this);

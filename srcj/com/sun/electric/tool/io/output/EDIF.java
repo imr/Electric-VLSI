@@ -197,11 +197,12 @@ public class EDIF extends Topology
 
 	public static class EDIFPreferences extends OutputPreferences
     {
-		boolean edifUseSchematicView;
-		boolean edifCadenceCompatibility;
+		boolean edifUseSchematicView = IOTool.isFactoryEDIFUseSchematicView();
+		boolean edifCadenceCompatibility = IOTool.isFactoryEDIFCadenceCompatibility();
 
-		EDIFPreferences()
-		{
+		public void fillPrefs()
+        {
+            super.fillPrefs();
 			edifUseSchematicView = IOTool.isEDIFUseSchematicView();
 			edifCadenceCompatibility = IOTool.isEDIFCadenceCompatibility();
 		}

@@ -87,11 +87,12 @@ public class HPGL extends Output
 
 	public static class HPGLPreferences extends OutputPreferences
     {
-		boolean textVisibilityOnExport;
-		int exportDisplayLevel;
+		boolean textVisibilityOnExport = User.isFactoryTextVisibilityOnExport();
+		int exportDisplayLevel = User.getFactoryExportDisplayLevel();
 
-		HPGLPreferences()
-		{
+		public void fillPrefs()
+        {
+            super.fillPrefs();
 			textVisibilityOnExport = User.isTextVisibilityOnExport();
 			exportDisplayLevel = User.getExportDisplayLevel();
 		}

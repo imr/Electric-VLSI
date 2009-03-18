@@ -56,8 +56,6 @@ public class PAL extends Output
 
 	public static class PALPreferences extends OutputPreferences
     {
-		PALPreferences() {}
-
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		PAL out = new PAL(this);

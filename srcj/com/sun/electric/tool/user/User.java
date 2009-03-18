@@ -820,6 +820,18 @@ public class User extends Listener
 	public static Setting getSchematicTechnologySetting() { return ToolSettings.getSchematicTechnologySetting(); }
 
 	/**
+	 * Method to choose the layout Technology to use when schematics are found, by default.
+	 * @return the Technology to use when schematics are found, by default.
+	 */
+	public static Technology getFactorySchematicTechnology()
+	{
+		String t = (String)getSchematicTechnologySetting().getFactoryValue();
+		Technology tech = Technology.findTechnology(t);
+		if (tech == null) return Technology.getMocmosTechnology();
+		return tech;
+	}
+
+	/**
 	 * Method to tell whether to include the date and Electric version in output files.
 	 * The default is "true".
 	 * @return true if the system should include the date and Electric version in output files.
@@ -1934,6 +1946,12 @@ public class User extends Listener
 	 * @param on true if the system should draw text that resides on nodes.
 	 */
 	public static void setTextVisibilityOnNode(boolean on) { cacheTextVisibilityNode.setBoolean(on); }
+	/**
+	 * Method to tell whether to draw text that resides on nodes, by default.
+	 * This text includes the node name and any parameters or attributes on it.
+	 * @return true if the system should draw text that resides on nodes, by default.
+	 */
+	public static boolean isFactoryTextVisibilityOnNode() { return cacheTextVisibilityNode.getBooleanFactoryValue(); }
 
 	private static Pref cacheTextVisibilityArc = Pref.makeBooleanPref("TextVisibilityArc", tool.prefs, true);
 	/**
@@ -1949,6 +1967,12 @@ public class User extends Listener
 	 * @param on true if the system should draw text that resides on arcs.
 	 */
 	public static void setTextVisibilityOnArc(boolean on) { cacheTextVisibilityArc.setBoolean(on); }
+	/**
+	 * Method to tell whether to draw text that resides on arcs, by default.
+	 * This text includes the arc name and any parameters or attributes on it.
+	 * @return true if the system should draw text that resides on arcs, by default.
+	 */
+	public static boolean isFactoryTextVisibilityOnArc() { return cacheTextVisibilityArc.getBooleanFactoryValue(); }
 
 	private static Pref cacheTextVisibilityPort = Pref.makeBooleanPref("TextVisibilityPort", tool.prefs, true);
 	/**
@@ -1964,6 +1988,12 @@ public class User extends Listener
 	 * @param on true if the system should draw text that resides on ports.
 	 */
 	public static void setTextVisibilityOnPort(boolean on) { cacheTextVisibilityPort.setBoolean(on); }
+	/**
+	 * Method to tell whether to draw text that resides on ports, by default.
+	 * This text includes the port name and any parameters or attributes on it.
+	 * @return true if the system should draw text that resides on ports, by default.
+	 */
+	public static boolean isFactoryTextVisibilityOnPort() { return cacheTextVisibilityPort.getBooleanFactoryValue(); }
 
 	private static Pref cacheTextVisibilityExport = Pref.makeBooleanPref("TextVisibilityExport", tool.prefs, true);
 	/**
@@ -1979,6 +2009,12 @@ public class User extends Listener
 	 * @param on true if the system should draw text that resides on exports.
 	 */
 	public static void setTextVisibilityOnExport(boolean on) { cacheTextVisibilityExport.setBoolean(on); }
+	/**
+	 * Method to tell whether to draw text that resides on exports, by default.
+	 * This text includes the export name and any parameters or attributes on it.
+	 * @return true if the system should draw text that resides on exports, by default.
+	 */
+	public static boolean isFactoryTextVisibilityOnExport() { return cacheTextVisibilityExport.getBooleanFactoryValue(); }
 
 	private static Pref cacheTextVisibilityAnnotation = Pref.makeBooleanPref("TextVisibilityAnnotation", tool.prefs, true);
 	/**
@@ -2009,6 +2045,11 @@ public class User extends Listener
 	 * @param on true if the system should draw the name of on cell instances.
 	 */
 	public static void setTextVisibilityOnInstance(boolean on) { cacheTextVisibilityInstance.setBoolean(on); }
+	/**
+	 * Method to tell whether to draw the name of on cell instances, by default.
+	 * @return true if the system should draw the name of on cell instances, by default.
+	 */
+	public static boolean isFactoryTextVisibilityOnInstance() { return cacheTextVisibilityInstance.getBooleanFactoryValue(); }
 
 	private static Pref cacheTextVisibilityCell = Pref.makeBooleanPref("TextVisibilityCell", tool.prefs, true);
 	/**
@@ -2024,6 +2065,12 @@ public class User extends Listener
 	 * @param on true if the system should draw text that resides on the cell.
 	 */
 	public static void setTextVisibilityOnCell(boolean on) { cacheTextVisibilityCell.setBoolean(on); }
+	/**
+	 * Method to tell whether to draw text that resides on the cell, by default.
+	 * This includes the current cell's parameters or attributes (for example, spice templates).
+	 * @return true if the system should draw text that resides on the cell, by default.
+	 */
+	public static boolean isFactoryTextVisibilityOnCell() { return cacheTextVisibilityCell.getBooleanFactoryValue(); }
 
 	private static Pref cacheSmartVerticalPlacementExport = Pref.makeIntServerPref("SmartVerticalPlacementExport", tool.prefs, 0);
 	/**

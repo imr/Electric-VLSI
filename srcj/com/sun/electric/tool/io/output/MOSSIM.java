@@ -61,8 +61,6 @@ public class MOSSIM extends Topology
 
 	public static class MOSSIMPreferences extends OutputPreferences
     {
-		MOSSIMPreferences() {}
-
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		MOSSIM out = new MOSSIM(this);

@@ -149,15 +149,18 @@ public class FastHenry extends Output
 
 	public static class FastHenryPreferences extends OutputPreferences
     {
-		int widthSubdivisions, heightSubdivisions;
-		double defThickness;
-		boolean useSingleFrequency;
-		double startFrequency, endFrequency;
-		int runsPerDecade;
+		int widthSubdivisions = Simulation.getFactoryFastHenryWidthSubdivisions();
+		int heightSubdivisions = Simulation.getFactoryFastHenryHeightSubdivisions();
+		double defThickness = Simulation.getFactoryFastHenryDefThickness();
+		boolean useSingleFrequency = Simulation.isFactoryFastHenryUseSingleFrequency();
+		double startFrequency = Simulation.getFactoryFastHenryStartFrequency();
+		double endFrequency = Simulation.getFactoryFastHenryEndFrequency();
+		int runsPerDecade = Simulation.getFactoryFastHenryRunsPerDecade();
 		Map<Layer,Double> layerDepth;
 
-		FastHenryPreferences()
-		{
+		public void fillPrefs()
+        {
+            super.fillPrefs();
 			widthSubdivisions = Simulation.getFastHenryWidthSubdivisions();
 			heightSubdivisions = Simulation.getFastHenryHeightSubdivisions();
 			defThickness = Simulation.getFastHenryDefThickness();

@@ -193,6 +193,7 @@ public class Spice extends Topology
         public boolean                      cdlIgnoreResistors = false;
 
         public Map<Cell,String>             modelFiles = Collections.emptyMap();
+        public String                       workdir = "";
 
 		public SpicePreferences(boolean cdl)
 		{
@@ -245,6 +246,7 @@ public class Spice extends Topology
             cdlIgnoreResistors              = Simulation.isCDLConvertBrackets();
 
             modelFiles                      = CellModelPrefs.spiceModelPrefs.getUnfilteredFileNames(EDatabase.clientDatabase());
+            workdir                         = User.getWorkingDirectory();
         }
 
         @Override

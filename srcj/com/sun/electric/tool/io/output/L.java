@@ -65,8 +65,6 @@ public class L extends Output
 
 	public static class LPreferences extends OutputPreferences
     {
-		LPreferences() {}
-
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		L out = new L(this);

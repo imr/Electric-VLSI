@@ -201,13 +201,14 @@ public class Verilog extends Topology
 
 	public static class VerilogPreferences extends OutputPreferences
     {
-		public boolean stopAtStandardCells;
-		public boolean useTrireg;
-		public boolean useAssign;
-		public boolean parameterizeModuleNames;
+		public boolean stopAtStandardCells = Simulation.getFactoryVerilogStopAtStandardCells();
+		public boolean useTrireg = ((Boolean)Simulation.getVerilogUseTriregSetting().getFactoryValue()).booleanValue();
+		public boolean useAssign = ((Boolean)Simulation.getVerilogUseAssignSetting().getFactoryValue()).booleanValue();
+		public boolean parameterizeModuleNames = Simulation.getFactoryVerilogParameterizeModuleNames();
 
-		public VerilogPreferences()
-		{
+		public void fillPrefs()
+        {
+            super.fillPrefs();
 			stopAtStandardCells = Simulation.getVerilogStopAtStandardCells();
 			useTrireg = Simulation.getVerilogUseTrireg();
 			useAssign = Simulation.getVerilogUseAssign();
