@@ -721,6 +721,7 @@ public class Connectivity
 				}
 				for(int i=0; i<points.length; i++)
 					poly.setPoint(i, scaleUp(points[i].getX()), scaleUp(points[i].getY()));
+
 				if (layer.getFunction().isContact())
 				{
 					// cut layers are stored in lists because merging them is too expensive and pointless
@@ -1015,7 +1016,7 @@ public class Connectivity
 							loc2Unscaled.getX() + "," + loc2Unscaled.getY() + ") on node " + pi2.getNodeInst().describe(false);
 						addErrorLog(newCell, msg, new EPoint(loc1Unscaled.getX(), loc1Unscaled.getY()),
 							new EPoint(loc2Unscaled.getX(), loc2Unscaled.getY()));
-						return true;
+//						return true;
 					}
 				}
 			}
@@ -4021,6 +4022,9 @@ public class Connectivity
 	 */
 	private Layer geometricLayer(Layer layer)
 	{
+		// layers from an alternate technology are accepted as-is
+		if (layer.getTechnology() != tech) return layer;
+
 		Layer.Function fun = layer.getFunction();
 
 		// convert gate to poly1
