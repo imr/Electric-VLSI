@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+IMP: (3/17/09, GVG) TechEditorWizard issues reported in Bug #2078.
+
 IMP: (3/17/09, SMR) Restructured output tool to package preferences for server.
 
 BUG: (3/16/09, SMR) Transistor extraction fails if there is just one active layer (Bug #2078).

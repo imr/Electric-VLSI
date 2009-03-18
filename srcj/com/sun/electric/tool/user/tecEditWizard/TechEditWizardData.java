@@ -2497,10 +2497,10 @@ public class TechEditWizardData
             portNames.clear();
             portNames.add(activeLayer.name);
 
-            nodePorts.add(makeXmlPrimitivePort("trans-diff-top", 90, 90, 0, minFullSize, diffX, diffX, diffY, diffY, portNames));
+            Xml.PrimitivePort diffTopPort = makeXmlPrimitivePort("trans-diff-top", 90, 90, 1, minFullSize, diffX, diffX, diffY, diffY, portNames);
             // bottom port
-            nodePorts.add(makeXmlPrimitivePort("trans-diff-bottom", 270, 90, 0, minFullSize, xSign*diffX, xSign*diffX,
-                ySign*diffY, ySign*diffY, portNames));
+            Xml.PrimitivePort diffBottomPort = makeXmlPrimitivePort("trans-diff-bottom", 270, 90, 2, minFullSize, xSign*diffX, xSign*diffX,
+                ySign*diffY, ySign*diffY, portNames);
 
             // Electric layers
             // Gate layer Electrical
@@ -2518,14 +2518,26 @@ public class TechEditWizardData
             // left port
             portNames.clear();
             portNames.add(polyLayer.name);
-            nodePorts.add(makeXmlPrimitivePort("trans-poly-left", 180, 90, 0, minFullSize, ySign*polyX, ySign*polyX,
-                xSign*polyY, xSign*polyY, portNames));
+            Xml.PrimitivePort polyLeftPort = makeXmlPrimitivePort("trans-poly-left", 180, 90, 0, minFullSize, ySign*polyX, ySign*polyX,
+                xSign*polyY, xSign*polyY, portNames);
             // right port
-            nodePorts.add(makeXmlPrimitivePort("trans-poly-right", 0, 180, 0, minFullSize, polyX, polyX, polyY, polyY, portNames));
+            Xml.PrimitivePort polyRightPort = makeXmlPrimitivePort("trans-poly-right", 0, 180, 0, minFullSize, polyX, polyX, polyY, polyY, portNames);
 
             // Select layer
             Xml.NodeLayer xTranSelLayer = (makeXmlNodeLayer(selectx, selectx, selecty, selecty, selectLayer, Poly.Type.FILLED, true));
             nodesList.add(xTranSelLayer);
+
+            //One (undocumented) requirement of transistors is that the ports must appear in the
+            //order: Poly-left, Diff-top, Poly-right, Diff-bottom.  This requirement is
+            //because of the methods Technology.getTransistorGatePort(),
+            //Technology.getTransistorAltGatePort(), Technology.getTransistorSourcePort(),
+            //and Technology.getTransistorDrainPort().
+            // diff-top = 1, diff-bottom = 2, polys=0
+            // ports in the correct order: Poly-left, Diff-top, Poly-right, Diff-bottom
+            nodePorts.add(polyLeftPort);
+            nodePorts.add(diffTopPort);
+            nodePorts.add(polyRightPort);
+            nodePorts.add(diffBottomPort);
 
             // Standard Transistor
             Xml.PrimitiveNodeGroup n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor", func, 0, 0, 0, 0,
