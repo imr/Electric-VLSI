@@ -1282,7 +1282,7 @@ public class TechEditWizardData
         }
 
         portNames.add(name);
-        nodePorts.add(makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0, null, 0, 0, 0, 0, portNames));
+        nodePorts.add(makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0, null, 0, -1, 0, 1, 0, -1, 0, 1, portNames));
         Xml.PrimitiveNodeGroup n = makeXmlPrimitive(t.nodeGroups, name + "-Pin", PrimitiveNode.Function.PIN, size, size, 0, 0,
                 so, nodesList, nodePorts, null, true);
         return n;
@@ -1304,7 +1304,7 @@ public class TechEditWizardData
             nodesList.add(lb);
         }
 
-        nodePorts.add(makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0, null, 0, 0, 0, 0, portNames));
+        nodePorts.add(makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0, null, 0, -1, 0, 1, 0, -1, 0, 1, portNames));
         return makeXmlPrimitive(nodeGroups, name + "-Con", PrimitiveNode.Function.CONTACT, sizeX, sizeY, 0, 0,
                 so, nodesList, nodePorts, null, false);
     }
@@ -1610,26 +1610,25 @@ public class TechEditWizardData
      * @return New Xml.PrimitivePort
      */
     private Xml.PrimitivePort makeXmlPrimitivePort(String name, int portAngle, int portRange, int portTopology,
-                                                   EPoint minFullSize, double lx, double hx, double ly, double hy,
-                                                   List<String> portArcs)
+                                                   EPoint minFullSize,
+                                                   double lx, int slx, double hx, int shx,
+                                                   double ly, int sly, double hy, int shy, List<String> portArcs)
     {
         Xml.PrimitivePort ppd = new Xml.PrimitivePort();
         double lambdaX = (minFullSize != null) ? minFullSize.getLambdaX() : 0;
         double lambdaY = (minFullSize != null) ? minFullSize.getLambdaY() : 0;
-        int signX = 1; //(lx > 0) ? 1 : -1;
-        int signY = 1; //.(ly > 0) ? 1 : -1;
         ppd.name = name;
         ppd.portAngle = portAngle;
         ppd.portRange = portRange;
         ppd.portTopology = portTopology;
 
-        ppd.lx.k = -signX;//-1; //getLeft().getMultiplier()*2;
+        ppd.lx.k = slx;//-1; //getLeft().getMultiplier()*2;
         ppd.lx.addLambda(DBMath.round(lx + lambdaX*ppd.lx.k));
-        ppd.hx.k = signX;//1; //getRight().getMultiplier()*2;
+        ppd.hx.k = shx;//1; //getRight().getMultiplier()*2;
         ppd.hx.addLambda(DBMath.round(hx + lambdaX*ppd.hx.k));
-        ppd.ly.k = -signY;//-1; // getBottom().getMultiplier()*2;
+        ppd.ly.k = sly;//-1; // getBottom().getMultiplier()*2;
         ppd.ly.addLambda(DBMath.round(ly + lambdaY*ppd.ly.k));
-        ppd.hy.k = signY;//1; // getTop().getMultiplier()*2;
+        ppd.hy.k = shy;//1; // getTop().getMultiplier()*2;
         ppd.hy.addLambda(DBMath.round(hy + lambdaY*ppd.hy.k));
 
         if (portArcs != null) {
@@ -2492,10 +2491,10 @@ public class TechEditWizardData
             portNames.clear();
             portNames.add(activeLayer.name);
 
-            Xml.PrimitivePort diffTopPort = makeXmlPrimitivePort("trans-diff-top", 90, 90, 1, minFullSize, diffX, diffX, diffY, diffY, portNames);
+            Xml.PrimitivePort diffTopPort = makeXmlPrimitivePort("trans-diff-top", 90, 90, 1, minFullSize, diffX, -1, diffX, 1, diffY, 1, diffY, 1, portNames);
             // bottom port
-            Xml.PrimitivePort diffBottomPort = makeXmlPrimitivePort("trans-diff-bottom", 270, 90, 2, minFullSize, xSign*diffX, xSign*diffX,
-                ySign*diffY, ySign*diffY, portNames);
+            Xml.PrimitivePort diffBottomPort = makeXmlPrimitivePort("trans-diff-bottom", 270, 90, 2, minFullSize, xSign*diffX, -1, xSign*diffX,
+                1, ySign*diffY, -1, ySign*diffY, -1, portNames);
 
             // Electric layers
             // Gate layer Electrical
@@ -2513,10 +2512,10 @@ public class TechEditWizardData
             // left port
             portNames.clear();
             portNames.add(polyLayer.name);
-            Xml.PrimitivePort polyLeftPort = makeXmlPrimitivePort("trans-poly-left", 180, 90, 0, minFullSize, ySign*polyX, ySign*polyX,
-                xSign*polyY, xSign*polyY, portNames);
+            Xml.PrimitivePort polyLeftPort = makeXmlPrimitivePort("trans-poly-left", 180, 90, 0, minFullSize, ySign*polyX, -1, ySign*polyX,
+                -1, xSign*polyY, -1, xSign*polyY, 1, portNames);
             // right port
-            Xml.PrimitivePort polyRightPort = makeXmlPrimitivePort("trans-poly-right", 0, 180, 0, minFullSize, polyX, polyX, polyY, polyY, portNames);
+            Xml.PrimitivePort polyRightPort = makeXmlPrimitivePort("trans-poly-right", 0, 180, 0, minFullSize, polyX, 1, polyX, 1, polyY, -1, polyY, 1, portNames);
 
             // Select layer
             Xml.NodeLayer xTranSelLayer = (makeXmlNodeLayer(selectx, selectx, selecty, selecty, selectLayer, Poly.Type.FILLED, true));
