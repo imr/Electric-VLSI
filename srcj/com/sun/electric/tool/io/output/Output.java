@@ -113,12 +113,19 @@ public class Output
     }
 
     /**
-     * Return factory default OutputPreferences for a specified FileType
-     * @param type specified file type
+     * Return factory default OutputPreferences for a specified FileType.
+     * @param type specified file type.
      * @param override the list of Polys to write instead of cell contents.
-     * @return
+     * @return an OutputPreferences object for the given file type.
      */
     public static OutputPreferences getOutputPreferences(FileType type, List<PolyBase> override)
+    {
+    	OutputPreferences op = createOutputPreferences(type, override);
+    	if (op != null) op.fillPrefs();
+    	return op;
+    }
+
+    private static OutputPreferences createOutputPreferences(FileType type, List<PolyBase> override)
     {
         if (type == FileType.ARCHSIM) return new ArchSim.ArchSimPreferences();
 		if (type == FileType.CDL) return new Spice.SpicePreferences(true);
@@ -172,10 +179,7 @@ public class Output
             this.filePath = filePath;
             prefs = getOutputPreferences(type, override);
             if (prefs != null)
-            {
-            	prefs.fillPrefs();
             	startJob();
-            }
         }
 
         public boolean doIt() throws JobException
