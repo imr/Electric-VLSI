@@ -111,10 +111,35 @@ public class ERCWellCheck
 	private double worstNWellDist;
 	private Point2D worstNWellCon;
 	private Point2D worstNWellEdge;
+	private WellCheckPreferences wellPrefs;
 
 	private static final boolean GATHERSTATISTICS = false;
 	private static final boolean DISTANTSEEDS = true;
 	private static final boolean INCREMENTALGROWTH = false;
+
+	public static class WellCheckPreferences
+    {
+		public boolean parallelWellAnalysis;
+		public int maxProc;
+		public boolean mustConnectPWellToGround;
+		public boolean mustConnectNWellToGround;
+		public int pWellCheck;
+		public int nWellCheck;
+		public boolean drcCheck;
+		public boolean findWorstCaseWell;
+
+		public WellCheckPreferences()
+		{
+			parallelWellAnalysis = ERC.isParallelWellAnalysis();
+			maxProc = ERC.getWellAnalysisNumProc();
+			mustConnectPWellToGround = ERC.isMustConnectPWellToGround();
+			mustConnectNWellToGround = ERC.isMustConnectNWellToPower();
+			pWellCheck = ERC.getPWellCheck();
+			nWellCheck = ERC.getNWellCheck();
+			drcCheck = ERC.isDRCCheck();
+			findWorstCaseWell = ERC.isFindWorstCaseWell();
+		}
+    }
 
 	/**
 	 * Method to analyze the current Cell for well errors.
@@ -125,7 +150,7 @@ public class ERCWellCheck
 		Cell curCell = ui.needCurrentCell();
 		if (curCell == null) return;
 
-		new WellCheckJob(curCell, newAlgorithm);
+		new WellCheckJob(curCell, newAlgorithm, new WellCheckPreferences());
 	}
 
 	/**
@@ -134,17 +159,18 @@ public class ERCWellCheck
 	 * @param newAlgorithm the geometry algorithm to use.
 	 * @return the success of running well-check.
 	 */
-	public static int checkERCWell(Cell cell, GeometryHandler.GHMode newAlgorithm)
+	public static int checkERCWell(Cell cell, GeometryHandler.GHMode newAlgorithm, WellCheckPreferences wellPrefs)
 	{
-		ERCWellCheck check = new ERCWellCheck(cell, null, newAlgorithm);
+		ERCWellCheck check = new ERCWellCheck(cell, null, newAlgorithm, wellPrefs);
 		return check.runNow();
 	}
 
-	private ERCWellCheck(Cell cell, WellCheckJob job, GeometryHandler.GHMode newAlgorithm)
+	private ERCWellCheck(Cell cell, WellCheckJob job, GeometryHandler.GHMode newAlgorithm, WellCheckPreferences wellPrefs)
 	{
 		this.job = job;
 		this.mode = newAlgorithm;
 		this.cell = cell;
+		this.wellPrefs = wellPrefs;
 	}
 
 	private static class WellCheckJob extends Job
@@ -154,18 +180,20 @@ public class ERCWellCheck
 		private double worstPWellDist, worstNWellDist;
 		private EPoint worstPWellCon, worstPWellEdge;
 		private EPoint worstNWellCon, worstNWellEdge;
+		private WellCheckPreferences wellPrefs;
 
-		private WellCheckJob(Cell cell, GeometryHandler.GHMode newAlgorithm)
+		private WellCheckJob(Cell cell, GeometryHandler.GHMode newAlgorithm, WellCheckPreferences wellPrefs)
 		{
 			super("ERC Well Check on " + cell, ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newAlgorithm = newAlgorithm;
+			this.wellPrefs = wellPrefs;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			ERCWellCheck check = new ERCWellCheck(cell, this, newAlgorithm);
+			ERCWellCheck check = new ERCWellCheck(cell, this, newAlgorithm, wellPrefs);
 			check.runNow();
 			worstPWellDist = check.worstPWellDist;
 			fieldVariableChanged("worstPWellDist");
@@ -380,10 +408,10 @@ public class ERCWellCheck
 
 		// determine the number of threads to use
 		int numberOfThreads = 1;
-		if (ERC.isParallelWellAnalysis()) numberOfThreads = Runtime.getRuntime().availableProcessors();
+		if (wellPrefs.parallelWellAnalysis) numberOfThreads = Runtime.getRuntime().availableProcessors();
 		if (numberOfThreads > 1)
 		{
-			int maxProc = ERC.getWellAnalysisNumProc();
+			int maxProc = wellPrefs.maxProc;
 			if (maxProc > 0) numberOfThreads = maxProc;
 		}
 
@@ -461,13 +489,13 @@ public class ERCWellCheck
 			{
 				if (wc.fun == PrimitiveNode.Function.WELL)
 				{
-					if (ERC.isMustConnectPWellToGround())
+					if (wellPrefs.mustConnectPWellToGround)
 					{
 						errorLogger.logError("P-Well contact not connected to ground", new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
 					}
 				} else
 				{
-					if (ERC.isMustConnectNWellToPower())
+					if (wellPrefs.mustConnectNWellToGround)
 					{
 						errorLogger.logError("N-Well contact not connected to power", new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
 					}
@@ -476,13 +504,13 @@ public class ERCWellCheck
 		}
 
 		// look for unconnected well areas
-		if (ERC.getPWellCheck() != 2) findUnconnected(pWellRoot, pWellRoot, "P");
-		if (ERC.getNWellCheck() != 2) findUnconnected(nWellRoot, nWellRoot, "N");
-		if (ERC.getPWellCheck() == 1 && !hasPCon)
+		if (wellPrefs.pWellCheck != 2) findUnconnected(pWellRoot, pWellRoot, "P");
+		if (wellPrefs.nWellCheck != 2) findUnconnected(nWellRoot, nWellRoot, "N");
+		if (wellPrefs.pWellCheck == 1 && !hasPCon)
 		{
 			errorLogger.logError("No P-Well contact found in this cell", cell, 0);
 		}
-		if (ERC.getNWellCheck() == 1 && !hasNCon)
+		if (wellPrefs.nWellCheck == 1 && !hasNCon)
 		{
 			errorLogger.logError("No N-Well contact found in this cell", cell, 0);
 		}
@@ -494,7 +522,7 @@ public class ERCWellCheck
 		// make sure the wells are separated properly
 		// Local storage of rules.. otherwise getSpacingRule is called too many times
 		// THIS IS A DRC JOB .. not efficient if done here.
-		if (ERC.isDRCCheck())
+		if (wellPrefs.drcCheck)
 		{
 			DRCTemplate pRule = DRC.getSpacingRule(pWellLayer, null, pWellLayer, null, false, -1, 0, 0);
 			DRCTemplate nRule = DRC.getSpacingRule(nWellLayer, null, nWellLayer, null, false, -1, 0, 0);
@@ -507,7 +535,7 @@ public class ERCWellCheck
 		}
 
 		// compute edge distance if requested
-		if (ERC.isFindWorstCaseWell())
+		if (wellPrefs.findWorstCaseWell)
 		{
 			worstPWellDist = 0;
 			worstPWellCon = null;
@@ -1225,13 +1253,13 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 			// presume N-well
 			PrimitiveNode.Function desiredContact = PrimitiveNode.Function.SUBSTRATE;
 			String noContactError = "No N-Well contact found in this area";
-			int contactAction = ERC.getNWellCheck();
+			int contactAction = wellPrefs.nWellCheck;
 
 			if (wellType == ERCPWell)
 			{
 				// P-well
 				desiredContact = PrimitiveNode.Function.WELL;
-				contactAction = ERC.getPWellCheck();
+				contactAction = wellPrefs.pWellCheck;
 				noContactError = "No P-Well contact found in this area";
 				foundPWell = true;
 			}
@@ -1275,13 +1303,13 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 			{
 				if (wc.fun == PrimitiveNode.Function.WELL)
 				{
-					if (ERC.isMustConnectPWellToGround())
+					if (wellPrefs.mustConnectPWellToGround)
 					{
 						errorLogger.logError("P-Well contact not connected to ground", new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
 					}
 				} else
 				{
-					if (ERC.isMustConnectNWellToPower())
+					if (wellPrefs.mustConnectNWellToGround)
 					{
 						errorLogger.logError("N-Well contact not connected to power", new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
 					}
@@ -1290,7 +1318,7 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 		}
 
 		// if just 1 N-Well contact is needed, see if it is there
-		if (ERC.getNWellCheck() == 1 && foundNWell)
+		if (wellPrefs.nWellCheck == 1 && foundNWell)
 		{
 			boolean found = false;
 			for(WellCon wc : wellCons)
@@ -1304,7 +1332,7 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 		}
 
 		// if just 1 P-Well contact is needed, see if it is there
-		if (ERC.getPWellCheck() == 1 && foundPWell)
+		if (wellPrefs.pWellCheck == 1 && foundPWell)
 		{
 			boolean found = false;
 			for(WellCon wc : wellCons)
@@ -1320,7 +1348,7 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 		// make sure the wells are separated properly
 		// Local storage of rules.. otherwise getSpacingRule is called too many times
 		// THIS IS A DRC JOB .. not efficient if done here.
-		if (ERC.isDRCCheck())
+		if (wellPrefs.drcCheck)
 		{
 			Map<Layer,DRCTemplate> rulesCon = new HashMap<Layer,DRCTemplate>();
 			Map<Layer,DRCTemplate> rulesNonCon = new HashMap<Layer,DRCTemplate>();
@@ -1377,7 +1405,7 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 		}
 
 		// compute edge distance if requested
-		if (ERC.isFindWorstCaseWell())
+		if (wellPrefs.findWorstCaseWell)
 		{
 			worstPWellDist = 0;
 			worstPWellCon = null;
