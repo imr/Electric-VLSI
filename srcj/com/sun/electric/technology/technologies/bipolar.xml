@@ -529,7 +529,7 @@
         </arcLayer>
     </arcProto>
 
-    <arcProto name="PPPoly" fun="POLY2">
+    <arcProto name="PPPoly" fun="POLY1">
         <extended>false</extended>
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>

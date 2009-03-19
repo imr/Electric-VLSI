@@ -60,6 +60,7 @@ import com.sun.electric.technology.technologies.EFIDO;
 import com.sun.electric.technology.technologies.GEM;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.User;
@@ -5405,10 +5406,13 @@ public class Technology implements Comparable<Technology>, Serializable
 
    /**
      * Method to check invariants in this Technology.
+     * In "debug" mode, prints warnings.
      * @exception AssertionError if invariants are not valid
      */
-    private void check() {
-        for (TechFactory.Param param: techFactory.getTechParams()) {
+    private void check()
+    {
+        for (TechFactory.Param param: techFactory.getTechParams())
+        {
             String xmlPath = param.xmlPath;
             String xmlPrefix = getProjectSettings().getXmlPath();
             assert xmlPath.startsWith(xmlPrefix);
@@ -5418,8 +5422,134 @@ public class Technology implements Comparable<Technology>, Serializable
             assert setting.getPrefPath().equals(param.prefPath);
             assert setting.getFactoryValue().equals(param.factoryValue);
         }
-        for (ArcProto ap: arcs.values()) {
+        for (ArcProto ap: arcs.values())
+        {
             ap.check();
+        }
+
+        if (Job.getDebug())
+        {
+	        Map<Layer,ArcProto.Function> layToArcFunction = new HashMap<Layer,ArcProto.Function>();
+	        for (ArcProto ap: arcs.values())
+	        {
+	        	for(int i=0; i<ap.getNumArcLayers(); i++)
+	        	{
+	        		Layer lay = ap.getLayer(i);
+	        		Layer.Function fun = lay.getFunction();
+	        		if (fun.isSubstrate()) continue;
+	        		ArcProto.Function aFun = ap.getFunction();
+	        		if (aFun.isDiffusion()) aFun = ArcProto.Function.DIFF;
+//if (getTechName().equals("bipolar"))
+//	System.out.println("-------> ARC "+ap.getName()+" HAS LAYER " + lay.getName()+" WHICH IS FUNCTION " +aFun);
+	       			layToArcFunction.put(lay, aFun);
+	       			break;
+	        	}
+	        }
+
+	        // check validity of nodes
+	        boolean foundNTrans = false, foundPTrans = false;
+	        for(PrimitiveNode np : nodes.values())
+	        {
+	        	PrimitiveNode.Function fun = np.getFunction();
+	        	if (fun.isNTypeTransistor()) foundNTrans = true;
+	        	if (fun.isPTypeTransistor()) foundPTrans = true;
+	        	if (fun == PrimitiveNode.Function.CONTACT /* || fun == PrimitiveNode.Function.CONNECT */)
+	        	{
+	        		// check validity of contact nodes
+	        		Set<ArcProto.Function> neededArcFunctions = new HashSet<ArcProto.Function>();
+	        		NodeLayer [] nodeLayers = np.getLayers();
+	        		for(int i=0; i<nodeLayers.length; i++)
+	        		{
+	        			Layer lay = nodeLayers[i].layer;
+	        			ArcProto.Function aFun = layToArcFunction.get(lay);
+//if (getTechName().equals("bipolar") && np.getName().equals("PNJunction"))
+//	System.out.println("-------> "+np.getName()+" HAS LAYER " + lay.getName()+" WHICH IS FUNCTION " +aFun);
+	    				if (aFun == ArcProto.Function.WELL) continue;
+	        			if (aFun != null) neededArcFunctions.add(aFun);
+	        		}
+	        		Set<ArcProto.Function> foundArcFunctions = new HashSet<ArcProto.Function>();
+	        		for(Iterator<PrimitivePort> it = np.getPrimitivePorts(); it.hasNext(); )
+	        		{
+	        			PrimitivePort pp = it.next();
+	        			ArcProto [] connections = pp.getConnections();
+	        			for(int i=0; i<connections.length; i++)
+	        			{
+	        				ArcProto ap = connections[i];
+	        				ArcProto.Function aFun = ap.getFunction();
+	        				if (aFun == ArcProto.Function.WELL) continue;
+	                		if (aFun.isDiffusion()) aFun = ArcProto.Function.DIFF;
+	        				if (ap.getTechnology() != this || neededArcFunctions.contains(aFun))
+	        				{
+	        					foundArcFunctions.add(aFun);
+	        					continue;
+	        				}
+	    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
+	    		        		" connects to " + ap.getName() + " but probably should not because that layer is not in the node");
+	        			}
+	        			for(ArcProto.Function aFun : neededArcFunctions)
+	        			{
+	        				if (foundArcFunctions.contains(aFun)) continue;
+	    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
+	    		        		" should connect to " + aFun + " because that layer is in the node");
+	        			}
+	        		}
+	        	} else if (fun.isFET())
+	        	{
+	        		// check validity of transistors
+	        		List<PrimitivePort> traPorts = new ArrayList<PrimitivePort>();
+	        		for(Iterator<PrimitivePort> it = np.getPrimitivePorts(); it.hasNext(); )
+	        			traPorts.add(it.next());
+	        		if (traPorts.size() != 4 && traPorts.size() != 5)
+	        		{
+						System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
+			        		" should have 4 or 5 ports but has " + traPorts.size());
+	        		} else
+	        		{
+	        			PrimitivePort pLeft = traPorts.get(0);
+	        			PrimitivePort dTop = traPorts.get(1);
+	        			PrimitivePort pRight = traPorts.get(2);
+	        			PrimitivePort dBot = traPorts.get(3);
+	        			if (!getTechName().equals("tft"))
+	        			{
+		        			if (!pLeft.getConnection().getFunction().isPoly())
+		    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
+				        			", first port (" + pLeft.getName() + ") should connect to Polysilicon");
+		        			if (!dTop.getConnection().getFunction().isDiffusion())
+		    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
+				        			", second port (" + dTop.getName() + ") should connect to Active");
+		        			if (!pRight.getConnection().getFunction().isPoly())
+		    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
+				        			", third port (" + pRight.getName() + ") should connect to Polysilicon");
+		        			if (!dBot.getConnection().getFunction().isDiffusion())
+		    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
+				        			", fourth port (" + dBot.getName() + ") should connect to Active");
+	        			}
+	
+	        			if (pLeft.getTopology() != pRight.getTopology())
+	    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
+	    		        		" should connect its Polysilicon ports");
+	        			if (dTop.getTopology() == dBot.getTopology())
+	    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
+	    		        		" should not connect its Active ports to each other");
+	        			if (pLeft.getTopology() == dBot.getTopology() || pLeft.getTopology() == dTop.getTopology())
+	    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
+	    		        		" should not connect its Active ports to its Polysilicon ports");
+	        		}
+	        	}
+	        }
+
+	        // make sure there are N and P transistors
+	        if (foundNTrans != foundPTrans)
+	        {
+	        	// "nmos" technology is known to have just N transistors, "tft" has only P transistors
+	        	if (!getTechName().equals("nmos") && !getTechName().equals("tft"))
+	        	{
+		        	String has = foundNTrans ? "N" : "P";
+		        	String hasnt = foundNTrans ? "P" : "N";
+		        	System.out.println("WARNING: Technology " + getTechName() +
+		        		" has " + has + " transistors but has no " + hasnt + " transistors");
+	        	}
+	        }
         }
     }
 
