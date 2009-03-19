@@ -9,6 +9,9 @@ BUG: (3/19/09, SMR) When a new layout transistor that has a "well" or "body"
      connection and substitutes VDD or GND (Bug #2087).
 FIX: Use proper bias connection in Spice.writeCellTopology().
 
+BUG: (3/19/09, SMR) Extraction tool replaces DRC exclusion layer by SR_DPO (Bug #2084)
+FIX: Fixed node extraction so that unusual layers (like DRC) will be preserved
+
 BUG: (3/18/09, SMR) "Change" doesn't show all port errors, just the first (Bug #2083).
 FIX: In NodeInst.replace(), collect all errors and print them when done.
 
