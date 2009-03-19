@@ -37,14 +37,12 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +57,8 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-
 import org.xml.sax.SAXParseException;
+
 
 /**
  * This class manages appearance options.
@@ -251,28 +249,20 @@ public class Pref {
         Pref.clientThread = clientThread;
     }
 
-    /**
-     * Method used in regressions so it has to be public.
-     * @param fileName
-     */
-    public static void importPrefs(String fileName, EDatabase database)
+    public static void setCachedObjsFromPreferences()
     {
-        if (fileName == null) return;
+        synchronized (allGroups) {
+            for (Group group: allGroups)
+                group.setCachedObjsFromPreferences();
+        }
+	}
 
-        // import preferences
-        importPrefs(TextUtils.makeURLToFile(fileName), database);
-    }
-
-    public static void importPrefs(URL fileURL, EDatabase database)
-    {
-        if (fileURL == null) return;
-
+    public static void importPrefs(URL fileURL) {
         // import preferences
         try
 		{
             URLConnection urlCon = fileURL.openConnection();
 			InputStream inputStream = urlCon.getInputStream();
-			System.out.println("Importing preferences...");
 
 			// reset all preferences to factory values
             try {
@@ -286,20 +276,6 @@ public class Pref {
 			Preferences.importPreferences(inputStream);
 			inputStream.close();
 
-			// recache all prefs
-			delayPrefFlushing();
-            synchronized (allGroups) {
-                for (Group group: allGroups)
-                    group.setCachedObjsFromPreferences();
-                for (Technology tech: database.getTechnologies()) {
-                    for (Group group: tech.getTechnologyAllPreferences())
-                        group.setCachedObjsFromPreferences();
-        			// recache technology color information
-                    tech.cacheTransparentLayerColors();
-                }
-                database.getEnvironment().saveToPreferences();
-            }
-			resumePrefFlushing();
 		} catch (InvalidPreferencesFormatException e)
 		{
 			String message = "Invalid preferences format";
@@ -316,11 +292,7 @@ public class Pref {
             e.printStackTrace();
 			return;
 		}
-
-        Job.getExtendedUserInterface().restoreSavedBindings(false);
-        Job.getUserInterface().repaintAllWindows();
-        System.out.println("...preferences imported from " + fileURL.getFile());
-	}
+    }
 
     private static void clearPrefs(Preferences topNode) throws BackingStoreException {
         topNode.clear();
@@ -624,61 +596,6 @@ public class Pref {
     private void setCachedObjFromPreferences() {
         cachedObj = group.getValue(name, factoryObj);
     }
-
-	public static class PrefChangeBatch implements Serializable
-	{
-        private HashMap<String,HashMap<String,Object>> changesForNodes = new HashMap<String,HashMap<String,Object>>();
-
-        private void add(Pref pref, Object newValue) {
-            String nodeName = pref.group.absolutePath();
-            HashMap<String,Object> changesForTheNode = changesForNodes.get(nodeName);
-            if (changesForTheNode == null) {
-                changesForTheNode = new HashMap<String,Object>();
-                changesForNodes.put(nodeName, changesForTheNode);
-            }
-            changesForTheNode.put(pref.name, newValue);
-        }
-	}
-
-	/**
-	 * Method to start accumulation of Pref changes.
-	 * All changes to preferences after this call are gathered,
-	 * and not actually implemented.
-	 * Call "getPrefChanges()" to get the gathered changes, and call
-	 * "implementPrefChanges()" to actually make the changes.
-	 */
-	public static void gatherPrefChanges()
-	{
-	}
-
-	/**
-	 * Method to get the accumulated Pref changes.
-	 * In order to make preference changes on the server,
-	 * it is necessary to gather them on the client, and send
-	 * the changes to the server for actual change.
-	 * This method runs on the client and gets a serializable
-	 * object that can be sent to the server.
-	 * @return a collection of changes to preferences that have
-	 * been made since the call to "gatherPrefChanges()".
-	 * Call "implementPrefChanges()" with the returned collection
-	 * to actually make the changes.
-	 */
-	public static PrefChangeBatch getPrefChanges()
-	{
-		return null;
-	}
-
-	/**
-	 * Method to make a collection of preference changes.
-	 * In order to make preference changes on the server,
-	 * it is necessary to gather them on the client, and send
-	 * the changes to the server for actual change.
-	 * This method runs on the server.
-	 * @param obj the collection of preference changes.
-	 */
-	public static void implementPrefChanges(PrefChangeBatch obj)
-	{
-	}
 
     /**
 	 * Method to delay the saving of preferences to disk.

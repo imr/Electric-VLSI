@@ -25,6 +25,7 @@ package com.sun.electric.tool;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -212,7 +213,7 @@ public abstract class Job implements Serializable {
 	 * @param priority the priority of this Job.
 	 */
     public Job(String jobName, Tool tool, Type jobType, Cell upCell, Cell downCell, Priority priority) {
-        ejob = new EJob(this, jobType, jobName);
+        ejob = new EJob(this, jobType, jobName, ClientEnvironment.getThreadEnvironment());
         database = threadDatabase();
 		this.tool = tool;
 //		this.priority = priority;

@@ -41,6 +41,7 @@ import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
@@ -75,7 +76,6 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -4244,6 +4244,19 @@ public class Technology implements Comparable<Technology>, Serializable
         return new Pref.Group[] {prefs, userPrefs, drcPrefs};
     }
 
+    void loadFromPreferences(ClientEnvironment clientEnv, Map<PrimitiveNodeId,ImmutableNodeInst> defaultInsts) {
+        for (Pref.Group group: getTechnologyAllPreferences())
+            group.setCachedObjsFromPreferences();
+        cacheTransparentLayerColors();
+        for (PrimitiveNode pn: nodes.values())
+            pn.loadFromPreferences(clientEnv, defaultInsts);
+    }
+
+    void saveToPreferences(ClientEnvironment clientEnv) {
+        for (PrimitiveNode pn: nodes.values())
+            pn.saveToPreferences(clientEnv);
+    }
+
 	/**
 	 * Returns the minimum resistance of this Technology.
      * Default value is 10.0
@@ -4914,7 +4927,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	/**
 	 * Method to reload the color map when the layer color preferences have changed.
 	 */
-	public void cacheTransparentLayerColors()
+	private void cacheTransparentLayerColors()
 	{
         // recache technology color information
         for(Iterator<Layer> lIt = getLayers(); lIt.hasNext(); )

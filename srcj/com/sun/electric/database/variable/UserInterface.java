@@ -166,19 +166,6 @@ public interface UserInterface
      */
     public String askForInput(Object message, String title, String def);
 
-    /** For Pref */
-	/**
-	 * Method to import the preferences from an XML file.
-	 * Prompts the user and reads the file.
-	 */
-    public void importPrefs();
-
-    /**
-	 * Method to export the preferences to an XML file.
-	 * Prompts the user and writes the file.
-	 */
-	public void exportPrefs();
-
     /**
      * Method to start the display of a progress dialog.
      * @param msg the message to show in the progress dialog.

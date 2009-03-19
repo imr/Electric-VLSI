@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -307,19 +308,6 @@ public final class Main
          * @return the string (null if cancelled).
          */
         public String askForInput(Object message, String title, String def) { return def; }
-
-        /** For Pref */
-        /**
-         * Method to import the preferences from an XML file.
-         * Prompts the user and reads the file.
-         */
-        public void importPrefs() {;}
-
-        /**
-         * Method to export the preferences to an XML file.
-         * Prompts the user and writes the file.
-         */
-        public void exportPrefs() {;}
 	}
 
 	/** check if command line option 'option' present in
@@ -424,6 +412,7 @@ public final class Main
 //            Input.changesQuiet(false);
 
             if (Job.BATCHMODE) {
+                ClientEnvironment.setThreadEnvironment(new ClientEnvironment());
                 if (beanShellScript != null)
                     EvalJavaBsh.runScript(beanShellScript);
             }

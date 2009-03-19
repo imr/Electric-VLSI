@@ -1489,6 +1489,10 @@ public class Schematics extends Technology
 
         //Foundry
         newFoundry(Foundry.Type.NONE, null);
+
+        for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); ) {
+            getPrefForPrimitive(it.next());
+        }
 	}
 
 	private Technology.NodeLayer [] buildTransistorDescription(boolean nmos, boolean depletion,
@@ -2908,11 +2912,11 @@ public class Schematics extends Technology
 		if (pref == null)
 		{
 			String def = "";
-			if (np == Schematics.tech().bufferNode) def = "buffer/inverter"; else
-				if (np == Schematics.tech().andNode) def = "and/nand"; else
-					if (np == Schematics.tech().orNode) def = "or/nor"; else
-						if (np == Schematics.tech().xorNode) def = "xor/xnor"; else
-							if (np == Schematics.tech().muxNode) def = "mux";
+			if (np == bufferNode) def = "buffer/inverter"; else
+				if (np == andNode) def = "and/nand"; else
+					if (np == orNode) def = "or/nor"; else
+						if (np == xorNode) def = "xor/xnor"; else
+							if (np == muxNode) def = "mux";
 			pref = Pref.makeStringPref("SchematicVHDLStringFor"+np.getName(), getTechnologyPreferences(), def);
 			primPrefs.put(np, pref);
 		}

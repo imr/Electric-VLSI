@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.EditWindow_;
@@ -71,6 +72,7 @@ import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
@@ -176,7 +178,7 @@ public class FileMenu {
                 new EMenuItem("_Text Cell Contents...") { public void run() {
                     TextWindow.readTextCell(); }},
                 new EMenuItem("_Preferences...") { public void run() {
-                    Job.getUserInterface().importPrefs(); }},
+                    importPrefsCommand(); }},
                 new EMenuItem("Project Settings...") { public void run() {
                     ProjSettings.importSettings(); }},
                 new EMenuItem("XML Error Logger...") { public void run() {
@@ -235,7 +237,7 @@ public class FileMenu {
                 new EMenuItem("_JELIB (Version 8.03)...") { public void run() {	// really since 8.04k
                     saveOldJelib(); }},
                 new EMenuItem("P_references...") { public void run() {
-                    Job.getUserInterface().exportPrefs(); }},
+                    exportPrefsCommand(); }},
                 new EMenuItem("Project Settings...") { public void run() {
                     ProjSettings.exportSettings(); }}
             ),
@@ -1190,6 +1192,33 @@ public class FileMenu {
             return true;
         }
     }
+
+	/**
+	 * Method to import the preferences from an XML file.
+	 * Prompts the user and reads the file.
+	 */
+    public static void importPrefsCommand()
+    {
+		// prompt for the XML file
+        String fileName = OpenFile.chooseInputFile(FileType.PREFS, "Saved Preferences");
+        if (fileName == null) return;
+
+        UserInterfaceMain.importPrefs(TextUtils.makeURLToFile(fileName));
+    }
+
+    /**
+	 * Method to export the preferences to an XML file.
+	 * Prompts the user and writes the file.
+	 */
+	public static void exportPrefsCommand()
+	{
+		// prompt for the XML file
+        String fileName = OpenFile.chooseOutputFile(FileType.PREFS, "Saved Preferences", "electricPrefs.xml");
+        if (fileName == null) return;
+
+        Pref.exportPrefs(fileName);
+    }
+
 
     /**
      * This method checks database invariants.

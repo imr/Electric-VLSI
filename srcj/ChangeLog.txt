@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+IMP: (3/19/09, DN) Thread-local ClientEnvironment object to explicitely represent default primitive sizes.
+
 BUG: (3/19/09, SMR) When a new layout transistor that has a "well" or "body"
      port is used, and that port is connected, the Spice output ignores the
      connection and substitutes VDD or GND (Bug #2087).

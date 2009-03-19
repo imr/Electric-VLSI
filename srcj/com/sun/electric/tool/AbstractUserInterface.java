@@ -27,6 +27,7 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ErrorLogger;
+
 import java.util.List;
 
 /**
@@ -54,8 +55,6 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
                                               List<ErrorLogger.MessageLog> delErrors) {
         if (!newErrors.isEmpty()) System.out.println(newErrors.size() + " drc errors in " + cell);
     }
-
-    public void restoreSavedBindings(boolean initialCall) {;}
 
     /**
      * Save current state of highlights and return its ID.

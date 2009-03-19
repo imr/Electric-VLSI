@@ -32,18 +32,17 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ErrorLoggerTree;
@@ -63,6 +62,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -171,6 +171,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         public void run() {
             assert SwingUtilities.isEventDispatchThread();
             Pref.setClientThread(Thread.currentThread());
+            ClientEnvironment.setThreadEnvironment(new ClientEnvironment());
             // see if there is a Mac OS/X interface
             if (Client.isOSMac()) {
                 try {
@@ -494,39 +495,23 @@ public class UserInterfaceMain extends AbstractUserInterface
     }
 
     /** For Pref */
-	/**
-	 * Method to import the preferences from an XML file.
-	 * Prompts the user and reads the file.
-	 */
-    public void importPrefs()
-    {
-		// prompt for the XML file
-        String fileName = OpenFile.chooseInputFile(FileType.PREFS, "Saved Preferences");
-        if (fileName == null) return;
+    public static void importPrefs(URL fileURL) {
+        assert SwingUtilities.isEventDispatchThread();
+        if (fileURL == null) return;
+        System.out.println("Importing preferences...");
+        Pref.importPrefs(fileURL);
+        EDatabase database = EDatabase.clientDatabase();
+        database.getEnvironment().saveToPreferences();
 
-        Pref.importPrefs(fileName, EDatabase.clientDatabase());
-    }
-
-    /**
-	 * Method to export the preferences to an XML file.
-	 * Prompts the user and writes the file.
-	 */
-	public void exportPrefs()
-	{
-		// prompt for the XML file
-        String fileName = OpenFile.chooseOutputFile(FileType.PREFS, "Saved Preferences", "electricPrefs.xml");
-        if (fileName == null) return;
-
-        Pref.exportPrefs(fileName);
+        // recache all prefs
+        Pref.setCachedObjsFromPreferences();
+        loadClientEnvironmentFromPreferences(database.getTechPool());
+        TopLevel.getCurrentJFrame().getEMenuBar().restoreSavedBindings(false); //trying to cache again
+        WindowFrame.repaintAllWindows();
+        System.out.println("...preferences imported from " + fileURL.getFile());
     }
 
     // ExtendedUserInterface
-
-    public void restoreSavedBindings(boolean initialCall)
-    {
-        TopLevel top = TopLevel.getCurrentJFrame();
-        top.getEMenuBar().restoreSavedBindings(false); //trying to cache again
-    }
 
     /**
      * Save current state of highlights and return its ID.
@@ -698,15 +683,14 @@ public class UserInterfaceMain extends AbstractUserInterface
             this.undoRedo = undoRedo;
         }
         public void run() {
+            assert SwingUtilities.isEventDispatchThread();
             DatabaseChangeEvent event = new DatabaseChangeEvent(currentSnapshot, newSnapshot);
-            if (newSnapshot.environment != currentSnapshot.environment) {
+            Snapshot oldSnapshot = currentSnapshot;
+            currentSnapshot = newSnapshot;
+            if (newSnapshot.environment != oldSnapshot.environment) {
                 Environment.setThreadEnvironment(newSnapshot.environment);
-                if (newSnapshot.techPool != currentSnapshot.techPool) {
-                    for (Technology tech: newSnapshot.techPool.values()) {
-                        for (Pref.Group group: tech.getTechnologyAllPreferences())
-                            group.setCachedObjsFromPreferences();
-                        tech.cacheTransparentLayerColors();
-                    }
+                if (newSnapshot.techPool != oldSnapshot.techPool) {
+                    loadClientEnvironmentFromPreferences(newSnapshot.techPool);
                     User.technologyChanged();
                     WindowFrame.updateTechnologyLists();
                     WindowFrame.repaintAllWindows();
@@ -714,12 +698,32 @@ public class UserInterfaceMain extends AbstractUserInterface
             }
             for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
                 Listener listener = it.next();
-                listener.endBatch(currentSnapshot, newSnapshot, undoRedo);
+                listener.endBatch(oldSnapshot, newSnapshot, undoRedo);
             }
-            currentSnapshot = newSnapshot;
             fireDatabaseChangeEvent(event);
         }
 	}
+
+    private static void loadClientEnvironmentFromPreferences(TechPool techPool) {
+        ClientEnvironment clientEnv = getClientEnvironment();
+        ClientEnvironment newClientEnv = techPool.loadClientEvnironmentFromPreferences(clientEnv);
+        if (newClientEnv == clientEnv) return;
+        ClientEnvironment.setThreadEnvironment(newClientEnv);
+    }
+
+    public static ClientEnvironment getClientEnvironment() {
+        assert SwingUtilities.isEventDispatchThread();
+        return ClientEnvironment.getThreadEnvironment();
+    }
+
+    public static void setClientEnvironment(ClientEnvironment newClientEnv) {
+        ClientEnvironment oldClientEnv = getClientEnvironment();
+        if (newClientEnv == oldClientEnv) return;
+        ClientEnvironment.setThreadEnvironment(newClientEnv);
+        Pref.delayPrefFlushing();
+        EDatabase.clientDatabase().getTechPool().saveClientEnvironmentToPreferences(newClientEnv);
+        Pref.resumePrefFlushing();
+    }
 
     private int lastId = 0;
     private ArrayList<SavedHighlights> savedHighlights = new ArrayList<SavedHighlights>();

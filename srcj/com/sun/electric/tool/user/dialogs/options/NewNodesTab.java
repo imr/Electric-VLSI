@@ -23,16 +23,22 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.id.PrimitiveNodeId;
+import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -67,7 +73,7 @@ public class NewNodesTab extends PreferencePanel
 	{
 		double initialWid, wid;
 		double initialHei, hei;
-		Variable var;
+//		Variable var;
 	}
 	private Map<PrimitiveNode,PrimNodeInfo> initialNewNodesPrimInfo;
 	private boolean newNodesDataChanging = false;
@@ -112,7 +118,7 @@ public class NewNodesTab extends PreferencePanel
 		nodeMoveAfterDuplicate.setSelected(User.isMoveAfterDuplicate());
 		nodeDupArrayCopyExports.setSelected(User.isDupCopiesExports());
 		nodeExtractCopyExports.setSelected(User.isExtractCopiesExports());
-	
+
 		// setup listeners to react to any changes to a primitive size
 		technologySelection.addActionListener(new ActionListener()
 		{
@@ -193,22 +199,22 @@ public class NewNodesTab extends PreferencePanel
 	 */
 	public void term()
 	{
+        ClientEnvironment oldClientEnv = UserInterfaceMain.getClientEnvironment();
+        Map<PrimitiveNodeId,ImmutableNodeInst> defaultNodes = new HashMap<PrimitiveNodeId,ImmutableNodeInst>();
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = tIt.next();
 			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode np = it.next();
+                ERectangle baseRectangle = np.getBaseRectangle();
 				PrimNodeInfo pni = initialNewNodesPrimInfo.get(np);
-				if (pni.wid != pni.initialWid || pni.hei != pni.initialHei)
-				{
-					SizeOffset so = np.getProtoSizeOffset();
-					double wid = pni.wid + so.getLowXOffset() + so.getHighXOffset();
-					double hei = pni.hei + so.getLowYOffset() + so.getHighYOffset();
-					np.setDefSize(wid, hei);
-				}
+                EPoint size = EPoint.fromLambda(pni.wid - baseRectangle.getLambdaWidth(), pni.hei - baseRectangle.getLambdaHeight());
+                if (size.equals(np.getFactoryDefaultInst().size)) continue;
+                defaultNodes.put(np.getId(), np.getDefaultInst(oldClientEnv).withSize(size));
 			}
 		}
+        UserInterfaceMain.setClientEnvironment(oldClientEnv.withDefaultNodes(defaultNodes));
 
 		boolean currBoolean = nodeCheckCellDates.isSelected();
 		if (currBoolean != User.isCheckCellDates())
@@ -256,17 +262,8 @@ public class NewNodesTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
-		{
-			Technology tech = tIt.next();
-			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
-			{
-				PrimitiveNode np = it.next();	
-				if (np.getDefaultLambdaBaseWidth() != np.getFactoryDefaultLambdaBaseWidth() ||
-					np.getDefaultLambdaBaseHeight() != np.getFactoryDefaultLambdaBaseHeight())
-						np.setDefSize(np.getFactoryDefaultLambdaBaseWidth(), np.getFactoryDefaultLambdaBaseHeight());
-			}
-		}
+        Map<PrimitiveNodeId,ImmutableNodeInst> defaultNodes = Collections.emptyMap();
+        UserInterfaceMain.setClientEnvironment(UserInterfaceMain.getClientEnvironment().withDefaultNodes(defaultNodes));
 
 		if (User.isFactoryCheckCellDates() != User.isCheckCellDates())
 			User.setCheckCellDates(User.isFactoryCheckCellDates());

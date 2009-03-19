@@ -30,14 +30,13 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.SetFocus;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
@@ -370,7 +369,7 @@ public class WindowMenu {
 	        layerTab.setVisibilityLevel(level);
     	} else
     	{
-    		layerTab.setInvisibleLayerConfiguration(cName);    		
+    		layerTab.setInvisibleLayerConfiguration(cName);
     	}
     }
 
@@ -983,57 +982,29 @@ public class WindowMenu {
     }
 
     /**
-     * Inner job class to import Cadence colors
-     */
-    private static class ImportCadenceColorJob extends Job
-    {
-        private int response;
-        private String backFileName;
-
-        ImportCadenceColorJob(int r, String file)
-        {
-            super("Importing Cadence Colors", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
-            response = r;
-            backFileName = file;
-            this.startJob();
-        }
-
-        public boolean doIt() throws JobException
-        {
-            if (response == 0) // Save previous preferences
-            {
-                if (backFileName != null)
-                    Pref.exportPrefs(backFileName);
-                else
-                   System.out.println("Previous Preferences not backup");
-            }
-            if (response != 2) // cancel
-            {
-                String cadenceFileName = "CadencePrefs.xml";
-                URL fileURL = Resources.getURLResource(TopLevel.class, cadenceFileName);
-                if (fileURL != null)
-                    Pref.importPrefs(fileURL, EDatabase.serverDatabase());
-                else
-                    System.out.println("Cannot import '" + cadenceFileName + "'");
-            }
-            return true;
-        }
-    }
-    /**
      * Method to import color pattern used in Cadence
      */
     private static void importCadencePreferences()
     {
-        String backFileName = null;
         String [] options = { "Yes", "No", "Cancel Import"};
         int response = Job.getUserInterface().askForChoice("Do you want to backup your preferences " +
              "before importing Cadence values?", "Import Cadence Preferences", options, options[1]);
         if (response == 0) // Save previous preferences
         {
-            String fileName = OpenFile.chooseOutputFile(FileType.XML, "Backup Preferences", "electricPrefsBack.xml");
-            if (fileName != null)
-                backFileName = fileName; // only if it didn't cancel the dialog
+            String backFileName = OpenFile.chooseOutputFile(FileType.XML, "Backup Preferences", "electricPrefsBack.xml");
+            if (backFileName != null)
+                Pref.exportPrefs(backFileName);
+            else
+               System.out.println("Previous Preferences not backup");
         }
-        new ImportCadenceColorJob(response, backFileName);
+        if (response != 2) // cancel
+        {
+            String cadenceFileName = "CadencePrefs.xml";
+            URL fileURL = Resources.getURLResource(TopLevel.class, cadenceFileName);
+            if (fileURL != null)
+                UserInterfaceMain.importPrefs(fileURL);
+            else
+                System.out.println("Cannot import '" + cadenceFileName + "'");
+        }
     }
 }

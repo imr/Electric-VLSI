@@ -24,14 +24,11 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.CellModelPrefs;
 import com.sun.electric.tool.ncc.Pie;
 import com.sun.electric.tool.routing.Routing;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.options.AntennaRulesTab;
 import com.sun.electric.tool.user.dialogs.options.CDLTab;
 import com.sun.electric.tool.user.dialogs.options.CIFTab;
@@ -81,7 +78,7 @@ import com.sun.electric.tool.user.dialogs.options.UnitsTab;
 import com.sun.electric.tool.user.dialogs.options.VerilogTab;
 import com.sun.electric.tool.user.dialogs.options.WellCheckTab;
 import com.sun.electric.tool.user.help.ManualViewer;
-import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -97,7 +94,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -422,12 +418,21 @@ public class PreferencesFrame extends EDialog
 
 	private void okActionPerformed()
 	{
-		new OKUpdate(this, true);
+        for(PreferencePanel ti : optionPanes)
+        {
+            if (ti.isInited())
+                ti.term();
+        }
+        closeDialog(null);
 	}
 
 	private void applyActionPerformed()
 	{
-		new OKUpdate(this, false);
+        for(PreferencePanel ti : optionPanes)
+        {
+            if (ti.isInited())
+                ti.term();
+        }
 	}
 
 	private void resetActionPerformed()
@@ -483,32 +488,15 @@ public class PreferencesFrame extends EDialog
 
 	private void exportActionPerformed()
 	{
-		Job.getUserInterface().exportPrefs();
+		FileMenu.exportPrefsCommand();
 	}
 
 	private void importActionPerformed()
 	{
-		Job.getUserInterface().importPrefs();
-		TopLevel top = TopLevel.getCurrentJFrame();
-		top.getEMenuBar().restoreSavedBindings(false); // trying to cache again
-
-		// recache all layers and their graphics
-        for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
-            // recache technology color information
-            Technology tech = it.next();
-            tech.cacheTransparentLayerColors();
-        }
+		FileMenu.importPrefsCommand();
 
 		// close dialog now because all values are cached badly
 		closeDialog(null);
-
-		// redraw everything
-		EditWindow.repaintAllContents();
-		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = it.next();
-			wf.loadComponentMenuForTechnology();
-		}
 	}
 
 	private void loadOptionPanel()
@@ -529,44 +517,6 @@ public class PreferencesFrame extends EDialog
 	}
 
 	protected void escapePressed() { cancelActionPerformed(); }
-
-	/**
-	 * Class to update primitive node information.
-	 */
-	private static class OKUpdate extends Job
-	{
-		private transient PreferencesFrame dialog;
-		private Pref.PrefChangeBatch changeBatch;
-		private transient boolean andDone;
-
-		private OKUpdate(PreferencesFrame dialog, boolean andDone)
-		{
-			super("Update Preferences", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
-			this.andDone = andDone;
-
-			// gather preference changes on the client
-			Pref.gatherPrefChanges();
-			for(PreferencePanel ti : dialog.optionPanes)
-			{
-				if (ti.isInited())
-					ti.term();
-			}
-			changeBatch = Pref.getPrefChanges();
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			Pref.implementPrefChanges(changeBatch);
-			return true;
-		}
-
-		public void terminateOK()
-		{
-			if (andDone) dialog.closeDialog(null);
-		}
-	}
 
 	private static class TreeHandler implements MouseListener, TreeExpansionListener
 	{

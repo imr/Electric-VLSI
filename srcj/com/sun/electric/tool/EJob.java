@@ -27,6 +27,7 @@ import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.tool.Job.Type;
 
 import java.io.ByteArrayInputStream;
@@ -62,6 +63,7 @@ class EJob {
     
     Snapshot oldSnapshot;
     Snapshot newSnapshot;
+    ClientEnvironment clientEnv;
     
     /** progress */                             /*private*/ String progress = null;
     byte[] serializedJob;
@@ -82,11 +84,12 @@ class EJob {
         serializedJob = bytes;
     }
     
-    EJob(Job job, Job.Type jobType, String jobName) {
+    EJob(Job job, Job.Type jobType, String jobName, ClientEnvironment clientEnv) {
         this.jobType = jobType;
         this.jobName = jobName;
         state = State.CLIENT_WAITING;
         serverJob = clientJob = job;
+        this.clientEnv = clientEnv;
     }
     
     Job getJob() { return clientJob != null ? clientJob : serverJob; }

@@ -637,22 +637,6 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         }
 
         /**
-         * Method to import the preferences from an XML file.
-         * Prompts the user and reads the file.
-         */
-        public void importPrefs() {
-            printStackTrace("importPrefs");
-        }
-
-        /**
-         * Method to export the preferences to an XML file.
-         * Prompts the user and writes the file.
-         */
-        public void exportPrefs() {
-            printStackTrace("exportPrefs");
-        }
-
-        /**
          * Save current state of highlights and return its ID.
          */
         public int saveHighlights() { return -1; }

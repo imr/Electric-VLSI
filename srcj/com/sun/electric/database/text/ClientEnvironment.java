@@ -24,22 +24,35 @@
  */
 package com.sun.electric.database.text;
 
+import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.id.ArcProtoId;
+import com.sun.electric.database.id.PrimitiveNodeId;
+
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class to mirror on a server a portion of client environment
  */
 public class ClientEnvironment {
     private static final ThreadLocal<ClientEnvironment> threadEnvironment = new ThreadLocal<ClientEnvironment>();
-    
-    private HashMap<String,Object> serverPrefValues = new HashMap<String,Object>();
 
-    public Object getValue(Pref pref) {
-        Object factoryValue = pref.getFactoryValue();
-        Object value = serverPrefValues.get(pref.getPrefPath());
-        if (value == null || value.equals(factoryValue) || value.getClass() != factoryValue.getClass())
-            value = factoryValue;
-        return value;
+    private HashMap<PrimitiveNodeId,ImmutableNodeInst> defaultNodes = new HashMap<PrimitiveNodeId,ImmutableNodeInst>();
+    private HashMap<ArcProtoId,ImmutableArcInst> defaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>();
+
+    public ClientEnvironment() {
+    }
+    
+    public ClientEnvironment withDefaultNodes(Map<PrimitiveNodeId,ImmutableNodeInst> defaultNodes) {
+        if (this.defaultNodes.equals(defaultNodes)) return this;
+        ClientEnvironment newEnv = new ClientEnvironment();
+        newEnv.defaultNodes.putAll(defaultNodes);
+        return newEnv;
+    }
+    
+    public ImmutableNodeInst getDefaultNode(PrimitiveNodeId pnId) {
+        return defaultNodes.get(pnId);
     }
 
     public static ClientEnvironment getThreadEnvironment() {
@@ -51,5 +64,4 @@ public class ClientEnvironment {
         threadEnvironment.set(environment);
         return oldEnvironment;
     }
-
 }

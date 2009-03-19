@@ -638,7 +638,7 @@ public class TechToLib
 						{
 							ni.setName(altPNp.getName());
 							TextDescriptor td = ni.getTextDescriptor(NodeInst.NODE_NAME).withOff(0,
-								-altPNp.getDefaultLambdaBaseHeight()*1.5);
+								-altPNp.getFactoryDefaultLambdaBaseHeight()*1.5);
 							ni.setTextDescriptor(NodeInst.NODE_NAME, td);
 						}
 

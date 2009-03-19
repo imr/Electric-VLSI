@@ -25,10 +25,12 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
@@ -37,6 +39,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ArrayIterator;
+import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -795,6 +798,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     /** full (true) rectangle of standard node */   private ERectangle fullRectangle;
 	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
 	/** template for Spice decks (null if none) */	private String spiceTemplate;
+    /** factory client data */                      ImmutableNodeInst factoryDefaultInst;
     /** Pref for node width. */                     private final Pref defaultExtendXPref;
     /** Pref for node height. */                    private final Pref defaultExtendYPref;
 
@@ -828,9 +832,11 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         }
 
         double factoryExtendX = DBMath.round(0.5*(defWidth - fullRectangle.getLambdaWidth()));
-        defaultExtendXPref = Pref.makeDoubleServerPref("DefaultExtendXFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendX);
+        defaultExtendXPref = Pref.makeDoublePref("DefaultExtendXFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendX);
         double factoryExtendY = DBMath.round(0.5*(defHeight - fullRectangle.getLambdaHeight()));
-        defaultExtendYPref = Pref.makeDoubleServerPref("DefaultExtendYFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendY);
+        defaultExtendYPref = Pref.makeDoublePref("DefaultExtendYFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendY);
+        factoryDefaultInst = ImmutableNodeInst.newInstance(0, protoId, function.getBasename(), null, Orientation.IDENT,
+                EPoint.ORIGIN, EPoint.fromLambda(factoryExtendX*2, factoryExtendY*2), 0, 0, null);
 
         double lx = baseRectangle.getLambdaMinX() - fullRectangle.getLambdaMinX();
         double hx = fullRectangle.getLambdaMaxX() - baseRectangle.getLambdaMaxX();
@@ -1228,22 +1234,12 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     public boolean isMulticut() { return numMultiCuts == 1; }
 
 	/**
-	 * Method to set the default size of this PrimitiveNode.
-	 * @param defWidth the new default width of this PrimitiveNode.
-	 * @param defHeight the new default height of this PrimitiveNode.
-	 */
-	public void setDefSize(double defWidth, double defHeight)
-	{
-		defaultExtendXPref.setDouble(DBMath.round(0.5*(defWidth - fullRectangle.getLambdaWidth())));
-		defaultExtendYPref.setDouble(DBMath.round(0.5*(defHeight - fullRectangle.getLambdaHeight())));
-	}
-
-	/**
 	 * Method to return the default full width of this PrimitiveNode.
 	 * @return the default width of this PrimitiveNode.
 	 */
 	public double getDefWidth() {
-        return DBMath.gridToLambda(fullRectangle.getGridWidth() + 2*getDefaultGridExtendX());
+        ClientEnvironment env = ClientEnvironment.getThreadEnvironment();
+        return DBMath.gridToLambda(fullRectangle.getGridWidth() + 2*getDefaultGridExtendX(env));
     }
 
 	/**
@@ -1251,15 +1247,18 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @return the default height of this PrimitiveNode.
 	 */
 	public double getDefHeight() {
-        return DBMath.gridToLambda(fullRectangle.getGridHeight() + 2*getDefaultGridExtendY());
+        ClientEnvironment env = ClientEnvironment.getThreadEnvironment();
+        return DBMath.gridToLambda(fullRectangle.getGridHeight() + 2*getDefaultGridExtendY(env));
     }
 
 	/**
-	 * Method to return the default base width of this PrimitiveNode in lambda units.
+	 * Method to return the default base width of this PrimitiveNode in lambda units
+     * in specified client environment.
+     * @param env spicified ClientEnvironment
 	 * @return the default base width of this PrimitiveNode in lambda units.
 	 */
-	public double getDefaultLambdaBaseWidth() {
-        return DBMath.gridToLambda(getDefaultGridBaseWidth());
+	public double getDefaultLambdaBaseWidth(ClientEnvironment env) {
+        return DBMath.gridToLambda(getDefaultGridBaseWidth(env));
     }
 
 	/**
@@ -1271,11 +1270,13 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     }
 
 	/**
-	 * Method to return the default base hwight of this PrimitiveNode in lambda units.
+	 * Method to return the default base hwight of this PrimitiveNode in lambda units
+     * in specified client environment.
+     * @param env spicified ClientEnvironment
 	 * @return the default base height of this PrimitiveNode in lambda units.
 	 */
-	public double getDefaultLambdaBaseHeight() {
-        return DBMath.gridToLambda(getDefaultGridBaseHeight());
+	public double getDefaultLambdaBaseHeight(ClientEnvironment env) {
+        return DBMath.gridToLambda(getDefaultGridBaseHeight(env));
     }
 
 	/**
@@ -1288,11 +1289,13 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
 
 	/**
-	 * Method to return the default base width of this PrimitiveNode in grid units.
+	 * Method to return the default base width of this PrimitiveNode in grid units
+     * in specified client environment.
+     * @param env spicified ClientEnvironment
 	 * @return the default base width of this PrimitiveNode in grid units.
 	 */
-	public long getDefaultGridBaseWidth() {
-        return baseRectangle.getGridWidth() + 2*getDefaultGridExtendX();
+	public long getDefaultGridBaseWidth(ClientEnvironment env) {
+        return baseRectangle.getGridWidth() + getDefaultInst(env).size.getGridX();
     }
 
 	/**
@@ -1300,16 +1303,18 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @return the factory default base width of this PrimitiveNode in grid units.
 	 */
 	public long getFactoryDefaultGridBaseWidth() {
-        return baseRectangle.getGridWidth() + 2*getFactoryDefaultGridExtendX();
+        return baseRectangle.getGridWidth() + factoryDefaultInst.size.getGridX();
     }
 
 
 	/**
-	 * Method to return the default base height of this PrimitiveNode in grid units.
+	 * Method to return the default base height of this PrimitiveNode in grid units
+     * in specified client environment
+     * @param env spicified ClientEnvironment
 	 * @return the default base height of this PrimitiveNode in grid units.
 	 */
-	public long getDefaultGridBaseHeight() {
-        return baseRectangle.getGridHeight() + 2*getDefaultGridExtendY();
+	public long getDefaultGridBaseHeight(ClientEnvironment env) {
+        return baseRectangle.getGridHeight() + getDefaultInst(env).size.getGridY();
     }
 
 	/**
@@ -1317,7 +1322,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @return the factory default base height of this PrimitiveNode in grid units.
 	 */
 	public long getFactoryDefaultGridBaseHeight() {
-        return baseRectangle.getGridHeight() + 2*getFactoryDefaultGridExtendY();
+        return baseRectangle.getGridHeight() + factoryDefaultInst.size.getGridY();
     }
 
 	/**
@@ -1325,8 +1330,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
      * in lambda units.
 	 * @return the defaut extend of this PrimitiveNode over minimal width in lambda units.
 	 */
-	public double getDefaultLambdaExtendX() {
-        return DBMath.gridToLambda(getDefaultGridExtendX());
+	public double getDefaultLambdaExtendX(ClientEnvironment env) {
+        return getDefaultInst(env).size.getLambdaX()*0.5;
     }
 
 	/**
@@ -1334,26 +1339,28 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
      * in lambda units.
 	 * @return the defaut extend of this PrimitiveNode overn ninimal height in lambda units.
 	 */
-	public double getDefaultLambdaExtendY() {
-        return DBMath.gridToLambda(getDefaultGridExtendY());
+	public double getDefaultLambdaExtendY(ClientEnvironment env) {
+        return getDefaultInst(env).size.getLambdaY()*0.5;
     }
 
 	/**
 	 * Method to return the defaut extend of this PrimitiveNode over minimal width\
-     * in grid units.
+     * in grid units in specified client environment.
+     * @param env spicified ClientEnvironment
 	 * @return the defaut extend of this PrimitiveNode over minimal width in grid units.
 	 */
-	public long getDefaultGridExtendX() {
-        return DBMath.lambdaToGrid(defaultExtendXPref.getDouble());
+	public long getDefaultGridExtendX(ClientEnvironment env) {
+        return getDefaultInst(env).size.getGridX() >> 1;
     }
 
 	/**
 	 * Method to return the defaut extend of this PrimitiveNode over minimal height\
-     * in grid units.
+     * in grid units in specified client environment.
+     * @param env spicified ClientEnvironment
 	 * @return the defaut extend of this PrimitiveNode overn ninimal height in grid units.
 	 */
-	public long getDefaultGridExtendY() {
-        return DBMath.lambdaToGrid(defaultExtendYPref.getDouble());
+	public long getDefaultGridExtendY(ClientEnvironment env) {
+        return getDefaultInst(env).size.getGridY() >> 1;
     }
 
 	/**
@@ -1362,7 +1369,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @return the defaut extend of this PrimitiveNode over minimal width in grid units.
 	 */
 	public long getFactoryDefaultGridExtendX() {
-        return DBMath.lambdaToGrid(defaultExtendXPref.getDoubleFactoryValue());
+        return factoryDefaultInst.size.getGridX() >> 1;
     }
 
 	/**
@@ -1371,7 +1378,26 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @return the defaut extend of this PrimitiveNode overn ninimal height in grid units.
 	 */
 	public long getFactoryDefaultGridExtendY() {
-        return DBMath.lambdaToGrid(defaultExtendYPref.getDoubleFactoryValue());
+        return factoryDefaultInst.size.getGridY() >> 1;
+    }
+
+    /**
+     * Method to return the default immutable instance of this PrimitiveNode
+     * in specified client environment
+     * @param env spicified ClientEnvironment
+     * @return the default immutable instance of this PrimitiveNode
+     */
+    public ImmutableNodeInst getDefaultInst(ClientEnvironment env) {
+        ImmutableNodeInst defaultInst = env.getDefaultNode(protoId);
+        return defaultInst != null ? defaultInst : factoryDefaultInst;
+    }
+
+    /**
+     * Method to return the factory default immutable instance of this PrimitiveNode
+     * @return the factory default immutable instance of this PrimitiveNode
+     */
+    public ImmutableNodeInst getFactoryDefaultInst() {
+        return factoryDefaultInst;
     }
 
 	/**
@@ -2172,9 +2198,24 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             primPorts[i].copyState(that.primPorts[i]);
 
         if (function == Function.NODE) {
+            factoryDefaultInst = that.factoryDefaultInst;
             defaultExtendXPref.patchDoubleFactoryValue(that.defaultExtendXPref.getDoubleFactoryValue());
             defaultExtendYPref.patchDoubleFactoryValue(that.defaultExtendYPref.getDoubleFactoryValue());
         }
+    }
+
+    void loadFromPreferences(ClientEnvironment env, Map<PrimitiveNodeId,ImmutableNodeInst> newDefaultNodes) {
+        double extendX = DBMath.round(defaultExtendXPref.getDouble());
+        double extendY = DBMath.round(defaultExtendYPref.getDouble());
+        EPoint size = EPoint.fromLambda(extendX*2, extendY*2);
+        if (!size.equals(factoryDefaultInst.size))
+            newDefaultNodes.put(protoId, getDefaultInst(env).withSize(size));
+    }
+
+    void saveToPreferences(ClientEnvironment env) {
+        ImmutableNodeInst defaultInst = getDefaultInst(env);
+        defaultExtendXPref.setDouble(defaultInst.size.getLambdaX()*0.5);
+        defaultExtendYPref.setDouble(defaultInst.size.getLambdaY()*0.5);
     }
 
     private static final String[] nodeBits = {

@@ -35,6 +35,7 @@ import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.ArrayIterator;
+import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -445,6 +446,18 @@ public class TechPool extends AbstractMap<TechId, Technology> {
     @Override
     public boolean equals(Object o) {
         return o instanceof TechPool ? equals((TechPool) o) : super.equals(o);
+    }
+
+    public ClientEnvironment loadClientEvnironmentFromPreferences(ClientEnvironment oldClientEnv) {
+        Map<PrimitiveNodeId,ImmutableNodeInst> newDefaultNodes = new HashMap<PrimitiveNodeId,ImmutableNodeInst>();
+        for (Technology tech: values())
+            tech.loadFromPreferences(oldClientEnv, newDefaultNodes);
+        return oldClientEnv.withDefaultNodes(newDefaultNodes);
+    }
+
+    public void saveClientEnvironmentToPreferences(ClientEnvironment clientEnv) {
+        for (Technology tech: values())
+            tech.saveToPreferences(clientEnv);
     }
 
     /**
