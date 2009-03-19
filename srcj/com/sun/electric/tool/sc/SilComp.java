@@ -105,7 +105,7 @@ public class SilComp extends Tool
 
 	/****************************** OPTIONS ******************************/
 
-	private static Pref cacheNumberOfRows = Pref.makeIntServerPref("NumberOfRows", tool.prefs, 4);
+	private static Pref cacheNumberOfRows = Pref.makeIntPref("NumberOfRows", tool.prefs, 4);
 	/**
 	 * Method to return the number of rows of cells to make.
 	 * The default is 4.
@@ -124,7 +124,7 @@ public class SilComp extends Tool
 	public static int getFactoryNumberOfRows() { return cacheNumberOfRows.getIntFactoryValue(); }
 
 
-	private static Pref cacheHorizRoutingArc = Pref.makeStringServerPref("HorizRoutingArc", tool.prefs, "Metal-1");
+	private static Pref cacheHorizRoutingArc = Pref.makeStringPref("HorizRoutingArc", tool.prefs, "Metal-1");
 	/**
 	 * Method to return the horizontal routing arc.
 	 * The default is "Metal-1".
@@ -142,7 +142,7 @@ public class SilComp extends Tool
 	 */
 	public static String getFactoryHorizRoutingArc() { return cacheHorizRoutingArc.getStringFactoryValue(); }
 
-	private static Pref cacheHorizRoutingWidth = Pref.makeDoubleServerPref("HorizArcWidth", tool.prefs, 4);
+	private static Pref cacheHorizRoutingWidth = Pref.makeDoublePref("HorizArcWidth", tool.prefs, 4);
 	/**
 	 * Method to return the width of the horizontal routing arc.
 	 * The default is 4.
@@ -161,7 +161,7 @@ public class SilComp extends Tool
 	public static double getFactoryHorizArcWidth() { return cacheHorizRoutingWidth.getDoubleFactoryValue(); }
 
 
-	private static Pref cacheVertRoutingArc = Pref.makeStringServerPref("VertRoutingArc", tool.prefs, "Metal-2");
+	private static Pref cacheVertRoutingArc = Pref.makeStringPref("VertRoutingArc", tool.prefs, "Metal-2");
 	/**
 	 * Method to return the vertical routing arc.
 	 * The default is "Metal-2".
@@ -179,7 +179,7 @@ public class SilComp extends Tool
 	 */
 	public static String getFactoryVertRoutingArc() { return cacheVertRoutingArc.getStringFactoryValue(); }
 
-	private static Pref cacheVertRoutingWidth = Pref.makeDoubleServerPref("VertArcWidth", tool.prefs, 4);
+	private static Pref cacheVertRoutingWidth = Pref.makeDoublePref("VertArcWidth", tool.prefs, 4);
 	/**
 	 * Method to return the width of the vertical routing arc.
 	 * The default is 4.
@@ -198,7 +198,7 @@ public class SilComp extends Tool
 	public static double getFactoryVertArcWidth() { return cacheVertRoutingWidth.getDoubleFactoryValue(); }
 
 
-	private static Pref cachePowerWireWidth = Pref.makeDoubleServerPref("PowerWireWidth", tool.prefs, 5);
+	private static Pref cachePowerWireWidth = Pref.makeDoublePref("PowerWireWidth", tool.prefs, 5);
 	/**
 	 * Method to return the width of the power and ground arc.
 	 * The default is 5.
@@ -216,7 +216,7 @@ public class SilComp extends Tool
 	 */
 	public static double getFactoryPowerWireWidth() { return cachePowerWireWidth.getDoubleFactoryValue(); }
 
-	private static Pref cacheMainPowerWireWidth = Pref.makeDoubleServerPref("MainPowerWireWidth", tool.prefs, 8);
+	private static Pref cacheMainPowerWireWidth = Pref.makeDoublePref("MainPowerWireWidth", tool.prefs, 8);
 	/**
 	 * Method to return the width of the main power and ground arc.
 	 * The default is 8.
@@ -234,7 +234,7 @@ public class SilComp extends Tool
 	 */
 	public static double getFactoryMainPowerWireWidth() { return cacheMainPowerWireWidth.getDoubleFactoryValue(); }
 
-	private static Pref cacheMainPowerArc = Pref.makeStringServerPref("MainPowerArc", tool.prefs, "Horizontal Arc");
+	private static Pref cacheMainPowerArc = Pref.makeStringPref("MainPowerArc", tool.prefs, "Horizontal Arc");
 	/**
 	 * Method to return the main power and ground arc.
 	 * The default is "Horizontal Arc".
@@ -252,7 +252,7 @@ public class SilComp extends Tool
 	 */
 	public static String getFactoryMainPowerArc() { return cacheMainPowerArc.getStringFactoryValue(); }
 
-	private static Pref cachePWellHeight = Pref.makeDoubleServerPref("PWellHeight", tool.prefs, 41);
+	private static Pref cachePWellHeight = Pref.makeDoublePref("PWellHeight", tool.prefs, 41);
 	/**
 	 * Method to return the height of the p-well.
 	 * The default is 41.
@@ -270,7 +270,7 @@ public class SilComp extends Tool
 	 */
 	public static double getFactoryPWellHeight() { return cachePWellHeight.getDoubleFactoryValue(); }
 
-	private static Pref cachePWellOffset = Pref.makeDoubleServerPref("PWellOffset", tool.prefs, 0);
+	private static Pref cachePWellOffset = Pref.makeDoublePref("PWellOffset", tool.prefs, 0);
 	/**
 	 * Method to return the offset of the p-well.
 	 * The default is 0.
@@ -288,7 +288,7 @@ public class SilComp extends Tool
 	 */
 	public static double getFactoryPWellOffset() { return cachePWellOffset.getDoubleFactoryValue(); }
 
-	private static Pref cacheNWellHeight = Pref.makeDoubleServerPref("NWellHeight", tool.prefs, 51);
+	private static Pref cacheNWellHeight = Pref.makeDoublePref("NWellHeight", tool.prefs, 51);
 	/**
 	 * Method to return the height of the n-well.
 	 * The default is 51.
@@ -306,7 +306,7 @@ public class SilComp extends Tool
 	 */
 	public static double getFactoryNWellHeight() { return cacheNWellHeight.getDoubleFactoryValue(); }
 
-	private static Pref cacheNWellOffset = Pref.makeDoubleServerPref("NWellOffset", tool.prefs, 0);
+	private static Pref cacheNWellOffset = Pref.makeDoublePref("NWellOffset", tool.prefs, 0);
 	/**
 	 * Method to return the offset of the n-well.
 	 * The default is 0.
@@ -325,7 +325,7 @@ public class SilComp extends Tool
 	public static double getFactoryNWellOffset() { return cacheNWellOffset.getDoubleFactoryValue(); }
 
 
-	private static Pref cacheViaSize = Pref.makeDoubleServerPref("ViaSize", tool.prefs, 4);
+	private static Pref cacheViaSize = Pref.makeDoublePref("ViaSize", tool.prefs, 4);
 	/**
 	 * Method to return the size of vias.
 	 * The default is 4.
@@ -343,7 +343,7 @@ public class SilComp extends Tool
 	 */
 	public static double getFactoryViaSize() { return cacheViaSize.getDoubleFactoryValue(); }
 
-	private static Pref cacheMinMetalSpacing = Pref.makeDoubleServerPref("MinMetalSpacing", tool.prefs, 6);
+	private static Pref cacheMinMetalSpacing = Pref.makeDoublePref("MinMetalSpacing", tool.prefs, 6);
 	/**
 	 * Method to return the minimum metal spacing.
 	 * The default is 6.
@@ -361,7 +361,7 @@ public class SilComp extends Tool
 	 */
 	public static double getFactoryMinMetalSpacing() { return cacheMinMetalSpacing.getDoubleFactoryValue(); }
 
-	private static Pref cacheFeedThruSize = Pref.makeDoubleServerPref("FeedThruSize", tool.prefs, 16);
+	private static Pref cacheFeedThruSize = Pref.makeDoublePref("FeedThruSize", tool.prefs, 16);
 	/**
 	 * Method to return the size of feed-throughs.
 	 * The default is 16.
@@ -379,7 +379,7 @@ public class SilComp extends Tool
 	 */
 	public static double getFactoryFeedThruSize() { return cacheFeedThruSize.getDoubleFactoryValue(); }
 
-	private static Pref cacheMinPortDistance = Pref.makeDoubleServerPref("MinPortDistance", tool.prefs, 8);
+	private static Pref cacheMinPortDistance = Pref.makeDoublePref("MinPortDistance", tool.prefs, 8);
 	/**
 	 * Method to return the minimum port distance.
 	 * The default is 8.
@@ -397,7 +397,7 @@ public class SilComp extends Tool
 	 */
 	public static double getFactoryMinPortDistance() { return cacheMinPortDistance.getDoubleFactoryValue(); }
 
-	private static Pref cacheMinActiveDistance = Pref.makeDoubleServerPref("MinActiveDistance", tool.prefs, 8);
+	private static Pref cacheMinActiveDistance = Pref.makeDoublePref("MinActiveDistance", tool.prefs, 8);
 	/**
 	 * Method to return the minimum active distance.
 	 * The default is 8.

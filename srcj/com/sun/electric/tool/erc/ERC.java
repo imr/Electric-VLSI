@@ -56,7 +56,7 @@ public class ERC extends Tool
 
 	/****************************** OPTIONS ******************************/
 
-	private static Pref cachePWellCheck = Pref.makeIntServerPref("PWellCheck", ERC.tool.prefs, 0);
+	private static Pref cachePWellCheck = Pref.makeIntPref("PWellCheck", ERC.tool.prefs, 0);
 	/**
 	 * Method to tell how much P-Well contact checking the ERC should do.
 	 * The values are:
@@ -91,7 +91,7 @@ public class ERC extends Tool
 	 */
 	public static int getFactoryPWellCheck() { return cachePWellCheck.getIntFactoryValue(); }
 
-	private static Pref cacheMustConnectPWellToGround = Pref.makeBooleanServerPref("MustConnectPWellToGround", ERC.tool.prefs, true);
+	private static Pref cacheMustConnectPWellToGround = Pref.makeBooleanPref("MustConnectPWellToGround", ERC.tool.prefs, true);
 	/**
 	 * Method to tell whether ERC should check that all P-Well contacts connect to ground.
 	 * The default is "true".
@@ -109,7 +109,7 @@ public class ERC extends Tool
 	 */
 	public static boolean isFactoryMustConnectPWellToGround() { return cacheMustConnectPWellToGround.getBooleanFactoryValue(); }
 
-	private static Pref cacheParallelWellAnalysis = Pref.makeBooleanServerPref("ParallelWellAnalysis", ERC.tool.prefs, true);
+	private static Pref cacheParallelWellAnalysis = Pref.makeBooleanPref("ParallelWellAnalysis", ERC.tool.prefs, true);
 	/**
 	 * Method to tell whether ERC should do well analysis using multiple processors.
 	 * The default is "true".
@@ -127,7 +127,7 @@ public class ERC extends Tool
 	 */
 	public static boolean isFactoryParallelWellAnalysis() { return cacheParallelWellAnalysis.getBooleanFactoryValue(); }
 
-	private static Pref cacheWellAnalysisNumProc = Pref.makeIntServerPref("WellAnalysisNumProc", ERC.tool.prefs, 0);
+	private static Pref cacheWellAnalysisNumProc = Pref.makeIntPref("WellAnalysisNumProc", ERC.tool.prefs, 0);
 	/**
 	 * Method to tell the number of processors to use in ERC well analysis.
 	 * The default is "0" (as many as there are).
@@ -145,7 +145,7 @@ public class ERC extends Tool
 	 */
 	public static int getFactoryWellAnalysisNumProc() { return cacheWellAnalysisNumProc.getIntFactoryValue(); }
 
-	private static Pref cacheNWellCheck = Pref.makeIntServerPref("NWellCheck", ERC.tool.prefs, 0);
+	private static Pref cacheNWellCheck = Pref.makeIntPref("NWellCheck", ERC.tool.prefs, 0);
 	/**
 	 * Method to tell how much N-Well contact checking the ERC should do.
 	 * The values are:
@@ -180,7 +180,7 @@ public class ERC extends Tool
 	 */
 	public static int getFactoryNWellCheck() { return cacheNWellCheck.getIntFactoryValue(); }
 
-	private static Pref cacheMustConnectNWellToPower = Pref.makeBooleanServerPref("MustConnectNWellToPower", ERC.tool.prefs, true);
+	private static Pref cacheMustConnectNWellToPower = Pref.makeBooleanPref("MustConnectNWellToPower", ERC.tool.prefs, true);
 	/**
 	 * Method to tell whether ERC should check that all N-Well contacts connect to power.
 	 * The default is "true".
@@ -198,7 +198,7 @@ public class ERC extends Tool
 	 */
 	public static boolean isFactoryMustConnectNWellToPower() { return cacheMustConnectNWellToPower.getBooleanFactoryValue(); }
 
-	private static Pref cacheFindWorstCaseWellContact = Pref.makeBooleanServerPref("FindWorstCaseWell", ERC.tool.prefs, false);
+	private static Pref cacheFindWorstCaseWellContact = Pref.makeBooleanPref("FindWorstCaseWell", ERC.tool.prefs, false);
 	/**
 	 * Method to tell whether ERC should find the contact that is farthest from the well edge.
 	 * The default is "false".
@@ -216,7 +216,7 @@ public class ERC extends Tool
 	 */
 	public static boolean isFactoryFindWorstCaseWell() { return cacheFindWorstCaseWellContact.getBooleanFactoryValue(); }
 
-	private static Pref cacheDRCCheck = Pref.makeBooleanServerPref("DRCCheckInERC", ERC.tool.prefs, false);
+	private static Pref cacheDRCCheck = Pref.makeBooleanPref("DRCCheckInERC", ERC.tool.prefs, false);
 	/**
 	 * Method to tell whether ERC should check DRC Spacing condition.
 	 * The default is "false".

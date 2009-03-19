@@ -504,7 +504,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
     public void setFactoryAntennaRatio(double ratio) {
         assert defaultAntennaRatioPref == null;
-		defaultAntennaRatioPref = Pref.makeDoubleServerPref("DefaultAntennaRatioFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), ratio);
+		defaultAntennaRatioPref = Pref.makeDoublePref("DefaultAntennaRatioFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), ratio);
     }
 
 	/**
