@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.09g: ******************************
+
 ************************* Version 8.09f: ******************************
 
 BUG: (3/19/09, SMR) Node extractor may fail and leave incomplete extraction
