@@ -3335,7 +3335,7 @@ public class User extends Listener
 	 */
 	public static int getFactoryErrorLimit() { return cacheErrorLimit.getIntFactoryValue(); }
 
-	private static Pref cacheMaxUndoHistory = Pref.makeIntPref("MaxUndoHistory", tool.prefs, 40);
+	private static Pref cacheMaxUndoHistory = Pref.makeIntPref(StartupPrefs.MaxUndoHistoryKey, tool.prefs, StartupPrefs.MaxUndoHistoryDef);
 	/**
 	 * Method to get the maximum number of undos retained in memory
 	 */
@@ -3407,7 +3407,7 @@ public class User extends Listener
 	 */
 	public static boolean isFactoryUseTwoJVMs() { return cacheUseTwoJVMs.getBooleanFactoryValue(); }
 
-	private static Pref cacheUseClientServer = Pref.makeBooleanPref("UseClientServer", tool.prefs, false);
+	private static Pref cacheUseClientServer = Pref.makeBooleanPref(StartupPrefs.UseClientServerKey, tool.prefs, StartupPrefs.UseClientServerDef);
 	/**
 	 * Method to tell whether to use a separate client and server for Electric.
 	 * The default is "false".
@@ -3425,7 +3425,7 @@ public class User extends Listener
 	 */
 	public static boolean isFactoryUseClientServer() { return cacheUseClientServer.getBooleanFactoryValue(); }
 
-	private static Pref cacheSnapshotLogging = Pref.makeBooleanPref("SnapshotLogging", tool.prefs, false);
+	private static Pref cacheSnapshotLogging = Pref.makeBooleanPref(StartupPrefs.SnapshotLoggingKey, tool.prefs, StartupPrefs.SnapshotLoggingDef);
 	/**
 	 * Method to tell whether to perform snapshot logging in a temporary file.
 	 * The default is "false".

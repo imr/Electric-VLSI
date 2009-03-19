@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Undo;
@@ -31,7 +32,6 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.User;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -44,7 +44,7 @@ class EThread extends Thread {
     private static final String CLASS_NAME = EThread.class.getName();
 
     private static final ArrayList<Snapshot> snapshotCache = new ArrayList<Snapshot>();
-	private static int maximumSnapshots = User.getMaxUndoHistory();
+	private static int maximumSnapshots = StartupPrefs.getMaxUndoHistory();
 
     /** EJob which Thread is executing now. */
     EJob ejob;

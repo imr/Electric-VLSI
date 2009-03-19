@@ -43,8 +43,8 @@ public class StartupPrefs {
 	 * @return the additional technologies for Electric.
 	 */
 	public static String getSoftTechnologies() { return getUserString(SoftTechnologiesKey, SoftTechnologiesDef); }
-    
-    
+
+
 	/** Preferences key to tell the initial display style for Electric. */
     public static final String DisplayStyleKey = "DisplayStyle";
 	/** Default initial display style for Electric. */
@@ -56,6 +56,15 @@ public class StartupPrefs {
 	 * @return the display style for Electric.
 	 */
 	public static int getDisplayStyle() { return getUserInt(DisplayStyleKey, DisplayStyleDef); }
+
+	/** Preferences key to tell the maximum number of undos retained in memory. */
+    public static final String MaxUndoHistoryKey = "MaxUndoHistory";
+	/** Default aximum number of undos retained in memory. */
+    public static final int MaxUndoHistoryDef = 40;
+	/**
+	 * Method to get the maximum number of undos retained in memory
+	 */
+	public static int getMaxUndoHistory() { return getUserInt(MaxUndoHistoryKey, MaxUndoHistoryDef); }
 
 	/** Preferences key to tell the maximum memory to use for Electric, in megatybes. */
     public static final String MemorySizeKey = "MemorySize";
@@ -78,6 +87,28 @@ public class StartupPrefs {
 	 * @return the maximum memory to use for Electric (in megabytes).
 	 */
     public static int getPermSpace() { return getUserInt(PermSizeKey, PermSizeDef); }
+
+	/** Preferences key to tell whether to use a separate client and server for Electric. */
+    public static final String UseClientServerKey = "UseClientServer";
+	/** Default whether to use a separate client and server for Electric */
+    public static final boolean UseClientServerDef = false;
+	/**
+	 * Method to tell whether to use a separate client and server for Electric.
+	 * The default is "false".
+	 * @return true to use a separate client and server for Electric
+	 */
+	public static boolean isUseClientServer() { return getUserBoolean(UseClientServerKey, UseClientServerDef); }
+
+	/** Preferences key to tell whether to perform snapshot logging in a temporary file. */
+    public static final String SnapshotLoggingKey = "SnapshotLogging";
+	/** Default whether to perform snapshot logging in a temporary file. */
+    public static final boolean SnapshotLoggingDef = false;
+	/**
+	 * Method to tell whether to perform snapshot logging in a temporary file.
+	 * The default is "false".
+	 * @return true to perform snapshot logging in a temporary file
+	 */
+	public static boolean isSnapshotLogging() { return getUserBoolean(SnapshotLoggingKey, SnapshotLoggingDef); }
 
     public static boolean getUserBoolean(String key, boolean def) {
         return userNode.getBoolean(key, def);

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.ClientEnvironment;
@@ -173,7 +174,7 @@ public abstract class Job implements Serializable {
 
         switch (threadMode) {
             case FULL_SCREEN:
-                if (User.isUseClientServer())
+                if (StartupPrefs.isUseClientServer())
                     jobManager = new ServerJobManager(numThreads, socketPort);
                 else
                     jobManager = new ServerJobManager(numThreads);

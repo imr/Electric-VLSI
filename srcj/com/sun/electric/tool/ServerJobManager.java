@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
@@ -34,7 +35,6 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.MessagesStream;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -91,7 +91,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             System.out.println("ServerSocket mode failure: " + e.getMessage());
         }
         this.serverSocket = serverSocket;
-        if (User.isSnapshotLogging())
+        if (StartupPrefs.isSnapshotLogging())
             initSnapshotLogging();
     }
 
