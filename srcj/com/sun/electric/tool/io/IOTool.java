@@ -32,10 +32,8 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.ToolSettings;
-import com.sun.electric.tool.io.output.ArchSim;
 import com.sun.electric.tool.io.output.Output;
-import com.sun.electric.tool.io.output.ArchSim.ArchSimPreferences;
-import com.sun.electric.tool.io.output.Output.OutputPreferences;
+import com.sun.electric.tool.io.output.Output;
 
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -136,7 +134,7 @@ public class IOTool extends Tool
 //        return out;
 //    }
 
-	public static class SkillPreferences extends OutputPreferences
+	public static class SkillPreferences extends Output.OutputPreferences
     {
 		private boolean exportsOnly;
 
@@ -224,7 +222,7 @@ public class IOTool extends Tool
 
 	/****************************** GENERAL IO PREFERENCES ******************************/
 
-	private static Pref cacheBackupRedundancy = Pref.makeIntServerPref("OutputBackupRedundancy", IOTool.tool.prefs, 0);
+	private static Pref cacheBackupRedundancy = Pref.makeIntPref("OutputBackupRedundancy", IOTool.tool.prefs, 0);
 	/**
 	 * Method to tell what kind of redundancy to apply when writing library files.
 	 * The value is:

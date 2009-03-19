@@ -989,7 +989,7 @@ public class Simulation extends Tool
 
 	/****************************** FAST HENRY OPTIONS ******************************/
 
-	private static Pref cacheFastHenryUseSingleFrequency = Pref.makeBooleanServerPref("FastHenryUseSingleFrequency", tool.prefs, false);
+	private static Pref cacheFastHenryUseSingleFrequency = Pref.makeBooleanPref("FastHenryUseSingleFrequency", tool.prefs, false);
 	/**
 	 * Method to tell whether FastHenry deck generation should use a single frequency.
 	 * The default is false.
@@ -1007,7 +1007,7 @@ public class Simulation extends Tool
 	 */
 	public static boolean isFactoryFastHenryUseSingleFrequency() { return cacheFastHenryUseSingleFrequency.getBooleanFactoryValue(); }
 
-	private static Pref cacheFastHenryStartFrequency = Pref.makeDoubleServerPref("FastHenryStartFrequency", tool.prefs, 0);
+	private static Pref cacheFastHenryStartFrequency = Pref.makeDoublePref("FastHenryStartFrequency", tool.prefs, 0);
 	/**
 	 * Method to return the FastHenry starting frequency (or only if using a single frequency).
 	 * The default is 0.
@@ -1025,7 +1025,7 @@ public class Simulation extends Tool
 	 */
 	public static double getFactoryFastHenryStartFrequency() { return cacheFastHenryStartFrequency.getDoubleFactoryValue(); }
 
-	private static Pref cacheFastHenryEndFrequency = Pref.makeDoubleServerPref("FastHenryEndFrequency", tool.prefs, 0);
+	private static Pref cacheFastHenryEndFrequency = Pref.makeDoublePref("FastHenryEndFrequency", tool.prefs, 0);
 	/**
 	 * Method to return the FastHenry ending frequency.
 	 * The default is 0.
@@ -1043,7 +1043,7 @@ public class Simulation extends Tool
 	 */
 	public static double getFactoryFastHenryEndFrequency() { return cacheFastHenryEndFrequency.getDoubleFactoryValue(); }
 
-	private static Pref cacheFastHenryRunsPerDecade = Pref.makeIntServerPref("FastHenryRunsPerDecade", tool.prefs, 1);
+	private static Pref cacheFastHenryRunsPerDecade = Pref.makeIntPref("FastHenryRunsPerDecade", tool.prefs, 1);
 	/**
 	 * Method to return the number of runs per decade for FastHenry deck generation.
 	 * The default is 1.
@@ -1097,7 +1097,7 @@ public class Simulation extends Tool
 	 */
 	public static int getFactoryFastHenryNumPoles() { return cacheFastHenryNumPoles.getIntFactoryValue(); }
 
-	private static Pref cacheFastHenryDefThickness = Pref.makeDoubleServerPref("FastHenryDefThickness", tool.prefs, 2);
+	private static Pref cacheFastHenryDefThickness = Pref.makeDoublePref("FastHenryDefThickness", tool.prefs, 2);
 	/**
 	 * Method to return the FastHenry default wire thickness.
 	 * The default is 2.
@@ -1115,7 +1115,7 @@ public class Simulation extends Tool
 	 */
 	public static double getFactoryFastHenryDefThickness() { return cacheFastHenryDefThickness.getDoubleFactoryValue(); }
 
-	private static Pref cacheFastHenryWidthSubdivisions = Pref.makeIntServerPref("FastHenryWidthSubdivisions", tool.prefs, 1);
+	private static Pref cacheFastHenryWidthSubdivisions = Pref.makeIntPref("FastHenryWidthSubdivisions", tool.prefs, 1);
 	/**
 	 * Method to return the default number of width subdivisions for FastHenry deck generation.
 	 * The default is 1.
@@ -1133,7 +1133,7 @@ public class Simulation extends Tool
 	 */
 	public static int getFactoryFastHenryWidthSubdivisions() { return cacheFastHenryWidthSubdivisions.getIntFactoryValue(); }
 
-	private static Pref cacheFastHenryHeightSubdivisions = Pref.makeIntServerPref("FastHenryHeightSubdivisions", tool.prefs, 1);
+	private static Pref cacheFastHenryHeightSubdivisions = Pref.makeIntPref("FastHenryHeightSubdivisions", tool.prefs, 1);
 	/**
 	 * Method to return the default number of height subdivisions for FastHenry deck generation.
 	 * The default is 1.

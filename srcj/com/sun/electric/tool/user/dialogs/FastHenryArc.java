@@ -133,7 +133,9 @@ public class FastHenryArc extends EDialog
 		}
 
 		// see if an arc is selected
-		FastHenry.FastHenryArcInfo fhai = new FastHenry.FastHenryArcInfo(ai, null);
+        FastHenry.FastHenryPreferences fhp = new FastHenry.FastHenryPreferences();
+        fhp.fillPrefs();
+		FastHenry.FastHenryArcInfo fhai = new FastHenry.FastHenryArcInfo(ai, fhp);
 		initialGroupName = "";
 		String groupName = fhai.getGroupName();
 		if (groupName == null) fhaIncludeArc.setSelected(false); else
@@ -170,7 +172,7 @@ public class FastHenryArc extends EDialog
 		String tailZ = "";
 		if (fhai.getZTail() >= 0) tailZ = TextUtils.formatDistance(initialZTail = fhai.getZTail());
 		fhaTailZ.setText(tailZ);
-	    
+
 		String defaultZ = "";
 		if (fhai.getZDefault() >= 0) defaultZ = TextUtils.formatDistance(fhai.getZDefault());
 		fhaDefaultZ.setText("default=" + defaultZ);
@@ -697,5 +699,5 @@ public class FastHenryArc extends EDialog
     private javax.swing.JButton ok;
     private javax.swing.JPanel tail;
     // End of variables declaration//GEN-END:variables
-    
+
 }

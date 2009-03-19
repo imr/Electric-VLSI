@@ -15,7 +15,7 @@ FIX: Fixed node extraction so that unusual layers (like DRC) will be preserved
 BUG: (3/18/09, SMR) "Change" doesn't show all port errors, just the first (Bug #2083).
 FIX: In NodeInst.replace(), collect all errors and print them when done.
 
-IMP: (3/18/09, DN) Fix Spice writer to new preferences schemae.
+IMP: (3/18/09, DN) Fix Spice writer to new preferences schema.
 
 IMP: (3/17/09, GVG) TechEditorWizard issues reported in Bug #2078.
 

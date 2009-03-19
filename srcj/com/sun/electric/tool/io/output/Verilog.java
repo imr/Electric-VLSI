@@ -26,6 +26,7 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
@@ -57,6 +58,7 @@ import com.sun.electric.tool.user.dialogs.BusParameters;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -186,7 +188,7 @@ public class Verilog extends Topology
 	/** key of Variable holding verilog code. */			public static final Variable.Key VERILOG_CODE_KEY = Variable.newKey("VERILOG_code");
 	/** key of Variable holding verilog declarations. */	public static final Variable.Key VERILOG_DECLARATION_KEY = Variable.newKey("VERILOG_declaration");
     /** key of Variable holding verilog parameters. */		public static final Variable.Key VERILOG_PARAMETER_KEY = Variable.newKey("VERILOG_parameter");
-    /** key of Variable holding verilog code that is 
+    /** key of Variable holding verilog code that is
      ** external to the module. */							public static final Variable.Key VERILOG_EXTERNAL_CODE_KEY = Variable.newKey("VERILOG_external_code");
 	/** key of Variable holding verilog wire time. */		public static final Variable.Key WIRE_TYPE_KEY = Variable.newKey("SIM_verilog_wire_type");
 	/** key of Variable holding verilog templates. */		public static final Variable.Key VERILOG_TEMPLATE_KEY = Variable.newKey("ATTR_verilog_template");
@@ -205,6 +207,7 @@ public class Verilog extends Topology
 		public boolean useTrireg = ((Boolean)Simulation.getVerilogUseTriregSetting().getFactoryValue()).booleanValue();
 		public boolean useAssign = ((Boolean)Simulation.getVerilogUseAssignSetting().getFactoryValue()).booleanValue();
 		public boolean parameterizeModuleNames = Simulation.getFactoryVerilogParameterizeModuleNames();
+        public Map<Cell,String> modelFiles = Collections.emptyMap();
 
 		public void fillPrefs()
         {
@@ -213,6 +216,7 @@ public class Verilog extends Topology
 			useTrireg = Simulation.getVerilogUseTrireg();
 			useAssign = Simulation.getVerilogUseAssign();
 			parameterizeModuleNames = Simulation.getVerilogParameterizeModuleNames();
+            modelFiles = CellModelPrefs.verilogModelPrefs.getUnfilteredFileNames(EDatabase.clientDatabase());
 		}
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
@@ -295,8 +299,9 @@ public class Verilog extends Topology
 		}
 		// also skip subcells if a behavioral file specified.
 		// If one specified, write it out here and skip both cell and subcells
-		if (CellModelPrefs.verilogModelPrefs.isUseModelFromFile(cell)) {
-			String fileName = CellModelPrefs.verilogModelPrefs.getModelFile(cell);
+        String unfilteredFileName = localPrefs.modelFiles.get(cell);
+		if (CellModelPrefs.isUseModelFromFile(unfilteredFileName)) {
+			String fileName = CellModelPrefs.getModelFile(unfilteredFileName);
             if (filePath.equals(fileName)) {
                 reportError("Error: Use Model From File file path for cell "+cell.describe(false)+" is the same as the file being written, skipping.");
                 return false;
@@ -1267,7 +1272,7 @@ public class Verilog extends Topology
 	 * Additionally, search the value of the Electric variable for a nested
 	 * variable and replace that as well.
 	 * Added for ArchGen Plugin - BVE
-	 * 
+	 *
 	 * @param line
 	 * @param no
 	 * @param context
@@ -1287,7 +1292,7 @@ public class Verilog extends Topology
 			var = no.getVar(varKey);
 			if (var == null) var = no.getParameter(varKey);
         }
-		if (var == null) return ""; 
+		if (var == null) return "";
 		String val = String.valueOf(context.evalVar(var));
 
 		// Semi-recursive call to search the value of a variable for a nested variable.
@@ -1301,7 +1306,7 @@ public class Verilog extends Topology
 	 * $([a-zA-Z0-9_$]*) is not a valid sequence. This allows us to extract any
 	 * electric variable and replace it with the attribute value.
 	 * Added for ArchGen Plugin - BVE
-	 * 
+	 *
 	 * @param line
 	 * @param cell
 	 * @return
@@ -1319,7 +1324,7 @@ public class Verilog extends Topology
 			var = cell.getVar(varKey);
 			if (var == null) var = cell.getParameter(varKey);
         }
-		if (var == null) return ""; 
+		if (var == null) return "";
 
 		// Copied this code from VarContext.java - evalVarRecurse
         CodeExpression.Code code = var.getCode();
@@ -1336,7 +1341,7 @@ public class Verilog extends Topology
 	 * replaceVarInString will search a string and replace any electric variable
 	 * with its attribute or parameter value, if it has one.
 	 * Added for ArchGen Plugin - BVE
-	 * 
+	 *
 	 * @param line
 	 * @param cell
 	 * @return

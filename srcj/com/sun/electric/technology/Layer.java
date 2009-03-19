@@ -1199,8 +1199,8 @@ public class Layer
         if (mode == null)
             mode = DEFAULT_MODE;
         // We don't call setDistance and setThickness directly here due to reflection code.
-        layer3DDistancePref = makeDoubleServerPref("Distance", distance);
-		layer3DThicknessPref = makeDoubleServerPref("Thickness", thickness);
+        layer3DDistancePref = makeDoublePref("Distance", distance);
+		layer3DThicknessPref = makeDoublePref("Thickness", thickness);
         layer3DTransModePref = makeStringPref("3DTransparencyMode", mode);
         layer3DTransFactorPref =  makeDoublePref("3DTransparencyFactor", factor);
 //        getDoublePref("Distance", layer3DDistancePrefs, distance).setFactoryDouble(distance);
@@ -1325,9 +1325,18 @@ public class Layer
 	 * Note: not called getHeight to avoid confusion
 	 * with getDistance())
      * Don't call distance+thickness because those are factory values.
-	 * @return Height of the layer
+	 * @return Depth of the layer
 	 */
 	public double getDepth() { return (getDistance()+getThickness()); }
+
+	/**
+	 * Method to calculate Z value of the upper part of the layer, by default.
+	 * Note: not called getHeight to avoid confusion
+	 * with getDistance())
+     * Don't call distance+thickness because those are factory values.
+	 * @return Depth of the layer
+	 */
+	public double getFactoryDepth() { return (getFactoryDistance()+getFactoryThickness()); }
 
 	/**
 	 * Method to return the thickness of this layer.

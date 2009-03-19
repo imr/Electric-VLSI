@@ -40,6 +40,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.simulation.Simulation;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -134,14 +135,8 @@ public class FastHenry extends Output
 				Poly poly = polys[i];
 				Layer layer = poly.getLayer();
 				if (layer == null) continue;
-				if (prefs == null)
-				{
-					zDefault = layer.getDepth();
-				} else
-				{
-					Double depth = prefs.layerDepth.get(layer);
-					if (depth != null) zDefault = depth.doubleValue();
-				}
+				Double depth = prefs.layerDepth.get(layer);
+				zDefault = depth != null ? depth.doubleValue() : layer.getFactoryDepth();
 				break;
 			}
 		}
@@ -156,7 +151,7 @@ public class FastHenry extends Output
 		double startFrequency = Simulation.getFactoryFastHenryStartFrequency();
 		double endFrequency = Simulation.getFactoryFastHenryEndFrequency();
 		int runsPerDecade = Simulation.getFactoryFastHenryRunsPerDecade();
-		Map<Layer,Double> layerDepth;
+		Map<Layer,Double> layerDepth = Collections.emptyMap();
 
 		public void fillPrefs()
         {

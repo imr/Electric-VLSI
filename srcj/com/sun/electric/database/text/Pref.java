@@ -596,8 +596,8 @@ public class Pref {
             if (!serverAccessible && !reportedAccess.contains(this)) {
                 String msg = getPrefName() + " is accessed from " + Job.getRunningJob();
                 if (Job.getDebug()) {
-//                    ActivityLogger.logMessage(msg);
-//                    System.out.println(msg);
+                    ActivityLogger.logMessage(msg);
+                    System.out.println(msg);
                 }
                 reportedAccess.add(this);
             }
