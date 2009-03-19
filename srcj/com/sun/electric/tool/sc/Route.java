@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortProto;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -189,6 +188,10 @@ public class Route
 		/** next export port */				RouteExport		next;
 	};
 
+	SilComp.SilCompPrefs localPrefs;
+
+	public Route(SilComp.SilCompPrefs prefs) { localPrefs = prefs; }
+
 	/**
 	 * Method to do routing.  Here is the description:
 	 *
@@ -269,12 +272,12 @@ public class Route
 				{
 					// odd row, cell are transposed
 					overlap = cell2Nums.rightActive + cell1Nums.leftActive
-						- SilComp.getMinActiveDistance();
+						- localPrefs.minActiveDistance;
 				} else
 				{
 					// even row
 					overlap = cell1Nums.rightActive + cell2Nums.leftActive
-						- SilComp.getMinActiveDistance();
+						- localPrefs.minActiveDistance;
 				}
 
 				// move rest of row
@@ -871,12 +874,12 @@ public class Route
 		Place.NBPlace sPlace = new Place.NBPlace();
 		sPlace.cell = null;
 		GetNetlist.SCNiTree sInst = new GetNetlist.SCNiTree("Lateral Feed", GetNetlist.LATERALFEED);
-		sInst.size = SilComp.getFeedThruSize();
+		sInst.size = localPrefs.feedThruSize;
 		sPlace.cell = sInst;
 
 		// save port
 		GetNetlist.SCNiPort sPort = new GetNetlist.SCNiPort(sInst);
-		sPort.xPos = SilComp.getFeedThruSize() / 2;
+		sPort.xPos = localPrefs.feedThruSize / 2;
 
 		// create new route port
 		RoutePort nPort = new RoutePort();
@@ -1214,14 +1217,14 @@ public class Route
 	{
 		// create a special instance
 		GetNetlist.SCNiTree inst = new GetNetlist.SCNiTree("Feed_Through", GetNetlist.FEEDCELL);
-		inst.size = SilComp.getFeedThruSize();
+		inst.size = localPrefs.feedThruSize;
 
 		// create instance port
 		GetNetlist.SCNiPort port = new GetNetlist.SCNiPort();
 		port.port = new Integer(feedNumber++);
 		port.extNode = node.extNode;
 		port.bits = 0;
-		port.xPos = SilComp.getFeedThruSize() / 2;
+		port.xPos = localPrefs.feedThruSize / 2;
 		port.next = null;
 		inst.ports = port;
 
@@ -1283,11 +1286,11 @@ public class Route
 				if ((row.rowNum % 2) != 0)
 				{
 					// odd row, cells are transposed
-					overlap = cnums.leftActive - SilComp.getMinActiveDistance();
+					overlap = cnums.leftActive - localPrefs.minActiveDistance;
 				} else
 				{
 					// even row
-					overlap = cnums.rightActive - SilComp.getMinActiveDistance();
+					overlap = cnums.rightActive - localPrefs.minActiveDistance;
 				}
 				if (overlap < 0 && place.cell.type != GetNetlist.LATERALFEED)
 					overlap = 0;
@@ -1317,11 +1320,11 @@ public class Route
 				if ((row.rowNum % 2) != 0)
 				{
 					// odd row, cells are transposed
-					overlap = cnums.rightActive - SilComp.getMinActiveDistance();
+					overlap = cnums.rightActive - localPrefs.minActiveDistance;
 				} else
 				{
 					// even row
-					overlap = cnums.leftActive - SilComp.getMinActiveDistance();
+					overlap = cnums.leftActive - localPrefs.minActiveDistance;
 				}
 				if (overlap < 0 && place.cell.type != GetNetlist.LATERALFEED)
 					overlap = 0;
@@ -1453,8 +1456,8 @@ public class Route
 	 */
 	private RouteChPort createSpecial(GetNetlist.SCNiTree inst, RouteChPort chPort, boolean where, GetNetlist.SCCell cell)
 	{
-		inst.size = SilComp.getFeedThruSize();
-		inst.ports.xPos = SilComp.getFeedThruSize() / 2;
+		inst.size = localPrefs.feedThruSize;
+		inst.ports.xPos = localPrefs.feedThruSize / 2;
 
 		// find row
 		Place.RowList row = chPort.port.node.row.row;
@@ -1466,7 +1469,7 @@ public class Route
 		{
 			if (row.start != null)
 			{
-				double xpos = row.start.xPos - SilComp.getFeedThruSize();
+				double xpos = row.start.xPos - localPrefs.feedThruSize;
 				nPlace.xPos = xpos;
 				row.start.last = nPlace;
 			} else
@@ -1739,7 +1742,7 @@ public class Route
 				{
 					for (RouteChPort port2 = edge2.node.chNode.firstPort; port2 != null; port2 = port2.next)
 					{
-						if (Math.abs(port1.xPos - port2.xPos) < SilComp.getMinPortDistance())
+						if (Math.abs(port1.xPos - port2.xPos) < localPrefs.minPortDistance)
 						{
 							// determine which one goes first
 							if (port1.port.node.row.number > port2.port.node.row.number)
@@ -1807,7 +1810,7 @@ public class Route
 					{
 						for (RouteChPort port2 = lastNode.chNode.firstPort; port2 != null; port2 = port2.next)
 						{
-							if (Math.abs(port1.xPos - port2.xPos) < SilComp.getMinPortDistance())
+							if (Math.abs(port1.xPos - port2.xPos) < localPrefs.minPortDistance)
 							{
 								// determine which one goes first
 								if (port1.port.node.row.number > port2.port.node.row.number)
@@ -1815,20 +1818,20 @@ public class Route
 									place = port1.port.place;
 									if (port1.xPos < port2.xPos)
 									{
-										diff.setValue((port2.xPos - port1.xPos) + SilComp.getMinPortDistance());
+										diff.setValue((port2.xPos - port1.xPos) + localPrefs.minPortDistance);
 									} else
 									{
-										diff.setValue(SilComp.getMinPortDistance() - (port1.xPos - port2.xPos));
+										diff.setValue(localPrefs.minPortDistance - (port1.xPos - port2.xPos));
 									}
 								} else if (port2.port.node.row.number > port1.port.node.row.number)
 								{
 									place = port2.port.place;
 									if (port2.xPos < port1.xPos)
 									{
-										diff.setValue((port1.xPos - port2.xPos) + SilComp.getMinPortDistance());
+										diff.setValue((port1.xPos - port2.xPos) + localPrefs.minPortDistance);
 									} else
 									{
-										diff.setValue(SilComp.getMinPortDistance() - (port2.xPos - port1.xPos));
+										diff.setValue(localPrefs.minPortDistance - (port2.xPos - port1.xPos));
 									}
 								} else
 								{
@@ -1992,8 +1995,8 @@ public class Route
 		int i = 0;
 		for (RouteChNode node = nodes; node != null; node = node.next)
 		{
-			if (xPos > node.firstPort.xPos - SilComp.getMinPortDistance()
-				&& xPos < node.lastPort.xPos + SilComp.getMinPortDistance())
+			if (xPos > node.firstPort.xPos - localPrefs.minPortDistance
+				&& xPos < node.lastPort.xPos + localPrefs.minPortDistance)
 					list[i++] = node;
 		}
 		list[i] = null;
@@ -2496,8 +2499,8 @@ public class Route
 					// too close to the power port edge
 					for (RouteVCGEdge edge1 = vEdge.next; edge1 != null; edge1 = edge1.next)
 					{
-						double minX = edge1.node.chNode.firstPort.xPos - SilComp.getMinPortDistance();
-						double maxX = edge1.node.chNode.lastPort.xPos + SilComp.getMinPortDistance();
+						double minX = edge1.node.chNode.firstPort.xPos - localPrefs.minPortDistance;
+						double maxX = edge1.node.chNode.lastPort.xPos + localPrefs.minPortDistance;
 						if (chPort2.xPos > minX && chPort2.xPos < maxX)
 						{
 							// create dependency
@@ -2646,8 +2649,8 @@ public class Route
 					// the ground port edge dependent on this node
 					for (RouteVCGEdge edge1 = vEdge.next; edge1 != null; edge1 = edge1.next)
 					{
-						double minX = edge1.node.chNode.firstPort.xPos - SilComp.getMinPortDistance();
-						double maxX = edge1.node.chNode.lastPort.xPos + SilComp.getMinPortDistance();
+						double minX = edge1.node.chNode.firstPort.xPos - localPrefs.minPortDistance;
+						double maxX = edge1.node.chNode.lastPort.xPos + localPrefs.minPortDistance;
 						if (chPort2.xPos > minX && chPort2.xPos < maxX)
 						{
 							// create dependency

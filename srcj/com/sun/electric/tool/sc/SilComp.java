@@ -30,9 +30,12 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 
 /**
  * This is the Silicon Compiler tool.
@@ -58,6 +61,50 @@ public class SilComp extends Tool
 	public void init()
 	{
 	}
+
+    public static class SilCompPrefs implements Serializable
+    {
+    	public int numRows;
+    	public double minActiveDistance;
+    	public double feedThruSize;
+    	public double minPortDistance;
+    	public double minMetalSpacing;
+    	public double viaSize;
+    	public double horizArcWidth;
+    	public double vertArcWidth;
+    	public double mainPowerWireWidth;
+    	public String mainPowerArc;
+    	public double powerWireWidth;
+    	public double pWellHeight;
+    	public double pWellOffset;
+    	public double nWellHeight;
+    	public double nWellOffset;
+    	public String horizRoutingArc;
+    	public String vertRoutingArc;
+    	public String schematicTechnology;
+
+		public SilCompPrefs()
+		{
+			numRows = getNumberOfRows();
+			minActiveDistance = getMinActiveDistance();
+			feedThruSize = getFeedThruSize();
+			minPortDistance = getMinPortDistance();
+			minMetalSpacing = getMinMetalSpacing();
+			viaSize = getViaSize();
+			horizArcWidth = getHorizArcWidth();
+			vertArcWidth = getVertArcWidth();
+			mainPowerWireWidth = getMainPowerWireWidth();
+			mainPowerArc = getMainPowerArc();
+			powerWireWidth = getPowerWireWidth();
+			pWellHeight = getPWellHeight();
+			pWellOffset = getPWellOffset();
+			nWellHeight = getNWellHeight();
+			nWellOffset = getNWellOffset();
+			horizRoutingArc = getHorizRoutingArc();
+			vertRoutingArc = getVertRoutingArc();
+			schematicTechnology = User.getSchematicTechnology().getTechName();
+		}
+    }
 
     /**
      * Method to retrieve the singleton associated with the Silicon Compiler tool.

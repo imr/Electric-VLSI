@@ -42,7 +42,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -159,6 +158,9 @@ public class Maker
 	private PrimitiveNode nWellProto;
 	private ArcProto layer1Arc;
 	private ArcProto layer2Arc;
+	SilComp.SilCompPrefs localPrefs;
+
+	public Maker(SilComp.SilCompPrefs prefs) { localPrefs = prefs; }
 
 	/**
 	 * Method to make Electric circuitry from the results of place-and-route.
@@ -214,10 +216,10 @@ public class Maker
 		data.maxY = Double.MIN_VALUE;
 
 		// create Maker Channel and Track data structures
-		double rowToTrack = (SilComp.getViaSize() / 2) + SilComp.getMinMetalSpacing();
-		double minTrackToTrack = (SilComp.getViaSize() / 2) +
-			SilComp.getMinMetalSpacing() + (SilComp.getHorizArcWidth() / 2);
-		double maxTrackToTrack = SilComp.getViaSize() + SilComp.getMinMetalSpacing();
+		double rowToTrack = (localPrefs.viaSize / 2) + localPrefs.minMetalSpacing;
+		double minTrackToTrack = (localPrefs.viaSize / 2) +
+			localPrefs.minMetalSpacing + (localPrefs.horizArcWidth / 2);
+		double maxTrackToTrack = localPrefs.viaSize + localPrefs.minMetalSpacing;
 		MakerChannel lastMChan = null;
 		for (Route.RouteChannel chan = cell.route.channels; chan != null; chan = chan.next)
 		{
@@ -619,8 +621,8 @@ public class Maker
 	 */
 	private Object createLayout(Library destLib, MakerData data)
 	{
-		double rowToTrack = (SilComp.getViaSize() / 2) + SilComp.getMinMetalSpacing();
-		double trackToTtrack = SilComp.getViaSize() + SilComp.getMinMetalSpacing();
+		double rowToTrack = (localPrefs.viaSize / 2) + localPrefs.minMetalSpacing;
+		double trackToTtrack = localPrefs.viaSize + localPrefs.minMetalSpacing;
 
 		String err = setupForMaker();
 		if (err != null) return err;
@@ -658,8 +660,8 @@ public class Maker
 				} else if (node.type == GetNetlist.FEEDCELL)
 				{
 					// feed through node
-					Point2D ctr = new Point2D.Double(inst.xPos + (inst.xSize / 2), inst.yPos + inst.ySize + SilComp.getVertArcWidth() / 2);
-					inst.instance = NodeInst.makeInstance(layer2Proto, ctr, SilComp.getVertArcWidth(), SilComp.getVertArcWidth(), bCell);
+					Point2D ctr = new Point2D.Double(inst.xPos + (inst.xSize / 2), inst.yPos + inst.ySize + localPrefs.vertArcWidth / 2);
+					inst.instance = NodeInst.makeInstance(layer2Proto, ctr, localPrefs.vertArcWidth, localPrefs.vertArcWidth, bCell);
 					if (inst.instance == null)
 						return "Cannot create leaf feed in MAKER";
 				} else if (node.type == GetNetlist.LATERALFEED)
@@ -685,14 +687,14 @@ public class Maker
 						if ((via.flags & VIAPOWER) != 0)
 						{
 							via.instance = NodeInst.makeInstance(layer1Proto, new Point2D.Double(via.xPos, track.yPos),
-								SilComp.getHorizArcWidth(), SilComp.getHorizArcWidth(), bCell);
+								localPrefs.horizArcWidth, localPrefs.horizArcWidth, bCell);
 							if (via.instance == null)
 								return "Cannot create via in MAKER";
 
 							// create vertical power track
 							MakerInst inst = (MakerInst)via.chPort.port.place.cell.tp;
 							if (trackLayer1(inst.instance, (PortProto)via.chPort.port.port.port,
-								via.instance, null, SilComp.getHorizArcWidth(), bCell) == null)
+								via.instance, null, localPrefs.horizArcWidth, bCell) == null)
 							{
 								return "Cannot create layer2 track in MAKER";
 							}
@@ -717,7 +719,7 @@ public class Maker
 						if ((via.flags & VIASPECIAL) != 0)
 						{
 							via.instance = NodeInst.makeInstance(layer2Proto, new Point2D.Double(via.xPos, track.yPos),
-								SilComp.getVertArcWidth(), SilComp.getVertArcWidth(), bCell);
+								localPrefs.vertArcWidth, localPrefs.vertArcWidth, bCell);
 							if (via.instance == null)
 								return "Cannot create leaf feed in MAKER";
 						} else
@@ -734,7 +736,7 @@ public class Maker
 						{
 							MakerInst inst = (MakerInst)node.tp;
 							if (trackLayer2(inst.instance, (PortProto)via.chPort.port.port.port,
-								via.instance, null, SilComp.getVertArcWidth(), bCell) == null)
+								via.instance, null, localPrefs.vertArcWidth, bCell) == null)
 							{
 								return "Cannot create layer2 track in MAKER";
 							}
@@ -743,7 +745,7 @@ public class Maker
 						{
 							MakerInst inst = (MakerInst)node.tp;
 							if (trackLayer2(inst.instance, null,
-								via.instance, null, SilComp.getVertArcWidth(), bCell) == null)
+								via.instance, null, localPrefs.vertArcWidth, bCell) == null)
 							{
 								return "Cannot create layer2 track in MAKER";
 							}
@@ -769,7 +771,7 @@ public class Maker
 								if (Math.abs(via.next.xPos - via.xPos) < trackToTtrack)
 								{
 									if (trackLayer2(via.instance, null,
-										via.next.instance, null, SilComp.getVertArcWidth(), bCell) == null)
+										via.next.instance, null, localPrefs.vertArcWidth, bCell) == null)
 									{
 										return "Cannot create layer1 track in MAKER";
 									}
@@ -781,7 +783,7 @@ public class Maker
 									(via.next.xPos - via.xPos) < trackToTtrack)
 								{
 									if (trackLayer2(via.instance, null,
-										via.next.instance, null, SilComp.getVertArcWidth(), bCell) == null)
+										via.next.instance, null, localPrefs.vertArcWidth, bCell) == null)
 									{
 										return "Cannot create layer1 track in MAKER";
 									}
@@ -790,7 +792,7 @@ public class Maker
 								{
 									if ((via2.flags & VIASPECIAL) != 0) continue;
 									if (trackLayer1(via.instance, null, via2.instance, null,
-										SilComp.getHorizArcWidth(), bCell) == null)
+										localPrefs.horizArcWidth, bCell) == null)
 									{
 										return "Cannot create layer1 track in MAKER";
 									}
@@ -819,7 +821,7 @@ public class Maker
 					NodeInst inst2 = inst.instance;
 					PortProto port2 = (PortProto)rPort.port.port;
 					if (trackLayer1(inst1, port1, inst2, port2,
-						SilComp.getHorizArcWidth(), bCell) == null)
+						localPrefs.horizArcWidth, bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
@@ -832,7 +834,7 @@ public class Maker
 					inst = (MakerInst)place.cell.tp;
 					NodeInst inst2 = inst.instance;
 					if (trackLayer1(inst1, port1, inst2, null,
-						SilComp.getHorizArcWidth(), bCell) == null)
+						localPrefs.horizArcWidth, bCell) == null)
 					{
 						return "Cannot create layer2 track in MAKER";
 					}
@@ -864,9 +866,9 @@ public class Maker
 
 		// create power buses
 		NodeInst lastPower = null;
-		double xPos = data.minX - rowToTrack - (SilComp.getMainPowerWireWidth()/ 2);
+		double xPos = data.minX - rowToTrack - (localPrefs.mainPowerWireWidth/ 2);
 
-		String mainPowerArc = SilComp.getMainPowerArc();
+		String mainPowerArc = localPrefs.mainPowerArc;
 		boolean mainPwrRailHoriz = mainPowerArc.equals("Horizontal Arc");
 
 		for (MakerPower pList = data.power; pList != null; pList = pList.next)
@@ -878,11 +880,11 @@ public class Maker
 			if (mainPwrRailHoriz)
 			{
 				bInst = NodeInst.makeInstance(layer1Proto, new Point2D.Double(xPos, yPos),
-					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell);
+					localPrefs.mainPowerWireWidth, localPrefs.mainPowerWireWidth, bCell);
 			} else
 			{
 				bInst = NodeInst.makeInstance(layer2Proto, new Point2D.Double(xPos, yPos),
-					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell);
+					localPrefs.mainPowerWireWidth, localPrefs.mainPowerWireWidth, bCell);
 			}
 			if (bInst == null)
 				return "Cannot create via in MAKER";
@@ -892,14 +894,14 @@ public class Maker
 				if (mainPwrRailHoriz)
 				{
 					if (trackLayer1(bInst, null, lastPower, null,
-						SilComp.getMainPowerWireWidth(), bCell) == null)
+						localPrefs.mainPowerWireWidth, bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
 				} else
 				{
 					if (trackLayer2(bInst, null, lastPower, null,
-						SilComp.getMainPowerWireWidth(), bCell) == null)
+						localPrefs.mainPowerWireWidth, bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
@@ -913,7 +915,7 @@ public class Maker
 				{
 					// connect to main power node
 					if (trackLayer1(lastPower, null, pPort.inst.instance, (PortProto)pPort.port.port,
-						SilComp.getPowerWireWidth(), bCell) == null)
+						localPrefs.powerWireWidth, bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
@@ -924,7 +926,7 @@ public class Maker
 				{
 					if (trackLayer1(pPort.inst.instance, (PortProto)pPort.port.port,
 							pPort.next.inst.instance, (PortProto)pPort.next.port.port,
-							SilComp.getPowerWireWidth(), bCell) == null)
+							localPrefs.powerWireWidth, bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
@@ -934,7 +936,7 @@ public class Maker
 
 		// create ground buses
 		NodeInst lastGround = null;
-		xPos = data.maxX + rowToTrack + (SilComp.getMainPowerWireWidth() / 2);
+		xPos = data.maxX + rowToTrack + (localPrefs.mainPowerWireWidth / 2);
 
 		for (MakerPower pList = data.ground; pList != null; pList = pList.next)
 		{
@@ -945,11 +947,11 @@ public class Maker
 			if (mainPwrRailHoriz)
 			{
 				bInst = NodeInst.makeInstance(layer1Proto, new Point2D.Double(xPos, yPos),
-					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell);
+					localPrefs.mainPowerWireWidth, localPrefs.mainPowerWireWidth, bCell);
 			} else
 			{
 				bInst = NodeInst.makeInstance(layer2Proto, new Point2D.Double(xPos, yPos),
-					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell);
+					localPrefs.mainPowerWireWidth, localPrefs.mainPowerWireWidth, bCell);
 			}
 			if (bInst == null) return "Cannot create via in MAKER";
 			if (lastGround != null)
@@ -958,14 +960,14 @@ public class Maker
 				if (mainPwrRailHoriz)
 				{
 					if (trackLayer1(bInst, null, lastGround, null,
-						SilComp.getMainPowerWireWidth(), bCell) == null)
+						localPrefs.mainPowerWireWidth, bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
 				} else
 				{
 					if (trackLayer2(bInst, null, lastGround, null,
-						SilComp.getMainPowerWireWidth(), bCell) == null)
+						localPrefs.mainPowerWireWidth, bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
@@ -985,7 +987,7 @@ public class Maker
 				{
 					// connect to main ground node
 					if (trackLayer1(lastGround, null, pPort.inst.instance, (PortProto)pPort.port.port,
-						SilComp.getPowerWireWidth(), bCell) == null)
+						localPrefs.powerWireWidth, bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
@@ -994,8 +996,8 @@ public class Maker
 				else
 				{
 					if (trackLayer1(pPort.inst.instance, (PortProto)pPort.port.port,
-							pPort.next.inst.instance, (PortProto)pPort.next.port.port,
-							SilComp.getPowerWireWidth(), bCell) == null)
+						pPort.next.inst.instance, (PortProto)pPort.next.port.port,
+							localPrefs.powerWireWidth, bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
@@ -1012,7 +1014,7 @@ public class Maker
 		}
 
 		// create overall P-wells if pwell size not zero
-		if (SilComp.getPWellHeight() != 0)
+		if (localPrefs.pWellHeight != 0)
 		{
 			for (MakerRow row = data.rows; row != null; row = row.next)
 			{
@@ -1033,11 +1035,10 @@ public class Maker
 				{
 					xPos = (firstInst.xPos + prevInst.xPos + prevInst.xSize) / 2;
 					double xSize = (prevInst.xPos + prevInst.xSize) - firstInst.xPos;
-					double ySize = SilComp.getPWellHeight();
+					double ySize = localPrefs.pWellHeight;
 					if (ySize > 0)
 					{
-						double yPos = firstInst.yPos + SilComp.getPWellOffset() +
-							(SilComp.getPWellHeight() / 2);
+						double yPos = firstInst.yPos + localPrefs.pWellOffset + (localPrefs.pWellHeight / 2);
 						if (pWellProto != null)
 						{
 							NodeInst bInst = NodeInst.makeInstance(pWellProto, new Point2D.Double(xPos, yPos), xSize, ySize, bCell);
@@ -1046,11 +1047,11 @@ public class Maker
 						}
 					}
 
-					ySize = SilComp.getNWellHeight();
+					ySize = localPrefs.nWellHeight;
 					if (ySize > 0)
 					{
-						double yPos = firstInst.yPos + firstInst.ySize - SilComp.getNWellOffset() -
-							(SilComp.getNWellHeight() / 2);
+						double yPos = firstInst.yPos + firstInst.ySize - localPrefs.nWellOffset -
+							(localPrefs.nWellHeight / 2);
 						if (nWellProto != null)
 						{
 							NodeInst bInst = NodeInst.makeInstance(nWellProto, new Point2D.Double(xPos, yPos), xSize, ySize, bCell);
@@ -1216,9 +1217,9 @@ public class Maker
 	{
 		Technology tech = Technology.getCurrent();
 		if (tech == Schematics.tech())
-			tech = User.getSchematicTechnology();
-		String layer1 = SilComp.getHorizRoutingArc();
-		String layer2 = SilComp.getVertRoutingArc();
+			tech = Technology.findTechnology(localPrefs.schematicTechnology);
+		String layer1 = localPrefs.horizRoutingArc;
+		String layer2 = localPrefs.vertRoutingArc;
 		layer1Arc = tech.findArcProto(layer1);
 		layer2Arc = tech.findArcProto(layer2);
 		if (layer1Arc == null) return "Unable to find Horizontal Arc " + layer1 + " for MAKER";
@@ -1251,7 +1252,7 @@ public class Maker
 		 * if the p-well size is zero don't look for the node
 		 * allows technologies without p-wells to be routed (i.e. GaAs)
 		 */
-		if (SilComp.getPWellHeight() == 0) pWellProto = null; else
+		if (localPrefs.pWellHeight == 0) pWellProto = null; else
 		{
 			pWellProto = null;
 			Layer pWellLay = tech.findLayerFromFunction(Layer.Function.WELLP, -1);
@@ -1259,7 +1260,7 @@ public class Maker
 			if (pWellProto == null)
 				return "Unable to get LAYER P-WELL for MAKER";
 		}
-		if (SilComp.getNWellHeight() == 0) nWellProto = null; else
+		if (localPrefs.nWellHeight == 0) nWellProto = null; else
 		{
 			nWellProto = null;
 			Layer nWellLay = tech.findLayerFromFunction(Layer.Function.WELLN, -1);

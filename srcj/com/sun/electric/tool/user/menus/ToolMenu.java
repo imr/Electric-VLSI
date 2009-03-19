@@ -1725,7 +1725,7 @@ public class ToolMenu {
         }
 
 		// do the silicon compilation task
-        doSilCompActivityNoJob(cell, activities, doItNow);
+        doSilCompActivityNoJob(cell, activities, doItNow, new SilComp.SilCompPrefs());
 	}
 
 	/**
@@ -1743,7 +1743,7 @@ public class ToolMenu {
 		}
 
 		// do the VHDL compilation task
-		new DoSilCompActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL);
+		new DoSilCompActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL, new SilComp.SilCompPrefs());
 	}
 
 	/**
@@ -1754,7 +1754,7 @@ public class ToolMenu {
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-	    new DoSilCompActivity(cell, CONVERT_TO_VHDL | SHOW_CELL);
+	    new DoSilCompActivity(cell, CONVERT_TO_VHDL | SHOW_CELL, new SilComp.SilCompPrefs());
 	}
 
 	/**
@@ -1783,14 +1783,14 @@ public class ToolMenu {
 		}
 	}
 
-    public static boolean doSilCompActivityNoJob(Cell cell, int activities, boolean doItNow)
+    public static boolean doSilCompActivityNoJob(Cell cell, int activities, boolean doItNow, SilComp.SilCompPrefs prefs)
     {
         if (doItNow)
         {
             List<Cell> textCellsToRedraw = new ArrayList<Cell>();
             try
             {
-                DoSilCompActivity.performTaskNoJob(cell, textCellsToRedraw, activities);
+                DoSilCompActivity.performTaskNoJob(cell, textCellsToRedraw, activities, prefs);
             }
             catch (Exception e)
             {
@@ -1799,11 +1799,11 @@ public class ToolMenu {
             }
         }
         else
-		    new DoSilCompActivity(cell, activities);
+		    new DoSilCompActivity(cell, activities, prefs);
         return true;
     }
 
-	/**
+    /**
 	 * Class to do the next silicon-compilation activity in a Job.
 	 */
 	private static class DoSilCompActivity extends Job
@@ -1811,12 +1811,14 @@ public class ToolMenu {
 		private Cell cell;
 		private int activities;
 		private List<Cell> textCellsToRedraw;
+		private SilComp.SilCompPrefs prefs;
 
-		private DoSilCompActivity(Cell cell, int activities)
+		private DoSilCompActivity(Cell cell, int activities, SilComp.SilCompPrefs prefs)
 		{
 			super("Silicon-Compiler activity", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.activities = activities;
+			this.prefs = prefs;
 			startJob();
 		}
 
@@ -1825,7 +1827,7 @@ public class ToolMenu {
 			fieldVariableChanged("cell");
 			textCellsToRedraw = new ArrayList<Cell>();
 			fieldVariableChanged("textCellsToRedraw");
-			cell = performTaskNoJob(cell, textCellsToRedraw, activities);
+			cell = performTaskNoJob(cell, textCellsToRedraw, activities, prefs);
 			if (cell == null)
 			{
 				activities = 0;
@@ -1845,7 +1847,8 @@ public class ToolMenu {
             }
         }
 
-        public static Cell performTaskNoJob(Cell cell, List<Cell> textCellsToRedraw, int activities) throws JobException
+        public static Cell performTaskNoJob(Cell cell, List<Cell> textCellsToRedraw, int activities, SilComp.SilCompPrefs prefs)
+        	throws JobException
         {
             Library destLib = cell.getLibrary();
 			textCellsToRedraw = new ArrayList<Cell>();
@@ -1922,7 +1925,7 @@ public class ToolMenu {
 
 				// do the placement
 				System.out.println("Placing cells");
-				Place place = new Place();
+				Place place = new Place(prefs);
 				String err = place.placeCells(gnl);
 				if (err != null)
 				{
@@ -1932,7 +1935,7 @@ public class ToolMenu {
 
 				// do the routing
 				System.out.println("Routing cells");
-				Route route = new Route();
+				Route route = new Route(prefs);
 				err = route.routeCells(gnl);
 				if (err != null)
 				{
@@ -1942,7 +1945,7 @@ public class ToolMenu {
 
 				// generate the results
 				System.out.println("Generating layout");
-				Maker maker = new Maker();
+				Maker maker = new Maker(prefs);
 				Object result = maker.makeLayout(destLib, gnl);
 				if (result instanceof String)
 				{

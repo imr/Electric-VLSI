@@ -28,11 +28,10 @@ package com.sun.electric.tool.sc;
 
 import com.sun.electric.database.hierarchy.Cell;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
 
 /**
  * The placement part of the Silicon Compiler tool.
@@ -128,6 +127,9 @@ public class Place
 
 	/** global root of cluster tree */		private ClusterTree   gClusterTree;
 	/** cost of current cluster tree */		private int           currentCost;
+	SilComp.SilCompPrefs localPrefs;
+
+	public Place(SilComp.SilCompPrefs prefs) { localPrefs = prefs; }
 
 	/**
 	 * Method to place the nodes in the current cell in optimal position for routing
@@ -156,7 +158,7 @@ public class Place
 		place.sizeInst = 0;
 		place.avgSize = 0;
 		place.avgHeight = 0;
-		place.numRows = SilComp.getNumberOfRows();
+		place.numRows = localPrefs.numRows;
 		place.sizeRows = 0;
 		place.theRows = new ArrayList<RowList>();
 		place.plist = null;
