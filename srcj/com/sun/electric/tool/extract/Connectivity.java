@@ -207,6 +207,9 @@ public class Connectivity
 				gridAlignExtraction, approximateCuts, recursive, pat);
 
 			newCell = c.doExtract(cell, recursive, pat, flattenPcells, true, this, addedBatchRectangles, addedBatchLines, addedBatchNames);
+			if (newCell == null)
+				System.out.println("ERROR: Extraction of cell " + cell.describe(false) + " failed");
+
 			Job.getUserInterface().stopProgressDialog();
 			fieldVariableChanged("addedBatchRectangles");
 			fieldVariableChanged("addedBatchLines");
@@ -417,7 +420,9 @@ public class Connectivity
 					Cell convertedCell = convertedCells.get(subCell);
 					if (convertedCell == null)
 					{
-						doExtract(subCell, recursive, pat, flattenPcells, false, job, addedBatchRectangles, addedBatchLines, addedBatchNames);
+						Cell result = doExtract(subCell, recursive, pat, flattenPcells, false, job, addedBatchRectangles, addedBatchLines, addedBatchNames);
+						if (result == null)
+							System.out.println("ERROR: Extraction of cell " + subCell.describe(false) + " failed");
 					}
 				}
 			}

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+BUG: (3/19/09, SMR) Node extractor may fail and leave incomplete extraction
+     with only minor warnings (Bug #2086).
+FIX: Notify user when extraction has failed.
+
 IMP: (3/19/09, DN) Thread-local ClientEnvironment object to explicitely represent default primitive sizes.
 
 BUG: (3/19/09, SMR) When a new layout transistor that has a "well" or "body"
