@@ -1292,8 +1292,9 @@ public class TechEditWizardData
      * Method to creat the XML version of a PrimitiveNode representing a contact
      * @return
      */
-    private Xml.PrimitiveNodeGroup makeXmlPrimitiveCon(List<Xml.PrimitiveNodeGroup> nodeGroups, String name, double sizeX, double sizeY,
-                                                  SizeOffset so, List<String> portNames, Xml.NodeLayer... list)
+    private Xml.PrimitiveNodeGroup makeXmlPrimitiveCon(List<Xml.PrimitiveNodeGroup> nodeGroups, String name,
+                                                       PrimitiveNode.Function function, double sizeX, double sizeY,
+                                                       SizeOffset so, List<String> portNames, Xml.NodeLayer... list)
     {
         List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>(list.length);
         List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
@@ -1305,7 +1306,7 @@ public class TechEditWizardData
         }
 
         nodePorts.add(makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0, null, 0, -1, 0, 1, 0, -1, 0, 1, portNames));
-        return makeXmlPrimitive(nodeGroups, name + "-Con", PrimitiveNode.Function.CONTACT, sizeX, sizeY, 0, 0,
+        return makeXmlPrimitive(nodeGroups, name + "-Con", function, sizeX, sizeY, 0, 0,
                 so, nodesList, nodePorts, null, false);
     }
 
@@ -1659,7 +1660,7 @@ public class TechEditWizardData
         double longD = DBMath.isGreaterThan(extLayer1, extLayer2) ? extLayer1 : extLayer2;
 
         // long square contact. Standard ones
-        return (makeXmlPrimitiveCon(nodeGroups, composeName, -1, -1, new SizeOffset(longD, longD, longD, longD), portNames,
+        return (makeXmlPrimitiveCon(nodeGroups, composeName, PrimitiveNode.Function.CONTACT, -1, -1, new SizeOffset(longD, longD, longD, longD), portNames,
                 makeXmlNodeLayer(hlaLong1, hlaLong1, hlaLong1, hlaLong1, layer1, Poly.Type.FILLED, true), // layer1
                 makeXmlNodeLayer(hlaLong2, hlaLong2, hlaLong2, hlaLong2, layer2, Poly.Type.FILLED, true), // layer2
                 makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
@@ -2164,12 +2165,13 @@ public class TechEditWizardData
                 wellNodePin));
 
             // F stands for full (all layers)
-            diffG.addElement(makeXmlPrimitiveCon(t.nodeGroups, "F-"+composeName, hla, hla, new SizeOffset(sos[i], sos[i], sos[i], sos[i]), portNames,
-                    makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
-                    makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED, true), // active layer
-                    makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED, true), // select layer
-                    wellNode, // well layer
-                    makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing))); // contact
+            diffG.addElement(makeXmlPrimitiveCon(t.nodeGroups, "F-"+composeName, PrimitiveNode.Function.CONTACT,
+                hla, hla, new SizeOffset(sos[i], sos[i], sos[i], sos[i]), portNames,
+                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
+                makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED, true), // active layer
+                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED, true), // select layer
+                wellNode, // well layer
+                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing))); // contact
         }
 
         // Active and poly contacts
@@ -2240,7 +2242,7 @@ public class TechEditWizardData
                 longX = scaledValue(longX);
                 longY = scaledValue(longY);
 
-                g.addElement(makeXmlPrimitiveCon(t.nodeGroups, c.prefix + name, -1, -1,
+                g.addElement(makeXmlPrimitiveCon(t.nodeGroups, c.prefix + name, PrimitiveNode.Function.CONTACT, -1, -1,
                     new SizeOffset(longX, longX, longY, longY), portNames,
                 makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED, true), // layer1
                 makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED, true), // layer2
@@ -2262,6 +2264,7 @@ public class TechEditWizardData
             String composeName = diffNames[i] + "-Well";
             Xml.NodeLayer wellNode = null, wellNodePin = null;
             PaletteGroup g = new PaletteGroup();
+            PrimitiveNode.Function func = null;
 
             wellPalette[i] = g;
 
@@ -2274,6 +2277,7 @@ public class TechEditWizardData
                 // arc
                 g.addArc(makeXmlArc(t, composeName, ArcProto.Function.WELL, 0,
                     makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p)));
+                func = PrimitiveNode.Function.WELL;
             }
             else
             {
@@ -2286,6 +2290,7 @@ public class TechEditWizardData
                     g.addArc(makeXmlArc(t, composeName, ArcProto.Function.WELL, 0,
                         makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p)));
                 }
+                func = PrimitiveNode.Function.SUBSTRATE;
             }
             portNames.add(m1Layer.name);
             // well pin
@@ -2297,12 +2302,13 @@ public class TechEditWizardData
 
             // well contact
             // F stands for full
-            g.addElement(makeXmlPrimitiveCon(t.nodeGroups, "F-"+composeName, hla, hla, new SizeOffset(wellSos[i], wellSos[i], wellSos[i], wellSos[i]), portNames,
-                    makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
-                    makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED, true), // active layer
-                    makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED, true), // select layer
-                    wellNode, // well layer
-                    makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing))); // contact
+            g.addElement(makeXmlPrimitiveCon(t.nodeGroups, "F-"+composeName, func,
+                hla, hla, new SizeOffset(wellSos[i], wellSos[i], wellSos[i], wellSos[i]), portNames,
+                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
+                makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED, true), // active layer
+                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED, true), // select layer
+                wellNode, // well layer
+                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing))); // contact
         }
 
         /**************************** Metals Nodes/Arcs ***********************************************/
@@ -2375,7 +2381,7 @@ public class TechEditWizardData
                 portNames.add(lx.name);
                 portNames.add(ly.name);
 
-                metalPalette[via-1].addElement(makeXmlPrimitiveCon(t.nodeGroups, c.prefix + name, -1, -1,
+                metalPalette[via-1].addElement(makeXmlPrimitiveCon(t.nodeGroups, c.prefix + name, PrimitiveNode.Function.CONTACT, -1, -1,
                     new SizeOffset(longX, longX, longY, longY),
                     portNames,
                 makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED, true), // layer1
