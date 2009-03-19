@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09g: ******************************
 
+IMP: (3/19/09, SMR) Want to customize metal layers in contact nodes (bug #2045)
+
+IMP/MAN: (3/19/09, SMR) First version of "[Technologies should be checked for sensibility" (bug #2089)
+
 ************************* Version 8.09f: ******************************
 
 BUG: (3/19/09, SMR) Node extractor may fail and leave incomplete extraction
