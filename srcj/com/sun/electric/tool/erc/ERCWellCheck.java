@@ -122,22 +122,22 @@ public class ERCWellCheck
 		public boolean parallelWellAnalysis;
 		public int maxProc;
 		public boolean mustConnectPWellToGround;
-		public boolean mustConnectNWellToGround;
+		public boolean mustConnectNWellToPower;
 		public int pWellCheck;
 		public int nWellCheck;
 		public boolean drcCheck;
 		public boolean findWorstCaseWell;
 
-		public WellCheckPreferences()
+		public WellCheckPreferences(boolean factory)
 		{
-			parallelWellAnalysis = ERC.isParallelWellAnalysis();
-			maxProc = ERC.getWellAnalysisNumProc();
-			mustConnectPWellToGround = ERC.isMustConnectPWellToGround();
-			mustConnectNWellToGround = ERC.isMustConnectNWellToPower();
-			pWellCheck = ERC.getPWellCheck();
-			nWellCheck = ERC.getNWellCheck();
-			drcCheck = ERC.isDRCCheck();
-			findWorstCaseWell = ERC.isFindWorstCaseWell();
+			parallelWellAnalysis = factory ? ERC.isFactoryParallelWellAnalysis() : ERC.isParallelWellAnalysis();
+			maxProc = factory ? ERC.getFactoryWellAnalysisNumProc() : ERC.getWellAnalysisNumProc();
+			mustConnectPWellToGround = factory ? ERC.isFactoryMustConnectPWellToGround() : ERC.isMustConnectPWellToGround();
+			mustConnectNWellToPower = factory ? ERC.isFactoryMustConnectNWellToPower() : ERC.isMustConnectNWellToPower();
+			pWellCheck = factory ? ERC.getFactoryPWellCheck() : ERC.getPWellCheck();
+			nWellCheck = factory ? ERC.getFactoryNWellCheck() : ERC.getNWellCheck();
+			drcCheck = factory ? ERC.isFactoryDRCCheck() : ERC.isDRCCheck();
+			findWorstCaseWell = factory ? ERC.isFactoryFindWorstCaseWell() : ERC.isFindWorstCaseWell();
 		}
     }
 
@@ -150,7 +150,7 @@ public class ERCWellCheck
 		Cell curCell = ui.needCurrentCell();
 		if (curCell == null) return;
 
-		new WellCheckJob(curCell, newAlgorithm, new WellCheckPreferences());
+		new WellCheckJob(curCell, newAlgorithm, new WellCheckPreferences(false));
 	}
 
 	/**
@@ -299,7 +299,7 @@ public class ERCWellCheck
 		} else
 		{
 			System.out.println("FOUND " + errorCount + " WELL ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-			
+
 		}
 		return errorCount;
 	}
@@ -495,7 +495,7 @@ public class ERCWellCheck
 					}
 				} else
 				{
-					if (wellPrefs.mustConnectNWellToGround)
+					if (wellPrefs.mustConnectNWellToPower)
 					{
 						errorLogger.logError("N-Well contact not connected to power", new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
 					}
@@ -1309,7 +1309,7 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 					}
 				} else
 				{
-					if (wellPrefs.mustConnectNWellToGround)
+					if (wellPrefs.mustConnectNWellToPower)
 					{
 						errorLogger.logError("N-Well contact not connected to power", new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
 					}
@@ -1642,7 +1642,7 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 		}
 	}
 
-	// **************************************** STATISTICS **************************************** 
+	// **************************************** STATISTICS ****************************************
 
 	private List<WellBoundRecord> wellBoundSearchOrder;
 	private int numObjSearches;
