@@ -31,7 +31,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
@@ -47,13 +47,23 @@ import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 
 import java.awt.geom.Point2D;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This is the general purpose sketching technology.
  */
 public class Artwork extends Technology
 {
-	/**
+    private static final String TECH_NAME = "artwork";
+    private static final String XML_PREFIX = TECH_NAME + ".";
+    private static final String PREF_PREFIX = "/com/sun/electric/technology/technologies/";
+    private static final TechFactory.Param techParamFillArrows =
+            new TechFactory.Param(XML_PREFIX + "FillArrows", PREF_PREFIX + "ArtworkFillArrows", Boolean.FALSE);
+
+    /**
 	 * Key of Variable holding starting and ending angles.
 	 * As a special case, NodeInst.checkPossibleVariableEffects()
 	 * updates the node when this variable changes.
@@ -92,10 +102,16 @@ public class Artwork extends Technology
 	/** Defines a Thick arc. */						public final ArcProto thickerArc;
 	/** the layer */								public final Layer defaultLayer;
 
+    // Tech params
+    private Boolean paramFillArrows;
+
 	// -------------------- private and protected methods ------------------------
-	public Artwork(Generic generic, TechFactory techFactory)
+	public Artwork(Generic generic, TechFactory techFactory, Map<TechFactory.Param,Object> techParams)
 	{
-		super(generic, techFactory);
+		super(generic, techFactory, techParams, Foundry.Type.NONE, 0);
+
+        paramFillArrows = (Boolean)techParams.get(techParamFillArrows);
+
 		setTechShortName("Artwork");
 		setTechDesc("General-purpose artwork components");
 		setFactoryScale(2000, false);			// in nanometers: really 2 micron
@@ -989,20 +1005,38 @@ public class Artwork extends Technology
 
 	/******************** OPTIONS ********************/
 
-	private Pref cacheFillArrows = Pref.makeBooleanPref("ArtworkFillArrows", getTechnologyPreferences(), false);
+    @Override
+    protected void copyState(Technology that) {
+        super.copyState(that);
+        Artwork artwork = (Artwork)that;
+        paramFillArrows = artwork.paramFillArrows;
+    }
+
+    @Override
+    protected void dumpExtraProjectSettings(PrintWriter out, Map<Setting,Object> settings) {
+        printlnSetting(out, settings, getFilledArrowHeadsSetting());
+    }
+
+    private final Setting cacheFillArrows = makeBooleanSetting("ArtworkFillArrows", "Technology tab", "Artwork Fill Arrows",
+        techParamFillArrows.xmlPath.substring(TECH_NAME.length() + 1), Boolean.FALSE);
 	/**
 	 * Method to tell whether arrow heads are filled-in.
+     * The default is false.
 	 * @return true if arrow heads are filled-in.
 	 */
-	public boolean isFilledArrowHeads() { return cacheFillArrows.getBoolean(); }
+	public boolean isFilledArrowHeads() { return paramFillArrows.booleanValue(); }
 	/**
-	 * Method to set whether arrow heads are filled-in.
-	 * @param f true if arrow heads are filled-in.
+	 * Returns project Setting to tell whether arrow heads are filled-in in Artwork.
+	 * @return project Setting to tell whether arrow heads are filled-in in Artwork.
 	 */
-	public void setFilledArrowHeads(boolean f) { cacheFillArrows.setBoolean(f); }
-	/**
-	 * Method to tell whether arrow heads are filled-in, by default.
-	 * @return true if arrow heads are filled-in, by default.
-	 */
-	public boolean isFactoryFilledArrowHeads() { return cacheFillArrows.getBooleanFactoryValue(); }
+	public Setting getFilledArrowHeadsSetting() { return cacheFillArrows; }
+
+    /**
+     * This method is called from TechFactory by reflection. Don't remove.
+     * Returns a list of TechFactory.Params affecting this Technology
+     * @return list of TechFactory.Params affecting this Technology
+     */
+    public static List<TechFactory.Param> getTechParams() {
+        return Arrays.asList(techParamFillArrows);
+    }
 }

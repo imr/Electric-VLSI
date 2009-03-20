@@ -976,7 +976,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * Constructs a <CODE>Technology</CODE>.
 	 * This should not be called directly, but instead is invoked through each subclass's factory.
 	 */
-	private Technology(Generic generic, TechFactory techFactory, Map<TechFactory.Param,Object> techParams, Foundry.Type defaultFoundry, int defaultNumMetals) {
+	protected Technology(Generic generic, TechFactory techFactory, Map<TechFactory.Param,Object> techParams, Foundry.Type defaultFoundry, int defaultNumMetals) {
         this(generic.getId().idManager, generic, techFactory, techParams, defaultFoundry, defaultNumMetals);
     }
 	/**
@@ -5524,7 +5524,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
 				        			", fourth port (" + dBot.getName() + ") should connect to Active");
 	        			}
-	
+
 	        			if (pLeft.getTopology() != pRight.getTopology())
 	    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
 	    		        		" should connect its Polysilicon ports");
@@ -5973,6 +5973,10 @@ public class Technology implements Comparable<Technology>, Serializable
 
     public Setting makeIntSetting(String name, String location, String description, String xmlName, int factory, String... trueMeaning) {
         return getProjectSettings().makeIntSetting(name, prefs.absolutePath(), xmlName, location, description, factory, trueMeaning);
+    }
+
+    public Setting makeDoubleSetting(String name, String location, String description, String xmlName, double factory) {
+        return getProjectSettings().makeDoubleSetting(name, prefs.absolutePath(), xmlName, location, description, factory);
     }
 
     public Setting makeStringSetting(String name, String location, String description, String xmlName, String factory) {

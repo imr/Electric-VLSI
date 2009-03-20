@@ -35,6 +35,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -57,7 +58,9 @@ import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -70,6 +73,12 @@ import java.util.Map;
  */
 public class Schematics extends Technology
 {
+    private static final String TECH_NAME = "schematic";
+    private static final String XML_PREFIX = TECH_NAME + ".";
+    private static final String PREF_PREFIX = "/com/sun/electric/technology/technologies/";
+    private static final TechFactory.Param techParamNegatingBubbleSize =
+            new TechFactory.Param(XML_PREFIX + "NegatingBubbleSize", PREF_PREFIX + "SchematicNegatingBubbleSize", Double.valueOf(1.2));
+
 	/** key of Variable holding global signal name. */		public static final Variable.Key SCHEM_GLOBAL_NAME = Variable.newKey("SCHEM_global_name");
 	/** key of Variable holding resistance. */				public static final Variable.Key SCHEM_RESISTANCE = Variable.newKey("SCHEM_resistance");
 	/** key of Variable holding capacitance. */				public static final Variable.Key SCHEM_CAPACITANCE = Variable.newKey("SCHEM_capacitance");
@@ -175,6 +184,9 @@ public class Schematics extends Technology
 	/** transistor-4 */					public PrimitiveNode transistor4Node;
 	/** global */						public PrimitiveNode globalNode;
 	/** global partition */				public PrimitiveNode globalPartitionNode;
+
+    // Tech params
+    private Double paramNegatingBubbleSize;
 
 	private Layer arc_lay, bus_lay, text_lay;
 	private Technology.NodeLayer [] ffLayersRSMS, ffLayersRSP, ffLayersRSN;
@@ -304,9 +316,12 @@ public class Schematics extends Technology
 
 	// -------------------- private and protected methods ------------------------
 
-	public Schematics(Generic generic, TechFactory techFactory)
+	public Schematics(Generic generic, TechFactory techFactory, Map<TechFactory.Param,Object> techParams)
 	{
-		super(generic, techFactory, Foundry.Type.NONE, 1);
+		super(generic, techFactory, techParams, Foundry.Type.NONE, 1);
+
+        paramNegatingBubbleSize = (Double)techParams.get(techParamNegatingBubbleSize);
+
 		setTechShortName("Schematics");
 		setTechDesc("Schematic Capture");
 		setFactoryScale(2000, false);			// in nanometers: really 2 micron
@@ -2134,7 +2149,8 @@ public class Schematics extends Technology
 			if (extraBlobList != null)
 			{
 				// must add extra blobs to this node
-				double blobSize = wirePinNode.getDefWidth() / 2;
+				double blobSize = wirePinNode.getFactoryDefaultLambdaBaseWidth() / 2;
+//				double blobSize = wirePinNode.getDefWidth() / 2;
 				Technology.NodeLayer [] blobLayers = new Technology.NodeLayer[primLayers.length + extraBlobList.size()];
 				int fill = 0;
 				for(int i=0; i<primLayers.length; i++)
@@ -2888,22 +2904,40 @@ public class Schematics extends Technology
 
 	/******************** OPTIONS ********************/
 
-	private Pref cacheBubbleSize = Pref.makeDoublePref("SchematicNegatingBubbleSize", getTechnologyPreferences(), 1.2);
+    @Override
+    protected void copyState(Technology that) {
+        super.copyState(that);
+        Schematics schematics = (Schematics)that;
+        paramNegatingBubbleSize = schematics.paramNegatingBubbleSize;
+    }
+
+    @Override
+    protected void dumpExtraProjectSettings(PrintWriter out, Map<Setting,Object> settings) {
+        printlnSetting(out, settings, getNegatingBubbleSizeSetting());
+    }
+
+    private final Setting cacheNegatingBubbleSize = makeDoubleSetting("SchematicNegatingBubbleSize", "Technology tab", "Schematic Negating Bubble Size",
+        techParamNegatingBubbleSize.xmlPath.substring(TECH_NAME.length() + 1), 1.2);
 	/**
 	 * Method to tell the size of negating bubbles.
+     * The default is 1.2 .
 	 * @return the size of negating bubbles (the diameter).
 	 */
-	public double getNegatingBubbleSize() { return cacheBubbleSize.getDouble(); }
+	public double getNegatingBubbleSize() { return paramNegatingBubbleSize.doubleValue(); }
 	/**
-	 * Method to set the size of negating bubbles.
-	 * @param s the negating bubble size (the diameter).
+	 * Returns project Setting to tell the size of negating bubbles in Schematics.
+	 * @return project Setting to tell the size of negating bubbles in Schematics.
 	 */
-	public void setNegatingBubbleSize(double s) { cacheBubbleSize.setDouble(s); }
-	/**
-	 * Method to tell the size of negating bubbles, by default.
-	 * @return the size of negating bubbles (the diameter), by default.
-	 */
-	public double getFactoryNegatingBubbleSize() { return cacheBubbleSize.getDoubleFactoryValue(); }
+	public Setting getNegatingBubbleSizeSetting() { return cacheNegatingBubbleSize; }
+
+    /**
+     * This method is called from TechFactory by reflection. Don't remove.
+     * Returns a list of TechFactory.Params affecting this Technology
+     * @return list of TechFactory.Params affecting this Technology
+     */
+    public static List<TechFactory.Param> getTechParams() {
+        return Arrays.asList(techParamNegatingBubbleSize);
+    }
 
 	private Map<PrimitiveNode,Pref> primPrefs = new HashMap<PrimitiveNode,Pref>();
 	private Pref getPrefForPrimitive(PrimitiveNode np)

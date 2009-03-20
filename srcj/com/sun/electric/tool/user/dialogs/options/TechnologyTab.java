@@ -204,20 +204,20 @@ public class TechnologyTab extends PreferencePanel
 		}
 
 		// Artwork
-		boolean currentArrowsFilled = techArtworkArrowsFilled.isSelected();
-		if (currentArrowsFilled != Artwork.tech().isFilledArrowHeads())
-		{
-			Artwork.tech().setFilledArrowHeads(currentArrowsFilled);
-			redrawWindows = true;
-		}
+//		boolean currentArrowsFilled = techArtworkArrowsFilled.isSelected();
+//		if (currentArrowsFilled != Artwork.tech().isFilledArrowHeads())
+//		{
+//			Artwork.tech().setFilledArrowHeads(currentArrowsFilled);
+//			redrawWindows = true;
+//		}
 
 		// Schematics
-		double currentNegatingBubbleSize = TextUtils.atof(techSchematicsNegatingSize.getText());
-		if (currentNegatingBubbleSize != Schematics.tech().getNegatingBubbleSize())
-		{
-			Schematics.tech().setNegatingBubbleSize(currentNegatingBubbleSize);
-			redrawWindows = true;
-		}
+//		double currentNegatingBubbleSize = TextUtils.atof(techSchematicsNegatingSize.getText());
+//		if (currentNegatingBubbleSize != Schematics.tech().getNegatingBubbleSize())
+//		{
+//			Schematics.tech().setNegatingBubbleSize(currentNegatingBubbleSize);
+//			redrawWindows = true;
+//		}
 
 		// updating VHDL names
 		for(int i=0; i<schemPrimModel.size(); i++)
@@ -257,10 +257,10 @@ public class TechnologyTab extends PreferencePanel
 	{
 		if (User.isFactoryRotateLayoutTransistors() != User.isRotateLayoutTransistors())
 			User.setRotateLayoutTransistors(User.isFactoryRotateLayoutTransistors());
-		if (Artwork.tech().isFactoryFilledArrowHeads() != Artwork.tech().isFilledArrowHeads())
-			Artwork.tech().setFilledArrowHeads(Artwork.tech().isFactoryFilledArrowHeads());
-		if (Schematics.tech().getFactoryNegatingBubbleSize() != Schematics.tech().getNegatingBubbleSize())
-			Schematics.tech().setNegatingBubbleSize(Schematics.tech().getFactoryNegatingBubbleSize());
+//		if (Artwork.tech().isFactoryFilledArrowHeads() != Artwork.tech().isFilledArrowHeads())
+//			Artwork.tech().setFilledArrowHeads(Artwork.tech().isFactoryFilledArrowHeads());
+//		if (Schematics.tech().getFactoryNegatingBubbleSize() != Schematics.tech().getNegatingBubbleSize())
+//			Schematics.tech().setNegatingBubbleSize(Schematics.tech().getFactoryNegatingBubbleSize());
 		for(Iterator<PrimitiveNode> it = Schematics.tech().getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();

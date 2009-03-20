@@ -128,9 +128,9 @@ public abstract class TechFactory {
 
     public static Map<String,TechFactory> getKnownTechs(String softTechnologies) {
         LinkedHashMap<String,TechFactory> m = new LinkedHashMap<String,TechFactory>();
-        c(m, "artwork", "com.sun.electric.technology.technologies.Artwork");
+        cp(m, "artwork", "com.sun.electric.technology.technologies.Artwork");
         c(m, "fpga", "com.sun.electric.technology.technologies.FPGA");
-        c(m, "schematic", "com.sun.electric.technology.technologies.Schematics");
+        cp(m, "schematic", "com.sun.electric.technology.technologies.Schematics");
         r(m, "bicmos",     "technology/technologies/bicmos.xml");
         r(m, "bipolar",      "technology/technologies/bipolar.xml");
         r(m, "cmos",         "technology/technologies/cmos.xml");
@@ -194,6 +194,22 @@ public abstract class TechFactory {
         m.put(techName, new FromClass(techName, techClassName));
     }
 
+    private static void cp(Map<String,TechFactory> m, String techName, String techClassName) {
+        TechFactory techFactory;
+        List<Param> params;
+        try {
+            Class<?> techClass = Class.forName(techClassName);
+            Method getTechParamsMethod = techClass.getMethod("getTechParams");
+            params = (List<Param>)getTechParamsMethod.invoke(null);
+            techFactory = new FromParamClass0(techName, techClass, params);
+        } catch (Exception e) {
+            if (Job.getDebug())
+                e.printStackTrace();
+            return;
+        }
+        m.put(techName, techFactory);
+    }
+
     private static void r(Map<String,TechFactory> m, String techName, String resourceName) {
         URL url = Main.class.getResource(resourceName);
         if (url == null)
@@ -217,6 +233,28 @@ public abstract class TechFactory {
             assert paramValues.isEmpty();
             Class<?> techClass = Class.forName(techClassName);
             return (Technology)techClass.getConstructor(Generic.class, TechFactory.class).newInstance(generic, this);
+        }
+
+        @Override
+        public Xml.Technology getXml(final Map<Param,Object> params) throws Exception {
+            IdManager idManager = new IdManager();
+            Generic generic = Generic.newInstance(idManager);
+            Technology tech = newInstance(generic, params);
+            return tech.makeXml();
+        }
+    }
+
+    private static class FromParamClass0 extends TechFactory {
+        private final Class<?> techClass;
+
+        private FromParamClass0(String techName, Class<?> techClass, List<Param> techParams) {
+            super(techName, techParams);
+            this.techClass = techClass;
+        }
+
+        @Override
+        Technology newInstanceImpl(Generic generic, Map<Param,Object> paramValues) throws Exception {
+            return (Technology)techClass.getConstructor(Generic.class, TechFactory.class, Map.class).newInstance(generic, this, paramValues);
         }
 
         @Override
