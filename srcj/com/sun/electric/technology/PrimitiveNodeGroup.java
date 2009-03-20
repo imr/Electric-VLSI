@@ -126,11 +126,14 @@ public class PrimitiveNodeGroup {
             Technology.TechPoint[] techPoints;
             if (nl.representation == Technology.NodeLayer.BOX || nl.representation == Technology.NodeLayer.MULTICUTBOX) {
                 techPoints = new Technology.TechPoint[2];
-                if (nl.lx.value > nl.hx.value || nl.lx.k > nl.hx.k ||
-                    nl.ly.value > nl.hy.value || nl.ly.k > nl.hy.k)
+                if (Job.getDebug())
                 {
-                    System.out.println("Negative-size polygon in primitive node " + tech.getTechName() + ":" + ng.nodes.get(0).name +
-                        ", layer " + layer.getName());
+                    if (nl.lx.value > nl.hx.value || nl.lx.k > nl.hx.k ||
+                        nl.ly.value > nl.hy.value || nl.ly.k > nl.hy.k)
+                    {
+                        System.out.println("Negative-size polygon in primitive node " + tech.getTechName() + ":" + ng.nodes.get(0).name +
+                            ", layer " + layer.getName());
+                    }
                 }
                 techPoints[0] = Technology.makeTechPoint(nl.lx, nl.ly, fullSize);
                 techPoints[1] = Technology.makeTechPoint(nl.hx, nl.hy, fullSize);
