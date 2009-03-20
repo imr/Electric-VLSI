@@ -51,7 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** 
+/**
  * Class to write CIF output to disk.
  */
 public class CIF extends Geometry
@@ -77,20 +77,13 @@ public class CIF extends Geometry
 
 	public static class CIFPreferences extends OutputPreferences
     {
-		int cifScale = ((Integer)IOTool.getCIFOutScaleFactorSetting().getFactoryValue()).intValue();
-		boolean cifOutInstantiatesTopLevel = ((Boolean)IOTool.getCIFOutInstantiatesTopLevelSetting().getFactoryValue()).booleanValue();
-		boolean cifOutMergesBoxes = ((Boolean)IOTool.getCIFOutMergesBoxesSetting().getFactoryValue()).booleanValue();
-		boolean cifOutMimicsDisplay = ((Boolean)IOTool.getCIFOutMimicsDisplaySetting().getFactoryValue()).booleanValue();
+        // CIF Settings
+		int cifScale = IOTool.getCIFOutScaleFactor();
+		boolean cifOutInstantiatesTopLevel = IOTool.isCIFOutInstantiatesTopLevel();
+		boolean cifOutMergesBoxes = IOTool.isCIFOutMergesBoxes();
+		boolean cifOutMimicsDisplay = IOTool.isCIFOutMimicsDisplay();
 
-		public void fillPrefs()
-        {
-            super.fillPrefs();
-			cifScale = IOTool.getCIFOutScaleFactor();
-			cifOutInstantiatesTopLevel = IOTool.isCIFOutInstantiatesTopLevel();
-			cifOutMergesBoxes = IOTool.isCIFOutMergesBoxes();
-			cifOutMimicsDisplay = IOTool.isCIFOutMimicsDisplay();
-		}
-
+        @Override
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		CIF out = new CIF(this);
@@ -233,7 +226,7 @@ public class CIF extends Geometry
 	{
 		return localPrefs.cifOutMergesBoxes;
 	}
-	   
+
 	/**
 	 * Method to determine whether or not to include the original Geometric with a Poly.
 	 * Only includes Geometric information if NOT merging boxes, because if merging
@@ -340,7 +333,7 @@ public class CIF extends Geometry
 	}
 
 	/**
-	 * Write a line to the CIF file, and accumulate 
+	 * Write a line to the CIF file, and accumulate
 	 * checksum information.
 	 */
 	private void writeLine(String line)
@@ -453,7 +446,7 @@ public class CIF extends Geometry
 		/**
 		 * Overriding this class allows us to stop descension on unexpanded instances in "mimic" mode.
 		 */
-		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) 
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
 			NodeInst ni = (NodeInst)no;
 			if (ni.isCellInstance())

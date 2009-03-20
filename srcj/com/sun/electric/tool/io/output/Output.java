@@ -71,6 +71,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
+import javax.swing.SwingUtilities;
 
 /**
  * This class manages writing files in different formats.
@@ -113,15 +114,24 @@ public class Output
     }
 
     /**
-     * Return factory default OutputPreferences for a specified FileType.
+     * Return OutputPreferences for a specified FileType.
+     * This includes currnet default values of IO ProjectSettings
+     * and either factory default or current default values of Prefs
+     * Current default value of Prefs can be obtained only from client thread
      * @param type specified file type.
+     * @param factoryPrefs get factory default values of Prefs
      * @param override the list of Polys to write instead of cell contents.
      * @return an OutputPreferences object for the given file type.
+     * @throws InvalidStateException on attemt to get current default values of Prefs from server thread
      */
-    public static OutputPreferences getOutputPreferences(FileType type, List<PolyBase> override)
+    public static OutputPreferences getOutputPreferences(FileType type, boolean factoryPrefs, List<PolyBase> override)
     {
     	OutputPreferences op = createOutputPreferences(type, override);
-    	if (op != null) op.fillPrefs();
+        if (!factoryPrefs) {
+            if (!SwingUtilities.isEventDispatchThread())
+                throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
+        	if (op != null) op.fillPrefs();
+        }
     	return op;
     }
 
@@ -177,7 +187,7 @@ public class Output
             this.cell = cell;
             this.context = context;
             this.filePath = filePath;
-            prefs = getOutputPreferences(type, override);
+            prefs = getOutputPreferences(type, false, override);
             if (prefs != null)
             	startJob();
         }
@@ -210,16 +220,15 @@ public class Output
 
     public static class OutputPreferences
 	{
-        public boolean useCopyrightMessage = ((Boolean)IOTool.getUseCopyrightMessageSetting().getFactoryValue()).booleanValue();
-        public boolean includeDateAndVersionInOutput = ((Boolean)User.getIncludeDateAndVersionInOutputSetting().getFactoryValue()).booleanValue();
+        // IO Settings
+        public boolean useCopyrightMessage = IOTool.isUseCopyrightMessage();
+        public boolean includeDateAndVersionInOutput = User.isIncludeDateAndVersionInOutput();
 
         /**
-         * Fill these Output preeferences with default values from Prefs
+         * Fill these Output preferences with default values from Prefs
          */
         public void fillPrefs()
         {
-        	useCopyrightMessage = IOTool.isUseCopyrightMessage();
-        	includeDateAndVersionInOutput = User.isIncludeDateAndVersionInOutput();
         }
 
         public Output doOutput(Cell cell, VarContext context, String filePath)

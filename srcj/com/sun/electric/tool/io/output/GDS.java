@@ -129,9 +129,9 @@ public class GDS extends Geometry
 	/** for buffering output data */			private static byte [] dataBufferGDS = new byte[DSIZE];
 	/** for buffering output data */			private static byte [] emptyBuffer = new byte[DSIZE];
 	/** Current layer for gds output */			private static GDSLayers currentLayerNumbers;
-	/** Position of next byte in the buffer */	private static int bufferPosition;					
-	/** Number data buffers output so far */	private static int blockCount;				
-	/** constant for GDS units */				private static double scaleFactor;				
+	/** Position of next byte in the buffer */	private static int bufferPosition;
+	/** Number data buffers output so far */	private static int blockCount;
+	/** constant for GDS units */				private static double scaleFactor;
 	/** cell naming map */						private Map<Cell,String> cellNames;
 	/** layer number map */						private Map<Layer,GDSLayers> layerNumbers;
     /** separator string for lib + cell concatanated cell names */  public static final String concatStr = ".";
@@ -140,30 +140,19 @@ public class GDS extends Geometry
 
 	public static class GDSPreferences extends OutputPreferences
     {
+        // GDS Settings
 	    /** write pins at Export locations? */
-		public boolean writeExportPins = ((Boolean)IOTool.getGDSOutWritesExportPinsSetting().getFactoryValue()).booleanValue();
+		public boolean writeExportPins = IOTool.isGDSOutWritesExportPins();
 	    /** converts bracket to underscores in export names.*/
-		public boolean convertBracketsInExports = ((Boolean)IOTool.getGDSOutputConvertsBracketsInExportsSetting().getFactoryValue()).booleanValue();
-	    boolean convertNCCExportsConnectedByParentPins = IOTool.getFactoryGDSConvertNCCExportsConnectedByParentPins();
-	    boolean collapseVddGndPinNames = IOTool.isFactoryGDSColapseVddGndPinNames();
-	    int outDefaultTextLayer = ((Integer)IOTool.getGDSOutDefaultTextLayerSetting().getFactoryValue()).intValue();
-	    boolean outMergesBoxes = ((Boolean)IOTool.getGDSOutMergesBoxesSetting().getFactoryValue()).booleanValue();
-	    int cellNameLenMax = ((Integer)IOTool.getGDSCellNameLenMaxSetting().getFactoryValue()).intValue();
-	    boolean outUpperCase = ((Boolean)IOTool.getGDSOutUpperCaseSetting().getFactoryValue()).booleanValue();
+		public boolean convertBracketsInExports = IOTool.getGDSOutputConvertsBracketsInExports();
+	    boolean convertNCCExportsConnectedByParentPins = IOTool.getGDSConvertNCCExportsConnectedByParentPins();
+	    boolean collapseVddGndPinNames = IOTool.isGDSColapseVddGndPinNames();
+	    int outDefaultTextLayer = IOTool.getGDSOutDefaultTextLayer();
+	    boolean outMergesBoxes = IOTool.isGDSOutMergesBoxes();
+	    int cellNameLenMax = IOTool.getGDSCellNameLenMax();
+	    boolean outUpperCase = IOTool.isGDSOutUpperCase();
 
-		public void fillPrefs()
-        {
-            super.fillPrefs();
-	        writeExportPins = IOTool.isGDSOutWritesExportPins();
-	        convertBracketsInExports = IOTool.getGDSOutputConvertsBracketsInExports();
-	        convertNCCExportsConnectedByParentPins = IOTool.getGDSConvertNCCExportsConnectedByParentPins();
-	        collapseVddGndPinNames = IOTool.isGDSColapseVddGndPinNames();
-	        outDefaultTextLayer = IOTool.getGDSOutDefaultTextLayer();
-	        outMergesBoxes = IOTool.isGDSOutMergesBoxes();
-	        cellNameLenMax = IOTool.getGDSCellNameLenMax();
-	        outUpperCase = IOTool.isGDSOutUpperCase();
-	    }
-
+        @Override
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		if (cell.getView() != View.LAYOUT)
@@ -390,7 +379,7 @@ public class GDS extends Geometry
 	{
 		return localPrefs.outMergesBoxes;
 	}
-	   
+
     /**
      * Method to determine whether or not to include the original Geometric with a Poly
      */
@@ -428,7 +417,7 @@ public class GDS extends Geometry
 		Point2D [] points = poly.getPoints();
 		if (poly.getStyle() == Poly.Type.DISC)
 		{
-			// Make a square of the size of the diameter 
+			// Make a square of the size of the diameter
 			double r = points[0].distance(points[1]);
 			if (r <= 0) return;
 			Poly newPoly = new Poly(points[0].getX(), points[0].getY(), r*2, r*2);
@@ -707,7 +696,7 @@ public class GDS extends Geometry
 				blockCount++;
 			}
 
-			//  Pad to 2048 
+			//  Pad to 2048
 			while (blockCount%4 != 0)
 			{
 				dataOutputStream.write(emptyBuffer, 0, DSIZE);
@@ -853,7 +842,7 @@ public class GDS extends Geometry
 
 	/**
 	 * Method to output the pairs of XY points to the file
-	 */ 
+	 */
 	private void outputBoundary(PolyBase poly, int layerNumber, int layerType)
 	{
 		Point2D [] points = poly.getPoints();

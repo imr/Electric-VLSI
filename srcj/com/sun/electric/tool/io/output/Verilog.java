@@ -203,22 +203,25 @@ public class Verilog extends Topology
 
 	public static class VerilogPreferences extends OutputPreferences
     {
+        // Verilig Settings
+		public boolean useTrireg = Simulation.getVerilogUseTrireg();
+		public boolean useAssign = Simulation.getVerilogUseAssign();
+        // Verilog factory Prefs
 		public boolean stopAtStandardCells = Simulation.getFactoryVerilogStopAtStandardCells();
-		public boolean useTrireg = ((Boolean)Simulation.getVerilogUseTriregSetting().getFactoryValue()).booleanValue();
-		public boolean useAssign = ((Boolean)Simulation.getVerilogUseAssignSetting().getFactoryValue()).booleanValue();
 		public boolean parameterizeModuleNames = Simulation.getFactoryVerilogParameterizeModuleNames();
         public Map<Cell,String> modelFiles = Collections.emptyMap();
 
+        @Override
 		public void fillPrefs()
         {
             super.fillPrefs();
+            // Verilog current Prefs
 			stopAtStandardCells = Simulation.getVerilogStopAtStandardCells();
-			useTrireg = Simulation.getVerilogUseTrireg();
-			useAssign = Simulation.getVerilogUseAssign();
 			parameterizeModuleNames = Simulation.getVerilogParameterizeModuleNames();
             modelFiles = CellModelPrefs.verilogModelPrefs.getUnfilteredFileNames(EDatabase.clientDatabase());
 		}
 
+        @Override
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		Verilog out = new Verilog(this);
