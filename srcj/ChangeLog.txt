@@ -4,8 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09g: ******************************
 
-BUG: (3/20/09, DN) FastHenry regressions access Preferences.
-FIX: Output.getFactoryPreferences() fills with current Settings and either factory or current Prefs.
+BUG: (3/20/09, DN) FastHenry regression accesses Preferences.
+FIX: Output.getOutputPreferences() fills with current Settings and either factory or current Prefs.
 
 IMP: (3/19/09, SMR) Want to customize metal layers in contact nodes (bug #2045)
 
