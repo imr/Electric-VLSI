@@ -1407,7 +1407,7 @@ public abstract class LibraryFiles extends Input
             String prefName = var.getKey().getName();
             String prefPath = null;
             if (obj instanceof Technology) {
-                prefPath = ((Technology)obj).getTechnologyPreferences().absolutePath() + "/";
+                prefPath = ((Technology)obj).getTechnologyPreferences().relativePath() + "/";
                 Map<Setting,Object> convertedVars = ((Technology)obj).convertOldVariable(prefName, value);
                 if (convertedVars != null) {
                     for (Map.Entry<Setting,Object> e: convertedVars.entrySet()) {
@@ -1419,7 +1419,7 @@ public abstract class LibraryFiles extends Input
                     continue;
                 }
             } else if (obj instanceof Tool) {
-                prefPath = ((Tool)obj).prefs.absolutePath() + "/";
+                prefPath = ((Tool)obj).prefs.relativePath() + "/";
             }
             settingsByPrefName.put(prefPath + prefName, value);
         }

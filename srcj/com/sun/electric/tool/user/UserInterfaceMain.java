@@ -68,6 +68,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -500,12 +502,20 @@ public class UserInterfaceMain extends AbstractUserInterface
         if (fileURL == null) return;
         System.out.println("Importing preferences...");
         Pref.importPrefs(fileURL);
-        EDatabase database = EDatabase.clientDatabase();
-        database.getEnvironment().saveToPreferences();
+        Environment env = EDatabase.clientDatabase().getEnvironment();
+        
+        // Mirror Settings in Preferences
+        Preferences prefRoot = Pref.getPrefRoot();
+        env.saveToPreferences(prefRoot);
+        try {
+            prefRoot.flush();
+        } catch (BackingStoreException e) {
+            System.out.println("Failed to mirror Settings in Preferences");
+        }
 
         // recache all prefs
         Pref.setCachedObjsFromPreferences();
-        loadClientEnvironmentFromPreferences(database.getTechPool());
+        loadClientEnvironmentFromPreferences(env.techPool);
         TopLevel.getCurrentJFrame().getEMenuBar().restoreSavedBindings(false); //trying to cache again
         WindowFrame.repaintAllWindows();
         System.out.println("...preferences imported from " + fileURL.getFile());

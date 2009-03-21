@@ -315,7 +315,7 @@ public class Setting {
     private final String xmlPath;
 	private final Object factoryObj;
     private Object currentObj;
-    private final Preferences prefs;
+    private final String prefNode;
     private final String prefName;
     private boolean valid;
     private final String description, location;
@@ -339,7 +339,7 @@ public class Setting {
         this.factoryObj = factoryObj;
         currentObj = FROM_THREAD_ENVIRONMENT ? null : factoryObj;
         this.prefName = prefName;
-        prefs = Preferences.userRoot().node(prefGroup);
+        prefNode = prefGroup;
 
         xmlGroup.settings.put(xmlName, this);
 
@@ -428,7 +428,7 @@ public class Setting {
      * Method to get the pref name of this Setting object.
      * @return the name of this Setting object.
      */
-    public String getPrefPath() { return prefs.absolutePath() + "/" + prefName; }
+    public String getPrefPath() { return prefNode + "/" + prefName; }
 
     /**
      * Method to return the user-command that can affect this Meaning option.
@@ -492,8 +492,9 @@ public class Setting {
         }
     };
 
-    public void saveToPreferences(Object v) {
+    public void saveToPreferences(Preferences prefRoot, Object v) {
         assert v.getClass() == factoryObj.getClass();
+        Preferences prefs = prefRoot.node(prefNode);
         if (v.equals(factoryObj)) {
              prefs.remove(prefName);
              return;
@@ -513,7 +514,8 @@ public class Setting {
         }
     }
 
-    public Object getValueFromPreferences() {
+    public Object getValueFromPreferences(Preferences prefRoot) {
+        Preferences prefs = prefRoot.node(prefNode);
         Object cachedObj = null;
         if (factoryObj instanceof Boolean) {
             cachedObj = Boolean.valueOf(prefs.getBoolean(prefName, ((Boolean)factoryObj).booleanValue()));
@@ -533,7 +535,7 @@ public class Setting {
     private void writeSetting(IdWriter writer) throws IOException {
         // xmlPath
         Variable.writeObject(writer, factoryObj);
-        writer.writeString(prefs.absolutePath());
+        writer.writeString(prefNode);
         writer.writeString(prefName);
         writer.writeBoolean(valid);
         writer.writeString(description);

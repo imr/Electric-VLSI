@@ -101,15 +101,16 @@ public class Pref {
 
     public static class Group {
         private final boolean isTechGroup;
+        private final String relativePath;
         private boolean lockCreation;
         Preferences preferences;
         private final TreeMap<String,Pref> prefs = new TreeMap<String,Pref>();
 
-        public Group(Preferences preferences, boolean isTechGroup) {
-            this.preferences = preferences;
+        public Group(String relativePath, boolean isTechGroup) {
             this.isTechGroup = isTechGroup;
+            this.relativePath = relativePath;
         }
-        public String absolutePath() { return preferences.absolutePath(); }
+        public String relativePath() { return relativePath; }
 
         public Collection<Pref> getPrefs() {
             return Collections.unmodifiableCollection(prefs.values());
@@ -129,7 +130,16 @@ public class Pref {
         }
 
         private void putValue(String key, Object value) {
-            if (preferences == null) return;
+            if (preferences == null)
+                preferences = getPrefRoot().node(relativePath);
+            putValue(preferences, key, value);
+            if (doFlushing)
+                flushOptions(preferences);
+            else
+                queueForFlushing.add(preferences);
+        }
+
+        private void putValue(Preferences preferences, String key, Object value) {
             if (value instanceof Boolean) {
                 preferences.putBoolean(key, ((Boolean)value).booleanValue());
             } else if (value instanceof Integer) {
@@ -142,65 +152,50 @@ public class Pref {
                 assert value instanceof String;
                 preferences.put(key, (String)value);
             }
-            if (doFlushing)
-                flushOptions(preferences);
-            else
-                queueForFlushing.add(preferences);
         }
 
         private Object getValue(String key, Object def) {
-            if (preferences == null) return def;
-            Object value = def;
-            if (def instanceof Boolean) {
-                boolean defV = ((Boolean)def).booleanValue();
-                boolean v = preferences.getBoolean(key, defV);
-                if (v != defV)
-                    value = Boolean.valueOf(v);
-            } else if (def instanceof Integer) {
-                int defV = ((Integer)def).intValue();
-                int v = preferences.getInt(key, defV);
-                if (v != defV)
-                    value = Integer.valueOf(v);
-            } else if (def instanceof Long) {
-                long defV = ((Long)def).longValue();
-                long v = preferences.getLong(key, defV);
-                if (v != defV)
-                    value = Long.valueOf(v);
-            } else if (def instanceof Double) {
-                double defV = ((Double)def).doubleValue();
-                double v = preferences.getDouble(key, defV);
-                if (v != defV)
-                    value = Double.valueOf(v);
-            } else {
-                assert def instanceof String;
-                value = preferences.get(key, (String)def);
-            }
-            return value;
+            if (preferences == null)
+                preferences = getPrefRoot().node(relativePath);
+            return getValueImpl(preferences, key, def);
         }
 
         private void remove(String key) {
-            if (preferences == null) return;
-            preferences.remove(key);
+            if (preferences == null)
+                preferences = getPrefRoot().node(relativePath);
+            remove(preferences, key);
             if (doFlushing)
                 flushOptions(preferences);
             else
                 queueForFlushing.add(preferences);
+
+        }
+
+        private void remove(Preferences preferences, String key) {
+            preferences.remove(key);
         }
     }
 
     public static Group groupForPackage(Class classFromPackage) {
-        return groupForPackage(classFromPackage, false);
+
+        String className = classFromPackage.getName();
+        String mainClassName = "com.sun.electric.";
+        if (!className.startsWith(mainClassName))
+            throw new IllegalArgumentException("Class is not in Electric tree");
+        className = className.substring(mainClassName.length());
+        int pkgEndIndex = className.lastIndexOf('.');
+        String packageName = className.substring(0, pkgEndIndex);
+        return groupForPackage(packageName.replace('.', '/'), false);
     }
 
-    public static Group groupForPackage(Class classFromPackage, boolean techGroup) {
-        Preferences prefs = Preferences.userNodeForPackage(classFromPackage);
+    public static Group groupForPackage(String relativePath, boolean techGroup) {
         if (techGroup)
-            return new Group(prefs, true);
+            return new Group(relativePath, true);
         synchronized(allGroups) {
             for (Group group: allGroups)
-                if (group.preferences == prefs)
+                if (group.relativePath.equals(relativePath))
                     return group;
-            Group newGroup = new Group(prefs, false);
+            Group newGroup = new Group(relativePath, false);
             allGroups.add(newGroup);
             return newGroup;
         }
@@ -224,7 +219,7 @@ public class Pref {
 	 */
 	protected Pref(Group group, String name, boolean serverAccessible, Object factoryObj) {
         if (group.isTechGroup ? group.lockCreation : lockCreation && serverAccessible)
-            throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" is created from improper place");
+            throw new IllegalStateException("Pref "+group.relativePath()+"/"+name+" is created from improper place");
         this.name = name;
         this.group = group;
         this.serverAccessible = serverAccessible;
@@ -266,7 +261,7 @@ public class Pref {
 
 			// reset all preferences to factory values
             try {
-                clearPrefs(Preferences.userNodeForPackage(Main.class));
+                clearPrefs(getPrefRoot());
     		} catch (BackingStoreException e) {
             	System.out.println("Error resetting Electric preferences");
                 e.printStackTrace();
@@ -312,7 +307,7 @@ public class Pref {
         try
 		{
         	// dump the preferences as a giant XML string (unformatted)
-			Preferences root = Preferences.userNodeForPackage(Main.class);
+			Preferences root = getPrefRoot();
 			ByteArrayOutputStream bs = new ByteArrayOutputStream();
 			root.exportSubtree(bs);
 			String xmlDump = bs.toString();
@@ -507,6 +502,46 @@ public class Pref {
 	 */
 	public String getString() { return (String)getValue(); }
 
+    /**
+	 * Method to get the boolean value on this Pref object.
+	 * The object must have been created as "boolean".
+     * @param prefRoot root Preferences node
+	 * @return the boolean value on this Pref object.
+	 */
+	public boolean getBoolean(Preferences prefRoot) { return ((Boolean)getValue(prefRoot)).booleanValue(); }
+
+	/**
+	 * Method to get the integer value on this Pref object.
+	 * The object must have been created as "integer".
+     * @param prefRoot root Preferences node
+	 * @return the integer value on this Pref object.
+	 */
+	public int getInt(Preferences prefRoot) { return ((Integer)getValue(prefRoot)).intValue(); }
+
+	/**
+	 * Method to get the long value on this Pref object.
+	 * The object must have been created as "long".
+     * @param prefRoot root Preferences node
+	 * @return the long value on this Pref object.
+	 */
+	public long getLong(Preferences prefRoot) { return ((Long)getValue(prefRoot)).longValue(); }
+
+	/**
+	 * Method to get the double value on this Pref object.
+	 * The object must have been created as "double".
+     * @param prefRoot root Preferences node
+	 * @return the double value on this Pref object.
+	 */
+	public double getDouble(Preferences prefRoot) { return ((Double)getValue(prefRoot)).doubleValue(); }
+
+	/**
+	 * Method to get the string value on this Pref object.
+	 * The object must have been created as "string".
+     * @param prefRoot root Preferences node
+	 * @return the string value on this Pref object.
+	 */
+	public String getString(Preferences prefRoot) { return (String)getValue(prefRoot); }
+
 	/**
 	 * Method to get the factory-default value of this Pref object.
 	 * @return the factory-default value of this Pref object.
@@ -553,7 +588,7 @@ public class Pref {
      * Method to get the pref name of this Pref object.
      * @return the name of this Setting object.
      */
-    public String getPrefPath() { return group.absolutePath() + "/" + name; }
+    public String getPrefPath() { return group.relativePath() + "/" + name; }
 
 	/**
 	 * Method to get the value of this Pref object as an Object.
@@ -563,7 +598,7 @@ public class Pref {
 	 */
 	public Object getValue() {
         if (group.isTechGroup && !group.lockCreation)
-            throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" is accessed from improper place");
+            throw new IllegalStateException("Pref "+group.relativePath()+"/"+name+" is accessed from improper place");
         if (Thread.currentThread() != clientThread) {
             if (!serverAccessible && !reportedAccess.contains(this)) {
                 String msg = getPrefName() + " is accessed from " + Job.getRunningJob();
@@ -575,6 +610,39 @@ public class Pref {
             }
         }
         return cachedObj;
+    }
+
+    public Object getValue(Preferences prefRoot) {
+        return getValueImpl(prefRoot.node(group.relativePath), name, factoryObj);
+    }
+
+    private static Object getValueImpl(Preferences preferences, String key, Object def) {
+        Object value = def;
+        if (def instanceof Boolean) {
+            boolean defV = ((Boolean)def).booleanValue();
+            boolean v = preferences.getBoolean(key, defV);
+            if (v != defV)
+                value = Boolean.valueOf(v);
+        } else if (def instanceof Integer) {
+            int defV = ((Integer)def).intValue();
+            int v = preferences.getInt(key, defV);
+            if (v != defV)
+                value = Integer.valueOf(v);
+        } else if (def instanceof Long) {
+            long defV = ((Long)def).longValue();
+            long v = preferences.getLong(key, defV);
+            if (v != defV)
+                value = Long.valueOf(v);
+        } else if (def instanceof Double) {
+            double defV = ((Double)def).doubleValue();
+            double v = preferences.getDouble(key, defV);
+            if (v != defV)
+                value = Double.valueOf(v);
+        } else {
+            assert def instanceof String;
+            value = preferences.get(key, (String)def);
+        }
+        return value;
     }
 
     private void setValue(Object value) {
@@ -622,12 +690,16 @@ public class Pref {
 			flushOptions(p);
 	}
 
+    public static Preferences getPrefRoot() {
+        return Preferences.userNodeForPackage(Main.class);
+    }
+
 	/**
 	 * Method to immediately flush all Electric preferences to disk.
 	 */
 	public static void flushAll()
 	{
-        flushOptions(Preferences.userNodeForPackage(Main.class));
+        flushOptions(getPrefRoot());
 	}
 
 	/**
@@ -701,7 +773,7 @@ public class Pref {
 
     private void checkModify() {
         if (group.isTechGroup && !group.lockCreation)
-            throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" is modified from improper place");
+            throw new IllegalStateException("Pref "+group.relativePath()+"/"+name+" is modified from improper place");
         if (Thread.currentThread() != clientThread) {
             if (!serverAccessible) {
                 String msg = getPrefName() + " is modified in " + Job.getRunningJob();
@@ -725,7 +797,7 @@ public class Pref {
             for (Group group: allGroups) {
                 for (Pref pref: group.prefs.values()) {
                     if (!all && !pref.serverAccessible) continue;
-                    sortedPrefs.put(pref.group.absolutePath() + "/" + pref.name, pref);
+                    sortedPrefs.put(pref.group.relativePath() + "/" + pref.name, pref);
                 }
             }
         }
@@ -742,13 +814,13 @@ public class Pref {
         out.println("ELECTRIC USER PREFERENCES");
         int  i = 0;
         for (Pref pref: sortedPrefs.values())
-            out.println((i++) + pref.group.absolutePath() + " " + pref.name + " " + pref.cachedObj);
+            out.println((i++) + pref.group.relativePath() + " " + pref.name + " " + pref.cachedObj);
         for (Technology tech: database.getTechnologies()) {
             i = 0;
             for (Pref.Group group: tech.getTechnologyAllPreferences()) {
                 for (Pref pref: group.prefs.values()) {
                     if (!all && !pref.serverAccessible) continue;
-                    out.println((i++) + pref.group.absolutePath() + " " + tech + " " + pref.name + " " + pref.cachedObj);
+                    out.println((i++) + pref.group.relativePath() + " " + tech + " " + pref.name + " " + pref.cachedObj);
                 }
             }
         }

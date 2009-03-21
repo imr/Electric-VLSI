@@ -27,7 +27,6 @@ package com.sun.electric.database;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.TechFactory;
@@ -38,6 +37,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.prefs.Preferences;
 
 /**
  * Immutable class to represent Database environment
@@ -94,7 +94,6 @@ public class Environment {
             setting.set(value);
         }
         setThreadEnvironment(this);
-        saveToPreferences();
     }
 
     public boolean isActive() {
@@ -220,12 +219,11 @@ public class Environment {
         return new Environment(toolSettings, newTechPool, newSettingValues);
     }
 
-    public void saveToPreferences() {
+    public void saveToPreferences(Preferences prefs) {
         for (Map.Entry<Setting,Object> e: getSettings().entrySet()) {
             Setting setting = e.getKey();
-            setting.saveToPreferences(e.getValue());
+            setting.saveToPreferences(prefs, e.getValue());
         }
-        Pref.flushAll();
     }
 
     /**

@@ -62,7 +62,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ToolSettings;
-import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
@@ -1002,9 +1001,9 @@ public class Technology implements Comparable<Technology>, Serializable
 		userBits = 0;
         rootSettings = new Setting.RootGroup();
         settings = rootSettings.node(getTechName());
-		prefs = Pref.groupForPackage(Generic.class, true);
-        userPrefs = Pref.groupForPackage(User.class, true);
-        drcPrefs = Pref.groupForPackage(DRC.class, true);
+		prefs = Pref.groupForPackage("technology/technologies", true);
+        userPrefs = Pref.groupForPackage("tool/user", true);
+        drcPrefs = Pref.groupForPackage("tool/drc", true);
         cacheFoundry = makeStringSetting("SelectedFoundryFor"+getTechName(),
         	"Technology tab", getTechName() + " foundry", "Foundry", defaultFoundry.getName());
         paramFoundry = defaultFoundry.getName();
@@ -1246,8 +1245,9 @@ public class Technology implements Comparable<Technology>, Serializable
         }
 
         Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
+        Preferences prefRoot = Pref.getPrefRoot();
         for (Setting setting: env.getSettings().keySet())
-            changeBatch.add(setting, setting.getValueFromPreferences());
+            changeBatch.add(setting, setting.getValueFromPreferences(prefRoot));
         for (Technology t: env.techPool.values()) {
             for (Map.Entry<TechFactory.Param,Object> e: t.getCurrentState().paramValues.entrySet()) {
                 TechFactory.Param param = e.getKey();
@@ -1334,7 +1334,7 @@ public class Technology implements Comparable<Technology>, Serializable
             int index = prefPath.lastIndexOf('/');
             String prefName = prefPath.substring(index + 1);
             prefPath = prefPath.substring(0, index);
-            Preferences prefNode = Preferences.userRoot().node(prefPath);
+            Preferences prefNode = Pref.getPrefRoot().node(prefPath);
             Object value = null;
             Object factoryValue = param.factoryValue;
             if (factoryValue instanceof Boolean)
@@ -4196,14 +4196,14 @@ public class Technology implements Comparable<Technology>, Serializable
     private Setting makeParasiticSetting(String what, double factory) {
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-        return getProjectSettings().makeDoubleSetting(what + "IN" + getTechName(), prefs.absolutePath(),
+        return getProjectSettings().makeDoubleSetting(what + "IN" + getTechName(), prefs.relativePath(),
                 what, "Parasitic tab", techShortName + " " + what, factory);
     }
 
     private Setting makeParasiticSetting(String what, boolean factory) {
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-        return getProjectSettings().makeBooleanSetting(what + "IN" + getTechName(), prefs.absolutePath(),
+        return getProjectSettings().makeBooleanSetting(what + "IN" + getTechName(), prefs.relativePath(),
                 what, "Parasitic tab", techShortName + " " + what, factory);
     }
 
@@ -4379,7 +4379,7 @@ public class Technology implements Comparable<Technology>, Serializable
     private Setting makeLESetting(String what, double factory) {
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-       return getLESettingsNode().makeDoubleSetting(what + "IN" + getTechName(), prefs.absolutePath(),
+       return getLESettingsNode().makeDoubleSetting(what + "IN" + getTechName(), prefs.relativePath(),
                 what, "Logical Effort tab", techShortName + " " + what, factory);
     }
 
@@ -4727,7 +4727,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		this.scaleRelevant = scaleRelevant;
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-		cacheScale = getProjectSettings().makeDoubleSetting(getScaleVariableName(), prefs.absolutePath(),
+		cacheScale = getProjectSettings().makeDoubleSetting(getScaleVariableName(), prefs.relativePath(),
                 "Scale", "Scale tab", techShortName + " scale", factory);
 		cacheScale.setValidOption(isScaleRelevant());
     }
@@ -5968,19 +5968,19 @@ public class Technology implements Comparable<Technology>, Serializable
     public boolean isValidVTPolyRule(DRCTemplate theRule) {return false;}
 
     public Setting makeBooleanSetting(String name, String location, String description, String xmlName, boolean factory) {
-        return getProjectSettings().makeBooleanSetting(name, prefs.absolutePath(), xmlName, location, description, factory);
+        return getProjectSettings().makeBooleanSetting(name, prefs.relativePath(), xmlName, location, description, factory);
     }
 
     public Setting makeIntSetting(String name, String location, String description, String xmlName, int factory, String... trueMeaning) {
-        return getProjectSettings().makeIntSetting(name, prefs.absolutePath(), xmlName, location, description, factory, trueMeaning);
+        return getProjectSettings().makeIntSetting(name, prefs.relativePath(), xmlName, location, description, factory, trueMeaning);
     }
 
     public Setting makeDoubleSetting(String name, String location, String description, String xmlName, double factory) {
-        return getProjectSettings().makeDoubleSetting(name, prefs.absolutePath(), xmlName, location, description, factory);
+        return getProjectSettings().makeDoubleSetting(name, prefs.relativePath(), xmlName, location, description, factory);
     }
 
     public Setting makeStringSetting(String name, String location, String description, String xmlName, String factory) {
-        return getProjectSettings().makeStringSetting(name, prefs.absolutePath(), xmlName, location, description, factory);
+        return getProjectSettings().makeStringSetting(name, prefs.relativePath(), xmlName, location, description, factory);
     }
     // -------------------------- Project Settings -------------------------
 

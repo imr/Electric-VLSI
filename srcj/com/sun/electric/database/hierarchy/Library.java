@@ -90,7 +90,6 @@ public class Library extends ElectricObject implements Comparable<Library>
     /** preferences group for this library */               private final Pref.Group prefsGroup;
     /** DELIB cell files. */                                private HashSet<String> delibCellFiles = new HashSet<String>();
 
-	/** preferences for all libraries */					private static Preferences allPrefs = null;
 	/** the current library in Electric */					private static Library curLib = null;
 
 	// ----------------- private and protected methods --------------------
@@ -103,10 +102,10 @@ public class Library extends ElectricObject implements Comparable<Library>
         this.database = database;
         this.d = d;
         backup = new LibraryBackup(d, true, LibId.NULL_ARRAY);
-		if (allPrefs == null) allPrefs = Preferences.userNodeForPackage(getClass());
-        prefs = allPrefs.node(getName());
+        String relativePath = "database/hierarchy/"+getName();
+        prefsGroup = new Pref.Group(relativePath, false);
+        prefs = Pref.getPrefRoot().node(relativePath);
         prefs.put("LIB", getName());
-        prefsGroup = new Pref.Group(prefs, false);
 	}
 
 	/**

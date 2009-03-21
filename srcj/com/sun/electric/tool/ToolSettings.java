@@ -229,25 +229,25 @@ public class ToolSettings {
 
     private final Setting.RootGroup rootSettingGroup = new Setting.RootGroup();
 
-    { tool("userTool", "/com/sun/electric/tool/user"); }
+    { tool("userTool", "tool/user"); }
 	private final Setting cacheDefaultTechnology = makeStringSetting("DefaultTechnology", "Technology tab", "Default Technology for editing", "mocmos");
 	private final Setting cacheSchematicTechnology = makeStringSetting("SchematicTechnology", "Technology tab", "Schematics use scale values from this technology", "mocmos");
 	private final Setting cacheIncludeDateAndVersionInOutput = makeBooleanSetting("IncludeDateAndVersionInOutput", "Netlists tab", "Include date and version in output", true);
 	private final Setting cachePWellProcess = makeBooleanSetting("PWellProcess", "Technology tab", "Define Layout Technology as a PWell process", true);
     private final Setting cacheSoftTechnologies = makeStringSetting(StartupPrefs.SoftTechnologiesKey, "Technology tab", "A list of added Xml Technologies", StartupPrefs.SoftTechnologiesDef);
 
-    { tool("networkTool", "/com/sun/electric/database/network"); }
+    { tool("networkTool", "database/network"); }
     private final Setting cacheIgnoreResistors = makeBooleanSetting("IgnoreResistors", "Netlists tab", "Networks ignore Resistors", false);
 
-    { tool("compactionTool", "/com/sun/electric/tool/compaction"); }
+    { tool("compactionTool", "tool/compaction"); }
 
-    { tool("drcTool", "/com/sun/electric/tool/drc"); }
+    { tool("drcTool", "tool/drc"); }
 
-    { tool("ercTool", "/com/sun/electric/tool/erc"); }
+    { tool("ercTool", "tool/erc"); }
 
-    { tool("extractTool", "/com/sun/electric/tool/extract"); }
+    { tool("extractTool", "tool/extract"); }
 
-    { tool("ioTool", "/com/sun/electric/tool/io"); }
+    { tool("ioTool", "tool/io"); }
 	private final Setting cacheUseCopyrightMessage = makeBooleanSetting("UseCopyrightMessage", "Netlists tab", "Use copyright message", false);
 	private final Setting cacheCopyrightMessage = makeStringSetting("CopyrightMessage", "Netlists tab", "Copyright message", "");
 	private final Setting cacheCIFMimicsDisplay = makeBooleanSetting("CIFMimicsDisplay", "CIF tab", "CIF output mimics display", false);
@@ -263,7 +263,7 @@ public class ToolSettings {
 	private final Setting cacheGDSInputScale = makeDoubleSetting("GDSInputScale", "GDS tab", "GDS input scale", 1.0);
 	private final Setting cacheDXFScale = makeIntSetting("DXFScale", "DXF tab", "DXF scale factor", 2);
 
-    { tool("logeffortTool", "/com/sun/electric/tool/logicaleffort"); }
+    { tool("logeffortTool", "tool/logicaleffort"); }
     private static final double DEFAULT_GLOBALFANOUT = 4.7;
     private static final double DEFAULT_EPSILON      = 0.001;
     private static final int    DEFAULT_MAXITER      = 30;
@@ -274,21 +274,21 @@ public class ToolSettings {
     private final Setting cacheMaxIterations = makeIntSetting("MaxIterations", "Logical Effort Tab", "Maximum Iterations", DEFAULT_MAXITER);
     private final Setting cacheKeeperRatio = makeDoubleSetting("KeeperRatio", "Logical Effort Tab", "Keeper Ratio", DEFAULT_KEEPERRATIO);
 
-    { tool("parasiticTool", "/com/sun/electric/tool/extract"); }
+    { tool("parasiticTool", "tool/extract"); }
 
-    { tool("projectTool", "/com/sun/electric/tool/project"); }
+    { tool("projectTool", "tool/project"); }
 
-    { tool("routingTool", "/com/sun/electric/tool/routing"); }
+    { tool("routingTool", "tool/routing"); }
 
-    { tool("scTool", "/com/sun/electric/tool/sc"); }
+    { tool("scTool", "tool/sc"); }
 
-    { tool("simulationTool", "/com/sun/electric/tool/simulation"); }
+    { tool("simulationTool", "tool/simulation"); }
 	private final Setting cacheVerilogUseAssign = makeBooleanSetting("VerilogUseAssign", "Verilog tab", "Verilog uses Assign construct", false);
 	private final Setting cacheVerilogUseTrireg = makeBooleanSetting("VerilogUseTrireg", "Verilog tab", "Verilog presumes wire is Trireg", false);
 
-    { tool("coverageTool", "/com/sun/electric/tool/extract"); }
+    { tool("coverageTool", "tool/extract"); }
 
-    { tool("GateLayoutGenerator", "/com/sun/electric/tool/generator/layout"); }
+    { tool("GateLayoutGenerator", "tool/generator/layout"); }
     private final Setting cachefoundry = makeStringSetting ("foundry",    "Gate Layout Generator Tab", "Foundry", "MOCMOS");
     private final Setting cacheenableNCC = makeStringSetting ("enableNCC",  "Gate Layout Generator Tab", "Enable NCC checking of layout", "purpleFour");
     private final Setting cachequantError = makeIntSetting    ("quantError", "Gate Layout Generator Tab", "Allowable quantization error", 0);
@@ -299,11 +299,11 @@ public class ToolSettings {
     private final Setting cachepheight = makeIntSetting    ("pheight",    "Gate Layout Generator Tab", "Height of Pwell", 84);
     private final Setting cachesimpleName = makeBooleanSetting("simpleName", "Gate Layout Generator Tab", "Name is gate type plus size", true);
 
-    { tool("Fill GeneratorTool", "/com/sun/electric/tool/generator/layout/fill"); }
+    { tool("Fill GeneratorTool", "tool/generator/layout/fill"); }
 
-    { tool("CVSTool", "/com/sun/electric/tool/cvspm"); }
+    { tool("CVSTool", "tool/cvspm"); }
 
-    { tool("STATool", "/com/sun/electric/plugins/sctiming"); }
+    { tool("STATool", "plugins/sctiming"); }
     private final Setting cacheGlobalSDCCommands = makeStringSetting("GlobalSDCCommands", "Static Timing Analysis Tab", "Global SDC Constraints", "");
     private final Setting cacheNumWorstPaths = makeIntSetting("NumWorstPaths", "Static Timing Analysis Tab", "Num Worst Paths", 10);
 

@@ -59,7 +59,7 @@ public class Artwork extends Technology
 {
     private static final String TECH_NAME = "artwork";
     private static final String XML_PREFIX = TECH_NAME + ".";
-    private static final String PREF_PREFIX = "/com/sun/electric/technology/technologies/";
+    private static final String PREF_PREFIX = "technology/technologies/";
     private static final TechFactory.Param techParamFillArrows =
             new TechFactory.Param(XML_PREFIX + "FillArrows", PREF_PREFIX + "ArtworkFillArrows", Boolean.FALSE);
 

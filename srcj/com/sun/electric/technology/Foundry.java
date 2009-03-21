@@ -240,7 +240,7 @@ public class Foundry {
             factoryDefault = factoryDefault.replaceAll(", ", ",");
 
             Setting setting = getGDSNode().makeStringSetting(what + "LayerFor" + layer.getName() + "IN" + techName,
-                    tech.getTechnologyPreferences().absolutePath(),
+                    tech.getTechnologyPreferences().relativePath(),
                     layer.getName(),
                     what + " tab", what + " for layer " + layer.getName() + " in technology " + techName, factoryDefault);
             gdsLayerSettings[layerIndex] = setting;
