@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09g: ******************************
 
+BUG: (3/21/09, DN) ExportGDS_CIFTest.exportGDS_CIF didn't detect resolution errors.
+FIX: Remove "passed=true;"
+
 IMP: (3/20/09, DN) Convert preferences Artwork.FillArrays and Schematics.InvertingBubblesSize to Settings.
 
 BUG: (3/20/09, DN) FastHenry regression accesses Preferences.
