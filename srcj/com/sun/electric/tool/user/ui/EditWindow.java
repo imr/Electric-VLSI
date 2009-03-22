@@ -3228,7 +3228,7 @@ public class EditWindow extends JPanel
 					// found previous in cell history: show it
 					WindowFrame.CellHistory foundHistory = wf.getCellHistoryList().get(historyIndex);
 					foundHistory.setContext(context);
-					if (selectedExport != null)
+					if (selectedExport != null && selectedExport.getParent() == parent)
 						foundHistory.setSelPort(no.getNodeInst().findPortInstFromProto(selectedExport));
 					if (keepFocus)
 					{
