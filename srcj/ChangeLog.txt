@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09g: ******************************
 
+IMP: (3/21/09, DN) A new way of Pref definitions using Java annotations.
+   It is demonstrated in SilComp and SiliconCompilerTab modules.
+
 BUG: (3/21/09, DN) ExportGDS_CIFTest.exportGDS_CIF didn't detect resolution errors.
 FIX: Remove "passed=true;"
 

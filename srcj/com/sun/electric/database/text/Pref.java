@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.prefs.AbstractPreferences;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.InvalidPreferencesFormatException;
 import java.util.prefs.Preferences;
@@ -688,11 +689,38 @@ public class Pref {
 		doFlushing = true;
 		for(Preferences p : queueForFlushing)
 			flushOptions(p);
+        flushAll();
 	}
 
+    /**
+     * Returns the root of Preferences subtree with Electric options.
+     * Currently this is "/com/sun/electric/" subtree.
+     * @return the root of Preferences subtree with Electric options.
+     */
     public static Preferences getPrefRoot() {
         return Preferences.userNodeForPackage(Main.class);
     }
+
+    /**
+     * Returns the root of dummy Preferences subtree with factory default Electric options.
+     * @return the root of Preferences subtree with factory default Electric options.
+     */
+    public static Preferences getFactoryPrefRoot() {
+        return factoryPrefRoot;
+    }
+
+    private static final Preferences factoryPrefRoot = new AbstractPreferences(null, "") {
+        @Override protected String getSpi(String key) { return null; }
+        @Override protected AbstractPreferences childSpi(String name) { return this; }
+
+        @Override protected void putSpi(String key, String value) { throw new UnsupportedOperationException(); }
+        @Override protected void removeSpi(String key) { throw new UnsupportedOperationException(); }
+        @Override protected void removeNodeSpi() { throw new UnsupportedOperationException(); }
+        @Override protected String[] keysSpi() { throw new UnsupportedOperationException(); }
+        @Override protected String[] childrenNamesSpi() throws BackingStoreException { throw new UnsupportedOperationException(); }
+        @Override protected void syncSpi() throws BackingStoreException { throw new UnsupportedOperationException(); }
+        @Override protected void flushSpi() throws BackingStoreException { throw new UnsupportedOperationException(); }
+    };
 
 	/**
 	 * Method to immediately flush all Electric preferences to disk.
@@ -764,6 +792,66 @@ public class Pref {
 	}
 
 	/**
+	 * Method to set a new boolean value on this Pref object.
+	 * @param v the new boolean value of this Pref object.
+	 */
+	public void putBoolean(Preferences prefRoot, boolean removeDefaults, boolean v) {
+        Preferences prefs = prefRoot.node(group.relativePath);
+		if (removeDefaults && v == ((Boolean)factoryObj).booleanValue())
+            prefs.remove(name);
+        else
+           prefs.putBoolean(name, v);
+	}
+
+	/**
+	 * Method to set a new integer value on this Pref object.
+	 * @param v the new integer value of this Pref object.
+	 */
+	public void putInt(Preferences prefRoot, boolean removeDefaults, int v) {
+        Preferences prefs = prefRoot.node(group.relativePath);
+		if (removeDefaults && v == ((Integer)factoryObj).intValue())
+            prefs.remove(name);
+        else
+           prefs.putInt(name, v);
+	}
+
+	/**
+	 * Method to set a new long value on this Pref object.
+	 * @param v the new long value of this Pref object.
+	 */
+	public void putLong(Preferences prefRoot, boolean removeDefaults, long v) {
+        Preferences prefs = prefRoot.node(group.relativePath);
+		if (removeDefaults && v == ((Long)factoryObj).longValue())
+            prefs.remove(name);
+        else
+            prefs.putLong(name, v);
+	}
+
+    /**
+	 * Method to set a new double value on this Pref object.
+	 * @param v the new double value of this Pref object.
+	 */
+	public void putDouble(Preferences prefRoot, boolean removeDefaults, double v) {
+        Preferences prefs = prefRoot.node(group.relativePath);
+		if (removeDefaults && v == ((Double)factoryObj).doubleValue())
+            prefs.remove(name);
+        else
+            prefs.putDouble(name, v);
+	}
+
+	/**
+	 * Method to set a new string value on this Pref object.
+	 * @param str the new string value of this Pref object.
+	 */
+	public void putString(Preferences prefRoot, boolean removeDefaults, String str) {
+        Preferences prefs = prefRoot.node(group.relativePath);
+		if (removeDefaults && str.equals(factoryObj))
+            prefs.remove(name);
+        else
+            prefs.put(name, str);
+	}
+
+	/**
 	 * Method to reset Pref value to factory default.
 	 */
     public void factoryReset() {
@@ -801,7 +889,7 @@ public class Pref {
                 }
             }
         }
-        Preferences rootNode = Preferences.userRoot().node("com/sun/electric");
+        Preferences rootNode = getPrefRoot();
         numStrings = lenStrings = 0;
         try {
             gatherPrefs(out, 0, rootNode, null);

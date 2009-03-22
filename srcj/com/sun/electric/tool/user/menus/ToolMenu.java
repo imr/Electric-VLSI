@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.prefs.Preferences;
 
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
@@ -57,6 +58,7 @@ import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -1725,7 +1727,8 @@ public class ToolMenu {
         }
 
 		// do the silicon compilation task
-        doSilCompActivityNoJob(cell, activities, doItNow, new SilComp.SilCompPrefs());
+        Preferences prefRoot = doItNow ? Pref.getFactoryPrefRoot() : Pref.getPrefRoot();
+        doSilCompActivityNoJob(cell, activities, doItNow, new SilComp.SilCompPrefs(prefRoot));
 	}
 
 	/**
@@ -1743,7 +1746,7 @@ public class ToolMenu {
 		}
 
 		// do the VHDL compilation task
-		new DoSilCompActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL, new SilComp.SilCompPrefs());
+		new DoSilCompActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL, new SilComp.SilCompPrefs(Pref.getPrefRoot()));
 	}
 
 	/**
@@ -1754,7 +1757,7 @@ public class ToolMenu {
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-	    new DoSilCompActivity(cell, CONVERT_TO_VHDL | SHOW_CELL, new SilComp.SilCompPrefs());
+	    new DoSilCompActivity(cell, CONVERT_TO_VHDL | SHOW_CELL, new SilComp.SilCompPrefs(Pref.getPrefRoot()));
 	}
 
 	/**

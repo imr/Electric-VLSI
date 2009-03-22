@@ -62,19 +62,24 @@ public class SiliconCompilerTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
+    @Override
 	public JPanel getPanel() { return siliconCompiler; }
 
 	/** return the name of this preferences tab. */
+    @Override
 	public String getName() { return "Silicon Compiler"; }
 
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Selection tab.
 	 */
+    @Override
 	public void init()
 	{
+        SilComp.SilCompPrefs scp = new SilComp.SilCompPrefs(initialPrefRoot);
+
 		// the layout information
-		numRows.setText(Integer.toString(SilComp.getNumberOfRows()));
+		numRows.setText(Integer.toString(scp.numRows));
 
 		// the arc information
 		for(Iterator<ArcProto> it = Technology.getCurrent().getArcs(); it.hasNext(); )
@@ -84,140 +89,71 @@ public class SiliconCompilerTab extends PreferencePanel
 			vertRoutingArc.addItem(ap.getName());
 			mainPowerArc.addItem(ap.getName());
 		}
-		horizRoutingArc.setSelectedItem(SilComp.getHorizRoutingArc());
-		horizWireWidth.setText(TextUtils.formatDistance(SilComp.getHorizArcWidth()));
-		vertRoutingArc.setSelectedItem(SilComp.getVertRoutingArc());
-		vertWireWidth.setText(TextUtils.formatDistance(SilComp.getVertArcWidth()));
+		horizRoutingArc.setSelectedItem(scp.horizRoutingArc);
+		horizWireWidth.setText(TextUtils.formatDistance(scp.horizArcWidth));
+		vertRoutingArc.setSelectedItem(scp.vertRoutingArc);
+		vertWireWidth.setText(TextUtils.formatDistance(scp.vertArcWidth));
 
-		powerWidth.setText(TextUtils.formatDistance(SilComp.getPowerWireWidth()));
-		mainPowerWidth.setText(TextUtils.formatDistance(SilComp.getMainPowerWireWidth()));
-		mainPowerArc.setSelectedItem(SilComp.getMainPowerArc());
+		powerWidth.setText(TextUtils.formatDistance(scp.powerWireWidth));
+		mainPowerWidth.setText(TextUtils.formatDistance(scp.mainPowerWireWidth));
+		mainPowerArc.setSelectedItem(scp.mainPowerArc);
 
 		// the Well information
-		pWellHeight.setText(TextUtils.formatDistance(SilComp.getPWellHeight()));
-		pWellOffset.setText(TextUtils.formatDistance(SilComp.getPWellOffset()));
-		nWellHeight.setText(TextUtils.formatDistance(SilComp.getNWellHeight()));
-		nWellOffset.setText(TextUtils.formatDistance(SilComp.getNWellOffset()));
+		pWellHeight.setText(TextUtils.formatDistance(scp.pWellHeight));
+		pWellOffset.setText(TextUtils.formatDistance(scp.pWellOffset));
+		nWellHeight.setText(TextUtils.formatDistance(scp.nWellHeight));
+		nWellOffset.setText(TextUtils.formatDistance(scp.nWellOffset));
 
 		// the Design Rules
-		viaSize.setText(TextUtils.formatDistance(SilComp.getViaSize()));
-		minMetalSpacing.setText(TextUtils.formatDistance(SilComp.getMinMetalSpacing()));
-		feedThruSize.setText(TextUtils.formatDistance(SilComp.getFeedThruSize()));
-		minPortDist.setText(TextUtils.formatDistance(SilComp.getMinPortDistance()));
-		minActiveDist.setText(TextUtils.formatDistance(SilComp.getMinActiveDistance()));
+		viaSize.setText(TextUtils.formatDistance(scp.viaSize));
+		minMetalSpacing.setText(TextUtils.formatDistance(scp.minMetalSpacing));
+		feedThruSize.setText(TextUtils.formatDistance(scp.feedThruSize));
+		minPortDist.setText(TextUtils.formatDistance(scp.minPortDistance));
+		minActiveDist.setText(TextUtils.formatDistance(scp.minActiveDistance));
 	}
 
 	/**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Selection tab.
 	 */
+    @Override
 	public void term()
 	{
+        SilComp.SilCompPrefs scp = new SilComp.SilCompPrefs(initialPrefRoot);
+
 		// layout
-		int currentNumRows = TextUtils.atoi(numRows.getText());
-		if (currentNumRows != SilComp.getNumberOfRows())
-			SilComp.setNumberOfRows(currentNumRows);
-
+        scp.numRows = TextUtils.atoi(numRows.getText());
 		// arcs
-		String currentHorizRoutingArc = (String)horizRoutingArc.getSelectedItem();
-		if (!currentHorizRoutingArc.equals(SilComp.getHorizRoutingArc()))
-			SilComp.setHorizRoutingArc(currentHorizRoutingArc);
-		double currDouble = TextUtils.atofDistance(horizWireWidth.getText());
-		if (currDouble != SilComp.getHorizArcWidth())
-			SilComp.setHorizArcWidth(currDouble);
-
-		String currentVertRoutingArc = (String)vertRoutingArc.getSelectedItem();
-		if (!currentVertRoutingArc.equals(SilComp.getVertRoutingArc()))
-			SilComp.setVertRoutingArc(currentVertRoutingArc);
-		currDouble = TextUtils.atofDistance(vertWireWidth.getText());
-		if (currDouble != SilComp.getVertArcWidth())
-			SilComp.setVertArcWidth(currDouble);
-
-		currDouble = TextUtils.atofDistance(powerWidth.getText());
-		if (currDouble != SilComp.getPowerWireWidth())
-			SilComp.setPowerWireWidth(currDouble);
-		currDouble = TextUtils.atofDistance(mainPowerWidth.getText());
-		if (currDouble != SilComp.getMainPowerWireWidth())
-			SilComp.setMainPowerWireWidth(currDouble);
-		String currentMainPowerArc = (String)mainPowerArc.getSelectedItem();
-		if (!currentMainPowerArc.equals(SilComp.getMainPowerArc()))
-			SilComp.setMainPowerArc(currentMainPowerArc);
-
+        scp.horizRoutingArc = (String)horizRoutingArc.getSelectedItem();
+        scp.horizArcWidth = TextUtils.atofDistance(horizWireWidth.getText());
+        scp.vertRoutingArc = (String)vertRoutingArc.getSelectedItem();
+        scp.vertArcWidth = TextUtils.atofDistance(vertWireWidth.getText());
+        scp.powerWireWidth = TextUtils.atofDistance(powerWidth.getText());
+        scp.mainPowerWireWidth = TextUtils.atofDistance(mainPowerWidth.getText());
+        scp.mainPowerArc = (String)mainPowerArc.getSelectedItem();
 		// wells
-		currDouble = TextUtils.atofDistance(pWellHeight.getText());
-		if (currDouble != SilComp.getPWellHeight())
-			SilComp.setPWellHeight(currDouble);
-		currDouble = TextUtils.atofDistance(pWellOffset.getText());
-		if (currDouble != SilComp.getPWellOffset())
-			SilComp.setPWellOffset(currDouble);
-		currDouble = TextUtils.atofDistance(nWellHeight.getText());
-		if (currDouble != SilComp.getNWellHeight())
-			SilComp.setNWellHeight(currDouble);
-		currDouble = TextUtils.atofDistance(nWellOffset.getText());
-		if (currDouble != SilComp.getNWellOffset())
-			SilComp.setNWellOffset(currDouble);
-
+        scp.pWellHeight = TextUtils.atofDistance(pWellHeight.getText());
+        scp.pWellOffset = TextUtils.atofDistance(pWellOffset.getText());
+        scp.nWellHeight = TextUtils.atofDistance(nWellHeight.getText());
+        scp.nWellOffset = TextUtils.atofDistance(nWellOffset.getText());
 		// design rules
-		currDouble = TextUtils.atofDistance(viaSize.getText());
-		if (currDouble != SilComp.getViaSize())
-			SilComp.setViaSize(currDouble);
-		currDouble = TextUtils.atofDistance(minMetalSpacing.getText());
-		if (currDouble != SilComp.getMinMetalSpacing())
-			SilComp.setMinMetalSpacing(currDouble);
-		currDouble = TextUtils.atofDistance(feedThruSize.getText());
-		if (currDouble != SilComp.getFeedThruSize())
-			SilComp.setFeedThruSize(currDouble);
-		currDouble = TextUtils.atofDistance(minPortDist.getText());
-		if (currDouble != SilComp.getMinPortDistance())
-			SilComp.setMinPortDistance(currDouble);
-		currDouble= TextUtils.atofDistance(minActiveDist.getText());
-		if (currDouble != SilComp.getMinActiveDistance())
-			SilComp.setMinActiveDistance(currDouble);
+        scp.viaSize = TextUtils.atofDistance(viaSize.getText());
+        scp.minMetalSpacing = TextUtils.atofDistance(minMetalSpacing.getText());
+        scp.feedThruSize = TextUtils.atofDistance(feedThruSize.getText());
+        scp.minPortDistance = TextUtils.atofDistance(minPortDist.getText());
+        scp.minActiveDistance = TextUtils.atofDistance(minActiveDist.getText());
+
+        scp.putPrefs(initialPrefRoot, true);
 	}
 
 	/**
 	 * Method called when the factory reset is requested.
 	 */
+    @Override
 	public void reset()
-	{
-		if (SilComp.getFactoryNumberOfRows() != SilComp.getNumberOfRows())
-			SilComp.setNumberOfRows(SilComp.getFactoryNumberOfRows());
-
-		if (!SilComp.getFactoryHorizRoutingArc().equals(SilComp.getHorizRoutingArc()))
-			SilComp.setHorizRoutingArc(SilComp.getFactoryHorizRoutingArc());
-		if (SilComp.getFactoryHorizArcWidth() != SilComp.getHorizArcWidth())
-			SilComp.setHorizArcWidth(SilComp.getFactoryHorizArcWidth());
-		if (!SilComp.getFactoryVertRoutingArc().equals(SilComp.getVertRoutingArc()))
-			SilComp.setVertRoutingArc(SilComp.getFactoryVertRoutingArc());
-		if (SilComp.getFactoryVertArcWidth() != SilComp.getVertArcWidth())
-			SilComp.setVertArcWidth(SilComp.getFactoryVertArcWidth());
-
-		if (SilComp.getFactoryPowerWireWidth() != SilComp.getPowerWireWidth())
-			SilComp.setPowerWireWidth(SilComp.getFactoryPowerWireWidth());
-		if (SilComp.getFactoryMainPowerWireWidth() != SilComp.getMainPowerWireWidth())
-			SilComp.setMainPowerWireWidth(SilComp.getFactoryMainPowerWireWidth());
-		if (!SilComp.getFactoryMainPowerArc().equals(SilComp.getMainPowerArc()))
-			SilComp.setMainPowerArc(SilComp.getFactoryMainPowerArc());
-
-		if (SilComp.getFactoryPWellHeight() != SilComp.getPWellHeight())
-			SilComp.setPWellHeight(SilComp.getFactoryPWellHeight());
-		if (SilComp.getFactoryPWellOffset() != SilComp.getPWellOffset())
-			SilComp.setPWellOffset(SilComp.getFactoryPWellOffset());
-		if (SilComp.getFactoryNWellHeight() != SilComp.getNWellHeight())
-			SilComp.setNWellHeight(SilComp.getFactoryNWellHeight());
-		if (SilComp.getFactoryNWellOffset() != SilComp.getNWellOffset())
-			SilComp.setNWellOffset(SilComp.getFactoryNWellOffset());
-
-		if (SilComp.getFactoryViaSize() != SilComp.getViaSize())
-			SilComp.setViaSize(SilComp.getFactoryViaSize());
-		if (SilComp.getFactoryMinMetalSpacing() != SilComp.getMinMetalSpacing())
-			SilComp.setMinMetalSpacing(SilComp.getFactoryMinMetalSpacing());
-		if (SilComp.getFactoryFeedThruSize() != SilComp.getFeedThruSize())
-			SilComp.setFeedThruSize(SilComp.getFactoryFeedThruSize());
-		if (SilComp.getFactoryMinPortDistance() != SilComp.getMinPortDistance())
-			SilComp.setMinPortDistance(SilComp.getFactoryMinPortDistance());
-		if (SilComp.getFactoryMinActiveDistance() != SilComp.getMinActiveDistance())
-			SilComp.setMinActiveDistance(SilComp.getFactoryMinActiveDistance());
+    {
+        SilComp.SilCompPrefs scp = new SilComp.SilCompPrefs(factoryPrefRoot);
+        scp.putPrefs(initialPrefRoot, true);
 	}
 
 	/** This method is called from within the constructor to
