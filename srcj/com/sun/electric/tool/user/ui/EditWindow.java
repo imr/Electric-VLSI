@@ -3213,7 +3213,7 @@ public class EditWindow extends JPanel
 
 		try {
 			Nodable no = cellVarContext.getNodable();
-			if (no != null)
+			if (no != null && no.getNodeInst().isLinked())
 			{
 				Cell parent = no.getParent();
 
