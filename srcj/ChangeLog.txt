@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09g: ******************************
 
+IMP: (3/22/09, DN) Add PrefTest to regressions.
+
 BUG: (3/22/09, DN) New: exception when going up hierarchy in schematics (Bug #2095).
 FIX: In EditWindow.upHierarchy() don't go up if node instance is already killed.
      Check if selectedExport belongs to the parent.

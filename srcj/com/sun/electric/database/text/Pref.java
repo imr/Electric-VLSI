@@ -24,8 +24,6 @@
 package com.sun.electric.database.text;
 
 import com.sun.electric.Main;
-import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 
@@ -35,7 +33,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.net.URL;
@@ -44,8 +41,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.prefs.AbstractPreferences;
@@ -300,7 +295,15 @@ public class Pref {
 	 * Method to export the preferences to an XML file. This function is public due to the regressions.
 	 * @param fileName the file to write.
 	 */
-    public static void exportPrefs(String fileName)
+    public static void exportPrefs(String fileName) {
+        exportPrefs(fileName, getPrefRoot());
+    }
+
+	/**
+	 * Method to export the preferences to an XML file. This function is public due to the regressions.
+	 * @param fileName the file to write.
+	 */
+    public static void exportPrefs(String fileName, Preferences prefRoot)
     {
         if (fileName == null) return;
 
@@ -308,9 +311,8 @@ public class Pref {
         try
 		{
         	// dump the preferences as a giant XML string (unformatted)
-			Preferences root = getPrefRoot();
 			ByteArrayOutputStream bs = new ByteArrayOutputStream();
-			root.exportSubtree(bs);
+			prefRoot.exportSubtree(bs);
 			String xmlDump = bs.toString();
 
 			// remove the DTD statement (causes trouble)
@@ -873,79 +875,83 @@ public class Pref {
         }
     }
 
-    private static int numStrings;
-    private static int lenStrings;
-    private static int numValueStrings = 0;
-    private static int lenValueStrings = 0;
-
-    public static void printAllPrefs(PrintStream out, EDatabase database, boolean all) {
-        numValueStrings = lenValueStrings = 0;
-        TreeMap<String,Pref> sortedPrefs = new TreeMap<String,Pref>();
-        synchronized (allGroups) {
-            for (Group group: allGroups) {
-                for (Pref pref: group.prefs.values()) {
-                    if (!all && !pref.serverAccessible) continue;
-                    sortedPrefs.put(pref.group.relativePath() + "/" + pref.name, pref);
-                }
-            }
-        }
-        Preferences rootNode = getPrefRoot();
-        numStrings = lenStrings = 0;
-        try {
-            gatherPrefs(out, 0, rootNode, null);
-        } catch (BackingStoreException e) {
-            e.printStackTrace();
-        }
-        out.println(lenStrings + " chars in " + numStrings + " strings");
-        out.println(lenValueStrings + " chars in " + numValueStrings + " value strings");
-        printAllSettings(out, database);
-        out.println("ELECTRIC USER PREFERENCES");
-        int  i = 0;
-        for (Pref pref: sortedPrefs.values())
-            out.println((i++) + pref.group.relativePath() + " " + pref.name + " " + pref.cachedObj);
-        for (Technology tech: database.getTechnologies()) {
-            i = 0;
-            for (Pref.Group group: tech.getTechnologyAllPreferences()) {
-                for (Pref pref: group.prefs.values()) {
-                    if (!all && !pref.serverAccessible) continue;
-                    out.println((i++) + pref.group.relativePath() + " " + tech + " " + pref.name + " " + pref.cachedObj);
-                }
-            }
-        }
+    public static Collection<Group> getAllGroups() {
+        return Collections.unmodifiableCollection(allGroups);
     }
 
-    private static void gatherPrefs(PrintStream out, int level, Preferences topNode, List<String> ks) throws BackingStoreException {
-        for (int i = 0; i < level; i++) out.print("  ");
-        String[] keys = topNode.keys();
-        for (int i = 0; i < keys.length; i++) {
-            numStrings++;
-            lenStrings += keys.length;
-            String value = topNode.get(keys[i], null);
-            numValueStrings++;
-            lenValueStrings += value.length();
-        }
-        out.println(topNode.name() + " " + keys.length);
-        if (topNode.absolutePath().equals("/com/sun/electric/database/hierarchy")) return;
-        String[] children = topNode.childrenNames();
-        for (int i = 0; i < children.length; i++) {
-            String childName = children[i];
-            numStrings++;
-            lenStrings += children[i].length();
-            Preferences childNode = topNode.node(childName);
-            gatherPrefs(out, level + 1, childNode, ks);
-        }
-    }
-
-    private static void printAllSettings(PrintStream out, EDatabase database) {
-        Map<Setting,Object> settings = database.getSettings();
-        TreeMap<String,Setting> sortedSettings = new TreeMap<String,Setting>();
-        for (Setting setting: settings.keySet())
-            sortedSettings.put(setting.getXmlPath(), setting);
-        out.println("PROJECT SETTINGS");
-        int i = 0;
-        for (Setting setting: sortedSettings.values())
-            out.println((i++) + "\t" + setting.getXmlPath() + " " + settings.get(setting));
-    }
+//    private static int numStrings;
+//    private static int lenStrings;
+//    private static int numValueStrings = 0;
+//    private static int lenValueStrings = 0;
+//
+//    public static void printAllPrefs(PrintStream out, Environment environment, boolean all) {
+//        numValueStrings = lenValueStrings = 0;
+//        TreeMap<String,Pref> sortedPrefs = new TreeMap<String,Pref>();
+//        synchronized (allGroups) {
+//            for (Group group: allGroups) {
+//                for (Pref pref: group.prefs.values()) {
+//                    if (!all && !pref.serverAccessible) continue;
+//                    sortedPrefs.put(pref.group.relativePath() + "/" + pref.name, pref);
+//                }
+//            }
+//        }
+//        Preferences rootNode = getPrefRoot();
+//        numStrings = lenStrings = 0;
+//        try {
+//            gatherPrefs(out, 0, rootNode, null);
+//        } catch (BackingStoreException e) {
+//            e.printStackTrace();
+//        }
+//        out.println(lenStrings + " chars in " + numStrings + " strings");
+//        out.println(lenValueStrings + " chars in " + numValueStrings + " value strings");
+//        printAllSettings(out, environment);
+//        out.println("ELECTRIC USER PREFERENCES");
+//        int  i = 0;
+//        for (Pref pref: sortedPrefs.values())
+//            out.println((i++) + pref.group.relativePath() + " " + pref.name + " " + pref.cachedObj);
+//        for (Technology tech: environment.techPool.values()) {
+//            i = 0;
+//            for (Pref.Group group: tech.getTechnologyAllPreferences()) {
+//                for (Pref pref: group.prefs.values()) {
+//                    if (!all && !pref.serverAccessible) continue;
+//                    out.println((i++) + pref.group.relativePath() + " " + tech + " " + pref.name + " " + pref.cachedObj);
+//                }
+//            }
+//        }
+//    }
+//
+//    private static void gatherPrefs(PrintStream out, int level, Preferences topNode, List<String> ks) throws BackingStoreException {
+//        for (int i = 0; i < level; i++) out.print("  ");
+//        String[] keys = topNode.keys();
+//        for (int i = 0; i < keys.length; i++) {
+//            numStrings++;
+//            lenStrings += keys.length;
+//            String value = topNode.get(keys[i], null);
+//            numValueStrings++;
+//            lenValueStrings += value.length();
+//        }
+//        out.println(topNode.name() + " " + keys.length);
+//        if (topNode.absolutePath().equals("/com/sun/electric/database/hierarchy")) return;
+//        String[] children = topNode.childrenNames();
+//        for (int i = 0; i < children.length; i++) {
+//            String childName = children[i];
+//            numStrings++;
+//            lenStrings += children[i].length();
+//            Preferences childNode = topNode.node(childName);
+//            gatherPrefs(out, level + 1, childNode, ks);
+//        }
+//    }
+//
+//    private static void printAllSettings(PrintStream out, Environment environment) {
+//        Map<Setting,Object> settings = environment.getSettings();
+//        TreeMap<String,Setting> sortedSettings = new TreeMap<String,Setting>();
+//        for (Setting setting: settings.keySet())
+//            sortedSettings.put(setting.getXmlPath(), setting);
+//        out.println("PROJECT SETTINGS");
+//        int i = 0;
+//        for (Setting setting: sortedSettings.values())
+//            out.println((i++) + "\t" + setting.getXmlPath() + " " + settings.get(setting));
+//    }
 
     /****************************** private methods ******************************/
 
