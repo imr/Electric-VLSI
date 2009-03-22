@@ -27,8 +27,8 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -118,6 +118,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import java.util.prefs.Preferences;
 import javax.print.attribute.standard.ColorSupported;
 import javax.swing.AbstractCellEditor;
 import javax.swing.BoxLayout;
@@ -3824,7 +3825,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 	}
 
-	private static Map<String,String> savedSignalOrder = new HashMap<String,String>();
+	private static Map<CellId,String> savedSignalOrder = new HashMap<CellId,String>();
 
 	/**
 	 * Method to save the signal ordering on the cell.
@@ -3854,7 +3855,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 			sb.append("\n");
 		}
-		savedSignalOrder.put(cell.getLibrary().getName() + ":" + cell.getName(), sb.toString());
+		savedSignalOrder.put(cell.getId(), sb.toString());
 	}
 
 	/**
@@ -3863,16 +3864,16 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public static void preserveSignalOrder()
 	{
 		Pref.delayPrefFlushing();
-		for(String cellName : savedSignalOrder.keySet())
+		for(Map.Entry<CellId,String> e: savedSignalOrder.entrySet())
 		{
-			String savedOrder = savedSignalOrder.get(cellName);
-			int colonPos = cellName.indexOf(':');
-			if (colonPos < 0) continue;
-			Library lib = Library.findLibrary(cellName.substring(0, colonPos));
-			if (lib == null) continue;
-			cellName = cellName.substring(colonPos+1);
-			Pref savedSignalPref = Pref.makeStringPref("SavedSignalsForCell" + cellName, lib.getPrefs(), "");
-			savedSignalPref.setString(savedOrder);
+            CellId cellId = e.getKey();
+			String savedOrder = e.getValue();
+            Preferences libPrefs = Pref.getLibraryPreferences(cellId.libId);
+            String key = "SavedSignalsForCell" + cellId.cellName.getName();
+            if (savedOrder.length() == 0)
+                libPrefs.remove(key);
+            else
+                libPrefs.put(key, savedOrder);
 		}
 		Pref.resumePrefFlushing();
 	}
@@ -3885,11 +3886,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public static String [] getSignalOrder(Cell cell)
 	{
-		String savedOrder = savedSignalOrder.get(cell.getLibrary().getName() + ":" + cell.getName());
+        CellId cellId = cell.getId();
+		String savedOrder = savedSignalOrder.get(cellId);
 		if (savedOrder == null)
 		{
-			Pref savedSignalPref = Pref.makeStringPref("SavedSignalsForCell" + cell.getName(), cell.getLibrary().getPrefs(), "");
-			savedOrder = savedSignalPref.getString();
+            Preferences libPrefs = Pref.getLibraryPreferences(cellId.libId);
+            String key = "SavedSignalsForCell" + cellId.cellName.getName();
+			savedOrder = libPrefs.get(key, "");
 			if (savedOrder.length() == 0) return new String[0];
 		}
 

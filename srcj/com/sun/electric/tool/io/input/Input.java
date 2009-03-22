@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.constraint.Layout;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
@@ -36,6 +37,7 @@ import com.sun.electric.tool.Job;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Map;
 
 /**
  * This class manages reading files in different formats.
@@ -75,9 +77,10 @@ public class Input
 	 * This method is for reading external file formats such as CIF, GDS, etc.
 	 * @param fileURL the URL to the disk file.
 	 * @param type the type of library file (CIF, GDS, etc.)
+     * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static Library importLibrary(URL fileURL, FileType type)
+	public static Library importLibrary(URL fileURL, FileType type, Map<Library,Cell> currentCells)
 	{
 		// make sure the file exists
 		if (fileURL == null) return null;
@@ -89,10 +92,18 @@ public class Input
 		}
 
 		newLibraryCreated = true;
-		return importLibraryCommon(fileURL, type, null);
+		return importLibraryCommon(fileURL, type, null, currentCells);
 	}
 
-	public static Library importToCurrentLibrary(URL fileURL, FileType type)
+	/**
+	 * Method to import Cells from disk to current Library.
+	 * This method is for reading external file formats such as CIF, GDS, etc.
+	 * @param fileURL the URL to the disk file.
+	 * @param type the type of library file (CIF, GDS, etc.)
+     * @param currentCells this map will be filled with currentCells in Libraries found in library file
+	 * @return the read Library, or null if an error occurred.
+	 */
+	public static Library importToCurrentLibrary(URL fileURL, FileType type, Map<Library,Cell> currentCells)
 	{
 		// make sure the file exists
 		if (fileURL == null) return null;
@@ -107,10 +118,10 @@ public class Input
 		newLibraryCreated = false;
 
 		// import to current library
-		return importLibraryCommon(fileURL, type, Library.getCurrent());
+		return importLibraryCommon(fileURL, type, Library.getCurrent(), currentCells);
 	}
 
-	private static Library importLibraryCommon(URL fileURL, FileType type, Library lib)
+	private static Library importLibraryCommon(URL fileURL, FileType type, Library lib, Map<Library,Cell> currentCells)
 	{
 		if (lib == null && type != FileType.EDIF)
 		{
@@ -465,13 +476,13 @@ public class Input
 	/**
 	 * Helper method for keyword processing which removes comments.
 	 * @param line a line of text just read.
-	 * @return the line after comments have been removed. 
+	 * @return the line after comments have been removed.
 	 */
 	protected String preprocessLine(String line)
 	{
 		return line;
 	}
-    
+
 	/**
 	 * Method to tell whether changes are being made quietly.
 	 * Quiet changes are not passed to constraint satisfaction.

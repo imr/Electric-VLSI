@@ -24,6 +24,7 @@
 package com.sun.electric.database.text;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.id.LibId;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 
@@ -701,6 +702,15 @@ public class Pref {
      */
     public static Preferences getPrefRoot() {
         return Preferences.userNodeForPackage(Main.class);
+    }
+
+    /**
+     * Returns the root of Preferences subtree with Electric options for a specified LibId.
+     * @param libId specified LibId
+     * @return the root of Preferences subtree with Electric options for a spiceified LibId.
+     */
+    public static Preferences getLibraryPreferences(LibId libId) {
+        return Pref.getPrefRoot().node("database/hierarchy/" + libId.libName);
     }
 
     /**

@@ -32,6 +32,7 @@ import com.sun.electric.tool.io.FileType;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.prefs.Preferences;
 
 /**
  * User: gainsley
@@ -45,13 +46,11 @@ public class CellModelPrefs {
     private final String type;
     private final FileType fileType;
     private final boolean canLayoutFromNetlist;
-    private Map<String,Pref> modelFilePrefs;
 
     private CellModelPrefs(String type, FileType fileType, boolean canLayoutFromNetlist) {
         this.type = type;
         this.fileType = fileType;
         this.canLayoutFromNetlist = canLayoutFromNetlist;
-        this.modelFilePrefs = new HashMap<String,Pref>();
     }
 
     public String getType() {
@@ -93,54 +92,42 @@ public class CellModelPrefs {
 
     public void setModelFile(Cell cell, String fileName, boolean useModelFromFile, boolean useLayoutView) {
         assert !(useModelFromFile && useLayoutView);
-        String prefName = type + "ModelFileFor_" + cell.getLibrary().getName() +"_" + cell.getName() + "_" + cell.getView().getAbbreviation();
-        Pref modelPref = modelFilePrefs.get(prefName);
-        if (modelPref == null)
-        {
-            modelPref = Pref.makeStringPref(prefName, cell.getLibrary().getPrefs(), "");
-            modelFilePrefs.put(prefName, modelPref);
-        }
         if (!useModelFromFile && useLayoutView)
             fileName = "+++++" + fileName;
         if (!useModelFromFile && !useLayoutView)
             fileName = "-----" + fileName;
-        modelPref.setString(fileName);
+        Preferences libPrefs = Pref.getLibraryPreferences(cell.getId().libId); 
+        String key = getPrefKey(cell);
+        if (fileName.length() == 0)
+            libPrefs.remove(key);
+        else
+            libPrefs.put(key, fileName);
     }
 
     public Map<Cell,String> getUnfilteredFileNames(EDatabase database) {
         HashMap<Cell,String> m = new HashMap<Cell,String>();
         for (Iterator<Library> lit = database.getLibraries(); lit.hasNext(); ) {
             Library lib = lit.next();
+            Preferences libPrefs = Pref.getLibraryPreferences(lib.getId());
             for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); ) {
-                Cell cell= cit.next();
-                String prefName = type + "ModelFileFor_" + cell.getLibrary().getName() +"_" + cell.getName() + "_" + cell.getView().getAbbreviation();
-                Pref modelPref = modelFilePrefs.get(prefName);
-                if (modelPref == null) continue;
-                String unfilterdFileName = modelPref.getString();
-                if (unfilterdFileName.length() == 0) continue;
-                m.put(cell, unfilterdFileName);
+                Cell cell = cit.next();
+                String unfilteredFileName = libPrefs.get(getPrefKey(cell), "");
+                if (unfilteredFileName.length() == 0) continue;
+                m.put(cell, unfilteredFileName);
             }
         }
         return m;
     }
 
     private String getModelFileUnfiltered(Cell cell) {
-        String prefName = type + "ModelFileFor_" + cell.getLibrary().getName() +"_" + cell.getName() + "_" + cell.getView().getAbbreviation();
-        Pref modelPref = modelFilePrefs.get(prefName);
-        if (modelPref == null)
-        {
-            modelPref = Pref.makeStringPref(prefName, cell.getLibrary().getPrefs(), "");
-            modelFilePrefs.put(prefName, modelPref);
-        }
-        return modelPref.getString();
+        return Pref.getLibraryPreferences(cell.getId().libId).get(getPrefKey(cell), "");
     }
 
     public void factoryResetModelFile(Cell cell) {
-        String prefName = type + "ModelFileFor_" + cell.getLibrary().getName() +"_" + cell.getName() + "_" + cell.getView().getAbbreviation();
-        Pref modelPref = modelFilePrefs.get(prefName);
-        if (modelPref == null) return;
-        if (!modelPref.getStringFactoryValue().equals(modelPref.getString()))
-        	modelPref.setString(modelPref.getStringFactoryValue());
+        Pref.getLibraryPreferences(cell.getId().libId).remove(getPrefKey(cell));
     }
-
+    
+    private String getPrefKey(Cell cell) {
+        return type + "ModelFileFor_" + cell.getLibrary().getName() +"_" + cell.getName() + "_" + cell.getView().getAbbreviation();
+    }
 }

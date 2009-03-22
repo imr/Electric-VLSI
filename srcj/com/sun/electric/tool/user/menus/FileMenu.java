@@ -638,6 +638,7 @@ public class FileMenu {
 		private Library deleteLib;
         private RenameAndSaveLibraryTask saveTask;
 		private boolean useCurrentLib;
+        private Map<Library,Cell> currentCells;
 		private long startMemory, startTime;
 
 		public ImportLibrary(URL fileURL, FileType type,
@@ -680,10 +681,11 @@ public class FileMenu {
 				if (!deleteLib.kill("replace")) return false;
 				deleteLib = null;
 			}
+            currentCells = new HashMap<Library,Cell>();
 			if (useCurrentLib) {
-				createLib = Input.importToCurrentLibrary(fileURL, type);
+				createLib = Input.importToCurrentLibrary(fileURL, type, currentCells);
 			} else {
-				createLib = Input.importLibrary(fileURL, type);
+				createLib = Input.importLibrary(fileURL, type, currentCells);
 			}
 
 			if (createLib == null) return false;
@@ -699,12 +701,21 @@ public class FileMenu {
             }
 
 			fieldVariableChanged("createLib");
+            fieldVariableChanged("currentCells");
 			return true;
 		}
 
+        @Override
 		public void terminateOK()
         {
     		User.setCurrentLibrary(createLib);
+            for (Map.Entry<Library,Cell> e: currentCells.entrySet()) {
+                Library lib = e.getKey();
+                Cell cell = e.getValue();
+                if (cell != null)
+                    assert cell.getLibrary() == lib;
+                lib.setCurCell(cell);
+            }
         	Cell showThisCell = Job.getUserInterface().getCurrentCell(createLib);
         	doneOpeningLibrary(showThisCell);
 			if (type == FileType.DAIS)
