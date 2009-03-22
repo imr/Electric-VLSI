@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.Environment;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -134,6 +135,7 @@ public class Exec extends Thread {
     private final String [] exec;
     private final String [] envVars;
     private final File dir;                       // working directory
+    private final Environment launcherEnvironment;
     private final OutputStream outStreamRedir;    // output of process redirected to this stream
     private final OutputStream errStreamRedir;    // error messages of process redirected to this stream
     private PrintWriter processWriter;      // connect to input of process
@@ -161,6 +163,7 @@ public class Exec extends Thread {
         this.exec = null;
         this.envVars = envVars;
         this.dir = dir;
+        launcherEnvironment = Environment.getThreadEnvironment();
         this.outStreamRedir = outStreamRedir;
         this.errStreamRedir = errStreamRedir;
         this.processWriter = null;
@@ -183,6 +186,7 @@ public class Exec extends Thread {
         this.exec = exec;
         this.envVars = envVars;
         this.dir = dir;
+        launcherEnvironment = Environment.getThreadEnvironment();
         this.outStreamRedir = outStreamRedir;
         this.errStreamRedir = errStreamRedir;
         this.processWriter = null;
@@ -192,6 +196,7 @@ public class Exec extends Thread {
     }
 
     public void run() {
+        Environment.setThreadEnvironment(launcherEnvironment);
         if (outStreamRedir instanceof OutputStreamChecker) {
             ((OutputStreamChecker)outStreamRedir).setExec(this);
         }

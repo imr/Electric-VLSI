@@ -37,7 +37,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.prefs.Preferences;
 
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
@@ -146,6 +145,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import java.util.prefs.Preferences;
 
 /**
  * Class to handle the commands in the "Tools" pulldown menu.
