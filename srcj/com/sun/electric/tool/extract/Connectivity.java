@@ -389,7 +389,11 @@ public class Connectivity
 			{
 				String endPart = cellName.substring(twoDollar+2);
 				for(int i=0; i<endPart.length(); i++)
-					if (!TextUtils.isDigit(endPart.charAt(i))) return false;
+				{
+					char ch = endPart.charAt(i);
+					if (ch == '{') break;
+					if (!TextUtils.isDigit(ch)) return false;
+				}
 				return true;
 			}
 		}
@@ -608,7 +612,9 @@ public class Connectivity
 				Cell subCell = (Cell)ni.getProto();
 
 				// if subcell is expanded, do it now
-				if (isCellFlattened(subCell, pat, flattenPcells))
+				boolean flatIt = isCellFlattened(subCell, pat, flattenPcells);
+System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
+				if (flatIt)
 				{
 					// expanding the subcell
 					expandedCells.add(subCell);
