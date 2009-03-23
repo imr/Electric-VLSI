@@ -2564,8 +2564,8 @@ public class Spice extends Topology
 				multiLinePrint(false, header[i] + "\n");
 			return;
 		}
-		reportWarning("WARNING: no model cards for SPICE level " + level +
-			" in " + layoutTechnology.getTechName() + " technology");
+//		reportWarning("WARNING: no model cards for SPICE level " + level +
+//			" in " + layoutTechnology.getTechName() + " technology");
 	}
 
 	/**

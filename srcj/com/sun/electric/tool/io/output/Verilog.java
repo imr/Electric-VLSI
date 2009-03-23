@@ -950,7 +950,12 @@ public class Verilog extends Topology
 								for(int j=0; j<total; j++)
 								{
 									CellSignal cInnerSig = cas.getSignal(j);
-									Network net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
+									Export e = cas.getExport();
+
+									// BUG #2098 fixed by adding this next line
+									if (cInnerSig.getExport() != null) e = cInnerSig.getExport();
+									int ind = cInnerSig.getExportIndex();									
+									Network net = netList.getNetwork(no, e, ind);
 									outerSignalList[j] = cni.getCellSignal(net);
 									accumulatePortConnectivity(instancePortsOnNet, net, (Export)pp);
 								}
