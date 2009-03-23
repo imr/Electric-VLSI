@@ -71,7 +71,7 @@ public class EditingPreferences extends PrefPackage {
                 double factoryExtendX = factorySize.getLambdaX()*0.5;
                 double factoryExtendY = factorySize.getLambdaY()*0.5;
                 double extendX = techPrefs.getDouble(keyX, factoryExtendX);
-                double extendY = techPrefs.getDouble(keyX, factoryExtendY);
+                double extendY = techPrefs.getDouble(keyY, factoryExtendY);
                 if (extendX == factoryExtendX && extendY == factoryExtendY) continue;
                 EPoint size = EPoint.fromLambda(extendX*2, extendY*2);
                 defaultNodes.put(pnId, factoryInst.withAnchor(size));
