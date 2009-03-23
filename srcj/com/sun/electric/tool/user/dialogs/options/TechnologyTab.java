@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
@@ -59,7 +58,6 @@ public class TechnologyTab extends PreferencePanel
 		initComponents();
 
 		// make all text fields select-all when entered
-	    EDialog.makeTextFieldSelectAllOnTab(techSchematicsNegatingSize);
 	    EDialog.makeTextFieldSelectAllOnTab(vhdlName);
 	    EDialog.makeTextFieldSelectAllOnTab(vhdlNegatedName);
 	}
@@ -87,10 +85,7 @@ public class TechnologyTab extends PreferencePanel
 		// Artwork
 		techArtworkArrowsFilled.setSelected(Artwork.tech().isFilledArrowHeads());
 
-		// Schematics
-		techSchematicsNegatingSize.setText(TextUtils.formatDouble(Schematics.tech().getNegatingBubbleSize()));
-
-		// VHDL layers list
+		// VHDL layers list in Schematics
 		schemPrimModel = new DefaultListModel();
 		schemPrimList = new JList(schemPrimModel);
 		schemPrimList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -211,14 +206,6 @@ public class TechnologyTab extends PreferencePanel
 //			redrawWindows = true;
 //		}
 
-		// Schematics
-//		double currentNegatingBubbleSize = TextUtils.atof(techSchematicsNegatingSize.getText());
-//		if (currentNegatingBubbleSize != Schematics.tech().getNegatingBubbleSize())
-//		{
-//			Schematics.tech().setNegatingBubbleSize(currentNegatingBubbleSize);
-//			redrawWindows = true;
-//		}
-
 		// updating VHDL names
 		for(int i=0; i<schemPrimModel.size(); i++)
 		{
@@ -259,8 +246,6 @@ public class TechnologyTab extends PreferencePanel
 			User.setRotateLayoutTransistors(User.isFactoryRotateLayoutTransistors());
 //		if (Artwork.tech().isFactoryFilledArrowHeads() != Artwork.tech().isFilledArrowHeads())
 //			Artwork.tech().setFilledArrowHeads(Artwork.tech().isFactoryFilledArrowHeads());
-//		if (Schematics.tech().getFactoryNegatingBubbleSize() != Schematics.tech().getNegatingBubbleSize())
-//			Schematics.tech().setNegatingBubbleSize(Schematics.tech().getFactoryNegatingBubbleSize());
 		for(Iterator<PrimitiveNode> it = Schematics.tech().getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();
@@ -285,8 +270,6 @@ public class TechnologyTab extends PreferencePanel
         artworkPanel = new javax.swing.JPanel();
         techArtworkArrowsFilled = new javax.swing.JCheckBox();
         schematicsPanel = new javax.swing.JPanel();
-        techSchematicsNegatingSize = new javax.swing.JTextField();
-        jLabel52 = new javax.swing.JLabel();
         vhdlPrimPane = new javax.swing.JScrollPane();
         jLabel1 = new javax.swing.JLabel();
         vhdlName = new javax.swing.JTextField();
@@ -327,27 +310,11 @@ public class TechnologyTab extends PreferencePanel
         schematicsPanel.setLayout(new java.awt.GridBagLayout());
 
         schematicsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Schematics"));
-        techSchematicsNegatingSize.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        schematicsPanel.add(techSchematicsNegatingSize, gridBagConstraints);
-
-        jLabel52.setText("Negating Bubble Size:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        schematicsPanel.add(jLabel52, gridBagConstraints);
-
         vhdlPrimPane.setMinimumSize(new java.awt.Dimension(22, 100));
         vhdlPrimPane.setPreferredSize(new java.awt.Dimension(22, 100));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -356,7 +323,7 @@ public class TechnologyTab extends PreferencePanel
         jLabel1.setText("VHDL for primitive:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         schematicsPanel.add(jLabel1, gridBagConstraints);
@@ -364,14 +331,14 @@ public class TechnologyTab extends PreferencePanel
         vhdlName.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         schematicsPanel.add(vhdlName, gridBagConstraints);
 
         jLabel2.setText("VHDL for negated primitive:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         schematicsPanel.add(jLabel2, gridBagConstraints);
@@ -379,7 +346,7 @@ public class TechnologyTab extends PreferencePanel
         vhdlNegatedName.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         schematicsPanel.add(vhdlNegatedName, gridBagConstraints);
 
@@ -424,12 +391,10 @@ public class TechnologyTab extends PreferencePanel
     private javax.swing.JPanel artworkPanel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel52;
     private javax.swing.JPanel layoutPanel;
     private javax.swing.JCheckBox rotateLayoutTransistors;
     private javax.swing.JPanel schematicsPanel;
     private javax.swing.JCheckBox techArtworkArrowsFilled;
-    private javax.swing.JTextField techSchematicsNegatingSize;
     private javax.swing.JPanel technology;
     private javax.swing.JTextField vhdlName;
     private javax.swing.JTextField vhdlNegatedName;
