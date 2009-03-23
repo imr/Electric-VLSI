@@ -5425,7 +5425,7 @@ public class Technology implements Comparable<Technology>, Serializable
             ap.check();
         }
 
-        if (Job.getDebug())
+        if (!isNonStandard() && isScaleRelevant() && Job.getDebug())
         {
 	        Map<Layer,ArcProto.Function> layToArcFunction = new HashMap<Layer,ArcProto.Function>();
 	        for (ArcProto ap: arcs.values())
@@ -5437,10 +5437,26 @@ public class Technology implements Comparable<Technology>, Serializable
 	        		if (fun.isSubstrate()) continue;
 	        		ArcProto.Function aFun = ap.getFunction();
 	        		if (aFun.isDiffusion()) aFun = ArcProto.Function.DIFF;
-//if (getTechName().equals("bipolar"))
+//if (getTechName().equals("mocmosold"))
 //	System.out.println("-------> ARC "+ap.getName()+" HAS LAYER " + lay.getName()+" WHICH IS FUNCTION " +aFun);
 	       			layToArcFunction.put(lay, aFun);
 	       			break;
+	        	}
+	        }
+	        for(Iterator<Layer> it = getLayers(); it.hasNext(); )
+	        {
+	        	Layer lay = it.next();
+    			ArcProto.Function aFun = layToArcFunction.get(lay);
+	        	if (aFun != null) continue;
+	        	Layer.Function lFun = lay.getFunction();
+	        	if (lFun.isDiff()) aFun =  ArcProto.Function.DIFF; else
+	        		if (lFun.isPoly()) aFun = ArcProto.Function.getPoly(lFun.getLevel()); else
+	        			if (lFun.isMetal()) aFun = ArcProto.Function.getMetal(lFun.getLevel());
+	        	if (lFun != null)
+	        	{
+	        		layToArcFunction.put(lay, aFun);
+//if (getTechName().equals("mocmosold"))
+//	System.out.println("-------> LAYER "+lay.getName()+" IS FUNCTION " +aFun);
 	        	}
 	        }
 
@@ -5451,7 +5467,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	        	PrimitiveNode.Function fun = np.getFunction();
 	        	if (fun.isNTypeTransistor()) foundNTrans = true;
 	        	if (fun.isPTypeTransistor()) foundPTrans = true;
-	        	if (fun == PrimitiveNode.Function.CONTACT /* || fun == PrimitiveNode.Function.CONNECT */)
+	        	if (fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.CONNECT || fun == PrimitiveNode.Function.WELL)
 	        	{
 	        		// check validity of contact nodes
 	        		Set<ArcProto.Function> neededArcFunctions = new HashSet<ArcProto.Function>();
@@ -5460,7 +5476,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	        		{
 	        			Layer lay = nodeLayers[i].layer;
 	        			ArcProto.Function aFun = layToArcFunction.get(lay);
-//if (getTechName().equals("bipolar") && np.getName().equals("PNJunction"))
+//if (getTechName().equals("mocmosold") && np.getName().equals("Metal-1-Well-Con"))
 //	System.out.println("-------> "+np.getName()+" HAS LAYER " + lay.getName()+" WHICH IS FUNCTION " +aFun);
 	    				if (aFun == ArcProto.Function.WELL) continue;
 	        			if (aFun != null) neededArcFunctions.add(aFun);
@@ -5481,16 +5497,22 @@ public class Technology implements Comparable<Technology>, Serializable
 	        					foundArcFunctions.add(aFun);
 	        					continue;
 	        				}
+
+	        				// well contacts do not have to have Active even if they connect to that layer
+	        				if (aFun.isDiffusion() && fun == PrimitiveNode.Function.WELL) continue;
 	    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
 	    		        		" connects to " + ap.getName() + " but probably should not because that layer is not in the node");
 	        			}
-	        			for(ArcProto.Function aFun : neededArcFunctions)
-	        			{
-	        				if (foundArcFunctions.contains(aFun)) continue;
-	    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
-	    		        		" should connect to " + aFun + " because that layer is in the node");
-	        			}
 	        		}
+        			for(ArcProto.Function aFun : neededArcFunctions)
+        			{
+        				if (foundArcFunctions.contains(aFun)) continue;
+
+        				// well contacts do not have to connect to Active even if that layer is present
+        				if (aFun.isDiffusion() && fun == PrimitiveNode.Function.WELL) continue;
+    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
+    		        		" should connect to " + aFun + " because that layer is in the node");
+        			}
 	        	} else if (fun.isFET())
 	        	{
 	        		// check validity of transistors
