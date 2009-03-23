@@ -61,8 +61,6 @@ public class SilComp extends Tool
     @Override
 	public void init()
 	{
-        // allocate Prefs
-        new SilCompPrefs(PrefPackage.getFactoryPrefRoot());
 	}
 
     public static class SilCompPrefs extends PrefPackage
@@ -144,9 +142,9 @@ public class SilComp extends Tool
         @DoublePref(node = PREF_NODE, key = "MinActiveDistance", factory = 8)
     	public double minActiveDistance;
 
-		public SilCompPrefs(Preferences prefRoot)
+		public SilCompPrefs(boolean factory)
 		{
-            super(prefRoot);
+            super(factory);
 			schematicTechnology = User.getSchematicTechnology().getTechName();
 		}
     }

@@ -76,7 +76,7 @@ public class SiliconCompilerTab extends PreferencePanel
     @Override
 	public void init()
 	{
-        SilComp.SilCompPrefs scp = new SilComp.SilCompPrefs(initialPrefRoot);
+        SilComp.SilCompPrefs scp = new SilComp.SilCompPrefs(false);
 
 		// the layout information
 		numRows.setText(Integer.toString(scp.numRows));
@@ -119,7 +119,7 @@ public class SiliconCompilerTab extends PreferencePanel
     @Override
 	public void term()
 	{
-        SilComp.SilCompPrefs scp = new SilComp.SilCompPrefs(initialPrefRoot);
+        SilComp.SilCompPrefs scp = new SilComp.SilCompPrefs(false);
 
 		// layout
         scp.numRows = TextUtils.atoi(numRows.getText());
@@ -143,7 +143,7 @@ public class SiliconCompilerTab extends PreferencePanel
         scp.minPortDistance = TextUtils.atofDistance(minPortDist.getText());
         scp.minActiveDistance = TextUtils.atofDistance(minActiveDist.getText());
 
-        scp.putPrefs(initialPrefRoot, true);
+        putPrefs(scp);
 	}
 
 	/**
@@ -152,8 +152,7 @@ public class SiliconCompilerTab extends PreferencePanel
     @Override
 	public void reset()
     {
-        SilComp.SilCompPrefs scp = new SilComp.SilCompPrefs(factoryPrefRoot);
-        scp.putPrefs(initialPrefRoot, true);
+        putPrefs(new SilComp.SilCompPrefs(true));
 	}
 
 	/** This method is called from within the constructor to

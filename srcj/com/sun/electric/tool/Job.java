@@ -24,11 +24,13 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.StartupPrefs;
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CantEditException;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -665,6 +667,14 @@ public abstract class Job implements Serializable {
 
     public EDatabase getDatabase() {
         return database;
+    }
+
+    public Environment getEnvironment() {
+        return database.getEnvironment();
+    }
+
+    public TechPool getTechPool() {
+        return database.getTechPool();
     }
 
     public static void wantUpdateGui() {

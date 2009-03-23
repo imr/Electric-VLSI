@@ -35,6 +35,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -117,27 +118,81 @@ public class ERCWellCheck
 	private static final boolean DISTANTSEEDS = true;
 	private static final boolean INCREMENTALGROWTH = false;
 
-	public static class WellCheckPreferences
+	public static class WellCheckPreferences extends PrefPackage
     {
+        private static final String PREF_NODE = "tool/erc";
+
+        /**
+         * Whether ERC should do well analysis using multiple processors.
+         * The default is "true".
+         */
+        @BooleanPref(node=PREF_NODE, key="ParallelWellAnalysis", factory=true)
 		public boolean parallelWellAnalysis;
+
+        /**
+         * The number of processors to use in ERC well analysis.
+         * The default is "0" (as many as there are).
+         */
+        @IntegerPref(node=PREF_NODE, key="WellAnalysisNumProc", factory=0)
 		public int maxProc;
+
+        /**
+         * Whether ERC should check that all P-Well contacts connect to ground.
+         * The default is "true".
+         */
+        @BooleanPref(node=PREF_NODE, key="MustConnectPWellToGround", factory=true)
 		public boolean mustConnectPWellToGround;
+
+        /**
+         * Whether ERC should check that all N-Well contacts connect to power.
+         * The default is "true".
+         */
+        @BooleanPref(node=PREF_NODE, key="MustConnectNWellToPower", factory=true)
 		public boolean mustConnectNWellToPower;
+
+        /**
+         * How much P-Well contact checking the ERC should do.
+         * The values are:
+         * <UL>
+         * <LI>0: must have a contact in every well area.</LI>
+         * <LI>1: must have at least one contact.</LI>
+         * <LI>2: do not check for contact presence.</LI>
+         * </UL>
+         * The default is "0".
+         */
+        @IntegerPref(node=PREF_NODE, key="PWellCheck", factory=0)
 		public int pWellCheck;
+
+        /**
+         * How much N-Well contact checking the ERC should do.
+         * The values are:
+         * <UL>
+         * <LI>0: must have a contact in every well area.</LI>
+         * <LI>1: must have at least one contact.</LI>
+         * <LI>2: do not check for contact presence.</LI>
+         * </UL>
+         * The default is "0".
+         */
+        @IntegerPref(node=PREF_NODE, key="NWellCheck", factory=0)
 		public int nWellCheck;
+
+        /**
+         * Whether ERC should check DRC Spacing condition.
+         * The default is "false".
+         */
+        @BooleanPref(node=PREF_NODE, key="DRCCheckInERC", factory=false)
 		public boolean drcCheck;
+
+        /**
+         * Whether ERC should find the contact that is farthest from the well edge.
+         * The default is "false".
+         */
+        @BooleanPref(node=PREF_NODE, key="FindWorstCaseWell", factory=false)
 		public boolean findWorstCaseWell;
 
 		public WellCheckPreferences(boolean factory)
 		{
-			parallelWellAnalysis = factory ? ERC.isFactoryParallelWellAnalysis() : ERC.isParallelWellAnalysis();
-			maxProc = factory ? ERC.getFactoryWellAnalysisNumProc() : ERC.getWellAnalysisNumProc();
-			mustConnectPWellToGround = factory ? ERC.isFactoryMustConnectPWellToGround() : ERC.isMustConnectPWellToGround();
-			mustConnectNWellToPower = factory ? ERC.isFactoryMustConnectNWellToPower() : ERC.isMustConnectNWellToPower();
-			pWellCheck = factory ? ERC.getFactoryPWellCheck() : ERC.getPWellCheck();
-			nWellCheck = factory ? ERC.getFactoryNWellCheck() : ERC.getNWellCheck();
-			drcCheck = factory ? ERC.isFactoryDRCCheck() : ERC.isDRCCheck();
-			findWorstCaseWell = factory ? ERC.isFactoryFindWorstCaseWell() : ERC.isFindWorstCaseWell();
+            super(factory);
 		}
     }
 
@@ -184,7 +239,7 @@ public class ERCWellCheck
 
 		private WellCheckJob(Cell cell, GeometryHandler.GHMode newAlgorithm, WellCheckPreferences wellPrefs)
 		{
-			super("ERC Well Check on " + cell, ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			super("ERC Well Check on " + cell, ERC.tool, Job.Type.REMOTE_EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newAlgorithm = newAlgorithm;
 			this.wellPrefs = wellPrefs;

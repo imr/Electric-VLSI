@@ -2799,7 +2799,7 @@ public class Manipulate
                     // Function
                     func = ap.getFunction().toString();
                     // Antenna
-                    antenna = TextUtils.formatDouble(ap.getAntennaRatio());
+                    antenna = TextUtils.formatDouble(ap.getFactoryAntennaRatio());
                 }
 
                 // Arc name

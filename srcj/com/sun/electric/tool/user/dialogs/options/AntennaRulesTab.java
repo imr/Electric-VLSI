@@ -27,6 +27,7 @@ import com.sun.electric.database.text.TempPref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.event.ActionEvent;
@@ -35,7 +36,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -67,7 +67,7 @@ public class AntennaRulesTab extends PreferencePanel
 
 	private JList antennaArcList;
 	private DefaultListModel antennaArcListModel;
-	private Map<ArcProto,TempPref> antennaOptions;
+    private ERCAntenna.AntennaPreferences antennaOptions;
 	private boolean antennaRatioChanging = false;
 	private boolean empty;
 
@@ -75,6 +75,7 @@ public class AntennaRulesTab extends PreferencePanel
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Antenna Rules tab.
 	 */
+    @Override
 	public void init()
 	{
 		antennaArcListModel = new DefaultListModel();
@@ -87,21 +88,9 @@ public class AntennaRulesTab extends PreferencePanel
 		});
 		antMaxRatio.getDocument().addDocumentListener(new AntennaRatioDocumentListener(this));
 
-		antennaOptions = new HashMap<ArcProto,TempPref>();
-		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
-		{
-			Technology tech = tIt.next();
-			this.technologySelection.addItem(tech.getTechName());
-			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
-			{
-				ArcProto ap = it.next();
-				ArcProto.Function fun = ap.getFunction();
-				if (!fun.isMetal() && fun != ArcProto.Function.POLY1) continue;
-				double ratio = ap.getAntennaRatio();
-				TempPref pref = TempPref.makeDoublePref(ratio);
-				antennaOptions.put(ap, pref);
-			}
-		}
+        antennaOptions = new ERCAntenna.AntennaPreferences(false, getTechPool());
+		for(Technology tech: getTechPool().values())
+			technologySelection.addItem(tech.getTechName());
 		technologySelection.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { newTechSelected(); }
@@ -119,9 +108,10 @@ public class AntennaRulesTab extends PreferencePanel
 		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = it.next();
-			TempPref pref = antennaOptions.get(ap);
-			if (pref == null) continue;
-			antennaArcListModel.addElement(ap.getName() + " (" + pref.getDouble() + ")");
+            ArcProto.Function fun = ap.getFunction();
+            if (!fun.isMetal() && fun != ArcProto.Function.POLY1) continue;
+            double antennaRatio = antennaOptions.getAntennaRatio(ap);
+			antennaArcListModel.addElement(ap.getName() + " (" + antennaRatio + ")");
 			empty = false;
 		}
 		if (!empty)
@@ -143,10 +133,9 @@ public class AntennaRulesTab extends PreferencePanel
 		ArcProto ap = tech.findArcProto(arcName);
 		if (ap != null)
 		{
-			TempPref pref = antennaOptions.get(ap);
-			if (pref == null) return;
+            double antennaRatio = antennaOptions.getAntennaRatio(ap);
 			antennaRatioChanging = true;
-			antMaxRatio.setText(TextUtils.formatDouble(pref.getDouble()));
+			antMaxRatio.setText(TextUtils.formatDouble(antennaRatio));
 			antennaRatioChanging = false;
 		}
 	}
@@ -163,10 +152,8 @@ public class AntennaRulesTab extends PreferencePanel
 		if (spacePos >= 0) arcName = arcName.substring(0, spacePos);
 		ArcProto ap = tech.findArcProto(arcName);
 		if (ap == null) return;
-		TempPref pref = antennaOptions.get(ap);
-		if (pref == null) return;
 		double ratio = TextUtils.atof(antMaxRatio.getText());
-		pref.setDouble(ratio);
+        antennaOptions.antennaRatio.put(ap.getId(), ratio);
 
 		int lineNo = antennaArcList.getSelectedIndex();
 		antennaArcListModel.setElementAt(ap.getName() + " (" + ratio + ")", lineNo);
@@ -193,33 +180,19 @@ public class AntennaRulesTab extends PreferencePanel
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Antenna Rules tab.
 	 */
+    @Override
 	public void term()
 	{
-		for(ArcProto ap : antennaOptions.keySet())
-		{
-			TempPref pref = antennaOptions.get(ap);
-			if (pref.getDoubleFactoryValue() != pref.getDouble())
-				ap.setAntennaRatio(pref.getDouble());
-		}
+        putPrefs(antennaOptions);
 	}
 
 	/**
 	 * Method called when the factory reset is requested.
 	 */
+    @Override
 	public void reset()
 	{
-		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
-		{
-			Technology tech = tIt.next();
-			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
-			{
-				ArcProto ap = it.next();
-				ArcProto.Function fun = ap.getFunction();
-				if (!fun.isMetal() && fun != ArcProto.Function.POLY1) continue;
-				if (ap.getFactoryAntennaRatio() != ap.getAntennaRatio())
-					ap.setAntennaRatio(ap.getFactoryAntennaRatio());
-			}
-		}
+        putPrefs(new ERCAntenna.AntennaPreferences(true, getTechPool()));
 	}
 
 	/** This method is called from within the constructor to

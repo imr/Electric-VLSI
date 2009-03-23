@@ -260,7 +260,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 //  /** Pref for arc negation. */                               private final defaultNegatedPref;
     /** Pref for arc directionality. */                         private final Pref defaultDirectionalPref;
     /** Pref for overridable pin corresponding to this arc */   private final Pref arcPinPref;
-	/** Pref for arc antenna ratio. */                          private Pref defaultAntennaRatioPref;
+	/** Factory value for arc antenna ratio. */                 private double factoryAntennaRatio = Double.NaN;
 
 	// the meaning of the "userBits" field:
 //	/** these arcs are fixed-length */							private static final int WANTFIX  =            01;
@@ -503,30 +503,16 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * @param ratio the antenna ratio of this ArcProto.
 	 */
     public void setFactoryAntennaRatio(double ratio) {
-        assert defaultAntennaRatioPref == null;
-		defaultAntennaRatioPref = Pref.makeDoublePref("DefaultAntennaRatioFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), ratio);
+        assert Double.isNaN(factoryAntennaRatio);
+		factoryAntennaRatio = ratio;
     }
-
-	/**
-	 * Method to set the antenna ratio of this ArcProto.
-	 * Antenna ratios are used in antenna checks that make sure the ratio of the area of a layer is correct.
-	 * @param ratio the antenna ratio of this ArcProto.
-	 */
-	public void setAntennaRatio(double ratio) { defaultAntennaRatioPref.setDouble(ratio); }
-
-	/**
-	 * Method to tell the antenna ratio of this ArcProto.
-	 * Antenna ratios are used in antenna checks that make sure the ratio of the area of a layer is correct.
-	 * @return the antenna ratio of this ArcProto.
-	 */
-	public double getAntennaRatio() { return defaultAntennaRatioPref.getDouble(); }
 
     /**
 	 * Method to tell the default antenna ratio of this ArcProto.
 	 * Antenna ratios are used in antenna checks that make sure the ratio of the area of a layer is correct.
 	 * @return the default antenna ratio of this ArcProto.
 	 */
-	public double getFactoryAntennaRatio() { return defaultAntennaRatioPref.getDoubleFactoryValue(); }
+	public double getFactoryAntennaRatio() { return factoryAntennaRatio; }
 
 	private Pref makeArcProtoBitPref(String what, boolean factory)
 	{
@@ -1249,7 +1235,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
             setFactorySlidable(true);
         if (defaultExtendedPref == null)
             setFactoryExtended(true);
-        if (defaultAntennaRatioPref == null) {
+        if (Double.isNaN(factoryAntennaRatio)) {
             double ratio = ERCAntenna.DEFPOLYRATIO;
             if (function.isMetal()) ratio = ERCAntenna.DEFMETALRATIO;
             setFactoryAntennaRatio(ratio);

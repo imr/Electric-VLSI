@@ -40,108 +40,13 @@ import java.util.prefs.Preferences;
 public abstract class PrefPackage implements Serializable {
 
     /**
-     * Indicates that a field declaration is intended to keep value of a boolean option.
+     * Protected constuctor fills annotated option fields of the subclass from Preferences subtree.
+     * Now possible root can be obtained by {@link com.sun.electric.database.text.Pref#getPrefRoot()}
+     * and {@link com.sun.electric.database.text.Pref#getFactoryPrefRoot()} methods.
+     * @param factory use the Factory Pref root
      */
-    @Target(ElementType.FIELD)
-    @Retention(RetentionPolicy.RUNTIME)
-    protected @interface BooleanPref {
-        /**
-         * Preferences node path where the annotated option is stored.
-         * The path is relative.
-         */
-        public String node();
-        /**
-         * Preferences key with which the annotated option is associated.
-         */
-        public String key();
-        /**
-         * Factory default value of the annotated option.
-         */
-        public boolean factory();
-    }
-
-    /**
-     * Indicates that a field declaration is intended to keep value of an integer option.
-     */
-    @Target(ElementType.FIELD)
-    @Retention(RetentionPolicy.RUNTIME)
-    protected @interface IntegerPref {
-        /**
-         * Preferences node path where the annotated option is stored.
-         * The path is relative.
-         */
-        public String node();
-        /**
-         * Preferences key with which the annotated option is associated.
-         */
-        public String key();
-        /**
-         * Factory default value of the annotated option.
-         */
-        public int factory();
-    }
-
-    /**
-     * Indicates that a field declaration is intended to keep value of a long option.
-     */
-    @Target(ElementType.FIELD)
-    @Retention(RetentionPolicy.RUNTIME)
-    protected @interface LongPref {
-        /**
-         * Preferences node path where the annotated option is stored.
-         * The path is relative.
-         */
-        public String node();
-        /**
-         * Preferences key with which the annotated option is associated.
-         */
-        public String key();
-        /**
-         * Factory default value of the annotated option.
-         */
-        public long factory();
-    }
-
-    /**
-     * Indicates that a field declaration is intended to keep value of a double option.
-     */
-    @Target(ElementType.FIELD)
-    @Retention(RetentionPolicy.RUNTIME)
-    protected @interface DoublePref {
-        /**
-         * Preferences node path where the annotated option is stored.
-         * The path is relative.
-         */
-        public String node();
-        /**
-         * Preferences key with which the annotated option is associated.
-         */
-        public String key();
-        /**
-         * Factory default value of the annotated option.
-         */
-        public double factory();
-    }
-
-    /**
-     * Indicates that a field declaration is intended to keep value of a String option.
-     */
-    @Target(ElementType.FIELD)
-    @Retention(RetentionPolicy.RUNTIME)
-    protected @interface StringPref {
-        /**
-         * Preferences node path where the annotated option is stored.
-         * The path is relative.
-         */
-        public String node();
-        /**
-         * Preferences key with which the annotated option is associated.
-         */
-        public String key();
-        /**
-         * Factory default value of the annotated option.
-         */
-        public String factory();
+    protected PrefPackage(boolean factory) {
+        this(factory ? getFactoryPrefRoot() : getPrefRoot());
     }
 
     /**
@@ -266,5 +171,110 @@ public abstract class PrefPackage implements Serializable {
      */
     public static Preferences getFactoryPrefRoot() {
         return Pref.getFactoryPrefRoot();
+    }
+
+    /**
+     * Indicates that a field declaration is intended to keep value of a boolean option.
+     */
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    protected @interface BooleanPref {
+        /**
+         * Preferences node path where the annotated option is stored.
+         * The path is relative.
+         */
+        public String node();
+        /**
+         * Preferences key with which the annotated option is associated.
+         */
+        public String key();
+        /**
+         * Factory default value of the annotated option.
+         */
+        public boolean factory();
+    }
+
+    /**
+     * Indicates that a field declaration is intended to keep value of an integer option.
+     */
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    protected @interface IntegerPref {
+        /**
+         * Preferences node path where the annotated option is stored.
+         * The path is relative.
+         */
+        public String node();
+        /**
+         * Preferences key with which the annotated option is associated.
+         */
+        public String key();
+        /**
+         * Factory default value of the annotated option.
+         */
+        public int factory();
+    }
+
+    /**
+     * Indicates that a field declaration is intended to keep value of a long option.
+     */
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    protected @interface LongPref {
+        /**
+         * Preferences node path where the annotated option is stored.
+         * The path is relative.
+         */
+        public String node();
+        /**
+         * Preferences key with which the annotated option is associated.
+         */
+        public String key();
+        /**
+         * Factory default value of the annotated option.
+         */
+        public long factory();
+    }
+
+    /**
+     * Indicates that a field declaration is intended to keep value of a double option.
+     */
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    protected @interface DoublePref {
+        /**
+         * Preferences node path where the annotated option is stored.
+         * The path is relative.
+         */
+        public String node();
+        /**
+         * Preferences key with which the annotated option is associated.
+         */
+        public String key();
+        /**
+         * Factory default value of the annotated option.
+         */
+        public double factory();
+    }
+
+    /**
+     * Indicates that a field declaration is intended to keep value of a String option.
+     */
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    protected @interface StringPref {
+        /**
+         * Preferences node path where the annotated option is stored.
+         * The path is relative.
+         */
+        public String node();
+        /**
+         * Preferences key with which the annotated option is associated.
+         */
+        public String key();
+        /**
+         * Factory default value of the annotated option.
+         */
+        public String factory();
     }
 }

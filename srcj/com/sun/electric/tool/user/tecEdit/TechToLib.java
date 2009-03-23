@@ -931,7 +931,7 @@ public class TechToLib
         aIn.skipSizeInPalette = ap.isSkipSizeInPalette();
         aIn.slidable = ap.isSlidable();
         aIn.angInc = ap.getAngleIncrement();
-        aIn.antennaRatio = ap.getAntennaRatio();
+        aIn.antennaRatio = ap.getFactoryAntennaRatio();
         aIn.arcDetails = new ArcInfo.LayerDetails[ap.getNumArcLayers()];
         for(int i=0; i<aIn.arcDetails.length; i++) {
             ArcInfo.LayerDetails ald = new ArcInfo.LayerDetails();

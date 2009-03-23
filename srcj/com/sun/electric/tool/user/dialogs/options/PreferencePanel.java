@@ -23,12 +23,14 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.PrefPackage;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.dialogs.EDialog;
 
-import java.util.prefs.Preferences;
 import javax.swing.JPanel;
 
 /**
@@ -36,8 +38,6 @@ import javax.swing.JPanel;
  */
 public class PreferencePanel extends EDialog
 {
-    protected Preferences factoryPrefRoot = Pref.getFactoryPrefRoot();
-    protected Preferences initialPrefRoot = Pref.getPrefRoot();
 	protected Technology curTech = Technology.getCurrent();
 	protected Library curLib = Library.getCurrent();
 
@@ -92,4 +92,16 @@ public class PreferencePanel extends EDialog
 	 * @return true if the panel could be reset "in place" without redisplay.
 	 */
 	public boolean resetThis() { return false; }
+
+	/**
+	 * Method to Save options from specified PrefPackage into Electric Preferences subtree.
+     * @param pp PrefPackage with option values
+	 */
+    protected void putPrefs(PrefPackage pp) {
+        pp.putPrefs(Pref.getPrefRoot(), true);
+    }
+
+    protected TechPool getTechPool() {
+        return Environment.getThreadTechPool();
+    }
 }

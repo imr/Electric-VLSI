@@ -29,7 +29,10 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -41,6 +44,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.Job;
@@ -55,6 +59,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.prefs.Preferences;
 
 /**
  * This is the Antenna checker of the Electrical Rule Checker tool.
@@ -75,6 +80,65 @@ import java.util.Set;
  */
 public class ERCAntenna
 {
+	public static class AntennaPreferences extends PrefPackage
+    {
+        private final TechPool techPool;
+        public Map<ArcProtoId,Double> antennaRatio = new HashMap<ArcProtoId,Double>();
+
+        public AntennaPreferences(boolean factory, TechPool techPool)
+        {
+            super(factory);
+            this.techPool = techPool;
+            if (factory) return;
+
+            Preferences techPrefs = Pref.getTechnologyPreferences();
+            for (Technology tech: techPool.values()) {
+                for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
+                    ArcProto ap = it.next();
+                    ArcProtoId apId = ap.getId();
+                    double factoryValue = ap.getFactoryAntennaRatio();
+                    double value = techPrefs.getDouble(getArcKey(apId), factoryValue);
+                    if (value == factoryValue) continue;
+                    antennaRatio.put(apId, Double.valueOf(value));
+                }
+            }
+        }
+
+        /**
+         * Store annotated option fields of the subclass into the speciefied Preferences subtree.
+         * @param prefRoot the root of the Preferences subtree.
+         * @param removeDefaults remove from the Preferences subtree options which have factory default value.
+         */
+        @Override
+        public void putPrefs(Preferences prefRoot, boolean removeDefaults) {
+            super.putPrefs(prefRoot, removeDefaults);
+            Preferences techPrefs = Pref.getTechnologyPreferences(prefRoot);
+            for (Technology tech: techPool.values()) {
+                for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
+                    ArcProto ap = it.next();
+                    ArcProtoId apId = ap.getId();
+                    String key = getArcKey(apId);
+                    double factoryValue = ap.getFactoryAntennaRatio();
+                    Double valueObj = antennaRatio.get(apId);
+                    double value = valueObj != null ? valueObj.doubleValue() : factoryValue;
+                    if (removeDefaults && value == factoryValue)
+                        techPrefs.remove(key);
+                    else
+                        techPrefs.putDouble(key, value);
+                }
+            }
+        }
+
+        public double getAntennaRatio(ArcProto ap) {
+            Double valueObj = antennaRatio.get(ap.getId());
+            return valueObj != null ? valueObj.doubleValue() : ap.getFactoryAntennaRatio();
+        }
+
+        private String getArcKey(ArcProtoId apId) {
+            return "DefaultAntennaRatioFor" + apId.name + "IN" + apId.techId.techName;
+        }
+    }
+
 	private static class AntennaObject
 	{
 		/** the object */							Geometric   geom;
@@ -115,10 +179,13 @@ public class ERCAntenna
 	/** Map for marking ArcInsts and NodeInsts. */			private Set<Geometric>          fsGeom;
 	/** Map for marking Cells. */							private Set<Cell>               fsCell;
 	/** for storing errors */								private ErrorLogger             errorLogger;
+	/** preferences */                                      private AntennaPreferences      antennaPrefs;
 
 	/************************ CONTROL ***********************/
 
-	private ERCAntenna() {}
+	private ERCAntenna(AntennaPreferences antennaPrefs) {
+        this.antennaPrefs = antennaPrefs;
+    }
 
 	/**
 	 * The main entrypoint for Antenna checking.
@@ -137,18 +204,19 @@ public class ERCAntenna
 	 */
 	private static class AntennaCheckJob extends Job
 	{
+        private AntennaPreferences antennaPrefs = new AntennaPreferences(false, getTechPool());
 		private Cell cell;
 
 		private AntennaCheckJob(Cell cell)
 		{
-			super("ERC Antenna Check", ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			super("ERC Antenna Check", ERC.tool, Job.Type.REMOTE_EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			ERCAntenna handler = new ERCAntenna();
+			ERCAntenna handler = new ERCAntenna(antennaPrefs);
 			handler.doCheck(this, cell);
 			return true;
 		}
@@ -595,7 +663,7 @@ public class ERCAntenna
 		if (ap == null) return 0;
 
 		// return its ratio
-		return ap.getAntennaRatio();
+		return antennaPrefs.getAntennaRatio(ap);
 	}
 
 }

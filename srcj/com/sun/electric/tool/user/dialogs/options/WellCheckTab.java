@@ -24,7 +24,7 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.erc.ERC;
+import com.sun.electric.tool.erc.ERCWellCheck;
 
 import javax.swing.JPanel;
 
@@ -41,103 +41,81 @@ public class WellCheckTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
+    @Override
 	public JPanel getPanel() { return wellCheck; }
 
 	/** return the name of this preferences tab. */
+    @Override
 	public String getName() { return "Well Check"; }
 
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Well Check tab.
 	 */
+    @Override
 	public void init()
 	{
-		switch (ERC.getPWellCheck())
+        ERCWellCheck.WellCheckPreferences wcp = new ERCWellCheck.WellCheckPreferences(false);
+
+		switch (wcp.pWellCheck)
 		{
 			case 0: wellPMustHaveAllContacts.setSelected(true);   break;
 			case 1: wellPMustHave1Contact.setSelected(true);      break;
 			case 2: wellPNoContactCheck.setSelected(true);        break;
 		}
-		wellPMustConnectGround.setSelected(ERC.isMustConnectPWellToGround());
+		wellPMustConnectGround.setSelected(wcp.mustConnectPWellToGround);
 
-		switch (ERC.getNWellCheck())
+		switch (wcp.nWellCheck)
 		{
 			case 0: wellNMustHaveAllContacts.setSelected(true);   break;
 			case 1: wellNMustHave1Contact.setSelected(true);      break;
 			case 2: wellNNoContactCheck.setSelected(true);        break;
 		}
-		wellNMustConnectPower.setSelected(ERC.isMustConnectNWellToPower());
+		wellNMustConnectPower.setSelected(wcp.mustConnectNWellToPower);
 
-		wellFindFarthestDistance.setSelected(ERC.isFindWorstCaseWell());
-		drcCheck.setSelected(ERC.isDRCCheck());
-		multiProc.setSelected(ERC.isParallelWellAnalysis());
-		numProcs.setText(Integer.toString(ERC.getWellAnalysisNumProc()));
+		wellFindFarthestDistance.setSelected(wcp.findWorstCaseWell);
+		drcCheck.setSelected(wcp.drcCheck);
+		multiProc.setSelected(wcp.parallelWellAnalysis);
+		numProcs.setText(Integer.toString(wcp.maxProc));
 	}
 
 	/**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Well Check tab.
 	 */
+    @Override
 	public void term()
 	{
+        ERCWellCheck.WellCheckPreferences wcp = new ERCWellCheck.WellCheckPreferences(false);
+
 		int currentPWellRule = 0;
 		if (wellPMustHave1Contact.isSelected()) currentPWellRule = 1; else
 			if (wellPNoContactCheck.isSelected()) currentPWellRule = 2;
-		if (currentPWellRule != ERC.getPWellCheck())
-			ERC.setPWellCheck(currentPWellRule);
-
-		boolean check = wellPMustConnectGround.isSelected();
-		if (check != ERC.isMustConnectPWellToGround())
-			ERC.setMustConnectPWellToGround(check);
+        wcp.pWellCheck = currentPWellRule;
+		wcp.mustConnectPWellToGround = wellPMustConnectGround.isSelected();
 
 		int currentNWellRule = 0;
 		if (wellNMustHave1Contact.isSelected()) currentNWellRule = 1; else
 			if (wellNNoContactCheck.isSelected()) currentNWellRule = 2;
-		if (currentNWellRule != ERC.getNWellCheck())
-			ERC.setNWellCheck(currentNWellRule);
+        wcp.nWellCheck = currentNWellRule;
+        wcp.mustConnectNWellToPower = wellNMustConnectPower.isSelected();
 
-		check = wellNMustConnectPower.isSelected();
-		if (check != ERC.isMustConnectNWellToPower())
-			ERC.setMustConnectNWellToPower(check);
+		wcp.findWorstCaseWell = wellFindFarthestDistance.isSelected();
+		wcp.drcCheck = drcCheck.isSelected();
 
-		check = wellFindFarthestDistance.isSelected();
-		if (check != ERC.isFindWorstCaseWell())
-			ERC.setFindWorstCaseWell(check);
+		wcp.parallelWellAnalysis = multiProc.isSelected();
+		wcp.maxProc = TextUtils.atoi(numProcs.getText());
 
-		check = drcCheck.isSelected();
-		if (check != ERC.isDRCCheck())
-			ERC.setDRCCheck(check);
-
-		check = multiProc.isSelected();
-		if (check != ERC.isParallelWellAnalysis())
-			ERC.setParallelWellAnalysis(check);
-
-		int numProc = TextUtils.atoi(numProcs.getText());
-		if (numProc != ERC.getWellAnalysisNumProc())
-			ERC.setWellAnalysisNumProc(numProc);
+        putPrefs(wcp);
 	}
 
 	/**
 	 * Method called when the factory reset is requested.
 	 */
+    @Override
 	public void reset()
 	{
-		if (ERC.getFactoryPWellCheck() != ERC.getPWellCheck())
-			ERC.setPWellCheck(ERC.getFactoryPWellCheck());
-		if (ERC.isFactoryMustConnectPWellToGround() != ERC.isMustConnectPWellToGround())
-			ERC.setMustConnectPWellToGround(ERC.isFactoryMustConnectPWellToGround());
-		if (ERC.getFactoryNWellCheck() != ERC.getNWellCheck())
-			ERC.setNWellCheck(ERC.getFactoryNWellCheck());
-		if (ERC.isFactoryMustConnectNWellToPower() != ERC.isMustConnectNWellToPower())
-			ERC.setMustConnectNWellToPower(ERC.isFactoryMustConnectNWellToPower());
-		if (ERC.isFactoryFindWorstCaseWell() != ERC.isFindWorstCaseWell())
-			ERC.setFindWorstCaseWell(ERC.isFactoryFindWorstCaseWell());
-		if (ERC.isFactoryDRCCheck() != ERC.isDRCCheck())
-			ERC.setDRCCheck(ERC.isFactoryDRCCheck());
-		if (ERC.isFactoryParallelWellAnalysis() != ERC.isParallelWellAnalysis())
-			ERC.setParallelWellAnalysis(ERC.isFactoryParallelWellAnalysis());
-		if (ERC.getFactoryWellAnalysisNumProc() != ERC.getWellAnalysisNumProc())
-			ERC.setWellAnalysisNumProc(ERC.getFactoryWellAnalysisNumProc());
+        putPrefs(new ERCWellCheck.WellCheckPreferences(true));
 	}
 
 	/** This method is called from within the constructor to

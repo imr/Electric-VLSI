@@ -1729,8 +1729,7 @@ public class ToolMenu {
         }
 
 		// do the silicon compilation task
-        Preferences prefRoot = doItNow ? Pref.getFactoryPrefRoot() : Pref.getPrefRoot();
-        doSilCompActivityNoJob(cell, activities, doItNow, new SilComp.SilCompPrefs(prefRoot));
+        doSilCompActivityNoJob(cell, activities, doItNow);
 	}
 
 	/**
@@ -1748,7 +1747,7 @@ public class ToolMenu {
 		}
 
 		// do the VHDL compilation task
-		new DoSilCompActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL, new SilComp.SilCompPrefs(Pref.getPrefRoot()));
+		new DoSilCompActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL, new SilComp.SilCompPrefs(false));
 	}
 
 	/**
@@ -1759,7 +1758,7 @@ public class ToolMenu {
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-	    new DoSilCompActivity(cell, CONVERT_TO_VHDL | SHOW_CELL, new SilComp.SilCompPrefs(Pref.getPrefRoot()));
+	    new DoSilCompActivity(cell, CONVERT_TO_VHDL | SHOW_CELL, new SilComp.SilCompPrefs(false));
 	}
 
 	/**
@@ -1788,8 +1787,9 @@ public class ToolMenu {
 		}
 	}
 
-    public static boolean doSilCompActivityNoJob(Cell cell, int activities, boolean doItNow, SilComp.SilCompPrefs prefs)
+    public static boolean doSilCompActivityNoJob(Cell cell, int activities, boolean doItNow)
     {
+        SilComp.SilCompPrefs prefs = new SilComp.SilCompPrefs(doItNow);
         if (doItNow)
         {
             List<Cell> textCellsToRedraw = new ArrayList<Cell>();
@@ -1841,6 +1841,7 @@ public class ToolMenu {
             return true;
 		}
 
+        @Override
         public void terminateOK()
         {
             for(Cell cell : textCellsToRedraw) {
