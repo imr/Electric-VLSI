@@ -678,6 +678,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             currentSnapshot = newSnapshot;
             if (newSnapshot.environment != oldSnapshot.environment) {
                 Environment.setThreadEnvironment(newSnapshot.environment);
+                newSnapshot.environment.saveToPreferences(Pref.getPrefRoot());
                 if (newSnapshot.techPool != oldSnapshot.techPool) {
                     loadEditingPreferences(newSnapshot.techPool);
                     User.technologyChanged();

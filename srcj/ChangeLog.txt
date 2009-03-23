@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09g: ******************************
 
+BUG: (3/23/09, DN) Settings are not saved to Preferences.
+FIX: In UserInterfaceMain.DatabaseChangeRun.run() add saving Snapshot Settings to Preferences.
+
 IMP/MAN: (3/23/09, SMR) Moved "Schematic Negating Bubble Size" from Preferences
      to Project Settings.
 
