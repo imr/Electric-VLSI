@@ -41,7 +41,6 @@ import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
@@ -1729,6 +1728,12 @@ public class Technology implements Comparable<Technology>, Serializable
         while (indent-- > 0)
             out.print("\t");
         out.println(pref.getPrefName() + "=" + pref.getFactoryValue() + "(" + pref.getFactoryValue() + ")");
+    }
+
+    static void printlnPref(PrintWriter out, int indent, String prefName, Object factoryValue) {
+        while (indent-- > 0)
+            out.print("\t");
+        out.println(prefName + "=" + factoryValue + "(" + factoryValue + ")");
     }
 
     protected static void printlnBits(PrintWriter out, String[] bitNames, int bits) {
@@ -4245,17 +4250,10 @@ public class Technology implements Comparable<Technology>, Serializable
         return new Pref.Group[] {prefs, userPrefs, drcPrefs};
     }
 
-    void loadFromPreferences(ClientEnvironment clientEnv, Map<PrimitiveNodeId,ImmutableNodeInst> defaultInsts) {
+    public void loadFromPreferences() {
         for (Pref.Group group: getTechnologyAllPreferences())
             group.setCachedObjsFromPreferences();
         cacheTransparentLayerColors();
-        for (PrimitiveNode pn: nodes.values())
-            pn.loadFromPreferences(clientEnv, defaultInsts);
-    }
-
-    void saveToPreferences(ClientEnvironment clientEnv) {
-        for (PrimitiveNode pn: nodes.values())
-            pn.saveToPreferences(clientEnv);
     }
 
 	/**

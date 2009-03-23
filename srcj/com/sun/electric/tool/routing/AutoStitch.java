@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
@@ -41,7 +42,6 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
@@ -1939,9 +1939,9 @@ public class AutoStitch
 
 			// break the arc at that point
 			PrimitiveNode pinType = breakArc.getProto().findPinProto();
-            ClientEnvironment env = ClientEnvironment.getThreadEnvironment();
-			NodeInst pin = NodeInst.newInstance(pinType, breakPt, pinType.getDefaultLambdaBaseWidth(env),
-				pinType.getDefaultLambdaBaseHeight(env), breakArc.getParent());
+            EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
+			NodeInst pin = NodeInst.newInstance(pinType, breakPt, pinType.getDefaultLambdaBaseWidth(ep),
+				pinType.getDefaultLambdaBaseHeight(ep), breakArc.getParent());
 			if (pin == null) return;
 
 			PortInst pi = pin.getOnlyPortInst();

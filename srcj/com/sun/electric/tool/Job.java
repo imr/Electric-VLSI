@@ -24,10 +24,10 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.StartupPrefs;
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.TechPool;
@@ -216,7 +216,7 @@ public abstract class Job implements Serializable {
 	 * @param priority the priority of this Job.
 	 */
     public Job(String jobName, Tool tool, Type jobType, Cell upCell, Cell downCell, Priority priority) {
-        ejob = new EJob(this, jobType, jobName, ClientEnvironment.getThreadEnvironment());
+        ejob = new EJob(this, jobType, jobName, EditingPreferences.getThreadEditingPreferences());
         database = threadDatabase();
 		this.tool = tool;
 //		this.priority = priority;

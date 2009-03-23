@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.DatabaseChangeEvent;
@@ -31,12 +32,12 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdManager;
-import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.technology.TechPool;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
@@ -172,7 +173,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         public void run() {
             assert SwingUtilities.isEventDispatchThread();
             Pref.setClientThread(Thread.currentThread());
-            ClientEnvironment.setThreadEnvironment(new ClientEnvironment());
+            EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, null));
             // see if there is a Mac OS/X interface
             if (Client.isOSMac()) {
                 try {
@@ -493,7 +494,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 
         // recache all prefs
         Pref.setCachedObjsFromPreferences();
-        loadClientEnvironmentFromPreferences(env.techPool);
+        loadEditingPreferences(env.techPool);
         TopLevel.getCurrentJFrame().getEMenuBar().restoreSavedBindings(false); //trying to cache again
         WindowFrame.repaintAllWindows();
         System.out.println("...preferences imported from " + fileURL.getFile());
@@ -678,7 +679,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             if (newSnapshot.environment != oldSnapshot.environment) {
                 Environment.setThreadEnvironment(newSnapshot.environment);
                 if (newSnapshot.techPool != oldSnapshot.techPool) {
-                    loadClientEnvironmentFromPreferences(newSnapshot.techPool);
+                    loadEditingPreferences(newSnapshot.techPool);
                     User.technologyChanged();
                     WindowFrame.updateTechnologyLists();
                     WindowFrame.repaintAllWindows();
@@ -692,24 +693,24 @@ public class UserInterfaceMain extends AbstractUserInterface
         }
 	}
 
-    private static void loadClientEnvironmentFromPreferences(TechPool techPool) {
-        ClientEnvironment clientEnv = getClientEnvironment();
-        ClientEnvironment newClientEnv = techPool.loadClientEvnironmentFromPreferences(clientEnv);
-        if (newClientEnv == clientEnv) return;
-        ClientEnvironment.setThreadEnvironment(newClientEnv);
+    private static void loadEditingPreferences(TechPool techPool) {
+        for (Technology tech: techPool.values())
+            tech.loadFromPreferences();
+        EditingPreferences ep = new EditingPreferences(false, techPool);
+        EditingPreferences.setThreadEditingPreferences(ep);
     }
 
-    public static ClientEnvironment getClientEnvironment() {
+    public static EditingPreferences getEditingPreferences() {
         assert SwingUtilities.isEventDispatchThread();
-        return ClientEnvironment.getThreadEnvironment();
+        return EditingPreferences.getThreadEditingPreferences();
     }
 
-    public static void setClientEnvironment(ClientEnvironment newClientEnv) {
-        ClientEnvironment oldClientEnv = getClientEnvironment();
-        if (newClientEnv == oldClientEnv) return;
-        ClientEnvironment.setThreadEnvironment(newClientEnv);
+    public static void setEditingPreferences(EditingPreferences newEp) {
+        EditingPreferences oldEp = getEditingPreferences();
+        if (newEp == oldEp) return;
+        EditingPreferences.setThreadEditingPreferences(newEp);
         Pref.delayPrefFlushing();
-        EDatabase.clientDatabase().getTechPool().saveClientEnvironmentToPreferences(newClientEnv);
+        newEp.putPrefs(Pref.getPrefRoot(), true);
         Pref.resumePrefFlushing();
     }
 

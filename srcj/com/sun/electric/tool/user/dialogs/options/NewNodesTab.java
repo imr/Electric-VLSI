@@ -23,11 +23,11 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.id.PrimitiveNodeId;
-import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
@@ -199,7 +199,7 @@ public class NewNodesTab extends PreferencePanel
 	 */
 	public void term()
 	{
-        ClientEnvironment oldClientEnv = UserInterfaceMain.getClientEnvironment();
+        EditingPreferences oldEp = UserInterfaceMain.getEditingPreferences();
         Map<PrimitiveNodeId,ImmutableNodeInst> defaultNodes = new HashMap<PrimitiveNodeId,ImmutableNodeInst>();
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
@@ -211,10 +211,10 @@ public class NewNodesTab extends PreferencePanel
 				PrimNodeInfo pni = initialNewNodesPrimInfo.get(np);
                 EPoint size = EPoint.fromLambda(pni.wid - baseRectangle.getLambdaWidth(), pni.hei - baseRectangle.getLambdaHeight());
                 if (size.equals(np.getFactoryDefaultInst().size)) continue;
-                defaultNodes.put(np.getId(), np.getDefaultInst(oldClientEnv).withSize(size));
+                defaultNodes.put(np.getId(), np.getDefaultInst(oldEp).withSize(size));
 			}
 		}
-        UserInterfaceMain.setClientEnvironment(oldClientEnv.withDefaultNodes(defaultNodes));
+        UserInterfaceMain.setEditingPreferences(oldEp.withDefaultNodes(defaultNodes));
 
 		boolean currBoolean = nodeCheckCellDates.isSelected();
 		if (currBoolean != User.isCheckCellDates())
@@ -263,7 +263,7 @@ public class NewNodesTab extends PreferencePanel
 	public void reset()
 	{
         Map<PrimitiveNodeId,ImmutableNodeInst> defaultNodes = Collections.emptyMap();
-        UserInterfaceMain.setClientEnvironment(UserInterfaceMain.getClientEnvironment().withDefaultNodes(defaultNodes));
+        UserInterfaceMain.setEditingPreferences(UserInterfaceMain.getEditingPreferences().withDefaultNodes(defaultNodes));
 
 		if (User.isFactoryCheckCellDates() != User.isCheckCellDates())
 			User.setCheckCellDates(User.isFactoryCheckCellDates());

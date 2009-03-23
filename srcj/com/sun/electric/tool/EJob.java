@@ -25,9 +25,9 @@ package com.sun.electric.tool;
 
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.tool.Job.Type;
 
 import java.io.ByteArrayInputStream;
@@ -43,7 +43,7 @@ import java.util.logging.Level;
  * Class to track Job serializing and execution.
  */
 class EJob {
-    
+
     enum State {
         /** waiting on client */                CLIENT_WAITING,
         /** waiting on server */                WAITING,
@@ -51,20 +51,20 @@ class EJob {
         /** done on server */                   SERVER_DONE,
         /** done on client */                   CLIENT_DONE;
     };
-    
+
     /*private*/ final static String WAITING_NOW = "waiting now";
     /*private*/ final static String ABORTING = "aborting";
-    
+
     /** Client which is owner of the Job. */    Client client;
     /** True if this Job was started by server */boolean startedByServer;
     int jobId;
     /** type of job (change or examine) */      final Type jobType;
     /** name of job */                          final String jobName;
-    
+
     Snapshot oldSnapshot;
     Snapshot newSnapshot;
-    ClientEnvironment clientEnv;
-    
+    EditingPreferences editingPreferences;
+
     /** progress */                             /*private*/ String progress = null;
     byte[] serializedJob;
     byte[] serializedResult;
@@ -73,7 +73,7 @@ class EJob {
     State state;
     /** list of saved Highlights */             int savedHighlights = -1;
     /** Fields changed on server side. */       ArrayList<Field> changedFields;
-    
+
     /** Creates a new instance of EJob */
     EJob(StreamClient connection, int jobId, Job.Type jobType, String jobName, byte[] bytes) {
         this.client = connection;
@@ -83,21 +83,21 @@ class EJob {
         state = State.WAITING;
         serializedJob = bytes;
     }
-    
-    EJob(Job job, Job.Type jobType, String jobName, ClientEnvironment clientEnv) {
+
+    EJob(Job job, Job.Type jobType, String jobName, EditingPreferences editingPreferences) {
         this.jobType = jobType;
         this.jobName = jobName;
         state = State.CLIENT_WAITING;
         serverJob = clientJob = job;
-        this.clientEnv = clientEnv;
+        this.editingPreferences = editingPreferences;
     }
-    
+
     Job getJob() { return clientJob != null ? clientJob : serverJob; }
-    
+
     boolean isExamine() {
         return jobType == Job.Type.EXAMINE || jobType == Job.Type.REMOTE_EXAMINE;
-    }   
-    
+    }
+
     Throwable serialize(EDatabase database) {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -118,7 +118,7 @@ class EJob {
             return e;
         }
     }
-    
+
     Throwable deserializeToServer() {
         try {
             EDatabase database = EDatabase.serverDatabase();
@@ -133,7 +133,7 @@ class EJob {
             return e;
         }
     }
-    
+
     Throwable deserializeToClient() {
         try {
             EDatabase database = EDatabase.clientDatabase();
@@ -148,7 +148,7 @@ class EJob {
             return e;
         }
     }
-    
+
     void serializeResult(EDatabase database) {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -175,7 +175,7 @@ class EJob {
             serializeExceptionResult(e, database);
         }
     }
-    
+
     void serializeExceptionResult(Throwable jobException, EDatabase database) {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -191,7 +191,7 @@ class EJob {
         }
     }
 
-        
+
     Throwable deserializeResult() {
         try {
 //            Class jobClass = clientJob.getClass();
@@ -212,7 +212,7 @@ class EJob {
             return e;
         }
     }
-    
+
     /**
      * Method to remember that a field variable of the Job has been changed by the doIt() method.
      * @param fieldName the name of the variable that changed.
@@ -222,7 +222,7 @@ class EJob {
         fld.setAccessible(true);
         changedFields.add(fld);
     }
-    
+
     private Field findField(String fieldName) {
         Class jobClass = getJob().getClass();
 //        Field fld = null;

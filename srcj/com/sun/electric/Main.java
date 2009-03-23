@@ -23,12 +23,12 @@
  */
 package com.sun.electric;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -384,7 +384,7 @@ public final class Main
 //            Input.changesQuiet(false);
 
             if (Job.BATCHMODE) {
-                ClientEnvironment.setThreadEnvironment(new ClientEnvironment());
+                EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, getTechPool()));
                 if (beanShellScript != null)
                     EvalJavaBsh.runScript(beanShellScript);
             }

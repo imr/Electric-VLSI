@@ -49,6 +49,8 @@ public abstract class PrefPackage implements Serializable {
         this(factory ? getFactoryPrefRoot() : getPrefRoot());
     }
 
+    protected PrefPackage(String s) {}
+
     /**
      * Protected constuctor fills annotated option fields of the subclass from Preferences subtree.
      * Now possible root can be obtained by {@link com.sun.electric.database.text.Pref#getPrefRoot()}
