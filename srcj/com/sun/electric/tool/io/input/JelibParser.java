@@ -57,12 +57,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -247,6 +242,7 @@ public class JelibParser
         this.fileType = fileType;
         filePath = fileURL.getFile();
         this.errorLogger = errorLogger;
+
         InputStream inputStream;
         if (fileType == FileType.JELIB) {
             URLConnection urlCon = fileURL.openConnection();
@@ -256,7 +252,14 @@ public class JelibParser
             inputStream = urlCon.getInputStream();
         } else if (fileType == FileType.DELIB) {
             curReadFile = filePath + File.separator + "header";
-            inputStream = new FileInputStream(curReadFile);
+            try{
+                inputStream = new FileInputStream(curReadFile);
+            } catch (IOException e)
+            {
+                String message = "Header file " + curReadFile + " not found";
+                System.out.println(message);
+                throw new FileNotFoundException(message);
+            }
         } else {
             throw new IllegalArgumentException("fileType");
         }

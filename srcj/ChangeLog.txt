@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09g: ******************************
 
+IMP: (3/23/09, GVG) Missing header in DELIB library (Bug #2093).
+Warning is now printed in the messages window as well.
+
 BUG: (3/23/09, SMR) Verilog output merges bus signals (Bug #2098).
 FIX: In Verilog.writeCellTopology() write simple busses using correct indices.
 
