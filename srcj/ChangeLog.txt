@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09g: ******************************
 
+IMP/MAN: (3/23/09, SMR) Moved "Schematic Negating Bubble Size" from Preferences
+     to Project Settings.
+
 BUG: (3/22/09, DN) Exception in WaveformWindow.preserveSignalOrder.
 FIX: Load/save options directly into Preferences subtree without cration of temporary Pref.
 
