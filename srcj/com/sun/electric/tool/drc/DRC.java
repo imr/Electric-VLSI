@@ -1083,14 +1083,11 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 		}
     }
 
-    private static void doIncrementalDRCTask()
+    private static void doIncrementalDRCTask(Cell cellToCheck)
 	{
 		if (!isIncrementalDRCOn()) return;
 		if (incrementalRunning) return;
 
-		Library curLib = Library.getCurrent();
-		if (curLib == null) return;
-		Cell cellToCheck = Job.getUserInterface().getCurrentCell(curLib);
 		Set<Geometric> cellSet = null;
 
 		// get a cell to check
@@ -1158,7 +1155,10 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                     includeGeometric(ai);
             }
         }
-		doIncrementalDRCTask();
+		Library curLib = Library.getCurrent();
+		if (curLib == null) return;
+		Cell cellToCheck = curLib.getCurCell();
+		doIncrementalDRCTask(cellToCheck);
 	}
 
 	/****************************** DRC INTERFACE ******************************/
@@ -1273,11 +1273,15 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	private static class CheckDRCIncrementally extends CheckDRCJob
 	{
 		Geometric [] objectsToCheck;
+        Cell cellToCheck;
 
 		protected CheckDRCIncrementally(Cell cell, Geometric[] objectsToCheck, boolean layout)
 		{
 			super(cell, tool, Job.Priority.ANALYSIS, layout);
 			this.objectsToCheck = objectsToCheck;
+            Library curLib = Library.getCurrent();
+            if (curLib == null) return;
+            cellToCheck = curLib.getCurCell();
 			startJob();
 		}
 
@@ -1293,7 +1297,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 			if (errorsFound > 0)
 				System.out.println("Incremental DRC found " + errorsFound + " errors/warnings in "+ cell);
 			incrementalRunning = false;
-			doIncrementalDRCTask();
+			doIncrementalDRCTask(cellToCheck);
 			return true;
 		}
 	}

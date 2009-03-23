@@ -1053,7 +1053,7 @@ public class EditWindow extends JPanel
 		cellVarContext = context;
 		if (cell != null) {
 			Library lib = cell.getLibrary();
-			Job.getUserInterface().setCurrentCell(lib, cell);
+			lib.setCurCell(cell);
 		}
 		setDrawingAlgorithm();
 

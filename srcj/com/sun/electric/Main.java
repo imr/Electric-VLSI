@@ -199,40 +199,12 @@ public final class Main
         /** Get current cell from current library */
 		public Cell getCurrentCell()
         {
-			Library lib = Library.getCurrent();
-			if (lib == null) return null;
-			return lib.getCurCell();
+            throw new IllegalStateException("Batch mode Electric has no current Cell");
         }
-		/**
-		 * Method to get the current Cell in a given Library.
-		 * @param lib the library to query.
-		 * @return the current Cell in the Library.
-		 * @return the current cell in the library; null if there is no current Cell.
-		 */
-		public Cell getCurrentCell(Library lib)
-		{
-			return lib.getCurCell();
-		}
-
-		/**
-		 * Method to set the current Cell in a Library.
-		 * @param lib the library in which to set a current cell.
-		 * @param curCell the new current Cell in the Library (can be null).
-		 */
-		public void setCurrentCell(Library lib, Cell curCell)
-		{
-			lib.setCurCell(curCell);
-		}
 
 		public Cell needCurrentCell()
 		{
-            /** Current cell based on current library */
-            Cell curCell = getCurrentCell();
-            if (curCell == null)
-            {
-                System.out.println("There is no current cell for this operation.  To create one, use the 'New Cell' command from the 'Cell' menu.");
-            }
-            return curCell;
+            throw new IllegalStateException("Batch mode Electric has no current Cell");
 		}
 		public void repaintAllWindows() {}
 

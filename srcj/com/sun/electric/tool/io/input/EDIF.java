@@ -55,7 +55,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.EDIFEquiv;
@@ -192,6 +191,7 @@ public class EDIF extends Input
 	/** the new library */						private Library curLibrary;
 	/** the active technology */				private Technology curTechnology;
 	/** the current active cell */				private Cell curCell;
+    /** current Cells in Libraries */           private Map<Library,Cell> currentCells;
 	/** the current page in cell */				private int curCellPage;
 	/** the parameter position in cell */		private int curCellParameterOff;
 	/** the current active instance */			private NodeInst curNode;
@@ -299,9 +299,11 @@ public class EDIF extends Input
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
+     * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the created library (null on error).
 	 */
-	protected Library importALibrary(Library lib)
+    @Override
+	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
 	{
 		// setup keyword prerequisites
 		KARRAY.stateArray = new EDIFKEY [] {KINSTANCE, KPORT, KNET};
@@ -362,6 +364,7 @@ public class EDIF extends Input
 
 		// active database inits
 		curCell = null;
+        this.currentCells = currentCells;
 		curCellPage = 0;
 		curCellParameterOff = 0;
 		curNode = null;
@@ -417,8 +420,8 @@ public class EDIF extends Input
 		if (errorCount != 0 || warningCount != 0)
 			System.out.println("A total of " + errorCount + " errors, and " + warningCount + " warnings encountered during load");
 
-		if (curLibrary != null && Job.getUserInterface().getCurrentCell(curLibrary) == null && curLibrary.getCells().hasNext())
-			Job.getUserInterface().setCurrentCell(curLibrary, curLibrary.getCells().next());
+		if (curLibrary != null && !currentCells.containsKey(curLibrary) && curLibrary.getCells().hasNext())
+			currentCells.put(curLibrary, curLibrary.getCells().next());
 		return curLibrary;
 	}
 
@@ -1898,7 +1901,7 @@ public class EDIF extends Input
 		{
 			if (cellRefProto != null)
 			{
-				Job.getUserInterface().setCurrentCell(curLibrary, (Cell)cellRefProto);
+				currentCells.put(curLibrary, (Cell)cellRefProto);
 			}
 		}
 	}

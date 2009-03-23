@@ -157,25 +157,25 @@ public class WindowFrame extends Observable
 		public DisplayAttributes() {
             this(1, 0, 0, Collections.<NodeInst>emptyList());
         }
-        
+
 		public DisplayAttributes(EditWindow wnd) {
             this(wnd.getScale(), wnd.getOffset().getX(), wnd.getOffset().getY(), wnd.getInPlaceEditNodePath());
         }
-        
+
 		public DisplayAttributes(double scale, double offX, double offY, List<NodeInst> inPlaceDescent) {
             this.scale = scale;
             this.offX = offX;
             this.offY = offY;
             this.inPlaceDescent = new ArrayList<NodeInst>(inPlaceDescent);
         }
-        
+
         public AffineTransform getIntoCellTransform() {
             AffineTransform intoCell = new AffineTransform();
             for (NodeInst ni : inPlaceDescent)
                 intoCell.preConcatenate(ni.rotateIn(ni.translateIn()));
             return intoCell;
         }
-            
+
         public AffineTransform getOutofCellTransform() {
             AffineTransform outofCell = new AffineTransform();
             for (NodeInst ni : inPlaceDescent)
@@ -844,7 +844,7 @@ public class WindowFrame extends Observable
         Cell cell = getContent().getCell();
         if (cell != null)
         {
-        	Job.getUserInterface().setCurrentCell(cell.getLibrary(), cell);
+        	cell.getLibrary().setCurCell(cell);
 
             // if auto-switching technology, do it
             autoTechnologySwitch(cell, this);

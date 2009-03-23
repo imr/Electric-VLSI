@@ -54,7 +54,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.Spice;
 
@@ -224,9 +223,10 @@ public class Sue extends Input
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
+     * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the created library (null on error).
 	 */
-	protected Library importALibrary(Library lib)
+	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
 	{
 		// determine the cell name
 		String cellName = lib.getName();
@@ -271,7 +271,7 @@ public class Sue extends Input
 		{
 			Cell topCell = readFile(lib, cellName, lineReader);
             if (topCell == null) return null;
-            Job.getUserInterface().setCurrentCell(lib, topCell);
+            currentCells.put(lib, topCell);
 		} catch (IOException e)
 		{
 			System.out.println("ERROR reading Sue libraries");

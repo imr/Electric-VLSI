@@ -571,9 +571,7 @@ public class FileMenu {
 
         public void terminateOK()
         {
-           Cell showThisCell = (cellName != null) ?
-                    lib.findNodeProto(cellName) :
-                    Job.getUserInterface().getCurrentCell(lib);
+            Cell showThisCell = cellName != null ? lib.findNodeProto(cellName) : lib.getCurCell();
         	doneOpeningLibrary(showThisCell);
             convertVarsToModelFiles(newLibs);
 
@@ -634,11 +632,12 @@ public class FileMenu {
 	{
 		private URL fileURL;
 		private FileType type;
+        private Library curLib;
 		private Library createLib;
 		private Library deleteLib;
         private RenameAndSaveLibraryTask saveTask;
 		private boolean useCurrentLib;
-        private Map<Library,Cell> currentCells;
+        private Map<Library,Cell> currentCells = new HashMap<Library,Cell>();
 		private long startMemory, startTime;
 
 		public ImportLibrary(URL fileURL, FileType type,
@@ -664,6 +663,10 @@ public class FileMenu {
 			this.fileURL = fileURL;
 			this.type = type;
 			this.useCurrentLib = true;
+            curLib = Library.getCurrent();
+            Cell curCell = curLib.getCurCell();
+            if (curCell != null)
+                currentCells.put(curLib, curCell);
 			startJob();
 		}
 
@@ -681,9 +684,8 @@ public class FileMenu {
 				if (!deleteLib.kill("replace")) return false;
 				deleteLib = null;
 			}
-            currentCells = new HashMap<Library,Cell>();
 			if (useCurrentLib) {
-				createLib = Input.importToCurrentLibrary(fileURL, type, currentCells);
+				createLib = Input.importToCurrentLibrary(fileURL, type, curLib, currentCells);
 			} else {
 				createLib = Input.importLibrary(fileURL, type, currentCells);
 			}
@@ -716,7 +718,7 @@ public class FileMenu {
                     assert cell.getLibrary() == lib;
                 lib.setCurCell(cell);
             }
-        	Cell showThisCell = Job.getUserInterface().getCurrentCell(createLib);
+        	Cell showThisCell = createLib.getCurCell();
         	doneOpeningLibrary(showThisCell);
 			if (type == FileType.DAIS)
 			{
@@ -1597,10 +1599,12 @@ public class FileMenu {
             return true;
         }
 
+        @Override
         public void terminateOK()
         {
             try {
                 Library.saveExpandStatus();
+                Pref.getPrefRoot().flush();
             } catch (BackingStoreException e)
             {
                 int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),

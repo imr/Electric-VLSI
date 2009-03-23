@@ -124,7 +124,7 @@ public class Project extends Listener
 		if (pl.isEmpty()) return false;
 		return true;
 	}
-	
+
 	/**
 	 * Method to return the status of a Cell in Project Management.
 	 * @param cell the Cell in question.
@@ -399,7 +399,7 @@ public class Project extends Listener
 		{
 			super("Undo changes to locked cells", lowestBatch);
 		}
-        
+
         public void terminateOK() {
 			Undo.noRedoAllowed();
         }
@@ -431,11 +431,11 @@ public class Project extends Listener
         if (oldRevision.exports != newRevision.exports) return true;
         // if (oldBackup.revisionDate != newBackup.revisionDate) return true;
         // if (oldBackup.modified != newBackup.modified) return true; // This will happen if subcells are renamed.
-        
+
         ImmutableCell oldD = oldRevision.d;
         ImmutableCell newD = newRevision.d;
         if (!oldD.equalsExceptVariables(newD)) return true;
-        
+
 		int oldLength = oldD.getNumVariables();
 		int newLength = newD.getNumVariables();
 		int oldIndex = oldD.searchVar(PROJLOCKEDKEY);
@@ -458,13 +458,13 @@ public class Project extends Listener
 		}
 		return true;
     }
-    
+
     private boolean variablesDiffers(ImmutableElectricObject oldImmutable, int oldStart, ImmutableElectricObject newImmutable, int newStart, int count) {
         for (int i = 0; i < count; i++)
             if (oldImmutable.getVar(oldStart + i) != newImmutable.getVar(newStart + i)) return true;
         return false;
     }
-    
+
 	private static void queueCheck(CellId cellId, int batchNumber)
 	{
 		// see if the cell is already queued
@@ -582,7 +582,7 @@ public class Project extends Listener
 								{
 									subLib.newVar(PROJPATHKEY, projFile);
 									ProjectLibrary subPL = pdb.findProjectLibrary(subLib);
-	
+
 									// get all recent cells
 									String userName = getCurrentUserName();
 									for(Iterator<ProjectCell> pIt = subPL.getProjectCells(); pIt.hasNext(); )
@@ -678,11 +678,11 @@ public class Project extends Listener
 		}
 
 		// replace library references
-		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = it.next();
-			if (lib.getCurCell() == oldCell) lib.setCurCell(newCell);
-		}
+//		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+//		{
+//			Library lib = it.next();
+//			if (lib.getCurCell() == oldCell) lib.setCurCell(newCell);
+//		}
 
 		// finally delete the former cell
 		oldCell.kill();
@@ -726,7 +726,7 @@ public class Project extends Listener
 			return true;
 		}
 
-		fLib.setCurCell(cellCopy);
+//		fLib.setCurCell(cellCopy);
 		fLib.setFromDisk();
 		boolean error = Output.writeLibrary(fLib, pc.getLibType(), false, true, false);
 		if (error)

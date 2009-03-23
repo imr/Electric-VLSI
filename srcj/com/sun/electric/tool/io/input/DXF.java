@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class reads files in DEF files.
@@ -104,13 +105,15 @@ public class DXF extends Input
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
+     * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the created library (null on error).
 	 */
-	protected Library importALibrary(Library lib)
+    @Override
+	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
 	{
 		try
 		{
-			if (readLibrary(lib)) return null;
+			if (readLibrary(lib, currentCells)) return null;
 		} catch (IOException e) {}
 		return lib;
 	}
@@ -118,7 +121,7 @@ public class DXF extends Input
 	/**
 	 * Method to read the DXF file into library "lib".  Returns true on error.
 	 */
-	private boolean readLibrary(Library lib)
+	private boolean readLibrary(Library lib, Map<Library,Cell> currentCells)
 		throws IOException
 	{
 		// set the scale
@@ -130,7 +133,7 @@ public class DXF extends Input
 		// make the only cell in this library
 		mainCell = Cell.makeInstance(lib, lib.getName());
 		if (mainCell == null) return true;
-		Job.getUserInterface().setCurrentCell(lib, mainCell);
+		currentCells.put(lib, mainCell);
 		curCell = mainCell;
 		headerID = new ArrayList<Integer>();
 		headerText = new ArrayList<String>();

@@ -85,9 +85,6 @@ public class Library extends ElectricObject implements Comparable<Library>
     /** list of referenced libs */                          private final List<Library> referencedLibs = new ArrayList<Library>();
     /** Last backup of this Library */                      LibraryBackup backup;
 	/** list of Cells in this library */					final TreeMap<CellName,Cell> cells = new TreeMap<CellName,Cell>();
-	/** Preference for cell currently being edited */		private Pref curCellPref;
-    /** preferences for this library */                     final Preferences prefs;
-    /** preferences group for this library */               private final Pref.Group prefsGroup;
     /** DELIB cell files. */                                private HashSet<String> delibCellFiles = new HashSet<String>();
 
 	/** the current library in Electric */					private static Library curLib = null;
@@ -102,10 +99,6 @@ public class Library extends ElectricObject implements Comparable<Library>
         this.database = database;
         this.d = d;
         backup = new LibraryBackup(d, true, LibId.NULL_ARRAY);
-        String relativePath = "database/hierarchy/"+getName();
-        prefsGroup = new Pref.Group(relativePath, false);
-        prefs = Pref.getPrefRoot().node(relativePath);
-        prefs.put("LIB", getName());
 	}
 
 	/**
@@ -828,12 +821,6 @@ public class Library extends ElectricObject implements Comparable<Library>
 	public void setCurrent() { curLib = this; }
 
 	/**
-	 * Method to get the Preferences associated with this Library.
-	 * @return the Preferences associated with this Library.
-	 */
-	public Pref.Group getPrefs() { return prefsGroup; }
-
-	/**
 	 * Low-level method to get the user bits.
 	 * The "user bits" are a collection of flags that are more sensibly accessed
 	 * through special methods.
@@ -1016,15 +1003,6 @@ public class Library extends ElectricObject implements Comparable<Library>
 
 	// ----------------- cells --------------------
 
-	private void getCurCellPref()
-	{
-		if (curCellPref == null)
-		{
-			curCellPref = Pref.makeStringPref("CurrentCell", getPrefs(), "");
-		}
-
-	}
-
 	/**
 	 * Method to get the current Cell in this Library.
 	 * @return the current Cell in this Library.
@@ -1032,11 +1010,12 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 */
 	public Cell getCurCell()
 	{
-		getCurCellPref();
-		String cellName = curCellPref.getString();
+        Preferences libPrefs = Pref.getLibraryPreferences(getId());
+        String key = "CurrentCell";
+		String cellName = libPrefs.get(key, "");
 		if (cellName.length() == 0) return null;
 		Cell cell = this.findNodeProto(cellName);
-		if (cell == null) curCellPref.setString("");
+		if (cell == null) libPrefs.remove(key);
 		return cell;
 	}
 
@@ -1046,25 +1025,26 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 */
 	public void setCurCell(Cell curCell)
 	{
-		getCurCellPref();
-		String cellName = "";
-		if (curCell != null) cellName = curCell.noLibDescribe();
-		curCellPref.setString(cellName);
+        Preferences libPrefs = Pref.getLibraryPreferences(getId());
+        String key = "CurrentCell";
+        if (curCell == null)
+            libPrefs.remove(key);
+        else
+            libPrefs.put(key, curCell.noLibDescribe());
 	}
 
     /**
      * Method to save isExpanded status of NodeInsts in this Library to Preferences.
      */
     public static void saveExpandStatus() throws BackingStoreException {
-            for (Iterator<Library> lit = getLibraries(); lit.hasNext(); ) {
-                Library lib = lit.next();
-                for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
-                    Cell cell = it.next();
-                    cell.saveExpandStatus();
-                }
-                lib.prefs.flush();
+        for (Iterator<Library> lit = getLibraries(); lit.hasNext(); ) {
+            Library lib = lit.next();
+            for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+                Cell cell = it.next();
+                cell.saveExpandStatus();
             }
-    }
+        }
+     }
 
     public static Cell findCellInLibraries(String cellName, View view, String libraryName)
     {

@@ -45,12 +45,10 @@ import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.user.menus.MenuCommands;
@@ -542,8 +540,8 @@ public class CircuitChanges
 	{
 		// delete random references to this cell
 		Library lib = cell.getLibrary();
-		if (cell == Job.getUserInterface().getCurrentCell(lib))
-		    Job.getUserInterface().setCurrentCell(lib, null);
+		if (cell == lib.getCurCell())
+		    lib.setCurCell(null);
 
 		// close windows that reference this cell
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )

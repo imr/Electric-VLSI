@@ -27,7 +27,6 @@ import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
@@ -497,39 +496,12 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         /** Get current cell from current library */
 		public Cell getCurrentCell()
         {
-            printStackTrace("getCurrentCell");
-			Library lib = Library.getCurrent();
-			if (lib == null) return null;
-			return lib.getCurCell();
-        }
-        /** Get current cell from current library */
-		public Cell getCurrentCell(Library lib)
-        {
-            printStackTrace("getCurrentCell(lib)");
-			return Job.currentUI.getCurrentCell(lib);
+            throw new IllegalStateException("Can't get current Cell in database thread");
         }
 
 		public Cell needCurrentCell()
 		{
-            printStackTrace("needCurrentCell");
-            /** Current cell based on current library */
-            Cell curCell = getCurrentCell();
-            if (curCell == null)
-            {
-                System.out.println("There is no current cell for this operation.  To create one, use the 'New Cell' command from the 'Cell' menu.");
-            }
-            return curCell;
-		}
-
-		/**
-		 * Method to set the current Cell in a Library.
-		 * @param lib the library in which to set a current cell.
-		 * @param curCell the new current Cell in the Library (can be null).
-		 */
-		public void setCurrentCell(Library lib, Cell curCell)
-		{
-            printStackTrace("setCurrentCell");
-            Job.currentUI.setCurrentCell(lib, curCell);
+            throw new IllegalStateException("Can't get current Cell in database thread");
 		}
 
 		public void repaintAllWindows() {

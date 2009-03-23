@@ -80,9 +80,11 @@ public class LEF extends LEFDEF
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
+     * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the created library (null on error).
 	 */
-	protected Library importALibrary(Library lib)
+    @Override
+	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
 	{
 		// remove any vias in the globals
 		firstViaDefFromLEF = null;
@@ -103,7 +105,7 @@ public class LEF extends LEFDEF
 	/**
 	 * Helper method for keyword processing which removes comments.
 	 * @param line a line of text just read.
-	 * @return the line after comments have been removed. 
+	 * @return the line after comments have been removed.
 	 */
 	protected String preprocessLine(String line)
 	{

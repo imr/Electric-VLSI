@@ -78,9 +78,11 @@ public class Applicon860 extends Input
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
+     * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the created library (null on error).
 	 */
-	protected Library importALibrary(Library lib)
+    @Override
+	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
 	{
 		try
 		{

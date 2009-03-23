@@ -595,7 +595,9 @@ public class ToolMenu {
 		// mnemonic keys available: AB DEFGHIJKLMNOPQRSTUVWXYZ
             new EMenu("_Compaction",
 		        new EMenuItem("Do _Compaction") { public void run() {
-                    Compaction.compactNow(); }}),
+                    Cell cell = WindowFrame.getCurrentCell();
+            		if (cell == null) return;
+                    Compaction.compactNow(cell, Compaction.isAllowsSpreading()); }}),
 
         //------------------- Others
 

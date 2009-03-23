@@ -45,7 +45,6 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.ArcProto;
@@ -55,7 +54,6 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.GDSLayers;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
@@ -126,6 +124,7 @@ public class GDS extends Input
 
 	private int              countBox, countText, countNode, countPath, countShape, countSRef, countARef, countATotal;
 	private Library          theLibrary;
+    private Map<Library,Cell> currentCells;
 	private CellBuilder      theCell;
 	private NodeProto        theNodeProto;
 	private PrimitiveNode    layerNodeProto;
@@ -340,7 +339,7 @@ public class GDS extends Input
            	Set<String> exportNames = new HashSet<String>();
 			for(MakeInstance mi : insts)
 				exportNames.add(mi.exportName);
-           	
+
 			int count = 0;
 			int renamed = 0;
 			Map<String,String> exportUnify = new HashMap<String,String>();
@@ -847,11 +846,14 @@ public class GDS extends Input
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
+     * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the created library (null on error).
 	 */
-	protected Library importALibrary(Library lib)
+    @Override
+	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
 	{
 		// initialize
+        this.currentCells = currentCells;
 		arraySimplificationUseful = false;
 		CellBuilder.init();
 		theLibrary = lib;
@@ -1108,8 +1110,8 @@ public class GDS extends Input
 			cell = Cell.newInstance(theLibrary, tokenString+View.LAYOUT.getAbbreviationExtension());
 			if (cell == null) handleError("Failed to create structure");
 			System.out.println("Reading " + tokenString);
-			if (Job.getUserInterface().getCurrentCell(theLibrary) == null)
-				Job.getUserInterface().setCurrentCell(theLibrary, cell);
+			if (!currentCells.containsKey(theLibrary))
+				currentCells.put(theLibrary, cell);
 		}
         theCell = new CellBuilder(cell);
 	}

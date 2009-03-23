@@ -95,17 +95,6 @@ public class Compaction extends Tool
 	/****************************** COMPACTION CONTROL ******************************/
 
 	/**
-	 * Method to compact the current cell.
-	 */
-	public static void compactNow()
-	{
-		UserInterface ui = Job.getUserInterface();
-		Cell cell = ui.getCurrentCell();
-		if (cell == null) return;
-		compactNow(cell, isAllowsSpreading());
-	}
-
-	/**
 	 * Method to compact the requested cell.
 	 */
 	public static void compactNow(Cell cell, boolean allowSpreading)

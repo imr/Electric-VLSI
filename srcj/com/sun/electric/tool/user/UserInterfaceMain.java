@@ -30,7 +30,6 @@ import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.text.ClientEnvironment;
 import com.sun.electric.database.text.Pref;
@@ -224,27 +223,6 @@ public class UserInterfaceMain extends AbstractUserInterface
 	public EditWindow_ needCurrentEditWindow_() { return EditWindow.needCurrent(); }
 
 	public Cell getCurrentCell() { return WindowFrame.getCurrentCell(); }
-
-	/**
-	 * Method to get the current Cell in a given Library.
-	 * @param lib the library to query.
-	 * @return the current Cell in the Library.
-	 * @return the current cell in the library; null if there is no current Cell.
-	 */
-	public Cell getCurrentCell(Library lib)
-	{
-		return lib.getCurCell();
-	}
-
-	/**
-	 * Method to set the current Cell in a Library.
-	 * @param lib the library in which to set a current cell.
-	 * @param curCell the new current Cell in the Library (can be null).
-	 */
-	public void setCurrentCell(Library lib, Cell curCell)
-	{
-		lib.setCurCell(curCell);
-	}
 
 	public Cell needCurrentCell() { return WindowFrame.needCurCell(); }
 
@@ -503,7 +481,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         System.out.println("Importing preferences...");
         Pref.importPrefs(fileURL);
         Environment env = EDatabase.clientDatabase().getEnvironment();
-        
+
         // Mirror Settings in Preferences
         Preferences prefRoot = Pref.getPrefRoot();
         env.saveToPreferences(prefRoot);

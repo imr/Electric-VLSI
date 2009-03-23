@@ -55,6 +55,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -95,9 +96,11 @@ public class DEF extends LEFDEF
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
+     * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the created library (null on error).
 	 */
-	protected Library importALibrary(Library lib)
+    @Override
+	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
 	{
 		initKeywordParsing();
 		scaleUnits = 1000;
@@ -106,7 +109,7 @@ public class DEF extends LEFDEF
 		// read the file
 		try
 		{
-			if (!readFile(lib)) return null; // error during reading
+			if (!readFile(lib, currentCells)) return null; // error during reading
         } catch (IOException e)
 		{
 			System.out.println("ERROR reading DEF libraries");
@@ -149,7 +152,7 @@ public class DEF extends LEFDEF
 	/**
 	 * Method to read the DEF file.
 	 */
-	private boolean readFile(Library lib)
+	private boolean readFile(Library lib, Map<Library,Cell> currentCells)
 		throws IOException
 	{
 		Cell cell = null;
@@ -180,7 +183,7 @@ public class DEF extends LEFDEF
 				/* RBR - first, see if Cell name is equal to current cells
 				 * it exists then read into cell
 				 */
-				cell = lib.getCurCell();
+				cell = currentCells.get(lib);
 				if (Input.isNewLibraryCreated()== false)
 				{
 					// reading into current cell, current library

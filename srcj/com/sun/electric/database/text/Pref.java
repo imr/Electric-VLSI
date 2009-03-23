@@ -103,7 +103,7 @@ public class Pref {
         Preferences preferences;
         private final TreeMap<String,Pref> prefs = new TreeMap<String,Pref>();
 
-        public Group(String relativePath, boolean isTechGroup) {
+        private Group(String relativePath, boolean isTechGroup) {
             this.isTechGroup = isTechGroup;
             this.relativePath = relativePath;
         }

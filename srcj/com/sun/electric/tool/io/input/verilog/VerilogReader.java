@@ -618,9 +618,11 @@ public class VerilogReader extends Input
     /**
 	 * Method to import a Verilog file from disk.
 	 * @param lib the library to ready
+     * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the created library (null on error).
 	 */
-	protected Library importALibrary(Library lib)
+    @Override
+	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
     {
         initKeywordParsing();
         boolean fullOyster = true;

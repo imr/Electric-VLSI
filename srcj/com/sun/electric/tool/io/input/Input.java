@@ -103,7 +103,7 @@ public class Input
      * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static Library importToCurrentLibrary(URL fileURL, FileType type, Map<Library,Cell> currentCells)
+	public static Library importToCurrentLibrary(URL fileURL, FileType type, Library lib, Map<Library,Cell> currentCells)
 	{
 		// make sure the file exists
 		if (fileURL == null) return null;
@@ -118,7 +118,7 @@ public class Input
 		newLibraryCreated = false;
 
 		// import to current library
-		return importLibraryCommon(fileURL, type, Library.getCurrent(), currentCells);
+		return importLibraryCommon(fileURL, type, lib, currentCells);
 	}
 
 	private static Library importLibraryCommon(URL fileURL, FileType type, Library lib, Map<Library,Cell> currentCells)
@@ -197,7 +197,7 @@ public class Input
 				}
 
 				// import the library
-				lib = in.importALibrary(lib);
+				lib = in.importALibrary(lib, currentCells);
 				in.closeInput();
 			}
 		} finally {
@@ -222,9 +222,10 @@ public class Input
 	 * Method to import a library from disk.
 	 * This method must be overridden by the various import modules.
 	 * @param lib the library to fill
+     * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the created library (null on error).
 	 */
-	protected Library importALibrary(Library lib) { return lib; }
+	protected Library importALibrary(Library lib,Map<Library,Cell> currentCells) { return lib; }
 
 	protected boolean openBinaryInput(URL fileURL)
 	{

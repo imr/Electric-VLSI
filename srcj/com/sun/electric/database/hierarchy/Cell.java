@@ -49,6 +49,7 @@ import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
@@ -4311,14 +4312,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         String cellName = noLibDescribe().replace('/', ':');
         String cellKey = "E" + cellName;
         boolean useWantExpanded = false, mostExpanded = false;
-        if (lib.prefs.get(cellKey, null) == null)
+        Preferences libPrefs = Pref.getLibraryPreferences(getId().libId);
+        if (libPrefs.get(cellKey, null) == null)
             useWantExpanded = true;
         else
-            mostExpanded = lib.prefs.getBoolean(cellKey, false);
+            mostExpanded = libPrefs.getBoolean(cellKey, false);
         Preferences cellPrefs = null;
         try {
-            if (lib.prefs.nodeExists(cellName))
-                cellPrefs = lib.prefs.node(cellName);
+            if (libPrefs.nodeExists(cellName))
+                cellPrefs = libPrefs.node(cellName);
         } catch (BackingStoreException e) {
             ActivityLogger.logException(e);
         }
@@ -4354,9 +4356,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         String cellName = noLibDescribe().replace('/', ':');
         String cellKey = "E" + cellName;
         boolean useWantExpanded = false, mostExpanded = false;
+        Preferences libPrefs = Pref.getLibraryPreferences(getId().libId);
         if (diff <= expanded && diff <= num - expanded) {
             useWantExpanded = true;
-            lib.prefs.remove(cellKey);
+            libPrefs.remove(cellKey);
         } else {
             if (num - expanded < expanded) {
                 diff = num - expanded;
@@ -4364,14 +4367,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             } else {
                 diff = expanded;
             }
-            lib.prefs.putBoolean(cellKey, mostExpanded);
+            libPrefs.putBoolean(cellKey, mostExpanded);
         }
         if (diff == 0) {
-            if (lib.prefs.nodeExists(cellName)) {
-                lib.prefs.node(cellName).removeNode();
+            if (libPrefs.nodeExists(cellName)) {
+                libPrefs.node(cellName).removeNode();
             }
         } else {
-            Preferences cellPrefs = lib.prefs.node(cellName);
+            Preferences cellPrefs = libPrefs.node(cellName);
             cellPrefs.clear();
             cellPrefs.put("CELL", cellName);
             for (Iterator<NodeInst> it = getNodes(); it.hasNext(); ) {
@@ -4384,7 +4387,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                     cellPrefs.putBoolean(nodeName, isExpanded);
                 }
             }
-            cellPrefs.flush();
         }
         expandStatusModified = false;
     }
