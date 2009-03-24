@@ -25,12 +25,12 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
@@ -64,18 +64,14 @@ public class NewNodesTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
+    @Override
 	public JPanel getPanel() { return newNode; }
 
 	/** return the name of this preferences tab. */
+    @Override
 	public String getName() { return "Nodes"; }
 
-	private static class PrimNodeInfo
-	{
-		double initialWid, wid;
-		double initialHei, hei;
-//		Variable var;
-	}
-	private Map<PrimitiveNode,PrimNodeInfo> initialNewNodesPrimInfo;
+	private Map<PrimitiveNode,ImmutableNodeInst> defaultInsts;
 	private boolean newNodesDataChanging = false;
 	private Technology selectedTech;
 
@@ -83,10 +79,12 @@ public class NewNodesTab extends PreferencePanel
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the New Nodes tab.
 	 */
+    @Override
 	public void init()
 	{
 		// gather information about the PrimitiveNodes in the current Technology
-		initialNewNodesPrimInfo = new HashMap<PrimitiveNode,PrimNodeInfo>();
+        EditingPreferences ep = UserInterfaceMain.getEditingPreferences();
+        defaultInsts = new HashMap<PrimitiveNode,ImmutableNodeInst>();
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = tIt.next();
@@ -94,11 +92,7 @@ public class NewNodesTab extends PreferencePanel
 			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode np = it.next();
-				PrimNodeInfo pni = new PrimNodeInfo();
-				SizeOffset so = np.getProtoSizeOffset();
-				pni.initialWid = pni.wid = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
-				pni.initialHei = pni.hei = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
-				initialNewNodesPrimInfo.put(np, pni);
+				defaultInsts.put(np, np.getDefaultInst(ep));
 			}
 		}
 		technologySelection.setSelectedItem(Technology.getCurrent().getTechName());
@@ -153,11 +147,14 @@ public class NewNodesTab extends PreferencePanel
 		}
 		String primName = (String)nodePrimitive.getSelectedItem();
 		PrimitiveNode np = tech.findNodeProto(primName);
-		PrimNodeInfo pni = initialNewNodesPrimInfo.get(np);
-		if (pni == null) return;
+        ImmutableNodeInst n = defaultInsts.get(np);
+		if (n == null) return;
 		newNodesDataChanging = true;
-		nodePrimitiveXSize.setText(TextUtils.formatDistance(pni.wid, tech));
-		nodePrimitiveYSize.setText(TextUtils.formatDistance(pni.hei, tech));
+        ERectangle base = np.getBaseRectangle();
+        double wid = DBMath.gridToLambda(base.getGridWidth() + n.size.getGridX());
+        double hei = DBMath.gridToLambda(base.getGridHeight() + n.size.getGridY());
+		nodePrimitiveXSize.setText(TextUtils.formatDistance(wid, tech));
+		nodePrimitiveYSize.setText(TextUtils.formatDistance(hei, tech));
 		newNodesDataChanging = false;
 	}
 
@@ -187,16 +184,20 @@ public class NewNodesTab extends PreferencePanel
 		if (tech == null) return;
 		String primName = (String)nodePrimitive.getSelectedItem();
 		PrimitiveNode np = tech.findNodeProto(primName);
-		PrimNodeInfo pni = initialNewNodesPrimInfo.get(np);
-		if (pni == null) return;
-		pni.wid = TextUtils.atofDistance(nodePrimitiveXSize.getText(), tech);
-		pni.hei = TextUtils.atofDistance(nodePrimitiveYSize.getText(), tech);
+        ImmutableNodeInst n = defaultInsts.get(np);
+		if (n == null) return;
+        ERectangle base = np.getBaseRectangle();
+        double wid = TextUtils.atofDistance(nodePrimitiveXSize.getText(), tech);
+        double hei = TextUtils.atofDistance(nodePrimitiveYSize.getText(), tech);
+		EPoint size = EPoint.fromGrid(DBMath.lambdaToSizeGrid(wid - base.getWidth()), DBMath.lambdaToSizeGrid(hei - base.getHeight()));
+        defaultInsts.put(np, n.withSize(size));
 	}
 
 	/**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the New Nodes tab.
 	 */
+    @Override
 	public void term()
 	{
         EditingPreferences oldEp = UserInterfaceMain.getEditingPreferences();
@@ -207,11 +208,9 @@ public class NewNodesTab extends PreferencePanel
 			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode np = it.next();
-                ERectangle baseRectangle = np.getBaseRectangle();
-				PrimNodeInfo pni = initialNewNodesPrimInfo.get(np);
-                EPoint size = EPoint.fromLambda(pni.wid - baseRectangle.getLambdaWidth(), pni.hei - baseRectangle.getLambdaHeight());
-                if (size.equals(np.getFactoryDefaultInst().size)) continue;
-                defaultNodes.put(np.getId(), np.getDefaultInst(oldEp).withSize(size));
+                ImmutableNodeInst n = defaultInsts.get(np);
+                if (n.size.equals(np.getFactoryDefaultInst().size)) continue;
+                defaultNodes.put(np.getId(), n);
 			}
 		}
         UserInterfaceMain.setEditingPreferences(oldEp.withDefaultNodes(defaultNodes));
@@ -260,6 +259,7 @@ public class NewNodesTab extends PreferencePanel
 	/**
 	 * Method called when the factory reset is requested.
 	 */
+    @Override
 	public void reset()
 	{
         Map<PrimitiveNodeId,ImmutableNodeInst> defaultNodes = Collections.emptyMap();

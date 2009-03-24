@@ -496,7 +496,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     	private JList pureList;
 		private TechPalette panel;
 		private List<NodeProto> popupPures;
-   
+
     	private LongListPopup(TechPalette panel, int x, int y, boolean pures)
         {
     		super(TopLevel.getCurrentJFrame(), false);
@@ -524,7 +524,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             pureList.addMouseListener(new MouseAdapter()
     		{
     			public void mouseClicked(MouseEvent evt) { entryClicked(); }
-    		});  
+    		});
 			pureList.addKeyListener(new KeyAdapter()
 			{
 				public void keyReleased(KeyEvent ke)
@@ -533,7 +533,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 					{
 						entryClicked();
 						ke.consume();
-					} 
+					}
 				}
 			});
 			addWindowFocusListener(new DialogFocusHandler());
@@ -993,7 +993,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         ArcProto otherAp = it.next();
                         if (otherAp.isSpecialArc()) continue;  // these are not drawn in palette
                         if (otherAp.isSkipSizeInPalette()) continue;
-                        double wid = DBMath.gridToLambda(2*(otherAp.getDefaultGridExtendOverMin() + otherAp.getMaxLayerGridExtend()));
+                        double wid = DBMath.gridToLambda(2*(otherAp.getFactoryDefaultInst().getGridExtendOverMin() + otherAp.getMaxLayerGridExtend()));
                         if (wid+menuArcLength > largest) largest = wid+menuArcLength;
                     }
 
@@ -1065,7 +1065,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                            ArcProto otherAp = it.next();
 	                            if (otherAp.isSpecialArc()) continue; // ignore arc for sizing
 	                            if (otherAp.isSkipSizeInPalette()) continue;
-	                            double wid = DBMath.gridToLambda(2*(otherAp.getDefaultGridExtendOverMin() + otherAp.getMaxLayerGridExtend()));
+	                            double wid = DBMath.gridToLambda(2*(otherAp.getFactoryDefaultInst().getGridExtendOverMin() + otherAp.getMaxLayerGridExtend()));
 	                            if (wid+8 > largest) largest = wid+8;
 	                        }
 	                    }

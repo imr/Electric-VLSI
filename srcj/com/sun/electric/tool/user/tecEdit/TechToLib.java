@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.user.tecEdit;
 
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
@@ -919,17 +920,18 @@ public class TechToLib
 	private static ArcInfo makeArcInfo(ArcProto ap, LayerInfo[] lList)
     {
         ArcInfo aIn = new ArcInfo();
+        ImmutableArcInst defA = ap.getFactoryDefaultInst();
         aIn.name = ap.getName();
         aIn.func = ap.getFunction();
         aIn.widthOffset = ap.getLambdaElibWidthOffset();
-        aIn.fixAng = ap.isFixedAngle();
+        aIn.fixAng = defA.isFixedAngle();
         aIn.wipes = ap.isWipable();
-        aIn.noExtend = !ap.isExtended();
+        aIn.noExtend = !defA.isTailExtended();
         aIn.curvable = ap.isCurvable();
         aIn.special = ap.isSpecialArc();
         aIn.notUsed = ap.isNotUsed();
         aIn.skipSizeInPalette = ap.isSkipSizeInPalette();
-        aIn.slidable = ap.isSlidable();
+        aIn.slidable = defA.isSlidable();
         aIn.angInc = ap.getAngleIncrement();
         aIn.antennaRatio = ap.getFactoryAntennaRatio();
         aIn.arcDetails = new ArcInfo.LayerDetails[ap.getNumArcLayers()];

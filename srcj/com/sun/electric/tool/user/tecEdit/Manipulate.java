@@ -2791,7 +2791,7 @@ public class Manipulate
                     // Arc name
                     name = ap.getName();
                     // Extended
-                    extend = ap.isExtended() ? "yes" : "no";
+                    extend = ap.getFactoryDefaultInst().isTailExtended() ? "yes" : "no";
                     // Increment
                     increment = String.valueOf(ap.getAngleIncrement());
                     // Wipable

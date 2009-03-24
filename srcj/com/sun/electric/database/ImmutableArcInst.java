@@ -194,8 +194,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      public static final Flag HARD_SELECT = new Flag(HARD_SELECT_MASK, 'A', false);
 
     /** initial bits */                                     public static final int DEFAULT_FLAGS = SLIDABLE.mask | HEAD_EXTENDED.mask | TAIL_EXTENDED.mask;
+    /** initial factory bits: FIXED_ANGLE=SLIDABLE=TAIL_EXTENDED=HEAD_EXTENDED=true, others false */
+                                                            public static final int FACTORY_DEFAULT_FLAGS = FIXED_ANGLE.mask | SLIDABLE.mask | HEAD_EXTENDED.mask | TAIL_EXTENDED.mask;
 
-	/** prefix for autonameing. */                          public static final Name BASENAME = Name.findName("net@0");
+	/** prefix for autonaming. */                           public static final Name BASENAME = Name.findName("net@0");
 
     public final static ImmutableArcInst[] NULL_ARRAY = {};
     public final static ImmutableArrayList<ImmutableArcInst> EMPTY_LIST = new ImmutableArrayList<ImmutableArcInst>(NULL_ARRAY);

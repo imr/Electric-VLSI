@@ -25,10 +25,13 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ArcProtoId;
+import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.text.Pref;
 
 import com.sun.electric.tool.erc.ERCAntenna;
@@ -251,14 +254,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
     /** Pin for this arc */                                     PrimitiveNode arcPin;
     /** Index of this ArcProto. */                              final int primArcIndex;
 
-    /** Pref for arc extend over min. */                        private final Pref defaultExtendPref;
+    /** factory default instance */                             ImmutableArcInst factoryDefaultInst;
     /** Pref for arc angle increment. */                        private Pref defaultAnglePref;
-    /** Pref for arc rigidity. */                               private Pref defaultRigidPref;
-    /** Pref for arc fixed angle. */                            private Pref defaultFixedAnglePref;
-    /** Pref for arc slidable. */                               private Pref defaultSlidablePref;
-    /** Pref for arc end extension. */                          private Pref defaultExtendedPref;
-//  /** Pref for arc negation. */                               private final defaultNegatedPref;
-    /** Pref for arc directionality. */                         private final Pref defaultDirectionalPref;
     /** Pref for overridable pin corresponding to this arc */   private final Pref arcPinPref;
 	/** Factory value for arc antenna ratio. */                 private double factoryAntennaRatio = Double.NaN;
 
@@ -301,8 +298,9 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         this.gridBaseExtend = layers[0].getGridExtend();
         lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
         computeLayerGridExtendRange();
-        defaultExtendPref = Pref.makeDoubleServerPref("DefaultExtendFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), 0);
-        defaultDirectionalPref = makeArcProtoBitPref("Directional", false);
+        PrimitivePortId ppId = protoId.techId.idManager.newTechId("generic").newPrimitiveNodeId("Universal-Pin").newPortId("");
+        factoryDefaultInst = ImmutableArcInst.newInstance(0, protoId, ImmutableArcInst.BASENAME, null,
+                0, ppId, EPoint.ORIGIN, 0, ppId, EPoint.ORIGIN, 0, 0, ImmutableArcInst.FACTORY_DEFAULT_FLAGS);
         arcPinPref = Pref.makeStringServerPref("PinFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), "");
 	}
 
@@ -372,39 +370,16 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	public Technology getTechnology() { return tech; }
 
 	/**
-     * Method to set the base default width of this ArcProto in lambda units.
-	 * This is the reported/selected width, which means that it does not include the width offset.
-	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-     * @param lambdaWidth the full default width of this ArcProto in lambda units.
-     */
-    public void setDefaultLambdaBaseWidth(double lambdaWidth) {
-        long gridExtendOverMin = DBMath.lambdaToGrid(0.5*lambdaWidth) - gridBaseExtend;
-        if (gridExtendOverMin <= -Integer.MAX_VALUE/8 || gridExtendOverMin >= Integer.MAX_VALUE/8) {
-            System.out.println("ArcProto " + tech.getTechName() + ":" + getName() + " has invalid default base width " + lambdaWidth);
-            return;
-        }
-        defaultExtendPref.setDouble(DBMath.gridToLambda(gridExtendOverMin));
-    }
-
-//    public void setExtends(int gridBaseExtend) {
-//        int delta = gridBaseExtend - this.gridBaseExtend;
-//        this.gridBaseExtend += delta;
-//        for (int i = 0; i < layers.length; i++) {
-//            Technology.ArcLayer arcLayer = layers[i];
-//            layers[i] = arcLayer.withGridExtend(arcLayer.getGridExtend() + delta);
-//        }
-//        lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
-//        computeLayerGridExtendRange();
-//    }
-
-	/**
 	 * Method to return the default base width of this ArcProto in lambda units.
 	 * This is the reported/selected width, which means that it does not include the width offset.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
 	 * This call returns only the width of the diffusion.
 	 * @return the default base width of this ArcProto in lambda units.
 	 */
-	public double getDefaultLambdaBaseWidth() { return DBMath.gridToLambda(getDefaultGridBaseWidth()); }
+	public double getDefaultLambdaBaseWidth() {
+        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
+        return DBMath.gridToLambda(getDefaultGridBaseWidth(ep));
+    }
 
 	/**
 	 * Method to return the factory default base width of this ArcProto in lambda units.
@@ -420,9 +395,12 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * This is the reported/selected width, which means that it does not include the width offset.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
 	 * This call returns only the width of the diffusion.
+     * @param ep EditingPreferences
 	 * @return the default base width of this ArcProto in grid units.
 	 */
-    public long getDefaultGridBaseWidth() { return 2*(getDefaultGridExtendOverMin() + gridBaseExtend); }
+    public long getDefaultGridBaseWidth(EditingPreferences ep) {
+        return 2*(getDefaultInst(ep).getGridExtendOverMin() + gridBaseExtend);
+    }
 
 	/**
 	 * Method to return the factory default base width of this ArcProto in grid units.
@@ -431,31 +409,27 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * This call returns only the width of the diffusion.
 	 * @return the factory default base width of this ArcProto in grid units.
 	 */
-    public long getFactoryDefaultGridBaseWidth() { return 2*(getFactoryDefaultGridExtendOverMin() +  gridBaseExtend); }
-
-	/**
-	 * Method to return the default extend of this ArcProto over minimal-width arc in base units.
-	 * This is the half of the difference between default width and minimal width.
-	 * @return the default extend of this ArcProto over minimal-width arc in base units.
-	 */
-    public double getDefaultLambdaExtendOverMin() { return DBMath.gridToLambda(getDefaultGridExtendOverMin()); }
-
-	/**
-	 * Method to return the default extend of this ArcProto over minimal-width arc in grid units.
-	 * This is the half of the difference between default width and minimal width.
-	 * @return the default extend of this ArcProto over minimal-width arc in grid units.
-	 */
-    public long getDefaultGridExtendOverMin() {
-        return DBMath.lambdaToGrid(defaultExtendPref.getDouble());
+    public long getFactoryDefaultGridBaseWidth() {
+        return 2*(factoryDefaultInst.getGridExtendOverMin() +  gridBaseExtend);
     }
 
-	/**
-	 * Method to return the factory default extend of this ArcProto over minimal-width arc in grid units.
-	 * This is the half of the difference between default width and minimal width.
-	 * @return the default extend of this ArcProto over minimal-width arc in grid units.
-	 */
-    public long getFactoryDefaultGridExtendOverMin() {
-        return DBMath.lambdaToGrid(defaultExtendPref.getDoubleFactoryValue());
+    /**
+     * Method to return the default immutable instance of this PrimitiveNode
+     * in specified EditingPreferences.
+     * @param ep specified EditingPreferences
+     * @return the default immutable instance of this PrimitiveNode
+     */
+    public ImmutableArcInst getDefaultInst(EditingPreferences ep) {
+        ImmutableArcInst defaultInst = ep.getDefaultArc(protoId);
+        return defaultInst != null ? defaultInst : factoryDefaultInst;
+    }
+
+    /**
+     * Method to return the factory default immutable instance of this PrimitiveNode
+     * @return the factory default immutable instance of this PrimitiveNode
+     */
+    public ImmutableArcInst getFactoryDefaultInst() {
+        return factoryDefaultInst;
     }
 
 	/**
@@ -514,41 +488,14 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
 	public double getFactoryAntennaRatio() { return factoryAntennaRatio; }
 
-	private Pref makeArcProtoBitPref(String what, boolean factory)
-	{
-		return Pref.makeBooleanServerPref("Default" + what + "For" + getName() + "IN" + tech.getTechName(), tech.getTechnologyUserPreferences(), factory);
-	}
-
 	/**
 	 * Method to set the "factory default" rigid state of this ArcProto.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
 	 * @param rigid true if this ArcProto should be rigid by factory-default.
 	 */
 	public void setFactoryRigid(boolean rigid) {
-        assert defaultRigidPref == null;
-        defaultRigidPref = makeArcProtoBitPref("Rigid", rigid);
+        factoryDefaultInst = factoryDefaultInst.withFlag(ImmutableArcInst.RIGID, rigid);
     }
-
-	/**
-	 * Method to set the rigidity of this ArcProto.
-	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
-	 * @param rigid true if new instances of this ArcProto should be rigid.
-	 */
-	public void setRigid(boolean rigid) { defaultRigidPref.setBoolean(rigid); }
-
-	/**
-	 * Method to tell if instances of this ArcProto are rigid.
-	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
-	 * @return true if instances of this ArcProto are rigid.
-	 */
-	public boolean isRigid() { return defaultRigidPref.getBoolean(); }
-
-	/**
-	 * Method to tell if instances of this ArcProto are rigid by default.
-	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
-	 * @return true if instances of this ArcProto are rigid by default.
-	 */
-	public boolean isFactoryRigid() { return defaultRigidPref.getBooleanFactoryValue(); }
 
 	/**
 	 * Method to set the "factory default" fixed-angle state of this ArcProto.
@@ -557,33 +504,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * @param fixed true if this ArcProto should be fixed-angle by factory-default.
 	 */
 	public void setFactoryFixedAngle(boolean fixed) {
-        assert defaultFixedAnglePref == null;
-        defaultFixedAnglePref = makeArcProtoBitPref("FixedAngle", fixed);
+        factoryDefaultInst = factoryDefaultInst.withFlag(ImmutableArcInst.FIXED_ANGLE, fixed);
     }
-
-	/**
-	 * Method to set the fixed-angle state of this ArcProto.
-	 * Fixed-angle arcs cannot change their angle, so if one end moves,
-	 * the other may also adjust to keep the arc angle constant.
-	 * @param fixed true if new instances of this ArcProto should be fixed-angle.
-	 */
-	public void setFixedAngle(boolean fixed) { defaultFixedAnglePref.setBoolean(fixed); }
-
-	/**
-	 * Method to tell if instances of this ArcProto are fixed-angle.
-	 * Fixed-angle arcs cannot change their angle, so if one end moves,
-	 * the other may also adjust to keep the arc angle constant.
-	 * @return true if instances of this ArcProto are fixed-angle.
-	 */
-	public boolean isFixedAngle() { return defaultFixedAnglePref.getBoolean(); }
-
-	/**
-	 * Method to tell if instances of this ArcProto are fixed-angle by default.
-	 * Fixed-angle arcs cannot change their angle, so if one end moves,
-	 * the other may also adjust to keep the arc angle constant.
-	 * @return true if instances of this ArcProto are fixed-anglee by default.
-	 */
-	public boolean isFactoryFixedAngle() { return defaultFixedAnglePref.getBooleanFactoryValue(); }
 
 	/**
 	 * Method to set the "factory default" slidability state of this ArcProto.
@@ -593,36 +515,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * @param slidable true if this ArcProto should be slidability by factory-default.
 	 */
 	public void setFactorySlidable(boolean slidable) {
-        assert defaultSlidablePref == null;
-        defaultSlidablePref = makeArcProtoBitPref("Slidable", slidable);
+        factoryDefaultInst = factoryDefaultInst.withFlag(ImmutableArcInst.SLIDABLE, slidable);
     }
-
-	/**
-	 * Method to set the slidability of this ArcProto.
-	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
-	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
-	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
-	 * @param slidable true if new instances of this ArcProto should be slidable.
-	 */
-	public void setSlidable(boolean slidable) { defaultSlidablePref.setBoolean(slidable); }
-
-	/**
-	 * Method to tell if instances of this ArcProto are slidable.
-	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
-	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
-	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
-	 * @return true if instances of this ArcProto are slidable.
-	 */
-	public boolean isSlidable() { return defaultSlidablePref.getBoolean(); }
-
-	/**
-	 * Method to tell if instances of this ArcProto are slidable by default.
-	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
-	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
-	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
-	 * @return true if instances of this ArcProto are slidable by default.
-	 */
-	public boolean isFactorySlidable() { return defaultSlidablePref.getBooleanFactoryValue(); }
 
 	/**
 	 * Method to set the "factory default" end-extension state of this ArcProto.
@@ -631,57 +525,10 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * @param extended true if this ArcProto should be end-extended by factory-default.
 	 */
 	public void setFactoryExtended(boolean extended) {
-        assert defaultExtendedPref == null;
-        defaultExtendedPref = makeArcProtoBitPref("Extended", extended);
+        factoryDefaultInst = factoryDefaultInst.
+                withFlag(ImmutableArcInst.TAIL_EXTENDED, extended).
+                withFlag(ImmutableArcInst.HEAD_EXTENDED, extended);
     }
-
-	/**
-	 * Method to set the end-extension factor of this ArcProto.
-	 * End-extension causes an arc to extend past its endpoint by half of its width.
-	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
-	 * @param extended true if new instances of this ArcProto should be end-extended.
-	 */
-	public void setExtended(boolean extended) { defaultExtendedPref.setBoolean(extended); }
-
-	/**
-	 * Method to tell if instances of this ArcProto have their ends extended.
-	 * End-extension causes an arc to extend past its endpoint by half of its width.
-	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
-	 * @return true if instances of this ArcProto have their ends extended.
-	 */
-	public boolean isExtended() { return defaultExtendedPref.getBoolean(); }
-
-	/**
-	 * Method to tell if instances of this ArcProto have their ends extended by default.
-	 * End-extension causes an arc to extend past its endpoint by half of its width.
-	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
-	 * @return true if instances of this ArcProto have their ends extended by default.
-	 */
-	public boolean isFactoryExtended() { return defaultExtendedPref.getBooleanFactoryValue(); }
-
-	/**
-	 * Method to set the directional factor for this ArcProto.
-	 * Directional arcs have an arrow drawn on them to indicate flow.
-	 * It is only for documentation purposes and does not affect the circuit.
-	 * @param directional true if new instances of this ArcProto should be directional.
-	 */
-	public void setDirectional(boolean directional) { defaultDirectionalPref.setBoolean(directional); }
-
-	/**
-	 * Method to tell if instances of this ArcProto are directional.
-	 * Directional arcs have an arrow drawn on them to indicate flow.
-	 * It is only for documentation purposes and does not affect the circuit.
-	 * @return true if instances of this ArcProto are directional.
-	 */
-	public boolean isDirectional() { return defaultDirectionalPref.getBoolean(); }
-
-	/**
-	 * Method to tell if instances of this ArcProto are directional by default.
-	 * Directional arcs have an arrow drawn on them to indicate flow.
-	 * It is only for documentation purposes and does not affect the circuit.
-	 * @return true if instances of this ArcProto are directional by default.
-	 */
-	public boolean isFactoryDirectional() { return defaultDirectionalPref.getBooleanFactoryValue(); }
 
 	/**
 	 * Method to set this ArcProto so that it is not used.
@@ -832,15 +679,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
 	public int getDefaultConstraints()
 	{
-        int flags = ImmutableArcInst.DEFAULT_FLAGS;
-        flags = ImmutableArcInst.RIGID.set(flags, isRigid());
-        flags = ImmutableArcInst.FIXED_ANGLE.set(flags, isFixedAngle());
-        flags = ImmutableArcInst.SLIDABLE.set(flags, isSlidable());
-        flags = ImmutableArcInst.HEAD_EXTENDED.set(flags, isExtended());
-        flags = ImmutableArcInst.TAIL_EXTENDED.set(flags, isExtended());
-        flags = ImmutableArcInst.HEAD_ARROWED.set(flags, isDirectional());
-        flags = ImmutableArcInst.BODY_ARROWED.set(flags, isDirectional());
-        return flags;
+        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
+        return getDefaultInst(ep).flags;
 	}
 
 	/**
@@ -1166,8 +1006,10 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         Poly [] polys = new Poly[layers.length];
 //        Point2D.Double headLocation = new Point2D.Double(lambdaLength/2, 0);
 //        Point2D.Double tailLocation = new Point2D.Double(-lambdaLength/2, 0);
+        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
+        long defaultGridExtendOverMin = getDefaultInst(ep).getGridExtendOverMin();
         for (int i = 0; i < layers.length; i++) {
-            long gridWidth = 2*(getDefaultGridExtendOverMin() + getLayerGridExtend(i));
+            long gridWidth = 2*(defaultGridExtendOverMin + getLayerGridExtend(i));
 //            long gridWidth = getDefaultGridFullWidth() - primLayer.getGridOffset();
             Poly.Type style = getLayerStyle(i);
             Point2D.Double[] points;
@@ -1226,20 +1068,15 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
      * Method to finish initialization of this ArcProto.
      */
     void finish() {
-        assert defaultExtendPref != null;
-        if (defaultRigidPref == null)
-            setFactoryRigid(false);
-        if (defaultFixedAnglePref == null)
-            setFactoryFixedAngle(true);
-        if (defaultSlidablePref == null)
-            setFactorySlidable(true);
-        if (defaultExtendedPref == null)
-            setFactoryExtended(true);
         if (Double.isNaN(factoryAntennaRatio)) {
             double ratio = ERCAntenna.DEFPOLYRATIO;
             if (function.isMetal()) ratio = ERCAntenna.DEFMETALRATIO;
             setFactoryAntennaRatio(ratio);
         }
+        assert !factoryDefaultInst.isTailArrowed() && !factoryDefaultInst.isHeadArrowed() && !factoryDefaultInst.isBodyArrowed();
+        assert factoryDefaultInst.isTailExtended() == factoryDefaultInst.isHeadExtended();
+        assert !factoryDefaultInst.isTailNegated() && !factoryDefaultInst.isHeadNegated();
+        assert !factoryDefaultInst.isHardSelect();
     }
 
 	/**
@@ -1275,16 +1112,16 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         out.println("\tisNotUsed=" + isNotUsed());
         out.println("\tisSkipSizeInPalette=" + isSkipSizeInPalette());
 
-        Technology.printlnPref(out, 1, defaultExtendPref);
+        Technology.printlnPref(out, 1, "DefaultExtendFor" + getName() + "IN" + tech.getTechName(), factoryDefaultInst.getLambdaExtendOverMin());
         out.println("\tbaseExtend=" + getLambdaBaseExtend());
         out.println("\tdefaultLambdaBaseWidth=" + getFactoryDefaultLambdaBaseWidth());
         out.println("\tdiskOffset1=" + DBMath.round(getLambdaBaseExtend() + 0.5*getLambdaElibWidthOffset()));
         out.println("\tdiskOffset2=" + getLambdaBaseExtend());
         Technology.printlnPref(out, 1, defaultAnglePref);
-        Technology.printlnPref(out, 1, defaultRigidPref);
-        Technology.printlnPref(out, 1, defaultFixedAnglePref);
-        Technology.printlnPref(out, 1, defaultExtendedPref);
-        Technology.printlnPref(out, 1, defaultDirectionalPref);
+        Technology.printlnPref(out, 1, "DefaultRigidFor" + getName() + "IN" + tech.getTechName(), factoryDefaultInst.isRigid());
+        Technology.printlnPref(out, 1, "DefaultFixedAngleFor" + getName() + "IN" + tech.getTechName(), factoryDefaultInst.isFixedAngle());
+        Technology.printlnPref(out, 1, "DefaultExtendedFor" + getName() + "IN" + tech.getTechName(), factoryDefaultInst.isTailExtended());
+        Technology.printlnPref(out, 1, "DefaultDirectionalFor" + getName() + "IN" + tech.getTechName(), factoryDefaultInst.isHeadArrowed());
 
         for (Technology.ArcLayer arcLayer: layers)
             arcLayer.dump(out);
@@ -1311,8 +1148,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
             a.diskOffset.put(Integer.valueOf(1), correction1);
         if (correction2 != 0)
             a.diskOffset.put(Integer.valueOf(2), correction2);
-        a.extended = isFactoryExtended();
-        a.fixedAngle = isFactoryFixedAngle();
+        a.extended = factoryDefaultInst.isTailExtended();
+        a.fixedAngle = factoryDefaultInst.isFixedAngle();
         a.angleIncrement = getFactoryAngleIncrement();
         a.antennaRatio = getFactoryAntennaRatio();
         for (Technology.ArcLayer arcLayer: layers)

@@ -24,6 +24,9 @@
  */
 package com.sun.electric.database.text;
 
+import com.sun.electric.database.id.ArcProtoId;
+import com.sun.electric.database.id.PrimitiveNodeId;
+
 import java.io.Serializable;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -38,6 +41,8 @@ import java.util.prefs.Preferences;
  * their persistence representation in Java Preferences.
  */
 public abstract class PrefPackage implements Serializable {
+    protected static final String TECH_NODE = "technology/technologies";
+    protected static final String USER_NODE = "tool/user";
 
     /**
      * Protected constuctor fills annotated option fields of the subclass from Preferences subtree.
@@ -173,6 +178,31 @@ public abstract class PrefPackage implements Serializable {
      */
     public static Preferences getFactoryPrefRoot() {
         return Pref.getFactoryPrefRoot();
+    }
+
+
+    protected String getKey(String what, PrimitiveNodeId pnId) {
+        int len = what.length() + pnId.fullName.length() + 4;
+        StringBuilder sb = new StringBuilder(len);
+        sb.append(what);
+        sb.append("For");
+        sb.append(pnId.name);
+        sb.append("IN");
+        sb.append(pnId.techId.techName);
+        assert sb.length() == len;
+        return sb.toString();
+    }
+
+    protected String getKey(String what, ArcProtoId apId) {
+        int len = what.length() + apId.fullName.length() + 4;
+        StringBuilder sb = new StringBuilder(len);
+        sb.append(what);
+        sb.append("For");
+        sb.append(apId.name);
+        sb.append("IN");
+        sb.append(apId.techId.techName);
+        assert sb.length() == len;
+        return sb.toString();
     }
 
     /**

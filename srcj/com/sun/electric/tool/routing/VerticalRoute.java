@@ -24,10 +24,10 @@
 
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.EditingPreferences;
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.PolyMerge;
@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 
 /**
  * Class to route vertically (in Z direction) between two RouteElements.
@@ -125,7 +124,7 @@ public class VerticalRoute {
         allSpecifiedRoutes = null;
         specificationSucceeded = false;
     }
-    
+
     /**
      * Create new VerticalRoute object to route between startRE and endRE
      * @param startPort the start port of the route
@@ -338,7 +337,7 @@ public class VerticalRoute {
             if (startArcAngle == 900 && startArcWidth > width) width = startArcWidth;
             if (startArcAngle == 0 && startArcWidth > height) height = startArcWidth;
             if (endArcAngle == 900 && endArcWidth > width) width = endArcWidth;
-            if (endArcAngle == 0 && endArcWidth > height) height = endArcWidth;            
+            if (endArcAngle == 0 && endArcWidth > height) height = endArcWidth;
             size = new Dimension2D.Double(width, height);
         }
         for (RouteElement re : vertRoute) {
@@ -366,6 +365,7 @@ public class VerticalRoute {
             System.out.println("Error: Trying to build VerticalRoute without a call to specifyRoute() first");
             return null;
         }
+        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
         Route route = new Route();
         if (specifiedRoute.size() == 0) return route;
         if (DEBUG) {
@@ -396,9 +396,10 @@ public class VerticalRoute {
 
             // create arc
             //double arcWidth = Router.getArcWidthToUse(node, ap, arcAngle);
+            ImmutableArcInst defA = ap.getDefaultInst(ep);
             double arcWidth = ap.getDefaultLambdaBaseWidth();
             RouteElementArc arc = RouteElementArc.newArc(cell, ap, arcWidth, node, newNode, location, location,
-            	null, null, null, ap.isExtended(), ap.isExtended(), stayInside);
+            	null, null, null, defA.isHeadExtended(), defA.isTailExtended(), stayInside, ep);
             arc.setArcAngle(arcAngle);
             route.add(arc);
 

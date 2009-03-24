@@ -557,6 +557,7 @@ public class AutoStitch
 	{
 		// make a list of PortInsts that are on the centerline of this arc
 		Cell cell = ai.getParent();
+        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
 		Network arcNet = top.getArcNetwork(ai);
 		Point2D e1 = ai.getHeadLocation();
 		Point2D e2 = ai.getTailLocation();
@@ -633,7 +634,7 @@ public class AutoStitch
             {
 	        	RouteElement re = RouteElementArc.newArc(cell, ai.getProto(), ai.getLambdaBaseWidth(), headRE, dcpRE,
 	        		headRE.getLocation(), dcpRE.getLocation(), name, ai.getTextDescriptor(ArcInst.ARC_NAME),
-	                ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
+	                ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside, ep);
 	            route.add(re);
             }
         	headRE = dcpRE;
@@ -643,7 +644,7 @@ public class AutoStitch
         {
 	    	RouteElement re = RouteElementArc.newArc(cell, ai.getProto(), ai.getLambdaBaseWidth(), headRE, tailRE,
 	    		headRE.getLocation(), tailRE.getLocation(), name, ai.getTextDescriptor(ArcInst.ARC_NAME),
-	            ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
+	            ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside, ep);
 	        route.add(re);
         }
 		allRoutes.add(route);

@@ -24,12 +24,14 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.PrefPackage;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
@@ -42,16 +44,30 @@ import java.util.prefs.Preferences;
  * Class to mirror on a server a portion of client environment
  */
 public class EditingPreferences extends PrefPackage {
+    // In TECH_NODE
+    private static final String KEY_EXTEND_X = "DefaultExtendX";
+    private static final String KEY_EXTEND_Y = "DefaultExtendY";
+    private static final String KEY_EXTEND = "DefaultExtend";
+    // In USER_NODE
+    private static final String KEY_RIGID = "DefaultRigid";
+    private static final String KEY_FIXED_ANGLE = "DefaultFixedAngle";
+    private static final String KEY_SLIDABLE = "DefaultSlidable";
+    private static final String KEY_EXTENDED = "DefaultExtended";
+    private static final String KEY_DIRECTIONAL = "DefaultDirectional";
+
     private static final ThreadLocal<EditingPreferences> threadEditingPreferences = new ThreadLocal<EditingPreferences>();
 
     private final TechPool techPool;
     private HashMap<PrimitiveNodeId,ImmutableNodeInst> defaultNodes = new HashMap<PrimitiveNodeId,ImmutableNodeInst>();
     private HashMap<ArcProtoId,ImmutableArcInst> defaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>();
 
-    private EditingPreferences(TechPool techPool, Map<PrimitiveNodeId,ImmutableNodeInst> defaultNodes) {
+    private EditingPreferences(TechPool techPool,
+            Map<PrimitiveNodeId,ImmutableNodeInst> defaultNodes,
+            Map<ArcProtoId,ImmutableArcInst> defaultArcs) {
         super("");
         this.techPool = techPool;
         this.defaultNodes.putAll(defaultNodes);
+        this.defaultArcs.putAll(defaultArcs);
     }
 
     public EditingPreferences(boolean factory, TechPool techPool) {
@@ -59,59 +75,206 @@ public class EditingPreferences extends PrefPackage {
         this.techPool = techPool;
         if (factory) return;
 
-        Preferences techPrefs = Pref.getTechnologyPreferences();
+        Preferences prefRoot = Pref.getPrefRoot();
+        Preferences techPrefs = prefRoot.node(TECH_NODE);
+        Preferences userPrefs = prefRoot.node(USER_NODE);
         for (Technology tech: techPool.values()) {
             for (Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); ) {
                 PrimitiveNode pn = it.next();
                 PrimitiveNodeId pnId = pn.getId();
-                String keyX = getKey("DefaultExtendX", pnId);
-                String keyY = getKey("DefaultExtendY", pnId);
                 ImmutableNodeInst factoryInst = pn.getFactoryDefaultInst();
                 EPoint factorySize = factoryInst.size;
+
+                // TECH_NODE
+                String keyExtendX = getKey(KEY_EXTEND_X, pnId);
                 double factoryExtendX = factorySize.getLambdaX()*0.5;
+                double extendX = techPrefs.getDouble(keyExtendX, factoryExtendX);
+
+                String keyExtendY = getKey(KEY_EXTEND_Y, pnId);
                 double factoryExtendY = factorySize.getLambdaY()*0.5;
-                double extendX = techPrefs.getDouble(keyX, factoryExtendX);
-                double extendY = techPrefs.getDouble(keyY, factoryExtendY);
+                double extendY = techPrefs.getDouble(keyExtendY, factoryExtendY);
+
                 if (extendX == factoryExtendX && extendY == factoryExtendY) continue;
                 EPoint size = EPoint.fromLambda(extendX*2, extendY*2);
-                defaultNodes.put(pnId, factoryInst.withAnchor(size));
+                defaultNodes.put(pnId, factoryInst.withSize(size));
+            }
+
+            for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
+                ArcProto ap = it.next();
+                ArcProtoId apId = ap.getId();
+                ImmutableArcInst factoryInst = ap.getFactoryDefaultInst();
+                int flags = factoryInst.flags;
+
+                // TECH_NODE
+                String keyExtend = getKey(KEY_EXTEND, apId);
+                double factoryExtend = factoryInst.getLambdaExtendOverMin();
+                double extend = techPrefs.getDouble(keyExtend, factoryExtend);
+
+                // USER_NODE
+                String keyRigid = getKey(KEY_RIGID, apId);
+                boolean factoryRigid = factoryInst.isRigid();
+                boolean rigid = userPrefs.getBoolean(keyRigid, factoryRigid);
+                flags = ImmutableArcInst.RIGID.set(flags, rigid);
+
+                String keyFixedAngle = getKey(KEY_FIXED_ANGLE, apId);
+                boolean factoryFixedAngle = factoryInst.isFixedAngle();
+                boolean fixedAngle = userPrefs.getBoolean(keyFixedAngle, factoryFixedAngle);
+                flags = ImmutableArcInst.FIXED_ANGLE.set(flags, fixedAngle);
+
+                String keySlidable = getKey(KEY_SLIDABLE, apId);
+                boolean factorySlidable = factoryInst.isSlidable();
+                boolean slidable = userPrefs.getBoolean(keySlidable, factorySlidable);
+                flags = ImmutableArcInst.SLIDABLE.set(flags, slidable);
+
+                String keyExtended = getKey(KEY_EXTENDED, apId);
+                boolean factoryExtended = factoryInst.isTailExtended();
+                assert factoryExtended == factoryInst.isHeadExtended();
+                boolean extended = userPrefs.getBoolean(keyExtended, factoryExtended);
+                flags = ImmutableArcInst.TAIL_EXTENDED.set(flags, extended);
+                flags = ImmutableArcInst.HEAD_EXTENDED.set(flags, extended);
+
+                String keyDirectional = getKey(KEY_DIRECTIONAL, apId);
+                boolean factoryDirectional = factoryInst.isHeadArrowed();
+                assert factoryDirectional == factoryInst.isBodyArrowed();
+                boolean directional = userPrefs.getBoolean(keyDirectional, factoryDirectional);
+                flags = ImmutableArcInst.HEAD_ARROWED.set(flags, directional);
+                flags = ImmutableArcInst.BODY_ARROWED.set(flags, directional);
+
+                ImmutableArcInst a = factoryInst.
+                        withGridExtendOverMin(DBMath.lambdaToGrid(extend)).
+                        withFlags(flags);
+                if (a == factoryInst) continue;
+                defaultArcs.put(apId, a);
             }
         }
     }
 
     @Override
     public void putPrefs(Preferences prefRoot, boolean removeDefaults) {
+        putPrefs(prefRoot, removeDefaults, null);
+    }
+
+    public void putPrefs(Preferences prefRoot, boolean removeDefaults, EditingPreferences oldEp) {
         super.putPrefs(prefRoot, removeDefaults);
 
-        Preferences techPrefs = Pref.getTechnologyPreferences(prefRoot);
+        if (oldEp != null && oldEp.techPool != techPool)
+            oldEp = null;
+
+        Preferences techPrefs = prefRoot.node(TECH_NODE);
+        Preferences userPrefs = prefRoot.node(USER_NODE);
         for (Technology tech: techPool.values()) {
             for (Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); ) {
                 PrimitiveNode pn = it.next();
                 PrimitiveNodeId pnId = pn.getId();
-                String keyX = getKey("DefaultExtendX", pnId);
-                String keyY = getKey("DefaultExtendY", pnId);
-                EPoint factorySize = pn.getFactoryDefaultInst().size;
                 ImmutableNodeInst n = defaultNodes.get(pnId);
-                EPoint size = n != null ? n.size : factorySize;
-                if (removeDefaults && size.getGridX() == factorySize.getGridX())
-                    techPrefs.remove(keyX);
-                else
-                    techPrefs.putDouble(keyX, size.getLambdaX()*0.5);
-                if (removeDefaults && size.getGridY() == factorySize.getGridY())
-                    techPrefs.remove(keyY);
-                else
-                    techPrefs.putDouble(keyY, size.getLambdaY()*0.5);
+                if (oldEp == null || n != oldEp.defaultNodes.get(pnId)) {
+                    ImmutableNodeInst factoryInst = pn.getFactoryDefaultInst();
+                    if (n == null)
+                        n = factoryInst;
+
+                    String keyX = getKey(KEY_EXTEND_X, pnId);
+                    if (removeDefaults && n.size.getGridX() == factoryInst.size.getGridX())
+                        techPrefs.remove(keyX);
+                    else
+                        techPrefs.putDouble(keyX, n.size.getLambdaX()*0.5);
+
+                    String keyY = getKey(KEY_EXTEND_Y, pnId);
+                    if (removeDefaults && n.size.getGridY() == factoryInst.size.getGridY())
+                        techPrefs.remove(keyY);
+                    else
+                        techPrefs.putDouble(keyY, n.size.getLambdaY()*0.5);
+                }
+            }
+
+            for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
+                ArcProto ap = it.next();
+                ArcProtoId apId = ap.getId();
+                ImmutableArcInst a = defaultArcs.get(apId);
+                if (oldEp == null || a != oldEp.defaultArcs.get(ap)) {
+                    ImmutableArcInst factoryInst = ap.getFactoryDefaultInst();
+                    if (a == null)
+                        a = factoryInst;
+
+                    // TECH_NODE
+                    String keyExtend = getKey(KEY_EXTEND, apId);
+                    if (removeDefaults && a.getGridExtendOverMin() == factoryInst.getGridExtendOverMin())
+                        techPrefs.remove(keyExtend);
+                    else
+                        techPrefs.putDouble(keyExtend, a.getLambdaExtendOverMin());
+
+                    // USER_NODE
+                    String keyRigid = getKey(KEY_RIGID, apId);
+                    if (removeDefaults && a.isRigid() == factoryInst.isRigid())
+                        userPrefs.remove(keyRigid);
+                    else
+                        userPrefs.putBoolean(keyRigid, a.isRigid());
+
+                    String keyFixedAngle = getKey(KEY_FIXED_ANGLE, apId);
+                    if (removeDefaults && a.isFixedAngle() == factoryInst.isFixedAngle())
+                        userPrefs.remove(keyFixedAngle);
+                    else
+                        userPrefs.putBoolean(keyFixedAngle, a.isFixedAngle());
+
+                    String keySlidable = getKey(KEY_SLIDABLE, apId);
+                    if (removeDefaults && a.isSlidable() == factoryInst.isSlidable())
+                        userPrefs.remove(keySlidable);
+                    else
+                        userPrefs.putBoolean(keySlidable, a.isSlidable());
+
+                    String keyExtended = getKey(KEY_EXTENDED, apId);
+                    if (removeDefaults && a.isTailExtended() == factoryInst.isTailExtended())
+                        userPrefs.remove(keyExtended);
+                    else
+                        userPrefs.putBoolean(keyExtended, a.isTailExtended());
+
+                    String keyDirectional = getKey(KEY_DIRECTIONAL, apId);
+                    if (removeDefaults && a.isHeadArrowed() == factoryInst.isHeadArrowed())
+                        userPrefs.remove(keyDirectional);
+                    else
+                        userPrefs.putBoolean(keyDirectional, a.isHeadArrowed());
+                }
             }
         }
     }
 
     public EditingPreferences withDefaultNodes(Map<PrimitiveNodeId,ImmutableNodeInst> defaultNodes) {
-        if (this.defaultNodes.equals(defaultNodes)) return this;
-        return new EditingPreferences(techPool, defaultNodes);
+        HashMap<PrimitiveNodeId,ImmutableNodeInst> newDefaultNodes = new HashMap<PrimitiveNodeId,ImmutableNodeInst>();
+		for(Technology tech: techPool.values()) {
+			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); ) {
+				PrimitiveNode np = it.next();
+                ImmutableNodeInst n = defaultNodes.get(np.getId());
+                if (n == null) continue;
+                if (n.protoId != np.getId())
+                    throw new IllegalArgumentException();
+                newDefaultNodes.put(np.getId(), n);
+			}
+		}
+        if (this.defaultNodes.equals(newDefaultNodes)) return this;
+        return new EditingPreferences(this.techPool, newDefaultNodes, this.defaultArcs);
+    }
+
+    public EditingPreferences withDefaultArcs(Map<ArcProtoId,ImmutableArcInst> defaultArcs) {
+        HashMap<ArcProtoId,ImmutableArcInst> newDefaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>();
+		for(Technology tech: techPool.values()) {
+			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
+				ArcProto ap = it.next();
+                ImmutableArcInst a = defaultArcs.get(ap.getId());
+                if (a == null) continue;
+                if (a.protoId != ap.getId())
+                    throw new IllegalArgumentException();
+                newDefaultArcs.put(ap.getId(), a);
+			}
+		}
+        if (this.defaultArcs.equals(newDefaultArcs)) return this;
+        return new EditingPreferences(this.techPool, this.defaultNodes, newDefaultArcs);
     }
 
     public ImmutableNodeInst getDefaultNode(PrimitiveNodeId pnId) {
         return defaultNodes.get(pnId);
+    }
+
+    public ImmutableArcInst getDefaultArc(ArcProtoId apId) {
+        return defaultArcs.get(apId);
     }
 
     public static EditingPreferences getThreadEditingPreferences() {
@@ -122,17 +285,5 @@ public class EditingPreferences extends PrefPackage {
         EditingPreferences oldEp = threadEditingPreferences.get();
         threadEditingPreferences.set(ep);
         return oldEp;
-    }
-
-    private String getKey(String what, PrimitiveNodeId pnId) {
-        int len = what.length() + pnId.fullName.length() + 4;
-        StringBuilder sb = new StringBuilder(len);
-        sb.append(what);
-        sb.append("For");
-        sb.append(pnId.name);
-        sb.append("IN");
-        sb.append(pnId.techId.techName);
-        assert sb.length() == len;
-        return sb.toString();
     }
 }

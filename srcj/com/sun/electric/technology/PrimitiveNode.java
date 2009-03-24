@@ -797,7 +797,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     /** full (true) rectangle of standard node */   private ERectangle fullRectangle;
 	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
 	/** template for Spice decks (null if none) */	private String spiceTemplate;
-    /** factory client data */                      ImmutableNodeInst factoryDefaultInst;
+    /** factory default instance */                 private ImmutableNodeInst factoryDefaultInst;
 
 	// ------------------ private and protected methods ----------------------
 

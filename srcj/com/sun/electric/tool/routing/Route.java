@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.Connection;
@@ -180,6 +181,7 @@ public class Route extends ArrayList<RouteElement> {
      * @return true if replacement done, false otherwise.
      */
     public boolean replaceExistingRedundantPin(RouteElementPort pinRE, RouteElementPort replacementRE, PolyMerge stayInside) {
+        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
         // only replace existing pins
         if (pinRE.getAction() != RouteElement.RouteElementAction.existingPortInst) return false;
 
@@ -225,13 +227,13 @@ public class Route extends ArrayList<RouteElement> {
                         newArc = RouteElementArc.newArc(cell, ai.getProto(),
                                 ai.getLambdaBaseWidth(), replacementRE, otherPort,
                                 conn.getLocation(), ai.getLocation(otherEnd), ai.getName(),
-                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
+                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside, ep);
                     } else {
                         // tail
                         newArc = RouteElementArc.newArc(cell, ai.getProto(),
                                 ai.getLambdaBaseWidth(), otherPort, replacementRE,
                                 ai.getLocation(otherEnd), conn.getLocation(), ai.getName(),
-                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
+                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside, ep);
                     }
                     newArc.setArcAngle(ai.getAngle());
                     RouteElementArc delArc = RouteElementArc.deleteArc(ai);

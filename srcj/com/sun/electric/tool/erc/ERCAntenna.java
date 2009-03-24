@@ -82,6 +82,9 @@ public class ERCAntenna
 {
 	public static class AntennaPreferences extends PrefPackage
     {
+        // In TECH_NODE
+        private static final String KEY_ANTENNA_RATIO = "DefaultAntennaRatio";
+
         private final TechPool techPool;
         public Map<ArcProtoId,Double> antennaRatio = new HashMap<ArcProtoId,Double>();
 
@@ -91,13 +94,13 @@ public class ERCAntenna
             this.techPool = techPool;
             if (factory) return;
 
-            Preferences techPrefs = Pref.getTechnologyPreferences();
+            Preferences techPrefs = Pref.getPrefRoot().node(TECH_NODE);
             for (Technology tech: techPool.values()) {
                 for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
                     ArcProto ap = it.next();
                     ArcProtoId apId = ap.getId();
                     double factoryValue = ap.getFactoryAntennaRatio();
-                    double value = techPrefs.getDouble(getArcKey(apId), factoryValue);
+                    double value = techPrefs.getDouble(getKey(KEY_ANTENNA_RATIO, apId), factoryValue);
                     if (value == factoryValue) continue;
                     antennaRatio.put(apId, Double.valueOf(value));
                 }
@@ -112,12 +115,12 @@ public class ERCAntenna
         @Override
         public void putPrefs(Preferences prefRoot, boolean removeDefaults) {
             super.putPrefs(prefRoot, removeDefaults);
-            Preferences techPrefs = Pref.getTechnologyPreferences(prefRoot);
+            Preferences techPrefs = prefRoot.node(TECH_NODE);
             for (Technology tech: techPool.values()) {
                 for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
                     ArcProto ap = it.next();
                     ArcProtoId apId = ap.getId();
-                    String key = getArcKey(apId);
+                    String key = getKey(KEY_ANTENNA_RATIO, apId);
                     double factoryValue = ap.getFactoryAntennaRatio();
                     Double valueObj = antennaRatio.get(apId);
                     double value = valueObj != null ? valueObj.doubleValue() : factoryValue;
@@ -132,10 +135,6 @@ public class ERCAntenna
         public double getAntennaRatio(ArcProto ap) {
             Double valueObj = antennaRatio.get(ap.getId());
             return valueObj != null ? valueObj.doubleValue() : ap.getFactoryAntennaRatio();
-        }
-
-        private String getArcKey(ArcProtoId apId) {
-            return "DefaultAntennaRatioFor" + apId.name + "IN" + apId.techId.techName;
         }
     }
 

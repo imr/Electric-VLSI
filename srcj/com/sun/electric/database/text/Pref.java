@@ -705,23 +705,6 @@ public class Pref {
     }
 
     /**
-     * Returns the root of Preferences subtree with Electric options for technologies.
-     * @return the root of Preferences subtree with Electric options for technologies.
-     */
-    public static Preferences getTechnologyPreferences() {
-        return getTechnologyPreferences(Pref.getPrefRoot());
-    }
-
-    /**
-     * Returns the root of Preferences subtree with Electric options for technologies.
-     * @param prefRoot the root of Electric Preferences
-     * @return the root of Preferences subtree with Electric options for technologies.
-     */
-    public static Preferences getTechnologyPreferences(Preferences prefRoot) {
-        return prefRoot.node("technology/technologies");
-    }
-
-    /**
      * Returns the root of Preferences subtree with Electric options for a specified LibId.
      * @param libId specified LibId
      * @return the root of Preferences subtree with Electric options for a spiceified LibId.

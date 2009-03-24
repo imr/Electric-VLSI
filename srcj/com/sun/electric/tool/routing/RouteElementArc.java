@@ -25,6 +25,7 @@
 
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
@@ -85,11 +86,12 @@ public class RouteElementArc extends RouteElement {
      * @param extendArcHead only applied if inheritFrom is null
      * @param extendArcTail only applied if inheritFrom is null
      * @param stayInside a polygonal area in which the new arc must reside (if not null).
+     * @param ep editing preferences
      * The arc is narrowed and has its ends extended in an attempt to stay inside this area.
      */
     public static RouteElementArc newArc(Cell cell, ArcProto ap, double arcBaseWidth, RouteElementPort headRE, RouteElementPort tailRE,
                                          Point2D headConnPoint, Point2D tailConnPoint, String name, TextDescriptor nameTextDescriptor,
-                                         ArcInst inheritFrom, boolean extendArcHead, boolean extendArcTail, PolyMerge stayInside) {
+                                         ArcInst inheritFrom, boolean extendArcHead, boolean extendArcTail, PolyMerge stayInside, EditingPreferences ep) {
     	EPoint headEP = EPoint.snap(headConnPoint);
     	EPoint tailEP = EPoint.snap(tailConnPoint);
     	MutableBoolean headExtend = new MutableBoolean(extendArcHead);
@@ -112,7 +114,7 @@ public class RouteElementArc extends RouteElement {
         	{
         		arcBaseWidth = ap.getDefaultLambdaBaseWidth();
 //        		arcFullWidth = ap.getDefaultLambdaFullWidth();
-            	good = stayInside.arcPolyFits(layer, headEP, tailEP, 2*(ap.getDefaultLambdaExtendOverMin() + layerExtend), headExtend, tailExtend);
+            	good = stayInside.arcPolyFits(layer, headEP, tailEP, 2*(ap.getDefaultInst(ep).getLambdaExtendOverMin() + layerExtend), headExtend, tailExtend);
 //            	good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth-offset, headExtend, tailExtend);
         	}
 
@@ -445,7 +447,7 @@ public class RouteElementArc extends RouteElement {
         		if (last < 0) last = points.length - 1;
         		highlighter.addLine(points[last], points[i], cell);
         	}
-        	
+
 //            double offsetX, offsetY;
 //            boolean endsExtend = arcProto.isExtended();
 //            double offsetEnds = endsExtend ? offset : 0;

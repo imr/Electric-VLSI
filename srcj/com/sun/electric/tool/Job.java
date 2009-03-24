@@ -677,6 +677,10 @@ public abstract class Job implements Serializable {
         return database.getTechPool();
     }
 
+    public EditingPreferences getEditingPreferences() {
+        return EditingPreferences.getThreadEditingPreferences();
+    }
+
     public static void wantUpdateGui() {
         jobManager.wantUpdateGui();
     }
