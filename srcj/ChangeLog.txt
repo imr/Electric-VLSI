@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09g: ******************************
 
+IMP/MAN: (3/24/09, SMR) Project Settings dialog starting to merge into Preferences panel.  CIF
+     Settings transfered (Bug #2101).
+
 IMP/MAN: (3/23/09, DN) Artwork arrows are always filled (Bug #2100).
 
 BUG: (3/23/09, DN) Crash after renaming icon Cell.

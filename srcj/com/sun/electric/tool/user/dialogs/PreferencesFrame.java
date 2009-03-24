@@ -23,12 +23,20 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.CellModelPrefs;
 import com.sun.electric.tool.ncc.Pie;
 import com.sun.electric.tool.routing.Routing;
+import com.sun.electric.tool.user.CircuitChangeJobs;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.options.AntennaRulesTab;
 import com.sun.electric.tool.user.dialogs.options.CDLTab;
 import com.sun.electric.tool.user.dialogs.options.CIFTab;
@@ -79,6 +87,7 @@ import com.sun.electric.tool.user.dialogs.options.VerilogTab;
 import com.sun.electric.tool.user.dialogs.options.WellCheckTab;
 import com.sun.electric.tool.user.help.ManualViewer;
 import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -94,9 +103,13 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -115,12 +128,13 @@ public class PreferencesFrame extends EDialog
 	private JSplitPane splitPane;
 	private JTree optionTree;
 	private JButton cancel, ok;
-
+	private Map<Setting,Object> originalContext;
+	private Map<Setting,Object> currentContext;
 	private List<PreferencePanel> optionPanes = new ArrayList<PreferencePanel>();
+	private DefaultMutableTreeNode initialDMTN;
 
 	/** The name of the current tab in this dialog. */		private static String currentTabName = "General";
 	/** The name of the current section in this dialog. */	private static String currentSectionName = "General ";
-	private DefaultMutableTreeNode initialDMTN;
 
 	/**
 	 * This method implements the command to show the PreferencesFrame dialog.
@@ -156,6 +170,10 @@ public class PreferencesFrame extends EDialog
 		{
 			public void windowClosing(WindowEvent evt) { closeDialog(evt); }
 		});
+
+		EDatabase database = EDatabase.clientDatabase();
+		originalContext = database.getSettings();
+		currentContext = new HashMap<Setting,Object>(originalContext);
 
 		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Preferences");
 		DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
@@ -206,7 +224,7 @@ public class PreferencesFrame extends EDialog
 		// the "I/O" section of the Preferences
 		DefaultMutableTreeNode ioSet = new DefaultMutableTreeNode("I/O ");
 		rootNode.add(ioSet);
-		addTreeNode(new CIFTab(parent, true), ioSet);
+		addTreeNode(new CIFTab(this, true), ioSet);
 		addTreeNode(new GDSTab(parent, true), ioSet);
 		addTreeNode(new EDIFTab(parent, true), ioSet);
 		addTreeNode(new DEFTab(parent, true), ioSet);
@@ -418,21 +436,127 @@ public class PreferencesFrame extends EDialog
 
 	private void okActionPerformed()
 	{
-        for(PreferencePanel ti : optionPanes)
-        {
-            if (ti.isInited())
-                ti.term();
-        }
-        closeDialog(null);
+		for(PreferencePanel ti : optionPanes)
+		{
+			if (ti.isInited()) ti.term();
+		}
+
+		// gather preference changes on the client
+		Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
+		for (Map.Entry<Setting,Object> e: originalContext.entrySet())
+		{
+			Setting setting = e.getKey();
+			Object oldVal = e.getValue();
+			Object v = currentContext.get(setting);
+			if (oldVal.equals(v)) continue;
+			changeBatch.add(setting, v);
+		}
+		if (changeBatch.changesForSettings.isEmpty())
+		{
+			closeDialog(null);
+			return;
+		}
+		new OKUpdate(this, changeBatch, true);
 	}
+
+	/**
+	 * Class to update primitive node information.
+	 */
+	private static class OKUpdate extends Job
+	{
+		private transient EDialog dialog;
+		private Setting.SettingChangeBatch changeBatch;
+		private boolean issueWarning;
+		private transient TechPool oldTechPool;
+
+		private OKUpdate(EDialog dialog, Setting.SettingChangeBatch changeBatch, boolean issueWarning)
+		{
+			super("Update Project Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.dialog = dialog;
+			this.changeBatch = changeBatch;
+			this.issueWarning = issueWarning;
+			oldTechPool = getDatabase().getTechPool();
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			getDatabase().implementSettingChanges(changeBatch);
+			return true;
+		}
+
+		@Override
+		public void terminateOK()
+		{
+			if (issueWarning)
+			{
+				if (ProjSettings.getLastProjectSettingsFile() != null)
+				{
+					Job.getUserInterface().showInformationMessage("Warning: These changes are only valid for this session of Electric."+
+						"\nTo save them permanently, use File -> Export -> Project Settings", "Saving Project Setting Changes");
+				} else
+				{
+					// see if any libraries are not marked for saving
+					boolean saveAny = false;
+					for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+					{
+						Library lib = it.next();
+						if (lib.isHidden()) continue;
+						if (!lib.isChanged()) saveAny = true;
+					}
+					if (saveAny)
+					{
+						// some libraries may need to be marked for saving
+						Library curLib = Library.getCurrent();
+						String [] options;
+						String defaultOption;
+						int markCurrent, saveSettings;
+						if (curLib.isChanged())
+						{
+							options = new String [] { "Mark All Libs", "Write Proj Settings file", "Do nothing"};
+						  	defaultOption = options[2];
+						  	markCurrent = 1000;
+						  	saveSettings = 1;
+						} else
+						{
+						  	options = new String [] { "Mark All Libs", "Mark Lib \""+curLib.getName()+"\"", "Write Proj Settings file", "Do nothing"};
+						  	defaultOption = options[0];
+						  	markCurrent = 1;
+						  	saveSettings = 2;
+						}
+						int i = JOptionPane.showOptionDialog(dialog, "Warning: Changed settings must be saved to Library or Project Settings file.\nPlease choose which Libraries to mark for saving, or write project settings file:",
+							"Saving Project Setting Changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, defaultOption);
+						if (i == 0) {
+							CircuitChangeJobs.markAllLibrariesForSavingCommand();
+						} else if (i == markCurrent) {
+							CircuitChangeJobs.markCurrentLibForSavingCommand();
+						} else if (i == saveSettings) {
+							ProjSettings.exportSettings();
+						}
+					}
+				}
+			}
+			if (dialog != null) {
+				dialog.setVisible(false);
+				dialog.dispose();
+			}
+			if (getDatabase().getTechPool() != oldTechPool)
+			{
+				// Repair libraries in case number of layers was changed.
+				CircuitChanges.checkAndRepairCommand(true);
+			}
+		}
+	}
+
+	public Map<Setting,Object> getContext() { return currentContext; }
 
 	private void applyActionPerformed()
 	{
-        for(PreferencePanel ti : optionPanes)
-        {
-            if (ti.isInited())
-                ti.term();
-        }
+		for(PreferencePanel ti : optionPanes)
+		{
+			if (ti.isInited())
+				ti.term();
+		}
 	}
 
 	private void resetActionPerformed()
@@ -456,7 +580,7 @@ public class PreferencesFrame extends EDialog
 						// panel unable to reset itself: do hard reset and quit dialog
 						ti.reset();
 						closeDialog(null);
-				        WindowFrame.repaintAllWindows();
+						WindowFrame.repaintAllWindows();
 					}
 					return;
 				}
@@ -476,7 +600,7 @@ public class PreferencesFrame extends EDialog
 				ti.reset();
 			Pref.resumePrefFlushing();
 			closeDialog(null);
-            WindowFrame.repaintAllWindows();
+			WindowFrame.repaintAllWindows();
 		}
 	}
 

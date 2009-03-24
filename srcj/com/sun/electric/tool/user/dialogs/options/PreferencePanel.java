@@ -27,9 +27,14 @@ import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.PrefPackage;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
+
+import java.awt.Frame;
+import java.util.Map;
 
 import javax.swing.JPanel;
 
@@ -38,14 +43,21 @@ import javax.swing.JPanel;
  */
 public class PreferencePanel extends EDialog
 {
+	private PreferencesFrame parent;
 	protected Technology curTech = Technology.getCurrent();
 	protected Library curLib = Library.getCurrent();
 
 	private boolean inited = false;
 
-	public PreferencePanel(java.awt.Frame parent, boolean modal)
+	public PreferencePanel(Frame parent, boolean modal)
 	{
 		super(parent, modal);
+	}
+
+	public PreferencePanel(PreferencesFrame parent, boolean modal)
+	{
+		super((Frame)parent.getOwner(), modal);
+		this.parent = parent;
 	}
 
 	/** return the panel to use for this preferences tab. */
@@ -68,7 +80,7 @@ public class PreferencePanel extends EDialog
 	 * Method to return the current technology for use in all preferences tabs.
 	 * @return the current technology.
 	 */
-    public Technology getTech() { return curTech; }
+	public Technology getTech() { return curTech; }
 
 	/**
 	 * Method called at the start of the dialog.
@@ -95,13 +107,117 @@ public class PreferencePanel extends EDialog
 
 	/**
 	 * Method to Save options from specified PrefPackage into Electric Preferences subtree.
-     * @param pp PrefPackage with option values
+	 * @param pp PrefPackage with option values
 	 */
-    protected void putPrefs(PrefPackage pp) {
-        pp.putPrefs(Pref.getPrefRoot(), true);
-    }
+	protected void putPrefs(PrefPackage pp) { pp.putPrefs(Pref.getPrefRoot(), true); }
 
-    protected TechPool getTechPool() {
-        return Environment.getThreadTechPool();
-    }
+	protected TechPool getTechPool() { return Environment.getThreadTechPool(); }
+
+	/**
+	 * Method to get the boolean value on the Setting object.
+	 * The object must have been created as "boolean".
+	 * @param setting setting object.
+	 * @return the boolean value on the Setting object.
+	 */
+	public boolean getBoolean(Setting setting) { return ((Boolean)getValue(setting)).booleanValue(); }
+
+	/**
+	 * Method to get the integer value on the Setting object.
+	 * The object must have been created as "integer".
+	 * @param setting setting object.
+	 * @return the integer value on the Setting object.
+	 */
+	public int getInt(Setting setting) { return ((Integer)getValue(setting)).intValue(); }
+
+	/**
+	 * Method to get the long value on the Setting object.
+	 * The object must have been created as "long".
+	 * @param setting setting object.
+	 * @return the long value on the Setting object.
+	 */
+	public long getLong(Setting setting) { return ((Long)getValue(setting)).longValue(); }
+
+	/**
+	 * Method to get the double value on the Setting object.
+	 * The object must have been created as "double".
+	 * @param setting setting object.
+	 * @return the double value on the Setting object.
+	 */
+	public double getDouble(Setting setting) { return ((Double)getValue(setting)).doubleValue(); }
+
+	/**
+	 * Method to get string representation of the double value on the Setting object.
+	 * The object must have been created as "double".
+	 * @param setting setting object.
+	 * @return the string representation of the double value on the Setting object.
+	 */
+	public String getFormattedDouble(Setting setting) { return Double.toString(getDouble(setting)); }
+
+	/**
+	 * Method to get the string value on the Setting object.
+	 * The object must have been created as "string".
+	 * @return the string value on the Setting object.
+	 */
+	public String getString(Setting setting) { return (String)getValue(setting); }
+
+	/**
+	 * Method to set a new boolean value on Setting object.
+	 * @param setting Setting object.
+	 * @param v the new boolean value of Setting object.
+	 */
+	public void setBoolean(Setting setting, boolean v)
+	{
+		if (v != getBoolean(setting))
+			putValue(setting, Boolean.valueOf(v));
+	}
+
+	/**
+	 * Method to set a new integer value on Setting object.
+	 * @param setting Setting object.
+	 * @param v the new integer value of Setting object.
+	 */
+	public void setInt(Setting setting, int v)
+	{
+		if (v != getInt(setting))
+			putValue(setting, Integer.valueOf(v));
+	}
+
+	/**
+	 * Method to set a new long value on Setting object.
+	 * @param setting Setting object.
+	 * @param v the new long value of Setting object.
+	 */
+	public void setLong(Setting setting, long v)
+	{
+		if (v != getLong(setting))
+			putValue(setting, Long.valueOf(v));
+	}
+
+	/**
+	 * Method to set a new double value on Setting object.
+	 * @param setting Setting object.
+	 * @param v the new double value of Setting object.
+	 */
+	public void setDouble(Setting setting, double v)
+	{
+		if (v != getDouble(setting))
+			putValue(setting, Double.valueOf(v));
+	}
+
+	/**
+	 * Method to set a new string value on Setting object.
+	 * @param setting Setting object.
+	 * @param str the new string value of Setting object.
+	 */
+	public void setString(Setting setting, String str)
+	{
+		if (!str.equals(getString(setting)))
+			putValue(setting, str);
+	}
+
+	private Object getValue(Setting setting) { return getContext().get(setting); }
+
+	private void putValue(Setting setting, Object value) { getContext().put(setting, value); }
+
+	private Map<Setting,Object> getContext() { return parent.getContext(); }
 }

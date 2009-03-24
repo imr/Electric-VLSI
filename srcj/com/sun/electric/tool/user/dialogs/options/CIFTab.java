@@ -23,20 +23,48 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.text.Setting;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Iterator;
+
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * Class to handle the "CIF" tab of the Preferences dialog.
  */
 public class CIFTab extends PreferencePanel
 {
+	private JList cifLayersList;
+	private DefaultListModel cifLayersModel;
+	private boolean changingCIF = false;
+	private Setting cifOutMimicsDisplaySetting = IOTool.getCIFOutMimicsDisplaySetting();
+	private Setting cifOutMergesBoxesSetting = IOTool.getCIFOutMergesBoxesSetting();
+	private Setting cifOutInstantiatesTopLevleSetting = IOTool.getCIFOutInstantiatesTopLevelSetting();
+	private Setting cifOutScaleFactorSetting = IOTool.getCIFOutScaleFactorSetting();
+
 	/** Creates new form CIFTab */
-	public CIFTab(java.awt.Frame parent, boolean modal)
+	public CIFTab(PreferencesFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+		EDialog.makeTextFieldSelectAllOnTab(cifLayer);
 	}
 
 	/** return the panel to use for this preferences tab. */
@@ -51,7 +79,128 @@ public class CIFTab extends PreferencePanel
 	 */
 	public void init()
 	{
+		// input
 		cifInputSquaresWires.setSelected(IOTool.isCIFInSquaresWires());
+
+		// output
+		cifOutputMimicsDisplay.setSelected(getBoolean(cifOutMimicsDisplaySetting));
+		cifOutputMergesBoxes.setSelected(getBoolean(cifOutMergesBoxesSetting));
+		cifOutputInstantiatesTopLevel.setSelected(getBoolean(cifOutInstantiatesTopLevleSetting));
+		cifScale.setText(Integer.toString(getInt(cifOutScaleFactorSetting)));
+
+		// build the layers list
+		cifLayersModel = new DefaultListModel();
+		cifLayersList = new JList(cifLayersModel);
+		cifLayersList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		cifLayers.setViewportView(cifLayersList);
+		cifLayersList.clearSelection();
+		cifLayersList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { cifClickLayer(); }
+		});
+		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		{
+			Technology tech = tIt.next();
+			technologySelection.addItem(tech.getTechName());
+		}
+		technologySelection.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { techChanged(); }
+		});
+		cifLayer.getDocument().addDocumentListener(new CIFDocumentListener(this));
+		technologySelection.setSelectedItem(Technology.getCurrent().getTechName());
+	}
+
+	private void techChanged()
+	{
+		String techName = (String)technologySelection.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
+		if (tech == null) return;
+
+		cifLayersModel.clear();
+		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = it.next();
+			String str = layer.getName();
+			String cifLayer = getString(layer.getCIFLayerSetting());
+			if (cifLayer == null) cifLayer = "";
+			if (cifLayer.length() > 0) str += " (" + cifLayer + ")";
+			cifLayersModel.addElement(str);
+		}
+		cifLayersList.setSelectedIndex(0);
+		cifClickLayer();
+	}
+
+	/**
+	 * Method called when the user clicks on a layer name in the scrollable list.
+	 */
+	private void cifClickLayer()
+	{
+		changingCIF = true;
+		String str = (String)cifLayersList.getSelectedValue();
+		cifLayer.setText(cifGetLayerName(str));
+		changingCIF = false;
+	}
+
+	/**
+	 * Method to parse the line in the scrollable list and return the CIF layer name part
+	 * (in parentheses).
+	 */
+	private String cifGetLayerName(String str)
+	{
+		int openParen = str.indexOf('(');
+		if (openParen < 0) return "";
+		int closeParen = str.lastIndexOf(')');
+		if (closeParen < 0) return "";
+		String cifLayer = str.substring(openParen+1, closeParen);
+		return cifLayer;
+	}
+
+	/**
+	 * Method to parse the line in the scrollable list and return the Layer.
+	 */
+	private Layer cifGetLayer(String str)
+	{
+		String techName = (String)technologySelection.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
+		if (tech == null) return null;
+		
+		int openParen = str.indexOf('(');
+		if (openParen < 0) openParen = str.length()+1;
+		String layerName = str.substring(0, openParen-1);
+		Layer layer = tech.findLayer(layerName);
+		return layer;
+	}
+
+	/**
+	 * Method called when the user types a new layer name into the edit field.
+	 */
+	private void cifLayerChanged()
+	{
+		if (changingCIF) return;
+		String str = (String)cifLayersList.getSelectedValue();
+		Layer layer = cifGetLayer(str);
+		if (layer == null) return;
+		String newLine = layer.getName();
+		String newLayer = cifLayer.getText().trim();
+		if (newLayer.length() > 0) newLine += " (" + newLayer + ")";
+		int index = cifLayersList.getSelectedIndex();
+		cifLayersModel.set(index, newLine);
+		setString(layer.getCIFLayerSetting(), newLayer);
+	}
+
+	/**
+	 * Class to handle special changes to changes to a CIF layer.
+	 */
+	private static class CIFDocumentListener implements DocumentListener
+	{
+		CIFTab dialog;
+
+		CIFDocumentListener(CIFTab dialog) { this.dialog = dialog; }
+
+		public void changedUpdate(DocumentEvent e) { dialog.cifLayerChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.cifLayerChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.cifLayerChanged(); }
 	}
 
 	/**
@@ -60,9 +209,16 @@ public class CIFTab extends PreferencePanel
 	 */
 	public void term()
 	{
+		// input
 		boolean currentValue = cifInputSquaresWires.isSelected();
 		if (currentValue != IOTool.isCIFInSquaresWires())
 			IOTool.setCIFInSquaresWires(currentValue);
+
+		// output
+		setBoolean(cifOutMimicsDisplaySetting, cifOutputMimicsDisplay.isSelected());
+		setBoolean(cifOutMergesBoxesSetting, cifOutputMergesBoxes.isSelected());
+		setBoolean(cifOutInstantiatesTopLevleSetting, cifOutputInstantiatesTopLevel.isSelected());
+		setInt(cifOutScaleFactorSetting, TextUtils.atoi(cifScale.getText()));
 	}
 
 	/**
@@ -80,45 +236,205 @@ public class CIFTab extends PreferencePanel
 	 * always regenerated by the Form Editor.
 	 */
     // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
         cif = new javax.swing.JPanel();
+        output = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        cifLayers = new javax.swing.JScrollPane();
+        cifOutputMimicsDisplay = new javax.swing.JCheckBox();
+        cifOutputMergesBoxes = new javax.swing.JCheckBox();
+        cifOutputInstantiatesTopLevel = new javax.swing.JCheckBox();
+        jLabel2 = new javax.swing.JLabel();
+        cifLayer = new javax.swing.JTextField();
+        jPanel2 = new javax.swing.JPanel();
+        jLabel3 = new javax.swing.JLabel();
+        technologySelection = new javax.swing.JComboBox();
+        jLabel4 = new javax.swing.JLabel();
+        cifScale = new javax.swing.JTextField();
+        input = new javax.swing.JPanel();
         cifInputSquaresWires = new javax.swing.JCheckBox();
-        jPanel1 = new javax.swing.JPanel();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         setTitle("IO Options");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosing(java.awt.event.WindowEvent evt)
-            {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
                 closeDialog(evt);
             }
         });
 
         cif.setLayout(new java.awt.GridBagLayout());
 
-        cifInputSquaresWires.setText("Input Squares Wires");
+        output.setLayout(new java.awt.GridBagLayout());
+
+        output.setBorder(javax.swing.BorderFactory.createTitledBorder("Output"));
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 11));
+        jLabel1.setText("CIF Layer:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        output.add(jLabel1, gridBagConstraints);
+
+        cifLayers.setPreferredSize(new java.awt.Dimension(200, 200));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridheight = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        output.add(cifLayers, gridBagConstraints);
+
+        cifOutputMimicsDisplay.setFont(new java.awt.Font("Tahoma", 1, 11));
+        cifOutputMimicsDisplay.setText("Output Mimics Display");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(8, 4, 4, 4);
-        cif.add(cifInputSquaresWires, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        output.add(cifOutputMimicsDisplay, gridBagConstraints);
 
-        jPanel1.setLayout(new java.awt.GridBagLayout());
+        cifOutputMergesBoxes.setFont(new java.awt.Font("Tahoma", 1, 11));
+        cifOutputMergesBoxes.setText("Output Merges Boxes");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
+        output.add(cifOutputMergesBoxes, gridBagConstraints);
+
+        cifOutputInstantiatesTopLevel.setFont(new java.awt.Font("Tahoma", 1, 11));
+        cifOutputInstantiatesTopLevel.setText("Output Instantiates Top Level");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 8, 4);
+        output.add(cifOutputInstantiatesTopLevel, gridBagConstraints);
+
+        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 11));
+        jLabel2.setText("(time consuming)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
+        output.add(jLabel2, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        output.add(cifLayer, gridBagConstraints);
+
+        jPanel2.setLayout(new java.awt.GridBagLayout());
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        cif.add(jPanel1, gridBagConstraints);
+        output.add(jPanel2, gridBagConstraints);
+
+        jLabel3.setFont(new java.awt.Font("Tahoma", 1, 11));
+        jLabel3.setText("Technology:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        output.add(jLabel3, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        output.add(technologySelection, gridBagConstraints);
+
+        jLabel4.setFont(new java.awt.Font("Tahoma", 1, 11));
+        jLabel4.setText("Output scale:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        output.add(jLabel4, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        output.add(cifScale, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 3;
+        cif.add(output, gridBagConstraints);
+
+        input.setLayout(new java.awt.GridBagLayout());
+
+        input.setBorder(javax.swing.BorderFactory.createTitledBorder("Input"));
+        cifInputSquaresWires.setText("Input Squares Wires");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 20;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        input.add(cifInputSquaresWires, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        cif.add(input, gridBagConstraints);
+
+        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 11));
+        jLabel5.setText("Bold");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        cif.add(jLabel5, gridBagConstraints);
+
+        jLabel6.setText("NOTE:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        cif.add(jLabel6, gridBagConstraints);
+
+        jLabel7.setText("text affects Project Settings");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        cif.add(jLabel7, gridBagConstraints);
 
         getContentPane().add(cif, new java.awt.GridBagConstraints());
 
@@ -135,7 +451,22 @@ public class CIFTab extends PreferencePanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel cif;
     private javax.swing.JCheckBox cifInputSquaresWires;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JTextField cifLayer;
+    private javax.swing.JScrollPane cifLayers;
+    private javax.swing.JCheckBox cifOutputInstantiatesTopLevel;
+    private javax.swing.JCheckBox cifOutputMergesBoxes;
+    private javax.swing.JCheckBox cifOutputMimicsDisplay;
+    private javax.swing.JTextField cifScale;
+    private javax.swing.JPanel input;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel output;
+    private javax.swing.JComboBox technologySelection;
     // End of variables declaration//GEN-END:variables
-
 }

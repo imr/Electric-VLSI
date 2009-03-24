@@ -124,10 +124,9 @@ public class ProjectSettingsFrame extends EDialog
 		optionTree.addTreeExpansionListener(handler);
 
 		addTreeNode(rootNode, "Added Technologies");
-		addTreeNode(rootNode, "CIF");
+//		addTreeNode(rootNode, "CIF");
 		addTreeNode(rootNode, "GDS");
 		addTreeNode(rootNode, "DXF");
-//		addTreeNode(rootNode, "Gate Layout Generator");
 		addTreeNode(rootNode, "Logical Effort");
 		addTreeNode(rootNode, "Netlists");
 		addTreeNode(rootNode, "Parasitic");
@@ -267,7 +266,6 @@ public class ProjectSettingsFrame extends EDialog
 	private void okActionPerformed()
 	{
         Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
-        boolean checkAndRepair = false;
 
         // gather preference changes on the client
         if (currentOptionPanel != null)
