@@ -128,7 +128,7 @@ public abstract class TechFactory {
 
     public static Map<String,TechFactory> getKnownTechs(String softTechnologies) {
         LinkedHashMap<String,TechFactory> m = new LinkedHashMap<String,TechFactory>();
-        cp(m, "artwork", "com.sun.electric.technology.technologies.Artwork");
+        c(m, "artwork", "com.sun.electric.technology.technologies.Artwork");
         c(m, "fpga", "com.sun.electric.technology.technologies.FPGA");
         cp(m, "schematic", "com.sun.electric.technology.technologies.Schematics");
         r(m, "bicmos",     "technology/technologies/bicmos.xml");

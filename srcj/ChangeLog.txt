@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09g: ******************************
 
+IMP: (3/23/09, DN) Artwork arrows are always filled.
+
 BUG: (3/23/09, DN) Crash after renaming icon Cell.
 FIX: In Cell.update make full updatePortInsts after node proto changed. 
 

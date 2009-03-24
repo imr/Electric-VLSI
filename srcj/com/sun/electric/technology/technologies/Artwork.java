@@ -31,7 +31,6 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
@@ -47,9 +46,6 @@ import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 
 import java.awt.geom.Point2D;
-import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -57,12 +53,6 @@ import java.util.Map;
  */
 public class Artwork extends Technology
 {
-    private static final String TECH_NAME = "artwork";
-    private static final String XML_PREFIX = TECH_NAME + ".";
-    private static final String PREF_PREFIX = "technology/technologies/";
-    private static final TechFactory.Param techParamFillArrows =
-            new TechFactory.Param(XML_PREFIX + "FillArrows", PREF_PREFIX + "ArtworkFillArrows", Boolean.FALSE);
-
     /**
 	 * Key of Variable holding starting and ending angles.
 	 * As a special case, NodeInst.checkPossibleVariableEffects()
@@ -102,16 +92,10 @@ public class Artwork extends Technology
 	/** Defines a Thick arc. */						public final ArcProto thickerArc;
 	/** the layer */								public final Layer defaultLayer;
 
-    // Tech params
-    private Boolean paramFillArrows;
-
 	// -------------------- private and protected methods ------------------------
-	public Artwork(Generic generic, TechFactory techFactory, Map<TechFactory.Param,Object> techParams)
+	public Artwork(Generic generic, TechFactory techFactory)
 	{
-		super(generic, techFactory, techParams, Foundry.Type.NONE, 0);
-
-        paramFillArrows = (Boolean)techParams.get(techParamFillArrows);
-
+		super(generic, techFactory);
 		setTechShortName("Artwork");
 		setTechDesc("General-purpose artwork components");
 		setFactoryScale(2000, false);			// in nanometers: really 2 micron
@@ -330,15 +314,29 @@ public class Artwork extends Technology
 		arrowNode = PrimitiveNode.newInstance0("Arrow", this, 2, 2,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS,
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS,
 					new Technology.TechPoint[]
 					{
 						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
 						new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+						new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					}),
+				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS,
+					new Technology.TechPoint[]
+					{
 						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+						new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+						new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					})
+//				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS,
+//					new Technology.TechPoint[]
+//					{
+//						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
+//						new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+//						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+//					})
 			});
-		arrowNode.addPrimitivePorts(new PrimitivePort[]
+        arrowNode.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, arrowNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "arrow", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeRightEdge(), EdgeV.makeCenter(), EdgeH.makeRightEdge(), EdgeV.makeCenter())
@@ -580,26 +578,26 @@ public class Artwork extends Technology
 				polys[0].setLayer(layerOverride);
 				return polys;
 			}
-		} else if (np == arrowNode)
-		{
-			if (isFilledArrowHeads())
-			{
-				primLayers = new Technology.NodeLayer[2];
-				primLayers[0] = new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS,
-					new Technology.TechPoint[]
-					{
-						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
-						new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
-						new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
-					});
-				primLayers[1] = new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS,
-					new Technology.TechPoint[]
-					{
-						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
-						new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
-						new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
-					});
-			}
+//		} else if (np == arrowNode)
+//		{
+//			if (isFilledArrowHeads())
+//			{
+//				primLayers = new Technology.NodeLayer[2];
+//				primLayers[0] = new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS,
+//					new Technology.TechPoint[]
+//					{
+//						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
+//						new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+//						new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+//					});
+//				primLayers[1] = new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS,
+//					new Technology.TechPoint[]
+//					{
+//						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+//						new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+//						new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+//					});
+//			}
 		}
 		return super.getShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride);
 	}
@@ -1002,41 +1000,4 @@ public class Artwork extends Technology
 		return (p == Artwork.tech().solidArc || p == Artwork.tech().dottedArc
 				|| p == Artwork.tech().dashedArc || p == Artwork.tech().thickerArc);
 	}
-
-	/******************** OPTIONS ********************/
-
-    @Override
-    protected void copyState(Technology that) {
-        super.copyState(that);
-        Artwork artwork = (Artwork)that;
-        paramFillArrows = artwork.paramFillArrows;
-    }
-
-    @Override
-    protected void dumpExtraProjectSettings(PrintWriter out, Map<Setting,Object> settings) {
-        printlnSetting(out, settings, getFilledArrowHeadsSetting());
-    }
-
-    private final Setting cacheFillArrows = makeBooleanSetting("ArtworkFillArrows", "Technology tab", "Artwork Fill Arrows",
-        techParamFillArrows.xmlPath.substring(TECH_NAME.length() + 1), Boolean.FALSE);
-	/**
-	 * Method to tell whether arrow heads are filled-in.
-     * The default is false.
-	 * @return true if arrow heads are filled-in.
-	 */
-	public boolean isFilledArrowHeads() { return paramFillArrows.booleanValue(); }
-	/**
-	 * Returns project Setting to tell whether arrow heads are filled-in in Artwork.
-	 * @return project Setting to tell whether arrow heads are filled-in in Artwork.
-	 */
-	public Setting getFilledArrowHeadsSetting() { return cacheFillArrows; }
-
-    /**
-     * This method is called from TechFactory by reflection. Don't remove.
-     * Returns a list of TechFactory.Params affecting this Technology
-     * @return list of TechFactory.Params affecting this Technology
-     */
-    public static List<TechFactory.Param> getTechParams() {
-        return Arrays.asList(techParamFillArrows);
-    }
 }

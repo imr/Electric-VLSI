@@ -83,7 +83,7 @@ public class TechnologyTab extends PreferencePanel
 		rotateLayoutTransistors.setSelected(User.isRotateLayoutTransistors());
 
 		// Artwork
-		techArtworkArrowsFilled.setSelected(Artwork.tech().isFilledArrowHeads());
+		techArtworkArrowsFilled.setSelected(true/*Artwork.tech().isFilledArrowHeads()*/);
 
 		// VHDL layers list in Schematics
 		schemPrimModel = new DefaultListModel();
