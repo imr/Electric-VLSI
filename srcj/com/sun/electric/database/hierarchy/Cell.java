@@ -1229,7 +1229,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 if (ni.isCellInstance()) {
                     int subCellIndex = ((Cell)ni.getProto()).getCellIndex();
                     if (full || exportsModified != null && exportsModified.get(subCellIndex))
-                        ni.updatePortInsts(full);
+                        ni.updatePortInsts(full || ni.getProto() != oldProto);
                 } else if (ni.getProto() != oldProto) {
                     ni.updatePortInsts(true);
                 }
