@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09g: ******************************
 
+IMP/MAP: (3/24/09, DN) Simplify schematic technology - remove parameter NegatingBubbleSize.
+
 IMP/MAN: (3/24/09, SMR) Project Settings dialog starting to merge into Preferences panel.  CIF
      Settings transfered (Bug #2101).
 
