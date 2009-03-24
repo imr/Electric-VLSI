@@ -44,6 +44,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
 import com.sun.electric.technology.Xml;
 import com.sun.electric.technology.Technology.NodeLayer;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.User;
 
 import java.io.PrintWriter;
@@ -1136,6 +1137,8 @@ public class MoCMOS extends Technology
      */
     private double getTransistorExtension(PrimitiveNode primNode, boolean poly, DRCRules rules)
     {
+    	if (rules == null)
+    		rules = DRC.getRules(this);
         if (!primNode.getFunction().isTransistor()) return 0.0;
 
         Technology.NodeLayer activeNode = primNode.getLayers()[0]; // active
