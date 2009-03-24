@@ -365,7 +365,6 @@ public class VerticalRoute {
             System.out.println("Error: Trying to build VerticalRoute without a call to specifyRoute() first");
             return null;
         }
-        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
         Route route = new Route();
         if (specifiedRoute.size() == 0) return route;
         if (DEBUG) {
@@ -384,6 +383,7 @@ public class VerticalRoute {
         route.setEnd(node);
 
         // now iterate through rest of list and create arc,port route element pairs
+        EditingPreferences ep = cell.getEditingPreferences();
         for (Iterator<Object> it = specifiedRoute.iterator(); it.hasNext(); ) {
             ArcProto ap = (ArcProto)it.next();
             PrimitivePort port = (PrimitivePort)it.next();
@@ -397,9 +397,9 @@ public class VerticalRoute {
             // create arc
             //double arcWidth = Router.getArcWidthToUse(node, ap, arcAngle);
             ImmutableArcInst defA = ap.getDefaultInst(ep);
-            double arcWidth = ap.getDefaultLambdaBaseWidth();
+            double arcWidth = ap.getDefaultLambdaBaseWidth(ep);
             RouteElementArc arc = RouteElementArc.newArc(cell, ap, arcWidth, node, newNode, location, location,
-            	null, null, null, defA.isHeadExtended(), defA.isTailExtended(), stayInside, ep);
+            	null, null, null, defA.isHeadExtended(), defA.isTailExtended(), stayInside);
             arc.setArcAngle(arcAngle);
             route.add(arc);
 

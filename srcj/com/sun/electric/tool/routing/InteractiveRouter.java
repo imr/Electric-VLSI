@@ -294,6 +294,7 @@ public abstract class InteractiveRouter extends Router {
     public Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked, PolyMerge stayInside,
                            boolean extendArcHead, boolean extendArcTail, Rectangle2D contactArea) {
 
+        EditingPreferences ep = cell.getEditingPreferences();
         Route route = new Route();               // hold the route
         if (cell == null) return route;
 
@@ -346,7 +347,6 @@ public abstract class InteractiveRouter extends Router {
         }
 
         // if extension not supressed, use defaults from arcs
-        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
         if (extendArcHead) extendArcHead = startArc.getDefaultInst(ep).isHeadExtended() || endArc.getDefaultInst(ep).isHeadExtended();
         if (extendArcTail) extendArcTail = startArc.getDefaultInst(ep).isTailExtended() || endArc.getDefaultInst(ep).isTailExtended();
 
@@ -979,7 +979,6 @@ public abstract class InteractiveRouter extends Router {
     protected RouteElementPort bisectArc(Route route, ArcInst arc, Point2D bisectPoint, PolyMerge stayInside) {
 
         Cell cell = arc.getParent();
-        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
         EPoint head = arc.getHeadLocation();
         EPoint tail = arc.getTailLocation();
 
@@ -1008,9 +1007,9 @@ public abstract class InteractiveRouter extends Router {
             name2 = arc.getName();
         // add two arcs to rebuild old startArc
         RouteElement newHeadArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getLambdaBaseWidth(), headRE, newPinRE,
-                head, bisectPoint, name1, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, true, true, stayInside, ep);
+                head, bisectPoint, name1, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, true, true, stayInside);
         RouteElement newTailArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getLambdaBaseWidth(), newPinRE, tailRE,
-                bisectPoint, tail, name2, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, true, true, stayInside, ep);
+                bisectPoint, tail, name2, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, true, true, stayInside);
         newHeadArcRE.setShowHighlight(false);
         newTailArcRE.setShowHighlight(false);
         // delete old arc
@@ -1125,9 +1124,8 @@ public abstract class InteractiveRouter extends Router {
 
         if (extendArcHead) extendArcHead = getExtendArcEnd(startRE, width, arc, arcAngle, extendArcHead);
         if (extendArcTail) extendArcTail = getExtendArcEnd(endRE, width, arc, arcAngle, extendArcTail);
-        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
         RouteElementArc reArc = RouteElementArc.newArc(cell, arc, width, startRE, endRE, startPoint, endPoint,
-                null, null, null, extendArcHead, extendArcTail, stayInside, ep);
+                null, null, null, extendArcHead, extendArcTail, stayInside);
         reArc.setArcAngle(arcAngle);
         route.add(reArc);
     }

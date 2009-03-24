@@ -86,6 +86,7 @@ public class AutoStitch
 
 	/** router used to wire */  									private static InteractiveRouter router = new SimpleWirer();
 
+    /** editing preferences (default size, etc) **/                 private final EditingPreferences ep;
 	/** list of all routes to be created at end of analysis */		private List<Route> allRoutes;
 	/** list of pins that may be inline pins due to created arcs */	private Set<NodeInst> possibleInlinePins;
 	/** set of nodes to check (prevents duplicate checks) */		private Set<NodeInst> nodeMark;
@@ -197,6 +198,7 @@ public class AutoStitch
 	 * @param cell the cell in which to stitch.
 	 * @param nodesToStitch a list of NodeInsts to stitch (null to use all in the cell).
 	 * @param arcsToStitch a list of ArcInsts to stitch (null to use all in the cell).
+	 * @param job the Job running this, for aborting.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param limitBound if not null, only consider connections that occur in this area.
 	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
@@ -213,12 +215,13 @@ public class AutoStitch
 			return;
 		}
 
-		AutoStitch as = new AutoStitch();
+		AutoStitch as = new AutoStitch(cell.getEditingPreferences());
 		as.runNow(cell, nodesToStitch, arcsToStitch, job, stayInside, limitBound, forced, createExports, showProgress);
 	}
 
-	private AutoStitch()
+	private AutoStitch(EditingPreferences ep)
 	{
+        this.ep = ep;
 		possibleInlinePins = new HashSet<NodeInst>();
 	}
 
@@ -557,7 +560,6 @@ public class AutoStitch
 	{
 		// make a list of PortInsts that are on the centerline of this arc
 		Cell cell = ai.getParent();
-        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
 		Network arcNet = top.getArcNetwork(ai);
 		Point2D e1 = ai.getHeadLocation();
 		Point2D e2 = ai.getTailLocation();
@@ -634,7 +636,7 @@ public class AutoStitch
             {
 	        	RouteElement re = RouteElementArc.newArc(cell, ai.getProto(), ai.getLambdaBaseWidth(), headRE, dcpRE,
 	        		headRE.getLocation(), dcpRE.getLocation(), name, ai.getTextDescriptor(ArcInst.ARC_NAME),
-	                ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside, ep);
+	                ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
 	            route.add(re);
             }
         	headRE = dcpRE;
@@ -644,7 +646,7 @@ public class AutoStitch
         {
 	    	RouteElement re = RouteElementArc.newArc(cell, ai.getProto(), ai.getLambdaBaseWidth(), headRE, tailRE,
 	    		headRE.getLocation(), tailRE.getLocation(), name, ai.getTextDescriptor(ArcInst.ARC_NAME),
-	            ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside, ep);
+	            ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
 	        route.add(re);
         }
 		allRoutes.add(route);
@@ -1940,7 +1942,6 @@ public class AutoStitch
 
 			// break the arc at that point
 			PrimitiveNode pinType = breakArc.getProto().findPinProto();
-            EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
 			NodeInst pin = NodeInst.newInstance(pinType, breakPt, pinType.getDefaultLambdaBaseWidth(ep),
 				pinType.getDefaultLambdaBaseHeight(ep), breakArc.getParent());
 			if (pin == null) return;
@@ -2565,20 +2566,16 @@ public class AutoStitch
 		if (arcLayers.get(ap) != null) return;
 
 		// find the smallest layer
-		boolean bestFound = false;
-		double bestArea = 0;
-		Poly [] polys = ap.getShapeOfDummyArc(100);
-		int tot = polys.length;
-		for(int i=0; i<tot; i++)
-		{
-			Poly poly = polys[i];
-			double area = poly.getArea();
-
-			if (bestFound && area >= bestArea) continue;
-			bestArea = area;
-			bestFound = true;
-			arcLayers.put(ap, poly.getLayer());
-		}
+		Layer smallestLayer = ap.getLayer(0);
+		int smallestGridExtend = ap.getLayerGridExtend(0);
+        for (int arcLayer = 1; arcLayer < ap.getNumArcLayers(); arcLayer++) {
+            int gridExtend = ap.getLayerGridExtend(arcLayer);
+            if (gridExtend < smallestGridExtend) {
+                smallestLayer = ap.getLayer(arcLayer);
+                smallestGridExtend = gridExtend;
+            }
+        }
+        arcLayers.put(ap, smallestLayer);
 	}
 
 	/**

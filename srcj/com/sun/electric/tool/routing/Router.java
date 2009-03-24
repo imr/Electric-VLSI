@@ -125,7 +125,6 @@ public abstract class Router {
     	boolean highlightRouteEnd, Map<ArcProto,Integer> arcsCreatedMap, Map<NodeProto,Integer> nodesCreatedMap)
     {
         EDatabase.serverDatabase().checkChanging();
-        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
 
         // check if we can edit this cell
         if (CircuitChangeJobs.cantEdit(cell, null, true, false, true) != 0) return null;
@@ -180,7 +179,7 @@ public abstract class Router {
 	                        RouteElementArc newArc = RouteElementArc.newArc(cell, Generic.tech().unrouted_arc,
 	                                Generic.tech().unrouted_arc.getDefaultLambdaBaseWidth(), route.getEnd(), newEnd,
 	                                route.getEnd().getLocation(), oconn.getLocation(), null,
-	                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, true, null, ep);
+	                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, true, null);
 	                        newArc.doAction();
 	                    }
 	                    if (conn.getArc().isLinked())

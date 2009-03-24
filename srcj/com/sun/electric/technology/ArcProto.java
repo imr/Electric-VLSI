@@ -377,7 +377,18 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * @return the default base width of this ArcProto in lambda units.
 	 */
 	public double getDefaultLambdaBaseWidth() {
-        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
+        return getDefaultLambdaBaseWidth(EditingPreferences.getThreadEditingPreferences());
+    }
+
+	/**
+	 * Method to return the default base width of this ArcProto in lambda units.
+	 * This is the reported/selected width, which means that it does not include the width offset.
+	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
+	 * This call returns only the width of the diffusion.
+     * @param ep EditingPreferences
+	 * @return the default base width of this ArcProto in lambda units.
+	 */
+	public double getDefaultLambdaBaseWidth(EditingPreferences ep) {
         return DBMath.gridToLambda(getDefaultGridBaseWidth(ep));
     }
 
@@ -673,15 +684,6 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * Valid for menu display
 	 */
 	public boolean isSpecialArc() { return (userBits & ARCSPECIAL) != 0; }
-
-	/**
-	 * Method to get default ArcInst flags with this portoType.
-	 */
-	public int getDefaultConstraints()
-	{
-        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
-        return getDefaultInst(ep).flags;
-	}
 
 	/**
 	 * Method to return the function of this ArcProto.

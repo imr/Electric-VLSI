@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
@@ -42,7 +43,6 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -1272,6 +1272,14 @@ public abstract class ElectricObject implements Serializable
 
    /** Returns TechPool of this database */
     public TechPool getTechPool() { return getDatabase().getTechPool(); }
+
+    /**
+     * Returns editing preferences for the database of this ElectricObject in current Thread
+     * @return editing preferences
+     */
+    public EditingPreferences getEditingPreferences() {
+        return EditingPreferences.getThreadEditingPreferences();
+    }
 
     /**
      * Get Technology by TechId

@@ -678,7 +678,7 @@ public abstract class Job implements Serializable {
     }
 
     public EditingPreferences getEditingPreferences() {
-        return EditingPreferences.getThreadEditingPreferences();
+        return ejob.editingPreferences;
     }
 
     public static void wantUpdateGui() {

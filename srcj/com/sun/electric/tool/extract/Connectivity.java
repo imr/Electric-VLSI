@@ -466,7 +466,6 @@ public class Connectivity
 		PolyMerge originalMerge = new PolyMerge();
 		originalMerge.addMerge(merge, new AffineTransform());
 
-        EditingPreferences ep = job.getEditingPreferences();
 		// start by extracting vias
 		initDebugging();
 		if (!startSection("Extracting vias...")) return null; // aborted
@@ -482,7 +481,7 @@ public class Connectivity
 		// extend geometry that sticks out in space
 		initDebugging();
 		if (!startSection("Extracting extensions...")) return null; // aborted
-		extendGeometry(merge, originalMerge, newCell, ep, true);
+		extendGeometry(merge, originalMerge, newCell, true);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "StickOuts");
 
 		// look for wires and pins
@@ -494,7 +493,7 @@ public class Connectivity
 		// convert any geometry that connects two networks
 		initDebugging();
 		if (!startSection("Extracting connections...")) return null; // aborted
-		extendGeometry(merge, originalMerge, newCell, ep, false);
+		extendGeometry(merge, originalMerge, newCell, false);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Bridges");
 
 		// dump any remaining layers back in as extra pure layer nodes
@@ -2555,7 +2554,7 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 	/**
 	 * Method to look for opportunities to place arcs that connect to existing geometry.
 	 */
-	private void extendGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell, EditingPreferences ep, boolean justExtend)
+	private void extendGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell, boolean justExtend)
 	{
 		// make a list of layers that can be extended
 		List<Layer> extendableLayers = new ArrayList<Layer>();
@@ -2582,12 +2581,13 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 		Job.getUserInterface().setProgressNote("Extracting " + totExtensions +
 			(justExtend ? " extensions..." : " connections..."));
 
+        EditingPreferences ep = newCell.getEditingPreferences();
 		soFar = 0;
 		for (Layer layer : extendableLayers)
 		{
 			ArcProto ap = arcsForLayer.get(layer);
 			if (ap == null) continue;
-			double wid = ap.getDefaultLambdaBaseWidth();
+			double wid = ap.getDefaultLambdaBaseWidth(ep);
 			double arcLayerWidth = 2*(ap.getDefaultInst(ep).getLambdaExtendOverMin() + ap.getLayerLambdaExtend(layer));
 
 			List<PolyBase> polyList = geomToExtend.get(layer);

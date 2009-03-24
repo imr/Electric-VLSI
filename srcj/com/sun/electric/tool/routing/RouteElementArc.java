@@ -91,8 +91,9 @@ public class RouteElementArc extends RouteElement {
      */
     public static RouteElementArc newArc(Cell cell, ArcProto ap, double arcBaseWidth, RouteElementPort headRE, RouteElementPort tailRE,
                                          Point2D headConnPoint, Point2D tailConnPoint, String name, TextDescriptor nameTextDescriptor,
-                                         ArcInst inheritFrom, boolean extendArcHead, boolean extendArcTail, PolyMerge stayInside, EditingPreferences ep) {
-    	EPoint headEP = EPoint.snap(headConnPoint);
+                                         ArcInst inheritFrom, boolean extendArcHead, boolean extendArcTail, PolyMerge stayInside) {
+        EditingPreferences ep = cell.getEditingPreferences();
+        EPoint headEP = EPoint.snap(headConnPoint);
     	EPoint tailEP = EPoint.snap(tailConnPoint);
     	MutableBoolean headExtend = new MutableBoolean(extendArcHead);
     	MutableBoolean tailExtend = new MutableBoolean(extendArcTail);
@@ -109,10 +110,10 @@ public class RouteElementArc extends RouteElement {
 //            double area = stayInside.getAreaOfLayer(layer);
 //        	boolean good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth-offset, headExtend, tailExtend);
         	// try reducing to default width if it doesn't fit
-        	if (!good && arcBaseWidth > ap.getDefaultLambdaBaseWidth())
+        	if (!good && arcBaseWidth > ap.getDefaultLambdaBaseWidth(ep))
 //        	if (!good && arcFullWidth > ap.getDefaultLambdaFullWidth())
         	{
-        		arcBaseWidth = ap.getDefaultLambdaBaseWidth();
+        		arcBaseWidth = ap.getDefaultLambdaBaseWidth(ep);
 //        		arcFullWidth = ap.getDefaultLambdaFullWidth();
             	good = stayInside.arcPolyFits(layer, headEP, tailEP, 2*(ap.getDefaultInst(ep).getLambdaExtendOverMin() + layerExtend), headExtend, tailExtend);
 //            	good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth-offset, headExtend, tailExtend);

@@ -25,6 +25,7 @@ package com.sun.electric.database.topology;
 
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
@@ -170,7 +171,9 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public static ArcInst makeInstance(ArcProto type, PortInst head, PortInst tail)
 	{
-        return newInstanceBase(type, type.getDefaultLambdaBaseWidth(), head, tail, null, null, null, 0, type.getDefaultConstraints());
+        EditingPreferences ep = tail.getEditingPreferences();
+        ImmutableArcInst a = type.getDefaultInst(ep);
+        return newInstanceBase(type, type.getDefaultLambdaBaseWidth(ep), head, tail, null, null, null, 0, a.flags);
 	}
 
 	/**
@@ -184,7 +187,9 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public static ArcInst makeInstanceBase(ArcProto type, double baseWidth, PortInst head, PortInst tail)
 	{
-        return newInstanceBase(type, baseWidth, head, tail, null, null, null, 0, type.getDefaultConstraints());
+        EditingPreferences ep = tail.getEditingPreferences();
+        ImmutableArcInst a = type.getDefaultInst(ep);
+        return newInstanceBase(type, baseWidth, head, tail, null, null, null, 0, a.flags);
 	}
 
 	/**
@@ -201,7 +206,9 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	public static ArcInst makeInstance(ArcProto type, PortInst head, PortInst tail,
 	                                   Point2D headPt, Point2D tailPt, String name)
 	{
-		return newInstanceBase(type, type.getDefaultLambdaBaseWidth(), head, tail, headPt, tailPt, name, 0, type.getDefaultConstraints());
+        EditingPreferences ep = tail.getEditingPreferences();
+        ImmutableArcInst a = type.getDefaultInst(ep);
+		return newInstanceBase(type, type.getDefaultLambdaBaseWidth(ep), head, tail, headPt, tailPt, name, 0, a.flags);
 	}
 
 	/**
@@ -219,7 +226,9 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	public static ArcInst makeInstanceBase(ArcProto type, double baseWidth, PortInst head, PortInst tail,
 	                                   Point2D headPt, Point2D tailPt, String name)
 	{
-		return newInstanceBase(type, baseWidth, head, tail, headPt, tailPt, name, 0, type.getDefaultConstraints());
+        EditingPreferences ep = tail.getEditingPreferences();
+        ImmutableArcInst a = type.getDefaultInst(ep);
+		return newInstanceBase(type, baseWidth, head, tail, headPt, tailPt, name, 0, a.flags);
 	}
 
     /**

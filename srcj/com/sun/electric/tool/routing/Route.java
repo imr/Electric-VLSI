@@ -181,7 +181,6 @@ public class Route extends ArrayList<RouteElement> {
      * @return true if replacement done, false otherwise.
      */
     public boolean replaceExistingRedundantPin(RouteElementPort pinRE, RouteElementPort replacementRE, PolyMerge stayInside) {
-        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
         // only replace existing pins
         if (pinRE.getAction() != RouteElement.RouteElementAction.existingPortInst) return false;
 
@@ -227,13 +226,13 @@ public class Route extends ArrayList<RouteElement> {
                         newArc = RouteElementArc.newArc(cell, ai.getProto(),
                                 ai.getLambdaBaseWidth(), replacementRE, otherPort,
                                 conn.getLocation(), ai.getLocation(otherEnd), ai.getName(),
-                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside, ep);
+                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
                     } else {
                         // tail
                         newArc = RouteElementArc.newArc(cell, ai.getProto(),
                                 ai.getLambdaBaseWidth(), otherPort, replacementRE,
                                 ai.getLocation(otherEnd), conn.getLocation(), ai.getName(),
-                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside, ep);
+                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
                     }
                     newArc.setArcAngle(ai.getAngle());
                     RouteElementArc delArc = RouteElementArc.deleteArc(ai);
