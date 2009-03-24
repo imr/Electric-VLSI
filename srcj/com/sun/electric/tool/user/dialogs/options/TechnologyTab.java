@@ -25,7 +25,6 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
@@ -81,9 +80,6 @@ public class TechnologyTab extends PreferencePanel
 	{
 		// Layout
 		rotateLayoutTransistors.setSelected(User.isRotateLayoutTransistors());
-
-		// Artwork
-		techArtworkArrowsFilled.setSelected(true/*Artwork.tech().isFilledArrowHeads()*/);
 
 		// VHDL layers list in Schematics
 		schemPrimModel = new DefaultListModel();
@@ -198,14 +194,6 @@ public class TechnologyTab extends PreferencePanel
 			redrawMenus = true;
 		}
 
-		// Artwork
-//		boolean currentArrowsFilled = techArtworkArrowsFilled.isSelected();
-//		if (currentArrowsFilled != Artwork.tech().isFilledArrowHeads())
-//		{
-//			Artwork.tech().setFilledArrowHeads(currentArrowsFilled);
-//			redrawWindows = true;
-//		}
-
 		// updating VHDL names
 		for(int i=0; i<schemPrimModel.size(); i++)
 		{
@@ -244,8 +232,6 @@ public class TechnologyTab extends PreferencePanel
 	{
 		if (User.isFactoryRotateLayoutTransistors() != User.isRotateLayoutTransistors())
 			User.setRotateLayoutTransistors(User.isFactoryRotateLayoutTransistors());
-//		if (Artwork.tech().isFactoryFilledArrowHeads() != Artwork.tech().isFilledArrowHeads())
-//			Artwork.tech().setFilledArrowHeads(Artwork.tech().isFactoryFilledArrowHeads());
 		for(Iterator<PrimitiveNode> it = Schematics.tech().getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();
@@ -267,8 +253,6 @@ public class TechnologyTab extends PreferencePanel
         java.awt.GridBagConstraints gridBagConstraints;
 
         technology = new javax.swing.JPanel();
-        artworkPanel = new javax.swing.JPanel();
-        techArtworkArrowsFilled = new javax.swing.JCheckBox();
         schematicsPanel = new javax.swing.JPanel();
         vhdlPrimPane = new javax.swing.JScrollPane();
         jLabel1 = new javax.swing.JLabel();
@@ -289,23 +273,6 @@ public class TechnologyTab extends PreferencePanel
         });
 
         technology.setLayout(new java.awt.GridBagLayout());
-
-        artworkPanel.setLayout(new java.awt.GridBagLayout());
-
-        artworkPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Artwork"));
-        techArtworkArrowsFilled.setText("Arrows filled");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        artworkPanel.add(techArtworkArrowsFilled, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        technology.add(artworkPanel, gridBagConstraints);
 
         schematicsPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -352,7 +319,7 @@ public class TechnologyTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         technology.add(schematicsPanel, gridBagConstraints);
 
@@ -388,13 +355,11 @@ public class TechnologyTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel artworkPanel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel layoutPanel;
     private javax.swing.JCheckBox rotateLayoutTransistors;
     private javax.swing.JPanel schematicsPanel;
-    private javax.swing.JCheckBox techArtworkArrowsFilled;
     private javax.swing.JPanel technology;
     private javax.swing.JTextField vhdlName;
     private javax.swing.JTextField vhdlNegatedName;
