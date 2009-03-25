@@ -932,7 +932,7 @@ public class TechToLib
         aIn.notUsed = ap.isNotUsed();
         aIn.skipSizeInPalette = ap.isSkipSizeInPalette();
         aIn.slidable = defA.isSlidable();
-        aIn.angInc = ap.getAngleIncrement();
+        aIn.angInc = ap.getFactoryAngleIncrement();
         aIn.antennaRatio = ap.getFactoryAntennaRatio();
         aIn.arcDetails = new ArcInfo.LayerDetails[ap.getNumArcLayers()];
         for(int i=0; i<aIn.arcDetails.length; i++) {

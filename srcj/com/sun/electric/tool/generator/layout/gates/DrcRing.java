@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.generator.layout.gates;
 
+import com.sun.electric.database.EditingPreferences;
 import java.awt.geom.Rectangle2D;
 
 import com.sun.electric.database.geometry.DBMath;
@@ -51,7 +52,8 @@ public class DrcRing {
     // metal-5 minimum width is 6 lambda
     double arcW = 6;
 
-    NodeProto pin = arc.findOverridablePinProto();
+    EditingPreferences ep = f.getEditingPreferences();
+    NodeProto pin = arc.findOverridablePinProto(ep);
     double pinLoX = - arcW/2;
     double pinHiX = w + arcW/2;
     double pinLoY = - arcW/2;

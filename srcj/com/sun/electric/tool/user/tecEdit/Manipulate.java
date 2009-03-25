@@ -2793,7 +2793,7 @@ public class Manipulate
                     // Extended
                     extend = ap.getFactoryDefaultInst().isTailExtended() ? "yes" : "no";
                     // Increment
-                    increment = String.valueOf(ap.getAngleIncrement());
+                    increment = String.valueOf(ap.getFactoryAngleIncrement());
                     // Wipable
                     wipe = ap.isWipable() ? "yes" : "no";
                     // Function

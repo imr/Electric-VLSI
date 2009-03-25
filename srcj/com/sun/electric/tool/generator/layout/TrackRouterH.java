@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.generator.layout;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
@@ -47,7 +48,7 @@ public class TrackRouterH extends TrackRouter {
 	/** Place Via at newPort.X + viaOffset.  If an 'L' shaped connection
 	 * is necessary place the horizontal part of the wire at track.CENTER +
 	 * wireOffset */
-	public void connect(PortInst newPort, double viaOffset, 
+	public void connect(PortInst newPort, double viaOffset,
 	                    double wireOffset) {
 		error(newPort==null, "can't connect to null port");
 
@@ -89,7 +90,7 @@ public class TrackRouterH extends TrackRouter {
 			lastPort = closeVia.getPort2();
 		} else {
 			// create a new via or pin
-			ViaStack vs = new ViaStack(layer, portLyr, x, center.doubleValue(), 
+			ViaStack vs = new ViaStack(layer, portLyr, x, center.doubleValue(),
 			                           newWid, width, tech, parent);
 			insertVia(vs);
 			lastPort = vs.getPort2();
@@ -97,10 +98,11 @@ public class TrackRouterH extends TrackRouter {
 
 		// Connect to new port.
 		if (wireOffset != 0) {
-			NodeProto pin = portLyr.findOverridablePinProto();
-			double defSz = LayoutLib.DEF_SIZE; 
-			NodeInst pinInst = 
-			  LayoutLib.newNodeInst(pin, LayoutLib.roundCenterX(lastPort), 
+            EditingPreferences ep = newPort.getEditingPreferences();
+			NodeProto pin = portLyr.findOverridablePinProto(ep);
+			double defSz = LayoutLib.DEF_SIZE;
+			NodeInst pinInst =
+			  LayoutLib.newNodeInst(pin, LayoutLib.roundCenterX(lastPort),
 			  		                center.doubleValue() + wireOffset,
 			                        defSz,
 			                        defSz,

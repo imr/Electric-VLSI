@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.generator.layout;
 
+import com.sun.electric.database.EditingPreferences;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -522,7 +523,8 @@ public class LayoutLib {
 			ai = newArcInst(ap, width, head, hX, hY, tail, tX, tY);
 		} else {
 			Cell parent = head.getNodeInst().getParent();
-			NodeProto pinProto = ap.findOverridablePinProto();
+            EditingPreferences ep = parent.getEditingPreferences();
+			NodeProto pinProto = ap.findOverridablePinProto(ep);
 			PortInst pin = newNodeInst(pinProto, tX, hY, DEF_SIZE, DEF_SIZE, 0,
 			                           parent).getOnlyPortInst();
 
@@ -575,7 +577,8 @@ public class LayoutLib {
 	public static Export newExport(Cell cell, String name,
 	                               PortCharacteristic role,
 	                               ArcProto ap, double w, double x, double y) {
-		NodeProto np = ap.findOverridablePinProto();
+        EditingPreferences ep = cell.getEditingPreferences();
+		NodeProto np = ap.findOverridablePinProto(ep);
 		error(np==null, "LayoutLib.newExport: This layer has no layer-pin");
 
 		double defSz = LayoutLib.DEF_SIZE;

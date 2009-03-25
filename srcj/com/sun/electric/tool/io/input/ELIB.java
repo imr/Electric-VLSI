@@ -1785,7 +1785,7 @@ public class ELIB extends LibraryFiles
         String msg = cell+": Port '"+portname+"' on "+node+" "+whatHappenedToPort+": leaving arc disconnected";
         System.out.println("ERROR: "+msg);
 
-        PrimitiveNode pn = ap.findOverridablePinProto();
+        PrimitiveNode pn = ap.findOverridablePinProto(ep);
         node = NodeInst.newInstance(pn, new Point2D.Double(x, y), pn.getDefWidth(), pn.getDefHeight(), cell);
         Input.errorLogger.logError(msg, node, cell, null, 0);
         return node.getOnlyPortInst();

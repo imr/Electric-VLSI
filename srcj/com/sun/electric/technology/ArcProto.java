@@ -31,8 +31,8 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ArcProtoId;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
-import com.sun.electric.database.text.Pref;
 
 import com.sun.electric.tool.erc.ERCAntenna;
 import java.awt.geom.Point2D;
@@ -255,8 +255,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
     /** Index of this ArcProto. */                              final int primArcIndex;
 
     /** factory default instance */                             ImmutableArcInst factoryDefaultInst;
-    /** Pref for arc angle increment. */                        private Pref defaultAnglePref;
-    /** Pref for overridable pin corresponding to this arc */   private final Pref arcPinPref;
+    /** factory arc angle increment. */                         private int factoryAngleIncrement = 90;
 	/** Factory value for arc antenna ratio. */                 private double factoryAntennaRatio = Double.NaN;
 
 	// the meaning of the "userBits" field:
@@ -301,7 +300,6 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         PrimitivePortId ppId = protoId.techId.idManager.newTechId("generic").newPrimitiveNodeId("Universal-Pin").newPortId("");
         factoryDefaultInst = ImmutableArcInst.newInstance(0, protoId, ImmutableArcInst.BASENAME, null,
                 0, ppId, EPoint.ORIGIN, 0, ppId, EPoint.ORIGIN, 0, 0, ImmutableArcInst.FACTORY_DEFAULT_FLAGS);
-        arcPinPref = Pref.makeStringServerPref("PinFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), "");
 	}
 
     private void computeLayerGridExtendRange() {
@@ -697,25 +695,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * This is only called from ArcProto during construction.
 	 * @param angle the factory-default angle of this ArcProto.
 	 */
-	public void setFactoryAngleIncrement(int angle)
-	{
-        assert defaultAnglePref == null;
-		defaultAnglePref = Pref.makeIntServerPref("DefaultAngleFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyUserPreferences(), angle);
-	}
-
-	/**
-	 * Method to set the angle increment on this ArcProto.
-	 * The angle increment is the granularity on placement angle for instances
-	 * of this ArcProto.  It is in degrees.
-	 * For example, a value of 90 requests that instances run at 0, 90, 180, or 270 degrees.
-	 * A value of 0 allows arcs to be created at any angle.
-	 * @param angle the angle increment on this ArcProto.
-	 */
-	public void setAngleIncrement(int angle)
-	{
-		if (defaultAnglePref != null)
-            defaultAnglePref.setInt(angle);
-	}
+	public void setFactoryAngleIncrement(int angle) { factoryAngleIncrement = angle; }
 
 	/**
 	 * Method to get the angle increment on this ArcProto.
@@ -723,11 +703,13 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * of this ArcProto.  It is in degrees.
 	 * For example, a value of 90 requests that instances run at 0, 90, 180, or 270 degrees.
 	 * A value of 0 allows arcs to be created at any angle.
+     * @param ep editing preferences with default increment
 	 * @return the angle increment on this ArcProto.
 	 */
-	public int getAngleIncrement()
+	public int getAngleIncrement(EditingPreferences ep)
 	{
-		return defaultAnglePref != null ? defaultAnglePref.getInt() : 90;
+        Integer angleIncrement = ep.getDefaultAngleIncrement(protoId);
+        return angleIncrement != null ? angleIncrement.intValue() : factoryAngleIncrement;
 	}
 
 	/**
@@ -738,37 +720,23 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * A value of 0 allows arcs to be created at any angle.
 	 * @return the default angle increment on this ArcProto.
 	 */
-	public int getFactoryAngleIncrement()
-	{
-		return defaultAnglePref != null ? defaultAnglePref.getIntFactoryValue() : 90;
-	}
-
-	/**
-	 * Method to set the default pin node to use for this ArcProto.
-	 * The pin node is used for making bends in wires.
-	 * It must have just 1 port in the center, and be able to connect
-	 * to this type of arc.
-	 * @param np the default pin node to use for this ArcProto.
-	 */
-	public void setPinProto(PrimitiveNode np)
-	{
-		arcPinPref.setString(np.getName());
-	}
+	public int getFactoryAngleIncrement() { return factoryAngleIncrement; }
 
 	/**
 	 * Method to find the PrimitiveNode pin corresponding to this ArcProto type.
 	 * Users can override the pin to use, and this method returns the user setting.
 	 * For example, if this ArcProto is metal-1 then return the Metal-1-pin,
 	 * but the user could set it to Metal-1-Metal-2-Contact.
+     * @param ep editing preferences with user overrides
 	 * @return the PrimitiveNode pin to use for arc bends.
 	 */
-	public PrimitiveNode findOverridablePinProto()
+	public PrimitiveNode findOverridablePinProto(EditingPreferences ep)
 	{
 		// see if there is a default on this arc proto
-		String primName = arcPinPref.getString();
-		if (primName != null && primName.length() > 0)
+        PrimitiveNodeId pinId = ep.getDefaultArcPinId(protoId);
+		if (pinId != null)
 		{
-			PrimitiveNode np = tech.findNodeProto(primName);
+			PrimitiveNode np = tech.getPrimitiveNode(pinId);
 			if (np != null) return np;
 		}
 		return findPinProto();
@@ -1119,7 +1087,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         out.println("\tdefaultLambdaBaseWidth=" + getFactoryDefaultLambdaBaseWidth());
         out.println("\tdiskOffset1=" + DBMath.round(getLambdaBaseExtend() + 0.5*getLambdaElibWidthOffset()));
         out.println("\tdiskOffset2=" + getLambdaBaseExtend());
-        Technology.printlnPref(out, 1, defaultAnglePref);
+        Technology.printlnPref(out, 1, "DefaultAngleFor" + getName() + "IN" + tech.getTechName(), factoryAngleIncrement);
         Technology.printlnPref(out, 1, "DefaultRigidFor" + getName() + "IN" + tech.getTechName(), factoryDefaultInst.isRigid());
         Technology.printlnPref(out, 1, "DefaultFixedAngleFor" + getName() + "IN" + tech.getTechName(), factoryDefaultInst.isFixedAngle());
         Technology.printlnPref(out, 1, "DefaultExtendedFor" + getName() + "IN" + tech.getTechName(), factoryDefaultInst.isTailExtended());

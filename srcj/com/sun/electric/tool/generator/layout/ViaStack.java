@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.generator.layout;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
@@ -52,7 +53,7 @@ class ViaStack {
 			double wid = Math.max(width, LayoutLib.getNodeProtoWidth(via));
 			double hei = Math.max(height, LayoutLib.getNodeProtoHeight(via));
 
-			PortInst viaAbove = LayoutLib.newNodeInst(via, x, y, wid, hei, 0, 
+			PortInst viaAbove = LayoutLib.newNodeInst(via, x, y, wid, hei, 0,
 			                                          f).getOnlyPortInst();
 			if (viaBelow == null) {
 				// First via in stack
@@ -70,7 +71,7 @@ class ViaStack {
 	// ----------------------------- public methods --------------------------
 
 	// square vias
-	public ViaStack(ArcProto arc1, ArcProto arc2, double x, double y, 
+	public ViaStack(ArcProto arc1, ArcProto arc2, double x, double y,
 	                double width, TechType tech, Cell f) {
 		this(arc1, arc2, x, y, width, width, tech, f);
 	}
@@ -83,9 +84,10 @@ class ViaStack {
 		int h2 = tech.layerHeight(arc2);
 		int deltaZ = h2 - h1;
 		if (arc1==arc2) {
-			NodeProto pin = arc1.findOverridablePinProto(); 
+            EditingPreferences ep = f.getEditingPreferences();
+			NodeProto pin = arc1.findOverridablePinProto(ep);
 			double defSz = LayoutLib.DEF_SIZE;
-			NodeInst pinInst = LayoutLib.newNodeInst(pin,x,y,defSz,defSz,0,f); 
+			NodeInst pinInst = LayoutLib.newNodeInst(pin,x,y,defSz,defSz,0,f);
 			port1 =	port2 = pinInst.getOnlyPortInst();
 		} else if (deltaZ>0) {
 			// arc2 higher than arc1

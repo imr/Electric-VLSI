@@ -26,6 +26,7 @@ package com.sun.electric.database.topology;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
@@ -923,7 +924,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 				// make that two wires
 				double cX = newPoint[0].getX();
 				double cY = newPoint[1].getY();
-				NodeProto pinNp = ai.getProto().findOverridablePinProto();
+                EditingPreferences ep = getEditingPreferences();
+				NodeProto pinNp = ai.getProto().findOverridablePinProto(ep);
 				double psx = pinNp.getDefWidth();
 				double psy = pinNp.getDefHeight();
 				NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, getParent());

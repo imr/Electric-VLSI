@@ -24,6 +24,7 @@
 package com.sun.electric.database.constraint;
 
 import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
@@ -836,7 +837,8 @@ class LayoutCell {
 //        double wid = ai.getLambdaFullWidth();
 
 		// figure out what nodeinst proto connects these arcs
-		PrimitiveNode np = ap.findOverridablePinProto();
+        EditingPreferences ep = ai.getEditingPreferences();
+		PrimitiveNode np = ap.findOverridablePinProto(ep);
 		double psx = np.getDefWidth();
 		double psy = np.getDefHeight();
 
@@ -1048,7 +1050,7 @@ class LayoutCell {
         if (oldD == null) return false;
         return ai.getHeadLocation() != oldD.headLocation || ai.getTailLocation() != oldD.tailLocation;
     }
-    
+
     private boolean hasExports(NodeInst ni) {
         return m.hasExports(ni.getD().nodeId);
     }

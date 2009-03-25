@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -1063,7 +1064,8 @@ public class Change extends EModelessDialog implements HighlightListener
 			}
 
 			// now create new pins where they belong
-			PrimitiveNode pin = ap.findOverridablePinProto();
+            EditingPreferences ep = cell.getEditingPreferences();
+			PrimitiveNode pin = ap.findOverridablePinProto(ep);
 			double xS = pin.getDefWidth();
 			double yS = pin.getDefHeight();
 			Map<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();

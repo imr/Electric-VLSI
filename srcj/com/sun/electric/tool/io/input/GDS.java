@@ -1872,7 +1872,7 @@ public class GDS extends Input
 						ArcProto arc = it.next();
 						if (pp.connectsTo(arc))
 						{
-							pinNodeProto = arc.findOverridablePinProto();
+							pinNodeProto = arc.findOverridablePinProto(ep);
 							break;
 						}
 					}

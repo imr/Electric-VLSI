@@ -316,7 +316,7 @@ public abstract class InteractiveRouter extends Router {
             // end object is null, we are routing to a pin. Figure out what arc to use
             ArcProto useArc = getArcToUse(startPort, null);
             if (useArc == null) return route;
-            PrimitiveNode pn = useArc.findOverridablePinProto();
+            PrimitiveNode pn = useArc.findOverridablePinProto(ep);
             endPort = pn.getPort(0);
         } else {
             endPort = getRoutePort(endObj);
@@ -423,7 +423,7 @@ public abstract class InteractiveRouter extends Router {
                 useArc = startAi.getProto();
             }
             // make new pin to route to
-            PrimitiveNode pn = useArc.findOverridablePinProto();
+            PrimitiveNode pn = useArc.findOverridablePinProto(ep);
             SizeOffset so = pn.getProtoSizeOffset();
             endRE = RouteElementPort.newNode(cell, pn, pn.getPort(0), endPoint,
                     pn.getDefWidth()-so.getHighXOffset()-so.getLowXOffset(),
@@ -438,7 +438,7 @@ public abstract class InteractiveRouter extends Router {
         if ((existingEndPort != null) && (existingEndPort == existingStartPort)) return new Route();
 
         Point2D cornerLoc = getCornerLocation(startPoint, endPoint, clicked, startArc, endArc,
-                                              contactsOnEndObject, stayInside, contactArea, startPolyFull, endPolyFull);
+                                              contactsOnEndObject, stayInside, contactArea, startPolyFull, endPolyFull, ep);
         int startAngle = GenMath.figureAngle(startPoint, cornerLoc);
         int endAngle = GenMath.figureAngle(endPoint, cornerLoc);
 
@@ -505,12 +505,12 @@ public abstract class InteractiveRouter extends Router {
                 return route;
             }
             // check single arc case
-            if (startArc.getAngleIncrement() == 0 || (DBMath.figureAngle(startPoint, endPoint) % (10*startArc.getAngleIncrement())) == 0) {
+            if (startArc.getAngleIncrement(ep) == 0 || (DBMath.figureAngle(startPoint, endPoint) % (10*startArc.getAngleIncrement(ep))) == 0) {
                 // single arc
                 addConnectingArc(route, cell, startRE, endRE, startPoint, endPoint, startArc,
                         startArcWidth, startAngle, extendArcHead, extendArcTail, stayInside);
             } else {
-                PrimitiveNode pn = startArc.findOverridablePinProto();
+                PrimitiveNode pn = startArc.findOverridablePinProto(ep);
                 SizeOffset so = pn.getProtoSizeOffset();
                 double defwidth = pn.getDefWidth()-so.getHighXOffset()-so.getLowXOffset();
                 double defheight = pn.getDefHeight()-so.getHighYOffset()-so.getLowYOffset();
@@ -569,7 +569,8 @@ public abstract class InteractiveRouter extends Router {
         assert(!(routeObj instanceof NodeInst));
         if (routeObj instanceof ArcInst) {
             ArcInst ai = (ArcInst)routeObj;
-            PrimitiveNode pn = ai.getProto().findOverridablePinProto();
+            EditingPreferences ep = ai.getEditingPreferences();
+            PrimitiveNode pn = ai.getProto().findOverridablePinProto(ep);
             return pn.getPort(0);
         }
         if (routeObj instanceof PortInst) {
@@ -655,7 +656,8 @@ public abstract class InteractiveRouter extends Router {
 
         if (endPoly == null) {
             // if arc, find place to connect to. Otherwise use the center point (default)
-            int angleIncrement = endArc.getAngleIncrement();
+            EditingPreferences ep = startObj.getEditingPreferences();
+            int angleIncrement = endArc.getAngleIncrement(ep);
             endPoint.setLocation(getClosestAngledPoint(startPoint, clicked, angleIncrement));
             //endPoint.setLocation(getClosestOrthogonalPoint(startPoint, clicked));
             // however, if this is an Artwork technology, just put end point at mouse
@@ -983,7 +985,8 @@ public abstract class InteractiveRouter extends Router {
         EPoint tail = arc.getTailLocation();
 
         // determine pin type to use if bisecting arc
-        PrimitiveNode pn = arc.getProto().findOverridablePinProto();
+        EditingPreferences ep = cell.getEditingPreferences();
+        PrimitiveNode pn = arc.getProto().findOverridablePinProto(ep);
         SizeOffset so = pn.getProtoSizeOffset();
         double width = pn.getDefWidth()-so.getHighXOffset()-so.getLowXOffset();
         double height = pn.getDefHeight()-so.getHighYOffset()-so.getLowYOffset();
@@ -1026,11 +1029,11 @@ public abstract class InteractiveRouter extends Router {
 
     protected static Point2D getCornerLocation(Point2D startLoc, Point2D endLoc, Point2D clicked, ArcProto startArc, ArcProto endArc,
                                                boolean contactsOnEndObj, PolyMerge stayInside, Rectangle2D contactArea,
-                                               Poly startPolyFull, Poly endPolyFull) {
+                                               Poly startPolyFull, Poly endPolyFull, EditingPreferences ep) {
         // if startArc and endArc are the same, see if we can connect directly with whatever angle increment is on the arc
         boolean singleArc = false;
         if (startArc == endArc) {
-            int inc = 10*startArc.getAngleIncrement();
+            int inc = 10*startArc.getAngleIncrement(ep);
             if (inc == 0) singleArc = true; else
             {
                 int ang = GenMath.figureAngle(startLoc, endLoc);

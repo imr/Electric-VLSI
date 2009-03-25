@@ -48,26 +48,34 @@ public class EditingPreferences extends PrefPackage {
     private static final String KEY_EXTEND_X = "DefaultExtendX";
     private static final String KEY_EXTEND_Y = "DefaultExtendY";
     private static final String KEY_EXTEND = "DefaultExtend";
+    private static final String KEY_PIN = "Pin";
     // In USER_NODE
     private static final String KEY_RIGID = "DefaultRigid";
     private static final String KEY_FIXED_ANGLE = "DefaultFixedAngle";
     private static final String KEY_SLIDABLE = "DefaultSlidable";
     private static final String KEY_EXTENDED = "DefaultExtended";
     private static final String KEY_DIRECTIONAL = "DefaultDirectional";
+	private static final String KEY_ANGLE = "DefaultAngle";
 
     private static final ThreadLocal<EditingPreferences> threadEditingPreferences = new ThreadLocal<EditingPreferences>();
 
     private final TechPool techPool;
     private HashMap<PrimitiveNodeId,ImmutableNodeInst> defaultNodes = new HashMap<PrimitiveNodeId,ImmutableNodeInst>();
     private HashMap<ArcProtoId,ImmutableArcInst> defaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>();
+    private HashMap<ArcProtoId,Integer> defaultArcAngleIncrements = new HashMap<ArcProtoId,Integer>();
+    private HashMap<ArcProtoId,PrimitiveNodeId> defaultArcPins = new HashMap<ArcProtoId,PrimitiveNodeId>();
 
     private EditingPreferences(TechPool techPool,
             Map<PrimitiveNodeId,ImmutableNodeInst> defaultNodes,
-            Map<ArcProtoId,ImmutableArcInst> defaultArcs) {
+            Map<ArcProtoId,ImmutableArcInst> defaultArcs,
+            Map<ArcProtoId,Integer> defaultArcAngleIncrements,
+            Map<ArcProtoId,PrimitiveNodeId> defaultArcPins) {
         super("");
         this.techPool = techPool;
         this.defaultNodes.putAll(defaultNodes);
         this.defaultArcs.putAll(defaultArcs);
+        this.defaultArcAngleIncrements.putAll(defaultArcAngleIncrements);
+        this.defaultArcPins.putAll(defaultArcPins);
     }
 
     public EditingPreferences(boolean factory, TechPool techPool) {
@@ -143,8 +151,22 @@ public class EditingPreferences extends PrefPackage {
                 ImmutableArcInst a = factoryInst.
                         withGridExtendOverMin(DBMath.lambdaToGrid(extend)).
                         withFlags(flags);
-                if (a == factoryInst) continue;
-                defaultArcs.put(apId, a);
+                if (a != factoryInst)
+                    defaultArcs.put(apId, a);
+
+                String keyAngle = getKey(KEY_ANGLE, apId);
+                int factoryAngleIncrement = ap.getFactoryAngleIncrement();
+                int angleIncrement = userPrefs.getInt(keyAngle, factoryAngleIncrement);
+                if (angleIncrement != factoryAngleIncrement)
+                    defaultArcAngleIncrements.put(apId, Integer.valueOf(angleIncrement));
+
+                String keyPin = getKey(KEY_PIN, apId);
+                String arcPinName = techPrefs.get(keyPin, "");
+                if (arcPinName.length() > 0) {
+                    PrimitiveNode pin = tech.findNodeProto(arcPinName);
+                    if (pin != null)
+                        defaultArcPins.put(apId, pin.getId());
+                }
             }
         }
     }
@@ -233,6 +255,27 @@ public class EditingPreferences extends PrefPackage {
                     else
                         userPrefs.putBoolean(keyDirectional, a.isHeadArrowed());
                 }
+
+                Integer angleIncrementObj = defaultArcAngleIncrements.get(apId);
+                if (oldEp == null || angleIncrementObj != oldEp.defaultArcAngleIncrements.get(apId)) {
+                    int factoryAngleIncrement = ap.getFactoryAngleIncrement();
+                    int angleIncrement = angleIncrementObj != null ? angleIncrementObj.intValue() : factoryAngleIncrement;
+                    String keyAngle = getKey(KEY_ANGLE, apId);
+                    if (removeDefaults && angleIncrement == factoryAngleIncrement)
+                        userPrefs.remove(keyAngle);
+                    else
+                        userPrefs.putInt(keyAngle, angleIncrement);
+                }
+
+                PrimitiveNodeId pinId = defaultArcPins.get(apId);
+                if (oldEp == null || pinId != oldEp.defaultArcPins.get(apId)) {
+                    String keyPin = getKey(KEY_PIN, apId);
+                    String pinName = pinId != null ? pinId.name : "";
+                    if (removeDefaults && pinName.length() > 0)
+                        techPrefs.remove(keyPin);
+                    else
+                        techPrefs.put(keyPin, pinName);
+                }
             }
         }
     }
@@ -250,23 +293,47 @@ public class EditingPreferences extends PrefPackage {
 			}
 		}
         if (this.defaultNodes.equals(newDefaultNodes)) return this;
-        return new EditingPreferences(this.techPool, newDefaultNodes, this.defaultArcs);
+        return new EditingPreferences(this.techPool,
+                newDefaultNodes,
+                this.defaultArcs,
+                this.defaultArcAngleIncrements,
+                this.defaultArcPins);
     }
 
-    public EditingPreferences withDefaultArcs(Map<ArcProtoId,ImmutableArcInst> defaultArcs) {
+    public EditingPreferences withArcDefaults(
+            Map<ArcProtoId,ImmutableArcInst> defaultArcs,
+            Map<ArcProtoId,Integer> defaultArcAngleIncrements,
+            Map<ArcProtoId,PrimitiveNodeId> defaultArcPins) {
         HashMap<ArcProtoId,ImmutableArcInst> newDefaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>();
+        HashMap<ArcProtoId,Integer> newDefaultArcAngleIncrements = new HashMap<ArcProtoId,Integer>();
+        HashMap<ArcProtoId,PrimitiveNodeId> newDefaultArcPins = new HashMap<ArcProtoId,PrimitiveNodeId>();
 		for(Technology tech: techPool.values()) {
 			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
 				ArcProto ap = it.next();
-                ImmutableArcInst a = defaultArcs.get(ap.getId());
-                if (a == null) continue;
-                if (a.protoId != ap.getId())
-                    throw new IllegalArgumentException();
-                newDefaultArcs.put(ap.getId(), a);
+                ArcProtoId apId = ap.getId();
+
+                ImmutableArcInst a = defaultArcs.get(apId);
+                if (a != null) {
+                    if (a.protoId != apId)
+                        throw new IllegalArgumentException();
+                    newDefaultArcs.put(apId, a);
+                }
+
+                Integer angleIncrement = defaultArcAngleIncrements.get(apId);
+                if (angleIncrement != null)
+                    newDefaultArcAngleIncrements.put(apId, angleIncrement);
+
+                PrimitiveNodeId arcPinId = defaultArcPins.get(apId);
+                if (arcPinId != null)
+                    newDefaultArcPins.put(apId, arcPinId);
 			}
 		}
         if (this.defaultArcs.equals(newDefaultArcs)) return this;
-        return new EditingPreferences(this.techPool, this.defaultNodes, newDefaultArcs);
+        return new EditingPreferences(this.techPool,
+                this.defaultNodes,
+                newDefaultArcs,
+                newDefaultArcAngleIncrements,
+                newDefaultArcPins);
     }
 
     public ImmutableNodeInst getDefaultNode(PrimitiveNodeId pnId) {
@@ -275,6 +342,14 @@ public class EditingPreferences extends PrefPackage {
 
     public ImmutableArcInst getDefaultArc(ArcProtoId apId) {
         return defaultArcs.get(apId);
+    }
+
+    public Integer getDefaultAngleIncrement(ArcProtoId apId) {
+        return defaultArcAngleIncrements.get(apId);
+    }
+
+    public PrimitiveNodeId getDefaultArcPinId(ArcProtoId apId) {
+        return defaultArcPins.get(apId);
     }
 
     public static EditingPreferences getThreadEditingPreferences() {

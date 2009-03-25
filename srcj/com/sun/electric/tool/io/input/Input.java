@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -57,6 +58,7 @@ public class Input
 	/** The input stream. */								protected DataInputStream dataInputStream;
 	/** The length of the file. */							protected long fileLength;
 	/** the number of bytes of data read so far */			protected long byteCount;
+    /** editing preferences */                              protected EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
 
 	// ---------------------- private and protected methods -----------------
 
