@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: SnapshotReader.java
+ * File: IdReader.java
  * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
@@ -42,14 +42,14 @@ import java.util.ArrayList;
 /**
  */
 public class IdReader {
-    
+
     public final IdManager idManager;
     private final DataInputStream in;
     private final ArrayList<Variable.Key> varKeys = new ArrayList<Variable.Key>();
     private final ArrayList<TextDescriptor> textDescriptors = new ArrayList<TextDescriptor>();
     private final ArrayList<Tool> tools = new ArrayList<Tool>();
     private final ArrayList<Orientation> orients = new ArrayList<Orientation>();
-   
+
     /** Creates a new instance of SnapshotWriter */
     public IdReader(DataInputStream in, IdManager idManager) {
         if (in == null || idManager == null) throw new NullPointerException();
@@ -65,7 +65,7 @@ public class IdReader {
             oldCellIdsCount = idManager.cellIds.size();
         }
         int techIdsCount = readInt();
-        for (int techIndex = oldTechIdsCount; techIndex < techIdsCount; techIndex++) 
+        for (int techIndex = oldTechIdsCount; techIndex < techIdsCount; techIndex++)
             idManager.newTechId(readString());
         int libIdsCount = readInt();
         for (int libIndex = oldLibIdsCount; libIndex < libIdsCount; libIndex++)
@@ -84,19 +84,25 @@ public class IdReader {
             int techIndex = readInt();
             if (techIndex == -1) break;
             TechId techId = idManager.getTechId(techIndex);
-            
+
+            int numNewLayerIds = readInt();
+            for (int i = 0; i < numNewLayerIds; i++) {
+                String layerName = readString();
+                techId.newLayerId(layerName);
+            }
+
             int numNewArcProtoIds = readInt();
             for (int i = 0; i < numNewArcProtoIds; i++) {
                 String arcProtoName = readString();
                 techId.newArcProtoId(arcProtoName);
             }
-            
+
             int numNewPrimitiveNodeIds = readInt();
             for (int i = 0; i < numNewPrimitiveNodeIds; i++) {
                 String primitiveNodeName = readString();
                 techId.newPrimitiveNodeId(primitiveNodeName);
             }
-            
+
             for (;;) {
                 int primIndex = readInt();
                 if (primIndex == -1) break;
@@ -119,7 +125,7 @@ public class IdReader {
             }
         }
     }
-    
+
     /**
      * Reads boolean.
      * @return boolean.
@@ -186,7 +192,7 @@ public class IdReader {
         in.readFully(bytes);
         return bytes;
     }
-    
+
      /**
      * Reads string.
      * @return string.
@@ -234,7 +240,7 @@ public class IdReader {
         }
         return textDescriptors.get(i);
     }
-    
+
     /**
      * Reads Tool.
      * @return Tool.
@@ -248,7 +254,7 @@ public class IdReader {
         }
         return tools.get(i);
     }
-    
+
     /**
      * Reads TechId.
      * @return TechId.
@@ -257,7 +263,7 @@ public class IdReader {
         int techIndex = in.readInt();
         return idManager.getTechId(techIndex);
     }
-    
+
     /**
      * Reads ArcProtoId.
      * @return ArcProtoId.
@@ -276,7 +282,7 @@ public class IdReader {
         int libIndex = in.readInt();
         return idManager.getLibId(libIndex);
     }
-    
+
     /**
      * Reads NodeProtoId.
      * @return NodeProtoId.
@@ -291,7 +297,7 @@ public class IdReader {
             return techId.getPrimitiveNodeId(chronIndex);
         }
     }
-    
+
     /**
      * Reads PortProtoId.
      * @return PortProtoId.
@@ -301,7 +307,7 @@ public class IdReader {
         int chronIndex = in.readInt();
         return nodeProtoId.getPortId(chronIndex);
     }
-    
+
    /**
      * Reads node id.
      * @return node id.
@@ -342,7 +348,7 @@ public class IdReader {
         }
         return orients.get(i);
     }
-    
+
     /**
      * Reads grid coordiante.
      * @return coordinate.
@@ -350,7 +356,7 @@ public class IdReader {
     public long readCoord() throws IOException {
         return in.readLong();
     }
-    
+
     /**
      * Reads EPoint.
      * @return EPoint.
@@ -360,7 +366,7 @@ public class IdReader {
         long y = readCoord();
         return EPoint.fromGrid(x, y);
     }
-    
+
     /**
      * Reads ERectangle.
      * @return ERectangle.

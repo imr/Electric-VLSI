@@ -44,13 +44,17 @@ import java.util.Map;
 public final class TechId implements Serializable {
     /** Empty TechId array for initialization. */
     public static final TechId[] NULL_ARRAY = {};
-    
+
     /** IdManager which owns this TechId. */
     public final IdManager idManager;
     /** Technology name */
     public final String techName;
     /** Unique index of this TechId. */
     public final int techIndex;
+    /** List of LayerIds created so far. */
+    final ArrayList<LayerId> layerIds = new ArrayList<LayerId>();
+    /** HashMap of LayerIds by their name. */
+    private final HashMap<String,LayerId> layerIdsByName = new HashMap<String,LayerId>();
     /** List of ArcProtoIds created so far. */
     final ArrayList<ArcProtoId> arcProtoIds = new ArrayList<ArcProtoId>();
     /** HashMap of ArcProtoIds by their name. */
@@ -62,9 +66,9 @@ public final class TechId implements Serializable {
     /**
      * Variable which is incremented every time when ArcProtoId, PrimitiveNodeId or PrimitiveNodeId is
      * created below this TechId
-     */ 
+     */
     volatile int modCount;
-    
+
     /**
      * TechId constructor.
      */
@@ -77,27 +81,66 @@ public final class TechId implements Serializable {
         this.techName = techName;
         this.techIndex = techIndex;
     }
-    
+
     private Object writeReplace() { return new TechIdKey(this); }
-    
+
     private static class TechIdKey extends EObjectInputStream.Key<TechId> {
         public TechIdKey() {}
         private TechIdKey(TechId techId) { super(techId); }
-        
+
         @Override
         public void writeExternal(EObjectOutputStream out, TechId techId) throws IOException {
             if (techId.idManager != out.getIdManager())
                 throw new NotSerializableException(techId + " from other IdManager");
             out.writeInt(techId.techIndex);
         }
-        
+
         @Override
         public TechId readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             int techIndex = in.readInt();
             return in.getIdManager().getTechId(techIndex);
         }
     }
-    
+
+    /**
+     * Returns a number LayerIds in this TechId.
+     * This number may grow in time.
+     * @return a number of LayerIds.
+     */
+    synchronized int numLayerIds() {
+        return layerIds.size();
+    }
+
+    /**
+     * Returns LayerId in this TechId with specified chronological index.
+     * @param chronIndex chronological index of LayerId.
+     * @return LayerId with specified chronological index.
+     * @throws ArrayIndexOutOfBoundsException if no such ArcProtoId.
+     */
+    synchronized LayerId getLayerId(int chronIndex) {
+        return layerIds.get(chronIndex);
+    }
+
+    /**
+     * Returns LayerId with specified layerName.
+     * @param layerName layer name.
+     * @return LayerId with specified layerName.
+     */
+    public synchronized LayerId newLayerId(String layerName) {
+        LayerId layerId = layerIdsByName.get(layerName);
+        return layerId != null ? layerId : newLayerIdInternal(layerName);
+    }
+
+    private LayerId newLayerIdInternal(String layerName) {
+        int chronIndex = layerIds.size();
+        LayerId layerId = new LayerId(this, layerName, layerIds.size());
+        layerIds.add(layerId);
+        layerIdsByName.put(layerName, layerId);
+        assert layerIds.size() == layerIdsByName.size();
+        modCount++;
+        return layerId;
+    }
+
     /**
      * Returns a number ArcProtoIds in this TechId.
      * This number may grow in time.
@@ -106,7 +149,7 @@ public final class TechId implements Serializable {
     synchronized int numArcProtoIds() {
         return arcProtoIds.size();
     }
-    
+
     /**
      * Returns ArcProtoId in this TechId with specified chronological index.
      * @param chronIndex chronological index of ArcProtoId.
@@ -116,7 +159,7 @@ public final class TechId implements Serializable {
     synchronized ArcProtoId getArcProtoId(int chronIndex) {
         return arcProtoIds.get(chronIndex);
     }
-    
+
     /**
      * Returns ArcProtoId with specified arcProtoName.
      * @param arcProtoName arc proto name.
@@ -126,7 +169,7 @@ public final class TechId implements Serializable {
         ArcProtoId arcProtoId = arcProtoIdsByName.get(arcProtoName);
         return arcProtoId != null ? arcProtoId : newArcProtoIdInternal(arcProtoName);
     }
-    
+
     private ArcProtoId newArcProtoIdInternal(String arcProtoName) {
         int chronIndex = arcProtoIds.size();
         ArcProtoId arcProtoId = new ArcProtoId(this, arcProtoName, arcProtoIds.size());
@@ -136,7 +179,7 @@ public final class TechId implements Serializable {
         modCount++;
         return arcProtoId;
     }
-    
+
     /**
      * Returns a number PrimitiveNodeIds in this TechId.
      * This number may grow in time.
@@ -145,7 +188,7 @@ public final class TechId implements Serializable {
     synchronized int numPrimitiveNodeIds() {
         return primitiveNodeIds.size();
     }
-    
+
     /**
      * Returns PrimitiveNodeId in this TechId with specified chronological index.
      * @param chronIndex chronological index of PrimitiveNodeId.
@@ -155,7 +198,7 @@ public final class TechId implements Serializable {
     synchronized PrimitiveNodeId getPrimitiveNodeId(int chronIndex) {
         return primitiveNodeIds.get(chronIndex);
     }
-    
+
     /**
      * Returns PrimitiveNodeId with specified primitiveNodeName.
      * @param primitiveNodeName primitive node name.
@@ -165,7 +208,7 @@ public final class TechId implements Serializable {
         PrimitiveNodeId primitiveNodeId = primitiveNodeIdsByName.get(primitiveNodeName);
         return primitiveNodeId != null ? primitiveNodeId : newPrimitiveNodeIdInternal(primitiveNodeName);
     }
-    
+
     private PrimitiveNodeId newPrimitiveNodeIdInternal(String primitiveNodeName) {
         int chronIndex = primitiveNodeIds.size();
         PrimitiveNodeId primitiveNodeId = new PrimitiveNodeId(this, primitiveNodeName, primitiveNodeIds.size());
@@ -175,7 +218,7 @@ public final class TechId implements Serializable {
         modCount++;
         return primitiveNodeId;
     }
-    
+
     /**
      * Method to return the Technology representing TechId in the specified EDatabase.
      * @param database EDatabase where to get from.
@@ -183,13 +226,13 @@ public final class TechId implements Serializable {
      * This method is not properly synchronized.
      */
     public Technology inDatabase(EDatabase database) { return database.getTech(this); }
-    
+
 	/**
 	 * Returns a printable version of this TechId.
 	 * @return a printable version of this TechId.
 	 */
     public String toString() { return techName; }
-    
+
 	/**
 	 * Checks invariants in this TechId.
      * @exception AssertionError if invariants are not valid
@@ -208,7 +251,7 @@ public final class TechId implements Serializable {
             arcProtoId.check();
             assert arcProtoIdsByName.get(arcProtoId.name) == arcProtoId;
         }
-        
+
         for (Map.Entry<String,PrimitiveNodeId> e: primitiveNodeIdsByName.entrySet()) {
             PrimitiveNodeId primitiveNodeId = e.getValue();
             assert primitiveNodeId.techId == this;
@@ -221,7 +264,7 @@ public final class TechId implements Serializable {
             assert primitiveNodeIdsByName.get(primitiveNodeId.name) == primitiveNodeId;
         }
     }
-    
+
 	/**
 	 * Method checks that string is safe to write into JELIB file without
 	 * conversion.

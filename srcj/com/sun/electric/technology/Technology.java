@@ -37,6 +37,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.LayerId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.NodeProto;
@@ -893,7 +894,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** the color map for this technology */				private Color [] colorMap;
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
 	/** map from layer names to layers in this technology */private final HashMap<String,Layer> layersByName = new HashMap<String,Layer>();
-//	private static Map<String,Pref> gdsLayerPrefs = new HashMap<String,Pref>();
+    /** array of layers by layerId.chronIndex */            private Layer[] layersByChronIndex = {};
     /** True when layer allocation is finished. */          private boolean layersAllocationLocked;
 
 	/** list of primitive nodes in this technology */		private final LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
@@ -1872,6 +1873,28 @@ public class Technology implements Comparable<Technology>, Serializable
 	}
 
 	/**
+	 * Returns the Layer in this technology with a particular Id
+	 * @param layerId the Id of the Layer.
+	 * @return the Layer in this technology with that Id.
+	 */
+	public Layer getLayer(LayerId layerId)
+	{
+        assert layerId.techId == techId;
+        int chronIndex = layerId.chronIndex;
+        return chronIndex < layersByChronIndex.length ? layersByChronIndex[chronIndex] : null;
+	}
+
+	/**
+	 * Returns the Layer in this technology with a particular chron index
+	 * @param chronIndex index the Id of the Layer.
+	 * @return the Layer in this technology with that Id.
+	 */
+	Layer getLayerByChronIndex(int chronIndex)
+	{
+        return chronIndex < layersByChronIndex.length ? layersByChronIndex[chronIndex] : null;
+	}
+
+	/**
 	 * Returns a specific Layer number in this Technology.
 	 * @param index the index of the desired Layer.
 	 * @return the indexed Layer in this Technology.
@@ -1989,7 +2012,16 @@ public class Technology implements Comparable<Technology>, Serializable
             throw new IllegalStateException("layers allocation is locked");
         layer.setIndex(layers.size());
         layers.add(layer);
-        layersByName.put(layer.getName(), layer);
+        Layer oldLayer = layersByName.put(layer.getName(), layer);
+        assert oldLayer == null;
+        LayerId layerId = layer.getId();
+        if (layerId.chronIndex >= layersByChronIndex.length) {
+            Layer[] newLayersByChronIndex = new Layer[layerId.chronIndex + 1];
+            System.arraycopy(layersByChronIndex, 0, newLayersByChronIndex, 0, layersByChronIndex.length);
+            layersByChronIndex = newLayersByChronIndex;
+        }
+        assert layersByChronIndex[layerId.chronIndex] == null;
+        layersByChronIndex[layerId.chronIndex] = layer;
 	}
 
 	/**

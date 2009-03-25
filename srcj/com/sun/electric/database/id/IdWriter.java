@@ -40,7 +40,7 @@ import java.util.HashMap;
  * Class to write trace of Snapshots to DataOutput byte sequence.
  */
 public class IdWriter {
-    
+
     public final IdManager idManager;
     private final DataOutputStream out;
     private TechCounts[] techCounts = {}; // One entry is for Generic technology
@@ -50,13 +50,14 @@ public class IdWriter {
     private HashMap<TextDescriptor,Integer> textDescriptors = new HashMap<TextDescriptor,Integer>();
     private HashMap<Tool,Integer> tools = new HashMap<Tool,Integer>();
     private HashMap<Orientation,Integer> orients = new HashMap<Orientation,Integer>();
-    
+
     private static class TechCounts {
         int modCount;
+        int layerCount;
         int arcCount;
         int[] portCounts = {};
     }
-   
+
     /** Creates a new instance of SnapshotWriter */
     public IdWriter(IdManager idManager, DataOutputStream out) {
         this.idManager = idManager;
@@ -72,7 +73,7 @@ public class IdWriter {
             libIdsArray = idManager.libIds.toArray(LibId.NULL_ARRAY);
             cellIdsArray = idManager.cellIds.toArray(CellId.NULL_ARRAY);
         }
-        
+
         writeInt(techIdsArray.length);
         if (techIdsArray.length != techCounts.length) {
             TechCounts[] newTechCounts = new TechCounts[techIdsArray.length];
@@ -84,14 +85,14 @@ public class IdWriter {
             }
             techCounts = newTechCounts;
         }
-        
+
         writeInt(libIdsArray.length);
         for (int libIndex = libCount; libIndex < libIdsArray.length; libIndex++) {
             LibId libId = libIdsArray[libIndex];
             writeString(libId.libName);
         }
         libCount = libIdsArray.length;
-        
+
         writeInt(cellIdsArray.length);
         if (cellIdsArray.length != exportCounts.length) {
             int[] newExportCounts = new int[cellIdsArray.length];
@@ -103,14 +104,22 @@ public class IdWriter {
             }
             exportCounts = newExportCounts;
         }
-        
+
         for (int techIndex = 0; techIndex < techIdsArray.length; techIndex++) {
             TechId techId = techIdsArray[techIndex];
             TechCounts techCount = techCounts[techIndex];
             int modCount = techId.modCount;
             if (modCount == techCount.modCount) continue;
-            
+
             writeInt(techIndex);
+
+            int numLayerIds = techId.numLayerIds();
+            int numNewLayerIds = numLayerIds - techCount.layerCount;
+            assert numNewLayerIds >= 0;
+            writeInt(numNewLayerIds);
+            for (int i = 0; i < numNewLayerIds; i++)
+                writeString(techId.getLayerId(techCount.layerCount + i).name);
+            techCount.layerCount = numLayerIds;
 
             int numArcProtoIds = techId.numArcProtoIds();
             int numNewArcProtoIds = numArcProtoIds - techCount.arcCount;
@@ -138,7 +147,7 @@ public class IdWriter {
                 int numNewPrimitivePortIds = numPrimitivePortIds - techCount.portCounts[primIndex];
                 assert numNewPrimitivePortIds >= 0;
                 if (numNewPrimitivePortIds == 0) continue;
-                
+
                 writeInt(primIndex);
                 writeInt(numNewPrimitivePortIds);
                 for (int i = 0; i < numNewPrimitivePortIds; i++)
@@ -146,11 +155,11 @@ public class IdWriter {
                 techCount.portCounts[primIndex] = numPrimitivePortIds;
             }
             writeInt(-1);
-            
+
             techCount.modCount = modCount;
         }
         writeInt(-1);
-        
+
         for (int cellIndex = 0; cellIndex < cellIdsArray.length; cellIndex++) {
             CellId cellId = cellIdsArray[cellIndex];
             int numExportIds = cellId.numExportIds();
@@ -167,12 +176,12 @@ public class IdWriter {
         }
         writeInt(-1);
     }
-    
+
     /** Flushes this SnapshotWriter */
     public void flush() throws IOException {
         out.flush();
     }
-    
+
     /**
      * Writes boolean.
      * @param v boolean to write.
@@ -180,7 +189,7 @@ public class IdWriter {
     public void writeBoolean(boolean v) throws IOException {
         out.writeBoolean(v);
     }
-    
+
     /**
      * Writes byte.
      * @param v byte to write.
@@ -188,7 +197,7 @@ public class IdWriter {
     public void writeByte(byte v) throws IOException {
         out.writeByte(v);
     }
-    
+
     /**
      * Writes short.
      * @param v short to write.
@@ -196,7 +205,7 @@ public class IdWriter {
     public void writeShort(short v) throws IOException {
         out.writeShort(v);
     }
-    
+
     /**
      * Writes integer.
      * @param v integer to write.
@@ -204,7 +213,7 @@ public class IdWriter {
     public void writeInt(int v) throws IOException {
         out.writeInt(v);
     }
-    
+
     /**
      * Writes long.
      * @param v long to write.
@@ -212,7 +221,7 @@ public class IdWriter {
     public void writeLong(long v) throws IOException {
         out.writeLong(v);
     }
-    
+
     /**
      * Writes float.
      * @param v float to write.
@@ -237,7 +246,7 @@ public class IdWriter {
         out.writeInt(v.length);
         out.write(v);
     }
-    
+
     /**
      * Writes string.
      * @param s string to write.
@@ -258,7 +267,7 @@ public class IdWriter {
             i = new Integer(varKeys.size());
             varKeys.put(key, i);
             out.writeInt(i.intValue());
-            
+
             out.writeUTF((key.toString()));
         }
     }
@@ -279,7 +288,7 @@ public class IdWriter {
             i = new Integer(textDescriptors.size());
             textDescriptors.put(td, i);
             out.writeInt(i.intValue());
-            
+
             out.writeLong(td.lowLevelGet());
             out.writeInt(td.getColorIndex());
             out.writeBoolean(td.isDisplay());
@@ -288,7 +297,7 @@ public class IdWriter {
             out.writeUTF(fontName);
         }
     }
-    
+
     /**
      * Writes Tool.
      * @param tool Tool to write.
@@ -304,7 +313,7 @@ public class IdWriter {
             out.writeUTF(tool.getName());
         }
     }
-    
+
     /**
      * Writes TechId.
      * @param techId TechId to write.
@@ -313,7 +322,7 @@ public class IdWriter {
         assert techId.idManager == idManager;
         out.writeInt(techId.techIndex);
     }
-    
+
     /**
      * Writes ArcProtoId.
      * @param arcProtoId ArcProtoId to write.
@@ -330,7 +339,7 @@ public class IdWriter {
     public void writeLibId(LibId libId) throws IOException {
         out.writeInt(libId.libIndex);
     }
-    
+
     /**
      * Writes NodeProtoId.
      * @param nodeProtoId NodeProtoId to write.
@@ -347,7 +356,7 @@ public class IdWriter {
             writeTechId(pnId.techId);
         }
     }
-    
+
     /**
      * Writes PortProtoId.
      * @param portProtoId PortProtoId to write.
@@ -356,7 +365,7 @@ public class IdWriter {
         writeNodeProtoId(portProtoId.getParentId());
         out.writeInt(portProtoId.getChronIndex());
     }
-    
+
    /**
      * Writes node id.
      * @param nodeId node id to write.
@@ -380,7 +389,7 @@ public class IdWriter {
     public void writeNameKey(Name nameKey) throws IOException {
         out.writeUTF(nameKey.toString());
     }
-    
+
     /**
      * Writes Orientation.
      * @param orient Orientation.
@@ -393,13 +402,13 @@ public class IdWriter {
             i = new Integer(orients.size());
             orients.put(orient, i);
             out.writeInt(i.intValue());
-            
+
             out.writeShort(orient.getAngle());
             out.writeBoolean(orient.isXMirrored());
             out.writeBoolean(orient.isYMirrored());
         }
     }
-    
+
     /**
      * Writes coordiante.
      * @param v gridCooridnate.
@@ -407,7 +416,7 @@ public class IdWriter {
     public void writeCoord(long v) throws IOException {
         out.writeLong(v);
     }
-    
+
     /**
      * Writes EPoint.
      * @param p EPoint.
@@ -416,7 +425,7 @@ public class IdWriter {
         writeCoord(p.getGridX());
         writeCoord(p.getGridY());
     }
-    
+
     /**
      * Writes ERectangle.
      * @param r ERectangle.

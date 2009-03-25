@@ -23,9 +23,12 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.id.LayerId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
@@ -34,7 +37,11 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Resources;
 
 import java.awt.Color;
+import java.io.IOException;
+import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,7 +57,7 @@ import java.util.Map;
  * The Layers are defined by the PrimitiveNode and ArcProto classes, and are used in the generation of geometry.
  * In addition, layers have extra information that is used for output and behavior.
  */
-public class Layer
+public class Layer implements Serializable
 {
     public static final double DEFAULT_THICKNESS = 0; // 3D default thickness
     public static final double DEFAULT_DISTANCE = 0; // 3D default distance
@@ -662,6 +669,7 @@ public class Layer
      * End of Layer Comparators
      ***************************************************************************************************/
 
+    private final LayerId layerId;
 	private final String name;
     private final boolean isFree;
 	private int index = -1; // contains index in technology or -1 for standalone layers
@@ -703,6 +711,7 @@ public class Layer
 
 	private Layer(String name, boolean isFree, boolean pseudo, Technology tech, EGraphics graphics)
 	{
+        layerId = isFree ? null : tech.getId().newLayerId(name);
 		this.name = name;
         this.isFree = isFree;
 		this.tech = tech;
@@ -724,6 +733,31 @@ public class Layer
 		this.function = Function.UNKNOWN;
         areaCoveragePref = makeDoubleServerPref("AreaCoverageJob", DEFAULT_AREA_COVERAGE);
 	}
+
+    protected Object writeReplace() { return new LayerKey(this); }
+
+    private static class LayerKey extends EObjectInputStream.Key<Layer> {
+        public LayerKey() {}
+        private LayerKey(Layer layer) { super(layer); }
+
+        @Override
+        public void writeExternal(EObjectOutputStream out, Layer layer) throws IOException {
+            if (layer.isFree())
+                throw new NotSerializableException();
+            out.writeObject(layer.getTechnology());
+            out.writeInt(layer.getId().chronIndex);
+        }
+
+        @Override
+        public Layer readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
+            Technology tech = (Technology)in.readObject();
+            int chronIndex = in.readInt();
+            Layer layer = tech.getLayerByChronIndex(chronIndex);
+            if (layer == null)
+                throw new InvalidObjectException("arc proto not found");
+            return layer;
+        }
+    }
 
 	/**
 	 * Method to create a new layer with the given name and graphics.
@@ -770,7 +804,7 @@ public class Layer
 	 */
     public Layer makePseudo() {
             assert pseudoLayer == null;
-        String pseudoLayerName = "Pseudo-" + name;
+        String pseudoLayerName = "Pseudo-" + getName();
         pseudoLayer = new Layer(pseudoLayerName, false, true, tech, graphics);
         pseudoLayer.setFunction(function, functionExtras);
         pseudoLayer.nonPseudoLayer = this;
@@ -778,10 +812,23 @@ public class Layer
     }
 
 	/**
+	 * Method to return the Id of this Layer.
+	 * @return the Id of this Layer.
+	 */
+	public LayerId getId() { return layerId; }
+
+	/**
 	 * Method to return the name of this Layer.
 	 * @return the name of this Layer.
 	 */
 	public String getName() { return name; }
+
+	/**
+	 * Method to return the full name of this Layer.
+	 * Full name has format "techName:layerName"
+	 * @return the full name of this Layer.
+	 */
+	public String getFullName() { return layerId != null ? layerId.fullName : ":" + name; }
 
 	/**
 	 * Method to return the index of this Layer.
@@ -1106,16 +1153,16 @@ public class Layer
 
     private Setting makeLayerSetting(String what, String factory) {
         String techName = tech.getTechName();
-        return getSubNode(what).makeStringSetting(what + "LayerFor" + name + "IN" + techName,
+        return getSubNode(what).makeStringSetting(what + "LayerFor" + getName() + "IN" + techName,
                 tech.getTechnologyPreferences().relativePath(),
-                name, what + " tab", what + " for layer " + name + " in technology " + techName, factory);
+                getName(), what + " tab", what + " for layer " + getName() + " in technology " + techName, factory);
     }
 
     private Setting makeParasiticSetting(String what, double factory)
     {
-        return getSubNode(what).makeDoubleSetting(what + "ParasiticFor" + name + "IN" + tech.getTechName(),
+        return getSubNode(what).makeDoubleSetting(what + "ParasiticFor" + getName() + "IN" + tech.getTechName(),
                 tech.getTechnologyPreferences().relativePath(),
-                name, "Parasitic tab", "Technology " + tech.getTechName() + ", " + what + " for layer " + name, factory);
+                getName(), "Parasitic tab", "Technology " + tech.getTechName() + ", " + what + " for layer " + getName(), factory);
     }
 
     private Setting.Group getSubNode(String type) {
@@ -1131,7 +1178,7 @@ public class Layer
     private Pref makeStringPref(String what, String factory)
 	{
         if (isFree() || isPseudoLayer()) return null;
-        return Pref.makeStringPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
+        return Pref.makeStringPref(what + "Of" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
     /**
@@ -1143,7 +1190,7 @@ public class Layer
     private Pref makeBooleanPref(String what, boolean factory)
 	{
         if (isFree() || isPseudoLayer()) return null;
-        return Pref.makeBooleanPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
+        return Pref.makeBooleanPref(what + "Of" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
 	/**
@@ -1155,7 +1202,7 @@ public class Layer
 	private Pref makeDoublePref(String what, double factory)
 	{
         if (isFree() || isPseudoLayer()) return null;
-        return Pref.makeDoublePref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
+        return Pref.makeDoublePref(what + "Of" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
 	/**
@@ -1167,7 +1214,7 @@ public class Layer
 	private Pref makeIntegerPref(String what, int factory)
 	{
         if (isFree() || isPseudoLayer()) return null;
-        return Pref.makeIntPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
+        return Pref.makeIntPref(what + "Of" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
 	/**
@@ -1179,7 +1226,7 @@ public class Layer
 	private Pref makeDoubleServerPref(String what, double factory)
 	{
         if (isFree() || isPseudoLayer()) return null;
-        return Pref.makeDoubleServerPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
+        return Pref.makeDoubleServerPref(what + "Of" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
 	/**
@@ -1607,7 +1654,7 @@ public class Layer
 	 */
 	public String toString()
 	{
-		return "Layer " + name;
+		return "Layer " + getName();
 	}
 
     public void copyState(Layer that) {

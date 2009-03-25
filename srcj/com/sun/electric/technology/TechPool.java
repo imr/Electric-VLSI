@@ -31,6 +31,7 @@ import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
+import com.sun.electric.database.id.LayerId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.id.TechId;
@@ -288,6 +289,19 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         }
         int techIndex = techId.techIndex;
         return techIndex < states.length ? states[techIndex] : null;
+    }
+
+    /**
+     * Get Layer by LayerId
+     * LayerId must belong to same IdManager as TechPool
+     * @param layerId LayerId to find
+     * @return Layer by given LayerId or null
+     * @throws IllegalArgumentException if TechId is not from this IdManager
+     */
+    public Layer getLayer(LayerId layerId) {
+        Technology tech = getTech(layerId.techId);
+        if (tech == null) return null;
+        return tech.getLayerByChronIndex(layerId.chronIndex);
     }
 
     /**
