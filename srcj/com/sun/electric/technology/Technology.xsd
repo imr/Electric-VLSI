@@ -884,6 +884,14 @@
                                         <xsd:attribute name="fun" type="tns:PrimitiveNodeFun" use="required"/>
                                     </xsd:complexType>
                                 </xsd:element>
+                                <xsd:element name="shrinkArcs" minOccurs="0"/>
+                                <xsd:element name="square" minOccurs="0"/>
+                                <xsd:element name="canBeZeroSize" minOccurs="0"/>
+                                <xsd:element name="wipes" minOccurs="0"/>
+                                <xsd:element name="lockable" minOccurs="0"/>
+                                <xsd:element name="edgeSelect" minOccurs="0"/>
+                                <xsd:element name="skipSizeInPalette" minOccurs="0"/>
+                                <xsd:element name="notUsed" minOccurs="0"/>
                                 <xsd:group ref="tns:PrimitiveNodeImpl"/>
                             </xsd:sequence>
                             <!-- Deprecated attributes -->
