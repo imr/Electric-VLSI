@@ -425,6 +425,7 @@
             <xsd:enumeration value="thick"/>
             <xsd:enumeration value="native"/>
             <xsd:enumeration value="deep"/>
+            <xsd:enumeration value="carb-nano"/>
         </xsd:restriction>
     </xsd:simpleType>
 

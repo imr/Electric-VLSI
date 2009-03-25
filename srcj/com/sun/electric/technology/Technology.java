@@ -405,6 +405,9 @@ public class Technology implements Comparable<Technology>, Serializable
         /** key of Variable for overridint cut alignent */      public static final Variable.Key CUT_ALIGNMENT = Variable.newKey("CUT_alignment");
 		/** key of Variable for overriding metal surround. */	public static final Variable.Key METAL_OFFSETS = Variable.newKey("METAL_offsets");
 
+		/** key of Variable for number of tubes in CNFET. */	public static final Variable.Key CARBON_NANOTUBE_COUNT = Variable.newKey("CARBON_NANOTUBE_count");
+		/** key of Variable for spacing of tubes in CNFET. */	public static final Variable.Key CARBON_NANOTUBE_PITCH = Variable.newKey("CARBON_NANOTUBE_pitch");
+
 		/** CUT_ALIGNMENT: cuts centered in the node */         public static final int MULTICUT_CENTERED = 0;
 		/** CUT_ALIGNMENT: cuts spread to edges of node */      public static final int MULTICUT_SPREAD = 1;
 		/** CUT_ALIGNMENT: cuts pushed to corner of node */     public static final int MULTICUT_CORNER = 2;
@@ -3057,6 +3060,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		int numExtraLayers = 0;
 		MultiCutData mcd = null;
 		SerpentineTrans std = null;
+		CarbonNanotube cnd = null;
 		if (np.hasMultiCuts())
 		{
             for (NodeLayer nodeLayer: primLayers) {
@@ -3074,6 +3078,16 @@ public class Technology implements Comparable<Technology>, Serializable
 				numExtraLayers = std.layersTotal;
 				numBasicLayers = 0;
 			}
+		} else if (np.getFunction() == PrimitiveNode.Function.TRANMOSCN || np.getFunction() == PrimitiveNode.Function.TRAPMOSCN)
+		{
+            for (NodeLayer nodeLayer: primLayers)
+            {
+                if (nodeLayer.layer.isCarbonNanotubeLayer())
+                {
+                	cnd = new CarbonNanotube(ni.getD(), fullRectangle, nodeLayer);
+                    numExtraLayers += (cnd.numTubes - 1);
+                }
+           }
 		}
 
 		// determine the number of negating bubbles
@@ -3098,6 +3112,20 @@ public class Technology implements Comparable<Technology>, Serializable
 		for(int i = 0; i < numBasicLayers; i++)
 		{
 			Technology.NodeLayer primLayer = primLayers[i];
+	        if (cnd != null && primLayer == cnd.tubeLayer)
+	        {
+	            Poly.Type style = primLayer.getStyle();
+	            PortProto port = null;
+	            for(int j = 0; j < cnd.numTubes; j++)
+	            {
+	                polys[fillPoly] = cnd.fillCutPoly(ni.getD(), j);
+	                polys[fillPoly].setStyle(style);
+	                polys[fillPoly].setLayer(primLayer.getLayer());
+	                polys[fillPoly].setPort(port);
+	                fillPoly++;
+	            }
+	            continue;
+	        }
 
 			int representation = primLayer.getRepresentation();
 			if (representation == Technology.NodeLayer.BOX)
@@ -3244,6 +3272,67 @@ public class Technology implements Comparable<Technology>, Serializable
         if (data == null) return false;
 
 		return (isMultiCutInTechnology(data));
+	}
+
+	/**
+	 * Class CarbonNanotube determines the location of carbon nanotube rails in the transistor.
+	 */
+	public static class CarbonNanotube
+	{
+		private ImmutableNodeInst niD;
+		private ERectangle fullRectangle;
+		private NodeLayer tubeLayer;
+		private int numTubes;
+        private long tubeSpacing;
+
+		/**
+		 * Constructor to initialize for carbon nanotube rails.
+		 */
+		public CarbonNanotube(ImmutableNodeInst niD, ERectangle fullRectangle, NodeLayer tubeLayer)
+		{
+			this.niD = niD;
+			this.fullRectangle = fullRectangle;
+			this.tubeLayer = tubeLayer;
+			numTubes = 10;
+            Variable var = niD.getVar(NodeLayer.CARBON_NANOTUBE_COUNT);
+            if (var != null) numTubes = ((Integer)var.getObject()).intValue();
+            tubeSpacing = -1;
+            var = niD.getVar(NodeLayer.CARBON_NANOTUBE_PITCH);
+            if (var != null) tubeSpacing = DBMath.lambdaToGrid(((Double)var.getObject()).doubleValue());
+		}
+
+		/**
+		 * Method to fill in the rails of the carbon nanotube transistor.
+		 * Node is in "ni" and the nanotube number (0 based) is in "r".
+		 */
+		protected Poly fillCutPoly(ImmutableNodeInst ni, int r)
+		{
+        	EPoint size = niD.size;
+            long gridWidth = size.getGridX() + fullRectangle.getGridWidth();
+            long gridHeight = size.getGridY() + fullRectangle.getGridHeight();
+            TechPoint[] techPoints = tubeLayer.points;
+            long lx = techPoints[0].getX().getGridAdder() + (long)(gridWidth*techPoints[0].getX().getMultiplier());
+            long hx = techPoints[1].getX().getGridAdder() + (long)(gridWidth*techPoints[1].getX().getMultiplier());
+            long ly = techPoints[0].getY().getGridAdder() + (long)(gridHeight*techPoints[0].getY().getMultiplier());
+            long hy = techPoints[1].getY().getGridAdder() + (long)(gridHeight*techPoints[1].getY().getMultiplier());
+            if (tubeSpacing < 0) tubeSpacing = (hx-lx) / (numTubes*2-1);
+            long tubeDia = (hx-lx - (numTubes-1)*tubeSpacing) / numTubes;
+            long tubeHalfHeight = (hy-ly) / 2;
+//System.out.println("LAYER FROM "+lx+"<=X<="+hx+" AND "+ly+"<=Y<="+hy+" TUBE SPACING="+tubeSpacing+" TUBE DIAMETER="+tubeDia);
+            long cX = ni.anchor.getGridX() + lx + (tubeDia>>1) + (tubeDia+tubeSpacing)*r;
+            long cY = ni.anchor.getGridY(); // + (ly + hy)>>1;
+            double lX = DBMath.gridToLambda(cX - (tubeDia >> 1));
+            double hX = DBMath.gridToLambda(cX + (tubeDia >> 1));
+            double lY = DBMath.gridToLambda(cY - tubeHalfHeight);
+            double hY = DBMath.gridToLambda(cY + tubeHalfHeight);
+//System.out.println("   SO TUBE "+r+", CENTERED AT ("+cX+","+cY+") IS FROM "+lX+"<=X<="+hX+" AND "+lY+"<=Y<="+hY);
+            Point2D.Double[] points = new Point2D.Double[] {
+                new Point2D.Double(lX, lY),
+                new Point2D.Double(hX, lY),
+                new Point2D.Double(hX, hY),
+                new Point2D.Double(lX, hY)};
+			return new Poly(points);
+		}
 	}
 
 	/**

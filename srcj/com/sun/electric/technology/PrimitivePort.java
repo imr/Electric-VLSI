@@ -322,18 +322,18 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 
 						// see if the port connects to active or poly
 						ArcProto [] connections = pp.getConnections();
-						boolean activeOrPoly = false;
+						boolean wellPort = false;
 						for(int i=0; i<connections.length; i++)
 						{
 							ArcProto con = connections[i];
 							if (con.getTechnology() == Generic.tech()) continue;
-							if (con.getFunction().isDiffusion() || con.getFunction().isPoly())
+							if (con.getFunction() == ArcProto.Function.WELL)
 							{
-								activeOrPoly = true;
+								wellPort = true;
 								break;
 							}
 						}
-						if (!activeOrPoly) wellPorts.add(pp);
+						if (wellPort) wellPorts.add(pp);
 					}
 				}
 			}

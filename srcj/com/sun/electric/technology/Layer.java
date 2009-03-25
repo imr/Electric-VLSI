@@ -81,6 +81,7 @@ public class Layer implements Serializable
     /** Describes a layer that is VTH or VTL */								        private static final int HLVT =      010000000;
     /** Describes a layer that is inside transistor. */								private static final int INTRANS =   020000000;
     /** Describes a thick layer. */								                    private static final int THICK =     040000000;
+    /** Describes a carbon-nanotube Active layer. */								private static final int CARBNANO = 0100000000;
 
     private static final ArrayList<Function> metalLayers = new ArrayList<Function>();
     private static final ArrayList<Function> contactLayers = new ArrayList<Function>();
@@ -109,13 +110,15 @@ public class Layer implements Serializable
 		/** Describes a polysilicon layer 1. */					POLY1     ("poly-1",      0, 0, 1, 12, 0, 0),
 		/** Describes a polysilicon layer 2. */					POLY2     ("poly-2",      0, 0, 2, 13, 0, 0),
 		/** Describes a polysilicon layer 3. */					POLY3     ("poly-3",      0, 0, 3, 14, 0, 0),
-		/** Describes a polysilicon gate layer. */				GATE      ("gate",        0, 0, 0, 15, Layer.INTRANS, 0),
+		/** Describes a polysilicon gate layer. */				GATE      ("gate",        0, 0, 0, 15, INTRANS, 0),
 		/** Describes a diffusion layer. */						DIFF      ("diffusion",   0, 0, 0, 11, 0, 0),
-		/** Describes a P-diffusion layer. */					DIFFP     ("p-diffusion", 0, 0, 0, 11, Layer.PTYPE, 0),
-		/** Describes a N-diffusion layer. */					DIFFN     ("n-diffusion", 0, 0, 0, 11, Layer.NTYPE, 0),
+		/** Describes a P-diffusion layer. */					DIFFP     ("p-diffusion", 0, 0, 0, 11, PTYPE, 0),
+		/** Describes a N-diffusion layer. */					DIFFN     ("n-diffusion", 0, 0, 0, 11, NTYPE, 0),
+		/** Describes a N-diffusion carbon nanotube layer. */	DIFFNCN   ("n-diffusion-cn", 0, 0, 0, 11, NTYPE|CARBNANO, 0),
+		/** Describes a P-diffusion carbon nanotube layer. */	DIFFPCN   ("n-diffusion-cn", 0, 0, 0, 11, NTYPE|CARBNANO, 0),
 		/** Describes an implant layer. */						IMPLANT   ("implant",     0, 0, 0, 2, 0, 0),
-		/** Describes a P-implant layer. */						IMPLANTP  ("p-implant",   0, 0, 0, 2, Layer.PTYPE, 0),
-		/** Describes an N-implant layer. */					IMPLANTN  ("n-implant",   0, 0, 0, 2, Layer.NTYPE, 0),
+		/** Describes a P-implant layer. */						IMPLANTP  ("p-implant",   0, 0, 0, 2, PTYPE, 0),
+		/** Describes an N-implant layer. */					IMPLANTN  ("n-implant",   0, 0, 0, 2, NTYPE, 0),
 		/** Describes a contact layer 1. */						CONTACT1  ("contact-1",   0, 1, 0, 16, 0, 0),
 		/** Describes a contact layer 2. */						CONTACT2  ("contact-2",   0, 2, 0, 18, 0, 0),
 		/** Describes a contact layer 3. */						CONTACT3  ("contact-3",   0, 3, 0, 20, 0, 0),
@@ -138,8 +141,8 @@ public class Layer implements Serializable
 		/** Describes a collector of bipolar transistor. */		COLLECTOR ("collector",   0, 0, 0, 8, 0, 0),
 		/** Describes a substrate layer. */						SUBSTRATE ("substrate",   0, 0, 0, 1, 0, 0),
 		/** Describes a well layer. */							WELL      ("well",        0, 0, 0, 0, 0, 0),
-		/** Describes a P-well layer. */						WELLP     ("p-well",      0, 0, 0, 0, Layer.PTYPE, 0),
-		/** Describes a N-well layer. */						WELLN     ("n-well",      0, 0, 0, 0, Layer.NTYPE, 0),
+		/** Describes a P-well layer. */						WELLP     ("p-well",      0, 0, 0, 0, PTYPE, 0),
+		/** Describes a N-well layer. */						WELLN     ("n-well",      0, 0, 0, 0, NTYPE, 0),
 		/** Describes a guard layer. */							GUARD     ("guard",       0, 0, 0, 9, 0, 0),
 		/** Describes an isolation layer (bipolar). */			ISOLATION ("isolation",   0, 0, 0, 10, 0, 0),
 		/** Describes a bus layer. */							BUS       ("bus",         0, 0, 0, 42, 0, 0),
@@ -195,6 +198,8 @@ public class Layer implements Serializable
         /** Describes a thick layer. */								                    public static final int THICK = Layer.THICK;
         /** Describes a native layer. */								                public static final int NATIVE = Layer.NATIVE;
         /** Describes a deep layer. */								                    public static final int DEEP = Layer.DEEP;
+//        /** Describes a carbon-nanotube Active layer. */								public static final int CARBNANO = Layer.CARBNANO;
+        
 
         private final String name;
         private final boolean isMetal;
@@ -203,7 +208,7 @@ public class Layer implements Serializable
 		private int level;
 		private final int height;
 		private final int extraBits;
-		private static final int [] extras = {PTYPE, NTYPE, DEPLETION, ENHANCEMENT, LIGHT, HEAVY, /*PSEUDO,*/ NONELEC, CONMETAL, CONPOLY, CONDIFF, HLVT, INTRANS, THICK};
+		private static final int [] extras = {PTYPE, NTYPE, DEPLETION, ENHANCEMENT, LIGHT, HEAVY, /*PSEUDO,*/ NONELEC, CONMETAL, CONPOLY, CONDIFF, HLVT, INTRANS, THICK, CARBNANO};
 
         static {
             allFunctions = Arrays.asList(Function.class.getEnumConstants());
@@ -295,6 +300,7 @@ public class Layer implements Serializable
 			if (extra == THICK) return "thick";
             if (extra == NATIVE) return "native";
             if (extra == DEEP) return "deep";
+            if (extra == CARBNANO) return "carb-nano";
             return "";
 		}
 
@@ -322,6 +328,7 @@ public class Layer implements Serializable
 			if (extra == THICK) return "THICK";
             if (extra == NATIVE) return "NATIVE";
             if (extra == DEEP) return "DEEP";
+            if (extra == CARBNANO) return "CN";
             return "";
 		}
 
@@ -348,6 +355,7 @@ public class Layer implements Serializable
             if (name.equalsIgnoreCase("vt")) return HLVT;
             if (name.equalsIgnoreCase("native")) return NATIVE;
             if (name.equalsIgnoreCase("deep")) return DEEP;
+            if (name.equalsIgnoreCase("carb-nano")) return CARBNANO;
             return 0;
 		}
 
@@ -478,7 +486,7 @@ public class Layer implements Serializable
 		 */
 		public boolean isDiff()
 		{
-			if (this == DIFF || this == DIFFP || this == DIFFN) return true;
+			if (this == DIFF || this == DIFFP || this == DIFFN || this == DIFFNCN || this == DIFFPCN) return true;
 			return false;
 		}
 
@@ -987,6 +995,15 @@ public class Layer implements Serializable
     public boolean isPolyCutLayer()
     {
         return (function.isContact() && (functionExtras&Layer.Function.CONPOLY) != 0);
+    }
+
+    /**
+     * Method to determine if the layer corresponds to a poly cut layer. Used in 3D View
+     * @return true if this layer is a poly cut layer.
+     */
+    public boolean isCarbonNanotubeLayer()
+    {
+        return (functionExtras&Layer.CARBNANO) != 0;
     }
 
     /**

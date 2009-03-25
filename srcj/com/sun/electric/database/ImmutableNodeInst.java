@@ -466,7 +466,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         boolean hasHardVars =
                 searchVar(vars, Technology.NodeLayer.CUT_SPACING) >= 0 ||
                 searchVar(vars, Technology.NodeLayer.CUT_ALIGNMENT) >= 0 ||
-                searchVar(vars, Technology.NodeLayer.METAL_OFFSETS) >= 0;
+                searchVar(vars, Technology.NodeLayer.METAL_OFFSETS) >= 0 ||
+                searchVar(vars, Technology.NodeLayer.CARBON_NANOTUBE_COUNT) >= 0 ||
+                searchVar(vars, Technology.NodeLayer.CARBON_NANOTUBE_PITCH) >= 0;
         return hasHardVars ? flags | HARD_SHAPE_MASK : flags & ~HARD_SHAPE_MASK;
     }
 
@@ -787,6 +789,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         assert isEasyShape() ==
                 (getVar(Technology.NodeLayer.CUT_SPACING) == null &&
                  getVar(Technology.NodeLayer.CUT_ALIGNMENT) == null &&
+                 getVar(Technology.NodeLayer.METAL_OFFSETS) == null &&
+                 getVar(Technology.NodeLayer.CARBON_NANOTUBE_COUNT) == null &&
                  getVar(Technology.NodeLayer.METAL_OFFSETS) == null);
         assert (techBits & ~(NTECHBITS >> NTECHBITSSH)) == 0;
         if (protoDescriptor != null)

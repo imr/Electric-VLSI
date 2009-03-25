@@ -2018,7 +2018,7 @@ public class Highlighter implements DatabaseChangeListener {
 					Layer layer = poly.getLayer();
 					if (layer == null) continue;
 					Layer.Function lf = layer.getFunction();
-					if (!lf.isPoly() && !lf.isDiff()) continue;
+					if (!lf.isPoly() && !lf.isDiff() && !lf.isMetal()) continue;
 					poly.transform(trans);
 					double dist = poly.polyDistance(bounds);
 					if (dist < bestDist) bestDist = dist;
@@ -2030,7 +2030,7 @@ public class Highlighter implements DatabaseChangeListener {
 						Layer layer = poly.getLayer();
 						if (layer == null) continue;
 						Layer.Function lf = layer.getFunction();
-						if (!lf.isPoly() && !lf.isDiff()) continue;
+						if (!lf.isPoly() && !lf.isDiff() && !lf.isMetal()) continue;
 						poly.transform(trans);
 						double dist = poly.polyDistance(bounds);
 						if (dist < bestDist) bestDist = dist;

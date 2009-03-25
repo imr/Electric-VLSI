@@ -46,6 +46,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveNodeSize;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Technology.CarbonNanotube;
 import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -92,8 +93,9 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 	private boolean initialMirrorX, initialMirrorY;
 	private int initialRotation, initialPopupIndex;
 	private boolean initialEasyToSelect, initialInvisibleOutsideCell, initialLocked, initialExpansion;
-	private String initialName, initialTextField;
+	private String initialName, initialTextField1, initialTextField2;
 	private String initialPopupEntry;
+	private boolean textField1Visible, textField2Visible, popupVisible;
 	private DefaultListModel listModel;
 	private JList list;
 	private List<AttributesTable.AttValPair> allAttributes;
@@ -101,6 +103,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 	private boolean bigger;
 	private boolean scalableTrans;
 	private boolean multiCutNode;
+	private boolean carbonNanotubeNode;
 	private boolean swapXY;
 	private AttributesTable attributesTable;
 	private EditWindow wnd;
@@ -187,13 +190,15 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		// make all text fields select-all when entered
 	    EDialog.makeTextFieldSelectAllOnTab(name);
 	    EDialog.makeTextFieldSelectAllOnTab(rotation);
-	    EDialog.makeTextFieldSelectAllOnTab(textField);
+	    EDialog.makeTextFieldSelectAllOnTab(textField1);
+	    EDialog.makeTextFieldSelectAllOnTab(textField2);
 	    EDialog.makeTextFieldSelectAllOnTab(xPos);
 	    EDialog.makeTextFieldSelectAllOnTab(xSize);
 	    EDialog.makeTextFieldSelectAllOnTab(yPos);
 	    EDialog.makeTextFieldSelectAllOnTab(ySize);
 
 	    // make type a selectable but not editable field
+	    textField1Visible = textField2Visible = popupVisible = true;
 		type.setEditable(false);
 		type.setBorder(null);
 		type.setForeground(UIManager.getColor("Label.foreground"));
@@ -308,9 +313,12 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				easyToSelect.setSelected(false);
 				invisibleOutsideCell.setEnabled(false);
 				invisibleOutsideCell.setSelected(false);
-				textFieldLabel.setText("");
-				textField.setText("");
-				textField.setEditable(false);
+				textField1Label.setText("");
+				textField1.setText("");
+				textField1.setEditable(false);
+				textField2Label.setText("");
+				textField2.setText("");
+				textField2.setEditable(false);
 				popupLabel.setText("");
 				popup.removeAllItems();
 				popup.setEnabled(false);
@@ -457,9 +465,12 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		showProperList(false);
 
 		// special lines default to empty
-		textFieldLabel.setText("");
-		textField.setText("");
-		textField.setEditable(false);
+		textField1Label.setText("");
+		textField1.setText("");
+		textField1.setEditable(false);
+		textField2Label.setText("");
+		textField2.setText("");
+		textField2.setEditable(false);
 		popupLabel.setText("");
 		popup.removeAllItems();
 		popup.setEnabled(false);
@@ -472,7 +483,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		}
 
 		// if there is outline information on a transistor, remember that
-		initialTextField = null;
+		initialTextField1 = initialTextField2 = null;
 		boolean lengthEditable = false;
 		if (ni.isSerpentineTransistor())
 			lengthEditable = true;
@@ -520,11 +531,11 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		{
 			if (!ni.getFunction().isFET())
 			{
-				textField.setEditable(true);
-				textFieldLabel.setText("Area:");
+				textField1.setEditable(true);
+				textField1Label.setText("Area:");
 
 				Variable var = ni.getVar(Schematics.ATTR_AREA);
-				textField.setText(var.getPureValue(-1));
+				textField1.setText(var.getPureValue(-1));
 			}
 		}
 
@@ -541,16 +552,47 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			popup.addItem("In node center");
 			popup.addItem("At node edges");
 			popup.addItem("In node corner");
-			initialPopupIndex = ni.getVarValue(NodeLayer.CUT_ALIGNMENT, Integer.class, NodeLayer.MULTICUT_CENTERED).intValue();
+			initialPopupIndex = ni.getVarValue(NodeLayer.CUT_ALIGNMENT, Integer.class, new Integer(NodeLayer.MULTICUT_CENTERED)).intValue();
 			popup.setSelectedIndex(initialPopupIndex);
 
-			textFieldLabel.setText("Cut spacing:");
-			textField.setEditable(true);
+			textField1Label.setText("Cut spacing:");
+			textField1.setEditable(true);
             Variable var = ni.getVar(NodeLayer.CUT_SPACING);
 			if (var == null)
-                textField.setText("DEFAULT");
+				textField1.setText("DEFAULT");
             else
-                textField.setText(var.getPureValue(-1));
+            	textField1.setText(var.getPureValue(-1));
+		}
+
+		carbonNanotubeNode = false;
+		if (!ni.isCellInstance())
+		{
+			PrimitiveNode pnp = (PrimitiveNode)np;
+			if (pnp.getFunction() == PrimitiveNode.Function.TRANMOSCN ||
+				pnp.getFunction() == PrimitiveNode.Function.TRAPMOSCN)
+			{
+				NodeLayer[] primLayers = pnp.getLayers();
+	            for (NodeLayer nodeLayer: primLayers)
+	                if (nodeLayer.getLayer().isCarbonNanotubeLayer()) carbonNanotubeNode = true;
+			}
+		}
+		if (carbonNanotubeNode)
+		{
+			textField1Label.setText("Number of Carbon Nanotubes:");
+			textField1.setEditable(true);
+            Variable var = ni.getVar(NodeLayer.CARBON_NANOTUBE_COUNT);
+			if (var == null)
+				textField1.setText("DEFAULT");
+            else
+            	textField1.setText(var.getPureValue(-1));
+
+			textField2Label.setText("Spacing of Carbon Nanotubes:");
+			textField2.setEditable(true);
+            var = ni.getVar(NodeLayer.CARBON_NANOTUBE_PITCH);
+			if (var == null)
+				textField2.setText("DEFAULT");
+            else
+            	textField2.setText(var.getPureValue(-1));
 		}
 
 		scalableTrans = false;
@@ -590,71 +632,71 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			popup.setSelectedIndex(initialPopupIndex);
 			popup.setEnabled(true);
 
-			textFieldLabel.setText("Width:");
+			textField1Label.setText("Width:");
 			Variable var = ni.getVar(Schematics.ATTR_WIDTH);
 			double width = ni.getLambdaBaseXSize();
 			if (var != null) width = TextUtils.atof(var.getPureValue(-1));
-			initialTextField = TextUtils.formatDistance(width, tech);
-			textField.setEditable(true);
-			textField.setText(initialTextField);
+			initialTextField1 = TextUtils.formatDistance(width, tech);
+			textField1.setEditable(true);
+			textField1.setText(initialTextField1);
 		}
 		if (fun.isResistor())
 		{
 			if (fun == PrimitiveNode.Function.RESPPOLY || fun == PrimitiveNode.Function.RESNPOLY)
-				textFieldLabel.setText("Poly resistance:");
+				textField1Label.setText("Poly resistance:");
             else if (fun == PrimitiveNode.Function.RESPWELL || fun == PrimitiveNode.Function.RESNWELL)
-				textFieldLabel.setText("Well resistance:");
+            	textField1Label.setText("Well resistance:");
             else
-                textFieldLabel.setText("Resistance:");
+            	textField1Label.setText("Resistance:");
 //			formatinfstr(infstr, x_(" (%s):"),
 //				TRANSLATE(us_resistancenames[(us_electricalunits&INTERNALRESUNITS) >> INTERNALRESUNITSSH]));
 			Variable var = ni.getVar(Schematics.SCHEM_RESISTANCE);
-			if (var == null) initialTextField = "0"; else
-				initialTextField = new String(var.getObject().toString());
-			textField.setEditable(true);
-			textField.setText(initialTextField);
+			if (var == null) initialTextField1 = "0"; else
+				initialTextField1 = new String(var.getObject().toString());
+			textField1.setEditable(true);
+			textField1.setText(initialTextField1);
 		}
 		if (fun.isCapacitor())
 		{
 			if (fun == PrimitiveNode.Function.ECAPAC)
-				textFieldLabel.setText("Electrolytic cap:"); else
-					textFieldLabel.setText("Capacitance:");
+				textField1Label.setText("Electrolytic cap:"); else
+					textField1Label.setText("Capacitance:");
 //			formatinfstr(infstr, x_(" (%s):"),
 //				TRANSLATE(us_capacitancenames[(us_electricalunits&INTERNALCAPUNITS) >> INTERNALCAPUNITSSH]));
 			Variable var = ni.getVar(Schematics.SCHEM_CAPACITANCE);
-			if (var == null) initialTextField = "0"; else
-				initialTextField = new String(var.getObject().toString());
-			textField.setEditable(true);
-			textField.setText(initialTextField);
+			if (var == null) initialTextField1 = "0"; else
+				initialTextField1 = new String(var.getObject().toString());
+			textField1.setEditable(true);
+			textField1.setText(initialTextField1);
 		}
 		if (fun == PrimitiveNode.Function.INDUCT)
 		{
-			textFieldLabel.setText("Inductance:");
+			textField1Label.setText("Inductance:");
 //			formatinfstr(infstr, x_(" (%s):"),
 //				TRANSLATE(us_inductancenames[(us_electricalunits&INTERNALINDUNITS) >> INTERNALINDUNITSSH]));
 			Variable var = ni.getVar(Schematics.SCHEM_INDUCTANCE);
-			if (var == null) initialTextField = "0"; else
-				initialTextField = new String(var.getObject().toString());
-			textField.setEditable(true);
-			textField.setText(initialTextField);
+			if (var == null) initialTextField1 = "0"; else
+				initialTextField1 = new String(var.getObject().toString());
+			textField1.setEditable(true);
+			textField1.setText(initialTextField1);
 		}
 		if (np == Schematics.tech().bboxNode)
 		{
-			textFieldLabel.setText("Function:");
+			textField1Label.setText("Function:");
 			Variable var = ni.getVar(Schematics.SCHEM_FUNCTION);
-			if (var == null) initialTextField = ""; else
-				initialTextField = new String(var.getObject().toString());
-			textField.setEditable(true);
-			textField.setText(initialTextField);
+			if (var == null) initialTextField1 = ""; else
+				initialTextField1 = new String(var.getObject().toString());
+			textField1.setEditable(true);
+			textField1.setText(initialTextField1);
 		}
 		if (np == Schematics.tech().globalNode)
 		{
-			textFieldLabel.setText("Global name:");
+			textField1Label.setText("Global name:");
 			Variable var = ni.getVar(Schematics.SCHEM_GLOBAL_NAME);
-			if (var == null) initialTextField = ""; else
-				initialTextField = new String(var.getObject().toString());
-			textField.setEditable(true);
-			textField.setText(initialTextField);
+			if (var == null) initialTextField1 = ""; else
+				initialTextField1 = new String(var.getObject().toString());
+			textField1.setEditable(true);
+			textField1.setText(initialTextField1);
 
 			popupLabel.setText("Characteristics:");
 			List<PortCharacteristic> characteristics = PortCharacteristic.getOrderedCharacteristics();
@@ -683,20 +725,89 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			double curvature = DBMath.round(arcData[1] * 180.0 / Math.PI);
 			if (start != 0.0)
 			{
-				textFieldLabel.setText("Offset angle / Degrees of circle:");
-				initialTextField = new String(start + " / " + curvature);
+				textField1Label.setText("Offset angle / Degrees of circle:");
+				initialTextField1 = new String(start + " / " + curvature);
 			} else
 			{
-				textFieldLabel.setText("Degrees of circle:");
-				if (curvature == 0) initialTextField = "360"; else
-					initialTextField = new String(Double.toString(curvature));
+				textField1Label.setText("Degrees of circle:");
+				if (curvature == 0) initialTextField1 = "360"; else
+					initialTextField1 = new String(Double.toString(curvature));
 			}
-			textField.setEditable(true);
-			textField.setText(initialTextField);
+			textField1.setEditable(true);
+			textField1.setText(initialTextField1);
 		}
 
-        // Setting the initial focus
+		// make special information lines in "more" mode be conditionally shown
+		boolean repack = (textField1.isEditable() == textField1Visible) ||
+			(textField2.isEditable() == textField2Visible) ||
+			(popup.isEditable() == popupVisible);
+		textField1Visible = textField1.isEditable();
+		if (textField1Visible)
+		{
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 1;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.anchor = GridBagConstraints.WEST;
+			moreStuffTop.add(textField1Label, gbc);
+
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;   gbc.gridy = 1;
+			gbc.gridwidth = 3;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			moreStuffTop.add(textField1, gbc);
+		} else
+		{
+			moreStuffTop.remove(textField1Label);
+			moreStuffTop.remove(textField1);
+		}
+		textField2Visible = textField2.isEditable();
+		if (textField2Visible)
+		{
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 2;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.anchor = GridBagConstraints.WEST;
+			moreStuffTop.add(textField2Label, gbc);
+
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;   gbc.gridy = 2;
+			gbc.gridwidth = 3;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			moreStuffTop.add(textField2, gbc);
+		} else
+		{
+			moreStuffTop.remove(textField2Label);
+			moreStuffTop.remove(textField2);
+		}
+		popupVisible = popup.isEditable();
+		if (popupVisible)
+		{
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 3;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.anchor = GridBagConstraints.WEST;
+			moreStuffTop.add(popupLabel, gbc);
+
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;   gbc.gridy = 3;
+			gbc.gridwidth = 3;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			moreStuffTop.add(popup, gbc);
+		} else
+		{
+			moreStuffTop.remove(popupLabel);
+			moreStuffTop.remove(popup);
+		}
+
+		// Setting the initial focus
         EDialog.focusOnTextField(name);
+        if (repack) pack();
 	}
 
 	private void showProperList(boolean showAll)
@@ -836,10 +947,12 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		private boolean initialLocked, currentLocked;
 		private boolean initialExpansion, currentExpansion;
 		private String initialName, currentName;
-		private String initialTextField, currentTextField;
+		private String initialTextField1, currentTextField1;
+		private String initialTextField2, currentTextField2;
 		private String initialPopupEntry, currentPopupEntry;
 		private boolean scalableTrans;
 		private boolean multiCutNode;
+		private boolean carbonNanotubeNode;
 		private boolean swapXY;
 		private boolean expansionChanged;
 
@@ -854,11 +967,13 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			boolean initialLocked, boolean currentLocked,
 			boolean initialExpansion, boolean currentExpansion,
 			String initialName, String currentName,
-			String initialTextField, String currentTextField,
+			String initialTextField1, String currentTextField1,
+			String initialTextField2, String currentTextField2,
 			String initialPopupEntry, String currentPopupEntry,
 			boolean bigger,
 			boolean scalableTrans,
 			boolean multiCutNode,
+			boolean carbonNanotubeNode,
 			boolean swapXY)
 		{
 			super("Modify Node", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -876,10 +991,12 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			this.initialLocked = initialLocked;                               this.currentLocked = currentLocked;
 			this.initialExpansion = initialExpansion;                         this.currentExpansion = currentExpansion;
 			this.initialName = initialName;                                   this.currentName = currentName;
-			this.initialTextField = initialTextField;                         this.currentTextField = currentTextField;
+			this.initialTextField1 = initialTextField1;                       this.currentTextField1 = currentTextField1;
+			this.initialTextField2 = initialTextField2;                       this.currentTextField2 = currentTextField2;
 			this.initialPopupEntry = initialPopupEntry;                       this.currentPopupEntry = currentPopupEntry;
 			this.scalableTrans = scalableTrans;
 			this.multiCutNode = multiCutNode;
+			this.carbonNanotubeNode = carbonNanotubeNode;
 			this.swapXY = swapXY;
 			startJob();
 		}
@@ -940,9 +1057,9 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 					ni.newVar(Technology.TRANS_CONTACT, contactInfo);
 				}
 
-				if (!currentTextField.equals(initialTextField))
+				if (!currentTextField1.equals(initialTextField1))
 				{
-					double width = TextUtils.atofDistance(currentTextField, tech);
+					double width = TextUtils.atofDistance(currentTextField1, tech);
 					Variable oldVar = ni.getVar(Schematics.ATTR_WIDTH);
 					Variable var = ni.updateVar(Schematics.ATTR_WIDTH, new Double(width));
 					if (var != null && oldVar == null)
@@ -953,12 +1070,11 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			}
 			if (multiCutNode)
 			{
-				if (currentTextField.equals("DEFAULT") || currentTextField.length() == 0)
+				if (!currentTextField1.equals(initialTextField1))
 				{
-					ni.delVar(NodeLayer.CUT_SPACING);
-				} else
-				{
-					ni.newVar(NodeLayer.CUT_SPACING, new Double(TextUtils.atof(currentTextField)));
+					if (currentTextField1.equals("DEFAULT") || currentTextField1.length() == 0)
+						ni.delVar(NodeLayer.CUT_SPACING); else
+							ni.newVar(NodeLayer.CUT_SPACING, new Double(TextUtils.atof(currentTextField1)));
 				}
 				if (currentPopupIndex != initialPopupIndex)
 				{
@@ -969,57 +1085,72 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 					changed = true;
 				}
 			}
+			if (carbonNanotubeNode)
+			{
+				if (!currentTextField1.equals(initialTextField1))
+				{
+					if (currentTextField1.equals("DEFAULT") || currentTextField1.length() == 0)
+						ni.delVar(NodeLayer.CARBON_NANOTUBE_COUNT); else
+							ni.newVar(NodeLayer.CARBON_NANOTUBE_COUNT, new Integer(TextUtils.atoi(currentTextField1)));
+				}
+				if (!currentTextField2.equals(initialTextField2))
+				{
+					if (currentTextField2.equals("DEFAULT") || currentTextField2.length() == 0)
+						ni.delVar(NodeLayer.CARBON_NANOTUBE_PITCH); else
+							ni.newVar(NodeLayer.CARBON_NANOTUBE_PITCH, new Double(TextUtils.atof(currentTextField2)));
+				}
+			}
 			PrimitiveNode.Function fun = ni.getFunction();
 			if (fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.DIODEZ)
 			{
-				if (!currentTextField.equals(initialTextField))
+				if (!currentTextField1.equals(initialTextField1))
 				{
-					Variable var = ni.updateVarText(Schematics.SCHEM_DIODE, currentTextField);
+					Variable var = ni.updateVarText(Schematics.SCHEM_DIODE, currentTextField1);
 					if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
 			}
 			if (fun.isResistor())
 			{
-				if (!currentTextField.equals(initialTextField))
+				if (!currentTextField1.equals(initialTextField1))
 				{
-					Variable var = ni.updateVarText(Schematics.SCHEM_RESISTANCE, currentTextField);
+					Variable var = ni.updateVarText(Schematics.SCHEM_RESISTANCE, currentTextField1);
 					if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
 			}
 			if (fun.isCapacitor())
 			{
-				if (!currentTextField.equals(initialTextField))
+				if (!currentTextField1.equals(initialTextField1))
 				{
-					Variable var = ni.updateVarText(Schematics.SCHEM_CAPACITANCE, currentTextField);
+					Variable var = ni.updateVarText(Schematics.SCHEM_CAPACITANCE, currentTextField1);
 					if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
 			}
 			if (fun == PrimitiveNode.Function.INDUCT)
 			{
-				if (!currentTextField.equals(initialTextField))
+				if (!currentTextField1.equals(initialTextField1))
 				{
-					Variable var = ni.updateVarText(Schematics.SCHEM_INDUCTANCE, currentTextField);
+					Variable var = ni.updateVarText(Schematics.SCHEM_INDUCTANCE, currentTextField1);
 					if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
 			}
 			if (np == Schematics.tech().bboxNode)
 			{
-				if (!currentTextField.equals(initialTextField))
+				if (!currentTextField1.equals(initialTextField1))
 				{
-					Variable var = ni.updateVarText(Schematics.SCHEM_FUNCTION, currentTextField);
+					Variable var = ni.updateVarText(Schematics.SCHEM_FUNCTION, currentTextField1);
 					if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
 			}
 			if (np == Schematics.tech().globalNode)
 			{
-				if (!currentTextField.equals(initialTextField))
+				if (!currentTextField1.equals(initialTextField1))
 				{
-					Variable var = ni.updateVarText(Schematics.SCHEM_GLOBAL_NAME, currentTextField);
+					Variable var = ni.updateVarText(Schematics.SCHEM_GLOBAL_NAME, currentTextField1);
 					if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
@@ -1035,15 +1166,15 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			// load the degrees of a circle if appropriate
 			if (np == Artwork.tech().circleNode || np == Artwork.tech().thickCircleNode)
 			{
-				if (!currentTextField.equals(initialTextField))
+				if (!currentTextField1.equals(initialTextField1))
 				{
 					double start = 0;
-					double curvature = TextUtils.atof(currentTextField) * Math.PI / 180.0;
-					int slashPos = currentTextField.indexOf('/');
+					double curvature = TextUtils.atof(currentTextField1) * Math.PI / 180.0;
+					int slashPos = currentTextField1.indexOf('/');
 					if (slashPos >= 0)
 					{
 						start = curvature;
-						curvature = TextUtils.atof(currentTextField.substring(slashPos+1)) * Math.PI / 180.0;
+						curvature = TextUtils.atof(currentTextField1.substring(slashPos+1)) * Math.PI / 180.0;
 					}
 					ni.setArcDegrees(start, curvature);
 					changed = true;
@@ -1208,14 +1339,16 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         unexpanded = new javax.swing.JRadioButton();
         easyToSelect = new javax.swing.JCheckBox();
         invisibleOutsideCell = new javax.swing.JCheckBox();
-        textFieldLabel = new javax.swing.JLabel();
-        textField = new javax.swing.JTextField();
+        textField1Label = new javax.swing.JLabel();
+        textField1 = new javax.swing.JTextField();
         popupLabel = new javax.swing.JLabel();
         popup = new javax.swing.JComboBox();
         ports = new javax.swing.JRadioButton();
         attributes = new javax.swing.JRadioButton();
         busMembers = new javax.swing.JRadioButton();
         showAllButton = new javax.swing.JButton();
+        textField2Label = new javax.swing.JLabel();
+        textField2 = new javax.swing.JTextField();
         moreStuffBottom = new javax.swing.JPanel();
         locked = new javax.swing.JCheckBox();
         see = new javax.swing.JButton();
@@ -1457,14 +1590,14 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         moreStuffTop.add(invisibleOutsideCell, gridBagConstraints);
 
-        textFieldLabel.setLabelFor(textField);
-        textFieldLabel.setText(" ");
+        textField1Label.setLabelFor(textField1);
+        textField1Label.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        moreStuffTop.add(textFieldLabel, gridBagConstraints);
+        moreStuffTop.add(textField1Label, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1473,20 +1606,20 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        moreStuffTop.add(textField, gridBagConstraints);
+        moreStuffTop.add(textField1, gridBagConstraints);
 
         popupLabel.setLabelFor(popup);
         popupLabel.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         moreStuffTop.add(popupLabel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -1503,7 +1636,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         moreStuffTop.add(ports, gridBagConstraints);
 
@@ -1517,7 +1650,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         moreStuffTop.add(attributes, gridBagConstraints);
 
@@ -1532,7 +1665,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         moreStuffTop.add(busMembers, gridBagConstraints);
@@ -1546,9 +1679,27 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         moreStuffTop.add(showAllButton, gridBagConstraints);
+
+        textField2Label.setLabelFor(textField1);
+        textField2Label.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        moreStuffTop.add(textField2Label, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        moreStuffTop.add(textField2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1740,11 +1891,13 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			initialLocked, locked.isSelected(),
 			initialExpansion, expanded.isSelected(),
 			initialName, name.getText().trim(),
-			initialTextField, textField.getText(),
+			initialTextField1, textField1.getText(),
+			initialTextField2, textField2.getText(),
 			initialPopupEntry, (String)popup.getSelectedItem(),
 			bigger,
 			scalableTrans,
 			multiCutNode,
+			carbonNanotubeNode,
 			swapXY);
 		attributesTable.applyChanges();
 
@@ -1753,7 +1906,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		initialEasyToSelect = easyToSelect.isSelected();
 		initialInvisibleOutsideCell = invisibleOutsideCell.isSelected();
 		initialLocked = locked.isSelected();
-		initialTextField = textField.getText();
+		initialTextField1 = textField1.getText();
+		initialTextField2 = textField2.getText();
 		initialPopupEntry = (String)popup.getSelectedItem();
 		initialXPos = currentXPos;
 		initialYPos = currentYPos;
@@ -1827,8 +1981,10 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
     private javax.swing.JButton see;
     private javax.swing.ButtonGroup selection;
     private javax.swing.JButton showAllButton;
-    private javax.swing.JTextField textField;
-    private javax.swing.JLabel textFieldLabel;
+    private javax.swing.JTextField textField1;
+    private javax.swing.JLabel textField1Label;
+    private javax.swing.JTextField textField2;
+    private javax.swing.JLabel textField2Label;
     private javax.swing.JTextField type;
     private javax.swing.JRadioButton unexpanded;
     private javax.swing.JTextField xPos;
