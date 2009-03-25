@@ -271,7 +271,7 @@ public class EditingPreferences extends PrefPackage {
                 if (oldEp == null || pinId != oldEp.defaultArcPins.get(apId)) {
                     String keyPin = getKey(KEY_PIN, apId);
                     String pinName = pinId != null ? pinId.name : "";
-                    if (removeDefaults && pinName.length() > 0)
+                    if (removeDefaults && pinName.length() == 0)
                         techPrefs.remove(keyPin);
                     else
                         techPrefs.put(keyPin, pinName);
@@ -328,7 +328,9 @@ public class EditingPreferences extends PrefPackage {
                     newDefaultArcPins.put(apId, arcPinId);
 			}
 		}
-        if (this.defaultArcs.equals(newDefaultArcs)) return this;
+        if (this.defaultArcs.equals(newDefaultArcs) &&
+            this.defaultArcAngleIncrements.equals(newDefaultArcAngleIncrements) &&
+            this.defaultArcPins.equals(newDefaultArcPins)) return this;
         return new EditingPreferences(this.techPool,
                 this.defaultNodes,
                 newDefaultArcs,
