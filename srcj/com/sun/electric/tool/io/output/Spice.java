@@ -1194,15 +1194,35 @@ public class Spice extends Topology
 				modelChar = "Z";
 				biasCs = null;
 				modelName = "EMES";
+ 			} else if (fun == PrimitiveNode.Function.TRANMOSCN)			// Pallav: NMOS (carbon-nanotube) transistor
+			{
+				modelChar = "X";
+				biasCs = cni.getCellSignal(groundNet);
+				defaultBulkName = "gnd";
+				modelName = "NCNFET";
+			} else if (fun == PrimitiveNode.Function.TRA4NMOSCN)		// Pallav: NMOS (carbon-nanotube) 4-port transistor
+			{
+				modelChar = "X";
+				modelName = "NCNFET";
+			} else if (fun == PrimitiveNode.Function.TRAPMOSCN)			// Pallav: PMOS (carbon-nanotube) transistor
+			{
+				modelChar = "X";
+				biasCs = cni.getCellSignal(powerNet);
+				defaultBulkName = "vdd";
+				modelName = "PCNFET";
+			} else if (fun == PrimitiveNode.Function.TRA4PMOSCN)		// Pallav: PMOS (carbon-nanotube) 4-port transistor 
+			{
+				modelChar = "X";
+				modelName = "PCNFET";
 			} else if (fun == PrimitiveNode.Function.TRANS)				// special transistor
 			{
 				modelChar = "Q";
 			}
 			if (ni.getName() != null) modelChar += getSafeNetName(ni.getName(), false);
 			StringBuffer infstr = new StringBuffer();
-            String drainName = drainCs.getName();
-            String gateName = gateCs.getName();
-            String sourceName = sourceCs.getName();
+			String drainName = drainCs.getName();
+			String gateName = gateCs.getName();
+			String sourceName = sourceCs.getName();
             if (segmentedNets != null) {
                 drainName = segmentedNets.getNetName(ni.getTransistorDrainPort());
                 gateName = segmentedNets.getNetName(ni.getTransistorGatePort());
@@ -1323,18 +1343,20 @@ public class Spice extends Topology
 	                }
                 }
 
-                // write area if appropriate
-                if (fun != PrimitiveNode.Function.TRANMOS && fun != PrimitiveNode.Function.TRA4NMOS &&
-                    fun != PrimitiveNode.Function.TRAPMOS && fun != PrimitiveNode.Function.TRA4PMOS &&
-                    fun != PrimitiveNode.Function.TRADMOS && fun != PrimitiveNode.Function.TRA4DMOS)
-                {
-                	if (foundLen != null && foundWid != null)
-                	{
-    	                infstr.append(" AREA=" + TextUtils.formatDouble(foundLen.doubleValue()*foundWid.doubleValue()));
-    	                if (!localPrefs.writeTransSizeInLambda) infstr.append("P");
-                	}
-                }
-            }
+				// write area if appropriate
+				if (fun != PrimitiveNode.Function.TRANMOS && fun != PrimitiveNode.Function.TRA4NMOS &&
+					fun != PrimitiveNode.Function.TRAPMOS && fun != PrimitiveNode.Function.TRA4PMOS &&
+					fun != PrimitiveNode.Function.TRADMOS && fun != PrimitiveNode.Function.TRA4DMOS &&
+					fun != PrimitiveNode.Function.TRANMOSCN && fun != PrimitiveNode.Function.TRA4NMOSCN &&
+					fun != PrimitiveNode.Function.TRAPMOSCN && fun != PrimitiveNode.Function.TRA4PMOSCN)
+				{
+					if (foundLen != null && foundWid != null)
+					{
+						infstr.append(" AREA=" + TextUtils.formatDouble(foundLen.doubleValue()*foundWid.doubleValue()));
+						if (!localPrefs.writeTransSizeInLambda) infstr.append("P");
+					}
+				}
+			}
 
 			// make sure transistor is connected to nets
 			SpiceNet spNetGate = spiceNetMap.get(gateNet);
@@ -1394,7 +1416,7 @@ public class Spice extends Topology
 			}
 
 			// Writing MFactor if available.
-            writeMFactor(context, ni, infstr);
+			writeMFactor(context, ni, infstr);
 
 			infstr.append("\n");
 			multiLinePrint(false, infstr.toString());
@@ -1404,13 +1426,13 @@ public class Spice extends Topology
 		if (segmentedNets != null)
 		{
 			if (spLevel == Simulation.SpiceParasitics.RC_PROXIMITY)
-            {
-            	parasiticInfo.writeNewSpiceCode(cell, cni, layoutTechnology, this);
-            } else {
-	            // write caps
-	            int capCount = 0;
-	            multiLinePrint(true, "** Extracted Parasitic Capacitors ***\n");
-	            for (SpiceSegmentedNets.NetInfo netInfo : segmentedNets.getUniqueSegments()) {
+			{
+				parasiticInfo.writeNewSpiceCode(cell, cni, layoutTechnology, this);
+			} else {
+				// write caps
+				int capCount = 0;
+				multiLinePrint(true, "** Extracted Parasitic Capacitors ***\n");
+		        for (SpiceSegmentedNets.NetInfo netInfo : segmentedNets.getUniqueSegments()) {
 	                if (netInfo.getCap() > cell.getTechnology().getMinCapacitance()) {
 	                    if (netInfo.getName().equals("gnd")) continue;           // don't write out caps from gnd to gnd
 	                    multiLinePrint(false, "C" + capCount + " " + netInfo.getName() + " 0 " + TextUtils.formatDouble(netInfo.getCap()) + "fF\n");
