@@ -240,7 +240,7 @@ public class CIFTab extends PreferencePanel
         java.awt.GridBagConstraints gridBagConstraints;
 
         cif = new javax.swing.JPanel();
-        output = new javax.swing.JPanel();
+        projSettings = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         cifLayers = new javax.swing.JScrollPane();
         cifOutputMimicsDisplay = new javax.swing.JCheckBox();
@@ -253,11 +253,8 @@ public class CIFTab extends PreferencePanel
         technologySelection = new javax.swing.JComboBox();
         jLabel4 = new javax.swing.JLabel();
         cifScale = new javax.swing.JTextField();
-        input = new javax.swing.JPanel();
+        preferences = new javax.swing.JPanel();
         cifInputSquaresWires = new javax.swing.JCheckBox();
-        jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -271,17 +268,16 @@ public class CIFTab extends PreferencePanel
 
         cif.setLayout(new java.awt.GridBagLayout());
 
-        output.setLayout(new java.awt.GridBagLayout());
+        projSettings.setLayout(new java.awt.GridBagLayout());
 
-        output.setBorder(javax.swing.BorderFactory.createTitledBorder("Output"));
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 11));
+        projSettings.setBorder(javax.swing.BorderFactory.createTitledBorder("Project Settings"));
         jLabel1.setText("CIF Layer:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        output.add(jLabel1, gridBagConstraints);
+        projSettings.add(jLabel1, gridBagConstraints);
 
         cifLayers.setPreferredSize(new java.awt.Dimension(200, 200));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -293,9 +289,8 @@ public class CIFTab extends PreferencePanel
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        output.add(cifLayers, gridBagConstraints);
+        projSettings.add(cifLayers, gridBagConstraints);
 
-        cifOutputMimicsDisplay.setFont(new java.awt.Font("Tahoma", 1, 11));
         cifOutputMimicsDisplay.setText("Output Mimics Display");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -303,9 +298,8 @@ public class CIFTab extends PreferencePanel
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        output.add(cifOutputMimicsDisplay, gridBagConstraints);
+        projSettings.add(cifOutputMimicsDisplay, gridBagConstraints);
 
-        cifOutputMergesBoxes.setFont(new java.awt.Font("Tahoma", 1, 11));
         cifOutputMergesBoxes.setText("Output Merges Boxes");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -313,9 +307,8 @@ public class CIFTab extends PreferencePanel
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
-        output.add(cifOutputMergesBoxes, gridBagConstraints);
+        projSettings.add(cifOutputMergesBoxes, gridBagConstraints);
 
-        cifOutputInstantiatesTopLevel.setFont(new java.awt.Font("Tahoma", 1, 11));
         cifOutputInstantiatesTopLevel.setText("Output Instantiates Top Level");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -323,16 +316,15 @@ public class CIFTab extends PreferencePanel
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 8, 4);
-        output.add(cifOutputInstantiatesTopLevel, gridBagConstraints);
+        projSettings.add(cifOutputInstantiatesTopLevel, gridBagConstraints);
 
-        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 11));
         jLabel2.setText("(time consuming)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
-        output.add(jLabel2, gridBagConstraints);
+        projSettings.add(jLabel2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
@@ -340,7 +332,7 @@ public class CIFTab extends PreferencePanel
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        output.add(cifLayer, gridBagConstraints);
+        projSettings.add(cifLayer, gridBagConstraints);
 
         jPanel2.setLayout(new java.awt.GridBagLayout());
 
@@ -349,31 +341,29 @@ public class CIFTab extends PreferencePanel
         gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        output.add(jPanel2, gridBagConstraints);
+        projSettings.add(jPanel2, gridBagConstraints);
 
-        jLabel3.setFont(new java.awt.Font("Tahoma", 1, 11));
         jLabel3.setText("Technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        output.add(jLabel3, gridBagConstraints);
+        projSettings.add(jLabel3, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        output.add(technologySelection, gridBagConstraints);
+        projSettings.add(technologySelection, gridBagConstraints);
 
-        jLabel4.setFont(new java.awt.Font("Tahoma", 1, 11));
         jLabel4.setText("Output scale:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        output.add(jLabel4, gridBagConstraints);
+        projSettings.add(jLabel4, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
@@ -381,17 +371,17 @@ public class CIFTab extends PreferencePanel
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        output.add(cifScale, gridBagConstraints);
+        projSettings.add(cifScale, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
-        cif.add(output, gridBagConstraints);
+        cif.add(projSettings, gridBagConstraints);
 
-        input.setLayout(new java.awt.GridBagLayout());
+        preferences.setLayout(new java.awt.GridBagLayout());
 
-        input.setBorder(javax.swing.BorderFactory.createTitledBorder("Input"));
+        preferences.setBorder(javax.swing.BorderFactory.createTitledBorder("Preferences"));
         cifInputSquaresWires.setText("Input Squares Wires");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -401,40 +391,14 @@ public class CIFTab extends PreferencePanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        input.add(cifInputSquaresWires, gridBagConstraints);
+        preferences.add(cifInputSquaresWires, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        cif.add(input, gridBagConstraints);
-
-        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 11));
-        jLabel5.setText("Bold");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        cif.add(jLabel5, gridBagConstraints);
-
-        jLabel6.setText("NOTE:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        cif.add(jLabel6, gridBagConstraints);
-
-        jLabel7.setText("text affects Project Settings");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        cif.add(jLabel7, gridBagConstraints);
+        cif.add(preferences, gridBagConstraints);
 
         getContentPane().add(cif, new java.awt.GridBagConstraints());
 
@@ -457,16 +421,13 @@ public class CIFTab extends PreferencePanel
     private javax.swing.JCheckBox cifOutputMergesBoxes;
     private javax.swing.JCheckBox cifOutputMimicsDisplay;
     private javax.swing.JTextField cifScale;
-    private javax.swing.JPanel input;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel output;
+    private javax.swing.JPanel preferences;
+    private javax.swing.JPanel projSettings;
     private javax.swing.JComboBox technologySelection;
     // End of variables declaration//GEN-END:variables
 }
