@@ -23,22 +23,61 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.text.Setting;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.io.GDSLayers;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 
-import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Iterator;
 
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * Class to handle the "GDS" tab of the Preferences dialog.
  */
 public class GDSTab extends PreferencePanel
 {
-	/** Creates new form GDSTab */
-	public GDSTab(Frame parent, boolean modal)
+	private JList gdsLayersList;
+	private DefaultListModel gdsLayersModel;
+	private boolean changingGDS = false;
+    private Setting gdsOutMergesBoxesSetting = IOTool.getGDSOutMergesBoxesSetting();
+    private Setting gdsOutWritesExportPinsSetting = IOTool.getGDSOutWritesExportPinsSetting();
+    private Setting gdsOutUpperCaseSetting = IOTool.getGDSOutUpperCaseSetting();
+    private Setting gdsOutDefaultTextLayerSetting = IOTool.getGDSOutDefaultTextLayerSetting();
+    private Setting gdsOutputConvertsBracketsInExportsSetting = IOTool.getGDSOutputConvertsBracketsInExportsSetting();
+    private Setting gdsCellNameLenMaxSetting = IOTool.getGDSCellNameLenMaxSetting();
+    private Setting gdsInputScaleSetting = IOTool.getGDSInputScaleSetting();
+
+    /** Creates new form GDSTab */
+	public GDSTab(PreferencesFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(gdsLayerNumber);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsLayerType);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsPinLayer);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsPinType);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsTextLayer);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsTextType);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsCellNameLenMax);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsDefaultTextLayer);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsInputScale);
 	}
 
 	/** return the panel to use for this preferences tab. */
@@ -53,6 +92,7 @@ public class GDSTab extends PreferencePanel
 	 */
 	public void init()
 	{
+		// preferences
         gdsConvertNCCExportsConnectedByParentPins.setSelected(IOTool.getGDSConvertNCCExportsConnectedByParentPins());
         gdsInputMergesBoxes.setSelected(IOTool.isGDSInMergesBoxes());
 		gdsInputIncludesText.setSelected(IOTool.isGDSInIncludesText());
@@ -68,6 +108,53 @@ public class GDSTab extends PreferencePanel
         gdsArraySimplification.addItem("Merge individual arrays");
         gdsArraySimplification.addItem("Merge all arrays");
         gdsArraySimplification.setSelectedIndex(IOTool.getGDSArraySimplification());
+
+        // project settings
+		gdsOutputMergesBoxes.setSelected(getBoolean(gdsOutMergesBoxesSetting));
+		gdsOutputWritesExportPins.setSelected(getBoolean(gdsOutWritesExportPinsSetting));
+		gdsOutputUpperCase.setSelected(getBoolean(gdsOutUpperCaseSetting));
+		gdsDefaultTextLayer.setText(Integer.toString(getInt(gdsOutDefaultTextLayerSetting)));
+        gdsOutputConvertsBracketsInExports.setSelected(getBoolean(gdsOutputConvertsBracketsInExportsSetting));
+        gdsCellNameLenMax.setText(Integer.toString(getInt(gdsCellNameLenMaxSetting)));
+        gdsInputScale.setText(TextUtils.formatDouble(getDouble(gdsInputScaleSetting)));
+
+		// build the layers list
+		gdsLayersModel = new DefaultListModel();
+		gdsLayersList = new JList(gdsLayersModel);
+		gdsLayersList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		gdsLayerList.setViewportView(gdsLayersList);
+		gdsLayersList.clearSelection();
+		gdsLayersList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { gdsClickLayer(); }
+		});
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = it.next();
+			technologySelection.addItem(new TechGDSTab(tech));
+		}
+		technologySelection.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { techChanged(); }
+		});
+		technologySelection.setSelectedItem(Technology.getCurrent());
+
+        foundrySelection.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { foundryChanged(); }
+		});
+
+
+        // to set foundry the first time
+        techChanged();
+
+		GDSDocumentListener myDocumentListener = new GDSDocumentListener(this);
+		gdsLayerNumber.getDocument().addDocumentListener(myDocumentListener);
+		gdsLayerType.getDocument().addDocumentListener(myDocumentListener);
+		gdsPinLayer.getDocument().addDocumentListener(myDocumentListener);
+		gdsPinType.getDocument().addDocumentListener(myDocumentListener);
+		gdsTextLayer.getDocument().addDocumentListener(myDocumentListener);
+		gdsTextType.getDocument().addDocumentListener(myDocumentListener);
 	}
 
 	/**
@@ -76,6 +163,7 @@ public class GDSTab extends PreferencePanel
 	 */
 	public void term()
 	{
+		// preferences
 		boolean currentValue = gdsConvertNCCExportsConnectedByParentPins.isSelected();
         if (currentValue != IOTool.getGDSConvertNCCExportsConnectedByParentPins())
             IOTool.setGDSConvertNCCExportsConnectedByParentPins(currentValue);
@@ -104,6 +192,15 @@ public class GDSTab extends PreferencePanel
         currentI = gdsArraySimplification.getSelectedIndex();
         if (currentI != IOTool.getGDSArraySimplification())
         	IOTool.setGDSArraySimplification(currentI);
+
+        // project settings
+        setBoolean(gdsOutMergesBoxesSetting, gdsOutputMergesBoxes.isSelected());
+        setBoolean(gdsOutWritesExportPinsSetting, gdsOutputWritesExportPins.isSelected());
+        setBoolean(gdsOutUpperCaseSetting, gdsOutputUpperCase.isSelected());
+        setInt(gdsOutDefaultTextLayerSetting, TextUtils.atoi(gdsDefaultTextLayer.getText()));
+        setBoolean(gdsOutputConvertsBracketsInExportsSetting, gdsOutputConvertsBracketsInExports.isSelected());
+        setInt(gdsCellNameLenMaxSetting, TextUtils.atoi(gdsCellNameLenMax.getText()));
+        setDouble(gdsInputScaleSetting, TextUtils.atof(gdsInputScale.getText()));
 	}
 
 	/**
@@ -111,6 +208,7 @@ public class GDSTab extends PreferencePanel
 	 */
 	public void reset()
 	{
+		// preferences
 		if (IOTool.getFactoryGDSConvertNCCExportsConnectedByParentPins() != IOTool.getGDSConvertNCCExportsConnectedByParentPins())
 			IOTool.setGDSConvertNCCExportsConnectedByParentPins(IOTool.getFactoryGDSConvertNCCExportsConnectedByParentPins());
 		if (IOTool.isFactoryGDSInMergesBoxes() != IOTool.isGDSInMergesBoxes())
@@ -129,7 +227,197 @@ public class GDSTab extends PreferencePanel
 			IOTool.setGDSColapseVddGndPinNames(IOTool.isFactoryGDSColapseVddGndPinNames());
 		if (IOTool.getFactoryGDSArraySimplification() != IOTool.getGDSArraySimplification())
 			IOTool.setGDSArraySimplification(IOTool.getFactoryGDSArraySimplification());
+
+		// project settings
+		setBoolean(gdsOutMergesBoxesSetting, ((Boolean)gdsOutMergesBoxesSetting.getFactoryValue()).booleanValue());
+		setBoolean(gdsOutWritesExportPinsSetting, ((Boolean)gdsOutWritesExportPinsSetting.getFactoryValue()).booleanValue());
+		setBoolean(gdsOutUpperCaseSetting, ((Boolean)gdsOutUpperCaseSetting.getFactoryValue()).booleanValue());
+		setInt(gdsOutDefaultTextLayerSetting, ((Integer)gdsOutDefaultTextLayerSetting.getFactoryValue()).intValue());
+		setBoolean(gdsOutputConvertsBracketsInExportsSetting, ((Boolean)gdsOutputConvertsBracketsInExportsSetting.getFactoryValue()).booleanValue());
+		setInt(gdsCellNameLenMaxSetting, ((Integer)gdsCellNameLenMaxSetting.getFactoryValue()).intValue());
+		setDouble(gdsInputScaleSetting, ((Double)gdsInputScaleSetting.getFactoryValue()).doubleValue());
 	}
+
+    private void foundryChanged()
+    {
+        Foundry foundry = (Foundry)foundrySelection.getSelectedItem();
+        if (foundry == null) return;
+        Technology tech = ((TechGDSTab)technologySelection.getSelectedItem()).tech;
+		// show the list of layers in the technology
+		gdsLayersModel.clear();
+
+        for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
+        {
+            Layer layer = lIt.next();
+            String str = layer.getName();
+            String gdsLayer = getString(foundry.getGDSLayerSetting(layer));
+            if (gdsLayer != null && gdsLayer.length() > 0) str += " (" + gdsLayer + ")";
+			gdsLayersModel.addElement(str);
+        }
+		gdsLayersList.setSelectedIndex(0);
+		gdsClickLayer();
+    }
+
+    private void setFoundries(Technology tech)
+    {
+        foundrySelection.removeAllItems();
+        // Foundry
+        for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
+        {
+            foundrySelection.addItem(itF.next());
+        }
+        foundrySelection.setSelectedItem(tech.getSelectedFoundry());
+        foundryChanged();
+    }
+
+	private void techChanged()
+	{
+		Technology tech = ((TechGDSTab)technologySelection.getSelectedItem()).tech;
+		if (tech == null) return;
+
+		// set the foundries for the technology
+        setFoundries(tech);
+	}
+
+	/**
+	 * Method called when the user clicks on a layer name in the scrollable list.
+	 */
+	private void gdsClickLayer()
+	{
+		changingGDS = true;
+		String str = (String)gdsLayersList.getSelectedValue();
+		GDSLayers numbers = gdsGetNumbers(str);
+		if (numbers == null) numbers = GDSLayers.EMPTY;
+		if (numbers.getNumLayers() == 0)
+		{
+			gdsLayerNumber.setText("");
+			gdsLayerType.setText("");
+		} else
+		{
+			Integer gdsValue = numbers.getFirstLayer();
+			int layerNum = gdsValue.intValue() & 0xFFFF;
+			int layerType = (gdsValue.intValue() >> 16) & 0xFFFF;
+			gdsLayerNumber.setText(Integer.toString(layerNum));
+			gdsLayerType.setText(Integer.toString(layerType));
+		}
+		if (numbers.getPinLayer() == -1)
+		{
+			gdsPinLayer.setText("");
+			gdsPinType.setText("");
+		} else
+		{
+			gdsPinLayer.setText(Integer.toString(numbers.getPinLayer() & 0xFFFF));
+			gdsPinType.setText(Integer.toString((numbers.getPinLayer() >> 16) & 0xFFFF));
+		}
+		if (numbers.getTextLayer() == -1)
+		{
+			gdsTextLayer.setText("");
+			gdsTextType.setText("");
+		} else
+		{
+			gdsTextLayer.setText(Integer.toString(numbers.getTextLayer() & 0xFFFF));
+			gdsTextType.setText(Integer.toString((numbers.getTextLayer() >> 16) & 0xFFFF));
+		}
+		changingGDS = false;
+	}
+
+	/**
+	 * Method to parse the line in the scrollable list and return the GDS layer numbers part
+	 * (in parentheses).
+	 */
+	private GDSLayers gdsGetNumbers(String str)
+	{
+		int openParen = str.indexOf('(');
+		if (openParen < 0) return null;
+		int closeParen = str.lastIndexOf(')');
+		if (closeParen < 0) return null;
+		String gdsNumbers = str.substring(openParen+1, closeParen);
+		GDSLayers numbers = GDSLayers.parseLayerString(gdsNumbers);
+		return numbers;
+	}
+
+	/**
+	 * Method to parse the line in the scrollable list and return the Layer.
+	 */
+	private Layer gdsGetLayer(String str)
+	{
+		int openParen = str.indexOf('(');
+		String layerName = openParen >= 0 ? str.substring(0, openParen-1) : str;
+
+        Technology tech = ((TechGDSTab)technologySelection.getSelectedItem()).tech;
+		if (tech == null) return null;
+
+		Layer layer = tech.findLayer(layerName);
+		return layer;
+	}
+
+	/**
+	 * Method called when the user types a new layer number into one of the 3 edit fields.
+	 */
+	private void gdsNumbersChanged()
+	{
+		if (changingGDS) return;
+		String str = (String)gdsLayersList.getSelectedValue();
+		Layer layer = gdsGetLayer(str);
+		if (layer == null) return;
+
+		// the layer information
+		String newLine = gdsLayerNumber.getText().trim();
+		int layerType = TextUtils.atoi(gdsLayerType.getText().trim());
+		if (layerType != 0) newLine += "/" + layerType;
+
+		// the pin information
+		String pinLayer = gdsPinLayer.getText().trim();
+		int pinType = TextUtils.atoi(gdsPinType.getText().trim());
+		if (pinLayer.length() > 0 || pinType != 0)
+		{
+			newLine += "," + pinLayer;
+			if (pinType != 0) newLine += "/" + pinType;
+			newLine += "p";
+		}
+
+		// the text information
+		String textLayer = gdsTextLayer.getText().trim();
+		int textType = TextUtils.atoi(gdsTextType.getText().trim());
+		if (textLayer.length() > 0 || textType != 0)
+		{
+			newLine += "," + textLayer;
+			if (textType != 0) newLine += "/" + textType;
+			newLine += "t";
+		}
+		String wholeLine = layer.getName();
+        if (newLine.length() > 0) wholeLine = wholeLine + " (" + newLine + ")";
+		int index = gdsLayersList.getSelectedIndex();
+		gdsLayersModel.set(index, wholeLine);
+        Foundry foundry = (Foundry)foundrySelection.getSelectedItem();
+        setString(foundry.getGDSLayerSetting(layer), newLine);
+	}
+
+	/**
+	 * Class to handle special changes to changes to a GDS layer.
+	 */
+	private static class GDSDocumentListener implements DocumentListener
+	{
+		GDSTab dialog;
+
+		GDSDocumentListener(GDSTab dialog) { this.dialog = dialog; }
+
+		public void changedUpdate(DocumentEvent e) { dialog.gdsNumbersChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.gdsNumbersChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.gdsNumbersChanged(); }
+	}
+
+	// To have ability to store directly the technology and not
+    // to depende on names to search the technology instance
+    private static class TechGDSTab
+    {
+        public Technology tech;
+
+        TechGDSTab(Technology t) { tech = t; }
+
+        // This avoids to call Technology.toString() and get extra text.
+        public String toString() { return tech.getTechName(); }
+    }
 
 	/** This method is called from within the constructor to
 	 * initialize the form.
@@ -151,9 +439,38 @@ public class GDSTab extends PreferencePanel
         gdsArraySimplification = new javax.swing.JComboBox();
         jLabel1 = new javax.swing.JLabel();
         gdsUnknownLayers = new javax.swing.JComboBox();
-        GDSOutput = new javax.swing.JPanel();
-        gdsConvertNCCExportsConnectedByParentPins = new javax.swing.JCheckBox();
         gdsColapseNames = new javax.swing.JCheckBox();
+        gdsConvertNCCExportsConnectedByParentPins = new javax.swing.JCheckBox();
+        GDSOutput = new javax.swing.JPanel();
+        gdsLayerList = new javax.swing.JScrollPane();
+        jLabel6 = new javax.swing.JLabel();
+        gdsLayerNumber = new javax.swing.JTextField();
+        jLabel7 = new javax.swing.JLabel();
+        gdsPinLayer = new javax.swing.JTextField();
+        jLabel8 = new javax.swing.JLabel();
+        gdsTextLayer = new javax.swing.JTextField();
+        gdsOutputMergesBoxes = new javax.swing.JCheckBox();
+        gdsOutputWritesExportPins = new javax.swing.JCheckBox();
+        gdsOutputUpperCase = new javax.swing.JCheckBox();
+        jLabel9 = new javax.swing.JLabel();
+        gdsDefaultTextLayer = new javax.swing.JTextField();
+        jLabel29 = new javax.swing.JLabel();
+        gdsOutputConvertsBracketsInExports = new javax.swing.JCheckBox();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        gdsLayerType = new javax.swing.JTextField();
+        gdsPinType = new javax.swing.JTextField();
+        gdsTextType = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
+        gdsCellNameLenMax = new javax.swing.JTextField();
+        technologySelection = new javax.swing.JComboBox();
+        jLabel10 = new javax.swing.JLabel();
+        gdsFoundryName = new javax.swing.JLabel();
+        foundrySelection = new javax.swing.JComboBox();
+        jLabel11 = new javax.swing.JLabel();
+        gdsInputScale = new javax.swing.JTextField();
+        jLabel12 = new javax.swing.JLabel();
+        jLabel13 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -169,12 +486,11 @@ public class GDSTab extends PreferencePanel
 
         GDSInput.setLayout(new java.awt.GridBagLayout());
 
-        GDSInput.setBorder(javax.swing.BorderFactory.createTitledBorder("GDS Input"));
+        GDSInput.setBorder(javax.swing.BorderFactory.createTitledBorder("Preferences"));
         gdsInputMergesBoxes.setText("Merge boxes (slow)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         GDSInput.add(gdsInputMergesBoxes, gridBagConstraints);
@@ -183,7 +499,6 @@ public class GDSTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         GDSInput.add(gdsInputIncludesText, gridBagConstraints);
@@ -192,7 +507,6 @@ public class GDSTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         GDSInput.add(gdsInputExpandsCells, gridBagConstraints);
@@ -201,7 +515,6 @@ public class GDSTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         GDSInput.add(gdsInputInstantiatesArrays, gridBagConstraints);
@@ -210,58 +523,39 @@ public class GDSTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         GDSInput.add(gdsSimplifyCells, gridBagConstraints);
 
         jLabel3.setText("Array simplification:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         GDSInput.add(jLabel3, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 4);
         GDSInput.add(gdsArraySimplification, gridBagConstraints);
 
         jLabel1.setText("Unknown layers:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         GDSInput.add(jLabel1, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 4);
         GDSInput.add(gdsUnknownLayers, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gds.add(GDSInput, gridBagConstraints);
-
-        GDSOutput.setLayout(new java.awt.GridBagLayout());
-
-        GDSOutput.setBorder(javax.swing.BorderFactory.createTitledBorder("GDS Output"));
-        gdsConvertNCCExportsConnectedByParentPins.setText("Use NCC annotations for exports");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        GDSOutput.add(gdsConvertNCCExportsConnectedByParentPins, gridBagConstraints);
 
         gdsColapseNames.setText("Collapse VDD/GND pin names");
         gdsColapseNames.addActionListener(new java.awt.event.ActionListener() {
@@ -271,15 +565,280 @@ public class GDSTab extends PreferencePanel
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        GDSOutput.add(gdsColapseNames, gridBagConstraints);
+        GDSInput.add(gdsColapseNames, gridBagConstraints);
+
+        gdsConvertNCCExportsConnectedByParentPins.setText("Use NCC annotations for exports");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        GDSInput.add(gdsConvertNCCExportsConnectedByParentPins, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gds.add(GDSInput, gridBagConstraints);
+
+        GDSOutput.setLayout(new java.awt.GridBagLayout());
+
+        GDSOutput.setBorder(javax.swing.BorderFactory.createTitledBorder("Project Settings"));
+        gdsLayerList.setMinimumSize(new java.awt.Dimension(200, 200));
+        gdsLayerList.setOpaque(false);
+        gdsLayerList.setPreferredSize(new java.awt.Dimension(200, 200));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridheight = 11;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        GDSOutput.add(gdsLayerList, gridBagConstraints);
+
+        jLabel6.setText("Normal:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        GDSOutput.add(jLabel6, gridBagConstraints);
+
+        gdsLayerNumber.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        GDSOutput.add(gdsLayerNumber, gridBagConstraints);
+
+        jLabel7.setText("Pin:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        GDSOutput.add(jLabel7, gridBagConstraints);
+
+        gdsPinLayer.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        GDSOutput.add(gdsPinLayer, gridBagConstraints);
+
+        jLabel8.setText("Text:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        GDSOutput.add(jLabel8, gridBagConstraints);
+
+        gdsTextLayer.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        GDSOutput.add(gdsTextLayer, gridBagConstraints);
+
+        gdsOutputMergesBoxes.setText("Output merges Boxes (slow)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(6, 4, 2, 4);
+        GDSOutput.add(gdsOutputMergesBoxes, gridBagConstraints);
+
+        gdsOutputWritesExportPins.setText("Output writes export Pins");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        GDSOutput.add(gdsOutputWritesExportPins, gridBagConstraints);
+
+        gdsOutputUpperCase.setText("Output all upper-case");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        GDSOutput.add(gdsOutputUpperCase, gridBagConstraints);
+
+        jLabel9.setText("Output default text layer:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        GDSOutput.add(jLabel9, gridBagConstraints);
+
+        gdsDefaultTextLayer.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        GDSOutput.add(gdsDefaultTextLayer, gridBagConstraints);
+
+        jLabel29.setText("Blank layer values generate no GDS");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 8, 4);
+        GDSOutput.add(jLabel29, gridBagConstraints);
+
+        gdsOutputConvertsBracketsInExports.setText("Output converts brackets in exports");
+        gdsOutputConvertsBracketsInExports.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                gdsOutputConvertsBracketsInExportsActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        GDSOutput.add(gdsOutputConvertsBracketsInExports, gridBagConstraints);
+
+        jLabel2.setText("Layer:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        GDSOutput.add(jLabel2, gridBagConstraints);
+
+        jLabel4.setText("Type:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        GDSOutput.add(jLabel4, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        GDSOutput.add(gdsLayerType, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        GDSOutput.add(gdsPinType, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        GDSOutput.add(gdsTextType, gridBagConstraints);
+
+        jLabel5.setText("Max chars in output cell name:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        GDSOutput.add(jLabel5, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        GDSOutput.add(gdsCellNameLenMax, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        GDSOutput.add(technologySelection, gridBagConstraints);
+
+        jLabel10.setText("Technology:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        GDSOutput.add(jLabel10, gridBagConstraints);
+
+        gdsFoundryName.setText("Foundry:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        GDSOutput.add(gdsFoundryName, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        GDSOutput.add(foundrySelection, gridBagConstraints);
+
+        jLabel11.setText("Scale by:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(8, 4, 4, 2);
+        GDSOutput.add(jLabel11, gridBagConstraints);
+
+        gdsInputScale.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.insets = new java.awt.Insets(8, 2, 4, 2);
+        GDSOutput.add(gdsInputScale, gridBagConstraints);
+
+        jLabel12.setText("when reading");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(8, 2, 4, 4);
+        GDSOutput.add(jLabel12, gridBagConstraints);
+
+        jLabel13.setText("Clear these field to ignore the layer");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
+        GDSOutput.add(jLabel13, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         gds.add(GDSOutput, gridBagConstraints);
@@ -288,6 +847,10 @@ public class GDSTab extends PreferencePanel
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void gdsOutputConvertsBracketsInExportsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gdsOutputConvertsBracketsInExportsActionPerformed
+// Add your handling code here:
+    }//GEN-LAST:event_gdsOutputConvertsBracketsInExportsActionPerformed
 
     private void gdsColapseNamesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gdsColapseNamesActionPerformed
 // TODO add your handling code here:
@@ -303,17 +866,46 @@ public class GDSTab extends PreferencePanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel GDSInput;
     private javax.swing.JPanel GDSOutput;
+    private javax.swing.JComboBox foundrySelection;
     private javax.swing.JPanel gds;
     private javax.swing.JComboBox gdsArraySimplification;
+    private javax.swing.JTextField gdsCellNameLenMax;
     private javax.swing.JCheckBox gdsColapseNames;
     private javax.swing.JCheckBox gdsConvertNCCExportsConnectedByParentPins;
+    private javax.swing.JTextField gdsDefaultTextLayer;
+    private javax.swing.JLabel gdsFoundryName;
     private javax.swing.JCheckBox gdsInputExpandsCells;
     private javax.swing.JCheckBox gdsInputIncludesText;
     private javax.swing.JCheckBox gdsInputInstantiatesArrays;
     private javax.swing.JCheckBox gdsInputMergesBoxes;
+    private javax.swing.JTextField gdsInputScale;
+    private javax.swing.JScrollPane gdsLayerList;
+    private javax.swing.JTextField gdsLayerNumber;
+    private javax.swing.JTextField gdsLayerType;
+    private javax.swing.JCheckBox gdsOutputConvertsBracketsInExports;
+    private javax.swing.JCheckBox gdsOutputMergesBoxes;
+    private javax.swing.JCheckBox gdsOutputUpperCase;
+    private javax.swing.JCheckBox gdsOutputWritesExportPins;
+    private javax.swing.JTextField gdsPinLayer;
+    private javax.swing.JTextField gdsPinType;
     private javax.swing.JCheckBox gdsSimplifyCells;
+    private javax.swing.JTextField gdsTextLayer;
+    private javax.swing.JTextField gdsTextType;
     private javax.swing.JComboBox gdsUnknownLayers;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel29;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JComboBox technologySelection;
     // End of variables declaration//GEN-END:variables
 }

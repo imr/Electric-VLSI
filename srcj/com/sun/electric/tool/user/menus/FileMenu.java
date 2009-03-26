@@ -76,7 +76,6 @@ import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
-import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
@@ -330,8 +329,8 @@ public class FileMenu {
             SEPARATOR,
 
 			ToolBar.preferencesCommand, // R
-            new EMenuItem("Pro_ject Settings...") { public void run() {
-                ProjectSettingsFrame.projectSettingsCommand(); }},
+//            new EMenuItem("Pro_ject Settings...") { public void run() {
+//                ProjectSettingsFrame.projectSettingsCommand(); }},
 
             SEPARATOR,
 

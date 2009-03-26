@@ -39,6 +39,7 @@ import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
+import com.sun.electric.tool.user.dialogs.options.AddedTechnologiesTab;
 import com.sun.electric.tool.user.dialogs.options.AntennaRulesTab;
 import com.sun.electric.tool.user.dialogs.options.CDLTab;
 import com.sun.electric.tool.user.dialogs.options.CIFTab;
@@ -62,6 +63,7 @@ import com.sun.electric.tool.user.dialogs.options.GridAndAlignmentTab;
 import com.sun.electric.tool.user.dialogs.options.IconTab;
 import com.sun.electric.tool.user.dialogs.options.LayersTab;
 import com.sun.electric.tool.user.dialogs.options.LibraryTab;
+import com.sun.electric.tool.user.dialogs.options.LogicalEffortTab;
 import com.sun.electric.tool.user.dialogs.options.NCCTab;
 import com.sun.electric.tool.user.dialogs.options.NetworkTab;
 import com.sun.electric.tool.user.dialogs.options.NewArcsTab;
@@ -139,6 +141,8 @@ public class PreferencesFrame extends EDialog
 
 	/** The name of the current tab in this dialog. */		private static String currentTabName = "General";
 	/** The name of the current section in this dialog. */	private static String currentSectionName = "General ";
+
+	private static String staClass = "com.sun.electric.plugins.sctiming.STAOptionsDialog";
 
 	/**
 	 * This method implements the command to show the PreferencesFrame dialog.
@@ -230,7 +234,7 @@ public class PreferencesFrame extends EDialog
 		DefaultMutableTreeNode ioSet = new DefaultMutableTreeNode("I/O ");
 		rootNode.add(ioSet);
 		addTreeNode(new CIFTab(this, true), ioSet);
-		addTreeNode(new GDSTab(parent, true), ioSet);
+		addTreeNode(new GDSTab(this, true), ioSet);
 		addTreeNode(new EDIFTab(parent, true), ioSet);
 		addTreeNode(new DEFTab(parent, true), ioSet);
 		addTreeNode(new CDLTab(parent, true), ioSet);
@@ -239,7 +243,7 @@ public class PreferencesFrame extends EDialog
 		if (IOTool.hasDais())
 			addTreeNode(new DaisTab(parent, true), ioSet);
 		if (IOTool.hasSkill())
-			addTreeNode(new SkillTab(parent, true), ioSet);
+			addTreeNode(new SkillTab(this, true), ioSet);
 		addTreeNode(new LibraryTab(parent, true), ioSet);
 
 		// the "Tools" section of the Preferences
@@ -250,6 +254,7 @@ public class PreferencesFrame extends EDialog
 		addTreeNode(new CoverageTab(parent, true), toolSet);
 		addTreeNode(new DRCTab(parent, true), toolSet);
 		addTreeNode(new FastHenryTab(parent, true), toolSet);
+		addTreeNode(new LogicalEffortTab(this, true), toolSet);
 		addTreeNode(new NCCTab(parent, true), toolSet);
 		if (Pie.hasPie())
 		{
@@ -261,13 +266,17 @@ public class PreferencesFrame extends EDialog
 			}
 			catch (Exception ex) { /* do nothing */ };
 		}
-		addTreeNode(new NetworkTab(parent, true), toolSet);
-		addTreeNode(new ParasiticTab(parent, true), toolSet);
+		addTreeNode(new NetworkTab(this, true), toolSet);
+		addTreeNode(new ParasiticTab(this, true), toolSet);
 		addTreeNode(new RoutingTab(parent, true), toolSet);
 		addTreeNode(new SiliconCompilerTab(parent, true), toolSet);
 		addTreeNode(new SimulatorsTab(parent, true), toolSet);
 		addTreeNode(new SpiceTab(parent, true), toolSet);
 		addTreeNode(new CellModelTab(parent, true, CellModelPrefs.spiceModelPrefs), toolSet);
+
+        if (getPluginPanel(staClass, this, true) != null)
+            addTreeNode(getPluginPanel(staClass, this, true), toolSet);
+
 		if (Routing.hasSunRouter())
 			addTreeNode(new SunRouterTab(parent, true), toolSet);
 		addTreeNode(new VerilogTab(this, true), toolSet);
@@ -277,6 +286,7 @@ public class PreferencesFrame extends EDialog
 		// the "Technology" section of the Preferences
 		DefaultMutableTreeNode techSet = new DefaultMutableTreeNode("Technology ");
 		rootNode.add(techSet);
+		addTreeNode(new AddedTechnologiesTab(this, true), techSet);
 		addTreeNode(new TechnologyTab(this, true), techSet);
 		addTreeNode(new DesignRulesTab(parent, true), techSet);
 		addTreeNode(new ScaleTab(this, true), techSet);
@@ -434,6 +444,19 @@ public class PreferencesFrame extends EDialog
 		}
 		return false;
 	}
+
+    private PreferencePanel getPluginPanel(String className, PreferencesFrame frame, boolean modal)
+    {
+        try {
+            Class<?> panelClass = Class.forName(className);
+            Object panel = panelClass.getConstructor(PreferencesFrame.class, Boolean.class).newInstance(frame, Boolean.valueOf(modal));
+            return (PreferencePanel)panel;
+        } catch (Exception e) {
+            System.out.println("Exception while loading plugin class "+className+": "+e.getMessage());
+        }
+        return null;
+    }
+
 
 	private void cancelActionPerformed()
 	{

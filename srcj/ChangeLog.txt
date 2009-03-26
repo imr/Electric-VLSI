@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09g: ******************************
 
+IMP/MAN: (3/24/09, SMR) Project Settings dialog merged into Preferences panel (Bug #2101).
+
 IMP/MAN: (2/26/09, SMR) Added Carbon Nanotube layout transistors for Villanova
      (new Layer Function extra bit for carbon nanotube type) (Bug #2055).
 
@@ -14,7 +16,7 @@ IMP: (3/24/09, DN) Class Layer is Serializable.
 
 IMP/MAP: (3/24/09, DN) Simplify schematic technology - remove parameter NegatingBubbleSize.
 
-IMP/MAN: (3/24/09, SMR) Project Settings dialog starting to merge into Preferences panel.  CIF
+IMP: (3/24/09, SMR) Project Settings dialog starting to merge into Preferences panel.  CIF
      Settings transfered (Bug #2101).
 
 IMP/MAN: (3/23/09, DN) Artwork arrows are always filled (Bug #2100).
@@ -32,7 +34,7 @@ BUG: (3/23/09, DN) Settings are not saved to Preferences (Bug #2097).
 FIX: In UserInterfaceMain.DatabaseChangeRun.run() add saving Snapshot Settings to Preferences.
 
 IMP/MAN: (3/23/09, SMR) Moved "Schematic Negating Bubble Size" from Preferences
-     to Project Settings.
+     to Project Settings, then removed it completely.
 
 BUG: (3/22/09, DN) Exception in WaveformWindow.preserveSignalOrder.
 FIX: Load/save options directly into Preferences subtree without cration of temporary Pref.
