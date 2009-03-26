@@ -23,25 +23,20 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
@@ -53,7 +48,7 @@ import javax.swing.event.DocumentListener;
 public class NewNodesTab extends PreferencePanel
 {
 	/** Creates new form NewNodesTab */
-	public NewNodesTab(java.awt.Frame parent, boolean modal)
+	public NewNodesTab(PreferencesFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -71,7 +66,6 @@ public class NewNodesTab extends PreferencePanel
     @Override
 	public String getName() { return "Nodes"; }
 
-	private Map<PrimitiveNode,ImmutableNodeInst> defaultInsts;
 	private boolean newNodesDataChanging = false;
 	private Technology selectedTech;
 
@@ -83,17 +77,10 @@ public class NewNodesTab extends PreferencePanel
 	public void init()
 	{
 		// gather information about the PrimitiveNodes in the current Technology
-        EditingPreferences ep = UserInterfaceMain.getEditingPreferences();
-        defaultInsts = new HashMap<PrimitiveNode,ImmutableNodeInst>();
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = tIt.next();
 			technologySelection.addItem(tech.getTechName());
-			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
-			{
-				PrimitiveNode np = it.next();
-				defaultInsts.put(np, np.getDefaultInst(ep));
-			}
 		}
 		technologySelection.setSelectedItem(Technology.getCurrent().getTechName());
 		selectedTech = null;
@@ -147,8 +134,7 @@ public class NewNodesTab extends PreferencePanel
 		}
 		String primName = (String)nodePrimitive.getSelectedItem();
 		PrimitiveNode np = tech.findNodeProto(primName);
-        ImmutableNodeInst n = defaultInsts.get(np);
-		if (n == null) return;
+        ImmutableNodeInst n = np.getDefaultInst(getEditingPreferences());
 		newNodesDataChanging = true;
         ERectangle base = np.getBaseRectangle();
         double wid = DBMath.gridToLambda(base.getGridWidth() + n.size.getGridX());
@@ -184,13 +170,11 @@ public class NewNodesTab extends PreferencePanel
 		if (tech == null) return;
 		String primName = (String)nodePrimitive.getSelectedItem();
 		PrimitiveNode np = tech.findNodeProto(primName);
-        ImmutableNodeInst n = defaultInsts.get(np);
-		if (n == null) return;
         ERectangle base = np.getBaseRectangle();
         double wid = TextUtils.atofDistance(nodePrimitiveXSize.getText(), tech);
         double hei = TextUtils.atofDistance(nodePrimitiveYSize.getText(), tech);
 		EPoint size = EPoint.fromGrid(DBMath.lambdaToSizeGrid(wid - base.getWidth()), DBMath.lambdaToSizeGrid(hei - base.getHeight()));
-        defaultInsts.put(np, n.withSize(size));
+        setEditingPreferences(getEditingPreferences().withNodeSize(np.getId(), size));
 	}
 
 	/**
@@ -200,21 +184,6 @@ public class NewNodesTab extends PreferencePanel
     @Override
 	public void term()
 	{
-        EditingPreferences oldEp = UserInterfaceMain.getEditingPreferences();
-        Map<PrimitiveNodeId,ImmutableNodeInst> defaultNodes = new HashMap<PrimitiveNodeId,ImmutableNodeInst>();
-		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
-		{
-			Technology tech = tIt.next();
-			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
-			{
-				PrimitiveNode np = it.next();
-                ImmutableNodeInst n = defaultInsts.get(np);
-                if (n.size.equals(np.getFactoryDefaultInst().size)) continue;
-                defaultNodes.put(np.getId(), n);
-			}
-		}
-        UserInterfaceMain.setEditingPreferences(oldEp.withDefaultNodes(defaultNodes));
-
 		boolean currBoolean = nodeCheckCellDates.isSelected();
 		if (currBoolean != User.isCheckCellDates())
 			User.setCheckCellDates(currBoolean);
@@ -262,8 +231,7 @@ public class NewNodesTab extends PreferencePanel
     @Override
 	public void reset()
 	{
-        Map<PrimitiveNodeId,ImmutableNodeInst> defaultNodes = Collections.emptyMap();
-        UserInterfaceMain.setEditingPreferences(UserInterfaceMain.getEditingPreferences().withDefaultNodes(defaultNodes));
+        setEditingPreferences(getEditingPreferences().withNodesReset());
 
 		if (User.isFactoryCheckCellDates() != User.isCheckCellDates())
 			User.setCheckCellDates(User.isFactoryCheckCellDates());

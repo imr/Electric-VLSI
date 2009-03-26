@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
@@ -113,13 +114,16 @@ public class PreferencePanel extends EDialog
 
 	protected TechPool getTechPool() { return Environment.getThreadTechPool(); }
 
+    protected EditingPreferences getEditingPreferences() { return parent.getEditingPreferences(); }
+    protected void setEditingPreferences(EditingPreferences ep) { parent.setEditingPreferences(ep); }
+
 	/**
 	 * Method to get the boolean value on the Setting object.
 	 * The object must have been created as "boolean".
 	 * @param setting setting object.
 	 * @return the boolean value on the Setting object.
 	 */
-	public boolean getBoolean(Setting setting) { return ((Boolean)getValue(setting)).booleanValue(); }
+	protected boolean getBoolean(Setting setting) { return ((Boolean)getValue(setting)).booleanValue(); }
 
 	/**
 	 * Method to get the integer value on the Setting object.
@@ -127,7 +131,7 @@ public class PreferencePanel extends EDialog
 	 * @param setting setting object.
 	 * @return the integer value on the Setting object.
 	 */
-	public int getInt(Setting setting) { return ((Integer)getValue(setting)).intValue(); }
+	protected int getInt(Setting setting) { return ((Integer)getValue(setting)).intValue(); }
 
 	/**
 	 * Method to get the long value on the Setting object.
@@ -135,7 +139,7 @@ public class PreferencePanel extends EDialog
 	 * @param setting setting object.
 	 * @return the long value on the Setting object.
 	 */
-	public long getLong(Setting setting) { return ((Long)getValue(setting)).longValue(); }
+	protected long getLong(Setting setting) { return ((Long)getValue(setting)).longValue(); }
 
 	/**
 	 * Method to get the double value on the Setting object.
@@ -143,7 +147,7 @@ public class PreferencePanel extends EDialog
 	 * @param setting setting object.
 	 * @return the double value on the Setting object.
 	 */
-	public double getDouble(Setting setting) { return ((Double)getValue(setting)).doubleValue(); }
+	protected double getDouble(Setting setting) { return ((Double)getValue(setting)).doubleValue(); }
 
 	/**
 	 * Method to get string representation of the double value on the Setting object.
@@ -151,21 +155,21 @@ public class PreferencePanel extends EDialog
 	 * @param setting setting object.
 	 * @return the string representation of the double value on the Setting object.
 	 */
-	public String getFormattedDouble(Setting setting) { return Double.toString(getDouble(setting)); }
+	protected String getFormattedDouble(Setting setting) { return Double.toString(getDouble(setting)); }
 
 	/**
 	 * Method to get the string value on the Setting object.
 	 * The object must have been created as "string".
 	 * @return the string value on the Setting object.
 	 */
-	public String getString(Setting setting) { return (String)getValue(setting); }
+	protected String getString(Setting setting) { return (String)getValue(setting); }
 
 	/**
 	 * Method to set a new boolean value on Setting object.
 	 * @param setting Setting object.
 	 * @param v the new boolean value of Setting object.
 	 */
-	public void setBoolean(Setting setting, boolean v)
+	protected void setBoolean(Setting setting, boolean v)
 	{
 		if (v != getBoolean(setting))
 			putValue(setting, Boolean.valueOf(v));
@@ -176,7 +180,7 @@ public class PreferencePanel extends EDialog
 	 * @param setting Setting object.
 	 * @param v the new integer value of Setting object.
 	 */
-	public void setInt(Setting setting, int v)
+	protected void setInt(Setting setting, int v)
 	{
 		if (v != getInt(setting))
 			putValue(setting, Integer.valueOf(v));
@@ -187,7 +191,7 @@ public class PreferencePanel extends EDialog
 	 * @param setting Setting object.
 	 * @param v the new long value of Setting object.
 	 */
-	public void setLong(Setting setting, long v)
+	protected  void setLong(Setting setting, long v)
 	{
 		if (v != getLong(setting))
 			putValue(setting, Long.valueOf(v));
@@ -198,7 +202,7 @@ public class PreferencePanel extends EDialog
 	 * @param setting Setting object.
 	 * @param v the new double value of Setting object.
 	 */
-	public void setDouble(Setting setting, double v)
+	protected void setDouble(Setting setting, double v)
 	{
 		if (v != getDouble(setting))
 			putValue(setting, Double.valueOf(v));
@@ -209,7 +213,7 @@ public class PreferencePanel extends EDialog
 	 * @param setting Setting object.
 	 * @param str the new string value of Setting object.
 	 */
-	public void setString(Setting setting, String str)
+	protected void setString(Setting setting, String str)
 	{
 		if (!str.equals(getString(setting)))
 			putValue(setting, str);

@@ -60,27 +60,31 @@ public class EditingPreferences extends PrefPackage {
     private static final ThreadLocal<EditingPreferences> threadEditingPreferences = new ThreadLocal<EditingPreferences>();
 
     private final TechPool techPool;
-    private HashMap<PrimitiveNodeId,ImmutableNodeInst> defaultNodes = new HashMap<PrimitiveNodeId,ImmutableNodeInst>();
-    private HashMap<ArcProtoId,ImmutableArcInst> defaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>();
-    private HashMap<ArcProtoId,Integer> defaultArcAngleIncrements = new HashMap<ArcProtoId,Integer>();
-    private HashMap<ArcProtoId,PrimitiveNodeId> defaultArcPins = new HashMap<ArcProtoId,PrimitiveNodeId>();
+    private final HashMap<PrimitiveNodeId,ImmutableNodeInst> defaultNodes;
+    private HashMap<ArcProtoId,ImmutableArcInst> defaultArcs;
+    private HashMap<ArcProtoId,Integer> defaultArcAngleIncrements;
+    private HashMap<ArcProtoId,PrimitiveNodeId> defaultArcPins;
 
-    private EditingPreferences(TechPool techPool,
-            Map<PrimitiveNodeId,ImmutableNodeInst> defaultNodes,
-            Map<ArcProtoId,ImmutableArcInst> defaultArcs,
-            Map<ArcProtoId,Integer> defaultArcAngleIncrements,
-            Map<ArcProtoId,PrimitiveNodeId> defaultArcPins) {
-        super("");
-        this.techPool = techPool;
-        this.defaultNodes.putAll(defaultNodes);
-        this.defaultArcs.putAll(defaultArcs);
-        this.defaultArcAngleIncrements.putAll(defaultArcAngleIncrements);
-        this.defaultArcPins.putAll(defaultArcPins);
+    private EditingPreferences(EditingPreferences that,
+            HashMap<PrimitiveNodeId,ImmutableNodeInst> defaultNodes,
+            HashMap<ArcProtoId,ImmutableArcInst> defaultArcs,
+            HashMap<ArcProtoId,Integer> defaultArcAngleIncrements,
+            HashMap<ArcProtoId,PrimitiveNodeId> defaultArcPins) {
+        super(that);
+        this.techPool = that.techPool;
+        this.defaultNodes = defaultNodes;
+        this.defaultArcs = defaultArcs;
+        this.defaultArcAngleIncrements = defaultArcAngleIncrements;
+        this.defaultArcPins = defaultArcPins;
     }
 
     public EditingPreferences(boolean factory, TechPool techPool) {
         super(factory);
         this.techPool = techPool;
+        defaultNodes = new HashMap<PrimitiveNodeId,ImmutableNodeInst>();
+        defaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>();
+        defaultArcAngleIncrements = new HashMap<ArcProtoId,Integer>();
+        defaultArcPins = new HashMap<ArcProtoId,PrimitiveNodeId>();
         if (factory) return;
 
         Preferences prefRoot = Pref.getPrefRoot();
@@ -170,6 +174,8 @@ public class EditingPreferences extends PrefPackage {
             }
         }
     }
+
+    public TechPool getTechPool() { return techPool; }
 
     @Override
     public void putPrefs(Preferences prefRoot, boolean removeDefaults) {
@@ -280,24 +286,110 @@ public class EditingPreferences extends PrefPackage {
         }
     }
 
-    public EditingPreferences withDefaultNodes(Map<PrimitiveNodeId,ImmutableNodeInst> defaultNodes) {
-        HashMap<PrimitiveNodeId,ImmutableNodeInst> newDefaultNodes = new HashMap<PrimitiveNodeId,ImmutableNodeInst>();
-		for(Technology tech: techPool.values()) {
-			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); ) {
-				PrimitiveNode np = it.next();
-                ImmutableNodeInst n = defaultNodes.get(np.getId());
-                if (n == null) continue;
-                if (n.protoId != np.getId())
-                    throw new IllegalArgumentException();
-                newDefaultNodes.put(np.getId(), n);
-			}
-		}
-        if (this.defaultNodes.equals(newDefaultNodes)) return this;
-        return new EditingPreferences(this.techPool,
+    public EditingPreferences withNodeSize(PrimitiveNodeId pnId, EPoint size) {
+        PrimitiveNode pn = techPool.getPrimitiveNode(pnId);
+        if (pn == null) return this;
+        ImmutableNodeInst n = pn.getDefaultInst(this);
+        assert n.protoId == pnId;
+        if (n.size.equals(size)) return this;
+        HashMap<PrimitiveNodeId,ImmutableNodeInst> newDefaultNodes = new HashMap<PrimitiveNodeId,ImmutableNodeInst>(defaultNodes);
+        if (size.equals(pn.getFactoryDefaultInst().size))
+            newDefaultNodes.remove(pnId);
+        else
+            newDefaultNodes.put(pnId, n.withSize(size));
+        return new EditingPreferences(this,
                 newDefaultNodes,
                 this.defaultArcs,
                 this.defaultArcAngleIncrements,
                 this.defaultArcPins);
+    }
+
+    public EditingPreferences withNodesReset() {
+        if (defaultNodes.isEmpty()) return this;
+        return new EditingPreferences(this,
+                new HashMap<PrimitiveNodeId,ImmutableNodeInst>(),
+                this.defaultArcs,
+                this.defaultArcAngleIncrements,
+                this.defaultArcPins);
+    }
+
+    public EditingPreferences withArcFlags(ArcProtoId apId, int flags) {
+        ArcProto ap = techPool.getArcProto(apId);
+        if (ap == null) return this;
+        ImmutableArcInst a = ap.getDefaultInst(this);
+        if (flags == a.flags) return this;
+        HashMap<ArcProtoId,ImmutableArcInst> newDefaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>(defaultArcs);
+        ImmutableArcInst factoryA = ap.getFactoryDefaultInst();
+        if (flags == factoryA.flags)
+            newDefaultArcs.remove(apId);
+        else
+            newDefaultArcs.put(apId, a.withFlags(flags));
+         return new EditingPreferences(this,
+                this.defaultNodes,
+                newDefaultArcs,
+                this.defaultArcAngleIncrements,
+                this.defaultArcPins);
+    }
+
+    public EditingPreferences withArcGridExtend(ArcProtoId apId, long gridExtend) {
+        ArcProto ap = techPool.getArcProto(apId);
+        if (ap == null) return this;
+        ImmutableArcInst a = ap.getDefaultInst(this);
+        if (gridExtend == a.getGridExtendOverMin()) return this;
+        HashMap<ArcProtoId,ImmutableArcInst> newDefaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>(defaultArcs);
+        ImmutableArcInst factoryA = ap.getFactoryDefaultInst();
+        if (gridExtend == factoryA.getGridExtendOverMin())
+            newDefaultArcs.remove(apId);
+        else
+            newDefaultArcs.put(apId, a.withGridExtendOverMin(gridExtend));
+         return new EditingPreferences(this,
+                this.defaultNodes,
+                newDefaultArcs,
+                this.defaultArcAngleIncrements,
+                this.defaultArcPins);
+    }
+
+    public EditingPreferences withArcAngleIncrement(ArcProtoId apId, int angleIncrement) {
+        ArcProto ap = techPool.getArcProto(apId);
+        if (ap == null) return this;
+        if (angleIncrement == ap.getAngleIncrement(this)) return this;
+        HashMap<ArcProtoId,Integer> newDefaultArcAngleIncrements = new HashMap<ArcProtoId,Integer>(defaultArcAngleIncrements);
+        int factoryAngleIncrement = ap.getFactoryAngleIncrement();
+        if (angleIncrement == factoryAngleIncrement)
+            newDefaultArcAngleIncrements.remove(apId);
+        else
+            newDefaultArcAngleIncrements.put(apId, Integer.valueOf(angleIncrement));
+        return new EditingPreferences(this,
+                this.defaultNodes,
+                this.defaultArcs,
+                newDefaultArcAngleIncrements,
+                this.defaultArcPins);
+    }
+
+    public EditingPreferences withArcPin(ArcProtoId apId, PrimitiveNodeId arcPinId) {
+        ArcProto ap = techPool.getArcProto(apId);
+        if (ap == null) return this;
+        if (arcPinId == ap.findOverridablePinProto(this).getId()) return this;
+        HashMap<ArcProtoId,PrimitiveNodeId> newDefaultArcPins = new HashMap<ArcProtoId,PrimitiveNodeId>(defaultArcPins);
+        PrimitiveNodeId factoryArcPinId = ap.findPinProto().getId();
+        if (arcPinId == factoryArcPinId)
+            newDefaultArcPins.remove(apId);
+        else
+            newDefaultArcPins.put(apId, arcPinId);
+        return new EditingPreferences(this,
+                this.defaultNodes,
+                this.defaultArcs,
+                this.defaultArcAngleIncrements,
+                newDefaultArcPins);
+    }
+
+    public EditingPreferences withArcsReset() {
+        if (defaultArcs.isEmpty() && defaultArcAngleIncrements.isEmpty() && defaultArcPins.isEmpty()) return this;
+        return new EditingPreferences(this,
+                this.defaultNodes,
+                new HashMap<ArcProtoId,ImmutableArcInst>(),
+                new HashMap<ArcProtoId,Integer>(),
+                new HashMap<ArcProtoId,PrimitiveNodeId>());
     }
 
     public EditingPreferences withArcDefaults(
@@ -331,7 +423,7 @@ public class EditingPreferences extends PrefPackage {
         if (this.defaultArcs.equals(newDefaultArcs) &&
             this.defaultArcAngleIncrements.equals(newDefaultArcAngleIncrements) &&
             this.defaultArcPins.equals(newDefaultArcPins)) return this;
-        return new EditingPreferences(this.techPool,
+        return new EditingPreferences(this,
                 this.defaultNodes,
                 newDefaultArcs,
                 newDefaultArcAngleIncrements,
@@ -352,6 +444,25 @@ public class EditingPreferences extends PrefPackage {
 
     public PrimitiveNodeId getDefaultArcPinId(ArcProtoId apId) {
         return defaultArcPins.get(apId);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (o instanceof EditingPreferences) {
+            EditingPreferences that = (EditingPreferences)o;
+            return this.techPool == that.techPool &&
+                    this.defaultNodes.equals(that.defaultNodes) &&
+                    this.defaultArcs.equals(that.defaultArcs) &&
+                    this.defaultArcAngleIncrements.equals(that.defaultArcAngleIncrements) &&
+                    this.defaultArcPins.equals(that.defaultArcPins);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return defaultNodes.size() + defaultArcs.size();
     }
 
     public static EditingPreferences getThreadEditingPreferences() {

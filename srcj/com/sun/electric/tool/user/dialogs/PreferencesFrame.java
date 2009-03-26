@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
@@ -37,6 +38,7 @@ import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.options.AntennaRulesTab;
 import com.sun.electric.tool.user.dialogs.options.CDLTab;
 import com.sun.electric.tool.user.dialogs.options.CIFTab;
@@ -130,6 +132,7 @@ public class PreferencesFrame extends EDialog
 	private JButton cancel, ok;
 	private Map<Setting,Object> originalContext;
 	private Map<Setting,Object> currentContext;
+    private EditingPreferences editingPreferences;
 	private List<PreferencePanel> optionPanes = new ArrayList<PreferencePanel>();
 	private DefaultMutableTreeNode initialDMTN;
 
@@ -174,6 +177,7 @@ public class PreferencesFrame extends EDialog
 		EDatabase database = EDatabase.clientDatabase();
 		originalContext = database.getSettings();
 		currentContext = new HashMap<Setting,Object>(originalContext);
+        editingPreferences = UserInterfaceMain.getEditingPreferences();
 
 		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Preferences");
 		DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
@@ -190,8 +194,8 @@ public class PreferencesFrame extends EDialog
 		TopLevel top = TopLevel.getCurrentJFrame();
 		if (top != null && top.getEMenuBar() != null)
 			addTreeNode(new EditKeyBindings(top.getEMenuBar(), parent, true), generalSet);
-		addTreeNode(new NewNodesTab(parent, true), generalSet);
-		addTreeNode(new NewArcsTab(parent, true), generalSet);
+		addTreeNode(new NewNodesTab(this, true), generalSet);
+		addTreeNode(new NewArcsTab(this, true), generalSet);
 		addTreeNode(new ProjectManagementTab(parent, true), generalSet);
 		addTreeNode(new CVSTab(parent, true), generalSet);
 		addTreeNode(new PrintingTab(parent, true), generalSet);
@@ -440,6 +444,7 @@ public class PreferencesFrame extends EDialog
 		{
 			if (ti.isInited()) ti.term();
 		}
+        UserInterfaceMain.setEditingPreferences(editingPreferences);
 
 		// gather preference changes on the client
 		Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
@@ -550,6 +555,9 @@ public class PreferencesFrame extends EDialog
 
 	public Map<Setting,Object> getContext() { return currentContext; }
 
+    public EditingPreferences getEditingPreferences() { return editingPreferences; }
+    public void setEditingPreferences(EditingPreferences ep) { editingPreferences = ep; }
+
 	private void applyActionPerformed()
 	{
 		for(PreferencePanel ti : optionPanes)
@@ -557,6 +565,7 @@ public class PreferencesFrame extends EDialog
 			if (ti.isInited())
 				ti.term();
 		}
+        UserInterfaceMain.setEditingPreferences(editingPreferences);
 	}
 
 	private void resetActionPerformed()
@@ -579,6 +588,7 @@ public class PreferencesFrame extends EDialog
 					{
 						// panel unable to reset itself: do hard reset and quit dialog
 						ti.reset();
+                        UserInterfaceMain.setEditingPreferences(editingPreferences);
 						closeDialog(null);
 						WindowFrame.repaintAllWindows();
 					}
@@ -598,6 +608,7 @@ public class PreferencesFrame extends EDialog
 			Pref.delayPrefFlushing();
 			for(PreferencePanel ti : optionPanes)
 				ti.reset();
+            UserInterfaceMain.setEditingPreferences(editingPreferences);
 			Pref.resumePrefFlushing();
 			closeDialog(null);
 			WindowFrame.repaintAllWindows();

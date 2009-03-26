@@ -708,10 +708,10 @@ public class UserInterfaceMain extends AbstractUserInterface
 
     public static void setEditingPreferences(EditingPreferences newEp) {
         EditingPreferences oldEp = getEditingPreferences();
-        if (newEp == oldEp) return;
+        if (newEp.equals(oldEp)) return;
         EditingPreferences.setThreadEditingPreferences(newEp);
         Pref.delayPrefFlushing();
-        newEp.putPrefs(Pref.getPrefRoot(), true);
+        newEp.putPrefs(Pref.getPrefRoot(), true, oldEp);
         Pref.resumePrefFlushing();
     }
 

@@ -189,7 +189,7 @@ public class ImmutableIconInst extends ImmutableNodeInst {
      */
     @Override
     public boolean equalsExceptVariables(ImmutableElectricObject o) {
-        return super.equals(o) && params == ((ImmutableIconInst)o).params;
+        return super.equalsExceptVariables(o) && params == ((ImmutableIconInst)o).params;
     }
 
     /**

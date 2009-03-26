@@ -27,23 +27,19 @@ import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.id.ArcProtoId;
-import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -56,7 +52,7 @@ import javax.swing.event.DocumentListener;
 public class NewArcsTab extends PreferencePanel
 {
 	/** Creates new form NewArcsTab */
-	public NewArcsTab(java.awt.Frame parent, boolean modal)
+	public NewArcsTab(PreferencesFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -74,10 +70,6 @@ public class NewArcsTab extends PreferencePanel
     @Override
 	public String getName() { return "Arcs"; }
 
-    private EditingPreferences initialEp;
-	private Map<ArcProto,ImmutableArcInst> defaultInsts;
-    private Map<ArcProto,Integer> angleIncrements;
-    private Map<ArcProto,PrimitiveNode> pins;
 	private boolean newArcsDataChanging = false;
 	private Technology selectedTech;
 
@@ -89,25 +81,10 @@ public class NewArcsTab extends PreferencePanel
 	public void init()
 	{
 		// gather information about the ArcProtos in the current Technology
-        initialEp = UserInterfaceMain.getEditingPreferences();
-        defaultInsts = new HashMap<ArcProto,ImmutableArcInst>();
-        angleIncrements = new HashMap<ArcProto,Integer>();
-        pins = new HashMap<ArcProto,PrimitiveNode>();
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = tIt.next();
 			technologySelection.addItem(tech.getTechName());
-			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
-			{
-				ArcProto ap = it.next();
-                ArcProtoId apId = ap.getId();
-				defaultInsts.put(ap, ap.getDefaultInst(initialEp));
-                Integer angleIncrement = initialEp.getDefaultAngleIncrement(apId);
-                if (angleIncrement == null)
-                    angleIncrement = Integer.valueOf(ap.getFactoryAngleIncrement());
-                angleIncrements.put(ap, angleIncrement);
-                pins.put(ap, ap.findOverridablePinProto(initialEp));
-			}
 		}
 		technologySelection.setSelectedItem(Technology.getCurrent().getTechName());
 		selectedTech = null;
@@ -183,11 +160,12 @@ public class NewArcsTab extends PreferencePanel
 			}
 		}
 
+        EditingPreferences ep = getEditingPreferences();
 		String primName = (String)arcProtoList.getSelectedItem();
 		ArcProto ap = tech.findArcProto(primName);
-        ImmutableArcInst a = defaultInsts.get(ap);
-        Integer angleIncrement = angleIncrements.get(ap);
-        PrimitiveNode pin = pins.get(ap);
+        ImmutableArcInst a = ap.getDefaultInst(ep);
+        int angleIncrement = ap.getAngleIncrement(ep);
+        PrimitiveNode pin = ap.findOverridablePinProto(ep);
 
 		newArcsDataChanging = true;
 		arcRigid.setSelected(a.isRigid());
@@ -224,35 +202,42 @@ public class NewArcsTab extends PreferencePanel
 	private void newArcsPrimDataChanged()
 	{
 		if (newArcsDataChanging) return;
+        EditingPreferences ep = getEditingPreferences();
 		String techName = (String)technologySelection.getSelectedItem();
 		Technology tech = Technology.findTechnology(techName);
 		if (tech == null) return;
 		String primName = (String)arcProtoList.getSelectedItem();
 		ArcProto ap = tech.findArcProto(primName);
-        ImmutableArcInst a = defaultInsts.get(ap);
-        a = a.withFlag(ImmutableArcInst.RIGID, arcRigid.isSelected());
-        a = a.withFlag(ImmutableArcInst.FIXED_ANGLE, arcFixedAngle.isSelected());
-        a = a.withFlag(ImmutableArcInst.SLIDABLE, arcSlidable.isSelected());
-        a = a.withFlag(ImmutableArcInst.TAIL_EXTENDED, arcEndsExtend.isSelected());
-        a = a.withFlag(ImmutableArcInst.HEAD_EXTENDED, arcEndsExtend.isSelected());
-        a = a.withFlag(ImmutableArcInst.HEAD_ARROWED, arcDirectional.isSelected());
-        a = a.withFlag(ImmutableArcInst.BODY_ARROWED, arcDirectional.isSelected());
+        ArcProtoId apId = ap.getId();
+
+        int flags = ap.getDefaultInst(ep).flags;
+        flags = ImmutableArcInst.RIGID.set(flags, arcRigid.isSelected());
+        flags = ImmutableArcInst.FIXED_ANGLE.set(flags, arcFixedAngle.isSelected());
+        flags = ImmutableArcInst.SLIDABLE.set(flags, arcSlidable.isSelected());
+        flags = ImmutableArcInst.TAIL_EXTENDED.set(flags, arcEndsExtend.isSelected());
+        flags = ImmutableArcInst.HEAD_EXTENDED.set(flags, arcEndsExtend.isSelected());
+        flags = ImmutableArcInst.HEAD_ARROWED.set(flags, arcDirectional.isSelected());
+        flags = ImmutableArcInst.BODY_ARROWED.set(flags, arcDirectional.isSelected());
+        ep = ep.withArcFlags(apId, flags);
+
         double wid = TextUtils.atofDistance(arcWidth.getText(), tech);
-        a = a.withGridExtendOverMin(DBMath.lambdaToGrid(wid*0.5 - ap.getLambdaBaseExtend()));
-        defaultInsts.put(ap, a);
-        Integer angleIncrement = Integer.valueOf(TextUtils.atoi(arcAngle.getText()));
-        if (!angleIncrement.equals(angleIncrements.get(ap)))
-            angleIncrements.put(ap, angleIncrement);
+        long gridExtend = DBMath.lambdaToGrid(wid*0.5 - ap.getLambdaBaseExtend());
+        ep = ep.withArcGridExtend(apId, gridExtend);
+
+        int angleIncrement = TextUtils.atoi(arcAngle.getText());
+        ep = ep.withArcAngleIncrement(apId, angleIncrement);
+
         PrimitiveNode pin = tech.findNodeProto((String)arcPin.getSelectedItem());
 		PortProto pp = pin.getPorts().next();
 		if (!pp.connectsTo(ap))
 		{
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 				"Cannot use " + pin.getName() + " as a pin because it does not connect to " + ap.getName() + " arcs");
-			pin = ap.findOverridablePinProto(initialEp);
+			pin = ap.findOverridablePinProto(ep);
 			arcPin.setSelectedItem(pin.getName());
 		}
-		pins.put(ap, pin);
+        ep = ep.withArcPin(apId, pin.getId());
+        setEditingPreferences(ep);
 	}
 
 	/**
@@ -262,44 +247,6 @@ public class NewArcsTab extends PreferencePanel
     @Override
 	public void term()
 	{
-        EditingPreferences oldEp = UserInterfaceMain.getEditingPreferences();
-        Map<ArcProtoId,ImmutableArcInst> defaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>();
-        Map<ArcProtoId,Integer> defaultArcAngleIncrements = new HashMap<ArcProtoId,Integer>();
-        Map<ArcProtoId,PrimitiveNodeId> defaultArcPins = new HashMap<ArcProtoId,PrimitiveNodeId>();
-		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
-		{
-			Technology tech = tIt.next();
-			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
-			{
-				ArcProto ap = it.next();
-                ArcProtoId apId = ap.getId();
-
-                ImmutableArcInst factoryA = ap.getFactoryDefaultInst();
-                ImmutableArcInst a = defaultInsts.get(ap);
-                if (a.getGridExtendOverMin() != factoryA.getGridExtendOverMin() ||
-                        a.isRigid() != factoryA.isRigid() ||
-                        a.isFixedAngle() != factoryA.isFixedAngle() ||
-                        a.isSlidable() != factoryA.isSlidable() ||
-                        a.isTailExtended() != factoryA.isTailExtended() ||
-                        a.isHeadArrowed() != factoryA.isHeadArrowed())
-                    defaultArcs.put(apId, a);
-
-                int factoryAngleIncrement = ap.getFactoryAngleIncrement();
-                Integer angleIncrement = angleIncrements.get(ap);
-                if (angleIncrement.intValue() != factoryAngleIncrement)
-                    defaultArcAngleIncrements.put(apId, angleIncrement);
-
-                PrimitiveNode factoryPin = ap.findPinProto();
-                PrimitiveNode pin = pins.get(ap);
-                if (pin != factoryPin)
-                    defaultArcPins.put(apId, pin.getId());
-            }
-		}
-        UserInterfaceMain.setEditingPreferences(oldEp.withArcDefaults(
-                defaultArcs,
-                defaultArcAngleIncrements,
-                defaultArcPins));
-
 		boolean currBoolean = playClickSounds.isSelected();
 		if (currBoolean != User.isPlayClickSoundsWhenCreatingArcs())
 			User.setPlayClickSoundsWhenCreatingArcs(currBoolean);
@@ -315,13 +262,7 @@ public class NewArcsTab extends PreferencePanel
     @Override
 	public void reset()
 	{
-        Map<ArcProtoId,ImmutableArcInst> defaultArcs = Collections.emptyMap();
-        Map<ArcProtoId,Integer> defaultArcAngleIncrements = Collections.emptyMap();
-        Map<ArcProtoId,PrimitiveNodeId> defaultArcPins = Collections.emptyMap();
-        UserInterfaceMain.setEditingPreferences(UserInterfaceMain.getEditingPreferences().withArcDefaults(
-                defaultArcs,
-                defaultArcAngleIncrements,
-                defaultArcPins));
+        setEditingPreferences(getEditingPreferences().withArcsReset());
 		if (User.isFactoryPlayClickSoundsWhenCreatingArcs() != User.isPlayClickSoundsWhenCreatingArcs())
 			User.setPlayClickSoundsWhenCreatingArcs(User.isFactoryPlayClickSoundsWhenCreatingArcs());
 		if (User.isFactoryArcsAutoIncremented() != User.isArcsAutoIncremented())

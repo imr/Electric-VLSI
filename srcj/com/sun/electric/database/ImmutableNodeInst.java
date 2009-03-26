@@ -3,7 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: ImmutableNodeInst.java
- * Written by: Dmitry Nadezhin, Sun Microsystems.
+h * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *

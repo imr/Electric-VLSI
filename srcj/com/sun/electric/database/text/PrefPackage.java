@@ -54,7 +54,7 @@ public abstract class PrefPackage implements Serializable {
         this(factory ? getFactoryPrefRoot() : getPrefRoot());
     }
 
-    protected PrefPackage(String s) {}
+    protected PrefPackage(PrefPackage that) {}
 
     /**
      * Protected constuctor fills annotated option fields of the subclass from Preferences subtree.
