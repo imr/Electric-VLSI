@@ -123,7 +123,7 @@ public class PreferencePanel extends EDialog
 	 * @param setting setting object.
 	 * @return the boolean value on the Setting object.
 	 */
-	protected boolean getBoolean(Setting setting) { return ((Boolean)getValue(setting)).booleanValue(); }
+    public boolean getBoolean(Setting setting) { return ((Boolean)getValue(setting)).booleanValue(); }
 
 	/**
 	 * Method to get the integer value on the Setting object.
@@ -131,7 +131,7 @@ public class PreferencePanel extends EDialog
 	 * @param setting setting object.
 	 * @return the integer value on the Setting object.
 	 */
-	protected int getInt(Setting setting) { return ((Integer)getValue(setting)).intValue(); }
+	public int getInt(Setting setting) { return ((Integer)getValue(setting)).intValue(); }
 
 	/**
 	 * Method to get the long value on the Setting object.
@@ -162,14 +162,14 @@ public class PreferencePanel extends EDialog
 	 * The object must have been created as "string".
 	 * @return the string value on the Setting object.
 	 */
-	protected String getString(Setting setting) { return (String)getValue(setting); }
+	public String getString(Setting setting) { return (String)getValue(setting); }
 
 	/**
 	 * Method to set a new boolean value on Setting object.
 	 * @param setting Setting object.
 	 * @param v the new boolean value of Setting object.
 	 */
-	protected void setBoolean(Setting setting, boolean v)
+	public void setBoolean(Setting setting, boolean v)
 	{
 		if (v != getBoolean(setting))
 			putValue(setting, Boolean.valueOf(v));
@@ -180,7 +180,7 @@ public class PreferencePanel extends EDialog
 	 * @param setting Setting object.
 	 * @param v the new integer value of Setting object.
 	 */
-	protected void setInt(Setting setting, int v)
+	public void setInt(Setting setting, int v)
 	{
 		if (v != getInt(setting))
 			putValue(setting, Integer.valueOf(v));
@@ -191,7 +191,7 @@ public class PreferencePanel extends EDialog
 	 * @param setting Setting object.
 	 * @param v the new long value of Setting object.
 	 */
-	protected  void setLong(Setting setting, long v)
+	protected void setLong(Setting setting, long v)
 	{
 		if (v != getLong(setting))
 			putValue(setting, Long.valueOf(v));
@@ -213,7 +213,7 @@ public class PreferencePanel extends EDialog
 	 * @param setting Setting object.
 	 * @param str the new string value of Setting object.
 	 */
-	protected void setString(Setting setting, String str)
+	public void setString(Setting setting, String str)
 	{
 		if (!str.equals(getString(setting)))
 			putValue(setting, str);

@@ -73,6 +73,7 @@ import com.sun.electric.tool.user.dialogs.options.PrintingTab;
 import com.sun.electric.tool.user.dialogs.options.ProjectManagementTab;
 import com.sun.electric.tool.user.dialogs.options.RoutingTab;
 import com.sun.electric.tool.user.dialogs.options.SUETab;
+import com.sun.electric.tool.user.dialogs.options.ScaleTab;
 import com.sun.electric.tool.user.dialogs.options.SelectionTab;
 import com.sun.electric.tool.user.dialogs.options.SiliconCompilerTab;
 import com.sun.electric.tool.user.dialogs.options.SimulatorsTab;
@@ -233,7 +234,7 @@ public class PreferencesFrame extends EDialog
 		addTreeNode(new EDIFTab(parent, true), ioSet);
 		addTreeNode(new DEFTab(parent, true), ioSet);
 		addTreeNode(new CDLTab(parent, true), ioSet);
-		addTreeNode(new DXFTab(parent, true), ioSet);
+		addTreeNode(new DXFTab(this, true), ioSet);
 		addTreeNode(new SUETab(parent, true), ioSet);
 		if (IOTool.hasDais())
 			addTreeNode(new DaisTab(parent, true), ioSet);
@@ -269,15 +270,16 @@ public class PreferencesFrame extends EDialog
 		addTreeNode(new CellModelTab(parent, true, CellModelPrefs.spiceModelPrefs), toolSet);
 		if (Routing.hasSunRouter())
 			addTreeNode(new SunRouterTab(parent, true), toolSet);
-		addTreeNode(new VerilogTab(parent, true), toolSet);
+		addTreeNode(new VerilogTab(this, true), toolSet);
 		addTreeNode(new CellModelTab(parent, true, CellModelPrefs.verilogModelPrefs), toolSet);
 		addTreeNode(new WellCheckTab(parent, true), toolSet);
 
 		// the "Technology" section of the Preferences
 		DefaultMutableTreeNode techSet = new DefaultMutableTreeNode("Technology ");
 		rootNode.add(techSet);
-		addTreeNode(new TechnologyTab(parent, true), techSet);
+		addTreeNode(new TechnologyTab(this, true), techSet);
 		addTreeNode(new DesignRulesTab(parent, true), techSet);
+		addTreeNode(new ScaleTab(this, true), techSet);
 		addTreeNode(new UnitsTab(parent, true), techSet);
 		addTreeNode(new IconTab(parent, true), techSet);
 
@@ -447,8 +449,19 @@ public class PreferencesFrame extends EDialog
         UserInterfaceMain.setEditingPreferences(editingPreferences);
 
 		// gather preference changes on the client
+		Setting.SettingChangeBatch changeBatch = getChanged();
+		if (changeBatch.changesForSettings.isEmpty())
+		{
+			closeDialog(null);
+			return;
+		}
+		new OKUpdate(this, changeBatch, true);
+	}
+
+	private Setting.SettingChangeBatch getChanged()
+	{
 		Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
-		for (Map.Entry<Setting,Object> e: originalContext.entrySet())
+		for (Map.Entry<Setting,Object> e : originalContext.entrySet())
 		{
 			Setting setting = e.getKey();
 			Object oldVal = e.getValue();
@@ -456,12 +469,7 @@ public class PreferencesFrame extends EDialog
 			if (oldVal.equals(v)) continue;
 			changeBatch.add(setting, v);
 		}
-		if (changeBatch.changesForSettings.isEmpty())
-		{
-			closeDialog(null);
-			return;
-		}
-		new OKUpdate(this, changeBatch, true);
+		return changeBatch;
 	}
 
 	/**
@@ -592,6 +600,11 @@ public class PreferencesFrame extends EDialog
 						closeDialog(null);
 						WindowFrame.repaintAllWindows();
 					}
+
+					// gather preference changes on the client
+					Setting.SettingChangeBatch changeBatch = getChanged();
+					if (!changeBatch.changesForSettings.isEmpty())
+						new OKUpdate(null, changeBatch, false);
 					return;
 				}
 				break;

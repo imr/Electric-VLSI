@@ -79,10 +79,10 @@ public class CIFTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		// input
+		// preferences
 		cifInputSquaresWires.setSelected(IOTool.isCIFInSquaresWires());
 
-		// output
+		// project settings
 		cifOutputMimicsDisplay.setSelected(getBoolean(cifOutMimicsDisplaySetting));
 		cifOutputMergesBoxes.setSelected(getBoolean(cifOutMergesBoxesSetting));
 		cifOutputInstantiatesTopLevel.setSelected(getBoolean(cifOutInstantiatesTopLevleSetting));
@@ -109,6 +109,40 @@ public class CIFTab extends PreferencePanel
 		});
 		cifLayer.getDocument().addDocumentListener(new CIFDocumentListener(this));
 		technologySelection.setSelectedItem(Technology.getCurrent().getTechName());
+	}
+
+	/**
+	 * Method called when the "OK" panel is hit.
+	 * Updates any changed fields in the CIF tab.
+	 */
+	public void term()
+	{
+		// preferences
+		boolean currentValue = cifInputSquaresWires.isSelected();
+		if (currentValue != IOTool.isCIFInSquaresWires())
+			IOTool.setCIFInSquaresWires(currentValue);
+
+		// project settings
+		setBoolean(cifOutMimicsDisplaySetting, cifOutputMimicsDisplay.isSelected());
+		setBoolean(cifOutMergesBoxesSetting, cifOutputMergesBoxes.isSelected());
+		setBoolean(cifOutInstantiatesTopLevleSetting, cifOutputInstantiatesTopLevel.isSelected());
+		setInt(cifOutScaleFactorSetting, TextUtils.atoi(cifScale.getText()));
+	}
+
+	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset()
+	{
+		// preferences
+		if (IOTool.isFactoryCIFInSquaresWires() != IOTool.isCIFInSquaresWires())
+			IOTool.setCIFInSquaresWires(IOTool.isFactoryCIFInSquaresWires());
+
+		// project settings
+		setBoolean(cifOutMimicsDisplaySetting, ((Boolean)cifOutMimicsDisplaySetting.getFactoryValue()).booleanValue());
+		setBoolean(cifOutMergesBoxesSetting, ((Boolean)cifOutMergesBoxesSetting.getFactoryValue()).booleanValue());
+		setBoolean(cifOutInstantiatesTopLevleSetting, ((Boolean)cifOutInstantiatesTopLevleSetting.getFactoryValue()).booleanValue());
+		setInt(cifOutScaleFactorSetting, ((Integer)cifOutScaleFactorSetting.getFactoryValue()).intValue());
 	}
 
 	private void techChanged()
@@ -201,33 +235,6 @@ public class CIFTab extends PreferencePanel
 		public void changedUpdate(DocumentEvent e) { dialog.cifLayerChanged(); }
 		public void insertUpdate(DocumentEvent e) { dialog.cifLayerChanged(); }
 		public void removeUpdate(DocumentEvent e) { dialog.cifLayerChanged(); }
-	}
-
-	/**
-	 * Method called when the "OK" panel is hit.
-	 * Updates any changed fields in the CIF tab.
-	 */
-	public void term()
-	{
-		// input
-		boolean currentValue = cifInputSquaresWires.isSelected();
-		if (currentValue != IOTool.isCIFInSquaresWires())
-			IOTool.setCIFInSquaresWires(currentValue);
-
-		// output
-		setBoolean(cifOutMimicsDisplaySetting, cifOutputMimicsDisplay.isSelected());
-		setBoolean(cifOutMergesBoxesSetting, cifOutputMergesBoxes.isSelected());
-		setBoolean(cifOutInstantiatesTopLevleSetting, cifOutputInstantiatesTopLevel.isSelected());
-		setInt(cifOutScaleFactorSetting, TextUtils.atoi(cifScale.getText()));
-	}
-
-	/**
-	 * Method called when the factory reset is requested.
-	 */
-	public void reset()
-	{
-		if (IOTool.isFactoryCIFInSquaresWires() != IOTool.isCIFInSquaresWires())
-			IOTool.setCIFInSquaresWires(IOTool.isFactoryCIFInSquaresWires());
 	}
 
 	/** This method is called from within the constructor to

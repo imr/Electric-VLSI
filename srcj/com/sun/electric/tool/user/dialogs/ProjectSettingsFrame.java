@@ -34,17 +34,12 @@ import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.projsettings.AddedTechnologiesTab;
-import com.sun.electric.tool.user.dialogs.projsettings.CIFTab;
-import com.sun.electric.tool.user.dialogs.projsettings.DXFTab;
 import com.sun.electric.tool.user.dialogs.projsettings.GDSTab;
 import com.sun.electric.tool.user.dialogs.projsettings.LogicalEffortTab;
 import com.sun.electric.tool.user.dialogs.projsettings.NetlistsTab;
 import com.sun.electric.tool.user.dialogs.projsettings.ParasiticTab;
 import com.sun.electric.tool.user.dialogs.projsettings.ProjSettingsPanel;
-import com.sun.electric.tool.user.dialogs.projsettings.ScaleTab;
 import com.sun.electric.tool.user.dialogs.projsettings.SkillTab;
-import com.sun.electric.tool.user.dialogs.projsettings.TechnologyTab;
-import com.sun.electric.tool.user.dialogs.projsettings.VerilogTab;
 import com.sun.electric.tool.user.help.ManualViewer;
 import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -61,8 +56,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.HashMap;
 import java.util.Iterator;
-
 import java.util.Map;
+
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -126,15 +121,14 @@ public class ProjectSettingsFrame extends EDialog
 		addTreeNode(rootNode, "Added Technologies");
 //		addTreeNode(rootNode, "CIF");
 		addTreeNode(rootNode, "GDS");
-		addTreeNode(rootNode, "DXF");
+//		addTreeNode(rootNode, "DXF");
 		addTreeNode(rootNode, "Logical Effort");
 		addTreeNode(rootNode, "Netlists");
 		addTreeNode(rootNode, "Parasitic");
-		addTreeNode(rootNode, "Scale");
-		if (IOTool.hasSkill())
-			addTreeNode(rootNode, "Skill");
-		addTreeNode(rootNode, "Technology");
-		addTreeNode(rootNode, "Verilog");
+//		addTreeNode(rootNode, "Scale");
+		if (IOTool.hasSkill()) addTreeNode(rootNode, "Skill");
+//		addTreeNode(rootNode, "Technology");
+//		addTreeNode(rootNode, "Verilog");
         if (getPluginPanel(staClass, this, true) != null)
             addTreeNode(rootNode, "Static Timing Analysis");
 
@@ -159,26 +153,6 @@ public class ProjectSettingsFrame extends EDialog
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = 1.0;   gbc.weighty = 1.0;
 		leftPanel.add(scrolledTree, gbc);
-
-//		JButton save = new JButton("Export");
-//		save.addActionListener(new ActionListener()
-//		{
-//			public void actionPerformed(ActionEvent evt) { exportActionPerformed(); }
-//		});
-//		gbc = new GridBagConstraints();
-//		gbc.gridx = 0;   gbc.gridy = 1;
-//		gbc.insets = new Insets(4, 4, 4, 4);
-//		leftPanel.add(save, gbc);
-
-//		JButton restore = new JButton("Import");
-//		restore.addActionListener(new ActionListener()
-//		{
-//			public void actionPerformed(ActionEvent evt) { importActionPerformed(); }
-//		});
-//		gbc = new GridBagConstraints();
-//		gbc.gridx = 1;   gbc.gridy = 1;
-//		gbc.insets = new Insets(4, 4, 4, 4);
-//		leftPanel.add(restore, gbc);
 
 		JButton help = new JButton("Help");
 		help.addActionListener(new ActionListener()
@@ -295,40 +269,6 @@ public class ProjectSettingsFrame extends EDialog
 		closeDialog(null);
 	}
 
-//	private void exportActionPerformed()
-//	{
-//		Job.getUserInterface().exportPrefs();
-//	}
-
-//	private void importActionPerformed()
-//	{
-//		Job.getUserInterface().importPrefs();
-//        TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
-//        top.getTheMenuBar().restoreSavedBindings(false); // trying to cache again
-//
-//		// recache all layers and their graphics
-//		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-//		{
-//			Technology tech = it.next();
-//			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-//			{
-//				Layer layer = lIt.next();
-//				layer.getGraphics().recachePrefs();
-//			}
-//		}
-//
-//		// close dialog now because all values are cached badly
-//		closeDialog(null);
-//
-//		// redraw everything
-//		EditWindow.repaintAllContents();
-//        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-//        {
-//        	WindowFrame wf = it.next();
-//        	wf.loadComponentMenuForTechnology();
-//        }
-//	}
-
 	private void loadOptionPanel()
 	{
         ProjSettingsPanel ti = createOptionPanel(isModal());
@@ -344,26 +284,16 @@ public class ProjectSettingsFrame extends EDialog
     {
         if (currentTabName.equals("Added Technologies"))
             return new AddedTechnologiesTab(this, modal);
-        if (currentTabName.equals("CIF"))
-            return new CIFTab(this, modal);
         if (currentTabName.equals("GDS"))
             return new GDSTab(this, modal);
-        if (currentTabName.equals("DXF"))
-            return new DXFTab(this, modal);
         if (currentTabName.equals("Logical Effort"))
             return new LogicalEffortTab(this, modal);
         if (currentTabName.equals("Netlists"))
             return new NetlistsTab(this, modal);
         if (currentTabName.equals("Parasitic"))
             return new ParasiticTab(this, modal);
-        if (currentTabName.equals("Scale"))
-            return new ScaleTab(this, modal);
         if (currentTabName.equals("Skill"))
             return new SkillTab(this, modal);
-        if (currentTabName.equals("Technology"))
-            return new TechnologyTab(this, modal);
-        if (currentTabName.equals("Verilog"))
-            return new VerilogTab(this, modal);
         if (currentTabName.equals("Static Timing Analysis"))
             return getPluginPanel(staClass, this, modal);
         return null;
