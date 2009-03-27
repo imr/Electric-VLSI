@@ -274,6 +274,8 @@ class LayerDrawing
 	/** the number of ints per row in offscreen maps */     private final int numIntsPerRow;
 
 	/** the map from layers to layer bitmaps */             private Map<Layer,TransparentRaster> layerRasters = new HashMap<Layer,TransparentRaster>();
+    /** Raster with unexpanded instances */                 private TransparentRaster instanceRaster;
+    /** Raster with grid */                                 private TransparentRaster gridRaster;
     /** temporary raster for patterned layers */            private PatternedTransparentRaster currentPatternedTransparentRaster = new PatternedTransparentRaster();
 	/** the top-level window being rendered */				private boolean renderedWindow;
 
@@ -295,10 +297,8 @@ class LayerDrawing
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 	private static final EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-    private static final Layer instanceLayer = Layer.newInstanceFree(null, "Instance", instanceGraphics);
 	private static final EGraphics gridGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-    private static final Layer gridLayer = Layer.newInstanceFree(null, "Grid", gridGraphics);
 	private static final EGraphics portGraphics = new EGraphics(false, false, null, 0, 255,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
@@ -320,10 +320,12 @@ class LayerDrawing
         private final int numIntsPerRow;
         private final boolean patternedDisplay;
         /** the map from layers to layer bitmaps */             private final Map<Layer,TransparentRaster> layerRasters;
+        private final TransparentRaster instanceRaster;
+        private final TransparentRaster gridRaster;
         private final GreekTextInfo[] greekText;
         private final RenderTextInfo[] renderText;
         private final CrossTextInfo[] crossText;
-        
+
         DrawingData(LayerDrawing offscreen) {
             this.offscreen = offscreen;
             width = offscreen.sz.width;
@@ -331,12 +333,14 @@ class LayerDrawing
             numIntsPerRow = offscreen.numIntsPerRow;
             patternedDisplay = offscreen.patternedDisplay;
             layerRasters = new HashMap<Layer,TransparentRaster>(offscreen.layerRasters);
+            instanceRaster = offscreen.instanceRaster;
+            gridRaster = offscreen.gridRaster;
             greekText = offscreen.greekTextList.toArray(new GreekTextInfo[offscreen.greekTextList.size()]);
             crossText = offscreen.crossTextList.toArray(new CrossTextInfo[offscreen.crossTextList.size()]);
             renderText = offscreen.renderTextList.toArray(new RenderTextInfo[offscreen.renderTextList.size()]);
         }
     }
-    
+
     static class Drawing extends AbstractDrawing {
         private static final int SMALL_IMG_HEIGHT = 2;
         /** the offscreen opaque image of the window */ private VolatileImage vImg;
@@ -463,7 +467,24 @@ class LayerDrawing
                 }
                 System.out.println();
             }
-            alphaBlender.init(User.getColor(User.ColorPrefType.BACKGROUND), blendingOrder, layerBits);
+
+            ArrayList<AbstractDrawing.LayerColor> colors = new ArrayList<AbstractDrawing.LayerColor>();
+            ArrayList<int[]> bits = new ArrayList<int[]>();
+            for (AbstractDrawing.LayerColor layerColor: blendingOrder) {
+                int[] b = layerBits.get(layerColor.layer);
+                if (b == null) continue;
+                colors.add(layerColor);
+                bits.add(b);
+            }
+            if (dd.instanceRaster != null) {
+                colors.add(new AbstractDrawing.LayerColor(instanceGraphics.getOpaqueColor()));
+                bits.add(dd.instanceRaster.layerBitMap);
+            }
+            if (dd.gridRaster != null) {
+                colors.add(new AbstractDrawing.LayerColor(gridGraphics.getOpaqueColor()));
+                bits.add(dd.gridRaster.layerBitMap);
+            }
+            alphaBlender.init(new Color(User.getColor(User.ColorPrefType.BACKGROUND)), colors, bits);
 
             int width = dd.width;
             int height = dd.height, clipLY = 0, clipHY = height - 1;
@@ -886,7 +907,16 @@ class LayerDrawing
             }
             System.out.println();
         }
-        alphaBlender.init(User.getColor(User.ColorPrefType.BACKGROUND), blendingOrder, layerBits);
+
+        ArrayList<AbstractDrawing.LayerColor> colors = new ArrayList<AbstractDrawing.LayerColor>();
+        ArrayList<int[]> bits = new ArrayList<int[]>();
+        for (AbstractDrawing.LayerColor layerColor: blendingOrder) {
+            int[] b = layerBits.get(layerColor.layer);
+            if (b == null) continue;
+            colors.add(layerColor);
+            bits.add(b);
+        }
+        alphaBlender.init(new Color(User.getColor(User.ColorPrefType.BACKGROUND)), colors, bits);
 
         int width = offscreen.sz.width;
         int height = offscreen.sz.height, clipLY = 0, clipHY = height - 1;
@@ -1183,9 +1213,17 @@ class LayerDrawing
         if (bounds == null) {
             for(TransparentRaster raster: layerRasters.values())
                 raster.eraseAll();
+            if (instanceRaster != null)
+                instanceRaster.eraseAll();
+            if (gridRaster != null)
+                gridRaster.eraseAll();
         } else {
             for(TransparentRaster raster: layerRasters.values())
                 raster.eraseBox(clipLX, clipHX, clipLY, clipHY);
+            if (instanceRaster != null)
+                instanceRaster.eraseBox(clipLX, clipHX, clipLY, clipHY);
+            if (gridRaster != null)
+                gridRaster.eraseBox(clipLX, clipHX, clipLY, clipHY);
         }
     }
 
@@ -1233,7 +1271,7 @@ class LayerDrawing
 		// draw the grid
         Point2D.Double tmpPt = new Point2D.Double();
         AffineTransform outofCellTransform = da.getOutofCellTransform();
-        ERaster raster = getRaster(gridLayer, gridGraphics, false);
+        ERaster raster = getGridRaster();
 		for(double i = y1; i > hY; i -= spacingY)
 		{
 			double boldValueY = i;
@@ -1430,7 +1468,7 @@ class LayerDrawing
                 int p4x = op[6] + soX;
                 int p4y = op[7] + soY;
                 gridToScreen(p1x, p1y, tempPt1);   gridToScreen(p2x, p2y, tempPt2);
-                ERaster instanceRaster = getRaster(instanceLayer, instanceGraphics, false);
+                ERaster instanceRaster = getInstanceRaster();
 				drawLine(tempPt1, tempPt2, 0, instanceRaster);
 				gridToScreen(p2x, p2y, tempPt1);   gridToScreen(p3x, p3y, tempPt2);
 				drawLine(tempPt1, tempPt2, 0, instanceRaster);
@@ -1529,8 +1567,11 @@ class LayerDrawing
                         " t=" + System.currentTimeMillis());
                 for (Layer layer: expandedCellCount.offscreen.layerRasters.keySet())
                     System.out.print(" " + layer.getName());
+                if (instanceRaster != null)
+                    System.out.print(" INSTANCE");
                 System.out.println();
-            }
+                assert gridRaster == null;
+           }
 		}
 
 		// copy out of the offscreen buffer into the main buffer
@@ -1671,6 +1712,11 @@ class LayerDrawing
             TransparentRaster polSrc = e.getValue();
             raster.copyBits(polSrc, minSrcX, maxSrcX, minSrcY, maxSrcY, cornerX, cornerY);
         }
+        if (srcOffscreen.instanceRaster != null) {
+            ERaster raster = getInstanceRaster();
+            raster.copyBits(srcOffscreen.instanceRaster, minSrcX, maxSrcX, minSrcY, maxSrcY, cornerX, cornerY);
+        }
+        assert gridRaster == null;
     }
 
 	// ************************************* RENDERING POLY SHAPES *************************************
@@ -1771,7 +1817,7 @@ class LayerDrawing
     ERaster getRaster(Layer layer, EGraphics graphics, boolean forceVisible) {
         if (layer != null)
             layer = layer.getNonPseudoLayer();
-        if ((layer == null || layer.getTechnology() == null) && layer != instanceLayer && layer != gridLayer)
+        if (layer == null || layer.isFree())
             layer = Artwork.tech().defaultLayer;
         TransparentRaster raster = layerRasters.get(layer);
         if (raster == null) {
@@ -1790,6 +1836,18 @@ class LayerDrawing
             raster = currentPatternedTransparentRaster;
         }
         return raster;
+    }
+
+    ERaster getInstanceRaster() {
+        if (instanceRaster == null)
+            instanceRaster = new TransparentRaster(sz.height, numIntsPerRow);
+        return instanceRaster;
+    }
+
+    ERaster getGridRaster() {
+        if (gridRaster == null)
+            gridRaster = new TransparentRaster(sz.height, numIntsPerRow);
+        return gridRaster;
     }
 
 //    /**

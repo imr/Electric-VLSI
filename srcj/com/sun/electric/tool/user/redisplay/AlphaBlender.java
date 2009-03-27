@@ -23,49 +23,37 @@
  */
 package com.sun.electric.tool.user.redisplay;
 
-import com.sun.electric.technology.Layer;
-import com.sun.electric.tool.user.ui.EditWindow;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Class to perform alpha blending for LayerDrawing.
  */
 class AlphaBlender {
-    
+
     private Color background;
     private int[] opaqueData;
-    
+
     /** Creates a new instance of AlphaBlender */
     public AlphaBlender() {
     }
-    
+
     private static final int SCALE_SH = 8;
     private static final int SCALE = 1 << SCALE_SH;
-        
+
     private AlphaBlendGroup[] groups;
     private int[][] layerBits;
 //    private int m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16, m17, m18, m19, m20, m21, m22, m23, m24, m25, m26, m27, m28, m29, m30, m31;
-    
+
     private int r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19, r20, r21, r22, r23, r24, r25, r26, r27, r28, r29, r30, r31;
     private int g0, g1, g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13, g14, g15, g16, g17, g18, g19, g20, g21, g22, g23, g24, g25, g26, g27, g28, g29, g30, g31;
     private int b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31;
-    
-    void init(int backgroundValue, List<AbstractDrawing.LayerColor> blendingOrder, Map<Layer,int[]> layerBits) {
-        background = new Color(backgroundValue);
-        ArrayList<int[]> bits = new ArrayList<int[]>();
-        ArrayList<AbstractDrawing.LayerColor> colors = new ArrayList<AbstractDrawing.LayerColor>();
-        for (AbstractDrawing.LayerColor layerColor: blendingOrder) {
-            int[] b = layerBits.get(layerColor.layer);
-            if (b == null) continue;
-            bits.add(b);
-            colors.add(layerColor);
-        }
+
+    void init(Color background, ArrayList<AbstractDrawing.LayerColor> colors, ArrayList<int[]> bits) {
+        this.background = background;
         this.layerBits = bits.toArray(new int[bits.size()][]);
-        
+
         groups = new AlphaBlendGroup[bits.size()/13 + 1];
         int k = 0;
         for (int i = 0; i < groups.length; i++) {
@@ -74,7 +62,7 @@ class AlphaBlender {
             k += l;
         }
     }
-    
+
 //    private void unpackBytes(int index) {
 //        // unpack pixels
 //        int pixel0 = 0, pixel1 = 0, pixel2 = 0, pixel3 = 0, pixel4 = 0, pixel5 = 0, pixel6 = 0, pixel7 = 0;
@@ -150,7 +138,7 @@ class AlphaBlender {
 //        m30 = pixel30;
 //        m31 = pixel31;
 //    }
-    
+
     void composeLine(int inputOffset, int minX, int maxX, int[] opaqueData, int opaqueOffset) {
         int minInt = minX>>5;
         int maxInt = maxX>>5;
@@ -177,7 +165,7 @@ class AlphaBlender {
             opaqueOffset = storeRGB32(opaqueOffset);
         }
     }
-    
+
     void composeBits(int inputOffset, int mask, int outputOffset) {
         for (AlphaBlendGroup group: groups)
             group.unpackBytes(inputOffset);
@@ -246,7 +234,7 @@ class AlphaBlender {
         if ((mask & (1 << 31)) != 0)
             storeRGB(outputOffset + 31, r31, g31, b31);
     }
-    
+
 //    private int storeRGB32(int baseIndex) {
 //        storeRGB_(baseIndex++, m0);
 //        storeRGB_(baseIndex++, m1);
@@ -282,7 +270,7 @@ class AlphaBlender {
 //        storeRGB_(baseIndex++, m31);
 //        return baseIndex;
 //    }
-    
+
     private int storeRGB32(int baseIndex) {
         storeRGB(baseIndex++, r0, g0, b0);
         storeRGB(baseIndex++, r1, g1, b1);
@@ -318,7 +306,7 @@ class AlphaBlender {
         storeRGB(baseIndex++, r31, g31, b31);
         return baseIndex;
     }
-    
+
 //     private void storeRGB_(int baseIndex, int m) {
 //        int r = 0, g = 0, b = 0;
 //        for (int i = 0; i < groups.length; i++) {
@@ -344,7 +332,7 @@ class AlphaBlender {
 //        int color = (r << 16) | (g << 8) + b;
 //        opaqueData[baseIndex] = color;
 //    }
-    
+
     private void storeRGB(int baseIndex, int red, int green, int blue) {
         int color;
         if (((red | green | blue) & ~0xFF) == 0) {
@@ -354,18 +342,18 @@ class AlphaBlender {
         }
         opaqueData[baseIndex] = color;
     }
-    
+
 //    private int normalizeRgbHighlight(int red, int green, int blue) {
 //        return 0xFFFFFF;
 //    }
-//    
+//
 //    private int normalizeRgbClip(int red, int green, int blue) {
 //        red = Math.max(0, Math.min(0xFF, red));
 //        green = Math.max(0, Math.min(0xFF, red));
 //        blue = Math.max(0, Math.min(0xFF, red));
 //        return (red << 16) | (green << 8) | blue;
 //    }
-    
+
     private int normalizeRgbDim(int red, int green, int blue) {
         int min, max;
         if (red <= green) {
@@ -379,7 +367,7 @@ class AlphaBlender {
             max = blue;
         if (blue < min)
             min = blue;
-        
+
         if (max - min <= 255) {
             int dec = min < 0 ? min : max - 255;
             red -= dec;
@@ -393,9 +381,9 @@ class AlphaBlender {
         }
         return (red << 16) | (green << 8) | blue;
     }
-    
+
     //********************************************************************
-    
+
     private class AlphaBlendGroup {
         int groupShift;
         int groupMask;
@@ -404,7 +392,7 @@ class AlphaBlender {
         int[] blueMap;
         int[] inverseAlphaMap;
         int[][] bits;
-        
+
         AlphaBlendGroup(int[][] bits, List<AbstractDrawing.LayerColor> cols, int offset, int len, boolean fillBackround) {
             groupShift = offset;
             groupMask = (1 << len) - 1;
@@ -414,11 +402,11 @@ class AlphaBlender {
             blueMap = new int[mapLen];
             inverseAlphaMap = new int[mapLen];
             this.bits = new int[len][];
-            
+
             for (int i = 0; i < len; i++) {
                 this.bits[i] = bits[offset + i];
             }
-            
+
             float[] backgroundComps = background.getRGBColorComponents(null);
             float bRed = backgroundComps[0];
             float bGreen = backgroundComps[1];
@@ -449,7 +437,7 @@ class AlphaBlender {
                 inverseAlphaMap[k] = (int)(ia*SCALE);
             }
         }
-        
+
         private void unpackBytes(int index) {
             // unpack pixels
             int pixel0 = 0, pixel1 = 0, pixel2 = 0, pixel3 = 0, pixel4 = 0, pixel5 = 0, pixel6 = 0, pixel7 = 0;
@@ -492,10 +480,10 @@ class AlphaBlender {
                 pixel30 |= ((value >> 30) & 1) << i;
                 pixel31 |= ((value >> 31) & 1) << i;
             }
-            
-            // 
+
+            //
             int red, green, blue, ia;
-            
+
             red = redMap[pixel0];
             green = greenMap[pixel0];
             blue = blueMap[pixel0];

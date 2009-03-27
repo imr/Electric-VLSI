@@ -30,6 +30,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -66,12 +67,12 @@ public abstract class AbstractDrawing {
 
     public void opacityChanged() {
     }
-    
+
     public boolean hasOpacity() { return false; }
 
     public void testJogl() {
     }
-    
+
 	/**
 	 * Method to clear the cache of expanded subcells.
 	 * This is used by layer visibility which, when changed, causes everything to be redrawn.
@@ -103,7 +104,7 @@ public abstract class AbstractDrawing {
             LayerDrawing.drawTechPalette(g, imgX, imgY, entryRect, scale, shapes);
         }
     }
-    
+
     public static class LayerColor {
 
         public final Layer layer;
@@ -119,6 +120,15 @@ public abstract class AbstractDrawing {
             this.premultipliedGreen = premultipliedGreen;
             this.premultipliedBlue = premultipliedBlue;
             this.inverseAlpha = inverseAlpha;
+        }
+
+        public LayerColor(Color color) {
+            layer = null;
+            float[] compArray = color.getRGBColorComponents(null);
+            premultipliedRed = compArray[0];
+            premultipliedGreen = compArray[1];
+            premultipliedBlue = compArray[2];
+            inverseAlpha = 0;
         }
     }
 }
