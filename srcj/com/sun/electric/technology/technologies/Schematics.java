@@ -1754,12 +1754,11 @@ public class Schematics extends Technology
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
 	 * This makes no sense for Schematics primitives.
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
-	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
     @Override
-	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride) {
-        return getShapeOfNode(ni, null, null, electrical, reasonable, primLayers, layerOverride);
+	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers) {
+        return getShapeOfNode(ni, null, null, electrical, reasonable, primLayers);
     }
 	/**
 	 * Method to return a list of Polys that describe a given NodeInst.
@@ -1773,11 +1772,10 @@ public class Schematics extends Technology
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
 	 * This makes no sense for Schematics primitives.
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
-	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
 	private Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
-		Technology.NodeLayer [] primLayers, Layer layerOverride)
+		Technology.NodeLayer [] primLayers)
 	{
 		if (ni.isCellInstance()) return null;
 
@@ -2155,7 +2153,7 @@ public class Schematics extends Technology
 				primLayers = blobLayers;
 			}
 		}
-		return computeShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride);
+		return computeShapeOfNode(ni, electrical, reasonable, primLayers, null, null);
 	}
 
 	/**

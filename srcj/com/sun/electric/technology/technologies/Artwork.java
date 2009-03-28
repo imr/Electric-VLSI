@@ -46,7 +46,6 @@ import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 
 import java.awt.geom.Point2D;
-import java.util.Map;
 
 /**
  * This is the general purpose sketching technology.
@@ -518,14 +517,25 @@ public class Artwork extends Technology
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
 	 * This makes no sense for Artwork primitives.
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
-	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
 	@Override
-	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
+	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		layerOverride = getProperLayer(ni.getD());
+		// if node is erased, remove layers
+		if (!electrical && ni.isWiped())
+            return new Poly[0];
+
+        Layer layerOverride;
+        EGraphics graphicsOverride;
+        if (Poly.POLY_GRAPHICS_OVERRIDE) {
+            layerOverride = defaultLayer;
+            graphicsOverride = makeGraphics(ni.getD());
+        } else {
+            layerOverride = getProperLayer(ni.getD());
+            graphicsOverride = null;
+        }
 
 		if (np == circleNode || np == thickCircleNode)
 		{
@@ -541,6 +551,7 @@ public class Artwork extends Technology
 					polys[0].setStyle(Poly.Type.OPENEDT3);
 //				Technology.NodeLayer primLayer = primLayers[0];
 				polys[0].setLayer(layerOverride);
+                polys[0].setGraphicsOverride(graphicsOverride);
 				return polys;
 			}
 
@@ -561,6 +572,7 @@ public class Artwork extends Technology
 					polys[0].setStyle(Poly.Type.THICKCIRCLEARC);
 //				Technology.NodeLayer primLayer = primLayers[0];
 				polys[0].setLayer(layerOverride);
+                polys[0].setGraphicsOverride(graphicsOverride);
 				return polys;
 			}
 		} else if (np == splineNode)
@@ -576,30 +588,11 @@ public class Artwork extends Technology
 				polys[0].setStyle(Poly.Type.OPENED);
 //				Technology.NodeLayer primLayer = primLayers[0];
 				polys[0].setLayer(layerOverride);
+                polys[0].setGraphicsOverride(graphicsOverride);
 				return polys;
 			}
-//		} else if (np == arrowNode)
-//		{
-//			if (isFilledArrowHeads())
-//			{
-//				primLayers = new Technology.NodeLayer[2];
-//				primLayers[0] = new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS,
-//					new Technology.TechPoint[]
-//					{
-//						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
-//						new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
-//						new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
-//					});
-//				primLayers[1] = new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS,
-//					new Technology.TechPoint[]
-//					{
-//						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
-//						new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
-//						new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
-//					});
-//			}
 		}
-		return super.getShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride);
+		return computeShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride, graphicsOverride);
 	}
 
 	/**
@@ -627,7 +620,10 @@ public class Artwork extends Technology
 	 */
 	@Override
 	protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a) {
-		getShapeOfArc(b, a, getProperLayer(a));
+        if (Poly.POLY_GRAPHICS_OVERRIDE)
+            getShapeOfArc(b, a, null, makeGraphics(a));
+        else
+            getShapeOfArc(b, a, getProperLayer(a), null);
 	}
 
 	/**

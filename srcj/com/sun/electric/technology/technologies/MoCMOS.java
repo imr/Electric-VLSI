@@ -177,18 +177,17 @@ public class MoCMOS extends Technology
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
 	 * This makes no sense for Schematics primitives.
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
-	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
     @Override
-	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
+	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
 	{
 		NodeProto prototype = ni.getProto();
 		if (scalableTransistorNodes != null && (prototype == scalableTransistorNodes[P_TYPE] || prototype == scalableTransistorNodes[N_TYPE]))
             return getShapeOfNodeScalable(ni, null, reasonable);
 
         // Default
-        return super.getShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride);
+        return super.getShapeOfNode(ni, electrical, reasonable, primLayers);
     }
 
     /**
@@ -367,7 +366,7 @@ public class MoCMOS extends Technology
 		}
 
 		// now let the superclass convert it to Polys
-		return super.getShapeOfNode(ni, false, reasonable, newNodeLayers, null);
+		return super.getShapeOfNode(ni, false, reasonable, newNodeLayers);
 	}
 
 	/******************** PARAMETERIZABLE DESIGN RULES ********************/

@@ -49,8 +49,10 @@ import java.util.Iterator;
  * Class to define a polygon of points.
  */
 public class Poly extends PolyBase {
+    public static final boolean POLY_GRAPHICS_OVERRIDE = false;
     public static final Poly[] NULL_ARRAY = {};
 
+    /** when not null, use this graphics */                 private EGraphics graphicsOverride;
 	/** the string (if of type TEXT) */						private String string;
 	/** the text descriptor (if of type TEXT) */			private TextDescriptor descript;
 	/** the ElectricObject/Variable (if of type TEXT) */	private DisplayedText dt;
@@ -84,6 +86,34 @@ public class Poly extends PolyBase {
 	{
 		super(rect);
 	}
+
+    /**
+	 * Method to return the EGraphics which should be used to draw this Poly.
+     * It is either layer's default graphics or graphics override, if any.
+	 * @return the EGraphics to draw this Poly.
+	 */
+    public EGraphics getGraphics() {
+        if (graphicsOverride != null)
+            return graphicsOverride;
+        Layer layer = getLayer();
+        if (layer != null)
+            return layer.getGraphics();
+        return null;
+    }
+
+    /**
+	 * Method to return the EGraphics which overrides default EGraphics
+     * for Poly's Layer. If null, use default Layer's graphics.
+	 * @return the String associated with this Poly.
+	 */
+	public EGraphics getGraphicsOverride() { return graphicsOverride; }
+
+	/**
+	 * Method to set the EGraphics which overrides default EGraphics
+     * for Poly's Layer. If null, use default Layer's graphics.
+     * @param graphics graphics override
+	 */
+	public void setGraphicsOverride(EGraphics graphics) { graphicsOverride = graphics; }
 
 	/**
 	 * Method to return the String associated with this Poly.
@@ -260,7 +290,7 @@ public class Poly extends PolyBase {
 				ye1 = y1 - extendH * (y2-y1) / len;
 				xe2 = x2 + extendT * (x2-x1) / len;
 				ye2 = y2 + extendT * (y2-y1) / len;
-	
+
 				// now compute the corners
 				xextra = w2 * (x2-x1) / len;
 				yextra = w2 * (y2-y1) / len;
@@ -463,7 +493,7 @@ public class Poly extends PolyBase {
     public static Builder newLambdaBuilder() {
         return new Builder(true);
     }
-    
+
     /**
      * Returns new instance of Poly builder to build shapes in grid units.
      * @return new instance of Poly builder.
@@ -471,7 +501,7 @@ public class Poly extends PolyBase {
     public static Builder newGridBuilder() {
         return new Builder(false);
     }
-    
+
     /**
      * Returns thread local instance of Poly builder to build shapes in lambda units.
      * @return thread local instance of Poly builder.
@@ -479,7 +509,7 @@ public class Poly extends PolyBase {
     public static Builder threadLocalLambdaBuilder() {
         return threadLocalLambdaBuilder.get();
     }
-    
+
     private static ThreadLocal<Poly.Builder> threadLocalLambdaBuilder = new ThreadLocal<Poly.Builder>() {
         protected Poly.Builder initialValue() { return Poly.newLambdaBuilder(); }
     };
@@ -491,9 +521,9 @@ public class Poly extends PolyBase {
         private final boolean inLambda;
         private boolean isChanging;
         private final ArrayList<Poly> lastPolys = new ArrayList<Poly>();
-        
+
         private Builder(boolean inLambda) { this.inLambda = inLambda; }
-        
+
         /**
          * Returns the polygons that describe node "ni".
          * @param ni the NodeInst that is being described.
@@ -510,7 +540,7 @@ public class Poly extends PolyBase {
             }
             return lastPolys.iterator();
         }
-        
+
         /**
          * Returns the polygons that describe arc "ai".
          * @param ai the ArcInst that is being described.
@@ -528,7 +558,7 @@ public class Poly extends PolyBase {
             isChanging = false;
             return lastPolys.iterator();
         }
-        
+
         /**
          * Returns the polygons that describe arc "ai".
          * @param ai the ArcInst that is being described.
@@ -557,7 +587,7 @@ public class Poly extends PolyBase {
             isChanging = false;
             return polys;
         }
-        
+
         /**
          * Method to create a Poly object that describes an ImmutableArcInst.
          * The ImmutableArcInst is described by its width and style.
@@ -569,7 +599,7 @@ public class Poly extends PolyBase {
         public Poly makePoly(ImmutableArcInst a, long gridWidth, Poly.Type style) {
             isChanging = true;
             lastPolys.clear();
-            makeGridPoly(a, gridWidth, style, null);
+            makeGridPoly(a, gridWidth, style, null, null);
             isChanging = false;
             if (lastPolys.isEmpty()) return null;
             Poly poly = lastPolys.get(0);
@@ -577,9 +607,9 @@ public class Poly extends PolyBase {
                 poly.gridToLambda();
             return poly;
         }
-        
+
         @Override
-        public void addDoublePoly(int numPoints, Poly.Type style, Layer layer) {
+        public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride) {
             assert isChanging;
             Point2D.Double[] points = new Point2D.Double[numPoints];
             for (int i = 0; i < numPoints; i++)
@@ -587,9 +617,10 @@ public class Poly extends PolyBase {
             Poly poly = new Poly(points);
             poly.setStyle(style);
             poly.setLayer(layer);
+            poly.setGraphicsOverride(graphicsOverride);
             lastPolys.add(poly);
         }
-        
+
         @Override
         public void addIntLine(int[] coords, Poly.Type style, Layer layer) {
             assert isChanging;
@@ -601,7 +632,7 @@ public class Poly extends PolyBase {
             poly.setLayer(layer);
             lastPolys.add(poly);
         }
-        
+
         @Override
         public void addIntBox(int[] coords, Layer layer) {
             assert isChanging;
@@ -616,7 +647,7 @@ public class Poly extends PolyBase {
             lastPolys.add(poly);
         }
     }
-    
+
 	/**
 	 * Type is a typesafe enum class that describes the nature of a Poly.
 	 */

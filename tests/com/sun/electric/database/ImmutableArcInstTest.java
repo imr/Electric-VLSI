@@ -25,6 +25,7 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
@@ -827,7 +828,7 @@ public class ImmutableArcInstTest {
             ImmutableArcInst[] arcs = { a1 };
             CellBackup cellBackup = cellBackup0.with(c, null, arcs, null, techPool);
             b.setTest(cellBackup, a1, 1000);
-            b.makeGridPoly(a1, 1000, Poly.Type.FILLED, null);
+            b.makeGridPoly(a1, 1000, Poly.Type.FILLED, null, null);
         }
     }
 
@@ -843,7 +844,7 @@ public class ImmutableArcInstTest {
         }
 
         @Override
-        public void addDoublePoly(int numPoints, Poly.Type style, Layer layer) {
+        public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride) {
             assertEquals(4, pointCount);
             int angle = a.getAngle();
             long w2x = (long)Math.rint(GenMath.cos(angle)*w2*SHAPE_SCALE);

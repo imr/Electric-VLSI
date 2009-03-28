@@ -26,6 +26,7 @@ package com.sun.electric.technology;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
@@ -40,21 +41,21 @@ public class BoundsBuilder extends AbstractShapeBuilder {
     private int intMinX, intMinY, intMaxX, intMaxY;
     private double doubleMinX, doubleMinY, doubleMaxX, doubleMaxY;
     private boolean hasIntBounds, hasDoubleBounds;
-    
+
     public BoundsBuilder(Cell cell) {
         setup(cell);
         clear();
     }
-    
+
     public BoundsBuilder(CellBackup cellBackup) {
         setup(cellBackup);
         clear();
     }
-    
+
     public void clear() {
         hasIntBounds = hasDoubleBounds = false;
     }
-    
+
     /**
      * Generate bounds of this ImmutableArcInst in easy case.
      * @param a ImmutableArcInst to examine.
@@ -65,7 +66,7 @@ public class BoundsBuilder extends AbstractShapeBuilder {
         if (getMemoization().isHardArc(a.arcId)) return false;
         int gridExtendOverMin = (int)a.getGridExtendOverMin();
         ArcProto protoType = getTechPool().getArcProto(a.protoId);
-        int minLayerExtend = gridExtendOverMin + protoType.getMinLayerGridExtend(); 
+        int minLayerExtend = gridExtendOverMin + protoType.getMinLayerGridExtend();
         if (minLayerExtend == 0) {
             assert protoType.getNumArcLayers() == 1;
             int x1 = (int)a.tailLocation.getGridX();
@@ -107,7 +108,7 @@ public class BoundsBuilder extends AbstractShapeBuilder {
         }
         return true;
     }
-    
+
     public ERectangle makeBounds() {
         if (!hasDoubleBounds) {
             if (!hasIntBounds) return null;
@@ -130,7 +131,7 @@ public class BoundsBuilder extends AbstractShapeBuilder {
         long longMaxY = GenMath.ceilLong(doubleMaxY);
         return ERectangle.fromGrid(longMinX, longMinY, longMaxX - longMinX, longMaxY - longMinY);
     }
-    
+
     public boolean makeBounds(Rectangle2D.Double visBounds) {
         double x, y, w, h;
         if (!hasDoubleBounds) {
@@ -163,9 +164,9 @@ public class BoundsBuilder extends AbstractShapeBuilder {
         visBounds.setRect(x, y, w, h);
         return true;
     }
-    
+
     @Override
-    public void addDoublePoly(int numPoints, Poly.Type style, Layer layer) {
+    public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride) {
         if (!hasDoubleBounds) {
             assert numPoints > 0;
             doubleMinX = doubleMaxX = doubleCoords[0];
@@ -181,7 +182,7 @@ public class BoundsBuilder extends AbstractShapeBuilder {
             if (y > doubleMaxY) doubleMaxY = y;
         }
     }
-    
+
     @Override
     public void addIntLine(int[] coords, Poly.Type style, Layer layer) {
         int x1 = coords[0];
@@ -198,7 +199,7 @@ public class BoundsBuilder extends AbstractShapeBuilder {
         }
         addIntBox(coords, layer);
     }
-    
+
     @Override
     public void addIntBox(int[] coords, Layer layer) {
         if (!hasIntBounds) {

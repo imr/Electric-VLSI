@@ -321,12 +321,11 @@ public class FPGA extends Technology
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
 	 * This makes no sense for Schematics primitives.
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
-	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
 	@Override
-	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride) {
-		return getShapeOfNode(ni, null, null, electrical, reasonable, primLayers, layerOverride);
+	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers) {
+		return getShapeOfNode(ni, null, null, electrical, reasonable, primLayers);
 	}
 
 	/**
@@ -341,10 +340,9 @@ public class FPGA extends Technology
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
 	 * This makes no sense for Schematics primitives.
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
-	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-	private Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
+	private Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
 	{
 		if (ni.isCellInstance()) return null;
 
@@ -500,7 +498,7 @@ public class FPGA extends Technology
 			return polys;
 		}
 
-		return super.getShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride);
+		return super.getShapeOfNode(ni, electrical, reasonable, primLayers);
 	}
 
 	/**
