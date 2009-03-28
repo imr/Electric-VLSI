@@ -29,6 +29,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 
+import com.sun.electric.tool.user.ui.LayerVisibility;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -157,11 +158,12 @@ public class ThreeDTab extends PreferencePanel
 			addMouseListener(this);
 			addMouseMotionListener(this);
 
+            LayerVisibility lv = LayerVisibility.getLayerVisibility();
 			for(Iterator<Layer> it = dialog.curTech.getLayers(); it.hasNext(); )
 			{
 				Layer layer = it.next();
 				if (layer.isPseudoLayer()) continue;
-				if (!layer.isVisible()) continue;
+				if (!lv.isVisible(layer)) continue;
 				GenMath.MutableDouble thickness = dialog.threeDThicknessMap.get(layer);
 				GenMath.MutableDouble distance = dialog.threeDDistanceMap.get(layer);
 				double dis = distance.doubleValue();

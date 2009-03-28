@@ -125,6 +125,7 @@ public class View3DWindow extends JPanel
 
     /** the window frame containing this editwindow */      private WindowFrame wf;
 	/** reference to 2D view of the cell */                 private EditWindow view2D;
+	/** layer visibility */                                 private LayerVisibility lv;
 	/** the cell that is in the window */					protected Cell cell;
     /** scale3D factor in Z axis */                         private double scale3D = J3DUtils.get3DFactor();
 	/** Highlighter for this window */                      private Highlighter highlighter;
@@ -227,6 +228,7 @@ public class View3DWindow extends JPanel
 		this.cell = cell;
         this.wf = wf;
         this.view2D = (EditWindow)view2D;
+        lv = this.view2D.getLayerVisibility();
         // Adding observer
         this.view2D.getWindowFrame().addObserver(this);
         this.oneTransformPerNode = transPerNode;
@@ -443,13 +445,13 @@ public class View3DWindow extends JPanel
         J3DUtils.createBackground(objRoot);
 
         View3DEnumerator view3D = new View3DEnumerator(cell);
-        
+
         HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, view3D);
 //		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);
 
         if (electricObjectMap.isEmpty())
             System.out.println("No 3D elements added. Check 3D values.");
-        
+
         if (job.checkAbort()) return null; // Job cancel
 
 		// Picking tools
@@ -782,7 +784,7 @@ public class View3DWindow extends JPanel
 			Layer layer = poly.getLayer();
 
             if (layer == null || layer.getTechnology() == null) continue; // Non-layout technology. E.g Artwork
-			if (!layer.isVisible()) continue; // Doesn't generate the graph
+			if (!lv.isVisible(layer)) continue; // Doesn't generate the graph
 
 			double thickness = layer.getThickness() * scale3D;
 			double distance = layer.getDistance() * scale3D;
@@ -1232,7 +1234,7 @@ public class View3DWindow extends JPanel
 		if (result != null)
 		{
 		   Shape3D s = (Shape3D)result.getNode(PickResult.SHAPE3D);
-			
+
 			if (s != null)
 			{
 				highlighter.addObject(new HighlightShape3D(s), cell);
@@ -1672,7 +1674,7 @@ public class View3DWindow extends JPanel
 //                 System.out.println("Point  " + point + " world " + worldCoord);
 //                GeometryArray geo = inter.getGeometryArray();
 
-                if (inter.getDistance() < 6) 
+                if (inter.getDistance() < 6)
                     return (true); // collision
             }
         }

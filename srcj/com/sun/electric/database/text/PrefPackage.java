@@ -25,6 +25,7 @@
 package com.sun.electric.database.text;
 
 import com.sun.electric.database.id.ArcProtoId;
+import com.sun.electric.database.id.LayerId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 
 import java.io.Serializable;
@@ -180,6 +181,18 @@ public abstract class PrefPackage implements Serializable {
         return Pref.getFactoryPrefRoot();
     }
 
+
+    protected String getKey(String what, LayerId layerId) {
+        int len = what.length() + layerId.fullName.length() + 3;
+        StringBuilder sb = new StringBuilder(len);
+        sb.append(what);
+        sb.append("Of");
+        sb.append(layerId.name);
+        sb.append("IN");
+        sb.append(layerId.techId.techName);
+        assert sb.length() == len;
+        return sb.toString();
+    }
 
     protected String getKey(String what, PrimitiveNodeId pnId) {
         int len = what.length() + pnId.fullName.length() + 4;

@@ -191,6 +191,7 @@ public class EditWindow extends JPanel
 //	/** Strings to write to popup cloud */					private List<String> popupCloudText;
 //	/** lower left corner of popup cloud */					private Point2D popupCloudPoint;
 
+    /** LayerVisibility for this EditWindow */              private LayerVisibility lv = LayerVisibility.getLayerVisibility();
 	/** Highlighter for this window */						private Highlighter highlighter;
 	/** Mouse-over Highlighter for this window */			private Highlighter mouseOverHighlighter;
 	/** Ruler Highlighter for this window */				private Highlighter rulerHighlighter;
@@ -1417,6 +1418,10 @@ public class EditWindow extends JPanel
 		}
 	}
 
+    public LayerVisibility getLayerVisibility() {
+        return lv;
+    }
+
 	/**
 	 * Method requests that every EditWindow be redrawn, including a rerendering of its contents.
 	 */
@@ -1656,8 +1661,9 @@ public class EditWindow extends JPanel
 		float bRed = backgroundComps[0];
 		float bGreen = backgroundComps[1];
 		float bBlue = backgroundComps[2];
+        LayerVisibility lv = getLayerVisibility();
 		for(Layer layer : sortedLayers) {
-			if (!layer.isVisible()) continue;
+			if (!lv.isVisible(layer)) continue;
 			if (layer == Generic.tech().glyphLay && !patternedDisplay) continue;
 			Color color = new Color(layer.getGraphics().getRGB());
 			float[] compArray = color.getRGBComponents(null);
@@ -1682,7 +1688,7 @@ public class EditWindow extends JPanel
 		final boolean showOpacity = !User.isLegacyComposite();
 		if (layerTab != null)
 			SwingUtilities.invokeLater(new Runnable() { public void run() { layerTab.setDisplayAlgorithm(showOpacity); }});
-			return layerColors;
+		return layerColors;
 	}
 
 	public void testJogl() {

@@ -273,7 +273,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 //	/** right shift for AANGLEINC */							private static final int AANGLEINCSH  =        13;
     /** set if arc is not selectable in palette */			    private static final int ARCSPECIAL  = 010000000;
 	/** set if arc is selectable by edge, not area */			private static final int AEDGESELECT  = 020000000;
-	/** set if arc is invisible and unselectable */				private static final int AINVISIBLE   = 040000000;
+//	/** set if arc is invisible and unselectable */				private static final int AINVISIBLE   = 040000000;
 	/** set if arc is not used */								private static final int ANOTUSED  = 020000000000;
 	/** set if node will be considered in palette */            private static final int SKIPSIZEINPALETTE =    0400;
 
@@ -561,24 +561,6 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * @return true if this ArcProto is used.
 	 */
 	public boolean isNotUsed() { return (userBits & ANOTUSED) != 0; }
-
-	/**
-	 * Method to set this ArcProto to be completely invisible, and unselectable.
-	 * When all of its layers have been made invisible, the node is flagged to be invisible.
-	 * @param invisible true to set this ArcProto to be completely invisible and unselectable.
-	 */
-	public void setArcInvisible(boolean invisible)
-	{
-		if (invisible) userBits |= AINVISIBLE; else
-			userBits &= ~AINVISIBLE;
-	}
-
-	/**
-	 * Method to tell if instances of this ArcProto are invisible.
-	 * When all of its layers have been made invisible, the node is flagged to be invisible.
-	 * @return true if instances of this ArcProto are invisible.
-	 */
-	public boolean isArcInvisible() { return (userBits & AINVISIBLE) != 0; }
 
     /**
 	 * Method to allow instances of this ArcProto not to be considered in

@@ -771,7 +771,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	/** set if primitive is lockable (cannot move) */		private static final int LOCKEDPRIM =          040000;
 	/** set if primitive is selectable by edge, not area */	private static final int NEDGESELECT =        0100000;
 	/** set if nonmanhattan arcs on this shrink */			private static final int ARCSHRINK =          0200000;
-	/** set if nonmanhattan arcs on this shrink */			private static final int NINVISIBLE =         0400000;
+//	/** set if nonmanhattan arcs on this shrink */			private static final int NINVISIBLE =         0400000;
 	/** set if node will be considered in palette */        private static final int SKIPSIZEINPALETTE = 01000000;
 	/** set if not used (don't put in menu) */				private static final int NNOTUSED =          02000000;
 
@@ -1106,7 +1106,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     public void setLayers(Technology.NodeLayer [] layers)
     {
     	this.layers = layers;
-    	tech.resetAllVisibility();
     }
 
 	/**
@@ -2031,25 +2030,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	public boolean isArcsShrink() { return (userBits & ARCSHRINK) != 0; }
 
 	/**
-	 * Method to set this PrimitiveNode to be completely invisible, and unselectable.
-	 * When all of its layers have been made invisible, the node is flagged to be invisible.
-	 * @param invisible true to make this PrimitiveNode completely invisible and unselectable.
-	 */
-	public void setNodeInvisible(boolean invisible)
-	{
-		/*checkChanging();*/
-		if (invisible) userBits |= NINVISIBLE; else
-			userBits &= ~NINVISIBLE;
-	}
-
-	/**
-	 * Method to tell if instances of this PrimitiveNode are invisible.
-	 * When all of its layers have been made invisible, the node is flagged to be invisible.
-	 * @return true if instances of this PrimitiveNode are invisible.
-	 */
-	public boolean isNodeInvisible() { return (userBits & NINVISIBLE) != 0; }
-
-	/**
 	 * Method to set this PrimitiveNode so that it is not used.
 	 * Unused nodes do not appear in the component menus and cannot be created by the user.
 	 * The state is useful for hiding primitives that the user should not use.
@@ -2064,33 +2044,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             userBits &= ~NNOTUSED; // clear
 
     }
-
-	/**
-	 * Method to determine whether a primitive node is visible.
-	 * If all layers are invisible, the primitive is considered invisible.
-	 * Otherwise, it is visible.
-	 * @return true if this PrimitiveNode is visible.
-	 */
-	public boolean isVisible()
-	{
-		Boolean b = tech.cacheVisibilityNodes.get(this);
-		if (b == null)
-		{
-			boolean visible = false;
-			for (Iterator<Layer> it2 = getLayerIterator(); it2.hasNext(); )
-			{
-				Layer lay = it2.next();
-				if (lay.isVisible())
-				{
-					visible = true;
-					break;
-				}
-			}
-			b = new Boolean(visible);
-			tech.cacheVisibilityNodes.put(this, b);
-		}
-		return b.booleanValue();
-	}
 
 	/**
 	 * Method to tell if this PrimitiveNode is used.

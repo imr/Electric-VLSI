@@ -36,14 +36,13 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.user.Highlighter;
 
+import com.sun.electric.tool.user.ui.LayerVisibility;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -55,7 +54,7 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
     private List<GeometrySearchResult> found;
     private ERectangle geomBBnd;
     private boolean visibleObjectsOnly;
-    private HashMap<ArcProto,Boolean> cacheVisibilityArcs;
+    private LayerVisibility lv;
     private int cellsProcessed;         // for debug
 
     /**
@@ -111,9 +110,9 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
 	    }
 	}
 
-    public GeometrySearch()
+    public GeometrySearch(LayerVisibility lv)
     {
-        cacheVisibilityArcs = new HashMap<ArcProto,Boolean>();
+        this.lv = lv;
     }
 
     /**
@@ -129,7 +128,6 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
     	found = new ArrayList<GeometrySearchResult>();
         geomBBnd = ERectangle.fromLambda(point.getX(), point.getY(), 0, 0);
         this.visibleObjectsOnly = visibleObjectsOnly;
-        cacheVisibilityArcs.clear();
 //    	PrimitiveNode.resetAllVisibility();
         cellsProcessed = 0;
         HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, this);
@@ -179,7 +177,7 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
                 	double dist = Highlighter.distToNode(rect, oNi, null);
                 	if (dist > 0) continue;
                     PrimitiveNode node = (PrimitiveNode)oNi.getProto();
-                    if (visibleObjectsOnly && !node.isVisible()) continue;
+                    if (visibleObjectsOnly && !lv.isVisible(node)) continue;
                     found.add(new GeometrySearchResult(geom, info.getContext()));
                 }
             } else
@@ -189,7 +187,7 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
             	double dist = Highlighter.distToArc(rect, ai, null);
             	if (dist > 0) continue;
                 ArcProto ap = ai.getProto();
-                if (visibleObjectsOnly && !isArcVisible(ap)) continue;
+                if (visibleObjectsOnly && !lv.isVisible(ap)) continue;
                 found.add(new GeometrySearchResult(geom, info.getContext()));
             }
         }
@@ -202,23 +200,5 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
     {
         if (visibleObjectsOnly && !no.getNodeInst().isExpanded()) return false;
         return true;
-    }
-
-    // ---------------------------------- Private ---------------------------
-
-    private boolean isArcVisible(ArcProto arc) {
-        Boolean b = cacheVisibilityArcs.get(arc);
-        if (b == null) {
-            boolean visible = false;
-            for (Iterator<Layer> it2 = arc.getLayerIterator(); it2.hasNext(); ) {
-                Layer lay = it2.next();
-                if (lay.isVisible()) {
-                    visible = true; break;
-                }
-            }
-            b = new Boolean(visible);
-            cacheVisibilityArcs.put(arc, b);
-        }
-        return b.booleanValue();
     }
 }

@@ -46,6 +46,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ErrorLoggerTree;
+import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
@@ -699,6 +700,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             tech.loadFromPreferences();
         EditingPreferences ep = new EditingPreferences(false, techPool);
         EditingPreferences.setThreadEditingPreferences(ep);
+        LayerVisibility.setTechPool(techPool);
     }
 
     public static EditingPreferences getEditingPreferences() {

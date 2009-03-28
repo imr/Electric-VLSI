@@ -51,6 +51,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
 
+import com.sun.electric.tool.user.ui.LayerVisibility;
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -120,6 +121,7 @@ public class PostScript extends Output
 		double printMargin = IOTool.getFactoryPrintMargin();
 		int printRotation = IOTool.getFactoryPrintRotation();
 		double printPSLineWidth = IOTool.getFactoryPrintPSLineWidth();
+        LayerVisibility lv = new LayerVisibility(true);
 
 		PostScriptPreferences(List<PolyBase> override)
 		{
@@ -146,6 +148,7 @@ public class PostScript extends Output
 			printMargin = IOTool.getPrintMargin();
 			printRotation = IOTool.getPrintRotation();
 			printPSLineWidth = IOTool.getPrintPSLineWidth();
+            lv = new LayerVisibility(false);
 		}
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
@@ -630,7 +633,7 @@ public class PostScript extends Output
 			List<Layer> layerList = Technology.getCurrent().getLayersSortedByHeight();
 			for(Layer layer : layerList)
 			{
-				if (!layer.isVisible()) continue;
+				if (!localPrefs.lv.isVisible(layer)) continue;
 				Job.getUserInterface().setProgressNote("Writing layer " + layer.getName() + " (" + totalObjects + " objects...");
 				currentLayer = layer.getIndex() + 1;
 				recurseCircuitLevel(cell, DBMath.MATID, true, true, totalObjects);
@@ -1010,7 +1013,7 @@ public class PostScript extends Output
 		{
 			tech = layer.getTechnology();
 			index = layer.getIndex();
-			if (!layer.isVisible()) return;
+			if (!localPrefs.lv.isVisible(layer)) return;
 			gra = layer.getGraphics();
 			col = gra.getColor();
 		}

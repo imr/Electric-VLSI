@@ -489,7 +489,7 @@ public class CellMenu {
 		Point2D mouseDB = curEdit.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
 		EPoint point = new EPoint(mouseDB.getX(), mouseDB.getY());
 		GeometrySearch.GeometrySearchResult foundAtTopLevel = null;
-		GeometrySearch search = new GeometrySearch();
+		GeometrySearch search = new GeometrySearch(curEdit.getLayerVisibility());
 		List<GeometrySearch.GeometrySearchResult> possibleTargets = search.searchGeometries(cell, point, true);
 
 		// eliminate results at the top level and duplicate results at any lower level

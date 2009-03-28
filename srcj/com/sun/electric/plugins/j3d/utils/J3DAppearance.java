@@ -27,6 +27,7 @@ package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.electric.database.geometry.EGraphics;
 
+import com.sun.electric.tool.user.ui.LayerVisibility;
 import javax.media.j3d.*;
 import javax.vecmath.Color3f;
 import java.awt.*;
@@ -125,7 +126,8 @@ public class J3DAppearance extends Appearance
             ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
             ra.setCapability(RenderingAttributes.ALLOW_DEPTH_ENABLE_READ);
             ra.setCapability(RenderingAttributes.ALLOW_DEPTH_ENABLE_WRITE);
-            ra.setVisible(graphics.getLayer().isVisible());
+            LayerVisibility lv = LayerVisibility.getLayerVisibility();
+            ra.setVisible(lv.isVisible(graphics.getLayer()));
             setRenderingAttributes(ra);
             if (mode != TransparencyAttributes.NONE)
                 ra.setDepthBufferEnable(true);

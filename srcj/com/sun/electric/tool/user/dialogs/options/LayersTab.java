@@ -31,6 +31,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
+import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
@@ -58,7 +59,7 @@ public class LayersTab extends PreferencePanel
     private Map<User.ColorPrefType, String> nameTypeSpecialMap;
     private Map<Technology,Color []> colorMapMap;
 	private ColorPatternPanel colorAndPatternPanel;
-    
+
     private Layer defaultArtworkLayer;
     private final static String DEFAULT_ARTWORK = "Special: DEFAULT ARTWORK";
 
@@ -409,6 +410,7 @@ public class LayersTab extends PreferencePanel
 				layer.factoryResetGraphics();
 			}
 		}
+        LayerVisibility.factoryReset();
 
 		// Special layers
 		for (User.ColorPrefType type : nameTypeSpecialMap.keySet())

@@ -44,6 +44,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
@@ -292,6 +293,7 @@ class LayerDrawing
 	/** scale of cell expansions. */						private static double expandedScale = 0;
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
+    private static LayerVisibility lv;
     private static Color textColor;
 	private static final EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
@@ -530,7 +532,7 @@ class LayerDrawing
             boolean dimmedTransparentLayers = false;
             for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
                 Layer layer = it.next();
-                if (!layer.isDimmed()) continue;
+                if (!dd.offscreen.highlightingLayers || lv.isHighlighted(layer)) continue;
                 if (layer.getGraphics().getTransparentLayer() == 0) continue;
                 dimmedTransparentLayers = true;
                 break;
@@ -542,7 +544,7 @@ class LayerDrawing
                 for(int i=0; i<numTransparents; i++) dimLayer[i] = true;
                 for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
                     Layer layer = it.next();
-                    if (layer.isDimmed()) continue;
+                    if (!lv.isHighlighted(layer)) continue;
                     int tIndex = layer.getGraphics().getTransparentLayer();
                     if (tIndex == 0) continue;
                     dimLayer[tIndex-1] = false;
@@ -572,7 +574,7 @@ class LayerDrawing
             int numTransparent = 0, numOpaque = 0;
             int deepestTransparentDepth = 0;
             for (Layer layer: dd.layerRasters.keySet()) {
-                if (!layer.isVisible()) continue;
+                if (!lv.isVisible(layer)) continue;
                 if (layer.getGraphics().getTransparentLayer() == 0) {
                     numOpaque++;
                 } else {
@@ -587,14 +589,14 @@ class LayerDrawing
             numTransparent = numOpaque = 0;
             for (Map.Entry<Layer,TransparentRaster> e: dd.layerRasters.entrySet()) {
                 Layer layer = e.getKey();
-                if (!layer.isVisible()) continue;
+                if (!lv.isVisible(layer)) continue;
                 TransparentRaster raster = e.getValue();
                 int transparentNum = layer.getGraphics().getTransparentLayer();
                 if (transparentNum != 0) {
                     transparentMasks[numTransparent] = (1 << (transparentNum - 1)) & (colorMap.length - 1);
                     transparentRasters[numTransparent++] = raster;
                 } else {
-                    opaqueCols[numOpaque] = dd.offscreen.getTheColor(layer.getGraphics(), layer.isDimmed());
+                    opaqueCols[numOpaque] = dd.offscreen.getTheColor(layer.getGraphics(), !lv.isHighlighted(layer));
                     opaqueRasters[numOpaque++] = raster;
                 }
             }
@@ -1117,11 +1119,12 @@ class LayerDrawing
 		topSz = sz;
 
 		// see if any layers are being highlighted/dimmed
+        lv = wnd.getLayerVisibility();
 		highlightingLayers = false;
 		for(Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			if (layer.isDimmed())
+			if (lv.isHighlighted(layer))
 			{
 				highlightingLayers = true;
 				break;
@@ -2438,7 +2441,7 @@ class LayerDrawing
 
                 EGraphics graphics = vt.graphics;
                 if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.basePort != null) {
-                	if (!vt.basePort.getParent().isVisible()) continue;
+                	if (!lv.isVisible(vt.basePort.getParent())) continue;
                     int exportDisplayLevel = User.getExportDisplayLevel();
                     if (exportDisplayLevel == 2) {
                         // draw export as a cross

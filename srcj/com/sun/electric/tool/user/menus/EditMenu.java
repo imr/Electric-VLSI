@@ -87,6 +87,7 @@ import com.sun.electric.tool.user.tecEditWizard.TechEditWizard;
 import com.sun.electric.tool.user.ui.CurveListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ErrorLoggerTree;
+import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.OutlineListener;
 import com.sun.electric.tool.user.ui.PaletteFrame;
 import com.sun.electric.tool.user.ui.SizeListener;
@@ -909,6 +910,7 @@ public class EditMenu {
 
 		boolean cellsAreHard = !User.isEasySelectionOfCellInstances();
 		highlighter.clear();
+        LayerVisibility lv = wnd.getLayerVisibility();
 		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
@@ -930,7 +932,7 @@ public class EditMenu {
 			if (!User.isHighlightInvisibleObjects() && !ni.isCellInstance())
 			{
 				PrimitiveNode np = (PrimitiveNode)ni.getProto();
-				if (np.isNodeInvisible()) continue;
+				if (!lv.isVisible(np)) continue;
 			}
 			if (!ni.isInvisiblePinWithText())
 				highlighter.addElectricObject(ni, curCell);
@@ -960,7 +962,7 @@ public class EditMenu {
 			if (mustBeHard && !hard) continue;
 
 			// do not include arcs that have all layers invisible
-			if (!User.isHighlightInvisibleObjects() && ai.getProto().isArcInvisible()) continue;
+			if (!User.isHighlightInvisibleObjects() && !lv.isVisible(ai.getProto())) continue;
 
 			highlighter.addElectricObject(ai, curCell);
 			if (User.isTextVisibilityOnArc())

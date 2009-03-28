@@ -38,7 +38,6 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -80,6 +79,7 @@ import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.ErrorLoggerTree;
+import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -1616,7 +1616,7 @@ public class FileMenu {
             }
 
 			// save changes to layer visibility
-			Layer.preserveVisibility();
+            LayerVisibility.preserveVisibility();
 
 			// save changes to waveform window signals
 			WaveformWindow.preserveSignalOrder();

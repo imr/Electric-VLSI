@@ -33,7 +33,6 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.technology.xml.XmlParam;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Resources;
 
 import java.awt.Color;
@@ -48,7 +47,6 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -199,7 +197,7 @@ public class Layer implements Serializable
         /** Describes a native layer. */								                public static final int NATIVE = Layer.NATIVE;
         /** Describes a deep layer. */								                    public static final int DEEP = Layer.DEEP;
 //        /** Describes a carbon-nanotube Active layer. */								public static final int CARBNANO = Layer.CARBNANO;
-        
+
 
         private final String name;
         private final boolean isMetal;
@@ -703,7 +701,6 @@ public class Layer implements Serializable
 	private final Pref opacityPref;
 	private final Pref colorPref;
 	private final Pref patternPref;
-    private final Pref layerVisibilityPref;
     // 3D options
 	private Pref layer3DThicknessPref;
 	private Pref layer3DDistancePref;
@@ -713,7 +710,6 @@ public class Layer implements Serializable
     private final Pref areaCoveragePref;  // Used by area coverage tool
 	/** the pseudo layer (if exists) */                                     private Layer pseudoLayer;
 	/** the "real" layer (if this one is pseudo) */							private Layer nonPseudoLayer;
-	/** true if this layer is visible */									private boolean visible;
 	/** true if dimmed (drawn darker) undimmed layers are highlighted */	private boolean dimmed;
 	/** the pure-layer node that contains just this layer */				private PrimitiveNode pureLayerNode;
 
@@ -735,8 +731,6 @@ public class Layer implements Serializable
         colorPref = makeIntegerPref("Color", graphics.getRGB());
         patternPref = makeStringPref("Pattern", graphics.getPatternString());
 
-		layerVisibilityPref = makeBooleanPref("Visibility", true);
-        visible = true;
 		this.dimmed = false;
 		this.function = Function.UNKNOWN;
         areaCoveragePref = makeDoubleServerPref("AreaCoverageJob", DEFAULT_AREA_COVERAGE);
@@ -1027,26 +1021,12 @@ public class Layer implements Serializable
 	 */
 	public Layer getNonPseudoLayer() { return nonPseudoLayer; }
 
-//	/**
-//	 * Method to set the non-pseudo layer associated with this pseudo-Layer.
-//	 * Pseudo layers are those used in pins, and have no real geometry.
-//	 * @param nonPseudoLayer the non-pseudo layer associated with this pseudo-Layer.
-//	 */
-//	private void setNonPseudoLayer(Layer nonPseudoLayer) { this.nonPseudoLayer = nonPseudoLayer; }
-
 	/**
 	 * Method to reset the graphics on this Layer.
 	 */
 	public void factoryResetGraphics()
 	{
     	if (isFree()) return;
-//		if (!visibilityInitialized)
-//		{
-//			Pref vp = getBooleanPref("Visibility", tech.layerVisibilityPrefs, visible);
-//			visible = vp.getBooleanFactoryValue();
-//			if (vp.getBoolean() != visible) vp.setBoolean(visible);
-//			visibilityInitialized = true;
-//		}
         usePatternDisplayPref.factoryReset();
         usePatternPrinterPref.factoryReset();
         outlinePatternPref.factoryReset();
@@ -1054,7 +1034,6 @@ public class Layer implements Serializable
         opacityPref.factoryReset();
         colorPref.factoryReset();
         patternPref.factoryReset();
-        layerVisibilityPref.factoryReset();
 
         loadGraphicsFromPrefs();
 	}
@@ -1094,79 +1073,7 @@ public class Layer implements Serializable
         graphics.setOpacity(opacity);
         graphics.setRGB(colorRGB);
         graphics.setPattern(patternStr);
-        visible = layerVisibilityPref.getBoolean();
     }
-
-	/**
-	 * Method to tell whether this Layer is visible.
-	 * @return true if this Layer is visible.
-	 */
-    public boolean isVisible()
-    {
-    	if (tech == null) return true;
-//		if (!visibilityInitialized)
-//		{
-//			visible = getBooleanPref("Visibility", tech.layerVisibilityPrefs, visible).getBoolean();
-//			visibilityInitialized = true;
-//		}
-		return visible;
-    }
-
-	/**
-	 * Method to set whether this Layer is visible.
-	 * For efficiency, this method does not update preferences, but only changes
-	 * the field variable.
-	 * Changes to visibility are saved to Preferences at exit (with "preserveVisibility()").
-	 * @param newVis true if this Layer is to be visible.
-	 */
-    public void setVisible(boolean newVis)
-	{
-//		if (!visibilityInitialized)
-//		{
-//			visible = getBooleanPref("Visibility", tech.layerVisibilityPrefs, visible).getBoolean();
-//			visibilityInitialized = true;
-//		}
-		visible = newVis;
-		tech.resetAllVisibility();
-	}
-
-	/**
-	 * Method called when the program exits to preserve any changes to the layer visibility.
-	 */
-	public static void preserveVisibility()
-	{
-		Pref.delayPrefFlushing();
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-			{
-				Layer layer = lIt.next();
-				Pref visPref = layer.layerVisibilityPref;
-				boolean savedVis = visPref.getBoolean();
-				if (savedVis != layer.visible)
-				{
-					visPref.setBoolean(layer.visible);
-			        if (Job.getDebug()) System.err.println("Save visibility of " + layer.getName());
-				}
-			}
-		}
-		Pref.resumePrefFlushing();
-	}
-
-	/**
-	 * Method to tell whether this Layer is dimmed.
-	 * Dimmed layers are drawn darker so that undimmed layers can be highlighted.
-	 * @return true if this Layer is dimmed.
-	 */
-	public boolean isDimmed() { return dimmed; }
-
-	/**
-	 * Method to set whether this Layer is dimmed.
-	 * Dimmed layers are drawn darker so that undimmed layers can be highlighted.
-	 * @param dimmed true if this Layer is to be dimmed.
-	 */
-	public void setDimmed(boolean dimmed) { this.dimmed = dimmed; }
 
     private Setting makeLayerSetting(String what, String factory) {
         String techName = tech.getTechName();
@@ -1655,7 +1562,6 @@ public class Layer implements Serializable
         if (skillLayerSetting == null) {
             setFactorySkillLayer("");
         }
-        assert layerVisibilityPref != null;
         if (layer3DThicknessPref == null || layer3DDistancePref == null || layer3DTransModePref == null || layer3DTransFactorPref == null) {
             double thickness = layer3DThicknessPref != null ? getThickness() : DEFAULT_THICKNESS;
             double distance = layer3DDistancePref != null ? getDistance() : DEFAULT_DISTANCE;

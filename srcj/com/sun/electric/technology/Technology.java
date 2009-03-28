@@ -904,7 +904,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** list of primitive nodes in this technology */		private final LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
     /** array of nodes by nodeId.chronIndex */              private PrimitiveNode[] nodesByChronIndex = {};
     /** Old names of primitive nodes */                     protected final HashMap<String,PrimitiveNode> oldNodeNames = new HashMap<String,PrimitiveNode>();
-	/** cached state of node visibility */                  final Map<PrimitiveNode,Boolean> cacheVisibilityNodes = new HashMap<PrimitiveNode,Boolean>();
     /** count of primitive nodes in this technology */      private int nodeIndex = 0;
     /** list of node groups in this technology */           final ArrayList<PrimitiveNodeGroup> primitiveNodeGroups = new ArrayList<PrimitiveNodeGroup>();
 
@@ -2598,15 +2597,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	public int getNumNodes()
 	{
 		return nodes.size();
-	}
-
-	/**
-	 * Method to reset the cache of PrimitiveNode visibility.
-	 * Called when layer visibility changes.
-	 */
-	void resetAllVisibility()
-	{
-		cacheVisibilityNodes.clear();
 	}
 
     /**

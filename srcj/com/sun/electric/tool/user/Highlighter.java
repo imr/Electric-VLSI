@@ -55,6 +55,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.Router;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
@@ -1533,6 +1534,7 @@ public class Highlighter implements DatabaseChangeListener {
 	private static void findTextNow(Cell cell, EditWindow wnd, double directHitDist, Rectangle2D bounds, boolean findSpecial, List<Highlight2> list)
 	{
 		// get the window's cache of text locations
+        LayerVisibility lv = wnd.getLayerVisibility();
 		RTNode rtn = wnd.getTextInCell();
 		if (rtn == null)
 		{
@@ -1637,7 +1639,7 @@ public class Highlighter implements DatabaseChangeListener {
 	    		if (User.isTextVisibilityOnExport())
 	    		{
 	            	NodeProto np = ni.getProto();
-	            	if (!(np instanceof PrimitiveNode) || ((PrimitiveNode)np).isVisible())
+	            	if (!(np instanceof PrimitiveNode) || lv.isVisible((PrimitiveNode)np))
 	            	{
 	        			for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 	        			{
@@ -1759,6 +1761,7 @@ public class Highlighter implements DatabaseChangeListener {
 	public static Highlight2 checkOutObject(Geometric geom, boolean findPort, boolean findPoint, boolean findSpecial, Rectangle2D bounds,
 		EditWindow wnd, double directHitDist, boolean areaMustEnclose)
 	{
+        LayerVisibility lv = wnd.getLayerVisibility();
 		if (geom instanceof NodeInst)
 		{
 			// examine a node object
@@ -1775,7 +1778,7 @@ public class Highlighter implements DatabaseChangeListener {
 				if (!User.isHighlightInvisibleObjects())
 				{
 					PrimitiveNode np = (PrimitiveNode)ni.getProto();
-					if (np.isNodeInvisible()) return null;
+					if (!lv.isVisible(np)) return null;
 				}
 			}
 			if (!findSpecial && hardToSelect) return null;
@@ -1863,7 +1866,7 @@ public class Highlighter implements DatabaseChangeListener {
 			if (!findSpecial && ai.isHardSelect()) return null;
 
 			// do not include arcs that have all layers invisible
-			if (!User.isHighlightInvisibleObjects() && ai.getProto().isArcInvisible()) return null;
+			if (!User.isHighlightInvisibleObjects() && !lv.isVisible(ai.getProto())) return null;
 
 			// ignore areaMustEnclose if bounds is size 0,0
 	        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))

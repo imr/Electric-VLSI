@@ -135,7 +135,7 @@ class VectorDrawing
 		for(Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			if (layer.isDimmed())
+			if (PixelDrawing.lv.isHighlighted(layer))
 			{
 				offscreen.highlightingLayers = true;
 				break;
@@ -440,8 +440,8 @@ class VectorDrawing
 					Layer.Function fun = layer.getFunction();
 					if (fun.isContact() || fun.isWell() || fun.isSubstrate()) continue;
 				}
-				if (!forceVisible && !layer.isVisible()) continue;
-				dimmed = layer.isDimmed();
+				if (!forceVisible && !PixelDrawing.lv.isVisible(layer)) continue;
+				dimmed = !PixelDrawing.lv.isHighlighted(layer);
 			}
 			byte [][] layerBitMap = null;
 			EGraphics graphics = vb.graphics;
@@ -635,7 +635,7 @@ class VectorDrawing
 //				} else
 				if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.basePort != null)
 				{
-					if (!vt.basePort.getParent().isVisible()) continue;
+					if (!PixelDrawing.lv.isVisible(vt.basePort.getParent())) continue;
 					int exportDisplayLevel = User.getExportDisplayLevel();
 					if (exportDisplayLevel == 2)
 					{

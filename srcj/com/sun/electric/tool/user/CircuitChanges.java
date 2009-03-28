@@ -53,6 +53,7 @@ import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.OutlineListener;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -1125,13 +1126,14 @@ public class CircuitChanges
 	{
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
+        LayerVisibility lv = wnd.getLayerVisibility();
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 		Set<NodeInst> redundantPures = new HashSet<NodeInst>();
 		for(Iterator<Layer> it = cell.getTechnology().getLayers(); it.hasNext(); )
 		{
 			Layer lay = it.next();
-			if (!lay.isVisible()) continue;
+			if (!lv.isVisible(lay)) continue;
 			PrimitiveNode pNp = lay.getPureLayerNode();
 			if (pNp == null) continue;
 

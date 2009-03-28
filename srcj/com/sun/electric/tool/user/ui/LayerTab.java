@@ -24,9 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -78,12 +76,11 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 {
 	private JList layerList, configurationList;
 	private DefaultListModel layerListModel, configurationModel;
-	private Map<Layer,Boolean> highlighted;
 	private List<Layer> layersInList;
 	private DragSource dragSource;
 	private boolean loading;
 	private boolean layerDrawing;
-	private static Map<Layer,Boolean> visibility;
+    private LayerVisibility lv;
 	private InvisibleLayerConfiguration invLayerConfigs = InvisibleLayerConfiguration.getOnly();
 
 	private static final ImageIcon iconVisNew = Resources.getResource(LayerTab.class, "IconVisNew.gif");
@@ -194,7 +191,6 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 	{
 		// making memory available for GC
 		layersInList.clear(); layersInList = null;
-		highlighted.clear(); highlighted = null;
 	}
 
 	/**
@@ -208,20 +204,12 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 			cur = Technology.findTechnology((String)technology.getSelectedItem());
 		loading = true;
 		technology.removeAllItems();
-		visibility = new HashMap<Layer,Boolean>();
+        lv = LayerVisibility.getLayerVisibility();
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
 			technology.addItem(tech.getTechName());
-			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-			{
-				Layer layer = lIt.next();
-				if (layer.isPseudoLayer()) continue;
-				visibility.put(layer, Boolean.valueOf(layer.isVisible()));
-			}
 		}
-		visibility.put(Generic.tech().drcLay, Boolean.valueOf(Generic.tech().drcLay.isVisible()));
-		visibility.put(Generic.tech().afgLay, Boolean.valueOf(Generic.tech().afgLay.isVisible()));
 
 		setSelectedTechnology(cur);
 		loading = false;
@@ -287,9 +275,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 		{
 			Layer layer = lIt.next();
-			Boolean vis = visibility.get(layer);
-			if (vis == null) continue;
-			if (vis.booleanValue()) continue;
+            if (lv.isVisible(layer)) continue;
 			invis.add(layer);
 		}
 		invLayerConfigs.addConfiguration(cName, hardWiredIndex, tech, invis);
@@ -348,13 +334,8 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 		{
 			Layer layer = lIt.next();
-			Boolean vis = visibility.get(layer);
-			if (vis == null) continue;
-			boolean invis = invisibleLayers.contains(layer);
-			if (invis != vis.booleanValue()) continue;
-
 			// remember the state of this layer
-			visibility.put(layer, Boolean.valueOf(!invis));
+            lv.setVisible(layer, !invisibleLayers.contains(layer));
 		}
 		updateLayersTab();
 		update();
@@ -412,32 +393,6 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		instanceNames.setSelected(User.isTextVisibilityOnInstance());
 		cellText.setSelected(User.isTextVisibilityOnCell());
 
-		// cache dimming
-		boolean noDimming = true;
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-			{
-				Layer layer = lIt.next();
-				if (layer.isDimmed()) noDimming = false;
-			}
-		}
-
-		// cache highlighting
-		highlighted = new HashMap<Layer,Boolean>();
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-			{
-				Layer layer = lIt.next();
-				if (layer.isPseudoLayer()) continue;
-				if (noDimming) highlighted.put(layer, Boolean.FALSE); else
-					highlighted.put(layer, Boolean.valueOf(!layer.isDimmed()));
-			}
-		}
-
 		Technology tech = Technology.getCurrent();
 		setSelectedTechnology(tech);
 		layerListModel.clear();
@@ -492,13 +447,12 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 	private String lineName(Layer layer)
 	{
 		StringBuffer layerName = new StringBuffer();
-		Boolean layerVisible = visibility.get(layer);
-		if (layerVisible != null && layerVisible.booleanValue()) layerName.append("\u2713 "); else
+		if (lv.isVisible(layer)) layerName.append("\u2713 "); else
 			layerName.append("  ");
 		if (layer.isPseudoLayer()) layerName.append(" (for pins)");
-		Boolean layerHighlighted = highlighted.get(layer);
+		boolean layerHighlighted = lv.isHighlighted(layer);
 		layerName.append(layer.getName());
-		if (layerHighlighted.booleanValue()) layerName.append(" (HIGHLIGHTED)");
+		if (layerHighlighted) layerName.append(" (HIGHLIGHTED)");
 		if (layerDrawing)
 			layerName.append(" (" + TextUtils.formatDouble(layer.getGraphics().getOpacity(),2) + ")");
 		return layerName.toString();
@@ -657,7 +611,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		if (layer == null) return;
 
 		// remember the state of this layer
-		visibility.put(layer, Boolean.valueOf(on));
+        lv.setVisible(layer, on);
 
 		// update the list
 		layerListModel.set(i, lineName(layer));
@@ -678,7 +632,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
         if (level == 0) {
             for (int i=0; i<len; i++) {
                 Layer layer = getSelectedLayer(i);
-                visibility.put(layer, Boolean.TRUE);
+                lv.setVisible(layer, true);
                 layerListModel.set(i, lineName(layer));
             }
         }
@@ -690,23 +644,23 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
                 Layer.Function func = layer.getFunction();
                 if (func.isContact() || func.isDiff() || func.isGatePoly() || func.isImplant() ||
                     func.isMetal() || func.isPoly() || func.isWell() || func.isDummy() || func.isDummyExclusion()) {
-                    Boolean b = Boolean.valueOf(false);
+                    boolean b = false;
                     if (level == 2 && layer.getFunction() == Layer.Function.GATE)
-                        b = Boolean.valueOf(true);
+                        b = true;
                     if (level == 2 && (layer.getFunction() == Layer.Function.DIFF || layer.getFunction() == Layer.Function.DIFFN || layer.getFunction() == Layer.Function.DIFFP))
-                        b = Boolean.valueOf(true);
+                        b = true;
                     if (level == 1 && layer.getFunction().getLevel() <= 1)
-                        b = Boolean.valueOf(true);
+                        b = true;
                     if (layer.getFunction().getLevel() == level) {
-                        b = Boolean.valueOf(true);
+                        b = true;
                         if (layer.getFunction().isMetal())
                             metalLayer = layer;
                     }
                     if (layer.getFunction().getLevel() == (level-1) || level == 0)
-                        b = Boolean.valueOf(true);
+                        b = true;
                     if (layer.getFunction().isContact() && layer.getFunction().getLevel() == (level-1))
-                        b = Boolean.valueOf(false);
-                    visibility.put(layer, b);
+                        b = false;
+                    lv.setVisible(layer, b);
                     layerListModel.set(i, lineName(layer));
                 }
             }
@@ -748,8 +702,8 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 
 		// remember the state of this layer
 		boolean newState = false;
-		if (how == 1) newState = !highlighted.get(layer).booleanValue();
-		highlighted.put(layer, Boolean.valueOf(newState));
+		if (how == 1) newState = !lv.isHighlighted(layer);
+		lv.setHighlighted(layer, newState);
 
 		// update the list
 		layerListModel.set(i, lineName(layer));
@@ -761,81 +715,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 	private void update()
 	{
 		// see if anything was highlighted
-		boolean changed = false;
-		boolean anyHighlighted = false;
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-			{
-				Layer layer = lIt.next();
-				Boolean layerHighlighted = highlighted.get(layer.getNonPseudoLayer());
-				if (layerHighlighted != null && layerHighlighted.booleanValue()) anyHighlighted = true;
-			}
-		}
-
-		// update visibility and highlighting
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-			{
-				Layer layer = lIt.next();
-				Boolean layerVis = visibility.get(layer.getNonPseudoLayer());
-				if (layerVis != null)
-				{
-					if (layer.isVisible() != layerVis.booleanValue())
-					{
-						changed = true;
-						layer.setVisible(layerVis.booleanValue());
-
-						// graphics notifies to all 3D observers if available
-						layer.getGraphics().notifyVisibility(layerVis);
-					}
-				}
-
-				Boolean layerHighlighted = highlighted.get(layer.getNonPseudoLayer());
-				if (layerHighlighted != null)
-				{
-					boolean newState = false;
-					if (anyHighlighted && !layerHighlighted.booleanValue()) newState = true;
-					if (newState != layer.isDimmed())
-					{
-						layer.setDimmed(newState);
-						changed = true;
-					}
-				}
-			}
-		}
-
-		// recompute visibility of primitive nodes and arcs
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); )
-			{
-				PrimitiveNode np = nIt.next();
-				Technology.NodeLayer [] layers = np.getLayers();
-				boolean invisible = true;
-				for(int i=0; i<layers.length; i++)
-				{
-					Technology.NodeLayer lay = layers[i];
-					if (lay.getLayer().isVisible()) { invisible = false;   break; }
-				}
-				np.setNodeInvisible(invisible);
-			}
-			for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
-			{
-				ArcProto ap = aIt.next();
-				boolean invisible = true;
-				for(Iterator<Layer> lIt = ap.getLayerIterator(); lIt.hasNext(); )
-				{
-					Layer layer = lIt.next();
-					if (layer.isVisible()) { invisible = false;   break; }
-				}
-				ap.setArcInvisible(invisible);
-			}
-		}
+		boolean visibilityChanged = lv.clearChanged();
 
 		boolean textVisChanged = false;
 		boolean currentTextOnNode = nodeText.isSelected();
@@ -896,8 +776,8 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 				lt.updateLayersTab();
 		}
 
-		if (changed || textVisChanged)
-			User.layerVisibilityChanged(!changed);
+		if (visibilityChanged || textVisChanged)
+			User.layerVisibilityChanged(!visibilityChanged);
 	}
 
 	/************************** DRAG AND DROP **************************/

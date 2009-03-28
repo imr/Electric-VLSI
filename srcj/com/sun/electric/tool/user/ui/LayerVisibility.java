@@ -23,60 +23,173 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.Environment;
+import com.sun.electric.database.text.PrefPackage;
+import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Job;
-import java.util.HashMap;
+
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.prefs.Preferences;
+import javax.swing.SwingUtilities;
 
 /**
  * Class represents visibility of Layers.
+ * It is possible to have multiple instances of this class,
+ * for example for each EditWindow.
  */
 public class LayerVisibility extends PrefPackage {
-    public static final String KEY_VISIBILITY = "Visibility";
-    
+    private static final String KEY_VISIBILITY = "Visibility";
+
+    /**
+     * The "standard" LayerVisibility
+     */
+    private static LayerVisibility stdLayerVisibility;
+
     private final TechPool techPool;
-    private final HashMap<Layer,Layer> visibleLayers = new HashMap<Layer,Layer>();
+    private final HashSet<Layer> invisibleLayers = new HashSet<Layer>();
     private HashSet<PrimitiveNode> visibleNodes;
     private HashSet<ArcProto> visibleArcs;
-    
+    private boolean visibilityChanged;
+    private final HashSet<Layer> highlightedLayers = new HashSet<Layer>();
+
+    public LayerVisibility(boolean factory) {
+        this(factory, Environment.getThreadTechPool());
+    }
+
     LayerVisibility(boolean factory, TechPool techPool) {
         super(factory);
         this.techPool = techPool;
+        if (factory) return;
+
+        Preferences techPrefs = getPrefRoot().node(TECH_NODE);
         for (Technology tech: techPool.values()) {
             for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
                 Layer layer = it.next();
                 assert !layer.isPseudoLayer();
-//                String visibilityKey = getKey(KEY_VISIBILITY, layer.getId());
-                if (layer.isVisible())
-                    visibleLayers.put(layer, layer);
+                String visibilityKey = getKey(KEY_VISIBILITY, layer.getId());
+                boolean visible = techPrefs.getBoolean(visibilityKey, true);
+                if (!visible)
+                    invisibleLayers.add(layer);
             }
         }
     }
 
-    boolean isVisible(Layer layer) {
-        return visibleLayers.containsKey(layer);
+    public void putPrefs(Preferences prefRoot, boolean removeDefaults, LayerVisibility oldLv) {
+        super.putPrefs(prefRoot, removeDefaults);
+
+        if (oldLv != null && oldLv.techPool != techPool)
+            oldLv = null;
+
+        Preferences techPrefs = prefRoot.node(TECH_NODE);
+        for (Technology tech: techPool.values()) {
+            for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
+                Layer layer = it.next();
+                boolean visible = isVisible(layer);
+                if (oldLv == null || visible != oldLv.isVisible(layer)) {
+                    String visibilityKey = getKey(KEY_VISIBILITY, layer.getId());
+                    if (removeDefaults && visible)
+                        techPrefs.remove(visibilityKey);
+                    else
+                        techPrefs.putBoolean(visibilityKey, visible);
+                }
+            }
+        }
     }
-    
-    boolean isVisible(PrimitiveNode pn) {
+
+	/**
+	 * Method to set whether this Layer is visible
+     * @param layer the Layer
+	 * @param visible true if the Layer is to be visible.
+	 */
+    void setVisible(Layer layer, boolean visible) {
+        if (visible == isVisible(layer)) return;
+        visibilityChanged = true;
+        visibleNodes = null;
+        visibleArcs = null;
+        if (visible)
+            invisibleLayers.remove(layer);
+        else
+            invisibleLayers.add(layer);
+        layer.getGraphics().notifyVisibility(Boolean.valueOf(visible));
+    }
+
+	/**
+	 * Method to set whether this Layer is highlighted.
+	 * Highlighted layers are drawn brighter.
+     * @param layer the Layer
+	 * @param highlighted true if the Layer is to be highlighteded.
+	 */
+    void setHighlighted(Layer layer, boolean highlighted) {
+        if (highlighted == isHighlighted(layer)) return;
+        visibilityChanged = true;
+        if (highlighted)
+            highlightedLayers.add(layer);
+        else
+            highlightedLayers.remove(layer);
+    }
+
+    private void reset() {
+        invisibleLayers.clear();
+        highlightedLayers.clear();
+    }
+
+    /**
+     * Report change status and clear it
+     * @return true if some Layer has changed visibility or highlight status
+     */
+    boolean clearChanged() {
+        boolean oldChanged = visibilityChanged;
+        visibilityChanged = false;
+        return oldChanged;
+    }
+
+	/**
+	 * Method to tell whether a Layer is visible.
+     * @param layer specified layer
+	 * @return true if this Layer is visible.
+	 */
+    public boolean isVisible(Layer layer) {
+        return !invisibleLayers.contains(layer);
+    }
+
+	/**
+	 * Method to tell whether a PrimitiveNode is visible.
+     * @param pn specified PrimitiveNode
+	 * @return true if the PrimitiveNode is visible.
+	 */
+    public boolean isVisible(PrimitiveNode pn) {
         if (visibleNodes == null)
             gatherVisiblePrims();
         return visibleNodes.contains(pn);
     }
-    
-    boolean isVisible(ArcProto ap) {
+
+	/**
+	 * Method to tell whether an ArcProto is visible.
+     * @param ap specified ArcProto
+	 * @return true if the ArcProto is visible.
+	 */
+    public boolean isVisible(ArcProto ap) {
         if (visibleArcs == null)
             gatherVisiblePrims();
         return visibleArcs.contains(ap);
     }
-    
+
+	/**
+	 * Method to tell whether a Layer is highlighted.
+	 * Highlighted layers are drawn brighter
+     * @param layer specified layer
+	 * @return true if this Layer is highlighted.
+	 */
+    public boolean isHighlighted(Layer layer) {
+        return highlightedLayers.contains(layer);
+    }
+
     private void gatherVisiblePrims() {
         visibleNodes = new HashSet<PrimitiveNode>();
         visibleArcs = new HashSet<ArcProto>();
@@ -86,7 +199,7 @@ public class LayerVisibility extends PrefPackage {
                 boolean visible = false;
                 for (Iterator<Layer> lIt = pn.getLayerIterator(); lIt.hasNext(); ) {
                     Layer layer = lIt.next();
-                    if (visibleLayers.containsKey(layer)) {
+                    if (isVisible(layer)) {
                         visible = true;
                         break;
                     }
@@ -99,7 +212,7 @@ public class LayerVisibility extends PrefPackage {
 				boolean visible = false;
 				for(Iterator<Layer> lIt = ap.getLayerIterator(); lIt.hasNext(); ) {
 					Layer layer = lIt.next();
-					if (layer.isVisible()) {
+					if (isVisible(layer)) {
                         visible = true;
                         break;
                     }
@@ -109,25 +222,42 @@ public class LayerVisibility extends PrefPackage {
 			}
 		}
     }
-    
+
+    /**
+     * Returns "standard" LayerVisibility
+     * @return "standard" LayerVisibility
+     */
+    public static LayerVisibility getLayerVisibility() {
+        assert SwingUtilities.isEventDispatchThread();
+        return stdLayerVisibility;
+    }
+
+    /**
+     * Save "standard" LayerVisibility in Preferences
+     */
     public static void preserveVisibility() {
-		Pref.delayPrefFlushing();
-        Preferences techPrefs = PrefPackage.getPrefRoot().node(PrefPackage);
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-			{
-				Layer layer = lIt.next();
-				Pref visPref = layer.layerVisibilityPref;
-				boolean savedVis = visPref.getBoolean();
-				if (savedVis != layer.visible)
-				{
-					visPref.setBoolean(layer.visible);
-			        if (Job.getDebug()) System.err.println("Save visibility of " + layer.getName());
-				}
-			}
-		}
-		Pref.resumePrefFlushing();
+        assert SwingUtilities.isEventDispatchThread();
+        if (stdLayerVisibility == null) return;
+        stdLayerVisibility.putPrefs(getPrefRoot(), true, null);
+    }
+
+    /**
+     * Reset "standard" LayerVisibility to factory values.
+     */
+    public static void factoryReset() {
+        assert SwingUtilities.isEventDispatchThread();
+        if (stdLayerVisibility == null) return;
+        stdLayerVisibility.reset();
+    }
+
+    /**
+     * Reload standard LayerVisibility from Preferences
+     * @param techPool new TechPool
+     */
+    public static void setTechPool(TechPool techPool) {
+        assert SwingUtilities.isEventDispatchThread();
+        if (stdLayerVisibility != null)
+            stdLayerVisibility.putPrefs(getPrefRoot(), true, null);
+        stdLayerVisibility = new LayerVisibility(false, techPool);
     }
 }

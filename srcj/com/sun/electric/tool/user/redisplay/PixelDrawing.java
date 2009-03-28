@@ -48,6 +48,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
@@ -300,6 +301,7 @@ public class PixelDrawing
 	/** scale of cell expansions. */						private static double expandedScale = 0;
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
+    static LayerVisibility lv;
     private static Color textColor;
 	private static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
@@ -512,11 +514,12 @@ public class PixelDrawing
 		topSz = sz;
 
 		// see if any layers are being highlighted/dimmed
+        lv = wnd.getLayerVisibility();
 		highlightingLayers = false;
 		for(Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			if (layer.isDimmed())
+			if (lv.isHighlighted(layer))
 			{
 				highlightingLayers = true;
 				break;
@@ -624,7 +627,7 @@ public class PixelDrawing
 		for(Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			if (layer.isDimmed())
+			if (lv.isHighlighted(layer))
 			{
 				highlightingLayers = true;
 				break;
@@ -755,7 +758,7 @@ public class PixelDrawing
 			for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 			{
 				Layer layer = it.next();
-				if (!layer.isDimmed()) continue;
+				if (!highlightingLayers || lv.isHighlighted(layer)) continue;
 				if (layer.getGraphics().getTransparentLayer() == 0) continue;
 				dimmedTransparentLayers = true;
 				break;
@@ -769,7 +772,7 @@ public class PixelDrawing
 				for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 				{
 					Layer layer = it.next();
-					if (layer.isDimmed()) continue;
+					if (!lv.isHighlighted(layer)) continue;
 					int tIndex = layer.getGraphics().getTransparentLayer();
 					if (tIndex == 0) continue;
 					dimLayer[tIndex-1] = false;
@@ -1286,7 +1289,7 @@ public class PixelDrawing
 			while (it.hasNext())
 			{
 				Export e = it.next();
-            	if (np instanceof PrimitiveNode && !((PrimitiveNode)np).isVisible()) continue;
+            	if (np instanceof PrimitiveNode && !lv.isVisible((PrimitiveNode)np)) continue;
 				Poly poly = e.getNamePoly();
                 poly.transform(trans);
 				Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
@@ -1510,7 +1513,7 @@ public class PixelDrawing
 				int layerNum = graphics.getTransparentLayer() - 1;
 				if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
 			}
-			drawLine(head, tail, layerBitMap, graphics, 0, layer.isDimmed());
+			drawLine(head, tail, layerBitMap, graphics, 0, !lv.isHighlighted(layer));
 		}
 	}
 
@@ -1929,9 +1932,9 @@ public class PixelDrawing
 			boolean dimmed = false;
 			if (layer != null)
 			{
-				if (!forceVisible && !layer.isVisible()) continue;
+				if (!forceVisible && !lv.isVisible(layer)) continue;
 				graphics = layer.getGraphics();
-				dimmed = layer.isDimmed();
+				dimmed = !lv.isHighlighted(layer);
 			}
 
 			// transform the bounds
