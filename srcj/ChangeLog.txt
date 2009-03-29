@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09g: ******************************
 
+IMP: (3/29/09, DN) Use Poly.graphicsOverride in drawing ad printing.
+
 IMP: (3/28/09, DN) Move highlight and visibilty Layer state from Technology to a separate class.
 
 IMP: (3/27/09, DN) Get rid of Layer.newInstanceFree in LayerDrawing.java .

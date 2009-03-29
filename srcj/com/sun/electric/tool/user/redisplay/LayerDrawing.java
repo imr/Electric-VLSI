@@ -1494,7 +1494,6 @@ class LayerDrawing
         }
 
         // draw primitives
-        drawList(oX, oY, vc.filledShapes);
         drawList(oX, oY, vc.shapes);
 
 		// show cell variables if at the top level
@@ -1820,15 +1819,17 @@ class LayerDrawing
     ERaster getRaster(Layer layer, EGraphics graphics, boolean forceVisible) {
         if (layer != null)
             layer = layer.getNonPseudoLayer();
-        if (layer == null || layer.isFree())
+        if (layer == null || layer.isFree()) {
             layer = Artwork.tech().defaultLayer;
+            graphics = layer.getGraphics();
+        }
         TransparentRaster raster = layerRasters.get(layer);
         if (raster == null) {
             raster = new TransparentRaster(sz.height, numIntsPerRow);
             layerRasters.put(layer, raster);
         }
         int [] pattern = null;
-        if (graphics == null) graphics = layer.getGraphics();
+//        if (graphics == null) graphics = layer.getGraphics();
         if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
             pattern = graphics.getReversedPattern();
         if (pattern != null && patternedDisplay && renderedWindow) {

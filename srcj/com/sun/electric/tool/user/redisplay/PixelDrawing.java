@@ -1928,12 +1928,11 @@ public class PixelDrawing
 			Poly poly = polys[i];
 			if (poly == null) continue;
 			Layer layer = poly.getLayer();
-			EGraphics graphics = null;
+			EGraphics graphics = poly.getGraphics();
 			boolean dimmed = false;
 			if (layer != null)
 			{
 				if (!forceVisible && !lv.isVisible(layer)) continue;
-				graphics = layer.getGraphics();
 				dimmed = !lv.isHighlighted(layer);
 			}
 

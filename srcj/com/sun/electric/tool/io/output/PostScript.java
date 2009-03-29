@@ -97,8 +97,10 @@ public class PostScript extends Output
 	/** the last color written out. */									private int lastColor;
 	/** the normal width of lines. */									private int lineWidth;
 	/** matrix from database units to PS units. */						private AffineTransform matrix;
-	/** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstanceFree(null, "black",
-		new EGraphics(false, false, null, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
+	/** fake graphics for drawing outlines and text. */					private static EGraphics blackGraphics =
+        new EGraphics(false, false, null, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
+//    /** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstanceFree(null, "black",
+//		new EGraphics(false, false, null, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 	private PostScriptPreferences localPrefs;
 
 	public static class PostScriptPreferences extends OutputPreferences
@@ -718,7 +720,9 @@ public class PostScript extends Output
 						Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
 						poly.transform(subTrans);
 						poly.setStyle(Poly.Type.CLOSED);
-						poly.setLayer(blackLayer);
+                        poly.setLayer(null);
+                        poly.setGraphicsOverride(blackGraphics);
+//						poly.setLayer(blackLayer);
 						psPoly(poly);
 
 						// Only when the instance names flag is on
@@ -1014,7 +1018,7 @@ public class PostScript extends Output
 			tech = layer.getTechnology();
 			index = layer.getIndex();
 			if (!localPrefs.lv.isVisible(layer)) return;
-			gra = layer.getGraphics();
+			gra = poly instanceof Poly ? ((Poly)poly).getGraphics() : layer.getGraphics();
 			col = gra.getColor();
 		}
 
@@ -1266,7 +1270,7 @@ public class PostScript extends Output
 //		}
 //		if (polyBounds.getWidth() < 1 || polyBounds.getHeight() < 1) return;
 
-		EGraphics desc = poly.getLayer().getGraphics();
+		EGraphics desc = poly instanceof Poly ? ((Poly)poly).getGraphics() : poly.getLayer().getGraphics();
 
 		// use solid color if solid pattern or no pattern
 		boolean stipplePattern = desc.isPatternedOnPrinter();

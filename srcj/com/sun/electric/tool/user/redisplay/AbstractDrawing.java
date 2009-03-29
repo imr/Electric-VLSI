@@ -97,7 +97,7 @@ public abstract class AbstractDrawing {
         if (User.getDisplayAlgorithm() < 2 || User.isLegacyComposite()) {
             offscreen.initDrawing(scale);
             VectorDrawing vd = new VectorDrawing();
-            vd.render(offscreen, scale, EPoint.ORIGIN, shapes, true);
+            vd.render(offscreen, scale, EPoint.ORIGIN, shapes);
             Image img = offscreen.composite(null);
             g.drawImage(img, imgX, imgY, null);
         } else {

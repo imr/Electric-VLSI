@@ -914,6 +914,7 @@ public class Artwork extends Technology
 			{
 				for(int i=0; i<8; i++) pattern[i+8] = pattern[i];
 			}
+            graphics.setPattern(pattern);
 		}
 		return graphics;
 	}

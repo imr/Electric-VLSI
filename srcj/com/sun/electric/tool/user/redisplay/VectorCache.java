@@ -537,7 +537,6 @@ public class VectorCache {
         int lX, lY, hX, hY;
         int[] portCenters;
         boolean valid;
-		ArrayList<VectorBase> filledShapes = new ArrayList<VectorBase>();
         ArrayList<VectorBase> shapes = new ArrayList<VectorBase>();
         private ArrayList<VectorBase> topOnlyShapes;
 		ArrayList<VectorSubCell> subCells = new ArrayList<VectorSubCell>();
@@ -597,7 +596,7 @@ public class VectorCache {
             List<VectorBase> addThesePolys = addPolyToCell.get(cellId);
             if (addThesePolys != null) {
                 for(VectorBase vb : addThesePolys)
-                    filledShapes.add(vb);
+                    shapes.add(vb);
             }
             List<VectorLine> addTheseInsts = addInstToCell.get(cellId);
             if (addTheseInsts != null) {
@@ -606,7 +605,6 @@ public class VectorCache {
             }
             addBoxesFromBuilder(this, cell.getTechnology(), boxBuilders, false);
             addBoxesFromBuilder(this, cell.getTechnology(), pureBoxBuilders, true);
-            Collections.sort(filledShapes, shapeByLayer);
             Collections.sort(shapes, shapeByLayer);
 
             // icon cells should not get greeked because of their contents
@@ -645,7 +643,6 @@ public class VectorCache {
         private void clear() {
             clearExports();
             valid = hasFadeColor = fadeImage = false;
-            filledShapes.clear();
             shapes.clear();
             subCells.clear();
             fadeImageColors = null;
@@ -754,26 +751,17 @@ public class VectorCache {
         VectorCache cache = new VectorCache(EDatabase.clientDatabase());
         VectorCell vc = cache.newDummyVectorCell();
         cache.drawNode(ni, GenMath.MATID, vc);
-
-        ArrayList<VectorBase> allShapes = new ArrayList<VectorBase>();
-        allShapes.addAll(vc.filledShapes);
-        allShapes.addAll(vc.shapes);
-//        allShapes.addAll(vc.topOnlyShapes);
-        Collections.sort(allShapes, shapeByLayer);
-        return allShapes.toArray(new VectorBase[allShapes.size()]);
+        Collections.sort(vc.shapes, shapeByLayer);
+        return vc.shapes.toArray(new VectorBase[vc.shapes.size()]);
     }
 
     public static VectorBase[] drawPolys(Poly[] polys) {
         VectorCache cache = new VectorCache(EDatabase.clientDatabase());
         VectorCell vc = cache.newDummyVectorCell();
 		cache.drawPolys(polys, GenMath.MATID, vc, false, VectorText.TEXTTYPEARC, false);
-
-        ArrayList<VectorBase> allShapes = new ArrayList<VectorBase>();
-        allShapes.addAll(vc.filledShapes);
-        allShapes.addAll(vc.shapes);
 //        allShapes.addAll(vc.topOnlyShapes);
-        Collections.sort(allShapes, shapeByLayer);
-        return allShapes.toArray(new VectorBase[allShapes.size()]);
+        Collections.sort(vc.shapes, shapeByLayer);
+        return vc.shapes.toArray(new VectorBase[vc.shapes.size()]);
     }
 
     private VectorCell newDummyVectorCell() { return new VectorCell(); }
@@ -1053,7 +1041,7 @@ public class VectorCache {
             if (b.size == 0) continue;
             Layer layer = tech.getLayer(layerIndex);
             VectorManhattan vm = new VectorManhattan(b.toArray(), layer, layer.getGraphics(), pureArray);
-            vc.filledShapes.add(vm);
+            vc.shapes.add(vm);
         }
     }
 
@@ -1067,6 +1055,8 @@ public class VectorCache {
 		 */
     	public int compare(VectorBase vb1, VectorBase vb2)
         {
+            if (vb1.isFilled() != vb2.isFilled())
+                return vb1.isFilled() ? 1 : -1;
 			int level1 = 1000, level2 = 1000;
             boolean isContact1 = false;
             boolean isContact2 = false;
@@ -1192,11 +1182,8 @@ public class VectorCache {
 		// now draw it
 		Point2D [] points = poly.getPoints();
 		Layer layer = poly.getLayer();
-		EGraphics graphics = null;
-		if (layer != null)
-			graphics = layer.getGraphics();
+		EGraphics graphics = poly.getGraphics();
 		Poly.Type style = poly.getStyle();
-        ArrayList<VectorBase> filledShapes = hideOnLowLevel ? vc.topOnlyShapes : vc.filledShapes;
         ArrayList<VectorBase> shapes = hideOnLowLevel ? vc.topOnlyShapes : vc.shapes;
 		if (style == Poly.Type.FILLED)
 		{
@@ -1210,17 +1197,17 @@ public class VectorCache {
 				double hY = bounds.getMaxY();
                 float minSize = (float)Math.min(hX - lX, hY - lY);
                 int layerIndex = -1;
-				if (layer != null)
+				if (layer != null && poly.getGraphicsOverride() == null)
 				{
                     Technology tech = layer.getTechnology();
-                    if (tech != null && vc.vcg != null && tech.getTechName().equals(vc.vcg.cellBackup.cellRevision.d.techId.techName))
+                    if (tech != null && !layer.isFree() && vc.vcg != null && tech.getId() == vc.vcg.cellBackup.cellRevision.d.techId)
                         layerIndex = layer.getIndex();
 				}
                 if (layerIndex >= 0) {
                     putBox(layerIndex, pureLayer ? pureBoxBuilders : boxBuilders, lX, lY, hX, hY);
                 } else {
                     VectorManhattan vm = new VectorManhattan(lX, lY, hX, hY, layer, graphics, pureLayer);
-                    filledShapes.add(vm);
+                    shapes.add(vm);
                 }
 
                 // ignore implant layers when computing largest feature size
@@ -1233,7 +1220,7 @@ public class VectorCache {
 				return;
 			}
 			VectorPolygon vp = new VectorPolygon(points, layer, graphics);
-			filledShapes.add(vp);
+			shapes.add(vp);
 			return;
 		}
 		if (style == Poly.Type.CROSSED)
@@ -1263,6 +1250,7 @@ public class VectorCache {
 			Rectangle2D bounds = poly.getBounds2D();
 			TextDescriptor descript = poly.getTextDescriptor();
 			String str = poly.getString();
+            assert layer == null && graphics == null;
 			VectorText vt = new VectorText(bounds, style, descript, str, textType, null,
 				layer, graphics);
 			shapes.add(vt);
@@ -1325,7 +1313,7 @@ public class VectorCache {
 		{
 			VectorCircle vci = new VectorCircle(points[0].getX(), points[0].getY(), points[1].getX(),
 				points[1].getY(), 2, layer, graphics);
-			filledShapes.add(vci);
+			shapes.add(vci);
 			return;
 		}
 		if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)

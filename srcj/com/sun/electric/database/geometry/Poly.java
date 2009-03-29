@@ -49,7 +49,7 @@ import java.util.Iterator;
  * Class to define a polygon of points.
  */
 public class Poly extends PolyBase {
-    public static final boolean POLY_GRAPHICS_OVERRIDE = false;
+    public static final boolean POLY_GRAPHICS_OVERRIDE = true;
     public static final Poly[] NULL_ARRAY = {};
 
     /** when not null, use this graphics */                 private EGraphics graphicsOverride;

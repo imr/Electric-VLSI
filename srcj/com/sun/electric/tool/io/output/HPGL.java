@@ -56,8 +56,9 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * This class writes files in HPGL/2 format.
@@ -67,7 +68,8 @@ public class HPGL extends Output
 	/** Scale to ensure that everything is integer */ private static final double SCALE = 100;
 
 	/** conversion from Layers to pen numbers */	private HashMap<Layer,List<PolyBase>> cellGeoms;
-	/** conversion from Layers to pen numbers */	private HashMap<Layer,Integer>        penNumbers;
+	/** conversion from Layers to Colors */	        private HashMap<Layer,Color>          layerColors = new HashMap<Layer,Color>();
+	/** conversion from Colors to pen numbers */	private LinkedHashMap<Color,Integer>  penNumbers = new LinkedHashMap<Color,Integer>();
 	/** the Cell being written. */					private Cell        cell;
 	/** the Window being printed (for text). */		private EditWindow_ wnd;
 	/** the current line type */					private int         currentLineType;
@@ -145,17 +147,13 @@ public class HPGL extends Output
 		// HPGL/2 setup and defaults
 		writeLine("\033%0BBPIN");
 		writeLine("LA1,4,2,4QLMC0");
-		Set<Layer> layerSet = cellGeoms.keySet();
-		writeLine("NP" + layerSet.size());
 
 		// setup pens and create the mapping between Layers and HPGL pen numbers
-		penNumbers = new HashMap<Layer,Integer>();
-		int index = 1;
-		for(Layer layer : layerSet)
+		for(Map.Entry<Layer,List<PolyBase>> e: cellGeoms.entrySet())
 		{
-			penNumbers.put(layer, new Integer(index));
-
-			Color col;
+			Layer layer = e.getKey();
+			List<PolyBase> geoms = e.getValue();
+            Color col;
 			if (layer == null) col = Color.BLACK; else
 			{
 				EGraphics desc = layer.getGraphics();
@@ -170,21 +168,36 @@ public class HPGL extends Output
 				}
 				if (col == null) continue;
 			}
+            layerColors.put(layer,col);
+            getPenNumber(col);
+
+            for (PolyBase poly: geoms) {
+                if (poly instanceof Poly) {
+                  EGraphics graphicsOverride = ((Poly)poly).getGraphicsOverride();
+                  if (graphicsOverride != null)
+                      getPenNumber(graphicsOverride.getOpaqueColor());
+                }
+            }
+		}
+		writeLine("NP" + penNumbers.size());
+        for (Map.Entry<Color,Integer> e: penNumbers.entrySet()) {
+            Color col = e.getKey();
+            int index = e.getValue().intValue();
 			int r = col.getRed();
 			int g = col.getGreen();
 			int b = col.getBlue();
 			writeLine("PC" + index + "," + r + "," + g + "," + b);
-			index++;
-		}
+        }
+
 
 		// set default location of "P1" and "P2" points on the plotter
 		writeLine("IP;");
 		writeLine("SC" + makeCoord(printBounds.getMinX()) + ",1," + makeCoord(printBounds.getMinY()) + ",1,2;");
 
 		// write all geometry collected
-		for(Layer layer : layerSet)
+		for(Map.Entry<Layer,List<PolyBase>> e: cellGeoms.entrySet())
 		{
-			List<PolyBase> geoms = cellGeoms.get(layer);
+			List<PolyBase> geoms = e.getValue();
 			for (PolyBase poly : geoms)
 			{
 				emitPoly(poly);
@@ -363,6 +376,12 @@ public class HPGL extends Output
 	{
 		// ignore null layers
 		Layer layer = poly.getLayer();
+        Color col = layerColors.get(layer);
+        if (poly instanceof Poly) {
+            EGraphics graphicsOverride = ((Poly)poly).getGraphicsOverride();
+            if (graphicsOverride != null)
+                col = graphicsOverride.getOpaqueColor();
+        }
 		Poly.Type style = poly.getStyle();
 		Point2D [] points = poly.getPoints();
 		if (style == Poly.Type.FILLED)
@@ -372,22 +391,22 @@ public class HPGL extends Output
 			{
 				if (box.getWidth() == 0)
 				{
-					if (box.getHeight() != 0) emitLine(box.getMinX(), box.getMinY(), box.getMinX(), box.getMaxY(), layer);
+					if (box.getHeight() != 0) emitLine(box.getMinX(), box.getMinY(), box.getMinX(), box.getMaxY(), col);
 					return;
 				}
 				if (box.getHeight() == 0)
 				{
-					emitLine(box.getMinX(), box.getMinY(), box.getMaxX(), box.getMinY(), layer);
+					emitLine(box.getMinX(), box.getMinY(), box.getMaxX(), box.getMinY(), col);
 					return;
 				}
 			}
 			if (points.length <= 1) return;
 			if (points.length == 2)
 			{
-				emitLine(points[0].getX(), points[0].getY(), points[1].getX(), points[1].getY(), layer);
+				emitLine(points[0].getX(), points[0].getY(), points[1].getX(), points[1].getY(), col);
 				return;
 			}
-			emitFilledPolygon(points, layer);
+			emitFilledPolygon(points, col);
 			return;
 		}
 
@@ -397,19 +416,19 @@ public class HPGL extends Output
 			Rectangle2D box = poly.getBox();
 			if (box != null)
 			{
-				emitLine(box.getMinX(), box.getMinY(), box.getMinX(), box.getMaxY(), layer);
-				emitLine(box.getMinX(), box.getMaxY(), box.getMaxX(), box.getMaxY(), layer);
-				emitLine(box.getMaxX(), box.getMaxY(), box.getMaxX(), box.getMinY(), layer);
+				emitLine(box.getMinX(), box.getMinY(), box.getMinX(), box.getMaxY(), col);
+				emitLine(box.getMinX(), box.getMaxY(), box.getMaxX(), box.getMaxY(), col);
+				emitLine(box.getMaxX(), box.getMaxY(), box.getMaxX(), box.getMinY(), col);
 				if (style == Poly.Type.CLOSED || points.length == 5)
-					emitLine(box.getMaxX(), box.getMinY(), box.getMinX(), box.getMinY(), layer);
+					emitLine(box.getMaxX(), box.getMinY(), box.getMinX(), box.getMinY(), col);
 				return;
 			}
 			for (int k = 1; k < points.length; k++)
-				emitLine(points[k-1].getX(), points[k-1].getY(), points[k].getX(), points[k].getY(), layer);
+				emitLine(points[k-1].getX(), points[k-1].getY(), points[k].getX(), points[k].getY(), col);
 			if (style == Poly.Type.CLOSED)
 			{
 				int k = points.length - 1;
-				emitLine(points[k].getX(), points[k].getY(), points[0].getX(), points[0].getY(), layer);
+				emitLine(points[k].getX(), points[k].getY(), points[0].getX(), points[0].getY(), col);
 			}
 			return;
 		}
@@ -417,7 +436,7 @@ public class HPGL extends Output
 		if (style == Poly.Type.VECTORS)
 		{
 			for(int k=0; k<points.length; k += 2)
-				emitLine(points[k].getX(), points[k].getY(), points[k+1].getX(), points[k+1].getY(), layer);
+				emitLine(points[k].getX(), points[k].getY(), points[k+1].getX(), points[k+1].getY(), col);
 			return;
 		}
 
@@ -425,39 +444,39 @@ public class HPGL extends Output
 		{
 			double x = poly.getCenterX();
 			double y = poly.getCenterY();
-			emitLine(x-5, y, x+5, y, layer);
-			emitLine(x, y+5, x, y-5, layer);
+			emitLine(x-5, y, x+5, y, col);
+			emitLine(x, y+5, x, y-5, col);
 			return;
 		}
 
 		if (style == Poly.Type.CROSSED)
 		{
 			Rectangle2D box = poly.getBounds2D();
-			emitLine(box.getMinX(), box.getMinY(), box.getMinX(), box.getMaxY(), layer);
-			emitLine(box.getMinX(), box.getMaxY(), box.getMaxX(), box.getMaxY(), layer);
-			emitLine(box.getMaxX(), box.getMaxY(), box.getMaxX(), box.getMinY(), layer);
-			emitLine(box.getMaxX(), box.getMinY(), box.getMinX(), box.getMinY(), layer);
-			emitLine(box.getMaxX(), box.getMaxY(), box.getMinX(), box.getMinY(), layer);
-			emitLine(box.getMaxX(), box.getMinY(), box.getMinX(), box.getMaxY(), layer);
+			emitLine(box.getMinX(), box.getMinY(), box.getMinX(), box.getMaxY(), col);
+			emitLine(box.getMinX(), box.getMaxY(), box.getMaxX(), box.getMaxY(), col);
+			emitLine(box.getMaxX(), box.getMaxY(), box.getMaxX(), box.getMinY(), col);
+			emitLine(box.getMaxX(), box.getMinY(), box.getMinX(), box.getMinY(), col);
+			emitLine(box.getMaxX(), box.getMaxY(), box.getMinX(), box.getMinY(), col);
+			emitLine(box.getMaxX(), box.getMinY(), box.getMinX(), box.getMaxY(), col);
 			return;
 		}
 
 		if (style == Poly.Type.DISC)
 		{
 			// filled disc: plot it and its outline
-			emitDisc(points[0], points[1], layer);
+			emitDisc(points[0], points[1], col);
 			style = Poly.Type.CIRCLE;
 		}
 
 		if (style == Poly.Type.CIRCLE || style == Poly.Type.THICKCIRCLE)
 		{
-			emitCircle(points[0], points[1], layer);
+			emitCircle(points[0], points[1], col);
 			return;
 		}
 
 		if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
 		{
-			emitArc(points[0], points[1], points[2], layer);
+			emitArc(points[0], points[1], points[2], col);
 			return;
 		}
 
@@ -467,26 +486,26 @@ public class HPGL extends Output
 			Poly textPoly = (Poly)poly;
 			double size = textPoly.getTextDescriptor().getTrueSize(wnd);
 			Rectangle2D box = textPoly.getBounds2D();
-			emitText(style, box.getMinX(), box.getMaxX(), box.getMinY(), box.getMaxY(), size, textPoly.getString(), layer);
+			emitText(style, box.getMinX(), box.getMaxX(), box.getMinY(), box.getMaxY(), size, textPoly.getString(), col);
 			return;
 		}
 	}
 
-	void emitLine(double x1, double y1, double x2, double y2, Layer layer)
+	void emitLine(double x1, double y1, double x2, double y2, Color col)
 	{
-		doPenSelection(layer);
+		doPenSelection(col);
 		movePen(x1, y1);
 		drawPen(x2, y2);
 	}
 
-	private void emitArc(Point2D center, Point2D p1, Point2D p2, Layer layer)
+	private void emitArc(Point2D center, Point2D p1, Point2D p2, Color col)
 	{
 		double startAngle = GenMath.figureAngle(center, p1);
 		double endAngle = GenMath.figureAngle(center, p2);
 		double amt;
 		if (startAngle > endAngle) amt = (startAngle - endAngle + 5) / 10; else
 			amt = (startAngle - endAngle + 3600 + 5) / 10;
-		doPenSelection(layer);
+		doPenSelection(col);
 		movePen(p1.getX(), p1.getY());
 		writeLine("PD;");
 		writeLine("AA " + makeCoord(center.getX()) + " " + makeCoord(center.getY()) +
@@ -494,19 +513,19 @@ public class HPGL extends Output
 		writeLine("PU;");
 	}
 
-	private void emitCircle(Point2D at, Point2D e, Layer layer)
+	private void emitCircle(Point2D at, Point2D e, Color col)
 	{
 		double radius = at.distance(e);
-		doPenSelection(layer);
+		doPenSelection(col);
 		movePen(at.getX(), at.getY());
 		writeLine("PD;");
 		writeLine("CI " + makeCoord(radius) + ";");
 		writeLine("PU;");
 	}
 
-	private void emitDisc(Point2D at, Point2D e, Layer layer)
+	private void emitDisc(Point2D at, Point2D e, Color col)
 	{
-		int fillType = doFillSelection(layer);
+		int fillType = doFillSelection(col);
 
 		double radius = at.distance(e);
 		movePen(at.getX(), at.getY());
@@ -519,10 +538,10 @@ public class HPGL extends Output
 		writeLine("PU;");
 	}
 
-	private void emitFilledPolygon(Point2D [] points, Layer layer)
+	private void emitFilledPolygon(Point2D [] points, Color col)
 	{
 		if (points.length <= 1) return;
-		int fillType = doFillSelection(layer);
+		int fillType = doFillSelection(col);
 
 		double firstX = points[0].getX();		// save the end point
 		double firstY = points[0].getY();
@@ -537,11 +556,11 @@ public class HPGL extends Output
 	}
 
 	private void emitText(Poly.Type type, double xl, double xh, double yl, double yh, double size,
-		String text, Layer layer)
+		String text, Color col)
 	{
 		writeLine("SI " + TextUtils.formatDouble(size*0.01/1.3) + "," +
 			TextUtils.formatDouble(size*0.01) + ";");
-		doPenSelection(layer);
+		doPenSelection(col);
 
 		if (type == Poly.Type.TEXTBOTLEFT)
 		{
@@ -609,16 +628,19 @@ public class HPGL extends Output
 	 * identical transparent objects exactly overlap each other.  For our
 	 * applications, this will be rare.
 	 */
-	private int getPenNumber(Layer layer)
+	private int getPenNumber(Color color)
 	{
-		Integer ind = penNumbers.get(layer);
-		if (ind == null) return 0;
+		Integer ind = penNumbers.get(color);
+		if (ind == null) {
+            ind = Integer.valueOf(penNumbers.size() + 1);
+            penNumbers.put(color, ind);
+        }
 		return ind.intValue();
 	}
 
-	private int doFillSelection(Layer layer)
+	private int doFillSelection(Color col)
 	{
-		doPenSelection(layer);
+		doPenSelection(col);
 		int fillType = penColorTable[currentPen].fillType;
 		if (!fillEmitted)
 		{
@@ -635,9 +657,9 @@ public class HPGL extends Output
 	 * proper entry from the pen table, and select an appropriate pen from the
 	 * penColorTable.  The appropriate pen and line type is then selected.
 	 */
-	private void doPenSelection(Layer layer)
+	private void doPenSelection(Color col)
 	{
-		int pen = getPenNumber(layer);
+		int pen = getPenNumber(col);
 		int desiredPen = pen;
 		int lineType = penColorTable[pen].lineType;
 

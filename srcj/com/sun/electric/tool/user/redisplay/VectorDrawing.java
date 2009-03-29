@@ -224,7 +224,7 @@ class VectorDrawing
 	 * @param shapes shapes of tech menu
 	 * @param forceVisible true to force all layers to be drawn (regardless of user settings)
 	 */
-	public void render(PixelDrawing offscreen, double scale, Point2D offset, VectorCache.VectorBase[] shapes, boolean forceVisible)
+	public void render(PixelDrawing offscreen, double scale, Point2D offset, VectorCache.VectorBase[] shapes)
 	{
 		// set colors to use
 		textGraphics.setColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
@@ -253,7 +253,7 @@ class VectorDrawing
 		try
 		{
 			List<VectorCache.VectorBase> shapeList = Arrays.asList(shapes);
-			drawList(0, 0, shapeList, 0, forceVisible);
+			drawList(0, 0, shapeList, 0, true);
 		} catch (AbortRenderingException e)
 		{
 		}
@@ -285,7 +285,6 @@ class VectorDrawing
 		throws AbortRenderingException
 	{
 		// render main list of shapes
-		drawList(oX, oY, vc.filledShapes, level, false);
 		drawList(oX, oY, vc.shapes, level, false);
 
 		// now render subcells
@@ -440,11 +439,13 @@ class VectorDrawing
 					Layer.Function fun = layer.getFunction();
 					if (fun.isContact() || fun.isWell() || fun.isSubstrate()) continue;
 				}
-				if (!forceVisible && !PixelDrawing.lv.isVisible(layer)) continue;
-				dimmed = !PixelDrawing.lv.isHighlighted(layer);
-			}
+				if (!forceVisible) {
+                    if (!PixelDrawing.lv.isVisible(layer)) continue;
+                    dimmed = !PixelDrawing.lv.isHighlighted(layer);
+                }
+            }
 			byte [][] layerBitMap = null;
-			EGraphics graphics = vb.graphics;
+            EGraphics graphics = vb.graphics;
 			if (graphics != null)
 			{
 				int layerNum = graphics.getTransparentLayer() - 1;
@@ -1046,7 +1047,7 @@ class VectorDrawing
 	private void gatherContents(VectorCache.VectorCell vc, Map<Layer,MutableDouble> layerAreas, VarContext context)
 		throws AbortRenderingException
 	{
-		for(VectorCache.VectorBase vb : vc.filledShapes)
+		for(VectorCache.VectorBase vb : vc.shapes)
 		{
 			Layer layer = vb.layer;
 			if (layer == null) continue;

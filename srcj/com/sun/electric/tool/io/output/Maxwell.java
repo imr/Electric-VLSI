@@ -54,7 +54,7 @@ import java.util.Map;
  * Class to generate Maxwell netlists.
  */
 public class Maxwell extends Output
-{	
+{
 	Map<Integer,List<Integer>> maxNetMap;
 	Map<Integer,String> boxNames;
 	int boxNumber;
@@ -131,7 +131,7 @@ public class Maxwell extends Output
 		if (layer.getTechnology() != Technology.getCurrent()) return;
 		Rectangle2D box = poly.getBox();
 		if (box == null) return;
-		Color color = layer.getGraphics().getColor();
+		Color color = poly.getGraphics().getColor();
 		int red = color.getRed();
 		int green = color.getGreen();
 		int blue = color.getBlue();
@@ -170,7 +170,7 @@ public class Maxwell extends Output
 			this.generator = generator;
         }
 
-        public boolean enterCell(HierarchyEnumerator.CellInfo info) 
+        public boolean enterCell(HierarchyEnumerator.CellInfo info)
         {
 			// emit all node polygons
 			Netlist netList = info.getNetlist();
@@ -216,11 +216,11 @@ public class Maxwell extends Output
             return true;
         }
 
-        public void exitCell(HierarchyEnumerator.CellInfo info) 
+        public void exitCell(HierarchyEnumerator.CellInfo info)
         {
 		}
 
-        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) 
+        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
             return true;
         }
