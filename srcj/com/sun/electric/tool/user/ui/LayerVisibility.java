@@ -33,8 +33,13 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.prefs.Preferences;
 import javax.swing.SwingUtilities;
 
@@ -45,6 +50,7 @@ import javax.swing.SwingUtilities;
  */
 public class LayerVisibility extends PrefPackage {
     private static final String KEY_VISIBILITY = "Visibility";
+    private static final String KEY_LAYER_ORDER = "LayerOrderfor";
 
     /**
      * The "standard" LayerVisibility
@@ -52,11 +58,12 @@ public class LayerVisibility extends PrefPackage {
     private static LayerVisibility stdLayerVisibility;
 
     private final TechPool techPool;
-    private final HashSet<Layer> invisibleLayers = new HashSet<Layer>();
+    private HashSet<Layer> invisibleLayers = new HashSet<Layer>();
     private HashSet<PrimitiveNode> visibleNodes;
     private HashSet<ArcProto> visibleArcs;
     private boolean visibilityChanged;
-    private final HashSet<Layer> highlightedLayers = new HashSet<Layer>();
+    private HashSet<Layer> highlightedLayers = new HashSet<Layer>();
+    private HashMap<Technology,String> layerOrders = new HashMap<Technology,String>();
 
     public LayerVisibility(boolean factory) {
         this(factory, Environment.getThreadTechPool());
@@ -69,6 +76,10 @@ public class LayerVisibility extends PrefPackage {
 
         Preferences techPrefs = getPrefRoot().node(TECH_NODE);
         for (Technology tech: techPool.values()) {
+            String layerOrderKey = getKey(KEY_LAYER_ORDER, tech.getId());
+            String layerOrder = techPrefs.get(layerOrderKey, "");
+            if (layerOrder.length() > 0)
+                layerOrders.put(tech, layerOrder);
             for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
                 Layer layer = it.next();
                 assert !layer.isPseudoLayer();
@@ -80,6 +91,11 @@ public class LayerVisibility extends PrefPackage {
         }
     }
 
+    @Override
+    public void putPrefs(Preferences prefRoot, boolean removeDefaults) {
+        putPrefs(prefRoot, removeDefaults, null);
+    }
+
     public void putPrefs(Preferences prefRoot, boolean removeDefaults, LayerVisibility oldLv) {
         super.putPrefs(prefRoot, removeDefaults);
 
@@ -88,6 +104,15 @@ public class LayerVisibility extends PrefPackage {
 
         Preferences techPrefs = prefRoot.node(TECH_NODE);
         for (Technology tech: techPool.values()) {
+            String layerOrder = layerOrders.get(tech);
+            if (layerOrder == null)
+                layerOrder = "";
+            String layerOrderKey = getKey(KEY_LAYER_ORDER, tech.getId());
+            if (removeDefaults && layerOrder.length() == 0)
+                techPrefs.remove(layerOrderKey);
+            else
+                techPrefs.put(layerOrderKey, layerOrder);
+
             for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
                 Layer layer = it.next();
                 boolean visible = isVisible(layer);
@@ -108,15 +133,33 @@ public class LayerVisibility extends PrefPackage {
 	 * @param visible true if the Layer is to be visible.
 	 */
     void setVisible(Layer layer, boolean visible) {
-        if (visible == isVisible(layer)) return;
+        Map<Layer,Boolean> visibilityChange = Collections.singletonMap(layer, Boolean.valueOf(visible));
+        setVisible(visibilityChange);
+    }
+
+	/**
+	 * Method to update visibility of some Layers
+     * @param visibilityChange a map with new values of Layers to update.
+	 */
+    void setVisible(Map<Layer,Boolean> visibilityChange) {
+        HashSet<Layer> newInvisibleLayers = new HashSet<Layer>(invisibleLayers);
+        boolean changed = false;
+        for (Map.Entry<Layer,Boolean> e: visibilityChange.entrySet()) {
+            Layer layer = e.getKey();
+            boolean visible = e.getValue().booleanValue();
+            if (visible == isVisible(layer)) continue;
+            layer.getGraphics().notifyVisibility(e.getValue());
+            changed = true;
+           if (visible)
+                newInvisibleLayers.remove(layer);
+            else
+                newInvisibleLayers.add(layer);
+        }
+        if (!changed) return;
         visibilityChanged = true;
+        invisibleLayers = newInvisibleLayers;
         visibleNodes = null;
         visibleArcs = null;
-        if (visible)
-            invisibleLayers.remove(layer);
-        else
-            invisibleLayers.add(layer);
-        layer.getGraphics().notifyVisibility(Boolean.valueOf(visible));
     }
 
 	/**
@@ -128,15 +171,81 @@ public class LayerVisibility extends PrefPackage {
     void setHighlighted(Layer layer, boolean highlighted) {
         if (highlighted == isHighlighted(layer)) return;
         visibilityChanged = true;
+        HashSet<Layer> newHighlightedLayers = new HashSet<Layer>(highlightedLayers);
         if (highlighted)
-            highlightedLayers.add(layer);
+            newHighlightedLayers.add(layer);
         else
-            highlightedLayers.remove(layer);
+            newHighlightedLayers.remove(layer);
+        highlightedLayers = newHighlightedLayers;
     }
 
+    /**
+	 * Method to return a list of layers that are saved for specified Technology.
+	 * The saved layers are used in the "Layers" tab (which can be user-rearranged).
+     * @param tech specified Technology
+	 * @return a list of layers for this Technology in the saved order.
+	 */
+	public List<Layer> getSavedLayerOrder(Technology tech)
+	{
+		String order = layerOrders.get(tech);
+		if (order == null || order.length() == 0) return null;
+		int pos = 0;
+		List<Layer> layers = new ArrayList<Layer>();
+		while (pos < order.length())
+		{
+			// get the next layer name in the string
+			int end = order.indexOf(',', pos);
+			if (end < 0) break;
+			String layerName = order.substring(pos, end);
+			pos = end + 1;
+
+			// find the layer and add it to the list
+			int colonPos = layerName.indexOf(':');
+			Technology t = tech;
+			if (colonPos >= 0)
+			{
+				String techName = layerName.substring(0, colonPos);
+				t = techPool.findTechnology(techName);
+				if (t == null) continue;
+				layerName = layerName.substring(colonPos+1);
+			}
+			Layer layer = t.findLayer(layerName);
+			if (layer != null)
+				layers.add(layer);
+		}
+		return layers;
+	}
+
+	/**
+	 * Method to save a list of layers for this Technology in a preferred order.
+	 * This ordering is managed by the "Layers" tab which users can rearrange.
+	 * @param layers a list of layers for this Technology in a preferred order.
+	 */
+	public void setSavedLayerOrder(Technology tech, List<Layer> layers)
+	{
+        HashMap<Technology,String> newLayerOrders = new HashMap<Technology,String>(layerOrders);
+        if (layers.isEmpty()) {
+            newLayerOrders.remove(tech);
+        } else {
+            StringBuffer sb = new StringBuffer();
+    		for(Layer lay : layers)
+        	{
+            	if (lay.getTechnology() != tech) sb.append(lay.getTechnology().getTechName() + ":");
+                sb.append(lay.getName() + ",");
+            }
+            newLayerOrders.put(tech, sb.toString());
+        }
+        visibilityChanged = true;
+        layerOrders = newLayerOrders;
+	}
+
     private void reset() {
-        invisibleLayers.clear();
-        highlightedLayers.clear();
+        visibilityChanged = true;
+        invisibleLayers = new HashSet<Layer>();
+        visibleNodes = null;
+        visibleArcs = null;
+        highlightedLayers = new HashSet<Layer>();
+        layerOrders = new HashMap<Technology,String>();
     }
 
     /**

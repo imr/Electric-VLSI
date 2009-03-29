@@ -954,7 +954,6 @@ public class Technology implements Comparable<Technology>, Serializable
     /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
     /** Xml representation of menu palette */               protected Xml.MenuPalette factoryMenuPalette;
     /** Preference for saving component menus */			private final Pref componentMenuPref;
-    /** Preference for saving layer order */				private final Pref layerOrderPref;
 
 	/****************************** CONTROL ******************************/
 
@@ -1025,7 +1024,6 @@ public class Technology implements Comparable<Technology>, Serializable
 //		cacheWireRatio = makeLESetting("WireRatio", DEFAULT_WIRERATIO);
 //		cacheDiffAlpha = makeLESetting("DiffAlpha", DEFAULT_DIFFALPHA);
 //        cacheKeeperRatio = makeLESetting("KeeperRatio", DEFAULT_KEEPERRATIO);
-        layerOrderPref = Pref.makeStringPref("LayerOrderfor"+getTechName(), prefs, "");
         componentMenuPref = Pref.makeStringPref("ComponentMenuXMLfor"+getTechName(), prefs, "");
         prefDRCOverride = Pref.makeStringServerPref("DRCOverridesFor" + getTechName(), getTechnologyDRCPreferences(), "");
 	}
@@ -2077,58 +2075,6 @@ public class Technology implements Comparable<Technology>, Serializable
         Collections.sort(layerList, Layer.layerSortByName);
         return(layerList);
     }
-
-    /**
-	 * Method to return a list of layers that are saved for this Technology.
-	 * The saved layers are used in the "Layers" tab (which can be user-rearranged).
-	 * @return a list of layers for this Technology in the saved order.
-	 */
-	public List<Layer> getSavedLayerOrder()
-	{
-		String order = layerOrderPref.getString();
-		if (order.length() == 0) return null;
-		int pos = 0;
-		List<Layer> layers = new ArrayList<Layer>();
-		while (pos < order.length())
-		{
-			// get the next layer name in the string
-			int end = order.indexOf(',', pos);
-			if (end < 0) break;
-			String layerName = order.substring(pos, end);
-			pos = end + 1;
-
-			// find the layer and add it to the list
-			int colonPos = layerName.indexOf(':');
-			Technology tech = this;
-			if (colonPos >= 0)
-			{
-				String techName = layerName.substring(0, colonPos);
-				tech = findTechnology(techName);
-				if (tech == null) continue;
-				layerName = layerName.substring(colonPos+1);
-			}
-			Layer layer = tech.findLayer(layerName);
-			if (layer != null)
-				layers.add(layer);
-		}
-		return layers;
-	}
-
-	/**
-	 * Method to save a list of layers for this Technology in a preferred order.
-	 * This ordering is managed by the "Layers" tab which users can rearrange.
-	 * @param layers a list of layers for this Technology in a preferred order.
-	 */
-	public void setSavedLayerOrder(List<Layer> layers)
-	{
-		StringBuffer sb = new StringBuffer();
-		for(Layer lay : layers)
-		{
-			if (lay.getTechnology() != this) sb.append(lay.getTechnology().getTechName() + ":");
-			sb.append(lay.getName() + ",");
-		}
-		layerOrderPref.setString(sb.toString());
-	}
 
 	public static final LayerHeight LAYERS_BY_HEIGHT = new LayerHeight(false);
     public static final LayerHeight LAYERS_BY_HEIGHT_LIFT_CONTACTS = new LayerHeight(true);

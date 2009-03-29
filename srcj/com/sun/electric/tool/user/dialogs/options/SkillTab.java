@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
@@ -47,7 +46,6 @@ public class SkillTab extends PreferencePanel
 {
 	private JList skillLayerList;
 	private DefaultListModel skillLayerModel;
-	private Technology curTech;
 
 	/** Creates new form SkillTab */
 	public SkillTab(PreferencesFrame parent, boolean modal)
@@ -85,7 +83,7 @@ public class SkillTab extends PreferencePanel
 			public void mouseClicked(MouseEvent evt) { skillClickLayer(); }
 		});
 		skillLayerModel.clear();
-		curTech = Technology.getCurrent();
+//		curTech = Technology.getCurrent();
 		skillTechnology.setText("Skill layers for technology: " + curTech.getTechName());
 		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{

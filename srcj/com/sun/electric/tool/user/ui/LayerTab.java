@@ -55,6 +55,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -331,12 +332,14 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		}
 		Set<Layer> invisibleLayers = invLayerConfigs.getConfigurationValue(cName);
 
+        HashMap<Layer,Boolean> visibilityChange = new HashMap<Layer,Boolean>();
 		for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 		{
 			Layer layer = lIt.next();
 			// remember the state of this layer
-            lv.setVisible(layer, !invisibleLayers.contains(layer));
+            visibilityChange.put(layer, Boolean.valueOf(!invisibleLayers.contains(layer)));
 		}
+        lv.setVisible(visibilityChange);
 		updateLayersTab();
 		update();
 	}
@@ -400,7 +403,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		if (tech != null)
 		{
 			// see if a preferred order has been saved
-			List<Layer> savedOrder = tech.getSavedLayerOrder();
+			List<Layer> savedOrder = lv.getSavedLayerOrder(tech);
 			List<Layer> allLayers = tech.getLayersSortedByHeight();
 
 			// put the dummy layers at the end of the list
@@ -482,11 +485,14 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		}
 		if (e.getClickCount() == 2)
 		{
+            boolean[] visible = new boolean[indices.length];
 			for(int i=0; i<indices.length; i++)
 			{
 				int line = indices[i];
-				setVisibility(line, !isLineChecked(line), true);
+                visible[i] = !isLineChecked(line);
 			}
+            setVisibility(indices, visible);
+            update();
 		}
 	}
 
@@ -564,12 +570,9 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 	private void setVisibility(boolean on)
 	{
 		int [] indices = layerList.getSelectedIndices();
-		for(int i=0; i<indices.length; i++)
-		{
-			int line = indices[i];
-			setVisibility(line, on, false);
-		}
-
+        boolean[] visible = new boolean[indices.length];
+        Arrays.fill(visible, on);
+        setVisibility(indices, visible);
 		// update the display
 		update();
 	}
@@ -601,23 +604,31 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 
 	/**
 	 * Method to change a line of the layer list.
-	 * @param i the line number to change.
-	 * @param on true to make that layer visible.
+	 * @param indices the line numbers to change.
+	 * @param visible new visible values
 	 */
-	private void setVisibility(int i, boolean on, boolean doUpdate)
+	private void setVisibility(int[] indices, boolean[] visible)
 	{
-		// find the layer on the given line
-		Layer layer = getSelectedLayer(i);
-		if (layer == null) return;
-
-		// remember the state of this layer
-        lv.setVisible(layer, on);
+        Map<Layer,Boolean> visibilityChange = new HashMap<Layer,Boolean>();
+        assert indices.length == visible.length;
+        for (int i = 0; i < indices.length; i++) {
+            // find the layer on the given line
+            int line = indices[i];
+            Layer layer = getSelectedLayer(line);
+            if (layer == null) continue;
+            visibilityChange.put(layer, Boolean.valueOf(visible[i]));
+            // remember the state of this layer
+        }
+        lv.setVisible(visibilityChange);
 
 		// update the list
-		layerListModel.set(i, lineName(layer));
-
-		// update the display
-		if (doUpdate) update();
+        for (int i = 0; i < indices.length; i++) {
+            // find the layer on the given line
+            int line = indices[i];
+            Layer layer = getSelectedLayer(line);
+            if (layer == null) continue;
+    		layerListModel.set(line, lineName(layer));
+        }
 	}
 
 	/**
@@ -628,18 +639,20 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 	public void setVisibilityLevel(int level)
 	{
         int len = layerListModel.size();
+        int[] indices = new int[len];
+        boolean[] visible = new boolean[len];
         Layer metalLayer = null;
         if (level == 0) {
             for (int i=0; i<len; i++) {
-                Layer layer = getSelectedLayer(i);
-                lv.setVisible(layer, true);
-                layerListModel.set(i, lineName(layer));
+                indices[i] = i;
+                visible[i] = true;
             }
         }
         else
         {
             for (int i=0; i<len; i++)
             {
+                indices[i] = i;
                 Layer layer = getSelectedLayer(i);
                 Layer.Function func = layer.getFunction();
                 if (func.isContact() || func.isDiff() || func.isGatePoly() || func.isImplant() ||
@@ -660,11 +673,14 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
                         b = true;
                     if (layer.getFunction().isContact() && layer.getFunction().getLevel() == (level-1))
                         b = false;
-                    lv.setVisible(layer, b);
-                    layerListModel.set(i, lineName(layer));
+                    visible[i] = b;
+                } else
+                {
+                    visible[i] = lv.isVisible(layer);
                 }
             }
         }
+        setVisibility(indices, visible);
         // turn on all layers with the same height as the main metal layer
         if (metalLayer != null) {
 //            for (int i=0; i<len; i++) {
@@ -874,7 +890,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 				layerListModel.addElement(lineName(layer));
 			layerList.setSelectedIndex(end);
 			Technology tech = Technology.getCurrent();
-			tech.setSavedLayerOrder(layersInList);
+			lv.setSavedLayerOrder(tech, layersInList);
 
 			dtde.dropComplete(false);
 		}

@@ -35,9 +35,9 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
+
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.prefs.Preferences;
 
 /**
@@ -218,7 +218,7 @@ public class EditingPreferences extends PrefPackage {
                 ArcProto ap = it.next();
                 ArcProtoId apId = ap.getId();
                 ImmutableArcInst a = defaultArcs.get(apId);
-                if (oldEp == null || a != oldEp.defaultArcs.get(ap)) {
+                if (oldEp == null || a != oldEp.defaultArcs.get(apId)) {
                     ImmutableArcInst factoryInst = ap.getFactoryDefaultInst();
                     if (a == null)
                         a = factoryInst;
@@ -390,44 +390,6 @@ public class EditingPreferences extends PrefPackage {
                 new HashMap<ArcProtoId,ImmutableArcInst>(),
                 new HashMap<ArcProtoId,Integer>(),
                 new HashMap<ArcProtoId,PrimitiveNodeId>());
-    }
-
-    public EditingPreferences withArcDefaults(
-            Map<ArcProtoId,ImmutableArcInst> defaultArcs,
-            Map<ArcProtoId,Integer> defaultArcAngleIncrements,
-            Map<ArcProtoId,PrimitiveNodeId> defaultArcPins) {
-        HashMap<ArcProtoId,ImmutableArcInst> newDefaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>();
-        HashMap<ArcProtoId,Integer> newDefaultArcAngleIncrements = new HashMap<ArcProtoId,Integer>();
-        HashMap<ArcProtoId,PrimitiveNodeId> newDefaultArcPins = new HashMap<ArcProtoId,PrimitiveNodeId>();
-		for(Technology tech: techPool.values()) {
-			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
-				ArcProto ap = it.next();
-                ArcProtoId apId = ap.getId();
-
-                ImmutableArcInst a = defaultArcs.get(apId);
-                if (a != null) {
-                    if (a.protoId != apId)
-                        throw new IllegalArgumentException();
-                    newDefaultArcs.put(apId, a);
-                }
-
-                Integer angleIncrement = defaultArcAngleIncrements.get(apId);
-                if (angleIncrement != null)
-                    newDefaultArcAngleIncrements.put(apId, angleIncrement);
-
-                PrimitiveNodeId arcPinId = defaultArcPins.get(apId);
-                if (arcPinId != null)
-                    newDefaultArcPins.put(apId, arcPinId);
-			}
-		}
-        if (this.defaultArcs.equals(newDefaultArcs) &&
-            this.defaultArcAngleIncrements.equals(newDefaultArcAngleIncrements) &&
-            this.defaultArcPins.equals(newDefaultArcPins)) return this;
-        return new EditingPreferences(this,
-                this.defaultNodes,
-                newDefaultArcs,
-                newDefaultArcAngleIncrements,
-                newDefaultArcPins);
     }
 
     public ImmutableNodeInst getDefaultNode(PrimitiveNodeId pnId) {

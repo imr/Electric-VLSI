@@ -277,6 +277,19 @@ public class TechPool extends AbstractMap<TechId, Technology> {
     }
 
     /**
+     * Find Technology by its name
+     * @param techName name of technology
+     * @return Technology by given name or null
+     */
+    public Technology findTechnology(String techName) {
+        for (Technology tech: values()) {
+            if (tech.getTechName().equals(techName))
+                return tech;
+        }
+        return null;
+    }
+
+    /**
      * Get Technology.State by TechId
      * TechId must belong to same IdManager as TechPool
      * @param techId TechId to find
