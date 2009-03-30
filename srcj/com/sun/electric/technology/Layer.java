@@ -55,8 +55,6 @@ public class Layer implements Serializable
 {
     public static final double DEFAULT_THICKNESS = 0; // 3D default thickness
     public static final double DEFAULT_DISTANCE = 0; // 3D default distance
-    public static final String DEFAULT_MODE = "NONE"; // 3D default transparency mode DEFAULT_FACTOR
-    public static final double DEFAULT_FACTOR = 0.0; // 3D default transparency factor
     private static final double DEFAULT_AREA_COVERAGE = 10; // 10%
 
     /** Describes a P-type layer. */												private static final int PTYPE =          0100;
@@ -697,9 +695,8 @@ public class Layer implements Serializable
 	private final Pref opacityPref;
 	private final Pref colorPref;
 	private final Pref patternPref;
-    // 3D options
-    private Pref layer3DTransModePref; // NONE is the default
-    private Pref layer3DTransFactorPref; // 0 is the default
+    private final Pref layer3DTransModePref; // NONE is the default
+    private final Pref layer3DTransFactorPref; // 0 is the default
 
     private final Pref areaCoveragePref;  // Used by area coverage tool
 	/** the pseudo layer (if exists) */                                     private Layer pseudoLayer;
@@ -722,6 +719,8 @@ public class Layer implements Serializable
         opacityPref = makeDoublePref("Opacity", graphics.getOpacity());
         colorPref = makeIntegerPref("Color", graphics.getRGB());
         patternPref = makeStringPref("Pattern", graphics.getPatternString());
+        layer3DTransModePref = makeStringPref("3DTransparencyMode", graphics.getTransparencyMode().name());
+        layer3DTransFactorPref =  makeDoublePref("3DTransparencyFactor", graphics.getTransparencyFactor());
 
 		this.dimmed = false;
 		this.function = Function.UNKNOWN;
@@ -1003,6 +1002,8 @@ public class Layer implements Serializable
         opacityPref.factoryReset();
         colorPref.factoryReset();
         patternPref.factoryReset();
+        layer3DTransModePref.factoryReset();
+        layer3DTransFactorPref.factoryReset();
 
         loadGraphicsFromPrefs();
 	}
@@ -1018,7 +1019,9 @@ public class Layer implements Serializable
         opacityPref.setDouble(graphics.getOpacity());
         colorPref.setInt(graphics.getRGB());
         patternPref.setString(graphics.getPatternString());
-    }
+        layer3DTransModePref.setString(graphics.getTransparencyMode().name());
+        layer3DTransFactorPref.setDouble(graphics.getTransparencyFactor());
+   	}
 
 	/**
 	 * Method to recache the graphics information on this Layer from the preferences Prefs.
@@ -1032,6 +1035,8 @@ public class Layer implements Serializable
         double opacity = opacityPref.getDouble();
         int colorRGB = colorPref.getInt();
         String patternStr = patternPref.getString();
+        EGraphics.J3DTransparencyOption mode = EGraphics.J3DTransparencyOption.valueOf(layer3DTransModePref.getString());
+        double factor = layer3DTransFactorPref.getDouble();
 
         graphics.setPatternedOnDisplay(usePatternDisplay);
         graphics.setPatternedOnPrinter(usePatternPrinter);
@@ -1040,6 +1045,8 @@ public class Layer implements Serializable
         graphics.setOpacity(opacity);
         graphics.setRGB(colorRGB);
         graphics.setPattern(patternStr);
+        graphics.setTransparencyMode(mode);
+        graphics.setTransparencyFactor(factor);
     }
 
     private Setting makeLayerSetting(String what, String factory) {
@@ -1133,92 +1140,16 @@ public class Layer implements Serializable
 	 * @param thickness the thickness of this layer.
      * @param distance the distance of this layer above the ground plane (silicon).
      * Negative values represent layes in silicon like p++, p well, etc.
-     * @param mode
-     * @param factor
      */
-	public void setFactory3DInfo(double thickness, double distance, String mode, double factor)
+	public void setFactory3DInfo(double thickness, double distance)
 	{
         assert !isPseudoLayer();
 
         thickness = DBMath.round(thickness);
         distance = DBMath.round(distance);
-        if (mode == null)
-            mode = DEFAULT_MODE;
         // We don't call setDistance and setThickness directly here due to reflection code.
         layer3DDistanceSetting = make3DSetting("Distance", distance);
 		layer3DThicknessSetting = make3DSetting("Thickness", thickness);
-        layer3DTransModePref = makeStringPref("3DTransparencyMode", mode);
-        layer3DTransFactorPref =  makeDoublePref("3DTransparencyFactor", factor);
-//        getDoublePref("Distance", layer3DDistancePrefs, distance).setFactoryDouble(distance);
-//		getDoublePref("Thickness", layer3DThicknessPrefs, thickness).setFactoryDouble(thickness);
-//            setTransparencyMode(mode);
-//        setTransparencyFactor(factor);
-    }
-
-    /**
-	 * Method to return the transparency mode of this layer as a string.
-     * Possible values "NONE, "FASTEST", "NICEST", "BLENDED", "SCREEN_DOOR".
-	 * @return the transparency mode of this layer for the 3D view.
-	 */
-	public String getTransparencyMode() {
-        if (isPseudoLayer())
-            return getNonPseudoLayer().getTransparencyMode();
-        return layer3DTransModePref.getString();
-    }
-
-    /**
-	 * Method to set the transparency mode of this layer.
-	 * Possible values "NONE, "FASTEST", "NICEST", "BLENDED", "SCREEN_DOOR".
-	 * @param mode the transparency mode of this layer.
-	 */
-	public void setTransparencyMode(String mode)
-    {
-        assert !isPseudoLayer();
-        layer3DTransModePref.setString(mode);
-    }
-
-    /**
-	 * Method to return the transparency mode of this layer as a string, by default.
-     * Possible values "NONE, "FASTEST", "NICEST", "BLENDED", "SCREEN_DOOR".
-	 * @return the transparency mode of this layer for the 3D view, by default.
-	 */
-	public String getFactoryTransparencyMode() {
-        if (isPseudoLayer())
-            return getNonPseudoLayer().getFactoryTransparencyMode();
-        return layer3DTransModePref.getStringFactoryValue();
-    }
-
-    /**
-	 * Method to return the transparency factor of this layer as a string.
-     * Possible values from 0 (opaque) -> 1 (transparent)
-	 * @return the transparency factor of this layer for the 3D view.
-	 */
-	public double getTransparencyFactor() {
-        if (isPseudoLayer())
-            return getNonPseudoLayer().getTransparencyFactor();
-        return layer3DTransFactorPref.getDouble();
-    }
-
-    /**
-	 * Method to set the transparency factor of this layer.
-	 * Layers can have a transparency from 0 (opaque) to 1(transparent).
-	 * @param factor the transparency factor of this layer.
-	 */
-	public void setTransparencyFactor(double factor)
-    {
-        assert !isPseudoLayer();
-        layer3DTransFactorPref.setDouble(factor);
-    }
-
-    /**
-	 * Method to return the transparency factor of this layer as a string, by default.
-     * Possible values from 0 (opaque) -> 1 (transparent)
-	 * @return the transparency factor of this layer for the 3D view, by default.
-	 */
-	public double getFactoryTransparencyFactor() {
-        if (isPseudoLayer())
-            return getNonPseudoLayer().getFactoryTransparencyFactor();
-        return layer3DTransFactorPref.getDoubleFactoryValue();
     }
 
 	/**
@@ -1464,12 +1395,10 @@ public class Layer implements Serializable
         if (skillLayerSetting == null) {
             setFactorySkillLayer("");
         }
-        if (layer3DThicknessSetting == null || layer3DDistanceSetting == null || layer3DTransModePref == null || layer3DTransFactorPref == null) {
+        if (layer3DThicknessSetting == null || layer3DDistanceSetting == null) {
             double thickness = layer3DThicknessSetting != null ? getThickness() : DEFAULT_THICKNESS;
             double distance = layer3DDistanceSetting != null ? getDistance() : DEFAULT_DISTANCE;
-            String mode = layer3DTransModePref != null ? getTransparencyMode() : DEFAULT_MODE;
-            double factor = layer3DTransFactorPref != null ? getTransparencyFactor() : DEFAULT_FACTOR;
-            setFactory3DInfo(thickness, distance, mode, factor);
+            setFactory3DInfo(thickness, distance);
         }
     }
 
@@ -1526,10 +1455,8 @@ public class Layer implements Serializable
         out.println();
         out.println("\tdistance3D=" + getDistanceSetting().getDoubleFactoryValue());
         out.println("\tthickness3D=" + getThicknessSetting().getDoubleFactoryValue());
-        if (layer3DTransModePref != null)
-            out.println("\tmode3D=" + getFactoryTransparencyMode());
-        if (layer3DTransFactorPref != null)
-            out.println("\tfactor3D=" + getFactoryTransparencyFactor());
+        out.println("\tmode3D=" + factoryDesc.getTransparencyMode());
+        out.println("\tfactor3D=" + factoryDesc.getTransparencyFactor());
 
         if (getPseudoLayer() != null)
             out.println("\tpseudoLayer=" + getPseudoLayer().getName());
@@ -1547,8 +1474,6 @@ public class Layer implements Serializable
         l.desc = getGraphics();
         l.height3D = getDistanceSetting().getDoubleFactoryValue();
         l.thick3D = getThicknessSetting().getDoubleFactoryValue();
-        l.mode3D = getFactoryTransparencyMode();
-        l.factor3D = getFactoryTransparencyFactor();
         l.cif = (String)getCIFLayerSetting().getFactoryValue();
         l.skill = (String)getSkillLayerSetting().getFactoryValue();
         l.resistance = getResistanceSetting().getDoubleFactoryValue();

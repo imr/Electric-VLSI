@@ -1595,8 +1595,8 @@ public class Xml805 {
             // write the 3D information
             if (li.thick3D != com.sun.electric.technology.Layer.DEFAULT_THICKNESS ||
                     li.height3D != com.sun.electric.technology.Layer.DEFAULT_DISTANCE ||
-                    (li.mode3D != null && !li.mode3D.equals(com.sun.electric.technology.Layer.DEFAULT_MODE)) ||
-                    li.factor3D != com.sun.electric.technology.Layer.DEFAULT_FACTOR) {
+                    (li.mode3D != null && !li.mode3D.equals(com.sun.electric.database.geometry.EGraphics.DEFAULT_MODE.name())) ||
+                    li.factor3D != com.sun.electric.database.geometry.EGraphics.DEFAULT_FACTOR) {
                 b(XmlKeyword.display3D); a("thick", li.thick3D); a("height", li.height3D); a("mode", li.mode3D); a("factor", li.factor3D); el();
             }
 

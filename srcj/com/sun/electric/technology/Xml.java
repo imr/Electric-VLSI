@@ -156,8 +156,6 @@ public class Xml {
         public EGraphics desc;
         public double thick3D;
         public double height3D;
-        public String mode3D = "NONE";
-        public double factor3D;
         public String cif;
         public String skill;
         public double resistance;
@@ -547,6 +545,8 @@ public class Xml {
         private EGraphics.Outline outline;
         private double opacity;
         private boolean foreground;
+        private EGraphics.J3DTransparencyOption transparencyMode;
+        private double transparencyFactor;
         private ArcProto curArc;
         private PrimitiveNodeGroup curNodeGroup;
         private boolean curNodeGroupHasNodeBase;
@@ -853,6 +853,8 @@ public class Xml {
                     patternedOnPrinter = false;
                     Arrays.fill(pattern, 0);
                     curPatternIndex = 0;
+                    transparencyMode = EGraphics.DEFAULT_MODE;
+                    transparencyFactor = EGraphics.DEFAULT_FACTOR;
 //                    EGraphics.Outline outline = null;
                     break;
                 case transparentColor:
@@ -872,11 +874,12 @@ public class Xml {
                 case display3D:
                     curLayer.thick3D = Double.parseDouble(a("thick"));
                     curLayer.height3D = Double.parseDouble(a("height"));
-                    String mode3DStr = a_("mode");
-                    if (mode3DStr != null)
-                        curLayer.mode3D = mode3DStr;
-                    String factor3DStr = a_("factor");
-                    curLayer.factor3D = factor3DStr != null ? Double.parseDouble(factor3DStr) : 0;
+                    String modeStr = a_("mode");
+                    if (modeStr != null)
+                        transparencyMode = EGraphics.J3DTransparencyOption.valueOf(modeStr);
+                    String factorStr = a_("factor");
+                    if (factorStr != null)
+                         transparencyFactor = Double.parseDouble(factorStr);
                     break;
                 case cifLayer:
                     curLayer.cif = a("cif");
@@ -1364,7 +1367,7 @@ public class Xml {
                 case layer:
                     assert curPatternIndex == pattern.length;
                     curLayer.desc = new EGraphics(patternedOnDisplay, patternedOnPrinter, outline, curTransparent,
-                            curR, curG, curB, opacity, foreground, pattern.clone());
+                            curR, curG, curB, opacity, foreground, pattern.clone(), transparencyMode, transparencyFactor);
                     assert tech.findLayer(curLayer.name) == null;
                     tech.layers.add(curLayer);
                     curLayer = null;
@@ -1835,7 +1838,8 @@ public class Xml {
             // write the 3D information
             b(XmlKeyword.display3D);
             a("thick", li.thick3D); a("height", li.height3D);
-            a("mode", li.mode3D); a("factor", li.factor3D);
+            a("mode", li.desc.getTransparencyMode());
+           	a("factor", li.desc.getTransparencyFactor());
             el();
 
             if (li.cif != null && li.cif.length() > 0) {

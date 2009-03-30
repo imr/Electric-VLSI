@@ -330,19 +330,19 @@ public class TechExplorer extends ESandBox {
             double opacity = (Double)EGraphics_getOpacity.invoke(desc);
             boolean foreground = (Boolean)EGraphics_getForeground.invoke(desc);
             int[] pattern = (int[])EGraphics_getPattern.invoke(desc);
+            EGraphics.J3DTransparencyOption mode = EGraphics.DEFAULT_MODE;
+            if (Layer_getTransparencyMode != null)
+                mode = EGraphics.J3DTransparencyOption.valueOf((String)Layer_getTransparencyMode.invoke(layer));
+            double factor = EGraphics.DEFAULT_FACTOR;
+            if (Layer_getTransparencyFactor != null)
+                factor = (Double)Layer_getTransparencyFactor.invoke(layer);
             l.desc = new EGraphics(displayPatterned, printPatterned, outlineWhenPatterned,
-                    transparentLayer, color.getRed(), color.getGreen(), color.getBlue(), opacity, foreground, pattern);
+                    transparentLayer, color.getRed(), color.getGreen(), color.getBlue(), opacity, foreground, pattern, mode, factor);
             l.thick3D = (Double)Layer_getThickness.invoke(layer);
             if (Layer_getDistance != null)
                 l.height3D = (Double)Layer_getDistance.invoke(layer);
             else if (Layer_getHeight != null)
                 l.height3D = (Double)Layer_getHeight.invoke(layer);
-            if (Layer_getTransparencyMode != null)
-                l.mode3D = (String)Layer_getTransparencyMode.invoke(layer);
-            if (Layer_getTransparencyFactor != null)
-                l.factor3D = (Double)Layer_getTransparencyFactor.invoke(layer);
-            if (l.thick3D == 0 && l.height3D == 0 && l.mode3D.equals("NONE") && l.factor3D == 0)
-                l.mode3D = null;
             l.cif = (String)Layer_getCIFLayer.invoke(layer);
             l.skill = (String)Layer_getSkillLayer.invoke(layer);
             l.resistance = (Double)Layer_getResistance.invoke(layer);

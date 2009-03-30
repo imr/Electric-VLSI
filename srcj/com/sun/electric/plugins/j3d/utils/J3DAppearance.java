@@ -42,31 +42,12 @@ public class J3DAppearance extends Appearance
 {
 //    private static final int JAPP_DEFAULT_MODE = TransparencyAttributes.NONE;
 //    private static final float JAPP_DEFAULT_FACTOR = 0.2f;
-    public enum J3DTransparencyOption{
-        FASTEST(TransparencyAttributes.FASTEST, "FASTEST"),
-        NICEST(TransparencyAttributes.NICEST, "NICEST"),
-        BLENDED(TransparencyAttributes.BLENDED, "BLENDED"),
-        SCREEN_DOOR(TransparencyAttributes.SCREEN_DOOR, "SCREEN_DOOR"),
-        NONE(TransparencyAttributes.NONE, "NONE");
-
-        public int mode;
-        String name;
-
-        J3DTransparencyOption(int m, String n)
-        {
-            mode = m;
-            name = n;
-        }
-        static String getName(int m)
-        {
-            for (J3DTransparencyOption o : J3DTransparencyOption.values())
-            {
-                if (o.mode == m)
-                    return o.name;
-            }
-            assert(false);
-            return null; // it should not reach this line
-        }
+    static {
+        assert EGraphics.J3DTransparencyOption.FASTEST.mode     == TransparencyAttributes.FASTEST;
+        assert EGraphics.J3DTransparencyOption.NICEST.mode      == TransparencyAttributes.NICEST;
+        assert EGraphics.J3DTransparencyOption.BLENDED.mode     == TransparencyAttributes.BLENDED;
+        assert EGraphics.J3DTransparencyOption.SCREEN_DOOR.mode == TransparencyAttributes.SCREEN_DOOR;
+        assert EGraphics.J3DTransparencyOption.NONE.mode        == TransparencyAttributes.NONE;
     }
 
     private EGraphics graphics; // reference to layer for fast access to appearance
@@ -199,9 +180,8 @@ public class J3DAppearance extends Appearance
 
         if (ap == null)
         {
-            String modeS = graphics.getLayer().getTransparencyMode();
-            int mode = J3DTransparencyOption.valueOf(modeS).mode;
-            double factorD = graphics.getLayer().getTransparencyFactor();
+            int mode = graphics.getTransparencyMode().mode;
+            double factorD = graphics.getTransparencyFactor();
             float factor = (float)factorD;
             ap = new J3DAppearance(graphics, mode, factor, graphics.getColor());
 
@@ -214,11 +194,10 @@ public class J3DAppearance extends Appearance
     {
         super.setTransparencyAttributes(transparencyAttributes);
         super.getRenderingAttributes().setDepthBufferEnable(rendering);
-        int mode = transparencyAttributes.getTransparencyMode();
-        String modelS = J3DTransparencyOption.getName(mode);
-        graphics.getLayer().setTransparencyMode(modelS);
+        EGraphics.J3DTransparencyOption mode = EGraphics.J3DTransparencyOption.valueOf(transparencyAttributes.getTransparencyMode());
+        graphics.setTransparencyMode(mode);
         double factor = transparencyAttributes.getTransparency();
-        graphics.getLayer().setTransparencyFactor(factor);
+        graphics.setTransparencyFactor(factor);
     }
 
     /********************************************************************************************************

@@ -2319,11 +2319,72 @@ public class User extends Listener
 
 	/****************************** COLOR PREFERENCES ******************************/
 
-	public enum ColorPrefType {BACKGROUND, GRID, HIGHLIGHT, NODE_HIGHLIGHT, MOUSEOVER_HIGHLIGHT,
-		PORT_HIGHLIGHT, TEXT, INSTANCE, DOWNINPLACEBORDER,
-		WAVE_BACKGROUND, WAVE_FOREGROUND, WAVE_STIMULI, WAVE_OFF_STRENGTH,
-		WAVE_NODE_STRENGTH, WAVE_GATE_STRENGTH, WAVE_POWER_STRENGTH, WAVE_CROSS_LOW,
-		WAVE_CROSS_HIGH, WAVE_CROSS_UNDEF, WAVE_CROSS_FLOAT}
+	public enum ColorPrefType {
+        /** color of the background on the display. The default is "light gray". */
+        BACKGROUND("Background",                    Color.LIGHT_GRAY),
+        /** color of the grid on the display. The default is "black". */
+        GRID("Grid",                                Color.BLACK),
+        /** color of the highlight on the display. The default is "white". */
+        HIGHLIGHT("Highlight",                      Color.WHITE),
+        NODE_HIGHLIGHT("NodeHighlight",             Color.BLUE),
+        /** color of the highlight on the display. The default is "white". */
+        MOUSEOVER_HIGHLIGHT("MouseOverHighlight",   new Color(51,255,255)),
+        /** color of the port highlight on the display. The default is "yellow". */
+		PORT_HIGHLIGHT("PortHighlight",             Color.YELLOW),
+        /** color of the text on the display. The default is "black". */
+        TEXT("Text",                                Color.BLACK),
+        /** color of the instance outlines on the display. The default is "black". */
+        INSTANCE("InstanceOutline",                 Color.BLACK),
+        /**  color of the border around cells drawn "down in place". The default is "red". */
+        DOWNINPLACEBORDER("DownInPlaceBorder",      Color.RED),
+        /** color of the waveform window background. The default is "black". */
+		WAVE_BACKGROUND("WaveformBackground",       Color.BLACK),
+        /** color of the waveform window foreground. This includes lines and text. The default is "white". */
+        WAVE_FOREGROUND("WaveformForeground",       Color.WHITE),
+        /** color of the traces in waveform windows. Applies only when not a "multistate" display, which uses many colors.
+         * The default is "red".
+         */
+        WAVE_STIMULI("WaveformStimuli",             Color.RED),
+        /** color of waveform window traces that have "off" strength. The default is "blue". */
+        WAVE_OFF_STRENGTH("WaveformStrengthOff",    Color.BLUE),
+        /** color of waveform window traces that have "node" strength. The default is "green". */
+		WAVE_NODE_STRENGTH("WaveformStrengthNode",  Color.GREEN),
+        /** color of waveform window traces that have "gate" strength. The default is "magenta". */
+        WAVE_GATE_STRENGTH("WaveformStrengthGate",  Color.MAGENTA),
+        /** color of waveform window traces that have "power" strength. The default is "light gray". */
+        WAVE_POWER_STRENGTH("WaveformStrengthPower",Color.LIGHT_GRAY),
+        /** color of cross-probe traces from the waveform window that are "low".
+         * These are lines drawn on the schematic or layout to correspond with the value in the waveform window.
+         * The default is "blue".
+         */
+        WAVE_CROSS_LOW("WaveformCrossProbeLow",     Color.BLUE),
+        /** color of cross-probe traces from the waveform window that are "high".
+         * These are lines drawn on the schematic or layout to correspond with the value in the waveform window.
+         * The default is "green".
+         */
+		WAVE_CROSS_HIGH("WaveformCrossProbeHigh",   Color.GREEN),
+        /** color of cross-probe traces from the waveform window that are "undefined".
+         * These are lines drawn on the schematic or layout to correspond with the value in the waveform window.
+         * The default is "black".
+         */
+        WAVE_CROSS_UNDEF("WaveformCrossProbeX",     Color.BLACK),
+        /** color of cross-probe traces from the waveform window that are "floating".
+         * These are lines drawn on the schematic or layout to correspond with the value in the waveform window.
+         * The default is "light_grey".
+         */
+        WAVE_CROSS_FLOAT("WaveformCrossProbeZ",     Color.LIGHT_GRAY);
+
+        private final String prefKey;
+        private final Color factoryDefault;
+
+        public String getPrefKey() { return prefKey; }
+        public Color getFactoryDefaultColor() { return factoryDefault; }
+
+        private ColorPrefType(String prefKey, Color factoryDefault) {
+            this.prefKey = "Color" + prefKey;
+            this.factoryDefault = factoryDefault;
+        }
+    }
 
 	/**
 	 * Method to get the color of a given special layer on the display.

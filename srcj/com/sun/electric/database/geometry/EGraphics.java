@@ -43,6 +43,9 @@ import java.util.Observable;
  */
 public class EGraphics extends Observable implements Cloneable, Serializable
 {
+    public static final J3DTransparencyOption DEFAULT_MODE = J3DTransparencyOption.NONE; // 3D default transparency mode DEFAULT_FACTOR
+    public static final double DEFAULT_FACTOR = 0.0; // 3D default transparency factor
+
 	private static Map<String,Outline> outlineNames = new HashMap<String,Outline>();
 
 	/**
@@ -127,6 +130,19 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		public String toString() { return name; }
 	}
 
+    public enum J3DTransparencyOption {
+        FASTEST,
+        NICEST,
+        BLENDED,
+        SCREEN_DOOR,
+        NONE;
+
+        public final int mode = ordinal();
+        public static J3DTransparencyOption valueOf(int mode) {
+            return J3DTransparencyOption.class.getEnumConstants()[mode];
+        }
+    }
+
 	/** the Layer associated with this graphics. */			private Layer layer;
 	/** display: true to use patterns; false for solid */	private boolean displayPatterned;
 	/** printer: true to use patterns; false for solid */	private boolean printPatterned;
@@ -137,6 +153,8 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	/** whether to draw color in foregound */				private boolean foreground;
 	/** stipple pattern to draw */							private int [] pattern;
 	/** stipple pattern to draw with proper bit order */	private int [] reversedPattern;
+    /** 3D transparency mode */                             private J3DTransparencyOption transparencyMode;
+    /** 3D transparency mode */                             private double transparencyFactor;
 	/** 3D appearance */									private Object appearance3D;
 
 	/**
@@ -225,6 +243,29 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public EGraphics(boolean displayPatterned, boolean printPatterned, Outline outlineWhenPatterned,
 		int transparentLayer, int red, int green, int blue, double opacity, boolean foreground, int[] pattern)
 	{
+        this(displayPatterned, printPatterned, outlineWhenPatterned,
+                transparentLayer, red, green, blue, opacity, foreground, pattern, DEFAULT_MODE, DEFAULT_FACTOR);
+    }
+
+	/**
+	 * Method to create a graphics object.
+	 * @param displayPatterned true if drawn with a pattern on the display.
+	 * @param printPatterned true if drawn with a pattern on a printer.
+	 * @param outlineWhenPatterned the outline texture to use when patterned.
+	 * @param transparentLayer the transparent layer number (0 for none).
+	 * @param red the red component of this EGraphics.
+	 * @param green the green component of this EGraphics.
+	 * @param blue the blue component of this EGraphics.
+	 * @param opacity the opacity of this EGraphics (1 for opaque, 0 for transparent).
+	 * @param foreground the foreground factor of this EGraphics (1 for to be in foreground).
+	 * @param pattern the 16x16 stipple pattern of this EGraphics (16 integers).
+     * @param transparencyMode 3D transparency mode
+     * @param transparencyFactor 3D transparency factor
+	 */
+	public EGraphics(boolean displayPatterned, boolean printPatterned, Outline outlineWhenPatterned,
+		int transparentLayer, int red, int green, int blue, double opacity, boolean foreground, int[] pattern,
+        J3DTransparencyOption transparencyMode, double transparencyFactor)
+	{
 		this.layer = null;
 		this.displayPatterned = displayPatterned;
 		this.printPatterned = printPatterned;
@@ -235,6 +276,8 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		this.blue = blue;
 		this.opacity = validateOpacity(opacity);
 		this.foreground = foreground;
+        this.transparencyMode = transparencyMode;
+        this.transparencyFactor = transparencyFactor;
 		setPatternLow(pattern);
 		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12)
 		{
@@ -263,6 +306,8 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		this.blue = gColor.getBlue();
 		this.opacity = g.getOpacity();
 		this.foreground = g.getForeground();
+        this.transparencyMode = g.getTransparencyMode();
+        this.transparencyFactor = g.getTransparencyFactor();
 		setPatternLow(g.getPattern().clone());
 		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12)
 		{
@@ -866,6 +911,46 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		return new int [] {LAYERT1, LAYERT2, LAYERT3, LAYERT4, LAYERT5, LAYERT6, LAYERT7, LAYERT8, LAYERT9,
 			LAYERT10, LAYERT11, LAYERT12};
 	}
+
+    /**
+	 * Method to return the transparency mode of this EGraphics.
+     * Possible values "NONE, "FASTEST", "NICEST", "BLENDED", "SCREEN_DOOR".
+	 * @return the transparency mode of this EGraphics for the 3D view.
+	 */
+	public J3DTransparencyOption getTransparencyMode() { return transparencyMode; }
+
+    /**
+	 * Method to set the transparency mode of this EGraphics.
+	 * Possible values "NONE, "FASTEST", "NICEST", "BLENDED", "SCREEN_DOOR".
+	 * @param mode the transparency mode of this EGraphics.
+	 */
+	public void setTransparencyMode(J3DTransparencyOption mode)
+    {
+        if (mode == null)
+            mode = DEFAULT_MODE;
+        this.transparencyMode = mode;
+		if (layer != null)
+            layer.graphicsChanged();
+    }
+
+    /**
+	 * Method to return the transparency factor of this EGraphics.
+     * Possible values from 0 (opaque) -> 1 (transparent)
+	 * @return the transparency factor of this EGraphics for the 3D view.
+	 */
+	public double getTransparencyFactor() { return transparencyFactor; }
+
+    /**
+	 * Method to set the transparency factor of this EGraphics.
+	 * Layers can have a transparency from 0 (opaque) to 1(transparent).
+	 * @param factor the transparency factor of this EGraphics.
+	 */
+	public void setTransparencyFactor(double factor)
+    {
+        this.transparencyFactor = factor;
+		if (layer != null)
+            layer.graphicsChanged();
+    }
 
 	/**
 	 * Method to set 3D appearance. If Java3D, Appearance class will be the type.

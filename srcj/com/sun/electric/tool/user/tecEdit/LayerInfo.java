@@ -65,8 +65,6 @@ public class LayerInfo extends Info
 	double         spiECap;
 	double         height3d;
 	double         thick3d;
-	String         mode3d;
-	double         factor3d;
 	double         coverage;
 	Layer          generated;
 
@@ -211,8 +209,8 @@ public class LayerInfo extends Info
 		loadTableEntry(layerTextTable, LAYERSPIECAP, new Double(spiECap));
 		loadTableEntry(layerTextTable, LAYER3DHEIGHT, new Double(height3d));
 		loadTableEntry(layerTextTable, LAYER3DTHICK, new Double(thick3d));
-		loadTableEntry(layerTextTable, LAYER3DMODE, mode3d);
-		loadTableEntry(layerTextTable, LAYER3DFACTOR, new Double(factor3d));
+		loadTableEntry(layerTextTable, LAYER3DMODE, desc);
+		loadTableEntry(layerTextTable, LAYER3DFACTOR, desc);
 		loadTableEntry(layerTextTable, LAYERCOVERAGE, new Double(coverage));
 
 		for(int i=0; i<layerTextTable.length; i++)

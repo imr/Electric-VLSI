@@ -23,6 +23,7 @@
  */
 package com.sun.electric.plugins.j3d.ui;
 
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
@@ -150,7 +151,7 @@ public class JThreeDTab extends ThreeDTab
         maxNodeField.setText(String.valueOf(J3DUtils.get3DMaxNumNodes()));
         alphaField.setText(String.valueOf(J3DUtils.get3DAlpha()));
 
-        for (J3DAppearance.J3DTransparencyOption op : J3DAppearance.J3DTransparencyOption.values())
+        for (EGraphics.J3DTransparencyOption op : EGraphics.J3DTransparencyOption.values())
         {
             transparencyMode.addItem(op);
         }
@@ -223,7 +224,7 @@ public class JThreeDTab extends ThreeDTab
             thickness.setValue(TextUtils.atofDistance(threeDThickness.getText()));
             height.setValue(TextUtils.atofDistance(threeDHeight.getText()));
             ta.setTransparency((float)TextUtils.atof(transparancyField.getText()));
-            J3DAppearance.J3DTransparencyOption op = (J3DAppearance.J3DTransparencyOption)transparencyMode.getSelectedItem();
+            EGraphics.J3DTransparencyOption op = (EGraphics.J3DTransparencyOption)transparencyMode.getSelectedItem();
             ta.setTransparencyMode(op.mode);
             app.getRenderingAttributes().setDepthBufferEnable(op.mode != TransparencyAttributes.NONE);
             threeDSideView.updateZValues(layer, thickness.doubleValue(), height.doubleValue());
@@ -233,7 +234,7 @@ public class JThreeDTab extends ThreeDTab
             threeDHeight.setText(TextUtils.formatDistance(height.doubleValue()));
             threeDThickness.setText(TextUtils.formatDistance(thickness.doubleValue()));
             transparancyField.setText(TextUtils.formatDouble(ta.getTransparency()));
-            for (J3DAppearance.J3DTransparencyOption op : J3DAppearance.J3DTransparencyOption.values())
+            for (EGraphics.J3DTransparencyOption op : EGraphics.J3DTransparencyOption.values())
             {
                 if (op.mode == ta.getTransparencyMode())
                 {
@@ -344,12 +345,14 @@ public class JThreeDTab extends ThreeDTab
 		{
 			Layer layer = it.next();
 			assert !layer.isPseudoLayer();
-			if (!layer.getFactoryTransparencyMode().equals(layer.getTransparencyMode()) ||
-				layer.getFactoryTransparencyFactor() != layer.getTransparencyFactor())
+            EGraphics factoryGraphics = layer.getFactoryGraphics();
+            EGraphics graphics = layer.getGraphics();
+			if (factoryGraphics.getTransparencyMode() != graphics.getTransparencyMode() ||
+				factoryGraphics.getTransparencyFactor() != graphics.getTransparencyFactor())
 			{
-				layer.setTransparencyMode(layer.getFactoryTransparencyMode());
-				layer.setTransparencyFactor(layer.getFactoryTransparencyFactor());
-				layer.getGraphics().set3DAppearance(null);
+				graphics.setTransparencyMode(factoryGraphics.getTransparencyMode());
+				graphics.setTransparencyFactor(factoryGraphics.getTransparencyFactor());
+				graphics.set3DAppearance(null);
 			}
             Setting thicknessSetting = layer.getThicknessSetting();
             Setting distanceSetting = layer.getDistanceSetting();

@@ -295,7 +295,7 @@ public class TechEditWizardData
         }
 
         // extra layers
-        
+
     }
 
 	/************************************** ACCESSOR METHODS **************************************/
@@ -1538,11 +1538,11 @@ public class TechEditWizardData
         l.name = name;
         l.function = function;
         l.extraFunction = extraf;
+        graph.setTransparencyMode(EGraphics.J3DTransparencyOption.NONE);
+        graph.setTransparencyFactor(1);
         l.desc = graph;
         l.thick3D = 1;
         l.height3D = 1;
-        l.mode3D = "NONE";
-        l.factor3D = 1;
         l.cif = "Not set"; //"C" + cifLetter + cifLetter;
         l.skill = name;
         l.resistance = 1;
@@ -1694,7 +1694,7 @@ public class TechEditWizardData
         Xml.Foundry f = new Xml.Foundry();
         f.name = Foundry.Type.NONE.getName();
         t.foundries.add(f);
-        
+
         // LAYER COLOURS
 		Color [] metal_colour = new Color[]
 		{
