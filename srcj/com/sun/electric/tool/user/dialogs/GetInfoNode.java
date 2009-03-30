@@ -740,7 +740,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		// make special information lines in "more" mode be conditionally shown
 		boolean repack = (textField1.isEditable() == textField1Visible) ||
 			(textField2.isEditable() == textField2Visible) ||
-			(popup.isEditable() == popupVisible);
+			(popup.isEnabled() == popupVisible);
 		textField1Visible = textField1.isEditable();
 		if (textField1Visible)
 		{
@@ -783,7 +783,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			moreStuffTop.remove(textField2Label);
 			moreStuffTop.remove(textField2);
 		}
-		popupVisible = popup.isEditable();
+		popupVisible = popup.isEnabled();
 		if (popupVisible)
 		{
 			GridBagConstraints gbc = new GridBagConstraints();
