@@ -64,7 +64,7 @@ public class NewArcsTab extends PreferencePanel
 
 	/** return the panel to use for this preferences tab. */
     @Override
-	public JPanel getPanel() { return newArc; }
+	public JPanel getPreferencesPanel() { return newArc; }
 
 	/** return the name of this preferences tab. */
     @Override

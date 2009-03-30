@@ -40,7 +40,7 @@ public class DEFTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return def; }
+	public JPanel getPreferencesPanel() { return def; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "DEF"; }

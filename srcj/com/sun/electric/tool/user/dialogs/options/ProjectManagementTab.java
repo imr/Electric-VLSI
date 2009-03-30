@@ -78,7 +78,7 @@ public class ProjectManagementTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return projectManagement; }
+	public JPanel getPreferencesPanel() { return projectManagement; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Project Management"; }

@@ -63,7 +63,7 @@ public class SiliconCompilerTab extends PreferencePanel
 
 	/** return the panel to use for this preferences tab. */
     @Override
-	public JPanel getPanel() { return siliconCompiler; }
+	public JPanel getPreferencesPanel() { return siliconCompiler; }
 
 	/** return the name of this preferences tab. */
     @Override

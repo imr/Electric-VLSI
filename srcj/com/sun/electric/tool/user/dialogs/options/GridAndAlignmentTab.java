@@ -66,7 +66,7 @@ public class GridAndAlignmentTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return grid; }
+	public JPanel getPreferencesPanel() { return grid; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Grid"; }

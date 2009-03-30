@@ -58,7 +58,7 @@ public class FrameTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return frame; }
+	public JPanel getPreferencesPanel() { return frame; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Frame"; }

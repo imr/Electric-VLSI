@@ -57,7 +57,7 @@ public class GeneralTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return general; }
+	public JPanel getPreferencesPanel() { return general; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "General"; }

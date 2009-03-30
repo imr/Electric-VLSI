@@ -43,7 +43,7 @@ public class DRCTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return drc; }
+	public JPanel getPreferencesPanel() { return drc; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "DRC"; }

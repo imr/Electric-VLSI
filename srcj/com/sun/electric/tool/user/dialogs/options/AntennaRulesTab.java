@@ -60,7 +60,7 @@ public class AntennaRulesTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return antennaRules; }
+	public JPanel getPreferencesPanel() { return antennaRules; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Antenna Rules"; }
@@ -153,7 +153,7 @@ public class AntennaRulesTab extends PreferencePanel
 		ArcProto ap = tech.findArcProto(arcName);
 		if (ap == null) return;
 		double ratio = TextUtils.atof(antMaxRatio.getText());
-        antennaOptions.antennaRatio.put(ap.getId(), ratio);
+        antennaOptions.antennaRatio.put(ap.getId(), new Double(ratio));
 
 		int lineNo = antennaArcList.getSelectedIndex();
 		antennaArcListModel.setElementAt(ap.getName() + " (" + ratio + ")", lineNo);

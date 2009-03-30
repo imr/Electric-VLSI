@@ -42,7 +42,7 @@ public class WellCheckTab extends PreferencePanel
 
 	/** return the panel to use for this preferences tab. */
     @Override
-	public JPanel getPanel() { return wellCheck; }
+	public JPanel getPreferencesPanel() { return wellCheck; }
 
 	/** return the name of this preferences tab. */
     @Override

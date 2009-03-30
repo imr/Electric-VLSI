@@ -59,7 +59,7 @@ public class ComponentMenuTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return theMenu.getPanel(); }
+	public JPanel getPreferencesPanel() { return theMenu.getPanel(); }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Component Menu"; }

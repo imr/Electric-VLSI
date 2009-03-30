@@ -40,7 +40,7 @@ public class LibraryTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return library; }
+	public JPanel getPreferencesPanel() { return library; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Library"; }

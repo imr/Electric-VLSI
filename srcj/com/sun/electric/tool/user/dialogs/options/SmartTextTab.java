@@ -40,7 +40,7 @@ public class SmartTextTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return text; }
+	public JPanel getPreferencesPanel() { return text; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Smart Text"; }

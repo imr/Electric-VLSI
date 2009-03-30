@@ -65,8 +65,8 @@ public class AddedTechnologiesTab extends PreferencePanel
 		initComponents();
 	}
 
-	/** return the panel to use for this Preferences tab. */
-	public JPanel getPanel() { return addedTechnologies; }
+	/** return the JPanel to use for the project settings part of this tab. */
+	public JPanel getProjectSettingsPanel() { return addedTechnologies; }
 
 	/** return the name of this Preferences tab. */
 	public String getName() { return "Added Technologies"; }
@@ -117,7 +117,6 @@ public class AddedTechnologiesTab extends PreferencePanel
 
     public void reset()
     {
-    	setString(softTechnologiesSetting, ((String)softTechnologiesSetting.getFactoryValue()));
     }
 
 	private void addTechnology()

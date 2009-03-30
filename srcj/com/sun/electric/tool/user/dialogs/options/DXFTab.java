@@ -51,8 +51,11 @@ public class DXFTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(dxfLayerName);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return dxf; }
+	/** return the JPanel to use for the preferences part of this tab. */
+	public JPanel getPreferencesPanel() { return preferences; }
+
+	/** return the JPanel to use for the project settings part of this tab. */
+	public JPanel getProjectSettingsPanel() { return projectSettings; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "DXF"; }
@@ -107,10 +110,6 @@ public class DXFTab extends PreferencePanel
 			IOTool.setDXFInputFlattensHierarchy(IOTool.isFactoryDXFInputFlattensHierarchy());
 		if (IOTool.isFactoryDXFInputReadsAllLayers() != IOTool.isDXFInputReadsAllLayers())
 			IOTool.setDXFInputReadsAllLayers(IOTool.isFactoryDXFInputReadsAllLayers());
-
-		// project settings
-		setString(artworkDXFLayerSetting, ((String)artworkDXFLayerSetting.getFactoryValue()));
-		setInt(dxfScaleSetting, ((Integer)dxfScaleSetting.getFactoryValue()).intValue());
 	}
 
 	/** This method is called from within the constructor to
@@ -122,7 +121,6 @@ public class DXFTab extends PreferencePanel
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        dxf = new javax.swing.JPanel();
         preferences = new javax.swing.JPanel();
         dxfInputReadsAllLayers = new javax.swing.JCheckBox();
         dxfInputFlattensHierarchy = new javax.swing.JCheckBox();
@@ -134,6 +132,7 @@ public class DXFTab extends PreferencePanel
         jLabel1 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
         jLabel2 = new javax.swing.JLabel();
+        jSeparator2 = new javax.swing.JSeparator();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -145,11 +144,8 @@ public class DXFTab extends PreferencePanel
             }
         });
 
-        dxf.setLayout(new java.awt.GridBagLayout());
-
         preferences.setLayout(new java.awt.GridBagLayout());
 
-        preferences.setBorder(javax.swing.BorderFactory.createTitledBorder("Preferences"));
         dxfInputReadsAllLayers.setText("Input reads all layers");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -173,11 +169,10 @@ public class DXFTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        dxf.add(preferences, gridBagConstraints);
+        getContentPane().add(preferences, gridBagConstraints);
 
         projectSettings.setLayout(new java.awt.GridBagLayout());
 
-        projectSettings.setBorder(javax.swing.BorderFactory.createTitledBorder("Project Settings"));
         dxfLayerName.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -239,11 +234,15 @@ public class DXFTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(projectSettings, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        dxf.add(projectSettings, gridBagConstraints);
-
-        getContentPane().add(dxf, new java.awt.GridBagConstraints());
+        getContentPane().add(jSeparator2, gridBagConstraints);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -256,7 +255,6 @@ public class DXFTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel dxf;
     private javax.swing.JCheckBox dxfInputFlattensHierarchy;
     private javax.swing.JCheckBox dxfInputReadsAllLayers;
     private javax.swing.JTextField dxfLayerName;
@@ -266,6 +264,7 @@ public class DXFTab extends PreferencePanel
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JSeparator jSeparator2;
     private javax.swing.JPanel preferences;
     private javax.swing.JPanel projectSettings;
     // End of variables declaration//GEN-END:variables

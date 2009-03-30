@@ -61,7 +61,7 @@ public class RoutingTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return routing; }
+	public JPanel getPreferencesPanel() { return routing; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Routing"; }

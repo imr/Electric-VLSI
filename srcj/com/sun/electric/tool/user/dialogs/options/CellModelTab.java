@@ -85,7 +85,7 @@ public class CellModelTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return chooserPanel; }
+	public JPanel getPreferencesPanel() { return chooserPanel; }
 
 	/** return the name of this preferences tab. */
 	public String getName() {

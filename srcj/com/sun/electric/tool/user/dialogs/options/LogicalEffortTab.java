@@ -59,8 +59,11 @@ public class LogicalEffortTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(leDiffToGateCapRatio);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return logicalEffort; }
+	/** return the JPanel to use for the preferences part of this tab. */
+	public JPanel getPreferencesPanel() { return null; }
+
+	/** return the JPanel to use for the project settings part of this tab. */
+	public JPanel getProjectSettingsPanel() { return logicalEffort; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Logical Effort"; }
@@ -123,11 +126,6 @@ public class LogicalEffortTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		setBoolean(useLocalSettingsSetting, ((Boolean)useLocalSettingsSetting.getFactoryValue()).booleanValue());
-		setDouble(globalFanoutSetting, ((Double)globalFanoutSetting.getFactoryValue()).doubleValue());
-		setDouble(convergenceEpsilonSetting, ((Double)convergenceEpsilonSetting.getFactoryValue()).doubleValue());
-		setInt(maxIterationsSetting, ((Integer)maxIterationsSetting.getFactoryValue()).intValue());
-		setDouble(keeperRatioSetting, ((Double)keeperRatioSetting.getFactoryValue()).doubleValue());
 	}
 
 	/**

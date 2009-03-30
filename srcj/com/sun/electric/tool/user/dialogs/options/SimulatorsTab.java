@@ -44,7 +44,7 @@ public class SimulatorsTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return simulators; }
+	public JPanel getPreferencesPanel() { return simulators; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Simulators"; }

@@ -53,8 +53,8 @@ public class ScaleTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(unitsScaleValue);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return scale; }
+	/** return the JPanel to use for the project settings part of this tab. */
+	public JPanel getProjectSettingsPanel() { return scale; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Scale"; }
@@ -98,13 +98,6 @@ public class ScaleTab extends PreferencePanel
 	
 	public void reset()
 	{
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			if (!tech.isScaleRelevant()) continue;
-			double factoryScale = ((Double)tech.getScaleSetting().getFactoryValue()).doubleValue();
-			setDouble(tech.getScaleSetting(), factoryScale);
-		}
 	}
 
 	/**

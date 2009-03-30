@@ -60,7 +60,7 @@ public class NewNodesTab extends PreferencePanel
 
 	/** return the panel to use for this preferences tab. */
     @Override
-	public JPanel getPanel() { return newNode; }
+	public JPanel getPreferencesPanel() { return newNode; }
 
 	/** return the name of this preferences tab. */
     @Override

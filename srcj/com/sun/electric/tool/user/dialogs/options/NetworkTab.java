@@ -60,8 +60,11 @@ public class NetworkTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(extractCellPattern);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return network; }
+	/** return the JPanel to use for the preferences part of this tab. */
+	public JPanel getPreferencesPanel() { return preferences; }
+
+	/** return the JPanel to use for the project settings part of this tab. */
+	public JPanel getProjectSettingsPanel() { return projectSettings; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Network"; }
@@ -166,12 +169,6 @@ public class NetworkTab extends PreferencePanel
 			Extract.setCellExpandPattern(Extract.getFactoryCellExpandPattern());
 		if (Extract.isFactoryFlattenPcells() != Extract.isFlattenPcells())
 			Extract.setFlattenPcells(Extract.isFactoryFlattenPcells());
-
-		// project settings
-		setBoolean(ignoreResistorsSetting, ((Boolean)ignoreResistorsSetting.getFactoryValue()).booleanValue());
-		setBoolean(includeDateAndVersionInOutputSetting, ((Boolean)includeDateAndVersionInOutputSetting.getFactoryValue()).booleanValue());
-		setBoolean(useCopyrightMessageSetting, ((Boolean)useCopyrightMessageSetting.getFactoryValue()).booleanValue());
-		setString(copyrightMessageSetting, ((String)copyrightMessageSetting.getFactoryValue()));
 	}
 
 	private void copyrightMessageKeyTyped(KeyEvent evt)
@@ -190,8 +187,7 @@ public class NetworkTab extends PreferencePanel
 
         netDefaultOrder = new javax.swing.ButtonGroup();
         activeHandling = new javax.swing.ButtonGroup();
-        network = new javax.swing.JPanel();
-        networkPreferences = new javax.swing.JPanel();
+        preferences = new javax.swing.JPanel();
         netOrderingLabel = new javax.swing.JLabel();
         netAscending = new javax.swing.JRadioButton();
         netDescending = new javax.swing.JRadioButton();
@@ -208,15 +204,15 @@ public class NetworkTab extends PreferencePanel
         extractIgnoreTiny = new javax.swing.JCheckBox();
         jLabel2 = new javax.swing.JLabel();
         extractFlattenPCells = new javax.swing.JCheckBox();
-        networkProjSettings = new javax.swing.JPanel();
-        generalIncludeDateAndVersion = new javax.swing.JCheckBox();
-        netIgnoreResistors = new javax.swing.JCheckBox();
+        projectSettings = new javax.swing.JPanel();
         copyrightProjSettings = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
         copyrightNone = new javax.swing.JRadioButton();
         copyrightUse = new javax.swing.JRadioButton();
         copyrightMessage = new javax.swing.JScrollPane();
         jLabel5 = new javax.swing.JLabel();
+        generalIncludeDateAndVersion = new javax.swing.JCheckBox();
+        netIgnoreResistors = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -228,18 +224,15 @@ public class NetworkTab extends PreferencePanel
             }
         });
 
-        network.setLayout(new java.awt.GridBagLayout());
+        preferences.setLayout(new java.awt.GridBagLayout());
 
-        networkPreferences.setLayout(new java.awt.GridBagLayout());
-
-        networkPreferences.setBorder(javax.swing.BorderFactory.createTitledBorder("Network Preferences"));
         netOrderingLabel.setText("Default bus order:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        networkPreferences.add(netOrderingLabel, gridBagConstraints);
+        preferences.add(netOrderingLabel, gridBagConstraints);
 
         netDefaultOrder.add(netAscending);
         netAscending.setText("Ascending (0:N)");
@@ -249,7 +242,7 @@ public class NetworkTab extends PreferencePanel
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        networkPreferences.add(netAscending, gridBagConstraints);
+        preferences.add(netAscending, gridBagConstraints);
 
         netDefaultOrder.add(netDescending);
         netDescending.setText("Descending (N:0)");
@@ -258,19 +251,11 @@ public class NetworkTab extends PreferencePanel
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        networkPreferences.add(netDescending, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.weightx = 1.0;
-        network.add(networkPreferences, gridBagConstraints);
+        preferences.add(netDescending, gridBagConstraints);
 
         nodeExtractionPreferences.setLayout(new java.awt.GridBagLayout());
 
-        nodeExtractionPreferences.setBorder(javax.swing.BorderFactory.createTitledBorder("Node Extraction Preferences"));
+        nodeExtractionPreferences.setBorder(javax.swing.BorderFactory.createTitledBorder("Node Extraction"));
         extractGridAlign.setText("Grid-align geometry before extraction");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -382,40 +367,25 @@ public class NetworkTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        network.add(nodeExtractionPreferences, gridBagConstraints);
+        preferences.add(nodeExtractionPreferences, gridBagConstraints);
 
-        networkProjSettings.setLayout(new java.awt.GridBagLayout());
-
-        networkProjSettings.setBorder(javax.swing.BorderFactory.createTitledBorder("Network Project Settings"));
-        generalIncludeDateAndVersion.setText("Include date and version in output files");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        networkProjSettings.add(generalIncludeDateAndVersion, gridBagConstraints);
-
-        netIgnoreResistors.setText("Ignore Resistors when building netlists");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        networkProjSettings.add(netIgnoreResistors, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        network.add(networkProjSettings, gridBagConstraints);
+        gridBagConstraints.weightx = 1.0;
+        getContentPane().add(preferences, gridBagConstraints);
+
+        projectSettings.setLayout(new java.awt.GridBagLayout());
 
         copyrightProjSettings.setLayout(new java.awt.GridBagLayout());
 
-        copyrightProjSettings.setBorder(javax.swing.BorderFactory.createTitledBorder("Copyright Project Settings"));
+        copyrightProjSettings.setBorder(javax.swing.BorderFactory.createTitledBorder("Copyright"));
         jLabel4.setText("A Copyright message can be added to every generated deck");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -460,13 +430,34 @@ public class NetworkTab extends PreferencePanel
         copyrightProjSettings.add(jLabel5, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        network.add(copyrightProjSettings, gridBagConstraints);
+        projectSettings.add(copyrightProjSettings, gridBagConstraints);
 
-        getContentPane().add(network, new java.awt.GridBagConstraints());
+        generalIncludeDateAndVersion.setText("Include date and version in output files");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        projectSettings.add(generalIncludeDateAndVersion, gridBagConstraints);
+
+        netIgnoreResistors.setText("Ignore Resistors when building netlists");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        projectSettings.add(netIgnoreResistors, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        getContentPane().add(projectSettings, gridBagConstraints);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -504,10 +495,9 @@ public class NetworkTab extends PreferencePanel
     private javax.swing.JRadioButton netDescending;
     private javax.swing.JCheckBox netIgnoreResistors;
     private javax.swing.JLabel netOrderingLabel;
-    private javax.swing.JPanel network;
-    private javax.swing.JPanel networkPreferences;
-    private javax.swing.JPanel networkProjSettings;
     private javax.swing.JPanel nodeExtractionPreferences;
+    private javax.swing.JPanel preferences;
+    private javax.swing.JPanel projectSettings;
     // End of variables declaration//GEN-END:variables
 
 }

@@ -71,8 +71,11 @@ public class ParasiticTab extends PreferencePanel {
 	    EDialog.makeTextFieldSelectAllOnTab(gateLengthSubtraction);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return topPanel; }
+	/** return the JPanel to use for the preferences part of this tab. */
+	public JPanel getPreferencesPanel() { return preferences; }
+
+	/** return the JPanel to use for the project settings part of this tab. */
+	public JPanel getProjectSettingsPanel() { return projectSettings; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Parasitic"; }
@@ -184,29 +187,6 @@ public class ParasiticTab extends PreferencePanel {
 			Simulation.setParasiticsExtractsC(Simulation.isFactoryParasiticsExtractsC());
 		if (ParasiticTool.getFactoryMaxDistance() != ParasiticTool.getMaxDistance())
 			ParasiticTool.setMaxDistance(ParasiticTool.getFactoryMaxDistance());
-
-		// project settings
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			setDouble(tech.getMinResistanceSetting(), ((Double)tech.getMinResistanceSetting().getFactoryValue()).doubleValue());
-			setDouble(tech.getMinCapacitanceSetting(), ((Double)tech.getMinCapacitanceSetting().getFactoryValue()).doubleValue());
-			setDouble(tech.getGateLengthSubtractionSetting(), ((Double)tech.getGateLengthSubtractionSetting().getFactoryValue()).doubleValue());
-			setDouble(tech.getMaxSeriesResistanceSetting(), ((Double)tech.getMaxSeriesResistanceSetting().getFactoryValue()).doubleValue());
-			setBoolean(tech.getGateIncludedSetting(), ((Boolean)tech.getGateIncludedSetting().getFactoryValue()).booleanValue());
-			setBoolean(tech.getGroundNetIncludedSetting(), ((Boolean)tech.getGroundNetIncludedSetting().getFactoryValue()).booleanValue());
-
-			for (Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-	        {
-	            Layer layer = lIt.next();
-	            Setting resistanceSetting = layer.getResistanceSetting();
-	            setDouble(resistanceSetting, resistanceSetting.getDoubleFactoryValue());
-	            Setting capacitanceSetting = layer.getCapacitanceSetting();
-	            setDouble(capacitanceSetting, capacitanceSetting.getDoubleFactoryValue());
-	            Setting edgeCapacitanceSetting = layer.getEdgeCapacitanceSetting();
-	            setDouble(edgeCapacitanceSetting, edgeCapacitanceSetting.getDoubleFactoryValue());
-	        }
-		}
 	}
 
 	private void techChanged()
@@ -314,7 +294,7 @@ public class ParasiticTab extends PreferencePanel {
         java.awt.GridBagConstraints gridBagConstraints;
 
         exemptedNetsGroup = new javax.swing.ButtonGroup();
-        topPanel = new javax.swing.JPanel();
+        projectSettings = new javax.swing.JPanel();
         parasiticPanel = new javax.swing.JPanel();
         maxDist = new javax.swing.JLabel();
         maxDistValue = new javax.swing.JTextField();
@@ -327,7 +307,7 @@ public class ParasiticTab extends PreferencePanel {
         extractExemptedNets = new javax.swing.JRadioButton();
         extractR = new javax.swing.JCheckBox();
         extractC = new javax.swing.JCheckBox();
-        jPanel1 = new javax.swing.JPanel();
+        preferences = new javax.swing.JPanel();
         techValues = new javax.swing.JPanel();
         spiceLayer = new javax.swing.JScrollPane();
         jLabel7 = new javax.swing.JLabel();
@@ -350,15 +330,16 @@ public class ParasiticTab extends PreferencePanel {
         maxSeriesResistance = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         techSelection = new javax.swing.JComboBox();
+        jSeparator1 = new javax.swing.JSeparator();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        topPanel.setLayout(new java.awt.GridBagLayout());
+        projectSettings.setLayout(new java.awt.GridBagLayout());
 
         parasiticPanel.setLayout(new java.awt.GridBagLayout());
 
-        parasiticPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Parasitic Coupling Preferences"));
+        parasiticPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Coupling Parasitics"));
         parasiticPanel.setEnabled(false);
         maxDist.setText("Maximum distance (lambda)");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -380,14 +361,13 @@ public class ParasiticTab extends PreferencePanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        topPanel.add(parasiticPanel, gridBagConstraints);
+        projectSettings.add(parasiticPanel, gridBagConstraints);
 
         simpleParasiticOptions.setLayout(new java.awt.GridBagLayout());
 
-        simpleParasiticOptions.setBorder(javax.swing.BorderFactory.createTitledBorder("Simple Parasitic Preferences"));
+        simpleParasiticOptions.setBorder(javax.swing.BorderFactory.createTitledBorder("Simple Parasitics"));
         verboseNaming.setText("Use Verbose Naming");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -457,16 +437,20 @@ public class ParasiticTab extends PreferencePanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        topPanel.add(simpleParasiticOptions, gridBagConstraints);
+        projectSettings.add(simpleParasiticOptions, gridBagConstraints);
 
-        jPanel1.setLayout(new java.awt.GridBagLayout());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        getContentPane().add(projectSettings, gridBagConstraints);
+
+        preferences.setLayout(new java.awt.GridBagLayout());
 
         techValues.setLayout(new java.awt.GridBagLayout());
 
-        techValues.setBorder(javax.swing.BorderFactory.createTitledBorder("Layer Project Settings"));
+        techValues.setBorder(javax.swing.BorderFactory.createTitledBorder("Individual Layers"));
         spiceLayer.setMinimumSize(new java.awt.Dimension(200, 50));
         spiceLayer.setPreferredSize(new java.awt.Dimension(200, 50));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -546,11 +530,11 @@ public class ParasiticTab extends PreferencePanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        jPanel1.add(techValues, gridBagConstraints);
+        preferences.add(techValues, gridBagConstraints);
 
         globalValues.setLayout(new java.awt.GridBagLayout());
 
-        globalValues.setBorder(javax.swing.BorderFactory.createTitledBorder("Global Project Settings"));
+        globalValues.setBorder(javax.swing.BorderFactory.createTitledBorder("For All Layers"));
         jLabel20.setText("Min. Resistance:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -639,30 +623,33 @@ public class ParasiticTab extends PreferencePanel {
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(globalValues, gridBagConstraints);
+        preferences.add(globalValues, gridBagConstraints);
 
         jLabel3.setText("Technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(jLabel3, gridBagConstraints);
+        preferences.add(jLabel3, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(techSelection, gridBagConstraints);
+        preferences.add(techSelection, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        topPanel.add(jPanel1, gridBagConstraints);
+        getContentPane().add(preferences, gridBagConstraints);
 
-        getContentPane().add(topPanel, new java.awt.GridBagConstraints());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(jSeparator1, gridBagConstraints);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -695,19 +682,20 @@ public class ParasiticTab extends PreferencePanel {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JLabel maxDist;
     private javax.swing.JTextField maxDistValue;
     private javax.swing.JTextField maxSeriesResistance;
     private javax.swing.JTextField minCapacitance;
     private javax.swing.JTextField minResistance;
     private javax.swing.JPanel parasiticPanel;
+    private javax.swing.JPanel preferences;
+    private javax.swing.JPanel projectSettings;
     private javax.swing.JTextField resistance;
     private javax.swing.JPanel simpleParasiticOptions;
     private javax.swing.JScrollPane spiceLayer;
     private javax.swing.JComboBox techSelection;
     private javax.swing.JPanel techValues;
-    private javax.swing.JPanel topPanel;
     private javax.swing.JCheckBox useExemptedNetsFile;
     private javax.swing.JCheckBox verboseNaming;
     // End of variables declaration//GEN-END:variables

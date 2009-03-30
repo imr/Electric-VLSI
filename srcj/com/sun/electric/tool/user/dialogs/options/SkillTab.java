@@ -57,8 +57,11 @@ public class SkillTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(skillLayerName);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return skill; }
+	/** return the JPanel to use for the preferences part of this tab. */
+	public JPanel getPreferencesPanel() { return preferences; }
+
+	/** return the JPanel to use for the project settings part of this tab. */
+	public JPanel getProjectSettingsPanel() { return projectSettings; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Skill"; }
@@ -69,9 +72,6 @@ public class SkillTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		if (!IOTool.hasSkill())
-			skillNoSkill.setText("SKILL OUTPUT IS NOT INSTALLED!");
-
 		// project settings
 		skillLayerModel = new DefaultListModel();
 		skillLayerList = new JList(skillLayerModel);
@@ -83,7 +83,6 @@ public class SkillTab extends PreferencePanel
 			public void mouseClicked(MouseEvent evt) { skillClickLayer(); }
 		});
 		skillLayerModel.clear();
-//		curTech = Technology.getCurrent();
 		skillTechnology.setText("Skill layers for technology: " + curTech.getTechName());
 		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
@@ -137,14 +136,6 @@ public class SkillTab extends PreferencePanel
 			IOTool.setSkillFlattensHierarchy(IOTool.isFactorySkillFlattensHierarchy());
 		if (IOTool.isFactorySkillGDSNameLimit() != IOTool.isSkillGDSNameLimit())
 			IOTool.setSkillGDSNameLimit(IOTool.isFactorySkillGDSNameLimit());
-
-		// project settings
-		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
-		{
-			Layer layer = it.next();
-			String facVal = (String)layer.getSkillLayerSetting().getFactoryValue();
-			setString(layer.getSkillLayerSetting(), facVal);
-		}
 	}
 
 	/**
@@ -201,17 +192,16 @@ public class SkillTab extends PreferencePanel
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        skill = new javax.swing.JPanel();
-        preferences = new javax.swing.JPanel();
-        skillNoSubCells = new javax.swing.JCheckBox();
-        skillFlattenHierarchy = new javax.swing.JCheckBox();
-        skillGDSNameLimit = new javax.swing.JCheckBox();
+        jSeparator1 = new javax.swing.JSeparator();
         projectSettings = new javax.swing.JPanel();
         skillLayerPane = new javax.swing.JScrollPane();
         skillLayerName = new javax.swing.JTextField();
         jLabel11 = new javax.swing.JLabel();
         skillTechnology = new javax.swing.JLabel();
-        skillNoSkill = new javax.swing.JLabel();
+        preferences = new javax.swing.JPanel();
+        skillNoSubCells = new javax.swing.JCheckBox();
+        skillFlattenHierarchy = new javax.swing.JCheckBox();
+        skillGDSNameLimit = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -223,47 +213,14 @@ public class SkillTab extends PreferencePanel
             }
         });
 
-        skill.setLayout(new java.awt.GridBagLayout());
-
-        preferences.setLayout(new java.awt.GridBagLayout());
-
-        preferences.setBorder(javax.swing.BorderFactory.createTitledBorder("Preferences"));
-        skillNoSubCells.setText("Do not include subcells");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        preferences.add(skillNoSubCells, gridBagConstraints);
-
-        skillFlattenHierarchy.setText("Flatten hierarchy");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        preferences.add(skillFlattenHierarchy, gridBagConstraints);
-
-        skillGDSNameLimit.setText("GDS name limit (32 chars)");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        preferences.add(skillGDSNameLimit, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        skill.add(preferences, gridBagConstraints);
+        getContentPane().add(jSeparator1, gridBagConstraints);
 
         projectSettings.setLayout(new java.awt.GridBagLayout());
 
-        projectSettings.setBorder(javax.swing.BorderFactory.createTitledBorder("Project Settings"));
         skillLayerPane.setMinimumSize(new java.awt.Dimension(150, 150));
         skillLayerPane.setPreferredSize(new java.awt.Dimension(150, 150));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -303,17 +260,44 @@ public class SkillTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        skill.add(projectSettings, gridBagConstraints);
+        getContentPane().add(projectSettings, gridBagConstraints);
+
+        preferences.setLayout(new java.awt.GridBagLayout());
+
+        skillNoSubCells.setText("Do not include subcells");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        preferences.add(skillNoSubCells, gridBagConstraints);
+
+        skillFlattenHierarchy.setText("Flatten hierarchy");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        preferences.add(skillFlattenHierarchy, gridBagConstraints);
+
+        skillGDSNameLimit.setText("GDS name limit (32 chars)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        preferences.add(skillGDSNameLimit, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        skill.add(skillNoSkill, gridBagConstraints);
-
-        getContentPane().add(skill, new java.awt.GridBagConstraints());
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(preferences, gridBagConstraints);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -327,14 +311,13 @@ public class SkillTab extends PreferencePanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel11;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JPanel preferences;
     private javax.swing.JPanel projectSettings;
-    private javax.swing.JPanel skill;
     private javax.swing.JCheckBox skillFlattenHierarchy;
     private javax.swing.JCheckBox skillGDSNameLimit;
     private javax.swing.JTextField skillLayerName;
     private javax.swing.JScrollPane skillLayerPane;
-    private javax.swing.JLabel skillNoSkill;
     private javax.swing.JCheckBox skillNoSubCells;
     private javax.swing.JLabel skillTechnology;
     // End of variables declaration//GEN-END:variables

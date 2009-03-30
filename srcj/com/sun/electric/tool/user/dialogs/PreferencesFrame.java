@@ -96,6 +96,7 @@ import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Color;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -114,6 +115,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -130,7 +132,7 @@ import javax.swing.tree.TreePath;
  */
 public class PreferencesFrame extends EDialog
 {
-	private JSplitPane splitPane;
+	private JSplitPane splitPane1, splitPane2;
 	private JTree optionTree;
 	private JButton cancel, ok;
 	private Map<Setting,Object> originalContext;
@@ -172,7 +174,7 @@ public class PreferencesFrame extends EDialog
 	{
 		super(parent, false);
 		getContentPane().setLayout(new GridBagLayout());
-		setTitle("Preferences");
+		setTitle("Preferences and Project Settings");
 		setName("");
 		addWindowListener(new WindowAdapter()
 		{
@@ -184,7 +186,7 @@ public class PreferencesFrame extends EDialog
 		currentContext = new HashMap<Setting,Object>(originalContext);
         editingPreferences = UserInterfaceMain.getEditingPreferences();
 
-		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Preferences");
+		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Categories");
 		DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
 		optionTree = new JTree(treeModel);
 		TreeHandler handler = new TreeHandler(this);
@@ -309,7 +311,6 @@ public class PreferencesFrame extends EDialog
 		leftPanel.setLayout(new GridBagLayout());
 
 		JScrollPane scrolledTree = new JScrollPane(optionTree);
-
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;   gbc.gridy = 0;
 		gbc.gridwidth = 2;
@@ -357,13 +358,20 @@ public class PreferencesFrame extends EDialog
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(resetAll, gbc);
 
+		JLabel explainReset = new JLabel("Reset only affects Preferences");
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = 3;
+		gbc.gridwidth = 2;
+		gbc.insets = new Insets(0, 4, 4, 4);
+		leftPanel.add(explainReset, gbc);
+
 		JButton help = new JButton("Help");
 		help.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { helpActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
-		gbc.gridx = 0;   gbc.gridy = 3;
+		gbc.gridx = 0;   gbc.gridy = 4;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(help, gbc);
 
@@ -373,7 +381,7 @@ public class PreferencesFrame extends EDialog
 			public void actionPerformed(ActionEvent evt) { applyActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
-		gbc.gridx = 1;   gbc.gridy = 3;
+		gbc.gridx = 1;   gbc.gridy = 4;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(apply, gbc);
 
@@ -383,7 +391,7 @@ public class PreferencesFrame extends EDialog
 			public void actionPerformed(ActionEvent evt) { cancelActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
-		gbc.gridx = 0;   gbc.gridy = 4;
+		gbc.gridx = 0;   gbc.gridy = 5;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(cancel, gbc);
 
@@ -393,7 +401,7 @@ public class PreferencesFrame extends EDialog
 			public void actionPerformed(ActionEvent evt) { okActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
-		gbc.gridx = 1;   gbc.gridy = 4;
+		gbc.gridx = 1;   gbc.gridy = 5;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(ok, gbc);
 		getRootPane().setDefaultButton(ok);
@@ -401,10 +409,12 @@ public class PreferencesFrame extends EDialog
 		getRootPane().setDefaultButton(ok);
 
 		// build preferences framework
-		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		splitPane1 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 
 		loadOptionPanel();
-		splitPane.setLeftComponent(leftPanel);
+		splitPane1.setLeftComponent(leftPanel);
+		splitPane2.setRightComponent(splitPane1);
 		recursivelyHighlight(optionTree, rootNode, initialDMTN, optionTree.getPathForRow(0));
 
 		gbc = new GridBagConstraints();
@@ -412,7 +422,7 @@ public class PreferencesFrame extends EDialog
 		gbc.gridwidth = 1;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = 1.0;   gbc.weighty = 1.0;
-		getContentPane().add(splitPane, gbc);
+		getContentPane().add(splitPane2, gbc);
 
 		pack();
 		finishInitialization();
@@ -681,7 +691,61 @@ public class PreferencesFrame extends EDialog
 					ti.init();
 					ti.setInited();
 				}
-				splitPane.setRightComponent(ti.getPanel());
+				JPanel prefs = ti.getPreferencesPanel();
+				if (prefs == null) splitPane1.setRightComponent(null); else
+				{
+					JPanel pane = new JPanel();
+					pane.setLayout(new GridBagLayout());
+					JLabel prefLab = new JLabel(ti.getName() + " Preferences");
+					prefLab.setForeground(Color.WHITE);
+					prefLab.setHorizontalTextPosition(JLabel.CENTER);
+					GridBagConstraints gbc = new GridBagConstraints();
+					gbc.gridx = 0;   gbc.gridy = 0;
+					gbc.fill = GridBagConstraints.HORIZONTAL;
+					gbc.anchor = GridBagConstraints.NORTH;
+					gbc.weightx = 1.0;
+					JPanel backgroundTitle = new JPanel();
+					backgroundTitle.setBackground(Color.BLUE);
+					backgroundTitle.add(prefLab);
+					pane.add(backgroundTitle, gbc);
+
+					gbc = new GridBagConstraints();
+					gbc.gridx = 0;   gbc.gridy = 1;
+					gbc.fill = GridBagConstraints.BOTH;
+					gbc.weightx = gbc.weighty = 1.0;
+					gbc.weightx = gbc.weighty = 1.0;
+					pane.add(prefs, gbc);
+
+					splitPane1.setRightComponent(pane);
+				}
+
+				JPanel ps = ti.getProjectSettingsPanel();
+				if (ps == null) splitPane2.setLeftComponent(null); else
+				{
+					JPanel pane = new JPanel();
+					pane.setLayout(new GridBagLayout());
+					JLabel prefLab = new JLabel(ti.getName() + " Project Settings");
+					prefLab.setForeground(Color.WHITE);
+					prefLab.setHorizontalTextPosition(JLabel.CENTER);
+					GridBagConstraints gbc = new GridBagConstraints();
+					gbc.gridx = 0;   gbc.gridy = 0;
+					gbc.fill = GridBagConstraints.HORIZONTAL;
+					gbc.anchor = GridBagConstraints.NORTH;
+					gbc.weightx = 1.0;
+					JPanel backgroundTitle = new JPanel();
+					backgroundTitle.setBackground(Color.BLUE);
+					backgroundTitle.add(prefLab);
+					pane.add(backgroundTitle, gbc);
+
+					gbc = new GridBagConstraints();
+					gbc.gridx = 0;   gbc.gridy = 1;
+					gbc.fill = GridBagConstraints.BOTH;
+					gbc.weightx = gbc.weighty = 1.0;
+					gbc.weightx = gbc.weighty = 1.0;
+					pane.add(ps, gbc);
+
+					splitPane2.setLeftComponent(pane);
+				}
 				return;
 			}
 		}
@@ -751,7 +815,7 @@ public class PreferencesFrame extends EDialog
 	}
 
 	/** Closes the dialog */
-	private void closeDialog(java.awt.event.WindowEvent evt)
+	private void closeDialog(WindowEvent evt)
 	{
 		setVisible(false);
 		dispose();

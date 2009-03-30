@@ -71,7 +71,7 @@ public class DesignRulesTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return designRules; }
+	public JPanel getPreferencesPanel() { return designRules; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Design Rules"; }

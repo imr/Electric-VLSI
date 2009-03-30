@@ -77,7 +77,7 @@ public class GateLayGenTab extends PreferencePanel
     
     /** return the panel to use for this preferences tab. */
     @Override
-    public JPanel getPanel() {return (JPanel) getContentPane();}
+    public JPanel getPreferencesPanel() {return (JPanel) getContentPane();}
     
     /** return the name of this preferences tab. */
     @Override

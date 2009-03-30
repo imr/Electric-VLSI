@@ -53,7 +53,7 @@ public class EDIFTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return edif; }
+	public JPanel getPreferencesPanel() { return edif; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "EDIF"; }

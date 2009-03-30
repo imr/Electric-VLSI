@@ -67,8 +67,11 @@ public class CIFTab extends PreferencePanel
 		EDialog.makeTextFieldSelectAllOnTab(cifLayer);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return cif; }
+	/** return the JPanel to use for the preferences part of this tab. */
+	public JPanel getPreferencesPanel() { return preferences; }
+
+	/** return the JPanel to use for the project settings part of this tab. */
+	public JPanel getProjectSettingsPanel() { return projSettings; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "CIF"; }
@@ -137,12 +140,6 @@ public class CIFTab extends PreferencePanel
 		// preferences
 		if (IOTool.isFactoryCIFInSquaresWires() != IOTool.isCIFInSquaresWires())
 			IOTool.setCIFInSquaresWires(IOTool.isFactoryCIFInSquaresWires());
-
-		// project settings
-		setBoolean(cifOutMimicsDisplaySetting, ((Boolean)cifOutMimicsDisplaySetting.getFactoryValue()).booleanValue());
-		setBoolean(cifOutMergesBoxesSetting, ((Boolean)cifOutMergesBoxesSetting.getFactoryValue()).booleanValue());
-		setBoolean(cifOutInstantiatesTopLevleSetting, ((Boolean)cifOutInstantiatesTopLevleSetting.getFactoryValue()).booleanValue());
-		setInt(cifOutScaleFactorSetting, ((Integer)cifOutScaleFactorSetting.getFactoryValue()).intValue());
 	}
 
 	private void techChanged()
@@ -246,7 +243,6 @@ public class CIFTab extends PreferencePanel
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        cif = new javax.swing.JPanel();
         projSettings = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         cifLayers = new javax.swing.JScrollPane();
@@ -262,6 +258,7 @@ public class CIFTab extends PreferencePanel
         cifScale = new javax.swing.JTextField();
         preferences = new javax.swing.JPanel();
         cifInputSquaresWires = new javax.swing.JCheckBox();
+        jSeparator1 = new javax.swing.JSeparator();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -273,11 +270,8 @@ public class CIFTab extends PreferencePanel
             }
         });
 
-        cif.setLayout(new java.awt.GridBagLayout());
-
         projSettings.setLayout(new java.awt.GridBagLayout());
 
-        projSettings.setBorder(javax.swing.BorderFactory.createTitledBorder("Project Settings"));
         jLabel1.setText("CIF Layer:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -382,13 +376,11 @@ public class CIFTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
-        cif.add(projSettings, gridBagConstraints);
+        gridBagConstraints.gridy = 2;
+        getContentPane().add(projSettings, gridBagConstraints);
 
         preferences.setLayout(new java.awt.GridBagLayout());
 
-        preferences.setBorder(javax.swing.BorderFactory.createTitledBorder("Preferences"));
         cifInputSquaresWires.setText("Input Squares Wires");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -405,9 +397,13 @@ public class CIFTab extends PreferencePanel
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        cif.add(preferences, gridBagConstraints);
+        getContentPane().add(preferences, gridBagConstraints);
 
-        getContentPane().add(cif, new java.awt.GridBagConstraints());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(jSeparator1, gridBagConstraints);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -420,7 +416,6 @@ public class CIFTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel cif;
     private javax.swing.JCheckBox cifInputSquaresWires;
     private javax.swing.JTextField cifLayer;
     private javax.swing.JScrollPane cifLayers;
@@ -433,6 +428,7 @@ public class CIFTab extends PreferencePanel
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JPanel preferences;
     private javax.swing.JPanel projSettings;
     private javax.swing.JComboBox technologySelection;

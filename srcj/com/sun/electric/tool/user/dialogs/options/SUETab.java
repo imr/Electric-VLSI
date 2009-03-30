@@ -40,7 +40,7 @@ public class SUETab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return sue; }
+	public JPanel getPreferencesPanel() { return sue; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "SUE"; }

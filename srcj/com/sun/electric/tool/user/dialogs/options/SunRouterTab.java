@@ -43,7 +43,7 @@ public class SunRouterTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return sunRouter; }
+	public JPanel getPreferencesPanel() { return sunRouter; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Sun Router"; }

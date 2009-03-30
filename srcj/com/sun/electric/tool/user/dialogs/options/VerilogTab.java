@@ -44,8 +44,11 @@ public class VerilogTab extends PreferencePanel
 		initComponents();
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return verilog; }
+	/** return the JPanel to use for the preferences part of this tab. */
+	public JPanel getPreferencesPanel() { return preferences; }
+
+	/** return the JPanel to use for the project settings part of this tab. */
+	public JPanel getProjectSettingsPanel() { return projectSettings; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Verilog"; }
@@ -99,10 +102,6 @@ public class VerilogTab extends PreferencePanel
 			Simulation.setPreserveVerilogFormating(Simulation.getFactoryPreserveVerilogFormating());
 		if (Simulation.getFactoryVerilogParameterizeModuleNames() != Simulation.getVerilogParameterizeModuleNames())
 			Simulation.setVerilogParameterizeModuleNames(Simulation.getFactoryVerilogParameterizeModuleNames());
-
-		// project settings
-		setBoolean(verilogUseAssignSetting, ((Boolean)verilogUseAssignSetting.getFactoryValue()).booleanValue());
-		setBoolean(verilogUseTriregSetting, ((Boolean)verilogUseTriregSetting.getFactoryValue()).booleanValue());
 	}
 
 	/** This method is called from within the constructor to
@@ -114,7 +113,7 @@ public class VerilogTab extends PreferencePanel
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        verilog = new javax.swing.JPanel();
+        jSeparator1 = new javax.swing.JSeparator();
         preferences = new javax.swing.JPanel();
         stopAtStandardCells = new javax.swing.JCheckBox();
         preserveVerilogFormatting = new javax.swing.JCheckBox();
@@ -133,11 +132,14 @@ public class VerilogTab extends PreferencePanel
             }
         });
 
-        verilog.setLayout(new java.awt.GridBagLayout());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(jSeparator1, gridBagConstraints);
 
         preferences.setLayout(new java.awt.GridBagLayout());
 
-        preferences.setBorder(javax.swing.BorderFactory.createTitledBorder("Preferences"));
         stopAtStandardCells.setText("Do not netlist Standard Cells");
         stopAtStandardCells.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         stopAtStandardCells.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -173,11 +175,10 @@ public class VerilogTab extends PreferencePanel
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
-        verilog.add(preferences, gridBagConstraints);
+        getContentPane().add(preferences, gridBagConstraints);
 
         projectSettings.setLayout(new java.awt.GridBagLayout());
 
-        projectSettings.setBorder(javax.swing.BorderFactory.createTitledBorder("Project Settings"));
         verDefWireTrireg.setText("Default wire is Trireg");
         verDefWireTrireg.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -200,12 +201,10 @@ public class VerilogTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 0, 0);
-        verilog.add(projectSettings, gridBagConstraints);
-
-        getContentPane().add(verilog, new java.awt.GridBagConstraints());
+        getContentPane().add(projectSettings, gridBagConstraints);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -218,6 +217,7 @@ public class VerilogTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JCheckBox parameterizeModuleNames;
     private javax.swing.JPanel preferences;
     private javax.swing.JCheckBox preserveVerilogFormatting;
@@ -225,7 +225,6 @@ public class VerilogTab extends PreferencePanel
     private javax.swing.JCheckBox stopAtStandardCells;
     private javax.swing.JCheckBox verDefWireTrireg;
     private javax.swing.JCheckBox verUseAssign;
-    private javax.swing.JPanel verilog;
     // End of variables declaration//GEN-END:variables
 
 }

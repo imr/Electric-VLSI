@@ -46,7 +46,7 @@ public class CDLTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
-	public JPanel getPanel() { return cdl; }
+	public JPanel getPreferencesPanel() { return cdl; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "CDL"; }
