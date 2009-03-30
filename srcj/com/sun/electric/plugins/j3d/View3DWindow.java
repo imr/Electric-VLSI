@@ -24,12 +24,16 @@
  */
 package com.sun.electric.plugins.j3d;
 
+import com.sun.electric.database.Environment;
+import com.sun.electric.database.change.DatabaseChangeEvent;
+import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
@@ -54,6 +58,7 @@ import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator;
@@ -111,7 +116,7 @@ import javax.vecmath.Vector3f;
  */
 public class View3DWindow extends JPanel
         implements WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
-        Observer
+        Observer, DatabaseChangeListener
 {
 	private SimpleUniverse u;
 	private J3DCanvas3D canvas;
@@ -403,6 +408,7 @@ public class View3DWindow extends JPanel
         viewingPlatform.setPlatformGeometry(pg) ;
 
 		setWindowTitle();
+        UserInterfaceMain.addDatabaseChangeListener(this);
 	}
 
     /**
@@ -495,6 +501,7 @@ public class View3DWindow extends JPanel
 		removeMouseListener(this);
 		removeMouseMotionListener(this);
 		removeMouseWheelListener(this);
+		UserInterfaceMain.removeDatabaseChangeListener(this);
 	}
 
 	public void bottomScrollChanged(int e) {}
@@ -1000,17 +1007,17 @@ public class View3DWindow extends JPanel
      * @param distance
      * @param thickness
      */
-    public static void setZValues(Layer layer, Double origDist, Double origThick, Double distance, Double thickness)
+    public void setZValues(Layer layer, Double origDist, Double origThick, Double distance, Double thickness)
     {
-        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-        {
-            WindowFrame wf = it.next();
-            WindowContent content = wf.getContent();
-            if (!(content instanceof View3DWindow)) continue;
-            View3DWindow wnd = (View3DWindow)content;
-            for (int i = 0; i < wnd.objTrans.numChildren(); i++)
+//        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+//        {
+//            WindowFrame wf = it.next();
+//            WindowContent content = wf.getContent();
+//            if (!(content instanceof View3DWindow)) continue;
+//            View3DWindow wnd = (View3DWindow)content;
+            for (int i = 0; i < /*wnd.*/objTrans.numChildren(); i++)
             {
-                Node node = wnd.objTrans.getChild(i);
+                Node node = /*wnd.*/objTrans.getChild(i);
                 if (node instanceof Shape3D)
                 {
                     Shape3D shape = (Shape3D)node;
@@ -1021,7 +1028,7 @@ public class View3DWindow extends JPanel
 
                 }
             }
-        }
+//        }
     }
 
     /**
@@ -1303,6 +1310,29 @@ public class View3DWindow extends JPanel
 	{
 		//return new Point(lastXPosition, lastYPosition);
 		return new Point(0,0);
+	}
+
+	public void databaseChanged(DatabaseChangeEvent e)
+	{
+        Environment oldEnv = e.oldSnapshot.environment;
+        Environment newEnv = e.newSnapshot.environment;
+        if (newEnv == oldEnv) return;
+
+        if (newEnv.techPool != oldEnv.techPool)
+            System.out.println("View3DWindow can't handle change of technology parameters");
+        for (Technology tech: newEnv.techPool.values()) {
+            for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
+                Layer layer = it.next();
+                Setting distanceSetting = layer.getDistanceSetting();
+                Setting thicknessSetting = layer.getThicknessSetting();
+                Double oldDistance = (Double)oldEnv.getValue(distanceSetting);
+                Double oldThickness = (Double)oldEnv.getValue(thicknessSetting);
+                Double newDistance = (Double)newEnv.getValue(distanceSetting);
+                Double newThickness = (Double)newEnv.getValue(thicknessSetting);
+                if (newDistance.equals(oldDistance) && newThickness.equals(oldThickness)) continue;
+                setZValues(layer, oldDistance, oldThickness, newDistance, newThickness);
+            }
+        }
 	}
 
 	// ************************************* COORDINATES *************************************

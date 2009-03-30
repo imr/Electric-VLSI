@@ -228,7 +228,7 @@ public class PreferencesFrame extends EDialog
 		addTreeNode(new GridAndAlignmentTab(parent, true), displaySet);
 		addTreeNode(new PortsAndExportsTab(parent, true), displaySet);
 		addTreeNode(new FrameTab(parent, true), displaySet);
-		addTreeNode(ThreeDTab.create3DTab(parent, true), displaySet);
+		addTreeNode(ThreeDTab.create3DTab(this, true), displaySet);
 
 		// the "I/O" section of the Preferences
 		DefaultMutableTreeNode ioSet = new DefaultMutableTreeNode("I/O ");

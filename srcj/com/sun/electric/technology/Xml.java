@@ -156,7 +156,7 @@ public class Xml {
         public EGraphics desc;
         public double thick3D;
         public double height3D;
-        public String mode3D;
+        public String mode3D = "NONE";
         public double factor3D;
         public String cif;
         public String skill;
@@ -872,7 +872,9 @@ public class Xml {
                 case display3D:
                     curLayer.thick3D = Double.parseDouble(a("thick"));
                     curLayer.height3D = Double.parseDouble(a("height"));
-                    curLayer.mode3D = a_("mode");
+                    String mode3DStr = a_("mode");
+                    if (mode3DStr != null)
+                        curLayer.mode3D = mode3DStr;
                     String factor3DStr = a_("factor");
                     curLayer.factor3D = factor3DStr != null ? Double.parseDouble(factor3DStr) : 0;
                     break;
@@ -1831,13 +1833,10 @@ public class Xml {
             bcpel(XmlKeyword.foreground, Boolean.valueOf(desc.getForeground()));
 
             // write the 3D information
-            if (li.thick3D != 0 || li.height3D != 0 || li.mode3D != null) {
-                b(XmlKeyword.display3D); a("thick", li.thick3D); a("height", li.height3D);
-                if (li.mode3D != null) {
-                    a("mode", li.mode3D); a("factor", li.factor3D);
-                }
-                el();
-            }
+            b(XmlKeyword.display3D);
+            a("thick", li.thick3D); a("height", li.height3D);
+            a("mode", li.mode3D); a("factor", li.factor3D);
+            el();
 
             if (li.cif != null && li.cif.length() > 0) {
                 b(XmlKeyword.cifLayer); a("cif", li.cif); el();

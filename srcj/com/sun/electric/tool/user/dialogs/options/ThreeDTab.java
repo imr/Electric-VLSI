@@ -24,11 +24,13 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.ui.LayerVisibility;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -61,7 +63,7 @@ import javax.swing.event.DocumentListener;
 public class ThreeDTab extends PreferencePanel
 {
     /** Creates new form ThreeDTab depending on if 3Dplugin is on or not */
-    public static ThreeDTab create3DTab(java.awt.Frame parent, boolean modal)
+    public static ThreeDTab create3DTab(PreferencesFrame parent, boolean modal)
     {
         ThreeDTab tab = null;
 
@@ -70,7 +72,7 @@ public class ThreeDTab extends PreferencePanel
         {
             try
             {
-                Constructor instance = plugin.getDeclaredConstructor(new Class[]{java.awt.Frame.class, Boolean.class});
+                Constructor instance = plugin.getDeclaredConstructor(new Class[]{PreferencesFrame.class, Boolean.TYPE});
                 Object panel = instance.newInstance(new Object[] {parent, new Boolean(modal)});
                 tab = (ThreeDTab)panel;
             }
@@ -85,16 +87,18 @@ public class ThreeDTab extends PreferencePanel
     }
 
 	/** Creates new form ThreeDTab */
-	public ThreeDTab(java.awt.Frame parent, boolean modal)
+	public ThreeDTab(PreferencesFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
 	}
 
 	/** return the panel to use for this preferences tab. */
+    @Override
 	public JPanel getPanel() { return threeD; }
 
 	/** return the name of this preferences tab. */
+    @Override
 	public String getName() { return "3D"; }
 
 	private boolean initial3DTextChanging = false;
@@ -107,6 +111,7 @@ public class ThreeDTab extends PreferencePanel
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the 3D tab.
 	 */
+    @Override
 	public void init()
 	{
 		threeDTechnology.setText("Layer cross section for technology '" + curTech.getTechName() + "'");
@@ -126,8 +131,10 @@ public class ThreeDTab extends PreferencePanel
 		{
 			if (layer.isPseudoLayer()) continue;
 			threeDLayerModel.addElement(layer.getName());
-			threeDThicknessMap.put(layer, new GenMath.MutableDouble(layer.getThickness()));
-			threeDDistanceMap.put(layer, new GenMath.MutableDouble(layer.getDistance()));
+            double thickness = getDouble(layer.getThicknessSetting());
+            double distance = getDouble(layer.getDistanceSetting());
+			threeDThicknessMap.put(layer, new GenMath.MutableDouble(thickness));
+			threeDDistanceMap.put(layer, new GenMath.MutableDouble(distance));
 		}
 		threeDLayerList.setSelectedIndex(0);
 		threeDHeight.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
@@ -183,6 +190,7 @@ public class ThreeDTab extends PreferencePanel
 		/**
 		 * Method to repaint this ThreeDSideView.
 		 */
+        @Override
 		public void paint(Graphics g)
 		{
 			Dimension dim = getSize();
@@ -327,34 +335,34 @@ public class ThreeDTab extends PreferencePanel
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the 3D tab.
 	 */
+    @Override
 	public void term()
 	{
 		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			if (layer.isPseudoLayer()) continue;
+			assert !layer.isPseudoLayer();
 			GenMath.MutableDouble thickness = threeDThicknessMap.get(layer);
 			GenMath.MutableDouble height = threeDDistanceMap.get(layer);
-			if (thickness.doubleValue() != layer.getThickness())
-				layer.setThickness(thickness.doubleValue());
-			if (height.doubleValue() != layer.getDistance())
-				layer.setDistance(height.doubleValue());
+            setDouble(layer.getThicknessSetting(), thickness.doubleValue());
+            setDouble(layer.getDistanceSetting(), height.doubleValue());
 		}
 	}
 
 	/**
 	 * Method called when the factory reset is requested.
 	 */
+    @Override
 	public void reset()
 	{
 		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			if (layer.isPseudoLayer()) continue;
-			if (layer.getFactoryThickness() != layer.getThickness())
-				layer.setThickness(layer.getFactoryThickness());
-			if (layer.getFactoryDistance() != layer.getDistance())
-				layer.setDistance(layer.getFactoryDistance());
+			assert !layer.isPseudoLayer();
+            Setting thicknessSetting = layer.getThicknessSetting();
+            Setting distanceSetting = layer.getDistanceSetting();
+            setDouble(thicknessSetting, thicknessSetting.getDoubleFactoryValue());
+            setDouble(distanceSetting, distanceSetting.getDoubleFactoryValue());
 		}
 	}
 

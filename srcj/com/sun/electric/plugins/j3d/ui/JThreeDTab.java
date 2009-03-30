@@ -24,15 +24,16 @@
 package com.sun.electric.plugins.j3d.ui;
 
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DAppearance;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
 
 import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -60,12 +61,13 @@ import javax.vecmath.Vector3f;
 public class JThreeDTab extends ThreeDTab
 {
 	/** Creates new form ThreeDTab */
-	public JThreeDTab(Frame parent, Boolean modal)
+	public JThreeDTab(PreferencesFrame parent, boolean modal)
 	{
-		super(parent, modal.booleanValue());
+		super(parent, modal);
 		initComponents();
 	}
 
+    @Override
 	public JPanel getPanel() { return threeD; }
 
 	private boolean initial3DTextChanging = false;
@@ -79,6 +81,7 @@ public class JThreeDTab extends ThreeDTab
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the 3D tab.
 	 */
+    @Override
 	public void init()
 	{
 		threeDTechnology.setText("Layer cross section for technology '" + curTech.getTechName() + "'");
@@ -101,8 +104,10 @@ public class JThreeDTab extends ThreeDTab
 			threeDLayerModel.addElement(layer.getName());
 //            Layer.Function fun = layer.getFunction();
 
-            threeDThicknessMap.put(layer, new GenMath.MutableDouble(layer.getThickness()));
-			threeDDistanceMap.put(layer, new GenMath.MutableDouble(layer.getDistance()));
+            double thickness = getDouble(layer.getThicknessSetting());
+            double distance = getDouble(layer.getDistanceSetting());
+            threeDThicknessMap.put(layer, new GenMath.MutableDouble(thickness));
+			threeDDistanceMap.put(layer, new GenMath.MutableDouble(distance));
             // Get a copy of JAppearance to set values temporarily
             // this function will generate JAppearance if doesn't exist yet
             J3DAppearance app = J3DAppearance.getAppearance(layer.getGraphics());
@@ -112,7 +117,7 @@ public class JThreeDTab extends ThreeDTab
             transparencyMap.put(layer, newApp);
 
 		}
-        
+
         threeDLayerList.setSelectedIndex(0);
 		threeDHeight.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
 		threeDThickness.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
@@ -245,21 +250,20 @@ public class JThreeDTab extends ThreeDTab
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the 3D tab.
 	 */
+    @Override
 	public void term()
 	{
 		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			if (layer.isPseudoLayer()) continue;
+			assert !layer.isPseudoLayer();
 			GenMath.MutableDouble thickness = threeDThicknessMap.get(layer);
 			GenMath.MutableDouble height = threeDDistanceMap.get(layer);
             J3DAppearance newApp = transparencyMap.get(layer);
             J3DAppearance oldApp = (J3DAppearance)layer.getGraphics().get3DAppearance();
             oldApp.setTransparencyAndRenderingAttributes(newApp.getTransparencyAttributes(), newApp.getRenderingAttributes().getDepthBufferEnable());
-			if (thickness.doubleValue() != layer.getThickness())
-				layer.setThickness(thickness.doubleValue());
-			if (height.doubleValue() != layer.getDistance())
-				layer.setDistance(height.doubleValue());
+            setDouble(layer.getThicknessSetting(), thickness.doubleValue());
+            setDouble(layer.getDistanceSetting(), height.doubleValue());
 		}
 
 		boolean currentBoolean = threeDPerspective.isSelected();
@@ -322,7 +326,7 @@ public class JThreeDTab extends ThreeDTab
             dir.append(GenMath.transformArrayIntoString(values));
         } else
             dir.append(GenMath.transformArrayIntoString(new double[] {0,0,0}));
-        
+
         if (!dir.equals(J3DUtils.get3DLightDirs()))
             J3DUtils.set3DLightDirs(dir.toString());
         int currentInt = TextUtils.atoi(maxNodeField.getText());
@@ -333,12 +337,13 @@ public class JThreeDTab extends ThreeDTab
             J3DUtils.set3DAlpha(currentInt);
 	}
 
+    @Override
 	public void reset()
 	{
 		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			if (layer.isPseudoLayer()) continue;
+			assert !layer.isPseudoLayer();
 			if (!layer.getFactoryTransparencyMode().equals(layer.getTransparencyMode()) ||
 				layer.getFactoryTransparencyFactor() != layer.getTransparencyFactor())
 			{
@@ -346,10 +351,10 @@ public class JThreeDTab extends ThreeDTab
 				layer.setTransparencyFactor(layer.getFactoryTransparencyFactor());
 				layer.getGraphics().set3DAppearance(null);
 			}
-			if (layer.getFactoryThickness() != layer.getThickness())
-				layer.setThickness(layer.getFactoryThickness());
-			if (layer.getFactoryDistance() != layer.getDistance())
-				layer.setDistance(layer.getFactoryDistance());
+            Setting thicknessSetting = layer.getThicknessSetting();
+            Setting distanceSetting = layer.getDistanceSetting();
+            setDouble(thicknessSetting, thicknessSetting.getDoubleFactoryValue());
+            setDouble(distanceSetting, distanceSetting.getDoubleFactoryValue());
 		}
 		if (J3DUtils.isFactory3DPerspective() != J3DUtils.is3DPerspective())
 			J3DUtils.set3DPerspective(J3DUtils.isFactory3DPerspective());

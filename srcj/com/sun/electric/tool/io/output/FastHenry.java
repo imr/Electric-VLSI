@@ -40,12 +40,9 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.simulation.Simulation;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -135,8 +132,7 @@ public class FastHenry extends Output
 				Poly poly = polys[i];
 				Layer layer = poly.getLayer();
 				if (layer == null) continue;
-				Double depth = prefs.layerDepth.get(layer);
-				zDefault = depth != null ? depth.doubleValue() : layer.getFactoryDepth();
+				zDefault = layer.getDepth();
 				break;
 			}
 		}
@@ -151,8 +147,8 @@ public class FastHenry extends Output
 		double startFrequency = Simulation.getFactoryFastHenryStartFrequency();
 		double endFrequency = Simulation.getFactoryFastHenryEndFrequency();
 		int runsPerDecade = Simulation.getFactoryFastHenryRunsPerDecade();
-		Map<Layer,Double> layerDepth = Collections.emptyMap();
 
+        @Override
 		public void fillPrefs()
         {
             super.fillPrefs();
@@ -163,17 +159,6 @@ public class FastHenry extends Output
 			startFrequency = Simulation.getFastHenryStartFrequency();
 			endFrequency = Simulation.getFastHenryEndFrequency();
 			runsPerDecade = Simulation.getFastHenryRunsPerDecade();
-			layerDepth = new HashMap<Layer,Double>();
-			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-			{
-				Technology tech = it.next();
-				for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-				{
-					Layer layer = lIt.next();
-					double depth = layer.getDepth();
-					layerDepth.put(layer, new Double(depth));
-				}
-			}
 		}
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
@@ -206,20 +191,20 @@ public class FastHenry extends Output
 		{
 			printWriter.println("* Written by Electric VLSI Design System");
 		}
-	
+
 		printWriter.println("\n* Units are microns");
 		printWriter.println(".units um");
-	
+
 		// write default width and height subdivisions
 		printWriter.println("");
 		printWriter.println("* Default number of subdivisions");
 		printWriter.println(".Default nwinc=" + localPrefs.widthSubdivisions +
 			" nhinc=" + localPrefs.heightSubdivisions +
 			" h=" + TextUtils.formatDouble(localPrefs.defThickness));
-	
+
 		// reset flags for cells that have been written
 		sim_writefhcell(cell);
-	
+
 		// write frequency range
 		printWriter.println("");
 		if (!localPrefs.useSingleFrequency)
@@ -232,12 +217,12 @@ public class FastHenry extends Output
 			printWriter.println(".freq fmin=" + TextUtils.formatDouble(localPrefs.startFrequency) +
 				" fmax=" + TextUtils.formatDouble(localPrefs.endFrequency) + " ndec=1");
 		}
-	
+
 		// clean up
 		printWriter.println("");
 		printWriter.println(".end");
 	}
-	
+
 	/**
 	 * Method to print the FastHenry description of cell "cell".
 	 */
@@ -271,7 +256,7 @@ public class FastHenry extends Output
 				found = true;
 			}
 			if (!found) continue;
-	
+
 			// node is an end point: get its name
 			String nname = ni.getName();
 			if (ni.hasExports())
@@ -279,7 +264,7 @@ public class FastHenry extends Output
 				Export e = ni.getExports().next();
 				nname = e.getName();
 			}
-	
+
 			// write the "N" line
 			double x = TextUtils.convertDistance(ni.getTrueCenterX(), cell.getTechnology(), TextUtils.UnitScale.MICRO);
 			double y = TextUtils.convertDistance(ni.getTrueCenterY(), cell.getTechnology(), TextUtils.UnitScale.MICRO);
@@ -287,7 +272,7 @@ public class FastHenry extends Output
 			printWriter.println("N_" + nname + " x=" + TextUtils.formatDouble(x) +
 				" y=" + TextUtils.formatDouble(y) + " z=" + TextUtils.formatDouble(z));
 		}
-	
+
 		// look at every arc in the cell
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
@@ -295,10 +280,10 @@ public class FastHenry extends Output
 			// get info about this arc, stop if not part of the FastHenry output
 			FastHenryArcInfo fhai = new FastHenryArcInfo(ai, localPrefs);
 			if (fhai.getGroupName() == null) continue;
-	
+
 			// get size
 			double wid = ai.getLambdaBaseWidth();
-	
+
 			// get the name of the nodes on each end
 			NodeInst n1 = ai.getHeadPortInst().getNodeInst();
 			String n1Name = n1.getName();
@@ -308,7 +293,7 @@ public class FastHenry extends Output
 			String n2Name = n2.getName();
 			if (n2.hasExports())
 				n2Name = n2.getExports().next().getName();
-	
+
 			// write the "E" line
 			double w = TextUtils.convertDistance(wid, cell.getTechnology(), TextUtils.UnitScale.MICRO);
 			StringBuffer sb = new StringBuffer();
@@ -322,11 +307,11 @@ public class FastHenry extends Output
 			if (fhai.getHeightSubdivisions() > 0) sb.append(" nhinc=" + Integer.toString(fhai.getHeightSubdivisions()));
 			printWriter.println(sb.toString());
 		}
-	
+
 		// find external connections
 		printWriter.println("");
 		printWriter.println("* External connections");
-	
+
 		// look at every export in the cell
 		Set<ArcInst> arcsSeen = new HashSet<ArcInst>();
 		Set<Export> portsSeen = new HashSet<Export>();
@@ -344,7 +329,7 @@ public class FastHenry extends Output
 				con = null;
 			}
 			if (con == null) continue;
-	
+
 			// port "pp" is one end, now find the other
             int thatEnd = 1 - con.getEndIndex();
 			Export oE = sim_fasthenryfindotherport(con.getArc(), thatEnd, arcsSeen);
@@ -353,12 +338,12 @@ public class FastHenry extends Output
 				reportWarning("Warning: trace on export " + e.getName() + " has no other end that is an export");
 				continue;
 			}
-	
+
 			// found two ports: write the ".external" line
 			portsSeen.add(oE);
 			printWriter.println(".external N_" + e.getName() + " N_" + oE.getName());
 		}
-	
+
 		// warn about arcs that aren't connected to ".external" lines
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
@@ -368,7 +353,7 @@ public class FastHenry extends Output
 			reportWarning("Warning: " + ai + " is not connected to an export");
 		}
 	}
-	
+
 	private Export sim_fasthenryfindotherport(ArcInst ai, int end, Set<ArcInst> arcsSeen)
 	{
 		arcsSeen.add(ai);

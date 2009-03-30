@@ -32,16 +32,12 @@ import com.sun.electric.database.id.LayerId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.technology.xml.XmlParam;
-import com.sun.electric.tool.user.Resources;
 
 import java.awt.Color;
 import java.io.IOException;
 import java.io.InvalidObjectException;
-import java.io.NotSerializableException;
 import java.io.PrintWriter;
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -691,6 +687,8 @@ public class Layer implements Serializable
     private Setting resistanceSetting;
     private Setting capacitanceSetting;
     private Setting edgeCapacitanceSetting;
+	private Setting layer3DThicknessSetting;
+	private Setting layer3DDistanceSetting;
 
 	private final Pref usePatternDisplayPref;
 	private final Pref usePatternPrinterPref;
@@ -700,8 +698,6 @@ public class Layer implements Serializable
 	private final Pref colorPref;
 	private final Pref patternPref;
     // 3D options
-	private Pref layer3DThicknessPref;
-	private Pref layer3DDistancePref;
     private Pref layer3DTransModePref; // NONE is the default
     private Pref layer3DTransFactorPref; // 0 is the default
 
@@ -1060,6 +1056,14 @@ public class Layer implements Serializable
                 getName(), "Parasitic tab", "Technology " + tech.getTechName() + ", " + what + " for layer " + getName(), factory);
     }
 
+    private Setting make3DSetting(String what, double factory)
+    {
+        factory = DBMath.round(factory);
+        return getSubNode(what).makeDoubleSetting(what + "Of" + getName() + "IN" + tech.getTechName(),
+                tech.getTechnologyPreferences().relativePath(),
+                getName(), "3D tab", "Technology " + tech.getTechName() + ", 3D " + what + " for layer " + getName(), factory);
+    }
+
     private Setting.Group getSubNode(String type) {
         return tech.getProjectSettings().node(type);
     }
@@ -1141,8 +1145,8 @@ public class Layer implements Serializable
         if (mode == null)
             mode = DEFAULT_MODE;
         // We don't call setDistance and setThickness directly here due to reflection code.
-        layer3DDistancePref = makeDoublePref("Distance", distance);
-		layer3DThicknessPref = makeDoublePref("Thickness", thickness);
+        layer3DDistanceSetting = make3DSetting("Distance", distance);
+		layer3DThicknessSetting = make3DSetting("Thickness", thickness);
         layer3DTransModePref = makeStringPref("3DTransparencyMode", mode);
         layer3DTransFactorPref =  makeDoublePref("3DTransparencyFactor", factor);
 //        getDoublePref("Distance", layer3DDistancePrefs, distance).setFactoryDouble(distance);
@@ -1217,50 +1221,29 @@ public class Layer implements Serializable
         return layer3DTransFactorPref.getDoubleFactoryValue();
     }
 
-    /**
+	/**
 	 * Method to return the distance of this layer, by default.
 	 * The higher the distance value, the farther from the wafer.
 	 * @return the distance of this layer above the ground plane, by default.
 	 */
-	public double getDistance() {
-        if (isPseudoLayer())
-            return getNonPseudoLayer().getDistance();
-        return layer3DDistancePref.getDouble();
-    }
-
-    /**
-	 * Method to return the distance of this layer, by default.
-	 * The higher the distance value, the farther from the wafer.
-	 * @return the distance of this layer above the ground plane, by default.
+	public double getDistance() { return layer3DDistanceSetting.getDouble(); }
+	/**
+	 * Returns project Setting to tell the distance of this layer.
+	 * @return project Setting to tell the distance of this layer.
 	 */
-	public double getFactoryDistance() {
-        if (isPseudoLayer())
-            return getNonPseudoLayer().getFactoryDistance();
-        return layer3DDistancePref.getDoubleFactoryValue();
-    }
+	public Setting getDistanceSetting() { return layer3DDistanceSetting; }
 
 	/**
-	 * Method to set the distance of this layer.
-	 * The higher the distance value, the farther from the wafer.
-	 * @param distance the distance of this layer above the ground plane.
+	 * Method to return the thickness of this layer, by default.
+	 * Layers can have a thickness of 0, which causes them to be rendered flat.
+	 * @return the distance of this layer above the ground plane, by default.
 	 */
-	public void setDistance(double distance)
-    {
-        assert !isPseudoLayer();
-        // Not done with observer/observable to avoid long list of elements attached to this class
-        // so reflection will be used.
-        try
-        {
-            Class<?> viewClass = Resources.get3DClass("View3DWindow");
-            Method setMethod = viewClass.getDeclaredMethod("setZValues", new Class[] {Layer.class, Double.class, Double.class, Double.class, Double.class});
-            setMethod.invoke(viewClass,  new Object[] {this, new Double(getDistance()), new Double(getThickness()), new Double(distance), new Double(getThickness())});
-        } catch (Exception e) {
-            String extra = (e.getMessage() != null) ? " due to: " + e.getMessage() : ".";
-            System.out.print("Cannot call 3D plugin method setZValues" + extra);
-//            e.printStackTrace();
-        }
-        layer3DDistancePref.setDouble(distance);
-    }
+	public double getThickness() { return layer3DThicknessSetting.getDouble(); }
+	/**
+	 * Returns project Setting to tell the thickness of this layer.
+	 * @return project Setting to tell the thickness of this layer.
+	 */
+	public Setting getThicknessSetting() { return layer3DThicknessSetting; }
 
 	/**
 	 * Method to calculate Z value of the upper part of the layer.
@@ -1269,59 +1252,7 @@ public class Layer implements Serializable
      * Don't call distance+thickness because those are factory values.
 	 * @return Depth of the layer
 	 */
-	public double getDepth() { return (getDistance()+getThickness()); }
-
-	/**
-	 * Method to calculate Z value of the upper part of the layer, by default.
-	 * Note: not called getHeight to avoid confusion
-	 * with getDistance())
-     * Don't call distance+thickness because those are factory values.
-	 * @return Depth of the layer
-	 */
-	public double getFactoryDepth() { return (getFactoryDistance()+getFactoryThickness()); }
-
-	/**
-	 * Method to return the thickness of this layer.
-	 * Layers can have a thickness of 0, which causes them to be rendered flat.
-	 * @return the thickness of this layer.
-	 */
-	public double getThickness() {
-        if (isPseudoLayer())
-            return 0;
-        return layer3DThicknessPref.getDouble();
-    }
-	/**
-	 * Method to return the thickness of this layer, by default.
-	 * Layers can have a thickness of 0, which causes them to be rendered flat.
-	 * @return the thickness of this layer, by default.
-	 */
-	public double getFactoryThickness() {
-        if (isPseudoLayer())
-            return 0;
-        return layer3DThicknessPref.getDoubleFactoryValue();
-    }
-
-	/**
-	 * Method to set the thickness of this layer.
-	 * Layers can have a thickness of 0, which causes them to be rendered flat.
-	 * @param thickness the thickness of this layer.
-	 */
-	public void setThickness(double thickness)
-    {
-        assert !isPseudoLayer();
-        // Not done with observer/observable to avoid long list of elements attached to this class
-        // so reflection will be used.
-        try
-        {
-            Class<?> viewClass = Resources.get3DClass("View3DWindow");
-            Method setMethod = viewClass.getDeclaredMethod("setZValues", new Class[] {Layer.class, Double.class, Double.class, Double.class, Double.class});
-            setMethod.invoke(viewClass,  new Object[] {this, new Double(getDistance()), new Double(getThickness()), new Double(getDistance()), new Double(thickness)});
-        } catch (Exception e) {
-            System.out.println("Cannot call 3D plugin method setZValues: " + e.getMessage());
-            e.printStackTrace();
-        }
-        layer3DThicknessPref.setDouble(thickness);
-    }
+	public double getDepth() { return DBMath.round(getDistance()+getThickness()); }
 
 	/**
 	 * Method to set the factory-default CIF name of this Layer.
@@ -1533,9 +1464,9 @@ public class Layer implements Serializable
         if (skillLayerSetting == null) {
             setFactorySkillLayer("");
         }
-        if (layer3DThicknessPref == null || layer3DDistancePref == null || layer3DTransModePref == null || layer3DTransFactorPref == null) {
-            double thickness = layer3DThicknessPref != null ? getThickness() : DEFAULT_THICKNESS;
-            double distance = layer3DDistancePref != null ? getDistance() : DEFAULT_DISTANCE;
+        if (layer3DThicknessSetting == null || layer3DDistanceSetting == null || layer3DTransModePref == null || layer3DTransFactorPref == null) {
+            double thickness = layer3DThicknessSetting != null ? getThickness() : DEFAULT_THICKNESS;
+            double distance = layer3DDistanceSetting != null ? getDistance() : DEFAULT_DISTANCE;
             String mode = layer3DTransModePref != null ? getTransparencyMode() : DEFAULT_MODE;
             double factor = layer3DTransFactorPref != null ? getTransparencyFactor() : DEFAULT_FACTOR;
             setFactory3DInfo(thickness, distance, mode, factor);
@@ -1593,10 +1524,8 @@ public class Layer implements Serializable
         for (int p: pattern)
             out.print(" " + Integer.toHexString(p));
         out.println();
-        if (layer3DDistancePref != null)
-            out.println("\tdistance3D=" + getFactoryDistance());
-        if (layer3DThicknessPref != null)
-            out.println("\tthickness3D=" + getFactoryThickness());
+        out.println("\tdistance3D=" + getDistanceSetting().getDoubleFactoryValue());
+        out.println("\tthickness3D=" + getThicknessSetting().getDoubleFactoryValue());
         if (layer3DTransModePref != null)
             out.println("\tmode3D=" + getFactoryTransparencyMode());
         if (layer3DTransFactorPref != null)
@@ -1616,13 +1545,10 @@ public class Layer implements Serializable
         l.function = getFunction();
         l.extraFunction = getFunctionExtras();
         l.desc = getGraphics();
-        if (getFactoryThickness() != DEFAULT_THICKNESS || getFactoryDistance() != DEFAULT_DISTANCE ||
-                !getFactoryTransparencyMode().equals(DEFAULT_MODE) || getFactoryTransparencyFactor() != DEFAULT_FACTOR) {
-            l.thick3D = getFactoryThickness();
-            l.height3D = getFactoryDistance();
-            l.mode3D = getFactoryTransparencyMode();
-            l.factor3D = getFactoryTransparencyFactor();
-        }
+        l.height3D = getDistanceSetting().getDoubleFactoryValue();
+        l.thick3D = getThicknessSetting().getDoubleFactoryValue();
+        l.mode3D = getFactoryTransparencyMode();
+        l.factor3D = getFactoryTransparencyFactor();
         l.cif = (String)getCIFLayerSetting().getFactoryValue();
         l.skill = (String)getSkillLayerSetting().getFactoryValue();
         l.resistance = getResistanceSetting().getDoubleFactoryValue();
@@ -1647,54 +1573,5 @@ public class Layer implements Serializable
             }
         }
         return l;
-    }
-
-    /**
-     * Method to create parameterized XML.
-     * @return
-     */
-    XmlParam.Layer makeXmlParam(XmlParam.Technology t, XmlParam.DisplayStyle displayStyle) {
-        XmlParam.Layer l = t.newLayer(getName());
-        l.function = getFunction();
-        l.extraFunction = getFunctionExtras();
-        l.cif = (String)getCIFLayerSetting().getFactoryValue();
-        l.skill = (String)getSkillLayerSetting().getFactoryValue();
-        l.resistance = getResistanceSetting().getDoubleFactoryValue();
-        l.capacitance = getCapacitanceSetting().getDoubleFactoryValue();
-        l.edgeCapacitance = getEdgeCapacitanceSetting().getDoubleFactoryValue();
-//            if (layer.getPseudoLayer() != null)
-//                l.pseudoLayer = layer.getPseudoLayer().getName();
-        if (pureLayerNode != null) {
-            l.pureLayerNode = new XmlParam.PureLayerNode();
-            l.pureLayerNode.name = pureLayerNode.getName();
-            for (Map.Entry<String,PrimitiveNode> e: tech.getOldNodeNames().entrySet()) {
-                if (e.getValue() != pureLayerNode) continue;
-                assert l.pureLayerNode.oldName == null;
-                l.pureLayerNode.oldName = e.getKey();
-            }
-            l.pureLayerNode.style = pureLayerNode.getLayers()[0].getStyle();
-            l.pureLayerNode.port = pureLayerNode.getPort(0).getName();
-            for (ArcProto ap: pureLayerNode.getPort(0).getConnections()) {
-                if (ap.getTechnology() != tech) continue;
-                l.pureLayerNode.portArcs.add(ap.getName());
-            }
-        }
-
-        XmlParam.LayerDisplayStyle lds = displayStyle.newLayer(l);
-        lds.desc = getGraphics();
-        if (!getTransparencyMode().equals(DEFAULT_MODE) || getTransparencyFactor() != DEFAULT_FACTOR) {
-            lds.mode3D = getTransparencyMode();
-            lds.factor3D = getTransparencyFactor();
-        }
-
-        return l;
-    }
-
-    void makeXmlParam(XmlParam.Technology t,
-            Map<XmlParam.Layer,XmlParam.Distance> thick3D, Map<XmlParam.Layer,XmlParam.Distance> height3D) {
-        XmlParam.Layer l = t.findLayer(getName());
-        XmlParam.Distance dist;
-        dist = new XmlParam.Distance(); dist.addLambda(getThickness()); thick3D.put(l, dist);
-        dist = new XmlParam.Distance(); dist.addLambda(getDistance()); height3D.put(l, dist);
     }
 }
