@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09g: ******************************
 
+BUG: (3/30/09, GVG) Empty list and exception in Change dialog (Bug #2104)
+FIX: Making sure the loadInfo call is after the highlighting list is filled.
+
 IMP: (3/30/09, DN) 3D distnace and 3D thickness are Settings.
    View3DWindow tracks undo/redo of Settings.
 
