@@ -527,15 +527,7 @@ public class Artwork extends Technology
 		if (!electrical && ni.isWiped())
             return new Poly[0];
 
-        Layer layerOverride;
-        EGraphics graphicsOverride;
-        if (Poly.POLY_GRAPHICS_OVERRIDE) {
-            layerOverride = defaultLayer;
-            graphicsOverride = makeGraphics(ni.getD());
-        } else {
-            layerOverride = getProperLayer(ni.getD());
-            graphicsOverride = null;
-        }
+        EGraphics graphicsOverride = makeGraphics(ni.getD());
 
 		if (np == circleNode || np == thickCircleNode)
 		{
@@ -550,7 +542,7 @@ public class Artwork extends Technology
 				if (np == circleNode) polys[0].setStyle(Poly.Type.OPENED); else
 					polys[0].setStyle(Poly.Type.OPENEDT3);
 //				Technology.NodeLayer primLayer = primLayers[0];
-				polys[0].setLayer(layerOverride);
+				polys[0].setLayer(defaultLayer);
                 polys[0].setGraphicsOverride(graphicsOverride);
 				return polys;
 			}
@@ -571,7 +563,7 @@ public class Artwork extends Technology
 				if (np == circleNode) polys[0].setStyle(Poly.Type.CIRCLEARC); else
 					polys[0].setStyle(Poly.Type.THICKCIRCLEARC);
 //				Technology.NodeLayer primLayer = primLayers[0];
-				polys[0].setLayer(layerOverride);
+				polys[0].setLayer(defaultLayer);
                 polys[0].setGraphicsOverride(graphicsOverride);
 				return polys;
 			}
@@ -587,12 +579,12 @@ public class Artwork extends Technology
 				polys[0] = new Poly(pointList);
 				polys[0].setStyle(Poly.Type.OPENED);
 //				Technology.NodeLayer primLayer = primLayers[0];
-				polys[0].setLayer(layerOverride);
+				polys[0].setLayer(defaultLayer);
                 polys[0].setGraphicsOverride(graphicsOverride);
 				return polys;
 			}
 		}
-		return computeShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride, graphicsOverride);
+		return computeShapeOfNode(ni, electrical, reasonable, primLayers, graphicsOverride);
 	}
 
 	/**
@@ -620,10 +612,7 @@ public class Artwork extends Technology
 	 */
 	@Override
 	protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a) {
-        if (Poly.POLY_GRAPHICS_OVERRIDE)
-            getShapeOfArc(b, a, null, makeGraphics(a));
-        else
-            getShapeOfArc(b, a, getProperLayer(a), null);
+        getShapeOfArc(b, a, makeGraphics(a));
 	}
 
 	/**
@@ -820,30 +809,6 @@ public class Artwork extends Technology
 		points[out++] = new Point2D.Double(getTracePointX(tracePoints, count-1, cX),
 			getTracePointY(tracePoints, count-1, cY));
 		return points;
-	}
-
-	/**
-	 * Method to return the Layer to use for an Artwork ImmutableElectricObject.
-	 * If there are individualized color and pattern Variables on the ImmutableElectricObject,
-	 * they are used to construct a new Layer (with a new EGraphics that captures
-	 * the color and pattern).
-	 * @param d the ImmutableElectricObject with individualized color and pattern information.
-	 * @return a Layer that has the color and pattern.
-	 */
-	private Layer getProperLayer(ImmutableElectricObject d)
-	{
-		EGraphics graphics = makeGraphics(d);
-		if (graphics == null)
-		{
-            // The code below was moved to User.setColor()
-//			int col = User.getColor(User.ColorPrefType.ARTWORK) & 0xFFFFFF;
-//			EGraphics eg = defaultLayer.getGraphics();
-//			if (eg.getRGB() != col)
-//				eg.setColorIndex(EGraphics.makeIndex(new Color(col)));
-			return defaultLayer;
-		}
-		Layer thisLayer = Layer.newInstanceFree(this, "Graphics", graphics);
-		return thisLayer;
 	}
 
 	/**

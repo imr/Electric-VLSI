@@ -1199,8 +1199,7 @@ public class VectorCache {
                 int layerIndex = -1;
 				if (layer != null && poly.getGraphicsOverride() == null)
 				{
-                    Technology tech = layer.getTechnology();
-                    if (tech != null && !layer.isFree() && vc.vcg != null && tech.getId() == vc.vcg.cellBackup.cellRevision.d.techId)
+                    if (vc.vcg != null && layer.getId().techId == vc.vcg.cellBackup.cellRevision.d.techId)
                         layerIndex = layer.getIndex();
 				}
                 if (layerIndex >= 0) {

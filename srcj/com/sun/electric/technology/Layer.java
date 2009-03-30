@@ -676,8 +676,6 @@ public class Layer implements Serializable
      ***************************************************************************************************/
 
     private final LayerId layerId;
-	private final String name;
-    private final boolean isFree;
 	private int index = -1; // contains index in technology or -1 for standalone layers
 	private final Technology tech;
 	private EGraphics graphics;
@@ -713,11 +711,9 @@ public class Layer implements Serializable
 	/** true if dimmed (drawn darker) undimmed layers are highlighted */	private boolean dimmed;
 	/** the pure-layer node that contains just this layer */				private PrimitiveNode pureLayerNode;
 
-	private Layer(String name, boolean isFree, boolean pseudo, Technology tech, EGraphics graphics)
+	private Layer(String name, boolean pseudo, Technology tech, EGraphics graphics)
 	{
-        layerId = isFree ? null : tech.getId().newLayerId(name);
-		this.name = name;
-        this.isFree = isFree;
+        layerId = tech.getId().newLayerId(name);
 		this.tech = tech;
 		this.graphics = graphics;
         this.factoryGraphics = new EGraphics(graphics);
@@ -744,8 +740,6 @@ public class Layer implements Serializable
 
         @Override
         public void writeExternal(EObjectOutputStream out, Layer layer) throws IOException {
-            if (layer.isFree())
-                throw new NotSerializableException();
             out.writeObject(layer.getTechnology());
             out.writeInt(layer.getId().chronIndex);
         }
@@ -777,26 +771,12 @@ public class Layer implements Serializable
             if ((colorFromMap.getRGB() & 0xFFFFFF) != graphics.getRGB())
                 throw new IllegalArgumentException();
         }
-		Layer layer = new Layer(name, false, false, tech, graphics);
+		Layer layer = new Layer(name, false, tech, graphics);
 		tech.addLayer(layer);
         if (graphics.getLayer() == null) {
 //            layer.loadGraphicsFromPrefs();
             graphics.setLayer(layer);
         }
-		return layer;
-	}
-
-	/**
-	 * Method to create a new layer with the given name and graphics.
-     * Layer is not attached to any technology but still has a technology pointer.
-	 * @param name the name of the layer.
-	 * @param graphics the appearance of the layer.
-	 * @return the Layer object.
-	 */
-	public static Layer newInstanceFree(Technology tech, String name, EGraphics graphics)
-	{
-		Layer layer = new Layer(name, true, false, tech, graphics);
-		graphics.setLayer(layer);
 		return layer;
 	}
 
@@ -807,7 +787,7 @@ public class Layer implements Serializable
     public Layer makePseudo() {
             assert pseudoLayer == null;
         String pseudoLayerName = "Pseudo-" + getName();
-        pseudoLayer = new Layer(pseudoLayerName, false, true, tech, graphics);
+        pseudoLayer = new Layer(pseudoLayerName, true, tech, graphics);
         pseudoLayer.setFunction(function, functionExtras);
         pseudoLayer.nonPseudoLayer = this;
         return pseudoLayer;
@@ -823,14 +803,14 @@ public class Layer implements Serializable
 	 * Method to return the name of this Layer.
 	 * @return the name of this Layer.
 	 */
-	public String getName() { return name; }
+	public String getName() { return layerId.name; }
 
 	/**
 	 * Method to return the full name of this Layer.
 	 * Full name has format "techName:layerName"
 	 * @return the full name of this Layer.
 	 */
-	public String getFullName() { return layerId != null ? layerId.fullName : ":" + name; }
+	public String getFullName() { return layerId.fullName; }
 
 	/**
 	 * Method to return the index of this Layer.
@@ -845,12 +825,6 @@ public class Layer implements Serializable
 	 * @param index the index of this Layer.
 	 */
 	public void setIndex(int index) { this.index = index; }
-
-	/**
-	 * Returns true if this Layer is not attached to a technology.
-	 * @return true if this Layer is not attached to a technology.
-	 */
-	public boolean isFree() { return isFree; }
 
 	/**
 	 * Method to return the Technology of this Layer.
@@ -1026,7 +1000,6 @@ public class Layer implements Serializable
 	 */
 	public void factoryResetGraphics()
 	{
-    	if (isFree()) return;
         usePatternDisplayPref.factoryReset();
         usePatternPrinterPref.factoryReset();
         outlinePatternPref.factoryReset();
@@ -1042,7 +1015,6 @@ public class Layer implements Serializable
 	 * Method to save the graphics on this Layer in Prefs.
 	 */
     public void graphicsChanged() {
-        if (isFree()) return;
         usePatternDisplayPref.setBoolean(graphics.isPatternedOnDisplay());
         usePatternPrinterPref.setBoolean(graphics.isPatternedOnPrinter());
         outlinePatternPref.setInt(graphics.getOutlined().getIndex());
@@ -1057,7 +1029,6 @@ public class Layer implements Serializable
 	 * Called after new preferences have been imported.
 	 */
     public void loadGraphicsFromPrefs() {
-        if (isFree()) return;
         boolean usePatternDisplay = usePatternDisplayPref.getBoolean();
         boolean usePatternPrinter = usePatternPrinterPref.getBoolean();
         EGraphics.Outline outline = EGraphics.Outline.findOutline(outlinePatternPref.getInt());
@@ -1101,7 +1072,7 @@ public class Layer implements Serializable
 	 */
     private Pref makeStringPref(String what, String factory)
 	{
-        if (isFree() || isPseudoLayer()) return null;
+        if (isPseudoLayer()) return null;
         return Pref.makeStringPref(what + "Of" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
@@ -1113,7 +1084,7 @@ public class Layer implements Serializable
 	 */
     private Pref makeBooleanPref(String what, boolean factory)
 	{
-        if (isFree() || isPseudoLayer()) return null;
+        if (isPseudoLayer()) return null;
         return Pref.makeBooleanPref(what + "Of" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
@@ -1125,7 +1096,7 @@ public class Layer implements Serializable
 	 */
 	private Pref makeDoublePref(String what, double factory)
 	{
-        if (isFree() || isPseudoLayer()) return null;
+        if (isPseudoLayer()) return null;
         return Pref.makeDoublePref(what + "Of" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
@@ -1137,7 +1108,7 @@ public class Layer implements Serializable
 	 */
 	private Pref makeIntegerPref(String what, int factory)
 	{
-        if (isFree() || isPseudoLayer()) return null;
+        if (isPseudoLayer()) return null;
         return Pref.makeIntPref(what + "Of" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
@@ -1149,7 +1120,7 @@ public class Layer implements Serializable
 	 */
 	private Pref makeDoubleServerPref(String what, double factory)
 	{
-        if (isFree() || isPseudoLayer()) return null;
+        if (isPseudoLayer()) return null;
         return Pref.makeDoubleServerPref(what + "Of" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 

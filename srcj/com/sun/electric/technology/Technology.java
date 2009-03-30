@@ -2315,17 +2315,16 @@ public class Technology implements Comparable<Technology>, Serializable
      * @param a the ImmutableArcInst that is being described.
      */
     protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a) {
-        getShapeOfArc(b, a, null, null);
+        getShapeOfArc(b, a, null);
     }
 
     /**
      * Fill the polygons that describe arc "a".
      * @param b AbstractShapeBuilder to fill polygons.
      * @param a the ImmutableArcInst that is being described.
-     * @param layerOverride the layer to use for all generated polygons (if not null).
      * @param graphicsOverride the graphics to use for all generated polygons (if not null).
      */
-    protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a, Layer layerOverride, EGraphics graphicsOverride) {
+    protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a, EGraphics graphicsOverride) {
         // get information about the arc
         assert a.protoId.techId == techId;
         ArcProto ap = getArcProto(a.protoId);
@@ -2338,9 +2337,6 @@ public class Technology implements Comparable<Technology>, Serializable
                 Technology.ArcLayer primLayer = ap.getArcLayer(i);
                 Layer layer = primLayer.getLayer();
                 if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) continue;
-                if (Poly.POLY_GRAPHICS_OVERRIDE)
-                    assert layerOverride == null;
-                if (layerOverride != null) layer = layerOverride;
 
                 // remove a gap for the negating bubble
                 int angle = a.getAngle();
@@ -2362,9 +2358,6 @@ public class Technology implements Comparable<Technology>, Serializable
                 Technology.ArcLayer primLayer = ap.getArcLayer(i);
                 Layer layer = primLayer.getLayer();
                 if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) continue;
-                if (Poly.POLY_GRAPHICS_OVERRIDE)
-                    assert layerOverride == null;
-                if (layerOverride != null) layer = layerOverride;
                 b.makeGridPoly(a, 2*(a.getGridExtendOverMin() + ap.getLayerGridExtend(i)), primLayer.getStyle(), layer, graphicsOverride);
             }
         }
@@ -2897,7 +2890,7 @@ public class Technology implements Comparable<Technology>, Serializable
 			}
 		}
 
-		return computeShapeOfNode(ni, electrical, reasonable, primLayers, null, null);
+		return computeShapeOfNode(ni, electrical, reasonable, primLayers, null);
 	}
 
 	/**
@@ -2916,12 +2909,11 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
 	 * The minimal set covers all edge contacts, but ignores the inner cuts in large contacts.
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
-	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @param graphicsOverride the graphics override to use for all generated polygons (if not null).
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 */
-	protected Poly [] computeShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride, EGraphics graphicsOverride)
+	protected Poly [] computeShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, EGraphics graphicsOverride)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
         ERectangle fullRectangle = np.getFullRectangle();
@@ -2955,8 +2947,7 @@ public class Technology implements Comparable<Technology>, Serializable
 							Poly poly = new Poly(pointList);
 							Technology.NodeLayer primLayer = primLayers[0];
 							poly.setStyle(primLayer.getStyle());
-							if (layerOverride != null) poly.setLayer(layerOverride); else
-								poly.setLayer(primLayer.getLayer());
+							poly.setLayer(primLayer.getLayer());
                             poly.setGraphicsOverride(graphicsOverride);
 							if (electrical)
 							{
@@ -2983,8 +2974,7 @@ public class Technology implements Comparable<Technology>, Serializable
 					polys[0] = new Poly(pointList);
 					Technology.NodeLayer primLayer = primLayers[0];
 					polys[0].setStyle(primLayer.getStyle());
-					if (layerOverride != null) polys[0].setLayer(layerOverride); else
-						polys[0].setLayer(primLayer.getLayer());
+					polys[0].setLayer(primLayer.getLayer());
                     polys[0].setGraphicsOverride(graphicsOverride);
 					if (electrical)
 					{
@@ -3068,7 +3058,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	                polys[fillPoly].setPort(port);
 	                fillPoly++;
 	            }
-                assert layerOverride == null && graphicsOverride == null;
+                assert graphicsOverride == null;
 	            continue;
 	        }
 
@@ -3116,7 +3106,7 @@ public class Technology implements Comparable<Technology>, Serializable
                     polys[fillPoly].setPort(port);
                     fillPoly++;
                 }
-                assert layerOverride == null && graphicsOverride == null;
+                assert graphicsOverride == null;
                 continue;
             }
 
@@ -3127,8 +3117,7 @@ public class Technology implements Comparable<Technology>, Serializable
 				polys[fillPoly].setTextDescriptor(primLayer.getDescriptor());
 			}
 			polys[fillPoly].setStyle(style);
-			if (layerOverride != null) polys[fillPoly].setLayer(layerOverride); else
-				polys[fillPoly].setLayer(primLayer.getLayerOrPseudoLayer());
+			polys[fillPoly].setLayer(primLayer.getLayerOrPseudoLayer());
             polys[fillPoly].setGraphicsOverride(graphicsOverride);
 			if (electrical && np.getNumPorts() > 0)
 			{

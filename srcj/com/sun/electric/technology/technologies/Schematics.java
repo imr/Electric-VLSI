@@ -2153,7 +2153,7 @@ public class Schematics extends Technology
 				primLayers = blobLayers;
 			}
 		}
-		return computeShapeOfNode(ni, electrical, reasonable, primLayers, null, null);
+		return computeShapeOfNode(ni, electrical, reasonable, primLayers, null);
 	}
 
 	/**

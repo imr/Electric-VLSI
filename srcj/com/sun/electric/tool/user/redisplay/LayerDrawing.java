@@ -1819,7 +1819,7 @@ class LayerDrawing
     ERaster getRaster(Layer layer, EGraphics graphics, boolean forceVisible) {
         if (layer != null)
             layer = layer.getNonPseudoLayer();
-        if (layer == null || layer.isFree()) {
+        if (layer == null) {
             layer = Artwork.tech().defaultLayer;
             graphics = layer.getGraphics();
         }
