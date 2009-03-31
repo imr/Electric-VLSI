@@ -27,21 +27,18 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.user.Resources;
 
 import java.awt.Color;
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Observable;
 
 /**
  * Class to define the appearance of a piece of geometry.
  */
-public class EGraphics extends Observable implements Cloneable, Serializable
+public class EGraphics implements Cloneable, Serializable
 {
     public static final J3DTransparencyOption DEFAULT_MODE = J3DTransparencyOption.NONE; // 3D default transparency mode DEFAULT_FACTOR
     public static final double DEFAULT_FACTOR = 0.0; // 3D default transparency factor
@@ -155,7 +152,6 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	/** stipple pattern to draw with proper bit order */	private int [] reversedPattern;
     /** 3D transparency mode */                             private J3DTransparencyOption transparencyMode;
     /** 3D transparency mode */                             private double transparencyFactor;
-	/** 3D appearance */									private Object appearance3D;
 
 	/**
 	 * There are 3 ways to encode color in an integer.
@@ -615,21 +611,6 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		blue = color.getBlue();
 		if (layer != null)
             layer.graphicsChanged();
-
-		// update any color used in 3D view if available
-		Object obj3D = get3DAppearance();
-
-		if (obj3D != null)
-		{
-			Class<?> app3DClass = Resources.get3DClass("utils.J3DAppearance");
-			try
-			{
-				Method setColorMethod3DClass = app3DClass.getDeclaredMethod("set3DColor", new Class[] {Object.class, Color.class});
-				setColorMethod3DClass.invoke(obj3D, new Object[]{null, color});
-			} catch (Exception e) {
-				System.out.println("Cannot call 3D plugin method set3DColor: " + e.getMessage());
-			}
-		}
 	}
 
     public void setRGB(int color) {
@@ -941,29 +922,6 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		if (layer != null)
             layer.graphicsChanged();
     }
-
-	/**
-	 * Method to set 3D appearance. If Java3D, Appearance class will be the type.
-	 * @param obj
-	 */
-	public void set3DAppearance(Object obj) {appearance3D = obj;}
-
-	/**
-	 * Method to retrieve current 3D appearance.
-	 * @return the current 3D appearance.
-	 */
-	public Object get3DAppearance() {return appearance3D;}
-
-	/**
-	 * Method to notify 3D observers
-	 * @param layerVis
-	 */
-	public void notifyVisibility(Boolean layerVis)
-	{
-		setChanged();
-		notifyObservers(layerVis);
-		clearChanged();
-	}
 
     public EGraphics withPatternedOnDisplay(boolean p) { throw new UnsupportedOperationException(); }
     public EGraphics withPatternedOnPrinter(boolean p) { throw new UnsupportedOperationException(); }

@@ -741,7 +741,7 @@ public class View3DWindow extends JPanel
                 J3DUtils.correctNormals(topList, bottomList);
                 System.arraycopy(topList.toArray(), 0, pts, 0, 4);
                 System.arraycopy(bottomList.toArray(), 0, pts, 4, 4);
-                boxList.add(J3DUtils.addShape3D(pts, 4, J3DAppearance.getAppearance(layer.getGraphics()), objTrans));
+                boxList.add(J3DUtils.addShape3D(pts, 4, J3DAppearance.getAppearance(layer), objTrans));
 
                 // Second polyhedron
                 topList.clear();
@@ -757,7 +757,7 @@ public class View3DWindow extends JPanel
                 J3DUtils.correctNormals(topList, bottomList);
                 System.arraycopy(topList.toArray(), 0, pts, 0, 4);
                 System.arraycopy(bottomList.toArray(), 0, pts, 4, 4);
-                boxList.add(J3DUtils.addShape3D(pts, 4, J3DAppearance.getAppearance(layer.getGraphics()), objTrans));
+                boxList.add(J3DUtils.addShape3D(pts, 4, J3DAppearance.getAppearance(layer), objTrans));
             }
             if (boxList != null) list.addAll(boxList);
         }
@@ -802,7 +802,7 @@ public class View3DWindow extends JPanel
 				poly.transform(transform);
 
 			// Setting appearance
-            J3DAppearance ap = J3DAppearance.getAppearance(layer.getGraphics());
+            J3DAppearance ap = J3DAppearance.getAppearance(layer);
             Poly.Type type = poly.getStyle();
 
             switch (type)
@@ -1022,7 +1022,7 @@ public class View3DWindow extends JPanel
                 {
                     Shape3D shape = (Shape3D)node;
                     J3DAppearance app = (J3DAppearance)shape.getAppearance();
-                    if (app.getGraphics().getLayer() == layer)
+                    if (app.getLayer() == layer)
                         J3DUtils.updateZValues(shape, origDist.floatValue(), (float)(origDist.floatValue()+origThick.floatValue()),
                                 distance.floatValue(), (float)(distance.floatValue()+thickness.floatValue()));
 

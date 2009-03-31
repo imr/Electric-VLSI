@@ -111,7 +111,7 @@ public class JThreeDTab extends ThreeDTab
 			threeDDistanceMap.put(layer, new GenMath.MutableDouble(distance));
             // Get a copy of JAppearance to set values temporarily
             // this function will generate JAppearance if doesn't exist yet
-            J3DAppearance app = J3DAppearance.getAppearance(layer.getGraphics());
+            J3DAppearance app = J3DAppearance.getAppearance(layer);
             // forcing visibility
             J3DAppearance newApp = new J3DAppearance(app);
             newApp.getRenderingAttributes().setVisible(true);
@@ -261,8 +261,13 @@ public class JThreeDTab extends ThreeDTab
 			GenMath.MutableDouble thickness = threeDThicknessMap.get(layer);
 			GenMath.MutableDouble height = threeDDistanceMap.get(layer);
             J3DAppearance newApp = transparencyMap.get(layer);
-            J3DAppearance oldApp = (J3DAppearance)layer.getGraphics().get3DAppearance();
-            oldApp.setTransparencyAndRenderingAttributes(newApp.getTransparencyAttributes(), newApp.getRenderingAttributes().getDepthBufferEnable());
+            TransparencyAttributes newAttr = newApp.getTransparencyAttributes();
+            J3DAppearance oldApp = (J3DAppearance)layer.get3DAppearance();
+            oldApp.setTransparencyAndRenderingAttributes(newAttr, newApp.getRenderingAttributes().getDepthBufferEnable());
+
+            EGraphics graphics = layer.getGraphics();
+            graphics.setTransparencyMode(EGraphics.J3DTransparencyOption.valueOf(newAttr.getTransparencyMode()));
+            graphics.setTransparencyFactor(newAttr.getTransparency());
             setDouble(layer.getThicknessSetting(), thickness.doubleValue());
             setDouble(layer.getDistanceSetting(), height.doubleValue());
 		}
@@ -352,7 +357,7 @@ public class JThreeDTab extends ThreeDTab
 			{
 				graphics.setTransparencyMode(factoryGraphics.getTransparencyMode());
 				graphics.setTransparencyFactor(factoryGraphics.getTransparencyFactor());
-				graphics.set3DAppearance(null);
+				layer.set3DAppearance(null);
 			}
             Setting thicknessSetting = layer.getThicknessSetting();
             Setting distanceSetting = layer.getDistanceSetting();

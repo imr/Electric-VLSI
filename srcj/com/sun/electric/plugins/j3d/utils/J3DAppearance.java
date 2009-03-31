@@ -27,6 +27,7 @@ package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.electric.database.geometry.EGraphics;
 
+import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.ui.LayerVisibility;
 import javax.media.j3d.*;
 import javax.vecmath.Color3f;
@@ -50,7 +51,7 @@ public class J3DAppearance extends Appearance
         assert EGraphics.J3DTransparencyOption.NONE.mode        == TransparencyAttributes.NONE;
     }
 
-    private EGraphics graphics; // reference to layer for fast access to appearance
+    private Layer layer; // reference to layer for fast access to appearance
 
 	/** cell has a unique appearance **/    public static J3DAppearance cellApp;
     /** highlight appearance **/            public static J3DAppearance highlightApp;
@@ -60,25 +61,25 @@ public class J3DAppearance extends Appearance
     {
         super();
         if (app == null) throw new Error("Input appearance is null");
-        this.graphics = app.graphics;
-        if (graphics != null) graphics.addObserver(this);
+        this.layer = app.layer;
+        if (layer != null) layer.addObserver(this);
         TransparencyAttributes oldTa = app.getTransparencyAttributes();
-        setOtherAppearanceValues(oldTa.getTransparencyMode(), oldTa.getTransparency(), graphics.getColor());
+        setOtherAppearanceValues(oldTa.getTransparencyMode(), oldTa.getTransparency(), layer.getGraphics().getColor());
     }
 
-    private J3DAppearance(EGraphics graphics, int mode, float factor, Color color)
+    private J3DAppearance(Layer layer, int mode, float factor, Color color)
     {
         super();
-        this.graphics = graphics;
-        if (graphics != null) graphics.addObserver(this);
+        this.layer = layer;
+        if (layer != null) layer.addObserver(this);
         setOtherAppearanceValues(mode, factor, color); //graphics.getColor());
     }
-    public void setGraphics(EGraphics graphics)
+    public void setLayer(Layer layer)
     {
-        this.graphics = graphics;
-        if (graphics != null) graphics.addObserver(this);
+        this.layer = layer;
+        if (layer != null) layer.addObserver(this);
     }
-    public EGraphics getGraphics() { return graphics;}
+    public Layer getLayer() { return layer;}
 
     private void setOtherAppearanceValues(int mode, float factor, Color color)
     {
@@ -100,7 +101,7 @@ public class J3DAppearance extends Appearance
         setCapability(ALLOW_RENDERING_ATTRIBUTES_WRITE);
 
         // Adding Rendering attributes to access visibility flag if layer is available
-        if (graphics != null)
+        if (layer != null)
         {
             RenderingAttributes ra = new RenderingAttributes();
             ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
@@ -108,7 +109,7 @@ public class J3DAppearance extends Appearance
             ra.setCapability(RenderingAttributes.ALLOW_DEPTH_ENABLE_READ);
             ra.setCapability(RenderingAttributes.ALLOW_DEPTH_ENABLE_WRITE);
             LayerVisibility lv = LayerVisibility.getLayerVisibility();
-            ra.setVisible(lv.isVisible(graphics.getLayer()));
+            ra.setVisible(lv.isVisible(layer));
             setRenderingAttributes(ra);
             if (mode != TransparencyAttributes.NONE)
                 ra.setDepthBufferEnable(true);
@@ -173,19 +174,20 @@ public class J3DAppearance extends Appearance
      * @param graphics
      * @return
      */
-    public static J3DAppearance getAppearance(EGraphics graphics)
+    public static J3DAppearance getAppearance(Layer layer)
     {
         // Setting appearance
-        J3DAppearance ap = (J3DAppearance)graphics.get3DAppearance();
+        J3DAppearance ap = (J3DAppearance)layer.get3DAppearance();
 
         if (ap == null)
         {
+            EGraphics graphics = layer.getGraphics();
             int mode = graphics.getTransparencyMode().mode;
             double factorD = graphics.getTransparencyFactor();
             float factor = (float)factorD;
-            ap = new J3DAppearance(graphics, mode, factor, graphics.getColor());
+            ap = new J3DAppearance(layer, mode, factor, graphics.getColor());
 
-            graphics.set3DAppearance(ap);
+            layer.set3DAppearance(ap);
         }
         return (ap);
     }
@@ -194,10 +196,6 @@ public class J3DAppearance extends Appearance
     {
         super.setTransparencyAttributes(transparencyAttributes);
         super.getRenderingAttributes().setDepthBufferEnable(rendering);
-        EGraphics.J3DTransparencyOption mode = EGraphics.J3DTransparencyOption.valueOf(transparencyAttributes.getTransparencyMode());
-        graphics.setTransparencyMode(mode);
-        double factor = transparencyAttributes.getTransparency();
-        graphics.setTransparencyFactor(factor);
     }
 
     /********************************************************************************************************

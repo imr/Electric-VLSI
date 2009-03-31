@@ -277,7 +277,7 @@ public class JThreeDSideView extends JPanel
                 J3DAppearance app = (J3DAppearance)s.getAppearance();
                 if (app != J3DAppearance.highlightApp)
                 {
-                    Layer layer = app.getGraphics().getLayer();
+                    Layer layer = app.getLayer();
                     parentDialog.threeDLayerList.setSelectedValue(layer.getName(), false);
                     parentDialog.processDataInFields(layer, false);
                 }
