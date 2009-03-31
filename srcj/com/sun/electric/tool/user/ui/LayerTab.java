@@ -480,7 +480,6 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 					double range = opacitySlider.getMaximum() - opacitySlider.getMinimum();
 					int newValue = opacitySlider.getMinimum() + (int)(range * opacity);
 					opacitySlider.setValue(newValue);
-                    opacitySlider.repaint();
 				}
 			}
 		}
@@ -512,9 +511,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		double range = opacitySlider.getMaximum() - opacitySlider.getMinimum();
 		double newOpacity = sliderValue / range;
         lv.setOpacity(layer, newOpacity);
-//		layer.getGraphics().setOpacity(newOpacity);
 		layerListModel.set(indices[0], lineName(layer));
-        layerList.repaint();
 
 		opacityChanged();
 	}

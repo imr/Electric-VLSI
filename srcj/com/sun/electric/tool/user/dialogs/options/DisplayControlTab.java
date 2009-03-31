@@ -155,8 +155,10 @@ public class DisplayControlTab extends PreferencePanel
 			User.setPatternedScaleLimit(currDouble);
 
 		currBoolean = !useNewBlending.isSelected();
-		if (currBoolean != User.isLegacyComposite())
+		if (currBoolean != User.isLegacyComposite()) {
 			User.setLegacyComposite(currBoolean);
+			EditWindow.displayAlgorithmChanged();
+        }
 
 		currDouble = TextUtils.atof(alphaBlendingOvercolorLimit.getText());
 		if (currDouble != User.getAlphaBlendingOvercolorLimit())

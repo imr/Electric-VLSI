@@ -454,7 +454,7 @@ class LayerDrawing
         }
 
         @Override
-        public boolean hasOpacity() { return true; }
+        public boolean hasOpacity() { return !User.isLegacyComposite(); }
 
         private void layerComposite(Graphics2D g, DrawingData dd) {
             Map<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
