@@ -24,24 +24,20 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.user.Resources;
 
 import java.awt.Color;
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Observable;
 
 /**
  * Class to define the appearance of a piece of geometry.
  */
-public class EGraphics extends Observable implements Cloneable, Serializable
+public class EGraphicsN implements Serializable
 {
     public static final J3DTransparencyOption DEFAULT_MODE = J3DTransparencyOption.NONE; // 3D default transparency mode DEFAULT_FACTOR
     public static final double DEFAULT_FACTOR = 0.0; // 3D default transparency factor
@@ -84,10 +80,10 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		/** Draw stipple pattern with far dotted thicker outline. */
 		PAT_DO2_T2("Dotted-Far-Thicker", 0x7F, 9, 5);
 
-		private String name;
-		private int pattern, len;
-		private int thickness;
-		private boolean solid;
+		private final String name;
+		private final int pattern, len;
+		private final int thickness;
+		private final boolean solid;
 
 		private Outline(String name, int pattern, int len, int thickness)
 		{
@@ -143,19 +139,17 @@ public class EGraphics extends Observable implements Cloneable, Serializable
         }
     }
 
-	/** the Layer associated with this graphics. */			private Layer layer;
-	/** display: true to use patterns; false for solid */	private boolean displayPatterned;
-	/** printer: true to use patterns; false for solid */	private boolean printPatterned;
-	/** the outline pattern */								private Outline patternOutline;
-	/** transparent layer to use (0 for none) */			private int transparentLayer;
-	/** color to use */										private int red, green, blue;
-	/** opacity (0 to 1) of color */						private double opacity;
-	/** whether to draw color in foregound */				private boolean foreground;
-	/** stipple pattern to draw */							private int [] pattern;
-	/** stipple pattern to draw with proper bit order */	private int [] reversedPattern;
-    /** 3D transparency mode */                             private J3DTransparencyOption transparencyMode;
-    /** 3D transparency mode */                             private double transparencyFactor;
-	/** 3D appearance */									private Object appearance3D;
+	/** display: true to use patterns; false for solid */	private final boolean displayPatterned;
+	/** printer: true to use patterns; false for solid */	private final boolean printPatterned;
+	/** the outline pattern */								private final Outline patternOutline;
+	/** transparent layer to use (0 for none) */			private final int transparentLayer;
+	/** color to use */										private final Color opaqueColor;
+	/** opacity (0 to 1) of color */						private final double opacity;
+	/** whether to draw color in foregound */				private final boolean foreground;
+	/** stipple pattern to draw */							private final int [] pattern;
+	/** stipple pattern to draw with proper bit order */	private final int [] reversedPattern;
+    /** 3D transparency mode */                             private final J3DTransparencyOption transparencyMode;
+    /** 3D transparenct factor */                           private final double transparencyFactor;
 
 	/**
 	 * There are 3 ways to encode color in an integer.
@@ -240,9 +234,9 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	 * @param foreground the foreground factor of this EGraphics (1 for to be in foreground).
 	 * @param pattern the 16x16 stipple pattern of this EGraphics (16 integers).
 	 */
-	public EGraphics(boolean displayPatterned, boolean printPatterned, Outline outlineWhenPatterned,
+	public EGraphicsN(boolean displayPatterned, boolean printPatterned, Outline outlineWhenPatterned,
 		int transparentLayer, int red, int green, int blue, double opacity, boolean foreground, int[] pattern)
-	{
+    {
         this(displayPatterned, printPatterned, outlineWhenPatterned,
                 transparentLayer, red, green, blue, opacity, foreground, pattern, DEFAULT_MODE, DEFAULT_FACTOR);
     }
@@ -262,81 +256,68 @@ public class EGraphics extends Observable implements Cloneable, Serializable
      * @param transparencyMode 3D transparency mode
      * @param transparencyFactor 3D transparency factor
 	 */
-	public EGraphics(boolean displayPatterned, boolean printPatterned, Outline outlineWhenPatterned,
+	public EGraphicsN(boolean displayPatterned, boolean printPatterned, Outline outlineWhenPatterned,
 		int transparentLayer, int red, int green, int blue, double opacity, boolean foreground, int[] pattern,
         J3DTransparencyOption transparencyMode, double transparencyFactor)
 	{
-		this.layer = null;
 		this.displayPatterned = displayPatterned;
 		this.printPatterned = printPatterned;
 		this.patternOutline = (outlineWhenPatterned != null) ? outlineWhenPatterned : Outline.NOPAT;
+		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12) {
+			System.out.println("Graphics transparent color bad: " + transparentLayer);
+            transparentLayer = 0;
+        }
 		this.transparentLayer = transparentLayer;
-		this.red = red;
-		this.green = green;
-		this.blue = blue;
+		if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0 || blue > 255) {
+            System.out.println("Graphics color bad: (" + red + "," + green + "," + blue + ")");
+            red = Math.min(Math.max(red, 0), 255);
+            green = Math.max(Math.max(green, 0), 255);
+            blue = Math.max(Math.max(blue, 0), 255);
+        }
+		this.opaqueColor = new Color(red, green, blue);
+		this.opacity = validateOpacity(opacity);
+        transparencyMode = J3DTransparencyOption.NONE;
+        transparencyFactor = 0;
+		this.foreground = foreground;
+		if (pattern.length != 16)
+			throw new IllegalArgumentException("Graphics bad: has " + pattern.length + " pattern entries instead of 16");
+        this.pattern = pattern.clone();
+        for (int i = 0; i < this.pattern.length; i++)
+            this.pattern[i] &= 0xFFFF;
+        this.reversedPattern = makeReversedPattern(this.pattern);
+        this.transparencyMode = transparencyMode != null ? transparencyMode : J3DTransparencyOption.NONE;
+        this.transparencyFactor = transparencyFactor;
+	}
+
+	/**
+	 * Method to create a graphics object.
+	 * @param displayPatterned true if drawn with a pattern on the display.
+	 * @param printPatterned true if drawn with a pattern on a printer.
+	 * @param outlineWhenPatterned the outline texture to use when patterned.
+	 * @param transparentLayer the transparent layer number (0 for none).
+	 * @param red the red component of this EGraphics.
+	 * @param green the green component of this EGraphics.
+	 * @param blue the blue component of this EGraphics.
+	 * @param opacity the opacity of this EGraphics (1 for opaque, 0 for transparent).
+	 * @param foreground the foreground factor of this EGraphics (1 for to be in foreground).
+	 * @param pattern the 16x16 stipple pattern of this EGraphics (16 integers).
+	 */
+	private EGraphicsN(boolean displayPatterned, boolean printPatterned, Outline outlineWhenPatterned,
+		int transparentLayer, Color opaqueColor, double opacity, boolean foreground, int[] pattern, int[] reversedPattern,
+        J3DTransparencyOption transparencyMode, double transparencyFactor)
+	{
+		this.displayPatterned = displayPatterned;
+		this.printPatterned = printPatterned;
+		this.patternOutline = outlineWhenPatterned;
+		this.transparentLayer = transparentLayer;
+		this.opaqueColor = opaqueColor;
 		this.opacity = validateOpacity(opacity);
 		this.foreground = foreground;
+        this.pattern = pattern;
+        this.reversedPattern = reversedPattern;
         this.transparencyMode = transparencyMode;
         this.transparencyFactor = transparencyFactor;
-		setPatternLow(pattern);
-		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12)
-		{
-			System.out.println("Graphics transparent color bad: " + transparentLayer);
-		}
-		if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0 || blue > 255)
-		{
-			System.out.println("Graphics color bad: (" + red + "," + green + "," + blue + ")");
-		}
-	}
-
-	/**
-	 * Method to easily copy graphics between similar layers
-	 * @param g graphics to copy data from
-	 */
-	public EGraphics(EGraphics g)
-	{
-		this.layer = null;
-		this.displayPatterned = g.isPatternedOnDisplay();
-		this.printPatterned = g.isPatternedOnPrinter();
-		this.patternOutline = g.getOutlined();
-		this.transparentLayer = g.getTransparentLayer();
-		Color gColor = g.getColor();
-		this.red = gColor.getRed();
-		this.green = gColor.getGreen();
-		this.blue = gColor.getBlue();
-		this.opacity = g.getOpacity();
-		this.foreground = g.getForeground();
-        this.transparencyMode = g.getTransparencyMode();
-        this.transparencyFactor = g.getTransparencyFactor();
-		setPatternLow(g.getPattern().clone());
-		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12)
-		{
-			System.out.println("Graphics transparent color bad: " + transparentLayer);
-		}
-		if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0 || blue > 255)
-		{
-			System.out.println("Graphics color bad: (" + red + "," + green + "," + blue + ")");
-		}
-	}
-
-//	private static void setPattern() {}
-
-	/**
-	 * Method to return the Layer associated with this EGraphics.
-	 * @return the Layer associated with this EGraphics.
-	 */
-	public Layer getLayer() { return layer; }
-
-	/**
-	 * Method to set which Layer is associated with this EGraphics.
-	 * Since this is called only during initialization, it also examines preferences
-	 * and uses them to override the graphics information.
-	 * @param layer the Layer to associate with this EGraphics.
-	 */
-	public void setLayer(Layer layer)
-	{
-		this.layer = layer;
-	}
+    }
 
 	private String makePatString(int [] pattern)
 	{
@@ -368,16 +349,16 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public boolean isPatternedOnDisplay() { return displayPatterned; }
 
 	/**
-	 * Method to set how this EGraphics appears on a display.
+	 * Method returns EGraphics which differs from this EGraphics by appearance on a display.
 	 * This EGraphics can be drawn as a solid fill or as a pattern.
 	 * @param p true to draw this EGraphics patterned on a display.
 	 * False to draw this EGraphics as a solid fill on a display.
+     * @return EGraphics with specified appearance on a display
 	 */
-	public void setPatternedOnDisplay(boolean p)
-	{
-		displayPatterned = p;
-		if (layer != null)
-            layer.graphicsChanged();
+	public EGraphicsN withPatternedOnDisplay(boolean p) {
+        if (p == displayPatterned) return this;
+        return new EGraphicsN(p, printPatterned, patternOutline, transparentLayer, opaqueColor, opacity, foreground,
+                pattern, reversedPattern, transparencyMode, transparencyFactor);
 	}
 
 	/**
@@ -389,16 +370,16 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public boolean isPatternedOnPrinter() { return printPatterned; }
 
 	/**
-	 * Method to set how this EGraphics appears on a printer.
+	 * Method returns EGraphics which differs from this EGraphics by appearance on a printer.
 	 * This EGraphics can be drawn as a solid fill or as a pattern.
 	 * @param p true to draw this EGraphics patterned on a printer.
 	 * False to draw this EGraphics as a solid fill on a printer.
+     * @return EGraphics with specified appearance on a printer.
 	 */
-	public void setPatternedOnPrinter(boolean p)
-	{
-		this.printPatterned = p;
-		if (layer != null)
-            layer.graphicsChanged();
+	public EGraphicsN withPatternedOnPrinter(boolean p) {
+        if (p == printPatterned) return this;
+        return new EGraphicsN(displayPatterned, p, patternOutline, transparentLayer, opaqueColor, opacity, foreground,
+                pattern, reversedPattern, transparencyMode, transparencyFactor);
 	}
 
 	/**
@@ -409,19 +390,18 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public Outline getOutlined() { return patternOutline; }
 
 	/**
-	 * Method to set whether this pattern has an outline around it.
+	 * Method returns EGraphics which differs from this EGraphics by Outline pattern
 	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
 	 * @param o the outline pattern.
+     * @return EGraphics with specifed outline pattern
 	 */
-	public void setOutlined(Outline o)
-	{
-		if (o == null) o = Outline.NOPAT;
-		patternOutline = o;
-		// recache the pattern information to test for null patterns with no outlines
-		setPatternLow(pattern);
-		if (layer != null)
-            layer.graphicsChanged();
-	}
+    public EGraphicsN withOutlined(Outline o) {
+        if (o == null)
+            o = Outline.NOPAT;
+        if (o == patternOutline) return this;
+        return new EGraphicsN(displayPatterned, printPatterned, o, transparentLayer, opaqueColor, opacity, foreground,
+                pattern, reversedPattern, transparencyMode, transparencyFactor);
+    }
 
 	/**
 	 * Method to return the transparent layer number associated with this EGraphics.
@@ -432,21 +412,21 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public int getTransparentLayer() { return transparentLayer; }
 
 	/**
-	 * Method to set the transparent layer number associated with this EGraphics.
+	 * Method returns EGraphics which differs from this EGraphics by transparent Layer.
 	 * @param transparentLayer the transparent layer number associated with this EGraphics.
 	 * A value of zero means that this EGraphics is not drawn transparently.
 	 * Then, use the "setColor()" method to set its solid color.
+     * @return EGraphcos with specifed transparentLayer
 	 */
-	public void setTransparentLayer(int transparentLayer)
-	{
-		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12)
-		{
+    public EGraphicsN withTransparentLayer(int transparentLayer) {
+		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12) {
 			System.out.println("Graphics transparent color bad: " + transparentLayer);
-		}
-		this.transparentLayer = transparentLayer;
-		if (layer != null)
-            layer.graphicsChanged();
-	}
+            transparentLayer = 0;
+        }
+        if (transparentLayer == this.transparentLayer) return this;
+        return new EGraphicsN(displayPatterned, printPatterned, patternOutline, transparentLayer, opaqueColor, opacity, foreground,
+                pattern, reversedPattern, transparencyMode, transparencyFactor);
+    }
 
 	/**
 	 * Method to get the stipple pattern of this EGraphics.
@@ -469,60 +449,50 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public String getPatternString() { return makePatString(pattern); }
 
 	/**
-	 * Method to set the stipple pattern of this EGraphics.
+	 * Method returns EGraphics which differs from this EGraphics by stipple pattern.
 	 * The stipple pattern is a 16 x 16 pattern that is stored in 16 integers.
 	 * @param pattern the stipple pattern of this EGraphics.
+     * @return EGraphics with specified stipple pattern.
 	 */
-	public void setPattern(int [] pattern)
-	{
-		setPatternLow(pattern);
-		if (layer != null)
-            layer.graphicsChanged();
-	}
-
-    public void setPattern(String patternStr) {
-        parsePatString(patternStr, pattern);
-		setPatternLow(pattern);
-		if (layer != null)
-            layer.graphicsChanged();
+    public EGraphicsN withPattern(int [] pattern) {
+		if (pattern.length != 16)
+			throw new IllegalArgumentException("Graphics bad: has " + pattern.length + " pattern entries instead of 16");
+        pattern = pattern.clone();
+        for (int i = 0; i < this.pattern.length; i++)
+            pattern[i] &= 0xFFFF;
+        if (Arrays.equals(pattern, this.pattern)) return this;
+        int[] reversedPattern = makeReversedPattern(this.pattern);
+        return new EGraphicsN(displayPatterned, printPatterned, patternOutline, transparentLayer, opaqueColor, opacity, foreground,
+                pattern, reversedPattern, transparencyMode, transparencyFactor);
     }
 
-	private void setPatternLow(int [] pattern) {
-		if (pattern.length != 16)
-		{
-			System.out.println("Graphics bad: has " + pattern.length + " pattern entries instead of 16");
-		}
-		this.pattern = pattern;
-		reversedPattern = new int[16];
-		boolean emptyPattern = true;
+	/**
+	 * Method returns EGraphics which differs from this EGraphics by stipple pattern.
+	 * The stipple pattern is a 16 x 16 pattern that is stored in 16 integers.
+	 * @param patternStr text representation of the stipple pattern of this EGraphics.
+     * @return EGraphics with specified stipple pattern.
+	 */
+    public EGraphicsN withPattern(String patternStr) {
+        int[] pattern = new int[16];
+        parsePatString(patternStr, pattern);
+        return withPattern(pattern);
+    }
+
+    private int[] makeReversedPattern(int[] pattern) {
+		int[] reversedPattern = new int[16];
 		for (int i = 0; i < reversedPattern.length; i++) {
 			int shortPattern = pattern[i];
-			if (shortPattern != 0) emptyPattern = false;
-			if ((shortPattern >>> 16) != 0)
+			if ((shortPattern >>> 16) != 0) {
 				System.out.println("Graphics bad: has " + Integer.toHexString(shortPattern) + " pattern line");
+                shortPattern &= 0xFFFF;
+            }
 			for (int j = 0; j < 16; j++) {
 				if ((shortPattern & (1 << (15 - j))) != 0)
 					reversedPattern[i] |= 0x10001 << j;
 			}
 		}
-
-		// if the pattern is empty and has no outline, it cannot be seen
-		if (emptyPattern && patternOutline == Outline.NOPAT)
-		{
-			if (displayPatterned || printPatterned)
-			{
-				String msg = "Warning: layer ";
-				if (layer != null)
-				{
-					msg += layer.getName();
-					if (layer.getTechnology() != null) msg += " in technology " + layer.getTechnology().getTechName();
-				}
-				msg += " has an empty pattern.  Outlining it.";
-				System.out.println(msg);
-				patternOutline = Outline.PAT_S;
-			}
-		}
-	}
+        return reversedPattern;
+    }
 
 	/**
 	 * Method to get the opacity of this EGraphics.
@@ -555,16 +525,17 @@ public class EGraphics extends Observable implements Cloneable, Serializable
     }
 
     /**
-	 * Method to set the opacity of this EGraphics.
+	 * Method returns EGraphics which differs from this EGraphics by opacity.
 	 * Opacity runs from 0 (transparent) to 1 (opaque).
 	 * @param opacity the opacity of this EGraphics.
+     * @return EGraphics with specified opacity.
 	 */
-	public void setOpacity(double opacity)
-	{
-        this.opacity = validateOpacity(opacity);
-		if (layer != null)
-            layer.graphicsChanged();
-	}
+    public EGraphicsN withOpacity(double opacity) {
+        opacity = validateOpacity(opacity);
+        if (opacity == this.opacity) return this;
+        return new EGraphicsN(displayPatterned, printPatterned, patternOutline, transparentLayer, opaqueColor, opacity, foreground,
+                pattern, reversedPattern, transparencyMode, transparencyFactor);
+    }
 
 	/**
 	 * Method to get whether this EGraphics should be drawn in the foreground.
@@ -575,33 +546,32 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public boolean getForeground() { return foreground; }
 
 	/**
-	 * Method to set whether this EGraphics should be drawn in the foreground.
+	 * Method returns EGraphics which differs from this EGraphics that it should be drawn in the foreground.
 	 * The foreground is the main "mix" of layers, such as metals and polysilicons.
 	 * The background is typically used by implant and well layers.
 	 * @param f true if this EGraphics should be drawn in the foreground.
+     * @return EGraphics with specified foreground
 	 */
-	public void setForeground(boolean f) { foreground = f; }
+	public EGraphicsN withForeground(boolean f) {
+        if (f == this.foreground) return this;
+        return new EGraphicsN(displayPatterned, printPatterned, patternOutline, transparentLayer, opaqueColor, opacity, f,
+                pattern, reversedPattern, transparencyMode, transparencyFactor);
+    }
 
 	/**
 	 * Method to return the color associated with this EGraphics.
 	 * @return the color associated with this EGraphics.
 	 */
-	public Color getColor()
-	{
+	public Color getColor() {
 		int alpha = (int)(opacity * 255.0);
-		Color color = new Color(red, green, blue, alpha);
-		return color;
+		return new Color(opaqueColor.getRed(), opaqueColor.getGreen(), opaqueColor.getBlue(), alpha);
 	}
 
 	/**
 	 * Method to return the color associated with this EGraphics with full opacity.
 	 * @return the color associated with this EGraphics.
 	 */
-	public Color getOpaqueColor()
-	{
-		Color color = new Color(red, green, blue, 255);
-		return color;
-	}
+	public Color getOpaqueColor() { return opaqueColor; }
 
 	/**
 	 * Returns the RGB value representing the color associated with this EGraphics.
@@ -610,42 +580,24 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	 * @return the RGB value of the color
 	 */
 	public int getRGB() {
-		return (red << 16) | (green << 8) | blue;
+		return opaqueColor.getRGB() & 0xFFFFFF;
 	}
 
 	/**
-	 * Method to set the color associated with this EGraphics.
+	 * Method returns EGraphics which differs from this EGraphics by to the associated color.
+     * The alpha component of the color is set to full opacity,
+     * alpha component of the argument is igniored.
 	 * @param color the color to set.
+     * @return EGraphics with specified color.
 	 */
-	public void setColor(Color color)
-	{
-		transparentLayer = 0;
-		red = color.getRed();
-		green = color.getGreen();
-		blue = color.getBlue();
-		if (layer != null)
-            layer.graphicsChanged();
-
-		// update any color used in 3D view if available
-		Object obj3D = get3DAppearance();
-
-		if (obj3D != null)
-		{
-			Class<?> app3DClass = Resources.get3DClass("utils.J3DAppearance");
-			try
-			{
-				Method setColorMethod3DClass = app3DClass.getDeclaredMethod("set3DColor", new Class[] {Object.class, Color.class});
-				setColorMethod3DClass.invoke(obj3D, new Object[]{null, color});
-			} catch (Exception e) {
-				System.out.println("Cannot call 3D plugin method set3DColor: " + e.getMessage());
-			}
-		}
-	}
-
-    public void setRGB(int color) {
-		red = (color >> 16) & 0xFF;
-		green = (color >> 8) & 0xFF;
-		blue = color & 0xFF;
+    public EGraphicsN withColor(Color color) {
+        if (color.getAlpha() != 0xFF)
+            color = new Color(color.getRGB());
+        if (color.equals(opaqueColor)) return this;
+        assert color.getAlpha() == 0xFF;
+        return new EGraphicsN(displayPatterned, printPatterned, patternOutline,
+                transparentLayer, new Color(color.getRed(), color.getGreen(), color.getBlue()), opacity, foreground,
+                pattern, reversedPattern, transparencyMode, transparencyFactor);
     }
 
 	/**
@@ -719,23 +671,22 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	}
 
 	/**
-	 * Method to set the color of this EGraphics from a "color index".
+	 * Method returns EGraphics which differs from this EGraphics by a "color index".
 	 * Color indices are more general than colors, because they can handle
 	 * transparent layers, C-Electric-style opaque layers, and full color values.
 	 * Artwork nodes and arcs represent individualized color by using color indices.
 	 * @param colorIndex the color index to set.
 	 */
-	public void setColorIndex(int colorIndex)
+	public EGraphicsN withColorIndex(int colorIndex)
 	{
 		if ((colorIndex&(OPAQUEBIT|FULLRGBBIT)) != 0)
 		{
 			// an opaque or full RGB color
-			transparentLayer = 0;
-			setColor(getColorFromIndex(colorIndex));
-			return;
+			return withColor(getColorFromIndex(colorIndex)).withTransparentLayer(0);
 		}
 
 		// a transparent color
+        int transparentLayer = this.transparentLayer;
 		if ((colorIndex&LAYERT1) != 0) transparentLayer = TRANSPARENT_1; else
 		if ((colorIndex&LAYERT2) != 0) transparentLayer = TRANSPARENT_2; else
 		if ((colorIndex&LAYERT3) != 0) transparentLayer = TRANSPARENT_3; else
@@ -748,6 +699,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		if ((colorIndex&LAYERT10) != 0) transparentLayer = TRANSPARENT_10; else
 		if ((colorIndex&LAYERT11) != 0) transparentLayer = TRANSPARENT_11; else
 		if ((colorIndex&LAYERT12) != 0) transparentLayer = TRANSPARENT_12;
+        return withTransparentLayer(transparentLayer);
 	}
 
 	/**
@@ -913,75 +865,90 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	}
 
     /**
-	 * Method to return the transparency mode of this EGraphics.
+	 * Method to return the transparency mode of this EGraphics for the 3D View.
      * Possible values "NONE, "FASTEST", "NICEST", "BLENDED", "SCREEN_DOOR".
-	 * @return the transparency mode of this EGraphics for the 3D view.
+	 * @return the transparency mode of this layer for the 3D view.
 	 */
 	public J3DTransparencyOption getTransparencyMode() { return transparencyMode; }
 
     /**
-	 * Method to set the transparency mode of this EGraphics.
+	 * Method returns EGraphics which differs form this EGraphics by transparency mode.
 	 * Possible values "NONE, "FASTEST", "NICEST", "BLENDED", "SCREEN_DOOR".
-	 * @param mode the transparency mode of this EGraphics.
+	 * @param mode the transparency mode of this layer.
 	 */
-	public void setTransparencyMode(J3DTransparencyOption mode)
-    {
+	public EGraphicsN withTransparencyMode(J3DTransparencyOption mode) {
         if (mode == null)
-            mode = DEFAULT_MODE;
-        this.transparencyMode = mode;
-		if (layer != null)
-            layer.graphicsChanged();
+            mode = J3DTransparencyOption.NONE;
+        if (mode == transparencyMode) return this;
+        return new EGraphicsN(displayPatterned, printPatterned, patternOutline,
+                transparentLayer, opaqueColor, opacity, foreground,
+                pattern, reversedPattern, mode, transparencyFactor);
     }
 
     /**
 	 * Method to return the transparency factor of this EGraphics.
      * Possible values from 0 (opaque) -> 1 (transparent)
-	 * @return the transparency factor of this EGraphics for the 3D view.
+	 * @return the transparency factor of this layer for the 3D view.
 	 */
 	public double getTransparencyFactor() { return transparencyFactor; }
 
     /**
-	 * Method to set the transparency factor of this EGraphics.
+	 * Method returns EGraphics which differs from this EGraphics by transparency factor.
 	 * Layers can have a transparency from 0 (opaque) to 1(transparent).
-	 * @param factor the transparency factor of this EGraphics.
+	 * @param factor the transparency factor of this layer.
+     * @param EGraphics with specified transparecy factor.
 	 */
-	public void setTransparencyFactor(double factor)
-    {
-        this.transparencyFactor = factor;
-		if (layer != null)
-            layer.graphicsChanged();
+	public EGraphicsN withTransparencyFactor(double factor) {
+        if (factor == transparencyFactor) return this;
+        return new EGraphicsN(displayPatterned, printPatterned, patternOutline,
+                transparentLayer, opaqueColor, opacity, foreground,
+                pattern, reversedPattern, transparencyMode, factor);
     }
 
-	/**
-	 * Method to set 3D appearance. If Java3D, Appearance class will be the type.
-	 * @param obj
-	 */
-	public void set3DAppearance(Object obj) {appearance3D = obj;}
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (o instanceof EGraphicsN) {
+            EGraphicsN that = (EGraphicsN)o;
+            return  this.displayPatterned == that.displayPatterned &&
+                    this.printPatterned == that.printPatterned &&
+                    this.patternOutline == that.patternOutline &&
+                    this.transparentLayer == that.transparentLayer &&
+                    this.opaqueColor.equals(that.opaqueColor) &&
+                    this.opacity == that.opacity &&
+                    this.foreground == that.foreground &&
+                    Arrays.equals(this.pattern, that.pattern) &&
+                    this.transparencyMode == that.transparencyMode &&
+                    this.transparencyFactor == that.transparencyFactor;
+        }
+        return false;
+    }
 
-	/**
-	 * Method to retrieve current 3D appearance.
-	 * @return the current 3D appearance.
-	 */
-	public Object get3DAppearance() {return appearance3D;}
+    @Override
+    public int hashCode() {
+        int hash = opaqueColor.hashCode();
+        if (pattern != null)
+            hash += 79*pattern[0];
+        return hash;
+    }
 
-	/**
-	 * Method to notify 3D observers
-	 * @param layerVis
-	 */
-	public void notifyVisibility(Boolean layerVis)
-	{
-		setChanged();
-		notifyObservers(layerVis);
-		clearChanged();
-	}
-
-    public EGraphics withPatternedOnDisplay(boolean p) { throw new UnsupportedOperationException(); }
-    public EGraphics withPatternedOnPrinter(boolean p) { throw new UnsupportedOperationException(); }
-    public EGraphics withOutlined(Outline o) { throw new UnsupportedOperationException(); }
-    public EGraphics withTransparentLayer(int l) { throw new UnsupportedOperationException(); }
-    public EGraphics withColor(Color c) { throw new UnsupportedOperationException(); }
-    public EGraphics withOpacity(double o) { throw new UnsupportedOperationException(); }
-    public EGraphics withPattern(String s) { throw new UnsupportedOperationException(); }
-    public EGraphics withTransparencyMode(J3DTransparencyOption m) { throw new UnsupportedOperationException(); }
-    public EGraphics withTransparencyFactor(double f) { throw new UnsupportedOperationException(); }
+//    public EGraphics(EGraphics g) { throw new UnsupportedOperationException(); }
+//	public Layer getLayer() { throw new UnsupportedOperationException(); }
+//	public void setLayer(Layer layer) { throw new UnsupportedOperationException(); }
+//	public void setPatternedOnDisplay(boolean p) { throw new UnsupportedOperationException(); }
+//	public void setPatternedOnPrinter(boolean p) { throw new UnsupportedOperationException(); }
+//	public void setOutlined(Outline o) { throw new UnsupportedOperationException(); }
+//	public void setTransparentLayer(int transparentLayer) { throw new UnsupportedOperationException(); }
+//	public void setPattern(int [] pattern) { throw new UnsupportedOperationException(); }
+//    public void setPattern(String patternStr) { throw new UnsupportedOperationException(); }
+//	public void setOpacity(double opacity) { throw new UnsupportedOperationException(); }
+//	public void setForeground(boolean f) { throw new UnsupportedOperationException(); }
+//	public void setColor(Color color) { throw new UnsupportedOperationException(); }
+//    public void setRGB(int color) { throw new UnsupportedOperationException(); }
+//	public void setColorIndex(int colorIndex) { throw new UnsupportedOperationException(); }
+//	public void setTransparencyMode(J3DTransparencyOption mode) { throw new UnsupportedOperationException(); }
+//	public void setTransparencyFactor(double factor) { throw new UnsupportedOperationException(); }
+//	public void set3DAppearance(Object obj) { throw new UnsupportedOperationException(); }
+//	public Object get3DAppearance() { throw new UnsupportedOperationException(); }
+//	public void notifyVisibility(Boolean layerVis) { throw new UnsupportedOperationException(); }
 }
