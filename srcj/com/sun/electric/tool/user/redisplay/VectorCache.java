@@ -1249,7 +1249,7 @@ public class VectorCache {
 			Rectangle2D bounds = poly.getBounds2D();
 			TextDescriptor descript = poly.getTextDescriptor();
 			String str = poly.getString();
-            assert layer == null && graphics == null;
+//            assert layer == null && graphics == null;
 			VectorText vt = new VectorText(bounds, style, descript, str, textType, null,
 				layer, graphics);
 			shapes.add(vt);
