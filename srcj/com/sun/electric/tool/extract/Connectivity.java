@@ -453,7 +453,7 @@ public class Connectivity
 		exportsToRestore = new ArrayList<Export>();
 		pinsForLater = new ArrayList<ExportedPin>();
 		allCutLayers = new HashMap<Layer,List<PolyBase>>();
-		extractCell(oldCell, newCell, pat, flattenPcells, expandedCells, merge, GenMath.MATID);
+		extractCell(oldCell, newCell, pat, flattenPcells, expandedCells, merge, GenMath.MATID, Orientation.IDENT);
 		if (expandedCells.size() > 0)
 		{
 			System.out.print("These cells were expanded:");
@@ -594,7 +594,8 @@ public class Connectivity
 	 * @param merge the merge to be filled.
 	 * @param prevTrans the transformation coming into this cell.
 	 */
-	private void extractCell(Cell oldCell, Cell newCell, Pattern pat, boolean flattenPcells, Set<Cell> expandedCells, PolyMerge merge, AffineTransform prevTrans)
+	private void extractCell(Cell oldCell, Cell newCell, Pattern pat, boolean flattenPcells, Set<Cell> expandedCells,
+		PolyMerge merge, AffineTransform prevTrans, Orientation orient)
 	{
 		Map<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
 		int totalNodes = oldCell.getNumNodes();
@@ -620,7 +621,8 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 					// expanding the subcell
 					expandedCells.add(subCell);
 					AffineTransform subTrans = ni.translateOut(ni.rotateOut(prevTrans));
-					extractCell(subCell, newCell, pat, flattenPcells, expandedCells, merge, subTrans);
+					Orientation or = orient.concatenate(ni.getOrient());
+					extractCell(subCell, newCell, pat, flattenPcells, expandedCells, merge, subTrans, or);
 					continue;
 				}
 
@@ -664,8 +666,9 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 				String name = null;
 				Name nameKey = ni.getNameKey();
 				if (!nameKey.isTempname()) name = ni.getName();
+				Orientation or = orient.concatenate(ni.getOrient());
 				NodeInst newNi = NodeInst.makeInstance(copyType, instanceAnchor, sX, sY,
-					newCell, ni.getOrient(), name, ni.getTechSpecific());
+					newCell, or, name, ni.getTechSpecific());
 				if (newNi == null)
 				{
 					addErrorLog(newCell, "Problem creating new instance of " + ni.getProto(), new EPoint(sX, sY));
