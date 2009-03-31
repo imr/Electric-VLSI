@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.09h: ******************************
+
 ************************* Version 8.09g: ******************************
 
 BUG: (3/31/09, SMR) Node extractor doesn't rotate subcells properly (Bug #2102).
