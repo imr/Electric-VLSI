@@ -25,8 +25,6 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.text.PrefPackage;
-import com.sun.electric.database.text.PrefPackage;
-import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -34,8 +32,8 @@ import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -58,12 +56,44 @@ public class LayerVisibility extends PrefPackage {
     private static LayerVisibility stdLayerVisibility;
 
     private final TechPool techPool;
-    private HashSet<Layer> invisibleLayers = new HashSet<Layer>();
     private HashSet<PrimitiveNode> visibleNodes;
     private HashSet<ArcProto> visibleArcs;
     private boolean visibilityChanged;
-    private HashSet<Layer> highlightedLayers = new HashSet<Layer>();
-    private HashMap<Technology,String> layerOrders = new HashMap<Technology,String>();
+    private final TechData[] techData;
+
+    private class TechData {
+        private final Technology tech;
+        private String layerOrder = "";
+        private final boolean[] visibleLayers;
+        private final boolean[] highlightedLayers;
+        private final float[] layerDrawingOpacity;
+
+        TechData(Technology tech) {
+            this.tech = tech;
+            assert techPool.getTech(tech.getId()) == tech;
+            int numLayers = tech.getNumLayers();
+            visibleLayers = new boolean[numLayers];
+            Arrays.fill(visibleLayers, true);
+            highlightedLayers = new boolean[numLayers];
+            layerDrawingOpacity = new float[numLayers];
+            setDefaultOpacity();
+        }
+
+        /**
+         * Method to automatically set the opacity of each layer in a Technology.
+         * @param tech the Technology to set.
+         */
+        private void setDefaultOpacity() {
+            for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
+                Layer layer = it.next();
+                int layerIndex = layer.getIndex();
+                float opacity = getDefaultOpacity(layer);
+                if (opacity == layerDrawingOpacity[layerIndex]) continue;
+                visibilityChanged = true;
+                layerDrawingOpacity[layerIndex] = opacity;
+            }
+        }
+    }
 
     public LayerVisibility(boolean factory) {
         this(factory, Environment.getThreadTechPool());
@@ -72,41 +102,37 @@ public class LayerVisibility extends PrefPackage {
     LayerVisibility(boolean factory, TechPool techPool) {
         super(factory);
         this.techPool = techPool;
+        int maxTechIndex = -1;
+        for (Technology tech: techPool.values())
+            maxTechIndex = Math.max(maxTechIndex, tech.getId().techIndex);
+        techData = new TechData[maxTechIndex+1];
+        for (Technology tech: techPool.values())
+            techData[tech.getId().techIndex] = new TechData(tech);
+        visibilityChanged = false;
         if (factory) return;
 
         Preferences techPrefs = getPrefRoot().node(TECH_NODE);
         for (Technology tech: techPool.values()) {
+            TechData td = getTechData(tech);
             String layerOrderKey = getKey(KEY_LAYER_ORDER, tech.getId());
-            String layerOrder = techPrefs.get(layerOrderKey, "");
-            if (layerOrder.length() > 0)
-                layerOrders.put(tech, layerOrder);
+            td.layerOrder = techPrefs.get(layerOrderKey, "");
             for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
                 Layer layer = it.next();
                 assert !layer.isPseudoLayer();
                 String visibilityKey = getKey(KEY_VISIBILITY, layer.getId());
-                boolean visible = techPrefs.getBoolean(visibilityKey, true);
-                if (!visible)
-                    invisibleLayers.add(layer);
+                td.visibleLayers[layer.getIndex()] = techPrefs.getBoolean(visibilityKey, true);
             }
         }
     }
 
     @Override
     public void putPrefs(Preferences prefRoot, boolean removeDefaults) {
-        putPrefs(prefRoot, removeDefaults, null);
-    }
-
-    public void putPrefs(Preferences prefRoot, boolean removeDefaults, LayerVisibility oldLv) {
         super.putPrefs(prefRoot, removeDefaults);
-
-        if (oldLv != null && oldLv.techPool != techPool)
-            oldLv = null;
 
         Preferences techPrefs = prefRoot.node(TECH_NODE);
         for (Technology tech: techPool.values()) {
-            String layerOrder = layerOrders.get(tech);
-            if (layerOrder == null)
-                layerOrder = "";
+            TechData td = getTechData(tech);
+            String layerOrder = td.layerOrder;
             String layerOrderKey = getKey(KEY_LAYER_ORDER, tech.getId());
             if (removeDefaults && layerOrder.length() == 0)
                 techPrefs.remove(layerOrderKey);
@@ -116,13 +142,11 @@ public class LayerVisibility extends PrefPackage {
             for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
                 Layer layer = it.next();
                 boolean visible = isVisible(layer);
-                if (oldLv == null || visible != oldLv.isVisible(layer)) {
-                    String visibilityKey = getKey(KEY_VISIBILITY, layer.getId());
-                    if (removeDefaults && visible)
-                        techPrefs.remove(visibilityKey);
-                    else
-                        techPrefs.putBoolean(visibilityKey, visible);
-                }
+                String visibilityKey = getKey(KEY_VISIBILITY, layer.getId());
+                if (removeDefaults && visible)
+                    techPrefs.remove(visibilityKey);
+                else
+                    techPrefs.putBoolean(visibilityKey, visible);
             }
         }
     }
@@ -142,22 +166,19 @@ public class LayerVisibility extends PrefPackage {
      * @param visibilityChange a map with new values of Layers to update.
 	 */
     void setVisible(Map<Layer,Boolean> visibilityChange) {
-        HashSet<Layer> newInvisibleLayers = new HashSet<Layer>(invisibleLayers);
         boolean changed = false;
         for (Map.Entry<Layer,Boolean> e: visibilityChange.entrySet()) {
             Layer layer = e.getKey();
+            TechData td = getTechData(layer.getTechnology());
+            int layerIndex = layer.getIndex();
             boolean visible = e.getValue().booleanValue();
-            if (visible == isVisible(layer)) continue;
+            if (visible == td.visibleLayers[layerIndex]) continue;
             layer.getGraphics().notifyVisibility(e.getValue());
             changed = true;
-           if (visible)
-                newInvisibleLayers.remove(layer);
-            else
-                newInvisibleLayers.add(layer);
+            td.visibleLayers[layerIndex] = visible;
         }
         if (!changed) return;
         visibilityChanged = true;
-        invisibleLayers = newInvisibleLayers;
         visibleNodes = null;
         visibleArcs = null;
     }
@@ -171,12 +192,7 @@ public class LayerVisibility extends PrefPackage {
     void setHighlighted(Layer layer, boolean highlighted) {
         if (highlighted == isHighlighted(layer)) return;
         visibilityChanged = true;
-        HashSet<Layer> newHighlightedLayers = new HashSet<Layer>(highlightedLayers);
-        if (highlighted)
-            newHighlightedLayers.add(layer);
-        else
-            newHighlightedLayers.remove(layer);
-        highlightedLayers = newHighlightedLayers;
+        getTechData(layer.getTechnology()).highlightedLayers[layer.getIndex()] = highlighted;
     }
 
     /**
@@ -187,7 +203,8 @@ public class LayerVisibility extends PrefPackage {
 	 */
 	public List<Layer> getSavedLayerOrder(Technology tech)
 	{
-		String order = layerOrders.get(tech);
+        TechData td = getTechData(tech);
+		String order = td.layerOrder;
 		if (order == null || order.length() == 0) return null;
 		int pos = 0;
 		List<Layer> layers = new ArrayList<Layer>();
@@ -223,9 +240,9 @@ public class LayerVisibility extends PrefPackage {
 	 */
 	public void setSavedLayerOrder(Technology tech, List<Layer> layers)
 	{
-        HashMap<Technology,String> newLayerOrders = new HashMap<Technology,String>(layerOrders);
+        TechData td = getTechData(tech);
         if (layers.isEmpty()) {
-            newLayerOrders.remove(tech);
+            td.layerOrder = "";
         } else {
             StringBuffer sb = new StringBuffer();
     		for(Layer lay : layers)
@@ -233,19 +250,42 @@ public class LayerVisibility extends PrefPackage {
             	if (lay.getTechnology() != tech) sb.append(lay.getTechnology().getTechName() + ":");
                 sb.append(lay.getName() + ",");
             }
-            newLayerOrders.put(tech, sb.toString());
+            td.layerOrder = sb.toString();
         }
         visibilityChanged = true;
-        layerOrders = newLayerOrders;
 	}
+
+    public void setOpacity(Layer layer, double opacity) {
+        TechData td = getTechData(layer.getTechnology());
+        float fOpacity = (float)opacity;
+        int layerIndex = layer.getIndex();
+        if (fOpacity == td.layerDrawingOpacity[layerIndex]) return;
+        visibilityChanged = true;
+        td.layerDrawingOpacity[layerIndex] = fOpacity;
+
+    }
 
     private void reset() {
         visibilityChanged = true;
-        invisibleLayers = new HashSet<Layer>();
+        for (TechData td: techData) {
+            if (td == null) continue;
+            Arrays.fill(td.visibleLayers, true);
+            Arrays.fill(td.highlightedLayers, false);
+            td.layerOrder = "";
+        }
         visibleNodes = null;
         visibleArcs = null;
-        highlightedLayers = new HashSet<Layer>();
-        layerOrders = new HashMap<Technology,String>();
+    }
+
+    private void resetOpacity() {
+        for (TechData td: techData) {
+            if (td == null) continue;
+            td.setDefaultOpacity();
+        }
+    }
+
+    void resetOpacity(Technology tech) {
+        getTechData(tech).setDefaultOpacity();
     }
 
     /**
@@ -264,7 +304,8 @@ public class LayerVisibility extends PrefPackage {
 	 * @return true if this Layer is visible.
 	 */
     public boolean isVisible(Layer layer) {
-        return !invisibleLayers.contains(layer);
+        TechData td = getTechData(layer.getTechnology());
+        return td.visibleLayers[layer.getIndex()];
     }
 
 	/**
@@ -296,12 +337,17 @@ public class LayerVisibility extends PrefPackage {
 	 * @return true if this Layer is highlighted.
 	 */
     public boolean isHighlighted(Layer layer) {
-        return highlightedLayers.contains(layer);
+        TechData td = getTechData(layer.getTechnology());
+        return td.highlightedLayers[layer.getIndex()];
+    }
+
+    public float getOpacity(Layer layer) {
+        return getTechData(layer.getTechnology()).layerDrawingOpacity[layer.getIndex()];
     }
 
     private void gatherVisiblePrims() {
-        visibleNodes = new HashSet<PrimitiveNode>();
-        visibleArcs = new HashSet<ArcProto>();
+        HashSet<PrimitiveNode> visibleNodes = new HashSet<PrimitiveNode>();
+        HashSet<ArcProto> visibleArcs = new HashSet<ArcProto>();
 		for (Technology tech: techPool.values()) {
 			for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); ) {
 				PrimitiveNode pn = nIt.next();
@@ -330,6 +376,54 @@ public class LayerVisibility extends PrefPackage {
                     visibleArcs.add(ap);
 			}
 		}
+        this.visibleNodes = visibleNodes;
+        this.visibleArcs = visibleArcs;
+    }
+
+    /**
+     * Method to automatically compute the opacity of a layer.
+     * @param layer the Layer to find opacity.
+     */
+    private float getDefaultOpacity(Layer layer)
+    {
+        Layer.Function fun = layer.getFunction();
+        int extra = layer.getFunctionExtras();
+        double opacity = 0.4;
+        if (fun.isMetal())
+        {
+            opacity = 0.75 - fun.getLevel() * 0.05;
+        } else if (fun.isContact())
+        {
+            if ((extra&Layer.Function.CONMETAL) != 0) opacity = 0.7; else
+                opacity = 1;
+        } else if (fun == Layer.Function.OVERGLASS)
+        {
+            opacity = 0.2;
+        } else if (fun == Layer.Function.POLY1 ||
+                   fun == Layer.Function.POLY2 ||
+                   fun == Layer.Function.POLY3 ||
+                   fun == Layer.Function.GATE ||
+                   fun == Layer.Function.DIFF ||
+                   fun == Layer.Function.DIFFP ||
+                   fun == Layer.Function.DIFFN ||
+                   fun == Layer.Function.WELL ||
+                   fun == Layer.Function.WELLP ||
+                   fun == Layer.Function.WELLN ||
+                   fun == Layer.Function.IMPLANT ||
+                   fun == Layer.Function.IMPLANTN ||
+                   fun == Layer.Function.IMPLANTP) {
+            // lowest level layers should all be opaque
+            opacity = 1.0;
+        } else if (layer == techPool.getGeneric().glyphLay) {
+            opacity = 0;		// essential bounds
+        }
+        return (float)opacity;
+    }
+
+    private TechData getTechData(Technology tech) {
+        TechData td = techData[tech.getId().techIndex];
+        assert td.tech == tech;
+        return td;
     }
 
     /**
@@ -347,7 +441,7 @@ public class LayerVisibility extends PrefPackage {
     public static void preserveVisibility() {
         assert SwingUtilities.isEventDispatchThread();
         if (stdLayerVisibility == null) return;
-        stdLayerVisibility.putPrefs(getPrefRoot(), true, null);
+        stdLayerVisibility.putPrefs(getPrefRoot(), true);
     }
 
     /**
@@ -360,13 +454,20 @@ public class LayerVisibility extends PrefPackage {
     }
 
     /**
+     * Reset "standard" LayerVisibility to factory values.
+     */
+    public static void setDefaultOpacity() {
+        assert SwingUtilities.isEventDispatchThread();
+        if (stdLayerVisibility == null) return;
+        stdLayerVisibility.resetOpacity();
+    }
+
+    /**
      * Reload standard LayerVisibility from Preferences
      * @param techPool new TechPool
      */
     public static void setTechPool(TechPool techPool) {
-        assert SwingUtilities.isEventDispatchThread();
-        if (stdLayerVisibility != null)
-            stdLayerVisibility.putPrefs(getPrefRoot(), true, null);
+        preserveVisibility();
         stdLayerVisibility = new LayerVisibility(false, techPool);
     }
 }

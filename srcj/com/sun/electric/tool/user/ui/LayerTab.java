@@ -457,7 +457,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		layerName.append(layer.getName());
 		if (layerHighlighted) layerName.append(" (HIGHLIGHTED)");
 		if (layerDrawing)
-			layerName.append(" (" + TextUtils.formatDouble(layer.getGraphics().getOpacity(),2) + ")");
+			layerName.append(" (" + TextUtils.formatDouble(lv.getOpacity(layer),2) + ")");
 		return layerName.toString();
 	}
 
@@ -471,15 +471,16 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		if (indices.length == 1)
 		{
 			// single layer selected: show opacity
-			if (/*Job.getDebug()*/layerDrawing)
+			if (layerDrawing)
 			{
 				Layer layer = getSelectedLayer(indices[0]);
 				if (layer != null)
 				{
-					double opacity = layer.getGraphics().getOpacity();
+					double opacity = lv.getOpacity(layer);
 					double range = opacitySlider.getMaximum() - opacitySlider.getMinimum();
 					int newValue = opacitySlider.getMinimum() + (int)(range * opacity);
 					opacitySlider.setValue(newValue);
+                    opacitySlider.repaint();
 				}
 			}
 		}
@@ -510,8 +511,10 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		int sliderValue = opacitySlider.getValue() - opacitySlider.getMinimum();
 		double range = opacitySlider.getMaximum() - opacitySlider.getMinimum();
 		double newOpacity = sliderValue / range;
-		layer.getGraphics().setOpacity(newOpacity);
+        lv.setOpacity(layer, newOpacity);
+//		layer.getGraphics().setOpacity(newOpacity);
 		layerListModel.set(indices[0], lineName(layer));
+        layerList.repaint();
 
 		opacityChanged();
 	}
@@ -1234,7 +1237,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		String techName = (String)technology.getSelectedItem();
 		Technology tech = Technology.findTechnology(techName);
 		if (tech == null) return;
-		EditWindow.setDefaultOpacity(tech);
+		lv.resetOpacity(tech);
 		updateLayersTab();
 		opacityChanged();
     }//GEN-LAST:event_resetOpacityActionPerformed

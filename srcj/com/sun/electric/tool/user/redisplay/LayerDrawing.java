@@ -460,7 +460,7 @@ class LayerDrawing
             Map<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
             for (Map.Entry<Layer,TransparentRaster> e: dd.layerRasters.entrySet())
                 layerBits.put(e.getKey(), e.getValue().layerBitMap);
-            List<AbstractDrawing.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), dd.patternedDisplay, alphaBlendingOvercolor);
+            List<AbstractDrawing.LayerColor> blendingOrder = getBlendingOrder(layerBits.keySet(), dd.patternedDisplay, alphaBlendingOvercolor);
             if (TAKE_STATS) {
                 System.out.print("BlendingOrder:");
                 for (AbstractDrawing.LayerColor lc: blendingOrder) {
@@ -512,7 +512,7 @@ class LayerDrawing
          * @return the offscreen Image with the final display.
          */
         private void legacyLayerComposite(Graphics2D g, DrawingData dd) {
-            wnd.getBlendingOrder(dd.layerRasters.keySet(), false, false);
+            getBlendingOrder(dd.layerRasters.keySet(), false, false);
 
             Technology curTech = Technology.getCurrent();
             if (curTech == null) {
@@ -633,6 +633,57 @@ class LayerDrawing
                 }
                 g.drawImage(smallImg, 0, y, null);
             }
+        }
+
+        /**
+         * Returns alpha blending order for this EditWindow.
+         * Alpha blending order specifies pixel color by such a way:
+         * Color col = backgroudColor;
+         * for (LayerColor layerColor: blendingOrder) {
+         *    if (This pixel covers a piece of layer layerColor.layer) {
+         *       alpha = layerColor.color.getAlpha();
+         *       col =  layerColor.color.getRGB()*alpha + col*(1 - alpha)
+         *    }
+         * }
+         * return col;
+         * @param layersAvailable layers available in this EditWindow
+         * @return alpha blending order.
+         */
+        private List<AbstractDrawing.LayerColor> getBlendingOrder(Set<Layer> layersAvailable, boolean patternedDisplay, boolean alphaBlendingOvercolor) {
+            List<AbstractDrawing.LayerColor> layerColors = new ArrayList<AbstractDrawing.LayerColor>();
+            List<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
+            Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT_LIFT_CONTACTS);
+            float[] backgroundComps = (new Color(User.getColor(User.ColorPrefType.BACKGROUND))).getRGBColorComponents(null);
+            float bRed = backgroundComps[0];
+            float bGreen = backgroundComps[1];
+            float bBlue = backgroundComps[2];
+            for(Layer layer : sortedLayers) {
+                if (!lv.isVisible(layer)) continue;
+                if (layer == Generic.tech().glyphLay && !patternedDisplay) continue;
+                Color color = new Color(layer.getGraphics().getRGB());
+                float[] compArray = color.getRGBComponents(null);
+                float red = compArray[0];
+                float green = compArray[1];
+                float blue = compArray[2];
+                float opacity = lv.getOpacity(layer);
+                if (opacity <= 0) continue;
+                float inverseAlpha = 1 - opacity;
+                if (alphaBlendingOvercolor) {
+                    red -= bRed*inverseAlpha;
+                    green -= bGreen*inverseAlpha;
+                    blue -= bBlue*inverseAlpha;
+                } else {
+                    red *= opacity;
+                    green *= opacity;
+                    blue *= opacity;
+                }
+                layerColors.add(new AbstractDrawing.LayerColor(layer, red, green, blue, inverseAlpha));
+            }
+//            final LayerTab layerTab = getWindowFrame().getLayersTab();
+//            final boolean showOpacity = !User.isLegacyComposite();
+//            if (layerTab != null)
+//                SwingUtilities.invokeLater(new Runnable() { public void run() { layerTab.setDisplayAlgorithm(showOpacity); }});
+            return layerColors;
         }
 
         /**

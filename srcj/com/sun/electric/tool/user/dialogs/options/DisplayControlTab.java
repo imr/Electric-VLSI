@@ -23,16 +23,14 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
 
+import com.sun.electric.tool.user.ui.LayerVisibility;
 import java.awt.Frame;
-import java.util.Iterator;
 
 import javax.swing.JPanel;
 
@@ -57,15 +55,18 @@ public class DisplayControlTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
+    @Override
 	public JPanel getPreferencesPanel() { return general; }
 
 	/** return the name of this preferences tab. */
+    @Override
 	public String getName() { return "Display Control"; }
 
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the General tab.
 	 */
+    @Override
 	public void init()
 	{
 		// top half (miscellaneous controls)
@@ -100,6 +101,7 @@ public class DisplayControlTab extends PreferencePanel
 	/**
 	 * Method called when the "OK" panel is hit.
 	 */
+    @Override
 	public void term()
 	{
 		// top half (miscellaneous controls)
@@ -162,19 +164,21 @@ public class DisplayControlTab extends PreferencePanel
 
 		if (resetAllOpacity)
 		{
-			Pref.delayPrefFlushing();
-			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-			{
-				Technology tech = it.next();
-				EditWindow.setDefaultOpacity(tech);
-			}
-			Pref.resumePrefFlushing();
+            LayerVisibility.setDefaultOpacity();
+//			Pref.delayPrefFlushing();
+//			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+//			{
+//				Technology tech = it.next();
+//				EditWindow.setDefaultOpacity(tech);
+//			}
+//			Pref.resumePrefFlushing();
 		}
 	}
 
 	/**
 	 * Method called when the factory reset is requested.
 	 */
+    @Override
 	public void reset()
 	{
 		if (User.isFactoryShowHierarchicalCursorCoordinates() != User.isShowHierarchicalCursorCoordinates())
@@ -203,11 +207,12 @@ public class DisplayControlTab extends PreferencePanel
 			User.setLegacyComposite(User.isFactoryLegacyComposite());
 		if (User.getFactoryAlphaBlendingOvercolorLimit() != User.getAlphaBlendingOvercolorLimit())
 			User.setAlphaBlendingOvercolorLimit(User.getFactoryAlphaBlendingOvercolorLimit());
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			EditWindow.setDefaultOpacity(tech);
-		}
+        LayerVisibility.setDefaultOpacity();
+//		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+//		{
+//			Technology tech = it.next();
+//			EditWindow.setDefaultOpacity(tech);
+//		}
 	}
 
 	/** This method is called from within the constructor to
