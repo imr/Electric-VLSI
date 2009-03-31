@@ -27,9 +27,6 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Client;
@@ -161,13 +158,9 @@ public class ArtworkLook extends EModelessDialog implements HighlightListener
 		artworkObjects = artObjects;
 		if (artworkObjects.size() == 0) li = null; else
 		{
-			EGraphics graphics = Artwork.makeGraphics(artworkObjects.get(0));
+			EGraphics graphics = Artwork.tech().makeGraphics(artworkObjects.get(0));
 			if (graphics == null)
-			{
-				graphics = new EGraphics(false, false, null, 0, 0,0,0, 0.8,true,
-					new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-						0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff});
-			}
+                graphics = Artwork.tech().defaultLayer.getFactoryGraphics();
 			li = new ColorPatternPanel.Info(graphics);
 		}
 		colorPatternPanel.setColorPattern(li);
@@ -198,10 +191,11 @@ public class ArtworkLook extends EModelessDialog implements HighlightListener
 	private void applyDialog()
 	{
 		if (li == null) return;
-		if (li.updateGraphics(li.graphics))
+        EGraphics graphics = li.updateGraphics(li.graphics);
+		if (graphics != li.graphics)
 		{
-			int transparent = li.graphics.getTransparentLayer();
-			Color newColor = li.graphics.getColor();
+			int transparent = graphics.getTransparentLayer();
+			Color newColor = graphics.getColor();
 			int index = -1;
 			if (transparent != 0 || newColor != Color.BLACK)
 			{
@@ -211,14 +205,14 @@ public class ArtworkLook extends EModelessDialog implements HighlightListener
 
 			// set the stipple pattern if specified
 			Integer [] pat = null;
-			if (li.graphics.isPatternedOnDisplay())
+			if (graphics.isPatternedOnDisplay())
 			{
 				// set the pattern
-				int [] pattern = li.graphics.getPattern();
+				int [] pattern = graphics.getPattern();
 				pat = new Integer[17];
 				for(int i=0; i<16; i++)
 					pat[i] = new Integer(pattern[i]);
-				pat[16] = new Integer(li.graphics.getOutlined().getIndex());
+				pat[16] = new Integer(graphics.getOutlined().getIndex());
 			}
 
 			// change the objects

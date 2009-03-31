@@ -816,7 +816,7 @@ public class Artwork extends Technology
 	 * @param eObj the ElectricObject with graphics specifications.
 	 * @return a new EGraphics that has the color and pattern.
 	 */
-	public static EGraphics makeGraphics(ElectricObject eObj) {
+	public EGraphics makeGraphics(ElectricObject eObj) {
 		return makeGraphics(eObj.getD());
 	}
 
@@ -825,7 +825,7 @@ public class Artwork extends Technology
 	 * @param d the ImmutableElectricObject with graphics specifications.
 	 * @return a new EGraphics that has the color and pattern.
 	 */
-	private static EGraphics makeGraphics(ImmutableElectricObject d)
+	private EGraphics makeGraphics(ImmutableElectricObject d)
 	{
 		// get the color and pattern information
 		Integer color = d.getVarValue(ART_COLOR, Integer.class);
@@ -833,13 +833,11 @@ public class Artwork extends Technology
 		if (color == null && patternVar == null) return null;
 
 		// make a fake layer with graphics
-		EGraphics graphics = new EGraphics(false, false, null, 0, 0,0,0, 0.8,true,
-			new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-				0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff});
+		EGraphics graphics = defaultLayer.getFactoryGraphics();
 
 		// set the color if specified
 		if (color != null)
-			graphics.setColorIndex(color.intValue()); // autoboxing
+			graphics = graphics.withColorIndex(color.intValue()); // autoboxing
 
 		// set the stipple pattern if specified
 		if (patternVar != null)
@@ -851,10 +849,10 @@ public class Artwork extends Technology
 				return null;
 			}
 
-			graphics.setPatternedOnDisplay(true);
-			graphics.setPatternedOnPrinter(true);
-			graphics.setOutlined(null);
-			int [] pattern = graphics.getPattern();
+			graphics = graphics.withPatternedOnDisplay(true);
+			graphics = graphics.withPatternedOnPrinter(true);
+			graphics = graphics.withOutlined(null);
+			int [] pattern = new int[16];
 			Object obj = patternVar.getObject();
 			if (obj instanceof Integer[])
 			{
@@ -863,7 +861,7 @@ public class Artwork extends Technology
 				{
 					// the last entry specifies the outline texture
 					int outlineIndex = pat[16].intValue();  // autoboxing
-					graphics.setOutlined(EGraphics.Outline.findOutline(outlineIndex));
+					graphics = graphics.withOutlined(EGraphics.Outline.findOutline(outlineIndex));
 					len = 16;
 				}
 				for(int i=0; i<len; i++)
@@ -873,13 +871,13 @@ public class Artwork extends Technology
 				Short [] pat = (Short [])obj;
 				for(int i=0; i<len; i++)
 					pattern[i] = pat[i].shortValue();
-				graphics.setOutlined(EGraphics.Outline.PAT_S);
+				graphics = graphics.withOutlined(EGraphics.Outline.PAT_S);
 			}
 			if (len == 8)
 			{
 				for(int i=0; i<8; i++) pattern[i+8] = pattern[i];
 			}
-            graphics.setPattern(pattern);
+            graphics = graphics.withPattern(pattern);
 		}
 		return graphics;
 	}

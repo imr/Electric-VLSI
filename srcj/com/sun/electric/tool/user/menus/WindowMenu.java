@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
@@ -849,7 +850,8 @@ public class WindowMenu {
 
         EDatabase database = EDatabase.clientDatabase();
         // change default Artowrk graphics color
-        database.getArtwork().defaultLayer.getGraphics().setColor(Color.BLACK);
+        Layer layer = database.getArtwork().defaultLayer;
+        layer.setGraphics(layer.getGraphics().withColor(Color.BLACK));
 		// change the colors in the "Generic" technology
         database.getGeneric().setBackgroudColor(Color.BLACK);
 
@@ -875,7 +877,8 @@ public class WindowMenu {
 
         EDatabase database = EDatabase.clientDatabase();
         // change default Artowrk graphics color
-        database.getArtwork().defaultLayer.getGraphics().setColor(Color.WHITE);
+        Layer layer = database.getArtwork().defaultLayer;
+        layer.setGraphics(layer.getGraphics().withColor(Color.WHITE));
 		// change the colors in the "Generic" technology
         database.getGeneric().setBackgroudColor(Color.WHITE);
 
@@ -901,7 +904,8 @@ public class WindowMenu {
 
         EDatabase database = EDatabase.clientDatabase();
         // change default Artowrk graphics color
-        database.getArtwork().defaultLayer.getGraphics().setColor(Color.BLACK);
+        Layer layer = database.getArtwork().defaultLayer;
+        layer.setGraphics(layer.getGraphics().withColor(Color.BLACK));
 		// change the colors in the "Generic" technology
         database.getGeneric().setBackgroudColor(Color.BLACK);
 

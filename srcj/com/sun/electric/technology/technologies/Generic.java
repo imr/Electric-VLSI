@@ -318,8 +318,8 @@ public class Generic extends Technology
 
     public void setBackgroudColor(Color c)
     {
-		tech().universalLay.getGraphics().setColor(c);
-		tech().glyphLay.getGraphics().setColor(c);
+		universalLay.setGraphics(universalLay.getGraphics().withColor(c));
+		glyphLay.setGraphics(universalLay.getGraphics().withColor(c));
     }
 
 	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer [] {};

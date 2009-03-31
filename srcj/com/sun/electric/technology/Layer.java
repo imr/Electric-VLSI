@@ -712,8 +712,9 @@ public class Layer extends Observable implements Serializable
 	{
         layerId = tech.getId().newLayerId(name);
 		this.tech = tech;
-		this.graphics = graphics;
-        this.factoryGraphics = new EGraphics(graphics);
+        if (graphics == null)
+            throw new NullPointerException();
+		this.graphics = this.factoryGraphics = graphics;
 		this.nonPseudoLayer = this;
         this.pseudo = pseudo;
         usePatternDisplayPref = makeBooleanPref("UsePatternDisplay", graphics.isPatternedOnDisplay());
@@ -772,10 +773,6 @@ public class Layer extends Observable implements Serializable
         }
 		Layer layer = new Layer(name, false, tech, graphics);
 		tech.addLayer(layer);
-        if (graphics.getLayer() == null) {
-//            layer.loadGraphicsFromPrefs();
-            graphics.setLayer(layer);
-        }
 		return layer;
 	}
 
@@ -832,6 +829,16 @@ public class Layer extends Observable implements Serializable
 	public Technology getTechnology() { return tech; }
 
 	/**
+	 * Method to set the graphics description of this Layer.
+	 * @param graphics graphics description of this Layer.
+	 */
+	public void setGraphics(EGraphics graphics) {
+        if (graphics.equals(this.graphics)) return;
+        this.graphics = graphics;
+        graphicsChanged();
+    }
+
+	/**
 	 * Method to return the graphics description of this Layer.
 	 * @return the graphics description of this Layer.
 	 */
@@ -841,7 +848,7 @@ public class Layer extends Observable implements Serializable
 	 * Method to return the graphics description of this Layer by factory default.
 	 * @return the factory graphics description of this Layer.
 	 */
-	public EGraphics getFactoryGraphics() { return new EGraphics(factoryGraphics); }
+	public EGraphics getFactoryGraphics() { return factoryGraphics; }
 
 	/**
 	 * Method to set the Function of this Layer.
@@ -1057,15 +1064,15 @@ public class Layer extends Observable implements Serializable
         EGraphics.J3DTransparencyOption mode = EGraphics.J3DTransparencyOption.valueOf(layer3DTransModePref.getString());
         double factor = layer3DTransFactorPref.getDouble();
 
-        graphics.setPatternedOnDisplay(usePatternDisplay);
-        graphics.setPatternedOnPrinter(usePatternPrinter);
-        graphics.setOutlined(outline);
-        graphics.setTransparentLayer(transparentLayer);
-        graphics.setOpacity(opacity);
-        graphics.setRGB(colorRGB);
-        graphics.setPattern(patternStr);
-        graphics.setTransparencyMode(mode);
-        graphics.setTransparencyFactor(factor);
+        graphics = graphics.withPatternedOnDisplay(usePatternDisplay);
+        graphics = graphics.withPatternedOnPrinter(usePatternPrinter);
+        graphics = graphics.withOutlined(outline);
+        graphics = graphics.withTransparentLayer(transparentLayer);
+        graphics = graphics.withOpacity(opacity);
+        graphics = graphics.withColor(new Color(colorRGB));
+        graphics = graphics.withPattern(patternStr);
+        graphics = graphics.withTransparencyMode(mode);
+        graphics = graphics.withTransparencyFactor(factor);
     }
 
     private Setting makeLayerSetting(String what, String factory) {

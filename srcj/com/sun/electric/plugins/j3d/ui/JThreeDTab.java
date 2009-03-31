@@ -266,8 +266,9 @@ public class JThreeDTab extends ThreeDTab
             oldApp.setTransparencyAndRenderingAttributes(newAttr, newApp.getRenderingAttributes().getDepthBufferEnable());
 
             EGraphics graphics = layer.getGraphics();
-            graphics.setTransparencyMode(EGraphics.J3DTransparencyOption.valueOf(newAttr.getTransparencyMode()));
-            graphics.setTransparencyFactor(newAttr.getTransparency());
+            graphics = graphics.withTransparencyMode(EGraphics.J3DTransparencyOption.valueOf(newAttr.getTransparencyMode()));
+            graphics = graphics.withTransparencyFactor(newAttr.getTransparency());
+            layer.setGraphics(graphics);
             setDouble(layer.getThicknessSetting(), thickness.doubleValue());
             setDouble(layer.getDistanceSetting(), height.doubleValue());
 		}
@@ -355,8 +356,9 @@ public class JThreeDTab extends ThreeDTab
 			if (factoryGraphics.getTransparencyMode() != graphics.getTransparencyMode() ||
 				factoryGraphics.getTransparencyFactor() != graphics.getTransparencyFactor())
 			{
-				graphics.setTransparencyMode(factoryGraphics.getTransparencyMode());
-				graphics.setTransparencyFactor(factoryGraphics.getTransparencyFactor());
+				graphics = graphics.withTransparencyMode(factoryGraphics.getTransparencyMode());
+				graphics = graphics.withTransparencyFactor(factoryGraphics.getTransparencyFactor());
+                layer.setGraphics(graphics);
 				layer.set3DAppearance(null);
 			}
             Setting thicknessSetting = layer.getThicknessSetting();

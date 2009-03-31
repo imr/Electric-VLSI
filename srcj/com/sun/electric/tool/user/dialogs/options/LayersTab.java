@@ -296,8 +296,12 @@ public class LayersTab extends PreferencePanel
 					ColorPatternPanel.Info altLI = layerMap.get(layer.getNonPseudoLayer());
 					if (altLI != null) li = altLI;
 				}
-				if (li.updateGraphics(graphics))
+                EGraphics newGraphics = li.updateGraphics(graphics);
+				if (newGraphics != graphics)
+                {
 					changed = true;
+                    layer.setGraphics(newGraphics);
+                }
 			}
 
 			// determine the original colors for this technology

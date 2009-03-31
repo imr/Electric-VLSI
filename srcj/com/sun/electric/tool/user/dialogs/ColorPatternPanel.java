@@ -120,54 +120,18 @@ public class ColorPatternPanel extends JPanel
 		 * Method to update the EGraphics object that is being displayed in this dialog panel.
 		 * @return true if the EGraphics object changed.
 		 */
-		public boolean updateGraphics(EGraphics setGraphics)
+		public EGraphics updateGraphics(EGraphics graphics)
 		{
-			if (justColor) return false;
+			if (justColor) return graphics;
 
-			boolean changed = false;
-
-			int [] origPattern = setGraphics.getPattern();
-			for(int i=0; i<16; i++) if (pattern[i] != origPattern[i]) changed = true;
-			if (changed)
-				setGraphics.setPattern(pattern);
-
-			// check the pattern and outline factors
-			if (useStippleDisplay != setGraphics.isPatternedOnDisplay())
-			{
-				setGraphics.setPatternedOnDisplay(useStippleDisplay);
-				changed = true;
-			}
-			if (outlinePatternDisplay != setGraphics.getOutlined())
-			{
-				setGraphics.setOutlined(outlinePatternDisplay);
-				changed = true;
-			}
-			if (useStipplePrinter != setGraphics.isPatternedOnPrinter())
-			{
-				setGraphics.setPatternedOnPrinter(useStipplePrinter);
-				changed = true;
-			}
-
-			// check the color values
-			int color = (red << 16) | (green << 8) | blue;
-			Color colorObj = null;
-			if (color != (setGraphics.getColor().getRGB() & 0xFFFFFF))
-			{
-				colorObj = new Color(color);
-				setGraphics.setColor(colorObj);
-				changed = true;
-			}
-			if (opacity != setGraphics.getOpacity())
-			{
-				setGraphics.setOpacity(opacity);
-				changed = true;
-			}
-			if (transparentLayer != setGraphics.getTransparentLayer())
-			{
-				setGraphics.setTransparentLayer(transparentLayer);
-				changed = true;
-			}
-			return changed;
+			graphics = graphics.withPattern(pattern);
+			graphics = graphics.withPatternedOnDisplay(useStippleDisplay);
+			graphics = graphics.withOutlined(outlinePatternDisplay);
+			graphics = graphics.withPatternedOnPrinter(useStipplePrinter);
+			graphics = graphics.withColor(new Color(red, green, blue));
+			graphics = graphics.withOpacity(opacity);
+			graphics = graphics.withTransparentLayer(transparentLayer);
+			return graphics;
 		}
 
 	}

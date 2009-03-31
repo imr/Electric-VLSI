@@ -1538,8 +1538,8 @@ public class TechEditWizardData
         l.name = name;
         l.function = function;
         l.extraFunction = extraf;
-        graph.setTransparencyMode(EGraphics.J3DTransparencyOption.NONE);
-        graph.setTransparencyFactor(1);
+        graph = graph.withTransparencyMode(EGraphics.J3DTransparencyOption.NONE);
+        graph = graph.withTransparencyFactor(1);
         l.desc = graph;
         l.thick3D = 1;
         l.height3D = 1;

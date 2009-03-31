@@ -125,8 +125,8 @@ class VectorDrawing
 		List<NodeInst> inPlaceNodePath, Cell inPlaceCurrent, Rectangle screenLimit, VarContext context)
 	{
 		// set colors to use
-		textGraphics.setColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
-		instanceGraphics.setColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
+		textGraphics = textGraphics.withColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
+		instanceGraphics = instanceGraphics.withColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
 		textColor = new Color(User.getColor(User.ColorPrefType.TEXT) & 0xFFFFFF);
 
 		// see if any layers are being highlighted/dimmed
@@ -227,7 +227,7 @@ class VectorDrawing
 	public void render(PixelDrawing offscreen, double scale, Point2D offset, VectorCache.VectorBase[] shapes)
 	{
 		// set colors to use
-		textGraphics.setColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
+		textGraphics = textGraphics.withColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
 		textColor = new Color(User.getColor(User.ColorPrefType.TEXT) & 0xFFFFFF);
 
 		// see if any layers are being highlighted/dimmed
@@ -715,7 +715,7 @@ class VectorDrawing
 			int portDisplayLevel = User.getPortDisplayLevel();
 			Color portColor = vce.getPortColor();
 			if (expanded) portColor = textColor;
-			if (portColor != null) portGraphics.setColor(portColor);
+			if (portColor != null) portGraphics = portGraphics.withColor(portColor);
 			if (portDisplayLevel == 2)
 			{
 				// draw port as a cross

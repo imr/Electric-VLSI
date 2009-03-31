@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+IMP: (3/31/09, DN) EGraphics is immutable class.
+
 ************************* Version 8.09g: ******************************
 
 BUG: (3/31/09, SMR) Node extractor doesn't rotate subcells properly (Bug #2102).
@@ -39,7 +41,7 @@ IMP: (3/24/09, SMR) Project Settings dialog starting to merge into Preferences p
 IMP/MAN: (3/23/09, DN) Artwork arrows are always filled (Bug #2100).
 
 BUG: (3/23/09, DN) Crash after renaming icon Cell.
-FIX: In Cell.update make full updatePortInsts after node proto changed. 
+FIX: In Cell.update make full updatePortInsts after node proto changed.
 
 IMP: (3/23/09, GVG) Missing header in DELIB library (Bug #2093).
 Warning is now printed in the messages window as well.

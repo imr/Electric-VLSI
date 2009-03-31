@@ -295,13 +295,13 @@ class LayerDrawing
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
     private static LayerVisibility lv;
     private static Color textColor;
-	private static final EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
+	private static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static final EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
+	private static EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static final EGraphics gridGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
+	private static EGraphics gridGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static final EGraphics portGraphics = new EGraphics(false, false, null, 0, 255,0,0, 1.0,true,
+	private static EGraphics portGraphics = new EGraphics(false, false, null, 0, 255,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
     private int clipLX, clipHX, clipLY, clipHY;
@@ -916,8 +916,8 @@ class LayerDrawing
         LayerDrawing offscreen = new LayerDrawing(new Dimension(entrySize.width, entrySize.height));
 
 		// set colors to use
-        LayerDrawing.textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
-        LayerDrawing.textGraphics.setColor(LayerDrawing.textColor);
+        textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
+        textGraphics = textGraphics.withColor(LayerDrawing.textColor);
 
 		// initialize the cache of expanded cell displays
 //        varContext = wnd.getVarContext();
@@ -1147,9 +1147,9 @@ class LayerDrawing
 
 		// set colors to use
         textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
-		textGraphics.setColor(textColor);
-		instanceGraphics.setColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
-        gridGraphics.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
+		textGraphics = textGraphics.withColor(textColor);
+		instanceGraphics = instanceGraphics.withColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
+        gridGraphics = gridGraphics.withColor(new Color(User.getColor(User.ColorPrefType.GRID)));
 
 		// initialize the cache of expanded cell displays
 		if (expandedScale != drawing.da.scale)
@@ -2625,7 +2625,7 @@ class LayerDrawing
 			int portDisplayLevel = User.getPortDisplayLevel();
 			Color portColor = vce.getPortColor();
 			if (expanded) portColor = textColor;
-			if (portColor != null) portGraphics.setColor(portColor);
+			if (portColor != null) portGraphics = portGraphics.withColor(portColor);
 			if (portDisplayLevel == 2)
 			{
 				// draw port as a cross

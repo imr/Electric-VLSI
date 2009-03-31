@@ -1201,7 +1201,7 @@ public class VectorCache {
 				{
                     if (vc.vcg != null && layer.getId().techId == vc.vcg.cellBackup.cellRevision.d.techId)
                         layerIndex = layer.getIndex();
-				}
+                }
                 if (layerIndex >= 0) {
                     putBox(layerIndex, pureLayer ? pureBoxBuilders : boxBuilders, lX, lY, hX, hY);
                 } else {

@@ -302,15 +302,15 @@ public class LayerInfo extends Info
 					int b = TextUtils.atoi(st.nextToken());
 					double o = TextUtils.atof(st.nextToken());
 					boolean f = st.nextToken().equalsIgnoreCase("on");
-					li.desc.setColor(new Color(r, g, b));
-					li.desc.setOpacity(o);
-					li.desc.setForeground(f);
+					li.desc = li.desc.withColor(new Color(r, g, b));
+					li.desc = li.desc.withOpacity(o);
+					li.desc = li.desc.withForeground(f);
 					break;
 				case LAYERTRANSPARENCY:
-					if (str.equalsIgnoreCase("none")) li.desc.setTransparentLayer(0); else
+					if (str.equalsIgnoreCase("none")) li.desc = li.desc.withTransparentLayer(0); else
 					{
 						int layerNum = TextUtils.atoi(str.substring(str.indexOf('-') + 1));
-						li.desc.setTransparentLayer(layerNum);
+						li.desc = li.desc.withTransparentLayer(layerNum);
 					}
 					break;
 				case LAYERPATTERN:
@@ -412,10 +412,10 @@ public class LayerInfo extends Info
 			for(int y=0; y<8; y++)
 				newPat[y+8] = newPat[y];
 		}
-		li.desc.setPattern(newPat);
-		li.desc.setPatternedOnPrinter(patternOnPrinter);
-		li.desc.setPatternedOnDisplay(patternOnDisplay);
-		if (patternOutline != null) li.desc.setOutlined(patternOutline);
+		li.desc = li.desc.withPattern(newPat);
+		li.desc = li.desc.withPatternedOnPrinter(patternOnPrinter);
+		li.desc = li.desc.withPatternedOnDisplay(patternOnDisplay);
+		if (patternOutline != null) li.desc = li.desc.withOutlined(patternOutline);
 		return li;
 	}
 

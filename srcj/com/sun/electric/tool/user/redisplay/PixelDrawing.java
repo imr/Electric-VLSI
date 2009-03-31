@@ -494,9 +494,9 @@ public class PixelDrawing
 
 		// set colors to use
         textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
-		textGraphics.setColor(textColor);
-		gridGraphics.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
-		instanceGraphics.setColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
+		textGraphics = textGraphics.withColor(textColor);
+		gridGraphics = gridGraphics.withColor(new Color(User.getColor(User.ColorPrefType.GRID)));
+		instanceGraphics = instanceGraphics.withColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
 
 		// initialize the cache of expanded cell displays
 		if (expandedScale != drawing.da.scale)
@@ -609,9 +609,9 @@ public class PixelDrawing
 
 		// set colors to use
         textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
-		textGraphics.setColor(textColor);
-		gridGraphics.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
-		instanceGraphics.setColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
+		textGraphics = textGraphics.withColor(textColor);
+		gridGraphics = gridGraphics.withColor(new Color(User.getColor(User.ColorPrefType.GRID)));
+		instanceGraphics = instanceGraphics.withColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
 
         if (wnd != null) varContext = wnd.getVarContext();
         initOrigin(scale, offset.getX(), offset.getY());
@@ -1408,7 +1408,7 @@ public class PixelDrawing
 			portPoly.transform(trans);
 			Color portColor = col;
 			if (portColor == null) portColor = pp.getBasePort().getPortColor();
-			portGraphics.setColor(portColor);
+			portGraphics = portGraphics.withColor(portColor);
 			if (portDisplayLevel == 2)
 			{
 				// draw port as a cross
