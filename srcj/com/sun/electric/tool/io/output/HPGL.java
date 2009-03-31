@@ -175,7 +175,7 @@ public class HPGL extends Output
                 if (poly instanceof Poly) {
                   EGraphics graphicsOverride = ((Poly)poly).getGraphicsOverride();
                   if (graphicsOverride != null)
-                      getPenNumber(graphicsOverride.getOpaqueColor());
+                      getPenNumber(graphicsOverride.getColor());
                 }
             }
 		}
@@ -380,7 +380,7 @@ public class HPGL extends Output
         if (poly instanceof Poly) {
             EGraphics graphicsOverride = ((Poly)poly).getGraphicsOverride();
             if (graphicsOverride != null)
-                col = graphicsOverride.getOpaqueColor();
+                col = graphicsOverride.getColor();
         }
 		Poly.Type style = poly.getStyle();
 		Point2D [] points = poly.getPoints();

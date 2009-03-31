@@ -143,7 +143,7 @@ public class EGraphicsN implements Serializable
 	/** printer: true to use patterns; false for solid */	private final boolean printPatterned;
 	/** the outline pattern */								private final Outline patternOutline;
 	/** transparent layer to use (0 for none) */			private final int transparentLayer;
-	/** color to use */										private final Color opaqueColor;
+	/** color to use */										private final Color color;
 	/** opacity (0 to 1) of color */						private final double opacity;
 	/** whether to draw color in foregound */				private final boolean foreground;
 	/** stipple pattern to draw */							private final int [] pattern;
@@ -274,7 +274,7 @@ public class EGraphicsN implements Serializable
             green = Math.max(Math.max(green, 0), 255);
             blue = Math.max(Math.max(blue, 0), 255);
         }
-		this.opaqueColor = new Color(red, green, blue);
+		this.color = new Color(red, green, blue);
 		this.opacity = validateOpacity(opacity);
         transparencyMode = J3DTransparencyOption.NONE;
         transparencyFactor = 0;
@@ -310,7 +310,7 @@ public class EGraphicsN implements Serializable
 		this.printPatterned = printPatterned;
 		this.patternOutline = outlineWhenPatterned;
 		this.transparentLayer = transparentLayer;
-		this.opaqueColor = opaqueColor;
+		this.color = opaqueColor;
 		this.opacity = validateOpacity(opacity);
 		this.foreground = foreground;
         this.pattern = pattern;
@@ -357,7 +357,7 @@ public class EGraphicsN implements Serializable
 	 */
 	public EGraphicsN withPatternedOnDisplay(boolean p) {
         if (p == displayPatterned) return this;
-        return new EGraphicsN(p, printPatterned, patternOutline, transparentLayer, opaqueColor, opacity, foreground,
+        return new EGraphicsN(p, printPatterned, patternOutline, transparentLayer, color, opacity, foreground,
                 pattern, reversedPattern, transparencyMode, transparencyFactor);
 	}
 
@@ -378,7 +378,7 @@ public class EGraphicsN implements Serializable
 	 */
 	public EGraphicsN withPatternedOnPrinter(boolean p) {
         if (p == printPatterned) return this;
-        return new EGraphicsN(displayPatterned, p, patternOutline, transparentLayer, opaqueColor, opacity, foreground,
+        return new EGraphicsN(displayPatterned, p, patternOutline, transparentLayer, color, opacity, foreground,
                 pattern, reversedPattern, transparencyMode, transparencyFactor);
 	}
 
@@ -399,7 +399,7 @@ public class EGraphicsN implements Serializable
         if (o == null)
             o = Outline.NOPAT;
         if (o == patternOutline) return this;
-        return new EGraphicsN(displayPatterned, printPatterned, o, transparentLayer, opaqueColor, opacity, foreground,
+        return new EGraphicsN(displayPatterned, printPatterned, o, transparentLayer, color, opacity, foreground,
                 pattern, reversedPattern, transparencyMode, transparencyFactor);
     }
 
@@ -424,7 +424,7 @@ public class EGraphicsN implements Serializable
             transparentLayer = 0;
         }
         if (transparentLayer == this.transparentLayer) return this;
-        return new EGraphicsN(displayPatterned, printPatterned, patternOutline, transparentLayer, opaqueColor, opacity, foreground,
+        return new EGraphicsN(displayPatterned, printPatterned, patternOutline, transparentLayer, color, opacity, foreground,
                 pattern, reversedPattern, transparencyMode, transparencyFactor);
     }
 
@@ -462,7 +462,7 @@ public class EGraphicsN implements Serializable
             pattern[i] &= 0xFFFF;
         if (Arrays.equals(pattern, this.pattern)) return this;
         int[] reversedPattern = makeReversedPattern(this.pattern);
-        return new EGraphicsN(displayPatterned, printPatterned, patternOutline, transparentLayer, opaqueColor, opacity, foreground,
+        return new EGraphicsN(displayPatterned, printPatterned, patternOutline, transparentLayer, color, opacity, foreground,
                 pattern, reversedPattern, transparencyMode, transparencyFactor);
     }
 
@@ -533,7 +533,7 @@ public class EGraphicsN implements Serializable
     public EGraphicsN withOpacity(double opacity) {
         opacity = validateOpacity(opacity);
         if (opacity == this.opacity) return this;
-        return new EGraphicsN(displayPatterned, printPatterned, patternOutline, transparentLayer, opaqueColor, opacity, foreground,
+        return new EGraphicsN(displayPatterned, printPatterned, patternOutline, transparentLayer, color, opacity, foreground,
                 pattern, reversedPattern, transparencyMode, transparencyFactor);
     }
 
@@ -554,33 +554,35 @@ public class EGraphicsN implements Serializable
 	 */
 	public EGraphicsN withForeground(boolean f) {
         if (f == this.foreground) return this;
-        return new EGraphicsN(displayPatterned, printPatterned, patternOutline, transparentLayer, opaqueColor, opacity, f,
+        return new EGraphicsN(displayPatterned, printPatterned, patternOutline, transparentLayer, color, opacity, f,
                 pattern, reversedPattern, transparencyMode, transparencyFactor);
     }
 
 	/**
 	 * Method to return the color associated with this EGraphics.
+     * Alpha component is determined by opacity
 	 * @return the color associated with this EGraphics.
 	 */
-	public Color getColor() {
+	public Color getAlphaColor() {
 		int alpha = (int)(opacity * 255.0);
-		return new Color(opaqueColor.getRed(), opaqueColor.getGreen(), opaqueColor.getBlue(), alpha);
+		return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
 	}
 
 	/**
-	 * Method to return the color associated with this EGraphics with full opacity.
+	 * Method to return the color associated with this EGraphics.
+     * Alpha comonent is 255.
 	 * @return the color associated with this EGraphics.
 	 */
-	public Color getOpaqueColor() { return opaqueColor; }
+	public Color getColor() { return color; }
 
 	/**
 	 * Returns the RGB value representing the color associated with this EGraphics.
 	 * (Bits 16-23 are red, 8-15 are green, 0-7 are blue).
-	 * Alpha/opacity component is not returned
+	 * Alpha/opacity component is 0
 	 * @return the RGB value of the color
 	 */
 	public int getRGB() {
-		return opaqueColor.getRGB() & 0xFFFFFF;
+		return color.getRGB() & 0xFFFFFF;
 	}
 
 	/**
@@ -593,7 +595,7 @@ public class EGraphicsN implements Serializable
     public EGraphicsN withColor(Color color) {
         if (color.getAlpha() != 0xFF)
             color = new Color(color.getRGB());
-        if (color.equals(opaqueColor)) return this;
+        if (color.equals(this.color)) return this;
         assert color.getAlpha() == 0xFF;
         return new EGraphicsN(displayPatterned, printPatterned, patternOutline,
                 transparentLayer, new Color(color.getRed(), color.getGreen(), color.getBlue()), opacity, foreground,
@@ -881,7 +883,7 @@ public class EGraphicsN implements Serializable
             mode = J3DTransparencyOption.NONE;
         if (mode == transparencyMode) return this;
         return new EGraphicsN(displayPatterned, printPatterned, patternOutline,
-                transparentLayer, opaqueColor, opacity, foreground,
+                transparentLayer, color, opacity, foreground,
                 pattern, reversedPattern, mode, transparencyFactor);
     }
 
@@ -901,7 +903,7 @@ public class EGraphicsN implements Serializable
 	public EGraphicsN withTransparencyFactor(double factor) {
         if (factor == transparencyFactor) return this;
         return new EGraphicsN(displayPatterned, printPatterned, patternOutline,
-                transparentLayer, opaqueColor, opacity, foreground,
+                transparentLayer, color, opacity, foreground,
                 pattern, reversedPattern, transparencyMode, factor);
     }
 
@@ -914,7 +916,7 @@ public class EGraphicsN implements Serializable
                     this.printPatterned == that.printPatterned &&
                     this.patternOutline == that.patternOutline &&
                     this.transparentLayer == that.transparentLayer &&
-                    this.opaqueColor.equals(that.opaqueColor) &&
+                    this.color.equals(that.color) &&
                     this.opacity == that.opacity &&
                     this.foreground == that.foreground &&
                     Arrays.equals(this.pattern, that.pattern) &&
@@ -926,7 +928,7 @@ public class EGraphicsN implements Serializable
 
     @Override
     public int hashCode() {
-        int hash = opaqueColor.hashCode();
+        int hash = color.hashCode();
         if (pattern != null)
             hash += 79*pattern[0];
         return hash;

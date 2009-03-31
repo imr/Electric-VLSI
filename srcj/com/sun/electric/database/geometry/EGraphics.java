@@ -584,20 +584,10 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 
 	/**
 	 * Method to return the color associated with this EGraphics.
+     * The alpha component of the color is 255.
 	 * @return the color associated with this EGraphics.
 	 */
 	public Color getColor()
-	{
-		int alpha = (int)(opacity * 255.0);
-		Color color = new Color(red, green, blue, alpha);
-		return color;
-	}
-
-	/**
-	 * Method to return the color associated with this EGraphics with full opacity.
-	 * @return the color associated with this EGraphics.
-	 */
-	public Color getOpaqueColor()
 	{
 		Color color = new Color(red, green, blue, 255);
 		return color;
@@ -606,7 +596,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	/**
 	 * Returns the RGB value representing the color associated with this EGraphics.
 	 * (Bits 16-23 are red, 8-15 are green, 0-7 are blue).
-	 * Alpha/opacity component is not returned
+	 * Alpha/opacity component is 0
 	 * @return the RGB value of the color
 	 */
 	public int getRGB() {

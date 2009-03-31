@@ -479,11 +479,11 @@ class LayerDrawing
                 bits.add(b);
             }
             if (dd.instanceRaster != null) {
-                colors.add(new AbstractDrawing.LayerColor(instanceGraphics.getOpaqueColor()));
+                colors.add(new AbstractDrawing.LayerColor(instanceGraphics.getColor()));
                 bits.add(dd.instanceRaster.layerBitMap);
             }
             if (dd.gridRaster != null) {
-                colors.add(new AbstractDrawing.LayerColor(gridGraphics.getOpaqueColor()));
+                colors.add(new AbstractDrawing.LayerColor(gridGraphics.getColor()));
                 bits.add(dd.gridRaster.layerBitMap);
             }
             alphaBlender.init(new Color(User.getColor(User.ColorPrefType.BACKGROUND)), colors, bits);
@@ -3477,7 +3477,7 @@ class LayerDrawing
 
 		// get parameters
         Color color = textColor;
-        if (desc != null) color = desc.getOpaqueColor();
+        if (desc != null) color = desc.getColor();
 		int col = color.getRGB() & 0xFFFFFF;
 
 		// get text description
