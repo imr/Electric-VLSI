@@ -66,6 +66,8 @@ public class DXF extends Output
         // DXF Settings
 		int dxfScale = IOTool.getDXFScale();
 
+        public DXFPreferences(boolean factory) { super(factory); }
+
         @Override
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {

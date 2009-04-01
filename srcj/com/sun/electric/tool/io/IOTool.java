@@ -138,7 +138,7 @@ public class IOTool extends Tool
     {
 		private boolean exportsOnly;
 
-		public SkillPreferences(boolean exportsOnly) { this.exportsOnly = exportsOnly; }
+		public SkillPreferences(boolean factory, boolean exportsOnly) { super(factory); this.exportsOnly = exportsOnly; }
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {

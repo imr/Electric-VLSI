@@ -65,7 +65,7 @@ public class Sim extends Output
     {
 		private FileType type;
 
-		SimPreferences(FileType type) { this.type = type; }
+		SimPreferences(boolean factory, FileType type) { super(factory); this.type = type; }
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
@@ -119,7 +119,7 @@ public class Sim extends Output
 			printWriter.println("| Cell created " + TextUtils.formatDate(cell.getCreationDate()));
 			printWriter.println("| Version " + cell.getVersion() + " last revised " + TextUtils.formatDate(cell.getRevisionDate()));
 		}
-		
+
 		if (format == FileType.COSMOS)
 		{
 			printWriter.println("| [e | d | p | n] gate source drain length width xpos ypos {[gsd]=attrs}");
@@ -170,7 +170,7 @@ public class Sim extends Output
 
 		// reset the arcinst node values
 		Set<Network> netsSeen = new HashSet<Network>();
-	
+
 		// set every arcinst to a global node number (from inside or outside)
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
@@ -187,7 +187,7 @@ public class Sim extends Output
 				ArcInst oAi = oIt.next();
 				Network oNet = netList.getNetwork(oAi, 0);
 				if (oNet != net) continue;
-		
+
 				// calculate true length and width of arc
 				double width = oAi.getLambdaBaseWidth();
 				double length = oAi.getLambdaLength();
@@ -289,11 +289,11 @@ public class Sim extends Output
 					printWriter.println(tType + " " + makeNodeName(gate, format) + " " + makeNodeName(source, format) +
 						" " + makeNodeName(drain, format) + " " + TextUtils.formatDouble(length) + " " +
 						TextUtils.formatDouble(width) + extra);
-					
+
 					// approximate source and drain diffusion capacitances
 					printWriter.println("N " + makeNodeName(source, format) + " " +
 						TextUtils.formatDouble(length * width) + " " + TextUtils.formatDouble(width) + " 0 0 0 0");
-	
+
 					printWriter.println("N " + makeNodeName(drain, format) + " " +
 						TextUtils.formatDouble(length * width) + " " + TextUtils.formatDouble(width) + " 0 0 0 0");
 				} else
@@ -304,11 +304,11 @@ public class Sim extends Output
 					printWriter.println(tType + " " + makeNodeName(gate, format) + " " + makeNodeName(source, format) +
 						" " + makeNodeName(drain, format) + " " + TextUtils.formatDouble(length) + " " +
 						TextUtils.formatDouble(width) + " r 0 0 " + TextUtils.formatDouble(length * width));
-		
+
 					// approximate source and drain diffusion capacitances
 					printWriter.println("N " + makeNodeName(source, format) + " 0 0 0 0 " +
 						TextUtils.formatDouble(length * width) + " " + TextUtils.formatDouble(width));
-	
+
 					printWriter.println("N " + makeNodeName(drain, format) + " 0 0 0 0 " +
 						TextUtils.formatDouble(length * width) + " " + TextUtils.formatDouble(width));
 				}

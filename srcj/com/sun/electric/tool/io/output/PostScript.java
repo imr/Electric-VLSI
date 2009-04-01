@@ -125,14 +125,16 @@ public class PostScript extends Output
 		double printPSLineWidth = IOTool.getFactoryPrintPSLineWidth();
         LayerVisibility lv = new LayerVisibility(true);
 
-		PostScriptPreferences(List<PolyBase> override)
+		PostScriptPreferences(boolean factory, List<PolyBase> override)
 		{
+            super(factory);
 			this.override = override;
+            if (!factory)
+                fillPrefs();
 		}
 
-		public void fillPrefs()
+		private void fillPrefs()
         {
-            super.fillPrefs();
 			plotDates = IOTool.isPlotDate();
 			textVisibilityOnInstance = User.isTextVisibilityOnInstance();
 			textVisibilityOnNode = User.isTextVisibilityOnNode();
@@ -950,7 +952,7 @@ public class PostScript extends Output
 	private static boolean synchronizeEPSFiles()
 	{
 		// synchronize all cells
-		PostScriptPreferences psp = new PostScriptPreferences(null);
+		PostScriptPreferences psp = new PostScriptPreferences(false, null);
 		int numSyncs = 0;
 		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{

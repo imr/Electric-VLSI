@@ -92,12 +92,11 @@ public class HPGL extends Output
 		boolean textVisibilityOnExport = User.isFactoryTextVisibilityOnExport();
 		int exportDisplayLevel = User.getFactoryExportDisplayLevel();
 
-		public void fillPrefs()
-        {
-            super.fillPrefs();
-			textVisibilityOnExport = User.isTextVisibilityOnExport();
-			exportDisplayLevel = User.getExportDisplayLevel();
-		}
+        public HPGLPreferences(boolean factory) {
+            super(factory);
+        	textVisibilityOnExport = factory ? User.isFactoryTextVisibilityOnExport() : User.isTextVisibilityOnExport();
+    		exportDisplayLevel = factory ? User.getFactoryExportDisplayLevel() : User.getExportDisplayLevel();
+        }
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {

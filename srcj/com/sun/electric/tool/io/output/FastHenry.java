@@ -148,10 +148,14 @@ public class FastHenry extends Output
 		double endFrequency = Simulation.getFactoryFastHenryEndFrequency();
 		int runsPerDecade = Simulation.getFactoryFastHenryRunsPerDecade();
 
-        @Override
-		public void fillPrefs()
+        public FastHenryPreferences(boolean factory) {
+            super(factory);
+            if (!factory)
+                fillPrefs();
+        }
+
+		private void fillPrefs()
         {
-            super.fillPrefs();
 			widthSubdivisions = Simulation.getFastHenryWidthSubdivisions();
 			heightSubdivisions = Simulation.getFastHenryHeightSubdivisions();
 			defThickness = Simulation.getFastHenryDefThickness();

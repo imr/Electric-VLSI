@@ -211,10 +211,14 @@ public class Verilog extends Topology
 		public boolean parameterizeModuleNames = Simulation.getFactoryVerilogParameterizeModuleNames();
         public Map<Cell,String> modelFiles = Collections.emptyMap();
 
-        @Override
-		public void fillPrefs()
+        public VerilogPreferences(boolean factory) {
+            super(factory);
+            if (!factory)
+                fillPrefs();
+        }
+
+		private void fillPrefs()
         {
-            super.fillPrefs();
             // Verilog current Prefs
 			stopAtStandardCells = Simulation.getVerilogStopAtStandardCells();
 			parameterizeModuleNames = Simulation.getVerilogParameterizeModuleNames();
@@ -239,11 +243,11 @@ public class Verilog extends Topology
 	 */
 	Verilog(VerilogPreferences vp) { localPrefs = vp; }
 
-    public static String getVerilogSafeName(String name, boolean isNode, boolean isBus) {
-    	Verilog v = new Verilog(new VerilogPreferences());
-    	if (isNode) return v.getSafeCellName(name);
-    	return v.getSafeNetName(name, isBus);
-    }
+//    public static String getVerilogSafeName(String name, boolean isNode, boolean isBus) {
+//    	Verilog v = new Verilog(new VerilogPreferences());
+//    	if (isNode) return v.getSafeCellName(name);
+//    	return v.getSafeNetName(name, isBus);
+//    }
 
 	protected void start()
 	{
@@ -954,7 +958,7 @@ public class Verilog extends Topology
 
 									// BUG #2098 fixed by adding this next line
 									if (cInnerSig.getExport() != null) e = cInnerSig.getExport();
-									int ind = cInnerSig.getExportIndex();									
+									int ind = cInnerSig.getExportIndex();
 									Network net = netList.getNetwork(no, e, ind);
 									outerSignalList[j] = cni.getCellSignal(net);
 									accumulatePortConnectivity(instancePortsOnNet, net, (Export)pp);

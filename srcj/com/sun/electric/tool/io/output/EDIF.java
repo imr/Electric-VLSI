@@ -200,12 +200,11 @@ public class EDIF extends Topology
 		boolean edifUseSchematicView = IOTool.isFactoryEDIFUseSchematicView();
 		boolean edifCadenceCompatibility = IOTool.isFactoryEDIFCadenceCompatibility();
 
-		public void fillPrefs()
-        {
-            super.fillPrefs();
-			edifUseSchematicView = IOTool.isEDIFUseSchematicView();
-			edifCadenceCompatibility = IOTool.isEDIFCadenceCompatibility();
-		}
+        public EDIFPreferences(boolean factory) {
+            super(factory);
+            edifUseSchematicView = factory ? IOTool.isFactoryEDIFUseSchematicView() : IOTool.isEDIFUseSchematicView();
+            edifCadenceCompatibility = factory ? IOTool.isFactoryEDIFCadenceCompatibility() : IOTool.isEDIFCadenceCompatibility();
+        }
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {

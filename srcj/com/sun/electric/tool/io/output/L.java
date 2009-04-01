@@ -65,6 +65,8 @@ public class L extends Output
 
 	public static class LPreferences extends OutputPreferences
     {
+        public LPreferences(boolean factory) { super(factory); }
+
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		L out = new L(this);

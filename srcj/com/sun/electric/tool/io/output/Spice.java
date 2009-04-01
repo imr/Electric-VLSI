@@ -195,14 +195,15 @@ public class Spice extends Topology
         public Map<Cell,String>             modelFiles = Collections.emptyMap();
         public String                       workdir = "";
 
-		public SpicePreferences(boolean cdl)
+		public SpicePreferences(boolean factory, boolean cdl)
 		{
+            super(factory);
 			this.cdl = cdl;
+            if (!factory)
+                fillPrefs();
 		}
 
-        @Override
-        public void fillPrefs() {
-            super.fillPrefs();
+        private void fillPrefs() {
             engine                          = Simulation.getSpiceEngine();
             level                           = Simulation.getSpiceLevel();
             outputFormat                    = Simulation.getSpiceOutputFormat();
@@ -1210,7 +1211,7 @@ public class Spice extends Topology
 				biasCs = cni.getCellSignal(powerNet);
 				defaultBulkName = "vdd";
 				modelName = "PCNFET";
-			} else if (fun == PrimitiveNode.Function.TRA4PMOSCN)		// Pallav: PMOS (carbon-nanotube) 4-port transistor 
+			} else if (fun == PrimitiveNode.Function.TRA4PMOSCN)		// Pallav: PMOS (carbon-nanotube) 4-port transistor
 			{
 				modelChar = "X";
 				modelName = "PCNFET";

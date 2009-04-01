@@ -67,6 +67,8 @@ public class IRSIM extends Output implements ParasiticGenerator
 		Technology layoutTech = Schematics.getDefaultSchematicTechnology();
 		Technology schematicTech = User.getSchematicTechnology();
 
+        public IRSIMPreferences(boolean factory) { super(factory); }
+
         @Override
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
@@ -96,7 +98,7 @@ public class IRSIM extends Output implements ParasiticGenerator
 	public static List<Object> getIRSIMComponents(Cell cell, VarContext context)
 	{
 		// gather all components
-		IRSIMPreferences ip = new IRSIMPreferences();
+		IRSIMPreferences ip = new IRSIMPreferences(true);
 		IRSIM out = new IRSIM(ip);
 		out.technology = cell.getTechnology();
 		if (out.technology == Schematics.tech()) out.technology = ip.schematicTech;

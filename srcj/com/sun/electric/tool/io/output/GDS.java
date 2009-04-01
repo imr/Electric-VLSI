@@ -152,6 +152,10 @@ public class GDS extends Geometry
 	    int cellNameLenMax = IOTool.getGDSCellNameLenMax();
 	    boolean outUpperCase = IOTool.isGDSOutUpperCase();
 
+        public GDSPreferences(boolean factory) {
+            super(factory);
+        }
+
         @Override
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {

@@ -62,6 +62,8 @@ public class Maxwell extends Output
 
 	public static class MaxwellPreferences extends OutputPreferences
     {
+        public MaxwellPreferences(boolean factory) { super(factory); }
+
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		Maxwell out = new Maxwell(this);

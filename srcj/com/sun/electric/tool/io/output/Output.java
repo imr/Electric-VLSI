@@ -119,49 +119,41 @@ public class Output
      * and either factory default or current default values of Prefs
      * Current default value of Prefs can be obtained only from client thread
      * @param type specified file type.
-     * @param factoryPrefs get factory default values of Prefs
+     * @param factory get factory default values of Prefs
      * @param override the list of Polys to write instead of cell contents.
      * @return an OutputPreferences object for the given file type.
      * @throws InvalidStateException on attemt to get current default values of Prefs from server thread
      */
-    public static OutputPreferences getOutputPreferences(FileType type, boolean factoryPrefs, List<PolyBase> override)
+    public static OutputPreferences getOutputPreferences(FileType type, boolean factory, List<PolyBase> override)
     {
-    	OutputPreferences op = createOutputPreferences(type, override);
-        if (!factoryPrefs) {
-            if (!SwingUtilities.isEventDispatchThread())
+        if (!factory && !SwingUtilities.isEventDispatchThread())
                 throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
-        	if (op != null) op.fillPrefs();
-        }
-    	return op;
-    }
 
-    private static OutputPreferences createOutputPreferences(FileType type, List<PolyBase> override)
-    {
-        if (type == FileType.ARCHSIM) return new ArchSim.ArchSimPreferences();
-		if (type == FileType.CDL) return new Spice.SpicePreferences(true);
-		if (type == FileType.CIF) return new CIF.CIFPreferences();
-		if (type == FileType.COSMOS || type == FileType.ESIM || type == FileType.RSIM) return new Sim.SimPreferences(type);
-		if (type == FileType.DXF) return new DXF.DXFPreferences();
-		if (type == FileType.EAGLE) return new Eagle.EaglePreferences();
-		if (type == FileType.ECAD) return new ECAD.ECADPreferences();
-		if (type == FileType.EDIF) return new EDIF.EDIFPreferences();
-		if (type == FileType.FASTHENRY) return new FastHenry.FastHenryPreferences();
-		if (type == FileType.HPGL) return new HPGL.HPGLPreferences();
-		if (type == FileType.GDS) return new GDS.GDSPreferences();
-		if (type == FileType.IRSIM) return new IRSIM.IRSIMPreferences();
-		if (type == FileType.L) return new L.LPreferences();
-		if (type == FileType.LEF) return new LEF.LEFPreferences();
-		if (type == FileType.MAXWELL) return new Maxwell.MaxwellPreferences();
-		if (type == FileType.MOSSIM) return new MOSSIM.MOSSIMPreferences();
-		if (type == FileType.PADS) return new Pads.PadsPreferences();
-		if (type == FileType.PAL) return new PAL.PALPreferences();
-		if (type == FileType.POSTSCRIPT || type == FileType.EPS) return new PostScript.PostScriptPreferences(override);
-		if (type == FileType.SILOS) return new Silos.SilosPreferences();
-		if (type == FileType.SKILL) return new IOTool.SkillPreferences(false);
-        if (type == FileType.SKILLEXPORTSONLY) return new IOTool.SkillPreferences(true);
-		if (type == FileType.SPICE) return new Spice.SpicePreferences(false);
-		if (type == FileType.TEGAS) return new Tegas.TegasPreferences();
-		if (type == FileType.VERILOG) return new Verilog.VerilogPreferences();
+        if (type == FileType.ARCHSIM) return new ArchSim.ArchSimPreferences(factory);
+		if (type == FileType.CDL) return new Spice.SpicePreferences(factory, true);
+		if (type == FileType.CIF) return new CIF.CIFPreferences(factory);
+		if (type == FileType.COSMOS || type == FileType.ESIM || type == FileType.RSIM) return new Sim.SimPreferences(factory, type);
+		if (type == FileType.DXF) return new DXF.DXFPreferences(factory);
+		if (type == FileType.EAGLE) return new Eagle.EaglePreferences(factory);
+		if (type == FileType.ECAD) return new ECAD.ECADPreferences(factory);
+		if (type == FileType.EDIF) return new EDIF.EDIFPreferences(factory);
+		if (type == FileType.FASTHENRY) return new FastHenry.FastHenryPreferences(factory);
+		if (type == FileType.HPGL) return new HPGL.HPGLPreferences(factory);
+		if (type == FileType.GDS) return new GDS.GDSPreferences(factory);
+		if (type == FileType.IRSIM) return new IRSIM.IRSIMPreferences(factory);
+		if (type == FileType.L) return new L.LPreferences(factory);
+		if (type == FileType.LEF) return new LEF.LEFPreferences(factory);
+		if (type == FileType.MAXWELL) return new Maxwell.MaxwellPreferences(factory);
+		if (type == FileType.MOSSIM) return new MOSSIM.MOSSIMPreferences(factory);
+		if (type == FileType.PADS) return new Pads.PadsPreferences(factory);
+		if (type == FileType.PAL) return new PAL.PALPreferences(factory);
+		if (type == FileType.POSTSCRIPT || type == FileType.EPS) return new PostScript.PostScriptPreferences(factory, override);
+		if (type == FileType.SILOS) return new Silos.SilosPreferences(factory);
+		if (type == FileType.SKILL) return new IOTool.SkillPreferences(factory, false);
+        if (type == FileType.SKILLEXPORTSONLY) return new IOTool.SkillPreferences(factory, true);
+		if (type == FileType.SPICE) return new Spice.SpicePreferences(factory, false);
+		if (type == FileType.TEGAS) return new Tegas.TegasPreferences(factory);
+		if (type == FileType.VERILOG) return new Verilog.VerilogPreferences(factory);
         return null;
     }
 
@@ -224,11 +216,9 @@ public class Output
         public boolean useCopyrightMessage = IOTool.isUseCopyrightMessage();
         public boolean includeDateAndVersionInOutput = User.isIncludeDateAndVersionInOutput();
 
-        /**
-         * Fill these Output preferences with default values from Prefs
-         */
-        public void fillPrefs()
-        {
+        protected OutputPreferences(boolean factory) {
+            if (!factory && !SwingUtilities.isEventDispatchThread())
+                throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
         }
 
         public Output doOutput(Cell cell, VarContext context, String filePath)

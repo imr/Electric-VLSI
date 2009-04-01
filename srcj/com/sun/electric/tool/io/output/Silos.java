@@ -66,6 +66,8 @@ public class Silos extends Topology
 
 	public static class SilosPreferences extends OutputPreferences
     {
+        public SilosPreferences(boolean factory) { super(factory); }
+
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		Silos out = new Silos(this);
@@ -369,7 +371,7 @@ public class Silos extends Topology
 					for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 					{
 						Connection con = aIt.next();
-						PortProto pp = con.getPortInst().getPortProto(); 
+						PortProto pp = con.getPortInst().getPortProto();
 						if (pp == outPP) continue;
 						writeWidthLimited(getPortProtoName(cell == topCell, con, ni, pp, cell, netList, cni));
 					}
@@ -388,7 +390,7 @@ public class Silos extends Topology
 						PortProto pp = con.getPortInst().getPortProto();
 						writeWidthLimited(getPortProtoName(cell == topCell, null, ni, pp, cell, netList, cni));
 						writeWidthLimited(" " + getPrimitiveName(ni, false));
-	
+
 						double j = getCapacitanceInMicroFarads(ni, context);
 						if (j >= 0)
 						{
@@ -532,7 +534,7 @@ public class Silos extends Topology
 	 * if 'neg' is true, then the negated version is needed
 	 */
 	private String getPrimitiveName(NodeInst ni, boolean neg)
-	{	
+	{
 		PrimitiveNode.Function f = getPrimitiveType(ni);
 		if (f.isNTypeTransistor()) return ".NMOS";
 		if (f.isPTypeTransistor()) return ".PMOS";

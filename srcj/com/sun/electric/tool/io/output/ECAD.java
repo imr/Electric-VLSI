@@ -66,6 +66,8 @@ public class ECAD extends Output
 
 	public static class ECADPreferences extends OutputPreferences
     {
+        public ECADPreferences(boolean factory) { super(factory); }
+
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		ECAD out = new ECAD(this);

@@ -50,6 +50,8 @@ public class ArchSim extends Output
 
 	public static class ArchSimPreferences extends OutputPreferences
     {
+        public ArchSimPreferences(boolean factory) { super(factory); }
+
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		ArchSim out = new ArchSim(this);
@@ -125,7 +127,7 @@ public class ArchSim extends Output
 					PortInst pi = con.getPortInst();
 					Network nodeNet = netlist.getNetwork(pi);
 					if (nodeNet != net) continue;
-					PortCharacteristic pc = pi.getPortProto().getCharacteristic(); 
+					PortCharacteristic pc = pi.getPortProto().getCharacteristic();
 					if (pc == PortCharacteristic.IN) inputs.add(pi); else
 						if (pc == PortCharacteristic.OUT) outputs.add(pi); else
 					{

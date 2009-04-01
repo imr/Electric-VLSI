@@ -56,6 +56,8 @@ public class PAL extends Output
 
 	public static class PALPreferences extends OutputPreferences
     {
+        public PALPreferences(boolean factory) { super(factory); }
+
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		PAL out = new PAL(this);
@@ -123,7 +125,7 @@ public class PAL extends Output
 
 		public boolean enterCell(HierarchyEnumerator.CellInfo info) { return true; }
 
-		public void exitCell(HierarchyEnumerator.CellInfo info) {}   
+		public void exitCell(HierarchyEnumerator.CellInfo info) {}
 
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{

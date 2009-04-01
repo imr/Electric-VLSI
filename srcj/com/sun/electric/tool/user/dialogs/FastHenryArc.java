@@ -133,8 +133,7 @@ public class FastHenryArc extends EDialog
 		}
 
 		// see if an arc is selected
-        FastHenry.FastHenryPreferences fhp = new FastHenry.FastHenryPreferences();
-        fhp.fillPrefs();
+        FastHenry.FastHenryPreferences fhp = new FastHenry.FastHenryPreferences(false);
 		FastHenry.FastHenryArcInfo fhai = new FastHenry.FastHenryArcInfo(ai, fhp);
 		initialGroupName = "";
 		String groupName = fhai.getGroupName();

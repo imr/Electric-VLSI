@@ -70,6 +70,8 @@ public class Pads extends Output
 
 	public static class PadsPreferences extends OutputPreferences
     {
+        public PadsPreferences(boolean factory) { super(factory); }
+
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		Pads out = new Pads(this);

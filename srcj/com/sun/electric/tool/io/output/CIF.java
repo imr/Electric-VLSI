@@ -83,6 +83,8 @@ public class CIF extends Geometry
 		boolean cifOutMergesBoxes = IOTool.isCIFOutMergesBoxes();
 		boolean cifOutMimicsDisplay = IOTool.isCIFOutMimicsDisplay();
 
+        public CIFPreferences(boolean factory) { super(factory); }
+
         @Override
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {

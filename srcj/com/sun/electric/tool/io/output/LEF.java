@@ -75,6 +75,8 @@ public class LEF extends Output
 
 	public static class LEFPreferences extends OutputPreferences
     {
+        public LEFPreferences(boolean factory) { super(factory); }
+
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		LEF out = new LEF(this);
@@ -203,7 +205,7 @@ public class LEF extends Output
 		for(Network net : unconnectedExports.keySet())
 			netsToWrite.add(net);
 		Collections.sort(netsToWrite, new TextUtils.NetworksByName());
-		
+
 		// write exports organized by network connections
 		boolean first = true;
 		for(Network net : netsToWrite)

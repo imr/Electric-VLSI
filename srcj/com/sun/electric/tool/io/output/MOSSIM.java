@@ -5,7 +5,7 @@
  * File: MOSSIM.java
  * Input/output tool: MOSSIM net list generator
  * Written by Steven M. Rubin, Sun Microsystems.
- * 
+ *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
@@ -61,6 +61,8 @@ public class MOSSIM extends Topology
 
 	public static class MOSSIMPreferences extends OutputPreferences
     {
+        public MOSSIMPreferences(boolean factory) { super(factory); }
+
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
     		MOSSIM out = new MOSSIM(this);
@@ -271,7 +273,7 @@ public class MOSSIM extends Topology
     /** Tell the Hierarchy enumerator how to short resistors */
     @Override
     protected Netlist.ShortResistors getShortResistors() { return Netlist.ShortResistors.ALL; }
-    
+
 	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
 	 */
