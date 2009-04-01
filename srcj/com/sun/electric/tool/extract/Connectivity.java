@@ -106,9 +106,9 @@ import javax.swing.JLabel;
 public class Connectivity
 {
 	/** true to prevent objects smaller than minimum size */	private static final boolean ENFORCEMINIMUMSIZE = false;
-	/** amount to scale values before merging */				private static final double SCALEFACTOR = DBMath.GRID;
 	/** true to debug centerline determination */				private static final boolean DEBUGCENTERLINES = false;
 	/** true to debug object creation */						private static final boolean DEBUGSTEPS = false;
+	/** amount to scale values before merging */				private static final double SCALEFACTOR = DBMath.GRID;
 
 	/** the current technology for extraction */				private Technology tech;
 	/** layers to use for given arc functions */				private Map<Layer.Function,Layer> layerForFunction;
@@ -1538,12 +1538,37 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 		PossibleVia(PrimitiveNode pNp, int numLayers)
 		{
 			this.pNp = pNp;
+			rotation = 0;
+			largestShrink = 0;
 			layers = new Layer[numLayers];
 			shrinkL = new double[numLayers];
 			shrinkR = new double[numLayers];
 			shrinkT = new double[numLayers];
 			shrinkB = new double[numLayers];
 		}
+
+//		PossibleVia(PossibleVia prev)
+//		{
+//			pNp = prev.pNp;
+//			rotation = prev.rotation;
+//			minWidth = prev.minWidth;
+//			minHeight = prev.minHeight;
+//			largestShrink = prev.largestShrink;
+//			cutNodeLayer = prev.cutNodeLayer;
+//			layers = new Layer[prev.layers.length];
+//			shrinkL = new double[prev.shrinkL.length];
+//			shrinkR = new double[prev.shrinkR.length];
+//			shrinkT = new double[prev.shrinkT.length];
+//			shrinkB = new double[prev.shrinkB.length];
+//			for(int i=0; i<prev.layers.length; i++)
+//			{
+//				layers[i] = prev.layers[i];
+//				shrinkL[i] = prev.shrinkT[i];
+//				shrinkR[i] = prev.shrinkB[i];
+//				shrinkT[i] = prev.shrinkR[i];
+//				shrinkB[i] = prev.shrinkL[i];
+//			}
+//		}
 	}
 
 	/**
@@ -1607,7 +1632,8 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 					cutBox = cut.getBounds2D();
 					double centerX = cutBox.getCenterX()/SCALEFACTOR;
 					double centerY = cutBox.getCenterY()/SCALEFACTOR;
-					String msg = "Cannot extract nonManhattan contact cut at (" + (centerX) + "," + (centerY) + ")";
+					String msg = "Cannot extract nonManhattan contact cut at (" + TextUtils.formatDistance(centerX) +
+						"," + TextUtils.formatDistance(centerY) + ")";
 					addErrorLog(newCell, msg, new EPoint(centerX, centerY));
 					cutList.remove(cut);
 					cutsNotExtracted.add(cut);
@@ -1660,15 +1686,6 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 					}
 					if (someLayersMissing) continue;
 
-					// if selected, look for larger collection of cuts and place larger multi-cut contact
-					double trueWidth = pv.minWidth;
-					double trueHeight = pv.minHeight;
-					if (pv.rotation == 90 || pv.rotation == 270)
-					{
-						trueWidth = pv.minHeight;
-						trueHeight = pv.minWidth;
-					}
-
 					// see if this is an active/poly layer (in which case, there can be no poly/active in the area)
 					boolean activeCut = false;
 					boolean polyCut = false;
@@ -1688,7 +1705,6 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 					double cutLimit = Math.ceil(Math.max(pv.cutNodeLayer.getMulticutSep1D(), pv.cutNodeLayer.getMulticutSep2D()) +
 						Math.max(pv.cutNodeLayer.getMulticutSizeX(), pv.cutNodeLayer.getMulticutSizeX()) + 2);
 					cutLimit *= SCALEFACTOR;
-//System.out.println("CONSIDERING CUT AT ("+(cutBox.getCenterX()/SCALEFACTOR)+","+(cutBox.getCenterY()/SCALEFACTOR)+")");
 					boolean foundMore = true;
 					while (foundMore)
 					{
@@ -1707,8 +1723,6 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 								double lY = Math.min(requiredMetalArea.getMinY(), bound.getMinY());
 								double hY = Math.max(requiredMetalArea.getMaxY(), bound.getMaxY());
 								Rectangle2D newRequiredArea = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
-//System.out.println("   CAN WE ADD CUT AT ("+(bound.getCenterX()/SCALEFACTOR)+","+(bound.getCenterY()/SCALEFACTOR)+") WHICH DEMANDS METAL IN "+
-//	(lX/SCALEFACTOR)+"<=X<="+(hX/SCALEFACTOR)+" AND "+(lY/SCALEFACTOR)+"<=Y<="+(hY/SCALEFACTOR));
 
 								// make sure the expanded area has both metal layers in it
 								boolean fits = true;
@@ -1736,6 +1750,13 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 					}
 
 					// determine area of possible multi-cut contact
+					double trueWidth = pv.minWidth;
+					double trueHeight = pv.minHeight;
+					if (pv.rotation == 90 || pv.rotation == 270)
+					{
+						trueWidth = pv.minHeight;
+						trueHeight = pv.minWidth;
+					}
 					double lX = multiCutArea.getMinX() - trueWidth/2;
 					double hX = multiCutArea.getMaxX() + trueWidth/2;
 					double lY = multiCutArea.getMinY() - trueHeight/2;
@@ -1747,7 +1768,7 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 					Layer badLayer = doesNodeFit(pv, multiCutArea, originalMerge, ignorePWell, ignoreNWell);
 					if (badLayer == null)
 					{
-						// it fits: see how large it can grow
+						// it fits: see if a larger multi-cut contact fits
 						double mw = multiCutArea.getWidth();
 						double mh = multiCutArea.getHeight();
 						if (pv.rotation == 90 || pv.rotation == 270)
@@ -1758,15 +1779,39 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 //System.out.println("      METAL LAYERS OF LARGE CUT ("+TextUtils.formatDouble(mw / SCALEFACTOR)+"x"+TextUtils.formatDouble(mh / SCALEFACTOR)+
 //	" AT ("+TextUtils.formatDouble(multiCutArea.getCenterX() / SCALEFACTOR)+
 //	","+TextUtils.formatDouble(multiCutArea.getCenterY() / SCALEFACTOR)+")) FITS...NOW CHECKING CUTS");
-						badLayer = realizeBiggestContact(pv.pNp, multiCutArea.getCenterX(), multiCutArea.getCenterY(), mw, mh,
+						badLayer = realizeBiggestContact(pv.pNp, Technology.NodeLayer.MULTICUT_CENTERED,
+							multiCutArea.getCenterX(), multiCutArea.getCenterY(), mw, mh,
 							pv.rotation*10, originalMerge, newCell, contactNodes, activeCut, polyCut, cutsInArea);
 						if (badLayer == null)
 						{
-							for(PolyBase cutsFound : cutsInArea)
-								cutList.remove(cutsFound);
+							for(PolyBase cutsFound : cutsInArea) cutList.remove(cutsFound);
 							soFar += cutsInArea.size() - 1;
 							foundCut = true;
 							break;
+						}
+						if (cutsInArea.size() > 1 && pv.pNp.findMulticut() != null)
+						{
+							badLayer = realizeBiggestContact(pv.pNp, Technology.NodeLayer.MULTICUT_SPREAD,
+								multiCutArea.getCenterX(), multiCutArea.getCenterY(), mw, mh,
+								pv.rotation*10, originalMerge, newCell, contactNodes, activeCut, polyCut, cutsInArea);
+							if (badLayer == null)
+							{
+								for(PolyBase cutsFound : cutsInArea) cutList.remove(cutsFound);
+								soFar += cutsInArea.size() - 1;
+								foundCut = true;
+								break;
+							}
+
+							badLayer = realizeBiggestContact(pv.pNp, Technology.NodeLayer.MULTICUT_CORNER,
+								multiCutArea.getCenterX(), multiCutArea.getCenterY(), mw, mh,
+								pv.rotation*10, originalMerge, newCell, contactNodes, activeCut, polyCut, cutsInArea);
+							if (badLayer == null)
+							{
+								for(PolyBase cutsFound : cutsInArea) cutList.remove(cutsFound);
+								soFar += cutsInArea.size() - 1;
+								foundCut = true;
+								break;
+							}
 						}
 					}
 
@@ -1777,8 +1822,8 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 					if (badLayer == null)
 					{
 						// it fits: create it
-						realizeNode(pv.pNp, contactLoc.getCenterX(), contactLoc.getCenterY(), pv.minWidth, pv.minHeight,
-							pv.rotation*10, null, originalMerge, newCell, contactNodes);
+						realizeNode(pv.pNp, Technology.NodeLayer.MULTICUT_CENTERED, contactLoc.getCenterX(), contactLoc.getCenterY(),
+							pv.minWidth, pv.minHeight, pv.rotation*10, null, originalMerge, newCell, contactNodes);
 						cutList.remove(cut);
 						foundCut = true;
 						break;
@@ -1822,6 +1867,7 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 	/**
 	 * Method to create the biggest contact node in a given location.
 	 * @param pNp the type of node to create.
+	 * @param cutVariation the contact cut spacing rule.
 	 * @param x the center X coordinate of the node.
 	 * @param y the center Y coordinate of the node.
 	 * @param sX the initial width of the node.
@@ -1835,7 +1881,7 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 	 * @param cutsInArea the cut polygons in the area (for exact matching).
 	 * @return null if successful, otherwise the polygon that could not be matched.
 	 */
-	private Layer realizeBiggestContact(PrimitiveNode pNp, double x, double y, double sX, double sY, int rot,
+	private Layer realizeBiggestContact(PrimitiveNode pNp, int cutVariation, double x, double y, double sX, double sY, int rot,
 		PolyMerge merge, Cell newCell, List<NodeInst> contactNodes, boolean activeCut, boolean polyCut, Set<PolyBase> cutsInArea)
 	{
 		Orientation orient = Orientation.fromAngle(rot);
@@ -1846,8 +1892,7 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 		double highXInc = SCALEFACTOR*2;
 		for(;;)
 		{
-			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, (sX+highXInc) / SCALEFACTOR, sY / SCALEFACTOR, orient);
-			if (ni == null) return null;
+			NodeInst ni = makeDummyNodeInst(pNp, ctr, sX+highXInc, sY, orient, cutVariation);
 			PolyBase error = dummyNodeFits(ni, merge, activeCut, polyCut, null);
 			if (error != null) break;
 			lowXInc = highXInc;
@@ -1859,8 +1904,7 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 		{
 			if (highXInc - lowXInc <= 1) { lowXInc = Math.floor(lowXInc);   break; }
 			double medInc = (lowXInc + highXInc) / 2;
-			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, (sX+medInc) / SCALEFACTOR, sY / SCALEFACTOR, orient);
-			if (ni == null) return null;
+			NodeInst ni = makeDummyNodeInst(pNp, ctr, sX+medInc, sY, orient, cutVariation);
 			PolyBase error = dummyNodeFits(ni, merge, activeCut, polyCut, null);
 			if (error == null) lowXInc = medInc; else
 				highXInc = medInc;
@@ -1871,8 +1915,7 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 		double highYInc = SCALEFACTOR*2;
 		for(;;)
 		{
-			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, sX / SCALEFACTOR, (sY+highYInc) / SCALEFACTOR, orient);
-			if (ni == null) return null;
+			NodeInst ni = makeDummyNodeInst(pNp, ctr, sX, sY+highYInc, orient, cutVariation);
 			PolyBase error = dummyNodeFits(ni, merge, activeCut, polyCut, null);
 			if (error != null) break;
 			lowYInc = highYInc;
@@ -1884,8 +1927,7 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 		{
 			if (highYInc - lowYInc <= 1) { lowYInc = Math.floor(lowYInc);   break; }
 			double medInc = (lowYInc + highYInc) / 2;
-			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, sX / SCALEFACTOR, (sY+medInc) / SCALEFACTOR, orient);
-			if (ni == null) return null;
+			NodeInst ni = makeDummyNodeInst(pNp, ctr, sX, sY+medInc, orient, cutVariation);
 			PolyBase error = dummyNodeFits(ni, merge, activeCut, polyCut, null);
 			if (error == null) lowYInc = medInc; else
 				highYInc = medInc;
@@ -1895,14 +1937,22 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 		if (!approximateCuts)
 		{
 			// make sure the basic node fits
-			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, sX / SCALEFACTOR, sY / SCALEFACTOR, orient);
-			if (ni == null) return null;
+			NodeInst ni = makeDummyNodeInst(pNp, ctr, sX, sY, orient, cutVariation);
 			PolyBase error = dummyNodeFits(ni, merge, activeCut, polyCut, cutsInArea);
 			if (error != null) return error.getLayer();
 		}
 
-		realizeNode(pNp, x, y, sX, sY, rot, null, merge, newCell, contactNodes);
+		realizeNode(pNp, cutVariation, x, y, sX, sY, rot, null, merge, newCell, contactNodes);
 		return null;
+	}
+
+	private NodeInst makeDummyNodeInst(PrimitiveNode pNp, EPoint ctr, double sX, double sY, Orientation orient, int cutVariation)
+	{
+		NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, sX / SCALEFACTOR, sY / SCALEFACTOR, orient);
+		if (ni == null) return null;
+		if (cutVariation != Technology.NodeLayer.MULTICUT_CENTERED)
+			ni.newVar(NodeLayer.CUT_ALIGNMENT, Integer.valueOf(cutVariation));
+		return ni;
 	}
 
 	private PolyBase dummyNodeFits(NodeInst ni, PolyMerge merge, boolean activeCut, boolean polyCut, Set<PolyBase> cutsInArea)
@@ -2159,11 +2209,9 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 
 			// create a PossibleVia object to test for them
 			PossibleVia pv = new PossibleVia(pNp, pvLayers.size());
-			pv.rotation = 0;
 			pv.cutNodeLayer = cutNodeLayer;
 			pv.minWidth = scaleUp(pNp.getDefWidth());
 			pv.minHeight = scaleUp(pNp.getDefHeight());
-			pv.largestShrink = 0;
 			int fill = 0;
 			for(Technology.NodeLayer nLay : pvLayers)
 			{
@@ -2192,9 +2240,7 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 					break;
 				}
 				if (pv.shrinkL[i] != pv.shrinkT[i] || pNp.getDefWidth() != pNp.getDefHeight())
-				{
 					hvSymmetry = false;
-				}
 			}
 			if (!hvSymmetry || !rotSymmetry)
 			{
@@ -2428,7 +2474,7 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 				SizeOffset so = transistor.getProtoSizeOffset();
 				double width = wid + scaleUp(so.getLowXOffset() + so.getHighXOffset());
 				double height = hei + scaleUp(so.getLowYOffset() + so.getHighYOffset());
-				realizeNode(transistor, poly.getCenterX(), poly.getCenterY(),
+				realizeNode(transistor, Technology.NodeLayer.MULTICUT_CENTERED, poly.getCenterX(), poly.getCenterY(),
 					width, height, angle, null, merge, newCell, null);
 			} else
 			{
@@ -2467,7 +2513,7 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 			double cY = (cl.start.getY() + cl.end.getY()) / 2;
 			double sX = polySize + scaleUp(so.getLowXOffset() + so.getHighXOffset());
 			double sY = activeSize + scaleUp(so.getLowYOffset() + so.getHighYOffset());
-			realizeNode(transistor, cX, cY, sX, sY, cl.angle, null, merge, newCell, null);
+			realizeNode(transistor, Technology.NodeLayer.MULTICUT_CENTERED, cX, cY, sX, sY, cl.angle, null, merge, newCell, null);
 			return;
 		}
 
@@ -2549,7 +2595,7 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 		double cY = (lY + hY) / 2;
 		for(int i=0; i<points.length; i++)
 			points[i] = new EPoint((points[i].getX()) / SCALEFACTOR, (points[i].getY()) / SCALEFACTOR);
-		realizeNode(transistor, cX, cY, hX - lX, hY - lY, 0, points, merge, newCell, null);
+		realizeNode(transistor, Technology.NodeLayer.MULTICUT_CENTERED, cX, cY, hX - lX, hY - lY, 0, points, merge, newCell, null);
 	}
 
 	/********************************************** CONVERT CONNECTING GEOMETRY **********************************************/
@@ -2584,7 +2630,7 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 		Job.getUserInterface().setProgressNote("Extracting " + totExtensions +
 			(justExtend ? " extensions..." : " connections..."));
 
-        EditingPreferences ep = newCell.getEditingPreferences();
+		EditingPreferences ep = newCell.getEditingPreferences();
 		soFar = 0;
 		for (Layer layer : extendableLayers)
 		{
@@ -3894,6 +3940,7 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 	/**
 	 * Method to create a node and remove its geometry from the database.
 	 * @param pNp the node to create.
+	 * @param cutVariation the cut spacing rule to use.
 	 * @param centerX the new node's X location.
 	 * @param centerY the new node's Y location.
 	 * @param width the new node's width.
@@ -3905,8 +3952,8 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 	 * @param realizedNodes a list of nodes to which this one will be added.  If null, do not add to the list.
 	 * If not null, add to the list but DO NOT remove the realized node's geometry from the merge.
 	 */
-	private void realizeNode(PrimitiveNode pNp, double centerX, double centerY, double width, double height, int angle,
-		Point2D [] points, PolyMerge merge, Cell newCell, List<NodeInst> realizedNodes)
+	private void realizeNode(PrimitiveNode pNp, int cutVariation, double centerX, double centerY, double width, double height,
+		int angle, Point2D [] points, PolyMerge merge, Cell newCell, List<NodeInst> realizedNodes)
 	{
 		Orientation orient = Orientation.fromAngle(angle);
 		double cX = centerX / SCALEFACTOR;
@@ -3914,6 +3961,8 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 		NodeInst ni = NodeInst.makeInstance(pNp, new Point2D.Double(cX, cY),
 			width / SCALEFACTOR, height / SCALEFACTOR, newCell, orient, null);
 		if (ni == null) return;
+		if (cutVariation != Technology.NodeLayer.MULTICUT_CENTERED)
+			ni.newVar(NodeLayer.CUT_ALIGNMENT, Integer.valueOf(cutVariation));
 		if (points != null)
 		{
 			ni.setTrace(points);
