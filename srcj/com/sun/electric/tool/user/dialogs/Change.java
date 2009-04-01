@@ -1008,7 +1008,7 @@ public class Change extends EModelessDialog implements HighlightListener
 				{
 					highlighter.addElectricObject(geom, geom.getParent());
 				}
-                theDialog.loadInfo(true);
+                highlighter.finished();
             }
 		}
 

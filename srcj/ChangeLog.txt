@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+BUG: (3/31/09, DN) Empty list and exception in Change dialog (Bug #2104)
+FIX: Making sure the highlighter.finished() call is after the highlighting list is filled.
+
 IMP: (3/31/09, SMR) GDS import now identifies unknown layers (Bug #2099).
 
 IMP: (3/31/09, DN) EGraphics is immutable class.

@@ -549,12 +549,29 @@ public class UserInterfaceMain extends AbstractUserInterface
     }
 
     /**
-     * Show new database snapshot.
+     * Show new database snapshot.saveh
      * @param newSnapshot new snapshot.
      */
     public void showSnapshot(Snapshot newSnapshot, boolean undoRedo) {
         assert SwingUtilities.isEventDispatchThread();
-        new DatabaseChangeRun(newSnapshot, undoRedo).run();
+        DatabaseChangeEvent event = new DatabaseChangeEvent(currentSnapshot, newSnapshot);
+        Snapshot oldSnapshot = currentSnapshot;
+        currentSnapshot = newSnapshot;
+        if (newSnapshot.environment != oldSnapshot.environment) {
+            Environment.setThreadEnvironment(newSnapshot.environment);
+            newSnapshot.environment.saveToPreferences(Pref.getPrefRoot());
+            if (newSnapshot.techPool != oldSnapshot.techPool) {
+                loadEditingPreferences(newSnapshot.techPool);
+                User.technologyChanged();
+                WindowFrame.updateTechnologyLists();
+                WindowFrame.repaintAllWindows();
+            }
+        }
+        for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
+            Listener listener = it.next();
+            listener.endBatch(oldSnapshot, newSnapshot, undoRedo);
+        }
+        fireDatabaseChangeEvent(event);
 //        SwingUtilities.invokeLater(new DatabaseChangeRun(newSnapshot, undoRedo));
     }
 
@@ -663,37 +680,6 @@ public class UserInterfaceMain extends AbstractUserInterface
                 ((DatabaseChangeListener)listeners[i+1]).databaseChanged(e);
         }
     }
-
-	private static class DatabaseChangeRun implements Runnable
-	{
-		private Snapshot newSnapshot;
-        private boolean undoRedo;
-		private DatabaseChangeRun(Snapshot newSnapshot, boolean undoRedo) {
-            this.newSnapshot = newSnapshot;
-            this.undoRedo = undoRedo;
-        }
-        public void run() {
-            assert SwingUtilities.isEventDispatchThread();
-            DatabaseChangeEvent event = new DatabaseChangeEvent(currentSnapshot, newSnapshot);
-            Snapshot oldSnapshot = currentSnapshot;
-            currentSnapshot = newSnapshot;
-            if (newSnapshot.environment != oldSnapshot.environment) {
-                Environment.setThreadEnvironment(newSnapshot.environment);
-                newSnapshot.environment.saveToPreferences(Pref.getPrefRoot());
-                if (newSnapshot.techPool != oldSnapshot.techPool) {
-                    loadEditingPreferences(newSnapshot.techPool);
-                    User.technologyChanged();
-                    WindowFrame.updateTechnologyLists();
-                    WindowFrame.repaintAllWindows();
-                }
-            }
-            for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
-                Listener listener = it.next();
-                listener.endBatch(oldSnapshot, newSnapshot, undoRedo);
-            }
-            fireDatabaseChangeEvent(event);
-        }
-	}
 
     private static void loadEditingPreferences(TechPool techPool) {
         for (Technology tech: techPool.values())
