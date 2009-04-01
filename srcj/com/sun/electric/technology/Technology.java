@@ -5612,6 +5612,32 @@ public class Technology implements Comparable<Technology>, Serializable
 	    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
 	    		        		" should not connect its Active ports to its Polysilicon ports");
 	        		}
+	        		// check port connections for electrical layers
+	        		NodeLayer [] eLayers = np.getElectricalLayers();
+	        		if (eLayers != null)
+	        		{
+	        			boolean foundPort1 = false, foundPort3 = false;
+		        		for(int i=0; i<eLayers.length; i++)
+		        		{
+		        			if (eLayers[i].getLayer().getFunction().isDiff())
+		        			{
+		        				int portNum = eLayers[i].getPortNum();
+		        				if (portNum < 0) continue;
+		        				if (portNum == 1) foundPort1 = true; else
+		        					if (portNum == 3) foundPort3 = true; else
+		        				{
+		            				System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
+		    		        			", Active layer connected to port " + traPorts.get(portNum).getName());
+		        				}
+		        			}
+		        		}
+		        		if (!foundPort1)
+            				System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
+    		        			", no Active layer is connected to port " + traPorts.get(1).getName());
+		        		if (!foundPort3)
+            				System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
+    		        			", no Active layer is connected to port" + traPorts.get(3).getName());
+	        		}
 	        	}
 	        }
 

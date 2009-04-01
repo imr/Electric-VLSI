@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+BUG: (4/1/09, SMR) Technology checking should detect errors in electrical layers (Bug #2089).
+FIX: Now checks electrical layers.
+
 BUG: (4/1/09, SMR) Node extractor should be able to handle cut spacing variations (Bug #2103).
 FIX: Now try all variations.
 
