@@ -1969,8 +1969,8 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 			Layer l = poly.getLayer();
 			if (l == null) continue;
 			l = geometricLayer(l);
-			poly.setLayer(l);
 			if (l.getFunction().isSubstrate()) continue;
+			poly.setLayer(l);
 			poly.transform(trans);
 			if (l.getFunction().isContact())
 			{
@@ -1987,22 +1987,12 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 			for(int i=0; i<points.length; i++)
 				poly.setPoint(i, scaleUp(points[i].getX()), scaleUp(points[i].getY()));
 			if (!merge.contains(l, poly))
-			{
 				return poly;
-			}
 		}
 
 		if (!approximateCuts && cutsInArea != null)
 		{
 			// make sure all cuts in area are found in the node
-//System.out.print(" CUTS IN AREA:");
-//for(PolyBase pb : cutsInArea)
-//	System.out.print(" ("+(pb.getCenterX()/SCALEFACTOR)+","+(pb.getCenterY()/SCALEFACTOR)+")");
-//System.out.println();
-//System.out.print(" CUTS FOUND:");
-//for(PolyBase pb : cutsFound)
-//	System.out.print(" ("+pb.getCenterX()+","+pb.getCenterY()+")");
-//System.out.println();
 			for(PolyBase pb : cutsInArea)
 			{
 				boolean foundIt = false;
@@ -2466,14 +2456,21 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 					hei = transBox.getWidth();
 				} else
 				{
-					addErrorLog(newCell, "Transistor at (" + transBox.getCenterX() + "," + transBox.getCenterY() +
-						") doesn't have proper tabs...ignored",
-					new EPoint(transBox.getCenterX(), transBox.getCenterY()));
+					addErrorLog(newCell, "Transistor at (" + TextUtils.formatDistance(transBox.getCenterX()/SCALEFACTOR) +
+						"," + TextUtils.formatDistance(transBox.getCenterY()/SCALEFACTOR) +
+						") doesn't have proper tabs...not extracted", poly.getCenter());
 					continue;
 				}
 				SizeOffset so = transistor.getProtoSizeOffset();
 				double width = wid + scaleUp(so.getLowXOffset() + so.getHighXOffset());
 				double height = hei + scaleUp(so.getLowYOffset() + so.getHighYOffset());
+
+				// make sure all layers fit
+				EPoint ctr = new EPoint(poly.getCenterX()/SCALEFACTOR, poly.getCenterY()/SCALEFACTOR);
+				NodeInst ni = makeDummyNodeInst(transistor, ctr, width, height,
+					Orientation.fromAngle(angle), Technology.NodeLayer.MULTICUT_CENTERED);
+				if (!dummyTransistorFits(ni, merge, newCell)) continue;
+
 				realizeNode(transistor, Technology.NodeLayer.MULTICUT_CENTERED, poly.getCenterX(), poly.getCenterY(),
 					width, height, angle, null, merge, newCell, null);
 			} else
@@ -2483,6 +2480,68 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 			}
 		}
 		originalMerge.deleteLayer(tempLayer1);
+	}
+
+	/**
+	 * Method to ensure that a proposed transistor fits in the merge.
+	 * @param ni the transistor (a dummy NodeInst).
+	 * @param merge the merge to test.
+	 * @return true if the layer fits in the merge.
+	 */
+	private boolean dummyTransistorFits(NodeInst ni, PolyMerge merge, Cell cell)
+	{
+		AffineTransform trans = ni.rotateOut();
+		Technology tech = ni.getProto().getTechnology();
+		Poly [] polys = tech.getShapeOfNode(ni);
+		for(Poly poly : polys)
+		{
+			Layer l = poly.getLayer();
+			if (l == null) continue;
+			l = geometricLayer(l);
+			poly.setLayer(l);
+			poly.transform(trans);
+			Point2D[] points = poly.getPoints();
+			for(int i=0; i<points.length; i++)
+				poly.setPoint(i, scaleUp(points[i].getX()), scaleUp(points[i].getY()));
+			if (!merge.contains(l, poly))
+			{
+				Layer.Function fun = l.getFunction();
+				if (fun == Layer.Function.WELLP && pWellProcess) continue;
+				if (fun == Layer.Function.WELLN && nWellProcess) continue;
+				if (poly != null)
+				{
+					Layer lay = poly.getLayer();
+					Rectangle2D bounds = poly.getBounds2D();
+					if (lay.getFunction().isSubstrate())
+					{
+						addErrorLog(cell, "Transistor at (" + TextUtils.formatDistance(ni.getAnchorCenterX()) +
+							"," + TextUtils.formatDistance(ni.getAnchorCenterY()) +
+							"), size " + TextUtils.formatDistance(ni.getLambdaBaseXSize()) + "x" +
+							TextUtils.formatDistance(ni.getLambdaBaseYSize()) + ", is too large on layer " +
+							l.getName() + " and may cause DRC problems (it runs from " +
+							TextUtils.formatDistance(bounds.getMinX()/SCALEFACTOR) + "<=X<=" +
+							TextUtils.formatDistance(bounds.getMaxX()/SCALEFACTOR) + " and " +
+							TextUtils.formatDistance(bounds.getMinY()/SCALEFACTOR) + "<=Y<=" +
+							TextUtils.formatDistance(bounds.getMaxY()/SCALEFACTOR) + ")",
+							ni.getAnchorCenter());
+					} else
+					{
+						addErrorLog(cell, "Transistor at (" + TextUtils.formatDistance(ni.getAnchorCenterX()) +
+							"," + TextUtils.formatDistance(ni.getAnchorCenterY()) +
+							"), size " + TextUtils.formatDistance(ni.getLambdaBaseXSize()) + "x" +
+							TextUtils.formatDistance(ni.getLambdaBaseYSize()) + ", is too large on layer " +
+							l.getName() + "...not extracted (it runs from " +
+							TextUtils.formatDistance(bounds.getMinX()/SCALEFACTOR) + "<=X<=" +
+							TextUtils.formatDistance(bounds.getMaxX()/SCALEFACTOR) + " and " +
+							TextUtils.formatDistance(bounds.getMinY()/SCALEFACTOR) + "<=Y<=" +
+							TextUtils.formatDistance(bounds.getMaxY()/SCALEFACTOR) + ")",
+							ni.getAnchorCenter());
+						return false;
+					}
+				}
+			}
+		}
+		return true;
 	}
 
 	/**

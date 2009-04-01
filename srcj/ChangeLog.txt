@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+BUG: (4/1/09, SMR) Extraction of transistors may create implant regions
+     that are too large (Bug #2105).
+FIX: Issue warnings when the implants do not fit.
+
 BUG: (4/1/09, SMR) Technology checking should detect errors in electrical layers (Bug #2089).
 FIX: Now checks electrical layers.
 
