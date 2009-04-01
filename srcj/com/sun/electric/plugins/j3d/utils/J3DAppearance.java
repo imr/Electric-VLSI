@@ -51,7 +51,7 @@ public class J3DAppearance extends Appearance
         assert EGraphics.J3DTransparencyOption.NONE.mode        == TransparencyAttributes.NONE;
     }
 
-    private Layer layer; // reference to layer for fast access to appearance
+    private final Layer layer; // reference to layer for fast access to appearance
 
 	/** cell has a unique appearance **/    public static J3DAppearance cellApp;
     /** highlight appearance **/            public static J3DAppearance highlightApp;
@@ -62,7 +62,6 @@ public class J3DAppearance extends Appearance
         super();
         if (app == null) throw new Error("Input appearance is null");
         this.layer = app.layer;
-        if (layer != null) layer.addObserver(this);
         TransparencyAttributes oldTa = app.getTransparencyAttributes();
         setOtherAppearanceValues(oldTa.getTransparencyMode(), oldTa.getTransparency(), layer.getGraphics().getColor());
     }
@@ -71,14 +70,12 @@ public class J3DAppearance extends Appearance
     {
         super();
         this.layer = layer;
-        if (layer != null) layer.addObserver(this);
         setOtherAppearanceValues(mode, factor, color); //graphics.getColor());
     }
-    public void setLayer(Layer layer)
-    {
-        this.layer = layer;
-        if (layer != null) layer.addObserver(this);
-    }
+//    public void setLayer(Layer layer)
+//    {
+//        this.layer = layer;
+//    }
     public Layer getLayer() { return layer;}
 
     private void setOtherAppearanceValues(int mode, float factor, Color color)

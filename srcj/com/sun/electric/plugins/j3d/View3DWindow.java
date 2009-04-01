@@ -502,6 +502,7 @@ public class View3DWindow extends JPanel
 		removeMouseMotionListener(this);
 		removeMouseWheelListener(this);
 		UserInterfaceMain.removeDatabaseChangeListener(this);
+        this.view2D.getWindowFrame().deleteObserver(this);
 	}
 
 	public void bottomScrollChanged(int e) {}
@@ -900,11 +901,25 @@ public class View3DWindow extends JPanel
      */
     public void update(Observable o, Object arg)
     {
-        // Undo previous highlight
-        selectObject(false, false);
-
+        if (arg instanceof LayerVisibility) {
+            lv = (LayerVisibility)arg;
+            for (Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); ) {
+                Technology tech = tIt.next();
+                for (Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); ) {
+                    Layer layer = lIt.next();
+                    J3DAppearance app = (J3DAppearance)layer.get3DAppearance();
+                    if (app == null) continue;
+                    app.update(null, Boolean.valueOf(lv.isVisible(layer)));
+                }
+            }
+            repaint();
+            return;
+        }
         if (o == view2D.getWindowFrame())
         {
+            // Undo previous highlight
+            selectObject(false, false);
+
             Highlighter highlighter2D = view2D.getHighlighter();
             List<Geometric> geomList = highlighter2D.getHighlightedEObjs(true, true);
 

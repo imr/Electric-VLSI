@@ -39,6 +39,7 @@ import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -252,9 +253,8 @@ class LayerDrawing
     /** the Y origin of the cell in display coordinates. */ private double originY;
     /** the scale of the EditWindow */                      private double scale_;
 	/** the window scale and pan factor */					private float factorX, factorY;
-	/** 0: color display, 1: color printing, 2: B&W printing */	private int nowPrinting;
+	/** 0: color display, 1: color printing, 2: B&W printing */	private static final int nowPrinting = 0;
 
-	/** whether any layers are highlighted/dimmed */		boolean highlightingLayers;
 	/** true if the last display was a full-instantiate */	private boolean lastFullInstantiate = false;
 	/** A set of subcells being in-place edited. */         private BitSet inPlaceSubcellPath;
 	/** The current cell being in-place edited. */			private Cell inPlaceCurrent;
@@ -293,7 +293,6 @@ class LayerDrawing
 	/** scale of cell expansions. */						private static double expandedScale = 0;
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
-    private static LayerVisibility lv;
     private static Color textColor;
 	private static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
@@ -354,6 +353,8 @@ class LayerDrawing
         private volatile boolean needComposite;
         private volatile DrawingData drawingData;
 
+	/** whether any layers are highlighted/dimmed */		boolean highlightingLayers;
+
         Drawing(EditWindow wnd) {
             super(wnd);
         }
@@ -362,7 +363,7 @@ class LayerDrawing
          * This method is called from AWT thread.
          */
         @Override
-        public boolean paintComponent(Graphics2D g, Dimension sz) {
+        public boolean paintComponent(Graphics2D g, LayerVisibility lv, Dimension sz) {
             assert SwingUtilities.isEventDispatchThread();
             assert sz.equals(wnd.getSize());
             DrawingData drawingData = this.drawingData;
@@ -389,14 +390,14 @@ class LayerDrawing
                 int returnCode = vImg.validate(wnd.getGraphicsConfiguration());
                 if (returnCode == VolatileImage.IMAGE_RESTORED) {
                     // Contents need to be restored
-                    renderOffscreen(drawingData);	    // restore contents
+                    renderOffscreen(lv, drawingData);	    // restore contents
                 } else if (returnCode == VolatileImage.IMAGE_INCOMPATIBLE) {
                     // old vImg doesn't work with new GraphicsConfig; re-create it
                     vImg.flush();
                     vImg = wnd.createVolatileImage(sz.width, sz.height);
-                    renderOffscreen(drawingData);
+                    renderOffscreen(lv, drawingData);
                 } else if (needComposite) {
-                    renderOffscreen(drawingData);
+                    renderOffscreen(lv, drawingData);
                 }
                 g.drawImage(vImg, 0, 0, wnd);
             } while (vImg.contentsLost());
@@ -407,7 +408,7 @@ class LayerDrawing
         /**
          * This method is called from AWT thread.
          */
-        private void renderOffscreen(DrawingData dd) {
+        private void renderOffscreen(LayerVisibility lv, DrawingData dd) {
             needComposite = false;
             do {
                 if (vImg.validate(wnd.getGraphicsConfiguration()) == VolatileImage.IMAGE_INCOMPATIBLE) {
@@ -416,10 +417,19 @@ class LayerDrawing
                 }
                 long startTime = System.currentTimeMillis();
                 Graphics2D g = vImg.createGraphics();
+
+                // see if any layers are being highlighted/dimmed
+                highlightingLayers = false;
+                for(Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext(); ) {
+                    Layer layer = it.next();
+                    if (lv.isHighlighted(layer))
+                        highlightingLayers = true;
+                }
+
                 if (User.isLegacyComposite())
-                    legacyLayerComposite(g, dd);
+                    legacyLayerComposite(g, lv, dd);
                 else
-                    layerComposite(g, dd);
+                    layerComposite(g, lv, dd);
 //                if (alphaBlendingComposite) {
 //                    boolean TRY_OVERBLEND = false;
 //                    if (TRY_OVERBLEND) {
@@ -432,12 +442,12 @@ class LayerDrawing
 //                }
                 long compositeTime = System.currentTimeMillis();
                 for (GreekTextInfo greekInfo: dd.greekText)
-                    greekInfo.draw(g);
+                    greekInfo.draw(g, lv);
                 for (CrossTextInfo crossInfo: dd.crossText)
-                    crossInfo.draw(g);
+                    crossInfo.draw(g, lv);
                 g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
                 for (RenderTextInfo textInfo: dd.renderText)
-                    textInfo.draw(g);
+                    textInfo.draw(g, lv);
                 g.dispose();
                 if (TAKE_STATS) {
                     long endTime = System.currentTimeMillis();
@@ -453,14 +463,24 @@ class LayerDrawing
             needComposite = true;
         }
 
+        /**
+         * Retruns true if full repaint is necessary
+         * @return
+         */
+        public boolean visibilityChanged() {
+            assert SwingUtilities.isEventDispatchThread();
+            needComposite = true;
+            return false;
+        }
+
         @Override
         public boolean hasOpacity() { return !User.isLegacyComposite(); }
 
-        private void layerComposite(Graphics2D g, DrawingData dd) {
+        private void layerComposite(Graphics2D g, LayerVisibility lv, DrawingData dd) {
             Map<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
             for (Map.Entry<Layer,TransparentRaster> e: dd.layerRasters.entrySet())
                 layerBits.put(e.getKey(), e.getValue().layerBitMap);
-            List<AbstractDrawing.LayerColor> blendingOrder = getBlendingOrder(layerBits.keySet(), dd.patternedDisplay, alphaBlendingOvercolor);
+            List<AbstractDrawing.LayerColor> blendingOrder = getBlendingOrder(layerBits.keySet(), lv, dd.patternedDisplay, alphaBlendingOvercolor);
             if (TAKE_STATS) {
                 System.out.print("BlendingOrder:");
                 for (AbstractDrawing.LayerColor lc: blendingOrder) {
@@ -511,8 +531,8 @@ class LayerDrawing
          * This is called after all rendering is done.
          * @return the offscreen Image with the final display.
          */
-        private void legacyLayerComposite(Graphics2D g, DrawingData dd) {
-            getBlendingOrder(dd.layerRasters.keySet(), false, false);
+        private void legacyLayerComposite(Graphics2D g, LayerVisibility lv, DrawingData dd) {
+            getBlendingOrder(dd.layerRasters.keySet(), lv, false, false);
 
             Technology curTech = Technology.getCurrent();
             if (curTech == null) {
@@ -532,7 +552,7 @@ class LayerDrawing
             boolean dimmedTransparentLayers = false;
             for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
                 Layer layer = it.next();
-                if (!dd.offscreen.highlightingLayers || lv.isHighlighted(layer)) continue;
+                if (!highlightingLayers || lv.isHighlighted(layer)) continue;
                 if (layer.getGraphics().getTransparentLayer() == 0) continue;
                 dimmedTransparentLayers = true;
                 break;
@@ -563,9 +583,9 @@ class LayerDrawing
                         }
                     }
                     if (dimThisEntry) {
-                        newColorMap[i] = new Color(dd.offscreen.dimColor(colorMap[i].getRGB()));
+                        newColorMap[i] = new Color(dimColor(colorMap[i].getRGB()));
                     } else {
-                        newColorMap[i] = new Color(dd.offscreen.brightenColor(colorMap[i].getRGB()));
+                        newColorMap[i] = new Color(brightenColor(colorMap[i].getRGB()));
                     }
                 }
                 colorMap = newColorMap;
@@ -596,7 +616,7 @@ class LayerDrawing
                     transparentMasks[numTransparent] = (1 << (transparentNum - 1)) & (colorMap.length - 1);
                     transparentRasters[numTransparent++] = raster;
                 } else {
-                    opaqueCols[numOpaque] = dd.offscreen.getTheColor(layer.getGraphics(), !lv.isHighlighted(layer));
+                    opaqueCols[numOpaque] = getTheColor(layer.getGraphics(), !lv.isHighlighted(layer));
                     opaqueRasters[numOpaque++] = raster;
                 }
             }
@@ -635,6 +655,124 @@ class LayerDrawing
             }
         }
 
+        int getTheColor(EGraphics desc, boolean dimmed)
+        {
+            if (nowPrinting == 2) return 0;
+            int col = desc.getRGB();
+            if (highlightingLayers)
+            {
+                if (dimmed) col = dimColor(col); else
+                    col = brightenColor(col);
+            }
+            return col;
+        }
+
+        private double [] hsvTempArray = new double[3];
+
+        /**
+         * Method to dim a color by reducing its saturation.
+         * @param col the color as a 24-bit integer.
+         * @return the dimmed color, a 24-bit integer.
+         */
+        private int dimColor(int col)
+        {
+            int r = col & 0xFF;
+            int g = (col >> 8) & 0xFF;
+            int b = (col >> 16) & 0xFF;
+            fromRGBtoHSV(r, g, b, hsvTempArray);
+            hsvTempArray[1] *= 0.2;
+            col = fromHSVtoRGB(hsvTempArray[0], hsvTempArray[1], hsvTempArray[2]);
+            return col;
+        }
+
+        /**
+         * Method to brighten a color by increasing its saturation.
+         * @param col the color as a 24-bit integer.
+         * @return the brightened color, a 24-bit integer.
+         */
+        private int brightenColor(int col)
+        {
+            int r = col & 0xFF;
+            int g = (col >> 8) & 0xFF;
+            int b = (col >> 16) & 0xFF;
+            fromRGBtoHSV(r, g, b, hsvTempArray);
+            hsvTempArray[1] *= 1.5;
+            if (hsvTempArray[1] > 1) hsvTempArray[1] = 1;
+            col = fromHSVtoRGB(hsvTempArray[0], hsvTempArray[1], hsvTempArray[2]);
+            return col;
+        }
+
+        /**
+         * Method to convert a red/green/blue color to a hue/saturation/intensity color.
+         * Why not use Color.RGBtoHSB?  It doesn't work as well.
+         */
+        private void fromRGBtoHSV(int ir, int ig, int ib, double [] hsi)
+        {
+            double r = ir / 255.0f;
+            double g = ig / 255.0f;
+            double b = ib / 255.0f;
+
+            // "i" is maximum of "r", "g", and "b"
+            hsi[2] = Math.max(Math.max(r, g), b);
+
+            // "x" is minimum of "r", "g", and "b"
+            double x = Math.min(Math.min(r, g), b);
+
+            // "saturation" is (i-x)/i
+            if (hsi[2] == 0.0) hsi[1] = 0.0; else hsi[1] = (hsi[2] - x) / hsi[2];
+
+            // hue is quadrant-based
+            hsi[0] = 0.0;
+            if (hsi[1] != 0.0)
+            {
+                double rdot = (hsi[2] - r) / (hsi[2] - x);
+                double gdot = (hsi[2] - g) / (hsi[2] - x);
+                double bdot = (hsi[2] - b) / (hsi[2] - x);
+                if (b == x && r == hsi[2]) hsi[0] = (1.0 - gdot) / 6.0; else
+                if (b == x && g == hsi[2]) hsi[0] = (1.0 + rdot) / 6.0; else
+                if (r == x && g == hsi[2]) hsi[0] = (3.0 - bdot) / 6.0; else
+                if (r == x && b == hsi[2]) hsi[0] = (3.0 + gdot) / 6.0; else
+                if (g == x && b == hsi[2]) hsi[0] = (5.0 - rdot) / 6.0; else
+                if (g == x && r == hsi[2]) hsi[0] = (5.0 + bdot) / 6.0; else
+                    System.out.println("Cannot convert (" + ir + "," + ig + "," + ib + "), for x=" + x + " i=" + hsi[2] + " s=" + hsi[1]);
+            }
+        }
+
+        /**
+         * Method to convert a hue/saturation/intensity color to a red/green/blue color.
+         * Why not use Color.HSBtoRGB?  It doesn't work as well.
+         */
+        private int fromHSVtoRGB(double h, double s, double v)
+        {
+            h = h * 6.0;
+            int i = (int)h;
+            double f = h - (double)i;
+            double m = v * (1.0 - s);
+            double n = v * (1.0 - s * f);
+            double k = v * (1.0 - s * (1.0 - f));
+            int r = 0, g = 0, b = 0;
+            switch (i)
+            {
+                case 0: r = (int)(v*255.0); g = (int)(k*255.0); b = (int)(m*255.0);   break;
+                case 1: r = (int)(n*255.0); g = (int)(v*255.0); b = (int)(m*255.0);   break;
+                case 2: r = (int)(m*255.0); g = (int)(v*255.0); b = (int)(k*255.0);   break;
+                case 3: r = (int)(m*255.0); g = (int)(n*255.0); b = (int)(v*255.0);   break;
+                case 4: r = (int)(k*255.0); g = (int)(m*255.0); b = (int)(v*255.0);   break;
+                case 5: r = (int)(v*255.0); g = (int)(m*255.0); b = (int)(n*255.0);   break;
+            }
+            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
+            {
+                System.out.println("(" + h + "," + s + "," + v + ") -> (" + r + "," + g + "," + b + ") (i=" + i + ")");
+                if (r < 0) r = 0;
+                if (r > 255) r = 255;
+                if (g < 0) g = 0;
+                if (g > 255) g = 255;
+                if (b < 0) b = 0;
+                if (b > 255) b = 255;
+            }
+            return (b << 16) | (g << 8) | r;
+        }
+
         /**
          * Returns alpha blending order for this EditWindow.
          * Alpha blending order specifies pixel color by such a way:
@@ -649,7 +787,7 @@ class LayerDrawing
          * @param layersAvailable layers available in this EditWindow
          * @return alpha blending order.
          */
-        private List<AbstractDrawing.LayerColor> getBlendingOrder(Set<Layer> layersAvailable, boolean patternedDisplay, boolean alphaBlendingOvercolor) {
+        private List<AbstractDrawing.LayerColor> getBlendingOrder(Set<Layer> layersAvailable, LayerVisibility lv, boolean patternedDisplay, boolean alphaBlendingOvercolor) {
             List<AbstractDrawing.LayerColor> layerColors = new ArrayList<AbstractDrawing.LayerColor>();
             List<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
             Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT_LIFT_CONTACTS);
@@ -698,6 +836,7 @@ class LayerDrawing
                 offscreen = new LayerDrawing(sz);
             this.da = da;
 //            updateScaleAndOffset();
+
             offscreen.drawImage(this, fullInstantiate, bounds);
             needComposite = true;
             drawingData = new DrawingData(offscreen);
@@ -992,7 +1131,7 @@ class LayerDrawing
         for (RenderTextInfo textInfo: offscreen.renderTextList) {
             textInfo.offX += imgX;
             textInfo.offY += imgY;
-            textInfo.draw(g);
+            textInfo.draw(g, null);
         }
 //        needComposite = true;
 //        layerRasters = new HashMap<Layer,TransparentRaster>(offscreen.layerRasters);
@@ -1086,7 +1225,7 @@ class LayerDrawing
      * Method to set the printing mode used for all drawing.
      * @param mode the printing mode:  0=color display (default), 1=color printing, 2=B&W printing.
      */
-    public void setPrintingMode(int mode) { nowPrinting = mode; }
+//    public void setPrintingMode(int mode) { nowPrinting = mode; }
 
 	/**
 	 * Method for obtaining the size of the offscreen bitmap.
@@ -1168,19 +1307,6 @@ class LayerDrawing
 
 		// remember the true window size (since recursive calls may cache individual cells that are smaller)
 		topSz = sz;
-
-		// see if any layers are being highlighted/dimmed
-        lv = wnd.getLayerVisibility();
-		highlightingLayers = false;
-		for(Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext(); )
-		{
-			Layer layer = it.next();
-			if (lv.isHighlighted(layer))
-			{
-				highlightingLayers = true;
-				break;
-			}
-		}
 
 		// initialize rendering into the offscreen image
 		Rectangle renderBounds = null;
@@ -1537,7 +1663,7 @@ class LayerDrawing
 					tempRect.setBounds(lX, lY, hX-lX, hY-lY);
 					TextDescriptor descript = vsc.n.protoDescriptor;
 					NodeProto np = VectorCache.theCache.database.getCell(vsc.subCellId);
-					drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), textGraphics);
+					drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), textGraphics, null);
 				}
 			}
 			if (canDrawText && (topLevel || onPathDown || inPlaceCurrent == cell))
@@ -2492,14 +2618,16 @@ class LayerDrawing
                 hY = tempPt2.y;
 
                 EGraphics graphics = vt.graphics;
+                PrimitiveNode baseNode = null;
                 if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.basePort != null) {
-                	if (!lv.isVisible(vt.basePort.getParent())) continue;
+                    baseNode = vt.basePort.getParent();
+//                	if (!lv.isVisible(vt.basePort.getParent())) continue;
                     int exportDisplayLevel = User.getExportDisplayLevel();
                     if (exportDisplayLevel == 2) {
                         // draw export as a cross
                         int cX = (lX + hX) / 2;
                         int cY = (lY + hY) / 2;
-                        crossTextList.add(new CrossTextInfo(cX, cY, textColor));
+                        crossTextList.add(new CrossTextInfo(cX, cY, textColor, baseNode));
                         continue;
                     }
 
@@ -2510,7 +2638,7 @@ class LayerDrawing
                 }
 
                 tempRect.setBounds(lX, lY, hX-lX, hY-lY);
-                drawText(tempRect, vt.style, vt.descript, drawString, graphics);
+                drawText(tempRect, vt.style, vt.descript, drawString, graphics, baseNode);
                 continue;
             }
 
@@ -2629,7 +2757,7 @@ class LayerDrawing
 			if (portDisplayLevel == 2)
 			{
 				// draw port as a cross
-                crossTextList.add(new CrossTextInfo(cX, cY, portColor != null ? portColor : textColor));
+                crossTextList.add(new CrossTextInfo(cX, cY, portColor != null ? portColor : textColor, null));
 				continue;
 			}
 
@@ -2638,129 +2766,11 @@ class LayerDrawing
             String drawString = vce.getName(shortName);
 
 			tempRect.setBounds(cX, cY, 0, 0);
-			drawText(tempRect, vce.style, vce.descript, drawString, portGraphics);
+			drawText(tempRect, vce.style, vce.descript, drawString, portGraphics, null);
 		}
 	}
 
 	// ************************************* BOX DRAWING *************************************
-
-	int getTheColor(EGraphics desc, boolean dimmed)
-	{
-		if (nowPrinting == 2) return 0;
-		int col = desc.getRGB();
-		if (highlightingLayers)
-		{
-			if (dimmed) col = dimColor(col); else
-				col = brightenColor(col);
-		}
-		return col;
-	}
-
-	private double [] hsvTempArray = new double[3];
-
-	/**
-	 * Method to dim a color by reducing its saturation.
-	 * @param col the color as a 24-bit integer.
-	 * @return the dimmed color, a 24-bit integer.
-	 */
-	private int dimColor(int col)
-	{
-		int r = col & 0xFF;
-		int g = (col >> 8) & 0xFF;
-		int b = (col >> 16) & 0xFF;
-		fromRGBtoHSV(r, g, b, hsvTempArray);
-		hsvTempArray[1] *= 0.2;
-		col = fromHSVtoRGB(hsvTempArray[0], hsvTempArray[1], hsvTempArray[2]);
-		return col;
-	}
-
-	/**
-	 * Method to brighten a color by increasing its saturation.
-	 * @param col the color as a 24-bit integer.
-	 * @return the brightened color, a 24-bit integer.
-	 */
-	private int brightenColor(int col)
-	{
-		int r = col & 0xFF;
-		int g = (col >> 8) & 0xFF;
-		int b = (col >> 16) & 0xFF;
-		fromRGBtoHSV(r, g, b, hsvTempArray);
-		hsvTempArray[1] *= 1.5;
-		if (hsvTempArray[1] > 1) hsvTempArray[1] = 1;
-		col = fromHSVtoRGB(hsvTempArray[0], hsvTempArray[1], hsvTempArray[2]);
-		return col;
-	}
-
-	/**
-	 * Method to convert a red/green/blue color to a hue/saturation/intensity color.
-	 * Why not use Color.RGBtoHSB?  It doesn't work as well.
-	 */
-	private void fromRGBtoHSV(int ir, int ig, int ib, double [] hsi)
-	{
-		double r = ir / 255.0f;
-		double g = ig / 255.0f;
-		double b = ib / 255.0f;
-
-		// "i" is maximum of "r", "g", and "b"
-		hsi[2] = Math.max(Math.max(r, g), b);
-
-		// "x" is minimum of "r", "g", and "b"
-		double x = Math.min(Math.min(r, g), b);
-
-		// "saturation" is (i-x)/i
-		if (hsi[2] == 0.0) hsi[1] = 0.0; else hsi[1] = (hsi[2] - x) / hsi[2];
-
-		// hue is quadrant-based
-		hsi[0] = 0.0;
-		if (hsi[1] != 0.0)
-		{
-			double rdot = (hsi[2] - r) / (hsi[2] - x);
-			double gdot = (hsi[2] - g) / (hsi[2] - x);
-			double bdot = (hsi[2] - b) / (hsi[2] - x);
-			if (b == x && r == hsi[2]) hsi[0] = (1.0 - gdot) / 6.0; else
-			if (b == x && g == hsi[2]) hsi[0] = (1.0 + rdot) / 6.0; else
-			if (r == x && g == hsi[2]) hsi[0] = (3.0 - bdot) / 6.0; else
-			if (r == x && b == hsi[2]) hsi[0] = (3.0 + gdot) / 6.0; else
-			if (g == x && b == hsi[2]) hsi[0] = (5.0 - rdot) / 6.0; else
-			if (g == x && r == hsi[2]) hsi[0] = (5.0 + bdot) / 6.0; else
-				System.out.println("Cannot convert (" + ir + "," + ig + "," + ib + "), for x=" + x + " i=" + hsi[2] + " s=" + hsi[1]);
-		}
-	}
-
-	/**
-	 * Method to convert a hue/saturation/intensity color to a red/green/blue color.
-	 * Why not use Color.HSBtoRGB?  It doesn't work as well.
-	 */
-	private int fromHSVtoRGB(double h, double s, double v)
-	{
-		h = h * 6.0;
-		int i = (int)h;
-		double f = h - (double)i;
-		double m = v * (1.0 - s);
-		double n = v * (1.0 - s * f);
-		double k = v * (1.0 - s * (1.0 - f));
-		int r = 0, g = 0, b = 0;
-		switch (i)
-		{
-			case 0: r = (int)(v*255.0); g = (int)(k*255.0); b = (int)(m*255.0);   break;
-			case 1: r = (int)(n*255.0); g = (int)(v*255.0); b = (int)(m*255.0);   break;
-			case 2: r = (int)(m*255.0); g = (int)(v*255.0); b = (int)(k*255.0);   break;
-			case 3: r = (int)(m*255.0); g = (int)(n*255.0); b = (int)(v*255.0);   break;
-			case 4: r = (int)(k*255.0); g = (int)(m*255.0); b = (int)(v*255.0);   break;
-			case 5: r = (int)(v*255.0); g = (int)(m*255.0); b = (int)(n*255.0);   break;
-		}
-		if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
-		{
-			System.out.println("(" + h + "," + s + "," + v + ") -> (" + r + "," + g + "," + b + ") (i=" + i + ")");
-			if (r < 0) r = 0;
-			if (r > 255) r = 255;
-			if (g < 0) g = 0;
-			if (g > 255) g = 255;
-			if (b < 0) b = 0;
-			if (b > 255) b = 255;
-		}
-		return (b << 16) | (g << 8) | r;
-	}
 
     /**
      * Method to draw a box on the off-screen buffer.
@@ -3519,7 +3529,7 @@ class LayerDrawing
 	/**
 	 * Method to draw a text on the off-screen buffer
 	 */
-	public void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, EGraphics desc)
+	public void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, EGraphics desc, PrimitiveNode baseNode)
 	{
 		// quit if string is null
 		if (s == null) return;
@@ -3583,8 +3593,8 @@ class LayerDrawing
 
 		// create RenderInfo
 		long startTime = 0;
-		RenderTextInfo renderInfo = new RenderTextInfo();
-		if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation, color))
+		RenderTextInfo renderInfo = new RenderTextInfo(color, baseNode);
+		if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation))
 			return;
 
 		// if text was made "greek", just draw a line
@@ -3606,7 +3616,7 @@ class LayerDrawing
             // greeked box in opaque area
             if (lX > hX || lY > hY) return;
 
-            greekTextList.add(new GreekTextInfo(lX, hX, lY, hY, color));
+            greekTextList.add(new GreekTextInfo(lX, hX, lY, hY, color, baseNode));
 //            for(int y=lY; y<=hY; y++) {
 //                int baseIndex = y * sz.width + lX;
 //                for(int x=lX; x<=hX; x++) {
@@ -3628,7 +3638,23 @@ class LayerDrawing
 //        renderInfo.draw();
 	}
 
-	private static class RenderTextInfo {
+    private static class TextInfo {
+        private Color color;
+        private PrimitiveNode baseNode;
+
+        private TextInfo(Color color, PrimitiveNode baseNode) {
+            this.color = color;
+            this.baseNode = baseNode;
+        }
+
+        boolean isDrawn(Graphics2D g, LayerVisibility lv) {
+            if (baseNode != null && !lv.isVisible(baseNode)) return false;
+            g.setColor(color);
+            return true;
+        }
+    }
+
+	private static class RenderTextInfo extends TextInfo {
 		private GlyphVector gv;
 		private LineMetrics lm;
 	    private Rectangle2D rasBounds;              // the raster bounds of the unrotated text, in pixels (screen units)
@@ -3639,13 +3665,14 @@ class LayerDrawing
         private Rectangle rect;
         private int offX, offY;
 
+        private RenderTextInfo(Color color, PrimitiveNode baseNode) { super(color, baseNode); }
+
 	    private boolean buildInfo(String msg, String fontName, int tSize, boolean italic, boolean bold, boolean underline,
-	    	Rectangle probableBoxedBounds, Poly.Type style, int rotation, Color color)
+	    	Rectangle probableBoxedBounds, Poly.Type style, int rotation)
 	    {
 			Font font = getFont(msg, fontName, tSize, italic, bold, underline);
 			this.underline = underline;
             this.rotation = rotation;
-            this.color = color;
             rect = (Rectangle)probableBoxedBounds.clone();
 
 			// convert the text to a GlyphVector
@@ -3723,10 +3750,10 @@ class LayerDrawing
             return true;
         }
 
-        private void draw(Graphics2D g) {
+        private void draw(Graphics2D g, LayerVisibility lv) {
+            if (!isDrawn(g, lv)) return;
             int width = (int)rasBounds.getWidth();
             int height = (int)rasBounds.getHeight();
-            g.setColor(color);
             if (rotation == 0) {
                 int atX = (int)rect.getCenterX() + offX;
                 int atY = (int)rect.getCenterY() + offY;
@@ -3745,36 +3772,34 @@ class LayerDrawing
         }
     }
 
-    private class GreekTextInfo {
+    private class GreekTextInfo extends TextInfo {
         int lX, hX, lY, hY;
-        Color color;
 
-        private GreekTextInfo(int lX, int hX, int lY, int hY, Color color) {
+        private GreekTextInfo(int lX, int hX, int lY, int hY, Color color, PrimitiveNode baseNode) {
+            super(color, baseNode);
             this.lX = lX;
             this.hX = hX;
             this.lY = lY;
             this.hY = hY;
-            this.color = color;
         }
 
-        private void draw(Graphics2D g) {
-            g.setColor(color);
+        private void draw(Graphics2D g, LayerVisibility lv) {
+            if (!isDrawn(g, lv)) return;
             g.drawLine(lX, lY, hX, hY);
         }
     }
 
-    private class CrossTextInfo {
+    private class CrossTextInfo extends TextInfo {
         int x, y;
-        Color color;
 
-        private CrossTextInfo(int x, int y, Color color) {
+        private CrossTextInfo(int x, int y, Color color, PrimitiveNode baseNode) {
+            super(color, baseNode);
             this.x = x;
             this.y = y;
-            this.color = color;
         }
 
-        private void draw(Graphics2D g) {
-            g.setColor(color);
+        private void draw(Graphics2D g, LayerVisibility lv) {
+            if (!isDrawn(g, lv)) return;
             g.drawLine(x - 3, y, x + 3, y);
             g.drawLine(x, y - 3, x, y + 3);
         }

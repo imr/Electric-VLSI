@@ -55,7 +55,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
@@ -122,7 +121,6 @@ import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -1244,7 +1242,7 @@ public class EditWindow extends JPanel
 
 		logger.entering(CLASS_NAME, "paintComponent", this);
 
-		if (!drawing.paintComponent(g, getSize())) {
+		if (!drawing.paintComponent(g, lv, getSize())) {
 			fullRepaint();
 			g.setColor(new Color(User.getColor(User.ColorPrefType.BACKGROUND)));
 			g.fillRect(0, 0, getWidth(), getHeight());
@@ -1422,6 +1420,15 @@ public class EditWindow extends JPanel
         return lv;
     }
 
+    public void setLayerVisibility(LayerVisibility lv) {
+        this.lv = lv;
+        if (drawing.visibilityChanged())
+                fullRepaint();
+        else
+            repaint();
+        wf.set3DLayerVisibility(lv);
+    }
+
 	/**
 	 * Method requests that every EditWindow be redrawn, including a rerendering of its contents.
 	 */
@@ -1434,6 +1441,21 @@ public class EditWindow extends JPanel
 			if (!(content instanceof EditWindow)) continue;
 			EditWindow wnd = (EditWindow)content;
 			wnd.fullRepaint();
+		}
+	}
+
+	/**
+	 * Method signals that every EditWindow be redrawn after Layer visibility change
+	 */
+	public static void setLayerVisibilityAll(LayerVisibility lv)
+	{
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = it.next();
+			WindowContent content = wf.getContent();
+			if (!(content instanceof EditWindow)) continue;
+			EditWindow wnd = (EditWindow)content;
+			wnd.setLayerVisibility(lv);
 		}
 	}
 
@@ -3364,7 +3386,7 @@ public class EditWindow extends JPanel
 	 */
 	public static void clearSubCellCache()
 	{
-		AbstractDrawing.clearSubCellCache();
+		AbstractDrawing.clearSubCellCache(true);
 	}
 
    /**

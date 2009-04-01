@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
@@ -58,7 +59,7 @@ public abstract class AbstractDrawing {
         return drawing;
     }
 
-    public abstract boolean paintComponent(Graphics2D g, Dimension sz);
+    public abstract boolean paintComponent(Graphics2D g, LayerVisibility lv, Dimension sz);
 
     public abstract void render(Dimension sz, WindowFrame.DisplayAttributes da, boolean fullInstantiate, Rectangle2D bounds);
 
@@ -66,6 +67,15 @@ public abstract class AbstractDrawing {
     }
 
     public void opacityChanged() {
+    }
+
+    /**
+     * Notifies about visibilit change
+     * Retruns true if full repaint is necessary
+     * @return
+     */
+    public boolean visibilityChanged() {
+        return true;
     }
 
     public boolean hasOpacity() { return false; }
@@ -77,10 +87,11 @@ public abstract class AbstractDrawing {
 	 * Method to clear the cache of expanded subcells.
 	 * This is used by layer visibility which, when changed, causes everything to be redrawn.
 	 */
-	public static void clearSubCellCache()
+	public static void clearSubCellCache(boolean layerAlso)
 	{
         PixelDrawing.clearSubCellCache();
-        LayerDrawing.clearSubCellCache();
+        if (layerAlso)
+            LayerDrawing.clearSubCellCache();
 	}
 
 	public static void forceRedraw(Cell cell)

@@ -331,7 +331,7 @@ public class PixelDrawing
         }
 
         @Override
-        public boolean paintComponent(Graphics2D g, Dimension sz) {
+        public boolean paintComponent(Graphics2D g, LayerVisibility lv, Dimension sz) {
             assert SwingUtilities.isEventDispatchThread();
             assert sz.equals(wnd.getSize());
             PixelDrawing offscreen = this.offscreen;

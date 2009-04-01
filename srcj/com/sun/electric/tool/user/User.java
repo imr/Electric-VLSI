@@ -674,17 +674,6 @@ public class User extends Listener
 		EditWindow.clearSubCellCache();
 	}
 
-	/**
-	 * Method called when visible layers have changed.
-	 * Removes all "greeked images" from cached cells.
-	 */
-	public static void layerVisibilityChanged(boolean onlyText) {
-		if (!onlyText)
-			VectorCache.theCache.clearFadeImages();
-		EditWindow.clearSubCellCache();
-		EditWindow.repaintAllContents();
-	}
-
 	/****************************** MISCELLANEOUS FUNCTIONS ******************************/
 
 	/**

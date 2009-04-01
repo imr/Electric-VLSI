@@ -285,6 +285,16 @@ public class WindowFrame extends Observable
         }
 	}
 
+	/**
+	 * Method to notify 3D view about change of Layer visibility
+	 */
+	public void set3DLayerVisibility(LayerVisibility lv)
+	{
+        setChanged();
+        notifyObservers(lv);
+        clearChanged();
+	}
+
     /*****************************************************************************
      *          END OF 3D Stuff                                                  *
      *****************************************************************************/

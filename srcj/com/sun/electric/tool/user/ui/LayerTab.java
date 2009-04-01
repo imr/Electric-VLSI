@@ -30,6 +30,8 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.redisplay.AbstractDrawing;
+import com.sun.electric.tool.user.redisplay.VectorCache;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -793,7 +795,18 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		}
 
 		if (visibilityChanged || textVisChanged)
-			User.layerVisibilityChanged(!visibilityChanged);
+			layerVisibilityChanged(lv, !visibilityChanged);
+	}
+
+	/**
+	 * Method called when visible layers have changed.
+	 * Removes all "greeked images" from cached cells.
+	 */
+	private static void layerVisibilityChanged(LayerVisibility lv, boolean onlyText) {
+		if (!onlyText)
+			VectorCache.theCache.clearFadeImages();
+		AbstractDrawing.clearSubCellCache(false);
+		EditWindow.setLayerVisibilityAll(lv);
 	}
 
 	/************************** DRAG AND DROP **************************/

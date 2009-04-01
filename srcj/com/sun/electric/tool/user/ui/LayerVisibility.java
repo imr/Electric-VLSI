@@ -172,7 +172,6 @@ public class LayerVisibility extends PrefPackage {
             int layerIndex = layer.getIndex();
             boolean visible = e.getValue().booleanValue();
             if (visible == td.visibleLayers[layerIndex]) continue;
-            layer.notifyVisibility(e.getValue());
             changed = true;
             td.visibleLayers[layerIndex] = visible;
         }

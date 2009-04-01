@@ -47,14 +47,13 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Observable;
 
 /**
  * The Layer class defines a single layer of material, out of which NodeInst and ArcInst objects are created.
  * The Layers are defined by the PrimitiveNode and ArcProto classes, and are used in the generation of geometry.
  * In addition, layers have extra information that is used for output and behavior.
  */
-public class Layer extends Observable implements Serializable
+public class Layer implements Serializable
 {
     public static final double DEFAULT_THICKNESS = 0; // 3D default thickness
     public static final double DEFAULT_DISTANCE = 0; // 3D default distance
@@ -1537,15 +1536,4 @@ public class Layer extends Observable implements Serializable
 	 * @return the current 3D appearance.
 	 */
 	public Object get3DAppearance() {return appearance3D;}
-
-	/**
-	 * Method to notify 3D observers
-	 * @param layerVis
-	 */
-	public void notifyVisibility(Boolean layerVis)
-	{
-		setChanged();
-		notifyObservers(layerVis);
-		clearChanged();
-	}
 }
