@@ -45,6 +45,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
@@ -68,7 +69,6 @@ public class HPGL extends Output
 	/** Scale to ensure that everything is integer */ private static final double SCALE = 100;
 
 	/** conversion from Layers to pen numbers */	private HashMap<Layer,List<PolyBase>> cellGeoms;
-	/** conversion from Layers to Colors */	        private HashMap<Layer,Color>          layerColors = new HashMap<Layer,Color>();
 	/** conversion from Colors to pen numbers */	private LinkedHashMap<Color,Integer>  penNumbers = new LinkedHashMap<Color,Integer>();
 	/** the Cell being written. */					private Cell        cell;
 	/** the Window being printed (for text). */		private EditWindow_ wnd;
@@ -91,11 +91,21 @@ public class HPGL extends Output
     {
 		boolean textVisibilityOnExport = User.isFactoryTextVisibilityOnExport();
 		int exportDisplayLevel = User.getFactoryExportDisplayLevel();
+        Map<Layer,Color> layerColors = new HashMap<Layer,Color>();
 
         public HPGLPreferences(boolean factory) {
             super(factory);
         	textVisibilityOnExport = factory ? User.isFactoryTextVisibilityOnExport() : User.isTextVisibilityOnExport();
     		exportDisplayLevel = factory ? User.getFactoryExportDisplayLevel() : User.getExportDisplayLevel();
+
+            for (Technology tech: TechPool.getThreadTechPool().values()) {
+                Color[] transparentColors = factory ? tech.getFactoryTransparentLayerColors() : tech.getTransparentLayerColors();
+                for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
+                    Layer layer = it.next();
+                    EGraphics graphics = factory ? layer.getFactoryGraphics() : layer.getGraphics();
+                    layerColors.put(layer, graphics.getColor(transparentColors));
+                }
+            }
         }
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
@@ -155,19 +165,9 @@ public class HPGL extends Output
             Color col;
 			if (layer == null) col = Color.BLACK; else
 			{
-				EGraphics desc = layer.getGraphics();
-				if (desc.getTransparentLayer() == 0)
-				{
-					// opaque color: get it
-					col = desc.getColor();
-				} else
-				{
-					// transparent color: get it
-					col = EGraphics.getColorFromIndex(EGraphics.makeIndex(desc.getTransparentLayer()));
-				}
+				col = localPrefs.layerColors.get(layer);
 				if (col == null) continue;
 			}
-            layerColors.put(layer,col);
             getPenNumber(col);
 
             for (PolyBase poly: geoms) {
@@ -375,7 +375,7 @@ public class HPGL extends Output
 	{
 		// ignore null layers
 		Layer layer = poly.getLayer();
-        Color col = layerColors.get(layer);
+        Color col = localPrefs.layerColors.get(layer);
         if (poly instanceof Poly) {
             EGraphics graphicsOverride = ((Poly)poly).getGraphicsOverride();
             if (graphicsOverride != null)

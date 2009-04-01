@@ -210,7 +210,7 @@ public class Output
 //        return out;
 //    }
 
-    public static class OutputPreferences
+    public abstract static class OutputPreferences
 	{
         // IO Settings
         public boolean useCopyrightMessage = IOTool.isUseCopyrightMessage();
@@ -221,10 +221,7 @@ public class Output
                 throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
         }
 
-        public Output doOutput(Cell cell, VarContext context, String filePath)
-        {
-        	return null;
-        }
+        public abstract Output doOutput(Cell cell, VarContext context, String filePath);
 	}
 
 	/** file path */									protected String filePath;

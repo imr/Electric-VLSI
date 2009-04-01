@@ -574,6 +574,18 @@ public class EGraphics implements Serializable
 	public Color getColor() { return color; }
 
 	/**
+	 * Method to return the color associated with this EGraphics considering
+     * Colors of transparentLayers.
+     * @param transparentColors Colors of transparentLayers.
+	 * @return the color associated with this EGraphics.
+	 */
+	public Color getColor(Color[] transparentColors) {
+        if (transparentLayer > 0 && transparentLayer <= transparentColors.length)
+            return transparentColors[transparentLayer - 1];
+        return color;
+    }
+
+	/**
 	 * Returns the RGB value representing the color associated with this EGraphics.
 	 * (Bits 16-23 are red, 8-15 are green, 0-7 are blue).
 	 * Alpha/opacity component is 0

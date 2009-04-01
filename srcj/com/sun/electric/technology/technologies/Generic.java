@@ -23,7 +23,6 @@
  */
 package com.sun.electric.technology.technologies;
 
-import com.sun.electric.database.Environment;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.IdManager;
@@ -39,6 +38,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.TechFactory;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 
 import java.awt.Color;
@@ -49,7 +49,7 @@ import java.util.Collections;
  */
 public class Generic extends Technology
 {
-	/** the Generic Technology object. */	public static Generic tech() { return Environment.getThreadTechPool().getGeneric(); }
+	/** the Generic Technology object. */	public static Generic tech() { return TechPool.getThreadTechPool().getGeneric(); }
 
 	/** the Universal Layer. */				private final Layer universalLay;
 	/** the Glyph Layer. */					public final Layer glyphLay;

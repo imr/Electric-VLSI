@@ -45,6 +45,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -58,8 +59,11 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This class writes files in PostScript format.
@@ -101,7 +105,7 @@ public class PostScript extends Output
         new EGraphics(false, false, null, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 //    /** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstanceFree(null, "black",
 //		new EGraphics(false, false, null, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
-	private PostScriptPreferences localPrefs;
+	PostScriptPreferences localPrefs;
 
 	public static class PostScriptPreferences extends OutputPreferences
     {
@@ -123,12 +127,25 @@ public class PostScript extends Output
 		double printMargin = IOTool.getFactoryPrintMargin();
 		int printRotation = IOTool.getFactoryPrintRotation();
 		double printPSLineWidth = IOTool.getFactoryPrintPSLineWidth();
-        LayerVisibility lv = new LayerVisibility(true);
+        Map<Layer,EGraphics> layerGraphics = new HashMap<Layer,EGraphics>();
+        Set<Layer> invisibleLayers = new HashSet<Layer>();
+
 
 		PostScriptPreferences(boolean factory, List<PolyBase> override)
 		{
             super(factory);
 			this.override = override;
+
+            LayerVisibility lv = new LayerVisibility(factory);
+            for (Technology tech: TechPool.getThreadTechPool().values()) {
+                for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
+                    Layer layer = it.next();
+                    EGraphics graphics = factory ? layer.getFactoryGraphics() : layer.getGraphics();
+                    layerGraphics.put(layer, graphics);
+                    if (!lv.isVisible(layer))
+                        invisibleLayers.add(layer);
+                }
+            }
             if (!factory)
                 fillPrefs();
 		}
@@ -152,7 +169,6 @@ public class PostScript extends Output
 			printMargin = IOTool.getPrintMargin();
 			printRotation = IOTool.getPrintRotation();
 			printPSLineWidth = IOTool.getPrintPSLineWidth();
-            lv = new LayerVisibility(false);
 		}
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
@@ -634,10 +650,10 @@ public class PostScript extends Output
 		if (psUseColor)
 		{
 			// color: plot layers in proper order
-			List<Layer> layerList = Technology.getCurrent().getLayersSortedByHeight();
+			List<Layer> layerList = cell.getTechnology().getLayersSortedByHeight();
 			for(Layer layer : layerList)
 			{
-				if (!localPrefs.lv.isVisible(layer)) continue;
+				if (localPrefs.invisibleLayers.contains(layer)) continue;
 				Job.getUserInterface().setProgressNote("Writing layer " + layer.getName() + " (" + totalObjects + " objects...");
 				currentLayer = layer.getIndex() + 1;
 				recurseCircuitLevel(cell, DBMath.MATID, true, true, totalObjects);
@@ -1014,13 +1030,16 @@ public class PostScript extends Output
 		EGraphics gra = null;
 		int index = 0;
 		Color col = Color.BLACK;
-		Technology tech = Technology.getCurrent();
+		Technology tech = cell.getTechnology();
 		if (layer != null)
 		{
 			tech = layer.getTechnology();
 			index = layer.getIndex();
-			if (!localPrefs.lv.isVisible(layer)) return;
-			gra = poly instanceof Poly ? ((Poly)poly).getGraphics() : layer.getGraphics();
+			if (localPrefs.invisibleLayers.contains(layer)) return;
+            if (poly instanceof Poly)
+                gra = ((Poly)poly).getGraphicsOverride();
+            if (gra == null)
+                gra = localPrefs.layerGraphics.get(layer);
 			col = gra.getColor();
 		}
 
@@ -1029,10 +1048,10 @@ public class PostScript extends Output
 		{
 			if (currentLayer == 0)
 			{
-				if (tech == Technology.getCurrent()) return;
+				if (tech == cell.getTechnology()) return;
 			} else
 			{
-				if (tech != Technology.getCurrent() || currentLayer-1 != index)
+				if (tech != cell.getTechnology() || currentLayer-1 != index)
 					return;
 			}
 		}
@@ -1272,7 +1291,11 @@ public class PostScript extends Output
 //		}
 //		if (polyBounds.getWidth() < 1 || polyBounds.getHeight() < 1) return;
 
-		EGraphics desc = poly instanceof Poly ? ((Poly)poly).getGraphics() : poly.getLayer().getGraphics();
+        EGraphics desc = null;
+        if (poly instanceof Poly)
+            desc = ((Poly)poly).getGraphicsOverride();
+        if (desc == null)
+            desc = localPrefs.layerGraphics.get(poly.getLayer());
 
 		// use solid color if solid pattern or no pattern
 		boolean stipplePattern = desc.isPatternedOnPrinter();

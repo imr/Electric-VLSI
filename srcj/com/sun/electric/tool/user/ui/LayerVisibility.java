@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.Environment;
 import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
@@ -96,7 +95,7 @@ public class LayerVisibility extends PrefPackage {
     }
 
     public LayerVisibility(boolean factory) {
-        this(factory, Environment.getThreadTechPool());
+        this(factory, TechPool.getThreadTechPool());
     }
 
     LayerVisibility(boolean factory, TechPool techPool) {

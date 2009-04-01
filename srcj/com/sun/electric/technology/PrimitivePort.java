@@ -25,7 +25,6 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
-import com.sun.electric.database.Environment;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
@@ -236,7 +235,7 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 	 */
 	public ArcProto [] getConnections() {
         if (parent.getTechnology().isUniversalConnectivityPort(this))
-            return Environment.getThreadTechPool().getUnivList();
+            return TechPool.getThreadTechPool().getUnivList();
         return portArcs;
     }
 

@@ -1581,7 +1581,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * Technology matches.
 	 */
     public static Technology findTechnology(TechId techId) {
-        return Environment.getThreadTechPool().getTech(techId);
+        return TechPool.getThreadTechPool().getTech(techId);
     }
 
 	/**
@@ -1590,7 +1590,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public static Iterator<Technology> getTechnologies()
 	{
-		return Environment.getThreadTechPool().values().iterator();
+		return TechPool.getThreadTechPool().values().iterator();
 	}
 
 	/**

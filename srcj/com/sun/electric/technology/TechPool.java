@@ -25,6 +25,7 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.CellRevision;
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.id.ArcProtoId;
@@ -643,5 +644,14 @@ public class TechPool extends AbstractMap<TechId, Technology> {
             Map.Entry e = (Map.Entry)o;
             return key.equals(e.getKey()) && value.equals(e.getValue());
         }
+    }
+
+    /**
+     * Returns thread-local TechPool
+     * @return thread-local TechPool
+     */
+
+    public static TechPool getThreadTechPool() {
+        return Environment.getThreadEnvironment().techPool;
     }
 }

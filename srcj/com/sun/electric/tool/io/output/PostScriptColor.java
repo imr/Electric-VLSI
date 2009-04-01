@@ -256,7 +256,7 @@ public class PostScriptColor
 			Layer layer = layerSorts.get(i);
 			allLayers[numLayers] = new LayerMap();
 			allLayers[numLayers].layer = layer;
-			EGraphics graph = layer.getGraphics();
+			EGraphics graph = psObject.localPrefs.layerGraphics.get(layer);
 			allLayers[numLayers].opacity = graph.getOpacity();
 			allLayers[numLayers].foreground = graph.getForeground();
 			Color col = graph.getColor();
@@ -1106,7 +1106,7 @@ public class PostScriptColor
 			{
 				// absolute font sizes are easy
 				if (s.isAbsolute()) size = s.getSize(); else
-				{	
+				{
 					// relative font: get size in grid units
 					size = s.getSize();
 				}

@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.Environment;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.id.LayerId;
 import com.sun.electric.database.text.Pref;
@@ -36,6 +35,7 @@ import java.awt.Color;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.prefs.Preferences;
 
 /**
@@ -67,7 +67,7 @@ public class GraphicsPreferences extends PrefPackage {
     }
 
     public GraphicsPreferences(boolean factory) {
-        this(factory, Environment.getThreadTechPool());
+        this(factory, TechPool.getThreadTechPool());
     }
 
     public GraphicsPreferences(boolean factory, TechPool techPool) {
@@ -282,5 +282,10 @@ public class GraphicsPreferences extends PrefPackage {
     private EGraphics getGraphics(Layer layer) {
         EGraphics graphics = getDefaultGraphics(layer.getId());
         return graphics != null ? graphics : layer.getFactoryGraphics();
+    }
+
+    public static Map<Layer,Color> getLayerColors(boolean factory, boolean withOpacity, boolean onlyVisible) {
+        return null;
+
     }
 }

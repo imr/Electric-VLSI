@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.EditingPreferences;
-import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.PrefPackage;
@@ -115,7 +114,7 @@ public class PreferencePanel extends EDialog
 	 */
 	protected void putPrefs(PrefPackage pp) { pp.putPrefs(Pref.getPrefRoot(), true); }
 
-	protected TechPool getTechPool() { return Environment.getThreadTechPool(); }
+	protected TechPool getTechPool() { return TechPool.getThreadTechPool(); }
 
     protected EditingPreferences getEditingPreferences() { return parent.getEditingPreferences(); }
     protected void setEditingPreferences(EditingPreferences ep) { parent.setEditingPreferences(ep); }

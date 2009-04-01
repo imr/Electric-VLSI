@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -38,6 +39,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 
 import java.awt.Color;
@@ -62,7 +64,19 @@ public class Maxwell extends Output
 
 	public static class MaxwellPreferences extends OutputPreferences
     {
-        public MaxwellPreferences(boolean factory) { super(factory); }
+        public Map<Layer,Color> layerColors = new HashMap<Layer,Color>();
+
+        public MaxwellPreferences(boolean factory) {
+            super(factory);
+            for (Technology tech: TechPool.getThreadTechPool().values()) {
+                Color[] transparentColors = factory ? tech.getFactoryTransparentLayerColors() : tech.getTransparentLayerColors();
+                for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
+                    Layer layer = it.next();
+                    EGraphics graphics = factory ? layer.getFactoryGraphics() : layer.getGraphics();
+                    layerColors.put(layer, graphics.getColor(transparentColors));
+                }
+            }
+        }
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
@@ -133,7 +147,7 @@ public class Maxwell extends Output
 		if (layer.getTechnology() != Technology.getCurrent()) return;
 		Rectangle2D box = poly.getBox();
 		if (box == null) return;
-		Color color = poly.getGraphics().getColor();
+		Color color = localPrefs.layerColors.get(layer);
 		int red = color.getRed();
 		int green = color.getGreen();
 		int blue = color.getBlue();

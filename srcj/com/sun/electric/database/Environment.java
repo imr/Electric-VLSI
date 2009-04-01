@@ -66,10 +66,6 @@ public class Environment {
         return threadEnvironment.get();
     }
 
-    public static TechPool getThreadTechPool() {
-        return getThreadEnvironment().techPool;
-    }
-
     public static Environment setThreadEnvironment(Environment environment) {
         Environment oldEnvironment = threadEnvironment.get();
         threadEnvironment.set(environment);

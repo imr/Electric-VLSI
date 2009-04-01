@@ -23,7 +23,6 @@
  */
 package com.sun.electric.technology.technologies;
 
-import com.sun.electric.database.Environment;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.geometry.EGraphics;
@@ -43,6 +42,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.TechFactory;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 
 import java.awt.geom.Point2D;
@@ -62,7 +62,7 @@ public class Artwork extends Technology
 	/** key of Variable holding color information */			public static final Variable.Key ART_COLOR = Variable.newKey("ART_color");
 	/** key of Variable holding color information */			public static final Variable.Key ART_PATTERN = Variable.newKey("ART_pattern");
 
-	/** the Artwork Technology object. */			public static Artwork tech() { return Environment.getThreadTechPool().getArtwork(); }
+	/** the Artwork Technology object. */			public static Artwork tech() { return TechPool.getThreadTechPool().getArtwork(); }
 
 	/** number of lines in an ellipse */			private static final int ELLIPSEPOINTS =        30;
 	/** granularity of a spline */					private static final int SPLINEGRAIN   =        20;
