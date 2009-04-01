@@ -1269,7 +1269,7 @@ public class TechEditWizardData
      * @return
      */
     private Xml.PrimitiveNodeGroup makeXmlPrimitivePin(Xml.Technology t, String name, double size,
-                                                  SizeOffset so, Xml.NodeLayer... list)
+                                                       SizeOffset so, Xml.NodeLayer... list)
     {
         List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>(list.length);
         List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
@@ -1315,12 +1315,12 @@ public class TechEditWizardData
      * @return
      */
     private Xml.PrimitiveNodeGroup makeXmlPrimitive(List<Xml.PrimitiveNodeGroup> nodeGroups,
-                                               String name, PrimitiveNode.Function function,
-                                               double width, double height,
-                                               double ppLeft, double ppBottom,
-                                               SizeOffset so, List<Xml.NodeLayer> nodeLayers,
-                                               List<Xml.PrimitivePort> nodePorts,
-                                               PrimitiveNode.NodeSizeRule nodeSizeRule, boolean isArcsShrink)
+                                                    String name, PrimitiveNode.Function function,
+                                                    double width, double height,
+                                                    double ppLeft, double ppBottom,
+                                                    SizeOffset so, List<Xml.NodeLayer> nodeLayers,
+                                                    List<Xml.PrimitivePort> nodePorts,
+                                                    PrimitiveNode.NodeSizeRule nodeSizeRule, boolean isArcsShrink)
     {
         Xml.PrimitiveNodeGroup ng = new Xml.PrimitiveNodeGroup();
         ng.isSingleton = true;
@@ -1575,13 +1575,23 @@ public class TechEditWizardData
     /**
      * Method to create the XML version of NodeLayer
      */
-    private Xml.NodeLayer makeXmlNodeLayer(double lx, double hx, double ly, double hy, Xml.Layer lb, Poly.Type style,
-                                           boolean electricalLayers)
+    private Xml.NodeLayer makeXmlNodeLayer(double lx, double hx, double ly, double hy, Xml.Layer lb, Poly.Type style)
+    {
+        return makeXmlNodeLayerSpecial(lx, hx, ly, hy, lb, style, true, true, 0);
+    }
+
+    /**
+     * Method to create the XML version of NodeLayer either graphical or electrical.
+     * makeXmlNodeLayer is the default one where layer is available in both mode.
+     */
+    private Xml.NodeLayer makeXmlNodeLayerSpecial(double lx, double hx, double ly, double hy, Xml.Layer lb, Poly.Type style,
+                                                  boolean inLayers, boolean electricalLayers, int port)
     {
         Xml.NodeLayer nl = new Xml.NodeLayer();
         nl.layer = lb.name;
         nl.style = style;
-        nl.inLayers = true;
+        nl.portNum = port;
+        nl.inLayers = inLayers;
         nl.inElectricalLayers = electricalLayers;
         nl.representation = Technology.NodeLayer.BOX;
         nl.lx.k = -1; nl.hx.k = 1; nl.ly.k = -1; nl.hy.k = 1;
@@ -1661,8 +1671,8 @@ public class TechEditWizardData
 
         // long square contact. Standard ones
         return (makeXmlPrimitiveCon(nodeGroups, composeName, PrimitiveNode.Function.CONTACT, -1, -1, new SizeOffset(longD, longD, longD, longD), portNames,
-                makeXmlNodeLayer(hlaLong1, hlaLong1, hlaLong1, hlaLong1, layer1, Poly.Type.FILLED, true), // layer1
-                makeXmlNodeLayer(hlaLong2, hlaLong2, hlaLong2, hlaLong2, layer2, Poly.Type.FILLED, true), // layer2
+                makeXmlNodeLayer(hlaLong1, hlaLong1, hlaLong1, hlaLong1, layer1, Poly.Type.FILLED), // layer1
+                makeXmlNodeLayer(hlaLong2, hlaLong2, hlaLong2, hlaLong2, layer2, Poly.Type.FILLED), // layer2
                 makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
     }
 
@@ -2080,7 +2090,7 @@ public class TechEditWizardData
         // poly pin
         double hla = scaledValue(poly_width.v / 2);
         polyGroup.addPin(makeXmlPrimitivePin(t, polyLayer.name, hla, null, // new SizeOffset(hla, hla, hla, hla),
-            makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.CROSSED, true)));
+            makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.CROSSED)));
         // poly contact
         portNames.clear();
         portNames.add(polyLayer.name);
@@ -2136,16 +2146,16 @@ public class TechEditWizardData
 
             if (i == Technology.P_TYPE)
             {
-                wellNodePin = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED, true);
-                wellNode = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED, true);
+                wellNodePin = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED);
+                wellNode = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED);
                 arcF = ArcProto.Function.DIFFP;
                 arcL = makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p);
                 arcVal = pplus_overhang_diff;
             }
             else
             {
-                wellNodePin = (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED, true):null;
-                wellNode = (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED, true):null;
+                wellNodePin = (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED):null;
+                wellNode = (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED):null;
                 arcF = ArcProto.Function.DIFFN;
                 arcL = (!pWellFlag)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null;
                 arcVal = nplus_overhang_diff;
@@ -2160,16 +2170,16 @@ public class TechEditWizardData
             // active pin
             diffG.addPin(makeXmlPrimitivePin(t, composeName, hla,
                 new SizeOffset(sos[i], sos[i], sos[i], sos[i]),
-                makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.CROSSED, true),
-                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.CROSSED, true),
+                makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.CROSSED),
+                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.CROSSED),
                 wellNodePin));
 
             // F stands for full (all layers)
             diffG.addElement(makeXmlPrimitiveCon(t.nodeGroups, "F-"+composeName, PrimitiveNode.Function.CONTACT,
                 hla, hla, new SizeOffset(sos[i], sos[i], sos[i], sos[i]), portNames,
-                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
-                makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED, true), // active layer
-                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED, true), // select layer
+                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED), // meta1 layer
+                makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED), // active layer
+                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED), // select layer
                 wellNode, // well layer
                 makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing))); // contact
         }
@@ -2235,7 +2245,7 @@ public class TechEditWizardData
                     Xml.Layer lz = (diffLayers[0] == lx) ? plusLayers[0] : plusLayers[1];
                     double h3x = scaledValue(contact_size.v/2 + node.overX.v);
                     double h3y = scaledValue(contact_size.v/2 + node.overY.v);
-                    extraN = makeXmlNodeLayer(h3x, h3x, h3y, h3y, lz, Poly.Type.FILLED, true);
+                    extraN = makeXmlNodeLayer(h3x, h3x, h3y, h3y, lz, Poly.Type.FILLED);
                     longX = DBMath.isGreaterThan(longX, node.overX.v) ? longX : node.overX.v;
                     longY = DBMath.isGreaterThan(longY, node.overY.v) ? longX : node.overY.v;
                 }
@@ -2244,8 +2254,8 @@ public class TechEditWizardData
 
                 g.addElement(makeXmlPrimitiveCon(t.nodeGroups, c.prefix + name, PrimitiveNode.Function.CONTACT, -1, -1,
                     new SizeOffset(longX, longX, longY, longY), portNames,
-                makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED, true), // layer1
-                makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED, true), // layer2
+                makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED), // layer1
+                makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED), // layer2
                     extraN,
                 makeXmlMulticut(conLay, contSize, contSpacing, contArraySpacing))); // contact
             }
@@ -2272,8 +2282,8 @@ public class TechEditWizardData
             if (i == Technology.P_TYPE)
             {
                 portNames.add(pwellLayer.name);
-                wellNodePin = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED, true);
-                wellNode = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED, true);
+                wellNodePin = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED);
+                wellNode = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED);
                 // arc
                 g.addArc(makeXmlArc(t, composeName, ArcProto.Function.WELL, 0,
                     makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p)));
@@ -2284,8 +2294,8 @@ public class TechEditWizardData
                 if (!pWellFlag)
                 {
                     portNames.add(nwellLayer.name);
-                    wellNodePin = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED, true);
-                    wellNode = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED, true);
+                    wellNodePin = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED);
+                    wellNode = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED);
                     // arc
                     g.addArc(makeXmlArc(t, composeName, ArcProto.Function.WELL, 0,
                         makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p)));
@@ -2296,17 +2306,17 @@ public class TechEditWizardData
             // well pin
             g.addPin(makeXmlPrimitivePin(t, composeName, hla,
                 new SizeOffset(wellSos[i], wellSos[i], wellSos[i], wellSos[i]),
-                makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.CROSSED, true),
-                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.CROSSED, true),
+                makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.CROSSED),
+                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.CROSSED),
                 wellNodePin));
 
             // well contact
             // F stands for full
             g.addElement(makeXmlPrimitiveCon(t.nodeGroups, "F-"+composeName, func,
                 hla, hla, new SizeOffset(wellSos[i], wellSos[i], wellSos[i], wellSos[i]), portNames,
-                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
-                makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED, true), // active layer
-                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED, true), // select layer
+                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED), // meta1 layer
+                makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED), // active layer
+                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED), // select layer
                 wellNode, // well layer
                 makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing))); // contact
         }
@@ -2323,11 +2333,11 @@ public class TechEditWizardData
 
             // Pin bottom metal
             group.addPin(makeXmlPrimitivePin(t, lb.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
-                makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.CROSSED, true)));
+                makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.CROSSED)));
             if (i == num_metal_layers - 1) // last pin!
             {
                 metalPalette[i].addPin(makeXmlPrimitivePin(t, lt.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
-                    makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.CROSSED, true)));
+                    makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.CROSSED)));
             }
 
             if (!getExtraInfoFlag())
@@ -2384,8 +2394,8 @@ public class TechEditWizardData
                 metalPalette[via-1].addElement(makeXmlPrimitiveCon(t.nodeGroups, c.prefix + name, PrimitiveNode.Function.CONTACT, -1, -1,
                     new SizeOffset(longX, longX, longY, longY),
                     portNames,
-                makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED, true), // layer1
-                makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED, true), // layer2
+                makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED), // layer1
+                makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED), // layer2
                 makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
             }
         }
@@ -2483,48 +2493,53 @@ public class TechEditWizardData
             Xml.NodeLayer xTranWellLayer = null;
             if (wellLayer != null)
             {
-                xTranWellLayer = (makeXmlNodeLayer(wellx, wellx, welly, welly, wellLayer, Poly.Type.FILLED, true));
+                xTranWellLayer = (makeXmlNodeLayer(wellx, wellx, welly, welly, wellLayer, Poly.Type.FILLED));
                 nodesList.add(xTranWellLayer);
             }
 
             // Active layers
-            nodesList.add(makeXmlNodeLayer(impx, impx, impy, impy, activeLayer, Poly.Type.FILLED, false));
+            nodesList.add(makeXmlNodeLayerSpecial(impx, impx, impy, impy, activeLayer, Poly.Type.FILLED, true, false, -1));
             // electrical active layers
-            nodesList.add(makeXmlNodeLayer(impx, impx, impy, 0, activeLayer, Poly.Type.FILLED, true));
-            nodesList.add(makeXmlNodeLayer(impx, impx, 0, impy, activeLayer, Poly.Type.FILLED, true));
+            nodesList.add(makeXmlNodeLayerSpecial(impx, impx, impy, 0, activeLayer, Poly.Type.FILLED, false, true, 3));  // bottom
+            nodesList.add(makeXmlNodeLayerSpecial(impx, impx, 0, impy, activeLayer, Poly.Type.FILLED, false, true, 1));  // top
 
             // top port
             portNames.clear();
             portNames.add(activeLayer.name);
 
-            Xml.PrimitivePort diffTopPort = makeXmlPrimitivePort("trans-diff-top", 90, 90, 1, minFullSize, diffX, -1, diffX, 1, diffY, 1, diffY, 1, portNames);
+            Xml.PrimitivePort diffTopPort = makeXmlPrimitivePort("trans-diff-top", 90, 90, 1, minFullSize,
+                diffX, -1, diffX, 1, diffY, 1, diffY, 1, portNames);
             // bottom port
-            Xml.PrimitivePort diffBottomPort = makeXmlPrimitivePort("trans-diff-bottom", 270, 90, 2, minFullSize, xSign*diffX, -1, xSign*diffX,
-                1, ySign*diffY, -1, ySign*diffY, -1, portNames);
+            Xml.PrimitivePort diffBottomPort = makeXmlPrimitivePort("trans-diff-bottom", 270, 90, 2, minFullSize,
+                xSign*diffX, -1, xSign*diffX, 1, ySign*diffY, -1, ySign*diffY, -1, portNames);
 
             // Electric layers
             // Gate layer Electrical
-            nodesList.add(makeXmlNodeLayer(gatex, gatex, gatey, gatey, polyGateLayer, Poly.Type.FILLED, true));
+            nodesList.add(makeXmlNodeLayerSpecial(gatex, gatex, gatey, gatey, polyGateLayer, Poly.Type.FILLED, false, true, -1));
 
             // Poly layers
             // left electrical
-            nodesList.add(makeXmlNodeLayer(endPolyx, endLeftOrRight, endPolyy, endTopOrBotton, polyLayer, Poly.Type.FILLED, true));
+            nodesList.add(makeXmlNodeLayerSpecial(endPolyx, endLeftOrRight, endPolyy, endTopOrBotton, polyLayer,
+                Poly.Type.FILLED, false, true, 0));
             // right electrical
-            nodesList.add(makeXmlNodeLayer(endLeftOrRight, endPolyx, endTopOrBotton, endPolyy, polyLayer, Poly.Type.FILLED, true));
+            nodesList.add(makeXmlNodeLayerSpecial(endLeftOrRight, endPolyx, endTopOrBotton, endPolyy, polyLayer,
+                Poly.Type.FILLED, false, true, 2));
 
             // non-electrical poly (just one poly layer)
-            nodesList.add(makeXmlNodeLayer(endPolyx, endPolyx, endPolyy, endPolyy, polyLayer, Poly.Type.FILLED, false));
+            nodesList.add(makeXmlNodeLayerSpecial(endPolyx, endPolyx, endPolyy, endPolyy, polyLayer, Poly.Type.FILLED, true, false, -1));
 
             // left port
             portNames.clear();
             portNames.add(polyLayer.name);
-            Xml.PrimitivePort polyLeftPort = makeXmlPrimitivePort("trans-poly-left", 180, 90, 0, minFullSize, ySign*polyX, -1, ySign*polyX,
+            Xml.PrimitivePort polyLeftPort = makeXmlPrimitivePort("trans-poly-left", 180, 90, 0, minFullSize,
+                ySign*polyX, -1, ySign*polyX,
                 -1, xSign*polyY, -1, xSign*polyY, 1, portNames);
             // right port
-            Xml.PrimitivePort polyRightPort = makeXmlPrimitivePort("trans-poly-right", 0, 180, 0, minFullSize, polyX, 1, polyX, 1, polyY, -1, polyY, 1, portNames);
+            Xml.PrimitivePort polyRightPort = makeXmlPrimitivePort("trans-poly-right", 0, 180, 0, minFullSize,
+                polyX, 1, polyX, 1, polyY, -1, polyY, 1, portNames);
 
             // Select layer
-            Xml.NodeLayer xTranSelLayer = (makeXmlNodeLayer(selectx, selectx, selecty, selecty, selectLayer, Poly.Type.FILLED, true));
+            Xml.NodeLayer xTranSelLayer = (makeXmlNodeLayer(selectx, selectx, selecty, selecty, selectLayer, Poly.Type.FILLED));
             nodesList.add(xTranSelLayer);
 
             //One (undocumented) requirement of transistors is that the ports must appear in the
@@ -2566,10 +2581,10 @@ public class TechEditWizardData
                     assert(false);
                 }
                 // bottom or left
-                Xml.NodeLayer bOrL = (makeXmlNodeLayer(gatex, gatex, //endPolyx, endPolyx,
+                Xml.NodeLayer bOrL = (makeXmlNodeLayerSpecial(gatex, gatex, //endPolyx, endPolyx,
                     DBMath.round((protectDist + 3*endPolyy)),
                     -DBMath.round(endPolyy + protectDist),
-                   polyLayer, Poly.Type.FILLED, false));
+                   polyLayer, Poly.Type.FILLED, true, false, -1));
                 // Adding left
                 nodesList.add(bOrL);
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-L", func, 0, 0, 0, 0,
@@ -2577,10 +2592,10 @@ public class TechEditWizardData
                 g.addElement(n);
 
                 // top or right
-                Xml.NodeLayer tOrR = (makeXmlNodeLayer(gatex, gatex, // endPolyx, endPolyx,
+                Xml.NodeLayer tOrR = (makeXmlNodeLayerSpecial(gatex, gatex, // endPolyx, endPolyx,
                     -DBMath.round(endPolyy + protectDist),
                     DBMath.round((protectDist + 3*endPolyy)),
-                    polyLayer, Poly.Type.FILLED, false));
+                    polyLayer, Poly.Type.FILLED, true, false, -1));
 
                 // Adding both
                 nodesList.add(tOrR);

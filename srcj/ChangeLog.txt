@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+BUG: (4/1/09, GVG) TechEditorWizard not assigning correct ports to actives in transistors (Bug #2109)
+FIX: Ports amended and the graphical/electrical flags modified as well.
+
 BUG: (4/1/09, SMR) Extraction of transistors may create implant regions
      that are too large (Bug #2105).
 FIX: Issue warnings when the implants do not fit.
