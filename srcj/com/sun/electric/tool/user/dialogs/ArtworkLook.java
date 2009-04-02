@@ -140,10 +140,7 @@ public class ArtworkLook extends EModelessDialog implements HighlightListener
 		pack();
 
 		Technology tech = Technology.getCurrent();
-		Color [] map = new Color[tech.getNumTransparentLayers()];
-		Color [] fullMap = tech.getColorMap();
-		for(int i=0; i<map.length; i++)
-			map[i] = fullMap[1<<i];
+		Color [] map = tech.getTransparentLayerColors();
 		colorPatternPanel.setColorMap(map);
 
 		showArtworkObjects(artObjects);

@@ -77,6 +77,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -894,6 +895,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** preferences group for this technology */            private final Pref.Group prefs;
     /** User preferences group for this tecnology */        private final Pref.Group userPrefs;
     /** DRC preferences group for this tecnology */         private final Pref.Group drcPrefs;
+    /** factory transparent colors for this technology */   private Color[] factoryTransparentColors = {};
 	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
 	/** the color map for this technology */				private Color [] colorMap;
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
@@ -1784,17 +1786,7 @@ public class Technology implements Comparable<Technology>, Serializable
         t.defaultFoundry = (String)getPrefFoundrySetting().getFactoryValue();
         t.minResistance = getMinResistanceSetting().getDoubleFactoryValue();
         t.minCapacitance = getMinCapacitanceSetting().getDoubleFactoryValue();
-        Color[] colorMap = getFactoryColorMap();
-
-        if (colorMap != null)
-        {
-            for (int i = 0, numLayers = getNumTransparentLayers(); i < numLayers; i++) {
-                Color transparentColor = colorMap[1 << i];
-                t.transparentLayers.add(transparentColor);
-            }
-        }
-        else
-            System.out.println("Error: no factory color map in technology " + this.getTechName());
+        t.transparentLayers.addAll(Arrays.asList(getFactoryTransparentLayerColors()));
 
         for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
             Layer layer = it.next();
@@ -4941,6 +4933,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	protected void setFactoryTransparentLayers(Color [] layers)
 	{
+        factoryTransparentColors = layers;
 		// pull these values from preferences
 		transparentLayers = layers.length;
 		transparentColorPrefs = new Pref[transparentLayers];
@@ -4958,12 +4951,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public Color [] getFactoryTransparentLayerColors()
 	{
-		Color [] colors = new Color[transparentLayers];
-		for(int i=0; i<transparentLayers; i++)
-		{
-			colors[i] = new Color(transparentColorPrefs[i].getIntFactoryValue());
-		}
-		return colors;
+        return factoryTransparentColors.clone();
 	}
 
 	/**
@@ -4999,16 +4987,6 @@ public class Technology implements Comparable<Technology>, Serializable
             layers[i] = new Color(transparentColorPrefs[i].getInt());
         }
         setColorMapFromLayers(layers);
-	}
-
-	public Color [] getFactoryColorMap()
-	{
-        if (transparentColorPrefs == null || transparentColorPrefs.length <= 0) return null;
-        Color [] layers = new Color[transparentColorPrefs.length];
-        for(int i=0; i<transparentColorPrefs.length; i++)
-            layers[i] = new Color(transparentColorPrefs[i].getIntFactoryValue());
-		Color [] map = getColorMap(layers, transparentColorPrefs.length);
-		return map;
 	}
 
 	/**

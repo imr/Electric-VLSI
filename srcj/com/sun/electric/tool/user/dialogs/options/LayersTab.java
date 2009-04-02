@@ -147,10 +147,7 @@ public class LayersTab extends PreferencePanel
  			}
 
 			// make an entry for the technology's color map
-			Color [] map = new Color[tech.getNumTransparentLayers()];
-			Color [] fullMap = tech.getColorMap();
-			for(int i=0; i<map.length; i++)
-				map[i] = fullMap[1<<i];
+			Color [] map = tech.getTransparentLayerColors();
 			colorMapMap.put(tech, map);
 		}
 
@@ -305,10 +302,7 @@ public class LayersTab extends PreferencePanel
 			}
 
 			// determine the original colors for this technology
-			Color [] fullOrigMap = tech.getColorMap();
-			Color [] origMap = new Color[tech.getNumTransparentLayers()];
-			for(int i=0; i<origMap.length; i++)
-				origMap[i] = fullOrigMap[1<<i];
+			Color [] origMap = tech.getTransparentLayerColors();
 
 			// see if any colors changed
 			boolean mapChanged = false;
@@ -373,10 +367,7 @@ public class LayersTab extends PreferencePanel
         for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
-			Color [] map = new Color[tech.getNumTransparentLayers()];
-			Color [] fullMap = tech.getFactoryColorMap();
-			for(int i=0; i<map.length; i++)
-				map[i] = fullMap[1<<i];
+			Color [] map = tech.getFactoryTransparentLayerColors();
 			colorMapMap.put(tech, map);
 		}
 

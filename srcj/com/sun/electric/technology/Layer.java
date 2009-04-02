@@ -763,7 +763,7 @@ public class Layer implements Serializable
         if (tech == null) throw new NullPointerException();
         int transparent = graphics.getTransparentLayer();
         if (transparent != 0) {
-            Color colorFromMap = tech.getFactoryColorMap()[1 << (transparent - 1)];
+            Color colorFromMap = tech.getFactoryTransparentLayerColors()[transparent - 1];
             if ((colorFromMap.getRGB() & 0xFFFFFF) != graphics.getRGB())
                 throw new IllegalArgumentException();
         }

@@ -34,7 +34,6 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Rectangle2D;
-import java.util.prefs.Preferences;
 
 /**
  * This is the Silicon Compiler tool.
