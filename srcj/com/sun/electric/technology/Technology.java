@@ -2627,7 +2627,7 @@ public class Technology implements Comparable<Technology>, Serializable
             //System.out.println("No calculating length for active regions yet");
 		}
         double activeLen = getTransistorActiveLength(ni);
-		TransistorSize size = new TransistorSize(new Double(width), new Double(height), new Double(activeLen), true);
+		TransistorSize size = new TransistorSize(new Double(width), new Double(height), new Double(activeLen), null, true);
 		return size;
 	}
 

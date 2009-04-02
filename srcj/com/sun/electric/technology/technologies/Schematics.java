@@ -54,6 +54,7 @@ import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
@@ -2703,7 +2704,22 @@ public class Schematics extends Technology
                 if (width != -1)
                     widthObj = new Double(width);
             }
-            TransistorSize size = new TransistorSize(widthObj, lengthObj, new Double(1.0), true);
+            
+            
+            Object mFactorObj = null;
+            var = ni.getVar(Simulation.M_FACTOR_KEY);
+            if (var != null) {
+                if (context != null) {
+                    mFactorObj = context.evalVar(var, ni);
+                } else {
+                    mFactorObj = var.getObject();
+                }
+                double mFactor = VarContext.objectToDouble(mFactorObj, -1);
+                if (mFactor != -1)
+                    mFactorObj = new Double(mFactor);
+            }
+            
+            TransistorSize size = new TransistorSize(widthObj, lengthObj, new Double(1.0), mFactorObj, true);
             return size;
 		}
         Object areaObj = new Double(0);
@@ -2712,7 +2728,7 @@ public class Schematics extends Technology
             double area = VarContext.objectToDouble(areaObj, -1);
             if (area != -1) areaObj = new Double(area);
         }
-        TransistorSize size = new TransistorSize(areaObj, new Double(1.0), new Double(1.0), true);
+        TransistorSize size = new TransistorSize(areaObj, new Double(1.0), new Double(1.0), null, true);
         return size;
     }
 

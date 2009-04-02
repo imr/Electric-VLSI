@@ -60,6 +60,7 @@ import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ncc.ExportConflict;
 import com.sun.electric.tool.user.ncc.NccGuiInfo;
 import com.sun.electric.tool.user.ncc.UnrecognizedPart;
@@ -454,10 +455,10 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	private void buildMos(NodeInst ni, NccCellInfo info) {
 		NodableNameProxy np = info.getUniqueNodableNameProxy(ni, "/");
 		PartNameProxy name = new PartNameProxy(np, pathPrefix); 
-		double width=0, length=0;
+		double width=0, length=0, mfactor=1;
 		if (globals.getOptions().checkSizes) {
 			TransistorSize dim = ni.getTransistorSize(info.getContext());
-			width = dim.getDoubleWidth();
+			width = dim.getDoubleWidth() * dim.getMFactor();
 			length = dim.getDoubleLength();
 		}
 		Wire s = getWireForPortInst(ni.getTransistorSourcePort(), info);

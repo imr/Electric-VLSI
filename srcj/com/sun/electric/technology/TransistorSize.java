@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.VarContext;
  */
 public class TransistorSize extends PrimitiveNodeSize {
     private final Object activeLength; // extension of OD on PO for parasitic calculation
+    private final Object mFactor; // m multiplier factor.
 
     /**
 	 * Constructor creates a TransistorSize with a given size.
@@ -39,10 +40,13 @@ public class TransistorSize extends PrimitiveNodeSize {
      * @param length the length of the TransistorSize.
      * @param activeLen the length of the active area of the TransistorSize.
      * @param polyAlignX
+     * @param mFactor the m multiplier factor.  This is only populated for schematics.
+     * 
      */
-    public TransistorSize(Object width, Object length, Object activeLen, boolean polyAlignX) {
+    public TransistorSize(Object width, Object length, Object activeLen, Object mFactor, boolean polyAlignX) {
         super(width, length, polyAlignX);
         this.activeLength = activeLen;
+        this.mFactor = mFactor;
     }
 
 	/**
@@ -70,5 +74,14 @@ public class TransistorSize extends PrimitiveNodeSize {
      */
     public double getDoubleActiveLength() {
     	return VarContext.objectToDouble(activeLength, 0);
+    }
+    
+    /**
+     * Gets the m multiplier factor *ONLY IF* the m factor can be converted to a double.
+     * Otherwise, returns 1.
+     * @return the m factor.
+     */
+    public double getMFactor() {
+    	return VarContext.objectToDouble(mFactor, 1);
     }
 }
