@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+BUG: (4/2/09, SMR) Up Hierarchy doesn't always remember cell history (Bug #2108).
+FIX: Save state in all cases.
+
 BUG: (4/1/09, DN) Settings and rounding warnings (Bug #2106)
 FIX: In ProjSettings.commit don't print warning when floatValue() are equal.
 

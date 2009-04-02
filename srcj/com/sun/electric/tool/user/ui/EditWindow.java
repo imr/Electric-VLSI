@@ -3216,6 +3216,10 @@ public class EditWindow extends JPanel
 				Cell schCell = cell.getEquivalent();
 				if (schCell != null)
 				{
+					WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(getScale(),
+						getOffset().getX(), getOffset().getY(), new ArrayList<NodeInst>());
+					wf.addToHistory(schCell, VarContext.globalContext, da);
+
 					setCell(schCell, VarContext.globalContext, null);
 					SelectObject.selectObjectDialog(schCell, true);
 					return;
@@ -3284,6 +3288,7 @@ public class EditWindow extends JPanel
 					newY = curCtr.getY();
 				}
 				WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(getScale(), newX, newY, new ArrayList<NodeInst>());
+				wf.addToHistory(parent, VarContext.globalContext, da);
 				setCell(parent, VarContext.globalContext, da);
 				if (!keepFocus) fillScreen();
 
@@ -3370,6 +3375,7 @@ public class EditWindow extends JPanel
 				newY = curCtr.getY();
 			}
 			WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(getScale(), newX, newY, new ArrayList<NodeInst>());
+			wf.addToHistory(cell, VarContext.globalContext, da);
 			setCell(cell, VarContext.globalContext, da);
 			if (!keepFocus) fillScreen();
 
