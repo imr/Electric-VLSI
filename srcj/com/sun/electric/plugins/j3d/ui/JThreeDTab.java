@@ -257,14 +257,12 @@ public class JThreeDTab extends ThreeDTab
 			assert !layer.isPseudoLayer();
 			GenMath.MutableDouble thickness = threeDThicknessMap.get(layer);
 			GenMath.MutableDouble height = threeDDistanceMap.get(layer);
-            J3DAppearance newApp = transparencyMap.get(layer);
-            TransparencyAttributes newAttr = newApp.getTransparencyAttributes();
-//            J3DAppearance oldApp = (J3DAppearance)layer.get3DAppearance();
-//            oldApp.setTransparencyAndRenderingAttributes(newAttr, newApp.getRenderingAttributes().getDepthBufferEnable());
+            J3DAppearance app = transparencyMap.get(layer);
+            TransparencyAttributes ta = app.getTransparencyAttributes();
 
             EGraphics graphics = layer.getGraphics();
-            graphics = graphics.withTransparencyMode(EGraphics.J3DTransparencyOption.valueOf(newAttr.getTransparencyMode()));
-            graphics = graphics.withTransparencyFactor(newAttr.getTransparency());
+            graphics = graphics.withTransparencyMode(EGraphics.J3DTransparencyOption.valueOf(ta.getTransparencyMode()));
+            graphics = graphics.withTransparencyFactor(ta.getTransparency());
             layer.setGraphics(graphics);
             setDouble(layer.getThicknessSetting(), thickness.doubleValue());
             setDouble(layer.getDistanceSetting(), height.doubleValue());

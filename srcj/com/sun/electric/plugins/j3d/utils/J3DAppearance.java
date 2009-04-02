@@ -53,36 +53,18 @@ public class J3DAppearance extends Appearance
     /** highlight appearance **/            public static J3DAppearance highlightApp;
     /** Appearance for axes */              public static J3DAppearance[] axisApps = new J3DAppearance[3];
 
-//    public J3DAppearance(J3DAppearance app)
-//    {
-//        super();
-//        if (app == null) throw new Error("Input appearance is null");
-//        this.layer = app.layer;
-//        TransparencyAttributes oldTa = app.getTransparencyAttributes();
-//        setOtherAppearanceValues(oldTa.getTransparencyMode(), oldTa.getTransparency(), layer.getGraphics().getColor());
-//    }
-
     public J3DAppearance(Layer layer, boolean visible) {
-        this(layer, layer.getGraphics(), visible);
-    }
-
-    public J3DAppearance(EGraphics graphics) {
-        this(null, graphics, true);
-    }
-
-    private J3DAppearance(Layer layer, EGraphics graphics, boolean visible) {
-        this(layer, graphics.getTransparencyMode().mode, (float)graphics.getTransparencyFactor(), graphics.getColor(), visible);
+        super();
+        this.layer = layer;
+        EGraphics graphics = layer.getGraphics();
+        setOtherAppearanceValues(graphics.getTransparencyMode().mode,
+                (float)graphics.getTransparencyFactor(), graphics.getColor(), visible);
     }
 
     private J3DAppearance(int mode, float factor, Color color) {
-        this(null, mode, factor, color, true);
-    }
-
-    private J3DAppearance(Layer layer, int mode, float factor, Color color, boolean visible)
-    {
         super();
-        this.layer = layer;
-        setOtherAppearanceValues(mode, factor, color, visible); //graphics.getColor());
+        layer = null;
+        setOtherAppearanceValues(mode, factor, color, true);
     }
 
     public Layer getLayer() { return layer;}

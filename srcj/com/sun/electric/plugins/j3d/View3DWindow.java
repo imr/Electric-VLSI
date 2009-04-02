@@ -1351,8 +1351,11 @@ public class View3DWindow extends JPanel
         Environment newEnv = e.newSnapshot.environment;
         if (newEnv == oldEnv) return;
 
-        if (newEnv.techPool != oldEnv.techPool)
-            System.out.println("View3DWindow can't handle change of technology parameters");
+        if (newEnv.techPool != oldEnv.techPool) {
+            Job.getUserInterface().showInformationMessage("3D Window becomes invalid after technology parameters change", "Closing 3D Window");
+            wf.finished();
+            return;
+        }
         for (Technology tech: newEnv.techPool.values()) {
             for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
                 Layer layer = it.next();
