@@ -43,6 +43,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.LayerVisibility;
@@ -828,7 +829,7 @@ class LayerDrawing
          * This method is called from Job thread.
          */
         @Override
-        public void render(Dimension sz, WindowFrame.DisplayAttributes da, boolean fullInstantiate, Rectangle2D bounds) {
+        public void render(Dimension sz, WindowFrame.DisplayAttributes da, GraphicsPreferences gp, boolean fullInstantiate, Rectangle2D bounds) {
             LayerDrawing offscreen = null;
             if (drawingData != null && drawingData.offscreen.getSize().equals(sz))
                 offscreen = drawingData.offscreen;

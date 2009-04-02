@@ -64,6 +64,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -1539,10 +1540,12 @@ public class EditWindow extends JPanel
 	{
 		private static Snapshot oldSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
 		volatile boolean hasTasks;
+        private GraphicsPreferences gp;
 
 		protected RenderJob()
 		{
 			super("Display", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            gp = GraphicsPreferences.getGraphicsPreferences();
 		}
 
 		public boolean doIt() throws JobException {
@@ -1608,7 +1611,7 @@ public class EditWindow extends JPanel
 			}
 			WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(wnd.scaleRequested,
 				wnd.offxRequested, wnd.offyRequested, wnd.inPlaceDescent);
-			wnd.drawing.render(wnd.getSize(), da, fullInstantiate, bounds);
+			wnd.drawing.render(wnd.getSize(), da, gp, fullInstantiate, bounds);
 			wnd.repaint();
 			logger.exiting(RENDER_JOB_CLASS_NAME, "render");
 		}

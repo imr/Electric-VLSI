@@ -511,6 +511,12 @@ public class View3DWindow extends JPanel
 
 	/** Dummy functios due to text-oriented functions */
 	public void fullRepaint() {
+        J3DUtils.setBackgroundColor(null);
+        J3DAppearance.setCellAppearanceValues(null);
+        J3DAppearance.setHighlightedAppearanceValues(null);
+        J3DUtils.setAmbientalColor(null);
+        J3DAppearance.setAxisAppearanceValues(null);
+        J3DUtils.setDirectionalColor(null);
         for (Map.Entry<Layer,J3DAppearance> e: layerAppearance.entrySet()) {
             Layer layer = e.getKey();
             J3DAppearance app = e.getValue();
@@ -1804,4 +1810,3 @@ public class View3DWindow extends JPanel
         }
     }
 }
-;

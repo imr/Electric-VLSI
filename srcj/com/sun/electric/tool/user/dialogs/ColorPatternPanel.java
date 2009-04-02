@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EGraphics.Outline;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Resources;
@@ -77,7 +76,7 @@ public class ColorPatternPanel extends JPanel
 		public boolean useStipplePrinter;
 		public int transparentLayer;
 		public int red, green, blue;
-        public Pref theColor;  // theColor to remember the factory color for special layers
+        public User.ColorPrefType theColor;  // theColor to remember the factory color for special layers
 		public double opacity;
 		public boolean justColor;
 
@@ -106,9 +105,9 @@ public class ColorPatternPanel extends JPanel
 		 * Constructor for class to load a pure color.
 		 * Used for special colors (like background, etc.)
 		 */
-		public Info(Pref colorPref)
+		public Info(User.ColorPrefType colorPref)
 		{
-            int color = colorPref.getInt();
+            int color = User.getColor(colorPref);
             red = (color >> 16) & 0xFF;
 			green = (color >> 8) & 0xFF;
 			blue = color & 0xFF;
@@ -240,7 +239,7 @@ public class ColorPatternPanel extends JPanel
 		private static final int BORDER = 10;
 		private ColorPatternPanel dia;
 		Color curColor = Color.BLACK;
-   
+
 		public MyPreviewPanel(ColorPatternPanel dia)
 		{
 			this.dia = dia;
@@ -587,362 +586,362 @@ public class ColorPatternPanel extends JPanel
 
 	private static final int [] preDefinedPatterns =
 	{
-		0x8888,  // X   X   X   X   
-		0x4444,  //  X   X   X   X  
-		0x2222,  //   X   X   X   X 
+		0x8888,  // X   X   X   X
+		0x4444,  //  X   X   X   X
+		0x2222,  //   X   X   X   X
 		0x1111,  //    X   X   X   X
-		0x8888,  // X   X   X   X   
-		0x4444,  //  X   X   X   X  
-		0x2222,  //   X   X   X   X 
+		0x8888,  // X   X   X   X
+		0x4444,  //  X   X   X   X
+		0x2222,  //   X   X   X   X
 		0x1111,  //    X   X   X   X
-		0x8888,  // X   X   X   X   
-		0x4444,  //  X   X   X   X  
-		0x2222,  //   X   X   X   X 
+		0x8888,  // X   X   X   X
+		0x4444,  //  X   X   X   X
+		0x2222,  //   X   X   X   X
 		0x1111,  //    X   X   X   X
-		0x8888,  // X   X   X   X   
-		0x4444,  //  X   X   X   X  
-		0x2222,  //   X   X   X   X 
+		0x8888,  // X   X   X   X
+		0x4444,  //  X   X   X   X
+		0x2222,  //   X   X   X   X
 		0x1111,  //    X   X   X   X
 
-		0x8888,  // X   X   X   X   
+		0x8888,  // X   X   X   X
 		0x1111,  //    X   X   X   X
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
-		0x8888,  // X   X   X   X   
+		0x2222,  //   X   X   X   X
+		0x4444,  //  X   X   X   X
+		0x8888,  // X   X   X   X
 		0x1111,  //    X   X   X   X
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
-		0x8888,  // X   X   X   X   
+		0x2222,  //   X   X   X   X
+		0x4444,  //  X   X   X   X
+		0x8888,  // X   X   X   X
 		0x1111,  //    X   X   X   X
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
-		0x8888,  // X   X   X   X   
+		0x2222,  //   X   X   X   X
+		0x4444,  //  X   X   X   X
+		0x8888,  // X   X   X   X
 		0x1111,  //    X   X   X   X
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
+		0x2222,  //   X   X   X   X
+		0x4444,  //  X   X   X   X
 
-		0xCCCC,  // XX  XX  XX  XX  
-		0xCCCC,  // XX  XX  XX  XX  
+		0xCCCC,  // XX  XX  XX  XX
+		0xCCCC,  // XX  XX  XX  XX
 		0x3333,  //   XX  XX  XX  XX
 		0x3333,  //   XX  XX  XX  XX
-		0xCCCC,  // XX  XX  XX  XX  
-		0xCCCC,  // XX  XX  XX  XX  
+		0xCCCC,  // XX  XX  XX  XX
+		0xCCCC,  // XX  XX  XX  XX
 		0x3333,  //   XX  XX  XX  XX
 		0x3333,  //   XX  XX  XX  XX
-		0xCCCC,  // XX  XX  XX  XX  
-		0xCCCC,  // XX  XX  XX  XX  
+		0xCCCC,  // XX  XX  XX  XX
+		0xCCCC,  // XX  XX  XX  XX
 		0x3333,  //   XX  XX  XX  XX
 		0x3333,  //   XX  XX  XX  XX
-		0xCCCC,  // XX  XX  XX  XX  
-		0xCCCC,  // XX  XX  XX  XX  
+		0xCCCC,  // XX  XX  XX  XX
+		0xCCCC,  // XX  XX  XX  XX
 		0x3333,  //   XX  XX  XX  XX
 		0x3333,  //   XX  XX  XX  XX
 
 		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
+		0x0000,  //
 		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
+		0x0000,  //
 		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
+		0x0000,  //
 		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
+		0x0000,  //
 		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
+		0x0000,  //
 		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
+		0x0000,  //
 		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
+		0x0000,  //
 		0xFFFF,  // XXXXXXXXXXXXXXXX
-		0x0000,  //                 
+		0x0000,  //
 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
-		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X
+		0xAAAA,  // X X X X X X X X
+		0xAAAA,  // X X X X X X X X
+		0xAAAA,  // X X X X X X X X
+		0xAAAA,  // X X X X X X X X
+		0xAAAA,  // X X X X X X X X
+		0xAAAA,  // X X X X X X X X
+		0xAAAA,  // X X X X X X X X
+		0xAAAA,  // X X X X X X X X
+		0xAAAA,  // X X X X X X X X
+		0xAAAA,  // X X X X X X X X
+		0xAAAA,  // X X X X X X X X
+		0xAAAA,  // X X X X X X X X
+		0xAAAA,  // X X X X X X X X
+		0xAAAA,  // X X X X X X X X
+		0xAAAA,  // X X X X X X X X
 
-		0x6060,  //  XX      XX     
-		0x9090,  // X  X    X  X    
-		0x9090,  // X  X    X  X    
-		0x6060,  //  XX      XX     
-		0x0606,  //      XX      XX 
+		0x6060,  //  XX      XX
+		0x9090,  // X  X    X  X
+		0x9090,  // X  X    X  X
+		0x6060,  //  XX      XX
+		0x0606,  //      XX      XX
 		0x0909,  //     X  X    X  X
 		0x0909,  //     X  X    X  X
-		0x0606,  //      XX      XX 
-		0x6060,  //  XX      XX     
-		0x9090,  // X  X    X  X    
-		0x9090,  // X  X    X  X    
-		0x6060,  //  XX      XX     
-		0x0606,  //      XX      XX 
+		0x0606,  //      XX      XX
+		0x6060,  //  XX      XX
+		0x9090,  // X  X    X  X
+		0x9090,  // X  X    X  X
+		0x6060,  //  XX      XX
+		0x0606,  //      XX      XX
 		0x0909,  //     X  X    X  X
 		0x0909,  //     X  X    X  X
-		0x0606,  //      XX      XX 
+		0x0606,  //      XX      XX
 
-		0x2222,  //   X   X   X   X 
-		0x0000,  //                 
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x0000,  //                 
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x0000,  //                 
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x0000,  //                 
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
+		0x2222,  //   X   X   X   X
+		0x0000,  //
+		0x8888,  // X   X   X   X
+		0x0000,  //
+		0x2222,  //   X   X   X   X
+		0x0000,  //
+		0x8888,  // X   X   X   X
+		0x0000,  //
+		0x2222,  //   X   X   X   X
+		0x0000,  //
+		0x8888,  // X   X   X   X
+		0x0000,  //
+		0x2222,  //   X   X   X   X
+		0x0000,  //
+		0x8888,  // X   X   X   X
+		0x0000,  //
 
-		0x4444,  //  X   X   X   X  
+		0x4444,  //  X   X   X   X
 		0x1111,  //    X   X   X   X
-		0x4444,  //  X   X   X   X  
+		0x4444,  //  X   X   X   X
 		0x1111,  //    X   X   X   X
-		0x4444,  //  X   X   X   X  
+		0x4444,  //  X   X   X   X
 		0x1111,  //    X   X   X   X
-		0x4444,  //  X   X   X   X  
+		0x4444,  //  X   X   X   X
 		0x1111,  //    X   X   X   X
-		0x4444,  //  X   X   X   X  
+		0x4444,  //  X   X   X   X
 		0x1111,  //    X   X   X   X
-		0x4444,  //  X   X   X   X  
+		0x4444,  //  X   X   X   X
 		0x1111,  //    X   X   X   X
-		0x4444,  //  X   X   X   X  
+		0x4444,  //  X   X   X   X
 		0x1111,  //    X   X   X   X
-		0x4444,  //  X   X   X   X  
+		0x4444,  //  X   X   X   X
 		0x1111,  //    X   X   X   X
 
-		0x1010,  //    X       X    
-		0x2020,  //   X       X     
-		0x4040,  //  X       X      
-		0x8080,  // X       X       
+		0x1010,  //    X       X
+		0x2020,  //   X       X
+		0x4040,  //  X       X
+		0x8080,  // X       X
 		0x0101,  //        X       X
-		0x0202,  //       X       X 
-		0x0404,  //      X       X  
-		0x0808,  //     X       X   
-		0x1010,  //    X       X    
-		0x2020,  //   X       X     
-		0x4040,  //  X       X      
-		0x8080,  // X       X       
+		0x0202,  //       X       X
+		0x0404,  //      X       X
+		0x0808,  //     X       X
+		0x1010,  //    X       X
+		0x2020,  //   X       X
+		0x4040,  //  X       X
+		0x8080,  // X       X
 		0x0101,  //        X       X
-		0x0202,  //       X       X 
-		0x0404,  //      X       X  
-		0x0808,  //     X       X   
+		0x0202,  //       X       X
+		0x0404,  //      X       X
+		0x0808,  //     X       X
 
-		0x0808,  //     X       X   
-		0x0404,  //      X       X  
-		0x0202,  //       X       X 
+		0x0808,  //     X       X
+		0x0404,  //      X       X
+		0x0202,  //       X       X
 		0x0101,  //        X       X
-		0x8080,  // X       X       
-		0x4040,  //  X       X      
-		0x2020,  //   X       X     
-		0x1010,  //    X       X    
-		0x0808,  //     X       X   
-		0x0404,  //      X       X  
-		0x0202,  //       X       X 
+		0x8080,  // X       X
+		0x4040,  //  X       X
+		0x2020,  //   X       X
+		0x1010,  //    X       X
+		0x0808,  //     X       X
+		0x0404,  //      X       X
+		0x0202,  //       X       X
 		0x0101,  //        X       X
-		0x8080,  // X       X       
-		0x4040,  //  X       X      
-		0x2020,  //   X       X     
-		0x1010,  //    X       X    
+		0x8080,  // X       X
+		0x4040,  //  X       X
+		0x2020,  //   X       X
+		0x1010,  //    X       X
 
-		0x4040,  //  X       X      
-		0x8080,  // X       X       
+		0x4040,  //  X       X
+		0x8080,  // X       X
 		0x0101,  //        X       X
-		0x0202,  //       X       X 
+		0x0202,  //       X       X
 		0x0101,  //        X       X
-		0x8080,  // X       X       
-		0x4040,  //  X       X      
-		0x2020,  //   X       X     
-		0x4040,  //  X       X      
-		0x8080,  // X       X       
+		0x8080,  // X       X
+		0x4040,  //  X       X
+		0x2020,  //   X       X
+		0x4040,  //  X       X
+		0x8080,  // X       X
 		0x0101,  //        X       X
-		0x0202,  //       X       X 
+		0x0202,  //       X       X
 		0x0101,  //        X       X
-		0x8080,  // X       X       
-		0x4040,  //  X       X      
-		0x2020,  //   X       X     
+		0x8080,  // X       X
+		0x4040,  //  X       X
+		0x2020,  //   X       X
 
-		0x2020,  //   X       X     
-		0x0000,  //                 
-		0x8080,  // X       X       
-		0x0000,  //                 
-		0x0202,  //       X       X 
-		0x0000,  //                 
-		0x0808,  //     X       X   
-		0x0000,  //                 
-		0x2020,  //   X       X     
-		0x0000,  //                 
-		0x8080,  // X       X       
-		0x0000,  //                 
-		0x0202,  //       X       X 
-		0x0000,  //                 
-		0x0808,  //     X       X   
-		0x0000,  //                 
+		0x2020,  //   X       X
+		0x0000,  //
+		0x8080,  // X       X
+		0x0000,  //
+		0x0202,  //       X       X
+		0x0000,  //
+		0x0808,  //     X       X
+		0x0000,  //
+		0x2020,  //   X       X
+		0x0000,  //
+		0x8080,  // X       X
+		0x0000,  //
+		0x0202,  //       X       X
+		0x0000,  //
+		0x0808,  //     X       X
+		0x0000,  //
 
-		0x0808,  //     X       X   
-		0x0000,  //                 
-		0x0202,  //       X       X 
-		0x0000,  //                 
-		0x8080,  // X       X       
-		0x0000,  //                 
-		0x2020,  //   X       X     
-		0x0000,  //                 
-		0x0808,  //     X       X   
-		0x0000,  //                 
-		0x0202,  //       X       X 
-		0x0000,  //                 
-		0x8080,  // X       X       
-		0x0000,  //                 
-		0x2020,  //   X       X     
-		0x0000,  //                 
+		0x0808,  //     X       X
+		0x0000,  //
+		0x0202,  //       X       X
+		0x0000,  //
+		0x8080,  // X       X
+		0x0000,  //
+		0x2020,  //   X       X
+		0x0000,  //
+		0x0808,  //     X       X
+		0x0000,  //
+		0x0202,  //       X       X
+		0x0000,  //
+		0x8080,  // X       X
+		0x0000,  //
+		0x2020,  //   X       X
+		0x0000,  //
 
-		0x0000,  //                 
+		0x0000,  //
 		0x0303,  //       XX      XX
-		0x4848,  //  X  X    X  X   
+		0x4848,  //  X  X    X  X
 		0x0303,  //       XX      XX
-		0x0000,  //                 
-		0x3030,  //   XX      XX    
-		0x8484,  // X    X  X    X  
-		0x3030,  //   XX      XX    
-		0x0000,  //                 
+		0x0000,  //
+		0x3030,  //   XX      XX
+		0x8484,  // X    X  X    X
+		0x3030,  //   XX      XX
+		0x0000,  //
 		0x0303,  //       XX      XX
-		0x4848,  //  X  X    X  X   
+		0x4848,  //  X  X    X  X
 		0x0303,  //       XX      XX
-		0x0000,  //                 
-		0x3030,  //   XX      XX    
-		0x8484,  // X    X  X    X  
-		0x3030,  //   XX      XX    
+		0x0000,  //
+		0x3030,  //   XX      XX
+		0x8484,  // X    X  X    X
+		0x3030,  //   XX      XX
 
-		0x1C1C,  //    XXX     XXX  
-		0x3E3E,  //   XXXXX   XXXXX 
-		0x3636,  //   XX XX   XX XX 
-		0x3E3E,  //   XXXXX   XXXXX 
-		0x1C1C,  //    XXX     XXX  
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x1C1C,  //    XXX     XXX  
-		0x3E3E,  //   XXXXX   XXXXX 
-		0x3636,  //   XX XX   XX XX 
-		0x3E3E,  //   XXXXX   XXXXX 
-		0x1C1C,  //    XXX     XXX  
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
+		0x1C1C,  //    XXX     XXX
+		0x3E3E,  //   XXXXX   XXXXX
+		0x3636,  //   XX XX   XX XX
+		0x3E3E,  //   XXXXX   XXXXX
+		0x1C1C,  //    XXX     XXX
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x1C1C,  //    XXX     XXX
+		0x3E3E,  //   XXXXX   XXXXX
+		0x3636,  //   XX XX   XX XX
+		0x3E3E,  //   XXXXX   XXXXX
+		0x1C1C,  //    XXX     XXX
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
 
-		0x0000,  //                 
-		0xCCCC,  // XX  XX  XX  XX  
-		0x0000,  //                 
-		0xCCCC,  // XX  XX  XX  XX  
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0xCCCC,  // XX  XX  XX  XX  
-		0x0000,  //                 
-		0xCCCC,  // XX  XX  XX  XX  
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
+		0x0000,  //
+		0xCCCC,  // XX  XX  XX  XX
+		0x0000,  //
+		0xCCCC,  // XX  XX  XX  XX
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0xCCCC,  // XX  XX  XX  XX
+		0x0000,  //
+		0xCCCC,  // XX  XX  XX  XX
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x8888,  // X   X   X   X   
+		0x0000,  //
+		0x0000,  //
+		0x2222,  //   X   X   X   X
+		0x8888,  // X   X   X   X
+		0x0000,  //
+		0x0000,  //
+		0x2222,  //   X   X   X   X
+		0x8888,  // X   X   X   X
+		0x0000,  //
+		0x0000,  //
+		0x2222,  //   X   X   X   X
+		0x8888,  // X   X   X   X
+		0x0000,  //
+		0x0000,  //
+		0x2222,  //   X   X   X   X
+		0x8888,  // X   X   X   X
 
-		0x0000,  //                 
-		0x0000,  //                 
+		0x0000,  //
+		0x0000,  //
 		0x1111,  //    X   X   X   X
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
 		0x1111,  //    X   X   X   X
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
 		0x1111,  //    X   X   X   X
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
 		0x1111,  //    X   X   X   X
-		0x0000,  //                 
+		0x0000,  //
 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
-		0x8888,  // X   X   X   X   
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
-		0x4444,  //  X   X   X   X  
-		0x8888,  // X   X   X   X   
+		0x0000,  //
+		0x2222,  //   X   X   X   X
+		0x4444,  //  X   X   X   X
+		0x8888,  // X   X   X   X
+		0x0000,  //
+		0x2222,  //   X   X   X   X
+		0x4444,  //  X   X   X   X
+		0x8888,  // X   X   X   X
+		0x0000,  //
+		0x2222,  //   X   X   X   X
+		0x4444,  //  X   X   X   X
+		0x8888,  // X   X   X   X
+		0x0000,  //
+		0x2222,  //   X   X   X   X
+		0x4444,  //  X   X   X   X
+		0x8888,  // X   X   X   X
 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
+		0x0000,  //
+		0x2222,  //   X   X   X   X
 		0x5555,  //  X X X X X X X X
-		0x2222,  //   X   X   X   X 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
+		0x2222,  //   X   X   X   X
+		0x0000,  //
+		0x2222,  //   X   X   X   X
 		0x5555,  //  X X X X X X X X
-		0x2222,  //   X   X   X   X 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
+		0x2222,  //   X   X   X   X
+		0x0000,  //
+		0x2222,  //   X   X   X   X
 		0x5555,  //  X X X X X X X X
-		0x2222,  //   X   X   X   X 
-		0x0000,  //                 
-		0x2222,  //   X   X   X   X 
+		0x2222,  //   X   X   X   X
+		0x0000,  //
+		0x2222,  //   X   X   X   X
 		0x5555,  //  X X X X X X X X
-		0x2222,  //   X   X   X   X 
+		0x2222,  //   X   X   X   X
 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
-		0x0000,  //                 
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
+		0x0000,  //
 
 		0xFFFF,  // XXXXXXXXXXXXXXXX
 		0xFFFF,  // XXXXXXXXXXXXXXXX
@@ -1026,13 +1025,13 @@ public class ColorPatternPanel extends JPanel
 
     private static final int SAMPLEWID = 60;
     private static final int SAMPLEHEI = 11;
-    
+
     public ImageIcon getSample(Outline o) {
         // construct a sample of this outline texture
         int pattern = o.getPattern();
         int len = o.getLen();
         int thickness = o.getThickness();
-        
+
         BufferedImage bi = new BufferedImage(SAMPLEWID+SAMPLEHEI, SAMPLEHEI, BufferedImage.TYPE_INT_RGB);
         int startX = SAMPLEHEI / 2;
         int startY = (SAMPLEHEI-thickness) / 2;
@@ -1194,8 +1193,8 @@ public class ColorPatternPanel extends JPanel
         add(color, gridBagConstraints);
 
     }// </editor-fold>//GEN-END:initComponents
-   
-   
+
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel color;
     private javax.swing.JLabel jLabel1;
@@ -1211,5 +1210,5 @@ public class ColorPatternPanel extends JPanel
     private javax.swing.JCheckBox useStipplePatternDisplay;
     private javax.swing.JCheckBox useStipplePatternPrinter;
     // End of variables declaration//GEN-END:variables
-   
+
 }

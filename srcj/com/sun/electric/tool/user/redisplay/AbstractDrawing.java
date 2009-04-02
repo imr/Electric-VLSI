@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.redisplay;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.LayerVisibility;
@@ -61,7 +62,7 @@ public abstract class AbstractDrawing {
 
     public abstract boolean paintComponent(Graphics2D g, LayerVisibility lv, Dimension sz);
 
-    public abstract void render(Dimension sz, WindowFrame.DisplayAttributes da, boolean fullInstantiate, Rectangle2D bounds);
+    public abstract void render(Dimension sz, WindowFrame.DisplayAttributes da, GraphicsPreferences gp, boolean fullInstantiate, Rectangle2D bounds);
 
     public void abortRendering() {
     }

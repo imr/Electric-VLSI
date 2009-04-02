@@ -28,6 +28,7 @@ package com.sun.electric.plugins.j3d.utils;
 import com.sun.electric.database.geometry.EGraphics;
 
 import com.sun.electric.technology.Layer;
+import com.sun.electric.tool.user.User;
 import java.awt.Color;
 import javax.media.j3d.*;
 import javax.vecmath.Color3f;
@@ -279,7 +280,7 @@ public class J3DAppearance extends Appearance
      */
     public static void setHighlightedAppearanceValues(Object initValue)
     {
-        Color userColor = new Color(J3DUtils.get3DColorHighlighted());
+        Color userColor = new Color(User.getColor(User.ColorPrefType.HIGHLIGHT_3D));
 
         if (highlightApp == null)
             highlightApp = new J3DAppearance(TransparencyAttributes.BLENDED, 0.5f, userColor);
@@ -294,7 +295,7 @@ public class J3DAppearance extends Appearance
      */
     public static void setCellAppearanceValues(Object initValue)
     {
-        Color3f userColor = new Color3f(new Color(J3DUtils.get3DColorInstanceCell()));
+        Color3f userColor = new Color3f(new Color(User.getColor(User.ColorPrefType.INSTANCE_3D)));
 
         if (cellApp == null)
         {

@@ -500,7 +500,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 
         // recache all prefs
         Pref.setCachedObjsFromPreferences();
-        loadEditingPreferences(env.techPool);
+        loadPreferences(env.techPool);
         TopLevel.getCurrentJFrame().getEMenuBar().restoreSavedBindings(false); //trying to cache again
         WindowFrame.repaintAllWindows();
         System.out.println("...preferences imported from " + fileURL.getFile());
@@ -566,7 +566,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             Environment.setThreadEnvironment(newSnapshot.environment);
             newSnapshot.environment.saveToPreferences(Pref.getPrefRoot());
             if (newSnapshot.techPool != oldSnapshot.techPool) {
-                loadEditingPreferences(newSnapshot.techPool);
+                loadPreferences(newSnapshot.techPool);
                 User.technologyChanged();
                 WindowFrame.updateTechnologyLists();
                 WindowFrame.repaintAllWindows();
@@ -686,7 +686,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         }
     }
 
-    private static void loadEditingPreferences(TechPool techPool) {
+    private static void loadPreferences(TechPool techPool) {
         for (Technology tech: techPool.values())
             tech.loadFromPreferences();
         EditingPreferences ep = new EditingPreferences(false, techPool);

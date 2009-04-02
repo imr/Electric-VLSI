@@ -142,6 +142,21 @@ public class GraphicsPreferences extends PrefPackage {
             this.layerGraphics = layerGraphics;
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (o == this) return true;
+            if (o instanceof TechData) {
+                TechData that = (TechData)o;
+                return this.tech == that.tech &&
+                        Arrays.equals(this.transparentColors, that.transparentColors) &&
+                        Arrays.equals(this.layerGraphics, that.layerGraphics);
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() { return 0; }
+
         private void putPrefs(Preferences techPrefs, boolean removeDefaults, TechData oldTd) {
             if (oldTd != null && oldTd.tech != tech)
                 oldTd = null;
@@ -351,10 +366,11 @@ public class GraphicsPreferences extends PrefPackage {
         defaultColors = new Color[colorPrefTypes.length];
         for (int i = 0; i < colorPrefTypes.length; i++) {
             User.ColorPrefType e = colorPrefTypes[i];
-            int factoryRgb = e.getFactoryDefaultColor().getRGB() & RGB_MASK;
+            Color factoryColor = e.getFactoryDefaultColor();
+            int factoryRgb = factoryColor.getRGB() & RGB_MASK;
             int rgb = userPrefs.getInt(e.getPrefKey(), factoryRgb);
-            if (rgb == factoryRgb) continue;
-            defaultColors[i] = new Color(rgb);
+            Color color = rgb == factoryRgb ? factoryColor : new Color(rgb);
+            defaultColors[i] = color;
         }
     }
 
@@ -455,6 +471,21 @@ public class GraphicsPreferences extends PrefPackage {
 	 * @return color of the special layer
 	 */
     public Color getColor(User.ColorPrefType t) { return defaultColors[t.ordinal()]; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (o instanceof GraphicsPreferences) {
+            GraphicsPreferences that = (GraphicsPreferences)o;
+            return this.techPool == that.techPool &&
+                    Arrays.equals(this.techData, that.techData) &&
+                    Arrays.equals(this.defaultColors, that.defaultColors);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() { return 0; }
 
     public static GraphicsPreferences getGraphicsPreferences() {
         assert SwingUtilities.isEventDispatchThread();

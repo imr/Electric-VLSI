@@ -57,7 +57,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.geom.Rectangle2D;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -2361,7 +2360,22 @@ public class User extends Listener
          * These are lines drawn on the schematic or layout to correspond with the value in the waveform window.
          * The default is "light_grey".
          */
-        WAVE_CROSS_FLOAT("WaveformCrossProbeZ",     Color.LIGHT_GRAY);
+        WAVE_CROSS_FLOAT("WaveformCrossProbeZ",     Color.LIGHT_GRAY),
+
+        /** color of the cell instance on the 3D display. The default is "gray". */
+        INSTANCE_3D("3DColorInstanceCell", Color.GRAY),
+        /** color of the highlighted instance on the 3D display. The default is "gray". */
+        HIGHLIGHT_3D("3DColorHighlighted", Color.GRAY),
+        /** the ambiental color on the 3D display. The default is "gray". */
+        AMBIENT_3D("3DColorAmbient", Color.GRAY),
+        /** color of the axis X on the 3D display. The default is "red". */
+        AXIS_X_3D("3DColorAxisX", Color.RED),
+        /** color of the axis X on the 3D display. The default is "blue". */
+        AXIS_Y_3D("3DColorAxisY", Color.BLUE),
+        /** color of the axis X on the 3D display. The default is "green". */
+        AXIS_Z_3D("3DColorAxisZ", Color.GREEN),
+        /** color of directional light on the 3D display. The default is "gray". */
+        DIRECTIONAL_LIGHT_3D("3DColorDirectionalLight", Color.GRAY);
 
         private final String prefKey;
         private final Color factoryDefault;
@@ -2421,31 +2435,7 @@ public class User extends Listener
 
 	public static Pref getColorPref(ColorPrefType pref)
 	{
-		switch (pref)
-		{
-			case BACKGROUND: return cacheColorBackground;
-			case GRID: return cacheColorGrid;
-			case HIGHLIGHT: return cacheColorHighlight;
-			case NODE_HIGHLIGHT: return cacheColorNodeHighlight;
-            case MOUSEOVER_HIGHLIGHT: return cacheColorMouseOverHighlight;
-			case PORT_HIGHLIGHT: return cacheColorPortHighlight;
-			case TEXT: return cacheColorText;
-			case INSTANCE: return cacheColorInstanceOutline;
-			case DOWNINPLACEBORDER: return cacheColorDownInPlaceBorder;
-			case WAVE_BACKGROUND: return cacheColorWaveformBackground;
-			case WAVE_FOREGROUND: return cacheColorWaveformForeground;
-			case WAVE_STIMULI: return cacheColorWaveformStimuli;
-			case WAVE_OFF_STRENGTH: return cacheColorWaveformStrengthOff;
-			case WAVE_NODE_STRENGTH: return cacheColorWaveformStrengthNode;
-			case WAVE_GATE_STRENGTH: return cacheColorWaveformStrengthGate;
-			case WAVE_POWER_STRENGTH: return cacheColorWaveformStrengthPower;
-			case WAVE_CROSS_LOW: return cacheColorWaveformCrossProbeLow;
-			case WAVE_CROSS_HIGH: return cacheColorWaveformCrossProbeHigh;
-			case WAVE_CROSS_UNDEF: return cacheColorWaveformCrossProbeX;
-			case WAVE_CROSS_FLOAT: return cacheColorWaveformCrossProbeZ;
-		}
-		assert(false); // should not reach this point
-		return null;
+        return colorPrefs[pref.ordinal()];
 	}
 
 	/**
@@ -2480,18 +2470,6 @@ public class User extends Listener
 	{
 		Pref pf = getColorPref(pref);
         pf.setInt(color);
-        if (pref == ColorPrefType.BACKGROUND) {
-            // 3D case. Uses observer/observable pattern so doesn't make sense to call every single 3D ViewWindow
-            // and update
-            try
-            {
-                Class<?> j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
-                Method setMethod = j3DUtilsClass.getDeclaredMethod("setBackgroundColor", new Class[] {Object.class});
-                setMethod.invoke(j3DUtilsClass, new Object[]{null});
-            } catch (Exception e) {
-                System.out.println("Cannot call 3D plugin method setBackgroundColor: " + e.getMessage());
-            }
-        }
 	}
 
 	/**
@@ -2523,45 +2501,13 @@ public class User extends Listener
         pf.factoryReset();
 	}
 
-	private static Pref cacheColorBackground = Pref.makeIntPref("ColorBackground", tool.prefs, Color.LIGHT_GRAY.getRGB());
-
-	private static Pref cacheColorGrid = Pref.makeIntPref("ColorGrid", tool.prefs, Color.BLACK.getRGB());
-
-	private static Pref cacheColorHighlight = Pref.makeIntPref("ColorHighlight", tool.prefs, Color.WHITE.getRGB());
-
-    private static Pref cacheColorNodeHighlight = Pref.makeIntPref("ColorNodeHighlight", tool.prefs, Color.BLUE.getRGB());
-
-    private static Pref cacheColorMouseOverHighlight = Pref.makeIntPref("ColorMouseOverHighlight", tool.prefs, (new Color(51,255,255)).getRGB());
-
-	private static Pref cacheColorPortHighlight = Pref.makeIntPref("ColorPortHighlight", tool.prefs, Color.YELLOW.getRGB());
-
-	private static Pref cacheColorText = Pref.makeIntPref("ColorText", tool.prefs, Color.BLACK.getRGB());
-
-	private static Pref cacheColorInstanceOutline = Pref.makeIntPref("ColorInstanceOutline", tool.prefs, Color.BLACK.getRGB());
-
-	private static Pref cacheColorDownInPlaceBorder = Pref.makeIntPref("ColorDownInPlaceBorder", tool.prefs, Color.RED.getRGB());
-
-	private static Pref cacheColorWaveformBackground = Pref.makeIntPref("ColorWaveformBackground", tool.prefs, Color.BLACK.getRGB());
-
-	private static Pref cacheColorWaveformForeground = Pref.makeIntPref("ColorWaveformForeground", tool.prefs, Color.WHITE.getRGB());
-
-	private static Pref cacheColorWaveformStimuli = Pref.makeIntPref("ColorWaveformStimuli", tool.prefs, Color.RED.getRGB());
-
-	private static Pref cacheColorWaveformStrengthOff = Pref.makeIntPref("ColorWaveformStrengthOff", tool.prefs, Color.BLUE.getRGB());
-
-	private static Pref cacheColorWaveformStrengthNode = Pref.makeIntPref("ColorWaveformStrengthNode", tool.prefs, Color.GREEN.getRGB());
-
-	private static Pref cacheColorWaveformStrengthGate = Pref.makeIntPref("ColorWaveformStrengthGate", tool.prefs, Color.MAGENTA.getRGB());
-
-	private static Pref cacheColorWaveformStrengthPower = Pref.makeIntPref("ColorWaveformStrengthPower", tool.prefs, Color.LIGHT_GRAY.getRGB());
-
-	private static Pref cacheColorWaveformCrossProbeLow = Pref.makeIntPref("ColorWaveformCrossProbeLow", tool.prefs, Color.BLUE.getRGB());
-
-	private static Pref cacheColorWaveformCrossProbeHigh = Pref.makeIntPref("ColorWaveformCrossProbeHigh", tool.prefs, Color.GREEN.getRGB());
-
-	private static Pref cacheColorWaveformCrossProbeX = Pref.makeIntPref("ColorWaveformCrossProbeX", tool.prefs, Color.BLACK.getRGB());
-
-	private static Pref cacheColorWaveformCrossProbeZ = Pref.makeIntPref("ColorWaveformCrossProbeZ", tool.prefs, Color.LIGHT_GRAY.getRGB());
+    private static Pref[] colorPrefs;
+    static {
+        ColorPrefType[] types = ColorPrefType.values();
+        colorPrefs = new Pref[types.length];
+        for (ColorPrefType t: types)
+            colorPrefs[t.ordinal()] = Pref.makeIntPref(t.getPrefKey(), tool.prefs, t.getFactoryDefaultColor().getRGB() & 0xFFFFFF);
+    }
 
 	/****************************** UNITS PREFERENCES ******************************/
 

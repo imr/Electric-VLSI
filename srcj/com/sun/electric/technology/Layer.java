@@ -777,9 +777,9 @@ public class Layer implements Serializable
 	 * @return the pseudo-layer.
 	 */
     public Layer makePseudo() {
-            assert pseudoLayer == null;
+        assert pseudoLayer == null;
         String pseudoLayerName = "Pseudo-" + getName();
-        pseudoLayer = new Layer(pseudoLayerName, true, tech, graphics);
+        pseudoLayer = new Layer(pseudoLayerName, true, tech, factoryGraphics);
         pseudoLayer.setFunction(function, functionExtras);
         pseudoLayer.nonPseudoLayer = this;
         return pseudoLayer;

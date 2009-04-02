@@ -77,7 +77,7 @@ public class LayersTab extends PreferencePanel
             factoryColor = cpi.graphics.getColor().getRGB();  // color given by graphics for the rest of layers
         }
         else
-            factoryColor = cpi.theColor.getIntFactoryValue(); // factory color for special layers
+            factoryColor = cpi.theColor.getFactoryDefaultColor().getRGB(); // factory color for special layers
         cpi.red = (factoryColor>>16) & 0xFF;
         cpi.green = (factoryColor>>8) & 0xFF;
         cpi.blue = factoryColor & 0xFF;
@@ -173,11 +173,6 @@ public class LayersTab extends PreferencePanel
         nameTypeSpecialMap.put(User.ColorPrefType.WAVE_CROSS_UNDEF, "Special: WAVEFORM CROSSPROBE UNDEFINED");
         nameTypeSpecialMap.put(User.ColorPrefType.WAVE_CROSS_FLOAT, "Special: WAVEFORM CROSSPROBE FLOATING");
 
-        for (User.ColorPrefType type : User.ColorPrefType.values())
-        {
-            transAndSpecialMap.put(nameTypeSpecialMap.get(type), new ColorPatternPanel.Info(User.getColorPref(type)));
-        }
-
         // 3D Stuff
         try
         {
@@ -185,13 +180,20 @@ public class LayersTab extends PreferencePanel
             if (j3DUtilsClass != null)
             {
                 Method setMethod = j3DUtilsClass.getDeclaredMethod("get3DColorsInTab", new Class[] {Map.class});
-                setMethod.invoke(j3DUtilsClass, new Object[]{transAndSpecialMap});
+                setMethod.invoke(j3DUtilsClass, new Object[]{nameTypeSpecialMap});
             }
             else
                 System.out.println("Cannot call 3D plugin method get3DColorsInTab");
         } catch (Exception e) {
             System.out.println("Cannot call 3D plugin method get3DColorsInTab");
             e.printStackTrace();
+        }
+
+        for (Map.Entry<User.ColorPrefType,String> e: nameTypeSpecialMap.entrySet())
+        {
+            User.ColorPrefType type = e.getKey();
+            String title = e.getValue();
+            transAndSpecialMap.put(title, new ColorPatternPanel.Info(type));
         }
 
 		technology.setSelectedItem(Technology.getCurrent().getTechName());
@@ -314,31 +316,17 @@ public class LayersTab extends PreferencePanel
 		}
 
 		// also get any changes to special layers
-        for (User.ColorPrefType type : User.ColorPrefType.values())
+        for (Map.Entry<User.ColorPrefType,String> e: nameTypeSpecialMap.entrySet())
         {
-            int c = specialMapColor(nameTypeSpecialMap.get(type), User.getColor(type));
+            User.ColorPrefType type = e.getKey();
+            String title = e.getValue();
+            int c = specialMapColor(title, User.getColor(type));
             if (c >= 0)
             {
                 User.setColor(type, c);
                 changed = true;
             }
         }
-
-        // 3D Stuff
-        try
-        {
-            Class<?> j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
-            Method setMethod = j3DUtilsClass.getDeclaredMethod("set3DColorsInTab", new Class[] {LayersTab.class});
-            Object color3DChanged = setMethod.invoke(j3DUtilsClass, new Object[]{this});
-            if (!changed && color3DChanged != null)
-            {
-                changed = ((Boolean)color3DChanged).booleanValue();
-            }
-        } catch (Exception e) {
-            System.out.println("Cannot call 3D plugin method set3DColorsInTab: " + e.getMessage());
-            e.printStackTrace();
-        }
-
 		// redisplay if changes were made
 		if (changed)
 		{
@@ -412,10 +400,9 @@ public class LayersTab extends PreferencePanel
 		{
 			String name = nameTypeSpecialMap.get(type);
 			ColorPatternPanel.Info cpi = transAndSpecialMap.get(name);
-			int factory = cpi.theColor.getIntFactoryValue();
-			if (factory != cpi.theColor.getInt())
+			int factory = cpi.theColor.getFactoryDefaultColor().getRGB() & 0xFFFFFF;
+			if (factory != User.getColor(cpi.theColor))
 			{
-				cpi.theColor.setInt(factory);
 				User.setColor(type, factory);
 			}
 		}
