@@ -131,6 +131,7 @@ public class View3DWindow extends JPanel
     /** the window frame containing this editwindow */      private WindowFrame wf;
 	/** reference to 2D view of the cell */                 private EditWindow view2D;
 	/** layer visibility */                                 private LayerVisibility lv;
+    /** appearances of used Layers */                       private HashMap<Layer,J3DAppearance> layerAppearance = new HashMap<Layer,J3DAppearance>();
 	/** the cell that is in the window */					protected Cell cell;
     /** scale3D factor in Z axis */                         private double scale3D = J3DUtils.get3DFactor();
 	/** Highlighter for this window */                      private Highlighter highlighter;
@@ -509,7 +510,14 @@ public class View3DWindow extends JPanel
 	public void rightScrollChanged(int e) {}
 
 	/** Dummy functios due to text-oriented functions */
-	public void fullRepaint() {}
+	public void fullRepaint() {
+        for (Map.Entry<Layer,J3DAppearance> e: layerAppearance.entrySet()) {
+            Layer layer = e.getKey();
+            J3DAppearance app = e.getValue();
+            app.setGraphics(layer.getGraphics());
+        }
+        repaint();
+    }
 	public boolean findNextText(boolean reverse) { return false; }
 	public void replaceText(String replace) {}
 	public JPanel getPanel() { return this; }
@@ -742,7 +750,7 @@ public class View3DWindow extends JPanel
                 J3DUtils.correctNormals(topList, bottomList);
                 System.arraycopy(topList.toArray(), 0, pts, 0, 4);
                 System.arraycopy(bottomList.toArray(), 0, pts, 4, 4);
-                boxList.add(J3DUtils.addShape3D(pts, 4, J3DAppearance.getAppearance(layer), objTrans));
+                boxList.add(J3DUtils.addShape3D(pts, 4, getAppearance(layer), objTrans));
 
                 // Second polyhedron
                 topList.clear();
@@ -758,7 +766,7 @@ public class View3DWindow extends JPanel
                 J3DUtils.correctNormals(topList, bottomList);
                 System.arraycopy(topList.toArray(), 0, pts, 0, 4);
                 System.arraycopy(bottomList.toArray(), 0, pts, 4, 4);
-                boxList.add(J3DUtils.addShape3D(pts, 4, J3DAppearance.getAppearance(layer), objTrans));
+                boxList.add(J3DUtils.addShape3D(pts, 4, getAppearance(layer), objTrans));
             }
             if (boxList != null) list.addAll(boxList);
         }
@@ -803,7 +811,7 @@ public class View3DWindow extends JPanel
 				poly.transform(transform);
 
 			// Setting appearance
-            J3DAppearance ap = J3DAppearance.getAppearance(layer);
+            J3DAppearance ap = getAppearance(layer);
             Poly.Type type = poly.getStyle();
 
             switch (type)
@@ -903,14 +911,10 @@ public class View3DWindow extends JPanel
     {
         if (arg instanceof LayerVisibility) {
             lv = (LayerVisibility)arg;
-            for (Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); ) {
-                Technology tech = tIt.next();
-                for (Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); ) {
-                    Layer layer = lIt.next();
-                    J3DAppearance app = (J3DAppearance)layer.get3DAppearance();
-                    if (app == null) continue;
-                    app.update(null, Boolean.valueOf(lv.isVisible(layer)));
-                }
+            for (Map.Entry<Layer,J3DAppearance> e: layerAppearance.entrySet()) {
+                Layer layer = e.getKey();
+                J3DAppearance app = e.getValue();
+                app.set3DVisibility(lv.isVisible(layer));
             }
             repaint();
             return;
@@ -1040,10 +1044,24 @@ public class View3DWindow extends JPanel
                     if (app.getLayer() == layer)
                         J3DUtils.updateZValues(shape, origDist.floatValue(), (float)(origDist.floatValue()+origThick.floatValue()),
                                 distance.floatValue(), (float)(distance.floatValue()+thickness.floatValue()));
-
                 }
             }
 //        }
+    }
+
+    /**
+     * Method to get 3D appearance for a Layer. It will create
+     * object if doesn't exist.
+     * @param layer
+     * @return
+     */
+    private J3DAppearance getAppearance(Layer layer) {
+        J3DAppearance app = layerAppearance.get(layer);
+        if (app == null) {
+            app = new J3DAppearance(layer, lv.isVisible(layer));
+            layerAppearance.put(layer, app);
+        }
+        return app;
     }
 
     /**

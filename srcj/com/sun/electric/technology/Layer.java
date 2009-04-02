@@ -32,14 +32,12 @@ import com.sun.electric.database.id.LayerId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.tool.user.Resources;
 
 import java.awt.Color;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.PrintWriter;
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -705,7 +703,6 @@ public class Layer implements Serializable
 	/** the "real" layer (if this one is pseudo) */							private Layer nonPseudoLayer;
 	/** true if dimmed (drawn darker) undimmed layers are highlighted */	private boolean dimmed;
 	/** the pure-layer node that contains just this layer */				private PrimitiveNode pureLayerNode;
-	/** 3D appearance */									private Object appearance3D;
 
 	private Layer(String name, boolean pseudo, Technology tech, EGraphics graphics)
 	{
@@ -1031,21 +1028,6 @@ public class Layer implements Serializable
         patternPref.setString(graphics.getPatternString());
         layer3DTransModePref.setString(graphics.getTransparencyMode().name());
         layer3DTransFactorPref.setDouble(graphics.getTransparencyFactor());
-
-		// update any color used in 3D view if available
-		Object obj3D = get3DAppearance();
-
-		if (obj3D != null)
-		{
-			Class<?> app3DClass = Resources.get3DClass("utils.J3DAppearance");
-			try
-			{
-				Method setColorMethod3DClass = app3DClass.getDeclaredMethod("set3DColor", new Class[] {Object.class, Color.class});
-				setColorMethod3DClass.invoke(obj3D, new Object[]{null, graphics.getColor()});
-			} catch (Exception e) {
-				System.out.println("Cannot call 3D plugin method set3DColor: " + e.getMessage());
-			}
-		}
    	}
 
 	/**
@@ -1524,16 +1506,4 @@ public class Layer implements Serializable
         }
         return l;
     }
-
-	/**
-	 * Method to set 3D appearance. If Java3D, Appearance class will be the type.
-	 * @param obj
-	 */
-	public void set3DAppearance(Object obj) {appearance3D = obj;}
-
-	/**
-	 * Method to retrieve current 3D appearance.
-	 * @return the current 3D appearance.
-	 */
-	public Object get3DAppearance() {return appearance3D;}
 }

@@ -33,6 +33,7 @@ import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -110,11 +111,7 @@ public class JThreeDTab extends ThreeDTab
             threeDThicknessMap.put(layer, new GenMath.MutableDouble(thickness));
 			threeDDistanceMap.put(layer, new GenMath.MutableDouble(distance));
             // Get a copy of JAppearance to set values temporarily
-            // this function will generate JAppearance if doesn't exist yet
-            J3DAppearance app = J3DAppearance.getAppearance(layer);
-            // forcing visibility
-            J3DAppearance newApp = new J3DAppearance(app);
-            newApp.getRenderingAttributes().setVisible(true);
+            J3DAppearance newApp = new J3DAppearance(layer, true);
             transparencyMap.put(layer, newApp);
 
 		}
@@ -262,8 +259,8 @@ public class JThreeDTab extends ThreeDTab
 			GenMath.MutableDouble height = threeDDistanceMap.get(layer);
             J3DAppearance newApp = transparencyMap.get(layer);
             TransparencyAttributes newAttr = newApp.getTransparencyAttributes();
-            J3DAppearance oldApp = (J3DAppearance)layer.get3DAppearance();
-            oldApp.setTransparencyAndRenderingAttributes(newAttr, newApp.getRenderingAttributes().getDepthBufferEnable());
+//            J3DAppearance oldApp = (J3DAppearance)layer.get3DAppearance();
+//            oldApp.setTransparencyAndRenderingAttributes(newAttr, newApp.getRenderingAttributes().getDepthBufferEnable());
 
             EGraphics graphics = layer.getGraphics();
             graphics = graphics.withTransparencyMode(EGraphics.J3DTransparencyOption.valueOf(newAttr.getTransparencyMode()));
@@ -342,6 +339,8 @@ public class JThreeDTab extends ThreeDTab
         currentInt = TextUtils.atoi(alphaField.getText());
         if (currentInt != J3DUtils.get3DAlpha())
             J3DUtils.set3DAlpha(currentInt);
+
+        WindowFrame.repaintAllWindows();
 	}
 
     @Override
@@ -359,7 +358,6 @@ public class JThreeDTab extends ThreeDTab
 				graphics = graphics.withTransparencyMode(factoryGraphics.getTransparencyMode());
 				graphics = graphics.withTransparencyFactor(factoryGraphics.getTransparencyFactor());
                 layer.setGraphics(graphics);
-				layer.set3DAppearance(null);
 			}
             Setting thicknessSetting = layer.getThicknessSetting();
             Setting distanceSetting = layer.getDistanceSetting();

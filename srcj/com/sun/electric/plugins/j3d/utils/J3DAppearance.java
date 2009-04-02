@@ -28,18 +28,14 @@ package com.sun.electric.plugins.j3d.utils;
 import com.sun.electric.database.geometry.EGraphics;
 
 import com.sun.electric.technology.Layer;
-import com.sun.electric.tool.user.ui.LayerVisibility;
+import java.awt.Color;
 import javax.media.j3d.*;
 import javax.vecmath.Color3f;
-import java.awt.*;
-import java.util.Observer;
-import java.util.Observable;
 
 /**
  * Support class for 3D viewing.
  */
 public class J3DAppearance extends Appearance
-        implements Observer
 {
 //    private static final int JAPP_DEFAULT_MODE = TransparencyAttributes.NONE;
 //    private static final float JAPP_DEFAULT_FACTOR = 0.2f;
@@ -57,28 +53,50 @@ public class J3DAppearance extends Appearance
     /** highlight appearance **/            public static J3DAppearance highlightApp;
     /** Appearance for axes */              public static J3DAppearance[] axisApps = new J3DAppearance[3];
 
-    public J3DAppearance(J3DAppearance app)
-    {
-        super();
-        if (app == null) throw new Error("Input appearance is null");
-        this.layer = app.layer;
-        TransparencyAttributes oldTa = app.getTransparencyAttributes();
-        setOtherAppearanceValues(oldTa.getTransparencyMode(), oldTa.getTransparency(), layer.getGraphics().getColor());
+//    public J3DAppearance(J3DAppearance app)
+//    {
+//        super();
+//        if (app == null) throw new Error("Input appearance is null");
+//        this.layer = app.layer;
+//        TransparencyAttributes oldTa = app.getTransparencyAttributes();
+//        setOtherAppearanceValues(oldTa.getTransparencyMode(), oldTa.getTransparency(), layer.getGraphics().getColor());
+//    }
+
+    public J3DAppearance(Layer layer, boolean visible) {
+        this(layer, layer.getGraphics(), visible);
     }
 
-    private J3DAppearance(Layer layer, int mode, float factor, Color color)
+    public J3DAppearance(EGraphics graphics) {
+        this(null, graphics, true);
+    }
+
+    private J3DAppearance(Layer layer, EGraphics graphics, boolean visible) {
+        this(layer, graphics.getTransparencyMode().mode, (float)graphics.getTransparencyFactor(), graphics.getColor(), visible);
+    }
+
+    private J3DAppearance(int mode, float factor, Color color) {
+        this(null, mode, factor, color, true);
+    }
+
+    private J3DAppearance(Layer layer, int mode, float factor, Color color, boolean visible)
     {
         super();
         this.layer = layer;
-        setOtherAppearanceValues(mode, factor, color); //graphics.getColor());
+        setOtherAppearanceValues(mode, factor, color, visible); //graphics.getColor());
     }
-//    public void setLayer(Layer layer)
-//    {
-//        this.layer = layer;
-//    }
+
     public Layer getLayer() { return layer;}
 
-    private void setOtherAppearanceValues(int mode, float factor, Color color)
+    public void setGraphics(EGraphics graphics) {
+        EGraphics.J3DTransparencyOption op = graphics.getTransparencyMode();
+        TransparencyAttributes ta = getTransparencyAttributes();
+        ta.setTransparency((float)graphics.getTransparencyFactor());
+        ta.setTransparencyMode(op.mode);
+        setTransparencyAndRenderingAttributes(ta, op != EGraphics.J3DTransparencyOption.NONE);
+        set3DColor(null, graphics.getColor());
+   }
+
+    private void setOtherAppearanceValues(int mode, float factor, Color color, boolean visible)
     {
         // Transparency values
         TransparencyAttributes ta = new TransparencyAttributes(mode, factor);
@@ -105,8 +123,7 @@ public class J3DAppearance extends Appearance
             ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
             ra.setCapability(RenderingAttributes.ALLOW_DEPTH_ENABLE_READ);
             ra.setCapability(RenderingAttributes.ALLOW_DEPTH_ENABLE_WRITE);
-            LayerVisibility lv = LayerVisibility.getLayerVisibility();
-            ra.setVisible(lv.isVisible(layer));
+            ra.setVisible(visible);
             setRenderingAttributes(ra);
             if (mode != TransparencyAttributes.NONE)
                 ra.setDepthBufferEnable(true);
@@ -165,29 +182,29 @@ public class J3DAppearance extends Appearance
         }
     }
 
-    /**
-     * Method to get 3D appearance stored in EGraphics class. It will create
-     * object if doesn't exist.
-     * @param graphics
-     * @return
-     */
-    public static J3DAppearance getAppearance(Layer layer)
-    {
-        // Setting appearance
-        J3DAppearance ap = (J3DAppearance)layer.get3DAppearance();
-
-        if (ap == null)
-        {
-            EGraphics graphics = layer.getGraphics();
-            int mode = graphics.getTransparencyMode().mode;
-            double factorD = graphics.getTransparencyFactor();
-            float factor = (float)factorD;
-            ap = new J3DAppearance(layer, mode, factor, graphics.getColor());
-
-            layer.set3DAppearance(ap);
-        }
-        return (ap);
-    }
+//    /**
+//     * Method to get 3D appearance stored in EGraphics class. It will create
+//     * object if doesn't exist.
+//     * @param graphics
+//     * @return
+//     */
+//    public static J3DAppearance getAppearance(Layer layer)
+//    {
+//        // Setting appearance
+//        J3DAppearance ap = (J3DAppearance)layer.get3DAppearance();
+//
+//        if (ap == null)
+//        {
+//            EGraphics graphics = layer.getGraphics();
+//            int mode = graphics.getTransparencyMode().mode;
+//            double factorD = graphics.getTransparencyFactor();
+//            float factor = (float)factorD;
+//            ap = new J3DAppearance(layer, mode, factor, graphics.getColor());
+//
+//            layer.set3DAppearance(ap);
+//        }
+//        return (ap);
+//    }
 
     public void setTransparencyAndRenderingAttributes(TransparencyAttributes transparencyAttributes, boolean rendering)
     {
@@ -199,26 +216,15 @@ public class J3DAppearance extends Appearance
      *                  Model-View paradigm to control refresh from 2D
      ********************************************************************************************************/
     /**
-     * Observer method to update 3D appearance if 2D
-     * @param o
-     * @param arg
-     */
-    public void update(Observable o, Object arg)
-    {
-        if (arg instanceof Boolean)
-            set3DVisibility((Boolean)arg);
-    }
-
-    /**
 	 * Method to set visibility in Appearance objects from external tools
 	 * @param visible true if visibility is on
 	 */
-	private void set3DVisibility(Boolean visible)
+	public void set3DVisibility(boolean visible)
 	{
-        if (getRenderingAttributes() == null || visible == null)
+        if (getRenderingAttributes() == null)
             System.out.println("Error in J3DAppearance.set3DVisibility");
 		else
-            getRenderingAttributes().setVisible(visible.booleanValue());
+            getRenderingAttributes().setVisible(visible);
 	}
 
     /**
@@ -253,7 +259,7 @@ public class J3DAppearance extends Appearance
 
             if (axisApps[i] == null)
             {
-                axisApps[i] = new J3DAppearance(null, TransparencyAttributes.NONE, 0.5f, userColor);
+                axisApps[i] = new J3DAppearance(TransparencyAttributes.NONE, 0.5f, userColor);
 
                 // Turn off face culling so we can see the back side of the labels
                 // (since we're not using font extrusion)
@@ -294,7 +300,7 @@ public class J3DAppearance extends Appearance
         Color userColor = new Color(J3DUtils.get3DColorHighlighted());
 
         if (highlightApp == null)
-            highlightApp = new J3DAppearance(null, TransparencyAttributes.BLENDED, 0.5f, userColor);
+            highlightApp = new J3DAppearance(TransparencyAttributes.BLENDED, 0.5f, userColor);
         else if (initValue == null) // redoing color only when it was changed in GUI
             highlightApp.set3DColor(null, userColor);
     }
@@ -310,7 +316,7 @@ public class J3DAppearance extends Appearance
 
         if (cellApp == null)
         {
-            cellApp = new J3DAppearance(null, TransparencyAttributes.SCREEN_DOOR, 0, null);
+            cellApp = new J3DAppearance(TransparencyAttributes.SCREEN_DOOR, 0, null);
 
             RenderingAttributes ra = new RenderingAttributes();
             ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
