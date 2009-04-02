@@ -23,21 +23,6 @@
  */
 package com.sun.electric.tool.user.projectSettings;
 
-import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.Locator;
-import org.xml.sax.SAXParseException;
-import org.xml.sax.SAXException;
-import org.xml.sax.Attributes;
-
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.io.*;
-import java.util.Stack;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Setting;
@@ -46,7 +31,28 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Stack;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import org.xml.sax.helpers.DefaultHandler;
+import org.xml.sax.Locator;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.SAXException;
+import org.xml.sax.Attributes;
+
+
 
 /**
  * User: gainsley
@@ -139,12 +145,19 @@ public class ProjSettings {
             if (xmlVal == null)
                 xmlVal = setting.getFactoryValue();
             if (xmlVal.equals(oldVal)) continue;
+            if (xmlVal.getClass() != oldVal.getClass()) {
+                System.out.println("Setting type mismatch " + setting);
+                continue;
+            }
+            commitBatch.add(setting, xmlVal);
+            // Don't print mismatch caused by rounding error
+            if (xmlVal instanceof Double && ((Double)xmlVal).floatValue() == ((Double)oldVal).floatValue())
+                continue;
             if (allowOverride) {
                 System.out.println("Warning: Setting \""+setting.getPrefName()+"\" set to "+xmlVal+", overrides current value of "+oldVal);
             } else {
                 System.out.println("Warning: Setting \""+setting.getPrefName()+"\" retains current value of "+oldVal+", while ignoring projectsettings.xml value of "+xmlVal);
             }
-            commitBatch.add(setting, xmlVal);
         }
         if (allowOverride)
             database.implementSettingChanges(commitBatch);

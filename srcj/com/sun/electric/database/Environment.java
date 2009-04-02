@@ -148,6 +148,7 @@ public class Environment {
             if (newValue == null)
                 newValue = param.factoryValue;
             if (newValue.equals(oldValue)) continue;
+            if (newValue.getClass() != oldValue.getClass()) continue;
             changed = true;
             techParams.put(param, newValue);
         }
