@@ -62,16 +62,60 @@ public abstract class ErrorHighlight implements Serializable {
 
     Object getObject(EDatabase database) { return null; }
 
-    void xmlDescription(PrintStream msg, EDatabase database) {;System.out.println("Not implemented in xmlDescription");}
+    static String getImplementedXmlHeaders() { return "ERRORTYPEGEOM|ERRORTYPETHICKLINE|ERRORTYPELINE|ERRORTYPEPOLY";}
+    static boolean isErrorHighlightBody(String name)
+    {
+        return name.equals("ERRORTYPEGEOM") || name.equals("ERRORTYPETHICKLINE") || name.equals("ERRORTYPELINE") ||
+            name.equals("ERRORTYPEPOLY");
+    }
+    static List<ErrorHighlight> addErrorHighlight(String qName, Cell curCell, String geomName, EPoint p1, EPoint p2,
+                                                  List<ErrorHighlight> list)
+    {
+        List<ErrorHighlight> l = list;
+        boolean geoTypeBody = qName.equals("ERRORTYPEGEOM");
+        if (geoTypeBody)
+        {
+            assert(curCell != null);
+            Geometric geom = curCell.findNode(geomName);
+            if (geom == null) // try arc instead
+                geom = curCell.findArc(geomName);
+            if (geom != null)
+                list.add(ErrorHighlight.newInstance(null, geom));
+            else
+            {
+                System.out.println("Invalid geometry " + geomName + " in " + curCell);
+            }
+        }
+        else
+        {
+            boolean thickLineTypeBody = qName.equals("ERRORTYPETHICKLINE");
+            boolean thinLineTypeBody = qName.equals("ERRORTYPELINE");
+            if (thinLineTypeBody || thickLineTypeBody)
+            {
+                list.add(new ErrorHighLine(curCell, p1, p2, thickLineTypeBody));
+            }
+            else if (qName.equals("ERRORTYPEPOLY"))
+            {
+                ErrorHighPoly poly = new ErrorHighPoly(curCell, null);
+                list.add(poly);
+                l = poly.linesList;
+            }
+            else
+                assert(false); // it should not happen
+        }
+        return l;
+    }
+    public static void writeXmlHeader(String indent, PrintStream ps) {System.out.println("Not implemented in writeXmlHeader");}
+    void writeXmlDescription(String tabs, PrintStream msg, EDatabase database) {System.out.println("Not implemented in writeXmlDescription");}
 
     boolean isValid(EDatabase database) { return cellId == null || getCell(database) != null; } // Still have problems with minAre DRC errors
 
     public void addToHighlighter(Highlighter h, EDatabase database) {;}
 
-    public static ErrorHighlight newInstance(VarContext context, Geometric geom) {
+    public static ErrorHighlight newInstance(VarContext cont, Geometric geom) {
         if (geom instanceof NodeInst)
-            return new ErrorHighNode(context, (NodeInst)geom);
-        return new ErrorHighArc(context, (ArcInst)geom);
+            return new ErrorHighNode(cont, (NodeInst)geom);
+        return new ErrorHighArc(cont, (ArcInst)geom);
     }
 
     public static ErrorHighlight newInstance(Cell cell, Point2D p1, Point2D p2) {
@@ -81,7 +125,6 @@ public abstract class ErrorHighlight implements Serializable {
     public static ErrorHighlight newInstance(Export e) {
         return new ErrorHighExport(null, e);
     }
-
 }
 
 class ErrorHighExport extends ErrorHighlight {
@@ -105,23 +148,34 @@ class ErrorHighExport extends ErrorHighlight {
 
 class ErrorHighPoly extends ErrorHighlight
 {
-    List<ErrorHighLine> linesList;
+    List<ErrorHighlight> linesList;
 
-    public ErrorHighPoly(Cell c, List<ErrorHighLine> list)
+    public ErrorHighPoly(Cell c, List<ErrorHighlight> list)
     {
         super(c, null);
         linesList =  list;
     }
 
-    void xmlDescription(PrintStream msg, EDatabase database)
+    public static void writeXmlHeader(String indent, PrintStream ps)
     {
-        // implement
-        assert(false);
+        ps.println(indent + "<!ELEMENT ERRORTYPEPOLY (ERRORTYPETHICKLINE|ERRORTYPELINE)*>");
+        ps.println(indent + "<!ATTLIST ERRORTYPEPOLY");
+        ps.println(indent + "   cellName CDATA #REQUIRED");
+        ps.println(indent + ">");
+    }
+
+    void writeXmlDescription(String tabs, PrintStream msg, EDatabase database)
+    {
+        msg.append(tabs +"<ERRORTYPEPOLY ");
+        msg.append("cellName=\"" + getCell(database).describe(false) + "\" >");
+        for (ErrorHighlight line : linesList)
+            line.writeXmlDescription(tabs+"\t", msg, database);
+        msg.append(tabs+"<ERRORTYPEPOLY/>\n");
     }
 
     public void addToHighlighter(Highlighter h, EDatabase database)
     {
-        for (ErrorHighLine line : linesList)
+        for (ErrorHighlight line : linesList)
             line.addToHighlighter(h, database);
     }
 }
@@ -139,9 +193,26 @@ class ErrorHighLine extends ErrorHighlight {
         p2 = x2;
     }
 
-    void xmlDescription(PrintStream msg, EDatabase database)
+    public static void writeXmlHeader(String indent, PrintStream ps)
     {
-        msg.append("\t\t<"+((thickLine)?"ERRORTYPETHICKLINE ":"ERRORTYPELINE "));
+        ps.println(indent + "<!ELEMENT ERRORTYPELINE ANY>");
+        ps.println(indent + "<!ATTLIST ERRORTYPELINE");
+        ps.println(indent + "   p1 CDATA #REQUIRED");
+        ps.println(indent + "   p2 CDATA #REQUIRED");
+        ps.println(indent + "   cellName CDATA #REQUIRED");
+        ps.println(indent + ">");
+
+        ps.println(indent + "<!ELEMENT ERRORTYPETHICKLINE ANY>");
+        ps.println(indent + "<!ATTLIST ERRORTYPETHICKLINE");
+        ps.println(indent + "   p1 CDATA #REQUIRED");
+        ps.println(indent + "   p2 CDATA #REQUIRED");
+        ps.println(indent + "   cellName CDATA #REQUIRED");
+        ps.println(indent + ">");
+    }
+
+    void writeXmlDescription(String tabs, PrintStream msg, EDatabase database)
+    {
+        msg.append(tabs +"<"+((thickLine)?"ERRORTYPETHICKLINE ":"ERRORTYPELINE "));
         msg.append("p1=\"(" + p1.getX() + "," + p1.getY() + ")\" ");
         msg.append("p2=\"(" + p2.getX() + "," + p2.getY() + ")\" ");
         msg.append("cellName=\"" + getCell(database).describe(false) + "\"");
@@ -198,10 +269,19 @@ class ErrorHighNode extends ErrorHighlight {
         return cell.getNodeById(nodeId);
     }
 
-    void xmlDescription(PrintStream msg, EDatabase database)
+    public static void writeXmlHeader(String indent, PrintStream ps)
+    {
+        ps.println(indent + "<!ELEMENT ERRORTYPEGEOM ANY>");
+        ps.println(indent + "<!ATTLIST ERRORTYPEGEOM");
+        ps.println(indent + "   geomName CDATA #REQUIRED");
+        ps.println(indent + "   cellName CDATA #REQUIRED");
+        ps.println(indent + ">");
+    }
+
+    void writeXmlDescription(String tabs, PrintStream msg, EDatabase database)
     {
         NodeInst ni = (NodeInst)getObject(database);
-        msg.append("\t\t<ERRORTYPEGEOM ");
+        msg.append(tabs+"<ERRORTYPEGEOM ");
         msg.append("geomName=\"" + ni.getName() + "\" ");
         msg.append("cellName=\"" + ni.getParent().describe(false) + "\"");
         msg.append(" />\n");
@@ -239,10 +319,10 @@ class ErrorHighArc extends ErrorHighlight {
         return cell.getArcById(arcId);
     }
 
-    void xmlDescription(PrintStream msg, EDatabase database)
+    void writeXmlDescription(String tabs, PrintStream msg, EDatabase database)
     {
         ArcInst ai = (ArcInst)getObject(database);
-        msg.append("\t\t<ERRORTYPEGEOM ");
+        msg.append(tabs+"<ERRORTYPEGEOM ");
         msg.append("geomName=\"" + ai.getD().name + "\" ");
         msg.append("cellName=\"" + ai.getParent().describe(false) + "\"");
         msg.append(" />\n");

@@ -87,6 +87,40 @@ public class ErrorLogger implements Serializable
     }
 
     /**
+     * Function to write all headers related to ErrorLogger classes.
+     * @param indent
+     * @param ps
+     */
+    public static void writeXmlHeader(String indent, PrintStream ps)
+    {
+        // ErrorLogger and GroupLog
+        ps.println(indent + "<!ELEMENT ErrorLogger (GroupLog|MessageLog|WarningLog)*>");
+        ps.println(indent + "<!ELEMENT GroupLog (MessageLog|WarningLog)*>");
+
+        ps.println(indent + "<!ATTLIST ErrorLogger");
+        ps.println(indent + "   errorSystem CDATA #REQUIRED");
+        ps.println(indent + ">");
+
+        ps.println(indent + "<!ATTLIST GroupLog");
+        ps.println(indent + "   message CDATA #REQUIRED");
+        ps.println(indent + ">");
+        
+        // For MessageLog and WarningLog
+        ps.println(indent + "<!ELEMENT MessageLog ("+ ErrorHighlight.getImplementedXmlHeaders() +")*>");
+
+        ps.println(indent + "<!ATTLIST MessageLog");
+        ps.println(indent + "   message CDATA #REQUIRED");
+        ps.println(indent + "   cellName CDATA #REQUIRED");
+        ps.println(indent + ">");
+
+        ps.println(indent + "<!ELEMENT WarningLog ANY>");
+        ps.println(indent + "<!ATTLIST WarningLog");
+        ps.println(indent + "   message CDATA #REQUIRED");
+        ps.println(indent + "   cellName CDATA #IMPLIED"); // only WarningLogs can have no cells
+        ps.println(indent + ">");
+    }
+
+    /**
      * Create a Log of a single message.
      */
     public static class MessageLog implements Comparable<MessageLog>, Serializable {
@@ -158,7 +192,7 @@ public class ErrorLogger implements Serializable
             return "["+index+"] "+message;
         }
 
-        protected void xmlDescription(PrintStream msg)
+        protected void writeXmlDescription(PrintStream msg)
         {
             String className = this.getClass().getSimpleName();
             String cellInfo = "";
@@ -174,7 +208,7 @@ public class ErrorLogger implements Serializable
             msg.append("\t<" + className + " message=\"" + m + "\" " + cellInfo + ">\n");
             for(ErrorHighlight eh : highlights)
             {
-                eh.xmlDescription(msg, EDatabase.clientDatabase());
+                eh.writeXmlDescription("\t\t", msg, EDatabase.clientDatabase());
             }
             msg.append("\t</" + className + ">\n");
         }
@@ -491,7 +525,7 @@ public class ErrorLogger implements Serializable
             for(PolyBase poly : polyList)
     		{
     	        Point2D [] points = poly.getPoints();
-                List<ErrorHighLine> list = new ArrayList<ErrorHighLine>();
+                List<ErrorHighlight> list = new ArrayList<ErrorHighlight>();
 
                 for(int i=0; i<points.length; i++)
     	        {
@@ -754,7 +788,7 @@ public class ErrorLogger implements Serializable
         return removed;
     }
 
-     public void exportErrorLogger(String filePath)
+    public void exportErrorLogger(String filePath)
     {
          PrintStream buffWriter = null;
          try
@@ -767,46 +801,27 @@ public class ErrorLogger implements Serializable
              return; // error opening the file
          }
 
+        // ErrorHighArc.class is treaded with same header as  ErrorHighNode
+        Class[] errorTypes = {ErrorHighLine.class, ErrorHighPoly.class, ErrorHighNode.class, ErrorLogger.class};
+        
         // Creating header
         buffWriter.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         buffWriter.println();
         buffWriter.println("<!DOCTYPE ErrorLogger");
         buffWriter.println(" [");
-        buffWriter.println(" <!ELEMENT ErrorLogger (GroupLog|MessageLog|WarningLog)*>");
-        buffWriter.println(" <!ELEMENT GroupLog (MessageLog|WarningLog)*>");
-        buffWriter.println(" <!ELEMENT MessageLog (ERRORTYPEGEOM|ERRORTYPETHICKLINE|ERRORTYPELINE)* >");
-        buffWriter.println(" <!ELEMENT WarningLog ANY >");
-        buffWriter.println(" <!ELEMENT ERRORTYPEGEOM ANY>");
-        buffWriter.println(" <!ELEMENT ERRORTYPELINE ANY>");
-        buffWriter.println(" <!ELEMENT ERRORTYPETHICKLINE ANY>");
-        buffWriter.println("<!ATTLIST ErrorLogger");
-        buffWriter.println("    errorSystem CDATA #REQUIRED");
-        buffWriter.println(" >");
-        buffWriter.println(" <!ATTLIST GroupLog");
-        buffWriter.println("    message CDATA #REQUIRED");
-        buffWriter.println(" >");
-        buffWriter.println(" <!ATTLIST MessageLog");
-        buffWriter.println("    message CDATA #REQUIRED");
-        buffWriter.println("    cellName CDATA #REQUIRED");
-        buffWriter.println(" >");
-        buffWriter.println(" <!ATTLIST WarningLog");
-        buffWriter.println("    message CDATA #REQUIRED");
-        buffWriter.println("    cellName CDATA #IMPLIED"); // only warning logs can have no cells
-        buffWriter.println(" >");
-        buffWriter.println(" <!ATTLIST ERRORTYPEGEOM");
-        buffWriter.println("    geomName CDATA #REQUIRED");
-        buffWriter.println("    cellName CDATA #REQUIRED");
-        buffWriter.println(" >");
-        buffWriter.println(" <!ATTLIST ERRORTYPETHICKLINE");
-        buffWriter.println("    p1 CDATA #REQUIRED");
-        buffWriter.println("    p2 CDATA #REQUIRED");
-        buffWriter.println("    cellName CDATA #REQUIRED");
-        buffWriter.println(" >");
-        buffWriter.println(" <!ATTLIST ERRORTYPELINE");
-        buffWriter.println("    p1 CDATA #REQUIRED");
-        buffWriter.println("    p2 CDATA #REQUIRED");
-        buffWriter.println("    cellName CDATA #REQUIRED");
-        buffWriter.println(" >");
+
+        for (int i = 0; i < errorTypes.length; i++)
+        {
+            Class<?> c = errorTypes[i];
+            try {
+                String indent = " ";
+                java.lang.reflect.Method set = c.getMethod("writeXmlHeader", new Class[] {String.class, PrintStream.class});
+                set.invoke(c, new Object[] {indent, buffWriter});
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
         buffWriter.println(" ]>");
         buffWriter.println();
         String className = this.getClass().getSimpleName();
@@ -826,12 +841,12 @@ public class ErrorLogger implements Serializable
                 // Errors
                 for (MessageLog log : allErrors) {
                     if (log.getSortKey() == i.intValue())
-                        log.xmlDescription(buffWriter);
+                        log.writeXmlDescription(buffWriter);
                 }
                 // Warnings
                 for (WarningLog log : allWarnings) {
                     if (log.getSortKey() == i.intValue())
-                        log.xmlDescription(buffWriter);
+                        log.writeXmlDescription(buffWriter);
                 }
                 buffWriter.println("    </GroupLog>");
             }
@@ -840,11 +855,11 @@ public class ErrorLogger implements Serializable
         {
             // Errors
             for (MessageLog log : allErrors) {
-                log.xmlDescription(buffWriter);
+                log.writeXmlDescription(buffWriter);
             }
             // Warnings
             for (WarningLog log : allWarnings) {
-                log.xmlDescription(buffWriter);
+                log.writeXmlDescription(buffWriter);
             }
         }
         buffWriter.println("</" + className + ">");
@@ -1035,7 +1050,8 @@ public class ErrorLogger implements Serializable
             private Cell curCell;
             private String message = "";
         	private List<ErrorHighlight> highlights;
-        	private Set<String> badCellNames = new HashSet<String>();
+            private List<ErrorHighlight> currentList;
+            private Set<String> badCellNames = new HashSet<String>();
             private int theSortLayer = -1, sortGroups = 1; // start from 1 so the errors without group would be all together
 
             XMLHandler()
@@ -1087,13 +1103,10 @@ public class ErrorLogger implements Serializable
                 boolean groupBody = qName.equals("GroupLog");
                 boolean errorLogBody = qName.equals("MessageLog");
                 boolean warnLogBody = qName.equals("WarningLog");
-                boolean geoTypeBody = qName.equals("ERRORTYPEGEOM");
-                boolean thickLineTypeBody = qName.equals("ERRORTYPETHICKLINE");
-                boolean thinLineTypeBody = qName.equals("ERRORTYPELINE");
+                boolean errorHighlighBody = ErrorHighlight.isErrorHighlightBody(qName);
 
-                if (!loggerBody && !errorLogBody && !warnLogBody && !geoTypeBody
-                        && !groupBody
-                        && !thinLineTypeBody && !thickLineTypeBody) return;
+                if (!loggerBody && !errorLogBody && !warnLogBody && !errorHighlighBody
+                        && !groupBody) return;
 
                 String cellName = null, geomName = null, viewName = null, libraryName = null;
                 EPoint p1 = null, p2 = null;
@@ -1171,20 +1184,9 @@ public class ErrorLogger implements Serializable
                     {
                         highlights = new ArrayList<ErrorHighlight>();
                     }
-                    else if (geoTypeBody)
+                    else if (errorHighlighBody)
                     {
-                        assert(curCell != null);
-                        Geometric geom = curCell.findNode(geomName);
-                        if (geom == null) // try arc instead
-                            geom = curCell.findArc(geomName);
-                        if (geom != null)
-                            highlights.add(ErrorHighlight.newInstance(null, geom));
-                        else
-                            System.out.println("Invalid geometry " + geomName + " in " + curCell);
-                    }
-                    else if (thinLineTypeBody || thickLineTypeBody)
-                    {
-                        highlights.add(new ErrorHighLine(curCell, p1, p2, thickLineTypeBody));
+                        currentList = ErrorHighlight.addErrorHighlight(qName, curCell, geomName, p1, p2, highlights);
                     }
                     else
                         new Error("Invalid attribute in XMLParser");
