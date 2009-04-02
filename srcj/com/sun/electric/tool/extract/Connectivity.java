@@ -2469,7 +2469,7 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 				EPoint ctr = new EPoint(poly.getCenterX()/SCALEFACTOR, poly.getCenterY()/SCALEFACTOR);
 				NodeInst ni = makeDummyNodeInst(transistor, ctr, width, height,
 					Orientation.fromAngle(angle), Technology.NodeLayer.MULTICUT_CENTERED);
-				if (!dummyTransistorFits(ni, merge, newCell)) continue;
+				if (!dummyTransistorFits(ni, originalMerge, newCell)) continue;
 
 				realizeNode(transistor, Technology.NodeLayer.MULTICUT_CENTERED, poly.getCenterX(), poly.getCenterY(),
 					width, height, angle, null, merge, newCell, null);
