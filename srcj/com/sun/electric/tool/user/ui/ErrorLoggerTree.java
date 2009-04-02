@@ -92,6 +92,17 @@ public class ErrorLoggerTree {
 
     public static DefaultMutableTreeNode getExplorerTree() { return errorTree; }
 
+   /**
+     * Method to advance to the next error and report it.
+     */
+    public static void reportSingleGeometry() {
+        if (currentLogger == null)
+        {
+            assert(false); // should it happen?
+        }
+        ((ErrorLoggerTreeNode)currentLogger.getUserObject()).reportSingleGeometry_(true);
+    }
+
     /**
      * Method to advance to the next error and report it.
      */
@@ -442,6 +453,8 @@ public class ErrorLoggerTree {
     {
         private ErrorLogger logger;
         private int currentLogNumber;
+        private ErrorLogger.MessageLog currentMsgLog;
+        private int currentMsgLogGeoIndex;
 
         ErrorLoggerTreeNode(ErrorLogger log)
         {
@@ -454,7 +467,15 @@ public class ErrorLoggerTree {
 
         public String toString() { return "ErrorLogger Information: " +  logger.getInfo();}
 
-        public String reportNextMessage_(boolean showHigh) {
+        private void reportSingleGeometry_(boolean showHigh)
+        {
+            assert(currentMsgLog != null);
+            String message = Job.getUserInterface().reportLog(currentMsgLog, showHigh, null, currentMsgLogGeoIndex);
+            currentMsgLogGeoIndex = (currentMsgLogGeoIndex < currentMsgLog.getNumHighlights() - 1) ?
+                currentMsgLogGeoIndex+1 : 0;
+        }
+
+        private String reportNextMessage_(boolean showHigh) {
             if (currentLogNumber < logger.getNumLogs()-1) {
                 currentLogNumber++;
             } else {
@@ -464,7 +485,7 @@ public class ErrorLoggerTree {
             return reportLog(currentLogNumber, showHigh);
         }
 
-        public String reportPrevMessage_() {
+        private String reportPrevMessage_() {
             if (currentLogNumber > 0) {
                 currentLogNumber--;
             } else {
@@ -483,14 +504,15 @@ public class ErrorLoggerTree {
                 return logger.getSystem() + ": no such error or warning "+(logNumber+1)+", only "+logger.getNumLogs()+" errors.";
             }
 
-            ErrorLogger.MessageLog el = logger.getLog(logNumber);
+            currentMsgLog = logger.getLog(logNumber);
+            currentMsgLogGeoIndex = 0;
             String extraMsg = null;
             if (logNumber < logger.getNumErrors()) {
                 extraMsg = " error " + (logNumber+1) + " of " + logger.getNumErrors();
             } else {
                 extraMsg = " warning " + (logNumber+1-logger.getNumErrors()) + " of " + logger.getNumWarnings();
             }
-            String message = Job.getUserInterface().reportLog(el, showHigh, null);
+            String message = Job.getUserInterface().reportLog(currentMsgLog, showHigh, null, -1);
             return (logger.getSystem() + extraMsg + ": " + message);
         }
 

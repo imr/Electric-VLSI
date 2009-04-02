@@ -112,6 +112,8 @@ public class ErrorLogger implements Serializable
 
         public String getMessageString() { return message; }
 
+        public int getNumHighlights() {return highlights.length;}
+
         public Iterator<ErrorHighlight> getHighlights()
         {
         	return ArrayIterator.iterator(highlights);
@@ -486,17 +488,22 @@ public class ErrorLogger implements Serializable
     	}
     	if (polyList != null)
     	{
-    		for(PolyBase poly : polyList)
+            for(PolyBase poly : polyList)
     		{
     	        Point2D [] points = poly.getPoints();
-    	        for(int i=0; i<points.length; i++)
+                List<ErrorHighLine> list = new ArrayList<ErrorHighLine>();
+
+                for(int i=0; i<points.length; i++)
     	        {
     	            int prev = i-1;
     	            if (i == 0) prev = points.length-1;
-    	            h.add(new ErrorHighLine(cell, new EPoint(points[prev].getX(), points[prev].getY()),
+    	            list.add(new ErrorHighLine(cell, new EPoint(points[prev].getX(), points[prev].getY()),
     	            	new EPoint(points[i].getX(), points[i].getY()), true));
-    	        }
-    		}
+//                     h.add(new ErrorHighLine(cell, new EPoint(points[prev].getX(), points[prev].getY()),
+//    	            	new EPoint(points[i].getX(), points[i].getY()), true));
+                }
+                h.add(new ErrorHighPoly(cell, list));
+            }
     	}
     	logAnError(message, cell, sortKey, h);
     }

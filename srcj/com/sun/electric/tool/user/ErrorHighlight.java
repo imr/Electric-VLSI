@@ -37,6 +37,7 @@ import com.sun.electric.database.variable.VarContext;
 import java.io.PrintStream;
 import java.awt.geom.Point2D;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Class to define Highlighted errors.
@@ -99,6 +100,29 @@ class ErrorHighExport extends ErrorHighlight {
     {
         Export e = pp.inDatabase(database);
         h.addText(e, e.getParent(), Export.EXPORT_NAME);
+    }
+}
+
+class ErrorHighPoly extends ErrorHighlight
+{
+    List<ErrorHighLine> linesList;
+
+    public ErrorHighPoly(Cell c, List<ErrorHighLine> list)
+    {
+        super(c, null);
+        linesList =  list;
+    }
+
+    void xmlDescription(PrintStream msg, EDatabase database)
+    {
+        // implement
+        assert(false);
+    }
+
+    public void addToHighlighter(Highlighter h, EDatabase database)
+    {
+        for (ErrorHighLine line : linesList)
+            line.addToHighlighter(h, database);
     }
 }
 

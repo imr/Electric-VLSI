@@ -291,7 +291,7 @@ public class UserInterfaceMain extends AbstractUserInterface
      * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
      * with associated geometry modules (if nonzero).
      */
-    public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric [] gPair)
+    public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric[] gPair, int position)
     {
         EDatabase database = EDatabase.clientDatabase();
 
@@ -318,10 +318,15 @@ public class UserInterfaceMain extends AbstractUserInterface
             EditWindow wnd = null;
 
             // first show the geometry associated with this error
+            int pos = -1;
             for(Iterator<ErrorHighlight> it = log.getHighlights(); it.hasNext(); )
             {
                 ErrorHighlight eh = it.next();
 
+                // Checking whether a specific geom is displayed
+                pos++;
+                if (position != -1 && pos != position)
+                    continue; // not this one
                 Cell cell = eh.getCell(database);
                 // validate the cell (it may have been deleted)
                 if (cell != null)

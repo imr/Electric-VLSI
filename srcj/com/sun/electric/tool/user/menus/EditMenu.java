@@ -459,7 +459,9 @@ public class EditMenu {
 					showNextErrorCommand(); }},
 				new EMenuItem("Show Pre_vious Error", KeyStroke.getKeyStroke('<')) { public void run() {
 					showPrevErrorCommand(); }},
-				new EMenuItem("Show Current Co_llection of Errors") { public void run() {
+                new EMenuItem("Show Single Geometry", KeyStroke.getKeyStroke('^')) { public void run() {
+					showSingleGeometryCommand(); }},
+                new EMenuItem("Show Current Co_llection of Errors") { public void run() {
 					ErrorLoggerTree.showCurrentErrors(); }},
 				SEPARATOR,
 				new EMenuItem("Add to Waveform _in New Panel", KeyStroke.getKeyStroke('A', 0)) { public void run() {
@@ -1393,6 +1395,16 @@ public class EditMenu {
     {
         String msg = ErrorLoggerTree.reportNextMessage();
         System.out.println(msg);
+    }
+
+    /**
+     * This method implements the command to iterate along geometries found in the
+     * current MessageLog
+     * The error log lists the results of the latest command (DRC, NCC, etc.)
+     */
+    private static void showSingleGeometryCommand()
+    {
+        ErrorLoggerTree.reportSingleGeometry();
     }
 
     /**

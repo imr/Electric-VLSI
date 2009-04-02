@@ -103,7 +103,7 @@ public interface UserInterface
      * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
      * with associated geometry modules (if nonzero).
      */
-    public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric [] gPair);
+    public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric[] gPair, int position);
 
     /**
      * Method to show an error message.

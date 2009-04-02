@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+IMP/MAN: (4/1/09, GVG) Changes for "Better highlighting of DRC spacing errors" (Bug #2107)
+
 BUG: (4/1/09, GVG) TechEditorWizard not assigning correct ports to actives in transistors (Bug #2109)
 FIX: Ports amended and the graphical/electrical flags modified as well.
 

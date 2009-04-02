@@ -1348,7 +1348,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
                         int index = node.getLogger().getLogIndex(el);
                         node.setLogNumber(index);
                     }
-					String msg = Job.getUserInterface().reportLog(el,true, null);
+					String msg = Job.getUserInterface().reportLog(el,true, null, -1);
 					System.out.println(msg);
 					return;
 				}
