@@ -63,7 +63,9 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ToolSettings;
+import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -889,15 +891,11 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** full description of this technology */				private String techDesc;
 	/** flags for this technology */						private int userBits;
 	/** true if "scale" is relevant to this technology */	private boolean scaleRelevant;
-	/** number of transparent layers in technology */		private int transparentLayers;
     /** Setting Group for this Technology */                private final Setting.RootGroup rootSettings;
     /** Setting Group for this Technology */                private final Setting.Group settings;
 	/** preferences group for this technology */            private final Pref.Group prefs;
-    /** User preferences group for this tecnology */        private final Pref.Group userPrefs;
     /** DRC preferences group for this tecnology */         private final Pref.Group drcPrefs;
     /** factory transparent colors for this technology */   private Color[] factoryTransparentColors = {};
-	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
-	/** the color map for this technology */				private Color [] colorMap;
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
 	/** map from layer names to layers in this technology */private final HashMap<String,Layer> layersByName = new HashMap<String,Layer>();
     /** array of layers by layerId.chronIndex */            private Layer[] layersByChronIndex = {};
@@ -1006,7 +1004,6 @@ public class Technology implements Comparable<Technology>, Serializable
         rootSettings = new Setting.RootGroup();
         settings = rootSettings.node(getTechName());
 		prefs = Pref.groupForPackage("technology/technologies", true);
-        userPrefs = Pref.groupForPackage("tool/user", true);
         drcPrefs = Pref.groupForPackage("tool/drc", true);
         cacheFoundry = makeStringSetting("SelectedFoundryFor"+getTechName(),
         	"Technology tab", getTechName() + " foundry", "Foundry", defaultFoundry.getName());
@@ -1641,9 +1638,9 @@ public class Technology implements Comparable<Technology>, Serializable
         printlnSetting(out, settings, getDiffAlphaSetting());
 
         printlnPref(out, 0, prefResolution);
-        assert getNumTransparentLayers() == (transparentColorPrefs != null ? transparentColorPrefs.length : 0);
-        for (int i = 0; i < getNumTransparentLayers(); i++)
-            out.println("TRANSPARENT_" + (i+1) + "=" + Integer.toHexString(transparentColorPrefs[i].getIntFactoryValue()));
+        Color[] transparentLayers = getFactoryTransparentLayerColors();
+        for (int i = 0; i < transparentLayers.length; i++)
+            out.println("TRANSPARENT_" + (i+1) + "=" + Integer.toHexString(transparentLayers[i].getRGB()));
 
         for (Layer layer: layers) {
             if (layer.isPseudoLayer()) continue;
@@ -4277,15 +4274,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * the technologies (they are all in the same package).
 	 * @return the Pref object associated with all Technologies.
 	 */
-	Pref.Group getTechnologyUserPreferences() { return userPrefs; }
-
-	/**
-	 * Method to return the Pref group associated with this Technology.
-	 * The Pref group is used to save option information.
-	 * Since preferences are organized by package, there is only one for
-	 * the technologies (they are all in the same package).
-	 * @return the Pref object associated with all Technologies.
-	 */
 	Pref.Group getTechnologyDRCPreferences() { return drcPrefs; }
 
 	/**
@@ -4296,13 +4284,12 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * @return the Pref object associated with all Technologies.
 	 */
 	public Pref.Group[] getTechnologyAllPreferences() {
-        return new Pref.Group[] {prefs, userPrefs, drcPrefs};
+        return new Pref.Group[] {prefs, drcPrefs};
     }
 
     public void loadFromPreferences() {
         for (Pref.Group group: getTechnologyAllPreferences())
             group.setCachedObjsFromPreferences();
-        cacheTransparentLayerColors();
     }
 
 	/**
@@ -4934,15 +4921,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	protected void setFactoryTransparentLayers(Color [] layers)
 	{
         factoryTransparentColors = layers;
-		// pull these values from preferences
-		transparentLayers = layers.length;
-		transparentColorPrefs = new Pref[transparentLayers];
-		for(int i=0; i<layers.length; i++)
-		{
-			transparentColorPrefs[i] = Pref.makeIntPref("TransparentLayer"+(i+1)+"For"+getTechName(), prefs, layers[i].getRGB());
-			layers[i] = new Color(transparentColorPrefs[i].getIntFactoryValue());
-		}
-		setColorMap(getColorMap(layers, transparentLayers));
 	}
 
 	/**
@@ -4960,33 +4938,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public Color [] getTransparentLayerColors()
 	{
-		Color [] colors = new Color[transparentLayers];
-		for(int i=0; i<transparentLayers; i++)
-		{
-			colors[i] = new Color(transparentColorPrefs[i].getInt());
-		}
-		return colors;
-	}
-
-	/**
-	 * Method to reload the color map when the layer color preferences have changed.
-	 */
-	private void cacheTransparentLayerColors()
-	{
-        // recache technology color information
-        for(Iterator<Layer> lIt = getLayers(); lIt.hasNext(); )
-        {
-            Layer layer = lIt.next();
-            layer.loadGraphicsFromPrefs();
-        }
-
-        if (transparentColorPrefs == null || transparentColorPrefs.length <= 0) return;
-        Color [] layers = new Color[transparentColorPrefs.length];
-        for(int i=0; i<transparentColorPrefs.length; i++)
-        {
-            layers[i] = new Color(transparentColorPrefs[i].getInt());
-        }
-        setColorMapFromLayers(layers);
+        return UserInterfaceMain.getGraphicsPreferences().getTransparentLayerColors(this);
 	}
 
 	/**
@@ -4997,23 +4949,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * There may be 0 transparent layers in technologies that don't do overlapping,
 	 * such as Schematics.
 	 */
-	public int getNumTransparentLayers() { return transparentLayers; }
-
-	/**
-	 * Sets the number of transparent layers in this technology.
-	 * @param nl the number of transparent layers in this technology.
-	 */
-	public void setNumTransparentLayers(int nl) { transparentLayers = nl; }
-
-	/**
-	 * Sets the color map for transparent layers in this technology.
-	 * @param map the color map for transparent layers in this technology.
-	 * There must be a number of entries in this map equal to 2 to the power "getNumTransparentLayers()".
-	 */
-	public void setColorMap(Color [] map)
-	{
-		colorMap = map;
-	}
+	public int getNumTransparentLayers() { return UserInterfaceMain.getGraphicsPreferences().getNumTransparentLayers(this); }
 
 	/**
 	 * Sets the color map from transparent layers in this technology.
@@ -5023,81 +4959,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public void setColorMapFromLayers(Color [] layers)
 	{
-		// update preferences
-		if (transparentColorPrefs != null)
-		{
-			for(int i=0; i<layers.length; i++)
-			{
-				Pref pref = transparentColorPrefs[i];
-                if (layers[i] != null)
-				    pref.setInt(layers[i].getRGB());
-			}
-		}
-		Color [] map = getColorMap(layers, transparentLayers);
-		setColorMap(map);
-	}
-
-	public static Color [] getColorMap(Color [] layers, int numLayers)
-	{
-		int numEntries = 1 << numLayers;
-		Color [] map = new Color[numEntries];
-		for(int i=0; i<numEntries; i++)
-		{
-			int r=200, g=200, b=200;
-			boolean hasPrevious = false;
-			for(int j=0; j<numLayers; j++)
-			{
-				if ((i & (1<<j)) == 0) continue;
-				if (hasPrevious)
-				{
-					// get the previous color
-					double [] lastColor = new double[3];
-					lastColor[0] = r / 255.0;
-					lastColor[1] = g / 255.0;
-					lastColor[2] = b / 255.0;
-					normalizeColor(lastColor);
-
-					// get the current color
-					double [] curColor = new double[3];
-					curColor[0] = layers[j].getRed() / 255.0;
-					curColor[1] = layers[j].getGreen() / 255.0;
-					curColor[2] = layers[j].getBlue() / 255.0;
-					normalizeColor(curColor);
-
-					// combine them
-					for(int k=0; k<3; k++) curColor[k] += lastColor[k];
-					normalizeColor(curColor);
-					r = (int)(curColor[0] * 255.0);
-					g = (int)(curColor[1] * 255.0);
-					b = (int)(curColor[2] * 255.0);
-				} else
-				{
-					r = layers[j].getRed();
-					g = layers[j].getGreen();
-					b = layers[j].getBlue();
-					hasPrevious = true;
-				}
-			}
-			map[i] = new Color(r, g, b);
-		}
-		return map;
-	}
-
-	/**
-	 * Method to normalize a color stored in a 3-long array.
-	 * @param a the array of 3 doubles that holds the color.
-	 * All values range from 0 to 1.
-	 * The values are adjusted so that they are normalized.
-	 */
-	private static void normalizeColor(double [] a)
-	{
-		double mag = Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
-		if (mag > 1.0e-11f)
-		{
-			a[0] /= mag;
-			a[1] /= mag;
-			a[2] /= mag;
-		}
+        UserInterfaceMain.setGraphicsPreferences(UserInterfaceMain.getGraphicsPreferences().withTransparentLayerColors(this, layers));
 	}
 
 	/**
@@ -5182,7 +5044,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * @return the color map for transparent layers in this technology.
 	 * The number of entries in this map equals 2 to the power "getNumTransparentLayers()".
 	 */
-	public Color [] getColorMap() { return colorMap; }
+	public Color [] getColorMap() { return UserInterfaceMain.getGraphicsPreferences().getColorMap(this); }
 
 	/**
 	 * Method to determine whether a new technology with the given name would be legal.

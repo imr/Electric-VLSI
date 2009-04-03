@@ -1545,7 +1545,7 @@ public class EditWindow extends JPanel
 		protected RenderJob()
 		{
 			super("Display", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
-            gp = GraphicsPreferences.getGraphicsPreferences();
+            gp = UserInterfaceMain.getGraphicsPreferences();
 		}
 
 		public boolean doIt() throws JobException {
@@ -3737,6 +3737,7 @@ public class EditWindow extends JPanel
 	{
 		if (getCell() == null) return null;
 
+        GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
 		int scaleFactor = ep.getDesiredDPI() / 72;
 		if (scaleFactor > 2) scaleFactor = 2; else
 			if (scaleFactor <= 0) scaleFactor = 1;
@@ -3783,7 +3784,7 @@ public class EditWindow extends JPanel
 			double scale = Math.min(scalex, scaley);
 			EPoint offset = new EPoint(cellBounds.getCenterX(), cellBounds.getCenterY());
 
-			offscreen.printImage(scale, offset, getCell(), getVarContext());
+			offscreen.printImage(scale, offset, getCell(), getVarContext(), gp);
 			img = offscreen.getBufferedImage();
 			ep.setBufferedImage(img);
 

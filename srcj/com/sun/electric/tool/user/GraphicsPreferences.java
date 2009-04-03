@@ -33,7 +33,6 @@ import com.sun.electric.technology.Technology;
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.prefs.Preferences;
-import javax.swing.SwingUtilities;
 
 /**
  *
@@ -52,9 +51,7 @@ public class GraphicsPreferences extends PrefPackage {
     private static final String KEY_TRANSPARENCY_MODE = "3DTransparencyMode";
     private static final String KEY_TRANSPARENCY_FACTOR = "3DTransparencyFactor";
 
-    private static final int RGB_MASK = 0xFFFFFF;
-
-    private static GraphicsPreferences stdGraphicsPreferences;
+    public static final int RGB_MASK = 0xFFFFFF;
 
     private final TechPool techPool;
     private final Color[] defaultColors;
@@ -71,8 +68,8 @@ public class GraphicsPreferences extends PrefPackage {
             assert techPool.getTech(tech.getId()) == tech;
             transparentColors = tech.getFactoryTransparentLayerColors();
             for (int i = 0; i < transparentColors.length; i++) {
-                String key = getKey(KEY_TRANSPARENT_COLOR + (i+1), tech.getId());
-                int factoryRgb = transparentColors[i].getRGB() & RGB_MASK;
+                String key = getKey(KEY_TRANSPARENT_COLOR + (i+1) + "For", tech.getId());
+                int factoryRgb = transparentColors[i].getRGB();
                 int rgb = techPrefs.getInt(key, factoryRgb);
                 if (rgb == factoryRgb) continue;
                 transparentColors[i] = new Color(rgb);
@@ -164,9 +161,9 @@ public class GraphicsPreferences extends PrefPackage {
             if (oldTd == null || transparentColors != oldTd.transparentColors) {
                 Color[] factoryColors = tech.getFactoryTransparentLayerColors();
                 for (int i = 0; i < factoryColors.length; i++) {
-                    String key = getKey(KEY_TRANSPARENT_COLOR + (i+1), tech.getId());
-                    int factoryRgb = factoryColors[i].getRGB() & RGB_MASK;
-                    int rgb = transparentColors[i].getRGB() & RGB_MASK;
+                    String key = getKey(KEY_TRANSPARENT_COLOR + (i+1) + "For", tech.getId());
+                    int factoryRgb = factoryColors[i].getRGB();
+                    int rgb = transparentColors[i].getRGB();
                     if (removeDefaults && rgb == factoryRgb)
                         techPrefs.remove(key);
                     else
@@ -199,6 +196,12 @@ public class GraphicsPreferences extends PrefPackage {
                         techPrefs.remove(keyOutline);
                     else
                         techPrefs.putInt(keyOutline, graphics.getOutlined().getIndex());
+
+                    String keyTransparent = getKey(KEY_TRANSPARENT, layerId);
+                    if (removeDefaults && graphics.getTransparentLayer() == factoryGraphics.getTransparentLayer())
+                        techPrefs.remove(keyTransparent);
+                    else
+                        techPrefs.putInt(keyTransparent, graphics.getTransparentLayer());
 
                     String keyColor = getKey(KEY_COLOR, layerId);
                     if (removeDefaults && graphics.getColor().equals(factoryGraphics.getColor()))
@@ -367,7 +370,7 @@ public class GraphicsPreferences extends PrefPackage {
         for (int i = 0; i < colorPrefTypes.length; i++) {
             User.ColorPrefType e = colorPrefTypes[i];
             Color factoryColor = e.getFactoryDefaultColor();
-            int factoryRgb = factoryColor.getRGB() & RGB_MASK;
+            int factoryRgb = factoryColor.getRGB();
             int rgb = userPrefs.getInt(e.getPrefKey(), factoryRgb);
             Color color = rgb == factoryRgb ? factoryColor : new Color(rgb);
             defaultColors[i] = color;
@@ -401,7 +404,7 @@ public class GraphicsPreferences extends PrefPackage {
                 if (removeDefaults && defaultColors[i].equals(t.getFactoryDefaultColor()))
                     userPrefs.remove(t.getPrefKey());
                 else
-                    userPrefs.putInt(t.getPrefKey(), defaultColors[i].getRGB() & 0xFFFFFF);
+                    userPrefs.putInt(t.getPrefKey(), defaultColors[i].getRGB());
             }
         }
     }
@@ -486,16 +489,6 @@ public class GraphicsPreferences extends PrefPackage {
 
     @Override
     public int hashCode() { return 0; }
-
-    public static GraphicsPreferences getGraphicsPreferences() {
-        assert SwingUtilities.isEventDispatchThread();
-        return stdGraphicsPreferences;
-    }
-
-    public static void setGraphicsPreferences(GraphicsPreferences gp) {
-        assert SwingUtilities.isEventDispatchThread();
-        stdGraphicsPreferences = gp;
-    }
 
     private GraphicsPreferences withTechData(TechData td) {
         int techIndex = td.tech.getId().techIndex;

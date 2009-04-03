@@ -101,6 +101,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 //    private static final EventListenerList undoRedoListenerList = new EventListenerList();
     private static EventListenerList listenerList = new EventListenerList();
     private static Snapshot currentSnapshot = IdManager.stdIdManager.getInitialSnapshot();
+    private static GraphicsPreferences currentGraphicsPreferences = null;
 //    private static EDatabase database = EDatabase.clientDatabase();
 	/** The progress during input. */						protected static Progress progress = null;
 
@@ -175,6 +176,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             assert SwingUtilities.isEventDispatchThread();
             Pref.setClientThread(Thread.currentThread());
             EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, null));
+            currentGraphicsPreferences = new GraphicsPreferences(true, new TechPool(IdManager.stdIdManager));
             // see if there is a Mac OS/X interface
             if (Client.isOSMac()) {
                 try {
@@ -691,6 +693,8 @@ public class UserInterfaceMain extends AbstractUserInterface
             tech.loadFromPreferences();
         EditingPreferences ep = new EditingPreferences(false, techPool);
         EditingPreferences.setThreadEditingPreferences(ep);
+        lastSavedEp = ep;
+        currentGraphicsPreferences = new GraphicsPreferences(false, techPool);
         LayerVisibility.setTechPool(techPool);
     }
 
@@ -709,6 +713,20 @@ public class UserInterfaceMain extends AbstractUserInterface
         newEp.putPrefs(Pref.getPrefRoot(), true, lastSavedEp);
         lastSavedEp = newEp;
         Pref.resumePrefFlushing();
+    }
+
+    public static GraphicsPreferences getGraphicsPreferences() {
+//        assert SwingUtilities.isEventDispatchThread();
+        return currentGraphicsPreferences;
+    }
+
+    public static void setGraphicsPreferences(GraphicsPreferences gp) {
+//        assert SwingUtilities.isEventDispatchThread();
+        if (gp.equals(currentGraphicsPreferences)) return;
+        Pref.delayPrefFlushing();
+        gp.putPrefs(Pref.getPrefRoot(), true, currentGraphicsPreferences);
+        Pref.resumePrefFlushing();
+        currentGraphicsPreferences = gp;
     }
 
     private int lastId = 0;

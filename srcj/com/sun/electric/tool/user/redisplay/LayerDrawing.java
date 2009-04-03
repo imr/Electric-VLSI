@@ -46,6 +46,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -272,7 +273,6 @@ class LayerDrawing
     /** list of render text. */                             private final ArrayList<RenderTextInfo> renderTextList = new ArrayList<RenderTextInfo>();
     /** list of greek text. */                              private final ArrayList<GreekTextInfo> greekTextList = new ArrayList<GreekTextInfo>();
     /** list of cross text. */                              private final ArrayList<CrossTextInfo> crossTextList = new ArrayList<CrossTextInfo>();
-    /** cache of port colors */                             private HashMap<PrimitivePort,Color> portColorsCache = new HashMap<PrimitivePort,Color>();
 
 	// the transparent bitmaps
 	/** the number of ints per row in offscreen maps */     private final int numIntsPerRow;
@@ -296,10 +296,11 @@ class LayerDrawing
 	/** scale of cell expansions. */						private static double expandedScale = 0;
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
-    private static Color textColor;
-	private static EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
-		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static EGraphics gridGraphics = instanceGraphics;
+
+    // Color things only at top offscreen
+    private GraphicsPreferences gp;
+    private Color textColor;
+    /** cache of port colors */                             private HashMap<PrimitivePort,Color> portColorsCache;
 
     private int clipLX, clipHX, clipLY, clipHY;
     private final int width;
@@ -363,6 +364,7 @@ class LayerDrawing
         @Override
         public boolean paintComponent(Graphics2D g, LayerVisibility lv, Dimension sz) {
             assert SwingUtilities.isEventDispatchThread();
+            GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
             assert sz.equals(wnd.getSize());
             DrawingData drawingData = this.drawingData;
             if (drawingData == null || !drawingData.offscreen.getSize().equals(sz))
@@ -388,14 +390,14 @@ class LayerDrawing
                 int returnCode = vImg.validate(wnd.getGraphicsConfiguration());
                 if (returnCode == VolatileImage.IMAGE_RESTORED) {
                     // Contents need to be restored
-                    renderOffscreen(lv, drawingData);	    // restore contents
+                    renderOffscreen(gp, lv, drawingData);	    // restore contents
                 } else if (returnCode == VolatileImage.IMAGE_INCOMPATIBLE) {
                     // old vImg doesn't work with new GraphicsConfig; re-create it
                     vImg.flush();
                     vImg = wnd.createVolatileImage(sz.width, sz.height);
-                    renderOffscreen(lv, drawingData);
+                    renderOffscreen(gp, lv, drawingData);
                 } else if (needComposite) {
-                    renderOffscreen(lv, drawingData);
+                    renderOffscreen(gp, lv, drawingData);
                 }
                 g.drawImage(vImg, 0, 0, wnd);
             } while (vImg.contentsLost());
@@ -406,7 +408,7 @@ class LayerDrawing
         /**
          * This method is called from AWT thread.
          */
-        private void renderOffscreen(LayerVisibility lv, DrawingData dd) {
+        private void renderOffscreen(GraphicsPreferences gp, LayerVisibility lv, DrawingData dd) {
             needComposite = false;
             do {
                 if (vImg.validate(wnd.getGraphicsConfiguration()) == VolatileImage.IMAGE_INCOMPATIBLE) {
@@ -425,9 +427,9 @@ class LayerDrawing
                 }
 
                 if (User.isLegacyComposite())
-                    legacyLayerComposite(g, lv, dd);
+                    legacyLayerComposite(g, gp, lv, dd);
                 else
-                    layerComposite(g, lv, dd);
+                    layerComposite(g, gp, lv, dd);
 //                if (alphaBlendingComposite) {
 //                    boolean TRY_OVERBLEND = false;
 //                    if (TRY_OVERBLEND) {
@@ -474,11 +476,11 @@ class LayerDrawing
         @Override
         public boolean hasOpacity() { return !User.isLegacyComposite(); }
 
-        private void layerComposite(Graphics2D g, LayerVisibility lv, DrawingData dd) {
+        private void layerComposite(Graphics2D g, GraphicsPreferences gp, LayerVisibility lv, DrawingData dd) {
             Map<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
             for (Map.Entry<Layer,TransparentRaster> e: dd.layerRasters.entrySet())
                 layerBits.put(e.getKey(), e.getValue().layerBitMap);
-            List<AbstractDrawing.LayerColor> blendingOrder = getBlendingOrder(layerBits.keySet(), lv, dd.patternedDisplay, alphaBlendingOvercolor);
+            List<AbstractDrawing.LayerColor> blendingOrder = getBlendingOrder(layerBits.keySet(), gp, lv, dd.patternedDisplay, alphaBlendingOvercolor);
             if (TAKE_STATS) {
                 System.out.print("BlendingOrder:");
                 for (AbstractDrawing.LayerColor lc: blendingOrder) {
@@ -497,14 +499,14 @@ class LayerDrawing
                 bits.add(b);
             }
             if (dd.instanceRaster != null) {
-                colors.add(new AbstractDrawing.LayerColor(instanceGraphics.getColor()));
+                colors.add(new AbstractDrawing.LayerColor(gp.getColor(User.ColorPrefType.INSTANCE)));
                 bits.add(dd.instanceRaster.layerBitMap);
             }
             if (dd.gridRaster != null) {
-                colors.add(new AbstractDrawing.LayerColor(gridGraphics.getColor()));
+                colors.add(new AbstractDrawing.LayerColor(gp.getColor(User.ColorPrefType.GRID)));
                 bits.add(dd.gridRaster.layerBitMap);
             }
-            alphaBlender.init(new Color(User.getColor(User.ColorPrefType.BACKGROUND)), colors, bits);
+            alphaBlender.init(gp.getColor(User.ColorPrefType.BACKGROUND), colors, bits);
 
             int width = dd.width;
             int height = dd.height, clipLY = 0, clipHY = height - 1;
@@ -529,13 +531,13 @@ class LayerDrawing
          * This is called after all rendering is done.
          * @return the offscreen Image with the final display.
          */
-        private void legacyLayerComposite(Graphics2D g, LayerVisibility lv, DrawingData dd) {
-            getBlendingOrder(dd.layerRasters.keySet(), lv, false, false);
+        private void legacyLayerComposite(Graphics2D g, GraphicsPreferences gp, LayerVisibility lv, DrawingData dd) {
+            getBlendingOrder(dd.layerRasters.keySet(), gp, lv, false, false);
 
             Technology curTech = Technology.getCurrent();
             if (curTech == null) {
                 for (Layer layer: dd.layerRasters.keySet()) {
-                    int transparentDepth = layer.getGraphics().getTransparentLayer();
+                    int transparentDepth = gp.getGraphics(layer).getTransparentLayer();
                     if (transparentDepth != 0 && layer.getTechnology() != null)
                         curTech = layer.getTechnology();
                 }
@@ -544,14 +546,14 @@ class LayerDrawing
                 curTech = Generic.tech();
 
             // get the technology's color map
-            Color [] colorMap = curTech.getColorMap();
+            Color [] colorMap = gp.getColorMap(curTech);
 
             // adjust the colors if any of the transparent layers are dimmed
             boolean dimmedTransparentLayers = false;
             for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
                 Layer layer = it.next();
                 if (!highlightingLayers || lv.isHighlighted(layer)) continue;
-                if (layer.getGraphics().getTransparentLayer() == 0) continue;
+                if (gp.getGraphics(layer).getTransparentLayer() == 0) continue;
                 dimmedTransparentLayers = true;
                 break;
             }
@@ -563,7 +565,7 @@ class LayerDrawing
                 for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
                     Layer layer = it.next();
                     if (!lv.isHighlighted(layer)) continue;
-                    int tIndex = layer.getGraphics().getTransparentLayer();
+                    int tIndex = gp.getGraphics(layer).getTransparentLayer();
                     if (tIndex == 0) continue;
                     dimLayer[tIndex-1] = false;
                 }
@@ -593,7 +595,7 @@ class LayerDrawing
             int deepestTransparentDepth = 0;
             for (Layer layer: dd.layerRasters.keySet()) {
                 if (!lv.isVisible(layer)) continue;
-                if (layer.getGraphics().getTransparentLayer() == 0) {
+                if (gp.getGraphics(layer).getTransparentLayer() == 0) {
                     numOpaque++;
                 } else {
                     numTransparent++;
@@ -609,19 +611,19 @@ class LayerDrawing
                 Layer layer = e.getKey();
                 if (!lv.isVisible(layer)) continue;
                 TransparentRaster raster = e.getValue();
-                int transparentNum = layer.getGraphics().getTransparentLayer();
+                int transparentNum = gp.getGraphics(layer).getTransparentLayer();
                 if (transparentNum != 0) {
                     transparentMasks[numTransparent] = (1 << (transparentNum - 1)) & (colorMap.length - 1);
                     transparentRasters[numTransparent++] = raster;
                 } else {
-                    opaqueCols[numOpaque] = getTheColor(layer.getGraphics(), !lv.isHighlighted(layer));
+                    opaqueCols[numOpaque] = getTheColor(gp.getGraphics(layer), !lv.isHighlighted(layer));
                     opaqueRasters[numOpaque++] = raster;
                 }
             }
 
             // determine range
             int numIntsPerRow = dd.numIntsPerRow;
-            int backgroundColor = User.getColor(User.ColorPrefType.BACKGROUND) & 0xFFFFFF;
+            int backgroundColor = gp.getColor(User.ColorPrefType.BACKGROUND).getRGB() & GraphicsPreferences.RGB_MASK;
             int lx = 0, hx = dd.width-1;
             int ly = 0, hy = dd.height-1;
 
@@ -785,18 +787,18 @@ class LayerDrawing
          * @param layersAvailable layers available in this EditWindow
          * @return alpha blending order.
          */
-        private List<AbstractDrawing.LayerColor> getBlendingOrder(Set<Layer> layersAvailable, LayerVisibility lv, boolean patternedDisplay, boolean alphaBlendingOvercolor) {
+        private List<AbstractDrawing.LayerColor> getBlendingOrder(Set<Layer> layersAvailable, GraphicsPreferences gp, LayerVisibility lv, boolean patternedDisplay, boolean alphaBlendingOvercolor) {
             List<AbstractDrawing.LayerColor> layerColors = new ArrayList<AbstractDrawing.LayerColor>();
             List<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
             Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT_LIFT_CONTACTS);
-            float[] backgroundComps = (new Color(User.getColor(User.ColorPrefType.BACKGROUND))).getRGBColorComponents(null);
+            float[] backgroundComps = gp.getColor(User.ColorPrefType.BACKGROUND).getRGBColorComponents(null);
             float bRed = backgroundComps[0];
             float bGreen = backgroundComps[1];
             float bBlue = backgroundComps[2];
             for(Layer layer : sortedLayers) {
                 if (!lv.isVisible(layer)) continue;
                 if (layer == Generic.tech().glyphLay && !patternedDisplay) continue;
-                Color color = new Color(layer.getGraphics().getRGB());
+                Color color = gp.getGraphics(layer).getColor();
                 float[] compArray = color.getRGBComponents(null);
                 float red = compArray[0];
                 float green = compArray[1];
@@ -833,6 +835,9 @@ class LayerDrawing
             if (offscreen == null)
                 offscreen = new LayerDrawing(sz);
             this.da = da;
+            offscreen.gp = gp;
+            offscreen.textColor = gp.getColor(User.ColorPrefType.TEXT);
+            offscreen.portColorsCache = new HashMap<PrimitivePort,Color>();
 //            updateScaleAndOffset();
 
             offscreen.drawImage(this, fullInstantiate, bounds);
@@ -1045,15 +1050,16 @@ class LayerDrawing
 //        }
     }
 
-    static void drawTechPalette(Graphics2D g, int imgX, int imgY, Rectangle entrySize, double scale, VectorCache.VectorBase[] shapes) {
+    static void drawTechPalette(Graphics2D g, GraphicsPreferences gp, int imgX, int imgY, Rectangle entrySize, double scale, VectorCache.VectorBase[] shapes) {
+
         BufferedImage smallImg = new BufferedImage(entrySize.width, Drawing.SMALL_IMG_HEIGHT, BufferedImage.TYPE_INT_RGB);
         DataBufferInt smallDbi = (DataBufferInt)smallImg.getRaster().getDataBuffer();
         int[] smallOpaqueData = smallDbi.getData();
 
         LayerDrawing offscreen = new LayerDrawing(new Dimension(entrySize.width, entrySize.height));
-
+        offscreen.gp = gp;
 		// set colors to use
-        textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
+        offscreen.textColor = gp.getColor(User.ColorPrefType.TEXT);
 
 		// initialize the cache of expanded cell displays
 //        varContext = wnd.getVarContext();
@@ -1087,7 +1093,7 @@ class LayerDrawing
         Map<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
         for (Map.Entry<Layer,TransparentRaster> e: offscreen.layerRasters.entrySet())
             layerBits.put(e.getKey(), e.getValue().layerBitMap);
-        List<AbstractDrawing.LayerColor> blendingOrder = getBlendingOrderForTechPalette(layerBits.keySet());
+        List<AbstractDrawing.LayerColor> blendingOrder = getBlendingOrderForTechPalette(gp, layerBits.keySet());
         if (TAKE_STATS) {
             System.out.print("BlendingOrder:");
             for (AbstractDrawing.LayerColor lc: blendingOrder) {
@@ -1105,7 +1111,7 @@ class LayerDrawing
             colors.add(layerColor);
             bits.add(b);
         }
-        alphaBlender.init(new Color(User.getColor(User.ColorPrefType.BACKGROUND)), colors, bits);
+        alphaBlender.init(gp.getColor(User.ColorPrefType.BACKGROUND), colors, bits);
 
         int width = offscreen.sz.width;
         int height = offscreen.sz.height, clipLY = 0, clipHY = height - 1;
@@ -1137,17 +1143,17 @@ class LayerDrawing
 //        renderText = offscreen.renderTextList.toArray(new RenderTextInfo[offscreen.renderTextList.size()]);
     }
 
-    private static List<AbstractDrawing.LayerColor> getBlendingOrderForTechPalette(Set<Layer> layersAvailable) {
+    private static List<AbstractDrawing.LayerColor> getBlendingOrderForTechPalette(GraphicsPreferences gp, Set<Layer> layersAvailable) {
         boolean alphaBlendingOvercolor = true;
         ArrayList<AbstractDrawing.LayerColor> layerColors = new ArrayList<AbstractDrawing.LayerColor>();
         ArrayList<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
         Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT_LIFT_CONTACTS);
-        float[] backgroundComps = (new Color(User.getColor(User.ColorPrefType.BACKGROUND))).getRGBColorComponents(null);
+        float[] backgroundComps = gp.getColor(User.ColorPrefType.BACKGROUND).getRGBColorComponents(null);
         float bRed = backgroundComps[0];
         float bGreen = backgroundComps[1];
         float bBlue = backgroundComps[2];
         for(Layer layer : sortedLayers) {
-            Color color = new Color(layer.getGraphics().getRGB());
+            Color color = gp.getGraphics(layer).getColor();
             float[] compArray = color.getRGBComponents(null);
             float red = compArray[0];
             float green = compArray[1];
@@ -1280,12 +1286,6 @@ class LayerDrawing
             }
         }
 		inPlaceCurrent = wnd.getCell();
-
-		// set colors to use
-        textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
-		instanceGraphics = instanceGraphics.withColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
-        gridGraphics = gridGraphics.withColor(new Color(User.getColor(User.ColorPrefType.GRID)));
-        portColorsCache.clear();
 
 		// initialize the cache of expanded cell displays
 		if (expandedScale != drawing.da.scale)
@@ -1883,7 +1883,7 @@ class LayerDrawing
 		// copy the patterned opaque layers
         for(Map.Entry<Layer,TransparentRaster> e : srcOffscreen.layerRasters.entrySet()) {
             Layer layer = e.getKey();
-            ERaster raster = getRaster(layer, layer.getGraphics(), false);
+            ERaster raster = getRaster(layer, null, false);
             if (raster == null) continue;
             TransparentRaster polSrc = e.getValue();
             raster.copyBits(polSrc, minSrcX, maxSrcX, minSrcY, maxSrcY, cornerX, cornerY);
@@ -1991,27 +1991,27 @@ class LayerDrawing
     }
 
     ERaster getRaster(Layer layer, EGraphics graphics, boolean forceVisible) {
-        if (layer != null)
-            layer = layer.getNonPseudoLayer();
-        if (layer == null) {
+        if (layer == null)
             layer = Artwork.tech().defaultLayer;
-            graphics = layer.getGraphics();
-        }
+        assert !layer.isPseudoLayer();
         TransparentRaster raster = layerRasters.get(layer);
         if (raster == null) {
             raster = new TransparentRaster(sz.height, numIntsPerRow);
             layerRasters.put(layer, raster);
         }
-        int [] pattern = null;
-//        if (graphics == null) graphics = layer.getGraphics();
-        if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
-            pattern = graphics.getReversedPattern();
-        if (pattern != null && patternedDisplay && renderedWindow) {
-            EGraphics.Outline o = graphics.getOutlined();
-            if (o == EGraphics.Outline.NOPAT)
-                o = null;
-            currentPatternedTransparentRaster.init(raster.layerBitMap, raster.intsPerRow, pattern, o);
-            raster = currentPatternedTransparentRaster;
+        if (patternedDisplay && renderedWindow) {
+            int [] pattern = null;
+            if (graphics == null && layer != null)
+                graphics = gp.getGraphics(layer);
+            if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
+                pattern = graphics.getReversedPattern();
+            if (pattern != null) {
+                EGraphics.Outline o = graphics.getOutlined();
+                if (o == EGraphics.Outline.NOPAT)
+                    o = null;
+                currentPatternedTransparentRaster.init(raster.layerBitMap, raster.intsPerRow, pattern, o);
+                raster = currentPatternedTransparentRaster;
+            }
         }
         return raster;
     }
@@ -2616,7 +2616,7 @@ class LayerDrawing
 
                 Color color = textColor;
                 if (vt.layer != null)
-                    color = vt.layer.getGraphics().getColor();
+                    color = gp.getGraphics(vt.layer).getColor();
                 PrimitiveNode baseNode = null;
                 if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.basePort != null) {
                     baseNode = vt.basePort.getParent();
@@ -2640,10 +2640,7 @@ class LayerDrawing
                 continue;
             }
 
-            EGraphics graphics = vb.graphicsOverride;
-            if (graphics == null && vb.layer != null)
-                graphics = vb.layer.getGraphics();
-            ERaster raster = getRaster(vb.layer, graphics, false);
+            ERaster raster = getRaster(vb.layer, vb.graphicsOverride, false);
             if (raster == null) continue;
 
             // handle each shape
@@ -2759,7 +2756,7 @@ class LayerDrawing
                 PrimitivePort basePort = vce.getBasePort();
                 portColor = portColorsCache.get(basePort);
                 if (portColor == null) {
-                    portColor = basePort.getPortColor();
+                    portColor = basePort.getPortColor(gp);
                     portColorsCache.put(basePort, portColor);
                 }
             }

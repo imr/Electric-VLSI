@@ -304,6 +304,7 @@ public class PixelDrawing
 	/** scale of cell expansions. */						private static double expandedScale = 0;
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
+    static GraphicsPreferences gp;
     static LayerVisibility lv;
 	static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
@@ -343,6 +344,7 @@ public class PixelDrawing
 
         @Override
         public void render(Dimension sz, WindowFrame.DisplayAttributes da, GraphicsPreferences gp, boolean fullInstantiate, Rectangle2D bounds) {
+            PixelDrawing.gp = gp;
             PixelDrawing offscreen_ = this.offscreen;
             if (offscreen_ == null || !offscreen_.getSize().equals(sz))
                     this.offscreen = offscreen_ = new PixelDrawing(sz);
@@ -491,9 +493,9 @@ public class PixelDrawing
         drawBounds = new Rectangle2D.Double(drawing.da.offX - width/2, drawing.da.offY - height/2, width, height);
 
 		// set colors to use
-		textGraphics = textGraphics.withColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
-		gridGraphics = gridGraphics.withColor(new Color(User.getColor(User.ColorPrefType.GRID)));
-		instanceGraphics = instanceGraphics.withColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
+		textGraphics = textGraphics.withColor(gp.getColor(User.ColorPrefType.TEXT));
+		gridGraphics = gridGraphics.withColor(gp.getColor(User.ColorPrefType.GRID));
+		instanceGraphics = instanceGraphics.withColor(gp.getColor(User.ColorPrefType.INSTANCE));
         portGraphicsCache.clear();
 
 		// initialize the cache of expanded cell displays
@@ -599,16 +601,17 @@ public class PixelDrawing
 	 * It displays a cell in this offscreen window.
 	 * The rendered Image can then be obtained with "getImage()".
 	 */
-	public void printImage(double scale, Point2D offset, Cell cell, VarContext varContext)
+	public void printImage(double scale, Point2D offset, Cell cell, VarContext varContext, GraphicsPreferences gp)
 	{
+        this.gp = gp;
         clearSubCellCache();
         lastFullInstantiate = false;
         expandedScale = this.scale = scale;
 
 		// set colors to use
-		textGraphics = textGraphics.withColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
-		gridGraphics = gridGraphics.withColor(new Color(User.getColor(User.ColorPrefType.GRID)));
-		instanceGraphics = instanceGraphics.withColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
+		textGraphics = textGraphics.withColor(gp.getColor(User.ColorPrefType.TEXT));
+		gridGraphics = gridGraphics.withColor(gp.getColor(User.ColorPrefType.GRID));
+		instanceGraphics = instanceGraphics.withColor(gp.getColor(User.ColorPrefType.INSTANCE));
         portGraphicsCache.clear();
 
         if (wnd != null) varContext = wnd.getVarContext();
@@ -683,8 +686,8 @@ public class PixelDrawing
 	{
 		// pickup new technology if it changed
 		initForTechnology();
-		backgroundColor = User.getColor(User.ColorPrefType.BACKGROUND) & 0xFFFFFF;
-		backgroundValue = backgroundColor | 0xFF000000;
+        backgroundValue = gp.getColor(User.ColorPrefType.BACKGROUND).getRGB();
+		backgroundColor = backgroundValue & GraphicsPreferences.RGB_MASK;
 
 		// erase the transparent bitmaps
 		for(int i=0; i<numLayerBitMaps; i++)
@@ -749,7 +752,7 @@ public class PixelDrawing
 		if (numLayerBitMapsCreated > 0)
 		{
 			// get the technology's color map
-			Color [] colorMap = curTech.getColorMap();
+			Color [] colorMap = gp.getColorMap(curTech);
 
 			// adjust the colors if any of the transparent layers are dimmed
 			boolean dimmedTransparentLayers = false;
@@ -757,7 +760,7 @@ public class PixelDrawing
 			{
 				Layer layer = it.next();
 				if (!highlightingLayers || lv.isHighlighted(layer)) continue;
-				if (layer.getGraphics().getTransparentLayer() == 0) continue;
+				if (gp.getGraphics(layer).getTransparentLayer() == 0) continue;
 				dimmedTransparentLayers = true;
 				break;
 			}
@@ -771,7 +774,7 @@ public class PixelDrawing
 				{
 					Layer layer = it.next();
 					if (!lv.isHighlighted(layer)) continue;
-					int tIndex = layer.getGraphics().getTransparentLayer();
+					int tIndex = gp.getGraphics(layer).getTransparentLayer();
 					if (tIndex == 0) continue;
 					dimLayer[tIndex-1] = false;
 				}
@@ -963,7 +966,7 @@ public class PixelDrawing
 		// draw the grid
         Point2D.Double tmpPt = new Point2D.Double();
         AffineTransform outofCellTransform = da.getOutofCellTransform();
-		int col = User.getColor(User.ColorPrefType.GRID) & 0xFFFFFF;
+		int col = gp.getColor(User.ColorPrefType.GRID).getRGB() & GraphicsPreferences.RGB_MASK;
 		for(double i = y1; i > hY; i -= spacingY)
 		{
 			double boldValueY = i;
@@ -1054,7 +1057,7 @@ public class PixelDrawing
 		Technology tech = Technology.getCurrent();
 		if (tech == null) return;
 		if (tech == curTech) return;
-		int transLayers = tech.getNumTransparentLayers();
+		int transLayers = gp.getNumTransparentLayers(tech);
 		if (transLayers != 0)
 		{
 			techWithLayers = curTech = tech;
@@ -1062,7 +1065,7 @@ public class PixelDrawing
 		if (curTech == null) curTech = techWithLayers;
         if (curTech == null) return;
 
-		numLayerBitMaps = curTech.getNumTransparentLayers();
+		numLayerBitMaps = gp.getNumTransparentLayers(curTech);
 		layerBitMaps = new byte[numLayerBitMaps][][];
 		compositeRows = new byte[numLayerBitMaps][];
 		for(int i=0; i<numLayerBitMaps; i++) layerBitMaps[i] = null;
@@ -1465,7 +1468,7 @@ public class PixelDrawing
 			if (layer == null) continue;
 			byte [][] layerBitMap = null;
 			int col = 0;
-			EGraphics graphics = layer.getGraphics();
+			EGraphics graphics = gp.getGraphics(layer);
 			if (graphics != null)
 			{
 				if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
@@ -1501,7 +1504,7 @@ public class PixelDrawing
 		{
 			Layer layer = it.next();
 			if (layer == null) continue;
-			EGraphics graphics = layer.getGraphics();
+			EGraphics graphics = gp.getGraphics(layer);
 			byte [][] layerBitMap = null;
 			if (graphics != null)
 			{
@@ -1769,7 +1772,7 @@ public class PixelDrawing
 			if (renderedWindow)
 			{
 				// this is the top-level of display: convert patterned opaque to patterns
-				EGraphics desc = layer.getGraphics();
+				EGraphics desc = gp.getGraphics(layer);
 				int col = desc.getRGB();
 				int [] pattern = desc.getPattern();
 
@@ -1925,7 +1928,7 @@ public class PixelDrawing
 			Layer layer = poly.getLayer();
 			EGraphics graphics = poly.getGraphicsOverride();
             if (graphics == null && layer != null)
-                graphics = layer.getGraphics();
+                graphics = gp.getGraphics(layer);
 			boolean dimmed = false;
 			if (layer != null)
 			{
@@ -2170,7 +2173,7 @@ public class PixelDrawing
     EGraphics getPortGraphics(PrimitivePort basePort) {
         EGraphics portGraphics = portGraphicsCache.get(basePort);
         if (portGraphics == null) {
-            portGraphics = textGraphics.withColor(basePort.getPortColor());
+            portGraphics = textGraphics.withColor(basePort.getPortColor(gp));
             portGraphicsCache.put(basePort, portGraphics);
         }
         return portGraphics;
@@ -2893,7 +2896,7 @@ public class PixelDrawing
 		if (len == 0) return;
 
 		// get parameters
-		int col = User.getColor(User.ColorPrefType.TEXT) & 0xFFFFFF;
+		int col = gp.getColor(User.ColorPrefType.TEXT).getRGB() & GraphicsPreferences.RGB_MASK;
 		if (desc != null) col = getTheColor(desc, dimmed);
 
 		// get text description

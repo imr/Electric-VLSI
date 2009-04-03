@@ -50,9 +50,10 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
-
 import com.sun.electric.tool.user.ui.LayerVisibility;
+
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -127,6 +128,7 @@ public class PostScript extends Output
 		double printMargin = IOTool.getFactoryPrintMargin();
 		int printRotation = IOTool.getFactoryPrintRotation();
 		double printPSLineWidth = IOTool.getFactoryPrintPSLineWidth();
+        GraphicsPreferences gp = null; // TODO fix it
         Map<Layer,EGraphics> layerGraphics = new HashMap<Layer,EGraphics>();
         Set<Layer> invisibleLayers = new HashSet<Layer>();
 
@@ -890,7 +892,7 @@ public class PostScript extends Output
 			if (portPoly == null) continue;
 			portPoly.transform(trans);
 			Color portColor = col;
-			if (portColor == null) portColor = pp.getBasePort().getPortColor();
+			if (portColor == null) portColor = pp.getBasePort().getPortColor(localPrefs.gp);
 			setColor(portColor);
 			if (localPrefs.portDisplayLevel == 2)
 			{

@@ -760,9 +760,7 @@ public class User extends Listener
 				if (colors == null) continue;
 				if (colors != null)
 				{
-					Color [] map = Technology.getColorMap(colors, colors.length);
-					Artwork.tech().setColorMap(map);
-					Artwork.tech().setNumTransparentLayers(colors.length);
+					Artwork.tech().setColorMapFromLayers(colors);
 					break;
 				}
 			}
@@ -2419,24 +2417,7 @@ public class User extends Listener
 	 * @param pref special layer in question
 	 * @return color of the special layer
 	 */
-	public static int getColor(ColorPrefType pref) {return getColorInternal(pref, false);}
-
-	/**
-	 * Method to return either the color or factory color of a given special layer
-	 * @param pref
-	 * @param factory
-	 * @return
-	 */
-	private static int getColorInternal(ColorPrefType pref, boolean factory)
-	{
-		Pref pf = getColorPref(pref);
-		return (factory) ? pf.getIntFactoryValue() : pf.getInt();
-	}
-
-	public static Pref getColorPref(ColorPrefType pref)
-	{
-        return colorPrefs[pref.ordinal()];
-	}
+	public static int getColor(ColorPrefType pref) {return UserInterfaceMain.getGraphicsPreferences().getColor(pref).getRGB() & GraphicsPreferences.RGB_MASK;}
 
 	/**
 	 * Method to set the color of a given special layer
@@ -2468,8 +2449,7 @@ public class User extends Listener
 	 */
 	public static void setColor(ColorPrefType pref, int color)
 	{
-		Pref pf = getColorPref(pref);
-        pf.setInt(color);
+        UserInterfaceMain.setGraphicsPreferences(UserInterfaceMain.getGraphicsPreferences().withColor(pref, new Color(color)));
 	}
 
 	/**
@@ -2497,17 +2477,8 @@ public class User extends Listener
 	 */
 	public static void resetFactoryColor(ColorPrefType pref)
 	{
-		Pref pf = getColorPref(pref);
-        pf.factoryReset();
+        UserInterfaceMain.setGraphicsPreferences(UserInterfaceMain.getGraphicsPreferences().withColor(pref, pref.getFactoryDefaultColor()));
 	}
-
-    private static Pref[] colorPrefs;
-    static {
-        ColorPrefType[] types = ColorPrefType.values();
-        colorPrefs = new Pref[types.length];
-        for (ColorPrefType t: types)
-            colorPrefs[t.ordinal()] = Pref.makeIntPref(t.getPrefKey(), tool.prefs, t.getFactoryDefaultColor().getRGB() & 0xFFFFFF);
-    }
 
 	/****************************** UNITS PREFERENCES ******************************/
 

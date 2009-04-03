@@ -104,16 +104,17 @@ public abstract class AbstractDrawing {
 	/**
 	 * Method to draw polygon "poly", transformed through "trans".
 	 */
-    public static void drawShapes(Graphics2D g, int imgX, int imgY, double scale, VectorCache.VectorBase[] shapes,
+    public static void drawShapes(Graphics2D g, GraphicsPreferences gp, int imgX, int imgY, double scale, VectorCache.VectorBase[] shapes,
             PixelDrawing offscreen, Rectangle entryRect) {
         if (User.getDisplayAlgorithm() < 2 || User.isLegacyComposite()) {
+            PixelDrawing.gp = gp;
             offscreen.initDrawing(scale);
             VectorDrawing vd = new VectorDrawing();
             vd.render(offscreen, scale, EPoint.ORIGIN, shapes);
             Image img = offscreen.composite(null);
             g.drawImage(img, imgX, imgY, null);
         } else {
-            LayerDrawing.drawTechPalette(g, imgX, imgY, entryRect, scale, shapes);
+            LayerDrawing.drawTechPalette(g, gp, imgX, imgY, entryRect, scale, shapes);
         }
     }
 

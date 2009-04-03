@@ -34,6 +34,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.GraphicsPreferences;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -438,11 +439,12 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 	}
 
 	/**
-	 * Method to compute the color of this PrimitivePort.
+	 * Method to compute the color of this PrimitivePort in specified GraphicsPreferences.
 	 * Combines all arcs that can connect.
+     * @param gp specified GraphicsPreferences
 	 * @return the color to use for this PrimitivePort.
 	 */
-	public Color getPortColor()
+	public Color getPortColor(GraphicsPreferences gp)
 	{
 		Technology tech = getParent().getTechnology();
 		int numColors = 0;
@@ -456,7 +458,7 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 
 			// get the arc's color
 			Layer layer = ap.getLayer(0);
-			EGraphics graphics = layer.getGraphics();
+			EGraphics graphics = gp.getGraphics(layer);
 			Color layerCol = graphics.getColor();
 			r += layerCol.getRed();
 			g += layerCol.getGreen();

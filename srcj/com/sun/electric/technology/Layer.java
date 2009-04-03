@@ -32,6 +32,7 @@ import com.sun.electric.database.id.LayerId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
+import com.sun.electric.tool.user.UserInterfaceMain;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -672,7 +673,6 @@ public class Layer implements Serializable
     private final LayerId layerId;
 	private int index = -1; // contains index in technology or -1 for standalone layers
 	private final Technology tech;
-	private EGraphics graphics;
     private EGraphics factoryGraphics;
 	private Function function;
     private static final int NO_FUNCTION_EXTRAS = 0;
@@ -688,16 +688,6 @@ public class Layer implements Serializable
 	private Setting layer3DThicknessSetting;
 	private Setting layer3DDistanceSetting;
 
-	private final Pref usePatternDisplayPref;
-	private final Pref usePatternPrinterPref;
-	private final Pref outlinePatternPref;
-	private final Pref transparentLayerPref;
-	private final Pref opacityPref;
-	private final Pref colorPref;
-	private final Pref patternPref;
-    private final Pref layer3DTransModePref; // NONE is the default
-    private final Pref layer3DTransFactorPref; // 0 is the default
-
     private final Pref areaCoveragePref;  // Used by area coverage tool
 	/** the pseudo layer (if exists) */                                     private Layer pseudoLayer;
 	/** the "real" layer (if this one is pseudo) */							private Layer nonPseudoLayer;
@@ -710,18 +700,9 @@ public class Layer implements Serializable
 		this.tech = tech;
         if (graphics == null)
             throw new NullPointerException();
-		this.graphics = this.factoryGraphics = graphics;
+		this.factoryGraphics = graphics;
 		this.nonPseudoLayer = this;
         this.pseudo = pseudo;
-        usePatternDisplayPref = makeBooleanPref("UsePatternDisplay", graphics.isPatternedOnDisplay());
-        usePatternPrinterPref = makeBooleanPref("UsePatternPrinter", graphics.isPatternedOnPrinter());
-        outlinePatternPref = makeIntegerPref("OutlinePattern", graphics.getOutlined().getIndex());
-        transparentLayerPref = makeIntegerPref("TransparentLayer", graphics.getTransparentLayer());
-        opacityPref = makeDoublePref("Opacity", graphics.getOpacity());
-        colorPref = makeIntegerPref("Color", graphics.getRGB());
-        patternPref = makeStringPref("Pattern", graphics.getPatternString());
-        layer3DTransModePref = makeStringPref("3DTransparencyMode", graphics.getTransparencyMode().name());
-        layer3DTransFactorPref =  makeDoublePref("3DTransparencyFactor", graphics.getTransparencyFactor());
 
 		this.dimmed = false;
 		this.function = Function.UNKNOWN;
@@ -829,16 +810,14 @@ public class Layer implements Serializable
 	 * @param graphics graphics description of this Layer.
 	 */
 	public void setGraphics(EGraphics graphics) {
-        if (graphics.equals(this.graphics)) return;
-        this.graphics = graphics;
-        graphicsChanged();
+        UserInterfaceMain.setGraphicsPreferences(UserInterfaceMain.getGraphicsPreferences().withGraphics(this, graphics));
     }
 
 	/**
 	 * Method to return the graphics description of this Layer.
 	 * @return the graphics description of this Layer.
 	 */
-	public EGraphics getGraphics() { return graphics; }
+	public EGraphics getGraphics() { return UserInterfaceMain.getGraphicsPreferences().getGraphics(this); }
 
 	/**
 	 * Method to return the graphics description of this Layer by factory default.
@@ -997,65 +976,6 @@ public class Layer implements Serializable
 	 */
 	public Layer getNonPseudoLayer() { return nonPseudoLayer; }
 
-	/**
-	 * Method to reset the graphics on this Layer.
-	 */
-	public void factoryResetGraphics()
-	{
-        usePatternDisplayPref.factoryReset();
-        usePatternPrinterPref.factoryReset();
-        outlinePatternPref.factoryReset();
-        transparentLayerPref.factoryReset();
-        opacityPref.factoryReset();
-        colorPref.factoryReset();
-        patternPref.factoryReset();
-        layer3DTransModePref.factoryReset();
-        layer3DTransFactorPref.factoryReset();
-
-        loadGraphicsFromPrefs();
-	}
-
-	/**
-	 * Method to save the graphics on this Layer in Prefs.
-	 */
-    public void graphicsChanged() {
-        usePatternDisplayPref.setBoolean(graphics.isPatternedOnDisplay());
-        usePatternPrinterPref.setBoolean(graphics.isPatternedOnPrinter());
-        outlinePatternPref.setInt(graphics.getOutlined().getIndex());
-        transparentLayerPref.setInt(graphics.getTransparentLayer());
-        opacityPref.setDouble(graphics.getOpacity());
-        colorPref.setInt(graphics.getRGB());
-        patternPref.setString(graphics.getPatternString());
-        layer3DTransModePref.setString(graphics.getTransparencyMode().name());
-        layer3DTransFactorPref.setDouble(graphics.getTransparencyFactor());
-   	}
-
-	/**
-	 * Method to recache the graphics information on this Layer from the preferences Prefs.
-	 * Called after new preferences have been imported.
-	 */
-    public void loadGraphicsFromPrefs() {
-        boolean usePatternDisplay = usePatternDisplayPref.getBoolean();
-        boolean usePatternPrinter = usePatternPrinterPref.getBoolean();
-        EGraphics.Outline outline = EGraphics.Outline.findOutline(outlinePatternPref.getInt());
-        int transparentLayer = transparentLayerPref.getInt();
-        double opacity = opacityPref.getDouble();
-        int colorRGB = colorPref.getInt();
-        String patternStr = patternPref.getString();
-        EGraphics.J3DTransparencyOption mode = EGraphics.J3DTransparencyOption.valueOf(layer3DTransModePref.getString());
-        double factor = layer3DTransFactorPref.getDouble();
-
-        graphics = graphics.withPatternedOnDisplay(usePatternDisplay);
-        graphics = graphics.withPatternedOnPrinter(usePatternPrinter);
-        graphics = graphics.withOutlined(outline);
-        graphics = graphics.withTransparentLayer(transparentLayer);
-        graphics = graphics.withOpacity(opacity);
-        graphics = graphics.withColor(new Color(colorRGB));
-        graphics = graphics.withPattern(patternStr);
-        graphics = graphics.withTransparencyMode(mode);
-        graphics = graphics.withTransparencyFactor(factor);
-    }
-
     private Setting makeLayerSetting(String what, String factory) {
         String techName = tech.getTechName();
         return getSubNode(what).makeStringSetting(what + "LayerFor" + getName() + "IN" + techName,
@@ -1081,54 +1001,6 @@ public class Layer implements Serializable
     private Setting.Group getSubNode(String type) {
         return tech.getProjectSettings().node(type);
     }
-
-    /**
-	 * Method to make a string preference for this Layer and a specific purpose.
-	 * @param what the purpose of the preference.
-	 * @param factory the factory default value for this Layer/purpose.
-	 * @return the string Pref object for this Layer/purpose.
-	 */
-    private Pref makeStringPref(String what, String factory)
-	{
-        if (isPseudoLayer()) return null;
-        return Pref.makeStringPref(what + "Of" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
-	}
-
-    /**
-	 * Method to make a boolean preference for this Layer and a specific purpose.
-	 * @param what the purpose of the preference.
-	 * @param factory the factory default value for this Layer/purpose.
-	 * @return the boolean Pref object for this Layer/purpose.
-	 */
-    private Pref makeBooleanPref(String what, boolean factory)
-	{
-        if (isPseudoLayer()) return null;
-        return Pref.makeBooleanPref(what + "Of" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
-	}
-
-	/**
-	 * Method to make a double-precision preference for this Layer and a specific purpose.
-	 * @param what the purpose of the preference.
-	 * @param factory the factory default value for this Layer/purpose.
-	 * @return the double-precision Pref object for this Layer/purpose.
-	 */
-	private Pref makeDoublePref(String what, double factory)
-	{
-        if (isPseudoLayer()) return null;
-        return Pref.makeDoublePref(what + "Of" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
-	}
-
-	/**
-	 * Method to make an integer preference for this Layer and a specific purpose.
-	 * @param what the purpose of the preference.
-	 * @param factory the factory default value for this Layer/purpose.
-	 * @return the integer Pref object for this Layer/purpose.
-	 */
-	private Pref makeIntegerPref(String what, int factory)
-	{
-        if (isPseudoLayer()) return null;
-        return Pref.makeIntPref(what + "Of" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
-	}
 
 	/**
 	 * Method to make a double-precision server preference for this Layer and a specific purpose.
@@ -1446,8 +1318,8 @@ public class Layer implements Serializable
         out.print("\t"); Technology.printlnSetting(out, settings, getCapacitanceSetting());
         out.print("\t"); Technology.printlnSetting(out, settings, getEdgeCapacitanceSetting());
         // GDS
-        EGraphics desc = getGraphics();
         EGraphics factoryDesc = getFactoryGraphics();
+        EGraphics desc = factoryDesc;
         out.println("\tpatternedOnDisplay=" + desc.isPatternedOnDisplay() + "(" + factoryDesc.isPatternedOnDisplay() + ")");
         out.println("\tpatternedOnPrinter=" + desc.isPatternedOnPrinter() + "(" + factoryDesc.isPatternedOnPrinter() + ")");
         out.println("\toutlined=" + desc.getOutlined() + "(" + factoryDesc.getOutlined() + ")");
@@ -1478,7 +1350,7 @@ public class Layer implements Serializable
         l.name = getName();
         l.function = getFunction();
         l.extraFunction = getFunctionExtras();
-        l.desc = getGraphics();
+        l.desc = getFactoryGraphics();
         l.height3D = getDistanceSetting().getDoubleFactoryValue();
         l.thick3D = getThicknessSetting().getDoubleFactoryValue();
         l.cif = (String)getCIFLayerSetting().getFactoryValue();

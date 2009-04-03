@@ -209,12 +209,11 @@ class VectorDrawing
 	 * @param scale edit window scale
 	 * @param offset the offset factor for this window
 	 * @param shapes shapes of tech menu
-	 * @param forceVisible true to force all layers to be drawn (regardless of user settings)
 	 */
 	public void render(PixelDrawing offscreen, double scale, Point2D offset, VectorCache.VectorBase[] shapes)
 	{
 		// set colors to use
-		PixelDrawing.textGraphics = PixelDrawing.textGraphics.withColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
+		PixelDrawing.textGraphics = PixelDrawing.textGraphics.withColor(PixelDrawing.gp.getColor(User.ColorPrefType.TEXT));
 
 		// see if any layers are being highlighted/dimmed
 		this.offscreen = offscreen;
@@ -433,7 +432,7 @@ class VectorDrawing
 			byte [][] layerBitMap = null;
             EGraphics graphics = vb.graphicsOverride;
             if (graphics == null && layer != null)
-                graphics = layer.getFactoryGraphics();
+                graphics = PixelDrawing.gp.getGraphics(layer);
 			if (graphics != null)
 			{
 				int layerNum = graphics.getTransparentLayer() - 1;
@@ -760,7 +759,7 @@ class VectorDrawing
 		{
 			if (greekedCell != null && greekedCell.fadeImageColors != null)
 			{
-				int backgroundColor = User.getColor(User.ColorPrefType.BACKGROUND);
+				int backgroundColor = PixelDrawing.gp.getColor(User.ColorPrefType.BACKGROUND).getRGB();
 				int backgroundRed = (backgroundColor >> 16) & 0xFF;
 				int backgroundGreen = (backgroundColor >> 8) & 0xFF;
 				int backgroundBlue = backgroundColor & 0xFF;
@@ -1009,7 +1008,7 @@ class VectorDrawing
 			{
 				MutableDouble md = layerAreas.get(layer);
 				double portion = md.doubleValue() / totalArea;
-				EGraphics desc = layer.getGraphics();
+				EGraphics desc = PixelDrawing.gp.getGraphics(layer);
 				Color col = desc.getColor();
 				r += col.getRed() * portion;
 				g += col.getGreen() * portion;

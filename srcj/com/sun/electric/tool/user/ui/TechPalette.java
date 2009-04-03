@@ -43,7 +43,9 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.AnnularRing;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.EDialog;
@@ -961,6 +963,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         Graphics2D g = (Graphics2D)paletteImage.getGraphics();
         g.setBackground(new Color(User.getColor(User.ColorPrefType.BACKGROUND)));
         g.clearRect(0, 0, getWidth(), getHeight());
+        GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
 
         for(int x=0; x<menuX; x++) {
             for(int y=0; y<menuY; y++) {
@@ -1004,7 +1007,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
             		// draw the arc
                     VectorCache.VectorBase[] shapes = VectorCache.drawPolys(ap.getShapeOfDummyArc(menuArcLength));
-                    drawShapes(g, imgX, imgY, scale, shapes);
+                    drawShapes(g, gp, imgX, imgY, scale, shapes);
 
                     g.setColor(Color.RED);
                     g.drawRect(imgX, imgY, entrySize-1, entrySize-1);
@@ -1081,7 +1084,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                    if (var != null)
 	                    	ni.setTextDescriptor(Technology.TECH_TMPVAR, var.getTextDescriptor().withOff(0, -largest/2/0.8));
 	                    VectorCache.VectorBase[] shapes = VectorCache.drawNode(ni);
-	                    drawShapes(g, imgX, imgY, scale, shapes);
+	                    drawShapes(g, gp, imgX, imgY, scale, shapes);
                     }
                     g.setColor(Color.BLUE);
                     g.drawRect(imgX, imgY, entrySize-1, entrySize-1);
@@ -1152,7 +1155,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	/**
 	 * Method to draw polygon "poly", transformed through "trans".
 	 */
-    private void drawShapes(Graphics2D g, int imgX, int imgY, double scale, VectorCache.VectorBase[] shapes) {
-        AbstractDrawing.drawShapes(g, imgX, imgY, scale, shapes, offscreen, entryRect);
+    private void drawShapes(Graphics2D g, GraphicsPreferences gp, int imgX, int imgY, double scale, VectorCache.VectorBase[] shapes) {
+        AbstractDrawing.drawShapes(g, gp, imgX, imgY, scale, shapes, offscreen, entryRect);
     }
 }

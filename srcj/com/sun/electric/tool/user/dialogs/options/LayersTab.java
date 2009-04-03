@@ -390,7 +390,7 @@ public class LayersTab extends PreferencePanel
 			{
 				Layer layer = lIt.next();
 				if (layer.isPseudoLayer() && layer.getNonPseudoLayer() != layer) continue;
-				layer.factoryResetGraphics();
+				layer.setGraphics(layer.getFactoryGraphics());
 			}
 		}
         LayerVisibility.factoryReset();
