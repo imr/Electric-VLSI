@@ -43,6 +43,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -273,6 +274,7 @@ public class PixelDrawing
 	/** size of the opaque layer of the window */			private final int total;
 	/** the background color of the offscreen image */		private int backgroundColor;
 	/** the "unset" color of the offscreen image */			private int backgroundValue;
+    /** cache of port colors */                             private HashMap<PrimitivePort,EGraphics> portGraphicsCache = new HashMap<PrimitivePort,EGraphics>();
 
 	// the transparent bitmaps
 	/** the offscreen maps for transparent layers */		private byte [][][] layerBitMaps;
@@ -303,15 +305,10 @@ public class PixelDrawing
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
     static LayerVisibility lv;
-    private static Color textColor;
-	private static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
+	static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static EGraphics gridGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
-		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
-		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static EGraphics portGraphics = new EGraphics(false, false, null, 0, 255,0,0, 1.0,true,
-		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
+	private static EGraphics gridGraphics = textGraphics;
+	static EGraphics instanceGraphics = textGraphics;
 
     private int clipLX, clipHX, clipLY, clipHY;
 
@@ -494,10 +491,10 @@ public class PixelDrawing
         drawBounds = new Rectangle2D.Double(drawing.da.offX - width/2, drawing.da.offY - height/2, width, height);
 
 		// set colors to use
-        textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
-		textGraphics = textGraphics.withColor(textColor);
+		textGraphics = textGraphics.withColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
 		gridGraphics = gridGraphics.withColor(new Color(User.getColor(User.ColorPrefType.GRID)));
 		instanceGraphics = instanceGraphics.withColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
+        portGraphicsCache.clear();
 
 		// initialize the cache of expanded cell displays
 		if (expandedScale != drawing.da.scale)
@@ -609,10 +606,10 @@ public class PixelDrawing
         expandedScale = this.scale = scale;
 
 		// set colors to use
-        textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
-		textGraphics = textGraphics.withColor(textColor);
+		textGraphics = textGraphics.withColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
 		gridGraphics = gridGraphics.withColor(new Color(User.getColor(User.ColorPrefType.GRID)));
 		instanceGraphics = instanceGraphics.withColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
+        portGraphicsCache.clear();
 
         if (wnd != null) varContext = wnd.getVarContext();
         initOrigin(scale, offset.getX(), offset.getY());
@@ -1223,13 +1220,12 @@ public class PixelDrawing
 					drawCell(subCell, drawLimitBounds, fullInstantiate, subOrient, subTrans, topCell);
                     varContext.pop();
 				}
-				if (canDrawText) showCellPorts(ni, trans, Color.BLACK);
 			} else
 			{
 				// draw the black box of the instance
 				drawUnexpandedCell(ni, poly);
-				if (canDrawText) showCellPorts(ni, trans, null);
 			}
+			if (canDrawText) showCellPorts(ni, trans, expanded);
 
 			// draw any displayable variables on the instance
 			if (canDrawText && User.isTextVisibilityOnNode())
@@ -1377,7 +1373,7 @@ public class PixelDrawing
     		drawPolys(ai.getDisplayableVariables(dummyWnd), trans, forceVisible);
 	}
 
-	private void showCellPorts(NodeInst ni, AffineTransform trans, Color col)
+	private void showCellPorts(NodeInst ni, AffineTransform trans, boolean expanded)
 	{
 		// show the ports that are not further exported or connected
 		int numPorts = ni.getProto().getNumPorts();
@@ -1407,9 +1403,7 @@ public class PixelDrawing
 			Poly portPoly = ni.getShapeOfPort(pp);
 			if (portPoly == null) continue;
 			portPoly.transform(trans);
-			Color portColor = col;
-			if (portColor == null) portColor = pp.getBasePort().getPortColor();
-			portGraphics = portGraphics.withColor(portColor);
+            EGraphics portGraphics = expanded ? textGraphics : getPortGraphics(pp.getBasePort());
 			if (portDisplayLevel == 2)
 			{
 				// draw port as a cross
@@ -1929,7 +1923,9 @@ public class PixelDrawing
 			Poly poly = polys[i];
 			if (poly == null) continue;
 			Layer layer = poly.getLayer();
-			EGraphics graphics = poly.getGraphics();
+			EGraphics graphics = poly.getGraphicsOverride();
+            if (graphics == null && layer != null)
+                graphics = layer.getGraphics();
 			boolean dimmed = false;
 			if (layer != null)
 			{
@@ -2170,6 +2166,15 @@ public class PixelDrawing
 	}
 
 	// ************************************* BOX DRAWING *************************************
+
+    EGraphics getPortGraphics(PrimitivePort basePort) {
+        EGraphics portGraphics = portGraphicsCache.get(basePort);
+        if (portGraphics == null) {
+            portGraphics = textGraphics.withColor(basePort.getPortColor());
+            portGraphicsCache.put(basePort, portGraphics);
+        }
+        return portGraphics;
+    }
 
 	int getTheColor(EGraphics desc, boolean dimmed)
 	{

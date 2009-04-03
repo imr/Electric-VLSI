@@ -40,6 +40,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -271,6 +272,7 @@ class LayerDrawing
     /** list of render text. */                             private final ArrayList<RenderTextInfo> renderTextList = new ArrayList<RenderTextInfo>();
     /** list of greek text. */                              private final ArrayList<GreekTextInfo> greekTextList = new ArrayList<GreekTextInfo>();
     /** list of cross text. */                              private final ArrayList<CrossTextInfo> crossTextList = new ArrayList<CrossTextInfo>();
+    /** cache of port colors */                             private HashMap<PrimitivePort,Color> portColorsCache = new HashMap<PrimitivePort,Color>();
 
 	// the transparent bitmaps
 	/** the number of ints per row in offscreen maps */     private final int numIntsPerRow;
@@ -295,14 +297,9 @@ class LayerDrawing
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
     private static Color textColor;
-	private static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
-		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 	private static EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static EGraphics gridGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
-		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static EGraphics portGraphics = new EGraphics(false, false, null, 0, 255,0,0, 1.0,true,
-		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
+	private static EGraphics gridGraphics = instanceGraphics;
 
     private int clipLX, clipHX, clipLY, clipHY;
     private final int width;
@@ -1057,7 +1054,6 @@ class LayerDrawing
 
 		// set colors to use
         textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
-        textGraphics = textGraphics.withColor(LayerDrawing.textColor);
 
 		// initialize the cache of expanded cell displays
 //        varContext = wnd.getVarContext();
@@ -1287,9 +1283,9 @@ class LayerDrawing
 
 		// set colors to use
         textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
-		textGraphics = textGraphics.withColor(textColor);
 		instanceGraphics = instanceGraphics.withColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
         gridGraphics = gridGraphics.withColor(new Color(User.getColor(User.ColorPrefType.GRID)));
+        portColorsCache.clear();
 
 		// initialize the cache of expanded cell displays
 		if (expandedScale != drawing.da.scale)
@@ -1664,7 +1660,7 @@ class LayerDrawing
 					tempRect.setBounds(lX, lY, hX-lX, hY-lY);
 					TextDescriptor descript = vsc.n.protoDescriptor;
 					NodeProto np = VectorCache.theCache.database.getCell(vsc.subCellId);
-					drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), textGraphics, null);
+					drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), textColor, null);
 				}
 			}
 			if (canDrawText && (topLevel || onPathDown || inPlaceCurrent == cell))
@@ -2618,11 +2614,12 @@ class LayerDrawing
                 hX = tempPt2.x;
                 hY = tempPt2.y;
 
-                EGraphics graphics = vt.graphics;
+                Color color = textColor;
+                if (vt.layer != null)
+                    color = vt.layer.getGraphics().getColor();
                 PrimitiveNode baseNode = null;
                 if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.basePort != null) {
                     baseNode = vt.basePort.getParent();
-//                	if (!lv.isVisible(vt.basePort.getParent())) continue;
                     int exportDisplayLevel = User.getExportDisplayLevel();
                     if (exportDisplayLevel == 2) {
                         // draw export as a cross
@@ -2635,15 +2632,18 @@ class LayerDrawing
                     // draw export as text
                     if (exportDisplayLevel == 1)
                         drawString = Export.getShortName(drawString);
-                    graphics = textGraphics;
+                    color = textColor;
                 }
 
                 tempRect.setBounds(lX, lY, hX-lX, hY-lY);
-                drawText(tempRect, vt.style, vt.descript, drawString, graphics, baseNode);
+                drawText(tempRect, vt.style, vt.descript, drawString, color, baseNode);
                 continue;
             }
 
-            ERaster raster = getRaster(vb.layer, vb.graphics, false);
+            EGraphics graphics = vb.graphicsOverride;
+            if (graphics == null && vb.layer != null)
+                graphics = vb.layer.getGraphics();
+            ERaster raster = getRaster(vb.layer, graphics, false);
             if (raster == null) continue;
 
             // handle each shape
@@ -2752,13 +2752,21 @@ class LayerDrawing
             cY = tempPt1.y;
 
 			int portDisplayLevel = User.getPortDisplayLevel();
-			Color portColor = vce.getPortColor();
-			if (expanded) portColor = textColor;
-			if (portColor != null) portGraphics = portGraphics.withColor(portColor);
+            Color portColor;
+            if (expanded) {
+                portColor = textColor;
+            } else {
+                PrimitivePort basePort = vce.getBasePort();
+                portColor = portColorsCache.get(basePort);
+                if (portColor == null) {
+                    portColor = basePort.getPortColor();
+                    portColorsCache.put(basePort, portColor);
+                }
+            }
 			if (portDisplayLevel == 2)
 			{
 				// draw port as a cross
-                crossTextList.add(new CrossTextInfo(cX, cY, portColor != null ? portColor : textColor, null));
+                crossTextList.add(new CrossTextInfo(cX, cY, portColor, null));
 				continue;
 			}
 
@@ -2767,7 +2775,7 @@ class LayerDrawing
             String drawString = vce.getName(shortName);
 
 			tempRect.setBounds(cX, cY, 0, 0);
-			drawText(tempRect, vce.style, vce.descript, drawString, portGraphics, null);
+			drawText(tempRect, vce.style, vce.descript, drawString, portColor, null);
 		}
 	}
 
@@ -3530,7 +3538,7 @@ class LayerDrawing
 	/**
 	 * Method to draw a text on the off-screen buffer
 	 */
-	public void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, EGraphics desc, PrimitiveNode baseNode)
+	public void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, Color color, PrimitiveNode baseNode)
 	{
 		// quit if string is null
 		if (s == null) return;
@@ -3538,8 +3546,6 @@ class LayerDrawing
 		if (len == 0) return;
 
 		// get parameters
-        Color color = textColor;
-        if (desc != null) color = desc.getColor();
 		int col = color.getRGB() & 0xFFFFFF;
 
 		// get text description

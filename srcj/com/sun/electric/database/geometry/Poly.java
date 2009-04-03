@@ -86,19 +86,19 @@ public class Poly extends PolyBase {
 		super(rect);
 	}
 
-    /**
-	 * Method to return the EGraphics which should be used to draw this Poly.
-     * It is either layer's default graphics or graphics override, if any.
-	 * @return the EGraphics to draw this Poly.
-	 */
-    public EGraphics getGraphics() {
-        if (graphicsOverride != null)
-            return graphicsOverride;
-        Layer layer = getLayer();
-        if (layer != null)
-            return layer.getGraphics();
-        return null;
-    }
+//    /**
+//	 * Method to return the EGraphics which should be used to draw this Poly.
+//     * It is either layer's default graphics or graphics override, if any.
+//	 * @return the EGraphics to draw this Poly.
+//	 */
+//    public EGraphics getGraphics() {
+//        if (graphicsOverride != null)
+//            return graphicsOverride;
+//        Layer layer = getLayer();
+//        if (layer != null)
+//            return layer.getGraphics();
+//        return null;
+//    }
 
     /**
 	 * Method to return the EGraphics which overrides default EGraphics

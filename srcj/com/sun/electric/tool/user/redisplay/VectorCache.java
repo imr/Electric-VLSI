@@ -61,7 +61,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.User;
 
-import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
@@ -114,12 +113,12 @@ public class VectorCache {
     public static abstract class VectorBase
 	{
 		Layer layer;
-		EGraphics graphics;
+		EGraphics graphicsOverride;
 
-		VectorBase(Layer layer, EGraphics graphics)
+		VectorBase(Layer layer, EGraphics graphicsOverride)
 		{
 			this.layer = layer;
-			this.graphics = graphics;
+			this.graphicsOverride = graphicsOverride;
 		}
 
         /**
@@ -137,17 +136,17 @@ public class VectorCache {
         int[] coords;
         boolean pureLayer;
 
-		VectorManhattan(int[] coords, Layer layer, EGraphics graphics, boolean pureLayer)
+		VectorManhattan(int[] coords, Layer layer, EGraphics graphicsOverride, boolean pureLayer)
 		{
-			super(layer, graphics);
+			super(layer, graphicsOverride);
 			this.coords = coords;
             this.pureLayer = pureLayer;
 		}
 
-		VectorManhattan(double c1X, double c1Y, double c2X, double c2Y, Layer layer, EGraphics graphics, boolean pureLayer)
+		VectorManhattan(double c1X, double c1Y, double c2X, double c2Y, Layer layer, EGraphics graphicsOverride, boolean pureLayer)
 		{
 			this(new int[] { databaseToGrid(c1X), databaseToGrid(c1Y), databaseToGrid(c2X), databaseToGrid(c2Y) },
-                    layer, graphics, pureLayer);
+                    layer, graphicsOverride, pureLayer);
         }
 
         @Override boolean isFilled() { return true; }
@@ -192,9 +191,9 @@ public class VectorCache {
 	{
         Point[] points;
 
-		VectorPolygon(Point2D [] points, Layer layer, EGraphics graphics)
+		VectorPolygon(Point2D [] points, Layer layer, EGraphics graphicsOverride)
 		{
-			super(layer, graphics);
+			super(layer, graphicsOverride);
             this.points = new Point[points.length];
             for (int i = 0; i < points.length; i++) {
                 Point2D p = points[i];
@@ -213,9 +212,9 @@ public class VectorCache {
 		int fX, fY, tX, tY;
 		int texture;
 
-		VectorLine(double fX, double fY, double tX, double tY, int texture, Layer layer, EGraphics graphics)
+		VectorLine(double fX, double fY, double tX, double tY, int texture, Layer layer, EGraphics graphicsOverride)
 		{
-			super(layer, graphics);
+			super(layer, graphicsOverride);
 			this.fX = databaseToGrid(fX);
 			this.fY = databaseToGrid(fY);
 			this.tX = databaseToGrid(tX);
@@ -232,9 +231,9 @@ public class VectorCache {
 		int cX, cY, eX, eY;
 		int nature;
 
-		VectorCircle(double cX, double cY, double eX, double eY, int nature, Layer layer, EGraphics graphics)
+		VectorCircle(double cX, double cY, double eX, double eY, int nature, Layer layer, EGraphics graphicsOverride)
 		{
-			super(layer, graphics);
+			super(layer, graphicsOverride);
 			this.cX = databaseToGrid(cX);
 			this.cY = databaseToGrid(cY);
 			this.eX = databaseToGrid(eX);
@@ -257,9 +256,9 @@ public class VectorCache {
 		boolean thick;
 
 		VectorCircleArc(double cX, double cY, double eX1, double eY1, double eX2, double eY2, boolean thick,
-			Layer layer, EGraphics graphics)
+			Layer layer, EGraphics graphicsOverride)
 		{
-			super(layer, graphics);
+			super(layer, graphicsOverride);
 			this.cX = databaseToGrid(cX);
 			this.cY = databaseToGrid(cY);
 			this.eX1 = databaseToGrid(eX1);
@@ -291,9 +290,9 @@ public class VectorCache {
 		/** valid for export text */                    PrimitivePort basePort;
 
 		VectorText(Rectangle2D bounds, Poly.Type style, TextDescriptor descript, String str, int textType, Export e,
-			Layer layer, EGraphics graphics)
+			Layer layer)
 		{
-			super(layer, graphics);
+			super(layer, null);
 			this.bounds = new Rectangle(databaseToGrid(bounds.getX()), databaseToGrid(bounds.getY()),
                     databaseToGrid(bounds.getWidth()), databaseToGrid(bounds.getHeight()));
 			this.style = style;
@@ -320,9 +319,9 @@ public class VectorCache {
         int x, y;
 		boolean small;
 
-		VectorCross(double x, double y, boolean small, Layer layer, EGraphics graphics)
+		VectorCross(double x, double y, boolean small, Layer layer, EGraphics graphicsOverride)
 		{
-			super(layer, graphics);
+			super(layer, graphicsOverride);
 			this.x = databaseToGrid(x);
 			this.y = databaseToGrid(y);
 			this.small = small;
@@ -484,7 +483,7 @@ public class VectorCache {
 		/** the text style */							Poly.Type style;
 		/** the descriptor of the text */				TextDescriptor descript;
 		/** the text height (in display units) */		float height;
-        private Color portColor;
+        private PrimitivePort basePort;
 
 		VectorCellExport(Export e) {
             this.e = e.getD();
@@ -504,7 +503,7 @@ public class VectorCache {
 				if (!tds.isAbsolute()) height = (float)tds.getSize();
 			}
             this.e = e.getD();
-            portColor = e.getBasePort().getPortColor();
+            basePort = e.getBasePort();
         }
 
         int getChronIndex() { return e.exportId.chronIndex; }
@@ -522,7 +521,7 @@ public class VectorCache {
             }
             return name;
         }
-        Color getPortColor() { return portColor; }
+        PrimitivePort getBasePort() { return basePort; }
 
     }
 
@@ -704,8 +703,7 @@ public class VectorCache {
                 TextDescriptor descript = poly.getTextDescriptor();
                 Poly.Type style = descript.getPos().getPolyType();
                 style = Poly.rotateType(style, e.getOriginalPort().getNodeInst());
-                VectorText vt = new VectorText(poly.getBounds2D(), style, descript, e.getName(), VectorText.TEXTTYPEEXPORT, e,
-                    null, null);
+                VectorText vt = new VectorText(poly.getBounds2D(), style, descript, e.getName(), VectorText.TEXTTYPEEXPORT, e, null);
                 topOnlyShapes.add(vt);
 
                 // draw variables on the export
@@ -783,10 +781,7 @@ public class VectorCache {
 			addToThisCell = new ArrayList<VectorBase>();
 			addPolyToCell.put(cellId, addToThisCell);
 		}
-		EGraphics graphics = null;
-		if (layer != null)
-			graphics = layer.getGraphics();
-		VectorManhattan vm = new VectorManhattan(lX, lY, hX, hY, layer, graphics, false);
+		VectorManhattan vm = new VectorManhattan(lX, lY, hX, hY, layer, null, false);
 		addToThisCell.add(vm);
 	}
 
@@ -1040,7 +1035,7 @@ public class VectorCache {
             VectorManhattanBuilder b = boxBuilders.get(layerIndex);
             if (b.size == 0) continue;
             Layer layer = tech.getLayer(layerIndex);
-            VectorManhattan vm = new VectorManhattan(b.toArray(), layer, layer.getGraphics(), pureArray);
+            VectorManhattan vm = new VectorManhattan(b.toArray(), layer, null, pureArray);
             vc.shapes.add(vm);
         }
     }
@@ -1182,7 +1177,7 @@ public class VectorCache {
 		// now draw it
 		Point2D [] points = poly.getPoints();
 		Layer layer = poly.getLayer();
-		EGraphics graphics = poly.getGraphics();
+		EGraphics graphicsOverride = poly.getGraphicsOverride();
 		Poly.Type style = poly.getStyle();
         ArrayList<VectorBase> shapes = hideOnLowLevel ? vc.topOnlyShapes : vc.shapes;
 		if (style == Poly.Type.FILLED)
@@ -1197,7 +1192,7 @@ public class VectorCache {
 				double hY = bounds.getMaxY();
                 float minSize = (float)Math.min(hX - lX, hY - lY);
                 int layerIndex = -1;
-				if (layer != null && poly.getGraphicsOverride() == null)
+				if (layer != null && graphicsOverride == null)
 				{
                     if (vc.vcg != null && layer.getId().techId == vc.vcg.cellBackup.cellRevision.d.techId)
                         layerIndex = layer.getIndex();
@@ -1205,7 +1200,7 @@ public class VectorCache {
                 if (layerIndex >= 0) {
                     putBox(layerIndex, pureLayer ? pureBoxBuilders : boxBuilders, lX, lY, hX, hY);
                 } else {
-                    VectorManhattan vm = new VectorManhattan(lX, lY, hX, hY, layer, graphics, pureLayer);
+                    VectorManhattan vm = new VectorManhattan(lX, lY, hX, hY, layer, graphicsOverride, pureLayer);
                     shapes.add(vm);
                 }
 
@@ -1218,24 +1213,24 @@ public class VectorCache {
                 vc.maxFeatureSize = Math.max(vc.maxFeatureSize, minSize);
 				return;
 			}
-			VectorPolygon vp = new VectorPolygon(points, layer, graphics);
+			VectorPolygon vp = new VectorPolygon(points, layer, graphicsOverride);
 			shapes.add(vp);
 			return;
 		}
 		if (style == Poly.Type.CROSSED)
 		{
 			VectorLine vl1 = new VectorLine(points[0].getX(), points[0].getY(),
-				points[1].getX(), points[1].getY(), 0, layer, graphics);
+				points[1].getX(), points[1].getY(), 0, layer, graphicsOverride);
 			VectorLine vl2 = new VectorLine(points[1].getX(), points[1].getY(),
-				points[2].getX(), points[2].getY(), 0, layer, graphics);
+				points[2].getX(), points[2].getY(), 0, layer, graphicsOverride);
 			VectorLine vl3 = new VectorLine(points[2].getX(), points[2].getY(),
-				points[3].getX(), points[3].getY(), 0, layer, graphics);
+				points[3].getX(), points[3].getY(), 0, layer, graphicsOverride);
 			VectorLine vl4 = new VectorLine(points[3].getX(), points[3].getY(),
-				points[0].getX(), points[0].getY(), 0, layer, graphics);
+				points[0].getX(), points[0].getY(), 0, layer, graphicsOverride);
 			VectorLine vl5 = new VectorLine(points[0].getX(), points[0].getY(),
-				points[2].getX(), points[2].getY(), 0, layer, graphics);
+				points[2].getX(), points[2].getY(), 0, layer, graphicsOverride);
 			VectorLine vl6 = new VectorLine(points[1].getX(), points[1].getY(),
-				points[3].getX(), points[3].getY(), 0, layer, graphics);
+				points[3].getX(), points[3].getY(), 0, layer, graphicsOverride);
 			shapes.add(vl1);
 			shapes.add(vl2);
 			shapes.add(vl3);
@@ -1249,9 +1244,8 @@ public class VectorCache {
 			Rectangle2D bounds = poly.getBounds2D();
 			TextDescriptor descript = poly.getTextDescriptor();
 			String str = poly.getString();
-//            assert layer == null && graphics == null;
-			VectorText vt = new VectorText(bounds, style, descript, str, textType, null,
-				layer, graphics);
+            assert graphicsOverride == null;
+			VectorText vt = new VectorText(bounds, style, descript, str, textType, null, layer);
 			shapes.add(vt);
 			vc.maxFeatureSize = Math.max(vc.maxFeatureSize, vt.height);
 			return;
@@ -1269,7 +1263,7 @@ public class VectorCache {
 				Point2D oldPt = points[j-1];
 				Point2D newPt = points[j];
 				VectorLine vl = new VectorLine(oldPt.getX(), oldPt.getY(),
-					newPt.getX(), newPt.getY(), lineType, layer, graphics);
+					newPt.getX(), newPt.getY(), lineType, layer, graphicsOverride);
 				shapes.add(vl);
 			}
 			if (style == Poly.Type.CLOSED)
@@ -1277,7 +1271,7 @@ public class VectorCache {
 				Point2D oldPt = points[points.length-1];
 				Point2D newPt = points[0];
 				VectorLine vl = new VectorLine(oldPt.getX(), oldPt.getY(),
-					newPt.getX(), newPt.getY(), lineType, layer, graphics);
+					newPt.getX(), newPt.getY(), lineType, layer, graphicsOverride);
 				shapes.add(vl);
 			}
 			return;
@@ -1289,7 +1283,7 @@ public class VectorCache {
 				Point2D oldPt = points[j];
 				Point2D newPt = points[j+1];
 				VectorLine vl = new VectorLine(oldPt.getX(), oldPt.getY(),
-					newPt.getX(), newPt.getY(), 0, layer, graphics);
+					newPt.getX(), newPt.getY(), 0, layer, graphicsOverride);
 				shapes.add(vl);
 			}
 			return;
@@ -1297,21 +1291,21 @@ public class VectorCache {
 		if (style == Poly.Type.CIRCLE)
 		{
 			VectorCircle vci = new VectorCircle(points[0].getX(), points[0].getY(),
-				points[1].getX(), points[1].getY(), 0, layer, graphics);
+				points[1].getX(), points[1].getY(), 0, layer, graphicsOverride);
 			shapes.add(vci);
 			return;
 		}
 		if (style == Poly.Type.THICKCIRCLE)
 		{
 			VectorCircle vci = new VectorCircle(points[0].getX(), points[0].getY(),
-				points[1].getX(), points[1].getY(), 1, layer, graphics);
+				points[1].getX(), points[1].getY(), 1, layer, graphicsOverride);
 			shapes.add(vci);
 			return;
 		}
 		if (style == Poly.Type.DISC)
 		{
 			VectorCircle vci = new VectorCircle(points[0].getX(), points[0].getY(), points[1].getX(),
-				points[1].getY(), 2, layer, graphics);
+				points[1].getY(), 2, layer, graphicsOverride);
 			shapes.add(vci);
 			return;
 		}
@@ -1319,21 +1313,21 @@ public class VectorCache {
 		{
 			VectorCircleArc vca = new VectorCircleArc(points[0].getX(), points[0].getY(),
 				points[1].getX(), points[1].getY(), points[2].getX(), points[2].getY(),
-				style == Poly.Type.THICKCIRCLEARC, layer, graphics);
+				style == Poly.Type.THICKCIRCLEARC, layer, graphicsOverride);
 			shapes.add(vca);
 			return;
 		}
 		if (style == Poly.Type.CROSS)
 		{
 			// draw the cross
-			VectorCross vcr = new VectorCross(points[0].getX(), points[0].getY(), true, layer, graphics);
+			VectorCross vcr = new VectorCross(points[0].getX(), points[0].getY(), true, layer, graphicsOverride);
 			shapes.add(vcr);
 			return;
 		}
 		if (style == Poly.Type.BIGCROSS)
 		{
 			// draw the big cross
-			VectorCross vcr = new VectorCross(points[0].getX(), points[0].getY(), false, layer, graphics);
+			VectorCross vcr = new VectorCross(points[0].getX(), points[0].getY(), false, layer, graphicsOverride);
 			shapes.add(vcr);
 			return;
 		}

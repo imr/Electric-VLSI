@@ -89,17 +89,9 @@ class VectorDrawing
 	/** temporary objects (saves allocation) */				private Point tempPt1 = new Point(), tempPt2 = new Point();
 	/** temporary objects (saves allocation) */				private Point tempPt3 = new Point();
 	/** temporary object (saves allocation) */				private Rectangle tempRect = new Rectangle();
-	/** the color of text */								private Color textColor;
 
 	/** the object that draws the rendered screen */		private static VectorDrawing topVD;
 	/** location for debugging icon displays */				private static int debugXP, debugYP;
-
-	private static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
-			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
-			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static EGraphics portGraphics = new EGraphics(false, false, null, 0, 255,0,0, 1.0,true,
-		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
 	// ************************************* TOP LEVEL *************************************
 
@@ -124,11 +116,6 @@ class VectorDrawing
 	public void render(PixelDrawing offscreen, double scale, Point2D offset, Cell cell, boolean fullInstantiate,
 		List<NodeInst> inPlaceNodePath, Cell inPlaceCurrent, Rectangle screenLimit, VarContext context)
 	{
-		// set colors to use
-		textGraphics = textGraphics.withColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
-		instanceGraphics = instanceGraphics.withColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
-		textColor = new Color(User.getColor(User.ColorPrefType.TEXT) & 0xFFFFFF);
-
 		// see if any layers are being highlighted/dimmed
 		this.offscreen = offscreen;
 		offscreen.highlightingLayers = false;
@@ -227,8 +214,7 @@ class VectorDrawing
 	public void render(PixelDrawing offscreen, double scale, Point2D offset, VectorCache.VectorBase[] shapes)
 	{
 		// set colors to use
-		textGraphics = textGraphics.withColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
-		textColor = new Color(User.getColor(User.ColorPrefType.TEXT) & 0xFFFFFF);
+		PixelDrawing.textGraphics = PixelDrawing.textGraphics.withColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
 
 		// see if any layers are being highlighted/dimmed
 		this.offscreen = offscreen;
@@ -390,20 +376,20 @@ class VectorDrawing
 				int p4x = op[6] + soX;
 				int p4y = op[7] + soY;
 				gridToScreen(p1x, p1y, tempPt1);   gridToScreen(p2x, p2y, tempPt2);
-				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+				offscreen.drawLine(tempPt1, tempPt2, null, PixelDrawing.instanceGraphics, 0, false);
 				gridToScreen(p2x, p2y, tempPt1);   gridToScreen(p3x, p3y, tempPt2);
-				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+				offscreen.drawLine(tempPt1, tempPt2, null, PixelDrawing.instanceGraphics, 0, false);
 				gridToScreen(p3x, p3y, tempPt1);   gridToScreen(p4x, p4y, tempPt2);
-				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+				offscreen.drawLine(tempPt1, tempPt2, null, PixelDrawing.instanceGraphics, 0, false);
 				gridToScreen(p1x, p1y, tempPt1);   gridToScreen(p4x, p4y, tempPt2);
-				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+				offscreen.drawLine(tempPt1, tempPt2, null, PixelDrawing.instanceGraphics, 0, false);
 
 				// draw the instance name
 				if (User.isTextVisibilityOnInstance())
 				{
 					tempRect.setBounds(lX, lY, hX-lX, hY-lY);
 					TextDescriptor descript = vsc.n.protoDescriptor;
-					offscreen.drawText(tempRect, Poly.Type.TEXTBOX, descript, subCell.describe(false), null, textGraphics, false);
+					offscreen.drawText(tempRect, Poly.Type.TEXTBOX, descript, subCell.describe(false), null, PixelDrawing.textGraphics, false);
 				}
 			}
 			if (level == 0 || onPathDown || inPlaceCurrent == cell)
@@ -445,7 +431,9 @@ class VectorDrawing
                 }
             }
 			byte [][] layerBitMap = null;
-            EGraphics graphics = vb.graphics;
+            EGraphics graphics = vb.graphicsOverride;
+            if (graphics == null && layer != null)
+                graphics = layer.getFactoryGraphics();
 			if (graphics != null)
 			{
 				int layerNum = graphics.getTransparentLayer() - 1;
@@ -468,8 +456,8 @@ class VectorDrawing
 						// well and substrate layers are made smaller so that they "greek" sooner
 						if (!vm.pureLayer)
 							maxSize *= 10;
-					} else if (vm.graphics != null) {
-						fadeCol = vm.graphics.getRGB();
+					} else if (graphics != null) {
+						fadeCol = graphics.getRGB();
 					}
 				}
 				for (int i = 0; i < vm.coords.length; i += 4) {
@@ -637,6 +625,7 @@ class VectorDrawing
 				if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.basePort != null)
 				{
 					if (!PixelDrawing.lv.isVisible(vt.basePort.getParent())) continue;
+                    graphics = PixelDrawing.textGraphics;
 					int exportDisplayLevel = User.getExportDisplayLevel();
 					if (exportDisplayLevel == 2)
 					{
@@ -644,8 +633,8 @@ class VectorDrawing
 						int cX = (lX + hX) / 2;
 						int cY = (lY + hY) / 2;
 						int size = 3;
-						offscreen.drawLine(new Point(cX-size, cY), new Point(cX+size, cY), null, textGraphics, 0, false);
-						offscreen.drawLine(new Point(cX, cY-size), new Point(cX, cY+size), null, textGraphics, 0, false);
+						offscreen.drawLine(new Point(cX-size, cY), new Point(cX+size, cY), null, graphics, 0, false);
+						offscreen.drawLine(new Point(cX, cY-size), new Point(cX, cY+size), null, graphics, 0, false);
 						crossCount++;
 						continue;
 					}
@@ -653,7 +642,6 @@ class VectorDrawing
 					// draw export as text
 					if (exportDisplayLevel == 1)
 						drawString = Export.getShortName(drawString);
-					graphics = textGraphics;
 					layerBitMap = null;
 				}
 
@@ -713,9 +701,7 @@ class VectorDrawing
 			cY = tempPt1.y;
 
 			int portDisplayLevel = User.getPortDisplayLevel();
-			Color portColor = vce.getPortColor();
-			if (expanded) portColor = textColor;
-			if (portColor != null) portGraphics = portGraphics.withColor(portColor);
+            EGraphics portGraphics = expanded ? PixelDrawing.textGraphics : offscreen.getPortGraphics(vce.getBasePort());
 			if (portDisplayLevel == 2)
 			{
 				// draw port as a cross

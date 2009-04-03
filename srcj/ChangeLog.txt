@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+BUG: (4/3/09, DN) VectorDrawing and LayerDrawing doesn't update color after Layer colors change.
+FIX: Don't cache EGraphics information in VectorCache (except graphicsOverride case).
+
 BUG: (4/2/09, GVG) Assertion in ErrorLogger if info doesn't match with libraries open (Bug #2111)
 FIX: Condition detection after working on Bug #2107
 
