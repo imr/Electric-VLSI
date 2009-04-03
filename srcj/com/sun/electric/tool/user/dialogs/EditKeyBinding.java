@@ -307,7 +307,7 @@ public class EditKeyBinding extends EDialog {
         if (!KeyBindingManager.validKeyEvent(evt)) return;
         key1 = KeyStroke.getKeyStrokeForEvent(evt);
         stroke1Input.setText(KeyStrokePair.keyStrokeToString(key1));
-        updateConflicts();
+        addButton.setEnabled(updateConflicts());
         evt.consume();
     }//GEN-LAST:event_stroke1InputKeyPressed
 
@@ -360,7 +360,11 @@ public class EditKeyBinding extends EDialog {
 
     // --------------------------------- List Box ----------------------------------
 
-    private void updateConflicts() {
+    /**
+     * Method to check conflicts with previous defined key strokes.
+     * @return False if the conflicts can't be generated (alt- definitions).
+     */
+    private boolean updateConflicts() {
         List<KeyBindings> conflicts = getConflicts();
         if (conflicts == null || conflicts.size() == 0) {
             clearConflictsList();
@@ -375,7 +379,7 @@ public class EditKeyBinding extends EDialog {
 	        }
 	        // update list box
 	        conflictsList.setListData(objects);
-	        return;
+	        return true;
         }
 
         // warn if an ALT key conflicts with a pulldown menu
@@ -392,8 +396,9 @@ public class EditKeyBinding extends EDialog {
 				{
 			        String [] objects = new String[1];
 		            objects[0] = "Pulldown menu: " + menu.getText();
-			        conflictsList.setListData(objects);
-			        return;
+                    System.out.println("Stroke is pre-reserved for \"" + objects[0] + "\" and it can't be modified.");
+                    conflictsList.setListData(objects);
+			        return false;
 				}
 			}
         }
@@ -411,6 +416,7 @@ public class EditKeyBinding extends EDialog {
 //            	}
 //            }
 //        }
+        return true;
     }
 
     /**

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+IMP/MAN: (4/3/09, GVG) Pre-defined KeyBindings and alt- (Bug #2006).
+The conflict condition is prevented for alt- keybindings associated with menus.
+
 BUG: (4/3/09, DN) VectorDrawing and LayerDrawing doesn't update color after Layer colors change.
 FIX: Don't cache EGraphics information in VectorCache (except graphicsOverride case).
 
