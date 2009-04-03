@@ -8,7 +8,7 @@ BUG: (4/2/09, GVG) Assertion in ErrorLogger if info doesn't match with libraries
 FIX: Condition detection after working on Bug #2107
 
 IMP/MAN: (4/2/09, GVG) Better highlighting of DRC spacing errors (Bug #2107)
-ErrorLogger XML writer improved as well.
+Implemented with key "/". ErrorLogger XML writer improved as well.
 
 BUG: (4/2/09, NP) M factors not working in NCC (Bug #2088)
 FIX: Added to mFactor to TransistorSize.  Only added by schematic constructor. NCC netlister multiplies mfactor by width now.
