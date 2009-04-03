@@ -2136,7 +2136,8 @@ public class TechEditWizardData
             portNames.add(m1Layer.name);
             String composeName = diffNames[i] + "-Diff";
             Xml.NodeLayer wellNode, wellNodePin;
-            ArcProto.Function arcF;
+            ArcProto.Function
+                arcF;
             Xml.ArcLayer arcL;
             WizardField arcVal;
 
@@ -2411,19 +2412,15 @@ public class TechEditWizardData
         for(int i = 0; i < 2; i++)
         {
             String name;
-            double selecty = 0, selectx = 0;
+            double selecty = 0, selectx = 0, selectExtraY = 0;
             Xml.Layer wellLayer = null, activeLayer, selectLayer;
             double sox = 0, soy = 0;
             double impx = scaledValue((gate_width.v)/2);
             double impy = scaledValue((gate_length.v+diff_poly_overhang.v*2)/2);
-            double wellx = scaledValue((gate_width.v/2+nwell_overhang_diff_p.v));
-            double welly = scaledValue((gate_length.v/2+diff_poly_overhang.v+nwell_overhang_diff_p.v));
+            double nwell_overhangX = (i==Technology.P_TYPE) ? nwell_overhang_diff_n.v : nwell_overhang_diff_p.v;
+            double nwell_overhangY = (i==Technology.P_TYPE) ? nwell_overhang_diff_n.v : nwell_overhang_diff_p.v;
             PaletteGroup g = new PaletteGroup();
             transPalette[i] = g;
-
-            // Using P values in transistors
-            sox = scaledValue(nwell_overhang_diff_p.v);
-            soy = scaledValue(diff_poly_overhang.v+nwell_overhang_diff_p.v);
 
             double protectDist = scaledValue(poly_protection_spacing.v);
             double extraSelX = 0, extraSelY = 0;
@@ -2450,11 +2447,28 @@ public class TechEditWizardData
                 func = PrimitiveNode.Function.TRANMOS;
             }
 
-            selectx = scaledValue((gate_width.v/2+(poly_endcap.v+extraSelX)));
+            selectx = scaledValue(gate_width.v/2+poly_endcap.v+extraSelX);
+            selecty = scaledValue(gate_length.v/2+diff_poly_overhang.v+extraSelY);
             if (getExtraInfoFlag())
-                selecty = scaledValue((gate_length.v + gate_length.v/2 + poly_protection_spacing.v + extraSelX));
-            else
-                selecty = scaledValue((gate_length.v/2+diff_poly_overhang.v+extraSelY));
+                selectExtraY = scaledValue((gate_length.v + gate_length.v/2 + poly_protection_spacing.v + extraSelX));
+
+            // Using P values in transistors
+            double wellx = scaledValue((gate_width.v/2+nwell_overhangX));
+            double welly = scaledValue((gate_length.v/2+diff_poly_overhang.v+nwell_overhangY));
+
+            sox = scaledValue(nwell_overhangX);
+            soy = scaledValue(diff_poly_overhang.v+nwell_overhangY);
+
+            if (DBMath.isLessThan(wellx, selectx))
+            {
+                sox = scaledValue(poly_endcap.v+extraSelX);
+                wellx = selectx;
+            }
+            if (DBMath.isLessThan(welly, selecty))
+            {
+                soy = scaledValue(diff_poly_overhang.v+extraSelY);
+                welly = selecty;
+            }
 
             nodesList.clear();
             nodePorts.clear();
@@ -2573,7 +2587,19 @@ public class TechEditWizardData
 //                new SizeOffset(sox, sox, soy, soy), nodesListW, nodePorts, null, false);
 //                g.addElement(n);
 
-                // standard xtra without select and well
+                // Adding extra transistors whose select is aligned with poly along the X axis
+                nodesList.remove(xTranSelLayer);
+                double shortSelectX = scaledValue(gate_width.v/2+poly_endcap.v);
+                xTranSelLayer = (makeXmlNodeLayer(shortSelectX, shortSelectX, selecty, selecty, selectLayer, Poly.Type.FILLED));
+                nodesList.add(xTranSelLayer);
+                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-S", func, 0, 0, 0, 0,
+                     new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
+                g.addElement(n);
+
+                // different select for those with extra protection layers
+                nodesList.remove(xTranSelLayer);
+                xTranSelLayer = (makeXmlNodeLayer(selectx, selectx, selectExtraY, selectExtraY, selectLayer, Poly.Type.FILLED));
+                nodesList.add(xTranSelLayer);
 
                 if (!horizontalFlag)
                 {
