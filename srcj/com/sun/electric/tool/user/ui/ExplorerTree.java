@@ -1341,13 +1341,13 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
                     if (!(tree instanceof ErrorLoggerTree.ErrorLoggerDefaultMutableTreeNode))
                         assert(false); // should this happen?
 
-                    {
-                        ErrorLoggerTree.ErrorLoggerDefaultMutableTreeNode er = (ErrorLoggerTree.ErrorLoggerDefaultMutableTreeNode)tree;
-                        Object obj = er.getUserObject();
-                        ErrorLoggerTree.ErrorLoggerTreeNode node = (ErrorLoggerTree.ErrorLoggerTreeNode)obj;
-                        int index = node.getLogger().getLogIndex(el);
-                        node.setLogNumber(index);
-                    }
+
+                    ErrorLoggerTree.ErrorLoggerDefaultMutableTreeNode er = (ErrorLoggerTree.ErrorLoggerDefaultMutableTreeNode)tree;
+                    Object obj = er.getUserObject();
+                    ErrorLoggerTree.ErrorLoggerTreeNode node = (ErrorLoggerTree.ErrorLoggerTreeNode)obj;
+                    int index = node.getLogger().getLogIndex(el);
+                    node.setLogNumber(index);
+
 					String msg = Job.getUserInterface().reportLog(el,true, null, -1);
 					System.out.println(msg);
 					return;

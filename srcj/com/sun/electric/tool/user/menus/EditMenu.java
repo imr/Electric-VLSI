@@ -459,7 +459,7 @@ public class EditMenu {
 					showNextErrorCommand(); }},
 				new EMenuItem("Show Pre_vious Error", KeyStroke.getKeyStroke('<')) { public void run() {
 					showPrevErrorCommand(); }},
-                new EMenuItem("Show Single Geometry", KeyStroke.getKeyStroke('^')) { public void run() {
+                new EMenuItem("Show Single Geometry", KeyStroke.getKeyStroke(KeyEvent.VK_SLASH, 0)) { public void run() {
 					showSingleGeometryCommand(); }},
                 new EMenuItem("Show Current Co_llection of Errors") { public void run() {
 					ErrorLoggerTree.showCurrentErrors(); }},

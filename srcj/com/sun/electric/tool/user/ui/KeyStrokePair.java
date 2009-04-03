@@ -60,6 +60,7 @@ public class KeyStrokePair {
 
         KeyEvent.VK_OPEN_BRACKET,
         KeyEvent.VK_CLOSE_BRACKET,
+        KeyEvent.VK_SLASH,
         KeyEvent.VK_BACK_SLASH,
 
         KeyEvent.VK_SEMICOLON,

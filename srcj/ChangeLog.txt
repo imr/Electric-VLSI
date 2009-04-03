@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+BUG: (4/2/09, GVG) Assertion in ErrorLogger if info doesn't match with libraries open (Bug #2111)
+FIX: Condition detection after working on Bug #2107
+
+IMP/MAN: (4/2/09, GVG) Better highlighting of DRC spacing errors (Bug #2107)
+ErrorLogger XML writer improved as well.
+
 BUG: (4/2/09, NP) M factors not working in NCC (Bug #2088)
 FIX: Added to mFactor to TransistorSize.  Only added by schematic constructor. NCC netlister multiplies mfactor by width now.
 
@@ -13,7 +19,7 @@ FIX: Save state in all cases.
 BUG: (4/1/09, DN) Settings and rounding warnings (Bug #2106)
 FIX: In ProjSettings.commit don't print warning when floatValue() are equal.
 
-IMP/MAN: (4/1/09, GVG) Changes for "Better highlighting of DRC spacing errors" (Bug #2107)
+IMP: (4/1/09, GVG) Changes for "Better highlighting of DRC spacing errors" (Bug #2107)
 
 BUG: (4/1/09, GVG) TechEditorWizard not assigning correct ports to actives in transistors (Bug #2109)
 FIX: Ports amended and the graphical/electrical flags modified as well.

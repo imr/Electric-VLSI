@@ -95,11 +95,13 @@ public class ErrorLoggerTree {
    /**
      * Method to advance to the next error and report it.
      */
-    public static void reportSingleGeometry() {
-        if (currentLogger == null)
-        {
-            assert(false); // should it happen?
-        }
+    public static void reportSingleGeometry()
+   {
+       if (currentLogger == null)
+       {
+           System.out.println("No errors to report");
+           return;
+       }
         ((ErrorLoggerTreeNode)currentLogger.getUserObject()).reportSingleGeometry_(true);
     }
 
@@ -461,7 +463,11 @@ public class ErrorLoggerTree {
             this.logger = log;
         }
 
-        public void setLogNumber(int number) { currentLogNumber = number;}
+        public void setLogNumber(int number)
+        {
+            currentLogNumber = number;
+            currentMsgLog = logger.getLog(number);
+        }
 
         public ErrorLogger getLogger() { return logger; }
 

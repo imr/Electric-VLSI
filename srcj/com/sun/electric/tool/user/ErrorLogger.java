@@ -1078,6 +1078,7 @@ public class ErrorLogger implements Serializable
                 boolean errorLogBody = qName.equals("MessageLog");
                 boolean warnLogBody = qName.equals("WarningLog");
                 boolean grpLogBody = qName.equals("GroupLog");
+                boolean errorPolyBody = ErrorHighlight.isErrorPoly(qName);
 
                 if (errorLogBody || warnLogBody)
                 {
@@ -1094,6 +1095,10 @@ public class ErrorLogger implements Serializable
                 else if (grpLogBody)
                 {
                     theSortLayer = -1; // reset to null again
+                }
+                else if (errorPolyBody)
+                {
+                    this.currentList = this.highlights;
                 }
             }
 
@@ -1183,10 +1188,11 @@ public class ErrorLogger implements Serializable
                     if (errorLogBody || warnLogBody)
                     {
                         highlights = new ArrayList<ErrorHighlight>();
+                        currentList = highlights;
                     }
                     else if (errorHighlighBody)
                     {
-                        currentList = ErrorHighlight.addErrorHighlight(qName, curCell, geomName, p1, p2, highlights);
+                        currentList = ErrorHighlight.addErrorHighlight(qName, curCell, geomName, p1, p2, currentList);
                     }
                     else
                         new Error("Invalid attribute in XMLParser");

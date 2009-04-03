@@ -38,6 +38,7 @@ import java.io.PrintStream;
 import java.awt.geom.Point2D;
 import java.io.Serializable;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Class to define Highlighted errors.
@@ -66,8 +67,10 @@ public abstract class ErrorHighlight implements Serializable {
     static boolean isErrorHighlightBody(String name)
     {
         return name.equals("ERRORTYPEGEOM") || name.equals("ERRORTYPETHICKLINE") || name.equals("ERRORTYPELINE") ||
-            name.equals("ERRORTYPEPOLY");
+            isErrorPoly(name);
     }
+    static boolean isErrorPoly(String name) {return name.equals("ERRORTYPEPOLY");}
+
     static List<ErrorHighlight> addErrorHighlight(String qName, Cell curCell, String geomName, EPoint p1, EPoint p2,
                                                   List<ErrorHighlight> list)
     {
@@ -148,12 +151,13 @@ class ErrorHighExport extends ErrorHighlight {
 
 class ErrorHighPoly extends ErrorHighlight
 {
-    List<ErrorHighlight> linesList;
+    List<ErrorHighlight> linesList = new ArrayList<ErrorHighlight>();
 
     public ErrorHighPoly(Cell c, List<ErrorHighlight> list)
     {
         super(c, null);
-        linesList =  list;
+        if (list != null)
+            linesList.addAll(list);
     }
 
     public static void writeXmlHeader(String indent, PrintStream ps)
@@ -170,7 +174,7 @@ class ErrorHighPoly extends ErrorHighlight
         msg.append("cellName=\"" + getCell(database).describe(false) + "\" >");
         for (ErrorHighlight line : linesList)
             line.writeXmlDescription(tabs+"\t", msg, database);
-        msg.append(tabs+"<ERRORTYPEPOLY/>\n");
+        msg.append(tabs+"</ERRORTYPEPOLY>\n");
     }
 
     public void addToHighlighter(Highlighter h, EDatabase database)
