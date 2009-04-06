@@ -26,21 +26,6 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
-import java.awt.Color;
-import java.awt.event.KeyEvent;
-import java.awt.geom.Point2D;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Poly;
@@ -138,6 +123,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FastHenryArc;
 import com.sun.electric.tool.user.dialogs.FillGenDialog;
+import com.sun.electric.tool.user.dialogs.LanguageScripts;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ncc.HighlightEquivalent;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -145,13 +131,45 @@ import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Color;
+import java.awt.event.KeyEvent;
+import java.awt.geom.Point2D;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+
 /**
  * Class to handle the commands in the "Tools" pulldown menu.
  */
-public class ToolMenu {
+public class ToolMenu
+{
+    private static EMenu languageMenu = null;
 
     static EMenu makeMenu() {
 		/****************************** THE TOOLS MENU ******************************/
+
+		// mnemonic keys available: ABCDEFGHIJKLMNOPQRST  WXYZ
+    	languageMenu = new EMenu("Lang_uages",
+	        new EMenuItem("R_un Java Bean Shell Script...") { public void run() {
+                javaBshScriptCommand(); }},
+	        new EMenuItem("Manage Ja_va Bean Shell Scripts...") { public void run() {
+	        	new LanguageScripts(); }},
+            SEPARATOR);
+
+		SwingUtilities.invokeLater(new Runnable() { public void run() {
+	    	setDynamicLanguageMenu();
+		}});
 
 		// mnemonic keys available:  B   F H JK    PQ      XYZ
 		return new EMenu("_Tools",
@@ -599,17 +617,15 @@ public class ToolMenu {
             		if (cell == null) return;
                     Compaction.compactNow(cell, Compaction.isAllowsSpreading()); }}),
 
-        //------------------- Others
+        //------------------- Information and Language Interpreters
 
             SEPARATOR,
 
             new EMenuItem("List _Tools") { public void run() {
 			    listToolsCommand(); }},
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQ STUVWXYZ
-            new EMenu("Lang_uages",
-		        new EMenuItem("_Run Java Bean Shell Script") { public void run() {
-                    javaBshScriptCommand(); }}));
+			languageMenu
+		);
 	}
 
 	// ---------------------------- Tools Menu Commands ----------------------------
@@ -1677,6 +1693,50 @@ public class ToolMenu {
         if (fileName != null)
         {
             // start a job to run the script
+            EvalJavaBsh.runScript(fileName);
+        }
+    }
+
+    /**
+     * Method to change the Languages menu to include preassigned scripts.
+     */
+    public static void setDynamicLanguageMenu()
+    {
+        for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars())
+        {
+            JMenu menu = (JMenu)menuBarInstance.findMenuItem(languageMenu.getPath());
+            while (menu.getMenuComponentCount() > 3)
+            	menu.remove(menu.getMenuComponentCount()-1);
+
+            int index = 0;
+            for(String fileName : LanguageScripts.getScripts())
+            {
+            	char mnemonic = (char)('A' + index);
+            	String menuName = "_" + mnemonic + ": " + fileName;
+            	EMenuItem elem = new DynamicLanguageMenuItem(menuName, fileName);
+                JMenuItem item = elem.genMenu(null);
+                menu.add(item);
+            }
+        }
+    }
+
+    private static class DynamicLanguageMenuItem extends EMenuItem
+    {
+        private String fileName;
+
+        public DynamicLanguageMenuItem(String menuName, String fileName)
+        {
+            super(menuName);
+            this.fileName = fileName;
+        }
+
+        public String getDescription() { return "Language Scripts"; }
+
+        protected void updateButtons() {}
+
+        public void run()
+        {
+        	System.out.println("Executing commands in Bean Shell Script: " + fileName);
             EvalJavaBsh.runScript(fileName);
         }
     }
