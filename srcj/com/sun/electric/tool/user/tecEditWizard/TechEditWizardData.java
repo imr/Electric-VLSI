@@ -2412,7 +2412,7 @@ public class TechEditWizardData
         for(int i = 0; i < 2; i++)
         {
             String name;
-            double selecty = 0, selectx = 0, selectExtraY = 0;
+            double selecty = 0, selectx = 0;
             Xml.Layer wellLayer = null, activeLayer, selectLayer;
             double sox = 0, soy = 0;
             double impx = scaledValue((gate_width.v)/2);
@@ -2449,8 +2449,6 @@ public class TechEditWizardData
 
             selectx = scaledValue(gate_width.v/2+poly_endcap.v+extraSelX);
             selecty = scaledValue(gate_length.v/2+diff_poly_overhang.v+extraSelY);
-            if (getExtraInfoFlag())
-                selectExtraY = scaledValue((gate_length.v + gate_length.v/2 + poly_protection_spacing.v + extraSelX));
 
             // Using P values in transistors
             double wellx = scaledValue((gate_width.v/2+nwell_overhangX));
@@ -2598,9 +2596,24 @@ public class TechEditWizardData
 
                 // different select for those with extra protection layers
                 nodesList.remove(xTranSelLayer);
+                double endOfProtectionY = gate_length.v + poly_protection_spacing.v;
+                double selectExtraY = scaledValue(gate_length.v/2 + endOfProtectionY + extraSelX); // actually is extraSelX because of the poly distance!
                 xTranSelLayer = (makeXmlNodeLayer(selectx, selectx, selectExtraY, selectExtraY, selectLayer, Poly.Type.FILLED));
                 nodesList.add(xTranSelLayer);
 
+                // not sure which condition to apply. It doesn't apply  nwell_overhang_diff due to the extra poly
+           
+                if (wellLayer != null)
+                {
+                    if (DBMath.isLessThan(welly, selectExtraY))
+                    {
+                        welly = selectExtraY;
+                        soy = scaledValue(endOfProtectionY + extraSelX);
+                    }
+                    nodesList.remove(xTranWellLayer);
+                    xTranWellLayer = (makeXmlNodeLayer(wellx, wellx, welly, welly, wellLayer, Poly.Type.FILLED));
+                    nodesList.add(xTranWellLayer);
+                }
                 if (!horizontalFlag)
                 {
                     System.out.println("Not working with !horizontal");

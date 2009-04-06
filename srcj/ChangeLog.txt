@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+IMP (4/6/09, GVG): Another transistor type to help with the latest technology extraction.
+
 IMP/MAN: (4/3/09, GVG) Pre-defined KeyBindings and alt- (Bug #2006).
 The conflict condition is prevented for alt- keybindings associated with menus.
 
