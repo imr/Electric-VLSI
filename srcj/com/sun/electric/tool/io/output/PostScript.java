@@ -63,7 +63,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -128,8 +127,7 @@ public class PostScript extends Output
 		double printMargin = IOTool.getFactoryPrintMargin();
 		int printRotation = IOTool.getFactoryPrintRotation();
 		double printPSLineWidth = IOTool.getFactoryPrintPSLineWidth();
-        GraphicsPreferences gp = null; // TODO fix it
-        Map<Layer,EGraphics> layerGraphics = new HashMap<Layer,EGraphics>();
+        GraphicsPreferences gp;
         Set<Layer> invisibleLayers = new HashSet<Layer>();
 
 
@@ -138,12 +136,11 @@ public class PostScript extends Output
             super(factory);
 			this.override = override;
 
+            gp = new GraphicsPreferences(factory);
             LayerVisibility lv = new LayerVisibility(factory);
             for (Technology tech: TechPool.getThreadTechPool().values()) {
                 for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
                     Layer layer = it.next();
-                    EGraphics graphics = factory ? layer.getFactoryGraphics() : layer.getGraphics();
-                    layerGraphics.put(layer, graphics);
                     if (!lv.isVisible(layer))
                         invisibleLayers.add(layer);
                 }
@@ -1041,7 +1038,7 @@ public class PostScript extends Output
             if (poly instanceof Poly)
                 gra = ((Poly)poly).getGraphicsOverride();
             if (gra == null)
-                gra = localPrefs.layerGraphics.get(layer);
+                gra = localPrefs.gp.getGraphics(layer);
 			col = gra.getColor();
 		}
 
@@ -1297,7 +1294,7 @@ public class PostScript extends Output
         if (poly instanceof Poly)
             desc = ((Poly)poly).getGraphicsOverride();
         if (desc == null)
-            desc = localPrefs.layerGraphics.get(poly.getLayer());
+            desc = localPrefs.gp.getGraphics(poly.getLayer());
 
 		// use solid color if solid pattern or no pattern
 		boolean stipplePattern = desc.isPatternedOnPrinter();

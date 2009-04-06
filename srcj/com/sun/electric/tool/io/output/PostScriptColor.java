@@ -256,7 +256,7 @@ public class PostScriptColor
 			Layer layer = layerSorts.get(i);
 			allLayers[numLayers] = new LayerMap();
 			allLayers[numLayers].layer = layer;
-			EGraphics graph = psObject.localPrefs.layerGraphics.get(layer);
+			EGraphics graph = psObject.localPrefs.gp.getGraphics(layer);
 			allLayers[numLayers].opacity = graph.getOpacity();
 			allLayers[numLayers].foreground = graph.getForeground();
 			Color col = graph.getColor();
