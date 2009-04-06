@@ -181,7 +181,7 @@ public class ToolMenu {
                     DRC.checkDRCHierarchically(dp, wnd.getCell(), wnd.getHighlightedEObjs(true, true),
                             wnd.getHighlightedArea(), GeometryHandler.GHMode.ALGO_SWEEP, false); }},
                 new EMenuItem("Check Area _Coverage") { public void run() {
-                    LayerCoverageTool.layerCoverageCommand(WindowFrame.needCurCell(), GeometryHandler.GHMode.ALGO_SWEEP, true); }},
+                    LayerCoverageTool.layerCoverageCommand(WindowFrame.needCurCell(), GeometryHandler.GHMode.ALGO_SWEEP, true, new LayerCoverageTool.LayerCoveragePreferences(false)); }},
                 new EMenuItem("_List Layer Coverage on Cell") { public void run() {
                     layerCoverageCommand(LayerCoverageTool.LCMode.AREA, GeometryHandler.GHMode.ALGO_SWEEP); }},
 
@@ -681,11 +681,12 @@ public class ToolMenu {
     {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
-        LayerCoverageTool.layerCoverageCommand(func, mode, curCell, true);
+        LayerCoverageTool.layerCoverageCommand(func, mode, curCell, true, new LayerCoverageTool.LayerCoveragePreferences(false));
     }
 
     private static class BackAnnotateJob extends Job {
         private Cell cell;
+        private LayerCoverageTool.LayerCoveragePreferences lcp = new LayerCoverageTool.LayerCoveragePreferences(false);
 
     	public BackAnnotateJob(Cell cell) {
             super("BackAnnotate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -752,7 +753,7 @@ public class ToolMenu {
                 HashSet<Network> nets = new HashSet<Network>();
                 nets.add(layNet);
                 LayerCoverageTool.GeometryOnNetwork geoms = LayerCoverageTool.listGeometryOnNetworks(netcell, nets,
-                        false, GeometryHandler.GHMode.ALGO_SWEEP);
+                        false, GeometryHandler.GHMode.ALGO_SWEEP, lcp);
                 double length = geoms.getTotalWireLength();
 
                 // update wire length
@@ -825,7 +826,7 @@ public class ToolMenu {
 			Set<Network> nets = new HashSet<Network>();
 			nets.add(net);
 	        LayerCoverageTool.GeometryOnNetwork geoms = LayerCoverageTool.listGeometryOnNetworks(cell, nets,
-	        	false, GeometryHandler.GHMode.ALGO_SWEEP);
+	        	false, GeometryHandler.GHMode.ALGO_SWEEP, new LayerCoverageTool.LayerCoveragePreferences(false));
 	        LayerCoverageTool.TransistorInfo p_gate = geoms.getPGate();
 	        LayerCoverageTool.TransistorInfo n_gate = geoms.getNGate();
 	        LayerCoverageTool.TransistorInfo p_active = geoms.getPActive();
@@ -1237,7 +1238,7 @@ public class ToolMenu {
             System.out.println("No network in " + cell + " selected");
             return;
         }
-        LayerCoverageTool.listGeometryOnNetworks(cell, nets, true, mode);
+        LayerCoverageTool.listGeometryOnNetworks(cell, nets, true, mode, new LayerCoverageTool.LayerCoveragePreferences(false));
     }
 
     private static final double SQSIZE = 0.4;
@@ -1380,6 +1381,7 @@ public class ToolMenu {
 
     private static class ListGeomsAllNetworksJob extends Job {
         private Cell cell;
+        private LayerCoverageTool.LayerCoveragePreferences lcp = new LayerCoverageTool.LayerCoveragePreferences(false);
 
     	public ListGeomsAllNetworksJob(Cell cell) {
             super("ListGeomsAllNetworks", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
@@ -1400,7 +1402,7 @@ public class ToolMenu {
                 HashSet<Network> nets = new HashSet<Network>();
                 nets.add(net);
                 LayerCoverageTool.GeometryOnNetwork geoms = LayerCoverageTool.listGeometryOnNetworks(cell, nets,
-                        false, GeometryHandler.GHMode.ALGO_SWEEP);
+                        false, GeometryHandler.GHMode.ALGO_SWEEP, lcp);
                 if (geoms.getTotalWireLength() == 0) continue;
                 System.out.println("Network "+net+" has wire length "+geoms.getTotalWireLength());
             }

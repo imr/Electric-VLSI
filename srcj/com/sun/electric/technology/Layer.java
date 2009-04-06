@@ -56,7 +56,6 @@ public class Layer implements Serializable
 {
     public static final double DEFAULT_THICKNESS = 0; // 3D default thickness
     public static final double DEFAULT_DISTANCE = 0; // 3D default distance
-    private static final double DEFAULT_AREA_COVERAGE = 10; // 10%
 
     /** Describes a P-type layer. */												private static final int PTYPE =          0100;
     /** Describes a N-type layer. */												private static final int NTYPE =          0200;
@@ -688,7 +687,6 @@ public class Layer implements Serializable
 	private Setting layer3DThicknessSetting;
 	private Setting layer3DDistanceSetting;
 
-    private final Pref areaCoveragePref;  // Used by area coverage tool
 	/** the pseudo layer (if exists) */                                     private Layer pseudoLayer;
 	/** the "real" layer (if this one is pseudo) */							private Layer nonPseudoLayer;
 	/** true if dimmed (drawn darker) undimmed layers are highlighted */	private boolean dimmed;
@@ -706,7 +704,6 @@ public class Layer implements Serializable
 
 		this.dimmed = false;
 		this.function = Function.UNKNOWN;
-        areaCoveragePref = makeDoubleServerPref("AreaCoverageJob", DEFAULT_AREA_COVERAGE);
 	}
 
     protected Object writeReplace() { return new LayerKey(this); }
@@ -1232,33 +1229,6 @@ public class Layer implements Serializable
     public Setting getEdgeCapacitanceSetting() { return edgeCapacitanceSetting; }
 
     /**
-	 * Method to set the minimum area to cover with this Layer in a particular cell.
-	 * @param area the minimum area coverage of this layer.
-	 */
-//	public void setFactoryAreaCoverage(double area)
-//	{
-//		getDoublePref("AreaCoverageJob", areaCoveragePrefs, area).setDouble(area);
-//	}
-
-    /**
-	 * Method to return the minimum area coverage that the layer must reach in the technology.
-	 * @return the minimum area coverage (in percentage).
-	 */
-	public double getAreaCoverage() { return areaCoveragePref.getDouble(); }
-
-	/**
-	 * Method to return the minimum area coverage that the layer must reach in the technology, by default.
-	 * @return the minimum area coverage (in percentage), by default.
-	 */
-	public double getFactoryAreaCoverage() { return areaCoveragePref.getDoubleFactoryValue(); }
-
-    /**
-     * Methot to set minimum area coverage that the layer must reach in the technology.
-     * @param area the minimum area coverage (in percentage).
-     */
-	public void setAreaCoverageInfo(double area) { areaCoveragePref.setDouble(area); }
-
-     /**
      * Method to finish initialization of this Layer.
      */
     void finish() {

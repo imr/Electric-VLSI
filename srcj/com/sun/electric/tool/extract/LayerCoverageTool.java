@@ -31,10 +31,12 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.id.LayerId;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -45,6 +47,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.Job;
@@ -68,6 +71,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.prefs.Preferences;
 
 /**
  * Class to describe coverage percentage for a layer.
@@ -91,6 +95,82 @@ public class LayerCoverageTool extends Tool
     public static LayerCoverageTool getLayerCoverageTool() { return tool; }
 
     /****************************** OPTIONS ******************************/
+
+    public static class LayerCoveragePreferences extends PrefPackage {
+        public static final double DEFAULT_AREA_COVERAGE = 10; // 10%
+        private static final String KEY_COVERAGE = "AreaCoverageJob";
+        private final TechPool techPool;
+
+        public Map<LayerId,Double> areaCoverage = new HashMap<LayerId,Double>();
+
+        public LayerCoveragePreferences(boolean factory) {
+            this(factory, TechPool.getThreadTechPool());
+        }
+
+        public LayerCoveragePreferences(boolean factory, TechPool techPool)
+        {
+            super(factory);
+            this.techPool = techPool;
+            if (factory) return;
+
+            Preferences techPrefs = getPrefRoot().node(TECH_NODE);
+            for (Technology tech: techPool.values()) {
+                for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
+                    Layer layer = it.next();
+                    LayerId layerId = layer.getId();
+                    double factoryValue = DEFAULT_AREA_COVERAGE;
+                    double value = techPrefs.getDouble(getKey(KEY_COVERAGE, layerId), factoryValue);
+                    if (value == factoryValue) continue;
+                    areaCoverage.put(layerId, Double.valueOf(value));
+                }
+            }
+        }
+
+        /**
+         * Store annotated option fields of the subclass into the speciefied Preferences subtree.
+         * @param prefRoot the root of the Preferences subtree.
+         * @param removeDefaults remove from the Preferences subtree options which have factory default value.
+         */
+        @Override
+        public void putPrefs(Preferences prefRoot, boolean removeDefaults) {
+            super.putPrefs(prefRoot, removeDefaults);
+            Preferences techPrefs = prefRoot.node(TECH_NODE);
+            for (Technology tech: techPool.values()) {
+                for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
+                    Layer layer = it.next();
+                    LayerId layerId = layer.getId();
+                    String key = getKey(KEY_COVERAGE, layerId);
+                    double factoryValue = DEFAULT_AREA_COVERAGE;
+                    Double valueObj = areaCoverage.get(layerId);
+                    double value = valueObj != null ? valueObj.doubleValue() : factoryValue;
+                    if (removeDefaults && value == factoryValue)
+                        techPrefs.remove(key);
+                    else
+                        techPrefs.putDouble(key, value);
+                }
+            }
+        }
+
+        /**
+         * Method to return the minimum area coverage that the layer must reach in the technology.
+         * @return the minimum area coverage (in percentage).
+         */
+        public double getAreaCoverage(Layer layer) {
+            Double valueObj = areaCoverage.get(layer.getId());
+            return valueObj != null ? valueObj.doubleValue() : DEFAULT_AREA_COVERAGE;
+        }
+        /**
+         * Methot to set minimum area coverage that the layer must reach in the technology.
+         * @param layer Layer
+         * @param area the minimum area coverage (in percentage).
+         */
+        public void setAreaCoverageInfo(Layer layer, double area) {
+            if (area == DEFAULT_AREA_COVERAGE)
+                areaCoverage.remove(layer.getId());
+            else
+                areaCoverage.put(layer.getId(), Double.valueOf(area));
+        }
+    }
 
     // Default value is in um to be technology independent
     private static final double defaultSize = 50000;
@@ -206,12 +286,12 @@ public class LayerCoverageTool extends Tool
      * Method to handle the "List Layer Coverage", "Coverage Implant Generator",  polygons merge
      * except "List Geometry on Network" commands.
      */
-    public static List<Object> layerCoverageCommand(LCMode func, GeometryHandler.GHMode mode, Cell curCell, boolean startJob)
+    public static List<Object> layerCoverageCommand(LCMode func, GeometryHandler.GHMode mode, Cell curCell, boolean startJob, LayerCoveragePreferences lcp)
     {
         // Must be change job for merge and implant;
         Job.Type jobType = (func == LayerCoverageTool.LCMode.MERGE || func == LayerCoverageTool.LCMode.IMPLANT) ?
                 Job.Type.CHANGE : Job.Type.EXAMINE;
-        LayerCoverageJob job = new LayerCoverageJob(curCell, jobType, func, mode, null, null);
+        LayerCoverageJob job = new LayerCoverageJob(curCell, jobType, func, mode, null, null, lcp);
         if (startJob)
             job.startJob();
         else
@@ -233,7 +313,7 @@ public class LayerCoverageTool extends Tool
      * @param startJob to determine if job has to run in a separate thread
      * @return true if job runs without errors. Only valid if startJob is false (regression purpose)
      */
-    public static Map<Layer,Double> layerCoverageCommand(Cell cell, GeometryHandler.GHMode mode, boolean startJob)
+    public static Map<Layer,Double> layerCoverageCommand(Cell cell, GeometryHandler.GHMode mode, boolean startJob, LayerCoveragePreferences lcp)
     {
         if (cell == null) return null;
 
@@ -247,7 +327,7 @@ public class LayerCoverageTool extends Tool
         if (width > bbox.getWidth()) width = bbox.getWidth();
         if (height > bbox.getHeight()) height = bbox.getHeight();
         Map<Layer,Double> map = null;
-        AreaCoverageJob job = new AreaCoverageJob(cell, mode, width, height, deltaX, deltaY);
+        AreaCoverageJob job = new AreaCoverageJob(cell, mode, width, height, deltaX, deltaY, lcp);
 
         // No regression
         if (startJob)
@@ -270,19 +350,19 @@ public class LayerCoverageTool extends Tool
      * @param exportCell
      * @return Rectangle2D containing the bounding box for a particular Network/Layer
      */
-    public static Rectangle2D getGeometryOnNetwork(Cell exportCell, PortInst pi, Layer layer)
+    public static Rectangle2D getGeometryOnNetwork(Cell exportCell, PortInst pi, Layer layer, LayerCoverageTool.LayerCoveragePreferences lcp)
     {
         Netlist netlist = exportCell.getNetlist();
         Network net = netlist.getNetwork(pi);
         Set<Network> nets = new HashSet<Network>();
         nets.add(net);
-        GeometryOnNetwork geoms = new GeometryOnNetwork(exportCell, nets, 1.0, false, layer);
+        GeometryOnNetwork geoms = new GeometryOnNetwork(exportCell, nets, 1.0, false, layer, lcp);
         // This assumes that pi.getBounds() alywas gives you a degenerated rectangle (zero area) so
         // only a point should be searched.
         Rectangle2D bnd = pi.getBounds();
 		LayerCoverageJob job = new LayerCoverageJob(exportCell, Job.Type.EXAMINE, LCMode.NETWORK,
                 GeometryHandler.GHMode.ALGO_SWEEP, geoms,
-                new Point2D.Double(bnd.getX(), bnd.getY()));
+                new Point2D.Double(bnd.getX(), bnd.getY()), lcp);
 
         // Must run it now
         try
@@ -312,15 +392,16 @@ public class LayerCoverageTool extends Tool
      * @param nets networks to analyze
      * @param startJob if job has to run on thread
      * @param mode geometric algorithm to use: GeometryHandler.ALGO_QTREE, GeometryHandler.SWEEP or GeometryHandler.ALGO_MERGE
+     * @param lcp LayerCoveragePreferences
      */
     public static GeometryOnNetwork listGeometryOnNetworks(Cell cell, Set<Network> nets, boolean startJob,
-                                                           GeometryHandler.GHMode mode)
+                                                           GeometryHandler.GHMode mode, LayerCoveragePreferences lcp)
     {
 	    if (cell == null || nets == null || nets.isEmpty()) return null;
 	    double lambda = 1; // lambdaofcell(np);
         // startJob is identical to printable
-	    GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, startJob, null);
-		Job job = new LayerCoverageJob(cell, Job.Type.EXAMINE, LCMode.NETWORK, mode, geoms, null);
+	    GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, startJob, null, lcp);
+		Job job = new LayerCoverageJob(cell, Job.Type.EXAMINE, LCMode.NETWORK, mode, geoms, null, lcp);
 
         if (startJob)
             job.startJob();
@@ -352,7 +433,7 @@ public class LayerCoverageTool extends Tool
         // Network in fill generator
 
         LayerCoverageData(Job parentJob, Cell cell, LCMode func, GeometryHandler.GHMode mode,
-                          GeometryOnNetwork geoms, Rectangle2D bBox, Point2D overlapPoint)
+                          GeometryOnNetwork geoms, Rectangle2D bBox, Point2D overlapPoint, LayerCoverageTool.LayerCoveragePreferences lcp)
         {
             this.parentJob = parentJob;
             this.curCell = cell;
@@ -363,7 +444,7 @@ public class LayerCoverageTool extends Tool
             this.overlapPoint = overlapPoint;
 
             if (func == LCMode.AREA && this.geoms == null)
-                this.geoms = new GeometryOnNetwork(curCell, null, 1, true, null);
+                this.geoms = new GeometryOnNetwork(curCell, null, 1, true, null, lcp);
         }
 
         List<Object> getNodesToHighlight() { return nodesToExamine; }
@@ -577,9 +658,10 @@ public class LayerCoverageTool extends Tool
         private GeometryOnNetwork geoms;
         private List<Object> nodesAdded;
         private Point2D overlapPoint; // to get to crop the search if a given bbox is not null
+        private LayerCoverageTool.LayerCoveragePreferences lcp;
 
         public LayerCoverageJob(Cell cell, Job.Type jobType, LCMode func, GeometryHandler.GHMode mode,
-                                GeometryOnNetwork geoms, Point2D overlapPoint)
+                                GeometryOnNetwork geoms, Point2D overlapPoint, LayerCoverageTool.LayerCoveragePreferences lcp)
         {
             super("Layer Coverage on " + cell, User.getUserTool(), jobType, null, null, Priority.USER);
             this.cell = cell;
@@ -587,12 +669,13 @@ public class LayerCoverageTool extends Tool
             this.mode = mode;
             this.geoms = geoms;
             this.overlapPoint = overlapPoint;
+            this.lcp = lcp;
             setReportExecutionFlag(true);
         }
 
         public boolean doIt() throws JobException
         {
-            LayerCoverageData data = new LayerCoverageData(this, cell, func, mode, geoms, null, overlapPoint);
+            LayerCoverageData data = new LayerCoverageData(this, cell, func, mode, geoms, null, overlapPoint, lcp);
             boolean done = data.doIt();
 
             if (func == LCMode.IMPLANT || (func == LCMode.NETWORK && geoms != null))
@@ -631,9 +714,10 @@ public class LayerCoverageTool extends Tool
         private double width, height;
         private GeometryHandler.GHMode mode;
         private Map<Layer,Double> internalMap;
+        private LayerCoverageTool.LayerCoveragePreferences lcp;
 
         public AreaCoverageJob(Cell cell, GeometryHandler.GHMode mode,
-                               double width, double height, double deltaX, double deltaY)
+                               double width, double height, double deltaX, double deltaY, LayerCoveragePreferences lcp)
         {
             super("Layer Coverage", User.getUserTool(), Type.EXAMINE, null, null, Priority.USER);
             this.curCell = cell;
@@ -642,6 +726,7 @@ public class LayerCoverageTool extends Tool
             this.height = height;
             this.deltaX = deltaX;
             this.deltaY = deltaY;
+            this.lcp = lcp;
             setReportExecutionFlag(true); // Want to report statistics
         }
 
@@ -666,11 +751,11 @@ public class LayerCoverageTool extends Tool
                 for (double posX = bBoxOrig.getMinX(); posX < maxX; posX += deltaX)
                 {
                     Rectangle2D box = new Rectangle2D.Double(posX, posY, width, height);
-                    GeometryOnNetwork geoms = new GeometryOnNetwork(curCell, null, 1, true, null);
+                    GeometryOnNetwork geoms = new GeometryOnNetwork(curCell, null, 1, true, null, lcp);
                     System.out.println("Calculating Coverage on cell '" + curCell.getName() + "' for area (" +
                             DBMath.round(posX) + "," + DBMath.round(posY) + ") (" +
                             DBMath.round(box.getMaxX()) + "," + DBMath.round(box.getMaxY()) + ")");
-                    LayerCoverageData data = new LayerCoverageData(this, curCell, LCMode.AREA, mode, geoms, box, null);
+                    LayerCoverageData data = new LayerCoverageData(this, curCell, LCMode.AREA, mode, geoms, box, null, lcp);
                     if (!data.doIt())  // aborted by user
                     {
                         return false; // didn't finish
@@ -1058,13 +1143,15 @@ public class LayerCoverageTool extends Tool
 	    private ArrayList<Double> halfPerimeters;
 	    private double totalWire;
         private double totalArea;
+        private LayerCoveragePreferences lcp;
 
         // these are the area and transistor widths for gate and active in N and P
         TransistorInfo p_gate, n_gate, p_active, n_active;
 
         public GeometryOnNetwork(Cell cell, Set<Network> nets, double lambda, boolean printable,
-                                 Layer onlyThisLayer)
+                                 Layer onlyThisLayer, LayerCoveragePreferences lcp)
         {
+            this.lcp = lcp;
 	        this.cell = cell;
 	        this.nets = nets;
 	        this.lambda = lambda;
@@ -1131,7 +1218,7 @@ public class LayerCoverageTool extends Tool
                 Layer layer = layers.get(i);
                 Double area = areas.get(i);
                 double percentage = area.doubleValue()/totalArea * 100;
-                double minV = layer.getAreaCoverage();
+                double minV = lcp.getAreaCoverage(layer);
                 if (percentage < minV)
                 {
                     String msg = "Error area coverage " + layer.getName() + " min value = " + minV + " actual value = " + percentage;

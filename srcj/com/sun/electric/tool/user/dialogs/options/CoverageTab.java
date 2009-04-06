@@ -38,7 +38,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -70,13 +69,15 @@ public class CoverageTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
+    @Override
 	public JPanel getPreferencesPanel() { return layerCoverage; }
 
 	/** return the name of this preferences tab. */
+    @Override
 	public String getName() { return "Coverage"; }
 
 	private boolean layerDataChanging = false;
-	private Map<Layer,GenMath.MutableDouble> layerAreaMap;
+    private LayerCoverageTool.LayerCoveragePreferences lcp;
 	private DefaultListModel layerListModel;
 	private JList layerJList;
 
@@ -84,9 +85,10 @@ public class CoverageTab extends PreferencePanel
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the New Arcs tab.
 	 */
+    @Override
 	public void init()
 	{
-		layerAreaMap = new HashMap<Layer,GenMath.MutableDouble>();
+		lcp = new LayerCoverageTool.LayerCoveragePreferences(false);
 		layerListModel = new DefaultListModel();
 		layerJList = new JList(layerListModel);
 		layerJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -96,17 +98,10 @@ public class CoverageTab extends PreferencePanel
 		{
 			Technology tech = tIt.next();
 			technologySelection.addItem(tech.getTechName());
-
-			for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
-			{
-				Layer layer = it.next();
-				double val = layer.getAreaCoverage();
-				layerAreaMap.put(layer, new GenMath.MutableDouble(val));
-			}
 		}
 		layerDataChanging = false;
 		layerAreaField.getDocument().addDocumentListener(new CoverageDocumentListener(this));
-		
+
 		technologySelection.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { newTechSelected(); }
@@ -128,9 +123,7 @@ public class CoverageTab extends PreferencePanel
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			GenMath.MutableDouble val = layerAreaMap.get(layer);
-			if (val == null) continue;
-			layerListModel.addElement(getLineString(layer, val.doubleValue()));
+			layerListModel.addElement(getLineString(layer, lcp.getAreaCoverage(layer)));
 		}
 		layerJList.setSelectedIndex(0);
 		widthField.setText(TextUtils.formatDistance(LayerCoverageTool.getWidth(tech)));
@@ -188,15 +181,12 @@ public class CoverageTab extends PreferencePanel
 		String techName = (String)technologySelection.getSelectedItem();
 		Technology tech = Technology.findTechnology(techName);
 		if (tech == null) return;
-		
+
 		String primName = (String)layerJList.getSelectedValue();
 		int spacePos = primName.indexOf(' ');
 		if (spacePos >= 0) primName = primName.substring(0, spacePos);
 		Layer layer = tech.findLayer(primName);
-		Object obj = layerAreaMap.get(layer);
-		if (obj == null) return;  // it should not happen though
-		GenMath.MutableDouble value = (GenMath.MutableDouble)obj;
-		double origValue = value.doubleValue();
+		double origValue = lcp.getAreaCoverage(layer);
 		if (set)
 		{
 			double val = 0;
@@ -221,12 +211,12 @@ public class CoverageTab extends PreferencePanel
 				SwingUtilities.invokeLater(new SetOriginalValue(layerAreaField, origValue));
 				return;
 			}
-			value.setValue(val);
+            lcp.setAreaCoverageInfo(layer, val);
 			int lineNo = layerJList.getSelectedIndex();
 			layerListModel.setElementAt(getLineString(layer, val), lineNo);
 		}
 		else
-			layerAreaField.setText(TextUtils.formatDouble(value.doubleValue()));
+			layerAreaField.setText(TextUtils.formatDouble(origValue));
 	}
 
 	/**
@@ -250,34 +240,20 @@ public class CoverageTab extends PreferencePanel
 			if (val != LayerCoverageTool.getDeltaY(tech)) LayerCoverageTool.setDeltaY(val, tech);
 		}
 
-		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
-		{
-			tech = tIt.next();
-			for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
-			{
-				Layer layer = it.next();
-				Object obj = layerAreaMap.get(layer);
-				if (obj == null) continue;  // it should not happen though
-				GenMath.MutableDouble value = (GenMath.MutableDouble)obj;
-				layer.setAreaCoverageInfo(value.doubleValue());
-			}
-		}
+        lcp.putPrefs(LayerCoverageTool.LayerCoveragePreferences.getPrefRoot(), true);
 	}
 
 	/**
 	 * Method called when the factory reset is requested.
 	 */
+    @Override
 	public void reset()
 	{
+        lcp.areaCoverage.clear();
+        lcp.putPrefs(LayerCoverageTool.LayerCoveragePreferences.getPrefRoot(), true);
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = tIt.next();
-			for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
-			{
-				Layer layer = it.next();
-				if (layer.getFactoryAreaCoverage() != layer.getAreaCoverage())
-					layer.setAreaCoverageInfo(layer.getFactoryAreaCoverage());
-			}
 			if (LayerCoverageTool.getFactoryWidth(tech) != LayerCoverageTool.getWidth(tech))
 				LayerCoverageTool.setWidth(LayerCoverageTool.getFactoryWidth(tech), tech);
 			if (LayerCoverageTool.getFactoryHeight(tech) != LayerCoverageTool.getHeight(tech))

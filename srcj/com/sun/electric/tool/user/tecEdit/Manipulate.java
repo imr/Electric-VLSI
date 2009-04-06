@@ -49,6 +49,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.extract.LayerCoverageTool;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ComponentMenu;
@@ -2760,7 +2761,7 @@ public class Manipulate
             // Function
             cols[5].add(layer.getFunction().toString());
             // Coverage
-            cols[6].add(TextUtils.formatDouble(layer.getAreaCoverage()));
+            cols[6].add(TextUtils.formatDouble(LayerCoverageTool.LayerCoveragePreferences.DEFAULT_AREA_COVERAGE/*layer.getAreaCoverage()*/));
         }
 
         // write the layer information */

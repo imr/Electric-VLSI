@@ -28,6 +28,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.extract.LayerCoverageTool;
 
 /**
  * User: gg151869
@@ -40,13 +41,15 @@ public class FillGenJob extends Job
     protected Cell topCell;
     protected ErrorLogger log;
     private boolean doItNow;
+    protected LayerCoverageTool.LayerCoveragePreferences lcp;
 
-    public FillGenJob(Cell cell, FillGenConfig gen, boolean doItNow)
+    public FillGenJob(Cell cell, FillGenConfig gen, boolean doItNow, LayerCoverageTool.LayerCoveragePreferences lcp)
     {
         super("Fill generator job", null, Type.CHANGE, null, null, Priority.USER);
         this.fillGenConfig = gen;
         this.topCell = cell; // Only if 1 cell is generated.
         this.doItNow = doItNow;
+        this.lcp = lcp;
 
         assert(fillGenConfig.evenLayersHorizontal);
 
@@ -108,7 +111,7 @@ public class FillGenJob extends Job
 
     public boolean doTemplateFill(FillGeneratorTool fillGen)
     {
-        fillGen.standardMakeFillCell(fillGenConfig.firstLayer, fillGenConfig.lastLayer, 
+        fillGen.standardMakeFillCell(fillGenConfig.firstLayer, fillGenConfig.lastLayer,
         		                     fillGenConfig.techType.getTechType(), fillGenConfig.perim,
                                      fillGenConfig.cellTiles, false);
         fillGen.makeGallery();

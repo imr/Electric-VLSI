@@ -30,6 +30,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.extract.LayerCoverageTool;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.fill.FillGenConfig;
 import com.sun.electric.tool.generator.layout.fill.FillGenJob;
@@ -620,7 +621,7 @@ public class FillGenDialog extends EDialog {
     private void okButtonActionPerformed() {
         FillGenConfig config = okButtonClick(false, false, false, false, 0, FillGenConfig.FillGenType.INTERNAL, -1);
         if (config != null)
-            new FillGenJob(Job.getUserInterface().getCurrentCell(), config, false);
+            new FillGenJob(Job.getUserInterface().getCurrentCell(), config, false, new LayerCoverageTool.LayerCoveragePreferences(false));
     }
 
     public FillGenConfig okButtonClick(boolean isFlatSelected, boolean createMaster, boolean binary, boolean around,
