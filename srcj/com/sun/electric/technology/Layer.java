@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.LayerId;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.user.UserInterfaceMain;
 
@@ -998,18 +997,6 @@ public class Layer implements Serializable
     private Setting.Group getSubNode(String type) {
         return tech.getProjectSettings().node(type);
     }
-
-	/**
-	 * Method to make a double-precision server preference for this Layer and a specific purpose.
-	 * @param what the purpose of the preference.
-	 * @param factory the factory default value for this Layer/purpose.
-	 * @return the double-precision Pref object for this Layer/purpose.
-	 */
-	private Pref makeDoubleServerPref(String what, double factory)
-	{
-        if (isPseudoLayer()) return null;
-        return Pref.makeDoubleServerPref(what + "Of" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
-	}
 
 	/**
 	 * Method to set the 3D distance and thickness of this Layer.
