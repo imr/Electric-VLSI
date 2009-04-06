@@ -154,9 +154,11 @@ public class ProjSettings {
             if (xmlVal instanceof Double && ((Double)xmlVal).floatValue() == ((Double)oldVal).floatValue())
                 continue;
             if (allowOverride) {
-                System.out.println("Warning: Setting \""+setting.getPrefName()+"\" set to "+xmlVal+", overrides current value of "+oldVal);
+                System.out.println("Warning: Setting \""+setting.getPrefName()+"\" set to \""+xmlVal+
+                    "\", overrides current value of \""+oldVal + "\"");
             } else {
-                System.out.println("Warning: Setting \""+setting.getPrefName()+"\" retains current value of "+oldVal+", while ignoring projectsettings.xml value of "+xmlVal);
+                System.out.println("Warning: Setting \""+setting.getPrefName()+"\" retains current value of \""+oldVal+
+                    "\", while ignoring projectsettings.xml value of "+xmlVal+"\"");
             }
         }
         if (allowOverride)
