@@ -94,14 +94,16 @@ public class Quick
     private HashMap<Layer,DRCTemplate> spacingLayerMap = new HashMap<Layer,DRCTemplate>();    // to detect holes using the area function
     private HashMap<Layer,DRCTemplate> slotSizeLayerMap = new HashMap<Layer,DRCTemplate>();    // For max length checking
     private DRC.CheckDRCJob job; // Reference to running job
+    private DRC.DRCPreferences dp;
 	private HashMap<Cell,Cell> cellsMap = new HashMap<Cell,Cell>(); // for cell caching
     private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
     private GeometryHandler.GHMode mergeMode = GeometryHandler.GHMode.ALGO_SWEEP; // .ALGO_QTREE;
     private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
 
-	public Quick(DRC.CheckDRCJob j, GeometryHandler.GHMode mode)
+	public Quick(DRC.CheckDRCJob j, DRC.DRCPreferences dp, GeometryHandler.GHMode mode)
 	{
 		this.job = j;
+        this.dp = dp;
         this.mergeMode = mode;
 	}
 
@@ -120,11 +122,11 @@ public class Quick
     // To speed up the layer process
     private ValidationLayers validLayers;
 
-    public static ErrorLogger checkDesignRules(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
+    public static ErrorLogger checkDesignRules(DRC.DRCPreferences dp, ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
                                                Rectangle2D bounds)
     {
         if (errorLog == null) errorLog = DRC.getDRCErrorLogger(true, false, null);
-        return checkDesignRules(errorLog, cell, geomsToCheck, validity, bounds, null,
+        return checkDesignRules(errorLog, cell, geomsToCheck, validity, bounds, null, dp,
                 GeometryHandler.GHMode.ALGO_SWEEP, false);
     }
 
@@ -141,9 +143,9 @@ public class Quick
      * @return ErrorLogger containing the information
 	 */
 	public static ErrorLogger checkDesignRules(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
-                                               Rectangle2D bounds, DRC.CheckDRCJob drcJob, GeometryHandler.GHMode mode, boolean onlyArea)
+                                               Rectangle2D bounds, DRC.CheckDRCJob drcJob, DRC.DRCPreferences dp, GeometryHandler.GHMode mode, boolean onlyArea)
 	{
-		Quick q = new Quick(drcJob, mode);
+		Quick q = new Quick(drcJob, dp, mode);
         return q.doCheck(errorLog, cell, geomsToCheck, validity, bounds, onlyArea);
 	}
 
@@ -158,7 +160,7 @@ public class Quick
         // if checking specific instances, adjust options and processor count
         int count = (geomsToCheck != null) ? geomsToCheck.length : 0;
 
-        reportInfo = new DRC.ReportInfo(errorLog, tech, (count > 0));
+        reportInfo = new DRC.ReportInfo(errorLog, tech, dp, (count > 0));
         ErrorLogger errorLogger = errorLog;
 
         // caching bits
@@ -811,7 +813,7 @@ public class Quick
             if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
         }
-        
+
         // get all of the polygons on this arc
 		Technology tech = ai.getProto().getTechnology();
 		Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
@@ -1239,7 +1241,7 @@ public class Quick
                     Technology.MultiCutData niMCD = tech.getMultiCutData(ni);
                     // in case it is one via against many from another contact (3-contact configuration)
                     if (!multi && isLayerAContact && niMCD != null)
-                    {          
+                    {
                         multi = tech.isMultiCutInTechnology(niMCD);
                         if (!multi)
                         {
@@ -1587,7 +1589,7 @@ public class Quick
                 pt2d = new Point2D.Double(pt1.getX()+ DRC.TINYDELTA, delta* DRC.TINYDELTA+pt1.getY());
             }
             if (DBMath.areEquals(pt1.getX(), pt2.getX()) || DBMath.areEquals(pt1.getY(), pt2.getY()))
-            {    
+            {
                 return false;
             }
         }
@@ -2557,7 +2559,7 @@ public class Quick
                 break;
         }
         HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
-        
+
         errorFound = reportInfo.errorLogger.getNumErrors() - errorFound;
 
         return errorFound;
@@ -3309,7 +3311,7 @@ public class Quick
                 }
                 if (!f)
                     continue; // no point in layers found
-                
+
                 // now testing the rule
                 basicFound[0] = basicFound[1] = basicFound[2] = false;
                 double cos45 = 1.0/Math.sqrt(2);
@@ -3835,7 +3837,7 @@ public class Quick
 			PortInst pi = ai.getPortInst(i);
             PortOriginal fp = new PortOriginal(pi, inTrans);
 			NodeInst ni = fp.getBottomNodeInst();
-            
+
             if (NodeInst.isSpecialNode(ni))
                 continue; // Dec 08 -> is a pin so ignore it
 
@@ -4047,7 +4049,7 @@ public class Quick
     {
         Layer polyLayer;
         Layer.Function.Set activeLayers = new Layer.Function.Set(Layer.Function.DIFFP, Layer.Function.DIFFN);
-        
+
         /**
          * Method to check whether the layer must be checked or not. It might be done by this layer on that network
          * @param layer
@@ -4065,7 +4067,7 @@ public class Quick
             return false;
         }
     }
-    
+
     /**************************************************************************************************************
 	 *  QuickAreaEnumeratorSlow class
 	 **************************************************************************************************************/

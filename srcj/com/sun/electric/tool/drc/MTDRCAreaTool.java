@@ -52,9 +52,9 @@ public class MTDRCAreaTool extends MTDRCTool
 {
     /** Miscellanous data for DRC */                            private DRC.ReportInfo reportInfo;
 
-    public MTDRCAreaTool(Cell c, Consumer<MTDRCResult> consumer)
+    public MTDRCAreaTool(DRC.DRCPreferences dp, Cell c, Consumer<MTDRCResult> consumer)
     {
-        super("Design-Rule Area Check " + c, c, consumer);
+        super("Design-Rule Area Check " + c, dp, c, consumer);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class MTDRCAreaTool extends MTDRCTool
 
     static int checkMinArea(Layer theLayer, Cell topC, DRC.ReportInfo rI, DRCRules areaRules,
                             CellLayersContainer cellLayersC, Job job, String msg)
-    {                    
+    {
         DRCTemplate minAreaRule = areaRules.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINAREA);
         DRCTemplate enclosedAreaRule = areaRules.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
         DRCTemplate spaceRule = areaRules.getSpacingRule(theLayer, null, theLayer, null, true, -1, -1.0, -1.0); // UCONSPA, CONSPA or SPACING
@@ -85,7 +85,7 @@ public class MTDRCAreaTool extends MTDRCTool
     {
         ErrorLogger errorLogger = DRC.getDRCErrorLogger(true, false, ", Layer " + theLayer.getName());
         String msg = "Cell " + topCell.getName() + " , layer " + theLayer.getName();
-        reportInfo = new DRC.ReportInfo(errorLogger, topCell.getTechnology(), false);
+        reportInfo = new DRC.ReportInfo(errorLogger, topCell.getTechnology(), dp, false);
 
         Date lastAreaGoodDate = DRC.getLastDRCDateBasedOnBits(topCell, false, -1, !reportInfo.inMemory);
 

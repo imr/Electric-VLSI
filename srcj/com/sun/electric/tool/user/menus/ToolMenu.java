@@ -57,7 +57,6 @@ import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -145,7 +144,6 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import java.util.prefs.Preferences;
 
 /**
  * Class to handle the commands in the "Tools" pulldown menu.
@@ -164,21 +162,23 @@ public class ToolMenu {
             new EMenu("_DRC",
 		        new EMenuItem("Check _Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0))
                 { public void run() {
+                    DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
                     Cell cell = Job.getUserInterface().needCurrentCell();
                     // Multi-threaded code is only available for layout
                     if (DRC.isMultiThreaded() && cell.isLayout())
                     {
-                        new MTDRCLayoutTool(cell, true, null).startJob();
+                        new MTDRCLayoutTool(dp, cell, true, null).startJob();
                     }
                     else
                     {
-                        DRC.checkDRCHierarchically(cell, null, null, GeometryHandler.GHMode.ALGO_SWEEP, false);
+                        DRC.checkDRCHierarchically(dp, cell, null, null, GeometryHandler.GHMode.ALGO_SWEEP, false);
                     }
                 }},
 		        new EMenuItem("Check _Selection Hierarchically") { public void run() {
                     EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
                     if (wnd == null) return;
-                    DRC.checkDRCHierarchically(wnd.getCell(), wnd.getHighlightedEObjs(true, true),
+                    DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
+                    DRC.checkDRCHierarchically(dp, wnd.getCell(), wnd.getHighlightedEObjs(true, true),
                             wnd.getHighlightedArea(), GeometryHandler.GHMode.ALGO_SWEEP, false); }},
                 new EMenuItem("Check Area _Coverage") { public void run() {
                     LayerCoverageTool.layerCoverageCommand(WindowFrame.needCurCell(), GeometryHandler.GHMode.ALGO_SWEEP, true); }},

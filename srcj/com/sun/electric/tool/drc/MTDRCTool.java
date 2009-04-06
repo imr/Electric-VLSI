@@ -42,15 +42,17 @@ import java.util.*;
  */
 public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResult, MTDRCTool.MTDRCResult>
 {
+    protected DRC.DRCPreferences dp;
     protected Cell topCell;
     protected long globalStartTime;
     protected CellLayersContainer cellLayersCon = new CellLayersContainer();
     protected final boolean printLog = Job.getDebug();
     protected DRCRules rules;
 
-    public MTDRCTool(String jobName, Cell c, Consumer<MTDRCResult> consumer)
+    protected MTDRCTool(String jobName, DRC.DRCPreferences dp, Cell c, Consumer<MTDRCResult> consumer)
     {
         super(jobName, DRC.getDRCTool(), Job.Type.CHANGE, consumer);
+        this.dp = dp;
         this.topCell= c;
         // Rules set must be local to avoid concurrency issues with other tasks
         this.rules = topCell.getTechnology().getFactoryDesignRules();
@@ -60,7 +62,6 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
     public void prepareTasks()
     {
         Technology tech = topCell.getTechnology();
-	DRC.getRules(tech); // pre-allocate Rules to avoid concurrency failures in getDRCOverrides()
         cellLayersCon = new CellLayersContainer();
         CheckCellLayerEnumerator layerCellCheck = new CheckCellLayerEnumerator(cellLayersCon);
         HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, layerCellCheck);
@@ -116,7 +117,7 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
 
         System.out.println("Total DRC Errors: " + numTE);
         System.out.println("Total DRC Warnings: " + numTW);
-        long accuEndTime = System.currentTimeMillis() - globalStartTime;             
+        long accuEndTime = System.currentTimeMillis() - globalStartTime;
         System.out.println("Total Time: " + TextUtils.getElapsedTime(accuEndTime));
 
         if (runFine)

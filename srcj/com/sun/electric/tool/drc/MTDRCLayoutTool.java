@@ -85,10 +85,10 @@ import java.util.*;
 public class MTDRCLayoutTool extends MTDRCTool
 {
     private boolean ignoreExtensionRules = true;
-    
-    public MTDRCLayoutTool(Cell c, boolean ignoreExtensionR, Consumer<MTDRCResult> consumer)
+
+    public MTDRCLayoutTool(DRC.DRCPreferences dp, Cell c, boolean ignoreExtensionR, Consumer<MTDRCResult> consumer)
 	{
-        super("Design-Rule Layout Check " + c, c, consumer);
+        super("Design-Rule Layout Check " + c, dp, c, consumer);
         this.ignoreExtensionRules = ignoreExtensionR;
     }
 
@@ -100,7 +100,7 @@ public class MTDRCLayoutTool extends MTDRCTool
     public MTDRCResult runTaskInternal(Layer taskKey) {
         return (new Task(rules, this)).runTaskInternal(taskKey);
     }
-    
+
     private class Task {
 
         private HashMap<NodeInst,CheckInst> checkInsts;
@@ -171,7 +171,7 @@ public class MTDRCLayoutTool extends MTDRCTool
             boolean[] validity = null;
             Rectangle2D bounds = null;
             ErrorLogger errorLogger = DRC.getDRCErrorLogger(true, false, ", " + name);
-            reportInfo = new DRC.ReportInfo(errorLogger, tech, (count > 0));
+            reportInfo = new DRC.ReportInfo(errorLogger, tech, dp, (count > 0));
 
             // caching bits
             System.out.println("Running DRC for " + name + " with " + DRC.explainBits(reportInfo.activeSpacingBits));
@@ -374,7 +374,7 @@ public class MTDRCLayoutTool extends MTDRCTool
 
                 // ignore documentation icons
                 if (ni.isIconOfParent()) continue;
-                
+
                 // Check DRC exclusion regions
                 if (area != null && area.contains(ni.getBounds()))
                     continue; // excluded
@@ -453,7 +453,7 @@ public class MTDRCLayoutTool extends MTDRCTool
                 if (checkAbort()) return -1;
 
                 NodeInst ni = it.next();
-                
+
                 if (bounds != null)
                 {
                     if (!ni.getBounds().intersects(bounds)) continue;

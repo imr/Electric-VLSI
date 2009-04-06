@@ -170,7 +170,7 @@ public class TechToLib
         gi.nonElectrical = tech.isNonElectrical();
 		gi.scale = tech.getScale();
         gi.scaleRelevant = tech.isScaleRelevant();
-        gi.resolution = tech.getResolution();
+        gi.resolution = tech.getFactoryResolution();
         gi.defaultFoundry = tech.getPrefFoundry();
         gi.defaultNumMetals = tech.getNumMetals();
 		gi.description = tech.getTechDesc();

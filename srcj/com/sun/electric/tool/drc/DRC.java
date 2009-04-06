@@ -37,6 +37,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.*;
@@ -56,8 +57,8 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.*;
-import java.util.prefs.Preferences;
 import java.io.Serializable;
+import java.util.prefs.Preferences;
 
 /**
  * This is the Design Rule Checker tool.
@@ -750,13 +751,13 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         Map<Cell, Area> exclusionMap = new HashMap<Cell,Area>(); // The DRCExclusion object lists areas where Generic:DRC-Nodes exist to ignore errors.
         boolean inMemory = DRC.isDatesStoredInMemory();
 
-        public ReportInfo(ErrorLogger eL, Technology tech, boolean specificGeoms)
+        public ReportInfo(ErrorLogger eL, Technology tech, DRCPreferences dp, boolean specificGeoms)
         {
             errorLogger = eL;
             activeSpacingBits = DRC.getActiveBits(tech);
             worstInteractionDistance = DRC.getWorstSpacingDistance(tech, -1);
             // minimim resolution different from zero if flag is on otherwise stays at zero (default)
-            minAllowedResolution = tech.getResolution();
+            minAllowedResolution = dp.getResolution(tech);
 
             errorTypeSearch = DRC.getErrorType();
             if (specificGeoms)
@@ -1083,7 +1084,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 		}
     }
 
-    private static void doIncrementalDRCTask(Cell cellToCheck)
+    private static void doIncrementalDRCTask(DRCPreferences dp, Cell cellToCheck)
 	{
 		if (!isIncrementalDRCOn()) return;
 		if (incrementalRunning) return;
@@ -1126,7 +1127,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                 ArrayList<ErrorLogger.MessageLog> getAllLogs = errorLoggerIncremental.getAllLogs(c);
                 Job.updateIncrementalDRCErrors(c, null, getAllLogs);
             }
-            new CheckDRCIncrementally(cellToCheck, objectsToCheck, cellToCheck.getTechnology().isScaleRelevant());
+            new CheckDRCIncrementally(dp, cellToCheck, objectsToCheck, cellToCheck.getTechnology().isScaleRelevant());
 		}
 	}
 
@@ -1158,7 +1159,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 		Library curLib = Library.getCurrent();
 		if (curLib == null) return;
 		Cell cellToCheck = curLib.getCurCell();
-		doIncrementalDRCTask(cellToCheck);
+		doIncrementalDRCTask(new DRC.DRCPreferences(false), cellToCheck);
 	}
 
 	/****************************** DRC INTERFACE ******************************/
@@ -1184,7 +1185,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
     /**
      * This method generates a DRC job from the GUI or for a bash script.
      */
-    public static void checkDRCHierarchically(Cell cell, List<Geometric> objs, Rectangle2D bounds,
+    public static void checkDRCHierarchically(DRCPreferences dp, Cell cell, List<Geometric> objs, Rectangle2D bounds,
                                               GeometryHandler.GHMode mode, boolean onlyArea)
     {
         if (cell == null) return;
@@ -1195,7 +1196,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 			isLayout = false;
 
         if (mode == null) mode = GeometryHandler.GHMode.ALGO_SWEEP;
-        new CheckDRCHierarchically(cell, isLayout, objs, bounds, mode, onlyArea);
+        new CheckDRCHierarchically(dp, cell, isLayout, objs, bounds, mode, onlyArea);
     }
 
 	/**
@@ -1205,13 +1206,15 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	public static class CheckDRCJob extends Job
 	{
 		Cell cell;
+        DRCPreferences dp;
         boolean isLayout; // to check layout
 
         private static String getJobName(Cell cell) { return "Design-Rule Check " + cell; }
-		protected CheckDRCJob(Cell cell, Listener tool, Priority priority, boolean layout)
+		protected CheckDRCJob(Cell cell, Listener tool, Priority priority, DRCPreferences dp, boolean layout)
 		{
 			super(getJobName(cell), tool, Job.Type.EXAMINE, null, null, priority);
 			this.cell = cell;
+            this.dp = dp;
             this.isLayout = layout;
 
 		}
@@ -1235,11 +1238,11 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
          * @param layout
          * @param bounds
          */
-		protected CheckDRCHierarchically(Cell cell, boolean layout, List<Geometric> objs,
+		protected CheckDRCHierarchically(DRCPreferences dp, Cell cell, boolean layout, List<Geometric> objs,
                                          Rectangle2D bounds, GeometryHandler.GHMode mode,
                                          boolean onlyA)
 		{
-			super(cell, tool, Job.Priority.USER, layout);
+			super(cell, tool, Job.Priority.USER, dp, layout);
 			this.bounds = bounds;
             this.mergeMode = mode;
             this.onlyArea = onlyA;
@@ -1257,7 +1260,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             ErrorLogger errorLog = getDRCErrorLogger(isLayout, false, null);
             checkNetworks(errorLog, cell, isLayout);
             if (isLayout)
-                Quick.checkDesignRules(errorLog, cell, geoms, null, bounds, this, mergeMode, onlyArea);
+                Quick.checkDesignRules(errorLog, cell, geoms, null, bounds, this, dp, mergeMode, onlyArea);
             else
                 Schematic.doCheck(errorLog, cell, geoms);
             long endTime = System.currentTimeMillis();
@@ -1275,9 +1278,9 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 		Geometric [] objectsToCheck;
         Cell cellToCheck;
 
-		protected CheckDRCIncrementally(Cell cell, Geometric[] objectsToCheck, boolean layout)
+		protected CheckDRCIncrementally(DRCPreferences dp, Cell cell, Geometric[] objectsToCheck, boolean layout)
 		{
-			super(cell, tool, Job.Priority.ANALYSIS, layout);
+			super(cell, tool, Job.Priority.ANALYSIS, dp, layout);
 			this.objectsToCheck = objectsToCheck;
             Library curLib = Library.getCurrent();
             if (curLib == null) return;
@@ -1290,14 +1293,14 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 			incrementalRunning = true;
             ErrorLogger errorLog = getDRCErrorLogger(isLayout, true, null);
             if (isLayout)
-                errorLog = Quick.checkDesignRules(errorLog, cell, objectsToCheck, null, null);
+                errorLog = Quick.checkDesignRules(dp, errorLog, cell, objectsToCheck, null, null);
             else
                 errorLog = Schematic.doCheck(errorLog, cell, objectsToCheck);
             int errorsFound = errorLog.getNumErrors();
 			if (errorsFound > 0)
 				System.out.println("Incremental DRC found " + errorsFound + " errors/warnings in "+ cell);
 			incrementalRunning = false;
-			doIncrementalDRCTask(cellToCheck);
+			doIncrementalDRCTask(dp, cellToCheck);
 			return true;
 		}
 	}
@@ -1323,7 +1326,8 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 		if (currentRules != null)
 		{
 			// add overrides
-			String override = tech.getDRCOverrides();
+            String override = ""; // TODO: propagate getDRCOverrides
+//			String override = dp.getDRCOverrides(tech);
 			currentRules.applyDRCOverrides(override, tech);
 		}
 
@@ -1338,7 +1342,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	 * @param tech the Technology to load.
 	 * @param newRules a complete design rules object.
 	 */
-	public static void setRules(Technology tech, DRCRules newRules)
+	public static void setRules(DRC.DRCPreferences dp, Technology tech, DRCRules newRules)
 	{
 		// get factory design rules
 		DRCRules factoryRules = tech.getFactoryDesignRules();
@@ -1350,13 +1354,13 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             System.out.println("This function needs attention");
 
 		// get current overrides of factory rules
-		String override = tech.getDRCOverrides();
+		String override = dp.getDRCOverrides(tech);
 
 		// if the differences are the same as before, stop
 		if (changes.equals(override)) return;
 
 		// update the preference for the rule overrides
-		tech.setDRCOverrides(changes);
+		dp.setDRCOverrides(tech, changes);
 
 		// update variables on the technology
 		tech.setRuleVariables(newRules);
@@ -1370,6 +1374,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	/**
 	 * Method to find the worst spacing distance in the design rules.
 	 * Finds the largest spacing rule in the Technology.
+     * @param dp DRC preferences
 	 * @param tech the Technology to examine.
      * @param lastMetal
      * @return the largest spacing distance in the Technology. Zero if nothing found
@@ -1384,6 +1389,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 
     /**
 	 * Method to find the maximum design-rule distance around a layer.
+     * @param dp DRC preferences
 	 * @param layer the Layer to examine.
 	 * @return the maximum design-rule distance around the layer. -1 if nothing found.
 	 */
@@ -1877,6 +1883,113 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
     }
 
     /****************************** OPTIONS ******************************/
+
+    public static class DRCPreferences extends PrefPackage {
+        private static final String DRC_NODE = "tool/drc";
+        private static final String KEY_RESOLUTION = "ResolutionValueFor";
+        private static final String KEY_OVERRIDES = "DRCOverridesFor";
+
+        public Map<Technology,Double> resolutions = new HashMap<Technology,Double>();
+        public Map<Technology,String> overrides = new HashMap<Technology,String>();
+
+        public DRCPreferences(boolean factory)
+        {
+            super(factory);
+
+            Preferences techPrefs = getPrefRoot().node(TECH_NODE);
+            Preferences drcPrefs = getPrefRoot().node(DRC_NODE);
+            for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
+                Technology tech = it.next();
+
+                String keyResolution = getKey(KEY_RESOLUTION, tech.getId());
+                double factoryResolution = tech.getFactoryResolution();
+                double resolution = techPrefs.getDouble(keyResolution, factoryResolution);
+                resolutions.put(tech, Double.valueOf(resolution));
+
+                String keyOverrides = getKey(KEY_OVERRIDES, tech.getId());
+                String override = drcPrefs.get(keyOverrides, "");
+                overrides.put(tech, override);
+            }
+        }
+
+        /**
+         * Store annotated option fields of the subclass into the speciefied Preferences subtree.
+         * @param prefRoot the root of the Preferences subtree.
+         * @param removeDefaults remove from the Preferences subtree options which have factory default value.
+         */
+        @Override
+        public void putPrefs(Preferences prefRoot, boolean removeDefaults) {
+            super.putPrefs(prefRoot, removeDefaults);
+            Preferences techPrefs = prefRoot.node(TECH_NODE);
+            Preferences drcPrefs = prefRoot.node(DRC_NODE);
+
+            for (Map.Entry<Technology,Double> e: resolutions.entrySet()) {
+                Technology tech = e.getKey();
+                String keyResolution = getKey(KEY_RESOLUTION, tech.getId());
+                double factoryResolution = tech.getFactoryResolution();
+                double resolution = e.getValue().doubleValue();
+                if (removeDefaults && resolution == factoryResolution)
+                    techPrefs.remove(keyResolution);
+                else
+                    techPrefs.putDouble(keyResolution, resolution);
+            }
+
+            for (Map.Entry<Technology,String> e: overrides.entrySet()) {
+                Technology tech = e.getKey();
+                String keyOverrides = getKey(KEY_OVERRIDES, tech.getId());
+                String override = e.getValue();
+                if (removeDefaults && override.length() == 0)
+                    drcPrefs.remove(keyOverrides);
+                else
+                    drcPrefs.put(keyOverrides, override);
+            }
+        }
+
+        /**
+         * Method to set the technology resolution.
+         * This is the minimum size unit that can be represented.
+         * @param tech Technology
+         * @param resolution new resolution value.
+         */
+        public void setResolution(Technology tech, double resolution)
+        {
+            resolutions.put(tech, Double.valueOf(resolution));
+        }
+
+        /**
+         * Method to retrieve the resolution associated to specified.
+         * This is the minimum size unit that can be represented.
+         * @param tech specified technolgy
+         * @return the technology's resolution value.
+         */
+        public double getResolution(Technology tech)
+        {
+            return resolutions.get(tech).doubleValue();
+        }
+
+        /**
+         * Method to get the DRC overrides from the preferences for this technology.
+         * @param tech specified technolgy
+         * @return a Pref describing DRC overrides for the Technology.
+         */
+        public String getDRCOverrides(Technology tech) {
+            return overrides.get(tech);
+        }
+
+        /**
+         * Method to set the DRC overrides for a this technology.
+         * @param tech specified technolgy
+         * @param overrides the overrides.
+         */
+        public void setDRCOverrides(Technology tech, String overrides) {
+            if (overrides.length() >= Preferences.MAX_VALUE_LENGTH) {
+                System.out.println("Warning: Design rule overrides are too complex to be saved (are " +
+                    overrides.length() + " long which is more than the limit of " + Preferences.MAX_VALUE_LENGTH + ")");
+            }
+            this.overrides.put(tech, overrides);
+        }
+
+    }
 
 	private static Pref cacheIncrementalDRCOn = Pref.makeBooleanServerPref("IncrementalDRCOn", tool.prefs, false);
 	/**

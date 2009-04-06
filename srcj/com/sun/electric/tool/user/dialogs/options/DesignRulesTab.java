@@ -31,14 +31,12 @@ import com.sun.electric.technology.XMLRules;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.dialogs.DesignRulesPanel;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.util.Iterator;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 /**
@@ -47,6 +45,7 @@ import javax.swing.JPanel;
 public class DesignRulesTab extends PreferencePanel
 {
 	DesignRulesPanel rulesPanel;
+    private DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
 	private DRCRules drRules;
 	private boolean designRulesFactoryReset = false;
 
@@ -100,7 +99,7 @@ public class DesignRulesTab extends PreferencePanel
 		drTechName.setText(text);
 
         // Resolution
-		drResolutionValue.setText(TextUtils.formatDistance(curTech.getResolution()));
+		drResolutionValue.setText(TextUtils.formatDistance(dp.getResolution(curTech)));
 	}
 
 	/**
@@ -110,8 +109,7 @@ public class DesignRulesTab extends PreferencePanel
 	public void term()
 	{
 		double currentResolution = TextUtils.atofDistance(drResolutionValue.getText());
-		if (currentResolution != curTech.getResolution())
-			curTech.setResolution(currentResolution);
+		dp.setResolution(curTech, currentResolution);
 
         // Getting last changes
 		if (designRulesFactoryReset)
@@ -119,7 +117,8 @@ public class DesignRulesTab extends PreferencePanel
 			DRC.resetDRCDates(true);
             drRules = curTech.getFactoryDesignRules();
 		}
-		DRC.setRules(curTech, drRules);
+		DRC.setRules(dp, curTech, drRules);
+        dp.putPrefs(DRC.DRCPreferences.getPrefRoot(), true);
 
         // Repaint primitives
         EditWindow wnd = EditWindow.needCurrent();
@@ -134,12 +133,12 @@ public class DesignRulesTab extends PreferencePanel
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
-			if (tech.getFactoryResolution() != tech.getResolution())
-				tech.setResolution(tech.getFactoryResolution());
+            dp.setResolution(tech, tech.getFactoryResolution());
 	        XMLRules rules = tech.getFactoryDesignRules();
-			DRC.setRules(tech, rules);
+			DRC.setRules(dp, tech, rules);
 			tech.setCachedRules(rules);
 		}
+        dp.putPrefs(DRC.DRCPreferences.getPrefRoot(), true);
 	}
 
 	/** This method is called from within the constructor to

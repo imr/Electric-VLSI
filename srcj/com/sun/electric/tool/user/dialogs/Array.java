@@ -40,6 +40,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.drc.Quick;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.ExportChanges;
@@ -518,6 +519,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		private double xOverlap, yOverlap, cX, cY;
 		private boolean arcsAutoIncrement;
         private Cell cell;
+        private DRC.DRCPreferences dp;
 
         protected ArrayStuff(Cell c, List<NodeInst> nodeList, List<ArcInst> arcList, List<Export> exportList,
 			int xRepeat, int yRepeat, double xOverlap, double yOverlap, double cX, double cY, boolean arcsAutoIncrement)
@@ -534,6 +536,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			this.cX = cX;
 			this.cY = cY;
 			this.arcsAutoIncrement = arcsAutoIncrement;
+            dp = new DRC.DRCPreferences(false);
 			startJob();
 		}
 
@@ -722,7 +725,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			// if only arraying where DRC valid, check them now and delete what is not valid
 			if (prefDRCGood.getBoolean())
 			{
-				Quick.checkDesignRules(null, cell, geomsToCheck, validity, null);
+				Quick.checkDesignRules(dp, null, cell, geomsToCheck, validity, null);
 				for(int i=1; i<checkNodeCount; i++)
 				{
 					if (!validity[i])

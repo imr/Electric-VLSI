@@ -35,6 +35,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -167,6 +168,7 @@ public class AnnularRing extends EDialog
 		private int segments, degrees;
 		private double inner, outer;
         private NodeInst ni;
+        private double snap;
 
         public MakeAnnulus(Cell cell, PrimitiveNode np, int segments, int degrees, double inner, double outer)
 		{
@@ -178,12 +180,13 @@ public class AnnularRing extends EDialog
 			this.inner = inner;
 			this.outer = outer;
             this.ni = null;
+            DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
+            snap = dp.getResolution(cell.getTechnology());
             //startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-            double snap = cell.getTechnology().getResolution();
             Dimension2D dimSnap = new Dimension2D.Double(snap, snap);
 
 			// allocate space for the trace
@@ -191,7 +194,7 @@ public class AnnularRing extends EDialog
 			if (inner == 0 && degrees < 3600) numSegments += 2;
 			if (inner > 0) numSegments *= 2;
 			EPoint [] points = new EPoint[numSegments];
-	
+
 			int l = 0;
 			if (inner > 0)
 			{
@@ -403,7 +406,7 @@ public class AnnularRing extends EDialog
 		cacheValues();
 		closeDialog(null);
 	}//GEN-LAST:event_cancelActionPerformed
-    
+
     /** Closes the dialog */
     private void closeDialog(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_closeDialog
 		setVisible(false);
@@ -424,5 +427,5 @@ public class AnnularRing extends EDialog
     private javax.swing.JButton ok;
     private javax.swing.JTextField outerRadius;
     // End of variables declaration//GEN-END:variables
-    
+
 }

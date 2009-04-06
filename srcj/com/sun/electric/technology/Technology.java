@@ -63,7 +63,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ToolSettings;
-import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 
@@ -894,7 +893,6 @@ public class Technology implements Comparable<Technology>, Serializable
     /** Setting Group for this Technology */                private final Setting.RootGroup rootSettings;
     /** Setting Group for this Technology */                private final Setting.Group settings;
 	/** preferences group for this technology */            private final Pref.Group prefs;
-    /** DRC preferences group for this tecnology */         private final Pref.Group drcPrefs;
     /** factory transparent colors for this technology */   private Color[] factoryTransparentColors = {};
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
 	/** map from layer names to layers in this technology */private final HashMap<String,Layer> layersByName = new HashMap<String,Layer>();
@@ -914,8 +912,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** Spice header cards, level 1. */						private String [] spiceHeaderLevel1;
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */						private String [] spiceHeaderLevel3;
-    /** resolution for this Technology */                   private Pref prefResolution;
-	/** overrides of DRC rules preference. */               private Pref prefDRCOverride;
+    /** factroy resolution for this Technology */           private double factoryResolution;
     /** static list of all Manufacturers in Electric */     protected final List<Foundry> foundries = new ArrayList<Foundry>();
     /** default foundry Setting for this Technology */      private final Setting cacheFoundry;
     /** default foundry name for this Technology */         protected String paramFoundry;
@@ -1004,7 +1001,6 @@ public class Technology implements Comparable<Technology>, Serializable
         rootSettings = new Setting.RootGroup();
         settings = rootSettings.node(getTechName());
 		prefs = Pref.groupForPackage("technology/technologies", true);
-        drcPrefs = Pref.groupForPackage("tool/drc", true);
         cacheFoundry = makeStringSetting("SelectedFoundryFor"+getTechName(),
         	"Technology tab", getTechName() + " foundry", "Foundry", defaultFoundry.getName());
         paramFoundry = defaultFoundry.getName();
@@ -1024,7 +1020,6 @@ public class Technology implements Comparable<Technology>, Serializable
 //		cacheDiffAlpha = makeLESetting("DiffAlpha", DEFAULT_DIFFALPHA);
 //        cacheKeeperRatio = makeLESetting("KeeperRatio", DEFAULT_KEEPERRATIO);
         componentMenuPref = Pref.makeStringPref("ComponentMenuXMLfor"+getTechName(), prefs, "");
-        prefDRCOverride = Pref.makeStringServerPref("DRCOverridesFor" + getTechName(), getTechnologyDRCPreferences(), "");
 	}
 
     protected Object writeReplace() { return new TechnologyKey(this); }
@@ -1393,8 +1388,6 @@ public class Technology implements Comparable<Technology>, Serializable
         if (cacheGateCapacitance == null || cacheWireRatio == null || cacheDiffAlpha == null) {
             setFactoryLESettings(DEFAULT_GATECAP, DEFAULT_WIRERATIO, DEFAULT_DIFFALPHA);
         }
-		if (prefResolution == null)
-            setFactoryResolution(0);
         layersAllocationLocked = true;
         for (Foundry foundry: foundries) {
             foundry.finish();
@@ -1637,7 +1630,7 @@ public class Technology implements Comparable<Technology>, Serializable
         printlnSetting(out, settings, getWireRatioSetting());
         printlnSetting(out, settings, getDiffAlphaSetting());
 
-        printlnPref(out, 0, prefResolution);
+        printlnPref(out, 0, "ResolutionValueFor"+getTechName(), factoryResolution);
         Color[] transparentLayers = getFactoryTransparentLayerColors();
         for (int i = 0; i < transparentLayers.length; i++)
             out.println("TRANSPARENT_" + (i+1) + "=" + Integer.toHexString(transparentLayers[i].getRGB()));
@@ -4268,15 +4261,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	public Pref.Group getTechnologyPreferences() { return prefs; }
 
 	/**
-	 * Method to return the Pref group associated with this Technology.
-	 * The Pref group is used to save option information.
-	 * Since preferences are organized by package, there is only one for
-	 * the technologies (they are all in the same package).
-	 * @return the Pref object associated with all Technologies.
-	 */
-	Pref.Group getTechnologyDRCPreferences() { return drcPrefs; }
-
-	/**
 	 * Method to return the Pref object associated with all Technologies.
 	 * The Pref object is used to save option information.
 	 * Since preferences are organized by package, there is only one for
@@ -4284,7 +4268,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * @return the Pref object associated with all Technologies.
 	 */
 	public Pref.Group[] getTechnologyAllPreferences() {
-        return new Pref.Group[] {prefs, drcPrefs};
+        return new Pref.Group[] {prefs};
     }
 
     public void loadFromPreferences() {
@@ -4792,28 +4776,8 @@ public class Technology implements Comparable<Technology>, Serializable
      */
     protected void setFactoryResolution(double factory)
     {
-        prefResolution = Pref.makeDoubleServerPref("ResolutionValueFor"+getTechName(), prefs, factory);
+        factoryResolution = factory;
     }
-
-    /**
-     * Method to set the technology resolution.
-     * This is the minimum size unit that can be represented.
-     * @param resolution new resolution value.
-     */
-	public void setResolution(double resolution)
-	{
-		prefResolution.setDouble(resolution);
-	}
-
-    /**
-     * Method to retrieve the resolution associated to the technology.
-     * This is the minimum size unit that can be represented.
-     * @return the technology's resolution value.
-     */
-    public double getResolution()
-	{
-		return prefResolution.getDouble();
-	}
 
     /**
      * Method to retrieve the default resolution associated to the technology.
@@ -4822,7 +4786,7 @@ public class Technology implements Comparable<Technology>, Serializable
      */
     public double getFactoryResolution()
 	{
-		return prefResolution.getDoubleFactoryValue();
+		return factoryResolution;
 	}
 
 	/**
@@ -5018,26 +4982,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * @param newRules
 	 */
 	public void setRuleVariables(DRCRules newRules) {}
-
-	/**
-	 * Method to get the DRC overrides from the preferences for this technology.
-	 * @return a Pref describing DRC overrides for the Technology.
-	 */
-	public String getDRCOverrides() {
-        return prefDRCOverride.getString();
-	}
-
-	/**
-	 * Method to set the DRC overrides for a this technology.
-	 * @param overrides the overrides.
-	 */
-	public void setDRCOverrides(String overrides) {
-		if (overrides.length() >= Preferences.MAX_VALUE_LENGTH) {
-			System.out.println("Warning: Design rule overrides are too complex to be saved (are " +
-				overrides.length() + " long which is more than the limit of " + Preferences.MAX_VALUE_LENGTH + ")");
-		}
-		prefDRCOverride.setString(overrides);
-	}
 
 	/**
 	 * Returns the color map for transparent layers in this technology.

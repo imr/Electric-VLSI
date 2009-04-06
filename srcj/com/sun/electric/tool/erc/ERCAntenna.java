@@ -31,7 +31,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -94,7 +93,7 @@ public class ERCAntenna
             this.techPool = techPool;
             if (factory) return;
 
-            Preferences techPrefs = Pref.getPrefRoot().node(TECH_NODE);
+            Preferences techPrefs = getPrefRoot().node(TECH_NODE);
             for (Technology tech: techPool.values()) {
                 for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
                     ArcProto ap = it.next();
