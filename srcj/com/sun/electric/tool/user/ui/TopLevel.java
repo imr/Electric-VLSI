@@ -40,6 +40,7 @@ import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -61,7 +62,6 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-
 /**
  * Class to define a top-level window.
  * In MDI mode (used by Windows to group multiple documents into a single window) this class is
@@ -70,7 +70,6 @@ import javax.swing.UIManager;
  */
 public class TopLevel extends JFrame
 {
-
     /** True if in MDI mode, otherwise SDI. */				private static UserInterfaceMain.Mode mode;
 	/** The desktop pane (if MDI). */						private static JDesktopPane desktop = null;
 	/** The main frame (if MDI). */							private static TopLevel topLevel = null;
@@ -83,6 +82,8 @@ public class TopLevel extends JFrame
 
     /** The menu bar */                                     private EMenuBar.Instance menuBar;
     /** The tool bar */                                     private ToolBar toolBar;
+
+    /** true to resize initial MDI window forces redraw) */	private static final boolean MDIINITIALRESIZE = true;
 
 	/**
 	 * Constructor to build a window.
@@ -149,7 +150,7 @@ public class TopLevel extends JFrame
 		return Resources.getResource(TopLevel.class, "IconElectric.gif");
 	}
 
-    /**
+	/**
 	 * Method to initialize the window system with the specified mode.
      * If mode is null, the mode is implied by the operating system.
 	 */
@@ -162,11 +163,12 @@ public class TopLevel extends JFrame
 			Rectangle bound = parseBound(loc);
 			if (bound == null)
 				bound = new Rectangle(scrnSize);
+			if (MDIINITIALRESIZE) bound.width--;
 
 			// make the desktop
 			desktop = new JDesktopPane();
             try{
-			topLevel = new TopLevel("Electric", bound, null, null);
+            	topLevel = new TopLevel("Electric", bound, null, null);
             } catch (Exception e)
             {
                 e.printStackTrace();
@@ -181,6 +183,13 @@ public class TopLevel extends JFrame
         stream.addObserver(messagesWindow);
         WindowFrame.createEditWindow(null);
         FileMenu.updateRecentlyOpenedLibrariesList();
+		if (MDIINITIALRESIZE && isMDIMode())
+		{
+			SwingUtilities.invokeLater(new Runnable() { public void run() {
+				Dimension old = topLevel.getSize();
+			    topLevel.setSize(new Dimension(old.width+1, old.height));
+			}});
+		}
     }
 
 	private static Pref cacheWindowLoc = Pref.makeStringPref("WindowLocation", User.getUserTool().prefs, "");
@@ -200,7 +209,6 @@ public class TopLevel extends JFrame
         // a more advanced way of determining the size of a screen
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice [] gs = ge.getScreenDevices();
-//        Rectangle [] areas = new Rectangle[gs.length];
         if (gs.length > 0) {
             GraphicsDevice gd = gs[0];
             GraphicsConfiguration gc = gd.getDefaultConfiguration();
@@ -262,7 +270,7 @@ public class TopLevel extends JFrame
 //				bound = new Rectangle(scrnSize);
 //
 //			// make the desktop
-//			desktop = new JDesktopPane();
+//			desktop = new MyDesktop();
 //            try{
 //			topLevel = new TopLevel("Electric", bound, null, null);
 //            } catch (Exception e)
@@ -392,8 +400,6 @@ public class TopLevel extends JFrame
         	}
         }
     }
-
-	public static JDesktopPane getDesktop() { return desktop; }
 
 	public static Cursor getCurrentCursor() { return cursor; }
 

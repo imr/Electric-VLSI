@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+BUG: (4/6/09, SMR) Windows/MDI mode sometimes starts with a blank screen (Bug #2113).
+FIX: In TopLevel.InitializeWindows(), force a resize of the window after startup.
+
 IMP (4/6/09, GVG): Another transistor type to help with the latest technology extraction.
 
 IMP/MAN: (4/3/09, GVG) Pre-defined KeyBindings and alt- (Bug #2006).
