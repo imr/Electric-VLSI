@@ -32,12 +32,17 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.*;
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.DisplayedText;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -787,7 +792,7 @@ public class Clipboard //implements ClipboardOwner
                 }
                 else if (key == Export.EXPORT_NAME)
                 {
-                    Export ex = (Export)((Export)eObj);
+                    Export ex = (Export)eObj;
                     ex.rename(newText);
                 }
             }
