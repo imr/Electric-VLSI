@@ -5628,8 +5628,22 @@ public class Technology implements Comparable<Technology>, Serializable
 
 
 	/**
-	 * Method to construct a default Xml menynu palette.
-	 * @return the default Xml menynu palette.
+	 * Method to return the currnet Xml menu palette.
+	 * @return the current menu palette.
+	 */
+    public Xml.MenuPalette getMenuPalette() {
+		// see if there is a preference for the component menu
+		String nodeGroupXML = getNodesGroupedXML();
+		if (nodeGroupXML == null || nodeGroupXML.length() == 0)
+            return getFactoryMenuPalette();
+
+		// parse the preference and build a component menu
+		return parseComponentMenuXML(nodeGroupXML);
+    }
+
+	/**
+	 * Method to construct a factory default Xml menu palette.
+	 * @return the factory default Xml menu palette.
 	 */
     public Xml.MenuPalette getFactoryMenuPalette() {
         if (factoryMenuPalette == null)

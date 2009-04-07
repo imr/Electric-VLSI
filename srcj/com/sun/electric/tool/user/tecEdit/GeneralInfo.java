@@ -29,9 +29,9 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Xml;
 
 import java.awt.Color;
-import java.util.Iterator;
 
 /**
  * This class defines general information about a technology in the Technology Editor.
@@ -60,7 +60,7 @@ public class GeneralInfo extends Info
 	/** spice level 3 header */                     String [] spiceLevel3Header;
     /** spacing of connected polys */               double [] conDist;
     /** spacing of non-connected polys */           double [] unConDist;
-    /** menu palette */                             Object[][] menuPalette;
+    /** menu palette */                             Xml.MenuPalette menuPalette;
 
 	static SpecialTextDescr [] genTextTable =
 	{

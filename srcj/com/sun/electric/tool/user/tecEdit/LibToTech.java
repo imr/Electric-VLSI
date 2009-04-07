@@ -326,6 +326,7 @@ public class LibToTech
 	   			tcr.showError();
 				System.out.println("Failed to convert the library to a technology");
 	   		}
+			WindowFrame.updateTechnologyLists();
 		}
 	}
 
@@ -426,33 +427,7 @@ public class LibToTech
 				xap.name = aList[i].name;
 				arcs.add(xap);
 			}
-			Xml.MenuPalette xmp = Xml.parseComponentMenuXMLTechEdit(compMenuXML, nodeGroups, arcs);
-			int menuWid = xmp.numColumns;
-			int menuHei = xmp.menuBoxes.size() / menuWid;
-			gi.menuPalette = new Object[menuHei][menuWid];
-			int i = 0;
-			for(int y=0; y<menuHei; y++)
-			{
-				for(int x=0; x<menuWid; x++)
-				{
-					List<?> items = xmp.menuBoxes.get(i++);
-					Object item = null;
-					if (items.size() == 1)
-					{
-						item = items.get(0);
-					} else if (items.size() > 1)
-					{
-						List<Object> convItems = new ArrayList<Object>();
-						for(Object obj : items)
-						{
-							if (obj != null) convItems.add(obj);
-						}
-						if (convItems.size() > 0)
-							item = convItems;
-					}
-					gi.menuPalette[y][x] = item;
-				}
-			}
+			gi.menuPalette = Xml.parseComponentMenuXMLTechEdit(compMenuXML, nodeGroups, arcs);
 		}
 
 		Xml.Technology t = makeXml(newTechName, gi, lList, nList, aList);
@@ -471,7 +446,6 @@ public class LibToTech
 
 			// switch to this technology
 			System.out.println("Technology " + tech.getTechName() + " built.");
-			WindowFrame.updateTechnologyLists();
         }
 		return tech;
 	}
@@ -2793,17 +2767,7 @@ public class LibToTech
 		addSpiceHeader(t, 2, gi.spiceLevel2Header);
 		addSpiceHeader(t, 3, gi.spiceLevel3Header);
 
-		if (gi.menuPalette != null)
-		{
-			t.menuPalette = new Xml.MenuPalette();
-			int numColumns = gi.menuPalette[0].length;
-			t.menuPalette.numColumns = numColumns;
-			for (Object[] menuLine: gi.menuPalette)
-			{
-				for (int i = 0; i < numColumns; i++)
-					t.menuPalette.menuBoxes.add(makeMenuBoxXml(t, menuLine[i]));
-			}
-		}
+        t.menuPalette = gi.menuPalette;
 
 		Xml.Foundry foundry = new Xml.Foundry();
 		foundry.name = gi.defaultFoundry;

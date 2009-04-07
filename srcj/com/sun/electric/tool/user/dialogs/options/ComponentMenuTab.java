@@ -137,6 +137,24 @@ public class ComponentMenuTab extends PreferencePanel
 		return menuArray;
 	}
 
+	private Object[][] makeMenuArray(Xml.Technology xTech, Xml.MenuPalette curMenu)
+	{
+        int menuWid = curMenu.numColumns;
+        int menuHei = (curMenu.menuBoxes.size() + menuWid - 1)/menuWid;
+		Object[][] menuArray = new Object[menuHei][menuWid];
+		for(int y=0; y<menuHei; y++)
+		{
+			for(int x=0; x<menuWid; x++)
+			{
+                int index = y*menuWid + x;
+                List<?> menuBoxList = index < curMenu.menuBoxes.size() ? curMenu.menuBoxes.get(index) : null;
+                if (menuBoxList == null || menuBoxList.isEmpty()) continue;
+                menuArray[y][x] = menuBoxList.size() > 1 ? new ArrayList<Object>(menuBoxList) : menuBoxList.get(0);
+			}
+		}
+		return menuArray;
+	}
+
 	/**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the tab.

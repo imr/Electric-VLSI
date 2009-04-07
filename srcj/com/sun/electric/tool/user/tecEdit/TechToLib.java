@@ -47,6 +47,7 @@ import com.sun.electric.technology.PrimitiveNodeGroup;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Xml;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -787,48 +788,7 @@ public class TechToLib
 //		us_tecedloaddrcmessage(rules, lib);
 //		dr_freerules(rules);
 
-        Object[][] origPalette = tech.getNodesGrouped(null);
-        int numRows = origPalette.length;
-        int numCols = origPalette[0].length;
-        for (Object[] row: origPalette) {
-            assert row.length == numCols;
-        }
-        gi.menuPalette = new Object[numRows][numCols];
-        for (int row = 0; row < numRows; row++)
-        {
-            for (int col = 0; col < numCols; col++)
-            {
-                Object origEntry = origPalette[row][col];
-                Object newEntry = null;
-                if (origEntry instanceof ArcProto)
-                {
-                    ArcProto ap = (ArcProto)origEntry;
-                    for (ArcInfo ai: aList)
-                    {
-                        if (ai.name.equals(ap.getName()))
-                        {
-                            newEntry = ai;
-                            break;
-                        }
-                    }
-                } else if (origEntry instanceof PrimitiveNode)
-                {
-                    PrimitiveNode pnp = (PrimitiveNode)origEntry;
-                     for (NodeInfo ni: nList)
-                     {
-                        if (ni.name.equals(pnp.getName()))
-                        {
-                            newEntry = ni;
-                            break;
-                        }
-                    }
-                } else if (origEntry != null)
-                {
-                    newEntry = origEntry.toString();
-                }
-                gi.menuPalette[row][col] = newEntry;
-            }
-        }
+        gi.menuPalette = tech.getFactoryMenuPalette();
 
 //        String techName = tech.getTechName();
 //        LibToTech.writeXml(techName + ".xml", techName, gi, lList, nList, aList);
