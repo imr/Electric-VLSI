@@ -360,6 +360,8 @@ public class KeyBindingManager {
 
         // only look at key pressed events
 //        if (e.getID() != KeyEvent.KEY_PRESSED && e.getID() != KeyEvent.KEY_TYPED) return false;
+        if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_RIGHT ||
+        	e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN) return true;
         if (e.getID() != KeyEvent.KEY_PRESSED) return false;
 
         // ignore modifier only events (CTRL, SHIFT etc just by themselves)
@@ -387,13 +389,24 @@ public class KeyBindingManager {
 
         // get KeyStroke
 		KeyStroke stroke = KeyStroke.getKeyStrokeForEvent(e);
+		if (DEBUG) System.out.println("  Current key is "+stroke+", code="+e.getKeyCode()+", type="+stroke.getKeyEventType());
 
-		// remove shift modifier from Events.  Lets KeyStrokes like '<' register correctly,
-		// because they are always delivered as SHIFT-'<'.
-//      if (stroke.getKeyCode() == KeyEvent.VK_UNDEFINED)
-		if ((e.getModifiers() & InputEvent.SHIFT_MASK) != 0 && !Character.isLetter(e.getKeyCode()) && !Character.isDigit(e.getKeyCode()))
-			stroke = KeyStroke.getKeyStroke(e.getKeyChar());
-        if (DEBUG) System.out.println("  Current key is "+stroke+", last prefix key is "+lastPrefix);
+		// convert arrow keys which appear only on release event
+		if ((e.getModifiers() & (InputEvent.CTRL_MASK|InputEvent.SHIFT_MASK)) != InputEvent.CTRL_MASK &&
+			stroke.getKeyEventType() == KeyEvent.KEY_RELEASED)
+		{
+			if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_RIGHT ||
+				e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN)
+			{
+				stroke = KeyStroke.getKeyStroke(e.getKeyCode(), stroke.getModifiers());
+			}
+		} else
+		{
+			// remove shift modifier from Events.  Lets KeyStrokes like '<' register correctly,
+			// because they are always delivered as SHIFT-'<'.
+			if ((e.getModifiers() & InputEvent.SHIFT_MASK) != 0 && !Character.isLetter(e.getKeyCode()) && !Character.isDigit(e.getKeyCode()))
+				stroke = KeyStroke.getKeyStroke(e.getKeyChar());
+		}
 
         // ignore if consumed
         if (e.isConsumed()) {

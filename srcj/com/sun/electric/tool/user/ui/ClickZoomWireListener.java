@@ -1378,15 +1378,15 @@ public class ClickZoomWireListener
 
             boolean redrawMouseOver = false;
 			// move stuff around
-			if (chr == KeyEvent.VK_LEFT) {
-				moveSelected(-1, 0, evt.isShiftDown(), evt.isControlDown());
-			} else if (chr == KeyEvent.VK_RIGHT) {
-				moveSelected(1, 0, evt.isShiftDown(), evt.isControlDown());
-			} else if (chr == KeyEvent.VK_UP) {
-				moveSelected(0, 1, evt.isShiftDown(), evt.isControlDown());
-			} else if (chr == KeyEvent.VK_DOWN) {
-				moveSelected(0, -1, evt.isShiftDown(), evt.isControlDown());
-			} else
+//			if (chr == KeyEvent.VK_LEFT) {
+//				moveSelected(-1, 0, evt.isShiftDown(), evt.isControlDown());
+//			} else if (chr == KeyEvent.VK_RIGHT) {
+//				moveSelected(1, 0, evt.isShiftDown(), evt.isControlDown());
+//			} else if (chr == KeyEvent.VK_UP) {
+//				moveSelected(0, 1, evt.isShiftDown(), evt.isControlDown());
+//			} else if (chr == KeyEvent.VK_DOWN) {
+//				moveSelected(0, -1, evt.isShiftDown(), evt.isControlDown());
+//			} else
 			// cancel current mode
 			if (chr == KeyEvent.VK_ESCAPE) {
                 escapePressed(wnd);

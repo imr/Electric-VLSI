@@ -84,6 +84,7 @@ import com.sun.electric.tool.user.tecEdit.LibToTech;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.TechToLib;
 import com.sun.electric.tool.user.tecEditWizard.TechEditWizard;
+import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.CurveListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ErrorLoggerTree;
@@ -98,6 +99,8 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -125,8 +128,8 @@ import javax.swing.KeyStroke;
 public class EditMenu {
 
     static EMenu makeMenu() {
-//    	int ctrl = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-//    	int ctrlShift = ctrl | InputEvent.SHIFT_DOWN_MASK;
+    	int ctrl = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+    	int ctrlShift = ctrl | InputEvent.SHIFT_DOWN_MASK;
 
     	/****************************** THE EDIT MENU ******************************/
 
@@ -190,37 +193,37 @@ public class EditMenu {
 					MoveBy.showMoveByDialog(); }},
 				new EMenuItem("_Align to Grid") { public void run() {
 					CircuitChanges.alignToGrid(); }},
-//				SEPARATOR,
-//				new EMenuItem("Move Objects Left", KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0)) { public void run() {
-//					moveSelected(-1, 0, false, false); }},
-//				new EMenuItem("Move Objects Right", KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0)) { public void run() {
-//					moveSelected(1, 0, false, false); }},
-//				new EMenuItem("Move Objects Up", KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0)) { public void run() {
-//					moveSelected(0, 1, false, false); }},
-//				new EMenuItem("Move Objects Down", KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0)) { public void run() {
-//					moveSelected(0, -1, false, false); }},
-//				SEPARATOR,
-//				new EMenuItem("Move Objects More Left", new KeyStroke [] { KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.SHIFT_DOWN_MASK),
-//		    		KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ctrl)}) { public void run() {
-//					moveSelected(-1, 0, false, false); }},
-//				new EMenuItem("Move Objects More Right", new KeyStroke [] { KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.SHIFT_DOWN_MASK),
-//		    		KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ctrl)}) { public void run() {
-//					moveSelected(1, 0, false, false); }},
-//				new EMenuItem("Move Objects More Up", new KeyStroke [] { KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.SHIFT_DOWN_MASK),
-//		    		KeyStroke.getKeyStroke(KeyEvent.VK_UP, ctrl)}) { public void run() {
-//					moveSelected(0, 1, false, false); }},
-//				new EMenuItem("Move Objects More Down", new KeyStroke [] { KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.SHIFT_DOWN_MASK),
-//		    		KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, ctrl)}) { public void run() {
-//					moveSelected(0, -1, false, false); }},
-//				SEPARATOR,
-//				new EMenuItem("Move Objects Most Left", KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ctrlShift)) { public void run() {
-//					moveSelected(-1, 0, false, false); }},
-//				new EMenuItem("Move Objects Most Right", KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ctrlShift)) { public void run() {
-//					moveSelected(1, 0, false, false); }},
-//				new EMenuItem("Move Objects Most Up", KeyStroke.getKeyStroke(KeyEvent.VK_UP, ctrlShift)) { public void run() {
-//					moveSelected(0, 1, false, false); }},
-//				new EMenuItem("Move Objects Most Down", KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, ctrlShift)) { public void run() {
-//					moveSelected(0, -1, false, false); }},
+				SEPARATOR,
+				new EMenuItem("Move Objects Left", KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0)) { public void run() {
+					ClickZoomWireListener.moveSelected(-1, 0, false, false); }},
+				new EMenuItem("Move Objects Right", KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0)) { public void run() {
+					ClickZoomWireListener.moveSelected(1, 0, false, false); }},
+				new EMenuItem("Move Objects Up", KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0)) { public void run() {
+					ClickZoomWireListener.moveSelected(0, 1, false, false); }},
+				new EMenuItem("Move Objects Down", KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0)) { public void run() {
+					ClickZoomWireListener.moveSelected(0, -1, false, false); }},
+				SEPARATOR,
+				new EMenuItem("Move Objects More Left", new KeyStroke [] { KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ctrl),
+		    		KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.SHIFT_DOWN_MASK)}) { public void run() {
+		    			ClickZoomWireListener.moveSelected(-1, 0, true, false); }},
+				new EMenuItem("Move Objects More Right", new KeyStroke [] { KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ctrl),
+		    		KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.SHIFT_DOWN_MASK)}) { public void run() {
+		    			ClickZoomWireListener.moveSelected(1, 0, true, false); }},
+				new EMenuItem("Move Objects More Up", new KeyStroke [] { KeyStroke.getKeyStroke(KeyEvent.VK_UP, ctrl),
+		    		KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.SHIFT_DOWN_MASK)}) { public void run() {
+		    			ClickZoomWireListener.moveSelected(0, 1, true, false); }},
+				new EMenuItem("Move Objects More Down", new KeyStroke [] { KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, ctrl),
+		    		KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.SHIFT_DOWN_MASK)}) { public void run() {
+		    			ClickZoomWireListener.moveSelected(0, -1, true, false); }},
+				SEPARATOR,
+				new EMenuItem("Move Objects Most Left", KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ctrlShift)) { public void run() {
+					ClickZoomWireListener.moveSelected(-1, 0, true, true); }},
+				new EMenuItem("Move Objects Most Right", KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ctrlShift)) { public void run() {
+					ClickZoomWireListener.moveSelected(1, 0, true, true); }},
+				new EMenuItem("Move Objects Most Up", KeyStroke.getKeyStroke(KeyEvent.VK_UP, ctrlShift)) { public void run() {
+					ClickZoomWireListener.moveSelected(0, 1, true, true); }},
+				new EMenuItem("Move Objects Most Down", KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, ctrlShift)) { public void run() {
+					ClickZoomWireListener.moveSelected(0, -1, true, true); }},
 				SEPARATOR,
 				new EMenuItem("Align Horizontally to _Left") { public void run() {
 					CircuitChanges.alignNodes(true, 0); }},
