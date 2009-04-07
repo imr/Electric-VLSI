@@ -1424,6 +1424,7 @@ public class Technology implements Comparable<Technology>, Serializable
     protected void copyState(Technology that) {
         currentState = new State(that.currentState.paramValues);
         xmlTech = that.xmlTech;
+        factoryMenuPalette = that.factoryMenuPalette;
         techDesc = that.techDesc;
         cachedRules = factoryRules = null;
 

@@ -107,37 +107,12 @@ public class ComponentMenuTab extends PreferencePanel
         }
 
 		// build a set of XML objects that refer to this XML technology
-		Object[][] menuArray = makeMenuArray(xTech, tech.getNodesGrouped(null));
-		Object[][] defMenuArray = makeMenuArray(xTech, tech.filterNodeGroups(tech.getDefaultNodesGrouped()));
+		Object[][] menuArray = makeMenuArray(tech.getMenuPalette());
+		Object[][] defMenuArray = makeMenuArray(tech.getFactoryMenuPalette());
 		theMenu.showTechnology(tech.getTechName(), xTech, menuArray, defMenuArray);
 	}
 
-	private Object[][] makeMenuArray(Xml.Technology xTech, Object[][] curMenu)
-	{
-		int menuWid = curMenu[0].length;
-		int menuHei = curMenu.length;
-		Object[][] menuArray = new Object[menuHei][menuWid];
-		for(int y=0; y<menuHei; y++)
-		{
-			for(int x=0; x<menuWid; x++)
-			{
-				Object menuEntry = curMenu[y][x];
-				if (menuEntry instanceof List)
-				{
-					List<Object> subList = new ArrayList<Object>();
-					for(Object it : (List)menuEntry)
-						subList.add(convertToXML(it, xTech));
-					menuArray[y][x] = subList;
-				} else
-				{
-					menuArray[y][x] = convertToXML(menuEntry, xTech);
-				}
-			}
-		}
-		return menuArray;
-	}
-
-	private Object[][] makeMenuArray(Xml.Technology xTech, Xml.MenuPalette curMenu)
+	private Object[][] makeMenuArray(Xml.MenuPalette curMenu)
 	{
         int menuWid = curMenu.numColumns;
         int menuHei = (curMenu.menuBoxes.size() + menuWid - 1)/menuWid;

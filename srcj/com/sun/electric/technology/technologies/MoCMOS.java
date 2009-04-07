@@ -819,14 +819,34 @@ public class MoCMOS extends Technology
             metalArcs[i].notUsed = true;
             metalPinNodes[i].notUsed = true;
             metalContactNodes[i-1].notUsed = true;
+            // Remove palette rows with unused metal
+            assert tech.menuPalette.menuBoxes.get(3*(6 + numMetals)).get(0) == metalArcs[i];
+            tech.menuPalette.menuBoxes.remove(3*(6 + numMetals));
+            tech.menuPalette.menuBoxes.remove(3*(6 + numMetals));
+            tech.menuPalette.menuBoxes.remove(3*(6 + numMetals));
         }
+        // Clear palette box with unused contact
+        tech.menuPalette.menuBoxes.get(3*(6 + numMetals) - 1).clear();
+
         if (!secondPolysilicon) {
             polyArcs[1].notUsed = true;
             polyPinNodes[1].notUsed = true;
             metal1PolyContactNodes[1].notUsed = true;
             metal1PolyContactNodes[2].notUsed = true;
+            // Remove palette row with polysilicon-2
+            assert tech.menuPalette.menuBoxes.get(3*5).get(0) == polyArcs[1];
+            tech.menuPalette.menuBoxes.remove(3*5);
+            tech.menuPalette.menuBoxes.remove(3*5);
+            tech.menuPalette.menuBoxes.remove(3*5);
         }
-        npnTransistorNode.notUsed = !isAnalog;
+
+        if (isAnalog) {
+            npnTransistorNode.notUsed = false;
+        } else {
+            // Clear palette box with NPN transisitor
+            assert tech.menuPalette.menuBoxes.get(0).get(0) == npnTransistorNode.nodes.get(0);
+            tech.menuPalette.menuBoxes.get(0).clear();
+        }
 
         return tech;
     }
