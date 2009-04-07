@@ -1708,12 +1708,17 @@ public class ToolMenu
             while (menu.getMenuComponentCount() > 3)
             	menu.remove(menu.getMenuComponentCount()-1);
 
-            int index = 0;
-            for(String fileName : LanguageScripts.getScripts())
+            for(LanguageScripts.ScriptBinding script : LanguageScripts.getScripts())
             {
-            	char mnemonic = (char)('A' + index);
-            	String menuName = "_" + mnemonic + ": " + fileName;
-            	EMenuItem elem = new DynamicLanguageMenuItem(menuName, fileName);
+            	String menuName = script.fileName;
+            	int lastColon = menuName.lastIndexOf(':');
+            	int lastSlash = menuName.lastIndexOf('/');
+            	int lastBS = menuName.lastIndexOf('\\');
+            	int finalPos = Math.max(lastColon, Math.max(lastSlash, lastBS));
+            	menuName = menuName.substring(finalPos+1);
+            	if (menuName.toLowerCase().endsWith(".bsh")) menuName = menuName.substring(0, menuName.length()-4);
+            	if (script.mnemonic != 0) menuName = "_" + script.mnemonic + ": " + menuName;
+            	EMenuItem elem = new DynamicLanguageMenuItem(menuName, script.fileName);
                 JMenuItem item = elem.genMenu(null);
                 menu.add(item);
             }

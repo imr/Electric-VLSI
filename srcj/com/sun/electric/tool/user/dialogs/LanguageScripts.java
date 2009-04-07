@@ -29,12 +29,16 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.menus.ToolMenu;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * Class to handle the "Language Scripts" dialog.
@@ -43,9 +47,16 @@ public class LanguageScripts extends EDialog
 {
 	private JList scriptsList;
 	private DefaultListModel scriptsModel;
+	private boolean changingMnemonic;
 	private static Pref.Group prefs = Pref.groupForPackage(LanguageScripts.class);
 	private static Pref prefScriptList = Pref.makeStringPref("BoundScripts", prefs, "");
-	
+
+	public static class ScriptBinding
+	{
+		public char mnemonic;
+		public String fileName;
+	}
+
 	/** Creates new form Language Scripts */
 	public LanguageScripts()
 	{
@@ -56,9 +67,17 @@ public class LanguageScripts extends EDialog
 		scriptsList = new JList(scriptsModel);
 		scriptsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		scriptsPane.setViewportView(scriptsList);
-		List<String> scripts = getScripts();
-		for(String s : scripts)
-			scriptsModel.addElement(s);
+		List<ScriptBinding> scripts = getScripts();
+		for(ScriptBinding s : scripts)
+		{
+			String scriptLine = makeLine(s);
+			scriptsModel.addElement(scriptLine);
+		}
+		mnemonic.getDocument().addDocumentListener(new MnemonicDocumentListener());
+		scriptsList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { clickedScript(); }
+		});
 		pack();
 		finishInitialization();
 		setVisible(true);
@@ -66,16 +85,26 @@ public class LanguageScripts extends EDialog
 
 	protected void escapePressed() { closeDialog(null); }
 
-	public static List<String> getScripts()
+	public static List<ScriptBinding> getScripts()
 	{
-		List<String> scripts = new ArrayList<String>();
+		List<ScriptBinding> scripts = new ArrayList<ScriptBinding>();
 		String allScripts = prefScriptList.getString();
 		String[] eachScript = allScripts.split("\t");
 		for(int i=0; i<eachScript.length; i++)
 		{
 			String script = eachScript[i].trim();
 			if (script.length() == 0) continue;
-			scripts.add(script);
+			ScriptBinding sb = new ScriptBinding();
+			if (script.charAt(1) == '/')
+			{
+				sb.fileName = script.substring(2);
+				sb.mnemonic = script.charAt(0);
+			} else
+			{
+				sb.fileName = script;
+				sb.mnemonic = 0;
+			}
+			scripts.add(sb);
 		}
 		return scripts;
 	}
@@ -86,11 +115,67 @@ public class LanguageScripts extends EDialog
 		for(int i=0; i<scriptsModel.getSize(); i++)
 		{
 			if (sb.length() > 0) sb.append('\t');
-			sb.append(scriptsModel.elementAt(i));
+			String scriptLine = (String)scriptsModel.elementAt(i);
+			if (scriptLine.charAt(1) == ':')
+				scriptLine = scriptLine.substring(0, 1) + "/" + scriptLine.substring(3);
+			scriptLine = scriptLine.trim();
+			sb.append(scriptLine);
 		}
 		prefScriptList.setString(sb.toString());
 	}
 
+	/**
+	 * Class to handle special changes to changes to a the Mnemonic letter.
+	 */
+	private class MnemonicDocumentListener implements DocumentListener
+	{
+		public void changedUpdate(DocumentEvent e) { changedMnemonic(); }
+		public void insertUpdate(DocumentEvent e) { changedMnemonic(); }
+		public void removeUpdate(DocumentEvent e) { changedMnemonic(); }
+	}
+
+	private void clickedScript()
+	{
+		ScriptBinding sb = getSelected();
+		if (sb == null) return;
+		changingMnemonic = true;
+		if (sb.mnemonic == 0) mnemonic.setText(""); else
+			mnemonic.setText(sb.mnemonic+"");
+		changingMnemonic = false;
+	}
+
+	private String makeLine(ScriptBinding sb)
+	{
+		String scriptLine = sb.fileName;
+		if (sb.mnemonic != 0) scriptLine = sb.mnemonic + ": " + scriptLine; else
+			scriptLine = "   " + scriptLine;
+		return scriptLine;
+	}
+
+	private ScriptBinding getSelected()
+	{
+		int index = scriptsList.getSelectedIndex();
+		if (index < 0 || index >= scriptsModel.size()) return null;
+		ScriptBinding sb = new ScriptBinding();
+		String scriptLine = (String)scriptsModel.elementAt(index);
+		sb.fileName = scriptLine.substring(3);
+		if (scriptLine.charAt(1) == ':')
+		{
+			sb.mnemonic = scriptLine.charAt(0);
+		}
+		return sb;
+	}
+
+	private void changedMnemonic()
+	{
+		if (changingMnemonic) return;
+		ScriptBinding sb = getSelected();
+		if (sb == null) return;
+		String mn = mnemonic.getText().trim();
+		if (mn.length() == 0) sb.mnemonic = 0; else
+			sb.mnemonic = mn.charAt(0);
+		scriptsModel.set(scriptsList.getSelectedIndex(), makeLine(sb));
+	}
 
 	/** This method is called from within the constructor to
 	 * initialize the form.
@@ -107,6 +192,8 @@ public class LanguageScripts extends EDialog
         removeScript = new javax.swing.JButton();
         addScript = new javax.swing.JButton();
         cancel = new javax.swing.JButton();
+        mnemonic = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -127,7 +214,8 @@ public class LanguageScripts extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.weighty = 0.1;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ok, gridBagConstraints);
@@ -136,7 +224,7 @@ public class LanguageScripts extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridheight = 4;
+        gridBagConstraints.gridheight = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.weighty = 1.0;
@@ -159,8 +247,9 @@ public class LanguageScripts extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.weighty = 0.4;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.weighty = 0.6;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(removeScript, gridBagConstraints);
 
@@ -174,7 +263,8 @@ public class LanguageScripts extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.weighty = 0.4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.weighty = 0.2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(addScript, gridBagConstraints);
 
@@ -187,10 +277,25 @@ public class LanguageScripts extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.weighty = 0.1;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
+
+        mnemonic.setColumns(4);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.weighty = 0.2;
+        getContentPane().add(mnemonic, gridBagConstraints);
+
+        jLabel1.setText("Mnemonic:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.weighty = 0.2;
+        getContentPane().add(jLabel1, gridBagConstraints);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -203,7 +308,7 @@ public class LanguageScripts extends EDialog
         String fileName = OpenFile.chooseInputFile(FileType.JAVA, null);
         if (fileName != null)
         {
-        	scriptsModel.addElement(fileName);
+        	scriptsModel.addElement("   " + fileName);
         }
     }//GEN-LAST:event_addScriptActionPerformed
 
@@ -229,7 +334,9 @@ public class LanguageScripts extends EDialog
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addScript;
     private javax.swing.JButton cancel;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JTextField mnemonic;
     private javax.swing.JButton ok;
     private javax.swing.JButton removeScript;
     private javax.swing.JScrollPane scriptsPane;
