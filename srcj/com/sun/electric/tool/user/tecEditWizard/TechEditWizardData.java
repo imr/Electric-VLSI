@@ -2585,11 +2585,18 @@ public class TechEditWizardData
 //                new SizeOffset(sox, sox, soy, soy), nodesListW, nodePorts, null, false);
 //                g.addElement(n);
 
-                // Adding extra transistors whose select is aligned with poly along the X axis
+                // Adding extra transistors whose select and well are aligned with poly along the X axis
                 nodesList.remove(xTranSelLayer);
                 double shortSelectX = scaledValue(gate_width.v/2+poly_endcap.v);
                 xTranSelLayer = (makeXmlNodeLayer(shortSelectX, shortSelectX, selecty, selecty, selectLayer, Poly.Type.FILLED));
                 nodesList.add(xTranSelLayer);
+                if (wellLayer != null)
+                {
+                    sox = scaledValue(poly_endcap.v);
+                    nodesList.remove(xTranWellLayer);
+                    xTranWellLayer = (makeXmlNodeLayer(shortSelectX, shortSelectX, welly, welly, wellLayer, Poly.Type.FILLED));
+                    nodesList.add(xTranWellLayer);
+                }
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-S", func, 0, 0, 0, 0,
                      new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                 g.addElement(n);
@@ -2602,7 +2609,6 @@ public class TechEditWizardData
                 nodesList.add(xTranSelLayer);
 
                 // not sure which condition to apply. It doesn't apply  nwell_overhang_diff due to the extra poly
-           
                 if (wellLayer != null)
                 {
                     if (DBMath.isLessThan(welly, selectExtraY))

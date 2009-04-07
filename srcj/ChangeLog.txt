@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+IMP: (4/7/09, GVG) New transistors and node extractor (Bug #2112)
+Changes in TechEditorWizard to accomodate the new transistor well size.
+
 IMP/MAN: (4/7/09, SMR) Arrow keys can now be rebound and appear in the
      Edit/Move menu (Bug #1450).
 
