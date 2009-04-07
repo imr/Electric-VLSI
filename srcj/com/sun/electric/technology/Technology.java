@@ -91,7 +91,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TreeMap;
-
 import java.util.prefs.Preferences;
 
 /**
@@ -1631,7 +1630,7 @@ public class Technology implements Comparable<Technology>, Serializable
         printlnSetting(out, settings, getWireRatioSetting());
         printlnSetting(out, settings, getDiffAlphaSetting());
 
-        printlnPref(out, 0, "ResolutionValueFor"+getTechName(), factoryResolution);
+        printlnPref(out, 0, "ResolutionValueFor"+getTechName(), new Double(factoryResolution));
         Color[] transparentLayers = getFactoryTransparentLayerColors();
         for (int i = 0; i < transparentLayers.length; i++)
             out.println("TRANSPARENT_" + (i+1) + "=" + Integer.toHexString(transparentLayers[i].getRGB()));
@@ -4856,8 +4855,9 @@ public class Technology implements Comparable<Technology>, Serializable
         if (foundries.size() > 0)
         {
             f = foundries.get(0);
-            System.out.println("Foundry '" + foundryName + "' not available in Technology '" +  this.getTechName() +
-            "'. Setting '" + f.toString() + "' as foundry.");
+            if (foundryName.length() > 0)
+	            System.out.println("Foundry '" + foundryName + "' not available in Technology '" +  this.getTechName() +
+	            	"'. Setting '" + f.toString() + "' as foundry.");
             return f;
         }
         return f;
