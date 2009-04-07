@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+BUG: (4/7/09, SMR) External text editing hangs Electric while editing is done (Bug #1974).
+FIX: Run external text editing in a separate thread.
+
 IMP/MAN: (4/6/09, SMR) Now able to bind Bean Shell scripts to the Tools/Languages menu (Bug #2115).
 
 BUG: (4/6/09, SMR) Windows/MDI mode sometimes starts with a blank screen (Bug #2113).

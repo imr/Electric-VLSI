@@ -819,47 +819,70 @@ public class EditMenu {
 				"Could not save temporary file " + fileName, "Error saving temporary file", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		try
+		(new EditExternally(tw, externalEditor, fileName, f)).start();
+	}
+
+	/**
+	 * Class to do external text editing in a separate thread, allowing Electric to continue to run.
+	 */
+	private static class EditExternally extends Thread
+	{
+		private TextWindow tw;
+		private String externalEditor, fileName;
+		private File f;
+
+		EditExternally(TextWindow tw, String externalEditor, String fileName, File f)
 		{
-			Client.OS os = Client.getOperatingSystem();
-			String commandString;
-			if (os == Client.OS.WINDOWS) commandString = "cmd /c \"" + externalEditor + "\" " + fileName;
-			else if (os == Client.OS.MACINTOSH)
+			this.tw = tw;
+			this.externalEditor = externalEditor;
+			this.fileName = fileName;
+			this.f = f;
+		}
+
+		public void run()
+		{
+			try
 			{
-				// MacOS box only allows the selection of *.app programs.
-				int index = externalEditor.indexOf(".app"); // like TextEdit.app
-				if (index != -1)
+				Client.OS os = Client.getOperatingSystem();
+				String commandString;
+				if (os == Client.OS.WINDOWS) commandString = "cmd /c \"" + externalEditor + "\" " + fileName;
+				else if (os == Client.OS.MACINTOSH)
 				{
-					String rootName = externalEditor.substring(0, index);
-					int ind2 = rootName.lastIndexOf("/");
-					if (ind2 != -1) // remove all /
-						rootName = rootName.substring(ind2, rootName.length());
-					commandString = externalEditor + "/Contents/MacOS/" + rootName + " " + fileName;
+					// MacOS box only allows the selection of *.app programs.
+					int index = externalEditor.indexOf(".app"); // like TextEdit.app
+					if (index != -1)
+					{
+						String rootName = externalEditor.substring(0, index);
+						int ind2 = rootName.lastIndexOf("/");
+						if (ind2 != -1) // remove all /
+							rootName = rootName.substring(ind2, rootName.length());
+						commandString = externalEditor + "/Contents/MacOS/" + rootName + " " + fileName;
+					}
+					else
+						commandString = externalEditor + " " + fileName;
 				}
 				else
 					commandString = externalEditor + " " + fileName;
-			}
-			else
-				commandString = externalEditor + " " + fileName;
-			Process p = Runtime.getRuntime().exec(commandString);
-			try
+				Process p = Runtime.getRuntime().exec(commandString);
+				try
+				{
+					p.waitFor();
+				} catch (InterruptedException e)
+				{
+					System.out.println("External text editor interrupted: " + e);
+				}
+			} catch (IOException e)
 			{
-				p.waitFor();
-			} catch (InterruptedException e)
-			{
-				System.out.println("External text editor interrupted: " + e);
+				System.out.println("IO Exception: " + e);
 			}
-		} catch (IOException e)
-		{
-			System.out.println("IO Exception: " + e);
-		}
-		tw.readTextCell(fileName);
-		tw.goToLineNumber(1);
+			tw.readTextCell(fileName);
+			tw.goToLineNumber(1);
 
-        if (f.delete())
-            System.out.println("** Deleted " + fileName + " **");
-        else
-            System.out.println("Failed to delete " + fileName);
+	        if (f.delete())
+	            System.out.println("** Deleted " + fileName + " **");
+	        else
+	            System.out.println("Failed to delete " + fileName);
+		}
 	}
 
 	/**
