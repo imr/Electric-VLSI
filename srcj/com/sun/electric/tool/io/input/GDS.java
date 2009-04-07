@@ -953,7 +953,7 @@ public class GDS extends Input
 
             if (IOTool.isGDSInExpandsCells() && ni.isCellInstance())
                 ni.setExpanded();
-            if (points != null)
+            if (points != null && GenMath.getAreaOfPoints(points) != wid*hei)
                 ni.setTrace(points);
             boolean renamed = false;
             if (exportName != null)
@@ -1219,7 +1219,7 @@ public class GDS extends Input
 		}
         NodeInst ni = NodeInst.makeInstance(pureType, new Point2D.Double((lX+hX)/2, (lY+hY)/2), hX-lX, hY-lY,
         	parent, Orientation.IDENT, null);
-        if (ni != null)
+        if (ni != null && GenMath.getAreaOfPoints(pointArray) != (hX-lX)*(hY-lY))
         	ni.setTrace(pointArray);
 	}
 
