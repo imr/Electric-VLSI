@@ -615,7 +615,6 @@ public class Connectivity
 
 				// if subcell is expanded, do it now
 				boolean flatIt = isCellFlattened(subCell, pat, flattenPcells);
-System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 				if (flatIt)
 				{
 					// expanding the subcell
@@ -1031,7 +1030,6 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 							loc2Unscaled.getX() + "," + loc2Unscaled.getY() + ") on node " + pi2.getNodeInst().describe(false);
 						addErrorLog(newCell, msg, new EPoint(loc1Unscaled.getX(), loc1Unscaled.getY()),
 							new EPoint(loc2Unscaled.getX(), loc2Unscaled.getY()));
-//						return true;
 					}
 				}
 			}
@@ -1546,29 +1544,6 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 			shrinkT = new double[numLayers];
 			shrinkB = new double[numLayers];
 		}
-
-//		PossibleVia(PossibleVia prev)
-//		{
-//			pNp = prev.pNp;
-//			rotation = prev.rotation;
-//			minWidth = prev.minWidth;
-//			minHeight = prev.minHeight;
-//			largestShrink = prev.largestShrink;
-//			cutNodeLayer = prev.cutNodeLayer;
-//			layers = new Layer[prev.layers.length];
-//			shrinkL = new double[prev.shrinkL.length];
-//			shrinkR = new double[prev.shrinkR.length];
-//			shrinkT = new double[prev.shrinkT.length];
-//			shrinkB = new double[prev.shrinkB.length];
-//			for(int i=0; i<prev.layers.length; i++)
-//			{
-//				layers[i] = prev.layers[i];
-//				shrinkL[i] = prev.shrinkT[i];
-//				shrinkR[i] = prev.shrinkB[i];
-//				shrinkT[i] = prev.shrinkR[i];
-//				shrinkB[i] = prev.shrinkL[i];
-//			}
-//		}
 	}
 
 	/**
@@ -2378,105 +2353,155 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 		if (polyLayer == null || tempLayer1 == null) return;
 
 		// find the transistors to create
-		PrimitiveNode pTransistor = null, nTransistor = null;
+		List<PrimitiveNode> pTransistors = new ArrayList<PrimitiveNode>();
+		List<PrimitiveNode> nTransistors = new ArrayList<PrimitiveNode>();
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode pNp = it.next();
-			if (pTransistor == null && pNp.getFunction().isPTypeTransistor()) pTransistor = pNp;
-			if (nTransistor == null && pNp.getFunction().isNTypeTransistor()) nTransistor = pNp;
+			if (pNp.getFunction().isPTypeTransistor() || pNp.getFunction().isNTypeTransistor())
+			{
+				List<PrimitiveNode> listToUse = pTransistors;
+				if (pNp.getFunction().isNTypeTransistor()) listToUse = nTransistors;
+
+				boolean same = true;
+				if (listToUse.size() > 0)
+				{
+					// make sure additional transistors have the same overall structure
+					Set<Layer> usedLayers = new HashSet<Layer>();
+					Map<Layer,MutableInteger> usageFirst = new HashMap<Layer,MutableInteger>();
+					Technology.NodeLayer [] layersFirst = listToUse.get(0).getLayers();
+					for(int i=0; i<layersFirst.length; i++)
+					{
+						Layer lay = geometricLayer(layersFirst[i].getLayer());
+						usedLayers.add(lay);
+						MutableInteger mi = usageFirst.get(lay);
+						if (mi == null) usageFirst.put(lay, mi = new MutableInteger(0));
+						mi.increment();
+					}
+
+					Map<Layer,MutableInteger> usageNew = new HashMap<Layer,MutableInteger>();
+					Technology.NodeLayer [] layersNew = pNp.getLayers();
+					for(int i=0; i<layersNew.length; i++)
+					{
+						Layer lay = geometricLayer(layersNew[i].getLayer());
+						usedLayers.add(lay);
+						MutableInteger mi = usageNew.get(lay);
+						if (mi == null) usageNew.put(lay, mi = new MutableInteger(0));
+						mi.increment();
+					}
+
+					for(Layer lay : usedLayers)
+					{
+						MutableInteger mi1 = usageFirst.get(lay);
+						MutableInteger mi2 = usageNew.get(lay);
+						if (mi1 == null || mi2 == null || mi1.intValue() != mi2.intValue()) { same = false; break; }
+					}
+				}
+				if (same) listToUse.add(pNp);
+			}
 		}
-		if (nTransistor != null)
+
+		if (nActiveLayer == pActiveLayer)
 		{
-			findTransistors(nTransistor, nActiveLayer, merge, originalMerge, newCell);
-		}
-		if (pTransistor != null)
+			for(PrimitiveNode pNp : nTransistors) pTransistors.add(pNp);
+			if (pTransistors.size() > 0)
+				findTransistors(pTransistors, pActiveLayer, merge, originalMerge, newCell);
+		} else
 		{
-			findTransistors(pTransistor, pActiveLayer, merge, originalMerge, newCell);
+			if (nTransistors.size() > 0)
+				findTransistors(nTransistors, nActiveLayer, merge, originalMerge, newCell);
+			if (pTransistors.size() > 0)
+				findTransistors(pTransistors, pActiveLayer, merge, originalMerge, newCell);
 		}
 	}
 
-	private void findTransistors(PrimitiveNode transistor, Layer activeLayer, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	private void findTransistors(List<PrimitiveNode> transistors, Layer activeLayer, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
 		originalMerge.intersectLayers(polyLayer, activeLayer, tempLayer1);
-		Technology.NodeLayer [] layers = transistor.getLayers();
-		for(int i=0; i<layers.length; i++)
-		{
-			Technology.NodeLayer lay = layers[i];
-			Layer layer = geometricLayer(lay.getLayer());
-			if (layer == polyLayer || layer == activeLayer) continue;
-
-			// ignore well layers if the process doesn't have them
-			Layer.Function fun = layer.getFunction();
-			if (fun == Layer.Function.WELLP && pWellProcess) continue;
-			if (fun == Layer.Function.WELLN && nWellProcess) continue;
-			originalMerge.intersectLayers(layer, tempLayer1, tempLayer1);
-		}
-
-		// figure out which way the poly runs in the desired transistor
-		NodeInst dni = NodeInst.makeDummyInstance(transistor);
-		Poly [] polys = transistor.getTechnology().getShapeOfNode(dni);
-		double widestPoly = 0, widestActive = 0;
-		for(int i=0; i<polys.length; i++)
-		{
-			Poly poly = polys[i];
-			Rectangle2D bounds = poly.getBounds2D();
-			if (poly.getLayer().getFunction().isPoly()) widestPoly = Math.max(widestPoly, bounds.getWidth());
-			if (poly.getLayer().getFunction().isDiff()) widestActive = Math.max(widestActive, bounds.getWidth());
-		}
-		boolean polyVertical = widestPoly < widestActive;
-
-		// look at all of the pieces of this layer
+//System.out.print("CONSIDERING THESE TRANSISTORS:");
+//for(PrimitiveNode pnp : transistors) System.out.print(" "+pnp.describe(false)); System.out.println();
 		List<PolyBase> polyList = getMergePolys(originalMerge, tempLayer1, null);
-		if (polyList == null) return;
-		for(PolyBase poly : polyList)
+		if (polyList != null)
 		{
-			Rectangle2D transBox = poly.getBox();
-			if (transBox != null)
+			for(PolyBase poly : polyList)
 			{
-				// found a manhattan transistor, determine orientation
-				Point2D left = new Point2D.Double(transBox.getMinX() - 1, transBox.getCenterY());
-				Point2D right = new Point2D.Double(transBox.getMaxX() + 1, transBox.getCenterY());
-				Point2D bottom = new Point2D.Double(transBox.getCenterX(), transBox.getMinY() - 1);
-				Point2D top = new Point2D.Double(transBox.getCenterX(), transBox.getMaxY() + 1);
-				if (polyVertical)
+				// look at all of the pieces of this layer
+				Rectangle2D transBox = poly.getBox();
+//System.out.println("EXAMINING TRANSISTOR AT ("+TextUtils.formatDistance(poly.getCenterX()/SCALEFACTOR)+","+
+//	TextUtils.formatDistance(poly.getCenterY()/SCALEFACTOR)+")");
+				if (transBox == null)
 				{
-					Point2D swap = left;   left = top;   top = right;   right = bottom;   bottom = swap;
-				}
-				int angle = 0;
-				double wid = transBox.getWidth();
-				double hei = transBox.getHeight();
-				if (originalMerge.contains(polyLayer, left) && originalMerge.contains(polyLayer, right) &&
-					originalMerge.contains(activeLayer, top) && originalMerge.contains(activeLayer, bottom))
-				{
-				} else if (originalMerge.contains(activeLayer, left) && originalMerge.contains(activeLayer, right) &&
-					originalMerge.contains(polyLayer, top) && originalMerge.contains(polyLayer, bottom))
-				{
-					angle = 900;
-					wid = transBox.getHeight();
-					hei = transBox.getWidth();
+					// complex polygon: extract angled or serpentine transistor
+					extractNonManhattanTransistor(poly, transistors.get(0), merge, originalMerge, newCell);
 				} else
 				{
-					addErrorLog(newCell, "Transistor at (" + TextUtils.formatDistance(transBox.getCenterX()/SCALEFACTOR) +
-						"," + TextUtils.formatDistance(transBox.getCenterY()/SCALEFACTOR) +
-						") doesn't have proper tabs...not extracted", poly.getCenter());
-					continue;
+					List<String> errors = new ArrayList<String>();
+					for(PrimitiveNode transistor : transistors)
+					{
+						// figure out which way the poly runs in the desired transistor
+						NodeInst dni = NodeInst.makeDummyInstance(transistor);
+						Poly [] polys = transistor.getTechnology().getShapeOfNode(dni);
+						double widestPoly = 0, widestActive = 0;
+						for(int i=0; i<polys.length; i++)
+						{
+							Poly p = polys[i];
+							Rectangle2D bounds = p.getBounds2D();
+							if (p.getLayer().getFunction().isPoly()) widestPoly = Math.max(widestPoly, bounds.getWidth());
+							if (p.getLayer().getFunction().isDiff()) widestActive = Math.max(widestActive, bounds.getWidth());
+						}
+						boolean polyVertical = widestPoly < widestActive;
+
+						// found a manhattan transistor, determine orientation
+						Point2D left = new Point2D.Double(transBox.getMinX() - 1, transBox.getCenterY());
+						Point2D right = new Point2D.Double(transBox.getMaxX() + 1, transBox.getCenterY());
+						Point2D bottom = new Point2D.Double(transBox.getCenterX(), transBox.getMinY() - 1);
+						Point2D top = new Point2D.Double(transBox.getCenterX(), transBox.getMaxY() + 1);
+						if (polyVertical)
+						{
+							Point2D swap = left;   left = top;   top = right;   right = bottom;   bottom = swap;
+						}
+						int angle = 0;
+						double wid = transBox.getWidth();
+						double hei = transBox.getHeight();
+						if (originalMerge.contains(polyLayer, left) && originalMerge.contains(polyLayer, right) &&
+							originalMerge.contains(activeLayer, top) && originalMerge.contains(activeLayer, bottom))
+						{
+						} else if (originalMerge.contains(activeLayer, left) && originalMerge.contains(activeLayer, right) &&
+							originalMerge.contains(polyLayer, top) && originalMerge.contains(polyLayer, bottom))
+						{
+							angle = 900;
+							wid = transBox.getHeight();
+							hei = transBox.getWidth();
+						} else
+						{
+							addErrorLog(newCell, "Transistor at (" + TextUtils.formatDistance(transBox.getCenterX()/SCALEFACTOR) +
+								"," + TextUtils.formatDistance(transBox.getCenterY()/SCALEFACTOR) +
+								") doesn't have proper tabs...not extracted", poly.getCenter());
+							continue;
+						}
+						SizeOffset so = transistor.getProtoSizeOffset();
+						double width = wid + scaleUp(so.getLowXOffset() + so.getHighXOffset());
+						double height = hei + scaleUp(so.getLowYOffset() + so.getHighYOffset());
+
+						// make sure all layers fit
+						EPoint ctr = new EPoint(poly.getCenterX()/SCALEFACTOR, poly.getCenterY()/SCALEFACTOR);
+						NodeInst ni = makeDummyNodeInst(transistor, ctr, width, height,
+							Orientation.fromAngle(angle), Technology.NodeLayer.MULTICUT_CENTERED);
+						String msg = dummyTransistorFits(ni, originalMerge, newCell);
+						if (msg != null) { errors.add(msg);   continue; }
+
+						realizeNode(transistor, Technology.NodeLayer.MULTICUT_CENTERED, poly.getCenterX(), poly.getCenterY(),
+							width, height, angle, null, merge, newCell, null);
+						errors.clear();
+						break;
+					}
+					if (errors.size() > 0)
+					{
+//for(String s : errors) System.out.println("      FAILED: " + s);
+						addErrorLog(newCell, errors.get(0), new EPoint(poly.getCenterX(), poly.getCenterY()));
+					}
+//else System.out.println("      PASSED");
 				}
-				SizeOffset so = transistor.getProtoSizeOffset();
-				double width = wid + scaleUp(so.getLowXOffset() + so.getHighXOffset());
-				double height = hei + scaleUp(so.getLowYOffset() + so.getHighYOffset());
-
-				// make sure all layers fit
-				EPoint ctr = new EPoint(poly.getCenterX()/SCALEFACTOR, poly.getCenterY()/SCALEFACTOR);
-				NodeInst ni = makeDummyNodeInst(transistor, ctr, width, height,
-					Orientation.fromAngle(angle), Technology.NodeLayer.MULTICUT_CENTERED);
-				if (!dummyTransistorFits(ni, originalMerge, newCell)) continue;
-
-				realizeNode(transistor, Technology.NodeLayer.MULTICUT_CENTERED, poly.getCenterX(), poly.getCenterY(),
-					width, height, angle, null, merge, newCell, null);
-			} else
-			{
-				// complex polygon: extract angled or serpentine transistor
-				extractNonManhattanTransistor(poly, transistor, merge, originalMerge, newCell);
 			}
 		}
 		originalMerge.deleteLayer(tempLayer1);
@@ -2486,9 +2511,9 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 	 * Method to ensure that a proposed transistor fits in the merge.
 	 * @param ni the transistor (a dummy NodeInst).
 	 * @param merge the merge to test.
-	 * @return true if the layer fits in the merge.
+	 * @return an error message explaining why it doesn't fit (or null if it fits)
 	 */
-	private boolean dummyTransistorFits(NodeInst ni, PolyMerge merge, Cell cell)
+	private String dummyTransistorFits(NodeInst ni, PolyMerge merge, Cell cell)
 	{
 		AffineTransform trans = ni.rotateOut();
 		Technology tech = ni.getProto().getTechnology();
@@ -2498,6 +2523,9 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 			Layer l = poly.getLayer();
 			if (l == null) continue;
 			l = geometricLayer(l);
+			Layer.Function fun = l.getFunction();
+			if (fun == Layer.Function.WELLP && pWellProcess) continue;
+			if (fun == Layer.Function.WELLN && nWellProcess) continue;
 			poly.setLayer(l);
 			poly.transform(trans);
 			Point2D[] points = poly.getPoints();
@@ -2505,43 +2533,22 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 				poly.setPoint(i, scaleUp(points[i].getX()), scaleUp(points[i].getY()));
 			if (!merge.contains(l, poly))
 			{
-				Layer.Function fun = l.getFunction();
-				if (fun == Layer.Function.WELLP && pWellProcess) continue;
-				if (fun == Layer.Function.WELLN && nWellProcess) continue;
 				if (poly != null)
 				{
-					Layer lay = poly.getLayer();
 					Rectangle2D bounds = poly.getBounds2D();
-					if (lay.getFunction().isSubstrate())
-					{
-						addErrorLog(cell, "Transistor at (" + TextUtils.formatDistance(ni.getAnchorCenterX()) +
-							"," + TextUtils.formatDistance(ni.getAnchorCenterY()) +
-							"), size " + TextUtils.formatDistance(ni.getLambdaBaseXSize()) + "x" +
-							TextUtils.formatDistance(ni.getLambdaBaseYSize()) + ", is too large on layer " +
-							l.getName() + " and may cause DRC problems (it runs from " +
-							TextUtils.formatDistance(bounds.getMinX()/SCALEFACTOR) + "<=X<=" +
-							TextUtils.formatDistance(bounds.getMaxX()/SCALEFACTOR) + " and " +
-							TextUtils.formatDistance(bounds.getMinY()/SCALEFACTOR) + "<=Y<=" +
-							TextUtils.formatDistance(bounds.getMaxY()/SCALEFACTOR) + ")",
-							ni.getAnchorCenter());
-					} else
-					{
-						addErrorLog(cell, "Transistor at (" + TextUtils.formatDistance(ni.getAnchorCenterX()) +
-							"," + TextUtils.formatDistance(ni.getAnchorCenterY()) +
-							"), size " + TextUtils.formatDistance(ni.getLambdaBaseXSize()) + "x" +
-							TextUtils.formatDistance(ni.getLambdaBaseYSize()) + ", is too large on layer " +
-							l.getName() + "...not extracted (it runs from " +
-							TextUtils.formatDistance(bounds.getMinX()/SCALEFACTOR) + "<=X<=" +
-							TextUtils.formatDistance(bounds.getMaxX()/SCALEFACTOR) + " and " +
-							TextUtils.formatDistance(bounds.getMinY()/SCALEFACTOR) + "<=Y<=" +
-							TextUtils.formatDistance(bounds.getMaxY()/SCALEFACTOR) + ")",
-							ni.getAnchorCenter());
-						return false;
-					}
+					return ni.getProto().describe(false) + " at (" + TextUtils.formatDistance(ni.getAnchorCenterX()) +
+						"," + TextUtils.formatDistance(ni.getAnchorCenterY()) +
+						"), size " + TextUtils.formatDistance(ni.getLambdaBaseXSize()) + "x" +
+						TextUtils.formatDistance(ni.getLambdaBaseYSize()) + ", is too large on layer " +
+						l.getName() + " (it runs from " +
+						TextUtils.formatDistance(bounds.getMinX()/SCALEFACTOR) + "<=X<=" +
+						TextUtils.formatDistance(bounds.getMaxX()/SCALEFACTOR) + " and " +
+						TextUtils.formatDistance(bounds.getMinY()/SCALEFACTOR) + "<=Y<=" +
+						TextUtils.formatDistance(bounds.getMaxY()/SCALEFACTOR) + ")";
 				}
 			}
 		}
-		return true;
+		return null;
 	}
 
 	/**
@@ -4212,64 +4219,6 @@ System.out.println("SUBCELL "+subCell.describe(false)+" EXPANSION="+flatIt);
 		}
 		return properPolyList;
 	}
-
-//	/**
-//	 * Debugging method to report the coordinates of all geometry on a given layer.
-//	 */
-//	public String describeLayer(PolyMerge merge, Layer layer)
-//	{
-//		List<PolyBase> polyList = getMergePolys(merge, layer);
-//		if (polyList == null) return "DOES NOT EXIST";
-//		StringBuffer sb = new StringBuffer();
-//		for(PolyBase p : polyList)
-//		{
-//			Point2D [] points = p.getPoints();
-//			sb.append(" [");
-//			for(int j=0; j<points.length; j++)
-//			{
-//				Point2D pt = points[j];
-//				if (j > 0) sb.append(" ");
-//				sb.append("("+pt.getX()+","+pt.getY()+")");
-//			}
-//			sb.append("]");
-//		}
-//		return sb.toString();
-//	}
-
-//	private static Poly makeEndPointPoly(double len, double wid, double angle, Point2D endH, Point2D endT)
-//	{
-//		double w2 = wid / 2;
-//		double x1 = endH.getX();   double y1 = endH.getY();
-//		double x2 = endT.getX();   double y2 = endT.getY();
-//		double xextra, yextra, xe1, ye1, xe2, ye2;
-//		if (len == 0)
-//		{
-//			double sa = Math.sin(angle);
-//			double ca = Math.cos(angle);
-//			xe1 = x1;
-//			ye1 = y1;
-//			xe2 = x2;
-//			ye2 = y2;
-//			xextra = ca * w2;
-//			yextra = sa * w2;
-//		} else
-//		{
-//			xe1 = x1;
-//			ye1 = y1;
-//			xe2 = x2;
-//			ye2 = y2;
-//			xextra = w2 * (x2-x1) / len;
-//			yextra = w2 * (y2-y1) / len;
-//		}
-//		Point2D.Double [] points = new Point2D.Double[] {
-//			new Point2D.Double(yextra + xe1, ye1 - xextra),
-//			new Point2D.Double(xe1 - yextra, xextra + ye1),
-//			new Point2D.Double(xe2 - yextra, xextra + ye2),
-//			new Point2D.Double(yextra + xe2, ye2 - xextra)};
-//		Poly poly = new Poly(points);
-//		poly.setStyle(Poly.Type.FILLED);
-//		return poly;
-//	}
 
 	/**
 	 * Class for showing progress of extraction in a modeless dialog

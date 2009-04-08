@@ -147,6 +147,7 @@ public abstract class Router {
         // pass 2: do all other actions (deletes, newArcs)
         for (RouteElement e : route)
         {
+        	if (e.getAction() == RouteElement.RouteElementAction.newNode) continue;
             e.doAction();
             if (e.getAction() == RouteElement.RouteElementAction.newArc) {
                 RouteElementArc rea = (RouteElementArc)e;
