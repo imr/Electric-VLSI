@@ -1735,8 +1735,8 @@ public class TechEditWizardData
 		Color poly_colour = new Color(255,155,192);   // pink
 		Color diff_colour = new Color(107,226,96);    // light green
 		Color via_colour = new Color(205,205,205);    // lighter gray
-		Color contact_colour = new Color(40,40,40);   // darker gray
-		Color nplus_colour = new Color(224,238,224);
+		Color contact_colour = new Color(100,100,100);   // darker gray
+        Color nplus_colour = new Color(224,238,224);
 		Color pplus_colour = new Color(224,224,120);
 		Color nwell_colour = new Color(140,140,140);
         // Five transparent colors: poly_colour, diff_colour, metal_colour[0->2]
@@ -1967,7 +1967,6 @@ public class TechEditWizardData
         // PolyGate
         Xml.Layer polyGateLayer = makeXmlLayer(t.layers, layer_width, "PolyGate", Layer.Function.GATE, 0, graph,
             (char)('A' + cifNumber++), poly_width, false, false);
-        Xml.Layer protectionPolyLayer = null;
 
         if (getExtraInfoFlag())
         {
@@ -1980,7 +1979,7 @@ public class TechEditWizardData
 
         // PolyCon and DiffCon
         graph = new EGraphics(false, false, null, 0, contact_colour.getRed(), contact_colour.getGreen(),
-            contact_colour.getBlue(), 1, true, nullPattern);
+            contact_colour.getBlue(), 0.5, true, nullPattern);
         // PolyCon
         Xml.Layer polyConLayer = makeXmlLayer(t.layers, layer_width, "PolyCon", Layer.Function.CONTACT1,
             Layer.Function.CONPOLY, graph, (char)('A' + cifNumber++), contact_size, true, false);
