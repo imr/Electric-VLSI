@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+IMP: (4/8/09, SMR) Added METALNEG1 and METALNEG2 layer functions (Bug #2037).
+
 IMP/MAN: (4/8/09, GVG) Renaming a cell that has an old version (Bug #2116)
 FIX: Extra dialog added to check whether the old versions should be renamed too.
 
