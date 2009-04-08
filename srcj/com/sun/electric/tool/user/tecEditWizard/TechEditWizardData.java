@@ -150,8 +150,8 @@ public class TechEditWizardData
     {
         String name;
         List<Xml.ArcProto> arcs;
-        List<Xml.PrimitiveNode> pins;
-        List<Xml.PrimitiveNode> elements; // contact or transistor
+        List<Xml.MenuNodeInst> pins;
+        List<Xml.MenuNodeInst> elements; // contact or transistor
 
         void addArc(Xml.ArcProto arc)
         {
@@ -165,19 +165,32 @@ public class TechEditWizardData
         {
             if (pins == null)
             {
-                pins = new ArrayList<Xml.PrimitiveNode>();
+                pins = new ArrayList<Xml.MenuNodeInst>();
             }
             assert pin.isSingleton;
-            pins.add(pin.nodes.get(0));
+            Xml.PrimitiveNode pn = pin.nodes.get(0);
+            Xml.MenuNodeInst n = new Xml.MenuNodeInst();
+            n.protoName = pn.name;
+            n.function = pn.function;
+            pins.add(n);
         }
-        void addElement(Xml.PrimitiveNodeGroup element)
+        void addElement(Xml.PrimitiveNodeGroup element, String shortName)
         {
             if (elements == null)
             {
-                elements = new ArrayList<Xml.PrimitiveNode>();
+                elements = new ArrayList<Xml.MenuNodeInst>();
             }
             assert element.isSingleton;
-            elements.add(element.nodes.get(0));
+            Xml.PrimitiveNode pn = element.nodes.get(0);
+            Xml.MenuNodeInst n = new Xml.MenuNodeInst();
+            n.protoName = pn.name;
+            n.function = pn.function;
+            if (shortName != null)
+            {
+                n.text = shortName;
+                n.fontSize = 15;
+            }
+            elements.add(n);
         }
     }
 
@@ -2107,7 +2120,7 @@ public class TechEditWizardData
         {
             polyGroup.addElement(makeContactSeries(t.nodeGroups, polyLayer.name, contSize, polyConLayer, contSpacing, contArraySpacing,
                         scaledValue(contact_poly_overhang.v), polyLayer,
-                        scaledValue(via_overhang[0].v), m1Layer));
+                        scaledValue(via_overhang[0].v), m1Layer), null);
         }
 
         /**************************** N/P-Diff Nodes/Arcs ***********************************************/
@@ -2182,7 +2195,7 @@ public class TechEditWizardData
                 makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED), // active layer
                 makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED), // select layer
                 wellNode, // well layer
-                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing))); // contact
+                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)), "Full"); // contact
         }
 
         // Active and poly contacts
@@ -2255,10 +2268,10 @@ public class TechEditWizardData
 
                 g.addElement(makeXmlPrimitiveCon(t.nodeGroups, c.prefix + name, PrimitiveNode.Function.CONTACT, -1, -1,
                     new SizeOffset(longX, longX, longY, longY), portNames,
-                makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED), // layer1
-                makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED), // layer2
+                    makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED), // layer1
+                    makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED), // layer2
                     extraN,
-                makeXmlMulticut(conLay, contSize, contSpacing, contArraySpacing))); // contact
+                    makeXmlMulticut(conLay, contSize, contSpacing, contArraySpacing)), c.prefix); // contact
             }
         }
 
@@ -2319,7 +2332,7 @@ public class TechEditWizardData
                 makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED), // active layer
                 makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED), // select layer
                 wellNode, // well layer
-                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing))); // contact
+                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)), "Full"); // contact
         }
 
         /**************************** Metals Nodes/Arcs ***********************************************/
@@ -2353,8 +2366,7 @@ public class TechEditWizardData
 
                 double longDist = scaledValue(via_overhang[i-1].v);
                 group.addElement(makeContactSeries(t.nodeGroups, name, viaSize, via, viaSpacing, viaArraySpacing,
-                    longDist, lt,
-                    longDist, lb));
+                    longDist, lt, longDist, lb), null);
             }
         }
 
@@ -2395,9 +2407,9 @@ public class TechEditWizardData
                 metalPalette[via-1].addElement(makeXmlPrimitiveCon(t.nodeGroups, c.prefix + name, PrimitiveNode.Function.CONTACT, -1, -1,
                     new SizeOffset(longX, longX, longY, longY),
                     portNames,
-                makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED), // layer1
-                makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED), // layer2
-                makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
+                    makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED), // layer1
+                    makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED), // layer2
+                    makeXmlMulticut(conLayer, contSize, spacing, arraySpacing)), c.prefix); // contact
             }
         }
 
@@ -2569,7 +2581,7 @@ public class TechEditWizardData
             // Standard Transistor
             Xml.PrimitiveNodeGroup n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-            g.addElement(n);
+            g.addElement(n, null);
 
             // Extra transistors which don't have select nor well
             // Extra protection poly. No ports are necessary.
@@ -2599,7 +2611,7 @@ public class TechEditWizardData
                 }
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-S", func, 0, 0, 0, 0,
                      new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-                g.addElement(n);
+                g.addElement(n, "S");
 
                 // different select for those with extra protection layers
                 nodesList.remove(xTranSelLayer);
@@ -2634,7 +2646,7 @@ public class TechEditWizardData
                 nodesList.add(bOrL);
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-L", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-                g.addElement(n);
+                g.addElement(n, "L");
 
                 // top or right
                 Xml.NodeLayer tOrR = (makeXmlNodeLayerSpecial(gatex, gatex, // endPolyx, endPolyx,
@@ -2646,13 +2658,13 @@ public class TechEditWizardData
                 nodesList.add(tOrR);
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-LR", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-                g.addElement(n);
+                g.addElement(n, "LR");
 
                 // Adding right
                 nodesList.remove(bOrL);
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-R", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-                g.addElement(n);
+                g.addElement(n, "R");
             }
         }
 
