@@ -27,6 +27,7 @@ import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
@@ -482,6 +483,10 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         {
 //            printStackTrace("setProgressNote");
             return Job.currentUI.getProgressNote();
+        }
+
+    	public EDatabase getDatabase() {
+            return EDatabase.theDatabase;
         }
 
 		public EditWindow_ getCurrentEditWindow_() {

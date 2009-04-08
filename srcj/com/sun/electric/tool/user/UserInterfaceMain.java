@@ -221,6 +221,9 @@ public class UserInterfaceMain extends AbstractUserInterface
         WindowFrame.wantToOpenCurrentLibrary(true, null);
     }
 
+    public EDatabase getDatabase() {
+        return EDatabase.clientDatabase();
+    }
     public EditWindow_ getCurrentEditWindow_() { return EditWindow.getCurrent(); }
 
 	public EditWindow_ needCurrentEditWindow_() { return EditWindow.needCurrent(); }

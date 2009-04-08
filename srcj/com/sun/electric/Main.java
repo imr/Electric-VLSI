@@ -190,6 +190,9 @@ public final class Main
         public void setProgressNote(String message) {}
         public String getProgressNote() { return null; }
 
+    	public EDatabase getDatabase() {
+            return EDatabase.theDatabase;
+        }
 		public EditWindow_ getCurrentEditWindow_() { return null; }
 		public EditWindow_ needCurrentEditWindow_()
 		{
