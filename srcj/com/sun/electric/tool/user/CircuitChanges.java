@@ -570,19 +570,36 @@ public class CircuitChanges
 	{
 		// see if the rename should also regroup
 		String newGroupCell = null;
+        Set<Cell> set = new HashSet<Cell>();
 
-		for(Iterator<Cell> it = cell.getLibrary().getCells(); it.hasNext(); )
+        for(Iterator<Cell> it = cell.getLibrary().getCells(); it.hasNext(); )
 		{
 			Cell oCell = it.next();
-			if (oCell.getName().equalsIgnoreCase(newName) && oCell.getCellGroup() != cell.getCellGroup())
+
+            // Case when the new cell name defines a group already
+            if (oCell.getName().equalsIgnoreCase(newName) && oCell.getCellGroup() != cell.getCellGroup())
 			{
 				int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
-					"Also place the cell into the " + oCell.getCellGroup().getName() + " group?");
+					"Also place the cell into the \"" + oCell.getCellGroup().getName() + "\" group?");
 				if (response == JOptionPane.YES_OPTION) newGroupCell = oCell.getName();
 				break;
 			}
 		}
-		new CellChangeJobs.RenameCell(cell, newName, newGroupCell);
+        set.add(cell);
+        if (cell.getNumVersions() > 1) // more than 1 version
+        {
+            int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+                "Also rename previous versions of the cell \"" + cell.getName() + "\" ?");
+            if (response == JOptionPane.YES_OPTION)
+            {
+                for(Iterator<Cell> it = cell.getVersions(); it.hasNext(); )
+                {
+                    set.add(it.next());
+                }
+            }
+        }
+        for (Cell c : set)
+            new CellChangeJobs.RenameCell(c, newName, newGroupCell);
 	}
 
 	public static void renameCellGroupInJob(Cell.CellGroup cellGroup, String newName)
