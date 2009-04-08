@@ -42,8 +42,10 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -99,7 +101,8 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
         CHANGENEGATION, CHANGECHARACTERISTICS, CHANGEBODYONLY, CHANGEALWAYSDRAWN,
         CHANGEPOINTSIZE, CHANGEUNITSIZE, CHANGEXOFF, CHANGEYOFF, CHANGETEXTROT,
         CHANGEANCHOR, CHANGEFONT, CHANGECOLOR, CHANGEBOLD, CHANGEITALIC,
-        CHANGEUNDERLINE, CHANGECODE, CHANGEUNITS, CHANGESHOW
+        CHANGEUNDERLINE, CHANGECODE, CHANGEUNITS, CHANGESHOW,
+        CHANGETRAWID, CHANGETRALEN
     }
 
 	private static GetInfoMulti theDialog = null;
@@ -120,6 +123,11 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 	private static final ChangeType [] nodeChanges = {
 		ChangeType.CHANGEXSIZE, ChangeType.CHANGEYSIZE, ChangeType.CHANGEXPOS, ChangeType.CHANGEYPOS,
 		ChangeType.CHANGEROTATION, ChangeType.CHANGEMIRRORLR, ChangeType.CHANGEMIRRORUD, ChangeType.CHANGEEXPANDED,
+		ChangeType.CHANGEEASYSELECT, ChangeType.CHANGEINVOUTSIDECELL, ChangeType.CHANGELOCKED};
+	private static final ChangeType [] traNodeChanges = {
+		ChangeType.CHANGEXSIZE, ChangeType.CHANGEYSIZE, ChangeType.CHANGETRAWID, ChangeType.CHANGETRALEN,
+		ChangeType.CHANGEXPOS, ChangeType.CHANGEYPOS, ChangeType.CHANGEROTATION,
+		ChangeType.CHANGEMIRRORLR, ChangeType.CHANGEMIRRORUD, ChangeType.CHANGEEXPANDED,
 		ChangeType.CHANGEEASYSELECT, ChangeType.CHANGEINVOUTSIDECELL, ChangeType.CHANGELOCKED};
 	private static final ChangeType [] arcChanges = {
 		ChangeType.CHANGEWIDTH, ChangeType.CHANGERIGID, ChangeType.CHANGEFIXANGLE, ChangeType.CHANGESLIDABLE,
@@ -322,6 +330,8 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		double ySizeLow = Double.MAX_VALUE, ySizeHigh = -Double.MAX_VALUE;
 		double widthLow = Double.MAX_VALUE, widthHigh = -Double.MAX_VALUE;
         double rotLow = Double.MAX_VALUE, rotHigh = -Double.MAX_VALUE;
+		double traWidthLow = Double.MAX_VALUE, traWidthHigh = -Double.MAX_VALUE;
+		double traLengthLow = Double.MAX_VALUE, traLengthHigh = -Double.MAX_VALUE;
 		selectionCount.setText(Integer.toString(highlightList.size()) + " selections:");
 		List<String> displayList = new ArrayList<String>();
         for(Highlight2 h : highlightList)
@@ -361,6 +371,20 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 					xSizeHigh = Math.max(xSizeHigh, xVal);
 					ySizeLow = Math.min(ySizeLow, yVal);
 					ySizeHigh = Math.max(ySizeHigh, yVal);
+
+					if (ni.getProto().getTechnology() == Schematics.tech() && ni.getFunction().isTransistor())
+					{
+						TransistorSize ts = ni.getTransistorSize(null);
+						if (ts != null)
+						{
+							double len = ts.getDoubleLength();
+							if (len < traLengthLow) traLengthLow = len;
+							if (len > traLengthHigh) traLengthHigh = len;
+							double wid = ts.getDoubleWidth();
+							if (wid < traWidthLow) traWidthLow = wid;
+							if (wid > traWidthHigh) traWidthHigh = wid;
+						}
+					}
 				} else if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
@@ -426,6 +450,16 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		changePanel.removeAll();
 		currentChangeTypes = changeCombos[index];
 		if (currentChangeTypes == null) return;
+		if (currentChangeTypes == nodeChanges)
+		{
+			boolean allSchemTrans = true;
+			for(NodeInst ni : nodeList)
+			{
+				if (!ni.getFunction().isTransistor() || ni.getProto().getTechnology() != Schematics.tech())
+					allSchemTrans = false;
+			}
+			if (allSchemTrans) currentChangeTypes = traNodeChanges;
+		}
 		currentChangeValues = new JComponent[currentChangeTypes.length];
 		if (currentChangeTypes != null)
 		{
@@ -448,6 +482,18 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 							msg = "(" + TextUtils.formatDistance(ySizeLow, tech) + " to " +
 								TextUtils.formatDistance(ySizeHigh, tech) + ")";
 						addChangePossibility("Y size:", currentChangeValues[c] = new JTextField(""), msg, onePanel);
+						break;
+					case CHANGETRAWID:
+						if (traWidthLow == traWidthHigh) msg = "(All are " + TextUtils.formatDistance(traWidthLow, tech) + ")"; else
+							msg = "(" + TextUtils.formatDistance(traWidthLow, tech) + " to " +
+								TextUtils.formatDistance(traWidthHigh, tech) + ")";
+						addChangePossibility("Transistor width:", currentChangeValues[c] = new JTextField(""), msg, onePanel);
+						break;
+					case CHANGETRALEN:
+						if (traLengthLow == traLengthHigh) msg = "(All are " + TextUtils.formatDistance(traLengthLow, tech) + ")"; else
+							msg = "(" + TextUtils.formatDistance(traLengthLow, tech) + " to " +
+								TextUtils.formatDistance(traLengthHigh, tech) + ")";
+						addChangePossibility("Transistor length:", currentChangeValues[c] = new JTextField(""), msg, onePanel);
 						break;
 					case CHANGEXPOS:
 						if (xPositionLow == xPositionHigh) msg = "(All are " + TextUtils.formatDistance(xPositionLow, tech) + ")"; else
@@ -796,6 +842,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 	private static class MultiChangeParameters implements Serializable
 	{
 		private String xPos, yPos;
+		private String traWidth, traLength;
 		private String xSize, ySize;
 		private String rot;
 		private int lr, ud;
@@ -877,6 +924,23 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 						if (mcp.invisOutside == 2) ni.clearVisInside();
 					if (mcp.locked == 1) ni.setLocked(); else
 						if (mcp.locked == 2) ni.clearLocked();
+
+					// see if transistor length/width changed
+					if (mcp.traLength.length() > 0)
+					{
+						Variable oldLen = ni.getVar(Schematics.ATTR_LENGTH);
+		                TextDescriptor ltd = oldLen != null ? oldLen.getTextDescriptor() : TextDescriptor.getNodeTextDescriptor();
+		                Object newVL = new Double(TextUtils.atof(mcp.traLength));
+						ni.newVar(Schematics.ATTR_LENGTH, newVL, ltd);
+					}
+					if (mcp.traWidth.length() > 0)
+					{
+						// update length/width on transistor
+						Variable oldWid = ni.getVar(Schematics.ATTR_WIDTH);
+		                TextDescriptor wtd = oldWid != null ? oldWid.getTextDescriptor() : TextDescriptor.getNodeTextDescriptor();
+		                Object newV = new Double(TextUtils.atof(mcp.traWidth));
+						ni.newVar(Schematics.ATTR_WIDTH, newV, wtd);
+					}
 				}
 
 				// see if size, position, or orientation changed
@@ -1386,6 +1450,8 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		{
 			mcp.xPos = findComponentStringValue(ChangeType.CHANGEXPOS);
 			mcp.yPos = findComponentStringValue(ChangeType.CHANGEYPOS);
+			mcp.traWidth = findComponentStringValue(ChangeType.CHANGETRAWID);
+			mcp.traLength = findComponentStringValue(ChangeType.CHANGETRALEN);
 			mcp.xSize = findComponentStringValue(ChangeType.CHANGEXSIZE);
 			mcp.ySize = findComponentStringValue(ChangeType.CHANGEYSIZE);
 			mcp.rot = findComponentStringValue(ChangeType.CHANGEROTATION);
