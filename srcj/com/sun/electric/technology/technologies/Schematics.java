@@ -33,7 +33,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -1494,10 +1493,6 @@ public class Schematics extends Technology
 
         //Foundry
         newFoundry(Foundry.Type.NONE, null);
-
-        for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); ) {
-            getPrefForPrimitive(it.next());
-        }
 	}
 
 	private Technology.NodeLayer [] buildTransistorDescription(boolean nmos, boolean depletion,
@@ -2704,8 +2699,8 @@ public class Schematics extends Technology
                 if (width != -1)
                     widthObj = new Double(width);
             }
-            
-            
+
+
             Object mFactorObj = null;
             var = ni.getVar(Simulation.M_FACTOR_KEY);
             if (var != null) {
@@ -2718,7 +2713,7 @@ public class Schematics extends Technology
                 if (mFactor != -1)
                     mFactorObj = new Double(mFactor);
             }
-            
+
             TransistorSize size = new TransistorSize(widthObj, lengthObj, new Double(1.0), mFactorObj, true);
             return size;
 		}
@@ -2912,39 +2907,6 @@ public class Schematics extends Technology
 	 */
 	public double getNegatingBubbleSize() { return 1.2; }
 
-	private Map<PrimitiveNode,Pref> primPrefs = new HashMap<PrimitiveNode,Pref>();
-	private Pref getPrefForPrimitive(PrimitiveNode np)
-	{
-		Pref pref = primPrefs.get(np);
-		if (pref == null)
-		{
-			String def = "";
-			if (np == bufferNode) def = "buffer/inverter"; else
-				if (np == andNode) def = "and/nand"; else
-					if (np == orNode) def = "or/nor"; else
-						if (np == xorNode) def = "xor/xnor"; else
-							if (np == muxNode) def = "mux";
-			pref = Pref.makeStringPref("SchematicVHDLStringFor"+np.getName(), getTechnologyPreferences(), def);
-			primPrefs.put(np, pref);
-		}
-		return pref;
-	}
-	/**
-	 * Method to tell the VHDL names for a primitive in this technology.
-	 * These names have the form REGULAR/NEGATED, where REGULAR is the name to use
-	 * for regular uses of the primitive, and NEGATED is the name to use for negated uses.
-	 * @param np the primitive to query.
-	 * @return the the VHDL names for the primitive.
-	 */
-	public String getVHDLNames(PrimitiveNode np) { return getPrefForPrimitive(np).getString(); }
-	/**
-	 * Method to set the VHDL names for a primitive in this technology.
-	 * These names have the form REGULAR/NEGATED, where REGULAR is the name to use
-	 * for regular uses of the primitive, and NEGATED is the name to use for negated uses.
-	 * @param np the primitive to set.
-	 * @param v the VHDL names for the primitive.
-	 */
-	public void setVHDLNames(PrimitiveNode np, String v) { getPrefForPrimitive(np).setString(v); }
 	/**
 	 * Method to tell the VHDL names for a primitive in this technology, by default.
 	 * These names have the form REGULAR/NEGATED, where REGULAR is the name to use
@@ -2952,5 +2914,12 @@ public class Schematics extends Technology
 	 * @param np the primitive to query.
 	 * @return the the VHDL names for the primitive, by default.
 	 */
-	public String getFactoryVHDLNames(PrimitiveNode np) { return getPrefForPrimitive(np).getStringFactoryValue(); }
+	public String getFactoryVHDLNames(PrimitiveNode np) {
+        if (np == bufferNode) return "buffer/inverter";
+		if (np == andNode) return "and/nand";
+		if (np == orNode) return "or/nor";
+		if (np == xorNode) return "xor/xnor";
+		if (np == muxNode) return "mux";
+        return "";
+    }
 }

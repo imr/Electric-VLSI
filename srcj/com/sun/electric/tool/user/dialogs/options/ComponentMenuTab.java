@@ -23,10 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveNodeGroup;
@@ -107,7 +103,7 @@ public class ComponentMenuTab extends PreferencePanel
         }
 
 		// build a set of XML objects that refer to this XML technology
-		Object[][] menuArray = makeMenuArray(tech.getMenuPalette());
+		Object[][] menuArray = makeMenuArray(ComponentMenu.getMenuPalette(tech));
 		Object[][] defMenuArray = makeMenuArray(tech.getFactoryMenuPalette());
 		theMenu.showTechnology(tech.getTechName(), xTech, menuArray, defMenuArray);
 	}
@@ -143,7 +139,6 @@ public class ComponentMenuTab extends PreferencePanel
 		int menuWid = menuArray[0].length;
 		xmp.numColumns = menuWid;
 		xmp.menuBoxes = new ArrayList<List<?>>();
-		Object[][] convMenuArray = new Object[menuHei][menuWid];
 		for(int y=0; y<menuHei; y++)
 		{
 			for(int x=0; x<menuWid; x++)
@@ -154,20 +149,17 @@ public class ComponentMenuTab extends PreferencePanel
 				if (item instanceof List)
 				{
 					xmp.menuBoxes.add((List)item);
-					List<Object> subConvList = new ArrayList<Object>();
-					for(Object it : (List)item)
-						subConvList.add(convertFromXML(it));
-					convMenuArray[y][x] = subConvList;
 				} else
 				{
 					List<Object> subList = new ArrayList<Object>();
 					if (item != null) subList.add(item);
 					xmp.menuBoxes.add(subList);
-					convMenuArray[y][x] = convertFromXML(item);
 				}
 			}
 		}
-		tech.setNodesGrouped(convMenuArray, xmp.writeXml());
+        ComponentMenu.ComponentMenuPreferences cmp = new ComponentMenu.ComponentMenuPreferences(false);
+        cmp.menuXmls.put(tech, xmp.writeXml());
+        putPrefs(cmp);
 
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
@@ -191,78 +183,12 @@ public class ComponentMenuTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+        ComponentMenu.ComponentMenuPreferences cmp = new ComponentMenu.ComponentMenuPreferences(true);
+        putPrefs(cmp);
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
-			Technology t = it.next();
-			Object [][] menu = t.getDefaultNodesGrouped();
-			t.setNodesGrouped(t.filterNodeGroups(menu), "");
+			WindowFrame wf = it.next();
+			wf.getPaletteTab().loadForTechnology(tech, wf);
 		}
 	}
-
-	private Object convertToXML(Object obj, Xml.Technology xTech)
-	{
-		if (obj instanceof NodeInst)
-		{
-			NodeInst ni = (NodeInst)obj;
-			Xml.MenuNodeInst xni = new Xml.MenuNodeInst();
-			xni.protoName = ni.getProto().getName();
-			xni.function = ni.getFunction();
-			Variable var = ni.getVar(Technology.TECH_TMPVAR);
-			if (var != null)
-			{
-				xni.text = (String)var.getObject();
-				xni.fontSize = var.getTextDescriptor().getSize().getSize();
-			}
-			xni.rotation = ni.getAngle();
-			return xni;
-		} else if (obj instanceof NodeProto)
-		{
-			NodeProto np = (NodeProto)obj;
-			if (np instanceof Cell)
-			{
-				Cell cell = (Cell)np;
-				return "LOADCELL " + cell.libDescribe();
-			}
-            Xml.PrimitiveNode xnp = xTech.findNode(np.getName());
-            if (xnp != null) return xnp;
-			xnp = new Xml.PrimitiveNode();
-			xnp.name = np.getName();
-			return xnp;
-		} else if (obj instanceof ArcProto)
-		{
-			ArcProto ap = (ArcProto)obj;
-			for(Xml.ArcProto xap : xTech.arcs)
-			{
-				if (xap.name.equals(ap.getName())) return xap;
-			}
-			Xml.ArcProto xap = new Xml.ArcProto();
-			xap.name = ap.getName();
-			return xap;
-		}
-		return obj;
-	}
-
-	private Object convertFromXML(Object obj)
-	{
-		if (obj instanceof Xml.MenuNodeInst)
-		{
-			Xml.MenuNodeInst xni = (Xml.MenuNodeInst)obj;
-			PrimitiveNode np = tech.findNodeProto(xni.protoName);
-			NodeInst ni = Technology.makeNodeInst(np, xni.function, xni.rotation, xni.text != null && xni.text.length() > 0,
-				xni.text, xni.fontSize);
-			return ni;
-		} else if (obj instanceof Xml.PrimitiveNode)
-		{
-			Xml.PrimitiveNode xnp = (Xml.PrimitiveNode)obj;
-			PrimitiveNode np = tech.findNodeProto(xnp.name);
-			return np;
-		} else if (obj instanceof Xml.ArcProto)
-		{
-			Xml.ArcProto xap = (Xml.ArcProto)obj;
-			ArcProto ap = tech.findArcProto(xap.name);
-			return ap;
-		}
-		return obj;
-	}
-
 }

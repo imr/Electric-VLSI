@@ -31,14 +31,14 @@ import java.util.prefs.BackingStoreException;
  * Dummy implementation of Preferebces class.
  */
 public class DummyPreferences extends AbstractPreferences {
-    
+
     private HashMap<String,String> items = new HashMap<String,String>();
-    
+
     /** Creates a new instance of MyPrefernces */
     protected DummyPreferences(AbstractPreferences parent, String name) {
         super(parent, name);
     }
-    
+
     // "SPI" METHODS
 
     /**
@@ -50,7 +50,7 @@ public class DummyPreferences extends AbstractPreferences {
      * <p>This method is invoked with the lock on this node held.
      */
     protected void putSpi(String key, String value) {
-        System.out.println("MyPreferences putSpi " + absolutePath() + " " + key + " " + value);
+//        System.out.println("MyPreferences putSpi " + absolutePath() + " " + key + " " + value);
         items.put(key, value);
     }
 
@@ -60,7 +60,7 @@ public class DummyPreferences extends AbstractPreferences {
      * association cannot be determined at this time.  It is guaranteed that
      * <tt>key</tt> is non-null.  Also, it is guaranteed that this node has
      * not been removed.  (The implementor needn't check for either of these
-     * things.) 
+     * things.)
      *
      * <p> Generally speaking, this method should not throw an exception
      * under any circumstances.  If, however, if it does throw an exception,
@@ -79,7 +79,7 @@ public class DummyPreferences extends AbstractPreferences {
     }
 
     /**
-     * Remove the association (if any) for the specified key at this 
+     * Remove the association (if any) for the specified key at this
      * preference node.  It is guaranteed that <tt>key</tt> is non-null.
      * Also, it is guaranteed that this node has not been removed.
      * (The implementor needn't check for either of these things.)
@@ -91,7 +91,7 @@ public class DummyPreferences extends AbstractPreferences {
         items.remove(key);
     }
 
-    /** 
+    /**
      * Removes this preference node, invalidating it and any preferences that
      * it contains.  The named child will have no descendants at the time this
      * invocation is made (i.e., the {@link java.util.prefs.Preferences#removeNode()} method
@@ -110,11 +110,11 @@ public class DummyPreferences extends AbstractPreferences {
      * invocation.
      *
      * @throws BackingStoreException if this operation cannot be completed
-     *         due to a failure in the backing store, or inability to 
+     *         due to a failure in the backing store, or inability to
      *         communicate with it.
      */
     protected void removeNodeSpi() throws BackingStoreException {
-        System.out.println("MyPreferences.removeNodeSpi " + absolutePath());
+//        System.out.println("MyPreferences.removeNodeSpi " + absolutePath());
     }
 
     /**
@@ -131,7 +131,7 @@ public class DummyPreferences extends AbstractPreferences {
      * @return an array of the keys that have an associated value in this
      *         preference node.
      * @throws BackingStoreException if this operation cannot be completed
-     *         due to a failure in the backing store, or inability to 
+     *         due to a failure in the backing store, or inability to
      *         communicate with it.
      */
     protected String[] keysSpi() throws BackingStoreException {
@@ -139,7 +139,7 @@ public class DummyPreferences extends AbstractPreferences {
     }
 
     private final static String[] EMPTY_STRING_ARRAY = new String[0];
-    
+
     /**
      * Returns the names of the children of this preference node.  (The
      * returned array will be of size zero if this node has no children.)
@@ -155,14 +155,14 @@ public class DummyPreferences extends AbstractPreferences {
      * @return an array containing the names of the children of this
      *         preference node.
      * @throws BackingStoreException if this operation cannot be completed
-     *         due to a failure in the backing store, or inability to 
+     *         due to a failure in the backing store, or inability to
      *         communicate with it.
      */
     protected String[] childrenNamesSpi() throws BackingStoreException {
         return EMPTY_STRING_ARRAY;
     }
 
-    /** 
+    /**
      * Returns the named child of this preference node, creating it if it does
      * not already exist.  It is guaranteed that <tt>name</tt> is non-null,
      * non-empty, does not contain the slash character ('/'), and is no longer
@@ -182,9 +182,9 @@ public class DummyPreferences extends AbstractPreferences {
      * implementer must return a newly constructed <tt>AbstractPreferences</tt>
      * node; once removed, an <tt>AbstractPreferences</tt> node
      * cannot be "resuscitated."
-     * 
+     *
      * <p>If this method causes a node to be created, this node is not
-     * guaranteed to be persistent until the <tt>flush</tt> method is 
+     * guaranteed to be persistent until the <tt>flush</tt> method is
      * invoked on this node or one of its ancestors (or descendants).
      *
      * <p>This method is invoked with the lock on this node held.
@@ -212,7 +212,7 @@ public class DummyPreferences extends AbstractPreferences {
      * will propagate out beyond the enclosing {@link #sync()} invocation.
      *
      * @throws BackingStoreException if this operation cannot be completed
-     *         due to a failure in the backing store, or inability to 
+     *         due to a failure in the backing store, or inability to
      *         communicate with it.
      */
     protected void syncSpi() throws BackingStoreException {
@@ -235,7 +235,7 @@ public class DummyPreferences extends AbstractPreferences {
      * will propagate out beyond the enclosing {@link #flush()} invocation.
      *
      * @throws BackingStoreException if this operation cannot be completed
-     *         due to a failure in the backing store, or inability to 
+     *         due to a failure in the backing store, or inability to
      *         communicate with it.
      */
     protected void flushSpi() throws BackingStoreException {

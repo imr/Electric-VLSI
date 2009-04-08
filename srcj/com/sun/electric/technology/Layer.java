@@ -975,14 +975,14 @@ public class Layer implements Serializable
     private Setting makeLayerSetting(String what, String factory) {
         String techName = tech.getTechName();
         return getSubNode(what).makeStringSetting(what + "LayerFor" + getName() + "IN" + techName,
-                tech.getTechnologyPreferences().relativePath(),
+                Technology.TECH_NODE,
                 getName(), what + " tab", what + " for layer " + getName() + " in technology " + techName, factory);
     }
 
     private Setting makeParasiticSetting(String what, double factory)
     {
         return getSubNode(what).makeDoubleSetting(what + "ParasiticFor" + getName() + "IN" + tech.getTechName(),
-                tech.getTechnologyPreferences().relativePath(),
+                Technology.TECH_NODE,
                 getName(), "Parasitic tab", "Technology " + tech.getTechName() + ", " + what + " for layer " + getName(), factory);
     }
 
@@ -990,7 +990,7 @@ public class Layer implements Serializable
     {
         factory = DBMath.round(factory);
         return getSubNode(what).makeDoubleSetting(what + "Of" + getName() + "IN" + tech.getTechName(),
-                tech.getTechnologyPreferences().relativePath(),
+                Technology.TECH_NODE,
                 getName(), "3D tab", "Technology " + tech.getTechName() + ", 3D " + what + " for layer " + getName(), factory);
     }
 

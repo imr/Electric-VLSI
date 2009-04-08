@@ -97,14 +97,12 @@ public class Pref {
     private static Thread clientThread;
 
     public static class Group {
-        private final boolean isTechGroup;
         private final String relativePath;
         private boolean lockCreation;
         Preferences preferences;
         private final TreeMap<String,Pref> prefs = new TreeMap<String,Pref>();
 
-        private Group(String relativePath, boolean isTechGroup) {
-            this.isTechGroup = isTechGroup;
+        private Group(String relativePath) {
             this.relativePath = relativePath;
         }
         public String relativePath() { return relativePath; }
@@ -182,17 +180,15 @@ public class Pref {
         className = className.substring(mainClassName.length());
         int pkgEndIndex = className.lastIndexOf('.');
         String packageName = className.substring(0, pkgEndIndex);
-        return groupForPackage(packageName.replace('.', '/'), false);
+        return groupForPackage(packageName.replace('.', '/'));
     }
 
-    public static Group groupForPackage(String relativePath, boolean techGroup) {
-        if (techGroup)
-            return new Group(relativePath, true);
+    public static Group groupForPackage(String relativePath) {
         synchronized(allGroups) {
             for (Group group: allGroups)
                 if (group.relativePath.equals(relativePath))
                     return group;
-            Group newGroup = new Group(relativePath, false);
+            Group newGroup = new Group(relativePath);
             allGroups.add(newGroup);
             return newGroup;
         }
@@ -215,7 +211,7 @@ public class Pref {
 	 * @param name the name of this Pref.
 	 */
 	protected Pref(Group group, String name, boolean serverAccessible, Object factoryObj) {
-        if (group.isTechGroup ? group.lockCreation : lockCreation && serverAccessible)
+        if (lockCreation && serverAccessible)
             throw new IllegalStateException("Pref "+group.relativePath()+"/"+name+" is created from improper place");
         this.name = name;
         this.group = group;
@@ -225,8 +221,7 @@ public class Pref {
             assert !group.prefs.containsKey(name);
             group.prefs.put(name, this);
         }
-        if (!group.isTechGroup)
-            setCachedObjFromPreferences();
+        setCachedObjFromPreferences();
     }
 
     /**
@@ -601,8 +596,6 @@ public class Pref {
 	 * @return the Object value of this Pref object.
 	 */
 	public Object getValue() {
-        if (group.isTechGroup && !group.lockCreation)
-            throw new IllegalStateException("Pref "+group.relativePath()+"/"+name+" is accessed from improper place");
         if (Thread.currentThread() != clientThread) {
             if (!serverAccessible && !reportedAccess.contains(this)) {
                 String msg = getPrefName() + " is accessed from " + Job.getRunningJob();
@@ -872,8 +865,6 @@ public class Pref {
     }
 
     private void checkModify() {
-        if (group.isTechGroup && !group.lockCreation)
-            throw new IllegalStateException("Pref "+group.relativePath()+"/"+name+" is modified from improper place");
         if (Thread.currentThread() != clientThread) {
             if (!serverAccessible) {
                 String msg = getPrefName() + " is modified in " + Job.getRunningJob();

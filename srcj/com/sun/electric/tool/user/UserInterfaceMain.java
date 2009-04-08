@@ -37,7 +37,6 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.technology.TechPool;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
@@ -689,8 +688,6 @@ public class UserInterfaceMain extends AbstractUserInterface
     }
 
     private static void loadPreferences(TechPool techPool) {
-        for (Technology tech: techPool.values())
-            tech.loadFromPreferences();
         EditingPreferences ep = new EditingPreferences(false, techPool);
         EditingPreferences.setThreadEditingPreferences(ep);
         lastSavedEp = ep;

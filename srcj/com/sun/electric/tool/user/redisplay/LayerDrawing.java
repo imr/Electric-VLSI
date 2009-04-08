@@ -2575,7 +2575,7 @@ class LayerDrawing
                 VectorCache.VectorText vt = (VectorCache.VectorText)vb;
                 TextDescriptor td = vt.descript;
                 if (td != null && !td.isAbsoluteSize()) {
-                    double size = td.getTrueSize(expandedScale, wnd);
+                    double size = td.getTrueSize(scale, wnd);
                     if (size <= canDrawRelativeText) continue;
                 } else {
                     if (!canDrawText) continue;

@@ -1814,7 +1814,7 @@ public class ToolMenu
 		}
 
 		// do the VHDL compilation task
-		new DoSilCompActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL, new SilComp.SilCompPrefs(false));
+		new DoSilCompActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL, new SilComp.SilCompPrefs(false), new GenerateVHDL.VHDLPreferences(false));
 	}
 
 	/**
@@ -1825,7 +1825,7 @@ public class ToolMenu
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-	    new DoSilCompActivity(cell, CONVERT_TO_VHDL | SHOW_CELL, new SilComp.SilCompPrefs(false));
+	    new DoSilCompActivity(cell, CONVERT_TO_VHDL | SHOW_CELL, new SilComp.SilCompPrefs(false), new GenerateVHDL.VHDLPreferences(false));
 	}
 
 	/**
@@ -1857,12 +1857,13 @@ public class ToolMenu
     public static boolean doSilCompActivityNoJob(Cell cell, int activities, boolean doItNow)
     {
         SilComp.SilCompPrefs prefs = new SilComp.SilCompPrefs(doItNow);
+        GenerateVHDL.VHDLPreferences vp = new GenerateVHDL.VHDLPreferences(doItNow);
         if (doItNow)
         {
             List<Cell> textCellsToRedraw = new ArrayList<Cell>();
             try
             {
-                DoSilCompActivity.performTaskNoJob(cell, textCellsToRedraw, activities, prefs);
+                DoSilCompActivity.performTaskNoJob(cell, textCellsToRedraw, activities, prefs, vp);
             }
             catch (Exception e)
             {
@@ -1871,7 +1872,7 @@ public class ToolMenu
             }
         }
         else
-		    new DoSilCompActivity(cell, activities, prefs);
+		    new DoSilCompActivity(cell, activities, prefs, vp);
         return true;
     }
 
@@ -1884,13 +1885,15 @@ public class ToolMenu
 		private int activities;
 		private List<Cell> textCellsToRedraw;
 		private SilComp.SilCompPrefs prefs;
+        private GenerateVHDL.VHDLPreferences vp;
 
-		private DoSilCompActivity(Cell cell, int activities, SilComp.SilCompPrefs prefs)
+		private DoSilCompActivity(Cell cell, int activities, SilComp.SilCompPrefs prefs, GenerateVHDL.VHDLPreferences vp)
 		{
 			super("Silicon-Compiler activity", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.activities = activities;
 			this.prefs = prefs;
+            this.vp = vp;
 			startJob();
 		}
 
@@ -1899,7 +1902,7 @@ public class ToolMenu
 			fieldVariableChanged("cell");
 			textCellsToRedraw = new ArrayList<Cell>();
 			fieldVariableChanged("textCellsToRedraw");
-			cell = performTaskNoJob(cell, textCellsToRedraw, activities, prefs);
+			cell = performTaskNoJob(cell, textCellsToRedraw, activities, prefs, vp);
 			if (cell == null)
 			{
 				activities = 0;
@@ -1920,7 +1923,7 @@ public class ToolMenu
             }
         }
 
-        public static Cell performTaskNoJob(Cell cell, List<Cell> textCellsToRedraw, int activities, SilComp.SilCompPrefs prefs)
+        public static Cell performTaskNoJob(Cell cell, List<Cell> textCellsToRedraw, int activities, SilComp.SilCompPrefs prefs, GenerateVHDL.VHDLPreferences vp)
         	throws JobException
         {
             Library destLib = cell.getLibrary();
@@ -1930,7 +1933,7 @@ public class ToolMenu
 			{
 				// convert Schematic to VHDL
 				System.out.print("Generating VHDL from " + cell + " ...");
-				List<String> vhdlStrings = GenerateVHDL.convertCell(cell);
+				List<String> vhdlStrings = GenerateVHDL.convertCell(cell, vp);
 				if (vhdlStrings == null)
 				{
 					System.out.println("No VHDL produced");

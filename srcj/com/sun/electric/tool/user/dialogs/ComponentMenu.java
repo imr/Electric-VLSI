@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -53,9 +54,12 @@ import java.awt.font.GlyphVector;
 import java.awt.font.LineMetrics;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import java.util.Map;
+import java.util.prefs.Preferences;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JList;
@@ -284,6 +288,62 @@ public class ComponentMenu extends EDialog
 	public boolean isChanged() { return changed; }
 
 	public Object[][] getMenuInfo() { return menuArray; }
+
+    public static class ComponentMenuPreferences extends PrefPackage {
+        private static final String KEY_COMPONENT_MENU = "ComponentMenuXMLfor";
+
+        public Map<Technology,String> menuXmls = new HashMap<Technology,String>();
+
+        public ComponentMenuPreferences(boolean factory)
+        {
+            super(factory);
+
+            Preferences techPrefs = getPrefRoot().node(TECH_NODE);
+            for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
+                Technology tech = it.next();
+
+                String key = getKey(KEY_COMPONENT_MENU, tech.getId());
+                String menuXml = techPrefs.get(key, "");
+                menuXmls.put(tech, menuXml);
+            }
+        }
+
+        /**
+         * Store annotated option fields of the subclass into the speciefied Preferences subtree.
+         * @param prefRoot the root of the Preferences subtree.
+         * @param removeDefaults remove from the Preferences subtree options which have factory default value.
+         */
+        @Override
+        public void putPrefs(Preferences prefRoot, boolean removeDefaults) {
+            super.putPrefs(prefRoot, removeDefaults);
+            Preferences techPrefs = prefRoot.node(TECH_NODE);
+            for (Map.Entry<Technology,String> e: menuXmls.entrySet()) {
+                Technology tech = e.getKey();
+                String key = getKey(KEY_COMPONENT_MENU, tech.getId());
+                String menuXml = e.getValue();
+                if (removeDefaults && menuXml.length() == 0)
+                    techPrefs.remove(key);
+                else
+                    techPrefs.put(key, menuXml);
+            }
+        }
+    }
+
+
+	/**
+	 * Method to return the currnet Xml menu palette for a specified technology.
+     * @param tech specified technology
+	 * @return the current menu palette.
+	 */
+    public static Xml.MenuPalette getMenuPalette(Technology tech) {
+		// see if there is a preference for the component menu
+		String nodeGroupXML = new ComponentMenuPreferences(false).menuXmls.get(tech);
+		if (nodeGroupXML == null || nodeGroupXML.length() == 0)
+            return tech.getFactoryMenuPalette();
+
+		// parse the preference and build a component menu
+		return tech.parseComponentMenuXML(nodeGroupXML);
+    }
 
 	/**
 	 * Method called when the "OK" button is hit.

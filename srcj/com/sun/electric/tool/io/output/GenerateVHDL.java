@@ -34,6 +34,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -54,6 +55,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.prefs.Preferences;
 
 /**
  * This is the VHDL generation facility.
@@ -78,12 +80,69 @@ public class GenerateVHDL extends Topology
 	private static final String NORMALCONTINUATIONSTRING = "    ";
 	private static final String COMMENTCONTINUATIONSTRING = "-- ";
 
+    private final VHDLPreferences vp;
+
+    public static class VHDLPreferences extends PrefPackage {
+        private static final String KEY_VHDL = "SchematicVHDLStringFor";
+
+	/**
+	 * Method to tell the VHDL names for a primitive in this technology, by default.
+	 * These names have the form REGULAR/NEGATED, where REGULAR is the name to use
+	 * for regular uses of the primitive, and NEGATED is the name to use for negated uses.
+	 * @param np the primitive to query.
+	 * @return the the VHDL names for the primitive, by default.
+	 */
+        public Map<PrimitiveNode,String> vhdlNames = new HashMap<PrimitiveNode,String>();
+
+        public VHDLPreferences(boolean factory)
+        {
+            super(factory);
+
+            Preferences techPrefs = getPrefRoot().node(TECH_NODE);
+            Schematics schTech = Schematics.tech();
+            for (Iterator<PrimitiveNode> it = schTech.getNodes(); it.hasNext(); ) {
+                PrimitiveNode pn = it.next();
+
+                String key = KEY_VHDL + pn.getName();
+                String factoryVhdl = schTech.getFactoryVHDLNames(pn);
+                String vhdl = techPrefs.get(key, factoryVhdl);
+                vhdlNames.put(pn, vhdl);
+            }
+        }
+
+        /**
+         * Store annotated option fields of the subclass into the speciefied Preferences subtree.
+         * @param prefRoot the root of the Preferences subtree.
+         * @param removeDefaults remove from the Preferences subtree options which have factory default value.
+         */
+        @Override
+        public void putPrefs(Preferences prefRoot, boolean removeDefaults) {
+            super.putPrefs(prefRoot, removeDefaults);
+            Preferences techPrefs = prefRoot.node(TECH_NODE);
+            Schematics schTech = Schematics.tech();
+            for (Map.Entry<PrimitiveNode,String> e: vhdlNames.entrySet()) {
+                PrimitiveNode pn = e.getKey();
+                String key = KEY_VHDL + pn.getName();
+                String factoryVhdl = schTech.getFactoryVHDLNames(pn);
+                String vhdl = e.getValue();
+                if (removeDefaults && !vhdl.equals(factoryVhdl))
+                    techPrefs.remove(key);
+                else
+                    techPrefs.put(key, vhdl);
+            }
+        }
+    }
+
+    private GenerateVHDL(VHDLPreferences vp) {
+        this.vp = vp;
+    }
+
 	/**
 	 * Method to convert a cell to a list of strings with VHDL in them.
 	 * @param cell the Cell to convert.
 	 * @return a list of strings with VHDL in them (null on error).
 	 */
-	public static List<String> convertCell(Cell cell)
+	public static List<String> convertCell(Cell cell, VHDLPreferences vp)
 	{
 		// cannot make VHDL for cell with no ports
 		if (cell.getNumPorts() == 0)
@@ -92,7 +151,7 @@ public class GenerateVHDL extends Topology
 			return null;
 		}
 
-		GenerateVHDL out = new GenerateVHDL();
+		GenerateVHDL out = new GenerateVHDL(vp);
 		out.openStringsOutputStream();
 		out.setOutputWidth(80, false);
 		out.setContinuationString(NORMALCONTINUATIONSTRING);
@@ -160,7 +219,7 @@ public class GenerateVHDL extends Topology
 		for(Iterator<Nodable> it = nl.getNodables(); it.hasNext(); )
 		{
 			Nodable no = it.next();
-			AnalyzePrimitive ap = new AnalyzePrimitive(no, negatedHeads, negatedTails);
+			AnalyzePrimitive ap = new AnalyzePrimitive(no, negatedHeads, negatedTails, vp);
 			String pt = ap.getPrimName();
 			if (pt == null) continue;
 			int special = ap.getSpecial();
@@ -299,7 +358,7 @@ public class GenerateVHDL extends Topology
 			String pt = no.getProto().getName();
 			if (!no.isCellInstance())
 			{
-				AnalyzePrimitive ap = new AnalyzePrimitive(no, negatedHeads, negatedTails);
+				AnalyzePrimitive ap = new AnalyzePrimitive(no, negatedHeads, negatedTails, vp);
 				pt = ap.getPrimName();
 				if (pt == null) continue;
 				special = ap.getSpecial();
@@ -783,7 +842,7 @@ public class GenerateVHDL extends Topology
 		 * @param negatedHeads map of arcs with negated head ends.
 		 * @param negatedTails map of arcs with negated tail ends.
 		 */
-		private AnalyzePrimitive(Nodable no, Map<ArcInst,Integer> negatedHeads, Map<ArcInst,Integer> negatedTails)
+		private AnalyzePrimitive(Nodable no, Map<ArcInst,Integer> negatedHeads, Map<ArcInst,Integer> negatedTails, VHDLPreferences vp)
 		{
 			// cell instances are easy
 			special = BLOCKNORMAL;
@@ -865,7 +924,7 @@ public class GenerateVHDL extends Topology
 				}
 			} else if (k == PrimitiveNode.Function.BUFFER)
 			{
-				primName = Schematics.tech().getVHDLNames(Schematics.tech().bufferNode);
+				primName = vp.vhdlNames.get(Schematics.tech().bufferNode);
 				int slashPos = primName.indexOf('/');
 				special = BLOCKBUFFER;
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
@@ -887,7 +946,7 @@ public class GenerateVHDL extends Topology
 				}
 			} else if (k == PrimitiveNode.Function.GATEAND)
 			{
-				primName = Schematics.tech().getVHDLNames(Schematics.tech().andNode);
+				primName = vp.vhdlNames.get(Schematics.tech().andNode);
 				int slashPos = primName.indexOf('/');
 				int inPort = 0;
 				Connection isNeg = null;
@@ -912,7 +971,7 @@ public class GenerateVHDL extends Topology
 				primName += inPort;
 			} else if (k == PrimitiveNode.Function.GATEOR)
 			{
-				primName = Schematics.tech().getVHDLNames(Schematics.tech().orNode);
+				primName = vp.vhdlNames.get(Schematics.tech().orNode);
 				int slashPos = primName.indexOf('/');
 				int inPort = 0;
 				Connection isNeg = null;
@@ -937,7 +996,7 @@ public class GenerateVHDL extends Topology
 				primName += inPort;
 			} else if (k == PrimitiveNode.Function.GATEXOR)
 			{
-				primName = Schematics.tech().getVHDLNames(Schematics.tech().xorNode);
+				primName = vp.vhdlNames.get(Schematics.tech().xorNode);
 				int slashPos = primName.indexOf('/');
 				int inPort = 0;
 				Connection isNeg = null;
@@ -962,7 +1021,7 @@ public class GenerateVHDL extends Topology
 				primName += inPort;
 			} else if (k == PrimitiveNode.Function.MUX)
 			{
-				primName = Schematics.tech().getVHDLNames(Schematics.tech().muxNode);
+				primName = vp.vhdlNames.get(Schematics.tech().muxNode);
 				int inPort = 0;
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 				{

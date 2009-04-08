@@ -24,17 +24,22 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Xml;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -48,6 +53,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.AnnularRing;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
+import com.sun.electric.tool.user.dialogs.ComponentMenu;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.LayoutText;
 import com.sun.electric.tool.user.menus.CellMenu;
@@ -90,6 +96,8 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.awt.image.VolatileImage;
 import java.net.URL;
 import java.util.ArrayList;
@@ -116,6 +124,8 @@ import javax.swing.border.BevelBorder;
  */
 public class TechPalette extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener,
 	KeyListener, PaletteFrame.PlaceNodeEventListener, ComponentListener, DragGestureListener, DragSourceListener {
+
+	/** Temporary variable for holding names */         private static final Variable.Key TECH_TMPVAR = Variable.newKey("TECH_TMPVAR");
 
 	/** the number of palette entries. */				private int menuX = -1, menuY = -1;
 	/** the size of a palette entry. */					private int entrySize;
@@ -155,7 +165,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 		inPalette.clear();
 		elementsMap.clear();
 
-		Object[][] paletteMatrix = tech.getNodesGrouped(curCell);
+		Object[][] paletteMatrix = getNodesGrouped(tech, curCell);
 
 		if (paletteMatrix == null)
 		{
@@ -213,7 +223,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 		PrimitiveNode.Function fun = ni.getFunction();
 		if (fun.isTransistor())
 		{
-			NodeInst newNi = Technology.makeNodeInst(ni.getProto(), fun, rot, false, null, 0);
+			NodeInst newNi = makeNodeInst(ni.getProto(), fun, rot, false, null, 0);
 			newNi.copyVarsFrom(ni);
 			ni = newNi;
 		}
@@ -254,7 +264,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 		if (item instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)item;
-		    Variable var = ni.getVar(Technology.TECH_TMPVAR);
+		    Variable var = ni.getVar(TECH_TMPVAR);
             if (getVarName && var != null && !var.isDisplay())
             {
                 return (var.getObject().toString());
@@ -268,6 +278,130 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             return (ap.getName());
         }
         return ("");
+    }
+
+	/**
+	 * Method to retrieve correct group of elements for the palette.
+	 * @param curCell the current cell being displayed (may affect the palette).
+	 * @return the new set of objects to display in the component menu.
+	 */
+	private Object[][] getNodesGrouped(Technology tech, Cell curCell)
+	{
+		if (tech instanceof Artwork && curCell != null && curCell.isInTechnologyLibrary())
+		{
+			// special variation of Artwork for technology editing
+            Artwork artwork = (Artwork)tech;
+            Object[][] techEditSet = new Object[16][1];
+			techEditSet[0][0] = Technology.SPECIALMENUTEXT;
+			NodeInst arc = NodeInst.makeDummyInstance(artwork.circleNode);
+			arc.setArcDegrees(0, Math.PI/4);
+			techEditSet[1][0] = arc;
+			NodeInst half = NodeInst.makeDummyInstance(artwork.circleNode);
+			half.setArcDegrees(0, Math.PI);
+			techEditSet[2][0] = half;
+			techEditSet[3][0] = artwork.filledCircleNode;
+			techEditSet[4][0] = artwork.circleNode;
+			techEditSet[5][0] = artwork.openedThickerPolygonNode;
+			techEditSet[6][0] = artwork.openedDashedPolygonNode;
+			techEditSet[7][0] = artwork.openedDottedPolygonNode;
+			techEditSet[8][0] = artwork.openedPolygonNode;
+			techEditSet[9][0] = makeNodeInst(artwork.closedPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
+			techEditSet[10][0] = makeNodeInst(artwork.filledPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
+			techEditSet[11][0] = artwork.boxNode;
+			techEditSet[12][0] = artwork.crossedBoxNode;
+			techEditSet[13][0] = artwork.filledBoxNode;
+			techEditSet[14][0] = Technology.SPECIALMENUHIGH;
+			techEditSet[15][0] = Technology.SPECIALMENUPORT;
+			return techEditSet;
+		}
+        return convertMenuPalette(tech, ComponentMenu.getMenuPalette(tech));
+	}
+
+    private static Object[][] convertMenuPalette(Technology tech, Xml.MenuPalette menuPalette) {
+        if (menuPalette == null) return null;
+        int numColumns = menuPalette.numColumns;
+        ArrayList<Object[]> rows = new ArrayList<Object[]>();
+        Object[] row = null;
+        for (int i = 0; i < menuPalette.menuBoxes.size(); i++) {
+            int column = i % numColumns;
+            if (column == 0) {
+                row = new Object[numColumns];
+                rows.add(row);
+            }
+            List<?> menuBoxList = menuPalette.menuBoxes.get(i);
+            if (menuBoxList == null || menuBoxList.isEmpty()) continue;
+            if (menuBoxList.size() == 1) {
+                row[column] = convertMenuItem(tech, menuBoxList.get(0));
+            } else {
+                ArrayList<Object> list = new ArrayList<Object>();
+                for (Object o: menuBoxList)
+                {
+                	if (o == null) continue;
+                    list.add(convertMenuItem(tech, o));
+                }
+                row[column] = list;
+            }
+        }
+        return rows.toArray(new Object[rows.size()][]);
+    }
+
+    private static Object convertMenuItem(Technology tech, Object menuItem) {
+        if (menuItem instanceof Xml.ArcProto)
+            return tech.findArcProto(((Xml.ArcProto)menuItem).name);
+        if (menuItem instanceof Xml.PrimitiveNode)
+            return tech.findNodeProto(((Xml.PrimitiveNode)menuItem).name);
+        if (menuItem instanceof Xml.MenuNodeInst) {
+            Xml.MenuNodeInst n = (Xml.MenuNodeInst)menuItem;
+            boolean display = n.text != null && n.fontSize != 0;
+            PrimitiveNode pn = tech.findNodeProto(n.protoName);
+            if (pn != null)
+            	return makeNodeInst(pn, n.function, n.techBits, n.rotation, display, n.text, n.fontSize);
+        }
+        return menuItem.toString();
+    }
+
+    /**
+     * Method to create temporary nodes for the palette
+     * @param np prototype of the node to place in the palette.
+     * @param func function of the node (helps parameterize the node).
+     * @param angle initial placement angle of the node.
+     */
+    private static NodeInst makeNodeInst(NodeProto np, PrimitiveNode.Function func, int angle, boolean display,
+                                        String varName, double fontSize)
+    {
+        return makeNodeInst(np, func, 0, angle, display, varName, fontSize);
+    }
+
+    /**
+     * Method to create temporary nodes for the palette
+     * @param np prototype of the node to place in the palette.
+     * @param func function of the node (helps parameterize the node).
+     * @param techBits tech bits of the node
+     * @param angle initial placement angle of the node.
+     */
+    private static NodeInst makeNodeInst(NodeProto np, PrimitiveNode.Function func, int techBits, int angle, boolean display,
+                                        String varName, double fontSize)
+    {
+        SizeOffset so = np.getProtoSizeOffset();
+        Point2D pt = new Point2D.Double((so.getHighXOffset() - so.getLowXOffset()) / 2,
+            (so.getHighYOffset() - so.getLowYOffset()) / 2);
+		Orientation orient = Orientation.fromAngle(angle);
+		AffineTransform trans = orient.pureRotate();
+        trans.transform(pt, pt);
+        NodeInst ni = NodeInst.makeDummyInstance(np, techBits, new EPoint(pt.getX(), pt.getY()), np.getDefWidth(), np.getDefHeight(), orient);
+        np.getTechnology().setPrimitiveFunction(ni, func);
+        np.getTechnology().setDefaultOutline(ni);
+
+	    if (varName != null)
+	    {
+	    	TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDisplay(display);
+	    	if (fontSize != 0) td = td.withRelSize(fontSize);
+	    	td = td.withOff(0, -Math.max(ni.getXSize(), ni.getYSize())/2-2).withPos(TextDescriptor.Position.UP);
+	    	if (angle != 0) td = td.withRotation(TextDescriptor.Rotation.getRotation(360-angle/10));
+            ni.newVar(TECH_TMPVAR, varName, td);
+	    }
+
+        return ni;
     }
 
     public void mousePressed(MouseEvent e) {}
@@ -1080,9 +1214,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                    double scale = Math.min(scalex, scaley);
 
 	                    // make sure the text is at the bottom of the entry
-	                    Variable var = ni.getVar(Technology.TECH_TMPVAR);
+	                    Variable var = ni.getVar(TECH_TMPVAR);
 	                    if (var != null)
-	                    	ni.setTextDescriptor(Technology.TECH_TMPVAR, var.getTextDescriptor().withOff(0, -largest/2/0.8));
+	                    	ni.setTextDescriptor(TECH_TMPVAR, var.getTextDescriptor().withOff(0, -largest/2/0.8));
 	                    VectorCache.VectorBase[] shapes = VectorCache.drawNode(ni);
 	                    drawShapes(g, gp, imgX, imgY, scale, shapes);
                     }

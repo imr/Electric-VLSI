@@ -28,6 +28,7 @@ import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.io.output.GenerateVHDL;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
@@ -118,13 +119,14 @@ public class TechnologyTab extends PreferencePanel
 		});
 		schemPrimModel.clear();
 		schemPrimMap = new HashMap<PrimitiveNode,String>();
+        GenerateVHDL.VHDLPreferences vp = new GenerateVHDL.VHDLPreferences(false);
 		for(Iterator<PrimitiveNode> it = Schematics.tech().getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();
 			if (np != Schematics.tech().andNode && np != Schematics.tech().orNode &&
 				np != Schematics.tech().xorNode && np != Schematics.tech().muxNode &&
 				np != Schematics.tech().bufferNode) continue;
-			String str = Schematics.tech().getVHDLNames(np);
+			String str = vp.vhdlNames.get(np);
 			schemPrimMap.put(np, str);
 			schemPrimModel.addElement(makeLine(np, str));
 		}
@@ -184,6 +186,7 @@ public class TechnologyTab extends PreferencePanel
 		}
 
 		// VHDL name Preferences
+        GenerateVHDL.VHDLPreferences vp = new GenerateVHDL.VHDLPreferences(false);
 		for(int i=0; i<schemPrimModel.size(); i++)
 		{
 			String str = (String)schemPrimModel.get(i);
@@ -193,10 +196,9 @@ public class TechnologyTab extends PreferencePanel
 			PrimitiveNode np = Schematics.tech().findNodeProto(primName);
 			if (np == null) continue;
 			String newVHDLname = str.substring(spacePos+3, str.length()-1);
-			String oldVHDLname = Schematics.tech().getVHDLNames(np);
-			if (!newVHDLname.equals(oldVHDLname))
-				Schematics.tech().setVHDLNames(np, newVHDLname);
+            vp.vhdlNames.put(np, newVHDLname);
 		}
+        putPrefs(vp);
 
 		// MOCMOS Project Settings
 		int currentNumMetals = techMetalLayers.getSelectedIndex() + 2;
@@ -300,15 +302,7 @@ public class TechnologyTab extends PreferencePanel
 		// preferences
 		if (User.isFactoryRotateLayoutTransistors() != User.isRotateLayoutTransistors())
 			User.setRotateLayoutTransistors(User.isFactoryRotateLayoutTransistors());
-		for(Iterator<PrimitiveNode> it = Schematics.tech().getNodes(); it.hasNext(); )
-		{
-			PrimitiveNode np = it.next();
-			if (np != Schematics.tech().andNode && np != Schematics.tech().orNode &&
-				np != Schematics.tech().xorNode && np != Schematics.tech().muxNode &&
-				np != Schematics.tech().bufferNode) continue;
-			if (!Schematics.tech().getFactoryVHDLNames(np).equals(Schematics.tech().getVHDLNames(np)))
-				Schematics.tech().setVHDLNames(np, Schematics.tech().getFactoryVHDLNames(np));
-		}
+        putPrefs(new GenerateVHDL.VHDLPreferences(true));
 	}
 
 	private void initExtraTab(String className, JPanel panel)

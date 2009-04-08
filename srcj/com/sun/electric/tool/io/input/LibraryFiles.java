@@ -1407,7 +1407,7 @@ public abstract class LibraryFiles extends Input
             String prefName = var.getKey().getName();
             String prefPath = null;
             if (obj instanceof Technology) {
-                prefPath = ((Technology)obj).getTechnologyPreferences().relativePath() + "/";
+                prefPath = Technology.TECH_NODE + "/";
                 Map<Setting,Object> convertedVars = ((Technology)obj).convertOldVariable(prefName, value);
                 if (convertedVars != null) {
                     for (Map.Entry<Setting,Object> e: convertedVars.entrySet()) {

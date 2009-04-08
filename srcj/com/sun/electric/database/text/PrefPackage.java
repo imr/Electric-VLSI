@@ -28,6 +28,7 @@ import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.LayerId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
+import com.sun.electric.technology.Technology;
 
 import java.io.Serializable;
 import java.lang.annotation.ElementType;
@@ -43,7 +44,7 @@ import java.util.prefs.Preferences;
  * their persistence representation in Java Preferences.
  */
 public abstract class PrefPackage implements Serializable {
-    protected static final String TECH_NODE = "technology/technologies";
+    protected static final String TECH_NODE = Technology.TECH_NODE;
     protected static final String USER_NODE = "tool/user";
 
     /**

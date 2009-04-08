@@ -28,7 +28,6 @@ import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -465,46 +464,6 @@ public class Artwork extends Technology
 		oldNodeNames.put("Opened-FarDotted-Polygon", openedThickerPolygonNode);
 
         loadFactoryMenuPalette(Artwork.class.getResource("artworkMenu.xml"));
-	}
-
-	private Object[][] techEditSet;
-
-	/**
-	 * Method to compute the component menu entries automatically.
-	 * @return a two-dimensional array of menu entries.
-	 */
-	public Object[][] getNodesGrouped(Cell curCell)
-	{
-		if (curCell != null && curCell.isInTechnologyLibrary())
-		{
-			// special variation of Artwork for technology editing
-			if (techEditSet != null) return techEditSet;
-			techEditSet = new Object[16][1];
-			techEditSet[0][0] = Technology.SPECIALMENUTEXT;
-			NodeInst arc = NodeInst.makeDummyInstance(circleNode);
-			arc.setArcDegrees(0, Math.PI/4);
-			techEditSet[1][0] = arc;
-			NodeInst half = NodeInst.makeDummyInstance(circleNode);
-			half.setArcDegrees(0, Math.PI);
-			techEditSet[2][0] = half;
-			techEditSet[3][0] = filledCircleNode;
-			techEditSet[4][0] = circleNode;
-			techEditSet[5][0] = openedThickerPolygonNode;
-			techEditSet[6][0] = openedDashedPolygonNode;
-			techEditSet[7][0] = openedDottedPolygonNode;
-			techEditSet[8][0] = openedPolygonNode;
-			techEditSet[9][0] = Technology.makeNodeInst(closedPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
-			techEditSet[10][0] = Technology.makeNodeInst(filledPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
-			techEditSet[11][0] = boxNode;
-			techEditSet[12][0] = crossedBoxNode;
-			techEditSet[13][0] = filledBoxNode;
-			techEditSet[14][0] = Technology.SPECIALMENUHIGH;
-			techEditSet[15][0] = Technology.SPECIALMENUPORT;
-			return techEditSet;
-		}
-
-		// just use the default
-		return super.getNodesGrouped(curCell);
 	}
 
 	/**

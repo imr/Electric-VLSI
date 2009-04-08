@@ -197,6 +197,7 @@ public class Simulation extends Tool
 		private int activities;
 		private transient Engine prevEngine;
 		private List<Cell> textCellsToRedraw;
+        private GenerateVHDL.VHDLPreferences vp = new GenerateVHDL.VHDLPreferences(false);
 
 		private DoALSActivity(Cell cell, int activities, Cell originalCell, Engine prevEngine)
 		{
@@ -217,7 +218,7 @@ public class Simulation extends Tool
 			{
 				// convert Schematic to VHDL
 				System.out.print("Generating VHDL from '" + cell + "' ...");
-				List<String> vhdlStrings = GenerateVHDL.convertCell(cell);
+				List<String> vhdlStrings = GenerateVHDL.convertCell(cell, vp);
 				if (vhdlStrings == null)
 				{
 					throw new JobException("No VHDL produced");

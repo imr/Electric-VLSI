@@ -146,6 +146,8 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** key of Variable for saving scalable transistor contact information. */
 	public static final Variable.Key TRANS_CONTACT = Variable.newKey("MOCMOS_transcontacts");
 
+    /** Relative path in Preferences where technology Settings and Preferences are stored */
+    public static final String TECH_NODE = "technology/technologies";
 	// strings used in the Component Menu
 	public static final String SPECIALMENUCELL   = "Cell";
 	public static final String SPECIALMENUMISC   = "Misc.";
@@ -891,7 +893,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** true if "scale" is relevant to this technology */	private boolean scaleRelevant;
     /** Setting Group for this Technology */                private final Setting.RootGroup rootSettings;
     /** Setting Group for this Technology */                private final Setting.Group settings;
-	/** preferences group for this technology */            private final Pref.Group prefs;
     /** factory transparent colors for this technology */   private Color[] factoryTransparentColors = {};
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
 	/** map from layer names to layers in this technology */private final HashMap<String,Layer> layersByName = new HashMap<String,Layer>();
@@ -940,7 +941,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** Default Logical effort wire ratio. */				private static double DEFAULT_WIRERATIO    = 0.16;
 	/** Default Logical effort diff alpha. */				private static double DEFAULT_DIFFALPHA    = 0.7;
 
-	/** To group elements for the component menu */         protected Object[][] nodeGroups;
 	/** indicates n-type objects. */						public static final int N_TYPE = 1;
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
 	/** Factory rules for the technology. */		        protected XMLRules factoryRules = null;
@@ -949,7 +949,6 @@ public class Technology implements Comparable<Technology>, Serializable
     /** Params of this Technology */                        private State currentState;
     /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
     /** Xml representation of menu palette */               protected Xml.MenuPalette factoryMenuPalette;
-    /** Preference for saving component menus */			private final Pref componentMenuPref;
 
 	/****************************** CONTROL ******************************/
 
@@ -999,7 +998,6 @@ public class Technology implements Comparable<Technology>, Serializable
 		userBits = 0;
         rootSettings = new Setting.RootGroup();
         settings = rootSettings.node(getTechName());
-		prefs = Pref.groupForPackage("technology/technologies", true);
         cacheFoundry = makeStringSetting("SelectedFoundryFor"+getTechName(),
         	"Technology tab", getTechName() + " foundry", "Foundry", defaultFoundry.getName());
         paramFoundry = defaultFoundry.getName();
@@ -1018,7 +1016,6 @@ public class Technology implements Comparable<Technology>, Serializable
 //		cacheWireRatio = makeLESetting("WireRatio", DEFAULT_WIRERATIO);
 //		cacheDiffAlpha = makeLESetting("DiffAlpha", DEFAULT_DIFFALPHA);
 //        cacheKeeperRatio = makeLESetting("KeeperRatio", DEFAULT_KEEPERRATIO);
-        componentMenuPref = Pref.makeStringPref("ComponentMenuXMLfor"+getTechName(), prefs, "");
 	}
 
     protected Object writeReplace() { return new TechnologyKey(this); }
@@ -1178,49 +1175,6 @@ public class Technology implements Comparable<Technology>, Serializable
 
     static EdgeV makeEdgeV(Xml.Distance y, EPoint correction) {
         return new EdgeV(y.k*0.5, y.value - correction.getLambdaY()*y.k);
-    }
-
-    private Object[][] convertMenuPalette(Xml.MenuPalette menuPalette) {
-        if (menuPalette == null) return null;
-        int numColumns = menuPalette.numColumns;
-        ArrayList<Object[]> rows = new ArrayList<Object[]>();
-        Object[] row = null;
-        for (int i = 0; i < menuPalette.menuBoxes.size(); i++) {
-            int column = i % numColumns;
-            if (column == 0) {
-                row = new Object[numColumns];
-                rows.add(row);
-            }
-            List<?> menuBoxList = menuPalette.menuBoxes.get(i);
-            if (menuBoxList == null || menuBoxList.isEmpty()) continue;
-            if (menuBoxList.size() == 1) {
-                row[column] = convertMenuItem(menuBoxList.get(0));
-            } else {
-                ArrayList<Object> list = new ArrayList<Object>();
-                for (Object o: menuBoxList)
-                {
-                	if (o == null) continue;
-                    list.add(convertMenuItem(o));
-                }
-                row[column] = list;
-            }
-        }
-        return rows.toArray(new Object[rows.size()][]);
-    }
-
-    private Object convertMenuItem(Object menuItem) {
-        if (menuItem instanceof Xml.ArcProto)
-            return findArcProto(((Xml.ArcProto)menuItem).name);
-        if (menuItem instanceof Xml.PrimitiveNode)
-            return findNodeProto(((Xml.PrimitiveNode)menuItem).name);
-        if (menuItem instanceof Xml.MenuNodeInst) {
-            Xml.MenuNodeInst n = (Xml.MenuNodeInst)menuItem;
-            boolean display = n.text != null && n.fontSize != 0;
-            PrimitiveNode pn = findNodeProto(n.protoName);
-            if (pn != null)
-            	return makeNodeInst(pn, n.function, n.techBits, n.rotation, display, n.text, n.fontSize);
-        }
-        return menuItem.toString();
     }
 
     public Xml.Technology getXmlTech() { return xmlTech; }
@@ -1399,8 +1353,6 @@ public class Technology implements Comparable<Technology>, Serializable
             arcProto.finish();
 
         rootSettings.lock();
-        for (Pref.Group group: getTechnologyAllPreferences())
-            group.lockCreation();
 
         check();
 	}
@@ -4240,40 +4192,15 @@ public class Technology implements Comparable<Technology>, Serializable
     private Setting makeParasiticSetting(String what, double factory) {
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-        return getProjectSettings().makeDoubleSetting(what + "IN" + getTechName(), prefs.relativePath(),
+        return getProjectSettings().makeDoubleSetting(what + "IN" + getTechName(), TECH_NODE,
                 what, "Parasitic tab", techShortName + " " + what, factory);
     }
 
     private Setting makeParasiticSetting(String what, boolean factory) {
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-        return getProjectSettings().makeBooleanSetting(what + "IN" + getTechName(), prefs.relativePath(),
+        return getProjectSettings().makeBooleanSetting(what + "IN" + getTechName(), TECH_NODE,
                 what, "Parasitic tab", techShortName + " " + what, factory);
-    }
-
-	/**
-	 * Method to return the Pref group associated with this Technology.
-	 * The Pref group is used to save option information.
-	 * Since preferences are organized by package, there is only one for
-	 * the technologies (they are all in the same package).
-	 * @return the Pref object associated with all Technologies.
-	 */
-	public Pref.Group getTechnologyPreferences() { return prefs; }
-
-	/**
-	 * Method to return the Pref object associated with all Technologies.
-	 * The Pref object is used to save option information.
-	 * Since preferences are organized by package, there is only one for
-	 * the technologies (they are all in the same package).
-	 * @return the Pref object associated with all Technologies.
-	 */
-	public Pref.Group[] getTechnologyAllPreferences() {
-        return new Pref.Group[] {prefs};
-    }
-
-    public void loadFromPreferences() {
-        for (Pref.Group group: getTechnologyAllPreferences())
-            group.setCachedObjsFromPreferences();
     }
 
 	/**
@@ -4397,7 +4324,7 @@ public class Technology implements Comparable<Technology>, Serializable
     private Setting makeLESetting(String what, double factory) {
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-       return getLESettingsNode().makeDoubleSetting(what + "IN" + getTechName(), prefs.relativePath(),
+       return getLESettingsNode().makeDoubleSetting(what + "IN" + getTechName(), TECH_NODE,
                 what, "Logical Effort tab", techShortName + " " + what, factory);
     }
 
@@ -4745,7 +4672,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		this.scaleRelevant = scaleRelevant;
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-		cacheScale = getProjectSettings().makeDoubleSetting(getScaleVariableName(), prefs.relativePath(),
+		cacheScale = getProjectSettings().makeDoubleSetting(getScaleVariableName(), TECH_NODE,
                 "Scale", "Scale tab", techShortName + " scale", factory);
 		cacheScale.setValidOption(isScaleRelevant());
     }
@@ -5524,48 +5451,6 @@ public class Technology implements Comparable<Technology>, Serializable
 
 	/********************* FOR GUI **********************/
 
-	/** Temporary variable for holding names */		public static final Variable.Key TECH_TMPVAR = Variable.newKey("TECH_TMPVAR");
-
-	/**
-	 * Method to change the group of elements for the component menu.
-	 * @param ng the new set of objects to display in the component menu.
-	 * @param xml the XML for the new component menu groupings.
-	 */
-	public void setNodesGrouped(Object[][] ng, String xml)
-	{
-		nodeGroups = ng;
-		componentMenuPref.setString(xml);
-	}
-
-	/**
-	 * Method to get the group of elements for the component menu.
-	 * @return the XML for the new component menu groupings.
-	 */
-	public String getNodesGroupedXML()
-	{
-		return componentMenuPref.getString();
-	}
-
-	/**
-	 * Method to see if there are component menu preferences.
-	 * If such preferences exist, the field variable "nodeGroups"
-	 * is loaded with that menu.
-	 */
-	public void getPrefComponentMenu()
-	{
-		// if component menu is already defined, stop now
-		if (nodeGroups != null) return;
-
-		// see if there is a preference for the component menu
-		String nodeGroupXML = getNodesGroupedXML();
-		if (nodeGroupXML == null) return;
-		if (nodeGroupXML.length() == 0) return;
-
-		// parse the preference and build a component menu
-		Xml.MenuPalette xx = parseComponentMenuXML(nodeGroupXML);
-        nodeGroups = convertMenuPalette(xx);
-	}
-
     protected void loadFactoryMenuPalette(URL menuURL) {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(menuURL.openConnection().getInputStream()));
@@ -5581,7 +5466,12 @@ public class Technology implements Comparable<Technology>, Serializable
         }
     }
 
-    private Xml.MenuPalette parseComponentMenuXML(String nodeGroupXML) {
+    /**
+     * Oarses Xml string with component menu definition for this technology
+     * @param nodeGroupXML Xml string with component menu definition
+     * @return
+     */
+    public Xml.MenuPalette parseComponentMenuXML(String nodeGroupXML) {
 		// parse the preference and build a component menu
         List<Xml.PrimitiveNodeGroup> xmlNodeGroups = new ArrayList<Xml.PrimitiveNodeGroup>();
         HashSet<PrimitiveNodeGroup> groupsDone = new HashSet<PrimitiveNodeGroup>();
@@ -5616,30 +5506,6 @@ public class Technology implements Comparable<Technology>, Serializable
             xmlArcs.add(xap);
         }
 		return Xml.parseComponentMenuXMLTechEdit(nodeGroupXML, xmlNodeGroups, xmlArcs);
-    }
-
-	/**
-	 * Method to construct a default group of elements for the palette.
-	 * @return the default set of objects to display in the component menu.
-	 */
-	public Object[][] getDefaultNodesGrouped()
-	{
-        return convertMenuPalette(getFactoryMenuPalette());
-    }
-
-
-	/**
-	 * Method to return the currnet Xml menu palette.
-	 * @return the current menu palette.
-	 */
-    public Xml.MenuPalette getMenuPalette() {
-		// see if there is a preference for the component menu
-		String nodeGroupXML = getNodesGroupedXML();
-		if (nodeGroupXML == null || nodeGroupXML.length() == 0)
-            return getFactoryMenuPalette();
-
-		// parse the preference and build a component menu
-		return parseComponentMenuXML(nodeGroupXML);
     }
 
 	/**
@@ -5710,131 +5576,6 @@ public class Technology implements Comparable<Technology>, Serializable
         }
 	}
 
-	/**
-	 * Method to retrieve correct group of elements for the palette.
-	 * @param curCell the current cell being displayed (may affect the palette).
-	 * @return the new set of objects to display in the component menu.
-	 */
-	public Object[][] getNodesGrouped(Cell curCell)
-	{
-		// make sure any preferences are applied
-		getPrefComponentMenu();
-
-		// if there are no preferences, setup default
-		if (nodeGroups == null) nodeGroups = getDefaultNodesGrouped();
-		return filterNodeGroups(nodeGroups);
-	}
-
-	/**
-	 * Method to remove component menu entries that are impossible
-	 * because of inaccessible objects.
-	 * @param oldNG the old list of component menu entries.
-	 * @return a filtered list of component menu entries.
-	 */
-	public Object[][] filterNodeGroups(Object [][] oldNG)
-	{
-		// Check if some metal layers are not used
-		List <Object>list = new ArrayList<Object>(oldNG.length);
-		for (int i = 0; i < oldNG.length; i++)
-		{
-			Object[] objs = oldNG[i];
-			if (objs != null)
-			{
-				Object obj = objs[0];
-				boolean valid = true;
-				if (obj instanceof ArcProto)
-				{
-					ArcProto ap = (ArcProto)obj;
-					valid = !ap.isNotUsed();
-				}
-				if (valid)
-					list.add(objs);
-			}
-		}
-		Object[][] newMatrix = new Object[list.size()][oldNG[0].length];
-		for (int i = 0; i < list.size(); i++)
-		{
-			Object[] objs = (Object[])list.get(i);
-			for (int j = 0; j < objs.length; j++)
-			{
-				Object obj = objs[j];
-				// Element is not used or first element in list is not used
-				if ((obj instanceof PrimitiveNode && ((PrimitiveNode)obj).isNotUsed()))
-					obj = null;
-				else if (obj instanceof List)
-				{
-					List<?> l = (List)obj;
-					Object o = l.get(0);
-					if (o instanceof NodeInst)
-					{
-						NodeInst ni = (NodeInst)o;
-						if (!ni.isCellInstance() && ((PrimitiveNode)ni.getProto()).isNotUsed())
-							obj = null;
-					}
-					else if (o instanceof PrimitiveNode)
-					{
-						if (((PrimitiveNode)o).isNotUsed())
-							obj = null;
-					}
-				}
-				newMatrix[i][j] = obj;
-			}
-		}
-		return newMatrix;
-	}
-
-    /**
-     * Method to create temporary nodes for the palette
-     * @param np prototype of the node to place in the palette.
-     */
-    public static NodeInst makeNodeInst(NodeProto np) {
-        return makeNodeInst(np, np.getFunction(), 0, false, null, 0);
-    }
-
-    /**
-     * Method to create temporary nodes for the palette
-     * @param np prototype of the node to place in the palette.
-     * @param func function of the node (helps parameterize the node).
-     * @param angle initial placement angle of the node.
-     */
-    public static NodeInst makeNodeInst(NodeProto np, PrimitiveNode.Function func, int angle, boolean display,
-                                        String varName, double fontSize)
-    {
-        return makeNodeInst(np, func, 0, angle, display, varName, fontSize);
-    }
-
-    /**
-     * Method to create temporary nodes for the palette
-     * @param np prototype of the node to place in the palette.
-     * @param func function of the node (helps parameterize the node).
-     * @param techBits tech bits of the node
-     * @param angle initial placement angle of the node.
-     */
-    public static NodeInst makeNodeInst(NodeProto np, PrimitiveNode.Function func, int techBits, int angle, boolean display,
-                                        String varName, double fontSize)
-    {
-        SizeOffset so = np.getProtoSizeOffset();
-        Point2D pt = new Point2D.Double((so.getHighXOffset() - so.getLowXOffset()) / 2,
-            (so.getHighYOffset() - so.getLowYOffset()) / 2);
-		Orientation orient = Orientation.fromAngle(angle);
-		AffineTransform trans = orient.pureRotate();
-        trans.transform(pt, pt);
-        NodeInst ni = NodeInst.makeDummyInstance(np, techBits, new EPoint(pt.getX(), pt.getY()), np.getDefWidth(), np.getDefHeight(), orient);
-        np.getTechnology().setPrimitiveFunction(ni, func);
-        np.getTechnology().setDefaultOutline(ni);
-
-	    if (varName != null)
-	    {
-	    	TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDisplay(display);
-	    	if (fontSize != 0) td = td.withRelSize(fontSize);
-	    	td = td.withOff(0, -Math.max(ni.getXSize(), ni.getYSize())/2-2).withPos(TextDescriptor.Position.UP);
-	    	if (angle != 0) td = td.withRotation(TextDescriptor.Rotation.getRotation(360-angle/10));
-            ni.newVar(TECH_TMPVAR, varName, td);
-	    }
-
-        return ni;
-    }
-
     /**
      * This is the most basic function to determine the widest wire and the parallel distance
      * that run along them. Done because MOSRules doesn't consider the parallel distance as input.
@@ -5870,19 +5611,19 @@ public class Technology implements Comparable<Technology>, Serializable
     public boolean isValidVTPolyRule(DRCTemplate theRule) {return false;}
 
     public Setting makeBooleanSetting(String name, String location, String description, String xmlName, boolean factory) {
-        return getProjectSettings().makeBooleanSetting(name, prefs.relativePath(), xmlName, location, description, factory);
+        return getProjectSettings().makeBooleanSetting(name, TECH_NODE, xmlName, location, description, factory);
     }
 
     public Setting makeIntSetting(String name, String location, String description, String xmlName, int factory, String... trueMeaning) {
-        return getProjectSettings().makeIntSetting(name, prefs.relativePath(), xmlName, location, description, factory, trueMeaning);
+        return getProjectSettings().makeIntSetting(name, TECH_NODE, xmlName, location, description, factory, trueMeaning);
     }
 
     public Setting makeDoubleSetting(String name, String location, String description, String xmlName, double factory) {
-        return getProjectSettings().makeDoubleSetting(name, prefs.relativePath(), xmlName, location, description, factory);
+        return getProjectSettings().makeDoubleSetting(name, TECH_NODE, xmlName, location, description, factory);
     }
 
     public Setting makeStringSetting(String name, String location, String description, String xmlName, String factory) {
-        return getProjectSettings().makeStringSetting(name, prefs.relativePath(), xmlName, location, description, factory);
+        return getProjectSettings().makeStringSetting(name, TECH_NODE, xmlName, location, description, factory);
     }
     // -------------------------- Project Settings -------------------------
 
