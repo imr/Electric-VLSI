@@ -74,12 +74,41 @@ public class Layer implements Serializable
     /** Describes a thick layer. */								                    private static final int THICK =     040000000;
     /** Describes a carbon-nanotube Active layer. */								private static final int CARBNANO = 0100000000;
 
-    private static final ArrayList<Function> metalLayers = new ArrayList<Function>();
-    private static final ArrayList<Function> contactLayers = new ArrayList<Function>();
-    private static final ArrayList<Function> polyLayers = new ArrayList<Function>();
+    private static final LayerNumbers metalLayers = new LayerNumbers();
+    private static final LayerNumbers contactLayers = new LayerNumbers();
+    private static final LayerNumbers polyLayers = new LayerNumbers();
     private static List<Function> allFunctions;
 
-	/**
+    private static class LayerNumbers
+    {
+    	private final ArrayList<Function> list;
+    	private int base;
+
+    	LayerNumbers()
+    	{
+    		list = new ArrayList<Function>();
+    		base = 0;
+    	}
+
+    	public void addLayer(Function fun, int level)
+    	{
+    		while (level < base)
+    		{
+    			base--;
+    			list.add(0, null);
+    		}
+            while (list.size() <= level-base) list.add(null);
+            Function oldFunction = list.set(level-base, fun);
+            assert oldFunction == null;
+    	}
+
+    	public Function get(int level)
+    	{
+    		return list.get(level-base);
+    	}
+    }
+
+    /**
 	 * Function is a typesafe enum class that describes the function of a layer.
 	 * Functions are technology-independent and describe the nature of the layer (Metal, Polysilicon, etc.)
 	 */
@@ -217,17 +246,17 @@ public class Layer implements Serializable
             isPoly = polyLevel != 0;
             level = 0;
             if (genericLevel != 0) level = genericLevel;
-            if (isMetal) addToLayers(metalLayers, metalLevel);
-			if (contactLevel != 0) addToLayers(contactLayers, contactLevel);
-			if (polyLevel != 0) addToLayers(polyLayers, polyLevel);
+            if (isMetal) metalLayers.addLayer(this, metalLevel);
+			if (contactLevel != 0) contactLayers.addLayer(this, contactLevel);
+			if (polyLevel != 0) polyLayers.addLayer(this, polyLevel);
 		}
 
-        private void addToLayers(ArrayList<Function> layers, int level) {
-            this.level = level;
-            while (layers.size() <= level) layers.add(null);
-            Function oldFunction = layers.set(level, this);
-            assert oldFunction == null;
-        }
+//        private void addToLayers(ArrayList<Function> layers, int level) {
+//            this.level = level;
+//            while (layers.size() <= level) layers.add(null);
+//            Function oldFunction = layers.set(level, this);
+//            assert oldFunction == null;
+//        }
 
 		/**
 		 * Returns a printable version of this Function.
