@@ -221,7 +221,7 @@ public class Pref {
             assert !group.prefs.containsKey(name);
             group.prefs.put(name, this);
         }
-        setCachedObjFromPreferences();
+//        setCachedObjFromPreferences();
     }
 
     /**

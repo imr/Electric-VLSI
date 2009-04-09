@@ -49,8 +49,6 @@ import java.util.prefs.Preferences;
  * Settings are grouped in a Setting Trees. Each Tree consists of a RootGroup and lower Groups.
  */
 public class Setting {
-    public final static boolean FROM_THREAD_ENVIRONMENT = true;
-
     /**
      * This class manages a group of Settings.
      */
@@ -314,7 +312,6 @@ public class Setting {
     private final Group xmlGroup;
     private final String xmlPath;
 	private final Object factoryObj;
-    private Object currentObj;
     private final String prefNode;
     private final String prefName;
     private boolean valid;
@@ -337,7 +334,6 @@ public class Setting {
 
         this.xmlGroup = xmlGroup;
         this.factoryObj = factoryObj;
-        currentObj = FROM_THREAD_ENVIRONMENT ? null : factoryObj;
         this.prefName = prefName;
         prefNode = prefGroup;
 
@@ -396,15 +392,7 @@ public class Setting {
 	 * @return the Object value of this Setting object.
 	 */
 	public Object getValue() {
-        return FROM_THREAD_ENVIRONMENT ? Environment.getThreadEnvironment().getValue(this) : currentObj;
-    }
-
-    public void set(Object v) {
-        if (FROM_THREAD_ENVIRONMENT) return;
-        assert v.getClass() == factoryObj.getClass();
-        if (v.equals(factoryObj))
-            assert v == factoryObj;
-        currentObj = v;
+        return Environment.getThreadEnvironment().getValue(this);
     }
 
     @Override

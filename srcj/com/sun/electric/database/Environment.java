@@ -83,12 +83,6 @@ public class Environment {
 
     public void activate() {
         techPool.activate();
-        Technology.updateCurrents(techPool);
-        for (Map.Entry<Setting,Object> e: settingValues.entrySet()) {
-            Setting setting = e.getKey();
-            Object value = e.getValue();
-            setting.set(value);
-        }
         setThreadEnvironment(this);
     }
 
