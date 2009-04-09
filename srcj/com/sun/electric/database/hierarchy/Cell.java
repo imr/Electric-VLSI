@@ -3450,7 +3450,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * @param cellId CellId to find.
      * @return Cell or null.
      */
-    public static Cell inCurrentThread(CellId cellId) { return EDatabase.theDatabase.getCell(cellId); }
+    public static Cell inCurrentThread(CellId cellId) { return EDatabase.currentDatabase().getCell(cellId); }
 
 	/**
 	 * Method to return an iterator over all usages of this NodeProto.

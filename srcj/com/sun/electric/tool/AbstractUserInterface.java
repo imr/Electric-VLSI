@@ -25,20 +25,44 @@ package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ErrorLogger;
 
+import com.sun.electric.tool.user.User;
 import java.util.List;
 
 /**
  *
  */
 public abstract class AbstractUserInterface extends Client implements UserInterface {
+    private TechId curTechId;
 
     protected AbstractUserInterface() {
         super(-1);
     }
 
+    public EDatabase getDatabase() {
+        return EDatabase.clientDatabase();
+    }
+	public Technology getCurrentTechnology() {
+        EDatabase database = getDatabase();
+        Technology tech = null;
+        if (curTechId != null)
+            tech = database.getTech(curTechId);
+        if (tech == null)
+            tech = database.getTechPool().findTechnology(User.getDefaultTechnology());
+        if (tech == null)
+            tech = database.getTechPool().findTechnology("mocmos");
+        return tech;
+    }
+    public TechId getCurrentTechId() { return curTechId; }
+    public void setCurrentTechnology(Technology tech) {
+        if (tech != null)
+            curTechId = tech.getId();
+    }
     // For Mac OS X version
     protected void initializeInitJob(Job job, Object mode) {}
 

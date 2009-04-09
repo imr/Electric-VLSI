@@ -32,11 +32,13 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.technology.TechPool;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
@@ -107,7 +109,16 @@ public class UserInterfaceMain extends AbstractUserInterface
     private SplashWindow sw = null;
 
     public UserInterfaceMain(List<String> argsList, Mode mode, boolean showSplash) {
-        new EventProcessor();
+        EventQueue eventQueue = new EventProcessor();
+        try {
+            eventQueue.invokeAndWait(new Runnable() {
+                @Override public void run() {
+ //                   System.out.println("First event");
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         SwingUtilities.invokeLater(new InitializationRun(argsList, mode, showSplash));
     }
 
@@ -174,6 +185,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         public void run() {
             assert SwingUtilities.isEventDispatchThread();
             Pref.setClientThread(Thread.currentThread());
+            Pref.setCachedObjsFromPreferences();
             EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, null));
             currentGraphicsPreferences = new GraphicsPreferences(true, new TechPool(IdManager.stdIdManager));
             // see if there is a Mac OS/X interface
@@ -503,7 +515,6 @@ public class UserInterfaceMain extends AbstractUserInterface
         }
 
         // recache all prefs
-        Pref.setCachedObjsFromPreferences();
         loadPreferences(env.techPool);
         TopLevel.getCurrentJFrame().getEMenuBar().restoreSavedBindings(false); //trying to cache again
         WindowFrame.repaintAllWindows();
@@ -691,6 +702,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     }
 
     private static void loadPreferences(TechPool techPool) {
+        Pref.setCachedObjsFromPreferences();
         EditingPreferences ep = new EditingPreferences(false, techPool);
         EditingPreferences.setThreadEditingPreferences(ep);
         lastSavedEp = ep;

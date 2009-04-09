@@ -31,7 +31,9 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
@@ -82,9 +84,9 @@ import javax.swing.KeyStroke;
  */
 public class Clipboard //implements ClipboardOwner
 {
-	/** The Clipboard Library. */						private static Library   clipLib = null;
-	/** The Clipboard Cell. */							private static Cell      clipCell;
-	/** the last node that was duplicated */			private static NodeInst  lastDup = null;
+    /** The Clipboard CellId. */
+    public static final CellId clipCellId = IdManager.stdIdManager.newLibId("Clipboard!!").newCellId(CellName.parseName("Clipboard!!;1{}"));
+//	/** the last node that was duplicated */			private static NodeInst  lastDup = null;
 	/** the amount that the last node moved */			private static double    lastDupX = 10, lastDupY = 10;
 //    private static final Clipboard clip = new Clipboard();
 
@@ -105,7 +107,7 @@ public class Clipboard //implements ClipboardOwner
 	public static void editClipboard()
 	{
 		EditWindow wnd = EditWindow.getCurrent();
-		wnd.setCell(clipCell, VarContext.globalContext, null);
+		wnd.setCell(getClipCell(), VarContext.globalContext, null);
 	}
 
 	/**
@@ -115,7 +117,7 @@ public class Clipboard //implements ClipboardOwner
 	{
         // Clear text buffer
         TextUtils.setTextOnClipboard(null);
-        
+
         // see what is highlighted
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
@@ -215,6 +217,7 @@ public class Clipboard //implements ClipboardOwner
 
         // get objects to paste
 		int nTotal = 0, aTotal = 0, vTotal = 0;
+        Cell clipCell = getClipCell();
 		if (clipCell != null)
 		{
 			nTotal = clipCell.getNumNodes();
@@ -347,6 +350,7 @@ public class Clipboard //implements ClipboardOwner
 		Highlighter highlighter = wnd.getHighlighter();
 		List<Geometric> geomList = highlighter.getHighlightedEObjs(true, true);
 		List<DisplayedText> textList = new ArrayList<DisplayedText>();
+        Cell clipCell = getClipCell();
 		for (Iterator<Variable> it = clipCell.getVariables(); it.hasNext(); )
 		{
 			Variable var = it.next();
@@ -370,19 +374,19 @@ public class Clipboard //implements ClipboardOwner
 		}
 	}
 
-	/**
-	 * Method to track movement of the object that was just duplicated.
-	 * By following subsequent changes to that node, future duplications know where to place their copies.
-	 * @param ni the NodeInst that has just moved.
-	 * @param lastX the previous center X of the NodeInst.
-	 * @param lastY the previous center Y of the NodeInst.
-	 */
-	public static void nodeMoved(NodeInst ni, double lastX, double lastY)
-	{
-		if (ni != lastDup) return;
-		lastDupX += ni.getAnchorCenterX() - lastX;
-		lastDupY += ni.getAnchorCenterY() - lastY;
-	}
+//	/**
+//	 * Method to track movement of the object that was just duplicated.
+//	 * By following subsequent changes to that node, future duplications know where to place their copies.
+//	 * @param ni the NodeInst that has just moved.
+//	 * @param lastX the previous center X of the NodeInst.
+//	 * @param lastY the previous center Y of the NodeInst.
+//	 */
+//	public static void nodeMoved(NodeInst ni, double lastX, double lastY)
+//	{
+//		if (ni != lastDup) return;
+//		lastDupX += ni.getAnchorCenterX() - lastX;
+//		lastDupY += ni.getAnchorCenterY() - lastY;
+//	}
 
 	/**
 	 * Helper method to copy any selected text to the system-wide clipboard.
@@ -609,8 +613,8 @@ public class Clipboard //implements ClipboardOwner
 
 		public void terminateOK()
 		{
-			// remember the last node created
-			lastDup = lastCreatedNode;
+//			// remember the last node created
+//			lastDup = lastCreatedNode;
 
 			// highlight the copy
 			showCopiedObjects(newGeomList, newTextList);
@@ -749,8 +753,8 @@ public class Clipboard //implements ClipboardOwner
 
 		public void terminateOK()
 		{
-			// remember the last node created
-			lastDup = lastCreatedNode;
+//			// remember the last node created
+//			lastDup = lastCreatedNode;
 
 			// highlight the copy
 			showCopiedObjects(newGeomList, newTextList);
@@ -805,17 +809,9 @@ public class Clipboard //implements ClipboardOwner
 	/**
 	 * Method to clear the clipboard.
 	 */
-	private static void init()
+	private static Cell getClipCell()
 	{
-		if (clipLib == null)
-		{
-			clipLib = Library.newInstance("Clipboard!!", null);
-			clipLib.setHidden();
-		}
-		if (clipCell == null)
-		{
-			clipCell = Cell.newInstance(clipLib, "Clipboard!!");
-		}
+        return Job.getUserInterface().getDatabase().getCell(clipCellId);
 	}
 
 	/**
@@ -823,8 +819,7 @@ public class Clipboard //implements ClipboardOwner
 	 */
 	public static void clear()
 	{
-		init();
-
+        Cell clipCell = getClipCell();
 		// delete all arcs in the clipboard
 		List<ArcInst> arcsToDelete = new ArrayList<ArcInst>();
 		for(Iterator<ArcInst> it = clipCell.getArcs(); it.hasNext(); )
@@ -860,7 +855,7 @@ public class Clipboard //implements ClipboardOwner
 
 	public static void copyListToClipboard(List<Geometric> geomList, List<DisplayedText> textList,
 		Dimension2D alignment, AffineTransform inPlace, Orientation inPlaceOrient) {
-		copyListToCell(clipCell, geomList, textList, null, null, new Point2D.Double(),
+		copyListToCell(getClipCell(), geomList, textList, null, null, new Point2D.Double(),
 				User.isDupCopiesExports(), User.isArcsAutoIncremented(),
 				alignment, inPlace, inPlaceOrient);
 	}
@@ -1373,7 +1368,7 @@ public class Clipboard //implements ClipboardOwner
 
 			double deltaX = mouseDB.getX() - refPastePoint.getX();
 			double deltaY = mouseDB.getY() - refPastePoint.getY();
-            
+
             // if orthogonal is true, convert to orthogonal
 			if (orthogonal)
 			{
@@ -1387,7 +1382,7 @@ public class Clipboard //implements ClipboardOwner
 //                    distanceX = mouseDB.getX() - lastMouseDB.getX();
 //                    distanceY = mouseDB.getY() - lastMouseDB.getY();
 //                }
-				
+
 				// If the mouse is within the X and Y extent of the object use X and Y only
 				// If the mouse is not confined to either extent then use the 45 degree rule
 				// Arguably we can change it to x degree rule where x is defined by the ratio of the widths
@@ -1403,7 +1398,7 @@ public class Clipboard //implements ClipboardOwner
 					else
 						deltaX = 0;
 				}
-				
+
             }
 
 			// this is now a delta, not a point

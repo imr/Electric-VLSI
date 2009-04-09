@@ -71,6 +71,7 @@ public class EDatabase {
     public static EDatabase theDatabase;
     public static EDatabase serverDatabase() { return theDatabase; }
     public static EDatabase clientDatabase() { return theDatabase; }
+    public static EDatabase currentDatabase() { return Job.getUserInterface().getDatabase(); }
 
     /** IdManager which keeps Ids of objects in this database.*/private final IdManager idManager;
     /** Environment of this EDatabase */                        private Environment environment;
@@ -95,7 +96,12 @@ public class EDatabase {
     /** Creates a new instance of EDatabase */
     public EDatabase(Snapshot snapshot) {
         idManager = snapshot.idManager;
-        setSnapshot(snapshot, true);
+        this.snapshot = idManager.getInitialSnapshot();
+        lock(true);
+        canUndoing = true;
+        undo(snapshot);
+        canUndoing = false;
+        unlock();
         networkManager = new NetworkManager(this);
     }
 
@@ -373,7 +379,6 @@ public class EDatabase {
         this.snapshot = snapshot;
         environment = snapshot.environment;
         techPool = environment.techPool;
-        environment.activate();
         this.snapshotFresh = fresh;
     }
 
@@ -409,16 +414,6 @@ public class EDatabase {
 
     private Snapshot doBackup() {
 //        long startTime = System.currentTimeMillis();
-        LibraryBackup[] libBackups = new LibraryBackup[linkedLibs.size()];
-        boolean libsChanged = libBackups.length != snapshot.libBackups.size();
-        for (int libIndex = 0; libIndex < libBackups.length; libIndex++) {
-            Library lib = linkedLibs.get(libIndex);
-            LibraryBackup libBackup = lib != null ? lib.backup() : null;
-            libBackups[libIndex] = libBackup;
-            libsChanged = libsChanged || snapshot.libBackups.get(libIndex) != libBackup;
-        }
-        if (!libsChanged) libBackups = null;
-
         CellBackup[] cellBackups = new CellBackup[linkedCells.size()];
         ERectangle[] cellBounds = new ERectangle[cellBackups.length];
         boolean cellsChanged = cellBackups.length != snapshot.cellBackups.size();
@@ -441,7 +436,18 @@ public class EDatabase {
         if (!cellsChanged) cellBackups = null;
         if (!cellBoundsChanged) cellBounds = null;
 
+        LibraryBackup[] libBackups = new LibraryBackup[linkedLibs.size()];
+        boolean libsChanged = libBackups.length != snapshot.libBackups.size();
+        for (int libIndex = 0; libIndex < libBackups.length; libIndex++) {
+            Library lib = linkedLibs.get(libIndex);
+            LibraryBackup libBackup = lib != null ? lib.backup() : null;
+            libBackups[libIndex] = libBackup;
+            libsChanged = libsChanged || snapshot.libBackups.get(libIndex) != libBackup;
+        }
+        if (!libsChanged) libBackups = null;
+
         setSnapshot(snapshot.with(changingTool, environment, cellBackups, cellBounds, libBackups), true);
+        environment.activate();
 //        long endTime = System.currentTimeMillis();
 //        if (Job.getDebug()) System.out.println("backup took: " + (endTime - startTime) + " msec");
         return snapshot;
@@ -455,8 +461,6 @@ public class EDatabase {
     public void recover(Snapshot snapshot) {
         long startTime = System.currentTimeMillis();
         setSnapshot(snapshot, false);
-        environment = snapshot.environment;
-        techPool = environment.techPool;
         environment.activate();
         recoverLibraries();
         recycleCells();
@@ -501,8 +505,6 @@ public class EDatabase {
         Snapshot oldSnapshot = backup();
         if (oldSnapshot == snapshot) return;
         setSnapshot(snapshot, false);
-        environment = snapshot.environment;
-        techPool = environment.techPool;
         environment.activate();
         boolean cellGroupsChanged = oldSnapshot.cellGroups != snapshot.cellGroups;
         if (oldSnapshot.libBackups != snapshot.libBackups) {

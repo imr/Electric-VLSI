@@ -29,12 +29,15 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.MessagesStream;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -427,6 +430,8 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 
     /*private*/ static class UserInterfaceRedirect implements UserInterface
 	{
+        TechId curTechId;
+        
     	private static void printStackTrace(String methodName) {
             if (true) return;
             if (!Job.getDebug()) return;
@@ -487,6 +492,17 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 
     	public EDatabase getDatabase() {
             return EDatabase.theDatabase;
+        }
+    	public Technology getCurrentTechnology() {
+            EDatabase database = getDatabase();
+            Technology tech = null;
+            if (curTechId != null)
+                tech = database.getTech(Job.currentUI.getCurrentTechId());
+            if (tech == null)
+                tech = database.getTechPool().findTechnology(User.getDefaultTechnology());
+            if (tech == null)
+                tech = database.getTechPool().findTechnology("mocmos");
+            return tech;
         }
 
 		public EditWindow_ getCurrentEditWindow_() {

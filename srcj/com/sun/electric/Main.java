@@ -23,18 +23,27 @@
  */
 package com.sun.electric;
 
+import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
+import com.sun.electric.database.ImmutableCell;
+import com.sun.electric.database.ImmutableLibrary;
+import com.sun.electric.database.LibraryBackup;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.EvalJavaBsh;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Job;
@@ -42,6 +51,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
@@ -176,12 +186,28 @@ public final class Main
         }
 
 		// initialize database
-        EDatabase.theDatabase = new EDatabase(Technology.makeInitialEnvironment());
+        EDatabase.theDatabase = new EDatabase(makeInitialSnapshot());
 		InitDatabase job = new InitDatabase(argsList);
         Job.initJobManager(numThreads, job, mode, serverMachineName);
 	}
 
-    private static class UserInterfaceDummy extends AbstractUserInterface
+    private static Snapshot makeInitialSnapshot() {
+        Environment env = Technology.makeInitialEnvironment();
+        TechPool techPool = env.techPool;
+        CellId clipCellId = Clipboard.clipCellId;
+        LibraryBackup[] libBackupsArray = new LibraryBackup[] {
+            new LibraryBackup(ImmutableLibrary.newInstance(clipCellId.libId, null, null).withFlags(Library.HIDDENLIBRARY), false, new LibId[0])
+        };
+        CellBackup[] cellBackupsArray = new CellBackup[] {
+            CellBackup.newInstance(ImmutableCell.newInstance(clipCellId, 0).withTechId(techPool.getGeneric().getId()), techPool)
+        };
+        ERectangle[] cellBoundsArray = new ERectangle[] {
+            ERectangle.fromGrid(0, 0, 0, 0)
+        };
+        return new Snapshot(env.techPool.idManager).with(null, env, cellBackupsArray, cellBoundsArray, libBackupsArray);
+    }
+
+    public static class UserInterfaceDummy extends AbstractUserInterface
 	{
 
         public void startProgressDialog(String type, String filePath) {}
@@ -346,6 +372,7 @@ public final class Main
 	{
 		List<String> argsList;
         String beanShellScript;
+        private Library mainLib;
 
 		protected InitDatabase(List<String> argsL)
 		{
@@ -380,10 +407,11 @@ public final class Main
 
             // open no name library first
 //            Input.changesQuiet(true);
-            Library mainLib = Library.newInstance("noname", null);
+            mainLib = Library.newInstance("noname", null);
             if (mainLib == null) return false;
+            fieldVariableChanged("mainLib");
             mainLib.clearChanged();
-            mainLib.setCurrent();
+//            mainLib.setCurrent();
 //            Input.changesQuiet(false);
 
             if (Job.BATCHMODE) {
@@ -396,6 +424,7 @@ public final class Main
 
         @Override
         public void terminateOK() {
+            User.setCurrentLibrary(mainLib);
             Environment.setThreadEnvironment(EDatabase.clientDatabase().getEnvironment());
             Job.getExtendedUserInterface().finishInitialization();
 			openCommandLineLibs(argsList);

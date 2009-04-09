@@ -351,6 +351,7 @@ public class FileMenu {
 
 	private static class NewLibrary extends Job {
         private String newLibName;
+        private Library lib;
 
         public NewLibrary(String newLibName) {
             super("New Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -360,15 +361,16 @@ public class FileMenu {
 
         public boolean doIt() throws JobException
         {
-            Library lib = Library.newInstance(newLibName, null);
+            lib = Library.newInstance(newLibName, null);
             if (lib == null) return false;
-            lib.setCurrent();
+            fieldVariableChanged("lib");
             System.out.println("New "+lib+" created");
             return true;
         }
 
         public void terminateOK()
         {
+            User.setCurrentLibrary(lib);
             EditWindow.repaintAll();
             ToolBar.setSaveLibraryButton();
         }
@@ -564,12 +566,12 @@ public class FileMenu {
                     noname.kill("delete");
                 }
             }
-            User.setCurrentLibrary(lib);
 			return true;
 		}
 
         public void terminateOK()
         {
+            User.setCurrentLibrary(lib);
             Cell showThisCell = cellName != null ? lib.findNodeProto(cellName) : lib.getCurCell();
         	doneOpeningLibrary(showThisCell);
             convertVarsToModelFiles(newLibs);

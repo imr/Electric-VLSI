@@ -882,8 +882,8 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** statically allocated (don't deallocate memory) */				private static final int STATICTECHNOLOGY =   020;
 	/** no primitives in this technology (don't auto-switch to it) */	private static final int NOPRIMTECHNOLOGY =   040;
 
-	/** the current technology in Electric */				private static Technology curTech = null;
-	/** the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
+//	/** the current technology in Electric */				private static Technology curTech = null;
+//	/** the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
 
     /** Generic technology for this Technology */           final Generic generic;
 	/** name of this technology */							private final TechId techId;
@@ -1233,10 +1233,10 @@ public class Technology implements Comparable<Technology>, Serializable
 //        }
 
 		// set the current technology, given priority to user defined
-        curLayoutTech = getMocmosTechnology();
+ //       curLayoutTech = getMocmosTechnology();
         Technology  tech = Technology.findTechnology(User.getDefaultTechnology());
-        if (tech == null) tech = curLayoutTech;
-        tech.setCurrent();
+        if (tech == null) tech = getMocmosTechnology();
+//        tech.setCurrent();
 	}
 
     /*
@@ -1424,13 +1424,6 @@ public class Technology implements Comparable<Technology>, Serializable
         assert !oldItg.hasNext() && !newItg.hasNext();
     }
 
-    public static void updateCurrents(TechPool newTechPool) {
-        if (curTech != null)
-            curTech = newTechPool.getTech(curTech.getId());
-        if (curLayoutTech != null)
-            curLayoutTech = newTechPool.getTech(curLayoutTech.getId());
-    }
-
     protected void setNotUsed(int numPolys) {
         int numMetals = getNumMetals();
         for (PrimitiveNode pn: nodes.values()) {
@@ -1455,37 +1448,36 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public static Technology getCurrent()
     {
-        if (curTech == null)
-        {
-            System.out.println("The current technology is null. Check the technology settings.");
-            // tries to get the User default
-            curTech = findTechnology(User.getDefaultTechnology());
-            if (curTech == null)
-            {
-                System.out.println("User default technology is not loaded. Check the technology settings");
-                // tries to get MoCMOS tech
-                curTech = getMocmosTechnology();
-                if (curTech == null)
-                {
-                    System.out.println("Major error: MoCMOS technology not loaded. Check the technology settings");
-                }
-            }
-        }
-        return curTech;
+        return Job.getUserInterface().getCurrentTechnology();
+//        if (curTech == null)
+//        {
+//            System.out.println("The current technology is null. Check the technology settings.");
+//            // tries to get the User default
+//            curTech = findTechnology(User.getDefaultTechnology());
+//            if (curTech == null)
+//            {
+//                System.out.println("User default technology is not loaded. Check the technology settings");
+//                // tries to get MoCMOS tech
+//                curTech = getMocmosTechnology();
+//                if (curTech == null)
+//                {
+//                    System.out.println("Major error: MoCMOS technology not loaded. Check the technology settings");
+//                }
+//            }
+//        }
+//        return curTech;
     }
 
-	/**
-	 * Set this to be the current Technology
-	 * The current technology is maintained by the system as a default
-	 * in situations where a technology cannot be determined.
-	 */
-	public void setCurrent()
-	{
-		curTech = this;
-		if (isLayout())
-			curLayoutTech = this;
-	}
-
+//	/**
+//	 * Set this to be the current Technology
+//	 * The current technology is maintained by the system as a default
+//	 * in situations where a technology cannot be determined.
+//	 */
+//	public void setCurrent()
+//	{
+//		curTech = this;
+//	}
+//
 //	/**
 //	 * Returns the total number of Technologies currently in Electric.
 //	 * @return the total number of Technologies currently in Electric.
@@ -5080,7 +5072,11 @@ public class Technology implements Comparable<Technology>, Serializable
 		} else
 		{
 			// use the current layout technology as the default
-			retTech = curLayoutTech;
+			retTech = getCurrent();
+            if (!retTech.isLayout())
+                retTech = findTechnology(User.getDefaultTechnology());
+            if (retTech == null)
+                retTech = getMocmosTechnology();
 		}
 
 		// if a layout technology was voted the most, return it

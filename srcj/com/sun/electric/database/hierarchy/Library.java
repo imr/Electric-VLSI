@@ -121,7 +121,8 @@ public class Library extends ElectricObject implements Comparable<Library>
 			System.out.println("Warning: library '" + libName + "' renamed to '" + legalName + "'");
 
 		// see if the library name already exists
-		Library existingLibrary = Library.findLibrary(legalName);
+        EDatabase database = EDatabase.currentDatabase();
+		Library existingLibrary = database.findLibrary(legalName);
 		if (existingLibrary != null)
 		{
 			System.out.println("Error: library '" + legalName + "' already exists");
@@ -129,7 +130,6 @@ public class Library extends ElectricObject implements Comparable<Library>
 		}
 
 		// create the library
-        EDatabase database = EDatabase.serverDatabase();
         return newInstance(database, database.getIdManager().newLibId(legalName), libFile);
 	}
 
@@ -577,7 +577,9 @@ public class Library extends ElectricObject implements Comparable<Library>
      * @param libId LibId to find.
      * @return Library or null.
      */
-    public static Library inCurrentThread(LibId libId) { return EDatabase.theDatabase.getLib(libId); }
+    public static Library inCurrentThread(LibId libId) {
+        return EDatabase.currentDatabase().getLib(libId);
+    }
 
     /**
      * Returns true if this Library is linked into database.
@@ -848,7 +850,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 * @param elib to search for
 	 * @return list of cells refering to elements in this library
 	 */
-	public static Set<Cell> findReferenceInCell(Library elib) { return EDatabase.theDatabase.findReferenceInCell(elib); }
+	public static Set<Cell> findReferenceInCell(Library elib) { return EDatabase.currentDatabase().findReferenceInCell(elib); }
 
 	/**
 	 * Method to find a Library with the specified name.
@@ -856,25 +858,25 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 * Note that this is the Library name, and not the Library file.
 	 * @return the Library, or null if there is no known Library by that name.
 	 */
-	public static Library findLibrary(String libName) { return EDatabase.theDatabase.findLibrary(libName); }
+	public static Library findLibrary(String libName) { return EDatabase.currentDatabase().findLibrary(libName); }
 
 	/**
 	 * Method to return an iterator over all libraries.
 	 * @return an iterator over all libraries.
 	 */
-	public static Iterator<Library> getLibraries() { return EDatabase.theDatabase.getLibraries(); }
+	public static Iterator<Library> getLibraries() { return EDatabase.currentDatabase().getLibraries(); }
 
 	/**
 	 * Method to return the number of libraries.
 	 * @return the number of libraries.
 	 */
-	public static int getNumLibraries()	{ return EDatabase.theDatabase.getNumLibraries(); }
+	public static int getNumLibraries()	{ return EDatabase.currentDatabase().getNumLibraries(); }
 
 	/**
 	 * Method to return an iterator over all visible libraries.
 	 * @return an iterator over all visible libraries.
 	 */
-	public static List<Library> getVisibleLibraries() { return EDatabase.theDatabase.getVisibleLibraries(); }
+	public static List<Library> getVisibleLibraries() { return EDatabase.currentDatabase().getVisibleLibraries(); }
 
 	/**
 	 * Method to return the name of this Library.

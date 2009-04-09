@@ -41,7 +41,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.user.redisplay.VectorCache;
@@ -64,6 +63,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import javax.swing.SwingUtilities;
 
 /**
  * This is the User Interface tool.
@@ -100,8 +100,8 @@ public class User extends Listener
 		setOn();
 		setIncremental();
 
-		if (Job.getRunMode() != Job.Mode.CLIENT)
-			Clipboard.clear(); // To initialize Clibpoard Cell
+//		if (Job.getRunMode() != Job.Mode.CLIENT)
+//			Clipboard.clear(); // To initialize Clibpoard Cell
 	}
 
 	/**
@@ -742,6 +742,7 @@ public class User extends Listener
 	 */
 	public static void setCurrentLibrary(Library lib)
 	{
+        assert SwingUtilities.isEventDispatchThread();
 		lib.setCurrent();
 
 		// if switching to a technology library, load its colormap into the Artwork technology

@@ -28,9 +28,11 @@ import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.TechPool;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CantEditException;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -157,6 +159,7 @@ public abstract class Job implements Serializable {
 	/** report execution time regardless MIN_NUM_SECONDS */
 												/*private*/ boolean reportExecution = false;
     /** tool running the job */                 /*private*/ Tool tool;
+    /** current technology */                   final TechId curTechId;
 //    /** priority of job */                      private Priority priority;
 //    /** bottom of "up-tree" of cells affected */private Cell upCell;
 //    /** top of "down-tree" of cells affected */ private Cell downCell;
@@ -182,7 +185,7 @@ public abstract class Job implements Serializable {
                     jobManager = new ServerJobManager(numThreads);
 
                 // Calling external dependencies
-                currentUI.initializeInitJob(initDatabaseJob, mode);
+//                currentUI.initializeInitJob(initDatabaseJob, mode);
                 initDatabaseJob.startJob();
                 break;
             case BATCH:
@@ -225,6 +228,8 @@ public abstract class Job implements Serializable {
         this.display = true;
         this.deleteWhenDone = true;
         startTime = endTime = 0;
+        Technology curTech = Technology.getCurrent();
+        curTechId = curTech != null ? curTech.getId() : null; 
 //        started = finished = aborted = scheduledToAbort = false;
 //        thread = null;
 	}

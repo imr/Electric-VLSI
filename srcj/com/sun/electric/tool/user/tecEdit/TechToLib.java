@@ -110,6 +110,7 @@ public class TechToLib
 		private Technology tech;
         private String libraryName;
         private boolean doItNow;
+        private Library lib;
 
 		private LibFromTechJob(Technology tech, boolean doItNow)
 		{
@@ -126,14 +127,19 @@ public class TechToLib
 		{
 			Library lib = makeLibFromTech(tech);
 			if (lib == null) return false;
+            fieldVariableChanged("lib");
 
 			// switch to the library and show a cell
-            User.setCurrentLibrary(lib);
             if (!doItNow)
             fieldVariableChanged("libraryName");
             libraryName = lib.getName();
 			return true;
 		}
+        
+        @Override
+        public void terminateOK() {
+            User.setCurrentLibrary(lib);
+        }
 	}
 
 	/**

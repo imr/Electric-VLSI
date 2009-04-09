@@ -351,7 +351,7 @@ public class WindowFrame extends Observable
             if (tech != null)
 			{
 	            // change the technology
-                tech.setCurrent();
+                Job.getExtendedUserInterface().setCurrentTechnology(tech);
 				wf.getPaletteTab().loadForTechnology(tech, wf);
 				wf.getLayersTab().updateLayersTab();
             }
@@ -1096,7 +1096,7 @@ public class WindowFrame extends Observable
 		{
 			if (User.isAutoTechnologySwitch())
 			{
-				tech.setCurrent();
+				Job.getExtendedUserInterface().setCurrentTechnology(tech);
 				wf.getPaletteTab().setSelectedItem(tech.getTechName());
                 wf.getLayersTab().setSelectedTechnology(tech);
 			}

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -190,7 +191,7 @@ public class ChangeCurrentLib extends EDialog
 		Library lib = Library.findLibrary(libName);
 		if (lib != null && lib != Library.getCurrent())
 		{
-			lib.setCurrent();
+			User.setCurrentLibrary(lib);
             repaintAllAfterCurLibAction();
 		}
 		closeDialog(null);

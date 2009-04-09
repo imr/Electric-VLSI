@@ -164,7 +164,7 @@ public class LibToTech
 		private void exit(boolean goodButton)
 		{
 			if (goodButton)
-				new TechFromLibJob(newName.getText(), alsoXML.isSelected());
+				new TechFromLibJob(Library.getCurrent(), newName.getText(), alsoXML.isSelected());
 			dispose();
 		}
 
@@ -292,13 +292,15 @@ public class LibToTech
 	 */
 	private static class TechFromLibJob extends Job
 	{
+        private Library techLib;
 		private String newName;
 		private String fileName;
 		private TechConversionResult tcr;
 
-		private TechFromLibJob(String newName, boolean alsoXML)
+		private TechFromLibJob(Library techLib, String newName, boolean alsoXML)
 		{
 			super("Make Technology from Technolog Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.techLib = techLib;
 			this.newName = newName;
 			if (alsoXML)
 			{
@@ -314,7 +316,7 @@ public class LibToTech
 		{
 			LibToTech ltt = new LibToTech();
 			tcr = new TechConversionResult();
-	   		ltt.makeTech(newName, fileName, tcr);
+	   		ltt.makeTech(techLib, newName, fileName, tcr);
    			fieldVariableChanged("tcr");
 			return true;
 		}
@@ -332,15 +334,15 @@ public class LibToTech
 
 	/**
 	 * Method to convert the current Library to a Technology.
+     * @param techLib technology Library
 	 * @param newName the name of the Technology to create.
 	 * @param fileName the name of the XML file to write (null to skip XML output).
 	 * @param error the structure for storing error status.
 	 * @return the new Technology.  Returns null on error (and fills in "error").
 	 */
-	public Technology makeTech(String newName, String fileName, TechConversionResult error)
+	public Technology makeTech(Library lib, String newName, String fileName, TechConversionResult error)
 	{
 		this.error = error;
-		Library lib = Library.getCurrent();
 
 		// get a new name for the technology
 		String newTechName = newName;
