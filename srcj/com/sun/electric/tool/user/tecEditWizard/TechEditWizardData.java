@@ -2601,15 +2601,17 @@ public class TechEditWizardData
                 double shortSelectX = scaledValue(gate_width.v/2+poly_endcap.v);
                 xTranSelLayer = (makeXmlNodeLayer(shortSelectX, shortSelectX, selecty, selecty, selectLayer, Poly.Type.FILLED));
                 nodesList.add(xTranSelLayer);
+                double shortSox = sox;
+
                 if (wellLayer != null)
                 {
-                    sox = scaledValue(poly_endcap.v);
+                    shortSox = scaledValue(poly_endcap.v);
                     nodesList.remove(xTranWellLayer);
                     xTranWellLayer = (makeXmlNodeLayer(shortSelectX, shortSelectX, welly, welly, wellLayer, Poly.Type.FILLED));
                     nodesList.add(xTranWellLayer);
                 }
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-S", func, 0, 0, 0, 0,
-                     new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
+                     new SizeOffset(shortSox, shortSox, soy, soy), nodesList, nodePorts, null, false);
                 g.addElement(n, "S");
 
                 // different select for those with extra protection layers
@@ -2643,9 +2645,9 @@ public class TechEditWizardData
                    polyLayer, Poly.Type.FILLED, true, false, -1));
                 // Adding left
                 nodesList.add(bOrL);
-                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-L", func, 0, 0, 0, 0,
+                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-B", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-                g.addElement(n, "L");
+                g.addElement(n, "B");
 
                 // top or right
                 Xml.NodeLayer tOrR = (makeXmlNodeLayerSpecial(gatex, gatex, // endPolyx, endPolyx,
@@ -2655,15 +2657,15 @@ public class TechEditWizardData
 
                 // Adding both
                 nodesList.add(tOrR);
-                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-LR", func, 0, 0, 0, 0,
+                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-TB", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-                g.addElement(n, "LR");
+                g.addElement(n, "TB");
 
                 // Adding right
                 nodesList.remove(bOrL);
-                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-R", func, 0, 0, 0, 0,
+                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-T", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-                g.addElement(n, "R");
+                g.addElement(n, "T");
             }
         }
 
