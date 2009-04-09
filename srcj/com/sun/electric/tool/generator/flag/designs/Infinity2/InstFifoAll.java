@@ -156,7 +156,7 @@ public class InstFifoAll extends FlagDesign {
         addEssentialBounds(data.getLayoutCell());
 		abutRoute();
 		List<ToConnect> toConns = createNetlist();
-		routeSignalsSog(toConns);
+		routeSignalsSog(toConns, data.getSOGPrefs());
 		
         reexportPowerGround(data.getLayoutCell());
         addNccVddGndExportsConnectedByParent(data.getLayoutCell());

@@ -29,6 +29,7 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.LayoutLib.Corner;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
+import com.sun.electric.tool.routing.SeaOfGates;
 import com.sun.electric.tool.user.ExportChanges;
 
 
@@ -653,13 +654,13 @@ public class FlagDesign {
 	protected void stitchScanChains(LayoutNetlist layNets) {
 		scan.stitchScanChains(layNets.getLayoutInstancesSortedBySchematicPosition(), router);
 	}
-	protected void stitchScanChainsSog(LayoutNetlist layNets) {
+	protected void stitchScanChainsSog(LayoutNetlist layNets, SeaOfGates.SeaOfGatesOptions prefs) {
 		List<ToConnect> scans = selectScanToConnects(layNets.getToConnects());
-		sogRouterAdapter.route(scans);
+		sogRouterAdapter.route(scans, prefs);
 	}
-	protected void routeSignalsSog(List<ToConnect> toConns) {
+	protected void routeSignalsSog(List<ToConnect> toConns, SeaOfGates.SeaOfGatesOptions prefs) {
 		List<ToConnect> signals = selectSignalToConnects(toConns);
-		sogRouterAdapter.route(signals);
+		sogRouterAdapter.route(signals, prefs);
 	}
 	protected void routeSignals(LayoutNetlist layNets) {
 		List<ToConnect> signals = selectSignalToConnects(layNets.getToConnects());

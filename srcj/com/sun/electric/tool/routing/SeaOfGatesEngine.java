@@ -329,16 +329,18 @@ public class SeaOfGatesEngine
 		Rectangle2D jumpBound;
 		Wavefront dir1, dir2;
 		Wavefront winningWF;
+		SeaOfGates.SeaOfGatesOptions prefs;
 
 		NeededRoute(String routeName, PortInst from, double fromX, double fromY, int fromZ,
 			PortInst to, double toX, double toY, int toZ,
-			int netID, double minWidth, int batchNumber, int routeInBatch)
+			int netID, double minWidth, int batchNumber, int routeInBatch, SeaOfGates.SeaOfGatesOptions prefs)
 		{
 			this.routeName = routeName;
 			this.netID = netID;
 			this.minWidth = minWidth;
 			this.batchNumber = batchNumber;
 			this.routeInBatch = routeInBatch;
+			this.prefs = prefs;
 
 			cellBounds = cell.getBounds();
 			minimumSearchBoundX = downToGrain(cellBounds.getMinX());
@@ -393,10 +395,10 @@ public class SeaOfGatesEngine
 	 * @param cell the cell to be Sea-of-Gates-routed.
 	 * @param arcsToRoute a List of ArcInsts on networks to be routed.
 	 */
-	public void routeIt(Job job, Cell cell, List<ArcInst> arcsToRoute)
+	public void routeIt(Job job, Cell cell, List<ArcInst> arcsToRoute, SeaOfGates.SeaOfGatesOptions prefs)
 	{
 		// initialize information about the technology
-		if (initializeDesignRules(cell)) return;
+		if (initializeDesignRules(cell, prefs)) return;
 
 		// user-interface initialization
 		long startTime = System.currentTimeMillis();
@@ -412,7 +414,7 @@ public class SeaOfGatesEngine
 		netIDs = new HashMap<ArcInst,Integer>();
 		BlockageVisitor visitor = new BlockageVisitor(arcsToRoute);
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, visitor);
-		addBlockagesAtPorts(arcsToRoute);
+		addBlockagesAtPorts(arcsToRoute, prefs);
 //for(Iterator<Layer> it = metalTrees.keySet().iterator(); it.hasNext(); )
 //{
 //	Layer layer = it.next();
@@ -458,7 +460,7 @@ public class SeaOfGatesEngine
 			routeBatches[b].segsInBatch = 0;
 
 			// determine the minimum width of arcs on this net
-			double minWidth = getMinWidth(orderedPorts);
+			double minWidth = getMinWidth(orderedPorts, prefs);
 			int netID = -1;
 			Integer netIDI = netIDs.get(ai);
 			if (netIDI != null) netID = netIDI.intValue() - 1;
@@ -624,15 +626,15 @@ public class SeaOfGatesEngine
 					}
 				}
 				NeededRoute nr = new NeededRoute(net.getName(), fromPi, fromX, fromY, fromZ, toPi, toX, toY, toZ,
-					netID, minWidth, b, batchNumber++);
+					netID, minWidth, b, batchNumber++, prefs);
 				routeBatches[b].segsInBatch++;
 				allRoutes.add(nr);
 			}
 		}
 
 		// now do the actual routing
-		boolean parallel = Routing.isSeaOfGatesUseParallelRoutes();
-		parallelDij = Routing.isSeaOfGatesUseParallelFromToRoutes();
+		boolean parallel = prefs.useParallelRoutes;
+		parallelDij = prefs.useParallelFromToRoutes;
 
 		firstFailure = true;
 		totalWireLength = 0;
@@ -870,7 +872,7 @@ public class SeaOfGatesEngine
 	 * Method to initialize technology information, including design rules.
 	 * @return true on error.
 	 */
-	private boolean initializeDesignRules(Cell c)
+	private boolean initializeDesignRules(Cell c, SeaOfGates.SeaOfGatesOptions prefs)
 	{
 		// find the metal layers, arcs, and contacts
 		cell = c;
@@ -900,9 +902,9 @@ public class SeaOfGatesEngine
 				if (ap.getLayer(0) == metalLayers[i])
 				{
 					metalArcs[i] = ap;
-					favorArcs[i] = Routing.isSeaOfGatesFavor(ap);
+					favorArcs[i] = prefs.isPrevented(ap);
 					if (favorArcs[i]) hasFavorites = true;
-					preventArcs[i] = Routing.isSeaOfGatesPrevent(ap);
+					preventArcs[i] = prefs.isPrevented(ap);
 					break;
 				}
 			}
@@ -1025,7 +1027,7 @@ public class SeaOfGatesEngine
 		return false;
 	}
 
-	private double getMinWidth(List<PortInst> orderedPorts)
+	private double getMinWidth(List<PortInst> orderedPorts, SeaOfGates.SeaOfGatesOptions prefs)
 	{
 		double minWidth = 0;
 		for(PortInst pi : orderedPorts)
@@ -1033,7 +1035,7 @@ public class SeaOfGatesEngine
 			double widestAtPort = getWidestMetalArcOnPort(pi);
 			if (widestAtPort > minWidth) minWidth = widestAtPort;
 		}
-		if (minWidth > Routing.getSeaOfGatesMaxWidth()) minWidth = Routing.getSeaOfGatesMaxWidth();
+		if (minWidth > prefs.maxArcWidth) minWidth = prefs.maxArcWidth;
 		return minWidth;
 	}
 
@@ -1096,7 +1098,7 @@ public class SeaOfGatesEngine
 	 * @param arcsToRoute the list of arcs to route.
 	 * @param tech the technology to use.
 	 */
-	private void addBlockagesAtPorts(List<ArcInst> arcsToRoute)
+	private void addBlockagesAtPorts(List<ArcInst> arcsToRoute, SeaOfGates.SeaOfGatesOptions prefs)
 	{
 		Netlist netList = cell.getUserNetlist();
 //		Netlist netList = cell.acquireUserNetlist();
@@ -1119,7 +1121,7 @@ public class SeaOfGatesEngine
 			if (orderedPorts == null) continue;
 
 			// determine the minimum width of arcs on this net
-			double minWidth = getMinWidth(orderedPorts);
+			double minWidth = getMinWidth(orderedPorts, prefs);
 
 			for(PortInst pi : orderedPorts)
 			{
@@ -1522,7 +1524,7 @@ public class SeaOfGatesEngine
 			if (wf.vertices == null)
 			{
 				errorMsg = "Search too complex (exceeds complexity limit of " +
-					Routing.getSeaOfGatesComplexityLimit() + " steps)";
+					nr.prefs.complexityLimit + " steps)";
 			} else
 			{
 				errorMsg = "Failed to route from port " + wf.from.getPortProto().getName() +
@@ -1555,7 +1557,7 @@ public class SeaOfGatesEngine
 		{
 			// stop if the search is too complex
 			numSearchVertices++;
-			if (numSearchVertices > Routing.getSeaOfGatesComplexityLimit()) return;
+			if (numSearchVertices > nr.prefs.complexityLimit) return;
 
 			SearchVertex resultA = advanceWavefront(nr.dir1);
 			SearchVertex resultB = advanceWavefront(nr.dir2);
@@ -1606,7 +1608,7 @@ public class SeaOfGatesEngine
 			{
 				// stop if the search is too complex
 				numSearchVertices++;
-				if (numSearchVertices > Routing.getSeaOfGatesComplexityLimit())
+				if (numSearchVertices > wf.nr.prefs.complexityLimit)
 				{
 					result = svLimited;
 				} else

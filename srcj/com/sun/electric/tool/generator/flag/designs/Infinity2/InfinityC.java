@@ -9,6 +9,7 @@ import com.sun.electric.tool.generator.flag.FlagDesign;
 import com.sun.electric.tool.generator.flag.LayoutNetlist;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.LayoutLib.Corner;
+import com.sun.electric.tool.routing.SeaOfGates;
 
 /** Physical design for the Ring */
 public class InfinityC extends FlagDesign {
@@ -43,7 +44,7 @@ public class InfinityC extends FlagDesign {
 
         stitchScanChains(layNets);
 
-        routeSignalsSog(layNets.getToConnects());
+        routeSignalsSog(layNets.getToConnects(), data.getSOGPrefs());
         
         reexportPowerGround(layNets.getLayoutCell());
         

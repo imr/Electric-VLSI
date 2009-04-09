@@ -34,16 +34,21 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -53,7 +58,7 @@ import java.util.TreeSet;
 public class SeaOfGates
 {
 	/**
-	 * Method to run Sea-of-Gates routing on user-selected cell
+	 * Method to run Sea-of-Gates routing on the current cell.
 	 */
 	public static void seaOfGatesRoute()
 	{
@@ -103,13 +108,14 @@ public class SeaOfGates
 		}
 
 		// Run seaOfGatesRoute on selected unrouted arcs
-		seaOfGatesRoute(netList, netsToRoute, true);
+		seaOfGatesRoute(netList, netsToRoute, null);
 	}
 
 	/**
-	 * Method to run Sea-of-Gates routing on specified cell
+	 * Method to run Sea-of-Gates routing on specified cell.
+	 * Presumes that it is inside of a Job.
 	 */
-	public static void seaOfGatesRoute(Cell cell)
+	public static void seaOfGatesRoute(Cell cell, SeaOfGatesOptions prefs)
 	{
 		Netlist netList = cell.getUserNetlist();
 
@@ -122,13 +128,13 @@ public class SeaOfGates
 		}
 
 		// Run seaOfGatesRoute on unrouted arcs
-		seaOfGatesRoute(netList, netsToRoute, false);
+		seaOfGatesRoute(netList, netsToRoute, prefs);
 	}
 
 	/**
 	 * Method to run Sea-of-Gates routing
 	 */
-	private static void seaOfGatesRoute(Netlist netList, Set<Network> netsToRoute, boolean separateJob)
+	private static void seaOfGatesRoute(Netlist netList, Set<Network> netsToRoute, SeaOfGatesOptions prefs)
 	{
 		// get cell from network information
 		Cell cell = netList.getCell();
@@ -173,14 +179,16 @@ public class SeaOfGates
 			}
 		}
 
-		if (separateJob)
+		if (prefs == null)
 		{
 			// do the routing in a separate job
-			new SeaOfGatesJob(cell, arcsToRoute);
+			prefs = new SeaOfGatesOptions();
+	        prefs.getOptionsFromNccPreferences();
+			new SeaOfGatesJob(cell, arcsToRoute, prefs);
 		} else
 		{
 			SeaOfGatesEngine router = new SeaOfGatesEngine();
-			router.routeIt(Job.getRunningJob(), cell, arcsToRoute);
+			router.routeIt(Job.getRunningJob(), cell, arcsToRoute, prefs);
 		}
 	}
 
@@ -233,14 +241,16 @@ public class SeaOfGates
 	{
 		private Cell cell;
 		private int[] arcIdsToRoute;
+		private SeaOfGatesOptions prefs;
 
-		protected SeaOfGatesJob(Cell cell, List<ArcInst> arcsToRoute)
+		protected SeaOfGatesJob(Cell cell, List<ArcInst> arcsToRoute, SeaOfGatesOptions prefs)
 		{
 			super("Sea-Of-Gates Route", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			arcIdsToRoute = new int[arcsToRoute.size()];
 			for (int i = 0; i < arcsToRoute.size(); i++)
 				arcIdsToRoute[i] = arcsToRoute.get(i).getArcId();
+			this.prefs = prefs;
 			startJob();
 		}
 
@@ -250,8 +260,76 @@ public class SeaOfGates
 			List<ArcInst> arcsToRoute = new ArrayList<ArcInst>();
 			for (int arcId: arcIdsToRoute)
 				arcsToRoute.add(cell.getArcById(arcId));
-			router.routeIt(this, cell, arcsToRoute);
+			router.routeIt(this, cell, arcsToRoute, prefs);
 			return true;
 		}
 	}
+
+	/**
+	 * Class to hold preferences during Sea-of-Gates routing run.
+	 */
+	public static class SeaOfGatesOptions implements Serializable
+	{
+		public boolean useParallelFromToRoutes;
+		public boolean useParallelRoutes;
+		public double maxArcWidth;
+		public int complexityLimit;
+		private Map<Technology,Set<ArcProto>> preventUse;
+		private Map<Technology,Set<ArcProto>> favor;
+
+		public SeaOfGatesOptions()
+		{
+			useParallelFromToRoutes = true;
+			useParallelRoutes = false;
+			maxArcWidth = 10;
+			complexityLimit = 200000;
+
+			preventUse = new HashMap<Technology,Set<ArcProto>>();
+			favor = new HashMap<Technology,Set<ArcProto>>();
+		}
+
+		public void getOptionsFromNccPreferences()
+		{
+			useParallelFromToRoutes = Routing.isSeaOfGatesUseParallelFromToRoutes();
+			useParallelRoutes = Routing.isSeaOfGatesUseParallelRoutes();
+			maxArcWidth = Routing.getSeaOfGatesMaxWidth();
+			complexityLimit = Routing.getSeaOfGatesComplexityLimit();
+
+			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+			{
+				Technology tech = it.next();
+				for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
+				{
+					ArcProto ap = aIt.next();
+					if (Routing.isSeaOfGatesFavor(ap))
+					{
+						Set<ArcProto> arcNames = favor.get(tech);
+						if (arcNames == null) favor.put(tech, arcNames = new HashSet<ArcProto>());
+						arcNames.add(ap);
+					}
+					if (Routing.isSeaOfGatesPrevent(ap))
+					{
+						Set<ArcProto> arcNames = preventUse.get(tech);
+						if (arcNames == null) preventUse.put(tech, arcNames = new HashSet<ArcProto>());
+						arcNames.add(ap);
+					}
+				}
+			}
+		}
+
+		public boolean isPrevented(ArcProto ap)
+		{
+			Set<ArcProto> prefPrevent = preventUse.get(ap.getTechnology());
+			if (prefPrevent != null && prefPrevent.contains(ap)) return true;
+			return false;
+		}
+
+		public boolean isFavored(ArcProto ap)
+		{
+			Set<ArcProto> prefFavorites = favor.get(ap.getTechnology());
+			if (prefFavorites != null && prefFavorites.contains(ap)) return true;
+			return false;
+		}
+	}
+
 }

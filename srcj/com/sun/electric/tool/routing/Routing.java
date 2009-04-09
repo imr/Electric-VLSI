@@ -1211,7 +1211,7 @@ public class Routing extends Listener
 
 	/****************************** SEA-OF-GATES ROUTER OPTIONS ******************************/
 
-	/** Pref map for arc preventino by sea-of-gates router. */	private static Map<ArcProto,Pref> defaultSOGPreventPrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc preventing by sea-of-gates router. */	private static Map<ArcProto,Pref> defaultSOGPreventPrefs = new HashMap<ArcProto,Pref>();
 	/** Pref map for arc favoring by sea-of-gates router. */	private static Map<ArcProto,Pref> defaultSOGFavorPrefs = new HashMap<ArcProto,Pref>();
 
 	private static Pref getArcProtoBitPref(ArcProto ap, String what, Map<ArcProto,Pref> map)

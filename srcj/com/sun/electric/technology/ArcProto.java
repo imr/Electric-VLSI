@@ -1064,16 +1064,16 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         out.println("\tisNotUsed=" + isNotUsed());
         out.println("\tisSkipSizeInPalette=" + isSkipSizeInPalette());
 
-        Technology.printlnPref(out, 1, "DefaultExtendFor" + getName() + "IN" + tech.getTechName(), factoryDefaultInst.getLambdaExtendOverMin());
+        Technology.printlnPref(out, 1, "DefaultExtendFor" + getName() + "IN" + tech.getTechName(), new Double(factoryDefaultInst.getLambdaExtendOverMin()));
         out.println("\tbaseExtend=" + getLambdaBaseExtend());
         out.println("\tdefaultLambdaBaseWidth=" + getFactoryDefaultLambdaBaseWidth());
         out.println("\tdiskOffset1=" + DBMath.round(getLambdaBaseExtend() + 0.5*getLambdaElibWidthOffset()));
         out.println("\tdiskOffset2=" + getLambdaBaseExtend());
-        Technology.printlnPref(out, 1, "DefaultAngleFor" + getName() + "IN" + tech.getTechName(), factoryAngleIncrement);
-        Technology.printlnPref(out, 1, "DefaultRigidFor" + getName() + "IN" + tech.getTechName(), factoryDefaultInst.isRigid());
-        Technology.printlnPref(out, 1, "DefaultFixedAngleFor" + getName() + "IN" + tech.getTechName(), factoryDefaultInst.isFixedAngle());
-        Technology.printlnPref(out, 1, "DefaultExtendedFor" + getName() + "IN" + tech.getTechName(), factoryDefaultInst.isTailExtended());
-        Technology.printlnPref(out, 1, "DefaultDirectionalFor" + getName() + "IN" + tech.getTechName(), factoryDefaultInst.isHeadArrowed());
+        Technology.printlnPref(out, 1, "DefaultAngleFor" + getName() + "IN" + tech.getTechName(), new Integer(factoryAngleIncrement));
+        Technology.printlnPref(out, 1, "DefaultRigidFor" + getName() + "IN" + tech.getTechName(), Boolean.valueOf(factoryDefaultInst.isRigid()));
+        Technology.printlnPref(out, 1, "DefaultFixedAngleFor" + getName() + "IN" + tech.getTechName(), Boolean.valueOf(factoryDefaultInst.isFixedAngle()));
+        Technology.printlnPref(out, 1, "DefaultExtendedFor" + getName() + "IN" + tech.getTechName(), Boolean.valueOf(factoryDefaultInst.isTailExtended()));
+        Technology.printlnPref(out, 1, "DefaultDirectionalFor" + getName() + "IN" + tech.getTechName(), Boolean.valueOf(factoryDefaultInst.isHeadArrowed()));
 
         for (Technology.ArcLayer arcLayer: layers)
             arcLayer.dump(out);
@@ -1097,9 +1097,9 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         double correction2 = DBMath.round(getLambdaBaseExtend());
         double correction1 = DBMath.round(correction2 + 0.5*getLambdaElibWidthOffset());
         if (correction1 != correction2)
-            a.diskOffset.put(Integer.valueOf(1), correction1);
+            a.diskOffset.put(Integer.valueOf(1), new Double(correction1));
         if (correction2 != 0)
-            a.diskOffset.put(Integer.valueOf(2), correction2);
+            a.diskOffset.put(Integer.valueOf(2), new Double(correction2));
         a.extended = factoryDefaultInst.isTailExtended();
         a.fixedAngle = factoryDefaultInst.isFixedAngle();
         a.angleIncrement = getFactoryAngleIncrement();

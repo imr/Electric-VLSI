@@ -6,15 +6,19 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.routing.SeaOfGates;
 
 /** This class handles the "Job" aspects of the Infinity layout generator */
 public class FlagJob extends Job {
 	static final long serialVersionUID = 0;
 	static private void prln(String msg) {System.out.println(msg);}
+	private SeaOfGates.SeaOfGatesOptions prefs;
 	
 	public FlagJob() {
 		super ("Generate layout for Infinity", NetworkTool.getNetworkTool(), 
 			   Job.Type.CHANGE, null, null, Job.Priority.ANALYSIS);
+		prefs = new SeaOfGates.SeaOfGatesOptions();
+        prefs.getOptionsFromNccPreferences();
 		startJob();
 	}
 
@@ -30,7 +34,7 @@ public class FlagJob extends Job {
 			return true;
 		}
 
-		new Flag(cell, this);
+		new Flag(cell, this, prefs);
 		return true;
 	}
 

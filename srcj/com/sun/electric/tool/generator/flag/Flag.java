@@ -6,11 +6,12 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.routing.SeaOfGates;
 
 public class Flag {
 	private static void prln(String s) {Utils.prln(s);}
 	
-	private void doEverything(Cell schCell, Job flagJob) {
+	private void doEverything(Cell schCell, Job flagJob, SeaOfGates.SeaOfGatesOptions prefs) {
 		FlagAnnotations ann = new FlagAnnotations(schCell);
 		if (!ann.isAutoGen()) {
 			prln("Cell: "+schCell.libDescribe()+" has no autoGen annotation");
@@ -43,7 +44,7 @@ public class Flag {
         
         try {
         	layGenConstructor.newInstance(
-        			new FlagConstructorData(layCell, schCell, flagJob));	
+        			new FlagConstructorData(layCell, schCell, flagJob, prefs));	
         } catch (Throwable th) {
         	prln("Layout generator: "+className+" threw Exception: "+th.getMessage());
         	prln("Printing stack trace:");
@@ -52,9 +53,9 @@ public class Flag {
         }
 	}
 	
-	public Flag(Cell schCell, Job flagJob) {
+	public Flag(Cell schCell, Job flagJob, SeaOfGates.SeaOfGatesOptions prefs) {
 		try {
-			doEverything(schCell, flagJob);
+			doEverything(schCell, flagJob, prefs);
 		} catch (Throwable th) {
 			prln("Oh my! Something went wrong.");
         	Utils.printStackTrace(th);

@@ -58,7 +58,7 @@ public class SogRouterAdapter {
 	// ----------------------------- public methods ---------------------------
 	public SogRouterAdapter(Job job) {this.job = job;}
 
-	public void route(List<ToConnect> toConns) {
+	public void route(List<ToConnect> toConns, SeaOfGates.SeaOfGatesOptions prefs) {
 		Cell cell = findParent(toConns);
 		if (cell==null) return; 					// no work to do
 
@@ -69,8 +69,8 @@ public class SogRouterAdapter {
         }
 
         if (SORT_UNROUTED_ARCS)
-            SeaOfGates.seaOfGatesRoute(cell);
+            SeaOfGates.seaOfGatesRoute(cell, prefs);
         else
-            seaOfGates.routeIt(job, cell, arcsToRoute);
+            seaOfGates.routeIt(job, cell, arcsToRoute, prefs);
 	}
 }

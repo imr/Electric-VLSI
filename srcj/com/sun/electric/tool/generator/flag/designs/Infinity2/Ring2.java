@@ -34,9 +34,9 @@ public class Ring2 extends FlagDesign {
         
         stackInsts(layNets.getLayoutInstancesSortedBySchematicPosition());
         
-        stitchScanChainsSog(layNets);
+        stitchScanChainsSog(layNets, data.getSOGPrefs());
         
-        routeSignalsSog(layNets.getToConnects());
+        routeSignalsSog(layNets.getToConnects(), data.getSOGPrefs());
         
 	}
 }
