@@ -65,6 +65,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.AutoStitch;
+import com.sun.electric.tool.routing.AutoStitch.AutoOptions;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.dialogs.EDialog;
@@ -518,7 +519,9 @@ public class Connectivity
 			for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); )
 				allArcs.add(it.next());
 		}
-		AutoStitch.runAutoStitch(newCell, null, null, job, originalUnscaledMerge, null, false, true, true);
+		AutoOptions prefs = new AutoOptions();
+		prefs.createExports = true;
+		AutoStitch.runAutoStitch(newCell, null, null, job, originalUnscaledMerge, null, false, prefs, true);
 		if (DEBUGSTEPS)
 		{
 			initDebugging();
