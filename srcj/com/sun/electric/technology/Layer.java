@@ -227,7 +227,7 @@ public class Layer implements Serializable
         private final boolean isMetal;
         private final boolean isContact;
         private final boolean isPoly;
-		private int level;
+		private final int level;
 		private final int height;
 		private final int extraBits;
 		private static final int [] extras = {PTYPE, NTYPE, DEPLETION, ENHANCEMENT, LIGHT, HEAVY, /*PSEUDO,*/ NONELEC, CONMETAL, CONPOLY, CONDIFF, HLVT, INTRANS, THICK, CARBNANO};
@@ -244,11 +244,12 @@ public class Layer implements Serializable
             isMetal = metalLevel != 0;
             isContact = contactLevel != 0;
             isPoly = polyLevel != 0;
-            level = 0;
+            int level = 0;
             if (genericLevel != 0) level = genericLevel;
-            if (isMetal) metalLayers.addLayer(this, metalLevel);
-			if (contactLevel != 0) contactLayers.addLayer(this, contactLevel);
-			if (polyLevel != 0) polyLayers.addLayer(this, polyLevel);
+            if (isMetal) metalLayers.addLayer(this, level = metalLevel);
+			if (isContact) contactLayers.addLayer(this, level = contactLevel);
+			if (isPoly) polyLayers.addLayer(this, level = polyLevel);
+            this.level = level;
 		}
 
 //        private void addToLayers(ArrayList<Function> layers, int level) {
