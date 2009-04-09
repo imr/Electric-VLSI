@@ -183,7 +183,7 @@ public class SeaOfGates
 		{
 			// do the routing in a separate job
 			prefs = new SeaOfGatesOptions();
-	        prefs.getOptionsFromNccPreferences();
+	        prefs.getOptionsFromPreferences();
 			new SeaOfGatesJob(cell, arcsToRoute, prefs);
 		} else
 		{
@@ -288,7 +288,7 @@ public class SeaOfGates
 			favor = new HashMap<Technology,Set<ArcProto>>();
 		}
 
-		public void getOptionsFromNccPreferences()
+		public void getOptionsFromPreferences()
 		{
 			useParallelFromToRoutes = Routing.isSeaOfGatesUseParallelFromToRoutes();
 			useParallelRoutes = Routing.isSeaOfGatesUseParallelRoutes();

@@ -29,6 +29,7 @@ import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.routing.*;
+import com.sun.electric.tool.routing.AutoStitch.AutoOptions;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -202,9 +203,9 @@ public class StitchFillJob extends Job
                     {
                         index = lowerCase.indexOf("x");
                         String str = lowerCase.substring(0, index);
-                        int x = Integer.valueOf(str);
+                        int x = Integer.valueOf(str).intValue();
                         str = lowerCase.substring(index+1, lowerCase.length());
-                        int y = Integer.valueOf(str);
+                        int y = Integer.valueOf(str).intValue();
                         // tile information
                         TileInfo tile = new TileInfo(x, y);
                         tileList.add(tile);
@@ -348,7 +349,9 @@ public class StitchFillJob extends Job
                 }
                 xPos += width;
             }
-            AutoStitch.runAutoStitch(newTile, niList, null, job, null, null, true, true, true);
+            AutoOptions prefs = new AutoOptions();
+            prefs.createExports = true;
+            AutoStitch.runAutoStitch(newTile, niList, null, job, null, null, true, prefs, true);
         }
     }
 

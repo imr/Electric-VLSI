@@ -18,7 +18,7 @@ public class FlagJob extends Job {
 		super ("Generate layout for Infinity", NetworkTool.getNetworkTool(), 
 			   Job.Type.CHANGE, null, null, Job.Priority.ANALYSIS);
 		prefs = new SeaOfGates.SeaOfGatesOptions();
-        prefs.getOptionsFromNccPreferences();
+        prefs.getOptionsFromPreferences();
 		startJob();
 	}
 

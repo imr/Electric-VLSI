@@ -54,6 +54,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.routing.AutoStitch;
+import com.sun.electric.tool.routing.AutoStitch.AutoOptions;
 import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
@@ -926,7 +927,9 @@ public class PadGenerator
 		}
 
 		// auto stitch everything
-		AutoStitch.runAutoStitch(framecell, null, null, job, null, null, true, false, false);
+		AutoOptions prefs = new AutoOptions();
+		prefs.createExports = false;
+		AutoStitch.runAutoStitch(framecell, null, null, job, null, null, true, prefs, false);
 
 		if (corename != null)
 		{

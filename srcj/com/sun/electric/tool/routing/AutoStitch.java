@@ -67,6 +67,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -166,6 +167,7 @@ public class AutoStitch
 		private List<ArcInst> arcsToStitch;
 		private double lX, hX, lY, hY;
 		private boolean forced;
+		private AutoOptions prefs;
 
 		private AutoStitchJob(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch,
 			double lX, double hX, double lY, double hY, boolean forced)
@@ -180,6 +182,8 @@ public class AutoStitch
 			this.hY = hY;
 			this.forced = forced;
 			setReportExecutionFlag(true);
+			prefs = new AutoOptions();
+			prefs.getOptionsFromPreferences();
 			startJob();
 		}
 
@@ -188,7 +192,7 @@ public class AutoStitch
 			Rectangle2D limitBound = null;
 			if (lX != hX && lY != hY)
 				limitBound = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
-			runAutoStitch(cell, nodesToStitch, arcsToStitch, this, null, limitBound, forced, Routing.isAutoStitchCreateExports(), false);
+			runAutoStitch(cell, nodesToStitch, arcsToStitch, this, null, limitBound, forced, prefs, false);
 			return true;
 		}
 	}
@@ -202,11 +206,11 @@ public class AutoStitch
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param limitBound if not null, only consider connections that occur in this area.
 	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
-	 * @param createExports true to create exports in subcells where necessary.
+	 * @param prefs routing preferences.
 	 * @param showProgress true to show progress.
 	 */
 	public static void runAutoStitch(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch, Job job,
-		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, boolean createExports, boolean showProgress)
+		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, AutoOptions prefs, boolean showProgress)
 	{
 		// initialization
 		if (cell.isAllLocked())
@@ -216,7 +220,7 @@ public class AutoStitch
 		}
 
 		AutoStitch as = new AutoStitch(cell.getEditingPreferences());
-		as.runNow(cell, nodesToStitch, arcsToStitch, job, stayInside, limitBound, forced, createExports, showProgress);
+		as.runNow(cell, nodesToStitch, arcsToStitch, job, stayInside, limitBound, forced, prefs, showProgress);
 	}
 
 	private AutoStitch(EditingPreferences ep)
@@ -234,14 +238,14 @@ public class AutoStitch
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param limitBound if not null, only consider connections that occur in this area.
 	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
-	 * @param createExports true to create exports in subcells where necessary.
+	 * @param prefs routing preferences.
 	 * @param showProgress true to show progress.
 	 */
 	private void runNow(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch, Job job,
-		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, boolean createExports, boolean showProgress)
+		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, AutoOptions prefs, boolean showProgress)
 	{
 		if (showProgress) Job.getUserInterface().setProgressNote("Initializing routing");
-		ArcProto preferredArc = Routing.getPreferredRoutingArcProto();
+		ArcProto preferredArc = prefs.preferredArc;
 
 		// gather objects to stitch
 		if (nodesToStitch == null)
@@ -279,14 +283,14 @@ public class AutoStitch
 
 		// compute the number of tasks to perform and start progress bar
 		int totalToStitch = nodesToStitch.size() + arcsToStitch.size();
-		if (createExports) totalToStitch *= 2;
+		if (prefs.createExports) totalToStitch *= 2;
 		totalToStitch += arcsToStitch.size();
 		int soFar = 0;
 
 		if (job != null && job.checkAbort()) return;
 
 		// if creating exports, make first pass in which exports must be created
-		if (createExports)
+		if (prefs.createExports)
 		{
 			if (showProgress) Job.getUserInterface().setProgressNote("Routing " + totalToStitch + " objects with export creation...");
 
@@ -2749,6 +2753,27 @@ public class AutoStitch
 
 			// if both nets are known, link them
 			connected.put(net2, conNet1);
+		}
+	}
+
+	/**
+	 * Class to package Preferences for the server.
+	 */
+	public static class AutoOptions implements Serializable
+	{
+		public boolean createExports;
+		public ArcProto preferredArc;
+
+		public AutoOptions()
+		{
+			createExports = false;	
+			preferredArc = Technology.getCurrent().getArcs().next();
+		}
+
+		public void getOptionsFromPreferences()
+		{
+			createExports = Routing.isAutoStitchCreateExports();
+			preferredArc = Routing.getPreferredRoutingArcProto();
 		}
 	}
 
