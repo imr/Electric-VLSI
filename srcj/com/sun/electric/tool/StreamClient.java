@@ -25,6 +25,7 @@ package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.tool.Client.ServerEvent;
 
@@ -43,45 +44,42 @@ import java.util.concurrent.locks.ReentrantLock;
 public class StreamClient extends Client {
     private static final ReentrantLock lock = new ReentrantLock();
     private static final Condition queueChanged = lock.newCondition();
-    private static ServerEvent queueTail = new ServerEvent();
-    
+    private static ServerEvent queueTail = new ServerEvent(IdManager.stdIdManager.getInitialSnapshot());
+
     private final IdWriter writer;
     private Snapshot currentSnapshot = EDatabase.serverDatabase().getInitialSnapshot();
-    private Snapshot initialSnapshot;
-    private final ServerEventDispatcher dispatcher; 
+    private final ServerEventDispatcher dispatcher;
     private final ClientReader reader;
     private static final long STACK_SIZE_EVENT = isOSMac()?0:20*(1 << 10);
     private final static int STACK_SIZE_READER = isOSMac()?0:1024;
-    
-    StreamClient(int connectionId, InputStream inputStream, OutputStream outputStream, Snapshot initialSnapshot) {
+
+    StreamClient(int connectionId, InputStream inputStream, OutputStream outputStream) {
         super(connectionId);
 //        writer = new ClientWriter(outputStream, initialSnapshot);
-        writer = new IdWriter(initialSnapshot.idManager, new DataOutputStream(outputStream));
-        this.initialSnapshot = initialSnapshot;
+        writer = new IdWriter(IdManager.stdIdManager, new DataOutputStream(outputStream));
         dispatcher = new ServerEventDispatcher();
         reader = inputStream != null ? new ClientReader(inputStream) : null;
     }
-    
+
     void start() { dispatcher.start(); }
-    
+
     protected void dispatchServerEvent(ServerEvent serverEvent) throws Exception {
     }
-    
+
     class ServerEventDispatcher extends Thread {
 //        private Snapshot currentSnapshot = EDatabase.serverDatabase().getInitialSnapshot();
         private ServerEvent lastEvent = getQueueTail();
-    
+
         private ServerEventDispatcher() {
             super(null, null, "Dispatcher-" + connectionId, STACK_SIZE_EVENT);
         }
-        
+
         public void run() {
             try {
                 if (reader != null)
                     reader.start();
                 writer.writeInt(Job.PROTOCOL_VERSION);
-                writeSnapshot(initialSnapshot, false);
-                initialSnapshot = null;
+                writeSnapshot(lastEvent.snapshot);
                 for (;;) {
                     lock.lock();
                     try {
@@ -101,7 +99,7 @@ public class StreamClient extends Client {
             }
         }
     }
-    
+
     static void addEvent(ServerEvent newEvent) {
         lock.lock();
         try {
@@ -113,7 +111,7 @@ public class StreamClient extends Client {
             lock.unlock();
         }
     }
-    
+
     static ServerEvent getQueueTail() {
         lock.lock();
         try {
@@ -122,15 +120,15 @@ public class StreamClient extends Client {
             lock.unlock();
         }
     }
-    void writeSnapshot(Snapshot newSnapshot, boolean undoRedo) throws IOException {
+    void writeSnapshot(Snapshot newSnapshot) throws IOException {
         writer.writeByte((byte)1);
         newSnapshot.writeDiffs(writer, currentSnapshot);
         currentSnapshot = newSnapshot;
     }
-    
+
     void writeEJobEvent(EJob ejob, EJob.State newState, long timeStamp) throws IOException {
         if (ejob.newSnapshot != null && ejob.newSnapshot != currentSnapshot) {
-            writeSnapshot(ejob.newSnapshot, ejob.jobType == Job.Type.UNDO);
+            writeSnapshot(ejob.newSnapshot);
         }
         switch (newState) {
             case WAITING:
@@ -138,7 +136,7 @@ public class StreamClient extends Client {
             case SERVER_DONE:
 //                if (ejob.client == StreamClient.this) {
                 writer.writeByte((byte)2);
-                writer.writeInt(ejob.jobId);
+                writer.writeInt(ejob.jobKey.jobId);
                 writer.writeString(ejob.jobName);
                 writer.writeString(ejob.jobType.toString());
                 writer.writeString(newState.toString());
@@ -154,20 +152,27 @@ public class StreamClient extends Client {
                 break;
         }
     }
-    
+
     void writeString(String s) throws IOException {
         writer.writeByte((byte)3);
         writer.writeString(s);
     }
-    
+
+    void writeJobQueue(Job.Inform[] jobQueue) throws IOException {
+        writer.writeByte((byte)4);
+        writer.writeInt(jobQueue.length);
+        for (Job.Inform j: jobQueue)
+            j.write(writer);
+    }
+
     private class ClientReader extends Thread {
         private final DataInputStream in;
-        
+
         private ClientReader(InputStream inputStream) {
             super(null, null, "ClientReader-" + connectionId, STACK_SIZE_READER);
             in = new DataInputStream(new BufferedInputStream(inputStream));
         }
-        
+
         public void run() {
             try {
                 for (;;) {

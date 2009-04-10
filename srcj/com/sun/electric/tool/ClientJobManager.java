@@ -52,27 +52,27 @@ class ClientJobManager extends JobManager {
     private static final Logger logger = Logger.getLogger("com.sun.electric.tool.job");
     private final String serverMachineName;
     private final int port;
-    
+
     /** stream for cleint to send Jobs. */      private static DataOutputStream clientOutputStream;
     /** Count of started Jobs. */               private static int numStarted;
     private volatile boolean jobTreeChanged;
 //    private static Job clientJob;
-    
+
     /** Creates a new instance of ClientJobManager */
     public ClientJobManager(String serverMachineName, int serverPort) {
         this.serverMachineName = serverMachineName;
         port = serverPort;
     }
- 
+
     void writeEJob(EJob ejob) throws IOException {
-        clientOutputStream.writeInt(ejob.jobId);
+        clientOutputStream.writeInt(ejob.jobKey.jobId);
         clientOutputStream.writeUTF(ejob.jobType.toString());
         clientOutputStream.writeUTF(ejob.jobName);
         clientOutputStream.writeInt(ejob.serializedJob.length);
         clientOutputStream.write(ejob.serializedJob);
         clientOutputStream.flush();
     }
-    
+
     public void runLoop() {
         logger.entering(CLASS_NAME, "clinetLoop", port);
         IdReader reader = null;
@@ -94,7 +94,7 @@ class ClientJobManager extends JobManager {
             e.printStackTrace();
             return;
         }
-        
+
         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "initTechnologies begin");
         Technology.initAllTechnologies();
         User.getUserTool().init();
@@ -111,7 +111,7 @@ class ClientJobManager extends JobManager {
                 logger.exiting(CLASS_NAME, "InitializeWindows");
             }
         });
-        
+
         boolean firstSnapshot = false;
         for (;;) {
             try {
@@ -157,9 +157,17 @@ class ClientJobManager extends JobManager {
                     case 3:
                         logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readStr begin");
                         String str = reader.readString();
-                        Client.PrintEvent printEvent = new Client.PrintEvent(null, str);
+                        Client.PrintEvent printEvent = new Client.PrintEvent(currentSnapshot, null, str);
                         logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readStr end {0}", str);
                         clientFifo.put(printEvent);
+                        break;
+                    case 4:
+                        int jobQueueSize = reader.readInt();
+                        Job.Inform[] jobQueue = new Job.Inform[jobQueueSize];
+                        for (int jobIndex = 0; jobIndex < jobQueueSize; jobIndex++)
+                            jobQueue[jobIndex] = Job.Inform.read(reader);
+                        Client.JobQueueEvent jobQueueEvent = new Client.JobQueueEvent(currentSnapshot, jobQueue);
+                        clientFifo.put(jobQueueEvent);
                         break;
                     default:
                         logger.logp(Level.SEVERE, CLASS_NAME, "clientLoop", "bad tag {0}", Byte.valueOf(tag));
@@ -174,7 +182,7 @@ class ClientJobManager extends JobManager {
             }
         }
     }
-    
+
     /** Add job to list of jobs */
     void addJob(EJob ejob, boolean onMySnapshot) {
         assert SwingUtilities.isEventDispatchThread();
@@ -189,12 +197,12 @@ class ClientJobManager extends JobManager {
         SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(isChangeJobQueuedOrRunning()); }});
         return;
     }
-    
-    void wantUpdateGui() {
-        jobTreeChanged = true;
-        SwingUtilities.invokeLater(clientInvoke);
-    }
-    
+
+//    void wantUpdateGui() {
+//        jobTreeChanged = true;
+//        SwingUtilities.invokeLater(clientInvoke);
+//    }
+
     /** Remove job from list of jobs */
     void removeJob(Job j) { // synchronization !!!
         if (j.started) {
@@ -220,13 +228,13 @@ class ClientJobManager extends JobManager {
             SwingUtilities.invokeLater(clientInvoke);
         }
     }
-    
+
     EJob selectEJob(EJob finishedEJob) { return null; }
-    
+
     void setProgress(EJob ejob, String progress) {
         ejob.progress = progress;
     }
-    
+
     private boolean isChangeJobQueuedOrRunning() { // synchronization !!!
         for (EJob ejob: startedJobs) {
             Job job = ejob.getJob();
@@ -238,7 +246,7 @@ class ClientJobManager extends JobManager {
         }
         return false;
     }
-    
+
     /** get all jobs iterator */
     Iterator<Job> getAllJobs() { // synchronization !!!
         ArrayList<Job> jobsList = new ArrayList<Job>();
@@ -254,7 +262,7 @@ class ClientJobManager extends JobManager {
         }
         return jobsList.iterator();
     }
-    
+
     private class FIFO {
         private final String CLASS_NAME = ClientJobManager.CLASS_NAME + ".FIFO";
         private final ArrayList<Client.ServerEvent> queueF = new ArrayList<Client.ServerEvent>();
@@ -263,7 +271,7 @@ class ClientJobManager extends JobManager {
         private int getIndex = 0;
         private int numGet;
         private int numPut;
-        
+
         private synchronized void put(Client.ServerEvent o) {
             logger.logp(Level.FINEST, CLASS_NAME, "put", "ENTRY");
 //            ArrayList<Client.ServerEvent> thisQ;
@@ -284,7 +292,7 @@ class ClientJobManager extends JobManager {
             }
             logger.logp(Level.FINEST, CLASS_NAME, "put", "RETURN");
         }
-        
+
         private synchronized Client.ServerEvent get() {
             logger.logp(Level.FINEST, CLASS_NAME, "get", "ENTRY");
             if (numGet == numPut) return null;
@@ -311,12 +319,12 @@ class ClientJobManager extends JobManager {
             return o;
         }
     }
-    
+
     private final FIFO clientFifo = new FIFO();
-    
+
 //    private static volatile int clientNumExamine = 0;
     private static Snapshot clientSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
-    
+
     private final ClientInvoke clientInvoke = new ClientInvoke();
     private class ClientInvoke implements Runnable {
         private final String CLASS_NAME = getClass().getName();
@@ -327,11 +335,11 @@ class ClientJobManager extends JobManager {
                 logger.logp(Level.FINEST, CLASS_NAME, "run", "before get");
                 if (jobTreeChanged) {
                     jobTreeChanged = false;
-                    ArrayList<Job> jobs = new ArrayList<Job>();
+                    ArrayList<Job.Inform> jobs = new ArrayList<Job.Inform>();
                     for (Iterator<Job> it = Job.getAllJobs(); it.hasNext();) {
                         Job j = it.next();
                         if (j.getDisplay()) {
-                            jobs.add(j);
+                            jobs.add(j.getInform());
                         }
                     }
                     JobTree.update(jobs);
@@ -343,7 +351,7 @@ class ClientJobManager extends JobManager {
                     Client.EJobEvent ejobEvent = (Client.EJobEvent)o;
                     EJob ejob_ = ejobEvent.ejob;
                     if (false) {
-                        System.out.print("Job " + ejob_.jobId + " " + ejob_.jobName + " " + ejob_.jobType + " " + ejob_.state +
+                        System.out.print("Job " + ejob_.jobKey.jobId + " " + ejob_.jobName + " " + ejob_.jobType + " " + ejob_.state +
                                 " old=" + ejob_.oldSnapshot.snapshotId + " new=" + ejob_.newSnapshot.snapshotId +
                                 " t=" + ejobEvent.timeStamp + "(" + (System.currentTimeMillis() - ejobEvent.timeStamp) + ")");
                         if (ejob_.serializedJob != null)
@@ -352,7 +360,7 @@ class ClientJobManager extends JobManager {
                             System.out.print(" res=" + ejob_.serializedResult.length);
                         System.out.println();
                     }
-                    int jobId = ejob_.jobId;
+                    int jobId = ejob_.jobKey.jobId;
                     logger.logp(Level.FINER, CLASS_NAME, "run", "result begin {0}", Integer.valueOf(numGet));
                     if (ejob_.newSnapshot != clientSnapshot) {
                         (new SnapshotDatabaseChangeRun(clientSnapshot, ejob_.newSnapshot)).run();
@@ -366,7 +374,7 @@ class ClientJobManager extends JobManager {
                     if (ejob_.state != EJob.State.SERVER_DONE) continue;
                     EJob ejob = null;
                     for (EJob ej: startedJobs) {
-                        if (ej.jobId == jobId) {
+                        if (ej.jobKey.jobId == jobId) {
                             ejob = ej;
                             break;
                         }
@@ -411,7 +419,7 @@ class ClientJobManager extends JobManager {
                 }
             } else {
                 logger.logp(Level.FINER, CLASS_NAME, "run", "Schedule {0}", job);
-                ejob.jobId = ++numStarted;
+//                ejob.jobKey.jobId = ++numStarted;
                 Throwable e = ejob.serialize(EDatabase.clientDatabase());
                 if (e != null) {
                     System.out.println("Job " + this + " was not launched in CLIENT mode");
@@ -419,7 +427,7 @@ class ClientJobManager extends JobManager {
                 } else {
                     try {
                         writeEJob(ejob);
-                        
+
                         ejob.getJob().started = true;
                         startedJobs.add(ejob);
 //                        clientJob = job;
@@ -432,9 +440,9 @@ class ClientJobManager extends JobManager {
             logger.exiting(CLASS_NAME, "run");
        }
     };
-    
-    
-    private static class SnapshotDatabaseChangeRun implements Runnable 
+
+
+    private static class SnapshotDatabaseChangeRun implements Runnable
 	{
 		private Snapshot oldSnapshot;
         private Snapshot newSnapshot;

@@ -3413,6 +3413,11 @@ public class User extends Listener
 	 * @param on true to perform snapshot logging iu a temporary file
 	 */
 	public static void setSnapshotLogging(boolean on) { cacheSnapshotLogging.setBoolean(on); }
+	/**
+	 * Method to tell whether to perform snapshot logging in a temporary file, by default.
+	 * @return true to perform snapshot logging in a temporary file
+	 */
+	public static boolean isFactorySnapshotLogging() { return cacheSnapshotLogging.getBooleanFactoryValue(); }
 
 	private static Pref cacheAutoTechnologySwitch = Pref.makeBooleanPref("AutoTechnologySwitch", tool.prefs, true);
 	/**

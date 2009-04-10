@@ -63,7 +63,7 @@ import javax.swing.SwingUtilities;
 /**
  *
  */
-public class ServerJobManager extends JobManager implements Observer, Runnable {
+public class ServerJobManager extends JobManager implements Observer {
     private static final String CLASS_NAME = Job.class.getName();
     private static final int DEFAULT_NUM_THREADS = 2;
     /** mutex for database synchronization. */  private final Condition databaseChangesMutex = newCondition();
@@ -75,15 +75,15 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
     private int numThreads;
     private final int maxNumThreads;
     private boolean runningChangeJob;
-    private boolean guiChanged;
+//    private boolean guiChanged;
     private boolean signalledEThread;
-
-    private Snapshot currentSnapshot = IdManager.stdIdManager.getInitialSnapshot();
 
     /** Creates a new instance of JobPool */
     ServerJobManager(int recommendedNumThreads) {
         maxNumThreads = initThreads(recommendedNumThreads);
         serverSocket = null;
+        if (StartupPrefs.isSnapshotLogging())
+            initSnapshotLogging();
     }
 
     ServerJobManager(int recommendedNumThreads, int socketPort) {
@@ -117,7 +117,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             FileOutputStream out = new FileOutputStream(tempFile);
             System.out.println("Writing snapshot log to " + tempFile);
             ActivityLogger.logMessage("Writing snapshot log to " + tempFile);
-            conn = new StreamClient(connectionId, null, new BufferedOutputStream(out), currentSnapshot);
+            conn = new StreamClient(connectionId, null, new BufferedOutputStream(out));
             serverConnections.add(conn);
         } catch (IOException e) {
             System.out.println("Failed to create snapshot log file:" + e.getMessage());
@@ -156,9 +156,9 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
                     setEJobState(ejob, EJob.State.CLIENT_DONE, null);
                 case CLIENT_DONE:
 //                    finishedJobs.remove(j.ejob);
-                    if (!Job.BATCHMODE && !guiChanged)
-                        SwingUtilities.invokeLater(this);
-                    guiChanged = true;
+//                    if (!Job.BATCHMODE && !guiChanged)
+//                        SwingUtilities.invokeLater(this);
+//                    guiChanged = true;
                     break;
             }
         } finally {
@@ -244,26 +244,26 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 //        }
 //        return null;
 //    }
-
-    void wantUpdateGui() {
-        lock();
-        try {
-            this.guiChanged = true;
-        } finally {
-            unlock();
-        }
-    }
-
-    private boolean guiChanged() {
-        lock();
-        try {
-            boolean b = this.guiChanged;
-            this.guiChanged = false;
-            return b;
-        } finally {
-            unlock();
-        }
-    }
+//
+//    void wantUpdateGui() {
+//        lock();
+//        try {
+//            this.guiChanged = true;
+//        } finally {
+//            unlock();
+//        }
+//    }
+//
+//    private boolean guiChanged() {
+//        lock();
+//        try {
+//            boolean b = this.guiChanged;
+//            this.guiChanged = false;
+//            return b;
+//        } finally {
+//            unlock();
+//        }
+//    }
 
     private boolean canDoIt() {
         if (waitingJobs.isEmpty()) return false;
@@ -286,7 +286,6 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
                 }
                break;
             case SERVER_DONE:
-                currentSnapshot = ejob.newSnapshot;
                 boolean removed;
                 if (oldState == EJob.State.WAITING) {
                     removed = waitingJobs.remove(ejob);
@@ -299,6 +298,8 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
                 assert removed;
 //                if (Job.threadMode != Job.Mode.BATCH && ejob.client == null)
 //                    finishedJobs.add(ejob);
+                ejob.state = newState;
+                Client.fireEJobEvent(ejob);
                 break;
             case CLIENT_DONE:
                 assert oldState == EJob.State.SERVER_DONE;
@@ -306,29 +307,29 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 //                    finishedJobs.remove(ejob);
         }
         ejob.state = newState;
-        Client.fireEJobEvent(ejob);
-        if (!Job.BATCHMODE && !guiChanged)
-            SwingUtilities.invokeLater(this);
-        guiChanged = true;
+        Client.fireJobQueueEvent(ejob.newSnapshot);
+//        if (!Job.BATCHMODE && !guiChanged)
+//            SwingUtilities.invokeLater(this);
+//        guiChanged = true;
         Job.logger.exiting(CLASS_NAME, "setJobState");
     }
 
-    private boolean isChangeJobQueuedOrRunning() {
-        lock();
-        try {
-            for (EJob ejob: startedJobs) {
-                Job job = ejob.getJob();
-                if (job != null && job.finished) continue;
-                if (ejob.jobType == Job.Type.CHANGE) return true;
-            }
-            for (EJob ejob: waitingJobs) {
-                if (ejob.jobType == Job.Type.CHANGE) return true;
-            }
-            return false;
-        } finally {
-            unlock();
-        }
-    }
+//    private boolean isChangeJobQueuedOrRunning() {
+//        lock();
+//        try {
+//            for (EJob ejob: startedJobs) {
+//                Job job = ejob.getJob();
+//                if (job != null && job.finished) continue;
+//                if (ejob.jobType == Job.Type.CHANGE) return true;
+//            }
+//            for (EJob ejob: waitingJobs) {
+//                if (ejob.jobType == Job.Type.CHANGE) return true;
+//            }
+//            return false;
+//        } finally {
+//            unlock();
+//        }
+//    }
 
     public void runLoop() {
         if (serverSocket == null) return;
@@ -341,7 +342,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
                 StreamClient conn;
                 lock();
                 try {
-                    conn = new StreamClient(connectionId, socket.getInputStream(), socket.getOutputStream(), currentSnapshot);
+                    conn = new StreamClient(connectionId, socket.getInputStream(), socket.getOutputStream());
                     serverConnections.add(conn);
                 } finally {
                     unlock();
@@ -354,35 +355,35 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         }
     }
 
-    /**
-     * This method is executed in Swing thread.
-     */
-    public void run() {
-        assert !Job.BATCHMODE;
-        Job.logger.logp(Level.FINE, CLASS_NAME, "run", "ENTER");
-        while (guiChanged()) {
-            ArrayList<Job> jobs = new ArrayList<Job>();
-            for (Iterator<Job> it = Job.getAllJobs(); it.hasNext();) {
-                Job j = it.next();
-                if (j.getDisplay()) {
-                    jobs.add(j);
-                }
-            }
-            JobTree.update(jobs);
-            TopLevel.setBusyCursor(isChangeJobQueuedOrRunning());
-//            for (;;) {
-//                EJob ejob = selectTerminateIt();
-//                if (ejob == null) break;
-//
-//                Job.logger.logp(Level.FINE, CLASS_NAME, "run", "terminate {0}", ejob.jobName);
-//                Job.runTerminate(ejob);
-//                setEJobState(ejob, EJob.State.CLIENT_DONE, null);
-//                Job.logger.logp(Level.FINE, CLASS_NAME, "run", "terminated {0}", ejob.jobName);
+//    /**
+//     * This method is executed in Swing thread.
+//     */
+//    public void run() {
+//        assert !Job.BATCHMODE;
+//        Job.logger.logp(Level.FINE, CLASS_NAME, "run", "ENTER");
+//        while (guiChanged()) {
+//            ArrayList<Job.Inform> jobs = new ArrayList<Job.Inform>();
+//            for (Iterator<Job> it = Job.getAllJobs(); it.hasNext();) {
+//                Job j = it.next();
+//                if (j.getDisplay()) {
+//                    jobs.add(j.getInform());
+//                }
 //            }
-            Job.logger.logp(Level.FINE, CLASS_NAME, "run", "wantToRedoJobTree");
-        }
-        Job.logger.logp(Level.FINE, CLASS_NAME, "run", "EXIT");
-    }
+//            JobTree.update(jobs);
+//            TopLevel.setBusyCursor(isChangeJobQueuedOrRunning());
+////            for (;;) {
+////                EJob ejob = selectTerminateIt();
+////                if (ejob == null) break;
+////
+////                Job.logger.logp(Level.FINE, CLASS_NAME, "run", "terminate {0}", ejob.jobName);
+////                Job.runTerminate(ejob);
+////                setEJobState(ejob, EJob.State.CLIENT_DONE, null);
+////                Job.logger.logp(Level.FINE, CLASS_NAME, "run", "terminated {0}", ejob.jobName);
+////            }
+//            Job.logger.logp(Level.FINE, CLASS_NAME, "run", "wantToRedoJobTree");
+//        }
+//        Job.logger.logp(Level.FINE, CLASS_NAME, "run", "EXIT");
+//    }
 
     public static void setUndoRedoStatus(boolean undoEnabled, boolean redoEnabled) {
         assert Job.jobManager instanceof ServerJobManager;

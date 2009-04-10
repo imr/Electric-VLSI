@@ -57,7 +57,7 @@ class EJob {
 
     /** Client which is owner of the Job. */    Client client;
     /** True if this Job was started by server */boolean startedByServer;
-    int jobId;
+    /** job key */                              Job.Key jobKey;
     /** type of job (change or examine) */      final Type jobType;
     /** name of job */                          final String jobName;
 
@@ -77,7 +77,7 @@ class EJob {
     /** Creates a new instance of EJob */
     EJob(StreamClient connection, int jobId, Job.Type jobType, String jobName, byte[] bytes) {
         this.client = connection;
-        this.jobId = jobId;
+        jobKey = new Job.Key(connection, jobId);
         this.jobType = jobType;
         this.jobName = jobName;
         state = State.WAITING;

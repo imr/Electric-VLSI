@@ -30,10 +30,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
-import javax.swing.event.TreeModelEvent;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -49,13 +47,13 @@ public class JobTree extends DefaultMutableTreeNode {
     private static final String jobNodeName = "JOBS";
     private static final JobTree jobTree = new JobTree();
     private static final TreePath jobPath = (new TreePath(ExplorerTreeModel.rootNode)).pathByAddingChild(jobTree);
-    
+
     private final Vector<JobTreeNode> jobNodes = new Vector<JobTreeNode>();
-    
+
     // array of ints
     private int[] indices = new int[1];
     private int indicesCount = 0;
-    
+
     private JobTree() {
         super(jobNodeName);
         children = jobNodes;
@@ -63,19 +61,19 @@ public class JobTree extends DefaultMutableTreeNode {
 
     /** Build Job explorer tree */
     public static DefaultMutableTreeNode getExplorerTree() { return jobTree; }
-    
+
     /**
      * Update Job Tree to given list of Jobs.
-     * @param jobs given list of jobs. 
+     * @param jobs given list of jobs.
      */
-    public static void update(List<Job> jobs) {
+    public static void update(List<Job.Inform> jobs) {
         jobTree.updateJobs(jobs);
     }
 
     /** popup menu when user right-clicks on job in explorer tree */
     public static JPopupMenu getPopupStatus(JobTreeNode jobNode) {
         JPopupMenu popup = new JPopupMenu();
-        ActionListener a = new JobMenuActionListener(jobNode.job);
+        ActionListener a = new JobMenuActionListener(jobNode);
         JMenuItem m;
         m = new JMenuItem("Get Info"); m.addActionListener(a); popup.add(m);
         m = new JMenuItem("Abort"); m.addActionListener(a); popup.add(m);
@@ -83,13 +81,13 @@ public class JobTree extends DefaultMutableTreeNode {
         return popup;
     }
 
-    // TreeNode overrides 
-    
+    // TreeNode overrides
+
     public boolean isLeaf() { return false; }
     public boolean getAllowsChildren() { return true; }
     public void insert(MutableTreeNode newChild, int childIndex) { throw new UnsupportedOperationException(); }
     public void remove(int childIndex) { throw new UnsupportedOperationException(); }
-    
+
     /**
      * Returns the index of the specified child in this node's child array.
      * If the specified node is not a child of this node, returns
@@ -113,15 +111,15 @@ public class JobTree extends DefaultMutableTreeNode {
         }
         return -1;
     }
-    
-    private void updateJobs(List<Job> newJobs) {
+
+    private void updateJobs(List<Job.Inform> newJobs) {
         assert SwingUtilities.isEventDispatchThread();
         indicesClear();
         int newJ = 0;
         for (int oldJ = 0; oldJ < jobNodes.size(); oldJ++) {
-            JobTreeNode node = jobNodes.get(oldJ);
+            Job.Key jobKey = jobNodes.get(oldJ).getKey();
             int k;
-            for (k = newJ; k < newJobs.size() && newJobs.get(k) != node.job; k++);
+            for (k = newJ; k < newJobs.size() && !newJobs.get(k).getKey().equals(jobKey); k++);
             if (k == newJobs.size())
                 indicesAdd(oldJ);
             else
@@ -136,13 +134,13 @@ public class JobTree extends DefaultMutableTreeNode {
             }
             ExplorerTreeModel.fireTreeNodesRemoved(jobTree, jobPath, childIndices, children);
         }
-        
+
         indicesClear();
         for (int i = 0; i < newJobs.size(); i++) {
-            Job job = newJobs.get(i);
-            if (i < jobNodes.size() && jobNodes.get(i).job == job)
+            Job.Key jobKey = newJobs.get(i).getKey();
+            if (i < jobNodes.size() && jobNodes.get(i).getKey().equals(jobKey))
                 continue;
-            jobNodes.add(i, new JobTreeNode(job));
+            jobNodes.add(i, new JobTreeNode(newJobs.get(i)));
             indicesAdd(i);
         }
         if (indicesCount != 0) {
@@ -154,18 +152,16 @@ public class JobTree extends DefaultMutableTreeNode {
             }
             ExplorerTreeModel.fireTreeNodesInserted(jobTree, jobPath, childIndices, children);
         }
-        if (newJobs.size() != jobNodes.size())
         assert newJobs.size() == jobNodes.size();
-        
+
         indicesClear();
         for (int i = 0; i < jobNodes.size(); i++) {
             JobTreeNode node = jobNodes.get(i);
-            assert node.job == newJobs.get(i);
-            String s = node.toString();
-            if (!node.jobString.equals(s)) {
-                node.jobString = s;
+            Job.Inform jobInfo = newJobs.get(i);
+            assert node.getKey().equals(jobInfo.getKey());
+            if (!node.toString().equals(jobInfo.toString()))
                 indicesAdd(i);
-            }
+            node.setInfo(jobInfo);
         }
         if (indicesCount != 0) {
             int[] childIndices = new int[indicesCount];
@@ -177,49 +173,52 @@ public class JobTree extends DefaultMutableTreeNode {
             ExplorerTreeModel.fireTreeNodesChanged(jobTree, jobPath, childIndices, children);
         }
     }
-    
+
     void indicesClear() { indicesCount = 0; }
-    
+
     void indicesAdd(int index) {
         if (indicesCount >= indices.length) {
             int[] newIndices = new int[indices.length*2];
             System.arraycopy(indices, 0, newIndices, 0, indices.length);
-            indices = newIndices; 
+            indices = newIndices;
         }
         indices[indicesCount++] = index;
     }
-    
+
     private static class JobMenuActionListener implements ActionListener {
-        private final Job job;
-        
-        JobMenuActionListener(Job job) { this.job = job; }
-        
+        private final JobTreeNode jobNode;
+
+        JobMenuActionListener(JobTreeNode jobNode) { this.jobNode = jobNode; }
+
         /** respond to menu item command */
         public void actionPerformed(ActionEvent e) {
             JMenuItem source = (JMenuItem)e.getSource();
             // extract library and cell from string
             if (source.getText().equals("Get Info"))
-                System.out.println(job.getInfo());
+                System.out.println(jobNode.getInfo());
             if (source.getText().equals("Abort"))
-                job.abort();
+                jobNode.jobInfo.abort();
             if (source.getText().equals("Delete")) {
-                if (!job.remove()) {  // the job is out of databaseChangesThread inside Job.remove()
+                if (!jobNode.jobInfo.remove()) {  // the job is out of databaseChangesThread inside Job.remove()
                     System.out.println("Cannot delete running jobs.  Wait till it is finished, or abort it");
                     return;
                 }
             }
         }
     }
-        
+
     public static class JobTreeNode implements TreeNode
     {
-        private Job job;
-        private String jobString;
+        private Job.Inform jobInfo;
 
-        JobTreeNode(Job job)
+        JobTreeNode(Job.Inform jobInfo)
         {
-            this.job = job;
-            jobString = job.toString();
+            this.jobInfo = jobInfo;
+        }
+
+        private void setInfo(Job.Inform jobInfo) {
+            assert getKey().equals(jobInfo.getKey());
+            this.jobInfo = jobInfo;
         }
 
         /**
@@ -229,7 +228,7 @@ public class JobTree extends DefaultMutableTreeNode {
         public TreeNode getChildAt(int childIndex) {
             throw new ArrayIndexOutOfBoundsException("node has no children");
         }
-        
+
         /**
          * Returns the number of children <code>TreeNode</code>s the receiver
          * contains.
@@ -237,14 +236,14 @@ public class JobTree extends DefaultMutableTreeNode {
         public int getChildCount() {
             return 0;
         }
-        
+
         /**
          * Returns the parent <code>TreeNode</code> of the receiver.
          */
         public TreeNode getParent() {
             throw new UnsupportedOperationException();
         }
-        
+
         /**
          * Returns the index of <code>node</code> in the receivers children.
          * If the receiver does not contain <code>node</code>, -1 will be
@@ -255,26 +254,28 @@ public class JobTree extends DefaultMutableTreeNode {
                 throw new IllegalArgumentException("argument is null");
             return -1;
         }
-        
+
         /**
          * Returns true if the receiver allows children.
          */
         public boolean getAllowsChildren() { return false; }
-        
+
         /**
          * Returns true if the receiver is a leaf.
          */
         public boolean isLeaf() { return true; }
-        
+
         /**
          * Returns the children of the receiver as an <code>Enumeration</code>.
          */
         public Enumeration children() {
             return DefaultMutableTreeNode.EMPTY_ENUMERATION;
         }
-        
-        public String toString() { return job.toString(); }
 
-        public String getInfo() { return job.getInfo(); }
+        public String toString() { return jobInfo.toString(); }
+
+        public Job.Key getKey() { return jobInfo.getKey(); }
+
+        public String getInfo() { return jobInfo.getInfo(); }
     }
 }

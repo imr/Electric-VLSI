@@ -23,17 +23,25 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 
+import com.sun.electric.tool.user.ui.JobTree;
+import com.sun.electric.tool.user.ui.TopLevel;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 
 /**
- * 
+ *
  */
 public abstract class Client {
     final int connectionId;
+    int serverJobId;
+    int clientJobId;
     final String userName = System.getProperty("user.name");
 	/** The current operating system. */					private static final OS os = OSInitialize();
 
@@ -95,47 +103,72 @@ public abstract class Client {
         this.connectionId = connectionId;
     }
 
+    public synchronized Job.Key newJobId(boolean isServer) {
+        int jobId = isServer ? ++serverJobId : --clientJobId;
+        return new Job.Key(this, jobId);
+    }
+
     public static class ServerEvent implements Runnable {
+        final Snapshot snapshot;
+        final long timeStamp;
         ServerEvent next;
-                
-        ServerEvent() {}
-        
+
+        ServerEvent(Snapshot snapshot) {
+            this(snapshot, System.currentTimeMillis());
+        }
+
+        ServerEvent(Snapshot snapshot, long timeStamp) {
+            this.snapshot = snapshot;
+            this.timeStamp = timeStamp;
+        }
+
         public void run() {}
         void dispatchOnStreamClient(StreamClient client) throws IOException {}
     }
-    
+
     static void fireEJobEvent(EJob ejob) {
         fireServerEvent(new EJobEvent(ejob, ejob.state));
     }
-    
-    static void print(Client client, String s) {
-        fireServerEvent(new PrintEvent(client, s));
+
+    static void print(EJob ejob, String s) {
+        fireServerEvent(new PrintEvent(ejob.oldSnapshot, ejob.client, s));
     }
-    
+
+    static void fireJobQueueEvent(Snapshot snapshot) {
+        ArrayList<Job.Inform> jobs = new ArrayList<Job.Inform>();
+        for (Iterator<Job> it = Job.getAllJobs(); it.hasNext();) {
+            Job j = it.next();
+            if (j.getDisplay()) {
+                jobs.add(j.getInform());
+            }
+        }
+        fireServerEvent(new JobQueueEvent(snapshot, jobs.toArray(new Job.Inform[jobs.size()])));
+    }
+
     private static void fireServerEvent(ServerEvent serverEvent) {
         if (Job.currentUI != null)
             Job.currentUI.addEvent(serverEvent);
         StreamClient.addEvent(serverEvent);
     }
-    
+
     static class EJobEvent extends ServerEvent {
         final EJob ejob;
         private final EJob.State newState;
-        final long timeStamp;
-        
+
         private EJobEvent(EJob ejob, EJob.State newState) {
+            super(ejob.oldSnapshot);
             this.ejob = ejob;
             this.newState = newState;
-            timeStamp = System.currentTimeMillis();
         }
-        
+
         EJobEvent(EJob ejob, EJob.State newState, long timeStamp) {
+            super(ejob.oldSnapshot, timeStamp);
             this.ejob = ejob;
             this.newState = newState;
-            this.timeStamp = timeStamp;
         }
-        
+
         public void run() {
+            assert newState == EJob.State.SERVER_DONE;
             if (newState == EJob.State.SERVER_DONE) {
                 boolean undoRedo = ejob.jobType == Job.Type.UNDO;
                 if (!ejob.isExamine()) {
@@ -143,8 +176,8 @@ public abstract class Client {
                     Job.getExtendedUserInterface().showSnapshot(ejob.newSnapshot, undoRedo);
                     Job.getExtendedUserInterface().restoreHighlights(restoredHighlights);
                 }
-                
-                //if (ejob.client == Job.getExtendedUserInterface()) 
+
+                //if (ejob.client == Job.getExtendedUserInterface())
                 {
                     Throwable jobException = null;
                     if (ejob.startedByServer)
@@ -155,7 +188,7 @@ public abstract class Client {
                         return;
                     }
                     jobException = ejob.deserializeResult();
-                    
+
                     Job job = ejob.clientJob;
                     if (job == null) {
                         ActivityLogger.logException(jobException);
@@ -169,10 +202,10 @@ public abstract class Client {
                     }
                     job.endTime = System.currentTimeMillis();
                     job.finished = true;                        // is this redundant with Thread.isAlive()?
-                    
+
                     // say something if it took more than a minute by default
                     if (job.reportExecution || (job.endTime - job.startTime) >= Job.MIN_NUM_SECONDS) {
-                        
+
                         if (User.isBeepAfterLongJobs())
                             Job.getExtendedUserInterface().beep();
                         System.out.println(job.getInfo());
@@ -180,27 +213,51 @@ public abstract class Client {
                 }
             }
         }
-        
+
         void dispatchOnStreamClient(StreamClient client) throws IOException {
             client.writeEJobEvent(ejob, newState, timeStamp);
         }
     }
-    
+
     static class PrintEvent extends ServerEvent {
 //        private final Client client;
         private final String s;
-        
-        PrintEvent(Client client, String s) {
+
+        PrintEvent(Snapshot snapshot, Client client, String s) {
+            super(snapshot);
 //            this.client = client;
             this.s = s;
         }
-        
+
         public void run() {
         }
-        
+
         void dispatchOnStreamClient(StreamClient client) throws IOException {
 //            if (client == this.client) // What about protocol logs ?
                 client.writeString(s);
+        }
+    }
+
+    static class JobQueueEvent extends ServerEvent {
+        private final Job.Inform[] jobQueue;
+
+        JobQueueEvent(Snapshot snapshot, Job.Inform[] jobQueue) {
+            super(snapshot);
+            this.jobQueue = jobQueue;
+        }
+
+        public void run() {
+            boolean busyCursor = false;
+            for (Job.Inform jobInform: jobQueue) {
+                if (jobInform.isChangeJobQueuedOrRunning())
+                    busyCursor = true;
+            }
+            JobTree.update(Arrays.asList(jobQueue));
+            TopLevel.setBusyCursor(busyCursor);
+        }
+
+        void dispatchOnStreamCline(StreamClient client) throws IOException {
+            client.writeJobQueue(jobQueue);
         }
     }
 }

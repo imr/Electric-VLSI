@@ -28,8 +28,6 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
-
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
@@ -87,7 +85,7 @@ public class EditingPreferences extends PrefPackage {
         defaultArcPins = new HashMap<ArcProtoId,PrimitiveNodeId>();
         if (factory) return;
 
-        Preferences prefRoot = Pref.getPrefRoot();
+        Preferences prefRoot = getPrefRoot();
         Preferences techPrefs = prefRoot.node(TECH_NODE);
         Preferences userPrefs = prefRoot.node(USER_NODE);
         for (Technology tech: techPool.values()) {

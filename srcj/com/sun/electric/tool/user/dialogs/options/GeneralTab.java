@@ -92,7 +92,7 @@ public class GeneralTab extends PreferencePanel
 		generalMaxSize.setText(Long.toString(User.getPermSpace()));
 
 		// Database section
-		generalSnapshotLogging.setSelected(User.isUseTwoJVMs());
+		generalSnapshotLogging.setSelected(User.isSnapshotLogging());
 		generalLogClientServer.setSelected(User.isUseClientServer());
 	}
 
@@ -145,8 +145,8 @@ public class GeneralTab extends PreferencePanel
 
 		// Database section
 		currBoolean = generalSnapshotLogging.isSelected();
-		if (currBoolean != User.isUseTwoJVMs())
-			User.setUseTwoJVMs(currBoolean);
+		if (currBoolean != User.isSnapshotLogging())
+			User.setSnapshotLogging(currBoolean);
 
 		currBoolean = generalLogClientServer.isSelected();
 		if (currBoolean != User.isUseClientServer())
@@ -179,6 +179,8 @@ public class GeneralTab extends PreferencePanel
 			User.setUseTwoJVMs(User.isFactoryUseTwoJVMs());
 		if (User.isFactoryUseClientServer() != User.isUseClientServer())
 			User.setUseClientServer(User.isFactoryUseClientServer());
+		if (User.isFactorySnapshotLogging() != User.isSnapshotLogging())
+			User.setSnapshotLogging(User.isFactorySnapshotLogging());
 	}
 
 	/** This method is called from within the constructor to

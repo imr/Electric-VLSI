@@ -29,6 +29,8 @@ import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.TextUtils;
@@ -41,6 +43,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Toolkit;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Iterator;
@@ -286,16 +289,18 @@ public abstract class Job implements Serializable {
         if (currentThread instanceof EThread && ((EThread)currentThread).ejob.jobType != Job.Type.EXAMINE) {
             ejob.startedByServer = true;
             ejob.client = ((EThread)currentThread).ejob.client;
+            ejob.jobKey = ejob.client.newJobId(ejob.startedByServer);
             ejob.serverJob.startTime = System.currentTimeMillis();
             ejob.serialize(EDatabase.serverDatabase());
             ejob.clientJob = null;
         } else {
             ejob.client = Job.getExtendedUserInterface();
+            ejob.jobKey = ejob.client.newJobId(ejob.startedByServer);
             ejob.clientJob.startTime = System.currentTimeMillis();
             ejob.serverJob = null;
             if (ejob.jobType != Job.Type.EXAMINE)
                 ejob.serialize(EDatabase.clientDatabase());
-         }
+        }
         jobManager.addJob(ejob, onMySnapshot);
     }
 
@@ -697,9 +702,9 @@ public abstract class Job implements Serializable {
         return ejob.editingPreferences;
     }
 
-    public static void wantUpdateGui() {
-        jobManager.wantUpdateGui();
-    }
+//    public static void wantUpdateGui() {
+//        jobManager.wantUpdateGui();
+//    }
 
     public static void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
         currentUI.updateNetworkErrors(cell, errors);
@@ -719,13 +724,13 @@ public abstract class Job implements Serializable {
     public String getInfo() {
         StringBuffer buf = new StringBuffer();
         buf.append("Job "+toString());
-        Date start = new Date(startTime);
         //buf.append("  start time: "+start+"\n");
         if (finished) {
 //            Date end = new Date(endTime);
             //buf.append("  end time: "+end+"\n");
             long time = endTime - startTime;
             buf.append(" took: "+TextUtils.getElapsedTime(time));
+            Date start = new Date(startTime);
             buf.append(" (started at "+start+")");
         } else if (getProgress() == null) {
             long time = System.currentTimeMillis()-startTime;
@@ -757,4 +762,142 @@ public abstract class Job implements Serializable {
         }
     }
 
+    public Key getKey() {
+        return ejob.jobKey;
+    }
+
+    public Inform getInform() {
+        return new Inform(this);
+    }
+
+    public static class Key implements Serializable {
+        public final int clientId;
+        public final int jobId;
+
+        private Key(int clientId, int jobId) {
+            this.clientId = clientId;
+            this.jobId = jobId;
+        }
+
+        Key(Client client, int jobId) {
+            this(client.connectionId, jobId);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == this) return true;
+            if (o instanceof Key) {
+                Key that = (Key)o;
+                return this.clientId == that.clientId && this.jobId == that.jobId;
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return jobId;
+        }
+
+        public void write(IdWriter writer) throws IOException {
+            writer.writeInt(clientId);
+            writer.writeInt(jobId);
+        }
+
+        public static Key read(IdReader reader) throws IOException {
+            int clientId = reader.readInt();
+            int jobId = reader.readInt();
+            return new Key(clientId, jobId);
+        }
+    }
+
+    public static class Inform implements Serializable {
+        private final Key jobKey;
+        private final boolean isChange;
+        private final String toString;
+        private final long startTime;
+        private final long endTime;
+        private final int finished;
+
+        Inform(Job job) {
+            jobKey = job.getKey();
+            isChange = (job.ejob.jobType == Type.CHANGE) || (job.ejob.jobType == Type.UNDO);
+            toString = job.toString();
+            startTime = job.startTime;
+            endTime = job.endTime;
+            if (job.finished)
+                finished = 1;
+            else if (job.getProgress() == null)
+                finished = 0;
+            else
+                finished = -1;
+        }
+
+        private Inform(Key jobKey, boolean isChange, String toString, long startTime, long endTime, int finished) {
+            this.jobKey = jobKey;
+            this.isChange = isChange;
+            this.toString = toString;
+            this.startTime = startTime;
+            this.endTime = endTime;
+            this.finished = finished;
+        }
+
+        public void abort() {
+            for (Iterator<Job> it = getAllJobs(); it.hasNext(); ) {
+                Job job = it.next();
+                if (job.getKey().equals(jobKey)) {
+                    job.abort();
+                    break;
+                }
+            }
+        }
+        public boolean remove() { return false; /*return job.remove();*/ }
+
+        public Key getKey() { return jobKey; }
+
+        @Override
+        public String toString() { return toString; }
+
+        public String getInfo() {
+            StringBuilder buf = new StringBuilder();
+            buf.append("Job "+toString());
+            //buf.append("  start time: "+start+"\n");
+            if (finished == 1) {
+    //            Date end = new Date(endTime);
+                //buf.append("  end time: "+end+"\n");
+                long time = endTime - startTime;
+                buf.append(" took: "+TextUtils.getElapsedTime(time));
+                Date start = new Date(startTime);
+                buf.append(" (started at "+start+")");
+            } else if (finished == 0) {
+                long time = System.currentTimeMillis()-startTime;
+                buf.append(" has not finished. Current running time: " + TextUtils.getElapsedTime(time));
+            } else {
+                buf.append(" did not successfully finish.");
+            }
+            return buf.toString();
+        }
+
+        public boolean isChangeJobQueuedOrRunning() {
+            return finished != 1 && isChange;
+        }
+
+        public void write(IdWriter writer) throws IOException {
+            jobKey.write(writer);
+            writer.writeBoolean(isChange);
+            writer.writeString(toString);
+            writer.writeLong(startTime);
+            writer.writeLong(endTime);
+            writer.writeInt(finished);
+        }
+
+        public static Inform read(IdReader reader) throws IOException {
+            Key jobKey = Key.read(reader);
+            boolean isChange = reader.readBoolean();
+            String toString = reader.readString();
+            long startTime = reader.readLong();
+            long endTime = reader.readLong();
+            int finished = reader.readInt();
+            return new Inform(jobKey, isChange, toString, startTime, endTime, finished);
+        }
+    }
 }

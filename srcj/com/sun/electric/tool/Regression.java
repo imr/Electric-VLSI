@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.technology.Technology;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -40,7 +41,7 @@ import java.net.Socket;
  */
 public class Regression {
     private static final int port = 35742;
-    
+
     public static void main(String[] args) {
         runScript(args[0]);
     }
@@ -50,7 +51,7 @@ public class Regression {
         EDatabase database = EDatabase.clientDatabase();
         Snapshot currentSnapshot = database.getInitialSnapshot();
         System.out.println("Running " + script);
-        
+
         try {
             System.out.println("Attempting to connect to port " + port + " ...");
             Socket socket = null;
@@ -76,18 +77,18 @@ public class Regression {
                 System.exit(1);
             }
             System.out.println("Connected");
-            
+
             EJob ejob = EvalJavaBsh.runScriptJob(script).ejob;
             ejob.serialize(EDatabase.clientDatabase());
-            clientOutputStream.writeInt(ejob.jobId);
+            clientOutputStream.writeInt(ejob.jobKey.jobId);
             clientOutputStream.writeUTF(ejob.jobType.toString());
             clientOutputStream.writeUTF(ejob.jobName);
             clientOutputStream.writeInt(ejob.serializedJob.length);
             clientOutputStream.write(ejob.serializedJob);
             clientOutputStream.flush();
-            
+
             Technology.initAllTechnologies();
-            
+
             for (;;) {
                 byte tag = reader.readByte();
                 switch (tag) {
@@ -115,6 +116,15 @@ public class Regression {
                     case 3:
                         String str = reader.readString();
                         System.out.print("#" + str);
+                        break;
+                    case 4:
+                        System.out.print("JobQueue");
+                        int jobQueueSize = reader.readInt();
+                        for (int jobIndex = 0; jobIndex < jobQueueSize; jobIndex++) {
+                            Job.Inform jobInform = Job.Inform.read(reader);
+                            System.out.print(" " + jobInform);
+                        }
+                        System.out.println();
                         break;
                     default:
                         System.out.println("Bad tag " + tag);

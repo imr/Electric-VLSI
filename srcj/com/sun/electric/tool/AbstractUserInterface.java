@@ -32,8 +32,8 @@ import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ErrorLogger;
-
 import com.sun.electric.tool.user.User;
+
 import java.util.List;
 
 /**

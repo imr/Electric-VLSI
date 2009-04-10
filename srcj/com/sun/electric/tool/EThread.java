@@ -187,8 +187,7 @@ class EThread extends Thread {
     UserInterface getUserInterface() { return userInterface; }
 
     void print(String str) {
-        Client client = ejob != null ? ejob.client : null;
-        Client.print(client, str);
+        Client.print(ejob, str);
     }
 
     /**
