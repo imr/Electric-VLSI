@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
@@ -41,6 +42,8 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.AbstractUserInterface;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.user.redisplay.VectorCache;
@@ -564,6 +567,11 @@ public class User extends Listener
 	 */
 	public static void fixStaleCellReferences(IdMapper idMapper) {
 		if (idMapper == null) return;
+        AbstractUserInterface ui = Job.getExtendedUserInterface();
+        EDatabase database = ui.getDatabase();
+        LibId curLibId = ui.getCurrentLibraryId();
+        if (curLibId != null && idMapper.get(curLibId) != curLibId)
+            ui.setCurrentLibrary(database.getLib(idMapper.get(curLibId)));
 		for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
 			WindowFrame frame = it.next();
             WindowContent wnd = frame.getContent();
@@ -571,7 +579,7 @@ public class User extends Listener
             if (cell == null) continue;
             if (!cell.isLinked()) {
                 CellId cellId = idMapper.get(cell.getId());
-                Cell newCell = EDatabase.clientDatabase().getCell(cellId);
+                Cell newCell = database.getCell(cellId);
                 if (newCell == null) continue;
                 wnd.setCell(newCell, VarContext.globalContext, null);
             }
@@ -743,7 +751,7 @@ public class User extends Listener
 	public static void setCurrentLibrary(Library lib)
 	{
         assert SwingUtilities.isEventDispatchThread();
-		lib.setCurrent();
+        Job.getExtendedUserInterface().setCurrentLibrary(lib);
 
 		// if switching to a technology library, load its colormap into the Artwork technology
 		Cell techLibFactors = null;

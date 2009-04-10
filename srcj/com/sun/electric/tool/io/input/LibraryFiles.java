@@ -413,6 +413,7 @@ public abstract class LibraryFiles extends Input
 
         String name = lib.getName();
         URL libFile = lib.getLibFile();
+        boolean isCurrent = Library.getCurrent() == lib;
         IdMapper idMapper = lib.setName("___old___"+name);
         if (idMapper == null) return null;
         lib = idMapper.get(lib.getId()).inDatabase(EDatabase.serverDatabase());
@@ -420,6 +421,8 @@ public abstract class LibraryFiles extends Input
         startProgressDialog("library", name);
         Library newLib = readLibrary(libFile, name, type, true);
         stopProgressDialog();
+        if (isCurrent)
+            Job.setCurrentLibraryInJob(newLib);
 
         // replace all old cells with new cells
         Cell.setAllowCircularLibraryDependences(true);

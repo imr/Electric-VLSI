@@ -28,6 +28,8 @@ import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
@@ -160,6 +162,7 @@ public abstract class Job implements Serializable {
 												/*private*/ boolean reportExecution = false;
     /** tool running the job */                 /*private*/ Tool tool;
     /** current technology */                   final TechId curTechId;
+    /** current library */                      final LibId curLibId;
 //    /** priority of job */                      private Priority priority;
 //    /** bottom of "up-tree" of cells affected */private Cell upCell;
 //    /** top of "down-tree" of cells affected */ private Cell downCell;
@@ -229,7 +232,9 @@ public abstract class Job implements Serializable {
         this.deleteWhenDone = true;
         startTime = endTime = 0;
         Technology curTech = Technology.getCurrent();
-        curTechId = curTech != null ? curTech.getId() : null; 
+        curTechId = curTech != null ? curTech.getId() : null;
+        Library curLib = Library.getCurrent();
+        curLibId = curLib != null ? curLib.getId() : null;
 //        started = finished = aborted = scheduledToAbort = false;
 //        thread = null;
 	}
@@ -446,6 +451,12 @@ public abstract class Job implements Serializable {
     public static boolean inServerThread() {
         Thread thread = Thread.currentThread();
         return thread instanceof EThread && ((EThread)thread).isServerThread;
+    }
+
+    public static void setCurrentLibraryInJob(Library lib) {
+        EThread thread = (EThread)Thread.currentThread();
+        assert thread.ejob.jobType == Type.CHANGE;
+        thread.userInterface.curLibId = lib != null ? lib.getId() : null;
     }
 
     /** get status */

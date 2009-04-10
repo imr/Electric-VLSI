@@ -53,7 +53,7 @@ class EThread extends Thread {
     /* Database in which thread is executing. */
     EDatabase database;
 
-    private final ServerJobManager.UserInterfaceRedirect userInterface = new ServerJobManager.UserInterfaceRedirect();
+    final ServerJobManager.UserInterfaceRedirect userInterface = new ServerJobManager.UserInterfaceRedirect();
 
     /** Creates a new instance of EThread */
     EThread(int id) {
@@ -89,6 +89,7 @@ class EThread extends Thread {
                         database.getNetworkManager().startBatch();
                         Constraints.getCurrent().startBatch(ejob.oldSnapshot);
                         userInterface.curTechId = ejob.serverJob.curTechId;
+                        userInterface.curLibId = ejob.serverJob.curLibId;
                         if (!ejob.serverJob.doIt())
                             throw new JobException("job " + ejob.jobName + " returned false");
                         Constraints.getCurrent().endBatch(ejob.client.userName);
@@ -100,6 +101,7 @@ class EThread extends Thread {
                         database.lowLevelSetCanUndoing(true);
                         database.getNetworkManager().startBatch();
                         userInterface.curTechId = null;
+                        userInterface.curLibId = null;
                         int snapshotId = ((Undo.UndoJob)ejob.serverJob).getSnapshotId();
                         Snapshot undoSnapshot = findInCache(snapshotId);
                         if (undoSnapshot == null)
@@ -110,6 +112,7 @@ class EThread extends Thread {
                         break;
                     case REMOTE_EXAMINE:
                         userInterface.curTechId = ejob.serverJob.curTechId;
+                        userInterface.curLibId = ejob.serverJob.curLibId;
                         if (!ejob.serverJob.doIt())
                             throw new JobException("job " + ejob.jobName + " returned false");
                         break;
@@ -120,6 +123,7 @@ class EThread extends Thread {
                                 throw e;
                         }
                         userInterface.curTechId = ejob.clientJob.curTechId;
+                        userInterface.curLibId = ejob.clientJob.curLibId;
                         if (!ejob.clientJob.doIt())
                             throw new JobException("job " + ejob.jobName + " returned false");
                         break;

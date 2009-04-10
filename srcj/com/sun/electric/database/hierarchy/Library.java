@@ -87,8 +87,6 @@ public class Library extends ElectricObject implements Comparable<Library>
 	/** list of Cells in this library */					final TreeMap<CellName,Cell> cells = new TreeMap<CellName,Cell>();
     /** DELIB cell files. */                                private HashSet<String> delibCellFiles = new HashSet<String>();
 
-	/** the current library in Electric */					private static Library curLib = null;
-
 	// ----------------- private and protected methods --------------------
 
 	/**
@@ -201,26 +199,24 @@ public class Library extends ElectricObject implements Comparable<Library>
 		}
 		// cannot delete the current library
 		Library newCurLib = null;
-		if (curLib == this)
-            curLib = null;
-
-//		{
-//			// find another library
-//			for (Library lib : database.libraries.values())
-//			{
-//				if (lib == curLib) continue;
-//				if (lib.isHidden()) continue;
-//				newCurLib = lib;
-//				break;
-//			}
-//			if (newCurLib == null)
-//			{
-//				System.out.println("Cannot delete the last library");
-//				Job.getUserInterface().showInformationMessage("Cannot delete the last "+toString(),
-//					"Close library");
-//				return false;
-//			}
-//		}
+		if (getCurrent() == this)
+		{
+			// find another library
+			for (Library lib : database.libraries.values())
+			{
+				if (lib == this) continue;
+				if (lib.isHidden()) continue;
+				newCurLib = lib;
+				break;
+			}
+			if (newCurLib == null)
+			{
+				System.out.println("Cannot delete the last library");
+				Job.getUserInterface().showInformationMessage("Cannot delete the last "+toString(),
+					"Close library");
+				return false;
+			}
+		}
 
 		// make sure it is in the list of libraries
 		if (database.libraries.get(getName()) != this)
@@ -272,7 +268,8 @@ public class Library extends ElectricObject implements Comparable<Library>
         database.removeLib(getId());
 
 		// set the new current library if appropriate
-		if (newCurLib != null) newCurLib.setCurrent();
+		if (newCurLib != null)
+            Job.setCurrentLibraryInJob(newCurLib);
 
 		// always broadcast library changes
 //		Undo.setNextChangeQuiet(false);
@@ -815,12 +812,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 * Method to return the current Library.
 	 * @return the current Library.
 	 */
-	public static Library getCurrent() { return curLib; }
-
-	/**
-	 * Method to make this the current Library.
-	 */
-	public void setCurrent() { curLib = this; }
+	public static Library getCurrent() { return Job.getUserInterface().getCurrentLibrary(); }
 
 	/**
 	 * Low-level method to get the user bits.
@@ -926,7 +918,7 @@ public class Library extends ElectricObject implements Comparable<Library>
         Constraints.getCurrent().renameIds(idMapper);
         Library newLib = database.getLib(newLibId);
         if (isCurrent)
-            newLib.setCurrent();
+            Job.setCurrentLibraryInJob(newLib);
         return idMapper;
 
 //		String oldName = d.libId.libName;

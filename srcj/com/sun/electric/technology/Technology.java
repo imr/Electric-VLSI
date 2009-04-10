@@ -1661,17 +1661,10 @@ public class Technology implements Comparable<Technology>, Serializable
         out.println(setting.getXmlPath() + "=" + settings.get(setting) + "(" + setting.getFactoryValue() + ")");
     }
 
-    static void printlnPref(PrintWriter out, int indent, Pref pref) {
-        if (pref == null) return;
-        while (indent-- > 0)
-            out.print("\t");
-        out.println(pref.getPrefName() + "=" + pref.getFactoryValue() + "(" + pref.getFactoryValue() + ")");
-    }
-
     static void printlnPref(PrintWriter out, int indent, String prefName, Object factoryValue) {
         while (indent-- > 0)
             out.print("\t");
-        out.println(prefName + "=" + factoryValue + "(" + factoryValue + ")");
+        out.println(prefName + "=" + factoryValue);
     }
 
     protected static void printlnBits(PrintWriter out, String[] bitNames, int bits) {

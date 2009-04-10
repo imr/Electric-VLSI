@@ -26,6 +26,8 @@ package com.sun.electric.tool;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
@@ -39,6 +41,7 @@ import java.util.List;
  */
 public abstract class AbstractUserInterface extends Client implements UserInterface {
     private TechId curTechId;
+    private LibId curLibId;
 
     protected AbstractUserInterface() {
         super(-1);
@@ -62,6 +65,17 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     public void setCurrentTechnology(Technology tech) {
         if (tech != null)
             curTechId = tech.getId();
+    }
+	/**
+	 * Method to return the current Library.
+	 * @return the current Library.
+	 */
+	public Library getCurrentLibrary() {
+        return curLibId != null ? getDatabase().getLib(curLibId) : null;
+    }
+    public LibId getCurrentLibraryId() { return curLibId; }
+    public void setCurrentLibrary(Library lib) {
+        curLibId = lib != null ? lib.getId() : null;
     }
     // For Mac OS X version
     protected void initializeInitJob(Job job, Object mode) {}

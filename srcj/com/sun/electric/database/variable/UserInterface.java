@@ -26,6 +26,7 @@ package com.sun.electric.database.variable;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -47,6 +48,11 @@ public interface UserInterface
 	 * @return the current database (null if none).
 	 */
 	public Technology getCurrentTechnology();
+	/**
+	 * Method to return the current Library.
+	 * @return the current Library.
+	 */
+	public Library getCurrentLibrary();
 	/**
 	 * Method to return the current "EditWindow_" object.
 	 * @return the current "EditWindow_" object (null if none).

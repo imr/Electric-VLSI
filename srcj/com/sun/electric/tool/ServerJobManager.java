@@ -28,7 +28,9 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
@@ -431,9 +433,10 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
     /*private*/ static class UserInterfaceRedirect implements UserInterface
 	{
         TechId curTechId;
-        
+        LibId curLibId;
+        private String progressNote;
+
     	private static void printStackTrace(String methodName) {
-            if (true) return;
             if (!Job.getDebug()) return;
             System.out.println("UserInterface." + methodName + " was called from DatabaseChangesThread");
     		Exception e = new Exception();
@@ -447,7 +450,6 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          */
         public void startProgressDialog(String msg, String filePath)
         {
-//            printStackTrace("startProgressDialog");
             Job.currentUI.startProgressDialog(msg, filePath);
         }
 
@@ -456,7 +458,6 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          */
         public void stopProgressDialog()
         {
-//            printStackTrace("stopProgressDialog");
             Job.currentUI.stopProgressDialog();
         }
 
@@ -466,7 +467,6 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          */
         public void setProgressValue(long pct)
         {
-//            printStackTrace("updateProgressDialog");
             Job.currentUI.setProgressValue(pct);
         }
 
@@ -476,7 +476,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          */
         public void setProgressNote(String message)
         {
-//            printStackTrace("setProgressNote");
+            progressNote = message;
             Job.currentUI.setProgressNote(message);
         }
 
@@ -486,8 +486,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          */
         public String getProgressNote()
         {
-//            printStackTrace("setProgressNote");
-            return Job.currentUI.getProgressNote();
+            return progressNote;
         }
 
     	public EDatabase getDatabase() {
@@ -497,17 +496,20 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             EDatabase database = getDatabase();
             Technology tech = null;
             if (curTechId != null)
-                tech = database.getTech(Job.currentUI.getCurrentTechId());
+                tech = database.getTech(curTechId);
             if (tech == null)
                 tech = database.getTechPool().findTechnology(User.getDefaultTechnology());
             if (tech == null)
                 tech = database.getTechPool().findTechnology("mocmos");
             return tech;
         }
+        public Library getCurrentLibrary() {
+            return curLibId != null ? getDatabase().getLib(curLibId) : null;
+        }
 
 		public EditWindow_ getCurrentEditWindow_() {
             printStackTrace("getCurrentEditWindow");
-            return Job.currentUI.getCurrentEditWindow_();
+            return null;
         }
 		public EditWindow_ needCurrentEditWindow_()
 		{
@@ -531,14 +533,13 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         }
 
         public void adjustReferencePoint(Cell cell, double cX, double cY) {
-//            System.out.println("UserInterface.adjustReferencePoint was called from DatabaseChangesThread");
+            Job.currentUI.adjustReferencePoint(cell, cX, cY);
         };
 		public void alignToGrid(Point2D pt) {
             printStackTrace("alignToGrid");
         }
 		public Dimension2D getGridAlignment() { return new Dimension2D.Double(1.0, 1.0); }
 		public int getDefaultTextSize() { return 14; }
-//		public Highlighter getHighlighter();
 		public EditWindow_ displayCell(Cell cell) { throw new IllegalStateException(); }
 
         public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate) {
@@ -570,8 +571,6 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         public void showErrorMessage(Object message, String title)
         {
             Job.currentUI.showErrorMessage(message, title);
-//            System.out.println("UserInterface.showErrorMessage was called from DatabaseChangesThread");
-//        	System.out.println(message);
         }
 
         /**
@@ -582,8 +581,6 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         public void showInformationMessage(Object message, String title)
         {
             Job.currentUI.showInformationMessage(message, title);
-//            System.out.println("UserInterface.showInformationMessage was called from DatabaseChangesThread");
-//        	System.out.println(message);
         }
 
         /**
@@ -623,11 +620,6 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          * @return the string (null if cancelled).
          */
         public String askForInput(Object message, String title, String def) { throw new IllegalStateException(); }
-
-        /** For Pref */
-        public void restoreSavedBindings(boolean initialCall) {
-            printStackTrace("restoreSavedBindings");
-        }
 
         /**
          * Save current state of highlights and return its ID.
