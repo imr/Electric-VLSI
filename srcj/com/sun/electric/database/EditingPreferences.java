@@ -25,17 +25,23 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.text.PrefPackage;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
 import java.util.prefs.Preferences;
 
 /**
@@ -55,6 +61,16 @@ public class EditingPreferences extends PrefPackage {
     private static final String KEY_DIRECTIONAL = "DefaultDirectional";
 	private static final String KEY_ANGLE = "DefaultAngle";
 
+    private static final String KEY_ALIGNMENT = "AlignmentToGridVector";
+    private static final Dimension2D[] DEFAULT_ALIGNMENTS = {
+        new ImmutableDimension2D(20),
+        new ImmutableDimension2D(10),
+        new ImmutableDimension2D(5),
+        new ImmutableDimension2D(1),
+        new ImmutableDimension2D(0.5)
+    };
+    private static final int DEFAULT_ALIGNMENT_INDEX = 3;
+
     private static final ThreadLocal<EditingPreferences> threadEditingPreferences = new ThreadLocal<EditingPreferences>();
 
     private final TechPool techPool;
@@ -62,18 +78,23 @@ public class EditingPreferences extends PrefPackage {
     private HashMap<ArcProtoId,ImmutableArcInst> defaultArcs;
     private HashMap<ArcProtoId,Integer> defaultArcAngleIncrements;
     private HashMap<ArcProtoId,PrimitiveNodeId> defaultArcPins;
+    private Dimension2D[] alignments;
+    private int alignmentIndex;
 
     private EditingPreferences(EditingPreferences that,
             HashMap<PrimitiveNodeId,ImmutableNodeInst> defaultNodes,
             HashMap<ArcProtoId,ImmutableArcInst> defaultArcs,
             HashMap<ArcProtoId,Integer> defaultArcAngleIncrements,
-            HashMap<ArcProtoId,PrimitiveNodeId> defaultArcPins) {
+            HashMap<ArcProtoId,PrimitiveNodeId> defaultArcPins,
+            Dimension2D[] alignments, int alignmentIndex) {
         super(that);
         this.techPool = that.techPool;
         this.defaultNodes = defaultNodes;
         this.defaultArcs = defaultArcs;
         this.defaultArcAngleIncrements = defaultArcAngleIncrements;
         this.defaultArcPins = defaultArcPins;
+        this.alignments = alignments;
+        this.alignmentIndex = alignmentIndex;
     }
 
     public EditingPreferences(boolean factory, TechPool techPool) {
@@ -83,7 +104,11 @@ public class EditingPreferences extends PrefPackage {
         defaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>();
         defaultArcAngleIncrements = new HashMap<ArcProtoId,Integer>();
         defaultArcPins = new HashMap<ArcProtoId,PrimitiveNodeId>();
-        if (factory) return;
+        if (factory) {
+            alignments = DEFAULT_ALIGNMENTS;
+            alignmentIndex = DEFAULT_ALIGNMENT_INDEX;
+            return;
+        }
 
         Preferences prefRoot = getPrefRoot();
         Preferences techPrefs = prefRoot.node(TECH_NODE);
@@ -170,6 +195,15 @@ public class EditingPreferences extends PrefPackage {
                         defaultArcPins.put(apId, pin.getId());
                 }
             }
+        }
+
+        String alignmentStr = userPrefs.get(KEY_ALIGNMENT, null);
+        if (alignmentStr != null) {
+            alignments = correctAlignmentGridVector(transformStringIntoArray(alignmentStr));
+            alignmentIndex = Math.max(0, Math.min(alignments.length - 1, getDefaultAlignmentIndex(alignmentStr)));
+        } else {
+            alignments = DEFAULT_ALIGNMENTS;
+            alignmentIndex = DEFAULT_ALIGNMENT_INDEX;
         }
     }
 
@@ -282,6 +316,12 @@ public class EditingPreferences extends PrefPackage {
                 }
             }
         }
+        if (oldEp == null || alignments != oldEp.alignments || alignmentIndex != oldEp.alignmentIndex) {
+            if (removeDefaults && Arrays.equals(alignments, DEFAULT_ALIGNMENTS) && alignmentIndex == DEFAULT_ALIGNMENT_INDEX)
+                userPrefs.remove(KEY_ALIGNMENT);
+            else
+                userPrefs.put(KEY_ALIGNMENT, transformArrayIntoString(alignments, alignmentIndex));
+        }
     }
 
     public EditingPreferences withNodeSize(PrimitiveNodeId pnId, EPoint size) {
@@ -299,7 +339,8 @@ public class EditingPreferences extends PrefPackage {
                 newDefaultNodes,
                 this.defaultArcs,
                 this.defaultArcAngleIncrements,
-                this.defaultArcPins);
+                this.defaultArcPins,
+                this.alignments, this.alignmentIndex);
     }
 
     public EditingPreferences withNodesReset() {
@@ -308,7 +349,8 @@ public class EditingPreferences extends PrefPackage {
                 new HashMap<PrimitiveNodeId,ImmutableNodeInst>(),
                 this.defaultArcs,
                 this.defaultArcAngleIncrements,
-                this.defaultArcPins);
+                this.defaultArcPins,
+                this.alignments, this.alignmentIndex);
     }
 
     public EditingPreferences withArcFlags(ArcProtoId apId, int flags) {
@@ -326,7 +368,8 @@ public class EditingPreferences extends PrefPackage {
                 this.defaultNodes,
                 newDefaultArcs,
                 this.defaultArcAngleIncrements,
-                this.defaultArcPins);
+                this.defaultArcPins,
+                this.alignments, this.alignmentIndex);
     }
 
     public EditingPreferences withArcGridExtend(ArcProtoId apId, long gridExtend) {
@@ -344,7 +387,8 @@ public class EditingPreferences extends PrefPackage {
                 this.defaultNodes,
                 newDefaultArcs,
                 this.defaultArcAngleIncrements,
-                this.defaultArcPins);
+                this.defaultArcPins,
+                this.alignments, this.alignmentIndex);
     }
 
     public EditingPreferences withArcAngleIncrement(ArcProtoId apId, int angleIncrement) {
@@ -361,7 +405,8 @@ public class EditingPreferences extends PrefPackage {
                 this.defaultNodes,
                 this.defaultArcs,
                 newDefaultArcAngleIncrements,
-                this.defaultArcPins);
+                this.defaultArcPins,
+                this.alignments, this.alignmentIndex);
     }
 
     public EditingPreferences withArcPin(ArcProtoId apId, PrimitiveNodeId arcPinId) {
@@ -378,7 +423,8 @@ public class EditingPreferences extends PrefPackage {
                 this.defaultNodes,
                 this.defaultArcs,
                 this.defaultArcAngleIncrements,
-                newDefaultArcPins);
+                newDefaultArcPins,
+                this.alignments, this.alignmentIndex);
     }
 
     public EditingPreferences withArcsReset() {
@@ -387,7 +433,8 @@ public class EditingPreferences extends PrefPackage {
                 this.defaultNodes,
                 new HashMap<ArcProtoId,ImmutableArcInst>(),
                 new HashMap<ArcProtoId,Integer>(),
-                new HashMap<ArcProtoId,PrimitiveNodeId>());
+                new HashMap<ArcProtoId,PrimitiveNodeId>(),
+                this.alignments, this.alignmentIndex);
     }
 
     public ImmutableNodeInst getDefaultNode(PrimitiveNodeId pnId) {
@@ -415,9 +462,177 @@ public class EditingPreferences extends PrefPackage {
                     this.defaultNodes.equals(that.defaultNodes) &&
                     this.defaultArcs.equals(that.defaultArcs) &&
                     this.defaultArcAngleIncrements.equals(that.defaultArcAngleIncrements) &&
-                    this.defaultArcPins.equals(that.defaultArcPins);
+                    this.defaultArcPins.equals(that.defaultArcPins) &&
+                    Arrays.equals(this.alignments, that.alignments) &&
+                    this.alignmentIndex == that.alignmentIndex;
         }
         return false;
+    }
+
+	/**
+	 * Method to return the default alignment of objects to the grid.
+	 * The default is (1,1), meaning that placement and movement should land on whole grid units.
+	 * @return the default alignment of objects to the grid.
+	 */
+	public Dimension2D getAlignmentToGrid() { return alignments[alignmentIndex]; }
+
+	/**
+	 * Method to return index of the current alignment.
+	 * @return the index of the current alignment.
+	 */
+	public int getAlignmentToGridIndex() { return alignmentIndex; }
+
+	/**
+	 * Method to return an array of five grid alignment values.
+	 * @return an array of five grid alignment values.
+	 */
+	public Dimension2D[] getAlignmentToGridVector() { return alignments.clone(); }
+
+    /**
+	 * Method to set the default alignment of objects to the grid.
+	 * @param dist the array of grid alignment values.
+	 * @param current the index in the array that is the current grid alignment.
+	 */
+    public EditingPreferences withAlignment(Dimension2D[] dist, int current) {
+        dist = correctAlignmentGridVector(dist.clone());
+        current = Math.max(0, Math.min(dist.length - 1, current));
+        if (Arrays.equals(dist, this.alignments) && current == alignmentIndex) return this;
+        return new EditingPreferences(this,
+                this.defaultNodes,
+                this.defaultArcs,
+                this.defaultArcAngleIncrements,
+                this.defaultArcPins,
+                dist, current);
+    }
+
+    public EditingPreferences withAlignmentReset() {
+        if (Arrays.equals(alignments, DEFAULT_ALIGNMENTS) && alignmentIndex == DEFAULT_ALIGNMENT_INDEX) return this;
+        return new EditingPreferences(this,
+                this.defaultNodes,
+                this.defaultArcs,
+                this.defaultArcAngleIncrements,
+                this.defaultArcPins,
+                DEFAULT_ALIGNMENTS, DEFAULT_ALIGNMENT_INDEX);
+    }
+
+ 	private static Dimension2D[] correctAlignmentGridVector(Dimension2D [] retVal)
+	{
+		if (retVal.length < 5)
+		{
+			Dimension2D [] newRetVal = new Dimension2D[5];
+			int shift = 5 - retVal.length;
+			for(int i=retVal.length-1; i>=0; i--) newRetVal[i+shift] = retVal[i];
+			while (shift > 0)
+			{
+				shift--;
+				newRetVal[shift] = new Dimension2D.Double(newRetVal[shift+1].getWidth() * 2, newRetVal[shift+1].getHeight() * 2);
+			}
+			retVal = newRetVal;
+		}
+        for (int i = 0; i < retVal.length; i++)
+            retVal[i] = new ImmutableDimension2D(retVal[i]);
+		return retVal;
+	}
+
+    /**
+     * Method to extract an array of Dimensions from a string.
+     * The format of the string is "(x1/y1 x2/y2 x3/y3 ...)"
+     * where the "/y1" part may be omitted.  Also, if the dimension
+     * starts with an "*" then it is the current one.
+     * @param vector the input string.
+     * @return the array of values.
+     */
+    private static Dimension2D[] transformStringIntoArray(String vector)
+    {
+        StringTokenizer parse = new StringTokenizer(vector, "( )", false);
+        List<Dimension2D> valuesFound = new ArrayList<Dimension2D>();
+        while (parse.hasMoreTokens())
+        {
+            String value = parse.nextToken();
+            if (value.startsWith("*")) value = value.substring(1);
+            int slashPos = value.indexOf('/');
+            String xPart = value, yPart = value;
+            if (slashPos >= 0)
+            {
+            	xPart = value.substring(0, slashPos);
+            	yPart = value.substring(slashPos+1);
+            }
+            try {
+            	Dimension2D dim = new Dimension2D.Double(Math.abs(Double.parseDouble(xPart)), Math.abs(Double.parseDouble(yPart)));
+                valuesFound.add(dim);
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+        Dimension2D [] values = new Dimension2D[valuesFound.size()];
+        for(int i=0; i<valuesFound.size(); i++) values[i] = valuesFound.get(i);
+        return values;
+    }
+
+    /**
+     * Method to extract an array of Dimensions from a string.
+     * The format of the string is "(x1/y1 x2/y2 x3/y3 ...)"
+     * where the "/y1" part may be omitted.  Also, if the dimension
+     * starts with an "*" then it is the current one.
+     * @param vector the input string.
+     * @return the array of values.
+     */
+    private static int getDefaultAlignmentIndex(String vector)
+    {
+    	int curVal = 0;
+        StringTokenizer parse = new StringTokenizer(vector, "( )", false);
+        while (parse.hasMoreTokens())
+        {
+            String value = parse.nextToken();
+            if (value.startsWith("*")) return curVal;
+        	if (TextUtils.atof(value) < 0) return curVal;
+        	curVal++;
+        }
+        return 0;
+    }
+
+    /**
+     * Method to transform an array of Dimension into a string that can be stored in a preference.
+     * The format of the string is "(x1/y1 x2/y2 x3/y3 ...)" where the current entry has
+     * an "*" in front of it.
+     * @param s the values.
+     * @param current the current value index (0-based).
+     * @return string representing the array.
+     */
+    private static String transformArrayIntoString(Dimension2D [] s, int current)
+    {
+    	StringBuffer sb = new StringBuffer();
+    	for(int i=0; i<s.length; i++)
+    	{
+    		if (i == 0) sb.append('('); else
+    			sb.append(' ');
+    		if (i == current) sb.append('*');
+    		sb.append(s[i].getWidth());
+    		if (s[i].getWidth() != s[i].getHeight())
+    		{
+        		sb.append('/');
+        		sb.append(s[i].getHeight());
+    		}
+    	}
+    	sb.append(')');
+        String dir = sb.toString();
+        return dir;
+    }
+
+    private static class ImmutableDimension2D extends Dimension2D {
+        private final double width;
+        private final double height;
+        private ImmutableDimension2D(Dimension2D d) { this(d.getWidth(), d.getHeight()); }
+        private ImmutableDimension2D(double size) { this(size, size); }
+        private ImmutableDimension2D(double width, double height) {
+            this.width = DBMath.round(width*0.5)*2;
+            this.height = DBMath.round(height*0.5)*2;
+        }
+        @Override public double getWidth() { return width; }
+        @Override public double getHeight() { return height; }
+        @Override public void setSize(java.awt.geom.Dimension2D d) { throw new UnsupportedOperationException(); }
+        @Override public void setSize(double width, double height) { throw new UnsupportedOperationException(); }
     }
 
     @Override

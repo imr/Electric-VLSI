@@ -23,15 +23,12 @@
  */
 package com.sun.electric.database.variable;
 
-import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ErrorLogger;
-
-import java.awt.geom.Point2D;
 
 /**
  * This interface provides information from the user interface.
@@ -87,18 +84,6 @@ public interface UserInterface
 	 * Method to request that all windows be redisplayed including palettes.
 	 */
 	public void repaintAllWindows();
-
-	/**
-	 * Method to align a database coordinate with the current grid.
-	 * @param pt the database coordinate.  It's value is adjusted.
-	 */
-	public void alignToGrid(Point2D pt);
-
-	/**
-	 * Method to get the current grid alignment.
-	 * @return the current grid alignment.
-	 */
-	public Dimension2D getGridAlignment();
 
 	/**
 	 * Method to return the height of default text (in points).

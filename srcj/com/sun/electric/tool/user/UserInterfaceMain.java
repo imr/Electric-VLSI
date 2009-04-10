@@ -28,17 +28,14 @@ import com.sun.electric.database.Environment;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdManager;
-import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.technology.TechPool;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
@@ -271,10 +268,6 @@ public class UserInterfaceMain extends AbstractUserInterface
 //        WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 //        if (wf != null) wf.loadComponentMenuForTechnology();
 //    }
-
-	public void alignToGrid(Point2D pt) { EditWindow.gridAlign(pt); }
-
-	public Dimension2D getGridAlignment() { return User.getAlignmentToGrid(); }
 
 	public int getDefaultTextSize() { return EditWindow.getDefaultFontSize(); }
 

@@ -28,6 +28,7 @@ import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ExportId;
@@ -46,7 +47,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
@@ -220,8 +220,9 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	            double locX = portInst.getPoly().getCenterX();
 	            double locY = portInst.getPoly().getCenterY();
 	            Rectangle2D iconBounds = icon.getBounds();
+                Dimension2D alignmentToGrid = parent.getEditingPreferences().getAlignmentToGrid();
 				double newlocX = (locX - bounds.getMinX()) / bounds.getWidth() * iconBounds.getWidth() + iconBounds.getMinX();
-                newlocX = DBMath.toNearest(newlocX, Job.getUserInterface().getGridAlignment().getWidth());
+                newlocX = DBMath.toNearest(newlocX, alignmentToGrid.getWidth());
 				double bodyDX = User.getIconGenLeadLength();
 				double distToXEdge = locX - bounds.getMinX();
 				if (locX >= bounds.getCenterX())
@@ -230,7 +231,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 					distToXEdge = bounds.getMaxX() - locX;
 				}
 				double newlocY = (locY - bounds.getMinY()) / bounds.getHeight() * iconBounds.getHeight() + iconBounds.getMinY();
-                newlocY = DBMath.toNearest(newlocY, Job.getUserInterface().getGridAlignment().getHeight());
+                newlocY = DBMath.toNearest(newlocY, alignmentToGrid.getHeight());
 				double bodyDY = User.getIconGenLeadLength();
 				double distToYEdge = locY - bounds.getMinY();
 				if (locY >= bounds.getCenterY())
@@ -242,7 +243,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 
 	            // round
 	            Point2D point = new Point2D.Double(newlocX, newlocY);
-	            Job.getUserInterface().alignToGrid(point);
+                DBMath.gridAlign(point, alignmentToGrid);
 	            newlocX = point.getX();
 	            newlocY = point.getY();
 

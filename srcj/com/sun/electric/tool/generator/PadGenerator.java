@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.generator;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EGraphics;
@@ -87,7 +88,8 @@ public class PadGenerator
 	public static void makePadFrame(Library destLib, String fileName)
 	{
 		if (fileName == null) return;
-		new MakePadFrame(destLib, fileName, Job.getUserInterface().getGridAlignment());
+        EditingPreferences ep = destLib.getEditingPreferences();
+		new MakePadFrame(destLib, fileName, ep.getAlignmentToGrid());
 	}
 
 	/**

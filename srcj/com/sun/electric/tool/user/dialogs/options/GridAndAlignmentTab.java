@@ -23,14 +23,15 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
 
-import java.awt.Frame;
 
 import javax.swing.AbstractButton;
 import javax.swing.JPanel;
@@ -41,7 +42,7 @@ import javax.swing.JPanel;
 public class GridAndAlignmentTab extends PreferencePanel
 {
 	/** Creates new form GridAndAlignment */
-	public GridAndAlignmentTab(Frame parent, boolean modal)
+	public GridAndAlignmentTab(PreferencesFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -98,7 +99,8 @@ public class GridAndAlignmentTab extends PreferencePanel
 		gridBoldVert.setText(TextUtils.formatDouble(User.getDefGridYBoldFrequency()));
 		gridShowAxes.setSelected(User.isGridAxesShown());
 
-		Dimension2D[] values = User.getAlignmentToGridVector();
+        EditingPreferences ep = getEditingPreferences();
+		Dimension2D[] values = ep.getAlignmentToGridVector();
         gridSizeX1.setText(TextUtils.formatDouble(values[0].getWidth()));
         gridSizeX2.setText(TextUtils.formatDouble(values[1].getWidth()));
         gridSizeX3.setText(TextUtils.formatDouble(values[2].getWidth()));
@@ -110,7 +112,7 @@ public class GridAndAlignmentTab extends PreferencePanel
         gridSizeY4.setText(TextUtils.formatDouble(values[3].getHeight()));
         gridSizeY5.setText(TextUtils.formatDouble(values[4].getHeight()));
         AbstractButton[] list = {size1Button, size2Button, size3Button, size4Button, size5Button};
-        int selInd = User.getAlignmentToGridIndex();
+        int selInd = ep.getAlignmentToGridIndex();
         list[selInd].setSelected(true);
 	}
 
@@ -164,7 +166,6 @@ public class GridAndAlignmentTab extends PreferencePanel
 			redraw = true;
 		}
 
-		Dimension2D[] oldValues = User.getAlignmentToGridVector();
         Dimension2D [] newValues = new Dimension2D[5];
         newValues[0] = new Dimension2D.Double(TextUtils.atof(gridSizeX1.getText()), TextUtils.atof(gridSizeY1.getText()));
         newValues[1] = new Dimension2D.Double(TextUtils.atof(gridSizeX2.getText()), TextUtils.atof(gridSizeY2.getText()));
@@ -177,14 +178,8 @@ public class GridAndAlignmentTab extends PreferencePanel
         if (size3Button.isSelected()) pos = 2; else
         if (size4Button.isSelected()) pos = 3; else
             pos = 4;
-
-        if (!oldValues[0].equals(newValues[0]) || !oldValues[1].equals(newValues[1]) ||
-        	!oldValues[2].equals(newValues[2]) || !oldValues[3].equals(newValues[3]) ||
-        	!oldValues[4].equals(newValues[4]))
-        {
-            User.setAlignmentToGridVector(newValues, pos);
-            ToolBar.setGridAligment();
-        }
+        setEditingPreferences(getEditingPreferences().withAlignment(newValues, pos));
+        ToolBar.setGridAligment();
 
 		if (redraw && wnd != null)
 			wnd.repaint();
@@ -205,12 +200,7 @@ public class GridAndAlignmentTab extends PreferencePanel
 			User.setDefGridYBoldFrequency(User.getFactoryDefGridYBoldFrequency());
 		if (User.isFactoryGridAxesShown() != User.isGridAxesShown())
 			User.setGridAxesShown(User.isFactoryGridAxesShown());
-		Dimension2D [] facAlign = User.getFactoryAlignmentToGridVector();
-		Dimension2D [] curAlign = User.getAlignmentToGridVector();
-		int facAlignInd = User.getFactoryAlignmentToGridIndex();
-		int curAlignInd = User.getAlignmentToGridIndex();
-		if (facAlignInd != curAlignInd || !facAlign.equals(curAlign))
-			User.setAlignmentToGridVector(facAlign, facAlignInd);
+        setEditingPreferences(getEditingPreferences().withAlignmentReset());
 	}
 
 	/** This method is called from within the constructor to

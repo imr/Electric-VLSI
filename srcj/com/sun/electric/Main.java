@@ -30,7 +30,6 @@ import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -58,7 +57,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.FileMenu;
 
-import java.awt.geom.Point2D;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -238,8 +236,6 @@ public final class Main
 		public void repaintAllWindows() {}
 
         public void adjustReferencePoint(Cell cell, double cX, double cY) {};
-		public void alignToGrid(Point2D pt) {}
-		public Dimension2D getGridAlignment() { return new Dimension2D.Double(1.0, 1.0); }
 		public int getDefaultTextSize() { return 14; }
 //		public Highlighter getHighlighter();
 		public EditWindow_ displayCell(Cell cell) { return null; }

@@ -341,7 +341,7 @@ public class ToolBar extends JToolBar
 	 * @return the default button order for the toolbar.
 	 */
 	private static EToolBarButton[] getDefaultToolbarButtons()
-	{		
+	{
 		String prefOrder = toolbarOrderPref.getString();
 		boolean buttonError = false;
 		if (prefOrder.length() > 0)
@@ -808,7 +808,7 @@ public class ToolBar extends JToolBar
 						TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 						return;
 					}
-						
+
 					// switch back to click zoom wire listener
 					changeCursorMode(CursorMode.CLICKZOOMWIRE);
 					return;

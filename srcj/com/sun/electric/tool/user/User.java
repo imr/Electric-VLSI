@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.StartupPrefs;
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Dimension2D;
@@ -1725,70 +1726,29 @@ public class User extends Listener
 	 */
 	public static int getFactoryDefGridYBoldFrequency() { return cacheDefGridYBoldFrequency.getIntFactoryValue(); }
 
-	private static Pref cacheAlignmentToGridVector = Pref.makeStringPref("AlignmentToGridVector", tool.prefs, "(20 10 5 *1 0.5)");
-
 	/**
 	 * Method to return the default alignment of objects to the grid.
 	 * The default is (1,1), meaning that placement and movement should land on whole grid units.
 	 * @return the default alignment of objects to the grid.
 	 */
-	public static Dimension2D getAlignmentToGrid()
-	{
-		Dimension2D[] vals = getAlignmentToGridVector();
-		int index = getDefaultAlignmentIndex(cacheAlignmentToGridVector.getString());
-		return vals[index];
-	}
+	public static Dimension2D getAlignmentToGrid() {
+        return EditingPreferences.getThreadEditingPreferences().getAlignmentToGrid();
+    }
 
 	/**
 	 * Method to return index of the current alignment.
 	 * @return the index of the current alignment.
 	 */
-	public static int getAlignmentToGridIndex()
-	{
-		int index = getDefaultAlignmentIndex(cacheAlignmentToGridVector.getString());
-		return index;
-	}
+	public static int getAlignmentToGridIndex() {
+        return EditingPreferences.getThreadEditingPreferences().getAlignmentToGridIndex();
+    }
 
 	/**
 	 * Method to return an array of five grid alignment values.
 	 * @return an array of five grid alignment values.
 	 */
-	public static Dimension2D[] getAlignmentToGridVector()
-	{
-		Dimension2D [] retVal = transformStringIntoArray(cacheAlignmentToGridVector.getString());
-		return correctAlignmentGridVector(retVal);
-	}
-
-	/**
-	 * Method to return the default alignment of objects to the grid.
-	 * The default is (1,1), meaning that placement and movement should land on whole grid units.
-	 * @return the default alignment of objects to the grid.
-	 */
-	public static Dimension2D getFactoryAlignmentToGrid()
-	{
-		Dimension2D[] vals = getFactoryAlignmentToGridVector();
-		int index = getDefaultAlignmentIndex(cacheAlignmentToGridVector.getStringFactoryValue());
-		return vals[index];
-	}
-
-	/**
-	 * Method to return the index of the current alignment, by default.
-	 * @return the index of the current alignment, by default.
-	 */
-	public static int getFactoryAlignmentToGridIndex()
-	{
-		int index = getDefaultAlignmentIndex(cacheAlignmentToGridVector.getStringFactoryValue());
-		return index;
-	}
-
-	/**
-	 * Method to return an array of five grid alignment values, the defaults.
-	 * @return an array of five grid alignment values, the defaults.
-	 */
-	public static Dimension2D[] getFactoryAlignmentToGridVector()
-	{
-		Dimension2D [] retVal = transformStringIntoArray(cacheAlignmentToGridVector.getStringFactoryValue());
-		return correctAlignmentGridVector(retVal);
+	public static Dimension2D[] getAlignmentToGridVector() {
+        return EditingPreferences.getThreadEditingPreferences().getAlignmentToGridVector();
 	}
 
     /**
@@ -1798,111 +1758,9 @@ public class User extends Listener
 	 */
 	public static void setAlignmentToGridVector(Dimension2D[] dist, int current)
 	{
-		cacheAlignmentToGridVector.setString(transformArrayIntoString(dist, current));
+        assert SwingUtilities.isEventDispatchThread();
+        EditingPreferences.setThreadEditingPreferences(EditingPreferences.getThreadEditingPreferences().withAlignment(dist, current));
 	}
-
-	private static Dimension2D[] correctAlignmentGridVector(Dimension2D [] retVal)
-	{
-		if (retVal.length < 5)
-		{
-			Dimension2D [] newRetVal = new Dimension2D[5];
-			int shift = 5 - retVal.length;
-			for(int i=retVal.length-1; i>=0; i--) newRetVal[i+shift] = retVal[i];
-			while (shift > 0)
-			{
-				shift--;
-				newRetVal[shift] = new Dimension2D.Double(newRetVal[shift+1].getWidth() * 2, newRetVal[shift+1].getHeight() * 2);
-			}
-			retVal = newRetVal;
-		}
-		return retVal;
-	}
-
-    /**
-     * Method to extract an array of Dimensions from a string.
-     * The format of the string is "(x1/y1 x2/y2 x3/y3 ...)"
-     * where the "/y1" part may be omitted.  Also, if the dimension
-     * starts with an "*" then it is the current one.
-     * @param vector the input string.
-     * @return the array of values.
-     */
-    private static Dimension2D[] transformStringIntoArray(String vector)
-    {
-        StringTokenizer parse = new StringTokenizer(vector, "( )", false);
-        List<Dimension2D> valuesFound = new ArrayList<Dimension2D>();
-        while (parse.hasMoreTokens())
-        {
-            String value = parse.nextToken();
-            if (value.startsWith("*")) value = value.substring(1);
-            int slashPos = value.indexOf('/');
-            String xPart = value, yPart = value;
-            if (slashPos >= 0)
-            {
-            	xPart = value.substring(0, slashPos);
-            	yPart = value.substring(slashPos+1);
-            }
-            try {
-            	Dimension2D dim = new Dimension2D.Double(Math.abs(Double.parseDouble(xPart)), Math.abs(Double.parseDouble(yPart)));
-                valuesFound.add(dim);
-            } catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-        }
-        Dimension2D [] values = new Dimension2D[valuesFound.size()];
-        for(int i=0; i<valuesFound.size(); i++) values[i] = valuesFound.get(i);
-        return values;
-    }
-
-    /**
-     * Method to extract an array of Dimensions from a string.
-     * The format of the string is "(x1/y1 x2/y2 x3/y3 ...)"
-     * where the "/y1" part may be omitted.  Also, if the dimension
-     * starts with an "*" then it is the current one.
-     * @param vector the input string.
-     * @return the array of values.
-     */
-    private static int getDefaultAlignmentIndex(String vector)
-    {
-    	int curVal = 0;
-        StringTokenizer parse = new StringTokenizer(vector, "( )", false);
-        while (parse.hasMoreTokens())
-        {
-            String value = parse.nextToken();
-            if (value.startsWith("*")) return curVal;
-        	if (TextUtils.atof(value) < 0) return curVal;
-        	curVal++;
-        }
-        return 0;
-    }
-
-    /**
-     * Method to transform an array of Dimension into a string that can be stored in a preference.
-     * The format of the string is "(x1/y1 x2/y2 x3/y3 ...)" where the current entry has
-     * an "*" in front of it.
-     * @param s the values.
-     * @param current the current value index (0-based).
-     * @return string representing the array.
-     */
-    private static String transformArrayIntoString(Dimension2D [] s, int current)
-    {
-    	StringBuffer sb = new StringBuffer();
-    	for(int i=0; i<s.length; i++)
-    	{
-    		if (i == 0) sb.append('('); else
-    			sb.append(' ');
-    		if (i == current) sb.append('*');
-    		sb.append(s[i].getWidth());
-    		if (s[i].getWidth() != s[i].getHeight())
-    		{
-        		sb.append('/');
-        		sb.append(s[i].getHeight());
-    		}
-    	}
-    	sb.append(')');
-        String dir = sb.toString();
-        return dir;
-    }
 
 	private static Pref cacheShowGridAxes = Pref.makeBooleanPref("ShowGridAxes", tool.prefs, false);
 	/**

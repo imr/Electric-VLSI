@@ -24,12 +24,9 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.StartupPrefs;
-import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.topology.Geometric;
@@ -40,10 +37,7 @@ import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.JobTree;
-import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.awt.geom.Point2D;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -58,7 +52,6 @@ import java.util.Observer;
 import java.util.concurrent.locks.Condition;
 import java.util.logging.Level;
 
-import javax.swing.SwingUtilities;
 
 /**
  *
@@ -536,10 +529,6 @@ public class ServerJobManager extends JobManager implements Observer {
         public void adjustReferencePoint(Cell cell, double cX, double cY) {
             Job.currentUI.adjustReferencePoint(cell, cX, cY);
         };
-		public void alignToGrid(Point2D pt) {
-            printStackTrace("alignToGrid");
-        }
-		public Dimension2D getGridAlignment() { return new Dimension2D.Double(1.0, 1.0); }
 		public int getDefaultTextSize() { return 14; }
 		public EditWindow_ displayCell(Cell cell) { throw new IllegalStateException(); }
 

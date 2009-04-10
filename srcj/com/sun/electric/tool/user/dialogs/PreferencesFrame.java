@@ -227,7 +227,7 @@ public class PreferencesFrame extends EDialog
 		addTreeNode(new ToolbarTab(parent, true, this), displaySet);
 		addTreeNode(new TextTab(parent, true), displaySet);
 		addTreeNode(new SmartTextTab(parent, true), displaySet);
-		addTreeNode(new GridAndAlignmentTab(parent, true), displaySet);
+		addTreeNode(new GridAndAlignmentTab(this, true), displaySet);
 		addTreeNode(new PortsAndExportsTab(parent, true), displaySet);
 		addTreeNode(new FrameTab(parent, true), displaySet);
 		addTreeNode(ThreeDTab.create3DTab(this, true), displaySet);

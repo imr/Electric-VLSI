@@ -24,6 +24,7 @@
  */
 package com.sun.electric.plugins.j3d;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
@@ -1325,8 +1326,8 @@ public class View3DWindow extends JPanel
 		if (wnd.getCell() == null) StatusBar.setCoordinates(null, wnd.wf); else
 		{
 			Point2D pt = wnd.screenToDatabase(evt.getX(), evt.getY());
-			UserInterface ui = Job.getUserInterface();
-			ui.alignToGrid(pt);
+            EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
+			DBMath.gridAlign(pt, ep.getAlignmentToGrid());
 
 			StatusBar.setCoordinates("(" + TextUtils.formatDouble(pt.getX(), 2) + ", " + TextUtils.formatDouble(pt.getY(), 2) + ")", wnd.wf);
 		}

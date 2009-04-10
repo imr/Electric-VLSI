@@ -602,6 +602,7 @@ public class Connectivity
 	{
 		Map<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
 		int totalNodes = oldCell.getNumNodes();
+        Dimension2D alignementToGrid = newCell.getEditingPreferences().getAlignmentToGrid();
 		int soFar = 0;
 		for(Iterator<NodeInst> nIt = oldCell.getNodes(); nIt.hasNext(); )
 		{
@@ -716,7 +717,7 @@ public class Connectivity
 					for(int i=0; i<points.length; i++)
 					{
 						hold.setLocation(points[i]);
-						Job.getUserInterface().alignToGrid(hold);
+                        DBMath.gridAlign(hold, alignementToGrid);
 						poly.setPoint(i, hold.getX(), hold.getY());
 					}
 				} else
@@ -960,6 +961,7 @@ public class Connectivity
 		}
 
 		// examine each wire layer, looking for a skeletal structure that approximates it
+        Dimension2D alignment = newCell.getEditingPreferences().getAlignmentToGrid();
 		int soFar = 0;
 		Set<Layer> allLayers = geomToWire.keySet();
 		for (Layer layer : allLayers)
@@ -998,7 +1000,6 @@ public class Connectivity
 					{
 						// arc does not fit, try reducing width
 						double wid = cl.width / SCALEFACTOR;
-						Dimension2D alignment = Job.getUserInterface().getGridAlignment();
 						long x = Math.round(wid / alignment.getWidth());
 						double gridWid = x * alignment.getWidth();
 						if (gridWid < wid)
