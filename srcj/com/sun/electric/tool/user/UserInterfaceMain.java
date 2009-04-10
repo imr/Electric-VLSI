@@ -109,10 +109,10 @@ public class UserInterfaceMain extends AbstractUserInterface
     private SplashWindow sw = null;
 
     public UserInterfaceMain(List<String> argsList, Mode mode, boolean showSplash) {
-        EventQueue eventQueue = new EventProcessor();
+        new EventProcessor();
         try {
-            eventQueue.invokeAndWait(new Runnable() {
-                @Override public void run() {
+            EventQueue.invokeAndWait(new Runnable() {
+                public void run() {
  //                   System.out.println("First event");
                 }
             });
