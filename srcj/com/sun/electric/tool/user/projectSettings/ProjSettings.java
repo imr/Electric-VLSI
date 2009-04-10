@@ -158,7 +158,7 @@ public class ProjSettings {
                     "\", overrides current value of \""+oldVal + "\"");
             } else {
                 System.out.println("Warning: Setting \""+setting.getPrefName()+"\" retains current value of \""+oldVal+
-                    "\", while ignoring projectsettings.xml value of "+xmlVal+"\"");
+                    "\", while ignoring projectsettings.xml value of \""+xmlVal+"\"");
             }
         }
         if (allowOverride)
