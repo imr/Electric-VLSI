@@ -209,13 +209,13 @@ public class Library extends ElectricObject implements Comparable<Library>
 				newCurLib = lib;
 				break;
 			}
-			if (newCurLib == null)
-			{
-				System.out.println("Cannot delete the last library");
-				Job.getUserInterface().showInformationMessage("Cannot delete the last "+toString(),
-					"Close library");
-				return false;
-			}
+//			if (newCurLib == null)
+//			{
+//				System.out.println("Cannot delete the last library");
+//				Job.getUserInterface().showInformationMessage("Cannot delete the last "+toString(),
+//					"Close library");
+//				return false;
+//			}
 		}
 
 		// make sure it is in the list of libraries
