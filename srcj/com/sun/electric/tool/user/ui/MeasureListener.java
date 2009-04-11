@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.Highlight2;
@@ -91,15 +92,22 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 			lastHighlights.clear();
 
 			// show coords at start and end point
-			Technology tech = wnd.getCell().getTechnology();
-			lastHighlights.add(highlighter.addMessage(wnd.getCell(), "("
+            Cell cell = wnd.getCell();
+            if (cell == null)
+            {
+//                System.out.println("No cell available for measure");
+                return; // nothing available
+            }
+
+            Technology tech = cell.getTechnology();
+			lastHighlights.add(highlighter.addMessage(cell, "("
 				+ TextUtils.formatDistance(start.getX(), tech) + "," + TextUtils.formatDistance(start.getY(), tech)
 				+ ")", start));
-			lastHighlights.add(highlighter.addMessage(wnd.getCell(), "("
+			lastHighlights.add(highlighter.addMessage(cell, "("
 				+ TextUtils.formatDistance(end.getX(), tech) + "," + TextUtils.formatDistance(end.getY(), tech)
 				+ ")", end));
 			// add in line
-			lastHighlights.add(highlighter.addLine(start, end, wnd.getCell()));
+			lastHighlights.add(highlighter.addLine(start, end, cell));
 
 			lastMeasuredDistanceX = Math.abs(start.getX() - end.getX());
 			lastMeasuredDistanceY = Math.abs(start.getY() - end.getY());
@@ -109,7 +117,7 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 			String show = TextUtils.formatDistance(dist, tech) + " (dX="
 				+ TextUtils.formatDistance(lastMeasuredDistanceX, tech) + " dY="
 				+ TextUtils.formatDistance(lastMeasuredDistanceY, tech) + ")";
-			lastHighlights.add(highlighter.addMessage(wnd.getCell(), show, center, 1));
+			lastHighlights.add(highlighter.addMessage(cell, show, center, 1));
 			highlighter.finished();
 			wnd.clearDoingAreaDrag();
 			wnd.repaint();
