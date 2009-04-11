@@ -107,8 +107,12 @@ public abstract class Client {
         int jobId = isServer ? ++serverJobId : --clientJobId;
         return new Job.Key(this, jobId);
     }
+    
+    protected abstract void consume(EJobEvent e) throws Exception;
+    protected abstract void consume(PrintEvent e) throws Exception;
+    protected abstract void consume(JobQueueEvent e) throws Exception;
 
-    public static class ServerEvent implements Runnable {
+    public static abstract class ServerEvent implements Runnable {
         final Snapshot snapshot;
         final long timeStamp;
         ServerEvent next;
@@ -123,7 +127,7 @@ public abstract class Client {
         }
 
         public void run() {}
-        void dispatchOnStreamClient(StreamClient client) throws IOException {}
+        abstract void dispatch(Client client) throws Exception;
     }
 
     static void fireEJobEvent(EJob ejob) {
@@ -153,7 +157,7 @@ public abstract class Client {
 
     static class EJobEvent extends ServerEvent {
         final EJob ejob;
-        private final EJob.State newState;
+        final EJob.State newState;
 
         private EJobEvent(EJob ejob, EJob.State newState) {
             super(ejob.oldSnapshot);
@@ -214,14 +218,12 @@ public abstract class Client {
             }
         }
 
-        void dispatchOnStreamClient(StreamClient client) throws IOException {
-            client.writeEJobEvent(ejob, newState, timeStamp);
-        }
+        void dispatch(Client client) throws Exception { client.consume(this); }
     }
 
     static class PrintEvent extends ServerEvent {
 //        private final Client client;
-        private final String s;
+        final String s;
 
         PrintEvent(Snapshot snapshot, Client client, String s) {
             super(snapshot);
@@ -232,14 +234,11 @@ public abstract class Client {
         public void run() {
         }
 
-        void dispatchOnStreamClient(StreamClient client) throws IOException {
-//            if (client == this.client) // What about protocol logs ?
-                client.writeString(s);
-        }
+        void dispatch(Client client) throws Exception { client.consume(this); }
     }
 
     static class JobQueueEvent extends ServerEvent {
-        private final Job.Inform[] jobQueue;
+        final Job.Inform[] jobQueue;
 
         JobQueueEvent(Snapshot snapshot, Job.Inform[] jobQueue) {
             super(snapshot);
@@ -256,8 +255,6 @@ public abstract class Client {
             TopLevel.setBusyCursor(busyCursor);
         }
 
-        void dispatchOnStreamCline(StreamClient client) throws IOException {
-            client.writeJobQueue(jobQueue);
-        }
+        void dispatch(Client client) throws Exception { client.consume(this); }
     }
 }

@@ -44,7 +44,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class StreamClient extends Client {
     private static final ReentrantLock lock = new ReentrantLock();
     private static final Condition queueChanged = lock.newCondition();
-    private static ServerEvent queueTail = new ServerEvent(IdManager.stdIdManager.getInitialSnapshot());
+    private static ServerEvent queueTail = new JobQueueEvent(IdManager.stdIdManager.getInitialSnapshot(), new Job.Inform[0]);
 
     private final IdWriter writer;
     private Snapshot currentSnapshot = EDatabase.serverDatabase().getInitialSnapshot();
@@ -89,7 +89,7 @@ public class StreamClient extends Client {
                     } finally {
                         lock.unlock();
                     }
-                    lastEvent.dispatchOnStreamClient(StreamClient.this);
+                    lastEvent.dispatch(StreamClient.this);
                     writer.flush();
                 }
             } catch (InterruptedException e) {
@@ -120,6 +120,19 @@ public class StreamClient extends Client {
             lock.unlock();
         }
     }
+    
+    protected void consume(EJobEvent e) throws Exception {
+        writeEJobEvent(e.ejob, e.newState, e.timeStamp);
+    }
+    
+    protected void consume(PrintEvent e) throws Exception {
+        writeString(e.s);
+    }
+    
+    protected void consume(JobQueueEvent e) throws Exception {
+        writeJobQueue(e.jobQueue);
+    }
+
     void writeSnapshot(Snapshot newSnapshot) throws IOException {
         writer.writeByte((byte)1);
         newSnapshot.writeDiffs(writer, currentSnapshot);

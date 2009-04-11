@@ -119,8 +119,6 @@ public class UserInterfaceMain extends AbstractUserInterface
         SwingUtilities.invokeLater(new InitializationRun(argsList, mode, showSplash));
     }
 
-    protected void dispatchServerEvent(ServerEvent serverEvent) throws Exception { }
-
     public void addEvent(Client.ServerEvent serverEvent) { SwingUtilities.invokeLater(serverEvent); }
 
     public void initializeInitJob(Job job, Object mode)
