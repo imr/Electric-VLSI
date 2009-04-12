@@ -24,7 +24,7 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.MessagesStream;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
@@ -63,7 +63,7 @@ public abstract class EMenuItem implements ActionListener {
      * A text description of this EMenuItem.
      * This text is used as a key when key bindings are saved in preferences.
      * This text also apperas on menu buttons and as a tool tip text on tool buttons.
-     */ 
+     */
     private final String text;
     /**
      * Mnemonic position in text description of this EMenuItem.
@@ -82,7 +82,7 @@ public abstract class EMenuItem implements ActionListener {
      * A path from EMenuBar to this menu item.
      */
     int [] path;
-    
+
     /**
      * @param text the menu item's displayed text.  An "_" in the string
      * indicates the location of the "mnemonic" key for that entry.
@@ -98,7 +98,7 @@ public abstract class EMenuItem implements ActionListener {
         if (accelerators == null) accelerators = new KeyStroke [0];
         this.accelerators = accelerators;
     }
-    
+
     /**
      * @param text the menu item's displayed text.  An "_" in the string
      * indicates the location of the "mnemonic" key for that entry.
@@ -127,7 +127,7 @@ public abstract class EMenuItem implements ActionListener {
     public EMenuItem(String text, KeyStroke accelerator) {
         this(text, new KeyStroke [] { accelerator });
     }
-    
+
     /**
      * @param text the menu item's displayed text.  An "_" in the string
      * indicates the location of the "mnemonic" key for that entry.
@@ -135,7 +135,7 @@ public abstract class EMenuItem implements ActionListener {
     public EMenuItem(String text) {
         this(text, new KeyStroke [0]);
     }
-    
+
     /**
      * @param text the menu item's displayed text.  An "_" in the string
      * indicates the location of the "mnemonic" key for that entry.
@@ -144,7 +144,7 @@ public abstract class EMenuItem implements ActionListener {
     public EMenuItem(String text, char acceleratorChar) {
         this(text, shortcut(acceleratorChar));
     }
-    
+
     /**
      * @param text the menu item's displayed text.  An "_" in the string
      * indicates the location of the "mnemonic" key for that entry.
@@ -186,7 +186,7 @@ public abstract class EMenuItem implements ActionListener {
     public static KeyStroke shortcut(int keyCode) {
         return KeyStroke.getKeyStroke(keyCode, buckyBit);
     }
-    
+
     /**
      * Repeat the last Command
      */
@@ -226,10 +226,10 @@ public abstract class EMenuItem implements ActionListener {
             item.setAccelerator(accelerator);
         }
     }
-    
-    
+
+
     public String toString() { return text; }
-    
+
     /**
      * Get a string description of the menu item.
      * Takes the form <p>
@@ -237,17 +237,17 @@ public abstract class EMenuItem implements ActionListener {
      * @return a string of the description.
      */
     public String getDescription() { return path != null ? menuBar.getDescription(path) : text; }
-    
+
     /**
      * Get the path of the menu item.
      * @return an array of integers indexing the menu.
      */
     public int[] getPath() { return path; }
-    
+
     /**
      * Register menu item tree in EMenuBar.
      * @param menuBar EMenuBar where to register.
-     * @param parentPath path to parent 
+     * @param parentPath path to parent
      * @param indexInParent index of this menu item in parent
      */
     void registerTree(EMenuBar menuBar, int[] parentPath, int indexInParent) {
@@ -259,21 +259,21 @@ public abstract class EMenuItem implements ActionListener {
         path[parentPath.length] = indexInParent;
         registerItem();
     }
-    
+
     /**
      * Register this menu item in EMenuBar.
      */
     protected void registerItem() {
         menuBar.registerKeyBindings(this);
     }
-    
+
     /**
      * Register this item as updatable ( dimmed items or chec box/radio buttons
      */
     protected void registerUpdatable() {
         menuBar.registerUpdatable(this);
     }
-    
+
     /**
      * Generates menu item by this this generic EMenuItem.
      * @return generated instance.
@@ -288,15 +288,15 @@ public abstract class EMenuItem implements ActionListener {
         }
         if (getAccelerator() != null)
             item.setAccelerator(getAccelerator());
-        
+
         // add action listeners so when user selects menu, actions will occur
         item.addActionListener(this);
-        
+
         // init updatable status
         updateMenuItem(item);
         return item;
     }
-    
+
     /**
      * Creates fresh GUI instance of this generic EMenuItem.
      * Override in subclasses.
@@ -305,7 +305,7 @@ public abstract class EMenuItem implements ActionListener {
     protected JMenuItem createMenuItem() {
         return new JMenuItem();
     }
-    
+
     /**
      * Updates appearance of menu item instance before popping up.
      * @param item item to update.
@@ -314,7 +314,7 @@ public abstract class EMenuItem implements ActionListener {
         item.setEnabled(isEnabled());
         item.setSelected(isSelected());
     }
-    
+
     /**
      * Returns enable state of this generic EMenuItem.
      * Override in subclasses.
@@ -344,7 +344,7 @@ public abstract class EMenuItem implements ActionListener {
      * It can be envoked form menu button, tool bar button or shortcut key.
      */
     public void actionPerformed(ActionEvent e) {
-        MessagesStream.userCommandIssued();
+        UserInterfaceMain.userCommandIssued();
         ActivityLogger.logMenuActivated(getDescription());
         if (!text.startsWith("Repeat Last"))
             lastActivated = this;
@@ -356,7 +356,7 @@ public abstract class EMenuItem implements ActionListener {
      * Abstract method which executes command.
      */
     public abstract void run();
-    
+
     /**
      * Updates GUI buttons after change of state of generic button.
      * Override in subclasses.
@@ -364,7 +364,7 @@ public abstract class EMenuItem implements ActionListener {
     protected void updateButtons() {
         menuBar.updateAllButtons();
     }
-    
+
      /**
      * Updates GUI menu buttons after change of state of generic button.
      */
@@ -377,12 +377,12 @@ public abstract class EMenuItem implements ActionListener {
      * A subclass of EMenuItem to represent toggle button.
      */
     public abstract static class CheckBox extends EMenuItem {
-         
+
         public CheckBox(String text) { super(text); }
         @Override public void run() { setSelected(!isSelected()); }
         public abstract void setSelected(boolean b);
         @Override protected JMenuItem createMenuItem() { return new JCheckBoxMenuItem(); }
-        
+
         @Override
         protected void registerItem() {
             super.registerItem();

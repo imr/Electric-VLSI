@@ -45,6 +45,7 @@ import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ErrorLoggerTree;
 import com.sun.electric.tool.user.ui.LayerVisibility;
+import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
@@ -60,6 +61,11 @@ import java.awt.Toolkit;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
@@ -104,6 +110,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 	/** The progress during input. */						protected static Progress progress = null;
 
     private SplashWindow sw = null;
+    private PrintStream stdout = System.out;
 
     public UserInterfaceMain(List<String> argsList, Mode mode, boolean showSplash) {
         new EventProcessor();
@@ -422,6 +429,88 @@ public class UserInterfaceMain extends AbstractUserInterface
             });
         }
     }
+
+    /**
+     * Method print a message.
+     * @param message the message to show.
+     * @param newLine add new line after the message
+     */
+    public void printMessage(String message, boolean newLine) {
+        final String s = newLine ? message + "\n" : message;
+        if (SwingUtilities.isEventDispatchThread())
+            appendString(s);
+        else {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    MessagesWindow messagesWindow = TopLevel.getMessagesWindow();
+                    if (messagesWindow != null)
+                        appendString(s);
+                    else
+                        stdout.print(s);
+                }
+            });
+        }
+    }
+
+    /**
+     * Method to start saving messages.
+     * @param filePath file to save
+     */
+    public void saveMessages(final String filePath) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() { saveMessages(filePath); }
+            });
+        }
+		try
+		{
+            if (printWriter != null) {
+                printWriter.close();
+                printWriter = null;
+            }
+    		if (filePath == null) return;
+			printWriter = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
+		} catch (IOException e)
+		{
+			System.err.println("Error creating " + filePath);
+			System.out.println("Error creating " + filePath);
+			return;
+		}
+
+		System.out.println("Messages will be saved to " + filePath);
+    }
+
+	private static PrintWriter printWriter = null;
+	private static boolean newCommand = true;
+	private static int commandNumber = 1;
+
+    /**
+     * Method to report that the user issued a new command (click, keystroke, pulldown menu).
+     * The messages window separates output by command so that each command's results
+     * can be distinguished from others.
+     */
+    public static void userCommandIssued()
+    {
+        newCommand = true;
+    }
+
+	public void appendString(String str)
+	{
+		if (str.length() == 0) return;
+
+        if (newCommand)
+		{
+			newCommand = false;
+			str = "=================================" + (commandNumber++) + "=================================\n" + str;
+		}
+
+        if (printWriter != null)
+        {
+            printWriter.print(str);
+            printWriter.flush();
+        }
+        TopLevel.getMessagesWindow().appendString(str);
+	}
 
     /**
      * Method to show a message and ask for confirmation.

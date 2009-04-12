@@ -57,6 +57,11 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.FileMenu;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -179,9 +184,7 @@ public final class Main
         else
             ui = new UserInterfaceDummy();
         Job.setThreadMode(runMode, ui);
-        if (runMode == Job.Mode.BATCH) {
-            MessagesStream.getMessagesStream().addObserver(new MessagesStream.OriginalStandardOutWriter());
-        }
+        MessagesStream.getMessagesStream();
 
 		// initialize database
         EDatabase.theDatabase = new EDatabase(makeInitialSnapshot());
@@ -207,6 +210,7 @@ public final class Main
 
     public static class UserInterfaceDummy extends AbstractUserInterface
 	{
+        private PrintStream stdout = System.out;
 
         public void startProgressDialog(String type, String filePath) {}
         public void stopProgressDialog() {}
@@ -273,6 +277,48 @@ public final class Main
         public void showInformationMessage(Object message, String title)
         {
         	System.out.println(message);
+        }
+
+        private PrintWriter printWriter = null;
+
+        /**
+         * Method print a message.
+         * @param message the message to show.
+         * @param newLine add new line after the message
+         */
+        public void printMessage(String message, boolean newLine) {
+            if (newLine) {
+                stdout.println(message);
+                if (printWriter != null)
+                    printWriter.println(message);
+            } else {
+                stdout.print(message);
+                if (printWriter != null)
+                    printWriter.print(message);
+            }
+        }
+
+        /**
+         * Method to start saving messages.
+         * @param filePath file to save
+         */
+        public void saveMessages(final String filePath) {
+            try
+            {
+                if (printWriter != null) {
+                    printWriter.close();
+                    printWriter = null;
+                }
+                if (filePath == null) return;
+                printWriter = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
+            } catch (IOException e)
+            {
+                System.err.println("Error creating " + filePath);
+                System.out.println("Error creating " + filePath);
+                return;
+            }
+
+            System.out.println("Messages will be saved to " + filePath);
         }
 
         /**

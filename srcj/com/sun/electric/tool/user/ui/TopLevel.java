@@ -27,7 +27,6 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
@@ -40,7 +39,6 @@ import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -179,8 +177,6 @@ public class TopLevel extends JFrame
 
 		// initialize the messagesWindow window
         messagesWindow = new MessagesWindow();
-        MessagesStream stream = MessagesStream.getMessagesStream();
-        stream.addObserver(messagesWindow);
         WindowFrame.createEditWindow(null);
         FileMenu.updateRecentlyOpenedLibrariesList();
 		if (MDIINITIALRESIZE && isMDIMode())

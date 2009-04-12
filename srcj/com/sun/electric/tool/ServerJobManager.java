@@ -35,7 +35,6 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
 
 import java.io.BufferedOutputStream;
@@ -47,8 +46,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.concurrent.locks.Condition;
 import java.util.logging.Level;
 
@@ -56,7 +53,7 @@ import java.util.logging.Level;
 /**
  *
  */
-public class ServerJobManager extends JobManager implements Observer {
+public class ServerJobManager extends JobManager {
     private static final String CLASS_NAME = Job.class.getName();
     private static final int DEFAULT_NUM_THREADS = 2;
     /** mutex for database synchronization. */  private final Condition databaseChangesMutex = newCondition();
@@ -195,22 +192,6 @@ public class ServerJobManager extends JobManager implements Observer {
         }
     }
 
-    /**
-     * This method is called whenever the observed object is changed. An
-     * application calls an <tt>Observable</tt> object's
-     * <code>notifyObservers</code> method to have all the object's
-     * observers notified of the change.
-     *
-     * @param   o     the observable object.
-     * @param   arg   an argument passed to the <code>notifyObservers</code>
-     *                 method.
-     */
-    public void update(Observable o, Object arg) {
-        Thread currentThread = Thread.currentThread();
-        if (currentThread instanceof EThread)
-            ((EThread)currentThread).print((String)arg);
-    }
-
     //--------------------------PRIVATE JOB METHODS--------------------------
 
     private void invokeEThread() {
@@ -326,7 +307,6 @@ public class ServerJobManager extends JobManager implements Observer {
 
     public void runLoop() {
         if (serverSocket == null) return;
-        MessagesStream.getMessagesStream().addObserver(this);
         try {
             // Wait for connections
             for (;;) {
@@ -571,6 +551,24 @@ public class ServerJobManager extends JobManager implements Observer {
         public void showInformationMessage(Object message, String title)
         {
             Job.currentUI.showInformationMessage(message, title);
+        }
+
+        /**
+         * Method print a message.
+         * @param message the message to show.
+         * @param newLine add new line after the message
+         */
+        public void printMessage(String message, boolean newLine) {
+            Job.currentUI.printMessage(message, newLine);
+            Client.print(Job.getRunningJob().ejob, message);
+        }
+
+        /**
+         * Method to start saving messages.
+         * @param filePath file to save
+         */
+        public void saveMessages(String filePath) {
+            Job.currentUI.saveMessages(filePath);
         }
 
         /**

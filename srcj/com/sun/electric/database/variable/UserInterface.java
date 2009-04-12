@@ -123,6 +123,20 @@ public interface UserInterface
     public void showInformationMessage(Object message, String title);
 
     /**
+     * Method print a message.
+     * @param message the message to show.
+     * @param newLine add new line after the message
+     */
+    public void printMessage(String message, boolean newLine);
+
+
+	/**
+	 * Method to start saving messages.
+     * @param filePath file to save
+	 */
+    public void saveMessages(String filePath);
+
+    /**
      * Method to beep.
      */
     public void beep();

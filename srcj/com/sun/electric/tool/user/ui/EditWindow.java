@@ -68,7 +68,6 @@ import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
@@ -381,7 +380,7 @@ public class EditWindow extends JPanel
 	public void mousePressed(MouseEvent evt)
 	{
 		requestFocus();
-		MessagesStream.userCommandIssued();
+		UserInterfaceMain.userCommandIssued();
 		lastXPosition = evt.getX();   lastYPosition = evt.getY();
 		WindowFrame.curMouseListener.mousePressed(evt);
 	}
@@ -485,7 +484,7 @@ public class EditWindow extends JPanel
 	// the KeyListener events
 	public void keyPressed(KeyEvent evt)
 	{
-		MessagesStream.userCommandIssued();
+		UserInterfaceMain.userCommandIssued();
 		WindowFrame.curKeyListener.keyPressed(evt);
 	}
 

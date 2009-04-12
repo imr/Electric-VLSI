@@ -23,21 +23,20 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.io.FileType;
 
-import java.io.*;
-import java.util.Observable;
-import java.util.Observer;
+import java.io.OutputStream;
+import java.io.PrintStream;
+
 
 /**
  * Class handles text sent to the Messages window.
  */
-public class MessagesStream extends OutputStream
+public class MessagesStream extends PrintStream
 {
-	private PrintWriter printWriter = null;
     /** The messages stream */                              private static MessagesStream messagesStream;
-    private static PrintStream stdout = System.out;
 
     private static void initializeMessageStream()
     {
@@ -55,65 +54,47 @@ public class MessagesStream extends OutputStream
         return messagesStream;
     }
 
-    static class MessagesObserver extends Observable
-    {
-        public void setChanged() {super.setChanged();}
-        public void clearChanged() {super.clearChanged();}
-    }
-
-    public static class OriginalStandardOutWriter implements Observer
-    {
-        public void update(Observable o, Object arg)
-        {
-            if (arg instanceof String) {
-                stdout.print((String)arg);
-            }
-        }
-    }
-
-    private MessagesObserver notifyGUI = null;
-
     public MessagesStream()
     {
+        super(new OutputStream() {
+            @Override public void write(int c) {throw new UnsupportedOperationException(); }
+        });
 		// Force newline characters instead of carriage-return line-feed.
     	// This allows Unix and Windows log files to be identical.
 		System.setProperty("line.separator", "\n");
 
-    	System.setOut(new java.io.PrintStream(this));
-        notifyGUI = new MessagesObserver();
+    	System.setOut(this);
     }
 
-    public void addObserver(Observer o)
-    {
-        notifyGUI.addObserver(o);
-    }
+    @Override public void flush() {}
+    @Override public void close() { throw new UnsupportedOperationException(); }
+    @Override public boolean checkError() { throw new UnsupportedOperationException(); }
+	@Override public void write(byte[] b) { throw new UnsupportedOperationException(); }
+	@Override public void write(int b) { throw new UnsupportedOperationException(); }
+	@Override public void write(byte[] b, int off, int len) { throw new UnsupportedOperationException(); }
 
-	public void write(byte[] b)
-	{
-		appendString(new String(b));
-	}
+    @Override public void print(boolean b) { print(b ? "true" : "false", false); }
+    @Override public void print(char c) { print(String.valueOf(c), false); }
+    @Override public void print(int i) { print(String.valueOf(i), false); }
+    @Override public void print(long l) { print(String.valueOf(l), false); }
+    @Override public void print(float f) { print(String.valueOf(f), false); }
+    @Override public void print(double d) { print(String.valueOf(d), false); }
+    @Override public void print(char s[]) { print(String.valueOf(s), false); }
+    @Override public void print(String s) { print(s != null ? s : "null", false); }
+    @Override public void print(Object obj) { print(String.valueOf(obj), false); }
 
-	public void write(int b)
-	{
-		appendString(String.valueOf((char) b));
-	}
+    @Override public void println() { print("", true); }
+    @Override public void println(char c) { print(String.valueOf(c), true); }
+    @Override public void println(int i) { print(String.valueOf(i), true); }
+    @Override public void println(long l) { print(String.valueOf(l), true); }
+    @Override public void println(float f) { print(String.valueOf(f), true); }
+    @Override public void println(double d) { print(String.valueOf(d), true); }
+    @Override public void println(char s[]) { print(String.valueOf(s), true); }
+    @Override public void println(String s) { print(s != null ? s : "null", true); }
+    @Override public void println(Object obj) { print(String.valueOf(obj), true); }
 
-	public void write(byte[] b, int off, int len)
-	{
-		appendString(new String(b, off, len));
-	}
-
-	private static boolean newCommand = true;
-	private static int commandNumber = 1;
-
-    /**
-     * Method to report that the user issued a new command (click, keystroke, pulldown menu).
-     * The messages window separates output by command so that each command's results
-     * can be distinguished from others.
-     */
-    public static void userCommandIssued()
-    {
-        newCommand = true;
+    private void print(String s, boolean newLine) {
+        Job.getUserInterface().printMessage(s, newLine);
     }
 
 	/**
@@ -125,38 +106,6 @@ public class MessagesStream extends OutputStream
 	}
 
 	public void save(String filePath) {
-		if (filePath == null) return;
-		try
-		{
-			printWriter = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
-		} catch (IOException e)
-		{
-			System.err.println("Error creating " + filePath);
-			System.out.println("Error creating " + filePath);
-			return;
-		}
-		
-		System.out.println("Messages will be saved to " + filePath);
-	}
-
-	protected void appendString(String str)
-	{
-        if (str.equals("")) return;
-        if (newCommand)
-		{
-			newCommand = false;
-			str = "=================================" + (commandNumber++) + "=================================\n" + str;
-		}
-
-        if (printWriter != null)
-        {
-            printWriter.print(str);
-            printWriter.flush();
-        }
-        if (notifyGUI == null) return;
-        
-        notifyGUI.setChanged();
-        notifyGUI.notifyObservers(str);
-        notifyGUI.clearChanged();
+        Job.getUserInterface().saveMessages(filePath);
 	}
 }

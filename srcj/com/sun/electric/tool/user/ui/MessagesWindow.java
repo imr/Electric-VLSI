@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
@@ -49,8 +48,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.Observable;
-import java.util.Observer;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -74,15 +71,11 @@ import javax.swing.SwingUtilities;
  * the methods of this class directly.
  */
 public class MessagesWindow
-	implements Observer, MouseListener, Runnable, ClipboardOwner
+	implements MouseListener, ClipboardOwner
 {
-	private static final int STACK_SIZE = Client.isOSMac()?0:8*1024;
 
 	private JTextArea info;
 	private Container contentFrame;
-	private final Thread ticker = new Thread(null, this, "MessagesTicker", STACK_SIZE);
-	private boolean dumpInvoked = false;
-	private StringBuilder buffer = new StringBuilder();
 	private Container jf;
 
 	// -------------------- private and protected methods ------------------------
@@ -123,7 +116,6 @@ public class MessagesWindow
 		scrollPane.setPreferredSize(msgSize);
 		contentFrame.add(scrollPane, BorderLayout.CENTER);
 
-		ticker.start();
 		if (TopLevel.isMDIMode())
 		{
 			((JInternalFrame)jf).pack();
@@ -215,59 +207,7 @@ public class MessagesWindow
 		info.setText("");
 	}
 
-	public void update(Observable obs, Object str)
-	{
-		String mess = (String)str;
-		appendString(mess);
-	}
-
-	private void appendString(String str)
-	{
-		if (str.length() == 0) return;
-
-		synchronized (buffer)
-		{
-			if (buffer.length() == 0)
-				buffer.notify();
-			buffer.append(str);
-		}
-	}
-
-	public void run()
-	{
-		for (;;)
-		{
-			synchronized (buffer)
-			{
-				try
-				{
-					while (dumpInvoked || buffer.length() == 0)
-						buffer.wait();
-				} catch (InterruptedException ie) {}
-				dumpInvoked = true;
-			}
-			try
-			{
-				Thread.sleep(200);
-			} catch (InterruptedException ie) {}
-			SwingUtilities.invokeLater(new Runnable()
-			{
-				public void run()
-				{
-					String s;
-					synchronized (buffer)
-					{
-						s = buffer.toString();
-						buffer.setLength(0);
-						dumpInvoked = false;
-					}
-					dump(s);
-				}
-			});
-		}
-	}
-
-	protected void dump(String str)
+	public void appendString(String str)
 	{
 		info.append(str);
 		if (Job.BATCHMODE) return;
