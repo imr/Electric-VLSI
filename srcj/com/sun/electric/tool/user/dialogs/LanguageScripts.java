@@ -26,6 +26,8 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.ToolMenu;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -48,8 +50,7 @@ public class LanguageScripts extends EDialog
 	private JList scriptsList;
 	private DefaultListModel scriptsModel;
 	private boolean changingMnemonic;
-	private static Pref.Group prefs = Pref.groupForPackage(LanguageScripts.class);
-	private static Pref prefScriptList = Pref.makeStringPref("BoundScripts", prefs, "");
+	private static Pref prefScriptList = Pref.makeStringPref("BoundScripts", User.getUserTool().prefs, "");
 
 	public static class ScriptBinding
 	{
@@ -309,6 +310,7 @@ public class LanguageScripts extends EDialog
         if (fileName != null)
         {
         	scriptsModel.addElement("   " + fileName);
+        	scriptsList.setSelectedIndex(scriptsModel.size()-1);
         }
     }//GEN-LAST:event_addScriptActionPerformed
 
