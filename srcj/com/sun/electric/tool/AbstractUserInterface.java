@@ -81,19 +81,13 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     protected void initializeInitJob(Job job, Object mode) {}
 
 
-    protected void consume(EJobEvent e) throws Exception {
-//        writeEJobEvent(e.ejob, e.newState, e.timeStamp);
-    }
-    
-    protected void consume(PrintEvent e) throws Exception {
-//        writeString(e.s);
-    }
-    
-    protected void consume(JobQueueEvent e) throws Exception {
-//        writeJobQueue(e.jobQueue);
-    }
+    protected abstract void consume(EJobEvent e) throws Exception;
 
-    protected void addEvent(Client.ServerEvent serverEvent) {}
+    protected abstract void consume(PrintEvent e) throws Exception;
+
+    protected abstract void consume(JobQueueEvent e) throws Exception;
+
+    protected abstract void addEvent(Client.ServerEvent serverEvent);
 
     public void finishInitialization() {}
 

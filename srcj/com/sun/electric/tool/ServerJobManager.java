@@ -559,7 +559,8 @@ public class ServerJobManager extends JobManager {
          * @param newLine add new line after the message
          */
         public void printMessage(String message, boolean newLine) {
-            Job.currentUI.printMessage(message, newLine);
+            if (newLine)
+                message += "\n";
             Client.print(Job.getRunningJob().ejob, message);
         }
 

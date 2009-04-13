@@ -42,9 +42,9 @@ import java.util.logging.Level;
 /**
  * Class to track Job serializing and execution.
  */
-class EJob {
+public class EJob {
 
-    enum State {
+    public enum State {
         /** waiting on client */                CLIENT_WAITING,
         /** waiting on server */                WAITING,
         /** running on server */                RUNNING,
@@ -56,20 +56,20 @@ class EJob {
     /*private*/ final static String ABORTING = "aborting";
 
     /** Client which is owner of the Job. */    Client client;
-    /** True if this Job was started by server */boolean startedByServer;
+    /** True if this Job was started by server */public boolean startedByServer;
     /** job key */                              Job.Key jobKey;
-    /** type of job (change or examine) */      final Type jobType;
-    /** name of job */                          final String jobName;
+    /** type of job (change or examine) */      public final Type jobType;
+    /** name of job */                          public final String jobName;
 
-    Snapshot oldSnapshot;
-    Snapshot newSnapshot;
+    public Snapshot oldSnapshot;
+    public Snapshot newSnapshot;
     EditingPreferences editingPreferences;
 
     /** progress */                             /*private*/ String progress = null;
     byte[] serializedJob;
     byte[] serializedResult;
     Job serverJob;
-    Job clientJob;
+    public Job clientJob;
     State state;
     /** list of saved Highlights */             int savedHighlights = -1;
     /** Fields changed on server side. */       ArrayList<Field> changedFields;
@@ -92,9 +92,9 @@ class EJob {
         this.editingPreferences = editingPreferences;
     }
 
-    Job getJob() { return clientJob != null ? clientJob : serverJob; }
+    public Job getJob() { return clientJob != null ? clientJob : serverJob; }
 
-    boolean isExamine() {
+    public boolean isExamine() {
         return jobType == Job.Type.EXAMINE || jobType == Job.Type.REMOTE_EXAMINE;
     }
 
@@ -134,7 +134,7 @@ class EJob {
         }
     }
 
-    Throwable deserializeToClient() {
+    public Throwable deserializeToClient() {
         try {
             EDatabase database = EDatabase.clientDatabase();
             ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serializedJob), database);
@@ -192,7 +192,7 @@ class EJob {
     }
 
 
-    Throwable deserializeResult() {
+    public Throwable deserializeResult() {
         try {
 //            Class jobClass = clientJob.getClass();
             ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serializedResult), EDatabase.clientDatabase());

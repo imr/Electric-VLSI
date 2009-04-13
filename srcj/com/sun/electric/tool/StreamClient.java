@@ -35,17 +35,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Class for maintaining Connection on Server side.
  */
 public class StreamClient extends Client {
-    private static final ReentrantLock lock = new ReentrantLock();
-    private static final Condition queueChanged = lock.newCondition();
-    private static ServerEvent queueTail = new JobQueueEvent(IdManager.stdIdManager.getInitialSnapshot(), new Job.Inform[0]);
-
     private final IdWriter writer;
     private Snapshot currentSnapshot = EDatabase.serverDatabase().getInitialSnapshot();
     private final ServerEventDispatcher dispatcher;
@@ -55,7 +49,6 @@ public class StreamClient extends Client {
 
     StreamClient(int connectionId, InputStream inputStream, OutputStream outputStream) {
         super(connectionId);
-//        writer = new ClientWriter(outputStream, initialSnapshot);
         writer = new IdWriter(IdManager.stdIdManager, new DataOutputStream(outputStream));
         dispatcher = new ServerEventDispatcher();
         reader = inputStream != null ? new ClientReader(inputStream) : null;
@@ -63,17 +56,14 @@ public class StreamClient extends Client {
 
     void start() { dispatcher.start(); }
 
-    protected void dispatchServerEvent(ServerEvent serverEvent) throws Exception {
-    }
-
     class ServerEventDispatcher extends Thread {
-//        private Snapshot currentSnapshot = EDatabase.serverDatabase().getInitialSnapshot();
         private ServerEvent lastEvent = getQueueTail();
 
         private ServerEventDispatcher() {
             super(null, null, "Dispatcher-" + connectionId, STACK_SIZE_EVENT);
         }
 
+        @Override
         public void run() {
             try {
                 if (reader != null)
@@ -81,14 +71,7 @@ public class StreamClient extends Client {
                 writer.writeInt(Job.PROTOCOL_VERSION);
                 writeSnapshot(lastEvent.snapshot);
                 for (;;) {
-                    lock.lock();
-                    try {
-                        while (lastEvent.next == null)
-                            queueChanged.await();
-                        lastEvent = lastEvent.next;
-                    } finally {
-                        lock.unlock();
-                    }
+                    lastEvent = getEvent(lastEvent);
                     lastEvent.dispatch(StreamClient.this);
                     writer.flush();
                 }
@@ -100,82 +83,46 @@ public class StreamClient extends Client {
         }
     }
 
-    static void addEvent(ServerEvent newEvent) {
-        lock.lock();
-        try {
-            assert queueTail.next == null;
-            assert newEvent.next == null;
-            queueTail = queueTail.next = newEvent;
-            queueChanged.signalAll();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    static ServerEvent getQueueTail() {
-        lock.lock();
-        try {
-            return queueTail;
-        } finally {
-            lock.unlock();
-        }
-    }
-    
+    @Override
     protected void consume(EJobEvent e) throws Exception {
-        writeEJobEvent(e.ejob, e.newState, e.timeStamp);
-    }
-    
-    protected void consume(PrintEvent e) throws Exception {
-        writeString(e.s);
-    }
-    
-    protected void consume(JobQueueEvent e) throws Exception {
-        writeJobQueue(e.jobQueue);
-    }
-
-    void writeSnapshot(Snapshot newSnapshot) throws IOException {
-        writer.writeByte((byte)1);
-        newSnapshot.writeDiffs(writer, currentSnapshot);
-        currentSnapshot = newSnapshot;
-    }
-
-    void writeEJobEvent(EJob ejob, EJob.State newState, long timeStamp) throws IOException {
+        EJob ejob = e.ejob;
         if (ejob.newSnapshot != null && ejob.newSnapshot != currentSnapshot) {
             writeSnapshot(ejob.newSnapshot);
         }
-        switch (newState) {
-            case WAITING:
-            case RUNNING:
-            case SERVER_DONE:
-//                if (ejob.client == StreamClient.this) {
-                writer.writeByte((byte)2);
-                writer.writeInt(ejob.jobKey.jobId);
-                writer.writeString(ejob.jobName);
-                writer.writeString(ejob.jobType.toString());
-                writer.writeString(newState.toString());
-                writer.writeLong(timeStamp);
-                if (newState == EJob.State.WAITING) {
-                    writer.writeBoolean(ejob.serializedJob != null);
-                    if (ejob.serializedJob != null)
-                        writer.writeBytes(ejob.serializedJob);
-                }
-                if (newState == EJob.State.SERVER_DONE)
-                    writer.writeBytes(ejob.serializedResult);
-//                }
-                break;
+        assert e.newState == EJob.State.SERVER_DONE;
+        writer.writeByte((byte)2);
+        writer.writeInt(ejob.jobKey.jobId);
+        writer.writeString(ejob.jobName);
+        writer.writeString(ejob.jobType.toString());
+        writer.writeString(e.newState.toString());
+        writer.writeLong(e.timeStamp);
+        if (e.newState == EJob.State.WAITING) {
+            writer.writeBoolean(ejob.serializedJob != null);
+            if (ejob.serializedJob != null)
+                writer.writeBytes(ejob.serializedJob);
         }
+        if (e.newState == EJob.State.SERVER_DONE)
+            writer.writeBytes(ejob.serializedResult);
     }
 
-    void writeString(String s) throws IOException {
+    @Override
+    protected void consume(PrintEvent e) throws Exception {
         writer.writeByte((byte)3);
-        writer.writeString(s);
+        writer.writeString(e.s);
     }
 
-    void writeJobQueue(Job.Inform[] jobQueue) throws IOException {
+    @Override
+    protected void consume(JobQueueEvent e) throws Exception {
         writer.writeByte((byte)4);
-        writer.writeInt(jobQueue.length);
-        for (Job.Inform j: jobQueue)
+        writer.writeInt(e.jobQueue.length);
+        for (Job.Inform j: e.jobQueue)
             j.write(writer);
+    }
+
+    private void writeSnapshot(Snapshot newSnapshot) throws IOException {
+        writer.writeByte((byte)1);
+        newSnapshot.writeDiffs(writer, currentSnapshot);
+        currentSnapshot = newSnapshot;
     }
 
     private class ClientReader extends Thread {

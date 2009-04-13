@@ -28,6 +28,7 @@ import com.sun.electric.database.Environment;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdManager;
@@ -38,12 +39,14 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Client;
+import com.sun.electric.tool.EJob;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ErrorLoggerTree;
+import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
@@ -69,6 +72,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
@@ -124,6 +128,67 @@ public class UserInterfaceMain extends AbstractUserInterface
             e.printStackTrace();
         }
         SwingUtilities.invokeLater(new InitializationRun(argsList, mode, showSplash));
+    }
+
+    @Override
+    protected void consume(EJobEvent e) {
+        EJob ejob = e.ejob;
+        assert e.newState == EJob.State.SERVER_DONE;
+        boolean undoRedo = ejob.jobType == Job.Type.UNDO;
+        if (!ejob.isExamine()) {
+            int restoredHighlights = Undo.endChanges(ejob.oldSnapshot, ejob.getJob().getTool(), ejob.jobName, ejob.newSnapshot);
+            showSnapshot(ejob.newSnapshot, undoRedo);
+            restoreHighlights(restoredHighlights);
+        }
+
+        //if (ejob.client != Job.getExtendedUserInterface()) return;
+        Throwable jobException = null;
+        if (ejob.startedByServer)
+            jobException = ejob.deserializeToClient();
+        if (jobException != null) {
+            System.out.println("Error deserializing " + ejob.jobName);
+            ActivityLogger.logException(jobException);
+            return;
+        }
+        jobException = ejob.deserializeResult();
+
+        Job job = ejob.clientJob;
+        if (job == null) {
+            ActivityLogger.logException(jobException);
+            return;
+        }
+        try {
+            job.terminateIt(jobException);
+        } catch (Throwable ex) {
+            System.out.println("Exception executing terminateIt");
+            ex.printStackTrace(System.out);
+        }
+        job.endTime = System.currentTimeMillis();
+        job.finished = true;                        // is this redundant with Thread.isAlive()?
+
+        // say something if it took more than a minute by default
+        if (job.reportExecution || (job.endTime - job.startTime) >= Job.MIN_NUM_SECONDS) {
+
+            if (User.isBeepAfterLongJobs())
+                Job.getExtendedUserInterface().beep();
+            System.out.println(job.getInfo());
+        }
+    }
+
+    @Override
+    protected void consume(PrintEvent e) {
+        printMessage(e.s, false);
+    }
+
+    @Override
+    protected void consume(JobQueueEvent e) {
+        boolean busyCursor = false;
+        for (Job.Inform jobInform: e.jobQueue) {
+            if (jobInform.isChangeJobQueuedOrRunning())
+                busyCursor = true;
+        }
+        JobTree.update(Arrays.asList(e.jobQueue));
+        TopLevel.setBusyCursor(busyCursor);
     }
 
     public void addEvent(Client.ServerEvent serverEvent) { SwingUtilities.invokeLater(serverEvent); }

@@ -65,8 +65,12 @@ public class DXF extends Output
     {
         // DXF Settings
 		int dxfScale = IOTool.getDXFScale();
+        public Technology tech;
 
-        public DXFPreferences(boolean factory) { super(factory); }
+        public DXFPreferences(boolean factory) {
+            super(factory);
+            tech = Technology.getCurrent();
+        }
 
         @Override
         public Output doOutput(Cell cell, VarContext context, String filePath)
@@ -201,8 +205,8 @@ public class DXF extends Output
 				printWriter.print("  5\n" + getThreeDigitHex(dxfEntityHandle++) + "\n");
 				printWriter.print("  2\n" + getDXFCellName(subCell) + "\n");
 				Rectangle2D cellBounds = subCell.getBounds();
-				double xC = TextUtils.convertDistance(ni.getAnchorCenterX() - cellBounds.getCenterX(), Technology.getCurrent(), dxfDispUnit);
-				double yC = TextUtils.convertDistance(ni.getAnchorCenterY() - cellBounds.getCenterY(), Technology.getCurrent(), dxfDispUnit);
+				double xC = TextUtils.convertDistance(ni.getAnchorCenterX() - cellBounds.getCenterX(), localPrefs.tech, dxfDispUnit);
+				double yC = TextUtils.convertDistance(ni.getAnchorCenterY() - cellBounds.getCenterY(), localPrefs.tech, dxfDispUnit);
 				printWriter.print(" 10\n" + TextUtils.formatDouble(xC) + "\n");
 				printWriter.print(" 20\n" + TextUtils.formatDouble(yC) + "\n");
 				printWriter.print(" 30\n0\n");
@@ -249,9 +253,9 @@ public class DXF extends Output
 					printWriter.print("  0\nCIRCLE\n");
 				printWriter.print("  8\n" + layerName + "\n");
 				printWriter.print("  5\n" + getThreeDigitHex(dxfEntityHandle++) + "\n");
-				xC = TextUtils.convertDistance(xC, Technology.getCurrent(), dxfDispUnit);
-				yC = TextUtils.convertDistance(yC, Technology.getCurrent(), dxfDispUnit);
-				double zC = TextUtils.convertDistance(ni.getYSize() / 2, Technology.getCurrent(), dxfDispUnit);
+				xC = TextUtils.convertDistance(xC, localPrefs.tech, dxfDispUnit);
+                yC = TextUtils.convertDistance(yC, localPrefs.tech, dxfDispUnit);
+				double zC = TextUtils.convertDistance(ni.getYSize() / 2, localPrefs.tech, dxfDispUnit);
 				printWriter.print(" 10\n" + TextUtils.formatDouble(xC) + "\n");
 				printWriter.print(" 20\n" + TextUtils.formatDouble(yC) + "\n");
 				printWriter.print(" 30\n0\n");
@@ -289,15 +293,15 @@ public class DXF extends Output
 					printWriter.print("  5\n" + getThreeDigitHex(dxfEntityHandle++) + "\n");
 					Point2D pt = new Point2D.Double(points[0].getX() + xC, points[0].getY() + yC);
 					trans.transform(pt, pt);
-					double x = TextUtils.convertDistance(pt.getX(), Technology.getCurrent(), dxfDispUnit);
-					double y = TextUtils.convertDistance(pt.getY(), Technology.getCurrent(), dxfDispUnit);
+					double x = TextUtils.convertDistance(pt.getX(), localPrefs.tech, dxfDispUnit);
+					double y = TextUtils.convertDistance(pt.getY(), localPrefs.tech, dxfDispUnit);
 					printWriter.print(" 10\n" + TextUtils.formatDouble(x) + "\n");
 					printWriter.print(" 20\n" + TextUtils.formatDouble(y) + "\n");
 					printWriter.print(" 30\n0\n");
 					pt = new Point2D.Double(points[1].getX() + xC, points[1].getY() + yC);
 					trans.transform(pt, pt);
-					x = TextUtils.convertDistance(pt.getX(), Technology.getCurrent(), dxfDispUnit);
-					y = TextUtils.convertDistance(pt.getY(), Technology.getCurrent(), dxfDispUnit);
+					x = TextUtils.convertDistance(pt.getX(), localPrefs.tech, dxfDispUnit);
+					y = TextUtils.convertDistance(pt.getY(), localPrefs.tech, dxfDispUnit);
 					printWriter.print(" 11\n" + TextUtils.formatDouble(x) + "\n");
 					printWriter.print(" 21\n" + TextUtils.formatDouble(y) + "\n");
 					printWriter.print(" 31\n0\n");
@@ -313,15 +317,15 @@ public class DXF extends Output
 						printWriter.print("  5\n" + getThreeDigitHex(dxfEntityHandle++) + "\n");
 						Point2D pt = new Point2D.Double(points[i].getX() + xC, points[i].getY() + yC);
 						trans.transform(pt, pt);
-						double x = TextUtils.convertDistance(pt.getX(), Technology.getCurrent(), dxfDispUnit);
-						double y = TextUtils.convertDistance(pt.getY(), Technology.getCurrent(), dxfDispUnit);
+						double x = TextUtils.convertDistance(pt.getX(), localPrefs.tech, dxfDispUnit);
+						double y = TextUtils.convertDistance(pt.getY(), localPrefs.tech, dxfDispUnit);
 						printWriter.print(" 10\n" + TextUtils.formatDouble(x) + "\n");
 						printWriter.print(" 20\n" + TextUtils.formatDouble(y) + "\n");
 						printWriter.print(" 30\n0\n");
 						pt = new Point2D.Double(points[i+1].getX() + xC, points[i+1].getY() + yC);
 						trans.transform(pt, pt);
-						x = TextUtils.convertDistance(pt.getX(), Technology.getCurrent(), dxfDispUnit);
-						y = TextUtils.convertDistance(pt.getY(), Technology.getCurrent(), dxfDispUnit);
+						x = TextUtils.convertDistance(pt.getX(), localPrefs.tech, dxfDispUnit);
+						y = TextUtils.convertDistance(pt.getY(), localPrefs.tech, dxfDispUnit);
 						printWriter.print(" 11\n" + TextUtils.formatDouble(x) + "\n");
 						printWriter.print(" 21\n" + TextUtils.formatDouble(y) + "\n");
 						printWriter.print(" 31\n0\n");
@@ -333,15 +337,15 @@ public class DXF extends Output
 						printWriter.print("  5\n" + getThreeDigitHex(dxfEntityHandle++) + "\n");
 						Point2D pt = new Point2D.Double(points[len-1].getX() + xC, points[len-1].getY() + yC);
 						trans.transform(pt, pt);
-						double x = TextUtils.convertDistance(pt.getX(), Technology.getCurrent(), dxfDispUnit);
-						double y = TextUtils.convertDistance(pt.getY(), Technology.getCurrent(), dxfDispUnit);
+						double x = TextUtils.convertDistance(pt.getX(), localPrefs.tech, dxfDispUnit);
+						double y = TextUtils.convertDistance(pt.getY(), localPrefs.tech, dxfDispUnit);
 						printWriter.print(" 10\n" + TextUtils.formatDouble(x) + "\n");
 						printWriter.print(" 20\n" + TextUtils.formatDouble(y) + "\n");
 						printWriter.print(" 30\n0\n");
 						pt = new Point2D.Double(points[0].getX() + xC, points[0].getY() + yC);
 						trans.transform(pt, pt);
-						x = TextUtils.convertDistance(pt.getX(), Technology.getCurrent(), dxfDispUnit);
-						y = TextUtils.convertDistance(pt.getY(), Technology.getCurrent(), dxfDispUnit);
+						x = TextUtils.convertDistance(pt.getX(), localPrefs.tech, dxfDispUnit);
+						y = TextUtils.convertDistance(pt.getY(), localPrefs.tech, dxfDispUnit);
 						printWriter.print(" 11\n" + TextUtils.formatDouble(x) + "\n");
 						printWriter.print(" 21\n" + TextUtils.formatDouble(y) + "\n");
 						printWriter.print(" 31\n0\n");

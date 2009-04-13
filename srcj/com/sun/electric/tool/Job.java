@@ -147,7 +147,7 @@ public abstract class Job implements Serializable {
 	}
 
 
-	/** default execution time in milis */      /*private*/ static final int MIN_NUM_SECONDS = 60000;
+	/** default execution time in milis */      /*private*/ public static final int MIN_NUM_SECONDS = 60000;
     /** job manager */                          /*private*/ static JobManager jobManager;
 	static AbstractUserInterface currentUI;
 
@@ -155,14 +155,14 @@ public abstract class Job implements Serializable {
     /** display on job list if true */          private boolean display;
 
     // Job Status
-    /** job start time */                       protected long startTime;
-    /** job end time */                         protected long endTime;
+    /** job start time */                       public /*protected*/ long startTime;
+    /** job end time */                         public /*protected*/ long endTime;
     /** was job started? */                     /*private*/boolean started;
-    /** is job finished? */                     /*private*/ boolean finished;
+    /** is job finished? */                     /*private*/ public boolean finished;
     /** thread aborted? */                      /*private*/ boolean aborted;
     /** schedule thread to abort */             /*private*/ boolean scheduledToAbort;
 	/** report execution time regardless MIN_NUM_SECONDS */
-												/*private*/ boolean reportExecution = false;
+												/*private*/ public boolean reportExecution = false;
     /** tool running the job */                 /*private*/ Tool tool;
     /** current technology */                   final TechId curTechId;
     /** current library */                      final LibId curLibId;
@@ -696,6 +696,10 @@ public abstract class Job implements Serializable {
 
     public TechPool getTechPool() {
         return database.getTechPool();
+    }
+
+    public Tool getTool() {
+        return tool;
     }
 
     public EditingPreferences getEditingPreferences() {

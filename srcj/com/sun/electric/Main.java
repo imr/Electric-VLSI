@@ -45,6 +45,7 @@ import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.AbstractUserInterface;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
@@ -351,6 +352,30 @@ public final class Main
          * @return the string (null if cancelled).
          */
         public String askForInput(Object message, String title, String def) { return def; }
+
+        @Override
+        protected void consume(EJobEvent e) {
+            printMessage("Job " + e.ejob, true);
+    //        writeEJobEvent(e.ejob, e.newState, e.timeStamp);
+        }
+
+        @Override
+        protected void consume(PrintEvent e) {
+            printMessage(e.s, false);
+        }
+
+        @Override
+        protected void consume(JobQueueEvent e) {
+            printMessage("JobQueue: ", false);
+            for (Job.Inform jobInfo: e.jobQueue)
+                printMessage(" " + jobInfo, false);
+            printMessage("", true);
+        }
+
+        @Override
+        protected void addEvent(Client.ServerEvent serverEvent) {
+            serverEvent.run();
+        }
 	}
 
 	/** check if command line option 'option' present in
