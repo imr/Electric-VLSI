@@ -993,8 +993,6 @@ public class KeyBindingManager {
         // try to see if binding saved in preferences for each action
         for (Map.Entry<String,Object> entry : actionMap.entrySet()) {
             String actionDesc = entry.getKey();
-            if (actionDesc.startsWith("Edit | Selection | Show"))
-                System.out.println();
 
             if (actionDesc == null || actionDesc.equals("")) continue;
             // clear current bindings
