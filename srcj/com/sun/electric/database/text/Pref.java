@@ -216,7 +216,7 @@ public class Pref {
         this.name = name;
         this.group = group;
         this.serverAccessible = serverAccessible;
-        cachedObj = this.factoryObj = factoryObj;
+        this.factoryObj = factoryObj;
         synchronized (group.prefs) {
             assert !group.prefs.containsKey(name);
             group.prefs.put(name, this);
@@ -606,6 +606,8 @@ public class Pref {
                 reportedAccess.add(this);
             }
         }
+        if (cachedObj == null)
+            setCachedObjFromPreferences();
         return cachedObj;
     }
 
@@ -646,16 +648,6 @@ public class Pref {
         assert value.getClass() == factoryObj.getClass();
         cachedObj = value.equals(factoryObj) ? factoryObj : value;
         group.putValue(name, cachedObj);
-    }
-
-    public void patchDoubleFactoryValue(double newFactoryValue) {
-        if (newFactoryValue == getDoubleFactoryValue()) return;
-        if (cachedObj == factoryObj) {
-//            group.remove(name);
-            cachedObj = factoryObj = Double.valueOf(newFactoryValue);
-        } else {
-            factoryObj = Double.valueOf(newFactoryValue);
-        }
     }
 
     private void setCachedObjFromPreferences() {
@@ -742,7 +734,7 @@ public class Pref {
 	public void setBoolean(boolean v)
 	{
         checkModify();
-		boolean cachedBool = ((Boolean)cachedObj).booleanValue();
+		boolean cachedBool = getBoolean();
 		if (v != cachedBool)
 			setValue(Boolean.valueOf(v));
 	}
@@ -754,7 +746,7 @@ public class Pref {
 	public void setInt(int v)
 	{
         checkModify();
-		int cachedInt = ((Integer)cachedObj).intValue();
+		int cachedInt = getInt();
 		if (v != cachedInt)
 			setValue(Integer.valueOf(v));
 	}
@@ -766,7 +758,7 @@ public class Pref {
 	public void setLong(long v)
 	{
         checkModify();
-		long cachedLong = ((Long)cachedObj).longValue();
+		long cachedLong = getLong();
 		if (v != cachedLong)
 			setValue(Long.valueOf(v));
 	}
@@ -778,8 +770,7 @@ public class Pref {
 	public void setDouble(double v)
 	{
         checkModify();
-		double cachedDouble = ((Double)cachedObj).doubleValue();
-
+		double cachedDouble = getDouble();
 		if (v != cachedDouble)
 			setValue(Double.valueOf(v));
 	}
@@ -791,7 +782,7 @@ public class Pref {
 	public void setString(String str)
 	{
         checkModify();
-		String cachedString = (String)cachedObj;
+		String cachedString = getString();
 		if (!str.equals(cachedString))
 			setValue(str);
 	}
@@ -860,6 +851,8 @@ public class Pref {
 	 * Method to reset Pref value to factory default.
 	 */
     public void factoryReset() {
+        if (Thread.currentThread() != clientThread)
+            throw new IllegalStateException();
         cachedObj = factoryObj;
         group.remove(name);
     }

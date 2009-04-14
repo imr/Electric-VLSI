@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+BUG: (4/13/09, DN) Preferences not available during startup of Electric (Bug #2122).
+FIX: In first call of Pref.getValue() int cachedObj by setCachedObjFromPreferences().
+
 BUG: (4/13/09, DN) Assertion on redraw (Bug #2123).
 FIX: In LayerDrawing.copyBits fix asserted condition.
 
