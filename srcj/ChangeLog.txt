@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+BUG: (4/13/09, DN) Assertion on redraw (Bug #2123).
+FIX: In LayerDrawing.copyBits fix asserted condition.
+
 BUG: (4/11/09, GVG) NPE in Measure if no empty is displayed (Bug #2120)
 FIX: Detect when no cell is available.
 

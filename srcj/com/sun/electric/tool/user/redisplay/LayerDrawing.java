@@ -1892,7 +1892,7 @@ class LayerDrawing
             ERaster raster = getInstanceRaster();
             raster.copyBits(srcOffscreen.instanceRaster, minSrcX, maxSrcX, minSrcY, maxSrcY, cornerX, cornerY);
         }
-        assert gridRaster == null;
+        assert srcOffscreen.gridRaster == null;
     }
 
 	// ************************************* RENDERING POLY SHAPES *************************************

@@ -193,53 +193,41 @@ public class UserInterfaceMain extends AbstractUserInterface
 
     public void addEvent(Client.ServerEvent serverEvent) { SwingUtilities.invokeLater(serverEvent); }
 
-    public void initializeInitJob(Job job, Object mode)
-    {
-        // Only valid for Mac OS X
-        if (!Client.isOSMac()) return;
-
-//        if (mode != Mode.MDI)
-//            new EventProcessor();
-
-        SwingUtilities.invokeLater(new InitializationSetJob(job));
-    }
-
     private static String getMacClassName()
     {
         return "com.sun.electric.tool.user.MacOSXInterface";
     }
 
-    private class InitializationSetJob implements Runnable {
-        Job initJob;
-        public InitializationSetJob(Job job)
-        {
-            this.initJob = job;
-        }
-        public void run()
-        {
-            if (!Client.isOSMac()) return;
-
-            try {
-                Class<?> osXClass = Class.forName(getMacClassName());
-                Method osXSetJobMethod = null;
-
-                // find the necessary methods on the Mac OS/X class
-                try {
-                    osXSetJobMethod = osXClass.getMethod("setInitJob", new Class[] {Job.class});
-                } catch (NoSuchMethodException e) {
-                    osXSetJobMethod = null;
-                }
-                if (osXSetJobMethod != null) {
-                    try {
-                        osXSetJobMethod.invoke(osXClass, new Object[] {initJob});
-                    } catch (Exception e) {
-                        System.out.println("Error initializing Mac OS/X interface");
-                    }
-                }
-            } catch (ClassNotFoundException e) {}
-        }
-
-    }
+//    private class InitializationSetJob implements Runnable {
+//        Job initJob;
+//        public InitializationSetJob(Job job)
+//        {
+//            this.initJob = job;
+//        }
+//        public void run()
+//        {
+//            if (!Client.isOSMac()) return;
+//
+//            try {
+//                Class<?> osXClass = Class.forName(getMacClassName());
+//                Method osXSetJobMethod = null;
+//
+//                // find the necessary methods on the Mac OS/X class
+//                try {
+//                    osXSetJobMethod = osXClass.getMethod("setInitJob", new Class[] {Job.class});
+//                } catch (NoSuchMethodException e) {
+//                    osXSetJobMethod = null;
+//                }
+//                if (osXSetJobMethod != null) {
+//                    try {
+//                        osXSetJobMethod.invoke(osXClass, new Object[] {initJob});
+//                    } catch (Exception e) {
+//                        System.out.println("Error initializing Mac OS/X interface");
+//                    }
+//                }
+//            } catch (ClassNotFoundException e) {}
+//        }
+//    }
     private class InitializationRun implements Runnable {
         List<String> argsList;
         Mode mode;

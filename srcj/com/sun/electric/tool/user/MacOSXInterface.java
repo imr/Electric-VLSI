@@ -37,7 +37,6 @@ import com.apple.eawt.ApplicationAdapter;
 import com.apple.eawt.ApplicationEvent;
 import com.sun.electric.Main;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.HelpMenu;
@@ -54,7 +53,7 @@ class MacOSXInterface extends ApplicationAdapter
 	private static MacOSXInterface adapter = null;
 	private static Application application = null;
     private static List<String> argsList; // references to args list to add the file that triggers the opening
-    protected Job initJob;
+//    protected Job initJob;
 
 	/**
 	 * Method to initialize the Mac OS/X interface.
@@ -65,12 +64,12 @@ class MacOSXInterface extends ApplicationAdapter
         argsList = list;
     }
 
-	/**
-	 * Class for informing the Mac OS/X interface of the initialization job.
-	 * This is done to handle initial library requests at the proper time.
-	 * @param ij the initializtion job.
-	 */
-	public static void setInitJob(Job ij) { adapter.initJob = ij; }
+//	/**
+//	 * Class for informing the Mac OS/X interface of the initialization job.
+//	 * This is done to handle initial library requests at the proper time.
+//	 * @param ij the initializtion job.
+//	 */
+//	public static void setInitJob(Job ij) { adapter.initJob = ij; }
 
 	/**
 	 * Method called when the "About" item is selected in the Macintosh "Electric" menu.
