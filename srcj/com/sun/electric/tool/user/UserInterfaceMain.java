@@ -562,8 +562,13 @@ public class UserInterfaceMain extends AbstractUserInterface
             printWriter.print(str);
             printWriter.flush();
         }
-        TopLevel.getMessagesWindow().appendString(str);
-	}
+        MessagesWindow mw = TopLevel.getMessagesWindow();
+        if (mw != null)
+            TopLevel.getMessagesWindow().appendString(str);
+        else
+            // Error before the message window is available. Sending error to std error output
+            System.err.println(str);
+    }
 
     /**
      * Method to show a message and ask for confirmation.

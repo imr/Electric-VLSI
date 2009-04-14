@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+BUG: (4/14/09, GVG) NPE if "Failed to save preferences" (Bug #2125)
+FIX: Prevent sending errors to MessagesWindow when it is not available. Sending to System.err
+
 BUG: (4/13/09, DN) Preferences not available during startup of Electric (Bug #2122).
 FIX: In first call of Pref.getValue() int cachedObj by setCachedObjFromPreferences().
 
