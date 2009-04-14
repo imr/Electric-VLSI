@@ -105,7 +105,7 @@ public abstract class TechFactory {
             if (Job.getDebug())
                 System.out.println("GNU Release can't find extra technologies");
         } catch (Exception e) {
-            System.out.println("Exceptions while importing extra technologies");
+            System.out.println("Exceptions while importing extra technology " + getDescription());
             if (Job.getDebug())
                 ActivityLogger.logException(e);
         } finally {
@@ -118,6 +118,8 @@ public abstract class TechFactory {
     public List<Param> getTechParams() {
         return techParams;
     }
+
+    abstract String getDescription();
 
     @Override
     public String toString() { return techName; }
@@ -226,16 +228,19 @@ public abstract class TechFactory {
             Technology tech = newInstance(generic, params);
             return tech.makeXml();
         }
+
+        @Override
+        String getDescription() { return "from " + techClassName;}
     }
 
     private static class FromParamClass extends TechFactory {
-        private final Class<?> techClass;
+//        private final Class<?> techClass;
         private final Method getPatchedXmlMethod;
         Constructor techConstructor;
 
         private FromParamClass(String techName, Class<?> techClass, List<Param> techParams) throws Exception {
             super(techName, techParams);
-            this.techClass = techClass;
+//            this.techClass = techClass;
             getPatchedXmlMethod = techClass.getMethod("getPatchedXml", Map.class);
             techConstructor = techClass.getConstructor(Generic.class, TechFactory.class, Map.class, Xml.Technology.class);
         }
@@ -249,6 +254,9 @@ public abstract class TechFactory {
         public Xml.Technology getXml(final Map<Param,Object> params) throws Exception {
             return (Xml.Technology)getPatchedXmlMethod.invoke(null, params);
         }
+
+        @Override
+        String getDescription() { return "from " + getPatchedXmlMethod.getName();}
     }
 
     private static class FromXml extends TechFactory {
@@ -273,6 +281,9 @@ public abstract class TechFactory {
                 techClass = Class.forName(xml.className);
             return (Technology)techClass.getConstructor(Generic.class, TechFactory.class, Map.class, Xml.Technology.class).newInstance(generic, this, Collections.emptyMap(), xml);
         }
+
+        @Override
+        String getDescription() { return "from " + urlXml.getFile();}
 
         public Xml.Technology getXml(final Map<Param,Object> paramValues) throws Exception {
             assert paramValues.isEmpty();
