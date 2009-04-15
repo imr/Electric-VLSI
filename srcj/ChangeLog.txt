@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+BUG: (4/15/09, DN) NPE due to null EditorWindow when Waveform is open (Bug #2127)
+FIX: In Highligter.checkOutObject int lv from static variable when wnd is null.
+
 BUG: (4/14/09, GVG) NPE if "Failed to save preferences" (Bug #2125)
 FIX: Prevent sending errors to MessagesWindow when it is not available. Sending to System.err
 

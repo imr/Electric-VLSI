@@ -1761,7 +1761,7 @@ public class Highlighter implements DatabaseChangeListener {
 	public static Highlight2 checkOutObject(Geometric geom, boolean findPort, boolean findPoint, boolean findSpecial, Rectangle2D bounds,
 		EditWindow wnd, double directHitDist, boolean areaMustEnclose)
 	{
-        LayerVisibility lv = wnd.getLayerVisibility();
+        LayerVisibility lv = wnd != null ? wnd.getLayerVisibility() : LayerVisibility.getLayerVisibility();
 		if (geom instanceof NodeInst)
 		{
 			// examine a node object
