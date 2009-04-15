@@ -68,16 +68,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
-import javax.swing.AbstractButton;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 
 /**
  * This class manages the Electric toolbar.
@@ -1161,7 +1152,20 @@ public class ToolBar extends JToolBar
 				}
 
 				// do database undo
-				Undo.undo();
+                String task = Undo.getUndoActivity();
+                boolean realUndo = true; // always undo by default
+
+                if (task.equals(FileMenu.openJobName))
+                {
+                    String [] options = {"Cancel", "Undo"};
+					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+						"Undo the reading process?", "Undo Reading",
+						JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, "Cancel");
+					if (ret == 0)
+                        realUndo = false;
+                }
+                if (realUndo)
+                    Undo.undo();
 			}
 		}
 		public boolean isEnabled() { return UserInterfaceMain.getUndoEnabled(); }

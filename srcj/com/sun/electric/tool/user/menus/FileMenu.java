@@ -127,6 +127,7 @@ import javax.swing.SwingUtilities;
 public class FileMenu {
 
     public static final EMenu openRecentLibs = new EMenu("Open Recent Library", new ArrayList<EMenuItem>());
+    public static final String openJobName = "Read External Library";
 
     static EMenu makeMenu() {
 		/****************************** THE FILE MENU ******************************/
@@ -495,7 +496,7 @@ public class FileMenu {
 		public ReadLibrary(URL fileURL, FileType type, String settingsDirectory,
                 Library deleteLib, RenameAndSaveLibraryTask saveTask, String cellName)
 		{
-			super("Read External Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super(openJobName, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fileURL = fileURL;
 			this.type = type;
 			this.deleteLib = deleteLib;

@@ -162,6 +162,8 @@ public class Undo
         ServerJobManager.setUndoRedoStatus(!doneList.isEmpty(), !undoneList.isEmpty());
     }
 
+    public static String getUndoActivity() {return doneList.get(doneList.size() - 1).activity;}
+
     /**
      * Method to undo a change.
      */
