@@ -5289,16 +5289,16 @@ public class Technology implements Comparable<Technology>, Serializable
 	        			PrimitivePort dBot = traPorts.get(3);
 	        			if (!getTechName().equals("tft"))
 	        			{
-		        			if (!pLeft.getConnection().getFunction().isPoly())
+		        			if (!connectsToPoly(pLeft))
 		    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
 				        			", first port (" + pLeft.getName() + ") should connect to Polysilicon");
-		        			if (!dTop.getConnection().getFunction().isDiffusion())
+		        			if (!connectsToActive(dTop))
 		    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
 				        			", second port (" + dTop.getName() + ") should connect to Active");
-		        			if (!pRight.getConnection().getFunction().isPoly())
+		        			if (!connectsToPoly(pRight))
 		    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
 				        			", third port (" + pRight.getName() + ") should connect to Polysilicon");
-		        			if (!dBot.getConnection().getFunction().isDiffusion())
+		        			if (!connectsToActive(dBot))
 		    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
 				        			", fourth port (" + dBot.getName() + ") should connect to Active");
 	        			}
@@ -5355,6 +5355,22 @@ public class Technology implements Comparable<Technology>, Serializable
 	        	}
 	        }
         }
+    }
+
+    private boolean connectsToPoly(PrimitivePort pp)
+    {
+    	ArcProto[] connections = pp.getConnections();
+    	for(int i=0; i<connections.length; i++)
+    		if (connections[i].getFunction().isPoly()) return true;
+    	return false;
+    }
+
+    private boolean connectsToActive(PrimitivePort pp)
+    {
+    	ArcProto[] connections = pp.getConnections();
+    	for(int i=0; i<connections.length; i++)
+    		if (connections[i].getFunction().isDiffusion()) return true;
+    	return false;
     }
 
 	///////////////////// Generic methods //////////////////////////////////////////////////////////////
