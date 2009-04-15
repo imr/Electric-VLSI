@@ -70,10 +70,18 @@ import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.TechType;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -88,7 +96,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 
 /**
  * Class for view-related changes to the circuit.
@@ -278,7 +291,6 @@ public class ViewChanges
 			fieldVariableChanged("idMapper");
 			if (idMapper != null) {
 				cell = idMapper.get(cell.getId()).inDatabase(database);
-//				cell.setTechnology(null);
 			}
 			return true;
 		}
@@ -1218,7 +1230,7 @@ public class ViewChanges
 		Cell newCell = Cell.makeInstance(lib, cellName);
 		if (newCell == null)
 			System.out.println("Could not create cell: " + cellName); else
-				System.out.println("Creating new cell: " + cellName);
+				System.out.println("Creating new cell: " + cellName + " from cell " + cell.describe(false));
 		return newCell;
 	}
 
@@ -1448,54 +1460,191 @@ public class ViewChanges
 		if (wnd == null) return;
 		Cell oldCell = wnd.getCell();
 		if (oldCell == null) return;
-		VarContext context = wnd.getVarContext();
-		if (context == null) context = VarContext.globalContext;
-
-		// find out which technology they want to convert to
-		Technology oldTech = oldCell.getTechnology();
-		List<Technology> newTechs = new ArrayList<Technology>();
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			if (tech == oldTech) continue;
-			if (tech.isScaleRelevant()) newTechs.add(tech);
-		}
-		String [] techNames = new String[newTechs.size()];
-		int i=0;
-		for(Technology tech : newTechs)
-			techNames[i++] = tech.getTechName();
-		String selectedValue = (String)JOptionPane.showInputDialog(null,
-			"New technology to create", "Technology conversion",
-			JOptionPane.INFORMATION_MESSAGE, null, techNames, User.getSchematicTechnology().getTechName());
-		if (selectedValue == null) return;
-		Technology newTech = Technology.findTechnology(selectedValue);
-		if (newTech == null) return;
-		if (newTech == oldTech)
-		{
-			System.out.println("Cell " + oldCell.describe(true) + " is already in the " + newTech.getTechName() + " technology");
-			return;
-		}
-		String newLibName = Job.getUserInterface().askForInput("New library name for the converted cells (leave blank to place new cells in the current library):",
-			"New Library Name", "");
-		if (newLibName == null) return;
-
-		new MakeLayoutView(oldCell, oldTech, newTech, context, newLibName);
+		new MakeNewViewDialog(oldCell, wnd);
 	}
 
-	private static class MakeLayoutView extends Job
+	/**
+	 * Class to handle the "Make New View" dialog.
+	 */
+	public static class MakeNewViewDialog extends EDialog
+	{
+		private Cell oldCell;
+		private VarContext context;
+		private Technology oldTech;
+		private JComboBox newTechnology, standardCellLibrary;
+		private JCheckBox putInSeparateLibrary;
+		private JTextField separateLibraryName;
+		private JLabel jLabel2;
+
+		/** Creates new form */
+		private MakeNewViewDialog(Cell oldCell, EditWindow wnd)
+		{
+			super(TopLevel.getCurrentJFrame(), false);
+			this.oldCell = oldCell;
+			initComponents();
+
+			context = wnd.getVarContext();
+			if (context == null) context = VarContext.globalContext;
+
+			sepLibChanged();
+			finishInitialization();
+			pack();
+			setVisible(true);
+		}
+
+		protected void escapePressed() { closeDialog(); }
+
+	    private void initComponents()
+	    {
+	        getContentPane().setLayout(new GridBagLayout());
+	        setTitle("Make New View");
+	        setName("");
+	        addWindowListener(new WindowAdapter() {
+	            public void windowClosing(WindowEvent evt) { closeDialog(); }
+	        });
+	        GridBagConstraints gbc;
+
+	        JLabel jLabel1 = new JLabel("Technology of new cell:");
+	        gbc = new GridBagConstraints();
+	        gbc.gridx = 0;   gbc.gridy = 0;
+	        gbc.anchor = GridBagConstraints.WEST;
+	        gbc.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(jLabel1, gbc);
+
+	        newTechnology = new JComboBox();
+	        gbc = new GridBagConstraints();
+	        gbc.gridx = 1;   gbc.gridy = 0;
+	        gbc.fill = GridBagConstraints.HORIZONTAL;
+	        gbc.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(newTechnology, gbc);
+
+	        // show the list of technologies to convert to
+			oldTech = oldCell.getTechnology();
+			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+			{
+				Technology tech = it.next();
+				if (tech == oldTech) continue;
+				if (tech.isLayout())
+					newTechnology.addItem(tech.getTechName());
+			}
+
+
+	        putInSeparateLibrary = new JCheckBox("Place new circuitry in a separate library");
+	        putInSeparateLibrary.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent evt) { sepLibChanged(); }
+	        });
+	        gbc = new GridBagConstraints();
+	        gbc.gridx = 0;   gbc.gridy = 1;
+	        gbc.gridwidth = 2;
+	        gbc.anchor = GridBagConstraints.WEST;
+	        gbc.insets = new Insets(4, 4, 1, 4);
+	        getContentPane().add(putInSeparateLibrary, gbc);
+
+	        jLabel2 = new JLabel("Library for new circuitry:");
+	        gbc = new GridBagConstraints();
+	        gbc.gridx = 0;   gbc.gridy = 2;
+	        gbc.anchor = GridBagConstraints.WEST;
+	        gbc.insets = new Insets(1, 20, 4, 4);
+	        getContentPane().add(jLabel2, gbc);
+
+	        separateLibraryName = new JTextField();
+			EDialog.makeTextFieldSelectAllOnTab(separateLibraryName);
+	        gbc = new GridBagConstraints();
+	        gbc.gridx = 1;   gbc.gridy = 2;
+	        gbc.fill = GridBagConstraints.HORIZONTAL;
+	        gbc.insets = new Insets(1, 4, 4, 4);
+	        getContentPane().add(separateLibraryName, gbc);
+
+
+	        if (oldTech == Schematics.tech())
+	        {
+		        JLabel jLabel3 = new JLabel("Standard Cell library:");
+		        gbc = new GridBagConstraints();
+		        gbc.gridx = 0;   gbc.gridy = 3;
+		        gbc.anchor = GridBagConstraints.WEST;
+		        gbc.insets = new Insets(4, 4, 4, 4);
+		        getContentPane().add(jLabel3, gbc);
+
+		        standardCellLibrary = new JComboBox();
+		        gbc = new GridBagConstraints();
+		        gbc.gridx = 1;   gbc.gridy = 3;
+		        gbc.fill = GridBagConstraints.HORIZONTAL;
+		        gbc.insets = new Insets(4, 4, 4, 4);
+		        getContentPane().add(standardCellLibrary, gbc);
+
+		        // show a list of libraries that can hold standard cells
+				standardCellLibrary.addItem("");
+				for(Library lib : Library.getVisibleLibraries())
+				{
+					standardCellLibrary.addItem(lib.getName());
+				}
+	        }
+
+
+	        JButton cancel = new JButton("Cancel");
+	        cancel.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent evt) { closeDialog(); }
+	        });
+	        gbc = new GridBagConstraints();
+	        gbc.gridx = 0;   gbc.gridy = 4;
+	        gbc.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(cancel, gbc);
+
+		    JButton ok = new JButton("OK");
+	        ok.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent evt) { ok(); }
+	        });
+			getRootPane().setDefaultButton(ok);
+	        gbc = new GridBagConstraints();
+	        gbc.gridx = 1;   gbc.gridy = 4;
+	        gbc.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(ok, gbc);
+
+	        pack();
+	    }
+
+	    private void sepLibChanged()
+	    {
+    		jLabel2.setEnabled(putInSeparateLibrary.isSelected());
+    		separateLibraryName.setEditable(putInSeparateLibrary.isSelected());
+	    }
+
+	    private void ok()
+		{
+			String techName = (String)newTechnology.getSelectedItem();
+			Technology newTech = Technology.findTechnology(techName);
+			String newLibName = "";
+			if (putInSeparateLibrary.isSelected()) newLibName = separateLibraryName.getText();
+			Library stdCellLib = null;
+			if (oldTech == Schematics.tech())
+			{
+				String stdCellLibName = (String)standardCellLibrary.getSelectedItem();
+				if (stdCellLibName.length() > 0) stdCellLib = Library.findLibrary(stdCellLibName);
+			}
+			new MakeLayoutView(oldCell, oldTech, newTech, stdCellLib, context, newLibName);
+			closeDialog();
+		}
+	}
+
+	/**
+	 * Class to generate the alternate view of a cell.
+	 */
+	public static class MakeLayoutView extends Job
 	{
 		private Cell oldCell;
 		private Technology oldTech, newTech;
+		private Library stdCellLib;
 		private VarContext context;
 		private String newLibName;
 		private List<Cell> createdCells;
 
-		protected MakeLayoutView(Cell oldCell, Technology oldTech, Technology newTech, VarContext context, String newLibName)
+		public MakeLayoutView(Cell oldCell, Technology oldTech, Technology newTech, Library stdCellLib, VarContext context, String newLibName)
 		{
 			super("Make Alternate Layout", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.oldCell = oldCell;
 			this.oldTech = oldTech;
 			this.newTech = newTech;
+			this.stdCellLib = stdCellLib;
 			this.context = context;
 			this.newLibName = newLibName;
 			startJob();
@@ -1511,7 +1660,7 @@ public class ViewChanges
 				if (newLib == null) newLib = Library.newInstance(newLibName, null);
 			}
 			createdCells = new ArrayList<Cell>();
-			MakeLayoutVisitor visitor = new MakeLayoutVisitor(oldTech, newTech, oldCell.getLibrary(), createdCells, newLib);
+			MakeLayoutVisitor visitor = new MakeLayoutVisitor(oldTech, newTech, oldCell.getLibrary(), stdCellLib, createdCells, newLib);
 			HierarchyEnumerator.enumerateCell(oldCell, context, visitor, Netlist.ShortResistors.ALL);
 			fieldVariableChanged("createdCells");
 			return true;
@@ -1541,17 +1690,19 @@ public class ViewChanges
 		private static class MakeLayoutVisitor extends HierarchyEnumerator.Visitor
 		{
 			private Technology oldTech, newTech;
-			private Library defaultLib;
+			private Library defaultLib, stdCellLib;
 			private Map<Cell,Cell> convertedCells;
 			private StdCellParams stdCell;
 			private List<Cell> createdCells;
 			private Library newLib;
 
-			private MakeLayoutVisitor(Technology oldTech, Technology newTech, Library defaultLib, List<Cell> createdCells, Library newLib)
+			private MakeLayoutVisitor(Technology oldTech, Technology newTech, Library defaultLib, Library stdCellLib,
+				List<Cell> createdCells, Library newLib)
 			{
 				this.oldTech = oldTech;
 				this.newTech = newTech;
 				this.defaultLib = defaultLib;
+				this.stdCellLib = stdCellLib;
 				this.createdCells = createdCells;
 				this.newLib = newLib;
 				convertedCells = new HashMap<Cell,Cell>();
@@ -1560,20 +1711,20 @@ public class ViewChanges
 				// TODO This code "steals" the intended functionality and diverts it into the gate generator
 				if (oldTech == Schematics.tech())
 				{
+					stdCell = null;
 					if      (newTech == Technology.getMocmosTechnology()) type = TechType.TechTypeEnum.MOCMOS;
 					else if (newTech == Technology.findTechnology("TSMC180")) type = TechType.TechTypeEnum.TSMC180;
 					else if (newTech == Technology.findTechnology("CMOS90")) type = TechType.TechTypeEnum.CMOS90;
-					Tech.setTechType(type.getTechType());
-					Technology cmos90 = Technology.getCMOS90Technology();
-					if (cmos90 != null && type == TechType.TechTypeEnum.CMOS90)
+					if (type != null)
 					{
-						stdCell = GateLayoutGenerator.sportParams(false);
-					} else
-					{
-						//stdCell = locoParams(outLib);
-						stdCell = GateLayoutGenerator.dividerParams(type, false);
-						//stdCell = justinParams(outLib, technology);
-						if (type == null) stdCell = null;
+						Tech.setTechType(type.getTechType());
+						if (type == TechType.TechTypeEnum.CMOS90)
+						{
+							stdCell = GateLayoutGenerator.sportParams(false);
+						} else
+						{
+							stdCell = GateLayoutGenerator.dividerParams(type, false);
+						}
 					}
 				}
 			}
@@ -1631,6 +1782,16 @@ public class ViewChanges
 							{
 								layCell = c;
 								break;
+							}
+						}
+						if (layCell == null && stdCellLib != null && myInfo.isRootCell())
+						{
+							layCell = findStandardCell(no);
+							if (layCell != null)
+							{
+								NodeInst ni = no.getNodeInst();
+								System.out.println("Using standard cell " + layCell.describe(false) + " for " +
+									ni.getParent().describe(false) + ":" + ni.describe(false));
 							}
 						}
 						if (layCell == null)
@@ -1972,6 +2133,12 @@ public class ViewChanges
 					{
 						PrimitiveNode node = it.next();
 						if (type == node.getFunction()) return node;
+					}
+					PrimitiveNode.Function threePort = type.make3PortTransistor();
+					for (Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
+					{
+						PrimitiveNode node = it.next();
+						if (threePort == node.getFunction()) return node;
 					}
 				}
 
@@ -2460,7 +2627,134 @@ public class ViewChanges
 					+ portName + " and " + newNi.getProto());
 				return newNi.getProto().getPort(0);
 			}
+
+			/**
+			 * Method to find the layout cell that corresponds to a desired schematic instance.
+			 * @param no the Schematic Nodable in question.
+			 * @return the proper layout cell to use.
+			 */
+			private Cell findStandardCell(Nodable no)
+			{
+				// first see if the desired cell has a single "working" icon instance in it
+				NodeInst essentialIcon = no.getNodeInst();
+				if (essentialIcon == null) return null;
+				Map<String,Double> essentialVars = getVariables(essentialIcon);
+
+				// now find a cell with just that essential icon
+				Map<NodeInst,Map<String,Double>> possibleNodes = new HashMap<NodeInst,Map<String,Double>>();
+				for(Iterator<Cell> it = stdCellLib.getCells(); it.hasNext(); )
+				{
+					Cell stdCell = it.next();
+					NodeInst thisEI = getEssentialContent(stdCell);
+					if (thisEI != null && thisEI.getProto() == essentialIcon.getProto())
+					{
+						// find equivalent layout cell
+						for(Iterator<Cell> cIt = stdCell.getCellGroup().getCells(); cIt.hasNext(); )
+						{
+							Cell layCell = cIt.next();
+							if (layCell.getView() == View.LAYOUT)
+								possibleNodes.put(thisEI, getVariables(thisEI)); // return layCell;
+						}
+					}
+				}
+				if (possibleNodes.size() == 0) return null;
+				double bestParamDist = Double.MAX_VALUE;
+				NodeInst bestNi = null;
+				for(NodeInst thisEI : possibleNodes.keySet())
+				{
+					Map<String,Double> thisVars = possibleNodes.get(thisEI);
+					double paramDist = computeParameterDistance(essentialVars, thisVars);
+					if (paramDist < bestParamDist)
+					{
+						bestParamDist = paramDist;
+						bestNi = thisEI;
+					}
+				}
+
+				// determine the layout cell with this node
+				for(Iterator<Cell> cIt = bestNi.getParent().getCellGroup().getCells(); cIt.hasNext(); )
+				{
+					Cell layCell = cIt.next();
+					if (layCell.getView() == View.LAYOUT) return layCell;
+				}
+				return null;
+			}
+
+			/**
+			 * Method to find the "essential" node in a cell.
+			 * There must be just one such node, ignoring pins, contacts, etc.
+			 * @param cell the Cell to search.
+			 * @return the essential NodeInst in the Cell (null if none).
+			 */
+			private NodeInst getEssentialContent(Cell cell)
+			{
+				NodeInst essentialContent = null;
+				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+				{
+					NodeInst ni = it.next();
+					if (ni.isIconOfParent()) continue;
+					PrimitiveNode.Function fun = ni.getFunction();
+					if (fun == PrimitiveNode.Function.PIN) continue;
+					if (fun == PrimitiveNode.Function.CONNECT) continue;
+					if (fun == PrimitiveNode.Function.ART) continue;
+					if (essentialContent != null) { essentialContent = null;   break; }
+					essentialContent = ni;
+				}
+				return essentialContent;
+			}
+
+			/**
+			 * Method to create a map of all variables and values on a given NodeInst.
+			 * @param ni the NodeInst to examine.
+			 * @return a Map from String variable names to Double variable values.
+			 */
+			private Map<String,Double> getVariables(NodeInst ni)
+			{
+				Map<String,Double> vars = new HashMap<String,Double>();
+				for(Iterator<Variable> it = ni.getParametersAndVariables(); it.hasNext(); )
+				{
+					Variable var = it.next();
+					if (!var.isDisplay()) continue;
+					String value = null; // var.describe(-1, VarContext.globalContext, ni);
+			        if (var.isCode())
+					{
+						// special case for code: it is a string, the type applies to the result
+			            Object val = null;
+			            try {
+			                val = VarContext.globalContext.evalVarRecurse(var, ni);
+				            value = val.toString();
+			            } catch (VarContext.EvalException e) {}
+					} else
+					{
+						value = var.getPureValue(-1);
+					}
+					if (TextUtils.isANumber(value))
+					{
+						Double v = new Double(TextUtils.atof(value));
+						vars.put(var.getKey().getName(), v);
+					}
+				}
+				return vars;
+			}
+
+			/**
+			 * Method to determine the distance between two sets of parameters.
+			 * @param pars1 a map of parameter name and value for the first set of parameters.
+			 * @param pars2 a map of parameter name and value for the second set of parameters.
+			 * @return the distance between the parameter values (smaller numbers are closer).
+			 */
+			private double computeParameterDistance(Map<String,Double> pars1, Map<String,Double> pars2)
+			{
+				double dist = 0;
+				for(String par1 : pars1.keySet())
+				{
+					Double val1 = pars1.get(par1);
+					Double val2 = pars2.get(par1);
+					if (val2 == null) continue;
+					dist += Math.abs(val1.doubleValue() - val2.doubleValue());
+				}
+				return dist;
+			}
 		}
 	}
-
 }

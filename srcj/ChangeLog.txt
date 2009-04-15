@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09h: ******************************
 
+IMP/MAN: (4/15/09, SMR) "Make Alternate Layout View" has controlling dialog that
+     allows users converting schematics to layout to specify a standard cell
+     library (Bug #2128).
+
 BUG: (4/15/09, DN) NPE due to null EditorWindow when Waveform is open (Bug #2127)
 FIX: In Highligter.checkOutObject int lv from static variable when wnd is null.
 
