@@ -557,7 +557,7 @@ public class PreferencesFrame extends EDialog
 						String [] options;
 						String defaultOption;
 						int markCurrent, saveSettings;
-						if (curLib.isChanged())
+						if (curLib != null && curLib.isChanged())
 						{
 							options = new String [] { "Mark All Libs", "Write Proj Settings file", "Do nothing"};
 						  	defaultOption = options[2];
