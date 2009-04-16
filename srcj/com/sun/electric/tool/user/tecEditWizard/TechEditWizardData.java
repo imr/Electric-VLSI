@@ -58,7 +58,7 @@ public class TechEditWizardData
 	private int num_metal_layers;
 	private int stepsize;
     private boolean pWellFlag = true; // to control if process is a pwell process or not. If true, Tech Creation Wizard will not create pwell layers
-    private boolean horizontalFlag = true; // to control if transistor gates are aligned horizontally. True by default
+    private boolean horizontalFlag = true; // to control if transistor gates are aligned horizontally. True by default . If transistors are horizontal -> M1 is horizontal?
     private boolean extraInfoFlag = false; // to control if protection polys are added to transistors. False by default
 
     // DIFFUSION RULES
@@ -242,7 +242,7 @@ public class TechEditWizardData
         }
     }
 
-    private LayerInfo gds_diff_layer = new LayerInfo("Active");
+    private LayerInfo gds_diff_layer = new LayerInfo("Diff");
     private LayerInfo gds_poly_layer = new LayerInfo("Poly");
     private LayerInfo gds_nplus_layer = new LayerInfo("NPlus");
 	private LayerInfo gds_pplus_layer = new LayerInfo("PPlus");
@@ -1683,7 +1683,8 @@ public class TechEditWizardData
         double longD = DBMath.isGreaterThan(extLayer1, extLayer2) ? extLayer1 : extLayer2;
 
         // long square contact. Standard ones
-        return (makeXmlPrimitiveCon(nodeGroups, composeName, PrimitiveNode.Function.CONTACT, -1, -1, new SizeOffset(longD, longD, longD, longD), portNames,
+        return (makeXmlPrimitiveCon(nodeGroups, composeName, PrimitiveNode.Function.CONTACT, -1, -1,
+            null, /*new SizeOffset(longD, longD, longD, longD),*/ portNames,
                 makeXmlNodeLayer(hlaLong1, hlaLong1, hlaLong1, hlaLong1, layer1, Poly.Type.FILLED), // layer1
                 makeXmlNodeLayer(hlaLong2, hlaLong2, hlaLong2, hlaLong2, layer2, Poly.Type.FILLED), // layer2
                 makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
@@ -1961,18 +1962,19 @@ public class TechEditWizardData
         }
 
         // Poly
+        String polyN = gds_poly_layer.name;
         EGraphics graph = new EGraphics(false, false, null, 1, 0, 0, 0, 1, true, nullPattern);
-        Xml.Layer polyLayer = makeXmlLayer(t.layers, layer_width, "Poly", Layer.Function.POLY1, 0, graph,
+        Xml.Layer polyLayer = makeXmlLayer(t.layers, layer_width, polyN, Layer.Function.POLY1, 0, graph,
             (char)('A' + cifNumber++), poly_width, true, true);
         // PolyGate
-        Xml.Layer polyGateLayer = makeXmlLayer(t.layers, layer_width, "PolyGate", Layer.Function.GATE, 0, graph,
+        Xml.Layer polyGateLayer = makeXmlLayer(t.layers, layer_width, polyN+"Gate", Layer.Function.GATE, 0, graph,
             (char)('A' + cifNumber++), poly_width, false, false);
 
         if (getExtraInfoFlag())
         {
             // exclusion layer poly
             graph = new EGraphics(true, true, null, 1, 0, 0, 0, 1, true, dexclPattern);
-            Xml.Layer exclusionPolyLayer = makeXmlLayer(t.layers, "DEXCL-Poly", Layer.Function.DEXCLPOLY1, 0, graph,
+            Xml.Layer exclusionPolyLayer = makeXmlLayer(t.layers, "DEXCL-"+polyN, Layer.Function.DEXCLPOLY1, 0, graph,
             (char)('A' + cifNumber), 2*poly_width.v, true, false);
             makeLayerGDS(t, exclusionPolyLayer, "150/21");
         }
@@ -1981,28 +1983,28 @@ public class TechEditWizardData
         graph = new EGraphics(false, false, null, 0, contact_colour.getRed(), contact_colour.getGreen(),
             contact_colour.getBlue(), 0.5, true, nullPattern);
         // PolyCon
-        Xml.Layer polyConLayer = makeXmlLayer(t.layers, layer_width, "PolyCon", Layer.Function.CONTACT1,
+        Xml.Layer polyConLayer = makeXmlLayer(t.layers, layer_width, "Poly-Cut", Layer.Function.CONTACT1,
             Layer.Function.CONPOLY, graph, (char)('A' + cifNumber++), contact_size, true, false);
         // DiffCon
-        Xml.Layer diffConLayer = makeXmlLayer(t.layers, layer_width, "DiffCon", Layer.Function.CONTACT1,
+        Xml.Layer diffConLayer = makeXmlLayer(t.layers, layer_width, gds_diff_layer.name+"-Cut", Layer.Function.CONTACT1,
             Layer.Function.CONDIFF, graph, (char)('A' + cifNumber++), contact_size, true, false);
 
         // P-Diff and N-Diff
         graph = new EGraphics(false, false, null, 2, 0, 0, 0, 1, true, nullPattern);
         // N-Diff
-        Xml.Layer diffNLayer = makeXmlLayer(t.layers, layer_width, "N-Diff", Layer.Function.DIFFN, 0, graph,
+        Xml.Layer diffNLayer = makeXmlLayer(t.layers, layer_width, "N-"+gds_diff_layer.name, Layer.Function.DIFFN, 0, graph,
             (char)('A' + cifNumber++), diff_width, true, true);
         // P-Diff
-        Xml.Layer diffPLayer = makeXmlLayer(t.layers, layer_width, "P-Diff", Layer.Function.DIFFP, 0, graph,
+        Xml.Layer diffPLayer = makeXmlLayer(t.layers, layer_width, "P-"+gds_diff_layer.name, Layer.Function.DIFFP, 0, graph,
             (char)('A' + cifNumber++), diff_width, true, true);
 
         if (getExtraInfoFlag())
         {
             // exclusion layer N/P diff
             graph = new EGraphics(true, true, null, 2, 0, 0, 0, 1, true, dexclPattern);
-            Xml.Layer exclusionDiffPLayer = makeXmlLayer(t.layers, "DEXCL-P-Diff", Layer.Function.DEXCLDIFF, 0, graph,
+            Xml.Layer exclusionDiffPLayer = makeXmlLayer(t.layers, "DEXCL-P-"+gds_diff_layer.name, Layer.Function.DEXCLDIFF, 0, graph,
             (char)('A' + cifNumber), 2*diff_width.v, true, false);
-            Xml.Layer exclusionDiffNLayer = makeXmlLayer(t.layers, "DEXCL-N-Diff", Layer.Function.DEXCLDIFF, 0, graph,
+            Xml.Layer exclusionDiffNLayer = makeXmlLayer(t.layers, "DEXCL-N-"+gds_diff_layer.name, Layer.Function.DEXCLDIFF, 0, graph,
             (char)('A' + cifNumber), 2*diff_width.v, true, false);
             makeLayerGDS(t, exclusionDiffPLayer, "150/20");
             makeLayerGDS(t, exclusionDiffNLayer, "150/20");
@@ -2097,7 +2099,7 @@ public class TechEditWizardData
         // poly arc
         double ant = (int)Math.round(poly_antenna_ratio) | 200;
         PaletteGroup polyGroup = new PaletteGroup();
-        polyGroup.addArc(makeXmlArc(t, "Poly", ArcProto.Function.getPoly(1), ant,
+        polyGroup.addArc(makeXmlArc(t, polyLayer.name, ArcProto.Function.getPoly(1), ant,
                 makeXmlArcLayer(polyLayer, poly_width)));
         // poly pin
         double hla = scaledValue(poly_width.v / 2);
@@ -2130,8 +2132,8 @@ public class TechEditWizardData
         double nsel = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nplus_overhang_diff.v);
         double psel = scaledValue(contact_size.v/2 + diff_contact_overhang.v + pplus_overhang_diff.v);
         double nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_p.v);
-        double nso = scaledValue(nwell_overhang_diff_p.v + diff_contact_overhang.v); // valid for elements that have nwell layers
-        double pso = (!pWellFlag)?nso:scaledValue(nplus_overhang_diff.v + diff_contact_overhang.v);
+        double nso = scaledValue(nwell_overhang_diff_p.v /*+ diff_contact_overhang.v*/); // valid for elements that have nwell layers
+        double pso = (!pWellFlag)?nso:scaledValue(nplus_overhang_diff.v/* + diff_contact_overhang.v*/);
 
         // ndiff/pdiff contacts
         String[] diffNames = {"P", "N"};
@@ -2146,7 +2148,7 @@ public class TechEditWizardData
             portNames.clear();
             portNames.add(diffLayers[i].name);
             portNames.add(m1Layer.name);
-            String composeName = diffNames[i] + "-Diff";
+            String composeName = diffNames[i] + "-" + gds_diff_layer.name; //Diff";
             Xml.NodeLayer wellNode, wellNodePin;
             ArcProto.Function
                 arcF;
@@ -2245,8 +2247,10 @@ public class TechEditWizardData
                 double h2x = scaledValue(contact_size.v/2 + otherLayer.overX.v);
                 double h2y = scaledValue(contact_size.v/2 + otherLayer.overY.v);
 
-                double longX = DBMath.isGreaterThan(metalLayer.overX.v, otherLayer.overX.v) ? metalLayer.overX.v : otherLayer.overX.v;
-                double longY = DBMath.isGreaterThan(metalLayer.overY.v, otherLayer.overY.v) ? metalLayer.overY.v : otherLayer.overY.v;
+//                double longX = DBMath.isGreaterThan(metalLayer.overX.v, otherLayer.overX.v) ? metalLayer.overX.v : otherLayer.overX.v;
+//                double longY = DBMath.isGreaterThan(metalLayer.overY.v, otherLayer.overY.v) ? metalLayer.overY.v : otherLayer.overY.v;  
+                double longX = (Math.abs(metalLayer.overX.v - otherLayer.overX.v));
+                double longY = (Math.abs(metalLayer.overY.v - otherLayer.overY.v));
 
                 portNames.clear();
                 portNames.add(lx.name);
@@ -2259,8 +2263,12 @@ public class TechEditWizardData
                     double h3x = scaledValue(contact_size.v/2 + node.overX.v);
                     double h3y = scaledValue(contact_size.v/2 + node.overY.v);
                     extraN = makeXmlNodeLayer(h3x, h3x, h3y, h3y, lz, Poly.Type.FILLED);
-                    longX = DBMath.isGreaterThan(longX, node.overX.v) ? longX : node.overX.v;
-                    longY = DBMath.isGreaterThan(longY, node.overY.v) ? longX : node.overY.v;
+//                    longX = DBMath.isGreaterThan(longX, node.overX.v) ? longX : node.overX.v;
+//                    longY = DBMath.isGreaterThan(longY, node.overY.v) ? longX : node.overY.v;
+
+                    // This assumes no well is defined
+                    longX = (Math.abs(node.overX.v - otherLayer.overX.v));
+                    longY = (Math.abs(node.overY.v - otherLayer.overY.v));
                 }
                 longX = scaledValue(longX);
                 longY = scaledValue(longY);
@@ -2276,8 +2284,8 @@ public class TechEditWizardData
 
         /**************************** N/P-Well Contacts ***********************************************/
         nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_n.v);
-        nso = scaledValue(diff_contact_overhang.v + nwell_overhang_diff_n.v); // valid for elements that have nwell layers
-        pso = (!pWellFlag)?nso:scaledValue(diff_contact_overhang.v + nplus_overhang_diff.v);
+        nso = scaledValue(/*diff_contact_overhang.v +*/ nwell_overhang_diff_n.v); // valid for elements that have nwell layers
+        pso = (!pWellFlag)?nso:scaledValue(/*diff_contact_overhang.v +*/ nplus_overhang_diff.v);
         double[] wellSos = {pso, nso};
         PaletteGroup[] wellPalette = new PaletteGroup[2];
 
@@ -2370,7 +2378,6 @@ public class TechEditWizardData
         }
 
         // metal contacts
-        int metalCount = 0;
         for (Map.Entry<String,List<Contact>> e : metalContacts.entrySet())
         {
             // generic contacts
@@ -2387,18 +2394,19 @@ public class TechEditWizardData
                 Xml.Layer lx = metalLayers.get(j-1);
                 String name = (j>i)?ly.name + "-" + lx.name:lx.name + "-" + ly.name;
                 int via = (j>i)?i:j;
-                contSize = scaledValue(via_size[via-1].v);
+                double metalContSize = scaledValue(via_size[via-1].v);
                 double spacing = scaledValue(via_inline_spacing[via-1].v);
                 double arraySpacing = scaledValue(via_array_spacing[via-1].v);
-                Xml.Layer conLayer = viaLayers.get(via-1);
+                Xml.Layer metalConLayer = viaLayers.get(via-1);
                 double h1x = scaledValue(via_size[via-1].v/2 + verticalLayer.overX.v);
                 double h1y = scaledValue(via_size[via-1].v/2 + verticalLayer.overY.v);
                 double h2x = scaledValue(via_size[via-1].v/2 + horizontalLayer.overX.v);
                 double h2y = scaledValue(via_size[via-1].v/2 + horizontalLayer.overY.v);
 
-                double longX = scaledValue(DBMath.isGreaterThan(verticalLayer.overX.v, horizontalLayer.overX.v) ? verticalLayer.overX.v : horizontalLayer.overX.v);
-                double longY = scaledValue(DBMath.isGreaterThan(verticalLayer.overY.v, horizontalLayer.overY.v) ? verticalLayer.overY.v : horizontalLayer.overY.v);
-
+//                double longX = scaledValue(DBMath.isGreaterThan(verticalLayer.overX.v, horizontalLayer.overX.v) ? verticalLayer.overX.v : horizontalLayer.overX.v);
+//                double longY = scaledValue(DBMath.isGreaterThan(verticalLayer.overY.v, horizontalLayer.overY.v) ? verticalLayer.overY.v : horizontalLayer.overY.v);
+                double longX = scaledValue(Math.abs(verticalLayer.overX.v - horizontalLayer.overX.v));
+                double longY = scaledValue(Math.abs(verticalLayer.overY.v - horizontalLayer.overY.v));
                 portNames.clear();
                 portNames.add(lx.name);
                 portNames.add(ly.name);
@@ -2408,7 +2416,7 @@ public class TechEditWizardData
                     portNames,
                     makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED), // layer1
                     makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED), // layer2
-                    makeXmlMulticut(conLayer, contSize, spacing, arraySpacing)), c.prefix); // contact
+                    makeXmlMulticut(metalConLayer, metalContSize, spacing, arraySpacing)), c.prefix); // contact
             }
         }
 
@@ -2530,10 +2538,10 @@ public class TechEditWizardData
             portNames.clear();
             portNames.add(activeLayer.name);
 
-            Xml.PrimitivePort diffTopPort = makeXmlPrimitivePort("trans-diff-top", 90, 90, 1, minFullSize,
+            Xml.PrimitivePort diffTopPort = makeXmlPrimitivePort("diff-top", 90, 90, 1, minFullSize,
                 diffX, -1, diffX, 1, diffY, 1, diffY, 1, portNames);
             // bottom port
-            Xml.PrimitivePort diffBottomPort = makeXmlPrimitivePort("trans-diff-bottom", 270, 90, 2, minFullSize,
+            Xml.PrimitivePort diffBottomPort = makeXmlPrimitivePort("diff-bottom", 270, 90, 2, minFullSize,
                 xSign*diffX, -1, xSign*diffX, 1, ySign*diffY, -1, ySign*diffY, -1, portNames);
 
             // Electric layers
@@ -2554,11 +2562,11 @@ public class TechEditWizardData
             // left port
             portNames.clear();
             portNames.add(polyLayer.name);
-            Xml.PrimitivePort polyLeftPort = makeXmlPrimitivePort("trans-poly-left", 180, 90, 0, minFullSize,
+            Xml.PrimitivePort polyLeftPort = makeXmlPrimitivePort("poly-left", 180, 90, 0, minFullSize,
                 ySign*polyX, -1, ySign*polyX,
                 -1, xSign*polyY, -1, xSign*polyY, 1, portNames);
             // right port
-            Xml.PrimitivePort polyRightPort = makeXmlPrimitivePort("trans-poly-right", 0, 180, 0, minFullSize,
+            Xml.PrimitivePort polyRightPort = makeXmlPrimitivePort("poly-right", 0, 180, 0, minFullSize,
                 polyX, 1, polyX, 1, polyY, -1, polyY, 1, portNames);
 
             // Select layer
