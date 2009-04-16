@@ -25,6 +25,7 @@ package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.technology.Technology;
@@ -33,8 +34,10 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.Socket;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Simple client for regressions.
@@ -43,34 +46,50 @@ public class Regression {
     private static final int port = 35742;
 
     public static void main(String[] args) {
-        runScript(args[0]);
+//        writeBshIn(args[0]);
+        runScript(null, args[0]);
     }
 
-    public static void runScript(String script) {
+    private static void writeBshIn(String bshName) {
+        String outFile = "bash.in";
+        try {
+            DataOutputStream out = new DataOutputStream(new FileOutputStream(outFile));
+            writeJob(out, bshName);
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void runScript(Process process, String script) {
         IdReader reader = null;
-        EDatabase database = EDatabase.clientDatabase();
-        Snapshot currentSnapshot = database.getInitialSnapshot();
+        Snapshot currentSnapshot = IdManager.stdIdManager.getInitialSnapshot();
+        EDatabase database = EDatabase.theDatabase = new EDatabase(currentSnapshot);
         System.out.println("Running " + script);
 
         try {
-            System.out.println("Attempting to connect to port " + port + " ...");
-            Socket socket = null;
-            for (int i = 0; i < 100; i++) {
-                try {
-                    Thread.sleep(20);
-                    socket = new Socket((String)null, port);
-                } catch (IOException e) {
-                } catch (InterruptedException e) {
-                }
-                if (socket != null)
-                    break;
-            }
-            if (socket == null) {
-                System.out.println("Can't connect");
-                return;
-            }
-            reader = new IdReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())), database.getIdManager());
-            DataOutputStream clientOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+//            System.out.println("Attempting to connect to port " + port + " ...");
+//            Socket socket = null;
+//            for (int i = 0; i < 100; i++) {
+//                try {
+//                    Thread.sleep(20);
+//                    socket = new Socket((String)null, port);
+//                } catch (IOException e) {
+//                } catch (InterruptedException e) {
+//                }
+//                if (socket != null)
+//                    break;
+//            }
+//            if (socket == null) {
+//                System.out.println("Can't connect");
+//                return;
+//            }
+//            InputStream inStream = socket.getInputStream();
+//            OutputStrean outStream = socket.getOutputStream();
+            InputStream inStream = process.getInputStream();
+            OutputStream outStream = process.getOutputStream();
+            reader = new IdReader(new DataInputStream(new BufferedInputStream(inStream)), database.getIdManager());
+            DataOutputStream clientOutputStream = new DataOutputStream(new BufferedOutputStream(outStream));
             int protocolVersion = reader.readInt();
             if (protocolVersion != Job.PROTOCOL_VERSION) {
                 System.out.println("Client's protocol version " + Job.PROTOCOL_VERSION + " is incompatible with Server's protocol version " + protocolVersion);
@@ -78,16 +97,10 @@ public class Regression {
             }
             System.out.println("Connected");
 
-            EJob ejob = EvalJavaBsh.runScriptJob(script).ejob;
-            ejob.serialize(EDatabase.clientDatabase());
-            clientOutputStream.writeInt(ejob.jobKey.jobId);
-            clientOutputStream.writeUTF(ejob.jobType.toString());
-            clientOutputStream.writeUTF(ejob.jobName);
-            clientOutputStream.writeInt(ejob.serializedJob.length);
-            clientOutputStream.write(ejob.serializedJob);
+            writeJob(clientOutputStream, script);
             clientOutputStream.flush();
 
-            Technology.initAllTechnologies();
+//            Technology.initAllTechnologies();
 
             for (;;) {
                 byte tag = reader.readByte();
@@ -97,11 +110,11 @@ public class Regression {
 //                        System.out.println("Snapshot received");
                         break;
                     case 2:
-                        Integer.valueOf(reader.readInt());		// ignore jobID
-                        reader.readString();		// ignore jobName
-                        Job.Type.valueOf(reader.readString());		// ignore jobType
+                        int jobId = Integer.valueOf(reader.readInt());		// ignore jobID
+                        String jobName = reader.readString();		// ignore jobName
+                        Job.Type jobType = Job.Type.valueOf(reader.readString());		// ignore jobType
                         EJob.State newState = EJob.State.valueOf(reader.readString());
-                        reader.readLong();		// ignore timestamp
+                        long timeStamp = reader.readLong();		// ignore timestamp
                         if (newState == EJob.State.WAITING) {
                             boolean hasSerializedJob = reader.readBoolean();
                             if (hasSerializedJob) {
@@ -136,5 +149,17 @@ public class Regression {
             System.out.println("END OF FILE reading from server");
             return;
         }
+    }
+
+    private static void writeJob(DataOutputStream clientOutputStream, String script) throws IOException {
+        EJob ejob = EvalJavaBsh.runScriptJob(script).ejob;
+        ejob.jobKey = new Job.Key(0, 0);
+        ejob.serialize(EDatabase.clientDatabase());
+        clientOutputStream.writeInt(ejob.jobKey.jobId);
+        clientOutputStream.writeUTF(ejob.jobType.toString());
+        clientOutputStream.writeUTF(ejob.jobName);
+        clientOutputStream.writeInt(ejob.serializedJob.length);
+        clientOutputStream.write(ejob.serializedJob);
+        clientOutputStream.flush();
     }
 }

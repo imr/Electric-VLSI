@@ -210,7 +210,7 @@ public class MessagesWindow
 	public void appendString(String str)
 	{
 		info.append(str);
-		if (Job.BATCHMODE) return;
+		assert !Job.BATCHMODE;
 		try
 		{
 			Rectangle r = info.modelToView(info.getDocument().getLength());

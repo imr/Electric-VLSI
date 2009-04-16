@@ -190,8 +190,7 @@ class ClientJobManager extends JobManager {
             waitingJobs.add(0, ejob);
         else
             waitingJobs.add(ejob);
-        if (ejob.getJob().getDisplay())
-            jobTreeChanged = true;
+        jobTreeChanged = true;
         SwingUtilities.invokeLater(clientInvoke);
 //        Job.currentUI.invokeLaterBusyCursor(isChangeJobQueuedOrRunning()); // Not here !!!!
         SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(isChangeJobQueuedOrRunning()); }});
@@ -223,10 +222,8 @@ class ClientJobManager extends JobManager {
             }
         }
         //System.out.println("Removed Job "+j+", index was "+index+", numStarted now="+numStarted+", allJobs="+allJobs.size());
-        if (j.getDisplay()) {
-            jobTreeChanged = true;
-            SwingUtilities.invokeLater(clientInvoke);
-        }
+        jobTreeChanged = true;
+        SwingUtilities.invokeLater(clientInvoke);
     }
 
     EJob selectEJob(EJob finishedEJob) { return null; }
@@ -338,9 +335,7 @@ class ClientJobManager extends JobManager {
                     ArrayList<Job.Inform> jobs = new ArrayList<Job.Inform>();
                     for (Iterator<Job> it = Job.getAllJobs(); it.hasNext();) {
                         Job j = it.next();
-                        if (j.getDisplay()) {
-                            jobs.add(j.getInform());
-                        }
+                        jobs.add(j.getInform());
                     }
                     JobTree.update(jobs);
               }

@@ -29,6 +29,7 @@ import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.LibId;
@@ -43,7 +44,12 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Toolkit;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Iterator;
@@ -152,7 +158,6 @@ public abstract class Job implements Serializable {
 	static AbstractUserInterface currentUI;
 
     /** delete when done if true */             /*private*/ boolean deleteWhenDone;
-    /** display on job list if true */          private boolean display;
 
     // Job Status
     /** job start time */                       public /*protected*/ long startTime;
@@ -188,7 +193,7 @@ public abstract class Job implements Serializable {
                 if (StartupPrefs.isUseClientServer())
                     jobManager = new ServerJobManager(numThreads, socketPort);
                 else
-                    jobManager = new ServerJobManager(numThreads);
+                    jobManager = new ServerJobManager(numThreads, false);
 
                 // Calling external dependencies
 //                currentUI.initializeInitJob(initDatabaseJob, mode);
@@ -206,6 +211,12 @@ public abstract class Job implements Serializable {
                 break;
         }
         jobManager.runLoop();
+    }
+
+    public static void pipeServer(int numThreads) {
+        EDatabase.theDatabase = new EDatabase(IdManager.stdIdManager.getInitialSnapshot());
+        Tool.initAllTools();
+        jobManager = new ServerJobManager(numThreads, true);
     }
 
 
@@ -228,15 +239,12 @@ public abstract class Job implements Serializable {
         ejob = new EJob(this, jobType, jobName, EditingPreferences.getThreadEditingPreferences());
         database = threadDatabase();
 		this.tool = tool;
-//		this.priority = priority;
-//		this.upCell = upCell;
-//		this.downCell = downCell;
-        this.display = true;
         this.deleteWhenDone = true;
         startTime = endTime = 0;
-        Technology curTech = Technology.getCurrent();
+        UserInterface ui = getUserInterface();
+        Technology curTech = ui != null ? ui.getCurrentTechnology() : null;
         curTechId = curTech != null ? curTech.getId() : null;
-        Library curLib = Library.getCurrent();
+        Library curLib = ui != null ? ui.getCurrentLibrary() : null;
         curLibId = curLib != null ? curLib.getId() : null;
 //        started = finished = aborted = scheduledToAbort = false;
 //        thread = null;
@@ -250,7 +258,7 @@ public abstract class Job implements Serializable {
      */
 	public void startJob()
 	{
-        startJob(!BATCHMODE, true);
+        startJob(true);
     }
 
     /**
@@ -259,30 +267,27 @@ public abstract class Job implements Serializable {
      */
 	public void startJobOnMyResult()
 	{
-        startJob(!BATCHMODE, true, true);
+        startJob(true, true);
     }
 
     /**
      * Start the job by placing it on the JobThread queue.
-     * If <code>display</code> is true, display job on Job List UI.
      * If <code>deleteWhenDone</code> is true, Job will be deleted
      * after it is done (frees all data and references it stores/created)
      * @param deleteWhenDone delete when job is done if true, otherwise leave it around
      */
-    public void startJob(boolean display, boolean deleteWhenDone) {
-        startJob(display, deleteWhenDone, false);
+    public void startJob(boolean deleteWhenDone) {
+        startJob(deleteWhenDone, false);
     }
 
     /**
      * Start the job by placing it on the JobThread queue.
-     * If <code>display</code> is true, display job on Job List UI.
      * If <code>deleteWhenDone</code> is true, Job will be deleted
      * after it is done (frees all data and references it stores/created)
      * @param deleteWhenDone delete when job is done if true, otherwise leave it around
      */
-    private void startJob(boolean display, boolean deleteWhenDone, boolean onMySnapshot)
+    private void startJob(boolean deleteWhenDone, boolean onMySnapshot)
     {
-        this.display = display;
         this.deleteWhenDone = deleteWhenDone;
 
         Thread currentThread = Thread.currentThread();
@@ -409,8 +414,6 @@ public abstract class Job implements Serializable {
      * @return
      */
     private synchronized boolean getAborted() { return aborted; }
-    /** get display status */
-    public boolean getDisplay() { return display; }
     /** get deleteWhenDone status */
     public boolean getDeleteWhenDone() { return deleteWhenDone; }
 
@@ -778,7 +781,7 @@ public abstract class Job implements Serializable {
         public final int clientId;
         public final int jobId;
 
-        private Key(int clientId, int jobId) {
+        Key(int clientId, int jobId) {
             this.clientId = clientId;
             this.jobId = jobId;
         }
@@ -902,6 +905,18 @@ public abstract class Job implements Serializable {
             long endTime = reader.readLong();
             int finished = reader.readInt();
             return new Inform(jobKey, isChange, toString, startTime, endTime, finished);
+        }
+    }
+
+    public static void main(String[] args) {
+        String inFile = args[0];
+        String outFile = args[1];
+        try {
+            System.setIn(new BufferedInputStream(new FileInputStream(inFile)));
+            System.setOut(new PrintStream(new BufferedOutputStream(new FileOutputStream(outFile))));
+            pipeServer(1);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

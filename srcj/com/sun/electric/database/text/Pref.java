@@ -959,9 +959,8 @@ public class Pref {
 			p.flush();
 		} catch (Exception e)
 		{
-            if (!Job.BATCHMODE) {
-			    System.out.println("Failed to save preferences");
-            }
+            assert !Job.BATCHMODE;
+			System.out.println("Failed to save preferences");
 		}
 	}
 }

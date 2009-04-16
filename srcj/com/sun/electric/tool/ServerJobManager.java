@@ -35,6 +35,7 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
 
 import java.io.BufferedOutputStream;
@@ -69,11 +70,13 @@ public class ServerJobManager extends JobManager {
     private boolean signalledEThread;
 
     /** Creates a new instance of JobPool */
-    ServerJobManager(int recommendedNumThreads) {
+    ServerJobManager(int recommendedNumThreads, boolean pipe) {
         maxNumThreads = initThreads(recommendedNumThreads);
         serverSocket = null;
         if (StartupPrefs.isSnapshotLogging())
             initSnapshotLogging();
+        if (pipe)
+            initPipe();
     }
 
     ServerJobManager(int recommendedNumThreads, int socketPort) {
@@ -105,17 +108,29 @@ public class ServerJobManager extends JobManager {
         try {
             File tempFile = File.createTempFile("elec", ".slog");
             FileOutputStream out = new FileOutputStream(tempFile);
-            System.out.println("Writing snapshot log to " + tempFile);
+            System.err.println("Writing snapshot log to " + tempFile);
             ActivityLogger.logMessage("Writing snapshot log to " + tempFile);
             conn = new StreamClient(connectionId, null, new BufferedOutputStream(out));
             serverConnections.add(conn);
         } catch (IOException e) {
-            System.out.println("Failed to create snapshot log file:" + e.getMessage());
+            System.err.println("Failed to create snapshot log file:" + e.getMessage());
             return;
         } finally {
             unlock();
         }
-        System.out.println("Accepted connection " + connectionId);
+        conn.start();
+    }
+
+    void initPipe() {
+        StreamClient conn;
+        lock();
+        try {
+            int connectionId = serverConnections.size();
+            conn = new StreamClient(connectionId, System.in, System.out);
+            serverConnections.add(conn);
+        } finally {
+            unlock();
+        }
         conn.start();
     }
 
@@ -390,10 +405,10 @@ public class ServerJobManager extends JobManager {
                     selectedEJob = ejob;
                     break;
                 }
-                if (Job.threadMode == Job.Mode.BATCH && startedJobs.isEmpty()) {
-                    ActivityLogger.finished();
-                    System.exit(1);
-                }
+//                if (Job.threadMode == Job.Mode.BATCH && startedJobs.isEmpty()) {
+//                    ActivityLogger.finished();
+//                    System.exit(1);
+//                }
                 Job.logger.logp(Level.FINE, CLASS_NAME, "selectConnection", "pause");
                 databaseChangesMutex.awaitUninterruptibly();
                 Job.logger.logp(Level.FINE, CLASS_NAME, "selectConnection", "resume");

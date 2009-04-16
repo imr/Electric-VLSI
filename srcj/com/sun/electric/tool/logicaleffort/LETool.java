@@ -442,7 +442,7 @@ public class LETool extends Tool {
      */
     public void optimizeEqualGateDelays(Cell cell, VarContext context, boolean newAlg) {
         AnalyzeCell acjob = new AnalyzeCell(LESizer.Alg.EQUALGATEDELAYS, cell, context, newAlg);
-        acjob.startJob(true, false);
+        acjob.startJob(false);
     }
 
     private static AnalyzeCell lastLEJobExecuted = null;

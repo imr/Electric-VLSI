@@ -144,8 +144,6 @@ public final class Main
 			System.exit(0);
 		}
 
-        ActivityLogger.initialize(true, true, true/*false*/);
-
 		// -debug for debugging
         Job.Mode runMode = Job.Mode.FULL_SCREEN;
 		if (hasCommandLineOption(argsList, "-debug")) Job.setDebug(true);
@@ -158,6 +156,14 @@ public final class Main
                 System.out.println("Invalid option -threads " + numThreadsString);
             }
         }
+
+        if (hasCommandLineOption(argsList, "-pipeserver")) {
+            Job.pipeServer(numThreads);
+            MessagesStream.getMessagesStream();
+            return;
+        }
+
+        ActivityLogger.initialize(true, true, true/*false*/);
 
 		if (hasCommandLineOption(argsList, "-batch")) runMode = Job.Mode.BATCH;
         if (hasCommandLineOption(argsList, "-server")) {

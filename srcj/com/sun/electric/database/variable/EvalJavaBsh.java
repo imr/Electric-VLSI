@@ -471,9 +471,9 @@ public class EvalJavaBsh
             handled = false;
         }
 
-	    // Finishing session
-		if (Job.BATCHMODE)
-			System.exit(1);
+//	    // Finishing session
+//		if (Job.BATCHMODE)
+//			System.exit(1);
         return handled;
     }
 

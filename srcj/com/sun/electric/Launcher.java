@@ -164,16 +164,17 @@ public final class Launcher
         command += " -ea";
         for (int i = 2; i < args.length; i++)
             command += " " + args[i];
-        command += " -jar " + jarfile + " -batch";
+        command += " -jar " + jarfile + " -pipeserver";
         System.out.println("exec: " + command);
         Runtime runtime = Runtime.getRuntime();
+        Process process = null;
         try {
-            runtime.exec(command);
+            process = runtime.exec(command);
         } catch (java.io.IOException e) {
             e.printStackTrace();
             System.exit(0);
         }
-        Regression.runScript(script);
+        Regression.runScript(process, script);
     }
 
     /**

@@ -792,7 +792,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	public void makeLayoutTextCommand()
 	{
 		LayoutText dialog = new LayoutText(TopLevel.getCurrentJFrame());
-		if (!Job.BATCHMODE) dialog.setVisible(true);
+        assert !Job.BATCHMODE;
+        dialog.setVisible(true);
 	}
 
 	public void placeNodeStarted(Object nodeToBePlaced) {

@@ -180,9 +180,7 @@ public abstract class Client {
         ArrayList<Job.Inform> jobs = new ArrayList<Job.Inform>();
         for (Iterator<Job> it = Job.getAllJobs(); it.hasNext();) {
             Job j = it.next();
-            if (j.getDisplay()) {
-                jobs.add(j.getInform());
-            }
+            jobs.add(j.getInform());
         }
         fireServerEvent(new JobQueueEvent(snapshot, jobs.toArray(new Job.Inform[jobs.size()])));
     }

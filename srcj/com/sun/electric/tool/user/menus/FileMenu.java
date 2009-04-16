@@ -740,8 +740,9 @@ public class FileMenu {
     private static void doneOpeningLibrary(final Cell cell)
     {
         if (cell == null) System.out.println("No current cell in this library");
-        else if (!Job.BATCHMODE)
+        else
         {
+            assert !Job.BATCHMODE;
             CreateCellWindow creator = new CreateCellWindow(cell);
             if (!SwingUtilities.isEventDispatchThread()) {
                 SwingUtilities.invokeLater(creator);
