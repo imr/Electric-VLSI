@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09i: ******************************
 
+IMP: Improve error message when soft tech can't be uploaded (bug #2126)
+Allow to call ActivityLogger.logException(e) always.
+
 ************************* Version 8.09h: ******************************
 
 IMP/MAN: Electric will ask users if they want to undo the reading of a library (Bug #2118)
