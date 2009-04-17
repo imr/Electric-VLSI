@@ -306,15 +306,17 @@ public class EDIF extends Input
 	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
 	{
 		// setup keyword prerequisites
+//		XX.stateArray = new EDIFKEY [] {KYY};	means YYs can be found inside of XX: (xx (yy))
 		KARRAY.stateArray = new EDIFKEY [] {KINSTANCE, KPORT, KNET};
 		KAUTHOR.stateArray = new EDIFKEY [] {KWRITTEN};
-		KBOUNDINGBOX.stateArray = new EDIFKEY [] {KSYMBOL, KCONTENTS};
+		KBOUNDINGBOX.stateArray = new EDIFKEY [] {KSYMBOL, KCONTENTS, KPROTECTIONFRAME};
 		KCELL.stateArray = new EDIFKEY [] {KEXTERNAL, KLIBRARY};
 		KCELLREF.stateArray = new EDIFKEY [] {KDESIGN, KVIEWREF, KINSTANCE};
 		KCELLTYPE.stateArray = new EDIFKEY [] {KCELL};
 		KCONTENTS.stateArray = new EDIFKEY [] {KVIEW};
 		KDESIGN.stateArray = new EDIFKEY [] {KEDIF};
 		KDIRECTION.stateArray = new EDIFKEY [] {KPORT};
+		KUNUSED.stateArray = new EDIFKEY [] {KPORT};
 		KEDIF.stateArray = new EDIFKEY [] {KINIT};
 		KEDIFLEVEL.stateArray = new EDIFKEY [] {KEDIF, KEXTERNAL, KLIBRARY};
 		KEXTERNAL.stateArray = new EDIFKEY [] {KEDIF};
@@ -329,6 +331,7 @@ public class EDIF extends Input
 		KNETBUNDLE.stateArray = new EDIFKEY [] {KCONTENTS, KPAGE};
 		KNUMBERDEFINITION.stateArray = new EDIFKEY [] {KTECHNOLOGY};
 		KPORT.stateArray = new EDIFKEY [] {KINTERFACE, KLISTOFPORTS};
+		KPROTECTIONFRAME.stateArray = new EDIFKEY [] {KINTERFACE, KLISTOFPORTS};
 		KSCALE.stateArray = new EDIFKEY [] {KNUMBERDEFINITION};
 		KSTATUS.stateArray = new EDIFKEY [] {KCELL, KDESIGN, KEDIF, KEXTERNAL, KLIBRARY, KVIEW};
 		KSYMBOL.stateArray = new EDIFKEY [] {KINTERFACE};
@@ -1624,6 +1627,7 @@ public class EDIF extends Input
 	private EDIFKEY KPROGRAM = new KeyProgram();
 	private EDIFKEY KPROPERTY = new KeyProperty();
 	private EDIFKEY KPROPERTYDISPLAY = new EDIFKEY("propertyDisplay");
+	private EDIFKEY KPROTECTIONFRAME = new KeyProtectionFrame();
 	private EDIFKEY KPT = new KeyPt();
 	private EDIFKEY KRECTANGLE = new KeyRectangle();
 	private EDIFKEY KRENAME = new KeyRename();
@@ -1641,6 +1645,7 @@ public class EDIF extends Input
 	private EDIFKEY KTRANSFORM = new KeyTransform();
 	private EDIFKEY KTRUE = new KeyTrue();
 	private EDIFKEY KUNIT = new KeyUnit();
+	private EDIFKEY KUNUSED = new KeyUnused();		// TODO: fix
 	private EDIFKEY KUSERDATA = new EDIFKEY("userData");
 	private EDIFKEY KVERSION = new EDIFKEY("version");
 	private EDIFKEY KVIEW = new KeyView();
@@ -2604,8 +2609,8 @@ public class EDIF extends Input
 						second.setTextDescriptor(ArcInst.ARC_NAME, td);
 					} else
 					{
-						System.out.println("ERROR: Unable to connect export " + exportName + " to circuitry in cell " +
-							curCell.describe(false));
+//						System.out.println("ERROR: Unable to connect export " + exportName + " to circuitry in cell " +
+//							curCell.describe(false));
 					}
 				}
 			}
@@ -3632,6 +3637,21 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 		return false;
 	}
 
+	private class KeyProtectionFrame extends EDIFKEY
+	{
+		private KeyProtectionFrame() { super("protectionFrame"); }
+		protected void push()
+			throws IOException
+		{
+			// get the x and y values of the point
+			// TODO: put the frame on the cell as two Essential Bounds nodes
+//			String xStr = getToken((char)0);
+//			if (xStr == null) throw new IOException("Unexpected end-of-file");
+//			String yStr = getToken((char)0);
+//			if (yStr == null) throw new IOException("Unexpected end-of-file");
+		}
+	}
+
 	private class KeyPt extends EDIFKEY
 	{
 		private KeyPt() { super("pt"); }
@@ -4114,13 +4134,14 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 							// and exit for loop
 							iX = arrayXVal;
 							iY = arrayYVal;
-						} else
+
+							freePointList();
+							return;
+						}
+						if (cellRefProto instanceof Cell)
 						{
-							if (cellRefProto instanceof Cell)
-							{
-								if (((Cell)cellRefProto).isWantExpanded())
-									ni.setExpanded();
-							}
+							if (((Cell)cellRefProto).isWantExpanded())
+								ni.setExpanded();
 						}
 						if (curGeometryType == GPIN && lX == 0 && lY == 0)
 						{
@@ -4259,6 +4280,16 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 				inputScale = 1;
 				inputScale *= IOTool.getEDIFInputScale();
 			}
+		}
+	}
+
+	private class KeyUnused extends EDIFKEY
+	{
+		private KeyUnused() { super("unused"); }
+		protected void push()
+			throws IOException
+		{
+			curDirection = PortCharacteristic.UNKNOWN;
 		}
 	}
 
@@ -4407,7 +4438,7 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 				} else
 				{
 					ignoreHigherBlock = true;
-					System.out.println("Warning: Cell " + proto.describe(false) + " exists...EDIF for it is being ignored");
+					System.out.println("Warning, line " + lineReader.getLineNumber() + ": Cell " + proto.describe(false) + " exists...EDIF for it is being ignored");
 //					if (!builtCells.contains(proto)) ignoreBlock = true;
 				}
 

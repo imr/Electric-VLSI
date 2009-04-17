@@ -253,8 +253,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             Cell parent, Orientation orient, String name, PrimitiveNode.Function function)
 	{
 		NodeInst ni = makeInstance(protoType, center, width, height, parent, orient, name);
-        if (!ni.isCellInstance())
-            ((PrimitiveNode)protoType).getTechnology().setPrimitiveFunction(ni, function);
+		if (ni != null)
+		{
+	        if (!ni.isCellInstance())
+	            ((PrimitiveNode)protoType).getTechnology().setPrimitiveFunction(ni, function);
+		}
         return ni;
 	}
 
