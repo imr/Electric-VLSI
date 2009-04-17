@@ -12,6 +12,9 @@ Allow to call ActivityLogger.logException(e) always.
 
 ************************* Version 8.09h: ******************************
 
+BUG: (4/17/09, DN) UnsupportedOperationException in MessagesStream (Bug #2130).
+FIX: Implement write(...) methods of MessagesStream.
+
 IMP/MAN: Electric will ask users if they want to undo the reading of a library (Bug #2118)
 
 IMP/MAN: (4/15/09, SMR) "Make Alternate Layout View" has controlling dialog that

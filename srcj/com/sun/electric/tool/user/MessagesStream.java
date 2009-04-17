@@ -69,9 +69,9 @@ public class MessagesStream extends PrintStream
     @Override public void flush() {}
     @Override public void close() { throw new UnsupportedOperationException(); }
     @Override public boolean checkError() { throw new UnsupportedOperationException(); }
-	@Override public void write(byte[] b) { throw new UnsupportedOperationException(); }
-	@Override public void write(int b) { throw new UnsupportedOperationException(); }
-	@Override public void write(byte[] b, int off, int len) { throw new UnsupportedOperationException(); }
+	@Override public void write(byte[] b) { print(new String(b)); }
+	@Override public void write(int b) { print((char)b); }
+	@Override public void write(byte[] b, int off, int len) { print(new String(b, off, len)); }
 
     @Override public void print(boolean b) { print(b ? "true" : "false", false); }
     @Override public void print(char c) { print(String.valueOf(c), false); }
