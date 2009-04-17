@@ -105,7 +105,7 @@ public abstract class Job implements Serializable {
     /*private*/ static Mode threadMode;
     private static int recommendedNumThreads;
     private static int socketPort = 35742; // socket port for client/server
-    static final int PROTOCOL_VERSION = 18; // Jan 30
+    static final int PROTOCOL_VERSION = 19; // Apr 17
     public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean LOCALDEBUGFLAG; // Gilda's case
 //    private static final String CLASS_NAME = Job.class.getName();
@@ -294,13 +294,13 @@ public abstract class Job implements Serializable {
         if (currentThread instanceof EThread && ((EThread)currentThread).ejob.jobType != Job.Type.EXAMINE) {
             ejob.startedByServer = true;
             ejob.client = ((EThread)currentThread).ejob.client;
-            ejob.jobKey = ejob.client.newJobId(ejob.startedByServer);
+            ejob.jobKey = ejob.client.newJobId(ejob.startedByServer, true);
             ejob.serverJob.startTime = System.currentTimeMillis();
             ejob.serialize(EDatabase.serverDatabase());
             ejob.clientJob = null;
         } else {
             ejob.client = Job.getExtendedUserInterface();
-            ejob.jobKey = ejob.client.newJobId(ejob.startedByServer);
+            ejob.jobKey = ejob.client.newJobId(ejob.startedByServer, false);
             ejob.clientJob.startTime = System.currentTimeMillis();
             ejob.serverJob = null;
             if (ejob.jobType != Job.Type.EXAMINE)
@@ -777,17 +777,33 @@ public abstract class Job implements Serializable {
         return new Inform(this);
     }
 
+    /**
+     * Identifies a Job in a given Electric client/server session.
+     * Job obtains its Key in startJob method.
+     * Also can identify Jobless context (for example Client's Gui)
+     */
     public static class Key implements Serializable {
+        /**
+         * Client which launched the Job
+         */
         public final int clientId;
+        /**
+         * Job id.
+         * 0         - Jobless context
+         * positive  - Job started from server side
+         * negative  - Job started from client side
+         */
         public final int jobId;
+        public final boolean doItOnServer;
 
-        Key(int clientId, int jobId) {
+        Key(int clientId, int jobId, boolean doItOnServer) {
             this.clientId = clientId;
             this.jobId = jobId;
+            this.doItOnServer = doItOnServer;
         }
 
-        Key(Client client, int jobId) {
-            this(client.connectionId, jobId);
+        Key(Client client, int jobId, boolean doItOnServer) {
+            this(client.connectionId, jobId, doItOnServer);
         }
 
         @Override
@@ -795,7 +811,10 @@ public abstract class Job implements Serializable {
             if (o == this) return true;
             if (o instanceof Key) {
                 Key that = (Key)o;
-                return this.clientId == that.clientId && this.jobId == that.jobId;
+                if (this.clientId == that.clientId && this.jobId == that.jobId) {
+                    assert this.doItOnServer == that.doItOnServer;
+                    return true;
+                }
             }
             return false;
         }
@@ -808,12 +827,14 @@ public abstract class Job implements Serializable {
         public void write(IdWriter writer) throws IOException {
             writer.writeInt(clientId);
             writer.writeInt(jobId);
+            writer.writeBoolean(doItOnServer);
         }
 
         public static Key read(IdReader reader) throws IOException {
             int clientId = reader.readInt();
             int jobId = reader.readInt();
-            return new Key(clientId, jobId);
+            boolean doItOnServer = reader.readBoolean();
+            return new Key(clientId, jobId, doItOnServer);
         }
     }
 

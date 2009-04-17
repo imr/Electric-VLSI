@@ -42,9 +42,14 @@ import java.util.List;
 public abstract class AbstractUserInterface extends Client implements UserInterface {
     private TechId curTechId;
     private LibId curLibId;
+    private Job.Key jobKey = new Job.Key(-1, 0, false);
 
     protected AbstractUserInterface() {
         super(-1);
+    }
+    
+    public Job.Key getJobKey() {
+        return jobKey;
     }
 
     public EDatabase getDatabase() {

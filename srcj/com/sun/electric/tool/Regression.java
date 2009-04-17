@@ -153,7 +153,7 @@ public class Regression {
 
     private static void writeJob(DataOutputStream clientOutputStream, String script) throws IOException {
         EJob ejob = EvalJavaBsh.runScriptJob(script).ejob;
-        ejob.jobKey = new Job.Key(0, 0);
+        ejob.jobKey = new Job.Key(0, 0, true);
         ejob.serialize(EDatabase.clientDatabase());
         clientOutputStream.writeInt(ejob.jobKey.jobId);
         clientOutputStream.writeUTF(ejob.jobType.toString());

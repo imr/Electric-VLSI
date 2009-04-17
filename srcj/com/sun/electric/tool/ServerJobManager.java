@@ -478,6 +478,10 @@ public class ServerJobManager extends JobManager {
             return progressNote;
         }
 
+        public Job.Key getJobKey() {
+            return Job.getRunningJob().getKey();
+        }
+        
     	public EDatabase getDatabase() {
             return EDatabase.theDatabase;
         }

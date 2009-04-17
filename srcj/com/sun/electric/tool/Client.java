@@ -103,9 +103,9 @@ public abstract class Client {
         this.connectionId = connectionId;
     }
 
-    public synchronized Job.Key newJobId(boolean isServer) {
+    public synchronized Job.Key newJobId(boolean isServer, boolean doItOnServer) {
         int jobId = isServer ? ++serverJobId : --clientJobId;
-        return new Job.Key(this, jobId);
+        return new Job.Key(this, jobId, doItOnServer);
     }
 
     static void putEvent(ServerEvent newEvent) {
@@ -113,6 +113,8 @@ public abstract class Client {
         try {
             assert queueTail.next == null;
             assert newEvent.next == null;
+            if (newEvent.snapshot == null)
+                newEvent.snapshot = queueTail.snapshot;
             queueTail = queueTail.next = newEvent;
             queueChanged.signalAll();
         } finally {
@@ -145,7 +147,7 @@ public abstract class Client {
     protected abstract void consume(JobQueueEvent e) throws Exception;
 
     public static abstract class ServerEvent implements Runnable {
-        final Snapshot snapshot;
+        private Snapshot snapshot;
         final long timeStamp;
         ServerEvent next;
 
@@ -156,6 +158,10 @@ public abstract class Client {
         ServerEvent(Snapshot snapshot, long timeStamp) {
             this.snapshot = snapshot;
             this.timeStamp = timeStamp;
+        }
+        
+        Snapshot getSnapshot() {
+            return snapshot;
         }
 
         public void run() {
@@ -176,6 +182,10 @@ public abstract class Client {
         fireServerEvent(new PrintEvent(ejob.oldSnapshot, ejob.client, s));
     }
 
+    static void print(String s) {
+        fireServerEvent(new PrintEvent(null, Job.currentUI, s));
+    }
+
     static void fireJobQueueEvent(Snapshot snapshot) {
         ArrayList<Job.Inform> jobs = new ArrayList<Job.Inform>();
         for (Iterator<Job> it = Job.getAllJobs(); it.hasNext();) {
@@ -186,9 +196,9 @@ public abstract class Client {
     }
 
     private static void fireServerEvent(ServerEvent serverEvent) {
+        putEvent(serverEvent);
         if (Job.currentUI != null)
             Job.currentUI.addEvent(serverEvent);
-        StreamClient.putEvent(serverEvent);
     }
 
     public static class EJobEvent extends ServerEvent {

@@ -77,7 +77,7 @@ public class EJob {
     /** Creates a new instance of EJob */
     EJob(StreamClient connection, int jobId, Job.Type jobType, String jobName, byte[] bytes) {
         this.client = connection;
-        jobKey = new Job.Key(connection, jobId);
+        jobKey = new Job.Key(connection, jobId, jobType != Job.Type.EXAMINE);
         this.jobType = jobType;
         this.jobName = jobName;
         state = State.WAITING;
