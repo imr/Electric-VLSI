@@ -69,7 +69,7 @@ public class StreamClient extends Client {
                 if (reader != null)
                     reader.start();
                 writer.writeInt(Job.PROTOCOL_VERSION);
-                writeSnapshot(lastEvent.snapshot);
+                writeSnapshot(lastEvent.getSnapshot());
                 writer.flush();
                 for (;;) {
                     lastEvent = getEvent(lastEvent);
