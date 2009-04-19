@@ -74,7 +74,9 @@ public class StreamClient extends Client {
                 writer.flush();
                 for (;;) {
                     lastEvent = getEvent(lastEvent);
-                    lastEvent.dispatch(StreamClient.this);
+                    if (lastEvent.getSnapshot() != currentSnapshot)
+                        writeSnapshot(lastEvent.getSnapshot());
+                    lastEvent.write(writer);
                     writer.flush();
                 }
             } catch (Exception e) {
@@ -83,59 +85,6 @@ public class StreamClient extends Client {
                 Job.jobManager.connectionClosed();
             }
         }
-    }
-
-    @Override
-    protected void consume(EJobEvent e) throws Exception {
-        EJob ejob = e.ejob;
-        if (ejob.newSnapshot != null && ejob.newSnapshot != currentSnapshot) {
-            writeSnapshot(ejob.newSnapshot);
-        }
-        assert e.newState == EJob.State.SERVER_DONE;
-        writer.writeByte((byte)2);
-        writer.writeInt(ejob.jobKey.jobId);
-        writer.writeString(ejob.jobName);
-        writer.writeString(ejob.jobType.toString());
-        writer.writeString(e.newState.toString());
-        writer.writeLong(e.timeStamp);
-        if (e.newState == EJob.State.WAITING) {
-            writer.writeBoolean(ejob.serializedJob != null);
-            if (ejob.serializedJob != null)
-                writer.writeBytes(ejob.serializedJob);
-        }
-        if (e.newState == EJob.State.SERVER_DONE)
-            writer.writeBytes(ejob.serializedResult);
-    }
-
-    @Override
-    protected void consume(PrintEvent e) throws Exception {
-        writer.writeByte((byte)3);
-        writer.writeString(e.s);
-    }
-
-    @Override
-    protected void consume(SavePrintEvent e) throws Exception {
-        writer.writeByte((byte)5);
-        String filePath = e.filePath;
-        if (filePath == null)
-            filePath = "";
-        writer.writeString(filePath);
-    }
-
-    @Override
-    protected void consume(ShowMessageEvent e) throws Exception {
-        writer.writeByte((byte)6);
-        writer.writeString(e.message);
-        writer.writeString(e.title);
-        writer.writeBoolean(e.isError);
-    }
-
-    @Override
-    protected void consume(JobQueueEvent e) throws Exception {
-        writer.writeByte((byte)4);
-        writer.writeInt(e.jobQueue.length);
-        for (Job.Inform j: e.jobQueue)
-            j.write(writer);
     }
 
     private void writeSnapshot(Snapshot newSnapshot) throws IOException {

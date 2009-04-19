@@ -75,7 +75,7 @@ public class EJob {
     /** Fields changed on server side. */       ArrayList<Field> changedFields;
 
     /** Creates a new instance of EJob */
-    EJob(StreamClient connection, int jobId, Job.Type jobType, String jobName, byte[] bytes) {
+    EJob(Client connection, int jobId, Job.Type jobType, String jobName, byte[] bytes) {
         this.client = connection;
         jobKey = new Job.Key(connection, jobId, jobType != Job.Type.EXAMINE);
         this.jobType = jobType;

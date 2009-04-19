@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.Main;
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdManager;
@@ -35,10 +37,8 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -90,79 +90,51 @@ public class Regression {
 
             int curJobId = 0;
             Job job = new InitJob();
-            job.ejob.jobKey = new Job.Key(connectionId, ++curJobId, true);
+            job.ejob.jobKey = new Job.Key(connectionId, --curJobId, true);
+//            job.ejob.editingPreferences = new EditingPreferences(true, database.getTechPool());
             writeJob(clientOutputStream, job);
 
-//            Technology.initAllTechnologies();
-
+            AbstractUserInterface ui = new Main.UserInterfaceDummy(connectionId);
             PrintWriter printWriter = null;
             for (;;) {
                 byte tag = reader.readByte();
-                switch (tag) {
-                    case 1:
+                if (tag == 1) {
                         currentSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
-//                        System.out.println("Snapshot received");
-                        break;
-                    case 2:
-                        int jobId = Integer.valueOf(reader.readInt());		// ignore jobID
-                        assert jobId == curJobId;
-                        String jobName = reader.readString();		// ignore jobName
-                        Job.Type jobType = Job.Type.valueOf(reader.readString());		// ignore jobType
-                        EJob.State newState = EJob.State.valueOf(reader.readString());
-                        long timeStamp = reader.readLong();		// ignore timestamp
-                        assert newState == EJob.State.SERVER_DONE;
-                        job.ejob.serializedResult = reader.readBytes();
+                        System.out.println("Snapshot received " + currentSnapshot.snapshotId);
+                } else {
+                    Client.ServerEvent serverEvent = Client.read(reader, tag, ui);
+                    if (serverEvent instanceof Client.EJobEvent) {
+                        Client.EJobEvent e = (Client.EJobEvent)serverEvent;
+                        int jobId = e.ejob.jobKey.jobId;
+                        assert jobId > 0 || jobId == curJobId;
+                        assert e.newState == EJob.State.SERVER_DONE;
+                        job.ejob.serializedResult = e.ejob.serializedResult;
                         Throwable result = job.ejob.deserializeResult();
                         if (result != null) {
-                            System.out.println("Job " + jobName + " result:");
+                            System.out.println("Job " + job.ejob.jobName + " result:");
                             System.out.println(result);
                             printErrorStream(process);
                             return false;
                         }
-                        switch (jobId) {
-                            case 1:
+                        switch (curJobId) {
+                            case -1:
                                 job = EvalJavaBsh.runScriptJob(script);
-                                job.ejob.jobKey = new Job.Key(connectionId, ++curJobId, true);
+                                job.ejob.jobKey = new Job.Key(connectionId, --curJobId, true);
                                 writeJob(clientOutputStream, job);
                                 break;
-                            default:
-                                job = job;
+                            case -2:
+                                job = new QuitJob();
+                                job.ejob.jobKey = new Job.Key(connectionId, --curJobId, true);
+                                writeJob(clientOutputStream, job);
+                                break;
+                            case -3:
                                 return true;
+                            default:
+                                System.out.println("Job " + job.ejob.jobKey.jobId);
                         }
-                        break;
-                    case 3:
-                        String str = reader.readString();
-                        System.out.print("#" + str);
-                        if (printWriter != null)
-                            printWriter.print(str);
-                        break;
-                    case 4:
-                        System.out.print("JobQueue");
-                        int jobQueueSize = reader.readInt();
-                        for (int jobIndex = 0; jobIndex < jobQueueSize; jobIndex++) {
-                            Job.Inform jobInform = Job.Inform.read(reader);
-                            System.out.print(" " + jobInform);
-                        }
-                        System.out.println();
-                        break;
-                    case 5:
-                        String filePath = reader.readString();
-                        if (printWriter != null) {
-                            printWriter.close();
-                            printWriter = null;
-                        }
-                        if (filePath.length() > 0)
-                            printWriter = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
-                        System.out.println("Save messages to " + filePath);
-                        break;
-                    case 6:
-                        String message = reader.readString();
-                        String title = reader.readString();
-                        boolean isError = reader.readBoolean();
-                        System.out.println((isError ? "Error" : "Inform") + "Message " + message);
-                        break;
-                    default:
-                        System.out.println("Bad tag " + tag);
+                    } else {
+                        serverEvent.show(ui);
+                    }
                 }
             }
         } catch (IOException e) {
@@ -200,6 +172,17 @@ public class Regression {
                 if (tech != null)
                     database.addTech(tech);
             }
+//            EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, database.getTechPool()));
+            return true;
+       }
+    }
+
+    private static class QuitJob extends Job {
+        private QuitJob() {
+            super("QuitJob", null, Job.Type.CHANGE, null, null, Job.Priority.USER);
+        }
+
+        public boolean doIt() throws JobException {
             return true;
        }
     }

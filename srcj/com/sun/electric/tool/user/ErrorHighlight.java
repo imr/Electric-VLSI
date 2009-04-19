@@ -29,6 +29,8 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
@@ -36,6 +38,8 @@ import com.sun.electric.database.variable.VarContext;
 
 import java.io.PrintStream;
 import java.awt.geom.Point2D;
+import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.Serializable;
 import java.util.List;
 import java.util.ArrayList;
@@ -45,6 +49,7 @@ import java.util.ArrayList;
  */
 public abstract class ErrorHighlight implements Serializable {
     public static final ErrorHighlight[] NULL_ARRAY = {};
+    private static final byte HAS_CELL_ID = 0x08;
 
     private final CellId cellId;
     private final VarContext  context; // Yet do be immutable
@@ -53,6 +58,11 @@ public abstract class ErrorHighlight implements Serializable {
     {
         this.cellId = c != null ? (CellId)c.getId() : null;
         this.context = con;
+    }
+    
+    ErrorHighlight(CellId cellId) {
+        this.cellId = cellId;
+        context = null;
     }
 
     public Cell getCell(EDatabase database) { return cellId != null ? database.getCell(cellId) : null; }
@@ -128,6 +138,53 @@ public abstract class ErrorHighlight implements Serializable {
     public static ErrorHighlight newInstance(Export e) {
         return new ErrorHighExport(null, e);
     }
+    
+    abstract void write(IdWriter writer) throws IOException;
+    void writeTag(IdWriter writer, byte tag) throws IOException {
+        if (cellId != null) {
+            writer.writeByte((byte)(tag | HAS_CELL_ID));
+            writer.writeNodeProtoId(cellId);
+        } else {
+            writer.writeByte(tag);
+        }
+        // TODO: save VarContext
+    }
+    
+    static ErrorHighlight read(IdReader reader) throws IOException {
+        byte tag = reader.readByte();
+        CellId cellId = null;
+        if ((tag&HAS_CELL_ID) != 0) {
+            cellId = (CellId)reader.readNodeProtoId();
+            tag = (byte)(tag & ~HAS_CELL_ID);
+        }
+        switch (tag) {
+            case 1:
+                ExportId pp = (ExportId)reader.readPortProtoId();
+                return new ErrorHighExport(pp);
+            case 2:
+                ErrorHighPoly ehp = new ErrorHighPoly(cellId);
+                int numLines = reader.readInt();
+                for (int i = 0; i < numLines; i++)
+                    ehp.linesList.add(read(reader));
+                return ehp;
+            case 3:
+                EPoint p1 = reader.readPoint();
+                EPoint p2 = reader.readPoint();
+                boolean thickLine = reader.readBoolean();
+                return new ErrorHighLine(cellId, p1, p2, thickLine);
+            case 4:
+                EPoint point = reader.readPoint();
+                return new ErrorHighPoint(cellId, point);
+            case 5:
+                int nodeId = reader.readNodeId();
+                return new ErrorHighNode(cellId, nodeId);
+            case 6:
+                int arcId = reader.readArcId();
+                return new ErrorHighArc(cellId, arcId);
+            default:
+                throw new NotSerializableException();
+        }
+    }
 }
 
 class ErrorHighExport extends ErrorHighlight {
@@ -139,6 +196,11 @@ class ErrorHighExport extends ErrorHighlight {
         super(p.getParent(), con);
         this.pp = p.getId();
     }
+    
+    ErrorHighExport(ExportId pp) {
+        super((CellId)pp.parentId);
+        this.pp = pp;
+    }
 
     boolean isValid(EDatabase database) {return pp.inDatabase(database) != null;}
 
@@ -146,6 +208,12 @@ class ErrorHighExport extends ErrorHighlight {
     {
         Export e = pp.inDatabase(database);
         h.addText(e, e.getParent(), Export.EXPORT_NAME);
+    }
+    
+    @Override
+    void write(IdWriter writer) throws IOException {
+        writeTag(writer, (byte)1);
+        writer.writePortProtoId(pp);
     }
 }
 
@@ -158,6 +226,11 @@ class ErrorHighPoly extends ErrorHighlight
         super(c, null);
         if (list != null)
             linesList.addAll(list);
+    }
+
+    ErrorHighPoly(CellId cellId)
+    {
+        super(cellId);
     }
 
     public static void writeXmlHeader(String indent, PrintStream ps)
@@ -182,6 +255,14 @@ class ErrorHighPoly extends ErrorHighlight
         for (ErrorHighlight line : linesList)
             line.addToHighlighter(h, database);
     }
+    
+    @Override
+    void write(IdWriter writer) throws IOException {
+        writeTag(writer, (byte)2);
+        writer.writeInt(linesList.size());
+        for (ErrorHighlight line: linesList)
+            line.write(writer);
+    }
 }
 
 class ErrorHighLine extends ErrorHighlight {
@@ -192,6 +273,14 @@ class ErrorHighLine extends ErrorHighlight {
     public ErrorHighLine(Cell c, EPoint x1, EPoint x2, boolean thick)
     {
         super(c, null);
+        thickLine = thick;
+        p1 = x1;
+        p2 = x2;
+    }
+
+    ErrorHighLine(CellId cellId, EPoint x1, EPoint x2, boolean thick)
+    {
+        super(cellId);
         thickLine = thick;
         p1 = x1;
         p2 = x2;
@@ -229,6 +318,14 @@ class ErrorHighLine extends ErrorHighlight {
         if (thickLine) h.addThickLine(p1, p2, cell);
         else h.addLine(p1, p2, cell);
     }
+    
+    @Override
+    void write(IdWriter writer) throws IOException {
+        writeTag(writer, (byte)3);
+        writer.writePoint(p1);
+        writer.writePoint(p2);
+        writer.writeBoolean(thickLine);
+    }
 }
 
 class ErrorHighPoint extends ErrorHighlight {
@@ -237,6 +334,12 @@ class ErrorHighPoint extends ErrorHighlight {
     ErrorHighPoint(Cell c, EPoint p)
     {
         super(c, null);
+        this.point = p;
+    }
+
+    ErrorHighPoint(CellId cellId, EPoint p)
+    {
+        super(cellId);
         this.point = p;
     }
 
@@ -249,6 +352,12 @@ class ErrorHighPoint extends ErrorHighlight {
         h.addLine(new Point2D.Double(point.getX()-consize, point.getY()+consize),
                 new Point2D.Double(point.getX()+consize, point.getY()-consize), cell);
     }
+    
+    @Override
+    void write(IdWriter writer) throws IOException {
+        writeTag(writer, (byte)4);
+        writer.writePoint(point);
+    }
 }
 
 class ErrorHighNode extends ErrorHighlight {
@@ -259,6 +368,12 @@ class ErrorHighNode extends ErrorHighlight {
     {
         super(ni.getParent(), con);
         nodeId = ni.getD().nodeId;
+    }
+
+    ErrorHighNode(CellId cellId, int nodeId)
+    {
+        super(cellId);
+        this.nodeId = nodeId;
     }
 
     boolean containsObject(Cell c, Object obj)
@@ -299,6 +414,12 @@ class ErrorHighNode extends ErrorHighlight {
         if (ni != null)
             h.addElectricObject(ni, ni.getParent());
     }
+    
+    @Override
+    void write(IdWriter writer) throws IOException {
+        writeTag(writer, (byte)5);
+        writer.writeNodeId(nodeId);
+    }
 }
 
 class ErrorHighArc extends ErrorHighlight {
@@ -309,6 +430,12 @@ class ErrorHighArc extends ErrorHighlight {
     {
         super(ai.getParent(), con);
         arcId = ai.getArcId();
+    }
+
+    ErrorHighArc(CellId cellId, int arcId)
+    {
+        super(cellId);
+        this.arcId = arcId;
     }
 
     boolean containsObject(Cell c, Object obj)
@@ -339,5 +466,11 @@ class ErrorHighArc extends ErrorHighlight {
         ArcInst ai = (ArcInst)getObject(database);
         if (ai != null)
             h.addElectricObject(ai, ai.getParent());
+    }
+    
+    @Override
+    void write(IdWriter writer) throws IOException {
+        writeTag(writer, (byte)6);
+        writer.writeArcId(arcId);
     }
 }

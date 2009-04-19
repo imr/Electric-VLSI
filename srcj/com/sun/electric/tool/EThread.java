@@ -186,10 +186,6 @@ class EThread extends Thread {
 
     UserInterface getUserInterface() { return userInterface; }
 
-    void print(String str) {
-        Client.print(ejob, str);
-    }
-
     /**
      * Find some valid snapshot in cache.
      */

@@ -26,12 +26,20 @@ package com.sun.electric.technology;
 import com.sun.electric.Main;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -80,7 +88,7 @@ public abstract class TechFactory {
             techName = xmlTech.techName;
         if (techName == null)
             techName = TextUtils.getFileNameWithoutExtension(url);
-        return new FromXml(techName, url, xmlTech);
+        return new FromXml(techName, true, url, xmlTech);
     }
 
     public Technology newInstance(Generic generic) {
@@ -120,6 +128,11 @@ public abstract class TechFactory {
     }
 
     abstract String getDescription();
+    
+    void write(IdWriter writer) throws IOException {
+        writer.writeString(techName);
+        writer.writeBoolean(false);
+    }
 
     @Override
     public String toString() { return techName; }
@@ -197,15 +210,35 @@ public abstract class TechFactory {
     }
 
     private static void r(Map<String,TechFactory> m, String techName, String resourceName) {
+        assert techName != null;
         URL url = Main.class.getResource(resourceName);
         if (url == null)
             return;
-        m.put(techName, fromXml(url, null));
+        m.put(techName, new FromXml(techName, false, url, null));
     }
 
     abstract Technology newInstanceImpl(Generic generic, Map<Param,Object> paramValues) throws Exception;
     public abstract Xml.Technology getXml(final Map<Param,Object> params) throws Exception;
 
+    static TechFactory read(IdReader reader) throws IOException {
+        String techName = reader.readString();
+        boolean userDefined = reader.readBoolean();
+        if (!userDefined)
+            return getKnownTechs("").get(techName);
+        boolean hasUrl = reader.readBoolean();
+        URL xmlUrl = hasUrl ? new URL(reader.readString()) : null;
+        byte[] serializedXml = reader.readBytes();
+        try {
+            ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(serializedXml));
+            Xml.Technology xmlTech = (Xml.Technology)in.readObject();
+            in.close();
+            return fromXml(xmlUrl, xmlTech);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw new IOException(e);
+        }
+    }
+    
     private static class FromClass extends TechFactory {
         private final String techClassName;
 
@@ -260,12 +293,14 @@ public abstract class TechFactory {
     }
 
     private static class FromXml extends TechFactory {
+        private final boolean userDefined;
         private final URL urlXml;
         private Xml.Technology xmlTech;
         private boolean xmlParsed;
 
-        private FromXml(String techName, URL urlXml, Xml.Technology xmlTech) {
+        private FromXml(String techName, boolean userDefined, URL urlXml, Xml.Technology xmlTech) {
             super(techName);
+            this.userDefined = userDefined;
             this.urlXml = urlXml;
             this.xmlTech = xmlTech;
         }
@@ -299,6 +334,28 @@ public abstract class TechFactory {
                 }
             }
             return xmlTech;
+        }
+        
+        void write(IdWriter writer) throws IOException {
+            writer.writeString(techName);
+            writer.writeBoolean(userDefined);
+            if (!userDefined) return;
+            boolean hasUrl = urlXml != null;
+            writer.writeBoolean(hasUrl);
+            if (hasUrl)
+                writer.writeString(urlXml.toString());
+            byte[] serializedXml;
+            try {
+                ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+                ObjectOutputStream out = new ObjectOutputStream(byteStream);
+                out.writeObject(xmlTech);
+                out.flush();
+                serializedXml = byteStream.toByteArray();
+            } catch (Throwable e) {
+                e.printStackTrace();
+                serializedXml = new byte[0];
+            }
+            writer.writeBytes(serializedXml);
         }
     }
 }

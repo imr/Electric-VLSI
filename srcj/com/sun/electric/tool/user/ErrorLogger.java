@@ -31,6 +31,8 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
@@ -46,12 +48,14 @@ import java.io.Serializable;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.parsers.SAXParser;
@@ -141,7 +145,7 @@ public class ErrorLogger implements Serializable
             this.highlights = highlights.toArray(ErrorHighlight.NULL_ARRAY);
             index = 0;
         }
-
+        
         public Cell getCell() { return (logCellId!=null)?EDatabase.clientDatabase().getCell(logCellId):null;}
 
         public String getMessageString() { return message; }
@@ -227,7 +231,39 @@ public class ErrorLogger implements Serializable
             }
             return allValid;
         }
-
+        
+        void write(IdWriter writer) throws IOException {
+            boolean isWarning = this instanceof WarningLog;
+            writer.writeBoolean(isWarning);
+            writer.writeString(message);
+            boolean hasCellId = logCellId != null;
+            writer.writeBoolean(hasCellId);
+            if (hasCellId)
+                writer.writeNodeProtoId(logCellId);
+            writer.writeInt(sortKey);
+            writer.writeInt(highlights.length);
+            for (int i = 0; i < highlights.length; i++)
+                highlights[i].write(writer);
+            writer.writeInt(index);
+        }
+        
+        private static MessageLog read(IdReader reader) throws IOException {
+            boolean isWarning = reader.readBoolean();
+            String message = reader.readString();
+            boolean hasCellId = reader.readBoolean();
+            CellId cellId = hasCellId ? (CellId)reader.readNodeProtoId() : null;
+            int sortKey = reader.readInt();
+            ErrorHighlight[] highlights = new ErrorHighlight[reader.readInt()];
+            for (int i = 0; i < highlights.length; i++)
+                highlights[i] = ErrorHighlight.read(reader);
+            MessageLog log;
+            if (isWarning)
+                log = new MessageLog(message, cellId, sortKey, Arrays.asList(highlights));
+            else
+                log = new WarningLog(message, cellId, sortKey, Arrays.asList(highlights));
+            log.index = reader.readInt();
+            return log;
+        }
     }
 
     private static class ErrorLogOrder implements Comparator<MessageLog>
@@ -247,12 +283,13 @@ public class ErrorLogger implements Serializable
     public static class WarningLog extends MessageLog
     {
        public WarningLog(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights) { super(message, cell, sortKey, highlights); }
+       public WarningLog(String message, CellId cellId, int sortKey, List<ErrorHighlight> highlights) { super(message, cellId, sortKey, highlights); }
     }
 
 //	private boolean alreadyExplained;
     private int errorLimit;
-    private List<MessageLog> allErrors;
-	private List<WarningLog> allWarnings;
+    private List<MessageLog> allErrors = new ArrayList<MessageLog>();
+	private List<WarningLog> allWarnings = new ArrayList<WarningLog>();
     private boolean limitExceeded;
     private String errorSystem;
     private boolean terminated;
@@ -266,6 +303,54 @@ public class ErrorLogger implements Serializable
     public boolean isPersistent() {return persistent;}
 
     public ErrorLogger() {}
+    
+    public void write(IdWriter writer) throws IOException {
+        writer.writeInt(errorLimit);
+        int numErrors = allErrors.size();
+        writer.writeInt(numErrors);
+        for (int i = 0; i < numErrors; i++)
+            allErrors.get(i).write(writer);
+        int numWarnings = allWarnings.size();
+        writer.writeInt(numWarnings);
+        for (int i = 0; i < numWarnings; i++)
+            allWarnings.get(i).write(writer);
+        writer.writeString(errorSystem);
+        writer.writeBoolean(terminated);
+        writer.writeBoolean(persistent);
+        if (sortKeysToGroupNames != null) {
+            writer.writeInt(sortKeysToGroupNames.size());
+            for (Map.Entry<Integer,String> e: sortKeysToGroupNames.entrySet()) {
+                writer.writeInt(e.getKey().intValue());
+                writer.writeString(e.getValue());
+            }
+        } else {
+            writer.writeInt(-1);
+        }
+    }
+    
+    public static ErrorLogger read(IdReader reader) throws IOException {
+        ErrorLogger logger = new ErrorLogger();
+        logger.errorLimit = reader.readInt();
+        int numErrors = reader.readInt();
+        for (int i = 0; i < numErrors; i++)
+            logger.allErrors.add(MessageLog.read(reader));
+        int numWarnings = reader.readInt();
+        for (int i = 0; i < numWarnings; i++)
+            logger.allWarnings.add((WarningLog)MessageLog.read(reader));
+        logger.errorSystem = reader.readString();
+        logger.terminated = reader.readBoolean();
+        logger.persistent = reader.readBoolean();
+        int numGroups = reader.readInt();
+        if (numGroups >= 0) {
+            logger.sortKeysToGroupNames = new HashMap<Integer,String>();
+            for (int i = 0; i < numGroups; i++) {
+                Integer sortKey = Integer.valueOf(reader.readInt());
+                String groupName = reader.readString();
+                logger.sortKeysToGroupNames.put(sortKey, groupName);
+            }
+        }
+        return logger;
+    }
 
     /**
      * Create a new ErrorLogger instance.
@@ -282,8 +367,6 @@ public class ErrorLogger implements Serializable
     public static ErrorLogger newInstance(String system, boolean persistent)
     {
         ErrorLogger logger = new ErrorLogger();
-        logger.allErrors = new ArrayList<MessageLog>();
-	    logger.allWarnings = new ArrayList<WarningLog>();
         logger.limitExceeded = false;
         logger.errorSystem = system;
         logger.errorLimit = User.getErrorLimit();

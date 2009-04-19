@@ -329,7 +329,8 @@ public class ServerJobManager extends JobManager {
 //                if (Job.threadMode != Job.Mode.BATCH && ejob.client == null)
 //                    finishedJobs.add(ejob);
                 ejob.state = newState;
-                Client.fireEJobEvent(ejob);
+                Client.fireServerEvent(new Client.EJobEvent(ejob, ejob.state));
+
                 break;
             case CLIENT_DONE:
                 assert oldState == EJob.State.SERVER_DONE;
@@ -337,7 +338,9 @@ public class ServerJobManager extends JobManager {
 //                    finishedJobs.remove(ejob);
         }
         ejob.state = newState;
-        Client.fireJobQueueEvent(ejob.newSnapshot);
+        List<Job.Inform> jobs = Job.jobManager.getAllJobInforms();
+        Client.fireServerEvent(new Client.JobQueueEvent(ejob.newSnapshot, jobs.toArray(new Job.Inform[jobs.size()])));
+
 //        if (!Job.BATCHMODE && !guiChanged)
 //            SwingUtilities.invokeLater(this);
 //        guiChanged = true;
@@ -480,7 +483,8 @@ public class ServerJobManager extends JobManager {
          */
         public void startProgressDialog(String msg, String filePath)
         {
-            Job.currentUI.startProgressDialog(msg, filePath);
+            EJob ejob = Job.getRunningJob().ejob;
+            Client.fireServerEvent(new Client.StartProgressDialogEvent(ejob.oldSnapshot, msg, filePath));
         }
 
         /**
@@ -488,16 +492,18 @@ public class ServerJobManager extends JobManager {
          */
         public void stopProgressDialog()
         {
-            Job.currentUI.stopProgressDialog();
+            EJob ejob = Job.getRunningJob().ejob;
+            Client.fireServerEvent(new Client.StopProgressDialogEvent(ejob.oldSnapshot));
         }
 
         /**
          * Method to update the progress bar
          * @param pct the percentage done (from 0 to 100).
          */
-        public void setProgressValue(long pct)
+        public void setProgressValue(int pct)
         {
-            Job.currentUI.setProgressValue(pct);
+            EJob ejob = Job.getRunningJob().ejob;
+            Client.fireServerEvent(new Client.ProgressValueEvent(ejob.oldSnapshot, pct));
         }
 
         /**
@@ -507,7 +513,8 @@ public class ServerJobManager extends JobManager {
         public void setProgressNote(String message)
         {
             progressNote = message;
-            Job.currentUI.setProgressNote(message);
+            EJob ejob = Job.getRunningJob().ejob;
+            Client.fireServerEvent(new Client.ProgressNoteEvent(ejob.oldSnapshot, message));
         }
 
         /**
@@ -573,8 +580,8 @@ public class ServerJobManager extends JobManager {
 		public EditWindow_ displayCell(Cell cell) { throw new IllegalStateException(); }
 
         public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate) {
-            Job.currentUI.termLogging(logger, explain, terminate);
-            // transmit to client
+            EJob ejob = Job.getRunningJob().ejob;
+            Client.fireServerEvent(new Client.TermLoggingEvent(ejob.oldSnapshot, logger, explain, terminate));
         }
 
         public void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) { throw new IllegalStateException(); }
@@ -600,7 +607,8 @@ public class ServerJobManager extends JobManager {
          */
         public void showErrorMessage(String message, String title)
         {
-            Client.showMessage(Job.getRunningJob().ejob, message, title, true);
+            EJob ejob = Job.getRunningJob().ejob;
+            Client.fireServerEvent(new Client.ShowMessageEvent(ejob.oldSnapshot, ejob.client, message, title, true));
         }
 
         /**
@@ -610,7 +618,8 @@ public class ServerJobManager extends JobManager {
          */
         public void showInformationMessage(String message, String title)
         {
-            Client.showMessage(Job.getRunningJob().ejob, message, title, false);
+            EJob ejob = Job.getRunningJob().ejob;
+            Client.fireServerEvent(new Client.ShowMessageEvent(ejob.oldSnapshot, ejob.client, message, title, false));
         }
 
         /**
@@ -621,7 +630,8 @@ public class ServerJobManager extends JobManager {
         public void printMessage(String message, boolean newLine) {
             if (newLine)
                 message += "\n";
-            Client.print(Job.getRunningJob().ejob, message);
+            EJob ejob = Job.getRunningJob().ejob;
+            Client.fireServerEvent(new Client.PrintEvent(ejob.oldSnapshot, ejob.client, message));
         }
 
         /**
@@ -629,7 +639,8 @@ public class ServerJobManager extends JobManager {
          * @param filePath file to save
          */
         public void saveMessages(String filePath) {
-            Client.savePrint(Job.getRunningJob().ejob, filePath);
+            EJob ejob = Job.getRunningJob().ejob;
+            Client.fireServerEvent(new Client.SavePrintEvent(ejob.oldSnapshot, ejob.client, filePath));
         }
 
         /**

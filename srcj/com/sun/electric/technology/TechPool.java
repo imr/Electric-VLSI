@@ -40,6 +40,7 @@ import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology.SizeCorrector;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -480,31 +481,77 @@ public class TechPool extends AbstractMap<TechId, Technology> {
      * @param writer IdWriter
      * @throws java.io.IOException
      */
-    public void write(IdWriter writer) throws IOException {
+    public void writeDiff(IdWriter writer, TechPool old) throws IOException {
+        boolean isEmpty = isEmpty();
+        writer.writeBoolean(isEmpty);
+        if (isEmpty) return;
+        Generic generic = getGeneric();
+        assert generic != null;
+        boolean newGeneric = generic != old.getGeneric();
+        writer.writeBoolean(newGeneric);
         for (Technology tech : values()) {
-            writer.writeInt(tech.getId().techIndex);
+            if (tech == generic) continue;
+            TechId techId = tech.getId();
+            writer.writeInt(techId.techIndex);
+            Technology.State techState = getState(techId);
+            boolean sameState = techState == old.getState(techId);
+            writer.writeBoolean(sameState);
+            if (sameState) continue;
+            boolean sameTech = tech == old.getTech(techId);
+            writer.writeBoolean(sameTech);
+            if (!sameTech)
+                tech.techFactory.write(writer);
+            for (TechFactory.Param techParam: tech.techFactory.getTechParams()) {
+                Object value = techState.paramValues.get(techParam);
+                writer.writeString(techParam.xmlPath);
+                Variable.writeObject(writer, value);
+            }
         }
         writer.writeInt(-1);
     }
-
+    
     /**
      * Reads TechPool from IdReader
      * @param reader IdReader
      * @return TechPool read
      * @throws java.io.IOException
      */
-    public static TechPool read(IdReader reader) throws IOException {
+    public static TechPool read(IdReader reader, TechPool old) throws IOException {
+        boolean isEmpty = reader.readBoolean();
+        if (isEmpty)
+            return new TechPool(reader.idManager);
         ArrayList<Technology.State> technologiesList = new ArrayList<Technology.State>();
+        boolean newGeneric = reader.readBoolean();
+        Generic generic = newGeneric ? Generic.newInstance(reader.idManager) : old.getGeneric();
+        technologiesList.add(generic.getCurrentState());
         for (;;) {
             int techIndex = reader.readInt();
-            if (techIndex == -1) {
+            if (techIndex == -1)
                 break;
-            }
             TechId techId = reader.idManager.getTechId(techIndex);
             assert techId != null;
-            Technology tech = Technology.findTechnology(techId);
-            assert tech != null;
-            technologiesList.add(tech.getCurrentState());  // Fix me !!!!
+            boolean sameState = reader.readBoolean();
+            if (sameState) {
+                technologiesList.add(old.getState(techId));
+                continue;
+            }
+            boolean sameTech = reader.readBoolean();
+            TechFactory techFactory = sameTech ? old.getTech(techId).techFactory : TechFactory.read(reader);
+            HashMap<TechFactory.Param,Object> paramValues = new HashMap<TechFactory.Param,Object>();
+            for (TechFactory.Param techParam: techFactory.getTechParams()) {
+                String xmlPath = reader.readString();
+                assert xmlPath.equals(techParam.xmlPath);
+                Object value = Variable.readObject(reader);
+                paramValues.put(techParam, value);
+            }
+            Technology.State techState;
+            if (sameTech) {
+                Technology tech = old.getTech(techId);
+                techState = tech.newState(paramValues);
+            } else {
+                techState = techFactory.newInstance(generic, paramValues).getCurrentState();
+            }
+            technologiesList.add(techState);
         }
         return new TechPool(technologiesList);
     }
@@ -569,6 +616,8 @@ public class TechPool extends AbstractMap<TechId, Technology> {
             }
         }
         assert size == size();
+        if (size != 0)
+            assert getGeneric() != null;
         assert size == 0 || techs[techs.length - 1] != null;
         if (univList != null)
             assert arcCount == univList.length;

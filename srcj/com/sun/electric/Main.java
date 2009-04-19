@@ -46,6 +46,7 @@ import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Client;
+import com.sun.electric.tool.EJob;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
@@ -188,7 +189,7 @@ public final class Main
         if (runMode == Job.Mode.FULL_SCREEN || runMode == Job.Mode.CLIENT)
             ui = new UserInterfaceMain(argsList, mode, runMode == Job.Mode.FULL_SCREEN);
         else
-            ui = new UserInterfaceDummy();
+            ui = new UserInterfaceDummy(-1);
         Job.setThreadMode(runMode, ui);
         MessagesStream.getMessagesStream();
 
@@ -217,10 +218,14 @@ public final class Main
     public static class UserInterfaceDummy extends AbstractUserInterface
 	{
         private PrintStream stdout = System.out;
+        
+        public UserInterfaceDummy(int connectionId) {
+            super(connectionId);
+        }
 
         public void startProgressDialog(String type, String filePath) {}
         public void stopProgressDialog() {}
-        public void setProgressValue(long pct) {}
+        public void setProgressValue(int pct) {}
         public void setProgressNote(String message) {}
         public String getProgressNote() { return null; }
 
@@ -369,33 +374,15 @@ public final class Main
         public String askForInput(Object message, String title, String def) { return def; }
 
         @Override
-        protected void consume(EJobEvent e) {
-            printMessage("Job " + e.ejob, true);
+        protected void terminateJob(EJob ejob) {
+            printMessage("Job " + ejob, true);
     //        writeEJobEvent(e.ejob, e.newState, e.timeStamp);
         }
 
         @Override
-        protected void consume(PrintEvent e) {
-            printMessage(e.s, false);
-        }
-
-        @Override
-        protected void consume(SavePrintEvent e) {
-            saveMessages(e.filePath);
-        }
-
-        @Override
-        protected void consume(ShowMessageEvent e) {
-            if (e.isError)
-                showErrorMessage(e.message, e.title);
-            else
-                showInformationMessage(e.message, e.title);
-        }
-
-        @Override
-        protected void consume(JobQueueEvent e) {
+        protected void showJobQueue(Job.Inform[] jobQueue) {
             printMessage("JobQueue: ", false);
-            for (Job.Inform jobInfo: e.jobQueue)
+            for (Job.Inform jobInfo: jobQueue)
                 printMessage(" " + jobInfo, false);
             printMessage("", true);
         }

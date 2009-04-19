@@ -231,7 +231,7 @@ public class Environment {
         boolean techPoolChanged = techPool != old.techPool;
         writer.writeBoolean(techPoolChanged);
         if (techPoolChanged)
-            techPool.write(writer);
+            techPool.writeDiff(writer, old.techPool);
         boolean toolSettingsChanged = toolSettings != old.toolSettings;
         writer.writeBoolean(toolSettingsChanged);
         if (toolSettingsChanged)
@@ -255,7 +255,7 @@ public class Environment {
         TechPool techPool = old.techPool;
         boolean techPoolChanged = reader.readBoolean();
         if (techPoolChanged)
-            techPool = TechPool.read(reader);
+            techPool = TechPool.read(reader, old.techPool);
         Setting.RootGroup toolSettings = old.toolSettings;
         boolean toolSettingsChanged = reader.readBoolean();
         if (toolSettingsChanged)

@@ -44,8 +44,8 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     private LibId curLibId;
     private Job.Key jobKey = new Job.Key(-1, 0, false);
 
-    protected AbstractUserInterface() {
-        super(-1);
+    protected AbstractUserInterface(int connectionId) {
+        super(connectionId);
     }
     
     public Job.Key getJobKey() {
@@ -85,13 +85,6 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     // For Mac OS X version
     protected void initializeInitJob(Job job, Object mode) {}
 
-
-    protected abstract void consume(EJobEvent e) throws Exception;
-
-    protected abstract void consume(PrintEvent e) throws Exception;
-
-    protected abstract void consume(JobQueueEvent e) throws Exception;
-
     protected abstract void addEvent(Client.ServerEvent serverEvent);
 
     public void finishInitialization() {}
@@ -122,6 +115,8 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
      * @param newRedoEnabled new status of redo button.
      */
     protected void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {}
+    
+    protected abstract void showJobQueue(Job.Inform[] jobQueue);
 
     /**
      * Show new database snapshot.
@@ -129,6 +124,7 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
      */
     protected void showSnapshot(Snapshot newSnapshot, boolean undoRedo) {}
 
-
+    protected abstract void terminateJob(EJob ejob);
+    
     public void beep() {}
 }

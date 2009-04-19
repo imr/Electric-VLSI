@@ -117,6 +117,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     private PrintStream stdout = System.out;
 
     public UserInterfaceMain(List<String> argsList, Mode mode, boolean showSplash) {
+        super(-1);
         new EventProcessor();
         try {
             EventQueue.invokeAndWait(new Runnable() {
@@ -130,10 +131,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         SwingUtilities.invokeLater(new InitializationRun(argsList, mode, showSplash));
     }
 
-    @Override
-    protected void consume(EJobEvent e) {
-        EJob ejob = e.ejob;
-        assert e.newState == EJob.State.SERVER_DONE;
+    protected void terminateJob(EJob ejob) {
         boolean undoRedo = ejob.jobType == Job.Type.UNDO;
         if (!ejob.isExamine()) {
             int restoredHighlights = Undo.endChanges(ejob.oldSnapshot, ejob.getJob().getTool(), ejob.jobName, ejob.newSnapshot);
@@ -176,31 +174,13 @@ public class UserInterfaceMain extends AbstractUserInterface
     }
 
     @Override
-    protected void consume(PrintEvent e) {
-        printMessage(e.s, false);
-    }
-
-    @Override
-    protected void consume(SavePrintEvent e) {
-        saveMessages(e.filePath);
-    }
-
-    @Override
-    protected void consume(ShowMessageEvent e) {
-        if (e.isError)
-            showErrorMessage(e.message, e.title);
-        else
-            showInformationMessage(e.message, e.title);
-    }
-
-    @Override
-    protected void consume(JobQueueEvent e) {
+    protected void showJobQueue(Job.Inform[] jobQueue) {
         boolean busyCursor = false;
-        for (Job.Inform jobInform: e.jobQueue) {
+        for (Job.Inform jobInform: jobQueue) {
             if (jobInform.isChangeJobQueuedOrRunning())
                 busyCursor = true;
         }
-        JobTree.update(Arrays.asList(e.jobQueue));
+        JobTree.update(Arrays.asList(jobQueue));
         TopLevel.setBusyCursor(busyCursor);
     }
 
@@ -1104,12 +1084,12 @@ public class UserInterfaceMain extends AbstractUserInterface
      * Method to update the progress bar
      * @param pct the percentage done (from 0 to 100).
      */
-    public void setProgressValue(long pct)
+    public void setProgressValue(int pct)
 	{
         // progress is null if it is in quiet mode
 		if (progress != null)
 		{
-			progress.setProgress((int)pct);
+			progress.setProgress(pct);
 		}
 	}
 

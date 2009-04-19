@@ -688,8 +688,10 @@ public class PostScript extends Output
 			{
 				if (real) psPoly(poly);
 				numObjects++;
-				if (progressTotal != 0 && (numObjects%100) == 0)
-					Job.getUserInterface().setProgressValue(numObjects*100/progressTotal);
+				if (progressTotal != 0 && (numObjects%100) == 0) {
+                    long pct = numObjects*100/progressTotal;
+					Job.getUserInterface().setProgressValue((int)pct);
+                }
 			}
 			return numObjects;
 		}
@@ -721,8 +723,10 @@ public class PostScript extends Output
 					}
 				}
 				numObjects++;
-				if (progressTotal != 0 && (numObjects%100) == 0)
-					Job.getUserInterface().setProgressValue(numObjects*100/progressTotal);
+				if (progressTotal != 0 && (numObjects%100) == 0) {
+                    long pct = numObjects*100/progressTotal;
+					Job.getUserInterface().setProgressValue((int)pct);
+                }
 			} else
 			{
 				// a cell instance
@@ -754,8 +758,10 @@ public class PostScript extends Output
 						if (topLevel) showCellPorts(ni, trans, null);
 					}
 					numObjects++;
-					if (progressTotal != 0 && (numObjects%100) == 0)
-						Job.getUserInterface().setProgressValue(numObjects*100/progressTotal);
+					if (progressTotal != 0 && (numObjects%100) == 0) {
+                        long pct = numObjects*100/progressTotal;
+        				Job.getUserInterface().setProgressValue((int)pct);
+                    }
 				} else
 				{
 					recurseCircuitLevel(subCell, subTrans, false, real, progressTotal);
@@ -814,8 +820,10 @@ public class PostScript extends Output
 						}
 					}
 					numObjects++;
-					if (progressTotal != 0 && (numObjects%100) == 0)
-						Job.getUserInterface().setProgressValue(numObjects*100/progressTotal);
+					if (progressTotal != 0 && (numObjects%100) == 0) {
+                        long pct = numObjects*100/progressTotal;
+        				Job.getUserInterface().setProgressValue((int)pct);
+                    }
 				}
 			}
 		}
@@ -847,8 +855,10 @@ public class PostScript extends Output
 			}
 
 			numObjects++;
-			if (progressTotal != 0 && (numObjects%100) == 0)
-				Job.getUserInterface().setProgressValue(numObjects*100/progressTotal);
+			if (progressTotal != 0 && (numObjects%100) == 0) {
+                long pct = numObjects*100/progressTotal;
+				Job.getUserInterface().setProgressValue((int)pct);
+            }
 		}
 
 		// show cell variables if at the top level

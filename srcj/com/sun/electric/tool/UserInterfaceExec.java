@@ -204,7 +204,7 @@ public class UserInterfaceExec implements UserInterface {
      * Method to update the progress bar
      * @param pct the percentage done (from 0 to 100).
      */
-    public void setProgressValue(long pct) { throw new UnsupportedOperationException(); }
+    public void setProgressValue(int pct) { throw new UnsupportedOperationException(); }
 
     /**
      * Method to set a text message in the progress dialog.

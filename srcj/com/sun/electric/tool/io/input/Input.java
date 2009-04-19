@@ -319,7 +319,7 @@ public class Input
         long pct = byteCount * 100L / fileLength;
         UserInterface ui = Job.getUserInterface();
         if (ui != null)
-            ui.setProgressValue(pct);
+            ui.setProgressValue((int)pct);
 	}
 
 	protected void closeInput()

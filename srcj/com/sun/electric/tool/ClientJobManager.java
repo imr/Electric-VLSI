@@ -120,31 +120,29 @@ class ClientJobManager extends JobManager {
             try {
                 logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readTag");
                 byte tag = reader.readByte();
-                switch (tag) {
-                    case 1:
-                        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readSnapshot begin {0}", Integer.valueOf(clientFifo.numPut));
-                        currentSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
-                        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readSnapshot end");
-                        if (!firstSnapshot) {
-                            SwingUtilities.invokeLater(new SnapshotDatabaseChangeRun(clientSnapshot, currentSnapshot));
-                            if (Job.currentUI != null)
-                                Job.getExtendedUserInterface().showSnapshot(currentSnapshot, true);
-                            clientSnapshot = currentSnapshot;
-                            firstSnapshot = true;
-                        }
-                        break;
-                    case 2:
+                if (tag == 1) {
+                    logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readSnapshot begin {0}", Integer.valueOf(clientFifo.numPut));
+                    currentSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
+                    logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readSnapshot end");
+                    if (!firstSnapshot) {
+                        SwingUtilities.invokeLater(new SnapshotDatabaseChangeRun(clientSnapshot, currentSnapshot));
+                        if (Job.currentUI != null)
+                            Job.getExtendedUserInterface().showSnapshot(currentSnapshot, true);
+                        clientSnapshot = currentSnapshot;
+                        firstSnapshot = true;
+                    }
+                } else {
+                    Client.ServerEvent serverEvent = Client.read(reader, tag, Job.currentUI);
+                    if (serverEvent instanceof Client.EJobEvent) {
+                        Client.EJobEvent ejobEvent = (Client.EJobEvent)serverEvent;
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult begin {0}", Integer.valueOf(clientFifo.numPut));
-                        Integer jobId = Integer.valueOf(reader.readInt());
-                        String jobName = reader.readString();
-                        Job.Type jobType = Job.Type.valueOf(reader.readString());
-                        EJob ejob = new EJob(null/*StreamClient connection*/, jobId.intValue(), jobType, jobName, null/*byte[] bytes*/);
-                        ejob.state = EJob.State.valueOf(reader.readString());
+                        EJob ejob = ejobEvent.ejob;
+                        assert ejob.state == ejobEvent.newState;
+                        assert ejob.state == EJob.State.SERVER_DONE;
                         ejob.oldSnapshot = oldSnapshot;
                         ejob.newSnapshot = currentSnapshot;
                         oldSnapshot = currentSnapshot;
                         long timeStamp = reader.readLong();
-                        Client.EJobEvent ejobEvent = new Client.EJobEvent(ejob, ejob.state, timeStamp);
                         if (ejob.state == EJob.State.WAITING) {
                             boolean hasSerializedJob = reader.readBoolean();
                             if (hasSerializedJob) {
@@ -155,35 +153,63 @@ class ClientJobManager extends JobManager {
                             ejob.serializedResult = reader.readBytes();
                         }
                         clientFifo.put(ejobEvent);
-                        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult end {0}", jobId);
-                        break;
-                    case 3:
-                        logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readStr begin");
-                        String str = reader.readString();
-                        Client.PrintEvent printEvent = new Client.PrintEvent(currentSnapshot, null, str);
-                        logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readStr end {0}", str);
-                        clientFifo.put(printEvent);
-                        break;
-                    case 4:
-                        int jobQueueSize = reader.readInt();
-                        Job.Inform[] jobQueue = new Job.Inform[jobQueueSize];
-                        for (int jobIndex = 0; jobIndex < jobQueueSize; jobIndex++)
-                            jobQueue[jobIndex] = Job.Inform.read(reader);
-                        Client.JobQueueEvent jobQueueEvent = new Client.JobQueueEvent(currentSnapshot, jobQueue);
-                        clientFifo.put(jobQueueEvent);
-                        break;
-                    case 5:
-                        String filePath = reader.readString();
-                        break;
-                    case 6:
-                        String message = reader.readString();
-                        String title = reader.readString();
-                        boolean isError = reader.readBoolean();
-                        break;
-                    default:
-                        logger.logp(Level.SEVERE, CLASS_NAME, "clientLoop", "bad tag {0}", Byte.valueOf(tag));
-                        assert false;
+                        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult end {0}", ejob.jobKey.jobId);
+                    } else {
+                        clientFifo.put(serverEvent);
+                    }
                 }
+//                        break;
+//                    case 2:
+//                        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult begin {0}", Integer.valueOf(clientFifo.numPut));
+//                        Integer jobId = Integer.valueOf(reader.readInt());
+//                        String jobName = reader.readString();
+//                        Job.Type jobType = Job.Type.valueOf(reader.readString());
+//                        EJob ejob = new EJob(null/*StreamClient connection*/, jobId.intValue(), jobType, jobName, null/*byte[] bytes*/);
+//                        ejob.state = EJob.State.valueOf(reader.readString());
+//                        ejob.oldSnapshot = oldSnapshot;
+//                        ejob.newSnapshot = currentSnapshot;
+//                        oldSnapshot = currentSnapshot;
+//                        long timeStamp = reader.readLong();
+//                        Client.EJobEvent ejobEvent = new Client.EJobEvent(ejob, ejob.state, timeStamp);
+//                        if (ejob.state == EJob.State.WAITING) {
+//                            boolean hasSerializedJob = reader.readBoolean();
+//                            if (hasSerializedJob) {
+//                                ejob.serializedJob = reader.readBytes();
+//                            }
+//                        }
+//                        if (ejob.state == EJob.State.SERVER_DONE) {
+//                            ejob.serializedResult = reader.readBytes();
+//                        }
+//                        clientFifo.put(ejobEvent);
+//                        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult end {0}", jobId);
+//                        break;
+//                    case 3:
+//                        logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readStr begin");
+//                        String str = reader.readString();
+//                        Client.PrintEvent printEvent = new Client.PrintEvent(currentSnapshot, null, str);
+//                        logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readStr end {0}", str);
+//                        clientFifo.put(printEvent);
+//                        break;
+//                    case 4:
+//                        int jobQueueSize = reader.readInt();
+//                        Job.Inform[] jobQueue = new Job.Inform[jobQueueSize];
+//                        for (int jobIndex = 0; jobIndex < jobQueueSize; jobIndex++)
+//                            jobQueue[jobIndex] = Job.Inform.read(reader);
+//                        Client.JobQueueEvent jobQueueEvent = new Client.JobQueueEvent(currentSnapshot, jobQueue);
+//                        clientFifo.put(jobQueueEvent);
+//                        break;
+//                    case 5:
+//                        String filePath = reader.readString();
+//                        break;
+//                    case 6:
+//                        String message = reader.readString();
+//                        String title = reader.readString();
+//                        boolean isError = reader.readBoolean();
+//                        break;
+//                    default:
+//                        logger.logp(Level.SEVERE, CLASS_NAME, "clientLoop", "bad tag {0}", Byte.valueOf(tag));
+//                        assert false;
+//                }
             } catch (IOException e) {
                 // reader.in.close();
                 reader = null;
