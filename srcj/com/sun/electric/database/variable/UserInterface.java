@@ -119,14 +119,14 @@ public interface UserInterface
      * @param message the error message to show.
      * @param title the title of a dialog with the error message.
      */
-    public void showErrorMessage(Object message, String title);
+    public void showErrorMessage(String message, String title);
 
     /**
      * Method to show an informational message.
      * @param message the message to show.
      * @param title the title of a dialog with the message.
      */
-    public void showInformationMessage(Object message, String title);
+    public void showInformationMessage(String message, String title);
 
     /**
      * Method print a message.

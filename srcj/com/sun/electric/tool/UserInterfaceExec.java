@@ -37,7 +37,7 @@ import com.sun.electric.tool.user.ErrorLogger;
  */
 public class UserInterfaceExec implements UserInterface {
     private Job.Key jobKey;
-    
+
     /**
      * Method to return Job Key of a currently executed Job.
      * Jobless context (Gui) is represented by a Job Key with jobId=0.
@@ -117,7 +117,7 @@ public class UserInterfaceExec implements UserInterface {
      * with associated geometry modules (if nonzero).
      */
     public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric[] gPair, int position) {
-        throw new UnsupportedOperationException();        
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -125,14 +125,14 @@ public class UserInterfaceExec implements UserInterface {
      * @param message the error message to show.
      * @param title the title of a dialog with the error message.
      */
-    public void showErrorMessage(Object message, String title) { throw new UnsupportedOperationException(); }
+    public void showErrorMessage(String message, String title) { throw new UnsupportedOperationException(); }
 
     /**
      * Method to show an informational message.
      * @param message the message to show.
      * @param title the title of a dialog with the message.
      */
-    public void showInformationMessage(Object message, String title) { throw new UnsupportedOperationException(); }
+    public void showInformationMessage(String message, String title) { throw new UnsupportedOperationException(); }
 
     /**
      * Method print a message.

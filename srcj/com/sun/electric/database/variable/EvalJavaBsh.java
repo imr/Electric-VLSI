@@ -260,7 +260,7 @@ public class EvalJavaBsh
 
     private static class runScriptJob extends Job
 	{
-        String script;
+        private String script;
 
         protected runScriptJob(String script) {
             super("JavaBsh script: "+script, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -269,8 +269,7 @@ public class EvalJavaBsh
 
         public boolean doIt() throws JobException {
             EvalJavaBsh evaluator = new EvalJavaBsh();
-            evaluator.doSource(script);
-			return true;
+            return evaluator.doSource(script);
        }
     }
 
@@ -400,14 +399,16 @@ public class EvalJavaBsh
     }
 
     // source a Java Bean Shell script file
-    private void doSource(String file)
+    private boolean doSource(String file)
     {
         try {
             if (envObject != null) {
                 sourceMethod.invoke(envObject, new Object[] {file});
             }
+            return true;
         } catch (Exception e) {
             handleInvokeException(e, "Java Bean shell error sourcing '" + file +"'");
+            return false;
         }
     }
 
@@ -470,10 +471,6 @@ public class EvalJavaBsh
             e.printStackTrace(System.out);
             handled = false;
         }
-
-//	    // Finishing session
-//		if (Job.BATCHMODE)
-//			System.exit(1);
         return handled;
     }
 

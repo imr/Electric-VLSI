@@ -94,6 +94,15 @@ public class EJob {
 
     public Job getJob() { return clientJob != null ? clientJob : serverJob; }
 
+    public Job.Inform getInform() {
+        boolean isChange = jobType == Type.CHANGE || jobType == Type.UNDO;
+        String toString = jobName+" (waiting)";
+        long startTime = 0;
+        long endTime = 0;
+        int finished = -1;
+        return new Job.Inform(jobKey, isChange, toString, startTime, endTime, finished);
+    }
+
     public boolean isExamine() {
         return jobType == Job.Type.EXAMINE || jobType == Job.Type.REMOTE_EXAMINE;
     }

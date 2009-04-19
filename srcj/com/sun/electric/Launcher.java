@@ -26,7 +26,6 @@ package com.sun.electric;
 import com.sun.electric.tool.Regression;
 
 import java.io.File;
-import java.net.URL;
 
 /**
  * This class initializes the Electric by re-launching a JVM with sufficient memory.
@@ -64,7 +63,7 @@ public final class Launcher
         if (javaHome != null) program = javaHome + File.separator + "bin" + File.separator + program;
 
         if (args.length >= 1 && args[0].equals("-regression")) {
-            invokeRegression(args, program);
+            System.exit(invokeRegression(args, program) ? 0 : 1);
             return;
         }
 
@@ -104,13 +103,13 @@ public final class Launcher
 			return;
 		}
 
-        // get location of jar file
-        URL electric = Launcher.class.getResource("Main.class");
-        if (electric.getProtocol().equals("jar")) {
-            String file = electric.getFile();
-            file = file.replaceAll("file:", "");
-            file = file.replaceAll("!.*", "");
-        }
+//        // get location of jar file
+//        URL electric = Launcher.class.getResource("Main.class");
+//        if (electric.getProtocol().equals("jar")) {
+//            String file = electric.getFile();
+//            file = file.replaceAll("file:", "");
+//            file = file.replaceAll("!.*", "");
+//        }
 
         // build the command line for reinvoking Electric
 		String command = program;
@@ -149,22 +148,25 @@ public final class Launcher
 		}
 	}
 
-    private static void invokeRegression(String[] args, String program) {
-        String jarfile = "electric.jar";
-        URL electric = Launcher.class.getResource("Main.class");
-       if (electric.getProtocol().equals("jar")) {
-            String file = electric.getFile();
-            file = file.replaceAll("file:", "");
-            file = file.replaceAll("!.*", "");
-            jarfile = file;
-        }
+    private static boolean invokeRegression(String[] args, String program) {
+//        String jarfile = "electric.jar";
+//        URL electric = Launcher.class.getResource("Main.class");
+//        if (electric.getProtocol().equals("jar")) {
+//            String file = electric.getFile();
+//            file = file.replaceAll("file:", "");
+//            file = file.replaceAll("!.*", "");
+//            jarfile = file;
+//        }
 
         String script = args[1];
         String command = program;
+		command += " -cp " + getJarLocation();
         command += " -ea";
+//        command += " -Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=localhost:35856";
         for (int i = 2; i < args.length; i++)
             command += " " + args[i];
-        command += " -jar " + jarfile + " -pipeserver";
+        command += " com.sun.electric.Main";
+        command += " -pipeserver";
         System.out.println("exec: " + command);
         Runtime runtime = Runtime.getRuntime();
         Process process = null;
@@ -174,7 +176,7 @@ public final class Launcher
             e.printStackTrace();
             System.exit(0);
         }
-        Regression.runScript(process, script);
+        return Regression.runScript(process, script);
     }
 
     /**

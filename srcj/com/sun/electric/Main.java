@@ -159,7 +159,6 @@ public final class Main
 
         if (hasCommandLineOption(argsList, "-pipeserver")) {
             Job.pipeServer(numThreads);
-            MessagesStream.getMessagesStream();
             return;
         }
 
@@ -271,7 +270,17 @@ public final class Main
          * @param message the error message to show.
          * @param title the title of a dialog with the error message.
          */
-        public void showErrorMessage(Object message, String title)
+        public void showErrorMessage(String message, String title)
+        {
+        	System.out.println(message);
+        }
+
+        /**
+         * Method to show an error message.
+         * @param message the error message to show.
+         * @param title the title of a dialog with the error message.
+         */
+        public void showErrorMessage(String[] message, String title)
         {
         	System.out.println(message);
         }
@@ -281,7 +290,7 @@ public final class Main
          * @param message the message to show.
          * @param title the title of a dialog with the message.
          */
-        public void showInformationMessage(Object message, String title)
+        public void showInformationMessage(String message, String title)
         {
         	System.out.println(message);
         }
@@ -368,6 +377,19 @@ public final class Main
         @Override
         protected void consume(PrintEvent e) {
             printMessage(e.s, false);
+        }
+
+        @Override
+        protected void consume(SavePrintEvent e) {
+            saveMessages(e.filePath);
+        }
+
+        @Override
+        protected void consume(ShowMessageEvent e) {
+            if (e.isError)
+                showErrorMessage(e.message, e.title);
+            else
+                showInformationMessage(e.message, e.title);
         }
 
         @Override

@@ -181,6 +181,19 @@ public class UserInterfaceMain extends AbstractUserInterface
     }
 
     @Override
+    protected void consume(SavePrintEvent e) {
+        saveMessages(e.filePath);
+    }
+
+    @Override
+    protected void consume(ShowMessageEvent e) {
+        if (e.isError)
+            showErrorMessage(e.message, e.title);
+        else
+            showInformationMessage(e.message, e.title);
+    }
+
+    @Override
     protected void consume(JobQueueEvent e) {
         boolean busyCursor = false;
         for (Job.Inform jobInform: e.jobQueue) {
@@ -452,7 +465,7 @@ public class UserInterfaceMain extends AbstractUserInterface
      * @param message the error message to show.
      * @param title the title of a dialog with the error message.
      */
-    public void showErrorMessage(final Object message, final String title)
+    public void showErrorMessage(final String message, final String title)
     {
         if (SwingUtilities.isEventDispatchThread())
             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(false), message, title, JOptionPane.ERROR_MESSAGE);
@@ -470,7 +483,7 @@ public class UserInterfaceMain extends AbstractUserInterface
      * @param message the message to show.
      * @param title the title of a dialog with the message.
      */
-    public void showInformationMessage(final Object message, final String title)
+    public void showInformationMessage(final String message, final String title)
     {
          if (SwingUtilities.isEventDispatchThread())
             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message, title, JOptionPane.INFORMATION_MESSAGE);

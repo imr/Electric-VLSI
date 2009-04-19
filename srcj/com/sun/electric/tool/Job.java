@@ -193,7 +193,7 @@ public abstract class Job implements Serializable {
                 if (StartupPrefs.isUseClientServer())
                     jobManager = new ServerJobManager(numThreads, socketPort);
                 else
-                    jobManager = new ServerJobManager(numThreads, false);
+                    jobManager = new ServerJobManager(numThreads, StartupPrefs.isSnapshotLogging(), false);
 
                 // Calling external dependencies
 //                currentUI.initializeInitJob(initDatabaseJob, mode);
@@ -216,7 +216,7 @@ public abstract class Job implements Serializable {
     public static void pipeServer(int numThreads) {
         EDatabase.theDatabase = new EDatabase(IdManager.stdIdManager.getInitialSnapshot());
         Tool.initAllTools();
-        jobManager = new ServerJobManager(numThreads, true);
+        jobManager = new ServerJobManager(numThreads, true, true);
     }
 
 
@@ -860,7 +860,7 @@ public abstract class Job implements Serializable {
                 finished = -1;
         }
 
-        private Inform(Key jobKey, boolean isChange, String toString, long startTime, long endTime, int finished) {
+        Inform(Key jobKey, boolean isChange, String toString, long startTime, long endTime, int finished) {
             this.jobKey = jobKey;
             this.isChange = isChange;
             this.toString = toString;

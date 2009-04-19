@@ -28,17 +28,21 @@ public class JobException extends Exception
     public JobException() {
         super();
     }
-    
+
     /**
      * Constructs a new exception with the specified detail message.  The
      * cause is not initialized, and may subsequently be initialized by
      * a call to {@link #initCause}.
      *
-     * @param   message   the detail message. The detail message is saved for 
+     * @param   message   the detail message. The detail message is saved for
      *          later retrieval by the {@link #getMessage()} method.
      */
     public JobException(String message) {
         super(message);
+    }
+
+    public JobException(Throwable cause) {
+        super(cause);
     }
 
 }

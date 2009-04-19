@@ -1080,8 +1080,10 @@ public class ELIB extends Output
      */
     private void writeNameSpace() throws IOException {
         if (nameSpace.size() > Short.MAX_VALUE) {
-            Job.getUserInterface().showErrorMessage(new String [] {"ERROR! Too many unique variable names",
-            "The ELIB format cannot handle this many unique variables names", "Either delete the excess variables, or save to a readable dump"},
+            Job.getUserInterface().showErrorMessage(
+                    "ERROR! Too many unique variable names\n" +
+                    "The ELIB format cannot handle this many unique variables names\n" +
+                    "Either delete the excess variables, or save to a readable dump",
                     "Error saving ELIB file");
             throw new IOException("Variable.Key index too large");
         }

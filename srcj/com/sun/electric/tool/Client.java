@@ -26,8 +26,7 @@ package com.sun.electric.tool;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.id.IdManager;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -144,6 +143,8 @@ public abstract class Client {
 
     protected abstract void consume(EJobEvent e) throws Exception;
     protected abstract void consume(PrintEvent e) throws Exception;
+    protected abstract void consume(SavePrintEvent e) throws Exception;
+    protected abstract void consume(ShowMessageEvent e) throws Exception;
     protected abstract void consume(JobQueueEvent e) throws Exception;
 
     public static abstract class ServerEvent implements Runnable {
@@ -159,7 +160,7 @@ public abstract class Client {
             this.snapshot = snapshot;
             this.timeStamp = timeStamp;
         }
-        
+
         Snapshot getSnapshot() {
             return snapshot;
         }
@@ -182,16 +183,20 @@ public abstract class Client {
         fireServerEvent(new PrintEvent(ejob.oldSnapshot, ejob.client, s));
     }
 
+    static void savePrint(EJob ejob, String fileName) {
+        fireServerEvent(new SavePrintEvent(ejob.oldSnapshot, ejob.client, fileName));
+    }
+
+    static void showMessage(EJob ejob, String message, String title, boolean isError) {
+        fireServerEvent(new ShowMessageEvent(ejob.oldSnapshot, ejob.client, message, title, isError));
+    }
+
     static void print(String s) {
         fireServerEvent(new PrintEvent(null, Job.currentUI, s));
     }
 
     static void fireJobQueueEvent(Snapshot snapshot) {
-        ArrayList<Job.Inform> jobs = new ArrayList<Job.Inform>();
-        for (Iterator<Job> it = Job.getAllJobs(); it.hasNext();) {
-            Job j = it.next();
-            jobs.add(j.getInform());
-        }
+        List<Job.Inform> jobs = Job.jobManager.getAllJobInforms();
         fireServerEvent(new JobQueueEvent(snapshot, jobs.toArray(new Job.Inform[jobs.size()])));
     }
 
@@ -228,6 +233,34 @@ public abstract class Client {
             super(snapshot);
 //            this.client = client;
             this.s = s;
+        }
+
+        void dispatch(Client client) throws Exception { client.consume(this); }
+    }
+
+    public static class SavePrintEvent extends ServerEvent {
+//        private final Client client;
+        public final String filePath;
+
+        SavePrintEvent(Snapshot snapshot, Client client, String filePath) {
+            super(snapshot);
+//            this.client = client;
+            this.filePath = filePath;
+        }
+
+        void dispatch(Client client) throws Exception { client.consume(this); }
+    }
+
+    public static class ShowMessageEvent extends ServerEvent {
+        public final String message;
+        public final String title;
+        public final boolean isError;
+
+        ShowMessageEvent(Snapshot snapshot, Client client, String message, String title, boolean isError) {
+            super(snapshot);
+            this.message = message;
+            this.title = title;
+            this.isError = isError;
         }
 
         void dispatch(Client client) throws Exception { client.consume(this); }

@@ -69,6 +69,7 @@ public class StreamClient extends Client {
                 if (reader != null)
                     reader.start();
                 writer.writeInt(Job.PROTOCOL_VERSION);
+                writer.writeInt(connectionId);
                 writeSnapshot(lastEvent.getSnapshot());
                 writer.flush();
                 for (;;) {
@@ -76,10 +77,10 @@ public class StreamClient extends Client {
                     lastEvent.dispatch(StreamClient.this);
                     writer.flush();
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace(System.out);
             } catch (Exception e) {
-                e.printStackTrace(System.out);
+                e.printStackTrace();
+            } finally {
+                Job.jobManager.connectionClosed();
             }
         }
     }
@@ -110,6 +111,23 @@ public class StreamClient extends Client {
     protected void consume(PrintEvent e) throws Exception {
         writer.writeByte((byte)3);
         writer.writeString(e.s);
+    }
+
+    @Override
+    protected void consume(SavePrintEvent e) throws Exception {
+        writer.writeByte((byte)5);
+        String filePath = e.filePath;
+        if (filePath == null)
+            filePath = "";
+        writer.writeString(filePath);
+    }
+
+    @Override
+    protected void consume(ShowMessageEvent e) throws Exception {
+        writer.writeByte((byte)6);
+        writer.writeString(e.message);
+        writer.writeString(e.title);
+        writer.writeBoolean(e.isError);
     }
 
     @Override
@@ -147,6 +165,8 @@ public class StreamClient extends Client {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                dispatcher.interrupt();
             }
         }
     }

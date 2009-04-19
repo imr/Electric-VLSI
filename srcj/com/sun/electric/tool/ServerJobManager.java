@@ -42,6 +42,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -62,6 +63,7 @@ public class ServerJobManager extends JobManager {
     private final ServerSocket serverSocket;
 //    private final ArrayList<EJob> finishedJobs = new ArrayList<EJob>();
     private final ArrayList<Client> serverConnections = new ArrayList<Client>();
+    private int passiveConnections;
 //    private final UserInterface redirectInterface = new UserInterfaceRedirect();
     private int numThreads;
     private final int maxNumThreads;
@@ -70,11 +72,14 @@ public class ServerJobManager extends JobManager {
     private boolean signalledEThread;
 
     /** Creates a new instance of JobPool */
-    ServerJobManager(int recommendedNumThreads, boolean pipe) {
+    ServerJobManager(int recommendedNumThreads, boolean logging, boolean pipe) {
         maxNumThreads = initThreads(recommendedNumThreads);
         serverSocket = null;
-        if (StartupPrefs.isSnapshotLogging())
+        if (logging)
             initSnapshotLogging();
+        passiveConnections = serverConnections.size();
+        if (Job.currentUI != null)
+            passiveConnections--;
         if (pipe)
             initPipe();
     }
@@ -91,6 +96,9 @@ public class ServerJobManager extends JobManager {
         this.serverSocket = serverSocket;
         if (StartupPrefs.isSnapshotLogging())
             initSnapshotLogging();
+        passiveConnections = serverConnections.size();
+        if (Job.currentUI != null)
+            passiveConnections--;
     }
 
     private int initThreads(int recommendedNumThreads) {
@@ -123,16 +131,30 @@ public class ServerJobManager extends JobManager {
 
     void initPipe() {
         StreamClient conn;
+        OutputStream stdout = System.out;
+        MessagesStream.getMessagesStream();
         lock();
         try {
             int connectionId = serverConnections.size();
-            conn = new StreamClient(connectionId, System.in, System.out);
+            conn = new StreamClient(connectionId, System.in, stdout);
             serverConnections.add(conn);
         } finally {
             unlock();
         }
         conn.start();
     }
+
+    void connectionClosed() {
+        lock();
+        try {
+            passiveConnections++;
+            if (passiveConnections == serverConnections.size())
+                System.exit(0);
+        } finally {
+            unlock();
+        }
+    }
+
 
     /** Add job to list of jobs */
     void addJob(EJob ejob, boolean onMySnapshot) {
@@ -186,11 +208,6 @@ public class ServerJobManager extends JobManager {
         lock();
         try {
             ArrayList<Job> jobsList = new ArrayList<Job>();
-//            for (EJob ejob: finishedJobs) {
-//                Job job = ejob.getJob();
-//                if (job != null)
-//                    jobsList.add(job);
-//            }
             for (EJob ejob: startedJobs) {
                 Job job = ejob.getJob();
                 if (job != null)
@@ -202,6 +219,30 @@ public class ServerJobManager extends JobManager {
                     jobsList.add(job);
             }
             return jobsList.iterator();
+        } finally {
+            unlock();
+        }
+    }
+
+    List<Job.Inform> getAllJobInforms() {
+        lock();
+        try {
+            ArrayList<Job.Inform> jobsList = new ArrayList<Job.Inform>();
+            for (EJob ejob: startedJobs) {
+                Job job = ejob.getJob();
+                if (job != null)
+                    jobsList.add(job.getInform());
+                else
+                    jobsList.add(ejob.getInform());
+            }
+            for (EJob ejob: waitingJobs) {
+                Job job = ejob.getJob();
+                if (job != null)
+                    jobsList.add(job.getInform());
+                else
+                    jobsList.add(ejob.getInform());
+            }
+            return jobsList;
         } finally {
             unlock();
         }
@@ -481,7 +522,7 @@ public class ServerJobManager extends JobManager {
         public Job.Key getJobKey() {
             return Job.getRunningJob().getKey();
         }
-        
+
     	public EDatabase getDatabase() {
             return EDatabase.theDatabase;
         }
@@ -557,9 +598,9 @@ public class ServerJobManager extends JobManager {
          * @param message the error message to show.
          * @param title the title of a dialog with the error message.
          */
-        public void showErrorMessage(Object message, String title)
+        public void showErrorMessage(String message, String title)
         {
-            Job.currentUI.showErrorMessage(message, title);
+            Client.showMessage(Job.getRunningJob().ejob, message, title, true);
         }
 
         /**
@@ -567,9 +608,9 @@ public class ServerJobManager extends JobManager {
          * @param message the message to show.
          * @param title the title of a dialog with the message.
          */
-        public void showInformationMessage(Object message, String title)
+        public void showInformationMessage(String message, String title)
         {
-            Job.currentUI.showInformationMessage(message, title);
+            Client.showMessage(Job.getRunningJob().ejob, message, title, false);
         }
 
         /**
@@ -588,7 +629,7 @@ public class ServerJobManager extends JobManager {
          * @param filePath file to save
          */
         public void saveMessages(String filePath) {
-            Job.currentUI.saveMessages(filePath);
+            Client.savePrint(Job.getRunningJob().ejob, filePath);
         }
 
         /**

@@ -88,8 +88,8 @@ public class ActivityLogger {
 	public static synchronized void finished() {
 		if (out != null) out.close();
 		if (exceptionLogged && TEST_VERSION) {
-			Job.getUserInterface().showInformationMessage(new String []
-			    { "Exception logged.  Please send ", "   \""+outputFile+"\"", "to the developers"},
+			Job.getUserInterface().showInformationMessage(
+			    "Exception logged.  Please send \n   \""+outputFile+"\"\n to the developers",
 				"Exception Logged");
 		}
 	}
@@ -189,19 +189,18 @@ public class ActivityLogger {
         String msg2 = "The exception below has been logged in '" +outputFile+"'.";
 		String msg3 = "Please help us and report error to developers using 'Bugzilla'. In case of no access, send logfile to the developers.";
 		String msg4 = e.toString();
-		String [] msg;
+		String msg;
 		if (TEST_VERSION)
 		{
-			msg = new String[] {msg1, msg2, msg3, msg4};
+			msg = msg1 + "\n" + msg2 + "\n" + msg3 + "\n" + msg4;
 		} else
 		{
-			msg = new String[] {msg1, msg2, msg4};
+			msg = msg1 + "\n" + msg2 + "\n" + msg4;
 		}
         if (Job.getUserInterface() != null) {
             Job.getUserInterface().showErrorMessage(msg, "Exception Caught");
         } else {
-            for (String msgLine: msg)
-                System.out.println(msgLine);
+            System.out.println(msg);
         }
         exceptionLogged = true;
     }

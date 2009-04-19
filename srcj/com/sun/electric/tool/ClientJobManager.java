@@ -39,7 +39,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
@@ -89,6 +91,7 @@ class ClientJobManager extends JobManager {
                 System.out.println("Client's protocol version " + Job.PROTOCOL_VERSION + " is incompatible with Server's protocol version " + protocolVersion);
                 System.exit(1);
             }
+            int connectionId = reader.readInt();
             System.out.println("Connected");
         } catch (IOException e) {
             e.printStackTrace();
@@ -168,6 +171,14 @@ class ClientJobManager extends JobManager {
                             jobQueue[jobIndex] = Job.Inform.read(reader);
                         Client.JobQueueEvent jobQueueEvent = new Client.JobQueueEvent(currentSnapshot, jobQueue);
                         clientFifo.put(jobQueueEvent);
+                        break;
+                    case 5:
+                        String filePath = reader.readString();
+                        break;
+                    case 6:
+                        String message = reader.readString();
+                        String title = reader.readString();
+                        boolean isError = reader.readBoolean();
                         break;
                     default:
                         logger.logp(Level.SEVERE, CLASS_NAME, "clientLoop", "bad tag {0}", Byte.valueOf(tag));
@@ -258,6 +269,10 @@ class ClientJobManager extends JobManager {
                 jobsList.add(job);
         }
         return jobsList.iterator();
+    }
+
+    List<Job.Inform> getAllJobInforms() {
+        return Collections.emptyList();
     }
 
     private class FIFO {
