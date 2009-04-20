@@ -2124,8 +2124,9 @@ public class TechEditWizardData
                         scaledValue(via_overhang[0].v), m1Layer), null);
         }
 
-        /**************************** N/P-Diff Nodes/Arcs ***********************************************/
+        /**************************** N/P-Diff Nodes/Arcs/Group ***********************************************/
         PaletteGroup[] diffPalette = new PaletteGroup[2];
+        diffPalette[0] = new PaletteGroup(); diffPalette[1] = new PaletteGroup();
 
         // ndiff/pdiff pins
         hla = scaledValue((contact_size.v/2 + diff_contact_overhang.v));
@@ -2142,64 +2143,7 @@ public class TechEditWizardData
         Xml.Layer[] diffLayers = {diffPLayer, diffNLayer};
         Xml.Layer[] plusLayers = {pplusLayer, nplusLayer};
 
-        // ndiff/pdiff contact
-        for (int i = 0; i < 2; i++)
-        {
-            portNames.clear();
-            portNames.add(diffLayers[i].name);
-            portNames.add(m1Layer.name);
-            String composeName = diffNames[i] + "-" + gds_diff_layer.name; //Diff";
-            Xml.NodeLayer wellNode, wellNodePin;
-            ArcProto.Function
-                arcF;
-            Xml.ArcLayer arcL;
-            WizardField arcVal;
-
-            // group
-            PaletteGroup diffG = new PaletteGroup();
-            diffPalette[i] = diffG;
-
-            if (i == Technology.P_TYPE)
-            {
-                wellNodePin = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED);
-                wellNode = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED);
-                arcF = ArcProto.Function.DIFFP;
-                arcL = makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p);
-                arcVal = pplus_overhang_diff;
-            }
-            else
-            {
-                wellNodePin = (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED):null;
-                wellNode = (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED):null;
-                arcF = ArcProto.Function.DIFFN;
-                arcL = (!pWellFlag)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null;
-                arcVal = nplus_overhang_diff;
-            }
-
-            // active arc
-            diffG.addArc(makeXmlArc(t, composeName, arcF, 0,
-                makeXmlArcLayer(diffLayers[i], diff_width),
-                makeXmlArcLayer(plusLayers[i], diff_width, arcVal),
-                arcL));
-
-            // active pin
-            diffG.addPin(makeXmlPrimitivePin(t, composeName, hla,
-                new SizeOffset(sos[i], sos[i], sos[i], sos[i]),
-                makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.CROSSED),
-                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.CROSSED),
-                wellNodePin));
-
-            // F stands for full (all layers)
-            diffG.addElement(makeXmlPrimitiveCon(t.nodeGroups, "F-"+composeName, PrimitiveNode.Function.CONTACT,
-                hla, hla, new SizeOffset(sos[i], sos[i], sos[i], sos[i]), portNames,
-                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED), // meta1 layer
-                makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED), // active layer
-                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED), // select layer
-                wellNode, // well layer
-                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)), "Full"); // contact
-        }
-
-        // Active and poly contacts
+        // Active and poly contacts. They are defined first that the Full types
         for (Map.Entry<String,List<Contact>> e : otherContacts.entrySet())
         {
             // generic contacts
@@ -2280,6 +2224,61 @@ public class TechEditWizardData
                     extraN,
                     makeXmlMulticut(conLay, contSize, contSpacing, contArraySpacing)), c.prefix); // contact
             }
+        }
+
+        // ndiff/pdiff contact
+        for (int i = 0; i < 2; i++)
+        {
+            portNames.clear();
+            portNames.add(diffLayers[i].name);
+            portNames.add(m1Layer.name);
+            String composeName = diffNames[i] + "-" + gds_diff_layer.name; //Diff";
+            Xml.NodeLayer wellNode, wellNodePin;
+            ArcProto.Function
+                arcF;
+            Xml.ArcLayer arcL;
+            WizardField arcVal;
+
+            if (i == Technology.P_TYPE)
+            {
+                wellNodePin = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED);
+                wellNode = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED);
+                arcF = ArcProto.Function.DIFFP;
+                arcL = makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p);
+                arcVal = pplus_overhang_diff;
+            }
+            else
+            {
+                wellNodePin = (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED):null;
+                wellNode = (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED):null;
+                arcF = ArcProto.Function.DIFFN;
+                arcL = (!pWellFlag)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null;
+                arcVal = nplus_overhang_diff;
+            }
+
+            PaletteGroup diffG = diffPalette[i];
+            
+            // active arc
+            diffG.addArc(makeXmlArc(t, composeName, arcF, 0,
+                makeXmlArcLayer(diffLayers[i], diff_width),
+                makeXmlArcLayer(plusLayers[i], diff_width, arcVal),
+                arcL));
+
+            // active pin
+            diffG.addPin(makeXmlPrimitivePin(t, composeName, hla,
+                new SizeOffset(sos[i], sos[i], sos[i], sos[i]),
+                makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.CROSSED),
+                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.CROSSED),
+                wellNodePin));
+
+            // F stands for full (all layers)
+            diffG.addElement(makeXmlPrimitiveCon(t.nodeGroups, "F-"+composeName, PrimitiveNode.Function.CONTACT,
+                hla, hla, new SizeOffset(sos[i], sos[i], sos[i], sos[i]), portNames,
+                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED), // meta1 layer
+                makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED), // active layer
+                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED), // select layer
+                wellNode, // well layer
+                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)), "Full"); // contact
         }
 
         /**************************** N/P-Well Contacts ***********************************************/

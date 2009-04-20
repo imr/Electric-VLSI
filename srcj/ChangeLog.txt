@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09i: ******************************
 
+IMP: (4/20/09, GVG) Adding 40nm tech as a XML technology to avoid issues
+reported in Bug #2124
+
 IMP: (4/20/09, SMR) Preferences and Project Settings dialog keeps center panel
      in the same location (Bug #2101).
 
