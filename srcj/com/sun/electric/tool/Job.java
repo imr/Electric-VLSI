@@ -34,6 +34,7 @@ import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.TechPool;
@@ -214,6 +215,7 @@ public abstract class Job implements Serializable {
     }
 
     public static void pipeServer(int numThreads) {
+        Pref.forbidPreferences();
         EDatabase.theDatabase = new EDatabase(IdManager.stdIdManager.getInitialSnapshot());
         Tool.initAllTools();
         jobManager = new ServerJobManager(numThreads, false, true);

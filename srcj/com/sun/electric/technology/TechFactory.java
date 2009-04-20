@@ -28,7 +28,6 @@ import com.sun.electric.database.Environment;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -95,7 +94,6 @@ public abstract class TechFactory {
     }
 
     public Technology newInstance(Generic generic, Map<Param,Object> paramValues) {
-        Pref.delayPrefFlushing();
         Environment oldEnvironment = Environment.setThreadEnvironment(null);
         try {
             Map<Param,Object> fixedParamValues = new HashMap<Param,Object>();
@@ -117,7 +115,6 @@ public abstract class TechFactory {
                 ActivityLogger.logException(e);
         } finally {
             Environment.setThreadEnvironment(oldEnvironment);
-            Pref.resumePrefFlushing();
         }
         return null;
     }
@@ -127,7 +124,7 @@ public abstract class TechFactory {
     }
 
     abstract String getDescription();
-    
+
     void write(IdWriter writer) throws IOException {
         writer.writeString(techName);
         writer.writeBoolean(false);
@@ -237,7 +234,7 @@ public abstract class TechFactory {
             return null;
         }
     }
-    
+
     private static class FromClass extends TechFactory {
         private final String techClassName;
 
@@ -334,7 +331,7 @@ public abstract class TechFactory {
             }
             return xmlTech;
         }
-        
+
         void write(IdWriter writer) throws IOException {
             writer.writeString(techName);
             writer.writeBoolean(userDefined);

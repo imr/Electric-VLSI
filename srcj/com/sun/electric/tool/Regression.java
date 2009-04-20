@@ -30,6 +30,7 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.technology.TechFactory;
@@ -54,6 +55,7 @@ import java.util.Map;
 public class Regression {
 
     public static boolean runScript(Process process, String script) {
+        Pref.forbidPreferences();
         IdReader reader = null;
         Snapshot currentSnapshot = IdManager.stdIdManager.getInitialSnapshot();
         EDatabase database = EDatabase.theDatabase = new EDatabase(currentSnapshot);
@@ -117,10 +119,19 @@ public class Regression {
                         Client.EJobEvent e = (Client.EJobEvent)serverEvent;
                         int jobId = e.ejob.jobKey.jobId;
                         assert e.newState == EJob.State.SERVER_DONE;
-                        if (jobId > 0) continue;
+                        if (jobId > 0) {
+                            if (!e.ejob.doItOk) {
+                                System.out.println("Job " + job.ejob.jobName + " failed");
+                                printErrorStream(process);
+                                ui.saveMessages(null);
+                                return false;
+                            }
+                            continue;
+                        }
                         assert jobId == curJobId;
                         job.ejob.serializedResult = e.ejob.serializedResult;
                         Throwable result = job.ejob.deserializeResult();
+                        assert e.ejob.doItOk == (result == null);
                         if (result != null) {
                             System.out.println("Job " + job.ejob.jobName + " result:");
                             System.out.println(result);

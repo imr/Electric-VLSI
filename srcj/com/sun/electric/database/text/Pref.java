@@ -95,6 +95,7 @@ import org.xml.sax.SAXParseException;
 public class Pref {
     public final static boolean FROM_THREAD_ENVIRONMENT = false;
     private static Thread clientThread;
+    private static boolean forbidPreferences;
 
     public static class Group {
         private final String relativePath;
@@ -234,6 +235,10 @@ public class Pref {
 
     public static void setClientThread(Thread clientThread) {
         Pref.clientThread = clientThread;
+    }
+
+    public static void forbidPreferences() {
+        forbidPreferences = true;
     }
 
     public static void setCachedObjsFromPreferences()
@@ -686,6 +691,8 @@ public class Pref {
      * @return the root of Preferences subtree with Electric options.
      */
     public static Preferences getPrefRoot() {
+        if (forbidPreferences)
+            return factoryPrefRoot;
         return Preferences.userNodeForPackage(Main.class);
     }
 
@@ -714,7 +721,7 @@ public class Pref {
         @Override protected void removeSpi(String key) { throw new UnsupportedOperationException(); }
         @Override protected void removeNodeSpi() { throw new UnsupportedOperationException(); }
         @Override protected String[] keysSpi() { throw new UnsupportedOperationException(); }
-        @Override protected String[] childrenNamesSpi() throws BackingStoreException { throw new UnsupportedOperationException(); }
+        @Override protected String[] childrenNamesSpi() throws BackingStoreException { return new String[0]; }
         @Override protected void syncSpi() throws BackingStoreException { throw new UnsupportedOperationException(); }
         @Override protected void flushSpi() throws BackingStoreException { throw new UnsupportedOperationException(); }
     };

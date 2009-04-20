@@ -68,6 +68,7 @@ public class EJob {
     /** progress */                             /*private*/ String progress = null;
     byte[] serializedJob;
     byte[] serializedResult;
+    boolean doItOk;
     Job serverJob;
     public Job clientJob;
     State state;
@@ -162,6 +163,7 @@ public class EJob {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
+            doItOk = true;
             out.writeObject(null); // No exception
             out.writeInt(changedFields.size());
             Job job = jobType == Job.Type.EXAMINE ? clientJob : serverJob;

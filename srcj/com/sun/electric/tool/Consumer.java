@@ -34,6 +34,6 @@ public interface Consumer<T> extends Serializable {
      * Consume value
      * @param value value to consume.
      */
-    public void consume(T value);
-    
+    public void consume(T value) throws JobException;
+
 }

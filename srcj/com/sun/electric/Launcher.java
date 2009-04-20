@@ -62,7 +62,8 @@ public final class Launcher
         String javaHome = System.getProperty("java.home");
         if (javaHome != null) program = javaHome + File.separator + "bin" + File.separator + program;
 
-        if (args.length >= 1 && args[0].equals("-regression")) {
+        if (args.length >= 2 && args[0].equals("-regression") ||
+                args.length >= 4 && args[0].equals("-threads") && args[2].equals("-regression")) {
             System.exit(invokeRegression(args, program) ? 0 : 1);
             return;
         }
@@ -158,14 +159,24 @@ public final class Launcher
 //            jarfile = file;
 //        }
 
-        String script = args[1];
+        int regressionPos = 0;
+        String threads = null;
+        if (args[0].equals("-threads")) {
+            regressionPos = 2;
+            threads = args[1];
+        }
+        String script = args[regressionPos + 1];
+
         String command = program;
 		command += " -cp " + getJarLocation();
         command += " -ea";
+	command += " -debug";
 //        command += " -Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=localhost:35856";
-        for (int i = 2; i < args.length; i++)
+        for (int i = regressionPos + 2; i < args.length; i++)
             command += " " + args[i];
         command += " com.sun.electric.Main";
+        if (threads != null)
+            command += " -threads " + threads;
         command += " -pipeserver";
         System.out.println("exec: " + command);
         Runtime runtime = Runtime.getRuntime();

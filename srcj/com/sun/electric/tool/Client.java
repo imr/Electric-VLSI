@@ -210,6 +210,7 @@ public abstract class Client {
             writer.writeString(ejob.jobType.toString());
             writer.writeString(newState.toString());
             writer.writeLong(timeStamp);
+            writer.writeBoolean(ejob.doItOk);
             if (newState == EJob.State.WAITING) {
                 writer.writeBoolean(ejob.serializedJob != null);
                 if (ejob.serializedJob != null)
@@ -458,9 +459,11 @@ public abstract class Client {
                 Job.Type jobType = Job.Type.valueOf(reader.readString());
                 EJob.State newState = EJob.State.valueOf(reader.readString());
                 timeStamp = reader.readLong();
+                boolean doItOk = reader.readBoolean();
                 assert newState == EJob.State.SERVER_DONE;
                 byte[] bytes = reader.readBytes();
                 EJob ejob = new EJob(connection, jobId, jobType, jobName, null);
+                ejob.doItOk = doItOk;
                 ejob.serializedResult = bytes;
                 return new EJobEvent(ejob, newState, timeStamp);
             case 3:
