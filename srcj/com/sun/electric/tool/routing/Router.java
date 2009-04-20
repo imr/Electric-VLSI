@@ -26,6 +26,7 @@ package com.sun.electric.tool.routing;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
@@ -465,6 +466,17 @@ public abstract class Router {
                     // size calls take into account rotation
                     double xsize = ni.getXSizeWithoutOffset();
                     double ysize = ni.getYSizeWithoutOffset();
+
+                    // look for actual size of layer on contact
+                    Iterator<Poly> pit = ni.getShape(Poly.newLambdaBuilder());
+                    while (pit.hasNext()) {
+                        Poly poly = pit.next();
+                        if (poly.getLayer() == ap.getLayer(0)) {
+                            xsize = poly.getBounds2D().getWidth();
+                            ysize = poly.getBounds2D().getHeight();
+                        }
+                    }
+                    
                     if (arcAngle % 1800 == 0) {
                         width = ysize;
                     }
