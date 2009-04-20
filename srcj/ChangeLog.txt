@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09i: ******************************
 
+IMP: (4/20/09, DN) Regression tests doesn't touch Java Preferences.
+
 IMP: (4/19/09, DN) Regression tests can run in subprocess.
 
 BUG (4/16/09, SMR) EDIF not reading "unused" and "protectionFrame" keywords (Bug #2131).

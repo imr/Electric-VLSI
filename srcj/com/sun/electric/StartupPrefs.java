@@ -23,6 +23,8 @@
  */
 package com.sun.electric;
 
+import com.sun.electric.database.text.Pref;
+
 import java.util.prefs.Preferences;
 
 /**
@@ -30,8 +32,8 @@ import java.util.prefs.Preferences;
  * They are accessed without initializing Tool and Technology classes
  */
 public class StartupPrefs {
-    private static final String USER_NODE = "/com/sun/electric/tool/user";
-    private static final Preferences userNode = Preferences.userRoot().node(USER_NODE);
+    private static final String USER_NODE = "tool/user";
+    private static final Preferences userNode = Pref.getPrefRoot().node(USER_NODE);
 
 	/** Preferences key with additional technologies for Electric. */
     public static final String SoftTechnologiesKey = "SoftTechnologies";
