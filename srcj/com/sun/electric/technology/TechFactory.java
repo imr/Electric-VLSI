@@ -37,7 +37,6 @@ import com.sun.electric.tool.user.ActivityLogger;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Constructor;
@@ -235,7 +234,7 @@ public abstract class TechFactory {
             return fromXml(xmlUrl, xmlTech);
         } catch (Throwable e) {
             e.printStackTrace();
-            throw new IOException(e);
+            return null;
         }
     }
     

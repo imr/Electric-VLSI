@@ -216,7 +216,7 @@ public abstract class Job implements Serializable {
     public static void pipeServer(int numThreads) {
         EDatabase.theDatabase = new EDatabase(IdManager.stdIdManager.getInitialSnapshot());
         Tool.initAllTools();
-        jobManager = new ServerJobManager(numThreads, true, true);
+        jobManager = new ServerJobManager(numThreads, false, true);
     }
 
 

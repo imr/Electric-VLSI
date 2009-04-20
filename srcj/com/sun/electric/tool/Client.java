@@ -335,7 +335,9 @@ public abstract class Client {
         void write(IdWriter writer) throws IOException {
             writer.writeByte((byte)7);
             writer.writeString(msg);
-            writer.writeString(filePath);
+            writer.writeBoolean(filePath != null);
+            if (filePath != null)
+                writer.writeString(filePath);
         }
 
         @Override
@@ -429,6 +431,23 @@ public abstract class Client {
         }
     }
 
+    public static class BeepEvent extends ServerEvent {
+
+        BeepEvent(Snapshot snapshot) {
+            super(snapshot);
+        }
+
+        @Override
+        void write(IdWriter writer) throws IOException {
+            writer.writeByte((byte)12);
+        }
+
+        @Override
+        void show(AbstractUserInterface ui) {
+            ui.beep();
+        }
+    }
+
     static ServerEvent read(IdReader reader, byte tag, Client connection) throws IOException {
         Snapshot snapshot = null;
         long timeStamp = 0;
@@ -465,7 +484,8 @@ public abstract class Client {
                 return new ShowMessageEvent(snapshot, connection, message, title, isError);
             case 7:
                 String progressMsg = reader.readString();
-                String progressFilePath = reader.readString();
+                boolean hasFilePath = reader.readBoolean();
+                String progressFilePath = hasFilePath ? reader.readString() : null;
                 return new StartProgressDialogEvent(snapshot, progressMsg, progressFilePath);
             case 8:
                 return new StopProgressDialogEvent(snapshot);
@@ -481,6 +501,8 @@ public abstract class Client {
                 boolean explain = reader.readBoolean();
                 boolean terminate = reader.readBoolean();
                 return new TermLoggingEvent(snapshot, logger, explain, terminate);
+            case 12:
+                return new BeepEvent(snapshot);
             default:
                 throw new AssertionError();
         }

@@ -45,7 +45,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Map;
 
@@ -98,7 +97,6 @@ public class Regression {
             writeJob(clientOutputStream, job);
 
             AbstractUserInterface ui = new Main.UserInterfaceDummy(connectionId);
-            PrintWriter printWriter = null;
             for (;;) {
                 byte tag = reader.readByte();
                 if (tag == 1) {
@@ -155,19 +153,24 @@ public class Regression {
         } catch (IOException e) {
             reader = null;
             System.out.println("END OF FILE reading from server");
+            printErrorStream(process);
             return false;
         }
     }
 
-    private static void printErrorStream(Process process) throws IOException {
-        process.getOutputStream().close();
-        InputStream errStream = new BufferedInputStream(process.getErrorStream());
-        System.out.println("StdErr:");
-        for (;;) {
-            if (errStream.available() == 0) break;
-            int c = errStream.read();
-            if (c < 0) break;
-            System.out.print((char)c);
+    private static void printErrorStream(Process process) {
+        try {
+            process.getOutputStream().close();
+            InputStream errStream = new BufferedInputStream(process.getErrorStream());
+            System.out.println("StdErr:");
+            for (;;) {
+                if (errStream.available() == 0) break;
+                int c = errStream.read();
+                if (c < 0) break;
+                System.out.print((char)c);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

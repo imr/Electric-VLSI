@@ -653,7 +653,8 @@ public class ServerJobManager extends JobManager {
          * Method to beep.
          */
         public void beep() {
-            Job.currentUI.beep();
+            EJob ejob = Job.getRunningJob().ejob;
+            Client.fireServerEvent(new Client.BeepEvent(ejob.oldSnapshot));
         }
 
         /**
