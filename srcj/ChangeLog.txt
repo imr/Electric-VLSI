@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09i: ******************************
 
+IMP: (4/20/09, JKG) tweaked behavior of wiring tool - size of arcs from contacts
+now determined by size of layer on contact, not contact size
+
 IMP: (4/20/09, GVG) Adding 40nm tech as a XML technology to avoid issues
 reported in Bug #2124
 
