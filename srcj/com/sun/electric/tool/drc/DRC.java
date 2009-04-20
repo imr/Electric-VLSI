@@ -762,7 +762,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             ignoreCenterCuts = dp.ignoreCenterCuts;
             inMemory = dp.storeDatesInMemory;
 
-            errorTypeSearch = DRC.getErrorType();
+            errorTypeSearch = dp.errorType;
             if (specificGeoms)
             {
                 errorTypeSearch = DRC.DRCCheckMode.ERROR_CHECK_CELL;
@@ -1041,7 +1041,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         ERROR_CHECK_CELL (1),       /** DRC stops after first error per cell is found */
         ERROR_CHECK_EXHAUSTIVE (2);  /** DRC checks all combinations */
         private final int mode;   // mode
-        DRCCheckMode(int m) {this.mode = m;}
+        DRCCheckMode(int m) {this.mode = m; assert m == ordinal(); }
         public int mode() { return this.mode; }
         public String toString() {return name();}
     }
@@ -1888,11 +1888,16 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 
     public static class DRCPreferences extends PrefPackage {
         private static final String DRC_NODE = "tool/drc";
+        private static final String KEY_ERROR_CHECK_LEVEL = "ErrorCheckLevel";
+        private static DRCCheckMode DEF_ERROR_CHECK_LEVEL = DRCCheckMode.ERROR_CHECK_DEFAULT;
         private static final String KEY_MIN_AREA_ALGORITHM = "MinAreaAlgorithm";
         private static final DRCCheckMinArea DEF_MIN_AREA_ALGORITHM = DRCCheckMinArea.AREA_LOCAL;
         private static final String KEY_RESOLUTION = "ResolutionValueFor";
         private static final String KEY_OVERRIDES = "DRCOverridesFor";
 
+        /** Checking level in DRC. The default is "ERROR_CHECK_DEFAULT". */
+        public DRCCheckMode errorType;
+    
         /**	Whether DRC should ignore center cuts in large contacts.
          * Only the perimeter of cuts will be checked. The default is "false".
          */
@@ -1932,7 +1937,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             Preferences techPrefs = getPrefRoot().node(TECH_NODE);
             Preferences drcPrefs = getPrefRoot().node(DRC_NODE);
 
-            /** Which min area algorithm to use. The default is AREA_LOCAL */
+            errorType = DRCCheckMode.class.getEnumConstants()[drcPrefs.getInt(KEY_ERROR_CHECK_LEVEL, DEF_ERROR_CHECK_LEVEL.ordinal())];
             minAreaAlgoOption = DRCCheckMinArea.valueOf(drcPrefs.get(KEY_MIN_AREA_ALGORITHM, DEF_MIN_AREA_ALGORITHM.name()));
 
             for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
@@ -1960,6 +1965,10 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             Preferences techPrefs = prefRoot.node(TECH_NODE);
             Preferences drcPrefs = prefRoot.node(DRC_NODE);
 
+            if (removeDefaults && errorType == DEF_ERROR_CHECK_LEVEL)
+                drcPrefs.remove(KEY_ERROR_CHECK_LEVEL);
+            else
+                drcPrefs.putInt(KEY_ERROR_CHECK_LEVEL, errorType.ordinal());
             if (removeDefaults && minAreaAlgoOption == DEF_MIN_AREA_ALGORITHM)
                 drcPrefs.remove(KEY_MIN_AREA_ALGORITHM);
             else
@@ -2088,42 +2097,6 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	 * @return integer representing error type, by default.
 	 */
 	public static DRCCheckLogging getFactoryErrorLoggingType() {return DRCCheckLogging.valueOf(cacheErrorLoggingType.getStringFactoryValue());}
-
-    /** ErrorLevel **/
-    private static Pref cacheErrorCheckLevel = Pref.makeIntServerPref("ErrorCheckLevel", tool.prefs,
-            DRCCheckMode.ERROR_CHECK_DEFAULT.mode());
-	/**
-	 * Method to retrieve checking level in DRC.
-	 * The default is "ERROR_CHECK_DEFAULT".
-	 * @return integer representing error type.
-	 */
-	public static DRCCheckMode getErrorType()
-    {
-        int val = cacheErrorCheckLevel.getInt();
-        for (DRCCheckMode p : DRCCheckMode.values())
-        {
-            if (p.mode() == val) return p;
-        }
-        return null;
-    }
-	/**
-	 * Method to set DRC error type.
-	 * @param type representing error level.
-	 */
-	public static void setErrorType(DRCCheckMode type) { cacheErrorCheckLevel.setInt(type.mode()); }
-	/**
-	 * Method to retrieve checking level in DRC, by default.
-	 * @return integer representing error type, by default.
-	 */
-	public static DRCCheckMode getFactoryErrorType()
-    {
-        int val = cacheErrorCheckLevel.getIntFactoryValue();
-        for (DRCCheckMode p : DRCCheckMode.values())
-        {
-            if (p.mode() == val) return p;
-        }
-        return null;
-    }
 
     /****************************** END OF OPTIONS ******************************/
 

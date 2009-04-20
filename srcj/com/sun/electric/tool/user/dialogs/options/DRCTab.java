@@ -60,7 +60,7 @@ public class DRCTab extends PreferencePanel
         DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
 		drcIncrementalOn.setSelected(DRC.isIncrementalDRCOn());
 		drcInteractiveDrag.setSelected(DRC.isInteractiveDRCDragOn());
-        switch (DRC.getErrorType())
+        switch (dp.errorType)
         {
             case ERROR_CHECK_DEFAULT: drcErrorDefault.setSelected(true);   break;
 			case ERROR_CHECK_CELL: drcErrorCell.setSelected(true);      break;
@@ -121,11 +121,11 @@ public class DRCTab extends PreferencePanel
 			DRC.setInteractiveDRCDragOn(currentValue);
 
 		if (drcErrorDefault.isSelected())
-            DRC.setErrorType(DRC.DRCCheckMode.ERROR_CHECK_DEFAULT);
+            dp.errorType = DRC.DRCCheckMode.ERROR_CHECK_DEFAULT;
         else if (drcErrorCell.isSelected())
-            DRC.setErrorType(DRC.DRCCheckMode.ERROR_CHECK_CELL);
+            dp.errorType = DRC.DRCCheckMode.ERROR_CHECK_CELL;
         else if (drcErrorExaustive.isSelected())
-            DRC.setErrorType(DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE);
+            dp.errorType = DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE;
 
         // Checking the logging type
         if (loggingCombo.getSelectedItem() != DRC.getErrorLoggingType())
@@ -160,12 +160,12 @@ public class DRCTab extends PreferencePanel
 	{
         DRC.DRCPreferences factoryDp = new DRC.DRCPreferences(true);
         DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
+
 		if (DRC.isFactoryIncrementalDRCOn() != DRC.isIncrementalDRCOn())
 			DRC.setIncrementalDRCOn(DRC.isFactoryIncrementalDRCOn());
 		if (DRC.isFactoryInteractiveDRCDragOn() != DRC.isInteractiveDRCDragOn())
 			DRC.setInteractiveDRCDragOn(DRC.isFactoryInteractiveDRCDragOn());
-		if (!DRC.getFactoryErrorType().equals(DRC.getErrorType()))
-			DRC.setErrorType(DRC.getFactoryErrorType());
+        dp.errorType = factoryDp.errorType;
 		if (!DRC.getFactoryErrorLoggingType().equals(DRC.getErrorLoggingType()))
 			DRC.setErrorLoggingType(DRC.getFactoryErrorLoggingType());
         dp.isMultiThreaded = factoryDp.isMultiThreaded;
