@@ -164,7 +164,7 @@ public class Quick
         ErrorLogger errorLogger = errorLog;
 
         // caching bits
-        System.out.println("Running DRC with " + DRC.explainBits(reportInfo.activeSpacingBits));
+        System.out.println("Running DRC with " + DRC.explainBits(reportInfo.activeSpacingBits, dp));
 
 		// Nothing to check for this particular technology
 		if (rules == null || rules.getNumberOfRules() == 0) return errorLogger;
@@ -189,7 +189,7 @@ public class Quick
 	    nodesMap.clear();
 
 	    // No incremental neither per Cell
-	    if (!DRC.isIgnoreAreaChecking() && reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL)
+	    if (!dp.ignoreAreaCheck && reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL)
 	    {
 		    for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 			{
@@ -351,7 +351,7 @@ public class Quick
 	    if ((job == null || !job.checkAbort()))
 	    {
             DRC.addDRCUpdate(reportInfo.activeSpacingBits, goodSpacingDRCDate, cleanSpacingDRCDate,
-                goodAreaDRCDate, cleanAreaDRCDate, null);
+                goodAreaDRCDate, cleanAreaDRCDate, null, dp);
 	    }
 
         return errorLogger;
@@ -451,7 +451,7 @@ public class Quick
 		// prepare to check cell
 		CheckProto cp = getCheckProto(cell);
 		cp.cellChecked = true;
-        boolean checkArea = (cell == topCell && !DRC.isIgnoreAreaChecking() && reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL);
+        boolean checkArea = (cell == topCell && !dp.ignoreAreaCheck && reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL);
 
         // if the cell hasn't changed since the last good check, stop now
         Date lastSpacingGoodDate = DRC.getLastDRCDateBasedOnBits(cell, true, reportInfo.activeSpacingBits, !reportInfo.inMemory);
@@ -2546,7 +2546,7 @@ public class Quick
         int errorFound = reportInfo.errorLogger.getNumErrors();
 
 		// Get merged areas.
-        DRC.DRCCheckMinArea algoType = DRC.getMinAreaAlgoOption();
+        DRC.DRCCheckMinArea algoType = dp.minAreaAlgoOption;
         HierarchyEnumerator.Visitor quickArea = null;
 
         switch(algoType)
@@ -2985,7 +2985,7 @@ public class Quick
     private boolean checkExtensionGateRule(Geometric geom, Layer layer, Poly poly, Layer nLayer,
                                            Poly nPoly, Netlist netlist)
 	{
-        if(DRC.isIgnoreExtensionRuleChecking()) return false;
+        if(dp.ignoreExtensionRuleChecking) return false;
 
         return false;
 //        DRCTemplate extensionRule = DRC.getExtensionRule(layer, nLayer, true);
@@ -3257,7 +3257,7 @@ public class Quick
      */
     private boolean checkExtensionRules(Geometric geom, Layer layer, Poly poly, Cell cell)
     {
-        if(DRC.isIgnoreExtensionRuleChecking()) return false;
+        if(dp.ignoreExtensionRuleChecking) return false;
 
         List<DRCTemplate> rules = DRC.getRules(layer, DRCTemplate.DRCRuleType.SURROUND);
 

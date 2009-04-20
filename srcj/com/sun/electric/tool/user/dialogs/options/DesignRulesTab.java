@@ -30,9 +30,9 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.dialogs.DesignRulesPanel;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 
-import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.util.Iterator;
@@ -45,12 +45,11 @@ import javax.swing.JPanel;
 public class DesignRulesTab extends PreferencePanel
 {
 	DesignRulesPanel rulesPanel;
-    private DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
 	private DRCRules drRules;
 	private boolean designRulesFactoryReset = false;
 
 	/** Creates new form DesignRulesTab */
-	public DesignRulesTab(Frame parent, boolean modal)
+	public DesignRulesTab(PreferencesFrame parent, boolean modal)
 	{
 		super(parent, modal);
 
@@ -81,6 +80,7 @@ public class DesignRulesTab extends PreferencePanel
 	 */
 	public void init()
 	{
+        DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
 		// get the design rules for the current technology
 		DRCRules rules = DRC.getRules(curTech);
 		if (rules == null)
@@ -106,8 +106,10 @@ public class DesignRulesTab extends PreferencePanel
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Design Rules tab.
 	 */
+    @Override
 	public void term()
 	{
+        DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
 		double currentResolution = TextUtils.atofDistance(drResolutionValue.getText());
 		dp.setResolution(curTech, currentResolution);
 
@@ -118,7 +120,7 @@ public class DesignRulesTab extends PreferencePanel
             drRules = curTech.getFactoryDesignRules();
 		}
 		DRC.setRules(dp, curTech, drRules);
-        dp.putPrefs(DRC.DRCPreferences.getPrefRoot(), true);
+        putPrefs(dp);
 
         // Repaint primitives
         EditWindow wnd = EditWindow.needCurrent();
@@ -128,8 +130,10 @@ public class DesignRulesTab extends PreferencePanel
 	/**
 	 * Method called when the factory reset is requested.
 	 */
+    @Override
 	public void reset()
 	{
+        DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
@@ -138,7 +142,7 @@ public class DesignRulesTab extends PreferencePanel
 			DRC.setRules(dp, tech, rules);
 			tech.setCachedRules(rules);
 		}
-        dp.putPrefs(DRC.DRCPreferences.getPrefRoot(), true);
+        putPrefs(dp);
 	}
 
 	/** This method is called from within the constructor to

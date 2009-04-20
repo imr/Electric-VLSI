@@ -223,7 +223,8 @@ public class CellLists extends EDialog
 		if (maxlen < 0) line += "\t"; else line += " ";
 
 		boolean goodDRC = false;
-		int activeBits = DRC.getActiveBits(cell.getTechnology());
+        DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
+		int activeBits = DRC.getActiveBits(cell.getTechnology(), dp);
 		Date lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, true, activeBits, true);
 		// checking spacing drc
 		if (!Job.getDebug() && lastGoodDate != null && cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;

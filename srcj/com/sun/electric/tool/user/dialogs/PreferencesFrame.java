@@ -254,7 +254,7 @@ public class PreferencesFrame extends EDialog
 		addTreeNode(new AntennaRulesTab(parent, true), toolSet);
 		addTreeNode(new CompactionTab(parent, true), toolSet);
 		addTreeNode(new CoverageTab(parent, true), toolSet);
-		addTreeNode(new DRCTab(parent, true), toolSet);
+		addTreeNode(new DRCTab(this, true), toolSet);
 		addTreeNode(new FastHenryTab(parent, true), toolSet);
 		addTreeNode(new LogicalEffortTab(this, true), toolSet);
 		addTreeNode(new NCCTab(parent, true), toolSet);
@@ -290,7 +290,7 @@ public class PreferencesFrame extends EDialog
 		rootNode.add(techSet);
 		addTreeNode(new AddedTechnologiesTab(this, true), techSet);
 		addTreeNode(new TechnologyTab(this, true), techSet);
-		addTreeNode(new DesignRulesTab(parent, true), techSet);
+		addTreeNode(new DesignRulesTab(this, true), techSet);
 		addTreeNode(new ScaleTab(this, true), techSet);
 		addTreeNode(new UnitsTab(parent, true), techSet);
 		addTreeNode(new IconTab(parent, true), techSet);

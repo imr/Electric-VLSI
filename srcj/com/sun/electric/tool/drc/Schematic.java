@@ -68,7 +68,7 @@ public class Schematic
     private static ErrorLogger errorLogger = null;
     private static Map<Geometric,List<Variable>> newVariables = new HashMap<Geometric,List<Variable>>();
 
-	public static ErrorLogger doCheck(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck)
+	public static ErrorLogger doCheck(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, DRC.DRCPreferences dp)
 	{
 		nodesChecked.clear();
         newVariables.clear();
@@ -79,7 +79,7 @@ public class Schematic
 
 		checkSchematicCellRecursively(cell, geomsToCheck);
 		errorLogger.termLogging(true);
-        DRC.addDRCUpdate(0, null, null, null, null, newVariables);
+        DRC.addDRCUpdate(0, null, null, null, null, newVariables, dp);
 		return(errorLogger);
 	}
 

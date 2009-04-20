@@ -184,7 +184,7 @@ public class ToolMenu
                     DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
                     Cell cell = Job.getUserInterface().needCurrentCell();
                     // Multi-threaded code is only available for layout
-                    if (DRC.isMultiThreaded() && cell.isLayout())
+                    if (dp.isMultiThreaded && cell.isLayout())
                     {
                         new MTDRCLayoutTool(dp, cell, true, null).startJob();
                     }
@@ -2114,6 +2114,8 @@ public class ToolMenu
     private static class ImportDRCDeckJob extends Job {
         private List<DRCTemplate.DRCXMLBucket> rules;
         private Technology tech;
+        private boolean inMemory;
+        private DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
 
     	public ImportDRCDeckJob(List<DRCTemplate.DRCXMLBucket> rules, Technology tech) {
             super("ImportDRCDeck", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -2134,7 +2136,7 @@ public class ToolMenu
                         System.out.println("New DRC rules for foundry '" + f.getType().getName() + "' were loaded in '" +
                                 tech.getTechName() + "'");
                         // Need to clean cells using this foundry because the rules might have changed.
-                        DRC.cleanCellsDueToFoundryChanges(tech, f);
+                        DRC.cleanCellsDueToFoundryChanges(tech, f, dp);
                         // Only when the rules belong to the selected foundry, then reload the rules
                         if (f == tech.getSelectedFoundry())
                             tech.setCachedRules(null);

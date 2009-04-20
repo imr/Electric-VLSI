@@ -174,7 +174,7 @@ public class MTDRCLayoutTool extends MTDRCTool
             reportInfo = new DRC.ReportInfo(errorLogger, tech, dp, (count > 0));
 
             // caching bits
-            System.out.println("Running DRC for " + name + " with " + DRC.explainBits(reportInfo.activeSpacingBits));
+            System.out.println("Running DRC for " + name + " with " + DRC.explainBits(reportInfo.activeSpacingBits, dp));
 
             // Check if there are DRC rules for particular tech
             // Nothing to check for this particular technology
@@ -416,7 +416,7 @@ public class MTDRCLayoutTool extends MTDRCTool
             cp.cellChecked = true;
             boolean skipLayer = skipLayerInvalidForMinArea(theLayer);
             boolean checkArea = (cell == topCell && !skipLayer &&
-                !DRC.isIgnoreAreaChecking() && reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL);
+                !dp.ignoreAreaCheck && reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL);
 
             // if the cell hasn't changed since the last good check, stop now
             Date lastSpacingGoodDate = DRC.getLastDRCDateBasedOnBits(cell, true, reportInfo.activeSpacingBits, !reportInfo.inMemory);

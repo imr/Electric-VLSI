@@ -122,9 +122,9 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
 
         if (runFine)
         {
-            int activeSpacingBits = DRC.getActiveBits(topCell.getTechnology());
+            int activeSpacingBits = DRC.getActiveBits(topCell.getTechnology(), dp);
              DRC.addDRCUpdate(activeSpacingBits, goodSpacingSet, cleanSpacingSet,
-                goodAreaSet, cleanAreaSet, null);
+                goodAreaSet, cleanAreaSet, null, dp);
         }
 
         return new MTDRCResult(numTE, numTW, runFine, null, null, null, null, null);

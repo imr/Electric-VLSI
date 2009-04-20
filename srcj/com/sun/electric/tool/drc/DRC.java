@@ -740,24 +740,27 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 
         /** error type search */				                    DRC.DRCCheckMode errorTypeSearch;
         /** minimum output grid resolution */				        double minAllowedResolution;
-        /** true to ignore center cuts in large contacts. */		boolean ignoreCenterCuts = DRC.isIgnoreCenterCuts();;
+        /** true to ignore center cuts in large contacts. */		boolean ignoreCenterCuts;
         /** maximum area to examine (the worst spacing rule). */	double worstInteractionDistance;
         /** time stamp for numbering networks. */					int checkTimeStamp;
         /** for numbering networks. */								int checkNetNumber;
         /** total errors found in all threads. */					int totalSpacingMsgFound;
         /** for logging errors */                                   ErrorLogger errorLogger;
-        /** for interactive error logging */                        boolean interactiveLogger = DRC.isInteractiveLoggingOn();
+        /** for interactive error logging */                        boolean interactiveLogger;
         /** to cache current extra bits */                          int activeSpacingBits = 0;
         Map<Cell, Area> exclusionMap = new HashMap<Cell,Area>(); // The DRCExclusion object lists areas where Generic:DRC-Nodes exist to ignore errors.
-        boolean inMemory = DRC.isDatesStoredInMemory();
+        boolean inMemory;
 
         public ReportInfo(ErrorLogger eL, Technology tech, DRCPreferences dp, boolean specificGeoms)
         {
             errorLogger = eL;
-            activeSpacingBits = DRC.getActiveBits(tech);
+            interactiveLogger = dp.interactiveLog;
+            activeSpacingBits = DRC.getActiveBits(tech, dp);
             worstInteractionDistance = DRC.getWorstSpacingDistance(tech, -1);
             // minimim resolution different from zero if flag is on otherwise stays at zero (default)
             minAllowedResolution = dp.getResolution(tech);
+            ignoreCenterCuts = dp.ignoreCenterCuts;
+            inMemory = dp.storeDatesInMemory;
 
             errorTypeSearch = DRC.getErrorType();
             if (specificGeoms)
@@ -1262,7 +1265,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             if (isLayout)
                 Quick.checkDesignRules(errorLog, cell, geoms, null, bounds, this, dp, mergeMode, onlyArea);
             else
-                Schematic.doCheck(errorLog, cell, geoms);
+                Schematic.doCheck(errorLog, cell, geoms, dp);
             long endTime = System.currentTimeMillis();
             int errorCount = errorLog.getNumErrors();
             int warnCount = errorLog.getNumWarnings();
@@ -1295,7 +1298,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             if (isLayout)
                 errorLog = Quick.checkDesignRules(dp, errorLog, cell, objectsToCheck, null, null);
             else
-                errorLog = Schematic.doCheck(errorLog, cell, objectsToCheck);
+                errorLog = Schematic.doCheck(errorLog, cell, objectsToCheck, dp);
             int errorsFound = errorLog.getNumErrors();
 			if (errorsFound > 0)
 				System.out.println("Incremental DRC found " + errorsFound + " errors/warnings in "+ cell);
@@ -1543,7 +1546,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
      * changes in the DRC rules.
      * @param f
      */
-    public static void cleanCellsDueToFoundryChanges(Technology tech, Foundry f)
+    public static void cleanCellsDueToFoundryChanges(Technology tech, Foundry f, DRCPreferences dp)
     {
         // Need to clean cells using this foundry because the rules might have changed.
         System.out.println("Cleaning good DRC dates in cells using '" + f.getType().getName() +
@@ -1552,7 +1555,6 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         Set<Cell> cleanAreaDRCDate = new HashSet<Cell>();
 
         int bit = f.getType().getBit();
-        boolean inMemory = isDatesStoredInMemory();
 
         for (Iterator<Library> it = Library.getLibraries(); it.hasNext();)
         {
@@ -1562,7 +1564,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                 Cell cell = itC.next();
                 if (cell.getTechnology() != tech) continue;
 
-                StoreDRCInfo data = getCellGoodDRCDateAndBits(cell, true, !inMemory);
+                StoreDRCInfo data = getCellGoodDRCDateAndBits(cell, true, !dp.storeDatesInMemory);
 
                 if (data != null) // there is data
                 {
@@ -1572,7 +1574,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                 }
 
                 // Checking area bit
-                data = getCellGoodDRCDateAndBits(cell, false, !inMemory);
+                data = getCellGoodDRCDateAndBits(cell, false, !dp.storeDatesInMemory);
 
                 if (data != null) // there is data
                 {
@@ -1582,7 +1584,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                 }
             }
         }
-        addDRCUpdate(0, null, cleanSpacingDRCDate, null, cleanAreaDRCDate, null);
+        addDRCUpdate(0, null, cleanSpacingDRCDate, null, cleanAreaDRCDate, null, dp);
     }
 
     /**
@@ -1742,9 +1744,9 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             cell.delVar(Layout.DRC_LAST_GOOD_DATE_AREA);
     }
 
-    public static String explainBits(int bits)
+    public static String explainBits(int bits, DRCPreferences dp)
     {
-        boolean on = !isIgnoreAreaChecking(); // (bits & DRC_BIT_AREA) != 0;
+        boolean on = !dp.ignoreAreaCheck; // (bits & DRC_BIT_AREA) != 0;
         String msg = "area bit ";
         msg += on ? "on" : "off";
 
@@ -1761,11 +1763,11 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         return msg;
     }
 
-    public static int getActiveBits(Technology tech)
+    public static int getActiveBits(Technology tech, DRCPreferences dp)
     {
         int bits = 0;
 //        if (!isIgnoreAreaChecking()) bits |= DRC_BIT_AREA;
-        if (!isIgnoreExtensionRuleChecking()) bits |= DRC_BIT_EXTENSION;
+        if (!dp.ignoreExtensionRuleChecking) bits |= DRC_BIT_EXTENSION;
         // Adding foundry to bits set
         Foundry foundry = tech.getSelectedFoundry();
         if (foundry != null)
@@ -1886,8 +1888,39 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 
     public static class DRCPreferences extends PrefPackage {
         private static final String DRC_NODE = "tool/drc";
+        private static final String KEY_MIN_AREA_ALGORITHM = "MinAreaAlgorithm";
+        private static final DRCCheckMinArea DEF_MIN_AREA_ALGORITHM = DRCCheckMinArea.AREA_LOCAL;
         private static final String KEY_RESOLUTION = "ResolutionValueFor";
         private static final String KEY_OVERRIDES = "DRCOverridesFor";
+
+        /**	Whether DRC should ignore center cuts in large contacts.
+         * Only the perimeter of cuts will be checked. The default is "false".
+         */
+        @BooleanPref(node = DRC_NODE, key = "IgnoreCenterCuts", factory = false)
+        public boolean ignoreCenterCuts;
+
+        /** Whether DRC should ignore minimum/enclosed area checking. The default is "false". */
+        @BooleanPref(node = DRC_NODE, key = "IgnoreAreaCheck", factory = false)
+        public boolean ignoreAreaCheck;
+
+        /** Whether DRC should should check extension rules. The default is "false". */
+        @BooleanPref(node = DRC_NODE, key = "IgnoreExtensionRuleCheck", factory = false)
+        public boolean ignoreExtensionRuleChecking;
+
+        /** Whether DRC dates should be stored in memory or not. The default is "false". */
+        @BooleanPref(node = DRC_NODE, key = "StoreDatesInMemory", factory = false)
+        public boolean storeDatesInMemory;
+
+        /** Whether DRC loggers should be displayed in Explorer immediately. The default is "false". */
+        @BooleanPref(node = DRC_NODE, key = "InteractiveLog", factory = false)
+        public boolean interactiveLog;
+
+        /** Which min area algorithm to use. The default is AREA_LOCAL */
+        public DRCCheckMinArea minAreaAlgoOption;
+
+        /** Whether DRC should run in a single thread or multi-threaded. The default is single-threaded. */
+        @BooleanPref(node=DRC_NODE, key = "MinMultiThread", factory = false)
+        public boolean isMultiThreaded;
 
         public Map<Technology,Double> resolutions = new HashMap<Technology,Double>();
         public Map<Technology,String> overrides = new HashMap<Technology,String>();
@@ -1898,6 +1931,10 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 
             Preferences techPrefs = getPrefRoot().node(TECH_NODE);
             Preferences drcPrefs = getPrefRoot().node(DRC_NODE);
+
+            /** Which min area algorithm to use. The default is AREA_LOCAL */
+            minAreaAlgoOption = DRCCheckMinArea.valueOf(drcPrefs.get(KEY_MIN_AREA_ALGORITHM, DEF_MIN_AREA_ALGORITHM.name()));
+
             for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
                 Technology tech = it.next();
 
@@ -1922,6 +1959,11 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             super.putPrefs(prefRoot, removeDefaults);
             Preferences techPrefs = prefRoot.node(TECH_NODE);
             Preferences drcPrefs = prefRoot.node(DRC_NODE);
+
+            if (removeDefaults && minAreaAlgoOption == DEF_MIN_AREA_ALGORITHM)
+                drcPrefs.remove(KEY_MIN_AREA_ALGORITHM);
+            else
+                drcPrefs.put(KEY_MIN_AREA_ALGORITHM, minAreaAlgoOption.name());
 
             for (Map.Entry<Technology,Double> e: resolutions.entrySet()) {
                 Technology tech = e.getKey();
@@ -2083,138 +2125,6 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         return null;
     }
 
-	private static Pref cacheIgnoreCenterCuts = Pref.makeBooleanServerPref("IgnoreCenterCuts", tool.prefs, false);
-//    static { cacheIgnoreCenterCuts.attachToObject(tool, "Tools/DRC tab", "DRC ignores center cuts in large contacts"); }
-	/**
-	 * Method to tell whether DRC should ignore center cuts in large contacts.
-	 * Only the perimeter of cuts will be checked.
-	 * The default is "false".
-	 * @return true if DRC should ignore center cuts in large contacts.
-	 */
-	public static boolean isIgnoreCenterCuts() { return cacheIgnoreCenterCuts.getBoolean(); }
-	/**
-	 * Method to set whether DRC should ignore center cuts in large contacts.
-	 * Only the perimeter of cuts will be checked.
-	 * @param on true if DRC should ignore center cuts in large contacts.
-	 */
-	public static void setIgnoreCenterCuts(boolean on) { cacheIgnoreCenterCuts.setBoolean(on); }
-	/**
-	 * Method to tell whether DRC should ignore center cuts in large contacts, by default.
-	 * Only the perimeter of cuts will be checked.
-	 * @return true if DRC should ignore center cuts in large contacts, by default.
-	 */
-	public static boolean isFactoryIgnoreCenterCuts() { return cacheIgnoreCenterCuts.getBooleanFactoryValue(); }
-
-    private static Pref cacheIgnoreAreaChecking = Pref.makeBooleanServerPref("IgnoreAreaCheck", tool.prefs, false);
-//    static { cacheIgnoreAreaChecking.attachToObject(tool, "Tools/DRC tab", "DRC ignores area checking"); }
-	/**
-	 * Method to tell whether DRC should ignore minimum/enclosed area checking.
-	 * The default is "false".
-	 * @return true if DRC should ignore minimum/enclosed area checking.
-	 */
-	public static boolean isIgnoreAreaChecking() { return cacheIgnoreAreaChecking.getBoolean(); }
-	/**
-	 * Method to set whether DRC should ignore minimum/enclosed area checking.
-	 * @param on true if DRC should ignore minimum/enclosed area checking.
-	 */
-	public static void setIgnoreAreaChecking(boolean on) { cacheIgnoreAreaChecking.setBoolean(on); }
-	/**
-	 * Method to tell whether DRC should ignore minimum/enclosed area checking, by default.
-	 * @return true if DRC should ignore minimum/enclosed area checking, by default.
-	 */
-	public static boolean isFactoryIgnoreAreaChecking() { return cacheIgnoreAreaChecking.getBooleanFactoryValue(); }
-
-    private static Pref cacheIgnoreExtensionRuleChecking = Pref.makeBooleanServerPref("IgnoreExtensionRuleCheck", tool.prefs, false);
-//    static { cacheIgnoreExtensionRuleChecking.attachToObject(tool, "Tools/DRC tab", "DRC extension rule checking"); }
-	/**
-	 * Method to tell whether DRC should check extension rules.
-	 * The default is "false".
-	 * @return true if DRC should check extension rules.
-	 */
-	public static boolean isIgnoreExtensionRuleChecking() { return cacheIgnoreExtensionRuleChecking.getBoolean(); }
-	/**
-	 * Method to set whether DRC should check extension rules.
-	 * @param on true if DRC should check extension rules.
-	 */
-	public static void setIgnoreExtensionRuleChecking(boolean on) { cacheIgnoreExtensionRuleChecking.setBoolean(on); }
-	/**
-	 * Method to tell whether DRC should check extension rules, by default.
-	 * @return true if DRC should check extension rules, by default.
-	 */
-	public static boolean isFactoryIgnoreExtensionRuleChecking() { return cacheIgnoreExtensionRuleChecking.getBooleanFactoryValue(); }
-
-    private static Pref cacheStoreDatesInMemory = Pref.makeBooleanServerPref("StoreDatesInMemory", tool.prefs, false);
-    /**
-     * Method to tell whether DRC dates should be stored in memory or not.
-     * The default is "false".
-     * @return true if DRC dates should be stored in memory or not.
-     */
-    public static boolean isDatesStoredInMemory() { return cacheStoreDatesInMemory.getBoolean(); }
-    /**
-     * Method to set whether DRC dates should be stored in memory or not.
-     * @param on true if DRC dates should be stored in memory or not.
-     */
-    public static void setDatesStoredInMemory(boolean on) { cacheStoreDatesInMemory.setBoolean(on); }
-    /**
-     * Method to tell whether DRC dates should be stored in memory or not, by default.
-     * @return true if DRC dates should be stored in memory or not, by default.
-     */
-    public static boolean isFactoryDatesStoredInMemory() { return cacheStoreDatesInMemory.getBooleanFactoryValue(); }
-
-    private static Pref cacheInteractiveLog = Pref.makeBooleanServerPref("InteractiveLog", tool.prefs, false);
-    /**
-     * Method to tell whether DRC loggers should be displayed in Explorer immediately
-     * The default is "false".
-     * @return true if DRC loggers should be displayed in Explorer immediately or not.
-     */
-    public static boolean isInteractiveLoggingOn() { return cacheInteractiveLog.getBoolean(); }
-    /**
-     * Method to set whether DRC loggers should be displayed in Explorer immediately or not
-     * @param on true if DRC loggers should be displayed in Explorer immediately.
-     */
-    public static void setInteractiveLogging(boolean on) { cacheInteractiveLog.setBoolean(on); }
-    /**
-     * Method to tell whether DRC loggers should be displayed in Explorer immediately, by default.
-     * @return true if DRC loggers should be displayed in Explorer immediately or not, by default.
-     */
-    public static boolean isFactoryInteractiveLoggingOn() { return cacheInteractiveLog.getBooleanFactoryValue(); }
-
-    private static Pref cacheMinAreaAlgo = Pref.makeStringServerPref("MinAreaAlgorithm", tool.prefs, DRCCheckMinArea.AREA_LOCAL.name());
-    /**
-     * Method to tell which min area algorithm to use.
-     * The default is AREA_BASIC which is the brute force version
-     * @return true if DRC loggers should be displayed in Explorer immediately or not.
-     */
-    public static DRCCheckMinArea getMinAreaAlgoOption() { return DRCCheckMinArea.valueOf(cacheMinAreaAlgo.getString()); }
-    /**
-     * Method to set which min area algorithm to use.
-     * @param mode DRCCheckMinArea type to set
-     */
-    public static void setMinAreaAlgoOption(DRCCheckMinArea mode) { cacheMinAreaAlgo.setString(mode.name()); }
-    /**
-     * Method to tell which min area algorithm to use, by default.
-     * @return true if DRC loggers should be displayed in Explorer immediately or not, by default.
-     */
-    public static DRCCheckMinArea getFactoryMinAreaAlgoOption() { return DRCCheckMinArea.valueOf(cacheMinAreaAlgo.getStringFactoryValue()); }
-
-    private static Pref cacheMultiThread = Pref.makeBooleanPref("MinMultiThread", tool.prefs, false);
-    /**
-     * Method to tell whether DRC should run in a single thread or multi-threaded.
-     * The default is single-threaded.
-     * @return true if DRC run in a multi-threaded fashion.
-     */
-    public static boolean isMultiThreaded() { return cacheMultiThread.getBoolean(); }
-    /**
-     * Method to set whether DRC should run in a single thread or multi-threaded.
-     * @param mode True if it will run a multi-threaded version.
-     */
-    public static void setMultiThreaded(boolean mode) { cacheMultiThread.setBoolean(mode); }
-    /**
-     * Method to tell whether DRC should run in a single thread or multi-threaded, by default.
-     * @return true if DRC run in a multi-threaded fashion, by default.
-     */
-    public static boolean isFactoryMultiThreaded() { return cacheMultiThread.getBooleanFactoryValue(); }
-
     /****************************** END OF OPTIONS ******************************/
 
     /***********************************
@@ -2224,7 +2134,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
     static void addDRCUpdate(int spacingBits,
                              Set<Cell> goodSpacingDRCDate, Set<Cell> cleanSpacingDRCDate,
                              Set<Cell> goodAreaDRCDate, Set<Cell> cleanAreaDRCDate,
-                             Map<Geometric, List<Variable>> newVariables)
+                             Map<Geometric, List<Variable>> newVariables, DRCPreferences dp)
     {
         boolean goodSpace = (goodSpacingDRCDate != null && goodSpacingDRCDate.size() > 0);
         boolean cleanSpace = (cleanSpacingDRCDate != null && cleanSpacingDRCDate.size() > 0);
@@ -2233,7 +2143,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         boolean vars = (newVariables != null && newVariables.size() > 0);
         if (!goodSpace && !cleanSpace && !vars && !goodArea && !cleanArea) return; // nothing to do
         new DRCUpdate(spacingBits, goodSpacingDRCDate, cleanSpacingDRCDate,
-            goodAreaDRCDate, cleanAreaDRCDate, newVariables);
+            goodAreaDRCDate, cleanAreaDRCDate, newVariables, dp);
     }
 
 	/**
@@ -2295,11 +2205,13 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 		Set<Cell> cleanAreaDRCDate;
         Map<Geometric,List<Variable>> newVariables;
         int activeBits = Layout.DRC_LAST_GOOD_BIT_DEFAULT;
+        DRCPreferences dp;
 
 		public DRCUpdate(int bits,
                          Set<Cell> goodSpacingDRCD, Set<Cell> cleanSpacingDRCD,
                          Set<Cell> goodAreaDRCD, Set<Cell> cleanAreaDRCD,
-                         Map<Geometric, List<Variable>> newVars)
+                         Map<Geometric, List<Variable>> newVars,
+                         DRCPreferences dp)
 		{
 			super("Update DRC data", tool, Type.CHANGE, null, null, Priority.USER);
             this.goodSpacingDRCDate = goodSpacingDRCD;
@@ -2308,8 +2220,9 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             this.cleanAreaDRCDate = cleanAreaDRCD;
             this.newVariables = newVars;
             this.activeBits = bits;
+            this.dp = dp;
             // Only works for layout with in memory dates -> no need of adding the job into the queue
-            if (isDatesStoredInMemory() && (newVars == null || newVars.isEmpty()))
+            if (dp.storeDatesInMemory && (newVars == null || newVars.isEmpty()))
             {
                 try {doIt();} catch (Exception e) {e.printStackTrace();}
             }
@@ -2368,7 +2281,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 
         public boolean doIt() throws JobException
 		{
-            boolean inMemory = isDatesStoredInMemory();
+            boolean inMemory = dp.storeDatesInMemory;
 
             setInformation(storedSpacingDRCDate, goodSpacingDRCDate, cleanSpacingDRCDate,
                 Layout.DRC_LAST_GOOD_DATE_SPACING, activeBits, inMemory);

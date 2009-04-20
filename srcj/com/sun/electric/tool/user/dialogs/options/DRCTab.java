@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.tool.drc.DRC;
 
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -36,7 +37,7 @@ import javax.swing.JPanel;
 public class DRCTab extends PreferencePanel
 {
 	/** Creates new form DRCTab */
-	public DRCTab(java.awt.Frame parent, boolean modal)
+	public DRCTab(PreferencesFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -56,6 +57,7 @@ public class DRCTab extends PreferencePanel
 	 */
 	public void init()
 	{
+        DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
 		drcIncrementalOn.setSelected(DRC.isIncrementalDRCOn());
 		drcInteractiveDrag.setSelected(DRC.isInteractiveDRCDragOn());
         switch (DRC.getErrorType())
@@ -74,21 +76,21 @@ public class DRCTab extends PreferencePanel
         areaAlgoCombo.removeAllItems();
         for (DRC.DRCCheckMinArea type : DRC.DRCCheckMinArea.values())
              areaAlgoCombo.addItem(type);
-        areaAlgoCombo.setSelectedItem(DRC.getMinAreaAlgoOption());
+        areaAlgoCombo.setSelectedItem(dp.minAreaAlgoOption);
 
-        drcIgnoreCenterCuts.setSelected(DRC.isIgnoreCenterCuts());
+        drcIgnoreCenterCuts.setSelected(dp.ignoreCenterCuts);
 
         // MinArea rules
-		drcIgnoreArea.setSelected(DRC.isIgnoreAreaChecking());
+		drcIgnoreArea.setSelected(dp.ignoreAreaCheck);
 
         // PolySelec rule
-		drcIgnoreExtensionRules.setSelected(DRC.isIgnoreExtensionRuleChecking());
+		drcIgnoreExtensionRules.setSelected(dp.ignoreExtensionRuleChecking);
 
         // DRC dates in memory stored
-        drcDateOnCells.setSelected(!DRC.isDatesStoredInMemory());
+        drcDateOnCells.setSelected(!dp.storeDatesInMemory);
 
         // Interactive logging
-        drcInteractive.setSelected(DRC.isInteractiveLoggingOn());
+        drcInteractive.setSelected(dp.interactiveLog);
 
 		requestedDRCClearDates = false;
 		drcClearValidDates.addActionListener(new ActionListener()
@@ -101,7 +103,7 @@ public class DRCTab extends PreferencePanel
 		});
 
         // Setting the multi-threaded option
-        drcMultiDRC.setSelected(DRC.isMultiThreaded());
+        drcMultiDRC.setSelected(dp.isMultiThreaded);
     }
 
 	/**
@@ -110,6 +112,7 @@ public class DRCTab extends PreferencePanel
 	 */
 	public void term()
 	{
+        DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
 		boolean currentValue = drcIncrementalOn.isSelected();
 		if (currentValue != DRC.isIncrementalDRCOn())
 			DRC.setIncrementalDRCOn(currentValue);
@@ -129,41 +132,25 @@ public class DRCTab extends PreferencePanel
             DRC.setErrorLoggingType((DRC.DRCCheckLogging)loggingCombo.getSelectedItem());
 
         // Checking the logging type
-        if (areaAlgoCombo.getSelectedItem() != DRC.getMinAreaAlgoOption())
-            DRC.setMinAreaAlgoOption((DRC.DRCCheckMinArea)areaAlgoCombo.getSelectedItem());
+        dp.minAreaAlgoOption = (DRC.DRCCheckMinArea)areaAlgoCombo.getSelectedItem();
 
         // Checking center cuts
-        currentValue = drcIgnoreCenterCuts.isSelected();
-		if (currentValue != DRC.isIgnoreCenterCuts())
-			DRC.setIgnoreCenterCuts(currentValue);
-
+        dp.ignoreCenterCuts = drcIgnoreCenterCuts.isSelected();
         // For min area rules
-        currentValue = drcIgnoreArea.isSelected();
-		if (currentValue != DRC.isIgnoreAreaChecking())
-			DRC.setIgnoreAreaChecking(currentValue);
-
+        dp.ignoreAreaCheck = drcIgnoreArea.isSelected();
         // Poly Select rule
-        currentValue = drcIgnoreExtensionRules.isSelected();
-		if (currentValue != DRC.isIgnoreExtensionRuleChecking())
-			DRC.setIgnoreExtensionRuleChecking(currentValue);
-
+        dp.ignoreExtensionRuleChecking = drcIgnoreExtensionRules.isSelected();
         // DRC dates in memory
-        currentValue = !drcDateOnCells.isSelected();
-		if (currentValue != DRC.isDatesStoredInMemory())
-			DRC.setDatesStoredInMemory(currentValue);
-
+        dp.storeDatesInMemory = !drcDateOnCells.isSelected();
         // Interactive logging
-        currentValue = drcInteractive.isSelected();
-		if (currentValue != DRC.isInteractiveLoggingOn())
-			DRC.setInteractiveLogging(currentValue);
+        dp.interactiveLog = drcInteractive.isSelected();
 
 		if (requestedDRCClearDates) DRC.resetDRCDates(true);
 
         // drcMultiDRC.setSelected(DRC.isMultiThreaded());
         // Setting MTDRC option
-        currentValue = drcMultiDRC.isSelected();
-        if (currentValue != DRC.isMultiThreaded())
-            DRC.setMultiThreaded(currentValue);
+        dp.isMultiThreaded = drcMultiDRC.isSelected();
+        putPrefs(dp);
     }
 
 	/**
@@ -171,6 +158,8 @@ public class DRCTab extends PreferencePanel
 	 */
 	public void reset()
 	{
+        DRC.DRCPreferences factoryDp = new DRC.DRCPreferences(true);
+        DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
 		if (DRC.isFactoryIncrementalDRCOn() != DRC.isIncrementalDRCOn())
 			DRC.setIncrementalDRCOn(DRC.isFactoryIncrementalDRCOn());
 		if (DRC.isFactoryInteractiveDRCDragOn() != DRC.isInteractiveDRCDragOn())
@@ -179,21 +168,15 @@ public class DRCTab extends PreferencePanel
 			DRC.setErrorType(DRC.getFactoryErrorType());
 		if (!DRC.getFactoryErrorLoggingType().equals(DRC.getErrorLoggingType()))
 			DRC.setErrorLoggingType(DRC.getFactoryErrorLoggingType());
-		if (DRC.isFactoryMultiThreaded() != DRC.isMultiThreaded())
-			DRC.setMultiThreaded(DRC.isFactoryMultiThreaded());
+        dp.isMultiThreaded = factoryDp.isMultiThreaded;
 
-		if (DRC.isFactoryDatesStoredInMemory() != DRC.isDatesStoredInMemory())
-			DRC.setDatesStoredInMemory(DRC.isFactoryDatesStoredInMemory());
-		if (DRC.isFactoryIgnoreCenterCuts() != DRC.isIgnoreCenterCuts())
-			DRC.setIgnoreCenterCuts(DRC.isFactoryIgnoreCenterCuts());
-		if (DRC.isFactoryIgnoreAreaChecking() != DRC.isIgnoreAreaChecking())
-			DRC.setIgnoreAreaChecking(DRC.isFactoryIgnoreAreaChecking());
-		if (DRC.isFactoryIgnoreExtensionRuleChecking() != DRC.isIgnoreExtensionRuleChecking())
-			DRC.setIgnoreExtensionRuleChecking(DRC.isFactoryIgnoreExtensionRuleChecking());
-		if (DRC.isFactoryInteractiveLoggingOn() != DRC.isInteractiveLoggingOn())
-			DRC.setInteractiveLogging(DRC.isFactoryInteractiveLoggingOn());
-		if (!DRC.getFactoryMinAreaAlgoOption().equals(DRC.getMinAreaAlgoOption()))
-			DRC.setMinAreaAlgoOption(DRC.getFactoryMinAreaAlgoOption());
+		dp.storeDatesInMemory = factoryDp.storeDatesInMemory;
+        dp.ignoreCenterCuts = factoryDp.ignoreCenterCuts;
+        dp.ignoreAreaCheck = factoryDp.ignoreAreaCheck;
+        dp.ignoreExtensionRuleChecking = factoryDp.ignoreExtensionRuleChecking;
+        dp.interactiveLog = factoryDp.interactiveLog;
+        dp.minAreaAlgoOption = factoryDp.minAreaAlgoOption;
+        putPrefs(dp);
 	}
 
 	/** This method is called from within the constructor to
