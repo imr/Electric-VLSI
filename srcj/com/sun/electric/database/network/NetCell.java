@@ -26,6 +26,7 @@ package com.sun.electric.database.network;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.id.CellUsage;
@@ -58,6 +59,7 @@ class NetCell
     /** Separator for net names of unconnected port instances */    static final char PORT_SEPARATOR = '.';
 
     /** Network manager to which this NetCell belongs. */           final NetworkManager networkManager;
+    /** Database to which this NetCell belongs. */                  final EDatabase database;
 	/** Cell from database. */										final Cell cell;
 	/** Flags of this NetCell. */									int flags;
     /** The number of times this NetCell has been <i>structurally modified</i>.
@@ -103,7 +105,8 @@ class NetCell
 	/** */															private static ArcProto busArc = Schematics.tech().bus_arc;
 	NetCell(Cell cell)
 	{
-        this.networkManager = cell.getDatabase().getNetworkManager();
+        this.database = cell.getDatabase();
+        this.networkManager = database.getNetworkManager();
 		this.cell = cell;
 		networkManager.setCell(cell, this);
 	}
@@ -132,7 +135,7 @@ class NetCell
 //		System.out.println("NetSchem.invalidateUsagesOf " + cell + " " + strong);
 		for (Iterator<CellUsage> it = cell.getUsagesOf(); it.hasNext();) {
 			CellUsage u = it.next();
-            Cell parent = u.getParent();
+            Cell parent = u.getParent(database);
 			if (cell.isIconOf(parent)) continue;
 			NetCell netCell = networkManager.getNetCell(parent);
 			if (netCell != null) netCell.setInvalid(strong, false);
@@ -736,7 +739,7 @@ class NetCell
 		for (Iterator<CellUsage> it = cell.getUsagesIn(); it.hasNext();)
 		{
 			CellUsage u = it.next();
-            Cell subCell = u.getProto();
+            Cell subCell = u.getProto(database);
 			if (subCell.isIconOf(cell)) continue;
 
 			NetCell netCell = networkManager.getNetCell(subCell);

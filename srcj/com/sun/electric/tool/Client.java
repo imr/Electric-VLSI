@@ -23,16 +23,13 @@
  */
 package com.sun.electric.tool;
 
-import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
-
 import com.sun.electric.tool.user.ErrorLogger;
-import java.io.ByteArrayOutputStream;
+
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -172,9 +169,9 @@ public abstract class Client {
                 e.printStackTrace();
             }
         }
-        
+
         abstract void write(IdWriter writer) throws IOException;
-        
+
         abstract void show(AbstractUserInterface ui);
     }
 
@@ -221,7 +218,7 @@ public abstract class Client {
             if (newState == EJob.State.SERVER_DONE)
                 writer.writeBytes(ejob.serializedResult);
         }
-        
+
         @Override
         void show(AbstractUserInterface ui) {
             assert newState == EJob.State.SERVER_DONE;
@@ -244,7 +241,7 @@ public abstract class Client {
             writer.writeByte((byte)3);
             writer.writeString(s);
         }
-        
+
         @Override
         void show(AbstractUserInterface ui) {
             ui.printMessage(s, false);
@@ -266,7 +263,7 @@ public abstract class Client {
             writer.writeByte((byte)5);
             writer.writeString(filePath != null ? filePath : "");
         }
-        
+
         @Override
         void show(AbstractUserInterface ui) {
             ui.saveMessages(filePath);
@@ -292,7 +289,7 @@ public abstract class Client {
             writer.writeString(title);
             writer.writeBoolean(isError);
         }
-        
+
         @Override
         void show(AbstractUserInterface ui) {
             if (isError)
@@ -317,13 +314,13 @@ public abstract class Client {
             for (Job.Inform j: jobQueue)
                 j.write(writer);
         }
-        
+
         @Override
         void show(AbstractUserInterface ui) {
             ui.showJobQueue(jobQueue);
         }
     }
-    
+
     public static class StartProgressDialogEvent extends ServerEvent {
         public final String msg;
         public final String filePath;
@@ -340,13 +337,13 @@ public abstract class Client {
             writer.writeString(msg);
             writer.writeString(filePath);
         }
-        
+
         @Override
         void show(AbstractUserInterface ui) {
             ui.startProgressDialog(msg, filePath);
         }
     }
-    
+
     public static class StopProgressDialogEvent extends ServerEvent {
 
         StopProgressDialogEvent(Snapshot snapshot) {
@@ -357,13 +354,13 @@ public abstract class Client {
         void write(IdWriter writer) throws IOException {
             writer.writeByte((byte)8);
         }
-        
+
         @Override
         void show(AbstractUserInterface ui) {
             ui.stopProgressDialog();
         }
     }
-    
+
     public static class ProgressValueEvent extends ServerEvent {
         public final int pct;
 
@@ -377,13 +374,13 @@ public abstract class Client {
             writer.writeByte((byte)9);
             writer.writeInt(pct);
         }
-        
+
         @Override
         void show(AbstractUserInterface ui) {
             ui.setProgressValue(pct);
         }
     }
-    
+
     public static class ProgressNoteEvent extends ServerEvent {
         public final String note;
 
@@ -395,15 +392,17 @@ public abstract class Client {
         @Override
         void write(IdWriter writer) throws IOException {
             writer.writeByte((byte)10);
-            writer.writeString(note);
+            writer.writeBoolean(note != null);
+            if (note != null)
+                writer.writeString(note);
         }
-        
+
         @Override
         void show(AbstractUserInterface ui) {
             ui.setProgressNote(note);
         }
     }
-    
+
     public static class TermLoggingEvent extends ServerEvent {
         final ErrorLogger logger;
         public final boolean explain;
@@ -423,13 +422,13 @@ public abstract class Client {
             writer.writeBoolean(explain);
             writer.writeBoolean(terminate);
         }
-        
+
         @Override
         void show(AbstractUserInterface ui) {
             ui.termLogging(logger, explain, terminate);
         }
     }
-    
+
     static ServerEvent read(IdReader reader, byte tag, Client connection) throws IOException {
         Snapshot snapshot = null;
         long timeStamp = 0;
@@ -456,6 +455,8 @@ public abstract class Client {
                 return new JobQueueEvent(snapshot, jobInforms);
             case 5:
                 String filePath = reader.readString();
+                if (filePath.length() == 0)
+                    filePath = null;
                 return new SavePrintEvent(snapshot, connection, filePath);
             case 6:
                 String message = reader.readString();
@@ -472,7 +473,8 @@ public abstract class Client {
                 int pct = reader.readInt();
                 return new ProgressValueEvent(snapshot, pct);
             case 10:
-                String note = reader.readString();
+                boolean hasNote = reader.readBoolean();
+                String note = hasNote ? reader.readString() : null;
                 return new ProgressNoteEvent(snapshot, note);
             case 11:
                 ErrorLogger logger = ErrorLogger.read(reader);

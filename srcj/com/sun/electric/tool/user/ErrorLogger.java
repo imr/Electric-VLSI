@@ -108,7 +108,7 @@ public class ErrorLogger implements Serializable
         ps.println(indent + "<!ATTLIST GroupLog");
         ps.println(indent + "   message CDATA #REQUIRED");
         ps.println(indent + ">");
-        
+
         // For MessageLog and WarningLog
         ps.println(indent + "<!ELEMENT MessageLog ("+ ErrorHighlight.getImplementedXmlHeaders() +")*>");
 
@@ -145,7 +145,7 @@ public class ErrorLogger implements Serializable
             this.highlights = highlights.toArray(ErrorHighlight.NULL_ARRAY);
             index = 0;
         }
-        
+
         public Cell getCell() { return (logCellId!=null)?EDatabase.clientDatabase().getCell(logCellId):null;}
 
         public String getMessageString() { return message; }
@@ -231,7 +231,7 @@ public class ErrorLogger implements Serializable
             }
             return allValid;
         }
-        
+
         void write(IdWriter writer) throws IOException {
             boolean isWarning = this instanceof WarningLog;
             writer.writeBoolean(isWarning);
@@ -246,7 +246,7 @@ public class ErrorLogger implements Serializable
                 highlights[i].write(writer);
             writer.writeInt(index);
         }
-        
+
         private static MessageLog read(IdReader reader) throws IOException {
             boolean isWarning = reader.readBoolean();
             String message = reader.readString();
@@ -258,9 +258,9 @@ public class ErrorLogger implements Serializable
                 highlights[i] = ErrorHighlight.read(reader);
             MessageLog log;
             if (isWarning)
-                log = new MessageLog(message, cellId, sortKey, Arrays.asList(highlights));
-            else
                 log = new WarningLog(message, cellId, sortKey, Arrays.asList(highlights));
+            else
+                log = new MessageLog(message, cellId, sortKey, Arrays.asList(highlights));
             log.index = reader.readInt();
             return log;
         }
@@ -303,8 +303,9 @@ public class ErrorLogger implements Serializable
     public boolean isPersistent() {return persistent;}
 
     public ErrorLogger() {}
-    
+
     public void write(IdWriter writer) throws IOException {
+        writer.writeDiffs();
         writer.writeInt(errorLimit);
         int numErrors = allErrors.size();
         writer.writeInt(numErrors);
@@ -327,8 +328,9 @@ public class ErrorLogger implements Serializable
             writer.writeInt(-1);
         }
     }
-    
+
     public static ErrorLogger read(IdReader reader) throws IOException {
+        reader.readDiffs();
         ErrorLogger logger = new ErrorLogger();
         logger.errorLimit = reader.readInt();
         int numErrors = reader.readInt();
@@ -359,7 +361,7 @@ public class ErrorLogger implements Serializable
     public static ErrorLogger newInstance(String system) {
         return newInstance(system, false);
     }
-    
+
     /**
      * Create a new ErrorLogger instance.
      * @return a new ErrorLogger for logging errors
@@ -400,7 +402,7 @@ public class ErrorLogger implements Serializable
         }
 //        if (persistent) Job.getUserInterface(). wantToRedoErrorTree();
     }
-    
+
     /**
      * Factory method to create an error message and log.
      * with the given text "message" applying to cell "cell".
@@ -410,7 +412,7 @@ public class ErrorLogger implements Serializable
         CellId cellId = cell != null ? cell.getId() : null;
         return logAnError(message, cellId, sortKey, highlights);
     }
-    
+
     /**
      * Factory method to create an error message and log.
      * with the given text "message" applying to cell "cell".
@@ -824,7 +826,7 @@ public class ErrorLogger implements Serializable
      * @return all MessageLogs associated with the Cell.
      */
     public synchronized ArrayList<MessageLog> getAllLogs(Cell cell)
-    {        
+    {
         CellId cellId = cell.getId();
         ArrayList<MessageLog> msgLogs = new ArrayList<MessageLog>();
         // Searching errors
@@ -867,7 +869,7 @@ public class ErrorLogger implements Serializable
                 removed = true;
         }
         allWarnings = warndLogs;
-        
+
         return removed;
     }
 
@@ -886,7 +888,7 @@ public class ErrorLogger implements Serializable
 
         // ErrorHighArc.class is treaded with same header as  ErrorHighNode
         Class[] errorTypes = {ErrorHighLine.class, ErrorHighPoly.class, ErrorHighNode.class, ErrorLogger.class};
-        
+
         // Creating header
         buffWriter.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         buffWriter.println();
@@ -1027,7 +1029,7 @@ public class ErrorLogger implements Serializable
      * @return the number of "ErrorLog" objects logged.
      */
     public synchronized int getNumErrors() { return allErrors.size(); }
-    
+
     /**
      * Method to tell the number of logged errors.
      * @return the number of "ErrorLog" objects logged.
@@ -1055,7 +1057,7 @@ public class ErrorLogger implements Serializable
         assert(false); // it should not reach one
         return -1;
     }
-    
+
     /**
      * Method to list all logged errors and warnings.
      * @return an Iterator over all of the "ErrorLog" objects.

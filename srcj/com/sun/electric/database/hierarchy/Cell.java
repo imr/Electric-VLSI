@@ -1448,7 +1448,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             boundsDirty = boundsLevel;
             for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); ) {
                 CellUsage u = it.next();
-                u.getParent().setDirty(BOUNDS_CORRECT_SUB);
+                u.getParent(database).setDirty(BOUNDS_CORRECT_SUB);
             }
         } else if (boundsDirty < boundsLevel)
             boundsDirty = boundsLevel;
@@ -1487,7 +1487,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             // Recalculate bounds of subcells.
             for (Iterator<CellUsage> it = getUsagesIn(); it.hasNext(); ) {
                 CellUsage u = it.next();
-                u.getProto().getBounds();
+                u.getProto(database).getBounds();
             }
             if (boundsDirty == BOUNDS_CORRECT)
                 return cellBounds;
@@ -1526,7 +1526,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         // Ensure that all subcells have correct bounds
         for (Iterator<CellUsage> it = getUsagesIn(); it.hasNext(); ) {
             CellUsage u = it.next();
-            u.getProto().getBounds();
+            u.getProto(database).getBounds();
         }
 
         for(int i = 0; i < nodes.size(); i++ ) {
@@ -3477,7 +3477,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 CellId cellId = getId();
                 while (i < cellId.numUsagesOf()) {
                     CellUsage u = cellId.getUsageOf(i++);
-                    Cell parent = u.getParent();
+                    Cell parent = u.getParent(database);
                     if (parent == null) continue;
                     if (u.indexInParent >= parent.cellUsages.length) continue;
                     if (parent.cellUsages[u.indexInParent] > 0) return u;
@@ -3533,7 +3533,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                     return;
                 }
                 CellUsage u = uit.next();
-                cell = u.getParent();
+                cell = u.getParent(database);
                 if (cell == null) continue;
                 i = 0;
                 n = cell.getNumNodes();
@@ -3714,7 +3714,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         String parents = null;
         for(Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); ) {
             CellUsage u = it.next();
-            Cell parent = u.getParent();
+            Cell parent = u.getParent(database);
             if (!sameCellGroupAlso && parent.getCellGroup() == getCellGroup()) continue;
             if (parents == null) parents = parent.describe(true); else
                 parents += ", " + parent.describe(true);

@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
@@ -1154,6 +1155,7 @@ public class ToolMenu
     private static boolean findPortsUp(Netlist netlist, Network net, Cell cell, HashSet<Export> listedExports)
     {
         // look at every node in the cell
+        EDatabase database = cell.getDatabase();
         for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
         {
             Export pp = (Export)it.next();
@@ -1174,7 +1176,7 @@ public class ToolMenu
                 for(Iterator<CellUsage> uIt = instanceCell.getUsagesOf(); uIt.hasNext(); )
                 {
                     CellUsage u = uIt.next();
-                    Cell superCell = u.getParent();
+                    Cell superCell = u.getParent(database);
             		Netlist superNetlist = cell.acquireUserNetlist();
             		if (superNetlist == null)
             		{

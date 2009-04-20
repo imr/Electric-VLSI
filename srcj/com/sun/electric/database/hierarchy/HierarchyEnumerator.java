@@ -824,9 +824,10 @@ public final class HierarchyEnumerator {
 
     /** Recursive method used to traverse down hierarchy */
     private static void hierCellsRecurse(Cell cell, HashMap<Cell,Cell> uniqueCells) {
+        EDatabase database = cell.getDatabase();
         for (Iterator<CellUsage> uit = cell.getUsagesIn(); uit.hasNext();) {
             CellUsage u = uit.next();
-            Cell subCell = u.getProto();
+            Cell subCell = u.getProto(database);
             if (subCell.isIcon()) continue;
             uniqueCells.put(subCell, subCell);
             hierCellsRecurse(subCell, uniqueCells);

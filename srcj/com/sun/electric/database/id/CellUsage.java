@@ -25,6 +25,7 @@
 package com.sun.electric.database.id;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 
 /**
  * Immutable class to represent a possible edge in a Cell call graph.
@@ -40,7 +41,7 @@ public final class CellUsage
     public final CellId parentId;
 	/** CellId of the (prototype) subCell */
     public final CellId protoId;
-    
+
 	// ---------------------- private data ----------------------------------
     public final int indexInParent;
 
@@ -56,20 +57,19 @@ public final class CellUsage
 		this.protoId = protoId;
         this.indexInParent = indexInParent;
 	}
-    
+
 	// ------------------------ public methods -------------------------------
 
 	/**
 	 * Method to return the prototype of this NodeUsage.
 	 * @return the prototype of this NodeUsage in this thread.
 	 */
-	public Cell getProto() { return Cell.inCurrentThread(protoId); }
-
+	public Cell getProto(EDatabase database) { return database.getCell(protoId); }
 	/**
 	 * Method to return the Cell that contains this Geometric object.
 	 * @return the Cell that contains this Geometric object in this thread.
 	 */
-	public Cell getParent() { return Cell.inCurrentThread(parentId); }
+	public Cell getParent(EDatabase database) { return database.getCell(parentId); }
 
 	/**
 	 * Returns a printable version of this CellUsage.
@@ -87,12 +87,12 @@ public final class CellUsage
     void check() {
         // Check that this CellUsage is properly owned by its parentId.
         assert this == parentId.getUsageIn(indexInParent);
-        
+
         // Check that this CellUsage is properly inserted in the hash.
         // If this is true for all CellUsages in parentId.usagesId then
         // all CellUsages in parentId.usagesIn have distinct protoIds.
         assert this == parentId.getUsageIn(protoId, false);
-        
+
         // Check that protoId.usagesOf contains exactly one CellUsage with my protoId,
         // and it's me.
         int count = 0;

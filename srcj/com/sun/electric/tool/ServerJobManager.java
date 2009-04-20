@@ -468,6 +468,7 @@ public class ServerJobManager extends JobManager {
         TechId curTechId;
         LibId curLibId;
         private String progressNote;
+        private int progressValue = -1;
 
     	private static void printStackTrace(String methodName) {
             if (!Job.getDebug()) return;
@@ -483,6 +484,7 @@ public class ServerJobManager extends JobManager {
          */
         public void startProgressDialog(String msg, String filePath)
         {
+            progressValue = -1;
             EJob ejob = Job.getRunningJob().ejob;
             Client.fireServerEvent(new Client.StartProgressDialogEvent(ejob.oldSnapshot, msg, filePath));
         }
@@ -492,6 +494,7 @@ public class ServerJobManager extends JobManager {
          */
         public void stopProgressDialog()
         {
+            progressValue = -1;
             EJob ejob = Job.getRunningJob().ejob;
             Client.fireServerEvent(new Client.StopProgressDialogEvent(ejob.oldSnapshot));
         }
@@ -502,6 +505,8 @@ public class ServerJobManager extends JobManager {
          */
         public void setProgressValue(int pct)
         {
+            if (pct == progressValue) return;
+            progressValue = pct;
             EJob ejob = Job.getRunningJob().ejob;
             Client.fireServerEvent(new Client.ProgressValueEvent(ejob.oldSnapshot, pct));
         }
@@ -513,6 +518,7 @@ public class ServerJobManager extends JobManager {
         public void setProgressNote(String message)
         {
             progressNote = message;
+            progressValue = -1;
             EJob ejob = Job.getRunningJob().ejob;
             Client.fireServerEvent(new Client.ProgressNoteEvent(ejob.oldSnapshot, message));
         }

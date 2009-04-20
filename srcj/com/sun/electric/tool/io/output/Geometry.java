@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.GeometryHandler.GHMode;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -339,10 +340,11 @@ public abstract class Geometry extends Output
     private static int hierCellsRecurse(Cell cell, int depth, int maxDepth)
     {
         if (depth > maxDepth) maxDepth = depth;
+        EDatabase database = cell.getDatabase();
         for (Iterator<CellUsage> uit = cell.getUsagesIn(); uit.hasNext();)
         {
             CellUsage u = uit.next();
-            Cell subCell = u.getProto();
+            Cell subCell = u.getProto(database);
             if (subCell.isIcon()) continue;
             maxDepth = hierCellsRecurse(subCell, depth+1, maxDepth);
         }

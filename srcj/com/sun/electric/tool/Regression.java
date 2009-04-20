@@ -104,13 +104,23 @@ public class Regression {
                 if (tag == 1) {
                         currentSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
                         System.out.println("Snapshot received " + currentSnapshot.snapshotId);
+                        database.lock(true);
+                        try {
+                            database.lowLevelSetCanUndoing(true);
+                            database.undo(currentSnapshot);
+                            database.lowLevelSetCanUndoing(false);
+                        } finally {
+                            database.unlock();
+                        }
+                        System.out.println("Database updated to snapshot " + currentSnapshot.snapshotId);
                 } else {
                     Client.ServerEvent serverEvent = Client.read(reader, tag, ui);
                     if (serverEvent instanceof Client.EJobEvent) {
                         Client.EJobEvent e = (Client.EJobEvent)serverEvent;
                         int jobId = e.ejob.jobKey.jobId;
-                        assert jobId > 0 || jobId == curJobId;
                         assert e.newState == EJob.State.SERVER_DONE;
+                        if (jobId > 0) continue;
+                        assert jobId == curJobId;
                         job.ejob.serializedResult = e.ejob.serializedResult;
                         Throwable result = job.ejob.deserializeResult();
                         if (result != null) {

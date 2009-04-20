@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.id.PortProtoId;
@@ -115,16 +116,17 @@ class LayoutCell {
     void compute() {
         if (computed) return;
         computed = true;
+        EDatabase database = cell.getDatabase();
         for (Iterator<CellUsage> it = cell.getUsagesIn(); it.hasNext(); ) {
             CellUsage u = it.next();
-            Layout.getCellInfo(u.getProto()).compute();
+            Layout.getCellInfo(u.getProto(database)).compute();
         }
         if (modified || exportsModified) {
             doCompute();
             if (exportsModified) {
                 for (Iterator<CellUsage> it = cell.getUsagesOf(); it.hasNext(); ) {
                     CellUsage u = it.next();
-                    Layout.getCellInfo(u.getParent()).modified = true;
+                    Layout.getCellInfo(u.getParent(database)).modified = true;
                 }
             }
         }
