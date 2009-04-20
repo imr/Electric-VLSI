@@ -73,7 +73,7 @@ public class EditingPreferences extends PrefPackage {
 
     private static final ThreadLocal<EditingPreferences> threadEditingPreferences = new ThreadLocal<EditingPreferences>();
 
-    private final TechPool techPool;
+    private transient final TechPool techPool;
     private final HashMap<PrimitiveNodeId,ImmutableNodeInst> defaultNodes;
     private HashMap<ArcProtoId,ImmutableArcInst> defaultArcs;
     private HashMap<ArcProtoId,Integer> defaultArcAngleIncrements;
@@ -206,8 +206,6 @@ public class EditingPreferences extends PrefPackage {
             alignmentIndex = DEFAULT_ALIGNMENT_INDEX;
         }
     }
-
-    public TechPool getTechPool() { return techPool; }
 
     @Override
     public void putPrefs(Preferences prefRoot, boolean removeDefaults) {

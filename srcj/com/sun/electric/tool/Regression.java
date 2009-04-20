@@ -24,6 +24,7 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -31,16 +32,18 @@ import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.variable.EvalJavaBsh;
-
 import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Collections;
@@ -87,11 +90,11 @@ public class Regression {
             }
             int connectionId = reader.readInt();
             System.out.println("Connected");
+            writeEditingPreferences(clientOutputStream, database);
 
             int curJobId = 0;
             Job job = new InitJob();
             job.ejob.jobKey = new Job.Key(connectionId, --curJobId, true);
-//            job.ejob.editingPreferences = new EditingPreferences(true, database.getTechPool());
             writeJob(clientOutputStream, job);
 
             AbstractUserInterface ui = new Main.UserInterfaceDummy(connectionId);
@@ -114,9 +117,10 @@ public class Regression {
                             System.out.println("Job " + job.ejob.jobName + " result:");
                             System.out.println(result);
                             printErrorStream(process);
+                            ui.saveMessages(null);
                             return false;
                         }
-                        switch (curJobId) {
+                        switch (jobId) {
                             case -1:
                                 job = EvalJavaBsh.runScriptJob(script);
                                 job.ejob.jobKey = new Job.Key(connectionId, --curJobId, true);
@@ -128,6 +132,7 @@ public class Regression {
                                 writeJob(clientOutputStream, job);
                                 break;
                             case -3:
+                                ui.saveMessages(null);
                                 return true;
                             default:
                                 System.out.println("Job " + job.ejob.jobKey.jobId);
@@ -187,9 +192,28 @@ public class Regression {
        }
     }
 
+    private static void writeEditingPreferences(DataOutputStream clientOutputStream, EDatabase database) throws IOException {
+        EditingPreferences ep = new EditingPreferences(true, database.getTechPool());
+        byte[] serializedEp;
+        try {
+            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
+            out.writeObject(ep);
+            out.flush();
+            serializedEp = byteStream.toByteArray();
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return;
+        }
+        clientOutputStream.writeByte((byte)2);
+        clientOutputStream.writeInt(serializedEp.length);
+        clientOutputStream.write(serializedEp);
+    }
+
     private static void writeJob(DataOutputStream clientOutputStream, Job job) throws IOException {
         EJob ejob = job.ejob;
         ejob.serialize(EDatabase.clientDatabase());
+        clientOutputStream.writeByte((byte)1);
         clientOutputStream.writeInt(ejob.jobKey.jobId);
         clientOutputStream.writeUTF(ejob.jobType.toString());
         clientOutputStream.writeUTF(ejob.jobName);

@@ -67,6 +67,7 @@ class ClientJobManager extends JobManager {
     }
 
     void writeEJob(EJob ejob) throws IOException {
+        clientOutputStream.writeByte((byte)1);
         clientOutputStream.writeInt(ejob.jobKey.jobId);
         clientOutputStream.writeUTF(ejob.jobType.toString());
         clientOutputStream.writeUTF(ejob.jobName);
