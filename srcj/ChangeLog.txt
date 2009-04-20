@@ -4,14 +4,17 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09i: ******************************
 
+IMP: (4/20/09, SMR) Preferences and Project Settings dialog keeps center panel
+     in the same location (Bug #2101).
+
 IMP: (4/20/09, DN) Regression tests doesn't touch Java Preferences.
 
 IMP: (4/19/09, DN) Regression tests can run in subprocess.
 
-BUG (4/16/09, SMR) EDIF not reading "unused" and "protectionFrame" keywords (Bug #2131).
+BUG: (4/16/09, SMR) EDIF not reading "unused" and "protectionFrame" keywords (Bug #2131).
 FIX: Handle keywords.
 
-IMP: Improve error message when soft tech can't be uploaded (bug #2126)
+IMP: (4/17/09, GVG) Improve error message when soft tech can't be uploaded (bug #2126)
 Allow to call ActivityLogger.logException(e) always.
 
 ************************* Version 8.09h: ******************************
@@ -19,7 +22,7 @@ Allow to call ActivityLogger.logException(e) always.
 BUG: (4/17/09, DN) UnsupportedOperationException in MessagesStream (Bug #2130).
 FIX: Implement write(...) methods of MessagesStream.
 
-IMP/MAN: Electric will ask users if they want to undo the reading of a library (Bug #2118)
+IMP/MAN: (4/16/09, GVG) Electric will ask users if they want to undo the reading of a library (Bug #2118)
 
 IMP/MAN: (4/15/09, SMR) "Make Alternate Layout View" has controlling dialog that
      allows users converting schematics to layout to specify a standard cell

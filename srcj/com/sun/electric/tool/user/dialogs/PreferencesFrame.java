@@ -101,6 +101,7 @@ import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -121,6 +122,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -779,7 +781,15 @@ public class PreferencesFrame extends EDialog
 			{
 				dialog.loadOptionPanel();
 			}
+			Point treeLocBefore = dialog.optionTree.getLocation();
+			SwingUtilities.convertPointToScreen(treeLocBefore, dialog.optionTree);
 			dialog.pack();
+			Point treeLocAfter = dialog.optionTree.getLocation();
+			SwingUtilities.convertPointToScreen(treeLocAfter, dialog.optionTree);
+			Point dialogLocation = dialog.getLocation();
+			int newX = dialogLocation.x + treeLocBefore.x - treeLocAfter.x;
+			if (newX < 0) newX = 0;
+			dialog.setLocation(newX, dialogLocation.y);
 		}
 
 		public void treeCollapsed(TreeExpansionEvent e)
