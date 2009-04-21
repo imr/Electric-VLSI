@@ -208,10 +208,6 @@ public class Input
 
     public abstract static class InputPreferences implements Serializable
 	{
-        // IO Settings
-//        public boolean useCopyrightMessage = IOTool.isUseCopyrightMessage();
-//        public boolean includeDateAndVersionInOutput = User.isIncludeDateAndVersionInOutput();
-
         protected InputPreferences(boolean factory)
         {
             if (!factory && !SwingUtilities.isEventDispatchThread())
@@ -237,14 +233,11 @@ public class Input
         try
 		{
 			URLConnection urlCon = fileURL.openConnection();
-//            urlCon.setConnectTimeout(10000);
-//            urlCon.setReadTimeout(1000);
             String contentLength = urlCon.getHeaderField("content-length");
             fileLength = -1;
             try {
                 fileLength = Long.parseLong(contentLength);
             } catch (Exception e) {}
-//			fileLength = urlCon.getContentLength();
 			inputStream = urlCon.getInputStream();
 		} catch (IOException e)
 		{

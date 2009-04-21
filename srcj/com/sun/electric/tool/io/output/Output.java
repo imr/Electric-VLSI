@@ -48,8 +48,8 @@ import com.sun.electric.tool.cvspm.CVS;
 import com.sun.electric.tool.cvspm.CVSLibrary;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
@@ -71,6 +71,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
+
 import javax.swing.SwingUtilities;
 
 /**
@@ -124,7 +125,7 @@ public class Output
      * @return an OutputPreferences object for the given file type.
      * @throws InvalidStateException on attemt to get current default values of Prefs from server thread
      */
-    public static OutputPreferences getOutputPreferences(FileType type, boolean factory, List<PolyBase> override)
+    public static OutputPreferences getOutputPreferences(FileType type, Cell cell, boolean factory, List<PolyBase> override)
     {
         if (!factory && !SwingUtilities.isEventDispatchThread())
                 throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
@@ -149,8 +150,8 @@ public class Output
 		if (type == FileType.PAL) return new PAL.PALPreferences(factory);
 		if (type == FileType.POSTSCRIPT || type == FileType.EPS) return new PostScript.PostScriptPreferences(factory, override);
 		if (type == FileType.SILOS) return new Silos.SilosPreferences(factory);
-		if (type == FileType.SKILL) return new IOTool.SkillPreferences(factory, false);
-        if (type == FileType.SKILLEXPORTSONLY) return new IOTool.SkillPreferences(factory, true);
+		if (type == FileType.SKILL) return new IOTool.SkillPreferences(factory, false, cell);
+        if (type == FileType.SKILLEXPORTSONLY) return new IOTool.SkillPreferences(factory, true, cell);
 		if (type == FileType.SPICE) return new Spice.SpicePreferences(factory, false);
 		if (type == FileType.TEGAS) return new Tegas.TegasPreferences(factory);
 		if (type == FileType.VERILOG) return new Verilog.VerilogPreferences(factory);
@@ -179,7 +180,7 @@ public class Output
             this.cell = cell;
             this.context = context;
             this.filePath = filePath;
-            prefs = getOutputPreferences(type, false, override);
+            prefs = getOutputPreferences(type, cell, false, override);
             if (prefs != null)
             	startJob();
         }
@@ -187,28 +188,9 @@ public class Output
         public boolean doIt() throws JobException
         {
         	prefs.doOutput(cell, context, filePath);
-//            writeCell(cell, context, filePath, type, prefs);
             return true;
         }
     }
-
-//    /**
-//     * Method to write a Cell to a file with a particular format.
-//	 * In addition to the specified Cell, these formats typically
-//	 * also include the hierarchy below it.
-//	 * The alternative is to write the entire library, regardless of
-//	 * hierarchical structure (use "WriteLibrary").
-//     * @param cell the Cell to be written.
-//     * @param context the VarContext of the Cell (its position in the hierarchy above it).
-//     * @param filePath the path to the disk file to be written.
-//     * @param type the format of the output file.
-//     * NOTE: Keep public for regressions
-//     */
-//    public static Output writeCell(Cell cell, VarContext context, String filePath, FileType type, OutputPreferences op)
-//    {
-//        Output out = op.doOutput(cell, context, filePath);
-//        return out;
-//    }
 
     public abstract static class OutputPreferences
 	{
@@ -248,15 +230,6 @@ public class Output
      */
     public int getNumWarnings() { return errorLogger.getNumWarnings(); }
 
-//	/**
-//	 * Method to write a Library.
-//	 * This method is never called.
-//	 * Instead, it is always overridden by the appropriate write subclass.
-//	 * @param lib the Library to be written.
-//     * @return true on error.
-//	 */
-//	protected boolean writeLib(Library lib) { return true; }
-//
     /**
      * Method to write a cell.
      * This method is never called.
@@ -330,8 +303,6 @@ public class Output
         if (newName != null) {
             libURL = TextUtils.makeURLToFile(newName);
             libFiles.put(lib.getId(), libURL);
-//            lib.setLibFile(libURL);
-//            lib.setName(TextUtils.getFileNameWithoutExtension(libURL));
         }
         boolean error = false;
         String properOutputName = TextUtils.getFilePath(libURL) + TextUtils.getFileNameWithoutExtension(libURL) + ".jelib";

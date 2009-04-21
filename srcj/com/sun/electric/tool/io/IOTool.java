@@ -30,13 +30,11 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.ToolSettings;
-import com.sun.electric.tool.io.input.EDIF;
 import com.sun.electric.tool.io.input.Input;
-import com.sun.electric.tool.io.input.EDIF.EDIFPreferences;
 import com.sun.electric.tool.io.input.Input.InputPreferences;
-import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.output.Output;
 
 import java.lang.reflect.Method;
@@ -102,7 +100,7 @@ public class IOTool extends Tool
 			// find the necessary method on the Skill class
 			try
 			{
-				skillOutputMethod = skillClass.getMethod("writeSkillFile", new Class[] {Cell.class, String.class, Boolean.class});
+				skillOutputMethod = skillClass.getMethod("writeSkillFile", new Class[] {Cell.class, String.class, SkillPreferences.class});
 			} catch (NoSuchMethodException e)
 			{
 				skillClass = null;
@@ -117,9 +115,28 @@ public class IOTool extends Tool
 
 	public static class SkillPreferences extends Output.OutputPreferences
     {
-		private boolean exportsOnly;
+		public boolean exportsOnly;
+		public String libName;
+		public boolean gdsNameLimit;
+		public int gdsCellNameLenMax;
+		public boolean gdsOutUpperCase;
+		public boolean flattenHierarchy;
+		public boolean excludeSubcells;
 
-		public SkillPreferences(boolean factory, boolean exportsOnly) { super(factory); this.exportsOnly = exportsOnly; }
+		public SkillPreferences(boolean factory, boolean exportsOnly, Cell cell)
+		{
+			super(factory);
+			this.exportsOnly = exportsOnly;
+			gdsNameLimit = IOTool.isSkillGDSNameLimit();
+			gdsCellNameLenMax = IOTool.getGDSCellNameLenMax();
+			gdsOutUpperCase = IOTool.isGDSOutUpperCase();
+			flattenHierarchy = IOTool.isSkillFlattensHierarchy();
+			excludeSubcells = IOTool.isSkillExcludesSubcells();
+
+			// get SKILL library name
+			libName = Job.getUserInterface().askForInput("Library name to use in SKILL file:",
+				"Name Selection", cell.getLibrary().getName());
+		}
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
@@ -127,10 +144,10 @@ public class IOTool extends Tool
             Output out = null;
             try
     		{
-    			out = (Output)skillOutputMethod.invoke(skillClass, new Object[] {cell, filePath, Boolean.valueOf(exportsOnly)});
+    			out = (Output)skillOutputMethod.invoke(skillClass, new Object[] {cell, filePath, this});
     		} catch (Exception e)
     		{
-                String msg = "Unable to run the Skill output module";
+                String msg = "Unable to run the Skill output module: " + e.getMessage();
                 if (out != null)
                     out.reportError(msg);
                 else

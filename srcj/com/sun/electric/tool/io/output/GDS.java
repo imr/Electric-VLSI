@@ -146,7 +146,7 @@ public class GDS extends Geometry
 	    /** converts bracket to underscores in export names.*/
 		public boolean convertBracketsInExports = IOTool.getGDSOutputConvertsBracketsInExports();
 	    boolean convertNCCExportsConnectedByParentPins = IOTool.getGDSConvertNCCExportsConnectedByParentPins();
-	    boolean collapseVddGndPinNames = IOTool.isGDSColapseVddGndPinNames();
+	    public boolean collapseVddGndPinNames = IOTool.isGDSColapseVddGndPinNames();
 	    int outDefaultTextLayer = IOTool.getGDSOutDefaultTextLayer();
 	    boolean outMergesBoxes = IOTool.isGDSOutMergesBoxes();
 	    int cellNameLenMax = IOTool.getGDSCellNameLenMax();
