@@ -63,6 +63,7 @@ import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -147,8 +148,6 @@ public class GDS extends Input
 	private Map<Integer,UnknownLayerMessage> layerErrorMessages;
 	private Set<Integer>     pinLayers;
 	private PolyMerge        merge;
-	private boolean          mergeThisCell;
-	private double           inputScale;
 	private static boolean   arraySimplificationUseful;
 
 	private static class GSymbol
@@ -244,6 +243,36 @@ public class GDS extends Input
 	private static GSymbol [] maskSet = {GDS_DATATYPSYM, GDS_TEXTTYPE, GDS_BOXTYPE, GDS_NODETYPE};
 	private static GSymbol [] unsupportedSet = {GDS_ELFLAGS, GDS_PLEX};
 
+	private GDSPreferences localPrefs;
+
+	public static class GDSPreferences extends InputPreferences
+    {
+		public double inputScale = IOTool.getGDSInputScale();
+		public boolean simplifyCells = IOTool.isGDSInSimplifyCells();
+		public int arraySimplification = IOTool.getGDSArraySimplification();
+		public boolean instantiateArrays = IOTool.isGDSInInstantiatesArrays();
+		public boolean expandCells = IOTool.isGDSInExpandsCells();
+		public boolean mergeBoxes = IOTool.isGDSInMergesBoxes();
+		public boolean includeText = IOTool.isGDSInIncludesText();
+		public int unknownLayerHandling = IOTool.getGDSInUnknownLayerHandling();
+
+		public GDSPreferences(boolean factory) { super(factory); }
+
+        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        {
+        	GDS in = new GDS(this);
+			if (in.openBinaryInput(fileURL)) return null;
+			lib = in.importALibrary(lib, currentCells);
+			in.closeInput();
+			return in;
+        }
+    }
+
+	/**
+	 * Creates a new instance of GDS.
+	 */
+	GDS(GDSPreferences ap) { localPrefs = ap; }
+
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
@@ -280,7 +309,6 @@ public class GDS extends Input
 
 	private void initialize()
 	{
-		inputScale = IOTool.getGDSInputScale();
 		layerNodeProto = Generic.tech().drcNode;
 
 		theVertices = new Point2D[MAXPOINTS];
@@ -322,21 +350,23 @@ public class GDS extends Input
     {
 		private static Map<Cell,CellBuilder> allBuilders;
 		private static Set<Cell>        cellsTooComplex;
+		private GDSPreferences localPrefs;
 
 		private Cell cell;
         private List<MakeInstance> insts = new ArrayList<MakeInstance>();
         private Map<UnknownLayerMessage,List<MakeInstance>> allErrorInsts = new HashMap<UnknownLayerMessage,List<MakeInstance>>();
         private List<MakeInstanceArray> instArrays = new ArrayList<MakeInstanceArray>();
 
-        private CellBuilder(Cell cell) {
+        private CellBuilder(Cell cell, GDSPreferences localPrefs) {
             this.cell = cell;
+            this.localPrefs = localPrefs;
             allBuilders.put(cell, this);
         }
 
 		private void makeInstance(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei,
 			EPoint[] points, UnknownLayerMessage ulm)
 		{
-            MakeInstance mi = new MakeInstance(proto, loc, orient, wid, hei, points, null, null);
+            MakeInstance mi = new MakeInstance(proto, loc, orient, wid, hei, points, null, null, localPrefs);
 			if (ulm == null)
 			{
 				insts.add(mi);
@@ -352,21 +382,21 @@ public class GDS extends Input
 			Point2D startLoc, Point2D rowOffset, Point2D colOffset)
 		{
             MakeInstanceArray mia = new MakeInstanceArray(proto, nCols, nRows, orient,
-            	new Point2D.Double(startLoc.getX(), startLoc.getY()), rowOffset, colOffset);
+            	new Point2D.Double(startLoc.getX(), startLoc.getY()), rowOffset, colOffset, localPrefs);
             instArrays.add(mia);
         }
 
 		private void makeExport(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei,
 			String exportName)
 		{
-            MakeInstance mi = new MakeInstance(proto, loc, orient, wid, hei, null, exportName, null);
+            MakeInstance mi = new MakeInstance(proto, loc, orient, wid, hei, null, exportName, null, localPrefs);
             insts.add(mi);
         }
 
 		private void makeText(NodeProto proto, Point2D loc, String text,
 			TextDescriptor textDescriptor, UnknownLayerMessage ulm)
 		{
-            MakeInstance mi = new MakeInstance(proto, loc, Orientation.IDENT, 0, 0, null, null, Name.findName(text));
+            MakeInstance mi = new MakeInstance(proto, loc, Orientation.IDENT, 0, 0, null, null, Name.findName(text), localPrefs);
 			if (ulm == null) insts.add(mi); else
 			{
 				List<MakeInstance> errorList = allErrorInsts.get(ulm);
@@ -532,7 +562,7 @@ public class GDS extends Input
 					this.cell.newVar(NccCellAnnotations.NCC_ANNOTATION_KEY, anArr, td);
 				}
 			}
-            if (IOTool.isGDSInSimplifyCells())
+            if (localPrefs.simplifyCells)
                 simplifyNodes(this.cell);
 			builtCells.add(this.cell);
 		}
@@ -757,8 +787,10 @@ public class GDS extends Input
     	private int nCols, nRows;
     	private Orientation orient;
     	private Point2D startLoc, rowOffset, colOffset;
+    	private GDSPreferences localPrefs;
 
-    	private MakeInstanceArray(NodeProto proto, int nCols, int nRows, Orientation orient, Point2D startLoc, Point2D rowOffset, Point2D colOffset)
+    	private MakeInstanceArray(NodeProto proto, int nCols, int nRows, Orientation orient, Point2D startLoc,
+    		Point2D rowOffset, Point2D colOffset, GDSPreferences localPrefs)
     	{
     		this.proto = proto;
     		this.nCols = nCols;
@@ -767,6 +799,7 @@ public class GDS extends Input
     		this.startLoc = startLoc;
     		this.rowOffset = rowOffset;
     		this.colOffset = colOffset;
+    		this.localPrefs = localPrefs;
     	}
 
     	/**
@@ -775,7 +808,7 @@ public class GDS extends Input
          */
         private void instantiate(CellBuilder theCell, Cell parent, Map<NodeProto,List<EPoint>> massiveMerge)
         {
-        	int arraySimplification = IOTool.getGDSArraySimplification();
+        	int arraySimplification = localPrefs.arraySimplification;
     		if (Technology.HANDLEBROKENOUTLINES)
     		{
 	    		NodeInst subNi = null;
@@ -830,7 +863,7 @@ public class GDS extends Input
     			for (int ir = 0; ir < nRows; ir++)
     			{
     				// create the node
-    				if (IOTool.isGDSInInstantiatesArrays() ||
+    				if (localPrefs.instantiateArrays ||
     					(ir == 0 && ic == 0) ||
     						(ir == (nRows-1) && ic == (nCols-1)))
     				{
@@ -838,7 +871,7 @@ public class GDS extends Input
     		            NodeInst ni = NodeInst.makeInstance(proto, loc, proto.getDefWidth(), proto.getDefHeight(), parent, orient, null);
     		            if (ni != null)
     		            {
-	    		            if (IOTool.isGDSInExpandsCells() && ni.isCellInstance())
+	    		            if (localPrefs.expandCells && ni.isCellInstance())
 	    		                ni.setExpanded();
     		            }
     				}
@@ -895,9 +928,10 @@ public class GDS extends Input
         private String exportName; // export
         private Name nodeName; // text
         private String origNodeName; // original text with invalid name
+        private GDSPreferences localPrefs;
 
         private MakeInstance(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei, EPoint[] points,
-        	String exportName, Name nodeName)
+        	String exportName, Name nodeName, GDSPreferences localPrefs)
 		{
 			this.proto = proto;
 			this.loc = loc;
@@ -913,6 +947,7 @@ public class GDS extends Input
                 nodeName = null;
             }
             this.nodeName = nodeName;
+            this.localPrefs = localPrefs;
 		}
 
         public int compareTo(MakeInstance that) {
@@ -951,7 +986,7 @@ public class GDS extends Input
                 System.out.println(errorMsg);
             }
 
-            if (IOTool.isGDSInExpandsCells() && ni.isCellInstance())
+            if (localPrefs.expandCells && ni.isCellInstance())
                 ni.setExpanded();
             if (points != null && GenMath.getAreaOfPoints(points) != wid*hei)
                 ni.setTrace(points);
@@ -1075,7 +1110,7 @@ public class GDS extends Input
 		getToken();
 		double meterUnit = tokenValueDouble;
 		double microScale = TextUtils.convertFromDistance(1, curTech, TextUtils.UnitScale.MICRO);
-		theScale = meterUnit * 1000000.0 * microScale * inputScale;
+		theScale = meterUnit * 1000000.0 * microScale * localPrefs.inputScale;
 
 		// round the scale
 		double shift = 1;
@@ -1108,8 +1143,7 @@ public class GDS extends Input
 	{
 		beginStructure();
 		getToken();
-		mergeThisCell = IOTool.isGDSInMergesBoxes();
-		if (mergeThisCell)
+		if (localPrefs.mergeBoxes)
 		{
 			// initialize merge if merging this cell
     		merge = new PolyMerge();
@@ -1123,7 +1157,7 @@ public class GDS extends Input
 			getToken();
 		}
 		if (TALLYCONTENTS) showResultsOfCell();
-		if (mergeThisCell)
+		if (localPrefs.mergeBoxes)
 		{
 			// extract merge information for this cell
     		for(Layer layer : merge.getKeySet())
@@ -1183,7 +1217,7 @@ public class GDS extends Input
 			if (!currentCells.containsKey(theLibrary))
 				currentCells.put(theLibrary, cell);
 		}
-        theCell = new CellBuilder(cell);
+        theCell = new CellBuilder(cell, localPrefs);
 	}
 
 	private Cell findCell(String name)
@@ -1458,7 +1492,7 @@ public class GDS extends Input
 					(theVertices[0].getY()+theVertices[1].getY())/2);
 				double sX = Math.abs(theVertices[1].getX() - theVertices[0].getX());
 				double sY = Math.abs(theVertices[1].getY() - theVertices[0].getY());
-				if (mergeThisCell)
+				if (localPrefs.mergeBoxes)
 				{
 					PrimitiveNode plnp = layerNodeProto;
 					NodeLayer [] layers = plnp.getLayers();
@@ -1474,7 +1508,7 @@ public class GDS extends Input
 		if (oclass == SHAPEOBLIQUE || oclass == SHAPEPOLY)
 		{
 			if (layerNodeProto == null) return;
-			if (mergeThisCell)
+			if (localPrefs.mergeBoxes)
 			{
 				NodeLayer [] layers = layerNodeProto.getLayers();
 				merge.addPolygon(layers[0].getLayer(), new Poly(theVertices)); // ??? npts
@@ -1622,7 +1656,7 @@ public class GDS extends Input
 					Poly poly = Poly.makeEndPointPoly(length, width, GenMath.figureAngle(toPt, fromPt),
 						fromPt, fextend, toPt, textend, Poly.Type.FILLED);
 
-					if (mergeThisCell)
+					if (localPrefs.mergeBoxes)
 					{
 						NodeLayer [] layers = layerNodeProto.getLayers();
 						merge.addPolygon(layers[0].getLayer(), poly);
@@ -1696,7 +1730,7 @@ public class GDS extends Input
 		}
 
 		// create the node
-		if (mergeThisCell)
+		if (localPrefs.mergeBoxes)
 		{
 		} else
 		{
@@ -1805,7 +1839,7 @@ public class GDS extends Input
 		}
 
 		// stop if not handling text in GDS
-		if (!IOTool.isGDSInIncludesText()) return;
+		if (!localPrefs.includeText) return;
 		double x = theVertices[0].getX() + MINFONTWIDTH * charstring.length();
 		double y = theVertices[0].getY() + MINFONTHEIGHT;
 		theVertices[1].setLocation(x, y);
@@ -1873,7 +1907,7 @@ public class GDS extends Input
 		if (layerNodeProto != null)
 		{
 			// create the box
-			if (mergeThisCell)
+			if (localPrefs.mergeBoxes)
 			{
 			} else
 			{
@@ -1902,7 +1936,7 @@ public class GDS extends Input
 		if (layer == null)
 		{
 			layer = Generic.tech().drcLay;
-			if (IOTool.getGDSInUnknownLayerHandling() == IOTool.GDSUNKNOWNLAYERUSERANDOM)
+			if (localPrefs.unknownLayerHandling == IOTool.GDSUNKNOWNLAYERUSERANDOM)
 			{
 				// assign an unused layer here
 				for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
@@ -1922,7 +1956,7 @@ public class GDS extends Input
 			}
 			layerNames.put(layerInt, layer);
 			String message = "GDS layer " + layerNum + ", type " + layerType + " unknown, ";
-			switch (IOTool.getGDSInUnknownLayerHandling())
+			switch (localPrefs.unknownLayerHandling)
 			{
 				case IOTool.GDSUNKNOWNLAYERIGNORE:    message += "ignoring it"; layer = null;   break;
 				case IOTool.GDSUNKNOWNLAYERUSEDRC:    message += "using Generic:DRC layer"; break;
@@ -1945,7 +1979,7 @@ public class GDS extends Input
 		if (layer != null)
 		{
 			currentUnknownLayerMessage = layerErrorMessages.get(layerInt);
-			if (layer == Generic.tech().drcLay && IOTool.getGDSInUnknownLayerHandling() == IOTool.GDSUNKNOWNLAYERIGNORE)
+			if (layer == Generic.tech().drcLay && localPrefs.unknownLayerHandling == IOTool.GDSUNKNOWNLAYERIGNORE)
 			{
 				layerNodeProto = null;
 				return;

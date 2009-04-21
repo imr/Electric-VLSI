@@ -29,16 +29,26 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.verilog.VerilogReader;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.Job;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.io.Serializable;
+import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Map;
+
+import javax.swing.SwingUtilities;
 
 /**
  * This class manages reading files in different formats.
@@ -82,7 +92,7 @@ public class Input
      * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static Library importLibrary(URL fileURL, FileType type, Map<Library,Cell> currentCells)
+	public static Library importLibrary(InputPreferences prefs, URL fileURL, FileType type, Map<Library,Cell> currentCells)
 	{
 		// make sure the file exists
 		if (fileURL == null) return null;
@@ -94,18 +104,19 @@ public class Input
 		}
 
 		newLibraryCreated = true;
-		return importLibraryCommon(fileURL, type, null, currentCells);
+		return importLibraryCommon(prefs, fileURL, type, null, currentCells);
 	}
 
 	/**
 	 * Method to import Cells from disk to current Library.
 	 * This method is for reading external file formats such as CIF, GDS, etc.
+	 * @param prefs the packaged preferences for reading the type of file.
 	 * @param fileURL the URL to the disk file.
 	 * @param type the type of library file (CIF, GDS, etc.)
      * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static Library importToCurrentLibrary(URL fileURL, FileType type, Library lib, Map<Library,Cell> currentCells)
+	public static Library importToCurrentLibrary(InputPreferences prefs, URL fileURL, FileType type, Library lib, Map<Library,Cell> currentCells)
 	{
 		// make sure the file exists
 		if (fileURL == null) return null;
@@ -120,10 +131,11 @@ public class Input
 		newLibraryCreated = false;
 
 		// import to current library
-		return importLibraryCommon(fileURL, type, lib, currentCells);
+		return importLibraryCommon(prefs, fileURL, type, lib, currentCells);
 	}
 
-	private static Library importLibraryCommon(URL fileURL, FileType type, Library lib, Map<Library,Cell> currentCells)
+	private static Library importLibraryCommon(InputPreferences prefs, URL fileURL, FileType type, Library lib,
+		Map<Library,Cell> currentCells)
 	{
 		if (lib == null && type != FileType.EDIF)
 		{
@@ -142,66 +154,11 @@ public class Input
         }
 
 		try {
-
 			// initialize progress
 			startProgressDialog("import", fileURL.getFile());
 
-			if (type == FileType.DAIS)
-			{
-				IOTool.readDais(fileURL, lib, isNewLibraryCreated());
-			} else if (type == FileType.SPICE)
-			{
-				Spice sp = new Spice();
-				sp.readDirectory(fileURL, lib);
-			} else
-			{
-				Input in;
-                if (type == FileType.VERILOG)
-                {
-                    in = new VerilogReader();
-					if (in.openTextInput(fileURL)) return null;
-                } else if (type == FileType.CIF)
-				{
-					in = new CIF();
-					if (in.openTextInput(fileURL)) return null;
-				} else if (type == FileType.DEF)
-				{
-					in = new DEF();
-					if (in.openTextInput(fileURL)) return null;
-				} else if (type == FileType.DXF)
-				{
-					in = new DXF();
-					if (in.openTextInput(fileURL)) return null;
-				} else if (type == FileType.EDIF)
-				{
-					in = new EDIF();
-					if (in.openTextInput(fileURL)) return null;
-				} else if (type == FileType.GDS)
-				{
-					in = new GDS();
-					if (in.openBinaryInput(fileURL)) return null;
-				} else if (type == FileType.LEF)
-				{
-					in = new LEF();
-					if (in.openTextInput(fileURL)) return null;
-				} else if (type == FileType.SUE)
-				{
-					in = new Sue();
-					if (in.openTextInput(fileURL)) return null;
-				} else if (type == FileType.APPLICON860)
-				{
-					in = new Applicon860();
-					if (in.openBinaryInput(fileURL)) return null;
-				} else
-				{
-					System.out.println("Unsupported input format");
-					return null;
-				}
-
-				// import the library
-				lib = in.importALibrary(lib, currentCells);
-				in.closeInput();
-			}
+			if (prefs != null)
+				prefs.doInput(fileURL, lib, currentCells);
 		} finally {
 			// clean up
 			stopProgressDialog();
@@ -218,6 +175,50 @@ public class Input
 			System.out.println("Library " + fileURL.getFile() + " read, took " + finalTime + " seconds");
 		}
 		return lib;
+	}
+
+	/**
+     * Return OutputPreferences for a specified FileType.
+     * This includes currnet default values of IO ProjectSettings
+     * and either factory default or current default values of Prefs
+     * Current default value of Prefs can be obtained only from client thread
+     * @param type specified file type.
+     * @param factory get factory default values of Prefs
+     * @return an OutputPreferences object for the given file type.
+     * @throws InvalidStateException on attemt to get current default values of Prefs from server thread
+     */
+    public static InputPreferences getInputPreferences(FileType type, boolean factory)
+    {
+        if (!factory && !SwingUtilities.isEventDispatchThread())
+                throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
+
+		if (type == FileType.APPLICON860) return new Applicon860.Applicon860Preferences(factory);
+		if (type == FileType.CIF) return new CIF.CIFPreferences(factory);
+		if (type == FileType.DAIS) return new IOTool.DaisPreferences(factory, isNewLibraryCreated());
+		if (type == FileType.DEF) return new DEF.DEFPreferences(factory);
+		if (type == FileType.DXF) return new DXF.DXFPreferences(factory);
+		if (type == FileType.EDIF) return new EDIF.EDIFPreferences(factory);
+		if (type == FileType.GDS) return new GDS.GDSPreferences(factory);
+		if (type == FileType.LEF) return new LEF.LEFPreferences(factory);
+		if (type == FileType.SPICE) return new Spice.SpicePreferences(factory);
+		if (type == FileType.SUE) return new Sue.SuePreferences(factory);
+		if (type == FileType.VERILOG) return new VerilogReader.VerilogPreferences(factory);
+        return null;
+    }
+
+    public abstract static class InputPreferences implements Serializable
+	{
+        // IO Settings
+//        public boolean useCopyrightMessage = IOTool.isUseCopyrightMessage();
+//        public boolean includeDateAndVersionInOutput = User.isIncludeDateAndVersionInOutput();
+
+        protected InputPreferences(boolean factory)
+        {
+            if (!factory && !SwingUtilities.isEventDispatchThread())
+                throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
+        }
+
+        public abstract Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells);
 	}
 
 	/**

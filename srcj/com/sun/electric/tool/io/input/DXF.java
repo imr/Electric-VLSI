@@ -38,13 +38,13 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -101,6 +101,31 @@ public class DXF extends Input
 	/** key of Variable holding DXF layer name. */			public static final Variable.Key DXF_LAYER_KEY = Variable.newKey("IO_dxf_layer");
 	/** key of Variable holding DXF header text. */			public static final Variable.Key DXF_HEADER_TEXT_KEY = Variable.newKey("IO_dxf_header_text");
 	/** key of Variable holding DXF header information. */	public static final Variable.Key DXF_HEADER_ID_KEY = Variable.newKey("IO_dxf_header_ID");
+
+	private DXFPreferences localPrefs;
+
+	public static class DXFPreferences extends InputPreferences
+    {
+		public boolean flattenHierarchy = IOTool.isDXFInputFlattensHierarchy();
+		public boolean readAllLayers = IOTool.isDXFInputReadsAllLayers();
+		public int scale = IOTool.getDXFScale();
+
+		public DXFPreferences(boolean factory) { super(factory); }
+
+        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        {
+        	DXF in = new DXF(this);
+			if (in.openTextInput(fileURL)) return null;
+			lib = in.importALibrary(lib, currentCells);
+			in.closeInput();
+			return in;
+        }
+    }
+
+	/**
+	 * Creates a new instance of DXF.
+	 */
+	DXF(DXFPreferences ap) { localPrefs = ap; }
 
 	/**
 	 * Method to import a library from disk.
@@ -227,7 +252,7 @@ public class DXF extends Input
 				System.out.println("Cannot find block '" + fr.refName + "'");
 				continue;
 			}
-			if (IOTool.isDXFInputFlattensHierarchy())
+			if (localPrefs.flattenHierarchy)
 			{
 				if (extractInsert(found, fr.x, fr.y, fr.xSca, fr.ySca, fr.rot, fr.parent)) return true;
 			} else
@@ -819,7 +844,7 @@ public class DXF extends Input
 				return false;
 			}
 
-			if (IOTool.isDXFInputFlattensHierarchy())
+			if (localPrefs.flattenHierarchy)
 			{
 				if (extractInsert(found, x, y, xSca, ySca, rot, curCell)) return true;
 			} else
@@ -1314,7 +1339,7 @@ public class DXF extends Input
 	private boolean isAcceptableLayer(DXFLayer layer)
 	{
 		if (layer == null) return false;
-		if (IOTool.isDXFInputReadsAllLayers()) return true;
+		if (localPrefs.readAllLayers) return true;
 		if (validLayerNames.contains(layer.layerName)) return true;
 
 		// add this to the list of layer names that were ignored
@@ -1535,8 +1560,7 @@ public class DXF extends Input
 	 */
 	private void setCurUnits()
 	{
-		int units = IOTool.getDXFScale();
-		switch (units)
+		switch (localPrefs.scale)
 		{
 			case -3: dispUnit = TextUtils.UnitScale.GIGA;   break;
 			case -2: dispUnit = TextUtils.UnitScale.MEGA;   break;

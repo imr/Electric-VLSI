@@ -31,6 +31,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.IOTool;
 
 import javax.swing.JOptionPane;
 import java.util.List;
@@ -124,6 +125,7 @@ public class Commit {
         private List<Library> libsToCommit;
         private List<Cell> cellsToCommit;
         private int exitVal;
+        private int backupScheme;
         /**
          * Commit cells and/or libraries.
          * @param message the commit log message
@@ -138,6 +140,7 @@ public class Commit {
             exitVal = -1;
             if (this.libsToCommit == null) this.libsToCommit = new ArrayList<Library>();
             if (this.cellsToCommit == null) this.cellsToCommit = new ArrayList<Cell>();
+            this.backupScheme = IOTool.getBackupRedundancy();
         }
         public boolean doIt() {
             // list of library files to commit
@@ -161,7 +164,7 @@ public class Commit {
                     List<Library> headerlibs = result.getLibraryHeaderFiles(State.CONFLICT);
                     for (Library lib : headerlibs) {
                         // rewrite the header file
-                        Output.writeLibrary(lib, FileType.DELIB, false, true, true);
+                        Output.writeLibrary(lib, FileType.DELIB, false, true, true, backupScheme);
                     }
                 }
             }

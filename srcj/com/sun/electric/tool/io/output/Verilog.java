@@ -314,7 +314,8 @@ public class Verilog extends Topology
                 return false;
             }
             // check that data from file is consistent
-			VerilogReader reader = new VerilogReader();
+            VerilogReader.VerilogPreferences vp = new VerilogReader.VerilogPreferences(false);
+			VerilogReader reader = new VerilogReader(vp);
 			VerilogData data = reader.parseVerilog(fileName, true);
 			if (data == null) {
 				reportError("Error reading include file: "+fileName);
@@ -344,7 +345,8 @@ public class Verilog extends Topology
 						return false;
 					}
 				}
-				VerilogReader reader = new VerilogReader();
+	            VerilogReader.VerilogPreferences vp = new VerilogReader.VerilogPreferences(false);
+				VerilogReader reader = new VerilogReader(vp);
 				VerilogData data = reader.parseVerilog(stringArray, cell.getLibrary().getName());
 				if (data == null) {
 					reportError("Error parsing Verilog View for cell "+cell.describe(false));

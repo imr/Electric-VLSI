@@ -155,8 +155,8 @@ public class LayoutLib {
 	 * Write a library in JELIB format.
 	 * @param lib the library to be written.
 	 */
-	public static void writeLibrary(Library lib) {
-		Output.writeLibrary(lib, FileType.JELIB, false, false, false);
+	public static void writeLibrary(Library lib, int backupScheme) {
+		Output.writeLibrary(lib, FileType.JELIB, false, false, false, backupScheme);
 	}
 	/**
      * Get the width of an ArcInst. The getArcInstWidth method differs

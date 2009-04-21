@@ -64,6 +64,7 @@ import com.sun.electric.tool.user.ViewChanges;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -232,9 +233,6 @@ public class EDIF extends Input
 	/** the height of text */					private int saveTextHeight;
 	/** justification of the text */			private TextDescriptor.Position saveTextJustification;
 
-	// technology data ...
-	/** scaling value */						private double inputScale;
-
 	// current name and rename of EDIF objects ...
 	/** the current cell name */				private String cellReference;
 	/** the current cell name (original) */		private String cellName;
@@ -295,6 +293,31 @@ public class EDIF extends Input
 	/** all keywords for parsing */				private static Map<String,EDIFKEY> edifKeys = new HashMap<String,EDIFKEY>();
 
 	/**************************************** MAIN CONTROL ****************************************/
+
+	private EDIFPreferences localPrefs;
+
+	public static class EDIFPreferences extends InputPreferences
+    {
+		public double inputScale = IOTool.getEDIFInputScale();
+		public String acceptedParameters = IOTool.getEDIFAcceptedParameters();
+		public String configurationFile = IOTool.getEDIFConfigurationFile();
+
+		public EDIFPreferences(boolean factory) { super(factory); }
+
+        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        {
+        	EDIF in = new EDIF(this);
+			if (in.openTextInput(fileURL)) return null;
+			lib = in.importALibrary(lib, currentCells);
+			in.closeInput();
+			return in;
+        }
+    }
+
+	/**
+	 * Creates a new instance of EDIF.
+	 */
+	EDIF(EDIFPreferences ap) { localPrefs = ap; }
 
 	/**
 	 * Method to import a library from disk.
@@ -358,7 +381,6 @@ public class EDIF extends Input
 		builtCells = new HashSet<Cell>();
 
 		// general inits
-		inputScale = IOTool.getEDIFInputScale();
 		curLibrary = lib;
 		curTechnology = Schematics.tech();
 		cellTable = new HashMap<String,NameEntry>();
@@ -406,7 +428,7 @@ public class EDIF extends Input
 		defaultInput = Schematics.tech().offpageNode.findPortProto("y");
 		defaultOutput = Schematics.tech().offpageNode.findPortProto("a");
 
-		equivs = new EDIFEquiv();
+		equivs = new EDIFEquiv(localPrefs.configurationFile);
 		netPortRefs = new ArrayList<PortInst>();
 		renamedObjects = new HashMap<String,String>();
 
@@ -3629,9 +3651,8 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 	 */
 	private boolean isAcceptedParameter(String param)
 	{
-		String acceptedParameters = IOTool.getEDIFAcceptedParameters();
-		if (acceptedParameters.length() == 0) return false;
-		String [] params = acceptedParameters.split("/");
+		if (localPrefs.acceptedParameters.length() == 0) return false;
+		String [] params = localPrefs.acceptedParameters.split("/");
 		for(int i=0; i<params.length; i++)
 			if (param.equalsIgnoreCase(params[i])) return true;
 		return false;
@@ -3666,8 +3687,8 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 
 			if (keyStackDepth > 1 && keyStack[keyStackDepth-1] == KDELTA)
 			{
-				double x = TextUtils.atof(xStr) * inputScale;
-				double y = TextUtils.atof(yStr) * inputScale;
+				double x = TextUtils.atof(xStr) * localPrefs.inputScale;
+				double y = TextUtils.atof(yStr) * localPrefs.inputScale;
 
 				// transform the points per orientation
 				if (curOrientation == OR90)   { double s = x;   x = -y;  y = s; } else
@@ -3692,7 +3713,7 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 			} else
 			{
 				// allocate a point to read
-				Point2D point = new Point2D.Double(TextUtils.atof(xStr) * inputScale, TextUtils.atof(yStr) * inputScale);
+				Point2D point = new Point2D.Double(TextUtils.atof(xStr) * localPrefs.inputScale, TextUtils.atof(yStr) * localPrefs.inputScale);
 
 				// add it to the list of points
 				curPoints.add(point);
@@ -4081,7 +4102,7 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 		{
 			// get the textheight value of the point
 			String val = getToken((char)0);
-			textHeight = (int)(TextUtils.atoi(val) * inputScale);
+			textHeight = (int)(TextUtils.atoi(val) * localPrefs.inputScale);
 
 			if (curNameEntry != null)
 				curNameEntry.textHeight = textHeight;
@@ -4277,8 +4298,8 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 			if (keyStack[keyStackDepth-1] == KSCALE && type.equalsIgnoreCase("DISTANCE"))
 			{
 				// just make the scale be so that the specified number of database units becomes 1 lambda
-				inputScale = 1;
-				inputScale *= IOTool.getEDIFInputScale();
+				localPrefs.inputScale = 1;
+				localPrefs.inputScale *= localPrefs.inputScale;
 			}
 		}
 	}

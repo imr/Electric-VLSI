@@ -694,9 +694,10 @@ public class Project extends Listener
 	 * Method to save a Cell to the repository.
 	 * @param cell the Cell to save.
 	 * @param pc the ProjectCell record associated with the Cell.
+	 * @param backupScheme rule for backing-up old files.
 	 * @return true on error.
 	 */
-	static boolean writeCell(Cell cell, ProjectCell pc)
+	static boolean writeCell(Cell cell, ProjectCell pc, int backupScheme)
 	{
 		String dirName = pc.getProjectLibrary().getProjectDirectory() + File.separator + cell.getName();
 		File dir = new File(dirName);
@@ -728,7 +729,7 @@ public class Project extends Listener
 
 //		fLib.setCurCell(cellCopy);
 		fLib.setFromDisk();
-		boolean error = Output.writeLibrary(fLib, pc.getLibType(), false, true, false);
+		boolean error = Output.writeLibrary(fLib, pc.getLibType(), false, true, false, backupScheme);
 		if (error)
 		{
 			System.out.println("Could not save library with " + cell + " in it");

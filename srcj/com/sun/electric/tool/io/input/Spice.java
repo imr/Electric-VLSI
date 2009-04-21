@@ -61,7 +61,24 @@ public class Spice extends Input
 {
 	private Map<String,SubcktDef> allCells = new HashMap<String,SubcktDef>();
 
-	Spice() {}
+	private SpicePreferences localPrefs;
+
+	public static class SpicePreferences extends InputPreferences
+    {
+		public SpicePreferences(boolean factory) { super(factory); }
+
+        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        {
+        	Spice in = new Spice(this);
+			in.readDirectory(fileURL, lib);
+			return in;
+        }
+    }
+
+	/**
+	 * Creates a new instance of Spice.
+	 */
+	Spice(SpicePreferences ap) { localPrefs = ap; }
 
 	/**
 	 * Method to import a library from disk.

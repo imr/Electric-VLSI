@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 /**
@@ -39,6 +40,7 @@ public class AddCellJob extends Job
 {
 	private ProjectDB pdb;
 	private Cell cell;
+	private int backupScheme;
 
 	/**
 	 * Method to add the currently edited cell to the repository.
@@ -82,6 +84,7 @@ public class AddCellJob extends Job
 		super("Add " + cell, Project.getProjectTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 		this.cell = cell;
 		this.pdb = Project.projectDB;
+		this.backupScheme = IOTool.getBackupRedundancy();
 		startJob();
 	}
 
@@ -102,7 +105,7 @@ public class AddCellJob extends Job
 		pc.setComment("Initial checkin");
 
 		String error = null;
-		if (Project.writeCell(cell, pc))		// CHANGES DATABASE
+		if (Project.writeCell(cell, pc, backupScheme))		// CHANGES DATABASE
 		{
 			error = "Error writing the cell to the repository";
 		} else

@@ -45,6 +45,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -390,6 +391,29 @@ public class CIF extends Input
 	/** address of cell being defined */	private Cell             cellBeingBuilt;
 	/** name of the current cell */			private String           currentNodeProtoName;
 	/** the line being read */				private StringBuffer     inputBuffer;
+
+	private CIFPreferences localPrefs;
+
+	public static class CIFPreferences extends InputPreferences
+    {
+		public boolean squareWires = IOTool.isCIFInSquaresWires();
+
+		public CIFPreferences(boolean factory) { super(factory); }
+
+        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        {
+        	CIF in = new CIF(this);
+			if (in.openTextInput(fileURL)) return null;
+			lib = in.importALibrary(lib, currentCells);
+			in.closeInput();
+			return in;
+        }
+    }
+
+	/**
+	 * Creates a new instance of CIF.
+	 */
+	CIF(CIFPreferences ap) { localPrefs = ap; }
 
 	/**
 	 * Method to import a library from disk.
@@ -1212,7 +1236,7 @@ public class CIF extends Input
 		Point prev = removePoint(wpath);
 
 		// do not use roundflashes with zero-width wires
-		if (width != 0 && !IOTool.isCIFInSquaresWires())
+		if (width != 0 && !localPrefs.squareWires)
 		{
 			boundsFlash(width, prev);
 			outputFlash(lay, width, prev);
@@ -1222,7 +1246,7 @@ public class CIF extends Input
 			Point curr = removePoint(wpath);
 
 			// do not use roundflashes with zero-width wires
-			if (width != 0 && !IOTool.isCIFInSquaresWires())
+			if (width != 0 && !localPrefs.squareWires)
 			{
 				boundsFlash(width, curr);
 				outputFlash(lay, width, curr);
@@ -1230,7 +1254,7 @@ public class CIF extends Input
 			int xr = curr.x-prev.x;
 			int yr = curr.y-prev.y;
 			int len = (int)new Point2D.Double(0, 0).distance(new Point2D.Double(xr, yr));
-			if (IOTool.isCIFInSquaresWires()) len += width;
+			if (localPrefs.squareWires) len += width;
 			Point center = new Point((curr.x+prev.x)/2, (curr.y+prev.y)/2);
 			boundsBox(len, width, center, xr, yr);
 			outputBox(lay, len, width, center, xr, yr);

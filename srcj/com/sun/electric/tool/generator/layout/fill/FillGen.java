@@ -63,7 +63,7 @@ public class FillGen {
 	public void makeGallery() {
 		fgt.makeGallery();
 	}
-	public void writeLibrary() {
-		fgt.writeLibrary();
+	public void writeLibrary(int backupScheme) {
+		fgt.writeLibrary(backupScheme);
 	}
 }

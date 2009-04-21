@@ -36,7 +36,10 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.input.EDIF;
+import com.sun.electric.tool.io.input.EDIF.EDIFPreferences;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -86,7 +89,6 @@ public class EDIFEquiv {
         PrimitiveNode.Function func = np.getFunction();
         PortCharacteristic exportType = null;
         if (!ni.isCellInstance()) {
-            PrimitiveNode pn = (PrimitiveNode)np;
             func = ni.getFunction();
 //            func = pn.getTechnology().getPrimitiveFunction(pn, ni.getTechSpecific());
             // if this is an off page node and one of it's ports is exported, find out type
@@ -289,7 +291,7 @@ public class EDIFEquiv {
      * For 'V', an association between internal Variable names and external names is declared.  You
      * can also specify a string to be append to all matching Variable values.
      */
-    public EDIFEquiv() {
+    public EDIFEquiv(String configurationFile) {
         equivsByNodeProto = new HashMap<Object,NodeEquivalence>();
         equivsByExternal = new HashMap<Object,NodeEquivalence>();
 		exportByVariable = new HashMap<String,VariableEquivalence>();
@@ -299,7 +301,7 @@ public class EDIFEquiv {
 		exportByGlobal = new HashMap<String,GlobalEquivalence>();
 		exportFromGlobal = new HashMap<String,GlobalEquivalence>();
 
-		String file = IOTool.getEDIFConfigurationFile();
+		String file = configurationFile;
 		if (file.length() == 0)
 		{
             System.out.println("No EDIF configuration information being used");
@@ -794,7 +796,7 @@ public class EDIFEquiv {
 
     /** Unit Test */
     public static void mainTest() {
-        EDIFEquiv eq = new EDIFEquiv();
+        EDIFEquiv eq = new EDIFEquiv(IOTool.getEDIFConfigurationFile());
         eq.print();
     }
 }

@@ -23,13 +23,6 @@
  */
 package com.sun.electric.tool.generator.layout.fill;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -44,6 +37,13 @@ import com.sun.electric.tool.generator.layout.Gallery;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.TechType;
+
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 abstract class MetalFloorplanBase extends Floorplan
 {
@@ -848,8 +848,8 @@ public class FillGeneratorTool extends Tool {
         Gallery.makeGallery(lib);
     }
 
-    public void writeLibrary() {
-        LayoutLib.writeLibrary(lib);
+    public void writeLibrary(int backupScheme) {
+        LayoutLib.writeLibrary(lib, backupScheme);
     }
 
     public enum FillTypeEnum {INVALID,TEMPLATE,CELL}

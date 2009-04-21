@@ -54,6 +54,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -74,6 +75,26 @@ public class Applicon860 extends Input
 	private int polylistcount = 0;
 	private int [] px, py;
 	private Point2D [] ptrace;
+	private Applicon860Preferences localPrefs;
+
+	public static class Applicon860Preferences extends InputPreferences
+    {
+		public Applicon860Preferences(boolean factory) { super(factory); }
+
+        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        {
+        	Applicon860 in = new Applicon860(this);
+			if (in.openBinaryInput(fileURL)) return null;
+			lib = in.importALibrary(lib, currentCells);
+			in.closeInput();
+			return in;
+        }
+    }
+
+	/**
+	 * Creates a new instance of Applicon860.
+	 */
+	Applicon860(Applicon860Preferences ap) { localPrefs = ap; }
 
 	/**
 	 * Method to import a library from disk.

@@ -44,8 +44,6 @@ import java.util.List;
  */
 public class ArchSimOut extends Simulate
 {
-	ArchSimOut() {}
-
 	/**
 	 * Method to read an ArchSim output file.
 	 */

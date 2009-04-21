@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.io.IOTool;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -45,6 +46,7 @@ public class CheckInJob extends Job
 	private Library lib;
 	private HashMap<Cell,MutableInteger> cellsMarked;
 	private String comment;
+	private int backupScheme;
 	private static String lastComment = null;
 
 	/**
@@ -110,6 +112,7 @@ public class CheckInJob extends Job
 		this.lib = lib;
 		this.cellsMarked = cellsMarked;
 		this.comment = comment;
+		this.backupScheme = IOTool.getBackupRedundancy();
 		startJob();
 	}
 
@@ -153,7 +156,7 @@ public class CheckInJob extends Job
 				} else
 				{
 					// write the cell out there
-					if (Project.writeCell(cell, pc))		// CHANGES DATABASE
+					if (Project.writeCell(cell, pc, backupScheme))		// CHANGES DATABASE
 					{
 						error = "Error writing " + cell;
 					} else

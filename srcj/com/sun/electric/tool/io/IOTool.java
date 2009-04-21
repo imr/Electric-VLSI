@@ -32,12 +32,17 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.ToolSettings;
+import com.sun.electric.tool.io.input.EDIF;
+import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.input.EDIF.EDIFPreferences;
+import com.sun.electric.tool.io.input.Input.InputPreferences;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.output.Output;
 
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * This class manages reading files in different formats.
@@ -110,30 +115,6 @@ public class IOTool extends Tool
 	 	return true;
 	}
 
-//	/**
-//	 * Method to invoke the Skill output module via reflection.
-//	 * @param cell the Cell to write in Skill.
-//	 * @param fileName the name of the file to write.
-//     * @return the Output object used for writing
-//	 */
-//	public static Output writeSkill(Cell cell, String fileName, boolean exportsOnly)
-//	{
-//		if (!hasSkill()) return null;
-//        Output out = null;
-//        try
-//		{
-//			out = (Output)skillOutputMethod.invoke(skillClass, new Object[] {cell, fileName, Boolean.valueOf(exportsOnly)});
-//		} catch (Exception e)
-//		{
-//            String msg = "Unable to run the Skill output module";
-//            if (out != null)
-//                out.reportError(msg);
-//            else
-//                System.out.println(msg);
-//		}
-//        return out;
-//    }
-
 	public static class SkillPreferences extends Output.OutputPreferences
     {
 		private boolean exportsOnly;
@@ -190,7 +171,7 @@ public class IOTool extends Tool
 			// find the necessary method on the Dais class
 			try
 			{
-				daisInputMethod = daisClass.getMethod("readDaisFile", new Class[] {URL.class, Library.class, boolean.class});
+				daisInputMethod = daisClass.getMethod("readDaisFile", new Class[] {URL.class, Library.class, boolean.class, DaisPreferences.class});
 			} catch (NoSuchMethodException e)
 			{
 				daisClass = null;
@@ -204,21 +185,38 @@ public class IOTool extends Tool
 	}
 
 	/**
-	 * Method to invoke the Dais input module via reflection.
-	 * @param lib the Library to read.
+	 * Class to invoke the Dais input module via reflection.
 	 */
-	public static void readDais(URL url, Library lib, boolean newLib)
-	{
-		if (!hasDais()) return;
-		try
+	public static class DaisPreferences extends InputPreferences
+    {
+		private boolean newLib;
+		public boolean displayOnly = IOTool.isDaisDisplayOnly();
+		public boolean readCellInstances = IOTool.isDaisReadCellInstances();
+		public boolean readGlobalWires = IOTool.isDaisReadGlobalWires();
+		public boolean readPowerAndGround = IOTool.isDaisReadPowerAndGround();
+		public boolean readDetailWires = IOTool.isDaisReadDetailWires();
+		public boolean readConnectivity = IOTool.isDaisReadConnectivity();
+
+		public DaisPreferences(boolean factory, boolean newLib)
 		{
-			daisInputMethod.invoke(daisClass, new Object[] {url, lib, Boolean.valueOf(newLib)});
-		} catch (Exception e)
-		{
-			System.out.println("Unable to run the Dais input module (" + e.getClass() + ")");
-			e.printStackTrace(System.out);
+			super(factory);
+			this.newLib = newLib;
 		}
-	}
+
+        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        {
+    		if (!hasDais()) return null;
+    		try
+    		{
+    			daisInputMethod.invoke(daisClass, new Object[] {fileURL, lib, Boolean.valueOf(newLib), this});
+    		} catch (Exception e)
+    		{
+    			System.out.println("Unable to run the Dais input module (" + e.getClass() + ")");
+    			e.printStackTrace(System.out);
+    		}
+			return null;
+        }
+    }
 
 	/****************************** GENERAL IO PREFERENCES ******************************/
 
@@ -1347,7 +1345,7 @@ public class IOTool extends Tool
 	 */
 	public static boolean isFactorySkillGDSNameLimit() { return cacheSkillGDSNameLimit.getBooleanFactoryValue(); }
 
-	/****************************** DAIS OUTPUT PREFERENCES ******************************/
+	/****************************** DAIS INPUT PREFERENCES ******************************/
 
 	private static Pref cacheDaisDisplayOnly = Pref.makeBooleanPref("DaisDisplayOnly", IOTool.tool.prefs, false);
 	/**

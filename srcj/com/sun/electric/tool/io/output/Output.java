@@ -356,9 +356,11 @@ public class Output
 	 * @param compatibleWith6 true to write a library that is compatible with version 6 Electric.
 	 * @param thisQuiet true to save with less information displayed.
      * @param delibHeaderOnly true to write only the header for a DELIB type library
+     * @param backupScheme controls how older files are backed-up.
      * @return true on error.
 	 */
-	public static boolean writeLibrary(Library lib, FileType type, boolean compatibleWith6, boolean thisQuiet, boolean delibHeaderOnly)
+	public static boolean writeLibrary(Library lib, FileType type, boolean compatibleWith6,
+		boolean thisQuiet, boolean delibHeaderOnly, int backupScheme)
 	{
 		// make sure that all "meaning" options are attached to the database
 //		Pref.installMeaningVariables();
@@ -407,7 +409,6 @@ public class Output
 		if (type == FileType.ELIB || type == FileType.JELIB || type == FileType.DELIB)
 		{
 			// backup previous files if requested
-			int backupScheme = IOTool.getBackupRedundancy();
 			if (backupScheme == 1)
 			{
 				// one-level backup
@@ -864,12 +865,14 @@ public class Output
         private Library lib;
         private String newName;
         private IdMapper idMapper;
+        private int backupScheme;
 
         public WriteJELIB(Library lib, String newName)
         {
             super("Write "+lib, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.lib = lib;
             this.newName = newName;
+            backupScheme = IOTool.getBackupRedundancy();
             startJob();
         }
 
@@ -886,7 +889,7 @@ public class Output
                         lib = EDatabase.serverDatabase().getLib(idMapper.get(lib.getId()));
                 }
                 fieldVariableChanged("idMapper");
-                error = Output.writeLibrary(lib, FileType.JELIB, false, false, false);
+                error = Output.writeLibrary(lib, FileType.JELIB, false, false, false, backupScheme);
             } catch (Exception e)
             {
             	throw new JobException("Exception caught when saving library: " + e.getMessage());

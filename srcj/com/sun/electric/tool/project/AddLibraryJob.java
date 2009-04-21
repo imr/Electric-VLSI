@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.io.File;
@@ -47,6 +48,7 @@ public class AddLibraryJob extends Job
 {
 	private Set<Library> libList;
 	private ProjectDB pdb;
+	private int backupScheme;
 
 	/**
 	 * Method to add the current library to the repository.
@@ -114,6 +116,7 @@ public class AddLibraryJob extends Job
 		super("Add Library", Project.getProjectTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 		this.libList = libList;
 		this.pdb = Project.projectDB;
+		this.backupScheme = IOTool.getBackupRedundancy();
 		startJob();
 	}
 
@@ -246,7 +249,7 @@ public class AddLibraryJob extends Job
 			// link the cell into the project lists
 			pl.linkProjectCellToCell(pc, cell);
 
-			if (Project.writeCell(cell, pc)) System.out.println("Error writing cell file"); else		// CHANGES DATABASE
+			if (Project.writeCell(cell, pc, backupScheme)) System.out.println("Error writing cell file"); else		// CHANGES DATABASE
 			{
 				// write the cell to disk in its own library
 				System.out.println("Entering " + cell);

@@ -199,6 +199,7 @@ public class EDIF extends Topology
     {
 		boolean edifUseSchematicView = IOTool.isFactoryEDIFUseSchematicView();
 		boolean edifCadenceCompatibility = IOTool.isFactoryEDIFCadenceCompatibility();
+		String configurationFile = IOTool.getEDIFConfigurationFile();
 
         public EDIFPreferences(boolean factory) {
             super(factory);
@@ -225,7 +226,7 @@ public class EDIF extends Topology
 		localPrefs = ep;
         libsToWrite = new HashMap<Library,LibToWrite>();
         libsToWriteOrder = new ArrayList<Library>();
-        equivs = new EDIFEquiv();
+        equivs = new EDIFEquiv(localPrefs.configurationFile);
 	}
 
 	protected void start()

@@ -637,6 +637,7 @@ public class FileMenu {
         private Library curLib;
 		private Library createLib;
 		private Library deleteLib;
+		private Input.InputPreferences prefs;
         private RenameAndSaveLibraryTask saveTask;
 		private boolean useCurrentLib;
         private Map<Library,Cell> currentCells = new HashMap<Library,Cell>();
@@ -656,8 +657,10 @@ public class FileMenu {
 				startTime = System.currentTimeMillis();
 				startMemory = com.sun.electric.Main.getMemoryUsage();
 			}
+            prefs = Input.getInputPreferences(type, false);
 			startJob();
 		}
+
 		// this version imports to current library
 		public ImportLibrary(URL fileURL, FileType type)
 		{
@@ -669,6 +672,7 @@ public class FileMenu {
             Cell curCell = curLib.getCurCell();
             if (curCell != null)
                 currentCells.put(curLib, curCell);
+            prefs = Input.getInputPreferences(type, false);
 			startJob();
 		}
 
@@ -687,9 +691,9 @@ public class FileMenu {
 				deleteLib = null;
 			}
 			if (useCurrentLib) {
-				createLib = Input.importToCurrentLibrary(fileURL, type, curLib, currentCells);
+				createLib = Input.importToCurrentLibrary(prefs, fileURL, type, curLib, currentCells);
 			} else {
-				createLib = Input.importLibrary(fileURL, type, currentCells);
+				createLib = Input.importLibrary(prefs, fileURL, type, currentCells);
 			}
 
 			if (createLib == null) return false;
@@ -791,7 +795,6 @@ public class FileMenu {
 	 */
 	public static void importToCurrentCellCommand(FileType type)
 	{
-
 		String fileName = null;
 		if (type == FileType.DAIS)
 		{
@@ -804,7 +807,8 @@ public class FileMenu {
 		{
 			// start a job to do the input
 			URL fileURL = TextUtils.makeURLToFile(fileName);
-			//import to the current library
+
+			// import to the current library
 			new ImportLibrary(fileURL, type);
 		}
 	}
@@ -820,7 +824,6 @@ public class FileMenu {
 		if (wholeDirectory)
 		{
 			fileName = OpenFile.chooseInputFile(type, null, true, User.getWorkingDirectory(), true);
-//			fileName = OpenFile.chooseDirectory(type.getDescription());
 		} else
 		{
 			fileName = OpenFile.chooseInputFile(type, null);
@@ -1088,6 +1091,7 @@ public class FileMenu {
         private String newName;
         private FileType type;
         private boolean compatibleWith6;
+        private int backupScheme;
 
         private RenameAndSaveLibraryTask(Library lib, String newName, FileType type, boolean compatibleWith6)
         {
@@ -1095,6 +1099,7 @@ public class FileMenu {
             this.newName = newName;
             this.type = type;
             this.compatibleWith6 = compatibleWith6;
+            this.backupScheme = IOTool.getBackupRedundancy();
         }
 
         private IdMapper renameAndSave() throws JobException {
@@ -1108,7 +1113,7 @@ public class FileMenu {
                     if (idMapper != null)
                         lib = EDatabase.serverDatabase().getLib(idMapper.get(lib.getId()));
                 }
-                success = !Output.writeLibrary(lib, type, compatibleWith6, false, false);
+                success = !Output.writeLibrary(lib, type, compatibleWith6, false, false, backupScheme);
             } catch (Exception e) {
                 e.printStackTrace(System.out);
                 throw new JobException("Exception caught when saving files: " +

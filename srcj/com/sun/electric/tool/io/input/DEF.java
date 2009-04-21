@@ -50,6 +50,7 @@ import com.sun.electric.tool.io.IOTool;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -92,6 +93,30 @@ public class DEF extends LEFDEF
 	private Pattern pat_leftbracket = Pattern.compile("\\\\"+ "\\[");
 	private Pattern pat_starrightbracket = Pattern.compile(".*\\\\"+ "\\]");
 	private Pattern pat_rightbracket = Pattern.compile("\\\\"+ "\\]");
+
+	private DEFPreferences localPrefs;
+
+	public static class DEFPreferences extends InputPreferences
+    {
+		public boolean logicalPlacement = IOTool.isDEFLogicalPlacement();
+		public boolean physicalPlacement = IOTool.isDEFPhysicalPlacement();
+
+		public DEFPreferences(boolean factory) { super(factory); }
+
+        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        {
+        	DEF in = new DEF(this);
+			if (in.openTextInput(fileURL)) return null;
+			lib = in.importALibrary(lib, currentCells);
+			in.closeInput();
+			return in;
+        }
+    }
+
+	/**
+	 * Creates a new instance of DEF.
+	 */
+	DEF(DEFPreferences ap) { localPrefs = ap; }
 
 	/**
 	 * Method to import a library from disk.
@@ -462,8 +487,9 @@ public class DEF extends LEFDEF
 //	}
 	private PortInst findConnection(double x, double y, ArcProto ap, Cell cell, NodeInst noti)
 	{
-		if (PortHT.containsKey(x+y)) {
-			List<NodeInst> pl = PortHT.get(x+y);
+		Double key = new Double(x+y);
+		if (PortHT.containsKey(key)) {
+			List<NodeInst> pl = PortHT.get(key);
 			Point2D pt = new Point2D.Double(x, y);
 			for (int i=0; i < pl.size(); i++)
 			{
@@ -504,13 +530,14 @@ public class DEF extends LEFDEF
 			return null;
 		}
 		List<NodeInst> pl;
-		if (PortHT.containsKey(x+y))
+		Double key = new Double(x+y);
+		if (PortHT.containsKey(key))
 		{
-			pl = PortHT.get(x+y);
+			pl = PortHT.get(key);
 		} else
 		{
 			pl = new ArrayList<NodeInst>();
-			PortHT.put(x+y, pl);
+			PortHT.put(key, pl);
 		}
 		pl.add(ni);
 
@@ -913,7 +940,7 @@ public class DEF extends LEFDEF
 			pp = ni.getProto().findPortProto(portName);
 			if (pp == null) continue;
 			pi = ni.findPortInstFromProto(pp);
-			if (lastPi != null && IOTool.isDEFLogicalPlacement())
+			if (lastPi != null && localPrefs.logicalPlacement)
 			{
 				//do connection
 				ArcInst ai = ArcInst.makeInstance(Generic.tech().unrouted_arc, pi, lastPi);
@@ -937,7 +964,7 @@ public class DEF extends LEFDEF
 	{
 		if (specialNetsHT == null) return;
 		if (normalNetsHT == null) return;
-		if (!IOTool.isDEFLogicalPlacement()) return;
+		if (!localPrefs.logicalPlacement) return;
 		for (Enumeration enSpec = specialNetsHT.keys(); enSpec.hasMoreElements();)
 		{
 			String netName = (String)enSpec.nextElement();
@@ -1024,7 +1051,7 @@ public class DEF extends LEFDEF
 					if (special) specialNetsHT.put(netName,lastPi);
 						else normalNetsHT.put(netName,lastPi);
 				}
-				if (lastLogPi != null && lastPi != null && IOTool.isDEFLogicalPlacement())
+				if (lastLogPi != null && lastPi != null && localPrefs.logicalPlacement)
 				{
 					// connect logical network and physical network so that DRC passes
 					ArcInst ai = ArcInst.makeInstance(Generic.tech().unrouted_arc, lastPi, lastLogPi);
@@ -1177,7 +1204,7 @@ public class DEF extends LEFDEF
 					reportError("Expected ')' of pin pair");
 					return true;
 				}
-				if (IOTool.isDEFLogicalPlacement())
+				if (localPrefs.logicalPlacement)
 				{
 					if (connectAllComponents)
 					{
@@ -1209,7 +1236,7 @@ public class DEF extends LEFDEF
 			if (key.equalsIgnoreCase("NEW"))
 			{
 				// Connect last created segment to logical network
-				if (lastLogPi != null && lastPi != null && IOTool.isDEFLogicalPlacement())
+				if (lastLogPi != null && lastPi != null && localPrefs.logicalPlacement)
 				{
 					// connect logical network and physical network so that DRC passes
 					ArcInst ai = ArcInst.makeInstance(Generic.tech().unrouted_arc, lastPi, lastLogPi);
@@ -1289,7 +1316,7 @@ public class DEF extends LEFDEF
 			ViaDef vd = checkForVia(key);
 
 			// stop now if not placing physical nets
-			if (!IOTool.isDEFPhysicalPlacement() || schImport)
+			if (!localPrefs.physicalPlacement || schImport)
 			{
 				// ignore the next keyword if a via name is coming
 				if (vd != null)

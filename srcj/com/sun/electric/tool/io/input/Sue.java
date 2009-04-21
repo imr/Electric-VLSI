@@ -66,6 +66,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -219,6 +220,29 @@ public class Sue extends Input
 	private String       sueLastLine;
 	private String       lastLineRead;
 	private List<String> sueDirectories;
+	private SuePreferences localPrefs;
+
+	public static class SuePreferences extends InputPreferences
+    {
+		public boolean use4PortTransistors = IOTool.isSueUses4PortTransistors();
+		public boolean convertExpressions = IOTool.isSueConvertsExpressions();
+
+		public SuePreferences(boolean factory) { super(factory); }
+
+        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        {
+        	Sue in = new Sue(this);
+			if (in.openTextInput(fileURL)) return null;
+			lib = in.importALibrary(lib, currentCells);
+			in.closeInput();
+			return in;
+        }
+    }
+
+	/**
+	 * Creates a new instance of Sue.
+	 */
+	Sue(SuePreferences ap) { localPrefs = ap; }
 
 	/**
 	 * Method to import a library from disk.
@@ -466,7 +490,7 @@ public class Sue extends Input
 				if (proto == null)
 				{
 					SueEquiv [] curEquivs = sueEquivs;
-					if (IOTool.isSueUses4PortTransistors()) curEquivs = sueEquivs4;
+					if (localPrefs.use4PortTransistors) curEquivs = sueEquivs4;
 					int i = 0;
 					for( ; i < curEquivs.length; i++)
 						if (keyword1.equalsIgnoreCase(curEquivs[i].sueName)) break;
@@ -1830,7 +1854,7 @@ public class Sue extends Input
 	 */
 	private String parseExpression(String expression)
 	{
-		if (!IOTool.isSueConvertsExpressions()) return expression;
+		if (!localPrefs.convertExpressions) return expression;
 		StringBuffer infstr = new StringBuffer();
 		for(int i=0; i<expression.length(); i++)
 		{

@@ -1,28 +1,35 @@
 package com.sun.electric.tool.io.input.verilog;
 
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.tool.user.ViewChanges;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.user.ViewChanges;
 
-import java.net.URL;
-import java.io.IOException;
-import java.util.*;
 import java.awt.geom.Point2D;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 /**
  * User: gg151869
@@ -38,6 +45,26 @@ public class VerilogReader extends Input
     Cell topCell = null;
     Map<String, NodeInst> pinsMap = new HashMap<String, NodeInst>();
     private String typicalSkipStrings = "\t\\"; // strings that should be ignored by the StringTokenizer()
+	private VerilogPreferences localPrefs;
+
+	public static class VerilogPreferences extends InputPreferences
+    {
+		public VerilogPreferences(boolean factory) { super(factory); }
+
+        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        {
+        	VerilogReader in = new VerilogReader(this);
+			if (in.openTextInput(fileURL)) return null;
+			lib = in.importALibrary(lib, currentCells);
+			in.closeInput();
+			return in;
+        }
+    }
+
+	/**
+	 * Creates a new instance of VerilogReader.
+	 */
+	public VerilogReader(VerilogPreferences ap) { localPrefs = ap; }
 
     private String readCellHeader(List<String> inputs) throws IOException
     {
@@ -686,7 +713,6 @@ public class VerilogReader extends Input
 
     public VerilogData readVerilogOnly(String file, boolean fullOyster, Job job)
     {
-        URL fileURL = TextUtils.makeURLToFile(file);
         VerilogData verilogData = parseVerilog(file, fullOyster);
 
         if (verilogData == null) return null; // error
@@ -794,7 +820,6 @@ public class VerilogReader extends Input
 
     private void addPins(VerilogData.VerilogConnection port, Cell cell, boolean addExport, boolean fullOyster)
     {
-        String name = port.name;
         PortCharacteristic portType = port.getPortType();
 
         List<String> pinNames = port.getPinNames(fullOyster); // This function controls if busses are split into multi pins
@@ -810,11 +835,10 @@ public class VerilogReader extends Input
             {
                 ni = NodeInst.newInstance(primitive, getNextLocation(cell),
                         primitiveWidth, primitiveHeight,
-    //                        primitive.getDefWidth(), primitive.getDefHeight(),
                         cell, Orientation.IDENT, pinName);
                 if (addExport)
                 {
-                    Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), pinName, portType);
+                    Export.newInstance(cell, ni.getOnlyPortInst(), pinName, portType);
                 }
             }
             else
@@ -823,14 +847,6 @@ public class VerilogReader extends Input
                  System.out.println("Wire/Input/Output " + pinName + " exists");
             }
         }
-//            PrimitiveNode primitive = (port.busPins==null) ? Schematics.tech.wirePinNode :
-//                    Schematics.tech.busPinNode;
-//            NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
-//                    primitiveWidth, primitiveHeight,
-////                        primitive.getDefWidth(), primitive.getDefHeight(),
-//                    cell, Orientation.IDENT, name, 0);
-//            Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), name);
-//            ex.setCharacteristic(portType);
     }
 
     /**
@@ -898,18 +914,15 @@ public class VerilogReader extends Input
                 // extra pin
                 NodeInst ni = NodeInst.newInstance(Schematics.tech().wirePinNode, new Point2D.Double(p.getX(), p.getY()+height/2),
                         0.5, 0.5,
-        //                Schematics.tech.wirePinNode.getDefWidth(), Schematics.tech.wirePinNode.getDefHeight(),
                         cell, Orientation.IDENT, name+"@0");
 
                 ArcInst.makeInstanceBase(Schematics.tech().wire_arc, 0.0,
-//                ArcInst.makeInstanceFull(Schematics.tech.wire_arc, 0.0 /*Schematics.tech.wire_arc.getDefaultLambdaFullWidth()*/,
                     ni.getOnlyPortInst(), supply.getOnlyPortInst(), null, null, name);
 
-                Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), name, portType);
+                Export.newInstance(cell, ni.getOnlyPortInst(), name, portType);
             }
             else
                 System.out.println("Skipping this characteristic?");
-//                    assert(false); // it should not reach this point.
         }
         }
 

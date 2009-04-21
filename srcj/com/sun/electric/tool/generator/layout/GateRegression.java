@@ -32,6 +32,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
 
 /*
@@ -39,6 +40,7 @@ import com.sun.electric.tool.user.User;
  */
 public class GateRegression extends Job {
     private TechType.TechTypeEnum technology;
+    private int backupScheme;
 
     // specify which gates shouldn't be surrounded by DRC rings
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
@@ -82,13 +84,13 @@ public class GateRegression extends Job {
     public boolean doIt() throws JobException {
 		Library scratchLib =
 		  LayoutLib.openLibForWrite("scratch"+technology);
-        runRegression(technology, scratchLib);
+        runRegression(technology, scratchLib, backupScheme);
         return true;
     }
 
     /** Programatic interface to gate regressions.
      * @return the number of errors detected */
-    public static int runRegression(TechType.TechTypeEnum technology, Library scratchLib) {
+    public static int runRegression(TechType.TechTypeEnum technology, Library scratchLib, int backupScheme) {
 		System.out.println("begin Gate Regression");
 
 //        Tech.setTechnology(technology);     This call can't be done inside the doIt() because it calls the preferences
@@ -152,7 +154,7 @@ public class GateRegression extends Job {
 
         //IOTool.setCIFOutMergesBoxes(true);
         //int numCifErrs = CIF.writeCIFFile(gallery, VarContext.globalContext, "scratch.cif");
-        LayoutLib.writeLibrary(scratchLib);
+        LayoutLib.writeLibrary(scratchLib, backupScheme);
 
         System.out.println("done.");
 
@@ -170,6 +172,7 @@ public class GateRegression extends Job {
 		super("Run Gate regression", User.getUserTool(), Job.Type.CHANGE,
 			  null, null, Job.Priority.ANALYSIS);
         this.technology = techNm;
+        this.backupScheme = IOTool.getBackupRedundancy();
         Tech.setTechType(techNm.getTechType());
 		startJob();
 	}
