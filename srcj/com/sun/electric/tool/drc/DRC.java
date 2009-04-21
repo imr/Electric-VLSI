@@ -928,7 +928,8 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 			}
             // only when is flat -> use layer index for sorting
             if (layer1 != null && loggingType == DRCCheckLogging.DRC_LOG_FLAT) sortKey = layer1.getIndex();
-			errorMessage.append(errorMessagePart2);
+            // errorMessagePart2 is at least null for BADLAYERERROR
+            if (errorMessagePart2 != null) errorMessage.append(errorMessagePart2);
 		}
 		if (rule != null && rule.length() > 0) errorMessage.append(" [rule '" + rule + "']");
 		errorMessage.append(DRCexclusionMsg);
