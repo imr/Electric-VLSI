@@ -2750,17 +2750,39 @@ public class TechEditWizardData
         }
 
         // Writting Layer Rules
-        makeLayerRuleMinWid(t, diffPLayer, diff_width);
-        makeLayerRuleMinWid(t, diffNLayer, diff_width);
-        makeLayerRuleMinWid(t, pplusLayer, pplus_width);
-        makeLayersRuleSurround(t, pplusLayer, diffPLayer, pplus_overhang_diff);
-        makeLayerRuleMinWid(t, nplusLayer, nplus_width);
-        makeLayersRuleSurround(t, nplusLayer, diffNLayer, nplus_overhang_diff);
-        makeLayerRuleMinWid(t, nwellLayer, nwell_width);
-        makeLayersRuleSurround(t, nwellLayer, diffPLayer, nwell_overhang_diff_p);
-        makeLayersRuleSurround(t, nwellLayer, diffNLayer, nwell_overhang_diff_n);
+        for (Xml.Layer l : diffLayers)
+        {
+            makeLayerRuleMinWid(t, l, diff_width);
+            makeLayersRule(t, l, DRCTemplate.DRCRuleType.SPACING, diff_spacing);
+        }
 
-        makeLayerRuleMinWid(t, polyLayer, poly_width);
+        WizardField[] plus_diff = {pplus_overhang_diff, nplus_overhang_diff};
+        WizardField[] plus_width = {pplus_width, nplus_width};
+        WizardField[] plus_spacing = {pplus_spacing, nplus_spacing};
+
+        for (int i = 0; i < plusLayers.length; i++)
+        {
+            makeLayerRuleMinWid(t, plusLayers[i], plus_width[i]);
+            makeLayersRuleSurround(t, plusLayers[i], diffLayers[i], plus_diff[i]);
+            makeLayersRule(t, plusLayers[i], DRCTemplate.DRCRuleType.SPACING, plus_spacing[i]);
+        }
+
+        Xml.Layer[] wells = {pwellLayer, nwellLayer};
+
+        for (Xml.Layer w : wells)
+        {
+            makeLayerRuleMinWid(t, w, nwell_width);
+            makeLayersRuleSurround(t, w, diffPLayer, nwell_overhang_diff_p);
+            makeLayersRuleSurround(t, w, diffNLayer, nwell_overhang_diff_n);
+            makeLayersRule(t, w, DRCTemplate.DRCRuleType.SPACING, nwell_spacing);
+        }
+
+        Xml.Layer[] polys = {polyLayer, polyGateLayer};
+        for (Xml.Layer w : polys)
+        {
+            makeLayerRuleMinWid(t, w, poly_width);
+            makeLayersRule(t, w, DRCTemplate.DRCRuleType.SPACING, poly_spacing);
+        }
 
         for (int i = 0; i < num_metal_layers; i++) {
             Xml.Layer met = metalLayers.get(i);
