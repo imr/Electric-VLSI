@@ -133,6 +133,8 @@ public class TechEditWizardData
     }
     private static class Contact
     {
+        // some primitives might not have prefix. "-" should not be in the prefix to avoid
+        // being displayed in the palette
         String prefix;
         List<ContactNode> layers;
 
@@ -2011,7 +2013,7 @@ public class TechEditWizardData
         }
 
         // NPlus and PPlus
-        int [] pattern = new int[] { 0x1010,   //    X       X
+        int [] patternSlash = new int[] { 0x1010,   //    X       X
                         0x2020,   //   X       X
                         0x4040,   //  X       X
                         0x8080,   // X       X
@@ -2027,19 +2029,8 @@ public class TechEditWizardData
                         0x0202,   //       X       X
                         0x0404,   //      X       X
                         0x0808};
-        // NPlus
-        graph = new EGraphics(true, true, null, 0, nplus_colour.getRed(), nplus_colour.getGreen(),
-            nplus_colour.getBlue(), 1, true, pattern);
-        Xml.Layer nplusLayer = makeXmlLayer(t.layers, layer_width, "NPlus", com.sun.electric.technology.Layer.Function.IMPLANTN, 0, graph,
-            (char)('A' + cifNumber++), nplus_width, true, false);
-        // PPlus
-        graph = new EGraphics(true, true, null, 0, pplus_colour.getRed(), pplus_colour.getGreen(),
-            pplus_colour.getBlue(), 1, true, pattern);
-        Xml.Layer pplusLayer = makeXmlLayer(t.layers, layer_width, "PPlus", Layer.Function.IMPLANTP, 0, graph,
-            (char)('A' + cifNumber++), pplus_width, true, false);
 
-        // N-Well
-        pattern = new int[] { 0x0202,   //       X       X
+        int [] patternBackSlash = new int[] { 0x0202,   //       X       X
                         0x0101,   //        X       X
                         0x8080,   // X       X
                         0x4040,   //  X       X
@@ -2055,10 +2046,44 @@ public class TechEditWizardData
                         0x1010,   //    X       X
                         0x0808,   //     X       X
                         0x0404};
+
+        int[] patternDots = new int[] {
+                        0x0202,   //       X       X
+                        0x0000,   //
+                        0x2020,   //   X       X
+                        0x0000,   //
+                        0x0202,   //       X       X
+                        0x0000,   //
+                        0x2020,   //   X       X
+                        0x0000,   //
+                        0x0202,   //       X       X
+                        0x0000,   //
+                        0x2020,   //   X       X
+                        0x0000,   //
+                        0x0202,   //       X       X
+                        0x0000,   //
+                        0x2020,   //   X       X
+                        0x0000};   //
+
+        // NPlus
+        graph = new EGraphics(true, true, null, 0, nplus_colour.getRed(), nplus_colour.getGreen(),
+            nplus_colour.getBlue(), 1, true, patternSlash);
+        Xml.Layer nplusLayer = makeXmlLayer(t.layers, layer_width, "NPlus", com.sun.electric.technology.Layer.Function.IMPLANTN, 0, graph,
+            (char)('A' + cifNumber++), nplus_width, true, false);
+        // PPlus
+        graph = new EGraphics(true, true, null, 0, pplus_colour.getRed(), pplus_colour.getGreen(),
+            pplus_colour.getBlue(), 1, true, patternDots);
+        Xml.Layer pplusLayer = makeXmlLayer(t.layers, layer_width, "PPlus", Layer.Function.IMPLANTP, 0, graph,
+            (char)('A' + cifNumber++), pplus_width, true, false);
+
+        // N-Well
         graph = new EGraphics(true, true, null, 0, nwell_colour.getRed(), nwell_colour.getGreen(),
-            nwell_colour.getBlue(), 1, true, pattern);
+            nwell_colour.getBlue(), 1, true, patternDots);
         Xml.Layer nwellLayer = makeXmlLayer(t.layers, layer_width, "N-Well", Layer.Function.WELLN, 0, graph,
             (char)('A' + cifNumber++), nwell_width, true, false);
+        // P-Well
+        graph = new EGraphics(true, true, null, 0, nwell_colour.getRed(), nwell_colour.getGreen(),
+            nwell_colour.getBlue(), 1, true, patternBackSlash);
         Xml.Layer pwellLayer = makeXmlLayer(t.layers, layer_width, "P-Well", Layer.Function.WELLP, 0, graph,
             (char)('A' + cifNumber++), nwell_width, true, false);
 
@@ -2190,9 +2215,6 @@ public class TechEditWizardData
                 double h1y = scaledValue(contact_size.v/2 + metalLayer.overY.v);
                 double h2x = scaledValue(contact_size.v/2 + otherLayer.overX.v);
                 double h2y = scaledValue(contact_size.v/2 + otherLayer.overY.v);
-
-//                double longX = DBMath.isGreaterThan(metalLayer.overX.v, otherLayer.overX.v) ? metalLayer.overX.v : otherLayer.overX.v;
-//                double longY = DBMath.isGreaterThan(metalLayer.overY.v, otherLayer.overY.v) ? metalLayer.overY.v : otherLayer.overY.v;  
                 double longX = (Math.abs(metalLayer.overX.v - otherLayer.overX.v));
                 double longY = (Math.abs(metalLayer.overY.v - otherLayer.overY.v));
 
@@ -2207,8 +2229,6 @@ public class TechEditWizardData
                     double h3x = scaledValue(contact_size.v/2 + node.overX.v);
                     double h3y = scaledValue(contact_size.v/2 + node.overY.v);
                     extraN = makeXmlNodeLayer(h3x, h3x, h3y, h3y, lz, Poly.Type.FILLED);
-//                    longX = DBMath.isGreaterThan(longX, node.overX.v) ? longX : node.overX.v;
-//                    longY = DBMath.isGreaterThan(longY, node.overY.v) ? longX : node.overY.v;
 
                     // This assumes no well is defined
                     longX = (Math.abs(node.overX.v - otherLayer.overX.v));
@@ -2217,7 +2237,10 @@ public class TechEditWizardData
                 longX = scaledValue(longX);
                 longY = scaledValue(longY);
 
-                g.addElement(makeXmlPrimitiveCon(t.nodeGroups, c.prefix + name, PrimitiveNode.Function.CONTACT, -1, -1,
+                // some primitives might not have prefix. "-" should not be in the prefix to avoid
+                // being displayed in the palette
+                String p = (c.prefix == null || c.prefix.equals("")) ? "" : c.prefix + "-";
+                g.addElement(makeXmlPrimitiveCon(t.nodeGroups, p + name, PrimitiveNode.Function.CONTACT, -1, -1,
                     new SizeOffset(longX, longX, longY, longY), portNames,
                     makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED), // layer1
                     makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED), // layer2
@@ -2234,8 +2257,7 @@ public class TechEditWizardData
             portNames.add(m1Layer.name);
             String composeName = diffNames[i] + "-" + gds_diff_layer.name; //Diff";
             Xml.NodeLayer wellNode, wellNodePin;
-            ArcProto.Function
-                arcF;
+            ArcProto.Function arcF;
             Xml.ArcLayer arcL;
             WizardField arcVal;
 
@@ -2278,7 +2300,7 @@ public class TechEditWizardData
                 makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED), // active layer
                 makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED), // select layer
                 wellNode, // well layer
-                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)), "Full"); // contact
+                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)), "Full-" + diffNames[i]); // contact
         }
 
         /**************************** N/P-Well Contacts ***********************************************/
@@ -2338,7 +2360,7 @@ public class TechEditWizardData
                 makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED), // active layer
                 makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED), // select layer
                 wellNode, // well layer
-                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)), "Full"); // contact
+                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)), "Full-"+diffNames[i] + "W"); // contact
         }
 
         /**************************** Metals Nodes/Arcs ***********************************************/
@@ -2410,7 +2432,10 @@ public class TechEditWizardData
                 portNames.add(lx.name);
                 portNames.add(ly.name);
 
-                metalPalette[via-1].addElement(makeXmlPrimitiveCon(t.nodeGroups, c.prefix + name, PrimitiveNode.Function.CONTACT, -1, -1,
+                // some primitives might not have prefix. "-" should not be in the prefix to avoid
+                // being displayed in the palette
+                String p = (c.prefix == null || c.prefix.equals("")) ? "" : c.prefix + "-";
+                metalPalette[via-1].addElement(makeXmlPrimitiveCon(t.nodeGroups, p + name, PrimitiveNode.Function.CONTACT, -1, -1,
                     new SizeOffset(longX, longX, longY, longY),
                     portNames,
                     makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED), // layer1
@@ -2587,7 +2612,7 @@ public class TechEditWizardData
             // Standard Transistor
             Xml.PrimitiveNodeGroup n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-            g.addElement(n, null);
+            g.addElement(n, name);
 
             // Extra transistors which don't have select nor well
             // Extra protection poly. No ports are necessary.
@@ -2619,7 +2644,7 @@ public class TechEditWizardData
                 }
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-S", func, 0, 0, 0, 0,
                      new SizeOffset(shortSox, shortSox, soy, soy), nodesList, nodePorts, null, false);
-                g.addElement(n, "S");
+                g.addElement(n, name + "-S");
 
                 // different select for those with extra protection layers
                 nodesList.remove(xTranSelLayer);
@@ -2654,7 +2679,7 @@ public class TechEditWizardData
                 nodesList.add(bOrL);
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-B", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-                g.addElement(n, "B");
+                g.addElement(n, name + "-B");
 
                 // top or right
                 Xml.NodeLayer tOrR = (makeXmlNodeLayerSpecial(gatex, gatex, // endPolyx, endPolyx,
@@ -2666,13 +2691,13 @@ public class TechEditWizardData
                 nodesList.add(tOrR);
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-TB", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-                g.addElement(n, "TB");
+                g.addElement(n, name + "-TB");
 
                 // Adding right
                 nodesList.remove(bOrL);
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-T", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-                g.addElement(n, "T");
+                g.addElement(n, name +"-T");
             }
         }
 
