@@ -44,6 +44,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.dialogs.Progress;
+import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ErrorLoggerTree;
 import com.sun.electric.tool.user.ui.JobTree;
@@ -122,7 +123,9 @@ public class UserInterfaceMain extends AbstractUserInterface
         try {
             EventQueue.invokeAndWait(new Runnable() {
                 public void run() {
- //                   System.out.println("First event");
+                    assert SwingUtilities.isEventDispatchThread();
+                    Pref.setClientThread(Thread.currentThread());
+                    Environment.setThreadEnvironment(IdManager.stdIdManager.getInitialEnvironment());
                 }
             });
         } catch (Exception e) {
@@ -232,7 +235,6 @@ public class UserInterfaceMain extends AbstractUserInterface
         }
         public void run() {
             assert SwingUtilities.isEventDispatchThread();
-            Pref.setClientThread(Thread.currentThread());
             Pref.setCachedObjsFromPreferences();
             EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, null));
             currentGraphicsPreferences = new GraphicsPreferences(true, new TechPool(IdManager.stdIdManager));
@@ -839,6 +841,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         lastSavedEp = ep;
         currentGraphicsPreferences = new GraphicsPreferences(false, techPool);
         LayerVisibility.setTechPool(techPool);
+        ClickZoomWireListener.readPrefs();
     }
 
     public static EditingPreferences getEditingPreferences() {

@@ -30,7 +30,6 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
@@ -85,13 +84,14 @@ import javax.swing.JPopupMenu;
  * Time: 2:53:33 PM
  */
 public class ClickZoomWireListener
-    implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
+    implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener,
         ActionListener
 {
     private static Preferences prefs = Preferences.userNodeForPackage(ClickZoomWireListener.class);
     private static long cancelMoveDelayMillis; /* cancel move delay in milliseconds */
     private static long zoomInDelayMillis; /* zoom in delay in milliseconds */
     private static boolean useFatWiringMode;
+    private static boolean interactiveDRCDrag;
 
     private static final boolean debug = false; /* for debugging */
 
@@ -666,7 +666,7 @@ public class ClickZoomWireListener
 	                // detect worst design-rule violation if moving just one object
 	                WorstSpacing ws = new WorstSpacing();
 	                List<Geometric> selected = highlighter.getHighlightedEObjs(true, true);
-	                if (DRC.isInteractiveDRCDragOn() && selected.size() == 1)
+	                if (interactiveDRCDrag && selected.size() == 1)
 	                {
 	                	Geometric g = selected.get(0);
 	                	Netlist nl = g.getParent().acquireUserNetlist();
@@ -911,7 +911,7 @@ public class ClickZoomWireListener
     					layerTo = otherLay;
     					findClosestPoints(poly, otherPoly);
         			}
-    			}			
+    			}
     		}
     	}
 
@@ -1058,7 +1058,7 @@ public class ClickZoomWireListener
 	                if (bounds.getHeight() > 4 && bounds.getWidth() > 4) onePoint = false;
 	                if (Math.abs(wnd.getStartDrag().getX()-wnd.getEndDrag().getX()) > 10 ||
 	                	Math.abs(wnd.getStartDrag().getY()-wnd.getEndDrag().getY()) > 10) onePoint = false;
-	                
+
 	                if (modeRight == Mode.drawBox) {
 	                    // just draw a highlight box
 	                    highlighter.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
@@ -1305,7 +1305,7 @@ public class ClickZoomWireListener
         tempHighlighter.delete();  // remove from database
         tempHighlighter = null;
     }
-    
+
     public void mouseClicked(MouseEvent e) {
         //To change body of implemented methods use File | Settings | File Templates
 	    // to detect connection with other WindowContents.
@@ -1719,15 +1719,20 @@ public class ClickZoomWireListener
     private static final String zoomInDelayMillisPref = "zoomInDelayMillis";
     private static final String useFatWiringModePref = "UseFatWiringMode";
 
-    private void readPrefs() {
+    /**
+     * Recached Preferences after change
+     */
+    public static void readPrefs() {
         cancelMoveDelayMillis = prefs.getLong(cancelMoveDelayMillisPref, getFactoryCancelMoveDelayMillis());
         zoomInDelayMillis = prefs.getLong(zoomInDelayMillisPref, 120);
         useFatWiringMode = prefs.getBoolean(useFatWiringModePref, true);
+
+        interactiveDRCDrag = new DRC.DRCPreferences(false).interactiveDRCDrag;
     }
 
     public long getCancelMoveDelayMillis() { return cancelMoveDelayMillis; }
 
-    public long getFactoryCancelMoveDelayMillis() { return 200; }
+    public static long getFactoryCancelMoveDelayMillis() { return 200; }
 
     public void setCancelMoveDelayMillis(long delay) {
         cancelMoveDelayMillis = delay;

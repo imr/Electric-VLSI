@@ -24,7 +24,6 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.Main;
-import com.sun.electric.database.Environment;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
@@ -94,7 +93,6 @@ public abstract class TechFactory {
     }
 
     public Technology newInstance(Generic generic, Map<Param,Object> paramValues) {
-        Environment oldEnvironment = Environment.setThreadEnvironment(null);
         try {
             Map<Param,Object> fixedParamValues = new HashMap<Param,Object>();
             for (Param param: techParams) {
@@ -113,8 +111,6 @@ public abstract class TechFactory {
             System.out.println("Exceptions while importing extra technology " + getDescription());
 //            if (Job.getDebug())
                 ActivityLogger.logException(e);
-        } finally {
-            Environment.setThreadEnvironment(oldEnvironment);
         }
         return null;
     }

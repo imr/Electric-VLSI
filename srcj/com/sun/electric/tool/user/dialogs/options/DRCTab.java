@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs.options;
 import com.sun.electric.tool.drc.DRC;
 
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
+import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -44,9 +45,11 @@ public class DRCTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
+    @Override
 	public JPanel getPreferencesPanel() { return drc; }
 
 	/** return the name of this preferences tab. */
+    @Override
 	public String getName() { return "DRC"; }
 
 	private boolean requestedDRCClearDates;
@@ -55,11 +58,12 @@ public class DRCTab extends PreferencePanel
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the DRC tab.
 	 */
+    @Override
 	public void init()
 	{
         DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
-		drcIncrementalOn.setSelected(DRC.isIncrementalDRCOn());
-		drcInteractiveDrag.setSelected(DRC.isInteractiveDRCDragOn());
+		drcIncrementalOn.setSelected(dp.incrementalDRC);
+		drcInteractiveDrag.setSelected(dp.interactiveDRCDrag);
         switch (dp.errorType)
         {
             case ERROR_CHECK_DEFAULT: drcErrorDefault.setSelected(true);   break;
@@ -70,7 +74,7 @@ public class DRCTab extends PreferencePanel
         loggingCombo.removeAllItems();
         for (DRC.DRCCheckLogging type : DRC.DRCCheckLogging.values())
              loggingCombo.addItem(type);
-        loggingCombo.setSelectedItem(DRC.getErrorLoggingType());
+        loggingCombo.setSelectedItem(dp.errorLoggingType);
 
          // Setting minArea algorithm
         areaAlgoCombo.removeAllItems();
@@ -110,15 +114,12 @@ public class DRCTab extends PreferencePanel
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the DRC tab.
 	 */
+    @Override
 	public void term()
 	{
         DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
-		boolean currentValue = drcIncrementalOn.isSelected();
-		if (currentValue != DRC.isIncrementalDRCOn())
-			DRC.setIncrementalDRCOn(currentValue);
-		currentValue = drcInteractiveDrag.isSelected();
-		if (currentValue != DRC.isInteractiveDRCDragOn())
-			DRC.setInteractiveDRCDragOn(currentValue);
+		dp.incrementalDRC = drcIncrementalOn.isSelected();
+		dp.interactiveDRCDrag = drcInteractiveDrag.isSelected();
 
 		if (drcErrorDefault.isSelected())
             dp.errorType = DRC.DRCCheckMode.ERROR_CHECK_DEFAULT;
@@ -128,12 +129,9 @@ public class DRCTab extends PreferencePanel
             dp.errorType = DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE;
 
         // Checking the logging type
-        if (loggingCombo.getSelectedItem() != DRC.getErrorLoggingType())
-            DRC.setErrorLoggingType((DRC.DRCCheckLogging)loggingCombo.getSelectedItem());
-
+        dp.errorLoggingType = (DRC.DRCCheckLogging)loggingCombo.getSelectedItem();
         // Checking the logging type
         dp.minAreaAlgoOption = (DRC.DRCCheckMinArea)areaAlgoCombo.getSelectedItem();
-
         // Checking center cuts
         dp.ignoreCenterCuts = drcIgnoreCenterCuts.isSelected();
         // For min area rules
@@ -151,23 +149,22 @@ public class DRCTab extends PreferencePanel
         // Setting MTDRC option
         dp.isMultiThreaded = drcMultiDRC.isSelected();
         putPrefs(dp);
+        ClickZoomWireListener.readPrefs();
     }
 
 	/**
 	 * Method called when the factory reset is requested.
 	 */
+    @Override
 	public void reset()
 	{
         DRC.DRCPreferences factoryDp = new DRC.DRCPreferences(true);
         DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
 
-		if (DRC.isFactoryIncrementalDRCOn() != DRC.isIncrementalDRCOn())
-			DRC.setIncrementalDRCOn(DRC.isFactoryIncrementalDRCOn());
-		if (DRC.isFactoryInteractiveDRCDragOn() != DRC.isInteractiveDRCDragOn())
-			DRC.setInteractiveDRCDragOn(DRC.isFactoryInteractiveDRCDragOn());
+        dp.incrementalDRC = factoryDp.incrementalDRC;
+        dp.interactiveDRCDrag = factoryDp.interactiveDRCDrag;
         dp.errorType = factoryDp.errorType;
-		if (!DRC.getFactoryErrorLoggingType().equals(DRC.getErrorLoggingType()))
-			DRC.setErrorLoggingType(DRC.getFactoryErrorLoggingType());
+        dp.errorLoggingType = factoryDp.errorLoggingType;
         dp.isMultiThreaded = factoryDp.isMultiThreaded;
 
 		dp.storeDatesInMemory = factoryDp.storeDatesInMemory;
@@ -177,6 +174,7 @@ public class DRCTab extends PreferencePanel
         dp.interactiveLog = factoryDp.interactiveLog;
         dp.minAreaAlgoOption = factoryDp.minAreaAlgoOption;
         putPrefs(dp);
+        ClickZoomWireListener.readPrefs();
 	}
 
 	/** This method is called from within the constructor to

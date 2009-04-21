@@ -36,7 +36,6 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -737,8 +736,8 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 
     public static class ReportInfo
     {
-
-        /** error type search */				                    DRC.DRCCheckMode errorTypeSearch;
+        /** DRC preferences */                                      DRCPreferences dp;
+        /** error type search */				                    DRCCheckMode errorTypeSearch;
         /** minimum output grid resolution */				        double minAllowedResolution;
         /** true to ignore center cuts in large contacts. */		boolean ignoreCenterCuts;
         /** maximum area to examine (the worst spacing rule). */	double worstInteractionDistance;
@@ -754,6 +753,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         public ReportInfo(ErrorLogger eL, Technology tech, DRCPreferences dp, boolean specificGeoms)
         {
             errorLogger = eL;
+            this.dp = dp;
             interactiveLogger = dp.interactiveLog;
             activeSpacingBits = DRC.getActiveBits(tech, dp);
             worstInteractionDistance = DRC.getWorstSpacingDistance(tech, -1);
@@ -811,7 +811,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             return;
 
 		StringBuffer errorMessage = new StringBuffer();
-        DRCCheckLogging loggingType = getErrorLoggingType();
+        DRCCheckLogging loggingType = reportInfo.dp.errorLoggingType;
 
         int sortKey = cell.hashCode(); // 0;
 		if (errorType == DRCErrorType.SPACINGERROR || errorType == DRCErrorType.NOTCHERROR || errorType == DRCErrorType.SURROUNDERROR)
@@ -1072,7 +1072,6 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 
 	private static void includeGeometric(Geometric geom)
 	{
-		if (!isIncrementalDRCOn()) return;
         Cell cell = geom.getParent();
 
         synchronized (cellsToCheck)
@@ -1089,7 +1088,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 
     private static void doIncrementalDRCTask(DRCPreferences dp, Cell cellToCheck)
 	{
-		if (!isIncrementalDRCOn()) return;
+		if (!dp.incrementalDRC) return;
 		if (incrementalRunning) return;
 
 		Set<Geometric> cellSet = null;
@@ -1142,21 +1141,24 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
      */
     public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
 	{
-        for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
-            Cell cell = Cell.inCurrentThread(cellId);
-            if (cell == null) continue;
-            CellBackup oldBackup = oldSnapshot.getCell(cellId);
-            for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-                NodeInst ni = it.next();
-                ImmutableNodeInst d = ni.getD();
-                if (oldBackup == null || oldBackup.cellRevision.getNode(d.nodeId) != d)
-                    includeGeometric(ni);
-            }
-            for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
-                ArcInst ai = it.next();
-                ImmutableArcInst d = ai.getD();
-                if (oldBackup == null || oldBackup.cellRevision.getArc(d.arcId) != d)
-                    includeGeometric(ai);
+        DRCPreferences dp = new DRCPreferences(false);
+        if (dp.incrementalDRC) {
+            for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
+                Cell cell = Cell.inCurrentThread(cellId);
+                if (cell == null) continue;
+                CellBackup oldBackup = oldSnapshot.getCell(cellId);
+                for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+                    NodeInst ni = it.next();
+                    ImmutableNodeInst d = ni.getD();
+                    if (oldBackup == null || oldBackup.cellRevision.getNode(d.nodeId) != d)
+                        includeGeometric(ni);
+                }
+                for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
+                    ArcInst ai = it.next();
+                    ImmutableArcInst d = ai.getD();
+                    if (oldBackup == null || oldBackup.cellRevision.getArc(d.arcId) != d)
+                        includeGeometric(ai);
+                }
             }
         }
 		Library curLib = Library.getCurrent();
@@ -1888,16 +1890,28 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 
     public static class DRCPreferences extends PrefPackage {
         private static final String DRC_NODE = "tool/drc";
+        private static final String KEY_ERROR_LOGGING_TYPE = "ErrorLoggingType";
         private static final String KEY_ERROR_CHECK_LEVEL = "ErrorCheckLevel";
-        private static DRCCheckMode DEF_ERROR_CHECK_LEVEL = DRCCheckMode.ERROR_CHECK_DEFAULT;
         private static final String KEY_MIN_AREA_ALGORITHM = "MinAreaAlgorithm";
-        private static final DRCCheckMinArea DEF_MIN_AREA_ALGORITHM = DRCCheckMinArea.AREA_LOCAL;
         private static final String KEY_RESOLUTION = "ResolutionValueFor";
         private static final String KEY_OVERRIDES = "DRCOverridesFor";
 
+        /** Whether DRC should DRC should be done incrementally. The default is "false". */
+        @BooleanPref(node = DRC_NODE, key = "IncrementalDRCOn", factory = false)
+        public boolean incrementalDRC;
+
+        /** Whether DRC violations should be shown while nodes and arcs are dragged. The default is "true". */
+        @BooleanPref(node = DRC_NODE, key = "InteractiveDRCDrag", factory = true)
+        public boolean interactiveDRCDrag;
+
+        /** Logging type in DRC. The default is "DRC_LOG_PER_CELL". */
+        public DRCCheckLogging errorLoggingType;
+        private static final DRCCheckLogging DEF_ERROR_LOGGING_TYPE  = DRCCheckLogging.DRC_LOG_PER_CELL;
+
         /** Checking level in DRC. The default is "ERROR_CHECK_DEFAULT". */
         public DRCCheckMode errorType;
-    
+        private static final DRCCheckMode DEF_ERROR_CHECK_LEVEL = DRCCheckMode.ERROR_CHECK_DEFAULT;
+
         /**	Whether DRC should ignore center cuts in large contacts.
          * Only the perimeter of cuts will be checked. The default is "false".
          */
@@ -1922,6 +1936,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 
         /** Which min area algorithm to use. The default is AREA_LOCAL */
         public DRCCheckMinArea minAreaAlgoOption;
+        private static final DRCCheckMinArea DEF_MIN_AREA_ALGORITHM = DRCCheckMinArea.AREA_LOCAL;
 
         /** Whether DRC should run in a single thread or multi-threaded. The default is single-threaded. */
         @BooleanPref(node=DRC_NODE, key = "MinMultiThread", factory = false)
@@ -1937,6 +1952,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             Preferences techPrefs = getPrefRoot().node(TECH_NODE);
             Preferences drcPrefs = getPrefRoot().node(DRC_NODE);
 
+            errorLoggingType = DRCCheckLogging.valueOf(drcPrefs.get(KEY_ERROR_LOGGING_TYPE, DEF_ERROR_LOGGING_TYPE.name()));
             errorType = DRCCheckMode.class.getEnumConstants()[drcPrefs.getInt(KEY_ERROR_CHECK_LEVEL, DEF_ERROR_CHECK_LEVEL.ordinal())];
             minAreaAlgoOption = DRCCheckMinArea.valueOf(drcPrefs.get(KEY_MIN_AREA_ALGORITHM, DEF_MIN_AREA_ALGORITHM.name()));
 
@@ -1965,6 +1981,10 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             Preferences techPrefs = prefRoot.node(TECH_NODE);
             Preferences drcPrefs = prefRoot.node(DRC_NODE);
 
+            if (removeDefaults && errorLoggingType == DEF_ERROR_LOGGING_TYPE)
+                drcPrefs.remove(KEY_ERROR_LOGGING_TYPE);
+            else
+                drcPrefs.put(KEY_ERROR_LOGGING_TYPE, errorLoggingType.name());
             if (removeDefaults && errorType == DEF_ERROR_CHECK_LEVEL)
                 drcPrefs.remove(KEY_ERROR_CHECK_LEVEL);
             else
@@ -2041,62 +2061,6 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         }
 
     }
-
-	private static Pref cacheIncrementalDRCOn = Pref.makeBooleanServerPref("IncrementalDRCOn", tool.prefs, false);
-	/**
-	 * Method to tell whether DRC should be done incrementally.
-	 * The default is "false".
-	 * @return true if DRC should be done incrementally.
-	 */
-	public static boolean isIncrementalDRCOn() { return cacheIncrementalDRCOn.getBoolean(); }
-	/**
-	 * Method to set whether DRC should be done incrementally.
-	 * @param on true if DRC should be done incrementally.
-	 */
-	public static void setIncrementalDRCOn(boolean on) { cacheIncrementalDRCOn.setBoolean(on); }
-	/**
-	 * Method to tell whether DRC should be done incrementally, by default.
-	 * @return true if DRC should be done incrementally, by default.
-	 */
-	public static boolean isFactoryIncrementalDRCOn() { return cacheIncrementalDRCOn.getBooleanFactoryValue(); }
-
-	private static Pref cacheInteractiveDRCDragOn = Pref.makeBooleanPref("InteractiveDRCDrag", tool.prefs, true);
-	/**
-	 * Method to tell whether DRC violations should be shown while nodes and arcs are dragged.
-	 * The default is "true".
-	 * @return true if DRC violations should be shown while nodes and arcs are dragged.
-	 */
-	public static boolean isInteractiveDRCDragOn() { return cacheInteractiveDRCDragOn.getBoolean(); }
-	/**
-	 * Method to set whether DRC violations should be shown while nodes and arcs are dragged.
-	 * @param on true if DRC violations should be shown while nodes and arcs are dragged.
-	 */
-	public static void setInteractiveDRCDragOn(boolean on) { cacheInteractiveDRCDragOn.setBoolean(on); }
-	/**
-	 * Method to tell whether DRC violations should be shown while nodes and arcs are dragged, by default.
-	 * @return true if DRC violations should be shown while nodes and arcs are dragged, by default.
-	 */
-	public static boolean isFactoryInteractiveDRCDragOn() { return cacheInteractiveDRCDragOn.getBooleanFactoryValue(); }
-
-    /** Logging Type **/
-    private static Pref cacheErrorLoggingType = Pref.makeStringServerPref("ErrorLoggingType", tool.prefs,
-            DRCCheckLogging.DRC_LOG_PER_CELL.name());
-	/**
-	 * Method to retrieve logging type in DRC
-	 * The default is "DRC_LOG_PER_CELL".
-	 * @return integer representing error type
-	 */
-	public static DRCCheckLogging getErrorLoggingType() {return DRCCheckLogging.valueOf(cacheErrorLoggingType.getString());}
-	/**
-	 * Method to set DRC logging type.
-	 * @param type representing error logging mode.
-	 */
-	public static void setErrorLoggingType(DRCCheckLogging type) { cacheErrorLoggingType.setString(type.name()); }
-	/**
-	 * Method to retrieve logging type in DRC, by default.
-	 * @return integer representing error type, by default.
-	 */
-	public static DRCCheckLogging getFactoryErrorLoggingType() {return DRCCheckLogging.valueOf(cacheErrorLoggingType.getStringFactoryValue());}
 
     /****************************** END OF OPTIONS ******************************/
 
