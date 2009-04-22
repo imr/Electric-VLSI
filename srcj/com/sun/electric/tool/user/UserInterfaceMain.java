@@ -269,9 +269,10 @@ public class UserInterfaceMain extends AbstractUserInterface
             //runThreadStatusTimer();
 
             if (showSplash)
-                sw = new SplashWindow(mode);
+                sw = new SplashWindow();
 
             TopLevel.OSInitialize(mode);
+            TopLevel.InitializeMessagesWindow();
         }
     }
 
@@ -645,13 +646,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         Environment env = EDatabase.clientDatabase().getEnvironment();
 
         // Mirror Settings in Preferences
-        Preferences prefRoot = Pref.getPrefRoot();
-        env.saveToPreferences(prefRoot);
-        try {
-            prefRoot.flush();
-        } catch (BackingStoreException e) {
-            System.out.println("Failed to mirror Settings in Preferences");
-        }
+        env.saveToPreferences();
 
         // recache all prefs
         loadPreferences(env.techPool);
@@ -718,7 +713,6 @@ public class UserInterfaceMain extends AbstractUserInterface
         currentSnapshot = newSnapshot;
         if (newSnapshot.environment != oldSnapshot.environment) {
             Environment.setThreadEnvironment(newSnapshot.environment);
-            newSnapshot.environment.saveToPreferences(Pref.getPrefRoot());
             if (newSnapshot.techPool != oldSnapshot.techPool) {
                 loadPreferences(newSnapshot.techPool);
                 User.technologyChanged();
@@ -909,7 +903,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 	 */
 	private static class SplashWindow extends JFrame
 	{
-		public SplashWindow(Mode mode)
+		public SplashWindow()
 		{
 			super();
 			setUndecorated(true);
@@ -925,7 +919,9 @@ public class UserInterfaceMain extends AbstractUserInterface
 			whole.add(l, BorderLayout.CENTER);
 			JLabel v = new JLabel("Version " + Version.getVersion(), JLabel.CENTER);
 			whole.add(v, BorderLayout.SOUTH);
-			Font font = new Font(User.getDefaultFont(), Font.BOLD, 24);
+            String fontName = User.getFactoryDefaultFont();
+            //String fontName = User.getDefaultFont();
+			Font font = new Font(fontName, Font.BOLD, 24);
 			v.setFont(font);
 			v.setForeground(Color.BLACK);
 			v.setBackground(Color.WHITE);

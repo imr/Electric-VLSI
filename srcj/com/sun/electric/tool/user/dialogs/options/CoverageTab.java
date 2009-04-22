@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
@@ -36,7 +35,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.swing.DefaultListModel;
@@ -223,6 +221,7 @@ public class CoverageTab extends PreferencePanel
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the New Arcs tab.
 	 */
+    @Override
 	public void term()
 	{
 		// Default values are 50mm x 50 mm
@@ -240,7 +239,7 @@ public class CoverageTab extends PreferencePanel
 			if (val != LayerCoverageTool.getDeltaY(tech)) LayerCoverageTool.setDeltaY(val, tech);
 		}
 
-        lcp.putPrefs(LayerCoverageTool.LayerCoveragePreferences.getPrefRoot(), true);
+        putPrefs(lcp);
 	}
 
 	/**
@@ -250,7 +249,7 @@ public class CoverageTab extends PreferencePanel
 	public void reset()
 	{
         lcp.areaCoverage.clear();
-        lcp.putPrefs(LayerCoverageTool.LayerCoveragePreferences.getPrefRoot(), true);
+        putPrefs(lcp);
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = tIt.next();

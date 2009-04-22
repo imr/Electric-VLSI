@@ -125,7 +125,7 @@ public class GenerateVHDL extends Topology
                 String key = KEY_VHDL + pn.getName();
                 String factoryVhdl = schTech.getFactoryVHDLNames(pn);
                 String vhdl = e.getValue();
-                if (removeDefaults && !vhdl.equals(factoryVhdl))
+                if (removeDefaults && vhdl.equals(factoryVhdl))
                     techPrefs.remove(key);
                 else
                     techPrefs.put(key, vhdl);

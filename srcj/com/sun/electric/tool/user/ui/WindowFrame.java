@@ -441,7 +441,7 @@ public class WindowFrame extends Observable
 			jif.setFrameIcon(TopLevel.getFrameIcon());
 		} else
 		{
-			jf = new TopLevel("Electric - " + title, new Rectangle(frameSize), this, gc);
+			jf = new TopLevel("Electric - " + title, new Rectangle(frameSize), this, gc, true);
 			Dimension preferredSize = User.getDefaultWindowSize();
 			if (preferredSize != null) frameSize = preferredSize;
 			jf.setSize(frameSize);

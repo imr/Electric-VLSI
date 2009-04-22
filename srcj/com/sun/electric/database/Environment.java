@@ -27,6 +27,7 @@ package com.sun.electric.database;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.TechFactory;
@@ -210,11 +211,16 @@ public class Environment {
         return new Environment(toolSettings, newTechPool, newSettingValues);
     }
 
+    public void saveToPreferences() {
+        saveToPreferences(Pref.getPrefRoot());
+    }
+
     public void saveToPreferences(Preferences prefs) {
         for (Map.Entry<Setting,Object> e: getSettings().entrySet()) {
             Setting setting = e.getKey();
             setting.saveToPreferences(prefs, e.getValue());
         }
+        Pref.flushAll();
     }
 
     /**

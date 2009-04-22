@@ -86,6 +86,7 @@ public class StreamClient extends Client {
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
+                lastEvent = null;
                 Job.jobManager.connectionClosed();
             }
         }

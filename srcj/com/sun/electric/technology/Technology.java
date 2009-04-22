@@ -36,6 +36,7 @@ import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LayerId;
@@ -1207,35 +1208,48 @@ public class Technology implements Comparable<Technology>, Serializable
     }
 
 	/**
+	 * Loads from Java Preferences values of technology parameters.
+     * This is called once, at the start of Electric, to initialize the technologies.
+     * @return values of technology parameters.
+	 */
+    public static Map<String,Object> getParamValuesByXmlPath() {
+        Map<String,Object> paramValuesByXmlPath = new HashMap<String,Object>();
+        for (TechFactory techFactory: TechFactory.getKnownTechs("").values()) {
+            Map<TechFactory.Param,Object> paramValues = Technology.paramValuesFromPreferences(techFactory);
+            for (Map.Entry<TechFactory.Param,Object> e: paramValues.entrySet())
+                paramValuesByXmlPath.put(e.getKey().xmlPath, e.getValue());
+        }
+        return paramValuesByXmlPath;
+    }
+
+	/**
 	 * This is called once, at the start of Electric, to initialize the technologies.
 	 * Because of Java's "lazy evaluation", the only way to force the technology constructors to fire
 	 * and build a proper list of technologies, is to call each class.
 	 * So, each technology is listed here.  If a new technology is created, this must be added to this list.
 	 */
-	public static void initAllTechnologies()
+	public static void initAllTechnologies(EDatabase database, Map<String,Object> paramValuesByXmlPath, String softTechnologies)
 	{
-//        EDatabase database = EDatabase.serverDatabase();
-//    	for(String softTechFile: ToolSettings.getSoftTechnologiesSetting().getString().split(";")) {
-//			if (softTechFile.length() == 0) continue;
-//        	URL url = TextUtils.makeURLToFile(softTechFile);
-//        	if (!TextUtils.URLExists(url)) {
-//        		System.out.println("WARNING: could not find added technology: " + softTechFile);
-//        		System.out.println("  (fix this error in the 'Added Technologies' Project Settings)");
-//        	}
-//            TechFactory techFactory = TechFactory.fromXml(url, null);
-//            Technology tech = techFactory.newInstance(database.getGeneric());
-//            if (tech == null) continue;
-//            database.addTech(tech);
-//            Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
-//            for (Setting setting: tech.getProjectSettings().getSettings().keySet())
-//                changeBatch.add(setting, setting.getValueFromPreferences());
-//            database.implementSettingChanges(changeBatch);
-//        }
+        database.setToolSettings((Setting.RootGroup)ToolSettings.getToolSettings(""));
+        assert database.getGeneric() == null;
+        Generic generic = Generic.newInstance(database.getIdManager());
+        database.addTech(generic);
+        for (TechFactory techFactory: TechFactory.getKnownTechs(softTechnologies).values()) {
+            Map<TechFactory.Param,Object> paramValues = new HashMap<TechFactory.Param,Object>();
+            for (TechFactory.Param techParam: techFactory.getTechParams()) {
+                Object paramValue = paramValuesByXmlPath.get(techParam.xmlPath);
+                if (paramValue == null) continue;
+                paramValues.put(techParam, paramValue);
+            }
+            Technology tech = techFactory.newInstance(generic, paramValues);
+            if (tech != null)
+                database.addTech(tech);
+        }
 
 		// set the current technology, given priority to user defined
  //       curLayoutTech = getMocmosTechnology();
-        Technology  tech = Technology.findTechnology(User.getDefaultTechnology());
-        if (tech == null) tech = getMocmosTechnology();
+//        Technology  tech = Technology.findTechnology(User.getDefaultTechnology());
+//        if (tech == null) tech = getMocmosTechnology();
 //        tech.setCurrent();
 	}
 

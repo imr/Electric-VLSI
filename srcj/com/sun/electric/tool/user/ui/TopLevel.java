@@ -87,7 +87,7 @@ public class TopLevel extends JFrame
 	 * Constructor to build a window.
 	 * @param name the title of the window.
 	 */
-	public TopLevel(String name, Rectangle bound, WindowFrame frame, GraphicsConfiguration gc)
+	public TopLevel(String name, Rectangle bound, WindowFrame frame, GraphicsConfiguration gc, boolean createStructure)
 	{
 		super(name, gc);
 		setLocation(bound.x, bound.y);
@@ -97,22 +97,8 @@ public class TopLevel extends JFrame
 		// set an icon on the window
 		setIconImage(getFrameIcon().getImage());
 
-		// create the menu bar
-        try{
-            menuBar = MenuCommands.menuBar().genInstance(frame);
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-		setJMenuBar(menuBar);
-
-		// create the tool bar
-		toolBar = ToolBar.createToolBar();
-		getContentPane().add(toolBar, BorderLayout.NORTH);
-
-		// create the status bar
-		sb = new StatusBar(frame);
-		getContentPane().add(sb, BorderLayout.SOUTH);
+        if (createStructure)
+            createStructure(frame);
 
 		if (isMDIMode())
 		{
@@ -139,6 +125,25 @@ public class TopLevel extends JFrame
 		}
 	}
 
+    public void createStructure(WindowFrame frame) {
+		// create the menu bar
+        try{
+            menuBar = MenuCommands.menuBar().genInstance(frame);
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+		setJMenuBar(menuBar);
+
+		// create the tool bar
+		toolBar = ToolBar.createToolBar();
+		getContentPane().add(toolBar, BorderLayout.NORTH);
+
+		// create the status bar
+		sb = new StatusBar(frame);
+		getContentPane().add(sb, BorderLayout.SOUTH);
+    }
+
 	/**
 	 * Method to return the Icon to use in windows.
 	 * @return the Icon to use in windows.
@@ -148,13 +153,7 @@ public class TopLevel extends JFrame
 		return Resources.getResource(TopLevel.class, "IconElectric.gif");
 	}
 
-	/**
-	 * Method to initialize the window system with the specified mode.
-     * If mode is null, the mode is implied by the operating system.
-	 */
-	public static void InitializeWindows()
-	{
-		// in MDI, create the top frame now
+    public static void InitializeMessagesWindow() {
 		if (isMDIMode())
 		{
 			String loc = cacheWindowLoc.getString();
@@ -166,7 +165,7 @@ public class TopLevel extends JFrame
 			// make the desktop
 			desktop = new JDesktopPane();
             try{
-            	topLevel = new TopLevel("Electric", bound, null, null);
+            	topLevel = new TopLevel("Electric", bound, null, null, false);
             } catch (Exception e)
             {
                 e.printStackTrace();
@@ -174,9 +173,40 @@ public class TopLevel extends JFrame
 			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
             topLevel.setVisible(true);
 		}
-
-		// initialize the messagesWindow window
         messagesWindow = new MessagesWindow();
+    }
+
+	/**
+	 * Method to initialize the window system with the specified mode.
+     * If mode is null, the mode is implied by the operating system.
+	 */
+	public static void InitializeWindows()
+	{
+		// in MDI, create the top frame now
+//		if (isMDIMode())
+//		{
+//			String loc = cacheWindowLoc.getString();
+//			Rectangle bound = parseBound(loc);
+//			if (bound == null)
+//				bound = new Rectangle(scrnSize);
+//			if (MDIINITIALRESIZE) bound.width--;
+//
+//			// make the desktop
+//			desktop = new JDesktopPane();
+//            try{
+//            	topLevel = new TopLevel("Electric", bound, null, null);
+//            } catch (Exception e)
+//            {
+//                e.printStackTrace();
+//            }
+//			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
+//            topLevel.setVisible(true);
+//		}
+//
+//		// initialize the messagesWindow window
+//        messagesWindow = new MessagesWindow();
+        if (isMDIMode())
+            topLevel.createStructure(null);
         WindowFrame.createEditWindow(null);
         FileMenu.updateRecentlyOpenedLibrariesList();
 		if (MDIINITIALRESIZE && isMDIMode())

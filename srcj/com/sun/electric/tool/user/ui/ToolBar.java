@@ -499,7 +499,8 @@ public class ToolBar extends JToolBar
 			if (tl != null)
 			{
 				ToolBar tb = tl.getToolBar();
-				tb.currentGridAmount.setText(valStr);
+                if (tb != null)
+                    tb.currentGridAmount.setText(valStr);
 			}
 		} else
 		{
@@ -1332,6 +1333,7 @@ public class ToolBar extends JToolBar
 	{
 		for (ToolBar toolBar: TopLevel.getToolBars())
 		{
+            if (toolBar == null) continue;
 			for (Component c: toolBar.getComponents())
 			{
 				if (c == toolBar.currentGridAmount)

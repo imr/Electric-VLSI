@@ -23,25 +23,18 @@
  */
 package com.sun.electric;
 
-import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.Environment;
-import com.sun.electric.database.ImmutableCell;
-import com.sun.electric.database.ImmutableLibrary;
-import com.sun.electric.database.LibraryBackup;
-import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.id.CellId;
-import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.EvalJavaBsh;
-import com.sun.electric.technology.TechPool;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Client;
@@ -66,6 +59,8 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.prefs.Preferences;
 
 /**
  * This class initializes Electric and starts the system. How to run Electric:
@@ -81,7 +76,6 @@ import java.util.List;
  * <P> <CODE>         -version: version information </CODE>
  * <P> <CODE>         -v: brief version information </CODE>
  * <P> <CODE>         -debug: debug mode. Extra information is available </CODE>
- * <P> <CODE>         -pulldowns: show list of all pulldown menus in Electric </CODE>
  * <P> <CODE>         -server: dump strace of snapshots</CODE>
  * <P> <CODE>         -help: this message </CODE>
  * <P> <P>
@@ -188,6 +182,7 @@ public final class Main
             else
                 System.out.println("Invalid option -socket " + socketString);
         }
+        hasCommandLineOption(argsList, "-NOMINMEM"); // do nothing, just consume option: handled in Launcher
 
         // The server runs in subprocess
         if (hasCommandLineOption(argsList, "-pipeserver")) {
@@ -252,29 +247,17 @@ public final class Main
                 Job.socketClient(serverMachineName, socketPort, argsList);
             }
         } else {
-            EDatabase database = new EDatabase(makeInitialSnapshot());
+            EDatabase database = new EDatabase(IdManager.stdIdManager.getInitialSnapshot());
+//            EDatabase database = new EDatabase(makeInitialSnapshot());
             EDatabase.setServerDatabase(database);
             EDatabase.setClientDatabase(database);
+            TextDescriptor.cacheSize();
+            Tool.initAllTools();
+            Pref.lockCreation();
         	InitDatabase job = new InitDatabase(argsList);
             Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job);
         }
 	}
-
-    private static Snapshot makeInitialSnapshot() {
-        Environment env = Technology.makeInitialEnvironment();
-        TechPool techPool = env.techPool;
-        CellId clipCellId = Clipboard.clipCellId;
-        LibraryBackup[] libBackupsArray = new LibraryBackup[] {
-            new LibraryBackup(ImmutableLibrary.newInstance(clipCellId.libId, null, null).withFlags(Library.HIDDENLIBRARY), false, new LibId[0])
-        };
-        CellBackup[] cellBackupsArray = new CellBackup[] {
-            CellBackup.newInstance(ImmutableCell.newInstance(clipCellId, 0).withTechId(techPool.getGeneric().getId()), techPool)
-        };
-        ERectangle[] cellBoundsArray = new ERectangle[] {
-            ERectangle.fromGrid(0, 0, 0, 0)
-        };
-        return new Snapshot(env.techPool.idManager).with(null, env, cellBackupsArray, cellBoundsArray, libBackupsArray);
-    }
 
     public static class UserInterfaceDummy extends AbstractUserInterface
 	{
@@ -513,49 +496,33 @@ public final class Main
 	 */
 	private static class InitDatabase extends Job
 	{
+        private Map<String,Object> paramValuesByXmlPath = Technology.getParamValuesByXmlPath();
+        private String softTechnologies = StartupPrefs.getSoftTechnologies();
 		List<String> argsList;
         String beanShellScript;
         private Library mainLib;
 
-		protected InitDatabase(List<String> argsL)
+		private InitDatabase(List<String> argsL)
 		{
 			super("Init database", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.argsList = argsL;
-			if (hasCommandLineOption(argsList, "-NOMINMEM")) {
-				// do nothing, just consume option: handled in Launcher
-			}
 			beanShellScript = getCommandLineOption(argsList, "-s");
-			//startJob();
 		}
 
         @Override
 		public boolean doIt() throws JobException
 		{
-//			try {
-//				Undo.changesQuiet(true);
-
-				// initialize all of the technologies
-				Technology.initAllTechnologies();
-				// initialize all of the tools
-				Tool.initAllTools();
-
-                Pref.lockCreation();
-
-				// initialize the constraint system
-//				Layout con = Layout.getConstraint();
-//				Constraints.setCurrent(con);
-//			} finally {
-//				Undo.changesQuiet(false);
-//			}
+            // initialize all of the technologies
+            Technology.initAllTechnologies(getDatabase(), paramValuesByXmlPath, softTechnologies);
 
             // open no name library first
-//            Input.changesQuiet(true);
+            Library clipLib = Library.newInstance(Clipboard.clipCellId.libId.libName, null);
+            clipLib.setHidden();
+            Cell.newInstance(clipLib, Clipboard.clipCellId.cellName.toString());
             mainLib = Library.newInstance("noname", null);
             if (mainLib == null) return false;
             fieldVariableChanged("mainLib");
             mainLib.clearChanged();
-//            mainLib.setCurrent();
-//            Input.changesQuiet(false);
 
 //            if (Job.BATCHMODE) {
 //                EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, getTechPool()));
@@ -567,8 +534,8 @@ public final class Main
 
         @Override
         public void terminateOK() {
+            new InitProjectSettings().startJobOnMyResult();
             User.setCurrentLibrary(mainLib);
-            Environment.setThreadEnvironment(EDatabase.clientDatabase().getEnvironment());
             Job.getExtendedUserInterface().finishInitialization();
 			openCommandLineLibs(argsList);
             if (beanShellScript != null)
@@ -580,6 +547,33 @@ public final class Main
             System.out.println("Initialization failed");
             System.exit(1);
         }
+	}
+
+	/**
+	 * Class to init project settings from Preferences.
+	 */
+	private static class InitProjectSettings extends Job
+	{
+        private Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
+
+		private InitProjectSettings()
+		{
+			super("Init project settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            Preferences prefRoot = Pref.getPrefRoot();
+            for (Map.Entry<Setting,Object> e: getDatabase().getSettings().entrySet()) {
+                Setting setting = e.getKey();
+                Object value = setting.getValueFromPreferences(prefRoot);
+                if (value.equals(e.getValue())) continue;
+                changeBatch.add(setting, value);
+            }
+		}
+
+        @Override
+		public boolean doIt() throws JobException
+		{
+            getDatabase().implementSettingChanges(changeBatch);
+            return true;
+		}
 	}
 
     /**

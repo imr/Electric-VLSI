@@ -202,9 +202,15 @@ public class ProjSettings {
             startJob();
         }
 
+        @Override
         public boolean doIt() throws JobException {
             readSettings(new File(fileName), getDatabase(), true);
             return true;
+        }
+
+        @Override
+        public void terminateOK() {
+            getDatabase().getEnvironment().saveToPreferences();
         }
     }
 

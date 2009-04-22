@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdManager;
@@ -107,7 +108,7 @@ class ClientJobManager extends JobManager {
         }
 
         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "initTechnologies begin");
-        Technology.initAllTechnologies();
+        Technology.initAllTechnologies(EDatabase.clientDatabase(), Technology.getParamValuesByXmlPath(), StartupPrefs.getSoftTechnologies());
         User.getUserTool().init();
 //        NetworkTool.getNetworkTool().init();
         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "initTechnologies end");

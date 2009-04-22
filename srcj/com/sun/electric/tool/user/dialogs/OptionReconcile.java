@@ -302,6 +302,7 @@ public class OptionReconcile extends EDialog
 		@Override
 		public void terminateOK()
 		{
+            getDatabase().getEnvironment().saveToPreferences();
 			job.startJob();
 		}
 	}

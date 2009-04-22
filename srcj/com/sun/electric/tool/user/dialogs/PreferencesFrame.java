@@ -536,6 +536,7 @@ public class PreferencesFrame extends EDialog
 		@Override
 		public void terminateOK()
 		{
+            getDatabase().getEnvironment().saveToPreferences();
 			if (issueWarning)
 			{
 				if (ProjSettings.getLastProjectSettingsFile() != null)

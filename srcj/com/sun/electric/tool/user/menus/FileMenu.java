@@ -517,7 +517,8 @@ public class FileMenu {
 			startJob();
 		}
 
-		public boolean doIt() throws JobException
+        @Override
+        public boolean doIt() throws JobException
 		{
 			// see if the former library can be deleted
 			if (deleteLib != null)
@@ -570,8 +571,11 @@ public class FileMenu {
 			return true;
 		}
 
+        @Override
         public void terminateOK()
         {
+            if (projsettings != null)
+                getDatabase().getEnvironment().saveToPreferences();
             User.setCurrentLibrary(lib);
             Cell showThisCell = cellName != null ? lib.findNodeProto(cellName) : lib.getCurCell();
         	doneOpeningLibrary(showThisCell);
