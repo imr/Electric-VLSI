@@ -45,12 +45,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Toolkit;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Iterator;
@@ -103,11 +98,8 @@ import java.util.logging.Logger;
 public abstract class Job implements Serializable {
 
     private static boolean GLOBALDEBUG = false;
-    /*private*/ static Mode threadMode;
     private static int recommendedNumThreads;
-    private static int socketPort = 35742; // socket port for client/server
     static final int PROTOCOL_VERSION = 19; // Apr 17
-    public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean LOCALDEBUGFLAG; // Gilda's case
 //    private static final String CLASS_NAME = Job.class.getName();
     static final Logger logger = Logger.getLogger("com.sun.electric.tool.job");
@@ -121,16 +113,6 @@ public abstract class Job implements Serializable {
     public static boolean getDebug() { return GLOBALDEBUG; }
 
     public static void setDebug(boolean f) { GLOBALDEBUG = f; }
-
-    /**
-     * Mode of Job manager
-     */
-    public static enum Mode {
-        /** Full screen run of Electric. */         FULL_SCREEN,
-        /** Batch mode. */                          BATCH,
-        /** Server side. */                         SERVER,
-        /** Client side. */                         CLIENT;
-    }
 
     /**
 	 * Type is a typesafe enum class that describes the type of job (CHANGE or EXAMINE).
@@ -180,51 +162,42 @@ public abstract class Job implements Serializable {
     transient EJob ejob;
     transient EDatabase database;
 
-    public static void setThreadMode(Mode mode, AbstractUserInterface userInterface) {
-        threadMode = mode;
-        BATCHMODE = (mode == Mode.BATCH || mode == Mode.SERVER);
-        currentUI = userInterface;
-    }
-
-    public static void initJobManager(int numThreads, Job initDatabaseJob, Object mode, String serverMachineName) {
+    public static void initJobManager(int numThreads, String loggingFilePath, int socketPort, AbstractUserInterface ui, Job initDatabaseJob) {
         Job.recommendedNumThreads = numThreads;
-
-        switch (threadMode) {
-            case FULL_SCREEN:
-                if (StartupPrefs.isUseClientServer())
-                    jobManager = new ServerJobManager(numThreads, socketPort);
-                else
-                    jobManager = new ServerJobManager(numThreads, StartupPrefs.isSnapshotLogging(), false);
-
-                // Calling external dependencies
-//                currentUI.initializeInitJob(initDatabaseJob, mode);
-                initDatabaseJob.startJob();
-                break;
-            case BATCH:
-            case SERVER:
-                jobManager = new ServerJobManager(numThreads, socketPort);
-                initDatabaseJob.startJob();
-                break;
-            case CLIENT:
-                logger.finer("setThreadMode");
-                jobManager = new ClientJobManager(serverMachineName, socketPort);
-                // unreachable
-                break;
-        }
+        currentUI = ui;
+        jobManager = new ServerJobManager(numThreads, loggingFilePath, false, socketPort);
+        initDatabaseJob.startJob();
         jobManager.runLoop();
     }
 
-    public static void pipeServer(int numThreads) {
+    public static void pipeServer(int numThreads, String loggingFilePath, int socketPort) {
         Pref.forbidPreferences();
         EDatabase.setServerDatabase(new EDatabase(IdManager.stdIdManager.getInitialSnapshot()));
         Tool.initAllTools();
-        jobManager = new ServerJobManager(numThreads, false, true);
+        jobManager = new ServerJobManager(numThreads, loggingFilePath, true, socketPort);
     }
 
+    public static void socketClient(String serverMachineName, int socketPort, List<String> args) {
+        try {
+            jobManager = new ClientJobManager(serverMachineName, socketPort);
+            jobManager.runLoop();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-    public static Mode getRunMode() { return threadMode; }
+    public static void pipeClient(Process process, List<String> args) {
+        try {
+            jobManager = new ClientJobManager(process);
+            jobManager.runLoop();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-    public static int getNumThreads() { return recommendedNumThreads; }
+//    public static Mode getRunMode() { return threadMode; }
+
+//    public static int getNumThreads() { return recommendedNumThreads; }
 
     /**
 	 * Constructor creates a new instance of Job.
@@ -929,18 +902,6 @@ public abstract class Job implements Serializable {
             long endTime = reader.readLong();
             int finished = reader.readInt();
             return new Inform(jobKey, isChange, toString, startTime, endTime, finished);
-        }
-    }
-
-    public static void main(String[] args) {
-        String inFile = args[0];
-        String outFile = args[1];
-        try {
-            System.setIn(new BufferedInputStream(new FileInputStream(inFile)));
-            System.setOut(new PrintStream(new BufferedOutputStream(new FileOutputStream(outFile))));
-            pipeServer(1);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }

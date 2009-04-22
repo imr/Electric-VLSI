@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool;
 
-import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -72,33 +71,25 @@ public class ServerJobManager extends JobManager {
     private boolean signalledEThread;
 
     /** Creates a new instance of JobPool */
-    ServerJobManager(int recommendedNumThreads, boolean logging, boolean pipe) {
+    ServerJobManager(int recommendedNumThreads, String loggingFilePath, boolean pipe, int socketPort) {
         maxNumThreads = initThreads(recommendedNumThreads);
-        serverSocket = null;
-        if (logging)
-            initSnapshotLogging();
+        if (loggingFilePath != null)
+            initSnapshotLogging(loggingFilePath);
         passiveConnections = serverConnections.size();
         if (Job.currentUI != null)
             passiveConnections--;
         if (pipe)
             initPipe();
-    }
-
-    ServerJobManager(int recommendedNumThreads, int socketPort) {
-        maxNumThreads = initThreads(recommendedNumThreads);
         ServerSocket serverSocket = null;
-        try {
-            serverSocket = new ServerSocket(socketPort);
-            System.out.println("ServerSocket waits for port " + socketPort);
-        } catch (IOException e) {
-            System.out.println("ServerSocket mode failure: " + e.getMessage());
+        if (socketPort > 0) {
+            try {
+                serverSocket = new ServerSocket(socketPort);
+                System.out.println("ServerSocket waits for port " + socketPort);
+            } catch (IOException e) {
+                System.out.println("ServerSocket mode failure: " + e.getMessage());
+            }
         }
         this.serverSocket = serverSocket;
-        if (StartupPrefs.isSnapshotLogging())
-            initSnapshotLogging();
-        passiveConnections = serverConnections.size();
-        if (Job.currentUI != null)
-            passiveConnections--;
     }
 
     private int initThreads(int recommendedNumThreads) {
@@ -109,15 +100,16 @@ public class ServerJobManager extends JobManager {
         return maxNumThreads;
     }
 
-    void initSnapshotLogging() {
+    void initSnapshotLogging(String loggingFilePath) {
         int connectionId = serverConnections.size();
         StreamClient conn;
         lock();
         try {
-            File tempFile = File.createTempFile("elec", ".slog");
-            FileOutputStream out = new FileOutputStream(tempFile);
-            System.err.println("Writing snapshot log to " + tempFile);
-            ActivityLogger.logMessage("Writing snapshot log to " + tempFile);
+            File loggingFile = new File(loggingFilePath);
+//            File tempFile = File.createTempFile("elec", ".slog");
+            FileOutputStream out = new FileOutputStream(loggingFile);
+            System.err.println("Writing snapshot log to " + loggingFile);
+            ActivityLogger.logMessage("Writing snapshot log to " + loggingFile);
             conn = new StreamClient(connectionId, null, new BufferedOutputStream(out));
             serverConnections.add(conn);
         } catch (IOException e) {
@@ -148,8 +140,10 @@ public class ServerJobManager extends JobManager {
         lock();
         try {
             passiveConnections++;
-            if (passiveConnections == serverConnections.size())
+            if (passiveConnections == serverConnections.size()) {
+                ActivityLogger.finished();
                 System.exit(0);
+            }
         } finally {
             unlock();
         }

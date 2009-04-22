@@ -24,7 +24,6 @@
 package com.sun.electric;
 
 import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableLibrary;
@@ -90,6 +89,16 @@ import java.util.List;
  */
 public final class Main
 {
+    /**
+     * Mode of Job manager
+     */
+    private static enum Mode {
+        /** Full screen run of Electric. */         FULL_SCREEN,
+        /** Batch mode. */                          BATCH,
+        /** Server side. */                         SERVER,
+        /** Client side. */                         CLIENT;
+    }
+
 	private Main() {}
 
 	/**
@@ -136,8 +145,9 @@ public final class Main
 	        System.out.println("\t-v: brief version information");
 	        System.out.println("\t-debug: debug mode. Extra information is available");
             System.out.println("\t-threads <numThreads>: recommended size of thread pool for Job execution.");
+            System.out.println("\t-logging <filePath>: log server events in a binary file");
+            System.out.println("\t-socket <socket>: socket port for client/server interaction");
 	        System.out.println("\t-batch: running in batch mode.");
-//	        System.out.println("\t-pulldowns: list all pulldown menus in Electric"); moved to DebugMenus DN
             System.out.println("\t-server: dump trace of snapshots");
             System.out.println("\t-client <machine name>: replay trace of snapshots");
 	        System.out.println("\t-help: this message");
@@ -146,36 +156,74 @@ public final class Main
 		}
 
 		// -debug for debugging
-        Job.Mode runMode = Job.Mode.FULL_SCREEN;
-		if (hasCommandLineOption(argsList, "-debug")) Job.setDebug(true);
-        if (hasCommandLineOption(argsList, "-extraDebug")) Job.LOCALDEBUGFLAG = true;
+        Mode runMode = Mode.FULL_SCREEN;
+        String pipeOptions = "";
+		if (hasCommandLineOption(argsList, "-debug")) {
+            pipeOptions += " -debug";
+            Job.setDebug(true);
+        }
+        if (hasCommandLineOption(argsList, "-extraDebug")) {
+            pipeOptions += " -extraDebug";
+            Job.LOCALDEBUGFLAG = true;
+        }
         String numThreadsString = getCommandLineOption(argsList, "-threads");
         int numThreads = 0 ;
         if (numThreadsString != null) {
             numThreads = TextUtils.atoi(numThreadsString);
-            if (numThreads <= 0) {
+            if (numThreads > 0)
+                pipeOptions += " -threads " + numThreads;
+            else
                 System.out.println("Invalid option -threads " + numThreadsString);
-            }
+        }
+        String loggingFilePath = getCommandLineOption(argsList, "-logging");
+        if (loggingFilePath != null) {
+            pipeOptions += " -logging " + loggingFilePath;
+        }
+        String socketString = getCommandLineOption(argsList, "-socket");
+        int socketPort = 0;
+        if (socketString != null) {
+            socketPort = TextUtils.atoi(socketString);
+            if (socketPort > 0)
+                pipeOptions += " -socket " + socketPort;
+            else
+                System.out.println("Invalid option -socket " + socketString);
         }
 
+        // The server runs in subprocess
         if (hasCommandLineOption(argsList, "-pipeserver")) {
-            Job.pipeServer(numThreads);
+            ActivityLogger.initialize("electricserver.log", true, true, true/*false*/);
+            Job.pipeServer(numThreads, loggingFilePath, socketPort);
             return;
         }
 
         ActivityLogger.initialize("electric.log", true, true, true/*false*/);
 
-		if (hasCommandLineOption(argsList, "-batch")) runMode = Job.Mode.BATCH;
+		if (hasCommandLineOption(argsList, "-batch")) runMode = Mode.BATCH;
         if (hasCommandLineOption(argsList, "-server")) {
-            if (runMode != Job.Mode.FULL_SCREEN)
-                System.out.println("Conflicting thread modes: " + runMode + " and " + Job.Mode.SERVER);
-            runMode = Job.Mode.SERVER;
+            if (runMode != Mode.FULL_SCREEN)
+                System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.SERVER);
+            runMode = Mode.SERVER;
         }
         String serverMachineName = getCommandLineOption(argsList, "-client");
         if (serverMachineName != null) {
-            if (runMode != Job.Mode.FULL_SCREEN)
-                System.out.println("Conflicting thread modes: " + runMode + " and " + Job.Mode.CLIENT);
-            runMode = Job.Mode.CLIENT;
+            if (runMode != Mode.FULL_SCREEN)
+                System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.CLIENT);
+            runMode = Mode.CLIENT;
+        }
+        boolean pipe = false;
+        boolean pipedebug = false;
+        if (hasCommandLineOption(argsList, "-pipe")) {
+            if (runMode != Mode.FULL_SCREEN)
+                System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.CLIENT);
+             runMode = Mode.CLIENT;
+           pipe = true;
+        }
+        if (hasCommandLineOption(argsList, "-pipedebug")) {
+            if (runMode != Mode.FULL_SCREEN)
+                System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.CLIENT);
+            runMode = Mode.CLIENT;
+            pipe = true;
+            pipedebug = true;
         }
 
         UserInterfaceMain.Mode mode = null;
@@ -183,19 +231,33 @@ public final class Main
         if (hasCommandLineOption(argsList, "-sdi")) mode = UserInterfaceMain.Mode.SDI;
 
         AbstractUserInterface ui;
-        if (runMode == Job.Mode.FULL_SCREEN || runMode == Job.Mode.CLIENT)
-            ui = new UserInterfaceMain(argsList, mode, runMode == Job.Mode.FULL_SCREEN);
+        if (runMode == Mode.FULL_SCREEN || runMode == Mode.CLIENT)
+            ui = new UserInterfaceMain(argsList, mode, true);
         else
             ui = new UserInterfaceDummy(-1);
-        Job.setThreadMode(runMode, ui);
         MessagesStream.getMessagesStream();
 
 		// initialize database
-        EDatabase database = new EDatabase(makeInitialSnapshot());
-        EDatabase.setServerDatabase(database);
-        EDatabase.setClientDatabase(database);
-		InitDatabase job = new InitDatabase(argsList);
-        Job.initJobManager(numThreads, job, mode, serverMachineName);
+        if (runMode == Mode.CLIENT) {
+            Job.socketClient(serverMachineName, socketPort, argsList);
+            // Client or pipe mode
+            if (pipe) {
+                try {
+                    Process process = Launcher.invokePipeserver(pipeOptions, pipedebug);
+                    Job.pipeClient(process, argsList);
+                } catch (IOException e) {
+                    System.exit(1);
+                }
+            } else {
+                Job.socketClient(serverMachineName, socketPort, argsList);
+            }
+        } else {
+            EDatabase database = new EDatabase(makeInitialSnapshot());
+            EDatabase.setServerDatabase(database);
+            EDatabase.setClientDatabase(database);
+        	InitDatabase job = new InitDatabase(argsList);
+            Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job);
+        }
 	}
 
     private static Snapshot makeInitialSnapshot() {
@@ -217,7 +279,7 @@ public final class Main
     public static class UserInterfaceDummy extends AbstractUserInterface
 	{
         private PrintStream stdout = System.out;
-        
+
         public UserInterfaceDummy(int connectionId) {
             super(connectionId);
         }
@@ -495,11 +557,11 @@ public final class Main
 //            mainLib.setCurrent();
 //            Input.changesQuiet(false);
 
-            if (Job.BATCHMODE) {
-                EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, getTechPool()));
-                if (beanShellScript != null)
-                    EvalJavaBsh.runScript(beanShellScript);
-            }
+//            if (Job.BATCHMODE) {
+//                EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, getTechPool()));
+//                if (beanShellScript != null)
+//                    EvalJavaBsh.runScript(beanShellScript);
+//            }
             return true;
 		}
 

@@ -25,6 +25,7 @@ package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
@@ -37,6 +38,7 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,18 +54,28 @@ import javax.swing.SwingUtilities;
 class ClientJobManager extends JobManager {
     private static final String CLASS_NAME = Job.class.getName();
     private static final Logger logger = Logger.getLogger("com.sun.electric.tool.job");
-    private final String serverMachineName;
-    private final int port;
 
-    /** stream for cleint to send Jobs. */      private static DataOutputStream clientOutputStream;
+    /** stream for cleint read Snapshots. */    private final IdReader reader;
+    /** stream for cleint to send Jobs. */      private final DataOutputStream clientOutputStream;
+    /** Process that launched this. */          private final Process process;
     /** Count of started Jobs. */               private static int numStarted;
     private volatile boolean jobTreeChanged;
 //    private static Job clientJob;
 
     /** Creates a new instance of ClientJobManager */
-    public ClientJobManager(String serverMachineName, int serverPort) {
-        this.serverMachineName = serverMachineName;
-        port = serverPort;
+    public ClientJobManager(String serverMachineName, int serverPort) throws IOException {
+        process = null;
+        System.out.println("Attempting to connect to port " + serverPort + " ...");
+        Socket socket = new Socket(serverMachineName, serverPort);
+        reader = new IdReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())), IdManager.stdIdManager);
+        clientOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+    }
+
+    public ClientJobManager(Process process) throws IOException {
+        this.process = process;
+        System.out.println("Attempting to connect to server subprocess ...");
+        reader = new IdReader(new DataInputStream(new BufferedInputStream(process.getInputStream())), IdManager.stdIdManager);
+        clientOutputStream = new DataOutputStream(new BufferedOutputStream(process.getOutputStream()));
     }
 
     void writeEJob(EJob ejob) throws IOException {
@@ -77,16 +89,11 @@ class ClientJobManager extends JobManager {
     }
 
     public void runLoop() {
-        logger.entering(CLASS_NAME, "clinetLoop", port);
-        IdReader reader = null;
+        logger.entering(CLASS_NAME, "clinetLoop");
         Snapshot oldSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
         Snapshot currentSnapshot = EDatabase.clientDatabase().backup();
         assert currentSnapshot == oldSnapshot;
         try {
-            System.out.println("Attempting to connect to port " + port + " ...");
-            Socket socket = new Socket(serverMachineName, port);
-            reader = new IdReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())), EDatabase.clientDatabase().getIdManager());
-            clientOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             int protocolVersion = reader.readInt();
             if (protocolVersion != Job.PROTOCOL_VERSION) {
                 System.out.println("Client's protocol version " + Job.PROTOCOL_VERSION + " is incompatible with Server's protocol version " + protocolVersion);
@@ -143,16 +150,16 @@ class ClientJobManager extends JobManager {
                         ejob.oldSnapshot = oldSnapshot;
                         ejob.newSnapshot = currentSnapshot;
                         oldSnapshot = currentSnapshot;
-                        long timeStamp = reader.readLong();
-                        if (ejob.state == EJob.State.WAITING) {
-                            boolean hasSerializedJob = reader.readBoolean();
-                            if (hasSerializedJob) {
-                                ejob.serializedJob = reader.readBytes();
-                            }
-                        }
-                        if (ejob.state == EJob.State.SERVER_DONE) {
-                            ejob.serializedResult = reader.readBytes();
-                        }
+//                        long timeStamp = reader.readLong();
+//                        if (ejob.state == EJob.State.WAITING) {
+//                            boolean hasSerializedJob = reader.readBoolean();
+//                            if (hasSerializedJob) {
+//                                ejob.serializedJob = reader.readBytes();
+//                            }
+//                        }
+//                        if (ejob.state == EJob.State.SERVER_DONE) {
+//                            ejob.serializedResult = reader.readBytes();
+//                        }
                         clientFifo.put(ejobEvent);
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult end {0}", ejob.jobKey.jobId);
                     } else {
@@ -213,11 +220,29 @@ class ClientJobManager extends JobManager {
 //                }
             } catch (IOException e) {
                 // reader.in.close();
-                reader = null;
+//                reader = null;
                 logger.logp(Level.INFO, CLASS_NAME, "clientLoop", "failed", e);
                 System.out.println("END OF FILE reading from server");
+                if (process != null)
+                    printErrorStream(process);
                 return;
             }
+        }
+    }
+
+    private static void printErrorStream(Process process) {
+        try {
+            process.getOutputStream().close();
+            InputStream errStream = new BufferedInputStream(process.getErrorStream());
+            System.err.println("StdErr:");
+            for (;;) {
+                if (errStream.available() == 0) break;
+                int c = errStream.read();
+                if (c < 0) break;
+                System.err.print((char)c);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
