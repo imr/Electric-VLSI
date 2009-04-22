@@ -59,6 +59,9 @@ public class ServerJobManager extends JobManager {
     private static final int DEFAULT_NUM_THREADS = 2;
     /** mutex for database synchronization. */  private final Condition databaseChangesMutex = newCondition();
 
+    /** started jobs */ private final ArrayList<EJob> startedJobs = new ArrayList<EJob>();
+    /** waiting jobs */ private final ArrayList<EJob> waitingJobs = new ArrayList<EJob>();
+
     private final ServerSocket serverSocket;
 //    private final ArrayList<EJob> finishedJobs = new ArrayList<EJob>();
     private final ArrayList<Client> serverConnections = new ArrayList<Client>();
@@ -358,7 +361,8 @@ public class ServerJobManager extends JobManager {
 //        }
 //    }
 
-    public void runLoop() {
+    public void runLoop(Job initialJob) {
+        initialJob.startJob();
         if (serverSocket == null) return;
         try {
             // Wait for connections

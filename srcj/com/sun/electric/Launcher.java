@@ -198,7 +198,7 @@ public final class Launcher
         if (electricOptions != null)
             command += electricOptions;
         command += " -pipeserver";
-        System.out.println("exec: " + command);
+        System.err.println("exec: " + command);
 
         Runtime runtime = Runtime.getRuntime();
         return runtime.exec(command);

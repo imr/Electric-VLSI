@@ -233,28 +233,26 @@ public final class Main
         MessagesStream.getMessagesStream();
 
 		// initialize database
+        TextDescriptor.cacheSize();
+        Tool.initAllTools();
+        Pref.lockCreation();
+        EDatabase database = new EDatabase(IdManager.stdIdManager.getInitialSnapshot());
+        EDatabase.setClientDatabase(database);
+        InitDatabase job = new InitDatabase(argsList);
         if (runMode == Mode.CLIENT) {
-            Job.socketClient(serverMachineName, socketPort, argsList);
             // Client or pipe mode
             if (pipe) {
                 try {
                     Process process = Launcher.invokePipeserver(pipeOptions, pipedebug);
-                    Job.pipeClient(process, argsList);
+                    Job.pipeClient(process, ui, job);
                 } catch (IOException e) {
                     System.exit(1);
                 }
             } else {
-                Job.socketClient(serverMachineName, socketPort, argsList);
+                Job.socketClient(serverMachineName, socketPort, ui, job);
             }
         } else {
-            EDatabase database = new EDatabase(IdManager.stdIdManager.getInitialSnapshot());
-//            EDatabase database = new EDatabase(makeInitialSnapshot());
             EDatabase.setServerDatabase(database);
-            EDatabase.setClientDatabase(database);
-            TextDescriptor.cacheSize();
-            Tool.initAllTools();
-            Pref.lockCreation();
-        	InitDatabase job = new InitDatabase(argsList);
             Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job);
         }
 	}

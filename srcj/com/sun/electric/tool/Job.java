@@ -166,8 +166,7 @@ public abstract class Job implements Serializable {
         Job.recommendedNumThreads = numThreads;
         currentUI = ui;
         jobManager = new ServerJobManager(numThreads, loggingFilePath, false, socketPort);
-        initDatabaseJob.startJob();
-        jobManager.runLoop();
+        jobManager.runLoop(initDatabaseJob);
     }
 
     public static void pipeServer(int numThreads, String loggingFilePath, int socketPort) {
@@ -177,19 +176,21 @@ public abstract class Job implements Serializable {
         jobManager = new ServerJobManager(numThreads, loggingFilePath, true, socketPort);
     }
 
-    public static void socketClient(String serverMachineName, int socketPort, List<String> args) {
+    public static void socketClient(String serverMachineName, int socketPort, AbstractUserInterface ui, Job initDatabaseJob) {
+        currentUI = ui;
         try {
             jobManager = new ClientJobManager(serverMachineName, socketPort);
-            jobManager.runLoop();
+            jobManager.runLoop(initDatabaseJob);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static void pipeClient(Process process, List<String> args) {
+    public static void pipeClient(Process process, AbstractUserInterface ui, Job initDatabaseJob) {
+        currentUI = ui;
         try {
             jobManager = new ClientJobManager(process);
-            jobManager.runLoop();
+            jobManager.runLoop(initDatabaseJob);
         } catch (IOException e) {
             e.printStackTrace();
         }

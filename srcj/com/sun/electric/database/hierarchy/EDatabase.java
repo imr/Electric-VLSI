@@ -621,7 +621,7 @@ public class EDatabase {
         backup();
         long endTime = System.currentTimeMillis();
         if (Job.getDebug()) {
-            System.out.println("resize took: " + (endTime - startTime) + " msec");
+//            System.out.println("resize took: " + (endTime - startTime) + " msec");
             checkFresh(snapshot);
         }
     }
