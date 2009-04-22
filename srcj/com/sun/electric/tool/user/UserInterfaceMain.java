@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.Snapshot;
@@ -130,6 +131,11 @@ public class UserInterfaceMain extends AbstractUserInterface
             });
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        if (mode == null) {
+            int defMode = StartupPrefs.getDisplayStyle();
+            if (defMode == 1) mode = UserInterfaceMain.Mode.MDI; else
+            if (defMode == 2) mode = UserInterfaceMain.Mode.SDI;
         }
         SwingUtilities.invokeLater(new InitializationRun(argsList, mode, showSplash));
     }

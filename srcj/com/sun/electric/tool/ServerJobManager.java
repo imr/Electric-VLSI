@@ -537,7 +537,7 @@ public class ServerJobManager extends JobManager {
         }
 
     	public EDatabase getDatabase() {
-            return EDatabase.theDatabase;
+            return EDatabase.serverDatabase();
         }
     	public Technology getCurrentTechnology() {
             EDatabase database = getDatabase();

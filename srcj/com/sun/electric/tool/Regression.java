@@ -58,7 +58,8 @@ public class Regression {
         Pref.forbidPreferences();
         IdReader reader = null;
         Snapshot currentSnapshot = IdManager.stdIdManager.getInitialSnapshot();
-        EDatabase database = EDatabase.theDatabase = new EDatabase(currentSnapshot);
+        EDatabase database = new EDatabase(currentSnapshot);
+        EDatabase.setClientDatabase(database);
         System.out.println("Running " + script);
 
         try {

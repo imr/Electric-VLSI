@@ -44,7 +44,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.prefs.AbstractPreferences;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.InvalidPreferencesFormatException;
 import java.util.prefs.Preferences;
@@ -692,7 +691,7 @@ public class Pref {
      */
     public static Preferences getPrefRoot() {
         if (forbidPreferences)
-            return factoryPrefRoot;
+            return getFactoryPrefRoot();
         return Preferences.userNodeForPackage(Main.class);
     }
 
@@ -710,21 +709,8 @@ public class Pref {
      * @return the root of Preferences subtree with factory default Electric options.
      */
     public static Preferences getFactoryPrefRoot() {
-        return factoryPrefRoot;
+        return EmptyPreferencesFactory.factoryPrefRoot;
     }
-
-    private static final Preferences factoryPrefRoot = new AbstractPreferences(null, "") {
-        @Override protected String getSpi(String key) { return null; }
-        @Override protected AbstractPreferences childSpi(String name) { return this; }
-
-        @Override protected void putSpi(String key, String value) { throw new UnsupportedOperationException(); }
-        @Override protected void removeSpi(String key) { throw new UnsupportedOperationException(); }
-        @Override protected void removeNodeSpi() { throw new UnsupportedOperationException(); }
-        @Override protected String[] keysSpi() { throw new UnsupportedOperationException(); }
-        @Override protected String[] childrenNamesSpi() throws BackingStoreException { return new String[0]; }
-        @Override protected void syncSpi() throws BackingStoreException { throw new UnsupportedOperationException(); }
-        @Override protected void flushSpi() throws BackingStoreException { throw new UnsupportedOperationException(); }
-    };
 
 	/**
 	 * Method to immediately flush all Electric preferences to disk.
@@ -966,7 +952,6 @@ public class Pref {
 			p.flush();
 		} catch (Exception e)
 		{
-            assert !Job.BATCHMODE;
 			System.out.println("Failed to save preferences");
 		}
 	}

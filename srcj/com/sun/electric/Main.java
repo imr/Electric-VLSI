@@ -163,7 +163,7 @@ public final class Main
             return;
         }
 
-        ActivityLogger.initialize(true, true, true/*false*/);
+        ActivityLogger.initialize("electric.log", true, true, true/*false*/);
 
 		if (hasCommandLineOption(argsList, "-batch")) runMode = Job.Mode.BATCH;
         if (hasCommandLineOption(argsList, "-server")) {
@@ -179,9 +179,6 @@ public final class Main
         }
 
         UserInterfaceMain.Mode mode = null;
-        int defMode = StartupPrefs.getDisplayStyle();
-        if (defMode == 1) mode = UserInterfaceMain.Mode.MDI; else
-            if (defMode == 2) mode = UserInterfaceMain.Mode.SDI;
         if (hasCommandLineOption(argsList, "-mdi")) mode = UserInterfaceMain.Mode.MDI;
         if (hasCommandLineOption(argsList, "-sdi")) mode = UserInterfaceMain.Mode.SDI;
 
@@ -194,7 +191,9 @@ public final class Main
         MessagesStream.getMessagesStream();
 
 		// initialize database
-        EDatabase.theDatabase = new EDatabase(makeInitialSnapshot());
+        EDatabase database = new EDatabase(makeInitialSnapshot());
+        EDatabase.setServerDatabase(database);
+        EDatabase.setClientDatabase(database);
 		InitDatabase job = new InitDatabase(argsList);
         Job.initJobManager(numThreads, job, mode, serverMachineName);
 	}
@@ -230,7 +229,7 @@ public final class Main
         public String getProgressNote() { return null; }
 
     	public EDatabase getDatabase() {
-            return EDatabase.theDatabase;
+            return EDatabase.clientDatabase();
         }
 		public EditWindow_ getCurrentEditWindow_() { return null; }
 		public EditWindow_ needCurrentEditWindow_()

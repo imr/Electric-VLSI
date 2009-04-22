@@ -26,6 +26,7 @@ package com.sun.electric;
 import com.sun.electric.tool.Regression;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * This class initializes the Electric by re-launching a JVM with sufficient memory.
@@ -64,7 +65,7 @@ public final class Launcher
 
         if (args.length >= 2 && args[0].equals("-regression") ||
                 args.length >= 4 && args[0].equals("-threads") && args[2].equals("-regression")) {
-            System.exit(invokeRegression(args, program) ? 0 : 1);
+            System.exit(invokeRegression(args) ? 0 : 1);
             return;
         }
 
@@ -149,45 +150,58 @@ public final class Launcher
 		}
 	}
 
-    private static boolean invokeRegression(String[] args, String program) {
-//        String jarfile = "electric.jar";
-//        URL electric = Launcher.class.getResource("Main.class");
-//        if (electric.getProtocol().equals("jar")) {
-//            String file = electric.getFile();
-//            file = file.replaceAll("file:", "");
-//            file = file.replaceAll("!.*", "");
-//            jarfile = file;
-//        }
+    static Process invokePipeserver(String electricOptions, boolean withDebugger) throws IOException {
+        String javaOptions = " -ss2m";
+		int maxMemWanted = StartupPrefs.getMemorySize();
+        javaOptions += " -mx" + maxMemWanted + "m";
+        long maxPermWanted = StartupPrefs.getPermSpace();
+        if (maxPermWanted > 0)
+            javaOptions += " -XX:MaxPermSize=" + maxPermWanted + "m";
+        if (withDebugger)
+            javaOptions += " -Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=localhost:35856";
+        return invokePipeserver(javaOptions, electricOptions);
+    }
 
+    private static boolean invokeRegression(String[] args) {
+        String javaOptions = " -debug";
+        String electricOptions = "";
         int regressionPos = 0;
-        String threads = null;
         if (args[0].equals("-threads")) {
             regressionPos = 2;
-            threads = args[1];
+            electricOptions += " -threads " + args[1];
         }
         String script = args[regressionPos + 1];
 
-        String command = program;
-		command += " -cp " + getJarLocation();
-        command += " -ea";
-	command += " -debug";
-//        command += " -Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=localhost:35856";
         for (int i = regressionPos + 2; i < args.length; i++)
-            command += " " + args[i];
-        command += " com.sun.electric.Main";
-        if (threads != null)
-            command += " -threads " + threads;
-        command += " -pipeserver";
-        System.out.println("exec: " + command);
-        Runtime runtime = Runtime.getRuntime();
+            javaOptions += " " + args[i];
         Process process = null;
         try {
-            process = runtime.exec(command);
+            process = invokePipeserver(javaOptions, electricOptions);
+            return Regression.runScript(process, script);
         } catch (java.io.IOException e) {
             e.printStackTrace();
-            System.exit(0);
+            return false;
         }
-        return Regression.runScript(process, script);
+    }
+
+    private static Process invokePipeserver(String javaOptions, String electricOptions) throws IOException {
+        String program = "java";
+        String javaHome = System.getProperty("java.home");
+        if (javaHome != null) program = javaHome + File.separator + "bin" + File.separator + program;
+
+        String command = program;
+        command += " -ea";
+        command += " -Djava.util.prefs.PreferencesFactory=com.sun.electric.database.text.EmptyPreferencesFactory";
+        command += javaOptions;
+		command += " -cp " + getJarLocation();
+        command += " com.sun.electric.Main";
+        if (electricOptions != null)
+            command += electricOptions;
+        command += " -pipeserver";
+        System.out.println("exec: " + command);
+
+        Runtime runtime = Runtime.getRuntime();
+        return runtime.exec(command);
     }
 
     /**

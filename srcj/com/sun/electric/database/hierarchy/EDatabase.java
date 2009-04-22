@@ -68,10 +68,13 @@ public class EDatabase {
     private static final Logger logger = Logger.getLogger("com.sun.electric.database");
     private static final String CLASS_NAME = EDatabase.class.getName();
 
-    public static EDatabase theDatabase;
-    public static EDatabase serverDatabase() { return theDatabase; }
-    public static EDatabase clientDatabase() { return theDatabase; }
+    private static EDatabase serverDatabase;
+    private static EDatabase clientDatabase;
+    public static EDatabase serverDatabase() { return serverDatabase; }
+    public static EDatabase clientDatabase() { return clientDatabase; }
     public static EDatabase currentDatabase() { return Job.getUserInterface().getDatabase(); }
+    public static void setServerDatabase(EDatabase database) { serverDatabase = database; }
+    public static void setClientDatabase(EDatabase database) { clientDatabase = database; }
 
     /** IdManager which keeps Ids of objects in this database.*/private final IdManager idManager;
     /** Environment of this EDatabase */                        private Environment environment;

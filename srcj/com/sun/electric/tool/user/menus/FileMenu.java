@@ -746,7 +746,6 @@ public class FileMenu {
         if (cell == null) System.out.println("No current cell in this library");
         else
         {
-            assert !Job.BATCHMODE;
             CreateCellWindow creator = new CreateCellWindow(cell);
             if (!SwingUtilities.isEventDispatchThread()) {
                 SwingUtilities.invokeLater(creator);

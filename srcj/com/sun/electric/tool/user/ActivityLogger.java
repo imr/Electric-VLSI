@@ -51,7 +51,7 @@ public class ActivityLogger {
     /** if an exception was logged */   private static boolean exceptionLogged;
 
     /** Writer */                       private static PrintWriter out = null;
-    /** the output file */              private static String outputFile = "electric.log";
+    /** the output file */              private static String outputFile;
     /** log count */                    private static int loggedCount = 0;
 
     /**
@@ -60,14 +60,14 @@ public class ActivityLogger {
      * @param logJobs true to log jobs starting
      * @param useTimeStamps true to include time stamps (not recommended, makes file harder to read)
      */
-    public static synchronized void initialize(boolean logMenuActivations, boolean logJobs, boolean useTimeStamps) {
+    public static synchronized void initialize(String fileName, boolean logMenuActivations, boolean logJobs, boolean useTimeStamps) {
         ActivityLogger.logMenuActivations = logMenuActivations;
         ActivityLogger.logJobs = logJobs;
         ActivityLogger.logTimeStamps = useTimeStamps;
 
         outputFile = (Client.isOSMac()) ?
-                System.getProperty("user.home") + File.separator + outputFile :
-                System.getProperty("user.dir") + File.separator + outputFile;
+                System.getProperty("user.home") + File.separator + fileName :
+                System.getProperty("user.dir") + File.separator + fileName;
         try {
             FileOutputStream fos = new FileOutputStream(outputFile, false);
             BufferedOutputStream bout = new BufferedOutputStream(fos);
