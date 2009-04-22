@@ -210,6 +210,8 @@ public class TechEditWizardData
         int pinType; // pin datatype
         int text; // text value
         int textType; // text datatype
+        String graphicsTemplate; // uses other template for the graphics
+        Color graphicsColor; // uses this color with no fill
 
         LayerInfo(String n)
         {
@@ -227,6 +229,25 @@ public class TechEditWizardData
             pinType = vals[3];
             text = vals[4];
             textType = vals[5];
+        }
+
+        void setGraphicsTemplate(String s)
+        {
+            if (s.startsWith("[")) // color
+            {
+                StringTokenizer p = new StringTokenizer(s, ", []", false);
+                int[] colors = new int[3];
+                int itemCount = 0;
+                while (p.hasMoreTokens())
+                {
+                    String i = p.nextToken();
+                    assert(itemCount < 3);
+                    colors[itemCount++] = Integer.parseInt(i);
+                }
+                graphicsColor = new Color(colors[0], colors[1], colors[2]);
+            }
+            else
+                graphicsTemplate = s;
         }
 
         public String toString()
@@ -855,13 +876,14 @@ public class TechEditWizardData
                 continue;
 
             // Sequence ("layer name", "GDS value")
-            StringTokenizer p = new StringTokenizer(value, ", \"", false);
+            StringTokenizer p = new StringTokenizer(value, " \"", false);
             int itemCount = 0; // 2 max items: layer name and GDS value
             LayerInfo layer = null;
 
             while (p.hasMoreTokens())
             {
                 String s = p.nextToken();
+                if (s.startsWith(",")) continue; // skipping comma. Not in the parser because of the color
                 switch (itemCount)
                 {
                     case 0:
@@ -871,13 +893,16 @@ public class TechEditWizardData
                     case 1:
                         layer.setData(getGDSValuesFromString(s));
                         break;
+                    case 2:
+                        layer.setGraphicsTemplate(s);
+                        break;
                     default:
                         assert(false);
                 }
                 itemCount++;
             }
-            if (itemCount != 2)
-            assert(itemCount == 2);
+            if (itemCount != 2 && itemCount != 3)
+            assert(itemCount == 2 || itemCount == 3);
         }
     }
 
@@ -2097,7 +2122,31 @@ public class TechEditWizardData
         {
             for (LayerInfo info : extraLayers)
             {
-                graph = new EGraphics(false, false, null, 0, 255, 0, 0, 0.4, true, nullPattern);
+                graph = null;
+                // either color or template
+                assert (info.graphicsTemplate == null || info.graphicsColor == null);
+                if (info.graphicsTemplate != null)
+                {
+                    // look for layer name and get its EGraphics
+                    for (Xml.Layer l : t.layers)
+                    {
+                        if (l.name.equals(info.graphicsTemplate))
+                        {
+                            graph = l.desc;
+                            break;
+                        }
+                    }
+                    if (graph == null)
+                        System.out.println("No template layer " + info.graphicsTemplate + " found");
+                }
+                else if (info.graphicsColor != null)
+                {
+                    graph = new EGraphics(false, false, EGraphics.Outline.PAT_S, 0,  
+                        info.graphicsColor.getRed(), info.graphicsColor.getGreen(), info.graphicsColor.getBlue(),
+                        1, true, nullPattern);
+                }
+                if (graph == null)
+                    graph = new EGraphics(false, false, null, 0, 255, 0, 0, 0.4, true, nullPattern);
 
                 Xml.Layer layer = makeXmlLayer(t.layers, layer_width, info.name, Layer.Function.ART, 0, graph,
                     (char)('A' + cifNumber++), nplus_width, true, false);
