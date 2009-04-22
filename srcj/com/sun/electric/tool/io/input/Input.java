@@ -158,7 +158,7 @@ public class Input
 			startProgressDialog("import", fileURL.getFile());
 
 			if (prefs != null)
-				prefs.doInput(fileURL, lib, currentCells);
+				lib = prefs.doInput(fileURL, lib, currentCells);
 		} finally {
 			// clean up
 			stopProgressDialog();
@@ -214,7 +214,7 @@ public class Input
                 throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
         }
 
-        public abstract Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells);
+        public abstract Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells);
 	}
 
 	/**

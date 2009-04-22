@@ -220,7 +220,7 @@ public class IOTool extends Tool
 			this.newLib = newLib;
 		}
 
-        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
         {
     		if (!hasDais()) return null;
     		try
@@ -231,7 +231,7 @@ public class IOTool extends Tool
     			System.out.println("Unable to run the Dais input module (" + e.getClass() + ")");
     			e.printStackTrace(System.out);
     		}
-			return null;
+			return lib;
         }
     }
 

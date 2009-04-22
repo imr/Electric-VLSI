@@ -34,6 +34,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
@@ -107,7 +108,7 @@ public class EDIF extends Input
 		/** default text height */		private int textHeight;
 		/** default justification */	private TextDescriptor.Position justification;
 		/** layer is visible */			private boolean visible;
-	};
+	}
 
 	// Edif viewtypes ...
 	private static class ViewType
@@ -179,6 +180,7 @@ public class EDIF extends Input
 	/** the schematic page number */			private int pageNumber;
 	/** indicates we are in a NETLIST view */	private ViewType activeView;
 	/** the current vendor type */				private VendorType curVendor;
+	/** the name of the last "view" */			private String curViewName;
 
 	// parser variables ...
 	/** the current parser state */				private EDIFKEY curKeyword;
@@ -190,7 +192,6 @@ public class EDIF extends Input
 
 	// electric context data ...
 	/** the new library */						private Library curLibrary;
-	/** the active technology */				private Technology curTechnology;
 	/** the current active cell */				private Cell curCell;
     /** current Cells in Libraries */           private Map<Library,Cell> currentCells;
 	/** the current page in cell */				private int curCellPage;
@@ -257,8 +258,8 @@ public class EDIF extends Input
 	/** cells that have been built so far */	private Set<Cell> builtCells;
 
 	// layer or figure information ...
-	/** the current name mapping table */		private List<NameEntry> nameEntryList;
-	/** the current name table entry */			private NameEntry curNameEntry;
+	/** the current name mapping table */		private List<NameEntry> activeFigures;
+	/** the current name table entry */			private NameEntry curActiveFigure;
 
 	/** cell name lookup (from rename) */ 		private Map<String,NameEntry> cellTable;
 
@@ -304,13 +305,13 @@ public class EDIF extends Input
 
 		public EDIFPreferences(boolean factory) { super(factory); }
 
-        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
         {
         	EDIF in = new EDIF(this);
 			if (in.openTextInput(fileURL)) return null;
 			lib = in.importALibrary(lib, currentCells);
 			in.closeInput();
-			return in;
+			return lib;
         }
     }
 
@@ -328,8 +329,7 @@ public class EDIF extends Input
     @Override
 	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
 	{
-		// setup keyword prerequisites
-//		XX.stateArray = new EDIFKEY [] {KYY};	means YYs can be found inside of XX: (xx (yy))
+		// setup keyword prerequisites: XX.stateArray = new EDIFKEY [] {KYY};	means YYs can be found inside of XX: (xx (yy))
 		KARRAY.stateArray = new EDIFKEY [] {KINSTANCE, KPORT, KNET};
 		KAUTHOR.stateArray = new EDIFKEY [] {KWRITTEN};
 		KBOUNDINGBOX.stateArray = new EDIFKEY [] {KSYMBOL, KCONTENTS, KPROTECTIONFRAME};
@@ -382,7 +382,6 @@ public class EDIF extends Input
 
 		// general inits
 		curLibrary = lib;
-		curTechnology = Schematics.tech();
 		cellTable = new HashMap<String,NameEntry>();
 		portsListHead = null;
 		propertiesListHead = null;
@@ -407,8 +406,8 @@ public class EDIF extends Input
 		propertyReference = "";
 
 		// geometry inits
-		nameEntryList = new ArrayList<NameEntry>();
-		curNameEntry = null;
+		activeFigures = new ArrayList<NameEntry>();
+		curActiveFigure = null;
 		freePointList();
 
 		// text inits
@@ -795,7 +794,7 @@ public class EDIF extends Input
 		String layer = getToken((char)0);
 
 		// now look for this layer in the list of layers
-		for(NameEntry nt : nameEntryList)
+		for(NameEntry nt : activeFigures)
 		{
 			if (nt.original.equalsIgnoreCase(layer))
 			{
@@ -806,22 +805,23 @@ public class EDIF extends Input
 				textVisible = nt.visible;
 
 				// allow new definitions
-				curNameEntry = nt;
+				curActiveFigure = nt;
 				return;
 			}
 		}
 
 		NameEntry nt = new NameEntry();
-		nameEntryList.add(nt);
+		activeFigures.add(nt);
 		nt.original = layer;
 		nt.replace = nt.original;
-		curFigureGroup = nt.node = Artwork.tech().boxNode;
+		nt.node = Artwork.tech().boxNode;
+		curFigureGroup = nt.node;
 		textHeight = nt.textHeight = 0;
 		textJustification = nt.justification = TextDescriptor.Position.DOWNRIGHT;
 		textVisible = nt.visible = true;
 
 		// allow new definitions
-		curNameEntry = nt;
+		curActiveFigure = nt;
 	}
 
 	/**
@@ -1540,6 +1540,7 @@ public class EDIF extends Input
 		{
 			String cName = name;
 			if (view.length() > 0) cName += "{" + view + "}";
+System.out.println("===CREATING CELL "+cName);
 			proto = Cell.makeInstance(lib, cName);
 			if (proto != null)
 			{
@@ -1606,7 +1607,7 @@ public class EDIF extends Input
 	private EDIFKEY KFABRICATE = new KeyFabricate();
 	private EDIFKEY KFALSE = new KeyFalse();
 	private EDIFKEY KFIGURE = new KeyFigure();
-	private EDIFKEY KFIGUREGROUP = new EDIFKEY("figureGroup");
+	private EDIFKEY KFIGUREGROUP = new KeyFigureGroup();
 	private EDIFKEY KFIGUREGROUPOVERRIDE = new KeyFigureGroupOverride();
 	private EDIFKEY KFILLPATTERN = new EDIFKEY("fillpattern");
 	private EDIFKEY KGRIDMAP = new EDIFKEY("gridMap");
@@ -1661,7 +1662,7 @@ public class EDIF extends Input
 	private EDIFKEY KSTRING = new KeyString();
 	private EDIFKEY KSTRINGDISPLAY = new KeyStringDisplay();
 	private EDIFKEY KSYMBOL = new KeySymbol();
-	private EDIFKEY KTECHNOLOGY = new KeyTechnology();
+	private EDIFKEY KTECHNOLOGY = new EDIFKEY("technology");
 	private EDIFKEY KTEXTHEIGHT = new KeyTextHeight();
 	private EDIFKEY KTIMESTAMP = new EDIFKEY("timestamp");
 	private EDIFKEY KTRANSFORM = new KeyTransform();
@@ -1954,7 +1955,7 @@ public class EDIF extends Input
 		protected void push()
 			throws IOException
 		{
-			makeFigure();
+//			makeFigure();
 		}
 	}
 
@@ -2053,7 +2054,7 @@ public class EDIF extends Input
 			throws IOException
 		{
 			NameEntry nt = new NameEntry();
-			nameEntryList.add(nt);
+			activeFigures.add(nt);
 
 			// first get the original and replacement layers
 			nt.original = getToken((char) 0);
@@ -2073,8 +2074,8 @@ public class EDIF extends Input
 			if (keyStackDepth > 1 && keyStack[keyStackDepth-1] == KVISIBLE)
 			{
 				textVisible = false;
-				if (curNameEntry != null)
-					curNameEntry.visible = false;
+				if (curActiveFigure != null)
+					curActiveFigure.visible = false;
 			}
 		}
 	}
@@ -2090,10 +2091,25 @@ public class EDIF extends Input
 
 		protected void pop()
 		{
-			curNameEntry = null;
+			curActiveFigure = null;
 			textVisible = true;
 			textJustification = TextDescriptor.Position.DOWNRIGHT;
 			textHeight = 0;
+		}
+	}
+
+	private class KeyFigureGroup extends EDIFKEY
+	{
+		private KeyFigureGroup() { super("figureGroup"); }
+		protected void push()
+			throws IOException
+		{
+			makeFigure();
+		}
+
+		protected void pop()
+		{
+			curActiveFigure = null;
 		}
 	}
 
@@ -2103,34 +2119,35 @@ public class EDIF extends Input
 		protected void push()
 			throws IOException
 		{
-			// get the layer name
-			String layer = getToken((char)0);
-
-			// now look for this layer in the list of layers
-			for(NameEntry nt : nameEntryList)
-			{
-				if (nt == null) continue;
-				if (nt.original.equalsIgnoreCase(layer))
-				{
-					// found the layer
-					curFigureGroup = nt.node;
-					textHeight = nt.textHeight;
-					textJustification = nt.justification;
-					textVisible = nt.visible;
-					return;
-				}
-			}
-
-			// insert and resort the list
-			NameEntry nt = new NameEntry();
-			nameEntryList.add(nt);
-			nt.original = layer;
-
-			nt.replace = nt.original;
-			curFigureGroup = nt.node = Artwork.tech().boxNode;
-			textHeight = nt.textHeight = 0;
-			textJustification = nt.justification = TextDescriptor.Position.DOWNRIGHT;
-			textVisible = nt.visible = true;
+			makeFigure();
+//			// get the layer name
+//			String layer = getToken((char)0);
+//
+//			// now look for this layer in the list of layers
+//			for(NameEntry nt : activeFigures)
+//			{
+//				if (nt == null) continue;
+//				if (nt.original.equalsIgnoreCase(layer))
+//				{
+//					// found the layer
+//					curFigureGroup = nt.node;
+//					textHeight = nt.textHeight;
+//					textJustification = nt.justification;
+//					textVisible = nt.visible;
+//					return;
+//				}
+//			}
+//
+//			// insert and resort the list
+//			NameEntry nt = new NameEntry();
+//			activeFigures.add(nt);
+//			nt.original = layer;
+//
+//			nt.replace = nt.original;
+//			curFigureGroup = nt.node = Artwork.tech().boxNode;
+//			textHeight = nt.textHeight = 0;
+//			textJustification = nt.justification = TextDescriptor.Position.DOWNRIGHT;
+//			textVisible = nt.visible = true;
 		}
 	}
 
@@ -2373,6 +2390,8 @@ public class EDIF extends Input
 		protected void push()
 			throws IOException
 		{
+			if (activeView == VMASKLAYOUT) return;
+
 			// create schematic page 1 to represent all I/O for this schematic; locate this in the list of cells
 			curCell = createCell(null, cellName, activeView == VGRAPHIC ? "ic" : "sch");
 			if (curCell == null) throw new IOException("Error creating cell");
@@ -2435,8 +2454,8 @@ public class EDIF extends Input
 				return;
 			}
 
-			if (curNameEntry != null)
-				curNameEntry.justification = textJustification;
+			if (curActiveFigure != null)
+				curActiveFigure.justification = textJustification;
 		}
 	}
 
@@ -3076,37 +3095,39 @@ public class EDIF extends Input
 			port.name = portName;
 			port.direction = curDirection;
 
-			double cX = 0, cY = 0;
-			PortProto fPp = defaultInput;
-			if (portsListHead.direction == PortCharacteristic.OUT)
-				fPp = defaultOutput;
-
-			// now create the off-page reference
-			double psX = Schematics.tech().offpageNode.getDefWidth();
-			double psY = Schematics.tech().offpageNode.getDefHeight();
-			if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
-			NodeInst ni = NodeInst.makeInstance(Schematics.tech().offpageNode, new Point2D.Double(cX, cY), psX, psY, curCell);
-			if (ni == null)
+			if (activeView != VMASKLAYOUT)
 			{
-				System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create external port");
-				errorCount++;
-				return;
-			}
-			if (offpageNodes != null) offpageNodes.add(ni);
+				// now create the off-page reference
+				double psX = Schematics.tech().offpageNode.getDefWidth();
+				double psY = Schematics.tech().offpageNode.getDefHeight();
+				double cX = 0, cY = 0;
+				if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
+				NodeInst ni = NodeInst.makeInstance(Schematics.tech().offpageNode, new Point2D.Double(cX, cY), psX, psY, curCell);
+				if (ni == null)
+				{
+					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create external port");
+					errorCount++;
+					return;
+				}
+				if (offpageNodes != null) offpageNodes.add(ni);
 
-			// now create the port
-			PortInst pi = ni.findPortInstFromProto(fPp);
-			Export ppt = makeExport(curCell, pi, portsListHead.name, portsListHead.direction);
-			if (ppt == null)
-			{
-				System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + portsListHead.name + ">");
-				errorCount++;
+				// now create the port
+				PortProto fPp = defaultInput;
+				if (portsListHead.direction == PortCharacteristic.OUT)
+					fPp = defaultOutput;
+				PortInst pi = ni.findPortInstFromProto(fPp);
+				Export ppt = makeExport(curCell, pi, portsListHead.name, portsListHead.direction);
+				if (ppt == null)
+				{
+					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + portsListHead.name + ">");
+					errorCount++;
+				}
+
+				// create the properties on the port
+				for (EDIFProperty property = propertiesListHead; property != null; property = property.next)
+					ppt.newVar(property.name, property.val);
 			}
 			portReference = "";
-
-			// move the property list to the free list
-			for (EDIFProperty property = propertiesListHead; property != null; property = property.next)
-				ppt.newVar(property.name, property.val);
 			propertiesListHead = null;
 		}
 	}
@@ -3597,45 +3618,68 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 			{
 				propertyReference = objectName;
 			}
+
 		}
 
 		protected void pop()
 			throws IOException
 		{
-//			if (activeView == VNETLIST || activeView == VSCHEMATIC)
+			// add as a variable to the current object
+			Cell np = null;
+			if (keyStack[keyStackDepth - 1] == KINTERFACE)
 			{
-				// add as a variable to the current object
-				Cell np = null;
-				if (keyStack[keyStackDepth - 1] == KINTERFACE)
+				// add to the appropriate view nodeproto
+				String viewName = activeView == VMASKLAYOUT ? "lay" : "sch";
+				String desiredName = cellName + "{" + viewName + "}";
+				np = curLibrary.findNodeProto(desiredName);
+				if (np == null)
 				{
-					// add to the {sch} view nodeproto
-					String desiredName = cellName + "{sch}";
-					np = curLibrary.findNodeProto(desiredName);
-					if (np == null)
+					// allocate the cell
+					np = createCell(null, cellName, viewName);
+					if (np == null) throw new IOException("Error creating cell");
+					np.newVar(propertyReference, propertyValue);
+				}
+			} else if (keyStack[keyStackDepth - 1] == KINSTANCE || keyStack[keyStackDepth - 1] == KNET ||
+				keyStack[keyStackDepth - 1] == KPORT)
+			{
+				// add to the current property list, will be added latter
+				EDIFProperty property = new EDIFProperty();
+				property.next = propertiesListHead;
+				propertiesListHead = property;
+				property.name = "ATTR_" + propertyReference;
+				property.val = propertyValue;
+			} else if (keyStack[keyStackDepth - 1] == KCELL)
+			{
+				if (isAcceptedParameter(propertyReference))
+				{
+					curCellParameterOff++;
+					TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE).
+						withInherit(true).withParam(true).withOff(0, curCellParameterOff);
+                    Variable param = Variable.newInstance(Variable.newKey("ATTR_" + propertyReference), propertyValue, td);
+					curCell.getCellGroup().addParam(param);
+				}
+			}
+			if (curActiveFigure != null)
+			{
+				if (propertyReference.equals("layerNumber"))
+				{
+					String value = propertyValue.toString();
+					if (TextUtils.isANumber(value))
 					{
-						// allocate the cell
-						np = createCell(null, cellName, "sch");
-						if (np == null) throw new IOException("Error creating cell");
-						np.newVar(propertyReference, propertyValue);
-					}
-				} else if (keyStack[keyStackDepth - 1] == KINSTANCE || keyStack[keyStackDepth - 1] == KNET ||
-					keyStack[keyStackDepth - 1] == KPORT)
-				{
-					// add to the current property list, will be added latter
-					EDIFProperty property = new EDIFProperty();
-					property.next = propertiesListHead;
-					propertiesListHead = property;
-					property.name = "ATTR_" + propertyReference;
-					property.val = propertyValue;
-				} else if (keyStack[keyStackDepth - 1] == KCELL)
-				{
-					if (isAcceptedParameter(propertyReference))
-					{
-						curCellParameterOff++;
-						TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE).
-							withInherit(true).withParam(true).withOff(0, curCellParameterOff);
-                        Variable param = Variable.newInstance(Variable.newKey("ATTR_" + propertyReference), propertyValue, td);
-						curCell.getCellGroup().addParam(param);
+						int layerNum = TextUtils.atoi(value);
+//System.out.println("PROPERTY "+propertyReference+" IS "+layerNum);
+						Technology curTechnology = Technology.getCurrent();
+						for (Map.Entry<Layer,String> e : curTechnology.getGDSLayers().entrySet())
+						{
+							Layer layer = e.getKey();
+							String gdsLayer = e.getValue();
+							if (layerNum != TextUtils.atoi(gdsLayer)) continue;
+							PrimitiveNode pure = layer.getPureLayerNode();
+							if (pure == null) continue;
+							curActiveFigure.node = pure;
+//System.out.println("   ... WHICH IS LAYER "+layer.getName());
+							break;
+						}			
 					}
 				}
 			}
@@ -4008,7 +4052,7 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 
 			// clean up DISPLAY attributes
 			freePointList();
-			curNameEntry = null;
+//			curActiveFigure = null;
 			textVisible = true;
 			textJustification = TextDescriptor.Position.DOWNRIGHT;
 			textHeight = 0;
@@ -4053,47 +4097,6 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 		}
 	}
 
-	private class KeyTechnology extends EDIFKEY
-	{
-		private KeyTechnology() { super("technology"); }
-		protected void pop()
-		{
-			// for all layers assign their GDS number
-			for (Map.Entry<Layer,String> e: curTechnology.getGDSLayers().entrySet())
-			{
-				Layer layer = e.getKey();
-				String gdsLayer = e.getValue();
-
-				// search for this layer
-				boolean found = false;
-				for(NameEntry nt : nameEntryList)
-				{
-					if (nt.replace.equalsIgnoreCase(layer.getName())) { found = true;   break; }
-				}
-				if (!found)
-				{
-					// add to the list
-					NameEntry nt = new NameEntry();
-					nt.original = "layer_" + gdsLayer;
-					nt.replace = layer.getName();
-					curFigureGroup = nt.node = Artwork.tech().boxNode;
-					textHeight = nt.textHeight = 0;
-					textJustification = nt.justification = TextDescriptor.Position.DOWNRIGHT;
-					textVisible = nt.visible = true;
-				}
-			}
-
-			// now look for nodes to map MASK layers to
-			for (NameEntry nt : nameEntryList)
-			{
-				String nodeName = nt.replace + "-node";
-				NodeProto np = curTechnology.findNodeProto(nodeName);
-				if (np == null) np = Artwork.tech().boxNode;
-				nt.node = np;
-			}
-		}
-	}
-
 	private class KeyTextHeight extends EDIFKEY
 	{
 		private KeyTextHeight() { super("textHeight"); }
@@ -4104,8 +4107,8 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 			String val = getToken((char)0);
 			textHeight = (int)(TextUtils.atoi(val) * localPrefs.inputScale);
 
-			if (curNameEntry != null)
-				curNameEntry.textHeight = textHeight;
+			if (curActiveFigure != null)
+				curActiveFigure.textHeight = textHeight;
 		}
 	}
 
@@ -4144,8 +4147,18 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 						double yPos = lY;
 						if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 						Orientation orient = curOrientation.concatenate(Orientation.fromAngle(cellRefProtoRotation*10));
+			// TODO Oh Dima!
+            if (Cell.isInstantiationRecursive((Cell)cellRefProto, curCell) && curCell.getView() == View.ICON)
+			{
+				System.out.println("Cannot create instance of " + cellRefProto + " in icon cell " + curCell);
+				if (deltaPointYX == 0 && deltaPointYY == 0) break;
+				lX += deltaPointYX;
+				lY += deltaPointYY;
+				continue;
+			}
 						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(lX+cellRefOffsetX, yPos+cellRefOffsetY),
 							cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curCell, orient, null, cellRefProtoFunction);
+//System.out.println("created "+ni.describe(false)+" in "+curCell.describe(false));
 						curNode = ni;
 						if (ni == null)
 						{
@@ -4282,8 +4295,8 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 			if (keyStackDepth > 1 && keyStack[keyStackDepth-1] == KVISIBLE)
 			{
 				textVisible = true;
-				if (curNameEntry != null)
-					curNameEntry.visible = true;
+				if (curActiveFigure != null)
+					curActiveFigure.visible = true;
 			}
 		}
 	}
@@ -4318,10 +4331,12 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 	{
 		private KeyView() { super("view"); }
 		protected void push()
+			throws IOException
 		{
 			activeView = VNULL;
 			offpageNodes = new ArrayList<NodeInst>();
 			mappedNodes = new HashMap<String,EDIFEquiv.NodeEquivalence>();
+			curViewName = getToken((char)0);
 		}
 
 		protected void pop()
@@ -4442,6 +4457,11 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 			{
 				activeView = VSCHEMATIC;
 				view = "sch";
+				if (keyStack[keyStackDepth-1] == KVIEW && curViewName != null && curViewName.equals("symbol"))
+				{
+					activeView = VGRAPHIC;
+					view = "ic";
+				}
 			}
 			else if (aName.equalsIgnoreCase("STRANGER")) activeView = VSTRANGER;
 			else if (aName.equalsIgnoreCase("SYMBOLIC")) activeView = VSYMBOLIC;

@@ -67,11 +67,11 @@ public class Spice extends Input
     {
 		public SpicePreferences(boolean factory) { super(factory); }
 
-        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
         {
         	Spice in = new Spice(this);
 			in.readDirectory(fileURL, lib);
-			return in;
+			return lib;
         }
     }
 

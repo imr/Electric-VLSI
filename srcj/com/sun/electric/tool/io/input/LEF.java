@@ -83,13 +83,13 @@ public class LEF extends LEFDEF
     {
 		public LEFPreferences(boolean factory) { super(factory); }
 
-        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
         {
         	LEF in = new LEF(this);
 			if (in.openTextInput(fileURL)) return null;
 			lib = in.importALibrary(lib, currentCells);
 			in.closeInput();
-			return in;
+			return lib;
         }
     }
 

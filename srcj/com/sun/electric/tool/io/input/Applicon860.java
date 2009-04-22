@@ -81,13 +81,13 @@ public class Applicon860 extends Input
     {
 		public Applicon860Preferences(boolean factory) { super(factory); }
 
-        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
         {
         	Applicon860 in = new Applicon860(this);
 			if (in.openBinaryInput(fileURL)) return null;
 			lib = in.importALibrary(lib, currentCells);
 			in.closeInput();
-			return in;
+			return lib;
         }
     }
 

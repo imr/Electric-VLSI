@@ -400,13 +400,13 @@ public class CIF extends Input
 
 		public CIFPreferences(boolean factory) { super(factory); }
 
-        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
         {
         	CIF in = new CIF(this);
 			if (in.openTextInput(fileURL)) return null;
 			lib = in.importALibrary(lib, currentCells);
 			in.closeInput();
-			return in;
+			return lib;
         }
     }
 

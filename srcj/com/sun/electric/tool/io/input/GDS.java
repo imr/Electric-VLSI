@@ -258,13 +258,13 @@ public class GDS extends Input
 
 		public GDSPreferences(boolean factory) { super(factory); }
 
-        public Input doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
         {
         	GDS in = new GDS(this);
 			if (in.openBinaryInput(fileURL)) return null;
 			lib = in.importALibrary(lib, currentCells);
 			in.closeInput();
-			return in;
+			return lib;
         }
     }
 
