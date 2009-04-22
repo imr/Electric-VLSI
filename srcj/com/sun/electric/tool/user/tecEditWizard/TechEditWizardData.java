@@ -1970,7 +1970,7 @@ public class TechEditWizardData
             (char)('A' + cifNumber++), poly_width, true, true);
         // PolyGate
         Xml.Layer polyGateLayer = makeXmlLayer(t.layers, layer_width, polyN+"Gate", Layer.Function.GATE, 0, graph,
-            (char)('A' + cifNumber++), poly_width, false, false);
+            (char)('A' + cifNumber++), poly_width, true, false); // false for the port otherwise it won't find any type
 
         if (getExtraInfoFlag())
         {

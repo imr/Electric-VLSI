@@ -2410,6 +2410,16 @@ class ValidationLayers
         errorLogger = logger;
         currentRules = rules;
         layersValidTech = rules.getTechnology();
+
+        // determine the layers that are being used
+        fillValidLayers();
+
+        cacheValidLayers(layersValidTech);
+        buildLayerInteractions(layersValidTech);
+    }
+
+    private void fillValidLayers()
+    {
         // determine the layers that are being used
 		int numLayers = layersValidTech.getNumLayers();
 		layersValid = new boolean[numLayers];
@@ -2421,10 +2431,10 @@ class ValidationLayers
 			PrimitiveNode np = it.next();
 			if (np.isNotUsed()) continue;
 			Technology.NodeLayer [] layers = np.getLayers();
-			for(int i=0; i<layers.length; i++)
+            for (Technology.NodeLayer l : layers)
 			{
-				Layer layer = layers[i].getLayer();
-				layersValid[layer.getIndex()] = true;
+                Layer layer = l.getLayer();
+                layersValid[layer.getIndex()] = true;
 			}
 		}
 		for(Iterator<ArcProto> it = layersValidTech.getArcs(); it.hasNext(); )
@@ -2437,11 +2447,7 @@ class ValidationLayers
 				layersValid[layer.getIndex()] = true;
 			}
 		}
-
-        cacheValidLayers(layersValidTech);
-        buildLayerInteractions(layersValidTech);
     }
-
     boolean isABadLayer(Technology tech, int layerNumber)
     {
         return (tech == layersValidTech && !layersValid[layerNumber]);
@@ -2458,31 +2464,7 @@ class ValidationLayers
         layersValidTech = tech;
 
         // determine the layers that are being used
-        int numLayers = tech.getNumLayers();
-        layersValid = new boolean[numLayers];
-        for (int i = 0; i < numLayers; i++)
-            layersValid[i] = false;
-        for (Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext();)
-        {
-            PrimitiveNode np = it.next();
-            if (np.isNotUsed()) continue;
-            Technology.NodeLayer[] layers = np.getLayers();
-            for (int i = 0; i < layers.length; i++)
-            {
-                Layer layer = layers[i].getLayer();
-                layersValid[layer.getIndex()] = true;
-            }
-        }
-        for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext();)
-        {
-            ArcProto ap = it.next();
-            if (ap.isNotUsed()) continue;
-            for (Iterator<Layer> lIt = ap.getLayerIterator(); lIt.hasNext();)
-            {
-                Layer layer = lIt.next();
-                layersValid[layer.getIndex()] = true;
-            }
-        }
+        fillValidLayers();
     }
 
     /**

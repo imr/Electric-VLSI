@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09i: ******************************
 
+BUG: (4/21/09, GVG) Problems DRC'ing technologies with no poly gate pure node (Bug #2134)
+FIX: Making sure TechEditorWizard generates technologies with pure poly gate node.
+
 IMP: (4/20/09, JKG) tweaked behavior of wiring tool - size of arcs from contacts
 now determined by size of layer on contact, not contact size
 
