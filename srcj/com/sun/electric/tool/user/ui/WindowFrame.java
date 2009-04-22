@@ -57,10 +57,8 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventListener;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Observable;
 import java.beans.PropertyVetoException;
 
@@ -124,7 +122,6 @@ public class WindowFrame extends Observable
             jf.setState(Frame.NORMAL);
             if (!jf.isVisible()) {
                 jf.toFront();
-                assert !Job.BATCHMODE;
                 jf.setVisible(true);
             } else
                 jf.toFront();

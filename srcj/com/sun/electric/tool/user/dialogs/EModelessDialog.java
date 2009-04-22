@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Dimension;
@@ -49,7 +48,6 @@ public class EModelessDialog extends JFrame
 	{
 		super("Title", (parent == null) ? (TopLevel.getCurrentJFrame() == null ? null :
 			TopLevel.getCurrentJFrame().getGraphicsConfiguration()) : parent.getGraphicsConfiguration());
-        assert !Job.BATCHMODE;
         assert !modal;
 
         final String CANCEL_DIALOG = "cancel-dialog";

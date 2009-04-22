@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 
@@ -210,7 +209,6 @@ public class MessagesWindow
 	public void appendString(String str)
 	{
 		info.append(str);
-		assert !Job.BATCHMODE;
 		try
 		{
 			Rectangle r = info.modelToView(info.getDocument().getLength());

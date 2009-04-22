@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -74,8 +73,6 @@ public class EDialog extends JDialog
 		super(parent, "", modal, (parent == null) ?
 			(TopLevel.getCurrentJFrame() == null ? null : TopLevel.getCurrentJFrame().getGraphicsConfiguration()) :
 				parent.getGraphicsConfiguration());
-
-		assert !Job.BATCHMODE;
 
 		Point pt = getDialogLocation(getClass());
 		setLocation(pt.x, pt.y);

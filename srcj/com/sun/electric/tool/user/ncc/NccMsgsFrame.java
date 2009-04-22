@@ -32,29 +32,27 @@ import javax.swing.*;
 
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.menus.WindowMenu;
-import com.sun.electric.tool.Job;
 
 /**
- * This is the top-level class of NCC GUI. 
+ * This is the top-level class of NCC GUI.
  * Call display() to display the frame.
  */
 public class NccMsgsFrame {
-    
+
     // GUI variables
     /** current frame of NCC GUI    */ protected static Container frame;
-    /** first-time placement flag   */ private static boolean placed = false;    
+    /** first-time placement flag   */ private static boolean placed = false;
     /** the top-level split-pane    */ private ComparisonsPane comparPane;
-    
+
     // data variables
     /** list of NccComparisonResult */ private List<NccGuiInfo> mismatches;
     /** NCC options                 */ private NccOptions nccOptions;
-    
+
     public NccMsgsFrame() {
         Dimension scrnSize = TopLevel.getScreenSize();
         Container contentPane;
-     
+
         if (TopLevel.isMDIMode()) {
             JInternalFrame jInternalFrame = new JInternalFrame("NCC Messages", true, true, true, true);
             jInternalFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
@@ -64,11 +62,11 @@ public class NccMsgsFrame {
         } else {
             JFrame jFrame = new JFrame("NCC Messages");
             jFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-            frame = jFrame; 
+            frame = jFrame;
             contentPane = jFrame.getContentPane();
             jFrame.setIconImage(TopLevel.getFrameIcon().getImage());
         }
-   
+
         comparPane = new ComparisonsPane();
         contentPane.add(comparPane);
         comparPane.setPreferredSize(new Dimension(scrnSize.width/3*2, scrnSize.height/3*2));
@@ -86,15 +84,15 @@ public class NccMsgsFrame {
             public void keyReleased(KeyEvent event) {;}
 		});
     }
-    
+
     /**
-     * Method returns the current Frame of NCC GUI. 
+     * Method returns the current Frame of NCC GUI.
      * No more than one NCC GUI Frame exists at any time.
-     * @return current NCC GUI Frame. The retuned frame is an instance 
+     * @return current NCC GUI Frame. The retuned frame is an instance
      * of either JInternalFrame (if in MDI mode) or of JFrame (otherwise)
      */
     public static Container getCurrentFrame() { return frame; }
-    
+
     /**
      * Method to update the list of mismatched NCC comparisons
      * @param misms  list of mismatches
@@ -104,9 +102,9 @@ public class NccMsgsFrame {
         mismatches = misms;
         nccOptions = options;
     }
-    
+
     /**
-     * Display NCC window. 
+     * Display NCC window.
      * If no errors were found, only a small message window will appear.
      */
     public void display() {
@@ -125,7 +123,7 @@ public class NccMsgsFrame {
             */
             return;
         }
-        
+
         comparPane.setMismatches(mismatches);
         if (TopLevel.isMDIMode()) {
             JInternalFrame jif = (JInternalFrame)frame;
@@ -148,14 +146,13 @@ public class NccMsgsFrame {
             JFrame jf = (JFrame)frame;
             jf.setState(Frame.NORMAL);
             if (!jf.isVisible()) {
-                jf.setVisible(true);              
+                jf.setVisible(true);
                 if (!placed) {
                     placed = true;
                     jf.pack();
                 }
-                assert !Job.BATCHMODE;
                 jf.setVisible(true);
-            } 
+            }
             jf.toFront();
             jf.requestFocus();
         }

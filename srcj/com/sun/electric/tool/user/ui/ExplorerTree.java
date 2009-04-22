@@ -135,7 +135,7 @@ import javax.swing.tree.TreeSelectionModel;
  * Class to display a cell explorer tree-view of the database.
  */
 public class ExplorerTree extends JTree implements DragSourceListener // , DragGestureListener
-{	
+{
 	private final static TreePath[] NULL_TREE_PATH_ARRAY = {};
 
     private TreeHandler handler = null;
@@ -2228,7 +2228,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			if (response == null) return;
 			CircuitChanges.renameCellGroupInJob(cellGroup, response);
 		}
-        
+
         private void deleteGroupAction()
         {
             Cell.CellGroup cellGroup = (Cell.CellGroup)getCurrentlySelectedObject(0);
@@ -2292,7 +2292,6 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 		{
 			JFrame jf = TopLevel.getCurrentJFrame();
 			NewCell dialog = new NewCell(jf);
-            assert !Job.BATCHMODE;
 			dialog.setVisible(true);
 		}
 
@@ -2492,7 +2491,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
             fromCells.add(cell);
             new CrossLibCopy.CrossLibraryCopyJob(fromCells, destLib, null, false, copyRelated, false, true);
         }
-        
+
         private void reViewCellAction(ActionEvent e)
 		{
 			JMenuItem menuItem = (JMenuItem)e.getSource();
@@ -2539,7 +2538,6 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			}
 			if (cellsToChange.size() == 0) return;
             ChangeCellGroup dialog = new ChangeCellGroup(TopLevel.getCurrentJFrame(), true, cellsToChange, lib);
-            assert !Job.BATCHMODE;
             dialog.setVisible(true);
         }
 
