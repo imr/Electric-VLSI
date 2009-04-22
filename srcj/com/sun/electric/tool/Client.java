@@ -41,7 +41,7 @@ public abstract class Client {
     private static final Condition queueChanged = lock.newCondition();
     private static ServerEvent queueTail = new JobQueueEvent(IdManager.stdIdManager.getInitialSnapshot(), new Job.Inform[0]);
 
-    final int connectionId;
+    int connectionId;
     int serverJobId;
     int clientJobId;
     final String userName = System.getProperty("user.name");

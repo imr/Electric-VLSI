@@ -79,8 +79,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;

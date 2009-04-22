@@ -27,7 +27,6 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
-import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.io.BufferedInputStream;
@@ -59,7 +58,7 @@ class ClientJobManager extends JobManager {
     /** stream for cleint to send Jobs. */      private final DataOutputStream clientOutputStream;
     /** Process that launched this. */          private final Process process;
     /** Count of started Jobs. */               private static int numStarted;
-    private volatile boolean jobTreeChanged;
+//    private volatile boolean jobTreeChanged;
 //    private static Job clientJob;
 
     /** Creates a new instance of ClientJobManager */
@@ -88,7 +87,7 @@ class ClientJobManager extends JobManager {
         clientOutputStream.flush();
     }
 
-    public void runLoop(Job initialJob) {
+    public void runLoop(final Job initialJob) {
         logger.entering(CLASS_NAME, "clinetLoop");
         Snapshot oldSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
         Snapshot currentSnapshot = EDatabase.clientDatabase().backup();
@@ -99,13 +98,18 @@ class ClientJobManager extends JobManager {
                 System.out.println("Client's protocol version " + Job.PROTOCOL_VERSION + " is incompatible with Server's protocol version " + protocolVersion);
                 System.exit(1);
             }
-            int connectionId = reader.readInt();
+            Job.currentUI.connectionId = reader.readInt();
             System.out.println("Connected");
         } catch (IOException e) {
             e.printStackTrace();
             return;
         }
 
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override public void run() {
+                initialJob.startJob();
+            }
+        });
 //        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "initTechnologies begin");
 //        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "initTechnologies end");
 //        SwingUtilities.invokeLater(new Runnable() {
@@ -158,6 +162,9 @@ class ClientJobManager extends JobManager {
 //                        }
                         Job.currentUI.addEvent(ejobEvent);
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult end {0}", ejob.jobKey.jobId);
+                    } else if (serverEvent instanceof Client.JobQueueEvent) {
+                        serverJobQueue = ((Client.JobQueueEvent)serverEvent).jobQueue;
+                        showJobQueue();
                     } else {
                         Job.currentUI.addEvent(serverEvent);
                     }
@@ -198,6 +205,7 @@ class ClientJobManager extends JobManager {
                 clientJobs.add(0, ejob);
             else
                 clientJobs.add(ejob);
+            showJobQueue();
         } else {
             serverJobs.add(ejob);
             try {
@@ -206,7 +214,7 @@ class ClientJobManager extends JobManager {
                 e.printStackTrace();
             }
         }
-        jobTreeChanged = true;
+//        jobTreeChanged = true;
 //        SwingUtilities.invokeLater(clientInvoke);
 //        Job.currentUI.invokeLaterBusyCursor(isChangeJobQueuedOrRunning()); // Not here !!!!
         SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(isChangeJobQueuedOrRunning()); }});
@@ -231,7 +239,7 @@ class ClientJobManager extends JobManager {
             }
         }
         //System.out.println("Removed Job "+j+", index was "+index+", numStarted now="+numStarted+", allJobs="+allJobs.size());
-        jobTreeChanged = true;
+//        jobTreeChanged = true;
 //        SwingUtilities.invokeLater(clientInvoke);
     }
 
@@ -239,6 +247,20 @@ class ClientJobManager extends JobManager {
 
     void setProgress(EJob ejob, String progress) {
         ejob.progress = progress;
+    }
+
+    private void showJobQueue() {
+        Job.Inform[] jobQueue;
+        lock();
+        try {
+            jobQueue =  new Job.Inform[serverJobQueue.length + clientJobs.size()];
+            System.arraycopy(serverJobQueue, 0, jobQueue, 0, serverJobQueue.length);
+            for (int i = 0; i < clientJobs.size(); i++)
+                jobQueue[serverJobQueue.length + i] = clientJobs.get(i).getJob().getInform();
+        } finally {
+            unlock();
+        }
+        Job.currentUI.addEvent(new Client.JobQueueEvent(clientSnapshot, jobQueue));
     }
 
     private boolean isChangeJobQueuedOrRunning() { // synchronization !!!
