@@ -106,7 +106,7 @@ class ClientJobManager extends JobManager {
         }
 
         SwingUtilities.invokeLater(new Runnable() {
-            @Override public void run() {
+            public void run() {
                 initialJob.startJob();
             }
         });
