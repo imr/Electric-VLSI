@@ -130,11 +130,14 @@ public class Connectivity
 	/** true to ignore select/well around active layers */		private boolean ignoreActiveSelectWell;
 	/** true to grid align the extracted geometry */			private boolean gridAlignExtraction;
 	/** true to approximate cut placement */					private boolean approximateCuts;
+	/** true if extracting hierarchically */					private boolean recursive;
 	/** the smallest polygon acceptable for merging */			private double smallestPoly;
 	/** debugging: list of objects created */					private List<ERectangle> addedRectangles;
 	/** debugging: list of objects created */					private List<ERectangle> addedLines;
 	/** list of exported pins to realize at the end */			private List<ExportedPin> pinsForLater;
 	/** ErrorLogger to keep up with errors during extraction */ private ErrorLogger errorLogger;
+	/** total number of cells to extract when recursing */		private int totalCells;
+	/** total number of cells extracted when recursing */		private int cellsExtracted;
 	/** Job that is holding the process */						private Job job;
 
 	/**
@@ -208,6 +211,9 @@ public class Connectivity
 			Connectivity c = new Connectivity(cell, this, errorLogger, smallestPolygonSize, activeHandling,
 				gridAlignExtraction, approximateCuts, recursive, pat);
 
+			if (recursive) c.totalCells = c.countExtracted(cell, pat, flattenPcells);
+			c.cellsExtracted = 0;
+
 			newCell = c.doExtract(cell, recursive, pat, flattenPcells, true, this, addedBatchRectangles, addedBatchLines, addedBatchNames);
 			if (newCell == null)
 				System.out.println("ERROR: Extraction of cell " + cell.describe(false) + " failed");
@@ -262,6 +268,7 @@ public class Connectivity
 	{
 		this.gridAlignExtraction = gridAlignExtraction;
 		this.approximateCuts = approximateCuts;
+		this.recursive = recursive;
 		tech = cell.getTechnology();
 		convertedCells = new HashMap<Cell,Cell>();
 		smallestPoly = (SCALEFACTOR * SCALEFACTOR) * smallestPolygonSize;
@@ -367,6 +374,29 @@ public class Connectivity
 		System.out.println(msg);
 	}
 
+	private int countExtracted(Cell oldCell, Pattern pat, boolean flattenPcells)
+	{
+		int numExtracted = 1;
+		for(Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = it.next();
+			if (ni.isCellInstance())
+			{
+				Cell subCell = (Cell)ni.getProto();
+
+				// do not recurse if this subcell will be expanded
+				if (isCellFlattened(subCell, pat, flattenPcells)) continue;
+
+				Cell convertedCell = convertedCells.get(subCell);
+				if (convertedCell == null)
+				{
+					numExtracted += countExtracted(subCell, pat, flattenPcells);
+				}
+			}
+		}
+		return numExtracted;
+	}
+
 	/**
 	 * Method to determine whether to flatten a cell.
 	 * @param cell the cell in question.
@@ -448,7 +478,7 @@ public class Connectivity
 		PolyMerge merge = new PolyMerge();
 
 		// convert the nodes
-		if (!startSection("Gathering geometry in " + oldCell + "..."))		// HAS PROGRESS IN IT
+		if (!startSection(oldCell, "Gathering geometry in " + oldCell + "..."))		// HAS PROGRESS IN IT
 			return null; // aborted
 		Set<Cell> expandedCells = new HashSet<Cell>();
 		exportsToRestore = new ArrayList<Export>();
@@ -469,42 +499,42 @@ public class Connectivity
 
 		// start by extracting vias
 		initDebugging();
-		if (!startSection("Extracting vias...")) return null; // aborted
-		if (!extractVias(merge, originalMerge, newCell)) return null; // aborted
+		if (!startSection(oldCell, "Extracting vias...")) return null; // aborted
+		if (!extractVias(merge, originalMerge, oldCell, newCell)) return null; // aborted
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Vias");
 
 		// now extract transistors
 		initDebugging();
-		if (!startSection("Extracting transistors...")) return null; // aborted
+		if (!startSection(oldCell, "Extracting transistors...")) return null; // aborted
 		extractTransistors(merge, originalMerge, newCell);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Transistors");
 
 		// extend geometry that sticks out in space
 		initDebugging();
-		if (!startSection("Extracting extensions...")) return null; // aborted
+		if (!startSection(oldCell, "Extracting extensions...")) return null; // aborted
 		extendGeometry(merge, originalMerge, newCell, true);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "StickOuts");
 
 		// look for wires and pins
 		initDebugging();
-		if (!startSection("Extracting wires...")) return null; // aborted
+		if (!startSection(oldCell, "Extracting wires...")) return null; // aborted
 		if (makeWires(merge, originalMerge, newCell)) return newCell;
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Wires");
 
 		// convert any geometry that connects two networks
 		initDebugging();
-		if (!startSection("Extracting connections...")) return null; // aborted
+		if (!startSection(oldCell, "Extracting connections...")) return null; // aborted
 		extendGeometry(merge, originalMerge, newCell, false);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Bridges");
 
 		// dump any remaining layers back in as extra pure layer nodes
 		initDebugging();
-		if (!startSection("Extracting leftover geometry...")) return null; // aborted
+		if (!startSection(oldCell, "Extracting leftover geometry...")) return null; // aborted
 		convertAllGeometry(merge, originalMerge, newCell);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Pures");
 
 		// reexport any that were there before
-		if (!startSection("Adding connecting wires...")) return null; // aborted
+		if (!startSection(oldCell, "Adding connecting wires...")) return null; // aborted
 		restoreExports(oldCell, newCell);
 
 		// cleanup by auto-stitching
@@ -521,7 +551,7 @@ public class Connectivity
 		}
 		AutoOptions prefs = new AutoOptions();
 		prefs.createExports = true;
-		AutoStitch.runAutoStitch(newCell, null, null, job, originalUnscaledMerge, null, false, prefs, true);
+		AutoStitch.runAutoStitch(newCell, null, null, job, originalUnscaledMerge, null, false, prefs, !recursive);
 		if (DEBUGSTEPS)
 		{
 			initDebugging();
@@ -535,6 +565,9 @@ public class Connectivity
 			termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Stitches");
 		}
 		System.out.println("Extraction done.");
+
+		cellsExtracted++;
+		if (recursive) Job.getUserInterface().setProgressValue(cellsExtracted * 100 / totalCells);
 		return newCell;
 	}
 
@@ -543,13 +576,14 @@ public class Connectivity
 	 * @param msg message to display in progress window
 	 * @return False if the job is scheduled for abort or was aborted
 	 */
-	private boolean startSection(String msg)
+	private boolean startSection(Cell cell, String msg)
 	{
 		System.out.println(msg);
 		if (job.checkAbort())
 			return false;
+		if (recursive) msg = cell.getName() + " - " + msg;
 		Job.getUserInterface().setProgressNote(msg);
-		Job.getUserInterface().setProgressValue(0);
+		if (!recursive) Job.getUserInterface().setProgressValue(0);
 		return true;
 	}
 
@@ -608,7 +642,7 @@ public class Connectivity
 		{
 			NodeInst ni = nIt.next();
 			soFar++;
-			if ((soFar % 100) == 0) Job.getUserInterface().setProgressValue(soFar * 100 / totalNodes);
+			if (!recursive && (soFar % 100) == 0) Job.getUserInterface().setProgressValue(soFar * 100 / totalNodes);
 			if (ni.getProto() == Generic.tech().cellCenterNode) continue;
 
 			// see if the node can be copied or must be extracted
@@ -970,7 +1004,7 @@ public class Connectivity
 			List<PolyBase> polyList = geomToWire.get(layer);
 			for(PolyBase poly : polyList)
 			{
-				Job.getUserInterface().setProgressValue(soFar * 100 / totPolys);
+				if (!recursive) Job.getUserInterface().setProgressValue(soFar * 100 / totPolys);
 				soFar++;
 
 				// figure out which arcproto to use here
@@ -1558,7 +1592,7 @@ public class Connectivity
 	 * @param newCell the Cell where new geometry is being created.
 	 * @return false if the job was aborted.
 	 */
-	private boolean extractVias(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	private boolean extractVias(PolyMerge merge, PolyMerge originalMerge, Cell oldCell, Cell newCell)
 	{
 		// make a list of all via/cut layers in the technology and count the number of vias/cuts
 		int totalCuts = 0;
@@ -1602,7 +1636,7 @@ public class Connectivity
 			{
 				PolyBase cut = cutList.get(0);
 				soFar++;
-				if ((soFar % 100) == 0) Job.getUserInterface().setProgressValue(soFar * 100 / totalCuts);
+				if (!recursive && (soFar % 100) == 0) Job.getUserInterface().setProgressValue(soFar * 100 / totalCuts);
 
 				// figure out which of the layers is present at this cut point
 				Rectangle2D cutBox = cut.getBox();
@@ -1828,7 +1862,7 @@ public class Connectivity
 		}
 
 		// now remove all created contacts from the original merge
-		if (!startSection("Finish extracting " + contactNodes.size() + " vias..."))
+		if (!startSection(oldCell, "Finish extracting " + contactNodes.size() + " vias..."))
 			 return false; // aborted
 
 		// build an R-Tree of all created nodes
@@ -2038,7 +2072,7 @@ public class Connectivity
 			if (root.getFlag())
 			{
 				soFar++;
-				if ((soFar % 100) == 0) Job.getUserInterface().setProgressValue(soFar * 100 / totalContacts);
+				if (!recursive && (soFar % 100) == 0) Job.getUserInterface().setProgressValue(soFar * 100 / totalContacts);
 				NodeInst ni = (NodeInst)child;
 				AffineTransform trans = ni.rotateOut();
 				Poly [] polys = tech.getShapeOfNode(ni);
@@ -2694,11 +2728,11 @@ public class Connectivity
 			geomToExtend.put(layer, polyList);
 			totExtensions += polyList.size();
 			soFar++;
-			Job.getUserInterface().setProgressValue(soFar * 100 / extendableLayers.size());
+			if (!recursive) Job.getUserInterface().setProgressValue(soFar * 100 / extendableLayers.size());
 		}
-		Job.getUserInterface().setProgressValue(0);
-		Job.getUserInterface().setProgressNote("Extracting " + totExtensions +
-			(justExtend ? " extensions..." : " connections..."));
+		if (!recursive) Job.getUserInterface().setProgressValue(0);
+//		Job.getUserInterface().setProgressNote("Extracting " + totExtensions +
+//			(justExtend ? " extensions..." : " connections..."));
 
 		EditingPreferences ep = newCell.getEditingPreferences();
 		soFar = 0;
@@ -2713,7 +2747,7 @@ public class Connectivity
 			for(PolyBase poly : polyList)
 			{
 				soFar++;
-				Job.getUserInterface().setProgressValue(soFar * 100 / totExtensions);
+				if (!recursive) Job.getUserInterface().setProgressValue(soFar * 100 / totExtensions);
 
 				// find out what this polygon touches
 				HashMap<Network,Object> netsThatTouch = getNetsThatTouch(poly, newCell, justExtend);

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09i: ******************************
 
+BUG: (4/22/09, SMR) Hierarchical node extraction shows confusing progress (Bug #2136).
+FIX: Now show simpler progress indication when extracting hierarchically.
+
 BUG: (4/22/09, DN) VHDL preferences are not saved.
 FIX: In GenerateVHDL.VHDLPreferences.putPrefs inverse the condition.
 
