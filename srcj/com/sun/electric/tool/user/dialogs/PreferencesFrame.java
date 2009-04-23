@@ -142,6 +142,7 @@ public class PreferencesFrame extends EDialog
     private EditingPreferences editingPreferences;
 	private List<PreferencePanel> optionPanes = new ArrayList<PreferencePanel>();
 	private DefaultMutableTreeNode initialDMTN;
+	private static PreferencesFrame currentOne;
 
 	/** The name of the current tab in this dialog. */		private static String currentTabName = "General";
 	/** The name of the current section in this dialog. */	private static String currentSectionName = "General ";
@@ -153,8 +154,11 @@ public class PreferencesFrame extends EDialog
 	 */
 	public static void preferencesCommand()
 	{
-		PreferencesFrame dialog = new PreferencesFrame(TopLevel.getCurrentJFrame());
-		dialog.setVisible(true);
+		if (currentOne == null)
+		{
+			currentOne = new PreferencesFrame(TopLevel.getCurrentJFrame());
+		}
+		currentOne.setVisible(true);
 	}
 
 	/**
@@ -167,8 +171,7 @@ public class PreferencesFrame extends EDialog
 	{
 		currentTabName = tabName;
 		currentSectionName = sectionName + " ";
-		PreferencesFrame dialog = new PreferencesFrame(TopLevel.getCurrentJFrame());
-		dialog.setVisible(true);
+		preferencesCommand();
 	}
 
 	/** Creates new form PreferencesFrame */
@@ -828,6 +831,7 @@ public class PreferencesFrame extends EDialog
 	/** Closes the dialog */
 	private void closeDialog(WindowEvent evt)
 	{
+		currentOne = null;
 		setVisible(false);
 		dispose();
 	}
