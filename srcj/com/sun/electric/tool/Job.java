@@ -725,26 +725,26 @@ public abstract class Job implements Serializable {
         return buf.toString();
     }
 
-    static void runTerminate(EJob ejob) {
-        Throwable jobException = ejob.deserializeResult();
-        Job job = ejob.clientJob;
-        try {
-            job.terminateIt(jobException);
-        } catch (Throwable e) {
-            System.out.println("Exception executing terminateIt");
-            e.printStackTrace(System.out);
-        }
-        job.endTime = System.currentTimeMillis();
-        job.finished = true;                        // is this redundant with Thread.isAlive()?
-
-        // say something if it took more than a minute by default
-        if (job.reportExecution || (job.endTime - job.startTime) >= MIN_NUM_SECONDS) {
-            if (User.isBeepAfterLongJobs()) {
-                Toolkit.getDefaultToolkit().beep();
-            }
-            System.out.println(job.getInfo());
-        }
-    }
+//    static void runTerminate(EJob ejob) {
+//        Throwable jobException = ejob.deserializeResult();
+//        Job job = ejob.clientJob;
+//        try {
+//            job.terminateIt(jobException);
+//        } catch (Throwable e) {
+//            System.out.println("Exception executing terminateIt");
+//            e.printStackTrace(System.out);
+//        }
+//        job.endTime = System.currentTimeMillis();
+//        job.finished = true;                        // is this redundant with Thread.isAlive()?
+//
+//        // say something if it took more than a minute by default
+//        if (job.reportExecution || (job.endTime - job.startTime) >= MIN_NUM_SECONDS) {
+//            if (User.isBeepAfterLongJobs()) {
+//                Toolkit.getDefaultToolkit().beep();
+//            }
+//            System.out.println(job.getInfo());
+//        }
+//    }
 
     public Key getKey() {
         return ejob.jobKey;

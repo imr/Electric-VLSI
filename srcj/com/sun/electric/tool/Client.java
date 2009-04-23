@@ -190,13 +190,13 @@ public abstract class Client {
         public final EJob.State newState;
 
         EJobEvent(EJob ejob, EJob.State newState) {
-            super(ejob.oldSnapshot);
+            super(ejob.newSnapshot);
             this.ejob = ejob;
             this.newState = newState;
         }
 
         EJobEvent(EJob ejob, EJob.State newState, long timeStamp) {
-            super(ejob.oldSnapshot, timeStamp);
+            super(ejob.newSnapshot, timeStamp);
             this.ejob = ejob;
             this.newState = newState;
         }
@@ -463,6 +463,7 @@ public abstract class Client {
                 assert newState == EJob.State.SERVER_DONE;
                 byte[] bytes = reader.readBytes();
                 EJob ejob = new EJob(connection, jobId, jobType, jobName, null);
+                ejob.state = newState;
                 ejob.doItOk = doItOk;
                 ejob.serializedResult = bytes;
                 return new EJobEvent(ejob, newState, timeStamp);

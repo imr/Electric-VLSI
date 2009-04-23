@@ -23,18 +23,23 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.database.EObjectOutputStream;
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
-import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.UserInterfaceMain;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectOutputStream;
+import java.lang.reflect.Field;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,8 +63,8 @@ class ClientJobManager extends JobManager {
     /** stream for cleint to send Jobs. */      private final DataOutputStream clientOutputStream;
     /** Process that launched this. */          private final Process process;
     /** Count of started Jobs. */               private static int numStarted;
-//    private volatile boolean jobTreeChanged;
-//    private static Job clientJob;
+
+    private EditingPreferences currentEp = new EditingPreferences(true, IdManager.stdIdManager.getInitialTechPool());
 
     /** Creates a new instance of ClientJobManager */
     public ClientJobManager(String serverMachineName, int serverPort) throws IOException {
@@ -78,6 +83,7 @@ class ClientJobManager extends JobManager {
     }
 
     void writeEJob(EJob ejob) throws IOException {
+        writeEditingPreferences();
         clientOutputStream.writeByte((byte)1);
         clientOutputStream.writeInt(ejob.jobKey.jobId);
         clientOutputStream.writeUTF(ejob.jobType.toString());
@@ -85,6 +91,26 @@ class ClientJobManager extends JobManager {
         clientOutputStream.writeInt(ejob.serializedJob.length);
         clientOutputStream.write(ejob.serializedJob);
         clientOutputStream.flush();
+    }
+
+    private void writeEditingPreferences() throws IOException {
+        EditingPreferences ep = UserInterfaceMain.getEditingPreferences();
+        if (ep == currentEp) return;
+        currentEp = ep;
+        byte[] serializedEp;
+        try {
+            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            ObjectOutputStream out = new EObjectOutputStream(byteStream, EDatabase.clientDatabase());
+            out.writeObject(ep);
+            out.flush();
+            serializedEp = byteStream.toByteArray();
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return;
+        }
+        clientOutputStream.writeByte((byte)2);
+        clientOutputStream.writeInt(serializedEp.length);
+        clientOutputStream.write(serializedEp);
     }
 
     public void runLoop(final Job initialJob) {
@@ -110,46 +136,31 @@ class ClientJobManager extends JobManager {
                 initialJob.startJob();
             }
         });
-//        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "initTechnologies begin");
-//        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "initTechnologies end");
-//        SwingUtilities.invokeLater(new Runnable() {
-//            public void run() {
-//                // remove the splash screen
-//                //if (sw != null) sw.removeNotify();
-//                logger.entering(CLASS_NAME, "InitializeWindows");
-//                TopLevel.InitializeWindows();
-//                WindowFrame.wantToOpenCurrentLibrary(true, null);
-//                logger.exiting(CLASS_NAME, "InitializeWindows");
-//            }
-//        });
 
-//        boolean firstSnapshot = false;
         for (;;) {
             try {
-                logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readTag");
+//                logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readTag");
                 byte tag = reader.readByte();
                 if (tag == 1) {
-//                    logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readSnapshot begin {0}", Integer.valueOf(clientFifo.numPut));
                     currentSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
-//                    logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readSnapshot end");
-//                    if (!firstSnapshot) {
-                        SwingUtilities.invokeLater(new SnapshotDatabaseChangeRun(clientSnapshot, currentSnapshot));
-//                        if (Job.currentUI != null)
-//                            Job.getExtendedUserInterface().showSnapshot(currentSnapshot, true);
-                        clientSnapshot = currentSnapshot;
-//                        firstSnapshot = true;
-//                    }
+                    SwingUtilities.invokeLater(new SnapshotDatabaseChangeRun(clientSnapshot, currentSnapshot));
+                    clientSnapshot = currentSnapshot;
                 } else {
                     Client.ServerEvent serverEvent = Client.read(reader, tag, Job.currentUI);
                     if (serverEvent instanceof Client.EJobEvent) {
                         Client.EJobEvent ejobEvent = (Client.EJobEvent)serverEvent;
-//                        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult begin {0}", Integer.valueOf(clientFifo.numPut));
                         EJob ejob = ejobEvent.ejob;
                         assert ejob.state == ejobEvent.newState;
                         assert ejob.state == EJob.State.SERVER_DONE;
-                        ejob.oldSnapshot = oldSnapshot;
-                        ejob.newSnapshot = currentSnapshot;
+                        EJob myEjob = getServerJob(ejob.jobKey.jobId);
+                        assert myEjob.jobName.equals(ejob.jobName);
+                        myEjob.state = ejob.state;
+                        myEjob.serializedResult = ejob.serializedResult;
+                        myEjob.oldSnapshot = oldSnapshot;
+                        myEjob.newSnapshot = currentSnapshot;
+                        myEjob.clientJob.finished = true;
                         oldSnapshot = currentSnapshot;
+                        showJobQueue();
 //                        long timeStamp = reader.readLong();
 //                        if (ejob.state == EJob.State.WAITING) {
 //                            boolean hasSerializedJob = reader.readBoolean();
@@ -160,8 +171,8 @@ class ClientJobManager extends JobManager {
 //                        if (ejob.state == EJob.State.SERVER_DONE) {
 //                            ejob.serializedResult = reader.readBytes();
 //                        }
-                        Job.currentUI.addEvent(ejobEvent);
-                        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult end {0}", ejob.jobKey.jobId);
+                        Job.currentUI.addEvent(new Client.EJobEvent(myEjob, ejobEvent.newState, ejobEvent.timeStamp));
+//                        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult end {0}", ejob.jobKey.jobId);
                     } else if (serverEvent instanceof Client.JobQueueEvent) {
                         serverJobQueue = ((Client.JobQueueEvent)serverEvent).jobQueue;
                         showJobQueue();
@@ -198,27 +209,63 @@ class ClientJobManager extends JobManager {
     }
 
     /** Add job to list of jobs */
-    void addJob(EJob ejob, boolean onMySnapshot) {
+    void addJob(final EJob ejob, boolean onMySnapshot) {
         assert SwingUtilities.isEventDispatchThread();
         if (ejob.jobType == Job.Type.EXAMINE) {
-            if (onMySnapshot)
-                clientJobs.add(0, ejob);
-            else
-                clientJobs.add(ejob);
+            lock();
+            try {
+                if (onMySnapshot)
+                    clientJobs.add(0, ejob);
+                else
+                    clientJobs.add(ejob);
+            } finally {
+                unlock();
+            }
             showJobQueue();
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    ejob.changedFields = new ArrayList<Field>();
+                    try {
+                        if (!ejob.clientJob.doIt())
+                            throw new JobException("job " + ejob.jobName + " returned false");
+                        ejob.serializeResult(EDatabase.clientDatabase());
+                    } catch (Throwable e) {
+                        e.getStackTrace();
+                        e.printStackTrace();
+                        ejob.serializeExceptionResult(e, EDatabase.clientDatabase());
+                    }
+                    Job.currentUI.addEvent(new Client.EJobEvent(ejob, EJob.State.SERVER_DONE));
+                }
+            });
         } else {
-            serverJobs.add(ejob);
+            lock();
+            try {
+                serverJobs.add(ejob);
+            } finally {
+                unlock();
+            }
             try {
                 writeEJob(ejob);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-//        jobTreeChanged = true;
-//        SwingUtilities.invokeLater(clientInvoke);
-//        Job.currentUI.invokeLaterBusyCursor(isChangeJobQueuedOrRunning()); // Not here !!!!
-        SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(isChangeJobQueuedOrRunning()); }});
-        return;
+    }
+
+    private EJob getServerJob(int jobId) {
+        lock();
+        try {
+            for (int i = 0; i < serverJobs.size(); i++) {
+                EJob ejob = serverJobs.get(i);
+                if (ejob.jobKey.jobId == jobId) {
+                    serverJobs.remove(i);
+                    return ejob;
+                }
+            }
+            return null;
+        } finally {
+            unlock();
+        }
     }
 
     /** Remove job from list of jobs */

@@ -281,7 +281,7 @@ public abstract class LibraryFiles extends Input
         }
         // handle different file types
         if (type == FileType.JELIB || type == FileType.DELIB) {
-            TechPool techPool = EDatabase.serverDatabase().getTechPool();
+            TechPool techPool = EDatabase.clientDatabase().getTechPool();
             try {
                 return JELIB.readProjectSettings(fileURL, type, techPool, errorLogger);
             } finally {

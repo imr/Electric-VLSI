@@ -26,10 +26,21 @@ package com.sun.electric.tool;
 import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.text.Setting;
 
+class AbstractToolSettings {
+    final boolean attach;
+    final Setting.RootGroup rootSettingGroup;
+
+    AbstractToolSettings(Setting.RootGroup rootSettingGroup) {
+        attach = rootSettingGroup != null;
+        this.rootSettingGroup = attach ? rootSettingGroup : new Setting.RootGroup();
+    }
+}
+
 /**
  *
  */
-public class ToolSettings {
+public class ToolSettings extends AbstractToolSettings {
+
 	/**
 	 * Returns project Setting Group of a tool.
      * @param groupName name of a Setting Group
@@ -222,12 +233,14 @@ public class ToolSettings {
     public static Setting getGlobalSDCCommandsSetting() { return t.cacheGlobalSDCCommands; }
     public static Setting getNumWorstPathsSetting() { return t.cacheNumWorstPaths; }
 
-    private static ToolSettings t = new ToolSettings();
+    public static void attachToGroup(Setting.RootGroup rootSettingGroup) {
+        t = new ToolSettings(rootSettingGroup);
+    }
+
+    private static ToolSettings t = new ToolSettings(null);
 
     private Setting.Group curXmlGroup;
     private String curPrefGroup;
-
-    private final Setting.RootGroup rootSettingGroup = new Setting.RootGroup();
 
     { tool("userTool", "tool/user"); }
 	private final Setting cacheDefaultTechnology = makeStringSetting("DefaultTechnology", "Technology tab", "Default Technology for editing", "mocmos");
@@ -307,10 +320,11 @@ public class ToolSettings {
     private final Setting cacheGlobalSDCCommands = makeStringSetting("GlobalSDCCommands", "Static Timing Analysis Tab", "Global SDC Constraints", "");
     private final Setting cacheNumWorstPaths = makeIntSetting("NumWorstPaths", "Static Timing Analysis Tab", "Num Worst Paths", 10);
 
-    private ToolSettings() {
+    private ToolSettings(Setting.RootGroup rootSettingGroup) {
+        super(rootSettingGroup);
         curXmlGroup = null;
         curPrefGroup = null;
-        rootSettingGroup.lock();
+        this.rootSettingGroup.lock();
     }
 
     private void tool(String xmlPath, String prefPath) {
@@ -327,6 +341,8 @@ public class ToolSettings {
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     private Setting makeBooleanSetting(String name, String location, String description, boolean factory) {
+        if (attach)
+            return findSetting(name, location, description, Boolean.valueOf(factory));
         return curXmlGroup.makeBooleanSetting(name, curPrefGroup, name, location, description, factory);
     }
 
@@ -339,6 +355,8 @@ public class ToolSettings {
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     private Setting makeIntSetting(String name, String location, String description, int factory) {
+        if (attach)
+            return findSetting(name, location, description, Integer.valueOf(factory));
         return curXmlGroup.makeIntSetting(name, curPrefGroup, name, location, description, factory);
     }
 
@@ -351,6 +369,8 @@ public class ToolSettings {
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     private Setting makeLongSetting(String name, String location, String description, long factory) {
+        if (attach)
+            return findSetting(name, location, description, Long.valueOf(factory));
         return curXmlGroup.makeLongSetting(name, curPrefGroup, name, location, description, factory);
     }
 
@@ -363,6 +383,8 @@ public class ToolSettings {
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     private Setting makeDoubleSetting(String name, String location, String description, double factory) {
+        if (attach)
+            return findSetting(name, location, description, Double.valueOf(factory));
         return curXmlGroup.makeDoubleSetting(name, curPrefGroup, name, location, description, factory);
     }
 
@@ -375,6 +397,17 @@ public class ToolSettings {
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     private Setting makeStringSetting(String name, String location, String description, String factory) {
+        if (attach)
+            return findSetting(name, location, description, factory);
         return curXmlGroup.makeStringSetting(name, curPrefGroup, name, location, description, factory);
+    }
+
+    private Setting findSetting(String name, String location, String description, Object factory) {
+        Setting setting = curXmlGroup.getSetting(name);
+        assert setting.getPrefPath().equals(curPrefGroup + "/" + name);
+        assert setting.getLocation().equals(location);
+        assert setting.getDescription().equals(description);
+        assert setting.getFactoryValue().equals(factory);
+        return setting;
     }
 }

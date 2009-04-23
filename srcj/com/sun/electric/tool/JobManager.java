@@ -25,7 +25,6 @@ package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.Condition;

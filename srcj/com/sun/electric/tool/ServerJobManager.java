@@ -415,12 +415,6 @@ public class ServerJobManager extends JobManager {
 //        Job.logger.logp(Level.FINE, CLASS_NAME, "run", "EXIT");
 //    }
 
-    public static void setUndoRedoStatus(boolean undoEnabled, boolean redoEnabled) {
-        assert Job.jobManager instanceof ServerJobManager;
-        Job.currentUI.showUndoRedoStatus(undoEnabled, redoEnabled);
-        // transmit to connection
-    }
-
     EJob selectEJob(EJob finishedEJob) {
         EJob selectedEJob = null;
         lock();

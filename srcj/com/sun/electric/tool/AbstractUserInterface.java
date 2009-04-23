@@ -47,7 +47,7 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     protected AbstractUserInterface(int connectionId) {
         super(connectionId);
     }
-    
+
     public Job.Key getJobKey() {
         return jobKey;
     }
@@ -114,8 +114,8 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
      * @param newUndoEnabled new status of undo button.
      * @param newRedoEnabled new status of redo button.
      */
-    protected void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {}
-    
+    public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {}
+
     protected abstract void showJobQueue(Job.Inform[] jobQueue);
 
     /**
@@ -125,6 +125,6 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     protected void showSnapshot(Snapshot newSnapshot, boolean undoRedo) {}
 
     protected abstract void terminateJob(EJob ejob);
-    
+
     public void beep() {}
 }

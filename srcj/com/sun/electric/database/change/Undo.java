@@ -26,7 +26,6 @@ package com.sun.electric.database.change;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.ServerJobManager;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
 
@@ -41,7 +40,7 @@ public class Undo
 	/**
 	 * Class to describe a batch of changes to the Electric database.
 	 */
-	public static class ChangeBatch
+	private static class ChangeBatch
 	{
         private int oldSnapshotId, newSnapshotId;
 		private Tool tool;
@@ -56,10 +55,10 @@ public class Undo
             this.startingHighlights = startingHighlights;
             newSnapshotId = newSnapshot.snapshotId;
         }
-		
+
         public int getStartingHighlights() { return startingHighlights; }
         public int getPreUndoHighlights() { return preUndoHighlights; }
-        
+
 		/**
 		 * Method to return the Tool associated with this ChangeBatch.
 		 * @return the Tool associated with this ChangeBatch.
@@ -122,7 +121,7 @@ public class Undo
         updateUndoRedo();
         return highlights;
 	}
-    
+
     private static void invalidate(int snapshotId) {
         int doneIndex = indexOf(doneList, snapshotId);
         int undoneIndex = indexOf(undoneList, snapshotId);
@@ -148,7 +147,7 @@ public class Undo
         }
         updateUndoRedo();
     }
-    
+
     private static int indexOf(List<ChangeBatch> list, int snapshotId) {
         for (int i = 0; i < list.size(); i++) {
             ChangeBatch batch = list.get(i);
@@ -157,9 +156,9 @@ public class Undo
         }
         return -1;
     }
- 
+
     private static void updateUndoRedo() {
-        ServerJobManager.setUndoRedoStatus(!doneList.isEmpty(), !undoneList.isEmpty());
+        Job.getExtendedUserInterface().showUndoRedoStatus(!doneList.isEmpty(), !undoneList.isEmpty());
     }
 
     public static String getUndoActivity() {return doneList.get(doneList.size() - 1).activity;}
@@ -173,7 +172,7 @@ public class Undo
         else
             System.out.println("Undo failed");
     }
-    
+
     /**
      * Method to redo a change.
      */
@@ -189,26 +188,26 @@ public class Undo
      */
     public static class UndoJob extends Job {
         int snapshotId;
-        
+
         public UndoJob(String jobName, int snapshotId) {
             super(jobName, User.getUserTool(), Job.Type.UNDO, null, null, Job.Priority.USER);
             this.snapshotId = snapshotId;
             startJob();
         }
-        
+
         public int getSnapshotId() { return snapshotId; }
-        
+
         public boolean doIt() throws JobException {
             // must not be called.
             throw new IllegalStateException();
         }
-        
+
         public void terminateFail(Throwable e) {
             invalidate(snapshotId);
             super.terminateFail(e);
         }
     }
-    
+
 //	/**
 //	 * Method to undo the last batch of changes.
 //	 * @return the batch number that was undone.
@@ -251,7 +250,7 @@ public class Undo
 //        updateUndoRedo();
 //
 //        Job.undo(batch.newSnapshotId);
-//        
+//
 //        // Put message in Message Window
 //		System.out.println("Redoing: " + batch.activity);
 ////        batch.describe("Redo");

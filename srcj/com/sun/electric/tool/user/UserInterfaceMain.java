@@ -44,6 +44,7 @@ import com.sun.electric.tool.EJob;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -658,6 +659,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     /**
      * Save current state of highlights and return its ID.
      */
+    @Override
     public int saveHighlights() {
         EditWindow_ wnd = getCurrentEditWindow_();
         if (wnd == null) return -1;
@@ -672,6 +674,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     /**
      * Restore state of highlights by its ID.
      */
+    @Override
     public void restoreHighlights(int highlightsId) {
         for (SavedHighlights sh: savedHighlights) {
             if (sh.id == highlightsId) {
@@ -686,6 +689,7 @@ public class UserInterfaceMain extends AbstractUserInterface
      * @param newUndoEnabled new status of undo button.
      * @param newRedoEnabled new status of redo button.
      */
+    @Override
     public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {
         PropertyChangeEvent e = null;
         if (undoEnabled != newUndoEnabled) {
@@ -711,6 +715,8 @@ public class UserInterfaceMain extends AbstractUserInterface
         currentSnapshot = newSnapshot;
         if (newSnapshot.environment != oldSnapshot.environment) {
             Environment.setThreadEnvironment(newSnapshot.environment);
+            if (newSnapshot.environment.toolSettings != oldSnapshot.environment.toolSettings)
+                ToolSettings.attachToGroup(newSnapshot.environment.toolSettings);
             if (newSnapshot.techPool != oldSnapshot.techPool) {
                 loadPreferences(newSnapshot.techPool);
                 User.technologyChanged();
