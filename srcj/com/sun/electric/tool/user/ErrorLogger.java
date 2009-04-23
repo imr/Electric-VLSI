@@ -294,9 +294,9 @@ public class ErrorLogger implements Serializable
     private String errorSystem;
     private boolean terminated;
     private boolean persistent; // cannot be deleted
-    private HashMap<Integer,String> sortKeysToGroupNames; // association of sortKeys to GroupNames
+    private Map<Integer,String> sortKeysToGroupNames; // association of sortKeys to GroupNames
 
-    public HashMap<Integer,String> getSortKeyToGroupNames() { return sortKeysToGroupNames; }
+    public Map<Integer,String> getSortKeyToGroupNames() { return sortKeysToGroupNames; }
 
     public String getSystem() { return errorSystem; }
 
@@ -618,8 +618,6 @@ public class ErrorLogger implements Serializable
     	            if (i == 0) prev = points.length-1;
     	            list.add(new ErrorHighLine(cell, new EPoint(points[prev].getX(), points[prev].getY()),
     	            	new EPoint(points[i].getX(), points[i].getY()), true));
-//                     h.add(new ErrorHighLine(cell, new EPoint(points[prev].getX(), points[prev].getY()),
-//    	            	new EPoint(points[i].getX(), points[i].getY()), true));
                 }
                 h.add(new ErrorHighPoly(cell, list));
             }
@@ -825,10 +823,10 @@ public class ErrorLogger implements Serializable
      * @param cell the Cell to examine.
      * @return all MessageLogs associated with the Cell.
      */
-    public synchronized ArrayList<MessageLog> getAllLogs(Cell cell)
+    public synchronized List<MessageLog> getAllLogs(Cell cell)
     {
         CellId cellId = cell.getId();
-        ArrayList<MessageLog> msgLogs = new ArrayList<MessageLog>();
+        List<MessageLog> msgLogs = new ArrayList<MessageLog>();
         // Searching errors
         for (MessageLog log : allErrors) {
             if (log.logCellId == cellId)
@@ -849,7 +847,7 @@ public class ErrorLogger implements Serializable
      */
     public synchronized boolean clearLogs(Cell cell) {
         CellId cellId = cell.getId();
-        ArrayList<MessageLog> errLogs = new ArrayList<MessageLog>();
+        List<MessageLog> errLogs = new ArrayList<MessageLog>();
         // Errors
         boolean removed = false;
         for (MessageLog log : allErrors) {
@@ -860,7 +858,7 @@ public class ErrorLogger implements Serializable
         }
         allErrors = errLogs;
 
-	    ArrayList<WarningLog> warndLogs = new ArrayList<WarningLog>();
+	    List<WarningLog> warndLogs = new ArrayList<WarningLog>();
         // Warnings
         for (WarningLog log : allWarnings) {
             if (log.logCellId != cellId)
@@ -887,7 +885,7 @@ public class ErrorLogger implements Serializable
          }
 
         // ErrorHighArc.class is treaded with same header as  ErrorHighNode
-        Class[] errorTypes = {ErrorHighLine.class, ErrorHighPoly.class, ErrorHighNode.class, ErrorLogger.class};
+        Class[] errorTypes = {ErrorHighLine.class, ErrorHighPoint.class, ErrorHighPoly.class, ErrorHighNode.class, ErrorLogger.class};
 
         // Creating header
         buffWriter.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -1227,7 +1225,7 @@ public class ErrorLogger implements Serializable
                     }
                     else if (attributes.getQName(i).startsWith("geom"))
                         geomName = attributes.getValue(i);
-                    else if (attributes.getQName(i).startsWith("p1"))
+                    else if (attributes.getQName(i).startsWith("p1") || attributes.getQName(i).startsWith("pt"))
                     {
                         String[] points = TextUtils.parseString(attributes.getValue(i), "(,)");
                         double x = Double.parseDouble(points[0]);
@@ -1286,19 +1284,19 @@ public class ErrorLogger implements Serializable
 
             public void fatalError(SAXParseException e)
             {
-                System.out.println("Parser Fatal Error in " + e.getLineNumber() + " " + e.getPublicId() + " " + e.getSystemId());
+                System.out.println("Parser Fatal Error on line " + e.getLineNumber() + ": " + e.getMessage());
                 e.printStackTrace();
             }
 
             public void warning(SAXParseException e)
             {
-                System.out.println("Parser Warning in " + e.getLineNumber() + " " + e.getPublicId() + " " + e.getSystemId());
+                System.out.println("Parser Warning on line " + e.getLineNumber() + ": " + e.getMessage());
                 e.printStackTrace();
             }
 
             public void error(SAXParseException e)
             {
-                System.out.println("Parser Error in " + e.getLineNumber() + " " + e.getPublicId() + " " + e.getSystemId());
+                System.out.println("Parser Error on line " + e.getLineNumber() + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }

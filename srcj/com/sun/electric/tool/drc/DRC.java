@@ -1127,7 +1127,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             for (Geometric geo : objectsToCheck)
             {
                 Cell c = geo.getParent();
-                ArrayList<ErrorLogger.MessageLog> getAllLogs = errorLoggerIncremental.getAllLogs(c);
+                List<ErrorLogger.MessageLog> getAllLogs = errorLoggerIncremental.getAllLogs(c);
                 Job.updateIncrementalDRCErrors(c, null, getAllLogs);
             }
             new CheckDRCIncrementally(dp, cellToCheck, objectsToCheck, cellToCheck.getTechnology().isScaleRelevant());

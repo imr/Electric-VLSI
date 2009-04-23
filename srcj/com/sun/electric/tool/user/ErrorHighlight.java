@@ -25,8 +25,8 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdReader;
@@ -36,13 +36,13 @@ import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 
-import java.io.PrintStream;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.NotSerializableException;
+import java.io.PrintStream;
 import java.io.Serializable;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class to define Highlighted errors.
@@ -73,11 +73,11 @@ public abstract class ErrorHighlight implements Serializable {
 
     Object getObject(EDatabase database) { return null; }
 
-    static String getImplementedXmlHeaders() { return "ERRORTYPEGEOM|ERRORTYPETHICKLINE|ERRORTYPELINE|ERRORTYPEPOLY";}
+    static String getImplementedXmlHeaders() { return "ERRORTYPEGEOM|ERRORTYPETHICKLINE|ERRORTYPELINE|ERRORTYPEPOINT|ERRORTYPEPOLY";}
     static boolean isErrorHighlightBody(String name)
     {
         return name.equals("ERRORTYPEGEOM") || name.equals("ERRORTYPETHICKLINE") || name.equals("ERRORTYPELINE") ||
-            isErrorPoly(name);
+        	name.equals("ERRORTYPEPOINT") || isErrorPoly(name);
     }
     static boolean isErrorPoly(String name) {return name.equals("ERRORTYPEPOLY");}
 
@@ -113,13 +113,20 @@ public abstract class ErrorHighlight implements Serializable {
                 list.add(poly);
                 l = poly.linesList;
             }
+            else if (qName.equals("ERRORTYPEPOINT"))
+            {
+                list.add(new ErrorHighPoint(curCell, p1));
+            }
             else
                 assert(false); // it should not happen
         }
         return l;
     }
     public static void writeXmlHeader(String indent, PrintStream ps) {System.out.println("Not implemented in writeXmlHeader");}
-    void writeXmlDescription(String tabs, PrintStream msg, EDatabase database) {System.out.println("Not implemented in writeXmlDescription");}
+    void writeXmlDescription(String tabs, PrintStream msg, EDatabase database)
+    {
+    	System.out.println("Not implemented in writeXmlDescription");
+    }
 
     boolean isValid(EDatabase database) { return cellId == null || getCell(database) != null; } // Still have problems with minAre DRC errors
 
@@ -133,6 +140,10 @@ public abstract class ErrorHighlight implements Serializable {
 
     public static ErrorHighlight newInstance(Cell cell, Point2D p1, Point2D p2) {
         return new ErrorHighLine(cell, EPoint.snap(p1), EPoint.snap(p2), false);
+    }
+
+    public static ErrorHighlight newInstance(Cell cell, Point2D pt) {
+        return new ErrorHighPoint(cell, EPoint.snap(pt));
     }
 
     public static ErrorHighlight newInstance(Export e) {
@@ -351,6 +362,24 @@ class ErrorHighPoint extends ErrorHighlight {
                 new Point2D.Double(point.getX()+consize, point.getY()+consize), cell);
         h.addLine(new Point2D.Double(point.getX()-consize, point.getY()+consize),
                 new Point2D.Double(point.getX()+consize, point.getY()-consize), cell);
+    }
+
+    public static void writeXmlHeader(String indent, PrintStream ps)
+    {
+        ps.println(indent + "<!ELEMENT ERRORTYPEPOINT ANY>");
+        ps.println(indent + "<!ATTLIST ERRORTYPEPOINT");
+        ps.println(indent + "   pt CDATA #REQUIRED");
+        ps.println(indent + "   cellName CDATA #REQUIRED");
+        ps.println(indent + ">");
+    }
+
+
+    void writeXmlDescription(String tabs, PrintStream msg, EDatabase database)
+    {
+        msg.append(tabs +"<ERRORTYPEPOINT  ");
+        msg.append("pt=\"(" + point.getX() + "," + point.getY() + ")\" ");
+        msg.append("cellName=\"" + getCell(database).describe(false) + "\"");
+        msg.append(" />\n");
     }
     
     @Override

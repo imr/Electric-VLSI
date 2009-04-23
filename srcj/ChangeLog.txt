@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09i: ******************************
 
+BUG: (4/23/09, SMR) Error logger doesn't handle "point" errors (Bug #2138).
+FIX: Added case to XML reader/writer.
+
 BUG: (4/23/09, SMR) Node extractor points to wrong place when implants
      are too large (Bug #2137).
 FIX: Scaled coordinates.
