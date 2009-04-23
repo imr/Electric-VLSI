@@ -2536,7 +2536,7 @@ public class Connectivity
 					if (errors.size() > 0)
 					{
 //for(String s : errors) System.out.println("      FAILED: " + s);
-						addErrorLog(newCell, errors.get(0), new EPoint(poly.getCenterX(), poly.getCenterY()));
+						addErrorLog(newCell, errors.get(0), new EPoint(poly.getCenterX()/SCALEFACTOR, poly.getCenterY()/SCALEFACTOR));
 					}
 //else System.out.println("      PASSED");
 				}

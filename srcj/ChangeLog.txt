@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09i: ******************************
 
+BUG: (4/23/09, SMR) Node extractor points to wrong place when implants
+     are too large (Bug #2137).
+FIX: Scaled coordinates.
+
 BUG: (4/22/09, SMR) Hierarchical node extraction shows confusing progress (Bug #2136).
 FIX: Now show simpler progress indication when extracting hierarchically.
 
