@@ -2719,31 +2719,42 @@ public class TechEditWizardData
                     System.out.println("Not working with !horizontal");
                     assert(false);
                 }
+                portNames.clear();
+                portNames.add(polyLayer.name);
+
                 // bottom or left
-                Xml.NodeLayer bOrL = (makeXmlNodeLayerSpecial(gatex, gatex, //endPolyx, endPolyx,
+                Xml.NodeLayer bOrL = (makeXmlNodeLayerSpecial(gatex, gatex,
                     DBMath.round((protectDist + 3*endPolyy)),
                     -DBMath.round(endPolyy + protectDist),
-                   polyLayer, Poly.Type.FILLED, true, false, -1));
+                   polyLayer, Poly.Type.FILLED, true, false, -1/*3*/)); // port 3 for left/bottom extra poly lb=left bottom
+                double yLoc = DBMath.round((protectDist + 2*endPolyy));
+//                Xml.PrimitivePort polyExtraLBPort = makeXmlPrimitivePort("poly-lb-extra", 180, 90, 3, minFullSize,
+//                    0, -1, 0, 1, -yLoc, -1, -yLoc, 1, portNames);
                 // Adding left
                 nodesList.add(bOrL);
+//                nodePorts.add(polyExtraLBPort);
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-B", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                 g.addElement(n, name + "-B");
 
                 // top or right
-                Xml.NodeLayer tOrR = (makeXmlNodeLayerSpecial(gatex, gatex, // endPolyx, endPolyx,
+                Xml.NodeLayer tOrR = (makeXmlNodeLayerSpecial(gatex, gatex,
                     -DBMath.round(endPolyy + protectDist),
                     DBMath.round((protectDist + 3*endPolyy)),
-                    polyLayer, Poly.Type.FILLED, true, false, -1));
+                    polyLayer, Poly.Type.FILLED, true, false, -1/*4*/)); // port 4 for right/top extra poly rt=right top
+//                Xml.PrimitivePort polyExtraRTPort = makeXmlPrimitivePort("poly-rt-extra", 0, 180, 4, minFullSize,
+//                    0, -1, 0, 1, yLoc, -1, yLoc, 1, portNames);
 
                 // Adding both
                 nodesList.add(tOrR);
+//                nodePorts.add(polyExtraRTPort);
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-TB", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                 g.addElement(n, name + "-TB");
 
                 // Adding right
                 nodesList.remove(bOrL);
+//                nodePorts.remove(polyExtraLBPort);
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-T", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                 g.addElement(n, name +"-T");
