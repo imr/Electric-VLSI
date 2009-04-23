@@ -704,12 +704,13 @@ public class Connectivity
 				Name nameKey = ni.getNameKey();
 				if (!nameKey.isTempname()) name = ni.getName();
 				Orientation or = orient.concatenate(ni.getOrient());
+				if (name != null && newCell.findNode(name) != null) name = null;
 				NodeInst newNi = NodeInst.makeInstance(copyType, instanceAnchor, sX, sY,
 					newCell, or, name, ni.getTechSpecific());
 				if (newNi == null)
 				{
 					addErrorLog(newCell, "Problem creating new instance of " + ni.getProto(), new EPoint(sX, sY));
-					return;
+					continue;
 				}
 				newNodes.put(ni, newNi);
 
@@ -787,8 +788,15 @@ public class Connectivity
 				} else
 				{
 					Rectangle2D box = poly.getBox();
-					if (box != null) merge.addRectangle(layer, box); else
-						merge.addPolygon(layer, poly);
+					if (box == null) merge.addPolygon(layer, poly); else
+					{
+						if (box.getWidth() > 0 && box.getHeight() > 0)
+						{
+							if (layer.getName().equals("DeviceMark"))
+								System.out.println("DEVICE MARK IS "+box.getWidth()+"x"+box.getHeight());
+							merge.addRectangle(layer, box);
+						}
+					}
 				}
 			}
 
@@ -2535,10 +2543,8 @@ public class Connectivity
 					}
 					if (errors.size() > 0)
 					{
-//for(String s : errors) System.out.println("      FAILED: " + s);
 						addErrorLog(newCell, errors.get(0), new EPoint(poly.getCenterX()/SCALEFACTOR, poly.getCenterY()/SCALEFACTOR));
 					}
-//else System.out.println("      PASSED");
 				}
 			}
 		}
@@ -3975,9 +3981,9 @@ public class Connectivity
 				NodeInst newNi = NodeInst.makeInstance(ep.ni.getProto(), instanceAnchor, sX, sY, newCell);
 				if (newNi == null)
 				{
-					addErrorLog(newCell, "Problem creating new instance of " + ep.ni.getProto(),
+					addErrorLog(newCell, "Problem creating new instance of " + ep.ni.getProto() + " for export",
 						new EPoint(sX, sY));
-					return;
+					continue;
 				}
 				PortInst newPi = newNi.findPortInstFromProto(e.getOriginalPort().getPortProto());
 				Export.newInstance(newCell, newPi, e.getName());

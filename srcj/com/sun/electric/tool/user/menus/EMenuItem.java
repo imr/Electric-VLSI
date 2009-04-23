@@ -221,6 +221,7 @@ public abstract class EMenuItem implements ActionListener {
             accelerators = new KeyStroke[1];
         this.accelerators[0] = accelerator;
         for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars()) {
+        	if (menuBarInstance == null) continue;
             JMenuItem item = menuBarInstance.findMenuItem(path);
             if (item == null) continue;
             item.setAccelerator(accelerator);

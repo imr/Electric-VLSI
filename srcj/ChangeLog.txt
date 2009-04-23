@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09i: ******************************
 
+BUG: (4/23/09, SMR) Node extractor fails when there is duplicate text (Bug #2136).
+FIX: Find and remove duplicate text...do not fail when minor errors happen.
+
 BUG: (4/23/09, SMR) Error logger doesn't handle "point" errors (Bug #2138).
 FIX: Added case to XML reader/writer.
 
