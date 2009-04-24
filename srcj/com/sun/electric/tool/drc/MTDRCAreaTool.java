@@ -50,7 +50,7 @@ import java.awt.geom.Area;
 
 public class MTDRCAreaTool extends MTDRCTool
 {
-    /** Miscellanous data for DRC */                            private DRC.ReportInfo reportInfo;
+//    /** Miscellanous data for DRC */                            private DRC.ReportInfo reportInfo;
 
     public MTDRCAreaTool(DRC.DRCPreferences dp, Cell c, Consumer<MTDRCResult> consumer)
     {
@@ -85,7 +85,7 @@ public class MTDRCAreaTool extends MTDRCTool
     {
         ErrorLogger errorLogger = DRC.getDRCErrorLogger(true, false, ", Layer " + theLayer.getName());
         String msg = "Cell " + topCell.getName() + " , layer " + theLayer.getName();
-        reportInfo = new DRC.ReportInfo(errorLogger, topCell.getTechnology(), dp, false);
+        DRC.ReportInfo reportInfo = new DRC.ReportInfo(errorLogger, topCell.getTechnology(), dp, false);
 
         Date lastAreaGoodDate = DRC.getLastDRCDateBasedOnBits(topCell, false, -1, !reportInfo.inMemory);
 
