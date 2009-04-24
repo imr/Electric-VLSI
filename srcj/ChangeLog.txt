@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09i: ******************************
 
+BUG: (4/23/09, DN) Electric first window doesn't start with the default startup tech.
+FIX: In Main.java ove window creation fron InitDatabase to InitProjectSettings.
+
 BUG: (4/23/09, SMR) Preferences dialog can appear twice (Bug #2141).
 FIX: Show previous one if still active.
 

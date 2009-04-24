@@ -496,15 +496,13 @@ public final class Main
 	{
         private Map<String,Object> paramValuesByXmlPath = Technology.getParamValuesByXmlPath();
         private String softTechnologies = StartupPrefs.getSoftTechnologies();
-		List<String> argsList;
-        String beanShellScript;
+		private transient List<String> argsList;
         private Library mainLib;
 
-		private InitDatabase(List<String> argsL)
+		private InitDatabase(List<String> argsList)
 		{
 			super("Init database", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.argsList = argsL;
-			beanShellScript = getCommandLineOption(argsList, "-s");
+			this.argsList = argsList;
 		}
 
         @Override
@@ -516,7 +514,7 @@ public final class Main
             // open no name library first
             Library clipLib = Library.newInstance(Clipboard.clipCellId.libId.libName, null);
             clipLib.setHidden();
-            Cell.newInstance(clipLib, Clipboard.clipCellId.cellName.toString());
+            Cell.newInstance(clipLib, Clipboard.clipCellId.cellName.toString()).setTechnology(getTechPool().getGeneric());
             mainLib = Library.newInstance("noname", null);
             if (mainLib == null) return false;
             fieldVariableChanged("mainLib");
@@ -532,12 +530,8 @@ public final class Main
 
         @Override
         public void terminateOK() {
-            new InitProjectSettings().startJobOnMyResult();
+            new InitProjectSettings(argsList).startJobOnMyResult();
             User.setCurrentLibrary(mainLib);
-            Job.getExtendedUserInterface().finishInitialization();
-			openCommandLineLibs(argsList);
-            if (beanShellScript != null)
-                EvalJavaBsh.runScript(beanShellScript);
         }
 
         @Override
@@ -553,8 +547,9 @@ public final class Main
 	private static class InitProjectSettings extends Job
 	{
         private Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
+		List<String> argsList;
 
-		private InitProjectSettings()
+		private InitProjectSettings(List<String> argsList)
 		{
 			super("Init project settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             Preferences prefRoot = Pref.getPrefRoot();
@@ -564,6 +559,7 @@ public final class Main
                 if (value.equals(e.getValue())) continue;
                 changeBatch.add(setting, value);
             }
+            this.argsList = argsList;
 		}
 
         @Override
@@ -572,6 +568,15 @@ public final class Main
             getDatabase().implementSettingChanges(changeBatch);
             return true;
 		}
+
+        @Override
+        public void terminateOK() {
+            Job.getExtendedUserInterface().finishInitialization();
+			String beanShellScript = getCommandLineOption(argsList, "-s");
+            openCommandLineLibs(argsList);
+            if (beanShellScript != null)
+                EvalJavaBsh.runScript(beanShellScript);
+        }
 	}
 
     /**
