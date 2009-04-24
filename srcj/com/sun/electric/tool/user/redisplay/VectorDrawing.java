@@ -83,6 +83,7 @@ class VectorDrawing
 	/** statistics */										private int crossCount, textCount, circleCount, arcCount;
 	/** statistics */										private int subCellCount, tinySubCellCount;
 	/** the threshold of object sizes */					private float maxObjectSize;
+    /** true to use cell greeking images */                 private boolean useCellGreekingImages;
 	/** the threshold of text sizes */						private float maxTextSize;
 	/** the maximum cell size above which no greeking */	private float maxCellSize;
 
@@ -99,8 +100,9 @@ class VectorDrawing
 	 * Constructor creates a VectorDrawing object for a given EditWindow.
 	 * @param wnd the EditWindow associated with this VectorDrawing.
 	 */
-	public VectorDrawing()
+	public VectorDrawing(boolean useCellGreekingImages)
 	{
+        this.useCellGreekingImages = useCellGreekingImages;
 	}
 
 	/**
@@ -114,7 +116,8 @@ class VectorDrawing
 	 * @param screenLimit the area in the cell to display (null to show all).
 	 */
 	public void render(PixelDrawing offscreen, double scale, Point2D offset, Cell cell, boolean fullInstantiate,
-		List<NodeInst> inPlaceNodePath, Cell inPlaceCurrent, Rectangle screenLimit, VarContext context)
+		List<NodeInst> inPlaceNodePath, Cell inPlaceCurrent, Rectangle screenLimit, VarContext context,
+        double greekSizeLimit, double greekCellSizeLimit)
 	{
 		// see if any layers are being highlighted/dimmed
 		this.offscreen = offscreen;
@@ -133,10 +136,10 @@ class VectorDrawing
 		Dimension sz = offscreen.getSize();
 		this.scale = (float)scale;
 		scale_ = (float)(scale/DBMath.GRID);
-		maxObjectSize = (float)User.getGreekSizeLimit() / this.scale;
+		maxObjectSize = (float)greekSizeLimit / this.scale;
 		maxTextSize = maxObjectSize / (float)User.getGlobalTextScale();
 		double screenArea = sz.getWidth()/scale * sz.getHeight()/scale;
-		maxCellSize = (float)(User.getGreekCellSizeLimit() * screenArea);
+		maxCellSize = (float)(greekCellSizeLimit * screenArea);
 
 		// statistics
 		startTime = System.currentTimeMillis();
@@ -304,7 +307,7 @@ class VectorDrawing
 				VarContext subContext = context.push(ni);
 				VectorCache.VectorCell subVC_ = drawCell(subCell, recurseTrans, subContext);
 				assert subVC_ == subVC;
-				makeGreekedImage(subVC);
+                makeGreekedImage(subVC);
 
 				int fadeColor = getFadeColor(subVC, subContext);
 				drawTinyBox(lX, hX, lY, hY, fadeColor, subVC);
@@ -348,10 +351,10 @@ class VectorDrawing
 						subVC.vcg.cellArea < maxCellSize && isContentsTiny(subCell, subVC, recurseTrans, context);
 
 					// may also be "tiny" if the cell is smaller than the greeked image
-					boolean smallerThanGreek = User.isUseCellGreekingImages() && hX-lX <= MAXGREEKSIZE && hY-lY <= MAXGREEKSIZE;
+					boolean smallerThanGreek = useCellGreekingImages && hX-lX <= MAXGREEKSIZE && hY-lY <= MAXGREEKSIZE;
 					if (allFeaturesTiny || smallerThanGreek)
 					{
-						makeGreekedImage(subVC);
+                        makeGreekedImage(subVC);
 						int fadeColor = getFadeColor(subVC, context);
 						drawTinyBox(lX, hX, lY, hY, fadeColor, subVC);
 						tinySubCellCount++;
@@ -384,7 +387,7 @@ class VectorDrawing
 				offscreen.drawLine(tempPt1, tempPt2, null, PixelDrawing.instanceGraphics, 0, false);
 
 				// draw the instance name
-				if (User.isTextVisibilityOnInstance())
+				if (PixelDrawing.gp.isTextVisibilityOn(TextDescriptor.TextType.INSTANCE))
 				{
 					tempRect.setBounds(lX, lY, hX-lX, hY-lY);
 					TextDescriptor descript = vsc.n.protoDescriptor;
@@ -557,22 +560,22 @@ class VectorDrawing
 				switch (vt.textType)
 				{
 					case VectorCache.VectorText.TEXTTYPEARC:
-						if (!User.isTextVisibilityOnArc()) continue;
+						if (!PixelDrawing.gp.isTextVisibilityOn(TextDescriptor.TextType.ARC)) continue;
 						break;
 					case VectorCache.VectorText.TEXTTYPENODE:
-						if (!User.isTextVisibilityOnNode()) continue;
+						if (!PixelDrawing.gp.isTextVisibilityOn(TextDescriptor.TextType.NODE)) continue;
 						break;
 					case VectorCache.VectorText.TEXTTYPECELL:
-						if (!User.isTextVisibilityOnCell()) continue;
+						if (!PixelDrawing.gp.isTextVisibilityOn(TextDescriptor.TextType.CELL)) continue;
 						break;
 					case VectorCache.VectorText.TEXTTYPEEXPORT:
-						if (!User.isTextVisibilityOnExport()) continue;
+						if (!PixelDrawing.gp.isTextVisibilityOn(TextDescriptor.TextType.EXPORT)) continue;
 						break;
 					case VectorCache.VectorText.TEXTTYPEANNOTATION:
-						if (!User.isTextVisibilityOnAnnotation()) continue;
+						if (!PixelDrawing.gp.isTextVisibilityOn(TextDescriptor.TextType.ANNOTATION)) continue;
 						break;
 					case VectorCache.VectorText.TEXTTYPEINSTANCE:
-						if (!User.isTextVisibilityOnInstance()) continue;
+						if (!PixelDrawing.gp.isTextVisibilityOn(TextDescriptor.TextType.INSTANCE)) continue;
 						break;
 				}
 				if (vt.height < maxTextSize) continue;
@@ -625,7 +628,7 @@ class VectorDrawing
 				{
 					if (!PixelDrawing.lv.isVisible(vt.basePort.getParent())) continue;
                     graphics = PixelDrawing.textGraphics;
-					int exportDisplayLevel = User.getExportDisplayLevel();
+					int exportDisplayLevel = PixelDrawing.gp.exportDisplayLevel;
 					if (exportDisplayLevel == 2)
 					{
 						// draw export as a cross
@@ -680,7 +683,7 @@ class VectorDrawing
 	private void drawPortList(VectorCache.VectorSubCell vsc, VectorCache.VectorCell subVC_, int oX, int oY, boolean expanded)
 		throws AbortRenderingException
 	{
-		if (!User.isTextVisibilityOnPort()) return;
+		if (!PixelDrawing.gp.isTextVisibilityOn(TextDescriptor.TextType.PORT)) return;
 		// render all shapes
 		List<VectorCache.VectorCellExport> portShapes = subVC_.vcg.getPortShapes();
 		int[] portCenters = subVC_.getPortCenters();
@@ -699,7 +702,7 @@ class VectorDrawing
 			cX = tempPt1.x;
 			cY = tempPt1.y;
 
-			int portDisplayLevel = User.getPortDisplayLevel();
+			int portDisplayLevel = PixelDrawing.gp.portDisplayLevel;
             EGraphics portGraphics = expanded ? PixelDrawing.textGraphics : offscreen.getPortGraphics(vce.getBasePort());
 			if (portDisplayLevel == 2)
 			{
@@ -755,7 +758,7 @@ class VectorDrawing
 		if (hX >= screenHX) hX = screenHX-1;
 		if (lY < screenLY) lY = screenLY;
 		if (hY >= screenHY) hY = screenHY-1;
-		if (User.isUseCellGreekingImages())
+		if (useCellGreekingImages)
 		{
 			if (greekedCell != null && greekedCell.fadeImageColors != null)
 			{
@@ -900,7 +903,7 @@ class VectorDrawing
 		throws AbortRenderingException
 	{
 		if (subVC.fadeImage) return;
-		if (!User.isUseCellGreekingImages()) return;
+		if (!useCellGreekingImages) return;
 
 		// determine size and scale of greeked cell image
 		Rectangle2D cellBounds = subVC.vcg.bounds;
@@ -923,7 +926,7 @@ class VectorDrawing
 		// construct the offscreen buffers for the greeked cell image
 		PixelDrawing offscreen = new PixelDrawing(greekScale, screenBounds);
 		Point2D cellCtr = new Point2D.Double(ownBounds.getCenterX(), ownBounds.getCenterY());
-		VectorDrawing subVD = new VectorDrawing();
+		VectorDrawing subVD = new VectorDrawing(useCellGreekingImages);
 
 		subVC.fadeOffsetX = debugXP;
 		subVC.fadeOffsetY = debugYP;

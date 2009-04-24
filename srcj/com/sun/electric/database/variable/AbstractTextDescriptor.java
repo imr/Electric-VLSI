@@ -805,6 +805,56 @@ abstract class AbstractTextDescriptor implements Serializable
 
     AbstractTextDescriptor() {}
 
+    public enum TextType {
+        /**
+         * Text that resides on nodes.
+         * This text includes the node name and any parameters or attributes on it.
+         */
+        NODE("Node", 4),
+        /**
+         * Text that resides on arcs.
+         * This text includes the arc name and any parameters or attributes on it.
+         */
+        ARC("Arc", 4),
+        /**
+         * Text that resides on ports.
+         * This text includes the port name and any parameters or attributes on it.
+         */
+        PORT("Port", 4),
+        /**
+         * Text that resides on exports.
+         * This text includes the export name and any parameters or attributes on it.
+         */
+        EXPORT("Export", 8),
+        /**
+         * Annotation text.
+         * Annotation text is not attached to any node or arc, but appears to move freely about the cell.
+         * In implementation, they are displayable Variables on Generic:invisible-pin nodes.
+         */
+        ANNOTATION("Annotation", 4),
+        /**
+         * The name of on cell instances.
+         * The default is "true".
+         * @return true if the system should draw the name of on cell instances.
+         */
+        INSTANCE("Instance", 16),
+        /**
+         * Text that resides on the cell.
+         * This includes the current cell's parameters or attributes (for example, spice templates).
+         */
+        CELL("Cell", 4);
+
+        private final String purpose;
+        private final int initialSize;
+
+        public String getKeyVisibility() { return "TextVisibility" + purpose; }
+
+        private TextType(String purpose, int initialSize) {
+            this.purpose = purpose;
+            this.initialSize = initialSize;
+        }
+    }
+
 	/**
 	 * Default TextDescriptor for NodeInsts is 1 unit tall.
 	 */

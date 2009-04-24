@@ -53,9 +53,9 @@ public abstract class AbstractDrawing {
 
     public static AbstractDrawing createDrawing(EditWindow wnd, AbstractDrawing drawing, Cell cell) {
         boolean isLayerDrawing = User.getDisplayAlgorithm() == 2 && cell != null && cell.getTechnology().isLayout();
-        if (isLayerDrawing && !(drawing instanceof LayerDrawing.Drawing))
+        if (isLayerDrawing)
             drawing = new LayerDrawing.Drawing(wnd);
-        else if (!isLayerDrawing && !(drawing instanceof PixelDrawing.Drawing))
+        else
             drawing = new PixelDrawing.Drawing(wnd);
         return drawing;
     }
@@ -109,7 +109,7 @@ public abstract class AbstractDrawing {
         if (User.getDisplayAlgorithm() < 2 || User.isLegacyComposite()) {
             PixelDrawing.gp = gp;
             offscreen.initDrawing(scale);
-            VectorDrawing vd = new VectorDrawing();
+            VectorDrawing vd = new VectorDrawing(false);
             vd.render(offscreen, scale, EPoint.ORIGIN, shapes);
             Image img = offscreen.composite(null);
             g.drawImage(img, imgX, imgY, null);

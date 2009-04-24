@@ -352,7 +352,9 @@ class LayerDrawing
         private volatile boolean needComposite;
         private volatile DrawingData drawingData;
 
-	/** whether any layers are highlighted/dimmed */		boolean highlightingLayers;
+        /** whether any layers are highlighted/dimmed */		boolean highlightingLayers;
+        private final double patternedScaleLimit = User.getPatternedScaleLimit();
+        private final double alphaBlendingOvercolorLimit = User.getAlphaBlendingOvercolorLimit();
 
         Drawing(EditWindow wnd) {
             super(wnd);
@@ -840,7 +842,7 @@ class LayerDrawing
             offscreen.portColorsCache = new HashMap<PrimitivePort,Color>();
 //            updateScaleAndOffset();
 
-            offscreen.drawImage(this, fullInstantiate, bounds);
+            offscreen.drawImage(this, fullInstantiate, bounds, patternedScaleLimit, alphaBlendingOvercolorLimit);
             needComposite = true;
             drawingData = new DrawingData(offscreen);
         }
@@ -1252,7 +1254,8 @@ class LayerDrawing
 	 * @param drawLimitBounds the area in the cell to display (null to show all).
 	 * The rendered Image can then be obtained with "getImage()".
 	 */
-	private void drawImage(Drawing drawing, boolean fullInstantiate, Rectangle2D drawLimitBounds)
+	private void drawImage(Drawing drawing, boolean fullInstantiate, Rectangle2D drawLimitBounds,
+            double patternedScaleLimit, double alphaBlendingOvercolorLimit)
 	{
 		long startTime = 0, clearTime = 0, countTime = 0;
 		long initialUsed = 0;
@@ -1295,8 +1298,8 @@ class LayerDrawing
 		}
         varContext = wnd.getVarContext();
         initOrigin(expandedScale, new Point2D.Double(drawing.da.offX, drawing.da.offY));
-        patternedDisplay = expandedScale > User.getPatternedScaleLimit();
-        alphaBlendingOvercolor = expandedScale > User.getAlphaBlendingOvercolorLimit();
+        patternedDisplay = expandedScale > patternedScaleLimit;
+        alphaBlendingOvercolor = expandedScale > alphaBlendingOvercolorLimit;
  		canDrawText = expandedScale > 1;
         canDrawRelativeText = canDrawText ? 0 : MINIMUMTEXTSIZE;
 		maxObjectSize = 2 / expandedScale;
@@ -1655,7 +1658,7 @@ class LayerDrawing
 				drawLine(tempPt1, tempPt2, 0, instanceRaster);
 
 				// draw the instance name
-				if (canDrawText && User.isTextVisibilityOnInstance())
+				if (canDrawText && gp.isTextVisibilityOn(TextDescriptor.TextType.INSTANCE))
 				{
 					tempRect.setBounds(lX, lY, hX-lX, hY-lY);
 					TextDescriptor descript = vsc.n.protoDescriptor;
@@ -2582,22 +2585,22 @@ class LayerDrawing
                 }
                 switch (vt.textType) {
                     case VectorCache.VectorText.TEXTTYPEARC:
-                        if (!User.isTextVisibilityOnArc()) continue;
+                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.ARC)) continue;
                         break;
                     case VectorCache.VectorText.TEXTTYPENODE:
-                        if (!User.isTextVisibilityOnNode()) continue;
+                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.NODE)) continue;
                         break;
                     case VectorCache.VectorText.TEXTTYPECELL:
-                        if (!User.isTextVisibilityOnCell()) continue;
+                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.CELL)) continue;
                         break;
                     case VectorCache.VectorText.TEXTTYPEEXPORT:
-                        if (!User.isTextVisibilityOnExport()) continue;
+                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.EXPORT)) continue;
                         break;
                     case VectorCache.VectorText.TEXTTYPEANNOTATION:
-                        if (!User.isTextVisibilityOnAnnotation()) continue;
+                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.ANNOTATION)) continue;
                         break;
                     case VectorCache.VectorText.TEXTTYPEINSTANCE:
-                        if (!User.isTextVisibilityOnInstance()) continue;
+                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.INSTANCE)) continue;
                         break;
                 }
 //				if (vt.height < maxTextSize) continue;
@@ -2620,7 +2623,7 @@ class LayerDrawing
                 PrimitiveNode baseNode = null;
                 if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.basePort != null) {
                     baseNode = vt.basePort.getParent();
-                    int exportDisplayLevel = User.getExportDisplayLevel();
+                    int exportDisplayLevel = gp.exportDisplayLevel;
                     if (exportDisplayLevel == 2) {
                         // draw export as a cross
                         int cX = (lX + hX) / 2;
@@ -2729,7 +2732,7 @@ class LayerDrawing
 	private void drawPortList(VectorCache.VectorSubCell vsc, VectorCache.VectorCell subVC_, int oX, int oY, boolean expanded)
 //		throws AbortRenderingException
 	{
-        if (!User.isTextVisibilityOnPort()) return;
+        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.PORT)) return;
 		// render all shapes
         List<VectorCache.VectorCellExport> portShapes = subVC_.vcg.getPortShapes();
         int[] portCenters = subVC_.getPortCenters();
@@ -2748,7 +2751,7 @@ class LayerDrawing
             cX = tempPt1.x;
             cY = tempPt1.y;
 
-			int portDisplayLevel = User.getPortDisplayLevel();
+			int portDisplayLevel = gp.portDisplayLevel;
             Color portColor;
             if (expanded) {
                 portColor = textColor;

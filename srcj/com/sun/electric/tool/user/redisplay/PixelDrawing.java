@@ -322,7 +322,11 @@ public class PixelDrawing
     };
 
     static class Drawing extends AbstractDrawing {
-        private final VectorDrawing vd = new VectorDrawing();
+        private final int displayAlgorithm = User.getDisplayAlgorithm();
+        private final boolean useCellGreekingImages = User.isUseCellGreekingImages();
+        private final double greekSizeLimit = User.getGreekSizeLimit();
+        private final double greekCellSizeLimit = User.getGreekCellSizeLimit();
+        private final VectorDrawing vd = new VectorDrawing(useCellGreekingImages);
         private volatile PixelDrawing offscreen;
 
         Drawing(EditWindow wnd) {
@@ -349,12 +353,13 @@ public class PixelDrawing
             if (offscreen_ == null || !offscreen_.getSize().equals(sz))
                     this.offscreen = offscreen_ = new PixelDrawing(sz);
             this.da = da;
-            offscreen_.drawImage(this, fullInstantiate, bounds);
+            boolean isPixelDrawing = displayAlgorithm == 0;
+            offscreen_.drawImage(this, fullInstantiate, bounds, isPixelDrawing, greekSizeLimit, greekCellSizeLimit);
         }
 
         @Override
         public void abortRendering() {
-            if (User.getDisplayAlgorithm() > 0)
+            if (displayAlgorithm > 0)
                 vd.abortRendering();
         }
     }
@@ -466,7 +471,8 @@ public class PixelDrawing
 	 * @param drawLimitBounds the area in the cell to display (null to show all).
 	 * The rendered Image can then be obtained with "getImage()".
 	 */
-	private void drawImage(Drawing drawing, boolean fullInstantiate, Rectangle2D drawLimitBounds)
+	private void drawImage(Drawing drawing, boolean fullInstantiate, Rectangle2D drawLimitBounds, boolean isPixelDrawing,
+            double greekSizeLimit, double greekCellSizeLimit)
 	{
 		long startTime = 0;
 		long initialUsed = 0;
@@ -554,7 +560,7 @@ public class PixelDrawing
         }
         forceRedraw(changedCellsCopy);
         VectorCache.theCache.forceRedraw();
-		if (User.getDisplayAlgorithm() == 0)
+		if (isPixelDrawing)
 		{
 			// reset cached cell counts
 			numberToReconcile = SINGLETONSTOADD;
@@ -569,7 +575,7 @@ public class PixelDrawing
 		} else
 		{
 			drawing.vd.render(this, scale, new Point2D.Double(drawing.da.offX, drawing.da.offY), cell, fullInstantiate,
-				inPlaceNodePath, wnd.getCell(), renderBounds, varContext);
+				inPlaceNodePath, wnd.getCell(), renderBounds, varContext, greekSizeLimit, greekCellSizeLimit);
 		}
 
 		// merge transparent image into opaque one
@@ -582,7 +588,7 @@ public class PixelDrawing
 			composite(renderBounds);
 		}
 
-		if (TAKE_STATS && User.getDisplayAlgorithm() == 0)
+		if (TAKE_STATS && isPixelDrawing)
 		{
 			long endTime = System.currentTimeMillis();
 			long curUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
@@ -663,8 +669,9 @@ public class PixelDrawing
             drawCell(cell, null, false, Orientation.IDENT, DBMath.MATID, cell);
 		} else
 		{
-            VectorDrawing vd = new VectorDrawing();
-			vd.render(this, scale, offset, cell, false, null, null, null, varContext);
+            VectorDrawing vd = new VectorDrawing(User.isUseCellGreekingImages());
+			vd.render(this, scale, offset, cell, false, null, null, null, varContext,
+                    User.getGreekSizeLimit(), User.getGreekCellSizeLimit());
 		}
 
 		// merge transparent image into opaque one
@@ -1132,7 +1139,7 @@ public class PixelDrawing
 		// show cell variables if at the top level
 		boolean topLevel = true;
 		if (topCell != null) topLevel = (cell == topCell);
-		if (canDrawText && topLevel && User.isTextVisibilityOnCell())
+		if (canDrawText && topLevel && gp.isTextVisibilityOn(TextDescriptor.TextType.CELL))
 		{
 			// show displayable variables on the instance
 			Poly[] polys = cell.getDisplayableVariables(CENTERRECT, dummyWnd, true);
@@ -1231,7 +1238,7 @@ public class PixelDrawing
 			if (canDrawText) showCellPorts(ni, trans, expanded);
 
 			// draw any displayable variables on the instance
-			if (canDrawText && User.isTextVisibilityOnNode())
+			if (canDrawText && gp.isTextVisibilityOn(TextDescriptor.TextType.NODE))
 			{
 				Poly[] polys = ni.getDisplayableVariables(dummyWnd);
 				drawPolys(polys, localTrans, false);
@@ -1270,10 +1277,10 @@ public class PixelDrawing
 				}
 
 				EditWindow0 nodeWnd = dummyWnd;
-				if (!forceVisible && (!canDrawText || !User.isTextVisibilityOnNode())) nodeWnd = null;
+				if (!forceVisible && (!canDrawText || !gp.isTextVisibilityOn(TextDescriptor.TextType.NODE))) nodeWnd = null;
 				if (prim == Generic.tech().invisiblePinNode)
 				{
-					if (!User.isTextVisibilityOnAnnotation()) nodeWnd = null;
+					if (!gp.isTextVisibilityOn(TextDescriptor.TextType.ANNOTATION)) nodeWnd = null;
 				}
 				Technology tech = prim.getTechnology();
 				drawPolys(tech.getShapeOfNode(ni, false, false, null), localTrans, forceVisible);
@@ -1282,9 +1289,9 @@ public class PixelDrawing
 		}
 
 		// draw any exports from the node
-		if (canDrawText && topLevel && User.isTextVisibilityOnExport())
+		if (canDrawText && topLevel && gp.isTextVisibilityOn(TextDescriptor.TextType.EXPORT))
 		{
-			int exportDisplayLevel = User.getExportDisplayLevel();
+			int exportDisplayLevel = gp.exportDisplayLevel;
 			Iterator<Export> it = ni.getExports();
 			while (it.hasNext())
 			{
@@ -1372,7 +1379,7 @@ public class PixelDrawing
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
 		drawPolys(tech.getShapeOfArc(ai), trans, forceVisible);
-		if (canDrawText && User.isTextVisibilityOnArc())
+		if (canDrawText && gp.isTextVisibilityOn(TextDescriptor.TextType.ARC))
     		drawPolys(ai.getDisplayableVariables(dummyWnd), trans, forceVisible);
 	}
 
@@ -1397,7 +1404,7 @@ public class PixelDrawing
             if (!e.isAlwaysDrawn())
             	shownPorts[pi.getPortIndex()] = true;
 		}
-		int portDisplayLevel = User.getPortDisplayLevel();
+		int portDisplayLevel = gp.portDisplayLevel;
 		for(int i = 0; i < numPorts; i++)
 		{
 			if (shownPorts[i]) continue;
@@ -1414,7 +1421,7 @@ public class PixelDrawing
 			} else
 			{
 				// draw port as text
-				if (User.isTextVisibilityOnPort())
+				if (gp.isTextVisibilityOn(TextDescriptor.TextType.PORT))
 				{
 					// combine all features of port text with color of the port
 					TextDescriptor descript = portPoly.getTextDescriptor();
@@ -1450,7 +1457,7 @@ public class PixelDrawing
 		}
 
 		// draw the instance name
-		if (canDrawText && User.isTextVisibilityOnInstance())
+		if (canDrawText && gp.isTextVisibilityOn(TextDescriptor.TextType.INSTANCE))
 		{
 			Rectangle2D bounds = poly.getBounds2D();
 			Rectangle rect = databaseToScreen(bounds);

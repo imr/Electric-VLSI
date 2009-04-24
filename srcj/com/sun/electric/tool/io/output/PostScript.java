@@ -51,7 +51,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.GraphicsPreferences;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.LayerVisibility;
 
 import java.awt.Color;
@@ -111,14 +110,6 @@ public class PostScript extends Output
     {
 		/** list of Polys to use instead of cell contents. */				List<PolyBase> override;
 		boolean plotDates = IOTool.isFactoryPlotDate();
-		boolean textVisibilityOnInstance = User.isFactoryTextVisibilityOnInstance();
-		boolean textVisibilityOnNode = User.isFactoryTextVisibilityOnNode();
-		boolean textVisibilityOnExport = User.isFactoryTextVisibilityOnExport();
-		boolean textVisibilityOnPort = User.isFactoryTextVisibilityOnPort();
-		boolean textVisibleOnArc = User.isFactoryTextVisibilityOnArc();
-		boolean textVisibleOnCell = User.isFactoryTextVisibilityOnCell();
-		int exportDisplayLevel = User.getFactoryExportDisplayLevel();
-		int portDisplayLevel = User.getFactoryPortDisplayLevel();
 		int printColorMethod = IOTool.getFactoryPrintColorMethod();
 		boolean printForPlotter = IOTool.isFactoryPrintForPlotter();
 		boolean printEncapsulate = IOTool.isFactoryPrintEncapsulated();
@@ -152,14 +143,6 @@ public class PostScript extends Output
 		private void fillPrefs()
         {
 			plotDates = IOTool.isPlotDate();
-			textVisibilityOnInstance = User.isTextVisibilityOnInstance();
-			textVisibilityOnNode = User.isTextVisibilityOnNode();
-			textVisibilityOnExport = User.isTextVisibilityOnExport();
-			textVisibilityOnPort = User.isTextVisibilityOnPort();
-			textVisibleOnArc = User.isTextVisibilityOnArc();
-			textVisibleOnCell = User.isTextVisibilityOnCell();
-			exportDisplayLevel = User.getExportDisplayLevel();
-			portDisplayLevel = User.getPortDisplayLevel();
 			printColorMethod = IOTool.getPrintColorMethod();
 			printForPlotter = IOTool.isPrintForPlotter();
 			printEncapsulate = IOTool.isPrintEncapsulated();
@@ -747,7 +730,7 @@ public class PostScript extends Output
 						psPoly(poly);
 
 						// Only when the instance names flag is on
-						if (localPrefs.textVisibilityOnInstance)
+						if (localPrefs.gp.isTextVisibilityOn(TextDescriptor.TextType.INSTANCE))
 						{
 							poly.setStyle(Poly.Type.TEXTBOX);
 							TextDescriptor td = TextDescriptor.getInstanceTextDescriptor().withAbsSize(24);
@@ -770,7 +753,7 @@ public class PostScript extends Output
 			}
 
 			// draw any displayable variables on the node
-			if (/* topLevel && */ real && localPrefs.textVisibilityOnNode)
+			if (/* topLevel && */ real && localPrefs.gp.isTextVisibilityOn(TextDescriptor.TextType.NODE))
 			{
 				Poly [] textPolys = ni.getDisplayableVariables(wnd);
 				for (int i=0; i<textPolys.length; i++)
@@ -781,7 +764,7 @@ public class PostScript extends Output
 			}
 
 			// draw any exports from the node
-			if (topLevel && localPrefs.textVisibilityOnExport)
+			if (topLevel && localPrefs.gp.isTextVisibilityOn(TextDescriptor.TextType.EXPORT))
 			{
 				for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
 				{
@@ -789,14 +772,14 @@ public class PostScript extends Output
 					if (real)
 					{
 						Poly poly = e.getNamePoly();
-						if (localPrefs.exportDisplayLevel == 2)
+						if (localPrefs.gp.exportDisplayLevel == 2)
 						{
 							// draw port as a cross
 							drawCross(poly.getCenterX(), poly.getCenterY(), false);
 						} else
 						{
 							// draw port as text
-							if (localPrefs.exportDisplayLevel == 1)
+							if (localPrefs.gp.exportDisplayLevel == 1)
 							{
 								// use shorter port name
 								String portName = e.getShortName();
@@ -843,7 +826,7 @@ public class PostScript extends Output
 				}
 
 				// draw any displayable variables on the arc
-				if (topLevel && localPrefs.textVisibleOnArc)
+				if (topLevel && localPrefs.gp.isTextVisibilityOn(TextDescriptor.TextType.ARC))
 				{
 					Poly[] textPolys = ai.getDisplayableVariables(wnd);
 					for (int i=0; i<textPolys.length; i++)
@@ -862,7 +845,7 @@ public class PostScript extends Output
 		}
 
 		// show cell variables if at the top level
-		if (topLevel && real && localPrefs.textVisibleOnCell)
+		if (topLevel && real && localPrefs.gp.isTextVisibilityOn(TextDescriptor.TextType.CELL))
 		{
 			// show displayable variables on the instance
 			Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
@@ -901,14 +884,14 @@ public class PostScript extends Output
 			Color portColor = col;
 			if (portColor == null) portColor = pp.getBasePort().getPortColor(localPrefs.gp);
 			setColor(portColor);
-			if (localPrefs.portDisplayLevel == 2)
+			if (localPrefs.gp.portDisplayLevel == 2)
 			{
 				// draw port as a cross
 				drawCross(portPoly.getCenterX(), portPoly.getCenterY(), false);
 			} else
 			{
 				// draw port as text
-				if (localPrefs.textVisibilityOnPort)
+				if (localPrefs.gp.isTextVisibilityOn(TextDescriptor.TextType.PORT))
 				{
 					// combine all features of port text with color of the port
 					TextDescriptor descript = portPoly.getTextDescriptor();
@@ -916,7 +899,7 @@ public class PostScript extends Output
 					Poly.Type type = descript.getPos().getPolyType();
 					portPoly.setStyle(type);
 					String portName = pp.getName();
-					if (localPrefs.portDisplayLevel == 1)
+					if (localPrefs.gp.portDisplayLevel == 1)
 					{
 						// use shorter port name
 						portName = pp.getShortName();

@@ -38,6 +38,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -61,12 +62,9 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.geom.Rectangle2D;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
 import javax.swing.SwingUtilities;
 
 /**
@@ -1492,7 +1490,6 @@ public class User extends Listener
 
 	/****************************** PORT AND EXPORT PREFERENCES ******************************/
 
-	private static Pref cachePortDisplayLevel = Pref.makeIntPref("PortDisplayLevel", tool.prefs, 0);
 	/**
 	 * Method to tell how to display ports.
 	 * @return how to display ports.
@@ -1500,25 +1497,7 @@ public class User extends Listener
 	 * 1: short port names (stopping at the first nonalphabetic character).
 	 * 2: ports drawn as crosses.
 	 */
-	public static int getPortDisplayLevel() { return cachePortDisplayLevel.getInt(); }
-	/**
-	 * Method to set how to display ports.
-	 * @param level how to display ports.
-	 * 0: full port names (the default).
-	 * 1: short port names (stopping at the first nonalphabetic character).
-	 * 2: ports drawn as crosses.
-	 */
-	public static void setPortDisplayLevels(int level) { cachePortDisplayLevel.setInt(level); }
-	/**
-	 * Method to tell how to display ports, by default.
-	 * @return how to display ports, by default.
-	 * 0: full port names.
-	 * 1: short port names (stopping at the first nonalphabetic character).
-	 * 2: ports drawn as crosses.
-	 */
-	public static int getFactoryPortDisplayLevel() { return cachePortDisplayLevel.getIntFactoryValue(); }
-
-	private static Pref cacheExportDisplayLevel = Pref.makeIntPref("ExportDisplayLevel", tool.prefs, 0);
+	public static int getPortDisplayLevel() { return UserInterfaceMain.getGraphicsPreferences().portDisplayLevel; }
 	/**
 	 * Method to tell how to display exports.
 	 * @return how to display exports.
@@ -1526,23 +1505,7 @@ public class User extends Listener
 	 * 1: short export names (stopping at the first nonalphabetic character).
 	 * 2: exports drawn as crosses.
 	 */
-	public static int getExportDisplayLevel() { return cacheExportDisplayLevel.getInt(); }
-	/**
-	 * Method to set how to display exports.
-	 * @param level how to display exports.
-	 * 0: full export names (the default).
-	 * 1: short export names (stopping at the first nonalphabetic character).
-	 * 2: exports drawn as crosses.
-	 */
-	public static void setExportDisplayLevels(int level) { cacheExportDisplayLevel.setInt(level); }
-	/**
-	 * Method to tell how to display exports, by default.
-	 * @return how to display exports, by default.
-	 * 0: full export names.
-	 * 1: short export names (stopping at the first nonalphabetic character).
-	 * 2: exports drawn as crosses.
-	 */
-	public static int getFactoryExportDisplayLevel() { return cacheExportDisplayLevel.getIntFactoryValue(); }
+	public static int getExportDisplayLevel() { return UserInterfaceMain.getGraphicsPreferences().exportDisplayLevel; }
 
 	private static Pref cacheMoveNodeWithExport = Pref.makeBooleanPref("MoveNodeWithExport", tool.prefs, false);
 	/**
@@ -1785,91 +1748,44 @@ public class User extends Listener
 
 	/****************************** TEXT PREFERENCES ******************************/
 
-	private static Pref cacheTextVisibilityNode = Pref.makeBooleanPref("TextVisibilityNode", tool.prefs, true);
+	/**
+	 * Method to tell whether to draw text of particular text type.
+	 * The default is "true".
+     * @param textType specified text type
+	 * @return true if the system should text of specified type.
+	 */
+    public static boolean isTextVisibilityOn(TextDescriptor.TextType textType) {
+        return UserInterfaceMain.getGraphicsPreferences().isTextVisibilityOn(textType);
+    }
+
 	/**
 	 * Method to tell whether to draw text that resides on nodes.
 	 * This text includes the node name and any parameters or attributes on it.
 	 * The default is "true".
 	 * @return true if the system should draw text that resides on nodes.
 	 */
-	public static boolean isTextVisibilityOnNode() { return cacheTextVisibilityNode.getBoolean(); }
-	/**
-	 * Method to set whether to draw text that resides on nodes.
-	 * This text includes the node name and any parameters or attributes on it.
-	 * @param on true if the system should draw text that resides on nodes.
-	 */
-	public static void setTextVisibilityOnNode(boolean on) { cacheTextVisibilityNode.setBoolean(on); }
-	/**
-	 * Method to tell whether to draw text that resides on nodes, by default.
-	 * This text includes the node name and any parameters or attributes on it.
-	 * @return true if the system should draw text that resides on nodes, by default.
-	 */
-	public static boolean isFactoryTextVisibilityOnNode() { return cacheTextVisibilityNode.getBooleanFactoryValue(); }
-
-	private static Pref cacheTextVisibilityArc = Pref.makeBooleanPref("TextVisibilityArc", tool.prefs, true);
+	public static boolean isTextVisibilityOnNode() { return isTextVisibilityOn(TextDescriptor.TextType.NODE); }
 	/**
 	 * Method to tell whether to draw text that resides on arcs.
 	 * This text includes the arc name and any parameters or attributes on it.
 	 * The default is "true".
 	 * @return true if the system should draw text that resides on arcs.
 	 */
-	public static boolean isTextVisibilityOnArc() { return cacheTextVisibilityArc.getBoolean(); }
-	/**
-	 * Method to set whether to draw text that resides on arcs.
-	 * This text includes the arc name and any parameters or attributes on it.
-	 * @param on true if the system should draw text that resides on arcs.
-	 */
-	public static void setTextVisibilityOnArc(boolean on) { cacheTextVisibilityArc.setBoolean(on); }
-	/**
-	 * Method to tell whether to draw text that resides on arcs, by default.
-	 * This text includes the arc name and any parameters or attributes on it.
-	 * @return true if the system should draw text that resides on arcs, by default.
-	 */
-	public static boolean isFactoryTextVisibilityOnArc() { return cacheTextVisibilityArc.getBooleanFactoryValue(); }
-
-	private static Pref cacheTextVisibilityPort = Pref.makeBooleanPref("TextVisibilityPort", tool.prefs, true);
+	public static boolean isTextVisibilityOnArc() { return isTextVisibilityOn(TextDescriptor.TextType.ARC); }
 	/**
 	 * Method to tell whether to draw text that resides on ports.
 	 * This text includes the port name and any parameters or attributes on it.
 	 * The default is "true".
 	 * @return true if the system should draw text that resides on ports.
 	 */
-	public static boolean isTextVisibilityOnPort() { return cacheTextVisibilityPort.getBoolean(); }
-	/**
-	 * Method to set whether to draw text that resides on ports.
-	 * This text includes the port name and any parameters or attributes on it.
-	 * @param on true if the system should draw text that resides on ports.
-	 */
-	public static void setTextVisibilityOnPort(boolean on) { cacheTextVisibilityPort.setBoolean(on); }
-	/**
-	 * Method to tell whether to draw text that resides on ports, by default.
-	 * This text includes the port name and any parameters or attributes on it.
-	 * @return true if the system should draw text that resides on ports, by default.
-	 */
-	public static boolean isFactoryTextVisibilityOnPort() { return cacheTextVisibilityPort.getBooleanFactoryValue(); }
-
-	private static Pref cacheTextVisibilityExport = Pref.makeBooleanPref("TextVisibilityExport", tool.prefs, true);
+	public static boolean isTextVisibilityOnPort() { return isTextVisibilityOn(TextDescriptor.TextType.PORT); }
 	/**
 	 * Method to tell whether to draw text that resides on exports.
 	 * This text includes the export name and any parameters or attributes on it.
 	 * The default is "true".
 	 * @return true if the system should draw text that resides on exports.
 	 */
-	public static boolean isTextVisibilityOnExport() { return cacheTextVisibilityExport.getBoolean(); }
-	/**
-	 * Method to set whether to draw text that resides on exports.
-	 * This text includes the export name and any parameters or attributes on it.
-	 * @param on true if the system should draw text that resides on exports.
-	 */
-	public static void setTextVisibilityOnExport(boolean on) { cacheTextVisibilityExport.setBoolean(on); }
-	/**
-	 * Method to tell whether to draw text that resides on exports, by default.
-	 * This text includes the export name and any parameters or attributes on it.
-	 * @return true if the system should draw text that resides on exports, by default.
-	 */
-	public static boolean isFactoryTextVisibilityOnExport() { return cacheTextVisibilityExport.getBooleanFactoryValue(); }
-
-	private static Pref cacheTextVisibilityAnnotation = Pref.makeBooleanPref("TextVisibilityAnnotation", tool.prefs, true);
+	public static boolean isTextVisibilityOnExport() { return isTextVisibilityOn(TextDescriptor.TextType.EXPORT); }
 	/**
 	 * Method to tell whether to draw text annotation text.
 	 * Annotation text is not attached to any node or arc, but appears to move freely about the cell.
@@ -1877,53 +1793,20 @@ public class User extends Listener
 	 * The default is "true".
 	 * @return true if the system should draw annotation text.
 	 */
-	public static boolean isTextVisibilityOnAnnotation() { return cacheTextVisibilityAnnotation.getBoolean(); }
-	/**
-	 * Method to set whether to draw annotation text.
-	 * Annotation text is not attached to any node or arc, but appears to move freely about the cell.
-	 * In implementation, they are displayable Variables on Generic:invisible-pin nodes.
-	 * @param on true if the system should draw annotation text.
-	 */
-	public static void setTextVisibilityOnAnnotation(boolean on) { cacheTextVisibilityAnnotation.setBoolean(on); }
-
-	private static Pref cacheTextVisibilityInstance = Pref.makeBooleanPref("TextVisibilityInstance", tool.prefs, true);
+	public static boolean isTextVisibilityOnAnnotation() { return isTextVisibilityOn(TextDescriptor.TextType.ANNOTATION); }
 	/**
 	 * Method to tell whether to draw the name of on cell instances.
 	 * The default is "true".
 	 * @return true if the system should draw the name of on cell instances.
 	 */
-	public static boolean isTextVisibilityOnInstance() { return cacheTextVisibilityInstance.getBoolean(); }
-	/**
-	 * Method to set whether to draw the name of on cell instances.
-	 * @param on true if the system should draw the name of on cell instances.
-	 */
-	public static void setTextVisibilityOnInstance(boolean on) { cacheTextVisibilityInstance.setBoolean(on); }
-	/**
-	 * Method to tell whether to draw the name of on cell instances, by default.
-	 * @return true if the system should draw the name of on cell instances, by default.
-	 */
-	public static boolean isFactoryTextVisibilityOnInstance() { return cacheTextVisibilityInstance.getBooleanFactoryValue(); }
-
-	private static Pref cacheTextVisibilityCell = Pref.makeBooleanPref("TextVisibilityCell", tool.prefs, true);
+	public static boolean isTextVisibilityOnInstance() { return isTextVisibilityOn(TextDescriptor.TextType.INSTANCE); }
 	/**
 	 * Method to tell whether to draw text that resides on the cell.
 	 * This includes the current cell's parameters or attributes (for example, spice templates).
 	 * The default is "true".
 	 * @return true if the system should draw text that resides on the cell.
 	 */
-	public static boolean isTextVisibilityOnCell() { return cacheTextVisibilityCell.getBoolean(); }
-	/**
-	 * Method to set whether to draw text that resides on the cell.
-	 * This includes the current cell's parameters or attributes (for example, spice templates).
-	 * @param on true if the system should draw text that resides on the cell.
-	 */
-	public static void setTextVisibilityOnCell(boolean on) { cacheTextVisibilityCell.setBoolean(on); }
-	/**
-	 * Method to tell whether to draw text that resides on the cell, by default.
-	 * This includes the current cell's parameters or attributes (for example, spice templates).
-	 * @return true if the system should draw text that resides on the cell, by default.
-	 */
-	public static boolean isFactoryTextVisibilityOnCell() { return cacheTextVisibilityCell.getBooleanFactoryValue(); }
+	public static boolean isTextVisibilityOnCell() { return isTextVisibilityOn(TextDescriptor.TextType.CELL); }
 
 	private static Pref cacheSmartVerticalPlacementExport = Pref.makeIntServerPref("SmartVerticalPlacementExport", tool.prefs, 0);
 	/**

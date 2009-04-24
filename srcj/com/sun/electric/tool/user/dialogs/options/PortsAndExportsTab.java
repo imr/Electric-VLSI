@@ -23,7 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import javax.swing.JPanel;
@@ -41,25 +43,29 @@ public class PortsAndExportsTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
+    @Override
 	public JPanel getPreferencesPanel() { return port; }
 
 	/** return the name of this preferences tab. */
+    @Override
 	public String getName() { return "Ports/Exports"; }
 
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Ports tab.
 	 */
+    @Override
 	public void init()
 	{
-		switch (User.getPortDisplayLevel())
+        GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
+		switch (gp.portDisplayLevel)
 		{
 			case 0: portFullPort.setSelected(true);    break;
 			case 1: portShortPort.setSelected(true);   break;
 			case 2: portCrossPort.setSelected(true);   break;
 		}
 
-		switch (User.getExportDisplayLevel())
+		switch (gp.exportDisplayLevel)
 		{
 			case 0: portFullExport.setSelected(true);    break;
 			case 1: portShortExport.setSelected(true);   break;
@@ -73,44 +79,37 @@ public class PortsAndExportsTab extends PreferencePanel
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Ports tab.
 	 */
+    @Override
 	public void term()
 	{
+        GraphicsPreferences oldGp = UserInterfaceMain.getGraphicsPreferences();
+        GraphicsPreferences gp = oldGp;
 		int curInt = 0;
-        boolean redraw = false;
 		if (portShortPort.isSelected()) curInt = 1; else
 			if (portCrossPort.isSelected()) curInt = 2;
-		if (curInt != User.getPortDisplayLevel())
-        {
-			User.setPortDisplayLevels(curInt);
-            redraw = true;
-        }
+        gp = gp.withPortDisplayLevel(curInt);
 
 		curInt = 0;
 		if (portShortExport.isSelected()) curInt = 1; else
 			if (portCrossExport.isSelected()) curInt = 2;
-		if (curInt != User.getExportDisplayLevel())
-        {
-			User.setExportDisplayLevels(curInt); 
-            redraw = true;
-        }
+        gp = gp.withExportDisplayLevel(curInt);
 
 		boolean currentMoveNodeWithExport = portMoveNode.isSelected();
 		if (currentMoveNodeWithExport != User.isMoveNodeWithExport())
 			User.setMoveNodeWithExport(currentMoveNodeWithExport);
 
 		// redisplay everything if port options changed
-		if (redraw) EditWindow.repaintAllContents();
+        UserInterfaceMain.setGraphicsPreferences(gp);
+		if (gp != oldGp) EditWindow.repaintAllContents();
 	}
 
 	/**
 	 * Method called when the factory reset is requested.
 	 */
+    @Override
 	public void reset()
 	{
-		if (User.getFactoryPortDisplayLevel() != User.getPortDisplayLevel())
-			User.setPortDisplayLevels(User.getFactoryPortDisplayLevel());
-		if (User.getFactoryExportDisplayLevel() != User.getExportDisplayLevel())
-			User.setExportDisplayLevels(User.getFactoryExportDisplayLevel());
+        UserInterfaceMain.setGraphicsPreferences(UserInterfaceMain.getGraphicsPreferences().withDisplayLevelReset());
 		if (User.isFactoryMoveNodeWithExport() != User.isMoveNodeWithExport())
 			User.setMoveNodeWithExport(User.isFactoryMoveNodeWithExport());
 	}

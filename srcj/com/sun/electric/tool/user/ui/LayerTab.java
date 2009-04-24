@@ -24,12 +24,14 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.redisplay.AbstractDrawing;
 import com.sun.electric.tool.user.redisplay.VectorCache;
 
@@ -390,13 +392,14 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		if (loading) return;
 
 		// initialize text visibility checkboxes
-		nodeText.setSelected(User.isTextVisibilityOnNode());
-		arcText.setSelected(User.isTextVisibilityOnArc());
-		portText.setSelected(User.isTextVisibilityOnPort());
-		exportText.setSelected(User.isTextVisibilityOnExport());
-		annotationText.setSelected(User.isTextVisibilityOnAnnotation());
-		instanceNames.setSelected(User.isTextVisibilityOnInstance());
-		cellText.setSelected(User.isTextVisibilityOnCell());
+        GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
+		nodeText.setSelected(gp.isTextVisibilityOn(TextDescriptor.TextType.NODE));
+		arcText.setSelected(gp.isTextVisibilityOn(TextDescriptor.TextType.ARC));
+		portText.setSelected(gp.isTextVisibilityOn(TextDescriptor.TextType.PORT));
+		exportText.setSelected(gp.isTextVisibilityOn(TextDescriptor.TextType.EXPORT));
+		annotationText.setSelected(gp.isTextVisibilityOn(TextDescriptor.TextType.ANNOTATION));
+		instanceNames.setSelected(gp.isTextVisibilityOn(TextDescriptor.TextType.INSTANCE));
+		cellText.setSelected(gp.isTextVisibilityOn(TextDescriptor.TextType.CELL));
 
 		Technology tech = Technology.getCurrent();
 		setSelectedTechnology(tech);
@@ -735,55 +738,17 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		// see if anything was highlighted
 		boolean visibilityChanged = lv.clearChanged();
 
-		boolean textVisChanged = false;
-		boolean currentTextOnNode = nodeText.isSelected();
-		if (currentTextOnNode != User.isTextVisibilityOnNode())
-		{
-			textVisChanged = true;
-			User.setTextVisibilityOnNode(currentTextOnNode);
-		}
-
-		boolean currentTextOnArc = arcText.isSelected();
-		if (currentTextOnArc != User.isTextVisibilityOnArc())
-		{
-			textVisChanged = true;
-			User.setTextVisibilityOnArc(currentTextOnArc);
-		}
-
-		boolean currentTextOnPort = portText.isSelected();
-		if (currentTextOnPort != User.isTextVisibilityOnPort())
-		{
-			textVisChanged = true;
-			User.setTextVisibilityOnPort(currentTextOnPort);
-		}
-
-		boolean currentTextOnExport = exportText.isSelected();
-		if (currentTextOnExport != User.isTextVisibilityOnExport())
-		{
-			textVisChanged = true;
-			User.setTextVisibilityOnExport(currentTextOnExport);
-		}
-
-		boolean currentTextOnAnnotation = annotationText.isSelected();
-		if (currentTextOnAnnotation != User.isTextVisibilityOnAnnotation())
-		{
-			textVisChanged = true;
-			User.setTextVisibilityOnAnnotation(currentTextOnAnnotation);
-		}
-
-		boolean currentTextOnInstance = instanceNames.isSelected();
-		if (currentTextOnInstance != User.isTextVisibilityOnInstance())
-		{
-			textVisChanged = true;
-			User.setTextVisibilityOnInstance(currentTextOnInstance);
-		}
-
-		boolean currentTextOnCell = cellText.isSelected();
-		if (currentTextOnCell != User.isTextVisibilityOnCell())
-		{
-			textVisChanged = true;
-			User.setTextVisibilityOnCell(currentTextOnCell);
-		}
+        GraphicsPreferences oldGp = UserInterfaceMain.getGraphicsPreferences();
+        GraphicsPreferences gp = oldGp;
+		gp = gp.withTextVisibilityOn(TextDescriptor.TextType.NODE, nodeText.isSelected());
+		gp = gp.withTextVisibilityOn(TextDescriptor.TextType.ARC, arcText.isSelected());
+		gp = gp.withTextVisibilityOn(TextDescriptor.TextType.PORT, portText.isSelected());
+		gp = gp.withTextVisibilityOn(TextDescriptor.TextType.EXPORT, exportText.isSelected());
+		gp = gp.withTextVisibilityOn(TextDescriptor.TextType.ANNOTATION, annotationText.isSelected());
+		gp = gp.withTextVisibilityOn(TextDescriptor.TextType.INSTANCE, instanceNames.isSelected());
+		gp = gp.withTextVisibilityOn(TextDescriptor.TextType.CELL, cellText.isSelected());
+		boolean textVisChanged = gp != oldGp;
+        UserInterfaceMain.setGraphicsPreferences(gp);
 
 		// make sure all other visibility panels are in sync
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )

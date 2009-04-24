@@ -130,39 +130,53 @@ public class DisplayControlTab extends PreferencePanel
 		}
 
 		// bottom half (display algorithm)
+        boolean renewDrawing = false;
 		if (pixelDisplay.isSelected()) currInt = 0; else
 			if (vectorDisplay.isSelected()) currInt = 1; else
 				if (layerDisplay.isSelected()) currInt = 2;
 		if (currInt != User.getDisplayAlgorithm()) {
 			User.setDisplayAlgorithm(currInt);
-			EditWindow.displayAlgorithmChanged();
+            renewDrawing = true;
 		}
 
 		currBoolean = generalUseGreekImages.isSelected();
-		if (currBoolean != User.isUseCellGreekingImages())
+		if (currBoolean != User.isUseCellGreekingImages()) {
 			User.setUseCellGreekingImages(currBoolean);
+            renewDrawing = true;
+        }
 
 		double currDouble = TextUtils.atof(generalGreekLimit.getText());
-		if (currDouble != User.getGreekSizeLimit())
+		if (currDouble != User.getGreekSizeLimit()) {
 			User.setGreekSizeLimit(currDouble);
+            renewDrawing = true;
+        }
 
 		currDouble = TextUtils.atof(generalGreekCellLimit.getText()) / 100.0;
-		if (currDouble != User.getGreekCellSizeLimit())
+		if (currDouble != User.getGreekCellSizeLimit()) {
 			User.setGreekCellSizeLimit(currDouble);
+            renewDrawing = true;
+        }
 
 		currDouble = TextUtils.atof(patternScaleLimit.getText());
-		if (currDouble != User.getPatternedScaleLimit())
+		if (currDouble != User.getPatternedScaleLimit()) {
 			User.setPatternedScaleLimit(currDouble);
+            renewDrawing = true;
+        }
 
 		currBoolean = !useNewBlending.isSelected();
 		if (currBoolean != User.isLegacyComposite()) {
 			User.setLegacyComposite(currBoolean);
-			EditWindow.displayAlgorithmChanged();
+			renewDrawing = true;
         }
 
 		currDouble = TextUtils.atof(alphaBlendingOvercolorLimit.getText());
-		if (currDouble != User.getAlphaBlendingOvercolorLimit())
+		if (currDouble != User.getAlphaBlendingOvercolorLimit()) {
 			User.setAlphaBlendingOvercolorLimit(currDouble);
+            renewDrawing = true;
+        }
+
+        if (renewDrawing)
+			EditWindow.displayAlgorithmChanged();
 
 		if (resetAllOpacity)
 		{

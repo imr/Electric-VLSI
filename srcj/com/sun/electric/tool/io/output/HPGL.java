@@ -48,7 +48,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.GraphicsPreferences;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -89,14 +89,15 @@ public class HPGL extends Output
 
 	public static class HPGLPreferences extends OutputPreferences
     {
-		boolean textVisibilityOnExport = User.isFactoryTextVisibilityOnExport();
-		int exportDisplayLevel = User.getFactoryExportDisplayLevel();
+		boolean textVisibilityOnExport;
+		int exportDisplayLevel;
         Map<Layer,Color> layerColors = new HashMap<Layer,Color>();
 
         public HPGLPreferences(boolean factory) {
             super(factory);
-        	textVisibilityOnExport = factory ? User.isFactoryTextVisibilityOnExport() : User.isTextVisibilityOnExport();
-    		exportDisplayLevel = factory ? User.getFactoryExportDisplayLevel() : User.getExportDisplayLevel();
+            GraphicsPreferences gp = new GraphicsPreferences(factory);
+        	textVisibilityOnExport = gp.isTextVisibilityOn(TextDescriptor.TextType.EXPORT);
+    		exportDisplayLevel = gp.exportDisplayLevel;
 
             for (Technology tech: TechPool.getThreadTechPool().values()) {
                 Color[] transparentColors = factory ? tech.getFactoryTransparentLayerColors() : tech.getTransparentLayerColors();

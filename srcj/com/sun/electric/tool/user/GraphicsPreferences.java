@@ -26,6 +26,7 @@ package com.sun.electric.tool.user;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.id.LayerId;
 import com.sun.electric.database.text.PrefPackage;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
@@ -51,10 +52,31 @@ public class GraphicsPreferences extends PrefPackage {
     private static final String KEY_TRANSPARENCY_MODE = "3DTransparencyMode";
     private static final String KEY_TRANSPARENCY_FACTOR = "3DTransparencyFactor";
 
+    private static final String KEY_PORT_DISPLAY_LEVEL = "PortDisplayLevel";
+    private static final String KEY_EXPORT_DISPLAY_LEVEL = "ExportDisplayLevel";
+
     public static final int RGB_MASK = 0xFFFFFF;
+
+	/**
+     * How to display ports.
+	 * 0: full port names (the default).
+	 * 1: short port names (stopping at the first nonalphabetic character).
+	 * 2: ports drawn as crosses.
+     */
+    public int portDisplayLevel;
+    private static int DEF_PORT_DISPLAY_LEVEL = 0;
+	/**
+     * How to display exports.
+	 * 0: full export names (the default).
+	 * 1: short export names (stopping at the first nonalphabetic character).
+	 * 2: exports drawn as crosses.
+     */
+    public int exportDisplayLevel;
+    private static int DEF_EXPORT_DISPLAY_LEVEL = 0;
 
     private final TechPool techPool;
     private final Color[] defaultColors;
+    private final boolean[] textVisibility;
     private final TechData[] techData;
 
     private class TechData {
@@ -339,11 +361,17 @@ public class GraphicsPreferences extends PrefPackage {
 
     private GraphicsPreferences(GraphicsPreferences that,
             TechData[] techData,
-            Color[] defaultColors) {
+            Color[] defaultColors,
+            boolean[] textVisibility,
+            int portDisplayLevel,
+            int exportDisplayLevel) {
         super(that);
         this.techPool = that.techPool;
         this.techData = techData;
         this.defaultColors = defaultColors;
+        this.textVisibility = textVisibility;
+        this.portDisplayLevel = portDisplayLevel;
+        this.exportDisplayLevel = exportDisplayLevel;
     }
 
     public GraphicsPreferences(boolean factory) {
@@ -375,6 +403,14 @@ public class GraphicsPreferences extends PrefPackage {
             Color color = rgb == factoryRgb ? factoryColor : new Color(rgb);
             defaultColors[i] = color;
         }
+
+        TextDescriptor.TextType[] textTypes = TextDescriptor.TextType.class.getEnumConstants();
+        textVisibility = new boolean[textTypes.length];
+        for (int i = 0; i < textTypes.length; i++)
+            textVisibility[i] = userPrefs.getBoolean(textTypes[i].getKeyVisibility(), true);
+
+        portDisplayLevel = userPrefs.getInt(KEY_PORT_DISPLAY_LEVEL, DEF_PORT_DISPLAY_LEVEL);
+        exportDisplayLevel = userPrefs.getInt(KEY_EXPORT_DISPLAY_LEVEL, DEF_EXPORT_DISPLAY_LEVEL);
     }
 
     @Override
@@ -407,6 +443,26 @@ public class GraphicsPreferences extends PrefPackage {
                     userPrefs.putInt(t.getPrefKey(), defaultColors[i].getRGB());
             }
         }
+
+        if (oldGp == null || textVisibility != oldGp.textVisibility) {
+            TextDescriptor.TextType[] textTypes = TextDescriptor.TextType.class.getEnumConstants();
+            for (int i = 0; i < textTypes.length; i++) {
+                TextDescriptor.TextType t = textTypes[i];
+                if (removeDefaults && textVisibility[i])
+                    userPrefs.remove(t.getKeyVisibility());
+                else
+                    userPrefs.putBoolean(t.getKeyVisibility(), textVisibility[i]);
+            }
+        }
+
+        if (removeDefaults && portDisplayLevel == DEF_PORT_DISPLAY_LEVEL)
+            userPrefs.remove(KEY_PORT_DISPLAY_LEVEL);
+        else
+            userPrefs.putInt(KEY_PORT_DISPLAY_LEVEL, portDisplayLevel);
+        if (removeDefaults && exportDisplayLevel == DEF_EXPORT_DISPLAY_LEVEL)
+            userPrefs.remove(KEY_EXPORT_DISPLAY_LEVEL);
+        else
+            userPrefs.putInt(KEY_EXPORT_DISPLAY_LEVEL, exportDisplayLevel);
     }
 
     public GraphicsPreferences withTransparentLayerColors(Technology tech, Color[] tranparentColors) {
@@ -430,10 +486,55 @@ public class GraphicsPreferences extends PrefPackage {
         newDefaultColors[t.ordinal()] = color;
         return new GraphicsPreferences(this,
                 techData,
-                newDefaultColors);
+                newDefaultColors,
+                textVisibility,
+                portDisplayLevel,
+                exportDisplayLevel);
     }
 
     public GraphicsPreferences withFactoryColor(User.ColorPrefType t) { return withColor(t, t.getFactoryDefaultColor()); }
+
+    public GraphicsPreferences withTextVisibilityOn(TextDescriptor.TextType t, boolean b) {
+        if (b == textVisibility[t.ordinal()]) return this;
+        boolean[] newTextVisibility = textVisibility.clone();
+        newTextVisibility[t.ordinal()] = b;
+        return new GraphicsPreferences(this,
+                techData,
+                defaultColors,
+                newTextVisibility,
+                portDisplayLevel,
+                exportDisplayLevel);
+    }
+
+    public GraphicsPreferences withPortDisplayLevel(int portDisplayLevel) {
+        if (portDisplayLevel == this.portDisplayLevel) return this;
+        return new GraphicsPreferences(this,
+                techData,
+                defaultColors,
+                textVisibility,
+                portDisplayLevel,
+                exportDisplayLevel);
+    }
+
+    public GraphicsPreferences withExportDisplayLevel(int exportDisplayLevel) {
+        if (exportDisplayLevel == this.exportDisplayLevel) return this;
+        return new GraphicsPreferences(this,
+                techData,
+                defaultColors,
+                textVisibility,
+                portDisplayLevel,
+                exportDisplayLevel);
+    }
+
+    public GraphicsPreferences withDisplayLevelReset() {
+        if (portDisplayLevel == DEF_PORT_DISPLAY_LEVEL && exportDisplayLevel == DEF_EXPORT_DISPLAY_LEVEL) return this;
+        return new GraphicsPreferences(this,
+                techData,
+                defaultColors,
+                textVisibility,
+                DEF_PORT_DISPLAY_LEVEL,
+                DEF_EXPORT_DISPLAY_LEVEL);
+    }
 
 	/**
 	 * Returns the number of transparent layers in specified technology.
@@ -475,6 +576,14 @@ public class GraphicsPreferences extends PrefPackage {
 	 */
     public Color getColor(User.ColorPrefType t) { return defaultColors[t.ordinal()]; }
 
+	/**
+	 * Method to tell whether to draw text of particular text type.
+	 * The default is "true".
+     * @param textType specified text type
+	 * @return true if the system should text of specified type.
+	 */
+    public boolean isTextVisibilityOn(TextDescriptor.TextType t) { return textVisibility[t.ordinal()]; }
+
     @Override
     public boolean equals(Object o) {
         if (o == this) return true;
@@ -482,7 +591,8 @@ public class GraphicsPreferences extends PrefPackage {
             GraphicsPreferences that = (GraphicsPreferences)o;
             return this.techPool == that.techPool &&
                     Arrays.equals(this.techData, that.techData) &&
-                    Arrays.equals(this.defaultColors, that.defaultColors);
+                    Arrays.equals(this.defaultColors, that.defaultColors) &&
+                    Arrays.equals(this.textVisibility, that.textVisibility);
         }
         return false;
     }
@@ -495,7 +605,12 @@ public class GraphicsPreferences extends PrefPackage {
         if (td == techData[techIndex]) return this;
         TechData[] newTechData = techData.clone();
         newTechData[techIndex] = td;
-        return new GraphicsPreferences(this, newTechData, defaultColors);
+        return new GraphicsPreferences(this,
+                newTechData,
+                defaultColors,
+                textVisibility,
+                portDisplayLevel,
+                exportDisplayLevel);
     }
 
 //    public GraphicsPreferences withLayersReset() {
