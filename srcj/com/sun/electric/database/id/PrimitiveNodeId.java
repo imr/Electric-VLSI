@@ -120,10 +120,12 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
      */
     public synchronized PrimitivePortId newPortId(String externalId) {
         PrimitivePortId primitivePortId = primitivePortIdsByName.get(externalId);
-        return primitivePortId != null ? primitivePortId : newPrimitivePortIdInternal(externalId);
+        if (primitivePortId != null) return primitivePortId;
+        assert !techId.idManager.readOnly;
+        return newPrimitivePortIdInternal(externalId);
     }
 
-    private PrimitivePortId newPrimitivePortIdInternal(String primitivePortName) {
+    PrimitivePortId newPrimitivePortIdInternal(String primitivePortName) {
         int chronIndex = primitivePortIds.size();
         PrimitivePortId primitivePortId = new PrimitivePortId(this, primitivePortName, primitivePortIds.size());
         primitivePortIds.add(primitivePortId);

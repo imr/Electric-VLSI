@@ -66,14 +66,14 @@ public class IdReader {
         }
         int techIdsCount = readInt();
         for (int techIndex = oldTechIdsCount; techIndex < techIdsCount; techIndex++)
-            idManager.newTechId(readString());
+            idManager.newTechIdInternal(readString());
         int libIdsCount = readInt();
         for (int libIndex = oldLibIdsCount; libIndex < libIdsCount; libIndex++)
-            idManager.newLibId(readString());
+            idManager.newLibIdInternal(readString());
         int cellIdsCount = readInt();
         for (int cellIndex = oldCellIdsCount; cellIndex < cellIdsCount; cellIndex++) {
             LibId libId = readLibId();
-            idManager.newCellId(libId, CellName.parseName(readString()));
+            idManager.newCellIdInternal(libId, CellName.parseName(readString()));
         }
         synchronized (idManager) {
             assert techIdsCount == idManager.techIds.size();
@@ -88,19 +88,19 @@ public class IdReader {
             int numNewLayerIds = readInt();
             for (int i = 0; i < numNewLayerIds; i++) {
                 String layerName = readString();
-                techId.newLayerId(layerName);
+                techId.newLayerIdInternal(layerName);
             }
 
             int numNewArcProtoIds = readInt();
             for (int i = 0; i < numNewArcProtoIds; i++) {
                 String arcProtoName = readString();
-                techId.newArcProtoId(arcProtoName);
+                techId.newArcProtoIdInternal(arcProtoName);
             }
 
             int numNewPrimitiveNodeIds = readInt();
             for (int i = 0; i < numNewPrimitiveNodeIds; i++) {
                 String primitiveNodeName = readString();
-                techId.newPrimitiveNodeId(primitiveNodeName);
+                techId.newPrimitiveNodeIdInternal(primitiveNodeName);
             }
 
             for (;;) {
@@ -110,7 +110,7 @@ public class IdReader {
                 int numNewPrimitivePortIds = readInt();
                 for (int i = 0; i < numNewPrimitivePortIds; i++) {
                     String primitivePortName = readString();
-                    primitiveNodeId.newPortId(primitivePortName);
+                    primitiveNodeId.newPrimitivePortIdInternal(primitivePortName);
                 }
             }
         }

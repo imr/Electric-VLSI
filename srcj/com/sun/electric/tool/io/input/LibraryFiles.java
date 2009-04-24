@@ -253,7 +253,7 @@ public abstract class LibraryFiles extends Input
 	 * @param type the type of library file (ELIB, JELIB, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static synchronized Map<Setting,Object> readProjectsSettingsFromLibrary(URL fileURL, FileType type)
+	public static synchronized Map<String,Object> readProjectsSettingsFromLibrary(URL fileURL, FileType type)
 	{
 		if (fileURL == null) return null;
 		long startTime = System.currentTimeMillis();
@@ -281,9 +281,9 @@ public abstract class LibraryFiles extends Input
         }
         // handle different file types
         if (type == FileType.JELIB || type == FileType.DELIB) {
-            TechPool techPool = EDatabase.clientDatabase().getTechPool();
+            TechPool techPool = EDatabase.serverDatabase().getTechPool();
             try {
-                return JELIB.readProjectSettings(fileURL, type, techPool, errorLogger);
+                return settingsByXml(JELIB.readProjectSettings(fileURL, type, techPool, errorLogger));
             } finally {
                 errorLogger.termLogging(true);
             }
@@ -320,8 +320,15 @@ public abstract class LibraryFiles extends Input
         System.out.println("Library " + fileURL.getFile() + " read, took " + finalTime + " seconds");
         errorLogger.termLogging(true);
 
-		return in.projectSettings;
+		return settingsByXml(in.projectSettings);
 	}
+    
+    private static Map<String,Object> settingsByXml(Map<Setting,Object> settings) {
+        Map<String,Object> settingsByXml = new HashMap<String,Object>();
+        for (Map.Entry<Setting,Object> e: settings.entrySet())
+            settingsByXml.put(e.getKey().getXmlPath(), e.getValue());
+        return settingsByXml;
+    }
 
 	/**
 	 * Method to read a single library file.

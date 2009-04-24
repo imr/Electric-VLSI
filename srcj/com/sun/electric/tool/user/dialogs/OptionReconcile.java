@@ -63,19 +63,19 @@ public class OptionReconcile extends EDialog
     /**
      * Check if it is necessary to reconcile Settings.
      * If necessary, runs Reconcilation Job which will start the given job after termination
-     * @param settingsThatChanged
+     * @param settingsNondefault
      * @param libName name of the Library with Settings
      * @param job Job to restart
      * @return true if it is necessary to reconcile Settings
      */
-    public static boolean reconcileSettings(Map<Setting,Object> settingsThatChanged, String libName, ReadLibrary job) {
+    public static boolean reconcileSettings(Map<String,Object> settingsNondefault, String libName, ReadLibrary job) {
         EDatabase database = EDatabase.clientDatabase();
         Map<Setting,Object> originalSettings = database.getSettings();
 		Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
         for (Map.Entry<Setting,Object> e: originalSettings.entrySet()) {
             Setting setting = e.getKey();
             Object oldValue = e.getValue();
-            Object newValue = settingsThatChanged.get(setting);
+            Object newValue = settingsNondefault.get(setting.getXmlPath());
             if (newValue == null)
                 // this one is not mentioned in the library: make sure it is at factory defaults
                 newValue = setting.getFactoryValue();

@@ -474,6 +474,34 @@ public class FileMenu {
         return defaultType;
     }
 
+    private static class ReadProjectSettingsFromLibrary extends Job {
+        private URL fileURL;
+		private FileType type;
+        private Map<String,Object> projectSettings;
+        private transient ReadLibrary readJob;
+
+		public ReadProjectSettingsFromLibrary(URL fileURL, FileType type, ReadLibrary readJob) {
+			super("ReadProjectSettingsFromLibrary", User.getUserTool(), Job.Type.REMOTE_EXAMINE, null, null, Job.Priority.USER);
+            this.fileURL = fileURL;
+            this.type = type;
+            this.readJob = readJob;
+        }
+
+        @Override
+        public boolean doIt() throws JobException {
+            projectSettings = LibraryFiles.readProjectsSettingsFromLibrary(fileURL, type);
+            this.fieldVariableChanged("projectSettings");
+			return true;
+		}
+
+        @Override
+        public void terminateOK() {
+            String libName = TextUtils.getFileNameWithoutExtension(fileURL);
+            if (projectSettings == null || !OptionReconcile.reconcileSettings(projectSettings, libName, readJob))
+                readJob.startJob();
+        }
+    }
+
 	/**
 	 * Class to read a library in a new thread.
 	 * For a non-interactive script, use ReadLibrary job = new ReadLibrary(filename, format).
@@ -508,13 +536,10 @@ public class FileMenu {
                 if (!projsettings.exists())
                     projsettings = null;
             }
-            if (projsettings == null) {
-                projectSettings = LibraryFiles.readProjectsSettingsFromLibrary(fileURL, type);
-                String libName = TextUtils.getFileNameWithoutExtension(fileURL);
-                if (projectSettings != null && OptionReconcile.reconcileSettings(projectSettings, libName, this))
-                    return; // startJob will be executed by reconcilation dialog
-            }
-			startJob();
+            if (projsettings == null)
+                new ReadProjectSettingsFromLibrary(fileURL, type, this).startJob();
+            else
+    			startJob();
 		}
 
         @Override

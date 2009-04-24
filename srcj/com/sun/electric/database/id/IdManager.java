@@ -62,8 +62,15 @@ public class IdManager {
     /** Initial Snapshot. */
     private final Snapshot initialSnapshot = new Snapshot(this);
 
+    volatile boolean readOnly;
+
     /** Creates a new instance of IdManager */
     public IdManager() {
+    }
+
+    /** Disallow creation of ids (except IdReader */
+    public void setReadOnly() {
+        readOnly = true;
     }
 
     /**
@@ -73,7 +80,9 @@ public class IdManager {
      */
     public synchronized TechId newTechId(String techName) {
         TechId techId = techIdsByName.get(techName);
-        return techId != null ? techId : newTechIdInternal(techName);
+        if (techId != null) return techId;
+        assert !readOnly;
+        return newTechIdInternal(techName);
     }
 
     /**
@@ -85,7 +94,7 @@ public class IdManager {
         return techIds.get(techIndex);
     }
 
-    private TechId newTechIdInternal(String techName) {
+    TechId newTechIdInternal(String techName) {
         int techIndex = techIds.size();
         TechId techId = new TechId(this, techName, techIndex);
         techIds.add(techId);
@@ -100,6 +109,7 @@ public class IdManager {
      * @return LibId with specified libName.
      */
     public synchronized LibId newLibId(String libName) {
+        assert !readOnly;
         LibId libId = libIdsByName.get(libName);
         return libId != null ? libId : newLibIdInternal(libName);
     }
@@ -113,7 +123,7 @@ public class IdManager {
         return libIds.get(libIndex);
     }
 
-    private LibId newLibIdInternal(String libName) {
+    LibId newLibIdInternal(String libName) {
         int libIndex = libIds.size();
         LibId libId = new LibId(this, libName, libIndex);
         libIds.add(libId);
@@ -129,6 +139,7 @@ public class IdManager {
      * @return new CellId.
      */
     synchronized CellId newCellId(LibId libId, CellName cellName) {
+        assert !readOnly;
         assert libId.idManager == this;
         CellId cellId = libId.getCellId(cellName);
         return cellId != null ? cellId : newCellIdInternal(libId, cellName);
@@ -143,7 +154,7 @@ public class IdManager {
         return cellIds.get(cellIndex);
     }
 
-    private CellId newCellIdInternal(LibId libId, CellName cellName) {
+    CellId newCellIdInternal(LibId libId, CellName cellName) {
         int cellIndex = cellIds.size();
         CellId cellId = new CellId(libId, cellName, cellIndex);
         cellIds.add(cellId);

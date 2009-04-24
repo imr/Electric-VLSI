@@ -485,6 +485,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         boolean isEmpty = isEmpty();
         writer.writeBoolean(isEmpty);
         if (isEmpty) return;
+        writer.writeDiffs();
         Generic generic = getGeneric();
         assert generic != null;
         boolean newGeneric = generic != old.getGeneric();
@@ -509,7 +510,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         }
         writer.writeInt(-1);
     }
-    
+
     /**
      * Reads TechPool from IdReader
      * @param reader IdReader
@@ -520,6 +521,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         boolean isEmpty = reader.readBoolean();
         if (isEmpty)
             return new TechPool(reader.idManager);
+        reader.readDiffs();
         ArrayList<Technology.State> technologiesList = new ArrayList<Technology.State>();
         boolean newGeneric = reader.readBoolean();
         Generic generic = newGeneric ? Generic.newInstance(reader.idManager) : old.getGeneric();

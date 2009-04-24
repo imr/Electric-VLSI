@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09i: ******************************
 
+BUG: (4/24/09, DN) Constructor of ReadLibrary job modifies IdManager in client thread.
+FIX: Move this to ReadProjectSettingsFromLibrary job.
+
 BUG: (4/23/09, DN) Electric first window doesn't start with the default startup tech (Bug #2142).
 FIX: In Main.java ove window creation fron InitDatabase to InitProjectSettings.
 

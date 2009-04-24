@@ -241,6 +241,7 @@ public final class Main
         InitDatabase job = new InitDatabase(argsList);
         if (runMode == Mode.CLIENT) {
             // Client or pipe mode
+            IdManager.stdIdManager.setReadOnly();
             if (pipe) {
                 try {
                     Process process = Launcher.invokePipeserver(pipeOptions, pipedebug);

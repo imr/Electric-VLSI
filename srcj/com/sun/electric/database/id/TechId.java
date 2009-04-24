@@ -128,10 +128,12 @@ public final class TechId implements Serializable {
      */
     public synchronized LayerId newLayerId(String layerName) {
         LayerId layerId = layerIdsByName.get(layerName);
-        return layerId != null ? layerId : newLayerIdInternal(layerName);
+        if (layerId != null) return layerId;
+        assert !idManager.readOnly;
+        return newLayerIdInternal(layerName);
     }
 
-    private LayerId newLayerIdInternal(String layerName) {
+    LayerId newLayerIdInternal(String layerName) {
         int chronIndex = layerIds.size();
         LayerId layerId = new LayerId(this, layerName, layerIds.size());
         layerIds.add(layerId);
@@ -167,10 +169,12 @@ public final class TechId implements Serializable {
      */
     public synchronized ArcProtoId newArcProtoId(String arcProtoName) {
         ArcProtoId arcProtoId = arcProtoIdsByName.get(arcProtoName);
-        return arcProtoId != null ? arcProtoId : newArcProtoIdInternal(arcProtoName);
+        if (arcProtoId != null) return arcProtoId;
+        assert !idManager.readOnly;
+        return newArcProtoIdInternal(arcProtoName);
     }
 
-    private ArcProtoId newArcProtoIdInternal(String arcProtoName) {
+    ArcProtoId newArcProtoIdInternal(String arcProtoName) {
         int chronIndex = arcProtoIds.size();
         ArcProtoId arcProtoId = new ArcProtoId(this, arcProtoName, arcProtoIds.size());
         arcProtoIds.add(arcProtoId);
@@ -206,10 +210,12 @@ public final class TechId implements Serializable {
      */
     public synchronized PrimitiveNodeId newPrimitiveNodeId(String primitiveNodeName) {
         PrimitiveNodeId primitiveNodeId = primitiveNodeIdsByName.get(primitiveNodeName);
-        return primitiveNodeId != null ? primitiveNodeId : newPrimitiveNodeIdInternal(primitiveNodeName);
+        if (primitiveNodeId != null) return primitiveNodeId;
+        assert !idManager.readOnly;
+        return newPrimitiveNodeIdInternal(primitiveNodeName);
     }
 
-    private PrimitiveNodeId newPrimitiveNodeIdInternal(String primitiveNodeName) {
+    PrimitiveNodeId newPrimitiveNodeIdInternal(String primitiveNodeName) {
         int chronIndex = primitiveNodeIds.size();
         PrimitiveNodeId primitiveNodeId = new PrimitiveNodeId(this, primitiveNodeName, primitiveNodeIds.size());
         primitiveNodeIds.add(primitiveNodeId);
