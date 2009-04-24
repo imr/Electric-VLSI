@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09i: ******************************
 
+BUG: (4/24/09, GVG) Value too long in ComponentMenu (Bug #2146)
+FIX: Detecting the case when String is longer than Preferences.MAX_VALUE_LENGTH. Error dialog added.
+
 BUG: (4/24/09, DN) Constructor of ReadLibrary job modifies IdManager in client thread.
 FIX: Move this to ReadProjectSettingsFromLibrary job.
 

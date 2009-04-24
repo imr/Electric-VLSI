@@ -60,11 +60,7 @@ import java.util.List;
 
 import java.util.Map;
 import java.util.prefs.Preferences;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -324,7 +320,15 @@ public class ComponentMenu extends EDialog
                 if (removeDefaults && menuXml.length() == 0)
                     techPrefs.remove(key);
                 else
-                    techPrefs.put(key, menuXml);
+                {
+                    if (menuXml.length() < Preferences.MAX_VALUE_LENGTH)
+                        techPrefs.put(key, menuXml);
+                    else
+                        // error. It can't be handled by Java preferences
+                        JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+                            "XML description is too long (" + menuXml.length() + ").\n Preferences can't be stored",
+                            "Error saving XML preferences", JOptionPane.ERROR_MESSAGE);
+                }
             }
         }
     }
