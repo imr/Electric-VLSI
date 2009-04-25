@@ -52,8 +52,6 @@ public class GraphicsPreferences extends PrefPackage {
     private static final String KEY_TRANSPARENCY_MODE = "3DTransparencyMode";
     private static final String KEY_TRANSPARENCY_FACTOR = "3DTransparencyFactor";
 
-    private static final String KEY_DEFAULT_FONT = "DefaultFont";
-
     public static final int RGB_MASK = 0xFFFFFF;
 
 	/**
