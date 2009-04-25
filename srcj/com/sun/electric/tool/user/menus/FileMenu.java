@@ -530,7 +530,6 @@ public class FileMenu {
 			this.deleteLib = deleteLib;
             this.saveTask = saveTask;
             this.cellName = cellName;
-            Map<Setting,Object> projectSettings = null;
             if (settingsDirectory != null) {
                 projsettings = new File(settingsDirectory, "projsettings.xml");
                 if (!projsettings.exists())
@@ -563,7 +562,18 @@ public class FileMenu {
             HashSet<Library> oldLibs = new HashSet<Library>();
             for (Iterator<Library> it = getDatabase().getLibraries(); it.hasNext(); )
                 oldLibs.add(it.next());
-            lib = LibraryFiles.readLibrary(fileURL, null, type, false);
+            Map<Setting,Object> projectSettings = new HashMap<Setting,Object>();
+            lib = LibraryFiles.readLibrary(fileURL, null, type, false, projectSettings);
+            for (Map.Entry<Setting,Object> e: getDatabase().getSettings().entrySet()) {
+                Setting setting = e.getKey();
+                Object oldVal = e.getValue();
+                Object libVal = projectSettings.get(setting);
+                if (libVal == null)
+                    libVal = setting.getFactoryValue();
+                if (oldVal.equals(libVal)) continue;
+                System.out.println("Warning: Setting \""+setting.getPrefName()+"\" retains current value of \""+oldVal+
+                    "\", while ignoring library value of \""+libVal+"\"");
+            }
             if (lib == null)
             {
                 System.out.println("Error reading " + fileURL.getFile() + " as " + type + " format.");

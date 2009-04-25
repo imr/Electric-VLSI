@@ -167,6 +167,20 @@ public abstract class LibraryFiles extends Input
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick) {
+        return readLibrary(fileURL, libName, type, quick, null);
+    }
+
+	/**
+	 * Method to read a Library from disk.
+	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
+     * This method doesn't read project settings contained in library file.
+	 * @param fileURL the URL to the disk file.
+	 * @param libName the name to give the library (null to derive it from the file path)
+	 * @param type the type of library file (ELIB, JELIB, etc.)
+	 * @param quick true to read the library without verbosity (used when reading a library internally).
+	 * @return the read Library, or null if an error occurred.
+	 */
+	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick, Map<Setting,Object> projectSettings) {
 		if (fileURL == null) return null;
 		long startTime = System.currentTimeMillis();
         errorLogger = ErrorLogger.newInstance("Library Read");
@@ -217,7 +231,7 @@ public abstract class LibraryFiles extends Input
 			{
 				// get the library name
 				if (libName == null) libName = TextUtils.getFileNameWithoutExtension(fileURL);
-				lib = readALibrary(fileURL, null, libName, type);
+				lib = readALibrary(fileURL, null, libName, type, projectSettings);
 			}
 			if (LibraryFiles.VERBOSE)
 				System.out.println("Done reading data for all libraries");
@@ -322,7 +336,7 @@ public abstract class LibraryFiles extends Input
 
 		return settingsByXml(in.projectSettings);
 	}
-    
+
     private static Map<String,Object> settingsByXml(Map<Setting,Object> settings) {
         Map<String,Object> settingsByXml = new HashMap<String,Object>();
         for (Map.Entry<Setting,Object> e: settings.entrySet())
@@ -340,7 +354,7 @@ public abstract class LibraryFiles extends Input
 	 * @param type the type of library file (ELIB, CIF, GDS, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
-	protected static Library readALibrary(URL fileURL, Library lib, String libName, FileType type)
+	protected static Library readALibrary(URL fileURL, Library lib, String libName, FileType type, Map<Setting,Object> projectSettings)
 	{
 		// handle different file types
 		LibraryFiles in;
@@ -398,6 +412,8 @@ public abstract class LibraryFiles extends Input
         if (CVS.isEnabled()) {
             CVSLibrary.addLibrary(lib);
         }
+        if (projectSettings != null)
+            projectSettings.putAll(in.projectSettings);
 		return in.lib;
 	}
 
@@ -883,7 +899,7 @@ public abstract class LibraryFiles extends Input
 
 			// get the library name
 			String eLibName = TextUtils.getFileNameWithoutExtension(externalURL);
-            elib = readALibrary(externalURL, elib, eLibName, importType);
+            elib = readALibrary(externalURL, elib, eLibName, importType, null);
             setProgressValue(100);
             setProgressNote(oldNote);
         }
