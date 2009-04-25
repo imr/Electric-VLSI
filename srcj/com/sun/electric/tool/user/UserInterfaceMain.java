@@ -866,12 +866,18 @@ public class UserInterfaceMain extends AbstractUserInterface
     }
 
     public static GraphicsPreferences getGraphicsPreferences() {
-//        assert SwingUtilities.isEventDispatchThread();
+        if (!SwingUtilities.isEventDispatchThread()) {
+            String msg = "GraphicsPreferences is accessed from " + Job.getRunningJob();
+            if (Job.getDebug()) {
+                ActivityLogger.logMessage(msg);
+                System.out.println(msg);
+            }
+        }
         return currentGraphicsPreferences;
     }
 
     public static void setGraphicsPreferences(GraphicsPreferences gp) {
-//        assert SwingUtilities.isEventDispatchThread();
+        assert SwingUtilities.isEventDispatchThread();
         if (gp.equals(currentGraphicsPreferences)) return;
         Pref.delayPrefFlushing();
         gp.putPrefs(Pref.getPrefRoot(), true, currentGraphicsPreferences);

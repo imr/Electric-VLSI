@@ -81,22 +81,6 @@ public class EditingPreferences extends PrefPackage {
     private Dimension2D[] alignments;
     private int alignmentIndex;
 
-    private EditingPreferences(EditingPreferences that,
-            HashMap<PrimitiveNodeId,ImmutableNodeInst> defaultNodes,
-            HashMap<ArcProtoId,ImmutableArcInst> defaultArcs,
-            HashMap<ArcProtoId,Integer> defaultArcAngleIncrements,
-            HashMap<ArcProtoId,PrimitiveNodeId> defaultArcPins,
-            Dimension2D[] alignments, int alignmentIndex) {
-        super(that);
-        this.techPool = that.techPool;
-        this.defaultNodes = defaultNodes;
-        this.defaultArcs = defaultArcs;
-        this.defaultArcAngleIncrements = defaultArcAngleIncrements;
-        this.defaultArcPins = defaultArcPins;
-        this.alignments = alignments;
-        this.alignmentIndex = alignmentIndex;
-    }
-
     public EditingPreferences(boolean factory, TechPool techPool) {
         super(factory);
         this.techPool = techPool;
@@ -333,22 +317,12 @@ public class EditingPreferences extends PrefPackage {
             newDefaultNodes.remove(pnId);
         else
             newDefaultNodes.put(pnId, n.withSize(size));
-        return new EditingPreferences(this,
-                newDefaultNodes,
-                this.defaultArcs,
-                this.defaultArcAngleIncrements,
-                this.defaultArcPins,
-                this.alignments, this.alignmentIndex);
+        return (EditingPreferences)withField("defaultNodes", newDefaultNodes);
     }
 
     public EditingPreferences withNodesReset() {
         if (defaultNodes.isEmpty()) return this;
-        return new EditingPreferences(this,
-                new HashMap<PrimitiveNodeId,ImmutableNodeInst>(),
-                this.defaultArcs,
-                this.defaultArcAngleIncrements,
-                this.defaultArcPins,
-                this.alignments, this.alignmentIndex);
+        return (EditingPreferences)withField("defaultNodes", new HashMap<PrimitiveNodeId,ImmutableNodeInst>());
     }
 
     public EditingPreferences withArcFlags(ArcProtoId apId, int flags) {
@@ -362,12 +336,7 @@ public class EditingPreferences extends PrefPackage {
             newDefaultArcs.remove(apId);
         else
             newDefaultArcs.put(apId, a.withFlags(flags));
-         return new EditingPreferences(this,
-                this.defaultNodes,
-                newDefaultArcs,
-                this.defaultArcAngleIncrements,
-                this.defaultArcPins,
-                this.alignments, this.alignmentIndex);
+        return (EditingPreferences)withField("defaultArcs", newDefaultArcs);
     }
 
     public EditingPreferences withArcGridExtend(ArcProtoId apId, long gridExtend) {
@@ -381,12 +350,7 @@ public class EditingPreferences extends PrefPackage {
             newDefaultArcs.remove(apId);
         else
             newDefaultArcs.put(apId, a.withGridExtendOverMin(gridExtend));
-         return new EditingPreferences(this,
-                this.defaultNodes,
-                newDefaultArcs,
-                this.defaultArcAngleIncrements,
-                this.defaultArcPins,
-                this.alignments, this.alignmentIndex);
+        return (EditingPreferences)withField("defaultArcs", newDefaultArcs);
     }
 
     public EditingPreferences withArcAngleIncrement(ArcProtoId apId, int angleIncrement) {
@@ -399,12 +363,7 @@ public class EditingPreferences extends PrefPackage {
             newDefaultArcAngleIncrements.remove(apId);
         else
             newDefaultArcAngleIncrements.put(apId, Integer.valueOf(angleIncrement));
-        return new EditingPreferences(this,
-                this.defaultNodes,
-                this.defaultArcs,
-                newDefaultArcAngleIncrements,
-                this.defaultArcPins,
-                this.alignments, this.alignmentIndex);
+        return (EditingPreferences)withField("defaultArcAngleIncrements", newDefaultArcAngleIncrements);
     }
 
     public EditingPreferences withArcPin(ArcProtoId apId, PrimitiveNodeId arcPinId) {
@@ -417,22 +376,26 @@ public class EditingPreferences extends PrefPackage {
             newDefaultArcPins.remove(apId);
         else
             newDefaultArcPins.put(apId, arcPinId);
-        return new EditingPreferences(this,
-                this.defaultNodes,
-                this.defaultArcs,
-                this.defaultArcAngleIncrements,
-                newDefaultArcPins,
-                this.alignments, this.alignmentIndex);
+        return (EditingPreferences)withField("defaultArcPins", newDefaultArcPins);
     }
 
     public EditingPreferences withArcsReset() {
-        if (defaultArcs.isEmpty() && defaultArcAngleIncrements.isEmpty() && defaultArcPins.isEmpty()) return this;
-        return new EditingPreferences(this,
-                this.defaultNodes,
-                new HashMap<ArcProtoId,ImmutableArcInst>(),
-                new HashMap<ArcProtoId,Integer>(),
-                new HashMap<ArcProtoId,PrimitiveNodeId>(),
-                this.alignments, this.alignmentIndex);
+        return withDefaultArcsReset().withDefaultAngleIncrementsReset().withDefaultArcPinsReset();
+    }
+
+    private EditingPreferences withDefaultArcsReset() {
+        if (defaultArcs.isEmpty()) return this;
+        return (EditingPreferences)withField("defaultArcs", new HashMap<ArcProtoId,ImmutableArcInst>());
+    }
+
+    private EditingPreferences withDefaultAngleIncrementsReset() {
+        if (defaultArcAngleIncrements.isEmpty()) return this;
+        return (EditingPreferences)withField("defaultArcAngleIncrements", new HashMap<ArcProtoId,Integer>());
+    }
+
+    private EditingPreferences withDefaultArcPinsReset() {
+        if (defaultArcPins.isEmpty()) return this;
+        return (EditingPreferences)withField("defaultArcPins", new HashMap<ArcProtoId,PrimitiveNodeId>());
     }
 
     public ImmutableNodeInst getDefaultNode(PrimitiveNodeId pnId) {
@@ -494,23 +457,21 @@ public class EditingPreferences extends PrefPackage {
     public EditingPreferences withAlignment(Dimension2D[] dist, int current) {
         dist = correctAlignmentGridVector(dist.clone());
         current = Math.max(0, Math.min(dist.length - 1, current));
-        if (Arrays.equals(dist, this.alignments) && current == alignmentIndex) return this;
-        return new EditingPreferences(this,
-                this.defaultNodes,
-                this.defaultArcs,
-                this.defaultArcAngleIncrements,
-                this.defaultArcPins,
-                dist, current);
+        return withAlignments(dist).withAlignmentIndex(alignmentIndex);
     }
 
     public EditingPreferences withAlignmentReset() {
-        if (Arrays.equals(alignments, DEFAULT_ALIGNMENTS) && alignmentIndex == DEFAULT_ALIGNMENT_INDEX) return this;
-        return new EditingPreferences(this,
-                this.defaultNodes,
-                this.defaultArcs,
-                this.defaultArcAngleIncrements,
-                this.defaultArcPins,
-                DEFAULT_ALIGNMENTS, DEFAULT_ALIGNMENT_INDEX);
+        return withAlignments(DEFAULT_ALIGNMENTS).withAlignmentIndex(DEFAULT_ALIGNMENT_INDEX);
+    }
+
+    private EditingPreferences withAlignments(Dimension2D[] alignments) {
+        if (Arrays.equals(alignments, this.alignments)) return this;
+        return (EditingPreferences)withField("alignments", alignments);
+    }
+
+    private EditingPreferences withAlignmentIndex(int alignmentIndex) {
+        if (alignmentIndex == this.alignmentIndex) return this;
+        return (EditingPreferences)withField("alignmentIndex", alignmentIndex);
     }
 
  	private static Dimension2D[] correctAlignmentGridVector(Dimension2D [] retVal)

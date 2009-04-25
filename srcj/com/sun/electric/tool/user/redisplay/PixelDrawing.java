@@ -2908,7 +2908,7 @@ public class PixelDrawing
 
 		// get text description
 		int size = EditWindow.getDefaultFontSize();
-		String fontName = User.getDefaultFont();
+		String fontName = gp.defaultFont;
 		boolean italic = false;
 		boolean bold = false;
 		boolean underline = false;

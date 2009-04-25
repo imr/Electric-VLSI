@@ -43,7 +43,7 @@ import java.util.prefs.Preferences;
  * Subclass can define Java annotations on its fields, describing
  * their persistence representation in Java Preferences.
  */
-public abstract class PrefPackage implements Serializable {
+public abstract class PrefPackage implements Serializable, Cloneable {
     protected static final String TECH_NODE = Technology.TECH_NODE;
     protected static final String USER_NODE = "tool/user";
 
@@ -57,7 +57,33 @@ public abstract class PrefPackage implements Serializable {
         this(factory ? getFactoryPrefRoot() : getPrefRoot());
     }
 
-    protected PrefPackage(PrefPackage that) {}
+    protected PrefPackage withField(String fieldName, Object value) {
+        try {
+            PrefPackage that = (PrefPackage)clone();
+            Field field = findField(fieldName);
+            field.setAccessible(true);
+            field.set(that, value);
+            return that;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            throw new AssertionError();
+        }
+    }
+
+    private Field findField(String fieldName) {
+        Class cls = getClass();
+//        Field fld = null;
+        while (cls != PrefPackage.class) {
+            try {
+                return cls.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                cls = cls.getSuperclass();
+            }
+        }
+        return null;
+    }
 
     /**
      * Protected constuctor fills annotated option fields of the subclass from Preferences subtree.
@@ -92,7 +118,6 @@ public abstract class PrefPackage implements Serializable {
                 StringPref sa = field.getAnnotation(StringPref.class);
                 if (sa != null) {
                     assert field.getType() == String.class;
-                    String newVal = prefRoot.node(sa.node()).get(sa.key(), sa.factory());
                     field.set(this, prefRoot.node(sa.node()).get(sa.key(), sa.factory()));
                 }
             } catch (IllegalAccessException e) {

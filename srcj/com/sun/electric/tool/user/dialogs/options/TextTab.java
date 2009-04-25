@@ -27,9 +27,12 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -52,7 +55,7 @@ public class TextTab extends PreferencePanel
 	private static final String EXTERNALEDITOR_NOTSET = "NOT SET";
 
 	/** Creates new form TextTab */
-	public TextTab(java.awt.Frame parent, boolean modal)
+	public TextTab(PreferencesFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -66,9 +69,11 @@ public class TextTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
+    @Override
 	public JPanel getPreferencesPanel() { return text; }
 
 	/** return the name of this preferences tab. */
+    @Override
 	public String getName() { return "Text"; }
 
 	private MutableTextDescriptor initialTextNodeDescriptor, currentTextNodeDescriptor;
@@ -84,8 +89,10 @@ public class TextTab extends PreferencePanel
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Text tab.
 	 */
+    @Override
 	public void init()
 	{
+        GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
 		for (Iterator<TextDescriptor.Position> it = TextDescriptor.Position.getPositions(); it.hasNext(); )
 		{
 			TextDescriptor.Position pos = it.next();
@@ -117,7 +124,7 @@ public class TextTab extends PreferencePanel
 			textFace.addItem(fontNames[i]);
 			textCellFont.addItem(fontNames[i]);
 		}
-		textDefaultFont.setSelectedItem(User.getDefaultFont());
+		textDefaultFont.setSelectedItem(gp.defaultFont);
 		textCellFont.setSelectedItem(User.getDefaultTextCellFont());
 		textCellSize.setText(Integer.toString(User.getDefaultTextCellSize()));
 		String editor = EXTERNALEDITOR_HEADER;
@@ -128,7 +135,7 @@ public class TextTab extends PreferencePanel
 		textGlobalScale.setText(TextUtils.formatDouble(User.getGlobalTextScale() * 100));
 		EditWindow wnd = EditWindow.getCurrent();
 		textWindowScale.setText(wnd == null ? "" : TextUtils.formatDouble(wnd.getGlobalTextScale() * 100));
-		
+
 		textNodes.setSelected(true);
 		textButtonChanged();
 
@@ -281,7 +288,7 @@ public class TextTab extends PreferencePanel
 		textItalic.setSelected(currentTextDescriptor.isItalic());
 		textBold.setSelected(currentTextDescriptor.isBold());
 		textUnderline.setSelected(currentTextDescriptor.isUnderline());
-	
+
 		textAnchor.setSelectedItem(currentTextDescriptor.getPos());
 		textValuesChanging = false;
 
@@ -303,15 +310,17 @@ public class TextTab extends PreferencePanel
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Text tab.
 	 */
+    @Override
 	public void term()
 	{
 		boolean editCellsChanged = false;
 		boolean textCellsChanged = false;
 
+        GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
 		String currentFontName = (String)textDefaultFont.getSelectedItem();
-		if (!currentFontName.equalsIgnoreCase(User.getDefaultFont()))
+		if (!currentFontName.equalsIgnoreCase(gp.defaultFont))
 		{
-			User.setDefaultFont(currentFontName);
+            UserInterfaceMain.setGraphicsPreferences(gp.withDefaultFont(currentFontName));
 			editCellsChanged = true;
 		}
 
@@ -384,6 +393,7 @@ public class TextTab extends PreferencePanel
 	/**
 	 * Method called when the factory reset is requested.
 	 */
+    @Override
 	public void reset()
 	{
 		TextDescriptor.factoryResetNodeTextDescriptor();
@@ -398,8 +408,8 @@ public class TextTab extends PreferencePanel
 			User.setDefaultTextCellSize(User.getFactoryDefaultTextCellSize());
 		if (!User.getFactoryDefaultTextExternalEditor().equals(User.getDefaultTextExternalEditor()))
 			User.setDefaultTextExternalEditor(User.getFactoryDefaultTextExternalEditor());
-		if (!User.getFactoryDefaultFont().equals(User.getDefaultFont()))
-			User.setDefaultFont(User.getFactoryDefaultFont());
+        GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
+        UserInterfaceMain.setGraphicsPreferences(gp.withDefaultFont(gp.FACTORY_DEFAULT_FONT));
 		if (User.getFactoryGlobalTextScale() != User.getGlobalTextScale())
 			User.setGlobalTextScale(User.getFactoryGlobalTextScale());
 	}

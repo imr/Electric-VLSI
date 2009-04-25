@@ -52,8 +52,7 @@ public class GraphicsPreferences extends PrefPackage {
     private static final String KEY_TRANSPARENCY_MODE = "3DTransparencyMode";
     private static final String KEY_TRANSPARENCY_FACTOR = "3DTransparencyFactor";
 
-    private static final String KEY_PORT_DISPLAY_LEVEL = "PortDisplayLevel";
-    private static final String KEY_EXPORT_DISPLAY_LEVEL = "ExportDisplayLevel";
+    private static final String KEY_DEFAULT_FONT = "DefaultFont";
 
     public static final int RGB_MASK = 0xFFFFFF;
 
@@ -63,16 +62,23 @@ public class GraphicsPreferences extends PrefPackage {
 	 * 1: short port names (stopping at the first nonalphabetic character).
 	 * 2: ports drawn as crosses.
      */
+    @IntegerPref(node = USER_NODE, key = "PortDisplayLevel", factory = DEF_PORT_DISPLAY_LEVEL)
     public int portDisplayLevel;
-    private static int DEF_PORT_DISPLAY_LEVEL = 0;
+    private static final int DEF_PORT_DISPLAY_LEVEL = 0;
 	/**
      * How to display exports.
 	 * 0: full export names (the default).
 	 * 1: short export names (stopping at the first nonalphabetic character).
 	 * 2: exports drawn as crosses.
      */
+    @IntegerPref(node = USER_NODE, key = "ExportDisplayLevel", factory = DEF_EXPORT_DISPLAY_LEVEL)
     public int exportDisplayLevel;
-    private static int DEF_EXPORT_DISPLAY_LEVEL = 0;
+    private static final int DEF_EXPORT_DISPLAY_LEVEL = 0;
+
+	/** The default font to use on the display. The default is "SansSerif". */
+    @StringPref(node = USER_NODE, key = "DefaultFont", factory = FACTORY_DEFAULT_FONT)
+    public String defaultFont;
+    public static final String FACTORY_DEFAULT_FONT = "SansSerif";
 
     private final TechPool techPool;
     private final Color[] defaultColors;
@@ -359,21 +365,6 @@ public class GraphicsPreferences extends PrefPackage {
         }
     }
 
-    private GraphicsPreferences(GraphicsPreferences that,
-            TechData[] techData,
-            Color[] defaultColors,
-            boolean[] textVisibility,
-            int portDisplayLevel,
-            int exportDisplayLevel) {
-        super(that);
-        this.techPool = that.techPool;
-        this.techData = techData;
-        this.defaultColors = defaultColors;
-        this.textVisibility = textVisibility;
-        this.portDisplayLevel = portDisplayLevel;
-        this.exportDisplayLevel = exportDisplayLevel;
-    }
-
     public GraphicsPreferences(boolean factory) {
         this(factory, TechPool.getThreadTechPool());
     }
@@ -408,9 +399,6 @@ public class GraphicsPreferences extends PrefPackage {
         textVisibility = new boolean[textTypes.length];
         for (int i = 0; i < textTypes.length; i++)
             textVisibility[i] = userPrefs.getBoolean(textTypes[i].getKeyVisibility(), true);
-
-        portDisplayLevel = userPrefs.getInt(KEY_PORT_DISPLAY_LEVEL, DEF_PORT_DISPLAY_LEVEL);
-        exportDisplayLevel = userPrefs.getInt(KEY_EXPORT_DISPLAY_LEVEL, DEF_EXPORT_DISPLAY_LEVEL);
     }
 
     @Override
@@ -454,15 +442,6 @@ public class GraphicsPreferences extends PrefPackage {
                     userPrefs.putBoolean(t.getKeyVisibility(), textVisibility[i]);
             }
         }
-
-        if (removeDefaults && portDisplayLevel == DEF_PORT_DISPLAY_LEVEL)
-            userPrefs.remove(KEY_PORT_DISPLAY_LEVEL);
-        else
-            userPrefs.putInt(KEY_PORT_DISPLAY_LEVEL, portDisplayLevel);
-        if (removeDefaults && exportDisplayLevel == DEF_EXPORT_DISPLAY_LEVEL)
-            userPrefs.remove(KEY_EXPORT_DISPLAY_LEVEL);
-        else
-            userPrefs.putInt(KEY_EXPORT_DISPLAY_LEVEL, exportDisplayLevel);
     }
 
     public GraphicsPreferences withTransparentLayerColors(Technology tech, Color[] tranparentColors) {
@@ -484,12 +463,7 @@ public class GraphicsPreferences extends PrefPackage {
         if (color.equals(defaultColors[t.ordinal()])) return this;
         Color[] newDefaultColors = defaultColors.clone();
         newDefaultColors[t.ordinal()] = color;
-        return new GraphicsPreferences(this,
-                techData,
-                newDefaultColors,
-                textVisibility,
-                portDisplayLevel,
-                exportDisplayLevel);
+        return (GraphicsPreferences)withField("defaultColors", newDefaultColors);
     }
 
     public GraphicsPreferences withFactoryColor(User.ColorPrefType t) { return withColor(t, t.getFactoryDefaultColor()); }
@@ -498,42 +472,26 @@ public class GraphicsPreferences extends PrefPackage {
         if (b == textVisibility[t.ordinal()]) return this;
         boolean[] newTextVisibility = textVisibility.clone();
         newTextVisibility[t.ordinal()] = b;
-        return new GraphicsPreferences(this,
-                techData,
-                defaultColors,
-                newTextVisibility,
-                portDisplayLevel,
-                exportDisplayLevel);
+        return (GraphicsPreferences)withField("textVisibility", newTextVisibility);
     }
 
     public GraphicsPreferences withPortDisplayLevel(int portDisplayLevel) {
         if (portDisplayLevel == this.portDisplayLevel) return this;
-        return new GraphicsPreferences(this,
-                techData,
-                defaultColors,
-                textVisibility,
-                portDisplayLevel,
-                exportDisplayLevel);
+        return (GraphicsPreferences)withField("portDisplayLevel", Integer.valueOf(portDisplayLevel));
     }
 
     public GraphicsPreferences withExportDisplayLevel(int exportDisplayLevel) {
         if (exportDisplayLevel == this.exportDisplayLevel) return this;
-        return new GraphicsPreferences(this,
-                techData,
-                defaultColors,
-                textVisibility,
-                portDisplayLevel,
-                exportDisplayLevel);
+        return (GraphicsPreferences)withField("exportDisplayLevel", Integer.valueOf(exportDisplayLevel));
     }
 
     public GraphicsPreferences withDisplayLevelReset() {
-        if (portDisplayLevel == DEF_PORT_DISPLAY_LEVEL && exportDisplayLevel == DEF_EXPORT_DISPLAY_LEVEL) return this;
-        return new GraphicsPreferences(this,
-                techData,
-                defaultColors,
-                textVisibility,
-                DEF_PORT_DISPLAY_LEVEL,
-                DEF_EXPORT_DISPLAY_LEVEL);
+        return withPortDisplayLevel(DEF_PORT_DISPLAY_LEVEL).withExportDisplayLevel(DEF_EXPORT_DISPLAY_LEVEL);
+    }
+
+    public GraphicsPreferences withDefaultFont(String defaultFont) {
+        if (defaultFont.equals(this.defaultFont)) return this;
+        return (GraphicsPreferences)withField("defaultFont", defaultFont);
     }
 
 	/**
@@ -592,7 +550,10 @@ public class GraphicsPreferences extends PrefPackage {
             return this.techPool == that.techPool &&
                     Arrays.equals(this.techData, that.techData) &&
                     Arrays.equals(this.defaultColors, that.defaultColors) &&
-                    Arrays.equals(this.textVisibility, that.textVisibility);
+                    Arrays.equals(this.textVisibility, that.textVisibility) &&
+                    this.portDisplayLevel == that.portDisplayLevel &&
+                    this.exportDisplayLevel == that.exportDisplayLevel &&
+                    this.defaultFont.equals(that.defaultFont);
         }
         return false;
     }
@@ -605,12 +566,7 @@ public class GraphicsPreferences extends PrefPackage {
         if (td == techData[techIndex]) return this;
         TechData[] newTechData = techData.clone();
         newTechData[techIndex] = td;
-        return new GraphicsPreferences(this,
-                newTechData,
-                defaultColors,
-                textVisibility,
-                portDisplayLevel,
-                exportDisplayLevel);
+        return (GraphicsPreferences)withField("techData", newTechData);
     }
 
 //    public GraphicsPreferences withLayersReset() {

@@ -1892,23 +1892,17 @@ public class User extends Listener
 	 */
 	public static int getFactorySmartHorizontalPlacementArc() { return cacheSmartHorizontalPlacementArc.getIntFactoryValue(); }
 
-	private static Pref cacheDefaultFont = Pref.makeStringPref("DefaultFont", tool.prefs, "SansSerif");
 	/**
 	 * Method to get the default font to use on the display.
 	 * The default is "SansSerif".
 	 * @return the default font to use on the display.
 	 */
-	public static String getDefaultFont() { return cacheDefaultFont.getString(); }
-	/**
-	 * Method to set the default font to use on the display.
-	 * @param f the default font to use on the display.
-	 */
-	public static void setDefaultFont(String f) { cacheDefaultFont.setString(f); }
+	public static String getDefaultFont() { return UserInterfaceMain.getGraphicsPreferences().defaultFont; }
 	/**
 	 * Method to get the factory default font to use on the display.
 	 * @return the factory default font to use on the display.
 	 */
-	public static String getFactoryDefaultFont() { return cacheDefaultFont.getStringFactoryValue(); }
+	public static String getFactoryDefaultFont() { return GraphicsPreferences.FACTORY_DEFAULT_FONT; }
 
 	private static Pref cacheDefaultTextCellFont = Pref.makeStringPref("DefaultTextCellFont", tool.prefs, "SansSerif");
 	/**

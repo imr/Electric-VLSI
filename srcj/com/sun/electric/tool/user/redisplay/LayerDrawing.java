@@ -3551,7 +3551,7 @@ class LayerDrawing
 		// get text description
 		int size = EditWindow.getDefaultFontSize();
 		int fontStyle = Font.PLAIN;
-		String fontName = User.getDefaultFont();
+		String fontName = gp.defaultFont;
 		boolean italic = false;
 		boolean bold = false;
 		boolean underline = false;
