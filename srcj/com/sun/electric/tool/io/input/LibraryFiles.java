@@ -178,6 +178,7 @@ public abstract class LibraryFiles extends Input
 	 * @param libName the name to give the library (null to derive it from the file path)
 	 * @param type the type of library file (ELIB, JELIB, etc.)
 	 * @param quick true to read the library without verbosity (used when reading a library internally).
+	 * @param projectSettings an output map which is filled by project settings of top library
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick, Map<Setting,Object> projectSettings) {
