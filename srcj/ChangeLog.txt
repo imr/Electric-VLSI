@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.09j: ******************************
+
 ************************* Version 8.09i: ******************************
 
 BUG: (4/27/09, SMR) EDIF input is broken in multiple ways (Bugs #2143 and #2144).
