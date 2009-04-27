@@ -697,6 +697,7 @@ public class FileMenu {
 				startMemory = com.sun.electric.Main.getMemoryUsage();
 			}
             prefs = Input.getInputPreferences(type, false);
+            prefs.initFromUserDefaults();
 			startJob();
 		}
 
@@ -712,6 +713,7 @@ public class FileMenu {
             if (curCell != null)
                 currentCells.put(curLib, curCell);
             prefs = Input.getInputPreferences(type, false);
+            prefs.initFromUserDefaults();
 			startJob();
 		}
 

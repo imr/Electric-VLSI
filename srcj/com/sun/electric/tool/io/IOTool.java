@@ -207,17 +207,27 @@ public class IOTool extends Tool
 	public static class DaisPreferences extends InputPreferences
     {
 		private boolean newLib;
-		public boolean displayOnly = IOTool.isDaisDisplayOnly();
-		public boolean readCellInstances = IOTool.isDaisReadCellInstances();
-		public boolean readGlobalWires = IOTool.isDaisReadGlobalWires();
-		public boolean readPowerAndGround = IOTool.isDaisReadPowerAndGround();
-		public boolean readDetailWires = IOTool.isDaisReadDetailWires();
-		public boolean readConnectivity = IOTool.isDaisReadConnectivity();
+		public boolean displayOnly;
+		public boolean readCellInstances;
+		public boolean readGlobalWires;
+		public boolean readPowerAndGround;
+		public boolean readDetailWires;
+		public boolean readConnectivity;
 
 		public DaisPreferences(boolean factory, boolean newLib)
 		{
 			super(factory);
 			this.newLib = newLib;
+		}
+
+		public void initFromUserDefaults()
+		{
+			displayOnly = IOTool.isDaisDisplayOnly();
+			readCellInstances = IOTool.isDaisReadCellInstances();
+			readGlobalWires = IOTool.isDaisReadGlobalWires();
+			readPowerAndGround = IOTool.isDaisReadPowerAndGround();
+			readDetailWires = IOTool.isDaisReadDetailWires();
+			readConnectivity = IOTool.isDaisReadConnectivity();
 		}
 
         public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)

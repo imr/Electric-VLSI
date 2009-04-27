@@ -396,11 +396,16 @@ public class CIF extends Input
 
 	public static class CIFPreferences extends InputPreferences
     {
-		public boolean squareWires = IOTool.isCIFInSquaresWires();
+		public boolean squareWires;
 
 		public CIFPreferences(boolean factory) { super(factory); }
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+		public void initFromUserDefaults()
+		{
+			squareWires = IOTool.isCIFInSquaresWires();
+		}
+
+		public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
         {
         	CIF in = new CIF(this);
 			if (in.openTextInput(fileURL)) return null;

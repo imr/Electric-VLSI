@@ -224,10 +224,16 @@ public class Sue extends Input
 
 	public static class SuePreferences extends InputPreferences
     {
-		public boolean use4PortTransistors = IOTool.isSueUses4PortTransistors();
-		public boolean convertExpressions = IOTool.isSueConvertsExpressions();
+		public boolean use4PortTransistors;
+		public boolean convertExpressions;
 
 		public SuePreferences(boolean factory) { super(factory); }
+
+		public void initFromUserDefaults()
+		{
+			use4PortTransistors = IOTool.isSueUses4PortTransistors();
+			convertExpressions = IOTool.isSueConvertsExpressions();
+		}
 
         public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
         {

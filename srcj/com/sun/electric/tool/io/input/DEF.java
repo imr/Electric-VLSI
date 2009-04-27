@@ -98,10 +98,16 @@ public class DEF extends LEFDEF
 
 	public static class DEFPreferences extends InputPreferences
     {
-		public boolean logicalPlacement = IOTool.isDEFLogicalPlacement();
-		public boolean physicalPlacement = IOTool.isDEFPhysicalPlacement();
+		public boolean logicalPlacement;
+		public boolean physicalPlacement;
 
 		public DEFPreferences(boolean factory) { super(factory); }
+
+		public void initFromUserDefaults()
+		{
+			logicalPlacement = IOTool.isDEFLogicalPlacement();
+			physicalPlacement = IOTool.isDEFPhysicalPlacement();
+		}
 
         public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
         {

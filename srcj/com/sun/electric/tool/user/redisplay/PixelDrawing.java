@@ -2180,8 +2180,12 @@ public class PixelDrawing
     EGraphics getPortGraphics(PrimitivePort basePort) {
         EGraphics portGraphics = portGraphicsCache.get(basePort);
         if (portGraphics == null) {
-            portGraphics = textGraphics.withColor(basePort.getPortColor(gp));
-            portGraphicsCache.put(basePort, portGraphics);
+        	Color graColor = basePort.getPortColor(gp);
+        	if (graColor != null)
+        	{
+        		portGraphics = textGraphics.withColor(graColor);
+	            portGraphicsCache.put(basePort, portGraphics);
+	        }
         }
         return portGraphics;
     }

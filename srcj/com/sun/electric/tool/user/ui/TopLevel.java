@@ -465,7 +465,8 @@ public class TopLevel extends JFrame
         ArrayList<EMenuBar.Instance> menuBars = new ArrayList<EMenuBar.Instance>();
         if (mode == UserInterfaceMain.Mode.MDI) {
             if (topLevel != null)
-                menuBars.add(topLevel.getTheMenuBar());
+                if (topLevel.getTheMenuBar() != null)
+                	menuBars.add(topLevel.getTheMenuBar());
         } else {
             for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
                 WindowFrame wf = it.next();

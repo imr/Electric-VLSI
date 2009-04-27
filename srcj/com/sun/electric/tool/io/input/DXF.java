@@ -106,11 +106,18 @@ public class DXF extends Input
 
 	public static class DXFPreferences extends InputPreferences
     {
-		public boolean flattenHierarchy = IOTool.isDXFInputFlattensHierarchy();
-		public boolean readAllLayers = IOTool.isDXFInputReadsAllLayers();
-		public int scale = IOTool.getDXFScale();
+		public boolean flattenHierarchy;
+		public boolean readAllLayers;
+		public int scale;
 
 		public DXFPreferences(boolean factory) { super(factory); }
+
+		public void initFromUserDefaults()
+		{
+			flattenHierarchy = IOTool.isDXFInputFlattensHierarchy();
+			readAllLayers = IOTool.isDXFInputReadsAllLayers();
+			scale = IOTool.getDXFScale();
+		}
 
         public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
         {

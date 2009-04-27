@@ -247,16 +247,28 @@ public class GDS extends Input
 
 	public static class GDSPreferences extends InputPreferences
     {
-		public double inputScale = IOTool.getGDSInputScale();
-		public boolean simplifyCells = IOTool.isGDSInSimplifyCells();
-		public int arraySimplification = IOTool.getGDSArraySimplification();
-		public boolean instantiateArrays = IOTool.isGDSInInstantiatesArrays();
-		public boolean expandCells = IOTool.isGDSInExpandsCells();
-		public boolean mergeBoxes = IOTool.isGDSInMergesBoxes();
-		public boolean includeText = IOTool.isGDSInIncludesText();
-		public int unknownLayerHandling = IOTool.getGDSInUnknownLayerHandling();
+		public double inputScale;
+		public boolean simplifyCells;
+		public int arraySimplification;
+		public boolean instantiateArrays;
+		public boolean expandCells;
+		public boolean mergeBoxes;
+		public boolean includeText;
+		public int unknownLayerHandling;
 
 		public GDSPreferences(boolean factory) { super(factory); }
+
+		public void initFromUserDefaults()
+		{
+			inputScale = IOTool.getGDSInputScale();
+			simplifyCells = IOTool.isGDSInSimplifyCells();
+			arraySimplification = IOTool.getGDSArraySimplification();
+			instantiateArrays = IOTool.isGDSInInstantiatesArrays();
+			expandCells = IOTool.isGDSInExpandsCells();
+			mergeBoxes = IOTool.isGDSInMergesBoxes();
+			includeText = IOTool.isGDSInIncludesText();
+			unknownLayerHandling = IOTool.getGDSInUnknownLayerHandling();
+		}
 
         public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
         {
