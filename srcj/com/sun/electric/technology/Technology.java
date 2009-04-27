@@ -5468,7 +5468,51 @@ public class Technology implements Comparable<Technology>, Serializable
 //		}
 //	}
 
-	/********************* FOR GUI **********************/
+    /********************* FOR Wiring tool **********************/
+
+    public List<NodeProto> getMetalContactCluster(Layer l1, Layer l2)
+    {
+        List<NodeProto> list = new ArrayList<NodeProto>();
+        
+        Xml.MenuPalette menu = xmlTech.menuPalette;
+        for (List<?> objList : menu.menuBoxes)
+        {
+            for (Object obj : objList)
+            {
+                if (obj instanceof Xml.MenuNodeInst)
+                {
+                    Xml.MenuNodeInst menuItem = (Xml.MenuNodeInst)obj;
+
+                    if (menuItem.function != PrimitiveNode.Function.CONTACT)
+                        continue; // not a contact
+                    NodeProto np = findNodeProto(((Xml.MenuNodeInst)obj).protoName);
+
+                    if (np instanceof PrimitiveNode)
+                    {
+                        PrimitiveNode pn = (PrimitiveNode)np;
+                        boolean found1 = false, found2 = false;
+                        for (NodeLayer l : pn.getLayers())
+                        {
+                            if (l.getLayer() == l1)
+                                found1 = true;
+                            if (l.getLayer() == l2)
+                                found2 = true;
+                            if (found1 && found2)
+                                break; // found both
+                        }
+                        // both layers found in this particular node
+                        if (found1 && found2)
+                        {
+                            list.add(pn);
+                        }
+                    }
+                }
+            }
+        }
+        return list;
+    }
+
+    /********************* FOR GUI **********************/
 
     protected void loadFactoryMenuPalette(URL menuURL) {
         try {
@@ -5644,6 +5688,7 @@ public class Technology implements Comparable<Technology>, Serializable
     public Setting makeStringSetting(String name, String location, String description, String xmlName, String factory) {
         return getProjectSettings().makeStringSetting(name, TECH_NODE, xmlName, location, description, factory);
     }
+
     // -------------------------- Project Settings -------------------------
 
     public Setting.Group getProjectSettings() {
@@ -5657,8 +5702,6 @@ public class Technology implements Comparable<Technology>, Serializable
     public Setting getSetting(String xmlPath) {
         return getProjectSettings().getSetting(xmlPath);
     }
-
-
 
     public Setting getSetting(TechFactory.Param param) {
         String xmlPath = param.xmlPath;
