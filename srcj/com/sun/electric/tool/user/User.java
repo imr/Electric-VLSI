@@ -2475,7 +2475,7 @@ public class User extends Listener
 	public static void setWorkingDirectory(String dir) { cacheWorkingDirectory.setString(dir); }
 
     /** Root path to the regression directory */
-	private static Pref cacheRegressionPath = Pref.makeStringServerPref("Regression Path", User.getUserTool().prefs, "<set me up>");
+	private static Pref cacheRegressionPath = Pref.makeStringPref("Regression Path", User.getUserTool().prefs, "<set me up>");
 	/**
 	 * Method to get the path of the regression tests directory.
 	 * The default is a String with invalid path.

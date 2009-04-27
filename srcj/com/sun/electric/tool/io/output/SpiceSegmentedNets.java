@@ -57,24 +57,24 @@ import java.util.TreeSet;
  */
 class SpiceSegmentedNets
 {
+    private final Spice.SpicePreferences sp;
 	private Map<PortInst,NetInfo> segmentedNets;          // key: portinst, obj: PortInstInfo
 	private Map<ArcInst,Double> arcRes;                 // key: arcinst, obj: Double (arc resistance)
 	private boolean verboseNames = false;           // true to give renamed nets verbose names
 	private CellNetInfo cni;                // the Cell's net info
-	private Simulation.SpiceParasitics parasiticsLevel = Simulation.SpiceParasitics.SIMPLE; // disable or enable netname remapping
 	private Map<Network,Integer> netCounters;            // key: net, obj: Integer - for naming segments
 	private Cell cell;
 	private List<List<String>> shortedExports; // list of lists of export names shorted together
 	private Map<ArcInst,Double> longArcCaps;            // for arcs to be broken up into multiple PI models, need to record cap
 	private Map<Network,Network> extractedNets;         // keep track of extracted nets
 
-	public SpiceSegmentedNets(Cell cell, boolean verboseNames, CellNetInfo cni, Simulation.SpiceParasitics parasiticsLevel)
+	public SpiceSegmentedNets(Cell cell, boolean verboseNames, CellNetInfo cni, Spice.SpicePreferences sp)
 	{
 		segmentedNets = new HashMap<PortInst,NetInfo>();
 		arcRes = new HashMap<ArcInst,Double>();
 		this.verboseNames = verboseNames;
 		this.cni = cni;
-		this.parasiticsLevel = parasiticsLevel;
+        this.sp = sp;
 		netCounters = new HashMap<Network,Integer>();
 		this.cell = cell;
 		shortedExports = new ArrayList<List<String>>();
@@ -112,7 +112,7 @@ class SpiceSegmentedNets
 	{
 		Network net = cni.getNetList().getNetwork(pi);
 		CellSignal cs = cni.getCellSignal(net);
-		if (parasiticsLevel == Simulation.SpiceParasitics.SIMPLE || (!Simulation.isParasiticsExtractPowerGround() &&
+		if (sp.parasiticsLevel == Simulation.SpiceParasitics.SIMPLE || (!sp.parasiticsExtractPowerGround &&
 			isPowerGround(pi))) return cs.getName();
 
 		Integer i = netCounters.get(net);
@@ -178,8 +178,8 @@ class SpiceSegmentedNets
 	// if no parasitics, this is just the CellSignal name.
 	public String getNetName(PortInst pi)
 	{
-		if (parasiticsLevel == Simulation.SpiceParasitics.SIMPLE || (isPowerGround(pi) &&
-			!Simulation.isParasiticsExtractPowerGround()))
+		if (sp.parasiticsLevel == Simulation.SpiceParasitics.SIMPLE || (isPowerGround(pi) &&
+			!sp.parasiticsExtractPowerGround))
 		{
 			CellSignal cs = cni.getCellSignal(cni.getNetList().getNetwork(pi));
 			if (cs == null) return null;
@@ -235,7 +235,7 @@ class SpiceSegmentedNets
 
 	public Simulation.SpiceParasitics getParasiticsLevel()
 	{
-		return parasiticsLevel;
+		return sp.parasiticsLevel;
 	}
 
 	// list of export names (Strings)

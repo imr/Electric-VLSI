@@ -168,7 +168,7 @@ public class Spice extends Topology
         public Simulation.SpiceParasitics   parasiticsLevel = Simulation.getFactorySpiceParasiticsLevel();
     	public boolean                      parasiticsUseVerboseNaming = Simulation.isFactoryParasiticsUseVerboseNaming();
         public boolean                      parasiticsBackAnnotateLayout = Simulation.isFactoryParasiticsBackAnnotateLayout();
-        public boolean                      parasiticsExtractPowerGrownd = Simulation.isFactoryParasiticsExtractPowerGround();
+        public boolean                      parasiticsExtractPowerGround = Simulation.isFactoryParasiticsExtractPowerGround();
         public boolean                      parasiticsUseExemptedNetsFile = Simulation.isFactoryParasiticsUseExemptedNetsFile();
         public boolean                      parasiticsIgnoreExemptedNets = Simulation.isFactoryParasiticsIgnoreExemptedNets();
         public boolean                      parasiticsExtractsR = Simulation.isFactoryParasiticsExtractsR();
@@ -222,7 +222,7 @@ public class Spice extends Topology
             parasiticsLevel                 = Simulation.getSpiceParasiticsLevel();
             parasiticsUseVerboseNaming      = Simulation.isParasiticsUseVerboseNaming();
             parasiticsBackAnnotateLayout    = Simulation.isParasiticsBackAnnotateLayout();
-            parasiticsExtractPowerGrownd    = Simulation.isParasiticsExtractPowerGround();
+            parasiticsExtractPowerGround    = Simulation.isParasiticsExtractPowerGround();
             parasiticsUseExemptedNetsFile   = Simulation.isParasiticsUseExemptedNetsFile();
             parasiticsIgnoreExemptedNets    = Simulation.isParasiticsIgnoreExemptedNets();
             parasiticsExtractsR             = Simulation.isParasiticsExtractsR();
@@ -3177,7 +3177,7 @@ public class Spice extends Topology
                             return;
                         }
                         spice.printWriter = printWriter;
-                        segNets = new SpiceSegmentedNets(null, false, null, Simulation.SpiceParasitics.SIMPLE);
+                        segNets = new SpiceSegmentedNets(null, false, null, spice.localPrefs);
                     }
                     spice.emitEmbeddedSpice(cardVar, info.getContext(), segNets, info, true, true);
                 }

@@ -83,7 +83,7 @@ public class SpiceRCSimple extends SpiceParasiticsGeneral
 		// first create a set of segmentedNets for the Cell
         boolean verboseSegmentNames = localPrefs.parasiticsUseVerboseNaming;
         Simulation.SpiceParasitics spLevel = localPrefs.parasiticsLevel;
-        SpiceSegmentedNets segmentedNets = new SpiceSegmentedNets(cell, verboseSegmentNames, cni, spLevel);
+        SpiceSegmentedNets segmentedNets = new SpiceSegmentedNets(cell, verboseSegmentNames, cni, localPrefs);
         segmentedParasiticInfo.add(segmentedNets);
         curSegmentedNets = segmentedNets;
 
