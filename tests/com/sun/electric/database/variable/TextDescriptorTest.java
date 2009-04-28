@@ -773,68 +773,68 @@ public class TextDescriptorTest {
     }
 
 
-    public static class DescriptorPrefTest {
-
-        protected void setUp() throws Exception {
-        }
-
-        protected void tearDown() throws Exception {
-        }
-
-//        public static Test suite() {
-//            TestSuite suite = new TestSuite(DescriptorPrefTest.class);
+//    public static class DescriptorPrefTest {
 //
-//            return suite;
+//        protected void setUp() throws Exception {
 //        }
 //
-        /**
-         * Test of newTextDescriptor method, of class com.sun.electric.database.variable.AbstractTextDescriptor.DescriptorPref.
-         */
-        public void testNewTextDescriptor() {
-            System.out.println("newTextDescriptor");
-
-            boolean display = true;
-            AbstractTextDescriptor.DescriptorPref instance = null;
-
-            TextDescriptor expResult = null;
-            TextDescriptor result = instance.newTextDescriptor(display);
-            assertEquals(expResult, result);
-
-            // TODO review the generated test code and remove the default call to fail.
-            fail("The test case is a prototype.");
-        }
-
-        /**
-         * Test of newMutableTextDescriptor method, of class com.sun.electric.database.variable.AbstractTextDescriptor.DescriptorPref.
-         */
-        public void testNewMutableTextDescriptor() {
-            System.out.println("newMutableTextDescriptor");
-
-            AbstractTextDescriptor.DescriptorPref instance = null;
-
-            MutableTextDescriptor expResult = null;
-            MutableTextDescriptor result = instance.newMutableTextDescriptor();
-            assertEquals(expResult, result);
-
-            // TODO review the generated test code and remove the default call to fail.
-            fail("The test case is a prototype.");
-        }
-
-        /**
-         * Test of setTextDescriptor method, of class com.sun.electric.database.variable.AbstractTextDescriptor.DescriptorPref.
-         */
-        public void testSetTextDescriptor() {
-            System.out.println("setTextDescriptor");
-
-            AbstractTextDescriptor td = null;
-            AbstractTextDescriptor.DescriptorPref instance = null;
-
-            instance.setTextDescriptor(td);
-
-            // TODO review the generated test code and remove the default call to fail.
-            fail("The test case is a prototype.");
-        }
-    }
+//        protected void tearDown() throws Exception {
+//        }
+//
+////        public static Test suite() {
+////            TestSuite suite = new TestSuite(DescriptorPrefTest.class);
+////
+////            return suite;
+////        }
+////
+//        /**
+//         * Test of newTextDescriptor method, of class com.sun.electric.database.variable.AbstractTextDescriptor.DescriptorPref.
+//         */
+//        public void testNewTextDescriptor() {
+//            System.out.println("newTextDescriptor");
+//
+//            boolean display = true;
+//            AbstractTextDescriptor.DescriptorPref instance = null;
+//
+//            TextDescriptor expResult = null;
+//            TextDescriptor result = instance.newTextDescriptor(display);
+//            assertEquals(expResult, result);
+//
+//            // TODO review the generated test code and remove the default call to fail.
+//            fail("The test case is a prototype.");
+//        }
+//
+//        /**
+//         * Test of newMutableTextDescriptor method, of class com.sun.electric.database.variable.AbstractTextDescriptor.DescriptorPref.
+//         */
+//        public void testNewMutableTextDescriptor() {
+//            System.out.println("newMutableTextDescriptor");
+//
+//            AbstractTextDescriptor.DescriptorPref instance = null;
+//
+//            MutableTextDescriptor expResult = null;
+//            MutableTextDescriptor result = instance.newMutableTextDescriptor();
+//            assertEquals(expResult, result);
+//
+//            // TODO review the generated test code and remove the default call to fail.
+//            fail("The test case is a prototype.");
+//        }
+//
+//        /**
+//         * Test of setTextDescriptor method, of class com.sun.electric.database.variable.AbstractTextDescriptor.DescriptorPref.
+//         */
+//        public void testSetTextDescriptor() {
+//            System.out.println("setTextDescriptor");
+//
+//            AbstractTextDescriptor td = null;
+//            AbstractTextDescriptor.DescriptorPref instance = null;
+//
+//            instance.setTextDescriptor(td);
+//
+//            // TODO review the generated test code and remove the default call to fail.
+//            fail("The test case is a prototype.");
+//        }
+//    }
 
 
     public static junit.framework.Test suite() {

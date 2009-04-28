@@ -52,6 +52,8 @@ public class GraphicsPreferences extends PrefPackage {
     private static final String KEY_TRANSPARENCY_MODE = "3DTransparencyMode";
     private static final String KEY_TRANSPARENCY_FACTOR = "3DTransparencyFactor";
 
+    private static final String KEY_TEXT_VISIBILITY = "TextVisibility";
+
     public static final int RGB_MASK = 0xFFFFFF;
 
 	/**
@@ -396,7 +398,7 @@ public class GraphicsPreferences extends PrefPackage {
         TextDescriptor.TextType[] textTypes = TextDescriptor.TextType.class.getEnumConstants();
         textVisibility = new boolean[textTypes.length];
         for (int i = 0; i < textTypes.length; i++)
-            textVisibility[i] = userPrefs.getBoolean(textTypes[i].getKeyVisibility(), true);
+            textVisibility[i] = userPrefs.getBoolean(textTypes[i].getKey(KEY_TEXT_VISIBILITY), true);
     }
 
     @Override
@@ -434,10 +436,11 @@ public class GraphicsPreferences extends PrefPackage {
             TextDescriptor.TextType[] textTypes = TextDescriptor.TextType.class.getEnumConstants();
             for (int i = 0; i < textTypes.length; i++) {
                 TextDescriptor.TextType t = textTypes[i];
+                String key = t.getKey(KEY_TEXT_VISIBILITY);
                 if (removeDefaults && textVisibility[i])
-                    userPrefs.remove(t.getKeyVisibility());
+                    userPrefs.remove(key);
                 else
-                    userPrefs.putBoolean(t.getKeyVisibility(), textVisibility[i]);
+                    userPrefs.putBoolean(key, textVisibility[i]);
             }
         }
     }

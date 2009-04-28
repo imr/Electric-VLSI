@@ -23,6 +23,8 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.EditingPreferences;
+
 import java.util.HashMap;
 
 /**
@@ -373,7 +375,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	 */
 	public static TextDescriptor getNodeTextDescriptor()
 	{
-		return cacheNodeDescriptor.newTextDescriptor(true);
+		return EditingPreferences.getThreadEditingPreferences().getTextDescriptor(TextDescriptor.TextType.NODE, true);
 	}
 
 	/**
@@ -382,7 +384,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	 */
 	public static TextDescriptor getArcTextDescriptor()
 	{
-		return cacheArcDescriptor.newTextDescriptor(true);
+		return EditingPreferences.getThreadEditingPreferences().getTextDescriptor(TextDescriptor.TextType.ARC, true);
 	}
 
 	/**
@@ -391,7 +393,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	 */
 	public static TextDescriptor getExportTextDescriptor()
 	{
-		return cacheExportDescriptor.newTextDescriptor(true);
+		return EditingPreferences.getThreadEditingPreferences().getTextDescriptor(TextDescriptor.TextType.EXPORT, true);
 	}
 
 	/**
@@ -400,7 +402,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	 */
 	public static TextDescriptor getPortInstTextDescriptor()
 	{
-		return getAnnotationTextDescriptor();
+		return EditingPreferences.getThreadEditingPreferences().getTextDescriptor(TextDescriptor.TextType.PORT, true);
 	}
 
 	/**
@@ -409,7 +411,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	 */
 	public static TextDescriptor getAnnotationTextDescriptor()
 	{
-		return cacheAnnotationDescriptor.newTextDescriptor(true);
+		return EditingPreferences.getThreadEditingPreferences().getTextDescriptor(TextDescriptor.TextType.ANNOTATION, true);
 	}
 
 	/**
@@ -418,7 +420,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	 */
 	public static TextDescriptor getInstanceTextDescriptor()
 	{
-		return cacheInstanceDescriptor.newTextDescriptor(true);
+		return EditingPreferences.getThreadEditingPreferences().getTextDescriptor(TextDescriptor.TextType.INSTANCE, true);
 	}
 
 	/**
@@ -427,6 +429,6 @@ public class TextDescriptor extends AbstractTextDescriptor
 	 */
 	public static TextDescriptor getCellTextDescriptor()
 	{
-		return cacheCellDescriptor.newTextDescriptor(true);
+		return EditingPreferences.getThreadEditingPreferences().getTextDescriptor(TextDescriptor.TextType.CELL, true);
 	}
 }

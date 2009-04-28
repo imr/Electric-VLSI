@@ -31,6 +31,8 @@ import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.MutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechPool;
@@ -71,6 +73,13 @@ public class EditingPreferences extends PrefPackage {
     };
     private static final int DEFAULT_ALIGNMENT_INDEX = 3;
 
+    private static final String TEXT_DESCRIPTOR_NODE = "database/variable";
+    // In TEXT_DESCRIPTOR_NODE
+    private static final String KEY_TEXT_DESCRIPTOR = "TextDescriptorFor";
+    private static final String KEY_TEXT_DESCRIPTOR_COLOR = "TextDescriptorColorFor";
+    private static final String KEY_TEXT_DESCRIPTOR_FONT = "TextDescriptorFontFor";
+
+
     private static final ThreadLocal<EditingPreferences> threadEditingPreferences = new ThreadLocal<EditingPreferences>();
 
     private transient final TechPool techPool;
@@ -80,6 +89,7 @@ public class EditingPreferences extends PrefPackage {
     private HashMap<ArcProtoId,PrimitiveNodeId> defaultArcPins;
     private Dimension2D[] alignments;
     private int alignmentIndex;
+    private TextDescriptor[] textDescriptors;
 
     public EditingPreferences(boolean factory, TechPool techPool) {
         super(factory);
@@ -88,15 +98,25 @@ public class EditingPreferences extends PrefPackage {
         defaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>();
         defaultArcAngleIncrements = new HashMap<ArcProtoId,Integer>();
         defaultArcPins = new HashMap<ArcProtoId,PrimitiveNodeId>();
+
+        TextDescriptor.TextType[] textTypes = TextDescriptor.TextType.class.getEnumConstants();
+        textDescriptors = new TextDescriptor[textTypes.length*2];
         if (factory) {
             alignments = DEFAULT_ALIGNMENTS;
             alignmentIndex = DEFAULT_ALIGNMENT_INDEX;
+            for (int i = 0; i < textTypes.length; i++) {
+                TextDescriptor.TextType t = textTypes[i];
+                textDescriptors[i*2 + 0] = t.getFactoryTextDescriptor().withDisplay(false);
+                textDescriptors[i*2 + 1] = t.getFactoryTextDescriptor();
+            }
             return;
         }
 
         Preferences prefRoot = getPrefRoot();
         Preferences techPrefs = prefRoot.node(TECH_NODE);
         Preferences userPrefs = prefRoot.node(USER_NODE);
+        Preferences textDescriptorPrefs = prefRoot.node(TEXT_DESCRIPTOR_NODE);
+
         for (Technology tech: techPool.values()) {
             for (Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); ) {
                 PrimitiveNode pn = it.next();
@@ -189,6 +209,27 @@ public class EditingPreferences extends PrefPackage {
             alignments = DEFAULT_ALIGNMENTS;
             alignmentIndex = DEFAULT_ALIGNMENT_INDEX;
         }
+
+        for (int i = 0; i < textTypes.length; i++) {
+            TextDescriptor.TextType t = textTypes[i];
+            TextDescriptor factoryTd = t.getFactoryTextDescriptor();
+
+            long factoryBits = swap(factoryTd.lowLevelGet());
+            long bits = textDescriptorPrefs.getLong(t.getKey(KEY_TEXT_DESCRIPTOR), factoryBits);
+            int color = textDescriptorPrefs.getInt(t.getKey(KEY_TEXT_DESCRIPTOR_COLOR), 0);
+            String fontName = textDescriptorPrefs.get(t.getKey(KEY_TEXT_DESCRIPTOR_FONT), "");
+            MutableTextDescriptor mtd = new MutableTextDescriptor(swap(bits), color, true);
+            int face = 0;
+            if (fontName.length() > 0) {
+                TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontName);
+                if (af != null)
+                    face = af.getIndex();
+            }
+            mtd.setFace(face);
+            textDescriptors[i*2 + 1] = TextDescriptor.newTextDescriptor(mtd);
+            mtd.setDisplay(false);
+            textDescriptors[i*2 + 0] = TextDescriptor.newTextDescriptor(mtd);
+        }
     }
 
     @Override
@@ -204,6 +245,7 @@ public class EditingPreferences extends PrefPackage {
 
         Preferences techPrefs = prefRoot.node(TECH_NODE);
         Preferences userPrefs = prefRoot.node(USER_NODE);
+        Preferences textDescriptorPrefs = prefRoot.node(TEXT_DESCRIPTOR_NODE);
         for (Technology tech: techPool.values()) {
             for (Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); ) {
                 PrimitiveNode pn = it.next();
@@ -303,6 +345,42 @@ public class EditingPreferences extends PrefPackage {
                 userPrefs.remove(KEY_ALIGNMENT);
             else
                 userPrefs.put(KEY_ALIGNMENT, transformArrayIntoString(alignments, alignmentIndex));
+        }
+        if (oldEp == null || textDescriptors != oldEp.textDescriptors) {
+            TextDescriptor.TextType[] textTypes = TextDescriptor.TextType.class.getEnumConstants();
+            for (int i = 0; i < textTypes.length; i++) {
+                TextDescriptor.TextType t = textTypes[i];
+                TextDescriptor td = textDescriptors[i*2 + 1];
+
+                String keyTextDescriptor = t.getKey(KEY_TEXT_DESCRIPTOR);
+                String keyTextDescriptorColor = t.getKey(KEY_TEXT_DESCRIPTOR_COLOR);
+                String keyTextDescriptorFont = t.getKey(KEY_TEXT_DESCRIPTOR_FONT);
+
+                long factoryBits = t.getFactoryTextDescriptor().lowLevelGet();
+                long bits;
+                String fontName;
+                if (td.getFace() == 0) {
+                    bits = td.lowLevelGet();
+                    fontName = "";
+                } else {
+                    fontName = TextDescriptor.ActiveFont.findActiveFont(td.getFace()).getName();
+                    MutableTextDescriptor mtd = new MutableTextDescriptor(td);
+                    mtd.setFace(0);
+                    bits = mtd.lowLevelGet();
+                }
+                if (removeDefaults && bits == factoryBits)
+                    textDescriptorPrefs.remove(keyTextDescriptor);
+                else
+                    textDescriptorPrefs.putLong(keyTextDescriptor, swap(bits));
+                if (removeDefaults && td.getColorIndex() == 0)
+                    textDescriptorPrefs.remove(keyTextDescriptorColor);
+                else
+                    textDescriptorPrefs.putInt(keyTextDescriptorColor, td.getColorIndex());
+                if (removeDefaults && fontName.length() == 0)
+                    textDescriptorPrefs.remove(keyTextDescriptorFont);
+                else
+                    textDescriptorPrefs.put(keyTextDescriptorFont, fontName);
+            }
         }
     }
 
@@ -425,7 +503,8 @@ public class EditingPreferences extends PrefPackage {
                     this.defaultArcAngleIncrements.equals(that.defaultArcAngleIncrements) &&
                     this.defaultArcPins.equals(that.defaultArcPins) &&
                     Arrays.equals(this.alignments, that.alignments) &&
-                    this.alignmentIndex == that.alignmentIndex;
+                    this.alignmentIndex == that.alignmentIndex &&
+                    Arrays.equals(this.textDescriptors, that.textDescriptors);
         }
         return false;
     }
@@ -472,6 +551,29 @@ public class EditingPreferences extends PrefPackage {
     private EditingPreferences withAlignmentIndex(int alignmentIndex) {
         if (alignmentIndex == this.alignmentIndex) return this;
         return (EditingPreferences)withField("alignmentIndex", alignmentIndex);
+    }
+
+    public TextDescriptor getTextDescriptor(TextDescriptor.TextType textType, boolean display) {
+        return textDescriptors[textType.ordinal()*2 + (display ? 1 : 0)];
+    }
+
+    public EditingPreferences withTextDescriptor(TextDescriptor.TextType textType, TextDescriptor td) {
+        td = td.withDisplay(true);
+        if (td == textDescriptors[textType.ordinal()*2 + 1]) return this;
+        TextDescriptor[] newTextDescriptors = textDescriptors.clone();
+        newTextDescriptors[textType.ordinal()*2 + 1] = td;
+        newTextDescriptors[textType.ordinal()*2 + 0] = td.withDisplay(false);
+        return (EditingPreferences)withField("textDescriptors", newTextDescriptors);
+    }
+
+    public EditingPreferences withTextDescriptorsReset() {
+        EditingPreferences ep = this;
+        TextDescriptor.TextType[] textTypes = TextDescriptor.TextType.class.getEnumConstants();
+        for (int i = 0; i < textTypes.length; i++) {
+            TextDescriptor.TextType t = textTypes[i];
+            ep = ep.withTextDescriptor(t, t.getFactoryTextDescriptor());
+        }
+        return ep;
     }
 
  	private static Dimension2D[] correctAlignmentGridVector(Dimension2D [] retVal)
@@ -592,6 +694,11 @@ public class EditingPreferences extends PrefPackage {
         @Override public double getHeight() { return height; }
         @Override public void setSize(java.awt.geom.Dimension2D d) { throw new UnsupportedOperationException(); }
         @Override public void setSize(double width, double height) { throw new UnsupportedOperationException(); }
+    }
+
+    private static long swap(long value) {
+        int v0 = (int)value;
+        return (value >>> 32) | ((long)v0 << 32);
     }
 
     @Override

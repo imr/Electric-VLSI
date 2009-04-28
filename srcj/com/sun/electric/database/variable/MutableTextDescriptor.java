@@ -139,7 +139,7 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 */
 	public static MutableTextDescriptor getNodeTextDescriptor()
 	{
-		return cacheNodeDescriptor.newMutableTextDescriptor();
+		return new MutableTextDescriptor(TextDescriptor.getNodeTextDescriptor());
 	}
 
 	/**
@@ -148,7 +148,7 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 */
 	public static MutableTextDescriptor getArcTextDescriptor()
 	{
-		return cacheArcDescriptor.newMutableTextDescriptor();
+		return new MutableTextDescriptor(TextDescriptor.getArcTextDescriptor());
 	}
 
 	/**
@@ -157,7 +157,7 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 */
 	public static MutableTextDescriptor getExportTextDescriptor()
 	{
-		return cacheExportDescriptor.newMutableTextDescriptor();
+		return new MutableTextDescriptor(TextDescriptor.getExportTextDescriptor());
 	}
 
 	/**
@@ -166,7 +166,7 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 */
 	public static MutableTextDescriptor getAnnotationTextDescriptor()
 	{
-		return cacheAnnotationDescriptor.newMutableTextDescriptor();
+		return new MutableTextDescriptor(TextDescriptor.getAnnotationTextDescriptor());
 	}
 
 	/**
@@ -175,7 +175,7 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 */
 	public static MutableTextDescriptor getInstanceTextDescriptor()
 	{
-		return cacheInstanceDescriptor.newMutableTextDescriptor();
+		return new MutableTextDescriptor(TextDescriptor.getInstanceTextDescriptor());
 	}
 
 	/**
@@ -184,7 +184,7 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 */
 	public static MutableTextDescriptor getCellTextDescriptor()
 	{
-		return cacheCellDescriptor.newMutableTextDescriptor();
+		return new MutableTextDescriptor(TextDescriptor.getCellTextDescriptor());
 	}
 
 	/**

@@ -25,7 +25,6 @@ package com.sun.electric.database.variable;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Font;
@@ -703,106 +702,6 @@ abstract class AbstractTextDescriptor implements Serializable
 		public String toString() { return fontName; }
 	}
 
-	/**
-	 * DescriptorPref is a factory for creating text descriptors for a definite purpose.
-	 */
-	static class DescriptorPref
-	{
-		final Pref cacheBits;
-		final Pref cacheColor;
-		final Pref cacheFont;
-        long oldBits;
-        int oldColor;
-        String oldFontName;
-        TextDescriptor tdF, tdT;
-
-		/**
-		 * Constructs DescriptorPref for a definite purpose.
-		 * @param purpose purpose of new text descriptor.
-		 * @param initialSize relative size for new text descriptor.
-		 */
-		DescriptorPref(String purpose, int initialSize)
-		{
-    		cacheBits = Pref.makeLongServerPref("TextDescriptorFor" + purpose, prefs, swap((((long)initialSize) << Size.TXTQGRIDSH) << VTSIZESH));
-			cacheColor = Pref.makeIntServerPref("TextDescriptorColorFor" + purpose, prefs, 0);
-			cacheFont = Pref.makeStringServerPref("TextDescriptorFontFor" + purpose, prefs, "");
-		}
-
-		/**
-		 * Method to restore this DescriptorPref to its factory values.
-		 */
-		public void factoryReset()
-		{
-			if (cacheBits.getLongFactoryValue() != cacheBits.getLong())
-				cacheBits.setLong(cacheBits.getLongFactoryValue());
-			if (cacheColor.getIntFactoryValue() != cacheColor.getInt())
-				cacheColor.setInt(cacheColor.getIntFactoryValue());
-			if (!cacheFont.getStringFactoryValue().equals(cacheFont.getString()))
-				cacheFont.setString(cacheFont.getStringFactoryValue());
-		}
-
-		private long swap(long value)
-        {
-            int v0 = (int)value;
-            return (value >>> 32) | ((long)v0 << 32);
-        }
-
-		/**
-		 * Creates new TextDescriptor for this purpose.
-		 * @return new TextDescripor.
-		 */
-		synchronized TextDescriptor newTextDescriptor(boolean display)
-		{
-            long bits = swap(cacheBits.getLong());
-            int color = cacheColor.getInt();
-            String fontName = cacheFont.getString();
-            if (oldFontName != null && bits == oldBits && color == oldColor && fontName.equals(oldFontName))
-                return display ? tdT : tdF;
-
-            oldBits = bits;
-            oldColor = color;
-            oldFontName = fontName;
-
-            int face = 0;
-            if (fontName.length() > 0)
-            {
-                ActiveFont af = ActiveFont.findActiveFont(fontName);
-                if (af != null)
-                    face = af.getIndex();
-            }
-            bits = (bits & ~VTFACE) | (face << VTFACESH);
-            bits = bits & ~(VTISPARAMETER|VTINHERIT);
-            tdF = TextDescriptor.newTextDescriptor(new MutableTextDescriptor(bits, color, false));
-            tdT = TextDescriptor.newTextDescriptor(new MutableTextDescriptor(bits, color, true));
-			return display ? tdT : tdF;
-		}
-
-		/**
-		 * Creates new displayable MutableTextDescriptor for this purpose.
-		 * @return new MutableTextDescripor.
-		 */
-		MutableTextDescriptor newMutableTextDescriptor()
-		{
-			return new MutableTextDescriptor(newTextDescriptor(true));
-		}
-
-		/**
-		 * Changed default TextDescriptor for this purpose.
-		 * @param td default TextDescriptor
-		 */
-		synchronized void setTextDescriptor(AbstractTextDescriptor td)
-		{
-			MutableTextDescriptor mtd = new MutableTextDescriptor(td);
-			mtd.setFace(0);
-			cacheBits.setLong(swap(mtd.lowLevelGet()));
-			cacheColor.setInt(mtd.getColorIndex());
-			ActiveFont af = ActiveFont.findActiveFont(td.getFace());
-			cacheFont.setString(af != null ? af.getName() : "");
-		}
-	}
-
-	/** preferences for all descriptors */	private static final Pref.Group prefs = Pref.groupForPackage(AbstractTextDescriptor.class);
-
     AbstractTextDescriptor() {}
 
     public enum TextType {
@@ -845,99 +744,19 @@ abstract class AbstractTextDescriptor implements Serializable
         CELL("Cell", 4);
 
         private final String purpose;
-        private final int initialSize;
+        private final TextDescriptor factoryTextDescriptor;
 
-        public String getKeyVisibility() { return "TextVisibility" + purpose; }
+        public String getKey(String prefix) { return prefix + purpose; }
+        public TextDescriptor getFactoryTextDescriptor() { return factoryTextDescriptor; }
 
         private TextType(String purpose, int initialSize) {
             this.purpose = purpose;
-            this.initialSize = initialSize;
+            MutableTextDescriptor mtd = new MutableTextDescriptor();
+            mtd.setRelSize(initialSize*0.25);
+            mtd.setDisplay(true);
+            factoryTextDescriptor = TextDescriptor.newTextDescriptor(mtd);
         }
     }
-
-	/**
-	 * Default TextDescriptor for NodeInsts is 1 unit tall.
-	 */
-	/*package*/ static final DescriptorPref cacheNodeDescriptor = new DescriptorPref("Node", 4);
-	/**
-	 * Method to set a TextDescriptor that is a default for Variables on NodeInsts.
-	 * @param td the default TextDescriptor for Variables on NodeInsts.
-	 */
-	public static void setNodeTextDescriptor(AbstractTextDescriptor td) { cacheNodeDescriptor.setTextDescriptor(td); }
-	/**
-	 * Method to factory reset the TextDescriptor for Variables on NodeInsts.
-	 */
-	public static void factoryResetNodeTextDescriptor() { cacheNodeDescriptor.factoryReset(); }
-
-	/**
-	 * Default TextDescriptor for ArcInsts is 1 unit tall.
-	 */
-	/*package*/ static final DescriptorPref cacheArcDescriptor = new DescriptorPref("Arc", 4);
-	/**
-	 * Method to set a TextDescriptor that is a default for Variables on ArcInsts.
-	 * @param td the default TextDescriptor for Variables on ArcInsts.
-	 */
-	public static void setArcTextDescriptor(AbstractTextDescriptor td) { cacheArcDescriptor.setTextDescriptor(td); }
-	/**
-	 * Method to factory reset the TextDescriptor for Variables on ArcInsts.
-	 */
-	public static void factoryResetArcTextDescriptor() { cacheArcDescriptor.factoryReset(); }
-
-	/**
-	 * Default TextDescriptor for Exports and Ports is 2 units tall.
-	 */
-	/*package*/ static final DescriptorPref cacheExportDescriptor = new DescriptorPref("Export", 8);
-	/**
-	 * Method to set a TextDescriptor that is a default for Variables on Exports.
-	 * @param td the default TextDescriptor for Variables on Exports.
-	 */
-	public static void setExportTextDescriptor(AbstractTextDescriptor td) { cacheExportDescriptor.setTextDescriptor(td); }
-	/**
-	 * Method to factory reset the TextDescriptor for Variables on Exports.
-	 */
-	public static void factoryResetExportTextDescriptor() { cacheExportDescriptor.factoryReset(); }
-
-	/**
-	 * Default TextDescriptor for Annotations is 1 unit tall.
-	 */
-	/*package*/ static final DescriptorPref cacheAnnotationDescriptor = new DescriptorPref("Annotation", 4);
-	/**
-	 * Method to set a TextDescriptor that is a default for Variables on Annotations.
-	 * @param td the default TextDescriptor for Variables on Annotations.
-	 */
-	public static void setAnnotationTextDescriptor(AbstractTextDescriptor td) { cacheAnnotationDescriptor.setTextDescriptor(td); }
-	/**
-	 * Method to factory reset the TextDescriptor for Variables on Annotations.
-	 */
-	public static void factoryResetAnnotationTextDescriptor() { cacheAnnotationDescriptor.factoryReset(); }
-
-	/**
-	 * Default TextDescriptor for Cell Instance Names is 4 units tall.
-	 */
-	/*package*/ static final DescriptorPref cacheInstanceDescriptor = new DescriptorPref("Instance", 16);
-	/**
-	 * Method to set a TextDescriptor that is a default for Variables on Cell Instance Names.
-	 * @param td the default TextDescriptor for Variables on Cell Instance Names.
-	 */
-	public static void setInstanceTextDescriptor(AbstractTextDescriptor td) { cacheInstanceDescriptor.setTextDescriptor(td); }
-	/**
-	 * Method to factory reset the TextDescriptor for Variables on Cell Instance Names.
-	 */
-	public static void factoryResetInstanceTextDescriptor() { cacheInstanceDescriptor.factoryReset(); }
-
-	/**
-	 * Default TextDescriptor for Cell Variables is 1 unit tall.
-	 */
-	/*package*/ static final DescriptorPref cacheCellDescriptor = new DescriptorPref("Cell", 4);
-	/**
-	 * Method to set a TextDescriptor that is a default for Variables on Cells.
-	 * @param td the default TextDescriptor for Variables on Cells.
-	 */
-	public static void setCellTextDescriptor(AbstractTextDescriptor td) { cacheCellDescriptor.setTextDescriptor(td); }
-	/**
-	 * Method to factory reset the TextDescriptor for Variables on Cells.
-	 */
-	public static void factoryResetCellTextDescriptor() { cacheCellDescriptor.factoryReset(); }
 
     /**
      * Returns a hash code for this <code>TextDescriptor</code>.

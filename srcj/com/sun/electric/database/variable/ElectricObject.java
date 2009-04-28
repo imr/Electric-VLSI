@@ -657,12 +657,14 @@ public abstract class ElectricObject implements Serializable
 	 * @return the Variable that has been created.
 	 */
 	public Variable newVar(Variable.Key key, Object value, boolean display) {
-		TextDescriptor td = null;
-		if (this instanceof Cell) td = TextDescriptor.cacheCellDescriptor.newTextDescriptor(display);
-		else if (this instanceof Export) td = TextDescriptor.cacheExportDescriptor.newTextDescriptor(display);
-		else if (this instanceof NodeInst) td = TextDescriptor.cacheNodeDescriptor.newTextDescriptor(display);
-		else if (this instanceof ArcInst) td = TextDescriptor.cacheArcDescriptor.newTextDescriptor(display);
-		else td = TextDescriptor.cacheAnnotationDescriptor.newTextDescriptor(display);
+		TextDescriptor.TextType textType;
+
+		if (this instanceof Cell) textType = TextDescriptor.TextType.CELL;
+		else if (this instanceof Export) textType = TextDescriptor.TextType.EXPORT;
+		else if (this instanceof NodeInst) textType = TextDescriptor.TextType.NODE;
+		else if (this instanceof ArcInst) textType = TextDescriptor.TextType.ARC;
+		else textType = TextDescriptor.TextType.ANNOTATION;
+        TextDescriptor td = EditingPreferences.getThreadEditingPreferences().getTextDescriptor(textType, display);
 		return newVar(key, value, td);
 	}
 

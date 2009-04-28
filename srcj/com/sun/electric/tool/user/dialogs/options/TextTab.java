@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -76,12 +77,12 @@ public class TextTab extends PreferencePanel
     @Override
 	public String getName() { return "Text"; }
 
-	private MutableTextDescriptor initialTextNodeDescriptor, currentTextNodeDescriptor;
-	private MutableTextDescriptor initialTextArcDescriptor, currentTextArcDescriptor;
-	private MutableTextDescriptor initialTextExportDescriptor, currentTextExportDescriptor;
-	private MutableTextDescriptor initialTextAnnotationDescriptor, currentTextAnnotationDescriptor;
-	private MutableTextDescriptor initialTextInstanceDescriptor, currentTextInstanceDescriptor;
-	private MutableTextDescriptor initialTextCellDescriptor, currentTextCellDescriptor;
+	private MutableTextDescriptor currentTextNodeDescriptor;
+	private MutableTextDescriptor currentTextArcDescriptor;
+	private MutableTextDescriptor currentTextExportDescriptor;
+	private MutableTextDescriptor currentTextAnnotationDescriptor;
+	private MutableTextDescriptor currentTextInstanceDescriptor;
+	private MutableTextDescriptor currentTextCellDescriptor;
 	private MutableTextDescriptor currentTextDescriptor;
 	private boolean textValuesChanging = false;
 
@@ -98,14 +99,6 @@ public class TextTab extends PreferencePanel
 			TextDescriptor.Position pos = it.next();
 			textAnchor.addItem(pos);
 		}
-
-		// get initial descriptors
-		initialTextNodeDescriptor = MutableTextDescriptor.getNodeTextDescriptor();
-		initialTextArcDescriptor = MutableTextDescriptor.getArcTextDescriptor();
-		initialTextExportDescriptor = MutableTextDescriptor.getExportTextDescriptor();
-		initialTextAnnotationDescriptor = MutableTextDescriptor.getAnnotationTextDescriptor();
-		initialTextInstanceDescriptor = MutableTextDescriptor.getInstanceTextDescriptor();
-		initialTextCellDescriptor = MutableTextDescriptor.getCellTextDescriptor();
 
 		// get current descriptors (gets changed by dialog)
 		currentTextNodeDescriptor = MutableTextDescriptor.getNodeTextDescriptor();
@@ -343,18 +336,14 @@ public class TextTab extends PreferencePanel
 		if (!externalEditor.equals(User.getDefaultTextExternalEditor()))
 			User.setDefaultTextExternalEditor(externalEditor);
 
-		if (!currentTextNodeDescriptor.equals(initialTextNodeDescriptor))
-			TextDescriptor.setNodeTextDescriptor(currentTextNodeDescriptor);
-		if (!currentTextArcDescriptor.equals(initialTextArcDescriptor))
-			TextDescriptor.setArcTextDescriptor(currentTextArcDescriptor);
-		if (!currentTextExportDescriptor.equals(initialTextExportDescriptor))
-			TextDescriptor.setExportTextDescriptor(currentTextExportDescriptor);
-		if (!currentTextAnnotationDescriptor.equals(initialTextAnnotationDescriptor))
-			TextDescriptor.setAnnotationTextDescriptor(currentTextAnnotationDescriptor);
-		if (!currentTextInstanceDescriptor.equals(initialTextInstanceDescriptor))
-			TextDescriptor.setInstanceTextDescriptor(currentTextInstanceDescriptor);
-		if (!currentTextCellDescriptor.equals(initialTextCellDescriptor))
-			TextDescriptor.setCellTextDescriptor(currentTextCellDescriptor);
+        EditingPreferences ep = getEditingPreferences();
+        ep = ep.withTextDescriptor(TextDescriptor.TextType.NODE, TextDescriptor.newTextDescriptor(currentTextNodeDescriptor));
+        ep = ep.withTextDescriptor(TextDescriptor.TextType.ARC, TextDescriptor.newTextDescriptor(currentTextArcDescriptor));
+        ep = ep.withTextDescriptor(TextDescriptor.TextType.EXPORT, TextDescriptor.newTextDescriptor(currentTextExportDescriptor));
+        ep = ep.withTextDescriptor(TextDescriptor.TextType.ANNOTATION, TextDescriptor.newTextDescriptor(currentTextAnnotationDescriptor));
+        ep = ep.withTextDescriptor(TextDescriptor.TextType.INSTANCE, TextDescriptor.newTextDescriptor(currentTextInstanceDescriptor));
+        ep = ep.withTextDescriptor(TextDescriptor.TextType.CELL, TextDescriptor.newTextDescriptor(currentTextCellDescriptor));
+        setEditingPreferences(ep);
 
 		double currentGlobalScale = TextUtils.atof(textGlobalScale.getText()) / 100;
 		if (currentGlobalScale != User.getGlobalTextScale())
@@ -396,12 +385,8 @@ public class TextTab extends PreferencePanel
     @Override
 	public void reset()
 	{
-		TextDescriptor.factoryResetNodeTextDescriptor();
-		TextDescriptor.factoryResetArcTextDescriptor();
-		TextDescriptor.factoryResetExportTextDescriptor();
-		TextDescriptor.factoryResetAnnotationTextDescriptor();
-		TextDescriptor.factoryResetInstanceTextDescriptor();
-		TextDescriptor.factoryResetCellTextDescriptor();
+        setEditingPreferences(getEditingPreferences().withTextDescriptorsReset());
+
 		if (!User.getFactoryDefaultTextCellFont().equals(User.getDefaultTextCellFont()))
 			User.setDefaultTextCellFont(User.getFactoryDefaultTextCellFont());
 		if (User.getFactoryDefaultTextCellSize() != User.getDefaultTextCellSize())
