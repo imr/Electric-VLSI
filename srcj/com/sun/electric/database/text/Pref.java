@@ -215,7 +215,7 @@ public class Pref {
             throw new IllegalStateException("Pref "+group.relativePath()+"/"+name+" is created from improper place");
         this.name = name;
         this.group = group;
-        this.serverAccessible = serverAccessible;
+        this.serverAccessible = /*serverAccessible*/false;
         this.factoryObj = factoryObj;
         synchronized (group.prefs) {
             assert !group.prefs.containsKey(name);
