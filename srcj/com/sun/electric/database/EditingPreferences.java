@@ -536,7 +536,7 @@ public class EditingPreferences extends PrefPackage {
     public EditingPreferences withAlignment(Dimension2D[] dist, int current) {
         dist = correctAlignmentGridVector(dist.clone());
         current = Math.max(0, Math.min(dist.length - 1, current));
-        return withAlignments(dist).withAlignmentIndex(alignmentIndex);
+        return withAlignments(dist).withAlignmentIndex(current);
     }
 
     public EditingPreferences withAlignmentReset() {
