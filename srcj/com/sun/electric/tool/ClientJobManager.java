@@ -224,6 +224,8 @@ class ClientJobManager extends JobManager {
             showJobQueue();
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
+                    ejob.state = EJob.State.RUNNING;
+                    showJobQueue();
                     ejob.changedFields = new ArrayList<Field>();
                     try {
                         if (!ejob.clientJob.doIt())
@@ -234,6 +236,13 @@ class ClientJobManager extends JobManager {
                         e.printStackTrace();
                         ejob.serializeExceptionResult(e, EDatabase.clientDatabase());
                     }
+                    lock();
+                    try {
+                        clientJobs.remove(ejob);
+                    } finally {
+                        unlock();
+                    }
+                    showJobQueue();
                     Job.currentUI.addEvent(new Client.EJobEvent(ejob, EJob.State.SERVER_DONE));
                 }
             });
@@ -307,7 +316,10 @@ class ClientJobManager extends JobManager {
         } finally {
             unlock();
         }
-        Job.currentUI.addEvent(new Client.JobQueueEvent(clientSnapshot, jobQueue));
+        if (SwingUtilities.isEventDispatchThread())
+            Job.currentUI.showJobQueue(jobQueue);
+        else
+            Job.currentUI.addEvent(new Client.JobQueueEvent(clientSnapshot, jobQueue));
     }
 
     private boolean isChangeJobQueuedOrRunning() { // synchronization !!!
