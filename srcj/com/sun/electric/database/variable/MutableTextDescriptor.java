@@ -161,6 +161,15 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	}
 
 	/**
+	 * Method to return a displayable TextDescriptor that is a default for Variables on Port instances.
+	 * @return a new TextDescriptor that can be stored in a Variable on a Port instances.
+	 */
+	public static MutableTextDescriptor getPortTextDescriptor()
+	{
+		return new MutableTextDescriptor(TextDescriptor.getPortInstTextDescriptor());
+	}
+
+	/**
 	 * Method to return a displayable TextDescriptor that is a default for Variables on Annotations.
 	 * @return a new TextDescriptor that can be stored in a Variable on a Annotations.
 	 */

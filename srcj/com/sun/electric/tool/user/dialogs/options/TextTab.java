@@ -62,23 +62,24 @@ public class TextTab extends PreferencePanel
 		initComponents();
 
 		// make all text fields select-all when entered
-	    EDialog.makeTextFieldSelectAllOnTab(textPointSize);
-	    EDialog.makeTextFieldSelectAllOnTab(textUnitSize);
-	    EDialog.makeTextFieldSelectAllOnTab(textCellSize);
-	    EDialog.makeTextFieldSelectAllOnTab(textGlobalScale);
-	    EDialog.makeTextFieldSelectAllOnTab(textWindowScale);
+		EDialog.makeTextFieldSelectAllOnTab(textPointSize);
+		EDialog.makeTextFieldSelectAllOnTab(textUnitSize);
+		EDialog.makeTextFieldSelectAllOnTab(textCellSize);
+		EDialog.makeTextFieldSelectAllOnTab(textGlobalScale);
+		EDialog.makeTextFieldSelectAllOnTab(textWindowScale);
 	}
 
 	/** return the panel to use for this preferences tab. */
-    @Override
+	@Override
 	public JPanel getPreferencesPanel() { return text; }
 
 	/** return the name of this preferences tab. */
-    @Override
+	@Override
 	public String getName() { return "Text"; }
 
 	private MutableTextDescriptor currentTextNodeDescriptor;
 	private MutableTextDescriptor currentTextArcDescriptor;
+	private MutableTextDescriptor currentTextPortDescriptor;
 	private MutableTextDescriptor currentTextExportDescriptor;
 	private MutableTextDescriptor currentTextAnnotationDescriptor;
 	private MutableTextDescriptor currentTextInstanceDescriptor;
@@ -90,10 +91,10 @@ public class TextTab extends PreferencePanel
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Text tab.
 	 */
-    @Override
+	@Override
 	public void init()
 	{
-        GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
+		GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
 		for (Iterator<TextDescriptor.Position> it = TextDescriptor.Position.getPositions(); it.hasNext(); )
 		{
 			TextDescriptor.Position pos = it.next();
@@ -103,6 +104,7 @@ public class TextTab extends PreferencePanel
 		// get current descriptors (gets changed by dialog)
 		currentTextNodeDescriptor = MutableTextDescriptor.getNodeTextDescriptor();
 		currentTextArcDescriptor = MutableTextDescriptor.getArcTextDescriptor();
+		currentTextPortDescriptor = MutableTextDescriptor.getPortTextDescriptor();
 		currentTextExportDescriptor = MutableTextDescriptor.getExportTextDescriptor();
 		currentTextAnnotationDescriptor = MutableTextDescriptor.getAnnotationTextDescriptor();
 		currentTextInstanceDescriptor = MutableTextDescriptor.getInstanceTextDescriptor();
@@ -137,6 +139,10 @@ public class TextTab extends PreferencePanel
 			public void actionPerformed(ActionEvent evt) { textButtonChanged(); }
 		});
 		textArcs.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { textButtonChanged(); }
+		});
+		textExports.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { textButtonChanged(); }
 		});
@@ -220,20 +226,20 @@ public class TextTab extends PreferencePanel
 			currentTextDescriptor.setRelSize(size);
 		}
 
-	    currentTextDescriptor.setItalic(textItalic.isSelected());
-        currentTextDescriptor.setBold(textBold.isSelected());
-        currentTextDescriptor.setUnderline(textUnderline.isSelected());
+		currentTextDescriptor.setItalic(textItalic.isSelected());
+		currentTextDescriptor.setBold(textBold.isSelected());
+		currentTextDescriptor.setUnderline(textUnderline.isSelected());
 
 		currentTextDescriptor.setPos((TextDescriptor.Position)textAnchor.getSelectedItem());
 
-        currentTextDescriptor.setInterior(textNewVisibleInsideCell.isSelected());
+		currentTextDescriptor.setInterior(textNewVisibleInsideCell.isSelected());
 
 		int face = 0;
 		if (textFace.getSelectedIndex() != 0)
 		{
 			TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont((String)textFace.getSelectedItem());
-            if (af != null)
-                face = af.getIndex();
+			if (af != null)
+				face = af.getIndex();
 		}
 		currentTextDescriptor.setFace(face);
 	}
@@ -247,6 +253,9 @@ public class TextTab extends PreferencePanel
 		} else if (textArcs.isSelected())
 		{
 			currentTextDescriptor = currentTextArcDescriptor;
+		} else if (textExports.isSelected())
+		{
+			currentTextDescriptor = currentTextPortDescriptor;
 		} else if (textPorts.isSelected())
 		{
 			currentTextDescriptor = currentTextExportDescriptor;
@@ -303,17 +312,17 @@ public class TextTab extends PreferencePanel
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Text tab.
 	 */
-    @Override
+	@Override
 	public void term()
 	{
 		boolean editCellsChanged = false;
 		boolean textCellsChanged = false;
 
-        GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
+		GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
 		String currentFontName = (String)textDefaultFont.getSelectedItem();
 		if (!currentFontName.equalsIgnoreCase(gp.defaultFont))
 		{
-            UserInterfaceMain.setGraphicsPreferences(gp.withDefaultFont(currentFontName));
+			UserInterfaceMain.setGraphicsPreferences(gp.withDefaultFont(currentFontName));
 			editCellsChanged = true;
 		}
 
@@ -336,14 +345,15 @@ public class TextTab extends PreferencePanel
 		if (!externalEditor.equals(User.getDefaultTextExternalEditor()))
 			User.setDefaultTextExternalEditor(externalEditor);
 
-        EditingPreferences ep = getEditingPreferences();
-        ep = ep.withTextDescriptor(TextDescriptor.TextType.NODE, TextDescriptor.newTextDescriptor(currentTextNodeDescriptor));
-        ep = ep.withTextDescriptor(TextDescriptor.TextType.ARC, TextDescriptor.newTextDescriptor(currentTextArcDescriptor));
-        ep = ep.withTextDescriptor(TextDescriptor.TextType.EXPORT, TextDescriptor.newTextDescriptor(currentTextExportDescriptor));
-        ep = ep.withTextDescriptor(TextDescriptor.TextType.ANNOTATION, TextDescriptor.newTextDescriptor(currentTextAnnotationDescriptor));
-        ep = ep.withTextDescriptor(TextDescriptor.TextType.INSTANCE, TextDescriptor.newTextDescriptor(currentTextInstanceDescriptor));
-        ep = ep.withTextDescriptor(TextDescriptor.TextType.CELL, TextDescriptor.newTextDescriptor(currentTextCellDescriptor));
-        setEditingPreferences(ep);
+		EditingPreferences ep = getEditingPreferences();
+		ep = ep.withTextDescriptor(TextDescriptor.TextType.NODE, TextDescriptor.newTextDescriptor(currentTextNodeDescriptor));
+		ep = ep.withTextDescriptor(TextDescriptor.TextType.ARC, TextDescriptor.newTextDescriptor(currentTextArcDescriptor));
+		ep = ep.withTextDescriptor(TextDescriptor.TextType.EXPORT, TextDescriptor.newTextDescriptor(currentTextExportDescriptor));
+		ep = ep.withTextDescriptor(TextDescriptor.TextType.PORT, TextDescriptor.newTextDescriptor(currentTextPortDescriptor));
+		ep = ep.withTextDescriptor(TextDescriptor.TextType.ANNOTATION, TextDescriptor.newTextDescriptor(currentTextAnnotationDescriptor));
+		ep = ep.withTextDescriptor(TextDescriptor.TextType.INSTANCE, TextDescriptor.newTextDescriptor(currentTextInstanceDescriptor));
+		ep = ep.withTextDescriptor(TextDescriptor.TextType.CELL, TextDescriptor.newTextDescriptor(currentTextCellDescriptor));
+		setEditingPreferences(ep);
 
 		double currentGlobalScale = TextUtils.atof(textGlobalScale.getText()) / 100;
 		if (currentGlobalScale != User.getGlobalTextScale())
@@ -382,10 +392,10 @@ public class TextTab extends PreferencePanel
 	/**
 	 * Method called when the factory reset is requested.
 	 */
-    @Override
+	@Override
 	public void reset()
 	{
-        setEditingPreferences(getEditingPreferences().withTextDescriptorsReset());
+		setEditingPreferences(getEditingPreferences().withTextDescriptorsReset());
 
 		if (!User.getFactoryDefaultTextCellFont().equals(User.getDefaultTextCellFont()))
 			User.setDefaultTextCellFont(User.getFactoryDefaultTextCellFont());
@@ -393,8 +403,8 @@ public class TextTab extends PreferencePanel
 			User.setDefaultTextCellSize(User.getFactoryDefaultTextCellSize());
 		if (!User.getFactoryDefaultTextExternalEditor().equals(User.getDefaultTextExternalEditor()))
 			User.setDefaultTextExternalEditor(User.getFactoryDefaultTextExternalEditor());
-        GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
-        UserInterfaceMain.setGraphicsPreferences(gp.withDefaultFont(gp.FACTORY_DEFAULT_FONT));
+		GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
+		UserInterfaceMain.setGraphicsPreferences(gp.withDefaultFont(GraphicsPreferences.FACTORY_DEFAULT_FONT));
 		if (User.getFactoryGlobalTextScale() != User.getGlobalTextScale())
 			User.setGlobalTextScale(User.getFactoryGlobalTextScale());
 	}
@@ -413,12 +423,6 @@ public class TextTab extends PreferencePanel
         text = new javax.swing.JPanel();
         top = new javax.swing.JPanel();
         jLabel41 = new javax.swing.JLabel();
-        textNodes = new javax.swing.JRadioButton();
-        textArcs = new javax.swing.JRadioButton();
-        textPorts = new javax.swing.JRadioButton();
-        textAnnotation = new javax.swing.JRadioButton();
-        textInstances = new javax.swing.JRadioButton();
-        textCellText = new javax.swing.JRadioButton();
         jLabel42 = new javax.swing.JLabel();
         textPointSize = new javax.swing.JTextField();
         textUnitSize = new javax.swing.JTextField();
@@ -433,6 +437,15 @@ public class TextTab extends PreferencePanel
         jLabel6 = new javax.swing.JLabel();
         textAnchor = new javax.swing.JComboBox();
         textNewVisibleInsideCell = new javax.swing.JCheckBox();
+        jPanel1 = new javax.swing.JPanel();
+        textNodes = new javax.swing.JRadioButton();
+        textArcs = new javax.swing.JRadioButton();
+        textPorts = new javax.swing.JRadioButton();
+        textExports = new javax.swing.JRadioButton();
+        jPanel2 = new javax.swing.JPanel();
+        textAnnotation = new javax.swing.JRadioButton();
+        textInstances = new javax.swing.JRadioButton();
+        textCellText = new javax.swing.JRadioButton();
         globals = new javax.swing.JPanel();
         jLabel44 = new javax.swing.JLabel();
         textDefaultFont = new javax.swing.JComboBox();
@@ -475,60 +488,6 @@ public class TextTab extends PreferencePanel
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         top.add(jLabel41, gridBagConstraints);
-
-        textTypeGroup.add(textNodes);
-        textNodes.setText("Node text");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        top.add(textNodes, gridBagConstraints);
-
-        textTypeGroup.add(textArcs);
-        textArcs.setText("Arc text");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        top.add(textArcs, gridBagConstraints);
-
-        textTypeGroup.add(textPorts);
-        textPorts.setText("Exports/Ports");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        top.add(textPorts, gridBagConstraints);
-
-        textTypeGroup.add(textAnnotation);
-        textAnnotation.setText("Annotation text");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        top.add(textAnnotation, gridBagConstraints);
-
-        textTypeGroup.add(textInstances);
-        textInstances.setText("Instance names");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        top.add(textInstances, gridBagConstraints);
-
-        textTypeGroup.add(textCellText);
-        textCellText.setText("Cell text");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        top.add(textCellText, gridBagConstraints);
 
         jLabel42.setText("Size:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -619,7 +578,7 @@ public class TextTab extends PreferencePanel
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 30, 4, 30);
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 20);
         top.add(jSeparator3, gridBagConstraints);
 
         jLabel6.setText("Anchor:");
@@ -645,6 +604,87 @@ public class TextTab extends PreferencePanel
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         top.add(textNewVisibleInsideCell, gridBagConstraints);
+
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        textTypeGroup.add(textNodes);
+        textNodes.setText("Node text");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        jPanel1.add(textNodes, gridBagConstraints);
+
+        textTypeGroup.add(textArcs);
+        textArcs.setText("Arc text");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        jPanel1.add(textArcs, gridBagConstraints);
+
+        textTypeGroup.add(textPorts);
+        textPorts.setText("Port text");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        jPanel1.add(textPorts, gridBagConstraints);
+
+        textTypeGroup.add(textExports);
+        textExports.setText("Export text");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        jPanel1.add(textExports, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        top.add(jPanel1, gridBagConstraints);
+
+        jPanel2.setLayout(new java.awt.GridBagLayout());
+
+        textTypeGroup.add(textAnnotation);
+        textAnnotation.setText("Annotation text");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        jPanel2.add(textAnnotation, gridBagConstraints);
+
+        textTypeGroup.add(textInstances);
+        textInstances.setText("Instance names");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        jPanel2.add(textInstances, gridBagConstraints);
+
+        textTypeGroup.add(textCellText);
+        textCellText.setText("Cell text");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        jPanel2.add(textCellText, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        top.add(jPanel2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -834,7 +874,7 @@ public class TextTab extends PreferencePanel
 
     private void textSetExternalEditorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textSetExternalEditorActionPerformed
 		String fileName = OpenFile.chooseInputFile(FileType.ANY, "External editor",
-            false, User.getWorkingDirectory(), false);
+			false, User.getWorkingDirectory(), false);
 		if (fileName == null) return;
 		textExternalEditor.setText(EXTERNALEDITOR_HEADER + fileName);
     }//GEN-LAST:event_textSetExternalEditorActionPerformed
@@ -861,6 +901,8 @@ public class TextTab extends PreferencePanel
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JPanel text;
     private javax.swing.JComboBox textAnchor;
@@ -873,6 +915,7 @@ public class TextTab extends PreferencePanel
     private javax.swing.JPanel textCells;
     private javax.swing.JButton textClearExternalEditor;
     private javax.swing.JComboBox textDefaultFont;
+    private javax.swing.JRadioButton textExports;
     private javax.swing.JLabel textExternalEditor;
     private javax.swing.JComboBox textFace;
     private javax.swing.JTextField textGlobalScale;
