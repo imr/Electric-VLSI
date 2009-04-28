@@ -203,7 +203,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * Returns the Layer from the Technology to be used for this ArcLayer.
 		 * @return the Layer from the Technology to be used for this ArcLayer.
 		 */
-		Layer getLayer() { return layer; }
+		public Layer getLayer() { return layer; }
 
 		/**
 		 * Returns the distance from the center of the standard ArcInst to the outsize of this ArcLayer in grid units.
@@ -211,13 +211,13 @@ public class Technology implements Comparable<Technology>, Serializable
          * ai.getD().getExtendOverMin() + arcLayer.getGridExtend()
 		 * @return the distance from the outside of the ArcInst to this ArcLayer in grid units.
 		 */
-		int getGridExtend() { return gridExtend; }
+		public int getGridExtend() { return gridExtend; }
 
 		/**
 		 * Returns the Poly.Style of this ArcLayer.
 		 * @return the Poly.Style of this ArcLayer.
 		 */
-		Poly.Type getStyle() { return style; }
+		public Poly.Type getStyle() { return style; }
 
         void copyState(ArcLayer that) {
             gridExtend = that.gridExtend;
@@ -1442,7 +1442,7 @@ public class Technology implements Comparable<Technology>, Serializable
         int numMetals = getNumMetals();
         for (PrimitiveNode pn: nodes.values()) {
             boolean isUsed = true;
-            for (NodeLayer nl: pn.getLayers())
+            for (NodeLayer nl: pn.getNodeLayers())
                 isUsed = isUsed && nl.getLayer().getFunction().isUsed(numMetals, numPolys);
             pn.setNotUsed(!isUsed);
         }
@@ -2761,7 +2761,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		if (ni.isCellInstance()) return null;
 
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		NodeLayer [] primLayers = np.getLayers();
+		NodeLayer [] primLayers = np.getNodeLayers();
 		if (electrical)
 		{
 			NodeLayer [] eLayers = np.getElectricalLayers();
@@ -4090,7 +4090,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		if (np.getSpecialType() == PrimitiveNode.SERPTRANS)
 		{
 			// serpentine transistors use a more complex port determination
-			SerpentineTrans std = new SerpentineTrans(ni.getD(), np, np.getLayers());
+			SerpentineTrans std = new SerpentineTrans(ni.getD(), np, np.getNodeLayers());
 			if (std.hasValidData())
 				return std.fillTransPort(pp);
 		}
@@ -5243,7 +5243,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	        	{
 	        		// check validity of contact nodes
 	        		Set<ArcProto.Function> neededArcFunctions = new HashSet<ArcProto.Function>();
-	        		NodeLayer [] nodeLayers = np.getLayers();
+	        		NodeLayer [] nodeLayers = np.getNodeLayers();
 	        		for(int i=0; i<nodeLayers.length; i++)
 	        		{
 	        			Layer lay = nodeLayers[i].layer;
@@ -5491,7 +5491,7 @@ public class Technology implements Comparable<Technology>, Serializable
                     {
                         PrimitiveNode pn = (PrimitiveNode)np;
                         boolean found1 = false, found2 = false;
-                        for (NodeLayer l : pn.getLayers())
+                        for (NodeLayer l : pn.getNodeLayers())
                         {
                             if (l.getLayer() == l1)
                                 found1 = true;

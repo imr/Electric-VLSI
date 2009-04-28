@@ -1507,7 +1507,7 @@ public class GDS extends Input
 				if (localPrefs.mergeBoxes)
 				{
 					PrimitiveNode plnp = layerNodeProto;
-					NodeLayer [] layers = plnp.getLayers();
+					NodeLayer [] layers = plnp.getNodeLayers();
 					merge.addPolygon(layers[0].getLayer(), new Poly(ctr.getX(), ctr.getY(), sX, sY));
 				} else
 				{
@@ -1522,7 +1522,7 @@ public class GDS extends Input
 			if (layerNodeProto == null) return;
 			if (localPrefs.mergeBoxes)
 			{
-				NodeLayer [] layers = layerNodeProto.getLayers();
+				NodeLayer [] layers = layerNodeProto.getNodeLayers();
 				merge.addPolygon(layers[0].getLayer(), new Poly(theVertices)); // ??? npts
 			} else
 			{
@@ -1670,7 +1670,7 @@ public class GDS extends Input
 
 					if (localPrefs.mergeBoxes)
 					{
-						NodeLayer [] layers = layerNodeProto.getLayers();
+						NodeLayer [] layers = layerNodeProto.getNodeLayers();
 						merge.addPolygon(layers[0].getLayer(), poly);
 					} else
 					{

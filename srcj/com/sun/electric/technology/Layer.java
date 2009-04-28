@@ -1357,7 +1357,7 @@ public class Layer implements Serializable
                 assert l.pureLayerNode.oldName == null;
                 l.pureLayerNode.oldName = e.getKey();
             }
-            l.pureLayerNode.style = pureLayerNode.getLayers()[0].getStyle();
+            l.pureLayerNode.style = pureLayerNode.getNodeLayers()[0].getStyle();
             l.pureLayerNode.port = pureLayerNode.getPort(0).getName();
             l.pureLayerNode.size.addLambda(DBMath.gridToLambda(2*pureLayerNode.getFactoryDefaultGridExtendX()));
             for (ArcProto ap: pureLayerNode.getPort(0).getConnections()) {

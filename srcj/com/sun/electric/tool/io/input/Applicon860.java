@@ -601,7 +601,7 @@ public class Applicon860 extends Input
 			PrimitiveNode pn = it.next();
 			if (pn.getFunction() == PrimitiveNode.Function.NODE)
 			{
-				NodeLayer [] nls = pn.getLayers();
+				NodeLayer [] nls = pn.getNodeLayers();
 				for(int i=0; i<nls.length; i++)
 				{
 					NodeLayer nl = nls[i];

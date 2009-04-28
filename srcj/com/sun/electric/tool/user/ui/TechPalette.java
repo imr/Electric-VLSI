@@ -681,7 +681,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 				{
 					if (np.isNotUsed()) continue;
 					if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
-					Technology.NodeLayer layer = np.getLayers()[0];
+					Technology.NodeLayer layer = np.getNodeLayers()[0];
 					Layer.Function lf = layer.getLayer().getFunction();
 					if (lf.isContact()) continue;
 					popupPures.add(np);
@@ -731,8 +731,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 			 */
 			public int compare(NodeProto np1, NodeProto np2)
 			{
-				Technology.NodeLayer layer1 = ((PrimitiveNode)np1).getLayers()[0];
-				Technology.NodeLayer layer2 = ((PrimitiveNode)np2).getLayers()[0];
+				Technology.NodeLayer layer1 = ((PrimitiveNode)np1).getNodeLayers()[0];
+				Technology.NodeLayer layer2 = ((PrimitiveNode)np2).getNodeLayers()[0];
 				int imp1 = getCode(layer1.getLayer());
 				int imp2 = getCode(layer2.getLayer());
 				if (imp1 == 3 && imp2 == 3)

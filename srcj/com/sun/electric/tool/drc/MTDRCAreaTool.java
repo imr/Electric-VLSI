@@ -207,7 +207,7 @@ public class MTDRCAreaTool extends MTDRCTool
             // determine list of PrimitiveNodes that have this particular layer
             for (PrimitiveNode node : topCell.getTechnology().getNodesCollection())
             {
-                for (Technology.NodeLayer nLayer : node.getLayers())
+                for (Technology.NodeLayer nLayer : node.getNodeLayers())
                 {
                     if (thisLayerFunction.contains(nLayer.getLayer().getFunction(), theLayer.getFunctionExtras()))
                     {

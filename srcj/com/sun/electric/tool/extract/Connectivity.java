@@ -282,7 +282,7 @@ public class Connectivity
 		{
 			PrimitiveNode np = pIt.next();
 			if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
-			Technology.NodeLayer [] nLays = np.getLayers();
+			Technology.NodeLayer [] nLays = np.getNodeLayers();
 			boolean validLayers = false;
 			for(int i=0; i<nLays.length; i++)
 			{
@@ -936,7 +936,7 @@ public class Connectivity
 			// examine it if so
 			if (copyType != null)
 			{
-				NodeLayer [] nLayers = copyType.getLayers();
+				NodeLayer [] nLayers = copyType.getNodeLayers();
 				for(int i=0; i<nLayers.length; i++)
 				{
 					NodeLayer nLay = nLayers[i];
@@ -1710,7 +1710,7 @@ public class Connectivity
 					// see if this is an active/poly layer (in which case, there can be no poly/active in the area)
 					boolean activeCut = false;
 					boolean polyCut = false;
-					NodeLayer [] primLayers = pv.pNp.getLayers();
+					NodeLayer [] primLayers = pv.pNp.getNodeLayers();
 					for(int i=0; i<primLayers.length; i++)
 					{
 						if (primLayers[i].getLayer().getFunction().isDiff()) activeCut = true;
@@ -2138,7 +2138,7 @@ public class Connectivity
 			// For some reason, the MOCMOS technology with MOCMOS foundry shows the "A-" nodes (A-Metal-1-Metal-2-Con)
 			// but these primitives are not fully in existence, and crash here
 			boolean bogus = false;
-			Technology.NodeLayer [] nLayers = pNp.getLayers();
+			Technology.NodeLayer [] nLayers = pNp.getNodeLayers();
 			for(int i=0; i<nLayers.length; i++)
 			{
 				Technology.NodeLayer nLay = nLayers[i];
@@ -2321,7 +2321,7 @@ public class Connectivity
 		public int compare(PossibleVia pv1, PossibleVia pv2)
 		{
 			double area1 = 0;
-			Technology.NodeLayer [] layers1 = pv1.pNp.getLayers();
+			Technology.NodeLayer [] layers1 = pv1.pNp.getNodeLayers();
 			double wid = pv1.pNp.getDefWidth();
 			double hei = pv1.pNp.getDefHeight();
 			for(int i=0; i<layers1.length; i++)
@@ -2336,7 +2336,7 @@ public class Connectivity
 			}
 
 			double area2 = 0;
-			Technology.NodeLayer [] layers2 = pv2.pNp.getLayers();
+			Technology.NodeLayer [] layers2 = pv2.pNp.getNodeLayers();
 			wid = pv2.pNp.getDefWidth();
 			hei = pv2.pNp.getDefHeight();
 			for(int i=0; i<layers2.length; i++)
@@ -2415,7 +2415,7 @@ public class Connectivity
 					// make sure additional transistors have the same overall structure
 					Set<Layer> usedLayers = new HashSet<Layer>();
 					Map<Layer,MutableInteger> usageFirst = new HashMap<Layer,MutableInteger>();
-					Technology.NodeLayer [] layersFirst = listToUse.get(0).getLayers();
+					Technology.NodeLayer [] layersFirst = listToUse.get(0).getNodeLayers();
 					for(int i=0; i<layersFirst.length; i++)
 					{
 						Layer lay = geometricLayer(layersFirst[i].getLayer());
@@ -2426,7 +2426,7 @@ public class Connectivity
 					}
 
 					Map<Layer,MutableInteger> usageNew = new HashMap<Layer,MutableInteger>();
-					Technology.NodeLayer [] layersNew = pNp.getLayers();
+					Technology.NodeLayer [] layersNew = pNp.getNodeLayers();
 					for(int i=0; i<layersNew.length; i++)
 					{
 						Layer lay = geometricLayer(layersNew[i].getLayer());

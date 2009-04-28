@@ -791,7 +791,13 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
     public int getNumArcLayers() { return layers.length; }
 
-	/**
+    /**
+	 * Method to return the list of ArcLayers that comprise this ArcProto..
+	 * @return the list of ArcLayers that comprise this ArcProto.
+	 */
+	public Technology.ArcLayer [] getArcLayers() { return layers; }
+
+    /**
 	 * Method to return layer that comprises by its index in all layers
      * @param arcLayerIndex layer index
 	 * @return specified layer that comprises this ArcProto.

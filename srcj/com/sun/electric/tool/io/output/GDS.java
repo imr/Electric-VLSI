@@ -260,7 +260,7 @@ public class GDS extends Geometry
 
 				// find the layer associated with this node
 				PrimitiveNode pNp = (PrimitiveNode)bottomNi.getProto();
-				Technology.NodeLayer [] nLay = pNp.getLayers();
+				Technology.NodeLayer [] nLay = pNp.getNodeLayers();
 				Layer layer = nLay[0].getLayer().getNonPseudoLayer();
 				selectLayer(layer);
 

@@ -153,7 +153,7 @@ public abstract class TechFactory {
         p(m, "tsmc180",      "com.sun.electric.plugins.tsmc.TSMC180");
         p(m, "cmos90","com.sun.electric.plugins.tsmc.CMOS90");
         r(m, "tsmcSun40GP",      "plugins/tsmc/tsmcSun40GP.xml");
-//        p(m, "tsmc45",     "com.sun.electric.plugins.tsmc.TSMC45");
+        c(m, "tsmc45",     "com.sun.electric.plugins.tsmc.TSMC45");
         for(String softTechFile: softTechnologies.split(";")) {
 //		for(String softTechFile: ToolSettings.getSoftTechnologiesSetting().getString().split(";")) {
 			if (softTechFile.length() == 0) continue;

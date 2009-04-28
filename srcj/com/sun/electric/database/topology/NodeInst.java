@@ -3087,8 +3087,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	{
 		if (getFunction() != PrimitiveNode.Function.NODE) return false;
 		PrimitiveNode np = (PrimitiveNode)protoType;
-		if (np.getLayers().length != 1) return false;
-		return (np.getLayers()[0].getLayer().getFunction().isSubstrate());
+		if (np.getNodeLayers().length != 1) return false;
+		return (np.getNodeLayers()[0].getLayer().getFunction().isSubstrate());
 	}
 
     /**

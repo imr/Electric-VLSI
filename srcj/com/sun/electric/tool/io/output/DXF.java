@@ -224,7 +224,7 @@ public class DXF extends Output
 				if (!ni.isCellInstance())
 				{
 					PrimitiveNode pNp = (PrimitiveNode)ni.getProto();
-					Technology.NodeLayer [] nodeLayers = pNp.getLayers();
+					Technology.NodeLayer [] nodeLayers = pNp.getNodeLayers();
 					for(int i=0; i<nodeLayers.length; i++)
 					{
 						Technology.NodeLayer nl = nodeLayers[i];

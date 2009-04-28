@@ -2344,7 +2344,7 @@ class CheckCellLayerEnumerator extends HierarchyEnumerator.Visitor {
                     continue;
 
                 PrimitiveNode pNp = (PrimitiveNode) np;
-                for (Technology.NodeLayer nLayer : pNp.getLayers()) {
+                for (Technology.NodeLayer nLayer : pNp.getNodeLayers()) {
                     Layer layer = nLayer.getLayer();
                     set.add(layer.getName());
                 }
@@ -2430,7 +2430,7 @@ class ValidationLayers
 		{
 			PrimitiveNode np = it.next();
 			if (np.isNotUsed()) continue;
-			Technology.NodeLayer [] layers = np.getLayers();
+			Technology.NodeLayer [] layers = np.getNodeLayers();
             for (Technology.NodeLayer l : layers)
 			{
                 Layer layer = l.getLayer();
@@ -2495,7 +2495,7 @@ class ValidationLayers
             boolean[] layersInNode = new boolean[numLayers];
             Arrays.fill(layersInNode, false);
 
-            Technology.NodeLayer[] layers = np.getLayers();
+            Technology.NodeLayer[] layers = np.getNodeLayers();
             Technology.NodeLayer[] eLayers = np.getElectricalLayers();
             if (eLayers != null) layers = eLayers;
             for (Technology.NodeLayer l : layers)

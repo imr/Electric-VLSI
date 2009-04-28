@@ -322,7 +322,7 @@ public class LEFDEF extends Input
 			{
 				// find the layer on this node that is of type "contact"
 				PrimitiveNode pNp = (PrimitiveNode)pin;
-				Technology.NodeLayer [] nl = pNp.getLayers();
+				Technology.NodeLayer [] nl = pNp.getNodeLayers();
 				Layer viaLayer = null;
 				for(int i=0; i<nl.length; i++)
 				{

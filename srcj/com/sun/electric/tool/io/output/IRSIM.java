@@ -243,7 +243,7 @@ public class IRSIM extends Output implements ParasiticGenerator
                 PrimitiveNode pn = (PrimitiveNode)ni.getProto();
                 Technology.MultiCutData mcd = new Technology.MultiCutData(ni.getD(), ni.getTechPool());
                 int cuts = mcd.numCuts();
-                Technology.NodeLayer[] layers = pn.getLayers();
+                Technology.NodeLayer[] layers = pn.getNodeLayers();
                 Layer thisLayer = null;
 
                 for (int i = 0; i < layers.length; i++)

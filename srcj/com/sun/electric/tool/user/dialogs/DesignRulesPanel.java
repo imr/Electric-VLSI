@@ -118,7 +118,7 @@ public class DesignRulesPanel extends JPanel
 		{
 			PrimitiveNode np = it.next();
 			if (np.isNotUsed()) continue;
-			Technology.NodeLayer [] layers = np.getLayers();
+			Technology.NodeLayer [] layers = np.getNodeLayers();
 			for(Technology.NodeLayer nl : layers)
 			{
 				Layer layer = nl.getLayer();

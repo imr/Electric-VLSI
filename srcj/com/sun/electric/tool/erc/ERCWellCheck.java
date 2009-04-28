@@ -315,7 +315,7 @@ public class ERCWellCheck
 			for(Iterator<PrimitiveNode> pIt = tech.getNodes(); pIt.hasNext(); )
 			{
 				PrimitiveNode pn = pIt.next();
-				NodeLayer [] nl = pn.getLayers();
+				NodeLayer [] nl = pn.getNodeLayers();
 				for(int i=0; i<nl.length; i++)
 				{
 					Layer lay = nl[i].getLayer();

@@ -46,7 +46,6 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveNodeSize;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Technology.CarbonNanotube;
 import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -571,7 +570,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			if (pnp.getFunction() == PrimitiveNode.Function.TRANMOSCN ||
 				pnp.getFunction() == PrimitiveNode.Function.TRAPMOSCN)
 			{
-				NodeLayer[] primLayers = pnp.getLayers();
+				NodeLayer[] primLayers = pnp.getNodeLayers();
 	            for (NodeLayer nodeLayer: primLayers)
 	                if (nodeLayer.getLayer().isCarbonNanotubeLayer()) carbonNanotubeNode = true;
 			}

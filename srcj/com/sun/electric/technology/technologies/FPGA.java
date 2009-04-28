@@ -441,7 +441,7 @@ public class FPGA extends Technology
 			double ySize = ni.getYSize();
 			Point2D [] pointList = Poly.makePoints(xCenter - xSize/2, xCenter + xSize/2, yCenter - ySize/2, yCenter + ySize/2);
 			polys[0] = new Poly(pointList);
-			polys[0].setStyle(fn.getLayers()[0].getStyle());
+			polys[0].setStyle(fn.getNodeLayers()[0].getStyle());
 			polys[0].setLayer(componentLayer);
 			int fillPos = 1;
 

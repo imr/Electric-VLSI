@@ -2146,7 +2146,7 @@ public class ViewChanges
 				{
 					// get the polygon describing the first box of the old node
 					PrimitiveNode np = (PrimitiveNode)oldNp;
-					Technology.NodeLayer [] nodeLayers = np.getLayers();
+					Technology.NodeLayer [] nodeLayers = np.getNodeLayers();
 					Layer layer = nodeLayers[0].getLayer();
 					Layer.Function fun = layer.getFunction();
 
@@ -2155,7 +2155,7 @@ public class ViewChanges
 					{
 						PrimitiveNode oNp = it.next();
 						if (oNp.getFunction() != PrimitiveNode.Function.NODE) continue;
-						Technology.NodeLayer [] oNodeLayers = oNp.getLayers();
+						Technology.NodeLayer [] oNodeLayers = oNp.getNodeLayers();
 						Layer oLayer = oNodeLayers[0].getLayer();
 						Layer.Function oFun = oLayer.getFunction();
 						if (fun == oFun) return oNp;

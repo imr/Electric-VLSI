@@ -43,7 +43,6 @@ import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
 import com.sun.electric.technology.Xml;
-import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.User;
 
@@ -252,7 +251,7 @@ public class MoCMOS extends Technology
 
 		// determine the multicut information
         NodeLayer activeMulticut = metalActiveContactNodes[P_TYPE].findMulticut();
-        NodeLayer activeSurround = metalActiveContactNodes[P_TYPE].getLayers()[1];
+        NodeLayer activeSurround = metalActiveContactNodes[P_TYPE].getNodeLayers()[1];
         assert activeSurround.getLayer().getFunction().isDiff();
         double cutSize = activeMulticut.getMulticutSizeX();
         assert cutSize == activeMulticut.getMulticutSizeY();
@@ -272,7 +271,7 @@ public class MoCMOS extends Technology
 
 		// now compute the number of polygons
 		int extraCuts = numCuts*2 - (2-numContacts) * numCuts;
-		Technology.NodeLayer [] layers = np.getLayers();
+		Technology.NodeLayer [] layers = np.getNodeLayers();
 		int count = SCALABLE_TOTAL + extraCuts - boxOffset;
 		Technology.NodeLayer [] newNodeLayers = new Technology.NodeLayer[count];
 
@@ -1160,12 +1159,12 @@ public class MoCMOS extends Technology
     		rules = DRC.getRules(this);
         if (!primNode.getFunction().isTransistor()) return 0.0;
 
-        Technology.NodeLayer activeNode = primNode.getLayers()[0]; // active
+        Technology.NodeLayer activeNode = primNode.getNodeLayers()[0]; // active
         Technology.NodeLayer polyCNode;
 
         if (scalableTransistorNodes != null && (primNode == scalableTransistorNodes[P_TYPE] || primNode == scalableTransistorNodes[N_TYPE]))
         {
-            polyCNode = primNode.getLayers()[5]; // poly center
+            polyCNode = primNode.getNodeLayers()[5]; // poly center
         }
         else
         {

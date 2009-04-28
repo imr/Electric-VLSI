@@ -238,7 +238,7 @@ public class LEF extends Output
 				if (polys.length == 0)
 				{
 					PrimitiveNode np = (PrimitiveNode)rni.getProto();
-					Technology.NodeLayer [] nls = np.getLayers();
+					Technology.NodeLayer [] nls = np.getNodeLayers();
 					if (nls.length > 0)
 					{
 						polys = new Poly[1];

@@ -47,7 +47,6 @@ import com.sun.electric.technology.PrimitiveNodeGroup;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Xml;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -950,7 +949,7 @@ public class TechToLib
         nIn.spiceTemplate = pnp.getSpiceTemplate();
 
         List<Technology.NodeLayer> nodeLayers = new ArrayList<Technology.NodeLayer>();
-        for(Technology.NodeLayer nld : pnp.getLayers())
+        for(Technology.NodeLayer nld : pnp.getNodeLayers())
         {
 //        	BitSet bs = nld.getParamBitset();
 //        	if (bs != null && !bs.get(paramValue)) continue;

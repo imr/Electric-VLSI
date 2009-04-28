@@ -1094,19 +1094,19 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	}
 
 	/**
-	 * Method to return the list of Layers that comprise this PrimitiveNode.
+	 * Method to return the list of NodeLayers that comprise this PrimitiveNode.
 	 * @return the list of Layers that comprise this PrimitiveNode.
 	 */
-	public Technology.NodeLayer [] getLayers() { return layers; }
+	public Technology.NodeLayer [] getNodeLayers() { return layers; }
 
     /**
      * Method to reset the list of Layers that comprise this PrimitiveNode.
      * @param layers
      */
-    public void setLayers(Technology.NodeLayer [] layers)
-    {
-    	this.layers = layers;
-    }
+//    public void setLayers(Technology.NodeLayer [] layers)
+//    {
+//    	this.layers = layers;
+//    }
 
 	/**
 	 * Method to return an iterator over the layers in this PrimitiveNode.
@@ -2261,7 +2261,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         ng.defaultWidth.addLambda(DBMath.gridToLambda(2*getFactoryDefaultGridExtendX()));
         ng.defaultHeight.addLambda(DBMath.gridToLambda(2*getFactoryDefaultGridExtendY()));
 
-        List<Technology.NodeLayer> nodeLayers = Arrays.asList(getLayers());
+        List<Technology.NodeLayer> nodeLayers = Arrays.asList(getNodeLayers());
         List<Technology.NodeLayer> electricalNodeLayers = nodeLayers;
         if (getElectricalLayers() != null)
             electricalNodeLayers = Arrays.asList(getElectricalLayers());
