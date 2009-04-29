@@ -436,28 +436,6 @@ public class Pref {
 	}
 
 	/**
-	 * Factory methods to create a long Pref objects.
-     * The Pref is accessible from server Jobs.
-	 * @param name the name of this Pref.
-	 * @param group group of preferences to which a new Pref belongs
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-	public static Pref makeLongServerPref(String name, Group group, long factory) {
-		return new Pref(group, name, true, Long.valueOf(factory));
-	}
-
-	/**
-	 * Factory methods to create a double Pref objects.
-     * The Pref is accessible from server Jobs.
-	 * @param name the name of this Pref.
-	 * @param group group of preferences to which a new Pref belongs
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-	public static Pref makeDoubleServerPref(String name, Group group, double factory) {
-		return new Pref(group, name, true, Double.valueOf(factory));
-	}
-
-	/**
 	 * Factory methods to create a string Pref objects.
      * The Pref is accessible from server Jobs.
 	 * @param name the name of this Pref.

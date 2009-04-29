@@ -35,7 +35,6 @@ import com.sun.electric.database.id.LayerId;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -98,10 +97,29 @@ public class LayerCoverageTool extends Tool
 
     public static class LayerCoveragePreferences extends PrefPackage {
         public static final double DEFAULT_AREA_COVERAGE = 10; // 10%
+        // Default value is in um to be technology independent
+        private static final double defaultSize = 50000;
+        private static final String EXTRACT_NODE = "tool/extract";
         private static final String KEY_COVERAGE = "AreaCoverageJob";
-        private final TechPool techPool;
+        private final transient TechPool techPool;
 
         public Map<LayerId,Double> areaCoverage = new HashMap<LayerId,Double>();
+
+        /** User preference for deltaX. The default is 50 mm. */
+        @DoublePref(node = EXTRACT_NODE, key = "DeltaX", factory = defaultSize)
+        public double deltaXInMicrons;
+
+        /** User preference for deltaY. The default is 50 mm. */
+        @DoublePref(node = EXTRACT_NODE, key = "DeltaY", factory = defaultSize)
+        public double deltaYInMicrons;
+
+        /** User preference for width of the bounding box. The default is 50 mm. */
+        @DoublePref(node = EXTRACT_NODE, key = "Width", factory = defaultSize)
+        public double widthInMicrons;
+
+        /** User preference for height of the bounding box. The default is 50 mm. */
+        @DoublePref(node = EXTRACT_NODE, key = "Height", factory = defaultSize)
+        public double heightInMicrons;
 
         public LayerCoveragePreferences(boolean factory) {
             this(factory, TechPool.getThreadTechPool());
@@ -170,116 +188,11 @@ public class LayerCoverageTool extends Tool
             else
                 areaCoverage.put(layer.getId(), Double.valueOf(area));
         }
-    }
 
-    // Default value is in um to be technology independent
-    private static final double defaultSize = 50000;
-    private static Pref cacheDeltaX = Pref.makeDoubleServerPref("DeltaX", tool.prefs, defaultSize);
-	/**
-	 * Method to get user preference for deltaX.
-	 * The default is 50 mm.
-	 * @return double representing deltaX.
-	 */
-	public static double getDeltaX(Technology tech)
-    {
-        return cacheDeltaX.getDouble()/tech.getScale();
-    }
-	/**
-	 * Method to set user preference for deltaX.
-	 * @param delta double representing new deltaX.
-	 */
-	public static void setDeltaX(double delta, Technology tech)
-    {
-        cacheDeltaX.setDouble(delta*tech.getScale());
-    }
-	/**
-	 * Method to get user preference for deltaX, by default.
-	 * @return double representing deltaX, by default.
-	 */
-	public static double getFactoryDeltaX(Technology tech)
-    {
-        return cacheDeltaX.getDoubleFactoryValue()/tech.getScale();
-    }
-
-    private static Pref cacheDeltaY = Pref.makeDoubleServerPref("DeltaY", tool.prefs, defaultSize);
-	/**
-	 * Method to get user preference for deltaY.
-	 * The default is 50 mm.
-	 * @return double representing deltaY.
-	 */
-	public static double getDeltaY(Technology tech)
-    {
-        return cacheDeltaY.getDouble()/tech.getScale();
-    }
-	/**
-	 * Method to set user preference for deltaY.
-	 * @param delta double representing new deltaY.
-	 */
-	public static void setDeltaY(double delta, Technology tech)
-    {
-        cacheDeltaY.setDouble(delta*tech.getScale());
-    }
-	/**
-	 * Method to get user preference for deltaY, by default.
-	 * @return double representing deltaY, by default.
-	 */
-	public static double getFactoryDeltaY(Technology tech)
-    {
-        return cacheDeltaY.getDoubleFactoryValue()/tech.getScale();
-    }
-
-    private static Pref cacheWidth = Pref.makeDoubleServerPref("Width", tool.prefs, defaultSize);
-	/**
-	 * Method to get user preference for deltaY.
-	 * The default is 50 mm.
-	 * @return double representing deltaY.
-	 */
-	public static double getWidth(Technology tech)
-    {
-        return cacheWidth.getDouble()/tech.getScale();
-    }
-	/**
-	 * Method to set user preference for width of the bounding box.
-	 * @param w double representing new width.
-	 */
-	public static void setWidth(double w, Technology tech)
-    {
-        cacheWidth.setDouble(w*tech.getScale());
-    }
-	/**
-	 * Method to get user preference for deltaY, by default.
-	 * @return double representing deltaY, by default.
-	 */
-	public static double getFactoryWidth(Technology tech)
-    {
-        return cacheWidth.getDoubleFactoryValue()/tech.getScale();
-    }
-
-    private static Pref cacheHeight = Pref.makeDoubleServerPref("Height", tool.prefs, defaultSize);
-	/**
-	 * Method to get user preference for deltaY.
-	 * The default is 50 mm.
-	 * @return double representing deltaY.
-	 */
-	public static double getHeight(Technology tech)
-    {
-        return cacheHeight.getDouble()/tech.getScale();
-    }
-	/**
-	 * Method to set user preference for height of the bounding box.
-	 * @param h double representing new width.
-	 */
-	public static void setHeight(double h, Technology tech)
-    {
-        cacheHeight.setDouble(h*tech.getScale());
-    }
-	/**
-	 * Method to get user preference for deltaY, by default.
-	 * @return double representing deltaY, by default.
-	 */
-	public static double getFactoryHeight(Technology tech)
-    {
-        return cacheHeight.getDoubleFactoryValue()/tech.getScale();
+        public void reset() {
+            areaCoverage.clear();
+            deltaXInMicrons = deltaYInMicrons = widthInMicrons = heightInMicrons = defaultSize;
+        }
     }
 
     /**
@@ -317,10 +230,11 @@ public class LayerCoverageTool extends Tool
     {
         if (cell == null) return null;
 
-        double width = getWidth(cell.getTechnology());
-        double height = getHeight(cell.getTechnology());
-        double deltaX = getDeltaX(cell.getTechnology());
-        double deltaY = getDeltaY(cell.getTechnology());
+        double techScale = cell.getTechnology().getScale();
+        double width = lcp.widthInMicrons/techScale;
+        double height = lcp.heightInMicrons/techScale;
+        double deltaX = lcp.deltaXInMicrons/techScale;
+        double deltaY = lcp.deltaYInMicrons/techScale;
 
         // Reset values to cell bounding box if area is bigger than the actual cell
         Rectangle2D bbox = cell.getBounds();
