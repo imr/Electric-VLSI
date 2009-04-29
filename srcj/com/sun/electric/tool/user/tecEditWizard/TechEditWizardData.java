@@ -190,7 +190,6 @@ public class TechEditWizardData
             if (shortName != null)
             {
                 n.text = shortName;
-                n.fontSize = 15;
             }
             elements.add(n);
         }

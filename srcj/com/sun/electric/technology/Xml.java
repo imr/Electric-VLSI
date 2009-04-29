@@ -330,7 +330,6 @@ public class Xml {
         /** the function of the prototype */					public com.sun.electric.technology.PrimitiveNode.Function function;
         /** tech bits */                                        public int techBits;
         /** label to draw in the menu entry (may be null) */	public String text;
-        /** the size of the menu entry label */					public double fontSize;
         /** the rotation of the node in the menu entry */		public int rotation;
     }
 
@@ -1212,7 +1211,7 @@ public class Xml {
                     break;
                 case menuNodeText:
                     curMenuNodeInst.text = a("text");
-                    curMenuNodeInst.fontSize = Double.parseDouble(a("size"));
+//                    curMenuNodeInst.fontSize = Double.parseDouble(a("size"));
                     break;
                 case Foundry:
                     curFoundry = new Foundry();
@@ -2184,7 +2183,7 @@ public class Xml {
                         el();
                     } else {
                         cl();
-                        b(XmlKeyword.menuNodeText); a("text", ni.text); a("size", ni.fontSize); el();
+                        b(XmlKeyword.menuNodeText); a("text", ni.text); /*a("size", ni.fontSize);*/ el();
                         el(XmlKeyword.menuNodeInst);
                     }
                 } else {

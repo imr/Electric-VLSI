@@ -820,8 +820,6 @@ public class TechExplorer extends ESandBox {
                 Object value = Variable_getObject.invoke(var);
                 if (!(value instanceof String)) continue;
                 n.text = (String)Variable_getObject.invoke(var);
-                Object td = Variable_getTextDescriptor.invoke(var);
-                n.fontSize = (Double)TextDescriptorSize_getSize.invoke(TextDescriptor_getSize.invoke(td));
             }
             return n;
         }

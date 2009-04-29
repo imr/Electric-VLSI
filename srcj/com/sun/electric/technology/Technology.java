@@ -1637,10 +1637,10 @@ public class Technology implements Comparable<Technology>, Serializable
                     out.print(" node " + ((Xml.PrimitiveNode)menuItem).name);
                 } else if (menuItem instanceof Xml.MenuNodeInst) {
                     Xml.MenuNodeInst n = (Xml.MenuNodeInst)menuItem;
-                    boolean display = n.text != null && n.fontSize != 0;
+                    boolean display = n.text != null;
                     out.print(" nodeInst " + n.protoName + ":" + n.function + ":" + Orientation.fromAngle(n.rotation));
                     if (n.text != null)
-                        out.print(":" + n.text + ":" + display + ":" + n.fontSize);
+                        out.print(":" + n.text + ":" + display);
                 } else {
                     assert menuItem instanceof String;
                     out.print(" " + menuItem);

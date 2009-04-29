@@ -196,7 +196,6 @@ public class ComponentMenu extends EDialog
 		// setup listeners for the node detail fields
 		nodeAngle.getDocument().addDocumentListener(new NodeFieldDocumentListener());
 		nodeName.getDocument().addDocumentListener(new NodeFieldDocumentListener());
-		nodeTextSize.getDocument().addDocumentListener(new NodeFieldDocumentListener());
 		nodeFunction.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { nodeInfoChanged(); }
@@ -568,13 +567,6 @@ public class ComponentMenu extends EDialog
 		newItem.function = PrimitiveNode.Function.findName((String)nodeFunction.getSelectedItem());
 		newItem.rotation = TextUtils.atoi(nodeAngle.getText()) * 10;
 		newItem.text = nodeName.getText().trim();
-		String ts = nodeTextSize.getText().trim();
-		if (ts.length() == 0 && newItem.text.length() > 0)
-		{
-			// force a default text size if none given
-			ts = "6";
-		}
-		newItem.fontSize = TextUtils.atof(ts);
 		if (index < 0)
 		{
 			menuArray[menuSelectedY][menuSelectedX] = newItem;
@@ -613,7 +605,6 @@ public class ComponentMenu extends EDialog
 	{
 		changingNodeFields = true;
 		nodeName.setText("");
-		nodeTextSize.setText("");
 		nodeAngle.setText("");
 		nodeFunction.setSelectedIndex(0);
 		if (valid)
@@ -624,12 +615,9 @@ public class ComponentMenu extends EDialog
 			nodeFunctionLabel.setEnabled(true);
 			nodeName.setEnabled(true);
 			nodeNameLabel.setEnabled(true);
-			nodeTextSize.setEnabled(true);
-			nodeTextSizeLabel.setEnabled(true);
 			if (ni == null)
 			{
 				nodeAngle.setText("0");
-				nodeTextSize.setText("4");
 				if (np != null) nodeFunction.setSelectedItem(np.function.getName());
 			} else
 			{
@@ -638,7 +626,6 @@ public class ComponentMenu extends EDialog
 				if (ni.text != null)
 				{
 					nodeName.setText(ni.text);
-					nodeTextSize.setText(TextUtils.formatDouble(ni.fontSize));
 				}
 			}
 		} else
@@ -649,8 +636,6 @@ public class ComponentMenu extends EDialog
 			nodeFunctionLabel.setEnabled(false);
 			nodeName.setEnabled(false);
 			nodeNameLabel.setEnabled(false);
-			nodeTextSize.setEnabled(false);
-			nodeTextSizeLabel.setEnabled(false);
 		}
 		changingNodeFields = false;
 	}
@@ -925,8 +910,6 @@ public class ComponentMenu extends EDialog
         nodeAngleLabel = new javax.swing.JLabel();
         nodeFunctionLabel = new javax.swing.JLabel();
         nodeNameLabel = new javax.swing.JLabel();
-        nodeTextSizeLabel = new javax.swing.JLabel();
-        nodeTextSize = new javax.swing.JTextField();
         nodeName = new javax.swing.JTextField();
         nodeFunction = new javax.swing.JComboBox();
         nodeAngle = new javax.swing.JTextField();
@@ -1157,21 +1140,6 @@ public class ComponentMenu extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         lowerLeft.add(nodeNameLabel, gridBagConstraints);
 
-        nodeTextSizeLabel.setText("Label Size:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        lowerLeft.add(nodeTextSizeLabel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        lowerLeft.add(nodeTextSize, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
@@ -1396,8 +1364,6 @@ public class ComponentMenu extends EDialog
     private javax.swing.JScrollPane nodeListPane;
     private javax.swing.JTextField nodeName;
     private javax.swing.JLabel nodeNameLabel;
-    private javax.swing.JTextField nodeTextSize;
-    private javax.swing.JLabel nodeTextSizeLabel;
     private javax.swing.JScrollPane popupListPane;
     private javax.swing.JButton removeButton;
     private javax.swing.JLabel selectedMenuName;

@@ -223,7 +223,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 		PrimitiveNode.Function fun = ni.getFunction();
 		if (fun.isTransistor())
 		{
-			NodeInst newNi = makeNodeInst(ni.getProto(), fun, rot, false, null, 0);
+			NodeInst newNi = makeNodeInst(ni.getProto(), fun, rot, false, null);
 			newNi.copyVarsFrom(ni);
 			ni = newNi;
 		}
@@ -305,8 +305,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 			techEditSet[6][0] = artwork.openedDashedPolygonNode;
 			techEditSet[7][0] = artwork.openedDottedPolygonNode;
 			techEditSet[8][0] = artwork.openedPolygonNode;
-			techEditSet[9][0] = makeNodeInst(artwork.closedPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
-			techEditSet[10][0] = makeNodeInst(artwork.filledPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5);
+			techEditSet[9][0] = makeNodeInst(artwork.closedPolygonNode, PrimitiveNode.Function.ART, 0, false, null);
+			techEditSet[10][0] = makeNodeInst(artwork.filledPolygonNode, PrimitiveNode.Function.ART, 0, false, null);
 			techEditSet[11][0] = artwork.boxNode;
 			techEditSet[12][0] = artwork.crossedBoxNode;
 			techEditSet[13][0] = artwork.filledBoxNode;
@@ -352,10 +352,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             return tech.findNodeProto(((Xml.PrimitiveNode)menuItem).name);
         if (menuItem instanceof Xml.MenuNodeInst) {
             Xml.MenuNodeInst n = (Xml.MenuNodeInst)menuItem;
-            boolean display = n.text != null && n.fontSize != 0;
+            boolean display = n.text != null;
             PrimitiveNode pn = tech.findNodeProto(n.protoName);
             if (pn != null)
-            	return makeNodeInst(pn, n.function, n.techBits, n.rotation, display, n.text, n.fontSize);
+            	return makeNodeInst(pn, n.function, n.techBits, n.rotation, display, n.text);
         }
         return menuItem.toString();
     }
@@ -367,9 +367,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
      * @param angle initial placement angle of the node.
      */
     private static NodeInst makeNodeInst(NodeProto np, PrimitiveNode.Function func, int angle, boolean display,
-                                        String varName, double fontSize)
+                                        String varName)
     {
-        return makeNodeInst(np, func, 0, angle, display, varName, fontSize);
+        return makeNodeInst(np, func, 0, angle, display, varName);
     }
 
     /**
@@ -380,7 +380,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
      * @param angle initial placement angle of the node.
      */
     private static NodeInst makeNodeInst(NodeProto np, PrimitiveNode.Function func, int techBits, int angle, boolean display,
-                                        String varName, double fontSize)
+                                        String varName)
     {
         SizeOffset so = np.getProtoSizeOffset();
         Point2D pt = new Point2D.Double((so.getHighXOffset() - so.getLowXOffset()) / 2,
@@ -395,7 +395,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	    if (varName != null)
 	    {
 	    	TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDisplay(display);
-	    	if (fontSize != 0) td = td.withRelSize(fontSize);
 	    	td = td.withOff(0, -Math.max(ni.getXSize(), ni.getYSize())/2-2).withPos(TextDescriptor.Position.UP);
 	    	if (angle != 0) td = td.withRotation(TextDescriptor.Rotation.getRotation(360-angle/10));
             ni.newVar(TECH_TMPVAR, varName, td);
@@ -1182,33 +1181,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     } else
                     {
 	                    PrimitiveNode np = (PrimitiveNode)ni.getProto();
-	                    double largest = 0;
-	                    PrimitiveNode.Function groupFunction = np.getGroupFunction();
-	                    for(Iterator<PrimitiveNode> it = np.getTechnology().getNodes(); it.hasNext(); )
-	                    {
-	                        PrimitiveNode otherNp = it.next();
-							if (otherNp.getGroupFunction() != groupFunction) continue;
-	                        if (otherNp.isSkipSizeInPalette()) continue;
-	                        if (otherNp.getDefHeight() > largest) largest = otherNp.getDefHeight();
-	                        if (otherNp.getDefWidth() > largest) largest = otherNp.getDefWidth();
-	                    }
-
-	                    // for pins, make them the same scale as the arcs
-	                    if (groupFunction == PrimitiveNode.Function.PIN)
-	                    {
-	                        largest = 0;
-	                        for(Iterator<ArcProto> it = np.getTechnology().getArcs(); it.hasNext(); )
-	                        {
-	                            ArcProto otherAp = it.next();
-	                            if (otherAp.isSpecialArc()) continue; // ignore arc for sizing
-	                            if (otherAp.isSkipSizeInPalette()) continue;
-	                            double wid = DBMath.gridToLambda(2*(otherAp.getFactoryDefaultInst().getGridExtendOverMin() + otherAp.getMaxLayerGridExtend()));
-	                            if (wid+8 > largest) largest = wid+8;
-	                        }
-	                    }
+	                    double largest = getLargestDimension(np);
 
 	                    // render it
-                        if (largest == 0) largest = 1;
 	                    double scalex = entrySize/largest * 0.8;
 	                    double scaley = entrySize/largest * 0.8;
 	                    double scale = Math.min(scalex, scaley);
@@ -1216,7 +1191,14 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                    // make sure the text is at the bottom of the entry
 	                    Variable var = ni.getVar(TECH_TMPVAR);
 	                    if (var != null)
-	                    	ni.setTextDescriptor(TECH_TMPVAR, var.getTextDescriptor().withOff(0, -largest/2/0.8));
+	                    {
+	                    	int msgLen = var.describe(-1).length();
+	                    	if (msgLen < 4) msgLen = 4;
+	                    	int size = (int)Math.round(entrySize / msgLen / 0.8);
+	                    	if (size < 6) size = 6;
+	                    	TextDescriptor td = var.getTextDescriptor().withOff(0, -largest/2/0.8).withAbsSize(size);
+	                    	ni.setTextDescriptor(TECH_TMPVAR, td);
+	                    }
 	                    VectorCache.VectorBase[] shapes = VectorCache.drawNode(ni);
 	                    drawShapes(g, gp, imgX, imgY, scale, shapes);
                     }
@@ -1269,6 +1251,38 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             g.drawLine(0, yPos, menuX*(entrySize+1), yPos);
         }
         g.dispose();
+    }
+
+    private double getLargestDimension(PrimitiveNode np)
+    {
+        double largest = 0;
+        PrimitiveNode.Function groupFunction = np.getGroupFunction();
+
+        if (np.getGroupFunction() == PrimitiveNode.Function.PIN)
+        {
+            // for pins, make them the same scale as the arcs
+            for(Iterator<ArcProto> it = np.getTechnology().getArcs(); it.hasNext(); )
+            {
+                ArcProto otherAp = it.next();
+                if (otherAp.isSpecialArc()) continue; // ignore arc for sizing
+                if (otherAp.isSkipSizeInPalette()) continue;
+                double wid = DBMath.gridToLambda(2*(otherAp.getFactoryDefaultInst().getGridExtendOverMin() + otherAp.getMaxLayerGridExtend()));
+                if (wid+8 > largest) largest = wid+8;
+            }
+        } else
+        {
+        	// just find the largest in the group
+	        for(Iterator<PrimitiveNode> it = np.getTechnology().getNodes(); it.hasNext(); )
+	        {
+	            PrimitiveNode otherNp = it.next();
+				if (otherNp.getGroupFunction() != groupFunction) continue;
+	            if (otherNp.isSkipSizeInPalette()) continue;
+	            if (otherNp.getDefHeight() > largest) largest = otherNp.getDefHeight();
+	            if (otherNp.getDefWidth() > largest) largest = otherNp.getDefWidth();
+	        }
+        }
+        if (largest == 0) largest = 1;
+        return largest;
     }
 
     private void drawArrow(Graphics g, int x, int y) {
