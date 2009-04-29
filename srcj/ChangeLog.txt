@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+BUG: (4/29/09, GVG) Attribute 'size' must appear on element 'menuNodeText' (Bug #2150)
+FIX: use="optional in Technology.xsd
+
 IMP/MAN: (4/29/09, SMR) File/Import commands now offer the ability to "merge" the
      new library with an existing library.  Removed the command "File / Import /
      DEF (Design Exchange Format) to current cell..." (Bug #2145).

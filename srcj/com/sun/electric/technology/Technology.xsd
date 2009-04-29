@@ -244,7 +244,7 @@
                             <xsd:element name="menuNodeText" minOccurs="0">
                                 <xsd:complexType>
                                     <xsd:attribute name="text" type="xsd:string" use="required"/>
-                                    <xsd:attribute name="size" type="xsd:double" use="required"/>
+                                    <xsd:attribute name="size" type="xsd:double" use="optional"/>
                                 </xsd:complexType>
                             </xsd:element>
                         </xsd:sequence>
