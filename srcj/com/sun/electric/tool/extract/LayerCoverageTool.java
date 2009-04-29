@@ -61,6 +61,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -203,7 +204,7 @@ public class LayerCoverageTool extends Tool
     {
         // Must be change job for merge and implant;
         Job.Type jobType = (func == LayerCoverageTool.LCMode.MERGE || func == LayerCoverageTool.LCMode.IMPLANT) ?
-                Job.Type.CHANGE : Job.Type.EXAMINE;
+                Job.Type.CHANGE : Job.Type.REMOTE_EXAMINE;
         LayerCoverageJob job = new LayerCoverageJob(curCell, jobType, func, mode, null, null, lcp);
         if (startJob)
             job.startJob();
@@ -274,7 +275,7 @@ public class LayerCoverageTool extends Tool
         // This assumes that pi.getBounds() alywas gives you a degenerated rectangle (zero area) so
         // only a point should be searched.
         Rectangle2D bnd = pi.getBounds();
-		LayerCoverageJob job = new LayerCoverageJob(exportCell, Job.Type.EXAMINE, LCMode.NETWORK,
+		LayerCoverageJob job = new LayerCoverageJob(exportCell, Job.Type.REMOTE_EXAMINE, LCMode.NETWORK,
                 GeometryHandler.GHMode.ALGO_SWEEP, geoms,
                 new Point2D.Double(bnd.getX(), bnd.getY()), lcp);
 
@@ -315,7 +316,7 @@ public class LayerCoverageTool extends Tool
 	    double lambda = 1; // lambdaofcell(np);
         // startJob is identical to printable
 	    GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, startJob, null, lcp);
-		Job job = new LayerCoverageJob(cell, Job.Type.EXAMINE, LCMode.NETWORK, mode, geoms, null, lcp);
+		Job job = new LayerCoverageJob(cell, Job.Type.REMOTE_EXAMINE, LCMode.NETWORK, mode, geoms, null, lcp);
 
         if (startJob)
             job.startJob();
@@ -633,7 +634,7 @@ public class LayerCoverageTool extends Tool
         public AreaCoverageJob(Cell cell, GeometryHandler.GHMode mode,
                                double width, double height, double deltaX, double deltaY, LayerCoveragePreferences lcp)
         {
-            super("Layer Coverage", User.getUserTool(), Type.EXAMINE, null, null, Priority.USER);
+            super("Layer Coverage", User.getUserTool(), Type.REMOTE_EXAMINE, null, null, Priority.USER);
             this.curCell = cell;
             this.mode = mode;
             this.width = width;
@@ -1035,7 +1036,7 @@ public class LayerCoverageTool extends Tool
         }
 	}
 
-    public static class TransistorInfo
+    public static class TransistorInfo implements Serializable
 	{
 		/** sum of area of transistors */		public double area;
 		/** sum of width of transistors */		public double width;
@@ -1044,7 +1045,7 @@ public class LayerCoverageTool extends Tool
 	/**
 	 * Class to represent all geometry on a network during layer coverage analysis.
 	 */
-	public static class GeometryOnNetwork {
+	public static class GeometryOnNetwork implements Serializable {
 	    public final Cell cell;
 	    protected Set<Network> nets;
 	    private double lambda;

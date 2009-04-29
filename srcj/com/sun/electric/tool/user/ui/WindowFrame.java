@@ -742,6 +742,7 @@ public class WindowFrame extends Observable
 	 */
 	public static Cell getCurrentCell()
 	{
+        assert SwingUtilities.isEventDispatchThread();
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 		if (wf == null) return null;
 		return wf.getContent().getCell();

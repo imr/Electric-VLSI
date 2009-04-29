@@ -98,18 +98,19 @@ public final class ExportChanges
 	 */
 	private static class DescribeExports extends Job
 	{
+        private Cell cell;
 		private boolean summarize;
 
 		protected DescribeExports(boolean summarize)
 		{
-			super("Describe Exports", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			super("Describe Exports", User.getUserTool(), Job.Type.REMOTE_EXAMINE, null, null, Job.Priority.USER);
+			cell = WindowFrame.needCurCell();
 			this.summarize = summarize;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			Cell cell = WindowFrame.needCurCell();
 			if (cell == null) return false;
 			Netlist netlist = cell.acquireUserNetlist();
 			if (netlist == null)
