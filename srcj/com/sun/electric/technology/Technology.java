@@ -1179,7 +1179,7 @@ public class Technology implements Comparable<Technology>, Serializable
         return new EdgeV(y.k*0.5, y.value - correction.getLambdaY()*y.k);
     }
 
-    public Xml.Technology getXmlTech() { return xmlTech; }
+    public Xml.Technology getXmlTech() { return xmlTech.deepClone(); }
 
     public static Environment makeInitialEnvironment() {
         Environment env = IdManager.stdIdManager.getInitialEnvironment();

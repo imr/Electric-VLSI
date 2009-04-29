@@ -31,8 +31,12 @@ import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
 
 import java.awt.Color;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringReader;
@@ -146,6 +150,23 @@ public class Xml {
                 System.out.println(" (Add this file to the 'Added Technologies' Project Settings to install it in Electric)");
             } catch (IOException e) {
                 System.out.println("Error creating " + fileName);
+            }
+        }
+        
+        public Technology deepClone() {
+            try {
+                ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+                ObjectOutputStream out = new ObjectOutputStream(byteStream);
+                out.writeObject(this);
+                out.flush();
+                byte[] serializedXml = byteStream.toByteArray();
+                ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(serializedXml));
+                Xml.Technology clone = (Xml.Technology)in.readObject();
+                in.close();
+                return clone;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
             }
         }
     }
