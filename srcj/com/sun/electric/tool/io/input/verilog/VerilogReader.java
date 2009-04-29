@@ -51,7 +51,7 @@ public class VerilogReader extends Input
     {
 		public VerilogPreferences(boolean factory) { super(factory); }
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
         {
         	VerilogReader in = new VerilogReader(this);
 			if (in.openTextInput(fileURL)) return null;
@@ -323,7 +323,7 @@ public class VerilogReader extends Input
 
                         if (count == 2 && vals[0] != vals[1]) // only if it is a real bus
                         {
-    //                        pinName += values.get(0);
+//                          pinName += values.get(0);
                             primitive = Schematics.tech().busPinNode;
                         }
                         else
@@ -537,7 +537,7 @@ public class VerilogReader extends Input
                 element = verilogData.addModule(key, false); // assuming latches and other elements are treat as subcells
             }
 
-            CellInstance info = readInstance(module, element);
+            readInstance(module, element);
         }
         // not reaching this point.
     }

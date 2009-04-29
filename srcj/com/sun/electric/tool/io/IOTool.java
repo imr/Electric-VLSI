@@ -230,12 +230,19 @@ public class IOTool extends Tool
 			readConnectivity = IOTool.isDaisReadConnectivity();
 		}
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
         {
     		if (!hasDais()) return null;
     		try
     		{
+    			long startTime = System.currentTimeMillis();
+    			long startMemory = com.sun.electric.Main.getMemoryUsage();
     			daisInputMethod.invoke(daisClass, new Object[] {fileURL, lib, Boolean.valueOf(newLib), this});
+				long endTime = System.currentTimeMillis();
+				float finalTime = (endTime - startTime) / 1000F;
+	    		long end = com.sun.electric.Main.getMemoryUsage();
+	    		long amt = (end-startMemory)/1024/1024;
+	    		System.out.println("*** DAIS INPUT TOOK " + finalTime + " seconds, " + amt + " megabytes");
     		} catch (Exception e)
     		{
     			System.out.println("Unable to run the Dais input module (" + e.getClass() + ")");

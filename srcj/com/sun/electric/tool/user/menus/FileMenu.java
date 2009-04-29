@@ -680,7 +680,6 @@ public class FileMenu {
         private RenameAndSaveLibraryTask saveTask;
 		private boolean useCurrentLib;
         private Map<Library,Cell> currentCells = new HashMap<Library,Cell>();
-		private long startMemory, startTime;
 
 		public ImportLibrary(URL fileURL, FileType type,
                 Library deleteLib, RenameAndSaveLibraryTask saveTask)
@@ -691,11 +690,6 @@ public class FileMenu {
 			this.deleteLib = deleteLib;
             this.saveTask = saveTask;
 			this.useCurrentLib = false;
-			if (type == FileType.DAIS)
-			{
-				startTime = System.currentTimeMillis();
-				startMemory = com.sun.electric.Main.getMemoryUsage();
-			}
             prefs = Input.getInputPreferences(type, false);
             prefs.initFromUserDefaults();
 			startJob();
@@ -732,9 +726,9 @@ public class FileMenu {
 				deleteLib = null;
 			}
 			if (useCurrentLib) {
-				createLib = Input.importToCurrentLibrary(prefs, fileURL, type, curLib, currentCells);
+				createLib = Input.importToCurrentLibrary(prefs, fileURL, type, curLib, currentCells, this);
 			} else {
-				createLib = Input.importLibrary(prefs, fileURL, type, currentCells);
+				createLib = Input.importLibrary(prefs, fileURL, type, currentCells, this);
 			}
 
 			if (createLib == null) return false;
@@ -767,14 +761,6 @@ public class FileMenu {
             }
         	Cell showThisCell = createLib.getCurCell();
         	doneOpeningLibrary(showThisCell);
-			if (type == FileType.DAIS)
-			{
-				long endTime = System.currentTimeMillis();
-				float finalTime = (endTime - startTime) / 1000F;
-	    		long end = com.sun.electric.Main.getMemoryUsage();
-	    		long amt = (end-startMemory)/1024/1024;
-	    		System.out.println("*** DAIS INPUT TOOK " + finalTime + " seconds, " + amt + " megabytes");
-			}
         }
 	}
 

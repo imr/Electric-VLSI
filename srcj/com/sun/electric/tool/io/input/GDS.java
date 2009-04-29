@@ -55,6 +55,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.GDSLayers;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
@@ -270,7 +271,7 @@ public class GDS extends Input
 			unknownLayerHandling = IOTool.getGDSInUnknownLayerHandling();
 		}
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
         {
         	GDS in = new GDS(this);
 			if (in.openBinaryInput(fileURL)) return null;

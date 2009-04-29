@@ -37,6 +37,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 
 import java.awt.Point;
@@ -405,7 +406,7 @@ public class CIF extends Input
 			squareWires = IOTool.isCIFInSquaresWires();
 		}
 
-		public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+		public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
         {
         	CIF in = new CIF(this);
 			if (in.openTextInput(fileURL)) return null;

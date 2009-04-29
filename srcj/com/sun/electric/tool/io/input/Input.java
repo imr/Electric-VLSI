@@ -58,7 +58,7 @@ public class Input
 {
 	protected static final int READ_BUFFER_SIZE = 65536;
 
-    /** Log errors. Static because shared between many readers */   public static ErrorLogger errorLogger;
+	/** Log errors. Static because shared between many readers */   public static ErrorLogger errorLogger;
 	private static boolean doChangesQuietly = false;
 	private static boolean newLibraryCreated = true;
 
@@ -68,13 +68,11 @@ public class Input
 	/** The input stream. */								protected DataInputStream dataInputStream;
 	/** The length of the file. */							protected long fileLength;
 	/** the number of bytes of data read so far */			protected long byteCount;
-    /** editing preferences */                              protected EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
+	/** editing preferences */								protected EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
 
 	// ---------------------- private and protected methods -----------------
 
-	public Input()
-	{
-	}
+	public Input() {}
 
 	// ----------------------- public methods -------------------------------
 
@@ -89,14 +87,14 @@ public class Input
 	 * This method is for reading external file formats such as CIF, GDS, etc.
 	 * @param fileURL the URL to the disk file.
 	 * @param type the type of library file (CIF, GDS, etc.)
-     * @param currentCells this map will be filled with currentCells in Libraries found in library file
+	 * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static Library importLibrary(InputPreferences prefs, URL fileURL, FileType type, Map<Library,Cell> currentCells)
+	public static Library importLibrary(InputPreferences prefs, URL fileURL, FileType type, Map<Library,Cell> currentCells, Job job)
 	{
 		// make sure the file exists
 		if (fileURL == null) return null;
-        StringBuffer errmsg = new StringBuffer();
+		StringBuffer errmsg = new StringBuffer();
 		if (!TextUtils.URLExists(fileURL, errmsg))
 		{
 			System.out.print(errmsg.toString());
@@ -104,7 +102,7 @@ public class Input
 		}
 
 		newLibraryCreated = true;
-		return importLibraryCommon(prefs, fileURL, type, null, currentCells);
+		return importLibraryCommon(prefs, fileURL, type, null, currentCells, job);
 	}
 
 	/**
@@ -113,14 +111,15 @@ public class Input
 	 * @param prefs the packaged preferences for reading the type of file.
 	 * @param fileURL the URL to the disk file.
 	 * @param type the type of library file (CIF, GDS, etc.)
-     * @param currentCells this map will be filled with currentCells in Libraries found in library file
+	 * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static Library importToCurrentLibrary(InputPreferences prefs, URL fileURL, FileType type, Library lib, Map<Library,Cell> currentCells)
+	public static Library importToCurrentLibrary(InputPreferences prefs, URL fileURL, FileType type, Library lib,
+		Map<Library,Cell> currentCells, Job job)
 	{
 		// make sure the file exists
 		if (fileURL == null) return null;
-        StringBuffer errmsg = new StringBuffer();
+		StringBuffer errmsg = new StringBuffer();
 		if (!TextUtils.URLExists(fileURL, errmsg))
 		{
 			System.out.print(errmsg.toString());
@@ -131,11 +130,11 @@ public class Input
 		newLibraryCreated = false;
 
 		// import to current library
-		return importLibraryCommon(prefs, fileURL, type, lib, currentCells);
+		return importLibraryCommon(prefs, fileURL, type, lib, currentCells, job);
 	}
 
 	private static Library importLibraryCommon(InputPreferences prefs, URL fileURL, FileType type, Library lib,
-		Map<Library,Cell> currentCells)
+		Map<Library,Cell> currentCells, Job job)
 	{
 		if (lib == null && type != FileType.EDIF)
 		{
@@ -146,19 +145,19 @@ public class Input
 
 		// initialize timer, error log, etc
 		long startTime = System.currentTimeMillis();
-        errorLogger = ErrorLogger.newInstance("File Import");
+		errorLogger = ErrorLogger.newInstance("File Import");
 
-        File f = new File(fileURL.getPath());
-        if (f != null && f.exists()) {
-            LibDirs.readLibDirs(f.getParent());
-        }
+		File f = new File(fileURL.getPath());
+		if (f != null && f.exists()) {
+			LibDirs.readLibDirs(f.getParent());
+		}
 
 		try {
 			// initialize progress
 			startProgressDialog("import", fileURL.getFile());
 
 			if (prefs != null)
-				lib = prefs.doInput(fileURL, lib, currentCells);
+				lib = prefs.doInput(fileURL, lib, currentCells, job);
 		} finally {
 			// clean up
 			stopProgressDialog();
@@ -178,19 +177,19 @@ public class Input
 	}
 
 	/**
-     * Return OutputPreferences for a specified FileType.
-     * This includes currnet default values of IO ProjectSettings
-     * and either factory default or current default values of Prefs
-     * Current default value of Prefs can be obtained only from client thread
-     * @param type specified file type.
-     * @param factory get factory default values of Prefs
-     * @return an OutputPreferences object for the given file type.
-     * @throws InvalidStateException on attemt to get current default values of Prefs from server thread
-     */
-    public static InputPreferences getInputPreferences(FileType type, boolean factory)
-    {
-        if (!factory && !SwingUtilities.isEventDispatchThread())
-                throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
+	 * Return OutputPreferences for a specified FileType.
+	 * This includes currnet default values of IO ProjectSettings
+	 * and either factory default or current default values of Prefs
+	 * Current default value of Prefs can be obtained only from client thread
+	 * @param type specified file type.
+	 * @param factory get factory default values of Prefs
+	 * @return an OutputPreferences object for the given file type.
+	 * @throws InvalidStateException on attemt to get current default values of Prefs from server thread
+	 */
+	public static InputPreferences getInputPreferences(FileType type, boolean factory)
+	{
+		if (!factory && !SwingUtilities.isEventDispatchThread())
+			throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
 
 		if (type == FileType.APPLICON860) return new Applicon860.Applicon860Preferences(factory);
 		if (type == FileType.CIF) return new CIF.CIFPreferences(factory);
@@ -203,27 +202,27 @@ public class Input
 		if (type == FileType.SPICE) return new Spice.SpicePreferences(factory);
 		if (type == FileType.SUE) return new Sue.SuePreferences(factory);
 		if (type == FileType.VERILOG) return new VerilogReader.VerilogPreferences(factory);
-        return null;
-    }
+		return null;
+	}
 
-    public abstract static class InputPreferences implements Serializable
+	public abstract static class InputPreferences implements Serializable
 	{
-        protected InputPreferences(boolean factory)
-        {
-            if (!factory && !SwingUtilities.isEventDispatchThread())
-                throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
-        }
+		protected InputPreferences(boolean factory)
+		{
+			if (!factory && !SwingUtilities.isEventDispatchThread())
+				throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
+		}
 
-        public void initFromUserDefaults() {}
+		public void initFromUserDefaults() {}
 
-        public abstract Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells);
+		public abstract Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job);
 	}
 
 	/**
 	 * Method to import a library from disk.
 	 * This method must be overridden by the various import modules.
 	 * @param lib the library to fill
-     * @param currentCells this map will be filled with currentCells in Libraries found in library file
+	 * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the created library (null on error).
 	 */
 	protected Library importALibrary(Library lib,Map<Library,Cell> currentCells) { return lib; }
@@ -232,14 +231,14 @@ public class Input
 	{
 		filePath = fileURL.getFile();
 
-        try
+		try
 		{
 			URLConnection urlCon = fileURL.openConnection();
-            String contentLength = urlCon.getHeaderField("content-length");
-            fileLength = -1;
-            try {
-                fileLength = Long.parseLong(contentLength);
-            } catch (Exception e) {}
+			String contentLength = urlCon.getHeaderField("content-length");
+			fileLength = -1;
+			try {
+				fileLength = Long.parseLong(contentLength);
+			} catch (Exception e) {}
 			inputStream = urlCon.getInputStream();
 		} catch (IOException e)
 		{
@@ -253,69 +252,69 @@ public class Input
 		return false;
 	}
 
-    protected boolean openStringsInput(String[] lines)
-    {
-        StringBuffer buffer = new StringBuffer();
-
-        try
-        {
-            for (String l : lines)
-            {
-                String s = l + "\n";
-                buffer.append(s);
-            }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        fileLength = lines.length;
-        StringReader reader = new StringReader(buffer.toString());
-        lineReader = new LineNumberReader(reader);
-        return false;
-    }
-
-    protected boolean openTextInput(URL fileURL)
+	protected boolean openStringsInput(String[] lines)
 	{
-		if (openBinaryInput(fileURL)) return true;
-        InputStreamReader is = new InputStreamReader(inputStream);
-        lineReader = new LineNumberReader(is);
-        return false;
+		StringBuffer buffer = new StringBuffer();
+
+		try
+		{
+			for (String l : lines)
+			{
+				String s = l + "\n";
+				buffer.append(s);
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		fileLength = lines.length;
+		StringReader reader = new StringReader(buffer.toString());
+		lineReader = new LineNumberReader(reader);
+		return false;
 	}
 
-    protected static void setProgressNote(String msg)
-    {
-        Job.getUserInterface().setProgressNote(msg);
-    }
+	protected boolean openTextInput(URL fileURL)
+	{
+		if (openBinaryInput(fileURL)) return true;
+		InputStreamReader is = new InputStreamReader(inputStream);
+		lineReader = new LineNumberReader(is);
+		return false;
+	}
 
-    protected static String getProgressNote()
-    {
-        return Job.getUserInterface().getProgressNote();
-    }
+	protected static void setProgressNote(String msg)
+	{
+		Job.getUserInterface().setProgressNote(msg);
+	}
+
+	protected static String getProgressNote()
+	{
+		return Job.getUserInterface().getProgressNote();
+	}
 
 	protected static void startProgressDialog(String type, String filePath)
 	{
-        Job.getUserInterface().startProgressDialog(type, filePath);
+		Job.getUserInterface().startProgressDialog(type, filePath);
 	}
 
 	protected static void stopProgressDialog()
 	{
-        Job.getUserInterface().stopProgressDialog();
+		Job.getUserInterface().stopProgressDialog();
 	}
 
-    protected static void setProgressValue(int value)
-    {
-        Job.getUserInterface().setProgressValue(value);
-    }
+	protected static void setProgressValue(int value)
+	{
+		Job.getUserInterface().setProgressValue(value);
+	}
 
 	protected void updateProgressDialog(int bytesRead)
 	{
 		byteCount += bytesRead;
-        if (fileLength == 0) return;
-        long pct = byteCount * 100L / fileLength;
-        UserInterface ui = Job.getUserInterface();
-        if (ui != null)
-            ui.setProgressValue((int)pct);
+		if (fileLength == 0) return;
+		long pct = byteCount * 100L / fileLength;
+		UserInterface ui = Job.getUserInterface();
+		if (ui != null)
+			ui.setProgressValue((int)pct);
 	}
 
 	protected void closeInput()
@@ -374,7 +373,7 @@ public class Input
 	}
 
 	private String lineBuffer;
-	private int    lineBufferPosition;
+	private int	lineBufferPosition;
 
 	protected void initKeywordParsing()
 	{
@@ -382,41 +381,41 @@ public class Input
 		lineBuffer = "";
 	}
 
-    /**
-     * Method to allow getAKeyword() to read next line next time is invocated.
-     */
-    protected String getRestOfLine() throws IOException
-    {
-        // +1 to skip the space
-        int next = lineBufferPosition+1;
-        String rest = (next < lineBuffer.length()) ? lineBuffer.substring(next, lineBuffer.length()) : "";
-        lineBufferPosition = lineBuffer.length();
-        readNewLine();
-        return rest;
-    }
+	/**
+	 * Method to allow getAKeyword() to read next line next time is invocated.
+	 */
+	protected String getRestOfLine() throws IOException
+	{
+		// +1 to skip the space
+		int next = lineBufferPosition+1;
+		String rest = (next < lineBuffer.length()) ? lineBuffer.substring(next, lineBuffer.length()) : "";
+		lineBufferPosition = lineBuffer.length();
+		readNewLine();
+		return rest;
+	}
 
-    private void readNewLine() throws IOException
-    {
-        lineBuffer = lineReader.readLine();
+	private void readNewLine() throws IOException
+	{
+		lineBuffer = lineReader.readLine();
 
-        // manage special comment situations
-        if (lineBuffer != null)
-        {
-            updateProgressDialog(lineBuffer.length());
-            lineBuffer = preprocessLine(lineBuffer);
-        }
+		// manage special comment situations
+		if (lineBuffer != null)
+		{
+			updateProgressDialog(lineBuffer.length());
+			lineBuffer = preprocessLine(lineBuffer);
+		}
 
-        // look for the first text on the line
-        lineBufferPosition = 0;
-    }
+		// look for the first text on the line
+		lineBufferPosition = 0;
+	}
 
-    protected String readWholeLine() throws IOException
-    {
-    	readNewLine();
-    	return lineBuffer;
-    }
+	protected String readWholeLine() throws IOException
+	{
+		readNewLine();
+		return lineBuffer;
+	}
 
-    protected String getAKeyword()
+	protected String getAKeyword()
 		throws IOException
 	{
 		// keep reading from file until something is found on a line
@@ -425,7 +424,7 @@ public class Input
 			if (lineBuffer == null) return null;
 			if (lineBufferPosition >= lineBuffer.length())
 			{
-                readNewLine();
+				readNewLine();
 				continue;
 			}
 
@@ -496,12 +495,12 @@ public class Input
 	 */
 	public static boolean changesQuiet(boolean quiet) {
 //		EDatabase.serverDatabase().checkInvariants();
-        Layout.changesQuiet(quiet);
+		Layout.changesQuiet(quiet);
 //		NetworkTool.changesQuiet(quiet);
 		boolean formerQuiet = doChangesQuietly;
-        doChangesQuietly = quiet;
+		doChangesQuietly = quiet;
 		return formerQuiet;
-    }
+	}
 
 	/**
 	 * Method to display an error message because end-of-file was reached.

@@ -183,7 +183,7 @@ public class AutoStitch
 			this.forced = forced;
 			setReportExecutionFlag(true);
 			prefs = new AutoOptions();
-			prefs.getOptionsFromPreferences();
+			prefs.initFromUserDefaults();
 			startJob();
 		}
 
@@ -2770,7 +2770,7 @@ public class AutoStitch
 			preferredArc = Technology.getCurrent().getArcs().next();
 		}
 
-		public void getOptionsFromPreferences()
+		public void initFromUserDefaults()
 		{
 			createExports = Routing.isAutoStitchCreateExports();
 			preferredArc = Routing.getPreferredRoutingArcProto();

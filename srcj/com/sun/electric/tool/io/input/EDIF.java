@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -56,9 +57,11 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.EDIFEquiv;
+import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 
@@ -77,10 +80,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * This class reads files in EDIF files.
+ * This class reads EDIF files.
  * <BR>
  * Notes:
- *	I have tried EDIF files from CADENCE and VALID only.
  *	Does not fully support portbundles
  *	Multiple ports of the same name are named port_x (x is 1 to n duplicate)
  *	Keywords such as ARRAY have unnamed parameters, ie (array (name..) 5 6)
@@ -91,7 +93,119 @@ import java.util.Set;
  * 	Better NAME/RENAME/STRINGDISPLAY/ANNOTATE text handling.
  *  ANSI prototypes
  *	Changed arcs to simple polygons plus ARC attribute
- *  Can read NETLIST views
+ *<BR>
+ * Some examples that can be handled:
+ *
+ * ------------------------- LAYOUT -------------------------
+ * (cell XXXXX (cellType GENERIC)
+ *  (view layout (viewType MASKLAYOUT)
+ *   (interface
+ *    (protectionFrame)
+ *   )
+ *   (contents
+ *    ========== (LAYOUT DESCRIPTION)
+ *   )
+ *  )
+ * )
+ * ------------------------- AN ICON -------------------------
+ * (cell XXXXX (cellType GENERIC)
+ *  (view INTERFACE (viewType NETLIST)
+ *   (interface
+ *    (port A)
+ *   )
+ *  )
+ * )
+ * ------------------------- AN ICON -------------------------
+ * (cell XXXXX (cellType GENERIC)
+ *  (view symbol (viewType SCHEMATIC)
+ *   (interface
+ *    (port A)
+ *    (symbol
+ *     ========== (ICON DESCRIPTION)
+ *    )
+ *   )
+ *  )
+ * )
+ * ------------------------- AN ICON -------------------------
+ * (cell XXXXX (cellType GENERIC)
+ *  (view VLSI_Symbol (viewType SCHEMATIC)
+ *   (interface
+ *    (port A)
+ *    (symbol
+ *     ========== (ICON DESCRIPTION)
+ *    )
+ *   )
+ *  )
+ * )
+ * ------------------------- AN ICON -------------------------
+ * (cell XXXXX (cellType GENERIC)
+ *  (view symbol (viewType GRAPHIC)
+ *   (interface)
+ *   (contents
+ *    ========== (ICON DESCRIPTION)
+ *   )
+ *  )
+ * )
+ * ------------------------- AN ICON AND SCHEMATIC -------------------------
+ * (cell XXXXX (cellType GENERIC)
+ *  (view symbol (viewType SCHEMATIC)
+ *   (interface
+ *    (port A)
+ *    (symbol
+ *     ========== (ICON DESCRIPTION)
+ *    )
+ *   )
+ *   (contents
+ *    (page SH1
+ *     ========== (SCHEMATIC DESCRIPTION)
+ *    )
+ *   )
+ *  )
+ * )
+ * ------------------------- AN ICON AND SCHEMATIC -------------------------
+ * (cell XXXXX (cellType GENERIC)
+ *  (view NETLIST (viewType NETLIST)
+ *   (interface
+ *    (port A)
+ *   )
+ *   (contents
+ *    ========== (SCHEMATIC DESCRIPTION)
+ *   )
+ *  )
+ * )
+ * ------------------------- AN ICON, SCHEMATIC, AND LAYOUT -------------------------
+ * (cell XXXXX (cellType GENERIC)
+ *  (view layout (viewType MASKLAYOUT)
+ *   (interface
+ *    (port A)
+ *    (protectionFrame)
+ *   (contents
+ *    ========== (LAYOUT DESCRIPTION)
+ *   )
+ *  )
+ *  (view schematic (viewType SCHEMATIC)
+ *   (interface
+ *    (port A)
+ *   (contents
+ *    (page SH1
+ *     ========== (SCHEMATIC DESCRIPTION)
+ *    )
+ *   )
+ *  )
+ *  (view symbol (viewType SCHEMATIC)
+ *   (interface
+ *    (port A)
+ *    (symbol
+ *     ========== (ICON DESCRIPTION)
+ *    )
+ *   )
+ *   (contents
+ *    (page SH1
+ *     ========== (SCHEMATIC DESCRIPTION AGAIN!!!)
+ *    )
+ *   )
+ *  )
+ * )
  */
 public class EDIF extends Input
 {
@@ -105,7 +219,7 @@ public class EDIF extends Input
 		/** the original MASK layer */	private String original;
 		/** the replacement layer */	private String replace;
 		/** the basic electric node */	private NodeProto node;
-		/** default text height */		private int textHeight;
+		/** default text height */		private double textHeight;
 		/** default justification */	private TextDescriptor.Position justification;
 		/** layer is visible */			private boolean visible;
 	}
@@ -172,10 +286,8 @@ public class EDIF extends Input
 	}
 
 	// view information ...
-	/** the schematic page number */			private int pageNumber;
 	/** indicates we are in a NETLIST view */	private ViewType activeView;
 	/** the current vendor type */				private VendorType curVendor;
-	/** the name of the last "view" */			private String curViewName;
 
 	// parser variables ...
 	/** the current parser state */				private EDIFKEY curKeyword;
@@ -201,6 +313,7 @@ public class EDIF extends Input
 	/** the current port proto */				private PortProto curPort;
 	/** the current portList */					private List<Network> curPortlist;
 	/** the last portList */					private List<Network> lastPortlist;
+	/** the current input job */				private Job job;
 
 	// general geometry information ...
 	/** the current geometry type */			private GeometryType curGeometryType;
@@ -222,11 +335,11 @@ public class EDIF extends Input
 
 	// text variables ...
 	/** Text string */							private String textString;
-	/** the current default text height */		private int textHeight;
+	/** the current default text height */		private double textHeight;
 	/** the current text justificaton */		private TextDescriptor.Position textJustification;
 	/** is stringdisplay visible */				private boolean textVisible;
 	/** origin x and y */						private List<Point2D> saveTextPoints;
-	/** the height of text */					private int saveTextHeight;
+	/** the height of text */					private double saveTextHeight;
 	/** justification of the text */			private TextDescriptor.Position saveTextJustification;
 
 	// current name and rename of EDIF objects ...
@@ -251,6 +364,7 @@ public class EDIF extends Input
 	/** the original name of the object */		private String originalName;
 
 	/** cells that have been built so far */	private Set<Cell> builtCells;
+	/** whether a symbol was found in an interface */	private boolean symbolDefined;
 
 	// layer or figure information ...
 	/** the current name mapping table */		private List<NameEntry> activeFigures;
@@ -279,6 +393,7 @@ public class EDIF extends Input
 	/** mapping of named arcs in each cell */	private Map<Cell,Map<String,List<ArcInst>>> namedArcs = new HashMap<Cell,Map<String,List<ArcInst>>>();
 	/** export names needed on current net */	private Set<String> exportsOnNet;
 	/** arcs placed on current net */			private List<ArcInst> arcsOnNet;
+	/** nodes placed on current net */			private List<NodeInst> nodesOnNet;
 
 	// some standard artwork primitivies
 	private PortProto defaultPort;
@@ -296,6 +411,7 @@ public class EDIF extends Input
 		public String acceptedParameters;
 		public String configurationFile;
 		public ViewChanges.IconParameters iconParameters = new ViewChanges.IconParameters();
+		public AutoStitch.AutoOptions autoParameters = new AutoStitch.AutoOptions();
 
 		public EDIFPreferences(boolean factory) { super(factory); }
 
@@ -305,11 +421,14 @@ public class EDIF extends Input
 			acceptedParameters = IOTool.getEDIFAcceptedParameters();
 			configurationFile = IOTool.getEDIFConfigurationFile();
 			iconParameters.initFromUserDefaults();
+			autoParameters.initFromUserDefaults();
+			autoParameters.createExports = false;
 		}
 
-		public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+		public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
 		{
 			EDIF in = new EDIF(this);
+			in.job = job;
 			if (in.openTextInput(fileURL)) return null;
 			lib = in.importALibrary(lib, currentCells);
 			in.closeInput();
@@ -572,6 +691,9 @@ public class EDIF extends Input
 				}
 				for(NodeInst ni : deletePins)
 					ni.kill();
+
+				// now auto-route the schematic to connect everything
+				AutoStitch.runAutoStitch(cell, null, null, job, null, null, false, localPrefs.autoParameters, false);
 			}
 		}
 
@@ -908,7 +1030,8 @@ public class EDIF extends Input
 	private double convertTextSize(double textHeight)
 	{
 		double i = textHeight / 4;
-		if (i <= 0) i = 0.5;
+		if (i < TextDescriptor.Size.TXTMINQGRID) i = TextDescriptor.Size.TXTMINQGRID;
+		if (i > TextDescriptor.Size.TXTMAXQGRID) i = TextDescriptor.Size.TXTMAXQGRID;
 		return i;
 	}
 
@@ -1487,23 +1610,6 @@ public class EDIF extends Input
 	}
 
 	/**
-	 * Method to find a cell in the current library.
-	 * @param name the name of the cell.
-	 * @param view the view name of the cell.
-	 * @return the cell if it exists; null if not.
-	 */
-	private Cell findCellInLibrary(String name, String view)
-	{
-		for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
-		{
-			Cell cell = it.next();
-			if (cell.getName().equalsIgnoreCase(name) &&
-				cell.getView().getAbbreviation().equalsIgnoreCase(view)) return cell;
-		}
-		return null;
-	}
-
-	/**
 	 * Method to create a new cell.
 	 * @param libName the name of the library in which the cell will be created
 	 * (null to use the current library).
@@ -1577,14 +1683,21 @@ public class EDIF extends Input
 				if (curCell.getView() == View.SCHEMATIC) type = Schematics.tech().offpageNode; else
 				if (curCell.getView() == View.ICON) type = Schematics.tech().busPinNode;
 			}
-			double psX = type.getDefWidth();
-			double psY = type.getDefHeight();
-			plp.alreadyThere = NodeInst.makeInstance(type, new Point2D.Double(plp.x, plp.y), psX, psY, curCell);
-			if (plp.alreadyThere == null)
+			List<PortInst> tList = findEDIFPort(curCell, plp.x, plp.y, type.getPort(0).getBasePort().getConnections()[0]);
+			if (tList.size() != 0)
 			{
-				System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create external port");
-				errorCount++;
-				return;
+				plp.alreadyThere = tList.get(0).getNodeInst();
+			} else
+			{
+				double psX = type.getDefWidth();
+				double psY = type.getDefHeight();
+				plp.alreadyThere = NodeInst.makeInstance(type, new Point2D.Double(plp.x, plp.y), psX, psY, curCell);
+				if (plp.alreadyThere == null)
+				{
+					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create external port");
+					errorCount++;
+					return;
+				}
 			}
 		}
 
@@ -1595,7 +1708,8 @@ public class EDIF extends Input
 			if (plp.direction == PortCharacteristic.OUT) fPp = Schematics.tech().offpageNode.findPortProto("a");
 			pi = plp.alreadyThere.findPortInstFromProto(fPp);
 		}
-		plp.createdPort = Export.newInstance(curCell, pi, convertParens(plp.name), plp.direction);
+		plp.createdPort = Export.newInstance(curCell, pi, convertParens(plp.name), plp.direction, false);
+
 		if (plp.createdPort == null)
 		{
 			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + plp.name + ">");
@@ -1612,7 +1726,6 @@ public class EDIF extends Input
 		for(PlannedPort plp : plannedPorts)
 			if (plp.name.equalsIgnoreCase(name) || plp.alternateName.equalsIgnoreCase(name))
 				return plp;
-
 		PlannedPort plp = new PlannedPort();
 		plp.name = name;
 		plp.alternateName = name;
@@ -1622,6 +1735,20 @@ public class EDIF extends Input
 		plp.alreadyThere = null;
 		plannedPorts.add(plp);
 		return plp;
+	}
+
+	/**
+	 * Method to see if a parameter name is acceptable for placement in the circuit.
+	 * @param param the parameter name.
+	 * @return true if the name should be placed in the circuit.
+	 */
+	private boolean isAcceptedParameter(String param)
+	{
+		if (localPrefs.acceptedParameters.length() == 0) return false;
+		String [] params = localPrefs.acceptedParameters.split("/");
+		for(int i=0; i<params.length; i++)
+			if (param.equalsIgnoreCase(params[i])) return true;
+		return false;
 	}
 
 	/**************************************** PARSING TABLE ****************************************/
@@ -1660,7 +1787,7 @@ public class EDIF extends Input
 	private EDIFKEY KCOMMENT = new EDIFKEY("comment");
 	private EDIFKEY KCOMMENTGRAPHICS = new EDIFKEY("commentGraphics");
 	private EDIFKEY KCONNECTLOCATION = new EDIFKEY("connectLocation");
-	private EDIFKEY KCONTENTS = new EDIFKEY("contents");
+	private EDIFKEY KCONTENTS = new KeyContents();
 	private EDIFKEY KCORNERTYPE = new KeyCornerType();
 	private EDIFKEY KCURVE = new EDIFKEY("curve");
 	private EDIFKEY KDATAORIGIN = new EDIFKEY("dataOrigin");
@@ -1670,7 +1797,7 @@ public class EDIF extends Input
 	private EDIFKEY KDESIGN = new KeyDesign();
 	private EDIFKEY KDESIGNATOR = new EDIFKEY("designator");
 	private EDIFKEY KDIRECTION = new KeyDirection();
-	private EDIFKEY KDISPLAY = new KeyDisplay();
+	private EDIFKEY KDISPLAY = new EDIFKEY("display");
 	private EDIFKEY KDOT = new KeyDot();
 	private EDIFKEY KSCALEDINTEGER = new EDIFKEY("e");
 	private EDIFKEY KEDIF = new EDIFKEY("edif");
@@ -1709,7 +1836,7 @@ public class EDIF extends Input
 	private EDIFKEY KORIENTATION = new KeyOrientation();
 	private EDIFKEY KORIGIN = new EDIFKEY("origin");
 	private EDIFKEY KOWNER = new EDIFKEY("owner");
-	private EDIFKEY KPAGE = new KeyPage();
+	private EDIFKEY KPAGE = new EDIFKEY("page");
 	private EDIFKEY KPAGESIZE = new EDIFKEY("pageSize");
 	private EDIFKEY KPATH = new KeyPath();
 	private EDIFKEY KPATHWIDTH = new KeyPathWidth();
@@ -1837,7 +1964,6 @@ public class EDIF extends Input
 		{
 			activeView = VNULL;
 			objectName = "";   originalName = "";
-			pageNumber = 0;
 			sheetXPos = sheetYPos = -1;
 			if (checkName())
 			{
@@ -1968,6 +2094,57 @@ public class EDIF extends Input
 			freePointList();
 		}
 	}
+	
+	private class KeyContents extends EDIFKEY
+	{
+		private KeyContents() { super("contents"); }
+		protected void push()
+			throws IOException
+		{
+			if (activeView != VNETLIST)
+			{
+				View view = View.SCHEMATIC;
+				if (activeView == VMASKLAYOUT) view = View.LAYOUT; else
+					if (activeView == VGRAPHIC) view = View.ICON;
+
+				// check for the name
+				checkName();
+
+				// locate this in the list of cells
+				Cell proto = null;
+				for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
+				{
+					Cell cell = it.next();
+					if (cell.getName().equalsIgnoreCase(cellName) && cell.getView() == view)
+						{ proto = cell;   break; }
+				}
+				if (proto == null)
+				{
+					// allocate the cell
+					proto = createCell(null, cellName, view.getAbbreviation());
+					if (proto == null) throw new IOException("Error creating cell");
+//					if (view == View.SCHEMATIC) proto.newVar(User.FRAME_SIZE, "d");		// NOT NOW PLEASE!
+				} else
+				{
+					if (activeView == VSCHEMATIC) ignoreBlock = true;
+				}
+
+				curCell = proto;
+				curCellPage = 0;
+				curCellParameterOff = 0;
+				inputLocY = outputLocY = 0;
+			}
+			plannedPorts = new ArrayList<PlannedPort>();
+		}
+
+		protected void pop()
+		{
+			Rectangle2D cellBounds = curCell.getBounds();
+			for(PlannedPort plp : plannedPorts)
+				instantiatePlannedPort(plp, cellBounds);
+			plannedPorts = null;
+		}
+	}
 
 	private class KeyCornerType extends EDIFKEY
 	{
@@ -1975,7 +2152,7 @@ public class EDIF extends Input
 		protected void push()
 			throws IOException
 		{
-			// get the endtype
+			// ignore the endtype
 			getToken((char)0);
 		}
 	}
@@ -2018,20 +2195,9 @@ public class EDIF extends Input
 		{
 			// get the direction
 			String aName = getToken((char)0);
-
 			if (aName.equalsIgnoreCase("INPUT")) curDirection = PortCharacteristic.IN; else
 				if (aName.equalsIgnoreCase("INOUT")) curDirection = PortCharacteristic.BIDIR; else
 					if (aName.equalsIgnoreCase("OUTPUT")) curDirection = PortCharacteristic.OUT;
-		}
-	}
-
-	private class KeyDisplay extends EDIFKEY
-	{
-		private KeyDisplay() { super("display"); }
-		protected void push()
-			throws IOException
-		{
-//			makeFigure();
 		}
 	}
 
@@ -2049,7 +2215,9 @@ public class EDIF extends Input
 			if (curGeometryType == GPORTIMPLEMENTATION)
 			{
 				// inside a PortImplementation
-				PlannedPort plp = addPlannedPort(objectName);
+				String exportName = renamedObjects.get(objectName);
+				if (exportName == null) exportName = objectName;
+				PlannedPort plp = addPlannedPort(exportName);
 				plp.pinType = cellRefProto;
 				plp.knownLocation = true;
 				Point2D p0 = curPoints.get(0);
@@ -2083,7 +2251,6 @@ public class EDIF extends Input
 		{
 			// get the endtype
 			String type = getToken((char)0);
-
 			if (type.equalsIgnoreCase("EXTEND")) extendEnd = true;
 		}
 	}
@@ -2112,8 +2279,8 @@ public class EDIF extends Input
 			activeFigures.add(nt);
 
 			// first get the original and replacement layers
-			nt.original = getToken((char) 0);
-			nt.replace = getToken((char) 0);
+			nt.original = getToken((char)0);
+			nt.replace = getToken((char)0);
 			nt.textHeight = 0;
 			nt.justification = TextDescriptor.Position.DOWNRIGHT;
 			nt.visible = true;
@@ -2154,7 +2321,9 @@ public class EDIF extends Input
 			textHeight = 0;
 			if (curGeometryType == GPORTIMPLEMENTATION)
 			{
-				PlannedPort plp = addPlannedPort(objectName);
+				String exportName = renamedObjects.get(objectName);
+				if (exportName == null) exportName = objectName;
+				PlannedPort plp = addPlannedPort(exportName);
 				plp.pinType = curFigureGroup;
 			}
 		}
@@ -2545,29 +2714,66 @@ public class EDIF extends Input
 		protected void push()
 			throws IOException
 		{
-			if (activeView == VMASKLAYOUT || activeView == VNETLIST) return;
-			// create schematic page 1 to represent all I/O for this schematic; locate this in the list of cells
-			curCell = createCell(null, cellName, activeView == VGRAPHIC ? "ic" : "sch");
-			if (curCell == null) throw new IOException("Error creating cell");
-			curCellPage = 0;
+			if (activeView != VNETLIST)
+			{
+				String viewName = "ic";
+				if (activeView == VMASKLAYOUT) viewName = "lay";
+				curCell = createCell(null, cellName, viewName);
+				if (curCell == null) throw new IOException("Error creating cell");
+				curCellPage = 0;
+				curCellParameterOff = 0;
+				inputLocY = outputLocY = 0;
+			}
+			plannedPorts = new ArrayList<PlannedPort>();
+			symbolDefined = false;
 		}
 
 		protected void pop()
 		{
-//			if (activeView == VNETLIST)
-//			{
-//				// create a black-box symbol
-//				Cell nnp = null;
-//				try
-//				{
-//					nnp = localPrefs.iconParameters.makeIconForCell(curCell);
-//				} catch (JobException e) {}
-//				if (nnp == null)
-//				{
-//					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create icon <" + curCell.describe(true) + ">");
-//					errorCount++;
-//				}
-//			}
+			if (activeView == VNETLIST)
+			{
+				// create a black-box symbol
+				boolean hadSchematic = (curCell != null);
+				if (!hadSchematic)
+				{
+					// no contents: create the schematic so the icon can be generated
+					curCell = createCell(null, cellName, "sch");
+					if (curCell == null) return;
+					Rectangle2D cellBounds = curCell.getBounds();
+					for(PlannedPort plp : plannedPorts)
+						instantiatePlannedPort(plp, cellBounds);
+				}
+				Cell nnp = null;
+				try
+				{
+					nnp = localPrefs.iconParameters.makeIconForCell(curCell);
+				} catch (JobException e) {}
+				if (nnp == null)
+				{
+					System.out.println("Error, line " + lineReader.getLineNumber() +
+						", could not create icon <" + curCell.describe(true) + ">");
+					errorCount++;
+				} else if (!hadSchematic)
+				{
+					curCell.kill();
+					curCell = null;
+					for(PlannedPort plp : plannedPorts)
+					{
+						plp.alreadyThere = null;
+						plp.knownLocation = false;
+						plp.createdPort = null;
+					}
+				}
+			} else
+			{
+				if (symbolDefined)
+				{
+					Rectangle2D cellBounds = curCell.getBounds();
+					for(PlannedPort plp : plannedPorts)
+						instantiatePlannedPort(plp, cellBounds);
+				}
+			}
+			plannedPorts = null;
 		}
 	}
 
@@ -2755,6 +2961,7 @@ public class EDIF extends Input
 			}
 			exportsOnNet = new HashSet<String>();
 			arcsOnNet = new ArrayList<ArcInst>();
+			nodesOnNet = new ArrayList<NodeInst>();
 		}
 
 		protected void pop()
@@ -2789,24 +2996,37 @@ public class EDIF extends Input
 					unNamedArc.setName(exportName);
 				} else
 				{
-					// two names on one arc: duplicate the arc
 					if (arcsOnNet.size() > 0)
 					{
+						// two names on one arc: duplicate the arc
 						ArcInst ai = arcsOnNet.get(0);
 						ArcInst second = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(),
 							ai.getHeadPortInst(), ai.getTailPortInst(), ai.getHeadLocation(), ai.getTailLocation(),
 							exportName, ai.getAngle(), ai.getD().flags);
 						TextDescriptor td = TextDescriptor.getArcTextDescriptor().withOff(0, -1);
 						second.setTextDescriptor(ArcInst.ARC_NAME, td);
+					} else if (nodesOnNet.size() > 0)
+					{
+						// find port
+						for(PlannedPort plp : plannedPorts)
+						{
+							if (plp.name.equalsIgnoreCase(exportName) || plp.alternateName.equalsIgnoreCase(exportName))
+							{
+								if (plp.alreadyThere == null)
+									plp.alreadyThere = nodesOnNet.get(0);
+								break;
+							}
+						}
 //					} else
 //					{
-//						System.out.println("ERROR: Unable to connect export " + exportName + " to circuitry in cell " +
-//							curCell.describe(false));
+//						System.out.println("Error, line " + lineReader.getLineNumber() +
+//							", unable to connect export " + exportName + " to circuitry in cell " + curCell.describe(false));
 					}
 				}
 			}
 			exportsOnNet = null;
 			arcsOnNet = null;
+			nodesOnNet = null;
 		}
 	}
 
@@ -2883,58 +3103,6 @@ public class EDIF extends Input
 				System.out.println("Warning, line " + lineReader.getLineNumber() + ": unknown orientation value <" + orient + ">");
 				warningCount++;
 			}
-		}
-	}
-
-	private class KeyPage extends EDIFKEY
-	{
-		private KeyPage() { super("page"); }
-		protected void push()
-			throws IOException
-		{
-			String viewName = "sch";
-			View view = View.SCHEMATIC;
-			if (activeView == VGRAPHIC)
-			{
-				viewName = "ic";
-				view = View.ICON;
-			}
-
-			// check for the name
-			checkName();
-
-			curCellPage = ++pageNumber;
-
-			// locate this in the list of cells
-			Cell proto = null;
-			for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
-			{
-				Cell cell = it.next();
-				if (cell.getName().equalsIgnoreCase(cellName) && cell.getView() == view)
-					{ proto = cell;   break; }
-			}
-			if (proto == null)
-			{
-				// allocate the cell
-				proto = createCell(null, cellName, viewName);
-				if (proto == null) throw new IOException("Error creating cell");
-				if (view == View.SCHEMATIC)
-				{
-					proto.setMultiPage(true);
-					proto.newVar(User.FRAME_SIZE, "d");
-				}
-			} else
-			{
-				if (!builtCells.contains(proto) || view == View.ICON)
-					ignoreBlock = true;
-			}
-
-			curCell = proto;
-		}
-
-		protected void pop()
-		{
-			activeView = VNULL;
 		}
 	}
 
@@ -3831,20 +3999,6 @@ public class EDIF extends Input
 		}
 	}
 
-	/**
-	 * Method to see if a parameter name is acceptable for placement in the circuit.
-	 * @param param the parameter name.
-	 * @return true if the name should be placed in the circuit.
-	 */
-	private boolean isAcceptedParameter(String param)
-	{
-		if (localPrefs.acceptedParameters.length() == 0) return false;
-		String [] params = localPrefs.acceptedParameters.split("/");
-		for(int i=0; i<params.length; i++)
-			if (param.equalsIgnoreCase(params[i])) return true;
-		return false;
-	}
-
 	private class KeyProtectionFrame extends EDIFKEY
 	{
 		private KeyProtectionFrame() { super("protectionFrame"); }
@@ -3988,6 +4142,9 @@ public class EDIF extends Input
 						plp.x = (lX+hX) / 2;
 						plp.y = (lY+hY) / 2;
 						if (curCellPage > 0) plp.y += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
+					} else if (nodesOnNet != null)
+					{
+						nodesOnNet.add(ni);
 					}
 				}
 			}
@@ -4205,33 +4362,8 @@ public class EDIF extends Input
 	{
 		private KeySymbol() { super("symbol"); }
 		protected void push()
-			throws IOException
 		{
-			activeView = VGRAPHIC;
-
-			// locate this in the list of cells
-			Cell proto = null;
-			for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
-			{
-				Cell cell = it.next();
-				if (cell.getName().equalsIgnoreCase(cellName) &&
-					cell.isIcon()) { proto = cell;   break; }
-			}
-			if (proto == null)
-			{
-				// allocate the cell
-				proto = createCell(null, cellName, "ic");
-				if (proto == null) throw new IOException("Error creating cell");
-			} else
-			{
-				if (!builtCells.contains(proto))
-					ignoreBlock = true;
-			}
-
-			curCell = proto;
-			curCellPage = 0;
-			curCellParameterOff = 0;
-			curFigureGroup = null;
+			symbolDefined = true;
 		}
 	}
 
@@ -4243,8 +4375,7 @@ public class EDIF extends Input
 		{
 			// get the textheight value of the point
 			String val = getToken((char)0);
-			textHeight = (int)(TextUtils.atoi(val) * localPrefs.inputScale);
-
+			textHeight = TextUtils.atoi(val) * localPrefs.inputScale;
 			if (curActiveFigure != null)
 				curActiveFigure.textHeight = textHeight;
 		}
@@ -4295,12 +4426,9 @@ public class EDIF extends Input
 	{
 		private KeyView() { super("view"); }
 		protected void push()
-			throws IOException
 		{
 			activeView = VNULL;
-			plannedPorts = new ArrayList<PlannedPort>();
 			mappedNodes = new HashMap<String,EDIFEquiv.NodeEquivalence>();
-			curViewName = getToken((char)0);
 		}
 
 		protected void pop()
@@ -4324,30 +4452,7 @@ public class EDIF extends Input
 					}
 				}
 			}
-
-			Rectangle2D cellBounds = curCell.getBounds();
-			for(PlannedPort plp : plannedPorts)
-			{
-				instantiatePlannedPort(plp, cellBounds);
-			}
-
-			plannedPorts = null;
 			mappedNodes = null;
-
-			if (activeView == VNETLIST)
-			{
-				// create a black-box symbol
-				Cell nnp = null;
-				try
-				{
-					nnp = localPrefs.iconParameters.makeIconForCell(curCell);
-				} catch (JobException e) {}
-				if (nnp == null)
-				{
-					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create icon for " + curCell.describe(false));
-					errorCount++;
-				}
-			}
 		}
 	}
 
@@ -4359,6 +4464,7 @@ public class EDIF extends Input
 		{
 			viewRef = getToken((char)0);
 		}
+
 		protected void pop()
 		{
 			viewRef = null;
@@ -4367,9 +4473,8 @@ public class EDIF extends Input
 
 	/**
 	 * viewType:  Indicates the view style for this cell, ie
-	 *	BEHAVIOR, DOCUMENT, GRAPHIC, LOGICMODEL, MASKLAYOUT, NETLIST,
-	 *  	PCBLAYOUT, SCHEMATIC, STRANGER, SYMBOLIC
-	 * we are only concerned about the viewType NETLIST.
+	 * BEHAVIOR, DOCUMENT, GRAPHIC, LOGICMODEL, MASKLAYOUT, NETLIST,
+	 * PCBLAYOUT, SCHEMATIC, STRANGER, SYMBOLIC.
 	 */
 	private class KeyViewType extends EDIFKEY
 	{
@@ -4379,63 +4484,16 @@ public class EDIF extends Input
 		{
 			// get the viewType
 			String aName = getToken((char)0);
-
-			String view = "";
-			if (aName.equalsIgnoreCase("BEHAVIOR")) activeView = VBEHAVIOR;
-			else if (aName.equalsIgnoreCase("DOCUMENT")) activeView = VDOCUMENT;
-			else if (aName.equalsIgnoreCase("GRAPHIC"))
-			{
-				activeView = VGRAPHIC;
-				view = "ic";
-			}
-			else if (aName.equalsIgnoreCase("LOGICMODEL")) activeView = VLOGICMODEL;
-			else if (aName.equalsIgnoreCase("MASKLAYOUT"))
-			{
-				activeView = VMASKLAYOUT;
-				view = "lay";
-			}
-			else if (aName.equalsIgnoreCase("NETLIST"))
-			{
-				activeView = VNETLIST;
-				view = "sch";
-			}
-			else if (aName.equalsIgnoreCase("PCBLAYOUT")) activeView = VPCBLAYOUT;
-			else if (aName.equalsIgnoreCase("SCHEMATIC"))
-			{
-				activeView = VSCHEMATIC;
-				view = "sch";
-				if (keyStack[keyStackDepth-1] == KVIEW && curViewName != null && curViewName.equals("symbol"))
-				{
-					activeView = VGRAPHIC;
-					view = "ic";
-				}
-			}
-			else if (aName.equalsIgnoreCase("STRANGER")) activeView = VSTRANGER;
-			else if (aName.equalsIgnoreCase("SYMBOLIC")) activeView = VSYMBOLIC;
-
-			// immediately allocate MASKLAYOUT and VGRAPHIC viewtypes
-			if (activeView == VMASKLAYOUT || activeView == VGRAPHIC ||
-				activeView == VNETLIST || activeView == VSCHEMATIC)
-			{
-				Cell proto = findCellInLibrary(cellName, view);
-				if (proto == null)
-				{
-					// create the cell
-					proto = createCell(null, cellName, view);
-					if (proto == null) throw new IOException("Error creating cell");
-				} else
-				{
-//					ignoreHigherBlock = true;
-					System.out.println("Warning, line " + lineReader.getLineNumber() + ": Cell " + proto.describe(false) + " exists...EDIF for it is being ignored");
-//					if (!builtCells.contains(proto)) ignoreBlock = true;
-				}
-
-				curCell = proto;
-				curCellPage = 0;
-				curCellParameterOff = 0;
-				inputLocY = outputLocY = 0;
-			}
-			else curCell = null;
+			if (aName.equalsIgnoreCase("BEHAVIOR"))   activeView = VBEHAVIOR;   else
+			if (aName.equalsIgnoreCase("DOCUMENT"))   activeView = VDOCUMENT;   else
+			if (aName.equalsIgnoreCase("GRAPHIC"))    activeView = VGRAPHIC;    else
+			if (aName.equalsIgnoreCase("LOGICMODEL")) activeView = VLOGICMODEL; else
+			if (aName.equalsIgnoreCase("MASKLAYOUT")) activeView = VMASKLAYOUT; else
+			if (aName.equalsIgnoreCase("NETLIST"))    activeView = VNETLIST;    else
+			if (aName.equalsIgnoreCase("PCBLAYOUT"))  activeView = VPCBLAYOUT;  else
+			if (aName.equalsIgnoreCase("SCHEMATIC"))  activeView = VSCHEMATIC;  else
+			if (aName.equalsIgnoreCase("STRANGER"))   activeView = VSTRANGER;   else
+			if (aName.equalsIgnoreCase("SYMBOLIC"))   activeView = VSYMBOLIC;
 
 			// add the name to the cellTable
 			NameEntry nt = new NameEntry();

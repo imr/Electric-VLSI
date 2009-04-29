@@ -49,6 +49,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.Job;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -81,7 +82,7 @@ public class Applicon860 extends Input
     {
 		public Applicon860Preferences(boolean factory) { super(factory); }
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
         {
         	Applicon860 in = new Applicon860(this);
 			if (in.openBinaryInput(fileURL)) return null;

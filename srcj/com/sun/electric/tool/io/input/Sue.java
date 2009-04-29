@@ -54,6 +54,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.Spice;
 
@@ -235,7 +236,7 @@ public class Sue extends Input
 			convertExpressions = IOTool.isSueConvertsExpressions();
 		}
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
         {
         	Sue in = new Sue(this);
 			if (in.openTextInput(fileURL)) return null;

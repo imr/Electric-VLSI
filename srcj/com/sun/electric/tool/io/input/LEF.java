@@ -42,6 +42,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 
 import java.awt.geom.Point2D;
@@ -83,7 +84,7 @@ public class LEF extends LEFDEF
     {
 		public LEFPreferences(boolean factory) { super(factory); }
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
         {
         	LEF in = new LEF(this);
 			if (in.openTextInput(fileURL)) return null;

@@ -38,6 +38,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 
 import java.awt.geom.AffineTransform;
@@ -119,7 +120,7 @@ public class DXF extends Input
 			scale = IOTool.getDXFScale();
 		}
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
         {
         	DXF in = new DXF(this);
 			if (in.openTextInput(fileURL)) return null;

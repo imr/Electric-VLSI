@@ -45,6 +45,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 
 import java.awt.geom.AffineTransform;
@@ -109,7 +110,7 @@ public class DEF extends LEFDEF
 			physicalPlacement = IOTool.isDEFPhysicalPlacement();
 		}
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
         {
         	DEF in = new DEF(this);
 			if (in.openTextInput(fileURL)) return null;

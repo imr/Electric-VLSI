@@ -43,6 +43,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,7 +68,7 @@ public class Spice extends Input
     {
 		public SpicePreferences(boolean factory) { super(factory); }
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells)
+        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
         {
         	Spice in = new Spice(this);
 			in.readDirectory(fileURL, lib);
