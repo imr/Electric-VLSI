@@ -4,7 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
-IMP: (4/29/09, SMR) Text in the component menu is now sized automatically (Bug #2133).
+IMP/MAN: (4/29/09, SMR) File/Import commands now offer the ability to "merge" the
+     new library with an existing library.  Removed the command "File / Import /
+     DEF (Design Exchange Format) to current cell..." (Bug #2145).
+
+IMP/MAN: (4/29/09, SMR) Text in the component menu is now sized automatically (Bug #2133).
+    Component menu dialogs no longer have size field.
 
 BUG: (4/29/09, SMR) EDIF import loses schematics (Bug #2147).
 FIX: Many different types of EDIF now supported.

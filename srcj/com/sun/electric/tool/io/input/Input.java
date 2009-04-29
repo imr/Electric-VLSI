@@ -83,38 +83,17 @@ public class Input
 	public static boolean isNewLibraryCreated() { return(newLibraryCreated); }
 
 	/**
-	 * Method to import a Library from disk.
-	 * This method is for reading external file formats such as CIF, GDS, etc.
-	 * @param fileURL the URL to the disk file.
-	 * @param type the type of library file (CIF, GDS, etc.)
-	 * @param currentCells this map will be filled with currentCells in Libraries found in library file
-	 * @return the read Library, or null if an error occurred.
-	 */
-	public static Library importLibrary(InputPreferences prefs, URL fileURL, FileType type, Map<Library,Cell> currentCells, Job job)
-	{
-		// make sure the file exists
-		if (fileURL == null) return null;
-		StringBuffer errmsg = new StringBuffer();
-		if (!TextUtils.URLExists(fileURL, errmsg))
-		{
-			System.out.print(errmsg.toString());
-			return null;
-		}
-
-		newLibraryCreated = true;
-		return importLibraryCommon(prefs, fileURL, type, null, currentCells, job);
-	}
-
-	/**
-	 * Method to import Cells from disk to current Library.
+	 * Method to import Cells from disk.
 	 * This method is for reading external file formats such as CIF, GDS, etc.
 	 * @param prefs the packaged preferences for reading the type of file.
 	 * @param fileURL the URL to the disk file.
 	 * @param type the type of library file (CIF, GDS, etc.)
-	 * @param currentCells this map will be filled with currentCells in Libraries found in library file
-	 * @return the read Library, or null if an error occurred.
+	 * @param lib the library in which to place the circuitry (null to create a new one).
+	 * @param currentCells this map will be filled with currentCells in Libraries found in library file.
+	 * @param job the Job that is doing the import.
+	 * @return the imported Library, or null if an error occurred.
 	 */
-	public static Library importToCurrentLibrary(InputPreferences prefs, URL fileURL, FileType type, Library lib,
+	public static Library importLibrary(InputPreferences prefs, URL fileURL, FileType type, Library lib,
 		Map<Library,Cell> currentCells, Job job)
 	{
 		// make sure the file exists
@@ -126,24 +105,17 @@ public class Input
 			return null;
 		}
 
-		// get the name of the imported library
-		newLibraryCreated = false;
+		// note whether the read created a library or not
+		newLibraryCreated = (lib == null);
 
-		// import to current library
-		return importLibraryCommon(prefs, fileURL, type, lib, currentCells, job);
-	}
-
-	private static Library importLibraryCommon(InputPreferences prefs, URL fileURL, FileType type, Library lib,
-		Map<Library,Cell> currentCells, Job job)
-	{
+		// create a new library (but not for EDIF...it makes its own)
 		if (lib == null && type != FileType.EDIF)
 		{
-			// create a new library (but not for EDIF...it makes its own)
 			String libName = TextUtils.getFileNameWithoutExtension(fileURL);
 			lib = Library.newInstance(libName, fileURL);
 		}
 
-		// initialize timer, error log, etc
+		// initialize timer and error logger
 		long startTime = System.currentTimeMillis();
 		errorLogger = ErrorLogger.newInstance("File Import");
 
@@ -158,7 +130,8 @@ public class Input
 
 			if (prefs != null)
 				lib = prefs.doInput(fileURL, lib, currentCells, job);
-		} finally {
+		} finally
+		{
 			// clean up
 			stopProgressDialog();
 			errorLogger.termLogging(true);

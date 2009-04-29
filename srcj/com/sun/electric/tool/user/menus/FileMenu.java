@@ -29,6 +29,7 @@ import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.GenMath.MutableBoolean;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -143,38 +144,34 @@ public class FileMenu {
 		// mnemonic keys available:      F HIJ   NO QR   VW YZ
             new EMenu("_Import",
                 new EMenuItem("_CIF (Caltech Intermediate Format)...") { public void run() {
-                    importLibraryCommand(FileType.CIF, false); }},
+                    importLibraryCommand(FileType.CIF, false, true); }},
                 new EMenuItem("_GDS II (Stream)...") { public void run() {
-                    importLibraryCommand(FileType.GDS, false); }},
+                    importLibraryCommand(FileType.GDS, false, true); }},
                 new EMenuItem("GDS _Map File...") {	public void run() {
                     GDSMap.importMapFile(); }},
                 new EMenuItem("_EDIF (Electronic Design Interchange Format)...") { public void run() {
-                	importLibraryCommand(FileType.EDIF, false); }},
+                	importLibraryCommand(FileType.EDIF, false, true); }},
                 new EMenuItem("_LEF (Library Exchange Format)...") { public void run() {
-                    importLibraryCommand(FileType.LEF, false); }},
+                    importLibraryCommand(FileType.LEF, false, true); }},
                 new EMenuItem("_DEF (Design Exchange Format)...") {	public void run() {
-                    importLibraryCommand(FileType.DEF, false); }},
-                new EMenuItem("_DEF (Design Exchange Format) to current cell...") {	public void run() {
-                	importToCurrentCellCommand(FileType.DEF); }},
+                    importLibraryCommand(FileType.DEF, false, true); }},
                 new EMenuItem("D_XF (AutoCAD)...") { public void run() {
-                    importLibraryCommand(FileType.DXF, false); }},
+                    importLibraryCommand(FileType.DXF, false, true); }},
                 new EMenuItem("Spice Dec_ks...") {	public void run() {
-                    importLibraryCommand(FileType.SPICE, true); }},
+                    importLibraryCommand(FileType.SPICE, true, true); }},
                 new EMenuItem("S_UE (Schematic User Environment)...") {	public void run() {
-                    importLibraryCommand(FileType.SUE, false); }},
+                    importLibraryCommand(FileType.SUE, false, true); }},
                 new EMenuItem("_Verilog...") {	public void run() {
-                    importLibraryCommand(FileType.VERILOG, false); }},
+                    importLibraryCommand(FileType.VERILOG, false, true); }},
                 new EMenuItem("_Applicon 860...") {	public void run() {
-                    importLibraryCommand(FileType.APPLICON860, false); }},
+                    importLibraryCommand(FileType.APPLICON860, false, true); }},
                 IOTool.hasDais() ? new EMenuItem("Dais (_Sun CAD)...") { public void run() {
-                    importLibraryCommand(FileType.DAIS, true); }} : null,
-                IOTool.hasDais() ? new EMenuItem("Dais (_Sun CAD) to current library...") { public void run() {
-                	importToCurrentCellCommand(FileType.DAIS); }} : null,
+                    importLibraryCommand(FileType.DAIS, true, true); }} : null,
                 SEPARATOR,
                 new EMenuItem("ELI_B...") {	public void run() {
-                    importLibraryCommand(FileType.ELIB, false); }},
+                    importLibraryCommand(FileType.ELIB, false, false); }},
                 new EMenuItem("_Readable Dump...") { public void run() {
-                    importLibraryCommand(FileType.READABLEDUMP, false); }},
+                    importLibraryCommand(FileType.READABLEDUMP, false, false); }},
                 new EMenuItem("_Text Cell Contents...") { public void run() {
                     TextWindow.readTextCell(); }},
                 new EMenuItem("_Preferences...") { public void run() {
@@ -394,7 +391,7 @@ public class FileMenu {
 			if (deleteLib != null)
 			{
 				// library already exists, prompt for save
-                Collection<RenameAndSaveLibraryTask> librariesToSave = preventLoss(deleteLib, 2);
+                Collection<RenameAndSaveLibraryTask> librariesToSave = preventLoss(deleteLib, 2, null);
                 if (librariesToSave == null) return;
                 if (!librariesToSave.isEmpty()) {
                     assert librariesToSave.size() == 1;
@@ -674,39 +671,30 @@ public class FileMenu {
 		private URL fileURL;
 		private FileType type;
         private Library curLib;
-		private Library createLib;
 		private Library deleteLib;
-		private Input.InputPreferences prefs;
         private RenameAndSaveLibraryTask saveTask;
-		private boolean useCurrentLib;
+		private Input.InputPreferences prefs;
+		private Library createLib;
         private Map<Library,Cell> currentCells = new HashMap<Library,Cell>();
 
-		public ImportLibrary(URL fileURL, FileType type,
+		public ImportLibrary(URL fileURL, FileType type, Library libToRead,
                 Library deleteLib, RenameAndSaveLibraryTask saveTask)
 		{
 			super("Import External Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fileURL = fileURL;
 			this.type = type;
+			this.curLib = libToRead;
 			this.deleteLib = deleteLib;
             this.saveTask = saveTask;
-			this.useCurrentLib = false;
-            prefs = Input.getInputPreferences(type, false);
-            prefs.initFromUserDefaults();
-			startJob();
-		}
 
-		// this version imports to current library
-		public ImportLibrary(URL fileURL, FileType type)
-		{
-			super("Import to Current Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.fileURL = fileURL;
-			this.type = type;
-			this.useCurrentLib = true;
-            curLib = Library.getCurrent();
-            Cell curCell = curLib.getCurCell();
-            if (curCell != null)
-                currentCells.put(curLib, curCell);
-            prefs = Input.getInputPreferences(type, false);
+            if (curLib != null)
+            {
+	            Cell curCell = curLib.getCurCell();
+	            if (curCell != null)
+	                currentCells.put(curLib, curCell);
+            }
+
+			prefs = Input.getInputPreferences(type, false);
             prefs.initFromUserDefaults();
 			startJob();
 		}
@@ -717,7 +705,8 @@ public class FileMenu {
 			if (deleteLib != null)
 			{
                 // save the library
-                if (saveTask != null) {
+                if (saveTask != null)
+                {
                     assert deleteLib == saveTask.lib;
                     saveTask.renameAndSave();
                     deleteLib = saveTask.lib;
@@ -725,12 +714,7 @@ public class FileMenu {
 				if (!deleteLib.kill("replace")) return false;
 				deleteLib = null;
 			}
-			if (useCurrentLib) {
-				createLib = Input.importToCurrentLibrary(prefs, fileURL, type, curLib, currentCells, this);
-			} else {
-				createLib = Input.importLibrary(prefs, fileURL, type, currentCells, this);
-			}
-
+			createLib = Input.importLibrary(prefs, fileURL, type, curLib, currentCells, this);
 			if (createLib == null) return false;
 
             // new library open: check for default "noname" library and close if empty
@@ -738,9 +722,7 @@ public class FileMenu {
             if (noname != null)
             {
             	if (!noname.getCells().hasNext())
-            	{
                 	noname.kill("delete");
-                }
             }
 
 			fieldVariableChanged("createLib");
@@ -815,36 +797,14 @@ public class FileMenu {
             ToolBar.setSaveLibraryButton();
         }
     }
-    /**
-	 * This method implements the command to import a file to a library
-	 * It is interactive, and pops up a dialog box.
-	 */
-	public static void importToCurrentCellCommand(FileType type)
-	{
-		String fileName = null;
-		if (type == FileType.DAIS)
-		{
-			fileName = OpenFile.chooseDirectory(type.getDescription());
-		} else
-		{
-			fileName = OpenFile.chooseInputFile(type, null);
-		}
-		if (fileName != null)
-		{
-			// start a job to do the input
-			URL fileURL = TextUtils.makeURLToFile(fileName);
-
-			// import to the current library
-			new ImportLibrary(fileURL, type);
-		}
-	}
 
 	/**
 	 * This method implements the command to import a library.
 	 * It is interactive, and pops up a dialog box.
 	 * @param wholeDirectory true to import a directory instead of a file.
+	 * @param canMerge true to allow merging into an existing library.
 	 */
-	public static void importLibraryCommand(FileType type, boolean wholeDirectory)
+	public static void importLibraryCommand(FileType type, boolean wholeDirectory, boolean canMerge)
 	{
 		String fileName = null;
 		if (wholeDirectory)
@@ -856,27 +816,37 @@ public class FileMenu {
 		}
 		if (fileName != null)
 		{
-			// start a job to do the input
 			URL fileURL = TextUtils.makeURLToFile(fileName);
 			String libName = TextUtils.getFileNameWithoutExtension(fileURL);
 			Library deleteLib = Library.findLibrary(libName);
+			Library libToRead = null;
             RenameAndSaveLibraryTask saveTask = null;
 			if (deleteLib != null)
 			{
 				// library already exists, prompt for save
-                Collection<RenameAndSaveLibraryTask> librariesToSave = preventLoss(deleteLib, 2);
+				MutableBoolean wantToMerge = null;
+				if (canMerge) wantToMerge = new MutableBoolean(false);
+                Collection<RenameAndSaveLibraryTask> librariesToSave = preventLoss(deleteLib, 2, wantToMerge);
                 if (librariesToSave == null) return;
-                if (!librariesToSave.isEmpty()) {
-                    assert librariesToSave.size() == 1;
-                    saveTask = librariesToSave.iterator().next();
-                    assert saveTask.lib == deleteLib;
+                if (canMerge && wantToMerge.booleanValue())
+                {
+                	libToRead = deleteLib;
+                	deleteLib = null;
+                } else
+                {
+	                if (!librariesToSave.isEmpty())
+	                {
+	                    assert librariesToSave.size() == 1;
+	                    saveTask = librariesToSave.iterator().next();
+	                    assert saveTask.lib == deleteLib;
+	                }
+					WindowFrame.removeLibraryReferences(deleteLib);
                 }
-				WindowFrame.removeLibraryReferences(deleteLib);
 			}
             if (type == FileType.ELIB || type == FileType.READABLEDUMP)
                 new ReadLibrary(fileURL, type, null, deleteLib, saveTask, null);
             else
-                new ImportLibrary(fileURL, type, deleteLib, saveTask);
+                new ImportLibrary(fileURL, type, libToRead, deleteLib, saveTask);
 		}
 	}
 
@@ -907,7 +877,7 @@ public class FileMenu {
 		    return;
 	    }
         RenameAndSaveLibraryTask saveTask = null;
-        Collection<RenameAndSaveLibraryTask> librariesToSave = preventLoss(lib, 1);
+        Collection<RenameAndSaveLibraryTask> librariesToSave = preventLoss(lib, 1, null);
         if (librariesToSave == null) return;
         if (!librariesToSave.isEmpty()) {
             assert librariesToSave.size() == 1;
@@ -1558,7 +1528,7 @@ public class FileMenu {
      */
     public static boolean quitCommand()
     {
-        Collection<RenameAndSaveLibraryTask> saveTasks = preventLoss(null, 0);
+        Collection<RenameAndSaveLibraryTask> saveTasks = preventLoss(null, 0, null);
         if (saveTasks == null) return true;
 
 	    try {
@@ -1673,9 +1643,10 @@ public class FileMenu {
      * 0: quit;
      * 1: close a library;
      * 2: replace a library.
+     * @param canMerge if null, do not allow merging.  If valid, allow merging and set to True if merging was requested.
      * @return libraries to be saved or null
      */
-    public static Collection<RenameAndSaveLibraryTask> preventLoss(Library desiredLib, int action)
+    public static Collection<RenameAndSaveLibraryTask> preventLoss(Library desiredLib, int action, MutableBoolean wantToMerge)
     {
         ArrayList<RenameAndSaveLibraryTask> librariesToSave = new ArrayList<RenameAndSaveLibraryTask>();
 		boolean checkedInvariants = false;
@@ -1697,7 +1668,15 @@ public class FileMenu {
             String theAction = "Save before quitting?";
             if (action == 1) theAction = "Save before closing?"; else
                 if (action == 2) theAction = "Save before replacing?";
-            String [] options = {"Yes", "No", "Cancel", "No to All"};
+            String [] options;
+            if (wantToMerge != null)
+            {
+            	theAction += " (click 'Merge' to combine the new data with the existing library)";
+                options = new String[] {"Yes", "No", "Cancel", "No to All", "Merge"};
+            } else
+            {
+                options = new String[] {"Yes", "No", "Cancel", "No to All"};
+            }
             int ret = showFileMenuOptionDialog(TopLevel.getCurrentJFrame(),
                 "Library '" + lib.getName() + "' has changed.  " + theAction,
                 "Save Library?", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
@@ -1713,6 +1692,7 @@ public class FileMenu {
             if (ret == 1) continue;
             if (ret == 2 || ret == -1) return null;
             if (ret == 3) break;
+            if (ret == 4) wantToMerge.setValue(true);
         }
         return librariesToSave;
     }
