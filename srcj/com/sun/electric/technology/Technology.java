@@ -938,9 +938,9 @@ public class Technology implements Comparable<Technology>, Serializable
 //	/** Default Logical effort convergence (epsilon). */	private static double DEFAULT_EPSILON      = 0.001;
 //	/** Default Logical effort maximum iterations. */		private static int    DEFAULT_MAXITER      = 30;
 //	/** Default Logical effort keeper ratio. */				private static double DEFAULT_KEEPERRATIO  = 0.1;
-	/** Default Logical effort gate capacitance. */			private static double DEFAULT_GATECAP      = 0.4;
-	/** Default Logical effort wire ratio. */				private static double DEFAULT_WIRERATIO    = 0.16;
-	/** Default Logical effort diff alpha. */				private static double DEFAULT_DIFFALPHA    = 0.7;
+	/** Default Logical effort gate capacitance. */			private static double DEFAULT_GATECAP      = Xml.DEFAULT_LE_GATECAP;
+	/** Default Logical effort wire ratio. */				private static double DEFAULT_WIRERATIO    = Xml.DEFAULT_LE_WIRERATIO;
+	/** Default Logical effort diff alpha. */				private static double DEFAULT_DIFFALPHA    = Xml.DEFAULT_LE_DIFFALPHA;
 
 	/** indicates n-type objects. */						public static final int N_TYPE = 1;
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
@@ -1054,6 +1054,7 @@ public class Technology implements Comparable<Technology>, Serializable
         setTechDesc(t.description);
         setFactoryScale(t.scaleValue, t.scaleRelevant);
         setFactoryParasitics(t.minResistance, t.minCapacitance);
+        setFactoryLESettings(t.leGateCapacitance, t.leWireRatio, t.leDiffAlpha);
         if (!t.transparentLayers.isEmpty())
             setFactoryTransparentLayers(t.transparentLayers.toArray(new Color[t.transparentLayers.size()]));
         HashMap<String,Layer> layers = new HashMap<String,Layer>();
@@ -1727,6 +1728,9 @@ public class Technology implements Comparable<Technology>, Serializable
         t.defaultFoundry = (String)getPrefFoundrySetting().getFactoryValue();
         t.minResistance = getMinResistanceSetting().getDoubleFactoryValue();
         t.minCapacitance = getMinCapacitanceSetting().getDoubleFactoryValue();
+        t.leGateCapacitance = getGateCapacitanceSetting().getDoubleFactoryValue();
+        t.leWireRatio = getWireRatioSetting().getDoubleFactoryValue();
+        t.leDiffAlpha = getDiffAlphaSetting().getDoubleFactoryValue();
         t.transparentLayers.addAll(Arrays.asList(getFactoryTransparentLayerColors()));
 
         for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {

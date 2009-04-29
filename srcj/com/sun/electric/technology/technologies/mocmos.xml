@@ -41,6 +41,7 @@
     <defaultFoundry value="MOSIS"/>
     <minResistance value="4.0"/>
     <minCapacitance value="0.1"/>
+    <logicalEffort gateCapacitance="0.167" wireRatio="0.16" diffAlpha="0.7"/>
 
     <!-- Transparent layers -->
     <transparentLayer transparent="1">

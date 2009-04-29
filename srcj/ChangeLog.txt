@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+IMP: (4/29/09, DN) Add Xml element to define LE settings of technology.
+
 BUG: (4/28/09, GVG) Grid selection buttoms shortcuts preferences not working (Bug #2149)
 FIX: Current index fixed in EditingPreferences.withAlignment().
 

@@ -67,6 +67,9 @@ import org.xml.sax.helpers.DefaultHandler;
  *
  */
 public class Xml {
+	/** Default Logical effort gate capacitance. */			public static final double DEFAULT_LE_GATECAP      = 0.4;
+	/** Default Logical effort wire ratio. */				public static final double DEFAULT_LE_WIRERATIO    = 0.16;
+	/** Default Logical effort diff alpha. */				public static final double DEFAULT_LE_DIFFALPHA    = 0.7;
 
     public static class Technology implements Serializable {
         public String techName;
@@ -82,6 +85,9 @@ public class Xml {
         public String defaultFoundry;
         public double minResistance;
         public double minCapacitance;
+        public double leGateCapacitance = DEFAULT_LE_GATECAP;
+        public double leWireRatio = DEFAULT_LE_WIRERATIO;
+        public double leDiffAlpha = DEFAULT_LE_DIFFALPHA;
         public final List<Color> transparentLayers = new ArrayList<Color>();
         public final List<Layer> layers = new ArrayList<Layer>();
         public final List<ArcProto> arcs = new ArrayList<ArcProto>();
@@ -334,6 +340,7 @@ public class Xml {
         defaultFoundry,
         minResistance,
         minCapacitance,
+        logicalEffort,
         transparentLayer,
         r(true),
         g(true),
@@ -825,6 +832,11 @@ public class Xml {
                     break;
                 case minCapacitance:
                     tech.minCapacitance = Double.parseDouble(a("value"));
+                    break;
+                case logicalEffort:
+                    tech.leGateCapacitance = Double.parseDouble(a("gateCapacitance"));
+                    tech.leWireRatio = Double.parseDouble(a("wireRatio")); 
+                    tech.leDiffAlpha = Double.parseDouble(a("diffAlpha"));
                     break;
                 case transparentLayer:
                     curTransparent = Integer.parseInt(a("transparent"));
@@ -1413,6 +1425,7 @@ public class Xml {
                 case defaultFoundry:
                 case minResistance:
                 case minCapacitance:
+                case logicalEffort:
                 case transparentColor:
                 case opaqueColor:
                 case display3D:
@@ -1749,6 +1762,13 @@ public class Xml {
             b(XmlKeyword.defaultFoundry); a("value", t.defaultFoundry); el();
             b(XmlKeyword.minResistance); a("value", t.minResistance); el();
             b(XmlKeyword.minCapacitance); a("value", t.minCapacitance); el();
+            if (t.leGateCapacitance != DEFAULT_LE_GATECAP || t.leWireRatio != DEFAULT_LE_WIRERATIO || t.leDiffAlpha != DEFAULT_LE_DIFFALPHA) {
+                b(XmlKeyword.logicalEffort);
+                a("gateCapacitance", t.leGateCapacitance);
+                a("wireRatio", t.leWireRatio);
+                a("diffAlpha", t.leDiffAlpha);
+                el();
+            }
 //        printlnAttribute("  gateLengthSubtraction", gi.gateShrinkage);
 //        printlnAttribute("  gateInclusion", gi.includeGateInResistance);
 //        printlnAttribute("  groundNetInclusion", gi.includeGround);

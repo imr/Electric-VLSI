@@ -754,6 +754,13 @@
                         <xsd:attribute name="value" type="xsd:double" use="required"/>
                     </xsd:complexType>
                 </xsd:element>
+                <xsd:element name="logicalEffort" minOccurs="0">
+                    <xsd:complexType>
+                        <xsd:attribute name="gateCapacitance" type="xsd:double" use="required"/>
+                        <xsd:attribute name="wireRatio" type="xsd:double" use="required"/>
+                        <xsd:attribute name="diffAlpha" type="xsd:double" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
                 <xsd:element name="transparentLayer" minOccurs="0" maxOccurs="12">
                     <xsd:complexType>
                         <xsd:sequence>

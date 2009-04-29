@@ -109,8 +109,6 @@ public class MoCMOS extends Technology
 
 		setStaticTechnology();
         setFactoryResolution(0.01); // value in lambdas   0.005um -> 0.05 lambdas
-        // Logical Effort Tech-dependent settings
-        setFactoryLESettings(0.167, 0.16, 0.7);
 
 		//**************************************** NODES ****************************************
 
