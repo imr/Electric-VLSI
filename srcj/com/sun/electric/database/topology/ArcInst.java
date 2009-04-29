@@ -334,7 +334,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		if (nameKey != null && !nameKey.isTempname()) {
 			// adjust the name descriptor for "smart" text placement
             long gridBaseWidth = 2*(gridExtendOverMin + type.getGridBaseExtend());
-			nameDescriptor = getSmartTextDescriptor(defAngle, DBMath.gridToLambda(gridBaseWidth), nameDescriptor);
+			nameDescriptor = getSmartTextDescriptor(defAngle, DBMath.gridToLambda(gridBaseWidth), nameDescriptor, parent.getEditingPreferences());
 		}
         return newInstance(parent, type, name, nameDescriptor, head, tail, headP, tailP, gridExtendOverMin, defAngle, flags);
 	}
@@ -1048,7 +1048,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         if (doSmart)
         {
         	TextDescriptor td = TextDescriptor.getArcTextDescriptor();
-    		TextDescriptor smartDescriptor = getSmartTextDescriptor(getAngle(), getLambdaBaseWidth(), td);
+    		TextDescriptor smartDescriptor = getSmartTextDescriptor(getAngle(), getLambdaBaseWidth(), td, getEditingPreferences());
         	setTextDescriptor(ARC_NAME, smartDescriptor);
         }
 
@@ -1064,13 +1064,13 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @param prev the former text descriptor of the arc.
 	 * @return a new text descriptor that handles smart placement.
 	 */
-	private static TextDescriptor getSmartTextDescriptor(int angle, double width, TextDescriptor prev)
+	private static TextDescriptor getSmartTextDescriptor(int angle, double width, TextDescriptor prev, EditingPreferences ep)
 	{
 		// assigning valid name: do smart text placement
 		if ((angle%1800) == 0)
 		{
 			// horizontal arc
-			int smart = User.getSmartHorizontalPlacementArc();
+			int smart = ep.smartHorizontalPlacementArc;
 			if (smart == 1)
 			{
 				// arc text above
@@ -1083,7 +1083,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		} else if ((angle%1800) == 900)
 		{
 			// vertical arc
-			int smart = User.getSmartVerticalPlacementArc();
+			int smart = ep.smartVerticalPlacementArc;
 			if (smart == 1)
 			{
 				// arc text to the left

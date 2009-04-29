@@ -91,6 +91,34 @@ public class EditingPreferences extends PrefPackage {
     private int alignmentIndex;
     private TextDescriptor[] textDescriptors;
 
+	/** What type of "smart" vertical text placement should be done for Exports.
+	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
+	 * The default is 0.
+     */
+    @IntegerPref(node = USER_NODE, key = "SmartVerticalPlacementExport", factory = 0)
+    public final int smartVerticalPlacementExport = 0;
+
+	/** What type of "smart" horizontal text placement should be done for Exports.
+	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
+	 * The default is 0.
+     */
+    @IntegerPref(node = USER_NODE, key = "SmartHorizontalPlacementExport", factory = 0)
+    public final int smartHorizontalPlacementExport = 0;
+
+	/** What type of "smart" text placement should be done for vertical Arcs.
+	 * The values can be 0: place text inside; 1: place text to left; 2: place text to right.
+	 * The default is 0.
+     */
+    @IntegerPref(node = USER_NODE, key = "SmartVerticalPlacementArc", factory = 0)
+    public final int smartVerticalPlacementArc = 0;
+
+	/** what type of "smart" text placement should be done for horizontal Arcs.
+	 * The values can be 0: place text inside; 1: place text above; 2: place text below.
+	 * The default is 0.
+     */
+    @IntegerPref(node = USER_NODE, key = "SmartHorizontalPlacementArc", factory = 0)
+    public final int smartHorizontalPlacementArc = 0;
+
     public EditingPreferences(boolean factory, TechPool techPool) {
         super(factory);
         this.techPool = techPool;
@@ -574,6 +602,30 @@ public class EditingPreferences extends PrefPackage {
             ep = ep.withTextDescriptor(t, t.getFactoryTextDescriptor());
         }
         return ep;
+    }
+
+    public EditingPreferences withSmartVerticalPlacementExport(int smartVerticalPlacementExport) {
+        if (smartVerticalPlacementExport == this.smartVerticalPlacementExport) return this;
+        return (EditingPreferences)withField("smartVerticalPlacementExport", Integer.valueOf(smartVerticalPlacementExport));
+    }
+
+    public EditingPreferences withSmartHorizontalPlacementExport(int smartHorizontalPlacementExport) {
+        if (smartHorizontalPlacementExport == this.smartHorizontalPlacementExport) return this;
+        return (EditingPreferences)withField("smartHorizontalPlacementExport", Integer.valueOf(smartHorizontalPlacementExport));
+    }
+
+    public EditingPreferences withSmartVerticalPlacementArc(int smartVerticalPlacementArc) {
+        if (smartVerticalPlacementArc == this.smartVerticalPlacementArc) return this;
+        return (EditingPreferences)withField("smartVerticalPlacementArc", Integer.valueOf(smartVerticalPlacementArc));
+    }
+
+    public EditingPreferences withSmartHorizontalPlacementArc(int smartHorizontalPlacementArc) {
+        if (smartHorizontalPlacementArc == this.smartHorizontalPlacementArc) return this;
+        return (EditingPreferences)withField("smartHorizontalPlacementArc", Integer.valueOf(smartHorizontalPlacementArc));
+    }
+
+    public EditingPreferences withPlacementReset() {
+        return withSmartHorizontalPlacementArc(0).withSmartVerticalPlacementArc(0).withSmartHorizontalPlacementExport(0).withSmartVerticalPlacementExport(0);
     }
 
  	private static Dimension2D[] correctAlignmentGridVector(Dimension2D [] retVal)

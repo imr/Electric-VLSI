@@ -98,26 +98,31 @@ public abstract class PrefPackage implements Serializable, Cloneable {
                 BooleanPref ba = field.getAnnotation(BooleanPref.class);
                 if (ba != null) {
                     assert field.getType() == Boolean.TYPE;
+                    field.setAccessible(true);
                     field.setBoolean(this, prefRoot.node(ba.node()).getBoolean(ba.key(), ba.factory()));
                 }
                 IntegerPref ia = field.getAnnotation(IntegerPref.class);
                 if (ia != null) {
                     assert field.getType() == Integer.TYPE;
+                    field.setAccessible(true);
                     field.setInt(this, prefRoot.node(ia.node()).getInt(ia.key(), ia.factory()));
                 }
                 LongPref la = field.getAnnotation(LongPref.class);
                 if (la != null) {
                     assert field.getType() == Long.TYPE;
+                    field.setAccessible(true);
                     field.setLong(this, prefRoot.node(la.node()).getLong(la.key(), la.factory()));
                 }
                 DoublePref da = field.getAnnotation(DoublePref.class);
                 if (da != null) {
                     assert field.getType() == Double.TYPE;
+                    field.setAccessible(true);
                     field.setDouble(this, prefRoot.node(da.node()).getDouble(da.key(), da.factory()));
                 }
                 StringPref sa = field.getAnnotation(StringPref.class);
                 if (sa != null) {
                     assert field.getType() == String.class;
+                    field.setAccessible(true);
                     field.set(this, prefRoot.node(sa.node()).get(sa.key(), sa.factory()));
                 }
             } catch (IllegalAccessException e) {

@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.tool.user.User;
+import com.sun.electric.database.EditingPreferences;
 
 import javax.swing.JPanel;
 
@@ -40,25 +40,29 @@ public class SmartTextTab extends PreferencePanel
 	}
 
 	/** return the panel to use for this preferences tab. */
+    @Override
 	public JPanel getPreferencesPanel() { return text; }
 
 	/** return the name of this preferences tab. */
+    @Override
 	public String getName() { return "Smart Text"; }
 
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Text tab.
 	 */
+    @Override
 	public void init()
 	{
+        EditingPreferences ep = getEditingPreferences();
 		// set arc defaults
-		switch (User.getSmartVerticalPlacementArc())
+		switch (ep.smartVerticalPlacementArc)
 		{
 			case 0: arcVerticalInside.setSelected(true);    break;
 			case 1: arcVerticalLeft.setSelected(true);      break;
 			case 2: arcVerticalRight.setSelected(true);     break;
 		}
-		switch (User.getSmartHorizontalPlacementArc())
+		switch (ep.smartHorizontalPlacementArc)
 		{
 			case 0: arcHorizontalInside.setSelected(true);    break;
 			case 1: arcHorizontalAbove.setSelected(true);     break;
@@ -66,13 +70,13 @@ public class SmartTextTab extends PreferencePanel
 		}
 
 		// set export defaults
-		switch (User.getSmartVerticalPlacementExport())
+		switch (ep.smartVerticalPlacementExport)
 		{
 			case 0: textSmartVerticalOff.setSelected(true);       break;
 			case 1: textSmartVerticalInside.setSelected(true);    break;
 			case 2: textSmartVerticalOutside.setSelected(true);   break;
 		}
-		switch (User.getSmartHorizontalPlacementExport())
+		switch (ep.smartHorizontalPlacementExport)
 		{
 			case 0: textSmartHorizontalOff.setSelected(true);       break;
 			case 1: textSmartHorizontalInside.setSelected(true);    break;
@@ -84,48 +88,41 @@ public class SmartTextTab extends PreferencePanel
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Text tab.
 	 */
+    @Override
 	public void term()
 	{
+        EditingPreferences ep = getEditingPreferences();
 		// set arc changes
 		int currInt = 0;
 		if (arcVerticalLeft.isSelected()) currInt = 1; else
 			if (arcVerticalRight.isSelected()) currInt = 2;
-		if (currInt != User.getSmartVerticalPlacementArc())
-			User.setSmartVerticalPlacementArc(currInt);
+        ep = ep.withSmartVerticalPlacementArc(currInt);
 
 		currInt = 0;
 		if (arcHorizontalAbove.isSelected()) currInt = 1; else
 			if (arcHorizontalBelow.isSelected()) currInt = 2;
-		if (currInt != User.getSmartHorizontalPlacementArc())
-			User.setSmartHorizontalPlacementArc(currInt);
+        ep = ep.withSmartHorizontalPlacementArc(currInt);
 
 		// set export changes
 		currInt = 0;
 		if (textSmartVerticalInside.isSelected()) currInt = 1; else
 			if (textSmartVerticalOutside.isSelected()) currInt = 2;
-		if (currInt != User.getSmartVerticalPlacementExport())
-			User.setSmartVerticalPlacementExport(currInt);
+        ep = ep.withSmartVerticalPlacementExport(currInt);
 
 		currInt = 0;
 		if (textSmartHorizontalInside.isSelected()) currInt = 1; else
 			if (textSmartHorizontalOutside.isSelected()) currInt = 2;
-		if (currInt != User.getSmartHorizontalPlacementExport())
-			User.setSmartHorizontalPlacementExport(currInt);
+        ep = ep.withSmartHorizontalPlacementExport(currInt);
+        setEditingPreferences(ep);
 	}
 
 	/**
 	 * Method called when the factory reset is requested.
 	 */
+    @Override
 	public void reset()
 	{
-		if (User.getFactorySmartVerticalPlacementArc() != User.getSmartVerticalPlacementArc())
-			User.setSmartVerticalPlacementArc(User.getFactorySmartVerticalPlacementArc());
-		if (User.getFactorySmartHorizontalPlacementArc() != User.getSmartHorizontalPlacementArc())
-			User.setSmartHorizontalPlacementArc(User.getFactorySmartHorizontalPlacementArc());
-		if (User.getFactorySmartVerticalPlacementExport() != User.getSmartVerticalPlacementExport())
-			User.setSmartVerticalPlacementExport(User.getFactorySmartVerticalPlacementExport());
-		if (User.getFactorySmartHorizontalPlacementExport() != User.getSmartHorizontalPlacementExport())
-			User.setSmartHorizontalPlacementExport(User.getFactorySmartHorizontalPlacementExport());
+        setEditingPreferences(getEditingPreferences().withPlacementReset());
 	}
 
 	/** This method is called from within the constructor to

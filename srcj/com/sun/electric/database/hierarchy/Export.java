@@ -25,6 +25,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
@@ -685,8 +686,9 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	private static TextDescriptor smartPlacement(PortInst originalPort)
 	{
 		// handle smart text placement relative to attached object
-		int smartVertical = User.getSmartVerticalPlacementExport();
-		int smartHorizontal = User.getSmartHorizontalPlacementExport();
+        EditingPreferences ep = originalPort.getEditingPreferences();
+		int smartVertical = ep.smartVerticalPlacementExport;
+		int smartHorizontal = ep.smartHorizontalPlacementExport;
 		if (smartVertical == 0 && smartHorizontal == 0) return TextDescriptor.getExportTextDescriptor();
 
 		// figure out location of object relative to environment
