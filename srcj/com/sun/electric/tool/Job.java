@@ -139,6 +139,7 @@ public abstract class Job implements Serializable {
 	/** default execution time in milis */      /*private*/ public static final int MIN_NUM_SECONDS = 60000;
     /** job manager */                          /*private*/ static JobManager jobManager;
 	static AbstractUserInterface currentUI;
+    static Thread clientThread;
 
     /** delete when done if true */             /*private*/ boolean deleteWhenDone;
 
@@ -656,6 +657,10 @@ public abstract class Job implements Serializable {
      */
     public static AbstractUserInterface getExtendedUserInterface() {
             return currentUI;
+    }
+
+    public static boolean isClientThread() {
+        return Thread.currentThread() == clientThread;
     }
 
     public static EDatabase threadDatabase() {

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 
@@ -142,7 +143,7 @@ public class MessagesWindow
 	 * Method to request focus on this window
 	 */
 	public void requestFocus() {
-		if (!SwingUtilities.isEventDispatchThread()) {
+		if (!Job.isClientThread()) {
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() { requestFocusUnsafe(); }
 			});

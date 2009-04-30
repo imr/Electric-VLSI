@@ -124,7 +124,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             EventQueue.invokeAndWait(new Runnable() {
                 public void run() {
                     assert SwingUtilities.isEventDispatchThread();
-                    Pref.setClientThread(Thread.currentThread());
+                    setClientThread();
                     Environment.setThreadEnvironment(IdManager.stdIdManager.getInitialEnvironment());
                 }
             });
@@ -239,7 +239,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             this.showSplash = showSplash;
         }
         public void run() {
-            assert SwingUtilities.isEventDispatchThread();
+            assert Job.isClientThread();
             Pref.setCachedObjsFromPreferences();
             EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, null));
             currentGraphicsPreferences = new GraphicsPreferences(true, new TechPool(IdManager.stdIdManager));
@@ -455,7 +455,7 @@ public class UserInterfaceMain extends AbstractUserInterface
      */
     public void showErrorMessage(final String message, final String title)
     {
-        if (SwingUtilities.isEventDispatchThread())
+        if (Job.isClientThread())
             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(false), message, title, JOptionPane.ERROR_MESSAGE);
         else {
             SwingUtilities.invokeLater( new Runnable() {
@@ -473,7 +473,7 @@ public class UserInterfaceMain extends AbstractUserInterface
      */
     public void showInformationMessage(final String message, final String title)
     {
-         if (SwingUtilities.isEventDispatchThread())
+         if (Job.isClientThread())
             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message, title, JOptionPane.INFORMATION_MESSAGE);
         else {
             SwingUtilities.invokeLater( new Runnable() {
@@ -491,7 +491,7 @@ public class UserInterfaceMain extends AbstractUserInterface
      */
     public void printMessage(String message, boolean newLine) {
         final String s = newLine ? message + "\n" : message;
-        if (SwingUtilities.isEventDispatchThread())
+        if (Job.isClientThread())
             appendString(s);
         else {
             SwingUtilities.invokeLater( new Runnable() {
@@ -511,7 +511,7 @@ public class UserInterfaceMain extends AbstractUserInterface
      * @param filePath file to save
      */
     public void saveMessages(final String filePath) {
-        if (!SwingUtilities.isEventDispatchThread()) {
+        if (!Job.isClientThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() { saveMessages(filePath); }
             });
@@ -638,7 +638,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 
     /** For Pref */
     public static void importPrefs(URL fileURL) {
-        assert SwingUtilities.isEventDispatchThread();
+        assert Job.isClientThread();
         if (fileURL == null) return;
         System.out.println("Importing preferences...");
         Pref.importPrefs(fileURL);
@@ -709,7 +709,7 @@ public class UserInterfaceMain extends AbstractUserInterface
      * @param newSnapshot new snapshot.
      */
     public void showSnapshot(Snapshot newSnapshot, boolean undoRedo) {
-        assert SwingUtilities.isEventDispatchThread();
+        assert Job.isClientThread();
         DatabaseChangeEvent event = new DatabaseChangeEvent(currentSnapshot, newSnapshot);
         Snapshot oldSnapshot = currentSnapshot;
         currentSnapshot = newSnapshot;
@@ -734,7 +734,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 
     @Override
     public void beep() {
-        if (SwingUtilities.isEventDispatchThread()) {
+        if (Job.isClientThread()) {
             User.playSound();
 //            Toolkit.getDefaultToolkit().beep();
         } else {
@@ -775,7 +775,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 //	}
 
     private static void firePropertyChange(PropertyChangeEvent e) {
-        assert SwingUtilities.isEventDispatchThread();
+        assert Job.isClientThread();
         ToolBar.updateUndoRedoButtons(getUndoEnabled(), getRedoEnabled());
 
         // Check all current WindowFrames and determine if displayed cells are still valid
@@ -849,7 +849,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     }
 
     public static EditingPreferences getEditingPreferences() {
-        assert SwingUtilities.isEventDispatchThread();
+        assert Job.isClientThread();
         return EditingPreferences.getThreadEditingPreferences();
     }
 
@@ -866,7 +866,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     }
 
     public static GraphicsPreferences getGraphicsPreferences() {
-        if (!SwingUtilities.isEventDispatchThread()) {
+        if (!Job.isClientThread()) {
             String msg = "GraphicsPreferences is accessed from " + Job.getRunningJob();
             if (Job.getDebug()) {
                 ActivityLogger.logMessage(msg);
@@ -877,7 +877,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     }
 
     public static void setGraphicsPreferences(GraphicsPreferences gp) {
-        assert SwingUtilities.isEventDispatchThread();
+        assert Job.isClientThread();
         if (gp.equals(currentGraphicsPreferences)) return;
         Pref.delayPrefFlushing();
         gp.putPrefs(Pref.getPrefRoot(), true, currentGraphicsPreferences);

@@ -29,6 +29,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +39,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.prefs.Preferences;
-import javax.swing.SwingUtilities;
 
 /**
  * Class represents visibility of Layers.
@@ -429,7 +429,7 @@ public class LayerVisibility extends PrefPackage {
      * @return "standard" LayerVisibility
      */
     public static LayerVisibility getLayerVisibility() {
-        assert SwingUtilities.isEventDispatchThread();
+        assert Job.isClientThread();
         return stdLayerVisibility;
     }
 
@@ -437,7 +437,7 @@ public class LayerVisibility extends PrefPackage {
      * Save "standard" LayerVisibility in Preferences
      */
     public static void preserveVisibility() {
-        assert SwingUtilities.isEventDispatchThread();
+        assert Job.isClientThread();
         if (stdLayerVisibility == null) return;
         stdLayerVisibility.putPrefs(getPrefRoot(), true);
     }
@@ -446,7 +446,7 @@ public class LayerVisibility extends PrefPackage {
      * Reset "standard" LayerVisibility to factory values.
      */
     public static void factoryReset() {
-        assert SwingUtilities.isEventDispatchThread();
+        assert Job.isClientThread();
         if (stdLayerVisibility == null) return;
         stdLayerVisibility.reset();
     }
@@ -455,7 +455,7 @@ public class LayerVisibility extends PrefPackage {
      * Reset "standard" LayerVisibility to factory values.
      */
     public static void setDefaultOpacity() {
-        assert SwingUtilities.isEventDispatchThread();
+        assert Job.isClientThread();
         if (stdLayerVisibility == null) return;
         stdLayerVisibility.resetOpacity();
     }

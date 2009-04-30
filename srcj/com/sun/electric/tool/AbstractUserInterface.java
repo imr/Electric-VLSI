@@ -82,8 +82,6 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     public void setCurrentLibrary(Library lib) {
         curLibId = lib != null ? lib.getId() : null;
     }
-    // For Mac OS X version
-    protected void initializeInitJob(Job job, Object mode) {}
 
     protected abstract void addEvent(Client.ServerEvent serverEvent);
 
@@ -127,4 +125,9 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     protected abstract void terminateJob(EJob ejob);
 
     public void beep() {}
-}
+
+    protected void setClientThread() {
+        assert Job.clientThread == null;
+        Job.clientThread = Thread.currentThread();
+    }
+ }

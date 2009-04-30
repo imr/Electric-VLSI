@@ -93,7 +93,6 @@ import org.xml.sax.SAXParseException;
  */
 public class Pref {
     public final static boolean FROM_THREAD_ENVIRONMENT = false;
-    private static Thread clientThread;
     private static boolean forbidPreferences;
 
     public static class Group {
@@ -230,10 +229,6 @@ public class Pref {
      */
     public static void lockCreation() {
         lockCreation = true;
-    }
-
-    public static void setClientThread(Thread clientThread) {
-        Pref.clientThread = clientThread;
     }
 
     public static void forbidPreferences() {
@@ -578,7 +573,7 @@ public class Pref {
 	 * @return the Object value of this Pref object.
 	 */
 	public Object getValue() {
-        if (Thread.currentThread() != clientThread) {
+        if (!Job.isClientThread()) {
             if (!serverAccessible && !reportedAccess.contains(this)) {
                 String msg = getPrefName() + " is accessed from " + Job.getRunningJob();
                 if (Job.getDebug()) {
@@ -822,14 +817,14 @@ public class Pref {
 	 * Method to reset Pref value to factory default.
 	 */
     public void factoryReset() {
-        if (Thread.currentThread() != clientThread)
+        if (!Job.isClientThread())
             throw new IllegalStateException();
         cachedObj = factoryObj;
         group.remove(name);
     }
 
     private void checkModify() {
-        if (Thread.currentThread() != clientThread) {
+        if (!Job.isClientThread()) {
             if (!serverAccessible) {
                 String msg = getPrefName() + " is modified in " + Job.getRunningJob();
                 if (Job.getDebug()) {

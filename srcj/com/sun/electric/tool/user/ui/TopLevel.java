@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Client;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
@@ -390,7 +391,7 @@ public class TopLevel extends JFrame
 	 */
 	public static void addToDesktop(JInternalFrame jif)
 	{
-        if (desktop.isVisible() && !SwingUtilities.isEventDispatchThread())
+        if (desktop.isVisible() && !Job.isClientThread())
             SwingUtilities.invokeLater(new ModifyToDesktopSafe(jif, true)); else
             	(new ModifyToDesktopSafe(jif, true)).run();
     }
@@ -402,7 +403,7 @@ public class TopLevel extends JFrame
 	 */
 	public static void removeFromDesktop(JInternalFrame jif)
 	{
-        if (desktop.isVisible() && !SwingUtilities.isEventDispatchThread())
+        if (desktop.isVisible() && !Job.isClientThread())
             SwingUtilities.invokeLater(new ModifyToDesktopSafe(jif, false)); else
             	(new ModifyToDesktopSafe(jif, false)).run();
     }
