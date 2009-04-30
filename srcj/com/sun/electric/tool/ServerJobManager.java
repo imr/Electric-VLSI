@@ -477,7 +477,7 @@ public class ServerJobManager extends JobManager {
         public void startProgressDialog(String msg, String filePath)
         {
             progressValue = -1;
-            EJob ejob = Job.getRunningJob().ejob;
+            EJob ejob = Job.getRunningEJob();
             Client.fireServerEvent(new Client.StartProgressDialogEvent(ejob.oldSnapshot, msg, filePath));
         }
 
@@ -487,7 +487,7 @@ public class ServerJobManager extends JobManager {
         public void stopProgressDialog()
         {
             progressValue = -1;
-            EJob ejob = Job.getRunningJob().ejob;
+            EJob ejob = Job.getRunningEJob();
             Client.fireServerEvent(new Client.StopProgressDialogEvent(ejob.oldSnapshot));
         }
 
@@ -499,7 +499,7 @@ public class ServerJobManager extends JobManager {
         {
             if (pct == progressValue) return;
             progressValue = pct;
-            EJob ejob = Job.getRunningJob().ejob;
+            EJob ejob = Job.getRunningEJob();
             Client.fireServerEvent(new Client.ProgressValueEvent(ejob.oldSnapshot, pct));
         }
 
@@ -511,7 +511,7 @@ public class ServerJobManager extends JobManager {
         {
             progressNote = message;
             progressValue = -1;
-            EJob ejob = Job.getRunningJob().ejob;
+            EJob ejob = Job.getRunningEJob();
             Client.fireServerEvent(new Client.ProgressNoteEvent(ejob.oldSnapshot, message));
         }
 
@@ -525,7 +525,7 @@ public class ServerJobManager extends JobManager {
         }
 
         public Job.Key getJobKey() {
-            return Job.getRunningJob().getKey();
+            return Job.getRunningEJob().jobKey;
         }
 
     	public EDatabase getDatabase() {
@@ -578,7 +578,7 @@ public class ServerJobManager extends JobManager {
 		public EditWindow_ displayCell(Cell cell) { throw new IllegalStateException(); }
 
         public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate) {
-            EJob ejob = Job.getRunningJob().ejob;
+            EJob ejob = Job.getRunningEJob();
             Client.fireServerEvent(new Client.TermLoggingEvent(ejob.oldSnapshot, logger, explain, terminate));
         }
 
@@ -605,7 +605,7 @@ public class ServerJobManager extends JobManager {
          */
         public void showErrorMessage(String message, String title)
         {
-            EJob ejob = Job.getRunningJob().ejob;
+            EJob ejob = Job.getRunningEJob();
             Client.fireServerEvent(new Client.ShowMessageEvent(ejob.oldSnapshot, ejob.client, message, title, true));
         }
 
@@ -616,7 +616,7 @@ public class ServerJobManager extends JobManager {
          */
         public void showInformationMessage(String message, String title)
         {
-            EJob ejob = Job.getRunningJob().ejob;
+            EJob ejob = Job.getRunningEJob();
             Client.fireServerEvent(new Client.ShowMessageEvent(ejob.oldSnapshot, ejob.client, message, title, false));
         }
 
@@ -628,7 +628,7 @@ public class ServerJobManager extends JobManager {
         public void printMessage(String message, boolean newLine) {
             if (newLine)
                 message += "\n";
-            EJob ejob = Job.getRunningJob().ejob;
+            EJob ejob = Job.getRunningEJob();
             Client.fireServerEvent(new Client.PrintEvent(ejob.oldSnapshot, ejob.client, message));
         }
 
@@ -637,7 +637,7 @@ public class ServerJobManager extends JobManager {
          * @param filePath file to save
          */
         public void saveMessages(String filePath) {
-            EJob ejob = Job.getRunningJob().ejob;
+            EJob ejob = Job.getRunningEJob();
             Client.fireServerEvent(new Client.SavePrintEvent(ejob.oldSnapshot, ejob.client, filePath));
         }
 
@@ -645,7 +645,7 @@ public class ServerJobManager extends JobManager {
          * Method to beep.
          */
         public void beep() {
-            EJob ejob = Job.getRunningJob().ejob;
+            EJob ejob = Job.getRunningEJob();
             Client.fireServerEvent(new Client.BeepEvent(ejob.oldSnapshot));
         }
 

@@ -254,4 +254,8 @@ class EThread extends Thread {
         if (ejob == null) return null;
         return ejob.jobType == Job.Type.EXAMINE ? ejob.clientJob : ejob.serverJob;
     }
+
+    EJob getRunningEJob() {
+        return ejob;
+    }
 }

@@ -55,17 +55,17 @@ import java.util.Iterator;
  */
 public class EObjectOutputStream extends ObjectOutputStream {
     private final EDatabase database;
-    
+
     public EObjectOutputStream(OutputStream out, EDatabase database) throws IOException {
         super(out);
         enableReplaceObject(true);
         this.database = database;
     }
-    
+
     public EDatabase getDatabase() { return database; }
     public IdManager getIdManager() { return database.getIdManager(); }
-    
-    /** 
+
+    /**
      * This method will allow trusted subclasses of ObjectOutputStream to
      * substitute one object for another during serialization. Replacing
      * objects is disabled until enableReplaceObject is called. The
@@ -76,11 +76,11 @@ public class EObjectOutputStream extends ObjectOutputStream {
      * original call to replaceObject.  To ensure that the private state of
      * objects is not unintentionally exposed, only trusted streams may use
      * replaceObject.
-     * 
+     *
      * <p>The ObjectOutputStream.writeObject method takes a parameter of type
      * Object (as opposed to type Serializable) to allow for cases where
      * non-serializable objects are replaced by serializable ones.
-     * 
+     *
      * <p>When a subclass is replacing objects it must insure that either a
      * complementary substitution must be made during deserialization or that
      * the substituted object is compatible with every field where the
@@ -116,58 +116,56 @@ public class EObjectOutputStream extends ObjectOutputStream {
         if (obj instanceof Component) {
             throw new Error("Found AWT class " + obj.getClass() + " in serialized object");
         }
-        
+
         return obj;
     }
 
     private static class EView implements Serializable {
         String abbreviation;
-        
+
         private EView(View view) {
             abbreviation = view.getAbbreviation();
         }
-        
+
         private Object readResolve() throws ObjectStreamException {
             View view = View.findView(abbreviation);
             if (view == null) throw new InvalidObjectException("View");
             return view;
         }
     }
-    
+
     private static class ETool implements Serializable {
         String toolName;
-        
+
         private ETool(Tool tool) {
             toolName = tool.getName();
         }
-        
+
         private Object readResolve() throws ObjectStreamException {
             Tool tool = Tool.findTool(toolName);
             if (tool == null) throw new InvalidObjectException("Tool");
             return tool;
         }
     }
-    
+
     private static class EVariableKey implements Serializable {
         String varName;
-        
+
         private EVariableKey(Variable.Key varKey) {
             varName = varKey.toString();
         }
-        
+
         private Object readResolve() throws ObjectStreamException {
-            Variable.Key varKey = Variable.findKey(varName);
-            if (varKey == null) throw new InvalidObjectException("Variable.Key");
-            return varKey;
+            return Variable.newKey(varName);
         }
     }
-   
+
     private static class ETextDescriptor implements Serializable {
         /** the text descriptor is displayable */   private boolean display;
         /** the bits of the text descriptor */		private long bits;
         /** the color of the text descriptor */		private int colorIndex;
         /** the name of font of text descriptor */  private String fontName;
-        
+
         private ETextDescriptor(TextDescriptor td) {
             display = td.isDisplay();
             bits = td.lowLevelGet();
@@ -176,7 +174,7 @@ public class EObjectOutputStream extends ObjectOutputStream {
             if (face != 0)
                 fontName = TextDescriptor.ActiveFont.findActiveFont(face).toString();
         }
-        
+
         private Object readResolve() throws ObjectStreamException {
             MutableTextDescriptor mtd = new MutableTextDescriptor(bits, colorIndex, display);
             int face = 0;
@@ -188,12 +186,12 @@ public class EObjectOutputStream extends ObjectOutputStream {
             return td;
         }
     }
-    
+
     private static class ENetwork implements Serializable {
         Cell cell;
         int netIndex;
         Netlist.ShortResistors shortResistors;
-        
+
         private ENetwork(Network net, EDatabase database) throws NotSerializableException {
             cell = net.getParent();
             if (cell.getDatabase() != database || !cell.isLinked())
@@ -203,7 +201,7 @@ public class EObjectOutputStream extends ObjectOutputStream {
             if (cell.getNetlist(shortResistors).getNetwork(netIndex) != net)
                throw new NotSerializableException(net + " not linked");
         }
-        
+
         private Object readResolve() throws ObjectStreamException {
             Netlist netlist = cell.getNetlist(shortResistors);
             Network net = netlist.getNetwork(netIndex);
@@ -212,18 +210,18 @@ public class EObjectOutputStream extends ObjectOutputStream {
             return net;
         }
     }
-    
+
     private static class ENodable implements Serializable {
         Cell cell;
         String nodableName;
-        
+
         private ENodable(Nodable no, EDatabase database) throws NotSerializableException {
             cell = no.getParent();
             if (cell.getDatabase() != database || !cell.isLinked())
                 throw new NotSerializableException(cell + " not linked");
             nodableName = no.getName();
         }
-        
+
         private Object readResolve() throws ObjectStreamException {
             Netlist netlist = cell.getNetlist();
             Nodable nodable = null;
