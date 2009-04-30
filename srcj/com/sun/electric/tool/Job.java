@@ -211,7 +211,7 @@ public abstract class Job implements Serializable {
 	 */
     public Job(String jobName, Tool tool, Type jobType, Cell upCell, Cell downCell, Priority priority) {
         ejob = new EJob(this, jobType, jobName, EditingPreferences.getThreadEditingPreferences());
-        database = getUserInterface().getDatabase();
+        database = getUserInterface() != null ? getUserInterface().getDatabase() : EDatabase.clientDatabase();
 		this.tool = tool;
         this.deleteWhenDone = true;
         startTime = endTime = 0;
@@ -493,8 +493,8 @@ public abstract class Job implements Serializable {
      * Low-level method.
      */
     public static AbstractUserInterface getExtendedUserInterface() {
-        if (!isClientThread())
-            ActivityLogger.logException(new IllegalStateException());
+//        if (!isClientThread())
+//            ActivityLogger.logException(new IllegalStateException());
         return currentUI;
     }
 
