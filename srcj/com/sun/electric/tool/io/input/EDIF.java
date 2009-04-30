@@ -410,6 +410,7 @@ public class EDIF extends Input
 		public double inputScale;
 		public String acceptedParameters;
 		public String configurationFile;
+		public boolean cadenceCompatibility;
 		public ViewChanges.IconParameters iconParameters = new ViewChanges.IconParameters();
 		public AutoStitch.AutoOptions autoParameters = new AutoStitch.AutoOptions();
 
@@ -420,6 +421,7 @@ public class EDIF extends Input
 			inputScale = IOTool.getEDIFInputScale();
 			acceptedParameters = IOTool.getEDIFAcceptedParameters();
 			configurationFile = IOTool.getEDIFConfigurationFile();
+			cadenceCompatibility = IOTool.isEDIFCadenceCompatibility();
 			iconParameters.initFromUserDefaults();
 			autoParameters.initFromUserDefaults();
 			autoParameters.createExports = false;
@@ -1223,7 +1225,7 @@ public class EDIF extends Input
 			// name the bus
 			if (netReference.length() > 0)
 			{
-				ai.newVar("EDIF_name", netReference);
+				ai.newVar("EDIF_name", stripPercentEscapes(netReference));
 			}
 
 			StringBuffer aName = new StringBuffer();
@@ -1270,7 +1272,7 @@ public class EDIF extends Input
 		} else
 		{
 			if (netReference.length() > 0)
-				ai.newVar("EDIF_name", netName);
+				ai.newVar("EDIF_name", stripPercentEscapes(netName));
 			if (netName.length() > 0)
 			{
 				// set name of arc but don't display name
@@ -1718,7 +1720,13 @@ public class EDIF extends Input
 
 		// create the properties on the port
 		for (EDIFProperty property : plp.properties)
-			plp.createdPort.newVar(property.name, property.val);
+			plp.createdPort.newVar(stripPercentEscapes(property.name), stripPercentEscapes(property.val.toString()));
+	}
+
+	private String stripPercentEscapes(String x)
+	{
+		if (x.indexOf("%34%") >= 0) x = x.replaceFirst("%34%", "");
+		return x;
 	}
 
 	private PlannedPort addPlannedPort(String name)
@@ -2458,7 +2466,7 @@ public class EDIF extends Input
 								// array descriptor is of the form index:index:range index:index:range
 								String baseName = iX + ":" + ((deltaPointXX == 0 && deltaPointYX == 0) ? arrayXVal-1:iX) + ":" + arrayXVal +
 									" " + iY + ":" + ((deltaPointXY == 0 && deltaPointYY == 0) ? arrayYVal-1:iY) + ":" + arrayYVal;
-								ni.newVar("EDIF_array", baseName);
+								ni.newVar("EDIF_array", stripPercentEscapes(baseName));
 							}
 
 							/* now set the name of the component (note that Electric allows any string
@@ -2477,7 +2485,7 @@ public class EDIF extends Input
 								}
 
 								// now save the EDIF name (not displayed)
-								ni.newVar("EDIF_name", nodeName);
+								ni.newVar("EDIF_name", stripPercentEscapes(nodeName));
 							}
 						}
 					}
@@ -2501,6 +2509,21 @@ public class EDIF extends Input
 				{
 					for (int iX = 0; iX < arrayXVal; iX++)
 					{
+						// ignore placement of schematic frames when using Cadence EDIF
+						if (localPrefs.cadenceCompatibility)
+						{
+							if (cellRefProto instanceof Cell)
+							{
+								Cell cellRefCell = (Cell)cellRefProto;
+								if (cellRefCell.getView() == View.ICON &&
+									cellRefCell.getLibrary().getName().equals("primitive"))
+								{
+									if (cellRefProto.getName().equals("Asize_c")) continue;
+									if (cellRefProto.getName().equals("Bsize_c")) continue;
+									if (cellRefProto.getName().equals("CsizeB_c")) continue;
+								}
+							}
+						}
 						double lX = instPtX + iX * deltaPointXX;
 						double lY = instPtY + iX * deltaPointXY;
 						for (int iY = 0; iY < arrayYVal; iY++)
@@ -2579,7 +2602,7 @@ public class EDIF extends Input
 										// array descriptor is of the form index:index:range index:index:range
 										String baseName = iX + ":" + ((deltaPointXX == 0 && deltaPointYX == 0) ? arrayXVal-1:iX) + ":" + arrayXVal +
 											" " + iY + ":" + ((deltaPointXY == 0 && deltaPointYY == 0) ? arrayYVal-1:iY) + ":" + arrayYVal;
-										ni.newVar("EDIF_array", baseName);
+										ni.newVar("EDIF_array", stripPercentEscapes(baseName));
 									}
 
 									// now set the name of the component (note that Electric allows any string
@@ -2596,7 +2619,7 @@ public class EDIF extends Input
 										if (iX == 0 && iY == 0) ni.setName(convertParens(instanceName));
 
 										// now save the EDIF name (not displayed)
-										Variable var = ni.newVar("EDIF_name", nodeName);
+										Variable var = ni.newVar("EDIF_name", stripPercentEscapes(nodeName));
 										varKey = var.getKey();
 									}
 
@@ -2970,7 +2993,7 @@ public class EDIF extends Input
 			for (EDIFProperty property : propertiesList)
 			{
 				if (curArc != null)
-					curArc.newVar(property.name, property.val);
+					curArc.newVar(stripPercentEscapes(property.name), stripPercentEscapes(property.val.toString()));
 			}
 			propertiesList = new ArrayList<EDIFProperty>();
 			netReference = "";
@@ -3331,11 +3354,11 @@ public class EDIF extends Input
 								if (arcsOnNet != null) arcsOnNet.add(ai);
 								if (curGeometryType == GNET && i == 0)
 								{
-									if (netReference.length() > 0) ai.newVar("EDIF_name", netReference);
+									if (netReference.length() > 0) ai.newVar("EDIF_name", stripPercentEscapes(netReference));
 									if (netName.length() > 0) putNameOnArcOnce(ai, convertParens(netName));
 								} else if (curGeometryType == GBUS && i == 0)
 								{
-									if (bundleReference.length() > 0) ai.newVar("EDIF_name", bundleReference);
+									if (bundleReference.length() > 0) ai.newVar("EDIF_name", stripPercentEscapes(bundleReference));
 									if (bundleName.length() > 0) putNameOnArcOnce(ai, convertParens(bundleName));
 								}
 							}
