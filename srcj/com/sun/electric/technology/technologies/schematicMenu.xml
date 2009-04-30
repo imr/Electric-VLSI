@@ -59,10 +59,10 @@
 
         <menuBox>
             <menuNodeInst protoName="Global-Signal" function="CONNECT">
-                <menuNodeText text="Global Signal" size="0"/>
+                <menuNodeText text="Global" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Global-Partition" function="CONNECT">
-                <menuNodeText text="Global Partition" size="0"/>
+                <menuNodeText text="Partition" size="0"/>
             </menuNodeInst>
         </menuBox>
         <menuBox>
@@ -78,19 +78,19 @@
 
         <menuBox>
             <menuNodeInst protoName="Resistor" function="RESIST">
-                <menuNodeText text="Normal Resistor" size="0"/>
+                <menuNodeText text="Normal" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Resistor" function="RESNPOLY" techBits="1">
-                <menuNodeText text="N-Poly Resistor" size="0"/>
+                <menuNodeText text="N-Poly" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Resistor" function="RESPPOLY" techBits="2">
-                <menuNodeText text="P-Poly Resistor" size="0"/>
+                <menuNodeText text="P-Poly" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Resistor" function="RESNWELL" techBits="3">
-                <menuNodeText text="N-Well Resistor" size="0"/>
+                <menuNodeText text="N-Well" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Resistor" function="RESPWELL" techBits="4">
-                <menuNodeText text="P-Well Resistor" size="0"/>
+                <menuNodeText text="P-Well" size="0"/>
             </menuNodeInst>
         </menuBox>
         <menuBox>
@@ -99,117 +99,117 @@
 
         <menuBox>
             <menuNodeInst protoName="Capacitor" function="CAPAC">
-                <menuNodeText text="Normal Capacitor" size="0"/>
+                <menuNodeText text="Normal" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Capacitor" function="ECAPAC" techBits="1">
-                <menuNodeText text="Electrolytic Capacitor" size="0"/>
+                <menuNodeText text="Electro" size="0"/>
             </menuNodeInst>
         </menuBox>
         <menuBox>
             <menuNodeInst protoName="Diode" function="DIODE">
-                <menuNodeText text="Normal Diode" size="0"/>
+                <menuNodeText text="Normal" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Diode" function="DIODEZ" techBits="1">
-                <menuNodeText text="Zener Diode" size="0"/>
+                <menuNodeText text="Zener" size="0"/>
             </menuNodeInst>
         </menuBox>
 
         <menuBox>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4NMOS" rotation="900">
-                <menuNodeText text="nMOS 4-port" size="0"/>
+                <menuNodeText text="nMOS" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PMOS" techBits="2" rotation="900">
-                <menuNodeText text="pMOS 4-port" size="0"/>
+                <menuNodeText text="pMOS" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4DMOS" techBits="1" rotation="900">
-                <menuNodeText text="nMOS-D 4-port" size="0"/>
+                <menuNodeText text="nMOS D" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PMOSD" techBits="9" rotation="900">
-                <menuNodeText text="pMOS-D 4-port" size="0"/>
+                <menuNodeText text="pMOS D" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4NMOSNT" techBits="10" rotation="900">
-                <menuNodeText text="nMOS-NT 4-port" size="0"/>
+                <menuNodeText text="nMOS NT" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PMOSNT" techBits="11" rotation="900">
-                <menuNodeText text="pMOS-NT 4-port" size="0"/>
+                <menuNodeText text="pMOS NT" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4NMOSFG" techBits="12" rotation="900">
-                <menuNodeText text="nMOS-FG 4-port" size="0"/>
+                <menuNodeText text="nMOS FG" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PMOSFG" techBits="13" rotation="900">
-                <menuNodeText text="pMOS-FG 4-port" size="0"/>
+                <menuNodeText text="pMOS FG" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4NMOSCN" techBits="30" rotation="900">
-                <menuNodeText text="nMOS-CN 4-port" size="0"/>
+                <menuNodeText text="nMOS CN" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PMOSCN" techBits="31" rotation="900">
-                <menuNodeText text="pMOS-CN 4-port" size="0"/>
+                <menuNodeText text="pMOS CN" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4NMOSVTL" techBits="14" rotation="900">
-                <menuNodeText text="nMOS-VTL 4-port" size="0"/>
+                <menuNodeText text="nMOS VTL" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PMOSVTL" techBits="15" rotation="900">
-                <menuNodeText text="pMOS-VTL 4-port" size="0"/>
+                <menuNodeText text="pMOS VTL" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4NMOSVTH" techBits="16" rotation="900">
-                <menuNodeText text="nMOS-VTH 4-port" size="0"/>
+                <menuNodeText text="nMOS VTH" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PMOSVTH" techBits="17" rotation="900">
-                <menuNodeText text="pMOS-VTH 4-port" size="0"/>
+                <menuNodeText text="pMOS -VTH" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4NMOSHV1" techBits="18" rotation="900">
-                <menuNodeText text="nMOS-HV1 4-port" size="0"/>
+                <menuNodeText text="nMOS HV1" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PMOSHV1" techBits="19" rotation="900">
-                <menuNodeText text="pMOS-HV1 4-port" size="0"/>
+                <menuNodeText text="pMOS HV1" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4NMOSHV2" techBits="20" rotation="900">
-                <menuNodeText text="nMOS-HV2 4-port" size="0"/>
+                <menuNodeText text="nMOS HV2" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PMOSHV2" techBits="21" rotation="900">
-                <menuNodeText text="pMOS-HV2 4-port" size="0"/>
+                <menuNodeText text="pMOS HV2" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4NMOSHV3" techBits="22" rotation="900">
-                <menuNodeText text="nMOS-HV3 4-port" size="0"/>
+                <menuNodeText text="nMOS HV3" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PMOSHV3" techBits="23" rotation="900">
-                <menuNodeText text="pMOS-HV3 4-port" size="0"/>
+                <menuNodeText text="pMOS HV3" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4NMOSNTHV1" techBits="24" rotation="900">
-                <menuNodeText text="nMOS-NT-HV1 4-port" size="0"/>
+                <menuNodeText text="nMOS NT/HV1" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PMOSNTHV1" techBits="25" rotation="900">
-                <menuNodeText text="pMOS-NT-HV1 4-port" size="0"/>
+                <menuNodeText text="pMOS NT/HV1" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4NMOSNTHV2" techBits="26" rotation="900">
-                <menuNodeText text="nMOS-NT-HV2 4-port" size="0"/>
+                <menuNodeText text="nMOS NT/HV2" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PMOSNTHV2" techBits="27" rotation="900">
-                <menuNodeText text="pMOS-NT-HV2 4-port" size="0"/>
+                <menuNodeText text="pMOS NT/HV2" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4NMOSNTHV3" techBits="28" rotation="900">
-                <menuNodeText text="nMOS-NT-HV3 4-port" size="0"/>
+                <menuNodeText text="nMOS NT/HV3" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PMOSNTHV3" techBits="29" rotation="900">
-                <menuNodeText text="pMOS-NT-HV3 4-port" size="0"/>
+                <menuNodeText text="pMOS NT/HV3" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4NPN" techBits="3" rotation="900">
-                <menuNodeText text="NPN 4-port" size="0"/>
+                <menuNodeText text="NPN" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PNP" techBits="4" rotation="900">
-                <menuNodeText text="PNP 4-port" size="0"/>
+                <menuNodeText text="PNP" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4DMES" techBits="7" rotation="900">
-                <menuNodeText text="DMES 4-port" size="0"/>
+                <menuNodeText text="DMES" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4EMES" techBits="8" rotation="900">
-                <menuNodeText text="EMES 4-port" size="0"/>
+                <menuNodeText text="EMES" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PJFET" techBits="6" rotation="900">
-                <menuNodeText text="pJFET 4-port" size="0"/>
+                <menuNodeText text="pJFET" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="4-Port-Transistor" function="TRA4PJFET" techBits="6" rotation="900">
-                <menuNodeText text="nJFET 4-port" size="0"/>
+                <menuNodeText text="nJFET" size="0"/>
             </menuNodeInst>
         </menuBox>
         <menuBox>
@@ -224,76 +224,76 @@
                 <menuNodeText text="pMOS" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRADMOS" techBits="1" rotation="900">
-                <menuNodeText text="nMOS-D" size="0"/>
+                <menuNodeText text="nMOS D" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRAPMOSD" techBits="9" rotation="900">
-                <menuNodeText text="pMOS-D" size="0"/>
+                <menuNodeText text="pMOS D" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRANMOSNT" techBits="10" rotation="900">
-                <menuNodeText text="nMOS-NT" size="0"/>
+                <menuNodeText text="nMOS NT" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRAPMOSNT" techBits="11" rotation="900">
-                <menuNodeText text="pMOS-NT" size="0"/>
+                <menuNodeText text="pMOS NT" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRANMOSFG" techBits="12" rotation="900">
-                <menuNodeText text="nMOS-FG" size="0"/>
+                <menuNodeText text="nMOS FG" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRAPMOSFG" techBits="13" rotation="900">
-                <menuNodeText text="pMOS-FG" size="0"/>
+                <menuNodeText text="pMOS FG" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRANMOSCN" techBits="30" rotation="900">
-                <menuNodeText text="nMOS-CN" size="0"/>
+                <menuNodeText text="nMOS CN" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRAPMOSCN" techBits="31" rotation="900">
-                <menuNodeText text="pMOS-CN" size="0"/>
+                <menuNodeText text="pMOS CN" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRANMOSVTL" techBits="14" rotation="900">
-                <menuNodeText text="nMOS-VTL" size="0"/>
+                <menuNodeText text="nMOS VTL" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRAPMOSVTL" techBits="15" rotation="900">
-                <menuNodeText text="pMOS-VTL" size="0"/>
+                <menuNodeText text="pMOS VTL" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRANMOSVTH" techBits="16" rotation="900">
-                <menuNodeText text="nMOS-VTH" size="0"/>
+                <menuNodeText text="nMOS VTH" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRAPMOSVTH" techBits="17" rotation="900">
-                <menuNodeText text="pMOS-VTH" size="0"/>
+                <menuNodeText text="pMOS VTH" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRANMOSHV1" techBits="18" rotation="900">
-                <menuNodeText text="nMOS-HV1" size="0"/>
+                <menuNodeText text="nMOS HV1" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRAPMOSHV1" techBits="19" rotation="900">
-                <menuNodeText text="pMOS-HV1" size="0"/>
+                <menuNodeText text="pMOS HV1" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRANMOSHV2" techBits="20" rotation="900">
-                <menuNodeText text="nMOS-HV2" size="0"/>
+                <menuNodeText text="nMOS HV2" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRAPMOSHV2" techBits="21" rotation="900">
-                <menuNodeText text="pMOS-HV2" size="0"/>
+                <menuNodeText text="pMOS HV2" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRANMOSHV3" techBits="22" rotation="900">
-                <menuNodeText text="nMOS-HV3" size="0"/>
+                <menuNodeText text="nMOS HV3" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRAPMOSHV3" techBits="23" rotation="900">
-                <menuNodeText text="pMOS-HV3" size="0"/>
+                <menuNodeText text="pMOS HV3" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRANMOSNTHV1" techBits="24" rotation="900">
-                <menuNodeText text="nMOS-NT-HV1" size="0"/>
+                <menuNodeText text="nMOS NT/HV1" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRAPMOSNTHV1" techBits="25" rotation="900">
-                <menuNodeText text="pMOS-NT-HV1" size="0"/>
+                <menuNodeText text="pMOS NT/HV1" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRANMOSNTHV2" techBits="26" rotation="900">
-                <menuNodeText text="nMOS-NT-HV2" size="0"/>
+                <menuNodeText text="nMOS NT/HV2" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRAPMOSNTHV2" techBits="27" rotation="900">
-                <menuNodeText text="pMOS-NT-HV2" size="0"/>
+                <menuNodeText text="pMOS NT/HV2" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRANMOSNTHV3" techBits="28" rotation="900">
-                <menuNodeText text="nMOS-NT-HV3" size="0"/>
+                <menuNodeText text="nMOS NT/HV3" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRAPMOSNTHV3" techBits="29" rotation="900">
-                <menuNodeText text="pMOS-NT-HV3" size="0"/>
+                <menuNodeText text="pMOS NT/HV3" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Transistor" function="TRANPN" techBits="3" rotation="900">
                 <menuNodeText text="NPN" size="0"/>
@@ -323,43 +323,43 @@
         </menuBox>
         <menuBox>
             <menuNodeInst protoName="Flip-Flop" function="FLIPFLOPRSMS">
-                <menuNodeText text="R-S master/slave" size="0"/>
+                <menuNodeText text="RS M/S" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Flip-Flop" function="FLIPFLOPRSP" techBits="4">
-                <menuNodeText text="R-S positive" size="0"/>
+                <menuNodeText text="RS pos" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Flip-Flop" function="FLIPFLOPRSN" techBits="8">
-                <menuNodeText text="R-S negative" size="0"/>
+                <menuNodeText text="RS neg" size="0"/>
             </menuNodeInst>
             <menuText>-</menuText>
             <menuNodeInst protoName="Flip-Flop" function="FLIPFLOPJKMS" techBits="1">
-                <menuNodeText text="J-K master/slave" size="0"/>
+                <menuNodeText text="JK M/S" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Flip-Flop" function="FLIPFLOPJKP" techBits="5">
-                <menuNodeText text="J-K positive" size="0"/>
+                <menuNodeText text="JK pos" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Flip-Flop" function="FLIPFLOPJKN" techBits="9">
-                <menuNodeText text="J-K negative" size="0"/>
+                <menuNodeText text="JK neg" size="0"/>
             </menuNodeInst>
             <menuText>-</menuText>
             <menuNodeInst protoName="Flip-Flop" function="FLIPFLOPDMS" techBits="2">
-                <menuNodeText text="D master/slave" size="0"/>
+                <menuNodeText text="D M/S" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Flip-Flop" function="FLIPFLOPDP" techBits="6">
-                <menuNodeText text="D positive" size="0"/>
+                <menuNodeText text="D pos" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Flip-Flop" function="FLIPFLOPDN" techBits="10">
-                <menuNodeText text="D negative" size="0"/>
+                <menuNodeText text="D neg" size="0"/>
             </menuNodeInst>
             <menuText>-</menuText>
             <menuNodeInst protoName="Flip-Flop" function="FLIPFLOPTMS" techBits="3">
-                <menuNodeText text="T master/slave" size="0"/>
+                <menuNodeText text="T M/S" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Flip-Flop" function="FLIPFLOPTP" techBits="7">
-                <menuNodeText text="T positive" size="0"/>
+                <menuNodeText text="T pos" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Flip-Flop" function="FLIPFLOPTN" techBits="11">
-                <menuNodeText text="T negative" size="0"/>
+                <menuNodeText text="T neg" size="0"/>
             </menuNodeInst>
         </menuBox>
 

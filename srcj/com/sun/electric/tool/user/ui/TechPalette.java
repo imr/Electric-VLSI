@@ -265,7 +265,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 		{
 			NodeInst ni = (NodeInst)item;
 		    Variable var = ni.getVar(TECH_TMPVAR);
-            if (getVarName && var != null && !var.isDisplay())
+            if (getVarName && var != null) // && !var.isDisplay())
             {
                 return (var.getObject().toString());
             }
@@ -432,7 +432,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
 					for (Object item : list)
 					{
-						if (item == Technology.SPECIALMENUSEPARATOR)
+						if (item.equals(Technology.SPECIALMENUSEPARATOR))
 							menu.add(new JSeparator());
 						else if (item instanceof List)
 						{
@@ -951,12 +951,12 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     private boolean isCursorOnCorner(MouseEvent e)
     {
 		int entryS = (entrySize+1);
-        int x = e.getX() / (entryS);
-        int y = menuY - (e.getY() / (entryS)) - 1;
+        int x = e.getX() / entryS;
+        int y = menuY - (e.getY() / entryS) - 1;
         if (y < 0) y = 0;
 		double deltaX = (e.getX() - x*entryS)/(double)entryS;
 		double deltaY = (e.getY() - (menuY-y-1)*entryS)/(double)entryS;
-		return (deltaX > 0.75 && deltaY > 0.75);
+		return (deltaX > 0.75 && deltaY > 0.65);
     }
 
     /**
@@ -1196,7 +1196,12 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                    	if (msgLen < 4) msgLen = 4;
 	                    	int size = (int)Math.round(entrySize / msgLen / 0.8);
 	                    	if (size < 6) size = 6;
-	                    	TextDescriptor td = var.getTextDescriptor().withOff(0, -largest/2/0.8).withAbsSize(size);
+	                    	double xOff = 0, yOff = largest/2*0.4;
+	                    	if (ni.getOrient() == Orientation.R)
+	                    	{
+	                    		xOff = largest/2*0.8;   yOff = -largest/2;
+	                    	}
+	                    	TextDescriptor td = var.getTextDescriptor().withOff(xOff, yOff).withAbsSize(size);
 	                    	ni.setTextDescriptor(TECH_TMPVAR, td);
 	                    }
 	                    VectorCache.VectorBase[] shapes = VectorCache.drawNode(ni);

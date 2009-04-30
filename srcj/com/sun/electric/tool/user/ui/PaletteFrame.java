@@ -319,8 +319,6 @@ public class PaletteFrame implements MouseListener
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
 		private int oldx, oldy;
-//		private Point2D drawnLoc;
-//		private boolean doingMotionDrag;
 		private Object toDraw;
 		private EventListener oldListener;
 		private Cursor oldCursor;
