@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool;
 
-import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
@@ -42,9 +41,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CantEditException;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.User;
 
-import java.awt.Toolkit;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
@@ -214,7 +211,7 @@ public abstract class Job implements Serializable {
 	 */
     public Job(String jobName, Tool tool, Type jobType, Cell upCell, Cell downCell, Priority priority) {
         ejob = new EJob(this, jobType, jobName, EditingPreferences.getThreadEditingPreferences());
-        database = threadDatabase();
+        database = getUserInterface().getDatabase();
 		this.tool = tool;
         this.deleteWhenDone = true;
         startTime = endTime = 0;
@@ -485,176 +482,6 @@ public abstract class Job implements Serializable {
         return true;
     }
 
-    /**
-     * Unless you need to code to execute quickly (such as in the GUI thread)
-     * you should be using a Job to examine the database instead of this method.
-     * The suggested format is as follows:
-     * <p>
-     * <pre><code>
-     * if (Job.acquireExamineLock(block)) {
-     *     try {
-     *         // do stuff
-     *         Job.releaseExamineLock();    // release lock
-     *     } catch (Error e) {
-     *         Job.releaseExamineLock();    // release lock if error/exception thrown
-     *         throw e;                     // rethrow error/exception
-     *     }
-     * }
-     * </code></pre>
-     * <p>
-     * This method tries to acquire a lock to allow the current thread to
-     * safely examine the database.
-     * If "block" is true, this call blocks until a lock is acquired.  If block
-     * is false, this call returns immediately, returning true if a lock was
-     * acquired, or false if not.  You must call Job.releaseExamineLock
-     * when done if you acquired a lock.
-     * <p>
-     * Subsequent nested calls to this method from the same thread must
-     * have matching calls to releaseExamineLock.
-     * @param block True to block (wait) until lock can be acquired. False to
-     * return immediately with a return value that denotes if a lock was acquired.
-     * @return true if lock acquired, false otherwise. If block is true,
-     * the return value is always true.
-     * @see #releaseExamineLock()
-     * @see #invokeExamineLater(Runnable, Object)
-     */
-    public static synchronized boolean acquireExamineLock(boolean block) {
-        return true;
-//        if (true) return true;      // disabled
-//        Thread thread = Thread.currentThread();
-//
-//        // first check to see if we already have the lock
-//        Job job = databaseChangesThread.getJob(thread);
-//        if (job != null) {
-//            assert(job instanceof InthreadExamineJob);
-//            ((InthreadExamineJob)job).incrementLockCount();
-//            return true;
-//        }
-//        // create new Job to get examine lock
-//        InthreadExamineJob dummy = new InthreadExamineJob();
-//        ((Job)dummy).display = false;
-//        ((Job)dummy).deleteWhenDone = true;
-//        ((Job)dummy).thread = thread;
-//        return databaseChangesThread.addInthreadExamineJob(dummy, block);
-    }
-
-    /**
-     * Release the lock to examine the database.  The lock is the lock
-     * associated with the current thread.  This should only be called if a
-     * lock was acquired for the current thread.
-     * @see #acquireExamineLock(boolean)
-     * @see #invokeExamineLater(Runnable, Object)
-     */
-    public static synchronized void releaseExamineLock() {
-//        if (true) return;      // disabled
-//        Job dummy = databaseChangesThread.getJob(Thread.currentThread());
-//        assert(dummy != null);
-//        assert(dummy instanceof InthreadExamineJob);
-//        InthreadExamineJob job = (InthreadExamineJob)dummy;
-//        job.decrementLockCount();
-//        if (job.getLockCount() == 0) {
-//            databaseChangesThread.endExamine(job);
-//            databaseChangesThread.removeJob(job);
-//        }
-    }
-
-//    /**
-//     * See if the current thread already has an Examine Lock.
-//     * This is useful when you want to assert that the running
-//     * thread has successfully acquired an Examine lock.
-//     * This methods returns true if the current thread is a Job
-//     * thread, or if the current thread has successfully called
-//     * acquireExamineLock.
-//     * @return true if the current thread has an active examine
-//     * lock on the database, false otherwise.
-//     */
-//    public static synchronized boolean hasExamineLock() {
-//        Thread thread = Thread.currentThread();
-//        // change job is a valid examine job
-//        if (thread == databaseChangesThread) return true;
-//        // check for any examine jobs
-//        Job job = databaseChangesThread.getJob(thread);
-//        if (job != null) {
-//            return true;
-//        }
-//        return false;
-//    }
-
-    /**
-     * A common pattern is that the GUI needs to examine the database, but does not
-     * want to wait if it cannot immediately get an Examine lock via acquireExamineLock.
-     * In this case the GUI can call invokeExamineLater to have the specified SwingExamineTask
-     * run in the context of the swing thread where it will be *guaranteed* that it will
-     * be able to acquire an Examine Lock via acquireExamineLock().
-     * <p>
-     * This method basically reserves a slot in the Job queue with an Examine Job,
-     * calls the runnable with SwingUtilities.invokeAndWait when the Job starts, and
-     * ends the Job only after the runnable finishes.
-     * <P>
-     * IMPORTANT!  Note that this ties up both the Job queue and the Swing event queue.
-     * It is possible to deadlock if the SwingExamineJob waits on a Change Job thread (unlikely,
-     * but possible).  Note that this also runs examines sequentially, because that is
-     * how the Swing event queue runs events.  This is less efficient than the Job queue examines,
-     * but also maintains sequential ordering and process of events, which may be necessary
-     * if state is being shared/modified between events (such as between mousePressed and
-     * mouseReleased events).
-     * @param task the Runnable to run in the swing thread. A call to
-     * Job.acquireExamineLock from within run() is guaranteed to return true.
-     * @param singularKey if not null, this specifies a key by which
-     * subsequent calls to this method using the same key will be consolidated into
-     * one invocation instead of many.  Only calls that have not already resulted in a
-     * call back to the runnable will be ignored.  Only the last runnable will be used.
-     * @see SwingExamineTask  for a common pattern using this method
-     * @see #acquireExamineLock(boolean)
-     * @see #releaseExamineLock()
-     */
-    public static void invokeExamineLater(Runnable task, Object singularKey) {
-        assert false;
-//        if (singularKey != null) {
-//            SwingExamineJob priorJob = SwingExamineJob.getWaitingJobFor(singularKey);
-//            if (priorJob != null)
-//                priorJob.abort();
-//        }
-//        SwingExamineJob job = new SwingExamineJob(task, singularKey);
-//        job.startJob(false, true);
-    }
-
-//    private static class SwingExamineJob extends Job {
-//        /** Map of Runnables to waiting Jobs */         private static final Map<Object,Job> waitingJobs = new HashMap<Object,Job>();
-//        /** The runnable to run in the Swing thread */  private Runnable task;
-//        /** the singular key */                         private Object singularKey;
-//
-//        private SwingExamineJob(Runnable task, Object singularKey) {
-//            super("ReserveExamineSlot", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
-//            this.task = task;
-//            this.singularKey = singularKey;
-//            synchronized(waitingJobs) {
-//                if (singularKey != null)
-//                    waitingJobs.put(singularKey, this);
-//            }
-//        }
-//
-//        public boolean doIt() throws JobException {
-//            synchronized(waitingJobs) {
-//                if (singularKey != null)
-//                    waitingJobs.remove(singularKey);
-//            }
-//            try {
-//                SwingUtilities.invokeAndWait(task);
-//            } catch (InterruptedException e) {
-//            } catch (java.lang.reflect.InvocationTargetException ee) {
-//            }
-//            return true;
-//        }
-//
-//        private static SwingExamineJob getWaitingJobFor(Object singularKey) {
-//            if (singularKey == null) return null;
-//            synchronized(waitingJobs) {
-//                return (SwingExamineJob)waitingJobs.get(singularKey);
-//            }
-//        }
-//    }
-
     public static UserInterface getUserInterface() {
         Thread currentThread = Thread.currentThread();
         if (currentThread instanceof EThread)
@@ -666,18 +493,13 @@ public abstract class Job implements Serializable {
      * Low-level method.
      */
     public static AbstractUserInterface getExtendedUserInterface() {
-            return currentUI;
+        if (!isClientThread())
+            ActivityLogger.logException(new IllegalStateException());
+        return currentUI;
     }
 
     public static boolean isClientThread() {
         return Thread.currentThread() == clientThread;
-    }
-
-    public static EDatabase threadDatabase() {
-        Thread currentThread = Thread.currentThread();
-        if (currentThread instanceof EThread)
-            return ((EThread)currentThread).database;
-        return EDatabase.clientDatabase();
     }
 
     public EDatabase getDatabase() {
@@ -699,10 +521,6 @@ public abstract class Job implements Serializable {
     public EditingPreferences getEditingPreferences() {
         return ejob.editingPreferences;
     }
-
-//    public static void wantUpdateGui() {
-//        jobManager.wantUpdateGui();
-//    }
 
     public static void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
         if (currentUI != null)

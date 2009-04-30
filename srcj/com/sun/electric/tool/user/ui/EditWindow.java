@@ -1269,7 +1269,7 @@ public class EditWindow extends JPanel
 
 		if (Job.getDebug()) {
 			// add in highlighting
-			if (Job.acquireExamineLock(false)) {
+			if (true/*Job.acquireExamineLock(false)*/) {
 				try {
 					// add in the frame if present
 					drawCellFrame(g);
@@ -1280,9 +1280,9 @@ public class EditWindow extends JPanel
 					highlighter.showHighlights(this, g);
 					//long end = System.currentTimeMillis();
 					//System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
-					Job.releaseExamineLock();
+//					Job.releaseExamineLock();
 				} catch (Error e) {
-					Job.releaseExamineLock();
+//					Job.releaseExamineLock();
 					throw e;
 				}
 			}

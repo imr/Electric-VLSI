@@ -175,10 +175,6 @@ public abstract class Client {
         abstract void show(AbstractUserInterface ui);
     }
 
-    static void print(String s) {
-        fireServerEvent(new PrintEvent(null, Job.currentUI, s));
-    }
-
     static void fireServerEvent(ServerEvent serverEvent) {
         putEvent(serverEvent);
         if (Job.currentUI != null)

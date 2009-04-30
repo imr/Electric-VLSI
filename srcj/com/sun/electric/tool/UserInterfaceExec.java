@@ -125,14 +125,26 @@ public class UserInterfaceExec implements UserInterface {
      * @param message the error message to show.
      * @param title the title of a dialog with the error message.
      */
-    public void showErrorMessage(String message, String title) { throw new UnsupportedOperationException(); }
+    public void showErrorMessage(String message, String title) {
+        if (jobKey.doItOnServer) {
+            Client.fireServerEvent(new Client.ShowMessageEvent(null, null, message, title, true));
+        } else {
+            Job.currentUI.showInformationMessage(message, title);
+        }
+    }
 
     /**
      * Method to show an informational message.
      * @param message the message to show.
      * @param title the title of a dialog with the message.
      */
-    public void showInformationMessage(String message, String title) { throw new UnsupportedOperationException(); }
+    public void showInformationMessage(String message, String title) {
+        if (jobKey.doItOnServer) {
+            Client.fireServerEvent(new Client.ShowMessageEvent(null, null, message, title, false));
+        } else {
+            Job.currentUI.showInformationMessage(message, title);
+        }
+    }
 
     /**
      * Method print a message.
@@ -143,7 +155,7 @@ public class UserInterfaceExec implements UserInterface {
         if (jobKey.doItOnServer) {
             if (newLine)
                 message += "\n";
-            Client.print(message);
+            Client.fireServerEvent(new Client.PrintEvent(null, Job.currentUI, message));
         } else {
             Job.currentUI.printMessage(message, newLine);
         }

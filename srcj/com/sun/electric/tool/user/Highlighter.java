@@ -1170,14 +1170,14 @@ public class Highlighter implements DatabaseChangeListener {
 	{
 		Rectangle2D bounds = new Rectangle2D.Double();
 		Poly.Type style = null;
-        if (!Job.acquireExamineLock(false)) return null;
+//        if (!Job.acquireExamineLock(false)) return null;
         try
         {
     		style = getHighlightTextStyleBounds(wnd, eObj, varKey, bounds);
-            Job.releaseExamineLock();
+//            Job.releaseExamineLock();
         } catch (Error e)
         {
-            Job.releaseExamineLock();
+//            Job.releaseExamineLock();
             throw e;
         }
 		if (style == null) return null;
@@ -1417,7 +1417,7 @@ public class Highlighter implements DatabaseChangeListener {
 	{
 		// make a list of things under the cursor
 		List<Highlight2> list = new ArrayList<Highlight2>();
-        if (!Job.acquireExamineLock(false)) return list;
+//        if (!Job.acquireExamineLock(false)) return list;
 
         try
         {
@@ -1450,7 +1450,7 @@ public class Highlighter implements DatabaseChangeListener {
                         if (h != null) list.add(h);
                     }
                 }
-                Job.releaseExamineLock();
+//                Job.releaseExamineLock();
                 return list;
             }
 
@@ -1489,9 +1489,9 @@ public class Highlighter implements DatabaseChangeListener {
                     }
                 }
             }
-            Job.releaseExamineLock();
+//            Job.releaseExamineLock();
         } catch (Error e) {
-            Job.releaseExamineLock();
+//            Job.releaseExamineLock();
             throw e;
         }
         return list;

@@ -465,8 +465,7 @@ public class ServerJobManager extends JobManager {
     	private static void printStackTrace(String methodName) {
             if (!Job.getDebug()) return;
             System.out.println("UserInterface." + methodName + " was called from DatabaseChangesThread");
-    		Exception e = new Exception();
-			e.printStackTrace(System.out);
+    		ActivityLogger.logException(new IllegalStateException());
     	}
 
         /**
@@ -568,11 +567,11 @@ public class ServerJobManager extends JobManager {
 
 		public void repaintAllWindows() {
             printStackTrace("repaintAllWindows");
-            Job.currentUI.repaintAllWindows();
+//            Job.currentUI.repaintAllWindows();
         }
 
         public void adjustReferencePoint(Cell cell, double cX, double cY) {
-            Job.currentUI.adjustReferencePoint(cell, cX, cY);
+//            Job.currentUI.adjustReferencePoint(cell, cX, cY);
         };
 		public int getDefaultTextSize() { return 14; }
 		public EditWindow_ displayCell(Cell cell) { throw new IllegalStateException(); }

@@ -836,7 +836,7 @@ class HighlightEOBJ extends Highlight2
 		{
 			ArcInst ai = (ArcInst)eobj;
 
-            if (!Job.acquireExamineLock(false)) return;
+//            if (!Job.acquireExamineLock(false)) return;
             try {
                 // construct the polygons that describe the basic arc
                 Poly poly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.CLOSED);
@@ -865,9 +865,9 @@ class HighlightEOBJ extends Highlight2
                             p.y + font.getSize()/2 + highOffY);
                     }
                 }
-                Job.releaseExamineLock();
+//                Job.releaseExamineLock();
             } catch (Error e) {
-                Job.releaseExamineLock();
+//                Job.releaseExamineLock();
                 throw e;
             }
 			return;

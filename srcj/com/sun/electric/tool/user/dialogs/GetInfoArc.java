@@ -295,12 +295,12 @@ public class GetInfoArc extends EModelessDialog implements HighlightListener, Da
 
 		// try to get Examine lock. If fails, set needReload to true to
 		// call loadInfo again when database is done changing
-		if (!Job.acquireExamineLock(false))
-		{
-			needReload = true;
-			disableDialog();
-			return;
-		}
+//		if (!Job.acquireExamineLock(false))
+//		{
+//			needReload = true;
+//			disableDialog();
+//			return;
+//		}
 		// else: lock acquired
 		try {
 			EDialog.focusClearOnTextField(name);
@@ -424,9 +424,9 @@ public class GetInfoArc extends EModelessDialog implements HighlightListener, Da
 			attributesTable.setElectricObject(ai);
 
 			pack();
-			Job.releaseExamineLock();
+//			Job.releaseExamineLock();
 		} catch (Error e) {
-			Job.releaseExamineLock();
+//			Job.releaseExamineLock();
 			throw e;
 		}
 
