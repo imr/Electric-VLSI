@@ -188,6 +188,8 @@ public class Update {
         private int exitVal;
         private boolean inJob;
         private boolean checkEditors;
+        private String cvsProgram = CVS.getCVSProgram();
+        private String repository = CVS.getRepository();
         /**
          * Update cells and/or libraries.
          * @param cellsToUpdate
@@ -260,7 +262,7 @@ public class Update {
             }
 
             if (updateProject && (type == UpdateEnum.UPDATE || type == UpdateEnum.STATUS)) updateFiles = "";
-            StatusResult result = update(updateFiles, useDir, type);
+            StatusResult result = update(cvsProgram, repository, updateFiles, useDir, type);
             commentStatusResult(result, type);
             exitVal = result.getExitVal();
 
@@ -276,7 +278,7 @@ public class Update {
                         }
                 }
                 // reload status
-                result = update(updateFiles, useDir, UpdateEnum.STATUS);
+                result = update(cvsProgram, repository, updateFiles, useDir, UpdateEnum.STATUS);
                 commentStatusResult(result, type);
             }
 
@@ -336,11 +338,13 @@ public class Update {
 
     /**
      * Update the given file in the given directory.
+     * @param cvsProgram the name of CVS program
+     * @param repository the path to CVS repository
      * @param file the name of the file.
      * @param dir the directory.
      * @return parsed output from running CVS.
      */
-    protected static StatusResult update(String file, String dir, UpdateEnum type) {
+    protected static StatusResult update(String cvsProgram, String repository, String file, String dir, UpdateEnum type) {
         String command = "-q update -d -P ";
         String message = "Running CVS Update";
         if (type == UpdateEnum.STATUS) {
@@ -353,7 +357,7 @@ public class Update {
         }
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        int exitVal = CVS.runCVSCommand(command+file, message,
+        int exitVal = CVS.runCVSCommand(cvsProgram, repository, command+file, message,
                     dir, out);
         LineNumberReader result = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
         return parseOutput(result, exitVal);

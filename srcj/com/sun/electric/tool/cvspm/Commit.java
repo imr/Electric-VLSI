@@ -126,6 +126,8 @@ public class Commit {
         private List<Cell> cellsToCommit;
         private int exitVal;
         private int backupScheme;
+        private String cvsProgram = CVS.getCVSProgram();
+        private String repository = CVS.getRepository();
         /**
          * Commit cells and/or libraries.
          * @param message the commit log message
@@ -159,7 +161,7 @@ public class Commit {
             // check if any header file conflicts
             // if so, re-write header file for that library
             if (!headerFiles.toString().trim().equals("")) {
-                Update.StatusResult result = Update.update(headerFiles.toString(), useDir, Update.UpdateEnum.UPDATE);
+                Update.StatusResult result = Update.update(cvsProgram, repository, headerFiles.toString(), useDir, Update.UpdateEnum.UPDATE);
                 if (result.getExitVal() == 0) {
                     List<Library> headerlibs = result.getLibraryHeaderFiles(State.CONFLICT);
                     for (Library lib : headerlibs) {
@@ -169,7 +171,7 @@ public class Commit {
                 }
             }
 
-            exitVal = CVS.runCVSCommandWithQuotes("-q commit -m \""+message+"\" "+commitFiles, "Committing files to CVS", useDir, System.out);
+            exitVal = CVS.runCVSCommandWithQuotes(cvsProgram, repository, "-q commit -m \""+message+"\" "+commitFiles, "Committing files to CVS", useDir, System.out);
             System.out.println("Commit complete");
             fieldVariableChanged("exitVal");
             return true;

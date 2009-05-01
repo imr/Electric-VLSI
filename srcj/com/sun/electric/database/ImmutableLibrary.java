@@ -189,8 +189,6 @@ public class ImmutableLibrary extends ImmutableElectricObject {
         String versionString = reader.readString();
         Version version = versionString.length() > 0 ? Version.parseVersion(versionString) : null;
         int flags = reader.readInt();
-        boolean hasVars = reader.readBoolean();
-        Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
         Set<String> delibCellFiles = Collections.emptySet();
         int numDelibCellFiles = reader.readInt();
         if (numDelibCellFiles > 0) {
@@ -199,6 +197,8 @@ public class ImmutableLibrary extends ImmutableElectricObject {
                 rawCellFiles.add(reader.readString());
             delibCellFiles = Collections.unmodifiableSet(rawCellFiles);
         }
+        boolean hasVars = reader.readBoolean();
+        Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
         return new ImmutableLibrary(libId, libFile, version, flags, vars, delibCellFiles);
     }
 

@@ -44,6 +44,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.JobManager;
 import com.sun.electric.tool.cvspm.CVS;
+import com.sun.electric.tool.cvspm.CVSLibrary;
 import com.sun.electric.tool.cvspm.Commit;
 import com.sun.electric.tool.cvspm.Edit;
 import com.sun.electric.tool.cvspm.Update;
@@ -612,6 +613,11 @@ public class FileMenu {
             Cell showThisCell = cellName != null ? lib.findNodeProto(cellName) : lib.getCurCell();
         	doneOpeningLibrary(showThisCell);
             convertVarsToModelFiles(newLibs);
+            if (CVS.isEnabled()) {
+                for (Library lib: newLibs)
+                    CVSLibrary.addLibrary(lib);
+                    Update.updateOpenLibraries(Update.UpdateEnum.STATUS);
+            }
 
             // Repair libraries.
             CircuitChanges.checkAndRepairCommand(true);

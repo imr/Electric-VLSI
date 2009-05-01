@@ -253,9 +253,9 @@ public abstract class LibraryFiles extends Input
 		}
 
         // if CVS is enabled, get status of library
-        if (CVS.isEnabled()) {
-            Update.updateOpenLibraries(Update.UpdateEnum.STATUS);
-        }
+//        if (CVS.isEnabled()) {
+//            Update.updateOpenLibraries(Update.UpdateEnum.STATUS);
+//        }
 		errorLogger.termLogging(true);
 
 		return lib;
@@ -410,9 +410,9 @@ public abstract class LibraryFiles extends Input
 			if (in.topLevelLibrary) mainLibDirectory = null;
 			return null;
 		}
-        if (CVS.isEnabled()) {
-            CVSLibrary.addLibrary(lib);
-        }
+//        if (CVS.isEnabled()) {
+//            CVSLibrary.addLibrary(lib);
+//        }
         if (projectSettings != null)
             projectSettings.putAll(in.projectSettings);
 		return in.lib;

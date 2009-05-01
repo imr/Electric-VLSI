@@ -35,7 +35,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Exec;
 
 import javax.swing.*;
-import javax.swing.table.*;
 import java.io.*;
 import java.util.*;
 import java.util.List;
@@ -79,7 +78,7 @@ public class Edit {
 
         // check if anyone else is editing the file
         // no one editing, set edit lock
-        CVS.runCVSCommand("edit -a none "+file, "Edit",
+        CVS.runCVSCommand(CVS.getCVSProgram(), CVS.getRepository(), "edit -a none "+file, "Edit",
                 dir, System.out);
         return true;
     }
@@ -121,13 +120,15 @@ public class Edit {
     }
 
     public static void listEditors(List<Library> libs, List<Cell> cells) {
-        (new ListEditorsJob(libs, cells, false)).startJob();        
+        (new ListEditorsJob(libs, cells, false)).startJob();
     }
 
     public static class ListEditorsJob extends Job {
         private List<Library> libs;
         private List<Cell> cells;
         private boolean forProject;
+        private String cvsProgram = CVS.getCVSProgram();
+        private String repository = CVS.getRepository();
         public ListEditorsJob(List<Library> libs, List<Cell> cells, boolean forProject) {
             super("List CVS Editors", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.libs = libs;
@@ -145,7 +146,7 @@ public class Edit {
             if (args.trim().equals("")) return true;
 
             if (forProject) args = "";
-            CVS.runCVSCommand("editors "+args, "List CVS Editors", useDir, System.out);
+            CVS.runCVSCommand(cvsProgram, repository, "editors "+args, "List CVS Editors", useDir, System.out);
             System.out.println("List CVS Editors complete.");
             return true;
         }
@@ -252,6 +253,8 @@ public class Edit {
         private boolean unedit;         // true to unmark rather than mark
         private boolean checkConflicts;
         private List<Editor> editors;
+        private String cvsProgram = CVS.getCVSProgram();
+        private String repository = CVS.getRepository();
 
         public MarkForEditJob(List<Library> libs, List<Cell> cells, boolean checkConflicts, boolean unedit) {
             super("Check CVS Editors", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
@@ -294,18 +297,18 @@ public class Edit {
                 checker.addOutputStreamCheckerListener(new UneditResponder(libs, cells));
 
                 //System.out.println("Unmarking CVS edit: "+args);
-                CVS.runCVSCommand("unedit -l "+args, "CVS Unedit", useDir, checker);
+                CVS.runCVSCommand(cvsProgram, repository, "unedit -l "+args, "CVS Unedit", useDir, checker);
                 return true;
             }
 
             if (checkConflicts) {
                 //System.out.println("Checking editors for: "+args);
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
-                CVS.runCVSCommand("editors "+args, "Check CVS Editors", useDir, out);
+                CVS.runCVSCommand(cvsProgram, repository, "editors "+args, "Check CVS Editors", useDir, out);
                 LineNumberReader reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
                 editors = parseOutput(reader);
                 // also run status to see if they need an update
-                Update.StatusResult status = Update.update(args, useDir, Update.UpdateEnum.STATUS);
+                Update.StatusResult status = Update.update(cvsProgram, repository, args, useDir, Update.UpdateEnum.STATUS);
                 for (Cell cell : status.getCells(State.CONFLICT)) {
                     Editor e = new Editor(cell.describe(false), "CONFLICT", new Date(), "", "");
                     editors.add(e);
@@ -317,7 +320,7 @@ public class Edit {
                 fieldVariableChanged("editors");
             } else {
                 //System.out.println("Marking for CVS edit: "+args);
-                CVS.runCVSCommand("edit -a none "+args, "CVS Edit", useDir, System.out);
+                CVS.runCVSCommand(cvsProgram, repository, "edit -a none "+args, "CVS Edit", useDir, System.out);
             }
             return true;
         }
@@ -451,6 +454,8 @@ public class Edit {
         private List<Library> libs;
         private List<Cell> cells;
         private List<Editor> editors;
+        private String cvsProgram = CVS.getCVSProgram();
+        private String repository = CVS.getRepository();
 
         public EditConsistencyCheckJob(List<Library> libs, List<Cell> cells) {
             super("CVS Editors Check", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
@@ -471,7 +476,7 @@ public class Edit {
             // get editors
             //System.out.println("Checking editors for: "+args);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            CVS.runCVSCommand("editors "+args, "Check CVS Editors", useDir, out);
+            CVS.runCVSCommand(cvsProgram, repository, "editors "+args, "Check CVS Editors", useDir, out);
             LineNumberReader reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
             editors = parseOutput(reader);
 
@@ -499,7 +504,7 @@ public class Edit {
             args = libsBuf + " " + cellsBuf;
             if (args.trim().equals("")) return true;
             //System.out.println("Unmarking CVS edit: "+args);
-            CVS.runCVSCommand("unedit -l "+args, "CVS Unedit", useDir, System.out);
+            CVS.runCVSCommand(cvsProgram, repository, "unedit -l "+args, "CVS Unedit", useDir, System.out);
             return true;
         }
     }

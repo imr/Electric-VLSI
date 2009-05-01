@@ -424,6 +424,8 @@ public class CVSLibrary {
         List<Library> libs = new ArrayList<Library>();
         libs.add(lib);
         String useDir = CVS.getUseDir(libs, null);
+        String cvsProgram = CVS.getCVSProgram();
+        String repository = CVS.getRepository();
         if (CVS.isInCVS(lib) && CVS.isDELIB(lib)) {
             StringBuffer buf = new StringBuffer();
             for (String s : deletedCellFiles) {
@@ -440,7 +442,7 @@ public class CVSLibrary {
             String arg = buf.toString();
             if (!arg.trim().equals("")) {
                 //System.out.println("Removing deleted cells from CVS");
-                int exitVal = CVS.runCVSCommand("-q remove "+arg, "Removing deleted cells from CVS",
+                int exitVal = CVS.runCVSCommand(cvsProgram, repository, "-q remove "+arg, "Removing deleted cells from CVS",
                         useDir, System.out);
                 if (exitVal != 0) {
                     System.out.println("  Error running CVS remove command (exit status "+exitVal+")");
@@ -448,7 +450,7 @@ public class CVSLibrary {
                 }
                 // run the commit, because if it is left in "remove" state, a new cell of the
                 // same name cannot be added and committed.
-                exitVal = CVS.runCVSCommandWithQuotes("-q commit -m \"Automatic commit of removed cell file by Electric\" "+arg,
+                exitVal = CVS.runCVSCommandWithQuotes(cvsProgram, repository, "-q commit -m \"Automatic commit of removed cell file by Electric\" "+arg,
                         "Committing removed files to CVS", useDir, System.out);
                 // since the file has been deleted and marked for removal, future updates
                 // will not recreate the file.  However, a final commit is required to fully remove it,
@@ -477,7 +479,7 @@ public class CVSLibrary {
             }
             arg = buf.toString();
             if (!arg.trim().equals("")) {
-                int exitVal = CVS.runCVSCommand("-q add "+buf.toString(), "Adding new cells to CVS",
+                int exitVal = CVS.runCVSCommand(cvsProgram, repository, "-q add "+buf.toString(), "Adding new cells to CVS",
                         useDir, System.out);
                 if (exitVal != 0) {
                     System.out.println("  Error running CVS add command (exit status "+exitVal+")");
@@ -504,7 +506,7 @@ public class CVSLibrary {
         libs.add(lib);
         if (CVS.isInCVS(lib)) {
             Update.statusNoJob(libs, null, false);
-        }        
+        }
     }
 
     /**

@@ -51,6 +51,8 @@ import java.io.Serializable;
 public class Log {
 
     public static void showLog(Cell cell) {
+        String cvsProgram = CVS.getCVSProgram();
+        String repository = CVS.getRepository();
         if (!CVS.isDELIB(cell.getLibrary())) {
             System.out.println("Cannot show log file for non-DELIB library");
             return;
@@ -65,12 +67,12 @@ public class Log {
         StringBuffer cellsBuf = CVS.getCellFiles(cells, useDir);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        CVS.runCVSCommand("status "+cellsBuf, "Show CVS Status", useDir, out);
+        CVS.runCVSCommand(cvsProgram, repository, "status "+cellsBuf, "Show CVS Status", useDir, out);
         LineNumberReader reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
         String workingVersion = getWorkingRevision(reader);
 
         out = new ByteArrayOutputStream();
-        CVS.runCVSCommand("log "+cellsBuf, "Show CVS Log", useDir, out);
+        CVS.runCVSCommand(cvsProgram, repository, "log "+cellsBuf, "Show CVS Log", useDir, out);
         reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
         System.out.println("Show CVS Log complete.");
         Log log = new Log(cell);
@@ -89,6 +91,8 @@ public class Log {
         List<Library> libs = new ArrayList<Library>();
         libs.add(lib);
         String useDir = CVS.getUseDir(libs, null);
+        String cvsProgram = CVS.getCVSProgram();
+        String repository = CVS.getRepository();
 
         StringBuffer libsBuf;
         if (CVS.isDELIB(lib)) {
@@ -106,12 +110,12 @@ public class Log {
         }
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        CVS.runCVSCommand("status "+libsBuf, "Show CVS Status", useDir, out);
+        CVS.runCVSCommand(cvsProgram, repository, "status "+libsBuf, "Show CVS Status", useDir, out);
         LineNumberReader reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
         String workingVersion = getWorkingRevision(reader);
 
         out = new ByteArrayOutputStream();
-        CVS.runCVSCommand("log "+libsBuf, "Show CVS Log", useDir, out);
+        CVS.runCVSCommand(cvsProgram, repository, "log "+libsBuf, "Show CVS Log", useDir, out);
         reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
         System.out.println("Show CVS Log complete.");
         Log log = new Log(lib);
@@ -145,7 +149,7 @@ public class Log {
 
         String version = entry.version;
 
-        CVS.runCVSCommand("diff -r "+version+" "+args, "Compare with Local", useDir, System.out);
+        CVS.runCVSCommand(CVS.getCVSProgram(), CVS.getRepository(), "diff -r "+version+" "+args, "Compare with Local", useDir, System.out);
         System.out.println("Compare with Local complete.");
     }
 
@@ -170,7 +174,7 @@ public class Log {
         String version1 = entry1.version;
         String version2 = entry2.version;
 
-        CVS.runCVSCommand("diff -r "+version1+" -r "+version2+" "+args, "Compare Versions", useDir, System.out);
+        CVS.runCVSCommand(CVS.getCVSProgram(), CVS.getRepository(), "diff -r "+version1+" -r "+version2+" "+args, "Compare Versions", useDir, System.out);
         System.out.println("Compare Versions complete.");
     }
 
@@ -180,6 +184,8 @@ public class Log {
 
     public static class RevertToVersion extends Job {
         private LogEntry entry;
+        private String cvsProgram = CVS.getCVSProgram();
+        private String repository = CVS.getRepository();
         public RevertToVersion(LogEntry entry) {
             super("Revert to CVS Version", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.entry = entry;
@@ -213,7 +219,7 @@ public class Log {
                 return false;
             }
 
-            CVS.runCVSCommand("update -r "+version+" "+args, "Get Version", useDir, System.out);
+            CVS.runCVSCommand(cvsProgram, repository, "update -r "+version+" "+args, "Get Version", useDir, System.out);
             // copy old file away
             if (aFileBackup.exists()) {
                 if (!aFileBackup.delete()) {
@@ -226,7 +232,7 @@ public class Log {
                 return false;
             }
             // update with current version, remove sticky tag
-            CVS.runCVSCommand("update -A "+args, "Remove Sticky Tag", useDir, System.out);
+            CVS.runCVSCommand(cvsProgram, repository, "update -A "+args, "Remove Sticky Tag", useDir, System.out);
 
             // delete updated file, and move back old version file
             File oldCellFile = new File(aFilePath);

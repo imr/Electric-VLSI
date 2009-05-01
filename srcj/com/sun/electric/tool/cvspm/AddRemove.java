@@ -142,6 +142,8 @@ public class AddRemove {
         private boolean add;
         private int exitVal;
         private HashMap<String,Integer> addedCellDirs;
+        private String cvsProgram = CVS.getCVSProgram();
+        private String repository = CVS.getRepository();
         private AddRemoveJob(List<Library> libs, List<Cell> cells, boolean add) {
             super("CVS Add/Remove", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.libs = libs;
@@ -217,7 +219,7 @@ public class AddRemove {
             }
             String command = add ? "add" : "remove -f";
             String message = "Running CVS " + (add ? "Add" : "Remove");
-            exitVal = CVS.runCVSCommand("-q "+command+" "+addRemoveFiles, message,
+            exitVal = CVS.runCVSCommand(cvsProgram, repository, "-q "+command+" "+addRemoveFiles, message,
                     useDir, System.out);
             fieldVariableChanged("exitVal");
             if (exitVal != 0) return true;

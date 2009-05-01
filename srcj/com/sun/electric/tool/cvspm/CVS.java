@@ -134,6 +134,8 @@ public class CVS extends Listener {
     /**
      * This will run a CVS command in-thread; i.e. the current thread will
      * block until the CVS command completes.
+     * @param cvsProgram the name of CVS program
+     * @param repository the path to cvs repositiry
      * @param cmd the command to run
      * @param comment the message to display on the dialog
      * @param workingDir the directory in which to run the CVS command
@@ -144,10 +146,10 @@ public class CVS extends Listener {
      * printing it.
      * @return the exit value
      */
-    public static int runCVSCommand(String cmd, String comment, String workingDir, OutputStream out) {
+    public static int runCVSCommand(String cvsProgram, String repository, String cmd, String comment, String workingDir, OutputStream out) {
         String specifyRepository = "";
-        if (!getRepository().equals("")) specifyRepository = " -d"+getRepository();
-        String run = getCVSProgram() + specifyRepository +" "+cmd;
+        if (!repository.equals("")) specifyRepository = " -d"+repository;
+        String run = cvsProgram + specifyRepository +" "+cmd;
 
         System.out.println(comment+": "+run);
         Exec e = new Exec(run, null, new File(workingDir), out, out);
@@ -160,6 +162,8 @@ public class CVS extends Listener {
      * argument. Normally exec breaks up the string command by whitespace, ignoring
      * quotes. This command will preprocess the command to ensure it thinks of the
      * string in quotes as one argument.
+     * @param cvsProgram the name of cvs program
+     * @param repository the path to cvs repositiry
      * @param cmd the command to run
      * @param comment the message to display on the dialog
      * @param workingDir the directory in which to run the CVS command
@@ -170,11 +174,11 @@ public class CVS extends Listener {
      * printing it.
      * @return the exit value
      */
-    static int runCVSCommandWithQuotes(String cmd, String comment, String workingDir, OutputStream out) {
+    static int runCVSCommandWithQuotes(String cvsProgram, String repository, String cmd, String comment, String workingDir, OutputStream out) {
         String specifyRepository = "";
-        if (!getRepository().equals("")) specifyRepository = " -d "+getRepository();
+        if (!repository.equals("")) specifyRepository = " -d "+repository;
 
-        cmd = getCVSProgram() + specifyRepository + " " + cmd;
+        cmd = cvsProgram + specifyRepository + " " + cmd;
 
         // break command into separate arguments
         List<String> execparts = new ArrayList<String>();
@@ -663,26 +667,26 @@ public class CVS extends Listener {
      * dialog to let the user choose between multiple respositories.
      * @return
      */
-    private static String getRepository() {
+    static String getRepository() {
         return getCVSRepository();
     }
 
-    private static Pref cacheCVSEnabled = Pref.makeBooleanServerPref("CVS Enabled", User.getUserTool().prefs, false);
+    private static Pref cacheCVSEnabled = Pref.makeBooleanPref("CVS Enabled", User.getUserTool().prefs, false);
     public static boolean isEnabled() { return cacheCVSEnabled.getBoolean(); }
     public static void setEnabled(boolean b) { cacheCVSEnabled.setBoolean(b); }
     public static boolean isFactoryEnabled() { return cacheCVSEnabled.getBooleanFactoryValue(); }
 
-    private static Pref cacheCVSProgram = Pref.makeStringServerPref("CVS Program", User.getUserTool().prefs, "cvs");
+    private static Pref cacheCVSProgram = Pref.makeStringPref("CVS Program", User.getUserTool().prefs, "cvs");
     public static String getCVSProgram() { return cacheCVSProgram.getString(); }
     public static void setCVSProgram(String s) { cacheCVSProgram.setString(s); }
     public static String getFactoryCVSProgram() { return cacheCVSProgram.getStringFactoryValue(); }
 
-    private static Pref cacheCVSRepository = Pref.makeStringServerPref("CVS Repository", User.getUserTool().prefs, "");
+    private static Pref cacheCVSRepository = Pref.makeStringPref("CVS Repository", User.getUserTool().prefs, "");
     public static String getCVSRepository() { return cacheCVSRepository.getString(); }
     public static void setCVSRepository(String s) { cacheCVSRepository.setString(s); }
     public static String getFactoryCVSRepository() { return cacheCVSRepository.getStringFactoryValue(); }
 
-    private static Pref cacheCVSLastCommitMessage = Pref.makeStringServerPref("CVS Last Commit Message", User.getUserTool().prefs, "");
+    private static Pref cacheCVSLastCommitMessage = Pref.makeStringPref("CVS Last Commit Message", User.getUserTool().prefs, "");
     public static String getCVSLastCommitMessage() { return cacheCVSLastCommitMessage.getString(); }
     public static void setCVSLastCommitMessage(String s) { cacheCVSLastCommitMessage.setString(s); }
 }
