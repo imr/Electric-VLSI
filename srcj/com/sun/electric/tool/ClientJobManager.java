@@ -119,9 +119,14 @@ class ClientJobManager extends JobManager {
         Snapshot currentSnapshot = EDatabase.clientDatabase().backup();
         assert currentSnapshot == oldSnapshot;
         try {
+            for (int i = 0; i < 150; i++) {
+                System.err.print((char)reader.readByte());
+            }
+            System.err.println();
+
             int protocolVersion = reader.readInt();
             if (protocolVersion != Job.PROTOCOL_VERSION) {
-                System.out.println("Client's protocol version " + Job.PROTOCOL_VERSION + " is incompatible with Server's protocol version " + protocolVersion);
+                System.err.println("Client's protocol version " + Job.PROTOCOL_VERSION + " is incompatible with Server's protocol version " + protocolVersion);
                 System.exit(1);
             }
             Job.currentUI.connectionId = reader.readInt();

@@ -158,7 +158,8 @@ public final class Launcher
         if (maxPermWanted > 0)
             javaOptions += " -XX:MaxPermSize=" + maxPermWanted + "m";
         if (withDebugger)
-            javaOptions += " -Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=localhost:35856";
+            javaOptions += " -Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=localhost:35856";;
+   //         javaOptions += " -Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=localhost:35856";
         return invokePipeserver(javaOptions, electricOptions);
     }
 
