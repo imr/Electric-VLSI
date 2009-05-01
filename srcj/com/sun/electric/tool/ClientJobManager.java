@@ -65,6 +65,7 @@ class ClientJobManager extends JobManager {
     /** Count of started Jobs. */               private static int numStarted;
 
     private EditingPreferences currentEp = new EditingPreferences(true, IdManager.stdIdManager.getInitialTechPool());
+    private boolean skipOneLine;
 
     /** Creates a new instance of ClientJobManager */
     public ClientJobManager(String serverMachineName, int serverPort) throws IOException {
@@ -75,8 +76,9 @@ class ClientJobManager extends JobManager {
         clientOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
 
-    public ClientJobManager(Process process) throws IOException {
+    public ClientJobManager(Process process, boolean skipOneLine) throws IOException {
         this.process = process;
+        this.skipOneLine = skipOneLine;
         System.out.println("Attempting to connect to server subprocess ...");
         reader = new IdReader(new DataInputStream(new BufferedInputStream(process.getInputStream())), IdManager.stdIdManager);
         clientOutputStream = new DataOutputStream(new BufferedOutputStream(process.getOutputStream()));
@@ -114,15 +116,19 @@ class ClientJobManager extends JobManager {
     }
 
     public void runLoop(final Job initialJob) {
-        logger.entering(CLASS_NAME, "clinetLoop");
+        logger.entering(CLASS_NAME, "clientLoop");
         Snapshot oldSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
         Snapshot currentSnapshot = EDatabase.clientDatabase().backup();
         assert currentSnapshot == oldSnapshot;
         try {
-            for (int i = 0; i < 150; i++) {
-                System.err.print((char)reader.readByte());
+            if (skipOneLine) {
+                for (int i = 0; i < 150; i++) {
+                    char ch = (char)reader.readByte();
+                    if (ch == '\n') break;
+                    System.err.print(ch);
+                }
+                System.err.println();
             }
-            System.err.println();
 
             int protocolVersion = reader.readInt();
             if (protocolVersion != Job.PROTOCOL_VERSION) {

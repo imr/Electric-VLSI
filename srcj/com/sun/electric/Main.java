@@ -245,7 +245,7 @@ public final class Main
             if (pipe) {
                 try {
                     Process process = Launcher.invokePipeserver(pipeOptions, pipedebug);
-                    Job.pipeClient(process, ui, job);
+                    Job.pipeClient(process, ui, job, pipedebug);
                 } catch (IOException e) {
                     System.exit(1);
                 }

@@ -184,10 +184,10 @@ public abstract class Job implements Serializable {
         }
     }
 
-    public static void pipeClient(Process process, AbstractUserInterface ui, Job initDatabaseJob) {
+    public static void pipeClient(Process process, AbstractUserInterface ui, Job initDatabaseJob, boolean skipOneLine) {
         currentUI = ui;
         try {
-            jobManager = new ClientJobManager(process);
+            jobManager = new ClientJobManager(process, skipOneLine);
             jobManager.runLoop(initDatabaseJob);
         } catch (IOException e) {
             e.printStackTrace();
