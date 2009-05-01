@@ -85,7 +85,6 @@ public class Library extends ElectricObject implements Comparable<Library>
     /** list of referenced libs */                          private final List<Library> referencedLibs = new ArrayList<Library>();
     /** Last backup of this Library */                      LibraryBackup backup;
 	/** list of Cells in this library */					final TreeMap<CellName,Cell> cells = new TreeMap<CellName,Cell>();
-    /** DELIB cell files. */                                private HashSet<String> delibCellFiles = new HashSet<String>();
 
 	// ----------------- private and protected methods --------------------
 
@@ -1148,7 +1147,7 @@ public class Library extends ElectricObject implements Comparable<Library>
      * @return DELIB cell files.
      */
     public Set<String> getDelibCellFiles() {
-        return delibCellFiles;
+        return d.delibCellFiles;
     }
 
     /**
@@ -1156,7 +1155,6 @@ public class Library extends ElectricObject implements Comparable<Library>
      * @param delibCellFiles DELIB cell files.
      */
     public void setDelibCellFiles(HashSet<String> delibCellFiles) {
-        this.delibCellFiles.clear();
-        this.delibCellFiles.addAll(delibCellFiles);
+        setD(d.withDelibCellFiles(delibCellFiles));
     }
 }

@@ -32,6 +32,9 @@ import com.sun.electric.database.variable.Variable;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Immutable class ImmutableLibrary represents a library.
@@ -41,6 +44,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
 	/** LibId of this ImmutableLibrary. */                              public final LibId libId;
 	/** file location of this ImmutableLibrary */                       public final URL libFile;
 	/** version of Electric which wrote the ImmutableLibrary. */		public final Version version;
+    /** DELIB cell files. */                                            public final Set<String> delibCellFiles;
 
 	/**
 	 * The private constructor of ImmutableLibrary. Use the factory "newInstance" instead.
@@ -50,11 +54,12 @@ public class ImmutableLibrary extends ImmutableElectricObject {
      * @param flags flags of ImmutableLibrary.
      * @param vars array of Variables of this ImmutableLibrary
 	 */
-     private ImmutableLibrary(LibId libId, URL libFile, Version version, int flags, Variable[] vars) {
+     private ImmutableLibrary(LibId libId, URL libFile, Version version, int flags, Variable[] vars, Set<String> delibCellFiles) {
         super(vars, flags);
         this.libId = libId;
         this.libFile = libFile;
         this.version = version;
+        this.delibCellFiles = delibCellFiles;
 //        check();
     }
 
@@ -68,7 +73,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
 	 */
     public static ImmutableLibrary newInstance(LibId libId, URL libFile, Version version) {
         if (libId == null) throw new NullPointerException("libId");
-		return new ImmutableLibrary(libId, libFile, version, 0, Variable.NULL_ARRAY);
+		return new ImmutableLibrary(libId, libFile, version, 0, Variable.NULL_ARRAY, Collections.<String>emptySet());
     }
 
 	/**
@@ -80,7 +85,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
 	public ImmutableLibrary withLibFile(URL libFile) {
         if (this.libFile == libFile) return this;
 		if (this.libFile != null && this.libFile.equals(libFile)) return this;
-		return new ImmutableLibrary(this.libId, libFile, this.version, this.flags, getVars());
+		return new ImmutableLibrary(this.libId, libFile, this.version, this.flags, getVars(), this.delibCellFiles);
 	}
 
 	/**
@@ -91,7 +96,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
 	public ImmutableLibrary withVersion(Version version) {
         if (this.version == version) return this;
 		if (this.version != null && version != null && this.version.equals(version)) return this;
-		return new ImmutableLibrary(this.libId, this.libFile, version, this.flags, getVars());
+		return new ImmutableLibrary(this.libId, this.libFile, version, this.flags, getVars(), this.delibCellFiles);
 	}
 
 	/**
@@ -105,7 +110,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
     public ImmutableLibrary withVariable(Variable var) {
         Variable[] vars = arrayWithVariable(var.withParam(false).withInherit(false));
         if (this.getVars() == vars) return this;
-		return new ImmutableLibrary(this.libId, this.libFile, this.version, this.flags, vars);
+		return new ImmutableLibrary(this.libId, this.libFile, this.version, this.flags, vars, this.delibCellFiles);
     }
 
 	/**
@@ -118,7 +123,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
     public ImmutableLibrary withoutVariable(Variable.Key key) {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
-		return new ImmutableLibrary(this.libId, this.libFile, this.version, this.flags, vars);
+		return new ImmutableLibrary(this.libId, this.libFile, this.version, this.flags, vars, this.delibCellFiles);
     }
 
 	/**
@@ -130,7 +135,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
         Variable[] vars = arrayWithRenamedIds(idMapper);
         LibId libId = idMapper.get(this.libId);
         if (getVars() == vars && this.libId == libId) return this;
-		return new ImmutableLibrary(libId, this.libFile, this.version, this.flags, vars);
+		return new ImmutableLibrary(libId, this.libFile, this.version, this.flags, vars, this.delibCellFiles);
     }
 
 	/**
@@ -140,7 +145,22 @@ public class ImmutableLibrary extends ImmutableElectricObject {
 	 */
     public ImmutableLibrary withFlags(int flags) {
         if (this.flags == flags) return this;
-		return new ImmutableLibrary(this.libId, this.libFile, this.version, flags, getVars());
+		return new ImmutableLibrary(this.libId, this.libFile, this.version, flags, getVars(), this.delibCellFiles);
+    }
+
+	/**
+	 * Returns ImmutableLibrary which differs from this ImmutableLibrary by delibCellFiles.
+	 * @param delibCellFiles new delibCellFiles.
+	 * @return ImmutableLibrary with the specified delibCellFiles.
+	 */
+    public ImmutableLibrary withDelibCellFiles(Set<String> delibCellFiles) {
+        if (delibCellFiles.equals(this.delibCellFiles)) return this;
+        if (delibCellFiles.isEmpty()) {
+            delibCellFiles = Collections.emptySet();
+        } else {
+            delibCellFiles = Collections.unmodifiableSet(new HashSet<String>(delibCellFiles));
+        }
+		return new ImmutableLibrary(this.libId, this.libFile, this.version, this.flags, getVars(), delibCellFiles);
     }
 
     /**
@@ -152,6 +172,9 @@ public class ImmutableLibrary extends ImmutableElectricObject {
         writer.writeString(libFile != null ? libFile.toString() : "");
         writer.writeString(version != null ? version.toString() : "");
         writer.writeInt(flags);
+        writer.writeInt(delibCellFiles.size());
+        for (String delibCellFile: delibCellFiles)
+            writer.writeString(delibCellFile);
         super.write(writer);
     }
 
@@ -168,7 +191,15 @@ public class ImmutableLibrary extends ImmutableElectricObject {
         int flags = reader.readInt();
         boolean hasVars = reader.readBoolean();
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
-        return new ImmutableLibrary(libId, libFile, version, flags, vars);
+        Set<String> delibCellFiles = Collections.emptySet();
+        int numDelibCellFiles = reader.readInt();
+        if (numDelibCellFiles > 0) {
+            HashSet<String> rawCellFiles = new HashSet<String>();
+            for (int i = 0; i < numDelibCellFiles; i++)
+                rawCellFiles.add(reader.readString());
+            delibCellFiles = Collections.unmodifiableSet(rawCellFiles);
+        }
+        return new ImmutableLibrary(libId, libFile, version, flags, vars, delibCellFiles);
     }
 
     /**
@@ -188,7 +219,8 @@ public class ImmutableLibrary extends ImmutableElectricObject {
         if (!(o instanceof ImmutableLibrary)) return false;
         ImmutableLibrary that = (ImmutableLibrary)o;
         return this.libId == that.libId && this.libFile == that.libFile &&
-                this.version == that.version && this.flags == that.flags;
+                this.version == that.version && this.flags == that.flags &&
+                this.delibCellFiles.equals(that.delibCellFiles);
     }
 
 	/**
@@ -204,5 +236,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
 	public void check() {
         super.check(false);
         assert libId != null;
+        if (delibCellFiles.isEmpty())
+            assert delibCellFiles == Collections.<String>emptySet();
 	}
 }
