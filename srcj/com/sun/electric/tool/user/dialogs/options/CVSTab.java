@@ -84,7 +84,7 @@ public class CVSTab extends PreferencePanel {
                 Update.updateOpenLibraries(Update.UpdateEnum.STATUS);
             } else {
                 for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
-                    CVSLibrary.removeLibrary(it.next());
+                    CVSLibrary.removeLibrary(it.next().getId());
                 }
             }
         }

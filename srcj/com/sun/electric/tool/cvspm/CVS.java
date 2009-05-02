@@ -256,7 +256,10 @@ public class CVS extends Listener {
     }
 
     public static boolean isDELIB(Library lib) {
-        URL libFile = lib.getLibFile();
+        return isDELIB(lib.getLibFile());
+    }
+
+    static boolean isDELIB(URL libFile) {
         if (libFile == null) return false;
         FileType type = OpenFile.getOpenFileType(libFile.getFile(), FileType.JELIB);
         return (type == FileType.DELIB);
@@ -330,7 +333,16 @@ public class CVS extends Listener {
      * @return true if the library is in cvs, false otherwise.
      */
     public static boolean isInCVS(Library lib) {
-        URL fileURL = lib.getLibFile();
+        return isInCVS(lib.getLibFile());
+    }
+
+    /**
+     * This checks the CVS Entries file to see if the library is in cvs (jelib/elib),
+     * or if the library dir + header file is in cvs (delib).
+     * @param fileURL
+     * @return true if the library is in cvs, false otherwise.
+     */
+    static boolean isInCVS(URL fileURL) {
         if (fileURL == null) return false; // new library not saved yet
 
         File libfile = TextUtils.getFile(fileURL);
@@ -338,7 +350,7 @@ public class CVS extends Listener {
 
         String libfilestr = libfile.getPath();
         File libFile = new File(libfilestr);
-        if (isDELIB(lib)) {
+        if (isDELIB(fileURL)) {
             // check both lib dir and header file
             File header = new File(libFile, DELIB.getHeaderFile());
             if (!isFileInCVS(libFile) || !isFileInCVS(header)) return false;

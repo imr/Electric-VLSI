@@ -26,6 +26,9 @@ package com.sun.electric.tool.cvspm;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.LibId;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
@@ -48,7 +51,7 @@ public class CVSLibrary {
     private Map<Cell,Cell> editing;         // list of cells I am editing
     private boolean libEditing;                 // true if library is being edited (only for JELIB, ELIB)
 
-    private static Map<Library,CVSLibrary> CVSLibraries = new HashMap<Library,CVSLibrary>();
+    private static Map<LibId,CVSLibrary> CVSLibraries = new HashMap<LibId,CVSLibrary>();
 
     private CVSLibrary(Library lib) {
 //        this.lib = lib;
@@ -86,15 +89,15 @@ public class CVSLibrary {
             return;
         }
         CVSLibrary cvslib = new CVSLibrary(lib);
-        CVSLibraries.put(lib,cvslib);
+        CVSLibraries.put(lib.getId(),cvslib);
     }
 
     /**
      * Remove a library from the list of CVS libraries.
-     * @param lib
+     * @param libId
      */
-    public static void removeLibrary(Library lib) {
-        CVSLibraries.remove(lib);
+    public static void removeLibrary(LibId libId) {
+        CVSLibraries.remove(libId);
     }
 
     protected static class LibsCells {
@@ -219,7 +222,7 @@ public class CVSLibrary {
      * @return true if such cells exist.
      */
     public static boolean hasUnknownCells(Library lib) {
-        CVSLibrary cvslib = CVSLibraries.get(lib);
+        CVSLibrary cvslib = CVSLibraries.get(lib.getId());
         if (cvslib == null) return false;
         if (cvslib.type != FileType.DELIB) return false;
         for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
@@ -239,11 +242,11 @@ public class CVSLibrary {
      * @param state
      */
     public static void setState(Cell cell, State state) {
-        CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary());
+        CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary().getId());
         if (cvslib == null && state == State.ADDED) {
             // if state is added, CVSLibrary should be created
             addLibrary(cell.getLibrary(), true);
-            cvslib = CVSLibraries.get(cell.getLibrary());
+            cvslib = CVSLibraries.get(cell.getLibrary().getId());
         }
         if (cvslib == null) return;
         if (state == null)
@@ -261,11 +264,11 @@ public class CVSLibrary {
      * @param state
      */
     public static void setState(Library lib, State state) {
-        CVSLibrary cvslib = CVSLibraries.get(lib);
+        CVSLibrary cvslib = CVSLibraries.get(lib.getId());
         if (cvslib == null && state == State.ADDED) {
             // if state is added, CVSLibrary should be created
             addLibrary(lib, true);
-            cvslib = CVSLibraries.get(lib);
+            cvslib = CVSLibraries.get(lib.getId());
         }
         if (cvslib == null) return;
         if (state == null)
@@ -295,7 +298,7 @@ public class CVSLibrary {
     }
 
     public static State getState(Library lib) {
-        CVSLibrary cvslib = CVSLibraries.get(lib);
+        CVSLibrary cvslib = CVSLibraries.get(lib.getId());
         if (cvslib == null) return State.UNKNOWN;
         if (cvslib.type != FileType.DELIB) {
             return cvslib.libState;
@@ -313,7 +316,7 @@ public class CVSLibrary {
     }
 
     public static State getState(Cell cell) {
-        CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary());
+        CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary().getId());
         if (cvslib == null) return State.UNKNOWN;
         if (!CVS.isDELIB(cell.getLibrary())) {
             // return state for library
@@ -355,7 +358,7 @@ public class CVSLibrary {
     // -------------------- Editing tracking ---------------------
 
     public static void setEditing(Cell cell, boolean editing) {
-        CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary());
+        CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary().getId());
         if (cvslib == null) return;
         if (editing) {
             cvslib.editing.put(cell, cell);
@@ -365,13 +368,13 @@ public class CVSLibrary {
     }
 
     public static boolean isEditing(Cell cell) {
-        CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary());
+        CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary().getId());
         if (cvslib == null) return false;
         return cvslib.editing.containsKey(cell);
     }
 
     public static void setEditing(Library lib, boolean editing) {
-        CVSLibrary cvslib = CVSLibraries.get(lib);
+        CVSLibrary cvslib = CVSLibraries.get(lib.getId());
         if (cvslib == null) return;
         if (!CVS.isDELIB(lib))
             cvslib.libEditing = editing;
@@ -382,7 +385,7 @@ public class CVSLibrary {
     }
 
     public static boolean isEditing(Library lib) {
-        CVSLibrary cvslib = CVSLibraries.get(lib);
+        CVSLibrary cvslib = CVSLibraries.get(lib.getId());
         if (cvslib == null) return false;
         if (!CVS.isDELIB(lib))
             return cvslib.libEditing;
@@ -394,19 +397,21 @@ public class CVSLibrary {
     /**
      * Method called when saving a library, BEFORE the library
      * file(s) are written.
+     * @param libId
      * @param lib
+     * @param libFile
      */
-    public static void savingLibrary(Library lib) {
+    private static void savingLibrary(LibId libId, Library lib, URL libFile) {
         // When doing "save as", library type may change. Update library type here
-        URL libFile = lib.getLibFile();
         if (libFile != null) {
             FileType type = OpenFile.getOpenFileType(libFile.getFile(), FileType.JELIB);
-            CVSLibrary cvslib = CVSLibraries.get(lib);
+            CVSLibrary cvslib = CVSLibraries.get(libId);
             if (cvslib != null) {
                 if (cvslib.type != type) {
                     // remove and re-add
-                    removeLibrary(lib);
-                    addLibrary(lib);
+                    removeLibrary(libId);
+                    if (lib != null)
+                        addLibrary(lib);
                 }
             }
         }
@@ -417,16 +422,20 @@ public class CVSLibrary {
      * on any cells files that have been deleted (renamed).
      * Note that this method is currently called only after a DELIB has been
      * written, not after any other type of library.
-     * @param lib
+     * @param libId
+     * @param oldLibFile
      * @param deletedCellFiles
      */
-    public static void savedLibrary(Library lib, List<String> deletedCellFiles, List<String> writtenCellFiles) {
-        List<Library> libs = new ArrayList<Library>();
-        libs.add(lib);
-        String useDir = CVS.getUseDir(libs, null);
+    public static void savedLibrary(LibId libId, URL libFile, List<String> deletedCellFiles, List<String> writtenCellFiles) {
+        Library lib = EDatabase.clientDatabase().getLib(libId);
+        savingLibrary(libId, lib, libFile);
+        String useDir = TextUtils.getFile(libFile).getParent();
+//        List<Library> libs = new ArrayList<Library>();
+//        libs.add(lib);
+//        String useDir = CVS.getUseDir(libs, null);
         String cvsProgram = CVS.getCVSProgram();
         String repository = CVS.getRepository();
-        if (CVS.isInCVS(lib) && CVS.isDELIB(lib)) {
+        if (CVS.isInCVS(libFile) && CVS.isDELIB(libFile)) {
             StringBuffer buf = new StringBuffer();
             for (String s : deletedCellFiles) {
                 File file = new File(s);
@@ -490,24 +499,28 @@ public class CVSLibrary {
 
         // run update on the library to see if there are now any conflicts, and
         // recolor added cells
-        if (CVS.isInCVS(lib)) {
+        if (lib != null && CVS.isInCVS(libFile)) {
+            List<Library> libs = new ArrayList<Library>();
+            libs.add(lib);
             Update.statusNoJob(libs, null, false);
         }
     }
 
-    /**
-     * Command to run after saving library for non-delib type libraries
-     * @param lib the library
-     */
-    public static void savedLibrary(Library lib) {
-        // run update on the library to see if there are now any conflicts, and
-        // recolor added cells
-        List<Library> libs = new ArrayList<Library>();
-        libs.add(lib);
-        if (CVS.isInCVS(lib)) {
-            Update.statusNoJob(libs, null, false);
-        }
-    }
+//    /**
+//     * Command to run after saving library for non-delib type libraries
+//     * @param lib the library
+//     * @param oldLibFile
+//     */
+//    public static void savedLibrary(Library lib, URL oldLibFile) {
+//        savingLibrary(lib, oldLibFile);
+//        // run update on the library to see if there are now any conflicts, and
+//        // recolor added cells
+//        List<Library> libs = new ArrayList<Library>();
+//        libs.add(lib);
+//        if (CVS.isInCVS(lib)) {
+//            Update.statusNoJob(libs, null, false);
+//        }
+//    }
 
     /**
      * Method called when closing library.  Should be called
@@ -515,7 +528,7 @@ public class CVSLibrary {
      * @param lib
      */
     public static void closeLibrary(Library lib) {
-        removeLibrary(lib);
+        removeLibrary(lib.getId());
     }
 
 }

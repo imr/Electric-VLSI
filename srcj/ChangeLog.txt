@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+IMP: (5/2/09, DN) Prepare cvspm to work in two-JVM mode.
+
 BUG: (4/30/09, DN) Can't create new cell parameter (Bug #2153)
 FIX: In EObjectOutputStream.EVariableKey.readResolve use newKey instead of findKey .
 

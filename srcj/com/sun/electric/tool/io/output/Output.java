@@ -45,7 +45,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.cvspm.CVS;
-import com.sun.electric.tool.cvspm.CVSLibrary;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -68,6 +67,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
@@ -331,7 +331,29 @@ public class Output
      * @return true on error.
 	 */
 	public static boolean writeLibrary(Library lib, FileType type, boolean compatibleWith6,
-		boolean thisQuiet, boolean delibHeaderOnly, int backupScheme)
+		boolean thisQuiet, boolean delibHeaderOnly, int backupScheme) {
+        return writeLibrary(lib, type, compatibleWith6, thisQuiet, delibHeaderOnly, backupScheme, null, null);
+    }
+
+	/**
+	 * Method to write an entire Library with a particular format.
+	 * This is used for output formats that capture the entire library
+	 * (only the ELIB and Readable Dump formats).
+	 * The alternative to writing the entire library is writing a single
+	 * cell and the hierarchy below it (use "writeCell").
+	 * @param lib the Library to be written.
+	 * @param type the format of the output file.
+	 * @param compatibleWith6 true to write a library that is compatible with version 6 Electric.
+	 * @param thisQuiet true to save with less information displayed.
+     * @param delibHeaderOnly true to write only the header for a DELIB type library
+     * @param backupScheme controls how older files are backed-up.
+     * @param deletedCellFiles output list of deleted cell files of DELIB library
+     * @param writtenCellFiles output list of written cell files of DELIB library
+     * @return true on error.
+	 */
+	public static boolean writeLibrary(Library lib, FileType type, boolean compatibleWith6,
+		boolean thisQuiet, boolean delibHeaderOnly, int backupScheme,
+        List<String> deletedCellFiles, List<String> writtenCellFiles)
 	{
 		// make sure that all "meaning" options are attached to the database
 //		Pref.installMeaningVariables();
@@ -439,27 +461,27 @@ public class Output
 				elib.quiet = thisQuiet;
 				if (compatibleWith6) elib.write6Compatible();
 				if (elib.openBinaryOutputStream(properOutputName)) return true;
-                if (CVS.isEnabled()) {
-                    CVSLibrary.savingLibrary(lib);
-                }
+//                if (CVS.isEnabled()) {
+//                    CVSLibrary.savingLibrary(lib);
+//                }
 				if (elib.writeLib(snapshot, libId)) return true;
 				if (elib.closeBinaryOutputStream()) return true;
-                if (CVS.isEnabled()) {
-                    CVSLibrary.savedLibrary(lib);
-                }
+//                if (CVS.isEnabled()) {
+//                    CVSLibrary.savedLibrary(lib);
+//                }
 			} else
 			{
 				JELIB jelib = new JELIB();
 				jelib.quiet = thisQuiet;
 				if (jelib.openTextOutputStream(properOutputName)) return true;
-                if (CVS.isEnabled()) {
-                    CVSLibrary.savingLibrary(lib);
-                }
+//                if (CVS.isEnabled()) {
+//                    CVSLibrary.savingLibrary(lib);
+//                }
 				if (jelib.writeLib(snapshot, libId, null, false)) return true;
 				if (jelib.closeTextOutputStream()) return true;
-                if (CVS.isEnabled()) {
-                    CVSLibrary.savedLibrary(lib);
-                }
+//                if (CVS.isEnabled()) {
+//                    CVSLibrary.savedLibrary(lib);
+//                }
 			}
  		} else if (type == FileType.READABLEDUMP)
 		{
@@ -473,14 +495,20 @@ public class Output
             DELIB delib = new DELIB(delibHeaderOnly);
             delib.quiet = thisQuiet;
             if (delib.openTextOutputStream(properOutputName)) return true;
-            if (CVS.isEnabled() && !delibHeaderOnly) {
-                CVSLibrary.savingLibrary(lib);
-            }
-            if (delib.writeLib(snapshot, libId, lib.getDelibCellFiles())) return true;
+//            if (CVS.isEnabled() && !delibHeaderOnly) {
+//                CVSLibrary.savingLibrary(lib);
+//            }
+            HashSet<String> cellFiles = new HashSet<String>(lib.getDelibCellFiles());
+            if (delib.writeLib(snapshot, libId, cellFiles)) return true;
+            lib.setDelibCellFiles(cellFiles);
             if (delib.closeTextOutputStream()) return true;
-            if (CVS.isEnabled() && !delibHeaderOnly) {
-                CVSLibrary.savedLibrary(lib, delib.getDeletedCellFiles(), delib.getWrittenCellFiles());
-            }
+            if (deletedCellFiles != null)
+                deletedCellFiles.addAll(delib.getDeletedCellFiles());
+            if (writtenCellFiles != null)
+                writtenCellFiles.addAll(delib.getWrittenCellFiles());
+//            if (CVS.isEnabled() && !delibHeaderOnly) {
+//                CVSLibrary.savedLibrary(lib, delib.getDeletedCellFiles(), delib.getWrittenCellFiles());
+//            }
 		} else
 		{
 			System.out.println("Unknown export type: " + type);

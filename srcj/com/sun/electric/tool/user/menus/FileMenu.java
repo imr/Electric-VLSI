@@ -34,6 +34,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
@@ -397,7 +398,7 @@ public class FileMenu {
                 if (!librariesToSave.isEmpty()) {
                     assert librariesToSave.size() == 1;
                     saveTask = librariesToSave.iterator().next();
-                    assert saveTask.lib == deleteLib;
+                    assert saveTask.libId == deleteLib.getId();
                 }
 				WindowFrame.removeLibraryReferences(deleteLib);
 			}
@@ -547,9 +548,10 @@ public class FileMenu {
 			{
                 // save the library
                 if (saveTask != null) {
-                    assert deleteLib == saveTask.lib;
+                    assert deleteLib.getId() == saveTask.libId;
                     saveTask.renameAndSave();
-                    deleteLib = saveTask.lib;
+                    fieldVariableChanged("saveTask");
+                    deleteLib = getDatabase().getLib(saveTask.libId);
                 }
 				if (!deleteLib.kill("replace")) return false;
 				deleteLib = null;
@@ -614,6 +616,8 @@ public class FileMenu {
         	doneOpeningLibrary(showThisCell);
             convertVarsToModelFiles(newLibs);
             if (CVS.isEnabled()) {
+                if (saveTask != null)
+                    saveTask.librarySaved();
                 for (Library lib: newLibs)
                     CVSLibrary.addLibrary(lib);
                     Update.updateOpenLibraries(Update.UpdateEnum.STATUS);
@@ -713,9 +717,10 @@ public class FileMenu {
                 // save the library
                 if (saveTask != null)
                 {
-                    assert deleteLib == saveTask.lib;
+                    assert deleteLib.getId() == saveTask.libId;
                     saveTask.renameAndSave();
-                    deleteLib = saveTask.lib;
+                    fieldVariableChanged("saveTask");
+                    deleteLib = getDatabase().getLib(saveTask.libId);
                 }
 				if (!deleteLib.kill("replace")) return false;
 				deleteLib = null;
@@ -739,6 +744,8 @@ public class FileMenu {
         @Override
 		public void terminateOK()
         {
+            if (saveTask != null)
+                saveTask.librarySaved();
     		User.setCurrentLibrary(createLib);
             for (Map.Entry<Library,Cell> e: currentCells.entrySet()) {
                 Library lib = e.getKey();
@@ -844,7 +851,7 @@ public class FileMenu {
 	                {
 	                    assert librariesToSave.size() == 1;
 	                    saveTask = librariesToSave.iterator().next();
-	                    assert saveTask.lib == deleteLib;
+	                    assert saveTask.libId == deleteLib.getId();
 	                }
 					WindowFrame.removeLibraryReferences(deleteLib);
                 }
@@ -888,7 +895,7 @@ public class FileMenu {
         if (!librariesToSave.isEmpty()) {
             assert librariesToSave.size() == 1;
             saveTask = librariesToSave.iterator().next();
-            assert saveTask.lib == lib;
+            assert saveTask.libId == lib.getId();
         }
 
         WindowFrame.removeLibraryReferences(lib);
@@ -915,9 +922,10 @@ public class FileMenu {
 			}
             // save the library
             if (saveTask != null) {
-                assert lib == saveTask.lib;
+                assert lib.getId() == saveTask.libId;
                 saveTask.renameAndSave();
-                lib = saveTask.lib;
+                fieldVariableChanged("saveTask");
+                lib = getDatabase().getLib(saveTask.libId);
             }
             if (lib.kill("delete"))
             {
@@ -928,6 +936,8 @@ public class FileMenu {
 
         public void terminateOK()
         {
+            if (saveTask != null)
+                saveTask.librarySaved();
         	// set some other library to be current
         	if (Library.getCurrent() == null)
         	{
@@ -1068,7 +1078,7 @@ public class FileMenu {
 
         public SaveLibrary(RenameAndSaveLibraryTask task)
         {
-            super("Write "+task.lib, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER); // CHANGE because of possible renaming
+            super("Write "+task.libId.libName, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER); // CHANGE because of possible renaming
             this.task = task;
             startJob();
         }
@@ -1078,26 +1088,31 @@ public class FileMenu {
         {
             // rename the library if requested
             idMapper = task.renameAndSave();
+            fieldVariableChanged("task");
             fieldVariableChanged("idMapper");
             return true;
         }
 
         @Override
         public void terminateOK() {
+            task.librarySaved();
             User.fixStaleCellReferences(idMapper);
         }
     }
 
     private static class RenameAndSaveLibraryTask implements Serializable {
-        private Library lib;
+        private LibId libId;
         private String newName;
         private FileType type;
         private boolean compatibleWith6;
         private int backupScheme;
+        private URL libFile;
+        private List<String> deletedCellFiles;
+        private List<String> writtenCellFiles;
 
         private RenameAndSaveLibraryTask(Library lib, String newName, FileType type, boolean compatibleWith6)
         {
-            this.lib = lib;
+            libId = lib.getId();
             this.newName = newName;
             this.type = type;
             this.compatibleWith6 = compatibleWith6;
@@ -1108,14 +1123,20 @@ public class FileMenu {
             IdMapper idMapper = null;
             boolean success = false;
             try {
+                Library lib = EDatabase.serverDatabase().getLib(libId);
                 if (newName != null) {
                     URL libURL = TextUtils.makeURLToFile(newName);
                     lib.setLibFile(libURL);
                     idMapper = lib.setName(TextUtils.getFileNameWithoutExtension(libURL));
-                    if (idMapper != null)
-                        lib = EDatabase.serverDatabase().getLib(idMapper.get(lib.getId()));
+                    if (idMapper != null) {
+                        libId = idMapper.get(lib.getId());
+                        lib = EDatabase.serverDatabase().getLib(libId);
+                    }
                 }
-                success = !Output.writeLibrary(lib, type, compatibleWith6, false, false, backupScheme);
+                libFile = lib.getLibFile();
+                deletedCellFiles = new ArrayList<String>();
+                writtenCellFiles = new ArrayList<String>();
+                success = !Output.writeLibrary(lib, type, compatibleWith6, false, false, backupScheme, deletedCellFiles, writtenCellFiles);
             } catch (Exception e) {
                 e.printStackTrace(System.out);
                 throw new JobException("Exception caught when saving files: " +
@@ -1124,6 +1145,11 @@ public class FileMenu {
             if (!success)
                 throw new JobException("Error saving files.  Please check your disk libraries");
             return idMapper;
+        }
+
+        private void librarySaved() {
+            if (!CVS.isEnabled()) return;
+            CVSLibrary.savedLibrary(libId, libFile, deletedCellFiles, writtenCellFiles);
         }
     }
 
@@ -1606,12 +1632,15 @@ public class FileMenu {
         {
             for (RenameAndSaveLibraryTask saveTask: saveTasks)
                 saveTask.renameAndSave();
+            fieldVariableChanged("saveTasks");
             return true;
         }
 
         @Override
         public void terminateOK()
         {
+            for (RenameAndSaveLibraryTask saveTask: saveTasks)
+                saveTask.librarySaved();
             try {
                 Library.saveExpandStatus();
                 Pref.getPrefRoot().flush();
