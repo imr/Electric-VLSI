@@ -330,7 +330,7 @@ class ClientJobManager extends JobManager {
         if (SwingUtilities.isEventDispatchThread())
             Job.currentUI.showJobQueue(jobQueue);
         else
-            Job.currentUI.addEvent(new Client.JobQueueEvent(clientSnapshot, jobQueue));
+            Job.currentUI.addEvent(new Client.JobQueueEvent(jobQueue));
     }
 
     private boolean isChangeJobQueuedOrRunning() { // synchronization !!!

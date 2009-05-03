@@ -127,7 +127,7 @@ public class UserInterfaceExec implements UserInterface {
      */
     public void showErrorMessage(String message, String title) {
         if (jobKey.doItOnServer) {
-            Client.fireServerEvent(new Client.ShowMessageEvent(null, null, message, title, true));
+            Client.fireServerEvent(new Client.ShowMessageEvent(null, message, title, true));
         } else {
             Job.currentUI.showInformationMessage(message, title);
         }
@@ -140,7 +140,7 @@ public class UserInterfaceExec implements UserInterface {
      */
     public void showInformationMessage(String message, String title) {
         if (jobKey.doItOnServer) {
-            Client.fireServerEvent(new Client.ShowMessageEvent(null, null, message, title, false));
+            Client.fireServerEvent(new Client.ShowMessageEvent(null, message, title, false));
         } else {
             Job.currentUI.showInformationMessage(message, title);
         }
@@ -155,7 +155,7 @@ public class UserInterfaceExec implements UserInterface {
         if (jobKey.doItOnServer) {
             if (newLine)
                 message += "\n";
-            Client.fireServerEvent(new Client.PrintEvent(null, Job.currentUI, message));
+            Client.fireServerEvent(new Client.PrintEvent(Job.currentUI, message));
         } else {
             Job.currentUI.printMessage(message, newLine);
         }

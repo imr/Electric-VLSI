@@ -336,7 +336,7 @@ public class ServerJobManager extends JobManager {
         }
         ejob.state = newState;
         List<Job.Inform> jobs = Job.jobManager.getAllJobInforms();
-        Client.fireServerEvent(new Client.JobQueueEvent(ejob.newSnapshot, jobs.toArray(new Job.Inform[jobs.size()])));
+        Client.fireServerEvent(new Client.JobQueueEvent(jobs.toArray(new Job.Inform[jobs.size()])));
 
 //        if (!Job.BATCHMODE && !guiChanged)
 //            SwingUtilities.invokeLater(this);
@@ -476,8 +476,7 @@ public class ServerJobManager extends JobManager {
         public void startProgressDialog(String msg, String filePath)
         {
             progressValue = -1;
-            EJob ejob = Job.getRunningEJob();
-            Client.fireServerEvent(new Client.StartProgressDialogEvent(ejob.oldSnapshot, msg, filePath));
+            Client.fireServerEvent(new Client.StartProgressDialogEvent(msg, filePath));
         }
 
         /**
@@ -486,8 +485,7 @@ public class ServerJobManager extends JobManager {
         public void stopProgressDialog()
         {
             progressValue = -1;
-            EJob ejob = Job.getRunningEJob();
-            Client.fireServerEvent(new Client.StopProgressDialogEvent(ejob.oldSnapshot));
+            Client.fireServerEvent(new Client.StopProgressDialogEvent());
         }
 
         /**
@@ -498,8 +496,7 @@ public class ServerJobManager extends JobManager {
         {
             if (pct == progressValue) return;
             progressValue = pct;
-            EJob ejob = Job.getRunningEJob();
-            Client.fireServerEvent(new Client.ProgressValueEvent(ejob.oldSnapshot, pct));
+            Client.fireServerEvent(new Client.ProgressValueEvent(pct));
         }
 
         /**
@@ -510,8 +507,7 @@ public class ServerJobManager extends JobManager {
         {
             progressNote = message;
             progressValue = -1;
-            EJob ejob = Job.getRunningEJob();
-            Client.fireServerEvent(new Client.ProgressNoteEvent(ejob.oldSnapshot, message));
+            Client.fireServerEvent(new Client.ProgressNoteEvent(message));
         }
 
         /**
@@ -577,8 +573,7 @@ public class ServerJobManager extends JobManager {
 		public EditWindow_ displayCell(Cell cell) { throw new IllegalStateException(); }
 
         public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate) {
-            EJob ejob = Job.getRunningEJob();
-            Client.fireServerEvent(new Client.TermLoggingEvent(ejob.oldSnapshot, logger, explain, terminate));
+            Client.fireServerEvent(new Client.TermLoggingEvent(logger, explain, terminate));
         }
 
         public void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) { throw new IllegalStateException(); }
@@ -605,7 +600,7 @@ public class ServerJobManager extends JobManager {
         public void showErrorMessage(String message, String title)
         {
             EJob ejob = Job.getRunningEJob();
-            Client.fireServerEvent(new Client.ShowMessageEvent(ejob.oldSnapshot, ejob.client, message, title, true));
+            Client.fireServerEvent(new Client.ShowMessageEvent(ejob.client, message, title, true));
         }
 
         /**
@@ -616,7 +611,7 @@ public class ServerJobManager extends JobManager {
         public void showInformationMessage(String message, String title)
         {
             EJob ejob = Job.getRunningEJob();
-            Client.fireServerEvent(new Client.ShowMessageEvent(ejob.oldSnapshot, ejob.client, message, title, false));
+            Client.fireServerEvent(new Client.ShowMessageEvent(ejob.client, message, title, false));
         }
 
         /**
@@ -628,7 +623,7 @@ public class ServerJobManager extends JobManager {
             if (newLine)
                 message += "\n";
             EJob ejob = Job.getRunningEJob();
-            Client.fireServerEvent(new Client.PrintEvent(ejob.oldSnapshot, ejob.client, message));
+            Client.fireServerEvent(new Client.PrintEvent(ejob.client, message));
         }
 
         /**
@@ -637,15 +632,14 @@ public class ServerJobManager extends JobManager {
          */
         public void saveMessages(String filePath) {
             EJob ejob = Job.getRunningEJob();
-            Client.fireServerEvent(new Client.SavePrintEvent(ejob.oldSnapshot, ejob.client, filePath));
+            Client.fireServerEvent(new Client.SavePrintEvent(ejob.client, filePath));
         }
 
         /**
          * Method to beep.
          */
         public void beep() {
-            EJob ejob = Job.getRunningEJob();
-            Client.fireServerEvent(new Client.BeepEvent(ejob.oldSnapshot));
+            Client.fireServerEvent(new Client.BeepEvent());
         }
 
         /**

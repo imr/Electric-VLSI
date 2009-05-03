@@ -39,7 +39,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class Client {
     private static final ReentrantLock lock = new ReentrantLock();
     private static final Condition queueChanged = lock.newCondition();
-    private static ServerEvent queueTail = new JobQueueEvent(IdManager.stdIdManager.getInitialSnapshot(), new Job.Inform[0]);
+    private static ServerEvent queueTail = new JobQueueEvent(new Job.Inform[0]);
+    static { queueTail.snapshot = IdManager.stdIdManager.getInitialSnapshot(); }
 
     int connectionId;
     int serverJobId;
@@ -149,6 +150,10 @@ public abstract class Client {
         final long timeStamp;
         ServerEvent next;
 
+        ServerEvent() {
+            this(null, System.currentTimeMillis());
+        }
+
         ServerEvent(Snapshot snapshot) {
             this(snapshot, System.currentTimeMillis());
         }
@@ -227,8 +232,7 @@ public abstract class Client {
 //        private final Client client;
         public final String s;
 
-        PrintEvent(Snapshot snapshot, Client client, String s) {
-            super(snapshot);
+        PrintEvent(Client client, String s) {
 //            this.client = client;
             this.s = s;
         }
@@ -249,8 +253,7 @@ public abstract class Client {
 //        private final Client client;
         public final String filePath;
 
-        SavePrintEvent(Snapshot snapshot, Client client, String filePath) {
-            super(snapshot);
+        SavePrintEvent(Client client, String filePath) {
 //            this.client = client;
             this.filePath = filePath;
         }
@@ -272,8 +275,7 @@ public abstract class Client {
         public final String title;
         public final boolean isError;
 
-        ShowMessageEvent(Snapshot snapshot, Client client, String message, String title, boolean isError) {
-            super(snapshot);
+        ShowMessageEvent(Client client, String message, String title, boolean isError) {
             this.message = message;
             this.title = title;
             this.isError = isError;
@@ -299,8 +301,7 @@ public abstract class Client {
     public static class JobQueueEvent extends ServerEvent {
         public final Job.Inform[] jobQueue;
 
-        JobQueueEvent(Snapshot snapshot, Job.Inform[] jobQueue) {
-            super(snapshot);
+        JobQueueEvent(Job.Inform[] jobQueue) {
             this.jobQueue = jobQueue;
         }
 
@@ -322,8 +323,7 @@ public abstract class Client {
         public final String msg;
         public final String filePath;
 
-        StartProgressDialogEvent(Snapshot snapshot, String msg, String filePath) {
-            super(snapshot);
+        StartProgressDialogEvent(String msg, String filePath) {
             this.msg = msg;
             this.filePath = filePath;
         }
@@ -345,8 +345,7 @@ public abstract class Client {
 
     public static class StopProgressDialogEvent extends ServerEvent {
 
-        StopProgressDialogEvent(Snapshot snapshot) {
-            super(snapshot);
+        StopProgressDialogEvent() {
         }
 
         @Override
@@ -363,8 +362,7 @@ public abstract class Client {
     public static class ProgressValueEvent extends ServerEvent {
         public final int pct;
 
-        ProgressValueEvent(Snapshot snapshot, int pct) {
-            super(snapshot);
+        ProgressValueEvent(int pct) {
             this.pct = pct;
         }
 
@@ -383,8 +381,7 @@ public abstract class Client {
     public static class ProgressNoteEvent extends ServerEvent {
         public final String note;
 
-        ProgressNoteEvent(Snapshot snapshot, String note) {
-            super(snapshot);
+        ProgressNoteEvent(String note) {
             this.note = note;
         }
 
@@ -407,8 +404,7 @@ public abstract class Client {
         public final boolean explain;
         public final boolean terminate;
 
-        TermLoggingEvent(Snapshot snapshot, ErrorLogger logger, boolean explain, boolean terminate) {
-            super(snapshot);
+        TermLoggingEvent(ErrorLogger logger, boolean explain, boolean terminate) {
             this.logger = logger;
             this.explain = explain;
             this.terminate = terminate;
@@ -430,8 +426,7 @@ public abstract class Client {
 
     public static class BeepEvent extends ServerEvent {
 
-        BeepEvent(Snapshot snapshot) {
-            super(snapshot);
+        BeepEvent() {
         }
 
         @Override
@@ -465,44 +460,44 @@ public abstract class Client {
                 return new EJobEvent(ejob, newState, timeStamp);
             case 3:
                 String str = reader.readString();
-                return new PrintEvent(snapshot, connection, str);
+                return new PrintEvent(connection, str);
             case 4:
                 int jobQueueSize = reader.readInt();
                 Job.Inform[] jobInforms = new Job.Inform[jobQueueSize];
                 for (int jobIndex = 0; jobIndex < jobQueueSize; jobIndex++)
                     jobInforms[jobIndex] = Job.Inform.read(reader);
-                return new JobQueueEvent(snapshot, jobInforms);
+                return new JobQueueEvent(jobInforms);
             case 5:
                 String filePath = reader.readString();
                 if (filePath.length() == 0)
                     filePath = null;
-                return new SavePrintEvent(snapshot, connection, filePath);
+                return new SavePrintEvent(connection, filePath);
             case 6:
                 String message = reader.readString();
                 String title = reader.readString();
                 boolean isError = reader.readBoolean();
-                return new ShowMessageEvent(snapshot, connection, message, title, isError);
+                return new ShowMessageEvent(connection, message, title, isError);
             case 7:
                 String progressMsg = reader.readString();
                 boolean hasFilePath = reader.readBoolean();
                 String progressFilePath = hasFilePath ? reader.readString() : null;
-                return new StartProgressDialogEvent(snapshot, progressMsg, progressFilePath);
+                return new StartProgressDialogEvent(progressMsg, progressFilePath);
             case 8:
-                return new StopProgressDialogEvent(snapshot);
+                return new StopProgressDialogEvent();
             case 9:
                 int pct = reader.readInt();
-                return new ProgressValueEvent(snapshot, pct);
+                return new ProgressValueEvent(pct);
             case 10:
                 boolean hasNote = reader.readBoolean();
                 String note = hasNote ? reader.readString() : null;
-                return new ProgressNoteEvent(snapshot, note);
+                return new ProgressNoteEvent(note);
             case 11:
                 ErrorLogger logger = ErrorLogger.read(reader);
                 boolean explain = reader.readBoolean();
                 boolean terminate = reader.readBoolean();
-                return new TermLoggingEvent(snapshot, logger, explain, terminate);
+                return new TermLoggingEvent(logger, explain, terminate);
             case 12:
-                return new BeepEvent(snapshot);
+                return new BeepEvent();
             default:
                 throw new AssertionError();
         }
