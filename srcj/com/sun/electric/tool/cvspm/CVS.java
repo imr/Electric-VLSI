@@ -643,6 +643,8 @@ public class CVS extends Listener {
             if (state == State.CONFLICT) {
                 Job.getUserInterface().showErrorMessage("Conflicts updating Library "+lib.getName()+", not reloading library", "CVS Update had Conflicts");
                 continue;
+            } else {
+                CVSLibrary.setState(lib, State.NONE);
             }
             fixStaleCellReferences(lib);
         }
