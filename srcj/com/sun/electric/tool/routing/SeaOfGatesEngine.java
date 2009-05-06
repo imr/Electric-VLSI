@@ -771,7 +771,7 @@ public class SeaOfGatesEngine
 	{
 		// create threads and other threading data structures
 		RouteInThread[] threads = new RouteInThread[numberOfThreads];
-		for(int i=0; i<numberOfThreads; i++) threads[i] = new RouteInThread("Route #" + (i+1));
+		for(int i=0; i<numberOfThreads; i++) threads[i] = new RouteInThread("Route #" + (i+1), ep);
 		NeededRoute [] routesToDo = new NeededRoute[numberOfThreads];
 		int [] routeIndices = new int[numberOfThreads];
 		Semaphore outSem = new Semaphore(0);
