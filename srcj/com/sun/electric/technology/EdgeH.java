@@ -41,9 +41,9 @@ import java.io.Serializable;
  */
 public class EdgeH implements Serializable
 {
-	/** The multiplier (scales the width by this amount). */	private double multiplier;
-	/** The adder (adds this amount to the scaled width). */	private double adder;
-	/** The adder (adds this amount to the scaled width) in grid units. */	private long gridAdder;
+	/** The multiplier (scales the width by this amount). */	private final double multiplier;
+	/** The adder (adds this amount to the scaled width). */	private final double adder;
+	/** The adder (adds this amount to the scaled width) in grid units. */	private final long gridAdder;
 
 	/**
 	 * Constructs an <CODE>EdgeH</CODE> with the specified values.
@@ -52,18 +52,10 @@ public class EdgeH implements Serializable
 	 */
 	public EdgeH(double multiplier, double adder)
 	{
-		this.multiplier = multiplier;
-        setAdder(adder);
+        this.multiplier = multiplier;
+        gridAdder = DBMath.lambdaToGrid(adder);
+        this.adder = DBMath.gridToLambda(gridAdder);
 	}
-
-    /**
-     * Returns a clone of this Object
-     * @return a new pointer with the same value of this Object
-     */
-    public EdgeH duplicate()
-    {
-        return new EdgeH(multiplier, adder);
-    }
 
     /**
      * Compare to another EdgeH
@@ -85,13 +77,6 @@ public class EdgeH implements Serializable
 	public double getMultiplier() { return multiplier; }
 
 	/**
-	 * Sets the multiplier.
-	 * This is the amount to scale a NodeInst width.
-	 * @param multiplier the new multiplier.
-	 */
-	public void setMultiplier(double multiplier) { this.multiplier = multiplier; }
-
-	/**
 	 * Returns the adder.
 	 * This is the amount to add to a NodeInst width.
 	 * @return the adder.
@@ -106,20 +91,14 @@ public class EdgeH implements Serializable
 	public long getGridAdder() { return gridAdder; }
 
 	/**
-	 * Sets the adder.
-	 * This is the amount to add to a NodeInst width.
+	 * Returns EdgeH with the new adder.
 	 * @param adder the new adder.
-	 * @return true if original value was modified
+	 * @return EdgeH with the new adder
 	 */
-	public boolean setAdder(double adder)
+	public EdgeH withAdder(double adder)
 	{
-		if (this.adder != adder)
-		{
-            gridAdder = DBMath.lambdaToGrid(adder);
-			this.adder = DBMath.gridToLambda(gridAdder);
-			return true;
-		}
-		return false;
+		if (this.adder == adder) return this;
+        return new EdgeH(this.multiplier, adder);
 	}
 
 	/**

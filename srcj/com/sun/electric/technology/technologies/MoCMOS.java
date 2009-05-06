@@ -279,48 +279,54 @@ public class MoCMOS extends Technology
 		{
 			TechPoint [] oldPoints = layers[box].getPoints();
 			TechPoint [] points = new TechPoint[oldPoints.length];
-			for(int i=0; i<oldPoints.length; i++) points[i] = oldPoints[i].duplicate();
+			for(int i=0; i<oldPoints.length; i++) points[i] = oldPoints[i];
 			switch (box)
 			{
 				case SCALABLE_ACTIVE_CTR:		// active that passes through gate
-					points[0].getX().setAdder(actInset);
-					points[0].getX().setAdder(actInset);
-					points[1].getX().setAdder(-actInset);
+					points[0] = points[0].withX(points[0].getX().withAdder(actInset));
+					points[1] = points[1].withX(points[1].getX().withAdder(-actInset));
 					break;
 				case SCALABLE_ACTIVE_TOP:		// active surrounding contacts
 				case SCALABLE_ACTIVE_BOT:
-					points[0].getX().setAdder(actContInset);
-					points[1].getX().setAdder(-actContInset);
+					points[0] = points[0].withX(points[0].getX().withAdder(actContInset));
+					points[1] = points[1].withX(points[1].getX().withAdder(-actContInset));
 					if (insetContacts)
 					{
 						double shift = 0.5;
 						if (points[0].getY().getAdder() < 0) shift = -0.5;
-						points[0].getY().setAdder(points[0].getY().getAdder() + shift);
-						points[1].getY().setAdder(points[1].getY().getAdder() + shift);
+    					points[0] = points[0].withY(points[0].getY().withAdder(points[0].getY().getAdder() + shift));
+    					points[1] = points[1].withY(points[1].getY().withAdder(points[1].getY().getAdder() + shift));
+//						points[0].getY().setAdder(points[0].getY().getAdder() + shift);
+//						points[1].getY().setAdder(points[1].getY().getAdder() + shift);
 					}
 					break;
 				case SCALABLE_POLY:				// poly
-					points[0].getX().setAdder(polyInset);
-					points[1].getX().setAdder(-polyInset);
+					points[0] = points[0].withX(points[0].getX().withAdder(polyInset));
+					points[1] = points[1].withX(points[1].getX().withAdder(-polyInset));
 					break;
 				case SCALABLE_METAL_TOP:		// metal surrounding contacts
 				case SCALABLE_METAL_BOT:
-					points[0].getX().setAdder(metContInset);
-					points[1].getX().setAdder(-metContInset);
+					points[0] = points[0].withX(points[0].getX().withAdder(metContInset));
+					points[1] = points[1].withX(points[1].getX().withAdder(-metContInset));
 					if (insetContacts)
 					{
 						double shift = 0.5;
 						if (points[0].getY().getAdder() < 0) shift = -0.5;
-						points[0].getY().setAdder(points[0].getY().getAdder() + shift);
-						points[1].getY().setAdder(points[1].getY().getAdder() + shift);
+    					points[0] = points[0].withY(points[0].getY().withAdder(points[0].getY().getAdder() + shift));
+    					points[1] = points[1].withY(points[1].getY().withAdder(points[1].getY().getAdder() + shift));
+//						points[0].getY().setAdder(points[0].getY().getAdder() + shift);
+//						points[1].getY().setAdder(points[1].getY().getAdder() + shift);
 					}
 					break;
 				case SCALABLE_WELL:				// well and select
 				case SCALABLE_SUBSTRATE:
 					if (insetContacts)
 					{
-						points[0].getY().setAdder(points[0].getY().getAdder() + 0.5);
-						points[1].getY().setAdder(points[1].getY().getAdder() - 0.5);
+						double shift = 0.5;
+    					points[0] = points[0].withY(points[0].getY().withAdder(points[0].getY().getAdder() + shift));
+    					points[1] = points[1].withY(points[1].getY().withAdder(points[1].getY().getAdder() + shift));
+//						points[0].getY().setAdder(points[0].getY().getAdder() + 0.5);
+//						points[1].getY().setAdder(points[1].getY().getAdder() - 0.5);
 					}
 					break;
 			}
@@ -338,24 +344,30 @@ public class MoCMOS extends Technology
 			// make a new description of this layer
 			TechPoint [] oldPoints = layers[oldIndex].getPoints();
 			TechPoint [] points = new TechPoint[oldPoints.length];
-			for(int i=0; i<oldPoints.length; i++) points[i] = oldPoints[i].duplicate();
+			for(int i=0; i<oldPoints.length; i++) points[i] = oldPoints[i];
 			if (numCuts == 1)
 			{
-				points[0].getX().setAdder(ni.getXSize() / 2 - cutSize/2);
-				points[1].getX().setAdder(ni.getXSize() / 2 + cutSize/2);
+				points[0] = points[0].withX(points[0].getX().withAdder(ni.getXSize() / 2 - cutSize/2));
+				points[1] = points[1].withX(points[1].getX().withAdder(ni.getXSize() / 2 + cutSize/2));
+//				points[0].getX().setAdder(ni.getXSize() / 2 - cutSize/2);
+//				points[1].getX().setAdder(ni.getXSize() / 2 + cutSize/2);
 			} else
 			{
 				int cut = box % numCuts;
 				double base = cutBase + cut * (cutSize + cutSep);
-				points[0].getX().setAdder(base);
-				points[1].getX().setAdder(base + cutSize);
+				points[0] = points[0].withX(points[0].getX().withAdder(base));
+				points[1] = points[1].withX(points[1].getX().withAdder(base + cutSize));
+//				points[0].getX().setAdder(base);
+//				points[1].getX().setAdder(base + cutSize);
 			}
 			if (insetContacts)
 			{
 				double shift = 0.5;
 				if (points[0].getY().getAdder() < 0) shift = -0.5;
-				points[0].getY().setAdder(points[0].getY().getAdder() + shift);
-				points[1].getY().setAdder(points[1].getY().getAdder() + shift);
+				points[0] = points[0].withY(points[0].getY().withAdder(points[0].getY().getAdder() + shift));
+				points[1] = points[1].withY(points[1].getY().withAdder(points[1].getY().getAdder() + shift));
+//				points[0].getY().setAdder(points[0].getY().getAdder() + shift);
+//				points[1].getY().setAdder(points[1].getY().getAdder() + shift);
 			}
 			newNodeLayers[fillIndex] = new Technology.NodeLayer(layers[oldIndex].getLayer(), layers[oldIndex].getPortNum(),
 				layers[oldIndex].getStyle(), layers[oldIndex].getRepresentation(), points);

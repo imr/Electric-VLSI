@@ -94,7 +94,7 @@ public class NodeInfo extends Info
         	dup.style = style;
         	dup.representation = representation;
         	dup.values = new Technology.TechPoint[values.length];
-        	for(int i=0; i<values.length; i++) dup.values[i] = values[i].duplicate();
+        	for(int i=0; i<values.length; i++) dup.values[i] = values[i];
         	dup.ns = ns;
         	dup.portIndex = portIndex;
         	dup.inLayers = inLayers;

@@ -41,9 +41,9 @@ import java.io.Serializable;
  */
 public class EdgeV implements Serializable
 {
-	/** The multiplier (scales the height by this amount). */	private double multiplier;
-	/** The adder (adds this amount to the scaled height). */	private double adder;
-	/** The adder (adds this amount to the scaled width) in grid units. */	private long gridAdder;
+	/** The multiplier (scales the height by this amount). */	private final double multiplier;
+	/** The adder (adds this amount to the scaled height). */	private final double adder;
+	/** The adder (adds this amount to the scaled width) in grid units. */	private final long gridAdder;
 
 	/**
 	 * Constructs an <CODE>EdgeV</CODE> with the specified values.
@@ -52,18 +52,10 @@ public class EdgeV implements Serializable
 	 */
 	public EdgeV(double multiplier, double adder)
 	{
-		this.multiplier = multiplier;
-        setAdder(adder);
+        this.multiplier = multiplier;
+        gridAdder = DBMath.lambdaToGrid(adder);
+        this.adder = DBMath.gridToLambda(gridAdder);
 	}
-
-    /**
-     * Returns a clone of this Object
-     * @return a new pointer with the same value of this Object
-     */
-    public EdgeV duplicate()
-    {
-        return new EdgeV(multiplier, adder);
-    }
 
     /**
      * Compare to another EdgeV
@@ -85,14 +77,6 @@ public class EdgeV implements Serializable
 	public double getMultiplier() { return multiplier; }
 
 	/**
-	 * Sets the multiplier.
-	 * This is the amount to scale a NodeInst height.
-	 * @param multiplier the new multiplier.
-	 */
-	public void setMultiplier(double multiplier) { this.multiplier = multiplier; }
-
-
-	/**
 	 * Returns the adder.
 	 * This is the amount to add to a NodeInst height.
 	 * @return the adder.
@@ -107,20 +91,14 @@ public class EdgeV implements Serializable
 	public long getGridAdder() { return gridAdder; }
 
 	/**
-	 * Sets the adder.
-	 * This is the amount to add to a NodeInst height.
+	 * Returns EdgeV with the new adder.
 	 * @param adder the new adder.
-	 * @return true if original value was modified
+	 * @return EdgeV with the new adder
 	 */
-	public boolean setAdder(double adder)
+	public EdgeV withAdder(double adder)
 	{
-		if (this.adder != adder)
-		{
-            gridAdder = DBMath.lambdaToGrid(adder);
-			this.adder = DBMath.gridToLambda(gridAdder);
-            return true;
-		}
-		return false;
+		if (this.adder == adder) return this;
+        return new EdgeV(this.multiplier, adder);
 	}
 
 	/**
@@ -131,7 +109,7 @@ public class EdgeV implements Serializable
 	{
 		return new EdgeV(0.5, -amt);
 	}
-	
+
 	/**
 	 * Describes a position that is in from the bottom by a specified amount.
 	 * @param amt the amount to inset from the bottom of a NodeInst.
@@ -140,7 +118,7 @@ public class EdgeV implements Serializable
 	{
 		return new EdgeV(-0.5, amt);
 	}
-	
+
 	/**
 	 * Describes a position that is away from the center by a specified amount.
 	 * @param amt the amount to move away from the center of the NodeInst.

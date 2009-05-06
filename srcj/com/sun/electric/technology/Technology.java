@@ -258,8 +258,8 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public static class TechPoint implements Serializable
 	{
-		private EdgeH x;
-		private EdgeV y;
+		private final EdgeH x;
+		private final EdgeV y;
 
 		/**
 		 * Constructs a <CODE>TechPoint</CODE> with the specified description.
@@ -270,16 +270,6 @@ public class Technology implements Comparable<Technology>, Serializable
 		{
 			this.x = x;
 			this.y = y;
-		}
-
-		/**
-		 * Method to make a copy of this TechPoint, with all newly allocated parts.
-		 * @return a new TechPoint with the values in this one.
-		 */
-		public TechPoint duplicate()
-		{
-			TechPoint newTP = new TechPoint(new EdgeH(x.getMultiplier(), x.getAdder()), new EdgeV(y.getMultiplier(), y.getAdder()));
-			return newTP;
 		}
 
 		/**
@@ -346,11 +336,31 @@ public class Technology implements Comparable<Technology>, Serializable
 		 */
 		public EdgeH getX() { return x; }
 
+        /**
+		 * Returns the TechPoint with a new EdgeH
+         * @param x new EdgeH
+		 * @return the TechPoint with thew new EdgeH
+		 */
+		public TechPoint withX(EdgeH x) {
+            if (x.equals(this.x)) return this;
+            return new TechPoint(x, this.y);
+        }
+
 		/**
 		 * Returns the EdgeV that converts a NodeInst into a Y coordinate on that NodeInst.
 		 * @return the EdgeV that converts a NodeInst into a Y coordinate on that NodeInst.
 		 */
 		public EdgeV getY() { return y; }
+
+       /**
+		 * Returns the TechPoint with a new EdgeV
+         * @param y new EdgeV
+		 * @return the TechPoint with thew new EdgeV
+		 */
+		public TechPoint withY(EdgeV y) {
+            if (y.equals(this.y)) return this;
+            return new TechPoint(this.x, y);
+        }
 
         TechPoint makeCorrection(EPoint correction) {
             EdgeH h = new EdgeH(x.getMultiplier(), x.getAdder() + correction.getLambdaX()*x.getMultiplier()*2);
@@ -487,7 +497,7 @@ public class Technology implements Comparable<Technology>, Serializable
             this.descriptor = TextDescriptor.EMPTY;
             TechPoint [] oldPoints = node.getPoints();
 			this.points = new TechPoint[oldPoints.length];
-			for(int i=0; i<oldPoints.length; i++) points[i] = oldPoints[i].duplicate();
+			for(int i=0; i<oldPoints.length; i++) points[i] = oldPoints[i];
 			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
         }
 
@@ -5477,7 +5487,7 @@ public class Technology implements Comparable<Technology>, Serializable
     public List<NodeProto> getMetalContactCluster(Layer l1, Layer l2)
     {
         List<NodeProto> list = new ArrayList<NodeProto>();
-        
+
         Xml.MenuPalette menu = xmlTech.menuPalette;
         for (List<?> objList : menu.menuBoxes)
         {
