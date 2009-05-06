@@ -191,10 +191,10 @@ public class PrimitiveNodeGroup {
                 if (Job.getDebug())
                     System.out.println("Warning: port " + p.name + " in primitive " + tech.getTechName() + ":" + ng.nodes.get(0).name + " has negative size" + explain);
             }
-            elx[i] = Technology.makeEdgeH(p.lx, fullSize);
-            ehx[i] = Technology.makeEdgeH(p.hx, fullSize);
-            ely[i] = Technology.makeEdgeV(p.ly, fullSize);
-            ehy[i] = Technology.makeEdgeV(p.hy, fullSize);
+            elx[i] = Technology.makeEdgeH(p.lx, EPoint.ORIGIN);
+            ehx[i] = Technology.makeEdgeH(p.hx, EPoint.ORIGIN);
+            ely[i] = Technology.makeEdgeV(p.ly, EPoint.ORIGIN);
+            ehy[i] = Technology.makeEdgeV(p.hy, EPoint.ORIGIN);
             fullConnections[i] = Technology.makeConnections(ng.nodes.get(0).name, p.name, p.portArcs, arcs);
         }
     }
@@ -264,7 +264,7 @@ public class PrimitiveNodeGroup {
                     p.portAngle, p.portRange, p.portTopology, PortCharacteristic.UNKNOWN,
                     elx[i], ely[i], ehx[i], ehy[i]);
         }
-        pnp.addPrimitivePorts(ports);
+        pnp.addPrimitivePorts(ports, false);
         pnp.setSpecialType(ng.specialType);
         switch (ng.specialType) {
             case com.sun.electric.technology.PrimitiveNode.POLYGONAL:

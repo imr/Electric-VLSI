@@ -151,7 +151,7 @@ public class FPGA extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
-		wirePinNode.addPrimitivePorts(new PrimitivePort []
+		wirePinNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, wirePinNode, new ArcProto[] {wireArc}, "wire", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -168,7 +168,7 @@ public class FPGA extends Technology
 					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeTopEdge())})
 			});
-		pipNode.addPrimitivePorts(new PrimitivePort []
+		pipNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, pipNode, new ArcProto[] {wireArc}, "pip", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -184,7 +184,7 @@ public class FPGA extends Technology
 					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeTopEdge())})
 			});
-		repeaterNode.addPrimitivePorts(new PrimitivePort []
+		repeaterNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, repeaterNode, new ArcProto[] {wireArc}, "a", 180,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeCenter(), EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
@@ -1235,7 +1235,7 @@ public class FPGA extends Technology
 				EdgeV.fromCenter(fp.posY));
 			ports[i] = fp.pp;
 		}
-		primNP.addPrimitivePorts(ports);
+		primNP.addPrimitivePortsFixed(ports);
 
 		// get pips
 		if (ltComponents != null)

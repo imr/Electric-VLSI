@@ -425,7 +425,7 @@ public class RCMOS extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
-		metal1Pin_node.addPrimitivePorts(new PrimitivePort[]
+		metal1Pin_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, metal1Pin_node, new ArcProto [] {metal1_arc}, "metal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -441,7 +441,7 @@ public class RCMOS extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
-		metal2Pin_node.addPrimitivePorts(new PrimitivePort[]
+		metal2Pin_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, metal2Pin_node, new ArcProto [] {metal2_arc}, "metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -457,7 +457,7 @@ public class RCMOS extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
-		polysiliconPin_node.addPrimitivePorts(new PrimitivePort[]
+		polysiliconPin_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, polysiliconPin_node, new ArcProto [] {polysilicon_arc}, "polysilicon", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -476,7 +476,7 @@ public class RCMOS extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
-		sActivePin_node.addPrimitivePorts(new PrimitivePort[]
+		sActivePin_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, sActivePin_node, new ArcProto [] {sActive_arc}, "s-active", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -495,7 +495,7 @@ public class RCMOS extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
-		dActivePin_node.addPrimitivePorts(new PrimitivePort[]
+		dActivePin_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, dActivePin_node, new ArcProto [] {dActive_arc}, "d-active", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -514,7 +514,7 @@ public class RCMOS extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
-		substrateActivePin_node.addPrimitivePorts(new PrimitivePort[]
+		substrateActivePin_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, substrateActivePin_node, new ArcProto [] {substrateActive_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -539,7 +539,7 @@ public class RCMOS extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.makeCenter())})
 			});
-		wellActivePin_node.addPrimitivePorts(new PrimitivePort[]
+		wellActivePin_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, wellActivePin_node, new ArcProto [] {wellActive_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -561,7 +561,7 @@ public class RCMOS extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
-		sTransistorPin_node.addPrimitivePorts(new PrimitivePort[]
+		sTransistorPin_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, sTransistorPin_node, new ArcProto [] {sTransistor_arc, sActive_arc, polysilicon_arc},
 					"s-trans", 0,180, 0, PortCharacteristic.UNKNOWN,
@@ -583,7 +583,7 @@ public class RCMOS extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
-		dTransistorPin_node.addPrimitivePorts(new PrimitivePort[]
+		dTransistorPin_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, dTransistorPin_node, new ArcProto [] {dTransistor_arc, dActive_arc, polysilicon_arc},
 					"d-trans", 0,180, 0, PortCharacteristic.UNKNOWN,
@@ -608,7 +608,7 @@ public class RCMOS extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.fromCenter(1), EdgeV.makeCenter())})
 			});
-		metal1SActiveCon_node.addPrimitivePorts(new PrimitivePort[]
+		metal1SActiveCon_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, metal1SActiveCon_node, new ArcProto [] {sActive_arc, metal1_arc},
 					"metal-1-s-act", 0,180, 0, PortCharacteristic.UNKNOWN,
@@ -634,7 +634,7 @@ public class RCMOS extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.fromCenter(1), EdgeV.makeCenter())})
 			});
-		metal1DActiveCon_node.addPrimitivePorts(new PrimitivePort[]
+		metal1DActiveCon_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, metal1DActiveCon_node, new ArcProto [] {dActive_arc, metal1_arc},
 					"metal-1-d-act", 0,180, 0, PortCharacteristic.UNKNOWN,
@@ -657,7 +657,7 @@ public class RCMOS extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.fromCenter(1), EdgeV.makeCenter())})
 			});
-		metal1PolyCon_node.addPrimitivePorts(new PrimitivePort[]
+		metal1PolyCon_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, metal1PolyCon_node, new ArcProto [] {polysilicon_arc, metal1_arc},
 					"metal-1-polysilicon", 0,180, 0, PortCharacteristic.UNKNOWN,
@@ -680,7 +680,7 @@ public class RCMOS extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.fromCenter(1), EdgeV.makeCenter())})
 			});
-		metal1Metal2Con_node.addPrimitivePorts(new PrimitivePort[]
+		metal1Metal2Con_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, metal1Metal2Con_node, new ArcProto [] {metal1_arc, metal2_arc},
 					"metal-1-metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
@@ -709,7 +709,7 @@ public class RCMOS extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.fromCenter(1), EdgeV.makeCenter())})
 			});
-		metal1WellCon_node.addPrimitivePorts(new PrimitivePort[]
+		metal1WellCon_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, metal1WellCon_node, new ArcProto [] {metal1_arc, wellActive_arc},
 					"metal-1-well", 0,180, 0, PortCharacteristic.UNKNOWN,
@@ -732,7 +732,7 @@ public class RCMOS extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.fromCenter(1), EdgeV.makeCenter())})
 			});
-		metal1SubstrateCon_node.addPrimitivePorts(new PrimitivePort[]
+		metal1SubstrateCon_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, metal1SubstrateCon_node, new ArcProto [] {metal1_arc, substrateActive_arc},
 					"metal-1-substrate", 0,180, 0, PortCharacteristic.UNKNOWN,

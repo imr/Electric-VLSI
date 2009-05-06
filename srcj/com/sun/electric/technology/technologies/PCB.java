@@ -426,7 +426,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(S_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		spinNodes[0].addPrimitivePorts(new PrimitivePort[]
+		spinNodes[0].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, spinNodes[0], new ArcProto [] {SignalArcs[0], PowerArcs[0]}, "signal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -441,7 +441,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(S0_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		spinNodes[1].addPrimitivePorts(new PrimitivePort[]
+		spinNodes[1].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, spinNodes[1], new ArcProto [] {SignalArcs[1], PowerArcs[1]}, "signal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -456,7 +456,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(S1_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		spinNodes[2].addPrimitivePorts(new PrimitivePort[]
+		spinNodes[2].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, spinNodes[2], new ArcProto [] {SignalArcs[2], PowerArcs[2]}, "signal-3", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -471,7 +471,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(S2_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		spinNodes[3].addPrimitivePorts(new PrimitivePort[]
+		spinNodes[3].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, spinNodes[3], new ArcProto [] {SignalArcs[3], PowerArcs[3]}, "signal-4", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -486,7 +486,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(S3_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		spinNodes[4].addPrimitivePorts(new PrimitivePort[]
+		spinNodes[4].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, spinNodes[4], new ArcProto [] {SignalArcs[4], PowerArcs[4]}, "signal-5", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -501,7 +501,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(S4_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		spinNodes[5].addPrimitivePorts(new PrimitivePort[]
+		spinNodes[5].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, spinNodes[5], new ArcProto [] {SignalArcs[5], PowerArcs[5]}, "signal-6", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -516,7 +516,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(S5_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		spinNodes[6].addPrimitivePorts(new PrimitivePort[]
+		spinNodes[6].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, spinNodes[6], new ArcProto [] {SignalArcs[6], PowerArcs[6]}, "signal-7", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -531,7 +531,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(S6_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		spinNodes[7].addPrimitivePorts(new PrimitivePort[]
+		spinNodes[7].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, spinNodes[7], new ArcProto [] {SignalArcs[7], PowerArcs[7]}, "signal-8", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -548,7 +548,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		ppinNodes[0].addPrimitivePorts(new PrimitivePort[]
+		ppinNodes[0].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, ppinNodes[0], new ArcProto [] {SignalArcs[0], PowerArcs[0]}, "power-1", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -563,7 +563,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(P0_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		ppinNodes[1].addPrimitivePorts(new PrimitivePort[]
+		ppinNodes[1].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, ppinNodes[1], new ArcProto [] {SignalArcs[1], PowerArcs[1]}, "power-2", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -578,7 +578,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(P1_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		ppinNodes[2].addPrimitivePorts(new PrimitivePort[]
+		ppinNodes[2].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, ppinNodes[2], new ArcProto [] {SignalArcs[2], PowerArcs[2]}, "power-3", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -593,7 +593,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(P2_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		ppinNodes[3].addPrimitivePorts(new PrimitivePort[]
+		ppinNodes[3].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, ppinNodes[3], new ArcProto [] {SignalArcs[3], PowerArcs[3]}, "power-4", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -608,7 +608,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(P3_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		ppinNodes[4].addPrimitivePorts(new PrimitivePort[]
+		ppinNodes[4].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, ppinNodes[4], new ArcProto [] {SignalArcs[4], PowerArcs[4]}, "power-5", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -623,7 +623,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(P4_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		ppinNodes[5].addPrimitivePorts(new PrimitivePort[]
+		ppinNodes[5].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, ppinNodes[5], new ArcProto [] {SignalArcs[5], PowerArcs[5]}, "power-6", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -638,7 +638,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(P5_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		ppinNodes[6].addPrimitivePorts(new PrimitivePort[]
+		ppinNodes[6].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, ppinNodes[6], new ArcProto [] {SignalArcs[6], PowerArcs[6]}, "power-7", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -653,7 +653,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(P6_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		ppinNodes[7].addPrimitivePorts(new PrimitivePort[]
+		ppinNodes[7].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, ppinNodes[7], new ArcProto [] {SignalArcs[7], PowerArcs[7]}, "power-8", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -671,7 +671,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(T_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		tspinNodes[0].addPrimitivePorts(new PrimitivePort[]
+		tspinNodes[0].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, tspinNodes[0], new ArcProto [] {Top_Silk_arc}, "top-silk", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -686,7 +686,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(B_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		bspinNodes[0].addPrimitivePorts(new PrimitivePort[]
+		bspinNodes[0].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, bspinNodes[0], new ArcProto [] {Bottom_Silk_arc}, "bottom-silk", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -701,7 +701,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(T0_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		tspinNodes[1].addPrimitivePorts(new PrimitivePort[]
+		tspinNodes[1].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, tspinNodes[1], new ArcProto [] {Top_Solder_arc}, "top-solder", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -716,7 +716,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(B0_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		bspinNodes[1].addPrimitivePorts(new PrimitivePort[]
+		bspinNodes[1].addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, bspinNodes[1], new ArcProto [] {Bottom_Solder_arc}, "bottom-solder", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -731,7 +731,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(D_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		dp_node.addPrimitivePorts(new PrimitivePort[]
+		dp_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, dp_node, new ArcProto [] {SignalArcs[0], SignalArcs[1], SignalArcs[2], SignalArcs[3], SignalArcs[4], SignalArcs[5], SignalArcs[6], SignalArcs[7]}, "drill", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -746,7 +746,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(D0_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		ndp_node.addPrimitivePorts(new PrimitivePort[]
+		ndp_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, ndp_node, new ArcProto [] {}, "nondrill", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -761,7 +761,7 @@ public class PCB extends Technology
 			{
 				new Technology.NodeLayer(D1_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_1)
 			});
-		edp_node.addPrimitivePorts(new PrimitivePort[]
+		edp_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, edp_node, new ArcProto [] {Drawing_arc}, "engineering", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())

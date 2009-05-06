@@ -421,7 +421,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
-		wirePinNode.addPrimitivePorts(new PrimitivePort []
+		wirePinNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, wirePinNode, new ArcProto[] {wire_arc}, "wire", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -442,7 +442,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
-		busPinNode.addPrimitivePorts(new PrimitivePort []
+		busPinNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, busPinNode, new ArcProto[] {wire_arc, bus_arc}, "bus", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -463,7 +463,7 @@ public class Schematics extends Technology
 		PrimitivePort wireCon_port = PrimitivePort.newInstance(this, wireConNode, new ArcProto[] {wire_arc, bus_arc}, "wire", 0,180, 0, PortCharacteristic.UNKNOWN,
 			EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5), EdgeH.fromRight(0.5), EdgeV.fromTop(0.5));
 		wireCon_port.setIsolated();
-		wireConNode.addPrimitivePorts(new PrimitivePort [] {wireCon_port});
+		wireConNode.addPrimitivePortsFixed(new PrimitivePort [] {wireCon_port});
 		wireConNode.setFunction(PrimitiveNode.Function.CONNECT);
 		letterJ.setMessage("J");
 		letterJ.setDescriptor(tdBig);
@@ -488,7 +488,7 @@ public class Schematics extends Technology
 		PrimitivePort bufferOutPort = PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 2,
 			PortCharacteristic.OUT, EdgeH.fromRight(1), EdgeV.makeCenter(), EdgeH.fromRight(1), EdgeV.makeCenter());
 		bufferOutPort.setNegatable(true);
-		bufferNode.addPrimitivePorts(new PrimitivePort [] { bufferInPort, bufferSidePort, bufferOutPort});
+		bufferNode.addPrimitivePortsFixed(new PrimitivePort [] { bufferInPort, bufferSidePort, bufferOutPort});
 		bufferNode.setFunction(PrimitiveNode.Function.BUFFER);
 
 		/** general and */
@@ -523,7 +523,7 @@ public class Schematics extends Technology
 		PrimitivePort andBottomPort = PrimitivePort.newInstance(this, andNode, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3,
 			PortCharacteristic.OUT, EdgeH.fromCenter(2.75), EdgeV.fromCenter(-2), EdgeH.fromCenter(2.75), EdgeV.fromCenter(-2));
 		andBottomPort.setNegatable(true);
-		andNode.addPrimitivePorts(new PrimitivePort [] { andInPort, andOutPort, andTopPort, andBottomPort});
+		andNode.addPrimitivePortsFixed(new PrimitivePort [] { andInPort, andOutPort, andTopPort, andBottomPort});
 		andNode.setFunction(PrimitiveNode.Function.GATEAND);
 		andNode.setAutoGrowth(0, 4);
 
@@ -567,7 +567,7 @@ public class Schematics extends Technology
 		PrimitivePort orBottomPort = PrimitivePort.newInstance(this, orNode, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3,
 			PortCharacteristic.OUT, EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2));
 		orBottomPort.setNegatable(true);
-		orNode.addPrimitivePorts(new PrimitivePort [] {orInPort, orOutPort, orTopPort, orBottomPort});
+		orNode.addPrimitivePortsFixed(new PrimitivePort [] {orInPort, orOutPort, orTopPort, orBottomPort});
 		orNode.setFunction(PrimitiveNode.Function.GATEOR);
 		orNode.setAutoGrowth(0, 4);
 
@@ -615,7 +615,7 @@ public class Schematics extends Technology
 		PrimitivePort xorBottomPort = PrimitivePort.newInstance(this, xorNode, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3,
 			PortCharacteristic.OUT, EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2));
 		xorBottomPort.setNegatable(true);
-		xorNode.addPrimitivePorts(new PrimitivePort [] {xorInPort, xorOutPort, xorTopPort, xorBottomPort});
+		xorNode.addPrimitivePortsFixed(new PrimitivePort [] {xorInPort, xorOutPort, xorTopPort, xorBottomPort});
 		xorNode.setFunction(PrimitiveNode.Function.GATEXOR);
 		xorNode.setAutoGrowth(0, 4);
 
@@ -801,7 +801,7 @@ public class Schematics extends Technology
 		PrimitivePort flipflopCLR = PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "clear", 270,45, 6,
 			PortCharacteristic.IN, EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge());
 		flipflopCLR.setNegatable(true);
-		flipflopNode.addPrimitivePorts(new PrimitivePort []
+		flipflopNode.addPrimitivePortsFixed(new PrimitivePort []
 			{flipflopI1, flipflopI2, flipflopQ, flipflopQB, flipflopCK, flipflopPRE, flipflopCLR});
 		flipflopNode.setFunction(PrimitiveNode.Function.FLIPFLOPRSMS);
 
@@ -827,7 +827,7 @@ public class Schematics extends Technology
 		PrimitivePort muxOutPort = PrimitivePort.newInstance(this, muxNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1,
 			PortCharacteristic.OUT, RIGHTBYP8, EdgeV.makeCenter(), RIGHTBYP8, EdgeV.makeCenter());
 		muxOutPort.setNegatable(true);
-		muxNode.addPrimitivePorts(new PrimitivePort [] {muxInPort, muxSidePort, muxOutPort});
+		muxNode.addPrimitivePortsFixed(new PrimitivePort [] {muxInPort, muxSidePort, muxOutPort});
 		muxNode.setFunction(PrimitiveNode.Function.MUX);
 		muxNode.setAutoGrowth(0, 4);
 
@@ -853,7 +853,7 @@ public class Schematics extends Technology
 			EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeBottomEdge());
 		bbox_port4.setIsolated();
 		bbox_port4.setNegatable(true);
-		bboxNode.addPrimitivePorts(new PrimitivePort [] {bbox_port1, bbox_port2, bbox_port3, bbox_port4});
+		bboxNode.addPrimitivePortsFixed(new PrimitivePort [] {bbox_port1, bbox_port2, bbox_port3, bbox_port4});
 		bboxNode.setFunction(PrimitiveNode.Function.UNKNOWN);
 
 		/** switch */
@@ -873,7 +873,7 @@ public class Schematics extends Technology
 		PrimitivePort switch_port = PrimitivePort.newInstance(this, switchNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,90, 0, PortCharacteristic.UNKNOWN,
 			EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromLeft(1), EdgeV.fromTop(1));
 		switch_port.setIsolated();
-		switchNode.addPrimitivePorts(new PrimitivePort []
+		switchNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				switch_port,
 				PrimitivePort.newInstance(this, switchNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,90, 1, PortCharacteristic.UNKNOWN,
@@ -893,7 +893,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
 					new Technology.TechPoint(RIGHTBYP5, EdgeV.makeBottomEdge())})
 			});
-		offpageNode.addPrimitivePorts(new PrimitivePort []
+		offpageNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, offpageNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeCenter(), EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
@@ -913,7 +913,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeCenter(), TOPBYP75)})
 			});
-		powerNode.addPrimitivePorts(new PrimitivePort []
+		powerNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, powerNode, new ArcProto[] {wire_arc}, "vdd", 0,180, 0, PortCharacteristic.PWR,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -933,7 +933,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(LEFTBYP25, BOTBYP75), new Technology.TechPoint(RIGHTBYP25, BOTBYP75),
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge()), new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge())})
 			});
-		groundNode.addPrimitivePorts(new PrimitivePort []
+		groundNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, groundNode, new ArcProto[] {wire_arc}, "gnd", 90,90, 0, PortCharacteristic.GND,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge())
@@ -951,7 +951,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(LEFTBYP3, TOPBYP6), new Technology.TechPoint(RIGHTBYP3, TOPBYP6),
 					new Technology.TechPoint(EdgeH.makeCenter(), TOPBYP3), new Technology.TechPoint(EdgeH.makeCenter(), TOPBYP9)})
 			});
-		sourceNode.addPrimitivePorts(new PrimitivePort []
+		sourceNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, sourceNode, new ArcProto[] {wire_arc}, "plus", 90,0, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
@@ -1050,7 +1050,7 @@ public class Schematics extends Technology
 		tranLayersDMES = new Technology.NodeLayer [] {tranLayerBTran4, tranLayerTranTop, tranLayerNMOS};
 		tranLayersEMES = new Technology.NodeLayer [] {tranLayerBTran7, tranLayerNMOS};
 		transistorNode = PrimitiveNode.newInstance("Transistor", this, 4.0, 4.0, new SizeOffset(0, 0, 0, 1), tranLayersN);
-		transistorNode.addPrimitivePorts(new PrimitivePort []
+		transistorNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, transistorNode, new ArcProto[] {wire_arc}, "g", 0,180, 0, PortCharacteristic.IN,
 					EdgeH.makeCenter(), EdgeV.fromTop(1), EdgeH.makeCenter(), EdgeV.fromTop(1)),
@@ -1099,7 +1099,7 @@ public class Schematics extends Technology
         resistorLayersNWell = new Technology.NodeLayer [] {resistorLayer, resistorLayerN, resistorLayerWell};
         resistorLayersPWell = new Technology.NodeLayer [] {resistorLayer, resistorLayerP, resistorLayerWell};
 		resistorNode = PrimitiveNode.newInstance("Resistor", this, 6.0, 1.0, new SizeOffset(1, 1, 0, 0), resistorLayersNorm);
-		resistorNode.addPrimitivePorts(new PrimitivePort []
+		resistorNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, resistorNode, new ArcProto[] {wire_arc}, "a", 180,90, 0, PortCharacteristic.UNKNOWN,
 					LEFTBYP66, EdgeV.makeCenter(), LEFTBYP66, EdgeV.makeCenter()),
@@ -1126,7 +1126,7 @@ public class Schematics extends Technology
 		capacitorLayersNorm = new Technology.NodeLayer [] {capacitorLayer};
 		capacitorLayersElectrolytic = new Technology.NodeLayer [] {capacitorLayer, capacitorLayerEl};
 		capacitorNode = PrimitiveNode.newInstance("Capacitor", this, 3.0, 4.0, null, capacitorLayersNorm);
-		capacitorNode.addPrimitivePorts(new PrimitivePort []
+		capacitorNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, capacitorNode, new ArcProto[] {wire_arc, bus_arc}, "a", 90,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
@@ -1161,7 +1161,7 @@ public class Schematics extends Technology
 		diodeLayersNorm = new Technology.NodeLayer [] {diodeLayer1, diodeLayer2};
 		diodeLayersZener = new Technology.NodeLayer [] {diodeLayer3, diodeLayer2};
 		diodeNode = PrimitiveNode.newInstance("Diode", this, 2.0, 4.0, null,diodeLayersNorm);
-		diodeNode.addPrimitivePorts(new PrimitivePort []
+		diodeNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, diodeNode, new ArcProto[] {wire_arc}, "a", 90,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
@@ -1187,7 +1187,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(LEFTBYP5, BOTBYP33),
 					new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP33)})
 			});
-		inductorNode.addPrimitivePorts(new PrimitivePort []
+		inductorNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, inductorNode, new ArcProto[] {wire_arc}, "a", 90,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
@@ -1208,7 +1208,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())}),
 				meterLetterV
 			});
-		meterNode.addPrimitivePorts(new PrimitivePort []
+		meterNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, meterNode, new ArcProto[] {wire_arc}, "a", 90,0, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
@@ -1228,7 +1228,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeTopEdge()),
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge())})
 			});
-		wellNode.addPrimitivePorts(new PrimitivePort []
+		wellNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, wellNode, new ArcProto[] {wire_arc}, "well", 90,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge())
@@ -1249,7 +1249,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge())})
 			});
-		substrateNode.addPrimitivePorts(new PrimitivePort []
+		substrateNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, substrateNode, new ArcProto[] {wire_arc}, "substrate", 90,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge())
@@ -1352,7 +1352,7 @@ public class Schematics extends Technology
 		twoLayersCCCS = new Technology.NodeLayer [] {twoLayerBox, twoLayerCCWire, twoLayerNormWire, twoLayerCSWire, twoLayerCSArr, twoLayerULPl};
 		twoLayersTran = new Technology.NodeLayer [] {twoLayerTrBox, twoLayerTr1, twoLayerTr2, twoLayerTr3, twoLayerTrWire, twoLayerULPl, twoLayerURRPl};
 		twoportNode = PrimitiveNode.newInstance("Two-Port", this, 10.0, 6.0, null, twoLayersDefault);
-		twoportNode.addPrimitivePorts(new PrimitivePort []
+		twoportNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, twoportNode, new ArcProto[] {wire_arc}, "a", 180,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), TOPBYP66, EdgeH.makeLeftEdge(), TOPBYP66),
@@ -1428,7 +1428,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeBottomEdge())})
 			});
-		transistor4Node.addPrimitivePorts(new PrimitivePort []
+		transistor4Node.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, transistor4Node, new ArcProto[] {wire_arc}, "g", 0,180, 0, PortCharacteristic.IN,
 					EdgeH.makeCenter(), EdgeV.fromTop(1), EdgeH.makeCenter(), EdgeV.fromTop(1)),
@@ -1456,7 +1456,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(RIGHTBYP9, EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP9)})
 			});
-		globalNode.addPrimitivePorts(new PrimitivePort []
+		globalNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, globalNode, new ArcProto[] {wire_arc}, "global", 270,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
@@ -1480,7 +1480,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge())}),
 				letterGP
 			});
-		globalPartitionNode.addPrimitivePorts(new PrimitivePort []
+		globalPartitionNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, globalPartitionNode, new ArcProto[] {wire_arc, bus_arc}, "top", 90,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),

@@ -922,7 +922,7 @@ public class Layer implements Serializable
 			{
 				PrimitivePort.newInstance(tech, pln, connections, portName, 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
+			}, false);
 		pln.setFunction(PrimitiveNode.Function.NODE);
 		pln.setHoldsOutline();
 		pln.setSpecialType(PrimitiveNode.POLYGONAL);

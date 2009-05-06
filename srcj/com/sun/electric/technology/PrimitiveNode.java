@@ -1002,8 +1002,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         arcPin.addPrimitivePorts(new PrimitivePort [] {
             PrimitivePort.newInstance(tech, arcPin, connections, portName,
                     0,180, 0, PortCharacteristic.UNKNOWN,
-                    EdgeH.fromLeft(fullExtend), EdgeV.fromBottom(fullExtend), EdgeH.fromRight(fullExtend), EdgeV.fromTop(fullExtend))
-        });
+                    EdgeH.fromLeft(0), EdgeV.fromBottom(0), EdgeH.fromRight(0), EdgeV.fromTop(0))
+        }, false);
         arcPin.setFunction(PrimitiveNode.Function.PIN);
         arcPin.setArcsWipe();
         arcPin.setArcsShrink();
@@ -1533,16 +1533,28 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
 	/**
 	 * Method to add an array of PrimitivePorts to this PrimitiveNode.
+     * fullRectange shift is removed from port sizes.
 	 * The method is only used during initialization.
 	 * @param ports the array of PrimitivePorts to add.
 	 */
-	public void addPrimitivePorts(PrimitivePort [] ports)
+	public void addPrimitivePortsFixed(PrimitivePort [] ports) {
+        addPrimitivePorts(ports, true);
+    }
+
+	/**
+	 * Method to add an array of PrimitivePorts to this PrimitiveNode.
+	 * The method is only used during initialization.
+	 * @param ports the array of PrimitivePorts to add.
+     * @param fixFullRectangle remove fullRectangle shift from port sizes.
+	 */
+	public void addPrimitivePorts(PrimitivePort [] ports, boolean fixFullRectangle)
 	{
         assert ports.length == primPorts.length;
         for (int i = 0; i < primPorts.length; i++) {
             assert primPorts[i] == ports[i];
             assert primPorts[i].getPortIndex() == i;
-            ports[i].fixupEdges(fullRectangle.getWidth(), fullRectangle.getHeight());
+            if (fixFullRectangle)
+                ports[i].fixupEdges(fullRectangle.getWidth(), fullRectangle.getHeight());
         }
         if (primPorts.length == 1) {
             PrimitivePort thePort = primPorts[0];

@@ -177,7 +177,7 @@ public class GEM extends Technology
 			});
 		PrimitivePort pinPort = PrimitivePort.newInstance(this, gp_node, new ArcProto [] {General_arc}, "general", 0,180, 0, PortCharacteristic.UNKNOWN,
 			EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter());
-		gp_node.addPrimitivePorts(new PrimitivePort[] {pinPort});
+		gp_node.addPrimitivePortsFixed(new PrimitivePort[] {pinPort});
 		gp_node.setFunction(PrimitiveNode.Function.PIN);
 		gp_node.setArcsWipe();
 		gp_node.setArcsShrink();
@@ -188,7 +188,7 @@ public class GEM extends Technology
 			{
 				new Technology.NodeLayer(TA_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_7)
 			});
-		tp_node.addPrimitivePorts(new PrimitivePort[]
+		tp_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, tp_node, new ArcProto [] {Temporal_arc}, "temporal", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -203,7 +203,7 @@ public class GEM extends Technology
 			{
 				new Technology.NodeLayer(CA_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_7)
 			});
-		cp_node.addPrimitivePorts(new PrimitivePort[]
+		cp_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, cp_node, new ArcProto [] {Causal_arc}, "cause", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -218,7 +218,7 @@ public class GEM extends Technology
 			{
 				new Technology.NodeLayer(PA_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_7)
 			});
-		pp_node.addPrimitivePorts(new PrimitivePort[]
+		pp_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, pp_node, new ArcProto [] {Prerequisite_arc}, "prereq", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -233,7 +233,7 @@ public class GEM extends Technology
 			{
 				new Technology.NodeLayer(NA_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_7)
 			});
-		np_node.addPrimitivePorts(new PrimitivePort[]
+		np_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, np_node, new ArcProto [] {Nondeterministic_arc}, "nondet", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -248,7 +248,7 @@ public class GEM extends Technology
 			{
 				new Technology.NodeLayer(FA_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_7)
 			});
-		fp_node.addPrimitivePorts(new PrimitivePort[]
+		fp_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, fp_node, new ArcProto [] {Nondeterministic_fork_arc}, "fork", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -263,7 +263,7 @@ public class GEM extends Technology
 			{
 				new Technology.NodeLayer(E_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, box_7)
 			});
-		e_node.addPrimitivePorts(new PrimitivePort[]
+		e_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, e_node, new ArcProto [] {General_arc, Temporal_arc, Causal_arc, Prerequisite_arc, Nondeterministic_arc, Nondeterministic_fork_arc}, "port1", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(2), EdgeV.fromCenter(0.5), EdgeH.fromLeft(2), EdgeV.fromCenter(0.5)),
@@ -282,7 +282,7 @@ public class GEM extends Technology
 			{
 				new Technology.NodeLayer(E_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_6)
 			});
-		g_node.addPrimitivePorts(new PrimitivePort[]
+		g_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, g_node, new ArcProto [] {General_arc, Temporal_arc, Causal_arc, Prerequisite_arc, Nondeterministic_arc, Nondeterministic_fork_arc}, "group", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())

@@ -192,7 +192,7 @@ public class EFIDO extends Technology
 			{
 				new Technology.NodeLayer(A_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_17)
 			});
-		wp_node.addPrimitivePorts(new PrimitivePort[]
+		wp_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, wp_node, new ArcProto [] {wire_arc}, "wire", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -207,7 +207,7 @@ public class EFIDO extends Technology
 			{
 				new Technology.NodeLayer(N_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_18)
 			});
-		bp_node.addPrimitivePorts(new PrimitivePort[]
+		bp_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, bp_node, new ArcProto [] {bus_arc}, "bus", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -225,7 +225,7 @@ public class EFIDO extends Technology
 				new Technology.NodeLayer(N_lay, -1, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, box_17),
 				new Technology.NodeLayer(N_lay, 5, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_14)
 			});
-		a_node.addPrimitivePorts(new PrimitivePort[]
+		a_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, a_node, new ArcProto [] {wire_arc}, "in1", 270,15, 4, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
@@ -253,7 +253,7 @@ public class EFIDO extends Technology
 				new Technology.NodeLayer(N_lay, 5, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_15),
 				new Technology.NodeLayer(N_lay, 5, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_14)
 			});
-		m_node.addPrimitivePorts(new PrimitivePort[]
+		m_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, m_node, new ArcProto [] {wire_arc}, "in1", 270,15, 4, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
@@ -281,7 +281,7 @@ public class EFIDO extends Technology
 				new Technology.NodeLayer(N_lay, -1, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_18),
 				new Technology.NodeLayer(N_lay, 1, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_8)
 			});
-		t_node.addPrimitivePorts(new PrimitivePort[]
+		t_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, t_node, new ArcProto [] {wire_arc}, "in", 180,15, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeCenter(), EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
@@ -299,7 +299,7 @@ public class EFIDO extends Technology
 				new Technology.NodeLayer(N_lay, -1, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_5),
 				new Technology.NodeLayer(N_lay, -1, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_18)
 			});
-		m0_node.addPrimitivePorts(new PrimitivePort[]
+		m0_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, m0_node, new ArcProto [] {wire_arc}, "in1", 270,15, 1, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), new EdgeV(0.25, 0), EdgeH.makeLeftEdge(), new EdgeV(0.25, 0)),
@@ -319,7 +319,7 @@ public class EFIDO extends Technology
 				new Technology.NodeLayer(N_lay, 5, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_14),
 				new Technology.NodeLayer(N_lay, -1, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, box_17)
 			});
-		s_node.addPrimitivePorts(new PrimitivePort[]
+		s_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, s_node, new ArcProto [] {wire_arc}, "in1", 270,15, 4, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
@@ -348,7 +348,7 @@ public class EFIDO extends Technology
 				new Technology.NodeLayer(N_lay, 4, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_15),
 				new Technology.NodeLayer(N_lay, -1, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, box_17)
 			});
-		d_node.addPrimitivePorts(new PrimitivePort[]
+		d_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, d_node, new ArcProto [] {wire_arc}, "in1", 270,15, 4, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
@@ -373,7 +373,7 @@ public class EFIDO extends Technology
 				new Technology.NodeLayer(N_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_1),
 				new Technology.NodeLayer(N_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_18)
 			});
-		p_node.addPrimitivePorts(new PrimitivePort[]
+		p_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, p_node, new ArcProto [] {wire_arc}, "out", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -387,7 +387,7 @@ public class EFIDO extends Technology
 				new Technology.NodeLayer(O_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_1),
 				new Technology.NodeLayer(N_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_18)
 			});
-		p0_node.addPrimitivePorts(new PrimitivePort[]
+		p0_node.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, p0_node, new ArcProto [] {wire_arc}, "in", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())

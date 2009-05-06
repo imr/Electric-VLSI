@@ -186,7 +186,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_6)
 			});
-		pinNode.addPrimitivePorts(new PrimitivePort[]
+		pinNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, pinNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
@@ -201,7 +201,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
-		boxNode.addPrimitivePorts(new PrimitivePort[]
+		boxNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, boxNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "box", 180,0, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
@@ -215,7 +215,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
-		crossedBoxNode.addPrimitivePorts(new PrimitivePort[]
+		crossedBoxNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, crossedBoxNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "fbox", 180,0, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
@@ -228,7 +228,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
-		filledBoxNode.addPrimitivePorts(new PrimitivePort[]
+		filledBoxNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, filledBoxNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "fbox", 180,0, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
@@ -242,7 +242,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, box_6)
 			});
-		circleNode.addPrimitivePorts(new PrimitivePort[]
+		circleNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, circleNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
@@ -256,7 +256,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_6)
 			});
-		filledCircleNode.addPrimitivePorts(new PrimitivePort[]
+		filledCircleNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, filledCircleNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
@@ -271,7 +271,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_2)
 			});
-		splineNode.addPrimitivePorts(new PrimitivePort[]
+		splineNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, splineNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
@@ -286,7 +286,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, box_4)
 			});
-		triangleNode.addPrimitivePorts(new PrimitivePort[]
+		triangleNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, triangleNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "triangle", 180,0, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
@@ -300,7 +300,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS, box_4)
 			});
-		filledTriangleNode.addPrimitivePorts(new PrimitivePort[]
+		filledTriangleNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, filledTriangleNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "ftriangle", 180,0, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
@@ -334,7 +334,7 @@ public class Artwork extends Technology
 //						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
 //					})
 			});
-        arrowNode.addPrimitivePorts(new PrimitivePort[]
+        arrowNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, arrowNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "arrow", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeRightEdge(), EdgeV.makeCenter(), EdgeH.makeRightEdge(), EdgeV.makeCenter())
@@ -348,7 +348,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_2)
 			});
-		openedPolygonNode.addPrimitivePorts(new PrimitivePort[]
+		openedPolygonNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, openedPolygonNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
@@ -363,7 +363,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENEDT1, Technology.NodeLayer.POINTS, box_2)
 			});
-		openedDottedPolygonNode.addPrimitivePorts(new PrimitivePort[]
+		openedDottedPolygonNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, openedDottedPolygonNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
@@ -378,7 +378,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENEDT2, Technology.NodeLayer.POINTS, box_2)
 			});
-		openedDashedPolygonNode.addPrimitivePorts(new PrimitivePort[]
+		openedDashedPolygonNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, openedDashedPolygonNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
@@ -393,7 +393,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.OPENEDT3, Technology.NodeLayer.POINTS, box_2)
 			});
-		openedThickerPolygonNode.addPrimitivePorts(new PrimitivePort[]
+		openedThickerPolygonNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, openedThickerPolygonNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
@@ -408,7 +408,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, box_1)
 			});
-		closedPolygonNode.addPrimitivePorts(new PrimitivePort[]
+		closedPolygonNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, closedPolygonNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
@@ -423,7 +423,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS, box_1)
 			});
-		filledPolygonNode.addPrimitivePorts(new PrimitivePort[]
+		filledPolygonNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, filledPolygonNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
@@ -438,7 +438,7 @@ public class Artwork extends Technology
 			{
 				new Technology.NodeLayer(defaultLayer, 0, Poly.Type.THICKCIRCLE, Technology.NodeLayer.POINTS, box_6)
 			});
-		thickCircleNode.addPrimitivePorts(new PrimitivePort[]
+		thickCircleNode.addPrimitivePortsFixed(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, thickCircleNode, new ArcProto [] {solidArc, dottedArc, dashedArc, thickerArc}, "site", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
