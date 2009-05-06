@@ -267,7 +267,7 @@ public class Schematic
 						if (con.getArc().getProto() == Schematics.tech().wire_arc) i++;
 							geomList.add(con.getArc());
 					}
-					errorLogger.logError("Wire arcs cannot connect through a bus pin", geomList, null, cell, eg.getSortKey());
+					errorLogger.logMessage("Wire arcs cannot connect through a bus pin", geomList, cell, eg.getSortKey(), true);
 					return;
 				}
 			}
@@ -306,8 +306,8 @@ public class Schematic
 					geomList.add(geom);
 					ptList.add(new EPoint(ni.getAnchorCenterX(), ni.getAnchorCenterY()));
 					ptList.add(new EPoint(pinLoc.getX(), pinLoc.getY()));
-					errorLogger.logError("Invisible pin has text in different location",
-						geomList, null, ptList, null, null, cell, eg.getSortKey());
+					errorLogger.logMessageWithLines("Invisible pin has text in different location",
+						geomList, ptList, cell, eg.getSortKey(), true);
 					return;
 				}
 			}
@@ -466,9 +466,9 @@ public class Schematic
 						List<Geometric> geomList = new ArrayList<Geometric>();
 						geomList.add(geom);
 						geomList.add(ni);
-						errorLogger.logError("Arc " + ai.describe(true) + " connects to " +
+						errorLogger.logMessage("Arc " + ai.describe(true) + " connects to " +
 							pi.getPortProto() + " of " + ni + ", but there is no equivalent port in " + np,
-							geomList, null, cell, eg.getSortKey());
+							geomList, cell, eg.getSortKey(), true);
 						continue;
 					}
 				}
@@ -482,8 +482,8 @@ public class Schematic
 					List<Geometric> geomList = new ArrayList<Geometric>();
 					geomList.add(geom);
 					geomList.add(ni);
-					errorLogger.logError("Arc " + ai.describe(true) + " (" + signals + " wide) connects to " +
-						pp + " of " + ni + " (" + portWidth + " wide)", geomList, null, cell, eg.getSortKey());
+					errorLogger.logMessage("Arc " + ai.describe(true) + " (" + signals + " wide) connects to " +
+						pp + " of " + ni + " (" + portWidth + " wide)", geomList, cell, eg.getSortKey(), true);
 				}
 			}
 		}
@@ -529,8 +529,8 @@ public class Schematic
 					List<Geometric> geomList = new ArrayList<Geometric>();
 					geomList.add(ni);
 					geomList.add(oNi);
-					errorLogger.logError("Nodes '" + ni + "' '" + oNi + "' have touching ports that are not connected",
-						geomList, null, cell, eg.getSortKey());
+					errorLogger.logMessage("Nodes '" + ni + "' '" + oNi + "' have touching ports that are not connected",
+						geomList, cell, eg.getSortKey(), true);
 					return;
 				}
 			}

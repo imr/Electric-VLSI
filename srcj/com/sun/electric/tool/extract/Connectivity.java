@@ -370,7 +370,7 @@ public class Connectivity
 		List<EPoint> pointList = new ArrayList<EPoint>();
 		for(EPoint p : pList)
 			pointList.add(p);
-		errorLogger.logError(msg, null, null, null, pointList, null, cell, -1);
+		errorLogger.logMessage(msg, pointList, cell, -1, true);
 		System.out.println(msg);
 	}
 

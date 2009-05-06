@@ -234,8 +234,7 @@ public class CalibreRdbErrors {
             props.append(prop.toString());
         }
         if (cell == null) cell = topCell;
-        logger.logError(ruleText+"\n"+propLines.toString(), null, null, lineList,
-                null, polyList, cell, 0);
+        logger.logMessageWithLines(ruleText+"\n"+propLines.toString(), polyList, lineList, cell, 0, true);
         errorCount++;
         return true;
     }

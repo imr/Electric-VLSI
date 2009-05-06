@@ -525,8 +525,7 @@ public class ERCWellCheck
 						List<EPoint> pointList = new ArrayList<EPoint>();
 						pointList.add(new EPoint(wc.ctr.getX(), wc.ctr.getY()));
 						pointList.add(new EPoint(other.ctr.getX(), other.ctr.getY()));
-						errorLogger.logError("Short circuit between well contacts", null, null,
-							null, pointList, null, cell, 0);
+						errorLogger.logMessage("Short circuit between well contacts", pointList, cell, 0, true);
 						shortsInWC.add(otherNetNum);
 						shortsInOther.add(wcNetNum);
 					}
@@ -793,9 +792,8 @@ public class ERCWellCheck
 						List<PolyBase> polyList = new ArrayList<PolyBase>();
 						polyList.add(new PolyBase(child.bound));
 						polyList.add(new PolyBase(other.bound));
-						errorLogger.logError("Well areas too close (are " + TextUtils.formatDistance(trueDist) +
-							" but should be " + TextUtils.formatDistance(minDist) + " apart)",
-							null, null, null, null, polyList, cell, 0);
+						errorLogger.logMessage("Well areas too close (are " + TextUtils.formatDistance(trueDist) +
+							" but should be " + TextUtils.formatDistance(minDist) + " apart)", polyList, cell, 0, true);
 					}
 				}
 			} else
@@ -1451,9 +1449,9 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 						List<PolyBase> polyList = new ArrayList<PolyBase>();
 						polyList.add(wa.poly);
 						polyList.add(oWa.poly);
-						errorLogger.logError(waLayer.getName() + " areas too close (are "
+						errorLogger.logMessage(waLayer.getName() + " areas too close (are "
 							+ TextUtils.formatDistance(dist) + ", should be "
-							+ TextUtils.formatDistance(ruleValue) + ")", null, null, null, null, polyList, cell, 0);
+							+ TextUtils.formatDistance(ruleValue) + ")", polyList, cell, 0, true);
 					}
 				}
 			}

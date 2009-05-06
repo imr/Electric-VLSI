@@ -49,7 +49,6 @@ import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -1523,14 +1522,16 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			System.out.println(msg);
 			if (errorLogger != null)
 			{
+                List<Object> errorList = new ArrayList<Object>(2);
+                errorList.add(headPortInst.getNodeInst());
+                errorList.add(makeLambdaPoly(getGridBaseWidth(), Poly.Type.CLOSED));
                 if (repair) {
-                    errorLogger.logError(msg, Collections.singletonList((Geometric)headPortInst.getNodeInst()), null, null, null,
-                            Collections.singletonList((PolyBase)makeLambdaPoly(getGridBaseWidth(), Poly.Type.CLOSED)), parent, 1);
+                    errorLogger.logMessage(msg, errorList, parent, 1, true);
                 } else {
                     List<Geometric> geomList = new ArrayList<Geometric>();
                     geomList.add(this);
                     geomList.add(headPortInst.getNodeInst());
-                    errorLogger.logError(msg, geomList, null, parent, 1);
+                    errorLogger.logMessage(msg, geomList, parent, 1, true);
                }
 			}
 			if (repair)
@@ -1551,14 +1552,17 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			System.out.println(msg);
 			if (errorLogger != null)
 			{
-                if (repair) {
-                    errorLogger.logError(msg, Collections.singletonList((Geometric)tailPortInst.getNodeInst()), null, null, null,
-                            Collections.singletonList((PolyBase)makeLambdaPoly(getGridBaseWidth(), Poly.Type.CLOSED)), parent, 1);
+                if (repair)
+                {
+                    List<Object> errorList = new ArrayList<Object>(2);
+                    errorList.add(tailPortInst.getNodeInst());
+                    errorList.add(makeLambdaPoly(getGridBaseWidth(), Poly.Type.CLOSED));
+                    errorLogger.logMessage(msg, errorList, parent, 1, true);
                 } else {
                     List<Geometric> geomList = new ArrayList<Geometric>();
                     geomList.add(this);
                     geomList.add(tailPortInst.getNodeInst());
-                    errorLogger.logError(msg, geomList, null, parent, 1);
+                    errorLogger.logMessage(msg, geomList, parent, 1, true);
                }
 			}
 			if (repair)

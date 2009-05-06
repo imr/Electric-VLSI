@@ -545,32 +545,80 @@ public class ErrorLogger implements Serializable
     }
 
     /**
-     * Factory method to log an error message.
+     * Factory method to log an error or warning message.
      * @param message the string to display.
-     * @param geomList a list of nodes or arcs to display (may be null).
-     * @param exportList a list of Exports to display (may be null).
+     * @param list a list of nodes, arcs, exports or polygons, points to display. Must be no null.
      * @param cell the cell in which this message applies.
      * @param sortKey the sorting order of this message.
+     * @param isErrorMsg true if an error message is logged
      */
-    public synchronized void logError(String message, List<Geometric> geomList, List<Export> exportList,
-    	Cell cell, int sortKey)
+    public synchronized void logMessage(String message, List<?> list, Cell cell, int sortKey, boolean isErrorMsg)
     {
-    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
-    	if (geomList != null)
-    	{
-    		for(Geometric geom : geomList)
-    	        h.add(ErrorHighlight.newInstance(null, geom));
-    	}
-    	if (exportList != null)
-    	{
-    		for(Export e : exportList)
-                h.add(new ErrorHighExport(null, e));
-    	}
-    	logAnError(message, cell, sortKey, h);
+        logMessageWithLines(message, list, null, cell, sortKey, isErrorMsg);
     }
 
     /**
-     * Factory method to log an error message.
+     * Factory method to log an error or warning message with extra lines.
+     * @param message the string to display.
+     * @param list a list of nodes, arcs, exports or polygons, points to display. Must be no null.
+     * @param lines a list of points defining a set of lines (may be null)
+     * @param cell the cell in which this message applies.
+     * @param sortKey the sorting order of this message.
+     * @param isErrorMsg true if an error message is logged
+     */
+    public synchronized void logMessageWithLines(String message, List<?> list, List<EPoint> lineList,
+                                                 Cell cell, int sortKey, boolean isErrorMsg)
+    {
+    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
+
+        if (list != null)
+        {
+            for (Object obj : list)
+            {
+                if (obj instanceof Geometric)
+                {
+                     h.add(ErrorHighlight.newInstance(null, (Geometric)obj));
+                }
+                else if (obj instanceof Export)
+                {
+                    h.add(new ErrorHighExport(null, (Export)obj));
+                }
+                else if (obj instanceof EPoint)
+                {
+                    h.add(new ErrorHighPoint(cell, (EPoint)obj));
+                }
+                else if (obj instanceof PolyBase)
+                {
+                    PolyBase poly = (PolyBase)obj;
+                    Point2D [] points = poly.getPoints();
+                    List<ErrorHighlight> l = new ArrayList<ErrorHighlight>();
+
+                    for(int i=0; i<points.length; i++)
+                    {
+                        int prev = i-1;
+                        if (i == 0) prev = points.length-1;
+                        l.add(new ErrorHighLine(cell, new EPoint(points[prev].getX(), points[prev].getY()),
+                            new EPoint(points[i].getX(), points[i].getY()), true));
+                    }
+                    h.add(new ErrorHighPoly(cell, l));
+                }
+                else
+                    assert(false);
+            }
+        }
+        if (lineList != null)
+        {
+    		for(int i=0; i<lineList.size(); i += 2)
+                h.add(new ErrorHighLine(cell, lineList.get(i), lineList.get(i+1), false));
+        }
+        if (isErrorMsg)
+            logAnError(message, cell, sortKey, h);
+        else
+            logAWarning(message, cell, sortKey, h);
+    }
+
+    /**
+     * Factory method to log an error or a warning message.
      * @param message the string to display.
      * @param geomList a list of nodes or arcs to display (may be null).
      * @param exportList a list of Exports to display (may be null).
@@ -579,10 +627,11 @@ public class ErrorLogger implements Serializable
      * @param polyList a list of polygons to display (may be null).
      * @param cell the cell in which this message applies.
      * @param sortKey the sorting order of this message.
+     * @param errorMsg
      */
-    public synchronized void logError(String message, List<Geometric> geomList, List<Export> exportList,
-                                      List<EPoint> lineList, List<EPoint> pointList,
-                                      List<PolyBase> polyList, Cell cell, int sortKey)
+    public synchronized void logMessage(String message, List<Geometric> geomList, List<Export> exportList,
+                                        List<EPoint> lineList, List<EPoint> pointList,
+                                        List<PolyBase> polyList, Cell cell, int sortKey, boolean errorMsg)
     {
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
     	if (geomList != null)
@@ -607,6 +656,11 @@ public class ErrorLogger implements Serializable
     	}
     	if (polyList != null)
     	{
+            // must match number of elements
+            boolean matches = geomList != null && geomList.size() == polyList.size();
+            if (geomList != null)
+                assert(geomList.size() == polyList.size());
+            int count = 0;
             for(PolyBase poly : polyList)
     		{
     	        Point2D [] points = poly.getPoints();
@@ -622,7 +676,11 @@ public class ErrorLogger implements Serializable
                 h.add(new ErrorHighPoly(cell, list));
             }
     	}
-    	logAnError(message, cell, sortKey, h);
+
+        if (errorMsg)
+            logAnError(message, cell, sortKey, h);
+        else
+            logAWarning(message, cell, sortKey, h);
     }
 
     /**
@@ -700,58 +758,6 @@ public class ErrorLogger implements Serializable
     {
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
         h.add(new ErrorHighExport(context, pp));
-    	logAWarning(message, cell, sortKey, h);
-    }
-
-    /**
-     * Factory method to log a warning message.
-     * @param message the string to display.
-     * @param geomList a list of nodes or arcs to display (may be null).
-     * @param exportList a list of Exports to display (may be null).
-     * @param lineList a list of lines (pairs of points) to display (may be null).
-     * @param pointList a list of points to display (may be null).
-     * @param polyList a list of polygons to display (may be null).
-     * @param cell the cell in which this message applies.
-     * @param sortKey the sorting order of this message.
-     */
-    public synchronized void logWarning(String message, List<Geometric> geomList, List<Export> exportList, List<EPoint> lineList, List<EPoint> pointList,
-    	List<PolyBase> polyList, Cell cell, int sortKey)
-    {
-    	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
-    	if (geomList != null)
-    	{
-    		for(Geometric geom : geomList)
-                h.add(ErrorHighlight.newInstance(null, geom));
-    	}
-    	if (exportList != null)
-    	{
-    		for(Export e : exportList)
-                h.add(new ErrorHighExport(null, e));
-    	}
-    	if (lineList != null)
-    	{
-    		for(int i=0; i<lineList.size(); i += 2)
-                h.add(new ErrorHighLine(cell, lineList.get(i), lineList.get(i+1), false));
-    	}
-    	if (pointList != null)
-    	{
-    		for(EPoint pt : pointList)
-                h.add(new ErrorHighPoint(cell, pt));
-    	}
-    	if (polyList != null)
-    	{
-    		for(PolyBase poly : polyList)
-    		{
-    	        Point2D [] points = poly.getPoints();
-    	        for(int i=0; i<points.length; i++)
-    	        {
-    	            int prev = i-1;
-    	            if (i == 0) prev = points.length-1;
-    	            h.add(new ErrorHighLine(cell, new EPoint(points[prev].getX(), points[prev].getY()),
-    	            	new EPoint(points[i].getX(), points[i].getY()), false));
-    	        }
-    		}
-    	}
     	logAWarning(message, cell, sortKey, h);
     }
 

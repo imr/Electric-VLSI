@@ -155,8 +155,8 @@ public class AssuraDrcErrors {
                         ptList.add(new EPoint(x2, y2));   ptList.add(new EPoint(x1, y2));
                         ptList.add(new EPoint(x1, y1));   ptList.add(new EPoint(x2, y2));
                         ptList.add(new EPoint(x1, y2));   ptList.add(new EPoint(x2, y1));
-                        logger.logError(num+". "+cell.getName()+": "+rule.desc, null, null, ptList, null, null, cell, rule.number);
-                        count++;
+                        logger.logMessage(num+". "+cell.getName()+": "+rule.desc, ptList, cell, rule.number, true);
+                        count++;                                                                                                         
                         num++;
                     }
                 }

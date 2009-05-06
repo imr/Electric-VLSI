@@ -33,7 +33,6 @@ import com.sun.electric.tool.user.ErrorLogger;
 import java.awt.Shape;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -353,6 +352,7 @@ public class CalibreDrcErrors {
             for (Iterator<DrcError> it2 = v.errors.iterator(); it2.hasNext(); ) {
                 DrcError drcError = it2.next();
                 Cell cell = drcError.cell;
+//                List<Object> l = new ArrayList<Object>();
                 List<EPoint> lineList = new ArrayList<EPoint>();
                 List<PolyBase> polyList = new ArrayList<PolyBase>();
                 for (Iterator<Shape> it3 = drcError.shapes.iterator(); it3.hasNext(); ) {
@@ -368,8 +368,8 @@ public class CalibreDrcErrors {
                         System.out.println("Unsupported drc error shape "+shape);
                     }
                 }
-                logger.logError(y+". "+cell.getName()+": "+ruleDesc,
-                        null, null, lineList, null, polyList, cell, sortKey);
+                logger.logMessageWithLines(y+". "+cell.getName()+": "+ruleDesc, polyList,
+                    lineList, cell, sortKey, true);
                 y++;
                 count++;
             }

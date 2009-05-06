@@ -486,7 +486,7 @@ public class SeaOfGatesEngine
 					System.out.println("ERROR: " + errorMsg);
 					List<PolyBase> polyList = new ArrayList<PolyBase>();
 					polyList.add(fromPi.getPoly());
-					errorLogger.logError(errorMsg, null, null, null, null, polyList, cell, 0);
+					errorLogger.logMessage(errorMsg, polyList, cell, 0, true);
 					continue;
 				}
 
@@ -502,7 +502,7 @@ public class SeaOfGatesEngine
 					System.out.println("ERROR: " + errorMsg);
 					List<PolyBase> polyList = new ArrayList<PolyBase>();
 					polyList.add(toPi.getPoly());
-					errorLogger.logError(errorMsg, null, null, null, null, polyList, cell, 0);
+					errorLogger.logMessage(errorMsg, polyList, cell, 0, true);
 					continue;
 				}
 
@@ -520,7 +520,7 @@ public class SeaOfGatesEngine
 					List<EPoint> lineList = new ArrayList<EPoint>();
 					lineList.add(new EPoint(toPoly.getCenterX(), toPoly.getCenterY()));
 					lineList.add(new EPoint(fromPoly.getCenterX(), fromPoly.getCenterY()));
-					errorLogger.logError(errorMsg, null, null, lineList, null, polyList, cell, 0);
+					errorLogger.logMessageWithLines(errorMsg, polyList, lineList, cell, 0, true);
 					continue;
 				}
 
@@ -588,7 +588,7 @@ public class SeaOfGatesEngine
 						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMaxY()));
 						lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMaxY()));
 						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMinY()));
-						errorLogger.logError(errorMsg, null, null, lineList, null, polyList, cell, 0);
+						errorLogger.logMessageWithLines(errorMsg, polyList, lineList, cell, 0, true);
 						continue;
 					}
 				}
@@ -622,7 +622,7 @@ public class SeaOfGatesEngine
 						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMaxY()));
 						lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMaxY()));
 						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMinY()));
-						errorLogger.logError(errorMsg, null, null, lineList, null, polyList, cell, 0);
+						errorLogger.logMessageWithLines(errorMsg, polyList, lineList, cell, 0, true);
 						continue;
 					}
 				}
@@ -1539,7 +1539,7 @@ public class SeaOfGatesEngine
 			List<EPoint> lineList = new ArrayList<EPoint>();
 			lineList.add(new EPoint(wf.toX, wf.toY));
 			lineList.add(new EPoint(wf.fromX, wf.fromY));
-			errorLogger.logError(errorMsg, null, null, lineList, null, null, cell, 0);
+			errorLogger.logMessageWithLines(errorMsg, null, lineList, cell, 0, true);
 
 			if (DEBUGFAILURE && firstFailure)
 			{

@@ -406,8 +406,8 @@ public class JELIB extends LibraryFiles
 				List<Geometric> geomList = new ArrayList<Geometric>();
 				geomList.add(headPI.getNodeInst());
 				geomList.add(tailPI.getNodeInst());
-				Input.errorLogger.logError(cc.fileName + ", line " + line +
-					" (" + cell + ") cannot create arc " + a.arcProtoId, geomList, null, cell, 2);
+				Input.errorLogger.logMessage(cc.fileName + ", line " + line +
+					" (" + cell + ") cannot create arc " + a.arcProtoId, geomList, cell, 2, true);
 				continue;
 			}
             realizeVariables(ai, a.vars);

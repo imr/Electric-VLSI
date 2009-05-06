@@ -524,7 +524,7 @@ public class GDS extends Input
 				}
 				String msg = "Cell " + this.cell.noLibDescribe() + ": " + ulm.message;
 				System.out.println(msg);
-				errorLogger.logError(msg, instantiated, null, this.cell, -1);
+				errorLogger.logMessage(msg, instantiated, cell, -1, true);
 			}
 
 			Map<NodeProto,List<EPoint>> massiveMerge = new HashMap<NodeProto,List<EPoint>>();
@@ -719,7 +719,7 @@ public class GDS extends Input
                             toDelete.addAll(viaToDelete);
                             String message = toDelete.size() + " nodes were replaced for more complex primitives in cell '" + cell.getName() + "'";
                             geomList.add(newNi);
-                            errorLogger.logWarning(message, geomList, null, null, null, null, cell, -1);
+                            errorLogger.logMessage(message, geomList, cell, -1, false);
                             // Deleting now replaced pure primitives
                             cell.killNodes(toDelete);
                         }
@@ -995,7 +995,7 @@ public class GDS extends Input
             {
                 List<Geometric> geomList = new ArrayList<Geometric>(1);
                 geomList.add(ni);
-                errorLogger.logWarning(errorMsg, geomList, null, null, null, null, parent, -1);
+                errorLogger.logMessage(errorMsg, geomList, parent, -1, false);
                 System.out.println(errorMsg);
             }
 

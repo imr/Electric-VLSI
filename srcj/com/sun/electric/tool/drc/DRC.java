@@ -956,10 +956,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                 break;
         }
 
-        if (onlyWarning)
-            errorLogger.logWarning(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortKey);
-        else
-		    errorLogger.logError(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortKey);
+        errorLogger.logMessage(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortKey, !onlyWarning);
         // Temporary display of errors.
         if (reportInfo.interactiveLogger)
             Job.getUserInterface().termLogging(errorLogger, false, false);
@@ -1845,8 +1842,8 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                 ArrayList<NodeInst> pinsOfType = unconnectedPins.get(np);
                 String msg = "Network: " + cell + " has " + pinsOfType.size() + " unconnected pins " + np;
                 System.out.println(msg);
-                errorLog.logWarning(msg, Collections.<Geometric>unmodifiableList(pinsOfType),
-                        null, null, null, null, cell, errorSortNodes);
+                errorLog.logMessage(msg, Collections.<Geometric>unmodifiableList(pinsOfType), cell, 
+                    errorSortNodes, false);
             }
         }
         if (strangeNodes != null) {
@@ -1855,7 +1852,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                 String msg = "Network: Layout " + cell + " has " + nodesOfType.size() +
                         " " + np.describe(true) + " nodes";
                 System.out.println(msg);
-                errorLog.logError(msg, Collections.<Geometric>unmodifiableList(nodesOfType), null, cell, errorSortNetworks);
+                errorLog.logMessage(msg, Collections.<Geometric>unmodifiableList(nodesOfType), cell, errorSortNetworks, true);
             }
         }
     }

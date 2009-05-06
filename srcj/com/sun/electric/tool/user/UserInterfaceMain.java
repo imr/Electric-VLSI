@@ -74,10 +74,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
@@ -382,14 +379,18 @@ public class UserInterfaceMain extends AbstractUserInterface
         // show the error
         if (showhigh)
         {
-            Highlighter highlighter = null;
-            EditWindow wnd = null;
+//            Highlighter highlighter = null;
+//            EditWindow wnd = null;
+            // in case multiple windows are involved in the action so all will be brought up
+            // and properly terminated for display
+            Map<EditWindow, Highlighter> hMap = new HashMap<EditWindow, Highlighter>();
 
             // first show the geometry associated with this error
             int pos = -1;
             for(Iterator<ErrorHighlight> it = log.getHighlights(); it.hasNext(); )
             {
                 ErrorHighlight eh = it.next();
+                Highlighter highlighter = null;
 
                 // Checking whether a specific geom is displayed
                 pos++;
@@ -405,10 +406,14 @@ public class UserInterfaceMain extends AbstractUserInterface
                     }
 
                     // make sure it is shown
-                    wnd = EditWindow.showEditWindowForCell(cell, eh.getVarContext());
-                    if (highlighter == null) {
+                    EditWindow wnd = EditWindow.showEditWindowForCell(cell, eh.getVarContext());
+                    // nothing clean yet
+//                    if (highlighter == null) {
+                    if (hMap.get(wnd) == null)
+                    {
                         highlighter = wnd.getHighlighter();
                         highlighter.clear();
+                        hMap.put(wnd, highlighter);
                     }
                 }
 
@@ -417,21 +422,31 @@ public class UserInterfaceMain extends AbstractUserInterface
                 eh.addToHighlighter(highlighter, database);
             }
 
-            // Something found to highlight
-            if (highlighter != null)
+            // finish all open windows
+            boolean nothingDone = true;
+            for (Map.Entry<EditWindow, Highlighter> e : hMap.entrySet())
             {
-                highlighter.ensureHighlightingSeen();
-                highlighter.finished();
-
-                // make sure the selection is visible
-                Rectangle2D hBounds = highlighter.getHighlightedArea(wnd);
-                Rectangle2D shown = wnd.getDisplayedBounds();
-                if (!shown.intersects(hBounds))
+                Highlighter highlighter = e.getValue();
+                EditWindow wnd = e.getKey();
+                
+                // Something found to highlight
+                if (highlighter != null)
                 {
-                    wnd.focusOnHighlighted();
+                    highlighter.ensureHighlightingSeen();
+                    highlighter.finished();
+
+                    // make sure the selection is visible
+                    Rectangle2D hBounds = highlighter.getHighlightedArea(wnd);
+                    Rectangle2D shown = wnd.getDisplayedBounds();
+                    if (!shown.intersects(hBounds))
+                    {
+                        wnd.focusOnHighlighted();
+                    }
                 }
+                nothingDone = false;
             }
-            else
+
+            if (nothingDone)
             {
                 Cell logCell = log.getCell();
                 // Checking also that the cell hasn't been removed yet

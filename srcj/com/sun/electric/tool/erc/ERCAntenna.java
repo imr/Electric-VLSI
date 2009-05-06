@@ -420,7 +420,7 @@ public class ERCAntenna
 									polyList.add(merged);
 								}
 							}
-							errorLogger.logError(errMsg, null, null, null, null, polyList, cell, 0);
+							errorLogger.logMessage(errMsg, polyList, cell, 0, true);
 						}
 					}
 				}
