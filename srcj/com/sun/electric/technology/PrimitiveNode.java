@@ -1542,6 +1542,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         for (int i = 0; i < primPorts.length; i++) {
             assert primPorts[i] == ports[i];
             assert primPorts[i].getPortIndex() == i;
+            ports[i].fixupEdges(fullRectangle.getWidth(), fullRectangle.getHeight());
         }
         if (primPorts.length == 1) {
             PrimitivePort thePort = primPorts[0];
@@ -2282,7 +2283,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
         for (Iterator<PrimitivePort> pit = getPrimitivePorts(); pit.hasNext(); ) {
             PrimitivePort pp = pit.next();
-            ng.ports.add(pp.makeXml(minFullSize));
+            ng.ports.add(pp.makeXml());
         }
         ng.specialType = getSpecialType();
         if (getSpecialValues() != null)

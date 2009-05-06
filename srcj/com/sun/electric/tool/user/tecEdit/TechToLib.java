@@ -41,6 +41,8 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveNodeGroup;
@@ -134,7 +136,7 @@ public class TechToLib
             libraryName = lib.getName();
 			return true;
 		}
-        
+
         @Override
         public void terminateOK() {
             User.setCurrentLibrary(lib);
@@ -993,9 +995,13 @@ public class TechToLib
             pd.netIndex = pp.getTopology();
             pd.angle = pp.getAngle();
             pd.range = pp.getAngleRange();
+            EdgeH left = new EdgeH(pp.getLeft().getMultiplier(), pp.getLeft().getAdder() - pp.getLeft().getMultiplier() * nIn.xSize);
+            EdgeH right = new EdgeH(pp.getRight().getMultiplier(), pp.getRight().getAdder() - pp.getRight().getMultiplier() * nIn.xSize);
+            EdgeV bottom = new EdgeV(pp.getBottom().getMultiplier(), pp.getBottom().getAdder() - pp.getBottom().getMultiplier() * nIn.ySize);
+            EdgeV top = new EdgeV(pp.getTop().getMultiplier(), pp.getTop().getAdder() - pp.getTop().getMultiplier() * nIn.ySize);
             pd.values = new Technology.TechPoint[] {
-                new Technology.TechPoint(pp.getLeft(), pp.getBottom()),
-                new Technology.TechPoint(pp.getRight(), pp.getTop())};
+                new Technology.TechPoint(left, bottom),
+                new Technology.TechPoint(right, top)};
             pd.characterisitic = pp.getCharacteristic();
             pd.isolated = pp.isIsolated();
             pd.negatable = pp.isNegatable();

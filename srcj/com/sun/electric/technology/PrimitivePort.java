@@ -174,6 +174,13 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 		return pp;
 	}
 
+    void fixupEdges(double width, double height) {
+        left = left.withAdder(left.getAdder() + left.getMultiplier()*width);
+        right = right.withAdder(right.getAdder() + right.getMultiplier()*width);
+        bottom = bottom.withAdder(bottom.getAdder() + bottom.getMultiplier()*height);
+        top = top.withAdder(top.getAdder() + top.getMultiplier()*height);
+    }
+
 	// ------------------------ public methods ------------------------
 
     /** Method to return PortProtoId of this PrimitivePort.
@@ -502,15 +509,17 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
     }
 
     void dump(PrintWriter out) {
+        double xSize = getParent().getFullRectangle().getWidth();
+        double ySize = getParent().getFullRectangle().getHeight();
             out.println("\tport " + getName() + " angle=" + getAngle() + " range=" + getAngleRange() + " topology=" + getTopology() + " " + getCharacteristic());
-            out.println("\t\tlm=" + left.getMultiplier() + " la=" + left.getAdder() + " rm=" + right.getMultiplier() + " ra=" + right.getAdder() +
-                    " bm=" + bottom.getMultiplier() + " ba=" + bottom.getAdder() + " tm=" + top.getMultiplier() + " ta=" + top.getAdder());
+            out.println("\t\tlm=" + left.getMultiplier() + " la=" + DBMath.round(left.getAdder() - left.getMultiplier()*xSize) + " rm=" + right.getMultiplier() + " ra=" + DBMath.round(right.getAdder() - right.getMultiplier()*xSize) +
+                    " bm=" + bottom.getMultiplier() + " ba=" + DBMath.round(bottom.getAdder() - bottom.getMultiplier()*ySize) + " tm=" + top.getMultiplier() + " ta=" + DBMath.round(top.getAdder() - top.getMultiplier()*ySize));
             out.println("\t\tisolated=" + isolated + " negatable=" + negatable);
             for (ArcProto ap: portArcs)
                 out.println("\t\tportArc " + ap.getName());
     }
 
-    Xml.PrimitivePort makeXml(EPoint minFullSize) {
+    Xml.PrimitivePort makeXml() {
         Xml.PrimitivePort ppd = new Xml.PrimitivePort();
         ppd.name = getName();
         ppd.portAngle = getAngle();
@@ -518,13 +527,13 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
         ppd.portTopology = getTopology();
 
         ppd.lx.k = getLeft().getMultiplier()*2;
-        ppd.lx.addLambda(DBMath.round(getLeft().getAdder() + minFullSize.getLambdaX()*getLeft().getMultiplier()*2));
+        ppd.lx.addLambda(DBMath.round(getLeft().getAdder()));
         ppd.hx.k = getRight().getMultiplier()*2;
-        ppd.hx.addLambda(DBMath.round(getRight().getAdder() + minFullSize.getLambdaX()*getRight().getMultiplier()*2));
+        ppd.hx.addLambda(DBMath.round(getRight().getAdder()));
         ppd.ly.k = getBottom().getMultiplier()*2;
-        ppd.ly.addLambda(DBMath.round(getBottom().getAdder() + minFullSize.getLambdaY()*getBottom().getMultiplier()*2));
+        ppd.ly.addLambda(DBMath.round(getBottom().getAdder()));
         ppd.hy.k = getTop().getMultiplier()*2;
-        ppd.hy.addLambda(DBMath.round(getTop().getAdder() + minFullSize.getLambdaY()*getTop().getMultiplier()*2));
+        ppd.hy.addLambda(DBMath.round(getTop().getAdder()));
 
         Technology tech = parent.getTechnology();
         for (ArcProto ap: getConnections()) {

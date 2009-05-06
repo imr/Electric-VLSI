@@ -4155,10 +4155,12 @@ public class Technology implements Comparable<Technology>, Serializable
 		}
 
 		// standard port computation
-		double portLowX = ni.getAnchorCenterX() + pp.getLeft().getMultiplier() * ni.getXSize() + pp.getLeft().getAdder();
-		double portHighX = ni.getAnchorCenterX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();
-		double portLowY = ni.getAnchorCenterY() + pp.getBottom().getMultiplier() * ni.getYSize() + pp.getBottom().getAdder();
-		double portHighY = ni.getAnchorCenterY() + pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
+        double sizeX = ni.getD().size.getLambdaX();
+        double sizeY = ni.getD().size.getLambdaY();
+		double portLowX = ni.getAnchorCenterX() + pp.getLeft().getMultiplier() * sizeX + pp.getLeft().getAdder();
+		double portHighX = ni.getAnchorCenterX() + pp.getRight().getMultiplier() * sizeX + pp.getRight().getAdder();
+		double portLowY = ni.getAnchorCenterY() + pp.getBottom().getMultiplier() * sizeY + pp.getBottom().getAdder();
+		double portHighY = ni.getAnchorCenterY() + pp.getTop().getMultiplier() * sizeY + pp.getTop().getAdder();
 		double portX = (portLowX + portHighX) / 2;
 		double portY = (portLowY + portHighY) / 2;
 		Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);

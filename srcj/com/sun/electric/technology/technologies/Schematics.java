@@ -2167,6 +2167,8 @@ public class Schematics extends Technology
 		// determine the grid size
 		double width = ni.getXSize();
 		double height = ni.getYSize();
+        double sizeX = ni.getD().size.getLambdaX();
+        double sizeY = ni.getD().size.getLambdaY();
 		double lambda = 1;
 		NodeProto np = ni.getProto();
 		if (np == andNode)
@@ -2269,10 +2271,10 @@ public class Schematics extends Technology
 		if (lambda != 1)
 		{
 			// standard port computation
-			double portLowX = ni.getAnchorCenterX() + pp.getLeft().getMultiplier() * width + pp.getLeft().getAdder() * lambda;
-			double portHighX = ni.getAnchorCenterX() + pp.getRight().getMultiplier() * width + pp.getRight().getAdder() * lambda;
-			double portLowY = ni.getAnchorCenterY() + pp.getBottom().getMultiplier() * height + pp.getBottom().getAdder() * lambda;
-			double portHighY = ni.getAnchorCenterY() + pp.getTop().getMultiplier() * height + pp.getTop().getAdder() * lambda;
+			double portLowX = ni.getAnchorCenterX() + pp.getLeft().getMultiplier() * sizeX + pp.getLeft().getAdder() * lambda;
+			double portHighX = ni.getAnchorCenterX() + pp.getRight().getMultiplier() * sizeX + pp.getRight().getAdder() * lambda;
+			double portLowY = ni.getAnchorCenterY() + pp.getBottom().getMultiplier() * sizeY + pp.getBottom().getAdder() * lambda;
+			double portHighY = ni.getAnchorCenterY() + pp.getTop().getMultiplier() * sizeY + pp.getTop().getAdder() * lambda;
 			double portX = (portLowX + portHighX) / 2;
 			double portY = (portLowY + portHighY) / 2;
 			Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
