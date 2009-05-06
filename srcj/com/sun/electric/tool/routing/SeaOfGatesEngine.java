@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
@@ -660,7 +661,7 @@ public class SeaOfGatesEngine
 		}
 		if (numberOfThreads > 1)
 		{
-			doRoutingParallel(numberOfThreads, allRoutes, routeBatches);
+			doRoutingParallel(numberOfThreads, allRoutes, routeBatches, cell.getEditingPreferences());
 		} else
 		{
 			doRouting(allRoutes, routeBatches, job);
@@ -766,7 +767,7 @@ public class SeaOfGatesEngine
 		}
 	}
 
-	private void doRoutingParallel(int numberOfThreads, List<NeededRoute> allRoutes, RouteBatches [] routeBatches)
+	private void doRoutingParallel(int numberOfThreads, List<NeededRoute> allRoutes, RouteBatches [] routeBatches, EditingPreferences ep)
 	{
 		// create threads and other threading data structures
 		RouteInThread[] threads = new RouteInThread[numberOfThreads];
@@ -842,10 +843,12 @@ public class SeaOfGatesEngine
 		private Semaphore inSem = new Semaphore(0);
 		private NeededRoute nr;
 		private Semaphore whenDone;
+        private EditingPreferences ep;
 
-		public RouteInThread(String name)
+		public RouteInThread(String name, EditingPreferences ep)
 		{
 			super(name);
+            this.ep = ep;
 			start();
 		}
 
@@ -858,6 +861,7 @@ public class SeaOfGatesEngine
 
 		public void run()
 		{
+            EditingPreferences.setThreadEditingPreferences(ep);
 			for (;;)
 			{
 				inSem.acquireUninterruptibly();
