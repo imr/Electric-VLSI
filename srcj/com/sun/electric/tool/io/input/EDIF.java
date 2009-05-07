@@ -2307,7 +2307,8 @@ public class EDIF extends Input
 				if (curActiveFigure != null)
 					curActiveFigure.visible = false;
 			}
-		}
+            propertyValue = new Boolean(false);
+        }
 	}
 
 	private class KeyFigure extends EDIFKEY
@@ -3961,7 +3962,7 @@ public class EDIF extends Input
 			if (checkName())
 			{
 				propertyReference = objectName;
-			}
+            }
 
 		}
 
@@ -4416,7 +4417,8 @@ public class EDIF extends Input
 				if (curActiveFigure != null)
 					curActiveFigure.visible = true;
 			}
-		}
+            propertyValue = new Boolean(true);
+        }
 	}
 
 	private class KeyUnit extends EDIFKEY
