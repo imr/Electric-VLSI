@@ -571,6 +571,9 @@ public class FileMenu {
                 if (libVal == null)
                     libVal = setting.getFactoryValue();
                 if (oldVal.equals(libVal)) continue;
+                if (oldVal instanceof Double && libVal instanceof Double &&
+                        ((Double)oldVal).floatValue() == ((Double)libVal).floatValue())
+                    continue;
                 System.out.println("Warning: Setting \""+setting.getPrefName()+"\" retains current value of \""+oldVal+
                     "\", while ignoring library value of \""+libVal+"\"");
             }

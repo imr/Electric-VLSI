@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+BUG: (5/6/09, DN) Those precision warnings in settings are back (Bug #2156).
+FIX: In FileMenu.ReadLibrary.doIt test if double mismatch can be explained by float rounding.
+
 IMP: (5/2/09, DN) Prepare cvspm to work in two-JVM mode.
 
 BUG: (4/30/09, DN) Can't create new cell parameter (Bug #2153)
