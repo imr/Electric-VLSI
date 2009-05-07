@@ -657,10 +657,10 @@ public class ErrorLogger implements Serializable
     	if (polyList != null)
     	{
             // must match number of elements
-            boolean matches = geomList != null && geomList.size() == polyList.size();
-            if (geomList != null)
-                assert(geomList.size() == polyList.size());
-            int count = 0;
+//            boolean matches = geomList != null && geomList.size() == polyList.size();
+//            if (geomList != null)
+//                assert(geomList.size() == polyList.size());
+//            int count = 0;
             for(PolyBase poly : polyList)
     		{
     	        Point2D [] points = poly.getPoints();
