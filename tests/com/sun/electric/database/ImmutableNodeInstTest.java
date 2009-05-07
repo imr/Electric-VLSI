@@ -51,8 +51,8 @@ import org.junit.Test;
 /**
  * Unit test of ImmutableNodeInst
  */
-public class ImmutableNodeInstTest {
-
+public class ImmutableNodeInstTest
+{
     private IdManager idManager;
     private Generic generic;
     private Technology tech;
