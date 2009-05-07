@@ -659,12 +659,13 @@ public class SeaOfGatesEngine
 			}
 			System.out.println(message);
 		}
+        EditingPreferences ep = cell.getEditingPreferences();
 		if (numberOfThreads > 1)
 		{
-			doRoutingParallel(numberOfThreads, allRoutes, routeBatches, cell.getEditingPreferences());
+			doRoutingParallel(numberOfThreads, allRoutes, routeBatches, ep);
 		} else
 		{
-			doRouting(allRoutes, routeBatches, job);
+			doRouting(allRoutes, routeBatches, job, ep);
 		}
 
 		// finally analyze the results and remove unrouted arcs
@@ -738,7 +739,7 @@ public class SeaOfGatesEngine
 	 * @param routeBatches the routing batches (by network)
 	 * @param job the job that invoked this routing.
 	 */
-	private void doRouting(List<NeededRoute> allRoutes, RouteBatches [] routeBatches, Job job)
+	private void doRouting(List<NeededRoute> allRoutes, RouteBatches [] routeBatches, Job job, EditingPreferences ep)
 	{
 		int totalRoutes = allRoutes.size();
 		for(int r=0; r<totalRoutes; r++)
@@ -759,7 +760,7 @@ public class SeaOfGatesEngine
 			System.out.println("Routing network " + routeName + "...");
 
 			// route the segment
-			findPath(nr);
+			findPath(nr, ep);
 
 			// if the routing was good, place the results
 			if (nr.winningWF != null && nr.winningWF.vertices != null)
@@ -866,7 +867,7 @@ public class SeaOfGatesEngine
 			{
 				inSem.acquireUninterruptibly();
 				if (nr == null) return;
-				findPath(nr);
+				findPath(nr, ep);
 				whenDone.release();
 			}
 		}
@@ -1487,7 +1488,7 @@ public class SeaOfGatesEngine
 	 * @param nr the NeededRoute object with all necessary information.
 	 * If successful, the NeededRoute's "vertices" field is filled with the route data.
 	 */
-	private void findPath(NeededRoute nr)
+	private void findPath(NeededRoute nr, EditingPreferences ep)
 	{
 		// special case when route is null length
 		Wavefront d1 = nr.dir1;
@@ -1505,8 +1506,8 @@ public class SeaOfGatesEngine
 		{
 			// create threads and start them running
 			Semaphore outSem = new Semaphore(0);
-			new DijkstraInThread("Route a->b", nr.dir1, nr.dir2, outSem);
-			new DijkstraInThread("Route b->a", nr.dir2, nr.dir1, outSem);
+			new DijkstraInThread("Route a->b", nr.dir1, nr.dir2, outSem, ep);
+			new DijkstraInThread("Route b->a", nr.dir2, nr.dir1, outSem, ep);
 
 			// wait for threads to complete and get results
 			outSem.acquireUninterruptibly(2);
@@ -1594,18 +1595,21 @@ public class SeaOfGatesEngine
 		private Wavefront wf;
 		private Wavefront otherWf;
 		private Semaphore whenDone;
+        private EditingPreferences ep;
 
-		public DijkstraInThread(String name, Wavefront wf, Wavefront otherWf, Semaphore whenDone)
+		public DijkstraInThread(String name, Wavefront wf, Wavefront otherWf, Semaphore whenDone, EditingPreferences ep)
 		{
 			super(name);
 			this.wf = wf;
 			this.otherWf = otherWf;
 			this.whenDone = whenDone;
+            this.ep = ep;
 			start();
 		}
 
 		public void run()
 		{
+            EditingPreferences.setThreadEditingPreferences(ep);
 			SearchVertex result = null;
 			int numSearchVertices = 0;
 			while (result == null)
