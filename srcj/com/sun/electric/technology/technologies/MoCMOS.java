@@ -156,13 +156,15 @@ public class MoCMOS extends Technology
 
 	private static final int SCALABLE_ACTIVE_TOP = 0;
 	private static final int SCALABLE_METAL_TOP  = 1;
-	private static final int SCALABLE_ACTIVE_BOT = 2;
-	private static final int SCALABLE_METAL_BOT  = 3;
-	private static final int SCALABLE_ACTIVE_CTR = 4;
-	private static final int SCALABLE_POLY       = 5;
-	private static final int SCALABLE_WELL       = 6;
-	private static final int SCALABLE_SUBSTRATE  = 7;
-	private static final int SCALABLE_TOTAL      = 8;
+    private static final int SCALABLE_CUT_TOP    = 2;
+	private static final int SCALABLE_ACTIVE_BOT = 3;
+	private static final int SCALABLE_METAL_BOT  = 4;
+    private static final int SCALABLE_CUT_BOT    = 5;
+	private static final int SCALABLE_ACTIVE_CTR = 6;
+	private static final int SCALABLE_POLY       = 7;
+	private static final int SCALABLE_WELL       = 8;
+	private static final int SCALABLE_SUBSTRATE  = 9;
+	private static final int SCALABLE_TOTAL      = 10;
 
 	/**
 	 * Method to return a list of Polys that describe a given NodeInst.
@@ -211,13 +213,13 @@ public class MoCMOS extends Technology
 				} else if (chr == 'i' || chr == 'I') insetContacts = true;
 			}
 		}
-		int boxOffset = 4 - numContacts * 2;
+		int boxOffset = 6 - numContacts * 3;
 
 		// determine width
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		double nodeWid = ni.getXSize();
-		double activeWid = nodeWid - 14;
-		int extraInset = 0;
+        double activeWidMax = nodeWid - 14;
+		double activeWid = activeWidMax;
 		Variable var = ni.getVar(Schematics.ATTR_WIDTH);
 		if (var != null)
 		{
@@ -234,43 +236,18 @@ public class MoCMOS extends Technology
 			}
 			if (requestedWid < activeWid && requestedWid > 0)
 			{
-				extraInset = (int)((activeWid - requestedWid) / 2);
 				activeWid = requestedWid;
 			}
 		}
-		double actInset = (nodeWid-activeWid) / 2;
-        double gateOverhang = getTransistorExtension(np, true, cachedRules);
-        double polyInset = actInset - gateOverhang; // cachedRules.getPolyOverhang();
-		double actContInset = 7 + extraInset;
 
+        double shrinkGate = 0.5*(activeWidMax - activeWid);
 		// contacts must be 5 wide at a minimum
-		if (activeWid < 5) actContInset -= (5-activeWid)/2;
-		double metContInset = actContInset + 0.5;
-
-		// determine the multicut information
-        NodeLayer activeMulticut = metalActiveContactNodes[P_TYPE].findMulticut();
-        NodeLayer activeSurround = metalActiveContactNodes[P_TYPE].getNodeLayers()[1];
-        assert activeSurround.getLayer().getFunction().isDiff();
-        double cutSize = activeMulticut.getMulticutSizeX();
-        assert cutSize == activeMulticut.getMulticutSizeY();
-        double cutIndent = activeMulticut.getLeftEdge().getAdder() - activeSurround.getLeftEdge().getAdder();
-        double cutSep = activeMulticut.getMulticutSep1D();
-        assert cutSep == activeMulticut.getMulticutSep2D();
-//		double [] specialValues = metalActiveContactNodes[P_TYPE].getSpecialValues();
-//		double cutSize = specialValues[0];
-//		double cutIndent = specialValues[2];   // or specialValues[3]
-//		double cutSep = specialValues[4];      // or specialValues[5]
-		int numCuts = (int)((activeWid-cutIndent*2+cutSep) / (cutSize+cutSep));
-		if (numCuts <= 0) numCuts = 1;
-		double cutBase = 0;
-		if (numCuts != 1)
-			cutBase = (activeWid-cutIndent*2 - cutSize*numCuts -
-				cutSep*(numCuts-1)) / 2 + (nodeWid-activeWid)/2 + cutIndent;
+        double shrinkCon = (int)(0.5*(activeWidMax + 2 - Math.max(activeWid, 5)));
 
 		// now compute the number of polygons
-		int extraCuts = numCuts*2 - (2-numContacts) * numCuts;
 		Technology.NodeLayer [] layers = np.getNodeLayers();
-		int count = SCALABLE_TOTAL + extraCuts - boxOffset;
+        assert layers.length == SCALABLE_TOTAL;
+		int count = SCALABLE_TOTAL - boxOffset;
 		Technology.NodeLayer [] newNodeLayers = new Technology.NodeLayer[count];
 
 		// load the basic layers
@@ -280,97 +257,56 @@ public class MoCMOS extends Technology
 			TechPoint [] oldPoints = layers[box].getPoints();
 			TechPoint [] points = new TechPoint[oldPoints.length];
 			for(int i=0; i<oldPoints.length; i++) points[i] = oldPoints[i];
+            double shrinkX = 0;
+            TechPoint p0 = points[0];
+            TechPoint p1 = points[1];
+            double x0 = p0.getX().getAdder();
+            double x1 = p1.getX().getAdder();
+            double y0 = p0.getY().getAdder();
+            double y1 = p1.getY().getAdder();
 			switch (box)
 			{
+				case SCALABLE_ACTIVE_TOP:
+                case SCALABLE_METAL_TOP:
+                case SCALABLE_CUT_TOP:
+                    shrinkX = shrinkCon;
+                    if (insetContacts) {
+                        y0 -= 0.5;
+                        y1 -= 0.5;
+                    }
+                    break;
+                case SCALABLE_ACTIVE_BOT:
+                case SCALABLE_METAL_BOT:
+                case SCALABLE_CUT_BOT:
+                    shrinkX = shrinkCon;
+                    if (insetContacts) {
+                        y0 -= 0.5;
+                        y1 -= 0.5;
+                    }
+                    break;
 				case SCALABLE_ACTIVE_CTR:		// active that passes through gate
-					points[0] = points[0].withX(points[0].getX().withAdder(actInset));
-					points[1] = points[1].withX(points[1].getX().withAdder(-actInset));
-					break;
-				case SCALABLE_ACTIVE_TOP:		// active surrounding contacts
-				case SCALABLE_ACTIVE_BOT:
-					points[0] = points[0].withX(points[0].getX().withAdder(actContInset));
-					points[1] = points[1].withX(points[1].getX().withAdder(-actContInset));
-					if (insetContacts)
-					{
-						double shift = 0.5;
-						if (points[0].getY().getAdder() < 0) shift = -0.5;
-    					points[0] = points[0].withY(points[0].getY().withAdder(points[0].getY().getAdder() + shift));
-    					points[1] = points[1].withY(points[1].getY().withAdder(points[1].getY().getAdder() + shift));
-//						points[0].getY().setAdder(points[0].getY().getAdder() + shift);
-//						points[1].getY().setAdder(points[1].getY().getAdder() + shift);
-					}
-					break;
 				case SCALABLE_POLY:				// poly
-					points[0] = points[0].withX(points[0].getX().withAdder(polyInset));
-					points[1] = points[1].withX(points[1].getX().withAdder(-polyInset));
-					break;
-				case SCALABLE_METAL_TOP:		// metal surrounding contacts
-				case SCALABLE_METAL_BOT:
-					points[0] = points[0].withX(points[0].getX().withAdder(metContInset));
-					points[1] = points[1].withX(points[1].getX().withAdder(-metContInset));
-					if (insetContacts)
-					{
-						double shift = 0.5;
-						if (points[0].getY().getAdder() < 0) shift = -0.5;
-    					points[0] = points[0].withY(points[0].getY().withAdder(points[0].getY().getAdder() + shift));
-    					points[1] = points[1].withY(points[1].getY().withAdder(points[1].getY().getAdder() + shift));
-//						points[0].getY().setAdder(points[0].getY().getAdder() + shift);
-//						points[1].getY().setAdder(points[1].getY().getAdder() + shift);
-					}
+                    shrinkX = shrinkGate;
 					break;
 				case SCALABLE_WELL:				// well and select
 				case SCALABLE_SUBSTRATE:
-					if (insetContacts)
-					{
-						double shift = 0.5;
-    					points[0] = points[0].withY(points[0].getY().withAdder(points[0].getY().getAdder() + shift));
-    					points[1] = points[1].withY(points[1].getY().withAdder(points[1].getY().getAdder() + shift));
-//						points[0].getY().setAdder(points[0].getY().getAdder() + 0.5);
-//						points[1].getY().setAdder(points[1].getY().getAdder() - 0.5);
-					}
-					break;
+                    if (insetContacts) {
+                        y0 += 0.5;
+                        y1 -= 0.5;
+                    }
+                    break;
 			}
-			newNodeLayers[fillIndex] = new Technology.NodeLayer(layers[box].getLayer(), layers[box].getPortNum(),
-				layers[box].getStyle(), layers[box].getRepresentation(), points);
-			fillIndex++;
-		}
-
-		// load the contact cuts
-		for(int box = 0; box < extraCuts; box++)
-		{
-			int oldIndex = SCALABLE_TOTAL;
-			if (box >= numCuts) oldIndex++;
-
-			// make a new description of this layer
-			TechPoint [] oldPoints = layers[oldIndex].getPoints();
-			TechPoint [] points = new TechPoint[oldPoints.length];
-			for(int i=0; i<oldPoints.length; i++) points[i] = oldPoints[i];
-			if (numCuts == 1)
-			{
-				points[0] = points[0].withX(points[0].getX().withAdder(ni.getXSize() / 2 - cutSize/2));
-				points[1] = points[1].withX(points[1].getX().withAdder(ni.getXSize() / 2 + cutSize/2));
-//				points[0].getX().setAdder(ni.getXSize() / 2 - cutSize/2);
-//				points[1].getX().setAdder(ni.getXSize() / 2 + cutSize/2);
-			} else
-			{
-				int cut = box % numCuts;
-				double base = cutBase + cut * (cutSize + cutSep);
-				points[0] = points[0].withX(points[0].getX().withAdder(base));
-				points[1] = points[1].withX(points[1].getX().withAdder(base + cutSize));
-//				points[0].getX().setAdder(base);
-//				points[1].getX().setAdder(base + cutSize);
-			}
-			if (insetContacts)
-			{
-				double shift = 0.5;
-				if (points[0].getY().getAdder() < 0) shift = -0.5;
-				points[0] = points[0].withY(points[0].getY().withAdder(points[0].getY().getAdder() + shift));
-				points[1] = points[1].withY(points[1].getY().withAdder(points[1].getY().getAdder() + shift));
-//				points[0].getY().setAdder(points[0].getY().getAdder() + shift);
-//				points[1].getY().setAdder(points[1].getY().getAdder() + shift);
-			}
-			newNodeLayers[fillIndex] = new Technology.NodeLayer(layers[oldIndex].getLayer(), layers[oldIndex].getPortNum(),
-				layers[oldIndex].getStyle(), layers[oldIndex].getRepresentation(), points);
+            x0 += shrinkX;
+            x1 -= shrinkX;
+            points[0] = p0.withX(p0.getX().withAdder(x0)).withY(p0.getY().withAdder(y0));
+            points[1] = p1.withX(p1.getX().withAdder(x1)).withY(p1.getY().withAdder(y1));
+            Technology.NodeLayer oldNl = layers[box];
+            if (oldNl.getRepresentation() == NodeLayer.MULTICUTBOX)
+			    newNodeLayers[fillIndex] = Technology.NodeLayer.makeMulticut(oldNl.getLayer(), oldNl.getPortNum(),
+				    oldNl.getStyle(), points, oldNl.getMulticutSizeX(), oldNl.getMulticutSizeY(), oldNl.getMulticutSep1D(), oldNl.getMulticutSep2D());
+            else
+			    newNodeLayers[fillIndex] = new Technology.NodeLayer(oldNl.getLayer(), oldNl.getPortNum(),
+				    oldNl.getStyle(), oldNl.getRepresentation(), points);
 			fillIndex++;
 		}
 
@@ -811,6 +747,7 @@ public class MoCMOS extends Technology
             resizeContacts(con, rd);
 
             resizeSerpentineTransistor(transistorNodeGroups[i], rd);
+            resizeScalableTransistor(scalableTransistorNodes[i], rd);
         }
         resizeContacts(npnTransistorNode, rd);
         {
@@ -977,6 +914,56 @@ public class MoCMOS extends Technology
         nl.bExtent = nl.lx.k == -1 ? -lx - hw : 0;
     }
 
+    private static void resizeScalableTransistor(Xml.PrimitiveNodeGroup transistor, ResizeData rd) {
+        Xml.NodeLayer activeTNode = transistor.nodeLayers.get(SCALABLE_ACTIVE_TOP); // active Top
+        Xml.NodeLayer metalTNode = transistor.nodeLayers.get(SCALABLE_METAL_TOP); // metal Top
+        Xml.NodeLayer cutTNode = transistor.nodeLayers.get(SCALABLE_CUT_TOP);
+        Xml.NodeLayer activeBNode = transistor.nodeLayers.get(SCALABLE_ACTIVE_BOT); // active Bottom
+        Xml.NodeLayer metalBNode = transistor.nodeLayers.get(SCALABLE_METAL_BOT); // metal Bot
+        Xml.NodeLayer cutBNode = transistor.nodeLayers.get(SCALABLE_CUT_BOT);
+        Xml.NodeLayer activeCNode = transistor.nodeLayers.get(SCALABLE_ACTIVE_CTR); // active center
+        Xml.NodeLayer polyCNode = transistor.nodeLayers.get(SCALABLE_POLY); // poly center
+        Xml.NodeLayer wellNode = transistor.nodeLayers.get(SCALABLE_WELL); // well
+        Xml.NodeLayer selNode = transistor.nodeLayers.get(SCALABLE_SUBSTRATE); // select
+        double hw = 0.5*rd.gate_width;
+        double hl = 0.5*rd.gate_length;
+        double gateX = hw;
+        double gateY = hl;
+        double polyX = gateX + rd.poly_endcap;
+        double polyY = gateY;
+        double diffX = gateX;
+        double diffY = gateY + rd.diff_poly_overhang;
+//        double wellX = diffX + rd.nwell_overhang_diff_p;
+//        double wellY = diffY + rd.nwell_overhang_diff_p;
+//        double selX  = diffX + rd.pplus_overhang_diff;
+//        double selY  = diffY + rd.pplus_overhang_diff;
+
+        double metalC = 0.5*rd.contact_size + rd.contact_metal_overhang_all_sides;
+        double activeC = 0.5*rd.contact_size + rd.diff_contact_overhang;
+        double wellC = activeC + rd.nwell_overhang_diff_p;
+        double selectC = activeC + rd.nplus_overhang_diff;
+        double cutY = hl + rd.poly_diff_spacing + activeC;
+
+        resizeScalableLayer(activeTNode, -activeC, activeC, cutY - activeC, cutY + activeC);
+        resizeScalableLayer(metalTNode, -metalC, metalC, cutY - metalC, cutY + metalC);
+        resizeScalableLayer(cutTNode, 0, 0, cutY, cutY);
+        resizeScalableLayer(activeBNode, -activeC, activeC, -cutY - activeC, -cutY + activeC);
+        resizeScalableLayer(metalBNode, -metalC, metalC, -cutY - metalC, -cutY + metalC);
+        resizeScalableLayer(cutBNode, 0, 0, -cutY, -cutY);
+        resizeScalableLayer(activeCNode, -diffX, diffX, -diffY, diffY);
+        resizeScalableLayer(polyCNode, -polyX, polyX, -polyY, polyY);
+        resizeScalableLayer(wellNode, -wellC, wellC, -cutY-wellC, cutY+wellC);
+        resizeScalableLayer(selNode, -selectC, selectC, -cutY-selectC, cutY+selectC);
+        resizeContacts(transistor, rd);
+    }
+
+    private static void resizeScalableLayer(Xml.NodeLayer nl, double lx, double hx, double ly, double hy) {
+        nl.lx.value = lx;
+        nl.hx.value = hx;
+        nl.ly.value = ly;
+        nl.hy.value = hy;
+    }
+
     private static class ResizeData {
         private final double diff_width = 3; // 2.1
         private final double diff_poly_overhang; // 3.4
@@ -985,6 +972,7 @@ public class MoCMOS extends Technology
 
         private final double poly_width = 2; // 3.1
         private final double poly_endcap; // 3.3
+        private final double poly_diff_spacing = 1; // 3.5
 
         private final double gate_length = poly_width; // 3.1
         private final double gate_width = diff_width; // 2.1
@@ -1174,7 +1162,7 @@ public class MoCMOS extends Technology
 
         if (scalableTransistorNodes != null && (primNode == scalableTransistorNodes[P_TYPE] || primNode == scalableTransistorNodes[N_TYPE]))
         {
-            polyCNode = primNode.getNodeLayers()[5]; // poly center
+            polyCNode = primNode.getNodeLayers()[SCALABLE_POLY]; // poly center
         }
         else
         {

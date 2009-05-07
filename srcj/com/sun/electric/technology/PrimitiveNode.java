@@ -1743,6 +1743,10 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         assert cutLayer.getTopEdge().getMultiplier() == 0.5;
         double x = cutLayer.getMulticutSizeX() + cutLayer.getMulticutSep2D() + cutLayer.getLeftEdge().getAdder() - cutLayer.getRightEdge().getAdder();
         double y = cutLayer.getMulticutSizeY() + cutLayer.getMulticutSep2D() + cutLayer.getBottomEdge().getAdder() - cutLayer.getTopEdge().getAdder();
+        if (Technology.STANDARD_NODE_LAYER_POINTS) {
+            x += fullRectangle.getLambdaWidth();
+            y += fullRectangle.getLambdaHeight();
+        }
         return EPoint.fromLambda(x, y);
     }
 

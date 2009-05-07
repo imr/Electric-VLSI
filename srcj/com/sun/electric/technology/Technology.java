@@ -133,6 +133,8 @@ public class Technology implements Comparable<Technology>, Serializable
 	public static final boolean HANDLEBROKENOUTLINES = true;
 	/** true to handle duplicate points in an outline as a "break" */
 	public static final boolean DUPLICATEPOINTSAREBROKENOUTLINES = false;
+    /** true if NodeLayer points are the same as Xml */
+    public static final boolean STANDARD_NODE_LAYER_POINTS = false;
 
     // Change in TechSettings takes effect only after restart
     public static final boolean IMMUTABLE_TECHS = false/*Config.TWO_JVM*/;
@@ -149,7 +151,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
     /** Relative path in Preferences where technology Settings and Preferences are stored */
     public static final String TECH_NODE = "technology/technologies";
-	// strings used in the Component Menu
+	// strings used in the Component MenuNodeLayer
 	public static final String SPECIALMENUCELL   = "Cell";
 	public static final String SPECIALMENUMISC   = "Misc.";
 	public static final String SPECIALMENUPURE   = "Pure";
@@ -3191,8 +3193,12 @@ public class Technology implements Comparable<Technology>, Serializable
 		protected Poly fillCutPoly(ImmutableNodeInst ni, int r)
 		{
         	EPoint size = niD.size;
-            long gridWidth = size.getGridX() + fullRectangle.getGridWidth();
-            long gridHeight = size.getGridY() + fullRectangle.getGridHeight();
+            long gridWidth = size.getGridX();
+            long gridHeight = size.getGridY();
+            if (!STANDARD_NODE_LAYER_POINTS) {
+                gridWidth +=  fullRectangle.getGridWidth();
+                gridHeight += fullRectangle.getGridHeight();
+            }
             TechPoint[] techPoints = tubeLayer.points;
             long lx = techPoints[0].getX().getGridAdder() + (long)(gridWidth*techPoints[0].getX().getMultiplier());
             long hx = techPoints[1].getX().getGridAdder() + (long)(gridWidth*techPoints[1].getX().getMultiplier());
@@ -3269,8 +3275,12 @@ public class Technology implements Comparable<Technology>, Serializable
         {
         	EPoint size = niD.size;
             assert cutLayer.representation == NodeLayer.MULTICUTBOX;
-            long gridWidth = size.getGridX() + fullRectangle.getGridWidth();
-            long gridHeight = size.getGridY() + fullRectangle.getGridHeight();
+            long gridWidth = size.getGridX();
+            long gridHeight = size.getGridY();
+            if (!STANDARD_NODE_LAYER_POINTS) {
+                gridWidth +=  fullRectangle.getGridWidth();
+                gridHeight += fullRectangle.getGridHeight();
+            }
             TechPoint[] techPoints = cutLayer.points;
             long lx = techPoints[0].getX().getGridAdder() + (long)(gridWidth*techPoints[0].getX().getMultiplier());
             long hx = techPoints[1].getX().getGridAdder() + (long)(gridWidth*techPoints[1].getX().getMultiplier());

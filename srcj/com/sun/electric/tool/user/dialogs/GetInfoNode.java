@@ -542,7 +542,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		if (!ni.isCellInstance())
 		{
 			PrimitiveNode pnp = (PrimitiveNode)np;
-			if (pnp.findMulticut() != null) multiCutNode = true;
+			multiCutNode = pnp.isMulticut();
+//			if (pnp.findMulticut() != null) multiCutNode = true;
 		}
 		if (multiCutNode)
 		{

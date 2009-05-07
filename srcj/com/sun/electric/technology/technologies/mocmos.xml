@@ -1952,6 +1952,11 @@
                 <lambdaBox klx="-2.0" khx="2.0" kly="2.5" khy="6.5"/>
             </box>
         </nodeLayer>
+        <nodeLayer layer="Active-Cut" style="FILLED" portNum="-1">
+            <multicutbox kly="1.0" sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="4.5" khy="4.5"/>
+            </multicutbox>
+        </nodeLayer>
         <nodeLayer layer="P-Active" style="FILLED" portNum="3">
             <box khy="-1.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="-7.0" khy="-2.0"/>
@@ -1961,6 +1966,11 @@
             <box khy="-1.0">
                 <lambdaBox klx="-2.0" khx="2.0" kly="-6.5" khy="-2.5"/>
             </box>
+        </nodeLayer>
+        <nodeLayer layer="Active-Cut" style="FILLED" portNum="-1">
+            <multicutbox khy="-1.0" sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="-4.5" khy="-4.5"/>
+            </multicutbox>
         </nodeLayer>
         <nodeLayer layer="P-Active" style="FILLED" portNum="-1">
             <box>
@@ -1980,16 +1990,6 @@
         <nodeLayer layer="P-Select" style="FILLED" portNum="-1">
             <box>
                 <lambdaBox klx="-4.5" khx="4.5" kly="-9.0" khy="9.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Active-Cut" style="FILLED" portNum="-1">
-            <box khx="-1.0" khy="-1.0">
-                <lambdaBox klx="-1.0" khx="1.0" kly="-5.5" khy="-3.5"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Active-Cut" style="FILLED" portNum="-1">
-            <box khx="-1.0" kly="1.0">
-                <lambdaBox klx="-1.0" khx="1.0" kly="3.5" khy="5.5"/>
             </box>
         </nodeLayer>
         <primitivePort name="poly-left">
@@ -2055,6 +2055,11 @@
                 <lambdaBox klx="-2.0" khx="2.0" kly="2.5" khy="6.5"/>
             </box>
         </nodeLayer>
+        <nodeLayer layer="Active-Cut" style="FILLED" portNum="-1">
+            <multicutbox kly="1.0" sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="4.5" khy="4.5"/>
+            </multicutbox>
+        </nodeLayer>
         <nodeLayer layer="N-Active" style="FILLED" portNum="3">
             <box khy="-1.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="-7.0" khy="-2.0"/>
@@ -2064,6 +2069,11 @@
             <box khy="-1.0">
                 <lambdaBox klx="-2.0" khx="2.0" kly="-6.5" khy="-2.5"/>
             </box>
+        </nodeLayer>
+        <nodeLayer layer="Active-Cut" style="FILLED" portNum="-1">
+            <multicutbox khy="-1.0" sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="-4.5" khy="-4.5"/>
+            </multicutbox>
         </nodeLayer>
         <nodeLayer layer="N-Active" style="FILLED" portNum="-1">
             <box>
@@ -2083,16 +2093,6 @@
         <nodeLayer layer="N-Select" style="FILLED" portNum="-1">
             <box>
                 <lambdaBox klx="-4.5" khx="4.5" kly="-9.0" khy="9.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Active-Cut" style="FILLED" portNum="-1">
-            <box khx="-1.0" khy="-1.0">
-                <lambdaBox klx="-1.0" khx="1.0" kly="-5.5" khy="-3.5"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Active-Cut" style="FILLED" portNum="-1">
-            <box khx="-1.0" kly="1.0">
-                <lambdaBox klx="-1.0" khx="1.0" kly="3.5" khy="5.5"/>
             </box>
         </nodeLayer>
         <primitivePort name="poly-left">

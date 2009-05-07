@@ -1616,11 +1616,12 @@ public class Connectivity
 		List<NodeInst> contactNodes = new ArrayList<NodeInst>();
 
 		// examine all vias/cuts for possible contacts
+        EditingPreferences ep = oldCell.getEditingPreferences();
 		int soFar = 0;
 		for (Layer layer : layers)
 		{
 			// compute the possible via nodes that this layer could become
-			List<PossibleVia> possibleVias = findPossibleVias(layer);
+			List<PossibleVia> possibleVias = findPossibleVias(layer, ep);
 
 			// make a list of all necessary layers
 			Set<Layer> layersToExamine = new HashSet<Layer>();
@@ -2124,7 +2125,7 @@ public class Connectivity
 	 * @param lay the cut/via layer to find.
 	 * @return a List of PossibleVia objects that use the layer as a contact.
 	 */
-	private List<PossibleVia> findPossibleVias(Layer lay)
+	private List<PossibleVia> findPossibleVias(Layer lay, EditingPreferences ep)
 	{
 		List<PossibleVia> possibleVias = new ArrayList<PossibleVia>();
 		for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); )
@@ -2228,10 +2229,12 @@ public class Connectivity
 			{
 				// create the PossibleVia to describe the geometry
 				pv.layers[fill] = geometricLayer(nLay.getLayer());
-				pv.shrinkL[fill] = scaleUp(pNp.getDefWidth() * (0.5 + nLay.getLeftEdge().getMultiplier()) + nLay.getLeftEdge().getAdder());
-				pv.shrinkR[fill] = scaleUp(pNp.getDefWidth() * (0.5 - nLay.getRightEdge().getMultiplier()) - nLay.getRightEdge().getAdder());
-				pv.shrinkT[fill] = scaleUp(pNp.getDefHeight() * (0.5 - nLay.getTopEdge().getMultiplier()) - nLay.getTopEdge().getAdder());
-				pv.shrinkB[fill] = scaleUp(pNp.getDefHeight() * (0.5 + nLay.getBottomEdge().getMultiplier()) + nLay.getBottomEdge().getAdder());
+                double sizeX = Technology.STANDARD_NODE_LAYER_POINTS ? pNp.getDefaultLambdaExtendX(ep)*2 : pNp.getDefWidth();
+                double sizeY = Technology.STANDARD_NODE_LAYER_POINTS ? pNp.getDefaultLambdaExtendY(ep)*2 : pNp.getDefHeight();
+				pv.shrinkL[fill] = scaleUp(sizeX * (0.5 + nLay.getLeftEdge().getMultiplier()) + nLay.getLeftEdge().getAdder());
+				pv.shrinkR[fill] = scaleUp(sizeX * (0.5 - nLay.getRightEdge().getMultiplier()) - nLay.getRightEdge().getAdder());
+				pv.shrinkT[fill] = scaleUp(sizeY * (0.5 - nLay.getTopEdge().getMultiplier()) - nLay.getTopEdge().getAdder());
+				pv.shrinkB[fill] = scaleUp(sizeY * (0.5 + nLay.getBottomEdge().getMultiplier()) + nLay.getBottomEdge().getAdder());
 				double ls = Math.max(Math.max(pv.shrinkL[fill], pv.shrinkR[fill]),
 					Math.max(pv.shrinkT[fill], pv.shrinkB[fill]));
 				if (fill == 0 || ls > pv.largestShrink) pv.largestShrink = ls;
@@ -2309,7 +2312,7 @@ public class Connectivity
 			}
 		}
 
-		Collections.sort(possibleVias, new ViasBySize());
+		Collections.sort(possibleVias, new ViasBySize(ep));
 		return possibleVias;
 	}
 
@@ -2318,35 +2321,41 @@ public class Connectivity
 	 */
 	private static class ViasBySize implements Comparator<PossibleVia>
 	{
+        private final EditingPreferences ep;
+
+        private ViasBySize(EditingPreferences ep) {
+            this.ep = ep;
+        }
+
 		public int compare(PossibleVia pv1, PossibleVia pv2)
 		{
 			double area1 = 0;
 			Technology.NodeLayer [] layers1 = pv1.pNp.getNodeLayers();
-			double wid = pv1.pNp.getDefWidth();
-			double hei = pv1.pNp.getDefHeight();
+			double sizeX = Technology.STANDARD_NODE_LAYER_POINTS ? pv1.pNp.getDefaultLambdaExtendX(ep)*2 : pv1.pNp.getDefWidth();
+			double sizeY = Technology.STANDARD_NODE_LAYER_POINTS ? pv1.pNp.getDefaultLambdaExtendY(ep)*2 : pv1.pNp.getDefHeight();
 			for(int i=0; i<layers1.length; i++)
 			{
 				Technology.NodeLayer nl = layers1[i];
 				if (nl.getLayer().getFunction().isSubstrate()) continue;
-				double lowX = nl.getLeftEdge().getMultiplier() * wid + nl.getLeftEdge().getAdder();
-				double highX = nl.getRightEdge().getMultiplier() * wid + nl.getRightEdge().getAdder();
-				double lowY = nl.getBottomEdge().getMultiplier() * hei + nl.getBottomEdge().getAdder();
-				double highY = nl.getTopEdge().getMultiplier() * hei + nl.getTopEdge().getAdder();
+				double lowX = nl.getLeftEdge().getMultiplier() * sizeX + nl.getLeftEdge().getAdder();
+				double highX = nl.getRightEdge().getMultiplier() * sizeX + nl.getRightEdge().getAdder();
+				double lowY = nl.getBottomEdge().getMultiplier() * sizeY + nl.getBottomEdge().getAdder();
+				double highY = nl.getTopEdge().getMultiplier() * sizeY + nl.getTopEdge().getAdder();
 				area1 += (highX-lowX) * (highY-lowY);
 			}
 
 			double area2 = 0;
 			Technology.NodeLayer [] layers2 = pv2.pNp.getNodeLayers();
-			wid = pv2.pNp.getDefWidth();
-			hei = pv2.pNp.getDefHeight();
+			sizeX = Technology.STANDARD_NODE_LAYER_POINTS ? pv2.pNp.getDefaultLambdaExtendX(ep)*2 : pv2.pNp.getDefWidth();
+			sizeY = Technology.STANDARD_NODE_LAYER_POINTS ? pv2.pNp.getDefaultLambdaExtendY(ep)*2 : pv2.pNp.getDefHeight();
 			for(int i=0; i<layers2.length; i++)
 			{
 				Technology.NodeLayer nl = layers2[i];
 				if (nl.getLayer().getFunction().isSubstrate()) continue;
-				double lowX = nl.getLeftEdge().getMultiplier() * wid + nl.getLeftEdge().getAdder();
-				double highX = nl.getRightEdge().getMultiplier() * wid + nl.getRightEdge().getAdder();
-				double lowY = nl.getBottomEdge().getMultiplier() * hei + nl.getBottomEdge().getAdder();
-				double highY = nl.getTopEdge().getMultiplier() * hei + nl.getTopEdge().getAdder();
+				double lowX = nl.getLeftEdge().getMultiplier() * sizeX + nl.getLeftEdge().getAdder();
+				double highX = nl.getRightEdge().getMultiplier() * sizeX + nl.getRightEdge().getAdder();
+				double lowY = nl.getBottomEdge().getMultiplier() * sizeY + nl.getBottomEdge().getAdder();
+				double highY = nl.getTopEdge().getMultiplier() * sizeY + nl.getTopEdge().getAdder();
 				area2 += (highX-lowX) * (highY-lowY);
 			}
 
