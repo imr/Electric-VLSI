@@ -379,8 +379,6 @@ public class UserInterfaceMain extends AbstractUserInterface
         // show the error
         if (showhigh)
         {
-//            Highlighter highlighter = null;
-//            EditWindow wnd = null;
             // in case multiple windows are involved in the action so all will be brought up
             // and properly terminated for display
             Map<EditWindow, Highlighter> hMap = new HashMap<EditWindow, Highlighter>();
@@ -408,7 +406,6 @@ public class UserInterfaceMain extends AbstractUserInterface
                     // make sure it is shown
                     EditWindow wnd = EditWindow.showEditWindowForCell(cell, eh.getVarContext());
                     // nothing clean yet
-//                    if (highlighter == null) {
                     if (hMap.get(wnd) == null)
                     {
                         highlighter = wnd.getHighlighter();
