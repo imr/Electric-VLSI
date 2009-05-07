@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+BUG: (5/7/09, GVG) NPE on EDIF import (Bug #2157)
+FIX: Creating the property value when booleans are detected
+
 IMP: (5/7/09, DN) Scalable transistors in mocmos use multicut NodeLayers.
 
 BUG: (5/6/09, DN) Those precision warnings in settings are back (Bug #2156).
