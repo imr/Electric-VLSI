@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+BUG: (5/8/09, SMR) EDIF input duplicates icons (Bug #2160).
+FIX: Ignore the icon if it is already there.  Also fixed curves.
+
 IMP/MAN: (5/8/09, GVG) Ability in TechEditorWizard to define layers different patterns (Bug #2169)
 
 BUG: ((5/8/09, SMR) NPE adjusting scroll bars (Bug #2155).

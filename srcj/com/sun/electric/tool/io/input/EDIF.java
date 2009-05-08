@@ -1612,14 +1612,14 @@ public class EDIF extends Input
 	}
 
 	/**
-	 * Method to create a new cell.
-	 * @param libName the name of the library in which the cell will be created
+	 * Method to find an existing cell.
+	 * @param libName the name of the library in which the cell resides
 	 * (null to use the current library).
 	 * @param name the name of the cell.
-	 * @param view the view name to create.
-	 * @return the newly created cell (or existing one if allowed).
+	 * @param view the view name of the cell.
+	 * @return the cell (null if it does not exist).
 	 */
-	private Cell createCell(String libName, String name, String view)
+	private Cell findCell(String libName, String name, String view)
 	{
 		Library lib = curLibrary;
 		if (libName != null)
@@ -1633,17 +1633,36 @@ public class EDIF extends Input
 			if (cell.getName().equalsIgnoreCase(name) &&
 				cell.getView().getAbbreviation().equalsIgnoreCase(view)) return cell;
 		}
-		Cell proto = null;
-		if (proto == null)
+		return null;
+	}
+
+	/**
+	 * Method to create a new cell.
+	 * @param libName the name of the library in which the cell will be created
+	 * (null to use the current library).
+	 * @param name the name of the cell.
+	 * @param view the view name to create.
+	 * @return the newly created cell (or existing one if allowed).
+	 */
+	private Cell createCell(String libName, String name, String view)
+	{
+		Cell proto = findCell(libName, name, view);
+		if (proto != null) return proto;
+
+		Library lib = curLibrary;
+		if (libName != null)
 		{
-			String cName = name;
-			if (view.length() > 0) cName += "{" + view + "}";
-			proto = Cell.makeInstance(lib, cName);
-			if (proto != null)
-			{
-				if (view.equals("ic")) proto.setWantExpanded();
-				builtCells.add(proto);
-			}
+			Library namedLib = Library.findLibrary(libName);
+			if (namedLib != null) lib = namedLib;
+		}
+
+		String cName = name;
+		if (view.length() > 0) cName += "{" + view + "}";
+		proto = Cell.makeInstance(lib, cName);
+		if (proto != null)
+		{
+			if (view.equals("ic")) proto.setWantExpanded();
+			builtCells.add(proto);
 		}
 		return proto;
 	}
@@ -1725,7 +1744,7 @@ public class EDIF extends Input
 
 	private String stripPercentEscapes(String x)
 	{
-		if (x.indexOf("%34%") >= 0) x = x.replaceFirst("%34%", "");
+		if (x.indexOf("%34%") >= 0) x = x.replaceAll("%34%", "\"");
 		return x;
 	}
 
@@ -2119,13 +2138,7 @@ public class EDIF extends Input
 				checkName();
 
 				// locate this in the list of cells
-				Cell proto = null;
-				for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
-				{
-					Cell cell = it.next();
-					if (cell.getName().equalsIgnoreCase(cellName) && cell.getView() == view)
-						{ proto = cell;   break; }
-				}
+				Cell proto = findCell(null, cellName, view.getAbbreviation());
 				if (proto == null)
 				{
 					// allocate the cell
@@ -2695,7 +2708,7 @@ public class EDIF extends Input
 								break;
 							}
 						}
-						curNode.newVar(Variable.newKey(varName), varValue, td);
+						curNode.newVar(Variable.newKey(varName), stripPercentEscapes(varValue.toString()), td);
 					}
 				}
 			}
@@ -2742,8 +2755,16 @@ public class EDIF extends Input
 			{
 				String viewName = "ic";
 				if (activeView == VMASKLAYOUT) viewName = "lay";
-				curCell = createCell(null, cellName, viewName);
-				if (curCell == null) throw new IOException("Error creating cell");
+				curCell = findCell(null, cellName, viewName);
+				if (curCell == null)
+				{
+					curCell = createCell(null, cellName, viewName);
+					if (curCell == null) throw new IOException("Error creating cell");
+				} else
+				{
+//					if (activeView == VGRAPHIC)		// TODO: latest change to prevent icon port duplication
+						ignoreBlock = true;
+				}
 				curCellPage = 0;
 				curCellParameterOff = 0;
 				inputLocY = outputLocY = 0;
@@ -4097,7 +4118,11 @@ public class EDIF extends Input
 		protected void pop()
 		{
 			if (keyStackDepth > 1 && (keyStack[keyStackDepth-1] == KPAGESIZE ||
-					keyStack[keyStackDepth-1] == KBOUNDINGBOX)) return;
+					keyStack[keyStackDepth-1] == KBOUNDINGBOX))
+			{
+				freePointList();
+				return;
+			}
 			if (curPoints.size() == 2)
 			{
 				// create the node instance
