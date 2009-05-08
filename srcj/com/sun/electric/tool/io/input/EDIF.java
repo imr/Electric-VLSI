@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -48,6 +47,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
+import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -62,7 +62,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.EDIFEquiv;
 import com.sun.electric.tool.routing.AutoStitch;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 
 import java.awt.geom.Point2D;
@@ -1739,7 +1738,23 @@ public class EDIF extends Input
 
 		// create the properties on the port
 		for (EDIFProperty property : plp.properties)
+		{
 			plp.createdPort.newVar(stripPercentEscapes(property.name), stripPercentEscapes(property.val.toString()));
+		}
+	}
+
+	private boolean isSpiceParameter(String x)
+	{
+		if (localPrefs.cadenceCompatibility)
+		{
+			int parPos = x.indexOf("pPar(");
+			if (parPos >= 0)
+			{
+				int closePos = x.indexOf(")", parPos);
+				if (closePos >= 0) return true;
+			}
+		}
+		return false;
 	}
 
 	private String stripPercentEscapes(String x)
@@ -2734,7 +2749,11 @@ public class EDIF extends Input
 								break;
 							}
 						}
-						curNode.newVar(Variable.newKey(varName), stripPercentEscapes(varValue.toString()), td);
+						String objStr = varValue.toString();
+						Object newV = stripPercentEscapes(objStr);
+						if (isSpiceParameter(objStr))
+			                newV = Variable.withCode(newV, CodeExpression.Code.SPICE);
+						curNode.newVar(Variable.newKey(varName), newV, td);
 					}
 				}
 			}
@@ -3041,7 +3060,13 @@ public class EDIF extends Input
 			for (EDIFProperty property : propertiesList)
 			{
 				if (curArc != null)
-					curArc.newVar(stripPercentEscapes(property.name), stripPercentEscapes(property.val.toString()));
+				{
+					String objStr = property.val.toString();
+					Object newV = stripPercentEscapes(objStr);
+					if (isSpiceParameter(objStr))
+		                newV = Variable.withCode(newV, CodeExpression.Code.SPICE);
+					curArc.newVar(stripPercentEscapes(property.name), newV);
+				}
 			}
 			propertiesList = new ArrayList<EDIFProperty>();
 			netReference = "";
