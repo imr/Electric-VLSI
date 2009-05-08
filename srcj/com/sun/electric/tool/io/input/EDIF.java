@@ -1744,7 +1744,33 @@ public class EDIF extends Input
 
 	private String stripPercentEscapes(String x)
 	{
-		if (x.indexOf("%34%") >= 0) x = x.replaceAll("%34%", "\"");
+		if (localPrefs.cadenceCompatibility)
+		{
+			boolean checkAgain = true;
+			while (checkAgain)
+			{
+				checkAgain = false;
+				int parPos = x.indexOf("pPar(");
+				if (parPos >= 0)
+				{
+					int closePos = x.indexOf(")", parPos);
+					if (closePos >= 0)
+					{
+						String par = x.substring(parPos+5, closePos);
+						if (par.startsWith("%34%") && par.endsWith("%34%"))
+							par = par.substring(4, par.length()-4);
+						x = x.substring(0, parPos) + "@" + par + x.substring(closePos+1);
+						checkAgain = true;
+						continue;						
+					}
+				}
+				if (x.indexOf("%34%") >= 0)
+				{
+					x = x.replaceAll("%34%", "\"");
+					checkAgain = true;
+				}
+			}
+		}
 		return x;
 	}
 
