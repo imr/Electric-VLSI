@@ -76,7 +76,7 @@ import java.util.TreeMap;
 public class JELIB extends Output {
     private boolean oldRevision;
     private Version version;
-    /** Project settings. */                                    private HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
+    /** Project preferences. */                                    private HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
 //    private Map<LibId,URL> libFiles;
 
     JELIB() {
@@ -571,7 +571,7 @@ public class JELIB extends Output {
 }
 
     /**
-     * Method to write the project settings on an object.
+     * Method to write the project preferences on an object.
      */
     private void printlnSettings(Map<Setting,Object> settings) {
         for (Map.Entry<Setting,Object> e: settings.entrySet()) {

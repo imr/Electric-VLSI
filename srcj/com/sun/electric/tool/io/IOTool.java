@@ -292,8 +292,8 @@ public class IOTool extends Tool
 	 */
 	public static boolean isUseCopyrightMessage() { return getUseCopyrightMessageSetting().getBoolean(); }
 	/**
-	 * Returns project Setting to tell whether to add the copyright message to output decks.
-	 * @return project Setting to tell whether to add the copyright message to output decks.
+	 * Returns project preferences to tell whether to add the copyright message to output decks.
+	 * @return project preferences to tell whether to add the copyright message to output decks.
 	 */
 	public static Setting getUseCopyrightMessageSetting() { return ToolSettings.getUseCopyrightMessageSetting(); }
 
@@ -304,8 +304,8 @@ public class IOTool extends Tool
 	 */
 	public static String getCopyrightMessage() { return getCopyrightMessageSetting().getString(); }
 	/**
-	 * Returns project Setting to tell the copyright message that will be added to output decks.
-	 * @return project Setting to tell the copyright message that will be added to output decks.
+	 * Returns project preferences to tell the copyright message that will be added to output decks.
+	 * @return project preferences to tell the copyright message that will be added to output decks.
 	 */
 	public static Setting getCopyrightMessageSetting() { return ToolSettings.getCopyrightMessageSetting(); }
 
@@ -1208,7 +1208,7 @@ public class IOTool extends Tool
 	 */
 	public static int getDXFScale() { return getDXFScaleSetting().getInt(); }
 	/**
-	 * Returns project Settings to tell the DXF scale.
+	 * Returns project preferences to tell the DXF scale.
 	 * The DXF scale is:
 	 * <UL>
 	 * <LI>-3: GigaMeters
@@ -1221,7 +1221,7 @@ public class IOTool extends Tool
 	 * <LI>4: PicoMeters
 	 * <LI>5: FemtoMeters
 	 * </UL>
-	 * @return project Settings to tell the DXF scale.
+	 * @return project preferences to tell the DXF scale.
 	 */
 	public static Setting getDXFScaleSetting() { return ToolSettings.getDXFScaleSetting(); }
 

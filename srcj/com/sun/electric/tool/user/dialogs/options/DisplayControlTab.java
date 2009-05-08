@@ -54,9 +54,9 @@ public class DisplayControlTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(alphaBlendingOvercolorLimit);
 	}
 
-	/** return the panel to use for this preferences tab. */
+	/** return the panel to use for the user preferences. */
     @Override
-	public JPanel getPreferencesPanel() { return general; }
+	public JPanel getUserPreferencesPanel() { return general; }
 
 	/** return the name of this preferences tab. */
     @Override

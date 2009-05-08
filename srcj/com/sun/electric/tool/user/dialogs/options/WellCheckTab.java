@@ -40,9 +40,9 @@ public class WellCheckTab extends PreferencePanel
 		initComponents();
 	}
 
-	/** return the panel to use for this preferences tab. */
+	/** return the panel to use for user preferences. */
     @Override
-	public JPanel getPreferencesPanel() { return wellCheck; }
+	public JPanel getUserPreferencesPanel() { return wellCheck; }
 
 	/** return the name of this preferences tab. */
     @Override

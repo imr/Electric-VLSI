@@ -60,11 +60,11 @@ public class NetworkTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(extractCellPattern);
 	}
 
-	/** return the JPanel to use for the preferences part of this tab. */
-	public JPanel getPreferencesPanel() { return preferences; }
+	/** return the JPanel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return preferences; }
 
-	/** return the JPanel to use for the project settings part of this tab. */
-	public JPanel getProjectSettingsPanel() { return projectSettings; }
+	/** return the JPanel to use for the project preferences. */
+	public JPanel getProjectPreferencesPanel() { return projectSettings; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Network"; }
@@ -93,7 +93,7 @@ public class NetworkTab extends PreferencePanel
 		extractCellPattern.setText(Extract.getCellExpandPattern());
 		extractFlattenPCells.setSelected(Extract.isFlattenPcells());
 
-		// project settings
+		// project preferences
 		netIgnoreResistors.setSelected(getBoolean(ignoreResistorsSetting));
 		generalIncludeDateAndVersion.setSelected(getBoolean(includeDateAndVersionInOutputSetting));
 
@@ -111,7 +111,7 @@ public class NetworkTab extends PreferencePanel
 
 	public void term()
 	{
-		// preferences
+		// user preferences
 		boolean nowBoolean = netAscending.isSelected();
 		if (NetworkTool.isBusAscending() != nowBoolean) NetworkTool.setBusAscending(nowBoolean);
 
@@ -139,7 +139,7 @@ public class NetworkTab extends PreferencePanel
 		nowBoolean = extractFlattenPCells.isSelected();
 		if (Extract.isFlattenPcells() != nowBoolean) Extract.setFlattenPcells(nowBoolean);
 
-		// project settings
+		// project preferences
         setBoolean(ignoreResistorsSetting, netIgnoreResistors.isSelected());
         setBoolean(includeDateAndVersionInOutputSetting, generalIncludeDateAndVersion.isSelected());
         setBoolean(useCopyrightMessageSetting, copyrightUse.isSelected());

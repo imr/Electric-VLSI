@@ -61,9 +61,9 @@ public class SiliconCompilerTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(minActiveDist);
 	}
 
-	/** return the panel to use for this preferences tab. */
+	/** return the panel to use for user preferences. */
     @Override
-	public JPanel getPreferencesPanel() { return siliconCompiler; }
+	public JPanel getUserPreferencesPanel() { return siliconCompiler; }
 
 	/** return the name of this preferences tab. */
     @Override

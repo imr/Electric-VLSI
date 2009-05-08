@@ -131,7 +131,7 @@ public class JELIB extends LibraryFiles
         realizeVariables(lib, parser.libVars);
         lib.setVersion(parser.version);
 
-        // Project settings
+        // Project preferences
         for (Map.Entry<TechId,Variable[]> e: parser.techIds.entrySet()) {
             TechId techId = e.getKey();
             Variable[] vars = e.getValue();

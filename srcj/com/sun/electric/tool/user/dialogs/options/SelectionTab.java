@@ -44,8 +44,8 @@ public class SelectionTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(selectionCancelMoveDelay);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return selection; }
+	/** return the panel to use for user preferences. */
+	public JPanel getUserPreferencesPanel() { return selection; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Selection"; }

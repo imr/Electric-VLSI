@@ -41,8 +41,8 @@ public class DaisTab extends PreferencePanel
 		initComponents();
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return dais; }
+	/** return the panel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return dais; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Dais"; }

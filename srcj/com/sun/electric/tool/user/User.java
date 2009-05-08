@@ -775,7 +775,7 @@ public class User extends Listener
 		}
 	}
 
-	/****************************** PROJECT SETTINGS *****************************************/
+	/****************************** PROJECT PREFERENCES *****************************************/
 
 	/**
 	 * Method to get default technique in Tech Palette.
@@ -784,8 +784,8 @@ public class User extends Listener
 	 */
 	public static String getDefaultTechnology() { return getDefaultTechnologySetting().getString(); }
 	/**
-	 * Returns project Setting to tell default technique in Tech Palette.
-	 * @return project Setting to tell default technique in Tech Palette.
+	 * Returns project preference to tell default technique in Tech Palette.
+	 * @return project preference to tell default technique in Tech Palette.
 	 */
 	public static Setting getDefaultTechnologySetting() { return ToolSettings.getDefaultTechnologySetting(); }
 
@@ -805,11 +805,11 @@ public class User extends Listener
 		return tech;
 	}
 	/**
-	 * Returns project Setting to tell the layout Technology to use when schematics are found.
+	 * Returns project preference to tell the layout Technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
 	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
 	 * numbers to real spacings for the deck.
-	 * @return project Setting to tell the Technology to use when schematics are found.
+	 * @return project preference to tell the Technology to use when schematics are found.
 	 */
 	public static Setting getSchematicTechnologySetting() { return ToolSettings.getSchematicTechnologySetting(); }
 
@@ -832,8 +832,8 @@ public class User extends Listener
 	 */
 	public static boolean isIncludeDateAndVersionInOutput() { return getIncludeDateAndVersionInOutputSetting().getBoolean(); }
 	/**
-	 * Returns project Setting to tell whether to include the date and Electric version in output files.
-	 * @return project Setting to tell whether to include the date and Electric version in output files.
+	 * Returns project preference to tell whether to include the date and Electric version in output files.
+	 * @return project preference to tell whether to include the date and Electric version in output files.
 	 */
 	public static Setting getIncludeDateAndVersionInOutputSetting() { return ToolSettings.getIncludeDateAndVersionInOutputSetting(); }
 
@@ -847,8 +847,8 @@ public class User extends Listener
 //	public static void setPWellProcessLayoutTechnology(boolean on) {getPWellProcessLayoutTechnologySetting().set(Boolean.valueOf(on));}
 
 	/**
-	 * Returns project Setting with additional technologies.
-	 * @return project Setting with additional technologies.
+	 * Returns project preference with additional technologies.
+	 * @return project preference with additional technologies.
 	 */
 	public static Setting getSoftTechnologiesSetting() { return ToolSettings.getSoftTechnologiesSetting(); }
 

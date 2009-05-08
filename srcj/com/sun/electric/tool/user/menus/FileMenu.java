@@ -143,7 +143,7 @@ public class FileMenu {
 			ToolBar.openLibraryCommand, // O
             openRecentLibs,
 
-		// mnemonic keys available:      F HIJ   NO QR   VW YZ
+		// mnemonic keys available:      F HI    NO QR   VW YZ
             new EMenu("_Import",
                 new EMenuItem("_CIF (Caltech Intermediate Format)...") { public void run() {
                     importLibraryCommand(FileType.CIF, false, true); }},
@@ -176,9 +176,9 @@ public class FileMenu {
                     importLibraryCommand(FileType.READABLEDUMP, false, false); }},
                 new EMenuItem("_Text Cell Contents...") { public void run() {
                     TextWindow.readTextCell(); }},
-                new EMenuItem("_Preferences...") { public void run() {
+                new EMenuItem("User _Preferences...") { public void run() {
                     importPrefsCommand(); }},
-                new EMenuItem("Project Settings...") { public void run() {
+                new EMenuItem("Pro_ject Preferences...") { public void run() {
                     ProjSettings.importSettings(); }},
                 new EMenuItem("XML Error Logger...") { public void run() {
                     ErrorLoggerTree.importLogger(); }}
@@ -196,7 +196,7 @@ public class FileMenu {
             new EMenuItem("Save All Libraries in _Format...") { public void run() {
                 if (checkInvariants()) saveAllLibrariesInFormatCommand(); }},
 
-		// mnemonic keys available:    D     J  M   Q   UVWVYZ
+		// mnemonic keys available:    D        M   Q   UVWVYZ
             new EMenu("_Export",
                 new EMenuItem("_CIF (Caltech Intermediate Format)...") { public void run() {
                     exportCommand(FileType.CIF, false); }},
@@ -235,9 +235,9 @@ public class FileMenu {
                     saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false, false); }},
                 new EMenuItem("_JELIB (Version 8.03)...") { public void run() {	// really since 8.04k
                     saveOldJelib(); }},
-                new EMenuItem("P_references...") { public void run() {
+                new EMenuItem("User P_references...") { public void run() {
                     exportPrefsCommand(); }},
-                new EMenuItem("Project Settings...") { public void run() {
+                new EMenuItem("Pro_ject Preferences...") { public void run() {
                     ProjSettings.exportSettings(); }}
             ),
 
@@ -556,7 +556,7 @@ public class FileMenu {
 				if (!deleteLib.kill("replace")) return false;
 				deleteLib = null;
 			}
-            // read project settings
+            // read project preferences
             if (projsettings != null)
                 ProjSettings.readSettings(projsettings, getDatabase(), false);
             HashSet<Library> oldLibs = new HashSet<Library>();

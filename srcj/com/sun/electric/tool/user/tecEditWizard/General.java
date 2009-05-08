@@ -221,7 +221,7 @@ public class General extends TechEditWizardPanel
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
         general.add(jLabel9, gridBagConstraints);
 
-        jLabel10.setText("the \"Added Technologies\" project settings.");
+        jLabel10.setText("the \"Added Technologies\" project preferences.");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;

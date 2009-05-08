@@ -84,8 +84,8 @@ public class CellModelTab extends PreferencePanel
             netlistFromLayout.setEnabled(false);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return chooserPanel; }
+	/** return the panel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return chooserPanel; }
 
 	/** return the name of this preferences tab. */
 	public String getName() {

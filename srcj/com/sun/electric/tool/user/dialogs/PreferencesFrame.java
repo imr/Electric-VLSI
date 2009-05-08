@@ -130,7 +130,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
 /**
- * Class to handle the "PreferencesFrame" dialog.
+ * Class to handle the "Preferences Frame" dialog.
  */
 public class PreferencesFrame extends EDialog
 {
@@ -150,7 +150,7 @@ public class PreferencesFrame extends EDialog
 	private static String staClass = "com.sun.electric.plugins.sctiming.STAOptionsDialog";
 
 	/**
-	 * This method implements the command to show the PreferencesFrame dialog.
+	 * This method implements the command to show the Preferences dialog.
 	 */
 	public static void preferencesCommand()
 	{
@@ -162,7 +162,7 @@ public class PreferencesFrame extends EDialog
 	}
 
 	/**
-	 * This method implements the command to show the PreferencesFrame dialog,
+	 * This method implements the command to show the Preferences dialog,
 	 * and chooses a panel.
 	 * @param tabName the name of the panel ("Grid", for example).
 	 * @param sectionName the name of the section in which the panel lives ("Display", for example).
@@ -174,12 +174,12 @@ public class PreferencesFrame extends EDialog
 		preferencesCommand();
 	}
 
-	/** Creates new form PreferencesFrame */
+	/** Creates new form Preferences Frame */
 	public PreferencesFrame(Frame parent)
 	{
 		super(parent, false);
 		getContentPane().setLayout(new GridBagLayout());
-		setTitle("Preferences and Project Settings");
+		setTitle("Preferences");
 		setName("");
 		addWindowListener(new WindowAdapter()
 		{
@@ -311,7 +311,7 @@ public class PreferencesFrame extends EDialog
 		// searching for selected node
 		openSelectedPath(rootNode);
 
-		// the left side of the preferences dialog: a tree
+		// the left side of the Preferences dialog: a tree
 		JPanel leftPanel = new JPanel();
 		leftPanel.setLayout(new GridBagLayout());
 
@@ -350,7 +350,7 @@ public class PreferencesFrame extends EDialog
 		});
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;   gbc.gridy = 2;
-		gbc.insets = new Insets(4, 4, 4, 4);
+		gbc.insets = new Insets(4, 4, 1, 4);
 		leftPanel.add(reset, gbc);
 
 		JButton resetAll = new JButton("Reset All");
@@ -360,10 +360,10 @@ public class PreferencesFrame extends EDialog
 		});
 		gbc = new GridBagConstraints();
 		gbc.gridx = 1;   gbc.gridy = 2;
-		gbc.insets = new Insets(4, 4, 4, 4);
+		gbc.insets = new Insets(4, 4, 1, 4);
 		leftPanel.add(resetAll, gbc);
 
-		JLabel explainReset = new JLabel("Reset only affects Preferences");
+		JLabel explainReset = new JLabel("(Only resets USER Preferences)");
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;   gbc.gridy = 3;
 		gbc.gridwidth = 2;
@@ -413,7 +413,7 @@ public class PreferencesFrame extends EDialog
 
 		getRootPane().setDefaultButton(ok);
 
-		// build preferences framework
+		// build Preferences framework
 		splitPane1 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 
@@ -522,7 +522,7 @@ public class PreferencesFrame extends EDialog
 
 		private OKUpdate(EDialog dialog, Setting.SettingChangeBatch changeBatch, boolean issueWarning)
 		{
-			super("Update Project Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Update Project Preferences", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
 			this.changeBatch = changeBatch;
 			this.issueWarning = issueWarning;
@@ -545,7 +545,7 @@ public class PreferencesFrame extends EDialog
 				if (ProjSettings.getLastProjectSettingsFile() != null)
 				{
 					Job.getUserInterface().showInformationMessage("Warning: These changes are only valid for this session of Electric."+
-						"\nTo save them permanently, use File -> Export -> Project Settings", "Saving Project Setting Changes");
+						"\nTo save them permanently, use File -> Export -> Project Preferences", "Saving Project Preferences Changes");
 				} else
 				{
 					// see if any libraries are not marked for saving
@@ -576,8 +576,8 @@ public class PreferencesFrame extends EDialog
 						  	markCurrent = 1;
 						  	saveSettings = 2;
 						}
-						int i = JOptionPane.showOptionDialog(dialog, "Warning: Changed settings must be saved to Library or Project Settings file.\nPlease choose which Libraries to mark for saving, or write project settings file:",
-							"Saving Project Setting Changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, defaultOption);
+						int i = JOptionPane.showOptionDialog(dialog, "Warning: Changed settings must be saved to Library or Project Preferences file.\nPlease choose which Libraries to mark for saving, or write project preferences file:",
+							"Saving Project Preferences Changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, defaultOption);
 						if (i == 0) {
 							CircuitChangeJobs.markAllLibrariesForSavingCommand();
 						} else if (i == markCurrent) {
@@ -697,12 +697,12 @@ public class PreferencesFrame extends EDialog
 					ti.init();
 					ti.setInited();
 				}
-				JPanel prefs = ti.getPreferencesPanel();
+				JPanel prefs = ti.getUserPreferencesPanel();
 				if (prefs == null) splitPane1.setRightComponent(null); else
 				{
 					JPanel pane = new JPanel();
 					pane.setLayout(new GridBagLayout());
-					JLabel prefLab = new JLabel(ti.getName() + " Preferences");
+					JLabel prefLab = new JLabel(ti.getName() + " USER Preferences");
 					prefLab.setForeground(Color.WHITE);
 					prefLab.setHorizontalTextPosition(JLabel.CENTER);
 					GridBagConstraints gbc = new GridBagConstraints();
@@ -725,12 +725,12 @@ public class PreferencesFrame extends EDialog
 					splitPane1.setRightComponent(pane);
 				}
 
-				JPanel ps = ti.getProjectSettingsPanel();
+				JPanel ps = ti.getProjectPreferencesPanel();
 				if (ps == null) splitPane2.setLeftComponent(null); else
 				{
 					JPanel pane = new JPanel();
 					pane.setLayout(new GridBagLayout());
-					JLabel prefLab = new JLabel(ti.getName() + " Project Settings");
+					JLabel prefLab = new JLabel(ti.getName() + " PROJECT Preferences");
 					prefLab.setForeground(Color.WHITE);
 					prefLab.setHorizontalTextPosition(JLabel.CENTER);
 					GridBagConstraints gbc = new GridBagConstraints();

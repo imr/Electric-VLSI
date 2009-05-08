@@ -510,8 +510,8 @@ public class MoCMOS extends Technology
 	 */
 	public boolean isSecondPolysilicon() { return paramUseSecondPolysilicon.booleanValue(); }
 	/**
-	 * Returns project Setting to tell a second polysilicon layer in this Technology.
-	 * @return project Setting to tell a second polysilicon layer in this Technology.
+	 * Returns project preferences to tell a second polysilicon layer in this Technology.
+	 * @return project preferences to tell a second polysilicon layer in this Technology.
 	 */
 	public Setting getSecondPolysiliconSetting() { return cacheSecondPolysilicon; }
 
@@ -524,8 +524,8 @@ public class MoCMOS extends Technology
 	 */
 	public boolean isDisallowStackedVias() { return paramDisallowStackedVias.booleanValue(); }
 	/**
-	 * Returns project Setting to tell whether this Technology disallows stacked vias.
-	 * @return project Setting to tell whether this Technology disallows stacked vias.
+	 * Returns project preferences to tell whether this Technology disallows stacked vias.
+	 * @return project preferences to tell whether this Technology disallows stacked vias.
 	 */
 	public Setting getDisallowStackedViasSetting() { return cacheDisallowStackedVias; }
 
@@ -538,8 +538,8 @@ public class MoCMOS extends Technology
 	 */
 	public boolean isAlternateActivePolyRules() { return paramUseAlternativeActivePolyRules.booleanValue(); }
 	/**
-	 * Returns project Setting to tell whether this Technology is using alternate Active and Poly contact rules.
-	 * @return project Setting to tell whether this Technology is using alternate Active and Poly contact rules.
+	 * Returns project preferences to tell whether this Technology is using alternate Active and Poly contact rules.
+	 * @return project preferences to tell whether this Technology is using alternate Active and Poly contact rules.
 	 */
 	public Setting getAlternateActivePolyRulesSetting() { return cacheAlternateActivePolyRules; }
 
@@ -552,8 +552,8 @@ public class MoCMOS extends Technology
 	 */
 	public boolean isAnalog() { return paramAnalog.booleanValue(); }
 	/**
-	 * Returns project Setting to tell whether this technology has layers for vertical NPN transistor pbase.
-	 * @return project Setting to tell whether this technology has layers for vertical NPN transistor pbase.
+	 * Returns project preferences to tell whether this technology has layers for vertical NPN transistor pbase.
+	 * @return project preferences to tell whether this technology has layers for vertical NPN transistor pbase.
 	 */
 	public Setting getAnalogSetting() { return cacheAnalog; }
 

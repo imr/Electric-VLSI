@@ -51,7 +51,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
 
 /**
- * Class to handle the "Project Setting Reconcile" dialog.
+ * Class to handle the "Project Preferences Reconcile" dialog.
  */
 public class OptionReconcile extends EDialog
 {
@@ -99,7 +99,7 @@ public class OptionReconcile extends EDialog
         return true;
     }
 
-	/** Creates new form Project Settings Reconcile */
+	/** Creates new form Project Preferences Reconcile */
 	private OptionReconcile(Frame parent, Map<Setting,Object> originalSettings, Map<Setting,Object> settingsThatChanged, String libname, ReadLibrary job)
 	{
 		super(parent, true);
@@ -228,7 +228,7 @@ public class OptionReconcile extends EDialog
 			rowNumber++;
 		}
 
-		optionHeader.setText("Library \""+libname+"\" wants to use the following project settings which differ from the current project settings");
+		optionHeader.setText("Library \""+libname+"\" wants to use the following project preferences which differ from the current project preferences");
 		pack();
 		finishInitialization();
 	}
@@ -275,7 +275,7 @@ public class OptionReconcile extends EDialog
 
 		private DoReconciliation(Map<Setting,Object> settingsToReconcile, ReadLibrary job)
 		{
-			super("Reconcile Project Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Reconcile Project Preferences", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.job = job;
 			for (Map.Entry<Setting,Object> e: settingsToReconcile.entrySet())
 			{
@@ -325,7 +325,7 @@ public class OptionReconcile extends EDialog
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setTitle("Project Setting Reconciliation");
+        setTitle("Project Preferences Reconciliation");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter()
         {
@@ -363,7 +363,7 @@ public class OptionReconcile extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(optionPane, gridBagConstraints);
 
-        optionHeader.setText("The new Project Settings are different from the current Project Settings:");
+        optionHeader.setText("The new Project Preferences are different from the current Project Preferences:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;

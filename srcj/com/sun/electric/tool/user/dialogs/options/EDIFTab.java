@@ -52,8 +52,8 @@ public class EDIFTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(edifConfigFile);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return edif; }
+	/** return the panel to use for user preferences. */
+	public JPanel getUserPreferencesPanel() { return edif; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "EDIF"; }

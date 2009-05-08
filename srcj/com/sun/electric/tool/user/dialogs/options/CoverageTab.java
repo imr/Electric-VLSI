@@ -66,9 +66,9 @@ public class CoverageTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(deltaYField);
 	}
 
-	/** return the panel to use for this preferences tab. */
+	/** return the panel to use for the user preferences. */
     @Override
-	public JPanel getPreferencesPanel() { return layerCoverage; }
+	public JPanel getUserPreferencesPanel() { return layerCoverage; }
 
 	/** return the name of this preferences tab. */
     @Override

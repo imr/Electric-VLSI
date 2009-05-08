@@ -93,9 +93,9 @@ public class ThreeDTab extends PreferencePanel
 		initComponents();
 	}
 
-	/** return the panel to use for this preferences tab. */
+	/** return the panel to use for user preferences. */
     @Override
-	public JPanel getPreferencesPanel() { return threeD; }
+	public JPanel getUserPreferencesPanel() { return threeD; }
 
 	/** return the name of this preferences tab. */
     @Override

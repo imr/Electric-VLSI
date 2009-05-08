@@ -65,10 +65,10 @@ public class AddedTechnologiesTab extends PreferencePanel
 		initComponents();
 	}
 
-	/** return the JPanel to use for the project settings part of this tab. */
-	public JPanel getProjectSettingsPanel() { return addedTechnologies; }
+	/** return the JPanel to use for the project preferences part of this tab. */
+	public JPanel getProjectPreferencesPanel() { return addedTechnologies; }
 
-	/** return the name of this Preferences tab. */
+	/** return the name of this Project Preferences tab. */
 	public String getName() { return "Added Technologies"; }
 
     /**

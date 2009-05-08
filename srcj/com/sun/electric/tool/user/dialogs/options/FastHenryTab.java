@@ -54,8 +54,8 @@ public class FastHenryTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(fhMaxSegmentLength);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return fastHenry; }
+	/** return the panel to use for user preferences. */
+	public JPanel getUserPreferencesPanel() { return fastHenry; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Fast Henry"; }

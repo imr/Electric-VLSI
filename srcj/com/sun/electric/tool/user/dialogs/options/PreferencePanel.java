@@ -60,11 +60,11 @@ public class PreferencePanel extends EDialog
 		this.parent = parent;
 	}
 
-	/** return the JPanel to use for the preferences part of this tab. */
-	public JPanel getPreferencesPanel() { return null; }
+	/** return the JPanel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return null; }
 
-	/** return the JPanel to use for the project settings part of this tab. */
-	public JPanel getProjectSettingsPanel() { return null; }
+	/** return the JPanel to use for the project preferences. */
+	public JPanel getProjectPreferencesPanel() { return null; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return ""; }

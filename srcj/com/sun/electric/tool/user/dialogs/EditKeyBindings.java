@@ -94,7 +94,7 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
 
     // -------------------------- Preference Panel Stuff -----------------------
 
-    public JPanel getPreferencesPanel() {
+    public JPanel getUserPreferencesPanel() {
         return editKeyBindingsPanel;
     }
 

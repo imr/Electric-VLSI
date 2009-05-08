@@ -1,47 +1,48 @@
-<!-- HEADER 6-3: Preferences and Project Settings -->
+<!-- HEADER 6-3: Preferences -->
 
 <!-- COMMAND File/Preferences... -->
-<!-- COMMAND File/Export/Preferences... -->
-<!-- COMMAND File/Export/Project Settings... -->
-<!-- COMMAND File/Import/Preferences... -->
-<!-- COMMAND File/Import/Project Settings... -->
+<!-- COMMAND File/Export/User Preferences... -->
+<!-- COMMAND File/Export/Project Preferences... -->
+<!-- COMMAND File/Import/User Preferences... -->
+<!-- COMMAND File/Import/Project Preferences... -->
 
 <TABLE><TR><TD><CENTER><IMG SRC="fig06-07.png" ALT="Figure 6.7"></CENTER></TD><TD>
-There are two commands for controlling settings in Electric: <B>Preferences...</B> and <B>Project Settings...</B>
-(both in menu <B>File</B>.  You can also get Preferences with this icon on the tool bar.
+All preferences in Electric are controlled with the <B>Preferences...</B> command (in menu <B>File</B>).
+You can also get Preferences with this icon on the tool bar.
 </TD></TR></TABLE>
 <P>
-These two dialogs contain many panels for controlling different aspects of the system.
-The differences between these two dialogs is:
+Theis dialog has two panels for controlling different aspects of the system.
+The differences between these two panels is:
 <UL>
-<LI><B>Preferences</B> affect the user's interaction with the system.
+<LI><B>User Preferences</B> affect the user's interaction with the system.
 Examples are printer control, display colors, and keyboard bindings.
 Each user may have different preferences, and it does not impact the design being done.</LI>
-<LI><B>Project Settings</B> affect the actual circuitry being edited
+<LI><B>Project Preferences</B> affect the actual circuitry being edited
 (and so should be the same for every user who is editing that circuitry).
 Examples are GDS layer mappings and technology scaling.</LI>
 </UL>
 <P>
 <CENTER><IMG SRC="fig06-24.png" ALT="Figure 6.24"></CENTER>
 <P>
-The left side of the Preferences or Project Settings dialog is a tree-structured list of all of its
+The center of the Preferences dialog is a tree-structured list of all of its
 different panels.
-The right side is the actual panel, which changes according to the panel requested.
-Both panels have a "Help" button which takes you to the proper manual page that explains the panel.
+The left and right sides are the actual panels, with the User Preferences appearing on the right
+and the Project Preferences appearing on the left.
+If a particular preference has no User or Project part, that panel does not appear.
+Use the "Help" button to see the page in the user's manual that explains the current panel.
 <P>
-The Project Settings dialog is modal, meaning that nothing else can be done while the dialog is
-shown, and it must be closed before resuming work.
 The Preferences dialog is modeless, meaning that it can remain on the screen while other work is done.
-For this reason, the Preferences dialog has an "Apply" button so that changes can be made without dismissing
+For this reason, the dialog has an "Apply" button so that changes can be made without dismissing
 the dialog.
 The Preferences dialog also has "Export" and "Import" buttons for saving Preferences to an XML file
 (this function is also available from the <B>File / Import</B> and <B>File / Export</B> menus).
-Finally, the Preferences dialog has a "Reset" button for resetting the current Preferences panel to its
-factory-default state, and a "Reset All" button for resetting all Preferences to their factory-default state.
+Finally, the Preferences dialog has a "Reset" button for resetting the current User Preferences panel to its
+factory-default state, and a "Reset All" button for resetting all User Preferences to their factory-default state.
+Note that Project Preferences are not affected by the reset buttons.
 <P>
 <H4>Where Preferences Are Stored</H4>
 <P>
-Preferences are stored permanently on your computer and are remembered each time you run Electric.
+User Preferences are stored permanently on your computer and are remembered each time you run Electric.
 The actual location of this information varies with each operating system.
 <UL>
 <LI><B>Windows:</B>
@@ -63,23 +64,21 @@ These will write an XML file with preference information.
 This XML file can be read back into Electric's preferences with the
 "Import" button, or with the <B>Preferences...</B> command (in menu <B>File / Import</B>).
 <P>
-<H4>Where Project Settings Are Stored</H4>
-<P>
-Project settings are stored permanently on your computer in the same place as Preferences.
+Project Preferences are stored permanently on your computer in the same place as User Preferences.
 However, they are also saved with your circuitry so that the values will be correct when
 the circuits are read back in.
 <P>
-By default, project settings are saved in each library that is saved to disk.
+By default, project preferences are saved in each library that is saved to disk.
 However, for multiple-library projects, this can be troublesome if some libraries have
-different settings than others.
+different preferences than others.
 The solution is to create a file, in the same directory as the libraries, called "projsettings.xml".
-If this file exists, then settings are taken from it (and ignored if found in the libraries).
-To write this file, use the <B>Project Settings...</B> command (in menu <B>File / Export</B>).
+If this file exists, then preferences are taken from it (and ignored if found in the libraries).
+To write this file, use the <B>Project Preferences...</B> command (in menu <B>File / Export</B>).
 To override current settings and explicitly read a project settings file, use the
-<B>Project Settings...</B> command (in menu <B>File / Import</B>).
+<B>Project Preferences...</B> command (in menu <B>File / Import</B>).
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig07-19.png" ALT="Figure 7.19"></CENTER></TD><TD>
-When Electric finds Project Settings that are inconsistent with the current values, this dialog appears.
+When Electric finds Project Preferences that are inconsistent with the current values, this dialog appears.
 You must choose whether you want to use the new setting values (recommended)
 or the current setting.
 This can be done on an individual basis, or for all settings that conflict.

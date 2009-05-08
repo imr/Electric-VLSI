@@ -165,7 +165,7 @@ public abstract class TechFactory {
         	} else
         	{
         		System.out.println("WARNING: could not find added technology: " + softTechFile);
-        		System.out.println("  (fix this error in the 'Added Technologies' Project Settings)");
+        		System.out.println("  (fix this error in the 'Added Technologies' Project Preferences)");
         	}
         }
         return Collections.unmodifiableMap(m);

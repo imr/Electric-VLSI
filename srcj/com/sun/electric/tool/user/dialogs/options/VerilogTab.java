@@ -30,7 +30,7 @@ import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import javax.swing.JPanel;
 
 /**
- * Class to handle the "Verilog" tab of the Project Settings dialog.
+ * Class to handle the "Verilog" tab of the Project Preferences dialog.
  */
 public class VerilogTab extends PreferencePanel
 {
@@ -44,11 +44,11 @@ public class VerilogTab extends PreferencePanel
 		initComponents();
 	}
 
-	/** return the JPanel to use for the preferences part of this tab. */
-	public JPanel getPreferencesPanel() { return preferences; }
+	/** return the JPanel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return preferences; }
 
-	/** return the JPanel to use for the project settings part of this tab. */
-	public JPanel getProjectSettingsPanel() { return projectSettings; }
+	/** return the JPanel to use for the project Preferences. */
+	public JPanel getProjectPreferencesPanel() { return projectSettings; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Verilog"; }
@@ -59,12 +59,12 @@ public class VerilogTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		// preferences
+		// user preferences
 		stopAtStandardCells.setSelected(Simulation.getVerilogStopAtStandardCells());
 		preserveVerilogFormatting.setSelected(Simulation.getPreserveVerilogFormating());
 		parameterizeModuleNames.setSelected(Simulation.getVerilogParameterizeModuleNames());
 
-		// project settings
+		// project preferences
 		verUseAssign.setSelected(getBoolean(verilogUseAssignSetting));
 		verDefWireTrireg.setSelected(getBoolean(verilogUseTriregSetting));
 	}
@@ -75,7 +75,7 @@ public class VerilogTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		// preferences
+		// user preferences
 		boolean nowBoolean = stopAtStandardCells.isSelected();
 		Simulation.setVerilogStopAtStandardCells(nowBoolean);
 
@@ -85,7 +85,7 @@ public class VerilogTab extends PreferencePanel
 		nowBoolean = parameterizeModuleNames.isSelected();
 		Simulation.setVerilogParameterizeModuleNames(nowBoolean);
 
-		// project settings
+		// project preferences
         setBoolean(verilogUseAssignSetting, verUseAssign.isSelected());
         setBoolean(verilogUseTriregSetting, verDefWireTrireg.isSelected());
 	}
@@ -95,7 +95,7 @@ public class VerilogTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		// preferences
+		// user preferences
 		if (Simulation.getFactoryVerilogStopAtStandardCells() != Simulation.getVerilogStopAtStandardCells())
 			Simulation.setVerilogStopAtStandardCells(Simulation.getFactoryVerilogStopAtStandardCells());
 		if (Simulation.getFactoryPreserveVerilogFormating() != Simulation.getPreserveVerilogFormating())

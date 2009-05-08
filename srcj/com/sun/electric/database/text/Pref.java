@@ -907,7 +907,7 @@ public class Pref {
 //        TreeMap<String,Setting> sortedSettings = new TreeMap<String,Setting>();
 //        for (Setting setting: settings.keySet())
 //            sortedSettings.put(setting.getXmlPath(), setting);
-//        out.println("PROJECT SETTINGS");
+//        out.println("PROJECT PREFERENCES");
 //        int i = 0;
 //        for (Setting setting: sortedSettings.values())
 //            out.println((i++) + "\t" + setting.getXmlPath() + " " + settings.get(setting));

@@ -42,30 +42,30 @@ class AbstractToolSettings {
 public class ToolSettings extends AbstractToolSettings {
 
 	/**
-	 * Returns project Setting Group of a tool.
+	 * Returns project preference Group of a tool.
      * @param groupName name of a Setting Group
-	 * @return project Setting Group of a tool.
+	 * @return project preference Group of a tool.
 	 */
     public static Setting.Group getToolSettings(String groupName) {
         return t.rootSettingGroup.node(groupName);
     }
 
 	/**
-	 * Returns project Setting to tell default technique in Tech Palette.
-	 * @return project Setting to tell default technique in Tech Palette.
+	 * Returns project preference to tell default technique in Tech Palette.
+	 * @return project preference to tell default technique in Tech Palette.
 	 */
 	public static Setting getDefaultTechnologySetting() { return t.cacheDefaultTechnology; }
 	/**
-	 * Returns project Setting to tell the layout Technology to use when schematics are found.
+	 * Returns project preference to tell the layout Technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
 	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
 	 * numbers to real spacings for the deck.
-	 * @return project Setting to tell the Technology to use when schematics are found.
+	 * @return project preference to tell the Technology to use when schematics are found.
 	 */
 	public static Setting getSchematicTechnologySetting() { return t.cacheSchematicTechnology; }
 	/**
-	 * Returns project Setting to tell whether to include the date and Electric version in output files.
-	 * @return project Setting to tell whether to include the date and Electric version in output files.
+	 * Returns project preference to tell whether to include the date and Electric version in output files.
+	 * @return project preference to tell whether to include the date and Electric version in output files.
 	 */
 	public static Setting getIncludeDateAndVersionInOutputSetting() { return t.cacheIncludeDateAndVersionInOutput; }
 	/**
@@ -75,27 +75,27 @@ public class ToolSettings extends AbstractToolSettings {
 	 */
 	public static Setting getPWellProcessLayoutTechnologySetting() {return t.cachePWellProcess;}
 	/**
-	 * Returns project Setting with additional technologies.
-	 * @return project Setting with additional technologies.
+	 * Returns project preference with additional technologies.
+	 * @return project preference with additional technologies.
 	 */
 	public static Setting getSoftTechnologiesSetting() { return t.cacheSoftTechnologies; }
 
 	/**
-	 * Returns project Setting to tell whether resistors are ignored in the circuit.
+	 * Returns project preference to tell whether resistors are ignored in the circuit.
 	 * When ignored, they appear as a "short", connecting the two sides.
 	 * When included, they appear as a component with different networks on either side.
-	 * Returns project Setting to tell whether resistors are ignored in the circuit.
+	 * Returns project preference to tell whether resistors are ignored in the circuit.
 	 */
 	public static Setting getIgnoreResistorsSetting() { return t.cacheIgnoreResistors; }
 
     /**
-	 * Returns project Setting to tell whether to add the copyright message to output decks.
-	 * @return project Setting to tell whether to add the copyright message to output decks.
+	 * Returns project preference to tell whether to add the copyright message to output decks.
+	 * @return project preference to tell whether to add the copyright message to output decks.
 	 */
 	public static Setting getUseCopyrightMessageSetting() { return t.cacheUseCopyrightMessage; }
 	/**
-	 * Returns project Setting to tell the copyright message that will be added to output decks.
-	 * @return project Setting to tell the copyright message that will be added to output decks.
+	 * Returns project preference to tell the copyright message that will be added to output decks.
+	 * @return project preference to tell the copyright message that will be added to output decks.
 	 */
 	public static Setting getCopyrightMessageSetting() { return t.cacheCopyrightMessage; }
 	/**
@@ -165,7 +165,7 @@ public class ToolSettings extends AbstractToolSettings {
 	 */
 	public static Setting getGDSInputScaleSetting() { return t.cacheGDSInputScale; }
 	/**
-	 * Returns project Settings to tell the DXF scale.
+	 * Returns project preference to tell the DXF scale.
 	 * The DXF scale is:
 	 * <UL>
 	 * <LI>-3: GigaMeters
@@ -178,33 +178,33 @@ public class ToolSettings extends AbstractToolSettings {
 	 * <LI>4: PicoMeters
 	 * <LI>5: FemtoMeters
 	 * </UL>
-	 * @return project Settings to tell the DXF scale.
+	 * @return project preference to tell the DXF scale.
 	 */
 	public static Setting getDXFScaleSetting() { return t.cacheDXFScale; }
 
 	/**
-	 * Returns project Setting to tell whether to use local settings for Logical Effort
-	 * @return project Setting to tell whether to use local settings for Logical Effort
+	 * Returns project preference to tell whether to use local settings for Logical Effort
+	 * @return project preference to tell whether to use local settings for Logical Effort
 	 */
 	public static Setting getUseLocalSettingsSetting() { return t.cacheUseLocalSettings; }
 	/**
-     * Returns project Setting to tell the Global Fanout for Logical Effort.
-     * @return project Setting to tell the Global Fanout for Logical Effort.
+     * Returns project preference to tell the Global Fanout for Logical Effort.
+     * @return project preference to tell the Global Fanout for Logical Effort.
 	 */
 	public static Setting getGlobalFanoutSetting() { return t.cacheGlobalFanout; }
 	/**
-	 * Returns project Setting to tell the Convergence Epsilon value for Logical Effort.
-	 * @return project Setting to tell the Convergence Epsilon value for Logical Effort.
+	 * Returns project preference to tell the Convergence Epsilon value for Logical Effort.
+	 * @return project preference to tell the Convergence Epsilon value for Logical Effort.
 	 */
 	public static Setting getConvergenceEpsilonSetting() { return t.cacheConvergenceEpsilon; }
 	/**
-	 * Returns project Setting to tell the maximum number of iterations for Logical Effort.
-	 * @return project Setting to tell the maximum number of iterations for Logical Effort.
+	 * Returns project preference to tell the maximum number of iterations for Logical Effort.
+	 * @return project preference to tell the maximum number of iterations for Logical Effort.
 	 */
 	public static Setting getMaxIterationsSetting() { return t.cacheMaxIterations; }
 	/**
-	 * Returns project Setting to tell the keeper size ratio for Logical Effort.
-	 * @return project Setting to tell the keeper size ratio for Logical Effort.
+	 * Returns project preference to tell the keeper size ratio for Logical Effort.
+	 * @return project preference to tell the keeper size ratio for Logical Effort.
 	 */
 	public static Setting getKeeperRatioSetting() { return t.cacheKeeperRatio; }
 
@@ -333,7 +333,7 @@ public class ToolSettings extends AbstractToolSettings {
     }
 
 	/**
-	 * Factory methods to create a boolean project setting objects.
+	 * Factory methods to create a boolean project preference objects.
      * The created object is stored into a field of this Tool whose name is "cache"+name.
 	 * @param name the name of this Pref.
 	 * @param location the user-command that can affect this meaning option.
@@ -347,7 +347,7 @@ public class ToolSettings extends AbstractToolSettings {
     }
 
 	/**
-	 * Factory methods to create an integer project setting objects.
+	 * Factory methods to create an integer project preference objects.
      * The created object is stored into a field of this Tool whose name is "cache"+name.
 	 * @param name the name of this Pref.
 	 * @param location the user-command that can affect this meaning option.
@@ -361,7 +361,7 @@ public class ToolSettings extends AbstractToolSettings {
     }
 
 	/**
-	 * Factory methods to create a long project setting objects.
+	 * Factory methods to create a long project preference objects.
      * The created object is stored into a field of this Tool whose name is "cache"+name.
 	 * @param name the name of this Pref.
 	 * @param location the user-command that can affect this meaning option.
@@ -375,7 +375,7 @@ public class ToolSettings extends AbstractToolSettings {
     }
 
 	/**
-	 * Factory methods to create a double project setting objects.
+	 * Factory methods to create a double project preference objects.
      * The created object is stored into a field of this Tool whose name is "cache"+name.
 	 * @param name the name of this Pref.
 	 * @param location the user-command that can affect this meaning option.
@@ -389,7 +389,7 @@ public class ToolSettings extends AbstractToolSettings {
     }
 
 	/**
-	 * Factory methods to create a string project setting objects.
+	 * Factory methods to create a string project preference objects.
      * The created object is stored into a field of this Tool whose name is "cache"+name.
 	 * @param name the name of this Pref.
 	 * @param location the user-command that can affect this meaning option.

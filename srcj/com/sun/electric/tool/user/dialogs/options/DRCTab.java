@@ -44,9 +44,9 @@ public class DRCTab extends PreferencePanel
 		initComponents();
 	}
 
-	/** return the panel to use for this preferences tab. */
+	/** return the panel to use for the user preferences. */
     @Override
-	public JPanel getPreferencesPanel() { return drc; }
+	public JPanel getUserPreferencesPanel() { return drc; }
 
 	/** return the name of this preferences tab. */
     @Override

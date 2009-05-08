@@ -80,11 +80,11 @@ public class GDSTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(gdsInputScale);
 	}
 
-	/** return the JPanel to use for the preferences part of this tab. */
-	public JPanel getPreferencesPanel() { return preferences; }
+	/** return the JPanel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return preferences; }
 
-	/** return the JPanel to use for the project settings part of this tab. */
-	public JPanel getProjectSettingsPanel() { return projectSettings; }
+	/** return the JPanel to use for the project preferences. */
+	public JPanel getProjectPreferencesPanel() { return projectSettings; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "GDS"; }
@@ -95,7 +95,7 @@ public class GDSTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		// preferences
+		// user preferences
         gdsConvertNCCExportsConnectedByParentPins.setSelected(IOTool.getGDSConvertNCCExportsConnectedByParentPins());
         gdsInputMergesBoxes.setSelected(IOTool.isGDSInMergesBoxes());
 		gdsInputIncludesText.setSelected(IOTool.isGDSInIncludesText());
@@ -112,7 +112,7 @@ public class GDSTab extends PreferencePanel
         gdsArraySimplification.addItem("Merge all arrays");
         gdsArraySimplification.setSelectedIndex(IOTool.getGDSArraySimplification());
 
-        // project settings
+        // project preferences
 		gdsOutputMergesBoxes.setSelected(getBoolean(gdsOutMergesBoxesSetting));
 		gdsOutputWritesExportPins.setSelected(getBoolean(gdsOutWritesExportPinsSetting));
 		gdsOutputUpperCase.setSelected(getBoolean(gdsOutUpperCaseSetting));
@@ -166,7 +166,7 @@ public class GDSTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		// preferences
+		// user preferences
 		boolean currentValue = gdsConvertNCCExportsConnectedByParentPins.isSelected();
         if (currentValue != IOTool.getGDSConvertNCCExportsConnectedByParentPins())
             IOTool.setGDSConvertNCCExportsConnectedByParentPins(currentValue);
@@ -196,7 +196,7 @@ public class GDSTab extends PreferencePanel
         if (currentI != IOTool.getGDSArraySimplification())
         	IOTool.setGDSArraySimplification(currentI);
 
-        // project settings
+        // project preferences
         setBoolean(gdsOutMergesBoxesSetting, gdsOutputMergesBoxes.isSelected());
         setBoolean(gdsOutWritesExportPinsSetting, gdsOutputWritesExportPins.isSelected());
         setBoolean(gdsOutUpperCaseSetting, gdsOutputUpperCase.isSelected());
@@ -211,7 +211,7 @@ public class GDSTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		// preferences
+		// user preferences
 		if (IOTool.getFactoryGDSConvertNCCExportsConnectedByParentPins() != IOTool.getGDSConvertNCCExportsConnectedByParentPins())
 			IOTool.setGDSConvertNCCExportsConnectedByParentPins(IOTool.getFactoryGDSConvertNCCExportsConnectedByParentPins());
 		if (IOTool.isFactoryGDSInMergesBoxes() != IOTool.isGDSInMergesBoxes())

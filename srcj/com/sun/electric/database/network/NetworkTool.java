@@ -336,7 +336,7 @@ public class NetworkTool extends Tool
 		System.out.println("NetworkTool.init()");
 	}
 
-	/************************* PROJECT SETTINGS **************************/
+	/************************* PROJECT PREFERENCES **************************/
 
     /**
 	 * Method to tell whether resistors are ignored in the circuit.
@@ -347,10 +347,10 @@ public class NetworkTool extends Tool
 	public static boolean isIgnoreResistors() { return getIgnoreResistorsSetting().getBoolean(); }
 	private static Netlist.ShortResistors isIgnoreResistors_() { return Netlist.ShortResistors.NO; }
 	/**
-	 * Returns project Setting to tell whether resistors are ignored in the circuit.
+	 * Returns project preferences to tell whether resistors are ignored in the circuit.
 	 * When ignored, they appear as a "short", connecting the two sides.
 	 * When included, they appear as a component with different networks on either side.
-	 * Returns project Setting to tell whether resistors are ignored in the circuit.
+	 * Returns project preferences to tell whether resistors are ignored in the circuit.
 	 */
 	public static Setting getIgnoreResistorsSetting() { return ToolSettings.getIgnoreResistorsSetting(); }
 

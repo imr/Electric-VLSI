@@ -45,8 +45,8 @@ public class CDLTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(cdlLibraryPath);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return cdl; }
+	/** return the panel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return cdl; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "CDL"; }

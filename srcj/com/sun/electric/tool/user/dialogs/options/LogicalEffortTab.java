@@ -39,7 +39,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 /**
- * Class to handle the "Logical Effort" tab of the Project Settings dialog.
+ * Class to handle the "Logical Effort" tab of the Project Preferences dialog.
  */
 public class LogicalEffortTab extends PreferencePanel
 {
@@ -59,11 +59,11 @@ public class LogicalEffortTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(leDiffToGateCapRatio);
 	}
 
-	/** return the JPanel to use for the preferences part of this tab. */
-	public JPanel getPreferencesPanel() { return null; }
+	/** return the JPanel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return null; }
 
-	/** return the JPanel to use for the project settings part of this tab. */
-	public JPanel getProjectSettingsPanel() { return logicalEffort; }
+	/** return the JPanel to use for the project preferences. */
+	public JPanel getProjectPreferencesPanel() { return logicalEffort; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Logical Effort"; }
@@ -364,7 +364,7 @@ public class LogicalEffortTab extends PreferencePanel
         getContentPane().add(logicalEffort, new java.awt.GridBagConstraints());
 
         jLabel2.setFont(new java.awt.Font("Tahoma", 1, 11));
-        jLabel2.setText("All values here are Project Settings");
+        jLabel2.setText("All values here are Project Preferences");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 10;

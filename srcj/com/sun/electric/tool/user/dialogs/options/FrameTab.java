@@ -57,8 +57,8 @@ public class FrameTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(frameLibraryProject);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return frame; }
+	/** return the panel to use for user preferences. */
+	public JPanel getUserPreferencesPanel() { return frame; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Frame"; }

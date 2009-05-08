@@ -71,11 +71,11 @@ public class ParasiticTab extends PreferencePanel {
 	    EDialog.makeTextFieldSelectAllOnTab(gateLengthSubtraction);
 	}
 
-	/** return the JPanel to use for the preferences part of this tab. */
-	public JPanel getPreferencesPanel() { return preferences; }
+	/** return the JPanel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return preferences; }
 
-	/** return the JPanel to use for the project settings part of this tab. */
-	public JPanel getProjectSettingsPanel() { return projectSettings; }
+	/** return the JPanel to use for the project preferences. */
+	public JPanel getProjectPreferencesPanel() { return projectSettings; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Parasitic"; }
@@ -86,7 +86,7 @@ public class ParasiticTab extends PreferencePanel {
 	 */
 	public void init()
 	{
-		// preferences
+		// user preferences
 		verboseNaming.setSelected(Simulation.isParasiticsUseVerboseNaming());
 		backannotateLayout.setSelected(Simulation.isParasiticsBackAnnotateLayout());
 		extractPowerGround.setSelected(Simulation.isParasiticsExtractPowerGround());
@@ -103,7 +103,7 @@ public class ParasiticTab extends PreferencePanel {
 		maxDistValue.setText(TextUtils.formatDistance(ParasiticTool.getMaxDistance()));
 		parasiticPanel.setVisible(false);
 		
-		// project settings
+		// project preferences
 		changing = false;
 		layerListModel = new DefaultListModel();
 		layerList = new JList(layerListModel);
@@ -170,7 +170,7 @@ public class ParasiticTab extends PreferencePanel {
 	 */
 	public void reset()
 	{
-		// preferences
+		// user preferences
 		if (Simulation.isFactoryParasiticsUseVerboseNaming() != Simulation.isParasiticsUseVerboseNaming())
 			Simulation.setParasiticsUseVerboseNaming(Simulation.isFactoryParasiticsUseVerboseNaming());
 		if (Simulation.isFactoryParasiticsBackAnnotateLayout() != Simulation.isParasiticsBackAnnotateLayout())

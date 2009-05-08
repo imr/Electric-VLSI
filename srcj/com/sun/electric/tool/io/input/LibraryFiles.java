@@ -110,7 +110,7 @@ public abstract class LibraryFiles extends Input
 	/** the path to the library being read. */                              protected static String mainLibDirectory = null;
 	/** collection of libraries and their input objects. */					private static List<LibraryFiles> libsBeingRead;
     /** collection of undefined Nodes/Technologies */                       static Map<TechId, Set<PrimitiveNodeId>> undefinedTechsAndPrimitives;
-    /** Project settings from library file. */                              HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
+    /** Project preferences from library file. */                              HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
 	protected static final boolean VERBOSE = false;
 	protected static final double TINYDISTANCE = DBMath.getEpsilon()*2;
 
@@ -159,7 +159,7 @@ public abstract class LibraryFiles extends Input
 	/**
 	 * Method to read a Library from disk.
 	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
-     * This method doesn't read project settings contained in library file.
+     * This method doesn't read project preferences contained in library file.
 	 * @param fileURL the URL to the disk file.
 	 * @param libName the name to give the library (null to derive it from the file path)
 	 * @param type the type of library file (ELIB, JELIB, etc.)
@@ -173,12 +173,12 @@ public abstract class LibraryFiles extends Input
 	/**
 	 * Method to read a Library from disk.
 	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
-     * This method doesn't read project settings contained in library file.
+     * This method doesn't read project preferences contained in library file.
 	 * @param fileURL the URL to the disk file.
 	 * @param libName the name to give the library (null to derive it from the file path)
 	 * @param type the type of library file (ELIB, JELIB, etc.)
 	 * @param quick true to read the library without verbosity (used when reading a library internally).
-	 * @param projectSettings an output map which is filled by project settings of top library
+	 * @param projectSettings an output map which is filled by project preferences of top library
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick, Map<Setting,Object> projectSettings) {
@@ -272,7 +272,7 @@ public abstract class LibraryFiles extends Input
 	{
 		if (fileURL == null) return null;
 		long startTime = System.currentTimeMillis();
-        errorLogger = ErrorLogger.newInstance("Library Read Project Settings");
+        errorLogger = ErrorLogger.newInstance("Library Read Project Preferences");
 
 		Library lib = null;
         StringBuffer errmsg = new StringBuffer();
@@ -733,7 +733,7 @@ public abstract class LibraryFiles extends Input
 	}
 
 	/**
-	 * Method to read project settings from a Library.
+	 * Method to read project preferences from a Library.
 	 * This method is never called.
 	 * Instead, it is always overridden by the appropriate read subclass.
 	 * @return true on error.

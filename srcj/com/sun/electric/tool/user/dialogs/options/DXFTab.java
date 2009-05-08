@@ -51,11 +51,11 @@ public class DXFTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(dxfLayerName);
 	}
 
-	/** return the JPanel to use for the preferences part of this tab. */
-	public JPanel getPreferencesPanel() { return preferences; }
+	/** return the JPanel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return preferences; }
 
-	/** return the JPanel to use for the project settings part of this tab. */
-	public JPanel getProjectSettingsPanel() { return projectSettings; }
+	/** return the JPanel to use for the project preferences part of this tab. */
+	public JPanel getProjectPreferencesPanel() { return projectSettings; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "DXF"; }
@@ -66,11 +66,11 @@ public class DXFTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		// preferences
+		// user preferences
 		dxfInputFlattensHierarchy.setSelected(IOTool.isDXFInputFlattensHierarchy());
 		dxfInputReadsAllLayers.setSelected(IOTool.isDXFInputReadsAllLayers());
 
-		// project settings
+		// project preferences
         dxfLayerName.setText(getString(artworkDXFLayerSetting));
 
 		// initialize the scale popup
@@ -86,7 +86,7 @@ public class DXFTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		// preferences
+		// user preferences
 		boolean currentValue = dxfInputFlattensHierarchy.isSelected();
 		if (currentValue != IOTool.isDXFInputFlattensHierarchy())
 			IOTool.setDXFInputFlattensHierarchy(currentValue);
@@ -95,7 +95,7 @@ public class DXFTab extends PreferencePanel
 		if (currentValue != IOTool.isDXFInputReadsAllLayers())
 			IOTool.setDXFInputReadsAllLayers(currentValue);
 
-		// project settings
+		// project preferences
         setString(artworkDXFLayerSetting, dxfLayerName.getText());
         setInt(dxfScaleSetting, scales[dxfScale.getSelectedIndex()].getIndex());
 	}
@@ -105,7 +105,7 @@ public class DXFTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		// preferences
+		// user preferences
 		if (IOTool.isFactoryDXFInputFlattensHierarchy() != IOTool.isDXFInputFlattensHierarchy())
 			IOTool.setDXFInputFlattensHierarchy(IOTool.isFactoryDXFInputFlattensHierarchy());
 		if (IOTool.isFactoryDXFInputReadsAllLayers() != IOTool.isDXFInputReadsAllLayers())

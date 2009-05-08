@@ -61,8 +61,8 @@ public class UnitsTab extends PreferencePanel
 		initComponents();
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return units; }
+	/** return the panel to use for user preferences. */
+	public JPanel getUserPreferencesPanel() { return units; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Units"; }

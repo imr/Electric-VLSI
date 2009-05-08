@@ -68,8 +68,8 @@ public class DesignRulesTab extends PreferencePanel
         designRules.add(rulesPanel, gridBagConstraints);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return designRules; }
+	/** return the panel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return designRules; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Design Rules"; }

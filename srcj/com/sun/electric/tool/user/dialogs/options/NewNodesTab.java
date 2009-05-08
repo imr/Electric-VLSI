@@ -58,9 +58,9 @@ public class NewNodesTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(nodePrimitiveYSize);
 	}
 
-	/** return the panel to use for this preferences tab. */
+	/** return the panel to use for user preferences. */
     @Override
-	public JPanel getPreferencesPanel() { return newNode; }
+	public JPanel getUserPreferencesPanel() { return newNode; }
 
 	/** return the name of this preferences tab. */
     @Override

@@ -89,11 +89,11 @@ public class TechnologyTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(vhdlNegatedName);
 	}
 
-	/** return the JPanel to use for the preferences part of this tab. */
-	public JPanel getPreferencesPanel() { return preferences; }
+	/** return the JPanel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return preferences; }
 
-	/** return the JPanel to use for the project settings part of this tab. */
-	public JPanel getProjectSettingsPanel() { return projectSettings; }
+	/** return the JPanel to use for the project preferences. */
+	public JPanel getProjectPreferencesPanel() { return projectSettings; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Technology"; }
@@ -135,7 +135,7 @@ public class TechnologyTab extends PreferencePanel
 		vhdlNegatedName.getDocument().addDocumentListener(new SchemPrimDocumentListener(this));
 		schemClickPrim();
 
-		// MOCMOS Project Settings
+		// MOCMOS Project preferences
 		int initialTechRules = getInt(mocmosRuleSetSetting);
 		if (initialTechRules == MOCMOS_SCMOSRULES) techMOCMOSSCMOSRules.setSelected(true); else
 			if (initialTechRules == MOCMOS_SUBMRULES) techMOCMOSSubmicronRules.setSelected(true); else
@@ -152,7 +152,7 @@ public class TechnologyTab extends PreferencePanel
 		techMOCMOSAlternateContactRules.setSelected(getBoolean(mocmosAlternateActivePolyRulesSetting));
 		techMOCMOSAnalog.setSelected(getBoolean(mocmosAnalogSetting));
 
-		// Technology Project Settings
+		// Technology Project preferences
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
@@ -200,7 +200,7 @@ public class TechnologyTab extends PreferencePanel
 		}
         putPrefs(vp);
 
-		// MOCMOS Project Settings
+		// MOCMOS Project preferences
 		int currentNumMetals = techMetalLayers.getSelectedIndex() + 2;
 		int currentRules = MOCMOS_SCMOSRULES;
 		if (techMOCMOSSubmicronRules.isSelected()) currentRules = MOCMOS_SUBMRULES; else
@@ -254,7 +254,7 @@ public class TechnologyTab extends PreferencePanel
 		setBoolean(mocmosAlternateActivePolyRulesSetting,alternateContactRules);
 		setBoolean(mocmosAnalogSetting, techMOCMOSAnalog.isSelected());
 
-		// Technology Project Settings
+		// Technology Project preferences
 		String currentTechName = (String)technologyPopup.getSelectedItem();
 		if (Technology.findTechnology(currentTechName) != null)
 			setString(schematicTechnologySetting, currentTechName);

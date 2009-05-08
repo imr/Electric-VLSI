@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+IMP/MAN: (5/8/09, SMR) Renamed "Project Settings" to be "Project Preferences" and now
+     call "preferences" the "User Preferences".
+
 IMP: (5/8/09, SMR) EDIF now converts "pPar()" to "@" (Bug #2167).
 
 BUG: (5/8/09, SMR) EDIF input duplicates icons (Bug #2160).

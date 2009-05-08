@@ -70,7 +70,7 @@ public class JThreeDTab extends ThreeDTab
 	}
 
     @Override
-	public JPanel getPreferencesPanel() { return threeD; }
+	public JPanel getUserPreferencesPanel() { return threeD; }
 
 	private boolean initial3DTextChanging = false;
 	protected JList threeDLayerList;

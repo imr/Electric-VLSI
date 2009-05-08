@@ -202,9 +202,9 @@ public class Foundry {
     }
 
     /**
-     * Method to return the map from Layers of Foundry's technology to project settings
+     * Method to return the map from Layers of Foundry's technology to project preferences
      * which define their GDS names in this foundry.
-     * @return the map from Layers to project Setting with their GDS names
+     * @return the map from Layers to project preferences with their GDS names
      */
     public Setting getGDSLayerSetting(Layer layer) {
         if (layer.getTechnology() != tech)

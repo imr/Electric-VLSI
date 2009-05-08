@@ -2,7 +2,7 @@
 
 <Form version="1.0" type="org.netbeans.modules.form.forminfo.JDialogFormInfo">
   <Properties>
-    <Property name="title" type="java.lang.String" value="Project Setting Reconciliation"/>
+    <Property name="title" type="java.lang.String" value="Project Preferences Reconciliation"/>
     <Property name="name" type="java.lang.String" value=""/>
   </Properties>
   <SyntheticProperties>
@@ -53,7 +53,7 @@
     </Container>
     <Component class="javax.swing.JLabel" name="optionHeader">
       <Properties>
-        <Property name="text" type="java.lang.String" value="The new Project Settings are different from the current Project Settings:"/>
+        <Property name="text" type="java.lang.String" value="The new Project Preferences are different from the current Project Preferences:"/>
       </Properties>
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

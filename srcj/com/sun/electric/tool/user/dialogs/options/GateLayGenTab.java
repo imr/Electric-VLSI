@@ -75,9 +75,9 @@ public class GateLayGenTab extends PreferencePanel
         simpleNameCheck.setSelected(getBoolean(simpleNameSetting));
     }
     
-    /** return the panel to use for this preferences tab. */
+    /** return the panel to use for user preferences. */
     @Override
-    public JPanel getPreferencesPanel() {return (JPanel) getContentPane();}
+    public JPanel getUserPreferencesPanel() {return (JPanel) getContentPane();}
     
     /** return the name of this preferences tab. */
     @Override

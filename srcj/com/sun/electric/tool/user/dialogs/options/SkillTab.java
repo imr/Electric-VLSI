@@ -57,11 +57,11 @@ public class SkillTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(skillLayerName);
 	}
 
-	/** return the JPanel to use for the preferences part of this tab. */
-	public JPanel getPreferencesPanel() { return preferences; }
+	/** return the JPanel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return preferences; }
 
-	/** return the JPanel to use for the project settings part of this tab. */
-	public JPanel getProjectSettingsPanel() { return projectSettings; }
+	/** return the JPanel to use for the project preferences. */
+	public JPanel getProjectPreferencesPanel() { return projectSettings; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Skill"; }
@@ -72,7 +72,7 @@ public class SkillTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		// project settings
+		// project preferences
 		skillLayerModel = new DefaultListModel();
 		skillLayerList = new JList(skillLayerModel);
 		skillLayerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -94,7 +94,7 @@ public class SkillTab extends PreferencePanel
 		skillClickLayer();
 		skillLayerName.getDocument().addDocumentListener(new LayerDocumentListener(this));
 
-		// preferences
+		// user preferences
 		skillNoSubCells.setSelected(IOTool.isSkillExcludesSubcells());
 		skillFlattenHierarchy.setSelected(IOTool.isSkillFlattensHierarchy());
         skillGDSNameLimit.setSelected(IOTool.isSkillGDSNameLimit());

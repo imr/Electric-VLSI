@@ -1054,8 +1054,8 @@ public class Layer implements Serializable
 	 */
 	public double getDistance() { return layer3DDistanceSetting.getDouble(); }
 	/**
-	 * Returns project Setting to tell the distance of this layer.
-	 * @return project Setting to tell the distance of this layer.
+	 * Returns project preferences to tell the distance of this layer.
+	 * @return project preferences to tell the distance of this layer.
 	 */
 	public Setting getDistanceSetting() { return layer3DDistanceSetting; }
 
@@ -1066,8 +1066,8 @@ public class Layer implements Serializable
 	 */
 	public double getThickness() { return layer3DThicknessSetting.getDouble(); }
 	/**
-	 * Returns project Setting to tell the thickness of this layer.
-	 * @return project Setting to tell the thickness of this layer.
+	 * Returns project preferences to tell the thickness of this layer.
+	 * @return project preferences to tell the thickness of this layer.
 	 */
 	public Setting getThicknessSetting() { return layer3DThicknessSetting; }
 
@@ -1094,8 +1094,8 @@ public class Layer implements Serializable
 	 */
 	public String getCIFLayer() { return cifLayerSetting.getString(); }
 	/**
-	 * Returns project Setting to tell the CIF name of this Layer.
-	 * @return project Setting to tell the CIF name of this Layer.
+	 * Returns project preferences to tell the CIF name of this Layer.
+	 * @return project preferences to tell the CIF name of this Layer.
 	 */
 	public Setting getCIFLayerSetting() { return cifLayerSetting; }
 
@@ -1160,8 +1160,8 @@ public class Layer implements Serializable
 		return dxfLayerSetting.getString();
 	}
 	/**
-	 * Returns project Setting to tell the DXF name of this Layer.
-	 * @return project Setting to tell the DXF name of this Layer.
+	 * Returns project preferences to tell the DXF name of this Layer.
+	 * @return project preferences to tell the DXF name of this Layer.
 	 */
     public Setting getDXFLayerSetting() { return dxfLayerSetting; }
 
@@ -1179,8 +1179,8 @@ public class Layer implements Serializable
 	 */
 	public String getSkillLayer() { return skillLayerSetting.getString(); }
 	/**
-	 * Returns project Setting to tell the Skill name of this Layer.
-	 * @return project Setting to tell the Skill name of this Layer.
+	 * Returns project preferences to tell the Skill name of this Layer.
+	 * @return project preferences to tell the Skill name of this Layer.
 	 */
 	public Setting getSkillLayerSetting() { return skillLayerSetting; }
 
@@ -1220,8 +1220,8 @@ public class Layer implements Serializable
 	 */
 	public double getResistance() { return resistanceSetting.getDouble(); }
 	/**
-	 * Returns project Setting to tell the resistance for this Layer.
-	 * @return project Setting to tell the resistance for this Layer.
+	 * Returns project preferences to tell the resistance for this Layer.
+	 * @return project preferences to tell the resistance for this Layer.
 	 */
 	public Setting getResistanceSetting() { return resistanceSetting; }
 
@@ -1231,8 +1231,8 @@ public class Layer implements Serializable
 	 */
 	public double getCapacitance() { return capacitanceSetting.getDouble(); }
 	/**
-	 * Returns project Setting to tell the capacitance for this Layer.
-	 * Returns project Setting to tell the capacitance for this Layer.
+	 * Returns project preferences to tell the capacitance for this Layer.
+	 * Returns project preferences to tell the capacitance for this Layer.
 	 */
 	public Setting getCapacitanceSetting() { return capacitanceSetting; }
 
@@ -1242,8 +1242,8 @@ public class Layer implements Serializable
 	 */
 	public double getEdgeCapacitance() { return edgeCapacitanceSetting.getDouble(); }
     /**
-     * Returns project Setting to tell the edge capacitance for this Layer.
-     * Returns project Setting to tell the edge capacitance for this Layer.
+     * Returns project preferences to tell the edge capacitance for this Layer.
+     * Returns project preferences to tell the edge capacitance for this Layer.
      */
     public Setting getEdgeCapacitanceSetting() { return edgeCapacitanceSetting; }
 

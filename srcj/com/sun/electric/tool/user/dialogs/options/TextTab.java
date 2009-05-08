@@ -69,9 +69,9 @@ public class TextTab extends PreferencePanel
 		EDialog.makeTextFieldSelectAllOnTab(textWindowScale);
 	}
 
-	/** return the panel to use for this preferences tab. */
+	/** return the panel to use for user preferences. */
 	@Override
-	public JPanel getPreferencesPanel() { return text; }
+	public JPanel getUserPreferencesPanel() { return text; }
 
 	/** return the name of this preferences tab. */
 	@Override

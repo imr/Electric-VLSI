@@ -59,8 +59,8 @@ public class AntennaRulesTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(antMaxRatio);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return antennaRules; }
+	/** return the panel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return antennaRules; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Antenna Rules"; }

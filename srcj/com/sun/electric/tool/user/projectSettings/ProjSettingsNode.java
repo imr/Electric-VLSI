@@ -30,12 +30,12 @@ import java.util.Stack;
 import java.util.TreeSet;
 
 /**
- * A basic class to hold information on project settings.
+ * A basic class to hold information on project preferences.
  * This node holds key-value pairs, who values are typically
  * restricted to a few primitive types, and other ProjSettingNodes.
  * <P>
  * This class may be used as is, or may be extended to provide additional,
- * more specific methods for setting/getting project settings.
+ * more specific methods for setting/getting project preferences.
  * Only settings accessible by this class' methods will be
  * written to disk.
  * Additionally, the extended class must be public, so that it can be
@@ -108,7 +108,7 @@ class ProjSettingsNode implements Serializable {
 //        data.put(key, setting);
 //
 //        if (previousVal != null && !equal(previousVal, setting)) {
-//            System.out.println("Warning: For key "+key+": project setting value of "+previousVal+" overrides default of "+setting.getValue());
+//            System.out.println("Warning: For key "+key+": project preferences value of "+previousVal+" overrides default of "+setting.getValue());
 //            setting.set(previousVal);
 //        }
 //    }
@@ -139,7 +139,7 @@ class ProjSettingsNode implements Serializable {
     }
 
 //    private void prIllegalRequestError(String key) {
-//        System.out.println("ERROR! Project Settings key conflict: "+key);
+//        System.out.println("ERROR! Project Preferences key conflict: "+key);
 //    }
 
     // ----------------------------- Protected --------------------------------

@@ -218,17 +218,7 @@ public class ManualViewer extends EModelessDialog
 	}
 
 	/**
-	 * Method to show the help page for a particular panel in the "Project Settings" dialog.
-	 * @param preference the panel name, of the form "section/panel".
-	 * For example, the "CIF" panel in the "I/O" section will be named "I/O/CIF".
-	 */
-	public static void showProjectSettingHelp(String preference)
-	{
-		showSettingHelp("PROJ", preference);
-	}
-
-	/**
-	 * Internal method to show Preferences or Project Settings help.
+	 * Internal method to show Preferences help.
 	 * @param str the help page requested.
 	 */
 	private static void showSettingHelp(String dialog, String str)

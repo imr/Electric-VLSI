@@ -48,8 +48,8 @@ public class CVSTab extends PreferencePanel {
 	    EDialog.makeTextFieldSelectAllOnTab(cvsProgram);
     }
 
-    /** return the panel to use for this preferences tab. */
-    public JPanel getPreferencesPanel() { return cvsPanel; }
+    /** return the panel to use for the user preferences. */
+    public JPanel getUserPreferencesPanel() { return cvsPanel; }
 
     /** return the name of this preferences tab. */
     public String getName() { return "CVS"; }

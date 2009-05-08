@@ -62,9 +62,9 @@ public class NewArcsTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(arcAngle);
 	}
 
-	/** return the panel to use for this preferences tab. */
+	/** return the panel to use for user preferences. */
     @Override
-	public JPanel getPreferencesPanel() { return newArc; }
+	public JPanel getUserPreferencesPanel() { return newArc; }
 
 	/** return the name of this preferences tab. */
     @Override

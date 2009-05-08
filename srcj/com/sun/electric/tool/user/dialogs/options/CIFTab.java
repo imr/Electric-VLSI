@@ -67,11 +67,11 @@ public class CIFTab extends PreferencePanel
 		EDialog.makeTextFieldSelectAllOnTab(cifLayer);
 	}
 
-	/** return the JPanel to use for the preferences part of this tab. */
-	public JPanel getPreferencesPanel() { return preferences; }
+	/** return the JPanel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return preferences; }
 
-	/** return the JPanel to use for the project settings part of this tab. */
-	public JPanel getProjectSettingsPanel() { return projSettings; }
+	/** return the JPanel to use for the project preferences. */
+	public JPanel getProjectPreferencesPanel() { return projSettings; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "CIF"; }
@@ -82,10 +82,10 @@ public class CIFTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		// preferences
+		// user preferences
 		cifInputSquaresWires.setSelected(IOTool.isCIFInSquaresWires());
 
-		// project settings
+		// project preferences
 		cifOutputMimicsDisplay.setSelected(getBoolean(cifOutMimicsDisplaySetting));
 		cifOutputMergesBoxes.setSelected(getBoolean(cifOutMergesBoxesSetting));
 		cifOutputInstantiatesTopLevel.setSelected(getBoolean(cifOutInstantiatesTopLevleSetting));
@@ -120,12 +120,12 @@ public class CIFTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		// preferences
+		// user preferences
 		boolean currentValue = cifInputSquaresWires.isSelected();
 		if (currentValue != IOTool.isCIFInSquaresWires())
 			IOTool.setCIFInSquaresWires(currentValue);
 
-		// project settings
+		// project preferences
 		setBoolean(cifOutMimicsDisplaySetting, cifOutputMimicsDisplay.isSelected());
 		setBoolean(cifOutMergesBoxesSetting, cifOutputMergesBoxes.isSelected());
 		setBoolean(cifOutInstantiatesTopLevleSetting, cifOutputInstantiatesTopLevel.isSelected());
@@ -137,7 +137,7 @@ public class CIFTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		// preferences
+		// user preferences
 		if (IOTool.isFactoryCIFInSquaresWires() != IOTool.isCIFInSquaresWires())
 			IOTool.setCIFInSquaresWires(IOTool.isFactoryCIFInSquaresWires());
 	}

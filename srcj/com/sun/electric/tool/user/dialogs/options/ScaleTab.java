@@ -39,7 +39,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 /**
- * Class to handle the "Scale" tab of the Project Settings dialog.
+ * Class to handle the "Scale" tab of the Project Preferences dialog.
  */
 public class ScaleTab extends PreferencePanel
 {
@@ -53,8 +53,8 @@ public class ScaleTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(unitsScaleValue);
 	}
 
-	/** return the JPanel to use for the project settings part of this tab. */
-	public JPanel getProjectSettingsPanel() { return scale; }
+	/** return the JPanel to use for the project preferences part of this tab. */
+	public JPanel getProjectPreferencesPanel() { return scale; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Scale"; }
@@ -223,7 +223,7 @@ public class ScaleTab extends PreferencePanel
         scale.add(unitsAlternateScale, gridBagConstraints);
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 11));
-        jLabel1.setText("NOTE: All scale values are Project Settings");
+        jLabel1.setText("NOTE: All scale values are Project Preferences");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;

@@ -5,7 +5,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.ToolSettings;
 
 /**
- * Constains project settings for the gate layout generator
+ * Constains project preferences for the gate layout generator
  */
 public class GateLayGenSettings extends Tool {
 	public static GateLayGenSettings tool = new GateLayGenSettings();

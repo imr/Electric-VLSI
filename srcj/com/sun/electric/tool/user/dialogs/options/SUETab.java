@@ -39,8 +39,8 @@ public class SUETab extends PreferencePanel
 		initComponents();
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return sue; }
+	/** return the panel to use for user preferences. */
+	public JPanel getUserPreferencesPanel() { return sue; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "SUE"; }

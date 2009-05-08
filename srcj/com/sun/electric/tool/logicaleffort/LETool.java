@@ -1129,10 +1129,10 @@ public class LETool extends Tool {
     }
 */
 
-	/************************** PROJECT SETTINGS *************************/
+	/************************** PROJECT PREFERENCES *************************/
 
 //	// preferences; tech-dependent values handled by technology and
-    // project settings
+    // project preferences
     private static double DEFAULT_GLOBALFANOUT = 4.7;
     private static double DEFAULT_EPSILON      = 0.001;
     private static int    DEFAULT_MAXITER      = 30;
@@ -1148,8 +1148,8 @@ public class LETool extends Tool {
 	 */
 	public static boolean isUseLocalSettings() { return getUseLocalSettingsSetting().getBoolean(); }
 	/**
-	 * Returns project Setting to tell whether to use local settings for Logical Effort
-	 * @return project Setting to tell whether to use local settings for Logical Effort
+	 * Returns project preferences to tell whether to use local settings for Logical Effort
+	 * @return project preferences to tell whether to use local settings for Logical Effort
 	 */
 	public static Setting getUseLocalSettingsSetting() { return ToolSettings.getUseLocalSettingsSetting(); }
 
@@ -1186,8 +1186,8 @@ public class LETool extends Tool {
 	 */
 	public static double getGlobalFanout() { return getGlobalFanoutSetting().getDouble(); }
 	/**
-     * Returns project Setting to tell the Global Fanout for Logical Effort.
-     * @return project Setting to tell the Global Fanout for Logical Effort.
+     * Returns project preferences to tell the Global Fanout for Logical Effort.
+     * @return project preferences to tell the Global Fanout for Logical Effort.
 	 */
 	public static Setting getGlobalFanoutSetting() { return ToolSettings.getGlobalFanoutSetting(); }
 
@@ -1198,8 +1198,8 @@ public class LETool extends Tool {
 	 */
 	public static double getConvergenceEpsilon() { return getConvergenceEpsilonSetting().getDouble(); }
 	/**
-	 * Returns project Setting to tell the Convergence Epsilon value for Logical Effort.
-	 * @return project Setting to tell the Convergence Epsilon value for Logical Effort.
+	 * Returns project preferences to tell the Convergence Epsilon value for Logical Effort.
+	 * @return project preferences to tell the Convergence Epsilon value for Logical Effort.
 	 */
 	public static Setting getConvergenceEpsilonSetting() { return ToolSettings.getConvergenceEpsilonSetting(); }
 
@@ -1210,8 +1210,8 @@ public class LETool extends Tool {
 	 */
 	public static int getMaxIterations() { return getMaxIterationsSetting().getInt(); }
 	/**
-	 * Returns project Setting to tell the maximum number of iterations for Logical Effort.
-	 * @return project Setting to tell the maximum number of iterations for Logical Effort.
+	 * Returns project preferences to tell the maximum number of iterations for Logical Effort.
+	 * @return project preferences to tell the maximum number of iterations for Logical Effort.
 	 */
 	public static Setting getMaxIterationsSetting() { return ToolSettings.getMaxIterationsSetting(); }
 
@@ -1261,8 +1261,8 @@ public class LETool extends Tool {
 	 */
 	public static double getKeeperRatio() { return getKeeperRatioSetting().getDouble(); }
 	/**
-	 * Returns project Setting to tell the keeper size ratio for Logical Effort.
-	 * @return project Setting to tell the keeper size ratio for Logical Effort.
+	 * Returns project preferences to tell the keeper size ratio for Logical Effort.
+	 * @return project preferences to tell the keeper size ratio for Logical Effort.
 	 */
 	public static Setting getKeeperRatioSetting() { return ToolSettings.getKeeperRatioSetting(); }
 }

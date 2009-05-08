@@ -54,8 +54,8 @@ public class ComponentMenuTab extends PreferencePanel
 		theMenu = new ComponentMenu(parent, false);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return theMenu.getPanel(); }
+	/** return the panel to use for the user preferences. */
+	public JPanel getUserPreferencesPanel() { return theMenu.getPanel(); }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Component Menu"; }

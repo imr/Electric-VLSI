@@ -102,7 +102,7 @@ public class ELIB extends Output
 	/** map with "next in cell group" pointers */				private HashMap<CellId,CellId> cellInSameGroup = new HashMap<CellId,CellId>();
 	/** true to write a 6.XX compatible library (MAGIC11) */	private boolean compatibleWith6;
 	/** map to assign indices to cell names (for 6.XX) */		private TreeMap<String,Integer> cellIndexMap = new TreeMap<String,Integer>(TextUtils.STRING_NUMBER_ORDER);
-    /** Project settings. */                                    private HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
+    /** Project preferences. */                                 private HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
     /** size correctors for technologies */                     private HashMap<TechId,Technology.SizeCorrector> sizeCorrectors = new HashMap<TechId,Technology.SizeCorrector>();
     /** Topological sort of cells in library to be written */   private LinkedHashMap<CellId,Integer> cellOrdering = new LinkedHashMap<CellId,Integer>();
     /** Map from nodeId to nodeIndex for current Cell. */       int[] nodeIndexByNodeId;
@@ -631,8 +631,8 @@ public class ELIB extends Output
 	}
 
 	/**
-	 * Gather project settings attached to object into objInfo map.
-	 * @param obj Object with attached project settings.
+	 * Gather project preferences attached to object into objInfo map.
+	 * @param obj Object with attached project preferences.
 	 */
     private void gatherSettings(Object obj) {
         Setting.Group group = null;
@@ -1242,7 +1242,7 @@ public class ELIB extends Output
     }
 
     /**
-     * Method to write a set of project settings.
+     * Method to write a set of project preferences.
      */
     void writeMeaningPrefs(Object obj) throws IOException {
         Setting.Group group = null;

@@ -97,7 +97,7 @@ public class Setting {
         }
 
         /**
-         * Factory methods to create a boolean project setting objects.
+         * Factory methods to create a boolean project preferences objects.
          * @param prefName preference name of this Setting.
          * @param prefGroup preference Group of this Setting.
          * @param xmlName Xml name of this Setting.
@@ -111,7 +111,7 @@ public class Setting {
         }
 
         /**
-         * Factory methods to create an integer project setting objects.
+         * Factory methods to create an integer project preferences objects.
          * @param prefName preference name of this Setting.
          * @param prefGroup preference Group of this Setting.
          * @param xmlName Xml name of this Setting.
@@ -125,7 +125,7 @@ public class Setting {
         }
 
         /**
-         * Factory methods to create a long project setting objects.
+         * Factory methods to create a long project preferences objects.
          * @param prefName preference name of this Setting.
          * @param prefGroup preference Group of this Setting.
          * @param xmlName Xml name of this Setting.
@@ -139,7 +139,7 @@ public class Setting {
         }
 
         /**
-         * Factory methods to create a double project setting objects.
+         * Factory methods to create a double project preferences objects.
          * @param prefName preference name of this Setting.
          * @param prefGroup preference Group of this Setting.
          * @param xmlName Xml name of this Setting.
@@ -153,7 +153,7 @@ public class Setting {
         }
 
         /**
-         * Factory methods to create a string project setting objects.
+         * Factory methods to create a string project preferences objects.
          * @param prefName preference name of this Setting.
          * @param prefGroup preference Group of this Setting.
          * @param xmlName Xml name of this Setting.
@@ -198,9 +198,9 @@ public class Setting {
         }
 
         /**
-         * Method to get a list of project Settings from this Group
+         * Method to get a list of project preferences from this Group
          * which should be written to disk libraries
-         * @return a collection of project Settings
+         * @return a collection of project preferences
          */
         public Map<Setting,Object> getDiskSettings(Map<Setting,Object> settingValues) {
             Map<Setting,Object> result = new TreeMap<Setting,Object>(SETTINGS_BY_PREF_NAME);

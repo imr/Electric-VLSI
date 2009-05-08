@@ -117,7 +117,7 @@ public class ProjSettings {
     }
 
     /**
-     * Read project settings and apply them
+     * Read project preferences and apply them
      * @param file the file to read
      * @param allowOverride true to allow overriding current settings,
      * false to disallow and warn if different.
@@ -125,13 +125,13 @@ public class ProjSettings {
     public static void readSettings(File file, EDatabase database, boolean allowOverride) {
         ProjSettings newSettings = read(file);
         if (newSettings == null) return;
-        System.out.println("Read Project Settings from "+file);
+        System.out.println("Read Project Preferences from "+file);
         if (settings == null) allowOverride = true;
         if (newSettings.commit(database, allowOverride) && settings != null) {
             File oldFile = settings.lastProjectSettingsFile;
-            String message = "Warning: Project Settings conflicts;" + (allowOverride ? "" : " ignoring new settings.") + " See messages window";
-            Job.getUserInterface().showInformationMessage(message, "Project Settings Conflict");
-            System.out.println("Project Setting conflicts found: "+oldFile.getPath()+" vs "+file.getPath());
+            String message = "Warning: Project Preferences conflicts;" + (allowOverride ? "" : " ignoring new settings.") + " See messages window";
+            Job.getUserInterface().showInformationMessage(message, "Project Preferences Conflict");
+            System.out.println("Project Preferences conflicts found: "+oldFile.getPath()+" vs "+file.getPath());
         }
         settings = newSettings;
     }
@@ -171,12 +171,12 @@ public class ProjSettings {
      */
     public static void exportSettings() {
 /*
-        int ret = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Changes to Project Settings may affect all users\n\nContinue Anyway?",
+        int ret = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Changes to Project Preferences may affect all users\n\nContinue Anyway?",
                 "Warning!", JOptionPane.YES_NO_OPTION);
         if (ret == JOptionPane.NO_OPTION) return;
 */
         File outputFile = new File(FileType.LIBRARYFORMATS.getGroupPath(), "projsettings.xml");
-        String ofile = OpenFile.chooseOutputFile(FileType.XML, "Export Project Settings", outputFile.getPath());
+        String ofile = OpenFile.chooseOutputFile(FileType.XML, "Export Project Preferences", outputFile.getPath());
         if (ofile == null) return;
         outputFile = new File(ofile);
 
@@ -184,7 +184,7 @@ public class ProjSettings {
     }
 
     public static void importSettings() {
-        String ifile = OpenFile.chooseInputFile(FileType.XML, "Import Project Settings", false, FileType.LIBRARYFORMATS.getGroupPath(), false);
+        String ifile = OpenFile.chooseInputFile(FileType.XML, "Import Project Preferences", false, FileType.LIBRARYFORMATS.getGroupPath(), false);
         if (ifile == null) return;
         new ImportSettingsJob(ifile);
     }
@@ -224,7 +224,7 @@ public class ProjSettings {
         File ofile = new File(file);
         Writer wr = new Writer(ofile);
         if (wr.write("ProjectSettings", node)) {
-            System.out.println("Wrote Project Settings to "+file);
+            System.out.println("Wrote Project Preferences to "+file);
             lastProjectSettingsFile = ofile;
         }
         wr.close();
@@ -265,7 +265,7 @@ public class ProjSettings {
         private void writeNode(String name, ProjSettingsNode node) {
             if (visited.contains(node)) {
                 // already wrote this object out, must be recursion.
-                System.out.println("ERROR: recursive loop in Project Settings; "+
+                System.out.println("ERROR: recursive loop in Project Preferences; "+
                         "ignoring second instantiation of ProjSettingsNode \""+name+"\".");
                 return;
             }
@@ -388,7 +388,7 @@ public class ProjSettings {
                 throw parseException("Entry "+qName+" is missing \"key\" attribute");
             }
 
-            // see if this is a project settings node
+            // see if this is a project preferences node
             if (qName.equals("node")) {
                 if (context.isEmpty()) {
                     // first node is root node
@@ -396,7 +396,7 @@ public class ProjSettings {
                 } else {
                     ProjSettingsNode node = context.peek().getNode(key);
                     if (node == null)
-                        System.out.println("Error: No Project Settings Node named "+key+" in Electric");
+                        System.out.println("Error: No Project Preferences Node named "+key+" in Electric");
                     else
                         context.push(node);
                 }

@@ -1282,7 +1282,7 @@ public class Technology implements Comparable<Technology>, Serializable
                                 psVal.getClass().getName() + " vs " + setting.getValue().getClass().getName());
                         continue;
                     }
-                    System.out.println("Warning: For key "+setting.getXmlPath()+": project setting value of "+psVal+" overrides default of "+setting.getValue());
+                    System.out.println("Warning: For key "+setting.getXmlPath()+": project preferences value of "+psVal+" overrides default of "+setting.getValue());
                     setting.currentObj = psVal.equals(setting.factoryObj) ? setting.factoryObj : psVal;
                     setting.saveToPreferences(psVal);
                     flushSet.add(setting.prefs);
@@ -1560,7 +1560,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * May be overrideen in subclasses.
 	 * @param varName name of variable
 	 * @param value value of variable
-	 * @return map from project settings to sitting values if variable was converted
+	 * @return map from project preferences to sitting values if variable was converted
 	 */
 	public Map<Setting,Object> convertOldVariable(String varName, Object value)
 	{
@@ -2075,8 +2075,8 @@ public class Technology implements Comparable<Technology>, Serializable
      */
     public int getNumMetals() { return paramNumMetalLayers.intValue(); }
 	/**
-	 * Returns project Setting to tell the number of metal layers in the MoCMOS technology.
-	 * @return project Setting to tell the number of metal layers in the MoCMOS technology (from 2 to 6).
+	 * Returns project preferences to tell the number of metal layers in the MoCMOS technology.
+	 * @return project preferences to tell the number of metal layers in the MoCMOS technology (from 2 to 6).
 	 */
 	public Setting getNumMetalsSetting() { return cacheNumMetalLayers; }
 
@@ -4237,8 +4237,8 @@ public class Technology implements Comparable<Technology>, Serializable
 		return cacheMinResistance.getDouble();
 	}
 	/**
-	 * Returns project Setting to tell the minimum resistance of this Technology.
-	 * @return project Setting to tell the minimum resistance of this Technology.
+	 * Returns project preferences to tell the minimum resistance of this Technology.
+	 * @return project preferences to tell the minimum resistance of this Technology.
 	 */
 	public Setting getMinResistanceSetting() { return cacheMinResistance; }
 
@@ -4253,8 +4253,8 @@ public class Technology implements Comparable<Technology>, Serializable
 		return cacheMinCapacitance.getDouble();
 	}
 	/**
-	 * Returns project Setting to tell the minimum capacitance of this Technology.
-	 * @return project Setting to tell the minimum capacitance of this Technology.
+	 * Returns project preferences to tell the minimum capacitance of this Technology.
+	 * @return project preferences to tell the minimum capacitance of this Technology.
 	 */
 	public Setting getMinCapacitanceSetting() { return cacheMinCapacitance; }
 
@@ -4269,9 +4269,9 @@ public class Technology implements Comparable<Technology>, Serializable
         return cacheMaxSeriesResistance.getDouble();
     }
     /**
-     * Returns project Setting to tell the maximum series resistance for layout extraction
+     * Returns project preferences to tell the maximum series resistance for layout extraction
      *  for this Technology.
-     * @return project Setting to tell the maximum series resistance for layout extraction
+     * @return project preferences to tell the maximum series resistance for layout extraction
      *  for this Technology.
      */
     public Setting getMaxSeriesResistanceSetting() { return cacheMaxSeriesResistance; }
@@ -4287,8 +4287,8 @@ public class Technology implements Comparable<Technology>, Serializable
 		return cacheIncludeGate.getBoolean();
 	}
     /**
-     * Returns project Setting to tell gate inclusion.
-     * @return project Setting to tell gate inclusion
+     * Returns project preferences to tell gate inclusion.
+     * @return project preferences to tell gate inclusion
      */
     public Setting getGateIncludedSetting() { return cacheIncludeGate; }
 
@@ -4302,8 +4302,8 @@ public class Technology implements Comparable<Technology>, Serializable
         return cacheIncludeGnd.getBoolean();
     }
 	/**
-	 * Returns project Setting to tell ground network inclusion.
-	 * @return project Setting to tell ground network inclusion
+	 * Returns project preferences to tell ground network inclusion.
+	 * @return project preferences to tell ground network inclusion
 	 */
 	public Setting getGroundNetIncludedSetting() { return cacheIncludeGnd; }
 
@@ -4319,10 +4319,10 @@ public class Technology implements Comparable<Technology>, Serializable
         return cacheGateLengthSubtraction.getDouble();
     }
     /**
-     * Returns project Setting to tell the gate length subtraction for this Technology (in microns)
+     * Returns project preferences to tell the gate length subtraction for this Technology (in microns)
      * This is used because there is sometimes a subtracted offset from the layout
      * to the drawn length.
-     * @return project Setting to tell the subtraction value for a gate length in microns
+     * @return project preferences to tell the subtraction value for a gate length in microns
      */
     public Setting getGateLengthSubtractionSetting() { return cacheGateLengthSubtraction; }
 
@@ -4451,8 +4451,8 @@ public class Technology implements Comparable<Technology>, Serializable
 		return cacheGateCapacitance.getDouble();
 	}
 	/**
-	 * Returns project Setting to tell the Gate Capacitance for Logical Effort.
-	 * @return project Setting to tell the Gate Capacitance for Logical Effort.
+	 * Returns project preferences to tell the Gate Capacitance for Logical Effort.
+	 * @return project preferences to tell the Gate Capacitance for Logical Effort.
 	 */
 	public Setting getGateCapacitanceSetting() { return cacheGateCapacitance; }
 
@@ -4466,8 +4466,8 @@ public class Technology implements Comparable<Technology>, Serializable
 		return cacheWireRatio.getDouble();
 	}
 	/**
-	 * Returns project Setting to tell the wire capacitance ratio for Logical Effort.
-	 * @return project Setting to tell the wire capacitance ratio for Logical Effort.
+	 * Returns project preferences to tell the wire capacitance ratio for Logical Effort.
+	 * @return project preferences to tell the wire capacitance ratio for Logical Effort.
 	 */
 	public Setting getWireRatioSetting() { return cacheWireRatio; }
 
@@ -4481,8 +4481,8 @@ public class Technology implements Comparable<Technology>, Serializable
 		return cacheDiffAlpha.getDouble();
 	}
 	/**
-	 * Returns project Setting to tell the diffusion to gate capacitance ratio for Logical Effort.
-	 * @return project Setting to tell the diffusion to gate capacitance ratio for Logical Effort.
+	 * Returns project preferences to tell the diffusion to gate capacitance ratio for Logical Effort.
+	 * @return project preferences to tell the diffusion to gate capacitance ratio for Logical Effort.
 	 */
 	public Setting getDiffAlphaSetting() { return cacheDiffAlpha; }
 
@@ -4702,10 +4702,10 @@ public class Technology implements Comparable<Technology>, Serializable
     }
 
 	/**
-	 * Returns project Setting to tell the scale of this technology.
+	 * Returns project preferences to tell the scale of this technology.
 	 * The technology's scale is for manufacturing output, which must convert
 	 * the unit-based values in Electric to real-world values (in nanometers).
-	 * @return project Setting to tell the scale between this technology and the real units.
+	 * @return project preferences to tell the scale between this technology and the real units.
 	 */
 	public Setting getScaleSetting() { return cacheScale; }
 
@@ -4751,8 +4751,8 @@ public class Technology implements Comparable<Technology>, Serializable
     }
 
 	/**
-	 * Returns project Setting to tell foundry for DRC rules.
-	 * @return project Setting to tell the foundry for DRC rules.
+	 * Returns project preferences to tell foundry for DRC rules.
+	 * @return project preferences to tell the foundry for DRC rules.
 	 */
 	public Setting getPrefFoundrySetting() { return cacheFoundry; }
 
@@ -5714,7 +5714,7 @@ public class Technology implements Comparable<Technology>, Serializable
         return getProjectSettings().makeStringSetting(name, TECH_NODE, xmlName, location, description, factory);
     }
 
-    // -------------------------- Project Settings -------------------------
+    // -------------------------- Project Preferences -------------------------
 
     public Setting.Group getProjectSettings() {
         return settings;

@@ -65,8 +65,8 @@ public class SpiceTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(spiceNetworkDelimiter);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return spice; }
+	/** return the panel to use for user preferences. */
+	public JPanel getUserPreferencesPanel() { return spice; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Spice"; }

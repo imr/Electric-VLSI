@@ -42,9 +42,9 @@ public class PortsAndExportsTab extends PreferencePanel
 		initComponents();
 	}
 
-	/** return the panel to use for this preferences tab. */
+	/** return the panel to use for user preferences. */
     @Override
-	public JPanel getPreferencesPanel() { return port; }
+	public JPanel getUserPreferencesPanel() { return port; }
 
 	/** return the name of this preferences tab. */
     @Override

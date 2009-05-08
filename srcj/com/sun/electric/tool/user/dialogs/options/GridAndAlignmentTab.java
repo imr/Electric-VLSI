@@ -66,8 +66,8 @@ public class GridAndAlignmentTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(gridSizeY5);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return grid; }
+	/** return the panel to use for user preferences. */
+	public JPanel getUserPreferencesPanel() { return grid; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Grid"; }

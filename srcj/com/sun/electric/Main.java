@@ -543,7 +543,7 @@ public final class Main
 	}
 
 	/**
-	 * Class to init project settings from Preferences.
+	 * Class to init project preferences.
 	 */
 	private static class InitProjectSettings extends Job
 	{
@@ -552,7 +552,7 @@ public final class Main
 
 		private InitProjectSettings(List<String> argsList)
 		{
-			super("Init project settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Init project preferences", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             Preferences prefRoot = Pref.getPrefRoot();
             for (Map.Entry<Setting,Object> e: getDatabase().getSettings().entrySet()) {
                 Setting setting = e.getKey();

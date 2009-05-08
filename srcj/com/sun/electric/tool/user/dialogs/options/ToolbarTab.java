@@ -120,8 +120,8 @@ public class ToolbarTab extends PreferencePanel implements TreeSelectionListener
 		new DropTarget(trashLabel, DnDConstants.ACTION_MOVE, dropTarget, true);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return toolbar; }
+	/** return the panel to use for user preferences. */
+	public JPanel getUserPreferencesPanel() { return toolbar; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Toolbar"; }

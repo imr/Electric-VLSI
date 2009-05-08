@@ -54,8 +54,8 @@ public class IconTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(iconTextSize);
 	}
 
-	/** return the panel to use for this preferences tab. */
-	public JPanel getPreferencesPanel() { return icon; }
+	/** return the panel to use for user preferences. */
+	public JPanel getUserPreferencesPanel() { return icon; }
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "Icon"; }
