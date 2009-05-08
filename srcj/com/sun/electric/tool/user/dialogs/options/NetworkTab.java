@@ -27,16 +27,11 @@ import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.extract.Extract;
-import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 
 /**
  * Class to handle the "Network" tab of the Preferences dialog.
@@ -45,9 +40,6 @@ public class NetworkTab extends PreferencePanel
 {
     private Setting ignoreResistorsSetting = NetworkTool.getIgnoreResistorsSetting();
     private Setting includeDateAndVersionInOutputSetting = User.getIncludeDateAndVersionInOutputSetting();
-    private Setting useCopyrightMessageSetting = IOTool.getUseCopyrightMessageSetting();
-    private Setting copyrightMessageSetting = IOTool.getCopyrightMessageSetting();
-	private JTextArea copyrightTextArea;
 
     /** Creates new form NetworkTab */
 	public NetworkTab(PreferencesFrame parent, boolean modal)
@@ -96,17 +88,6 @@ public class NetworkTab extends PreferencePanel
 		// project preferences
 		netIgnoreResistors.setSelected(getBoolean(ignoreResistorsSetting));
 		generalIncludeDateAndVersion.setSelected(getBoolean(includeDateAndVersionInOutputSetting));
-
-		if (getBoolean(useCopyrightMessageSetting)) copyrightUse.setSelected(true); else
-			copyrightNone.setSelected(true);
-
-		copyrightTextArea = new JTextArea();
-		copyrightMessage.setViewportView(copyrightTextArea);
-		copyrightTextArea.setText(getString(copyrightMessageSetting));
-		copyrightTextArea.addKeyListener(new KeyAdapter()
-		{
-			public void keyTyped(KeyEvent evt) { copyrightMessageKeyTyped(evt); }
-		});
 	}
 
 	public void term()
@@ -142,8 +123,6 @@ public class NetworkTab extends PreferencePanel
 		// project preferences
         setBoolean(ignoreResistorsSetting, netIgnoreResistors.isSelected());
         setBoolean(includeDateAndVersionInOutputSetting, generalIncludeDateAndVersion.isSelected());
-        setBoolean(useCopyrightMessageSetting, copyrightUse.isSelected());
-        setString(copyrightMessageSetting, copyrightTextArea.getText());
 	}
 
 	/**
@@ -169,11 +148,6 @@ public class NetworkTab extends PreferencePanel
 			Extract.setCellExpandPattern(Extract.getFactoryCellExpandPattern());
 		if (Extract.isFactoryFlattenPcells() != Extract.isFlattenPcells())
 			Extract.setFlattenPcells(Extract.isFactoryFlattenPcells());
-	}
-
-	private void copyrightMessageKeyTyped(KeyEvent evt)
-	{
-		copyrightUse.setSelected(true);
 	}
 
 	/** This method is called from within the constructor to
@@ -205,12 +179,6 @@ public class NetworkTab extends PreferencePanel
         jLabel2 = new javax.swing.JLabel();
         extractFlattenPCells = new javax.swing.JCheckBox();
         projectSettings = new javax.swing.JPanel();
-        copyrightProjSettings = new javax.swing.JPanel();
-        jLabel4 = new javax.swing.JLabel();
-        copyrightNone = new javax.swing.JRadioButton();
-        copyrightUse = new javax.swing.JRadioButton();
-        copyrightMessage = new javax.swing.JScrollPane();
-        jLabel5 = new javax.swing.JLabel();
         generalIncludeDateAndVersion = new javax.swing.JCheckBox();
         netIgnoreResistors = new javax.swing.JCheckBox();
 
@@ -383,59 +351,6 @@ public class NetworkTab extends PreferencePanel
 
         projectSettings.setLayout(new java.awt.GridBagLayout());
 
-        copyrightProjSettings.setLayout(new java.awt.GridBagLayout());
-
-        copyrightProjSettings.setBorder(javax.swing.BorderFactory.createTitledBorder("Copyright"));
-        jLabel4.setText("A Copyright message can be added to every generated deck");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        copyrightProjSettings.add(jLabel4, gridBagConstraints);
-
-        copyrightNone.setText("No copyright message");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 4);
-        copyrightProjSettings.add(copyrightNone, gridBagConstraints);
-
-        copyrightUse.setText("Use this copyright message:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 4);
-        copyrightProjSettings.add(copyrightUse, gridBagConstraints);
-
-        copyrightMessage.setMinimumSize(new java.awt.Dimension(200, 200));
-        copyrightMessage.setPreferredSize(new java.awt.Dimension(200, 200));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        copyrightProjSettings.add(copyrightMessage, gridBagConstraints);
-
-        jLabel5.setText("Do not put comment characters in this message");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        copyrightProjSettings.add(jLabel5, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        projectSettings.add(copyrightProjSettings, gridBagConstraints);
-
         generalIncludeDateAndVersion.setText("Include date and version in output files");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -471,10 +386,6 @@ public class NetworkTab extends PreferencePanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup activeHandling;
-    private javax.swing.JScrollPane copyrightMessage;
-    private javax.swing.JRadioButton copyrightNone;
-    private javax.swing.JPanel copyrightProjSettings;
-    private javax.swing.JRadioButton copyrightUse;
     private javax.swing.JCheckBox extractApproximateCuts;
     private javax.swing.JTextField extractCellPattern;
     private javax.swing.JCheckBox extractFlattenPCells;
@@ -487,8 +398,6 @@ public class NetworkTab extends PreferencePanel
     private javax.swing.JCheckBox generalIncludeDateAndVersion;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JRadioButton netAscending;
     private javax.swing.ButtonGroup netDefaultOrder;

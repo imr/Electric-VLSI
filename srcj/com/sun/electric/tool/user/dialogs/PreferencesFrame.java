@@ -47,6 +47,7 @@ import com.sun.electric.tool.user.dialogs.options.CVSTab;
 import com.sun.electric.tool.user.dialogs.options.CellModelTab;
 import com.sun.electric.tool.user.dialogs.options.CompactionTab;
 import com.sun.electric.tool.user.dialogs.options.ComponentMenuTab;
+import com.sun.electric.tool.user.dialogs.options.CopyrightTab;
 import com.sun.electric.tool.user.dialogs.options.CoverageTab;
 import com.sun.electric.tool.user.dialogs.options.DEFTab;
 import com.sun.electric.tool.user.dialogs.options.DRCTab;
@@ -252,6 +253,7 @@ public class PreferencesFrame extends EDialog
 		if (IOTool.hasSkill())
 			addTreeNode(new SkillTab(this, true), ioSet);
 		addTreeNode(new LibraryTab(parent, true), ioSet);
+		addTreeNode(new CopyrightTab(this, true), ioSet);
 
 		// the "Tools" section of the Preferences
 		DefaultMutableTreeNode toolSet = new DefaultMutableTreeNode("Tools ");

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+IMP/MAN: (5/8/09, SMR) Copyright section of Network Preferences now in its own
+     panel (Bug #2168).
+
 IMP/MAN: (5/8/09, SMR) Renamed "Project Settings" to be "Project Preferences" and now
      call "preferences" the "User Preferences".
 
