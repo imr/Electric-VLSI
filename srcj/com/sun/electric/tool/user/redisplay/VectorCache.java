@@ -749,6 +749,7 @@ public class VectorCache {
         VectorCache cache = new VectorCache(EDatabase.clientDatabase());
         VectorCell vc = cache.newDummyVectorCell();
         cache.drawNode(ni, GenMath.MATID, vc);
+        vc.shapes.addAll(vc.topOnlyShapes);
         Collections.sort(vc.shapes, shapeByLayer);
         return vc.shapes.toArray(new VectorBase[vc.shapes.size()]);
     }
@@ -757,12 +758,16 @@ public class VectorCache {
         VectorCache cache = new VectorCache(EDatabase.clientDatabase());
         VectorCell vc = cache.newDummyVectorCell();
 		cache.drawPolys(polys, GenMath.MATID, vc, false, VectorText.TEXTTYPEARC, false);
-//        allShapes.addAll(vc.topOnlyShapes);
+        assert vc.topOnlyShapes.isEmpty();
         Collections.sort(vc.shapes, shapeByLayer);
         return vc.shapes.toArray(new VectorBase[vc.shapes.size()]);
     }
 
-    private VectorCell newDummyVectorCell() { return new VectorCell(); }
+    private VectorCell newDummyVectorCell() {
+        VectorCell vc = new VectorCell();
+        vc.topOnlyShapes = new ArrayList<VectorBase>();
+        return vc;
+    }
 
 	/**
 	 * Method to insert a manhattan rectangle into the vector cache for a Cell.
