@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+IMP/MAN: (5/8/09, GVG) Ability in TechEditorWizard to define layers different patterns (Bug #2169)
+
 BUG: ((5/8/09, SMR) NPE adjusting scroll bars (Bug #2155).
 FIX: Catch null pointer in EditWindow.setScrollPositionUnsafe().
 

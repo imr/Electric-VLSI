@@ -211,6 +211,7 @@ public class TechEditWizardData
         int textType; // text datatype
         String graphicsTemplate; // uses other template for the graphics
         Color graphicsColor; // uses this color with no fill
+        EGraphics.Outline graphicsOutline; // uses this outline with graphicsColor
 
         LayerInfo(String n)
         {
@@ -236,14 +237,19 @@ public class TechEditWizardData
             {
                 StringTokenizer p = new StringTokenizer(s, ", []", false);
                 int[] colors = new int[3];
+                String outlineName = EGraphics.Outline.NOPAT.name(); // defailt
                 int itemCount = 0;
                 while (p.hasMoreTokens())
                 {
-                    String i = p.nextToken();
-                    assert(itemCount < 3);
-                    colors[itemCount++] = Integer.parseInt(i);
+                    String str = p.nextToken();
+                    if (itemCount < 3)
+                        colors[itemCount++] = Integer.parseInt(str);
+                    else
+                        outlineName = str;
+                    assert(itemCount < 4);
                 }
                 graphicsColor = new Color(colors[0], colors[1], colors[2]);
+                graphicsOutline = EGraphics.Outline.findOutline(outlineName);
             }
             else
                 graphicsTemplate = s;
@@ -2140,7 +2146,7 @@ public class TechEditWizardData
                 }
                 else if (info.graphicsColor != null)
                 {
-                    graph = new EGraphics(false, false, EGraphics.Outline.PAT_S, 0,  
+                    graph = new EGraphics(true, true, info.graphicsOutline, 0,
                         info.graphicsColor.getRed(), info.graphicsColor.getGreen(), info.graphicsColor.getBlue(),
                         1, true, nullPattern);
                 }
