@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+BUG: ((5/8/09, SMR) NPE adjusting scroll bars (Bug #2155).
+FIX: Catch null pointer in EditWindow.setScrollPositionUnsafe().
+
 BUG: (5/7/09, DN) NPE in VectorCache display if you set generic as startup tech (Bug #2165)
 FIX: In VectorCache.drawNode consider topOnlyShapes.
 

@@ -2647,6 +2647,7 @@ public class EditWindow extends JPanel
 		if (cell == null) return;
 
 		Rectangle2D cellBounds = getInPlaceEditTopCell().getBounds();
+		if (cellBounds == null) return;
 		Rectangle2D viewBounds = displayableBounds();
 
 		// scroll bar is being repositioned: ignore the change events it generates
