@@ -46,7 +46,7 @@ import java.util.prefs.Preferences;
  * for example for each EditWindow.
  */
 public class LayerVisibility extends PrefPackage {
-    private static final String KEY_VISIBILITY = "Visibility";
+    private static final String KEY_VISIBILITY = "VisibilityOf";
     private static final String KEY_LAYER_ORDER = "LayerOrderfor";
 
     /**

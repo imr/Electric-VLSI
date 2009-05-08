@@ -223,10 +223,9 @@ public abstract class PrefPackage implements Serializable, Cloneable {
     }
 
     protected String getKey(String what, LayerId layerId) {
-        int len = what.length() + layerId.fullName.length() + 3;
+        int len = what.length() + layerId.fullName.length() + 1;
         StringBuilder sb = new StringBuilder(len);
         sb.append(what);
-        sb.append("Of");
         sb.append(layerId.name);
         sb.append("IN");
         sb.append(layerId.techId.techName);

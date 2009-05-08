@@ -42,15 +42,15 @@ public class GraphicsPreferences extends PrefPackage {
     // In TECH_NODE
     private static final String KEY_TRANSPARENT_COLOR = "TransparentLayer";
 
-    private static final String KEY_PATTERN_DISPLAY = "UsePatternDisplay";
-    private static final String KEY_PATTERN_PRINTER = "UsePatternPrinter";
-    private static final String KEY_OUTLINE = "OutlinePattern";
-    private static final String KEY_TRANSPARENT = "TransparentLayer";
-    private static final String KEY_COLOR = "Color";
-    private static final String KEY_OPACITY = "Opacity";
-    private static final String KEY_PATTERN = "Pattern";
-    private static final String KEY_TRANSPARENCY_MODE = "3DTransparencyMode";
-    private static final String KEY_TRANSPARENCY_FACTOR = "3DTransparencyFactor";
+    private static final String KEY_PATTERN_DISPLAY = "UsePatternDisplayFor";
+    private static final String KEY_PATTERN_PRINTER = "UsePatternPrinterFor";
+    private static final String KEY_OUTLINE = "OutlinePatternFor";
+    private static final String KEY_TRANSPARENT = "TransparentLayerFor";
+    private static final String KEY_COLOR = "ColorFor";
+    private static final String KEY_OPACITY = "OpacityFor";
+    private static final String KEY_PATTERN = "PatternFor";
+    private static final String KEY_TRANSPARENCY_MODE = "3DTransparencyModeOf";
+    private static final String KEY_TRANSPARENCY_FACTOR = "3DTransparencyFactorOf";
 
     private static final String KEY_TEXT_VISIBILITY = "TextVisibility";
 

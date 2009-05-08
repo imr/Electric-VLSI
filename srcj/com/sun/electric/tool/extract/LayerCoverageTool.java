@@ -101,7 +101,7 @@ public class LayerCoverageTool extends Tool
         // Default value is in um to be technology independent
         private static final double defaultSize = 50000;
         private static final String EXTRACT_NODE = "tool/extract";
-        private static final String KEY_COVERAGE = "AreaCoverageJob";
+        private static final String KEY_COVERAGE = "AreaCoverageJobOf";
         private final transient TechPool techPool;
 
         public Map<LayerId,Double> areaCoverage = new HashMap<LayerId,Double>();

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+BUG: (5/8/09, DN) Wrong graphics color in Cadence mode: Of instead of For? (Bug #2159)
+FIX: Parameters of PrefPackage.getKey(String,Layer) explicitly specify For/Of.
+
 BUG: (5/7/09, GVG) Wrong graphics color in Cadence mode: Of instead of For? (Bug #2159)
 FIX: Temporary fix: ColorOfGraphicsINartwork added in Cadence xml.
 
