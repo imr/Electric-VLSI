@@ -1018,6 +1018,11 @@ public class ToolMenu
 			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
 			return;
 		}
+        if (nets.isEmpty())
+        {
+            System.out.println("No network selected in list of connections on network");
+            return;
+        }
         for(Network net : nets)
         {
             System.out.println("Network " + net.describe(true) + ":");
