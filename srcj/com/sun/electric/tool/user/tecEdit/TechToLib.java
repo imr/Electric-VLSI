@@ -969,21 +969,22 @@ public class TechToLib
             }
         }
         List<NodeInfo.LayerDetails> layerDetails = new ArrayList<NodeInfo.LayerDetails>();
+        EPoint correction = Technology.STANDARD_NODE_LAYER_POINTS ? EPoint.fromGrid(pnp.getFullRectangle().getGridWidth(), pnp.getFullRectangle().getGridHeight()) : EPoint.ORIGIN;
         int m = 0;
         for (Technology.NodeLayer nld: electricalNodeLayers)
         {
             int j = nodeLayers.indexOf(nld);
             if (j < 0)
             {
-                layerDetails.add(makeNodeLayerDetails(nld, lList, false, true));
+                layerDetails.add(makeNodeLayerDetails(nld, lList, correction, false, true));
                 continue;
             }
             while (m < j)
-                layerDetails.add(makeNodeLayerDetails(nodeLayers.get(m++), lList, true, false));
-            layerDetails.add(makeNodeLayerDetails(nodeLayers.get(m++), lList, true, true));
+                layerDetails.add(makeNodeLayerDetails(nodeLayers.get(m++), lList, correction, true, false));
+            layerDetails.add(makeNodeLayerDetails(nodeLayers.get(m++), lList, correction, true, true));
         }
         while (m < nodeLayers.size())
-            layerDetails.add(makeNodeLayerDetails(nodeLayers.get(m++), lList, true, false));
+            layerDetails.add(makeNodeLayerDetails(nodeLayers.get(m++), lList, correction, true, false));
         nIn.nodeLayers = layerDetails.toArray(new NodeInfo.LayerDetails[layerDetails.size()]);
 
         nIn.nodePortDetails = new NodeInfo.PortDetails[pnp.getNumPorts()];
@@ -1032,14 +1033,22 @@ public class TechToLib
         return nIn;
     }
 
-    private static NodeInfo.LayerDetails makeNodeLayerDetails(Technology.NodeLayer nl, LayerInfo[] lList, boolean inLayers, boolean inElectricalLayers) {
+    private static NodeInfo.LayerDetails makeNodeLayerDetails(Technology.NodeLayer nl, LayerInfo[] lList, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
         NodeInfo.LayerDetails nld = new NodeInfo.LayerDetails();
         nld.inLayers = inLayers;
         nld.inElectricalLayers = inElectricalLayers;
         nld.style = nl.getStyle();
         nld.portIndex = nl.getPortNum();
         nld.representation = nl.getRepresentation();
-        nld.values = nl.getPoints();
+        nld.values = nl.getPoints().clone();
+        for (int k = 0; k < nld.values.length; k++) {
+            Technology.TechPoint p = nld.values[k];
+            EdgeH x = p.getX();
+            x = x.withAdder(x.getAdder() - x.getMultiplier() * correction.getLambdaX());
+            EdgeV y = p.getY();
+            y = y.withAdder(y.getAdder() - y.getMultiplier() * correction.getLambdaY());
+            nld.values[k] = p.withX(x).withY(y);
+        }
         for(int k=0; k<lList.length; k++) {
             if (nl.getLayer().getNonPseudoLayer().getName().equals(lList[k].name)) { nld.layer = lList[k];   break; }
         }

@@ -119,6 +119,7 @@ public class PrimitiveNodeGroup {
         }
         fullRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
         fullSize = EPoint.fromGrid((hx - lx + 1)/2, (hy - ly + 1)/2);
+        EPoint correction = Technology.STANDARD_NODE_LAYER_POINTS ? EPoint.ORIGIN : fullSize;
         nodeLayers = new Technology.NodeLayer[ng.nodeLayers.size()];
         for (int i = 0; i < ng.nodeLayers.size(); i++) {
             Xml.NodeLayer nl = ng.nodeLayers.get(i);
@@ -135,12 +136,12 @@ public class PrimitiveNodeGroup {
                             ", layer " + layer.getName());
                     }
                 }
-                techPoints[0] = Technology.makeTechPoint(nl.lx, nl.ly, fullSize);
-                techPoints[1] = Technology.makeTechPoint(nl.hx, nl.hy, fullSize);
+                techPoints[0] = Technology.makeTechPoint(nl.lx, nl.ly, correction);
+                techPoints[1] = Technology.makeTechPoint(nl.hx, nl.hy, correction);
             } else {
                 techPoints = nl.techPoints.toArray(new Technology.TechPoint[nl.techPoints.size()]);
                 for (int j = 0; j < techPoints.length; j++)
-                    techPoints[j] = Technology.makeTechPoint(techPoints[j], fullSize);
+                    techPoints[j] = Technology.makeTechPoint(techPoints[j], correction);
             }
             Technology.NodeLayer nodeLayer;
             if (ng.shrinkArcs) {

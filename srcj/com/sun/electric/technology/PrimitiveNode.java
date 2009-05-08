@@ -885,12 +885,11 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @param tech the Technology of the PrimitiveNode.
 	 * @param width the width of the PrimitiveNode.
 	 * @param height the height of the PrimitiveNode.
-     * @param minSizeRule name of minimal size rule
 	 * @param offset the offset from the edges of the reported/selected part of the PrimitiveNode.
 	 * @param layers the Layers that comprise the PrimitiveNode.
 	 * @return the newly created PrimitiveNode.
 	 */
-	public static PrimitiveNode newInstance(String protoName, Technology tech, double width, double height, String minSizeRule,
+	public static PrimitiveNode newInstance(String protoName, Technology tech, double width, double height,
 		SizeOffset offset, Technology.NodeLayer [] layers)
 	{
         EPoint sizeCorrector = EPoint.fromLambda(0.5*width, 0.5*height);
@@ -903,26 +902,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
                 2*sizeCorrector.getGridX(), 2*sizeCorrector.getGridY());
         ERectangle baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
         EPoint sizeCorrector2 = EPoint.fromGrid(baseRectangle.getGridWidth() >> 1, baseRectangle.getGridHeight() >> 1);
-        return newInstance(protoName, tech, sizeCorrector, sizeCorrector2, minSizeRule,
+        return newInstance(protoName, tech, sizeCorrector, sizeCorrector2, null,
                 width, height, fullRectangle, baseRectangle, layers);
-	}
-
-	/**
-	 * Method to create a new PrimitiveNode from the parameters.
-     * Size corrector of PrimitiveNode is determined from width and height.
-	 * @param protoName the name of the PrimitiveNode.
-	 * Primitive names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
-	 * @param tech the Technology of the PrimitiveNode.
-	 * @param width the width of the PrimitiveNode.
-	 * @param height the height of the PrimitiveNode.
-	 * @param offset the offset from the edges of the reported/selected part of the PrimitiveNode.
-	 * @param layers the Layers that comprise the PrimitiveNode.
-	 * @return the newly created PrimitiveNode.
-	 */
-	public static PrimitiveNode newInstance(String protoName, Technology tech, double width, double height,
-		SizeOffset offset, Technology.NodeLayer [] layers)
-	{
-        return newInstance(protoName, tech, width, height, null, offset, layers);
 	}
 
 	/**
@@ -984,7 +965,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             if (layer.getPseudoLayer() == null)
                 layer.makePseudo();
             layer = layer.getPseudoLayer();
-            double indent = DBMath.gridToLambda(fullExtend - ap.getLayerGridExtend(i));
+            double indent = DBMath.gridToLambda((Technology.STANDARD_NODE_LAYER_POINTS ? 0 : fullExtend) - ap.getLayerGridExtend(i));
             nodeLayers[i] = new Technology.NodeLayer(layer, 0, Poly.Type.CROSSED,
                     Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(indent));
         }
@@ -2221,8 +2202,9 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     }
 
     private void dumpNodeLayers(PrintWriter out, Technology.NodeLayer[] layers, boolean isSerp) {
+        EPoint correction = Technology.STANDARD_NODE_LAYER_POINTS ? EPoint.fromGrid(fullRectangle.getGridWidth(), fullRectangle.getGridHeight()) : EPoint.ORIGIN;
         for (Technology.NodeLayer nl: layers)
-            nl.dump(out, isSerp);
+            nl.dump(out, correction, isSerp);
     }
 
     Xml.PrimitiveNodeGroup makeXml() {
@@ -2283,19 +2265,20 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         if (getElectricalLayers() != null)
             electricalNodeLayers = Arrays.asList(getElectricalLayers());
         boolean isSerp = getSpecialType() == PrimitiveNode.SERPTRANS;
+        EPoint correction = Technology.STANDARD_NODE_LAYER_POINTS ? EPoint.ORIGIN : minFullSize;
         int m = 0;
         for (Technology.NodeLayer nld: electricalNodeLayers) {
             int j = nodeLayers.indexOf(nld);
             if (j < 0) {
-                ng.nodeLayers.add(nld.makeXml(isSerp, minFullSize, false, true));
+                ng.nodeLayers.add(nld.makeXml(isSerp, correction, false, true));
                 continue;
             }
             while (m < j)
-                ng.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, false));
-            ng.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, true));
+                ng.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, correction, true, false));
+            ng.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, correction, true, true));
         }
         while (m < nodeLayers.size())
-            ng.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, false));
+            ng.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, correction, true, false));
 
         for (Iterator<PrimitivePort> pit = getPrimitivePorts(); pit.hasNext(); ) {
             PrimitivePort pp = pit.next();

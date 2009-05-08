@@ -497,9 +497,7 @@ public class Technology implements Comparable<Technology>, Serializable
 			this.style = node.getStyle();
 			this.representation = node.getRepresentation();
             this.descriptor = TextDescriptor.EMPTY;
-            TechPoint [] oldPoints = node.getPoints();
-			this.points = new TechPoint[oldPoints.length];
-			for(int i=0; i<oldPoints.length; i++) points[i] = oldPoints[i];
+			this.points = node.getPoints().clone();
 			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
         }
 
@@ -566,11 +564,11 @@ public class Technology implements Comparable<Technology>, Serializable
 		 */
 		public TechPoint [] getPoints() { return points; }
 
-        /**
-         * Method to set new points to this NodeLayer
-         * @param pts
-         */
-        public void setPoints(TechPoint [] pts) {points = pts; }
+//        /**
+//         * Method to set new points to this NodeLayer
+//         * @param pts
+//         */
+//        public void setPoints(TechPoint [] pts) {points = pts; }
 
 		/**
 		 * Returns the left edge coordinate (a scalable EdgeH object) associated with this NodeLayer.
@@ -706,7 +704,7 @@ public class Technology implements Comparable<Technology>, Serializable
             cutGridSep2D = that.cutGridSep2D;
         }
 
-        void dump(PrintWriter out, boolean isSerp) {
+        void dump(PrintWriter out, EPoint correction, boolean isSerp) {
             out.println("\tlayer=" + getLayerOrPseudoLayer().getName() + " port=" + getPortNum() + " style=" + getStyle().name() + " repr=" + getRepresentation());
             if (getMessage() != null) {
                 TextDescriptor td = getDescriptor();
@@ -718,7 +716,8 @@ public class Technology implements Comparable<Technology>, Serializable
             if (isSerp)
                 out.println("\t\tLWidth=" + getSerpentineLWidth() + " rWidth=" + getSerpentineRWidth() + " bExtend=" + getSerpentineExtentB() + " tExtend=" + getSerpentineExtentT());
             for (Technology.TechPoint p: getPoints())
-                out.println("\t\tpoint xm=" + p.getX().getMultiplier() + " xa=" + p.getX().getAdder() + " ym=" + p.getY().getMultiplier() + " ya=" + p.getY().getAdder());
+                out.println("\t\tpoint xm=" + p.getX().getMultiplier() + " xa=" + DBMath.round(p.getX().getAdder() - p.getX().getMultiplier()*correction.getLambdaX()) +
+                " ym=" + p.getY().getMultiplier() + " ya=" + DBMath.round(p.getY().getAdder() - p.getY().getMultiplier()*correction.getLambdaY()));
         }
 
         Xml.NodeLayer makeXml(boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
@@ -2987,8 +2986,8 @@ public class Technology implements Comparable<Technology>, Serializable
 
         double xCenter = ni.getAnchorCenterX();
         double yCenter = ni.getAnchorCenterY();
-        double xSize = ni.getXSize();
-        double ySize = ni.getYSize();
+        double xSize = STANDARD_NODE_LAYER_POINTS ? ni.getD().size.getLambdaX() : ni.getXSize();
+        double ySize = STANDARD_NODE_LAYER_POINTS ? ni.getD().size.getLambdaY() : ni.getYSize();
 
 		// add in the basic polygons
 		int fillPoly = 0;
