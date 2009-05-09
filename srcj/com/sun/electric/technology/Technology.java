@@ -134,7 +134,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** true to handle duplicate points in an outline as a "break" */
 	public static final boolean DUPLICATEPOINTSAREBROKENOUTLINES = false;
     /** true if NodeLayer points are the same as Xml */
-    public static final boolean STANDARD_NODE_LAYER_POINTS = false;
+    public static final boolean STANDARD_NODE_LAYER_POINTS = true;
 
     // Change in TechSettings takes effect only after restart
     public static final boolean IMMUTABLE_TECHS = false/*Config.TWO_JVM*/;
@@ -385,6 +385,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		private Poly.Type style;
 		private int representation;
 		private TechPoint [] points;
+        private EPoint fixupCorrector;
 		private String message;
 		private TextDescriptor descriptor;
 		private double lWidth, rWidth, extentT, extendB;
@@ -444,7 +445,7 @@ public class Technology implements Comparable<Technology>, Serializable
 			this.portNum = portNum;
 			this.style = style;
 			this.representation = representation;
-			this.points = points;
+			this.points = points.clone();
 			descriptor = TextDescriptor.EMPTY;
 			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
 		}
@@ -478,7 +479,7 @@ public class Technology implements Comparable<Technology>, Serializable
 			this.portNum = portNum;
 			this.style = style;
 			this.representation = representation;
-			this.points = points;
+			this.points = points.clone();
 			descriptor = TextDescriptor.EMPTY;
 			this.lWidth = lWidth;
 			this.rWidth = rWidth;
@@ -509,6 +510,22 @@ public class Technology implements Comparable<Technology>, Serializable
             nl.cutGridSep1D =  DBMath.lambdaToGrid(sep1d);
             nl.cutGridSep2D =  DBMath.lambdaToGrid(sep2d);
             return nl;
+        }
+
+        void fixup(EPoint fixupCorrector) {
+            if (this.fixupCorrector != null) {
+                assert this.fixupCorrector.equals(fixupCorrector);
+                return;
+            }
+            this.fixupCorrector = fixupCorrector;
+            for (int i = 0; i < points.length; i++) {
+                TechPoint p = points[i];
+                EdgeH x = p.getX();
+                EdgeV y = p.getY();
+                x = x.withAdder(x.getAdder() + x.getMultiplier() * fixupCorrector.getLambdaX());
+                y = y.withAdder(y.getAdder() + y.getMultiplier() * fixupCorrector.getLambdaY());
+                points[i] = p.withX(x).withY(y);
+            }
         }
 
 		/**

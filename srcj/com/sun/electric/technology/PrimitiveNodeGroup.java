@@ -219,7 +219,7 @@ public class PrimitiveNodeGroup {
                 electricalNodeLayers.add(nodeLayer);
         }
 
-        PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, tech, sizeCorrector1, sizeCorrector2, minSizeRule,
+        PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, tech, sizeCorrector1, sizeCorrector2, EPoint.ORIGIN, minSizeRule,
                 defaultWidth, defaultHeight,
                 fullRectangle, baseRectangle, visualNodeLayers.toArray(new Technology.NodeLayer[visualNodeLayers.size()]));
         if (n.oldName != null)

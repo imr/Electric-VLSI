@@ -902,7 +902,10 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
                 2*sizeCorrector.getGridX(), 2*sizeCorrector.getGridY());
         ERectangle baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
         EPoint sizeCorrector2 = EPoint.fromGrid(baseRectangle.getGridWidth() >> 1, baseRectangle.getGridHeight() >> 1);
-        return newInstance(protoName, tech, sizeCorrector, sizeCorrector2, null,
+        EPoint fixupCorrector = EPoint.fromGrid(fullRectangle.getGridWidth(), fullRectangle.getGridHeight());
+        if (!Technology.STANDARD_NODE_LAYER_POINTS)
+            fixupCorrector = EPoint.ORIGIN;
+        return newInstance(protoName, tech, sizeCorrector, sizeCorrector2, fixupCorrector, null,
                 width, height, fullRectangle, baseRectangle, layers);
 	}
 
@@ -919,7 +922,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	public static PrimitiveNode newInstance0(String protoName, Technology tech, double width, double height, Technology.NodeLayer [] layers)
 	{
-        return newInstance(protoName, tech, EPoint.ORIGIN, EPoint.ORIGIN, null, width, height, ERectangle.ORIGIN, ERectangle.ORIGIN, layers);
+        return newInstance(protoName, tech, EPoint.ORIGIN, EPoint.ORIGIN, EPoint.ORIGIN, null, width, height, ERectangle.ORIGIN, ERectangle.ORIGIN, layers);
 	}
 
 	/**
@@ -934,8 +937,9 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @param layers the Layers that comprise the PrimitiveNode.
 	 * @return the newly created PrimitiveNode.
 	 */
-	static PrimitiveNode newInstance(String protoName, Technology tech, EPoint sizeCorrector1, EPoint sizeCorrector2, String minSizeRule,
-        double width, double height, ERectangle fullRectangle, ERectangle baseRectangle, Technology.NodeLayer [] layers)
+	static PrimitiveNode newInstance(String protoName, Technology tech, EPoint sizeCorrector1, EPoint sizeCorrector2, EPoint fixupCorrector,
+        String minSizeRule, double width, double height,
+        ERectangle fullRectangle, ERectangle baseRectangle, Technology.NodeLayer [] layers)
 	{
 		// check the arguments
 		if (tech.findNodeProto(protoName) != null)
@@ -949,6 +953,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 			return null;
 		}
 
+        for (Technology.NodeLayer nodeLayer: layers)
+            nodeLayer.fixup(fixupCorrector);
 		PrimitiveNode pn = new PrimitiveNode(protoName, tech, sizeCorrector1, sizeCorrector2, minSizeRule, width, height,
                 fullRectangle, baseRectangle, layers);
 		return pn;
@@ -974,7 +980,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         EPoint sizeCorrector2 = EPoint.fromLambda(elibSize1, elibSize1);
         ERectangle fullRectangle = ERectangle.fromGrid(-fullExtend, -fullExtend, 2*fullExtend, 2*fullExtend);
         ERectangle baseRectangle = ERectangle.fromGrid(-baseExtend, -baseExtend, 2*baseExtend, 2*baseExtend);
-        PrimitiveNode arcPin = newInstance(pinName, tech, sizeCorrector1, sizeCorrector2, null,
+        PrimitiveNode arcPin = newInstance(pinName, tech, sizeCorrector1, sizeCorrector2, EPoint.ORIGIN, null,
                 0, 0, fullRectangle, baseRectangle, nodeLayers);
 
         ArcProto[] connections = new ArcProto[1 + extraArcs.length];
