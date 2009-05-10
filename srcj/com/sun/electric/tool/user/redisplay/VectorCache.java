@@ -575,9 +575,11 @@ public class VectorCache {
             for (VectorManhattanBuilder b: pureBoxBuilders)
                 b.clear();
             // draw all arcs
+            Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
+            polyBuilder.setOnlyTheseLayers(null);
             for(Iterator<ArcInst> arcs = cell.getArcs(); arcs.hasNext(); ) {
                 ArcInst ai = arcs.next();
-                drawArc(ai, trans, this);
+                drawArc(ai, trans, polyBuilder, this);
             }
 
             // draw all nodes
@@ -1133,15 +1135,16 @@ public class VectorCache {
 	 * Method to cache an ArcInst.
 	 * @param ai the ArcInst to cache.
      * @param trans the transformation of the ArcInst to the parent cell.
+     * @param polyBuilder Poly builder to use
 	 * @param vc the cached cell in which to place the ArcInst.
      */
-	private void drawArc(ArcInst ai, AffineTransform trans, VectorCell vc)
+	private void drawArc(ArcInst ai, AffineTransform trans, Poly.Builder polyBuilder, VectorCell vc)
 	{
 		// draw the arc
 		ArcProto ap = ai.getProto();
-		Technology tech = ap.getTechnology();
 		boolean pureLayer = (ap.getNumArcLayers() == 1);
-		drawPolys(tech.getShapeOfArc(ai), trans, vc, false, VectorText.TEXTTYPEARC, pureLayer);
+        Poly[] polys = polyBuilder.getShapeArray(ai);
+		drawPolys(polys, trans, vc, false, VectorText.TEXTTYPEARC, pureLayer);
 		drawPolys(ai.getDisplayableVariables(dummyWnd), trans, vc, false, VectorText.TEXTTYPEARC, false);
 	}
 
