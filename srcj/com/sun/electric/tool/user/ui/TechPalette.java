@@ -266,10 +266,15 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 		if (item instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)item;
-		    Variable var = ni.getVar(TECH_TMPVAR);
-            if (getVarName && var != null) // && !var.isDisplay())
+            Technology tech = ni.getProto().getTechnology();
+            // Only for schematics we use Variables
+            if (tech == Schematics.tech())
             {
-                return (var.getObject().toString());
+                Variable var = ni.getVar(TECH_TMPVAR);
+                if (getVarName && var != null) // && !var.isDisplay())
+                {
+                    return (var.getObject().toString());
+                }
             }
             // At least case for well contacts
             return (ni.getProto().getName());

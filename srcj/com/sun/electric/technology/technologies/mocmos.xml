@@ -2620,10 +2620,10 @@
                 <menuNodeText text="pMos" size="9.0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Thick-P-Transistor" function="TRAPMOSHV1">
-                <menuNodeText text="pMos" size="9.0"/>
+                <menuNodeText text="pThick" size="9.0"/>
             </menuNodeInst>
             <menuNodeInst protoName="P-Transistor-Scalable" function="TRAPMOS">
-                <menuNodeText text="pMos" size="9.0"/>
+                <menuNodeText text="pScale" size="9.0"/>
             </menuNodeInst>
         </menuBox>
         <menuBox>
@@ -2631,10 +2631,10 @@
                 <menuNodeText text="nMos" size="9.0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Thick-N-Transistor" function="TRANMOSHV1">
-                <menuNodeText text="nMos" size="9.0"/>
+                <menuNodeText text="nThick" size="9.0"/>
             </menuNodeInst>
             <menuNodeInst protoName="N-Transistor-Scalable" function="TRANMOS">
-                <menuNodeText text="nMos" size="9.0"/>
+                <menuNodeText text="nScale" size="9.0"/>
             </menuNodeInst>
         </menuBox>
 
