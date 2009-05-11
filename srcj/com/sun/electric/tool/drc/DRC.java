@@ -936,9 +936,9 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 
 		List<Geometric> geomList = new ArrayList<Geometric>();
 		List<PolyBase> polyList = new ArrayList<PolyBase>();
-		if (poly1 != null) polyList.add(poly1); else
+		if (poly1 != null) polyList.add(poly1); //else
 			if (geom1 != null) geomList.add(geom1);
-		if (poly2 != null) polyList.add(poly2); else
+		if (poly2 != null) polyList.add(poly2); //else
 			if (geom2 != null) geomList.add(geom2);
 
         switch (loggingType)
@@ -956,7 +956,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                 break;
         }
 
-        errorLogger.logMessage(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortKey, !onlyWarning);
+        errorLogger.logMessage(errorMessage.toString(), geomList, polyList, cell, sortKey, !onlyWarning);
         // Temporary display of errors.
         if (reportInfo.interactiveLogger)
             Job.getUserInterface().termLogging(errorLogger, false, false);
