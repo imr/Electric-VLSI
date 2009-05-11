@@ -600,7 +600,7 @@ public class ErrorLogger implements Serializable
                         l.add(new ErrorHighLine(cell, new EPoint(points[prev].getX(), points[prev].getY()),
                             new EPoint(points[i].getX(), points[i].getY()), true));
                     }
-                    h.add(new ErrorHighPoly(cell, l));
+                    h.add(new ErrorHighPoly(cell, null, l));
                 }
                 else
                     assert(false);
@@ -629,9 +629,8 @@ public class ErrorLogger implements Serializable
      * @param sortKey the sorting order of this message.
      * @param errorMsg
      */
-    public synchronized void logMessage(String message, List<Geometric> geomList, List<Export> exportList,
-                                        List<EPoint> lineList, List<EPoint> pointList,
-                                        List<PolyBase> polyList, Cell cell, int sortKey, boolean errorMsg)
+    public synchronized void logMessage(String message, List<Geometric> geomList, List<PolyBase> polyList,
+                                        Cell cell, int sortKey, boolean errorMsg)
     {
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
     	if (geomList != null)
@@ -639,28 +638,13 @@ public class ErrorLogger implements Serializable
     		for(Geometric geom : geomList)
                 h.add(ErrorHighlight.newInstance(null, geom));
     	}
-    	if (exportList != null)
-    	{
-    		for(Export e : exportList)
-                h.add(new ErrorHighExport(null, e));
-    	}
-    	if (lineList != null)
-    	{
-    		for(int i=0; i<lineList.size(); i += 2)
-                h.add(new ErrorHighLine(cell, lineList.get(i), lineList.get(i+1), false));
-    	}
-    	if (pointList != null)
-    	{
-    		for(EPoint pt : pointList)
-                h.add(new ErrorHighPoint(cell, pt));
-    	}
     	if (polyList != null)
     	{
             // must match number of elements
-//            boolean matches = geomList != null && geomList.size() == polyList.size();
-//            if (geomList != null)
-//                assert(geomList.size() == polyList.size());
-//            int count = 0;
+            boolean matches = geomList != null && geomList.size() == polyList.size();
+            if (geomList != null)
+                assert(geomList.size() == polyList.size());
+            int count = 0;
             for(PolyBase poly : polyList)
     		{
     	        Point2D [] points = poly.getPoints();
@@ -673,7 +657,7 @@ public class ErrorLogger implements Serializable
     	            list.add(new ErrorHighLine(cell, new EPoint(points[prev].getX(), points[prev].getY()),
     	            	new EPoint(points[i].getX(), points[i].getY()), true));
                 }
-                h.add(new ErrorHighPoly(cell, list));
+                h.add(new ErrorHighPoly(cell, null, list));
             }
     	}
 

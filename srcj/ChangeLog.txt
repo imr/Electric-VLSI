@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+BUG: (5/11/09, GVG) TechEditorWizard and pwell process (Bug #2170)
+FIX: SizeOffset values properly calculated now.
+
 BUG: (5/11/09, SMR) Node extraction creates badly-named exports (Bug #2163).
 FIX: In node extractor and auto-stitcher, uses sensible names.
 

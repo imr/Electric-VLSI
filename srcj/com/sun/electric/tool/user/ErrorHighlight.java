@@ -109,7 +109,7 @@ public abstract class ErrorHighlight implements Serializable {
             }
             else if (qName.equals("ERRORTYPEPOLY"))
             {
-                ErrorHighPoly poly = new ErrorHighPoly(curCell, null);
+                ErrorHighPoly poly = new ErrorHighPoly(curCell, null, null);
                 list.add(poly);
                 l = poly.linesList;
             }
@@ -200,7 +200,7 @@ public abstract class ErrorHighlight implements Serializable {
 
 class ErrorHighExport extends ErrorHighlight {
 
-    private final ExportId      pp;
+    private final ExportId pp;
 
     public ErrorHighExport(VarContext con, Export p)
     {
@@ -231,17 +231,34 @@ class ErrorHighExport extends ErrorHighlight {
 class ErrorHighPoly extends ErrorHighlight
 {
     List<ErrorHighlight> linesList = new ArrayList<ErrorHighlight>();
+    private final int origId; // arc or node
+    private final CellId origCellId; // original cell id
 
-    public ErrorHighPoly(Cell c, List<ErrorHighlight> list)
+    public ErrorHighPoly(Cell c, Geometric o, List<ErrorHighlight> list)
     {
         super(c, null);
         if (list != null)
             linesList.addAll(list);
+        if (o != null)
+        {
+            origCellId = o.getParent().getId();
+            if (o instanceof NodeInst)
+                origId = ((NodeInst)o).getD().nodeId;
+            else // arc
+                origId = ((ArcInst)o).getD().arcId;
+        }
+        else
+        {
+            origId = -1;
+            origCellId = null;
+        }
     }
 
     ErrorHighPoly(CellId cellId)
     {
         super(cellId);
+        origId = -1;
+        origCellId = null;
     }
 
     public static void writeXmlHeader(String indent, PrintStream ps)
@@ -249,17 +266,31 @@ class ErrorHighPoly extends ErrorHighlight
         ps.println(indent + "<!ELEMENT ERRORTYPEPOLY (ERRORTYPETHICKLINE|ERRORTYPELINE)*>");
         ps.println(indent + "<!ATTLIST ERRORTYPEPOLY");
         ps.println(indent + "   cellName CDATA #REQUIRED");
+        ps.println(indent + "   origCellName CDATA #IMPLIED");
+        ps.println(indent + "   origGeoName CDATA #IMPLIED");   // arc or node
         ps.println(indent + ">");
     }
 
     void writeXmlDescription(String tabs, PrintStream msg, EDatabase database)
     {
         msg.append(tabs +"<ERRORTYPEPOLY ");
-        msg.append("cellName=\"" + getCell(database).describe(false) + "\" >");
+        msg.append("cellName=\"" + getCell(database).describe(false) + "\" ");
+        if (origId != -1)
+        {
+            Cell cell = getOrigCell(database);
+            Geometric geo = cell.getNodeById(origId); // if null -> arc
+            if (geo == null) // arc
+                geo = cell.getArcById(origId);
+            msg.append("origCellName=\"" + cell.describe(false) + "\" ");
+            msg.append("origGeoName=\"" + geo.describe(false) + "\" ");
+        }
+        msg.append(">\n");
         for (ErrorHighlight line : linesList)
             line.writeXmlDescription(tabs+"\t", msg, database);
         msg.append(tabs+"</ERRORTYPEPOLY>\n");
     }
+
+    Cell getOrigCell(EDatabase database) { return origCellId != null ? database.getCell(origCellId) : null; }
 
     public void addToHighlighter(Highlighter h, EDatabase database)
     {
