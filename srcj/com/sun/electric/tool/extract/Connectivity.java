@@ -1574,8 +1574,7 @@ public class Connectivity
 		PrimitiveNode pNp;
 		int rotation;
 		double minWidth, minHeight;
-		double largestShrink;
-		Technology.NodeLayer cutNodeLayer;
+		double multicutSep1D, multicutSep2D, multicutSizeX, multicutSizeY;
 		Layer [] layers;
 		double [] shrinkL, shrinkR, shrinkT, shrinkB;
 
@@ -1583,7 +1582,6 @@ public class Connectivity
 		{
 			this.pNp = pNp;
 			rotation = 0;
-			largestShrink = 0;
 			layers = new Layer[numLayers];
 			shrinkL = new double[numLayers];
 			shrinkR = new double[numLayers];
@@ -1694,6 +1692,7 @@ public class Connectivity
 				String reason = null;
 				for(PossibleVia pv : possibleVias)
 				{
+//System.out.println("CONSIDERING "+pv.pNp.describe(false)+" AT ("+cutBox.getCenterX()+","+cutBox.getCenterY()+")...");
 					// quick test to see if this via could possibly exist
 					boolean someLayersMissing = false;
 					for(int i=0; i<pv.layers.length; i++)
@@ -1706,6 +1705,7 @@ public class Connectivity
 							break;
 						}
 					}
+//if (someLayersMissing) System.out.println("   IS MISSING BASIC LAYERS");
 					if (someLayersMissing) continue;
 
 					// see if this is an active/poly layer (in which case, there can be no poly/active in the area)
@@ -1724,8 +1724,8 @@ public class Connectivity
 					cutsInArea.add(cut);
 					Rectangle2D multiCutArea = new Rectangle2D.Double(cutBox.getCenterX(), cutBox.getCenterY(), 0, 0);
 					Rectangle2D requiredMetalArea = (Rectangle2D)cutBox.clone();
-					double cutLimit = Math.ceil(Math.max(pv.cutNodeLayer.getMulticutSep1D(), pv.cutNodeLayer.getMulticutSep2D()) +
-						Math.max(pv.cutNodeLayer.getMulticutSizeX(), pv.cutNodeLayer.getMulticutSizeX()) + 2);
+					double cutLimit = Math.ceil(Math.max(pv.multicutSep1D, pv.multicutSep2D) +
+						Math.max(pv.multicutSizeX, pv.multicutSizeY) + 2);
 					cutLimit *= SCALEFACTOR;
 					boolean foundMore = true;
 					while (foundMore)
@@ -1784,7 +1784,7 @@ public class Connectivity
 					double lY = multiCutArea.getMinY() - trueHeight/2;
 					double hY = multiCutArea.getMaxY() + trueHeight/2;
 					multiCutArea.setRect(lX, lY, hX-lX, hY-lY);
-//System.out.println("CONSIDERING "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" WITH "+cutsInArea.size()+" CUTS, SIZE "+
+//System.out.println("   CONSIDERING "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" WITH "+cutsInArea.size()+" CUTS, SIZE "+
 //	((hX-lX)/SCALEFACTOR)+"x"+((hY-lY)/SCALEFACTOR));
 					// see if largest multi-cut contact fits
 					Layer badLayer = doesNodeFit(pv, multiCutArea, originalMerge, ignorePWell, ignoreNWell);
@@ -1798,7 +1798,7 @@ public class Connectivity
 							mw = multiCutArea.getHeight();
 							mh = multiCutArea.getWidth();
 						}
-//System.out.println("      METAL LAYERS OF LARGE CUT ("+TextUtils.formatDouble(mw / SCALEFACTOR)+"x"+TextUtils.formatDouble(mh / SCALEFACTOR)+
+//System.out.println("   METAL LAYERS OF LARGE CUT ("+TextUtils.formatDouble(mw / SCALEFACTOR)+"x"+TextUtils.formatDouble(mh / SCALEFACTOR)+
 //	" AT ("+TextUtils.formatDouble(multiCutArea.getCenterX() / SCALEFACTOR)+
 //	","+TextUtils.formatDouble(multiCutArea.getCenterY() / SCALEFACTOR)+")) FITS...NOW CHECKING CUTS");
 						badLayer = realizeBiggestContact(pv.pNp, Technology.NodeLayer.MULTICUT_CENTERED,
@@ -1811,6 +1811,7 @@ public class Connectivity
 							foundCut = true;
 							break;
 						}
+//System.out.println("   BIGGEST CUT FAILS ON LAYER "+badLayer.getName());
 						if (cutsInArea.size() > 1 && pv.pNp.findMulticut() != null)
 						{
 							badLayer = realizeBiggestContact(pv.pNp, Technology.NodeLayer.MULTICUT_SPREAD,
@@ -1850,6 +1851,7 @@ public class Connectivity
 						foundCut = true;
 						break;
 					}
+//System.out.println("   EXACT CUT FAILS ON LAYER "+badLayer.getName());
 
 					reason = "node " + pv.pNp.describe(false) + ", layer " + badLayer.getName() + " does not fit";
 					if (pv.rotation != 0) reason += " (when rotated " + pv.rotation + ")";
@@ -2139,10 +2141,10 @@ public class Connectivity
 			// For some reason, the MOCMOS technology with MOCMOS foundry shows the "A-" nodes (A-Metal-1-Metal-2-Con)
 			// but these primitives are not fully in existence, and crash here
 			boolean bogus = false;
-			Technology.NodeLayer [] nLayers = pNp.getNodeLayers();
-			for(int i=0; i<nLayers.length; i++)
+			Technology.NodeLayer [] nLs = pNp.getNodeLayers();
+			for(int i=0; i<nLs.length; i++)
 			{
-				Technology.NodeLayer nLay = nLayers[i];
+				Technology.NodeLayer nLay = nLs[i];
 				TechPoint [] debugPoints = nLay.getPoints();
 				if (debugPoints == null || debugPoints.length <= 0)
 				{
@@ -2153,21 +2155,23 @@ public class Connectivity
 			if (bogus) continue;
 
 			// load the layer information
-			Technology.NodeLayer cutNodeLayer = null;
-			Technology.NodeLayer m1Layer = null;
-			Technology.NodeLayer m2Layer = null;
+			NodeInst dummyNI = NodeInst.makeDummyInstance(pNp);
+			Poly[] layerPolys = tech.getShapeOfNode(dummyNI);
+			int cutNodeLayer = -1;
+			int m1Layer = -1;
+			int m2Layer = -1;
 			boolean hasPolyActive = false;
-			List<Technology.NodeLayer> pvLayers = new ArrayList<Technology.NodeLayer>();
-			for(int i=0; i<nLayers.length; i++)
+			List<Integer> pvLayers = new ArrayList<Integer>();
+			for(int i=0; i<layerPolys.length; i++)
 			{
 				// examine one layer of the primitive node
-				Technology.NodeLayer nLay = nLayers[i];
-				Layer nLayer = nLay.getLayer();
+				Poly poly = layerPolys[i];
+				Layer nLayer = poly.getLayer();
 				Layer.Function lFun = nLayer.getFunction();
 				if (lFun.isMetal())
 				{
-					if (m1Layer == null) m1Layer = nLay; else
-						if (m2Layer == null) m2Layer = nLay;
+					if (m1Layer < 0) m1Layer = i; else
+						if (m2Layer < 0) m2Layer = i;
 				} else if (lFun.isDiff() || lFun.isPoly()) hasPolyActive = true;
 
 				// ignore well/select layers if requested
@@ -2190,21 +2194,21 @@ public class Connectivity
 					// special case for active/poly cut confusion
 					if (nLayer.getFunction() == lay.getFunction()) cutLayer = true;
 				}
-				if (cutLayer) cutNodeLayer = nLay; else
+				if (cutLayer) cutNodeLayer = i; else
 				{
-					pvLayers.add(nLay);
+					pvLayers.add(new Integer(i));
 				}
 			}
-			if (cutNodeLayer == null) continue;
+			if (cutNodeLayer < 0) continue;
 
 			// make sure via contacts connect exactly two layers of metal, next to each other
 			if (!hasPolyActive && fun == PrimitiveNode.Function.CONTACT)
 			{
 				boolean badContact = false;
-				if (m1Layer == null || m2Layer == null) badContact = true; else
+				if (m1Layer < 0 || m2Layer < 0) badContact = true; else
 				{
-					int lowMetal = m1Layer.getLayer().getFunction().getLevel();
-					int highMetal = m2Layer.getLayer().getFunction().getLevel();
+					int lowMetal = layerPolys[m1Layer].getLayer().getFunction().getLevel();
+					int highMetal = layerPolys[m2Layer].getLayer().getFunction().getLevel();
 					if (lowMetal > highMetal) { int s = lowMetal;   lowMetal = highMetal;   highMetal = s; }
 					if (lowMetal != highMetal-1) badContact = true;
 				}
@@ -2219,25 +2223,38 @@ public class Connectivity
 				}
 			}
 
-			// create a PossibleVia object to test for them
+			// create the PossibleVia to describe the geometry
 			PossibleVia pv = new PossibleVia(pNp, pvLayers.size());
-			pv.cutNodeLayer = cutNodeLayer;
+			for(int i=0; i<nLs.length; i++)
+			{
+				Technology.NodeLayer nLay = nLs[i];
+				if (nLay.getLayer() == layerPolys[cutNodeLayer].getLayer())
+				{
+					pv.multicutSep1D = nLay.getMulticutSep1D();
+					pv.multicutSep2D = nLay.getMulticutSep2D();
+					pv.multicutSizeX = nLay.getMulticutSizeX();
+					pv.multicutSizeX = nLay.getMulticutSizeY();
+				}
+			}
 			pv.minWidth = scaleUp(pNp.getDefWidth());
 			pv.minHeight = scaleUp(pNp.getDefHeight());
 			int fill = 0;
-			for(Technology.NodeLayer nLay : pvLayers)
+			double cutLX = layerPolys[cutNodeLayer].getBounds2D().getMinX();
+			double cutHX = layerPolys[cutNodeLayer].getBounds2D().getMaxX();
+			double cutLY = layerPolys[cutNodeLayer].getBounds2D().getMinY();
+			double cutHY = layerPolys[cutNodeLayer].getBounds2D().getMaxY();
+			for(Integer layIndex : pvLayers)
 			{
-				// create the PossibleVia to describe the geometry
-				pv.layers[fill] = geometricLayer(nLay.getLayer());
-                double sizeX = Technology.STANDARD_NODE_LAYER_POINTS ? pNp.getDefaultLambdaExtendX(ep)*2 : pNp.getDefWidth();
-                double sizeY = Technology.STANDARD_NODE_LAYER_POINTS ? pNp.getDefaultLambdaExtendY(ep)*2 : pNp.getDefHeight();
-				pv.shrinkL[fill] = scaleUp(sizeX * (0.5 + nLay.getLeftEdge().getMultiplier()) + nLay.getLeftEdge().getAdder());
-				pv.shrinkR[fill] = scaleUp(sizeX * (0.5 - nLay.getRightEdge().getMultiplier()) - nLay.getRightEdge().getAdder());
-				pv.shrinkT[fill] = scaleUp(sizeY * (0.5 - nLay.getTopEdge().getMultiplier()) - nLay.getTopEdge().getAdder());
-				pv.shrinkB[fill] = scaleUp(sizeY * (0.5 + nLay.getBottomEdge().getMultiplier()) + nLay.getBottomEdge().getAdder());
-				double ls = Math.max(Math.max(pv.shrinkL[fill], pv.shrinkR[fill]),
-					Math.max(pv.shrinkT[fill], pv.shrinkB[fill]));
-				if (fill == 0 || ls > pv.largestShrink) pv.largestShrink = ls;
+				int index = layIndex.intValue();
+				pv.layers[fill] = geometricLayer(layerPolys[index].getLayer());
+				double layLX = layerPolys[index].getBounds2D().getMinX();
+				double layHX = layerPolys[index].getBounds2D().getMaxX();
+				double layLY = layerPolys[index].getBounds2D().getMinY();
+				double layHY = layerPolys[index].getBounds2D().getMaxY();
+				pv.shrinkL[fill] = scaleUp(cutLX - layLX);
+				pv.shrinkR[fill] = scaleUp(layHX - cutHX);
+				pv.shrinkT[fill] = scaleUp(layHY - cutHY);
+				pv.shrinkB[fill] = scaleUp(cutLY - layLY);
 				fill++;
 			}
 
@@ -2261,8 +2278,8 @@ public class Connectivity
 				// horizontal/vertical or rotational symmetry missing: add a 90-degree rotation
 				PossibleVia newPV = new PossibleVia(pv.pNp, pv.layers.length);
 				newPV.rotation = 90;
-				newPV.cutNodeLayer = pv.cutNodeLayer;
-				newPV.largestShrink = pv.largestShrink;
+				newPV.multicutSep1D = pv.multicutSep1D;   newPV.multicutSep2D = pv.multicutSep2D;
+				newPV.multicutSizeX = pv.multicutSizeX;   newPV.multicutSizeY = pv.multicutSizeY;
 				newPV.minWidth = pv.minWidth;
 				newPV.minHeight = pv.minHeight;
 				for(int i=0; i<pv.layers.length; i++)
@@ -2280,8 +2297,8 @@ public class Connectivity
 				// rotational symmetry missing: add a 180-degree and 270-degree rotation
 				PossibleVia newPV = new PossibleVia(pv.pNp, pv.layers.length);
 				newPV.rotation = 180;
-				newPV.cutNodeLayer = pv.cutNodeLayer;
-				newPV.largestShrink = pv.largestShrink;
+				newPV.multicutSep1D = pv.multicutSep1D;   newPV.multicutSep2D = pv.multicutSep2D;
+				newPV.multicutSizeX = pv.multicutSizeX;   newPV.multicutSizeY = pv.multicutSizeY;
 				newPV.minWidth = pv.minWidth;
 				newPV.minHeight = pv.minHeight;
 				for(int i=0; i<pv.layers.length; i++)
@@ -2296,8 +2313,8 @@ public class Connectivity
 
 				newPV = new PossibleVia(pv.pNp, pv.layers.length);
 				newPV.rotation = 270;
-				newPV.cutNodeLayer = pv.cutNodeLayer;
-				newPV.largestShrink = pv.largestShrink;
+				newPV.multicutSep1D = pv.multicutSep1D;   newPV.multicutSep2D = pv.multicutSep2D;
+				newPV.multicutSizeX = pv.multicutSizeX;   newPV.multicutSizeY = pv.multicutSizeY;
 				newPV.minWidth = pv.minWidth;
 				newPV.minHeight = pv.minHeight;
 				for(int i=0; i<pv.layers.length; i++)
@@ -2383,10 +2400,10 @@ public class Connectivity
 			Layer l = pv.layers[i];
 			if (ignorePWell && l.getFunction() == Layer.Function.WELLP) continue;
 			if (ignoreNWell && l.getFunction() == Layer.Function.WELLN) continue;
-			double lX = cutBox.getMinX() + pv.shrinkL[i];
-			double hX = cutBox.getMaxX() - pv.shrinkR[i];
-			double lY = cutBox.getMinY() + pv.shrinkB[i];
-			double hY = cutBox.getMaxY() - pv.shrinkT[i];
+			double lX = cutBox.getMinX() - pv.shrinkL[i];
+			double hX = cutBox.getMaxX() + pv.shrinkR[i];
+			double lY = cutBox.getMinY() - pv.shrinkB[i];
+			double hY = cutBox.getMaxY() + pv.shrinkT[i];
 			double layerCX = (lX + hX) / 2;
 			double layerCY = (lY + hY) / 2;
 			PolyBase layerPoly = new PolyBase(layerCX, layerCY, hX-lX, hY-lY);

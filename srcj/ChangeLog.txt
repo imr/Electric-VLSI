@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+BUG: (5/11/09, SMR) Node extraction doesn't find contacts properly (Bug #2164).
+FIX: Now use dummy nodes instead of NodeLayer information.
+
 IMP: (5/11/09, DN) Fast path to put simple arc shapes into VectorCache.
 
 IMP: (5/8/09, DN) Points in technology classes are the same as in Xml files.
