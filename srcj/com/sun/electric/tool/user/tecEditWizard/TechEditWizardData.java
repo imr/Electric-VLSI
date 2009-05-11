@@ -2368,7 +2368,7 @@ public class TechEditWizardData
         for (int i = 0; i < 2; i++)
         {
             String composeName = diffNames[i] + "-Well";
-            Xml.NodeLayer wellNode = null, wellNodePin = null;
+            Xml.NodeLayer wellNodeLayer = null, wellNodePinLayer = null;
             PaletteGroup g = new PaletteGroup();
             PrimitiveNode.Function func = null;
 
@@ -2377,9 +2377,12 @@ public class TechEditWizardData
             portNames.clear();
             if (i == Technology.P_TYPE)
             {
-                portNames.add(pwellLayer.name);
-                wellNodePin = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED);
-                wellNode = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED);
+                if (!pWellFlag)
+                {
+                    portNames.add(pwellLayer.name);
+                    wellNodePinLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED);
+                    wellNodeLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED);
+                }
                 // arc
                 g.addArc(makeXmlArc(t, composeName, ArcProto.Function.WELL, 0,
                     makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p)));
@@ -2387,15 +2390,12 @@ public class TechEditWizardData
             }
             else
             {
-                if (!pWellFlag)
-                {
-                    portNames.add(nwellLayer.name);
-                    wellNodePin = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED);
-                    wellNode = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED);
-                    // arc
-                    g.addArc(makeXmlArc(t, composeName, ArcProto.Function.WELL, 0,
-                        makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p)));
-                }
+                portNames.add(nwellLayer.name);
+                wellNodePinLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED);
+                wellNodeLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED);
+                // arc
+                g.addArc(makeXmlArc(t, composeName, ArcProto.Function.WELL, 0,
+                    makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p)));
                 func = PrimitiveNode.Function.SUBSTRATE;
             }
             portNames.add(m1Layer.name);
@@ -2404,7 +2404,7 @@ public class TechEditWizardData
                 new SizeOffset(wellSos[i], wellSos[i], wellSos[i], wellSos[i]),
                 makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.CROSSED),
                 makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.CROSSED),
-                wellNodePin));
+                wellNodePinLayer));
 
             // well contact
             // F stands for full
@@ -2413,7 +2413,7 @@ public class TechEditWizardData
                 makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED), // meta1 layer
                 makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED), // active layer
                 makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED), // select layer
-                wellNode, // well layer
+                wellNodeLayer, // well layer
                 makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)), "Full-"+diffNames[i] + "W"); // contact
         }
 
@@ -2514,8 +2514,7 @@ public class TechEditWizardData
             double sox = 0, soy = 0;
             double impx = scaledValue((gate_width.v)/2);
             double impy = scaledValue((gate_length.v+diff_poly_overhang.v*2)/2);
-            double nwell_overhangX = (i==Technology.P_TYPE) ? nwell_overhang_diff_n.v : nwell_overhang_diff_p.v;
-            double nwell_overhangY = (i==Technology.P_TYPE) ? nwell_overhang_diff_n.v : nwell_overhang_diff_p.v;
+            double nwell_overhangX = 0, nwell_overhangY = 0;
             PaletteGroup g = new PaletteGroup();
             transPalette[i] = g;
 
@@ -2523,26 +2522,38 @@ public class TechEditWizardData
             double extraSelX = 0, extraSelY = 0;
             PrimitiveNode.Function func = null;
 
-            if (i==0)
-			{
+            if (i==Technology.P_TYPE)
+            {
 				name = "P";
+                nwell_overhangY = nwell_overhangX = nwell_overhang_diff_n.v;
                 wellLayer = nwellLayer;
                 activeLayer = diffPLayer;
                 selectLayer = pplusLayer;
                 extraSelX = pplus_overhang_poly.v;
                 extraSelY = pplus_overhang_diff.v;
                 func = PrimitiveNode.Function.TRAPMOS;
-            } else
-			{
+            }
+            else
+            {
 				name = "N";
-                if (!pWellFlag)
-                    wellLayer = pwellLayer;
                 activeLayer = diffNLayer;
                 selectLayer = nplusLayer;
                 extraSelX = nplus_overhang_poly.v;
                 extraSelY = nplus_overhang_diff.v;
                 func = PrimitiveNode.Function.TRANMOS;
+                if (!pWellFlag)
+                {
+                    nwell_overhangY = nwell_overhangX = nwell_overhang_diff_p.v;
+                    wellLayer = pwellLayer;
+                }
+                else
+                {
+                    nwell_overhangX = poly_endcap.v+extraSelX;
+                    nwell_overhangY = extraSelY;
+                }
             }
+//            double nwell_overhangX = (i==Technology.P_TYPE) ? nwell_overhang_diff_n.v : nwell_overhang_diff_p.v;
+//            double nwell_overhangY = (i==Technology.P_TYPE) ? nwell_overhang_diff_n.v : nwell_overhang_diff_p.v;
 
             selectx = scaledValue(gate_width.v/2+poly_endcap.v+extraSelX);
             selecty = scaledValue(gate_length.v/2+diff_poly_overhang.v+extraSelY);
@@ -2689,9 +2700,9 @@ public class TechEditWizardData
                 nodesList.add(xTranSelLayer);
                 double shortSox = sox;
 
+                shortSox = scaledValue(poly_endcap.v);
                 if (wellLayer != null)
                 {
-                    shortSox = scaledValue(poly_endcap.v);
                     nodesList.remove(xTranWellLayer);
                     xTranWellLayer = (makeXmlNodeLayer(shortSelectX, shortSelectX, welly, welly, wellLayer, Poly.Type.FILLED));
                     nodesList.add(xTranWellLayer);
@@ -2708,13 +2719,13 @@ public class TechEditWizardData
                 nodesList.add(xTranSelLayer);
 
                 // not sure which condition to apply. It doesn't apply  nwell_overhang_diff due to the extra poly
+                if (DBMath.isLessThan(welly, selectExtraY))
+                {
+                    welly = selectExtraY;
+                    soy = scaledValue(endOfProtectionY + extraSelX);
+                }
                 if (wellLayer != null)
                 {
-                    if (DBMath.isLessThan(welly, selectExtraY))
-                    {
-                        welly = selectExtraY;
-                        soy = scaledValue(endOfProtectionY + extraSelX);
-                    }
                     nodesList.remove(xTranWellLayer);
                     xTranWellLayer = (makeXmlNodeLayer(wellx, wellx, welly, welly, wellLayer, Poly.Type.FILLED));
                     nodesList.add(xTranWellLayer);
