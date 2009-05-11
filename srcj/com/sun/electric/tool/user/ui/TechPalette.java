@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.EditingPreferences;
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
@@ -1139,7 +1141,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     double scale = Math.min(scalex, scaley);
 
             		// draw the arc
-                    VectorCache.VectorBase[] shapes = VectorCache.drawPolys(ap.getShapeOfDummyArc(menuArcLength));
+                    ImmutableArcInst a = ap.getDefaultInst(EditingPreferences.getThreadEditingPreferences());
+                    long l2 = DBMath.lambdaToGrid(menuArcLength/2);
+                    a = a.withLocations(EPoint.fromGrid(-l2, 0), EPoint.fromGrid(l2, 0));
+                    VectorCache.VectorBase[] shapes = VectorCache.drawPolys(a, ap.getShapeOfDummyArc(menuArcLength));
                     drawShapes(g, gp, imgX, imgY, scale, shapes);
 
                     g.setColor(Color.RED);

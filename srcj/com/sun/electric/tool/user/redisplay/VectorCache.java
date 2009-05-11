@@ -52,6 +52,7 @@ import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -88,6 +89,7 @@ public class VectorCache {
 	/** list of cell expansions. */							private final ArrayList<VectorCellGroup> cachedCells = new ArrayList<VectorCellGroup>();
 	/** list of polygons to include in cells */				private final Map<CellId,List<VectorBase>> addPolyToCell = new HashMap<CellId,List<VectorBase>>();
 	/** list of instances to include in cells */			private final Map<CellId,List<VectorLine>> addInstToCell = new HashMap<CellId,List<VectorLine>>();
+    /** local shape builder */                              private final ShapeBuilder shapeBuilder = new ShapeBuilder();
     /** List of VectorManhattanBuilders */                  private final ArrayList<VectorManhattanBuilder>boxBuilders = new ArrayList<VectorManhattanBuilder>();
     /** List of VectorManhattanBiilders for pure ndoes. */  private final ArrayList<VectorManhattanBuilder>pureBoxBuilders = new ArrayList<VectorManhattanBuilder>();
     /** Current VarContext. */                              private VarContext varContext;
@@ -159,17 +161,17 @@ public class VectorCache {
         /** Number of boxes. */         int size; // number of boxes
         /** Coordiantes of boxes. */    int[] coords = new int[4];
 
-        private void add(double lX, double lY, double hX, double hY) {
+        private void add(int lX, int lY, int hX, int hY) {
             if (size*4 >= coords.length) {
                 int[] newCoords = new int[coords.length*2];
                 System.arraycopy(coords, 0, newCoords, 0, coords.length);
                 coords = newCoords;
             }
             int i = size*4;
-            coords[i] = databaseToGrid(lX);
-            coords[i + 1] = databaseToGrid(lY);
-            coords[i + 2] = databaseToGrid(hX);
-            coords[i + 3] = databaseToGrid(hY);
+            coords[i] = lX;
+            coords[i + 1] = lY;
+            coords[i + 2] = hX;
+            coords[i + 3] = hY;
             size++;
         }
 
@@ -211,6 +213,16 @@ public class VectorCache {
 	{
 		int fX, fY, tX, tY;
 		int texture;
+
+		VectorLine(int fX, int fY, int tX, int tY, int texture, Layer layer, EGraphics graphicsOverride)
+		{
+			super(layer, graphicsOverride);
+			this.fX = fX;
+			this.fY = fY;
+			this.tX = tX;
+			this.tY = tY;
+			this.texture = texture;
+		}
 
 		VectorLine(double fX, double fY, double tX, double tY, int texture, Layer layer, EGraphics graphicsOverride)
 		{
@@ -575,11 +587,14 @@ public class VectorCache {
             for (VectorManhattanBuilder b: pureBoxBuilders)
                 b.clear();
             // draw all arcs
-            Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
-            polyBuilder.setOnlyTheseLayers(null);
+            shapeBuilder.setup(cell);
+            shapeBuilder.setOrientation(orient);
+            shapeBuilder.vc = this;
+            shapeBuilder.hideOnLowLevel = false;
+            shapeBuilder.textType = VectorText.TEXTTYPEARC;
             for(Iterator<ArcInst> arcs = cell.getArcs(); arcs.hasNext(); ) {
                 ArcInst ai = arcs.next();
-                drawArc(ai, trans, polyBuilder, this);
+                drawArc(ai, trans, this);
             }
 
             // draw all nodes
@@ -720,6 +735,91 @@ public class VectorCache {
 //        }
 	}
 
+    private class ShapeBuilder extends AbstractShapeBuilder {
+        private VectorCell vc;
+        private boolean hideOnLowLevel;
+        private int textType;
+        private boolean pureLayer;
+
+        @Override
+        public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride) {
+            Point2D.Double[] points = new Point2D.Double[numPoints];
+            for (int i = 0; i < numPoints; i++)
+                points[i] = new Point2D.Double(doubleCoords[i*2], doubleCoords[i*2+1]);
+            Poly poly = new Poly(points);
+            poly.setStyle(style);
+            poly.setLayer(layer);
+            poly.setGraphicsOverride(graphicsOverride);
+            poly.gridToLambda();
+            renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer);
+        }
+
+        @Override
+        public void addIntLine(int[] coords, Poly.Type style, Layer layer) {
+            int x1 = coords[0];
+            int y1 = coords[1];
+            int x2 = coords[2];
+            int y2 = coords[3];
+            int lineType;
+            switch (style) {
+                case OPENED:
+                    lineType = 0;
+                    break;
+                case OPENEDT1:
+                    lineType = 1;
+                    break;
+                case OPENEDT2:
+                    lineType = 2;
+                    break;
+                case OPENEDT3:
+                    lineType = 3;
+                    break;
+                default:
+                    Poly poly = new Poly(new Point2D.Double[] {
+                        new Point2D.Double(x1, y1),
+                        new Point2D.Double(x2, y2)
+                    });
+                    poly.setStyle(style);
+                    poly.setLayer(layer);
+                    poly.gridToLambda();
+                    renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer);
+                    return;
+            }
+            // now draw it
+            ArrayList<VectorBase> shapes = hideOnLowLevel ? vc.topOnlyShapes : vc.shapes;
+            VectorLine vl = new VectorLine(x1, y1, x2, y2, lineType, layer, null);
+            shapes.add(vl);
+        }
+
+        @Override
+        public void addIntBox(int[] coords, Layer layer) {
+            ArrayList<VectorBase> shapes = hideOnLowLevel ? vc.topOnlyShapes : vc.shapes;
+            // convert coordinates
+            int lX = coords[0];
+            int lY = coords[1];
+            int hX = coords[2];
+            int hY = coords[3];
+            int layerIndex = -1;
+            if (vc.vcg != null && layer.getId().techId == vc.vcg.cellBackup.cellRevision.d.techId)
+                layerIndex = layer.getIndex();
+            if (layerIndex >= 0) {
+                putBox(layerIndex, pureLayer ? pureBoxBuilders : boxBuilders, lX, lY, hX, hY);
+            } else {
+                assert coords.length == 4;
+                VectorManhattan vm = new VectorManhattan(coords, layer, null, pureLayer);
+                shapes.add(vm);
+            }
+
+            // ignore implant layers when computing largest feature size
+            float minSize = (float)DBMath.gridToLambda(Math.min(hX - lX, hY - lY));
+            if (layer != null) {
+                Layer.Function fun = layer.getFunction();
+                if (fun.isSubstrate()) minSize = 0;
+            }
+            vc.maxFeatureSize = Math.max(vc.maxFeatureSize, minSize);
+        }
+    }
+
     /** Creates a new instance of VectorCache */
     public VectorCache(EDatabase database) {
         this.database = database;
@@ -756,7 +856,7 @@ public class VectorCache {
         return vc.shapes.toArray(new VectorBase[vc.shapes.size()]);
     }
 
-    public static VectorBase[] drawPolys(Poly[] polys) {
+    public static VectorBase[] drawPolys(ImmutableArcInst a, Poly[] polys) {
         VectorCache cache = new VectorCache(EDatabase.clientDatabase());
         VectorCell vc = cache.newDummyVectorCell();
 		cache.drawPolys(polys, GenMath.MATID, vc, false, VectorText.TEXTTYPEARC, false);
@@ -1135,16 +1235,14 @@ public class VectorCache {
 	 * Method to cache an ArcInst.
 	 * @param ai the ArcInst to cache.
      * @param trans the transformation of the ArcInst to the parent cell.
-     * @param polyBuilder Poly builder to use
 	 * @param vc the cached cell in which to place the ArcInst.
      */
-	private void drawArc(ArcInst ai, AffineTransform trans, Poly.Builder polyBuilder, VectorCell vc)
+	private void drawArc(ArcInst ai, AffineTransform trans, VectorCell vc)
 	{
 		// draw the arc
 		ArcProto ap = ai.getProto();
-		boolean pureLayer = (ap.getNumArcLayers() == 1);
-        Poly[] polys = polyBuilder.getShapeArray(ai);
-		drawPolys(polys, trans, vc, false, VectorText.TEXTTYPEARC, pureLayer);
+        shapeBuilder.pureLayer = (ap.getNumArcLayers() == 1);
+        shapeBuilder.genShapeOfArc(ai.getD());
 		drawPolys(ai.getDisplayableVariables(dummyWnd), trans, vc, false, VectorText.TEXTTYPEARC, false);
 	}
 
@@ -1206,7 +1304,8 @@ public class VectorCache {
                         layerIndex = layer.getIndex();
                 }
                 if (layerIndex >= 0) {
-                    putBox(layerIndex, pureLayer ? pureBoxBuilders : boxBuilders, lX, lY, hX, hY);
+                    putBox(layerIndex, pureLayer ? pureBoxBuilders : boxBuilders,
+                            databaseToGrid(lX), databaseToGrid(lY), databaseToGrid(hX), databaseToGrid(hY));
                 } else {
                     VectorManhattan vm = new VectorManhattan(lX, lY, hX, hY, layer, graphicsOverride, pureLayer);
                     shapes.add(vm);
@@ -1341,7 +1440,7 @@ public class VectorCache {
 		}
 	}
 
-    private static void putBox(int layerIndex, ArrayList<VectorManhattanBuilder> boxBuilders, double lX, double lY, double hX, double hY) {
+    private static void putBox(int layerIndex, ArrayList<VectorManhattanBuilder> boxBuilders, int lX, int lY, int hX, int hY) {
         while (layerIndex >= boxBuilders.size()) boxBuilders.add(new VectorManhattanBuilder());
         VectorManhattanBuilder b = boxBuilders.get(layerIndex);
         b.add(lX, lY, hX, hY);

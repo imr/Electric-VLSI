@@ -54,7 +54,7 @@ public class Orientation implements Serializable {
 
 	private final short cAngle;
 	private final boolean cTranspose;
-    
+
 	private final Orientation inverse;
 	private final AffineTransform trans;
 
@@ -97,7 +97,7 @@ public class Orientation implements Serializable {
     public static final Orientation XYR = fromJava(900, true, true);
     public static final Orientation XYRR = fromJava(1800, true, true);
     public static final Orientation XYRRR = fromJava(2700, true, true);
-    
+
     // flags for manhattan orientations
     private static final byte MNONE = -1;
     private static final byte MIDENT = 0;
@@ -109,7 +109,7 @@ public class Orientation implements Serializable {
     private static final byte MYRR = 6;
     private static final byte MYRRR = 7;
     private final byte manh;
-    
+
 
 	private Orientation(int jAngle, boolean jMirrorX, boolean jMirrorY, Orientation inverse)
 	{
@@ -149,7 +149,7 @@ public class Orientation implements Serializable {
             case 2700: manh = cTranspose ? MY : MRRR; break;
             default: manh = MNONE;
         }
-        
+
 		if (inverse == null)
 		{
 			if (cTranspose || jAngle == 0 || jAngle == 1800)
@@ -216,7 +216,7 @@ public class Orientation implements Serializable {
     private Object readResolve() {
         return fromJava(jAngle, jMirrorX, jMirrorY);
     }
-    
+
 	/**
 	 * Get Orientation by the new Java style parameters.
 	 * @param jAngle the angle of rotation (in tenth-degrees)
@@ -285,13 +285,13 @@ public class Orientation implements Serializable {
      * @return inverse Orientation.
      */
     public Orientation inverse() { return inverse; }
-    
+
     /**
      * Return canonic Orientation to this Orientation.
      * @return canonic Orientation.
      */
     public Orientation canonic() { return jMirrorX ? fromC(cAngle, cTranspose) : this; }
-    
+
 	/**
 	 * Concatenates this Orientation with other Orientation.
 	 * In matrix notation returns this * that.
@@ -337,13 +337,13 @@ public class Orientation implements Serializable {
 	 * @return true if orientation is one of Manhattan orientations.
 	 */
 	public boolean isManhattan() { return manh != MNONE; }
-	
+
 	/**
 	 * Method to return a transformation that rotates an object.
 	 * @return a transformation that rotates by this Orinetation.
 	 */
     public AffineTransform pureRotate() { return (AffineTransform)trans.clone(); }
-    
+
 	/**
 	 * Method to return a transformation that rotates an object about a point.
 	 * @param c the center point about which to rotate.
@@ -352,7 +352,7 @@ public class Orientation implements Serializable {
 	public AffineTransform rotateAbout(Point2D c) {
         return rotateAbout(c.getX(), c.getY());
     }
-    
+
 	/**
 	 * Method to return a transformation that rotates an object about a point.
 	 * @param cX the center X coordinate about which to rotate.
@@ -362,7 +362,7 @@ public class Orientation implements Serializable {
 	public AffineTransform rotateAbout(double cX, double cY) {
         return rotateAbout(cX, cY, -cX, -cY);
     }
-    
+
 	/**
 	 * Method to return a transformation that translate an object then rotates
      * and the again translates.
@@ -381,10 +381,10 @@ public class Orientation implements Serializable {
             aX = aX + m00*bX + m01*bY;
             aY = aY + m11*bY + m10*bX;
         }
-        
+
         return new AffineTransform(m00, m10, m01, m11, aX, aY);
     }
-    
+
     /**
      * Method to transform direction by the Orientation.
      * @param angle the angle of initial direction in tenth-degrees.
@@ -397,7 +397,69 @@ public class Orientation implements Serializable {
         if (angle < 0) angle += 3600;
         return angle;
     }
-    
+
+    /**
+     * Calculate bounds of rectangle transformed by this Orientation.
+     * @param numPoints
+     * @param coords coordinates x, y of points.
+     */
+    public void transformPoints(int numPoints, int[] coords) {
+        switch (manh) {
+            case MIDENT:
+                return;
+            case MR:
+                for (int i = 0; i < numPoints; i++) {
+                    int x = coords[i*2 + 0];
+                    int y = coords[i*2 + 1];
+                    coords[i*2 + 0] = -y;
+                    coords[i*2 + 1] =  x;
+                }
+                return;
+            case MRR:
+                for (int i = 0; i < numPoints; i++) {
+                    coords[i*2 + 0] = -coords[i*2 + 0];
+                    coords[i*2 + 1] = -coords[i*2 + 1];
+                }
+                return;
+            case MRRR:
+                for (int i = 0; i < numPoints; i++) {
+                    int x = coords[i*2 + 0];
+                    int y = coords[i*2 + 1];
+                    coords[i*2 + 0] =  y;
+                    coords[i*2 + 1] = -x;
+                }
+                return;
+            case MY:
+                for (int i = 0; i < numPoints; i++) {
+                    coords[i*2 + 1] = -coords[i*2 + 1];
+                }
+                return;
+            case MYR:
+                for (int i = 0; i < numPoints; i++) {
+                    int x = coords[i*2 + 0];
+                    int y = coords[i*2 + 1];
+                    coords[i*2 + 0] = -y;
+                    coords[i*2 + 1] = -x;
+                }
+                return;
+            case MYRR:
+                for (int i = 0; i < numPoints; i++) {
+                    coords[i*2 + 0] = -coords[i*2 + 0];
+                }
+                return;
+            case MYRRR:
+                for (int i = 0; i < numPoints; i++) {
+                    int x = coords[i*2 + 0];
+                    int y = coords[i*2 + 1];
+                    coords[i*2 + 0] =  y;
+                    coords[i*2 + 1] =  x;
+                }
+                return;
+            default:
+                throw new AssertionError();
+        }
+    }
+
     /**
      * Calculate bounds of rectangle transformed by this Orientation.
      * @param xl lower x coordinate.
@@ -447,7 +509,62 @@ public class Orientation implements Serializable {
                 Math.abs(m00)*dx + Math.abs(m01)*dy,
                 Math.abs(m10)*dx + Math.abs(m11)*dy);
     }
-    
+
+    /**
+     * Calculate bounds of rectangle transformed by this Orientation.
+     * @param coords coordinates xl, yl, xh, yh.
+     */
+    public void rectangleBounds(int[] coords) {
+        int xl = coords[0];
+        int yl = coords[1];
+        int xh = coords[2];
+        int yh = coords[3];
+        switch (manh) {
+            case MIDENT:
+                return;
+            case MR:
+                coords[0] = -yh;
+                coords[1] =  xl;
+                coords[2] = -yl;
+                coords[3] =  xh;
+                return;
+            case MRR:
+                coords[0] = -xh;
+                coords[1] = -yh;
+                coords[2] = -xl;
+                coords[3] = -yl;
+                return;
+            case MRRR:
+                coords[0] =  yl;
+                coords[1] = -xh;
+                coords[2] =  yh;
+                coords[3] = -xl;
+                return;
+            case MY:
+                coords[1] = -yh;
+                coords[3] = -yl;
+                return;
+            case MYR:
+                coords[0] = -yh;
+                coords[1] = -xh;
+                coords[2] = -yl;
+                coords[3] = -xl;
+                return;
+            case MYRR:
+                coords[0] = -xh;
+                coords[2] = -xl;
+                return;
+            case MYRRR:
+                coords[0] =  yl;
+                coords[1] =  xl;
+                coords[2] =  yh;
+                coords[3] =  xh;
+                return;
+            default:
+                throw new AssertionError();
+        }
+    }
+
     /**
 	 * Returns string which represents this Orientation in JELIB format.
 	 * @return string in JELIB format.

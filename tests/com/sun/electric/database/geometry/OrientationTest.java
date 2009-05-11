@@ -26,6 +26,8 @@ package com.sun.electric.database.geometry;
 
 import java.awt.geom.AffineTransform;
 
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -33,7 +35,7 @@ import org.junit.Test;
  * Unit test of Orientation
  */
 public class OrientationTest {
-    
+
     public static junit.framework.Test suite() {
         return new junit.framework.JUnit4TestAdapter(OrientationTest.class);
     }
@@ -43,7 +45,7 @@ public class OrientationTest {
      */
     @Test public void testFromJava() {
         System.out.println("testFromJava");
-        
+
         for (int iX = 0; iX <= 1; iX++) {
             boolean mirrorX = iX != 0;
             for (int iY = 0; iY <= 1; iY++) {
@@ -53,7 +55,7 @@ public class OrientationTest {
                     assertEquals((iA + 3600)%3600, or.getAngle());
                     assertEquals(mirrorX, or.isXMirrored());
                     assertEquals(mirrorY, or.isYMirrored());
-                    
+
                     Orientation orC = Orientation.fromC(or.getCAngle(), or.isCTranspose());
                     assertEquals(or.getCAngle(), orC.getCAngle());
                     assertEquals(or.isCTranspose(), orC.isCTranspose());
@@ -61,7 +63,7 @@ public class OrientationTest {
                     assertEquals(false, orC.isXMirrored());
                     assertEquals(mirrorX^mirrorY, orC.isYMirrored());
                     assertSame(or.canonic(), orC);
-                    
+
                     assertTrue(or.pureRotate().equals(orC.pureRotate()));
                     AffineTransform af = AffineTransform.getScaleInstance(mirrorX ? -1 : 1, mirrorY ? -1 : 1);
                     af.rotate(iA * Math.PI / 1800.0);
@@ -77,7 +79,7 @@ public class OrientationTest {
      */
     @Test public void testFromC() {
         System.out.println("testFromC");
-        
+
         for (int iT = 0; iT <= 1; iT++) {
             boolean cTranspose = iT != 0;
             for (int cAngle = -200; cAngle < 3800; cAngle++) {
@@ -87,7 +89,7 @@ public class OrientationTest {
                 assertEquals(false, or.isXMirrored());
                 assertEquals(cTranspose, or.isYMirrored());
                 assertEquals(cTranspose ? (cAngle + 900) % 3600 : (cAngle + 3600) % 3600, or.getAngle());
-                
+
                 Orientation orJ = Orientation.fromJava(or.getAngle(), or.isXMirrored(), or.isYMirrored());
                 assertEquals(or.getCAngle(), orJ.getCAngle());
                 assertEquals(or.isCTranspose(), orJ.isCTranspose());
@@ -100,9 +102,9 @@ public class OrientationTest {
      */
     @Test public void testConcatenate() {
         System.out.println("testConcatenate");
-        
+
         Orientation[] or = makeConcatTests();
-        
+
         for (int i = 0; i < or.length; i++) {
             Orientation orI = or[i];
             AffineTransform afI = orI.pureRotate();
@@ -127,9 +129,9 @@ public class OrientationTest {
 //     */
 //    public void testGetPreConcatenate() {
 //        System.out.println("testGetPreConcatenate");
-//        
+//
 //        Orientation[] or = makeConcatTests();
-//        
+//
 //        for (int i = 0; i < or.length; i++) {
 //            Orientation orI = or[i];
 //            AffineTransform afI = orI.pureRotate();
@@ -156,7 +158,7 @@ public class OrientationTest {
         }
         return or;
     }
-    
+
     private void assertTransformsEquals(AffineTransform expected, AffineTransform actual, double delta) {
 //        System.out.println("expected=" + expected);
 //        System.out.println("actual=" + actual);
@@ -167,13 +169,13 @@ public class OrientationTest {
         for (int i = 0; i < expectedM.length; i++)
             assertEquals(expectedM[i], actualM[i], delta);
     }
-    
+
 //    /**
 //     * Test of getCAngle method, of class com.sun.electric.database.geometry.Orientation.
 //     */
 //    public void testGetCAngle() {
 //        System.out.println("testGetCAngle");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -183,7 +185,7 @@ public class OrientationTest {
 //     */
 //    public void testIsCTranspose() {
 //        System.out.println("testIsCTranspose");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -193,7 +195,7 @@ public class OrientationTest {
 //     */
 //    public void testGetAngle() {
 //        System.out.println("testGetAngle");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -203,7 +205,7 @@ public class OrientationTest {
 //     */
 //    public void testIsXMirrored() {
 //        System.out.println("testIsXMirrored");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -213,11 +215,63 @@ public class OrientationTest {
 //     */
 //    public void testIsYMirrored() {
 //        System.out.println("testIsYMirrored");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
 //
+    @Test public void testManhatten() {
+        System.out.println("testManhatten");
+        int[] src = { -7, 1 , 3, 9 };
+        int[] dst = new int[4];
+
+        for (Orientation orient: allManhatten()) {
+            assertTrue(orient.isManhattan());
+            AffineTransform pureRotate = orient.pureRotate();
+            System.arraycopy(src, 0, dst, 0, 4);
+            orient.transformPoints(2, dst);
+            for (int i = 0; i < 2; i++) {
+                Point2D p = new Point2D.Double(src[i*2], src[i*2 + 1]);
+                pureRotate.transform(p, p);
+                assertEquals(p.getX(), (double)dst[i*2], 0);
+                assertEquals(p.getY(), (double)dst[i*2 + 1], 0);
+            }
+            Rectangle2D rect = new Rectangle2D.Double();
+            orient.rectangleBounds(src[0], src[1], src[2], src[3], 0, 0, rect);
+            assertEquals(rect.getX(), Math.min(dst[0], dst[2]), 0);
+            assertEquals(rect.getY(), Math.min(dst[1], dst[3]), 0);
+            assertEquals(rect.getWidth(), Math.abs(dst[0] - dst[2]), 0);
+            assertEquals(rect.getHeight(), Math.abs(dst[1] - dst[3]), 0);
+            System.arraycopy(src, 0, dst, 0, 4);
+            orient.rectangleBounds(dst);
+            assertEquals(dst[0], rect.getMinX(), 0);
+            assertEquals(dst[1], rect.getMinY(), 0);
+            assertEquals(dst[2], rect.getMaxX(), 0);
+            assertEquals(dst[3], rect.getMaxY(), 0);
+        }
+    }
+
+    private Orientation[] allManhatten() {
+        return new Orientation[] {
+            Orientation.IDENT,
+            Orientation.R,
+            Orientation.RR,
+            Orientation.RRR,
+            Orientation.X,
+            Orientation.XR,
+            Orientation.XRR,
+            Orientation.XRRR,
+            Orientation.Y,
+            Orientation.YR,
+            Orientation.YRR,
+            Orientation.YRRR,
+            Orientation.XY,
+            Orientation.XYR,
+            Orientation.XYRR,
+            Orientation.XYRRR
+        };
+    }
+
     /**
      * Test of toJelibString method, of class com.sun.electric.database.geometry.Orientation.
      */
@@ -247,7 +301,7 @@ public class OrientationTest {
      */
     @Test public void testToString() {
         System.out.println("testToString");
-        
+
         assertEquals("", Orientation.fromJava(0, false, false).toString());
         assertEquals("R", Orientation.fromJava(900, false, false).toString());
         assertEquals("RR", Orientation.fromJava(1800, false, false).toString());

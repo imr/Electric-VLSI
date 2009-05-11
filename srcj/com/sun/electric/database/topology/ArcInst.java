@@ -32,7 +32,6 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.PrimitivePortId;
@@ -58,7 +57,6 @@ import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 
 /**

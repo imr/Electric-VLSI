@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+IMP: (5/11/09, DN) Fast path to put simple arc shapes into VectorCache.
+
 IMP: (5/8/09, DN) Points in technology classes are the same as in Xml files.
 
 IMP/MAN: (5/8/09, SMR) Copyright section of Network Preferences now in its own

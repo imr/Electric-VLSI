@@ -32,11 +32,13 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 
 /**
@@ -44,9 +46,10 @@ import java.awt.geom.Point2D;
  */
 public abstract class AbstractShapeBuilder {
     protected Layer.Function.Set onlyTheseLayers;
-//    private long onlyTheseLayersMask = -1L;
     protected boolean reasonable;
     protected boolean electrical;
+    protected Orientation orient;
+    private AffineTransform pureRotate;
 
     protected double[] doubleCoords = new double[8];
     protected int pointCount;
@@ -62,10 +65,18 @@ public abstract class AbstractShapeBuilder {
     public Layer.Function.Set getOnlyTheseLayers() { return onlyTheseLayers; }
     public void setOnlyTheseLayers(Layer.Function.Set onlyTheseLayers) {
         this.onlyTheseLayers = onlyTheseLayers;
-//        onlyTheseLayersMask = onlyTheseLayers != null ? onlyTheseLayers.bits : 0;
     }
     public void setReasonable(boolean b) { reasonable = b; }
     public void setElectrical(boolean b) { electrical = b; }
+    public void setOrientation(Orientation orient) {
+        if (orient == null || orient.canonic() == Orientation.IDENT) {
+            this.orient = null;
+            pureRotate = null;
+        } else {
+            this.orient = orient.canonic();
+            pureRotate = this.orient.pureRotate();
+        }
+    }
 
     public void setup(Cell cell) {
         setup(cell.backupUnsafe());
@@ -313,6 +324,7 @@ public abstract class AbstractShapeBuilder {
      * @return true if shape was generated.
      */
     public boolean genShapeEasy(ImmutableArcInst a) {
+        if (orient != null && !orient.isManhattan()) return false;
         if (m.isHardArc(a.arcId)) return false;
         ArcProto protoType = techPool.getArcProto(a.protoId);
         int gridExtendOverMin = (int)a.getGridExtendOverMin();
@@ -328,6 +340,8 @@ public abstract class AbstractShapeBuilder {
             intCoords[1] = (int)a.tailLocation.getGridY();
             intCoords[2] = (int)a.headLocation.getGridX();
             intCoords[3] = (int)a.headLocation.getGridY();
+            if (orient != null)
+                orient.transformPoints(2, intCoords);
             addIntLine(intCoords, style, primLayer.getLayer());
             return true;
         }
@@ -353,6 +367,8 @@ public abstract class AbstractShapeBuilder {
             assert primLayer.getStyle() == Poly.Type.FILLED;
             if (onlyTheseLayers != null && !onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) continue;
             a.makeGridBoxInt(intCoords, tailExtended, headExtended, gridExtendOverMin + protoType.getLayerGridExtend(i));
+            if (orient != null)
+                orient.rectangleBounds(intCoords);
             addIntBox(intCoords, layer);
         }
         return true;
@@ -375,6 +391,13 @@ public abstract class AbstractShapeBuilder {
             resize();
         doubleCoords[pointCount*2] = gridX;
         doubleCoords[pointCount*2 + 1] = gridY;
+        if (pureRotate != null) {
+            pureRotate.transform(doubleCoords, pointCount*2, doubleCoords, pointCount*2, 1);
+            if (!orient.isManhattan()) {
+                doubleCoords[pointCount*2 + 0] = DBMath.roundShapeCoord(doubleCoords[pointCount*2 + 0]);
+                doubleCoords[pointCount*2 + 1] = DBMath.roundShapeCoord(doubleCoords[pointCount*2 + 1]);
+            }
+        }
         pointCount++;
     }
 
@@ -389,13 +412,13 @@ public abstract class AbstractShapeBuilder {
         pointCount = 0;
     }
 
-    public void pushBox(int minX, int minY, int maxX, int maxY, Layer layer) {
-        intCoords[0] = minX;
-        intCoords[1] = minY;
-        intCoords[2] = maxX;
-        intCoords[3] = maxY;
-        addIntBox(intCoords, layer);
-    }
+//    public void pushBox(int minX, int minY, int maxX, int maxY, Layer layer) {
+//        intCoords[0] = minX;
+//        intCoords[1] = minY;
+//        intCoords[2] = maxX;
+//        intCoords[3] = maxY;
+//        addIntBox(intCoords, layer);
+//    }
 
     public abstract void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride);
 
