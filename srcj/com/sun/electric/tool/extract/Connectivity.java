@@ -50,9 +50,11 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.topology.RTNode;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -122,6 +124,7 @@ public class Connectivity
 	/** set of pure-layer nodes that are not processed */		private Set<PrimitiveNode> ignoreNodes;
 	/** set of contacts that are not used for extraction */		private Set<PrimitiveNode> bogusContacts;
 	/** list of Exports to restore after extraction */			private List<Export> exportsToRestore;
+	/** auto-generated exports that may need better names */	private List<Export> generatedExports;
 	/** true if this is a P-well process (presume P-well) */	private boolean pWellProcess;
 	/** true if this is a N-well process (presume N-well) */	private boolean nWellProcess;
 	/** helper variables for computing N/P process factors */	private boolean hasWell, hasPWell, hasNWell;
@@ -482,6 +485,7 @@ public class Connectivity
 			return null; // aborted
 		Set<Cell> expandedCells = new HashSet<Cell>();
 		exportsToRestore = new ArrayList<Export>();
+		generatedExports = new ArrayList<Export>();
 		pinsForLater = new ArrayList<ExportedPin>();
 		allCutLayers = new HashMap<Layer,List<PolyBase>>();
 		extractCell(oldCell, newCell, pat, flattenPcells, expandedCells, merge, GenMath.MATID, Orientation.IDENT);
@@ -535,7 +539,7 @@ public class Connectivity
 
 		// reexport any that were there before
 		if (!startSection(oldCell, "Adding connecting wires...")) return null; // aborted
-		restoreExports(oldCell, newCell);
+		cleanupExports(oldCell, newCell);
 
 		// cleanup by auto-stitching
 		PolyMerge originalUnscaledMerge = new PolyMerge();
@@ -823,6 +827,18 @@ public class Connectivity
 			prevTrans.transform(ai.getTailLocation(), tailLocation);
 			ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), pi1, pi2,
 				headLocation, tailLocation, ai.getName());
+		}
+
+		// throw all cell text into the new cell, too
+		for(Iterator<Variable> vIt = oldCell.getParametersAndVariables(); vIt.hasNext(); )
+		{
+			Variable var = vIt.next();
+            Variable newVar = Variable.newInstance(var.getKey(), var.getObject(), var.getTextDescriptor());
+            if (var.getTextDescriptor().isParam())
+            	newCell.getCellGroup().addParam(newVar);
+            else
+            	newCell.addVar(newVar);
+			new DisplayedText(newCell, var.getKey());
 		}
 	}
 
@@ -1535,11 +1551,22 @@ public class Connectivity
 						for(Iterator<String> nIt = net.getExportedNames(); nIt.hasNext(); )
 						{
 							String eName = nIt.next();
+							if (eName.startsWith("E"))
+							{
+								boolean isFake = false;
+								for(Export e : generatedExports)
+								{
+									if (e.getParent() == subCell && e.getName().equals(eName)) { isFake = true;   break; }
+								}
+								if (isFake) continue;
+							}
 							if (exportName == null || exportName.length() < eName.length()) exportName = eName;
 						}
-						if (exportName == null) exportName = "E";
+						boolean genFakeName = (exportName == null);
+						if (genFakeName) exportName = "E";
 						exportName = ElectricObject.uniqueObjectName(exportName, subCell, PortProto.class, true);
 						Export e = Export.newInstance(subCell, pi, exportName);
+						if (genFakeName) generatedExports.add(e);
 						foundPi = subNi.findPortInstFromProto(e);
 						return foundPi;
 					}
@@ -3934,12 +3961,11 @@ public class Connectivity
 	}
 
 	/**
-	 * Method to restore exports that were in the original cell.
-	 * These exports were on pure-layer nodes and must now be placed back
-	 * as close to the original as possible.
+	 * Method to clean-up exports.
 	 */
-	private void restoreExports(Cell oldCell, Cell newCell)
+	private void cleanupExports(Cell oldCell, Cell newCell)
 	{
+		// first restore original exports (which were on pure-layer nodes and must now be placed back)
 		for(Export e : exportsToRestore)
 		{
 			EPoint loc = e.getOriginalPort().getPoly().getCenter();
@@ -4013,6 +4039,35 @@ public class Connectivity
 				}
 				PortInst newPi = newNi.findPortInstFromProto(e.getOriginalPort().getPortProto());
 				Export.newInstance(newCell, newPi, e.getName());
+			}
+		}
+
+		// finally rename auto-generated export names to be more sensible
+		for(Export e : generatedExports)
+		{
+			Cell cell = e.getParent();
+			Netlist nl = cell.acquireUserNetlist();
+			Network net = nl.getNetwork(e, 0);
+			String exportName = null;
+			for(Iterator<String> nIt = net.getExportedNames(); nIt.hasNext(); )
+			{
+				String eName = nIt.next();
+				if (eName.startsWith("E"))
+				{
+					boolean isTemp = false;
+					for(Export e2 : generatedExports)
+					{
+						if (e2.getParent() == cell && e2.getName().equals(eName)) { isTemp = true;   break; }
+					}
+					if (isTemp) continue;
+					exportName = eName;
+					break;
+				}
+			}
+			if (exportName != null)
+			{
+				exportName = ElectricObject.uniqueObjectName(exportName, cell, PortProto.class, true);
+				e.rename(exportName);
 			}
 		}
 	}

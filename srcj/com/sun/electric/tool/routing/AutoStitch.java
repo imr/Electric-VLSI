@@ -42,6 +42,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
@@ -639,8 +640,8 @@ public class AutoStitch
             if (headRE != null)
             {
 	        	RouteElement re = RouteElementArc.newArc(cell, ai.getProto(), ai.getLambdaBaseWidth(), headRE, dcpRE,
-	        		headRE.getLocation(), dcpRE.getLocation(), name, ai.getTextDescriptor(ArcInst.ARC_NAME),
-	                ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
+	        		headRE.getConnectingSite().getCenter(), dcpRE.getConnectingSite().getCenter(), name,
+	        		ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
 	            route.add(re);
             }
         	headRE = dcpRE;
@@ -649,8 +650,8 @@ public class AutoStitch
         if (tailRE != null)
         {
 	    	RouteElement re = RouteElementArc.newArc(cell, ai.getProto(), ai.getLambdaBaseWidth(), headRE, tailRE,
-	    		headRE.getLocation(), tailRE.getLocation(), name, ai.getTextDescriptor(ArcInst.ARC_NAME),
-	            ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
+	    		headRE.getConnectingSite().getCenter(), tailRE.getConnectingSite().getCenter(), name,
+	    		ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
 	        route.add(re);
         }
 		allRoutes.add(route);
@@ -2130,8 +2131,20 @@ public class AutoStitch
 				exportThis = eIt.next();
 			} else
 			{
-	            String exportName = ElectricObject.uniqueObjectName("E1", ni.getParent(), PortProto.class, false);
-	            exportThis = Export.newInstance(ni.getParent(), pi, exportName);
+				Cell cell = ni.getParent();
+				Netlist nl = cell.acquireUserNetlist();
+				Network net = nl.getNetwork(pi);
+				String exportName = null;
+				for(Iterator<String> nIt = net.getExportedNames(); nIt.hasNext(); )
+				{
+					String eName = nIt.next();
+					if (eName.startsWith("E") && eName.length() > 1 && TextUtils.isDigit(eName.charAt(1)))
+						continue;
+					if (exportName == null || exportName.length() < eName.length()) exportName = eName;
+				}
+				if (exportName == null) exportName = "E1";
+				exportName = ElectricObject.uniqueObjectName(exportName, cell, PortProto.class, false);
+	            exportThis = Export.newInstance(cell, pi, exportName);
 			}
 			ni = where.getNodable().getNodeInst();
 			where = where.pop();

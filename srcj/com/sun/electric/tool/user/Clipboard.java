@@ -585,7 +585,6 @@ public class Clipboard //implements ClipboardOwner
 		private List<Geometric> geomList, newGeomList;
 		private List<DisplayedText> textList, newTextList;
 		private Dimension2D alignment;
-		private NodeInst lastCreatedNode;
 
 		protected DuplicateObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, Dimension2D alignment)
 		{
@@ -602,20 +601,16 @@ public class Clipboard //implements ClipboardOwner
 			// copy objects to clipboard
 			newGeomList = new ArrayList<Geometric>();
 			newTextList = new ArrayList<DisplayedText>();
-			lastCreatedNode = copyListToCell(cell, geomList, textList, newGeomList, newTextList,
+			copyListToCell(cell, geomList, textList, newGeomList, newTextList,
 				new Point2D.Double(lastDupX, lastDupY), User.isDupCopiesExports(), User.isArcsAutoIncremented(),
 				alignment, null, null);
 			fieldVariableChanged("newGeomList");
 			fieldVariableChanged("newTextList");
-			fieldVariableChanged("lastCreatedNode");
 			return true;
 		}
 
 		public void terminateOK()
 		{
-//			// remember the last node created
-//			lastDup = lastCreatedNode;
-
 			// highlight the copy
 			showCopiedObjects(newGeomList, newTextList);
 		}
@@ -713,7 +708,6 @@ public class Clipboard //implements ClipboardOwner
 		private double dX, dY;
 		private Dimension2D alignment;
 		private boolean copyExports, uniqueArcs;
-		private NodeInst lastCreatedNode;
 		private AffineTransform inPlace;
 		private Orientation inPlaceOrient;
 
@@ -743,19 +737,15 @@ public class Clipboard //implements ClipboardOwner
 			// paste them into the current cell
 			newGeomList = new ArrayList<Geometric>();
 			newTextList = new ArrayList<DisplayedText>();
-			lastCreatedNode = copyListToCell(cell, geomList, textList, newGeomList, newTextList,
+			copyListToCell(cell, geomList, textList, newGeomList, newTextList,
 				new Point2D.Double(dX, dY), copyExports, uniqueArcs, alignment, inPlace, inPlaceOrient);
 			fieldVariableChanged("newGeomList");
 			fieldVariableChanged("newTextList");
-			fieldVariableChanged("lastCreatedNode");
 			return true;
 		}
 
 		public void terminateOK()
 		{
-//			// remember the last node created
-//			lastDup = lastCreatedNode;
-
 			// highlight the copy
 			showCopiedObjects(newGeomList, newTextList);
 		}

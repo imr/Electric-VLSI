@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+BUG: (5/11/09, SMR) Node extraction creates badly-named exports (Bug #2163).
+FIX: In node extractor and auto-stitcher, uses sensible names.
+
 BUG: (5/11/09, SMR) Node extraction doesn't find contacts properly (Bug #2164).
 FIX: Now use dummy nodes instead of NodeLayer information.
 
