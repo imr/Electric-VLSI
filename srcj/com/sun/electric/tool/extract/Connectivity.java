@@ -2193,28 +2193,6 @@ public class Connectivity
 			{
 				// examine one layer of the primitive node
 				Poly poly = layerPolys[i];
-//double sizeX = Technology.STANDARD_NODE_LAYER_POINTS ? pNp.getDefaultLambdaExtendX(ep)*2 : pNp.getDefWidth();
-//double sizeY = Technology.STANDARD_NODE_LAYER_POINTS ? pNp.getDefaultLambdaExtendY(ep)*2 : pNp.getDefHeight();
-//Technology.NodeLayer [] layers1 = pNp.getNodeLayers();
-//for(int j=0; j<layers1.length; j++)
-//{
-//	Technology.NodeLayer nl = layers1[j];
-//	if (nl.getLayer() != poly.getLayer()) continue;
-//	double lowX = nl.getLeftEdge().getMultiplier() * sizeX + nl.getLeftEdge().getAdder();
-//	double highX = nl.getRightEdge().getMultiplier() * sizeX + nl.getRightEdge().getAdder();
-//	double lowY = nl.getBottomEdge().getMultiplier() * sizeY + nl.getBottomEdge().getAdder();
-//	double highY = nl.getTopEdge().getMultiplier() * sizeY + nl.getTopEdge().getAdder();
-//	double polyLX = poly.getBounds2D().getMinX();
-//	double polyHX = poly.getBounds2D().getMaxX();
-//	double polyLY = poly.getBounds2D().getMinY();
-//	double polyHY = poly.getBounds2D().getMaxY();
-//	if (lowX != polyLX || highX != polyHX || lowY != polyLY || highY != polyHY)
-//	{
-//		System.out.println("LAYER "+nl.getLayer().getName()+" OF PRIMITIVE "+pNp.getName()+" HAS INCONSISTENT SIZE:");
-//		System.out.println("   POLYGON    IS "+polyLX+"<=X<="+polyHX+" AND "+polyLY+"<=Y<="+polyHY);
-//		System.out.println("   DEFINITION IS "+lowX+"<=X<="+highX+" AND "+lowY+"<=Y<="+highY);
-//	}
-//}
 				Layer nLayer = poly.getLayer();
 				Layer.Function lFun = nLayer.getFunction();
 				if (lFun.isMetal())
