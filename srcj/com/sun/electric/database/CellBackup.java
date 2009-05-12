@@ -42,10 +42,13 @@ import com.sun.electric.technology.Technology;
 
 import com.sun.electric.tool.Job;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * CellBackup is a pair of CellRevision and TechPool.
@@ -419,6 +422,44 @@ public class CellBackup {
             if (hasExports(pin)) return true;
             if (numConnections == 0) return false;
             return true;
+        }
+
+        /**
+         * Method to return a list of arcs connected to speciefed or all ports of
+         * specified ImmutableNodeInst.
+         * @param headEnds true if i-th arc connects by head end
+         * @param n specified ImmutableNodeInst
+         * @param portId specified port or null
+         * @return a List of connected ImmutableArcInsts
+         */
+        public List<ImmutableArcInst> getConnections(BitSet headEnds, ImmutableNodeInst n, PortProtoId portId) {
+            ArrayList<ImmutableArcInst> result = null;
+            headEnds.clear();
+            int myNodeId = n.nodeId;
+            int chronIndex = 0;
+            if (portId != null) {
+                assert portId.parentId == n.protoId;
+                chronIndex = portId.chronIndex;
+            }
+            int i = searchConnectionByPort(myNodeId, chronIndex);
+            int j = i;
+            for (; j < connections.length; j++) {
+                int con = connections[j];
+                ImmutableArcInst a = getArcs().get(con >>> 1);
+                boolean end = (con & 1) != 0;
+                int nodeId = end ? a.headNodeId : a.tailNodeId;
+                if (nodeId != myNodeId) break;
+                if (portId != null) {
+                    PortProtoId endProtoId = end ? a.headPortId : a.tailPortId;
+                    if (endProtoId.getChronIndex() != chronIndex) break;
+                }
+                if (result == null)
+                    result = new ArrayList<ImmutableArcInst>();
+                if (end)
+                    headEnds.set(result.size());
+                result.add(a);
+            }
+            return result != null ? result : Collections.<ImmutableArcInst>emptyList();
         }
 
         /**

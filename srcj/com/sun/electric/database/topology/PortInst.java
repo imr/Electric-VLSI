@@ -68,21 +68,21 @@ public class PortInst extends ElectricObject
             throw new NotSerializableException(this + " not linked");
         return this;
     }
-    
+
     private Object readResolve() throws ObjectStreamException {
         if (nodeInst.getProto() != portProto.getParent()) throw new InvalidObjectException("PortInst");
         PortInst pi = nodeInst.findPortInstFromProto(portProto);
         if (pi == null) throw new InvalidObjectException("PortInst");
         return pi;
     }
-    
+
     /**
      * Returns persistent data of this ElectricObject with Variables.
      * @return persistent data of this ElectricObject.
      */
     @Override
     public ImmutablePortInst getD() { return nodeInst.getD().getPortInst(portProto.getId()); }
-    
+
     /**
      * Method to add a Variable on this PortInst.
      * It may add repaired copy of this Variable in some cases.
@@ -103,7 +103,7 @@ public class PortInst extends ElectricObject
         nodeInst.delVars(portProto.getId());
 		assert getNumVariables() == 0;
     }
-    
+
 	// ------------------------ public methods -------------------------
 
 	/**
@@ -141,13 +141,13 @@ public class PortInst extends ElectricObject
 	 * @return true if there are Connections on this PortInst.
 	 */
 	public boolean hasConnections() { return nodeInst.hasConnections(portProto.getId().getChronIndex()); }
-    
+
 	/**
 	 * Get iterator of all Connections
 	 * that connect to this PortInst
 	 * @return an iterator over associated Connections
 	 */
-	public Iterator<Connection> getConnections() { return nodeInst.getConnections(portProto.getId().getChronIndex()); }
+	public Iterator<Connection> getConnections() { return nodeInst.getConnections(portProto.getId()); }
 
 	/**
 	 * Get iterator of all Exports
@@ -170,11 +170,11 @@ public class PortInst extends ElectricObject
 	 * This is typically used to find the PortProto in the schematic view.
 	 * @return the equivalent PortProto of this PortInst's PortProto, or null if not found.
 	 */
-    public PortProto getProtoEquivalent() 
+    public PortProto getProtoEquivalent()
     {
 		return portProto instanceof Export ? ((Export)portProto).getEquivalent() : portProto;
     }
-    
+
 	/**
 	 * Method to return the bounds of this PortInst.
 	 * The bounds are determined by getting the Poly and bounding it.
@@ -279,7 +279,7 @@ public class PortInst extends ElectricObject
 	            return (false);
             }
 		}
-        
+
 		// @TODO GVG Check this
 		// Just compare connections?? or just poly for now?
 		Poly poly = getPoly();

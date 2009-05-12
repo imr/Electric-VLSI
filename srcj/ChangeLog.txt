@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+BUG: (5/12/09, DN) Assertion error in Technology$NodeLayer.fixup() (Bug #2175).
+FIX: In Schemaics.getShapeOfNode use fullRectangle.getWidth() insteadof fullRectangle.getX()
+
 IMP: (5/12/09, SMR) GDS import now creates proper NCC unification messages and
      has more concise warnings.
 

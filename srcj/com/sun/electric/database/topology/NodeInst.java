@@ -78,6 +78,7 @@ import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -2545,20 +2546,20 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             Iterator<Connection> cit = ArrayIterator.emptyIterator();
             return cit;
         }
-        return new ConnectionIterator(parent.getMemoization(), getD().nodeId);
+        return new ConnectionIterator(parent.getMemoization(), getD());
     }
 
 	/**
 	 * Method to return an Iterator over Connections on this NodeInst since portIndex.
-     * @param chronIndex port index to start iterator from/
+     * @param portId portId to start iterator from/
 	 * @return an Iterator over Connections on this NodeInst since portIndex.
 	 */
-    Iterator<Connection> getConnections(int chronIndex) {
+    Iterator<Connection> getConnections(PortProtoId portId) {
         if (parent == null) {
             Iterator<Connection> cit = ArrayIterator.emptyIterator();
             return cit;
         }
-        return new ConnectionIterator(parent.getMemoization(), getD().nodeId, chronIndex);
+        return new ConnectionIterator(parent.getMemoization(), getD(), portId);
     }
 
 	/**
@@ -2596,60 +2597,39 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
     private class ConnectionIterator implements Iterator<Connection> {
-        private final CellBackup.Memoization m;
-        private final ImmutableArrayList<ImmutableArcInst> arcs;
-        private final int nodeId;
-        private final int chronIndex;
+        private final List<ImmutableArcInst> arcs;
+        private final BitSet headEnds = new BitSet();
         int i;
-        ArcInst nextAi;
-        int nextConnIndex;
+        Connection nextConn;
 
-        ConnectionIterator(CellBackup.Memoization m, int nodeId) {
-            this.m = m;
-            arcs = m.getArcs();
-            chronIndex = -1;
-            this.nodeId = nodeId;
-            i = m.searchConnectionByPort(nodeId, 0);
+        ConnectionIterator(CellBackup.Memoization m, ImmutableNodeInst d) {
+            arcs = m.getConnections(headEnds, d, null);
             findNext();
         }
-        ConnectionIterator(CellBackup.Memoization m, int nodeId, int chronIndex) {
-            this.m = m;
-            arcs = m.getArcs();
-            this.nodeId = nodeId;
-            this.chronIndex = chronIndex;
-            i = m.searchConnectionByPort(nodeId, chronIndex);
+        ConnectionIterator(CellBackup.Memoization m, ImmutableNodeInst d, PortProtoId portId) {
+            arcs = m.getConnections(headEnds, d, portId);
             findNext();
         }
-        public boolean hasNext() { return nextAi != null; }
+        public boolean hasNext() { return nextConn != null; }
         public Connection next() {
-            if (nextAi == null)
+            if (nextConn == null)
                 throw new NoSuchElementException();
-            Connection con = nextAi.getConnection(nextConnIndex);
+            Connection con = nextConn;
             findNext();
             return con;
         }
         public void remove() { throw new UnsupportedOperationException(); }
 
         private void findNext() {
-            for (; i < m.connections.length; i++) {
-                int con = m.connections[i];
-                ImmutableArcInst a = arcs.get(con >>> 1);
-                int endIndex = con & 1;
-                int endNodeId = endIndex != 0 ? a.headNodeId : a.tailNodeId;
-                if (endNodeId != nodeId) break;
-                if (chronIndex >= 0) {
-                    PortProtoId endProtoId = endIndex != 0 ? a.headPortId : a.tailPortId;
-                    if (endProtoId.getChronIndex() != chronIndex) break;
-                }
-                ArcInst ai = parent.getArcById(a.arcId);
+            for (; i < arcs.size(); i++) {
+                ArcInst ai = parent.getArcById(arcs.get(i).arcId);
                 if (ai != null) {
-                    nextAi = ai;
-                    nextConnIndex = endIndex;
+                    nextConn = headEnds.get(i) ? ai.getHead() : ai.getTail();
                     i++;
                     return;
                 }
             }
-            nextAi = null;
+            nextConn = null;
         }
     }
 

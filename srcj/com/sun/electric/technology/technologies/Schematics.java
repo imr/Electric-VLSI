@@ -1869,6 +1869,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeCenter(), new EdgeV(wireDiscSize, 0))});
 			}
+            primLayers = busPinLayers;
 		} else if (np == andNode)
 		{
 			double lambda = n.size.getLambdaX() / 8;
@@ -2162,7 +2163,7 @@ public class Schematics extends Technology
 			}
 		}
         ERectangle fullRectangle = np.getFullRectangle();
-        EPoint fixupCorrection = EPoint.fromLambda(fullRectangle.getLambdaX(), fullRectangle.getLambdaY());
+        EPoint fixupCorrection = EPoint.fromGrid(fullRectangle.getGridWidth(), fullRectangle.getGridHeight());
         for (Technology.NodeLayer nodeLayer: primLayers)
             nodeLayer.fixup(fixupCorrection);
 		return computeShapeOfNode(m, n, electrical, reasonable, primLayers, null);
