@@ -27,7 +27,6 @@ import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -428,7 +427,11 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 	 * Method to tell set this type of port can be negated.
 	 * @param negatable true if this type of port can be negated.
 	 */
-	public void setNegatable(boolean negatable) { this.negatable = negatable; }
+	public void setNegatable(boolean negatable) {
+        this.negatable = negatable;
+        if (negatable)
+            parent.hasNegatablePorts = true;
+    }
 
 	/**
 	 * Method to return true if this PrimitivePort can connect to an arc of a given type.

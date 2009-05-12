@@ -24,10 +24,12 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.StartupPrefs;
+import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
@@ -40,6 +42,7 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LayerId;
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.NodeProto;
@@ -50,7 +53,6 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -64,6 +66,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ToolSettings;
+import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 
@@ -2842,10 +2845,12 @@ public class Technology implements Comparable<Technology>, Serializable
 	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers)
 	{
+        CellBackup.Memoization m = getMemoization(ni);
+        ImmutableNodeInst n = ni.getD();
 		// if node is erased, remove layers
 		if (!electrical)
 		{
-			if (ni.isWiped()) primLayers = nullPrimLayers; else
+			if (m.isWiped(n)) primLayers = nullPrimLayers; else
 			{
 				PrimitiveNode np = (PrimitiveNode)ni.getProto();
 				if (np.isWipeOn1or2())
@@ -2855,14 +2860,26 @@ public class Technology implements Comparable<Technology>, Serializable
 			}
 		}
 
-		return computeShapeOfNode(ni, electrical, reasonable, primLayers, null);
+		return computeShapeOfNode(m, n, electrical, reasonable, primLayers, null);
 	}
+
+    protected CellBackup.Memoization getMemoization(NodeInst ni) {
+        Cell parent = ni.getParent();
+        if (parent != null) return parent.getMemoization();
+        ImmutableCell cell = ImmutableCell.newInstance(Clipboard.clipCellId, 0);
+        cell = cell.withTechId(ni.getProto().getTechnology().getId());
+        TechPool techPool = TechPool.getThreadTechPool();
+        CellBackup cellBackup = CellBackup.newInstance(cell, techPool);
+        cellBackup = cellBackup.with(cell, new ImmutableNodeInst[] { ni.getD() }, null, null, techPool);
+        return cellBackup.getMemoization();
+    }
 
 	/**
 	 * Returns the polygons that describe node "ni", given a set of
 	 * NodeLayer objects to use.
 	 * This method is called by the specific Technology overrides of getShapeOfNode().
-	 * @param ni the NodeInst that is being described.
+     * @param m information about including cell which is necessary for computing
+	 * @param n the ImmutableNodeInst that is being described.
 	 * @param electrical true to get the "electrical" layers
 	 * Like the list returned by "getLayers", the results describe this PrimitiveNode,
 	 * but each layer is tied to a specific port on the node.
@@ -2878,14 +2895,14 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 */
-	protected Poly [] computeShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, EGraphics graphicsOverride)
+	protected Poly [] computeShapeOfNode(CellBackup.Memoization m, ImmutableNodeInst n, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, EGraphics graphicsOverride)
 	{
-		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+		PrimitiveNode np = (PrimitiveNode)m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
         ERectangle fullRectangle = np.getFullRectangle();
 		int specialType = np.getSpecialType();
 		if (specialType != PrimitiveNode.SERPTRANS && np.isHoldsOutline())
 		{
-			Point2D [] outline = ni.getTrace();
+			Point2D [] outline = n.getTrace();
 			if (outline != null)
 			{
 				if (HANDLEBROKENOUTLINES)
@@ -2906,8 +2923,8 @@ public class Technology implements Comparable<Technology>, Serializable
 							Point2D [] pointList = new Point2D.Double[i-startPoint];
 							for(int j=startPoint; j<i; j++)
 							{
-								pointList[j-startPoint] = new Point2D.Double(ni.getAnchorCenterX() + outline[j].getX(),
-									ni.getAnchorCenterY() + outline[j].getY());
+								pointList[j-startPoint] = new Point2D.Double(n.anchor.getLambdaX() + outline[j].getX(),
+									n.anchor.getLambdaY() + outline[j].getY());
 							}
 							Poly poly = new Poly(pointList);
 							Technology.NodeLayer primLayer = primLayers[0];
@@ -2933,8 +2950,8 @@ public class Technology implements Comparable<Technology>, Serializable
 					Point2D [] pointList = new Point2D.Double[outline.length];
 					for(int i=0; i<outline.length; i++)
 					{
-						pointList[i] = new Point2D.Double(ni.getAnchorCenterX() + outline[i].getX(),
-							ni.getAnchorCenterY() + outline[i].getY());
+						pointList[i] = new Point2D.Double(n.anchor.getLambdaX() + outline[i].getX(),
+							n.anchor.getLambdaY() + outline[i].getY());
 					}
 					polys[0] = new Poly(pointList);
 					Technology.NodeLayer primLayer = primLayers[0];
@@ -2964,14 +2981,14 @@ public class Technology implements Comparable<Technology>, Serializable
 		{
             for (NodeLayer nodeLayer: primLayers) {
                 if (nodeLayer.representation == NodeLayer.MULTICUTBOX) {
-                    mcd = new MultiCutData(ni.getD(), fullRectangle, nodeLayer);
+                    mcd = new MultiCutData(n, fullRectangle, nodeLayer);
                     if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
                         numExtraLayers += (mcd.cutsTotal - 1);
                 }
            }
 		} else if (specialType == PrimitiveNode.SERPTRANS)
 		{
-			std = new SerpentineTrans(ni.getD(), np, primLayers);
+			std = new SerpentineTrans(n, np, primLayers);
 			if (std.layersTotal > 0)
 			{
 				numExtraLayers = std.layersTotal;
@@ -2983,28 +3000,51 @@ public class Technology implements Comparable<Technology>, Serializable
             {
                 if (nodeLayer.layer.isCarbonNanotubeLayer())
                 {
-                	cnd = new CarbonNanotube(ni.getD(), fullRectangle, nodeLayer);
+                	cnd = new CarbonNanotube(n, fullRectangle, nodeLayer);
                     numExtraLayers += (cnd.numTubes - 1);
                 }
            }
 		}
 
 		// determine the number of negating bubbles
-		int numNegatingBubbles = 0;
-		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
-		{
-			Connection con = it.next();
-			if (con.isNegated()) numNegatingBubbles++;
-		}
+        ArrayList<Point2D> negatingBubbles = null;
+        if (np.hasNegatablePorts) {
+			double bubbleRadius = Schematics.tech().getNegatingBubbleSize() / 2;
+            for (int i = m.searchConnectionByPort(n.nodeId, 0); i < m.connections.length; i++) {
+                int con = m.connections[i];
+                ImmutableArcInst a = m.getArcs().get(con >>> 1);
+                boolean end = (con & 1) != 0;
+                int nodeId = end ? a.headNodeId : a.tailNodeId;
+                if (nodeId != n.nodeId) break;
+                if (!(end ? a.isHeadNegated() : a.isTailNegated())) continue;
+                PortProtoId portId = end ? a.headPortId : a.tailPortId;
+                EPoint location = end ? a.headLocation : a.tailLocation;
+				// add a negating bubble
+				AffineTransform trans = n.orient.inverse().rotateAbout(n.anchor.getLambdaX(), n.anchor.getLambdaY());
+				Point2D portLocation = location.lambdaMutable();
+				trans.transform(portLocation, portLocation);
+				double x = portLocation.getX();
+				double y = portLocation.getY();
+				PrimitivePort pp = np.getPort(portId);
+				int angle = pp.getAngle() * 10;
+				double dX = DBMath.cos(angle) * bubbleRadius;
+				double dY = DBMath.sin(angle) * bubbleRadius;
+                if (negatingBubbles == null)
+                    negatingBubbles = new ArrayList<Point2D>();
+                negatingBubbles.add(new Point2D.Double(x+dX, y+dY));
+            }
+        }
 
 		// construct the polygon array
-		int numPolys = numBasicLayers + numExtraLayers + numNegatingBubbles;
+		int numPolys = numBasicLayers + numExtraLayers;
+        if (negatingBubbles != null)
+            numPolys += negatingBubbles.size();
 		Poly [] polys = new Poly[numPolys];
 
-        double xCenter = ni.getAnchorCenterX();
-        double yCenter = ni.getAnchorCenterY();
-        double xSize = STANDARD_NODE_LAYER_POINTS ? ni.getD().size.getLambdaX() : ni.getXSize();
-        double ySize = STANDARD_NODE_LAYER_POINTS ? ni.getD().size.getLambdaY() : ni.getYSize();
+        double xCenter = n.anchor.getLambdaX();
+        double yCenter = n.anchor.getLambdaY();
+        double xSize = STANDARD_NODE_LAYER_POINTS ? n.size.getLambdaX() : DBMath.gridToLambda(n.size.getGridX() + np.getFullRectangle().getGridWidth());
+        double ySize = STANDARD_NODE_LAYER_POINTS ? n.size.getLambdaY() : DBMath.gridToLambda(n.size.getGridY() + np.getFullRectangle().getGridHeight());
 
 		// add in the basic polygons
 		int fillPoly = 0;
@@ -3017,7 +3057,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	            PortProto port = null;
 	            for(int j = 0; j < cnd.numTubes; j++)
 	            {
-	                polys[fillPoly] = cnd.fillCutPoly(ni.getD(), j);
+	                polys[fillPoly] = cnd.fillCutPoly(n, j);
 	                polys[fillPoly].setStyle(style);
 	                polys[fillPoly].setLayer(primLayer.getLayer());
 	                polys[fillPoly].setPort(port);
@@ -3058,14 +3098,14 @@ public class Technology implements Comparable<Technology>, Serializable
 				}
 				polys[fillPoly] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.MULTICUTBOX) {
-                mcd = new MultiCutData(ni.getD(), fullRectangle, primLayer);
+                mcd = new MultiCutData(n, fullRectangle, primLayer);
                 Poly.Type style = primLayer.getStyle();
                 PortProto port = null;
                 if (electrical) port = np.getPort(0);
                 if (reasonable) numExtraLayers = mcd.cutsReasonable; else
                     numExtraLayers = mcd.cutsTotal;
                 for(int j = 0; j < numExtraLayers; j++) {
-                    polys[fillPoly] = mcd.fillCutPoly(ni.getD(), j);
+                    polys[fillPoly] = mcd.fillCutPoly(n, j);
                     polys[fillPoly].setStyle(style);
                     polys[fillPoly].setLayer(primLayer.getLayer());
                     polys[fillPoly].setPort(port);
@@ -3094,27 +3134,13 @@ public class Technology implements Comparable<Technology>, Serializable
 		}
 
 		// add in negating bubbles
-		if (numNegatingBubbles > 0)
+		if (negatingBubbles != null)
 		{
 			double bubbleRadius = Schematics.tech().getNegatingBubbleSize() / 2;
-			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
-			{
-				Connection con = it.next();
-				if (!con.isNegated()) continue;
-
-				// add a negating bubble
-				AffineTransform trans = ni.rotateIn();
-				Point2D portLocation = new Point2D.Double(con.getLocation().getX(), con.getLocation().getY());
-				trans.transform(portLocation, portLocation);
-				double x = portLocation.getX();
-				double y = portLocation.getY();
-				PrimitivePort pp = (PrimitivePort)con.getPortInst().getPortProto();
-				int angle = pp.getAngle() * 10;
-				double dX = DBMath.cos(angle) * bubbleRadius;
-				double dY = DBMath.sin(angle) * bubbleRadius;
+            for (Point2D p: negatingBubbles) {
 				Point2D [] points = new Point2D[2];
-				points[0] = new Point2D.Double(x+dX, y+dY);
-				points[1] = new Point2D.Double(x, y);
+				points[0] = p;
+				points[1] = new Point2D.Double(p.getX() + bubbleRadius, p.getY());
 				polys[fillPoly] = new Poly(points);
 				polys[fillPoly].setStyle(Poly.Type.CIRCLE);
 				polys[fillPoly].setLayer(Schematics.tech().node_lay);

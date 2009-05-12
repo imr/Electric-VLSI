@@ -2289,7 +2289,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @return true if there are Exports on this NodeInst.
 	 */
 	public boolean hasExports() {
-        return parent != null && parent.getMemoization().hasExports(getD().nodeId);
+        return parent != null && parent.getMemoization().hasExports(getD());
     }
 
     /**
@@ -3514,7 +3514,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     public boolean isWiped() {
         if (parent == null || !(protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isArcsWipe()))
             return false;
-        return parent.getMemoization().isWiped(getD().nodeId);
+        return parent.getMemoization().isWiped(getD());
     }
 
 	/**

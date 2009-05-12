@@ -1054,7 +1054,7 @@ class LayoutCell {
     }
 
     private boolean hasExports(NodeInst ni) {
-        return m.hasExports(ni.getD().nodeId);
+        return m.hasExports(ni.getD());
     }
 	/**
 	 * Method to return an Iterator over all Connections on this NodeInst.

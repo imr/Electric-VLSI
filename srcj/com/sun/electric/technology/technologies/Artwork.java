@@ -543,7 +543,7 @@ public class Artwork extends Technology
 				return polys;
 			}
 		}
-		return computeShapeOfNode(ni, electrical, reasonable, primLayers, graphicsOverride);
+		return computeShapeOfNode(getMemoization(ni), ni.getD(), electrical, reasonable, primLayers, graphicsOverride);
 	}
 
 	/**

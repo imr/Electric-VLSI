@@ -24,7 +24,6 @@
  */
 package com.sun.electric.database;
 
-import static com.sun.electric.database.UsageCollector.EMPTY_BITSET;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
@@ -366,14 +365,14 @@ public class CellBackup {
 
        /**
          * Returns true of there are Exports on specified NodeInst.
-         * @param originalNodeId nodeId of specified NodeInst.
+         * @param originalNode specified NodeInst.
          * @return true if there are Exports on specified NodeInst.
          */
-        public boolean hasExports(int originalNodeId) {
-            int startIndex = searchExportByOriginalPort(originalNodeId, 0);
+        public boolean hasExports(ImmutableNodeInst originalNode) {
+            int startIndex = searchExportByOriginalPort(originalNode.nodeId, 0);
             if (startIndex >= exportIndexByOriginalPort.length) return false;
             ImmutableExport e = exportIndexByOriginalPort[startIndex];
-            return e.originalNodeId == originalNodeId;
+            return e.originalNodeId == originalNode.nodeId;
         }
 
         /**
@@ -447,6 +446,7 @@ public class CellBackup {
             return low;
         }
 
+        public TechPool getTechPool() { return techPool; }
         public ImmutableArrayList<ImmutableArcInst> getArcs() { return cellRevision.arcs; }
 
         /**
@@ -455,11 +455,11 @@ public class CellBackup {
          * This means that when an arc connects to the pin, it is no longer drawn.
          * In order for a ImmutableNodeInst to be wiped, its prototype must have the "setArcsWipe" state,
          * and the arcs connected to it must have "setWipable" in their prototype.
-         * @param nodeId nodeId of specified ImmutableNodeInst
+         * @param n specified ImmutableNodeInst
          * @return true if specified ImmutableNodeInst is wiped.
          */
-        public boolean isWiped(int nodeId) {
-            return wiped.get(nodeId);
+        public boolean isWiped(ImmutableNodeInst n) {
+            return wiped.get(n.nodeId);
         }
 
         public boolean isHardArc(int arcId) {
