@@ -2587,7 +2587,7 @@ public class EDIF extends Input
 							if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 							Orientation orient = curOrientation.concatenate(Orientation.fromAngle(cellRefProtoRotation*10));
 				// TODO Oh Dima!
-				if (Cell.isInstantiationRecursive((Cell)cellRefProto, curCell) && curCell.getView() == View.ICON)
+				if (cellRefProto instanceof Cell && Cell.isInstantiationRecursive((Cell)cellRefProto, curCell) && curCell.getView() == View.ICON)
 				{
 					System.out.println("Cannot create instance of " + cellRefProto + " in icon cell " + curCell);
 					if (deltaPointYX == 0 && deltaPointYY == 0) break;
@@ -3715,6 +3715,11 @@ public class EDIF extends Input
 							for(EDIFEquiv.PortEquivalence pe : ne.portEquivs)
 							{
 								if (pe.getExtPort().name.equals(portReference))
+								{
+									pp = ni.getProto().findPortProto(pe.getElecPort().name);
+									break;
+								}
+								if (alternateName != null && pe.getExtPort().name.equals(alternateName))
 								{
 									pp = ni.getProto().findPortProto(pe.getElecPort().name);
 									break;
