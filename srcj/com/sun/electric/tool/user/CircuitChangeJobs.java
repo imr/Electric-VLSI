@@ -3225,7 +3225,13 @@ public class CircuitChangeJobs
 			}
 		}
 
-		// check for general changes to the cell
+        if (cell == null)
+        {
+            // operation should be cancelled since the cell is null
+            return -1;
+        }
+        
+        // check for general changes to the cell
 		if (cell.isAllLocked())
 		{
 			if (!giveError) return 1;

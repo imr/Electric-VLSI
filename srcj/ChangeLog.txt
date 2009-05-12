@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+BUG: (5/11/09, GVG) NPE in Ctr-V (Paste) if no cell is available in cantEdit (Bug #2174)
+FIX: Detecting the null cell now and proper message is displayed ("job Paste Text returned false")
+
 IMP: (5/11/09, GVG) Don't swap elements in TechPalette if node can't be created (Bug #2173)
 
 BUG: (5/11/09, GVG) Names in techPalette pulldown menus are the same (Bug #2171)
