@@ -2861,6 +2861,21 @@ public class EDIF extends Input
 					Rectangle2D cellBounds = curCell.getBounds();
 					for(PlannedPort plp : plannedPorts)
 						instantiatePlannedPort(plp, cellBounds);
+
+					// add cell name in Cadence mode
+					if (localPrefs.cadenceCompatibility && curCell.getView() == View.ICON)
+					{
+						// add icon name in Cadence compatibility mode
+						double xPos = curCell.getBounds().getCenterX();
+						double yPos = curCell.getBounds().getCenterY();
+						NodeInst ni = NodeInst.makeInstance(Generic.tech().invisiblePinNode, new Point2D.Double(xPos, yPos), 0, 0, curCell);
+						if (ni != null)
+						{
+							TextDescriptor td = TextDescriptor.getAnnotationTextDescriptor();
+							td = td.withDisplay(true);
+							ni.newVar(Artwork.ART_MESSAGE, curCell.getName(), td);
+						}						
+					}
 				}
 			}
 			plannedPorts = null;

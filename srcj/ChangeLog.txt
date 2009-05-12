@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+IMP: (5/12/09, SMR) EDIF input now adds cell names to icons in Cadence mode (Bug #2160).
+
 BUG: (5/12/09, DN) Assertion error in Technology$NodeLayer.fixup() (Bug #2175).
 FIX: In Schemaics.getShapeOfNode use fullRectangle.getWidth() insteadof fullRectangle.getX()
 
