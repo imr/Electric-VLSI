@@ -413,7 +413,7 @@ public class LayerVisibility extends PrefPackage {
             // lowest level layers should all be opaque
             opacity = 1.0;
         } else if (layer == techPool.getGeneric().glyphLay) {
-            opacity = 0;		// essential bounds
+            opacity = 0.1;		// essential bounds
         }
         return (float)opacity;
     }
