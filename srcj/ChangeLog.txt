@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+BUG: (5/11/09, DN) NMOS and PMOS primitives in the schematic technology are incorrect (Bug #2172).
+FIX: In Schematics.buildTransistorDescription() call NodeLayer.fixup().
+
 BUG: (5/11/09, GVG) NPE in Ctr-V (Paste) if no cell is available in cantEdit (Bug #2174)
 FIX: Detecting the null cell now and proper message is displayed ("job Paste Text returned false")
 

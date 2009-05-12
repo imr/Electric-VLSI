@@ -25,6 +25,7 @@ package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -1734,7 +1735,11 @@ public class Schematics extends Technology
 			}
 		}
 		Technology.NodeLayer [] descr = new Technology.NodeLayer[layers.size()];
-		for(int i=0; i<layers.size(); i++) descr[i] = layers.get(i);
+        EPoint fixupCorrector = EPoint.fromLambda(4, 4);
+		for(int i=0; i<layers.size(); i++) {
+            descr[i] = layers.get(i);
+            descr[i].fixup(fixupCorrector);
+        }
 		return descr;
 	}
 

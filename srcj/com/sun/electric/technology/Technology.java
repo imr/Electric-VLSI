@@ -512,7 +512,7 @@ public class Technology implements Comparable<Technology>, Serializable
             return nl;
         }
 
-        void fixup(EPoint fixupCorrector) {
+        public void fixup(EPoint fixupCorrector) {
             if (this.fixupCorrector != null) {
                 assert this.fixupCorrector.equals(fixupCorrector);
                 return;
