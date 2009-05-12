@@ -916,15 +916,23 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             if (obj instanceof ArcProto)
 				User.getUserTool().setCurrentArcProto((ArcProto)obj);
             else
-                PaletteFrame.placeInstance(obj, panel, false);
-            // No first element -> make it default
-	        if (subList == null)
-		        Collections.swap(list, 0, list.indexOf(obj));
-	        else
-	        {
-		        Collections.swap(list, 0, list.indexOf(subList));
-		        Collections.swap(subList, 0, subList.indexOf(obj));
-	        }
+            {
+                PaletteFrame.PlaceNodeListener listener = PaletteFrame.placeInstance(obj, panel, false);
+
+                // Only if the listener is valid, swap the elements in the list otherwise
+                // the list won't match with the icon drawn
+                if (listener != null)
+                {
+                    // No first element -> make it default
+                    if (subList == null)
+                        Collections.swap(list, 0, list.indexOf(obj));
+                    else
+                    {
+                        Collections.swap(list, 0, list.indexOf(subList));
+                        Collections.swap(subList, 0, subList.indexOf(obj));
+                    }
+                }
+            }
             panel.paletteImageStale = true;
         }
     }

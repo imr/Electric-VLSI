@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+IMP: (5/11/09, GVG) Don't swap elements in TechPalette if node can't be created (Bug #2173)
+
 BUG: (5/11/09, GVG) Names in techPalette pulldown menus are the same (Bug #2171)
 FIX: Only schematic nodes will name from Variables. Reviewed short text in palette icons as well.
 
