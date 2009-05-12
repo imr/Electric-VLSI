@@ -945,6 +945,38 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	}
 
 	/**
+	 * Method to return the starting and ending angle of an arc described by this Immutab;eNodeInst.
+	 * These values can be found in the "ART_degrees" variable on the ImmutableNodeInst.
+	 * @return a 2-long double array with the starting offset in the first entry (a value in radians)
+	 * and the amount of curvature in the second entry (in radians).
+	 * If the ImmutableNodeInst does not have circular information, both values are set to zero.
+	 */
+	public double [] getArcDegrees()
+	{
+		double [] returnValues = new double[2];
+		if (!(protoId instanceof PrimitiveNodeId)) return returnValues;
+//		if (protoType != Artwork.tech().circleNode && protoType != Artwork.tech().thickCircleNode) return returnValues;
+
+		Variable var = getVar(Artwork.ART_DEGREES);
+		if (var != null)
+		{
+			Object addr = var.getObject();
+			if (addr instanceof Integer)
+			{
+				Integer iAddr = (Integer)addr;
+				returnValues[0] = 0.0;
+				returnValues[1] = iAddr.intValue() * Math.PI / 1800.0;
+			} else if (addr instanceof Float[])
+			{
+				Float [] fAddr = (Float [])addr;
+				returnValues[0] = fAddr[0].doubleValue();
+				returnValues[1] = fAddr[1].doubleValue();
+			}
+		}
+		return returnValues;
+	}
+
+	/**
 	 * Method to return the length of this serpentine transistor.
 	 * @return the transistor's length
 	 * Returns -1 if this is not a serpentine transistor, or if the length cannot be found.
@@ -969,5 +1001,4 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		}
 		return -1;
 	}
-
 }

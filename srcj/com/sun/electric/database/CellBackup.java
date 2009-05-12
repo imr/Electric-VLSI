@@ -405,6 +405,56 @@ public class CellBackup {
             return ArrayIterator.iterator(exportIndexByOriginalPort, startIndex, j);
         }
 
+        /**
+         * Method to determine whether the display of specified pin NodeInst should be supressed.
+         * In Schematics technologies, pins are not displayed if there are 1 or 2 connections,
+         * but are shown for 0 or 3 or more connections (called "Steiner points").
+         * @paran pin specified pin ImmutableNodeInst
+         * @return true if specieifed pin NodeInst should be supressed.
+         */
+        public boolean pinUseCount(ImmutableNodeInst pin)
+        {
+            int numConnections = getNumConnections(pin);
+            if (numConnections > 2) return false;
+            if (hasExports(pin)) return true;
+            if (numConnections == 0) return false;
+            return true;
+        }
+
+        /**
+         * Returns true of there are Connections on speciefied ImmutableNodeInst.
+         * @param n specified ImmutableNodeInst
+         * @return true if there are Connections on specified ImmutableNodeInst.
+         */
+        public boolean hasConnections(ImmutableNodeInst n) {
+            int i = searchConnectionByPort(n.nodeId, 0);
+            if (i >= connections.length) return false;
+            int con = connections[i];
+            ImmutableArcInst a = getArcs().get(con >>> 1);
+            boolean end = (con & 1) != 0;
+            int nodeId = end ? a.headNodeId : a.tailNodeId;
+            return nodeId == n.nodeId;
+        }
+
+        /**
+         * Method to return the number of Connections on specified ImmutableNodeInst.
+         * @param n specified ImmutableNodeInst
+         * @return the number of Connections on specified ImmutableNodeInst.
+         */
+        public int getNumConnections(ImmutableNodeInst n) {
+            int myNodeId = n.nodeId;
+            int i = searchConnectionByPort(myNodeId, 0);
+            int j = i;
+            for (; j < connections.length; j++) {
+                int con = connections[j];
+                ImmutableArcInst a = getArcs().get(con >>> 1);
+                boolean end = (con & 1) != 0;
+                int nodeId = end ? a.headNodeId : a.tailNodeId;
+                if (nodeId != myNodeId) break;
+            }
+            return j - i;
+        }
+
         private int searchExportByOriginalPort(int originalNodeId, int originalChronIndex) {
             int low = 0;
             int high = exportIndexByOriginalPort.length-1;

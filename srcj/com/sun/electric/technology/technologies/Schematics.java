@@ -23,6 +23,8 @@
  */
 package com.sun.electric.technology.technologies;
 
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
@@ -32,6 +34,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.Connection;
@@ -1778,13 +1781,15 @@ public class Schematics extends Technology
 	private Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers)
 	{
-		if (ni.isCellInstance()) return null;
+        CellBackup.Memoization m = getMemoization(ni);
+        ImmutableNodeInst n = ni.getD();
+		if (!(n.protoId instanceof PrimitiveNodeId)) return null;
 
-		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+		PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
 		boolean extraBlobs = false;
 		if (np == wirePinNode)
 		{
-			if (ni.pinUseCount()) primLayers = NULLNODELAYER;
+			if (m.pinUseCount(n)) primLayers = NULLNODELAYER;
 		} else if (np == busPinNode)
 		{
 			// bus pins get bigger in "T" configurations, disappear when alone and exported
@@ -1799,7 +1804,7 @@ public class Schematics extends Technology
 			if (busCon == 0 && nonBusCon == 0) implicitCon = 1;
 
 			// if the next level up the hierarchy is visible, consider arcs connected there
-			if (context != null && ni.hasExports())
+			if (context != null && m.hasExports(n))
 			{
 				Nodable no = context.getNodable();
 				if (no != null && no instanceof NodeInst)
@@ -1842,7 +1847,7 @@ public class Schematics extends Technology
 						busDiscSize = 0;
 					} else
 					{
-						if (ni.hasExports())
+						if (m.hasExports(n))
 							wireDiscSize = busDiscSize = 0;
 					}
 				}
@@ -1864,13 +1869,13 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeCenter(), new EdgeV(wireDiscSize, 0))});
 			}
-			primLayers = busPinLayers;
 		} else if (np == andNode)
 		{
-			double lambda = ni.getXSize() / 8;
-			if (ni.getYSize() < lambda * 6) lambda = ni.getYSize() / 6;
-			if (lambda != 1)
+			double lambda = n.size.getLambdaX() / 8;
+			if (n.size.getLambdaY() < lambda * 6) lambda = n.size.getLambdaY() / 6;
+			if (lambda != 0)
 			{
+                lambda += 1;
 				Technology.NodeLayer [] andLayers = new Technology.NodeLayer[2];
 				andLayers[0] = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromCenter(0.5 * lambda), EdgeV.makeCenter()),
@@ -1889,10 +1894,11 @@ public class Schematics extends Technology
 			}
 		} else if (np == orNode)
 		{
-			double lambda = ni.getXSize() / 10;
-			if (ni.getYSize() < lambda * 6) lambda = ni.getYSize() / 6;
-			if (lambda != 1)
+			double lambda = n.size.getLambdaX() / 10;
+			if (n.size.getLambdaY() < lambda * 6) lambda = n.size.getLambdaY() / 6;
+			if (lambda != 0)
 			{
+                lambda += 1;
 				Technology.NodeLayer [] orLayers = new Technology.NodeLayer[4];
 				orLayers[0] = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromCenter(-9 * lambda), EdgeV.makeCenter()),
@@ -1919,10 +1925,11 @@ public class Schematics extends Technology
 			}
 		} else if (np == xorNode)
 		{
-			double lambda = ni.getXSize() / 10;
-			if (ni.getYSize() < lambda * 6) lambda = ni.getYSize() / 6;
-			if (lambda != 1)
+			double lambda = n.size.getLambdaX() / 10;
+			if (n.size.getLambdaY() < lambda * 6) lambda = n.size.getLambdaY() / 6;
+			if (lambda != 0)
 			{
+                lambda += 1;
 				Technology.NodeLayer [] xorLayers = new Technology.NodeLayer[5];
 				xorLayers[0] = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromCenter(-9 * lambda), EdgeV.makeCenter()),
@@ -1953,7 +1960,7 @@ public class Schematics extends Technology
 			}
 		} else if (np == flipflopNode)
 		{
-			int ffBits = ni.getTechSpecific();
+			int ffBits = n.techBits;
 			switch (ffBits)
 			{
 				case FFTYPERS|FFCLOCKMS: primLayers = ffLayersRSMS;  break;
@@ -1975,7 +1982,7 @@ public class Schematics extends Technology
 		} else if (np == transistorNode)
 		{
 			extraBlobs = true;
-			int tranBits = ni.getTechSpecific();
+			int tranBits = n.techBits;
 			switch (tranBits)
 			{
 				case TRANNMOS:      primLayers = tranLayersN;      break;
@@ -2014,7 +2021,7 @@ public class Schematics extends Technology
 		} else if (np == twoportNode)
 		{
 			extraBlobs = true;
-			int tranBits = ni.getTechSpecific();
+			int tranBits = n.techBits;
 			switch (tranBits)
 			{
 				case TWOPVCCS:  primLayers = twoLayersVCCS;   break;
@@ -2026,7 +2033,7 @@ public class Schematics extends Technology
 		} else if (np == diodeNode)
 		{
 			extraBlobs = true;
-			int diodeBits = ni.getTechSpecific();
+			int diodeBits = n.techBits;
 			switch (diodeBits)
 			{
 				case DIODENORM:  primLayers = diodeLayersNorm;    break;
@@ -2035,7 +2042,7 @@ public class Schematics extends Technology
 		} else if (np == capacitorNode)
 		{
 			extraBlobs = true;
-			int capacitorBits = ni.getTechSpecific();
+			int capacitorBits = n.techBits;
 			switch (capacitorBits)
 			{
 				case CAPACNORM: primLayers = capacitorLayersNorm;           break;
@@ -2044,7 +2051,7 @@ public class Schematics extends Technology
         } else if (np == resistorNode)
 		{
 			extraBlobs = true;
-			int resistorBits = ni.getTechSpecific();
+			int resistorBits = n.techBits;
 			switch (resistorBits)
 			{
 				case RESISTNORM:  primLayers = resistorLayersNorm;    break;
@@ -2056,7 +2063,7 @@ public class Schematics extends Technology
 		} else if (np == switchNode)
 		{
 			int numLayers = 3;
-			if (ni.getYSize() >= 4) numLayers += ((int)ni.getYSize()/2) - 1;
+			if (n.size.getLambdaY() >= 2) numLayers += ((int)n.size.getLambdaY()/2);
 			Technology.NodeLayer [] switchLayers = new Technology.NodeLayer[numLayers];
 			switchLayers[0] = primLayers[0];
 			if ((numLayers%2) == 0) switchLayers[1] = primLayers[1]; else
@@ -2072,7 +2079,7 @@ public class Schematics extends Technology
 		} else if (np == transistor4Node)
 		{
 			extraBlobs = true;
-			int tranBits = ni.getTechSpecific();
+			int tranBits = n.techBits;
 			switch (tranBits)
 			{
 				case TRANNMOS:      primLayers = tran4LayersN;      break;
@@ -2154,7 +2161,11 @@ public class Schematics extends Technology
 				primLayers = blobLayers;
 			}
 		}
-		return computeShapeOfNode(getMemoization(ni), ni.getD(), electrical, reasonable, primLayers, null);
+        ERectangle fullRectangle = np.getFullRectangle();
+        EPoint fixupCorrection = EPoint.fromLambda(fullRectangle.getLambdaX(), fullRectangle.getLambdaY());
+        for (Technology.NodeLayer nodeLayer: primLayers)
+            nodeLayer.fixup(fixupCorrection);
+		return computeShapeOfNode(m, n, electrical, reasonable, primLayers, null);
 	}
 
 	/**

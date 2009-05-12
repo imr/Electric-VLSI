@@ -2855,7 +2855,7 @@ public class Technology implements Comparable<Technology>, Serializable
 				PrimitiveNode np = (PrimitiveNode)ni.getProto();
 				if (np.isWipeOn1or2())
 				{
-					if (ni.pinUseCount()) primLayers = nullPrimLayers;
+					if (m.pinUseCount(n)) primLayers = nullPrimLayers;
 				}
 			}
 		}

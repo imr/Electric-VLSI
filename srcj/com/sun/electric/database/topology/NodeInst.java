@@ -1392,28 +1392,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public double [] getArcDegrees()
 	{
 		double [] returnValues = new double[2];
-		returnValues[0] = returnValues[1] = 0.0;
-
-		if (!(protoType instanceof PrimitiveNode)) return returnValues;
 		if (protoType != Artwork.tech().circleNode && protoType != Artwork.tech().thickCircleNode) return returnValues;
-
-		Variable var = getVar(Artwork.ART_DEGREES);
-		if (var != null)
-		{
-			Object addr = var.getObject();
-			if (addr instanceof Integer)
-			{
-				Integer iAddr = (Integer)addr;
-				returnValues[0] = 0.0;
-				returnValues[1] = iAddr.intValue() * Math.PI / 1800.0;
-			} else if (addr instanceof Float[])
-			{
-				Float [] fAddr = (Float [])addr;
-				returnValues[0] = fAddr[0].doubleValue();
-				returnValues[1] = fAddr[1].doubleValue();
-			}
-		}
-		return returnValues;
+        return getD().getArcDegrees();
 	}
 
 	/**
@@ -2473,13 +2453,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * but are shown for 0 or 3 or more connections (called "Steiner points").
 	 * @return true if this pin NodeInst should be supressed.
 	 */
-	public boolean pinUseCount()
-	{
-        int numConnections = getNumConnections();
-		if (numConnections > 2) return false;
-		if (hasExports()) return true;
-		if (numConnections == 0) return false;
-		return true;
+	public boolean pinUseCount() {
+        return parent != null && parent.getMemoization().pinUseCount(getD());
 	}
 
 	/**
@@ -2591,15 +2566,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @return true if there are Connections on this NodeInst.
 	 */
 	public boolean hasConnections() {
-        if (parent == null) return false;
-        CellBackup.Memoization m = parent.getMemoization();
-        int i = m.searchConnectionByPort(getD().nodeId, 0);
-        if (i >= m.connections.length) return false;
-        int con = m.connections[i];
-        ImmutableArcInst a = m.getArcs().get(con >>> 1);
-        boolean end = (con & 1) != 0;
-        int nodeId = end ? a.headNodeId : a.tailNodeId;
-        return nodeId == getD().nodeId;
+        return parent != null && parent.getMemoization().hasConnections(getD());
     }
 
 	/**
@@ -2625,19 +2592,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @return the number of Connections on this NodeInst.
 	 */
 	public int getNumConnections() {
-        if (parent == null) return 0;
-        CellBackup.Memoization m = parent.getMemoization();
-        int i = m.searchConnectionByPort(getD().nodeId, 0);
-        int j = i;
-        int myNodeId = getD().nodeId;
-        for (; j < m.connections.length; j++) {
-            int con = m.connections[j];
-            ImmutableArcInst a = m.getArcs().get(con >>> 1);
-            boolean end = (con & 1) != 0;
-            int nodeId = end ? a.headNodeId : a.tailNodeId;
-            if (nodeId != myNodeId) break;
-        }
-        return j - i;
+        return parent != null ? parent.getMemoization().getNumConnections(getD()) : 0;
     }
 
     private class ConnectionIterator implements Iterator<Connection> {
