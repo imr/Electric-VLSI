@@ -936,9 +936,9 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 
 		List<Geometric> geomList = new ArrayList<Geometric>();
 		List<PolyBase> polyList = new ArrayList<PolyBase>();
-		if (poly1 != null) polyList.add(poly1); //else
+		if (poly1 != null) polyList.add(poly1); else
 			if (geom1 != null) geomList.add(geom1);
-		if (poly2 != null) polyList.add(poly2); //else
+		if (poly2 != null) polyList.add(poly2); else
 			if (geom2 != null) geomList.add(geom2);
 
         switch (loggingType)
