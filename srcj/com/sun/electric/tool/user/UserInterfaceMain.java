@@ -405,13 +405,19 @@ public class UserInterfaceMain extends AbstractUserInterface
 
                     // make sure it is shown
                     EditWindow wnd = EditWindow.showEditWindowForCell(cell, eh.getVarContext());
+                    highlighter = hMap.get(wnd);
                     // nothing clean yet
-                    if (hMap.get(wnd) == null)
+                    if (highlighter == null)
                     {
                         highlighter = wnd.getHighlighter();
                         highlighter.clear();
                         hMap.put(wnd, highlighter);
                     }
+                }
+                else
+                {
+                    if (Job.getDebug())
+                        System.out.println("Check this case in UserInterfaceMain::reportLog");
                 }
 
                 if (highlighter == null) continue;

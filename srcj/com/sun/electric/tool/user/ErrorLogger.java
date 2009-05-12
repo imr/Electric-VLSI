@@ -633,7 +633,8 @@ public class ErrorLogger implements Serializable
                                         Cell cell, int sortKey, boolean errorMsg)
     {
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
-    	if (geomList != null)
+        boolean matches = geomList != null && polyList != null && geomList.size() == polyList.size();
+    	if (geomList != null && !matches)
     	{
     		for(Geometric geom : geomList)
                 h.add(ErrorHighlight.newInstance(null, geom));
@@ -641,7 +642,6 @@ public class ErrorLogger implements Serializable
     	if (polyList != null)
     	{
             // must match number of elements
-            boolean matches = geomList != null && geomList.size() == polyList.size();
             for(PolyBase poly : polyList)
     		{
     	        Point2D [] points = poly.getPoints();
