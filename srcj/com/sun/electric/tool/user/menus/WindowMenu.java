@@ -991,7 +991,7 @@ public class WindowMenu {
     private static void importCadencePreferences()
     {
         String [] options = { "Yes", "No", "Cancel Import"};
-        int response = Job.getUserInterface().askForChoice("Do you want to backup your preferences " +
+        int response = Job.getUserInterface().askForChoice("You won't be able to restore previous preferences.\nDo you want to backup your preferences " +
              "before importing Cadence values?", "Import Cadence Preferences", options, options[1]);
         if (response == 0) // Save previous preferences
         {

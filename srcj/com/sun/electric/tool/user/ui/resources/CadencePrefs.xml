@@ -24,34 +24,6 @@
                 <entry key="PatternForDEXCL-Metal-9Intsmc90" value="1052672/2105344/4210688/8421376/4210688/2105344/1052672/526336/1052672/2105344/4210688/8421376/4210688/2105344/1052672/526336"/>
                 <entry key="PatternForDEXCL-P-ActiveIntsmc90" value="4112/8224/16448/32896/16448/8224/4112/2056/4112/8224/16448/32896/16448/8224/4112/2056"/>
                 <entry key="PatternForDEXCL-N-ActiveIntsmc90" value="8224/16448/32896/65792/32896/16448/8224/4112/8224/16448/32896/65792/32896/16448/8224/4112"/>
-                <entry key="TSMC90NumberOfMetalLayers" value="7"/>
-                <entry key="DefaultWidthForX Metal-5-Metal-6-ConINtsmc90" value="10.4"/>
-                <entry key="DefaultHeightForX Metal-5-Metal-6-ConINtsmc90" value="10.4"/>
-                <entry key="DefaultWidthForMetal-5-Metal-6-ConINtsmc90" value="8.4"/>
-                <entry key="DefaultHeightForMetal-5-Metal-6-ConINtsmc90" value="10.4"/>
-                <entry key="DefaultWidthFormetal-6INtsmc90" value="8.4"/>
-                <entry key="DefaultWidthForMetal-6-PinINtsmc90" value="8.4"/>
-                <entry key="DefaultHeightForMetal-6-PinINtsmc90" value="8.4"/>
-                <entry key="DefaultWidthForMetal-6-NodeINtsmc90" value="8.4"/>
-                <entry key="DefaultHeightForMetal-6-NodeINtsmc90" value="8.4"/>
-                <entry key="DefaultWidthForDEXCL-Metal-6-NodeINtsmc90" value="16.8"/>
-                <entry key="DefaultHeightForDEXCL-Metal-6-NodeINtsmc90" value="16.8"/>
-                <entry key="DefaultWidthForX Metal-6-Metal-7-ConINtsmc90" value="10.4"/>
-                <entry key="DefaultHeightForX Metal-6-Metal-7-ConINtsmc90" value="10.4"/>
-                <entry key="DefaultWidthForMetal-6-Metal-7-ConINtsmc90" value="8.4"/>
-                <entry key="DefaultHeightForMetal-6-Metal-7-ConINtsmc90" value="10.4"/>
-                <entry key="DefaultWidthFormetal-7INtsmc90" value="8.4"/>
-                <entry key="DefaultWidthForMetal-7-PinINtsmc90" value="8.4"/>
-                <entry key="DefaultHeightForMetal-7-PinINtsmc90" value="8.4"/>
-                <entry key="DefaultWidthForMetal-7-NodeINtsmc90" value="8.4"/>
-                <entry key="DefaultHeightForMetal-7-NodeINtsmc90" value="8.4"/>
-                <entry key="DefaultWidthForDEXCL-Metal-7-NodeINtsmc90" value="16.8"/>
-                <entry key="DefaultHeightForDEXCL-Metal-7-NodeINtsmc90" value="16.8"/>
-                <entry key="DefaultWidthForPolysilicon-1INmocmos" value="1.8"/>
-                <entry key="DefaultWidthForPolysilicon-1-PinINmocmos" value="1.8"/>
-                <entry key="DefaultHeightForPolysilicon-1-PinINmocmos" value="1.8"/>
-                <entry key="DefaultWidthForMetal-6INmocmos" value="5.0"/>
-                <entry key="MoCMOSNumberOfMetalLayers" value="6"/>
                 <entry key="ColorForActive-CutInmocmos" value="16777164"/>
                 <entry key="ColorForMetal-1Inmocmos" value="3355647"/>
                 <entry key="ColorForMetal-3Inmocmos" value="39219"/>
