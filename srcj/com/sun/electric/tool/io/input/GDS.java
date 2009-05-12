@@ -46,6 +46,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.ArcProto;
@@ -147,6 +148,7 @@ public class GDS extends Input
 	private double           theScale;
 	private Map<Integer,Layer> layerNames;
 	private Map<Integer,UnknownLayerMessage> layerErrorMessages;
+	private static Map<UnknownLayerMessage,Set<Cell>> cellLayerErrors;
 	private Set<Integer>     pinLayers;
 	private PolyMerge        merge;
 	private static boolean   arraySimplificationUseful;
@@ -312,6 +314,21 @@ public class GDS extends Input
 		// now build all instances recursively
 		CellBuilder.buildInstances();
 		CellBuilder.term();
+
+		// show unknown error messages
+		for(UnknownLayerMessage message : cellLayerErrors.keySet())
+		{
+			Set<Cell> cellList = cellLayerErrors.get(message);
+			System.out.println(message.message + " in cells:");
+			String prev = "    ";
+			for(Cell cell : cellList)
+			{
+				System.out.print(prev + cell.describe(false));
+				prev = ", ";
+			}
+			System.out.println();
+		}
+
 		if (arraySimplificationUseful)
 		{
 			System.out.println("NOTE: Found array references that could be simplified to save space and time");
@@ -331,6 +348,7 @@ public class GDS extends Input
 		// get the array of GDS names
 		layerNames = new HashMap<Integer,Layer>();
 		layerErrorMessages = new HashMap<Integer,UnknownLayerMessage>();
+		cellLayerErrors = new HashMap<UnknownLayerMessage,Set<Cell>>();
 		pinLayers = new HashSet<Integer>();
 		randomLayerSelection = 0;
 		boolean valid = false;
@@ -523,7 +541,10 @@ public class GDS extends Input
 	                if (mi.instantiate(this.cell, exportUnify, exportNames, instantiated)) renamed++;
 				}
 				String msg = "Cell " + this.cell.noLibDescribe() + ": " + ulm.message;
-				System.out.println(msg);
+				Set<Cell> cellsWithError = cellLayerErrors.get(ulm);
+				if (cellsWithError == null) cellLayerErrors.put(ulm, cellsWithError = new HashSet<Cell>());
+				cellsWithError.add(cell);
+//				System.out.println(msg);
 				errorLogger.logMessage(msg, instantiated, cell, -1, true);
 			}
 
@@ -552,8 +573,8 @@ public class GDS extends Input
 			}
 			if (renamed > 0)
 			{
-				System.out.println("  Warning: Cell " + this.cell.describe(false) + " had " + renamed +
-					" exports with duplicate names that were renamed and unified");
+				System.out.println("Cell " + this.cell.describe(false) + ": Renamed and NCC-unified " + renamed +
+					" exports with duplicate names");
 				Map<String,String> unifyStrings = new HashMap<String,String>();
 				Set<String> finalNames = exportUnify.keySet();
 				for(String finalName : finalNames)
@@ -754,7 +775,7 @@ public class GDS extends Input
                 if (!validGdsNodeName(mi.nodeName))
                 {
                     System.out.println("  Warning: Node name '" + mi.nodeName + "' in cell " + cell.describe(false) +
-                            " is bad (" + Name.checkName(mi.nodeName.toString()) + ")...ignoring the name");
+                        " is bad (" + Name.checkName(mi.nodeName.toString()) + ")...ignoring the name");
                 } else if (!userNames.contains(mi.nodeName.toString()))
                 {
                     userNames.add(mi.nodeName.toString());
@@ -953,11 +974,21 @@ public class GDS extends Input
             this.hei = DBMath.round(hei);
             this.points = points;
             this.exportName = exportName;
-            if (nodeName != null && NodeInst.checkNameKey(nodeName, null))
+            if (nodeName != null && !nodeName.isValid())
             {
-                // If name is not valid, a new one will be automatically created.
-                origNodeName = nodeName.toString();  // remember the name for error reporting
-                nodeName = null;
+                origNodeName = nodeName.toString();
+            	if (origNodeName.equals("[@instanceName]"))
+            	{
+            		origNodeName = null;
+            		nodeName = null;
+            	} else if (origNodeName.endsWith(":"))
+            	{
+            		nodeName = Name.findName(origNodeName.substring(0, origNodeName.length()-1));
+            		if (nodeName.isValid()) origNodeName = null;
+            	} else
+            	{
+            		nodeName = null;
+            	}
             }
             this.nodeName = nodeName;
             this.localPrefs = localPrefs;
@@ -974,7 +1005,8 @@ public class GDS extends Input
          * @param saveHere a list of Geometrics to save this instance in.
          * @return true if the export had to be renamed.
          */
-        private boolean instantiate(Cell parent, Map<String,String> exportUnify, Set<String> exportNames, List<Geometric> saveHere) {
+        private boolean instantiate(Cell parent, Map<String,String> exportUnify, Set<String> exportNames, List<Geometric> saveHere)
+        {
         	String name = null;
         	if (nodeName != null) name = nodeName.toString();
             NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, name);
@@ -984,11 +1016,11 @@ public class GDS extends Input
 
             if (ni.getNameKey() != nodeName)
             {
-                errorMsg = "GDS name '" + name + "' renamed to '" + ni.getName() + "'";
+                errorMsg = "Cell " + parent.describe(false) + ": GDS name '" + name + "' renamed to '" + ni.getName() + "'";
             }
             else if (origNodeName != null)
             {
-                errorMsg = "Original GDS name of '" + name + "' was '" + origNodeName + "'";
+           		errorMsg = "Cell " + parent.describe(false) + ": Original GDS name of '" + name + "' was '" + origNodeName + "'";
             }
 
             if (errorMsg != null)
@@ -1010,20 +1042,20 @@ public class GDS extends Input
             		exportName = exportName.substring(0, exportName.length()-1);
         		if (parent.findExport(exportName) != null)
         		{
-                    String newName = exportName; //ElectricObject.uniqueObjectName(exportName, parent, PortProto.class, true);
-                	while (exportNames.contains(newName))
-                	{
-                		int lastUnder = newName.lastIndexOf('_');
-                		if (lastUnder > 0 && TextUtils.isANumber(newName.substring(lastUnder+1)))
-                		{
-                			newName = newName.substring(0, lastUnder+1) + (TextUtils.atoi(newName.substring(lastUnder+1))+1);
-                		} else
-                		{
-                			newName += "_1";
-                		}
-                	}
-//                    System.out.println("  Warning: Multiple exports called '" + exportName + "' in cell " +
-//                    	parent.describe(false) + " (renamed to " + newName + ")");
+                    String newName = ElectricObject.uniqueObjectName(exportName, parent, PortProto.class, true);
+//                	while (exportNames.contains(newName))
+//                	{
+//                		int lastUnder = newName.lastIndexOf('_');
+//                		if (lastUnder > 0 && TextUtils.isANumber(newName.substring(lastUnder+1)))
+//                		{
+//                			newName = newName.substring(0, lastUnder+1) + (TextUtils.atoi(newName.substring(lastUnder+1))+1);
+//                		} else
+//                		{
+//                			newName += "_1";
+//                		}
+//                	}
+//System.out.println("  Warning: Multiple exports called '" + exportName + "' in cell " +
+//	parent.describe(false) + " (renamed to " + newName + ")");
                     exportUnify.put(newName, exportName);
                     exportName = newName;
                     renamed = true;
@@ -1986,6 +2018,9 @@ public class GDS extends Input
 			} else
 			{
 				errorLogger.logWarning(message, theCell.cell, 0);
+//				List<Cell> cellsWithError = cellLayerErrors.get(message);
+//				if (cellsWithError == null) cellLayerErrors.put(message, cellsWithError = new ArrayList<Cell>());
+//				cellsWithError.add(theCell.cell);
 				System.out.println(message);
 			}
 		}
@@ -2018,7 +2053,7 @@ public class GDS extends Input
 			}
 			if (layerNodeProto == null)
 			{
-				String message = "Error: no pure layer node for layer "+layer.getName() + "', ignoring it";
+				String message = "Error: no pure layer node for layer '" + layer.getName() + "', ignoring it";
 				layerNames.put(layerInt, Generic.tech().drcLay);
 				currentUnknownLayerMessage = new UnknownLayerMessage(message);
 				layerErrorMessages.put(layerInt, currentUnknownLayerMessage);

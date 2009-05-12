@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09j: ******************************
 
+IMP: (5/12/09, SMR) GDS import now creates proper NCC unification messages and
+     has more concise warnings.
+
 BUG: (5/11/09, DN) Facet center is invisible by default in LayerDrawing (Bug #2172).
 FIX: In LayerVisibility.getDefaultOpacity() set default opacity of Generic.GlyphLay to 0.1.
 
