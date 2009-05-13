@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+BUG: (5/13/09, SMR) Node extractor creates holes when restoring unextracted
+     geometry (Bug #2176).
+FIX: The extractor now uses a simpler algorithm that does not create holes.
+
 BUG: (5/13/09, DN) NPE while adding spice netlist line (Bug #2177).
 FIX: In ToolMenu.MakeTemplate move needCurrentWindow from doIt to constructor.
 
