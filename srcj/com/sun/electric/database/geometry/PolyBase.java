@@ -1954,7 +1954,7 @@ public class PolyBase implements Shape, PolyNodeMerge
     }
 
     // This assumes the algorithm starts with external loop
-    public static List<PolyBase> getPointsFromComplex(Area area, Layer layer)
+    private static List<PolyBase> getPointsFromComplex(Area area, Layer layer)
 	{
         List<PolyBase> list = getLoopsFromArea(area, layer);
         List<PolyBaseTree> roots = getTreesFromLoops(list);

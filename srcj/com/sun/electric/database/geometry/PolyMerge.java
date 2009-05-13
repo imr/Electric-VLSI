@@ -391,7 +391,20 @@ public class PolyMerge
 		return false;
 	}
 
-	/**
+    public Area exclusive(Layer layer, PolyBase poly)
+    {
+        // find the area for the given layer
+		Area area = (Area)layers.get(layer);
+		if (area == null) return null;
+
+        // create an area that is the new polygon minus the original area
+		Area polyArea = new Area(poly);
+		polyArea.subtract(area);
+
+        return polyArea;
+    }
+
+    /**
 	 * Method to see if an arc fits in this merge with or without end extension.
 	 * @param layer the layer of the arc being examined.
 	 * @param headLoc the head location of the arc.
