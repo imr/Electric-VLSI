@@ -2866,12 +2866,12 @@ public class EDIF extends Input
 					if (localPrefs.cadenceCompatibility && curCell.getView() == View.ICON)
 					{
 						// add icon name in Cadence compatibility mode
+						TextDescriptor td = TextDescriptor.getAnnotationTextDescriptor();
 						double xPos = curCell.getBounds().getCenterX();
-						double yPos = curCell.getBounds().getCenterY();
+						double yPos = curCell.getBounds().getMaxY() - td.getSize().getSize()/2;
 						NodeInst ni = NodeInst.makeInstance(Generic.tech().invisiblePinNode, new Point2D.Double(xPos, yPos), 0, 0, curCell);
 						if (ni != null)
 						{
-							TextDescriptor td = TextDescriptor.getAnnotationTextDescriptor();
 							td = td.withDisplay(true);
 							ni.newVar(Artwork.ART_MESSAGE, curCell.getName(), td);
 						}						
