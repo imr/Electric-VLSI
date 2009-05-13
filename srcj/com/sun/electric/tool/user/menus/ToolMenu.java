@@ -1617,6 +1617,7 @@ public class ToolMenu
         {
             super("Make template", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.templateKey = templateKey;
+            tgtCell = Job.getUserInterface().needCurrentCell();
             startJob();
         }
 
@@ -1624,6 +1625,8 @@ public class ToolMenu
         {
             super("Make template", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.templateKey = templateKey;
+            if (tgtCell == null)
+                tgtCell = Job.getUserInterface().needCurrentCell();
             this.tgtCell = tgtCell;
             startJob();
         }
@@ -1632,6 +1635,8 @@ public class ToolMenu
         {
             super("Make template", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.templateKey = templateKey;
+            if (tgtCell == null)
+                tgtCell = Job.getUserInterface().needCurrentCell();
             this.tgtCell = tgtCell;
             this.value = value;
             startJob();
@@ -1639,24 +1644,20 @@ public class ToolMenu
 
         public boolean doIt() throws JobException
         {
-            Cell cell;
-            if (tgtCell != null) cell = tgtCell; else
-            	cell = WindowFrame.needCurCell();
-            if (cell == null) return false;
-            Variable templateVar = cell.getVar(templateKey);
+            Variable templateVar = tgtCell.getVar(templateKey);
             if (templateVar != null)
             {
                 System.out.println("This cell already has a template");
                 return false;
             }
-        	Point2D offset = cell.newVarOffset();
+        	Point2D offset = tgtCell.newVarOffset();
             TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).
             	withDispPart(TextDescriptor.DispPos.NAMEVALUE).withOff(offset.getX(), offset.getY());
             if (value == null) {
-            	cell.newVar(templateKey, "*Undefined", td);
+            	tgtCell.newVar(templateKey, "*Undefined", td);
             } else
             {
-            	cell.newVar(templateKey, value, td);
+            	tgtCell.newVar(templateKey, value, td);
             }
             return true;
         }
