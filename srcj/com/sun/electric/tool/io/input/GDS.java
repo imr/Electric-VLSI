@@ -1252,13 +1252,14 @@ public class GDS extends Input
 		if (theToken != GDS_IDENT) handleError("Structure name is missing");
 
 		// look for this nodeproto
-		Cell cell = findCell(tokenString);
+		String name = tokenString + "{lay}";
+		Cell cell = findCell(name);
 		if (cell == null)
 		{
 			// create the proto
-			cell = Cell.newInstance(theLibrary, tokenString+View.LAYOUT.getAbbreviationExtension());
+			cell = Cell.newInstance(theLibrary, name);
 			if (cell == null) handleError("Failed to create structure");
-			System.out.println("Reading " + tokenString);
+			System.out.println("Reading " + name);
 			if (!currentCells.containsKey(theLibrary))
 				currentCells.put(theLibrary, cell);
 		}
@@ -2115,14 +2116,15 @@ public class GDS extends Input
 		throws IOException
 	{
 		// scan for this proto
+		name = name + "{lay}";
 		Cell np = findCell(name);
 		if (np == null)
 		{
 			// FILO order, create this nodeproto
-			np = Cell.newInstance(theLibrary, tokenString+View.LAYOUT.getAbbreviationExtension());
+			np = Cell.newInstance(theLibrary, name);
 			if (np == null) handleError("Failed to create SREF proto");
 			setProgressValue(0);
-			setProgressNote("Reading " + tokenString);
+			setProgressNote("Reading " + name);
 		}
 
 		// set the reference node proto
