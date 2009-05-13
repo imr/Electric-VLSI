@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+BUG: (5/13/09, SMR) EDIF equivalence do not map onto the current library (Bug #2178).
+FIX: Now handle substitutions in all libraries.
+
 BUG: (5/13/09, SMR) GDS import puts layout in any view of the cell (Bug #2145).
 FIX: Force GDS import to use layout cells.
 

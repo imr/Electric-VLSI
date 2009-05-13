@@ -2070,7 +2070,9 @@ public class EDIF extends Input
 			}
 
 			// look for an equivalent primitive
-			EDIFEquiv.NodeEquivalence ne = equivs.getNodeEquivalence(libraryRef, cellRef, viewRef);
+			String libName = libraryRef;
+			if (libName == null) libName = curLibrary.getName();
+			EDIFEquiv.NodeEquivalence ne = equivs.getNodeEquivalence(libName, cellRef, viewRef);
 			if (ne != null && ne.np != null)
 			{
 				mappedNodes.put(instanceName, ne);
