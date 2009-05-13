@@ -136,8 +136,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	public static final boolean HANDLEBROKENOUTLINES = true;
 	/** true to handle duplicate points in an outline as a "break" */
 	public static final boolean DUPLICATEPOINTSAREBROKENOUTLINES = false;
-    /** true if NodeLayer points are the same as Xml */
-    public static final boolean STANDARD_NODE_LAYER_POINTS = true;
 
     // Change in TechSettings takes effect only after restart
     public static final boolean IMMUTABLE_TECHS = false/*Config.TWO_JVM*/;
@@ -365,12 +363,6 @@ public class Technology implements Comparable<Technology>, Serializable
 		public TechPoint withY(EdgeV y) {
             if (y.equals(this.y)) return this;
             return new TechPoint(this.x, y);
-        }
-
-        TechPoint makeCorrection(EPoint correction) {
-            EdgeH h = new EdgeH(x.getMultiplier(), x.getAdder() + correction.getLambdaX()*x.getMultiplier()*2);
-            EdgeV v = new EdgeV(y.getMultiplier(), y.getAdder() + correction.getLambdaY()*y.getMultiplier()*2);
-            return new TechPoint(h, v);
         }
 	}
 
@@ -740,7 +732,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 " ym=" + p.getY().getMultiplier() + " ya=" + DBMath.round(p.getY().getAdder() - p.getY().getMultiplier()*correction.getLambdaY()));
         }
 
-        Xml.NodeLayer makeXml(boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
+        Xml.NodeLayer makeXml(boolean isSerp, boolean inLayers, boolean inElectricalLayers) {
             Xml.NodeLayer nld = new Xml.NodeLayer();
             nld.layer = getLayer().getNonPseudoLayer().getName();
             nld.style = getStyle();
@@ -751,16 +743,16 @@ public class Technology implements Comparable<Technology>, Serializable
             Technology.TechPoint[] points = getPoints();
             if (nld.representation == Technology.NodeLayer.BOX || nld.representation == Technology.NodeLayer.MULTICUTBOX) {
                 nld.lx.k = points[0].getX().getMultiplier()*2;
-                nld.lx.addLambda(DBMath.round(points[0].getX().getAdder() + correction.getLambdaX()*points[0].getX().getMultiplier()*2));
+                nld.lx.addLambda(DBMath.round(points[0].getX().getAdder()));
                 nld.hx.k = points[1].getX().getMultiplier()*2;
-                nld.hx.addLambda(DBMath.round(points[1].getX().getAdder() + correction.getLambdaX()*points[1].getX().getMultiplier()*2));
+                nld.hx.addLambda(DBMath.round(points[1].getX().getAdder()));
                 nld.ly.k = points[0].getY().getMultiplier()*2;
-                nld.ly.addLambda(DBMath.round(points[0].getY().getAdder() + correction.getLambdaY()*points[0].getY().getMultiplier()*2));
+                nld.ly.addLambda(DBMath.round(points[0].getY().getAdder()));
                 nld.hy.k = points[1].getY().getMultiplier()*2;
-                nld.hy.addLambda(DBMath.round(points[1].getY().getAdder() + correction.getLambdaY()*points[1].getY().getMultiplier()*2));
+                nld.hy.addLambda(DBMath.round(points[1].getY().getAdder()));
             } else {
                 for (Technology.TechPoint p: points)
-                    nld.techPoints.add(p.makeCorrection(correction));
+                    nld.techPoints.add(p);
             }
             if (nld.representation == Technology.NodeLayer.MULTICUTBOX) {
                 nld.sizex = DBMath.round(getMulticutSizeX());
@@ -1190,24 +1182,16 @@ public class Technology implements Comparable<Technology>, Serializable
         return connections;
     }
 
-    static TechPoint makeTechPoint(TechPoint p, EPoint correction) {
-        EdgeH h = p.getX();
-        EdgeV v = p.getY();
-        h = new EdgeH(h.getMultiplier(), h.getAdder() - correction.getLambdaX()*h.getMultiplier()*2);
-        v = new EdgeV(v.getMultiplier(), v.getAdder() - correction.getLambdaY()*v.getMultiplier()*2);
-        return new TechPoint(h, v);
+    static TechPoint makeTechPoint(Xml.Distance x, Xml.Distance y) {
+        return new TechPoint(makeEdgeH(x), makeEdgeV(y));
     }
 
-    static TechPoint makeTechPoint(Xml.Distance x, Xml.Distance y, EPoint correction) {
-        return new TechPoint(makeEdgeH(x, correction), makeEdgeV(y, correction));
+    static EdgeH makeEdgeH(Xml.Distance x) {
+        return new EdgeH(x.k*0.5, x.value);
     }
 
-    static EdgeH makeEdgeH(Xml.Distance x, EPoint correction) {
-        return new EdgeH(x.k*0.5, x.value - correction.getLambdaX()*x.k);
-    }
-
-    static EdgeV makeEdgeV(Xml.Distance y, EPoint correction) {
-        return new EdgeV(y.k*0.5, y.value - correction.getLambdaY()*y.k);
+    static EdgeV makeEdgeV(Xml.Distance y) {
+        return new EdgeV(y.k*0.5, y.value);
     }
 
     public Xml.Technology getXmlTech() { return xmlTech.deepClone(); }
@@ -2898,7 +2882,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	protected Poly [] computeShapeOfNode(CellBackup.Memoization m, ImmutableNodeInst n, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, EGraphics graphicsOverride)
 	{
 		PrimitiveNode np = (PrimitiveNode)m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
-        ERectangle fullRectangle = np.getFullRectangle();
 		int specialType = np.getSpecialType();
 		if (specialType != PrimitiveNode.SERPTRANS && np.isHoldsOutline())
 		{
@@ -2981,7 +2964,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		{
             for (NodeLayer nodeLayer: primLayers) {
                 if (nodeLayer.representation == NodeLayer.MULTICUTBOX) {
-                    mcd = new MultiCutData(n, fullRectangle, nodeLayer);
+                    mcd = new MultiCutData(n, nodeLayer);
                     if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
                         numExtraLayers += (mcd.cutsTotal - 1);
                 }
@@ -3000,7 +2983,7 @@ public class Technology implements Comparable<Technology>, Serializable
             {
                 if (nodeLayer.layer.isCarbonNanotubeLayer())
                 {
-                	cnd = new CarbonNanotube(n, fullRectangle, nodeLayer);
+                	cnd = new CarbonNanotube(n, nodeLayer);
                     numExtraLayers += (cnd.numTubes - 1);
                 }
            }
@@ -3043,8 +3026,8 @@ public class Technology implements Comparable<Technology>, Serializable
 
         double xCenter = n.anchor.getLambdaX();
         double yCenter = n.anchor.getLambdaY();
-        double xSize = STANDARD_NODE_LAYER_POINTS ? n.size.getLambdaX() : DBMath.gridToLambda(n.size.getGridX() + np.getFullRectangle().getGridWidth());
-        double ySize = STANDARD_NODE_LAYER_POINTS ? n.size.getLambdaY() : DBMath.gridToLambda(n.size.getGridY() + np.getFullRectangle().getGridHeight());
+        double xSize = n.size.getLambdaX();
+        double ySize = n.size.getLambdaY();
 
 		// add in the basic polygons
 		int fillPoly = 0;
@@ -3098,7 +3081,7 @@ public class Technology implements Comparable<Technology>, Serializable
 				}
 				polys[fillPoly] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.MULTICUTBOX) {
-                mcd = new MultiCutData(n, fullRectangle, primLayer);
+                mcd = new MultiCutData(n, primLayer);
                 Poly.Type style = primLayer.getStyle();
                 PortProto port = null;
                 if (electrical) port = np.getPort(0);
@@ -3207,7 +3190,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	public static class CarbonNanotube
 	{
 		private ImmutableNodeInst niD;
-		private ERectangle fullRectangle;
 		private NodeLayer tubeLayer;
 		private int numTubes;
         private long tubeSpacing;
@@ -3215,10 +3197,9 @@ public class Technology implements Comparable<Technology>, Serializable
 		/**
 		 * Constructor to initialize for carbon nanotube rails.
 		 */
-		public CarbonNanotube(ImmutableNodeInst niD, ERectangle fullRectangle, NodeLayer tubeLayer)
+		public CarbonNanotube(ImmutableNodeInst niD, NodeLayer tubeLayer)
 		{
 			this.niD = niD;
-			this.fullRectangle = fullRectangle;
 			this.tubeLayer = tubeLayer;
 			numTubes = 10;
             Variable var = niD.getVar(NodeLayer.CARBON_NANOTUBE_COUNT);
@@ -3237,10 +3218,6 @@ public class Technology implements Comparable<Technology>, Serializable
         	EPoint size = niD.size;
             long gridWidth = size.getGridX();
             long gridHeight = size.getGridY();
-            if (!STANDARD_NODE_LAYER_POINTS) {
-                gridWidth +=  fullRectangle.getGridWidth();
-                gridHeight += fullRectangle.getGridHeight();
-            }
             TechPoint[] techPoints = tubeLayer.points;
             long lx = techPoints[0].getX().getGridAdder() + (long)(gridWidth*techPoints[0].getX().getMultiplier());
             long hx = techPoints[1].getX().getGridAdder() + (long)(gridWidth*techPoints[1].getX().getMultiplier());
@@ -3298,9 +3275,9 @@ public class Technology implements Comparable<Technology>, Serializable
 		/**
 		 * Constructor to initialize for multiple cuts.
 		 */
-		private MultiCutData(ImmutableNodeInst niD, ERectangle fullRectangle, NodeLayer cutLayer)
+		private MultiCutData(ImmutableNodeInst niD, NodeLayer cutLayer)
 		{
-            calculateInternalData(niD, fullRectangle, cutLayer);
+            calculateInternalData(niD, cutLayer);
 		}
 
 		/**
@@ -3309,20 +3286,15 @@ public class Technology implements Comparable<Technology>, Serializable
 		 */
 		public MultiCutData(ImmutableNodeInst niD, TechPool techPool)
 		{
-            calculateInternalData(niD, techPool.getPrimitiveNode((PrimitiveNodeId)niD.protoId).getFullRectangle(),
-            	techPool.getPrimitiveNode((PrimitiveNodeId)niD.protoId).findMulticut());
+            calculateInternalData(niD, techPool.getPrimitiveNode((PrimitiveNodeId)niD.protoId).findMulticut());
 		}
 
-        private void calculateInternalData(ImmutableNodeInst niD, ERectangle fullRectangle, NodeLayer cutLayer)
+        private void calculateInternalData(ImmutableNodeInst niD, NodeLayer cutLayer)
         {
         	EPoint size = niD.size;
             assert cutLayer.representation == NodeLayer.MULTICUTBOX;
             long gridWidth = size.getGridX();
             long gridHeight = size.getGridY();
-            if (!STANDARD_NODE_LAYER_POINTS) {
-                gridWidth +=  fullRectangle.getGridWidth();
-                gridHeight += fullRectangle.getGridHeight();
-            }
             TechPoint[] techPoints = cutLayer.points;
             long lx = techPoints[0].getX().getGridAdder() + (long)(gridWidth*techPoints[0].getX().getMultiplier());
             long hx = techPoints[1].getX().getGridAdder() + (long)(gridWidth*techPoints[1].getX().getMultiplier());

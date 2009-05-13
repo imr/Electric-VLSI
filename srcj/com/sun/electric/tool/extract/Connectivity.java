@@ -2375,8 +2375,8 @@ public class Connectivity
 		{
 			double area1 = 0;
 			Technology.NodeLayer [] layers1 = pv1.pNp.getNodeLayers();
-			double sizeX = Technology.STANDARD_NODE_LAYER_POINTS ? pv1.pNp.getDefaultLambdaExtendX(ep)*2 : pv1.pNp.getDefWidth();
-			double sizeY = Technology.STANDARD_NODE_LAYER_POINTS ? pv1.pNp.getDefaultLambdaExtendY(ep)*2 : pv1.pNp.getDefHeight();
+			double sizeX = pv1.pNp.getDefaultLambdaExtendX(ep)*2;
+			double sizeY = pv1.pNp.getDefaultLambdaExtendY(ep)*2;
 			for(int i=0; i<layers1.length; i++)
 			{
 				Technology.NodeLayer nl = layers1[i];
@@ -2390,8 +2390,8 @@ public class Connectivity
 
 			double area2 = 0;
 			Technology.NodeLayer [] layers2 = pv2.pNp.getNodeLayers();
-			sizeX = Technology.STANDARD_NODE_LAYER_POINTS ? pv2.pNp.getDefaultLambdaExtendX(ep)*2 : pv2.pNp.getDefWidth();
-			sizeY = Technology.STANDARD_NODE_LAYER_POINTS ? pv2.pNp.getDefaultLambdaExtendY(ep)*2 : pv2.pNp.getDefHeight();
+			sizeX = pv2.pNp.getDefaultLambdaExtendX(ep)*2;
+			sizeY = pv2.pNp.getDefaultLambdaExtendY(ep)*2;
 			for(int i=0; i<layers2.length; i++)
 			{
 				Technology.NodeLayer nl = layers2[i];

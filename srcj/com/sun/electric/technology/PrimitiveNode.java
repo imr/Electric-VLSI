@@ -904,8 +904,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         ERectangle baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
         EPoint sizeCorrector2 = EPoint.fromGrid(baseRectangle.getGridWidth() >> 1, baseRectangle.getGridHeight() >> 1);
         EPoint fixupCorrector = EPoint.fromGrid(fullRectangle.getGridWidth(), fullRectangle.getGridHeight());
-        if (!Technology.STANDARD_NODE_LAYER_POINTS)
-            fixupCorrector = EPoint.ORIGIN;
         return newInstance(protoName, tech, sizeCorrector, sizeCorrector2, fixupCorrector, null,
                 width, height, fullRectangle, baseRectangle, layers);
 	}
@@ -972,7 +970,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             if (layer.getPseudoLayer() == null)
                 layer.makePseudo();
             layer = layer.getPseudoLayer();
-            double indent = DBMath.gridToLambda((Technology.STANDARD_NODE_LAYER_POINTS ? 0 : fullExtend) - ap.getLayerGridExtend(i));
+            double indent = DBMath.gridToLambda(-ap.getLayerGridExtend(i));
             nodeLayers[i] = new Technology.NodeLayer(layer, 0, Poly.Type.CROSSED,
                     Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(indent));
         }
@@ -1731,10 +1729,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         assert cutLayer.getTopEdge().getMultiplier() == 0.5;
         double x = cutLayer.getMulticutSizeX() + cutLayer.getMulticutSep2D() + cutLayer.getLeftEdge().getAdder() - cutLayer.getRightEdge().getAdder();
         double y = cutLayer.getMulticutSizeY() + cutLayer.getMulticutSep2D() + cutLayer.getBottomEdge().getAdder() - cutLayer.getTopEdge().getAdder();
-        if (Technology.STANDARD_NODE_LAYER_POINTS) {
-            x += fullRectangle.getLambdaWidth();
-            y += fullRectangle.getLambdaHeight();
-        }
+        x += fullRectangle.getLambdaWidth();
+        y += fullRectangle.getLambdaHeight();
         return EPoint.fromLambda(x, y);
     }
 
@@ -2209,7 +2205,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     }
 
     private void dumpNodeLayers(PrintWriter out, Technology.NodeLayer[] layers, boolean isSerp) {
-        EPoint correction = Technology.STANDARD_NODE_LAYER_POINTS ? EPoint.fromGrid(fullRectangle.getGridWidth(), fullRectangle.getGridHeight()) : EPoint.ORIGIN;
+        EPoint correction = EPoint.fromGrid(fullRectangle.getGridWidth(), fullRectangle.getGridHeight());
         for (Technology.NodeLayer nl: layers)
             nl.dump(out, correction, isSerp);
     }
@@ -2272,20 +2268,19 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         if (getElectricalLayers() != null)
             electricalNodeLayers = Arrays.asList(getElectricalLayers());
         boolean isSerp = getSpecialType() == PrimitiveNode.SERPTRANS;
-        EPoint correction = Technology.STANDARD_NODE_LAYER_POINTS ? EPoint.ORIGIN : minFullSize;
         int m = 0;
         for (Technology.NodeLayer nld: electricalNodeLayers) {
             int j = nodeLayers.indexOf(nld);
             if (j < 0) {
-                ng.nodeLayers.add(nld.makeXml(isSerp, correction, false, true));
+                ng.nodeLayers.add(nld.makeXml(isSerp, false, true));
                 continue;
             }
             while (m < j)
-                ng.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, correction, true, false));
-            ng.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, correction, true, true));
+                ng.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, true, false));
+            ng.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, true, true));
         }
         while (m < nodeLayers.size())
-            ng.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, correction, true, false));
+            ng.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, true, false));
 
         for (Iterator<PrimitivePort> pit = getPrimitivePorts(); pit.hasNext(); ) {
             PrimitivePort pp = pit.next();

@@ -969,7 +969,7 @@ public class TechToLib
             }
         }
         List<NodeInfo.LayerDetails> layerDetails = new ArrayList<NodeInfo.LayerDetails>();
-        EPoint correction = Technology.STANDARD_NODE_LAYER_POINTS ? EPoint.fromGrid(pnp.getFullRectangle().getGridWidth(), pnp.getFullRectangle().getGridHeight()) : EPoint.ORIGIN;
+        EPoint correction = EPoint.fromGrid(pnp.getFullRectangle().getGridWidth(), pnp.getFullRectangle().getGridHeight());
         int m = 0;
         for (Technology.NodeLayer nld: electricalNodeLayers)
         {
