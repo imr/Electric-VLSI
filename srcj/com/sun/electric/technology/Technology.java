@@ -83,6 +83,7 @@ import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -2993,10 +2994,11 @@ public class Technology implements Comparable<Technology>, Serializable
         ArrayList<Point2D> negatingBubbles = null;
         if (np.hasNegatablePorts) {
 			double bubbleRadius = Schematics.tech().getNegatingBubbleSize() / 2;
-            for (int i = m.searchConnectionByPort(n.nodeId, 0); i < m.connections.length; i++) {
-                int con = m.connections[i];
-                ImmutableArcInst a = m.getArcs().get(con >>> 1);
-                boolean end = (con & 1) != 0;
+            BitSet headEnds = new BitSet();
+            List<ImmutableArcInst> conArcs = m.getConnections(headEnds, n, null);
+            for (int i = 0; i < conArcs.size(); i++) {
+                ImmutableArcInst a = conArcs.get(i);
+                boolean end = headEnds.get(i);
                 int nodeId = end ? a.headNodeId : a.tailNodeId;
                 if (nodeId != n.nodeId) break;
                 if (!(end ? a.isHeadNegated() : a.isTailNegated())) continue;

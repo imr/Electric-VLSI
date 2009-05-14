@@ -291,7 +291,7 @@ public class CellBackup {
 //         * ImmutableNodeInsts accessed by their nodeId.
 //         */
 //        private final int[] nodesById;
-        public final int[] connections;
+        private final int[] connections;
         /** ImmutableExports sorted by original PortInst. */
         private final ImmutableExport[] exportIndexByOriginalPort;
         private final BitSet wiped = new BitSet();
@@ -463,18 +463,21 @@ public class CellBackup {
         }
 
         /**
-         * Returns true of there are Connections on speciefied ImmutableNodeInst.
+         * Returns true of there are Connections on specified ImmutableNodeInst
+         * connected either to specified port or to all ports
          * @param n specified ImmutableNodeInst
-         * @return true if there are Connections on specified ImmutableNodeInst.
+         * @param portId specified port or null
+         * @return true if there are Connections on specified ImmutableNodeInst amd specified port.
          */
-        public boolean hasConnections(ImmutableNodeInst n) {
+        public boolean hasConnections(ImmutableNodeInst n, PortProtoId portId) {
             int i = searchConnectionByPort(n.nodeId, 0);
             if (i >= connections.length) return false;
             int con = connections[i];
             ImmutableArcInst a = getArcs().get(con >>> 1);
             boolean end = (con & 1) != 0;
             int nodeId = end ? a.headNodeId : a.tailNodeId;
-            return nodeId == n.nodeId;
+            if (nodeId != n.nodeId) return false;
+            return portId == null || portId == (end ? a.headPortId : a.tailPortId);
         }
 
         /**

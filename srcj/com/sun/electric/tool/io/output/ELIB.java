@@ -76,6 +76,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -926,21 +927,20 @@ public class ELIB extends Output
         int firstIndex = m.searchConnectionByPort(myNodeId, 0);
         int lastIndex = firstIndex;
         TreeSet<ElibConnection> sortedConnections = new TreeSet<ElibConnection>();
-        for (; lastIndex < m.connections.length; lastIndex++) {
-            int con = m.connections[lastIndex];
-            ImmutableArcInst a = m.getArcs().get(con >>> 1);
-            boolean end = (con & 1) != 0;
-            int nodeId = end ? a.headNodeId : a.tailNodeId;
-            if (nodeId != myNodeId) break;
-            PortProtoId portId = end ? a.headPortId : a.tailPortId;
-            sortedConnections.add(new ElibConnection(portId, con));
+        BitSet headEnds = new BitSet();
+        List<ImmutableArcInst> arcs = m.getConnections(headEnds, n, null);
+        for (int i = 0; i < arcs.size(); i++) {
+            ImmutableArcInst a = arcs.get(i);
+            boolean isHead = headEnds.get(i);
+            PortProtoId portId = isHead ? a.headPortId : a.tailPortId;
+            sortedConnections.add(new ElibConnection(portId, a.arcId, isHead));
         }
         int numConnections = lastIndex - firstIndex;
         assert sortedConnections.size() == numConnections;
 
 		writeBigInteger(numConnections);
         for (ElibConnection c: sortedConnections) {
-             writeConnection(c.portId, arcBase + (c.con >>> 1), c.con & 1);
+             writeConnection(c.portId, arcBase + c.arcId, c.isHead ? 1 : 0);
         }
 
         // write the exports
@@ -960,17 +960,23 @@ public class ELIB extends Output
 
     private static class ElibConnection implements Comparable<ElibConnection> {
         private final PortProtoId portId;
-        private final int con;
+        private final int arcId;
+        private final boolean isHead;
 
-        private ElibConnection(PortProtoId portId, int con) {
+        private ElibConnection(PortProtoId portId, int arcId, boolean isHead) {
             this.portId = portId;
-            this.con = con;
+            this.arcId = arcId;
+            this.isHead = isHead;
         }
 
         public int compareTo(ElibConnection that) {
             int cmp = TextUtils.STRING_NUMBER_ORDER.compare(this.portId.externalId, that.portId.externalId);
             if (cmp != 0) return cmp;
-            return this.con - that.con;
+            cmp = this.arcId - that.arcId;
+            if (cmp != 0) return cmp;
+            if (this.isHead && !that.isHead) return 1;
+            if (!this.isHead && that.isHead) return -1;
+            return 0;
         }
     }
 

@@ -37,7 +37,6 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
@@ -53,6 +52,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1061,7 +1061,7 @@ class LayoutCell {
 	 * @return an Iterator over all Connections on this NodeInst.
 	 */
     private Iterator<Connection> getConnections(NodeInst ni) {
-        return new ConnectionIterator(ni.getD().nodeId);
+        return new ConnectionIterator(ni.getD(), null);
     }
 
 	/**
@@ -1069,64 +1069,29 @@ class LayoutCell {
 	 * @return an Iterator over Connections on this NodeInst since portIndex.
 	 */
     Iterator<Connection> getConnections(PortInst pi) {
-        return new ConnectionIterator(pi.getNodeInst().getD().nodeId, pi.getPortProto().getId().getChronIndex());
+        return new ConnectionIterator(pi.getNodeInst().getD(), pi.getPortProto().getId());
     }
 
     private class ConnectionIterator implements Iterator<Connection> {
-        private final ImmutableArrayList<ImmutableArcInst> arcs;
-        private final int nodeId;
-        private final int chronIndex;
+        private final List<ImmutableArcInst> arcs;
+        private final BitSet headEnds = new BitSet();
         int i;
-        ArcInst nextAi;
-        int nextConnIndex;
 
-        ConnectionIterator(int nodeId) {
-            arcs = m.getArcs();
-            chronIndex = -1;
-            this.nodeId = nodeId;
-            i = m.searchConnectionByPort(nodeId, 0);
-            findNext();
+        ConnectionIterator(ImmutableNodeInst n, PortProtoId portId) {
+            assert n.protoId == portId.parentId;
+            arcs = m.getConnections(headEnds, n, portId);
         }
-        ConnectionIterator(int nodeId, int chronIndex) {
-            arcs = m.getArcs();
-            this.nodeId = nodeId;
-            this.chronIndex = chronIndex;
-            i = m.searchConnectionByPort(nodeId, chronIndex);
-            findNext();
-        }
-        public boolean hasNext() { return nextAi != null; }
+        public boolean hasNext() { return i < arcs.size(); }
         public Connection next() {
-            if (nextAi == null)
+            ArcInst ai = cell.getArcById(arcs.get(i).arcId);
+            if (ai == null)
                 throw new NoSuchElementException();
-            Connection con = nextAi.getConnection(nextConnIndex);
-            findNext();
+            Connection con = headEnds.get(i) ? ai.getHead() : ai.getTail();
+            i++;
             return con;
         }
         public void remove() { throw new UnsupportedOperationException(); }
-
-        private void findNext() {
-            for (; i < m.connections.length; i++) {
-                int con = m.connections[i];
-                ImmutableArcInst a = arcs.get(con >>> 1);
-                int endIndex = con & 1;
-                int endNodeId = endIndex != 0 ? a.headNodeId : a.tailNodeId;
-                if (endNodeId != nodeId) break;
-                if (chronIndex >= 0) {
-                    PortProtoId endProtoId = endIndex != 0 ? a.headPortId : a.tailPortId;
-                    if (endProtoId.getChronIndex() != chronIndex) break;
-                }
-                ArcInst ai = cell.getArcById(a.arcId);
-                if (ai != null) {
-                    nextAi = ai;
-                    nextConnIndex = endIndex;
-                    i++;
-                    return;
-                }
-            }
-            nextAi = null;
-        }
     }
-
 }
 
 //    private HashMap/*<NodeInst,RigidCluster>*/ makeRigidClusters() {

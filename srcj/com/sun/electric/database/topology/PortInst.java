@@ -22,9 +22,11 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database.topology;
+
 import com.sun.electric.database.ImmutablePortInst;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
@@ -140,7 +142,11 @@ public class PortInst extends ElectricObject
 	 * Returns true of there are Connections on this PortInst.
 	 * @return true if there are Connections on this PortInst.
 	 */
-	public boolean hasConnections() { return nodeInst.hasConnections(portProto.getId().getChronIndex()); }
+	public boolean hasConnections() {
+        Cell parent = nodeInst.getParent();
+        return parent != null && parent.getMemoization().hasConnections(nodeInst.getD(), portProto.getId());
+    }
+
 
 	/**
 	 * Get iterator of all Connections

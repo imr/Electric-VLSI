@@ -48,7 +48,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ArrayIterator;
-import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow0;
@@ -2567,25 +2566,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @return true if there are Connections on this NodeInst.
 	 */
 	public boolean hasConnections() {
-        return parent != null && parent.getMemoization().hasConnections(getD());
-    }
-
-	/**
-	 * Returns true of there are Connections on this NodeInst.
-	 * @return true if there are Connections on this NodeInst.
-	 */
-	public boolean hasConnections(int chronIndex) {
-        if (parent == null) return false;
-        CellBackup.Memoization m = parent.getMemoization();
-        int i = m.searchConnectionByPort(getD().nodeId, chronIndex);
-        if (i >= m.connections.length) return false;
-        int con = m.connections[i];
-        ImmutableArcInst a = m.getArcs().get(con >>> 1);
-        boolean end = (con & 1) != 0;
-        int nodeId = end ? a.headNodeId : a.tailNodeId;
-        if (nodeId != getD().nodeId) return false;
-        PortProtoId portId = end ? a.headPortId : a.tailPortId;
-        return portId.getChronIndex() == chronIndex;
+        return parent != null && parent.getMemoization().hasConnections(getD(), null);
     }
 
 	/**
