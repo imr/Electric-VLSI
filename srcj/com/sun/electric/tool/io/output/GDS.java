@@ -48,12 +48,14 @@ import com.sun.electric.tool.io.GDSLayers;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 
+import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
@@ -73,7 +75,6 @@ public class GDS extends Geometry
 	private static final int GDSVERSION        =      3;
 	private static final int BYTEMASK          =   0xFF;
 	private static final int DSIZE             =    512;		/* data block */
-	private static final int MAXPOINTS         =    510;		/* maximum points in a polygon */
 	private static final int EXPORTPRESENTATION=      0;		/* centered (was 8 for bottomleft) */
 
 	// GDSII bit assignments in STRANS record
@@ -108,8 +109,8 @@ public class GDS extends Geometry
 	private static final short HDR_STRANS      = 0x1A01;
 	private static final short HDR_MAG         = 0x1B05;
 	private static final short HDR_ANGLE       = 0x1C05;
-//    private static final short HDR_PROPATTR    = 0x2B02;
-//    private static final short HDR_PROPVALUE   = 0x2C06;
+//	private static final short HDR_PROPATTR    = 0x2B02;
+//	private static final short HDR_PROPVALUE   = 0x2C06;
 
 	// Header byte counts
 	private static final short HDR_N_BGNLIB    =     28;
@@ -122,10 +123,6 @@ public class GDS extends Geometry
 	//private static final int HDR_M_STRNAME     =     32; // replace by preference IOTool.getGDSCellNameMaxLen
 	private static final int HDR_M_ASCII       =    256;
 
-	// contour gathering thresholds for polygon accumulation
-//	private static final double BESTTHRESH     =   0.001;		/* 1/1000 of a millimeter */
-//	private static final double WORSTTHRESH    =   0.1;			/* 1/10 of a millimeter */
-
 	/** for buffering output data */			private static byte [] dataBufferGDS = new byte[DSIZE];
 	/** for buffering output data */			private static byte [] emptyBuffer = new byte[DSIZE];
 	/** Current layer for gds output */			private static GDSLayers currentLayerNumbers;
@@ -134,57 +131,58 @@ public class GDS extends Geometry
 	/** constant for GDS units */				private static double scaleFactor;
 	/** cell naming map */						private Map<Cell,String> cellNames;
 	/** layer number map */						private Map<Layer,GDSLayers> layerNumbers;
-    /** separator string for lib + cell concatanated cell names */  public static final String concatStr = ".";
-    /** Name remapping if NCC annotation */     private Map<String,Set<String>> nameRemapping;
+	/** separator string for lib + cell concatanated cell names */  public static final String concatStr = ".";
+	/** Name remapping if NCC annotation */		private Map<String,Set<String>> nameRemapping;
 	private GDSPreferences localPrefs;
 
 	public static class GDSPreferences extends OutputPreferences
-    {
-        // GDS Settings
-	    /** write pins at Export locations? */
+	{
+		// GDS Settings
+		/** write pins at Export locations? */
 		public boolean writeExportPins = IOTool.isGDSOutWritesExportPins();
-	    /** converts bracket to underscores in export names.*/
+		/** converts bracket to underscores in export names.*/
 		public boolean convertBracketsInExports = IOTool.getGDSOutputConvertsBracketsInExports();
-	    boolean convertNCCExportsConnectedByParentPins = IOTool.getGDSConvertNCCExportsConnectedByParentPins();
-	    public boolean collapseVddGndPinNames = IOTool.isGDSColapseVddGndPinNames();
-	    int outDefaultTextLayer = IOTool.getGDSOutDefaultTextLayer();
-	    boolean outMergesBoxes = IOTool.isGDSOutMergesBoxes();
-	    int cellNameLenMax = IOTool.getGDSCellNameLenMax();
-	    boolean outUpperCase = IOTool.isGDSOutUpperCase();
+		boolean convertNCCExportsConnectedByParentPins = IOTool.getGDSConvertNCCExportsConnectedByParentPins();
+		public boolean collapseVddGndPinNames = IOTool.isGDSColapseVddGndPinNames();
+		int outDefaultTextLayer = IOTool.getGDSOutDefaultTextLayer();
+		boolean outMergesBoxes = IOTool.isGDSOutMergesBoxes();
+		int cellNameLenMax = IOTool.getGDSCellNameLenMax();
+		boolean outUpperCase = IOTool.isGDSOutUpperCase();
 
-        public GDSPreferences(boolean factory) {
-            super(factory);
-        }
+		public GDSPreferences(boolean factory)
+		{
+			super(factory);
+		}
 
-        @Override
-        public Output doOutput(Cell cell, VarContext context, String filePath)
-        {
-    		if (cell.getView() != View.LAYOUT)
-    		{
-    			System.out.println("Can only write GDS for layout cells");
-    			return null;
-    		}
-    		GDS out = new GDS(this);
-    		if (out.openBinaryOutputStream(filePath)) return null;
-    		BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cell));
-    		if (out.writeCell(cell, context, visitor)) return null;
-    		if (out.closeBinaryOutputStream()) return null;
-    		System.out.println(filePath + " written");
+		@Override
+		public Output doOutput(Cell cell, VarContext context, String filePath)
+		{
+			if (cell.getView() != View.LAYOUT)
+			{
+				System.out.println("Can only write GDS for layout cells");
+				return null;
+			}
+			GDS out = new GDS(this);
+			if (out.openBinaryOutputStream(filePath)) return null;
+			BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cell));
+			if (out.writeCell(cell, context, visitor)) return null;
+			if (out.closeBinaryOutputStream()) return null;
+			System.out.println(filePath + " written");
 
-    		// warn if library name was changed
-    		String topCellName = cell.getName();
-    		String mangledTopCellName = makeGDSName(topCellName, HDR_M_ASCII, outUpperCase);
-    		if (!topCellName.equals(mangledTopCellName))
-    			out.reportWarning("Warning: library name in this file is " + mangledTopCellName +
-    				" (special characters were changed)");
-            return out.finishWrite();
-       }
-    }
+			// warn if library name was changed
+			String topCellName = cell.getName();
+			String mangledTopCellName = makeGDSName(topCellName, HDR_M_ASCII, outUpperCase);
+			if (!topCellName.equals(mangledTopCellName))
+				out.reportWarning("Warning: library name in this file is " + mangledTopCellName +
+					" (special characters were changed)");
+			return out.finishWrite();
+	   }
+	}
 
-    private GDS(GDSPreferences gp)
-    {
-    	localPrefs = gp;
-    }
+	private GDS(GDSPreferences gp)
+	{
+		localPrefs = gp;
+	}
 
 	protected void start()
 	{
@@ -204,31 +202,32 @@ public class GDS extends Geometry
 		// write this cell
 		Cell cell = cellGeom.cell;
 		outputBeginStruct(cell);
-        boolean renamePins = (cell == topCell && localPrefs.convertNCCExportsConnectedByParentPins);
-        boolean colapseGndVddNames = (cell == topCell && localPrefs.collapseVddGndPinNames);
+		boolean renamePins = (cell == topCell && localPrefs.convertNCCExportsConnectedByParentPins);
+		boolean colapseGndVddNames = (cell == topCell && localPrefs.collapseVddGndPinNames);
 
-        if (renamePins) {
-            // rename pins to allow external LVS programs to virtually connect nets as specified
-            // by the NCC annotation exportsConnectedByParent
-            NccCellAnnotations annotations = NccCellAnnotations.getAnnotations(cell);
-            if (annotations == null)
-                renamePins = false;
-            else
-                nameRemapping = createExportNameMap(annotations, cell);
-        }
+		if (renamePins)
+		{
+			// rename pins to allow external LVS programs to virtually connect nets as specified
+			// by the NCC annotation exportsConnectedByParent
+			NccCellAnnotations annotations = NccCellAnnotations.getAnnotations(cell);
+			if (annotations == null)
+				renamePins = false;
+			else
+				nameRemapping = createExportNameMap(annotations, cell);
+		}
 
 		// write all polys by Layer
 		Set<Layer> layers = cellGeom.polyMap.keySet();
 		for (Layer layer : layers)
 		{
-            // No technology associated, case when art elements are added in layout
-            // r.getTechnology() == Generic.tech for layer Glyph
-            if (layer == null || layer.getTechnology() == null || layer.getTechnology() == Generic.tech()) continue;
+			// No technology associated, case when art elements are added in layout
+			// r.getTechnology() == Generic.tech for layer Glyph
+			if (layer == null || layer.getTechnology() == null || layer.getTechnology() == Generic.tech()) continue;
 			if (!selectLayer(layer))
-            {
-                System.out.println("Skipping " + layer + " in GDS output");
-                continue;
-            }
+			{
+				System.out.println("Skipping " + layer + " in GDS output");
+				continue;
+			}
 			List<Object> polyList = cellGeom.polyMap.get(layer);
 			for (Object obj : polyList)
 			{
@@ -279,54 +278,55 @@ public class GDS extends Geometry
 
 				// put out a pin if requested
 				if (localPrefs.writeExportPins)
-                {
+				{
 					writeExportOnLayer(pp, pinLayer, pinType, renamePins, colapseGndVddNames);
-                }
+				}
 			}
 		}
 		outputHeader(HDR_ENDSTR, 0);
 	}
 
-    private Map<String,Set<String>> createExportNameMap(NccCellAnnotations ann, Cell cell) {
-        Map<String,Set<String>> nameMap = new HashMap<String,Set<String>>();
-        for (Iterator<List<NccCellAnnotations.NamePattern>> it2 = ann.getExportsConnected(); it2.hasNext(); )
+	private Map<String,Set<String>> createExportNameMap(NccCellAnnotations ann, Cell cell)
+	{
+		Map<String,Set<String>> nameMap = new HashMap<String,Set<String>>();
+		for (Iterator<List<NccCellAnnotations.NamePattern>> it2 = ann.getExportsConnected(); it2.hasNext(); )
 		{
-            List<NccCellAnnotations.NamePattern> list = it2.next();
-            // list of all patterns that should be connected
-            Set<String> connectedExports = new TreeSet<String>(new StringComparator());
-            for (NccCellAnnotations.NamePattern pat : list)
+			List<NccCellAnnotations.NamePattern> list = it2.next();
+			// list of all patterns that should be connected
+			Set<String> connectedExports = new TreeSet<String>(new StringComparator());
+			for (NccCellAnnotations.NamePattern pat : list)
 			{
-                for (Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
+				for (Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 				{
-                    Export e = (Export)it.next();
-                    String name = e.getName();
-                    if (pat.matches(name))
+					Export e = (Export)it.next();
+					String name = e.getName();
+					if (pat.matches(name))
 					{
-                        connectedExports.add(name);
-                        nameMap.put(name, connectedExports);
-                    }
-                }
-            }
-        }
-        return nameMap;
-    }
+						connectedExports.add(name);
+						nameMap.put(name, connectedExports);
+					}
+				}
+			}
+		}
+		return nameMap;
+	}
 
-    private static class StringComparator implements Comparator<String>
-    {
+	private static class StringComparator implements Comparator<String>
+	{
 		/**
 		 * Method to sort Objects by their string name.
 		 */
-        public int compare(String s1, String s2)
+		public int compare(String s1, String s2)
 		{
-            return s1.compareTo(s2);
-        }
-        public boolean equals(Object obj)
+			return s1.compareTo(s2);
+		}
+		public boolean equals(Object obj)
 		{
-            return (this == obj);
-        }
-    }
+			return (this == obj);
+		}
+	}
 
-    private void writeExportOnLayer(Export pp, int layer, int type, boolean remapNames, boolean colapseGndVddNames)
+	private void writeExportOnLayer(Export pp, int layer, int type, boolean remapNames, boolean colapseGndVddNames)
 	{
 		outputHeader(HDR_TEXT, 0);
 		outputHeader(HDR_LAYER, layer);
@@ -353,26 +353,29 @@ public class GDS extends Geometry
 
 		// now the string
 		String str = pp.getName();
-        if (remapNames) {
-            Set<String> nameSet = nameRemapping.get(str);
-            if (nameSet != null) {
-                str = nameSet.iterator().next();
-                str = str + ":" + str;
-                //System.out.println("Remapping export "+pp.getName()+" to "+str);
-            }
-        }
-        if (localPrefs.convertBracketsInExports) {
-            // convert brackets to underscores
-            str = str.replaceAll("[\\[\\]]", "_");
-        }
-        if (colapseGndVddNames)
-        {
-            String tmp = str.toLowerCase();
-            // Detecting string in lower case and later search for "_"
-            if (tmp.startsWith("vdd_") || tmp.startsWith("gnd_"))
-                str = str.substring(0, str.indexOf("_"));
-        }
-        outputString(str, HDR_STRING);
+		if (remapNames)
+		{
+			Set<String> nameSet = nameRemapping.get(str);
+			if (nameSet != null)
+			{
+				str = nameSet.iterator().next();
+				str = str + ":" + str;
+				//System.out.println("Remapping export "+pp.getName()+" to "+str);
+			}
+		}
+		if (localPrefs.convertBracketsInExports)
+		{
+			// convert brackets to underscores
+			str = str.replaceAll("[\\[\\]]", "_");
+		}
+		if (colapseGndVddNames)
+		{
+			String tmp = str.toLowerCase();
+			// Detecting string in lower case and later search for "_"
+			if (tmp.startsWith("vdd_") || tmp.startsWith("gnd_"))
+				str = str.substring(0, str.indexOf("_"));
+		}
+		outputString(str, HDR_STRING);
 		outputHeader(HDR_ENDEL, 0);
 	}
 
@@ -384,34 +387,38 @@ public class GDS extends Geometry
 		return localPrefs.outMergesBoxes;
 	}
 
-    /**
-     * Method to determine whether or not to include the original Geometric with a Poly
-     */
-    protected boolean includeGeometric() { return false; }
+	/**
+	 * Method to determine whether or not to include the original Geometric with a Poly
+	 */
+	protected boolean includeGeometric() { return false; }
 
-    private boolean selectLayer(Layer layer) {
-        GDSLayers numbers = layerNumbers.get(layer);
-        if (numbers == null) {
-            Technology tech = layer.getTechnology();
-            for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); ) {
-                Layer l = it.next();
-                layerNumbers.put(l, GDSLayers.EMPTY);
-            }
-            for (Map.Entry<Layer,String> e: tech.getGDSLayers().entrySet()) {
-                Layer l = e.getKey();
-                String gdsLayer = e.getValue();
-                layerNumbers.put(l, GDSLayers.parseLayerString(gdsLayer));
-            }
-            numbers = layerNumbers.get(layer);
-        }
+	private boolean selectLayer(Layer layer)
+	{
+		GDSLayers numbers = layerNumbers.get(layer);
+		if (numbers == null)
+		{
+			Technology tech = layer.getTechnology();
+			for (Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
+			{
+				Layer l = it.next();
+				layerNumbers.put(l, GDSLayers.EMPTY);
+			}
+			for (Map.Entry<Layer,String> e: tech.getGDSLayers().entrySet())
+			{
+				Layer l = e.getKey();
+				String gdsLayer = e.getValue();
+				layerNumbers.put(l, GDSLayers.parseLayerString(gdsLayer));
+			}
+			numbers = layerNumbers.get(layer);
+		}
 
-        // might be null because Artwork layers are auto-generated and not in the Technology list
-        if (numbers == null) numbers = GDSLayers.EMPTY;
-        currentLayerNumbers = numbers;
+		// might be null because Artwork layers are auto-generated and not in the Technology list
+		if (numbers == null) numbers = GDSLayers.EMPTY;
+		currentLayerNumbers = numbers;
 
-        // validLayer false if layerName = "" like for pseudo metals
-        return numbers.getNumLayers() > 0;
-    }
+		// validLayer false if layerName = "" like for pseudo metals
+		return numbers.getNumLayers() > 0;
+	}
 
 	protected void writePoly(PolyBase poly, int layerNumber, int layerType)
 	{
@@ -507,7 +514,7 @@ public class GDS extends Geometry
 			for (int i=0; i<polys.length; i++)
 			{
 				Poly poly = polys[i];
-                if (poly.isPseudoLayer()) continue;
+				if (poly.isPseudoLayer()) continue;
 				Layer thisLayer = poly.getLayer();
 				if (thisLayer != null && firstLayer == null) firstLayer = thisLayer;
 				if (poly.getStyle().isText())
@@ -572,7 +579,7 @@ public class GDS extends Geometry
 		Technology tech = topCell.getTechnology();
 		scaleFactor = tech.getScale();
 		layerNumbers = new HashMap<Layer,GDSLayers>();
-        nameRemapping = new HashMap<String,Set<String>>();
+		nameRemapping = new HashMap<String,Set<String>>();
 
 		// precache the layers in this technology
 		boolean foundValid = false;
@@ -589,31 +596,33 @@ public class GDS extends Geometry
 
 		// make a hashmap of all names to use for cells
 		cellNames = new HashMap<Cell,String>();
-        buildUniqueNames(topCell, cellNames, localPrefs.cellNameLenMax, localPrefs.outUpperCase);
+		buildUniqueNames(topCell, cellNames, localPrefs.cellNameLenMax, localPrefs.outUpperCase);
 	}
 
-    /**
-     * Recursive method to add all cells in the hierarchy to the hashMap
-     * with unique names.
-     * @param cell the cell whose nodes and subnode cells will be given unique names.
-     * @param cellNames a hashmap, key: cell, value: unique name (String).
-     */
-    public static void buildUniqueNames(Cell cell, Map<Cell,String> cellNames, int maxLen, boolean upperCase)
-    {
-        if (!cellNames.containsKey(cell))
-            cellNames.put(cell, makeUniqueName(cell, cellNames, maxLen, upperCase));
-        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-            NodeInst ni = it.next();
-            if (ni.isCellInstance()) {
-                Cell c = (Cell)ni.getProto();
-                Cell cproto = c.contentsView();
-                if (cproto == null) cproto = c;
-                if (!cellNames.containsKey(cproto))
-                    cellNames.put(cproto, makeUniqueName(cproto, cellNames, maxLen, upperCase));
-                buildUniqueNames(cproto, cellNames, maxLen, upperCase);
-            }
-        }
-    }
+	/**
+	 * Recursive method to add all cells in the hierarchy to the hashMap
+	 * with unique names.
+	 * @param cell the cell whose nodes and subnode cells will be given unique names.
+	 * @param cellNames a hashmap, key: cell, value: unique name (String).
+	 */
+	public static void buildUniqueNames(Cell cell, Map<Cell,String> cellNames, int maxLen, boolean upperCase)
+	{
+		if (!cellNames.containsKey(cell))
+			cellNames.put(cell, makeUniqueName(cell, cellNames, maxLen, upperCase));
+		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = it.next();
+			if (ni.isCellInstance())
+			{
+				Cell c = (Cell)ni.getProto();
+				Cell cproto = c.contentsView();
+				if (cproto == null) cproto = c;
+				if (!cellNames.containsKey(cproto))
+					cellNames.put(cproto, makeUniqueName(cproto, cellNames, maxLen, upperCase));
+				buildUniqueNames(cproto, cellNames, maxLen, upperCase);
+			}
+		}
+	}
 
 	public static String makeUniqueName(Cell cell, Map<Cell,String> cellNames, int maxLen, boolean upperCase)
 	{
@@ -626,33 +635,36 @@ public class GDS extends Geometry
 		Collection existing = cellNames.values();
 
 		// try prepending the library name first
-        if (existing.contains(name)) {
-            int liblen = maxLen - (name.length() + concatStr.length());  // space for lib name
-            if (liblen > 0) {
-                String lib = cell.getLibrary().getName();
-                liblen = (liblen > lib.length()) ? lib.length() : liblen;
-                String libname = lib.substring(0, liblen) + concatStr + name;
-                if (!existing.contains(libname)) {
-                    System.out.println("Warning: GDSII out renaming cell "+cell.describe(false)+" to "+libname);
-                    return libname;
-                }
-                baseName = libname;
-            }
-        }
+		if (existing.contains(name))
+		{
+			int liblen = maxLen - (name.length() + concatStr.length());  // space for lib name
+			if (liblen > 0)
+			{
+				String lib = cell.getLibrary().getName();
+				liblen = (liblen > lib.length()) ? lib.length() : liblen;
+				String libname = lib.substring(0, liblen) + concatStr + name;
+				if (!existing.contains(libname))
+				{
+					System.out.println("Warning: GDSII out renaming cell "+cell.describe(false)+" to "+libname);
+					return libname;
+				}
+				baseName = libname;
+			}
+		}
 		for(int index = 1; ; index++)
 		{
 			if (!existing.contains(name)) break;
 			name = baseName + "_" + index;
-            int extra = name.length() - maxLen;
-            if (extra > 0)
+			int extra = name.length() - maxLen;
+			if (extra > 0)
 			{
 				name = baseName.substring(0, baseName.length()-extra);
-                name +="_" + index;
+				name +="_" + index;
 			}
 		}
 
-        if (!name.equals(cell.getName()))
-            System.out.println("Warning: GDSII out renaming cell "+cell.describe(false)+" to "+name);
+		if (!name.equals(cell.getName()))
+			System.out.println("Warning: GDSII out renaming cell "+cell.describe(false)+" to "+name);
 		return name;
 	}
 
@@ -678,11 +690,11 @@ public class GDS extends Geometry
 		return ret.toString();
 	}
 
-    /**
-     * Get the name map. GDS output may mangle cell names
-     * because of all cells occupy the same name space (no libraries).
-     */
-    public Map<Cell,String> getCellNames() { return cellNames; }
+	/**
+	 * Get the name map. GDS output may mangle cell names
+	 * because of all cells occupy the same name space (no libraries).
+	 */
+	public Map<Cell,String> getCellNames() { return cellNames; }
 
 	/**
 	 * Close the file, pad to make the file match the tape format
@@ -744,12 +756,13 @@ public class GDS extends Geometry
 		outputDate(cell.getRevisionDate());
 
 		String name = cellNames.get(cell);
-        if (name == null) {
-            reportWarning("Warning, sub"+cell+" in hierarchy is not the same view" +
-                    " as top level cell");
-            name = makeUniqueName(cell, cellNames, localPrefs.cellNameLenMax, localPrefs.outUpperCase);
-            cellNames.put(cell, name);
-        }
+		if (name == null)
+		{
+			reportWarning("Warning, sub"+cell+" in hierarchy is not the same view" +
+				" as top level cell");
+			name = makeUniqueName(cell, cellNames, localPrefs.cellNameLenMax, localPrefs.outUpperCase);
+			cellNames.put(cell, name);
+		}
 		outputName(HDR_STRNAME, name, localPrefs.cellNameLenMax);
 	}
 
@@ -844,48 +857,50 @@ public class GDS extends Geometry
 		outputDouble(scale);
 	}
 
+	private List<Point> reducePolygon(PolyBase poly)
+	{
+		List<Point> pts = new ArrayList<Point>();
+		Point2D [] points = poly.getPoints();
+		int lastX = scaleDBUnit(points[0].getX());
+		int lastY = scaleDBUnit(points[0].getY());
+		int firstX = lastX;
+		int firstY = lastY;
+		pts.add(new Point(lastX, lastY));
+		for(int i=1; i<points.length; i++)
+		{
+			int x = scaleDBUnit(points[i].getX());
+			int y = scaleDBUnit(points[i].getY());
+			if (x == lastX && y == lastY) continue;
+			lastX = x;
+			lastY = y;
+			pts.add(new Point(lastX, lastY));
+		}
+		if (pts.size() > 2)
+		{
+			Point endPoint = pts.get(pts.size()-1);
+			if (firstX == endPoint.x && firstY == endPoint.y)
+				pts.remove(pts.size()-1);
+		}
+		return pts;
+	}
+
 	/**
 	 * Method to output the pairs of XY points to the file
 	 */
 	private void outputBoundary(PolyBase poly, int layerNumber, int layerType)
 	{
-		Point2D [] points = poly.getPoints();
-
 		// remove redundant points
-		Point2D [] newPoints = new Point2D[points.length];
-		int count = 0;
-		newPoints[count++] = points[0];
-		for(int i=1; i<points.length; i++)
-		{
-			if (points[i].equals(points[i-1])) continue;
-			newPoints[count++] = points[i];
-		}
-		points = newPoints;
-
-		if (count > MAXPOINTS)
-		{
-//			getbbox(poly, &lx, &hx, &ly, &hy);
-//			if (hx-lx > hy-ly)
-//			{
-//				if (polysplitvert((lx+hx)/2, poly, &side1, &side2)) return;
-//			} else
-//			{
-//				if (polysplithoriz((ly+hy)/2, poly, &side1, &side2)) return;
-//			}
-//			outputBoundary(side1, layerNumber);
-//			outputBoundary(side2, layerNumber);
-//			freepolygon(side1);
-//			freepolygon(side2);
-			return;
-		}
-
+		List<Point> reducedPoints = reducePolygon(poly);
+		int count = reducedPoints.size();
+		if (count <= 2) return;
 		int start = 0;
 		for(;;)
 		{
 			// look for a closed section
 			int sofar = start+1;
 			for( ; sofar<count; sofar++)
-				if (points[sofar].getX() == points[start].getX() && points[sofar].getY() == points[start].getY()) break;
+				if (reducedPoints.get(sofar).x == reducedPoints.get(start).x &&
+					reducedPoints.get(sofar).y == reducedPoints.get(start).y) break;
 			if (sofar < count) sofar++;
 			outputHeader(HDR_BOUNDARY, 0);
 			outputHeader(HDR_LAYER, layerNumber);
@@ -896,8 +911,8 @@ public class GDS extends Geometry
 			{
 				int j = i;
 				if (i == sofar) j = 0;
-				outputInt(scaleDBUnit(points[j].getX()));
-				outputInt(scaleDBUnit(points[j].getY()));
+				outputInt(reducedPoints.get(j).x);
+				outputInt(reducedPoints.get(j).y);
 			}
 			outputHeader(HDR_ENDEL, 0);
 			if (sofar >= count) break;
@@ -908,17 +923,21 @@ public class GDS extends Geometry
 
 	private void outputPath(PolyBase poly, int layerNumber, int layerType)
 	{
+		// remove redundant points
+		List<Point> reducedPoints = reducePolygon(poly);
+		int numPoints = reducedPoints.size();
+		if (numPoints <= 2) return;
+
 		outputHeader(HDR_PATH, 0);
 		outputHeader(HDR_LAYER, layerNumber);
 		outputHeader(HDR_DATATYPE, layerType);
-		Point2D [] points = poly.getPoints();
-		int count = 8 * points.length + 4;
+		int count = 8 * numPoints + 4;
 		outputShort((short)count);
 		outputShort(HDR_XY);
-		for (int i = 0; i < points.length; i ++)
+		for (int i = 0; i < numPoints; i ++)
 		{
-			outputInt(scaleDBUnit(points[i].getX()));
-			outputInt(scaleDBUnit(points[i].getY()));
+			outputInt(reducedPoints.get(i).x);
+			outputInt(reducedPoints.get(i).y);
 		}
 		outputHeader(HDR_ENDEL, 0);
 	}
@@ -943,13 +962,15 @@ public class GDS extends Geometry
 		}
 	}
 
-    private int scaleDBUnit(double dbunit) {
-        // scale according to technology
-        double scaled = scaleFactor*dbunit;
-        // round to nearest nanometer
-        int unit = (int)Math.round(scaled);
-        return unit;
-    }
+	private int scaleDBUnit(double dbunit)
+	{
+		// scale according to technology
+		double scaled = scaleFactor*dbunit;
+
+		// round to nearest nanometer
+		int unit = (int)Math.round(scaled);
+		return unit;
+	}
 
 	/*************************** GDS LOW-LEVEL OUTPUT ROUTINES ***************************/
 
@@ -981,38 +1002,31 @@ public class GDS extends Geometry
 		for (int i = 0; i < n; i++) outputShort(ptr[i]);
 	}
 
+	private void outputString(String str, short header)
+	{
+		// The usual maximum length for string is 512, though names etc may need to be shorter
+		outputString(str, header, 512);
+	}
+
 	/**
-	 * Method to add an array of 4 byte integers or floating numbers to the output.
-	 * @param ptr the array.
-	 * @param n the array length.
+	 * String of n bytes, starting at ptr
+	 * Revised 90-11-23 to convert to upper case (SRP)
 	 */
-//	private void outputIntArray(int [] ptr, int n)
-//	{
-//		for (int i = 0; i < n; i++) outputInt(ptr[i]);
-//	}
+	private void outputString(String str, short header, int max)
+	{
+		int j = str.length();
+		if (j > max) j = max;
 
-    private void outputString(String str, short header) {
-        // The usual maximum length for string is 512, though names etc may need to be shorter
-        outputString(str, header, 512);
-    }
+		// round up string length to the nearest integer
+		if ((j % 2) != 0)
+		{
+			j = (j / 2)*2 + 2;
+		}
+		// pad with a blank
+		outputShort((short)(4+j));
+		outputShort(header);
 
-    /**
-     * String of n bytes, starting at ptr
-     * Revised 90-11-23 to convert to upper case (SRP)
-     */
-    private void outputString(String str, short header, int max) {
-        int j = str.length();
-        if (j > max) j = max;
-
-        // round up string length to the nearest integer
-        if ((j % 2) != 0) {
-            j = (j / 2)*2 + 2;
-        }
-        // pad with a blank
-        outputShort((short)(4+j));
-        outputShort(header);
-
-        assert( (j%2) == 0);
+		assert( (j%2) == 0);
 		int i = 0;
 		if (localPrefs.outUpperCase)
 		{
@@ -1120,5 +1134,15 @@ public class GDS extends Geometry
 //		ret[0] = highmantissa | (exponent<<24);
 //		ret[1] = (int)frac;
 //		outputIntArray(ret, 2);
+//	}
+//
+//	/**
+//	 * Method to add an array of 4 byte integers or floating numbers to the output.
+//	 * @param ptr the array.
+//	 * @param n the array length.
+//	 */
+//	private void outputIntArray(int [] ptr, int n)
+//	{
+//		for (int i = 0; i < n; i++) outputInt(ptr[i]);
 //	}
 }
