@@ -517,7 +517,7 @@ public class CellBackup {
             return low;
         }
 
-        public int searchConnectionByPort(int nodeId, int chronIndex) {
+        private int searchConnectionByPort(int nodeId, int chronIndex) {
             int low = 0;
             int high = connections.length-1;
             while (low <= high) {

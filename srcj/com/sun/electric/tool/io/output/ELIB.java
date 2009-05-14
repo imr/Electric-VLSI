@@ -924,8 +924,6 @@ public class ELIB extends Output
 
     private void writeConnectionsAndReExports(CellBackup.Memoization m, int arcBase, ImmutableNodeInst n) throws IOException {
         int myNodeId = n.nodeId;
-        int firstIndex = m.searchConnectionByPort(myNodeId, 0);
-        int lastIndex = firstIndex;
         TreeSet<ElibConnection> sortedConnections = new TreeSet<ElibConnection>();
         BitSet headEnds = new BitSet();
         List<ImmutableArcInst> arcs = m.getConnections(headEnds, n, null);
@@ -935,10 +933,9 @@ public class ELIB extends Output
             PortProtoId portId = isHead ? a.headPortId : a.tailPortId;
             sortedConnections.add(new ElibConnection(portId, a.arcId, isHead));
         }
-        int numConnections = lastIndex - firstIndex;
-        assert sortedConnections.size() == numConnections;
+        assert sortedConnections.size() == arcs.size();
 
-		writeBigInteger(numConnections);
+		writeBigInteger(sortedConnections.size());
         for (ElibConnection c: sortedConnections) {
              writeConnection(c.portId, arcBase + c.arcId, c.isHead ? 1 : 0);
         }
