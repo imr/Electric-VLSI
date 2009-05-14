@@ -434,7 +434,8 @@ public class CellBackup {
          */
         public List<ImmutableArcInst> getConnections(BitSet headEnds, ImmutableNodeInst n, PortProtoId portId) {
             ArrayList<ImmutableArcInst> result = null;
-            headEnds.clear();
+            if (headEnds != null)
+                headEnds.clear();
             int myNodeId = n.nodeId;
             int chronIndex = 0;
             if (portId != null) {
@@ -455,7 +456,7 @@ public class CellBackup {
                 }
                 if (result == null)
                     result = new ArrayList<ImmutableArcInst>();
-                if (end)
+                if (headEnds != null && end)
                     headEnds.set(result.size());
                 result.add(a);
             }

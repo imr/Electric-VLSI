@@ -24,6 +24,7 @@
 package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
@@ -34,6 +35,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -62,6 +64,7 @@ import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -1752,7 +1755,8 @@ public class Schematics extends Technology
 	 * Method to return a list of Polys that describe a given NodeInst.
 	 * This method overrides the general one in the Technology object
 	 * because of the unusual primitives in this Technology.
-	 * @param ni the NodeInst to describe.
+     * @param m information about including cell which is necessary for computing
+	 * @param n the ImmutableNodeInst that is being described.
 	 * @param electrical true to get the "electrical" layers.
 	 * This makes no sense for Schematics primitives.
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
@@ -1761,14 +1765,16 @@ public class Schematics extends Technology
 	 * @return an array of Poly objects.
 	 */
     @Override
-	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers) {
-        return getShapeOfNode(ni, null, null, electrical, reasonable, primLayers);
+	protected Poly [] getShapeOfNode(CellBackup.Memoization m, ImmutableNodeInst n, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers) {
+        return getShapeOfNode(m, n, null, null, electrical, reasonable, primLayers);
     }
+
 	/**
 	 * Method to return a list of Polys that describe a given NodeInst.
 	 * This method overrides the general one in the Technology object
 	 * because of the unusual primitives in this Technology.
-	 * @param ni the NodeInst to describe.
+     * @param m information about including cell which is necessary for computing
+	 * @param n the ImmutableNodeInst that is being described.
 	 * @param wnd the window in which this node will be drawn.
 	 * @param context the VarContext to this node in the hierarchy.
 	 * @param electrical true to get the "electrical" layers.
@@ -1778,11 +1784,9 @@ public class Schematics extends Technology
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
 	 * @return an array of Poly objects.
 	 */
-	private Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
+	private Poly [] getShapeOfNode(CellBackup.Memoization m, ImmutableNodeInst n, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers)
 	{
-        CellBackup.Memoization m = getMemoization(ni);
-        ImmutableNodeInst n = ni.getD();
 		if (!(n.protoId instanceof PrimitiveNodeId)) return null;
 
 		PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
@@ -1794,38 +1798,36 @@ public class Schematics extends Technology
 		{
 			// bus pins get bigger in "T" configurations, disappear when alone and exported
 			int busCon = 0, nonBusCon = 0;
-			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
-			{
-				Connection con = it.next();
-				if (con.getArc().getProto() == bus_arc) busCon++; else
+            for (ImmutableArcInst a: m.getConnections(null, n, null)) {
+				if (a.protoId == bus_arc.getId()) busCon++; else
 					nonBusCon++;
 			}
 			int implicitCon = 0;
 			if (busCon == 0 && nonBusCon == 0) implicitCon = 1;
 
-			// if the next level up the hierarchy is visible, consider arcs connected there
-			if (context != null && m.hasExports(n))
-			{
-				Nodable no = context.getNodable();
-				if (no != null && no instanceof NodeInst)
-				{
-					NodeInst upni = (NodeInst)no;
-					if (upni.getProto() == ni.getParent() && wnd != null /*&& upni.getParent() == wnd.getCell()*/)
-					{
-						for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
-						{
-							Export pp = it.next();
-							for(Iterator<Connection> pIt = upni.getConnections(); pIt.hasNext(); )
-							{
-								Connection con = pIt.next();
-								if (con.getPortInst().getPortProto() != pp) continue;
-								if (con.getArc().getProto() == bus_arc) busCon++; else
-									nonBusCon++;
-							}
-						}
-					}
-				}
-			}
+//			// if the next level up the hierarchy is visible, consider arcs connected there
+//			if (context != null && m.hasExports(n))
+//			{
+//				Nodable no = context.getNodable();
+//				if (no != null && no instanceof NodeInst)
+//				{
+//					NodeInst upni = (NodeInst)no;
+//					if (upni.getProto() == ni.getParent() && wnd != null /*&& upni.getParent() == wnd.getCell()*/)
+//					{
+//						for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
+//						{
+//							Export pp = it.next();
+//							for(Iterator<Connection> pIt = upni.getConnections(); pIt.hasNext(); )
+//							{
+//								Connection con = pIt.next();
+//								if (con.getPortInst().getPortProto() != pp) continue;
+//								if (con.getArc().getProto() == bus_arc) busCon++; else
+//									nonBusCon++;
+//							}
+//						}
+//					}
+//				}
+//			}
 
 			// bus pins don't show wire pin in center if not tapped
 			double wireDiscSize = 0.125;
@@ -2126,22 +2128,26 @@ public class Schematics extends Technology
 		if (extraBlobs)
 		{
 			// make a list of extra blobs that need to be drawn
-			List<PortInst> extraBlobList = null;
-			for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
-			{
-				PortInst pi = it.next();
-				int arcs = 0;
-				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
-				{
-					Connection con = cIt.next();
-					if (con.getPortInst() == pi) arcs++;
-				}
-				if (arcs > 1)
-				{
-					if (extraBlobList == null) extraBlobList = new ArrayList<PortInst>();
-					extraBlobList.add(pi);
-				}
-			}
+			List<PrimitivePort> extraBlobList = null;
+            BitSet headEnds = new BitSet();
+            List<ImmutableArcInst> connArcs = m.getConnections(headEnds, n, null);
+            PortProtoId prevPortId = null;
+            int arcsCount = 0;
+            for (int i = 0; i < connArcs.size(); i++) {
+                ImmutableArcInst a = connArcs.get(i);
+                PortProtoId portId = headEnds.get(i) ? a.headPortId : a.tailPortId;
+                assert portId.parentId == n.protoId;
+                if (portId == prevPortId) {
+                    arcsCount++;
+                    if (arcsCount == 2) {
+    					if (extraBlobList == null) extraBlobList = new ArrayList<PrimitivePort>();
+        				extraBlobList.add(np.getPort(portId));
+                    }
+                } else {
+                    prevPortId = portId;
+                    arcsCount = 1;
+                }
+            }
 			if (extraBlobList != null)
 			{
 				// must add extra blobs to this node
@@ -2151,9 +2157,8 @@ public class Schematics extends Technology
 				int fill = 0;
 				for(int i=0; i<primLayers.length; i++)
 					blobLayers[fill++] = primLayers[i];
-				for(PortInst pi : extraBlobList)
+				for(PrimitivePort pp : extraBlobList)
 				{
-					PrimitivePort pp = (PrimitivePort)pi.getPortProto();
 					EdgeH xEdge = new EdgeH(pp.getLeft().getMultiplier(), pp.getLeft().getAdder() + blobSize);
 					blobLayers[fill++] = new Technology.NodeLayer(arc_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 						new Technology.TechPoint(pp.getLeft(), pp.getTop()),

@@ -2828,16 +2828,40 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * This array includes displayable variables on the NodeInst.
 	 */
 	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable,
+		Technology.NodeLayer [] primLayers) {
+        return getShapeOfNode(getMemoization(ni), ni.getD(), electrical, reasonable, primLayers);
+    }
+
+	/**
+	 * Returns the polygons that describe node "ni", given a set of
+	 * NodeLayer objects to use.
+	 * This method is overridden by specific Technologys.
+     * @param m information about including cell which is necessary for computing
+	 * @param n the ImmutableNodeInst that is being described.
+	 * @param electrical true to get the "electrical" layers
+	 * Like the list returned by "getLayers", the results describe this PrimitiveNode,
+	 * but each layer is tied to a specific port on the node.
+	 * If any piece of geometry covers more than one port,
+	 * it must be split for the purposes of an "electrical" description.<BR>
+	 * For example, the MOS transistor has 2 layers: Active and Poly.
+	 * But it has 3 electrical layers: Active, Active, and Poly.
+	 * The active must be split since each half corresponds to a different PrimitivePort on the PrimitiveNode.
+	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
+	 * The minimal set covers all edge contacts, but ignores the inner cuts in large contacts.
+	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 * @return an array of Poly objects that describes this NodeInst graphically.
+	 * This array includes displayable variables on the NodeInst.
+	 */
+	protected Poly [] getShapeOfNode(CellBackup.Memoization m, ImmutableNodeInst n, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers)
 	{
-        CellBackup.Memoization m = getMemoization(ni);
-        ImmutableNodeInst n = ni.getD();
 		// if node is erased, remove layers
 		if (!electrical)
 		{
 			if (m.isWiped(n)) primLayers = nullPrimLayers; else
 			{
-				PrimitiveNode np = (PrimitiveNode)ni.getProto();
+				PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
 				if (np.isWipeOn1or2())
 				{
 					if (m.pinUseCount(n)) primLayers = nullPrimLayers;

@@ -1078,7 +1078,6 @@ class LayoutCell {
         int i;
 
         ConnectionIterator(ImmutableNodeInst n, PortProtoId portId) {
-            assert n.protoId == portId.parentId;
             arcs = m.getConnections(headEnds, n, portId);
         }
         public boolean hasNext() { return i < arcs.size(); }

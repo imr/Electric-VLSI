@@ -473,7 +473,8 @@ public class Artwork extends Technology
 	 * Method to return a list of Polys that describe a given NodeInst.
 	 * This method overrides the general one in the Technology object
 	 * because of the unusual primitives in this Technology.
-	 * @param ni the NodeInst to describe.
+     * @param m information about including cell which is necessary for computing
+	 * @param n the ImmutableNodeInst that is being described.
 	 * @param electrical true to get the "electrical" layers.
 	 * This makes no sense for Artwork primitives.
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
@@ -482,10 +483,8 @@ public class Artwork extends Technology
 	 * @return an array of Poly objects.
 	 */
 	@Override
-	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
+	protected Poly [] getShapeOfNode(CellBackup.Memoization m, ImmutableNodeInst n, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
 	{
-        CellBackup.Memoization m = getMemoization(ni);
-        ImmutableNodeInst n = ni.getD();
 		PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
 		// if node is erased, remove layers
 		if (!electrical && m.isWiped(n))
