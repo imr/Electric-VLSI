@@ -541,6 +541,7 @@ public class CellBackup {
             return low;
         }
 
+        public CellBackup getCellBackup() { return CellBackup.this; }
         public TechPool getTechPool() { return techPool; }
         public ImmutableArrayList<ImmutableArcInst> getArcs() { return cellRevision.arcs; }
 

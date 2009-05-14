@@ -23,12 +23,14 @@
  */
 package com.sun.electric.technology.technologies;
 
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
@@ -43,6 +45,7 @@ import com.sun.electric.technology.Technology;
 
 import java.awt.Color;
 import java.util.Collections;
+import java.util.Iterator;
 
 /**
  * This is the Generic technology.
@@ -327,7 +330,8 @@ public class Generic extends Technology
 	 * Method to return a list of Polys that describe a given NodeInst.
 	 * This method overrides the general one in the Technology object
 	 * because of the unusual primitives in the Schematics Technology.
-	 * @param ni the NodeInst to describe.
+     * @param m information about including cell which is necessary for computing
+	 * @param n the ImmutableNodeInst that is being described.
 	 * @param electrical true to get the "electrical" layers.
 	 * This makes no sense for Schematics primitives.
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
@@ -336,17 +340,22 @@ public class Generic extends Technology
 	 * @return an array of Poly objects.
 	 */
     @Override
-	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
+	protected Poly [] getShapeOfNode(CellBackup.Memoization m, ImmutableNodeInst n, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
 	{
-		NodeProto prototype = ni.getProto();
-
-		PrimitiveNode np = (PrimitiveNode)prototype;
-		if (np == invisiblePinNode)
+		if (n.protoId == invisiblePinNode.getId())
 		{
-			if (ni.isInvisiblePinWithText())
-				primLayers = NULLNODELAYER;
+            boolean hasDisplayVars = false;
+            for (Iterator<Variable> it = n.getVariables(); it.hasNext(); ) {
+                Variable var = it.next();
+                if (var.isDisplay())
+                    hasDisplayVars = true;
+            }
+            if (hasDisplayVars || n.isUsernamed() || m.hasExports(n))
+                primLayers = NULLNODELAYER;
+//			if (ni.isInvisiblePinWithText())
+//				primLayers = NULLNODELAYER;
 		}
-		return super.getShapeOfNode(ni, electrical, reasonable, primLayers);
+		return super.getShapeOfNode(m, n, electrical, reasonable, primLayers);
 	}
 
 //	/**

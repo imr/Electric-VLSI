@@ -2804,32 +2804,18 @@ public class Technology implements Comparable<Technology>, Serializable
 		if (primLayers.length == 0)
 			return new Poly[0];
 
-		return getShapeOfNode(ni, electrical, reasonable, primLayers);
+		return getShapeOfNode(getMemoization(ni), ni.getD(), electrical, reasonable, primLayers);
 	}
 
-	/**
-	 * Returns the polygons that describe node "ni", given a set of
-	 * NodeLayer objects to use.
-	 * This method is overridden by specific Technologys.
-	 * @param ni the NodeInst that is being described.
-	 * @param electrical true to get the "electrical" layers
-	 * Like the list returned by "getLayers", the results describe this PrimitiveNode,
-	 * but each layer is tied to a specific port on the node.
-	 * If any piece of geometry covers more than one port,
-	 * it must be split for the purposes of an "electrical" description.<BR>
-	 * For example, the MOS transistor has 2 layers: Active and Poly.
-	 * But it has 3 electrical layers: Active, Active, and Poly.
-	 * The active must be split since each half corresponds to a different PrimitivePort on the PrimitiveNode.
-	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
-	 * The minimal set covers all edge contacts, but ignores the inner cuts in large contacts.
-	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
-	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
-	 * @return an array of Poly objects that describes this NodeInst graphically.
-	 * This array includes displayable variables on the NodeInst.
-	 */
-	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable,
-		Technology.NodeLayer [] primLayers) {
-        return getShapeOfNode(getMemoization(ni), ni.getD(), electrical, reasonable, primLayers);
+    private CellBackup.Memoization getMemoization(NodeInst ni) {
+        Cell parent = ni.getParent();
+        if (parent != null) return parent.getMemoization();
+        ImmutableCell cell = ImmutableCell.newInstance(Clipboard.clipCellId, 0);
+        cell = cell.withTechId(ni.getProto().getTechnology().getId());
+        TechPool techPool = TechPool.getThreadTechPool();
+        CellBackup cellBackup = CellBackup.newInstance(cell, techPool);
+        cellBackup = cellBackup.with(cell, new ImmutableNodeInst[] { ni.getD() }, null, null, techPool);
+        return cellBackup.getMemoization();
     }
 
 	/**
@@ -2871,17 +2857,6 @@ public class Technology implements Comparable<Technology>, Serializable
 
 		return computeShapeOfNode(m, n, electrical, reasonable, primLayers, null);
 	}
-
-    protected CellBackup.Memoization getMemoization(NodeInst ni) {
-        Cell parent = ni.getParent();
-        if (parent != null) return parent.getMemoization();
-        ImmutableCell cell = ImmutableCell.newInstance(Clipboard.clipCellId, 0);
-        cell = cell.withTechId(ni.getProto().getTechnology().getId());
-        TechPool techPool = TechPool.getThreadTechPool();
-        CellBackup cellBackup = CellBackup.newInstance(cell, techPool);
-        cellBackup = cellBackup.with(cell, new ImmutableNodeInst[] { ni.getD() }, null, null, techPool);
-        return cellBackup.getMemoization();
-    }
 
 	/**
 	 * Returns the polygons that describe node "ni", given a set of

@@ -23,8 +23,11 @@
  */
 package com.sun.electric.technology.technologies;
 
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
@@ -170,7 +173,8 @@ public class MoCMOS extends Technology
 	 * Method to return a list of Polys that describe a given NodeInst.
 	 * This method overrides the general one in the Technology object
 	 * because of the unusual primitives in this Technology.
-	 * @param ni the NodeInst to describe.
+     * @param m information about including cell which is necessary for computing
+	 * @param n the ImmutableNodeInst that is being described.
 	 * @param electrical true to get the "electrical" layers.
 	 * This makes no sense for Schematics primitives.
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
@@ -179,29 +183,29 @@ public class MoCMOS extends Technology
 	 * @return an array of Poly objects.
 	 */
     @Override
-	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
+	protected Poly [] getShapeOfNode(CellBackup.Memoization m, ImmutableNodeInst n, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
 	{
-		NodeProto prototype = ni.getProto();
-		if (scalableTransistorNodes != null && (prototype == scalableTransistorNodes[P_TYPE] || prototype == scalableTransistorNodes[N_TYPE]))
-            return getShapeOfNodeScalable(ni, null, reasonable);
+		if (scalableTransistorNodes != null && (n.protoId == scalableTransistorNodes[P_TYPE].getId() || n.protoId == scalableTransistorNodes[N_TYPE].getId()))
+            return getShapeOfNodeScalable(m, n, null, reasonable);
 
         // Default
-        return super.getShapeOfNode(ni, electrical, reasonable, primLayers);
+        return super.getShapeOfNode(m, n, electrical, reasonable, primLayers);
     }
 
     /**
      * Special getShapeOfNode function for scalable transistors
-     * @param ni
+     * @param m
+     * @param n
      * @param context
      * @param reasonable
      * @return Array of Poly containing layers representing a Scalable Transistor
      */
-    private Poly [] getShapeOfNodeScalable(NodeInst ni, VarContext context, boolean reasonable)
+    private Poly [] getShapeOfNodeScalable(CellBackup.Memoization m, ImmutableNodeInst n, VarContext context, boolean reasonable)
     {
 		// determine special configurations (number of active contacts, inset of active contacts)
 		int numContacts = 2;
 		boolean insetContacts = false;
-		String pt = ni.getVarValue(TRANS_CONTACT, String.class);
+		String pt = n.getVarValue(TRANS_CONTACT, String.class);
 		if (pt != null)
 		{
 			for(int i=0; i<pt.length(); i++)
@@ -216,23 +220,25 @@ public class MoCMOS extends Technology
 		int boxOffset = 6 - numContacts * 3;
 
 		// determine width
-		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		double nodeWid = ni.getXSize();
-        double activeWidMax = nodeWid - 14;
+		PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
+        double activeWidMax = n.size.getLambdaX() + 3;
+//		double nodeWid = ni.getXSize();
+//        double activeWidMax = nodeWid - 14;
 		double activeWid = activeWidMax;
-		Variable var = ni.getVar(Schematics.ATTR_WIDTH);
+		Variable var = n.getVar(Schematics.ATTR_WIDTH);
 		if (var != null)
 		{
 			VarContext evalContext = context;
 			if (evalContext == null) evalContext = VarContext.globalContext;
+            NodeInst ni = null; // dummy node inst
 			String extra = var.describe(evalContext, ni);
 			Object o = evalContext.evalVar(var, ni);
 			if (o != null) extra = o.toString();
 			double requestedWid = TextUtils.atof(extra);
 			if (requestedWid > activeWid)
 			{
-				System.out.println("Warning: " + ni.getParent() + ", " +
-					ni + " requests width of " + requestedWid + " but is only " + activeWid + " wide");
+				System.out.println("Warning: " + m.getCellBackup().toString() + ", " +
+					n.name + " requests width of " + requestedWid + " but is only " + activeWid + " wide");
 			}
 			if (requestedWid < activeWid && requestedWid > 0)
 			{
@@ -311,7 +317,7 @@ public class MoCMOS extends Technology
 		}
 
 		// now let the superclass convert it to Polys
-		return super.getShapeOfNode(ni, false, reasonable, newNodeLayers);
+		return super.getShapeOfNode(m, n, false, reasonable, newNodeLayers);
 	}
 
 	/******************** PARAMETERIZABLE DESIGN RULES ********************/

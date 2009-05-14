@@ -311,205 +311,205 @@ public class FPGA extends Technology
 
 	private static final Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer[0];
 
-	/**
-	 * Method to return a list of Polys that describe a given NodeInst.
-	 * This method overrides the general one in the Technology object
-	 * because of the unusual primitives in this Technology.
-	 * @param ni the NodeInst to describe.
-	 * @param electrical true to get the "electrical" layers.
-	 * This makes no sense for Schematics primitives.
-	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
-	 * This makes no sense for Schematics primitives.
-	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
-	 * @return an array of Poly objects.
-	 */
-	@Override
-	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers) {
-		return getShapeOfNode(ni, null, null, electrical, reasonable, primLayers);
-	}
-
-	/**
-	 * Method to return a list of Polys that describe a given NodeInst.
-	 * This method overrides the general one in the Technology object
-	 * because of the unusual primitives in this Technology.
-	 * @param ni the NodeInst to describe.
-	 * @param wnd the window in which this node will be drawn.
-	 * @param context the VarContext to this node in the hierarchy.
-	 * @param electrical true to get the "electrical" layers.
-	 * This makes no sense for Schematics primitives.
-	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
-	 * This makes no sense for Schematics primitives.
-	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
-	 * @return an array of Poly objects.
-	 */
-	private Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
-	{
-		if (ni.isCellInstance()) return null;
-
-		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		if (np == wirePinNode)
-		{
-			if (ni.pinUseCount()) primLayers = NULLNODELAYER;
-		} else if (np == repeaterNode)
-		{
-			if ((internalDisplay&DISPLAYLEVEL) == ACTIVEPRIMDISPLAY)
-			{
-				if (!repeaterActive(ni)) primLayers = NULLNODELAYER;
-			}
-		} else if (np instanceof FPGANode)
-		{
-			// dynamic primitive
-			FPGANode fn = (FPGANode)np;
-
-			// hard reset of all segment and pip activity
-			int numPips = 0, numSegs = 0;
-			for(int i=0; i<fn.numNets(); i++) fn.netList[i].segActive = 0;
-			for(int i=0; i<fn.numPips(); i++) fn.pipList[i].pipActive = 0;
-
-			switch (internalDisplay & DISPLAYLEVEL)
-			{
-				case NOPRIMDISPLAY:
-					break;
-				case ACTIVEPRIMDISPLAY:
-					// count number of active nets and pips
-
-					// determine the active segments and pips
-					reEvaluatePips(ni, fn, context);
-
-					// save the activity bits
-					for(int i=0; i<fn.numNets(); i++)
-						if ((fn.netList[i].segActive&ACTIVEPART) != 0)
-							fn.netList[i].segActive |= ACTIVESAVE;
-					for(int i=0; i<fn.numPips(); i++)
-						if ((fn.pipList[i].pipActive&ACTIVEPART) != 0)
-							fn.pipList[i].pipActive |= ACTIVESAVE;
-
-					// propagate inactive segments to others that may be active
-					if (context != null && context.getNodable() != null)
-					{
-						VarContext higher = context.pop();
-						for(int i=0; i<fn.numNets(); i++)
-						{
-							if ((fn.netList[i].segActive&ACTIVESAVE) != 0) continue;
-							boolean found = false;
-							for(int j=0; j<fn.numPorts(); j++)
-							{
-								if (fn.portList[j].con != i) continue;
-								for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
-								{
-									Connection con = it.next();
-									if (con.getPortInst().getPortProto() != fn.portList[j].pp) continue;
-									ArcInst ai = con.getArc();
-									int otherEnd = 1 - con.getEndIndex();
-									if (arcEndActive(ai, otherEnd, higher)) { found = true;   break; }
-								}
-								if (found) break;
-							}
-							if (found) fn.netList[i].segActive |= ACTIVESAVE;
-						}
-					}
-
-					// add up the active segments
-					for(int i=0; i<fn.numPips(); i++)
-						if ((fn.pipList[i].pipActive&ACTIVESAVE) != 0) numPips++;
-					for(int i=0; i<fn.numNets(); i++)
-						if ((fn.netList[i].segActive&ACTIVESAVE) != 0)
-							numSegs += fn.netList[i].segFrom.length;
-					break;
-				case FULLPRIMDISPLAY:
-					for(int i=0; i<fn.numNets(); i++)
-					{
-						fn.netList[i].segActive |= ACTIVESAVE;
-						numSegs += fn.netList[i].segFrom.length;
-					}
-					break;
-			}
-			int total = 1 + numPips + numSegs;
-			if ((internalDisplay&TEXTDISPLAY) != 0)
-			{
-				total++;
-				if (wnd != null) total += ni.numDisplayableVariables(true);
-			}
-
-			// construct the polygon array
-			Poly [] polys = new Poly[total];
-
-			// add the basic box layer
- 			double xCenter = ni.getTrueCenterX();
- 			double yCenter = ni.getTrueCenterY();
-			double xSize = ni.getXSize();
-			double ySize = ni.getYSize();
-			Point2D [] pointList = Poly.makePoints(xCenter - xSize/2, xCenter + xSize/2, yCenter - ySize/2, yCenter + ySize/2);
-			polys[0] = new Poly(pointList);
-			polys[0].setStyle(fn.getNodeLayers()[0].getStyle());
-			polys[0].setLayer(componentLayer);
-			int fillPos = 1;
-
-			// add in the pips
-			for(int i=0; i<fn.numPips(); i++)
-			{
-				if ((fn.pipList[i].pipActive&ACTIVESAVE) == 0) continue;
-				double x = xCenter + fn.pipList[i].posX;
-				double y = yCenter + fn.pipList[i].posY;
-				polys[fillPos] = new Poly(Poly.makePoints(x-1, x+1, y-1, y+1));
-				polys[fillPos].setStyle(Poly.Type.FILLED);
-				polys[fillPos].setLayer(pipLayer);
-				fillPos++;
-			}
-
-			// add in the network segments
-			for(int i=0; i<fn.numNets(); i++)
-			{
-				if ((fn.netList[i].segActive&ACTIVESAVE) == 0) continue;
-				for(int j=0; j<fn.netList[i].segFrom.length; j++)
-				{
-					double fX = xCenter + fn.netList[i].segFrom[j].getX();
-					double fY = yCenter + fn.netList[i].segFrom[j].getY();
-					double tX = xCenter + fn.netList[i].segTo[j].getX();
-					double tY = yCenter + fn.netList[i].segTo[j].getY();
-					Point2D [] line = new Point2D[2];
-					line[0] = new Point2D.Double(fX, fY);
-					line[1] = new Point2D.Double(tX, tY);
-					polys[fillPos] = new Poly(line);
-					polys[fillPos].setStyle(Poly.Type.OPENED);
-					polys[fillPos].setLayer(wireLayer);
-					fillPos++;
-				}
-			}
-
-			// add the primitive name if requested
-			if ((internalDisplay&TEXTDISPLAY) != 0)
-			{
-				polys[fillPos] = new Poly(pointList);
-				polys[fillPos].setStyle(Poly.Type.TEXTBOX);
-				polys[fillPos].setLayer(componentLayer);
-				polys[fillPos].setString(fn.getName());
-				TextDescriptor td = TextDescriptor.EMPTY.withRelSize(3);
-				polys[fillPos].setTextDescriptor(td);
-				fillPos++;
-
-				// add in displayable variables
-				if (wnd != null)
-				{
-					Rectangle2D rect = ni.getUntransformedBounds();
-					ni.addDisplayableVariables(rect, polys, fillPos, wnd, true);
-				}
-			}
-			return polys;
-		}
-
-		return super.getShapeOfNode(ni, electrical, reasonable, primLayers);
-	}
-
-	/**
-	 * Fill the polygons that describe arc "a".
-	 * @param b AbstractShapeBuilder to fill polygons.
-	 * @param a the ImmutableArcInst that is being described.
-	 */
-	@Override
-	protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a) {
-		super.getShapeOfArc(b, a);
-	}
+//	/**
+//	 * Method to return a list of Polys that describe a given NodeInst.
+//	 * This method overrides the general one in the Technology object
+//	 * because of the unusual primitives in this Technology.
+//	 * @param ni the NodeInst to describe.
+//	 * @param electrical true to get the "electrical" layers.
+//	 * This makes no sense for Schematics primitives.
+//	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
+//	 * This makes no sense for Schematics primitives.
+//	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+//	 * @return an array of Poly objects.
+//	 */
+//	@Override
+//	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers) {
+//		return getShapeOfNode(ni, null, null, electrical, reasonable, primLayers);
+//	}
+//
+//	/**
+//	 * Method to return a list of Polys that describe a given NodeInst.
+//	 * This method overrides the general one in the Technology object
+//	 * because of the unusual primitives in this Technology.
+//	 * @param ni the NodeInst to describe.
+//	 * @param wnd the window in which this node will be drawn.
+//	 * @param context the VarContext to this node in the hierarchy.
+//	 * @param electrical true to get the "electrical" layers.
+//	 * This makes no sense for Schematics primitives.
+//	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
+//	 * This makes no sense for Schematics primitives.
+//	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+//	 * @return an array of Poly objects.
+//	 */
+//	private Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
+//	{
+//		if (ni.isCellInstance()) return null;
+//
+//		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+//		if (np == wirePinNode)
+//		{
+//			if (ni.pinUseCount()) primLayers = NULLNODELAYER;
+//		} else if (np == repeaterNode)
+//		{
+//			if ((internalDisplay&DISPLAYLEVEL) == ACTIVEPRIMDISPLAY)
+//			{
+//				if (!repeaterActive(ni)) primLayers = NULLNODELAYER;
+//			}
+//		} else if (np instanceof FPGANode)
+//		{
+//			// dynamic primitive
+//			FPGANode fn = (FPGANode)np;
+//
+//			// hard reset of all segment and pip activity
+//			int numPips = 0, numSegs = 0;
+//			for(int i=0; i<fn.numNets(); i++) fn.netList[i].segActive = 0;
+//			for(int i=0; i<fn.numPips(); i++) fn.pipList[i].pipActive = 0;
+//
+//			switch (internalDisplay & DISPLAYLEVEL)
+//			{
+//				case NOPRIMDISPLAY:
+//					break;
+//				case ACTIVEPRIMDISPLAY:
+//					// count number of active nets and pips
+//
+//					// determine the active segments and pips
+//					reEvaluatePips(ni, fn, context);
+//
+//					// save the activity bits
+//					for(int i=0; i<fn.numNets(); i++)
+//						if ((fn.netList[i].segActive&ACTIVEPART) != 0)
+//							fn.netList[i].segActive |= ACTIVESAVE;
+//					for(int i=0; i<fn.numPips(); i++)
+//						if ((fn.pipList[i].pipActive&ACTIVEPART) != 0)
+//							fn.pipList[i].pipActive |= ACTIVESAVE;
+//
+//					// propagate inactive segments to others that may be active
+//					if (context != null && context.getNodable() != null)
+//					{
+//						VarContext higher = context.pop();
+//						for(int i=0; i<fn.numNets(); i++)
+//						{
+//							if ((fn.netList[i].segActive&ACTIVESAVE) != 0) continue;
+//							boolean found = false;
+//							for(int j=0; j<fn.numPorts(); j++)
+//							{
+//								if (fn.portList[j].con != i) continue;
+//								for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
+//								{
+//									Connection con = it.next();
+//									if (con.getPortInst().getPortProto() != fn.portList[j].pp) continue;
+//									ArcInst ai = con.getArc();
+//									int otherEnd = 1 - con.getEndIndex();
+//									if (arcEndActive(ai, otherEnd, higher)) { found = true;   break; }
+//								}
+//								if (found) break;
+//							}
+//							if (found) fn.netList[i].segActive |= ACTIVESAVE;
+//						}
+//					}
+//
+//					// add up the active segments
+//					for(int i=0; i<fn.numPips(); i++)
+//						if ((fn.pipList[i].pipActive&ACTIVESAVE) != 0) numPips++;
+//					for(int i=0; i<fn.numNets(); i++)
+//						if ((fn.netList[i].segActive&ACTIVESAVE) != 0)
+//							numSegs += fn.netList[i].segFrom.length;
+//					break;
+//				case FULLPRIMDISPLAY:
+//					for(int i=0; i<fn.numNets(); i++)
+//					{
+//						fn.netList[i].segActive |= ACTIVESAVE;
+//						numSegs += fn.netList[i].segFrom.length;
+//					}
+//					break;
+//			}
+//			int total = 1 + numPips + numSegs;
+//			if ((internalDisplay&TEXTDISPLAY) != 0)
+//			{
+//				total++;
+//				if (wnd != null) total += ni.numDisplayableVariables(true);
+//			}
+//
+//			// construct the polygon array
+//			Poly [] polys = new Poly[total];
+//
+//			// add the basic box layer
+// 			double xCenter = ni.getTrueCenterX();
+// 			double yCenter = ni.getTrueCenterY();
+//			double xSize = ni.getXSize();
+//			double ySize = ni.getYSize();
+//			Point2D [] pointList = Poly.makePoints(xCenter - xSize/2, xCenter + xSize/2, yCenter - ySize/2, yCenter + ySize/2);
+//			polys[0] = new Poly(pointList);
+//			polys[0].setStyle(fn.getNodeLayers()[0].getStyle());
+//			polys[0].setLayer(componentLayer);
+//			int fillPos = 1;
+//
+//			// add in the pips
+//			for(int i=0; i<fn.numPips(); i++)
+//			{
+//				if ((fn.pipList[i].pipActive&ACTIVESAVE) == 0) continue;
+//				double x = xCenter + fn.pipList[i].posX;
+//				double y = yCenter + fn.pipList[i].posY;
+//				polys[fillPos] = new Poly(Poly.makePoints(x-1, x+1, y-1, y+1));
+//				polys[fillPos].setStyle(Poly.Type.FILLED);
+//				polys[fillPos].setLayer(pipLayer);
+//				fillPos++;
+//			}
+//
+//			// add in the network segments
+//			for(int i=0; i<fn.numNets(); i++)
+//			{
+//				if ((fn.netList[i].segActive&ACTIVESAVE) == 0) continue;
+//				for(int j=0; j<fn.netList[i].segFrom.length; j++)
+//				{
+//					double fX = xCenter + fn.netList[i].segFrom[j].getX();
+//					double fY = yCenter + fn.netList[i].segFrom[j].getY();
+//					double tX = xCenter + fn.netList[i].segTo[j].getX();
+//					double tY = yCenter + fn.netList[i].segTo[j].getY();
+//					Point2D [] line = new Point2D[2];
+//					line[0] = new Point2D.Double(fX, fY);
+//					line[1] = new Point2D.Double(tX, tY);
+//					polys[fillPos] = new Poly(line);
+//					polys[fillPos].setStyle(Poly.Type.OPENED);
+//					polys[fillPos].setLayer(wireLayer);
+//					fillPos++;
+//				}
+//			}
+//
+//			// add the primitive name if requested
+//			if ((internalDisplay&TEXTDISPLAY) != 0)
+//			{
+//				polys[fillPos] = new Poly(pointList);
+//				polys[fillPos].setStyle(Poly.Type.TEXTBOX);
+//				polys[fillPos].setLayer(componentLayer);
+//				polys[fillPos].setString(fn.getName());
+//				TextDescriptor td = TextDescriptor.EMPTY.withRelSize(3);
+//				polys[fillPos].setTextDescriptor(td);
+//				fillPos++;
+//
+//				// add in displayable variables
+//				if (wnd != null)
+//				{
+//					Rectangle2D rect = ni.getUntransformedBounds();
+//					ni.addDisplayableVariables(rect, polys, fillPos, wnd, true);
+//				}
+//			}
+//			return polys;
+//		}
+//
+//		return super.getShapeOfNode(ni, electrical, reasonable, primLayers);
+//	}
+//
+//	/**
+//	 * Fill the polygons that describe arc "a".
+//	 * @param b AbstractShapeBuilder to fill polygons.
+//	 * @param a the ImmutableArcInst that is being described.
+//	 */
+//	@Override
+//	protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a) {
+//		super.getShapeOfArc(b, a);
+//	}
 
 	/**
 	 * Tells if arc can be drawn by simplified algorithm
