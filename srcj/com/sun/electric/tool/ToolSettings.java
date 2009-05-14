@@ -159,7 +159,12 @@ public class ToolSettings extends AbstractToolSettings {
 	 * @return Setting to tell the maximum length (number of chars) for Cell names in the GDS output file
 	 */
 	public static Setting getGDSCellNameLenMaxSetting() { return t.cacheGDSCellNameLenMax; }
-	/**
+    /**
+	 * Returns Setting to tell the layout technology to use during the import process.
+	 * @return Setting to tell the layout technology to use during the import process.
+	 */
+	public static Setting getGDSLayoutTechnology() { return t.cacheGDSLayoutTechnology; }
+    /**
 	 * Method to set the scale to be applied when reading GDS.
 	 * @return the scale to be applied when reading GDS.
 	 */
@@ -273,7 +278,8 @@ public class ToolSettings extends AbstractToolSettings {
 	private final Setting cacheGDSDefaultTextLayer = makeIntSetting("GDSDefaultTextLayer", "GDS tab", "GDS output default text layer", 230);
 	private final Setting cacheGDSOutputConvertsBracketsInExports = makeBooleanSetting("GDSOutputConvertsBracketsInExports", "GDS tab", "GDS output converts brackets in exports", true);
 	private final Setting cacheGDSCellNameLenMax = makeIntSetting("GDSCellNameLenMax", "GDS tab", "GDS name length limit", 32);
-	private final Setting cacheGDSInputScale = makeDoubleSetting("GDSInputScale", "GDS tab", "GDS input scale", 1.0);
+    private final Setting cacheGDSLayoutTechnology = makeStringSetting("GDSLayoutTechnology", "GDS tab", "Layout Technology in import", "mocmos");
+    private final Setting cacheGDSInputScale = makeDoubleSetting("GDSInputScale", "GDS tab", "GDS input scale", 1.0);
 	private final Setting cacheDXFScale = makeIntSetting("DXFScale", "DXF tab", "DXF scale factor", 2);
 
     { tool("logeffortTool", "tool/logicaleffort"); }

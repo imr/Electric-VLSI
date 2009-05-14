@@ -39,7 +39,6 @@ import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -352,7 +351,7 @@ public class GDS extends Input
 		pinLayers = new HashSet<Integer>();
 		randomLayerSelection = 0;
 		boolean valid = false;
-		curTech = Technology.getCurrent();
+		curTech = Technology.findTechnology(IOTool.getGDSLayoutTechnology().getString());//Technology.getCurrent();
 		for(Map.Entry<Layer,String> e: curTech.getGDSLayers().entrySet())
 		{
 			Layer layer = e.getKey();

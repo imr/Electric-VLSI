@@ -713,6 +713,7 @@ public class IOTool extends Tool
 	 * perform the analogous operation of virtual connection of networks.
 	 * For example, 'exportsConnectedByParent vdd /vdd_[0-9]+/' will rename all
 	 * pins that match the assertion to vdd:vdd.
+     * @return True if pin names should be converted.
 	 */
 	public static boolean getGDSConvertNCCExportsConnectedByParentPins() { return cacheGDSConvertNCCExportsConnectedByParentPins.getBoolean(); }
 	/**
@@ -721,6 +722,7 @@ public class IOTool extends Tool
 	 * perform the analogous operation of virtual connection of networks.
 	 * For example, 'exportsConnectedByParent vdd /vdd_[0-9]+/' will rename all
 	 * pins that match the assertion to vdd:vdd.
+     * @param b true if pin maes should be converted.
 	 */
 	public static void setGDSConvertNCCExportsConnectedByParentPins(boolean b) { cacheGDSConvertNCCExportsConnectedByParentPins.setBoolean(b); }
 	/**
@@ -729,6 +731,7 @@ public class IOTool extends Tool
 	 * perform the analogous operation of virtual connection of networks.
 	 * For example, 'exportsConnectedByParent vdd /vdd_[0-9]+/' will rename all
 	 * pins that match the assertion to vdd:vdd.
+     * @return True if the factory value requires to convert the pin names.
 	 */
 	public static boolean getFactoryGDSConvertNCCExportsConnectedByParentPins() { return cacheGDSConvertNCCExportsConnectedByParentPins.getBooleanFactoryValue(); }
 
@@ -787,7 +790,13 @@ public class IOTool extends Tool
 	 */
 	public static int getFactoryGDSArraySimplification() { return cacheGDSArraySimplification.getIntFactoryValue(); }
 
-	/****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
+    /**
+	 * Returns Setting to tell the layout technology to use during the import process.
+	 * @return Setting to tell the layout technology to use during the import process.
+	 */
+	public static Setting getGDSLayoutTechnology() { return ToolSettings.getGDSLayoutTechnology(); }
+
+    /****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
 
 	private static Pref cachePrintEncapsulated = Pref.makeBooleanPref("PostScriptEncapsulated", IOTool.tool.prefs, false);
 	/**

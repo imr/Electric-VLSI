@@ -162,6 +162,7 @@ public class PreferencePanel extends EDialog
 	/**
 	 * Method to get the string value on the Setting object.
 	 * The object must have been created as "string".
+     * @param setting setting object
 	 * @return the string value on the Setting object.
 	 */
 	public String getString(Setting setting) { return (String)getValue(setting); }

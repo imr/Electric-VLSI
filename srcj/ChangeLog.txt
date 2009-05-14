@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+IMP/MAN: (5/14/09, GVG) Prompt for technology to use when importing GDS (Bug #2162)
+
 BUG: (5/14/09, SMR) GDS export allows degenerate shapes (Bug #2180).
 FIX: In GDS output, remove common points in polygons and ignore shapes
      with less than 3 vertices.
