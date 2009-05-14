@@ -29,6 +29,7 @@ import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
@@ -46,6 +47,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.DisplayedText;
@@ -119,6 +121,7 @@ import com.sun.electric.tool.sc.Route;
 import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.CompileVHDL;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -464,6 +467,8 @@ public class ToolMenu
                     showAllNetworksCommand(); }},
                 new EMenuItem("List _Total Wire Lengths on All Networks") { public void run() {
                     listGeomsAllNetworksCommand(); }},
+                new EMenuItem("Show Undriven Networks") { public void run() {
+                    showUndrivenNetworks(); }},
 
                 SEPARATOR,
 
@@ -1400,6 +1405,108 @@ public class ToolMenu
         Cell cell = wnd.getCell();
         if (cell == null) return;
         new ListGeomsAllNetworksJob(cell);
+    }
+
+    private static void showUndrivenNetworks()
+    {
+        ErrorLogger errorLogger = ErrorLogger.newInstance("Undriven networks");
+
+        for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
+        {
+	    	Library lib = lIt.next();
+	    	for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+	    	{
+	    		Cell cell = cIt.next();
+	    		if (cell.getView() == View.ICON) continue;
+	
+	    		// is it top-level?
+	    		boolean topLevel = !cell.getUsagesOf().hasNext();
+
+	    		// analyze the networks in the cell
+		        Netlist nl = cell.getNetlist();
+		        for(Iterator<Network> it = nl.getNetworks(); it.hasNext(); )
+		        {
+		        	Network net = it.next();
+		        	// is the network exported?
+		        	if (net.getExports().hasNext() && !topLevel) continue;
+
+		        	boolean driven = isPortDriven(cell, net);
+		        	if (!driven)
+		        	{
+		        		// show error
+		        		List<Geometric> arcsOnNetwork = new ArrayList<Geometric>();
+		        		for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); )
+		        			arcsOnNetwork.add(aIt.next());
+		        		if (arcsOnNetwork.size() != 0)
+		        		{
+		    				errorLogger.logMessage("Undriven network", arcsOnNetwork, null, cell, 0, true);
+		        		} else
+		        		{
+		        			if (net.getPorts().hasNext())
+		        			{
+		        				PortInst pi = net.getPorts().next();
+		        				errorLogger.logMessage("Undriven network on node " + pi.getNodeInst().describe(false) + ", port " +
+		        					pi.getPortProto().getName(), null, null, cell, 0, true);
+		        			}
+		        		}
+		        	}
+		        }
+	    	}
+    	}
+		errorLogger.termLogging(true);
+    }
+
+    private static boolean isPortDriven(Cell cell, Network net)
+    {
+    	// see if this network is "driven"
+    	boolean driven = false;
+    	for(Iterator<PortInst> nIt = net.getPorts(); nIt.hasNext(); )
+    	{
+    		PortInst pi = nIt.next();
+    		NodeInst ni = pi.getNodeInst();
+    		if (ni.isCellInstance())
+    		{
+    			// recurse
+    			Cell subCell = (Cell)ni.getProto();
+    			Export subPort = (Export)pi.getPortProto();
+    			if (subCell.getView() == View.ICON)
+    			{
+    				subCell = subCell.contentsView();
+    				subPort = subPort.getEquivalentPort(subCell);
+    			}
+    			Netlist subNL = subCell.getNetlist();
+    			Network subNet = subNL.getNetwork(subPort, 0);
+    			driven = isPortDriven(subCell, subNet);
+    			continue;
+    		}
+    		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+    		if (np.getFunction().isTransistor())
+    		{
+    			if (pi == ni.getTransistorDrainPort() || pi == ni.getTransistorSourcePort())
+    			{
+    				driven = true;
+    				break;
+    			}
+    		}
+    		if (np.getFunction() == PrimitiveNode.Function.CONGROUND ||
+    			np.getFunction() == PrimitiveNode.Function.CONPOWER)
+    		{
+				driven = true;
+				break;
+    		}
+    	}
+		for(Iterator<Export> eIt = net.getExports(); eIt.hasNext(); )
+		{
+			Export e = eIt.next();
+			if (e.getCharacteristic() == PortCharacteristic.GND || 
+				e.getCharacteristic() == PortCharacteristic.PWR ||
+				e.isNamedGround() || e.isNamedPower())
+			{
+				driven = true;
+				break;
+			}
+		}
+		return driven;
     }
 
     private static class ListGeomsAllNetworksJob extends Job {
