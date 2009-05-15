@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+IMP: (5/15/09, GVG) Assertion error when descending into instance (Bug #2186)
+Extra code to detect the cases.
+
 BUG: (5/15/09, GVG) IN instead of In? Make the difference in User's preferences (Bug #2185)
 FIX: "In" instead of "IN" in PrefPackage.getKey()
 
