@@ -52,6 +52,7 @@ import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.routing.SeaOfGates;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
@@ -122,11 +123,16 @@ public class LayerCoverageTool extends Tool
         @DoublePref(node = EXTRACT_NODE, key = "Height", factory = defaultSize)
         public double heightInMicrons;
 
+        /** Preference for SeaOfGate if used */
+        public SeaOfGates.SeaOfGatesOptions seaIfGatesPrefs;
+
         public LayerCoveragePreferences(boolean factory) {
             this(factory, TechPool.getThreadTechPool());
+            seaIfGatesPrefs = new SeaOfGates.SeaOfGatesOptions();
+            seaIfGatesPrefs.getOptionsFromPreferences();
         }
 
-        public LayerCoveragePreferences(boolean factory, TechPool techPool)
+        private LayerCoveragePreferences(boolean factory, TechPool techPool)
         {
             super(factory);
             this.techPool = techPool;
