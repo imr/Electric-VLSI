@@ -192,7 +192,6 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * @param layer the Layer of this ArcLayer.
 		 * @param style the Poly.Style of this ArcLayer.
          * @param lambdaExtend lambda fraction of extend
-         * @param ruleNames rule names to make an expression for for extend of this ArcLayer
 		 */
         public ArcLayer(Layer layer, Poly.Type style, double lambdaExtend) {
             this.layer = layer;
