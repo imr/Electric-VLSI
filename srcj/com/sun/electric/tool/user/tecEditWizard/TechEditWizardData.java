@@ -2364,6 +2364,8 @@ public class TechEditWizardData
         double[] wellSos = {pso, nso};
         PaletteGroup[] wellPalette = new PaletteGroup[2];
 
+        Xml.Layer[] wellLayers = {pwellLayer, nwellLayer};
+
         // nwell/pwell contact
         for (int i = 0; i < 2; i++)
         {
@@ -2371,6 +2373,8 @@ public class TechEditWizardData
             Xml.NodeLayer wellNodeLayer = null, wellNodePinLayer = null;
             PaletteGroup g = new PaletteGroup();
             PrimitiveNode.Function func = null;
+            Xml.ArcLayer arcL;
+            WizardField arcVal;
 
             wellPalette[i] = g;
 
@@ -2383,22 +2387,31 @@ public class TechEditWizardData
                     wellNodePinLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED);
                     wellNodeLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED);
                 }
-                // arc
-                g.addArc(makeXmlArc(t, composeName, ArcProto.Function.WELL, 0,
-                    makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p)));
                 func = PrimitiveNode.Function.WELL;
+                arcL = (!pWellFlag)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null;
+                arcVal = pplus_overhang_diff;
             }
             else
             {
                 portNames.add(nwellLayer.name);
                 wellNodePinLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED);
                 wellNodeLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED);
-                // arc
-                g.addArc(makeXmlArc(t, composeName, ArcProto.Function.WELL, 0,
-                    makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p)));
                 func = PrimitiveNode.Function.SUBSTRATE;
+                arcL = makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p);
+                arcVal = nplus_overhang_diff;
             }
             portNames.add(m1Layer.name);
+
+            // simple arc. S for simple
+            g.addArc(makeXmlArc(t, "S-"+composeName, ArcProto.Function.WELL, 0,
+                makeXmlArcLayer(wellLayers[i], diff_width, nwell_overhang_diff_p)));
+
+            // three layers arcs
+            g.addArc(makeXmlArc(t, composeName, ArcProto.Function.WELL, 0,
+                    makeXmlArcLayer(diffLayers[i], diff_width),
+                    makeXmlArcLayer(plusLayers[i], diff_width, arcVal),
+                    arcL));
+
             // well pin
             g.addPin(makeXmlPrimitivePin(t, composeName, hla,
                 new SizeOffset(wellSos[i], wellSos[i], wellSos[i], wellSos[i]),

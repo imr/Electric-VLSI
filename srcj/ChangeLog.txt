@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+IMP: (5/14/09, GVG) TechEditorWizard and well arcs (Bug #2179)
+
 IMP/MAN: (5/14/09, SMR) New command to detect undriven networks (Bug #2182).
 
 IMP/MAN: (5/14/09, GVG) Prompt for technology to use when importing GDS (Bug #2162)
