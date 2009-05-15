@@ -55,6 +55,7 @@ public class FillGenJob extends Job
 
         if (doItNow) // call from regressions
         {
+            startTime = System.currentTimeMillis(); // startTime doesn't get initialized
             try
             {
                 if (doIt())
