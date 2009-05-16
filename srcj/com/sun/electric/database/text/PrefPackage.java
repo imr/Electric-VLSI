@@ -227,7 +227,7 @@ public abstract class PrefPackage implements Serializable, Cloneable {
         StringBuilder sb = new StringBuilder(len);
         sb.append(what);
         sb.append(layerId.name);
-        sb.append("In");
+        sb.append("IN");
         sb.append(layerId.techId.techName);
         assert sb.length() == len;
         return sb.toString();
@@ -239,7 +239,7 @@ public abstract class PrefPackage implements Serializable, Cloneable {
         sb.append(what);
         sb.append("For");
         sb.append(pnId.name);
-        sb.append("In");
+        sb.append("IN");
         sb.append(pnId.techId.techName);
         assert sb.length() == len;
         return sb.toString();
@@ -251,7 +251,7 @@ public abstract class PrefPackage implements Serializable, Cloneable {
         sb.append(what);
         sb.append("For");
         sb.append(apId.name);
-        sb.append("In");
+        sb.append("IN");
         sb.append(apId.techId.techName);
         assert sb.length() == len;
         return sb.toString();

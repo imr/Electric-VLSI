@@ -110,38 +110,38 @@ public class GraphicsPreferences extends PrefPackage {
                 EGraphics graphics = factoryGraphics;
 
                 // TECH_NODE
-                String keyPatternDisplay = getKey(KEY_PATTERN_DISPLAY, layerId);
+                String keyPatternDisplay = getKeyIn(KEY_PATTERN_DISPLAY, layerId);
                 boolean factoryPatternDisplay = factoryGraphics.isPatternedOnDisplay();
                 boolean patternDisplay = techPrefs.getBoolean(keyPatternDisplay, factoryPatternDisplay);
                 graphics = graphics.withPatternedOnDisplay(patternDisplay);
 
-                String keyPatternPrinter = getKey(KEY_PATTERN_PRINTER, layerId);
+                String keyPatternPrinter = getKeyIn(KEY_PATTERN_PRINTER, layerId);
                 boolean factoryPatternPrinter = factoryGraphics.isPatternedOnPrinter();
                 boolean patternPrinter = techPrefs.getBoolean(keyPatternPrinter, factoryPatternPrinter);
                 graphics = graphics.withPatternedOnPrinter(patternPrinter);
 
-                String keyOutline = getKey(KEY_OUTLINE, layerId);
+                String keyOutline = getKeyIn(KEY_OUTLINE, layerId);
                 EGraphics.Outline factoryOutline = factoryGraphics.getOutlined();
                 int outlineIndex = techPrefs.getInt(keyOutline, factoryOutline.getIndex());
                 EGraphics.Outline outline = EGraphics.Outline.findOutline(outlineIndex);
                 graphics = graphics.withOutlined(outline);
 
-                String keyTransparent = getKey(KEY_TRANSPARENT, layerId);
+                String keyTransparent = getKeyIn(KEY_TRANSPARENT, layerId);
                 int factoryTransparent = factoryGraphics.getTransparentLayer();
                 int transparent = techPrefs.getInt(keyTransparent, factoryTransparent);
                 graphics = graphics.withTransparentLayer(transparent);
 
-                String keyColor = getKey(KEY_COLOR, layerId);
+                String keyColor = getKeyIn(KEY_COLOR, layerId);
                 int factoryColorRgb = factoryGraphics.getRGB();
                 int colorRgb = techPrefs.getInt(keyColor, factoryColorRgb);
                 graphics = graphics.withColor(new Color(colorRgb));
 
-                String keyOpacity = getKey(KEY_OPACITY, layerId);
+                String keyOpacity = getKeyIn(KEY_OPACITY, layerId);
                 double factoryOpacity = factoryGraphics.getOpacity();
                 double opacity = techPrefs.getDouble(keyOpacity, factoryOpacity);
                 graphics = graphics.withOpacity(opacity);
 
-                String keyPattern = getKey(KEY_PATTERN, layerId);
+                String keyPattern = getKeyIn(KEY_PATTERN, layerId);
                 String factoryPatternStr = factoryGraphics.getPatternString();
                 String patternStr = techPrefs.get(keyPattern, factoryPatternStr);
                 graphics = graphics.withPattern(patternStr);
@@ -207,43 +207,43 @@ public class GraphicsPreferences extends PrefPackage {
                 if (oldTd == null || graphics != oldTd.layerGraphics[layerIndex]) {
                     EGraphics factoryGraphics = layer.getFactoryGraphics();
 
-                    String keyPatternDisplay = getKey(KEY_PATTERN_DISPLAY, layerId);
+                    String keyPatternDisplay = getKeyIn(KEY_PATTERN_DISPLAY, layerId);
                     if (removeDefaults && graphics.isPatternedOnDisplay() == factoryGraphics.isPatternedOnDisplay())
                         techPrefs.remove(keyPatternDisplay);
                     else
                         techPrefs.putBoolean(keyPatternDisplay, graphics.isPatternedOnDisplay());
 
-                    String keyPatternPrinter = getKey(KEY_PATTERN_PRINTER, layerId);
+                    String keyPatternPrinter = getKeyIn(KEY_PATTERN_PRINTER, layerId);
                     if (removeDefaults && graphics.isPatternedOnPrinter() == factoryGraphics.isPatternedOnPrinter())
                         techPrefs.remove(keyPatternPrinter);
                     else
                         techPrefs.putBoolean(keyPatternPrinter, graphics.isPatternedOnPrinter());
 
-                    String keyOutline = getKey(KEY_OUTLINE, layerId);
+                    String keyOutline = getKeyIn(KEY_OUTLINE, layerId);
                     if (removeDefaults && graphics.getOutlined() == factoryGraphics.getOutlined())
                         techPrefs.remove(keyOutline);
                     else
                         techPrefs.putInt(keyOutline, graphics.getOutlined().getIndex());
 
-                    String keyTransparent = getKey(KEY_TRANSPARENT, layerId);
+                    String keyTransparent = getKeyIn(KEY_TRANSPARENT, layerId);
                     if (removeDefaults && graphics.getTransparentLayer() == factoryGraphics.getTransparentLayer())
                         techPrefs.remove(keyTransparent);
                     else
                         techPrefs.putInt(keyTransparent, graphics.getTransparentLayer());
 
-                    String keyColor = getKey(KEY_COLOR, layerId);
+                    String keyColor = getKeyIn(KEY_COLOR, layerId);
                     if (removeDefaults && graphics.getColor().equals(factoryGraphics.getColor()))
                         techPrefs.remove(keyColor);
                     else
                         techPrefs.putInt(keyColor, graphics.getRGB());
 
-                    String keyOpacity = getKey(KEY_OPACITY, layerId);
+                    String keyOpacity = getKeyIn(KEY_OPACITY, layerId);
                     if (removeDefaults && graphics.getOpacity() == factoryGraphics.getOpacity())
                         techPrefs.remove(keyOpacity);
                     else
                         techPrefs.putDouble(keyOpacity, graphics.getOpacity());
 
-                    String keyPattern = getKey(KEY_PATTERN, layerId);
+                    String keyPattern = getKeyIn(KEY_PATTERN, layerId);
                     if (removeDefaults && Arrays.equals(graphics.getPattern(), factoryGraphics.getPattern()))
                         techPrefs.remove(keyPattern);
                     else
@@ -583,4 +583,14 @@ public class GraphicsPreferences extends PrefPackage {
         return td;
     }
 
+    protected String getKeyIn(String what, LayerId layerId) {
+        int len = what.length() + layerId.fullName.length() + 1;
+        StringBuilder sb = new StringBuilder(len);
+        sb.append(what);
+        sb.append(layerId.name);
+        sb.append("In");
+        sb.append(layerId.techId.techName);
+        assert sb.length() == len;
+        return sb.toString();
+    }
 }
