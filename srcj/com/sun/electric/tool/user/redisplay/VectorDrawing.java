@@ -487,12 +487,12 @@ class VectorDrawing
 							// one dimension tiny: draw a line
 							gridToScreen(c1X+oX, c2Y+oY, tempPt1);
 							gridToScreen(c2X+oX, c1Y+oY, tempPt2);
-                            if (!(tempPt1.x <= tempPt2.x && tempPt1.y <= tempPt2.y))
-                            {
-                                System.out.println("Error: too small box?. Check X:" + tempPt1.x + " with " + tempPt2.x);
-                                System.out.println("Error: too small box?. Check Y:" + tempPt1.y + " with " + tempPt2.y);
-//                            assert tempPt1.x <= tempPt2.x && tempPt1.y <= tempPt2.y;
-                            }
+                            assert tempPt1.x <= tempPt2.x && tempPt1.y <= tempPt2.y;
+//                            if (!(tempPt1.x <= tempPt2.x && tempPt1.y <= tempPt2.y))
+//                            {
+//                                System.out.println("Error: too small box?. Check X:" + tempPt1.x + " with " + tempPt2.x);
+//                                System.out.println("Error: too small box?. Check Y:" + tempPt1.y + " with " + tempPt2.y);
+//                            }
                             int lX = tempPt1.x;
 							int hX = tempPt2.x;
 							int lY = tempPt1.y;

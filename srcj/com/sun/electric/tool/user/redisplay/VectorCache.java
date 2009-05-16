@@ -138,7 +138,7 @@ public class VectorCache {
         int[] coords;
         boolean pureLayer;
 
-		VectorManhattan(int[] coords, Layer layer, EGraphics graphicsOverride, boolean pureLayer)
+		private VectorManhattan(int[] coords, Layer layer, EGraphics graphicsOverride, boolean pureLayer)
 		{
 			super(layer, graphicsOverride);
 			this.coords = coords;
@@ -806,7 +806,7 @@ public class VectorCache {
                 putBox(layerIndex, pureLayer ? pureBoxBuilders : boxBuilders, lX, lY, hX, hY);
             } else {
                 assert coords.length == 4;
-                VectorManhattan vm = new VectorManhattan(coords, layer, null, pureLayer);
+                VectorManhattan vm = new VectorManhattan(coords.clone(), layer, null, pureLayer);
                 shapes.add(vm);
             }
 
