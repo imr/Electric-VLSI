@@ -2880,7 +2880,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	protected Poly [] computeShapeOfNode(CellBackup.Memoization m, ImmutableNodeInst n, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, EGraphics graphicsOverride)
 	{
-		PrimitiveNode np = (PrimitiveNode)m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
+		PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
 		int specialType = np.getSpecialType();
 		if (specialType != PrimitiveNode.SERPTRANS && np.isHoldsOutline())
 		{
@@ -5251,7 +5251,8 @@ public class Technology implements Comparable<Technology>, Serializable
 	        		if (aFun.isDiffusion()) aFun = ArcProto.Function.DIFF;
 //if (getTechName().equals("mocmosold"))
 //	System.out.println("-------> ARC "+ap.getName()+" HAS LAYER " + lay.getName()+" WHICH IS FUNCTION " +aFun);
-	       			layToArcFunction.put(lay, aFun);
+	       			if (aFun != ArcProto.Function.WELL || !fun.isDiff())
+	       				layToArcFunction.put(lay, aFun);
 	       			break;
 	        	}
 	        }
