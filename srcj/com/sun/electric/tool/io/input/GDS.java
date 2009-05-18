@@ -353,7 +353,10 @@ public class GDS extends Input
 		randomLayerSelection = 0;
 		boolean valid = false;
 		curTech = Technology.findTechnology(IOTool.getGDSLayoutTechnology().getString());//Technology.getCurrent();
-		for(Map.Entry<Layer,String> e: curTech.getGDSLayers().entrySet())
+
+        System.out.println("Using GDS IO Project Seeting '" + curTech.getTechName() + "' as layout technology for the import process.");
+
+        for(Map.Entry<Layer,String> e: curTech.getGDSLayers().entrySet())
 		{
 			Layer layer = e.getKey();
             String gdsName = e.getValue();

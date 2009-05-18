@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+IMP/MAN: (5/18/09, GVG) Prompt for technology to use when importing GDS (Bug #2162)
+Printing message about the layout tech to use.
+
 BUG: (5/18/09, SMR) Startup warnings about diff layers in well arcs (Bug #2184).
 FIX: Allow this special case.
 
