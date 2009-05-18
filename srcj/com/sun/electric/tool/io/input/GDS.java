@@ -73,6 +73,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * This class reads files in GDS files.
@@ -360,7 +361,8 @@ public class GDS extends Input
             for(Iterator<Integer> lIt = gdsl.getLayers(); lIt.hasNext(); ) {
                 Integer lVal = lIt.next();
                 Integer lay = new Integer(lVal.intValue());
-                if (layerNames.get(lay) == null) layerNames.put(lay, layer);
+                if (layerNames.get(lay) == null)
+                	layerNames.put(lay, layer);
             }
             if (gdsl.getPinLayer() != -1) {
                 pinLayers.add(new Integer(gdsl.getPinLayer()));
@@ -396,16 +398,19 @@ public class GDS extends Input
 		private void makeInstance(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei,
 			EPoint[] points, UnknownLayerMessage ulm)
 		{
-            MakeInstance mi = new MakeInstance(proto, loc, orient, wid, hei, points, null, null, localPrefs);
-			if (ulm == null)
+			MakeInstance mi = null;
+			if (proto != null)
 			{
-				insts.add(mi);
-			} else
-			{
-				List<MakeInstance> errorList = allErrorInsts.get(ulm);
-				if (errorList == null) allErrorInsts.put(ulm, errorList = new ArrayList<MakeInstance>());
-				errorList.add(mi);
+	            mi = new MakeInstance(proto, loc, orient, wid, hei, points, null, null, localPrefs);
+				if (ulm == null)
+				{
+					insts.add(mi);
+					return;
+				}
 			}
+			List<MakeInstance> errorList = allErrorInsts.get(ulm);
+			if (errorList == null) allErrorInsts.put(ulm, errorList = new ArrayList<MakeInstance>());
+			errorList.add(mi);
         }
 
 		private void makeInstanceArray(NodeProto proto, int nCols, int nRows, Orientation orient,
@@ -416,23 +421,42 @@ public class GDS extends Input
             instArrays.add(mia);
         }
 
-		private void makeExport(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei,
-			String exportName)
+		private void makeExport(NodeProto proto, Point2D loc, Orientation orient,
+			String exportName, UnknownLayerMessage ulm)
 		{
-            MakeInstance mi = new MakeInstance(proto, loc, orient, wid, hei, null, exportName, null, localPrefs);
-            insts.add(mi);
+			MakeInstance mi = null;
+			if (proto != null && proto.getNumPorts() > 0)
+			{
+				double wid = proto.getDefWidth();
+				double hei = proto.getDefHeight();
+	            mi = new MakeInstance(proto, loc, orient, wid, hei, null, exportName, null, localPrefs);
+				if (ulm == null)
+				{
+		            insts.add(mi);
+		            return;
+				}
+			}
+			List<MakeInstance> errorList = allErrorInsts.get(ulm);
+			if (errorList == null) allErrorInsts.put(ulm, errorList = new ArrayList<MakeInstance>());
+			errorList.add(mi);
         }
 
 		private void makeText(NodeProto proto, Point2D loc, String text,
 			TextDescriptor textDescriptor, UnknownLayerMessage ulm)
 		{
-            MakeInstance mi = new MakeInstance(proto, loc, Orientation.IDENT, 0, 0, null, null, Name.findName(text), localPrefs);
-			if (ulm == null) insts.add(mi); else
+			MakeInstance mi = null;
+			if (proto != null)
 			{
-				List<MakeInstance> errorList = allErrorInsts.get(ulm);
-				if (errorList == null) allErrorInsts.put(ulm, errorList = new ArrayList<MakeInstance>());
-				errorList.add(mi);
+				mi = new MakeInstance(proto, loc, Orientation.IDENT, 0, 0, null, null, Name.findName(text), localPrefs);
+				if (ulm == null)
+				{
+					insts.add(mi);
+					return;
+				}
 			}
+			List<MakeInstance> errorList = allErrorInsts.get(ulm);
+			if (errorList == null) allErrorInsts.put(ulm, errorList = new ArrayList<MakeInstance>());
+			errorList.add(mi);
         }
 
 		private static void init()
@@ -501,7 +525,7 @@ public class GDS extends Input
 			{
 				List<MakeInstance> errorList = allErrorInsts.get(ulm);
 				for(MakeInstance mi : errorList)
-					if (mi.exportName != null) exportNames.add(mi.exportName);
+					if (mi != null && mi.exportName != null) exportNames.add(mi.exportName);
 			}
 
 			int count = 0;
@@ -527,6 +551,7 @@ public class GDS extends Input
 				List<MakeInstance> errorList = allErrorInsts.get(ulm);
 				for(MakeInstance mi : errorList)
 				{
+					if (mi == null) continue;
 					if (countOff && ((++count % 1000) == 0))
 						System.out.println("        Made " + count + " instances");
 	                if (mi.proto instanceof Cell) {
@@ -541,7 +566,7 @@ public class GDS extends Input
 				}
 				String msg = "Cell " + this.cell.noLibDescribe() + ": " + ulm.message;
 				Set<Cell> cellsWithError = cellLayerErrors.get(ulm);
-				if (cellsWithError == null) cellLayerErrors.put(ulm, cellsWithError = new HashSet<Cell>());
+				if (cellsWithError == null) cellLayerErrors.put(ulm, cellsWithError = new TreeSet<Cell>());
 				cellsWithError.add(cell);
 //				System.out.println(msg);
 				errorLogger.logMessage(msg, instantiated, cell, -1, true);
@@ -759,7 +784,7 @@ public class GDS extends Input
 			{
 				List<MakeInstance> errorList = allErrorInsts.get(ulm);
 				for(MakeInstance mi : errorList)
-	            	nameInstance(mi, countOff, count, userNames, maxSuffixes);
+	            	if (mi != null) nameInstance(mi, countOff, count, userNames, maxSuffixes);
 			}
         }
 
@@ -1531,32 +1556,32 @@ public class GDS extends Input
 			readBox();
 
 			// create the rectangle
-			if (layerNodeProto != null)
+			Point2D ctr = new Point2D.Double((theVertices[0].getX()+theVertices[1].getX())/2,
+				(theVertices[0].getY()+theVertices[1].getY())/2);
+			double sX = Math.abs(theVertices[1].getX() - theVertices[0].getX());
+			double sY = Math.abs(theVertices[1].getY() - theVertices[0].getY());
+			if (localPrefs.mergeBoxes)
 			{
-				Point2D ctr = new Point2D.Double((theVertices[0].getX()+theVertices[1].getX())/2,
-					(theVertices[0].getY()+theVertices[1].getY())/2);
-				double sX = Math.abs(theVertices[1].getX() - theVertices[0].getX());
-				double sY = Math.abs(theVertices[1].getY() - theVertices[0].getY());
-				if (localPrefs.mergeBoxes)
+				if (layerNodeProto != null)
 				{
 					PrimitiveNode plnp = layerNodeProto;
 					NodeLayer [] layers = plnp.getNodeLayers();
 					merge.addPolygon(layers[0].getLayer(), new Poly(ctr.getX(), ctr.getY(), sX, sY));
-				} else
-				{
-                    theCell.makeInstance(layerNodeProto, ctr, Orientation.IDENT, sX, sY, null, currentUnknownLayerMessage);
 				}
+			} else
+			{
+                theCell.makeInstance(layerNodeProto, ctr, Orientation.IDENT, sX, sY, null, currentUnknownLayerMessage);
 			}
 			return;
 		}
 
 		if (oclass == SHAPEOBLIQUE || oclass == SHAPEPOLY)
 		{
-			if (layerNodeProto == null) return;
 			if (localPrefs.mergeBoxes)
 			{
 				NodeLayer [] layers = layerNodeProto.getNodeLayers();
-				merge.addPolygon(layers[0].getLayer(), new Poly(theVertices)); // ??? npts
+				if (layerNodeProto != null)
+					merge.addPolygon(layers[0].getLayer(), new Poly(theVertices)); // ??? npts
 			} else
 			{
 				// determine the bounds of the polygon
@@ -1694,43 +1719,42 @@ public class GDS extends Input
 				}
 
 				// handle arbitrary angle path segment
-				if (layerNodeProto != null)
-				{
-					// determine shape of segment
-					double length = fromPt.distance(toPt);
-					Poly poly = Poly.makeEndPointPoly(length, width, GenMath.figureAngle(toPt, fromPt),
-						fromPt, fextend, toPt, textend, Poly.Type.FILLED);
+				double length = fromPt.distance(toPt);
+				Poly poly = Poly.makeEndPointPoly(length, width, GenMath.figureAngle(toPt, fromPt),
+					fromPt, fextend, toPt, textend, Poly.Type.FILLED);
 
-					if (localPrefs.mergeBoxes)
+				if (localPrefs.mergeBoxes)
+				{
+					if (layerNodeProto != null)
 					{
 						NodeLayer [] layers = layerNodeProto.getNodeLayers();
 						merge.addPolygon(layers[0].getLayer(), poly);
+					}
+				} else
+				{
+					// make the node for this segment
+					Rectangle2D polyBox = poly.getBox();
+					if (polyBox != null)
+					{
+                        theCell.makeInstance(layerNodeProto, new EPoint(polyBox.getCenterX(),
+                        	polyBox.getCenterY()), Orientation.IDENT, polyBox.getWidth(), polyBox.getHeight(), null, currentUnknownLayerMessage);
 					} else
 					{
-						// make the node for this segment
-						Rectangle2D polyBox = poly.getBox();
-						if (polyBox != null)
-						{
-                            theCell.makeInstance(layerNodeProto, new EPoint(polyBox.getCenterX(),
-                            	polyBox.getCenterY()), Orientation.IDENT, polyBox.getWidth(), polyBox.getHeight(), null, currentUnknownLayerMessage);
-						} else
-						{
-							polyBox = poly.getBounds2D();
-							double cx = polyBox.getCenterX();
-							double cy = polyBox.getCenterY();
+						polyBox = poly.getBounds2D();
+						double cx = polyBox.getCenterX();
+						double cy = polyBox.getCenterY();
 
-							// store the trace information
-							Point2D [] polyPoints = poly.getPoints();
-							EPoint [] points = new EPoint[polyPoints.length];
-							for(int j=0; j<polyPoints.length; j++)
-							{
-								points[j] = new EPoint(polyPoints[j].getX(), polyPoints[j].getY());
-							}
-
-							// store the trace information
-                            theCell.makeInstance(layerNodeProto, new EPoint(cx, cy), Orientation.IDENT,
-                            	polyBox.getWidth(), polyBox.getHeight(), points, currentUnknownLayerMessage);
+						// store the trace information
+						Point2D [] polyPoints = poly.getPoints();
+						EPoint [] points = new EPoint[polyPoints.length];
+						for(int j=0; j<polyPoints.length; j++)
+						{
+							points[j] = new EPoint(polyPoints[j].getX(), polyPoints[j].getY());
 						}
+
+						// store the trace information
+                        theCell.makeInstance(layerNodeProto, new EPoint(cx, cy), Orientation.IDENT,
+                        	polyBox.getWidth(), polyBox.getHeight(), points, currentUnknownLayerMessage);
 					}
 				}
 			}
@@ -1868,18 +1892,11 @@ public class GDS extends Input
 
 	private void readText(String charstring, int vjust, int hjust, int angle, boolean trans, double scale)
 	{
-		// stop if layer invalid
-		if (layerNodeProto == null) return;
-
 		// handle pins specially
 		if (layerIsPin)
 		{
-			NodeProto np = pinNodeProto;
-            if (np.getNumPorts() > 0)
-            {
-                theCell.makeExport(np, new Point2D.Double(theVertices[0].getX(), theVertices[0].getY()),
-                	Orientation.IDENT, np.getDefWidth(), np.getDefHeight(), charstring);
-            }
+            theCell.makeExport(pinNodeProto, new Point2D.Double(theVertices[0].getX(), theVertices[0].getY()),
+            	Orientation.IDENT, charstring, currentUnknownLayerMessage);
 			return;
 		}
 
@@ -1949,16 +1966,17 @@ public class GDS extends Input
 			countBox++;
 			return;
 		}
-		if (layerNodeProto != null)
+
+		// create the box
+		if (localPrefs.mergeBoxes)
 		{
-			// create the box
-			if (localPrefs.mergeBoxes)
+			if (layerNodeProto != null)
 			{
-			} else
-			{
-                theCell.makeInstance(layerNodeProto, new Point2D.Double(theVertices[0].getX(), theVertices[0].getY()),
-                	Orientation.IDENT, 0, 0, null, currentUnknownLayerMessage);
 			}
+		} else
+		{
+            theCell.makeInstance(layerNodeProto, new Point2D.Double(theVertices[0].getX(), theVertices[0].getY()),
+            	Orientation.IDENT, 0, 0, null, currentUnknownLayerMessage);
 		}
 	}
 
@@ -2003,26 +2021,26 @@ public class GDS extends Input
 			String message = "GDS layer " + layerNum + ", type " + layerType + " unknown, ";
 			switch (localPrefs.unknownLayerHandling)
 			{
-				case IOTool.GDSUNKNOWNLAYERIGNORE:    message += "ignoring it"; layer = null;   break;
-				case IOTool.GDSUNKNOWNLAYERUSEDRC:    message += "using Generic:DRC layer"; break;
+				case IOTool.GDSUNKNOWNLAYERIGNORE:    message += "ignoring it";                    break;
+				case IOTool.GDSUNKNOWNLAYERUSEDRC:    message += "using Generic:DRC layer";        break;
 				case IOTool.GDSUNKNOWNLAYERUSERANDOM: message += "using layer " + layer.getName(); break;
 			}
-			if (layer != null)
-			{
+//			if (layer != null)
+//			{
 				currentUnknownLayerMessage = layerErrorMessages.get(layerInt);
 				if (currentUnknownLayerMessage == null)
 				{
 					currentUnknownLayerMessage = new UnknownLayerMessage(message);
 					layerErrorMessages.put(layerInt, currentUnknownLayerMessage);
 				}
-			} else
-			{
-				errorLogger.logWarning(message, theCell.cell, 0);
+//			} else
+//			{
+//				errorLogger.logWarning(message, theCell.cell, 0);
 //				List<Cell> cellsWithError = cellLayerErrors.get(message);
 //				if (cellsWithError == null) cellLayerErrors.put(message, cellsWithError = new ArrayList<Cell>());
 //				cellsWithError.add(theCell.cell);
-				System.out.println(message);
-			}
+//				System.out.println(message);
+//			}
 		}
 		if (layer != null)
 		{
@@ -2030,6 +2048,7 @@ public class GDS extends Input
 			if (layer == Generic.tech().drcLay && localPrefs.unknownLayerHandling == IOTool.GDSUNKNOWNLAYERIGNORE)
 			{
 				layerNodeProto = null;
+				pinNodeProto = null;
 				return;
 			}
 			layerNodeProto = layer.getNonPseudoLayer().getPureLayerNode();
@@ -2424,5 +2443,4 @@ public class GDS extends Input
 		recordCount--;
 		return b;
 	}
-
 }

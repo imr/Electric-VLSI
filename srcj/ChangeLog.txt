@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+BUG: (5/18/09, SMR) GDS input is using the wrong layer (Bug #2183).
+FIX: When an unknown layer is found, subsequent layers must be ignored.
+
 BUG: (5/16/09, DN) Assertion error when descending into instance (Bug #2186)
 FIX: In VectorCache.ShapeBuilder.addIntBox clone coordinates array.
 
