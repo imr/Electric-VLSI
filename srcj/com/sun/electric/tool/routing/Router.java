@@ -179,9 +179,9 @@ public abstract class Router {
 	                    {
 	                    	RouteElementPort newEnd = RouteElementPort.existingPortInst(oconn.getPortInst(), oconn.getLocation());
 	                        RouteElementArc newArc = RouteElementArc.newArc(cell, Generic.tech().unrouted_arc,
-	                                Generic.tech().unrouted_arc.getDefaultLambdaBaseWidth(), route.getEnd(), newEnd,
-	                                route.getEnd().getLocation(), oconn.getLocation(), null,
-	                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, true, null);
+                                Generic.tech().unrouted_arc.getDefaultLambdaBaseWidth(), route.getEnd(), newEnd,
+                                route.getEnd().getLocation(), oconn.getLocation(), null,
+                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), null);
 	                        newArc.doAction();
 	                    }
 	                    if (conn.getArc().isLinked())

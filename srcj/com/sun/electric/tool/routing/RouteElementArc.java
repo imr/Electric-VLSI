@@ -387,7 +387,6 @@ public class RouteElementArc extends RouteElement {
                 else
                     thisWidth = 0; // Sept 4 2008. Force to be a single point
             }
-
             ArcInst newAi = ArcInst.makeInstanceBase(arcProto, thisWidth, headPi, tailPi, headPoint, tailPoint, arcName);
             if (newAi == null) return null;
 
@@ -407,11 +406,8 @@ public class RouteElementArc extends RouteElement {
             setDone();
             arcInst = newAi;
             arcInst.copyPropertiesFrom(inheritFrom);
-            if (inheritFrom == null)
-            {
-                arcInst.setHeadExtended(extendArcHead);
-                arcInst.setTailExtended(extendArcTail);
-            }
+            arcInst.setHeadExtended(extendArcHead);
+            arcInst.setTailExtended(extendArcTail);
             return newAi;
         }
         if (getAction() == RouteElementAction.deleteArc) {

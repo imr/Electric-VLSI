@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+BUG: (5/19/09, SMR) Auto-stitcher ignores end-extension requests when replacing
+     an arc (Bug #2183).
+FIX: Supply correct end-extension to Route package and let it use the values.
+
 IMP/MAN: (5/18/09, GVG) Prompt for technology to use when importing GDS (Bug #2162)
 Printing message about the layout tech to use.
 

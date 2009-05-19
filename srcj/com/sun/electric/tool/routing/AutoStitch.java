@@ -639,7 +639,7 @@ public class AutoStitch
             RouteElementPort dcpRE = RouteElementPort.existingPortInst(dcp.pi, dcp.location);
             if (headRE != null)
             {
-	        	RouteElement re = RouteElementArc.newArc(cell, ai.getProto(), ai.getLambdaBaseWidth(), headRE, dcpRE,
+            	RouteElementArc re = RouteElementArc.newArc(cell, ai.getProto(), ai.getLambdaBaseWidth(), headRE, dcpRE,
 	        		headRE.getConnectingSite().getCenter(), dcpRE.getConnectingSite().getCenter(), name,
 	        		ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
 	            route.add(re);
@@ -649,7 +649,7 @@ public class AutoStitch
         }
         if (tailRE != null)
         {
-	    	RouteElement re = RouteElementArc.newArc(cell, ai.getProto(), ai.getLambdaBaseWidth(), headRE, tailRE,
+        	RouteElementArc re = RouteElementArc.newArc(cell, ai.getProto(), ai.getLambdaBaseWidth(), headRE, tailRE,
 	    		headRE.getConnectingSite().getCenter(), tailRE.getConnectingSite().getCenter(), name,
 	    		ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
 	        route.add(re);
