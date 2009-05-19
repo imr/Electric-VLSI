@@ -123,7 +123,7 @@ public class Connectivity
 	/** the layers to use for "active" geometry */				private Layer pActiveLayer, nActiveLayer;
 	/** associates arc prototypes with layers */				private Map<Layer,ArcProto> arcsForLayer;
 	/** map of extracted cells */								private Map<Cell,Cell> convertedCells;
-	/** map of cut layers to lists of polygons on that layer */	private Map<Layer,List<PolyBase>> allCutLayers;
+	/** map of cut layers to lists of polygons on that layer */	private Map<Layer,CutInfo> allCutLayers;
 	/** set of pure-layer nodes that are not processed */		private Set<PrimitiveNode> ignoreNodes;
 	/** set of contacts that are not used for extraction */		private Set<PrimitiveNode> bogusContacts;
 	/** list of Exports to restore after extraction */			private List<Export> exportsToRestore;
@@ -490,7 +490,7 @@ public class Connectivity
 		exportsToRestore = new ArrayList<Export>();
 		generatedExports = new ArrayList<Export>();
 		pinsForLater = new ArrayList<ExportedPin>();
-		allCutLayers = new HashMap<Layer,List<PolyBase>>();
+		allCutLayers = new HashMap<Layer,CutInfo>();
 		extractCell(oldCell, newCell, pat, flattenPcells, expandedCells, merge, GenMath.MATID, Orientation.IDENT);
 		if (expandedCells.size() > 0)
 		{
@@ -785,13 +785,24 @@ public class Connectivity
 				if (layer.getFunction().isContact())
 				{
 					// cut layers are stored in lists because merging them is too expensive and pointless
-					List<PolyBase> cutsOnLayer = allCutLayers.get(layer);
-					if (cutsOnLayer == null)
+					CutInfo cInfo = allCutLayers.get(layer);
+					if (cInfo == null)
 					{
-						cutsOnLayer = new ArrayList<PolyBase>();
-						allCutLayers.put(layer, cutsOnLayer);
+						cInfo = new CutInfo();
+						allCutLayers.put(layer, cInfo);
 					}
-					cutsOnLayer.add(poly);
+					// see if the cut is already there
+					boolean found = false;
+					for(RTNode.Search sea = new RTNode.Search(poly.getBounds2D(), cInfo.cutOrg, true); sea.hasNext(); )
+					{
+						CutBound cBound = (CutBound)sea.next();
+						if (cBound.getBounds().equals(poly.getBounds2D())) { found = true;   break; }
+					}
+					if (!found)
+					{
+						cInfo.cutOrg = RTNode.linkGeom(null, cInfo.cutOrg, new CutBound(poly));
+						cInfo.cutList.add(poly);
+					}
 				} else
 				{
 					Rectangle2D box = poly.getBox();
@@ -1636,8 +1647,8 @@ public class Connectivity
 		for (Layer layer : allCutLayers.keySet())
 		{
 			layers.add(layer);
-			List<PolyBase> cutList = allCutLayers.get(layer);
-			totalCuts += cutList.size();
+			CutInfo cInfo = allCutLayers.get(layer);
+			totalCuts += cInfo.cutList.size();
 		}
 
 		// initialize list of nodes that have been created
@@ -1660,12 +1671,9 @@ public class Connectivity
 			}
 
 			// get all of the geometry on the cut/via layer
-			List<PolyBase> cutList = allCutLayers.get(layer);
-
-			// make R-Tree of all of these cuts
-			RTNode root = RTNode.makeTopLevel();
-			for(PolyBase cut : cutList)
-				root = RTNode.linkGeom(null, root, new CutBound(cut));
+			CutInfo cInfo = allCutLayers.get(layer);
+			List<PolyBase> cutList = cInfo.cutList;
+			RTNode root = cInfo.cutOrg;
 
 			// the new way to extract vias
 			List<PolyBase> cutsNotExtracted = new ArrayList<PolyBase>();
@@ -1904,7 +1912,7 @@ public class Connectivity
 				}
 			}
 			if (cutsNotExtracted.size() > 0)
-				allCutLayers.put(layer, cutsNotExtracted);
+				cInfo.cutList = cutsNotExtracted;
 		}
 
 		// now remove all created contacts from the original merge
@@ -2022,7 +2030,6 @@ public class Connectivity
 			} else { sX += lowXInc;   sY += lowYInc; }
 			if (error != null) return error.getLayer();
 		}
-
 		realizeNode(pNp, cutVariation, x, y, sX, sY, rot, null, merge, newCell, contactNodes);
 		return null;
 	}
@@ -2106,6 +2113,21 @@ public class Connectivity
 			if (nActiveLayer != null && nActiveLayer != pActiveLayer && merge.intersects(nActiveLayer, biggestPoly)) return biggestPoly;
 		}
 		return null;
+	}
+
+	/**
+	 * Class to define all of the cuts on a given layer.
+	 */
+	private static class CutInfo
+	{
+		List<PolyBase> cutList;
+		RTNode cutOrg;
+
+		CutInfo()
+		{
+			cutList = new ArrayList<PolyBase>();
+			cutOrg = RTNode.makeTopLevel();
+		}
 	}
 
 	/**
@@ -3949,8 +3971,8 @@ public class Connectivity
 		// also throw in unextracted contact cuts
 		for (Layer layer : allCutLayers.keySet())
 		{
-			List<PolyBase> cutList = allCutLayers.get(layer);
-			for(PolyBase poly : cutList)
+			CutInfo cInfo = allCutLayers.get(layer);
+			for(PolyBase poly : cInfo.cutList)
 				makePureLayerNodeFromPoly(poly, newCell);
 		}
 
