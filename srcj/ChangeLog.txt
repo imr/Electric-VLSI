@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+BUG: (5/19/09, SMR) Arrow keys affect circuitry even when navigating popup menus (Bug #2187).
+FIX: Ignore keystrokes when popup menu is visible.
+
 BUG: (5/19/09, SMR) Auto-stitcher ignores end-extension requests when replacing
      an arc (Bug #2183).
 FIX: Supply correct end-extension to Route package and let it use the values.
