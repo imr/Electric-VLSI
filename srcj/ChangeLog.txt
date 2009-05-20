@@ -4,21 +4,24 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
-BUG: (5/20/09, SMR) Node extractor may drop cuts, and auto-router may drop arcs (Bug #2183).
+BUG: (5/20/09, SMR) Node extractor may drop cuts, and auto-router may drop arcs
+     (Bug #2183).
 FIX: Repaired node extractor and auto-router.
 
-BUG: (5/19/09, SMR) Node extractor is confused by multiple cuts in the same location (Bug #2183).
+BUG: (5/19/09, SMR) Node extractor is confused by multiple cuts in the same
+     location (Bug #2183).
 FIX: Eliminate redundancy.
 
-BUG: (5/19/09, SMR) Arrow keys affect circuitry even when navigating popup menus (Bug #2187).
+BUG: (5/19/09, SMR) Arrow keys affect circuitry even when navigating popup menus
+     (Bug #2187).
 FIX: Ignore keystrokes when popup menu is visible.
 
 BUG: (5/19/09, SMR) Auto-stitcher ignores end-extension requests when replacing
      an arc (Bug #2183).
 FIX: Supply correct end-extension to Route package and let it use the values.
 
-IMP/MAN: (5/18/09, GVG) Prompt for technology to use when importing GDS (Bug #2162)
-Printing message about the layout tech to use.
+IMP: (5/18/09, GVG) Prompt for technology to use when importing GDS (Bug
+     #2162) Printing message about the layout tech to use.
 
 BUG: (5/18/09, SMR) Startup warnings about diff layers in well arcs (Bug #2184).
 FIX: Allow this special case.
@@ -29,26 +32,29 @@ FIX: When an unknown layer is found, subsequent layers must be ignored.
 BUG: (5/16/09, DN) Assertion error when descending into instance (Bug #2186)
 FIX: In VectorCache.ShapeBuilder.addIntBox clone coordinates array.
 
-BUG: (5/15/09, DN) IN instead of In? Make the difference in User's preferences (Bug #2185)
+BUG: (5/15/09, DN) IN instead of In? Make the difference in User's preferences
+     (Bug #2185)
 FIX: "In" instead of "IN" in GraphicsPreferences.getKeyIn()
 
 IMP: (5/15/09, GVG) Assertion error when descending into instance (Bug #2186)
-Extra code to detect the cases.
+     Extra code to detect the cases.
 
-BUG: (5/15/09, GVG) IN instead of In? Make the difference in User's preferences (Bug #2185)
+BUG: (5/15/09, GVG) IN instead of In? Make the difference in User's preferences
+     (Bug #2185)
 FIX: "In" instead of "IN" in PrefPackage.getKey()
 
 IMP: (5/14/09, GVG) TechEditorWizard and well arcs (Bug #2179)
 
-IMP/MAN: (5/14/09, SMR) New command to detect undriven networks (Bug #2182).
+IMP: (5/14/09, SMR) New command to detect undriven networks (Bug #2182).
 
-IMP/MAN: (5/14/09, GVG) Prompt for technology to use when importing GDS (Bug #2162)
+IMP: (5/14/09, GVG) Prompt for technology to use when importing GDS (Bug #2162)
 
 BUG: (5/14/09, SMR) GDS export allows degenerate shapes (Bug #2180).
 FIX: In GDS output, remove common points in polygons and ignore shapes
      with less than 3 vertices.
 
-BUG: (5/13/09, SMR) EDIF equivalence do not map onto the current library (Bug #2178).
+BUG: (5/13/09, SMR) EDIF equivalence do not map onto the current library (Bug
+     #2178).
 FIX: Now handle substitutions in all libraries.
 
 BUG: (5/13/09, SMR) GDS import puts layout in any view of the cell (Bug #2145).
@@ -63,30 +69,40 @@ FIX: In ToolMenu.MakeTemplate move needCurrentWindow from doIt to constructor.
 
 ************************* Version 8.09j: ******************************
 
-IMP/MAN: (5/12/09, GVG) CadencePrefs.xml and unable to restore default setup (Bug #2161).
-Put in manual a big warning about not recovering previous preferences.
+IMP: (5/12/09, GVG) CadencePrefs.xml and unable to restore default setup (Bug
+     #2161). Put in manual a big warning about not recovering previous
+     preferences.
 
-IMP: (5/12/09, SMR) EDIF input now adds cell names to icons in Cadence mode (Bug #2160).
+IMP: (5/12/09, SMR) EDIF input now adds cell names to icons in Cadence mode (Bug
+     #2160).
 
 BUG: (5/12/09, DN) Assertion error in Technology$NodeLayer.fixup() (Bug #2175).
-FIX: In Schemaics.getShapeOfNode use fullRectangle.getWidth() insteadof fullRectangle.getX()
+FIX: In Schemaics.getShapeOfNode use fullRectangle.getWidth() instead of
+     fullRectangle.getX()
 
 IMP: (5/12/09, SMR) GDS import now creates proper NCC unification messages and
      has more concise warnings.
 
-BUG: (5/11/09, DN) Facet center is invisible by default in LayerDrawing (Bug #2172).
-FIX: In LayerVisibility.getDefaultOpacity() set default opacity of Generic.GlyphLay to 0.1.
+BUG: (5/11/09, DN) Facet center is invisible by default in LayerDrawing (Bug
+     #2172).
+FIX: In LayerVisibility.getDefaultOpacity() set default opacity of
+     Generic.GlyphLay to 0.1.
 
-BUG: (5/11/09, DN) NMOS and PMOS primitives in the schematic technology are incorrect (Bug #2172).
+BUG: (5/11/09, DN) NMOS and PMOS primitives in the schematic technology are
+     incorrect (Bug #2172).
 FIX: In Schematics.buildTransistorDescription() call NodeLayer.fixup().
 
-BUG: (5/11/09, GVG) NPE in Ctr-V (Paste) if no cell is available in cantEdit (Bug #2174)
-FIX: Detecting the null cell now and proper message is displayed ("job Paste Text returned false")
+BUG: (5/11/09, GVG) NPE in Ctrl-V (Paste) if no cell is available in cantEdit
+     (Bug #2174)
+FIX: Detecting the null cell now and proper message is displayed ("job Paste Text
+     returned false")
 
-IMP: (5/11/09, GVG) Don't swap elements in TechPalette if node can't be created (Bug #2173)
+IMP: (5/11/09, GVG) Don't swap elements in TechPalette if node can't be created
+     (Bug #2173)
 
 BUG: (5/11/09, GVG) Names in techPalette pulldown menus are the same (Bug #2171)
-FIX: Only schematic nodes will name from Variables. Reviewed short text in palette icons as well.
+FIX: Only schematic nodes will name from Variables. Reviewed short text in
+     palette icons as well.
 
 BUG: (5/11/09, GVG) TechEditorWizard and pwell process (Bug #2170)
 FIX: SizeOffset values properly calculated now.
@@ -101,10 +117,10 @@ IMP: (5/11/09, DN) Fast path to put simple arc shapes into VectorCache.
 
 IMP: (5/8/09, DN) Points in technology classes are the same as in Xml files.
 
-IMP/MAN: (5/8/09, SMR) Copyright section of Network Preferences now in its own
+IMP: (5/8/09, SMR) Copyright section of Network Preferences now in its own
      panel (Bug #2168).
 
-IMP/MAN: (5/8/09, SMR) Renamed "Project Settings" to be "Project Preferences" and now
+IMP: (5/8/09, SMR) Renamed "Project Settings" to be "Project Preferences" and now
      call "preferences" the "User Preferences".
 
 IMP: (5/8/09, SMR) EDIF now converts "pPar()" to "@" (Bug #2167).
@@ -112,18 +128,22 @@ IMP: (5/8/09, SMR) EDIF now converts "pPar()" to "@" (Bug #2167).
 BUG: (5/8/09, SMR) EDIF input duplicates icons (Bug #2160).
 FIX: Ignore the icon if it is already there.  Also fixed curves.
 
-IMP/MAN: (5/8/09, GVG) Ability in TechEditorWizard to define layers different patterns (Bug #2169)
+IMP: (5/8/09, GVG) Ability in TechEditorWizard to define layers different
+     patterns (Bug #2169)
 
 BUG: ((5/8/09, SMR) NPE adjusting scroll bars (Bug #2155).
 FIX: Catch null pointer in EditWindow.setScrollPositionUnsafe().
 
-BUG: (5/7/09, DN) NPE in VectorCache display if you set generic as startup tech (Bug #2165)
+BUG: (5/7/09, DN) NPE in VectorCache display if you set generic as startup tech
+     (Bug #2165)
 FIX: In VectorCache.drawNode consider topOnlyShapes.
 
-BUG: (5/7/09, DN) Wrong graphics color in Cadence mode: Of instead of For? (Bug #2159)
+BUG: (5/7/09, DN) Wrong graphics color in Cadence mode: Of instead of For? (Bug
+     #2159)
 FIX: Parameters of PrefPackage.getKey(String,Layer) explicitly specify For/Of.
 
-BUG: (5/7/09, GVG) Wrong graphics color in Cadence mode: Of instead of For? (Bug #2159)
+BUG: (5/7/09, GVG) Wrong graphics color in Cadence mode: Of instead of For? (Bug
+     #2159)
 FIX: Temporary fix: ColorOfGraphicsINartwork added in Cadence xml.
 
 BUG: (5/7/09, GVG) NPE on EDIF import (Bug #2157)
@@ -132,29 +152,33 @@ FIX: Creating the property value when booleans are detected
 IMP: (5/7/09, DN) Scalable transistors in mocmos use multicut NodeLayers.
 
 BUG: (5/6/09, DN) Those precision warnings in settings are back (Bug #2156).
-FIX: In FileMenu.ReadLibrary.doIt test if double mismatch can be explained by float rounding.
+FIX: In FileMenu.ReadLibrary.doIt test if double mismatch can be explained by
+     float rounding.
 
 IMP: (5/2/09, DN) Prepare cvspm to work in two-JVM mode.
 
 BUG: (4/30/09, DN) Can't create new cell parameter (Bug #2153)
-FIX: In EObjectOutputStream.EVariableKey.readResolve use newKey instead of findKey .
+FIX: In EObjectOutputStream.EVariableKey.readResolve use newKey instead of
+     findKey.
 
-BUG: (4/29/09, GVG) Attribute 'size' must appear on element 'menuNodeText' (Bug #2150)
+BUG: (4/29/09, GVG) Attribute 'size' must appear on element 'menuNodeText' (Bug
+     #2150)
 FIX: use="optional in Technology.xsd
 
-IMP/MAN: (4/29/09, SMR) File/Import commands now offer the ability to "merge" the
+IMP: (4/29/09, SMR) File/Import commands now offer the ability to "merge" the
      new library with an existing library.  Removed the command "File / Import /
      DEF (Design Exchange Format) to current cell..." (Bug #2145).
 
-IMP/MAN: (4/29/09, SMR) Text in the component menu is now sized automatically (Bug #2133).
-    Component menu dialogs no longer have size field.
+IMP: (4/29/09, SMR) Text in the component menu is now sized automatically (Bug
+     #2133). Component menu dialogs no longer have size field.
 
 BUG: (4/29/09, SMR) EDIF import loses schematics (Bug #2147).
 FIX: Many different types of EDIF now supported.
 
 IMP: (4/29/09, DN) Add Xml element to define LE settings of technology.
 
-BUG: (4/28/09, GVG) Grid selection buttoms shortcuts preferences not working (Bug #2149)
+BUG: (4/28/09, GVG) Grid selection buttons shortcuts preferences not working (Bug
+     #2149)
 FIX: Current index fixed in EditingPreferences.withAlignment().
 
 ************************* Version 8.09i: ******************************
@@ -163,22 +187,26 @@ BUG: (4/27/09, SMR) EDIF input is broken in multiple ways (Bugs #2143 and #2144)
 FIX: Total revamp of EDIF reader.
 
 BUG: (4/25/09, DN) Electric doesn't complain about settings conflict between
-   projsettings.xml and library (Bug #2129).
+     projsettings.xml and library (Bug #2129).
 FIX: In FileMenu.ReadLibrary.doIt add diagnostics.
 
 BUG: (4/24/09, GVG) Value too long in ComponentMenu (Bug #2146)
-FIX: Detecting the case when String is longer than Preferences.MAX_VALUE_LENGTH. Error dialog added.
+FIX: Detecting the case when String is longer than Preferences.MAX_VALUE_LENGTH.
+     Error dialog added.
 
-BUG: (4/24/09, DN) Constructor of ReadLibrary job modifies IdManager in client thread.
+BUG: (4/24/09, DN) Constructor of ReadLibrary job modifies IdManager in client
+     thread.
 FIX: Move this to ReadProjectSettingsFromLibrary job.
 
-BUG: (4/23/09, DN) Electric first window doesn't start with the default startup tech (Bug #2142).
-FIX: In Main.java ove window creation fron InitDatabase to InitProjectSettings.
+BUG: (4/23/09, DN) Electric first window doesn't start with the default startup
+     tech (Bug #2142).
+FIX: In Main.java move window creation from InitDatabase to InitProjectSettings.
 
 BUG: (4/23/09, SMR) Preferences dialog can appear twice (Bug #2141).
 FIX: Show previous one if still active.
 
-BUG: (4/23/09, SMR) Node extractor fails when there is duplicate text (Bug #2136).
+BUG: (4/23/09, SMR) Node extractor fails when there is duplicate text (Bug
+     #2136).
 FIX: Find and remove duplicate text...do not fail when minor errors happen.
 
 BUG: (4/23/09, SMR) Error logger doesn't handle "point" errors (Bug #2138).
@@ -188,28 +216,33 @@ BUG: (4/23/09, SMR) Node extractor points to wrong place when implants
      are too large (Bug #2137).
 FIX: Scaled coordinates.
 
-BUG: (4/22/09, SMR) Hierarchical node extraction shows confusing progress (Bug #2136).
+BUG: (4/22/09, SMR) Hierarchical node extraction shows confusing progress (Bug
+     #2136).
 FIX: Now show simpler progress indication when extracting hierarchically.
 
 BUG: (4/22/09, DN) VHDL preferences are not saved.
 FIX: In GenerateVHDL.VHDLPreferences.putPrefs inverse the condition.
 
-IMP: (4/22/09, DN) Initialize MessagesWindow earlier to see initialization messages.
+IMP: (4/22/09, DN) Initialize MessagesWindow earlier to see initialization
+     messages.
 
 BUG: (4/22/09, DN) Project settings are not restored from Preferences.
 FIX: Don't save settings to Preferences in UserInterfaceMain.showSnapshot().
-     Jobs which modify Settings, save them to Preferences in terminateOk() method.
+     Jobs which modify Settings, save them to Preferences in terminateOk()
+     method.
 
 IMP: (4/21/09, DN) More command-line keys: -logging -socket -pipe -pipedebug.
 
-BUG: (4/21/09, GVG) Problems DRC'ing technologies with no poly gate pure node (Bug #2134)
-FIX: Making sure TechEditorWizard generates technologies with pure poly gate node.
+BUG: (4/21/09, GVG) Problems DRC'ing technologies with no poly gate pure node
+     (Bug #2134)
+FIX: Making sure TechEditorWizard generates technologies with pure poly gate
+     node.
 
 IMP: (4/20/09, JKG) tweaked behavior of wiring tool - size of arcs from contacts
-now determined by size of layer on contact, not contact size
+     now determined by size of layer on contact, not contact size
 
 IMP: (4/20/09, GVG) Adding 40nm tech as a XML technology to avoid issues
-reported in Bug #2124
+     reported in Bug #2124
 
 IMP: (4/20/09, SMR) Preferences and Project Settings dialog keeps center panel
      in the same location (Bug #2101).
@@ -218,20 +251,22 @@ IMP: (4/20/09, DN) Regression tests doesn't touch Java Preferences.
 
 IMP: (4/19/09, DN) Regression tests can run in subprocess.
 
-BUG: (4/16/09, SMR) EDIF not reading "unused" and "protectionFrame" keywords (Bug #2131).
+BUG: (4/16/09, SMR) EDIF not reading "unused" and "protectionFrame" keywords (Bug
+     #2131).
 FIX: Handle keywords.
 
-IMP: (4/17/09, GVG) Improve error message when soft tech can't be uploaded (bug #2126)
-Allow to call ActivityLogger.logException(e) always.
+IMP: (4/17/09, GVG) Improve error message when soft tech can't be uploaded (Bug
+     #2126)  Allow to call ActivityLogger.logException(e) always.
 
 ************************* Version 8.09h: ******************************
 
 BUG: (4/17/09, DN) UnsupportedOperationException in MessagesStream (Bug #2130).
 FIX: Implement write(...) methods of MessagesStream.
 
-IMP/MAN: (4/16/09, GVG) Electric will ask users if they want to undo the reading of a library (Bug #2118)
+IMP: (4/16/09, GVG) Electric will ask users if they want to undo the reading of a
+     library (Bug #2118)
 
-IMP/MAN: (4/15/09, SMR) "Make Alternate Layout View" has controlling dialog that
+IMP: (4/15/09, SMR) "Make Alternate Layout View" has controlling dialog that
      allows users converting schematics to layout to specify a standard cell
      library (Bug #2128).
 
@@ -239,10 +274,13 @@ BUG: (4/15/09, DN) NPE due to null EditorWindow when Waveform is open (Bug #2127
 FIX: In Highligter.checkOutObject int lv from static variable when wnd is null.
 
 BUG: (4/14/09, GVG) NPE if "Failed to save preferences" (Bug #2125)
-FIX: Prevent sending errors to MessagesWindow when it is not available. Sending to System.err
+FIX: Prevent sending errors to MessagesWindow when it is not available. Sending
+     to System.err
 
-BUG: (4/13/09, DN) Preferences not available during startup of Electric (Bug #2122).
-FIX: In first call of Pref.getValue() int cachedObj by setCachedObjFromPreferences().
+BUG: (4/13/09, DN) Preferences not available during startup of Electric (Bug
+     #2122).
+FIX: In first call of Pref.getValue() int cachedObj by
+     setCachedObjFromPreferences().
 
 BUG: (4/13/09, DN) Assertion on redraw (Bug #2123).
 FIX: In LayerDrawing.copyBits fix asserted condition.
@@ -255,11 +293,12 @@ FIX: Can close last library again
 
 IMP: (4/8/09, SMR) Added schematic transistor length/width to Multi-Object Properties (Bug #2117).
 
-IMP: (4/8/09, GVG) Added short names in palette elements generated by TechEditorWizard
+IMP: (4/8/09, GVG) Added short names in palette elements generated by
+     TechEditorWizard
 
 IMP: (4/8/09, SMR) Added METALNEG1 and METALNEG2 layer functions (Bug #2037).
 
-IMP/MAN: (4/8/09, GVG) Renaming a cell that has an old version (Bug #2116)
+IMP: (4/8/09, GVG) Renaming a cell that has an old version (Bug #2116)
 FIX: Extra dialog added to check whether the old versions should be renamed too.
 
 BUG: (4/8/09, SMR) Extraction fails to find alternative transistors (Bug #2112).
@@ -268,38 +307,46 @@ FIX: Extractor now considers multiple transistor options.
 IMP: (4/7/09, DN) Preferences are removed from Technology class.
 
 IMP: (4/7/09, GVG) New transistors and node extractor (Bug #2112)
-Changes in TechEditorWizard to accomodate the new transistor well size.
+     Changes in TechEditorWizard to accommodate the new transistor well size.
 
-IMP/MAN: (4/7/09, SMR) Arrow keys can now be rebound and appear in the
+IMP: (4/7/09, SMR) Arrow keys can now be rebound and appear in the
      Edit/Move menu (Bug #1450).
 
 BUG: (4/7/09, SMR) Spurious Foundry error messages (Bug #2036).
 FIX: Ignore blank foundry names.
 
-BUG: (4/7/09, SMR) External text editing hangs Electric while editing is done (Bug #1974).
+BUG: (4/7/09, SMR) External text editing hangs Electric while editing is done
+     (Bug #1974).
 FIX: Run external text editing in a separate thread.
 
-IMP/MAN: (4/6/09, SMR) Now able to bind Bean Shell scripts to the Tools/Languages menu (Bug #2115).
+IMP: (4/6/09, SMR) Now able to bind Bean Shell scripts to the Tools/Languages
+     menu (Bug #2115).
 
-BUG: (4/6/09, SMR) Windows/MDI mode sometimes starts with a blank screen (Bug #2113).
+BUG: (4/6/09, SMR) Windows/MDI mode sometimes starts with a blank screen (Bug
+     #2113).
 FIX: In TopLevel.InitializeWindows(), force a resize of the window after startup.
 
-IMP (4/6/09, GVG): Another transistor type to help with the latest technology extraction.
+IMP (4/6/09, GVG): Another transistor type to help with the latest technology
+     extraction.
 
-IMP/MAN: (4/3/09, GVG) Pre-defined KeyBindings and alt- (Bug #2006).
-The conflict condition is prevented for alt- keybindings associated with menus.
+IMP: (4/3/09, GVG) Pre-defined KeyBindings and alt- (Bug #2006).  The conflict
+     condition is prevented for alt- keybindings associated with menus.
 
-BUG: (4/3/09, DN) VectorDrawing and LayerDrawing doesn't update color after Layer colors change.
-FIX: Don't cache EGraphics information in VectorCache (except graphicsOverride case).
+BUG: (4/3/09, DN) VectorDrawing and LayerDrawing doesn't update color after Layer
+     colors change.
+FIX: Don't cache EGraphics information in VectorCache (except graphicsOverride
+     case).
 
-BUG: (4/2/09, GVG) Assertion in ErrorLogger if info doesn't match with libraries open (Bug #2111)
+BUG: (4/2/09, GVG) Assertion in ErrorLogger if info doesn't match with libraries
+     open (Bug #2111)
 FIX: Condition detection after working on Bug #2107
 
-IMP/MAN: (4/2/09, GVG) Better highlighting of DRC spacing errors (Bug #2107)
-Implemented with key "/". ErrorLogger XML writer improved as well.
+IMP: (4/2/09, GVG) Better highlighting of DRC spacing errors (Bug #2107)
+     Implemented with key "/". ErrorLogger XML writer improved as well.
 
 BUG: (4/2/09, NP) M factors not working in NCC (Bug #2088)
-FIX: Added to mFactor to TransistorSize.  Only added by schematic constructor. NCC netlister multiplies mfactor by width now.
+FIX: Added to mFactor to TransistorSize.  Only added by schematic constructor.
+     NCC netlister multiplies mfactor by width now.
 
 BUG: (4/2/09, SMR) Up Hierarchy doesn't always remember cell history (Bug #2108).
 FIX: Save state in all cases.
@@ -307,29 +354,35 @@ FIX: Save state in all cases.
 BUG: (4/1/09, DN) Settings and rounding warnings (Bug #2106)
 FIX: In ProjSettings.commit don't print warning when floatValue() are equal.
 
-IMP: (4/1/09, GVG) Changes for "Better highlighting of DRC spacing errors" (Bug #2107)
+IMP: (4/1/09, GVG) Changes for "Better highlighting of DRC spacing errors" (Bug
+     #2107)
 
-BUG: (4/1/09, GVG) TechEditorWizard not assigning correct ports to actives in transistors (Bug #2109)
+BUG: (4/1/09, GVG) TechEditorWizard not assigning correct ports to actives in
+     transistors (Bug #2109)
 FIX: Ports amended and the graphical/electrical flags modified as well.
 
 BUG: (4/1/09, SMR) Extraction of transistors may create implant regions
      that are too large (Bug #2105).
 FIX: Issue warnings when the implants do not fit.
 
-BUG: (4/1/09, SMR) Technology checking should detect errors in electrical layers (Bug #2089).
+BUG: (4/1/09, SMR) Technology checking should detect errors in electrical layers
+     (Bug #2089).
 FIX: Now checks electrical layers.
 
-BUG: (4/1/09, SMR) Node extractor should be able to handle cut spacing variations (Bug #2103).
+BUG: (4/1/09, SMR) Node extractor should be able to handle cut spacing variations
+     (Bug #2103).
 FIX: Now try all variations.
 
-BUG: (4/1/09, DN) After layer visibility change LayerDrawing algorithms renders layer bitmaps again.
-FIX: Rendering layer bitmaps doesn't filter text on invisible ports at this phase.
-  Instead it sets "baseNode" on LayerDrawing.XXXTextInf classes.
-  The phase which composes image from layer bitmaps use this information to filter text
-  on invisible ports.
+BUG: (4/1/09, DN) After layer visibility change LayerDrawing algorithms renders
+     layer bitmaps again.
+FIX: Rendering layer bitmaps doesn't filter text on invisible ports at this
+     phase. Instead it sets "baseNode" on LayerDrawing.XXXTextInf classes.
+     The phase which composes image from layer bitmaps use this information to
+     filter text on invisible ports.
 
 BUG: (3/31/09, DN) Empty list and exception in Change dialog (Bug #2104)
-FIX: Making sure the highlighter.finished() call is after the highlighting list is filled.
+FIX: Making sure the highlighter.finished() call is after the highlighting list
+     is filled.
 
 IMP: (3/31/09, SMR) GDS import now identifies unknown layers (Bug #2099).
 
@@ -343,18 +396,20 @@ FIX: Handle orientation in cell flattening code.
 BUG: (3/30/09, GVG) Empty list and exception in Change dialog (Bug #2104)
 FIX: Making sure the loadInfo call is after the highlighting list is filled.
 
-IMP: (3/30/09, DN) 3D distnace and 3D thickness are Settings.
-   View3DWindow tracks undo/redo of Settings.
+IMP: (3/30/09, DN) 3D distance and 3D thickness are Settings.
+     View3DWindow tracks undo/redo of Settings.
 
 IMP: (3/29/09, DN) Use Poly.graphicsOverride in drawing ad printing.
 
-IMP: (3/28/09, DN) Move highlight and visibilty Layer state from Technology to a separate class.
+IMP: (3/28/09, DN) Move highlight and visibility Layer state from Technology to a
+     separate class.
 
 IMP: (3/27/09, DN) Get rid of Layer.newInstanceFree in LayerDrawing.java .
 
-IMP/MAN: (3/24/09, SMR) Project Settings dialog merged into Preferences panel (Bug #2101).
+IMP: (3/24/09, SMR) Project Settings dialog merged into Preferences panel (Bug
+     #2101).
 
-IMP/MAN: (2/26/09, SMR) Added Carbon Nanotube layout transistors for Villanova
+IMP: (2/26/09, SMR) Added Carbon Nanotube layout transistors for Villanova
      (new Layer Function extra bit for carbon nanotube type) (Bug #2055).
 
 BUG: (3/25/09, DN) NewArcsTab was incorrect after last modification.
@@ -362,34 +417,38 @@ FIX: In NewArcsTab.java .
 
 IMP: (3/24/09, DN) Class Layer is Serializable.
 
-IMP/MAP: (3/24/09, DN) Simplify schematic technology - remove parameter NegatingBubbleSize.
+IMP/MAP: (3/24/09, DN) Simplify schematic technology - remove parameter
+     NegatingBubbleSize.
 
-IMP: (3/24/09, SMR) Project Settings dialog starting to merge into Preferences panel.  CIF
-     Settings transfered (Bug #2101).
+IMP: (3/24/09, SMR) Project Settings dialog starting to merge into Preferences
+     panel.  CIF Settings transferred (Bug #2101).
 
-IMP/MAN: (3/23/09, DN) Artwork arrows are always filled (Bug #2100).
+IMP: (3/23/09, DN) Artwork arrows are always filled (Bug #2100).
 
 BUG: (3/23/09, DN) Crash after renaming icon Cell.
 FIX: In Cell.update make full updatePortInsts after node proto changed.
 
 IMP: (3/23/09, GVG) Missing header in DELIB library (Bug #2093).
-Warning is now printed in the messages window as well.
+     Warning is now printed in the messages window as well.
 
 BUG: (3/23/09, SMR) Verilog output merges bus signals (Bug #2098).
 FIX: In Verilog.writeCellTopology() write simple busses using correct indices.
 
 BUG: (3/23/09, DN) Settings are not saved to Preferences (Bug #2097).
-FIX: In UserInterfaceMain.DatabaseChangeRun.run() add saving Snapshot Settings to Preferences.
+FIX: In UserInterfaceMain.DatabaseChangeRun.run() add saving Snapshot Settings to
+     Preferences.
 
-IMP/MAN: (3/23/09, SMR) Moved "Schematic Negating Bubble Size" from Preferences
+IMP: (3/23/09, SMR) Moved "Schematic Negating Bubble Size" from Preferences
      to Project Settings, then removed it completely.
 
 BUG: (3/22/09, DN) Exception in WaveformWindow.preserveSignalOrder.
-FIX: Load/save options directly into Preferences subtree without cration of temporary Pref.
+FIX: Load/save options directly into Preferences subtree without creation of
+     temporary Pref.
 
 IMP: (3/22/09, DN) Add PrefTest to regressions.
 
-BUG: (3/22/09, DN) New: exception when going up hierarchy in schematics (Bug #2095).
+BUG: (3/22/09, DN) New: exception when going up hierarchy in schematics (Bug
+     #2095).
 FIX: In EditWindow.upHierarchy() don't go up if node instance is already killed.
      Check if selectedExport belongs to the parent.
 
@@ -397,19 +456,23 @@ BUG: (3/22/09, DN) New: exception when Calibre LVS run completes (Bug #2094).
 FIX: In Exec thread set thread-local Environment from launcher Environment.
 
 IMP: (3/21/09, DN) A new way of Pref definitions using Java annotations.
-   It is demonstrated in SilComp and SiliconCompilerTab modules.
+     It is demonstrated in SilComp and SiliconCompilerTab modules.
 
-BUG: (3/21/09, DN) ExportGDS_CIFTest.exportGDS_CIF didn't detect resolution errors.
+BUG: (3/21/09, DN) ExportGDS_CIFTest.exportGDS_CIF didn't detect resolution
+     errors.
 FIX: Remove "passed=true;"
 
-IMP: (3/20/09, DN) Convert preferences Artwork.FillArrays and Schematics.InvertingBubblesSize to Settings.
+IMP: (3/20/09, DN) Convert preferences Artwork.FillArrays and
+     Schematics.InvertingBubblesSize to Settings.
 
 BUG: (3/20/09, DN) FastHenry regression accesses Preferences.
-FIX: Output.getOutputPreferences() fills with current Settings and either factory or current Prefs.
+FIX: Output.getOutputPreferences() fills with current Settings and either factory
+     or current Prefs.
 
 IMP: (3/19/09, SMR) Want to customize metal layers in contact nodes (bug #2045)
 
-IMP/MAN: (3/19/09, SMR) First version of "[Technologies should be checked for sensibility" (bug #2089)
+IMP: (3/19/09, SMR) First version of "[Technologies should be checked for
+     sensibility" (bug #2089)
 
 ************************* Version 8.09f: ******************************
 
@@ -417,17 +480,20 @@ BUG: (3/19/09, SMR) Node extractor may fail and leave incomplete extraction
      with only minor warnings (Bug #2086).
 FIX: Notify user when extraction has failed.
 
-IMP: (3/19/09, DN) Thread-local ClientEnvironment object to explicitely represent default primitive sizes.
+IMP: (3/19/09, DN) Thread-local ClientEnvironment object to explicitly represent
+     default primitive sizes.
 
 BUG: (3/19/09, SMR) When a new layout transistor that has a "well" or "body"
      port is used, and that port is connected, the Spice output ignores the
      connection and substitutes VDD or GND (Bug #2087).
 FIX: Use proper bias connection in Spice.writeCellTopology().
 
-BUG: (3/19/09, SMR) Extraction tool replaces DRC exclusion layer by SR_DPO (Bug #2084)
+BUG: (3/19/09, SMR) Extraction tool replaces DRC exclusion layer by SR_DPO (Bug
+     #2084)
 FIX: Fixed node extraction so that unusual layers (like DRC) will be preserved
 
-BUG: (3/18/09, SMR) "Change" doesn't show all port errors, just the first (Bug #2083).
+BUG: (3/18/09, SMR) "Change" doesn't show all port errors, just the first (Bug
+     #2083).
 FIX: In NodeInst.replace(), collect all errors and print them when done.
 
 IMP: (3/18/09, DN) Fix Spice writer to new preferences schema.
@@ -436,44 +502,54 @@ IMP: (3/17/09, GVG) TechEditorWizard issues reported in Bug #2078.
 
 IMP: (3/17/09, SMR) Restructured output tool to package preferences for server.
 
-BUG: (3/16/09, SMR) Transistor extraction fails if there is just one active layer (Bug #2078).
+BUG: (3/16/09, SMR) Transistor extraction fails if there is just one active layer
+     (Bug #2078).
 FIX: Reorder examination of layers so that single active layer is detected.
 
-IMP: (3/16/09, DN) Remove unnecessary saving of Prefs and Settings in ExportGDS_CIFTest.
+IMP: (3/16/09, DN) Remove unnecessary saving of Prefs and Settings in
+     ExportGDS_CIFTest.
 
 IMP: (3/16/09, DN) Factory menu of technology is stored as Xml.MenuPalette.
 
-IMP: (3/15/09, DN) LibraryFiles.readLibrary doesn't try to access CellModelPrefs on server side.
-    They are filled on client side in FileMenu.ReadLibrary.terminateOk .
+IMP: (3/15/09, DN) LibraryFiles.readLibrary doesn't try to access CellModelPrefs
+     on server side. They are filled on client side in
+     FileMenu.ReadLibrary.terminateOk .
 
-BUG: (3/15/09, DN) MultiDRC regression failed because tech.getResolution() was factory default.
+BUG: (3/15/09, DN) MultiDRC regression failed because tech.getResolution() was
+     factory default.
 FIX: In DRCToolTest.basicMTDRCTest explicitly set resolution to 0.0 .
 
-IMP: (3/14/09, DN) Loading technology options from Java Preferences is moved to GUI thread
+IMP: (3/14/09, DN) Loading technology options from Java Preferences is moved to
+     GUI thread
 
-BUG: (3/15/09, SMR) "Cell" component menu item may be too long and does not scroll (Bug #2082).
-FIX: Now use the same code for scrollable popup menus as the "Pure" component menu.
+BUG: (3/15/09, SMR) "Cell" component menu item may be too long and does not
+     scroll (Bug #2082).
+FIX: Now use the same code for scrollable popup menus as the "Pure" component
+     menu.
 
 IMP: (3/14/09, DN) Boolean pref values are stored as Boolean (was Integer).
 
 IMP: (3/13/09, DN) Technology preferences are preallocated in tech constructor.
 
 BUG: (3/13/09, DN) Default artwork color broken again (Bug #2069).
-FIX: Remove User.ColorPrefType.ARTWORK because it conflicts with Artwork.defaultLayer.colorPref
+FIX: Remove User.ColorPrefType.ARTWORK because it conflicts with
+     Artwork.defaultLayer.colorPref
 
 IMP: (3/12/09, DN) Enable thread local Settings.
 
-BUG: (3/12/09, DN) Electric does't start if a soft XML tech is not available (Bug #2076)
+BUG: (3/12/09, DN) Electric doesn't start if a soft XML tech is not available
+     (Bug #2076)
 FIX: Don't attempt to create EditWindow in UserInterfaceMain.showErrorMessage .
 
 BUG: (3/12/09, JKG) Bug 2074: connect 45 degree arcs together
 FIX: In InteractiveRouter, add special case code for overlapping arcs
 
-BUG: (3/12/09, SMR) Asking for "properties" when a node and a piece of text are selected
-     brings up two dialogs (Bug #2072).
+BUG: (3/12/09, SMR) Asking for "properties" when a node and a piece of text are
+     selected brings up two dialogs (Bug #2072).
 FIX: Now uses the multi-object dialog.
 
-IMP/MAN: (3/12/09, SMR) New command: File / Import / Spice Decks reads Spice decks (Bug #2077).
+IMP: (3/12/09, SMR) New command: File / Import / Spice Decks reads Spice decks
+     (Bug #2077).
 
 BUG: (3/12/09, DN) Compilation failure with Xml.MenuPalette.menuBoxes.
 FIX: Declare it as List<List<?>>
@@ -482,14 +558,15 @@ IMP: (3/12/09, DN) Environment is thread local.
 
 IMP: (3/12/09, DN) In tech Xml <primitiveNodeGroup> element doesn't require name.
 
-IMP/MAN: (3/11/09, SMR) When moving objects that have nonmanhattan wires on
+IMP: (3/11/09, SMR) When moving objects that have nonmanhattan wires on
      them, the Control key grids to the appropriate angle (Bug #2072).
 
-BUG: (3/11/09, GVG) Should be able to save and restore list of DRCTemplates unchanged (Bug #2051)
-and Few issues with XML and DRC rules (Bug #2017)
+BUG: (3/11/09, GVG) Should be able to save and restore list of DRCTemplates
+     unchanged (Bug #2051) and Few issues with XML and DRC rules (Bug #2017)
 FIX: Removed part where UCONSPA2D were duplicated
 
-BUG: (3/11/09, SMR) Node extraction does not handle temporary names right (Bug #2075).
+BUG: (3/11/09, SMR) Node extraction does not handle temporary names right (Bug
+     #2075).
 FIX: Ignore temporary names when copying unextracted objects.
 
 BUG: (3/11/09, SMR) Node extraction fails because of tiny polygons in
@@ -505,32 +582,36 @@ IMP: (3/10/09, DN) Snapshot contains Project Settings and Technology State.
 
 IMP: (3/9/09, GVG) Enable/Disable of remove button in AddTech Preference
 
-IMP: (3/9/09, SMR) Fixed command to list unused library files on disk (Bug #2038).
+IMP: (3/9/09, SMR) Fixed command to list unused library files on disk (Bug
+     #2038).
 
-IMP/MAN: (3/9/09, SMR) Added CIF output scaling factor to project settings (Bug #2071).
+IMP: (3/9/09, SMR) Added CIF output scaling factor to project settings (Bug
+     #2071).
 
-BUG: (3/9/09, SMR) Array command doesn't remember edge overlap distance (Bug #2067).
+BUG: (3/9/09, SMR) Array command doesn't remember edge overlap distance (Bug
+     #2067).
 FIX: Remember just this option, but don't remember other spacing metrics
      because they are determined by the selection.
 
 BUG: (3/9/09, SMR) Array command makes two or 3 copies of each node (Bug #2067).
-FIX: Use a Set instead of a List so that nodes are scheduled for copying only once.
+FIX: Use a Set instead of a List so that nodes are scheduled for copying only
+     once.
 
 IMP: (3/6/09, GVG) Changes for "default artwork color broken again (Bug #2069)".
-It is not fixed yet.
+     It is not fixed yet.
 
-IMP: (3/5/09, DN) Enhance Xml element <primitiveNodeGroup> to define transisistor groups.
-    Use it in "mocmos.xml". Rename transistor ports in "mocmos.xml".
+IMP: (3/5/09, DN) Enhance Xml element <primitiveNodeGroup> to define transisistor
+     groups. Use it in "mocmos.xml". Rename transistor ports in "mocmos.xml".
 
 ************************* Version 8.09d: ******************************
 
 IMP: (3/4/09, DN) Add <nodeLayer> element to Xml technology syntax.
 
-BUG: (3/4/09, GVG) Wrong cut and port names in poly contacts defined by the new series. Detected
-by Bug #2060
+BUG: (3/4/09, GVG) Wrong cut and port names in poly contacts defined by the new
+     series. Detected by Bug #2060
 FIX: Xml.Layer and names are correct now
 
-IMP/MAN: (3/4/09, SMR) Node Extractor has preference to flatten Pcells (Bug #2061).
+IMP: (3/4/09, SMR) Node Extractor has preference to flatten Pcells (Bug #2061).
 
 BUG: (3/4/09, SMR) Node extractor creates wide diffusion arcs that overshoot
      the transistor (Bug #2059).
@@ -540,21 +621,24 @@ BUG: (3/3/09, SMR) GDS import may rename duplicate exports to conflict with
      an existing export (Bug #2058).
 FIX: Scan all exports to ensure conflict resolution doesn't cause confusion.
 
-BUG: (3/3/09, SMR) Node extraction fails when two multicut contacts are close (Bug #2053).
+BUG: (3/3/09, SMR) Node extraction fails when two multicut contacts are close
+     (Bug #2053).
 FIX: Ensure there is metal covering all of the cuts before considering them.
 
-IMP: (3/1/09, DN) mocmos and tsmc180 technologies are defined by patched Xml files.
+IMP: (3/1/09, DN) mocmos and tsmc180 technologies are defined by patched Xml
+     files.
 
 IMP: (3/1/09, DN) Define pureLayerNodes in CMOS90 in the same order as Layers.
 
 IMP: (2/28/09, DN) In TechnologyTest test also for xml resizing.
 
-BUG: (2/28/09, DN) Central Transistor-Gate electrical NodeLayer in mocmos serpentine
-    transistor has incorrect serpentine bExtent and tExtent.
+BUG: (2/28/09, DN) Central Transistor-Gate electrical NodeLayer in mocmos
+     serpentine transistor has incorrect serpentine bExtent and tExtent.
 FIX: Change from 2 to 0.
 
-IMP: (2/28/09, DN) Contact control alignment (centered/spread to edges/packed into a corner)
-    is controlled by Variable "CUT_alignment" instead of techBits (Bug #2014).
+IMP: (2/28/09, DN) Contact control alignment (centered/spread to edges/packed
+     into a corner) is controlled by Variable "CUT_alignment" instead of techBits
+     (Bug #2014).
 
 BUG: (2/27/09, DN) Database regression failed in Schematic.xml.
 FIX: Add Carbon Nanotube PrimitiveNodeFunctions to Technology.xsd .
@@ -562,8 +646,9 @@ FIX: Add Carbon Nanotube PrimitiveNodeFunctions to Technology.xsd .
 BUG: (2/26/09, DN) GNU release crashes on "tsmc180.xml".
 FIX: In TechFactory.r check if URL exists.
 
-IMP/MAN: (2/26/09, SMR) Added Carbon Nanotube schematic transistors for Villanova
-     (new PrimitiveNodeProto.Function and a new Schematic transistor symbol) (Bug #2055).
+IMP: (2/26/09, SMR) Added Carbon Nanotube schematic transistors for Villanova
+     (new PrimitiveNodeProto.Function and a new Schematic transistor symbol) (Bug
+     #2055).
 
 IMP: (2/26/09, DN) Class PrimitiveNodeGroup.
 
@@ -571,19 +656,21 @@ IMP: (2/25/09, GVG) TechEditorWizard creates an empty Misc menu (Bug #2054)
 
 IMP: (2/24/09, GVG) Must XML File match with Tech Name? (Bug #2050)
 
-BUG: (2/24/09, DN) New: Can't open library - infinite NullPointerExceptions (#Bug 2052).
+BUG: (2/24/09, DN) New: Can't open library - infinite NullPointerExceptions (#Bug
+     2052).
 FIX: In Layer.graphicsChanged() check if the Layer is free.
 
-IMP/MAN: (2/24/09, SMR) The layer visibility configurations now understand the
+IMP: (2/24/09, SMR) The layer visibility configurations now understand the
      SHIFT-# commands and incorporate them uniformly.  The default "visibility
      configurations" list in the Layers Tab shows the 10 SHIFT-# entries.
      You can change the visible layers associated with any of the SHIFT-# entries
-     and can even rename them.  You can also add your own visibility configuration
-     entries, but they won't be bindable to Quick Keys (only the SHIFT-# entries,
-     already bound to a quick key, can be rebound).
+     and can even rename them.  You can also add your own visibility
+     configuration entries, but they won't be bindable to Quick Keys (only the
+     SHIFT-# entries, already bound to a quick key, can be rebound).
 
-BUG: (2/23/09, DN) MoCMOS transitors are not properly resized in SCMOS ruleset.
-FIX: Add rule "24.3 Mosis" to Mosis180DRCDeck.xml. Fix MoCMOS.makeFactoryDesignRules().
+BUG: (2/23/09, DN) MoCMOS transistors are not properly resized in SCMOS ruleset.
+FIX: Add rule "24.3 Mosis" to Mosis180DRCDeck.xml. Fix
+     MoCMOS.makeFactoryDesignRules().
 
 BUG: (2/23/09, GVG) NPE while reading XML tech (Bug #2049)
 FIX: Store tech name in a temp variable.
@@ -593,31 +680,37 @@ FIX: Store tech name in a temp variable.
 BUG: (2/20/09, DN) Extra Layer function DEEP is not saved in Xml.
 FIX: Add DEEP to PrimitiveNode.getExtraName/parseExtraName .
 
-IMP/MAN: (2/19/09, SMR) Measurement mode preserves measurements when reentering the mode
-     Now have Windows / Measurements commands to control it.  Text is shifted to be
-     more readable (Bug #2026).
+IMP: (2/19/09, SMR) Measurement mode preserves measurements when reentering the
+     mode. Now have Windows / Measurements commands to control it.  Text is
+     shifted to be more readable (Bug #2026).
 
-IMP: (2/18/09, DN) Move call of CMOS90.loadNodesInPalette from "setState" method to
-  constructor. The unused nodes are cleaned later by Technology.filterNodeGroups .
+IMP: (2/18/09, DN) Move call of CMOS90.loadNodesInPalette from "setState" method
+     to constructor. The unused nodes are cleaned later by
+     Technology.filterNodeGroups .
 
 IMP: (2/18/09, DN) TechFactory.
 
-BUG: (2/18/09, DN) Some technologies initialize nodeGroups instead of factoryNodeGroups.
-FIX: Use factoryNodeGroups in CMOS90.java, EFIDO.java, FPGA.java, GEM.java, PCB.java, RCMOS.java .
+BUG: (2/18/09, DN) Some technologies initialize nodeGroups instead of
+     factoryNodeGroups.
+FIX: Use factoryNodeGroups in CMOS90.java, EFIDO.java, FPGA.java, GEM.java,
+     PCB.java, RCMOS.java .
 
-BUG: (2/17/09, SMR) Node extraction should not ignore tiny polygons by default (Bug #2046).
+BUG: (2/17/09, SMR) Node extraction should not ignore tiny polygons by default
+     (Bug #2046).
 FIX: In Network preferences, polygon ignoring is a checkbox.
 
 BUG: (2/16/09, SMR) Hierarchical node extraction not working (Bug #2048).
-FIX: Implant analysis was not working hierarchically, causing incorrect implant assumptions.
+FIX: Implant analysis was not working hierarchically, causing incorrect implant
+     assumptions.
 
-BUG: (2/15/06, DN) The MinSizeRule of "cmos90:A-Metal-1-N-Active-Con" and "cmos90:A-Metal-1-P-Active-Con"
-  is different in TSMC and ST foundries though NoedLayers are the same.
-FIX: In ST90DRCDeck.xml add A-Metal-1-N-Active-Con and A-Metal-1-P-Active-Con to NODSIZ rule.
-     Change numbers in DRCToolTest.basicPrimitiveTest.
+BUG: (2/15/06, DN) The MinSizeRule of "cmos90:A-Metal-1-N-Active-Con" and
+     "cmos90:A-Metal-1-P-Active-Con" is different in TSMC and ST foundries though
+     NoedLayers are the same.
+FIX: In ST90DRCDeck.xml add A-Metal-1-N-Active-Con and A-Metal-1-P-Active-Con to
+     NODSIZ rule. Change numbers in DRCToolTest.basicPrimitiveTest.
 
 IMP: (2/14/09, DN) ProjSettings class is a mirror of "projsettings.xml".
-   It keeps values, not Settings. Setting logic moved to other classes.
+     It keeps values, not Settings. Setting logic moved to other classes.
 
 BUG: (2/14/09, DN) TechnologyTest.main doesn't return proper exit code.
 FIX: In TechnologyTest.main set good = true on success.
@@ -626,10 +719,11 @@ IMP: (2/12/09, DN) Partial commit from twoJvm branch: Technology.loadTechParams 
 
 IMP: (2/12/09, DN) Partial commit from twoJvm branch: Setting.Group .
 
-IMP: (2/12/09, DN) Initial implementation of via customization (variant B) (Bug #2045).
+IMP: (2/12/09, DN) Initial implementation of via customization (variant B) (Bug
+     #2045).
 
 BUG: (2/11/09, DN) The initial implementation of via customization broke
-   getShapeOfNode() for tcms180:N-Poly-RPO-Resistor
+     getShapeOfNode() for tcms180:N-Poly-RPO-Resistor
 FIX: In Technology protect changes by TESTSURROUNDOVERRIDE = false (Bug #2045).
 
 IMP: (2/11/09, SMR) Initial implementation of via customization (Bug #2045).
@@ -637,7 +731,7 @@ IMP: (2/11/09, SMR) Initial implementation of via customization (Bug #2045).
 IMP: (2/11/09, DN) Move graphics preferences from EGraphics to Layer.
 
 IMP: (2/10/09, DN) Partial commit from twoJvm branch. Tool Settings are
-   initialized in a special module before initialization of Tools.
+     initialized in a special module before initialization of Tools.
 
 BUG: (2/9/09, SMR) When a multi-cut contact is extracted, does not handle
      if the resulting node is rotated (Bug #2043).
@@ -649,20 +743,24 @@ BUG: (2/9/09, SMR) When a multi-screen Windows system has its main window
 FIX: Offset the monitor locations.
 
 IMP: (2/6/09, GVG) Get Array tool working on arcs and their pins (Bug #2041).
-Implemented by adding the arc pins into the nodes list.
+     Implemented by adding the arc pins into the nodes list.
 
-IMP: (2/6/09, GVG) Adding menu to xml file generated with the Tech Editor Wizard (Bug #2042)
+IMP: (2/6/09, GVG) Adding menu to xml file generated with the Tech Editor Wizard
+     (Bug #2042)
 
 BUG: (2/6/09, GVG) Exception on array command with arcs (Bug#2040)
 FIX: Passing the parent cell instead of getting from the nodes list.
 
-BUG: (2/6/09, GVG) Guarantee that GDS values are properly parsed from TechEditor txt file (Bug #2010)
+BUG: (2/6/09, GVG) Guarantee that GDS values are properly parsed from TechEditor
+     txt file (Bug #2010)
 FIX: Implemented the latest request "X/Y,Zp,Wt".
 
 BUG: (2/5/09, GVG) Can't write XML from Tech editor (Bug #2035)
-FIX: Undoing fix for Bug #2000 and avoiding the cast expection. Error message is printed now.
+FIX: Undoing fix for Bug #2000 and avoiding the cast expectation. Error message
+     is printed now.
 
-IMP/MAN: (2/5/09, SMR) Added command to list unused library files on disk (Bug #2038).
+IMP: (2/5/09, SMR) Added command to list unused library files on disk (Bug
+     #2038).
 
 BUG: (2/4/09, DN) New: Exception when creating a new technology (Bug #2034).
 FIX: Temporarily disable check of state in Setting constructor.
@@ -674,13 +772,15 @@ BUG: (2/3/09, SMR) Node extractor doesn't handle large contacts without
      "approximate cut placement" set (Bug #2032).
 FIX: Extractor now tries to do exact placement of large contacts.
 
-BUG: (2/03/09, DN) NPE in Network tool undoing Node extraction task plus (Bug #2030).
+BUG: (2/03/09, DN) NPE in Network tool undoing Node extraction task plus (Bug
+     #2030).
 FIX: In NetworkTool.getNetlist check if Cell is linked.
 
 BUG: (1/30/09, DN) Meaning option SoftTechnologies is created as Pref.
 FIX: Convert Pref to Setting.
 
-BUG: (1/30/09, DN) Electric is not reading User's and Project Preferences!! (Bug #2029).
+BUG: (1/30/09, DN) Electric is not reading User's and Project Preferences!! (Bug
+     #2029).
 FIX: Add setCachedObjFromPreferences() in Pref constructor.
 
 BUG: (1/30/09, DN) User.playSound is called from "doIt" methods.
@@ -690,16 +790,17 @@ BUG: (1/30/09, DN) ELIB reader crashes on empty arc name (Bug #2027).
 FIX: In ArcInst constructor use checkNameKey(nameKey, topology).
 
 BUG: (1/29/09, DN) Library readers replace nameDescriptors of arcs by smart text
-  descriptor calculated from current Prefs.
-FIX: Move call of ArcInst.getSmartTextDescriptor to upper constructor which is not called
-  from library readers.
+     descriptor calculated from current Prefs.
+FIX: Move call of ArcInst.getSmartTextDescriptor to upper constructor which is
+     not called from library readers.
 
-BUG: (1/29/09, DN) Each instance of Artwork.defaultLayer creates a new Pref object.
+BUG: (1/29/09, DN) Each instance of Artwork.defaultLayer creates a new Pref
+     object.
 FIX: Add method Layer.isFree(). Don't allocate Prefs for free Layers.
 
 IMP: (1/29/09, DN) Some Prefs can be used in server Jobs, other are client only.
-    Server Prefs are created by special factory methods during Electric initialization.
-    Current list of Server Prefs:
+     Server Prefs are created by special factory methods during Electric
+     initialization. Current list of Server Prefs:
       TextDescriptor.cacheBits
       TextDescriptor.cacheColor
       TextDescriptor.cacheFont
@@ -716,7 +817,8 @@ IMP: (1/29/09, DN) Some Prefs can be used in server Jobs, other are client only.
       User.ErrorLimit
       User.PlaceCellCenter
 
-BUG: (1/29/09, DN) Initialization of 3D info for CMOS90.mdLayer used undefined viaDLayer.getDepth().
+BUG: (1/29/09, DN) Initialization of 3D info for CMOS90.mdLayer used undefined
+     viaDLayer.getDepth().
 FIX: Dummy 3D info for CMOS90.viaDLayer .
 
 IMP: (1/29/09, DN) Check against late initialization of preferences.
@@ -724,25 +826,29 @@ IMP: (1/29/09, DN) Check against late initialization of preferences.
 BUG: (1/28/09, SMR) Interactive sizing does not respect grid (Bug #2025).
 FIX: Grid align new sizes.
 
-IMP/MAN: (1/28/09, SMR) Contact nodes can now customize their cut placement by
+IMP: (1/28/09, SMR) Contact nodes can now customize their cut placement by
      requesting that the cuts be centered (the current way and the default),
      be spread to the edges, or be packed into a corner.  They can also override
-     the cut spacing.  These controls are available in the Node Properties dialog (Bug #2014).
+     the cut spacing.  These controls are available in the Node Properties dialog
+     (Bug #2014).
 
-BUG: (1/28/09, SMR) Changes made in the "multi-object" Properties dialog crash (Bug #2024).
+BUG: (1/28/09, SMR) Changes made in the "multi-object" Properties dialog crash
+     (Bug #2024).
 FIX: Made GetInfoMulti.MultiChange a static class.
 
-BUG: (1/27/09, SMR) Setting reconciliation complains when values are vanishingly close (Bug #2022).
-FIX: In GenMath.objectsReallyEqual(), accept floating-point values that are close.
-     In OptionReconcile.java, compare for "closeness" and display formated floating point.
+BUG: (1/27/09, SMR) Setting reconciliation complains when values are vanishingly
+     close (Bug #2022).
+FIX: In GenMath.objectsReallyEqual(), accept floating-point values that are
+     close. In OptionReconcile.java, compare for "closeness" and display
+     formatted floating point.
 
 ************************* Version 8.09b: ******************************
 
-IMP/MAN: (1/27/09, JG) New fat wiring mode in wiring tool by default.
+IMP: (1/27/09, JG) New fat wiring mode in wiring tool by default.
 
-IMP/MAN: (1/26/09, GVG) TechEditor supports pin and text now (bug #2009)
+IMP: (1/26/09, GVG) TechEditor supports pin and text now (bug #2009)
 
-IMP/MAN: (1/26/09, SMR) Interactive sizing now shows handles on sides
+IMP: (1/26/09, SMR) Interactive sizing now shows handles on sides
      and corners of nodes (Bug #2021).
 
 BUG: (1/26/09, SMR) Antenna Check loops forever (Bug #2020).
@@ -753,32 +859,34 @@ IMP: (1/23/09, JG) new routing, fat wiring mode.
 
 IMP: (1/22/09, GVG) Better support of GDS info in XML tech reader (Bug #2019)
 
-IMP/MAN: (1/21/09, GVG) Can't Artwork tech be saved as XML? (Bug #2000).
-Schematics and Artwork can't be exported as XML technologies.
+IMP: (1/21/09, GVG) Can't Artwork tech be saved as XML? (Bug #2000).
+     Schematics and Artwork can't be exported as XML technologies.
 
-IMP/MAN: (1/21/09, GVG) TechEditor should at least support datatypes in GDS definition (Bug #2009)
+IMP: (1/21/09, GVG) TechEditor should at least support datatypes in GDS
+     definition (Bug #2009)
 
-IMP/MAN: (1/21/09, SMR) Added ability to convert unknown GDS layers
+IMP: (1/21/09, SMR) Added ability to convert unknown GDS layers
      into random Electric layers (Bug #2018).
 
 BUG: (1/21/09, SMR) Calls to Library.findNodeProto() with no view given may
      return an old version (Bug #1990).
 FIX: Ensure the latest version is returned.
 
-IMP/MAN: (1/21/09, SMR) "Array" dialog is now modeless and has "Draw" button
+IMP: (1/21/09, SMR) "Array" dialog is now modeless and has "Draw" button
      to let users drag an area for the array (Bug #1890).
 
 BUG: (1/20, 09, GVG) Incorrect export of DRC decks (Bug #2004)
 FIX: Extra code added for special XML characters.
 
-BUG: (1/20/09, GVG) Avoid the NPE in single boxes defining vias in contact (Bug #2012)
+BUG: (1/20/09, GVG) Avoid the NPE in single boxes defining vias in contact (Bug
+     #2012)
 FIX: Detecting contact nodes that don't have multi cuts
 
 BUG: (1/20/09, SMR) GDS output that is "merged" is incorrect (Bug #2016).
-FIX: Switched from the Java-based Polygon Merge algorithm to the Sweep mode of GeometryHandler.
-     Polygons are not as dense, but are correct for G
+FIX: Switched from the Java-based Polygon Merge algorithm to the Sweep mode of
+     GeometryHandler. Polygons are not as dense, but are correct for G
 
-IMP/MAN: (1/20/09, SMR) When wiring with the right-button, holding Control
+IMP: (1/20/09, SMR) When wiring with the right-button, holding Control
      disables connection to existing circuitry (Bug #2013).
 
 BUG: (1/20/09, SMR) Deleting Spice primitives causes crash (Bug #2015).
@@ -799,21 +907,24 @@ IMP: (1/15/09, RK) NCC uses tolerances specified in "Size checking"
      transistor widths and lengths are close enough to combine in
      series / parallel. (Bug #1980)
 
-IMP: (1/14/09, GVG) First version of TechEditorWizard generating protection polys in transistors.
+IMP: (1/14/09, GVG) First version of TechEditorWizard generating protection polys
+     in transistors.
 
-IMP/MAN: (1/14/09, SMR) Units preferences now works for distance units
+IMP: (1/14/09, SMR) Units preferences now works for distance units
      and includes a "scalable" option to use internal grid units (Bug #2007).
 
 BUG: (1/14/09, RK) REALLY push back body check additions to NCC
      regressions. (Discovered because regression 090114 failed.)
 
-BUG: (1/14/09, SMR) Bias ports on transistors cause Spice netlister to fail (Bug #2005).
+BUG: (1/14/09, SMR) Bias ports on transistors cause Spice netlister to fail (Bug
+     #2005).
 FIX: Ignore nulls when examining bias information.
 
 IMP: (1/13/09, RK) I got rid of the dialog box that pops up after
      NCC completes with no errors. (Bug #1859)
 
-BUG: (1/13/09, GVG) Out of Bounds exception while switching units in Tech preference (Bug #2002)
+BUG: (1/13/09, GVG) Out of Bounds exception while switching units in Tech
+     preference (Bug #2002)
 FIX: Detecting "NONE" scale.
 
 IMP: (1/13/09, RK) I removed the backwards compatibility hack in NCC that
@@ -822,7 +933,8 @@ IMP: (1/13/09, RK) I removed the backwards compatibility hack in NCC that
      to do this, I needed to update the Technologies: MoCMOS and CMOS90
      so they correctly use the new NodeProto.Functions. (Bug #1858)
 
-BUG: (1/13/09, SMR) Pad Frame generator fails if core cell has a view (Bug #2001).
+BUG: (1/13/09, SMR) Pad Frame generator fails if core cell has a view (Bug
+     #2001).
 FIX: In PadGenerator.createPadFrame(), do not append view if one exists.
 
 IMP: (1/13/09, RK) I changed the implementation of
@@ -835,11 +947,12 @@ IMP: (1/13/09, RK) I changed the implementation of
      the NCC user's manual. (Bug #1910)
 
 IMP: (1/12/09, GVG) Fixing TechEditorWizard regression due to year change.
-Expected data included 2008.
+     Expected data included 2008.
 
 ************************* Version 8.09a: ******************************
 
-IMP: (1/11/09, GVG) Improvements for "Message not useful if XML parsing error is detected" (Bug #1998)
+IMP: (1/11/09, GVG) Improvements for "Message not useful if XML parsing error is
+     detected" (Bug #1998)
 
 BUG: (1/11/09, GVG) NPE in Tech Specific -> Write XML of current tech (Bug #1999)
 FIX: Warning the case and preventing the NPE.
@@ -847,13 +960,15 @@ FIX: Warning the case and preventing the NPE.
 IMP: (1/5/09, SMR) Now remember (in Prefs) the Explorer-tree setting to evaluate
      numbers when sorting cell names  (Bug #1981).
 
-BUG: (1/5/09, SMR) Wiring an arc to a contact uses incorrect arc width (Bug #1995).
-FIX: In Router.findArcWidthToUse(), when no other arcs are present on a primitive,
-     compute width based on difference between current and default size.
+BUG: (1/5/09, SMR) Wiring an arc to a contact uses incorrect arc width (Bug
+     #1995).
+FIX: In Router.findArcWidthToUse(), when no other arcs are present on a
+     primitive, compute width based on difference between current and default
+     size.
 
-IMP/MAN: (1/5/09, SMR) Added LTSpice raw output reader (Bug #1996).
+IMP: (1/5/09, SMR) Added LTSpice raw output reader (Bug #1996).
 
-BUG/MAN: (12/23/08, SMR) GDS Project Settings should make it clear
+BUG: (12/23/08, SMR) GDS Project Settings should make it clear
      how to ignore a layer (Bug #1994).
 FIX: Updated dialog and user's manual.
 
@@ -864,7 +979,7 @@ BUG: (12/19/08, GVG) Cannot load libraries (Bug #1992)
 FIX: Adding extra code to detect invalid delib libraries.
 
 IMP: (12/18/08, GVG) Improvements in Output-based classes to detect errors and
-warnings during the writing process (Bug #1937)
+     warnings during the writing process (Bug #1937)
 
 ************************* END OF Version 8.08, GNU RELEASE *************
 ************************* Version 8.08o: ******************************
