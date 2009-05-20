@@ -400,9 +400,7 @@ public class AutoStitch
 			// found daisy-chain elements: do them now
 			System.out.println("Auto-routing detected " + allRoutes.size() + " daisy-chained arcs");
 			for(Route route : allRoutes)
-			{
 				Router.createRouteNoJob(route, cell, false, arcsCreatedMap, nodesCreatedMap);
-			}
 
 			// reset for the rest of the analysis
 			allRoutes = new ArrayList<Route>();
@@ -618,21 +616,21 @@ public class AutoStitch
         RouteElementPort headRE = RouteElementPort.existingPortInst(ai.getHeadPortInst(), ai.getHeadLocation());
         RouteElementPort tailRE = RouteElementPort.existingPortInst(ai.getTailPortInst(), ai.getTailLocation());
         DaisyChainPoint firstDCP = daisyPoints.get(0);
-        DaisyChainPoint lastDCP = daisyPoints.get(daisyPoints.size()-1);
+//        DaisyChainPoint lastDCP = daisyPoints.get(daisyPoints.size()-1);
         if (firstDCP.location.distance(ai.getHeadLocation()) > firstDCP.location.distance(ai.getTailLocation()))
         {
         	RouteElementPort swap = headRE;   headRE = tailRE;   tailRE = swap;
         }
-        if (headRE.getNodeInst().getNumConnections() == 1 && headRE.getLocation().equals(firstDCP.location))
-        {
-        	route.add(RouteElementPort.deleteNode(headRE.getNodeInst()));
-        	headRE = null;
-        }
-        if (tailRE.getNodeInst().getNumConnections() == 1 && tailRE.getLocation().equals(lastDCP.location))
-        {
-        	route.add(RouteElementPort.deleteNode(tailRE.getNodeInst()));
-        	tailRE = null;
-        }
+//        if (headRE.getNodeInst().getNumConnections() == 1 && headRE.getLocation().equals(firstDCP.location))
+//        {
+//        	route.add(RouteElementPort.deleteNode(headRE.getNodeInst()));
+//        	headRE = null;
+//        }
+//        if (tailRE.getNodeInst().getNumConnections() == 1 && tailRE.getLocation().equals(lastDCP.location))
+//        {
+//        	route.add(RouteElementPort.deleteNode(tailRE.getNodeInst()));
+//        	tailRE = null;
+//        }
         String name = ai.getName();
         for(DaisyChainPoint dcp : daisyPoints)
         {

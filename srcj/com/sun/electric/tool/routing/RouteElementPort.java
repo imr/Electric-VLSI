@@ -418,7 +418,7 @@ public class RouteElementPort extends RouteElement {
             return "RouteElementPort newNode "+np+" size "+width+","+height+" at "+location;
         }
         else if (getAction() == RouteElementAction.deleteNode) {
-            return "RouteElementPort deleteNode "+nodeInst;
+            return "RouteElementPort deleteNode "+nodeInst+" at ("+nodeInst.getAnchorCenterX()+","+nodeInst.getAnchorCenterY()+")";
         }
         else if (getAction() == RouteElementAction.existingPortInst) {
             return "RouteElementPort existingPortInst "+portInst;

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+BUG: (5/20/09, SMR) Node extractor may drop cuts, and auto-router may drop arcs (Bug #2183).
+FIX: Repaired node extractor and auto-router.
+
 BUG: (5/19/09, SMR) Node extractor is confused by multiple cuts in the same location (Bug #2183).
 FIX: Eliminate redundancy.
 
