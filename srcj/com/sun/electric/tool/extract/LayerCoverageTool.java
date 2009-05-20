@@ -129,7 +129,7 @@ public class LayerCoverageTool extends Tool
         public LayerCoveragePreferences(boolean factory) {
             this(factory, TechPool.getThreadTechPool());
             seaIfGatesPrefs = new SeaOfGates.SeaOfGatesOptions();
-            seaIfGatesPrefs.getOptionsFromPreferences();
+            if (!factory) seaIfGatesPrefs.getOptionsFromPreferences();
         }
 
         private LayerCoveragePreferences(boolean factory, TechPool techPool)
