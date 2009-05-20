@@ -610,17 +610,23 @@ public class AutoStitch
 		if (daisyPoints.size() <= 1) return;
 		Collections.sort(daisyPoints, new SortDaisyPoints());
 
-        Route route = new Route();
+		Route route = new Route();
+        String name = ai.getName();
         route.add(RouteElementArc.deleteArc(ai));
 
         RouteElementPort headRE = RouteElementPort.existingPortInst(ai.getHeadPortInst(), ai.getHeadLocation());
         RouteElementPort tailRE = RouteElementPort.existingPortInst(ai.getTailPortInst(), ai.getTailLocation());
         DaisyChainPoint firstDCP = daisyPoints.get(0);
-//        DaisyChainPoint lastDCP = daisyPoints.get(daisyPoints.size()-1);
-        if (firstDCP.location.distance(ai.getHeadLocation()) > firstDCP.location.distance(ai.getTailLocation()))
+        DaisyChainPoint lastDCP = daisyPoints.get(daisyPoints.size()-1);
+        double distOK = firstDCP.location.distance(ai.getHeadLocation()) +
+        	lastDCP.location.distance(ai.getTailLocation());
+        double distSwap = firstDCP.location.distance(ai.getTailLocation()) +
+    		lastDCP.location.distance(ai.getHeadLocation());
+        if (distOK > distSwap)
         {
         	RouteElementPort swap = headRE;   headRE = tailRE;   tailRE = swap;
         }
+
 //        if (headRE.getNodeInst().getNumConnections() == 1 && headRE.getLocation().equals(firstDCP.location))
 //        {
 //        	route.add(RouteElementPort.deleteNode(headRE.getNodeInst()));
@@ -631,7 +637,6 @@ public class AutoStitch
 //        	route.add(RouteElementPort.deleteNode(tailRE.getNodeInst()));
 //        	tailRE = null;
 //        }
-        String name = ai.getName();
         for(DaisyChainPoint dcp : daisyPoints)
         {
             RouteElementPort dcpRE = RouteElementPort.existingPortInst(dcp.pi, dcp.location);
