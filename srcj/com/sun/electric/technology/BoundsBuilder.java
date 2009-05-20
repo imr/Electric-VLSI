@@ -48,7 +48,7 @@ public class BoundsBuilder extends AbstractShapeBuilder {
     }
 
     public BoundsBuilder(CellBackup cellBackup) {
-        setup(cellBackup);
+        setup(cellBackup, null, false, false, null);
         clear();
     }
 
@@ -166,7 +166,7 @@ public class BoundsBuilder extends AbstractShapeBuilder {
     }
 
     @Override
-    public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride) {
+    public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
         if (!hasDoubleBounds) {
             assert numPoints > 0;
             doubleMinX = doubleMaxX = doubleCoords[0];

@@ -587,8 +587,7 @@ public class VectorCache {
             for (VectorManhattanBuilder b: pureBoxBuilders)
                 b.clear();
             // draw all arcs
-            shapeBuilder.setup(cell);
-            shapeBuilder.setOrientation(orient);
+            shapeBuilder.setup(cell.backupUnsafe(), orient, false, false, null);
             shapeBuilder.vc = this;
             shapeBuilder.hideOnLowLevel = false;
             shapeBuilder.textType = VectorText.TEXTTYPEARC;
@@ -742,7 +741,7 @@ public class VectorCache {
         private boolean pureLayer;
 
         @Override
-        public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride) {
+        public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
             Point2D.Double[] points = new Point2D.Double[numPoints];
             for (int i = 0; i < numPoints; i++)
                 points[i] = new Point2D.Double(doubleCoords[i*2], doubleCoords[i*2+1]);

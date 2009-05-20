@@ -23,7 +23,9 @@
  */
 package com.sun.electric.database.geometry;
 
+import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.DisplayedText;
@@ -35,6 +37,8 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 
 import java.awt.Font;
@@ -509,9 +513,21 @@ public class Poly extends PolyBase {
         return threadLocalLambdaBuilder.get();
     }
 
+    /**
+     * Returns thread local instance of Poly builder to build shapes in grid units.
+     * @return thread local instance of Poly builder.
+     */
+    public static Builder threadLocalGridBuilder() {
+        return threadLocalGridBuilder.get();
+    }
+
     private static ThreadLocal<Poly.Builder> threadLocalLambdaBuilder = new ThreadLocal<Poly.Builder>() {
         protected Poly.Builder initialValue() { return Poly.newLambdaBuilder(); }
     };
+    private static ThreadLocal<Poly.Builder> threadLocalGridBuilder = new ThreadLocal<Poly.Builder>() {
+        protected Poly.Builder initialValue() { return Poly.newGridBuilder(); }
+    };
+
 
     /**
      * This class builds shapes of nodes and arcs in lambda units as Poly arrays.
@@ -543,6 +559,35 @@ public class Poly extends PolyBase {
         /**
          * Returns the polygons that describe arc "ai".
          * @param ai the ArcInst that is being described.
+         * @return an array of Poly objects that describes this ArcInst graphically.
+         */
+    	public Poly [] computeShapeArray(CellBackup cellBackup, ImmutableNodeInst n, PrimitiveNode np, Technology.NodeLayer [] primLayers, EGraphics graphicsOverride, boolean electrical, boolean reasonable, Layer.Function.Set onlyTheseLayers) {
+            isChanging = true;
+            setup(cellBackup, null, electrical, reasonable, onlyTheseLayers);
+            lastPolys.clear();
+            genShapeOfNode(n, np, primLayers, graphicsOverride);
+            if (lastPolys.isEmpty()) {
+                isChanging = false;
+                return Poly.NULL_ARRAY;
+            }
+            Poly[] polys = new Poly[lastPolys.size()];
+            if (inLambda) {
+                for (int i = 0; i < polys.length; i++) {
+                    Poly poly = lastPolys.get(i);
+                    poly.gridToLambda();
+                    polys[i] = poly;
+                }
+            } else {
+                for (int i = 0; i < polys.length; i++)
+                    polys[i] = lastPolys.get(i);
+            }
+            isChanging = false;
+            return polys;
+        }
+
+        /**
+         * Returns the polygons that describe arc "ai".
+         * @param ai the ArcInst that is being described.
          * @return an iterator on Poly objects that describes this ArcInst graphically.
          */
         public Iterator<Poly> getShape(ArcInst ai) {
@@ -563,9 +608,9 @@ public class Poly extends PolyBase {
          * @param ai the ArcInst that is being described.
          * @return an array of Poly objects that describes this ArcInst graphically.
          */
-    	public Poly [] getShapeArray(ArcInst ai) {
+    	public Poly [] getShapeArray(ArcInst ai, Layer.Function.Set onlyTheseLayers) {
             isChanging = true;
-            setup(ai.getParent());
+            setup(ai.getParent().backupUnsafe(), null, false, false, onlyTheseLayers);
             lastPolys.clear();
             genShapeOfArc(ai.getD());
             if (lastPolys.isEmpty()) {
@@ -608,7 +653,7 @@ public class Poly extends PolyBase {
         }
 
         @Override
-        public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride) {
+        public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
             assert isChanging;
             Point2D.Double[] points = new Point2D.Double[numPoints];
             for (int i = 0; i < numPoints; i++)
@@ -617,6 +662,21 @@ public class Poly extends PolyBase {
             poly.setStyle(style);
             poly.setLayer(layer);
             poly.setGraphicsOverride(graphicsOverride);
+            poly.setPort(pp);
+            lastPolys.add(poly);
+        }
+
+        @Override
+        public void addTextPoly(int numPoints, Poly.Type style, Layer layer, String message, TextDescriptor descriptor) {
+            assert isChanging;
+            Point2D.Double[] points = new Point2D.Double[numPoints];
+            for (int i = 0; i < numPoints; i++)
+                points[i] = new Point2D.Double(doubleCoords[i*2], doubleCoords[i*2+1]);
+            Poly poly = new Poly(points);
+            poly.setStyle(style);
+            poly.setLayer(layer);
+            poly.setString(message);
+            poly.setTextDescriptor(descriptor);
             lastPolys.add(poly);
         }
 

@@ -384,7 +384,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		private String message;
 		private TextDescriptor descriptor;
 		private double lWidth, rWidth, extentT, extendB;
-        private long cutGridSizeX, cutGridSizeY, cutGridSep1D, cutGridSep2D;
+        private int cutGridSizeX, cutGridSizeY, cutGridSep1D, cutGridSep2D;
 
 		// the meaning of "representation"
 		/**
@@ -500,10 +500,10 @@ public class Technology implements Comparable<Technology>, Serializable
         public static NodeLayer makeMulticut(Layer layer, int portNum, Poly.Type style, TechPoint[] techPoints,
                 double sizeX, double sizeY, double sep1d, double sep2d) {
 			NodeLayer nl = new NodeLayer(layer, portNum, style, Technology.NodeLayer.MULTICUTBOX, techPoints);
-            nl.cutGridSizeX = DBMath.lambdaToGrid(sizeX);
-            nl.cutGridSizeY = DBMath.lambdaToGrid(sizeY);
-            nl.cutGridSep1D =  DBMath.lambdaToGrid(sep1d);
-            nl.cutGridSep2D =  DBMath.lambdaToGrid(sep2d);
+            nl.cutGridSizeX = (int)DBMath.lambdaToGrid(sizeX);
+            nl.cutGridSizeY = (int)DBMath.lambdaToGrid(sizeY);
+            nl.cutGridSep1D = (int)DBMath.lambdaToGrid(sep1d);
+            nl.cutGridSep2D = (int)DBMath.lambdaToGrid(sep2d);
             return nl;
         }
 
@@ -701,6 +701,11 @@ public class Technology implements Comparable<Technology>, Serializable
         public double getMulticutSizeY() { return DBMath.gridToLambda(cutGridSizeY); }
         public double getMulticutSep1D() { return DBMath.gridToLambda(cutGridSep1D); }
         public double getMulticutSep2D() { return DBMath.gridToLambda(cutGridSep2D); }
+
+        public int getGridMulticutSizeX() { return cutGridSizeX; }
+        public int getGridMulticutSizeY() { return cutGridSizeY; }
+        public int getGridMulticutSep1D() { return cutGridSep1D; }
+        public int getGridMulticutSep2D() { return cutGridSep2D; }
 
         void copyState(NodeLayer that) {
             assert representation == that.representation;
@@ -2257,8 +2262,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public Poly [] getShapeOfArc(ArcInst ai, Layer.Function.Set onlyTheseLayers) {
         Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
-        polyBuilder.setOnlyTheseLayers(onlyTheseLayers);
-        return polyBuilder.getShapeArray(ai);
+        return polyBuilder.getShapeArray(ai, onlyTheseLayers);
     }
 
     /**
@@ -2303,7 +2307,7 @@ public class Technology implements Comparable<Technology>, Serializable
                     b.pushPoint(a.headLocation, -cosDist, -sinDist);
                 else
                     b.pushPoint(a.headLocation);
-                b.pushPoly(Poly.Type.OPENED, layer, graphicsOverride);
+                b.pushPoly(Poly.Type.OPENED, layer, graphicsOverride, null);
             }
         } else {
             for (int i = 0; i < numArcLayers; i++) {
@@ -2321,7 +2325,7 @@ public class Technology implements Comparable<Technology>, Serializable
             if (a.isBodyArrowed()) {
                 b.pushPoint(a.headLocation);
                 b.pushPoint(a.tailLocation);
-                b.pushPoly(Poly.Type.VECTORS, generic.glyphLay, null);
+                b.pushPoly(Poly.Type.VECTORS, generic.glyphLay, null, null);
             }
             if (a.isTailArrowed()) {
                 int angleOfArrow = 3300;		// -30 degrees
@@ -2331,7 +2335,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 b.pushPoint(a.tailLocation, DBMath.cos(backAngle1)*lambdaArrowSize, DBMath.sin(backAngle1)*lambdaArrowSize);
                 b.pushPoint(a.tailLocation);
                 b.pushPoint(a.tailLocation, DBMath.cos(backAngle2)*lambdaArrowSize, DBMath.sin(backAngle2)*lambdaArrowSize);
-                b.pushPoly(Poly.Type.VECTORS, generic.glyphLay, null);
+                b.pushPoly(Poly.Type.VECTORS, generic.glyphLay, null, null);
             }
             if (a.isHeadArrowed()) {
                 angle = (angle + 1800) % 3600;
@@ -2342,7 +2346,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 b.pushPoint(a.headLocation, DBMath.cos(backAngle1)*lambdaArrowSize, DBMath.sin(backAngle1)*lambdaArrowSize);
                 b.pushPoint(a.headLocation);
                 b.pushPoint(a.headLocation, DBMath.cos(backAngle2)*lambdaArrowSize, DBMath.sin(backAngle2)*lambdaArrowSize);
-                b.pushPoly(Poly.Type.VECTORS, generic.glyphLay, graphicsOverride);
+                b.pushPoly(Poly.Type.VECTORS, generic.glyphLay, graphicsOverride, null);
             }
         }
     }
@@ -2878,7 +2882,41 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 */
-	protected Poly [] computeShapeOfNode(CellBackup.Memoization m, ImmutableNodeInst n, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, EGraphics graphicsOverride)
+	protected Poly [] computeShapeOfNode(CellBackup.Memoization m, ImmutableNodeInst n, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, EGraphics graphicsOverride) {
+        Poly[] polys = computeShapeOfNode_(m, n, electrical, reasonable, primLayers, graphicsOverride);
+        if (Job.getDebug()) {
+            Poly.Builder polyBuilder = Poly.threadLocalGridBuilder();
+            PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
+            Poly[] polys1 = polyBuilder.computeShapeArray(m.getCellBackup(), n, np, primLayers, graphicsOverride, electrical, reasonable, null);
+            assert polys.length == polys1.length;
+            for (int i = 0; i < polys.length; i++) {
+                Poly p0 = polys[i];
+                Poly p1 = polys1[i];
+                assert p0.getStyle() == p1.getStyle();
+                assert p0.getLayer() == p1.getLayer();
+                assert p0.getPort() == p1.getPort();
+                assert p0.getString() == p1.getString();
+                assert p0.getTextDescriptor() == p1.getTextDescriptor();
+                Point2D[] pts0 = p0.getPoints();
+                Point2D[] pts1 = p1.getPoints();
+                assert pts0.length == pts1.length;
+                for (int j = 0; j < pts0.length; j++) {
+                    Point2D pt0 = pts0[j];
+                    Point2D pt1 = pts1[j];
+                    double x0 = DBMath.roundShapeCoord(pt0.getX()*DBMath.GRID);
+                    double y0 = DBMath.roundShapeCoord(pt0.getY()*DBMath.GRID);
+                    double x1 = n.anchor.getGridX() + pt1.getX();
+                    double y1 = n.anchor.getGridY() + pt1.getY();
+                    if (x0 != x1 || y0 != y1) {
+                        System.out.println("Shape of " + np + " " + x0 + "x" + y0 + " " + x1 + "x" + y1);
+                    }
+                }
+            }
+        }
+        return polys;
+    }
+
+	protected Poly [] computeShapeOfNode_(CellBackup.Memoization m, ImmutableNodeInst n, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, EGraphics graphicsOverride)
 	{
 		PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
 		int specialType = np.getSpecialType();

@@ -837,14 +837,14 @@ public class ImmutableArcInstTest {
         double w2;
 
         void setTest(CellBackup cellBackup, ImmutableArcInst a, long width) {
-            setup(cellBackup);
+            setup(cellBackup, null, false, false, null);
             this.a = a;
             w2 = width*0.5;
             pointCount = 0;
         }
 
         @Override
-        public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride) {
+        public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
             assertEquals(4, pointCount);
             int angle = a.getAngle();
             long w2x = (long)Math.rint(GenMath.cos(angle)*w2*SHAPE_SCALE);
@@ -857,6 +857,7 @@ public class ImmutableArcInstTest {
             assertEquals((double)a.headLocation.getGridY()*SHAPE_SCALE - w2x + w2y, doubleCoords[5]*SHAPE_SCALE, 0);
             assertEquals((double)a.headLocation.getGridX()*SHAPE_SCALE + w2x - w2y, doubleCoords[6]*SHAPE_SCALE, 0);
             assertEquals((double)a.headLocation.getGridY()*SHAPE_SCALE + w2x + w2y, doubleCoords[7]*SHAPE_SCALE, 0);
+            assertNull(pp);
         }
 
         @Override
