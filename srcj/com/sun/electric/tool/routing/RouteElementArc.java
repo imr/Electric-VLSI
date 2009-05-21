@@ -333,7 +333,6 @@ public class RouteElementArc extends RouteElement {
 					{
 						// grow the node to allow expandable port to fit
 						headNi.resize(autoGrowth.getWidth(), autoGrowth.getHeight());
-//						headNi.modifyInstance(0, 0, autoGrowth.getLambdaFullWidth(), autoGrowth.getHeight(), 0);
 					}
 				}
 			}
@@ -360,7 +359,6 @@ public class RouteElementArc extends RouteElement {
 					{
 						// grow the node to allow expandable port to fit
 						tailNi.resize(autoGrowth.getWidth(), autoGrowth.getHeight());
-//						tailNi.modifyInstance(0, 0, autoGrowth.getLambdaFullWidth(), autoGrowth.getHeight(), 0);
 					}
 				}
 			}

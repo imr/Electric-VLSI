@@ -117,18 +117,17 @@ public abstract class Router {
      * must be called from within a Job context, however.
      * @param route the route to create
      * @param cell the cell in which to create the route
-     * @param highlightRouteEnd highlights end of route (last object) if true, otherwise leaves
-     * highlights alone.
      * @param arcsCreatedMap a map of arcs to integers which is updated to indicate the number of each arc type created.
      * @param nodesCreatedMap a map of nodes to integers which is updated to indicate the number of each node type created.
+     * @return true on error.
      */
-    public static PortInst createRouteNoJob(Route route, Cell cell,
-    	boolean highlightRouteEnd, Map<ArcProto,Integer> arcsCreatedMap, Map<NodeProto,Integer> nodesCreatedMap)
+    public static boolean createRouteNoJob(Route route, Cell cell, Map<ArcProto,Integer> arcsCreatedMap,
+    	Map<NodeProto,Integer> nodesCreatedMap)
     {
         EDatabase.serverDatabase().checkChanging();
 
         // check if we can edit this cell
-        if (CircuitChangeJobs.cantEdit(cell, null, true, false, true) != 0) return null;
+        if (CircuitChangeJobs.cantEdit(cell, null, true, false, true) != 0) return true;
 
         // pass 1: build all newNodes
         for (RouteElement e : route)
@@ -149,8 +148,9 @@ public abstract class Router {
         for (RouteElement e : route)
         {
         	if (e.getAction() == RouteElement.RouteElementAction.newNode) continue;
-            e.doAction();
+            ElectricObject result = e.doAction();
             if (e.getAction() == RouteElement.RouteElementAction.newArc) {
+            	if (result == null) return true;
                 RouteElementArc rea = (RouteElementArc)e;
                 Integer i = arcsCreatedMap.get(rea.getArcProto());
                 if (i == null) i = new Integer(0);
@@ -190,14 +190,7 @@ public abstract class Router {
 	            }
         	}
         }
-
-        PortInst created = null;
-        if (highlightRouteEnd) {
-            RouteElementPort finalRE = route.getEnd();
-            if (finalRE != null)
-            	created = finalRE.getPortInst();
-        }
-        return created;
+        return false;
     }
 
 	public static void reportRoutingResults(String prefix, Map<ArcProto,Integer> arcsCreatedMap, Map<NodeProto,Integer> nodesCreatedMap, boolean beep)
@@ -279,7 +272,11 @@ public abstract class Router {
 
             Map<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
             Map<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
-            portToHighlight = createRouteNoJob(route, cell, verbose, arcsCreatedMap, nodesCreatedMap);
+            createRouteNoJob(route, cell, arcsCreatedMap, nodesCreatedMap);
+            portToHighlight = null;
+            RouteElementPort finalRE = route.getEnd();
+            if (finalRE != null)
+            	portToHighlight = finalRE.getPortInst();
             reportRoutingResults("Wiring", arcsCreatedMap, nodesCreatedMap, beep);
 			fieldVariableChanged("portToHighlight");
             return true;

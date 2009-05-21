@@ -1004,10 +1004,12 @@ public abstract class InteractiveRouter extends Router {
         // put name on longer arc
         String name1 = null;
         String name2 = null;
+        String nameToUse = arc.getName();
+        if (arc.getNameKey().isTempname()) nameToUse = null;
         if (head.distance(bisectPoint) > tail.distance(bisectPoint))
-            name1 = arc.getName();
-        else
-            name2 = arc.getName();
+            name1 = nameToUse; else
+            	name2 = nameToUse;
+
         // add two arcs to rebuild old startArc
         RouteElement newHeadArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getLambdaBaseWidth(), headRE, newPinRE,
             head, bisectPoint, name1, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, arc.isHeadExtended(), arc.isTailExtended(), stayInside);

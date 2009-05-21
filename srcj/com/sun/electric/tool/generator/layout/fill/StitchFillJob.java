@@ -500,7 +500,7 @@ public class StitchFillJob extends Job
                 }
                 for (Route r : routeList)
                 {
-                    Router.createRouteNoJob(r, theCell, false, arcsCreatedMap, nodesCreatedMap);
+                    Router.createRouteNoJob(r, theCell, arcsCreatedMap, nodesCreatedMap);
                 }
             }
 
@@ -558,7 +558,7 @@ public class StitchFillJob extends Job
                 }
                 for (Route r : routeList)
                 {
-                    Router.createRouteNoJob(r, theCell, false, arcsCreatedMap, nodesCreatedMap);
+                    Router.createRouteNoJob(r, theCell, arcsCreatedMap, nodesCreatedMap);
                 }
             }
         }
@@ -660,7 +660,7 @@ public class StitchFillJob extends Job
 
             for (Route r : routeList)
             {
-                Router.createRouteNoJob(r, theCell, false, arcsCreatedMap, nodesCreatedMap);
+                Router.createRouteNoJob(r, theCell, arcsCreatedMap, nodesCreatedMap);
             }
         }
 

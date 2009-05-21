@@ -818,8 +818,13 @@ public class MimicStitch
 		{
 			RouteElement re = route.get(0);
 			Cell c = re.getCell();
-			PortInst showThis = Router.createRouteNoJob(route, c, false, arcsCreatedMap, nodesCreatedMap);
-			if (showThis != null) portsToHighlight.add(showThis);
+			Router.createRouteNoJob(route, c, arcsCreatedMap, nodesCreatedMap);
+            RouteElementPort finalRE = route.getEnd();
+            if (finalRE != null)
+            {
+    			PortInst showThis = finalRE.getPortInst();
+            	if (showThis != null) portsToHighlight.add(showThis);
+            }
 		}
         boolean beep = User.isPlayClickSoundsWhenCreatingArcs();
 		Router.reportRoutingResults("MIMIC ROUTING", arcsCreatedMap, nodesCreatedMap, beep);

@@ -230,6 +230,47 @@ public class AutoStitch
 		possibleInlinePins = new HashSet<NodeInst>();
 	}
 
+	private List<ArcInst> getArcsToStitch(Cell cell, List<ArcInst> arcsToStitch)
+	{
+		List<ArcInst> newArcsToStitch = new ArrayList<ArcInst>();
+		if (arcsToStitch == null)
+		{
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+				newArcsToStitch.add(it.next());
+		} else
+		{
+			for(ArcInst ai : arcsToStitch)
+				if (ai.isLinked()) newArcsToStitch.add(ai);
+		}
+		return newArcsToStitch;
+	}
+
+	private List<NodeInst> getNodesToStitch(Cell cell, List<NodeInst> nodesToStitch)
+	{
+		List<NodeInst> newNodesToStitch = new ArrayList<NodeInst>();
+		if (nodesToStitch == null)
+		{
+			// no data from highlighter
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = it.next();
+				if (ni.isIconOfParent()) continue;
+				if (!ni.isCellInstance())
+				{
+					PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
+					if (pnp.getTechnology() == Generic.tech()) continue;
+					if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+				}
+				newNodesToStitch.add(ni);
+			}
+		} else
+		{
+			for(NodeInst ni : nodesToStitch)
+				if (ni.isLinked()) newNodesToStitch.add(ni);
+		}
+		return newNodesToStitch;
+	}
+
 	/**
 	 * Method to run auto-stitching.
 	 * @param cell the cell in which to stitch.
@@ -242,37 +283,15 @@ public class AutoStitch
 	 * @param prefs routing preferences.
 	 * @param showProgress true to show progress.
 	 */
-	private void runNow(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch, Job job,
+	private void runNow(Cell cell, List<NodeInst> origNodesToStitch, List<ArcInst> origArcsToStitch, Job job,
 		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, AutoOptions prefs, boolean showProgress)
 	{
 		if (showProgress) Job.getUserInterface().setProgressNote("Initializing routing");
 		ArcProto preferredArc = prefs.preferredArc;
 
 		// gather objects to stitch
-		if (nodesToStitch == null)
-		{
-			// no data from highlighter
-			nodesToStitch = new ArrayList<NodeInst>();
-			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = it.next();
-				if (ni.isIconOfParent()) continue;
-				if (!ni.isCellInstance())
-				{
-					PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
-					if (pnp.getTechnology() == Generic.tech()) continue;
-					if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
-				}
-				nodesToStitch.add(ni);
-			}
-		}
-
-		if (arcsToStitch == null)
-		{
-			arcsToStitch = new ArrayList<ArcInst>();
-			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-				arcsToStitch.add(it.next());
-		}
+		List<NodeInst> nodesToStitch = getNodesToStitch(cell, origNodesToStitch);
+		List<ArcInst> arcsToStitch = getArcsToStitch(cell, origArcsToStitch);
 
 		// next mark nodes to be checked
 		nodeMark = new HashSet<NodeInst>();
@@ -327,6 +346,10 @@ public class AutoStitch
 			makeConnections(showProgress, arcsCreatedMap, nodesCreatedMap);
 			allRoutes = new ArrayList<Route>();
 			if (showProgress) Job.getUserInterface().setProgressNote("Initializing routing");
+
+			// reinitialize list of objects to examine
+			nodesToStitch = getNodesToStitch(cell, origNodesToStitch);
+			arcsToStitch = getArcsToStitch(cell, origArcsToStitch);
 		}
 
 		// next pre-compute bounds on all nodes in cell
@@ -400,11 +423,21 @@ public class AutoStitch
 			// found daisy-chain elements: do them now
 			System.out.println("Auto-routing detected " + allRoutes.size() + " daisy-chained arcs");
 			for(Route route : allRoutes)
-				Router.createRouteNoJob(route, cell, false, arcsCreatedMap, nodesCreatedMap);
+			{
+				boolean failure = Router.createRouteNoJob(route, cell, arcsCreatedMap, nodesCreatedMap);
+				if (failure)
+				{
+					System.out.println("AUTO STITCHER FAILED TO MAKE DAISY-CHAIN ARC");
+				}
+			}
 
 			// reset for the rest of the analysis
 			allRoutes = new ArrayList<Route>();
 			top = new Topology(cell);
+
+			// reinitialize list of objects to examine
+			nodesToStitch = getNodesToStitch(cell, origNodesToStitch);
+			arcsToStitch = getArcsToStitch(cell, origArcsToStitch);
 		}
 
 		// now run through the nodeinsts to be checked for stitching
@@ -519,7 +552,7 @@ public class AutoStitch
 				if (already) continue;
 			}
 
-			Router.createRouteNoJob(route, c, false, arcsCreatedMap, nodesCreatedMap);
+			Router.createRouteNoJob(route, c, arcsCreatedMap, nodesCreatedMap);
 		}
 	}
 
@@ -563,6 +596,7 @@ public class AutoStitch
 	{
 		// make a list of PortInsts that are on the centerline of this arc
 		Cell cell = ai.getParent();
+
 		Network arcNet = top.getArcNetwork(ai);
 		Point2D e1 = ai.getHeadLocation();
 		Point2D e2 = ai.getTailLocation();
@@ -612,7 +646,10 @@ public class AutoStitch
 
 		Route route = new Route();
         String name = ai.getName();
-        route.add(RouteElementArc.deleteArc(ai));
+//System.out.println("===DELETING DAISY CHAIN ARC FROM ("+ai.getHeadLocation().getX()+","+ai.getHeadLocation().getY()+") TO ("+
+//ai.getTailLocation().getX()+","+ai.getTailLocation().getY()+") IN CELL "+ai.getParent().describe(false));
+//        route.add(RouteElementArc.deleteArc(ai));
+name=null;
 
         RouteElementPort headRE = RouteElementPort.existingPortInst(ai.getHeadPortInst(), ai.getHeadLocation());
         RouteElementPort tailRE = RouteElementPort.existingPortInst(ai.getTailPortInst(), ai.getTailLocation());
@@ -637,6 +674,7 @@ public class AutoStitch
 //        	route.add(RouteElementPort.deleteNode(tailRE.getNodeInst()));
 //        	tailRE = null;
 //        }
+
         for(DaisyChainPoint dcp : daisyPoints)
         {
             RouteElementPort dcpRE = RouteElementPort.existingPortInst(dcp.pi, dcp.location);
