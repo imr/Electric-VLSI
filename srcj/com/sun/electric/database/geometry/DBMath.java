@@ -123,7 +123,26 @@ public class DBMath extends GenMath {
         return !tooSmall && !tooBig;
     }
 
-	/**
+     /**
+     * Method to determine if a value is between two given values without the boundary.
+     * @param x the value to test.
+     * @param a one end of the boundary.
+     * @param b the other end of the boundary.
+     * @return true if the value is inside of the boundary.
+     */
+    public static boolean isInBetweenExclusive(double x, double a, double b)
+    {
+        if (isGreaterThan(a, b))
+        {
+            double c = a;
+            a = b; b = c;
+        }
+        boolean tooSmall = isGreaterThanOrEqualTo(a, x); // it must exclude the boundaries
+        boolean tooBig = isGreaterThanOrEqualTo(x, b);
+        return !tooSmall && !tooBig;
+    }
+
+    /**
 	 * Method to determine if one value is greater than another,
 	 * but counting for rounding error
 	 * @param a the first number.
