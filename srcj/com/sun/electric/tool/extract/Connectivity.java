@@ -786,11 +786,7 @@ public class Connectivity
 				{
 					// cut layers are stored in lists because merging them is too expensive and pointless
 					CutInfo cInfo = allCutLayers.get(layer);
-					if (cInfo == null)
-					{
-						cInfo = new CutInfo();
-						allCutLayers.put(layer, cInfo);
-					}
+					if (cInfo == null) allCutLayers.put(layer, cInfo = new CutInfo());
 
 					// see if the cut is already there
 					boolean found = false;
@@ -1672,6 +1668,7 @@ public class Connectivity
 
 			// get all of the geometry on the cut/via layer
 			CutInfo cInfo = allCutLayers.get(layer);
+			cInfo.sortCuts();
 
 			// the new way to extract vias
 			List<PolyBase> cutsNotExtracted = new ArrayList<PolyBase>();
@@ -2122,27 +2119,35 @@ public class Connectivity
 	private static class CutInfo
 	{
 		private Map<PolyBase,CutBound> cutMap;
+		private List<PolyBase> justCuts;
 		private RTNode cutOrg;
 
 		public CutInfo()
 		{
 			cutMap = new HashMap<PolyBase,CutBound>();
+			justCuts = new ArrayList<PolyBase>();
 			cutOrg = RTNode.makeTopLevel();
 		}
 
-		public Set<PolyBase> getCuts() { return cutMap.keySet(); }
+		public List<PolyBase> getCuts() { return justCuts; }
 
-		public int getNumCuts() { return cutMap.size(); }
+		public int getNumCuts() { return justCuts.size(); }
 
-		public PolyBase getFirstCut() { return cutMap.keySet().iterator().next(); }
+		public PolyBase getFirstCut() { return justCuts.get(0); }
 
 		public RTNode getRTree() { return cutOrg; }
+
+		public void sortCuts()
+		{
+			Collections.sort(justCuts, new CutsByLocation());
+		}
 
 		public void addCut(PolyBase cut)
 		{
 			CutBound cb = new CutBound(cut);
 			cutOrg = RTNode.linkGeom(null, cutOrg, cb);
 			cutMap.put(cut, cb);
+			justCuts.add(cut);
 		}
 
 		public void removeCut(PolyBase cut)
@@ -2150,6 +2155,27 @@ public class Connectivity
 			CutBound cb = cutMap.get(cut);
 			cutOrg = RTNode.unLinkGeom(null, cutOrg, cb);
 			cutMap.remove(cut);
+			justCuts.remove(cut);
+		}
+	}
+
+	/**
+	 * Class to sort CutsByLocation objects by their location.
+	 */
+	private static class CutsByLocation implements Comparator<PolyBase>
+	{
+		public int compare(PolyBase pb1, PolyBase pb2)
+		{
+			double pb1x = pb1.getCenterX();
+			double pb1y = pb1.getCenterY();
+			double pb2x = pb2.getCenterX();
+			double pb2y = pb2.getCenterY();
+
+			if (pb1x < pb2x) return 1;
+			if (pb1x > pb2x) return -1;
+			if (pb1y < pb2y) return 1;
+			if (pb1y > pb2y) return -1;
+			return 0;
 		}
 	}
 
