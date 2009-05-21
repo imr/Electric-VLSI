@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 /**
@@ -173,6 +174,29 @@ public class BoundsBuilder extends AbstractShapeBuilder {
             doubleMinY = doubleMaxY = doubleCoords[1];
             hasDoubleBounds = true;
         }
+		if (style == Poly.Type.CIRCLE || style == Poly.Type.THICKCIRCLE || style == Poly.Type.DISC)
+		{
+			double cX = doubleCoords[0];
+			double cY = doubleCoords[1];
+			double radius = Point2D.distance(cX, cY, doubleCoords[2], doubleCoords[3]);
+            if (cX - radius < doubleMinX) doubleMinX = cX - radius;
+            if (cX + radius > doubleMaxX) doubleMaxX = cX + radius;
+            if (cY - radius < doubleMinY) doubleMinY = cY - radius;
+            if (cY + radius > doubleMaxY) doubleMaxY = cY + radius;
+			return;
+		}
+		if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
+		{
+            Point2D.Double p0 = new Point2D.Double(doubleCoords[0], doubleCoords[1]);
+            Point2D.Double p1 = new Point2D.Double(doubleCoords[2], doubleCoords[3]);
+            Point2D.Double p2 = new Point2D.Double(doubleCoords[4], doubleCoords[5]);
+			Rectangle2D bounds = GenMath.arcBBox(p1, p2, p0);
+            if (bounds.getMinX() < doubleMinX) doubleMinX  = bounds.getMinX();
+            if (bounds.getMaxX() > doubleMaxX) doubleMaxX  = bounds.getMaxX();
+            if (bounds.getMinY() < doubleMinY) doubleMinY  = bounds.getMinY();
+            if (bounds.getMaxY() > doubleMaxY) doubleMaxY  = bounds.getMaxY();
+			return;
+		}
         for (int i = 0; i < numPoints; i++) {
             double x = doubleCoords[i*2];
             double y = doubleCoords[i*2 + 1];

@@ -427,11 +427,7 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 	 * Method to tell set this type of port can be negated.
 	 * @param negatable true if this type of port can be negated.
 	 */
-	public void setNegatable(boolean negatable) {
-        this.negatable = negatable;
-        if (negatable)
-            parent.hasNegatablePorts = true;
-    }
+	public void setNegatable(boolean negatable) { this.negatable = negatable; }
 
 	/**
 	 * Method to return true if this PrimitivePort can connect to an arc of a given type.

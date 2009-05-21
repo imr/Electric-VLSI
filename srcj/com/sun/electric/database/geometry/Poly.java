@@ -25,7 +25,9 @@ package com.sun.electric.database.geometry;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.DisplayedText;
@@ -38,8 +40,9 @@ import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.Clipboard;
 
 import java.awt.Font;
 import java.awt.font.GlyphVector;
@@ -494,7 +497,7 @@ public class Poly extends PolyBase {
      * @return new instance of Poly builder.
      */
     public static Builder newLambdaBuilder() {
-        return new Builder(true);
+        return new Builder(true, true);
     }
 
     /**
@@ -502,7 +505,7 @@ public class Poly extends PolyBase {
      * @return new instance of Poly builder.
      */
     public static Builder newGridBuilder() {
-        return new Builder(false);
+        return new Builder(true, false);
     }
 
     /**
@@ -513,19 +516,8 @@ public class Poly extends PolyBase {
         return threadLocalLambdaBuilder.get();
     }
 
-    /**
-     * Returns thread local instance of Poly builder to build shapes in grid units.
-     * @return thread local instance of Poly builder.
-     */
-    public static Builder threadLocalGridBuilder() {
-        return threadLocalGridBuilder.get();
-    }
-
     private static ThreadLocal<Poly.Builder> threadLocalLambdaBuilder = new ThreadLocal<Poly.Builder>() {
-        protected Poly.Builder initialValue() { return Poly.newLambdaBuilder(); }
-    };
-    private static ThreadLocal<Poly.Builder> threadLocalGridBuilder = new ThreadLocal<Poly.Builder>() {
-        protected Poly.Builder initialValue() { return Poly.newGridBuilder(); }
+        protected Poly.Builder initialValue() { return new Builder(false, true); }
     };
 
 
@@ -537,7 +529,10 @@ public class Poly extends PolyBase {
         private boolean isChanging;
         private final ArrayList<Poly> lastPolys = new ArrayList<Poly>();
 
-        private Builder(boolean inLambda) { this.inLambda = inLambda; }
+        private Builder(boolean rotateNodes, boolean inLambda) {
+            super(rotateNodes);
+            this.inLambda = inLambda;
+        }
 
         /**
          * Returns the polygons that describe node "ni".
@@ -546,13 +541,15 @@ public class Poly extends PolyBase {
          * @return an iterator on Poly objects that describes this NodeInst graphically.
          */
         public Iterator<Poly> getShape(NodeInst ni) {
-            Poly[] polys = ((PrimitiveNode)ni.getProto()).getTechnology().getShapeOfNode(ni, electrical, reasonable, onlyTheseLayers);
+            isChanging = true;
+            setup(ni.getCellBackupUnsafe(), null, false, false, null);
             lastPolys.clear();
-            for (Poly poly: polys) {
-                if (!inLambda)
-                    poly.lambdaToGrid();
-                lastPolys.add(poly);
+            genShapeOfNode(ni.getD());
+            if (inLambda) {
+                for (int i = 0; i < lastPolys.size(); i++)
+                    lastPolys.get(i).gridToLambda();
             }
+            isChanging = false;
             return lastPolys.iterator();
         }
 
@@ -561,11 +558,11 @@ public class Poly extends PolyBase {
          * @param ai the ArcInst that is being described.
          * @return an array of Poly objects that describes this ArcInst graphically.
          */
-    	public Poly [] computeShapeArray(CellBackup cellBackup, ImmutableNodeInst n, PrimitiveNode np, Technology.NodeLayer [] primLayers, EGraphics graphicsOverride, boolean electrical, boolean reasonable, Layer.Function.Set onlyTheseLayers) {
+    	public Poly [] getShapeArray(NodeInst ni, boolean electrical, boolean reasonable, Layer.Function.Set onlyTheseLayers) {
             isChanging = true;
-            setup(cellBackup, null, electrical, reasonable, onlyTheseLayers);
+            setup(ni.getCellBackupUnsafe(), null, electrical, reasonable, onlyTheseLayers);
             lastPolys.clear();
-            genShapeOfNode(n, np, primLayers, graphicsOverride);
+            genShapeOfNode(ni.getD());
             if (lastPolys.isEmpty()) {
                 isChanging = false;
                 return Poly.NULL_ARRAY;
@@ -667,7 +664,7 @@ public class Poly extends PolyBase {
         }
 
         @Override
-        public void addTextPoly(int numPoints, Poly.Type style, Layer layer, String message, TextDescriptor descriptor) {
+        public void addTextPoly(int numPoints, Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
             assert isChanging;
             Point2D.Double[] points = new Point2D.Double[numPoints];
             for (int i = 0; i < numPoints; i++)
@@ -675,6 +672,7 @@ public class Poly extends PolyBase {
             Poly poly = new Poly(points);
             poly.setStyle(style);
             poly.setLayer(layer);
+            poly.setPort(pp);
             poly.setString(message);
             poly.setTextDescriptor(descriptor);
             lastPolys.add(poly);

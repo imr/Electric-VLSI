@@ -28,6 +28,7 @@ import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.ImmutablePortInst;
@@ -60,6 +61,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveNodeSize;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Artwork;
@@ -68,6 +70,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.user.CircuitChangeJobs;
+import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.AffineTransform;
@@ -1155,6 +1158,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			return false;
 		}
 	}
+
+	/**
+	 * Returns CellBackup containing this NodeInst.
+     * If this node hasn't parent, a dummy CellBackup is returned.
+	 * @return CellBackup containing this NodeInst.
+	 */
+    public CellBackup getCellBackupUnsafe() {
+        if (parent != null) return parent.backupUnsafe();
+        ImmutableCell cell = ImmutableCell.newInstance(Clipboard.clipCellId, 0);
+        cell = cell.withTechId(getProto().getTechnology().getId());
+        TechPool techPool = TechPool.getThreadTechPool();
+        CellBackup cellBackup = CellBackup.newInstance(cell, techPool);
+        cellBackup = cellBackup.with(cell, new ImmutableNodeInst[] { getD() }, null, null, techPool);
+        return cellBackup;
+    }
 
 	/****************************** GRAPHICS ******************************/
 

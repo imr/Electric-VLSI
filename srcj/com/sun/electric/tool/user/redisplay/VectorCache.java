@@ -596,14 +596,20 @@ public class VectorCache {
                 drawArc(ai, trans, this);
             }
 
-            // draw all nodes
+            // draw all primitive nodes
             for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); ) {
                 NodeInst ni = nodes.next();
-                boolean hideOnLowLevel = false;
-                if (!ni.isCellInstance())
-                    hideOnLowLevel = ni.isVisInside() || ni.getProto() == Generic.tech().cellCenterNode;
+                if (ni.isCellInstance()) continue;
+                boolean hideOnLowLevel = ni.isVisInside() || ni.getProto() == Generic.tech().cellCenterNode;
                 if (!hideOnLowLevel)
-                    drawNode(ni, trans, this);
+                    drawPrimitiveNode(ni, trans, this);
+            }
+
+            // draw all subcells
+            for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); ) {
+                NodeInst ni = nodes.next();
+                if (!ni.isCellInstance()) continue;
+                drawSubcell(ni, trans, this);
             }
 
             // add in anything "snuck" onto the cell
@@ -703,12 +709,16 @@ public class VectorCache {
 
             // draw nodes visible only inside
             AffineTransform trans = orient.pureRotate();
+            shapeBuilder.setup(cell.backupUnsafe(), orient, false, false, null);
+            shapeBuilder.vc = this;
+            shapeBuilder.hideOnLowLevel = false;
+            shapeBuilder.textType = VectorText.TEXTTYPEARC;
             for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); ) {
                 NodeInst ni = nodes.next();
                 if (ni.isCellInstance()) continue;
                 boolean hideOnLowLevel = ni.isVisInside() || ni.getProto() == Generic.tech().cellCenterNode;
                 if (hideOnLowLevel)
-                    drawNode(ni, trans, this);
+                    drawPrimitiveNode(ni, trans, this);
             }
 
             // draw exports and their variables
@@ -750,6 +760,20 @@ public class VectorCache {
             poly.setLayer(layer);
             poly.setGraphicsOverride(graphicsOverride);
             poly.gridToLambda();
+            renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer);
+        }
+
+        @Override
+        public void addTextPoly(int numPoints, Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
+            Point2D.Double[] points = new Point2D.Double[numPoints];
+            for (int i = 0; i < numPoints; i++)
+                points[i] = new Point2D.Double(doubleCoords[i*2], doubleCoords[i*2+1]);
+            Poly poly = new Poly(points);
+            poly.setStyle(style);
+            poly.setLayer(layer);
+            poly.gridToLambda();
+            poly.setString(message);
+            poly.setTextDescriptor(descriptor);
             renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer);
         }
 
@@ -849,7 +873,9 @@ public class VectorCache {
     public static VectorBase[] drawNode(NodeInst ni) {
         VectorCache cache = new VectorCache(EDatabase.clientDatabase());
         VectorCell vc = cache.newDummyVectorCell();
-        cache.drawNode(ni, GenMath.MATID, vc);
+        cache.shapeBuilder.setup(ni.getCellBackupUnsafe(), null, false, false, null);
+        cache.shapeBuilder.vc = vc;
+        cache.drawPrimitiveNode(ni, GenMath.MATID, vc);
         vc.shapes.addAll(vc.topOnlyShapes);
         Collections.sort(vc.shapes, shapeByLayer);
         return vc.shapes.toArray(new VectorBase[vc.shapes.size()]);
@@ -1183,51 +1209,60 @@ public class VectorCache {
      * @param trans the transformation of the NodeInst to the parent Cell.
 	 * @param vc the cached cell in which to place the NodeInst.
      */
-	private void drawNode(NodeInst ni, AffineTransform trans, VectorCell vc)
+	private void drawSubcell(NodeInst ni, AffineTransform trans, VectorCell vc)
 	{
 		NodeProto np = ni.getProto();
 		AffineTransform localTrans = ni.rotateOut(trans);
 
 		// draw the node
-		if (ni.isCellInstance())
-		{
-			// cell instance: record a call to the instance
-			Point2D ctrShift = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
-			localTrans.transform(ctrShift, ctrShift);
-			VectorSubCell vsc = new VectorSubCell(ni, ctrShift);
-			vc.subCells.add(vsc);
+		assert ni.isCellInstance();
+        // cell instance: record a call to the instance
+        Point2D ctrShift = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
+        localTrans.transform(ctrShift, ctrShift);
+        VectorSubCell vsc = new VectorSubCell(ni, ctrShift);
+        vc.subCells.add(vsc);
 
-            // show the ports that are not further exported or connected
-            for(Iterator<Connection> it = ni.getConnections(); it.hasNext();) {
-                Connection con = it.next();
-                PortInst pi = con.getPortInst();
-                Export e = (Export)pi.getPortProto();
-                if (!e.isAlwaysDrawn())
-                	vsc.shownPorts.set(e.getId().getChronIndex());
-            }
-            for(Iterator<Export> it = ni.getExports(); it.hasNext();) {
-                Export exp = it.next();
-                PortInst pi = exp.getOriginalPort();
-                Export e = (Export)pi.getPortProto();
-                if (!e.isAlwaysDrawn())
-                	vsc.shownPorts.set(e.getId().getChronIndex());
-            }
+        // show the ports that are not further exported or connected
+        for(Iterator<Connection> it = ni.getConnections(); it.hasNext();) {
+            Connection con = it.next();
+            PortInst pi = con.getPortInst();
+            Export e = (Export)pi.getPortProto();
+            if (!e.isAlwaysDrawn())
+                vsc.shownPorts.set(e.getId().getChronIndex());
+        }
+        for(Iterator<Export> it = ni.getExports(); it.hasNext();) {
+            Export exp = it.next();
+            PortInst pi = exp.getOriginalPort();
+            Export e = (Export)pi.getPortProto();
+            if (!e.isAlwaysDrawn())
+                vsc.shownPorts.set(e.getId().getChronIndex());
+        }
 
-			// draw any displayable variables on the instance
-			Poly[] polys = ni.getDisplayableVariables(dummyWnd);
-			drawPolys(polys, localTrans, vc, false, VectorText.TEXTTYPENODE, false);
-		} else
-		{
-			// primitive: save it
-			PrimitiveNode prim = (PrimitiveNode)np;
-			int textType = VectorText.TEXTTYPENODE;
-			if (prim == Generic.tech().invisiblePinNode) textType = VectorText.TEXTTYPEANNOTATION;
-			Technology tech = prim.getTechnology();
-            boolean hideOnLowLevel = ni.isVisInside() || np == Generic.tech().cellCenterNode;
-			boolean pureLayer = (ni.getFunction() == PrimitiveNode.Function.NODE);
-			drawPolys(tech.getShapeOfNode(ni, false, false, null), localTrans, vc, hideOnLowLevel, textType, pureLayer);
-			drawPolys(ni.getDisplayableVariables(dummyWnd), localTrans, vc, hideOnLowLevel, textType, pureLayer);
-		}
+        // draw any displayable variables on the instance
+        Poly[] polys = ni.getDisplayableVariables(dummyWnd);
+        drawPolys(polys, localTrans, vc, false, VectorText.TEXTTYPENODE, false);
+	}
+
+	/**
+	 * Method to cache a NodeInst.
+	 * @param ni the NodeInst to cache.
+     * @param trans the transformation of the NodeInst to the parent Cell.
+	 * @param vc the cached cell in which to place the NodeInst.
+     */
+	private void drawPrimitiveNode(NodeInst ni, AffineTransform trans, VectorCell vc)
+	{
+		NodeProto np = ni.getProto();
+		AffineTransform localTrans = ni.rotateOut(trans);
+
+		// draw the node
+		assert !ni.isCellInstance();
+        // primitive: save it
+        PrimitiveNode prim = (PrimitiveNode)np;
+        shapeBuilder.textType = prim == Generic.tech().invisiblePinNode ? VectorText.TEXTTYPEANNOTATION : VectorText.TEXTTYPENODE;
+        shapeBuilder.pureLayer = (ni.getFunction() == PrimitiveNode.Function.NODE);
+        shapeBuilder.hideOnLowLevel = ni.isVisInside() || np == Generic.tech().cellCenterNode;
+        shapeBuilder.genShapeOfNode(ni.getD());
+        drawPolys(ni.getDisplayableVariables(dummyWnd), localTrans, vc, shapeBuilder.hideOnLowLevel, shapeBuilder.textType, shapeBuilder.pureLayer);
 	}
 
 	/**

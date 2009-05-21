@@ -28,7 +28,6 @@ import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.id.PrimitiveNodeId;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -36,6 +35,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Foundry;
@@ -186,10 +186,29 @@ public class MoCMOS extends Technology
 	protected Poly [] getShapeOfNode(CellBackup.Memoization m, ImmutableNodeInst n, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
 	{
 		if (scalableTransistorNodes != null && (n.protoId == scalableTransistorNodes[P_TYPE].getId() || n.protoId == scalableTransistorNodes[N_TYPE].getId()))
-            return getShapeOfNodeScalable(m, n, null, reasonable);
+            return getShapeOfNodeScalable(m, n, null, electrical, reasonable);
 
         // Default
         return super.getShapeOfNode(m, n, electrical, reasonable, primLayers);
+    }
+
+    /**
+	 * Puts into shape builder s the polygons that describe node "n", given a set of
+	 * NodeLayer objects to use.
+	 * This method is overridden by specific Technologys.
+     * @param b shape builder where to put polygons
+	 * @param n the ImmutableNodeInst that is being described.
+	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 */
+    @Override
+    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, Technology.NodeLayer[] primLayers) {
+		if (scalableTransistorNodes != null && (n.protoId == scalableTransistorNodes[P_TYPE].getId() || n.protoId == scalableTransistorNodes[N_TYPE].getId()))
+            genShapeOfNodeScalable(b, n, null, b.isReasonable());
+        else
+            // Default
+            super.genShapeOfNode(b, n, primLayers);
+
     }
 
     /**
@@ -200,7 +219,7 @@ public class MoCMOS extends Technology
      * @param reasonable
      * @return Array of Poly containing layers representing a Scalable Transistor
      */
-    private Poly [] getShapeOfNodeScalable(CellBackup.Memoization m, ImmutableNodeInst n, VarContext context, boolean reasonable)
+    private Poly [] getShapeOfNodeScalable(CellBackup.Memoization m, ImmutableNodeInst n, VarContext context, boolean electrical, boolean reasonable)
     {
 		// determine special configurations (number of active contacts, inset of active contacts)
 		int numContacts = 2;
@@ -317,7 +336,135 @@ public class MoCMOS extends Technology
 		}
 
 		// now let the superclass convert it to Polys
-		return super.getShapeOfNode(m, n, false, reasonable, newNodeLayers);
+		return super.getShapeOfNode(m, n, electrical, reasonable, newNodeLayers);
+	}
+
+    /**
+     * Special getShapeOfNode function for scalable transistors
+     * @param m
+     * @param n
+     * @param context
+     * @param reasonable
+     * @return Array of Poly containing layers representing a Scalable Transistor
+     */
+    private void genShapeOfNodeScalable(AbstractShapeBuilder b, ImmutableNodeInst n, VarContext context, boolean reasonable)
+    {
+		// determine special configurations (number of active contacts, inset of active contacts)
+		int numContacts = 2;
+		boolean insetContacts = false;
+		String pt = n.getVarValue(TRANS_CONTACT, String.class);
+		if (pt != null)
+		{
+			for(int i=0; i<pt.length(); i++)
+			{
+				char chr = pt.charAt(i);
+				if (chr == '0' || chr == '1' || chr == '2')
+				{
+					numContacts = chr - '0';
+				} else if (chr == 'i' || chr == 'I') insetContacts = true;
+			}
+		}
+		int boxOffset = 6 - numContacts * 3;
+
+		// determine width
+		PrimitiveNode np = b.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
+        double activeWidMax = n.size.getLambdaX() + 3;
+//		double nodeWid = ni.getXSize();
+//        double activeWidMax = nodeWid - 14;
+		double activeWid = activeWidMax;
+		Variable var = n.getVar(Schematics.ATTR_WIDTH);
+		if (var != null)
+		{
+			VarContext evalContext = context;
+			if (evalContext == null) evalContext = VarContext.globalContext;
+            NodeInst ni = null; // dummy node inst
+			String extra = var.describe(evalContext, ni);
+			Object o = evalContext.evalVar(var, ni);
+			if (o != null) extra = o.toString();
+			double requestedWid = TextUtils.atof(extra);
+			if (requestedWid > activeWid)
+			{
+				System.out.println("Warning: " + b.getCellBackup().toString() + ", " +
+					n.name + " requests width of " + requestedWid + " but is only " + activeWid + " wide");
+			}
+			if (requestedWid < activeWid && requestedWid > 0)
+			{
+				activeWid = requestedWid;
+			}
+		}
+
+        double shrinkGate = 0.5*(activeWidMax - activeWid);
+		// contacts must be 5 wide at a minimum
+        double shrinkCon = (int)(0.5*(activeWidMax + 2 - Math.max(activeWid, 5)));
+
+		// now compute the number of polygons
+		Technology.NodeLayer [] layers = np.getNodeLayers();
+        assert layers.length == SCALABLE_TOTAL;
+		int count = SCALABLE_TOTAL - boxOffset;
+		Technology.NodeLayer [] newNodeLayers = new Technology.NodeLayer[count];
+
+		// load the basic layers
+		int fillIndex = 0;
+		for(int box = boxOffset; box < SCALABLE_TOTAL; box++)
+		{
+			TechPoint [] oldPoints = layers[box].getPoints();
+			TechPoint [] points = new TechPoint[oldPoints.length];
+			for(int i=0; i<oldPoints.length; i++) points[i] = oldPoints[i];
+            double shrinkX = 0;
+            TechPoint p0 = points[0];
+            TechPoint p1 = points[1];
+            double x0 = p0.getX().getAdder();
+            double x1 = p1.getX().getAdder();
+            double y0 = p0.getY().getAdder();
+            double y1 = p1.getY().getAdder();
+			switch (box)
+			{
+				case SCALABLE_ACTIVE_TOP:
+                case SCALABLE_METAL_TOP:
+                case SCALABLE_CUT_TOP:
+                    shrinkX = shrinkCon;
+                    if (insetContacts) {
+                        y0 -= 0.5;
+                        y1 -= 0.5;
+                    }
+                    break;
+                case SCALABLE_ACTIVE_BOT:
+                case SCALABLE_METAL_BOT:
+                case SCALABLE_CUT_BOT:
+                    shrinkX = shrinkCon;
+                    if (insetContacts) {
+                        y0 -= 0.5;
+                        y1 -= 0.5;
+                    }
+                    break;
+				case SCALABLE_ACTIVE_CTR:		// active that passes through gate
+				case SCALABLE_POLY:				// poly
+                    shrinkX = shrinkGate;
+					break;
+				case SCALABLE_WELL:				// well and select
+				case SCALABLE_SUBSTRATE:
+                    if (insetContacts) {
+                        y0 += 0.5;
+                        y1 -= 0.5;
+                    }
+                    break;
+			}
+            x0 += shrinkX;
+            x1 -= shrinkX;
+            points[0] = p0.withX(p0.getX().withAdder(x0)).withY(p0.getY().withAdder(y0));
+            points[1] = p1.withX(p1.getX().withAdder(x1)).withY(p1.getY().withAdder(y1));
+            Technology.NodeLayer oldNl = layers[box];
+            if (oldNl.getRepresentation() == NodeLayer.MULTICUTBOX)
+			    newNodeLayers[fillIndex] = Technology.NodeLayer.makeMulticut(oldNl.getLayer(), oldNl.getPortNum(),
+				    oldNl.getStyle(), points, oldNl.getMulticutSizeX(), oldNl.getMulticutSizeY(), oldNl.getMulticutSep1D(), oldNl.getMulticutSep2D());
+            else
+			    newNodeLayers[fillIndex] = new Technology.NodeLayer(oldNl.getLayer(), oldNl.getPortNum(),
+				    oldNl.getStyle(), oldNl.getRepresentation(), points);
+			fillIndex++;
+		}
+
+		// now let the superclass convert it to Polys
+		super.genShapeOfNode(b, n, newNodeLayers);
 	}
 
 	/******************** PARAMETERIZABLE DESIGN RULES ********************/

@@ -33,6 +33,7 @@ import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
@@ -365,4 +366,64 @@ public class GEM extends Technology
 		}
 		return super.getShapeOfNode(m, n, electrical, reasonable, primLayers);
 	}
+
+    /**
+	 * Puts into shape builder s the polygons that describe node "n", given a set of
+	 * NodeLayer objects to use.
+	 * This method is overridden by specific Technologys.
+     * @param b shape builder where to put polygons
+	 * @param n the ImmutableNodeInst that is being described.
+	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 */
+    @Override
+    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, Technology.NodeLayer[] primLayers) {
+ 		if (n.protoId == e_node.getId())
+		{
+			Technology.NodeLayer [] eventLayers = new Technology.NodeLayer[6];
+			eventLayers[0] = new Technology.NodeLayer(E_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, box_7);
+
+			String title = "";
+			Variable varTitle = n.getVar(ELEMENT_NAME);
+			if (varTitle != null) title = varTitle.getPureValue(-1);
+			eventLayers[1] = new Technology.NodeLayer(E_lay, 0, Poly.Type.TEXTCENT, Technology.NodeLayer.POINTS, new Technology.TechPoint[] {
+				new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.fromTop(1))});
+			eventLayers[1].setMessage(title);
+
+			String event1 = "";
+			Variable varEvent1 = n.getVar(EVENT_1);
+			if (varEvent1 != null) event1 = varEvent1.getPureValue(-1);
+			eventLayers[2] = new Technology.NodeLayer(E_lay, 0, Poly.Type.TEXTLEFT, Technology.NodeLayer.POINTS, new Technology.TechPoint[] {
+				new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromCenter(0.5))});
+			eventLayers[2].setMessage(event1);
+
+			String event2 = "";
+			Variable varEvent2 = n.getVar(EVENT_2);
+			if (varEvent2 != null) event2 = varEvent2.getPureValue(-1);
+			eventLayers[3] = new Technology.NodeLayer(E_lay, 0, Poly.Type.TEXTLEFT, Technology.NodeLayer.POINTS, new Technology.TechPoint[] {
+				new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromCenter(-0.5))});
+			eventLayers[3].setMessage(event2);
+
+			String event3 = "";
+			Variable varEvent3 = n.getVar(EVENT_3);
+			if (varEvent3 != null) event3 = varEvent3.getPureValue(-1);
+			eventLayers[4] = new Technology.NodeLayer(E_lay, 0, Poly.Type.TEXTLEFT, Technology.NodeLayer.POINTS, new Technology.TechPoint[] {
+				new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromCenter(-1.5))});
+			eventLayers[4].setMessage(event3);
+
+			String event4 = "";
+			Variable varEvent4 = n.getVar(EVENT_4);
+			if (varEvent4 != null) event4 = varEvent4.getPureValue(-1);
+			eventLayers[5] = new Technology.NodeLayer(E_lay, 0, Poly.Type.TEXTLEFT, Technology.NodeLayer.POINTS, new Technology.TechPoint[] {
+				new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromCenter(-2.5))});
+			eventLayers[5].setMessage(event4);
+
+			primLayers = eventLayers;
+            ERectangle fullRectangle = e_node.getFullRectangle();
+            EPoint fixupCorrection = EPoint.fromGrid(fullRectangle.getGridWidth(), fullRectangle.getGridHeight());
+            for (Technology.NodeLayer nodeLayer: eventLayers)
+                nodeLayer.fixup(fixupCorrection);
+		}
+		super.genShapeOfNode(b, n, primLayers);
+   }
 }

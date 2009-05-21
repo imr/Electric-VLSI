@@ -36,18 +36,15 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.id.NodeProtoId;
-import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
-
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.technologies.Schematics;
+
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -58,6 +55,7 @@ public abstract class AbstractShapeBuilder {
     protected Layer.Function.Set onlyTheseLayers;
     protected boolean reasonable;
     protected boolean electrical;
+    protected final boolean rotateNodes;
     protected Orientation orient;
     private AffineTransform pureRotate;
 
@@ -67,9 +65,15 @@ public abstract class AbstractShapeBuilder {
     private CellBackup.Memoization m;
     private Shrinkage shrinkage;
     private TechPool techPool;
+    private ImmutableNodeInst curNode;
 
     /** Creates a new instance of AbstractShapeBuilder */
     public AbstractShapeBuilder() {
+        this(true);
+    }
+
+    public AbstractShapeBuilder(boolean rotateNodes) {
+        this.rotateNodes = rotateNodes;
     }
 
     public void setup(Cell cell) {
@@ -91,10 +95,21 @@ public abstract class AbstractShapeBuilder {
         this.reasonable = reasonable;
         this.onlyTheseLayers = onlyTheseLayers;
         pointCount = 0;
+        curNode = null;
+    }
+
+    public boolean isElectrical() {
+        return electrical;
+    }
+    public boolean isReasonable() {
+        return reasonable;
     }
 
     public CellBackup.Memoization getMemoization() {
         return m;
+    }
+    public CellBackup getCellBackup() {
+        return m.getCellBackup();
     }
     public Shrinkage getShrinkage() {
         return shrinkage;
@@ -107,7 +122,38 @@ public abstract class AbstractShapeBuilder {
         if (genShapeEasy(a))
             return;
         pointCount = 0;
+        curNode = null;
         techPool.getTech(a.protoId.techId).getShapeOfArc(this, a);
+    }
+
+    public void genShapeOfNode(ImmutableNodeInst n) {
+        PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)n.protoId);
+
+		Technology.NodeLayer [] primLayers = pn.getNodeLayers();
+		if (electrical)
+		{
+			Technology.NodeLayer [] eLayers = pn.getElectricalLayers();
+			if (eLayers != null) primLayers = eLayers;
+		}
+
+		if (onlyTheseLayers != null)
+		{
+			List<Technology.NodeLayer> layerArray = new ArrayList<Technology.NodeLayer>();
+
+			for (int i = 0; i < primLayers.length; i++)
+			{
+				Technology.NodeLayer primLayer = primLayers[i];
+                Layer layer = primLayer.getLayer();
+				if (onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras()))
+					layerArray.add(primLayer);
+			}
+            if (layerArray.isEmpty()) return;
+			primLayers = new Technology.NodeLayer [layerArray.size()];
+			layerArray.toArray(primLayers);
+		}
+        pointCount = 0;
+        curNode = n;
+        pn.getTechnology().genShapeOfNode(this, n, primLayers);
     }
 
 	/**
@@ -123,7 +169,7 @@ public abstract class AbstractShapeBuilder {
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 */
-	protected void genShapeOfNode(ImmutableNodeInst n, PrimitiveNode np, Technology.NodeLayer [] primLayers, EGraphics graphicsOverride)
+	public void genShapeOfNode(ImmutableNodeInst n, PrimitiveNode np, Technology.NodeLayer [] primLayers, EGraphics graphicsOverride)
 	{
         pointCount = 0;
         // Anchor and Orient !!!!
@@ -209,42 +255,38 @@ public abstract class AbstractShapeBuilder {
            }
 		}
 
-		// determine the number of negating bubbles
-        ArrayList<Point2D> negatingBubbles = null;
-        if (np.hasNegatablePorts) {
-			double bubbleRadius = Schematics.tech().getNegatingBubbleSize() / 2 * DBMath.GRID;
-            BitSet headEnds = new BitSet();
-            List<ImmutableArcInst> conArcs = m.getConnections(headEnds, n, null);
-            for (int i = 0; i < conArcs.size(); i++) {
-                ImmutableArcInst a = conArcs.get(i);
-                boolean end = headEnds.get(i);
-                int nodeId = end ? a.headNodeId : a.tailNodeId;
-                if (nodeId != n.nodeId) break;
-                if (!(end ? a.isHeadNegated() : a.isTailNegated())) continue;
-                PortProtoId portId = end ? a.headPortId : a.tailPortId;
-                EPoint location = end ? a.headLocation : a.tailLocation;
-				// add a negating bubble
-//				AffineTransform trans = n.orient.inverse().rotateAbout(n.anchor.getLambdaX(), n.anchor.getLambdaY());
-//				Point2D portLocation = location.lambdaMutable();
-//				trans.transform(portLocation, portLocation);
-//				double x = portLocation.getX();
-//				double y = portLocation.getY();
-				PrimitivePort pp = np.getPort(portId);
-				int angle = pp.getAngle() * 10;
-				double dX = DBMath.cos(angle) * bubbleRadius;
-				double dY = DBMath.sin(angle) * bubbleRadius;
-                if (negatingBubbles == null)
-                    negatingBubbles = new ArrayList<Point2D>();
-                negatingBubbles.add(new Point2D.Double(location.getGridX()+dX, location.getGridY()+dY));
-//                negatingBubbles.add(new Point2D.Double(x+dX, y+dY));
-            }
-        }
+//		// determine the number of negating bubbles
+//        ArrayList<Point2D> negatingBubbles = null;
+//        if (np.hasNegatablePorts) {
+//			double bubbleRadius = Schematics.tech().getNegatingBubbleSize() / 2 * DBMath.GRID;
+//            BitSet headEnds = new BitSet();
+//            List<ImmutableArcInst> conArcs = m.getConnections(headEnds, n, null);
+//            for (int i = 0; i < conArcs.size(); i++) {
+//                ImmutableArcInst a = conArcs.get(i);
+//                boolean end = headEnds.get(i);
+//                int nodeId = end ? a.headNodeId : a.tailNodeId;
+//                if (nodeId != n.nodeId) break;
+//                if (!(end ? a.isHeadNegated() : a.isTailNegated())) continue;
+//                PortProtoId portId = end ? a.headPortId : a.tailPortId;
+//                EPoint location = end ? a.headLocation : a.tailLocation;
+//				// add a negating bubble
+////				AffineTransform trans = n.orient.inverse().rotateAbout(n.anchor.getLambdaX(), n.anchor.getLambdaY());
+////				Point2D portLocation = location.lambdaMutable();
+////				trans.transform(portLocation, portLocation);
+////				double x = portLocation.getX();
+////				double y = portLocation.getY();
+//				PrimitivePort pp = np.getPort(portId);
+//				int angle = pp.getAngle() * 10;
+//				double dX = DBMath.cos(angle) * bubbleRadius;
+//				double dY = DBMath.sin(angle) * bubbleRadius;
+//                if (negatingBubbles == null)
+//                    negatingBubbles = new ArrayList<Point2D>();
+//                negatingBubbles.add(new Point2D.Double(location.getGridX()+dX, location.getGridY()+dY));
+////                negatingBubbles.add(new Point2D.Double(x+dX, y+dY));
+//            }
+//        }
 
 		// construct the polygon array
-		int numPolys = numBasicLayers + numExtraLayers;
-        if (negatingBubbles != null)
-            numPolys += negatingBubbles.size();
-
         double xSize = n.size.getGridX();
         double ySize = n.size.getGridY();
 
@@ -311,23 +353,22 @@ public abstract class AbstractShapeBuilder {
 
 			if (style.isText()) {
                 assert graphicsOverride == null;
-                assert port == null;
-                pushTextPoly(style, layer, primLayer.getMessage(), primLayer.getDescriptor());
+                pushTextPoly(style, layer, port, primLayer.getMessage(), primLayer.getDescriptor());
             } else {
                 pushPoly(style, layer, graphicsOverride, port);
             }
 		}
 
-		// add in negating bubbles
-		if (negatingBubbles != null)
-		{
-			double bubbleRadius = Schematics.tech().getNegatingBubbleSize() / 2;
-            for (Point2D p: negatingBubbles) {
-                pushPoint(p.getX(), p.getY());
-				pushPoint(p.getX() + bubbleRadius, p.getY());
-                pushPoly(Poly.Type.CIRCLE, Schematics.tech().node_lay, null, null);
-			}
-		}
+//		// add in negating bubbles
+//		if (negatingBubbles != null)
+//		{
+//			double bubbleRadius = Schematics.tech().getNegatingBubbleSize() / 2 * DBMath.GRID;
+//            for (Point2D p: negatingBubbles) {
+//                pushPoint(p.getX(), p.getY());
+//				pushPoint(p.getX() + bubbleRadius, p.getY());
+//                pushPoly(Poly.Type.CIRCLE, Schematics.tech().node_lay, null, null);
+//			}
+//		}
 
 		// add in the extra transistor layers
 		if (std != null)
@@ -624,6 +665,17 @@ public abstract class AbstractShapeBuilder {
             resize();
         doubleCoords[pointCount*2] = gridX;
         doubleCoords[pointCount*2 + 1] = gridY;
+        if (curNode != null) {
+            if (rotateNodes && curNode.orient.canonic() != Orientation.IDENT) {
+                curNode.orient.pureRotate().transform(doubleCoords, pointCount*2, doubleCoords, pointCount*2, 1);
+                if (!curNode.orient.isManhattan()) {
+                    doubleCoords[pointCount*2 + 0] = DBMath.roundShapeCoord(doubleCoords[pointCount*2 + 0]);
+                    doubleCoords[pointCount*2 + 1] = DBMath.roundShapeCoord(doubleCoords[pointCount*2 + 1]);
+                }
+            }
+            doubleCoords[pointCount*2 + 0] += curNode.anchor.getGridX();
+            doubleCoords[pointCount*2 + 1] += curNode.anchor.getGridY();
+        }
         if (pureRotate != null) {
             pureRotate.transform(doubleCoords, pointCount*2, doubleCoords, pointCount*2, 1);
             if (!orient.isManhattan()) {
@@ -645,8 +697,8 @@ public abstract class AbstractShapeBuilder {
         pointCount = 0;
     }
 
-    public void pushTextPoly(Poly.Type style, Layer layer, String message, TextDescriptor descriptor) {
-        addTextPoly(pointCount, style, layer, message, descriptor);
+    public void pushTextPoly(Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
+        addTextPoly(pointCount, style, layer, pp, message, descriptor);
         pointCount = 0;
     }
 
@@ -659,8 +711,8 @@ public abstract class AbstractShapeBuilder {
 //    }
 
     public abstract void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp);
-    public void addTextPoly(int numPoints, Poly.Type style, Layer layer, String message, TextDescriptor descriptor) {
-        addDoublePoly(numPoints, style, layer, null, null);
+    public void addTextPoly(int numPoints, Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
+        addDoublePoly(numPoints, style, layer, null, pp);
     }
 
     public abstract void addIntLine(int[] coords, Poly.Type style, Layer layer);

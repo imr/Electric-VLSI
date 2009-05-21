@@ -27,6 +27,7 @@ import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
@@ -549,6 +550,68 @@ public class Artwork extends Technology
 		}
 		return computeShapeOfNode(m, n, electrical, reasonable, primLayers, graphicsOverride);
 	}
+
+	/**
+	 * Puts into shape builder s the polygons that describe node "n", given a set of
+	 * NodeLayer objects to use.
+	 * This method is overridden by specific Technologys.
+     * @param b shape builder where to put polygons
+	 * @param n the ImmutableNodeInst that is being described.
+	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 */
+    @Override
+    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, Technology.NodeLayer[] primLayers) {
+        CellBackup.Memoization m = b.getMemoization();
+		PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
+		// if node is erased, remove layers
+		if (!b.isElectrical() && m.isWiped(n))
+            return;
+
+        EGraphics graphicsOverride = makeGraphics(n);
+
+		if (np == circleNode || np == thickCircleNode)
+		{
+			double [] angles = n.getArcDegrees();
+			if (n.size.getGridX() != n.size.getGridY())
+			{
+				// handle ellipses
+				Point2D [] pointList = fillEllipse(EPoint.ORIGIN, n.size.getLambdaX(), n.size.getLambdaY(),
+					angles[0], angles[1]);
+                for (Point2D p: pointList)
+                    b.pushPoint(p.getX()*DBMath.GRID, p.getY()*DBMath.GRID);
+                Poly.Type style = np == circleNode ? Poly.Type.OPENED : Poly.Type.OPENEDT3;
+                b.pushPoly(style, defaultLayer, graphicsOverride, null);
+                return;
+			}
+
+			// if there is arc information here, make it an arc of a circle
+			if (angles[0] != 0.0 || angles[1] != 0.0)
+			{
+				// fill an arc of a circle here
+				double dist = n.size.getGridX()*0.5;
+                b.pushPoint(EPoint.ORIGIN);
+				b.pushPoint(Math.cos(angles[0]+angles[1])*dist, Math.sin(angles[0]+angles[1])*dist);
+				b.pushPoint(Math.cos(angles[0])*dist, Math.sin(angles[0])*dist);
+                Poly.Type style = np == circleNode ? Poly.Type.CIRCLEARC : Poly.Type.THICKCIRCLEARC;
+                b.pushPoly(style, defaultLayer, graphicsOverride, null);
+                return;
+			}
+		} else if (np == splineNode)
+		{
+			Point2D [] tracePoints = n.getTrace();
+			if (tracePoints != null)
+			{
+				Point2D [] pointList = fillSpline(0, 0, tracePoints);
+                for (Point2D p: pointList)
+                    b.pushPoint(p.getX()*DBMath.GRID, p.getY()*DBMath.GRID);
+                b.pushPoly(Poly.Type.OPENED, defaultLayer, graphicsOverride, null);
+                return;
+			}
+		}
+		b.genShapeOfNode(n, np, primLayers, graphicsOverride);
+
+    }
 
 	/**
 	 * Returns a polygon that describes a particular port on a NodeInst.

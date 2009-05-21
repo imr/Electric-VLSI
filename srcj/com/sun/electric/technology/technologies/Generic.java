@@ -31,6 +31,7 @@ import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
@@ -357,6 +358,33 @@ public class Generic extends Technology
 		}
 		return super.getShapeOfNode(m, n, electrical, reasonable, primLayers);
 	}
+
+	/**
+	 * Puts into shape builder s the polygons that describe node "n", given a set of
+	 * NodeLayer objects to use.
+	 * This method is overridden by specific Technologys.
+     * @param b shape builder where to put polygons
+	 * @param n the ImmutableNodeInst that is being described.
+	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 */
+    @Override
+    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, Technology.NodeLayer[] primLayers) {
+		if (n.protoId == invisiblePinNode.getId())
+		{
+            boolean hasDisplayVars = false;
+            for (Iterator<Variable> it = n.getVariables(); it.hasNext(); ) {
+                Variable var = it.next();
+                if (var.isDisplay())
+                    hasDisplayVars = true;
+            }
+            if (hasDisplayVars || n.isUsernamed() || b.getMemoization().hasExports(n))
+                return;
+//			if (ni.isInvisiblePinWithText())
+//				primLayers = NULLNODELAYER;
+		}
+		super.genShapeOfNode(b, n, primLayers);
+    }
 
 //	/**
 //	 * Method to update the connecitivity list for universal and invisible pins so that
