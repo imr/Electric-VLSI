@@ -628,6 +628,13 @@
             <xsd:enumeration value="FILLED"/>
             <xsd:enumeration value="CLOSED"/>
             <xsd:enumeration value="CROSSED"/>
+            <xsd:enumeration value="DISC"/> 
+            <xsd:enumeration value="TEXTCENT"/>
+            <xsd:enumeration value="CIRCLEARC"/>
+            <xsd:enumeration value="OPENED"/>
+            <xsd:enumeration value="VECTORS"/>
+            <xsd:enumeration value="TEXTBOX"/>
+            <xsd:enumeration value="CIRCLE"/>
         </xsd:restriction>
     </xsd:simpleType>
 
