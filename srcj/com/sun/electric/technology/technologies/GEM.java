@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
@@ -301,6 +302,17 @@ public class GEM extends Technology
 	};
 
 	//**************************************** METHODS ****************************************
+
+    /**
+     * Tells if node can be drawn by simplified algorithm
+     * Overidden in subclasses
+     * @param n node to test
+     * @param explain if true then print explanation why arc is not easy
+     * @return true if arc can be drawn by simplified algorithm
+     */
+    public boolean isEasyShape(NodeInst ni, boolean explain) {
+        return false;
+    }
 
 	/**
 	 * Method to return a list of Polys that describe a given NodeInst.

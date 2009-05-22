@@ -1750,6 +1750,17 @@ public class Schematics extends Technology
 
 	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer [] {};
 
+    /**
+     * Tells if node can be drawn by simplified algorithm
+     * Overidden in subclasses
+     * @param n node to test
+     * @param explain if true then print explanation why arc is not easy
+     * @return true if arc can be drawn by simplified algorithm
+     */
+    public boolean isEasyShape(NodeInst ni, boolean explain) {
+        return false;
+    }
+
 	/**
 	 * Method to return a list of Polys that describe a given NodeInst.
 	 * This method overrides the general one in the Technology object

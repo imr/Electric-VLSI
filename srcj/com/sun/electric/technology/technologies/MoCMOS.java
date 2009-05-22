@@ -193,6 +193,20 @@ public class MoCMOS extends Technology
     }
 
     /**
+     * Tells if node can be drawn by simplified algorithm
+     * Overidden in subclasses
+     * @param n node to test
+     * @param explain if true then print explanation why arc is not easy
+     * @return true if arc can be drawn by simplified algorithm
+     */
+    public boolean isEasyShape(NodeInst ni, boolean explain) {
+        ImmutableNodeInst n = ni.getD();
+		if (scalableTransistorNodes != null && (n.protoId == scalableTransistorNodes[P_TYPE].getId() || n.protoId == scalableTransistorNodes[N_TYPE].getId()))
+            return false;
+        return super.isEasyShape(ni, explain);
+    }
+
+    /**
 	 * Puts into shape builder s the polygons that describe node "n", given a set of
 	 * NodeLayer objects to use.
 	 * This method is overridden by specific Technologys.

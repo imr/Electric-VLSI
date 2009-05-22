@@ -326,6 +326,17 @@ public class Generic extends Technology
 		glyphLay.setGraphics(universalLay.getGraphics().withColor(c));
     }
 
+    /**
+     * Tells if node can be drawn by simplified algorithm
+     * Overidden in subclasses
+     * @param n node to test
+     * @param explain if true then print explanation why arc is not easy
+     * @return true if arc can be drawn by simplified algorithm
+     */
+    public boolean isEasyShape(NodeInst ni, boolean explain) {
+        return false;
+    }
+
 	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer [] {};
 	/**
 	 * Method to return a list of Polys that describe a given NodeInst.

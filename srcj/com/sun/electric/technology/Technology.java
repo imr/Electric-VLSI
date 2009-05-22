@@ -2871,11 +2871,48 @@ public class Technology implements Comparable<Technology>, Serializable
         PrimitiveNode pn = (PrimitiveNode)ni.getProto();
         assert pn.getTechnology() == this;
         if (!n.orient.isManhattan()) return false;
+        if (n.getTrace() != null) return false;
+        if (ni.getVar(NodeLayer.CUT_SPACING) != null) return false;
+        if (ni.getVar(NodeLayer.CUT_ALIGNMENT) != null) return false;
+        if (ni.getVar(NodeLayer.METAL_OFFSETS) != null) return false;
+        if (ni.getVar(NodeLayer.CARBON_NANOTUBE_COUNT) != null) return false;
+        if (ni.getVar(NodeLayer.CARBON_NANOTUBE_PITCH) != null) return false;
+        for (NodeLayer nl: pn.getNodeLayers()) {
+            if (!isEasy(nl))
+                return false;
+        }
+        NodeLayer[] electrical = pn.getElectricalLayers();
+        if (electrical != null) {
+            for (NodeLayer nl: pn.getNodeLayers()) {
+                if (!isEasy(nl))
+                    return false;
+            }
+        }
         PrimitiveNode.Function fun = pn.getFunction();
-        if (fun == PrimitiveNode.Function.NODE) return true;
-        if (fun == PrimitiveNode.Function.PIN &&
-                getShapeOfNode(ni).length == 0) return true;
+        return true;
+    }
+
+
+    private static boolean isEasy(NodeLayer nl) {
+        if (nl.getMessage() != null) return false;
+        if (nl.points.length != 2) return false;
+        if (!isEasyMultiplier(nl.points[0].getX().getMultiplier())) return false;
+        if (!isEasyMultiplier(nl.points[0].getY().getMultiplier())) return false;
+        if (!isEasyMultiplier(nl.points[1].getX().getMultiplier())) return false;
+        if (!isEasyMultiplier(nl.points[1].getY().getMultiplier())) return false;
+        if (nl.representation == NodeLayer.BOX) {
+            if (nl.style == Poly.Type.FILLED || nl.style == Poly.Type.CROSSED)
+                return true;
+        }
+        if (nl.representation == NodeLayer.MULTICUTBOX) {
+            if (nl.style == Poly.Type.FILLED)
+                return true;
+        }
         return false;
+    }
+
+    private static boolean isEasyMultiplier(double multiplier) {
+        return multiplier == -0.5 || multiplier == 0.5 || multiplier == 0;
     }
 
     private CellBackup.Memoization getMemoization(NodeInst ni) {
