@@ -151,9 +151,14 @@ public abstract class AbstractShapeBuilder {
 			primLayers = new Technology.NodeLayer [layerArray.size()];
 			layerArray.toArray(primLayers);
 		}
+		// if node is erased, remove layers
+		if (Technology.ALWAYS_SKIP_WIPED_PINS || !electrical) {
+			if (m.isWiped(n)) return;
+			if (pn.isWipeOn1or2() && m.pinUseCount(n)) return;
+		}
         pointCount = 0;
         curNode = n;
-        pn.getTechnology().genShapeOfNode(this, n, primLayers);
+        pn.getTechnology().genShapeOfNode(this, n, pn, primLayers);
     }
 
 	/**
@@ -297,7 +302,7 @@ public abstract class AbstractShapeBuilder {
 	        Poly.Type style = primLayer.getStyle();
             Layer layer = primLayer.getLayerOrPseudoLayer();
 	        PrimitivePort port = null;
- 			if (electrical && np.getNumPorts() > 0)
+ 			if (electrical)
 			{
 				int portIndex = primLayer.getPortNum();
                 assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition
@@ -375,7 +380,7 @@ public abstract class AbstractShapeBuilder {
 		{
 			std.initTransPolyFilling();
 			for(int i = 0; i < numExtraLayers; i++)
-				std.fillTransPoly(electrical);
+				std.fillTransPoly();
 		}
 	}
 
@@ -1227,7 +1232,7 @@ public abstract class AbstractShapeBuilder {
 		 * gate segment that extends from left to right, and on the left of a
 		 * segment that goes from bottom to top.
 		 */
-		private void fillTransPoly(boolean electrical)
+		private void fillTransPoly()
 		{
 			int element = fillBox++;
 			Technology.NodeLayer primLayer = primLayers[element];
@@ -1258,7 +1263,7 @@ public abstract class AbstractShapeBuilder {
 							nextPt = thisPt;
 							int ang = angle+1800;
 							thisPt = DBMath.addPoints(thisPt, DBMath.cos(ang) * extendt, DBMath.sin(ang) * extendt);
-							buildSerpentinePoly(element, 0, numSegments, electrical, thisPt, nextPt, angle);
+							buildSerpentinePoly(element, 0, numSegments, thisPt, nextPt, angle);
                             return;
 						} else if (extendb != 0)
 						{
@@ -1269,7 +1274,7 @@ public abstract class AbstractShapeBuilder {
 							int angle = DBMath.figureAngle(thisPt, nextPt);
 							thisPt = nextPt;
 							nextPt = DBMath.addPoints(nextPt, DBMath.cos(angle) * extendb, DBMath.sin(angle) * extendb);
-							buildSerpentinePoly(element, 0, numSegments, electrical, thisPt, nextPt, angle);
+							buildSerpentinePoly(element, 0, numSegments, thisPt, nextPt, angle);
                             return;
 						}
 					}
@@ -1382,7 +1387,7 @@ public abstract class AbstractShapeBuilder {
             pushPoly(primLayer.getStyle(), primLayer.getLayer(), null, port);
 		}
 
-		private void buildSerpentinePoly(int element, int thissg, int nextsg, boolean electrical, Point2D thisPt, Point2D nextPt, int angle)
+		private void buildSerpentinePoly(int element, int thissg, int nextsg, Point2D thisPt, Point2D nextPt, int angle)
 		{
 			// see if nonstandard width is specified
 			Technology.NodeLayer primLayer = primLayers[element];

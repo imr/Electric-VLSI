@@ -455,7 +455,7 @@ public class Schematics extends Technology
 			});
 		busPinNode.setFunction(PrimitiveNode.Function.PIN);
 		busPinNode.setSquare();
-		busPinNode.setWipeOn1or2();
+//		busPinNode.setWipeOn1or2();  Bus Pin has more complicated wipe rules
 		busPinNode.setCanBeZeroSize();
 
 		/** wire con */
@@ -1779,20 +1779,6 @@ public class Schematics extends Technology
         return getShapeOfNode(m, n, null, null, electrical, reasonable, primLayers);
     }
 
-    /**
-	 * Puts into shape builder s the polygons that describe node "n", given a set of
-	 * NodeLayer objects to use.
-	 * This method is overridden by specific Technologys.
-     * @param b shape builder where to put polygons
-	 * @param n the ImmutableNodeInst that is being described.
-	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
-	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
-	 */
-    @Override
-    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, Technology.NodeLayer[] primLayers) {
-        genShapeOfNode(b, n, null, null, primLayers);
-    }
-
 	/**
 	 * Method to return a list of Polys that describe a given NodeInst.
 	 * This method overrides the general one in the Technology object
@@ -1811,8 +1797,6 @@ public class Schematics extends Technology
 	private Poly [] getShapeOfNode(CellBackup.Memoization m, ImmutableNodeInst n, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers)
 	{
-		if (!(n.protoId instanceof PrimitiveNodeId)) return null;
-
 		PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
 		boolean extraBlobs = false;
 		if (np == wirePinNode)
@@ -2198,33 +2182,26 @@ public class Schematics extends Technology
 		return computeShapeOfNode(m, n, electrical, reasonable, primLayers, null);
 	}
 
-	/**
-	 * Method to return a list of Polys that describe a given NodeInst.
-	 * This method overrides the general one in the Technology object
-	 * because of the unusual primitives in this Technology.
-     * @param m information about including cell which is necessary for computing
+    /**
+	 * Puts into shape builder s the polygons that describe node "n", given a set of
+	 * NodeLayer objects to use.
+	 * This method is overridden by specific Technologys.
+     * @param b shape builder where to put polygons
 	 * @param n the ImmutableNodeInst that is being described.
-	 * @param wnd the window in which this node will be drawn.
-	 * @param context the VarContext to this node in the hierarchy.
-	 * @param electrical true to get the "electrical" layers.
-	 * This makes no sense for Schematics primitives.
-	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
-	 * This makes no sense for Schematics primitives.
+     * @param pn proto of the ImmutableNodeInst in this Technology
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
-	 * @return an array of Poly objects.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 */
-	private void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, EditWindow0 wnd, VarContext context,
-		Technology.NodeLayer [] primLayers)
-	{
-		if (!(n.protoId instanceof PrimitiveNodeId)) return;
-
+    @Override
+    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, Technology.NodeLayer[] primLayers) {
+        EditWindow0 wnd = null;
+        VarContext varContext = null;
         CellBackup.Memoization m = b.getMemoization();
-		PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
 		boolean extraBlobs = false;
-		if (np == wirePinNode)
+		if (pn == wirePinNode)
 		{
 			if (m.pinUseCount(n)) primLayers = NULLNODELAYER;
-		} else if (np == busPinNode)
+		} else if (pn == busPinNode)
 		{
 			// bus pins get bigger in "T" configurations, disappear when alone and exported
 			int busCon = 0, nonBusCon = 0;
@@ -2302,7 +2279,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), new EdgeV(wireDiscSize, 0))});
 			}
             primLayers = busPinLayers;
-		} else if (np == andNode)
+		} else if (pn == andNode)
 		{
 			double lambda = n.size.getLambdaX() / 8;
 			if (n.size.getLambdaY() < lambda * 6) lambda = n.size.getLambdaY() / 6;
@@ -2325,7 +2302,7 @@ public class Schematics extends Technology
 					});
 				primLayers = andLayers;
 			}
-		} else if (np == orNode)
+		} else if (pn == orNode)
 		{
 			double lambda = n.size.getLambdaX() / 10;
 			if (n.size.getLambdaY() < lambda * 6) lambda = n.size.getLambdaY() / 6;
@@ -2356,7 +2333,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75 * lambda), EdgeV.fromCenter(-3 * lambda))});
 				primLayers = orLayers;
 			}
-		} else if (np == xorNode)
+		} else if (pn == xorNode)
 		{
 			double lambda = n.size.getLambdaX() / 10;
 			if (n.size.getLambdaY() < lambda * 6) lambda = n.size.getLambdaY() / 6;
@@ -2391,7 +2368,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75 * lambda), EdgeV.fromCenter(-3 * lambda))});
 				primLayers = xorLayers;
 			}
-		} else if (np == flipflopNode)
+		} else if (pn == flipflopNode)
 		{
 			int ffBits = n.techBits;
 			switch (ffBits)
@@ -2412,7 +2389,7 @@ public class Schematics extends Technology
 				case FFTYPET|FFCLOCKP:  primLayers = ffLayersTP;     break;
 				case FFTYPET|FFCLOCKN:  primLayers = ffLayersTN;     break;
 			}
-		} else if (np == transistorNode)
+		} else if (pn == transistorNode)
 		{
 			extraBlobs = true;
 			int tranBits = n.techBits;
@@ -2451,7 +2428,7 @@ public class Schematics extends Technology
 				case TRANDMES:      primLayers = tranLayersDMES;   break;
 				case TRANEMES:      primLayers = tranLayersEMES;   break;
 			}
-		} else if (np == twoportNode)
+		} else if (pn == twoportNode)
 		{
 			extraBlobs = true;
 			int tranBits = n.techBits;
@@ -2463,7 +2440,7 @@ public class Schematics extends Technology
 				case TWOPCCCS:  primLayers = twoLayersCCCS;   break;
 				case TWOPTLINE: primLayers = twoLayersTran;   break;
 			}
-		} else if (np == diodeNode)
+		} else if (pn == diodeNode)
 		{
 			extraBlobs = true;
 			int diodeBits = n.techBits;
@@ -2472,7 +2449,7 @@ public class Schematics extends Technology
 				case DIODENORM:  primLayers = diodeLayersNorm;    break;
 				case DIODEZENER: primLayers = diodeLayersZener;   break;
 			}
-		} else if (np == capacitorNode)
+		} else if (pn == capacitorNode)
 		{
 			extraBlobs = true;
 			int capacitorBits = n.techBits;
@@ -2481,7 +2458,7 @@ public class Schematics extends Technology
 				case CAPACNORM: primLayers = capacitorLayersNorm;           break;
 				case CAPACELEC: primLayers = capacitorLayersElectrolytic;   break;
 			}
-        } else if (np == resistorNode)
+        } else if (pn == resistorNode)
 		{
 			extraBlobs = true;
 			int resistorBits = n.techBits;
@@ -2493,7 +2470,7 @@ public class Schematics extends Technology
 				case RESISTNWELL: primLayers = resistorLayersNWell;   break;
 				case RESISTPWELL: primLayers = resistorLayersPWell;   break;
 			}
-		} else if (np == switchNode)
+		} else if (pn == switchNode)
 		{
 			int numLayers = 3;
 			if (n.size.getLambdaY() >= 2) numLayers += ((int)n.size.getLambdaY()/2);
@@ -2509,7 +2486,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.fromLeft(1.25), EdgeV.fromBottom(yValue))});
 			}
 			primLayers = switchLayers;
-		} else if (np == transistor4Node)
+		} else if (pn == transistor4Node)
 		{
 			extraBlobs = true;
 			int tranBits = n.techBits;
@@ -2548,8 +2525,8 @@ public class Schematics extends Technology
 				case TRANDMES:      primLayers = tran4LayersDMES;   break;
 				case TRANEMES:      primLayers = tran4LayersEMES;   break;
 			}
-		} else if (np == offpageNode || np == powerNode || np == groundNode || np == sourceNode || np == resistorNode ||
-			np == inductorNode || np == meterNode || np == wellNode || np == substrateNode)
+		} else if (pn == offpageNode || pn == powerNode || pn == groundNode || pn == sourceNode || pn == resistorNode ||
+			pn == inductorNode || pn == meterNode || pn == wellNode || pn == substrateNode)
 		{
 			extraBlobs = true;
 		}
@@ -2571,7 +2548,7 @@ public class Schematics extends Technology
                     arcsCount++;
                     if (arcsCount == 2) {
     					if (extraBlobList == null) extraBlobList = new ArrayList<PrimitivePort>();
-        				extraBlobList.add(np.getPort(portId));
+        				extraBlobList.add(pn.getPort(portId));
                     }
                 } else {
                     prevPortId = portId;
@@ -2597,11 +2574,11 @@ public class Schematics extends Technology
 				primLayers = blobLayers;
 			}
 		}
-        ERectangle fullRectangle = np.getFullRectangle();
+        ERectangle fullRectangle = pn.getFullRectangle();
         EPoint fixupCorrection = EPoint.fromGrid(fullRectangle.getGridWidth(), fullRectangle.getGridHeight());
         for (Technology.NodeLayer nodeLayer: primLayers)
             nodeLayer.fixup(fixupCorrection);
-		b.genShapeOfNode(n, np, primLayers, null);
+		b.genShapeOfNode(n, pn, primLayers, null);
 	}
 
 	/**

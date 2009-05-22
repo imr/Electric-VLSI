@@ -29,7 +29,6 @@ import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
@@ -42,7 +41,6 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LayerId;
-import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.NodeProto;
@@ -66,7 +64,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ToolSettings;
-import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 
@@ -83,7 +80,6 @@ import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -137,6 +133,9 @@ public class Technology implements Comparable<Technology>, Serializable
 	public static final boolean HANDLEBROKENOUTLINES = true;
 	/** true to handle duplicate points in an outline as a "break" */
 	public static final boolean DUPLICATEPOINTSAREBROKENOUTLINES = false;
+
+    /** Skip wiped pins both in electrical and non-electrical mode */
+    protected static final boolean ALWAYS_SKIP_WIPED_PINS = true;
 
     // Change in TechSettings takes effect only after restart
     public static final boolean IMMUTABLE_TECHS = false/*Config.TWO_JVM*/;
@@ -2797,6 +2796,10 @@ public class Technology implements Comparable<Technology>, Serializable
         Poly[] polys0 = polyBuilder.getShapeArray(ni, electrical, reasonable, onlyTheseLayers);
         if (Job.getDebug()) {
             Poly[] polys1 = getShapeOfNode_(ni, electrical, reasonable, onlyTheseLayers);
+            if (polys0.length != polys1.length) {
+                polys0 = polyBuilder.getShapeArray(ni, electrical, reasonable, onlyTheseLayers);
+                polys1 = getShapeOfNode_(ni, electrical, reasonable, onlyTheseLayers);
+            }
             assert polys0.length == polys1.length;
             for (int i = 0; i < polys0.length; i++) {
                 Poly p0 = polys0[i];
@@ -2944,7 +2947,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		Technology.NodeLayer [] primLayers)
 	{
 		// if node is erased, remove layers
-		if (!electrical)
+		if (ALWAYS_SKIP_WIPED_PINS || !electrical)
 		{
 			if (m.isWiped(n)) primLayers = nullPrimLayers; else
 			{
@@ -2965,19 +2968,12 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * This method is overridden by specific Technologys.
      * @param b shape builder where to put polygons
 	 * @param n the ImmutableNodeInst that is being described.
+     * @param pn proto of the ImmutableNodeInst in this Technology
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 */
-    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, Technology.NodeLayer[] primLayers) {
-        CellBackup.Memoization m = b.getMemoization();
-		PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
-		// if node is erased, remove layers
-		if (!b.electrical) {
-			if (m.isWiped(n)) return;
-			if (np.isWipeOn1or2() && m.pinUseCount(n)) return;
-		}
-
-		b.genShapeOfNode(n, np, primLayers, null);
+    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, Technology.NodeLayer[] primLayers) {
+		b.genShapeOfNode(n, pn, primLayers, null);
     }
 
 	/**
