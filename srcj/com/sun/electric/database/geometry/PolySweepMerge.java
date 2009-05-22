@@ -508,6 +508,9 @@ public class PolySweepMerge extends GeometryHandler
         return edgesList;
     }
 
+    /***************************************************************************/
+    /*                      GeometryHandlerQTree
+    /***************************************************************************/
     static class GeometryHandlerQTree
     {
         Area area;
