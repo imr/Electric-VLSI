@@ -186,7 +186,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         this.techBits = techBits;
         this.protoDescriptor = protoDescriptor;
         this.ports = ports;
-//        check();
+//        if (!(this instanceof ImmutableIconInst))
+//            check();
     }
 
 	/**
@@ -354,6 +355,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 //        if (size.getGridX() < 0 || size.getGridY() < 0) throw new IllegalArgumentException("size is " + size);
         if (isCellCenter(protoId)) return this;
         if (protoId instanceof CellId) return this;
+        if (getTrace() != null)
+            return this;
 		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, size, this.flags, this.techBits, this.protoDescriptor,
                 getVars(), this.ports, getDefinedParams());
@@ -435,9 +438,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (this.getVars() == vars) return this;
         EPoint size = this.size;
         if (SIMPLE_TRACE_SIZE && var.getKey() == NodeInst.TRACE) {
-            EPoint[] trace = getTrace();
-            if (trace != null) {
-                EPoint newSize = calcTraceSize(trace);
+            Object value = var.getObject();
+            if (value instanceof EPoint[]) {
+                EPoint newSize = calcTraceSize((EPoint[])value);
                 if (!newSize.equals(size))
                     size = newSize;
             }

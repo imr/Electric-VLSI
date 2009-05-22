@@ -245,7 +245,7 @@ public class CellBackup {
         return this.primitiveBounds = computePrimitiveBounds();
     }
 
-    public ERectangle computePrimitiveBounds() {
+public ERectangle computePrimitiveBounds() {
         ImmutableArrayList<ImmutableArcInst> arcs = cellRevision.arcs;
         if (arcs.isEmpty()) return null;
         int intMinX = Integer.MAX_VALUE, intMinY = Integer.MAX_VALUE, intMaxX = Integer.MIN_VALUE, intMaxY = Integer.MIN_VALUE;

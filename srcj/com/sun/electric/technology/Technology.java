@@ -2859,6 +2859,25 @@ public class Technology implements Comparable<Technology>, Serializable
 		return getShapeOfNode(getMemoization(ni), ni.getD(), electrical, reasonable, primLayers);
 	}
 
+    /**
+     * Tells if node can be drawn by simplified algorithm
+     * Overidden in subclasses
+     * @param n node to test
+     * @param explain if true then print explanation why arc is not easy
+     * @return true if arc can be drawn by simplified algorithm
+     */
+    public boolean isEasyShape(NodeInst ni, boolean explain) {
+        ImmutableNodeInst n = ni.getD();
+        PrimitiveNode pn = (PrimitiveNode)ni.getProto();
+        assert pn.getTechnology() == this;
+        if (!n.orient.isManhattan()) return false;
+        PrimitiveNode.Function fun = pn.getFunction();
+        if (fun == PrimitiveNode.Function.NODE) return true;
+        if (fun == PrimitiveNode.Function.PIN &&
+                getShapeOfNode(ni).length == 0) return true;
+        return false;
+    }
+
     private CellBackup.Memoization getMemoization(NodeInst ni) {
         return ni.getCellBackupUnsafe().getMemoization();
     }
