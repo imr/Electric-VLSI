@@ -62,8 +62,9 @@ public class PolyBase implements Shape, PolyNodeMerge
     /** represents X axis */                                public static final int X = 0;
     /** represents Y axis */                                public static final int Y = 1;
     /** represents Z axis */                                public static final int Z = 2;
+    /** represents on the plane XY */                       public static final int XY = 4;
 
-	/**
+    /**
 	 * The constructor creates a new Poly given an array of points.
 	 * @param points the array of coordinates.
 	 */

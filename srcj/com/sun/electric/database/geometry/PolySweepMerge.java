@@ -26,16 +26,9 @@ package com.sun.electric.database.geometry;
 
 import com.sun.electric.technology.Layer;
 
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.Area;
+import java.awt.geom.*;
 import java.awt.Shape;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Class to implement geometric sweep algorithm in 2D for areas.
@@ -428,6 +421,290 @@ public class PolySweepMerge extends GeometryHandler
             list.addAll(PolyBase.getPolyTrees(area, (Layer)layer));
         }
 
+        return list;
+    }
+
+    /***************************************************************************************************************/
+    /*                                           Classes for polygon partition
+    /***************************************************************************************************************/
+    static class PolyEdge
+    {
+        Point2D start;
+        Point2D end;
+        int dir;
+
+        PolyEdge(Point2D s, Point2D e)
+        {
+            start = s;
+            end = e;
+            boolean alignX = DBMath.areEquals(s.getX(), e.getX());
+            boolean alignY = DBMath.areEquals(s.getY(), e.getY());
+            assert (!alignX || !alignY); // can't be a point.
+            if (alignX)
+                dir = PolyBase.X;
+            else if (alignY)
+                dir = PolyBase.Y;
+            else
+            {
+                dir = PolyBase.XY;
+                assert(false); // no ready for angled edges
+            }
+        }
+    }
+
+    /**
+     * Method to return the unique set of points in the polygon.
+     * @param area
+     * @return
+     */
+    private static Set<Point2D> getPoints(Area area)
+    {
+        double [] coords = new double[6];
+        Set<Point2D> pointSet = new HashSet<Point2D>();
+
+        for(PathIterator pIt = area.getPathIterator(null); !pIt.isDone(); )
+        {
+            int type = pIt.currentSegment(coords);
+            if (type == PathIterator.SEG_CLOSE)
+            {
+                ;
+            } else if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
+            {
+                Point2D pt = new Point2D.Double(coords[0], coords[1]);
+                pointSet.add(pt);
+            }
+            pIt.next();
+        }
+
+        return pointSet;
+    }
+
+    private static List<PolyEdge> getEdges(Area area)
+    {
+        double [] coords = new double[6];
+        List<Point2D> pointList = new ArrayList<Point2D>();
+        List<PolyEdge> edgesList = new ArrayList<PolyEdge>();
+
+        for(PathIterator pIt = area.getPathIterator(null); !pIt.isDone(); )
+        {
+            int type = pIt.currentSegment(coords);
+            if (type == PathIterator.SEG_CLOSE)
+            {
+                int size = pointList.size();
+                for (int i = 0; i < size; i++)
+                {
+                    PolyEdge edge = new PolyEdge(pointList.get(i), pointList.get((i+1)%size));
+                    edgesList.add(edge);
+                }
+                pointList.clear();
+            } else if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
+            {
+                Point2D pt = new Point2D.Double(coords[0], coords[1]);
+                pointList.add(pt);
+            }
+            pIt.next();
+        }
+
+        return edgesList;
+    }
+
+    static class GeometryHandlerQTree
+    {
+        Area area;
+        List<GeometryHandlerQTree> sons = new ArrayList<GeometryHandlerQTree>();
+
+        GeometryHandlerQTree(Area a)
+        {
+            area = a;
+        }
+
+        private static class CutBucket
+        {
+            int fullyContainedEdges;
+            int totalCuts;
+            double best, min, max;
+            int dir;
+            boolean found;
+            List<PolyEdge> edgesList;
+
+            CutBucket(int d, double m, double n, List<PolyEdge> list)
+            {
+                dir = d;
+                found = false;
+                min = m;
+                max = n;
+                edgesList = list;
+            }
+
+            void analyzePoint(double p)
+            {
+                // no cut
+                if (!DBMath.isInBetweenExclusive(p, min, max)) return;
+
+                // the last cut found for now
+                found = true;
+                best = p;
+                totalCuts++;
+            }
+        }
+
+        void refineDir(CutBucket cut)
+        {
+            // look for the cut points
+            Set<Double> newPoints = new HashSet<Double>(); // only unique points are required
+            List<PolyEdge> removeList = new ArrayList<PolyEdge>();
+            List<PolyEdge> addLeftList = new ArrayList<PolyEdge>();
+            List<PolyEdge> addRightList = new ArrayList<PolyEdge>();
+
+            for (PolyEdge e : cut.edgesList)
+            {
+                // No parallel
+                Double newP = null;
+                boolean horizontal = e.dir == PolyBase.Y;
+                if (e.dir != cut.dir)
+                {
+                    double min = horizontal ? e.start.getX() : e.start.getY();
+                    double max = horizontal ? e.end.getX() : e.end.getY();
+                    boolean startIsLeft = (min < max);
+
+                    if (DBMath.areEquals(min, cut.best)) // add the start point
+                    {
+                        newP = horizontal ? e.start.getY() : e.start.getX();
+                        if (startIsLeft) addLeftList.add(e);
+                        else addRightList.add(e);
+                    }
+                    else if (DBMath.areEquals(max, cut.best)) // add the end point
+                    {
+                        newP = horizontal ? e.end.getY() : e.end.getX();
+                        if (startIsLeft) addRightList.add(e);
+                        else addLeftList.add(e);
+                    }
+                    else if (DBMath.isInBetween(cut.best, min, max))
+                    // the swap btw min and max is done inside isInBetween
+                    {
+                        // adding new point
+//                        newP = horizontal ? e.start.getY() : e.start.getX();  // same results with e.end
+                        removeList.add(e);
+                        Point2D newPoint;
+                        if (horizontal)
+                        {
+                            newP = e.start.getY();
+                            newPoint = new Point2D.Double(cut.best, newP);
+                        }
+                        else
+                        {
+                            newP = e.start.getX();
+                            newPoint = new Point2D.Double(newP, cut.best);
+                        }
+                        if (startIsLeft) // start is left/top
+                        {
+                            addLeftList.add(new PolyEdge(e.start, newPoint));
+                            addRightList.add(new PolyEdge(e.end, newPoint));
+                        }
+                        else  // start is right
+                        {
+                            addRightList.add(new PolyEdge(e.start, newPoint));
+                            addLeftList.add(new PolyEdge(e.end, newPoint));
+                        }
+                    }
+                }
+//                else // parallel -> skip them because the other direction will provide the cutting points
+//                {
+//                    boolean aligned = (horizontal) ? DBMath.areEquals(e.start.getY(), cut.best) :
+//                        DBMath.areEquals(e.start.getX(), cut.best);
+//                    if (aligned)
+//                    {
+//                        // add both points
+//                        newP = e.start;
+//                        newPoints.add(e.end);
+//                    }
+//                }
+                if (newP != null)
+                    newPoints.add(newP);
+            }
+
+            // first remove delete old edges
+//            cut.edgesList.removeAll(removeList);
+
+            // Sort the points to produce extra edges
+            List<Double> pList = new ArrayList<Double>();
+            pList.addAll(newPoints);
+            Collections.sort(pList);
+            // add the new edges
+            assert(pList.size()%2 == 0); // even number of points since the geometries are manhattan.
+            boolean horizontal = cut.dir == PolyBase.Y;
+            List<PolyEdge> inAllLists = new ArrayList<PolyEdge>();
+
+            for (int i = 0; i < pList.size(); i+=2)
+            {
+                PolyEdge edge;
+
+                if (horizontal)
+                    edge = new PolyEdge(new Point2D.Double(pList.get(i), cut.best),
+                        new Point2D.Double(pList.get(i+1), cut.best));
+                else
+                    edge = new PolyEdge(new Point2D.Double(cut.best, pList.get(i)),
+                        new Point2D.Double(cut.best, pList.get(i+1)));
+                addLeftList.add(edge);
+                addRightList.add(edge);
+            }
+        }
+
+        void refine()
+        {
+            if (area.isRectangular())
+                return; // nothing to refine
+            Set<Point2D> pointsList = getPoints(area);
+            List<PolyEdge> edgesList = getEdges(area);
+            Rectangle2D rect = area.getBounds2D();
+            // search for best X or Y cut
+            CutBucket cutX = new CutBucket(PolyBase.X, rect.getMinX(), rect.getMaxX(), edgesList);
+            CutBucket cutY = new CutBucket(PolyBase.Y, rect.getMinY(), rect.getMaxY(), edgesList);
+
+            for (Point2D p : pointsList)
+            {
+                // X cut
+                cutX.analyzePoint(p.getX());
+                // Y cut
+                cutY.analyzePoint(p.getY());
+            }
+
+            if (!cutX.found && !cutY.found)
+                return; // nothing to refine
+            if (cutX.found && !cutY.found) // refine along X
+                refineDir(cutX);
+            else if (!cutX.found && cutY.found)
+                refineDir(cutY); // refine along Y
+            else
+            {
+                // Easy solutions for now
+                if (cutX.totalCuts > cutY.totalCuts)
+                   refineDir(cutX);
+                else
+                   refineDir(cutY); // refine along Y
+                // No heuristic to decide which direction first (only X or Y refinement)
+//                assert(false);
+            }
+
+            // Continue recursively
+            for (GeometryHandlerQTree s : sons)
+            {
+                s.refine();
+            }
+        }
+    }
+
+    public Collection<PolyBase> getPolyPartition(Object layer)
+    {
+        List<PolyBase> list = new ArrayList<PolyBase>();
+        PolySweepContainer container = (PolySweepContainer)layers.get(layer);
+        Collections.sort(container.areas, areaSort);
+
+        for (Area area : container.areas)
+        {
+            GeometryHandlerQTree g = new GeometryHandlerQTree(area);
+            g.refine();
+        }
         return list;
     }
 }
