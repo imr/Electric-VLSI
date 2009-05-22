@@ -95,6 +95,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -490,7 +492,7 @@ public class Connectivity
 		exportsToRestore = new ArrayList<Export>();
 		generatedExports = new ArrayList<Export>();
 		pinsForLater = new ArrayList<ExportedPin>();
-		allCutLayers = new HashMap<Layer,CutInfo>();
+		allCutLayers = new TreeMap<Layer,CutInfo>();
 		extractCell(oldCell, newCell, pat, flattenPcells, expandedCells, merge, GenMath.MATID, Orientation.IDENT);
 		if (expandedCells.size() > 0)
 		{
@@ -1016,7 +1018,7 @@ public class Connectivity
 	{
 		// make a list of polygons that could be turned into wires
 		int totPolys = 0;
-		Map<Layer,List<PolyBase>> geomToWire = new HashMap<Layer,List<PolyBase>>();
+		Map<Layer,List<PolyBase>> geomToWire = new TreeMap<Layer,List<PolyBase>>();
 		for (Layer layer : merge.getKeySet())
 		{
 			Layer.Function fun = layer.getFunction();
@@ -1168,26 +1170,26 @@ public class Connectivity
 		}
 
 		ArcProto.Function neededFunction = null;
-		if (originalMerge.intersects(selectP, poly))
+		if (selectP != null && originalMerge.intersects(selectP, poly))
 		{
 			// Active in P-Select could either be a P-Active arc or a P-Well arc
 			neededFunction = ArcProto.Function.DIFFP;
 			if (wellP == null)
 			{
 				// a P-Well process: just look for the absense of N-Well surround
-				if (!originalMerge.intersects(wellN, poly)) neededFunction = ArcProto.Function.DIFFS;
+				if (wellN == null || !originalMerge.intersects(wellN, poly)) neededFunction = ArcProto.Function.DIFFS;
 			} else
 			{
 				if (originalMerge.intersects(wellP, poly)) neededFunction = ArcProto.Function.DIFFS;
 			}
-		} else if (originalMerge.intersects(selectN, poly))
+		} else if (selectN != null && originalMerge.intersects(selectN, poly))
 		{
 			// Active in N-Select could either be a N-Active arc or a N-Well arc
 			neededFunction = ArcProto.Function.DIFFN;
 			if (wellN == null)
 			{
 				// a N-Well process: just look for the absense of P-Well surround
-				if (!originalMerge.intersects(wellP, poly)) neededFunction = ArcProto.Function.DIFFW;
+				if (wellP == null || !originalMerge.intersects(wellP, poly)) neededFunction = ArcProto.Function.DIFFW;
 			} else
 			{
 				if (originalMerge.intersects(wellN, poly)) neededFunction = ArcProto.Function.DIFFW;
@@ -1659,7 +1661,7 @@ public class Connectivity
 			List<PossibleVia> possibleVias = findPossibleVias(layer, ep);
 
 			// make a list of all necessary layers
-			Set<Layer> layersToExamine = new HashSet<Layer>();
+			Set<Layer> layersToExamine = new TreeSet<Layer>();
 			for(PossibleVia pv : possibleVias)
 			{
 				for(int i=0; i<pv.layers.length; i++)
@@ -1693,7 +1695,7 @@ public class Connectivity
 					continue;
 				}
 				Point2D ctr = new Point2D.Double(cutBox.getCenterX(), cutBox.getCenterY());
-				Set<Layer> layersPresent = new HashSet<Layer>();
+				Set<Layer> layersPresent = new TreeSet<Layer>();
 				for(Layer l : layersToExamine)
 				{
 					boolean layerAtPoint = originalMerge.contains(l, ctr);
@@ -2570,7 +2572,7 @@ public class Connectivity
 				if (listToUse.size() > 0)
 				{
 					// make sure additional transistors have the same overall structure
-					Set<Layer> usedLayers = new HashSet<Layer>();
+					Set<Layer> usedLayers = new TreeSet<Layer>();
 					Map<Layer,MutableInteger> usageFirst = new HashMap<Layer,MutableInteger>();
 					Technology.NodeLayer [] layersFirst = listToUse.get(0).getNodeLayers();
 					for(int i=0; i<layersFirst.length; i++)
@@ -2913,7 +2915,7 @@ public class Connectivity
 				if (!recursive) Job.getUserInterface().setProgressValue(soFar * 100 / totExtensions);
 
 				// find out what this polygon touches
-				HashMap<Network,Object> netsThatTouch = getNetsThatTouch(poly, newCell, justExtend);
+				Map<Network,Object> netsThatTouch = getNetsThatTouch(poly, newCell, justExtend);
 				if (netsThatTouch == null) continue;
 
 				// make a list of port/arc ends that touch this polygon
@@ -3244,7 +3246,7 @@ public class Connectivity
 	 * @param justExtend true to insist on just 1 net; false to allow 2 nets also.
 	 * @return the map of networks (null if too many nets).
 	 */
-	private HashMap<Network,Object> getNetsThatTouch(PolyBase poly, Cell newCell, boolean justExtend)
+	private Map<Network,Object> getNetsThatTouch(PolyBase poly, Cell newCell, boolean justExtend)
 	{
 		// scale the polygon back
 		Point2D [] points = poly.getPoints();
@@ -3255,7 +3257,7 @@ public class Connectivity
 		Layer layer = poly.getLayer();
 
 		// make a map of networks that touch the polygon, and the objects on them
-		HashMap<Network,Object> netsThatTouch = new HashMap<Network,Object>();
+		TreeMap<Network,Object> netsThatTouch = new TreeMap<Network,Object>();
 
 		// find nodes that touch
 		Rectangle2D bounds = newPoly.getBounds2D();
@@ -3568,7 +3570,7 @@ public class Connectivity
 		}
 
 		// make a list of line segments that are parallel
-		Map<Integer,List<Integer>> linesAtAngle = new HashMap<Integer,List<Integer>>();
+		Map<Integer,List<Integer>> linesAtAngle = new TreeMap<Integer,List<Integer>>();
 		for(int i=0; i<points.length; i++)
 		{
 			int lastI = i-1;

@@ -31,7 +31,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.List;
 import java.util.Set;
 
@@ -41,7 +41,7 @@ import java.util.Set;
  * @author  Gilda Garreton
  */
 public abstract class GeometryHandler {
-    HashMap<Layer,Object> layers;
+    TreeMap<Layer,Object> layers;
     public enum GHMode // GH GeometryHandler mode
     {
 	    ALGO_MERGE,   // using merge structure
@@ -70,7 +70,7 @@ public abstract class GeometryHandler {
 
     public GeometryHandler()
     {
-        layers = new HashMap<Layer,Object>();
+        layers = new TreeMap<Layer,Object>();
     }
 
     /**
@@ -79,7 +79,7 @@ public abstract class GeometryHandler {
      */
     public GeometryHandler(int initialSize)
     {
-        layers = new HashMap<Layer,Object>(initialSize);
+        layers = new TreeMap<Layer,Object>();
     }
 
     // To insert new element into handler
@@ -102,7 +102,7 @@ public abstract class GeometryHandler {
      * Method to subtract all geometries stored in hash map from corresponding layers
      * @param map
      */
-    public void subtractAll(HashMap<Layer,List<PolyBase>> map)
+    public void subtractAll(TreeMap<Layer,List<PolyBase>> map)
     {
         System.out.println("Error: subtractAll not implemented for GeometryHandler subclass " + this.getClass().getName());
     }

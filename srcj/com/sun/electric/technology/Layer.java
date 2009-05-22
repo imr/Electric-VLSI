@@ -51,7 +51,7 @@ import java.util.Map;
  * The Layers are defined by the PrimitiveNode and ArcProto classes, and are used in the generation of geometry.
  * In addition, layers have extra information that is used for output and behavior.
  */
-public class Layer implements Serializable
+public class Layer implements Serializable, Comparable
 {
     public static final double DEFAULT_THICKNESS = 0; // 3D default thickness
     public static final double DEFAULT_DISTANCE = 0; // 3D default distance
@@ -106,6 +106,13 @@ public class Layer implements Serializable
     	{
     		return list.get(level-base);
     	}
+    }
+
+    public int compareTo(Object other)
+    {
+		String s = toString();
+		String sOther = other.toString();
+		return s.compareToIgnoreCase(sOther);
     }
 
     /**

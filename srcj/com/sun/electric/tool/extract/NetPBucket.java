@@ -38,8 +38,8 @@ public class NetPBucket implements ExtractedPBucket
 {
     private GeometryHandler capMerge;
     private GeometryHandler resGeom; // to get the resistance value
-    private HashMap<Layer,List<String>> resNameMap; // to collect subnetwork names
-    private HashMap<Layer,List<PolyBase>> resSubGeom; // these are the contact geometries that should be substracted from merged area
+    private TreeMap<Layer,List<String>> resNameMap; // to collect subnetwork names
+    private TreeMap<Layer,List<PolyBase>> resSubGeom; // these are the contact geometries that should be substracted from merged area
     // For diffusion areas: source and drain
     private List<ExtractedPBucket> transistorsList;
 
@@ -51,8 +51,8 @@ public class NetPBucket implements ExtractedPBucket
         // Only 1 layer should be available per network
         capMerge = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
         resGeom = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
-        resNameMap = new HashMap<Layer,List<String>>(1);
-        resSubGeom = new HashMap<Layer,List<PolyBase>>(1); // contact geometries that will be substracted
+        resNameMap = new TreeMap<Layer,List<String>>();
+        resSubGeom = new TreeMap<Layer,List<PolyBase>>(); // contact geometries that will be substracted
     }
 
     public void addTransistor(ExtractedPBucket transBucket)

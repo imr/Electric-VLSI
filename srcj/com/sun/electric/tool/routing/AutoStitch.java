@@ -90,7 +90,7 @@ public class AutoStitch
 
     /** editing preferences (default size, etc) **/                 private final EditingPreferences ep;
 	/** list of all routes to be created at end of analysis */		private List<Route> allRoutes;
-	/** list of pins that may be inline pins due to created arcs */	private Set<NodeInst> possibleInlinePins;
+	/** list of pins that may be inline pins due to created arcs */	private List<NodeInst> possibleInlinePins;
 	/** set of nodes to check (prevents duplicate checks) */		private Set<NodeInst> nodeMark;
 
 	/****************************************** CONTROL ******************************************/
@@ -227,7 +227,7 @@ public class AutoStitch
 	private AutoStitch(EditingPreferences ep)
 	{
         this.ep = ep;
-		possibleInlinePins = new HashSet<NodeInst>();
+		possibleInlinePins = new ArrayList<NodeInst>();
 	}
 
 	private List<ArcInst> getArcsToStitch(Cell cell, List<ArcInst> arcsToStitch)
@@ -1834,7 +1834,8 @@ name=null;
 			if (ni1.getFunction() == PrimitiveNode.Function.PIN &&
 				!ni1.hasExports() && !ni1.hasConnections())
 			{
-				possibleInlinePins.add(ni1);
+				if (!possibleInlinePins.contains(ni1))
+					possibleInlinePins.add(ni1);
 			}
 		}
 		if (ni2 != null)
@@ -1842,7 +1843,8 @@ name=null;
 			if (ni2.getFunction() == PrimitiveNode.Function.PIN &&
 				!ni2.hasExports() && !ni2.hasConnections())
 			{
-				possibleInlinePins.add(ni2);
+				if (!possibleInlinePins.contains(ni2))
+					possibleInlinePins.add(ni2);
 			}
 		}
 		return true;

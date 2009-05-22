@@ -40,7 +40,7 @@ import java.util.List;
  * <p> For a Cell, each Network represents a collection of PortInsts
  * that are electrically connected.
  */
-public class Network {
+public class Network implements Comparable {
     // ------------------------- private data ------------------------------
     private final Netlist netlist; // Netlist that owns this Network
     private final int netIndex; // Index of this Network in Netlist.
@@ -62,6 +62,16 @@ public class Network {
      */
     public Netlist getNetlist() {
         return netlist;
+    }
+
+    /**
+     * Networks are sorted by their description text.
+     */
+    public int compareTo(Object other)
+    {
+		String s = toString();
+		String sOther = other.toString();
+		return s.compareToIgnoreCase(sOther);
     }
 
     /** Returns parent cell of this Network.
