@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+IMP/MAN: (5/22/09, GVG) Algorithm to partition complex geometries in Extractor tool (Bug #2193)
+
 BUG: (5/22/09, GVG) NPE when changing preferences after an undo (Bug #2191)
 FIX: Detecting the case when curLib == null
 
