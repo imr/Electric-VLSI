@@ -321,11 +321,19 @@ public class GDS extends Input
 			Set<Cell> cellList = cellLayerErrors.get(message);
 			System.out.println(message.message + " in cells:");
 			String prev = "    ";
-			for(Cell cell : cellList)
+            int count = 0;
+            for(Cell cell : cellList)
 			{
 				System.out.print(prev + cell.describe(false));
 				prev = ", ";
-			}
+                // break into lines otherwise the message line is too long
+                if (count > 10)
+                {
+                    count = 0;
+                    System.out.print("\n/\t");
+                }
+                count++;
+            }
 			System.out.println();
 		}
 
