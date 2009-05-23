@@ -82,7 +82,7 @@ import java.util.Set;
  * Class to hold scalable representation of circuit displays.
  */
 public class VectorCache {
-    private static final boolean USE_ELECTRICAL = true;
+    private static final boolean USE_ELECTRICAL = Technology.ALWAYS_ELECTRICAL_LAYERS;
     public static boolean DEBUG = false;
     public static final VectorCache theCache = new VectorCache(EDatabase.clientDatabase());
 
@@ -765,7 +765,7 @@ public class VectorCache {
         }
 
         @Override
-        public void addTextPoly(int numPoints, Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
+        public void addDoubleTextPoly(int numPoints, Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
             Point2D.Double[] points = new Point2D.Double[numPoints];
             for (int i = 0; i < numPoints; i++)
                 points[i] = new Point2D.Double(doubleCoords[i*2], doubleCoords[i*2+1]);

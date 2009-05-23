@@ -878,49 +878,46 @@ public class GDS extends Input
         private void instantiate(CellBuilder theCell, Cell parent, Map<NodeProto,List<EPoint>> massiveMerge)
         {
         	int arraySimplification = localPrefs.arraySimplification;
-    		if (Technology.HANDLEBROKENOUTLINES)
-    		{
-	    		NodeInst subNi = null;
-	    		Cell subCell = (Cell)proto;
-	    		int numArcs = subCell.getNumArcs();
-	    		int numNodes = subCell.getNumNodes();
-	    		int numExports = subCell.getNumPorts();
-	    		if (numArcs == 0 && numExports == 0 && numNodes == 1)
-    			{
-    				subNi = subCell.getNode(0);
-    				if (subNi.getProto().getFunction() != PrimitiveNode.Function.NODE)
-    					subNi = null;
-    			}
-	    		if (subNi != null && subNi.getTrace() != null) subNi = null;
-	    		if (subNi != null)
-	    		{
-	    			if (arraySimplification > 0)
-	    			{
-		    			List<EPoint> points = buildArray();
-		    			if (arraySimplification == 2)
-		    			{
-		    				// add the array's geometry the layer's outline
-		    				List<EPoint> soFar = massiveMerge.get(subNi.getProto());
-		    				if (soFar == null)
-		    				{
-		    					soFar = new ArrayList<EPoint>();
-		    					massiveMerge.put(subNi.getProto(), soFar);
-		    				}
-		    				if (soFar.size() > 0) soFar.add(null);
-		    				for(EPoint ep : points) soFar.add(ep);
-		    			} else
-		    			{
-			    			// place a pure-layer node that embodies the array
-		    				buildComplexNode(points, subNi.getProto(), parent);
-		    			}
-		        		return;
-		    		} else
-		    		{
-		    			// remember that array simplification would have helped
-		    			arraySimplificationUseful = true;
-		    		}
-    			}
-    		}
+            NodeInst subNi = null;
+            Cell subCell = (Cell)proto;
+            int numArcs = subCell.getNumArcs();
+            int numNodes = subCell.getNumNodes();
+            int numExports = subCell.getNumPorts();
+            if (numArcs == 0 && numExports == 0 && numNodes == 1)
+            {
+                subNi = subCell.getNode(0);
+                if (subNi.getProto().getFunction() != PrimitiveNode.Function.NODE)
+                    subNi = null;
+            }
+            if (subNi != null && subNi.getTrace() != null) subNi = null;
+            if (subNi != null)
+            {
+                if (arraySimplification > 0)
+                {
+                    List<EPoint> points = buildArray();
+                    if (arraySimplification == 2)
+                    {
+                        // add the array's geometry the layer's outline
+                        List<EPoint> soFar = massiveMerge.get(subNi.getProto());
+                        if (soFar == null)
+                        {
+                            soFar = new ArrayList<EPoint>();
+                            massiveMerge.put(subNi.getProto(), soFar);
+                        }
+                        if (soFar.size() > 0) soFar.add(null);
+                        for(EPoint ep : points) soFar.add(ep);
+                    } else
+                    {
+                        // place a pure-layer node that embodies the array
+                        buildComplexNode(points, subNi.getProto(), parent);
+                    }
+                    return;
+                } else
+                {
+                    // remember that array simplification would have helped
+                    arraySimplificationUseful = true;
+                }
+            }
 
     		// generate an array
     		double ptcX = startLoc.getX();
