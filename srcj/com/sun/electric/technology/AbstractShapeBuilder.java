@@ -61,7 +61,7 @@ public abstract class AbstractShapeBuilder {
 
     protected double[] doubleCoords = new double[8];
     protected int pointCount;
-    public int[] intCoords = new int[4];
+    protected int[] intCoords = new int[4];
     private CellBackup.Memoization m;
     private Shrinkage shrinkage;
     private TechPool techPool;
@@ -499,7 +499,6 @@ public abstract class AbstractShapeBuilder {
      * @return true if shape was generated.
      */
     public boolean genShapeEasy(ImmutableArcInst a) {
-        if (orient != null && !orient.isManhattan()) return false;
         if (m.isHardArc(a.arcId)) return false;
         ArcProto protoType = techPool.getArcProto(a.protoId);
         int gridExtendOverMin = (int)a.getGridExtendOverMin();
@@ -515,9 +514,7 @@ public abstract class AbstractShapeBuilder {
             intCoords[1] = (int)a.tailLocation.getGridY();
             intCoords[2] = (int)a.headLocation.getGridX();
             intCoords[3] = (int)a.headLocation.getGridY();
-            if (orient != null)
-                orient.transformPoints(2, intCoords);
-            addIntLine(intCoords, style, primLayer.getLayer());
+            pushIntLine(style, primLayer.getLayer());
             return true;
         }
         boolean tailExtended = false;
@@ -542,9 +539,7 @@ public abstract class AbstractShapeBuilder {
             assert primLayer.getStyle() == Poly.Type.FILLED;
             if (onlyTheseLayers != null && !onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) continue;
             a.makeGridBoxInt(intCoords, tailExtended, headExtended, gridExtendOverMin + protoType.getLayerGridExtend(i));
-            if (orient != null)
-                orient.rectangleBounds(intCoords);
-            addIntBox(intCoords, layer);
+            pushIntBox(layer);
         }
         return true;
     }
@@ -607,21 +602,41 @@ public abstract class AbstractShapeBuilder {
         pointCount = 0;
     }
 
-//    public void pushBox(int minX, int minY, int maxX, int maxY, Layer layer) {
-//        intCoords[0] = minX;
-//        intCoords[1] = minY;
-//        intCoords[2] = maxX;
-//        intCoords[3] = maxY;
-//        addIntBox(intCoords, layer);
-//    }
+    public void pushIntBox(Layer layer) {
+        if (orient != null) {
+            if (!orient.isManhattan()) {
+                pushPointLow(intCoords[0], intCoords[1]);
+                pushPointLow(intCoords[2], intCoords[1]);
+                pushPointLow(intCoords[2], intCoords[3]);
+                pushPointLow(intCoords[0], intCoords[3]);
+                pushPoly(Poly.Type.FILLED, layer, null, null);
+                return;
+            }
+            orient.rectangleBounds(intCoords);
+        }
+        addIntBox(layer);
+    }
+
+    public void pushIntLine(Poly.Type style, Layer layer) {
+        if (orient != null) {
+            if (!orient.isManhattan()) {
+                pushPointLow(intCoords[0], intCoords[1]);
+                pushPointLow(intCoords[2], intCoords[3]);
+                pushPoly(style, layer, null, null);
+                return;
+            }
+            orient.transformPoints(2, intCoords);
+        }
+        addIntBox(layer);
+    }
 
     public abstract void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp);
     public void addDoubleTextPoly(int numPoints, Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
         addDoublePoly(numPoints, style, layer, null, pp);
     }
 
-    public abstract void addIntLine(int[] coords, Poly.Type style, Layer layer);
-    public abstract void addIntBox(int[] coords, Layer layer);
+    public abstract void addIntPoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp);
+    public abstract void addIntBox(Layer layer);
 
     public static class Shrinkage {
         public static final short EXTEND_90 = 0;

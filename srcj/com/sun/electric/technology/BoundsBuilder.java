@@ -208,35 +208,46 @@ public class BoundsBuilder extends AbstractShapeBuilder {
     }
 
     @Override
-    public void addIntLine(int[] coords, Poly.Type style, Layer layer) {
-        int x1 = coords[0];
-        int x2 = coords[2];
-        if (x1 > x2) {
-            coords[0] = x2;
-            coords[2] = x1;
+    public void addIntPoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
+        int i = 0;
+        if (!hasIntBounds) {
+            int x = intCoords[0];
+            int y = intCoords[1];
+            intMinX = x;
+            intMinY = y;
+            intMaxX = x;
+            intMaxY = y;
+            hasIntBounds = true;
+            i = 1;
         }
-        int y1 = coords[1];
-        int y2 = coords[3];
-        if (y1 > y2) {
-            coords[1] = y2;
-            coords[3] = y1;
+        while (i < numPoints) {
+            int x = intCoords[i*2];
+            int y = intCoords[i*2 + 1];
+            if (x < intMinX) intMinX = x;
+            if (x > intMinY) intMinY = x;
+            if (y < intMinY) intMinY = y;
+            if (y > intMaxY) intMaxY = y;
+            i++;
         }
-        addIntBox(coords, layer);
     }
 
     @Override
-    public void addIntBox(int[] coords, Layer layer) {
+    public void addIntBox(Layer layer) {
+        int lx = intCoords[0];
+        int ly = intCoords[1];
+        int hx = intCoords[2];
+        int hy = intCoords[3];
         if (!hasIntBounds) {
-            intMinX = coords[0];
-            intMinY = coords[1];
-            intMaxX = coords[2];
-            intMaxY = coords[3];
+            intMinX = lx;
+            intMinY = ly;
+            intMaxX = hx;
+            intMaxY = hy;
             hasIntBounds = true;
         } else {
-            if (coords[0] < intMinX) intMinX = coords[0];
-            if (coords[2] > intMaxX) intMaxX = coords[2];
-            if (coords[1] < intMinY) intMinY = coords[1];
-            if (coords[3] > intMaxY) intMaxY = coords[3];
+            if (lx < intMinX) intMinX = lx;
+            if (hx > intMaxX) intMaxX = hx;
+            if (ly < intMinY) intMinY = ly;
+            if (hy > intMaxY) intMaxY = hy;
         }
     }
 }

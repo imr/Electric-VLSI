@@ -779,58 +779,60 @@ public class VectorCache {
         }
 
         @Override
-        public void addIntLine(int[] coords, Poly.Type style, Layer layer) {
-            int x1 = coords[0];
-            int y1 = coords[1];
-            int x2 = coords[2];
-            int y2 = coords[3];
-            int lineType;
+        public void addIntPoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
             switch (style) {
                 case OPENED:
-                    lineType = 0;
+                    addIntLine(0, layer, graphicsOverride);
                     break;
                 case OPENEDT1:
-                    lineType = 1;
+                    addIntLine(1, layer, graphicsOverride);
                     break;
                 case OPENEDT2:
-                    lineType = 2;
+                    addIntLine(2, layer, graphicsOverride);
                     break;
                 case OPENEDT3:
-                    lineType = 3;
+                    addIntLine(3, layer, graphicsOverride);
                     break;
                 default:
-                    Poly poly = new Poly(new Point2D.Double[] {
-                        new Point2D.Double(x1, y1),
-                        new Point2D.Double(x2, y2)
-                    });
+                    Point2D.Double[] points = new Point2D.Double[numPoints];
+                    for (int i = 0; i < numPoints; i++)
+                        points[i] = new Point2D.Double(intCoords[i*2], intCoords[i*2 + 1]);
+                    Poly poly = new Poly(points);
                     poly.setStyle(style);
                     poly.setLayer(layer);
+                    poly.setGraphicsOverride(graphicsOverride);
                     poly.gridToLambda();
                     renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer);
-                    return;
+                    break;
             }
-            // now draw it
+        }
+
+        private void addIntLine(int lineType, Layer layer, EGraphics graphicsOverride) {
+            int x1 = intCoords[0];
+            int y1 = intCoords[1];
+            int x2 = intCoords[2];
+            int y2 = intCoords[3];
+            VectorLine vl = new VectorLine(x1, y1, x2, y2, lineType, layer, graphicsOverride);
             ArrayList<VectorBase> shapes = hideOnLowLevel ? vc.topOnlyShapes : vc.shapes;
-            VectorLine vl = new VectorLine(x1, y1, x2, y2, lineType, layer, null);
             shapes.add(vl);
         }
 
         @Override
-        public void addIntBox(int[] coords, Layer layer) {
+        public void addIntBox(Layer layer) {
             ArrayList<VectorBase> shapes = hideOnLowLevel ? vc.topOnlyShapes : vc.shapes;
             // convert coordinates
-            int lX = coords[0];
-            int lY = coords[1];
-            int hX = coords[2];
-            int hY = coords[3];
+            int lX = intCoords[0];
+            int lY = intCoords[1];
+            int hX = intCoords[2];
+            int hY = intCoords[3];
             int layerIndex = -1;
             if (vc.vcg != null && layer.getId().techId == vc.vcg.cellBackup.cellRevision.d.techId)
                 layerIndex = layer.getIndex();
             if (layerIndex >= 0) {
                 putBox(layerIndex, pureLayer ? pureBoxBuilders : boxBuilders, lX, lY, hX, hY);
             } else {
-                assert coords.length == 4;
-                VectorManhattan vm = new VectorManhattan(coords.clone(), layer, null, pureLayer);
+                int[] coords = new int[] { lX, lY, hX, hY };
+                VectorManhattan vm = new VectorManhattan(coords, layer, null, pureLayer);
                 shapes.add(vm);
             }
 

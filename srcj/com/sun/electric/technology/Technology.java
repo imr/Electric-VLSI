@@ -132,7 +132,7 @@ public class Technology implements Comparable<Technology>, Serializable
     /** Skip wiped pins both in electrical and non-electrical mode */
     protected static final boolean ALWAYS_SKIP_WIPED_PINS = true;
     /** Always use electrical layers */
-    public static final boolean ALWAYS_ELECTRICAL_LAYERS = true;
+    public static final boolean ALWAYS_ELECTRICAL_LAYERS = false;
 
     // Change in TechSettings takes effect only after restart
     public static final boolean IMMUTABLE_TECHS = false/*Config.TWO_JVM*/;
