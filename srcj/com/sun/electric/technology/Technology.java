@@ -2295,44 +2295,48 @@ public class Technology implements Comparable<Technology>, Serializable
             for (int i = 0; i < numArcLayers; i++) {
                 Technology.ArcLayer primLayer = ap.getArcLayer(i);
                 Layer layer = primLayer.getLayer();
-                if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) continue;
 
                 // remove a gap for the negating bubble
                 int angle = a.getAngle();
                 double gridBubbleSize = Schematics.tech().getNegatingBubbleSize()*DBMath.GRID;
                 double cosDist = DBMath.cos(angle) * gridBubbleSize;
                 double sinDist = DBMath.sin(angle) * gridBubbleSize;
-                if (a.isTailNegated())
-                    b.pushPoint(a.tailLocation, cosDist, sinDist);
-                else
-                    b.pushPoint(a.tailLocation);
-                if (a.isHeadNegated())
-                    b.pushPoint(a.headLocation, -cosDist, -sinDist);
-                else
-                    b.pushPoint(a.headLocation);
-                b.pushPoly(Poly.Type.OPENED, layer, graphicsOverride, null);
-                if (a.isTailNegated()) {
-                    b.pushPoint(a.tailLocation, 0.5*cosDist, 0.5*sinDist);
-                    b.pushPoint(a.tailLocation);
-                    b.pushPoly(Poly.Type.CIRCLE, Schematics.tech().node_lay, null, null);
+                if (!b.skipLayer(layer)) {
+                    if (a.isTailNegated())
+                        b.pushPoint(a.tailLocation, cosDist, sinDist);
+                    else
+                        b.pushPoint(a.tailLocation);
+                    if (a.isHeadNegated())
+                        b.pushPoint(a.headLocation, -cosDist, -sinDist);
+                    else
+                        b.pushPoint(a.headLocation);
+                    b.pushPoly(Poly.Type.OPENED, layer, graphicsOverride, null);
                 }
-                if (a.isHeadNegated()) {
-                    b.pushPoint(a.headLocation, -0.5*cosDist, -0.5*sinDist);
-                    b.pushPoint(a.headLocation);
-                    b.pushPoly(Poly.Type.CIRCLE, Schematics.tech().node_lay, null, null);
+                Layer node_lay = Schematics.tech().node_lay;
+                if (!b.skipLayer(node_lay)) {
+                    if (a.isTailNegated()) {
+                        b.pushPoint(a.tailLocation, 0.5*cosDist, 0.5*sinDist);
+                        b.pushPoint(a.tailLocation);
+                        b.pushPoly(Poly.Type.CIRCLE, node_lay, null, null);
+                    }
+                    if (a.isHeadNegated()) {
+                        b.pushPoint(a.headLocation, -0.5*cosDist, -0.5*sinDist);
+                        b.pushPoint(a.headLocation);
+                        b.pushPoly(Poly.Type.CIRCLE, node_lay, null, null);
+                    }
                 }
             }
         } else {
             for (int i = 0; i < numArcLayers; i++) {
                 Technology.ArcLayer primLayer = ap.getArcLayer(i);
                 Layer layer = primLayer.getLayer();
-                if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) continue;
+                if (b.skipLayer(layer)) continue;
                 b.makeGridPoly(a, 2*(a.getGridExtendOverMin() + ap.getLayerGridExtend(i)), primLayer.getStyle(), layer, graphicsOverride);
             }
         }
 
         // add an arrow to the arc description
-        if (!isNoDirectionalArcs()) {
+        if (!isNoDirectionalArcs() && !b.skipLayer(generic.glyphLay)) {
             final double lambdaArrowSize = 1.0*DBMath.GRID;
             int angle = a.getAngle();
             if (a.isBodyArrowed()) {
@@ -2801,6 +2805,20 @@ public class Technology implements Comparable<Technology>, Serializable
         Poly[] polys0 = polyBuilder.getShapeArray(ni, electrical, reasonable, onlyTheseLayers);
         if (Job.getDebug()) {
             Poly[] polys1 = getShapeOfNode_(ni, electrical, reasonable, onlyTheseLayers);
+            if (onlyTheseLayers != null)
+            {
+                List<Poly> polyArray = new ArrayList<Poly>();
+
+                for (int i = 0; i < polys1.length; i++)
+                {
+                    Poly poly = polys1[i];
+                    Layer layer = poly.getLayer();
+                    if (onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras()))
+                        polyArray.add(poly);
+                }
+                polys1 = new Poly [polyArray.size()];
+                polyArray.toArray(polys1);
+            }
             if (polys0.length != polys1.length) {
                 polys0 = polyBuilder.getShapeArray(ni, electrical, reasonable, onlyTheseLayers);
                 polys1 = getShapeOfNode_(ni, electrical, reasonable, onlyTheseLayers);

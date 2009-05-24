@@ -44,20 +44,21 @@ import com.sun.electric.database.variable.Variable;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * A support class to build shapes of arcs and nodes.
  */
 public abstract class AbstractShapeBuilder {
-    protected Layer.Function.Set onlyTheseLayers;
-    protected boolean reasonable;
-    protected boolean electrical;
-    protected final boolean rotateNodes;
-    protected Orientation orient;
+    private Layer.Function.Set onlyTheseLayers;
+    private boolean reasonable;
+    private boolean electrical;
+    private final boolean rotateNodes;
+    private Orientation orient;
     private AffineTransform pureRotate;
+    private Orientation manhOrient;
+    private int manhX;
+    private int manhY;
 
     protected double[] doubleCoords = new double[8];
     protected int pointCount;
@@ -104,6 +105,9 @@ public abstract class AbstractShapeBuilder {
     public boolean isReasonable() {
         return reasonable;
     }
+    public boolean skipLayer(Layer layer) {
+        return onlyTheseLayers != null && !onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras());
+    }
 
     public CellBackup.Memoization getMemoization() {
         return m;
@@ -119,6 +123,7 @@ public abstract class AbstractShapeBuilder {
     }
 
     public void genShapeOfArc(ImmutableArcInst a) {
+        manhX = manhY = 0;
         if (genShapeEasy(a))
             return;
         pointCount = 0;
@@ -127,35 +132,22 @@ public abstract class AbstractShapeBuilder {
     }
 
     public void genShapeOfNode(ImmutableNodeInst n) {
-        PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)n.protoId);
+        PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId) n.protoId);
+        // if node is erased, remove layers
+        if (Technology.ALWAYS_SKIP_WIPED_PINS || !electrical) {
+            if (m.isWiped(n)) {
+                return;
+            }
+            if (pn.isWipeOn1or2() && m.pinUseCount(n)) {
+                return;
+            }
+        }
 
-		Technology.NodeLayer [] primLayers = pn.getNodeLayers();
-		if (electrical)
-		{
-			Technology.NodeLayer [] eLayers = pn.getElectricalLayers();
-			if (eLayers != null) primLayers = eLayers;
-		}
-
-		if (onlyTheseLayers != null)
-		{
-			List<Technology.NodeLayer> layerArray = new ArrayList<Technology.NodeLayer>();
-
-			for (int i = 0; i < primLayers.length; i++)
-			{
-				Technology.NodeLayer primLayer = primLayers[i];
-                Layer layer = primLayer.getLayer();
-				if (onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras()))
-					layerArray.add(primLayer);
-			}
-            if (layerArray.isEmpty()) return;
-			primLayers = new Technology.NodeLayer [layerArray.size()];
-			layerArray.toArray(primLayers);
-		}
-		// if node is erased, remove layers
-		if (Technology.ALWAYS_SKIP_WIPED_PINS || !electrical) {
-			if (m.isWiped(n)) return;
-			if (pn.isWipeOn1or2() && m.pinUseCount(n)) return;
-		}
+        Technology.NodeLayer[] primLayers = pn.getNodeLayers();
+        if (electrical) {
+            Technology.NodeLayer[] eLayers = pn.getElectricalLayers();
+            if (eLayers != null) primLayers = eLayers;
+        }
         pointCount = 0;
         curNode = n;
         pn.getTechnology().genShapeOfNode(this, n, pn, primLayers);
@@ -192,9 +184,11 @@ public abstract class AbstractShapeBuilder {
             } else {
                 EPoint[] outline = n.getTrace();
                 if (outline != null) {
+                    assert primLayers.length == 1;
                     Technology.NodeLayer primLayer = primLayers[0];
-                    Poly.Type style = primLayer.getStyle();
                     Layer layer = primLayer.getLayer();
+                    if (skipLayer(layer)) return;
+                    Poly.Type style = primLayer.getStyle();
                     PrimitivePort pp = primLayer.getPort(np);
                     int startPoint = 0;
                     for (int i = 1; i < outline.length; i++) {
@@ -220,8 +214,9 @@ public abstract class AbstractShapeBuilder {
 		for(int i = 0; i < primLayers.length; i++)
 		{
 			Technology.NodeLayer primLayer = primLayers[i];
-	        Poly.Type style = primLayer.getStyle();
             Layer layer = primLayer.getLayerOrPseudoLayer();
+            if (skipLayer(layer)) continue;
+	        Poly.Type style = primLayer.getStyle();
 	        PrimitivePort pp = primLayer.getPort(np);
             if (layer.isCarbonNanotubeLayer()) {
                 assert np.getFunction() == PrimitiveNode.Function.TRANMOSCN || np.getFunction() == PrimitiveNode.Function.TRAPMOSCN;
@@ -507,7 +502,7 @@ public abstract class AbstractShapeBuilder {
             assert protoType.getNumArcLayers() == 1;
             Technology.ArcLayer primLayer = protoType.getArcLayer(0);
             Layer layer = primLayer.getLayer();
-            if (onlyTheseLayers != null && !onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) return true;
+            if (skipLayer(layer)) return true;
             Poly.Type style = primLayer.getStyle();
             if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
             intCoords[0] = (int)a.tailLocation.getGridX();
@@ -537,7 +532,7 @@ public abstract class AbstractShapeBuilder {
             Technology.ArcLayer primLayer = protoType.getArcLayer(i);
             Layer layer = primLayer.getLayer();
             assert primLayer.getStyle() == Poly.Type.FILLED;
-            if (onlyTheseLayers != null && !onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) continue;
+            if (skipLayer(layer)) continue;
             a.makeGridBoxInt(intCoords, tailExtended, headExtended, gridExtendOverMin + protoType.getLayerGridExtend(i));
             pushIntBox(layer);
         }
@@ -561,24 +556,6 @@ public abstract class AbstractShapeBuilder {
             resize();
         doubleCoords[pointCount*2] = gridX;
         doubleCoords[pointCount*2 + 1] = gridY;
-        if (curNode != null) {
-            if (rotateNodes && curNode.orient.canonic() != Orientation.IDENT) {
-                curNode.orient.pureRotate().transform(doubleCoords, pointCount*2, doubleCoords, pointCount*2, 1);
-                if (!curNode.orient.isManhattan()) {
-                    doubleCoords[pointCount*2 + 0] = DBMath.roundShapeCoord(doubleCoords[pointCount*2 + 0]);
-                    doubleCoords[pointCount*2 + 1] = DBMath.roundShapeCoord(doubleCoords[pointCount*2 + 1]);
-                }
-            }
-            doubleCoords[pointCount*2 + 0] += curNode.anchor.getGridX();
-            doubleCoords[pointCount*2 + 1] += curNode.anchor.getGridY();
-        }
-        if (pureRotate != null) {
-            pureRotate.transform(doubleCoords, pointCount*2, doubleCoords, pointCount*2, 1);
-            if (!orient.isManhattan()) {
-                doubleCoords[pointCount*2 + 0] = DBMath.roundShapeCoord(doubleCoords[pointCount*2 + 0]);
-                doubleCoords[pointCount*2 + 1] = DBMath.roundShapeCoord(doubleCoords[pointCount*2 + 1]);
-            }
-        }
         pointCount++;
     }
 
@@ -591,6 +568,7 @@ public abstract class AbstractShapeBuilder {
     public void pushPoly(Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
         if (!electrical)
             pp = null;
+        transformDoubleCoords();
         addDoublePoly(pointCount, style, layer, graphicsOverride, pp);
         pointCount = 0;
     }
@@ -598,22 +576,57 @@ public abstract class AbstractShapeBuilder {
     public void pushTextPoly(Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
         if (!electrical)
             pp = null;
+        transformDoubleCoords();
         addDoubleTextPoly(pointCount, style, layer, pp, message, descriptor);
         pointCount = 0;
     }
 
-    public void pushIntBox(Layer layer) {
-        if (orient != null) {
-            if (!orient.isManhattan()) {
-                pushPointLow(intCoords[0], intCoords[1]);
-                pushPointLow(intCoords[2], intCoords[1]);
-                pushPointLow(intCoords[2], intCoords[3]);
-                pushPointLow(intCoords[0], intCoords[3]);
-                pushPoly(Poly.Type.FILLED, layer, null, null);
-                return;
+    private void transformDoubleCoords() {
+        if (curNode != null) {
+            if (rotateNodes && curNode.orient.canonic() != Orientation.IDENT) {
+                curNode.orient.pureRotate().transform(doubleCoords, 0, doubleCoords, 0, pointCount);
+                if (!curNode.orient.isManhattan()) {
+                    for (int i = 0; i < pointCount*2; i++)
+                        doubleCoords[i] = DBMath.roundShapeCoord(doubleCoords[i]);
+                }
             }
-            orient.rectangleBounds(intCoords);
+            double anchorX = curNode.anchor.getGridX();
+            double anchorY = curNode.anchor.getGridY();
+            for (int i = 0; i < pointCount; i++) {
+                doubleCoords[i*2 + 0] += anchorX;
+                doubleCoords[i*2 + 1] += anchorY;
+            }
         }
+        if (pureRotate != null) {
+            pureRotate.transform(doubleCoords, 0, doubleCoords, 0, pointCount);
+            if (!orient.isManhattan()) {
+                for (int i = 0; i < pointCount*2; i++)
+                    doubleCoords[i] = DBMath.roundShapeCoord(doubleCoords[i]);
+            }
+        }
+    }
+
+    public void pushIntBox(Layer layer) {
+        if (curNode != null && !curNode.orient.isManhattan() || orient != null && !orient.isManhattan()) {
+            pushPointLow(intCoords[0], intCoords[1]);
+            pushPointLow(intCoords[2], intCoords[1]);
+            pushPointLow(intCoords[2], intCoords[3]);
+            pushPointLow(intCoords[0], intCoords[3]);
+            pushPoly(Poly.Type.FILLED, layer, null, null);
+            return;
+        }
+        if (curNode != null) {
+            if (rotateNodes && curNode.orient.canonic() != Orientation.IDENT)
+                curNode.orient.rectangleBounds(intCoords);
+            int anchorX = (int)curNode.anchor.getGridX();
+            int anchorY = (int)curNode.anchor.getGridY();
+            intCoords[0] += anchorX;
+            intCoords[1] += anchorY;
+            intCoords[2] += anchorX;
+            intCoords[3] += anchorY;
+        }
+        if (orient != null)
+            orient.rectangleBounds(intCoords);
         addIntBox(layer);
     }
 
@@ -1151,14 +1164,15 @@ public abstract class AbstractShapeBuilder {
 		{
 			int element = fillBox++;
 			Technology.NodeLayer primLayer = primLayers[element];
-			double extendt = primLayer.getSerpentineExtentT();
+			Layer layer = primLayer.getLayer();
+            if (skipLayer(layer)) return;
+ 			double extendt = primLayer.getSerpentineExtentT();
 			double extendb = primLayer.getSerpentineExtentB();
 
 			// if field poly appears only on the ends of the transistor, ignore interior requests
 			boolean extendEnds = true;
 			if (fieldPolyOnEndsOnly)
 			{
-				Layer layer = primLayer.getLayer();
 				if (layer.getFunction().isPoly())
 				{
 					if (layer.getFunction() == Layer.Function.GATE)
@@ -1288,7 +1302,7 @@ public abstract class AbstractShapeBuilder {
 
             for (Point2D point: outPoints)
                 pushPoint(point.getX()*DBMath.GRID, point.getY()*DBMath.GRID);
-            pushPoly(primLayer.getStyle(), primLayer.getLayer(), null, primLayer.getPort(theProto));
+            pushPoly(primLayer.getStyle(), layer, null, primLayer.getPort(theProto));
 		}
 
 		private void buildSerpentinePoly(int element, int thissg, int nextsg, Point2D thisPt, Point2D nextPt, int angle)

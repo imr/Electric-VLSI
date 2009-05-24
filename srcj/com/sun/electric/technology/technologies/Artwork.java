@@ -574,6 +574,7 @@ public class Artwork extends Technology
 	 */
     @Override
     protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, Technology.NodeLayer[] primLayers) {
+        if (b.skipLayer(defaultLayer)) return;
         EGraphics graphicsOverride = makeGraphics(n);
 
 		if (pn == circleNode || pn == thickCircleNode)
