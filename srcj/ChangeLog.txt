@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+BUG: (5/25/09, DN) FlatArcs regression failed.
+FIX: In AbstractSha[eBuilder.pushIntLine use addIntPoly instead of AddIntBox.
+
 IMP/MAN: (5/22/09, GVG) Algorithm to partition complex geometries in Extractor tool (Bug #2193)
 
 BUG: (5/22/09, GVG) NPE when changing preferences after an undo (Bug #2191)

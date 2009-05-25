@@ -640,7 +640,7 @@ public abstract class AbstractShapeBuilder {
             }
             orient.transformPoints(2, intCoords);
         }
-        addIntBox(layer);
+        addIntPoly(2, style, layer, null, null);
     }
 
     public abstract void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp);
