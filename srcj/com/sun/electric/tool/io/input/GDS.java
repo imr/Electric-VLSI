@@ -330,7 +330,7 @@ public class GDS extends Input
                 if (count > 10)
                 {
                     count = 0;
-                    System.out.print("\n/\t");
+                    System.out.print("\n\t");
                 }
                 count++;
             }
