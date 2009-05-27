@@ -2943,7 +2943,7 @@ public class CircuitChangeJobs
 
 		public CheckAndRepairJob(boolean repair)
 		{
-			super((repair ? "Repair Libraries" : "Check Libraries"), User.getUserTool(), (repair ? Job.Type.CHANGE : Job.Type.REMOTE_EXAMINE), null, null, Job.Priority.USER);
+			super((repair ? "Repair Libraries" : "Check Libraries"), User.getUserTool(), (repair ? Job.Type.CHANGE : Job.Type.SERVER_EXAMINE), null, null, Job.Priority.USER);
 			this.repair = repair;
 			startJob();
 		}

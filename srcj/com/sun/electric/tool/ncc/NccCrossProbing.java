@@ -63,7 +63,7 @@ public class NccCrossProbing extends HierarchyEnumerator.Visitor {
         private VarContext context;
         private NccCrossProbing visitor;
         private NccCrossProbeJob(Cell cell, VarContext context) {
-            super("NccCrossProb", NetworkTool.getNetworkTool(), Job.Type.EXAMINE, null, null, Job.Priority.ANALYSIS);
+            super("NccCrossProb", NetworkTool.getNetworkTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.ANALYSIS);
             visitor = new NccCrossProbing();
             this.cell = cell;
             this.context = context;

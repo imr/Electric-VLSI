@@ -103,7 +103,7 @@ public final class ExportChanges
 
 		protected DescribeExports(boolean summarize)
 		{
-			super("Describe Exports", User.getUserTool(), Job.Type.REMOTE_EXAMINE, null, null, Job.Priority.USER);
+			super("Describe Exports", User.getUserTool(), Job.Type.SERVER_EXAMINE, null, null, Job.Priority.USER);
 			cell = WindowFrame.needCurCell();
 			this.summarize = summarize;
 			startJob();

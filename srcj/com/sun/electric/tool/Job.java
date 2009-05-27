@@ -115,10 +115,11 @@ public abstract class Job implements Serializable {
 	 * Type is a typesafe enum class that describes the type of job (CHANGE or EXAMINE).
 	 */
 	public static enum Type {
-		/** Describes a database change. */             CHANGE,
-		/** Describes a database undo/redo. */          UNDO,
-		/** Describes a database examination. */        EXAMINE,
-		/** Describes a remote database examination. */	REMOTE_EXAMINE;
+		/** Describes a server database change. */      CHANGE,
+		/** Describes a server database undo/redo. */   UNDO,
+		/** Describes a server database examination. */	SERVER_EXAMINE,
+        
+		/** Describes a client database examination. */ CLIENT_EXAMINE;
 	}
 
 
@@ -265,7 +266,7 @@ public abstract class Job implements Serializable {
         this.deleteWhenDone = deleteWhenDone;
 
         Thread currentThread = Thread.currentThread();
-        if (currentThread instanceof EThread && ((EThread)currentThread).ejob.jobType != Job.Type.EXAMINE) {
+        if (currentThread instanceof EThread && ((EThread)currentThread).ejob.jobType != Job.Type.CLIENT_EXAMINE) {
             ejob.startedByServer = true;
             ejob.client = ((EThread)currentThread).ejob.client;
             ejob.jobKey = ejob.client.newJobId(ejob.startedByServer, true);
@@ -277,7 +278,7 @@ public abstract class Job implements Serializable {
             ejob.jobKey = ejob.client.newJobId(ejob.startedByServer, false);
             ejob.clientJob.startTime = System.currentTimeMillis();
             ejob.serverJob = null;
-            if (ejob.jobType != Job.Type.EXAMINE)
+            if (ejob.jobType != Job.Type.CLIENT_EXAMINE)
                 ejob.serialize(EDatabase.clientDatabase());
         }
         jobManager.addJob(ejob, onMySnapshot);
@@ -372,7 +373,7 @@ public abstract class Job implements Serializable {
             return;
         }
         scheduledToAbort = true;
-        if (ejob.jobType != Job.Type.EXAMINE && ejob.serverJob != null)
+        if (ejob.jobType != Job.Type.CLIENT_EXAMINE && ejob.serverJob != null)
             ejob.serverJob.scheduledToAbort = true;
 //        Job.getUserInterface().wantToRedoJobTree();
     }

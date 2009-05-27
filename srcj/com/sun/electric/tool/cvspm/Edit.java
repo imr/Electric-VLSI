@@ -130,7 +130,7 @@ public class Edit {
         private String cvsProgram = CVS.getCVSProgram();
         private String repository = CVS.getRepository();
         public ListEditorsJob(List<Library> libs, List<Cell> cells, boolean forProject) {
-            super("List CVS Editors", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            super("List CVS Editors", User.getUserTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
             this.libs = libs;
             this.cells = cells;
             this.forProject = forProject;
@@ -257,7 +257,7 @@ public class Edit {
         private String repository = CVS.getRepository();
 
         public MarkForEditJob(List<Library> libs, List<Cell> cells, boolean checkConflicts, boolean unedit) {
-            super("Check CVS Editors", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            super("Check CVS Editors", User.getUserTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
             this.libs = libs;
             this.cells = cells;
             this.checkConflicts = checkConflicts;
@@ -458,7 +458,7 @@ public class Edit {
         private String repository = CVS.getRepository();
 
         public EditConsistencyCheckJob(List<Library> libs, List<Cell> cells) {
-            super("CVS Editors Check", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            super("CVS Editors Check", User.getUserTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
             this.libs = libs;
             this.cells = cells;
             this.editors = new ArrayList<Editor>();

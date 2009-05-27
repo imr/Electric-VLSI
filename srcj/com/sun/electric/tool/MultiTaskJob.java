@@ -47,7 +47,7 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
 	 * Constructor creates a new instance of MultiTaskJob.
 	 * @param jobName a string that describes this MultiTaskJob.
 	 * @param t the Tool that originated this MultiTaskJob.
-	 * @param jobType the Type of this Job (EXAMINE or CHANGE).
+	 * @param jobType the Type of this Job (SERVER_EXAMINE or CHANGE).
      * @param c interface which consumes the result on server
 	 */
     public MultiTaskJob(String jobName, Tool t, Type jobType, Consumer<Result> c) {
@@ -120,7 +120,7 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
         
         private TaskJob(String taskName, TaskKey tK) {
             super(taskName, MultiTaskJob.this.tool, 
-                    Job.Type.REMOTE_EXAMINE, null, null, Job.Priority.USER);
+                    Job.Type.SERVER_EXAMINE, null, null, Job.Priority.USER);
             this.taskKey = tK;
         }
         

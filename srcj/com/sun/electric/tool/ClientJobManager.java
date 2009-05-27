@@ -222,7 +222,7 @@ class ClientJobManager extends JobManager {
     /** Add job to list of jobs */
     void addJob(final EJob ejob, boolean onMySnapshot) {
         assert SwingUtilities.isEventDispatchThread();
-        if (ejob.jobType == Job.Type.EXAMINE) {
+        if (ejob.jobType == Job.Type.CLIENT_EXAMINE) {
             lock();
             try {
                 if (onMySnapshot)
