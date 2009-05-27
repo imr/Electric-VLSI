@@ -340,8 +340,12 @@ public abstract class LibraryFiles extends Input
 
     private static Map<String,Object> settingsByXml(Map<Setting,Object> settings) {
         Map<String,Object> settingsByXml = new HashMap<String,Object>();
-        for (Map.Entry<Setting,Object> e: settings.entrySet())
-            settingsByXml.put(e.getKey().getXmlPath(), e.getValue());
+        // settings is null if there were previous errros in the execution
+        if (settings != null)
+        {
+            for (Map.Entry<Setting,Object> e: settings.entrySet())
+                settingsByXml.put(e.getKey().getXmlPath(), e.getValue());
+        }
         return settingsByXml;
     }
 

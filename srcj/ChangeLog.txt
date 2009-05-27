@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+BUG: (5/26/09, GVG) NPE in project settings if there is no permission to read a header file (Bug #2194)
+FIX: Preventing the NPE in settings. The error will be reported by JelibParser
+
 BUG: (5/26/09, GVG) NPE while writing XML files for certain techs (Bug #2190)
 FIX: Decting when the tech can't be exported to XML (Java-based ones).
 
