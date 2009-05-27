@@ -359,18 +359,27 @@ public class EditMenu {
 //                        System.out.println("Only layout technologies can be exported as XML");
 //                        return;
 //                    }
-                    Xml.Technology xmlTech = tech.getXmlTech();
-					if (xmlTech == null)
-						xmlTech = tech.makeXml();
-					String fileName = tech.getTechName() + ".xml";
-					fileName = OpenFile.chooseOutputFile(FileType.XML, "Technology XML File", fileName);
-					if (fileName != null) // didn't press cancel button
-					{
-                        boolean includeDateAndVersion = User.isIncludeDateAndVersionInOutput();
-                        String copyrightMessage = IOTool.isUseCopyrightMessage() ? IOTool.getCopyrightMessage() : null;
-						xmlTech.writeXml(fileName, includeDateAndVersion, copyrightMessage);
-					}
-				}},
+                    // If there is a representation in XML. Technologies defined as Java classes don't seem
+                    // to have the correct XML info.
+                    if (tech.isXmlTechAvailable())
+                    {
+                        Xml.Technology xmlTech = tech.getXmlTech();
+                        if (xmlTech == null)
+                            xmlTech = tech.makeXml();
+                        String fileName = tech.getTechName() + ".xml";
+                        fileName = OpenFile.chooseOutputFile(FileType.XML, "Technology XML File", fileName);
+                        if (fileName != null) // didn't press cancel button
+                        {
+                            boolean includeDateAndVersion = User.isIncludeDateAndVersionInOutput();
+                            String copyrightMessage = IOTool.isUseCopyrightMessage() ? IOTool.getCopyrightMessage() : null;
+                            xmlTech.writeXml(fileName, includeDateAndVersion, copyrightMessage);
+                        }
+                    }
+                    else
+                    {
+                        System.out.println("Technology '" + tech.getTechName() + "' is not available for XML export");
+                    }
+                }},
 				new EMenuItem("Write XML of Technology from Old Electric Build...") { public void run() {
 					writeXmlTechnologyFromElectricBuildCommand(); }},
 				SEPARATOR,

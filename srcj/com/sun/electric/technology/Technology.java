@@ -1202,6 +1202,7 @@ public class Technology implements Comparable<Technology>, Serializable
         return new EdgeV(y.k*0.5, y.value);
     }
 
+    public boolean isXmlTechAvailable() {return xmlTech != null;};
     public Xml.Technology getXmlTech() { return xmlTech.deepClone(); }
 
     public static Environment makeInitialEnvironment() {
