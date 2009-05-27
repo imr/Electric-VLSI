@@ -1203,7 +1203,7 @@ public class Technology implements Comparable<Technology>, Serializable
     }
 
     public boolean isXmlTechAvailable() {return xmlTech != null;};
-    public Xml.Technology getXmlTech() { return xmlTech.deepClone(); }
+    public Xml.Technology getXmlTech() { return xmlTech != null ? xmlTech.deepClone() : null; }
 
     public static Environment makeInitialEnvironment() {
         Environment env = IdManager.stdIdManager.getInitialEnvironment();
