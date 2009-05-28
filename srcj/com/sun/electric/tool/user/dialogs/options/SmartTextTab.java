@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.EditingPreferences;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 
 import javax.swing.JPanel;
 
@@ -33,7 +34,7 @@ import javax.swing.JPanel;
 public class SmartTextTab extends PreferencePanel
 {
 	/** Creates new form SmartTextTab */
-	public SmartTextTab(java.awt.Frame parent, boolean modal)
+	public SmartTextTab(PreferencesFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
