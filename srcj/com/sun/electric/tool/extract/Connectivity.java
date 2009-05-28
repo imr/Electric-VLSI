@@ -36,6 +36,7 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
+import com.sun.electric.database.geometry.PolySweepMerge;
 import com.sun.electric.database.geometry.GenMath.MutableBoolean;
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
@@ -1099,7 +1100,8 @@ public class Connectivity
 						!headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 					if (ai == null)
 					{
-						String msg = "  Failed to run arc " + ap.getName() + " from (" + loc1Unscaled.getX() + "," +
+						String msg = "Cell " + newCell.describe(false) + ": Failed to run arc " + ap.getName() +
+							" from (" + loc1Unscaled.getX() + "," +
 							loc1Unscaled.getY() + ") on node " + pi1.getNodeInst().describe(false) + " to (" +
 							loc2Unscaled.getX() + "," + loc2Unscaled.getY() + ") on node " + pi2.getNodeInst().describe(false);
 						addErrorLog(newCell, msg, new EPoint(loc1Unscaled.getX(), loc1Unscaled.getY()),
@@ -1903,8 +1905,9 @@ public class Connectivity
 				{
 					double centerX = cutBox.getCenterX()/SCALEFACTOR;
 					double centerY = cutBox.getCenterY()/SCALEFACTOR;
-					String msg = "Did not extract contact " + cut.getLayer().getName() + " cut at (" +
-						TextUtils.formatDouble(centerX) + "," + TextUtils.formatDouble(centerY) + ") in '" + newCell.getName() + "'";
+					String msg = "Cell " + newCell.describe(false) + ": Did not extract contact " +
+						cut.getLayer().getName() + " cut at (" + TextUtils.formatDouble(centerX) + "," +
+						TextUtils.formatDouble(centerY) + ")";
 					if (reason != null) msg += " because " + reason;
 					addErrorLog(newCell, msg, new EPoint(centerX, centerY));
 					cInfo.removeCut(cut);
@@ -2739,7 +2742,8 @@ public class Connectivity
 				if (poly != null)
 				{
 					Rectangle2D bounds = poly.getBounds2D();
-					return ni.getProto().describe(false) + " at (" + TextUtils.formatDistance(ni.getAnchorCenterX()) +
+					return "Cell " + cell.describe(false) + ": " + ni.getProto().describe(false) +
+						" at (" + TextUtils.formatDistance(ni.getAnchorCenterX()) +
 						"," + TextUtils.formatDistance(ni.getAnchorCenterY()) +
 						"), size " + TextUtils.formatDistance(ni.getLambdaBaseXSize()) + "x" +
 						TextUtils.formatDistance(ni.getLambdaBaseYSize()) + ", is too large on layer " +
@@ -2896,8 +2900,6 @@ public class Connectivity
 			if (!recursive) Job.getUserInterface().setProgressValue(soFar * 100 / extendableLayers.size());
 		}
 		if (!recursive) Job.getUserInterface().setProgressValue(0);
-//		Job.getUserInterface().setProgressNote("Extracting " + totExtensions +
-//			(justExtend ? " extensions..." : " connections..."));
 
 		EditingPreferences ep = newCell.getEditingPreferences();
 		soFar = 0;
@@ -2907,7 +2909,7 @@ public class Connectivity
 			if (ap == null) continue;
 			double wid = ap.getDefaultLambdaBaseWidth(ep);
 			double arcLayerWidth = 2*(ap.getDefaultInst(ep).getLambdaExtendOverMin() + ap.getLayerLambdaExtend(layer));
-
+//System.out.println("CONSIDERING EXTENSION OF LAYER "+layer.getName()+" WHOSE ARCS ARE "+wid+" WIDE, LAYERS ARE "+arcLayerWidth+" WIDE");
 			List<PolyBase> polyList = geomToExtend.get(layer);
 			for(PolyBase poly : polyList)
 			{
@@ -2926,6 +2928,7 @@ public class Connectivity
 					if (entry != null) objectsToConnect.add(entry);
 				}
 
+//System.out.println("  CONSIDERING POLYGON THAT TOUCHES "+objectsToConnect.size()+" PORTS");
 				// if only 1 object touches the polygon, see if it can be "wired" to cover
 				if (objectsToConnect.size() == 1)
 				{
@@ -3044,6 +3047,8 @@ public class Connectivity
 				polyBounds = totalBounds;
 		}
 		if (polyBounds == null) return;
+//System.out.println("    EXTENDING "+obj+" TO COVER POLYGON "+(polyBounds.getMinX()/SCALEFACTOR)+"<=X<="+
+//	(polyBounds.getMaxX()/SCALEFACTOR)+" AND "+(polyBounds.getMinY()/SCALEFACTOR)+"<=Y<="+(polyBounds.getMaxY()/SCALEFACTOR));
 
 		// find the port that is being extended
 		Point2D polyCtr = new Point2D.Double(polyBounds.getCenterX(), polyBounds.getCenterY());
@@ -3068,6 +3073,7 @@ public class Connectivity
 		if (polyCtr.getY() >= portRect.getMinY() && polyCtr.getY() <= portRect.getMaxY() &&
 			polyCtr.getX() >= portRect.getMinX() && polyCtr.getX() <= portRect.getMaxX())
 		{
+//System.out.println("    PORT IS INSIDE POLYGON");
 			// decide whether to extend horizontally or vertically
 			if (polyBounds.getWidth() > polyBounds.getHeight())
 			{
@@ -3108,6 +3114,7 @@ public class Connectivity
 		// can we extend vertically
 		if (polyCtr.getX() >= portRect.getMinX() && polyCtr.getX() <= portRect.getMaxX())
 		{
+//System.out.println("    PORT IS OUTSIDE POLYGON: EXTEND VERTICALLY");
 			// going up to the poly or down?
 			Point2D objPt = new Point2D.Double(polyCtr.getX(), portRect.getCenterY());
 			Point2D objPtNormal = new Point2D.Double(polyCtr.getX() / SCALEFACTOR, portRect.getCenterY() / SCALEFACTOR);
@@ -3134,21 +3141,22 @@ public class Connectivity
 				pinPtNormal = new Point2D.Double(polyCtr.getX() / SCALEFACTOR,
 					(polyBounds.getMinY() + endExtension) / SCALEFACTOR);
 			}
-
-			double size = Math.min(polyBounds.getWidth(), polyBounds.getHeight()) / SCALEFACTOR;
-			NodeInst ni1 = createNode(np, pinPtNormal, size, size, null, newCell);
-
 			MutableBoolean headExtend = new MutableBoolean(endExtend), tailExtend = new MutableBoolean(endExtend);
 			double wid = polyBounds.getWidth();
-			originalMerge.arcPolyFits(layer, pinPt, objPt, wid, headExtend, tailExtend);
-			realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPtNormal, objPtNormal, wid / SCALEFACTOR,
-				!headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+			if (originalMerge.arcPolyFits(layer, pinPt, objPt, wid, headExtend, tailExtend))
+			{
+				double size = Math.min(polyBounds.getWidth(), polyBounds.getHeight()) / SCALEFACTOR;
+				NodeInst ni1 = createNode(np, pinPtNormal, size, size, null, newCell);
+				realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPtNormal, objPtNormal, wid / SCALEFACTOR,
+					!headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+			}
 			return;
 		}
 
 		// can we extend horizontally
 		if (polyCtr.getY() >= portRect.getMinY() && polyCtr.getY() <= portRect.getMaxY())
 		{
+//System.out.println("    PORT IS OUTSIDE POLYGON: EXTEND HORIZONTALLY");
 			// going left to the poly or right?
 			Point2D objPt = new Point2D.Double(portRect.getCenterX(), polyCtr.getY());
 			Point2D objPtNormal = new Point2D.Double(portRect.getCenterX() / SCALEFACTOR, polyCtr.getY() / SCALEFACTOR);
@@ -3175,13 +3183,15 @@ public class Connectivity
 				pinPtNormal = new Point2D.Double((polyBounds.getMinX() + endExtension) / SCALEFACTOR,
 					polyCtr.getY() / SCALEFACTOR);
 			}
-			double size = Math.min(polyBounds.getWidth(), polyBounds.getHeight()) / SCALEFACTOR;
-			NodeInst ni1 = createNode(np, pinPtNormal, size, size, null, newCell);
 			MutableBoolean headExtend = new MutableBoolean(endExtend), tailExtend = new MutableBoolean(endExtend);
 			double wid = polyBounds.getHeight();
-			originalMerge.arcPolyFits(layer, pinPt, objPt, wid, headExtend, tailExtend);
-			realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPtNormal, objPtNormal,
-				wid / SCALEFACTOR, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+			if (originalMerge.arcPolyFits(layer, pinPt, objPt, wid, headExtend, tailExtend))
+			{
+				double size = Math.min(polyBounds.getWidth(), polyBounds.getHeight()) / SCALEFACTOR;
+				NodeInst ni1 = createNode(np, pinPtNormal, size, size, null, newCell);
+				realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPtNormal, objPtNormal,
+					wid / SCALEFACTOR, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+			}
 		}
 	}
 
@@ -4052,6 +4062,9 @@ public class Connectivity
 			// irregular shape: break it up with simpler polygon merging algorithm
 			GeometryHandler thisMerge = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
 			thisMerge.add(poly.getLayer(), poly);
+			thisMerge.postProcess(true);
+
+//            Collection<PolyBase> set = ((PolySweepMerge)thisMerge).getPolyPartition(poly.getLayer());
 			Collection<PolyBase> set = thisMerge.getObjects(poly.getLayer(), false, true);
 			for(PolyBase simplePoly : set)
 			{
