@@ -64,7 +64,7 @@ public class ImmutableIconInst extends ImmutableNodeInst {
             Variable[] vars, ImmutablePortInst[] ports, Variable[] params) {
         super(nodeId, protoId, name, nameDescriptor, orient, anchor, size, flags, techBits, protoDescriptor, vars, ports);
         this.params = params;
-//        check();
+        check();
     }
 
 	/**

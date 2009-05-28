@@ -64,7 +64,6 @@ import java.util.NoSuchElementException;
  * @promise "requiresColor (DBChanger | DBExaminer | AWT);" for check()
  */
 public class ImmutableNodeInst extends ImmutableElectricObject {
-    public static final boolean SIMPLE_TRACE_SIZE = true;
     /**
      * Class to access user bits of ImmutableNodeInst.
      */
@@ -186,8 +185,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         this.techBits = techBits;
         this.protoDescriptor = protoDescriptor;
         this.ports = ports;
-//        if (!(this instanceof ImmutableIconInst))
-//            check();
+//        check();
     }
 
 	/**
@@ -355,8 +353,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 //        if (size.getGridX() < 0 || size.getGridY() < 0) throw new IllegalArgumentException("size is " + size);
         if (isCellCenter(protoId)) return this;
         if (protoId instanceof CellId) return this;
-        if (getTrace() != null)
-            return this;
 		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, size, this.flags, this.techBits, this.protoDescriptor,
                 getVars(), this.ports, getDefinedParams());
@@ -436,18 +432,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     public ImmutableNodeInst withVariable(Variable var) {
         Variable[] vars = arrayWithVariable(var.withParam(false).withInherit(false));
         if (this.getVars() == vars) return this;
-        EPoint size = this.size;
-        if (SIMPLE_TRACE_SIZE && var.getKey() == NodeInst.TRACE) {
-            Object value = var.getObject();
-            if (value instanceof EPoint[]) {
-                EPoint newSize = calcTraceSize((EPoint[])value);
-                if (!newSize.equals(size))
-                    size = newSize;
-            }
-        }
         int flags = updateHardShape(this.flags, vars);
 		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, size, flags, this.techBits, this.protoDescriptor,
+                this.orient, this.anchor, this.size, flags, this.techBits, this.protoDescriptor,
                 vars, this.ports, getDefinedParams());
     }
 
@@ -796,11 +783,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         assert orient != null;
         assert anchor != null;
         assert size != null;
-        if (SIMPLE_TRACE_SIZE) {
-            EPoint[] trace = getTrace();
-            if (trace != null)
-                assert calcTraceSize(trace).equals(size);
-        }
 //        assert size.getGridX() >= 0;
 //        assert size.getGridY() >= 0;
         assert (flags & ~(FLAG_BITS|HARD_SHAPE_MASK)) == 0;
@@ -961,26 +943,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (obj instanceof EPoint[]) return (EPoint[])obj;
 		return null;
 	}
-
-    private static EPoint calcTraceSize(EPoint[] trace) {
-        if (trace.length == 0) return EPoint.ORIGIN;
-        long minX = Long.MAX_VALUE;
-        long maxX = Long.MIN_VALUE;
-        long minY = Long.MAX_VALUE;
-        long maxY = Long.MIN_VALUE;
-        for (EPoint p: trace) {
-            if (p == null) continue;
-            minX = Math.min(minX, p.getGridX());
-            maxX = Math.max(maxX, p.getGridX());
-            minY = Math.min(minY, p.getGridY());
-            maxY = Math.max(maxY, p.getGridY());
-        }
-        long w = maxX - minX;
-        if ((w & 1) != 0) w++;
-        long h = maxY - minY;
-        if ((h & 1) != 0) h++;
-        return EPoint.fromGrid(w, h);
-    }
 
 	/**
 	 * Method to return the starting and ending angle of an arc described by this Immutab;eNodeInst.

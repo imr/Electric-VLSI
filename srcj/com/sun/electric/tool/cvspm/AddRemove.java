@@ -145,7 +145,7 @@ public class AddRemove {
         private String cvsProgram = CVS.getCVSProgram();
         private String repository = CVS.getRepository();
         private AddRemoveJob(List<Library> libs, List<Cell> cells, boolean add) {
-            super("CVS Add/Remove", User.getUserTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
+            super("CVS Add/Remove", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.libs = libs;
             this.cells = cells;
             this.add = add;
@@ -301,7 +301,7 @@ public class AddRemove {
         private List<Cell> cells;
         HashMap<File,ElectricObject> filesToUndo;
         private UndoAddRemoveJob(List<Library> libs, List<Cell> cells) {
-            super("CVS Undo Add/Remove", User.getUserTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
+            super("CVS Undo Add/Remove", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.libs = libs;
             this.cells = cells;
             if (this.libs == null) this.libs = new ArrayList<Library>();

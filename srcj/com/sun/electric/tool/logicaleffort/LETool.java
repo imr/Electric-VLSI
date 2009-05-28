@@ -461,7 +461,7 @@ public class LETool extends Tool {
         private boolean newAlg;
 
         public AnalyzeCell(LESizer.Alg algorithm, Cell cell, VarContext context, boolean newAlg) {
-            super("Analyze "+cell, tool, Job.Type.CLIENT_EXAMINE, null, cell, Job.Priority.USER);
+            super("Analyze "+cell, tool, Job.Type.EXAMINE, null, cell, Job.Priority.USER);
             progress = null;
             this.algorithm = algorithm;
             this.cell = cell;

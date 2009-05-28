@@ -188,7 +188,7 @@ public class NccJob extends Job {
 	 * views of the current window. 2 means compare the 2 Cells open in 2 Windows.
 	 */
 	public NccJob(int numWind) {
-		super("Run NCC", NetworkTool.getNetworkTool(), Job.Type.SERVER_EXAMINE, null,
+		super("Run NCC", NetworkTool.getNetworkTool(), Job.Type.REMOTE_EXAMINE, null, 
 			  null, Job.Priority.ANALYSIS);
 		
 		// Set up arguments for doIt() method that is run on server

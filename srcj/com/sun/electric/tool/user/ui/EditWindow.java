@@ -1543,7 +1543,7 @@ public class EditWindow extends JPanel
 
 		protected RenderJob()
 		{
-			super("Display", User.getUserTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
+			super("Display", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             gp = UserInterfaceMain.getGraphicsPreferences();
 		}
 

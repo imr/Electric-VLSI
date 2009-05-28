@@ -326,17 +326,6 @@ public class Generic extends Technology
 		glyphLay.setGraphics(universalLay.getGraphics().withColor(c));
     }
 
-    /**
-     * Tells if node can be drawn by simplified algorithm
-     * Overidden in subclasses
-     * @param n node to test
-     * @param explain if true then print explanation why arc is not easy
-     * @return true if arc can be drawn by simplified algorithm
-     */
-    public boolean isEasyShape(NodeInst ni, boolean explain) {
-        return false;
-    }
-
 	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer [] {};
 	/**
 	 * Method to return a list of Polys that describe a given NodeInst.
@@ -376,13 +365,12 @@ public class Generic extends Technology
 	 * This method is overridden by specific Technologys.
      * @param b shape builder where to put polygons
 	 * @param n the ImmutableNodeInst that is being described.
-     * @param pn proto of the ImmutableNodeInst in this Technology
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 */
     @Override
-    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, Technology.NodeLayer[] primLayers) {
-		if (pn == invisiblePinNode)
+    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, Technology.NodeLayer[] primLayers) {
+		if (n.protoId == invisiblePinNode.getId())
 		{
             boolean hasDisplayVars = false;
             for (Iterator<Variable> it = n.getVariables(); it.hasNext(); ) {
@@ -395,7 +383,7 @@ public class Generic extends Technology
 //			if (ni.isInvisiblePinWithText())
 //				primLayers = NULLNODELAYER;
 		}
-        b.genShapeOfNode(n, pn, primLayers, null);
+		super.genShapeOfNode(b, n, primLayers);
     }
 
 //	/**

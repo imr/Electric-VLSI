@@ -335,7 +335,7 @@ public class MimicStitch
 
 		MimicOptions prefs = new MimicOptions();
 		prefs.getOptionsFromPreferences();
-		processPossibilities(cell, arcKills, 0, 0, Job.Type.CLIENT_EXAMINE, true, prefs);
+		processPossibilities(cell, arcKills, 0, 0, Job.Type.EXAMINE, true, prefs);
 	}
 
 	/**
@@ -354,7 +354,7 @@ public class MimicStitch
 		private MimicStitchJob(ArcInst ai1, int end1, ArcInst ai2, int end2, double oWidth, ArcProto oProto,
 								double prefX, double prefY, boolean forced)
 		{
-			super("Mimic-Stitch", Routing.getRoutingTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
+			super("Mimic-Stitch", Routing.getRoutingTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.ai1 = ai1;
 			this.end1 = end1;
 			this.ai2 = ai2;
@@ -372,7 +372,7 @@ public class MimicStitch
 
 		public boolean doIt() throws JobException
 		{
-			mimicOneArc(ai1, end1, ai2, end2, oWidth, oProto, prefX, prefY, forced, Job.Type.CLIENT_EXAMINE, prefs, this);
+			mimicOneArc(ai1, end1, ai2, end2, oWidth, oProto, prefX, prefY, forced, Job.Type.EXAMINE, prefs, this);
 			return true;
 		}
 	}
@@ -769,7 +769,7 @@ public class MimicStitch
 			if (prefs.notAlreadyConnected && (situations[j]&LIKELYALREADYCONNECTED) != 0) { ifAlreadyConnected += total;   continue; }
 
 			// create the routes
-			if (method == Job.Type.CLIENT_EXAMINE)
+			if (method == Job.Type.EXAMINE)
 			{
 				// since this is an examine job, queue a change job to make the wires
 				new MimicWireJob(allRoutes, allKills, false, prefs);

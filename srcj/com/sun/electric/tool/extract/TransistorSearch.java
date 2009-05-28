@@ -60,7 +60,7 @@ public class TransistorSearch
 
         public TransistorSearchJob(Cell cell)
         {
-            super("Searching Transistors in " + cell.getName(), null, Job.Type.SERVER_EXAMINE, null, null, Job.Priority.USER);
+            super("Searching Transistors in " + cell.getName(), null, Job.Type.REMOTE_EXAMINE, null, null, Job.Priority.USER);
             this.cell = cell;
             startJob();
         }

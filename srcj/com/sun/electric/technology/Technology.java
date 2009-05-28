@@ -29,6 +29,7 @@ import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
@@ -41,6 +42,7 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LayerId;
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.NodeProto;
@@ -64,6 +66,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ToolSettings;
+import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 
@@ -80,6 +83,7 @@ import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -129,10 +133,10 @@ import java.util.prefs.Preferences;
  */
 public class Technology implements Comparable<Technology>, Serializable
 {
-    /** Skip wiped pins both in electrical and non-electrical mode */
-    protected static final boolean ALWAYS_SKIP_WIPED_PINS = true;
-    /** Always use electrical layers */
-    public static final boolean ALWAYS_ELECTRICAL_LAYERS = false;
+	/** true to allow outlines to have "breaks" with multiple pieces in them */
+	public static final boolean HANDLEBROKENOUTLINES = true;
+	/** true to handle duplicate points in an outline as a "break" */
+	public static final boolean DUPLICATEPOINTSAREBROKENOUTLINES = false;
 
     // Change in TechSettings takes effect only after restart
     public static final boolean IMMUTABLE_TECHS = false/*Config.TWO_JVM*/;
@@ -542,13 +546,6 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * @return the 0-based index of the port associated with this NodeLayer.
 		 */
 		public int getPortNum() { return portNum; }
-
-		/**
-		 * Returns the port associated with this NodeLayer in specified PrimitiveNode.
-         * @param pn specified PrimitiveNode
-		 * @return the port associated with this NodeLayer.
-		 */
-		public PrimitivePort getPort(PrimitiveNode pn) { return portNum >= 0 ? pn.getPort(portNum) : null; }
 
 		/**
 		 * Returns the Poly.Type this NodeLayer will generate.
@@ -1202,8 +1199,8 @@ public class Technology implements Comparable<Technology>, Serializable
         return new EdgeV(y.k*0.5, y.value);
     }
 
-    public boolean isXmlTechAvailable() {return xmlTech != null;};
-    public Xml.Technology getXmlTech() { return xmlTech != null ? xmlTech.deepClone() : null; }
+    public boolean isXmlTechAvailable() { return xmlTech != null; }
+    public Xml.Technology getXmlTech() { return xmlTech.deepClone(); }
 
     public static Environment makeInitialEnvironment() {
         Environment env = IdManager.stdIdManager.getInitialEnvironment();
@@ -2296,48 +2293,44 @@ public class Technology implements Comparable<Technology>, Serializable
             for (int i = 0; i < numArcLayers; i++) {
                 Technology.ArcLayer primLayer = ap.getArcLayer(i);
                 Layer layer = primLayer.getLayer();
+                if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) continue;
 
                 // remove a gap for the negating bubble
                 int angle = a.getAngle();
                 double gridBubbleSize = Schematics.tech().getNegatingBubbleSize()*DBMath.GRID;
                 double cosDist = DBMath.cos(angle) * gridBubbleSize;
                 double sinDist = DBMath.sin(angle) * gridBubbleSize;
-                if (!b.skipLayer(layer)) {
-                    if (a.isTailNegated())
-                        b.pushPoint(a.tailLocation, cosDist, sinDist);
-                    else
-                        b.pushPoint(a.tailLocation);
-                    if (a.isHeadNegated())
-                        b.pushPoint(a.headLocation, -cosDist, -sinDist);
-                    else
-                        b.pushPoint(a.headLocation);
-                    b.pushPoly(Poly.Type.OPENED, layer, graphicsOverride, null);
+                if (a.isTailNegated())
+                    b.pushPoint(a.tailLocation, cosDist, sinDist);
+                else
+                    b.pushPoint(a.tailLocation);
+                if (a.isHeadNegated())
+                    b.pushPoint(a.headLocation, -cosDist, -sinDist);
+                else
+                    b.pushPoint(a.headLocation);
+                b.pushPoly(Poly.Type.OPENED, layer, graphicsOverride, null);
+                if (a.isTailNegated()) {
+                    b.pushPoint(a.tailLocation, 0.5*cosDist, 0.5*sinDist);
+                    b.pushPoint(a.tailLocation);
+                    b.pushPoly(Poly.Type.CIRCLE, Schematics.tech().node_lay, null, null);
                 }
-                Layer node_lay = Schematics.tech().node_lay;
-                if (!b.skipLayer(node_lay)) {
-                    if (a.isTailNegated()) {
-                        b.pushPoint(a.tailLocation, 0.5*cosDist, 0.5*sinDist);
-                        b.pushPoint(a.tailLocation);
-                        b.pushPoly(Poly.Type.CIRCLE, node_lay, null, null);
-                    }
-                    if (a.isHeadNegated()) {
-                        b.pushPoint(a.headLocation, -0.5*cosDist, -0.5*sinDist);
-                        b.pushPoint(a.headLocation);
-                        b.pushPoly(Poly.Type.CIRCLE, node_lay, null, null);
-                    }
+                if (a.isHeadNegated()) {
+                    b.pushPoint(a.headLocation, -0.5*cosDist, -0.5*sinDist);
+                    b.pushPoint(a.headLocation);
+                    b.pushPoly(Poly.Type.CIRCLE, Schematics.tech().node_lay, null, null);
                 }
             }
         } else {
             for (int i = 0; i < numArcLayers; i++) {
                 Technology.ArcLayer primLayer = ap.getArcLayer(i);
                 Layer layer = primLayer.getLayer();
-                if (b.skipLayer(layer)) continue;
+                if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) continue;
                 b.makeGridPoly(a, 2*(a.getGridExtendOverMin() + ap.getLayerGridExtend(i)), primLayer.getStyle(), layer, graphicsOverride);
             }
         }
 
         // add an arrow to the arc description
-        if (!isNoDirectionalArcs() && !b.skipLayer(generic.glyphLay)) {
+        if (!isNoDirectionalArcs()) {
             final double lambdaArrowSize = 1.0*DBMath.GRID;
             int angle = a.getAngle();
             if (a.isBodyArrowed()) {
@@ -2800,30 +2793,11 @@ public class Technology implements Comparable<Technology>, Serializable
 	public Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Layer.Function.Set onlyTheseLayers)
 	{
 		if (ni.isCellInstance()) return null;
-        if (ALWAYS_ELECTRICAL_LAYERS) electrical = true;
 
         Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
         Poly[] polys0 = polyBuilder.getShapeArray(ni, electrical, reasonable, onlyTheseLayers);
         if (Job.getDebug()) {
             Poly[] polys1 = getShapeOfNode_(ni, electrical, reasonable, onlyTheseLayers);
-            if (onlyTheseLayers != null)
-            {
-                List<Poly> polyArray = new ArrayList<Poly>();
-
-                for (int i = 0; i < polys1.length; i++)
-                {
-                    Poly poly = polys1[i];
-                    Layer layer = poly.getLayer();
-                    if (onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras()))
-                        polyArray.add(poly);
-                }
-                polys1 = new Poly [polyArray.size()];
-                polyArray.toArray(polys1);
-            }
-            if (polys0.length != polys1.length) {
-                polys0 = polyBuilder.getShapeArray(ni, electrical, reasonable, onlyTheseLayers);
-                polys1 = getShapeOfNode_(ni, electrical, reasonable, onlyTheseLayers);
-            }
             assert polys0.length == polys1.length;
             for (int i = 0; i < polys0.length; i++) {
                 Poly p0 = polys0[i];
@@ -2886,63 +2860,6 @@ public class Technology implements Comparable<Technology>, Serializable
 		return getShapeOfNode(getMemoization(ni), ni.getD(), electrical, reasonable, primLayers);
 	}
 
-    /**
-     * Tells if node can be drawn by simplified algorithm
-     * Overidden in subclasses
-     * @param n node to test
-     * @param explain if true then print explanation why arc is not easy
-     * @return true if arc can be drawn by simplified algorithm
-     */
-    public boolean isEasyShape(NodeInst ni, boolean explain) {
-        ImmutableNodeInst n = ni.getD();
-        PrimitiveNode pn = (PrimitiveNode)ni.getProto();
-        assert pn.getTechnology() == this;
-        if (!n.orient.isManhattan()) return false;
-        if (n.getTrace() != null) return false;
-        if (ni.getVar(NodeLayer.CUT_SPACING) != null) return false;
-        if (ni.getVar(NodeLayer.CUT_ALIGNMENT) != null) return false;
-        if (ni.getVar(NodeLayer.METAL_OFFSETS) != null) return false;
-//        if (ni.getVar(NodeLayer.CARBON_NANOTUBE_COUNT) != null) return false;
-//        if (ni.getVar(NodeLayer.CARBON_NANOTUBE_PITCH) != null) return false;
-        for (NodeLayer nl: pn.getNodeLayers()) {
-            if (!isEasy(nl))
-                return false;
-        }
-        NodeLayer[] electrical = pn.getElectricalLayers();
-        if (electrical != null) {
-            for (NodeLayer nl: pn.getNodeLayers()) {
-                if (!isEasy(nl))
-                    return false;
-            }
-        }
-        PrimitiveNode.Function fun = pn.getFunction();
-        return true;
-    }
-
-
-    private static boolean isEasy(NodeLayer nl) {
-        if (nl.getMessage() != null) return false;
-        if (nl.points.length != 2) return false;
-        if (nl.getLayer().isCarbonNanotubeLayer()) return false;
-        if (!isEasyMultiplier(nl.points[0].getX().getMultiplier())) return false;
-        if (!isEasyMultiplier(nl.points[0].getY().getMultiplier())) return false;
-        if (!isEasyMultiplier(nl.points[1].getX().getMultiplier())) return false;
-        if (!isEasyMultiplier(nl.points[1].getY().getMultiplier())) return false;
-        if (nl.representation == NodeLayer.BOX) {
-            if (nl.style == Poly.Type.FILLED || nl.style == Poly.Type.CROSSED)
-                return true;
-        }
-        if (nl.representation == NodeLayer.MULTICUTBOX) {
-            if (nl.style == Poly.Type.FILLED)
-                return true;
-        }
-        return false;
-    }
-
-    private static boolean isEasyMultiplier(double multiplier) {
-        return multiplier == -0.5 || multiplier == 0.5 || multiplier == 0;
-    }
-
     private CellBackup.Memoization getMemoization(NodeInst ni) {
         return ni.getCellBackupUnsafe().getMemoization();
     }
@@ -2972,7 +2889,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		Technology.NodeLayer [] primLayers)
 	{
 		// if node is erased, remove layers
-		if (ALWAYS_SKIP_WIPED_PINS || !electrical)
+		if (!electrical)
 		{
 			if (m.isWiped(n)) primLayers = nullPrimLayers; else
 			{
@@ -2993,12 +2910,19 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * This method is overridden by specific Technologys.
      * @param b shape builder where to put polygons
 	 * @param n the ImmutableNodeInst that is being described.
-     * @param pn proto of the ImmutableNodeInst in this Technology
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 */
-    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, Technology.NodeLayer[] primLayers) {
-		b.genShapeOfNode(n, pn, primLayers, null);
+    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, Technology.NodeLayer[] primLayers) {
+        CellBackup.Memoization m = b.getMemoization();
+		PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
+		// if node is erased, remove layers
+		if (!b.electrical) {
+			if (m.isWiped(n)) return;
+			if (np.isWipeOn1or2() && m.pinUseCount(n)) return;
+		}
+
+		b.genShapeOfNode(n, np, primLayers, null);
     }
 
 	/**
@@ -3031,38 +2955,67 @@ public class Technology implements Comparable<Technology>, Serializable
 			Point2D [] outline = n.getTrace();
 			if (outline != null)
 			{
-                List<Poly> polyList = new ArrayList<Poly>();
-                int startPoint = 0;
-                for(int i=1; i<outline.length; i++)
-                {
-                    boolean breakPoint = (i == outline.length-1) || (outline[i] == null);
-                    if (breakPoint)
-                    {
-                        if (i == outline.length-1) i++;
-                        Point2D [] pointList = new Point2D.Double[i-startPoint];
-                        for(int j=startPoint; j<i; j++)
-                        {
-                            pointList[j-startPoint] = new Point2D.Double(n.anchor.getLambdaX() + outline[j].getX(),
-                                n.anchor.getLambdaY() + outline[j].getY());
-                        }
-                        Poly poly = new Poly(pointList);
-                        Technology.NodeLayer primLayer = primLayers[0];
-                        poly.setStyle(primLayer.getStyle());
-                        poly.setLayer(primLayer.getLayer());
-                        poly.setGraphicsOverride(graphicsOverride);
-                        if (electrical)
-                        {
-                            int portIndex = primLayer.getPortNum();
-                            assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition
-                            if (portIndex >= 0) poly.setPort(np.getPort(portIndex));
-                        }
-                        polyList.add(poly);
-                        startPoint = i+1;
-                    }
-                }
-                Poly [] polys = new Poly[polyList.size()];
-                for(int i=0; i<polyList.size(); i++) polys[i] = polyList.get(i);
-                return polys;
+				if (HANDLEBROKENOUTLINES)
+				{
+					List<Poly> polyList = new ArrayList<Poly>();
+					int startPoint = 0;
+					for(int i=1; i<outline.length; i++)
+					{
+						boolean breakPoint = (i == outline.length-1) || (outline[i] == null);
+						if (DUPLICATEPOINTSAREBROKENOUTLINES && !breakPoint)
+						{
+							if (i-startPoint > 0 && outline[i].getX() == outline[i-1].getX() &&
+								outline[i].getY() == outline[i-1].getY()) breakPoint = true;
+						}
+						if (breakPoint)
+						{
+							if (i == outline.length-1) i++;
+							Point2D [] pointList = new Point2D.Double[i-startPoint];
+							for(int j=startPoint; j<i; j++)
+							{
+								pointList[j-startPoint] = new Point2D.Double(n.anchor.getLambdaX() + outline[j].getX(),
+									n.anchor.getLambdaY() + outline[j].getY());
+							}
+							Poly poly = new Poly(pointList);
+							Technology.NodeLayer primLayer = primLayers[0];
+							poly.setStyle(primLayer.getStyle());
+							poly.setLayer(primLayer.getLayer());
+                            poly.setGraphicsOverride(graphicsOverride);
+							if (electrical)
+							{
+								int portIndex = primLayer.getPortNum();
+			                    assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition
+			                    if (portIndex >= 0) poly.setPort(np.getPort(portIndex));
+							}
+							polyList.add(poly);
+							startPoint = i+1;
+						}
+					}
+					Poly [] polys = new Poly[polyList.size()];
+					for(int i=0; i<polyList.size(); i++) polys[i] = polyList.get(i);
+					return polys;
+				} else
+				{
+					Poly [] polys = new Poly[1];
+					Point2D [] pointList = new Point2D.Double[outline.length];
+					for(int i=0; i<outline.length; i++)
+					{
+						pointList[i] = new Point2D.Double(n.anchor.getLambdaX() + outline[i].getX(),
+							n.anchor.getLambdaY() + outline[i].getY());
+					}
+					polys[0] = new Poly(pointList);
+					Technology.NodeLayer primLayer = primLayers[0];
+					polys[0].setStyle(primLayer.getStyle());
+					polys[0].setLayer(primLayer.getLayer());
+                    polys[0].setGraphicsOverride(graphicsOverride);
+					if (electrical)
+					{
+						int portIndex = primLayer.getPortNum();
+	                    assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition
+	                    if (portIndex >= 0) polys[0].setPort(np.getPort(portIndex));
+					}
+					return polys;
+				}
 			}
 		}
 
@@ -4262,14 +4215,25 @@ public class Technology implements Comparable<Technology>, Serializable
 			if (outline != null)
 			{
 				int endPortPoly = outline.length;
-                for(int i=1; i<outline.length; i++)
-                {
-                    if (outline[i] == null)
-                    {
-                        endPortPoly = i;
-                        break;
-                    }
-                }
+				if (HANDLEBROKENOUTLINES)
+				{
+					for(int i=1; i<outline.length; i++)
+					{
+						if (outline[i] == null)
+						{
+							endPortPoly = i;
+							break;
+						}
+						if (DUPLICATEPOINTSAREBROKENOUTLINES)
+						{
+							if (outline[i].getX() == outline[i-1].getX() && outline[i].getY() == outline[i-1].getY())
+							{
+								endPortPoly = i;
+								break;
+							}
+						}
+					}
+				}
 				double cX = ni.getAnchorCenterX();
 				double cY = ni.getAnchorCenterY();
 				Point2D [] pointList = new Point2D.Double[endPortPoly];
@@ -4473,7 +4437,7 @@ public class Technology implements Comparable<Technology>, Serializable
     private Setting makeLESetting(String what, double factory) {
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-        return getLESettingsNode().makeDoubleSetting(what + "IN" + getTechName(), TECH_NODE,
+       return getLESettingsNode().makeDoubleSetting(what + "IN" + getTechName(), TECH_NODE,
                 what, "Logical Effort tab", techShortName + " " + what, factory);
     }
 

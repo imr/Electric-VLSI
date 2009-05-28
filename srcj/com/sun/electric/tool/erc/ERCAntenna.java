@@ -207,7 +207,7 @@ public class ERCAntenna
 
 		private AntennaCheckJob(Cell cell)
 		{
-			super("ERC Antenna Check", ERC.tool, Job.Type.SERVER_EXAMINE, null, null, Job.Priority.USER);
+			super("ERC Antenna Check", ERC.tool, Job.Type.REMOTE_EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			startJob();
 		}

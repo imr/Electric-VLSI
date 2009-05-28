@@ -32,7 +32,6 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
@@ -303,17 +302,6 @@ public class GEM extends Technology
 
 	//**************************************** METHODS ****************************************
 
-    /**
-     * Tells if node can be drawn by simplified algorithm
-     * Overidden in subclasses
-     * @param n node to test
-     * @param explain if true then print explanation why arc is not easy
-     * @return true if arc can be drawn by simplified algorithm
-     */
-    public boolean isEasyShape(NodeInst ni, boolean explain) {
-        return false;
-    }
-
 	/**
 	 * Method to return a list of Polys that describe a given NodeInst.
 	 * This method overrides the general one in the Technology object
@@ -385,13 +373,12 @@ public class GEM extends Technology
 	 * This method is overridden by specific Technologys.
      * @param b shape builder where to put polygons
 	 * @param n the ImmutableNodeInst that is being described.
-     * @param pn proto of the ImmutableNodeInst in this Technology
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 */
     @Override
-    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, Technology.NodeLayer[] primLayers) {
- 		if (pn == e_node)
+    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, Technology.NodeLayer[] primLayers) {
+ 		if (n.protoId == e_node.getId())
 		{
 			Technology.NodeLayer [] eventLayers = new Technology.NodeLayer[6];
 			eventLayers[0] = new Technology.NodeLayer(E_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, box_7);
@@ -437,6 +424,6 @@ public class GEM extends Technology
             for (Technology.NodeLayer nodeLayer: eventLayers)
                 nodeLayer.fixup(fixupCorrection);
 		}
-        b.genShapeOfNode(n, pn, primLayers, null);
+		super.genShapeOfNode(b, n, primLayers);
    }
 }

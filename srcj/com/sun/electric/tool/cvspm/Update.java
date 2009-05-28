@@ -198,7 +198,7 @@ public class Update {
         private UpdateJob(List<Cell> cellsToUpdate, List<Library> librariesToUpdate,
                           UpdateEnum type, boolean updateProject, boolean checkEditors) {
             super("CVS Update Library, " + type.getMessage(), User.getUserTool(),
-                ((type==UpdateEnum.STATUS)?Job.Type.CLIENT_EXAMINE:Job.Type.CHANGE), null, null, Job.Priority.USER);
+                ((type==UpdateEnum.STATUS)?Job.Type.EXAMINE:Job.Type.CHANGE), null, null, Job.Priority.USER);
             this.cellsToUpdate = cellsToUpdate;
             this.librariesToUpdate = librariesToUpdate;
             this.type = type;

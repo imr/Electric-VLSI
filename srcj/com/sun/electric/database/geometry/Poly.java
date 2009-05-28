@@ -664,7 +664,7 @@ public class Poly extends PolyBase {
         }
 
         @Override
-        public void addDoubleTextPoly(int numPoints, Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
+        public void addTextPoly(int numPoints, Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
             assert isChanging;
             Point2D.Double[] points = new Point2D.Double[numPoints];
             for (int i = 0; i < numPoints; i++)
@@ -679,31 +679,25 @@ public class Poly extends PolyBase {
         }
 
         @Override
-        public void addIntPoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
+        public void addIntLine(int[] coords, Poly.Type style, Layer layer) {
             assert isChanging;
-            Point2D.Double[] points = new Point2D.Double[numPoints];
-            for (int i = 0; i < numPoints; i++)
-                points[i] = new Point2D.Double(intCoords[i*2], intCoords[i*2 + 1]);
-            Poly poly = new Poly(points);
+            Poly poly = new Poly(new Point2D.Double[] {
+                new Point2D.Double(coords[0], coords[1]),
+                new Point2D.Double(coords[2], coords[3])
+            });
             poly.setStyle(style);
             poly.setLayer(layer);
-            poly.setGraphicsOverride(graphicsOverride);
-            poly.setPort(pp);
             lastPolys.add(poly);
         }
 
         @Override
-        public void addIntBox(Layer layer) {
+        public void addIntBox(int[] coords, Layer layer) {
             assert isChanging;
-            double lx = intCoords[0];
-            double ly = intCoords[1];
-            double hx = intCoords[2];
-            double hy = intCoords[3];
             Poly poly = new Poly(new Point2D.Double[] {
-                new Point2D.Double(lx, ly),
-                new Point2D.Double(hx, ly),
-                new Point2D.Double(hx, hy),
-                new Point2D.Double(lx, hy)
+                new Point2D.Double(coords[0], coords[1]),
+                new Point2D.Double(coords[2], coords[1]),
+                new Point2D.Double(coords[2], coords[3]),
+                new Point2D.Double(coords[0], coords[3])
             });
             poly.setStyle(Poly.Type.FILLED);
             poly.setLayer(layer);

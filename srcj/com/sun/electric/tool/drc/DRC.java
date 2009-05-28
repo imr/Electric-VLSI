@@ -1215,7 +1215,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         private static String getJobName(Cell cell) { return "Design-Rule Check " + cell; }
 		protected CheckDRCJob(Cell cell, Listener tool, Priority priority, DRCPreferences dp, boolean layout)
 		{
-			super(getJobName(cell), tool, Job.Type.CLIENT_EXAMINE, null, null, priority);
+			super(getJobName(cell), tool, Job.Type.EXAMINE, null, null, priority);
 			this.cell = cell;
             this.dp = dp;
             this.isLayout = layout;

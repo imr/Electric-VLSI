@@ -158,7 +158,7 @@ public class View3DWindow extends JPanel
 
         public View3DWindowJob(Cell cell, WindowFrame wf, WindowContent view2D, boolean transPerNode)
         {
-            super("3D View Job", null, Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
+            super("3D View Job", null, Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.cell = cell;
             this.windowFrame = wf;
             this.view2D = view2D;

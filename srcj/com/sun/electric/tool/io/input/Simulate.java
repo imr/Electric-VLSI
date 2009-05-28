@@ -234,7 +234,7 @@ public class Simulate extends Input
 
 		private ReadSimulationOutput(FileType type, Simulate is, URL fileURL, Cell cell, WaveformWindow ww)
 		{
-			super("Read Simulation Output for " + cell, IOTool.getIOTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
+			super("Read Simulation Output for " + cell, IOTool.getIOTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.type = type;
 			this.is = is;
 			this.fileURL = fileURL;

@@ -2074,7 +2074,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * transistors to allow a precise gate path to be specified.
 	 * @return an array of Point2D in database coordinates.
 	 */
-	public EPoint [] getTrace() { return getD().getTrace(); }
+	public Point2D [] getTrace() { return getD().getTrace(); }
 
 	/**
 	 * Method to set the "outline" information on this NodeInst.
@@ -2789,9 +2789,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	{
         if (key == TRACE && protoType instanceof PrimitiveNode) {
             PrimitiveNode pn = (PrimitiveNode)protoType;
-            if (ImmutableNodeInst.SIMPLE_TRACE_SIZE) {
-                lowLevelModify(d);
-            } else if (pn.isHoldsOutline() && getTrace() != null) {
+            if (pn.isHoldsOutline() && getTrace() != null) {
                 Poly[] polys = pn.getTechnology().getShapeOfNode(this);
                 Rectangle2D bounds = new Rectangle2D.Double();
                 for (int i = 0; i < polys.length; i++) {
@@ -3309,20 +3307,18 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         if (getTrace() != null) {
             if (pn.isHoldsOutline()) {
                 Rectangle2D bounds = new Rectangle2D.Double();
-                if (!ImmutableNodeInst.SIMPLE_TRACE_SIZE) {
-                    Poly[] polys = pn.getTechnology().getShapeOfNode(this);
-                    for (int i = 0; i < polys.length; i++) {
-                        Poly poly = polys[i];
-                        if (i == 0)
-                            bounds.setRect(poly.getBounds2D());
-                        else
-                            Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
-                    }
-                    width = DBMath.round(bounds.getWidth());
-                    height = DBMath.round(bounds.getHeight());
-                    if (width != getXSize() || height != getYSize())
-                        sizeMsg = " but has outline of size ";
+                Poly[] polys = pn.getTechnology().getShapeOfNode(this);
+                for (int i = 0; i < polys.length; i++) {
+                    Poly poly = polys[i];
+                    if (i == 0)
+                        bounds.setRect(poly.getBounds2D());
+                    else
+                        Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
                 }
+                width = DBMath.round(bounds.getWidth());
+                height = DBMath.round(bounds.getHeight());
+                if (width != getXSize() || height != getYSize())
+                    sizeMsg = " but has outline of size ";
             } else {
                 String msg = parent + ", " + this + " has unexpected outline";
                 System.out.println(msg);
@@ -3335,7 +3331,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		}
 		if (sizeMsg != null)
 		{
-            assert !ImmutableNodeInst.SIMPLE_TRACE_SIZE;
 			sizeMsg = parent + ", " + this +
 				" is " + getXSize() + "x" + getYSize() + sizeMsg + width + "x" + height;
 			if (repair)

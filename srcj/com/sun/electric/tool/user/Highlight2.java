@@ -43,7 +43,9 @@ import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
 
@@ -404,14 +406,25 @@ public abstract class Highlight2 implements Cloneable{
                 {
                     int numPoints = outline.length;
                     boolean whole = true;
-                    for(int i=1; i<numPoints; i++)
-                    {
-                        if (outline[i] == null)
-                        {
-                            whole = false;
-                            break;
-                        }
-                    }
+    				if (Technology.HANDLEBROKENOUTLINES)
+    				{
+    					for(int i=1; i<numPoints; i++)
+    					{
+    						if (outline[i] == null)
+    						{
+    							whole = false;
+    							break;
+    						}
+    						if (Technology.DUPLICATEPOINTSAREBROKENOUTLINES)
+    						{
+    							if (outline[i].getX() == outline[i-1].getX() && outline[i].getY() == outline[i-1].getY())
+    							{
+        							whole = false;
+    								break;
+    							}
+    						}
+    					}
+    				}
 					if (whole)
 					{
 	                    Point2D [] pointList = new Point2D.Double[numPoints];
@@ -749,7 +762,7 @@ class HighlightEOBJ extends Highlight2
 
 	public HighlightEOBJ(ElectricObject e, Cell c, boolean connected, int p, Color col)
 	{
-		super(c);
+		super(c);  
 		this.eobj = e;
 		this.highlightConnected = connected;
 		this.point = p;

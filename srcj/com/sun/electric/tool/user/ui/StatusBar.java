@@ -239,9 +239,8 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 			} else
 			{
 				Rectangle2D bounds = cell.getBounds();
-				if (bounds != null)
-					sizeMsg = "CELL: " + TextUtils.formatDistance(bounds.getWidth(), cell.getTechnology()) + " x " +
-                    	TextUtils.formatDistance(bounds.getHeight(), cell.getTechnology());
+				sizeMsg = "CELL: " + TextUtils.formatDistance(bounds.getWidth(), cell.getTechnology()) + " x " +
+                    TextUtils.formatDistance(bounds.getHeight(), cell.getTechnology());
 			}
 		}
 		fieldSize.setText(sizeMsg);

@@ -78,7 +78,7 @@ public class EJob {
     /** Creates a new instance of EJob */
     EJob(Client connection, int jobId, Job.Type jobType, String jobName, byte[] bytes) {
         this.client = connection;
-        jobKey = new Job.Key(connection, jobId, jobType != Job.Type.CLIENT_EXAMINE);
+        jobKey = new Job.Key(connection, jobId, jobType != Job.Type.EXAMINE);
         this.jobType = jobType;
         this.jobName = jobName;
         state = State.WAITING;
@@ -105,7 +105,7 @@ public class EJob {
     }
 
     public boolean isExamine() {
-        return jobType == Job.Type.CLIENT_EXAMINE || jobType == Job.Type.SERVER_EXAMINE;
+        return jobType == Job.Type.EXAMINE || jobType == Job.Type.REMOTE_EXAMINE;
     }
 
     Throwable serialize(EDatabase database) {
@@ -166,7 +166,7 @@ public class EJob {
             doItOk = true;
             out.writeObject(null); // No exception
             out.writeInt(changedFields.size());
-            Job job = jobType == Job.Type.CLIENT_EXAMINE ? clientJob : serverJob;
+            Job job = jobType == Job.Type.EXAMINE ? clientJob : serverJob;
             for (Field f: changedFields) {
                 String fieldName = f.getName();
                 Object value = f.get(job);

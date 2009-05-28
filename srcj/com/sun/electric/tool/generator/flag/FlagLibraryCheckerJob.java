@@ -107,7 +107,7 @@ public class FlagLibraryCheckerJob extends Job {
 		return true;
 	}
 	public FlagLibraryCheckerJob() {
-        super("FLAG library checker", NetworkTool.getNetworkTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
+        super("FLAG library checker", NetworkTool.getNetworkTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
         startJob();
 	}
 }

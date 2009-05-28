@@ -1514,7 +1514,7 @@ public class ToolMenu
         private LayerCoverageTool.LayerCoveragePreferences lcp = new LayerCoverageTool.LayerCoveragePreferences(false);
 
     	public ListGeomsAllNetworksJob(Cell cell) {
-            super("ListGeomsAllNetworks", User.getUserTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
+            super("ListGeomsAllNetworks", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.cell = cell;
             startJob();
         }

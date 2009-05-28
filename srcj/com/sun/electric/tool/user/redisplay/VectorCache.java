@@ -82,7 +82,6 @@ import java.util.Set;
  * Class to hold scalable representation of circuit displays.
  */
 public class VectorCache {
-    private static final boolean USE_ELECTRICAL = Technology.ALWAYS_ELECTRICAL_LAYERS;
     public static boolean DEBUG = false;
     public static final VectorCache theCache = new VectorCache(EDatabase.clientDatabase());
 
@@ -588,7 +587,7 @@ public class VectorCache {
             for (VectorManhattanBuilder b: pureBoxBuilders)
                 b.clear();
             // draw all arcs
-            shapeBuilder.setup(cell.backupUnsafe(), orient, USE_ELECTRICAL, false, null);
+            shapeBuilder.setup(cell.backupUnsafe(), orient, false, false, null);
             shapeBuilder.vc = this;
             shapeBuilder.hideOnLowLevel = false;
             shapeBuilder.textType = VectorText.TEXTTYPEARC;
@@ -710,7 +709,7 @@ public class VectorCache {
 
             // draw nodes visible only inside
             AffineTransform trans = orient.pureRotate();
-            shapeBuilder.setup(cell.backupUnsafe(), orient, USE_ELECTRICAL, false, null);
+            shapeBuilder.setup(cell.backupUnsafe(), orient, false, false, null);
             shapeBuilder.vc = this;
             shapeBuilder.hideOnLowLevel = false;
             shapeBuilder.textType = VectorText.TEXTTYPEARC;
@@ -765,7 +764,7 @@ public class VectorCache {
         }
 
         @Override
-        public void addDoubleTextPoly(int numPoints, Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
+        public void addTextPoly(int numPoints, Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
             Point2D.Double[] points = new Point2D.Double[numPoints];
             for (int i = 0; i < numPoints; i++)
                 points[i] = new Point2D.Double(doubleCoords[i*2], doubleCoords[i*2+1]);
@@ -779,60 +778,58 @@ public class VectorCache {
         }
 
         @Override
-        public void addIntPoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
+        public void addIntLine(int[] coords, Poly.Type style, Layer layer) {
+            int x1 = coords[0];
+            int y1 = coords[1];
+            int x2 = coords[2];
+            int y2 = coords[3];
+            int lineType;
             switch (style) {
                 case OPENED:
-                    addIntLine(0, layer, graphicsOverride);
+                    lineType = 0;
                     break;
                 case OPENEDT1:
-                    addIntLine(1, layer, graphicsOverride);
+                    lineType = 1;
                     break;
                 case OPENEDT2:
-                    addIntLine(2, layer, graphicsOverride);
+                    lineType = 2;
                     break;
                 case OPENEDT3:
-                    addIntLine(3, layer, graphicsOverride);
+                    lineType = 3;
                     break;
                 default:
-                    Point2D.Double[] points = new Point2D.Double[numPoints];
-                    for (int i = 0; i < numPoints; i++)
-                        points[i] = new Point2D.Double(intCoords[i*2], intCoords[i*2 + 1]);
-                    Poly poly = new Poly(points);
+                    Poly poly = new Poly(new Point2D.Double[] {
+                        new Point2D.Double(x1, y1),
+                        new Point2D.Double(x2, y2)
+                    });
                     poly.setStyle(style);
                     poly.setLayer(layer);
-                    poly.setGraphicsOverride(graphicsOverride);
                     poly.gridToLambda();
                     renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer);
-                    break;
+                    return;
             }
-        }
-
-        private void addIntLine(int lineType, Layer layer, EGraphics graphicsOverride) {
-            int x1 = intCoords[0];
-            int y1 = intCoords[1];
-            int x2 = intCoords[2];
-            int y2 = intCoords[3];
-            VectorLine vl = new VectorLine(x1, y1, x2, y2, lineType, layer, graphicsOverride);
+            // now draw it
             ArrayList<VectorBase> shapes = hideOnLowLevel ? vc.topOnlyShapes : vc.shapes;
+            VectorLine vl = new VectorLine(x1, y1, x2, y2, lineType, layer, null);
             shapes.add(vl);
         }
 
         @Override
-        public void addIntBox(Layer layer) {
+        public void addIntBox(int[] coords, Layer layer) {
             ArrayList<VectorBase> shapes = hideOnLowLevel ? vc.topOnlyShapes : vc.shapes;
             // convert coordinates
-            int lX = intCoords[0];
-            int lY = intCoords[1];
-            int hX = intCoords[2];
-            int hY = intCoords[3];
+            int lX = coords[0];
+            int lY = coords[1];
+            int hX = coords[2];
+            int hY = coords[3];
             int layerIndex = -1;
             if (vc.vcg != null && layer.getId().techId == vc.vcg.cellBackup.cellRevision.d.techId)
                 layerIndex = layer.getIndex();
             if (layerIndex >= 0) {
                 putBox(layerIndex, pureLayer ? pureBoxBuilders : boxBuilders, lX, lY, hX, hY);
             } else {
-                int[] coords = new int[] { lX, lY, hX, hY };
-                VectorManhattan vm = new VectorManhattan(coords, layer, null, pureLayer);
+                assert coords.length == 4;
+                VectorManhattan vm = new VectorManhattan(coords.clone(), layer, null, pureLayer);
                 shapes.add(vm);
             }
 
@@ -876,7 +873,7 @@ public class VectorCache {
     public static VectorBase[] drawNode(NodeInst ni) {
         VectorCache cache = new VectorCache(EDatabase.clientDatabase());
         VectorCell vc = cache.newDummyVectorCell();
-        cache.shapeBuilder.setup(ni.getCellBackupUnsafe(), null, USE_ELECTRICAL, false, null);
+        cache.shapeBuilder.setup(ni.getCellBackupUnsafe(), null, false, false, null);
         cache.shapeBuilder.vc = vc;
         cache.drawPrimitiveNode(ni, GenMath.MATID, vc);
         vc.shapes.addAll(vc.topOnlyShapes);

@@ -44,7 +44,7 @@ public class J3DClientApp extends Job
 
     public J3DClientApp(J3DViewDialog dialog, String hostname)
     {
-        super("Socket Connection", null, Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.ANALYSIS);
+        super("Socket Connection", null, Job.Type.EXAMINE, null, null, Job.Priority.ANALYSIS);
         this.dialog = dialog;
         this.hostname = hostname;
     }
