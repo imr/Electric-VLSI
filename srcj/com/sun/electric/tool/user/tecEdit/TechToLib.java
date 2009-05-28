@@ -126,7 +126,7 @@ public class TechToLib
 
 		public boolean doIt()
 		{
-			Library lib = makeLibFromTech(tech);
+			lib = makeLibFromTech(tech);
 			if (lib == null) return false;
             fieldVariableChanged("lib");
 
