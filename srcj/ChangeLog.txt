@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+BUG: (5/29/09, GVG) UNDOING changing done "for Arrow keys affect circuitry even when navigating popup menus
+     (Bug #2187)."
+
 BUG: (5/28/09, GVG) Field variables not transfered from doIt to terminateOK (Bug #2199)
 FIX: Local variable lib was overwriting the class variable. Error introduced in 8.09h (rev 9060).
 

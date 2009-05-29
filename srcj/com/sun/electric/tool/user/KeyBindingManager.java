@@ -23,14 +23,9 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Menu;
-import java.awt.MenuBar;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -49,9 +44,6 @@ import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
 /**
@@ -415,18 +407,6 @@ public class KeyBindingManager {
 			if ((e.getModifiers() & InputEvent.SHIFT_MASK) != 0 && !Character.isLetter(e.getKeyCode()) && !Character.isDigit(e.getKeyCode()))
 				stroke = KeyStroke.getKeyStroke(e.getKeyChar());
 		}
-
-		// see if any popup menus are visible
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-		JMenuBar mb =  wf.getFrame().getJMenuBar();
-		for(int i=0; i<mb.getMenuCount(); i++)
-		{
-			JMenu m = mb.getMenu(i);
-        	if (m == null) continue;
-			if (!m.isPopupMenuVisible()) continue;
-            lastPrefix = null;              // someone did something with it, null prefix key
-            return false;
-        }
 
         // ignore if consumed
         if (e.isConsumed()) {
