@@ -408,6 +408,18 @@ public class KeyBindingManager {
 				stroke = KeyStroke.getKeyStroke(e.getKeyChar());
 		}
 
+//		// see if any popup menus are visible
+//		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+//		JMenuBar mb =  wf.getFrame().getJMenuBar();
+//		for(int i=0; i<mb.getMenuCount(); i++)
+//		{
+//			JMenu m = mb.getMenu(i);
+//        	if (m == null) continue;
+//			if (!m.isPopupMenuVisible()) continue;
+//            lastPrefix = null;              // someone did something with it, null prefix key
+//            return false;
+//        }
+
         // ignore if consumed
         if (e.isConsumed()) {
             lastPrefix = null;              // someone did something with it, null prefix key
