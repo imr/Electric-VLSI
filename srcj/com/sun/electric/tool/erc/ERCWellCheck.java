@@ -239,7 +239,7 @@ public class ERCWellCheck
 
 		private WellCheckJob(Cell cell, GeometryHandler.GHMode newAlgorithm, WellCheckPreferences wellPrefs)
 		{
-			super("ERC Well Check on " + cell, ERC.tool, Job.Type.REMOTE_EXAMINE, null, null, Job.Priority.USER);
+			super("ERC Well Check on " + cell, ERC.tool, Job.Type.SERVER_EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newAlgorithm = newAlgorithm;
 			this.wellPrefs = wellPrefs;

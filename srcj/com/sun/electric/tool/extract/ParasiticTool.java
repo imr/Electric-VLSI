@@ -423,7 +423,7 @@ public class ParasiticTool extends Tool {
 
         protected AnalyzeParasitic(Network network, Cell cell)
         {
-            super ("Analyze "+ network, tool, Job.Type.REMOTE_EXAMINE, null, cell, Job.Priority.USER);
+            super ("Analyze "+ network, tool, Job.Type.SERVER_EXAMINE, null, cell, Job.Priority.USER);
             this.net = network;
             this.cell = cell;
             this.startJob();

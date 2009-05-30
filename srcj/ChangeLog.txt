@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+BUG: (5/30`/09, DN) NPE while writing XML files for certain techs (Bug #2190)
+FIX: Also make method Technology.getXmlTech() safer.
+
+IMP: (5/30/09, DN) Name of Job types might be misleading.
+    Rename REMOTE_EXAMINE->SERVER_EXAMINE, EXAMINE->CLIENT_EXAMINE .
+
 BUG: (5/28/09, GVG) Field variables not transfered from doIt to terminateOK (Bug #2199)
 FIX: Local variable lib was overwriting the class variable. Error introduced in 8.09h (rev 9060).
 
@@ -12,12 +18,6 @@ FIX: Converted Smart Text to use interface that allows editing preferences.
 
 WARNING: CHANGES BELOW are out!
 <--------------------------------------------------------------------------------
-IMP: (5/27/09, DN) Name of Job types might be misleading.
-    Rename REMOTE_EXAMINE->SERVER_EXAMINE, EXAMINE->CLIENT_EXAMINE .
-
-BUG: (5/26/09, DN) NPE while writing XML files for certain techs (Bug #2190)
-FIX: Also make method Technology.getXmlTech() safer.
-
 BUG: (5/25/09, DN) FlatArcs regression failed.
 FIX: In AbstractSha[eBuilder.pushIntLine use addIntPoly instead of AddIntBox.
 

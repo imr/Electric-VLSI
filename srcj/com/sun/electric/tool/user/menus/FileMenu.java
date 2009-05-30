@@ -480,7 +480,7 @@ public class FileMenu {
         private transient ReadLibrary readJob;
 
 		public ReadProjectSettingsFromLibrary(URL fileURL, FileType type, ReadLibrary readJob) {
-			super("ReadProjectSettingsFromLibrary", User.getUserTool(), Job.Type.REMOTE_EXAMINE, null, null, Job.Priority.USER);
+			super("ReadProjectSettingsFromLibrary", User.getUserTool(), Job.Type.SERVER_EXAMINE, null, null, Job.Priority.USER);
             this.fileURL = fileURL;
             this.type = type;
             this.readJob = readJob;
@@ -1398,7 +1398,7 @@ public class FileMenu {
 
 		public ExportImage(String description, WindowContent wnd, String filePath)
 		{
-			super("Export "+description+" ("+FileType.PNG+")", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			super("Export "+description+" ("+FileType.PNG+")", User.getUserTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
 			this.wnd = wnd;
 			this.filePath = filePath;
 			startJob();

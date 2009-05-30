@@ -69,7 +69,7 @@ class EThread extends Thread {
         for (;;) {
             ejob = Job.jobManager.selectEJob(finishedEJob);
             Job.logger.logp(Level.FINER, CLASS_NAME, "run", "selectedJob {0}", ejob.jobName);
-            isServerThread = ejob.jobType != Job.Type.EXAMINE;
+            isServerThread = ejob.jobType != Job.Type.CLIENT_EXAMINE;
             database = isServerThread ? EDatabase.serverDatabase() : EDatabase.clientDatabase();
             ejob.changedFields = new ArrayList<Field>();
 //            Throwable jobException = null;
@@ -78,7 +78,7 @@ class EThread extends Thread {
             database.lock(!ejob.isExamine());
             ejob.oldSnapshot = database.backup();
             try {
-                if (ejob.jobType != Job.Type.EXAMINE && !ejob.startedByServer) {
+                if (ejob.jobType != Job.Type.CLIENT_EXAMINE && !ejob.startedByServer) {
                     Throwable e = ejob.deserializeToServer();
                     if (e != null)
                         throw e;
@@ -110,13 +110,13 @@ class EThread extends Thread {
                         database.getNetworkManager().endBatch();
                         database.lowLevelSetCanUndoing(false);
                         break;
-                    case REMOTE_EXAMINE:
+                    case SERVER_EXAMINE:
                         userInterface.curTechId = ejob.serverJob.curTechId;
                         userInterface.curLibId = ejob.serverJob.curLibId;
                         if (!ejob.serverJob.doIt())
                             throw new JobException("job " + ejob.jobName + " returned false");
                         break;
-                    case EXAMINE:
+                    case CLIENT_EXAMINE:
                         if (ejob.startedByServer) {
                             Throwable e = ejob.deserializeToClient();
                             if (e != null)
@@ -252,7 +252,7 @@ class EThread extends Thread {
      */
     Job getRunningJob() {
         if (ejob == null) return null;
-        return ejob.jobType == Job.Type.EXAMINE ? ejob.clientJob : ejob.serverJob;
+        return ejob.jobType == Job.Type.CLIENT_EXAMINE ? ejob.clientJob : ejob.serverJob;
     }
 
     EJob getRunningEJob() {

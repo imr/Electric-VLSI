@@ -120,7 +120,7 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
         
         private TaskJob(String taskName, TaskKey tK) {
             super(taskName, MultiTaskJob.this.tool, 
-                    Job.Type.REMOTE_EXAMINE, null, null, Job.Priority.USER);
+                    Job.Type.SERVER_EXAMINE, null, null, Job.Priority.USER);
             this.taskKey = tK;
         }
         
