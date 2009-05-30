@@ -189,31 +189,19 @@ public abstract class AbstractShapeBuilder {
                     assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition
                     if (portIndex >= 0) pp = np.getPort(portIndex);
                 }
-                if (Technology.HANDLEBROKENOUTLINES)
-				{
-					int startPoint = 0;
-					for(int i=1; i<outline.length; i++)
-					{
-						boolean breakPoint = (i == outline.length-1) || (outline[i] == null);
-						if (Technology.DUPLICATEPOINTSAREBROKENOUTLINES && !breakPoint)
-						{
-							if (i-startPoint > 0 && outline[i].getX() == outline[i-1].getX() &&
-								outline[i].getY() == outline[i-1].getY()) breakPoint = true;
-						}
-						if (breakPoint)
-						{
-							if (i == outline.length-1) i++;
-							for(int j=startPoint; j<i; j++)
-                                pushPoint(outline[j]);
-                            pushPoly(style, layer, graphicsOverride, pp);
-							startPoint = i+1;
-						}
-					}
-				} else {
-					for(int i=0; i<outline.length; i++)
-                        pushPoint(outline[i]);
-                    pushPoly(style, layer, graphicsOverride, pp);
-				}
+                int startPoint = 0;
+                for(int i=1; i<outline.length; i++)
+                {
+                    boolean breakPoint = (i == outline.length-1) || (outline[i] == null);
+                    if (breakPoint)
+                    {
+                        if (i == outline.length-1) i++;
+                        for(int j=startPoint; j<i; j++)
+                            pushPoint(outline[j]);
+                        pushPoly(style, layer, graphicsOverride, pp);
+                        startPoint = i+1;
+                    }
+                }
                 return;
 			}
 		}
