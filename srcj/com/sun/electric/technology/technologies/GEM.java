@@ -373,12 +373,13 @@ public class GEM extends Technology
 	 * This method is overridden by specific Technologys.
      * @param b shape builder where to put polygons
 	 * @param n the ImmutableNodeInst that is being described.
+     * @param pn proto of the ImmutableNodeInst in this Technology
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 */
     @Override
-    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, Technology.NodeLayer[] primLayers) {
- 		if (n.protoId == e_node.getId())
+    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, Technology.NodeLayer[] primLayers) {
+ 		if (pn == e_node)
 		{
 			Technology.NodeLayer [] eventLayers = new Technology.NodeLayer[6];
 			eventLayers[0] = new Technology.NodeLayer(E_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, box_7);
@@ -424,6 +425,6 @@ public class GEM extends Technology
             for (Technology.NodeLayer nodeLayer: eventLayers)
                 nodeLayer.fixup(fixupCorrection);
 		}
-		super.genShapeOfNode(b, n, primLayers);
+        b.genShapeOfNode(n, pn, primLayers, null);
    }
 }

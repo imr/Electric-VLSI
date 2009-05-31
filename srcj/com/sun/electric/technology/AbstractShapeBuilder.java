@@ -52,16 +52,16 @@ import java.util.List;
  * A support class to build shapes of arcs and nodes.
  */
 public abstract class AbstractShapeBuilder {
-    protected Layer.Function.Set onlyTheseLayers;
-    protected boolean reasonable;
-    protected boolean electrical;
-    protected final boolean rotateNodes;
-    protected Orientation orient;
+    private Layer.Function.Set onlyTheseLayers;
+    private boolean reasonable;
+    private boolean electrical;
+    private final boolean rotateNodes;
+    private Orientation orient;
     private AffineTransform pureRotate;
 
     protected double[] doubleCoords = new double[8];
     protected int pointCount;
-    public int[] intCoords = new int[4];
+    protected int[] intCoords = new int[4];
     private CellBackup.Memoization m;
     private Shrinkage shrinkage;
     private TechPool techPool;
@@ -104,6 +104,9 @@ public abstract class AbstractShapeBuilder {
     public boolean isReasonable() {
         return reasonable;
     }
+    public boolean skipLayer(Layer layer) {
+        return onlyTheseLayers != null && !onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras());
+    }
 
     public CellBackup.Memoization getMemoization() {
         return m;
@@ -128,32 +131,20 @@ public abstract class AbstractShapeBuilder {
 
     public void genShapeOfNode(ImmutableNodeInst n) {
         PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)n.protoId);
+        // if node is erased, remove layers
+        if (Technology.ALWAYS_SKIP_WIPED_PINS || !electrical) {
+            if (m.isWiped(n)) return;
+            if (pn.isWipeOn1or2() && m.pinUseCount(n)) return;
+        }
 
-		Technology.NodeLayer [] primLayers = pn.getNodeLayers();
-		if (electrical)
-		{
-			Technology.NodeLayer [] eLayers = pn.getElectricalLayers();
-			if (eLayers != null) primLayers = eLayers;
-		}
-
-		if (onlyTheseLayers != null)
-		{
-			List<Technology.NodeLayer> layerArray = new ArrayList<Technology.NodeLayer>();
-
-			for (int i = 0; i < primLayers.length; i++)
-			{
-				Technology.NodeLayer primLayer = primLayers[i];
-                Layer layer = primLayer.getLayer();
-				if (onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras()))
-					layerArray.add(primLayer);
-			}
-            if (layerArray.isEmpty()) return;
-			primLayers = new Technology.NodeLayer [layerArray.size()];
-			layerArray.toArray(primLayers);
-		}
+        Technology.NodeLayer[] primLayers = pn.getNodeLayers();
+        if (electrical) {
+            Technology.NodeLayer[] eLayers = pn.getElectricalLayers();
+            if (eLayers != null) primLayers = eLayers;
+        }
         pointCount = 0;
         curNode = n;
-        pn.getTechnology().genShapeOfNode(this, n, primLayers);
+        pn.getTechnology().genShapeOfNode(this, n, pn, primLayers);
     }
 
 	/**
@@ -172,199 +163,105 @@ public abstract class AbstractShapeBuilder {
 	public void genShapeOfNode(ImmutableNodeInst n, PrimitiveNode np, Technology.NodeLayer [] primLayers, EGraphics graphicsOverride)
 	{
         pointCount = 0;
-        // Anchor and Orient !!!!
-		int specialType = np.getSpecialType();
-		if (specialType != PrimitiveNode.SERPTRANS && np.isHoldsOutline())
-		{
-			EPoint [] outline = n.getTrace();
-			if (outline != null)
-			{
-                Technology.NodeLayer primLayer = primLayers[0];
-                Poly.Type style = primLayer.getStyle();
-                Layer layer = primLayer.getLayer();
-                PrimitivePort pp = null;
-                if (electrical)
-                {
-                    int portIndex = primLayer.getPortNum();
-                    assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition
-                    if (portIndex >= 0) pp = np.getPort(portIndex);
+
+        // Pure-layer nodes and serpentine trans may have outline trace
+        if (np.isHoldsOutline()) {
+            int specialType = np.getSpecialType();
+            if (specialType == PrimitiveNode.SERPTRANS) {
+                SerpentineTrans std = new SerpentineTrans(n, np, primLayers);
+                if (std.layersTotal > 0) {
+                    std.initTransPolyFilling();
+                    for (int i = 0; i < std.layersTotal; i++)
+                        std.fillTransPoly();
+                    return;
                 }
-                int startPoint = 0;
-                for(int i=1; i<outline.length; i++)
-                {
-                    boolean breakPoint = (i == outline.length-1) || (outline[i] == null);
-                    if (breakPoint)
-                    {
-                        if (i == outline.length-1) i++;
-                        for(int j=startPoint; j<i; j++)
-                            pushPoint(outline[j]);
-                        pushPoly(style, layer, graphicsOverride, pp);
-                        startPoint = i+1;
+            } else {
+                EPoint[] outline = n.getTrace();
+                if (outline != null) {
+                    assert primLayers.length == 1;
+                    Technology.NodeLayer primLayer = primLayers[0];
+                    Layer layer = primLayer.getLayer();
+                    if (skipLayer(layer)) return;
+                    Poly.Type style = primLayer.getStyle();
+                    PrimitivePort pp = primLayer.getPort(np);
+                    int startPoint = 0;
+                    for (int i = 1; i < outline.length; i++) {
+                        boolean breakPoint = (i == outline.length - 1) || (outline[i] == null);
+                        if (breakPoint) {
+                            if (i == outline.length - 1) i++;
+                            for (int j = startPoint; j < i; j++)
+                                pushPoint(outline[j]);
+                            pushPoly(style, layer, graphicsOverride, pp);
+                            startPoint = i + 1;
+                        }
                     }
+                    return;
                 }
-                return;
-			}
-		}
-
-		// determine the number of polygons (considering that it may be "wiped")
-		int numBasicLayers = primLayers.length;
-
-		// if a MultiCut contact, determine the number of extra cuts
-		int numExtraLayers = 0;
-		MultiCutData mcd = null;
-		SerpentineTrans std = null;
-		CarbonNanotube cnd = null;
-		if (np.hasMultiCuts())
-		{
-            for (Technology.NodeLayer nodeLayer: primLayers) {
-                if (nodeLayer.getRepresentation() == Technology.NodeLayer.MULTICUTBOX) {
-                    mcd = new MultiCutData(n, nodeLayer);
-                    if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
-                        numExtraLayers += (mcd.cutsTotal - 1);
-                }
-           }
-		} else if (specialType == PrimitiveNode.SERPTRANS)
-		{
-			std = new SerpentineTrans(n, np, primLayers);
-			if (std.layersTotal > 0)
-			{
-				numExtraLayers = std.layersTotal;
-				numBasicLayers = 0;
-			}
-		} else if (np.getFunction() == PrimitiveNode.Function.TRANMOSCN || np.getFunction() == PrimitiveNode.Function.TRAPMOSCN)
-		{
-            for (Technology.NodeLayer nodeLayer: primLayers)
-            {
-                if (nodeLayer.getLayer().isCarbonNanotubeLayer())
-                {
-                	cnd = new CarbonNanotube(n, nodeLayer);
-                    numExtraLayers += (cnd.numTubes - 1);
-                }
-           }
-		}
-
-//		// determine the number of negating bubbles
-//        ArrayList<Point2D> negatingBubbles = null;
-//        if (np.hasNegatablePorts) {
-//			double bubbleRadius = Schematics.tech().getNegatingBubbleSize() / 2 * DBMath.GRID;
-//            BitSet headEnds = new BitSet();
-//            List<ImmutableArcInst> conArcs = m.getConnections(headEnds, n, null);
-//            for (int i = 0; i < conArcs.size(); i++) {
-//                ImmutableArcInst a = conArcs.get(i);
-//                boolean end = headEnds.get(i);
-//                int nodeId = end ? a.headNodeId : a.tailNodeId;
-//                if (nodeId != n.nodeId) break;
-//                if (!(end ? a.isHeadNegated() : a.isTailNegated())) continue;
-//                PortProtoId portId = end ? a.headPortId : a.tailPortId;
-//                EPoint location = end ? a.headLocation : a.tailLocation;
-//				// add a negating bubble
-////				AffineTransform trans = n.orient.inverse().rotateAbout(n.anchor.getLambdaX(), n.anchor.getLambdaY());
-////				Point2D portLocation = location.lambdaMutable();
-////				trans.transform(portLocation, portLocation);
-////				double x = portLocation.getX();
-////				double y = portLocation.getY();
-//				PrimitivePort pp = np.getPort(portId);
-//				int angle = pp.getAngle() * 10;
-//				double dX = DBMath.cos(angle) * bubbleRadius;
-//				double dY = DBMath.sin(angle) * bubbleRadius;
-//                if (negatingBubbles == null)
-//                    negatingBubbles = new ArrayList<Point2D>();
-//                negatingBubbles.add(new Point2D.Double(location.getGridX()+dX, location.getGridY()+dY));
-////                negatingBubbles.add(new Point2D.Double(x+dX, y+dY));
-//            }
-//        }
+            }
+        }
 
 		// construct the polygon array
         double xSize = n.size.getGridX();
         double ySize = n.size.getGridY();
 
 		// add in the basic polygons
-		for(int i = 0; i < numBasicLayers; i++)
-		{
+		for(int i = 0; i < primLayers.length; i++) {
 			Technology.NodeLayer primLayer = primLayers[i];
-	        Poly.Type style = primLayer.getStyle();
             Layer layer = primLayer.getLayerOrPseudoLayer();
-	        PrimitivePort port = null;
- 			if (electrical && np.getNumPorts() > 0)
-			{
-				int portIndex = primLayer.getPortNum();
-                assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition
-                if (portIndex >= 0) port = np.getPort(portIndex);
-			}
-	        if (cnd != null && primLayer == cnd.tubeLayer)
-	        {
+            if (skipLayer(layer)) continue;
+	        Poly.Type style = primLayer.getStyle();
+	        PrimitivePort pp = primLayer.getPort(np);
+            if (layer.isCarbonNanotubeLayer()) {
+                assert np.getFunction() == PrimitiveNode.Function.TRANMOSCN || np.getFunction() == PrimitiveNode.Function.TRAPMOSCN;
+                CarbonNanotube cnd = new CarbonNanotube(n, primLayer);
 	            for(int j = 0; j < cnd.numTubes; j++)
-	                cnd.fillCutPoly(j, style, layer, port);
+	                cnd.fillCutPoly(j, style, layer, pp);
                 assert graphicsOverride == null;
-	            continue;
-	        }
+ 	            continue;
+ 	        }
 
-			int representation = primLayer.getRepresentation();
-			if (representation == Technology.NodeLayer.BOX)
-			{
-				EdgeH leftEdge = primLayer.getLeftEdge();
-				EdgeH rightEdge = primLayer.getRightEdge();
-				EdgeV topEdge = primLayer.getTopEdge();
-				EdgeV bottomEdge = primLayer.getBottomEdge();
-				double portLowX = leftEdge.getMultiplier() * xSize + leftEdge.getGridAdder();
-				double portHighX = rightEdge.getMultiplier() * xSize + rightEdge.getGridAdder();
-				double portLowY = bottomEdge.getMultiplier() * ySize + bottomEdge.getGridAdder();
-				double portHighY = topEdge.getMultiplier() * ySize + topEdge.getGridAdder();
-    			pushPoint(portLowX, portLowY);
-        		pushPoint(portHighX, portLowY);
-            	pushPoint(portHighX, portHighY);
+            int representation = primLayer.getRepresentation();
+            if (representation == Technology.NodeLayer.BOX) {
+                EdgeH leftEdge = primLayer.getLeftEdge();
+                EdgeH rightEdge = primLayer.getRightEdge();
+                EdgeV topEdge = primLayer.getTopEdge();
+                EdgeV bottomEdge = primLayer.getBottomEdge();
+                double portLowX = leftEdge.getMultiplier() * xSize + leftEdge.getGridAdder();
+                double portHighX = rightEdge.getMultiplier() * xSize + rightEdge.getGridAdder();
+                double portLowY = bottomEdge.getMultiplier() * ySize + bottomEdge.getGridAdder();
+                double portHighY = topEdge.getMultiplier() * ySize + topEdge.getGridAdder();
+                pushPoint(portLowX, portLowY);
+                pushPoint(portHighX, portLowY);
+                pushPoint(portHighX, portHighY);
                 pushPoint(portLowX, portHighY);
-			} else if (representation == Technology.NodeLayer.POINTS)
-			{
-				Technology.TechPoint [] points = primLayer.getPoints();
-				for(int j=0; j<points.length; j++)
-				{
-					EdgeH xFactor = points[j].getX();
-					EdgeV yFactor = points[j].getY();
-					double x = 0, y = 0;
-					if (xFactor != null && yFactor != null)
-					{
-						x = xFactor.getMultiplier() * xSize + xFactor.getGridAdder();
-						y = yFactor.getMultiplier() * ySize + yFactor.getGridAdder();
-					}
+            } else if (representation == Technology.NodeLayer.POINTS) {
+                Technology.TechPoint[] points = primLayer.getPoints();
+                for (int j = 0; j < points.length; j++) {
+                    EdgeH xFactor = points[j].getX();
+                    EdgeV yFactor = points[j].getY();
+                    double x = 0, y = 0;
+                    if (xFactor != null && yFactor != null) {
+                        x = xFactor.getMultiplier() * xSize + xFactor.getGridAdder();
+                        y = yFactor.getMultiplier() * ySize + yFactor.getGridAdder();
+                    }
                     pushPoint(x, y);
-				}
-			} else if (representation == Technology.NodeLayer.MULTICUTBOX) {
-                mcd = new MultiCutData(n, primLayer);
-                if (reasonable) numExtraLayers = mcd.cutsReasonable; else
-                    numExtraLayers = mcd.cutsTotal;
-                for(int j = 0; j < numExtraLayers; j++)
-                    mcd.fillCutPoly(j, style, layer, port);
+                }
+            } else if (representation == Technology.NodeLayer.MULTICUTBOX) {
+                MultiCutData mcd = new MultiCutData(n, primLayer);
+                int numExtraLayers = reasonable ? mcd.cutsReasonable : mcd.cutsTotal;
+                for (int j = 0; j < numExtraLayers; j++)
+                    mcd.fillCutPoly(j, style, layer, pp);
                 assert graphicsOverride == null;
                 continue;
             }
 
-			if (style.isText()) {
+            if (style.isText()) {
                 assert graphicsOverride == null;
-                pushTextPoly(style, layer, port, primLayer.getMessage(), primLayer.getDescriptor());
+                pushTextPoly(style, layer, pp, primLayer.getMessage(), primLayer.getDescriptor());
             } else {
-                pushPoly(style, layer, graphicsOverride, port);
+                pushPoly(style, layer, graphicsOverride, pp);
             }
-		}
-
-//		// add in negating bubbles
-//		if (negatingBubbles != null)
-//		{
-//			double bubbleRadius = Schematics.tech().getNegatingBubbleSize() / 2 * DBMath.GRID;
-//            for (Point2D p: negatingBubbles) {
-//                pushPoint(p.getX(), p.getY());
-//				pushPoint(p.getX() + bubbleRadius, p.getY());
-//                pushPoly(Poly.Type.CIRCLE, Schematics.tech().node_lay, null, null);
-//			}
-//		}
-
-		// add in the extra transistor layers
-		if (std != null)
-		{
-			std.initTransPolyFilling();
-			for(int i = 0; i < numExtraLayers; i++)
-				std.fillTransPoly(electrical);
-		}
+        }
 	}
 
 	/**
@@ -595,7 +492,7 @@ public abstract class AbstractShapeBuilder {
             assert protoType.getNumArcLayers() == 1;
             Technology.ArcLayer primLayer = protoType.getArcLayer(0);
             Layer layer = primLayer.getLayer();
-            if (onlyTheseLayers != null && !onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) return true;
+            if (skipLayer(layer)) return true;
             Poly.Type style = primLayer.getStyle();
             if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
             intCoords[0] = (int)a.tailLocation.getGridX();
@@ -627,7 +524,7 @@ public abstract class AbstractShapeBuilder {
             Technology.ArcLayer primLayer = protoType.getArcLayer(i);
             Layer layer = primLayer.getLayer();
             assert primLayer.getStyle() == Poly.Type.FILLED;
-            if (onlyTheseLayers != null && !onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras())) continue;
+            if (skipLayer(layer)) continue;
             a.makeGridBoxInt(intCoords, tailExtended, headExtended, gridExtendOverMin + protoType.getLayerGridExtend(i));
             if (orient != null)
                 orient.rectangleBounds(intCoords);
@@ -1215,10 +1112,12 @@ public abstract class AbstractShapeBuilder {
 		 * gate segment that extends from left to right, and on the left of a
 		 * segment that goes from bottom to top.
 		 */
-		private void fillTransPoly(boolean electrical)
+		private void fillTransPoly()
 		{
 			int element = fillBox++;
 			Technology.NodeLayer primLayer = primLayers[element];
+            Layer layer = primLayer.getLayer();
+            if (skipLayer(layer)) return;
 			double extendt = primLayer.getSerpentineExtentT();
 			double extendb = primLayer.getSerpentineExtentB();
 
@@ -1226,7 +1125,6 @@ public abstract class AbstractShapeBuilder {
 			boolean extendEnds = true;
 			if (fieldPolyOnEndsOnly)
 			{
-				Layer layer = primLayer.getLayer();
 				if (layer.getFunction().isPoly())
 				{
 					if (layer.getFunction() == Layer.Function.GATE)
@@ -1246,7 +1144,7 @@ public abstract class AbstractShapeBuilder {
 							nextPt = thisPt;
 							int ang = angle+1800;
 							thisPt = DBMath.addPoints(thisPt, DBMath.cos(ang) * extendt, DBMath.sin(ang) * extendt);
-							buildSerpentinePoly(element, 0, numSegments, electrical, thisPt, nextPt, angle);
+							buildSerpentinePoly(element, 0, numSegments, thisPt, nextPt, angle);
                             return;
 						} else if (extendb != 0)
 						{
@@ -1257,7 +1155,7 @@ public abstract class AbstractShapeBuilder {
 							int angle = DBMath.figureAngle(thisPt, nextPt);
 							thisPt = nextPt;
 							nextPt = DBMath.addPoints(nextPt, DBMath.cos(angle) * extendb, DBMath.sin(angle) * extendb);
-							buildSerpentinePoly(element, 0, numSegments, electrical, thisPt, nextPt, angle);
+							buildSerpentinePoly(element, 0, numSegments, thisPt, nextPt, angle);
                             return;
 						}
 					}
@@ -1354,23 +1252,12 @@ public abstract class AbstractShapeBuilder {
 				}
 			}
 
-			// include port information if requested
-            PrimitivePort port = null;
-			if (electrical)
-			{
-				int portIndex = primLayer.getPortNum();
-				if (portIndex >= 0)
-				{
-					assert theProto.getId() == theNode.protoId;
-					port = theProto.getPort(portIndex);
-				}
-			}
             for (Point2D point: outPoints)
                 pushPoint(point.getX()*DBMath.GRID, point.getY()*DBMath.GRID);
-            pushPoly(primLayer.getStyle(), primLayer.getLayer(), null, port);
+            pushPoly(primLayer.getStyle(), primLayer.getLayer(), null, primLayer.getPort(theProto));
 		}
 
-		private void buildSerpentinePoly(int element, int thissg, int nextsg, boolean electrical, Point2D thisPt, Point2D nextPt, int angle)
+		private void buildSerpentinePoly(int element, int thissg, int nextsg, Point2D thisPt, Point2D nextPt, int angle)
 		{
 			// see if nonstandard width is specified
 			Technology.NodeLayer primLayer = primLayers[element];
@@ -1430,19 +1317,7 @@ public abstract class AbstractShapeBuilder {
             pushPoint(thisR.getX()*DBMath.GRID, thisR.getY()*DBMath.GRID);
             pushPoint(nextR.getX()*DBMath.GRID, nextR.getY()*DBMath.GRID);
             pushPoint(nextL.getX()*DBMath.GRID, nextL.getY()*DBMath.GRID);
-
-			// include port information if requested
-            PrimitivePort port = null;
-			if (electrical)
-			{
-				int portIndex = primLayer.getPortNum();
-				if (portIndex >= 0)
-				{
-					assert theProto.getId() == theNode.protoId;
-					port = theProto.getPort(portIndex);
-				}
-			}
-            pushPoly(primLayer.getStyle(), primLayer.getLayer(), null, port);
+            pushPoly(primLayer.getStyle(), primLayer.getLayer(), null, primLayer.getPort(theProto));
 		}
 
 		/**

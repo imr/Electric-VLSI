@@ -557,17 +557,13 @@ public class Artwork extends Technology
 	 * This method is overridden by specific Technologys.
      * @param b shape builder where to put polygons
 	 * @param n the ImmutableNodeInst that is being described.
+     * @param pn proto of the ImmutableNodeInst in this Technology
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 */
     @Override
-    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, Technology.NodeLayer[] primLayers) {
-        CellBackup.Memoization m = b.getMemoization();
-		PrimitiveNode pn = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
-		// if node is erased, remove layers
-		if ((ALWAYS_SKIP_WIPED_PINS || !b.isElectrical()) && m.isWiped(n))
-            return;
-
+    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, Technology.NodeLayer[] primLayers) {
+        if (b.skipLayer(defaultLayer)) return;
         EGraphics graphicsOverride = makeGraphics(n);
 
 		if (pn == circleNode || pn == thickCircleNode)

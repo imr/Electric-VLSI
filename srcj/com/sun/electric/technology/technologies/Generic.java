@@ -365,12 +365,13 @@ public class Generic extends Technology
 	 * This method is overridden by specific Technologys.
      * @param b shape builder where to put polygons
 	 * @param n the ImmutableNodeInst that is being described.
+     * @param pn proto of the ImmutableNodeInst in this Technology
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 */
     @Override
-    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, Technology.NodeLayer[] primLayers) {
-		if (n.protoId == invisiblePinNode.getId())
+    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, Technology.NodeLayer[] primLayers) {
+		if (pn == invisiblePinNode)
 		{
             boolean hasDisplayVars = false;
             for (Iterator<Variable> it = n.getVariables(); it.hasNext(); ) {
@@ -383,7 +384,7 @@ public class Generic extends Technology
 //			if (ni.isInvisiblePinWithText())
 //				primLayers = NULLNODELAYER;
 		}
-		super.genShapeOfNode(b, n, primLayers);
+        b.genShapeOfNode(n, pn, primLayers, null);
     }
 
 //	/**

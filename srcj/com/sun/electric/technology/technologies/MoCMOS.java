@@ -193,25 +193,6 @@ public class MoCMOS extends Technology
     }
 
     /**
-	 * Puts into shape builder s the polygons that describe node "n", given a set of
-	 * NodeLayer objects to use.
-	 * This method is overridden by specific Technologys.
-     * @param b shape builder where to put polygons
-	 * @param n the ImmutableNodeInst that is being described.
-	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
-	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
-	 */
-    @Override
-    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, Technology.NodeLayer[] primLayers) {
-		if (scalableTransistorNodes != null && (n.protoId == scalableTransistorNodes[P_TYPE].getId() || n.protoId == scalableTransistorNodes[N_TYPE].getId()))
-            genShapeOfNodeScalable(b, n, null, b.isReasonable());
-        else
-            // Default
-            super.genShapeOfNode(b, n, primLayers);
-
-    }
-
-    /**
      * Special getShapeOfNode function for scalable transistors
      * @param m
      * @param n
@@ -340,14 +321,34 @@ public class MoCMOS extends Technology
 	}
 
     /**
+	 * Puts into shape builder s the polygons that describe node "n", given a set of
+	 * NodeLayer objects to use.
+	 * This method is overridden by specific Technologys.
+     * @param b shape builder where to put polygons
+	 * @param n the ImmutableNodeInst that is being described.
+     * @param pn proto of the ImmutableNodeInst in this Technology
+	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 */
+    @Override
+    protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, Technology.NodeLayer[] primLayers) {
+		if (pn != scalableTransistorNodes[P_TYPE] && pn != scalableTransistorNodes[N_TYPE]) {
+            b.genShapeOfNode(n, pn, primLayers, null);
+            return;
+        }
+        genShapeOfNodeScalable(b, n, pn, null, b.isReasonable());
+    }
+
+    /**
      * Special getShapeOfNode function for scalable transistors
      * @param m
      * @param n
+     * @param pn
      * @param context
      * @param reasonable
      * @return Array of Poly containing layers representing a Scalable Transistor
      */
-    private void genShapeOfNodeScalable(AbstractShapeBuilder b, ImmutableNodeInst n, VarContext context, boolean reasonable)
+    private void genShapeOfNodeScalable(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, VarContext context, boolean reasonable)
     {
 		// determine special configurations (number of active contacts, inset of active contacts)
 		int numContacts = 2;
@@ -367,7 +368,6 @@ public class MoCMOS extends Technology
 		int boxOffset = 6 - numContacts * 3;
 
 		// determine width
-		PrimitiveNode np = b.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
         double activeWidMax = n.size.getLambdaX() + 3;
 //		double nodeWid = ni.getXSize();
 //        double activeWidMax = nodeWid - 14;
@@ -398,7 +398,7 @@ public class MoCMOS extends Technology
         double shrinkCon = (int)(0.5*(activeWidMax + 2 - Math.max(activeWid, 5)));
 
 		// now compute the number of polygons
-		Technology.NodeLayer [] layers = np.getNodeLayers();
+		Technology.NodeLayer [] layers = pn.getNodeLayers();
         assert layers.length == SCALABLE_TOTAL;
 		int count = SCALABLE_TOTAL - boxOffset;
 		Technology.NodeLayer [] newNodeLayers = new Technology.NodeLayer[count];
@@ -464,7 +464,7 @@ public class MoCMOS extends Technology
 		}
 
 		// now let the superclass convert it to Polys
-		super.genShapeOfNode(b, n, newNodeLayers);
+        b.genShapeOfNode(n, pn, newNodeLayers, null);
 	}
 
 	/******************** PARAMETERIZABLE DESIGN RULES ********************/
