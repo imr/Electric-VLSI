@@ -208,20 +208,27 @@ public class BoundsBuilder extends AbstractShapeBuilder {
     }
 
     @Override
-    public void addIntLine(int[] coords, Poly.Type style, Layer layer) {
-        int x1 = coords[0];
-        int x2 = coords[2];
-        if (x1 > x2) {
-            coords[0] = x2;
-            coords[2] = x1;
-        }
-        int y1 = coords[1];
-        int y2 = coords[3];
-        if (y1 > y2) {
-            coords[1] = y2;
-            coords[3] = y1;
-        }
-        addIntBox(coords, layer);
+    public void addIntPoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
+        int i = 0;
+        if (!hasIntBounds) {
+            int x = intCoords[0];
+            int y = intCoords[1];
+            intMinX = x;
+            intMinY = y;
+            intMaxX = x;
+            intMaxY = y;
+            hasIntBounds = true;
+            i = 1;
+         }
+        while (i < numPoints) {
+            int x = intCoords[i*2];
+            int y = intCoords[i*2 + 1];
+            if (x < intMinX) intMinX = x;
+            if (x > intMinY) intMinY = x;
+            if (y < intMinY) intMinY = y;
+            if (y > intMaxY) intMaxY = y;
+            i++;
+         }
     }
 
     @Override

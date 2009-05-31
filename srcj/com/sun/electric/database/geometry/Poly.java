@@ -23,11 +23,7 @@
  */
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.ImmutableCell;
-import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.DisplayedText;
@@ -38,11 +34,8 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.TechPool;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.Clipboard;
 
 import java.awt.Font;
 import java.awt.font.GlyphVector;
@@ -664,7 +657,7 @@ public class Poly extends PolyBase {
         }
 
         @Override
-        public void addTextPoly(int numPoints, Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
+        public void addDoubleTextPoly(int numPoints, Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
             assert isChanging;
             Point2D.Double[] points = new Point2D.Double[numPoints];
             for (int i = 0; i < numPoints; i++)
@@ -679,14 +672,16 @@ public class Poly extends PolyBase {
         }
 
         @Override
-        public void addIntLine(int[] coords, Poly.Type style, Layer layer) {
+        public void addIntPoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
             assert isChanging;
-            Poly poly = new Poly(new Point2D.Double[] {
-                new Point2D.Double(coords[0], coords[1]),
-                new Point2D.Double(coords[2], coords[3])
-            });
+            Point2D.Double[] points = new Point2D.Double[numPoints];
+            for (int i = 0; i < numPoints; i++)
+                points[i] = new Point2D.Double(intCoords[i*2], intCoords[i*2 + 1]);
+            Poly poly = new Poly(points);
             poly.setStyle(style);
             poly.setLayer(layer);
+            poly.setGraphicsOverride(graphicsOverride);
+            poly.setPort(pp);
             lastPolys.add(poly);
         }
 

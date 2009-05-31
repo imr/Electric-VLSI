@@ -861,7 +861,7 @@ public class ImmutableArcInstTest {
         }
 
         @Override
-        public void addIntLine(int[] coords, Poly.Type style, Layer layer) { throw new UnsupportedOperationException(); }
+        public void addIntPoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) { throw new UnsupportedOperationException(); }
         @Override
         public void addIntBox(int[] coords, Layer layer) { throw new UnsupportedOperationException(); }
 
