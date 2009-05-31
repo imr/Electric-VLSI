@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+IMP: (5/31/09, DN) If ImmutableNodeInst.SIMPLE_TRACE_SIZE=true then size of outlined
+   nodes is considered simply as outline of the trace. This is not correct for serpentine
+   transistors but they are handled by specifal code everywhere.
+
 IMP: (5/31/09, DN) Add Technology.ALWAYS_SKIP_WIPED_PINS switch to skip wiped pins
     in both electrical and non-electrical modes. Now it is off.
 
