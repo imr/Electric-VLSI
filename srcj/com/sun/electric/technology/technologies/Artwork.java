@@ -488,7 +488,7 @@ public class Artwork extends Technology
 	{
 		PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
 		// if node is erased, remove layers
-		if (!electrical && m.isWiped(n))
+		if ((ALWAYS_SKIP_WIPED_PINS || !electrical) && m.isWiped(n))
             return new Poly[0];
 
         EGraphics graphicsOverride = makeGraphics(n);
@@ -563,14 +563,14 @@ public class Artwork extends Technology
     @Override
     protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, Technology.NodeLayer[] primLayers) {
         CellBackup.Memoization m = b.getMemoization();
-		PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
+		PrimitiveNode pn = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
 		// if node is erased, remove layers
-		if (!b.isElectrical() && m.isWiped(n))
+		if ((ALWAYS_SKIP_WIPED_PINS || !b.isElectrical()) && m.isWiped(n))
             return;
 
         EGraphics graphicsOverride = makeGraphics(n);
 
-		if (np == circleNode || np == thickCircleNode)
+		if (pn == circleNode || pn == thickCircleNode)
 		{
 			double [] angles = n.getArcDegrees();
 			if (n.size.getGridX() != n.size.getGridY())
@@ -580,7 +580,7 @@ public class Artwork extends Technology
 					angles[0], angles[1]);
                 for (Point2D p: pointList)
                     b.pushPoint(p.getX()*DBMath.GRID, p.getY()*DBMath.GRID);
-                Poly.Type style = np == circleNode ? Poly.Type.OPENED : Poly.Type.OPENEDT3;
+                Poly.Type style = pn == circleNode ? Poly.Type.OPENED : Poly.Type.OPENEDT3;
                 b.pushPoly(style, defaultLayer, graphicsOverride, null);
                 return;
 			}
@@ -593,11 +593,11 @@ public class Artwork extends Technology
                 b.pushPoint(EPoint.ORIGIN);
 				b.pushPoint(Math.cos(angles[0]+angles[1])*dist, Math.sin(angles[0]+angles[1])*dist);
 				b.pushPoint(Math.cos(angles[0])*dist, Math.sin(angles[0])*dist);
-                Poly.Type style = np == circleNode ? Poly.Type.CIRCLEARC : Poly.Type.THICKCIRCLEARC;
+                Poly.Type style = pn == circleNode ? Poly.Type.CIRCLEARC : Poly.Type.THICKCIRCLEARC;
                 b.pushPoly(style, defaultLayer, graphicsOverride, null);
                 return;
 			}
-		} else if (np == splineNode)
+		} else if (pn == splineNode)
 		{
 			Point2D [] tracePoints = n.getTrace();
 			if (tracePoints != null)
@@ -609,7 +609,7 @@ public class Artwork extends Technology
                 return;
 			}
 		}
-		b.genShapeOfNode(n, np, primLayers, graphicsOverride);
+		b.genShapeOfNode(n, pn, primLayers, graphicsOverride);
 
     }
 

@@ -455,7 +455,7 @@ public class Schematics extends Technology
 			});
 		busPinNode.setFunction(PrimitiveNode.Function.PIN);
 		busPinNode.setSquare();
-		busPinNode.setWipeOn1or2();
+//		busPinNode.setWipeOn1or2();  Bus Pin has more complicated wipe rules
 		busPinNode.setCanBeZeroSize();
 
 		/** wire con */

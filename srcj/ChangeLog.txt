@@ -4,7 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
-BUG: (5/30`/09, DN) NPE while writing XML files for certain techs (Bug #2190)
+IMP: (5/31/09, DN) Add Technology.ALWAYS_SKIP_WIPED_PINS switch to skip wiped pins
+    in both electrical and non-electrical modes. Now it is off.
+
+IMP: (5/31/09, DN) Remove "Schematics.busPinNode.setWipeOn1or2();" because
+    busPinNode has more complicated wipe rules defined by code.
+
+BUG: (5/30/09, DN) NPE while writing XML files for certain techs (Bug #2190)
 FIX: Also make method Technology.getXmlTech() safer.
 
 IMP: (5/30/09, DN) Name of Job types might be misleading.
@@ -19,10 +25,7 @@ FIX: Converted Smart Text to use interface that allows editing preferences.
 WARNING: CHANGES BELOW are out!
 <--------------------------------------------------------------------------------
 BUG: (5/25/09, DN) FlatArcs regression failed.
-FIX: In AbstractSha[eBuilder.pushIntLine use addIntPoly instead of AddIntBox.
-
-IMP: (5/22/09, DN) Remove "Schematics.busPinNode.setWipeOn1or2();" becuase
-    busPinNode has more complicated wipe rules defined by code.
+FIX: In AbstractShapeBuilder.pushIntLine use addIntPoly instead of AddIntBox.
 ------------------------------------------------------------------------------------>
                                                                                       
 BUG: (5/26/09, GVG) NPE in project settings if there is no permission to read a header file (Bug #2194)

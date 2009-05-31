@@ -236,7 +236,8 @@ public class UserInterfaceMain extends AbstractUserInterface
             this.showSplash = showSplash;
         }
         public void run() {
-            assert Job.isClientThread();
+            if (!Job.isClientThread())
+                assert Job.isClientThread();
             Pref.setCachedObjsFromPreferences();
             EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, null));
             currentGraphicsPreferences = new GraphicsPreferences(true, new TechPool(IdManager.stdIdManager));

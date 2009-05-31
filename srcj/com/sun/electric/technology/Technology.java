@@ -129,6 +129,9 @@ import java.util.prefs.Preferences;
  */
 public class Technology implements Comparable<Technology>, Serializable
 {
+    /** Skip wiped pins both in electrical and non-electrical mode */
+    protected static final boolean ALWAYS_SKIP_WIPED_PINS = false;
+
     // Change in TechSettings takes effect only after restart
     public static final boolean IMMUTABLE_TECHS = false/*Config.TWO_JVM*/;
 
@@ -537,6 +540,13 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * @return the 0-based index of the port associated with this NodeLayer.
 		 */
 		public int getPortNum() { return portNum; }
+
+		/**
+		 * Returns the port associated with this NodeLayer in specified PrimitiveNode.
+         * @param pn specified PrimitiveNode
+		 * @return the port associated with this NodeLayer.
+		 */
+		public PrimitivePort getPort(PrimitiveNode pn) { return portNum >= 0 ? pn.getPort(portNum) : null; }
 
 		/**
 		 * Returns the Poly.Type this NodeLayer will generate.
@@ -2765,6 +2775,21 @@ public class Technology implements Comparable<Technology>, Serializable
 		return getShapeOfNode(ni, false, false, (Layer.Function.Set)null);
 	}
 
+//    private static PrintWriter out;
+//
+//    public static void startDebug(String fileName) {
+//        try {
+//            out = new PrintWriter(fileName);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    public static void stopDebug() {
+//        out.close();
+//        out = null;
+//    }
+
 	/**
 	 * Returns the polygons that describe node "ni".
 	 * @param ni the NodeInst that is being described.
@@ -2788,6 +2813,8 @@ public class Technology implements Comparable<Technology>, Serializable
         Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
         Poly[] polys0 = polyBuilder.getShapeArray(ni, electrical, reasonable, onlyTheseLayers);
         if (Job.getDebug()) {
+//            if (out != null)
+//                out.print(ni.getParent() + " " + ni.getName() + " " + electrical + " " + reasonable);
             Poly[] polys1 = getShapeOfNode_(ni, electrical, reasonable, onlyTheseLayers);
             assert polys0.length == polys1.length;
             for (int i = 0; i < polys0.length; i++) {
@@ -2804,6 +2831,8 @@ public class Technology implements Comparable<Technology>, Serializable
                 Point2D[] pts0 = p0.getPoints();
                 Point2D[] pts1 = p1.getPoints();
                 assert pts0.length == pts1.length;
+//                if (out != null)
+//                    out.print("  " + p0.getStyle() + " " + p0.getLayer() + " " + p0.getPort());
                 for (int j = 0; j < pts0.length; j++) {
                     Point2D pt0 = pts0[j];
                     Point2D pt1 = pts1[j];
@@ -2811,10 +2840,14 @@ public class Technology implements Comparable<Technology>, Serializable
                     double y0 = DBMath.roundShapeCoord(pt0.getY()*DBMath.GRID);
                     double x1 = DBMath.roundShapeCoord(pt1.getX()*DBMath.GRID);
                     double y1 = DBMath.roundShapeCoord(pt1.getY()*DBMath.GRID);
+//                    if (out != null)
+//                        out.print(" " + x0 + "," + y0);
                     if (x0 != x1 || y0 != y1) {
                         System.out.println("Shape of " + ni.getProto() + " " + x0 + "x" + y0 + " " + x1 + "x" + y1);
                     }
                 }
+//                if (out != null)
+//                    out.println();
             }
         }
         return polys0;
@@ -2851,6 +2884,17 @@ public class Technology implements Comparable<Technology>, Serializable
 		return getShapeOfNode(getMemoization(ni), ni.getD(), electrical, reasonable, primLayers);
 	}
 
+    /**
+     * Tells if node can be drawn by simplified algorithm
+     * Overidden in subclasses
+     * @param n node to test
+     * @param explain if true then print explanation why arc is not easy
+     * @return true if arc can be drawn by simplified algorithm
+     */
+    public boolean isEasyShape(NodeInst ni, boolean explain) {
+        return false;
+    }
+
     private CellBackup.Memoization getMemoization(NodeInst ni) {
         return ni.getCellBackupUnsafe().getMemoization();
     }
@@ -2880,7 +2924,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		Technology.NodeLayer [] primLayers)
 	{
 		// if node is erased, remove layers
-		if (!electrical)
+		if (ALWAYS_SKIP_WIPED_PINS || !electrical)
 		{
 			if (m.isWiped(n)) primLayers = nullPrimLayers; else
 			{
@@ -2908,7 +2952,7 @@ public class Technology implements Comparable<Technology>, Serializable
         CellBackup.Memoization m = b.getMemoization();
 		PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
 		// if node is erased, remove layers
-		if (!b.electrical) {
+		if (ALWAYS_SKIP_WIPED_PINS || !b.electrical) {
 			if (m.isWiped(n)) return;
 			if (np.isWipeOn1or2() && m.pinUseCount(n)) return;
 		}
