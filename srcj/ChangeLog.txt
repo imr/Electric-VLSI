@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+BUG: (6/1/09, SMR) Splash screen goes away too quickly on MDI systems (Bug #2201).
+FIX: Restored WindowListener in UserInterfaceMain.SplashScreen.
+
 IMP: (5/31/09, DN) If ImmutableNodeInst.SIMPLE_TRACE_SIZE=true then size of outlined
    nodes is considered simply as outline of the trace. This is not correct for serpentine
    transistors but they are handled by special code everywhere.

@@ -64,6 +64,9 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
@@ -74,7 +77,12 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
@@ -962,38 +970,40 @@ public class UserInterfaceMain extends AbstractUserInterface
 			Dimension labelSize = getPreferredSize();
 			setLocation(screenSize.width/2 - (labelSize.width/2),
 				screenSize.height/2 - (labelSize.height/2));
-//			addWindowListener(new WindowsEvents(this));
+			addWindowListener(new WindowsEvents(this));
 			setVisible(true);
 			toFront();
 			paint(getGraphics());
 		}
 	}
 
-//	/**
-//	 * This class handles deactivation of the splash screen and forces it back to the top.
-//	 */
-//	private static class WindowsEvents implements WindowListener
-//	{
-//		SplashWindow sw;
-//
-//		WindowsEvents(SplashWindow sw)
-//		{
-//			super();
-//			this.sw = sw;
-//		}
-//
-//		public void windowActivated(WindowEvent e) {}
-//		public void windowClosed(WindowEvent e) {}
-//		public void windowClosing(WindowEvent e) {}
-//		public void windowDeiconified(WindowEvent e) {}
-//		public void windowIconified(WindowEvent e) {}
-//		public void windowOpened(WindowEvent e) {}
-//
-//		public void windowDeactivated(WindowEvent e)
-//		{
-//			sw.toFront();
-//		}
-//	}
+	/**
+	 * This class handles deactivation of the splash screen and forces it back to the top.
+	 */
+	private static class WindowsEvents implements WindowListener
+	{
+		SplashWindow sw;
+
+		WindowsEvents(SplashWindow sw)
+		{
+			super();
+			this.sw = sw;
+		}
+
+		public void windowActivated(WindowEvent e) {}
+		public void windowClosed(WindowEvent e) {}
+		public void windowClosing(WindowEvent e) {}
+		public void windowDeiconified(WindowEvent e) {}
+		public void windowIconified(WindowEvent e) {}
+		public void windowOpened(WindowEvent e) {}
+
+		public void windowDeactivated(WindowEvent e)
+		{
+			TopLevel tl = TopLevel.getCurrentJFrame(false);
+			Window w = e.getOppositeWindow();
+			if (tl == w) sw.toFront();
+		}
+	}
 
     /**
      * Places a custom event processor on the event queue in order to
