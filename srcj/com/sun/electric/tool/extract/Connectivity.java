@@ -4064,8 +4064,8 @@ public class Connectivity
 			thisMerge.add(poly.getLayer(), poly);
 			thisMerge.postProcess(true);
 
-//            Collection<PolyBase> set = ((PolySweepMerge)thisMerge).getPolyPartition(poly.getLayer());
-			Collection<PolyBase> set = thisMerge.getObjects(poly.getLayer(), false, true);
+            Collection<PolyBase> set = ((PolySweepMerge)thisMerge).getPolyPartition(poly.getLayer());
+//			Collection<PolyBase> set = thisMerge.getObjects(poly.getLayer(), false, true);
 			for(PolyBase simplePoly : set)
 			{
 				Rectangle2D polyBounds = simplePoly.getBounds2D();

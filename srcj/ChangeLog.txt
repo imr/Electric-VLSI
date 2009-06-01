@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+IMP: (6/1/09, GVG) Using partition algorithm (Bug #2193) in Extraction tool.
+This should improve results reported in Bug #2183.
+
 BUG: (6/1/09, SMR) Splash screen goes away too quickly on MDI systems (Bug #2201).
 FIX: Restored WindowListener in UserInterfaceMain.SplashScreen.
 

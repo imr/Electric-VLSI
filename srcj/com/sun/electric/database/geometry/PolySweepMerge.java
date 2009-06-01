@@ -439,7 +439,11 @@ public class PolySweepMerge extends GeometryHandler
             end = e;
             boolean alignX = DBMath.areEquals(s.getX(), e.getX());
             boolean alignY = DBMath.areEquals(s.getY(), e.getY());
-            assert (!alignX || !alignY); // can't be a point.
+            if (alignX && alignY)
+            {
+                System.out.println("Degenerated edge in 1 point :" + start);
+//                assert (!alignX || !alignY); // can't be a point.
+            }
             if (alignX)
                 dir = PolyBase.X;
             else if (alignY)
@@ -447,7 +451,7 @@ public class PolySweepMerge extends GeometryHandler
             else
             {
                 dir = PolyBase.XY;
-                assert(false); // no ready for angled edges
+//                assert(false); // no ready for angled edges
             }
         }
     }
