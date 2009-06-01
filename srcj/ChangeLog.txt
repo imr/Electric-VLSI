@@ -6,7 +6,7 @@ NOTE: Please place changes under the version that will be released next.
 
 IMP: (5/31/09, DN) If ImmutableNodeInst.SIMPLE_TRACE_SIZE=true then size of outlined
    nodes is considered simply as outline of the trace. This is not correct for serpentine
-   transistors but they are handled by specifal code everywhere.
+   transistors but they are handled by special code everywhere.
 
 IMP: (5/31/09, DN) Add Technology.ALWAYS_SKIP_WIPED_PINS switch to skip wiped pins
     in both electrical and non-electrical modes. Now it is off.
@@ -20,7 +20,7 @@ FIX: Also make method Technology.getXmlTech() safer.
 IMP: (5/30/09, DN) Name of Job types might be misleading.
     Rename REMOTE_EXAMINE->SERVER_EXAMINE, EXAMINE->CLIENT_EXAMINE .
 
-BUG: (5/28/09, GVG) Field variables not transfered from doIt to terminateOK (Bug #2199)
+BUG: (5/28/09, GVG) Field variables not transferred from doIt to terminateOK (Bug #2199)
 FIX: Local variable lib was overwriting the class variable. Error introduced in 8.09h (rev 9060).
 
 BUG: (5/28/09, SMR) Smart Text preferences crashes (Bug #2198).
@@ -36,13 +36,13 @@ BUG: (5/26/09, GVG) NPE in project settings if there is no permission to read a 
 FIX: Preventing the NPE in settings. The error will be reported by JelibParser
 
 BUG: (5/26/09, GVG) NPE while writing XML files for certain techs (Bug #2190)
-FIX: Decting when the tech can't be exported to XML (Java-based ones).
+FIX: Detecting when the tech can't be exported to XML (Java-based ones).
 
 IMP: (5/22/09, EY) Multithread Analysis Tools
 
 IMP: (5/22/09, SMR) Added guaranteed ordering in Auto-Stitch and Node Extractor (Bug #2183)
 
-IMP/MAN: (5/22/09, GVG) Algorithm to partition complex geometries in Extractor tool (Bug #2193)
+IMP: (5/22/09, GVG) Algorithm to partition complex geometries in Extractor tool (Bug #2193)
 
 IMP: (5/22/09, GVG) Avoiding such long lines in the message window when many cells are reported with problems.
 Modifications in input.GDS
