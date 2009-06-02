@@ -99,34 +99,38 @@ public class RouteElementArc extends RouteElement {
 
         if (stayInside != null)
     	{
-        	Layer layer = ap.getLayer(0);
-
-        	// if Active layer is not present, try any active layer
         	Set<Layer> allLayers = stayInside.getKeySet();
-        	if (!allLayers.contains(layer) && layer.getFunction().isDiff())
+        	for(int i=0; i<ap.getNumArcLayers(); i++)
         	{
-        		for(Layer other : allLayers)
-        		{
-        			if (other.getFunction().isDiff()) { layer = other;   break; }
-        		}
-        	}
-            double layerExtend = ap.getLayerLambdaExtend(0);
-            double arcExtendOverMin = arcBaseWidth*0.5 - ap.getLambdaBaseExtend();
-        	boolean good = stayInside.arcPolyFits(layer, headEP, tailEP, 2*(arcExtendOverMin+layerExtend), headExtend, tailExtend);
+        		Layer layer = ap.getLayer(i);
 
-        	// try reducing to default width if it doesn't fit
-        	while (!good && arcBaseWidth > 0)
-        	{
-        		arcBaseWidth = Math.max(arcBaseWidth-1, 0);
-                arcExtendOverMin = arcBaseWidth*0.5 - ap.getLambdaBaseExtend();
-            	good = stayInside.arcPolyFits(layer, headEP, tailEP, 2*(arcExtendOverMin+layerExtend), headExtend, tailExtend);
-        	}
+	        	// if Active layer is not present, try any active layer
+	        	if (layer.getFunction().isDiff() && !allLayers.contains(layer))
+	        	{
+	        		for(Layer other : allLayers)
+	        		{
+	        			if (other.getFunction().isDiff()) { layer = other;   break; }
+	        		}
+	        	}
+	            double layerExtend = ap.getLayerLambdaExtend(i);
+	            double arcExtendOverMin = arcBaseWidth*0.5 - ap.getLambdaBaseExtend();
+	        	boolean good = stayInside.arcPolyFits(layer, headEP, tailEP, 2*(arcExtendOverMin+layerExtend), headExtend, tailExtend);
 
-        	// make it a Universal arc if it still doesn't fit
-        	if (!good)
-        	{
-				ap = Generic.tech().universal_arc;
-        		arcBaseWidth = 0;
+	        	// try reducing to default width if it doesn't fit
+	        	while (!good && arcBaseWidth > 0)
+	        	{
+	        		arcBaseWidth = Math.max(arcBaseWidth-1, 0);
+	                arcExtendOverMin = arcBaseWidth*0.5 - ap.getLambdaBaseExtend();
+	            	good = stayInside.arcPolyFits(layer, headEP, tailEP, 2*(arcExtendOverMin+layerExtend), headExtend, tailExtend);
+	        	}
+
+	        	// make it a Universal arc if it still doesn't fit
+	        	if (!good)
+	        	{
+					ap = Generic.tech().universal_arc;
+	        		arcBaseWidth = 0;
+	        		break;
+	        	}
         	}
     	}
 

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+BUG: (6/3/09, SMR) Node extraction may create extra implant layers (Bug #2202).
+FIX: In RouteElementArc.newArc() consider all layers of the arc.
+
 IMP: (6/2/09, GVG) Add two extra layers in tsmcsun40GP (Bug #2206)
 
 BUG: (6/2/09, DN) Re-export Everything is doing too much (Bug #2197).
