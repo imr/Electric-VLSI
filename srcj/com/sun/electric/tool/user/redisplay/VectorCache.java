@@ -83,6 +83,7 @@ import java.util.Set;
  */
 public class VectorCache {
     private static final boolean USE_ELECTRICAL = true;
+    private static final boolean WIPE_PINS = true;
     public static boolean DEBUG = false;
     public static final VectorCache theCache = new VectorCache(EDatabase.clientDatabase());
 
@@ -588,7 +589,7 @@ public class VectorCache {
             for (VectorManhattanBuilder b: pureBoxBuilders)
                 b.clear();
             // draw all arcs
-            shapeBuilder.setup(cell.backupUnsafe(), orient, USE_ELECTRICAL, false, null);
+            shapeBuilder.setup(cell.backupUnsafe(), orient, USE_ELECTRICAL, WIPE_PINS, false, null);
             shapeBuilder.vc = this;
             shapeBuilder.hideOnLowLevel = false;
             shapeBuilder.textType = VectorText.TEXTTYPEARC;
@@ -710,7 +711,7 @@ public class VectorCache {
 
             // draw nodes visible only inside
             AffineTransform trans = orient.pureRotate();
-            shapeBuilder.setup(cell.backupUnsafe(), orient, USE_ELECTRICAL, false, null);
+            shapeBuilder.setup(cell.backupUnsafe(), orient, USE_ELECTRICAL, WIPE_PINS, false, null);
             shapeBuilder.vc = this;
             shapeBuilder.hideOnLowLevel = false;
             shapeBuilder.textType = VectorText.TEXTTYPEARC;
@@ -875,7 +876,7 @@ public class VectorCache {
     public static VectorBase[] drawNode(NodeInst ni) {
         VectorCache cache = new VectorCache(EDatabase.clientDatabase());
         VectorCell vc = cache.newDummyVectorCell();
-        cache.shapeBuilder.setup(ni.getCellBackupUnsafe(), null, USE_ELECTRICAL, false, null);
+        cache.shapeBuilder.setup(ni.getCellBackupUnsafe(), null, USE_ELECTRICAL, WIPE_PINS, false, null);
         cache.shapeBuilder.vc = vc;
         cache.drawPrimitiveNode(ni, GenMath.MATID, vc);
         vc.shapes.addAll(vc.topOnlyShapes);

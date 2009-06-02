@@ -49,7 +49,7 @@ public class BoundsBuilder extends AbstractShapeBuilder {
     }
 
     public BoundsBuilder(CellBackup cellBackup) {
-        setup(cellBackup, null, false, false, null);
+        setup(cellBackup, null, false, true, false, null);
         clear();
     }
 

@@ -837,7 +837,7 @@ public class ImmutableArcInstTest {
         double w2;
 
         void setTest(CellBackup cellBackup, ImmutableArcInst a, long width) {
-            setup(cellBackup, null, false, false, null);
+            setup(cellBackup, null, false, false, false, null);
             this.a = a;
             w2 = width*0.5;
             pointCount = 0;

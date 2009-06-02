@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+BUG: (6/3/09, DN) Artwork pins now have large black dots on them (Bug #2203).
+FIX: Add parameter wipePins to AbstractShapeBuilder and use it VectorCache.
+
 BUG: (6/2/09, SMR) Status bar no longer shows the technology, scale, or cell size (Bug #2205).
 FIX: Do not make these fields invisible: they lose their size.
 

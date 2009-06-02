@@ -52,6 +52,7 @@ import java.util.Iterator;
 public abstract class AbstractShapeBuilder {
     private Layer.Function.Set onlyTheseLayers;
     private boolean reasonable;
+    private boolean wipePins;
     private boolean electrical;
     private final boolean rotateNodes;
     private Orientation orient;
@@ -75,10 +76,10 @@ public abstract class AbstractShapeBuilder {
     }
 
     public void setup(Cell cell) {
-        setup(cell.backupUnsafe(), null, false, false, null);
+        setup(cell.backupUnsafe(), null, false, true, false, null);
     }
 
-    public void setup(CellBackup cellBackup, Orientation orient, boolean electrical, boolean reasonable, Layer.Function.Set onlyTheseLayers) {
+    public void setup(CellBackup cellBackup, Orientation orient, boolean electrical, boolean wipePins, boolean reasonable, Layer.Function.Set onlyTheseLayers) {
         this.m = cellBackup.getMemoization();
         this.shrinkage = cellBackup.getShrinkage();
         this.techPool = cellBackup.techPool;
@@ -90,6 +91,7 @@ public abstract class AbstractShapeBuilder {
             pureRotate = this.orient.pureRotate();
         }
         this.electrical = electrical;
+        this.wipePins = wipePins;
         this.reasonable = reasonable;
         this.onlyTheseLayers = onlyTheseLayers;
         pointCount = 0;
@@ -130,7 +132,7 @@ public abstract class AbstractShapeBuilder {
     public void genShapeOfNode(ImmutableNodeInst n) {
         PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)n.protoId);
         // if node is erased, remove layers
-        if (Technology.ALWAYS_SKIP_WIPED_PINS || !electrical) {
+        if (Technology.ALWAYS_SKIP_WIPED_PINS || wipePins) {
             if (m.isWiped(n)) return;
             if (pn.isWipeOn1or2() && m.pinUseCount(n)) return;
         }

@@ -535,7 +535,7 @@ public class Poly extends PolyBase {
          */
         public Iterator<Poly> getShape(NodeInst ni) {
             isChanging = true;
-            setup(ni.getCellBackupUnsafe(), null, false, false, null);
+            setup(ni.getCellBackupUnsafe(), null, false, true, false, null);
             lastPolys.clear();
             genShapeOfNode(ni.getD());
             if (inLambda) {
@@ -553,7 +553,7 @@ public class Poly extends PolyBase {
          */
     	public Poly [] getShapeArray(NodeInst ni, boolean electrical, boolean reasonable, Layer.Function.Set onlyTheseLayers) {
             isChanging = true;
-            setup(ni.getCellBackupUnsafe(), null, electrical, reasonable, onlyTheseLayers);
+            setup(ni.getCellBackupUnsafe(), null, electrical, !electrical, reasonable, onlyTheseLayers);
             lastPolys.clear();
             genShapeOfNode(ni.getD());
             if (lastPolys.isEmpty()) {
@@ -600,7 +600,7 @@ public class Poly extends PolyBase {
          */
     	public Poly [] getShapeArray(ArcInst ai, Layer.Function.Set onlyTheseLayers) {
             isChanging = true;
-            setup(ai.getParent().backupUnsafe(), null, false, false, onlyTheseLayers);
+            setup(ai.getParent().backupUnsafe(), null, false, true, false, onlyTheseLayers);
             lastPolys.clear();
             genShapeOfArc(ai.getD());
             if (lastPolys.isEmpty()) {
