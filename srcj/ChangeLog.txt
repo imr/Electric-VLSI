@@ -4,13 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
-BUG: (6/3/09, DN) Re-export Everything is doing too much (Bug #2197).
+IMP: (6/2/09, GVG) Add two extra layers in tsmcsun40GP (Bug #2206)
+
+BUG: (6/2/09, DN) Re-export Everything is doing too much (Bug #2197).
 FIX: In CellBackup.hasConnections search for the proper portId.
 
-BUG: (6/3/09, DN) Electric doesn't remember which grid setting I was last using (Bug #2204)
+BUG: (6/2/09, DN) Electric doesn't remember which grid setting I was last using (Bug #2204)
 FIX: In User.setAlignmentToGridVector use UserInterfaceMain.setEditingPreferences.
 
-BUG: (6/3/09, DN) Artwork pins now have large black dots on them (Bug #2203).
+BUG: (6/2/09, DN) Artwork pins now have large black dots on them (Bug #2203).
 FIX: Add parameter wipePins to AbstractShapeBuilder and use it VectorCache.
 
 BUG: (6/2/09, SMR) Status bar no longer shows the technology, scale, or cell size (Bug #2205).
