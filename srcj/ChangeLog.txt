@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+IMP: (6/3/09, JKG) Added text output to GDS out. Also tied in export renaming
+   to the text output. Tied to "include text" gds preference.
+
 BUG: (6/3/09, SMR) Node extraction may create extra implant layers (Bug #2202).
 FIX: In RouteElementArc.newArc() consider all layers of the arc.
 

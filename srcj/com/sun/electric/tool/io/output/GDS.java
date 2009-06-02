@@ -34,6 +34,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -148,8 +149,9 @@ public class GDS extends Geometry
 		boolean outMergesBoxes = IOTool.isGDSOutMergesBoxes();
 		int cellNameLenMax = IOTool.getGDSCellNameLenMax();
 		boolean outUpperCase = IOTool.isGDSOutUpperCase();
+        boolean includeText = IOTool.isGDSInIncludesText();
 
-		public GDSPreferences(boolean factory)
+        public GDSPreferences(boolean factory)
 		{
 			super(factory);
 		}
@@ -283,10 +285,39 @@ public class GDS extends Geometry
 				}
 			}
 		}
-		outputHeader(HDR_ENDSTR, 0);
+
+        if (localPrefs.includeText) {
+            for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+                NodeInst ni = it.next();
+                if (!isTextNode(ni)) continue;
+                // this is a text annotation
+                PrimitiveNode pNp = (PrimitiveNode)ni.getProto();
+                Technology.NodeLayer [] nLay = pNp.getNodeLayers();
+                Layer layer = nLay[0].getLayer().getNonPseudoLayer();
+                if (layer == null || layer.getTechnology() == null || layer.getTechnology() == Generic.tech()) continue;
+                if (!selectLayer(layer))
+                {
+                    System.out.println("Skipping " + layer + " in GDS output");
+                    continue;
+                }
+                Integer firstLayer = currentLayerNumbers.getFirstLayer();
+                int layerNum = firstLayer.intValue() & 0xFFFF;
+                int layerType = (firstLayer.intValue() >> 16) & 0xFFFF;
+                writeTextOnLayer(ni.getName(), layerNum, layerType, ni.getAnchorCenterX(), ni.getAnchorCenterY(),
+                        renamePins, colapseGndVddNames);
+            }
+        }
+        outputHeader(HDR_ENDSTR, 0);
 	}
 
-	private Map<String,Set<String>> createExportNameMap(NccCellAnnotations ann, Cell cell)
+    private boolean isTextNode(NodeInst ni) {
+        if (!(ni.getProto() instanceof PrimitiveNode)) return false;
+        if (ni.getXSize() != 0 || ni.getYSize() != 0) return false;
+        if (ni.getNameKey().isTempname()) return false;
+        return true;
+    }
+
+    private Map<String,Set<String>> createExportNameMap(NccCellAnnotations ann, Cell cell)
 	{
 		Map<String,Set<String>> nameMap = new HashMap<String,Set<String>>();
 		for (Iterator<List<NccCellAnnotations.NamePattern>> it2 = ann.getExportsConnected(); it2.hasNext(); )
@@ -306,7 +337,18 @@ public class GDS extends Geometry
 						nameMap.put(name, connectedExports);
 					}
 				}
-			}
+                for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+                {
+                    NodeInst ni = it.next();
+                    if (!isTextNode(ni)) continue;
+                    String name = ni.getName();
+                    if (pat.matches(name))
+                    {
+                        connectedExports.add(name);
+                        nameMap.put(name, connectedExports);
+                    }
+                }
+            }
 		}
 		return nameMap;
 	}
@@ -379,6 +421,51 @@ public class GDS extends Geometry
 		outputHeader(HDR_ENDEL, 0);
 	}
 
+    private void writeTextOnLayer(String str, int layer, int type, double x, double y, boolean remapNames, boolean colapseGndVddNames)
+    {
+        outputHeader(HDR_TEXT, 0);
+        outputHeader(HDR_LAYER, layer);
+        outputHeader(HDR_TEXTTYPE, type);
+        outputHeader(HDR_PRESENTATION, EXPORTPRESENTATION);
+
+        // now the orientation
+        int transValue = 0;
+        outputHeader(HDR_STRANS, transValue);
+
+        // reduce the size of export text by a factor of 2
+        outputMag(0.5);
+        outputAngle(0);
+        outputShort((short)12);
+        outputShort(HDR_XY);
+        outputInt(scaleDBUnit(x));
+        outputInt(scaleDBUnit(y));
+
+        if (remapNames)
+        {
+            Set<String> nameSet = nameRemapping.get(str);
+            if (nameSet != null)
+            {
+                str = nameSet.iterator().next();
+                str = str + ":" + str;
+                //System.out.println("Remapping export "+pp.getName()+" to "+str);
+            }
+        }
+        if (localPrefs.convertBracketsInExports)
+        {
+            // convert brackets to underscores
+            str = str.replaceAll("[\\[\\]]", "_");
+        }
+        if (colapseGndVddNames)
+        {
+            String tmp = str.toLowerCase();
+            // Detecting string in lower case and later search for "_"
+            if (tmp.startsWith("vdd_") || tmp.startsWith("gnd_"))
+                str = str.substring(0, str.indexOf("_"));
+        }
+        outputString(str, HDR_STRING);
+        outputHeader(HDR_ENDEL, 0);
+    }
+
 	/**
 	 * Method to determine whether or not to merge geometry.
 	 */
@@ -440,7 +527,8 @@ public class GDS extends Geometry
 		if (polyBounds != null)
 		{
 			// rectangular manhattan shape: make sure it has positive area
-			if (polyBounds.getWidth() == 0 || polyBounds.getHeight() == 0) return;
+			if (polyBounds.getWidth() == 0 || polyBounds.getHeight() == 0)
+                return;
 
 			outputBoundary(poly, layerNumber, layerType);
 			return;
