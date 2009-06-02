@@ -1695,7 +1695,7 @@ public class User extends Listener
 	 * @return the default alignment of objects to the grid.
 	 */
 	public static Dimension2D getAlignmentToGrid() {
-        return EditingPreferences.getThreadEditingPreferences().getAlignmentToGrid();
+        return UserInterfaceMain.getEditingPreferences().getAlignmentToGrid();
     }
 
 	/**
@@ -1703,7 +1703,7 @@ public class User extends Listener
 	 * @return the index of the current alignment.
 	 */
 	public static int getAlignmentToGridIndex() {
-        return EditingPreferences.getThreadEditingPreferences().getAlignmentToGridIndex();
+        return UserInterfaceMain.getEditingPreferences().getAlignmentToGridIndex();
     }
 
 	/**
@@ -1711,7 +1711,7 @@ public class User extends Listener
 	 * @return an array of five grid alignment values.
 	 */
 	public static Dimension2D[] getAlignmentToGridVector() {
-        return EditingPreferences.getThreadEditingPreferences().getAlignmentToGridVector();
+        return UserInterfaceMain.getEditingPreferences().getAlignmentToGridVector();
 	}
 
     /**
@@ -1722,7 +1722,7 @@ public class User extends Listener
 	public static void setAlignmentToGridVector(Dimension2D[] dist, int current)
 	{
         assert SwingUtilities.isEventDispatchThread();
-        EditingPreferences.setThreadEditingPreferences(EditingPreferences.getThreadEditingPreferences().withAlignment(dist, current));
+        UserInterfaceMain.setEditingPreferences(UserInterfaceMain.getEditingPreferences().withAlignment(dist, current));
 	}
 
 	private static Pref cacheShowGridAxes = Pref.makeBooleanPref("ShowGridAxes", tool.prefs, false);
