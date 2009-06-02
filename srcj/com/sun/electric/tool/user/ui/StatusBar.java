@@ -268,10 +268,10 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         Rectangle rectSel = fieldSelected.getBounds();
         Rectangle rectSize = fieldSize.getBounds();
         boolean visibleSize = (rectSel.getMinX() + a) < rectSize.getMinX();
-        fieldSize.setVisible(visibleSize);
+        if (!visibleSize) fieldSize.setText("");
         Rectangle rectTech = fieldTech.getBounds();
         boolean visibleTech = (rectSel.getMinX() + a) < (rectTech.getMinX());
-        fieldTech.setVisible(visibleTech);
+        if (!visibleTech) fieldTech.setText("");
 
 		if (coords == null) fieldCoords.setText(""); else
 			fieldCoords.setText(coords);
