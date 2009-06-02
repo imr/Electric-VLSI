@@ -3943,24 +3943,28 @@ public class Connectivity
 						if (width >= actualWidth && height >= actualWidth)
 						{
 							PrimitiveNode np = ap.findPinProto();
+							Point2D end1 = null, end2 = null;
+							double size = 0;
 							if (width > height)
 							{
 								// make a horizontal arc
-								Point2D end1 = new Point2D.Double((polyBounds.getMinX()+height/2) / SCALEFACTOR, polyBounds.getCenterY() / SCALEFACTOR);
-								Point2D end2 = new Point2D.Double((polyBounds.getMaxX()-height/2) / SCALEFACTOR, polyBounds.getCenterY() / SCALEFACTOR);
-								NodeInst ni1 = createNode(np, end1, height, height, null, newCell);
-								NodeInst ni2 = createNode(np, end2, height, height, null, newCell);
-								realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, height,
-									false, false, merge);
+								end1 = new Point2D.Double((polyBounds.getMinX()+height/2) / SCALEFACTOR, polyBounds.getCenterY() / SCALEFACTOR);
+								end2 = new Point2D.Double((polyBounds.getMaxX()-height/2) / SCALEFACTOR, polyBounds.getCenterY() / SCALEFACTOR);
+								size = height;
 							} else
 							{
 								// make a vertical arc
-								Point2D end1 = new Point2D.Double(polyBounds.getCenterX() / SCALEFACTOR, (polyBounds.getMinY()+width/2) / SCALEFACTOR);
-								Point2D end2 = new Point2D.Double(polyBounds.getCenterX() / SCALEFACTOR, (polyBounds.getMaxY()-width/2) / SCALEFACTOR);
-								NodeInst ni1 = createNode(np, end1, width, width, null, newCell);
-								NodeInst ni2 = createNode(np, end2, width, width, null, newCell);
-								realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, width,
-									false, false, merge);
+								end1 = new Point2D.Double(polyBounds.getCenterX() / SCALEFACTOR, (polyBounds.getMinY()+width/2) / SCALEFACTOR);
+								end2 = new Point2D.Double(polyBounds.getCenterX() / SCALEFACTOR, (polyBounds.getMaxY()-width/2) / SCALEFACTOR);
+								size = width;
+							}
+							NodeInst ni1 = createNode(np, end1, size, size, null, newCell);
+							NodeInst ni2 = createNode(np, end2, size, size, null, newCell);
+							MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
+							if (originalMerge.arcPolyFits(layer, end1, end2, size, headExtend, tailExtend))
+							{
+								realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2,
+									size, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 							}
 							continue;
 						}
