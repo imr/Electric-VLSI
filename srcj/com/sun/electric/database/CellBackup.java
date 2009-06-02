@@ -471,7 +471,12 @@ public class CellBackup {
          * @return true if there are Connections on specified ImmutableNodeInst amd specified port.
          */
         public boolean hasConnections(ImmutableNodeInst n, PortProtoId portId) {
-            int i = searchConnectionByPort(n.nodeId, 0);
+            int chronIndex = 0;
+            if (portId != null) {
+                assert portId.parentId == n.protoId;
+                chronIndex = portId.chronIndex;
+            }
+            int i = searchConnectionByPort(n.nodeId, chronIndex);
             if (i >= connections.length) return false;
             int con = connections[i];
             ImmutableArcInst a = getArcs().get(con >>> 1);
