@@ -1730,18 +1730,24 @@ public class Connectivity
 				for(PossibleVia pv : possibleVias)
 				{
 					// quick test to see if this via could possibly exist
-					boolean someLayersMissing = false;
+					List<Layer> missingLayers = null;
 					for(int i=0; i<pv.layers.length; i++)
 					{
 						if (!layersPresent.contains(pv.layers[i]))
 						{
 							if (ignorePWell && pv.layers[i].getFunction() == Layer.Function.WELLP) continue;
 							if (ignoreNWell && pv.layers[i].getFunction() == Layer.Function.WELLN) continue;
-							someLayersMissing = true;
+							if (missingLayers == null) missingLayers = new ArrayList<Layer>();
+							missingLayers.add(pv.layers[i]);
 							break;
 						}
 					}
-					if (someLayersMissing) continue;
+					if (missingLayers != null)
+					{
+						reason = "layers are missing:";
+						for(Layer l : missingLayers) reason += " " + l.getName();
+						continue;
+					}
 					if (DEBUGCONTACTS) System.out.println("CONSIDERING "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" AT ("+
 						TextUtils.formatDouble(cutBox.getCenterX()/SCALEFACTOR)+","+
 						TextUtils.formatDouble(cutBox.getCenterY()/SCALEFACTOR)+")...");
