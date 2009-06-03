@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+BUG: (6/3/09, SMR) "Change" command crashes (Bug #2208).
+FIX: In Change.ChangeObject class, cache cell in constructor.
+
 IMP: (6/3/09, JKG) Added text output to GDS out. Also tied in export renaming
    to the text output. Tied to "include text" gds preference.
 

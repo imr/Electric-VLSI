@@ -581,6 +581,7 @@ public class Change extends EModelessDialog implements HighlightListener
 		private String libName;
 		private NodeProto np;
 		private ArcProto ap;
+		private Cell cell;
 		private boolean ignorePortNames, allowMissingPorts, changeNodesWithArcs;
 		private boolean changeInCell, changeInLibrary, changeEverywhere, changeConnected;
 		private List<Geometric> highlightThese;
@@ -596,6 +597,7 @@ public class Change extends EModelessDialog implements HighlightListener
 			this.libName = libName;
 			this.np = np;
 			this.ap = ap;
+			this.cell = WindowFrame.getCurrentCell();
 			this.ignorePortNames = ignorePortNames;
 			this.allowMissingPorts = allowMissingPorts;
 			this.changeNodesWithArcs = changeNodesWithArcs;
@@ -706,7 +708,7 @@ public class Change extends EModelessDialog implements HighlightListener
 					} else if (changeInLibrary)
 					{
 						// replace throughout the library containing "this cell"if requested
-						Library lib = WindowFrame.getCurrentCell().getLibrary();
+						Library lib = cell.getLibrary();
 						for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = cIt.next();
@@ -743,7 +745,6 @@ public class Change extends EModelessDialog implements HighlightListener
 					} else if (changeInCell)
 					{
 						// replace throughout this cell if "requested
-						Cell cell = WindowFrame.getCurrentCell();
 						boolean found = true;
 						while (found)
 						{
@@ -776,13 +777,12 @@ public class Change extends EModelessDialog implements HighlightListener
 					} else if (changeConnected)
 					{
 						// replace all connected to this in the cell if requested
-						Cell curCell = WindowFrame.getCurrentCell();
-						Netlist netlist = curCell.getUserNetlist();
+						Netlist netlist = cell.getUserNetlist();
 						List<NodeInst> others = new ArrayList<NodeInst>();
 						NodeInst onlyNewNi = null;
 						if (highlightThese.size() == 1 && highlightThese.get(0) instanceof NodeInst)
 							onlyNewNi = (NodeInst)highlightThese.get(0);
-						for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
+						for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 						{
 							NodeInst lNi = it.next();
 							if (lNi.getProto() != oldNType) continue;
@@ -813,7 +813,7 @@ public class Change extends EModelessDialog implements HighlightListener
 							{
 								changedAlready.add(lNi);
 								// disallow replacing if lock is on
-								int errorCode = CircuitChangeJobs.cantEdit(curCell, lNi, true, false, true);
+								int errorCode = CircuitChangeJobs.cantEdit(cell, lNi, true, false, true);
 								if (errorCode < 0) return false;
 								if (errorCode > 0) continue;
 
@@ -946,7 +946,6 @@ public class Change extends EModelessDialog implements HighlightListener
 					} else if (changeInCell)
 					{
 						// replace throughout this cell if requested
-						Cell cell = WindowFrame.getCurrentCell();
 						boolean found = true;
 						while (found)
 						{
@@ -976,7 +975,6 @@ public class Change extends EModelessDialog implements HighlightListener
 					{
 						// replace all connected to this if requested
 						List<ArcInst> others = new ArrayList<ArcInst>();
-						Cell cell = WindowFrame.getCurrentCell();
 						Netlist netlist = cell.getUserNetlist();
 						for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 						{

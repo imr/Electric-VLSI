@@ -433,18 +433,20 @@ public final class ExportChanges
 	 */
 	public static class FollowExport extends Job
 	{
+		private Cell cell;
+
 		public FollowExport()
 		{
 			super("Re-export highlighted", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+
+			// make sure there is a current cell
+			cell = WindowFrame.needCurCell();
+			if (cell == null) return;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			// make sure there is a current cell
-			Cell cell = WindowFrame.needCurCell();
-			if (cell == null) return false;
-
 			List<Export> exportsToFollow = getSelectedExports();
 			if (exportsToFollow.size() == 0)
 			{
