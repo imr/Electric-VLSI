@@ -43,7 +43,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.IOTool;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -79,16 +78,17 @@ public class LEF extends LEFDEF
 		}
 	}
 	private LEFPreferences localPrefs;
+	private Technology curTech;
 
 	public static class LEFPreferences extends InputPreferences
     {
 		public LEFPreferences(boolean factory) { super(factory); }
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
         {
         	LEF in = new LEF(this);
 			if (in.openTextInput(fileURL)) return null;
-			lib = in.importALibrary(lib, currentCells);
+			lib = in.importALibrary(lib, tech, currentCells);
 			in.closeInput();
 			return lib;
         }
@@ -99,7 +99,6 @@ public class LEF extends LEFDEF
 	 */
 	LEF(LEFPreferences ap) { localPrefs = ap; }
 
-	
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
@@ -107,9 +106,10 @@ public class LEF extends LEFDEF
 	 * @return the created library (null on error).
 	 */
     @Override
-	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
 	{
 		// remove any vias in the globals
+    	curTech = tech;
 		firstViaDefFromLEF = null;
 		widthsFromLEF = new HashMap<ArcProto,Double>();
 		knownLayers = new HashMap<String,GetLayerInformation>();
@@ -117,7 +117,7 @@ public class LEF extends LEFDEF
 
 		try
 		{
-            if (!readFile(lib)) return null; // error during reading
+            if (readFile(lib)) return null; // error during reading
         } catch (IOException e)
 		{
 			System.out.println("ERROR reading LEF libraries");
@@ -139,6 +139,7 @@ public class LEF extends LEFDEF
 
 	/**
 	 * Method to read the LEF file.
+	 * @return true on error.
 	 */
 	private boolean readFile(Library lib)
 		throws IOException
@@ -260,7 +261,7 @@ public class LEF extends LEFDEF
 		}
 		if (vd.lay1 != null && vd.lay2 != null)
 		{
-			for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodes(); it.hasNext(); )
+			for(Iterator<PrimitiveNode> it = curTech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode np = it.next();
 				if (np.getFunction() != PrimitiveNode.Function.CONTACT) continue;
@@ -1062,6 +1063,6 @@ public class LEF extends LEFDEF
 	private double convertLEFString(String key)
 	{
 		double v = TextUtils.atof(key) * OVERALLSCALE;
-		return TextUtils.convertFromDistance(v, Technology.getCurrent(), TextUtils.UnitScale.MICRO);
+		return TextUtils.convertFromDistance(v, curTech, TextUtils.UnitScale.MICRO);
 	}
 }

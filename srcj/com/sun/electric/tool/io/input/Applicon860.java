@@ -82,11 +82,11 @@ public class Applicon860 extends Input
     {
 		public Applicon860Preferences(boolean factory) { super(factory); }
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
         {
         	Applicon860 in = new Applicon860(this);
 			if (in.openBinaryInput(fileURL)) return null;
-			lib = in.importALibrary(lib, currentCells);
+			lib = in.importALibrary(lib, tech, currentCells);
 			in.closeInput();
 			return lib;
         }
@@ -104,11 +104,11 @@ public class Applicon860 extends Input
 	 * @return the created library (null on error).
 	 */
     @Override
-	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
 	{
 		try
 		{
-			if (!readAppleLibrary(lib)) return null; // error reading the file
+			if (!readAppleLibrary(lib, tech)) return null; // error reading the file
 		} catch (IOException e) {}
 		return lib;
 	}
@@ -123,7 +123,7 @@ public class Applicon860 extends Input
      * @return True if no error was found
      * @throws IOException
      */
-    private boolean readAppleLibrary(Library lib)
+    private boolean readAppleLibrary(Library lib, Technology tech)
 		throws IOException
 	{
 		String str;
@@ -138,7 +138,7 @@ public class Applicon860 extends Input
 		double scale = 0;
 
 		// establish linkage between Apple numbers and primitives
-		setupAppleLayers();
+		setupAppleLayers(tech);
 
 		curfacet = null;
 		Set<Integer> notFound = new HashSet<Integer>();
@@ -179,15 +179,15 @@ public class Applicon860 extends Input
 					if (units.equals("MIL "))
 					{
 						// 25.4 microns to the mil
-						scale = TextUtils.convertFromDistance(scale*25.4, Technology.getCurrent(), UnitScale.MICRO);
+						scale = TextUtils.convertFromDistance(scale*25.4, tech, UnitScale.MICRO);
 					} else if (units.equals("INCH"))
 					{
 						// 25400 microns to the inch
-						TextUtils.convertFromDistance(scale*25400.0, Technology.getCurrent(), UnitScale.MICRO);
+						TextUtils.convertFromDistance(scale*25400.0, tech, UnitScale.MICRO);
 					} else
 					{
 						// presume microns
-						scale = TextUtils.convertFromDistance(scale, Technology.getCurrent(), UnitScale.MICRO);
+						scale = TextUtils.convertFromDistance(scale, tech, UnitScale.MICRO);
 					}
 					xoff = appleGetWord() & 0xFFFF;
 					xoff |= (appleGetWord() & 0xFFFF) << 16;
@@ -594,9 +594,8 @@ public class Applicon860 extends Input
 
 	static Poly poly = null;
 
-	private void setupAppleLayers()
+	private void setupAppleLayers(Technology tech)
 	{
-		Technology tech = Technology.getCurrent();
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode pn = it.next();

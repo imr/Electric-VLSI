@@ -41,6 +41,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
@@ -68,7 +69,7 @@ public class Spice extends Input
     {
 		public SpicePreferences(boolean factory) { super(factory); }
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
         {
         	Spice in = new Spice(this);
 			in.readDirectory(fileURL, lib);

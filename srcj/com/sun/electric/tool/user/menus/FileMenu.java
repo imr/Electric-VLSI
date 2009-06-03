@@ -40,6 +40,7 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -146,34 +147,34 @@ public class FileMenu {
 		// mnemonic keys available:      F HI    NO QR   VW YZ
             new EMenu("_Import",
                 new EMenuItem("_CIF (Caltech Intermediate Format)...") { public void run() {
-                    importLibraryCommand(FileType.CIF, false, true); }},
+                    importLibraryCommand(FileType.CIF, false, true, true); }},
                 new EMenuItem("_GDS II (Stream)...") { public void run() {
-                    importLibraryCommand(FileType.GDS, false, true); }},
+                    importLibraryCommand(FileType.GDS, false, true, true); }},
                 new EMenuItem("GDS _Map File...") {	public void run() {
                     GDSMap.importMapFile(); }},
                 new EMenuItem("_EDIF (Electronic Design Interchange Format)...") { public void run() {
-                	importLibraryCommand(FileType.EDIF, false, true); }},
+                	importLibraryCommand(FileType.EDIF, false, true, true); }},
                 new EMenuItem("_LEF (Library Exchange Format)...") { public void run() {
-                    importLibraryCommand(FileType.LEF, false, true); }},
+                    importLibraryCommand(FileType.LEF, false, true, true); }},
                 new EMenuItem("_DEF (Design Exchange Format)...") {	public void run() {
-                    importLibraryCommand(FileType.DEF, false, true); }},
+                    importLibraryCommand(FileType.DEF, false, true, true); }},
                 new EMenuItem("D_XF (AutoCAD)...") { public void run() {
-                    importLibraryCommand(FileType.DXF, false, true); }},
+                    importLibraryCommand(FileType.DXF, false, true, false); }},
                 new EMenuItem("Spice Dec_ks...") {	public void run() {
-                    importLibraryCommand(FileType.SPICE, true, true); }},
+                    importLibraryCommand(FileType.SPICE, true, true, false); }},
                 new EMenuItem("S_UE (Schematic User Environment)...") {	public void run() {
-                    importLibraryCommand(FileType.SUE, false, true); }},
+                    importLibraryCommand(FileType.SUE, false, true, true); }},
                 new EMenuItem("_Verilog...") {	public void run() {
-                    importLibraryCommand(FileType.VERILOG, false, true); }},
+                    importLibraryCommand(FileType.VERILOG, false, true, false); }},
                 new EMenuItem("_Applicon 860...") {	public void run() {
-                    importLibraryCommand(FileType.APPLICON860, false, true); }},
+                    importLibraryCommand(FileType.APPLICON860, false, true, true); }},
                 IOTool.hasDais() ? new EMenuItem("Dais (_Sun CAD)...") { public void run() {
-                    importLibraryCommand(FileType.DAIS, true, true); }} : null,
+                    importLibraryCommand(FileType.DAIS, true, true, false); }} : null,
                 SEPARATOR,
                 new EMenuItem("ELI_B...") {	public void run() {
-                    importLibraryCommand(FileType.ELIB, false, false); }},
+                    importLibraryCommand(FileType.ELIB, false, false, false); }},
                 new EMenuItem("_Readable Dump...") { public void run() {
-                    importLibraryCommand(FileType.READABLEDUMP, false, false); }},
+                    importLibraryCommand(FileType.READABLEDUMP, false, false, false); }},
                 new EMenuItem("_Text Cell Contents...") { public void run() {
                     TextWindow.readTextCell(); }},
                 new EMenuItem("User _Preferences...") { public void run() {
@@ -688,16 +689,18 @@ public class FileMenu {
         private RenameAndSaveLibraryTask saveTask;
 		private Input.InputPreferences prefs;
 		private Library createLib;
+		private Technology tech;
         private Map<Library,Cell> currentCells = new HashMap<Library,Cell>();
 
 		public ImportLibrary(URL fileURL, FileType type, Library libToRead,
-                Library deleteLib, RenameAndSaveLibraryTask saveTask)
+            Library deleteLib, Technology tech, RenameAndSaveLibraryTask saveTask)
 		{
 			super("Import External Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fileURL = fileURL;
 			this.type = type;
 			this.curLib = libToRead;
 			this.deleteLib = deleteLib;
+			this.tech = (tech == null) ? Technology.getCurrent() : tech;
             this.saveTask = saveTask;
 
             if (curLib != null)
@@ -728,7 +731,7 @@ public class FileMenu {
 				if (!deleteLib.kill("replace")) return false;
 				deleteLib = null;
 			}
-			createLib = Input.importLibrary(prefs, fileURL, type, curLib, currentCells, this);
+			createLib = Input.importLibrary(prefs, fileURL, type, curLib, tech, currentCells, this);
 			if (createLib == null) return false;
 
             // new library open: check for default "noname" library and close if empty
@@ -820,7 +823,7 @@ public class FileMenu {
 	 * @param wholeDirectory true to import a directory instead of a file.
 	 * @param canMerge true to allow merging into an existing library.
 	 */
-	public static void importLibraryCommand(FileType type, boolean wholeDirectory, boolean canMerge)
+	public static void importLibraryCommand(FileType type, boolean wholeDirectory, boolean canMerge, boolean techSpecific)
 	{
 		String fileName = null;
 		if (wholeDirectory)
@@ -859,10 +862,33 @@ public class FileMenu {
 					WindowFrame.removeLibraryReferences(deleteLib);
                 }
 			}
+			Technology tech = null;
+			if (techSpecific)
+			{
+				// prompt for the technology to use
+				List<Technology> layoutTechnologies = new ArrayList<Technology>();
+				String curTech = null;
+				for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+				{
+					Technology t = it.next();
+					if (!t.isLayout()) continue;
+					if (t == Technology.getCurrent()) curTech = t.getTechName();
+					layoutTechnologies.add(t);
+				}
+				if (curTech == null) curTech = User.getSchematicTechnology().getTechName();
+				String [] techArray = new String[layoutTechnologies.size()];
+				for(int i=0; i<layoutTechnologies.size(); i++)
+					techArray[i] = layoutTechnologies.get(i).getTechName();
+				String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
+					"Which layout technology should be used to import the file:", "Choose Technology",
+					JOptionPane.QUESTION_MESSAGE, null, techArray, curTech);
+				if (chosen == null) return;
+				tech = Technology.findTechnology(chosen);
+			}
             if (type == FileType.ELIB || type == FileType.READABLEDUMP)
                 new ReadLibrary(fileURL, type, null, deleteLib, saveTask, null);
             else
-                new ImportLibrary(fileURL, type, libToRead, deleteLib, saveTask);
+                new ImportLibrary(fileURL, type, libToRead, deleteLib, tech, saveTask);
 		}
 	}
 

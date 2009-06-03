@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
@@ -89,12 +90,13 @@ public class Input
 	 * @param fileURL the URL to the disk file.
 	 * @param type the type of library file (CIF, GDS, etc.)
 	 * @param lib the library in which to place the circuitry (null to create a new one).
+	 * @param tech the technology to use for import.
 	 * @param currentCells this map will be filled with currentCells in Libraries found in library file.
 	 * @param job the Job that is doing the import.
 	 * @return the imported Library, or null if an error occurred.
 	 */
 	public static Library importLibrary(InputPreferences prefs, URL fileURL, FileType type, Library lib,
-		Map<Library,Cell> currentCells, Job job)
+		Technology tech, Map<Library,Cell> currentCells, Job job)
 	{
 		// make sure the file exists
 		if (fileURL == null) return null;
@@ -129,7 +131,7 @@ public class Input
 			startProgressDialog("import", fileURL.getFile());
 
 			if (prefs != null)
-				lib = prefs.doInput(fileURL, lib, currentCells, job);
+				lib = prefs.doInput(fileURL, lib, tech, currentCells, job);
 		} finally
 		{
 			// clean up
@@ -188,7 +190,7 @@ public class Input
 
 		public void initFromUserDefaults() {}
 
-		public abstract Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job);
+		public abstract Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job);
 	}
 
 	/**
@@ -198,7 +200,7 @@ public class Input
 	 * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the created library (null on error).
 	 */
-	protected Library importALibrary(Library lib,Map<Library,Cell> currentCells) { return lib; }
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells) { return lib; }
 
 	protected boolean openBinaryInput(URL fileURL)
 	{

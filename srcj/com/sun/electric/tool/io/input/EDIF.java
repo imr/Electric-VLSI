@@ -298,6 +298,7 @@ public class EDIF extends Input
 
 	// electric context data ...
 	/** the new library */						private Library curLibrary;
+	/** the current technology */				private Technology curTech;
 	/** the current active cell */				private Cell curCell;
 	/** current Cells in Libraries */			private Map<Library,Cell> currentCells;
 	/** the current page in cell */				private int curCellPage;
@@ -426,12 +427,12 @@ public class EDIF extends Input
 			autoParameters.createExports = false;
 		}
 
-		public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
+		public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
 		{
 			EDIF in = new EDIF(this);
 			in.job = job;
 			if (in.openTextInput(fileURL)) return null;
-			lib = in.importALibrary(lib, currentCells);
+			lib = in.importALibrary(lib, tech, currentCells);
 			in.closeInput();
 			return lib;
 		}
@@ -449,7 +450,7 @@ public class EDIF extends Input
 	 * @return the created library (null on error).
 	 */
 	@Override
-	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
 	{
 		// setup keyword prerequisites: XX.stateArray = new EDIFKEY [] {KYY};	means YYs can be found inside of XX: (xx (yy))
 		KARRAY.stateArray = new EDIFKEY [] {KINSTANCE, KPORT, KNET};
@@ -504,6 +505,7 @@ public class EDIF extends Input
 
 		// general inits
 		curLibrary = lib;
+		curTech = tech;
 		cellTable = new HashMap<String,NameEntry>();
 		propertiesList = new ArrayList<EDIFProperty>();
 
@@ -1693,10 +1695,7 @@ public class EDIF extends Input
 			if (type == Schematics.tech().offpageNode)
 			{
 				if (curCell.getView() == View.LAYOUT)
-				{
-					Technology curTechnology = Technology.getCurrent();
-					type = curTechnology.getNodes().next();
-				}
+					type = curTech.getNodes().next();
 			}
 			if (type == Artwork.tech().boxNode)
 			{
@@ -4098,8 +4097,7 @@ public class EDIF extends Input
 					if (TextUtils.isANumber(value))
 					{
 						int layerNum = TextUtils.atoi(value);
-						Technology curTechnology = Technology.getCurrent();
-						for (Map.Entry<Layer,String> e : curTechnology.getGDSLayers().entrySet())
+						for (Map.Entry<Layer,String> e : curTech.getGDSLayers().entrySet())
 						{
 							Layer layer = e.getKey();
 							String gdsLayer = e.getValue();

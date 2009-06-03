@@ -406,11 +406,11 @@ public class CIF extends Input
 			squareWires = IOTool.isCIFInSquaresWires();
 		}
 
-		public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
+		public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
         {
         	CIF in = new CIF(this);
 			if (in.openTextInput(fileURL)) return null;
-			lib = in.importALibrary(lib, currentCells);
+			lib = in.importALibrary(lib, tech, currentCells);
 			in.closeInput();
 			return lib;
         }
@@ -428,12 +428,13 @@ public class CIF extends Input
 	 * @return the created library (null on error).
 	 */
     @Override
-	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
 	{
         setProgressNote("Reading CIF file");
 
         // initialize all lists and the searching routines
 		cifCellMap = new HashMap<Integer,BackCIFCell>();
+		curTech = tech;
 
 		if (initFind()) return null;
 
@@ -779,7 +780,6 @@ public class CIF extends Input
 		cifLayerNames = new HashMap<String,Layer>();
 		unknownLayerNames = new HashSet<String>();
 		boolean valid = false;
-		curTech = Technology.getCurrent();
 		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();

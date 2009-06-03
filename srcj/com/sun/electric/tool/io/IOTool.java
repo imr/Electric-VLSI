@@ -30,10 +30,10 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.ToolSettings;
-import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.Input.InputPreferences;
 import com.sun.electric.tool.io.output.Output;
 
@@ -230,7 +230,7 @@ public class IOTool extends Tool
 			readConnectivity = IOTool.isDaisReadConnectivity();
 		}
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
         {
     		if (!hasDais()) return null;
     		try
@@ -789,12 +789,6 @@ public class IOTool extends Tool
 	 * @return how GDS input should simplify array references (AREFs), by default.
 	 */
 	public static int getFactoryGDSArraySimplification() { return cacheGDSArraySimplification.getIntFactoryValue(); }
-
-    /**
-	 * Returns Setting to tell the layout technology to use during the import process.
-	 * @return Setting to tell the layout technology to use during the import process.
-	 */
-	public static Setting getGDSLayoutTechnology() { return ToolSettings.getGDSLayoutTechnology(); }
 
     /****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
 

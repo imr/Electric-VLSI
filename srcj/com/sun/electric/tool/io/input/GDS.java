@@ -273,11 +273,11 @@ public class GDS extends Input
 			unknownLayerHandling = IOTool.getGDSInUnknownLayerHandling();
 		}
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
         {
         	GDS in = new GDS(this);
 			if (in.openBinaryInput(fileURL)) return null;
-			lib = in.importALibrary(lib, currentCells);
+			lib = in.importALibrary(lib, tech, currentCells);
 			in.closeInput();
 			return lib;
         }
@@ -295,13 +295,14 @@ public class GDS extends Input
 	 * @return the created library (null on error).
 	 */
     @Override
-	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
 	{
 		// initialize
         this.currentCells = currentCells;
 		arraySimplificationUseful = false;
 		CellBuilder.init();
 		theLibrary = lib;
+		curTech = tech;
 
 		try
 		{
@@ -360,9 +361,6 @@ public class GDS extends Input
 		pinLayers = new HashSet<Integer>();
 		randomLayerSelection = 0;
 		boolean valid = false;
-		curTech = Technology.findTechnology(IOTool.getGDSLayoutTechnology().getString());//Technology.getCurrent();
-
-        System.out.println("Using GDS IO Project Seeting '" + curTech.getTechName() + "' as layout technology for the import process.");
 
         for(Map.Entry<Layer,String> e: curTech.getGDSLayers().entrySet())
 		{
@@ -394,14 +392,15 @@ public class GDS extends Input
 		private static Map<Cell,CellBuilder> allBuilders;
 		private static Set<Cell>        cellsTooComplex;
 		private GDSPreferences localPrefs;
-
+		private Technology tech;
 		private Cell cell;
         private List<MakeInstance> insts = new ArrayList<MakeInstance>();
         private Map<UnknownLayerMessage,List<MakeInstance>> allErrorInsts = new HashMap<UnknownLayerMessage,List<MakeInstance>>();
         private List<MakeInstanceArray> instArrays = new ArrayList<MakeInstanceArray>();
 
-        private CellBuilder(Cell cell, GDSPreferences localPrefs) {
+        private CellBuilder(Cell cell, Technology tech, GDSPreferences localPrefs) {
             this.cell = cell;
+            this.tech = tech;
             this.localPrefs = localPrefs;
             allBuilders.put(cell, this);
         }
@@ -632,14 +631,14 @@ public class GDS extends Input
 				}
 			}
             if (localPrefs.simplifyCells)
-                simplifyNodes(this.cell);
+                simplifyNodes(this.cell, tech);
 			builtCells.add(this.cell);
 		}
 
         /** Method to see if existing primitive nodes could be merged and define more complex nodes
          * such as contacts
          */
-        private void simplifyNodes(Cell cell)
+        private void simplifyNodes(Cell cell, Technology tech)
         {
             Map<Layer, List<NodeInst>> map = new HashMap<Layer, List<NodeInst>>();
 
@@ -660,7 +659,6 @@ public class GDS extends Input
                 list.add(ni);
             }
 
-            Technology tech = cell.getTechnology();
             Set<NodeInst> toDelete = new HashSet<NodeInst>();
             Set<NodeInst> viaToDelete = new HashSet<NodeInst>();
             List<Geometric> geomList = new ArrayList<Geometric>();
@@ -1295,7 +1293,7 @@ public class GDS extends Input
 			if (!currentCells.containsKey(theLibrary))
 				currentCells.put(theLibrary, cell);
 		}
-        theCell = new CellBuilder(cell, localPrefs);
+        theCell = new CellBuilder(cell, curTech, localPrefs);
 	}
 
 	private Cell findCell(String name)

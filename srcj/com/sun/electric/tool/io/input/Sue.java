@@ -222,6 +222,7 @@ public class Sue extends Input
 	private String       lastLineRead;
 	private List<String> sueDirectories;
 	private SuePreferences localPrefs;
+	private Technology   curTech;
 
 	public static class SuePreferences extends InputPreferences
     {
@@ -236,11 +237,11 @@ public class Sue extends Input
 			convertExpressions = IOTool.isSueConvertsExpressions();
 		}
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
         {
         	Sue in = new Sue(this);
 			if (in.openTextInput(fileURL)) return null;
-			lib = in.importALibrary(lib, currentCells);
+			lib = in.importALibrary(lib, tech, currentCells);
 			in.closeInput();
 			return lib;
         }
@@ -257,10 +258,11 @@ public class Sue extends Input
      * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the created library (null on error).
 	 */
-	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
 	{
 		// determine the cell name
 		String cellName = lib.getName();
+		curTech = tech;
 
 		// initialize the number of directories that need to be searched
 		sueDirectories = new ArrayList<String>();
@@ -715,7 +717,7 @@ public class Sue extends Input
 							pt = pt.substring(0, len-1);
 							if (TextUtils.isANumber(pt))
 							{
-								newObject = new Double(TextUtils.convertFromDistance(TextUtils.atof(pt), Technology.getCurrent(), TextUtils.UnitScale.MICRO));
+								newObject = new Double(TextUtils.convertFromDistance(TextUtils.atof(pt), curTech, TextUtils.UnitScale.MICRO));
 							}
 							pt += "u";
 						}

@@ -84,6 +84,7 @@ import java.util.regex.Pattern;
 public class DEF extends LEFDEF
 {
 	private double  scaleUnits;
+	private Technology curTech;
 	private ViaDef  firstViaDef;
 	private Hashtable<String,PortInst> specialNetsHT = null;
 	private Hashtable<String,PortInst> normalNetsHT = null;
@@ -110,11 +111,11 @@ public class DEF extends LEFDEF
 			physicalPlacement = IOTool.isDEFPhysicalPlacement();
 		}
 
-        public Library doInput(URL fileURL, Library lib, Map<Library,Cell> currentCells, Job job)
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
         {
         	DEF in = new DEF(this);
 			if (in.openTextInput(fileURL)) return null;
-			lib = in.importALibrary(lib, currentCells);
+			lib = in.importALibrary(lib, tech, currentCells);
 			in.closeInput();
 			return lib;
         }
@@ -132,16 +133,17 @@ public class DEF extends LEFDEF
 	 * @return the created library (null on error).
 	 */
     @Override
-	protected Library importALibrary(Library lib, Map<Library,Cell> currentCells)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
 	{
 		initKeywordParsing();
 		scaleUnits = 1000;
 		firstViaDef = null;
+		curTech = tech;
 
 		// read the file
 		try
 		{
-			if (!readFile(lib, currentCells)) return null; // error during reading
+			if (readFile(lib, currentCells)) return null; // error during reading
         } catch (IOException e)
 		{
 			System.out.println("ERROR reading DEF libraries");
@@ -173,7 +175,7 @@ public class DEF extends LEFDEF
 	private double convertDEFString(String key)
 	{
 		double v = TextUtils.atof(key) / scaleUnits;
-		return TextUtils.convertFromDistance(v, Technology.getCurrent(), TextUtils.UnitScale.MICRO);
+		return TextUtils.convertFromDistance(v, curTech, TextUtils.UnitScale.MICRO);
 	}
 
 	private void reportError(String command)
@@ -183,6 +185,7 @@ public class DEF extends LEFDEF
 
 	/**
 	 * Method to read the DEF file.
+	 * @return true on error.
 	 */
 	private boolean readFile(Library lib, Map<Library,Cell> currentCells)
 		throws IOException
@@ -694,7 +697,7 @@ public class DEF extends LEFDEF
 		if (schImport)
 		{
 			ArcProto apTry = null;
-			for(Iterator<ArcProto> it = Technology.getCurrent().getArcs(); it.hasNext(); )
+			for(Iterator<ArcProto> it = curTech.getArcs(); it.hasNext(); )
 			{
 				apTry = it.next();
 				if (apTry.getName().equals("wire")) break;
@@ -704,7 +707,7 @@ public class DEF extends LEFDEF
 				reportError("Unable to resolve pin component");
 				return true;
 			}
-			for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodes(); it.hasNext(); )
+			for(Iterator<PrimitiveNode> it = curTech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode loc_np = it.next();
 				// must have just one port
