@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+IMP: (6/4/09, DN) Make GraphicsPreferences serializable.
+
 BUG: (6/4/09, DN) The "current cell" is not available while running a Job.
 FIX: Propagate current cell to ServerJobManager.UserInterfaceRedirect.
 
@@ -68,7 +70,7 @@ WARNING: CHANGES BELOW are out!
 BUG: (5/25/09, DN) FlatArcs regression failed.
 FIX: In AbstractShapeBuilder.pushIntLine use addIntPoly instead of AddIntBox.
 ------------------------------------------------------------------------------------>
-                                                                                      
+
 BUG: (5/26/09, GVG) NPE in project settings if there is no permission to read a header file (Bug #2194)
 FIX: Preventing the NPE in settings. The error will be reported by JelibParser
 

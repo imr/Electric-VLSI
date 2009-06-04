@@ -32,6 +32,7 @@ import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 
 import java.awt.Color;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.prefs.Preferences;
 
@@ -80,12 +81,12 @@ public class GraphicsPreferences extends PrefPackage {
     public String defaultFont;
     public static final String FACTORY_DEFAULT_FONT = "SansSerif";
 
-    private final TechPool techPool;
+    private transient final TechPool techPool;
     private final Color[] defaultColors;
     private final boolean[] textVisibility;
     private final TechData[] techData;
 
-    private class TechData {
+    private class TechData implements Serializable {
         private final Technology tech;
         private final Color[] transparentColors;
         private transient Color[] colorMap;

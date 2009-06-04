@@ -52,7 +52,9 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Color;
@@ -112,6 +114,7 @@ public class TechToLib
         private String libraryName;
         private boolean doItNow;
         private Library lib;
+        private GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
 
 		private LibFromTechJob(Technology tech, boolean doItNow)
 		{
