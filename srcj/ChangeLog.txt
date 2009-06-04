@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+BUG: (6/3/09, DN) NoSuchElementException while editing in place (Bug #2209).
+FIX: In LayoutCell.ConnectionIterator.findNext skip deleted arcs.
+
 IMP: (6/3/09, SMR) Technology-specific imports now prompt for the technology (Bug #2162).
 
 BUG: (6/3/09, SMR) "Change" command crashes (Bug #2208).

@@ -1076,20 +1076,33 @@ class LayoutCell {
         private final List<ImmutableArcInst> arcs;
         private final BitSet headEnds = new BitSet();
         int i;
+        Connection nextConn;
 
         ConnectionIterator(ImmutableNodeInst n, PortProtoId portId) {
             arcs = m.getConnections(headEnds, n, portId);
+            findNext();
         }
-        public boolean hasNext() { return i < arcs.size(); }
+        public boolean hasNext() { return nextConn != null; }
         public Connection next() {
-            ArcInst ai = cell.getArcById(arcs.get(i).arcId);
-            if (ai == null)
+            if (nextConn == null)
                 throw new NoSuchElementException();
-            Connection con = headEnds.get(i) ? ai.getHead() : ai.getTail();
-            i++;
+            Connection con = nextConn;
+            findNext();
             return con;
         }
         public void remove() { throw new UnsupportedOperationException(); }
+
+        private void findNext() {
+            for (; i < arcs.size(); i++) {
+                ArcInst ai = cell.getArcById(arcs.get(i).arcId);
+                if (ai != null) {
+                    nextConn = headEnds.get(i) ? ai.getHead() : ai.getTail();
+                    i++;
+                    return;
+                }
+            }
+            nextConn = null;
+        }
     }
 }
 
