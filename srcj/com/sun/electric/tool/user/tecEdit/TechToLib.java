@@ -129,7 +129,7 @@ public class TechToLib
 
 		public boolean doIt()
 		{
-			lib = makeLibFromTech(tech);
+			lib = makeLibFromTech(tech, gp);
 			if (lib == null) return false;
             fieldVariableChanged("lib");
 
@@ -150,7 +150,7 @@ public class TechToLib
 	 * Method to convert technology "tech" into a library and return that library.
 	 * Returns NOLIBRARY on error
 	 */
-	public static Library makeLibFromTech(Technology tech)
+	public static Library makeLibFromTech(Technology tech, GraphicsPreferences gp)
 	{
 		Library lib = Library.newInstance(tech.getTechName(), null);
 		if (lib == null)
@@ -194,8 +194,8 @@ public class TechToLib
         gi.gateCapacitance = tech.getGateCapacitanceSetting().getDoubleFactoryValue();
         gi.wireRatio = tech.getWireRatioSetting().getDoubleFactoryValue();
         gi.diffAlpha = tech.getDiffAlphaSetting().getDoubleFactoryValue();
-		Color [] wholeMap = tech.getColorMap();
-		int numLayers = tech.getNumTransparentLayers();
+		Color [] wholeMap = gp.getColorMap(tech);
+		int numLayers = gp.getNumTransparentLayers(tech);
 		gi.transparentColors = new Color[numLayers];
 		for(int i=0; i<numLayers; i++)
 			gi.transparentColors[i] = wholeMap[1<<i];
@@ -238,7 +238,7 @@ public class TechToLib
 		{
 			Layer layer = it.next();
 			if (layer.isPseudoLayer()) continue;
-			EGraphics desc = layer.getGraphics();
+			EGraphics desc = gp.getGraphics(layer);
 			String fName = "layer-" + layer.getName() + "{lay}";
 
 			// make sure the layer doesn't exist
@@ -344,7 +344,7 @@ public class TechToLib
 				Poly poly = polys[i];
 				Layer arcLayer = poly.getLayer().getNonPseudoLayer();
 				if (arcLayer == null) continue;
-				EGraphics arcDesc = arcLayer.getGraphics();
+				EGraphics arcDesc = gp.getGraphics(arcLayer);
 
 				// scale the arc geometry appropriately
 				Point2D [] points = poly.getPoints();
@@ -444,7 +444,7 @@ public class TechToLib
 					Poly poly = polys[i];
 					Layer nodeLayer = poly.getLayer().getNonPseudoLayer();
 					if (nodeLayer == null) continue;
-					EGraphics desc = nodeLayer.getGraphics();
+					EGraphics desc = gp.getGraphics(nodeLayer);
 
 					// accumulate total size of main example
 					if (e == 0)
@@ -638,7 +638,7 @@ public class TechToLib
 						Poly poly = polys[i];
 						Layer nodeLayer = poly.getLayer().getNonPseudoLayer();
 						if (nodeLayer == null) continue;
-						EGraphics desc = nodeLayer.getGraphics();
+						EGraphics desc = gp.getGraphics(nodeLayer);
 
 						// create the node to describe this layer
 						NodeInst ni = placeGeometry(poly, nNp);
