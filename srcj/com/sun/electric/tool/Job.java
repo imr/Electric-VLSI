@@ -28,6 +28,7 @@ import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
@@ -118,7 +119,7 @@ public abstract class Job implements Serializable {
 		/** Describes a server database change. */      CHANGE,
 		/** Describes a server database undo/redo. */   UNDO,
 		/** Describes a server database examination. */	SERVER_EXAMINE,
-        
+
 		/** Describes a client database examination. */ CLIENT_EXAMINE;
 	}
 
@@ -153,6 +154,7 @@ public abstract class Job implements Serializable {
     /** tool running the job */                 /*private*/ Tool tool;
     /** current technology */                   final TechId curTechId;
     /** current library */                      final LibId curLibId;
+    /** current Cell */                         final CellId curCellId;
 //    /** priority of job */                      private Priority priority;
 //    /** bottom of "up-tree" of cells affected */private Cell upCell;
 //    /** top of "down-tree" of cells affected */ private Cell downCell;
@@ -221,6 +223,8 @@ public abstract class Job implements Serializable {
         curTechId = curTech != null ? curTech.getId() : null;
         Library curLib = ui != null ? ui.getCurrentLibrary() : null;
         curLibId = curLib != null ? curLib.getId() : null;
+        Cell curCell = ui != null ? ui.getCurrentCell() : null;
+        curCellId = curCell != null ? curCell.getId() : null;
 //        started = finished = aborted = scheduledToAbort = false;
 //        thread = null;
 	}

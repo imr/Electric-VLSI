@@ -90,6 +90,7 @@ class EThread extends Thread {
                         Constraints.getCurrent().startBatch(ejob.oldSnapshot);
                         userInterface.curTechId = ejob.serverJob.curTechId;
                         userInterface.curLibId = ejob.serverJob.curLibId;
+                        userInterface.curCellId = ejob.serverJob.curCellId;
                         if (!ejob.serverJob.doIt())
                             throw new JobException("job " + ejob.jobName + " returned false");
                         Constraints.getCurrent().endBatch(ejob.client.userName);
@@ -102,6 +103,7 @@ class EThread extends Thread {
                         database.getNetworkManager().startBatch();
                         userInterface.curTechId = null;
                         userInterface.curLibId = null;
+                        userInterface.curCellId = null;
                         int snapshotId = ((Undo.UndoJob)ejob.serverJob).getSnapshotId();
                         Snapshot undoSnapshot = findInCache(snapshotId);
                         if (undoSnapshot == null)
@@ -113,6 +115,7 @@ class EThread extends Thread {
                     case SERVER_EXAMINE:
                         userInterface.curTechId = ejob.serverJob.curTechId;
                         userInterface.curLibId = ejob.serverJob.curLibId;
+                        userInterface.curCellId = ejob.serverJob.curCellId;
                         if (!ejob.serverJob.doIt())
                             throw new JobException("job " + ejob.jobName + " returned false");
                         break;
@@ -124,6 +127,7 @@ class EThread extends Thread {
                         }
                         userInterface.curTechId = ejob.clientJob.curTechId;
                         userInterface.curLibId = ejob.clientJob.curLibId;
+                        userInterface.curCellId = ejob.clientJob.curCellId;
                         if (!ejob.clientJob.doIt())
                             throw new JobException("job " + ejob.jobName + " returned false");
                         break;

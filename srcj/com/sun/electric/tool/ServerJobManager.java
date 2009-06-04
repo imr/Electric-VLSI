@@ -26,6 +26,7 @@ package com.sun.electric.tool;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.topology.Geometric;
@@ -459,6 +460,7 @@ public class ServerJobManager extends JobManager {
 	{
         TechId curTechId;
         LibId curLibId;
+        CellId curCellId;
         private String progressNote;
         private int progressValue = -1;
 
@@ -553,11 +555,13 @@ public class ServerJobManager extends JobManager {
         /** Get current cell from current library */
 		public Cell getCurrentCell()
         {
-            throw new IllegalStateException("Can't get current Cell in database thread");
+            return curCellId != null ? getDatabase().getCell(curCellId) : null;
         }
 
 		public Cell needCurrentCell()
 		{
+            Cell cell = getCurrentCell();
+            if (cell != null) return cell;
             throw new IllegalStateException("Can't get current Cell in database thread");
 		}
 
