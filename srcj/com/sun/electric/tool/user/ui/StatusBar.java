@@ -46,19 +46,15 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.UserInterfaceMain;
 
-import java.awt.Dimension;
-import java.awt.FontMetrics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Rectangle;
+import java.awt.Insets;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
-
 
 /**
  * This class manages the Electric status bar at the bottom of the edit window.
@@ -79,71 +75,72 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 		this.frame = frame;
 
 		fieldSelected = new JLabel();
-		addField(fieldSelected, 0, 0, 1);
+		addField(fieldSelected, 0, 0, 1, 0.20);
 
 		fieldSize = new JLabel();
-		Dimension d = new Dimension(300, 16);
-        fieldSize.setMinimumSize(d);
-        fieldSize.setMaximumSize(d);
-        fieldSize.setPreferredSize(d);
-		addField(fieldSize, 1, 0, 1);
+//		Dimension d = new Dimension(300, 16);
+//		fieldSize.setMinimumSize(d);
+//		fieldSize.setMaximumSize(d);
+//		fieldSize.setPreferredSize(d);
+		addField(fieldSize, 1, 0, 1, 0.15);
 
-        fieldTech = new JLabel();
-        d = new Dimension (400, 16);
-        fieldTech.setMinimumSize(d);
-        fieldTech.setMaximumSize(d);
-        fieldTech.setPreferredSize(d);
-        addField(fieldTech, 2, 0, 1);
+		fieldTech = new JLabel();
+//		d = new Dimension (400, 16);
+//		fieldTech.setMinimumSize(d);
+//		fieldTech.setMaximumSize(d);
+//		fieldTech.setPreferredSize(d);
+		addField(fieldTech, 2, 0, 1, 0.30);
 
-        fieldCoords = new JLabel();
-        fieldCoords.setMinimumSize(new Dimension(100, 16));
-        fieldCoords.setMaximumSize(new Dimension(500, 16));
-        fieldCoords.setPreferredSize(new Dimension(140, 16));
-        fieldCoords.setHorizontalAlignment(JLabel.RIGHT);
-		addField(fieldCoords, 3, 0, 1);
+		fieldCoords = new JLabel();
+//		fieldCoords.setMinimumSize(new Dimension(100, 16));
+//		fieldCoords.setMaximumSize(new Dimension(500, 16));
+//		fieldCoords.setPreferredSize(new Dimension(140, 16));
+		fieldCoords.setHorizontalAlignment(JLabel.RIGHT);
+		addField(fieldCoords, 3, 0, 1, 0.35);
 
 		fieldHierCoords = new JLabel(" ");
 		fieldHierCoords.setHorizontalAlignment(JLabel.RIGHT);
-		addField(fieldHierCoords, 0, 1, 4);
+		addField(fieldHierCoords, 0, 1, 4, 0.0);
 
-        // add myself as listener for highlight changes in SDI mode
-        if (TopLevel.isMDIMode()) {
-            // do nothing
-        } else if (frame.getContent().getHighlighter() != null) {
-            Highlighter.addHighlightListener(this);
-        }
-        UserInterfaceMain.addDatabaseChangeListener(this);
+		// add myself as listener for highlight changes in SDI mode
+		if (TopLevel.isMDIMode())
+		{
+			// do nothing
+		} else if (frame.getContent().getHighlighter() != null)
+		{
+			Highlighter.addHighlightListener(this);
+		}
+		UserInterfaceMain.addDatabaseChangeListener(this);
 	}
 
-	private void addField(JLabel field, int x, int y, int width)
+	private void addField(JLabel field, int x, int y, int width, double weight)
 	{
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = x;   gbc.gridy = y;
 		gbc.gridwidth = width;
-        if (x == 0)
-        {
-            gbc.weightx = 0.2;
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-        }
-        gbc.anchor = GridBagConstraints.WEST;
-        int rightInsert = (Client.isOSMac()) ? 20 : 4;
-        gbc.insets = new java.awt.Insets(0, 4, 0, rightInsert);
+		gbc.weightx = weight;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.anchor = GridBagConstraints.WEST;
+		int rightInsert = (Client.isOSMac()) ? 20 : 4;
+		gbc.insets = new Insets(0, 4, 0, rightInsert);
 		add(field, gbc);
 	}
 
-    /**
-     * Highlighter depends on MDI or SDI mode.
-     * @return the highlighter to use. May be null if none.
-     */
-    private Highlighter getHighlighter() {
-        if (TopLevel.isMDIMode()) {
-            // get current internal frame highlighter
-            EditWindow wnd = EditWindow.getCurrent();
-            if (wnd == null) return null;
-            return wnd.getHighlighter();
-        }
-        return frame.getContent().getHighlighter();
-    }
+	/**
+	 * Highlighter depends on MDI or SDI mode.
+	 * @return the highlighter to use. May be null if none.
+	 */
+	private Highlighter getHighlighter()
+	{
+		if (TopLevel.isMDIMode())
+		{
+			// get current internal frame highlighter
+			EditWindow wnd = EditWindow.getCurrent();
+			if (wnd == null) return null;
+			return wnd.getHighlighter();
+		}
+		return frame.getContent().getHighlighter();
+	}
 
 	public static void setCoordinates(String coords, WindowFrame wf)
 	{
@@ -179,17 +176,17 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 		updateStatusBar();
 	}
 
-    public void highlightChanged(Highlighter which)
-    {
-        updateSelectedText();
-    }
+	public void highlightChanged(Highlighter which)
+	{
+		updateSelectedText();
+	}
 
-    /**
-     * Called when by a Highlighter when it loses focus. The argument
-     * is the Highlighter that has gained focus (may be null).
-     * @param highlighterGainedFocus the highlighter for the current window (may be null).
-     */
-    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {}
+	/**
+	 * Called when by a Highlighter when it loses focus. The argument
+	 * is the Highlighter that has gained focus (may be null).
+	 * @param highlighterGainedFocus the highlighter for the current window (may be null).
+	 */
+	public void highlighterLostFocus(Highlighter highlighterGainedFocus) {}
 
 	/**
 	 * Method to update the status bar from current values.
@@ -207,16 +204,16 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 			{
 				WindowFrame wf = it.next();
 				StatusBar sb = wf.getFrame().getStatusBar();
-                if (sb != null)
-				    sb.redoStatusBar();
+				if (sb != null)
+					sb.redoStatusBar();
 			}
 		}
 	}
 
 	private void redoStatusBar()
 	{
-        updateSelectedText();
-        
+		updateSelectedText();
+
 		Cell cell = null;
 		WindowFrame thisFrame = frame;
 		if (thisFrame == null)
@@ -240,111 +237,118 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 			{
 				Rectangle2D bounds = cell.getBounds();
 				sizeMsg = "CELL: " + TextUtils.formatDistance(bounds.getWidth(), cell.getTechnology()) + " x " +
-                    TextUtils.formatDistance(bounds.getHeight(), cell.getTechnology());
+					TextUtils.formatDistance(bounds.getHeight(), cell.getTechnology());
 			}
 		}
 		fieldSize.setText(sizeMsg);
+		fieldSize.setToolTipText(sizeMsg);
 
 		Technology tech = Technology.getCurrent();
 		if (tech != null)
 		{
 			String message = "TECH: " + tech.getTechName();
-            String foundry = tech.getPrefFoundry();
+			String foundry = tech.getPrefFoundry();
 
-            boolean validFoundry = !foundry.equals("");
+			boolean validFoundry = !foundry.equals("");
 			if (tech.isScaleRelevant())
-            {
-                message += " (scale=" + tech.getScale() + "nm";
-                if (!validFoundry) message += ")";
-                else // relevant foundry
-                    message += ",foundry=" + foundry + ")";
-            }
-             fieldTech.setText(message);
+			{
+				message += " (scale=" + tech.getScale() + "nm";
+				if (!validFoundry) message += ")";
+				else // relevant foundry
+					message += ",foundry=" + foundry + ")";
+			}
+			fieldTech.setText(message);
+			fieldTech.setToolTipText(message);
 		}
 
-        // Determing if size and tech labels should appear
-        FontMetrics fm = this.getGraphics().getFontMetrics(fieldSelected.getFont());
-        int a = SwingUtilities.computeStringWidth(fm, fieldSelected.getText());
-        Rectangle rectSel = fieldSelected.getBounds();
-        Rectangle rectSize = fieldSize.getBounds();
-        boolean visibleSize = (rectSel.getMinX() + a) < rectSize.getMinX();
-        if (!visibleSize) fieldSize.setText("");
-        Rectangle rectTech = fieldTech.getBounds();
-        boolean visibleTech = (rectSel.getMinX() + a) < (rectTech.getMinX());
-        if (!visibleTech) fieldTech.setText("");
+//		// Determing if size and tech labels should appear
+//		FontMetrics fm = this.getGraphics().getFontMetrics(fieldSelected.getFont());
+//		int a = SwingUtilities.computeStringWidth(fm, fieldSelected.getText());
+//		Rectangle rectSel = fieldSelected.getBounds();
+//		Rectangle rectSize = fieldSize.getBounds();
+//		boolean visibleSize = (rectSel.getMinX() + a) < rectSize.getMinX();
+//		if (!visibleSize) fieldSize.setText("");
+//		Rectangle rectTech = fieldTech.getBounds();
+//		boolean visibleTech = (rectSel.getMinX() + a) < (rectTech.getMinX());
+//		if (!visibleTech) fieldTech.setText("");
 
 		if (coords == null) fieldCoords.setText(""); else
+		{
 			fieldCoords.setText(coords);
+			fieldCoords.setToolTipText(coords);
+		}
 
-        // if too many chars to display in space provided, truncate.
-        if (hierCoords != null) {
-            int width = fieldHierCoords.getFontMetrics(fieldHierCoords.getFont()).stringWidth(hierCoords);
-            int widgetW = fieldHierCoords.getWidth();
-            if (width > widgetW)
-            {
-                int chars = hierCoords.length() * widgetW / width;
-                hierCoords = hierCoords.substring(hierCoords.length() - chars, hierCoords.length());
-            }
-            fieldHierCoords.setText(hierCoords);
-        } else
-		    fieldHierCoords.setText(" ");
+		// if too many chars to display in space provided, truncate.
+		if (hierCoords != null)
+		{
+			int width = fieldHierCoords.getFontMetrics(fieldHierCoords.getFont()).stringWidth(hierCoords);
+			int widgetW = fieldHierCoords.getWidth();
+			if (width > widgetW)
+			{
+				int chars = hierCoords.length() * widgetW / width;
+				hierCoords = hierCoords.substring(hierCoords.length() - chars, hierCoords.length());
+			}
+			fieldHierCoords.setText(hierCoords);
+		} else
+			fieldHierCoords.setText(" ");
 	}
 
-    private void updateSelectedText() {
-
-        String selectedMsg = "NOTHING SELECTED";
-        if (selectionOverride != null)
-        {
-            selectedMsg = selectionOverride;
-        } else
-        {
-            // count the number of nodes and arcs selected
-            int nodeCount = 0, arcCount = 0, textCount = 0;
-            Highlight2 lastHighlight = null;
-            Highlighter highlighter = getHighlighter();
-            if (highlighter == null) {
-                fieldSelected.setText(selectedMsg);
-                return;
-            }
+	private void updateSelectedText()
+	{
+		String selectedMsg = "NOTHING SELECTED";
+		if (selectionOverride != null)
+		{
+			selectedMsg = selectionOverride;
+		} else
+		{
+			// count the number of nodes and arcs selected
+			int nodeCount = 0, arcCount = 0, textCount = 0;
+			Highlight2 lastHighlight = null;
+			Highlighter highlighter = getHighlighter();
+			if (highlighter == null) {
+				fieldSelected.setText(selectedMsg);
+				fieldSelected.setToolTipText(selectedMsg);
+				return;
+			}
 			NodeInst theNode = null;
-            for(Highlight2 h : highlighter.getHighlights())
-            {
-                if (h.isHighlightEOBJ())
-                {
-                    ElectricObject eObj = h.getElectricObject();
-                    if (eObj instanceof PortInst)
-                    {
-                        lastHighlight = h;
+			for(Highlight2 h : highlighter.getHighlights())
+			{
+				if (h.isHighlightEOBJ())
+				{
+					ElectricObject eObj = h.getElectricObject();
+					if (eObj instanceof PortInst)
+					{
+						lastHighlight = h;
 						theNode = ((PortInst)eObj).getNodeInst();
-                        nodeCount++;
-                    } else if (eObj instanceof NodeInst)
-                    {
-                        lastHighlight = h;
+						nodeCount++;
+					} else if (eObj instanceof NodeInst)
+					{
+						lastHighlight = h;
 						theNode = (NodeInst)eObj;
-                        nodeCount++;
-                    } else if (eObj instanceof ArcInst)
-                    {
-                        lastHighlight = h;
-                        arcCount++;
-                    }
-                } else if (h.isHighlightText())
-                {
-                    lastHighlight = h;
-                    textCount++;
-                }
-            }
-            if (nodeCount + arcCount + textCount == 1)
-            {
-                selectedMsg = "SELECTED "+getSelectedText(lastHighlight);
+						nodeCount++;
+					} else if (eObj instanceof ArcInst)
+					{
+						lastHighlight = h;
+						arcCount++;
+					}
+				} else if (h.isHighlightText())
+				{
+					lastHighlight = h;
+					textCount++;
+				}
+			}
+			if (nodeCount + arcCount + textCount == 1)
+			{
+				selectedMsg = "SELECTED "+getSelectedText(lastHighlight);
 				if (theNode != null)
 				{
 					PrimitiveNodeSize npSize = theNode.getPrimitiveDependentNodeSize(null);
 					if (npSize != null)
 					{
 						selectedMsg += " (size=";
-                        selectedMsg += npSize.getWidthInString();
+						selectedMsg += npSize.getWidthInString();
 						selectedMsg += "x";
-                        selectedMsg += npSize.getLengthInString();
+						selectedMsg += npSize.getLengthInString();
 						selectedMsg += ")";
 					} else
 					{
@@ -354,112 +358,115 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 							" x " + TextUtils.formatDistance(ySize, theNode.getProto().getTechnology()) + ")";
 					}
 				}
-            } else
-            {
-                if (nodeCount + arcCount + textCount > 0)
-                {
-                    StringBuffer buf = new StringBuffer();
-                    buf.append("SELECTED:");
-                    if (nodeCount > 0) buf.append(" " + nodeCount + " NODES");
-                    if (arcCount > 0)
-                    {
-                        if (nodeCount > 0) buf.append(",");
-                        buf.append(" " + arcCount + " ARCS");
-                    }
-                    if (textCount > 0)
-                    {
-                        if (nodeCount + arcCount > 0) buf.append(",");
-                        buf.append(" " + textCount + " TEXT");
-                    }
-                    // add on info for last highlight
-                    buf.append(". LAST: "+getSelectedText(lastHighlight));
-                    selectedMsg = buf.toString();
-                }
-            }
-        }
-        fieldSelected.setText(selectedMsg);
-    }
+			} else
+			{
+				if (nodeCount + arcCount + textCount > 0)
+				{
+					StringBuffer buf = new StringBuffer();
+					buf.append("SELECTED:");
+					if (nodeCount > 0) buf.append(" " + nodeCount + " NODES");
+					if (arcCount > 0)
+					{
+						if (nodeCount > 0) buf.append(",");
+						buf.append(" " + arcCount + " ARCS");
+					}
+					if (textCount > 0)
+					{
+						if (nodeCount + arcCount > 0) buf.append(",");
+						buf.append(" " + textCount + " TEXT");
+					}
+					// add on info for last highlight
+					buf.append(". LAST: "+getSelectedText(lastHighlight));
+					selectedMsg = buf.toString();
+				}
+			}
+		}
+		fieldSelected.setText(selectedMsg);
+		fieldSelected.setToolTipText(selectedMsg);
+	}
 
-    private String addLayerInfo(PortProto pp)
-    {
-    	// if the port is on a generic primitive which can connect to everything, say so
-    	PrimitivePort pRp = pp.getBasePort();
-    	if (pRp.getParent().getTechnology().isUniversalConnectivityPort(pRp))
-    		return " [ALL]";
+	private String addLayerInfo(PortProto pp)
+	{
+		// if the port is on a generic primitive which can connect to everything, say so
+		PrimitivePort pRp = pp.getBasePort();
+		if (pRp.getParent().getTechnology().isUniversalConnectivityPort(pRp))
+			return " [ALL]";
 
-        String descr = "";
-        ArcProto [] cons = pp.getBasePort().getConnections();
-        boolean first = true;
-        for(int i=0; i<cons.length; i++)
-        {
-            ArcProto ap = cons[i];
-            if (ap.getTechnology() == Generic.tech()) continue;
-            if (first) descr += " ["; else descr += ",";
-            first = false;
-            descr += cons[i].getName();
-        }
-        if (!first) descr += "]";
-        return descr;
-    }
+		String descr = "";
+		ArcProto [] cons = pp.getBasePort().getConnections();
+		boolean first = true;
+		for(int i=0; i<cons.length; i++)
+		{
+			ArcProto ap = cons[i];
+			if (ap.getTechnology() == Generic.tech()) continue;
+			if (first) descr += " ["; else descr += ",";
+			first = false;
+			descr += cons[i].getName();
+		}
+		if (!first) descr += "]";
+		return descr;
+	}
 
-    /**
-     * Get a String describing the Highlight, to display in the
-     * "Selected" part of the status bar.
-     */
-    private String getSelectedText(Highlight2 h) {
-        PortInst thePort;
-        NodeInst theNode;
-        ArcInst theArc;
-        if (h.isHighlightEOBJ())
-        {
-            ElectricObject eObj = h.getElectricObject();
-            if (eObj instanceof PortInst)
-            {
-                thePort = (PortInst)eObj;
-                theNode = thePort.getNodeInst();
-                String desc = (theNode.isCellInstance())?addLayerInfo(thePort.getPortProto()):"";
+	/**
+	 * Get a String describing the Highlight, to display in the
+	 * "Selected" part of the status bar.
+	 */
+	private String getSelectedText(Highlight2 h)
+	{
+		PortInst thePort;
+		NodeInst theNode;
+		ArcInst theArc;
+		if (h.isHighlightEOBJ())
+		{
+			ElectricObject eObj = h.getElectricObject();
+			if (eObj instanceof PortInst)
+			{
+				thePort = (PortInst)eObj;
+				theNode = thePort.getNodeInst();
+				String desc = (theNode.isCellInstance())?addLayerInfo(thePort.getPortProto()):"";
 
-                return "NODE: " + theNode.describe(true) +
-                    " PORT: \'" + thePort.getPortProto().getName() + "\'" + desc;
-            } else if (eObj instanceof NodeInst)
-            {
-                theNode = (NodeInst)eObj;
-                return("NODE: " + theNode.describe(true));
-            } else if (eObj instanceof ArcInst)
-            {
-                theArc = (ArcInst)eObj;
+				return "NODE: " + theNode.describe(true) +
+					" PORT: \'" + thePort.getPortProto().getName() + "\'" + desc;
+			} else if (eObj instanceof NodeInst)
+			{
+				theNode = (NodeInst)eObj;
+				return("NODE: " + theNode.describe(true));
+			} else if (eObj instanceof ArcInst)
+			{
+				theArc = (ArcInst)eObj;
 				Netlist netlist = theArc.getParent().acquireUserNetlist();
 				if (netlist == null)
-                    return("netlist exception! try again");
-	            if (!theArc.isLinked())
-	                return("netlist exception! try again. ArcIndex = -1");
+					return("netlist exception! try again");
+				if (!theArc.isLinked())
+					return("netlist exception! try again. ArcIndex = -1");
 				Network net = netlist.getNetwork(theArc, 0);
 				String netMsg = (net != null) ? "NETWORK: "+net.describe(true)+ ", " : "";
 				return netMsg + "ARC: " + theArc.describe(true);
-            }
-        } else if (h.isHighlightText())
-        {
-        	String descr = "TEXT: " + h.describe();
+			}
+		} else if (h.isHighlightText())
+		{
+			String descr = "TEXT: " + h.describe();
 			if (h.getVarKey() == Export.EXPORT_NAME && h.getElectricObject() instanceof Export)
 			{
 				Export e = (Export)h.getElectricObject();
-                descr += addLayerInfo(e.getOriginalPort().getPortProto());
+				descr += addLayerInfo(e.getOriginalPort().getPortProto());
 			}
-        	return descr;
-        }
-        return null;
-    }
+			return descr;
+		}
+		return null;
+	}
 
-    /**
-     * Call when done with this Object. Cleans up references to this object.
-     */
-    public void finished() {
-        if (!TopLevel.isMDIMode() && frame.getContent().getHighlighter() != null)
-            Highlighter.removeHighlightListener(this);
-        UserInterfaceMain.removeDatabaseChangeListener(this);
-    }
+	/**
+	 * Call when done with this Object. Cleans up references to this object.
+	 */
+	public void finished()
+	{
+		if (!TopLevel.isMDIMode() && frame.getContent().getHighlighter() != null)
+			Highlighter.removeHighlightListener(this);
+		UserInterfaceMain.removeDatabaseChangeListener(this);
+	}
 
-    public void databaseChanged(DatabaseChangeEvent e) {
-        redoStatusBar();
-    }
+	public void databaseChanged(DatabaseChangeEvent e) {
+		redoStatusBar();
+	}
 }
