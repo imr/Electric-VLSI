@@ -6,43 +6,39 @@
 <!-- COMMAND File/Import/User Preferences... -->
 <!-- COMMAND File/Import/Project Preferences... -->
 
-<TABLE><TR><TD><CENTER><IMG SRC="fig06-07.png" ALT="Figure 6.7"></CENTER></TD><TD>
+<TABLE><TR><TD>
 All preferences in Electric are controlled with the <B>Preferences...</B> command (in menu <B>File</B>).
 You can also get Preferences with this icon on the tool bar.
-</TD></TR></TABLE>
+</TD><TD><CENTER><IMG SRC="fig06-07.png" ALT="Figure 6.7"></CENTER></TD></TR></TABLE>
 <P>
-Theis dialog has two panels for controlling different aspects of the system.
-The differences between these two panels is:
+This dialog has a central panel with a tree-structured list of all of the preferences,
+and two panels on the left and right for setting the <I>Project</I> and <I>User</I> aspects of the preferences.
+If a particular preference has no User or Project part, that panel does not appear.
+The differences between User and Project preferences is:
 <UL>
-<LI><B>User Preferences</B> affect the user's interaction with the system.
+<LI><B>User Preferences</B> (on the right) affect the user's interaction with the system.
 Examples are printer control, display colors, and keyboard bindings.
 Each user may have different preferences, and it does not impact the design being done.</LI>
-<LI><B>Project Preferences</B> affect the actual circuitry being edited
+<LI><B>Project Preferences</B> (on the left) affect the actual circuitry being edited
 (and so should be the same for every user who is editing that circuitry).
 Examples are GDS layer mappings and technology scaling.</LI>
 </UL>
 <P>
-<CENTER><IMG SRC="fig06-24.png" ALT="Figure 6.24"></CENTER>
-<P>
-The center of the Preferences dialog is a tree-structured list of all of its
-different panels.
-The left and right sides are the actual panels, with the User Preferences appearing on the right
-and the Project Preferences appearing on the left.
-If a particular preference has no User or Project part, that panel does not appear.
-Use the "Help" button to see the page in the user's manual that explains the current panel.
+<CENTER><IMG SRC="fig07-26.png" ALT="Figure 7.26"></CENTER>
 <P>
 The Preferences dialog is modeless, meaning that it can remain on the screen while other work is done.
 For this reason, the dialog has an "Apply" button so that changes can be made without dismissing
 the dialog.
 The Preferences dialog also has "Export" and "Import" buttons for saving Preferences to an XML file
 (this function is also available from the <B>File / Import</B> and <B>File / Export</B> menus).
+Use the "Help" button to see the page in the user's manual that explains the current panel.
 Finally, the Preferences dialog has a "Reset" button for resetting the current User Preferences panel to its
 factory-default state, and a "Reset All" button for resetting all User Preferences to their factory-default state.
 Note that Project Preferences are not affected by the reset buttons.
 <P>
 <H4>Where Preferences Are Stored</H4>
 <P>
-User Preferences are stored permanently on your computer and are remembered each time you run Electric.
+All Preferences are stored permanently on your computer and are remembered each time you run Electric.
 The actual location of this information varies with each operating system.
 <UL>
 <LI><B>Windows:</B>
@@ -57,24 +53,23 @@ In your home directory, under Library/Preferences.  Look at: ~/Library/Preferenc
 </UL>
 You can delete the appropriate data to reset Electric to its "factory" state.
 <P>
-You can export your preferences to disk for ease of saving and transporting.
-Use the "Export" button in the dialog,
-or with the <B>Preferences...</B> command (in menu <B>File / Export</B>).
-These will write an XML file with preference information.
-This XML file can be read back into Electric's preferences with the
-"Import" button, or with the <B>Preferences...</B> command (in menu <B>File / Import</B>).
+To save your preferences to disk, for saving and transporting to other systems,
+use the "Export" button in the Preferences dialog,
+or use the <B>Preferences...</B> commands (in menu <B>File / Export</B>).
+This will write an XML file with preference information which
+can be read back into Electric with the
+"Import" button, or the <B>Preferences...</B> commands (in menu <B>File / Import</B>).
 <P>
-Project Preferences are stored permanently on your computer in the same place as User Preferences.
-However, they are also saved with your circuitry so that the values will be correct when
+Project Preferences are also saved with your circuitry so that the values will be correct when
 the circuits are read back in.
 <P>
-By default, project preferences are saved in each library that is saved to disk.
+By default, project preferences are saved in each library that is written to disk.
 However, for multiple-library projects, this can be troublesome if some libraries have
 different preferences than others.
 The solution is to create a file, in the same directory as the libraries, called "projsettings.xml".
-If this file exists, then preferences are taken from it (and ignored if found in the libraries).
+If this file exists, then preferences are taken from it (and ignored in the libraries).
 To write this file, use the <B>Project Preferences...</B> command (in menu <B>File / Export</B>).
-To override current settings and explicitly read a project settings file, use the
+To override current settings and explicitly read a project preferences file, use the
 <B>Project Preferences...</B> command (in menu <B>File / Import</B>).
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig07-19.png" ALT="Figure 7.19"></CENTER></TD><TD>

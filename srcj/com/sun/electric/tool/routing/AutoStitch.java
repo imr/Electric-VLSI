@@ -2712,7 +2712,7 @@ name=null;
 			netlist = cell.acquireUserNetlist();
 			if (netlist == null)
 			{
-				System.out.println("Sorry, a deadlock aborted auto-routing (network information unavailable).  Please try again");
+				System.out.println("Auto-router cannot get netlist information for cell " + cell.describe(false));
 			}
 			connected = new HashMap<Network,Network>();
 		}

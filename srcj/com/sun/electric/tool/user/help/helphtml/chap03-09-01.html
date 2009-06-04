@@ -5,9 +5,9 @@
 <!-- COMMAND File/New Library... -->
 <!-- COMMAND File/Close Library -->
 <!-- COMMAND File/List Libraries -->
+<!-- COMMAND File/Check Libraries/Find Unused Library Files -->
 <!-- COMMAND Help/Load Built-in Libraries/MOSIS CMOS Pads -->
 <!-- COMMAND Help/Load Built-in Libraries/MIPS Cells -->
-
 
 A <I>library</I> is a collection of cells that forms a consistent hierarchy.
 To enforce this consistency,
@@ -30,6 +30,14 @@ When this happens, the library with the instance
 (the main library) is linked to the library with the actual cell (this is the <I>reference library</I>).
 Because the reference library is needed to complete the main library,
 it will be read whenever the main library is read.
+<P>
+When there are many libraries used in the design of a circuit,
+it may be the case that a consistent set of library files is read into Electric,
+but that there are unused library files that have not been read.
+To detect this situation, use the <B>Find Unused Library Files</B> (in menu <B>File / Check Libraries</B>).
+This command will look for unused library files in the disk directories used by the circuit
+and will report them to you so that the disk can be cleaned-up.
+The command does not delete the library files: that is left to the user.
 <P>
 If referenced libraries are edited independently,
 it is possible that a reference to a cell in another library will not match the actual cell in that library.

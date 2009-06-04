@@ -27,7 +27,9 @@ To see a history of changes that were made, use the
 In Electric, almost every command is undoable, but there are some exceptions.
 Commands that write disk files are not undoable,
 because Electric would not be so presumptuous as to delete a disk file.
-
+Also, commands that read a disk file are undoable, but because users generally do not want to
+remove libraries from memory once read in,
+the system prompts you to be sure that such a large undo is really desired.
 <P>
 Another useful command in for controlling changes being made is
 <B>Repeat Last Action</B> (in menu <B>Edit</B>).

@@ -17,20 +17,25 @@ It is important that Electric know how these values correspond with layers so th
 read and write GDS files.
 You can set the correspondences by using the <B>GDS Map File...</B> command (in menu <B>File / Import</B>)
 to read a GDS map file.
-You can also use the GDS Preferences
-(in menu <B>File / Preferences...</B>, "GDS" tab) to edit the GDS numbers and
-control other aspects of GDS input and output.
 </TD><TD><CENTER><IMG SRC="fig07-17.png" ALT="Figure 7.17"></CENTER></TD></TR></TABLE>
 <P>
-In the GDS ProjectPreferences, the list on the left shows all of the Electric layers in the current technology.
+You can also use the GDS Preferences
+(in menu <B>File / Preferences...</B>, "I/O section, "GDS" tab) to edit the GDS numbers and
+control other aspects of GDS input and output.
+<P>
+<CENTER><IMG SRC="fig07-27.png" ALT="Figure 7.27"></CENTER>
+<P>
+<H4>Project Preferences</H4>
+<P>
+The left side of the dialog shows the Project Preferences which control the mapping
+of GDS layer numbers to Electric layers.
+The list on the left shows all of the Electric layers in the current technology.
 By clicking on a layer name, its GDS numbers are shown in the top-right and can be edited.
 In addition to GDS numbers to use for layout, there are also two other types of GDS numbers:
 <I>pin</I> (for exports) and <I>text</I> (for export names).
 To ignore a layer, clear the layer field (it is not sufficient to set it to zero...it must be blank).
 <P>
-<CENTER><IMG SRC="fig07-27.png" ALT="Figure 7.27"></CENTER>
-<P>
-These dialog elements apply to writing GDS:
+These dialog elements apply to the export of GDS:
 <UL>
 <LI>
 "Output merges Boxes".
@@ -67,42 +72,49 @@ Names longer than this are truncated, and adjusted to ensure uniqueness.
 This is the layer number to use when writing text.
 When exports are being written, and there is a text layer number associated with the appropriate Electric layer,
 then that layer number is used instead of this default number.</LI>
+</UL>
+This dialog element applies to the import of GDS:
+<UL>
 <LI>"Scale by".
 This scales the GDS by the given factor when read from disk.</LI>
 </UL>
 <P>
-<TABLE><TR><TD>
-You can also use the GDS Preferences
-(in menu <B>File / Preferences...</B>, "I/O" section, "GDS" tab) to control GDS input and output.
-</TD><TD><CENTER><IMG SRC="fig07-12.png" ALT="Figure 7.12"></CENTER></TD></TR></TABLE>
+<H4>User Preferences</H4>
 <P>
-<!-- NEED 2in -->
-These dialog elements are available in the GDS Preferences:
+These dialog elements are available on the right side (the GDS User Preferences):
 <UL>
-<LI>"Input merges boxes (slow)".
+<LI>"Merge boxes (slow)".
 This requests GDS input to combine overlapping boxes into complex polygons.
 It takes more time, but produces a more compact database.</LI>
-<LI>"Input includes text".
+<LI>"Include text".
 Text annotations in the GDS file can often clutter the display, so they are ignored during input.
 If you check this item, annotation text will be read and displayed.</LI>
-<LI>"Input expands cells".
+<LI>"Expand cells".
 This controls whether cell instances are expanded or not in the Electric circuit.
 By default, cell instances are not expanded (they appear as a simple box).
 If you check this item, cells are expanded so that their contents are displayed.
 Expansion of cells can always be changed after reading GDS by using the subcommands of the <B>Expand Cell Instances</B>
 and <B>Unexpand Cell Instances</B> commands of the <B>Cells</B> menu.</LI>
-<LI>"Input instantiates arrays".
+<LI>"Simplify contact vias".
+This requests GDS input to find combinations of metal and via cuts and replace them with Electric contacts.
+It takes time, and may simplify some GDS.</LI>
+<LI>"Use NCC annotations for exports".
+The network consistency checker (NCC)
+allows special circuit annotations to join two networks
+(see <A HREF="chap09-07-04.html#chap09-07-04">Section 9-7-4</A>).
+For example, two separate power networks may be joined higher in the circuit hierarchy,
+and the NCC needs to know this at the current level of design.
+This checkbox requests that the NCC annotations be used when exporting GDS.
+It enables external circuit analysis programs (such as Assura) to properly understand the circuit connectivity.</LI>
+<LI>"Collapse VDD/GND pin names".
+Requests that all names starting with "VDD" or "GND" be merged into a single power or ground signal.
+</LI>
+<LI>"Instantiate arrays".
 This controls whether or not arrays in the GDS file are instantiated.
 By default, arrays are instantiated fully, but this can consume excessive amounts of memory if there are large arrays.
 If you uncheck this item, only the upper-left and lower-right instance are actually placed.</LI>
-<LI>"Input ignores unknown layers".
-This controls whether unknown layers in the GDS file will be ignored, or placed in the circuit.
-By default, unknown layers appear as DRC-Nodes (special nodes used to indicate DRC errors, which appear as orange squares).
-By checking this item, the unknown layers are simply ignored.</LI>
-<LI>"Input simplifies contact vias".
-This requests GDS input to find combinations of metal and via cuts and replace them with Electric contacts.
-It takes time, and may simplify some GDS.</LI>
-<LI>"Input array simplification".
+
+<LI>"Array simplification".
 This controls the simplification of special "array reference" objects in GDS.
 When an array of cell instances is found, and each cell instance contains a single piece of geometry,
 Electric can simplify the array specification so that a single pure-layer node is created instead
@@ -115,17 +127,12 @@ and "Merge all arrays" in which multiple array references are combined so that a
 is place for each layer in the cell, regardless of the number of array references that are used.
 This last choice can produce highly-complex pure-layer nodes, but is fastest and uses the least amount of memory.
 </LI>
-<LI>"Use NCC annotations for exports".
-The network consistency checker (NCC)
-allows special circuit annotations to join two networks
-(see <A HREF="chap09-07-04.html#chap09-07-04">Section 9-7-4</A>).
-For example, two separate power networks may be joined higher in the circuit hierarchy,
-and the NCC needs to know this at the current level of design.
-This checkbox requests that the NCC annotations be used when exporting GDS.
-It enables external circuit analysis programs (such as Assura) to properly understand the circuit connectivity.</LI>
-<LI>"Collapse VDD/GND pin names".
-Requests that all names starting with "VDD" or "GND" be merged into a single power or ground signal.
-</LI>
+<LI>"Unknown layers".
+This controls how unknown layers in the GDS file are treated.
+The default is "Convert to DRC Exclusion layer" which creates an orange DRC-Node wherever an unknown layers appears.
+If you set this to "Ignore", the unknown layers are simply ignored.
+A final choice is "Convert to random layer" which picks a different layer in the technology for each unknown GDS layer number.
+This allows the distinction between layers to be seen, even if the correct layer associations are not known.</LI>
 </UL>
 
 <!-- TRAILER -->

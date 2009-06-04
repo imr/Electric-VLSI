@@ -163,7 +163,6 @@ public class ScaleTab extends PreferencePanel
         unitsScaleValue = new javax.swing.JTextField();
         jLabel11 = new javax.swing.JLabel();
         unitsAlternateScale = new javax.swing.JLabel();
-        jLabel1 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -222,15 +221,6 @@ public class ScaleTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         scale.add(unitsAlternateScale, gridBagConstraints);
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 11));
-        jLabel1.setText("NOTE: All scale values are Project Preferences");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(8, 4, 0, 4);
-        scale.add(jLabel1, gridBagConstraints);
-
         getContentPane().add(scale, new java.awt.GridBagConstraints());
 
         pack();
@@ -244,7 +234,6 @@ public class ScaleTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JPanel scale;

@@ -35,24 +35,27 @@ These pieces of text can be manipulated like any other text object
 For an example of Verilog layout and code, look at the cell "tool-SimulateVERILOG" in the Samples library
 (get this library with the <B>Sample Cells</B> command, in menu <B>Help / Load Built-in Libraries</B>).
 <P>
-<TABLE><TR><TD>
 Additional control of Verilog deck generation is accomplished with the
-Verilog Preferences (in menu <B>File / Preferences...</B>, "Verilog" tab).
-A checkbox lets you choose whether or not to use the Verilog "assign" construct.
-You can control the type of Verilog declaration that will be used for wires ("wire" by default, "trireg" if checked).
+Verilog Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Verilog" tab).
+<P>
+<CENTER><IMG SRC="fig09-07.png" ALT="Figure 9.7"></CENTER>
+<P>
+The left side is the Verilog Project Preferences which has two controls:
+<UL>
+<LI>"Use ASSIGN Construct" lets you choose whether or not to use the Verilog "assign" construct.</LI>
+<LI>"Default wire is Trireg" lets you control the type of Verilog declaration that will be used for wires ("wire" by default, "trireg" if checked).
 Note that this can be overridden with the <B>Set Verilog Wire</B> command (in menu <B>Tools / Simulation (Verilog)</B>).
+</LI>
+</UL>
 <P>
 Another property that can be assigned to transistors is their strength.
 The <B>Weak</B> command (in menu <B>Tools / Simulation (Verilog) / Transistor Strength</B>)
 sets the transistor to be weak.
 The <B>Normal</B> command restores the transistor to be normal strength.
-</TD><TD><CENTER><IMG SRC="fig09-07.png" ALT="Figure 9.7"></CENTER></TD></TR></TABLE>
 <P>
 <!-- NEED 3in -->
 Still more control of Verilog deck generation is accomplished with the
-Verilog Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Verilog" tab).
-<P>
-<TABLE><TR><TD><CENTER><IMG SRC="fig09-64.png" ALT="Figure 9.64"></CENTER></TD><TD>
+Verilog User Preferences in the right side of the dialog.
 <UL>
 <LI>"Do not netlist Standard Cells" writes a netlist that excludes Standard Cells.
 Any cell marked as a Standard Cell will be netlisted only as instances,

@@ -45,10 +45,13 @@ Non-transparent layers (with "Transparency: none") are opaque, so they obscure a
 In general, the most commonly used layers should be transparent.
 See <A HREF="chap04-06-01.html#chap04-06-01">Section 4-6-1</A> for more information on transparency.
 <P>
-The "Style" entry on the right can be "solid", "patterned",
-or "patterned/outline" to indicate how that layer will be appear.
+The "Style" entry on the right can be "solid" or "patterned",
+with varying outline types around the pattern
+("None", "Solid", "Solid-Thick", "Solid-Thicker", "Dotted-Close", "Dotted-Far",
+"Dashed-Short", "Dashed-Long", "Dotted-Dashed-Short", "Dotted-Dashed-Long",
+"Dotted-Close-Thick", "Dotted-Far-Thick", "Dashed-Thick", "Dotted-Close-Thicker", "Dotted-Far-Thicker").
+The "Style" can also specify printer patterns "PRINTER-Solid" and "PRINTER-Patterned".
 When using "solid" styles, the 16x16 stipple pattern is ignored (except for hardcopy).
-The "patterned/outline" option draws a solid line around all patterned polygons.
 Transparent layers should be solid because they distinguish themselves in the color map.
 Layers with opaque colors should probably be patterned so that their combination is visible.
 <P>
