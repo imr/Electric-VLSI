@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+IMP: (6/4/09, GVG) A different spacing rule for well in 40P (Bug #2183)
+
 FIX: (6/4/09, JKG) Changed tsmcsun40GP tech to use minimum spacing rule instead of
    recommended spacing rule for poly (PO.S.1)
 
