@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09k: ******************************
 
+FIX: (6/4/09, JKG) Changed tsmcsun40GP tech to use minimum spacing rule instead of
+   recommended spacing rule for poly (PO.S.1)
+
 IMP: (6/4/09, DN) Make GraphicsPreferences serializable.
 
 BUG: (6/4/09, DN) The "current cell" is not available while running a Job.
