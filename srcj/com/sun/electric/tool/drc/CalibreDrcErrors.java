@@ -348,6 +348,7 @@ public class CalibreDrcErrors {
         for (Iterator<DrcRuleViolation> it = ruleViolations.iterator(); it.hasNext(); ) {
             DrcRuleViolation v = it.next();
             String ruleDesc = v.header.comment.toString().replaceAll("\\n", ";");
+            if (!ruleDesc.contains(v.ruleNumber)) ruleDesc = v.ruleNumber + ": " + ruleDesc;
             int y = 1;
             for (Iterator<DrcError> it2 = v.errors.iterator(); it2.hasNext(); ) {
                 DrcError drcError = it2.next();
@@ -387,12 +388,12 @@ public class CalibreDrcErrors {
     // -----------------------------------------------------------------------------
 
     private static class DrcRuleViolation {
-//        private final String ruleNumber;
+        private final String ruleNumber;
         private final Header header;
         private final List<DrcError> errors;              // list of DrcErrors
 
         private DrcRuleViolation(String ruleNumber, Header header) {
-//            this.ruleNumber = ruleNumber;
+            this.ruleNumber = ruleNumber;
             this.header = header;
             this.errors = new ArrayList<DrcError>();
         }
