@@ -310,7 +310,7 @@ public class TechEditWizardData
     private LayerInfo gds_marking_layer = new LayerInfo("Marking");		// Device marking layer
 
     // extra layers
-    private List<LayerInfo> extraLayers = new ArrayList<LayerInfo>();
+    private List<LayerInfo> extraLayers;
 
     LayerInfo[] getBasicLayers()
     {
@@ -365,6 +365,7 @@ public class TechEditWizardData
         }
 
         // extra layers
+        extraLayers = new ArrayList<LayerInfo>();
 
     }
 
@@ -633,7 +634,13 @@ public class TechEditWizardData
     public boolean importData(String fileName)
     {
         URL url = TextUtils.makeURLToFile(fileName);
-		try
+
+        // clean arrays first
+        metalContacts.clear();
+        otherContacts.clear();
+        extraLayers.clear();
+        
+        try
 		{
 			URLConnection urlCon = url.openConnection();
 			InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
@@ -1832,7 +1839,6 @@ public class TechEditWizardData
                         0x2020,   //   X       X
                         0x1010,   //    X       X
                         0x0808}; //     X       X
-        int cifNumber = 0;
 
         for (int i = 0; i < num_metal_layers; i++)
         {
