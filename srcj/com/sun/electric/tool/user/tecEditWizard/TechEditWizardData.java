@@ -212,6 +212,7 @@ public class TechEditWizardData
         String graphicsTemplate; // uses other template for the graphics
         Color graphicsColor; // uses this color with no fill
         EGraphics.Outline graphicsOutline; // uses this outline with graphicsColor
+        int [] graphicsPattern; // uses this pattern with graphicsColor
 
         LayerInfo(String n)
         {
@@ -237,7 +238,7 @@ public class TechEditWizardData
             {
                 StringTokenizer p = new StringTokenizer(s, ", []", false);
                 int[] colors = new int[3];
-                String outlineName = EGraphics.Outline.NOPAT.name(); // defailt
+                String outlineOrPattern = null; // EGraphics.Outline.NOPAT.name(); // default
                 int itemCount = 0;
                 while (p.hasMoreTokens())
                 {
@@ -245,11 +246,39 @@ public class TechEditWizardData
                     if (itemCount < 3)
                         colors[itemCount++] = Integer.parseInt(str);
                     else
-                        outlineName = str;
+                        outlineOrPattern = str;
                     assert(itemCount < 4);
                 }
+
+                EGraphics.Outline outline = EGraphics.Outline.findOutline(EGraphics.Outline.NOPAT.name());
+                int[] pattern = new int[16];
+
                 graphicsColor = new Color(colors[0], colors[1], colors[2]);
-                graphicsOutline = EGraphics.Outline.findOutline(outlineName);
+                if (outlineOrPattern != null)
+                {
+                    EGraphics.Outline out = EGraphics.Outline.findOutline(outlineOrPattern);
+                    if (out != null) // manages to parse a valid Outline
+                        outline = out;
+                    else
+                    {
+                        assert(outlineOrPattern.startsWith("{"));
+
+                        // Pattern information
+                        // {32896/16448/8224/4112/2056/1028/514/257/32896/16448/8224/4112/2056/1028/514/257}
+                        StringTokenizer pat = new StringTokenizer(outlineOrPattern, "/ {}", false);
+                        int count = 0;
+                        while (pat.hasMoreTokens())
+                        {
+                            String str = pat.nextToken();
+                            int num = Integer.parseInt(str);
+                            assert(count < 16);
+                            pattern[count++] = num;
+                        }
+                        assert(count == 16);
+                    }
+                }
+                graphicsOutline = outline;
+                graphicsPattern = pattern;
             }
             else
                 graphicsTemplate = s;
@@ -274,7 +303,7 @@ public class TechEditWizardData
     private LayerInfo gds_poly_layer = new LayerInfo("Poly");
     private LayerInfo gds_nplus_layer = new LayerInfo("NPlus");
 	private LayerInfo gds_pplus_layer = new LayerInfo("PPlus");
-	private LayerInfo gds_nwell_layer = new LayerInfo("NWell");
+	private LayerInfo gds_nwell_layer = new LayerInfo("N-Well");
 	private LayerInfo gds_contact_layer = new LayerInfo("Contact");
 	private LayerInfo [] gds_metal_layer;
 	private LayerInfo [] gds_via_layer;
@@ -750,11 +779,10 @@ public class TechEditWizardData
 
 					if (varName.equalsIgnoreCase("gds_diff_layer")) gds_diff_layer.setData(getGDSValuesFromString(varValue)); else
 					if (varName.equalsIgnoreCase("gds_poly_layer")) gds_poly_layer.setData(getGDSValuesFromString(varValue)); else
-//                    if (varName.equalsIgnoreCase("gds_sr_dpo_layer")) gds_sr_dpo_layer.setData(getGDSValuesFromString(varValue)); else
                     if (varName.equalsIgnoreCase("gds_nplus_layer")) gds_nplus_layer.setData(getGDSValuesFromString(varValue)); else
 					if (varName.equalsIgnoreCase("gds_pplus_layer")) gds_pplus_layer.setData(getGDSValuesFromString(varValue)); else
 					if (varName.equalsIgnoreCase("gds_nwell_layer")) gds_nwell_layer.setData(getGDSValuesFromString(varValue)); else
-					if (varName.equalsIgnoreCase("gds_contact_layer")) gds_contact_layer.setData(getGDSValuesFromString(varValue)); else
+                    if (varName.equalsIgnoreCase("gds_contact_layer")) gds_contact_layer.setData(getGDSValuesFromString(varValue)); else
 					if (varName.equalsIgnoreCase("gds_metal_layer")) gds_metal_layer = makeLayerInfoArray(varValue, num_metal_layers, "Metal-"); else
 					if (varName.equalsIgnoreCase("gds_via_layer")) gds_via_layer = makeLayerInfoArray(varValue, num_metal_layers - 1, "Via-"); else
                     if (varName.equalsIgnoreCase("gds_marking_layer")) gds_marking_layer.setData(getGDSValuesFromString(varValue)); else
@@ -1263,7 +1291,7 @@ public class TechEditWizardData
 		pw.println("$gds_nplus_layer = " + gds_nplus_layer + ";");
 		pw.println("$gds_pplus_layer = " + gds_pplus_layer + ";");
 		pw.println("$gds_nwell_layer = " + gds_nwell_layer + ";");
-		pw.println("$gds_contact_layer = " + gds_contact_layer + ";");
+        pw.println("$gds_contact_layer = " + gds_contact_layer + ";");
 		pw.print("@gds_metal_layer = (");
 		for(int i=0; i<num_metal_layers; i++)
 		{
@@ -1563,10 +1591,10 @@ public class TechEditWizardData
     }
 
     private Xml.Layer makeXmlLayer(List<Xml.Layer> layers, Map<Xml.Layer, WizardField> layer_width, String name,
-                                   Layer.Function function, int extraf, EGraphics graph, char cifLetter,
+                                   Layer.Function function, int extraf, EGraphics graph,
                                    WizardField width, boolean pureLayerNode, boolean pureLayerPortArc)
     {
-        Xml.Layer l = makeXmlLayer(layers, name, function, extraf, graph, cifLetter, width.v, pureLayerNode, pureLayerPortArc);
+        Xml.Layer l = makeXmlLayer(layers, name, function, extraf, graph, width.v, pureLayerNode, pureLayerPortArc);
         layer_width.put(l, width);
         return l;
     }
@@ -1576,7 +1604,7 @@ public class TechEditWizardData
      * @return
      */
     private Xml.Layer makeXmlLayer(List<Xml.Layer> layers, String name,
-                                   Layer.Function function, int extraf, EGraphics graph, char cifLetter,
+                                   Layer.Function function, int extraf, EGraphics graph,
                                    double width, boolean pureLayerNode, boolean pureLayerPortArc)
     {
         Xml.Layer l = new Xml.Layer();
@@ -1956,7 +1984,7 @@ public class TechEditWizardData
                 throw new IOException("invalid number of metals");
             String metalName = "Metal-"+metalNum;
             Xml.Layer layer = makeXmlLayer(t.layers, layer_width, metalName, fun, 0, graph,
-                (char)('A' + cifNumber++), metal_width[i], true, true);
+                metal_width[i], true, true);
             metalLayers.add(layer);
 
             if (getExtraInfoFlag())
@@ -1964,13 +1992,13 @@ public class TechEditWizardData
                 // dummy layers
                 graph = new EGraphics(true, true, null, tcol, r, g, b, opacity, false, nullPattern);
                 layer = makeXmlLayer(t.layers, "DMY-"+metalName, Layer.Function.getDummyMetal(metalNum), 0, graph,
-                (char)('A' + cifNumber), 5*metal_width[i].v, true, false);
+                    5*metal_width[i].v, true, false);
                 dummyMetalLayers.add(layer);
 
                 // exclusion layers for metals
                 graph = new EGraphics(true, true, null, tcol, r, g, b, opacity, true, dexclPattern);
                 layer = makeXmlLayer(t.layers, "DEXCL-"+metalName, Layer.Function.getDummyExclMetal(i), 0, graph,
-                (char)('A' + cifNumber), 2*metal_width[i].v, true, false);
+                    2*metal_width[i].v, true, false);
                 exclusionMetalLayers.add(layer);
             }
         }
@@ -1990,24 +2018,24 @@ public class TechEditWizardData
             if (fun == null)
                 throw new IOException("invalid number of vias");
             viaLayers.add(makeXmlLayer(t.layers, layer_width, "Via-"+metalNum, fun, Layer.Function.CONMETAL,
-                graph, (char)('A' + cifNumber++), via_size[i], true, false));
+                graph, via_size[i], true, false));
         }
 
         // Poly
         String polyN = gds_poly_layer.name;
         EGraphics graph = new EGraphics(false, false, null, 1, 0, 0, 0, 1, true, nullPattern);
         Xml.Layer polyLayer = makeXmlLayer(t.layers, layer_width, polyN, Layer.Function.POLY1, 0, graph,
-            (char)('A' + cifNumber++), poly_width, true, true);
+            poly_width, true, true);
         // PolyGate
         Xml.Layer polyGateLayer = makeXmlLayer(t.layers, layer_width, polyN+"Gate", Layer.Function.GATE, 0, graph,
-            (char)('A' + cifNumber++), poly_width, true, false); // false for the port otherwise it won't find any type
+            poly_width, true, false); // false for the port otherwise it won't find any type
 
         if (getExtraInfoFlag())
         {
             // exclusion layer poly
             graph = new EGraphics(true, true, null, 1, 0, 0, 0, 1, true, dexclPattern);
             Xml.Layer exclusionPolyLayer = makeXmlLayer(t.layers, "DEXCL-"+polyN, Layer.Function.DEXCLPOLY1, 0, graph,
-            (char)('A' + cifNumber), 2*poly_width.v, true, false);
+                2*poly_width.v, true, false);
             makeLayerGDS(t, exclusionPolyLayer, "150/21");
         }
 
@@ -2016,28 +2044,28 @@ public class TechEditWizardData
             contact_colour.getBlue(), 0.5, true, nullPattern);
         // PolyCon
         Xml.Layer polyConLayer = makeXmlLayer(t.layers, layer_width, "Poly-Cut", Layer.Function.CONTACT1,
-            Layer.Function.CONPOLY, graph, (char)('A' + cifNumber++), contact_size, true, false);
+            Layer.Function.CONPOLY, graph, contact_size, true, false);
         // DiffCon
         Xml.Layer diffConLayer = makeXmlLayer(t.layers, layer_width, gds_diff_layer.name+"-Cut", Layer.Function.CONTACT1,
-            Layer.Function.CONDIFF, graph, (char)('A' + cifNumber++), contact_size, true, false);
+            Layer.Function.CONDIFF, graph, contact_size, true, false);
 
         // P-Diff and N-Diff
         graph = new EGraphics(false, false, null, 2, 0, 0, 0, 1, true, nullPattern);
         // N-Diff
         Xml.Layer diffNLayer = makeXmlLayer(t.layers, layer_width, "N-"+gds_diff_layer.name, Layer.Function.DIFFN, 0, graph,
-            (char)('A' + cifNumber++), diff_width, true, true);
+            diff_width, true, true);
         // P-Diff
         Xml.Layer diffPLayer = makeXmlLayer(t.layers, layer_width, "P-"+gds_diff_layer.name, Layer.Function.DIFFP, 0, graph,
-            (char)('A' + cifNumber++), diff_width, true, true);
+            diff_width, true, true);
 
         if (getExtraInfoFlag())
         {
             // exclusion layer N/P diff
             graph = new EGraphics(true, true, null, 2, 0, 0, 0, 1, true, dexclPattern);
             Xml.Layer exclusionDiffPLayer = makeXmlLayer(t.layers, "DEXCL-P-"+gds_diff_layer.name, Layer.Function.DEXCLDIFF, 0, graph,
-            (char)('A' + cifNumber), 2*diff_width.v, true, false);
+                2*diff_width.v, true, false);
             Xml.Layer exclusionDiffNLayer = makeXmlLayer(t.layers, "DEXCL-N-"+gds_diff_layer.name, Layer.Function.DEXCLDIFF, 0, graph,
-            (char)('A' + cifNumber), 2*diff_width.v, true, false);
+                2*diff_width.v, true, false);
             makeLayerGDS(t, exclusionDiffPLayer, "150/20");
             makeLayerGDS(t, exclusionDiffNLayer, "150/20");
         }
@@ -2095,32 +2123,50 @@ public class TechEditWizardData
                         0x2020,   //   X       X
                         0x0000};   //
 
+        int[] patternSparseDots = new int[] {
+                        0x0200,   //       X
+                        0x0000,   //
+                        0x0020,   //           X
+                        0x0000,   //
+                        0x0002,   //               X
+                        0x0000,   //
+                        0x2000,   //   X
+                        0x0000,   //
+                        0x0200,   //       X
+                        0x0000,   //
+                        0x0020,   //           X
+                        0x0000,   //
+                        0x0002,   //               X
+                        0x0000,   //
+                        0x2000,   //   X
+                        0x0000};   //
+
         // NPlus
         graph = new EGraphics(true, true, null, 0, nplus_colour.getRed(), nplus_colour.getGreen(),
             nplus_colour.getBlue(), 1, true, patternSlash);
-        Xml.Layer nplusLayer = makeXmlLayer(t.layers, layer_width, "NPlus", com.sun.electric.technology.Layer.Function.IMPLANTN, 0, graph,
-            (char)('A' + cifNumber++), nplus_width, true, false);
+        Xml.Layer nplusLayer = makeXmlLayer(t.layers, layer_width, gds_nplus_layer.name, Layer.Function.IMPLANTN, 0, graph,
+            nplus_width, true, false);
         // PPlus
         graph = new EGraphics(true, true, null, 0, pplus_colour.getRed(), pplus_colour.getGreen(),
             pplus_colour.getBlue(), 1, true, patternDots);
-        Xml.Layer pplusLayer = makeXmlLayer(t.layers, layer_width, "PPlus", Layer.Function.IMPLANTP, 0, graph,
-            (char)('A' + cifNumber++), pplus_width, true, false);
+        Xml.Layer pplusLayer = makeXmlLayer(t.layers, layer_width, gds_pplus_layer.name, Layer.Function.IMPLANTP, 0, graph,
+            pplus_width, true, false);
 
         // N-Well
         graph = new EGraphics(true, true, null, 0, nwell_colour.getRed(), nwell_colour.getGreen(),
             nwell_colour.getBlue(), 1, true, patternDots);
-        Xml.Layer nwellLayer = makeXmlLayer(t.layers, layer_width, "N-Well", Layer.Function.WELLN, 0, graph,
-            (char)('A' + cifNumber++), nwell_width, true, false);
+        Xml.Layer nwellLayer = makeXmlLayer(t.layers, layer_width, gds_nwell_layer.name, Layer.Function.WELLN, 0, graph,
+            nwell_width, true, false);
         // P-Well
         graph = new EGraphics(true, true, null, 0, nwell_colour.getRed(), nwell_colour.getGreen(),
             nwell_colour.getBlue(), 1, true, patternBackSlash);
         Xml.Layer pwellLayer = makeXmlLayer(t.layers, layer_width, "P-Well", Layer.Function.WELLP, 0, graph,
-            (char)('A' + cifNumber++), nwell_width, true, false);
+            nwell_width, true, false);
 
-        graph = new EGraphics(false, false, null, 0, 255, 0, 0, 0.4, true, nullPattern);
         // DeviceMark
+        graph = new EGraphics(false, false, null, 0, 255, 0, 0, 0.4, true, nullPattern);
         Xml.Layer deviceMarkLayer = makeXmlLayer(t.layers, layer_width, "DeviceMark", Layer.Function.CONTROL, 0, graph,
-            (char)('A' + cifNumber++), nplus_width, true, false);
+            nplus_width, true, false);
 
         // Extra layers
         if (getExtraInfoFlag())
@@ -2148,13 +2194,13 @@ public class TechEditWizardData
                 {
                     graph = new EGraphics(true, true, info.graphicsOutline, 0,
                         info.graphicsColor.getRed(), info.graphicsColor.getGreen(), info.graphicsColor.getBlue(),
-                        1, true, nullPattern);
+                        1, true, info.graphicsPattern);
                 }
                 if (graph == null)
                     graph = new EGraphics(false, false, null, 0, 255, 0, 0, 0.4, true, nullPattern);
 
                 Xml.Layer layer = makeXmlLayer(t.layers, layer_width, info.name, Layer.Function.ART, 0, graph,
-                    (char)('A' + cifNumber++), nplus_width, true, false);
+                    nplus_width, true, false);
                 makeLayerGDS(t, layer, String.valueOf(info));
             }
         }

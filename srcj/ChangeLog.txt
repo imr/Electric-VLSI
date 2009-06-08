@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09l: ******************************
 
+IMP/MAN: (6/08/09, GVG) Adding deep well in 40nm technology (part of Bug #2212).
+Ability to define patterns in tech editor wizard.
+
 BUG: (6/8/09, DN) Some artwork arcs drawn incorrectly (Bug #2213).
 FIX: In AbstractShapeBuilder.transformDoubleCoords consider artwrok arcs specially.
 
