@@ -557,7 +557,7 @@ public abstract class AbstractShapeBuilder {
     public void pushPoly(Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
         if (!electrical)
             pp = null;
-        transformDoubleCoords();
+        transformDoubleCoords(style);
         addDoublePoly(pointCount, style, layer, graphicsOverride, pp);
         pointCount = 0;
     }
@@ -565,14 +565,21 @@ public abstract class AbstractShapeBuilder {
     public void pushTextPoly(Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
         if (!electrical)
             pp = null;
-        transformDoubleCoords();
+        transformDoubleCoords(style);
         addDoubleTextPoly(pointCount, style, layer, pp, message, descriptor);
         pointCount = 0;
     }
 
-    private void transformDoubleCoords() {
+    private void transformDoubleCoords(Poly.Type style) {
         if (curNode != null) {
             if (rotateNodes && curNode.orient.canonic() != Orientation.IDENT) {
+                // special case for Poly type CIRCLEARC and THICKCIRCLEARC: if transposing, reverse points
+                if ((style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC) &&
+                        curNode.orient.canonic().isCTranspose()) {
+                    double t;
+                    t = doubleCoords[2]; doubleCoords[2] = doubleCoords[4]; doubleCoords[4] = t;
+                    t = doubleCoords[3]; doubleCoords[3] = doubleCoords[5]; doubleCoords[5] = t;
+                }
                 curNode.orient.pureRotate().transform(doubleCoords, 0, doubleCoords, 0, pointCount);
                 if (!curNode.orient.isManhattan()) {
                     for (int i = 0; i < pointCount*2; i++)
@@ -587,6 +594,14 @@ public abstract class AbstractShapeBuilder {
             }
         }
         if (pureRotate != null) {
+            // special case for Poly type CIRCLEARC and THICKCIRCLEARC: if transposing, reverse points
+            if ((style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC) &&
+                    orient.canonic().isCTranspose()) {
+                double t;
+                t = doubleCoords[2]; doubleCoords[2] = doubleCoords[4]; doubleCoords[4] = t;
+                t = doubleCoords[3]; doubleCoords[3] = doubleCoords[5]; doubleCoords[5] = t;
+            }
+
             pureRotate.transform(doubleCoords, 0, doubleCoords, 0, pointCount);
             if (!orient.isManhattan()) {
                 for (int i = 0; i < pointCount*2; i++)

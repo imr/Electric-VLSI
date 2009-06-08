@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09l: ******************************
 
+BUG: (6/8/09, DN) Some artwork arcs drawn incorrectly (Bug #2213).
+FIX: In AbstractShapeBuilder.transformDoubleCoords consider artwrok arcs specially.
+
 IMP: (6/8/09, JKG) Imported Calibre errors should show rule number (40nm) (Bug #2211)
 
 ************************* Version 8.09k: ******************************
