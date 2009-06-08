@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09l: ******************************
 
+IMP: (6/8/09, JKG) Imported Calibre errors should show rule number (40nm) (Bug #2211)
+
 ************************* Version 8.09k: ******************************
 
 IMP: (6/4/09, GVG) A different spacing rule for well in 40P (Bug #2183)
