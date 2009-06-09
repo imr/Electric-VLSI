@@ -124,6 +124,7 @@ public class Connectivity
 	/** the layer to use for "polysilicon" geometry */			private Layer polyLayer;
 	/** temporary layers to use for geometric manipulation */	private Layer tempLayer1;
 	/** the layers to use for "active" geometry */				private Layer pActiveLayer, nActiveLayer;
+	/** the real "active" layers */								private Layer realPActiveLayer, realNActiveLayer;
 	/** associates arc prototypes with layers */				private Map<Layer,ArcProto> arcsForLayer;
 	/** map of extracted cells */								private Map<Cell,Cell> convertedCells;
 	/** map of cut layers to lists of polygons on that layer */	private Map<Layer,CutInfo> allCutLayers;
@@ -312,6 +313,7 @@ public class Connectivity
 		// find important layers
 		polyLayer = null;
 		pActiveLayer = nActiveLayer = null;
+		realPActiveLayer = realNActiveLayer = null;
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
@@ -325,6 +327,8 @@ public class Connectivity
 				if (pActiveLayer == null && fun == Layer.Function.DIFFP) pActiveLayer = layer;
 				if (nActiveLayer == null && fun == Layer.Function.DIFFN) nActiveLayer = layer;
 			}
+			if (realPActiveLayer == null && fun == Layer.Function.DIFFP) realPActiveLayer = layer;
+			if (realNActiveLayer == null && fun == Layer.Function.DIFFN) realNActiveLayer = layer;
 		}
 		polyLayer = polyLayer.getNonPseudoLayer();
 		if (polyLayer != null)
@@ -4060,10 +4064,52 @@ public class Connectivity
 	 */
 	private List<NodeInst> makePureLayerNodeFromPoly(PolyBase poly, Cell cell)
 	{
-		PrimitiveNode pNp = poly.getLayer().getPureLayerNode();
+		Layer layer = poly.getLayer();
+
+		// if an active layer, make sure correct N/P is used
+		if (unifyActive && (layer == pActiveLayer || layer == nActiveLayer))
+		{
+			Rectangle2D rect = poly.getBounds2D();
+			rect = new Rectangle2D.Double(rect.getMinX()/SCALEFACTOR-1, rect.getMinY()/SCALEFACTOR-1,
+				rect.getWidth()/SCALEFACTOR+2, rect.getHeight()/SCALEFACTOR+2);
+			int nType = 0, pType = 0;
+			for(Iterator<RTBounds> it = cell.searchIterator(rect); it.hasNext(); )
+			{
+				RTBounds geom = it.next();
+				if (geom instanceof NodeInst)
+				{
+					NodeInst ni = (NodeInst)geom;
+					if (ni.isCellInstance()) continue;
+					Poly [] polys = ni.getProto().getTechnology().getShapeOfNode(ni);
+					for(int i=0; i<polys.length; i++)
+					{
+						Layer.Function fun = polys[i].getLayer().getFunction();
+						if (!fun.isDiff()) continue;
+						if (fun == Layer.Function.DIFFP) pType++;
+						if (fun == Layer.Function.DIFFN) nType++;
+					}
+				} else
+				{
+					ArcInst ai = (ArcInst)geom;
+					Poly [] polys = ai.getProto().getTechnology().getShapeOfArc(ai);
+					for(int i=0; i<polys.length; i++)
+					{
+						Layer.Function fun = polys[i].getLayer().getFunction();
+						if (!fun.isDiff()) continue;
+						if (fun == Layer.Function.DIFFP) pType++;
+						if (fun == Layer.Function.DIFFN) nType++;
+					}
+				}
+			}
+			if (pType > nType) layer = realPActiveLayer; else
+				layer = realNActiveLayer;
+			if (layer.getPureLayerNode() == null) layer = poly.getLayer();
+		}
+		
+		PrimitiveNode pNp = layer.getPureLayerNode();
 		if (pNp == null)
 		{
-			System.out.println("CANNOT FIND PURE LAYER NODE FOR LAYER " + poly.getLayer().getName());
+			System.out.println("CANNOT FIND PURE LAYER NODE FOR LAYER " + layer.getName());
 			return null;
 		}
 		List<NodeInst> createdNodes = new ArrayList<NodeInst>();
@@ -4071,11 +4117,10 @@ public class Connectivity
 		{
 			// irregular shape: break it up with simpler polygon merging algorithm
 			GeometryHandler thisMerge = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
-			thisMerge.add(poly.getLayer(), poly);
+			thisMerge.add(layer, poly);
 			thisMerge.postProcess(true);
 
-            Collection<PolyBase> set = ((PolySweepMerge)thisMerge).getPolyPartition(poly.getLayer());
-//			Collection<PolyBase> set = thisMerge.getObjects(poly.getLayer(), false, true);
+            Collection<PolyBase> set = ((PolySweepMerge)thisMerge).getPolyPartition(layer);
 			for(PolyBase simplePoly : set)
 			{
 				Rectangle2D polyBounds = simplePoly.getBounds2D();
