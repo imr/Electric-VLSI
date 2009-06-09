@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09l: ******************************
 
+IMP: (6/9/09, GVG) OD18 transistors added in 40nm technology (Bug #2212).
+
 BUG: (6/8/09, GVG) Double amount of layers from TechEditorWizard (Bug #2216)
 FIX: Lists clean.
 

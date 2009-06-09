@@ -82,7 +82,12 @@ public class TechEditWizardData
 	private WizardField gate_spacing = new WizardField();			// min. gate to gate spacing on diffusion
 	private WizardField gate_contact_spacing = new WizardField();	// min. spacing from gate edge to contact inside diffusion
 
-	// CONTACT RULES
+    // Special rules for OD18 transistors if required.
+    private WizardField gate_od18_length = new WizardField();       // transistor gate length for OD18 transistors
+    private WizardField gate_od18_width = new WizardField();        // transistor gate width for OD18 transistors
+    private WizardField od18_diff_overhang = new WizardField();             // OD18 width
+
+    // CONTACT RULES
 	private WizardField contact_size = new WizardField();
 	private WizardField contact_spacing = new WizardField();
     private WizardField contact_array_spacing = new WizardField();
@@ -721,7 +726,11 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("gate_contact_spacing")) gate_contact_spacing.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("gate_contact_spacing_rule")) gate_contact_spacing.rule = stripQuotes(varValue); else
 
-					if (varName.equalsIgnoreCase("contact_size")) contact_size.v = TextUtils.atof(varValue); else
+                    if (varName.equalsIgnoreCase("gate_od18_length")) fillRule(varValue, gate_od18_length); else
+                    if (varName.equalsIgnoreCase("gate_od18_width")) fillRule(varValue, gate_od18_width); else
+                    if (varName.equalsIgnoreCase("od18_diff_overhang")) fillRule(varValue, od18_diff_overhang); else
+                        
+                    if (varName.equalsIgnoreCase("contact_size")) contact_size.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("contact_size_rule")) contact_size.rule = stripQuotes(varValue); else
 					if (varName.equalsIgnoreCase("contact_spacing")) contact_spacing.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("contact_spacing_rule")) contact_spacing.rule = stripQuotes(varValue); else
@@ -902,6 +911,30 @@ public class TechEditWizardData
 			pos++;
 		}
 	}
+
+    // fillRule
+    private void fillRule(String str, WizardField rule)
+    {
+        StringTokenizer parse = new StringTokenizer(str, "( ,)", false);
+        int count = 0;
+
+        while (parse.hasMoreTokens())
+        {
+            String value = parse.nextToken();
+            switch (count)
+            {
+                case 0:
+                    rule.v = Double.parseDouble(value);
+                    break;
+                case 1:
+                    rule.rule = value;
+                    break;
+                default:
+                    assert(false); // only 2 values
+            }
+            count++;
+        }
+    }
 
     // fillLayerSeries
     private void fillLayerSeries(String str, List<LayerInfo> layersList)
@@ -2617,8 +2650,6 @@ public class TechEditWizardData
                     nwell_overhangY = extraSelY;
                 }
             }
-//            double nwell_overhangX = (i==Technology.P_TYPE) ? nwell_overhang_diff_n.v : nwell_overhang_diff_p.v;
-//            double nwell_overhangY = (i==Technology.P_TYPE) ? nwell_overhang_diff_n.v : nwell_overhang_diff_p.v;
 
             selectx = scaledValue(gate_width.v/2+poly_endcap.v+extraSelX);
             selecty = scaledValue(gate_length.v/2+diff_poly_overhang.v+extraSelY);
@@ -2688,7 +2719,7 @@ public class TechEditWizardData
             nodesList.add(makeXmlNodeLayerSpecial(impx, impx, impy, 0, activeLayer, Poly.Type.FILLED, false, true, 3));  // bottom
             nodesList.add(makeXmlNodeLayerSpecial(impx, impx, 0, impy, activeLayer, Poly.Type.FILLED, false, true, 1));  // top
 
-            // top port
+            // Diff port
             portNames.clear();
             portNames.add(activeLayer.name);
 
@@ -2713,7 +2744,7 @@ public class TechEditWizardData
             // non-electrical poly (just one poly layer)
             nodesList.add(makeXmlNodeLayerSpecial(endPolyx, endPolyx, endPolyy, endPolyy, polyLayer, Poly.Type.FILLED, true, false, -1));
 
-            // left port
+            // Poly port
             portNames.clear();
             portNames.add(polyLayer.name);
             Xml.PrimitivePort polyLeftPort = makeXmlPrimitivePort("poly-left", 180, 90, 0, minFullSize,
@@ -2758,6 +2789,8 @@ public class TechEditWizardData
 //                new SizeOffset(sox, sox, soy, soy), nodesListW, nodePorts, null, false);
 //                g.addElement(n);
 
+                /*************************************/
+                // Short transistors
                 // Adding extra transistors whose select and well are aligned with poly along the X axis
                 nodesList.remove(xTranSelLayer);
                 double shortSelectX = scaledValue(gate_width.v/2+poly_endcap.v);
@@ -2775,6 +2808,9 @@ public class TechEditWizardData
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-S", func, 0, 0, 0, 0,
                      new SizeOffset(shortSox, shortSox, soy, soy), nodesList, nodePorts, null, false);
                 g.addElement(n, name + "-S");
+
+                /*************************************/
+                // Transistors with extra polys
 
                 // different select for those with extra protection layers
                 nodesList.remove(xTranSelLayer);
@@ -2808,12 +2844,8 @@ public class TechEditWizardData
                     DBMath.round((protectDist + 3*endPolyy)),
                     -DBMath.round(endPolyy + protectDist),
                    polyLayer, Poly.Type.FILLED, true, false, -1/*3*/)); // port 3 for left/bottom extra poly lb=left bottom
-                double yLoc = DBMath.round((protectDist + 2*endPolyy));
-//                Xml.PrimitivePort polyExtraLBPort = makeXmlPrimitivePort("poly-lb-extra", 180, 90, 3, minFullSize,
-//                    0, -1, 0, 1, -yLoc, -1, -yLoc, 1, portNames);
                 // Adding left
                 nodesList.add(bOrL);
-//                nodePorts.add(polyExtraLBPort);
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-B", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                 g.addElement(n, name + "-B");
@@ -2823,22 +2855,108 @@ public class TechEditWizardData
                     -DBMath.round(endPolyy + protectDist),
                     DBMath.round((protectDist + 3*endPolyy)),
                     polyLayer, Poly.Type.FILLED, true, false, -1/*4*/)); // port 4 for right/top extra poly rt=right top
-//                Xml.PrimitivePort polyExtraRTPort = makeXmlPrimitivePort("poly-rt-extra", 0, 180, 4, minFullSize,
-//                    0, -1, 0, 1, yLoc, -1, yLoc, 1, portNames);
 
                 // Adding both
                 nodesList.add(tOrR);
-//                nodePorts.add(polyExtraRTPort);
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-TB", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                 g.addElement(n, name + "-TB");
 
                 // Adding right
                 nodesList.remove(bOrL);
-//                nodePorts.remove(polyExtraLBPort);
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-T", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                 g.addElement(n, name +"-T");
+
+                /*************************************/
+                // Short transistors woth OD18
+
+                // new values
+                impx = scaledValue((gate_od18_width.v)/2);
+                impy = scaledValue((gate_od18_length.v+diff_poly_overhang.v*2)/2);
+                double od18x = scaledValue(gate_od18_width.v/2+od18_diff_overhang.v);
+                double od18y = scaledValue(gate_od18_length.v/2+diff_poly_overhang.v+od18_diff_overhang.v);
+                diffY = scaledValue(gate_od18_length.v/2+gate_contact_spacing.v+contact_size.v/2);  // impy
+                sox = scaledValue(od18_diff_overhang.v);
+                soy = scaledValue(diff_poly_overhang.v+od18_diff_overhang.v);
+
+                // Active layers
+                nodesList.clear();
+                nodesList.add(makeXmlNodeLayerSpecial(impx, impx, impy, impy, activeLayer, Poly.Type.FILLED, true, false, -1));
+                // electrical active layers
+                nodesList.add(makeXmlNodeLayerSpecial(impx, impx, impy, 0, activeLayer, Poly.Type.FILLED, false, true, 3));  // bottom
+                nodesList.add(makeXmlNodeLayerSpecial(impx, impx, 0, impy, activeLayer, Poly.Type.FILLED, false, true, 1));  // top
+
+                // Diff port
+                portNames.clear();
+                portNames.add(activeLayer.name);
+
+                // top port
+                diffTopPort = makeXmlPrimitivePort("diff-top", 90, 90, 1, minFullSize,
+                    diffX, -1, diffX, 1, diffY, 1, diffY, 1, portNames);
+                // bottom port
+                diffBottomPort = makeXmlPrimitivePort("diff-bottom", 270, 90, 2, minFullSize,
+                    xSign*diffX, -1, xSign*diffX, 1, ySign*diffY, -1, ySign*diffY, -1, portNames);
+
+                // Electric layers
+                // Gate layer Electrical
+                gatey = scaledValue(gate_od18_length.v/2);
+                gatex = impx;
+                endPolyx = scaledValue((gate_od18_width.v+poly_endcap.v*2)/2);
+                endPolyy = gatey;
+                endLeftOrRight = -impx;
+                endTopOrBotton = endPolyy;
+                polyX = endPolyx;
+                polyY = 0;
+                nodesList.add(makeXmlNodeLayerSpecial(gatex, gatex, gatey, gatey, polyGateLayer, Poly.Type.FILLED, false, true, -1));
+
+                // Poly layers
+                // left electrical
+                nodesList.add(makeXmlNodeLayerSpecial(endPolyx, endLeftOrRight, endPolyy, endTopOrBotton, polyLayer,
+                    Poly.Type.FILLED, false, true, 0));
+                // right electrical
+                nodesList.add(makeXmlNodeLayerSpecial(endLeftOrRight, endPolyx, endTopOrBotton, endPolyy, polyLayer,
+                    Poly.Type.FILLED, false, true, 2));
+
+                // non-electrical poly (just one poly layer)
+                nodesList.add(makeXmlNodeLayerSpecial(endPolyx, endPolyx, endPolyy, endPolyy, polyLayer, Poly.Type.FILLED, true, false, -1));
+
+                // Poly port
+                portNames.clear();
+                portNames.add(polyLayer.name);
+                polyLeftPort = makeXmlPrimitivePort("poly-left", 180, 90, 0, minFullSize,
+                    ySign*polyX, -1, ySign*polyX,
+                    -1, xSign*polyY, -1, xSign*polyY, 1, portNames);
+                // right port
+                polyRightPort = makeXmlPrimitivePort("poly-right", 0, 180, 0, minFullSize,
+                    polyX, 1, polyX, 1, polyY, -1, polyY, 1, portNames);
+
+                nodePorts.clear();
+                nodePorts.add(polyLeftPort);
+                nodePorts.add(diffTopPort);
+                nodePorts.add(polyRightPort);
+                nodePorts.add(diffBottomPort);
+
+                // OD18
+                Xml.Layer od18Layer = t.findLayer("OD_18");
+                nodesList.add(makeXmlNodeLayer(od18x, od18x, od18y, od18y, od18Layer, Poly.Type.FILLED));
+
+                // adding short select
+                shortSelectX = scaledValue(gate_od18_width.v/2+poly_endcap.v);
+                selecty = scaledValue(gate_od18_length.v/2+diff_poly_overhang.v+extraSelY);
+                xTranSelLayer = (makeXmlNodeLayer(shortSelectX, shortSelectX, selecty, selecty, selectLayer, Poly.Type.FILLED));
+                nodesList.add(xTranSelLayer);
+
+                // adding well
+                if (wellLayer != null)
+                {
+                    xTranWellLayer = (makeXmlNodeLayer(od18x, od18x, od18y, od18y, wellLayer, Poly.Type.FILLED));
+                    nodesList.add(xTranWellLayer);
+                }
+                
+                n = makeXmlPrimitive(t.nodeGroups, "OD18-" + name + "-Transistor", func, 0, 0, 0, 0,
+                new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
+                g.addElement(n, name);
             }
         }
 
