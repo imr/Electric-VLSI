@@ -462,7 +462,6 @@ public class GDSTab extends PreferencePanel
         gdsCellNameLenMax = new javax.swing.JTextField();
         jLabel9 = new javax.swing.JLabel();
         gdsDefaultTextLayer = new javax.swing.JTextField();
-        jLabel29 = new javax.swing.JLabel();
         inputPanel = new javax.swing.JPanel();
         jLabel11 = new javax.swing.JLabel();
         gdsInputScale = new javax.swing.JTextField();
@@ -817,14 +816,6 @@ public class GDSTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         outputPanel.add(gdsDefaultTextLayer, gridBagConstraints);
 
-        jLabel29.setText("Blank layer values generate no GDS");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 8, 4);
-        outputPanel.add(jLabel29, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
@@ -921,7 +912,6 @@ public class GDSTab extends PreferencePanel
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel29;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;

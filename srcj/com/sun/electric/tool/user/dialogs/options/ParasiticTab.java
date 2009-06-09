@@ -403,7 +403,7 @@ public class ParasiticTab extends PreferencePanel {
         simpleParasiticOptions.add(useExemptedNetsFile, gridBagConstraints);
 
         exemptedNetsGroup.add(ignoreExemptedNets);
-        ignoreExemptedNets.setText("Extract everything except exempted nets");
+        ignoreExemptedNets.setText("Extract all but exempted nets");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
@@ -456,7 +456,7 @@ public class ParasiticTab extends PreferencePanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridheight = 4;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
@@ -468,30 +468,31 @@ public class ParasiticTab extends PreferencePanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         techValues.add(jLabel7, gridBagConstraints);
 
         jLabel11.setText("Resistance:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         techValues.add(jLabel11, gridBagConstraints);
 
         jLabel2.setText("Perimeter Cap (fF/um):");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         techValues.add(jLabel2, gridBagConstraints);
 
         resistance.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
@@ -499,16 +500,16 @@ public class ParasiticTab extends PreferencePanel {
 
         jLabel12.setText("Area Cap (fF/um^2):");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         techValues.add(jLabel12, gridBagConstraints);
 
         capacitance.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
@@ -516,8 +517,8 @@ public class ParasiticTab extends PreferencePanel {
 
         edgeCapacitance.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
@@ -539,7 +540,7 @@ public class ParasiticTab extends PreferencePanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         globalValues.add(jLabel20, gridBagConstraints);
 
@@ -553,16 +554,16 @@ public class ParasiticTab extends PreferencePanel {
 
         jLabel21.setText("Min. Capacitance (fF):");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         globalValues.add(jLabel21, gridBagConstraints);
 
         minCapacitance.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
@@ -571,15 +572,15 @@ public class ParasiticTab extends PreferencePanel {
         jLabel5.setText("Gate Length Shrink (Subtraction) um:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         globalValues.add(jLabel5, gridBagConstraints);
 
+        gateLengthSubtraction.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         globalValues.add(gateLengthSubtraction, gridBagConstraints);
@@ -587,7 +588,7 @@ public class ParasiticTab extends PreferencePanel {
         includeGate.setText("Include Gate In Resistance");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -595,8 +596,8 @@ public class ParasiticTab extends PreferencePanel {
 
         includeGround.setText("Include Ground Network");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -605,13 +606,15 @@ public class ParasiticTab extends PreferencePanel {
         jLabel1.setText("Max. Series Resistance: ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         globalValues.add(jLabel1, gridBagConstraints);
 
+        maxSeriesResistance.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
