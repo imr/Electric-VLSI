@@ -341,25 +341,6 @@ public class ManualViewer extends EModelessDialog
 	}
 
 	/**
-	 * Method to load a sample library from the lib area.
-	 * @param fileName library name
-	 */
-	public static void loadSamplesLibrary(String fileName, String cellName)
-	{
-		Library lib = Library.findLibrary(fileName);
-		if (lib != null)
-		{
-			System.out.println(lib + " already loaded");
-			Cell cell = lib.findNodeProto(cellName);
-			if (cell == null)
-				System.out.println("Cell '" + cellName + "' does not exist in " + lib);
-			return;
-		}
-		URL url = ManualViewer.class.getResource("helphtml/"+fileName+".jelib");
-		new FileMenu.ReadLibrary(url, FileType.JELIB, cellName);
-	}
-
-	/**
 	 * Create a new user's manual dialog.
 	 * @param parent
 	 */

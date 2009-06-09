@@ -26,8 +26,8 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.About;
@@ -63,20 +63,14 @@ public class HelpMenu {
         // mnemonic keys available:  BCDEFGHIJK MNOPQRSTUVWXYZ
             new EMenu("_3D Showcase",
                 new EMenuItem("_Load Library") { public void run() {
-                    ManualViewer.loadSamplesLibrary("floatingGates", "topCell"); }},
+                    loadSamplesLibrary("floatingGates", "topCell"); }},
                 new EMenuItem("_3D View of Cage Cell") { public void run() {
                     ManualViewer.open3DSample("floatingGates" ,"topCell", "3D ShowCase"); }},
                 new EMenuItem("_Animate Cage Cell") { public void run() {
                     ManualViewer.animate3DSample("demoCage.j3d"); }}),
 
-		// mnemonic keys available: ABCDEFGHIJKL NO QR TUVWXYZ
-            new EMenu("_Load Built-in Libraries",
-                new EMenuItem("_Sample Cells") { public void run() {
-                    ManualViewer.loadSamplesLibrary("samples", "tech-MOSISCMOS"); }},
-                new EMenuItem("_MOSIS CMOS Pads") { public void run() {
-                    loadBuiltInLibraryCommand("pads4u"); }},
-                new EMenuItem("MI_PS Cells") { public void run() {
-                    loadBuiltInLibraryCommand("mipscells"); }})
+            new EMenuItem("_Load Sample Cells Library") { public void run() {
+                loadSamplesLibrary("samples", "tech-MOSISCMOS"); }}
         );
     }
 
@@ -91,11 +85,23 @@ public class HelpMenu {
         dialog.setVisible(true);
     }
 
-	private static void loadBuiltInLibraryCommand(String libName)
+	/**
+	 * Method to load a sample library from the lib area.
+	 * @param fileName library name
+	 */
+	private static void loadSamplesLibrary(String fileName, String cellName)
 	{
-		if (Library.findLibrary(libName) != null) return;
-		URL url = LibFile.getLibFile(libName + ".jelib");
-		new FileMenu.ReadLibrary(url, FileType.JELIB, null);
+		Library lib = Library.findLibrary(fileName);
+		if (lib != null)
+		{
+			System.out.println(lib + " already loaded");
+			Cell cell = lib.findNodeProto(cellName);
+			if (cell == null)
+				System.out.println("Cell '" + cellName + "' does not exist in " + lib);
+			return;
+		}
+		URL url = ManualViewer.class.getResource("helphtml/"+fileName+".jelib");
+		new FileMenu.ReadLibrary(url, FileType.JELIB, cellName);
 	}
     
 }

@@ -9,6 +9,11 @@ It does not affect existing arcs, only those that are subsequently created.
 The top part of the dialog allows you to set defaults for specific types of arcs.
 You select the "Technology" and "Arc Type", and then set defaults for it (such as the "Default width").
 <P>
+The "Default width" field specifies the width of newly placed arcs.
+When there are already arcs connected to one of the nodes being wired,
+the new wire is made as wide as the widest existing arc on either node.
+Also, when the nodes are larger than normal, arcs connected to them will be made appropriately wider.
+<P>
 The "Placement angle" is the granularity for running this type of arc (in degrees).
 A value of 90 lets arcs run at 0, 90, 180, or 270 degrees: manhattan geometry.
 A value of 45 lets it run at any of 8 angles (useful for schematics).

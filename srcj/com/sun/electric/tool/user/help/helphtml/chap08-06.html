@@ -106,6 +106,30 @@ use the <B>Identify Ports</B> command (in menu <B>Edit / Technology Editing</B>)
 <P>
 As with arcs, use the <B>Identify Primitive Layers</B> command to label each piece of geometry in the main example.
 <P>
+<H4>Node Variations</H4>
+<P>
+It is sometimes the case that two or more primitive nodes are nearly the same and differ only by the shape of their layers.
+When this happens, it is possible to define them all in the same cell using the notion of <I>variations</I>.
+To create a variation on a node, create a 5th example in the cell (for two variations, create a 5th and 6th example).
+Each variation example must follow these rules:
+<TABLE><TR><TD>
+<UL>
+<LI>It must have the same layers as the main four examples.
+Variations are not able to add or remove layers...this is done by creating separate nodes.
+</LI>
+<LI>A central node must be named.
+Pick any piece of geometry that is centered in the example (contact cuts are good choices).
+This piece of geometry must be named (using the <B>Object Properties...</B> command in menu <B>Edit / Properties</B>).
+The name on the piece of geometry will be the name of the variation.
+</LI>
+<LI>The only rule used to compute layer size is the distance from the outer edge.
+It is not possible to use other stretching rules because only one example is being provided.
+</LI>
+</UL>
+The picture shown here illustrates a variation in which the polysilicon layer is inset.
+The text "Small-Poly" is the name of the cut node (moved up to make it readable).
+</TD><TD><CENTER><IMG SRC="fig08-38.png" ALT="Figure 8.38"></CENTER></TD></TR></TABLE>
+<P>
 <H4>Special Node Considerations</H4>
 <P>
 There are some special cases available in node descriptions.

@@ -63,9 +63,11 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JOptionPane;
 
@@ -378,16 +380,55 @@ public class TechToLib
 		List<String> nodeSequence = new ArrayList<String>();
 		List<NodeInfo> nList = new ArrayList<NodeInfo>();
         Cell dummyCell = Cell.newInstance(lib, "dummyCell{lay}");
+
+        List<PrimitiveNode> nodesToWrite = new ArrayList<PrimitiveNode>();
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode pnp = it.next();
 			if (pnp.isNotUsed()) continue;
 
 			// only consider the first node in a group
-			if (pnp.getPrimitiveNodeGroup() != null)
+			if (pnp.getPrimitiveNodeGroup() == null) nodesToWrite.add(pnp); else
             {
             	if (pnp.getPrimitiveNodeGroup().getNodes().get(0) != pnp) continue;
+
+            	NodeInst ni = NodeInst.makeDummyInstance(pnp);
+				Poly [] polys = tech.getShapeOfNode(ni);
+				Set<Layer> inPolys = new HashSet<Layer>();
+				for(int i=0; i<polys.length; i++) inPolys.add(polys[i].getLayer());
+
+				boolean differentLayers = false;
+				for(PrimitiveNode alt : pnp.getPrimitiveNodeGroup().getNodes())
+				{
+					if (alt == pnp) continue;
+	                NodeInst altNi = NodeInst.makeDummyInstance(alt);
+					Poly [] altPolys = tech.getShapeOfNode(altNi);
+					Set<Layer> inAltPolys = new HashSet<Layer>();
+					for(int i=0; i<altPolys.length; i++) inAltPolys.add(altPolys[i].getLayer());
+
+					for(Layer l : inPolys)
+					{
+						if (inAltPolys.contains(l)) { inAltPolys.remove(l);  continue; }
+						differentLayers = true;
+						break;
+					}
+					if (inAltPolys.size() > 0) differentLayers = true;
+					if (differentLayers) break;
+				}
+				if (differentLayers)
+				{
+					for(PrimitiveNode alt : pnp.getPrimitiveNodeGroup().getNodes())
+						nodesToWrite.add(alt);	
+				} else
+				{
+					nodesToWrite.add(pnp);
+				}
+            	if (pnp.getPrimitiveNodeGroup().getNodes().get(0) != pnp) continue;            	
             }
+		}
+
+		for(PrimitiveNode pnp : nodesToWrite)
+		{
             NodeInfo nIn = makeNodeInfo(pnp, lList, aList);
             nList.add(nIn);
             nodeSequence.add(pnp.getName());
@@ -621,18 +662,23 @@ public class TechToLib
 	        PrimitiveNodeGroup primitiveNodeGroup = pnp.getPrimitiveNodeGroup();
 	        if (primitiveNodeGroup != null)
 	        {
+	        	int yOffset = 0;
 	        	for(int k=1; k<primitiveNodeGroup.getNodes().size(); k++)
 				{
 					PrimitiveNode altPNp = pnp.getPrimitiveNodeGroup().getNodes().get(k);
+					if (nodesToWrite.contains(altPNp)) continue;
+
 					xS = altPNp.getDefWidth() * 2;
 					yS = altPNp.getDefHeight() * 2;
-					Point2D nPos = new Point2D.Double(nodeXPos + xS*5, -5 - yS*(k*2-3));
+					yOffset++;
+					Point2D nPos = new Point2D.Double(nodeXPos + xS*5, -5 - yS*(yOffset*2-3));
 
 					xS = altPNp.getDefWidth();
 					yS = altPNp.getDefHeight();
 	                NodeInst oNi = NodeInst.makeInstance(altPNp, EPoint.snap(nPos), xS, yS, dummyCell);
 					Poly [] polys = tech.getShapeOfNode(oNi);
 					int j = polys.length;
+					NodeInst centerNI = null;
 					for(int i=0; i<j; i++)
 					{
 						Poly poly = polys[i];
@@ -646,19 +692,22 @@ public class TechToLib
 	                        System.out.println("Error placing geometry " + poly.getStyle() + " on " + nNp);
 	                        continue;
 	                    }
-						if (nodeLayer.getFunction().isContact())
-						{
-							ni.setName(altPNp.getName());
-							TextDescriptor td = ni.getTextDescriptor(NodeInst.NODE_NAME).withOff(0,
-								-altPNp.getFactoryDefaultLambdaBaseHeight()*1.5);
-							ni.setTextDescriptor(NodeInst.NODE_NAME, td);
-						}
+						if (nodeLayer.getFunction().isContact()) centerNI = ni;
+						if (centerNI == null && ni.getAnchorCenterX() == nPos.getX() && ni.getAnchorCenterY() == nPos.getY())
+							centerNI = ni;
 
 						// get graphics for this layer
 						Manipulate.setPatch(ni, desc);
 						Cell layerCell = layerCells.get(nodeLayer);
 						if (layerCell != null) ni.newVar(Info.LAYER_KEY, layerCell.getId());
 						ni.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
+					}
+					if (centerNI != null)
+					{
+						centerNI.setName(altPNp.getName());
+						TextDescriptor td = centerNI.getTextDescriptor(NodeInst.NODE_NAME).withOff(0,
+							-altPNp.getFactoryDefaultLambdaBaseHeight()*1.5);
+						centerNI.setTextDescriptor(NodeInst.NODE_NAME, td);
 					}
 
 					// create the highlight node

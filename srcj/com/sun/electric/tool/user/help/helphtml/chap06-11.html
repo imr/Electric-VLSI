@@ -20,23 +20,64 @@ Scripts can have mnemonic letters assigned to them
 (see <A HREF="chap01-09.html#chap01-09">Section 1-9</A> for more on mnemonics).
 </TD><TD><CENTER><IMG SRC="fig06-30.png" ALT="Figure 6.30"></CENTER></TD></TR></TABLE>
 <P>
-Here are some example scripts in the Java bean shell.
+Here are some example scripts in the Java Bean Shell.
 
 <TABLE WIDTH="100%"><TR>
 <TD WIDTH="75%"><TABLE WIDTH="100%" BORDER=1><TR><TD>
 <CODE><FONT SIZE="-1">
 import com.sun.electric.database.hierarchy.Cell;<BR>
 import com.sun.electric.database.topology.NodeInst;<BR>
+import com.sun.electric.technology.PrimitiveNode;<BR>
+import java.awt.geom.Point2D;<BR>
 <BR>
 Cell newCell = Cell.makeInstance(Library.getCurrent(), "theCell{lay}");<BR>
-PrimitiveNode trP = (PrimitiveNode)Cell.findNodeProto(<BR>
-&nbsp;&nbsp;&nbsp;"mocmos:P-Transistor");<BR>
-NodeInst tP = NodeInst.makeInstance(trP, new EPoint(10, 10),<BR>
-&nbsp;&nbsp;&nbsp;trP.getDefWidth(), trP.getDefHeight(), newCell);<BR>
+PrimitiveNode trP = (PrimitiveNode)Cell.findNodeProto("mocmos:P-Transistor");<BR>
+NodeInst tP = NodeInst.makeInstance(trP, new Point2D.Double(10, 10),<BR>
+&nbsp;&nbsp;&nbsp;trP.getDefWidth(), trP.getDefHeight(), newCell);
 </FONT></CODE>
 </TD></TR></TABLE></TD>
 <TD VALIGN=TOP>
-This initial example creates a new cell, places a transistor in it, and displays the cell.
+This initial example creates a new cell and places a transistor in it.
+</TD></TR></TABLE>
+
+
+<TABLE WIDTH="100%"><TR>
+<TD WIDTH="75%"><TABLE WIDTH="100%" BORDER=1><TR><TD>
+<CODE><FONT SIZE="-1">
+import com.sun.electric.database.hierarchy.Cell;<BR>
+import com.sun.electric.database.geometry.Orientation;<BR>
+import com.sun.electric.database.topology.ArcInst;<BR>
+import com.sun.electric.database.topology.NodeInst;<BR>
+import com.sun.electric.technology.ArcProto;<BR>
+import com.sun.electric.technology.PrimitiveNode;<BR>
+import com.sun.electric.technology.Technology;<BR>
+import java.awt.geom.Point2D;<BR>
+<BR>
+// create the new cell<BR>
+Cell newCell = Cell.makeInstance(Library.getCurrent(), "exampleCell{lay}");<BR>
+<BR>
+Technology tech = Technology.findTechnology("mocmos");<BR>
+<BR>
+// place a rotated transistor<BR>
+PrimitiveNode trP = tech.findNodeProto("P-Transistor");<BR>
+NodeInst tP = NodeInst.makeInstance(trP, new Point2D.Double(0, 20), trP.getDefWidth(), trP.getDefHeight(), newCell, Orientation.R, "T1");<BR>
+<BR>
+// place a metal-Active contact<BR>
+PrimitiveNode coP = tech.findNodeProto("Metal-1-P-Active-Con");<BR>
+NodeInst maP = NodeInst.makeInstance(coP, new Point2D.Double(8, 20), coP.getDefWidth(), coP.getDefHeight(), newCell);<BR>
+<BR>
+// wire the transistor to the contact<BR>
+ArcProto aP = tech.findArcProto("P-Active");<BR>
+ArcInst.makeInstance(aP, tP.findPortInst("diff-bottom"), maP.findPortInst("metal-1-p-act"));<BR>
+<BR>
+// export the contact<BR>
+com.sun.electric.database.hierarchy.Export.newInstance(newCell, maP.findPortInst("metal-1-p-act"), "IN", PortCharacteristic.IN);
+</FONT></CODE>
+</TD></TR></TABLE></TD>
+<TD VALIGN=TOP>
+This example goes a bit further: it creates a rotated transistor and a contact, wires them together,
+and exports the contact.
+The transistor is named "T1."
 </TD></TR></TABLE>
 
 
@@ -58,7 +99,7 @@ for(Iterator it = lay.getPorts(); it.hasNext(); ) {<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(com.sun.electric.database.hierarchy.Export)it.next();<BR>
 &nbsp;&nbsp;&nbsp;if (e.getName().toLowerCase().startsWith("a")) aOut += " " + e.getName();<BR>
 }<BR>
-System.out.println(aOut);<BR>
+System.out.println(aOut);
 </FONT></CODE>
 </TD></TR></TABLE></TD>
 <TD VALIGN=TOP>
