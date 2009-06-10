@@ -550,7 +550,7 @@ public class SizeListener
 			(evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) == 0) square = true;
 
 		// determine the amount of growth of the node
-		double growthRatioX, growthRatioY;
+		double growthRatioX = 1, growthRatioY = 1;
 		Point2D closest = (closestCorner != null ? closestCorner : closestEdge);
 		Point2D farthest = (farthestCorner != null ? farthestCorner : farthestEdge);
 		if (centerBased)
@@ -559,16 +559,16 @@ public class SizeListener
 			double closestToCenterX = Math.abs(closest.getX());
 			double ptToCenterY = Math.abs(pt.getY());
 			double closestToCenterY = Math.abs(closest.getY());
-			growthRatioX = ptToCenterX / closestToCenterX;
-			growthRatioY = ptToCenterY / closestToCenterY;
+			if (closestToCenterX != 0) growthRatioX = ptToCenterX / closestToCenterX;
+			if (closestToCenterY != 0) growthRatioY = ptToCenterY / closestToCenterY;
 		} else
 		{
 			double ptToFarthestX = pt.getX() - farthest.getX();
 			double closestToFarthestX = closest.getX() - farthest.getX();
 			double ptToFarthestY = pt.getY() - farthest.getY();
 			double closestToFarthestY = closest.getY() - farthest.getY();
-			growthRatioX = closestToFarthestX == 0 ? 1 : (ptToFarthestX / closestToFarthestX);
-			growthRatioY = closestToFarthestY == 0 ? 1 : (ptToFarthestY / closestToFarthestY);
+			if (closestToFarthestX != 0) growthRatioX = ptToFarthestX / closestToFarthestX;
+			if (closestToFarthestY != 0) growthRatioY = ptToFarthestY / closestToFarthestY;
 		}
 		int direction = -1; // both X and Y
 		if (singleAxis)
