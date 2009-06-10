@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09l: ******************************
 
+BUG: (6/9/09, DN) Technology editor causes crash in redisplay after making technology (Bug #2215).
+FIX: In PixelDrawing.initForTechnology reallocate layerBitMap after change of color map size.
+
 BUG: (6/9/09, DN) Problem when changing layer fill pattern (Bug #2214).
 FIX: In EGraphics.withPattern use "pattern" instead of "this.pattern".
 

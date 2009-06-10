@@ -1063,8 +1063,8 @@ public class PixelDrawing
 		// allocate pointers to the overlappable layers
 		Technology tech = Technology.getCurrent();
 		if (tech == null) return;
-		if (tech == curTech) return;
 		int transLayers = gp.getNumTransparentLayers(tech);
+		if (tech == curTech && numLayerBitMaps == transLayers) return;
 		if (transLayers != 0)
 		{
 			techWithLayers = curTech = tech;
