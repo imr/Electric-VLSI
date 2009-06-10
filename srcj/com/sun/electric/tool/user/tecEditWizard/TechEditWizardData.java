@@ -85,7 +85,7 @@ public class TechEditWizardData
     // Special rules for OD18 transistors if required.
     private WizardField gate_od18_length = new WizardField();       // transistor gate length for OD18 transistors
     private WizardField gate_od18_width = new WizardField();        // transistor gate width for OD18 transistors
-    private WizardField od18_diff_overhang = new WizardField();             // OD18 width
+    private WizardField[] od18_diff_overhang = new WizardField[]{new WizardField(), new WizardField()};             // OD18 X and Y overhang
 
     // CONTACT RULES
 	private WizardField contact_size = new WizardField();
@@ -913,10 +913,11 @@ public class TechEditWizardData
 	}
 
     // fillRule
-    private void fillRule(String str, WizardField rule)
+    private void fillRule(String str, WizardField... rules)
     {
-        StringTokenizer parse = new StringTokenizer(str, "( ,)", false);
+        StringTokenizer parse = new StringTokenizer(str, "(,)", false);
         int count = 0;
+        int pos = 0;
 
         while (parse.hasMoreTokens())
         {
@@ -924,15 +925,18 @@ public class TechEditWizardData
             switch (count)
             {
                 case 0:
-                    rule.v = Double.parseDouble(value);
+                case 2:
+                    rules[pos].v = Double.parseDouble(value);
                     break;
                 case 1:
-                    rule.rule = value;
+                case 3:
+                    rules[pos].rule = value;
                     break;
                 default:
                     assert(false); // only 2 values
             }
             count++;
+            if (count == 2) pos++;
         }
     }
 
@@ -2874,11 +2878,11 @@ public class TechEditWizardData
                 // new values
                 impx = scaledValue((gate_od18_width.v)/2);
                 impy = scaledValue((gate_od18_length.v+diff_poly_overhang.v*2)/2);
-                double od18x = scaledValue(gate_od18_width.v/2+od18_diff_overhang.v);
-                double od18y = scaledValue(gate_od18_length.v/2+diff_poly_overhang.v+od18_diff_overhang.v);
+                double od18x = scaledValue(gate_od18_width.v/2+od18_diff_overhang[0].v);
+                double od18y = scaledValue(gate_od18_length.v/2+diff_poly_overhang.v+od18_diff_overhang[1].v);
                 diffY = scaledValue(gate_od18_length.v/2+gate_contact_spacing.v+contact_size.v/2);  // impy
-                sox = scaledValue(od18_diff_overhang.v);
-                soy = scaledValue(diff_poly_overhang.v+od18_diff_overhang.v);
+                sox = scaledValue(od18_diff_overhang[0].v);
+                soy = scaledValue(diff_poly_overhang.v+od18_diff_overhang[1].v);
 
                 // Active layers
                 nodesList.clear();
