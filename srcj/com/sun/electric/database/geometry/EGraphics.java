@@ -459,7 +459,7 @@ public class EGraphics implements Serializable
         for (int i = 0; i < this.pattern.length; i++)
             pattern[i] &= 0xFFFF;
         if (Arrays.equals(pattern, this.pattern)) return this;
-        int[] reversedPattern = makeReversedPattern(this.pattern);
+        int[] reversedPattern = makeReversedPattern(pattern);
         return new EGraphics(displayPatterned, printPatterned, patternOutline, transparentLayer, color, opacity, foreground,
                 pattern, reversedPattern, transparencyMode, transparencyFactor);
     }
