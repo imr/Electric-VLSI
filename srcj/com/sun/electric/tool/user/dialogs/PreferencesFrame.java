@@ -163,6 +163,18 @@ public class PreferencesFrame extends EDialog
 	}
 
 	/**
+	 * Method to redisplay the Layers tab (if it is up) when color schemes are changed.
+	 */
+	public static void updateLayerPreferencesColors()
+	{
+		if (currentOne == null) return;
+		if (!currentTabName.equals("Layers")) return;
+		for(PreferencePanel ti : currentOne.optionPanes)
+			if (ti.getName().equals(currentTabName))
+				((LayersTab)ti).cacheLayerInfo(true);
+	}
+
+	/**
 	 * This method implements the command to show the Preferences dialog,
 	 * and chooses a panel.
 	 * @param tabName the name of the panel ("Grid", for example).

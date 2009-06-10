@@ -36,6 +36,7 @@ import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.WindowMenu;
 import com.sun.electric.tool.user.ui.WindowFrame.DisplayAttributes;
@@ -141,6 +142,7 @@ public class WindowFrame extends Observable
         	WindowFrame wf = it.next();
         	wf.loadComponentMenuForTechnology();
         }
+        PreferencesFrame.updateLayerPreferencesColors();
     }
 
     /** library tree updater */                         static { new LibraryTreeUpdater(); }

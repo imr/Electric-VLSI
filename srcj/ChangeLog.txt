@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09l: ******************************
 
+BUG: (6/10/09, SMR) Layers Preferences do not notice when color schemes change (Bug #2217).
+FIX: WindowFrame.repaintAllWindows() now notifies the Layers Preferences to recache.
+
 BUG: (6/10/09, SMR) Interactive sizing crashes if edge is sized about center (Bug #2218).
 FIX: Fixed SizeListener.getNewNodeSize().
 

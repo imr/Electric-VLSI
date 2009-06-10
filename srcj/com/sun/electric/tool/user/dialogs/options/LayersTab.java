@@ -137,18 +137,18 @@ public class LayersTab extends PreferencePanel
 			{
 				Layer layer = lIt.next();
 				if (layer.isPseudoLayer() && layer.getNonPseudoLayer() != layer) continue;
-				layerName.addItem(layer.getName());
+//				layerName.addItem(layer.getName());
                 if (tech instanceof Artwork) {
                     assert layer.getName().equals("Graphics");
                     defaultArtworkLayer = layer;
                 }
-                ColorPatternPanel.Info li = new ColorPatternPanel.Info(layer.getGraphics());
-                layerMap.put(layer, li);
+//                ColorPatternPanel.Info li = new ColorPatternPanel.Info(layer.getGraphics());
+//                layerMap.put(layer, li);
  			}
 
-			// make an entry for the technology's color map
-			Color [] map = tech.getTransparentLayerColors();
-			colorMapMap.put(tech, map);
+//			// make an entry for the technology's color map
+//			Color [] map = tech.getTransparentLayerColors();
+//			colorMapMap.put(tech, map);
 		}
 
 		// add the special layers
@@ -189,14 +189,41 @@ public class LayersTab extends PreferencePanel
             e.printStackTrace();
         }
 
+        cacheLayerInfo(false);
+//        for (Map.Entry<User.ColorPrefType,String> e: nameTypeSpecialMap.entrySet())
+//        {
+//            User.ColorPrefType type = e.getKey();
+//            String title = e.getValue();
+//            transAndSpecialMap.put(title, new ColorPatternPanel.Info(type));
+//        }
+
+		technology.setSelectedItem(Technology.getCurrent().getTechName());
+	}
+
+	public void cacheLayerInfo(boolean redraw)
+	{
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = it.next();
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
+			{
+				Layer layer = lIt.next();
+				if (layer.isPseudoLayer() && layer.getNonPseudoLayer() != layer) continue;
+                ColorPatternPanel.Info li = new ColorPatternPanel.Info(layer.getGraphics());
+                layerMap.put(layer, li);
+ 			}
+
+			// make an entry for the technology's color map
+			Color [] map = tech.getTransparentLayerColors();
+			colorMapMap.put(tech, map);
+		}
         for (Map.Entry<User.ColorPrefType,String> e: nameTypeSpecialMap.entrySet())
         {
             User.ColorPrefType type = e.getKey();
             String title = e.getValue();
             transAndSpecialMap.put(title, new ColorPatternPanel.Info(type));
         }
-
-		technology.setSelectedItem(Technology.getCurrent().getTechName());
+        if (redraw) layerSelected();
 	}
 
 	/**
