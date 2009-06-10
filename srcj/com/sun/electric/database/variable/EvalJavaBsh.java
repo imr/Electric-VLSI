@@ -24,6 +24,7 @@
 
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
@@ -253,6 +254,16 @@ public class EvalJavaBsh
         job.startJob();
     }
 
+    /**
+     * Display specified Cell after termibation of currently running script
+     * @param cell
+     */
+    public static void displayCell(Cell cell) {
+        Job curJob = Job.getRunningJob();
+        if (curJob instanceof runScriptJob)
+            ((runScriptJob)curJob).displayCell(cell);
+    }
+
     /** Run a Java Bean Shell script */
     public static Job runScriptJob(String script) {
         return new runScriptJob(script);
@@ -261,6 +272,7 @@ public class EvalJavaBsh
     private static class runScriptJob extends Job
 	{
         private String script;
+        private Cell cell;
 
         protected runScriptJob(String script) {
             super("JavaBsh script: "+script, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -270,7 +282,19 @@ public class EvalJavaBsh
         public boolean doIt() throws JobException {
             EvalJavaBsh evaluator = new EvalJavaBsh();
             return evaluator.doSource(script);
-       }
+        }
+
+        private void displayCell(Cell cell) {
+            if (this.cell != null) return;
+            this.cell = cell;
+            fieldVariableChanged("cell");
+        }
+
+        @Override
+        public void terminateOK() {
+            if (cell != null)
+                Job.getUserInterface().displayCell(cell);
+        }
     }
 
     // ****************************** REFLECTION FOR ACCESSING THE BEAN SHELL ******************************

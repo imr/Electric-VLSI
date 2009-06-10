@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09l: ******************************
 
+IMP: (6/9/06, DN) Method "EvalJavaBsh.displayCell(Cell cell)" to display Cell after
+    termination of ".bsh" script.
+
 BUG: (6/9/09, DN) Technology editor causes crash in redisplay after making technology (Bug #2215).
 FIX: In PixelDrawing.initForTechnology reallocate layerBitMap after change of color map size.
 
