@@ -82,7 +82,7 @@ import java.util.Set;
  * Class to hold scalable representation of circuit displays.
  */
 public class VectorCache {
-    private static final boolean USE_ELECTRICAL = true;
+    private static final boolean USE_ELECTRICAL = false;
     private static final boolean WIPE_PINS = true;
     public static boolean DEBUG = false;
     public static final VectorCache theCache = new VectorCache(EDatabase.clientDatabase());
