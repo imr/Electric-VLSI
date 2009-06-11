@@ -2946,7 +2946,7 @@ public class TechEditWizardData
                         nodesList.add(xTranWellLayer);
                     }
 
-                    sox = scaledValue(diff_poly_overhang.v);
+                    sox = scaledValue(poly_nt_endcap.v);
                     soy = scaledValue(diff_poly_overhang.v+nt_diff_overhang.v);
                     n = makeXmlPrimitive(t.nodeGroups, "NT-" + name + "-Transistor", func, 0, 0, 0, 0,
                     new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
