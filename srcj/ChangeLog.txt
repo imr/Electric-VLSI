@@ -6,6 +6,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09l: ******************************
 
+IMP: (6/11/09, GVG) NT transistor added in 40nm technology (Bug #2212).
+
 BUG: (6/10/09, SMR) Layers Preferences do not notice when color schemes change (Bug #2217).
 FIX: WindowFrame.repaintAllWindows() now notifies the Layers Preferences to recache.
 
