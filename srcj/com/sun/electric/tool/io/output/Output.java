@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -44,7 +45,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.cvspm.CVS;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -67,9 +67,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
 
 import javax.swing.SwingUtilities;
@@ -498,9 +498,12 @@ public class Output
 //            if (CVS.isEnabled() && !delibHeaderOnly) {
 //                CVSLibrary.savingLibrary(lib);
 //            }
-            HashSet<String> cellFiles = new HashSet<String>(lib.getDelibCellFiles());
-            if (delib.writeLib(snapshot, libId, cellFiles)) return true;
-            lib.setDelibCellFiles(cellFiles);
+            Set<CellId> oldCells = lib.getDelibCells();
+            if (delib.writeLib(snapshot, libId, oldCells)) return true;
+            lib.setDelibCells();
+//            HashSet<String> cellFiles = new HashSet<String>(lib.getDelibCellFiles());
+//            if (delib.writeLib(snapshot, libId, cellFiles)) return true;
+//            lib.setDelibCellFiles(cellFiles);
             if (delib.closeTextOutputStream()) return true;
             if (deletedCellFiles != null)
                 deletedCellFiles.addAll(delib.getDeletedCellFiles());

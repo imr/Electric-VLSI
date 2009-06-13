@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09m: ******************************
 
+BUG: (6/13/09, DN) Delib cell not marked for saving when version is deleted (Bug #1945).
+FIX: In ImmutableLibrary keep delibCells insteadof delibCellFiles.
+
 ************************* Version 8.09l: ******************************
 
 IMP: (6/11/09, GVG) NT transistor added in 40nm technology (Bug #2212).

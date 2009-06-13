@@ -75,7 +75,10 @@ public class DELIB extends JELIB {
     public static final String SEARCH_FOR_CELL_FILES = "____SEARCH_FOR_CELL_FILES____";
     public static final char PLATFORM_INDEPENDENT_FILE_SEPARATOR = '/';
 
-    protected boolean writeLib(Snapshot snapshot, LibId libId, Set<String> oldCellFiles) {
+    protected boolean writeLib(Snapshot snapshot, LibId libId, Set<CellId> oldCells) {
+        Set<String> oldCellFiles = new HashSet<String>();
+        for (CellId cellId: oldCells)
+            oldCellFiles.add(getCellFile(cellId));
         // sanity check: make sure we are not writing inside another delib file, this is bad for cvs
         // and just bad and confusing in general
         File delibDir = new File(filePath);
@@ -104,6 +107,16 @@ public class DELIB extends JELIB {
             File fd = new File(file);
             if (cellBackup.modified || !fd.exists()) state.modified = true;
         }
+        // See for deleted versions (Bug #1945)
+        for (CellId cellId: oldCells) {
+            if (snapshot.getCell(cellId) == null) {
+                String cellFile = getCellFile(cellId);
+                String file = filePath + File.separator + cellFile;
+                CellFileState state = cellFileMap.get(file);
+                if (state != null)
+                    state.modified = true;
+            }
+        }
 
         boolean b = super.writeLib(snapshot, libId, null, false);
         if (!b && !writeHeaderOnly) {
@@ -112,10 +125,10 @@ public class DELIB extends JELIB {
             for (File file : delibDir.listFiles()) {
                 checkIfDeleted(file, oldCellFiles);
             }
-            if (oldCellFiles != null) {
-                oldCellFiles.clear();
-                oldCellFiles.addAll(cellFileMap.keySet());
-            }
+//            if (oldCellFiles != null) {
+//                oldCellFiles.clear();
+//                oldCellFiles.addAll(cellFileMap.keySet());
+//            }
         }
         return b;
     }

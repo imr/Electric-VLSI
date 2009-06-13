@@ -189,7 +189,8 @@ public class JELIB extends LibraryFiles
         }
 
         lib.setFromDisk();
-        lib.setDelibCellFiles(parser.delibCellFiles);
+        lib.setDelibCells();
+//        lib.setDelibCellFiles(parser.delibCellFiles);
         return originalVars;
 	}
 
@@ -203,7 +204,7 @@ public class JELIB extends LibraryFiles
         }
         return null;
     }
-    
+
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */

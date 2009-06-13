@@ -30,6 +30,7 @@ import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Pref;
@@ -1143,18 +1144,20 @@ public class Library extends ElectricObject implements Comparable<Library>
 	}
 
     /**
-     * Returns DELIB cell files.
-     * @return DELIB cell files.
+     * Returns DELIB cells.
+     * @return DELIB cells.
      */
-    public Set<String> getDelibCellFiles() {
-        return d.delibCellFiles;
+    public Set<CellId> getDelibCells() {
+        return d.delibCells;
     }
 
     /**
-     * Sets DELIB cell files.
-     * @param delibCellFiles DELIB cell files.
+     * Sets DELIB cells.
      */
-    public void setDelibCellFiles(HashSet<String> delibCellFiles) {
-        setD(d.withDelibCellFiles(delibCellFiles));
+    public void setDelibCells() {
+        HashSet<CellId> delibCells = new HashSet<CellId>();
+        for (Iterator<Cell> it = getCells(); it.hasNext(); )
+            delibCells.add(it.next().getId());
+        setD(d.withDelibCells(delibCells));
     }
 }

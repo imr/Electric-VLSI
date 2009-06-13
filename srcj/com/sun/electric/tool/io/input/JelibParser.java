@@ -166,7 +166,7 @@ public class JelibParser
     final LinkedHashMap<String,Variable[]> tools = new LinkedHashMap<String,Variable[]>();
 
  	final LinkedHashMap<CellId,CellContents> allCells = new LinkedHashMap<CellId,CellContents>();
-    final LinkedHashSet<String> delibCellFiles = new LinkedHashSet<String>();
+//    final LinkedHashSet<String> delibCellFiles = new LinkedHashSet<String>();
 
     /*---------------------------------------------------------------------*/
 
@@ -615,7 +615,7 @@ public class JelibParser
         curReadFile = cellFD.getAbsolutePath();
         try {
             readFromFile(false);
-            delibCellFiles.add(curReadFile);
+//            delibCellFiles.add(curReadFile);
         } finally {
             version = savedVersion;
             revision = savedRevision;
