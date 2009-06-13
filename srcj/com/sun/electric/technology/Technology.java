@@ -131,6 +131,8 @@ public class Technology implements Comparable<Technology>, Serializable
 {
     /** Skip wiped pins both in electrical and non-electrical mode */
     protected static final boolean ALWAYS_SKIP_WIPED_PINS = false;
+    /** Compare old and new getShapeOfNode */
+    private static final boolean CHECK_NODE_SHAPES = false;
 
     // Change in TechSettings takes effect only after restart
     public static final boolean IMMUTABLE_TECHS = false/*Config.TWO_JVM*/;
@@ -2816,7 +2818,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
         Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
         Poly[] polys0 = polyBuilder.getShapeArray(ni, electrical, reasonable, onlyTheseLayers);
-        if (Job.getDebug()) {
+        if (CHECK_NODE_SHAPES && Job.getDebug()) {
 //            if (out != null)
 //                out.println(ni.getParent() + " " + ni.getName() + " " + electrical + " " + reasonable);
             Poly[] polys1 = getShapeOfNode_(ni, electrical, reasonable, onlyTheseLayers);
