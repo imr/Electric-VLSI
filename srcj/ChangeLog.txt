@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09m: ******************************
 
+IMP: (6/16/09, DN) Prohibit in Technology.xsd deprecated attibutes of <primitiveNodeGroup>.
+
 BUG: (6/13/09, DN) Delib cell not marked for saving when version is deleted (Bug #1945).
 FIX: In ImmutableLibrary keep delibCells insteadof delibCellFiles.
 

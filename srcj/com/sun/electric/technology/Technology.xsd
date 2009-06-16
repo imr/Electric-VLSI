@@ -628,7 +628,7 @@
             <xsd:enumeration value="FILLED"/>
             <xsd:enumeration value="CLOSED"/>
             <xsd:enumeration value="CROSSED"/>
-            <xsd:enumeration value="DISC"/> 
+            <xsd:enumeration value="DISC"/>
             <xsd:enumeration value="TEXTCENT"/>
             <xsd:enumeration value="CIRCLEARC"/>
             <xsd:enumeration value="OPENED"/>
@@ -910,8 +910,8 @@
                                 <xsd:group ref="tns:PrimitiveNodeImpl"/>
                             </xsd:sequence>
                             <!-- Deprecated attributes -->
-                            <xsd:attribute name="name" type="tns:PrimitiveNodeName"/>
-                            <xsd:attribute name="fun" type="tns:PrimitiveNodeFun"/>
+                            <xsd:attribute name="name" type="tns:PrimitiveNodeName" use="prohibited"/>
+                            <xsd:attribute name="fun" type="tns:PrimitiveNodeFun" use="prohibited"/>
                         </xsd:complexType>
                     </xsd:element>
                     <xsd:element name="primitiveNode">
