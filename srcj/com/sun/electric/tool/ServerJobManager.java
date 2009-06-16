@@ -32,7 +32,6 @@ import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.plugins.tests.DebugMenuEric;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -161,23 +160,14 @@ public class ServerJobManager extends JobManager {
     /** Add job to list of jobs */
     void addJob(EJob ejob, boolean onMySnapshot) {
         lock();
-        
-        	DebugMenuEric.writeConsole( "ServerJobManager.addJob() - begin", 1 );
-        
         try {
             if (onMySnapshot)
                 waitingJobs.add(0, ejob);
             else
                 waitingJobs.add(ejob);
-            
-            	DebugMenuEric.writeConsole( "ejob -> '" + ejob.jobName + "' with type -> " + ejob.jobType );
-            
             setEJobState(ejob, EJob.State.WAITING, onMySnapshot ? EJob.WAITING_NOW : "waiting");
             invokeEThread();
         } finally {
-        	
-        		DebugMenuEric.writeConsole( -1, "ServerJobManager.addJob() - end" );
-        	
             unlock();
         }
     }
@@ -267,12 +257,7 @@ public class ServerJobManager extends JobManager {
         if (startedJobs.size() < numThreads)
             databaseChangesMutex.signal();
         else{
-        		DebugMenuEric.writeConsole( "invokeEThread() -> new EThread()", 1 );
-            
         	new EThread(numThreads++);
-            	
-        		DebugMenuEric.writeConsole( -1 );
-        	
         }
         signalledEThread = true;
     }
@@ -382,13 +367,9 @@ public class ServerJobManager extends JobManager {
 //    }
 
     public void runLoop(Job initialJob) {
-    	
-    		DebugMenuEric.writeConsole( "runLoop -> initialJob.startJob() - begin", 1 );
-    	
+
         initialJob.startJob();
-        
-        	DebugMenuEric.writeConsole( -1, "runLoop -> initialJob.startJob() - end" );
-        	
+
         if (serverSocket == null) return;
         try {
             // Wait for connections
