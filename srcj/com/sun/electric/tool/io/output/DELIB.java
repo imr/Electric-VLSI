@@ -147,7 +147,8 @@ public class DELIB extends JELIB {
         View view = View.findView(name.substring(dot+1));
         if (view == null) return;
 
-        if (oldCellFiles == null || !oldCellFiles.contains(cellFile.getAbsolutePath())) return;
+        if (oldCellFiles == null || !oldCellFiles.contains(cellFile.getName())) return;
+//        if (oldCellFiles == null || !oldCellFiles.contains(cellFile.getAbsolutePath())) return;
         System.out.println("Renaming unlinked (possibly deleted) cell file "+name+" to "+name+".deleted");
         deletedCellFiles.add(cellFile.getAbsolutePath());
         File deletedFileName = new File(cellFile.getAbsolutePath()+".deleted");

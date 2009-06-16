@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09m: ******************************
 
+BUG: (6/16/09, DN) DELIB cell files of deleted cells aren't renamed to ".deleted".
+FIX: In DELIB.checkIfDelete use getName instead of getLibraryPath.
+
 IMP: (6/16/09, DN) Prohibit in Technology.xsd deprecated attibutes of <primitiveNodeGroup>.
 
 BUG: (6/13/09, DN) Delib cell not marked for saving when version is deleted (Bug #1945).
