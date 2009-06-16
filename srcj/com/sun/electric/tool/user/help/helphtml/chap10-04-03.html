@@ -1,30 +1,31 @@
-<!-- NEED 3in -->
+<!-- NEED 5in -->
 <!-- HEADER 10-4-3: Example -->
 
+
+<TABLE><TR><TD>
 As an example of the JELIB format, let us assume a design with two levels of hierarchy.
-The bottom level of hierarchy (cell "low") has 3 nodes, two arcs, and an export:
+The bottom level of hierarchy (cell "low") has 3 nodes, two arcs, and an export, as shown here.
+</TD><TD><CENTER><IMG SRC="fig10-01.png" ALT="Figure 10-1"></CENTER></TD></TR></TABLE>
 <P>
-<CENTER><IMG SRC="fig10-01.png"></CENTER>
-<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig10-02.png" ALT="Figure 10-2"></CENTER></TD><TD>
 The top level of hierarchy (cell "high") has two instances of the cell
-(the right instance is rotated 90 degrees) and an arc connecting them:
+(the right instance is rotated 90 degrees) and an arc connecting them, as shown here.
+</TD></TR></TABLE>
 <P>
-<CENTER><IMG SRC="fig10-02.png"></CENTER>
-<P>
-<!-- NEED 5in -->
-Here is the JELIB file for the above layout.
-<CENTER><TABLE BORDER=1>
-<TR><TD>
-<CODE>
-# header information:<BR>
-HExample|8.07<BR>
+Here is the JELIB file for the above layout:
+<CENTER><TABLE><TR><TD VALIGN=TOP>
+<CODE><FONT SIZE="-1">
+# header information:&nbsp;&nbsp;&nbsp;<BR>
+HExample|8.09<BR>
 <BR>
 # Views:<BR>
 Vlayout|lay<BR>
 <BR>
 # Technologies:<BR>
-Tmocmos|mocmosSecondPolysilicon()BF<BR>
-<BR>
+Tmocmos
+</FONT></CODE>
+</TD><TD>
+<CODE><FONT SIZE="-1">
 # Cell high;1{lay}<BR>
 Chigh;1{lay}||mocmos|1093555876000|1094258888640|<BR>
 Ngeneric:Facet-Center|art@0||0|0||||AV<BR>
@@ -42,7 +43,6 @@ NMetal-2-Pin|pin@1||-10|-10||||<BR>
 AMetal-1|net@0|||S1800|contact@0||-10|10|pin@0||10|10<BR>
 AMetal-2|net@1|||S900|contact@0||-10|10|pin@1||-10|-10<BR>
 Ea||D5G2;|pin@0||U<BR>
-X<BR>
-</CODE></TD></TR></TABLE></CENTER>
-
+X
+</FONT></CODE></TD></TR></TABLE></CENTER>
 <!-- TRAILER -->

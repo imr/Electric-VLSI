@@ -21,30 +21,68 @@ Scripts can have mnemonic letters assigned to them
 </TD><TD><CENTER><IMG SRC="fig06-30.png" ALT="Figure 6.30"></CENTER></TD></TR></TABLE>
 <P>
 Here are some example scripts in the Java Bean Shell.
+For more information about accessing the internals of Electric, read the Javadoc
+in the source code.
+<P>
+
 
 <TABLE WIDTH="100%"><TR>
 <TD WIDTH="75%"><TABLE WIDTH="100%" BORDER=1><TR><TD>
 <CODE><FONT SIZE="-1">
 import com.sun.electric.database.hierarchy.Cell;<BR>
+import com.sun.electric.tool.Job;<BR>
+import java.util.Iterator;<BR>
+<BR>
+// get the current cell<BR>
+Cell lay = Job.getUserInterface().getCurrentCell();<BR>
+<BR>
+// find all exports<BR>
+String aOut = "Exports that start with 'a':";<BR>
+<BR>
+for(Iterator it = lay.getPorts(); it.hasNext(); ) {<BR>
+&nbsp;&nbsp;&nbsp;com.sun.electric.database.hierarchy.Export e =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(com.sun.electric.database.hierarchy.Export)it.next();<BR>
+&nbsp;&nbsp;&nbsp;if (e.getName().toLowerCase().startsWith("a"))<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;aOut += " " + e.getName();<BR>
+}<BR>
+System.out.println(aOut);
+</FONT></CODE>
+</TD></TR></TABLE></TD>
+<TD WIDTH="25%" VALIGN=TOP>
+This example  searches the current cell for exports starting with "a".
+<P>
+Notice that Electric's "Export" object must be a fully-qualified name, because the
+name "Export" is used for other reasons in the Bean Shell.
+This also applies to Electric's "EPoint" class.
+</TD></TR></TABLE>
+<P>
+
+<!-- NEED 3in -->
+<TABLE WIDTH="100%"><TR>
+<TD WIDTH="80%"><TABLE WIDTH="100%" BORDER=1><TR><TD>
+<CODE><FONT SIZE="-1">
+import com.sun.electric.database.hierarchy.Cell;<BR>
 import com.sun.electric.database.topology.NodeInst;<BR>
+import com.sun.electric.database.variable.EvalJavaBsh;<BR>
 import com.sun.electric.technology.PrimitiveNode;<BR>
 import com.sun.electric.technology.Technology;<BR>
 import java.awt.geom.Point2D;<BR>
 <BR>
-Cell newCell = Cell.makeInstance(Library.getCurrent(), "sample1{lay}");<BR>
+Cell newCell = Cell.makeInstance(Library.getCurrent(), "samp1{lay}");<BR>
 Technology tech = Technology.findTechnology("mocmos");<BR>
 PrimitiveNode trP = tech.findNodeProto("P-Transistor");<BR>
 NodeInst tP = NodeInst.makeInstance(trP, new Point2D.Double(10, 10),<BR>
-&nbsp;&nbsp;&nbsp;trP.getDefWidth(), trP.getDefHeight(), newCell);
+&nbsp;&nbsp;&nbsp;trP.getDefWidth(), trP.getDefHeight(), newCell);<BR>
+EvalJavaBsh.displayCell(newCell);
 </FONT></CODE>
 </TD></TR></TABLE></TD>
-<TD VALIGN=TOP>
-This initial example creates a new cell and places a transistor in it.
+<TD WIDTH="20%" VALIGN=TOP>
+This example creates a new cell, places a transistor in it, and displays the cell.
 </TD></TR></TABLE>
-
+<P>
 
 <TABLE WIDTH="100%"><TR>
-<TD WIDTH="75%"><TABLE WIDTH="100%" BORDER=1><TR><TD>
+<TD WIDTH="80%"><TABLE WIDTH="100%" BORDER=1><TR><TD>
 <CODE><FONT SIZE="-1">
 import com.sun.electric.database.hierarchy.Cell;<BR>
 import com.sun.electric.database.geometry.Orientation;<BR>
@@ -56,14 +94,15 @@ import com.sun.electric.technology.Technology;<BR>
 import java.awt.geom.Point2D;<BR>
 <BR>
 // create the new cell<BR>
-Cell newCell = Cell.makeInstance(Library.getCurrent(), "sample2{lay}");<BR>
+Cell newCell = Cell.makeInstance(Library.getCurrent(), "samp2{lay}");<BR>
 <BR>
 Technology tech = Technology.findTechnology("mocmos");<BR>
 <BR>
 // place a rotated transistor<BR>
 PrimitiveNode trP = tech.findNodeProto("P-Transistor");<BR>
 NodeInst tP = NodeInst.makeInstance(trP, new Point2D.Double(0, 20),<BR>
-&nbsp;&nbsp;&nbsp;trP.getDefWidth(), trP.getDefHeight(), newCell, Orientation.R, "T1");<BR>
+&nbsp;&nbsp;&nbsp;trP.getDefWidth(), trP.getDefHeight(), newCell,<BR>
+&nbsp;&nbsp;&nbsp;Orientation.R, "T1");<BR>
 <BR>
 // place a metal-Active contact<BR>
 PrimitiveNode coP = tech.findNodeProto("Metal-1-P-Active-Con");<BR>
@@ -80,45 +119,11 @@ com.sun.electric.database.hierarchy.Export.newInstance(newCell,<BR>
 &nbsp;&nbsp;&nbsp;maP.findPortInst("metal-1-p-act"), "IN", PortCharacteristic.IN);
 </FONT></CODE>
 </TD></TR></TABLE></TD>
-<TD VALIGN=TOP>
+<TD WIDTH="20%" VALIGN=TOP>
 This example goes a bit further: it creates a rotated transistor and a contact, wires them together,
 and exports the contact.
 The transistor is named "T1."
 </TD></TR></TABLE>
 
-
-<TABLE WIDTH="100%"><TR>
-<TD WIDTH="75%"><TABLE WIDTH="100%" BORDER=1><TR><TD>
-<CODE><FONT SIZE="-1">
-import com.sun.electric.database.hierarchy.Cell;<BR>
-import com.sun.electric.tool.Job;<BR>
-import java.util.Iterator;<BR>
-<BR>
-// get the current cell<BR>
-Cell lay =  Job.getUserInterface().getCurrentCell();<BR>
-<BR>
-// find all exports<BR>
-String aOut = "Exports that start with 'a':";<BR>
-<BR>
-for(Iterator it = lay.getPorts(); it.hasNext(); ) {<BR>
-&nbsp;&nbsp;&nbsp;com.sun.electric.database.hierarchy.Export e =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(com.sun.electric.database.hierarchy.Export)it.next();<BR>
-&nbsp;&nbsp;&nbsp;if (e.getName().toLowerCase().startsWith("a"))<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;aOut += " " + e.getName();<BR>
-}<BR>
-System.out.println(aOut);
-</FONT></CODE>
-</TD></TR></TABLE></TD>
-<TD VALIGN=TOP>
-This example  searches the current cell for exports starting with "a".
-</TD></TR></TABLE>
-
-<P>
-Notice that Electric's "Export" object must be a fully-qualified name, because the
-name "Export" is used for other reasons in the Bean Shell.
-This also applies to Electric's "EPoint" class.
-<P>
-For more information about accessing the internals of Electric, read the Javadoc
-in the source code.
 
 <!-- TRAILER -->

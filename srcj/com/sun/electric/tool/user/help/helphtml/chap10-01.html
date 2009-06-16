@@ -2,10 +2,9 @@
 
 This chapter describes Electric's native file format, which ends in "jelib".
 These files contain an entire library of cells.
-The "delib" variation is used when each cell is stored in its own file
-(useful when using CVS version control on a project,
-see <A HREF="chap06-13.html#chap06-13">Section 6-13</A>).
-The earlier file format, which ends in "elib", remains undocumented and is no longer recommended.
+There are two earlier file formats which remain undocumented and are no longer recommended:
+"elib" is a binary format and "txt" is a text-readable format.
+Electric can still read and write these files, but support for them is limited and for legacy use only.
 <P>
 JELIB files are text-readable files.
 Each line of a JELIB file starts with an identifying character that distinguishes the line.
@@ -72,5 +71,31 @@ The ordering is usually a name sort.
 By ordering everything in the file, the exact same file is generated every time,
 and text comparison operations will accurately find differences between two files.
 Note, however, that the JELIB reader does not require any sorting, and can handle the data in any order. 
+<P>
+<H4>DELIB Format</H4>
+<P>
+In order to enable CVS version control (see <A HREF="chap06-13.html#chap06-13">Section 6-13</A>)
+Electric also has a "delib" format.
+This format is actually a directory (with the ".delib" extension) that contains multiple "jelib"-format files.
+Each of the files in a "delib" directory contains a single view of a single cell
+(although it may contain multiple versions of that cell).
+Instead of naming these files with the "jelib" extension, they use the cell name
+for their file name and the cell view for their file extension.
+<P>
+The cell-files in a "delib" directory have no "V" (views), "T" (technologies), "O" (tools), or "G" (group) lines
+(see above).
+Instead, these lines appear in a separate file called "header",
+which also has a copy of the "H" line.
+Where "C" (cell) lines should appear, the "header" file contains this text:
+<CENTER>C____SEARCH_FOR_CELL_FILES____</CENTER>
+<P>
+For example, assume that library "X" has cells A{lay}, A{sch}, and two versions of cell B{lay}:
+B{lay} and B;1{lay}.
+When written as a "jelib", all four of these cells will be stored in the file "X.jelib".
+When written as a "delib", there will be a directory called "X.delib" with the files "A.lay",
+"A.sch", "B.lay" (with two cells in it), and "header".
+<P>
+When a cell is deleted from a library, its "delib" file is not deleted, but is retained for archival purposes.
+To mark it as deleted, however, it is renamed so that it has the extension "deleted."
 
 <!-- TRAILER -->

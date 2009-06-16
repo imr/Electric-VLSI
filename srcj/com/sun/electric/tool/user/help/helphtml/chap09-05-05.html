@@ -23,10 +23,10 @@ The format of this statement is shown below:
 <CENTER><TABLE WIDTH="80%">
 <TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">function <I>name</I>(<I>signal1</I>, <I>signal2</I>,
 <I>signal3</I>, ... <I>signalN</I>)</TD></TR>
-<TR><TD><B>Example:</B></TD><TD>function JK_FF(ck, j, k, out)</TD></TR>
-<TR><TD></TD><TD>function DFFLOP(data_in, clk, data_out)</TD></TR>
-<TR><TD></TD><TD>function BUS_TO_STATE(b7,b6,b5,b4,b3,b2,b1,b0, output)</TD></TR>
-<TR><TD></TD><TD>function STATE_TO_BUS(input, b7,b6,b5,b4,b3,b2,b1,b0)</TD></TR>
+<TR><TD VALIGN=TOP><B>Example:</B></TD><TD>function JK_FF(ck, j, k, out)<BR>
+function DFFLOP(data_in, clk, data_out)<BR>
+function BUS_TO_STATE(b7,b6,b5,b4,b3,b2,b1,b0, output)<BR>
+function STATE_TO_BUS(input, b7,b6,b5,b4,b3,b2,b1,b0)</TD></TR>
 </TABLE></CENTER>
 <P>
 The name refers to a Java method,
@@ -47,16 +47,16 @@ The format of an <B>i:</B> statement, which contains a list of event driving inp
 <P>
 <CENTER><TABLE WIDTH="80%">
 <TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">i: <I>signal1</I> <I>signal2</I> <I>signal3</I> ... <I>signalN</I></TD></TR>
-<TR><TD><B>Example:</B></TD><TD>i: b7 b6 b5 b4 b3 b2 b1 b0</TD></TR> 
-<TR><TD></TD><TD>i: input phi phi_bar set reset</TD></TR>
+<TR><TD VALIGN=TOP><B>Example:</B></TD><TD>i: b7 b6 b5 b4 b3 b2 b1 b0<BR> 
+i: input phi phi_bar set reset</TD></TR>
 </TABLE></CENTER>
 <P>
 The format of an <B>o:</B> statement which contains a list of output ports is shown below:
 <P>
 <CENTER><TABLE WIDTH="80%">
 <TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">o: <I>signal1</I> <I>signal2</I> <I>signal3</I> ... <I>signalN</I></TD></TR>
-<TR><TD><B>Example:</B></TD><TD>o: out1 out2 out3</TD></TR>
-<TR><TD></TD><TD>o: q q_bar</TD></TR>
+<TR><TD VALIGN=TOP><B>Example:</B></TD><TD>o: out1 out2 out3<BR>
+o: q q_bar</TD></TR>
 </TABLE></CENTER>
 <P>
 
@@ -78,26 +78,18 @@ statements and can schedule events with values that are specified directly insid
 <P>
 The specification for a 3 bit shift register (edge triggered) is shown below.
 This circuit uses a function primitive to model the operation of a D flip-flop:
-<P><CODE>
+<P><CODE><FONT SIZE="-1">
 &nbsp;&nbsp;&nbsp;model main(input, ck, q2, q1, q0)<BR>
-&nbsp;&nbsp;&nbsp;stage0: DFFLOP(input, ck, q0)
+&nbsp;&nbsp;&nbsp;stage0: DFFLOP(input, ck, q0)<BR>
+&nbsp;&nbsp;&nbsp;stage1: DFFLOP(q0, ck, q1)<BR>
+&nbsp;&nbsp;&nbsp;stage2: DFFLOP(q1, ck, q2)<BR>
 <BR>
-&nbsp;&nbsp;&nbsp;stage1: DFFLOP(q0, ck, q1)
-<BR>
-&nbsp;&nbsp;&nbsp;stage2: DFFLOP(q1, ck, q2)
-<BR>
-
-<BR>
-&nbsp;&nbsp;&nbsp;function DFFLOP(data_in, clock, output)
-<BR>
-&nbsp;&nbsp;&nbsp;i: clock
-<BR>
-&nbsp;&nbsp;&nbsp;o: output
-<BR>
-&nbsp;&nbsp;&nbsp;t: delta=10e-9
-<BR>
+&nbsp;&nbsp;&nbsp;function DFFLOP(data_in, clock, output)<BR>
+&nbsp;&nbsp;&nbsp;i: clock<BR>
+&nbsp;&nbsp;&nbsp;o: output<BR>
+&nbsp;&nbsp;&nbsp;t: delta=10e-9<BR>
 &nbsp;&nbsp;&nbsp;load clock=2.0
-</CODE><P>
+</FONT></CODE><P>
 It should be noted that the clock is the only event driving input for the flip-flop function.
 There is no need to call the function if the signal "data_in" will be sampled
 only when the event driving signal
@@ -114,6 +106,5 @@ in the declaration of the function entity.
 The programmer requires some knowledge of the internals of the simulator to
 extract the correct information from this list and to schedule new events.
 A complete discussion of function entity programming is beyond the scope of this document.
-
 
 <!-- TRAILER -->

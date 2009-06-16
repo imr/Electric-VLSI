@@ -43,7 +43,7 @@ which become primitive nodes in the FPGA technology.
 A primitive definition looks like this:
 <P>
 <CODE>
-<FONT SIZE="-1">
+<FONT SIZE="-2">
 (primdef<BR>
 &nbsp;&nbsp;(attributes<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(name PRIMNAME)<BR>
@@ -86,7 +86,7 @@ Six ports are defined (two on the left, two on the top, and two on the bottom).
 Here is the code:
 <P>
 <TABLE><TR><TD VALIGN=TOP WIDTH="65%">
-<CODE><FONT SIZE="-1">
+<CODE><FONT SIZE="-2">
 (primdef<BR>
 &nbsp;&nbsp;(attributes<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(name sampleblock)<BR>
@@ -108,7 +108,7 @@ Here is the code:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction output) )<BR>
 &nbsp;&nbsp;)</FONT></CODE>
 </TD><TD WIDTH="35%"><CENTER><IMG SRC="fig07-11.png" ALT="Figure 7.11"></CENTER></TD></TR></TABLE>
-<CODE><FONT SIZE="-1">
+<CODE><FONT SIZE="-2">
 &nbsp;&nbsp;(components<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(pip (name pip1) (position 10 20) (connectivity intv1 inth1) )<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(pip (name pip2) (position 30 20) (connectivity intv2 inth1) )<BR>
@@ -131,7 +131,7 @@ The Block Definition and Architecture sections define higher-level blocks compos
 They looks like this:
 <P>
 <CODE>
-<FONT SIZE="-1">
+<FONT SIZE="-2">
 (blockdef
 <BR>
 &nbsp;&nbsp;(attributes
@@ -238,7 +238,7 @@ port or at an arbitrary position inside of the block.
 <TABLE><TR><TD VALIGN=TOP WIDTH="65%">
 Here is an example of block definition code and its layout.
 <P>
-<CODE><FONT SIZE="-1">
+<CODE><FONT SIZE="-2">
 (blockdef<BR>
 &nbsp;&nbsp;(attributes<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(name testblock)<BR>
@@ -266,7 +266,7 @@ Here is an example of block definition code and its layout.
 </CODE>
 </TD><TD WIDTH="35%"><CENTER><IMG SRC="fig07-25.png" ALT="Figure 7.25"></CENTER></TD></TR></TABLE>
 <P>
-<CODE><FONT SIZE="-1">
+<CODE><FONT SIZE="-2">
 &nbsp;&nbsp;(ports<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(port (name top0)  (position 40 150) (direction bidir) )<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(port (name top1)  (position 60 150) (direction bidir) )<BR>

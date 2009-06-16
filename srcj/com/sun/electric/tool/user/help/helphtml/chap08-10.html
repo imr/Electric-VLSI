@@ -84,12 +84,11 @@ Here is a description of Xml technology file in Electric relreases 8.05 and 8.06
 </LI>
 </UL>
 Example:<BR>
-<CODE>&nbsp;&nbsp;&nbsp;&lt;technology name="mocmos"<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class="com.sun.electric.technology.technologies.MoCMOS"<BR>
+<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;technology name="mocmos" class="com.sun.electric.technology.technologies.MoCMOS"<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns="http://electric.sun.com/Technology"<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xsi:schemaLocation="http://electric.sun.com/Technology<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;../../technology/Technology.xsd"&gt;</CODE>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;../../technology/Technology.xsd"&gt;</FONT></CODE>
 <P>
 Inside of the &lt;technology&gt; element are these subelements:
 <UL>
@@ -105,15 +104,15 @@ Inside of the &lt;technology&gt; element are these subelements:
 	of &lt;arcProto&gt; and &lt;primitiveNode&gt; descriptions. The "electric" attribute is a corresponding Electric version.
 	These elements are usually fixed in all technology files.<BR>
 	Examples:<BR>
-    <CODE>&nbsp;&nbsp;&nbsp;&lt;version tech="1" electric="8.05g"/&gt;</CODE><BR>
-    <CODE>&nbsp;&nbsp;&nbsp;&lt;version tech="2" electric="8.05o"/&gt;</CODE>
+    <CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;version tech="1" electric="8.05g"/&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&lt;version tech="2" electric="8.05o"/&gt;</FONT></CODE>
 </LI>
 <LI>
     <B>&lt;numMetals&gt;</B> describes a possible range for the number of metall layers in the technology.
 	There is no good support for Xml technology files with a variable number of metal layers.
 	Therefore, this element should contains the same value for all three attributes.<BR>
 	Example:<BR>
-	<CODE>&nbsp;&nbsp;&nbsp;&lt;numMetals min="6" max="6" default="6"/&gt;</CODE>
+	<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;numMetals min="6" max="6" default="6"/&gt;</FONT></CODE>
 </LI>
 <LI>
     <B>&lt;scale&gt;</B> defines how many nanometers are in a display unit.
@@ -121,23 +120,28 @@ Inside of the &lt;technology&gt; element are these subelements:
 	without specifying actual distances.  This scale converts the units to real spacings.
 	The "relevant" attribute should be true for layout technologies.<BR>
 	Example:<BR>
-	<CODE>&nbsp;&nbsp;&nbsp;&lt;scale value="200.0" relevant="true"/&gt;</CODE>
+	<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;scale value="200.0" relevant="true"/&gt;</FONT></CODE>
 </LI>
 <LI>
     <B>&lt;defaultFoundry&gt;</B> is a name of the default foundry for this technology.
 	The name references one of the &lt;foundry&gt; elements found later in the Xml file.<BR>
 	Example:<BR>
-    <CODE>&nbsp;&nbsp;&nbsp;&lt;defaultFoundry value="MOSIS"/&gt;</CODE>
+    <CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;defaultFoundry value="MOSIS"/&gt;</FONT></CODE>
 </LI>
 <LI>
     <B>&lt;minResistance&gt;</B> global minimum resistance (for parasitics).<BR>
 	Example:<BR>
-	<CODE>&nbsp;&nbsp;&nbsp;&lt;minResistance value="4.0"/&gt;</CODE>
+	<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;minResistance value="4.0"/&gt;</FONT></CODE>
 </LI>
 <LI>
     <B>&lt;minCapacitance&gt;</B> global minimum capacitance (for parasitics).<BR>
 	Example:<BR>
-	<CODE>&nbsp;&nbsp;&nbsp;&lt;minCapacitance value="0.1"/&gt;</CODE>
+	<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;minCapacitance value="0.1"/&gt;</FONT></CODE>
+</LI>
+<LI>
+    <B>&lt;logicalEffort&gt;</B> defines default project preferences for the Logical Effort tool.<BR>
+	Example:<BR>
+	<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;logicalEffort gateCapacitance="0.167" wireRatio="0.16" diffAlpha="0.7"/&gt;</FONT></CODE>
 </LI>
 <LI>
     <B>&lt;transparentLayer&gt;</B> defines the transparent layers in the technology.  All layers can be drawn
@@ -151,11 +155,11 @@ Inside of the &lt;technology&gt; element are these subelements:
 	This element lists the number of transparent layers, and provides the color of each.  The system
 	automatically determines the blending colors where multiple transparent layers overlap.<BR>
 	Example:<BR>
-	<CODE>&nbsp;&nbsp;&nbsp;&lt;transparentLayer transparent="1"&gt;<BR>
+	<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;transparentLayer transparent="1"&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;r&gt;96&lt;/r&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;g&gt;209&lt;/g&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;b&gt;255&lt;/b&gt;<BR>
-    &nbsp;&nbsp;&nbsp;&lt;/transparentLayer&gt;</CODE>
+    &nbsp;&nbsp;&nbsp;&lt;/transparentLayer&gt;</FONT></CODE>
 </LI>
 <LI>
     <B>&lt;layer&gt;</B> a list of layer descriptions (see below).
@@ -164,7 +168,7 @@ Inside of the &lt;technology&gt; element are these subelements:
     <B>&lt;arcProto&gt;</B> a list of primitive arc descriptions (see below).
 </LI>
 <LI>
-    <B>&lt;primitiveNode&gt;</B> a list of primitive node descriptions (see below).
+    <B>&lt;primitiveNode/primitiveNodeGroup&gt;</B> a list of primitive node and primitive node group descriptions (see below).
 </LI>
 <LI>
     <B>&lt;spiceHeader&gt;</B> default spice models.
@@ -199,6 +203,7 @@ The &lt;layer&gt; elements define layers in the technology.  They contains these
 	<BR>&nbsp;&nbsp;&nbsp;RESISTOR CAP <I>(resistor/capacitor)</I>
 	<BR>&nbsp;&nbsp;&nbsp;TRANSISTOR <I>(transistor)</I>
 	<BR>&nbsp;&nbsp;&nbsp;EMITTER BASE COLLECTOR <I>(bipolar parts)</I>
+	<BR>&nbsp;&nbsp;&nbsp;DMY* DEXCL* <I>(dummy and dummy-exclusion for different layers)</I>
 	<BR>&nbsp;&nbsp;&nbsp;BUS ART <I>(schematics and artwork)</I>
 	<BR>&nbsp;&nbsp;&nbsp;PLUG OVERGLASS GUARD ISOLATION <I>(specialty)</I>
 	<BR>&nbsp;&nbsp;&nbsp;TILENOT CONTROL <I>(specialty)</I>
@@ -209,12 +214,13 @@ The &lt;layer&gt; elements define layers in the technology.  They contains these
 	<BR>&nbsp;&nbsp;&nbsp;connects-metal connects-poly connects-diff
 	<BR>&nbsp;&nbsp;&nbsp;heavy light depletion_heavy depletion_light enhancement_heavy enhancement_light
 	<BR>&nbsp;&nbsp;&nbsp;vt thick native
+	<BR>&nbsp;&nbsp;&nbsp;inside_transistor deep carb-nano
 	<BR>&nbsp;&nbsp;&nbsp;n-type <I>deprecated: use fun=IMPLANTN</i>
 	<BR>&nbsp;&nbsp;&nbsp;p-type <I>deprecated: use fun=IMPLANTP</i>
 </LI>
 </UL>
 Example:<BR>
-<CODE>&nbsp;&nbsp;&nbsp;&lt;layer name="Poly-Cut" fun="CONTACT1" extraFun="connects-poly"&gt;</CODE>
+<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;layer name="Poly-Cut" fun="CONTACT1" extraFun="connects-poly"&gt;</FONT></CODE>
 <P>
 Inside of the &lt;layer&gt; element are these subelements:
 <UL>
@@ -260,7 +266,7 @@ Inside of the &lt;layer&gt; element are these subelements:
     </LI>
     </UL>
     Example:<BR>
-    <CODE>&nbsp;&nbsp;&nbsp;&lt;display3D thick="0.75" height="15.75" mode="NONE" factor="0.2"/&gt;</CODE>
+    <CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;display3D thick="0.75" height="15.75" mode="NONE" factor="0.2"/&gt;</FONT></CODE>
 </LI>
 <LI>
     <B>&lt;cifLayer&gt;</B> CIF layer name.
@@ -269,7 +275,7 @@ Inside of the &lt;layer&gt; element are these subelements:
     <B>&lt;skillLayer&gt;</B> Skill layer name.
 </LI>
 <LI>
-    <B>&lt;parasitic&gt;</B> parasitic extractor subelements.
+    <B>&lt;parasitics&gt;</B> parasitic extractor subelements.
 </LI>
 <LI>
     <B>&lt;pureLayerNode&gt;</B> description of the pure-layer node for this layer.
@@ -291,14 +297,14 @@ Inside of the &lt;layer&gt; element are these subelements:
     </LI>
     </UL>
     Example:<BR>
-    <CODE>&nbsp;&nbsp;&nbsp;&lt;pureLayerNode name="Transistor-Poly-Node" port="trans-poly-1"&gt;<BR>
+    <CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;pureLayerNode name="Transistor-Poly-Node" port="trans-poly-1"&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lambda&gt;2.0&lt;/lambda&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;portArc&gt;Polysilicon-1&lt;/portArc&gt;<BR>
-    &nbsp;&nbsp;&nbsp;&lt;/pureLayerNode&gt;</CODE>
+    &nbsp;&nbsp;&nbsp;&lt;/pureLayerNode&gt;</FONT></CODE>
 </LI>
 </UL>
 
-<!-- NEED 3in -->
+<!-- NEED 5in -->
 <H4>Arcs</H4>
 <P>
 &lt;arcProto&gt; elements describe primitive arcs in the technology.  They have these attributes:
@@ -320,7 +326,7 @@ Inside of the &lt;layer&gt; element are these subelements:
 </LI>
 </UL>
 Example:<BR>
-<CODE>&nbsp;&nbsp;&nbsp;&lt;arcProto name="P-Active" fun="DIFFP"&gt;</CODE>
+<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;arcProto name="P-Active" fun="DIFFP"&gt;</FONT></CODE>
 <P>
 Inside of the &lt;arcProto&gt; element are these subelements:
 <UL>
@@ -349,6 +355,9 @@ Inside of the &lt;arcProto&gt; element are these subelements:
     <B>&lt;fixedAngle&gt;</B> default state of the fixed-angle constraint on this arc.
 </LI>
 <LI>
+    <B>&lt;angleIncrement&gt;</B> default state of the angle-increment amount on this arc (grids placement angles).
+</LI>
+<LI>
     <B>&lt;antennaRatio&gt;</B> value used by the ERC tool.
 </LI>
 <LI>
@@ -364,7 +373,7 @@ Inside of the &lt;arcProto&gt; element are these subelements:
     The value written to libraries prior to "diskOffset.untilVersion" was <I>2*(a.extend + diskOffset.width)</I>.
     The &lt;diskOffset&gt; element is necessary only in legacy technologies.<BR>
     Example:<BR>
-    <CODE>&nbsp;&nbsp;&nbsp;&lt;diskOffset untilVersion="1" width="7.5"/&gt;</CODE>
+    <CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;diskOffset untilVersion="1" width="7.5"/&gt;</FONT></CODE>
 </LI>
 <LI>
     <B>&lt;defaultWidth&gt;</B> factory default value of arc width. This element is not used now and should be omitted.
@@ -381,14 +390,14 @@ Inside of the &lt;arcProto&gt; element are these subelements:
     The BaseWidth of the arc instance is the width of the first ArcLayer in the list.
     It is <I>2*(a.extennd + 1.5)</I> in the above "P-Active" arc.<BR>
     Example:<BR>
-    <CODE>&nbsp;&nbsp;&nbsp;&lt;arcLayer layer="P-Select" style="FILLED"&gt;<BR>
+    <CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;arcLayer layer="P-Select" style="FILLED"&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lambda&gt;3.5&lt;/lambda&gt;<BR>
-    &nbsp;&nbsp;&nbsp;&lt;/arcLayer&gt;</CODE>
+    &nbsp;&nbsp;&nbsp;&lt;/arcLayer&gt;</FONT></CODE>
 </LI>
 </UL>
 <P>
 Example:<BR>
-    <CODE>&nbsp;&nbsp;&nbsp;&lt;arcProto name="P-Active" fun="DIFFP"&gt;<BR>
+    <CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;arcProto name="P-Active" fun="DIFFP"&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;wipable/&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;extended&gt;true&lt;/extended&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;fixedAngle&gt;true&lt;/fixedAngle&gt;<BR>
@@ -405,7 +414,7 @@ Example:<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;arcLayer layer="P-Select" style="FILLED"&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lambda&gt;3.5&lt;/lambda&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/arcLayer&gt;<BR>
-    &nbsp;&nbsp;&nbsp;&lt;/arcProto&gt;</CODE>
+    &nbsp;&nbsp;&nbsp;&lt;/arcProto&gt;</FONT></CODE>
 
 <P>
 <H4>Nodes</H4>
@@ -449,7 +458,7 @@ Example:<BR>
 </LI>
 </UL>
 Example:<BR>
-<CODE>&nbsp;&nbsp;&nbsp;&lt;primitiveNode name="Metal-1-Metal-2-Con" fun="CONTACT"&gt;</CODE>
+<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;primitiveNode name="Metal-1-Metal-2-Con" fun="CONTACT"&gt;</FONT></CODE>
 <P>
 Inside of the &lt;primitiveNode&gt; element are these subelements:
 <UL>
@@ -512,7 +521,7 @@ Inside of the &lt;primitiveNode&gt; element are these subelements:
     &nbsp;&nbsp;&nbsp;<I>2*(n.extendX + diskOffset.x)</I> and <I>2*(n.extendY + diskOffset.y)</I>.<BR>
     The &lt;diskOffset&gt; element is necessary only with legacy technologies.<BR>
     Example:<BR>
-    <CODE>&nbsp;&nbsp;&nbsp;&lt;diskOffset untilVersion="1" x="2.5" y="2.5"/&gt;</CODE>
+    <CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;diskOffset untilVersion="1" x="2.5" y="2.5"/&gt;</FONT></CODE>
 </LI>
 <LI>
     <B>&lt;defaultWidth&gt;</B> and <B>&lt;defaultHeight&gt;</B> factory default values of the node size.
@@ -529,14 +538,16 @@ Inside of the &lt;primitiveNode&gt; element are these subelements:
     &nbsp;&nbsp;&nbsp;<I>FullRectangle.height + 2*defaultHeight.lambda</I> .
 </LI>
 <LI>
-    <B>&lt;sizeOffset&gt;</B> defines the BaseRectangle of the node
-    The attributes "lx", "hx", "ly", and "hy" are offsets from the FullRectangle to the BaseRectangle
-    The BaseRectangle is<BR>
-    &nbsp;&nbsp;&nbsp;<I>[x = FullRectangle.minX + sizeOffset.lx, y = FullRectangle.minY + sizeOffset.ly]</I><BR>
-    and<BR>
-    &nbsp;&nbsp;&nbsp;<I>[x = FullRectangle.maxX - sizeOffset.hx, y = FullRectangle.maxY - sizeOffset.hy]</I><BR>
-    If the &lt;sizeOffset&gt; element is omitted then the BaseRectangle is the same as the FullRectangle.
-    For more on the FullRectangle, see the &lt;minSizeRule&gt; description below.
+    <B>&lt;nodeBase&gt;</B> defines the BaseRectangle of the node.
+    It has a subelement &lt;box&gt; which has in it a subelement &lt;lambdaBox&gt;.
+    In the &lt;lambdaBox&gt;, the attributes "klx", "khx", "kly", and "khy" are the coordinates
+    of the base rectangle of a standard-size node.
+</LI>
+<LI>
+    <B>&lt;sizeOffset&gt;</B> is deprecated.
+</LI>
+<LI>
+    <B>&lt;protection&gt;</B> defines the protection frame of the cell.
 </LI>
 <LI>
     <B>&lt;nodeLayer&gt;</B> a list of NodeLayers (described below).
@@ -567,7 +578,7 @@ Inside of the &lt;primitiveNode&gt; element are these subelements:
     </LI>
     </UL>
     Example:<BR>
-    <CODE>&nbsp;&nbsp;&nbsp;&lt;primitivePort name="metal-1-metal-2"&gt;<BR>
+    <CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;primitivePort name="metal-1-metal-2"&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;portAngle primary="0" range="180"/&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;portTopology&gt;0&lt;/portTopology&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;box&gt;<BR>
@@ -575,7 +586,7 @@ Inside of the &lt;primitiveNode&gt; element are these subelements:
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/box&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;portArc&gt;Metal-1&lt;/portArc&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;portArc&gt;Metal-2&lt;/portArc&gt;<BR>
-    &nbsp;&nbsp;&nbsp;&lt;/primitivePort&gt;</CODE>
+    &nbsp;&nbsp;&nbsp;&lt;/primitivePort&gt;</FONT></CODE>
 </LI>
 <LI>
     <B>&lt;serpTrans&gt;</B> marks this node as serpentine transistor. It supplies 6 special values.
@@ -604,14 +615,14 @@ Inside of the &lt;primitiveNode&gt; element are these subelements:
     This element defines FullRectangle of the "Metal-1-Metal-2-Con" as<BR>
     &nbsp;&nbsp;&nbsp;<I>[x = -2.5, y = -2.5]</I> and <I>[x = 2.5, y = 2.5]</I><BR>
     Example:<BR>
-    <CODE>&nbsp;&nbsp;&nbsp;&lt;minSizeRule width="5.0" height="5.0" rule="8.3, 9.3"/&gt;</CODE>
+    <CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;minSizeRule width="5.0" height="5.0" rule="8.3, 9.3"/&gt;</FONT></CODE>
 </LI>
 <LI>
     <B>&lt;spiceTemplate&gt;</B> optional spice template of this node.
 </LI>
 </UL>
 Example:<BR>
-    <CODE>&nbsp;&nbsp;&nbsp;&lt;primitiveNode name="Metal-1-Metal-2-Con" fun="CONTACT"&gt;<BR>
+    <CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;primitiveNode name="Metal-1-Metal-2-Con" fun="CONTACT"&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;diskOffset untilVersion="1" x="2.5" y="2.5"/&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;diskOffset untilVersion="2" x="2.0" y="2.0"/&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;sizeOffset lx="0.5" hx="0.5" ly="0.5" hy="0.5"/&gt;<BR>
@@ -640,8 +651,7 @@ Example:<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;portArc&gt;Metal-2&lt;/portArc&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/primitivePort&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;minSizeRule width="5.0" height="5.0" rule="8.3, 9.3"/&gt;<BR>
-    &nbsp;&nbsp;&nbsp;&lt;/primitiveNode&gt;</CODE>
-
+    &nbsp;&nbsp;&nbsp;&lt;/primitiveNode&gt;</FONT></CODE>
 <P>
 <H4>Node Layers</H4>
 <P>
@@ -671,7 +681,7 @@ Example:<BR>
 </LI>
 </UL>
 Example:<BR>
-<CODE>&nbsp;&nbsp;&nbsp;&lt;nodeLayer layer="Metal-2" style="FILLED"&gt;</CODE>
+<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;nodeLayer layer="Metal-2" style="FILLED"&gt;</FONT></CODE>
 <P>
 Inside of the &lt;nodeLayer&gt; element are these subelements:
 <UL>
@@ -689,11 +699,11 @@ Inside of the &lt;nodeLayer&gt; element are these subelements:
     For example, the shape of the "Metal-2" NodeLayer below is a rectangle with endPoints:<BR>
     &nbsp;&nbsp;&nbsp;<I>[x = -2 - n.extendX, y = -2 - n.extendY]</I> and <I>[x = 2 + n.extendX, y = 2 + n.extendY]</I><BR>
     Example:<BR>
-    <CODE>&nbsp;&nbsp;&nbsp;&lt;nodeLayer layer="Metal-2" style="FILLED"&gt;<BR>
+    <CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;nodeLayer layer="Metal-2" style="FILLED"&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;box&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/box&gt;<BR>
-    &nbsp;&nbsp;&nbsp;&lt;/nodeLayer&gt;</CODE>
+    &nbsp;&nbsp;&nbsp;&lt;/nodeLayer&gt;</FONT></CODE>
 </LI>
 <LI>
     <B>&lt;points&gt;</B> is followed by &lt;techPoint&gt; elements which describe vertices of a polygon.
@@ -722,11 +732,11 @@ Inside of the &lt;nodeLayer&gt; element are these subelements:
     When the n.extendX &ge; 2.5 [(2.0 + 3.0)/2] or n.extendY &ge; 2.5 then the NodeLayer will generate
     more contact cuts.<BR>
     Example:<BR>
-    <CODE>&nbsp;&nbsp;&nbsp;&lt;nodeLayer layer="Via1" style="FILLED"&gt;<BR>
+    <CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;nodeLayer layer="Via1" style="FILLED"&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0"&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/multicutbox&gt;<BR>
-    &nbsp;&nbsp;&nbsp;&lt;/nodeLayer&gt;</CODE>
+    &nbsp;&nbsp;&nbsp;&lt;/nodeLayer&gt;</FONT></CODE>
 </LI>
 <LI>
     <B>&lt;serpbox&gt;</B> a box used in serpentine transistors.
@@ -751,5 +761,54 @@ Inside of the &lt;nodeLayer&gt; element are these subelements:
     </UL>
 </LI>
 </UL>
+
+<P>
+When there are multiple primitive nodes that are similar,
+a &lt;primitiveNodeGroup&gt; can be used to define them.
+A &lt;primitiveNodeGroup&gt; has &lt;primitiveNode&gt; subelements that define the
+variations among the primitives in the group.
+Individual nodes in a &lt;primitiveNodeGroup&gt; can differ from each other only by name, function,
+some flags, and their node layers.
+Specifically:
+<OL>
+<LI>The &lt;name&gt; and &lt;fun&gt; attributes are moved from the &lt;primitiveNodeGroup&gt; element and
+appear inside the &lt;primitiveNode&gt; subelements.</LI>
+<LI>The &lt;oldName&gt;, &lt;lowVt&gt;, &lt;highVt&gt;, &lt;nativeBit&gt;, &lt;od18&gt;, &lt;od25&gt;, and &lt;od33&gt; subelements
+are also moved into the &lt;primitiveNode&gt; subelements.</LI>
+<LI>The &lt;nodeLayer&gt; elements inside of a &lt;primitiveNodeGroup&gt; may have an optional &lt;inNodes&gt; subelement.
+This subelement defines a list of primitive nodes in the group where this &lt;nodeLayer&gt; can occur.</LI>
+</OL>
+Example:<BR>
+    <CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;primitiveNodeGroup&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;primitiveNode name="P-Transistor" fun="TRAPMOS"/&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;primitiveNode name="Thick-P-Transistor" fun="TRAPMOSHV1"&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;od18/&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/primitiveNode&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;nodeBase&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;box&gt;&lt;lambdaBox klx="-1.5" khx="1.5" kly="-1.0" khy="1.0"/&gt;&lt;/box&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/nodeBase&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;nodeLayer layer="P-Active" style="FILLED" portNum="1" electrical="true"&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;serpbox kly="1.0" lWidth="4.0" rWidth="0.0" tExtent="0.0" bExtent="0.0"&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lambdaBox klx="-1.5" khx="1.5" kly="1.0" khy="4.0"/&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/serpbox&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/nodeLayer&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;nodeLayer layer="Thick-Active" style="FILLED" portNum="-1"&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;inNodes&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;primitiveNode name="Thick-P-Transistor"/&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/inNodes&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;serpbox lWidth="8.0" rWidth="8.0" tExtent="4.0" bExtent="4.0"&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lambdaBox klx="-5.5" khx="5.5" kly="-8.0" khy="8.0"/&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/serpbox&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/nodeLayer&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;primitivePort name="poly-left"&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;portAngle primary="180" range="90"/&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;portTopology&gt;0&lt;/portTopology&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;box khx="-1.0"&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lambdaBox klx="-3.5" khx="-3.5" kly="0.0" khy="0.0"/&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/box&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;portArc&gt;Polysilicon-1&lt;/portArc&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/primitivePort&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&lt;/primitiveNodeGroup&gt;
+</FONT></CODE>
 
 <!-- TRAILER -->

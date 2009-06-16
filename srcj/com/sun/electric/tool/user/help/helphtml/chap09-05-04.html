@@ -14,8 +14,8 @@ The format of this statement is shown below:
 <CENTER><TABLE WIDTH="80%">
 <TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">gate <I>name</I>(<I>signal1</I>, <I>signal2</I>,
 <I>signal3</I>, ... <I>signalN</I>)</TD></TR>
-<TR><TD><B>Example:</B></TD><TD>gate nor2(in1, in2, out) </TD></TR>
-<TR><TD></TD><TD>gate and3(a, b, c, output) </TD></TR>
+<TR><TD VALIGN=TOP><B>Example:</B></TD><TD>gate nor2(in1, in2, out)<BR>
+gate and3(a, b, c, output) </TD></TR>
 </TABLE></CENTER>
 <P>
 There is no limit on the number of signal names that can be placed in the list.
@@ -31,13 +31,13 @@ statement represent one of many possible input conditions.
 If the logic states of all the input signals match the conditions specified in the <B>i:</B> statement,
 the simulator will schedule the outputs for updating (as specified in the corresponding <B>o:</B> statement).
 The logical truth table for a two input AND gate is shown below:
-<P><CODE>
+<P><CODE><FONT SIZE="-1">
 &nbsp;&nbsp;&nbsp;gate and2(in1, in2, output)<BR>
 &nbsp;&nbsp;&nbsp;i: in1=H in2=H  o: output=H<BR>
 &nbsp;&nbsp;&nbsp;i: in1=L        o: output=L<BR>
 &nbsp;&nbsp;&nbsp;i: in2=L        o: output=L<BR>
 &nbsp;&nbsp;&nbsp;i:              o: output=X
-</CODE>
+</FONT></CODE>
 <P>
 The last line of the truth table represents a default condition in the event that none
 of the previous conditions are valid
@@ -56,12 +56,12 @@ The format of a signal references, which follow the <B>i:</B> statement, is show
 <CENTER><TABLE WIDTH="80%">
 <TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%"><I>signal</I> &lt;operator&gt; <I>state_value</I></TD></TR>
 <TR><TD><B>or:</B></TD><TD><I>signal</I> &lt;operator&gt; <I>other_signal</I></TD></TR>
-<TR><TD><B>Operators:</B></TD><TD>=  Test if equal</TD></TR>
-<TR><TD></TD><TD>!  Test if not equal</TD></TR>
-<TR><TD></TD><TD>&lt;  Test if less than</TD></TR>
-<TR><TD></TD><TD>&gt;  Test if greater than</TD></TR>
-<TR><TD><B>Example:</B></TD><TD>node1 = H</TD></TR>
-<TR><TD></TD><TD>input1 ! input2</TD></TR>
+<TR><TD VALIGN=TOP><B>Operators:</B></TD><TD>=  Test if equal<BR>
+!  Test if not equal<BR>
+&lt;  Test if less than<BR>
+&gt;  Test if greater than</TD></TR>
+<TR><TD VALIGN=TOP><B>Example:</B></TD><TD>node1 = H<BR>
+input1 ! input2</TD></TR>
 </TABLE></CENTER>
 <P>
 There is no limit on the number of signal tests that can follow an <B>i:</B> statement.
@@ -77,19 +77,19 @@ The format for signal references which follow the <B>o:</B> statement is shown b
 <P>
 <CENTER><TABLE WIDTH="80%">
 <TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%"><I>signal</I> [ &lt;operator&gt; <I>operand</I> [ @ &lt;strength&gt; ] ]</TD></TR>
-<TR><TD><B>Operators:</B></TD><TD>=  equate signal to value of operand</TD></TR>
-<TR><TD></TD><TD>+  increment signal by value of operand</TD></TR>
-<TR><TD></TD><TD>-  decrement signal by value of operand</TD></TR>
-<TR><TD></TD><TD>*  multiply signal by value of operand</TD></TR>
-<TR><TD></TD><TD>/  divide signal by value of operand</TD></TR>
-<TR><TD></TD><TD>%  modulo signal by value of operand</TD></TR>
-<TR><TD><B>Strengths:</B></TD><TD>0  off</TD></TR>
-<TR><TD></TD><TD>1  node</TD></TR>
-<TR><TD></TD><TD>2  gate</TD></TR>
-<TR><TD></TD><TD>3  VDD</TD></TR>
-<TR><TD><B>Example:</B></TD><TD>qbar = H@3</TD></TR>
-<TR><TD></TD><TD>out1 + 3</TD></TR>
-<TR><TD></TD><TD>out + out1@4</TD></TR>
+<TR><TD VALIGN=TOP><B>Operators:</B></TD><TD>=  equate signal to value of operand<BR>
++  increment signal by value of operand<BR>
+-  decrement signal by value of operand<BR>
+*  multiply signal by value of operand<BR>
+/  divide signal by value of operand<BR>
+%  modulo signal by value of operand</TD></TR>
+<TR><TD VALIGN=TOP><B>Strengths:</B></TD><TD>0  off<BR>
+1  node<BR>
+2  gate<BR>
+3  VDD</TD></TR>
+<TR><TD VALIGN=TOP><B>Example:</B></TD><TD>qbar = H@3<BR>
+out1 + 3<BR>
+out + out1@4</TD></TR>
 </TABLE></CENTER>
 <P>
 It should be noted that the logic state of the operand can be directly specified
@@ -107,11 +107,11 @@ The format of this statement is shown below:
 <P>
 <CENTER><TABLE WIDTH="80%">
 <TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">t: &lt;mode&gt; = <I>value</I> { + &lt;mode&gt; = <I>value</I> ... }</TD></TR>
-<TR><TD><B>Mode:</B></TD><TD>delta: fixed time delay in seconds</TD></TR>
-<TR><TD></TD><TD>linear: random time delay with uniform distribution</TD></TR>
-<TR><TD></TD><TD>random: probability function with values between 0 and 1.0</TD></TR>
-<TR><TD><B>Example:</B></TD><TD>t: delta=5.0e-9</TD></TR>
-<TR><TD></TD><TD>t: delta=1.0e-9 + random=0.2</TD></TR>
+<TR><TD VALIGN=TOP><B>Mode:</B></TD><TD>delta: fixed time delay in seconds<BR>
+linear: random time delay with uniform distribution<BR>
+random: probability function with values between 0 and 1.0</TD></TR>
+<TR><TD VALIGN=TOP><B>Example:</B></TD><TD>t: delta=5.0e-9<BR>
+t: delta=1.0e-9 + random=0.2</TD></TR>
 </TABLE></CENTER>
 <P>
 It is possible to combine multiple timing distributions by using the + operator between timing mode declarations.
@@ -125,19 +125,14 @@ statement in the gate description.
 Assuming that a 2 input NAND gate had timing characteristics of <I>t(lh)</I> = 1.0 nanoseconds and
 <I>t(hl)</I> = 3.0 nanoseconds,
 the gate description for the device would be as follows:
-<P><CODE>
-&nbsp;&nbsp;&nbsp;gate nand2(in1, in2, output)
-<BR>
-&nbsp;&nbsp;&nbsp;t: delta=3.0e-9
-<BR>
-&nbsp;&nbsp;&nbsp;i: in1=H in2=H   o: output=L
-<BR>
-&nbsp;&nbsp;&nbsp;t: delta=1.0e-9
-<BR>
-&nbsp;&nbsp;&nbsp;i: in1=L         o: output=H
-<BR>
+<P><CODE><FONT SIZE="-1">
+&nbsp;&nbsp;&nbsp;gate nand2(in1, in2, output)<BR>
+&nbsp;&nbsp;&nbsp;t: delta=3.0e-9<BR>
+&nbsp;&nbsp;&nbsp;i: in1=H in2=H   o: output=L<BR>
+&nbsp;&nbsp;&nbsp;t: delta=1.0e-9<BR>
+&nbsp;&nbsp;&nbsp;i: in1=L         o: output=H<BR>
 &nbsp;&nbsp;&nbsp;i: in2=L         o: output=H
-</CODE><P>
+</FONT></CODE><P>
 This example shows that when both inputs are high,
 the output will go low after a delay of 3.0 nanoseconds and that if either input is low,
 the output will go high after a delay of 1.0 nanosecond.
@@ -149,8 +144,8 @@ The format of a delta timing declaration is shown below:
 <P>
 <CENTER><TABLE WIDTH="80%">
 <TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">delta = <I>value</I></TD></TR>
-<TR><TD><B>Example:</B></TD><TD>delta = 1.0</TD></TR>
-<TR><TD></TD><TD>delta = 2.5e-9</TD></TR>
+<TR><TD VALIGN=TOP><B>Example:</B></TD><TD>delta = 1.0<BR>
+delta = 2.5e-9</TD></TR>
 </TABLE></CENTER>
 <P>
 The value associated with the delta declaration represents the fixed time delay in seconds
@@ -164,8 +159,8 @@ The format of a linear timing declaration is shown below:
 <P>
 <CENTER><TABLE WIDTH="80%">
 <TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">linear = <I>value</I></TD></TR>
-<TR><TD><B>Example:</B></TD><TD>linear = 1.0</TD></TR>
-<TR><TD></TD><TD>linear = 2.0e-9</TD></TR>
+<TR><TD VALIGN=TOP><B>Example:</B></TD><TD>linear = 1.0<BR>
+linear = 2.0e-9</TD></TR>
 </TABLE></CENTER>
 <P>
 The value associated with the linear declaration represents the average delay time
@@ -182,8 +177,7 @@ The format for random probability declaration is shown below:
 <P>
 <CENTER><TABLE WIDTH="80%">
 <TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">random = <I>value</I></TD></TR>
-<TR><TD><B>Example:</B></TD><TD>random = 0.75</TD></TR>
-<TR><TD></TD><TD>random = 0.25</TD></TR>
+<TR><TD VALIGN=TOP><B>Example:</B></TD><TD>random = 0.75</TD></TR>
 </TABLE></CENTER>
 <P>
 The value associated with random declaration must be in the range 0.0 &lt;= <I>value</I> &lt;= 1.0.
@@ -203,29 +197,19 @@ As an example, a system which models a communication channel that corrupts 1%
 of the data bytes that pass through it is shown below:
 <P>
 <CENTER><TABLE><TR><TD WIDTH="40%"><CENTER><IMG SRC="fig09-35.png" ALT="Figure 9.35"></CENTER></TD><TD WIDTH="60%">
-<P><CODE>
-&nbsp;&nbsp;&nbsp;model main(in, out)
+<P><CODE><FONT SIZE="-1">
+&nbsp;&nbsp;&nbsp;model main(in, out)<BR>
+&nbsp;&nbsp;&nbsp;trans1: good(in, out)<BR>
+&nbsp;&nbsp;&nbsp;trans2: bad(in, out)<BR>
 <BR>
-&nbsp;&nbsp;&nbsp;trans1: good(in, out)
+&nbsp;&nbsp;&nbsp;gate good(in, out)<BR>
+&nbsp;&nbsp;&nbsp;t: delta=1.0e-6<BR>
+&nbsp;&nbsp;&nbsp;i: in>0x00    o: out=in  in=0x00<BR>
 <BR>
-&nbsp;&nbsp;&nbsp;trans2: bad(in, out)
-<BR>
-
-<BR>
-&nbsp;&nbsp;&nbsp;gate good(in, out)
-<BR>
-&nbsp;&nbsp;&nbsp;t: delta=1.0e-6
-<BR>
-&nbsp;&nbsp;&nbsp;i: in>0x00    o: out=in  in=0x00
-<BR>
-
-<BR>
-&nbsp;&nbsp;&nbsp;gate bad(in, out)
-<BR>
-&nbsp;&nbsp;&nbsp;t: delta=1.0e-6 + random=0.01
-<BR>
+&nbsp;&nbsp;&nbsp;gate bad(in, out)<BR>
+&nbsp;&nbsp;&nbsp;t: delta=1.0e-6 + random=0.01<BR>
 &nbsp;&nbsp;&nbsp;i: in>0x00    o: out=0xFF in=0x00
-</CODE><P>
+</FONT></CODE><P>
 </TD></TR></TABLE></CENTER>
 <P>
 The netlist describes a system where ASCII characters are represented by 0x01-0x7F.
@@ -267,8 +251,8 @@ The format of a <B>load</B> statement is shown below:
 <P>
 <CENTER><TABLE WIDTH="80%">
 <TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">load <I>signal1</I> = <I>value</I> { <I>signal2</I> = <I>value</I> ... }</TD></TR>
-<TR><TD><B>Example:</B></TD><TD>load in1=2.0  in2=1.5  in3=1.95</TD></TR>
-<TR><TD></TD><TD>load sa=2.5</TD></TR>
+<TR><TD VALIGN=TOP><B>Example:</B></TD><TD>load in1=2.0  in2=1.5  in3=1.95<BR>
+load sa=2.5</TD></TR>
 </TABLE></CENTER>
 <P>
 The value associated with the signal represents the relative capacitance of the simulation node.
@@ -289,8 +273,8 @@ The format for a <B>priority</B> statement is shown below:
 <P>
 <CENTER><TABLE WIDTH="80%">
 <TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">priority = <I>level</I></TD></TR>
-<TR><TD><B>Example:</B></TD><TD>priority = 1</TD></TR>
-<TR><TD></TD><TD>priority = 7</TD></TR>
+<TR><TD VALIGN=TOP><B>Example:</B></TD><TD>priority = 1<BR>
+priority = 7</TD></TR>
 </TABLE></CENTER>
 <P>
 In the event that two gates are scheduled to update their outputs at exactly the same time,
@@ -310,10 +294,10 @@ The <B>set</B> statement is used to initialize signals to specific logic states 
 The format for the <B>set</B> statement is shown below: 
 <P>
 <CENTER><TABLE WIDTH="80%">
-<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">set <I>signal1</I> = &lt;state&gt; @ { &lt;strength&gt; }</TD></TR>
-<TR><TD></TD><TD><I>signal2</I> = &lt;state&gt; @ { &lt;strength&gt; }</TD></TR>
-<TR><TD><B>Example:</B></TD><TD>set input1=H@2 input2=L input3=X@0</TD></TR>
-<TR><TD></TD><TD>set count=4 multiplier=5 divisor=7@2</TD></TR>
+<TR><TD WIDTH="30%" VALIGN=TOP><B>Format:</B></TD><TD WIDTH="70%">set <I>signal1</I> = &lt;state&gt; @ { &lt;strength&gt; }<BR>
+<I>signal2</I> = &lt;state&gt; @ { &lt;strength&gt; }</TD></TR>
+<TR><TD VALIGN=TOP><B>Example:</B></TD><TD>set input1=H@2 input2=L input3=X@0<BR>
+set count=4 multiplier=5 divisor=7@2</TD></TR>
 </TABLE></CENTER>
 <P>
 If the user does not specify a strength value,

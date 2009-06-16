@@ -16,7 +16,7 @@ The format of the pad frame disk file is as follows:
   export PADCELL IOPORT [COREPORT]<BR>
   place PADCELL [GAP] [PORTASSOCIATION]<BR>
   rotate DIRECTION
-</FONT></CODE></TD><TD>
+</FONT></CODE></TD><TD><FONT SIZE="-1">
   ; Identifies the file with the pads<BR>
   ; Creates a cell to hold the pad frame<BR>
   ; A list of views to generate<BR>
@@ -25,7 +25,7 @@ The format of the pad frame disk file is as follows:
   ; Defines exports on the pads<BR>
   ; Places a pad into the pad frame<BR>
   ; Turns the corner in pad placement
-</TD></TR></TABLE></CENTER>
+</FONT></TD></TR></TABLE></CENTER>
 <P>
 The file must have exactly one <U><CODE>celllibrary</CODE></U> and <U><CODE>cell</CODE></U> statement,
 as they identify the pad library and the pad frame cell.
@@ -83,28 +83,49 @@ This text makes use of the cell, so save it to disk
 and use the <B>Pad Frame Generator...</B> command (in menu <B>Tools / Generation</B>).
 <P>
 <CENTER><TABLE>
-<TR><TD><CODE><FONT SIZE="-1">; specify library with pads</FONT></CODE></TD>              <TD><CODE><FONT SIZE="-1">; place the top edge of pads</FONT></CODE></TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">celllibrary pads4u.txt</FONT></CODE></TD>                   <TD><CODE><FONT SIZE="-1">place PAD_corner{lay}</FONT></CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE><FONT SIZE="-1">place PAD_gnd{lay} gnd_in=gnd</FONT></CODE></TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">; create cell "padframe"</FONT></CODE></TD><TD><CODE><FONT SIZE="-1">place PAD_vdd{lay} m1m2=vdd</FONT></CODE></TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">cell padframe</FONT></CODE></TD>                            <TD></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE><FONT SIZE="-1">; place the right edge of pads</FONT></CODE></TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">; place this cell as the "core"</FONT></CODE></TD>	       <TD><CODE><FONT SIZE="-1">rotate c</FONT></CODE></TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">core tool-PadFrame</FONT></CODE></TD>                       <TD><CODE><FONT SIZE="-1">place PAD_corner{lay}</FONT></CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE><FONT SIZE="-1">place PAD_in{lay} out=pulse</FONT></CODE></TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">; set the alignment of the pads</FONT></CODE></TD>          <TD><CODE><FONT SIZE="-1">place PAD_spacer{lay}</FONT></CODE></TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">;  (with input and output export)&nbsp;&nbsp;&nbsp;&nbsp;</FONT></CODE></TD>        <TD></TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">align PAD_in{lay}     dvddL dvddR</FONT></CODE></TD>        <TD><CODE><FONT SIZE="-1">; place the bottom edge of pads</FONT></CODE></TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">align PAD_out{lay}    dvddL dvddR</FONT></CODE></TD>        <TD><CODE><FONT SIZE="-1">rotate c</FONT></CODE></TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">align PAD_vdd{lay}    dvddL dvddR</FONT></CODE></TD>        <TD><CODE><FONT SIZE="-1">place PAD_corner{lay}</FONT></CODE></TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">align PAD_gnd{lay}    dvddL dvddR</FONT></CODE></TD>        <TD><CODE><FONT SIZE="-1">place PAD_out{lay} in=out1</FONT></CODE></TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">align PAD_corner{lay} dvddL dvddR</FONT></CODE></TD>        <TD><CODE><FONT SIZE="-1">place PAD_out{lay} in=out2</FONT></CODE></TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">align PAD_spacer{lay} dvddL dvddR</FONT></CODE></TD>        <TD></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE><FONT SIZE="-1">; place the left edge of pads</FONT></CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE><FONT SIZE="-1">rotate c</FONT></CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE><FONT SIZE="-1">place PAD_corner{lay}</FONT></CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE><FONT SIZE="-1">place PAD_in{lay} out=in1</FONT></CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE><FONT SIZE="-1">place PAD_in{lay} out=in2</FONT></CODE></TD></TR>
+<TR><TD VALIGN=TOP><CODE><FONT SIZE="-2">
+; specify library with pads<BR>
+celllibrary pads4u.txt<BR>
+<BR>
+; create cell "padframe"<BR>
+cell padframe<BR>
+<BR>
+; place this cell as the "core"<BR>
+core tool-PadFrame<BR>
+<BR>
+; set the alignment of the pads<BR>
+;  (with input and output export)<BR>
+align PAD_in{lay}     dvddL dvddR<BR>
+align PAD_out{lay}    dvddL dvddR<BR>
+align PAD_vdd{lay}    dvddL dvddR<BR>
+align PAD_gnd{lay}    dvddL dvddR<BR>
+align PAD_corner{lay} dvddL dvddR<BR>
+align PAD_spacer{lay} dvddL dvddR
+</FONT></CODE></TD>
+<TD VALIGN=TOP><CODE><FONT SIZE="-2">
+; place the top edge of pads<BR>
+place PAD_corner{lay}<BR>
+place PAD_gnd{lay} gnd_in=gnd<BR>
+place PAD_vdd{lay} m1m2=vdd<BR>
+<BR>
+; place the right edge of pads<BR>
+rotate c<BR>
+place PAD_corner{lay}<BR>
+place PAD_in{lay} out=pulse<BR>
+place PAD_spacer{lay}<BR>
+<BR>
+; place the bottom edge of pads<BR>
+rotate c<BR>
+place PAD_corner{lay}<BR>
+place PAD_out{lay} in=out1<BR>
+place PAD_out{lay} in=out2<BR>
+<BR>
+; place the left edge of pads<BR>
+rotate c<BR>
+place PAD_corner{lay}<BR>
+place PAD_in{lay} out=in1<BR>
+place PAD_in{lay} out=in2
+</FONT></CODE></TD></TR>
 </TABLE></CENTER>
 <P>
 <TABLE><TR><TD><IMG SRC="fig09-16.png" ALT="Figure 9.16" BORDER=0></TD><TD>

@@ -1,3 +1,4 @@
+<!-- NEED 4in -->
 <!-- HEADER 9-2-3: Design Rules -->
 
 <!-- COMMAND Tools/DRC/Export DRC Deck... -->
@@ -19,6 +20,7 @@ they may be considered to be in violation,
 even if their geometry looks right.
 This is because the checkers know what is connected and have a separate set of rules for such situations.
 <P>
+<TABLE><TR><TD>
 To help guide the design-rule checker,
 an "exclusion" layer can be placed over areas that are not to be examined.
 This exclusion layer is created by clicking the "Misc." entry of the component menu
@@ -31,10 +33,9 @@ To edit the design rules, use the Design Rules Preferences
 The dialog allows you to examine and modify the spacing limits for the current technology.
 Each rule has a numeric value (size or distance) as well as a textual description of the rule.
 The dialog is divided into two parts: "Node Rules" and "Layer Rules".
+</TD><TD><CENTER><IMG SRC="fig09-09.png" ALT="Figure 9.9"></CENTER></TD></TR></TABLE>
 <P>
 In the "Node Rules" section, you may set the minimum size of each node in the current technology.
-<P>
-<CENTER><IMG SRC="fig09-09.png" ALT="Figure 9.9"></CENTER>
 <P>
 In the "Layer Rules" section, you may set the minimum size, area, and enclosure area of each layer.
 You may also set the inter-layer spacing (between the "From Layer" and the "To Layer").

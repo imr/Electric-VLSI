@@ -13,12 +13,12 @@ the layers, the arcs, the nodes, and miscellaneous information on the technology
 Information in these areas can be added, deleted, or modified.
 The rest of this section outlines all of these situations.
 <P>
-<H4>Adding layers, adding arcs, adding nodes, adding miscellaneous information</H4>
+<H4>Adding layers, arcs, nodes, and miscellaneous information</H4>
 <P>
 Adding information has no effect on the existing circuitry.
 All subsequent circuit design may make use of the new technology elements.
 <P>
-<H4>Deleting layers</H4>
+<H4>Deleting layers, nodes, arcs, and miscellaneous information</H4>
 <P>
 All references to a deleted layer, in any nodes or arcs of the technology,
 will become meaningless.
@@ -26,21 +26,17 @@ This does not invalidate libraries that use the layers,
 but it does invalidate the node and arc descriptions in the technology.
 The geometry in these nodes and arcs will have to be moved to another layer.
 <P>
-<H4>Deleting nodes, deleting arcs</H4>
-<P>
-This will cause error
-messages when libraries are read that make use of the deleted elements.
+Deleting nodes or arcs will cause error
+messages when libraries are read that make use of the deleted objects.
 When the library is read,
 you can substitute another node or arc to use in place of the now-unknown component.
 <P>
-<H4>Deleting miscellaneous information</H4>
-<P>
-This depends entirely on where that information is used.
+Deleting miscellaneous information depends entirely on where that information is removed.
 For example, an analysis tool may fail to find the information that it requires.
 <P>
-<H4>Modifying layers</H4>
+<H4>Modifying layers, nodes, arcs, and miscellaneous information</H4>
 <P>
-This is a totally transparent operation.
+Modifying layers is a totally transparent operation.
 Any change to the color, style, or stipple information (including changes to the color map)
 will appear in all libraries that use the technology.
 Changes to I/O equivalences or Spice parasitics will be available to all existing libraries.
@@ -50,9 +46,7 @@ if you change the function of the "polysilicon" or "diffusion" layers that form 
 the editor will be unable to identify this transistor).
 Renaming a layer has no effect.
 <P>
-<H4>Modifying arcs, modifying nodes</H4>
-<P>
-This is not as simple as layer modification because the arcs and nodes appear in the circuit libraries,
+Modifying arcs and nodes is not as simple as layer modification because the arcs and nodes appear in the circuit libraries,
 whereas the layers do not.
 If you rename a node or arc,
 it will cause errors when libraries are read that make use of nodes with the old name.
@@ -83,12 +77,12 @@ If you change the default size, it will make all default-sized nodes and arcs ch
 If the node is larger than the default size, it will grow accordingly.
 <P>
 <TABLE><TR><TD>
-For example, assume that an arc has a default size of 2, and there are two of these arcs,
+For example, assume that an arc has a default width of 2, and there are two of these arcs,
 one that is 2 wide (an increase of 0 beyond the default)
 and one that is 3 wide (an increase of 1 beyond the default).
-If you redefine the technology such that these arcs are now 4 wide by default,
-then the 2-wide arc becomes 4 wide and the old 3-wide arc becomes 5 wide.
 </TD><TD><CENTER><IMG SRC="fig08-15.png" ALT="Figure 8.15"></CENTER></TD></TR></TABLE>
+If you redefine the technology such that these arcs are now 4 wide by default,
+then the old 2-wide arc becomes 4 wide and the old 3-wide arc becomes 5 wide.
 <P>
 Because of these changes,
 it may be preferable to keep the old technology and give the new technology a different name.
@@ -100,9 +94,7 @@ scaling them appropriately relative to their default sizes.
 The change is completed by deleting the old technology,
 renaming the new technology to the old name, and then saving the library.
 <P>
-<H4>Modifying miscellaneous information</H4>
-<P>
-This last situation is typically transparent:
+Finally, modifying miscellaneous information is typically transparent:
 changed information appears in all existing libraries,
 and affects those subsystems that make use of the information.
 For example, a change to the Spice resistance will be seen when a Spice deck is next generated.
