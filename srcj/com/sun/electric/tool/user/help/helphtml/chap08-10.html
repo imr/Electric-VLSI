@@ -810,5 +810,73 @@ Example:<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/primitivePort&gt;<BR>
     &nbsp;&nbsp;&nbsp;&lt;/primitiveNodeGroup&gt;
 </FONT></CODE>
+<P>
+<!-- NEED 4in -->
+<H4>Design Rules</H4>
+<P>
+Design rules appear in a &lt;Foundry&gt; section, usually at the end of the XML file.
+This section starts with:<BR>
+<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;Foundry name="<I>foundryname</I>"&gt;</FONT></CODE><BR>
+where <I>foundryname</I> is the name of the integrated-circuit manufacturer whose rules are enclosed.
+The section ends with <CODE><FONT SIZE="-1">&lt;/Foundry&gt;</FONT></CODE>.
+Each rule in the section has some common attributes:
+<UL>
+<LI><B>ruleName</B> gives the name of the rule, used when printing error messages.</LI>
+<LI><B>when</B> tells when the rule applies.  Most rules apply all the time, in which case the attribute has the value "ALL".
+If a rule only applies in certain states of the technology, then the "when" field will limit its use.</LI>
+<LI><B>type</B> tells what kind of rule is being described.
+The choices vary with the different rule formats.</LI>
+<LI><B>value</B> tells the value of the rule, which varies with the type of the rule.</LI>
+</UL> 
+Here are the possible rules:
+<UL>
+<LI><B>LayerRule</B> is a rule for a single layer.
+In addition to the standard attributes, this rule has one or more layer names to which it applies.
+The type of information can be
+MINWID (minimum width of the layer),
+MINAREA (the minimum area of the layer), or
+MINENCLOSEDAREA (the minimum area of any hold in a polygon).
+Example:<BR>
+<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;LayerRule ruleName="1.1 Mosis" layerName="P-Well, N-Well" when="ALL"<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type="MINWID" value="12.0"/&gt;</FONT></CODE><BR>
+</LI>
+<LI><B>LayersRule</B> is a rule for the interaction of two different layers.
+In addition to the standard attributes, it has the names of the two layers.
+The type of information can be
+CONSPA (minimum spacing of two connected layers),
+UCONSPA (minimum spacing of two unconnected layers),
+SPACING (minimum spacing in both connected and unconnected situations),
+UCONSPA2D (minimum spacing of a two-dimensional array of contact cuts),
+FORBIDDEN (disallowed combination of layers anywhere in the design),
+EXTENSION (minimum overlap of a layer extended from another),
+or
+SURROUND (minimum extension of a layer beyond another).
+
+Example:<BR>
+<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;LayersRule ruleName="1.2 Mosis" layerNames="{P-Well, P-Well},<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{N-Well, N-Well}" when="ALL" type="UCONSPA" value="9"/&gt;</FONT></CODE><BR>
+</LI>
+<LI><B>NodeRule</B> gives rules for Electric nodes.
+In addition to the standard attributes, it has a node name.
+The type of information can be
+NODSIZ (the minimum size of a node),
+or
+FORBIDDEN (the node is not allowed).
+Example:<BR>
+<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;NodeRule ruleName="5.2 Mosis" nodeName="Metal-1-Polysilicon-1-Con"<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;when="ALL" type="NODSIZ" value="5"/&gt;</FONT></CODE><BR>
+</LI>
+<LI><B>NodeLayersRule</B> gives rules for specific layers in a single node.
+In addition to the standard attributes, it has both layer names and a node name.
+The type of information can be
+SURROUND (for layers in a node)
+or
+ASURROUND (for layers in an arc).
+Example:<BR>
+<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;NodeLayersRule ruleName="2.3 Mosis" layerNames="{P-Well, N-Active}"<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nodeName="Metal-1-N-Active-Con, N-Transistor" when="ALL"<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type="SURROUND" value="5"/&gt;</FONT></CODE><BR>
+</LI>
+</UL>
 
 <!-- TRAILER -->

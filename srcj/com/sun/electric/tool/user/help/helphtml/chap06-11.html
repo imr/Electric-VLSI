@@ -5,7 +5,6 @@
 
 Electric has the Bean Shell built into it.
 This enables you to load custom Java code that adds functionality to Electric.
-<P>
 The Bean Shell is not part of the default Electric distribution.
 You must add it as a "plug in"
 (see <A HREF="chap01-05.html#chap01-05">Section 1-5</A> for more on plug-ins).
@@ -30,26 +29,32 @@ in the source code.
 <TD WIDTH="75%"><TABLE WIDTH="100%" BORDER=1><TR><TD>
 <CODE><FONT SIZE="-1">
 import com.sun.electric.database.hierarchy.Cell;<BR>
+import com.sun.electric.database.topology.NodeInst;<BR>
 import com.sun.electric.tool.Job;<BR>
 import java.util.Iterator;<BR>
 <BR>
 // get the current cell<BR>
 Cell lay = Job.getUserInterface().getCurrentCell();<BR>
 <BR>
-// find all exports<BR>
-String aOut = "Exports that start with 'a':";<BR>
+// find all transistors<BR>
+for(Iterator it = c.getNodes(); it.hasNext(); ) {<BR>
+&nbsp;&nbsp;&nbsp;NodeInst ni = it.next();<BR>
+&nbsp;&nbsp;&nbsp;if (ni.getFunction().isTransistor())<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println("Found transistor: " +<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ni.describe(false));<BR>
+}<BR>
 <BR>
+// find all exports that start with "A"<BR>
 for(Iterator it = lay.getPorts(); it.hasNext(); ) {<BR>
 &nbsp;&nbsp;&nbsp;com.sun.electric.database.hierarchy.Export e =
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(com.sun.electric.database.hierarchy.Export)it.next();<BR>
 &nbsp;&nbsp;&nbsp;if (e.getName().toLowerCase().startsWith("a"))<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;aOut += " " + e.getName();<BR>
-}<BR>
-System.out.println(aOut);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println("Found export: " + e.getName());<BR>
+}
 </FONT></CODE>
 </TD></TR></TABLE></TD>
 <TD WIDTH="25%" VALIGN=TOP>
-This example  searches the current cell for exports starting with "a".
+This example searches the current cell, printing all transistors and all exports that start with the letter "a".
 <P>
 Notice that Electric's "Export" object must be a fully-qualified name, because the
 name "Export" is used for other reasons in the Bean Shell.
