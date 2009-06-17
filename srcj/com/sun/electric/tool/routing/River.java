@@ -35,19 +35,16 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.user.menus.MenuCommands;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -57,6 +54,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -137,7 +135,7 @@ public class River
 			this.t21 = t21;
 			this.t22 = t22;
 		}
-	};
+	}
 	/** X increasing, y2>y1 */							private static final TRANSFORM xfNoRot        = new TRANSFORM( 1,  0,  0,  1);
 	/** Y decreasing, x2>x1 */							private static final TRANSFORM xfRot90        = new TRANSFORM( 0,  1, -1,  0);
 	/** X decreasing, y2<y1 */							private static final TRANSFORM xfRot180       = new TRANSFORM(-1,  0,  0, -1);
@@ -197,7 +195,7 @@ public class River
 			if (next != null) return;
 			rp.lastP = this;
 		}
-	};
+	}
 
 	/**
 	 * Class for paths in the river routing.
@@ -216,7 +214,7 @@ public class River
 			pathDesc = null;
 			lastP = null;
 		}
-	};
+	}
 
 	/**
 	 * Class for river routing.
@@ -241,7 +239,7 @@ public class River
 			unroutedWire2 = ai2;   unroutedEnd2 = ae2;
 			path = null;
 		}
-	};
+	}
 
 	/**
 	 * Class for coordinate values in the river routing.
@@ -258,7 +256,7 @@ public class River
 			this.total = 0;
 			this.next = null;
 		}
-	};
+	}
 
 	/*************************************** MAIN CONTROL CODE ***************************************/
 
@@ -273,30 +271,69 @@ public class River
 	private static class RiverRouteJob extends Job
 	{
 		private Cell cell;
+		private List<ArcInst> arcsToRoute;
 
 		protected RiverRouteJob(Cell cell)
 		{
 			super("River Route", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
+
+			// make a list of arcs to route
+			arcsToRoute = new ArrayList<ArcInst>();
+			boolean foundSome = false;
+			UserInterface ui = Job.getUserInterface();
+			EditWindow_ wnd = ui.getCurrentEditWindow_();
+			if (wnd != null)
+			{
+				Set<Network> nets = wnd.getHighlightedNetworks();
+				if (nets.size() != 0)
+				{
+					Netlist netList = cell.acquireUserNetlist();
+					if (netList == null)
+					{
+						System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
+						return;
+					}
+
+					// add all highlighted arcs to the list
+					for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+					{
+						ArcInst ai = it.next();
+						Network net = netList.getNetwork(ai, 0);
+						if (nets.contains(net)) arcsToRoute.add(ai);
+					}
+					foundSome = true;
+				}
+			}
+			if (!foundSome)
+			{
+				// add all arcs in the cell to the list
+				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+				{
+					ArcInst ai = it.next();
+					arcsToRoute.add(ai);
+				}
+			}
+
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
 			River router = new River();
-			router.river(cell);
+			router.river(cell, arcsToRoute);
 			return true;
 		}
 
         public void terminateOK()
         {
-			UserInterface ui = Job.getUserInterface();
-			EditWindow_ wnd = ui.getCurrentEditWindow_();
-	        if (wnd != null)
-	        {
-	        	wnd.clearHighlighting();
-	        	wnd.finishedHighlighting();
-	        }
+//			UserInterface ui = Job.getUserInterface();
+//			EditWindow_ wnd = ui.getCurrentEditWindow_();
+//	        if (wnd != null)
+//	        {
+//	        	wnd.clearHighlighting();
+//	        	wnd.finishedHighlighting();
+//	        }
         }
 	}
 
@@ -304,10 +341,10 @@ public class River
 	 * This is the public interface for River Routing when done in batch mode.
 	 * @param cell the cell to be River-routed.
 	 */
-	public void river(Cell cell)
+	public void river(Cell cell, List<ArcInst> arcsToRoute)
 	{
 		// locate wires
-		if (findWires(cell))
+		if (findWires(cell, arcsToRoute))
 		{
 			// make wires
 			for(RDESC q : rightP)
@@ -344,51 +381,18 @@ public class River
 		}
 	}
 
-	private boolean findWires(Cell cell)
+	private boolean findWires(Cell cell, List<ArcInst> arcsToRoute)
 	{
 		initialize();
 
 		// reset flags on all arcs in this cell
-		HashSet<ArcInst> arcsSeen = new HashSet<ArcInst>();
+		Set<ArcInst> arcsSeen = new HashSet<ArcInst>();
 
 		// make a list of RDESC objects
 		List<RDESC> theList = new ArrayList<RDESC>();
 
-		// get list of all highlighted arcs
-		boolean foundSome = false;
-		UserInterface ui = Job.getUserInterface();
-		EditWindow_ wnd = ui.getCurrentEditWindow_();
-		if (wnd != null)
-		{
-			Set<Network> nets = wnd.getHighlightedNetworks();
-			if (nets.size() != 0)
-			{
-				Netlist netList = cell.acquireUserNetlist();
-				if (netList == null)
-				{
-					System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
-					return false;
-				}
-
-				// add all highlighted arcs to the list of RDESC objects
-				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-				{
-					ArcInst ai = it.next();
-					Network net = netList.getNetwork(ai, 0);
-					if (nets.contains(net)) addWire(theList, ai, arcsSeen);
-				}
-				foundSome = true;
-			}
-		}
-		if (!foundSome)
-		{
-			// add all arcs in the cell to the list of RDESC objects
-			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-			{
-				ArcInst ai = it.next();
-				addWire(theList, ai, arcsSeen);
-			}
-		}
+		// put all arcs to route into these collections
+		for(ArcInst ai : arcsToRoute) addWire(theList, ai, arcsSeen);
 
 		// determine bounds of the routes
 		boolean first = true;
@@ -410,7 +414,7 @@ public class River
 		}
 
 		// figure out which ArcProto to use
-		HashMap<ArcProto,GenMath.MutableInteger> arcProtoUsage = new HashMap<ArcProto,GenMath.MutableInteger>();
+		Map<ArcProto,GenMath.MutableInteger> arcProtoUsage = new HashMap<ArcProto,GenMath.MutableInteger>();
 		for(RDESC rd : theList)
 		{
 			sumUp(rd.unroutedWire1.getPortInst(rd.unroutedEnd1), arcProtoUsage);
@@ -1115,7 +1119,7 @@ public class River
 	 * increment the flag bits (temp1) IN the prototype thus indicating that
 	 * this river route point is allowed to connect to it
 	 */
-	private void sumUp(PortInst pi, HashMap<ArcProto,GenMath.MutableInteger> arcProtoUsage)
+	private void sumUp(PortInst pi, Map<ArcProto,GenMath.MutableInteger> arcProtoUsage)
 	{
 		ArcProto [] possibleArcs = pi.getPortProto().getBasePort().getConnections();
 		for(int i=0; i<possibleArcs.length; i++)
@@ -1152,7 +1156,7 @@ public class River
 	/**
 	 * figure out the wires to route at all
 	 */
-	private void addWire(List<RDESC> list, ArcInst ai, HashSet<ArcInst> arcsSeen)
+	private void addWire(List<RDESC> list, ArcInst ai, Set<ArcInst> arcsSeen)
 	{
 		if (!isInterestingArc(ai, arcsSeen)) return;
 
@@ -1247,7 +1251,7 @@ public class River
 		return ccInit;
 	}
 
-	private boolean isInterestingArc(ArcInst ai, HashSet arcsSeen)
+	private boolean isInterestingArc(ArcInst ai, Set arcsSeen)
 	{
 		// skip arcs already considered
 		if (arcsSeen.contains(ai)) return false;
@@ -1275,8 +1279,8 @@ public class River
 
 	private void makeTheGeometry(Cell cell)
 	{
-		HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();
-		HashSet<NodeInst> nodesToDelete = new HashSet<NodeInst>();
+		Set<ArcInst> arcsToDelete = new HashSet<ArcInst>();
+		Set<NodeInst> nodesToDelete = new HashSet<NodeInst>();
 		for(RDESC q : rightP)
 		{
 			makeGeometry(q, cell);
@@ -1292,7 +1296,7 @@ public class River
 		killWires(cell, arcsToDelete, nodesToDelete);
 	}
 
-	private void markToBeDeleted(ArcInst ai, HashSet<ArcInst> arcsToDelete, HashSet<NodeInst> nodesToDelete)
+	private void markToBeDeleted(ArcInst ai, Set<ArcInst> arcsToDelete, Set<NodeInst> nodesToDelete)
 	{
 		if (!isInterestingArc(ai, arcsToDelete)) return;
 
@@ -1335,7 +1339,7 @@ public class River
 		}
 	}
 
-	private void setFlags(ArcInst ai, HashSet<ArcInst> arcsToDelete, HashSet<NodeInst> nodesToDelete)
+	private void setFlags(ArcInst ai, Set<ArcInst> arcsToDelete, Set<NodeInst> nodesToDelete)
 	{
 		arcsToDelete.add(ai);
 		NodeInst niH = ai.getHeadPortInst().getNodeInst();
@@ -1344,7 +1348,7 @@ public class River
 		if (isUnroutedPin(niT)) nodesToDelete.add(niT);
 	}
 
-	private void killWires(Cell cell, HashSet<ArcInst> arcsToDelete, HashSet<NodeInst> nodesToDelete)
+	private void killWires(Cell cell, Set<ArcInst> arcsToDelete, Set<NodeInst> nodesToDelete)
 	{
 		for(ArcInst ai : arcsToDelete)
 		{
@@ -1403,7 +1407,6 @@ public class River
 			PortInst rpPi = rpNodeInst.findPortInstFromProto(rpPort);
 
 			ArcInst.makeInstanceBase(path.pathType, path.width, prevPi, rpPi);
-//			ArcInst.makeInstanceFull(path.pathType, path.width, prevPi, rpPi);
 			prev = rp;   prevPi = rpPi;
 		}
 	}

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09m: ******************************
 
+BUG: (6/17/09, SMR) River router crashes when it accesses highlights from Job (Bug #2223).
+FIX: Moved user access to Job constructor.
+
 BUG: (6/16/09 GVG) No capability to get coloringAttributes (Bug #2221)
 FIX: Added missing Appearance.ALLOW_COLORING_ATTRIBUTES*
 
