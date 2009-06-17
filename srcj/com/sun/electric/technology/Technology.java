@@ -2911,7 +2911,7 @@ public class Technology implements Comparable<Technology>, Serializable
     /**
      * Tells if node can be drawn by simplified algorithm
      * Overidden in subclasses
-     * @param n node to test
+     * @param ni node to test
      * @param explain if true then print explanation why arc is not easy
      * @return true if arc can be drawn by simplified algorithm
      */
@@ -5659,7 +5659,6 @@ public class Technology implements Comparable<Technology>, Serializable
     /**
      * Oarses Xml string with component menu definition for this technology
      * @param nodeGroupXML Xml string with component menu definition
-     * @return
      */
     public Xml.MenuPalette parseComponentMenuXML(String nodeGroupXML) {
 		// parse the preference and build a component menu

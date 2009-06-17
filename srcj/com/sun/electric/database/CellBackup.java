@@ -412,7 +412,7 @@ public class CellBackup {
          * Method to determine whether the display of specified pin NodeInst should be supressed.
          * In Schematics technologies, pins are not displayed if there are 1 or 2 connections,
          * but are shown for 0 or 3 or more connections (called "Steiner points").
-         * @paran pin specified pin ImmutableNodeInst
+         * @param pin specified pin ImmutableNodeInst
          * @return true if specieifed pin NodeInst should be supressed.
          */
         public boolean pinUseCount(ImmutableNodeInst pin)

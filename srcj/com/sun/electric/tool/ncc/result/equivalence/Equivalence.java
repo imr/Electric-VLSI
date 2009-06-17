@@ -82,7 +82,6 @@ public class Equivalence implements Serializable {
 	 * is used by the NCC regressions.
 	 * @param cell0 first Cell. this is used for the status message
 	 * @param cell1 second Cell. this is used for the status message
-	 * @return
 	 */
 	public int regressionTest(Cell cell0, Cell cell1) {
 		prln("  Equivalence regression for: "+cell0.describe(false)+

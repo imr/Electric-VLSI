@@ -1707,7 +1707,7 @@ public class FileMenu {
      * 0: quit;
      * 1: close a library;
      * 2: replace a library.
-     * @param canMerge if null, do not allow merging.  If valid, allow merging and set to True if merging was requested.
+     * @param wantToMerge if null, do not allow merging.  If valid, allow merging and set to True if merging was requested.
      * @return libraries to be saved or null
      */
     public static Collection<RenameAndSaveLibraryTask> preventLoss(Library desiredLib, int action, MutableBoolean wantToMerge)

@@ -1377,7 +1377,6 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	/**
 	 * Method to find the worst spacing distance in the design rules.
 	 * Finds the largest spacing rule in the Technology.
-     * @param dp DRC preferences
 	 * @param tech the Technology to examine.
      * @param lastMetal
      * @return the largest spacing distance in the Technology. Zero if nothing found
@@ -1392,7 +1391,6 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 
     /**
 	 * Method to find the maximum design-rule distance around a layer.
-     * @param dp DRC preferences
 	 * @param layer the Layer to examine.
 	 * @return the maximum design-rule distance around the layer. -1 if nothing found.
 	 */

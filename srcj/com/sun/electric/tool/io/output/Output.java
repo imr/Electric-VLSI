@@ -107,7 +107,6 @@ public class Output
      * @param fileP the path to the disk file to be written.
      * @param type the format of the output file.
      * @param override a list of Polys to draw instead of the cell contents.
-     * @param prefs the preferences package for this writer.
     */
     public static void exportCellCommand(Cell cell, VarContext context, String fileP, FileType type, List<PolyBase> override)
     {
@@ -220,13 +219,11 @@ public class Output
 
     /**
      * Method to retrieve number of errors during the writing process
-     * @return
      */
     public int getNumErrors() { return errorLogger.getNumErrors(); }
 
     /**
      * Method to retrieve number of warnings during the writting process
-     * @return
      */
     public int getNumWarnings() { return errorLogger.getNumWarnings(); }
 
@@ -662,7 +659,6 @@ public class Output
 
     /**
      * Method to terminate the logging process in the ErrorLogger
-     * @return
      */
     protected Output finishWrite()
     {

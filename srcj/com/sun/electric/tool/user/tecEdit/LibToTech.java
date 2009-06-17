@@ -334,7 +334,7 @@ public class LibToTech
 
 	/**
 	 * Method to convert the current Library to a Technology.
-     * @param techLib technology Library
+     * @param lib technology Library
 	 * @param newName the name of the Technology to create.
 	 * @param fileName the name of the XML file to write (null to skip XML output).
 	 * @param error the structure for storing error status.

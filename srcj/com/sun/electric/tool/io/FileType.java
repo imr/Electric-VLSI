@@ -324,7 +324,7 @@ public class FileType implements Serializable {
 
     /**
      * Method to find a given type by name.
-     * @param name FileType name
+     * @param typeName FileType name
      * @return FileType instance
      */
     public static FileType findType(String typeName)

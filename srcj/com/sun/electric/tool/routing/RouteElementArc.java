@@ -85,7 +85,6 @@ public class RouteElementArc extends RouteElement {
      * @param extendArcHead only applied if inheritFrom is null
      * @param extendArcTail only applied if inheritFrom is null
      * @param stayInside a polygonal area in which the new arc must reside (if not null).
-     * @param ep editing preferences
      * The arc is narrowed and has its ends extended in an attempt to stay inside this area.
      */
     public static RouteElementArc newArc(Cell cell, ArcProto ap, double arcBaseWidth, RouteElementPort headRE, RouteElementPort tailRE,

@@ -561,7 +561,7 @@ public class ErrorLogger implements Serializable
      * Factory method to log an error or warning message with extra lines.
      * @param message the string to display.
      * @param list a list of nodes, arcs, exports or polygons, points to display. Must be no null.
-     * @param lines a list of points defining a set of lines (may be null)
+     * @param lineList a list of points defining a set of lines (may be null)
      * @param cell the cell in which this message applies.
      * @param sortKey the sorting order of this message.
      * @param isErrorMsg true if an error message is logged
@@ -621,9 +621,6 @@ public class ErrorLogger implements Serializable
      * Factory method to log an error or a warning message.
      * @param message the string to display.
      * @param geomList a list of nodes or arcs to display (may be null).
-     * @param exportList a list of Exports to display (may be null).
-     * @param lineList a list of lines (pairs of points) to display (may be null).
-     * @param pointList a list of points to display (may be null).
      * @param polyList a list of polygons to display (may be null).
      * @param cell the cell in which this message applies.
      * @param sortKey the sorting order of this message.

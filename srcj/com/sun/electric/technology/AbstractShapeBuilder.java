@@ -153,12 +153,9 @@ public abstract class AbstractShapeBuilder {
 	 * This method is called by the specific Technology overrides of getShapeOfNode().
 	 * @param n the ImmutableNodeInst that is being described.
      * @param np PrimitiveNode proto of give ImmutableNodeInst in TechPool of Memoization
-	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
-	 * The minimal set covers all edge contacts, but ignores the inner cuts in large contacts.
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
 	 * @param graphicsOverride the graphics override to use for all generated polygons (if not null).
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
-	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 */
 	public void genShapeOfNode(ImmutableNodeInst n, PrimitiveNode np, Technology.NodeLayer [] primLayers, EGraphics graphicsOverride)
 	{

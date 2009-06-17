@@ -524,22 +524,22 @@ public class GraphicsPreferences extends PrefPackage {
 
 	/**
 	 * Method to return the graphics description of specified Layer.
-     * @param Layer specified Layer
+     * @param layer specified Layer
 	 * @return the graphics description of specified Layer.
 	 */
     public EGraphics getGraphics(Layer layer) { return getTechData(layer.getTechnology()).layerGraphics[layer.getIndex()]; }
 
 	/**
-	 * Method to get the color of a given special layer on the display.
-	 * @param pref special layer in question
-	 * @return color of the special layer
+	 * Method to get the color of a given special layer type on the display.
+	 * @param t layer type in question.
+	 * @return color of the special layer type.
 	 */
     public Color getColor(User.ColorPrefType t) { return defaultColors[t.ordinal()]; }
 
 	/**
 	 * Method to tell whether to draw text of particular text type.
 	 * The default is "true".
-     * @param textType specified text type
+     * @param t specified text type.
 	 * @return true if the system should text of specified type.
 	 */
     public boolean isTextVisibilityOn(TextDescriptor.TextType t) { return textVisibility[t.ordinal()]; }

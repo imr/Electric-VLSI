@@ -85,13 +85,6 @@ public class GenerateVHDL extends Topology
     public static class VHDLPreferences extends PrefPackage {
         private static final String KEY_VHDL = "SchematicVHDLStringFor";
 
-	/**
-	 * Method to tell the VHDL names for a primitive in this technology, by default.
-	 * These names have the form REGULAR/NEGATED, where REGULAR is the name to use
-	 * for regular uses of the primitive, and NEGATED is the name to use for negated uses.
-	 * @param np the primitive to query.
-	 * @return the the VHDL names for the primitive, by default.
-	 */
         public Map<PrimitiveNode,String> vhdlNames = new HashMap<PrimitiveNode,String>();
 
         public VHDLPreferences(boolean factory)

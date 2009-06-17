@@ -29,13 +29,6 @@
  * engine without becoming involved with how User's options are stored.
  */
 package com.sun.electric.tool.ncc;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
@@ -55,6 +48,13 @@ import com.sun.electric.tool.ncc.result.BenchmarkResults.BenchIdx;
 import com.sun.electric.tool.ncc.strategy.StratCheckSizes;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /** NccEngine performs the topological comparison of two Cells.
  * These Cells are from the same
@@ -142,7 +142,7 @@ public class NccEngine {
 			
 			return NccResult.newResult(false, false, false, globals);
 		} else {
-			Date d0 = new Date();
+//			Date d0 = new Date();
 			ExportChecker expCheck = new ExportChecker(globals);
 			expCheck.markPortsForRenaming();
 			
@@ -335,7 +335,7 @@ public class NccEngine {
 	 * @param context1 the VarContext for the first Cell
 	 * @param cell2 the root cell for the second design
 	 * @param context2 the VarContext for the second Cell
-	 * @param hierCompInfo Information needed to perform hierarchical
+	 * @param hierInfo Information needed to perform hierarchical
 	 * netlist comparison. For flat comparisons pass null.
 	 * @param options NCC options
 	 */
@@ -352,10 +352,10 @@ public class NccEngine {
 	 * and found them to match. Put information into hierInfo that indicates
 	 * that these two Cells match. 
 	 * @param cell1 the root cell for the first design
-	 * @param context1 the VarContext for the first Cell
+	 * @param ctxt1 the VarContext for the first Cell
 	 * @param cell2 the root cell for the second design
-	 * @param context2 the VarContext for the second Cell
-	 * @param hierCompInfo Information needed to perform hierarchical
+	 * @param ctxt2 the VarContext for the second Cell
+	 * @param hierInfo Information needed to perform hierarchical
 	 * netlist comparison. For flat comparisons pass null.
 	 * @param options NCC options
 	 */

@@ -908,7 +908,7 @@ public class EGraphics implements Serializable
 	 * Method returns EGraphics which differs from this EGraphics by transparency factor.
 	 * Layers can have a transparency from 0 (opaque) to 1(transparent).
 	 * @param factor the transparency factor of this layer.
-     * @param EGraphics with specified transparecy factor.
+     * @return EGraphics with specified transparecy factor.
 	 */
 	public EGraphics withTransparencyFactor(double factor) {
         if (factor == transparencyFactor) return this;

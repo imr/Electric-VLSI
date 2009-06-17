@@ -423,7 +423,7 @@ public class CVSLibrary {
      * Note that this method is currently called only after a DELIB has been
      * written, not after any other type of library.
      * @param libId
-     * @param oldLibFile
+     * @param libFile
      * @param deletedCellFiles
      */
     public static void savedLibrary(LibId libId, URL libFile, List<String> deletedCellFiles, List<String> writtenCellFiles) {

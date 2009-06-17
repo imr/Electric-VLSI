@@ -548,7 +548,7 @@ public class Poly extends PolyBase {
 
         /**
          * Returns the polygons that describe arc "ai".
-         * @param ai the ArcInst that is being described.
+         * @param ni the NodeInst that is being described.
          * @return an array of Poly objects that describes this ArcInst graphically.
          */
     	public Poly [] getShapeArray(NodeInst ni, boolean electrical, boolean reasonable, Layer.Function.Set onlyTheseLayers) {

@@ -2404,7 +2404,7 @@ public class User extends Listener
 
 	/**
 	 * Method to set the path of the regression tests directory.
-	 * @param dir the path of the regression tests directory.
+	 * @param s the path of the regression tests directory.
 	 */
 	public static void setRegressionPath(String s)
 	{
