@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.Main;
 import com.sun.electric.tool.Job;
 
 import javax.swing.ImageIcon;
@@ -37,8 +36,10 @@ public class Resources {
 
 	// Location of valid 3D plugin
 	private static final String plugin3D = "com.sun.electric.plugins.j3d";
-    private static final String pluginJMFJ3D = "com.sun.electric.plugins.Java3D";
-	/**
+    private static final String pluginJ3D = "com.sun.electric.plugins.Java3D";
+    private static final String pluginJMF = "com.sun.electric.plugins.JMF";
+
+    /**
 	 * Method to load a valid icon stored in resources package under the given class.
 	 * @param theClass class path where the icon resource is stored under
 	 * @param iconName icon name
@@ -59,9 +60,14 @@ public class Resources {
 		return (theClass.getResource(resourceLocation+resourceName));
 	}
 
-    public static Class getJMFJ3DClass(String name)
+    public static Class getJ3DClass(String name)
     {
-		return (getClass(name, pluginJMFJ3D));
+		return (getClass(name, pluginJ3D));
+    }
+
+    public static Class getJMFClass(String name)
+    {
+		return (getClass(name, pluginJMF));
     }
 
     public static Class get3DClass(String name)

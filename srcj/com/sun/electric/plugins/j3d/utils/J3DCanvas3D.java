@@ -25,9 +25,9 @@
 
 package com.sun.electric.plugins.j3d.utils;
 
-import com.sun.image.codec.jpeg.JPEGEncodeParam;
-import com.sun.image.codec.jpeg.JPEGCodec;
-import com.sun.image.codec.jpeg.JPEGImageEncoder;
+//import com.sun.image.codec.jpeg.JPEGEncodeParam;
+//import com.sun.image.codec.jpeg.JPEGCodec;
+//import com.sun.image.codec.jpeg.JPEGImageEncoder;
 import com.sun.electric.tool.user.Resources;
 
 import java.awt.*;
@@ -72,10 +72,10 @@ public class J3DCanvas3D extends Canvas3D  {
     List<String> inputFiles = new ArrayList<String>();
     public void saveMovie(String filename)
     {
-        Class movieClass = Resources.getJMFJ3DClass("JMFImageToMovie");
+        Class movieClass = Resources.getJMFClass("JMFImageToMovie");
         if (movieClass == null)
         {
-            System.out.println("Java3D plugin not available");
+            System.out.println("JMF plugin not available");
             return;
         }
         try {
@@ -127,11 +127,13 @@ public class J3DCanvas3D extends Canvas3D  {
                     inputFiles.add(capture);
                     FileOutputStream out = new FileOutputStream(capture);
 
-                    JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(out);
-                     JPEGEncodeParam param = encoder.getDefaultJPEGEncodeParam(img);
-                     param.setQuality(0.75f,false); // 75% quality for the JPEG
-                     encoder.setJPEGEncodeParam(param);
-                     encoder.encode(img);
+                    javax.imageio.ImageIO.write(img, "jpg", out);
+
+//                    JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(out);
+//                     JPEGEncodeParam param = encoder.getDefaultJPEGEncodeParam(img);
+//                     param.setQuality(0.75f,false); // 75% quality for the JPEG
+//                     encoder.setJPEGEncodeParam(param);
+//                     encoder.encode(img);
                      out.close();
                 }
                 catch (Exception e)

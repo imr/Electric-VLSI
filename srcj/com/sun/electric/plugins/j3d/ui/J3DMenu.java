@@ -118,7 +118,7 @@ public class J3DMenu {
      */
     private static void runHardwareTest()
     {
-        Class app3DClass = Resources.getJMFJ3DClass("J3DQueryProperties");
+        Class app3DClass = Resources.getJ3DClass("J3DQueryProperties");
         try
         {
             Method queryClass = app3DClass.getDeclaredMethod("queryHardwareAcceleration"); // varargs

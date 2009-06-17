@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09m: ******************************
 
+BUG: (6/16/09, GVG) Movie feature broken in Electric (Bug #2220)
+FIX: Resources for JMF and Java3D split.
+
+BUG: (6/16/09, GVG) JPEG package Sun propietary. Get rid of them? (Bug #1344)
+FIX: Using javax.imageio.ImageIO package instead
+
 BUG: (6/16/09, DN) DELIB cell files of deleted cells aren't renamed to ".deleted".
 FIX: In DELIB.checkIfDelete use getName instead of getLibraryPath.
 

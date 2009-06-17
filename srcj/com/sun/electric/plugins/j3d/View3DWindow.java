@@ -367,7 +367,7 @@ public class View3DWindow extends JPanel
         // Using reflection to create this behavior because Java3D plugin
         // might not be available. Reflection would have to  be here until Java3D team
         // releases this new behavior
-        Class plugin = Resources.getJMFJ3DClass("J3DAxisBehavior");
+        Class plugin = Resources.getJ3DClass("J3DAxisBehavior");
         if (plugin == null)
         {
             if (Job.getDebug())
