@@ -1,9 +1,9 @@
----------------- This is Electric, Version 8.08 ----------------
+---------------- This is Electric, Version 8.09 ----------------
 
 Electric is written in the Java programming language and is distributed in a
 single ".jar" file.  There are two variations on the ".jar" file:
-  With source code (called "electric-8.08.jar")
-  Without source code (called, "electricBinary-8.08.jar").
+  With source code (called "electric-8.09.jar")
+  Without source code (called, "electricBinary-8.09.jar").
 Both of these files have the binary ".class" files needed to run Electric,
 but the one with source-code is larger because it also has all of the Java code. 
 
@@ -34,7 +34,7 @@ to enhance the system's functionality.  Currently, these plug-ins are available:
   The IRSIM simulator is a gate-level simulator from Stanford University. Although
   originally written in C, it was translated to Java so that it could plug into
   Electric.  The Electric version is available from Static Free Software at:
-    www.staticfreesoft.com/electricIRSIM-8.08.jar
+    www.staticfreesoft.com/electricIRSIM-8.09.jar
 
 > Bean Shell
   The Bean Shell is used to do parameter evaluation in Electric.  Advanced operation
@@ -50,7 +50,7 @@ to enhance the system's functionality.  Currently, these plug-ins are available:
   Once the 3D facility is installed, there is one extra part that can be added to
   enhance the display: a 3D axis controller.  The 3D axis controller is available from
   Static Free Software at:
-    www.staticfreesoft.com/electricJava3D-8.08.jar 
+    www.staticfreesoft.com/electricJava3D-8.09.jar 
 
 > Animation
   Another extra that can be added to the 3D facility is 3D animation.  This requires
@@ -58,12 +58,12 @@ to enhance the system's functionality.  Currently, these plug-ins are available:
   available from Sun Microsystems at java.sun.com/products/java-media/jmf (this is not
   a plugin: it is an enhancement to your Java installation).  The animation code is
   available from Static Free Software at:
-    www.staticfreesoft.com/electricJMF-8.08.jar
+    www.staticfreesoft.com/electricJMF-8.09.jar
 
 > Russian User's Manual
   An earlier version of the user's manual (8.02) has been translated into Russian.
   This manual is available from Static Free Software at:
-    www.staticfreesoft.com/electricRussianManual-8.08.jar
+    www.staticfreesoft.com/electricRussianManual-8.09.jar
 
 To attach a plugin, it must be in the CLASSPATH.  The simplest way to do that is to
 invoked Electric from the command line, and specify the classpath.  For example, to
