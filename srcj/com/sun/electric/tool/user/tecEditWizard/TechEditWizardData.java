@@ -87,11 +87,15 @@ public class TechEditWizardData
     private WizardField gate_od18_width = new WizardField();        // transistor gate width for OD18 transistors
     private WizardField[] od18_diff_overhang = new WizardField[]{new WizardField(), new WizardField()};             // OD18 X and Y overhang
 
-    // Special rules for native transistors if speficied
+    // Special rules for native transistors if specified
     private WizardField gate_nt_length  = new WizardField();        // transistor gate length for native transistors
     private WizardField gate_nt_width = new WizardField();          // transistor gate width for OD18 transistors
     private WizardField poly_nt_endcap = new WizardField();         // gate extension from edge of diffusion for native transistors
     private WizardField nt_diff_overhang = new WizardField();       // extension from OD
+
+    // Special rules for vth/vtl transistors if specified.
+    private WizardField vthl_diff_overhang  = new WizardField();        // Overhang of VTH/VTL with respecto to OD
+    private WizardField vthl_poly_overhang = new WizardField();        // Overhang of VTH/VTL with respecto to the gate
 
     // CONTACT RULES
 	private WizardField contact_size = new WizardField();
@@ -739,6 +743,9 @@ public class TechEditWizardData
                     if (varName.equalsIgnoreCase("gate_nt_width")) fillRule(varValue, gate_nt_width); else
                     if (varName.equalsIgnoreCase("poly_nt_endcap")) fillRule(varValue, poly_nt_endcap); else
                     if (varName.equalsIgnoreCase("nt_diff_overhang")) fillRule(varValue, nt_diff_overhang); else
+
+                    if (varName.equalsIgnoreCase("vthl_diff_overhang")) fillRule(varValue, vthl_diff_overhang); else
+                    if (varName.equalsIgnoreCase("vthl_poly_overhang")) fillRule(varValue, vthl_poly_overhang); else
                         
                     if (varName.equalsIgnoreCase("contact_size")) contact_size.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("contact_size_rule")) contact_size.rule = stripQuotes(varValue); else
@@ -2824,6 +2831,33 @@ public class TechEditWizardData
                 g.addElement(n, name + "-S");
 
                 /*************************************/
+                // Short transistors with VTH and VTL
+
+                double vthlx = scaledValue(gate_width.v/2+vthl_diff_overhang.v);
+                double vthly = scaledValue(gate_length.v/2+ vthl_poly_overhang.v);
+
+                // VTH Transistor
+                String tmp = "VTH-" + name;
+                Xml.Layer vthLayer = t.findLayer(tmp);
+                Xml.NodeLayer nl = makeXmlNodeLayer(vthlx, vthlx, vthly, vthly, vthLayer, Poly.Type.FILLED);
+                nodesList.add(nl);
+
+                n = makeXmlPrimitive(t.nodeGroups, tmp + "-Transistor-S", func, 0, 0, 0, 0,
+                     new SizeOffset(shortSox, shortSox, soy, soy), nodesList, nodePorts, null, false);
+                g.addElement(n, tmp + "-S");
+
+                // VTL Transistor
+                nodesList.remove(nl);
+                tmp = "VTL-" + name;
+                vthLayer = t.findLayer(tmp);
+                nl = makeXmlNodeLayer(vthlx, vthlx, vthly, vthly, vthLayer, Poly.Type.FILLED);
+                nodesList.add(nl);
+
+                n = makeXmlPrimitive(t.nodeGroups, tmp + "-Transistor-S", func, 0, 0, 0, 0,
+                     new SizeOffset(shortSox, shortSox, soy, soy), nodesList, nodePorts, null, false);
+                g.addElement(n, tmp + "-S");
+
+                /*************************************/
                 // Transistors with extra polys
 
                 // different select for those with extra protection layers
@@ -2912,11 +2946,11 @@ public class TechEditWizardData
 
                 sox = scaledValue(od18_diff_overhang[0].v);
                 soy = scaledValue(diff_poly_overhang.v+od18_diff_overhang[1].v);
-                n = makeXmlPrimitive(t.nodeGroups, "OD18-" + name + "-Transistor", func, 0, 0, 0, 0,
+                n = makeXmlPrimitive(t.nodeGroups, "OD18-" + name + "-Transistor-S", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-                g.addElement(n, name);
+                g.addElement(n, "18-" + name + "-S");
 
-                 /*************************************/
+                /*************************************/
                 // Short transistors with native
 
                 if (i==Technology.N_TYPE)
@@ -2948,9 +2982,9 @@ public class TechEditWizardData
 
                     sox = scaledValue(poly_nt_endcap.v);
                     soy = scaledValue(diff_poly_overhang.v+nt_diff_overhang.v);
-                    n = makeXmlPrimitive(t.nodeGroups, "NT-" + name + "-Transistor", func, 0, 0, 0, 0,
+                    n = makeXmlPrimitive(t.nodeGroups, "NT-" + name + "-Transistor-S", func, 0, 0, 0, 0,
                     new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-                    g.addElement(n, name);
+                    g.addElement(n, "NT-" + name + "-S");
                 }
             }
         }
