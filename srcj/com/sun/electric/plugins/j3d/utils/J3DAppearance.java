@@ -97,6 +97,9 @@ public class J3DAppearance extends Appearance
         // For visibility
         setCapability(ALLOW_RENDERING_ATTRIBUTES_READ);
         setCapability(ALLOW_RENDERING_ATTRIBUTES_WRITE);
+        // Color
+        setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_READ);
+        setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_WRITE);
 
         // Adding Rendering attributes to access visibility flag if layer is available
         if (layer != null)

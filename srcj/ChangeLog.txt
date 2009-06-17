@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09m: ******************************
 
+BUG: (6/16/09 GVG) No capability to get coloringAttributes (Bug #2221)
+FIX: Added missing Appearance.ALLOW_COLORING_ATTRIBUTES*
+
 BUG: (6/16/09, GVG) Movie feature broken in Electric (Bug #2220)
 FIX: Resources for JMF and Java3D split.
 
