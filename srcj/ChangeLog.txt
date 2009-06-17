@@ -19,7 +19,7 @@ FIX: Using javax.imageio.ImageIO package instead
 BUG: (6/16/09, DN) DELIB cell files of deleted cells aren't renamed to ".deleted".
 FIX: In DELIB.checkIfDelete use getName instead of getLibraryPath.
 
-IMP: (6/16/09, DN) Prohibit in Technology.xsd deprecated attibutes of <primitiveNodeGroup>.
+IMP: (6/16/09, DN) Prohibit in Technology.xsd deprecated attributes of <primitiveNodeGroup>.
 
 BUG: (6/13/09, DN) Delib cell not marked for saving when version is deleted (Bug #1945).
 FIX: In ImmutableLibrary keep delibCells insteadof delibCellFiles.
@@ -48,7 +48,7 @@ IMP: (6/9/09, GVG) OD18 transistors added in 40nm technology (Bug #2212).
 BUG: (6/8/09, GVG) Double amount of layers from TechEditorWizard (Bug #2216)
 FIX: Lists clean.
 
-IMP/MAN: (6/8/09, GVG) Adding deep well in 40nm technology (part of Bug #2212).
+IMP: (6/8/09, GVG) Adding deep well in 40nm technology (part of Bug #2212).
 Ability to define patterns in tech editor wizard.
 
 BUG: (6/8/09, DN) Some artwork arcs drawn incorrectly (Bug #2213).
