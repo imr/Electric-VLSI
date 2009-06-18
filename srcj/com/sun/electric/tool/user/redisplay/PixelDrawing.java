@@ -318,7 +318,10 @@ public class PixelDrawing
 
         public double getScale() { return scale; }
 
-        public double getGlobalTextScale() { return wnd.getGlobalTextScale(); }
+        public double getGlobalTextScale()
+        {
+            return wnd == null ? User.getGlobalTextScale() : wnd.getGlobalTextScale();
+        }
     };
 
     static class Drawing extends AbstractDrawing {

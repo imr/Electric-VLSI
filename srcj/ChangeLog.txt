@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09n: ******************************
 
-BUG: (6/19/09, SMR) When jobs fail, an exception is thrown (Bug #2226).
+BUG: (6/18/09, GVG) NPE in Pixel drawing with GlobalTextScale (Bug #2229)
+FIX: Detecting if wnd is null. If yes, use User.getGlobalTextScale()
+
+BUG: (6/18/09, SMR) When jobs fail, an exception is thrown (Bug #2226).
 FIX: Fixing failed-job error messages.
 
 IMP: (6/18/09, SMR) Fix error messages in Silicon Compiler
