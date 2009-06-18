@@ -3,8 +3,8 @@ Title                                =title
 Introduction
  Welcome                             =chap01-01
  About Electric                      =chap01-02
- Requirements                        =chap01-03
- Setup                               =chap01-04
+ Running Electric                    =chap01-03
+ Building Electric from Source Code  =chap01-04
  Plug-Ins                            =chap01-05
  Fundamental Concepts                =chap01-06
  The Display                         =chap01-07
