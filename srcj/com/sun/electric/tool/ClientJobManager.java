@@ -240,7 +240,7 @@ class ClientJobManager extends JobManager {
                     ejob.changedFields = new ArrayList<Field>();
                     try {
                         if (!ejob.clientJob.doIt())
-                            throw new JobException("job " + ejob.jobName + " returned false");
+                            throw new JobException("Job '" + ejob.jobName + "' failed");
                         ejob.serializeResult(EDatabase.clientDatabase());
                     } catch (Throwable e) {
                         e.getStackTrace();

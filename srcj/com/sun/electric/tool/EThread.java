@@ -92,7 +92,7 @@ class EThread extends Thread {
                         userInterface.curLibId = ejob.serverJob.curLibId;
                         userInterface.curCellId = ejob.serverJob.curCellId;
                         if (!ejob.serverJob.doIt())
-                            throw new JobException("job " + ejob.jobName + " returned false");
+                            throw new JobException("Job '" + ejob.jobName + "' failed");
                         Constraints.getCurrent().endBatch(ejob.client.userName);
                         database.getNetworkManager().endBatch();
                         database.lowLevelEndChanging();
@@ -117,7 +117,7 @@ class EThread extends Thread {
                         userInterface.curLibId = ejob.serverJob.curLibId;
                         userInterface.curCellId = ejob.serverJob.curCellId;
                         if (!ejob.serverJob.doIt())
-                            throw new JobException("job " + ejob.jobName + " returned false");
+                            throw new JobException("Job '" + ejob.jobName + "' failed");
                         break;
                     case CLIENT_EXAMINE:
                         if (ejob.startedByServer) {
@@ -129,7 +129,7 @@ class EThread extends Thread {
                         userInterface.curLibId = ejob.clientJob.curLibId;
                         userInterface.curCellId = ejob.clientJob.curCellId;
                         if (!ejob.clientJob.doIt())
-                            throw new JobException("job " + ejob.jobName + " returned false");
+                            throw new JobException("Job '" + ejob.jobName + "' failed");
                         break;
                 }
                 ejob.serializeResult(database);

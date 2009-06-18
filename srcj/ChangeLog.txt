@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09n: ******************************
 
+BUG: (6/19/09, SMR) When jobs fail, an exception is thrown (Bug #2226).
+FIX: Fixing failed-job error messages.
+
 IMP: (6/18/09, SMR) Fix error messages in Silicon Compiler
 
 IMP: (6/17/09, GVG) fixed set verilog standard cell template command
