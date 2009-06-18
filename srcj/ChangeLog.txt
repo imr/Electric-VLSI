@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09n: ******************************
 
+IMP: (6/18/09, SMR) Fix error messages in Silicon Compiler
+
 IMP: (6/17/09, GVG) fixed set verilog standard cell template command
 
 ************************* Version 8.09m: ******************************
