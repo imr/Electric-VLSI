@@ -55,14 +55,14 @@ public class Maker
 	private static class MakerData
 	{
 		/** cell being layed out */			GetNetlist.SCCell	cell;
-		/** list of rows */					MakerRow		rows;
-		/** list of channels */				MakerChannel	channels;
-		/** list of vdd ports */			MakerPower		power;
-		/** list of ground ports */			MakerPower		ground;
-		/** minimum x position */			double			minX;
-		/** maximum x position */			double			maxX;
-		/** minimum y position */			double			minY;
-		/** maximum y position */			double			maxY;
+		/** list of rows */					MakerRow			rows;
+		/** list of channels */				MakerChannel		channels;
+		/** list of vdd ports */			MakerPower			power;
+		/** list of ground ports */			MakerPower			ground;
+		/** minimum x position */			double				minX;
+		/** maximum x position */			double				maxX;
+		/** minimum y position */			double				minY;
+		/** maximum y position */			double				maxY;
 	};
 
 	private static class MakerRow
@@ -107,7 +107,7 @@ public class Maker
 	{
 		/** track number */					int				number;
 		/** nodes in track */				MakerNode		nodes;
-		/** reference track */				Route.RouteTrack	track;
+		/** reference track */				Route.RouteTrack track;
 		/** Y position */					double			yPos;
 		/** processing bits */				int				flags;
 		/** previous track */				MakerTrack		last;
@@ -126,12 +126,12 @@ public class Maker
 
 	private static class MakerVia
 	{
-		/** X position */					double			xPos;
+		/** X position */					double				xPos;
 		/** associated channel port */		Route.RouteChPort	chPort;
-		/** associated leaf instance */		NodeInst		instance;
-		/** flags for processing */			int				flags;
+		/** associated leaf instance */		NodeInst			instance;
+		/** flags for processing */			int					flags;
 		/** export port */					Route.RouteExport	xPort;
-		/** next via */						MakerVia		next;
+		/** next via */						MakerVia			next;
 	};
 
 	private static class MakerPower
@@ -144,11 +144,11 @@ public class Maker
 
 	private static class MakerPowerPort
 	{
-		/** instance */						MakerInst		inst;
+		/** instance */						MakerInst			inst;
 		/** port on instance */				GetNetlist.SCNiPort port;
-		/** resultant x position */			double			xPos;
-		/** next in list */					MakerPowerPort	next;
-		/** last in list */					MakerPowerPort	last;
+		/** resultant x position */			double				xPos;
+		/** next in list */					MakerPowerPort		next;
+		/** last in list */					MakerPowerPort		last;
 	};
 
 	private PrimitiveNode layer1Proto;
@@ -158,7 +158,7 @@ public class Maker
 	private PrimitiveNode nWellProto;
 	private ArcProto layer1Arc;
 	private ArcProto layer2Arc;
-	SilComp.SilCompPrefs localPrefs;
+	private SilComp.SilCompPrefs localPrefs;
 
 	public Maker(SilComp.SilCompPrefs prefs) { localPrefs = prefs; }
 
@@ -512,7 +512,7 @@ public class Maker
 					mInst.ySize = SilComp.leafPortYPos((Export)rPort.port.port);
 				} else
 				{
-					System.out.println("ERROR - unknown cell type in maker set up");
+					System.out.println("ERROR - unknown cell type in SC Maker set up");
 					mInst.ySize = 0;
 				}
 				mInst.instance = null;
@@ -629,7 +629,7 @@ public class Maker
 
 		// create new cell
 		Cell bCell = Cell.makeInstance(destLib, data.cell.name + "{lay}");
-		if (bCell == null) return "Cannot create leaf cell '" + data.cell.name + "{lay}' in MAKER";
+		if (bCell == null) return "SC maker cannot create leaf cell '" + data.cell.name + "{lay}'";
 
 		// create instances for cell
 		for (MakerRow row = data.rows; row != null; row = row.next)
@@ -644,33 +644,30 @@ public class Maker
 					Cell subCell = (Cell)node.np;
 					Rectangle2D bounds = subCell.getBounds();
                     Orientation orient = Orientation.IDENT;
-//					double wid = inst.xSize;
 					double hEdge = -bounds.getMinX();
 					if (flipX)
 					{
                         orient = Orientation.X;
-//						wid = -wid;
 						hEdge = bounds.getMaxX();
 					}
 					Point2D ctr = new Point2D.Double(inst.xPos + hEdge, inst.yPos - bounds.getMinY());
 					inst.instance = NodeInst.makeInstance(subCell, ctr, inst.xSize, inst.ySize, bCell, orient, node.name);
-//					inst.instance = NodeInst.makeInstance(subCell, ctr, wid, inst.ySize, bCell, 0, node.name, 0);
 					if (inst.instance == null)
-						return "Cannot create leaf instance '" + node.name+ "' in MAKER";
+						return "SC maker cannot create leaf instance '" + node.name+ "'";
 				} else if (node.type == GetNetlist.FEEDCELL)
 				{
 					// feed through node
 					Point2D ctr = new Point2D.Double(inst.xPos + (inst.xSize / 2), inst.yPos + inst.ySize + localPrefs.vertArcWidth / 2);
 					inst.instance = NodeInst.makeInstance(layer2Proto, ctr, localPrefs.vertArcWidth, localPrefs.vertArcWidth, bCell);
 					if (inst.instance == null)
-						return "Cannot create leaf feed in MAKER";
+						return "SC maker cannot create leaf feed";
 				} else if (node.type == GetNetlist.LATERALFEED)
 				{
 					// lateral feed node
 					Point2D ctr = new Point2D.Double(inst.xPos + (inst.xSize / 2), inst.yPos + inst.ySize);
 					inst.instance = NodeInst.makeInstance(viaProto, ctr, viaProto.getDefWidth(), viaProto.getDefHeight(), bCell);
 					if (inst.instance == null)
-						return "Cannot create via in MAKER";
+						return "SC maker cannot create via";
 				}
 			}
 		}
@@ -689,14 +686,14 @@ public class Maker
 							via.instance = NodeInst.makeInstance(layer1Proto, new Point2D.Double(via.xPos, track.yPos),
 								localPrefs.horizArcWidth, localPrefs.horizArcWidth, bCell);
 							if (via.instance == null)
-								return "Cannot create via in MAKER";
+								return "SC maker cannot create via";
 
 							// create vertical power track
 							MakerInst inst = (MakerInst)via.chPort.port.place.cell.tp;
 							if (trackLayer1(inst.instance, (PortProto)via.chPort.port.port.port,
 								via.instance, null, localPrefs.horizArcWidth, bCell) == null)
 							{
-								return "Cannot create layer2 track in MAKER";
+								return "SC maker cannot create layer2 track";
 							}
 							continue;
 						}
@@ -721,13 +718,13 @@ public class Maker
 							via.instance = NodeInst.makeInstance(layer2Proto, new Point2D.Double(via.xPos, track.yPos),
 								localPrefs.vertArcWidth, localPrefs.vertArcWidth, bCell);
 							if (via.instance == null)
-								return "Cannot create leaf feed in MAKER";
+								return "SC maker cannot create leaf feed";
 						} else
 						{
 							via.instance = NodeInst.makeInstance(viaProto, new Point2D.Double(via.xPos, track.yPos),
 								viaProto.getDefWidth(), viaProto.getDefHeight(), bCell);
 							if (via.instance == null)
-								return "Cannot create via in MAKER";
+								return "SC maker cannot create via";
 						}
 
 						// create vertical track
@@ -738,7 +735,7 @@ public class Maker
 							if (trackLayer2(inst.instance, (PortProto)via.chPort.port.port.port,
 								via.instance, null, localPrefs.vertArcWidth, bCell) == null)
 							{
-								return "Cannot create layer2 track in MAKER";
+								return "SC maker cannot create layer2 track";
 							}
 						} else if (node.type == GetNetlist.FEEDCELL ||
 							node.type == GetNetlist.LATERALFEED)
@@ -747,7 +744,7 @@ public class Maker
 							if (trackLayer2(inst.instance, null,
 								via.instance, null, localPrefs.vertArcWidth, bCell) == null)
 							{
-								return "Cannot create layer2 track in MAKER";
+								return "SC maker cannot create layer2 track";
 							}
 						}
 					}
@@ -773,7 +770,7 @@ public class Maker
 									if (trackLayer2(via.instance, null,
 										via.next.instance, null, localPrefs.vertArcWidth, bCell) == null)
 									{
-										return "Cannot create layer1 track in MAKER";
+										return "SC maker cannot create layer1 track";
 									}
 								}
 							} else
@@ -785,7 +782,7 @@ public class Maker
 									if (trackLayer2(via.instance, null,
 										via.next.instance, null, localPrefs.vertArcWidth, bCell) == null)
 									{
-										return "Cannot create layer1 track in MAKER";
+										return "SC maker cannot create layer1 track";
 									}
 								}
 								for (MakerVia via2 = via.next; via2 != null; via2 = via2.next)
@@ -794,7 +791,7 @@ public class Maker
 									if (trackLayer1(via.instance, null, via2.instance, null,
 										localPrefs.horizArcWidth, bCell) == null)
 									{
-										return "Cannot create layer1 track in MAKER";
+										return "SC maker cannot create layer1 track";
 									}
 									break;
 								}
@@ -823,7 +820,7 @@ public class Maker
 					if (trackLayer1(inst1, port1, inst2, port2,
 						localPrefs.horizArcWidth, bCell) == null)
 					{
-						return "Cannot create layer1 track in MAKER";
+						return "SC Maker cannot create layer1 track";
 					}
 				} else if (place.cell.type == GetNetlist.LATERALFEED)
 				{
@@ -836,7 +833,7 @@ public class Maker
 					if (trackLayer1(inst1, port1, inst2, null,
 						localPrefs.horizArcWidth, bCell) == null)
 					{
-						return "Cannot create layer2 track in MAKER";
+						return "SC Maker cannot create layer2 track";
 					}
 				}
 			}
@@ -856,7 +853,7 @@ public class Maker
 							if (exportPort(via.instance, null,
 								via.xPort.xPort.name, via.xPort.xPort.bits & GetNetlist.PORTTYPE, bCell) == null)
 							{
-								return "Cannot create export port '" + via.xPort.xPort.name + "' in MAKER";
+								return "SC Maker cannot create export port '" + via.xPort.xPort.name + "'";
 							}
 						}
 					}
@@ -887,7 +884,7 @@ public class Maker
 					localPrefs.mainPowerWireWidth, localPrefs.mainPowerWireWidth, bCell);
 			}
 			if (bInst == null)
-				return "Cannot create via in MAKER";
+				return "SC Maker cannot create via";
 			if (lastPower != null)
 			{
 				// join to previous
@@ -896,14 +893,14 @@ public class Maker
 					if (trackLayer1(bInst, null, lastPower, null,
 						localPrefs.mainPowerWireWidth, bCell) == null)
 					{
-						return "Cannot create layer1 track in MAKER";
+						return "SC Maker cannot create layer1 track";
 					}
 				} else
 				{
 					if (trackLayer2(bInst, null, lastPower, null,
 						localPrefs.mainPowerWireWidth, bCell) == null)
 					{
-						return "Cannot create layer1 track in MAKER";
+						return "SC Maker cannot create layer2 track";
 					}
 				}
 			}
@@ -917,7 +914,7 @@ public class Maker
 					if (trackLayer1(lastPower, null, pPort.inst.instance, (PortProto)pPort.port.port,
 						localPrefs.powerWireWidth, bCell) == null)
 					{
-						return "Cannot create layer1 track in MAKER";
+						return "SC Maker cannot create layer1 track";
 					}
 				}
 
@@ -928,7 +925,7 @@ public class Maker
 							pPort.next.inst.instance, (PortProto)pPort.next.port.port,
 							localPrefs.powerWireWidth, bCell) == null)
 					{
-						return "Cannot create layer1 track in MAKER";
+						return "SC Maker cannot create layer1 track";
 					}
 				}
 			}
@@ -953,7 +950,7 @@ public class Maker
 				bInst = NodeInst.makeInstance(layer2Proto, new Point2D.Double(xPos, yPos),
 					localPrefs.mainPowerWireWidth, localPrefs.mainPowerWireWidth, bCell);
 			}
-			if (bInst == null) return "Cannot create via in MAKER";
+			if (bInst == null) return "SC Maker cannot create via";
 			if (lastGround != null)
 			{
 				// join to previous
@@ -962,21 +959,21 @@ public class Maker
 					if (trackLayer1(bInst, null, lastGround, null,
 						localPrefs.mainPowerWireWidth, bCell) == null)
 					{
-						return "Cannot create layer1 track in MAKER";
+						return "SC Maker cannot create layer1 track";
 					}
 				} else
 				{
 					if (trackLayer2(bInst, null, lastGround, null,
 						localPrefs.mainPowerWireWidth, bCell) == null)
 					{
-						return "Cannot create layer1 track in MAKER";
+						return "SC Maker cannot create layer2 track";
 					}
 				}
 			} else
 			{
 				if (exportPort(bInst, null, "gnd", GetNetlist.GNDPORT, bCell) == null)
 				{
-					return "Cannot create export port 'gnd' in MAKER";
+					return "SC Maker cannot create export port 'gnd'";
 				}
 			}
 			lastGround = bInst;
@@ -989,7 +986,7 @@ public class Maker
 					if (trackLayer1(lastGround, null, pPort.inst.instance, (PortProto)pPort.port.port,
 						localPrefs.powerWireWidth, bCell) == null)
 					{
-						return "Cannot create layer1 track in MAKER";
+						return "SC Maker cannot create layer1 track";
 					}
 				}
 				// connect to next if it exists
@@ -999,7 +996,7 @@ public class Maker
 						pPort.next.inst.instance, (PortProto)pPort.next.port.port,
 							localPrefs.powerWireWidth, bCell) == null)
 					{
-						return "Cannot create layer1 track in MAKER";
+						return "SC Maker cannot create layer1 track";
 					}
 				}
 			}
@@ -1009,7 +1006,7 @@ public class Maker
 			// export as cell vdd
 			if (exportPort(lastPower, null, "vdd", GetNetlist.PWRPORT, bCell) == null)
 			{
-				return "Cannot create export port 'vdd' in MAKER";
+				return "SC Maker cannot create export port 'vdd'";
 			}
 		}
 
@@ -1043,7 +1040,7 @@ public class Maker
 						{
 							NodeInst bInst = NodeInst.makeInstance(pWellProto, new Point2D.Double(xPos, yPos), xSize, ySize, bCell);
 							if (bInst == null)
-								return "Unable to create P-WELL in MAKER";
+								return "SC Maker cannot create P-WELL";
 						}
 					}
 
@@ -1056,7 +1053,7 @@ public class Maker
 						{
 							NodeInst bInst = NodeInst.makeInstance(nWellProto, new Point2D.Double(xPos, yPos), xSize, ySize, bCell);
 							if (bInst == null)
-								return "Unable to create N-WELL in MAKER";
+								return "SC Maker cannot create N-WELL";
 						}
 					}
 				}
@@ -1136,7 +1133,6 @@ public class Maker
 		}
 
 		ArcInst inst = ArcInst.makeInstanceBase(layer1Arc, width, piA, piB);
-//		ArcInst inst = ArcInst.makeInstanceFull(layer1Arc, width, piA, piB);
 		return inst;
 	}
 
@@ -1180,7 +1176,6 @@ public class Maker
 		}
 
 		ArcInst inst = ArcInst.makeInstanceBase(layer2Arc, width, piA, piB);
-//		ArcInst inst = ArcInst.makeInstanceFull(layer2Arc, width, piA, piB);
 		return inst;
 	}
 
@@ -1202,10 +1197,8 @@ public class Maker
 		NodeInst viaNode = NodeInst.makeInstance(viaProto, new Point2D.Double(x, y),
 			viaProto.getDefWidth(), viaProto.getDefHeight(), pi.getNodeInst().getParent());
 		if (viaNode == null) return null;
-//		double wid = arc.getDefaultLambdaFullWidth();
 		PortInst newPi = viaNode.getOnlyPortInst();
 		ArcInst zeroArc = ArcInst.makeInstance(arc, pi, newPi);
-//		ArcInst zeroArc = ArcInst.makeInstanceFull(arc, wid, pi, newPi);
 		if (zeroArc == null) return null;
 		return newPi;
 	}
@@ -1222,8 +1215,8 @@ public class Maker
 		String layer2 = localPrefs.vertRoutingArc;
 		layer1Arc = tech.findArcProto(layer1);
 		layer2Arc = tech.findArcProto(layer2);
-		if (layer1Arc == null) return "Unable to find Horizontal Arc " + layer1 + " for MAKER";
-		if (layer2Arc == null) return "Unable to find Vertical Arc " + layer2 + " for MAKER";
+		if (layer1Arc == null) return "SC Maker cannot find Horizontal Arc " + layer1 + " in technology " + tech.getTechName();
+		if (layer2Arc == null) return "SC Maker cannot find Vertical Arc " + layer2 + " in technology " + tech.getTechName();
 
 		// find the contact between the two layers
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
@@ -1237,28 +1230,26 @@ public class Maker
 			viaProto = via;
 			break;
 		}
-		if (viaProto == null) return "Unable to get VIA for MAKER";
+		if (viaProto == null) return "SC Maker cannot find VIA in technology " + tech.getTechName();
 
 		// find the pin nodes on the connecting layers
 		layer1Proto = layer1Arc.findPinProto();
 		if (layer1Proto == null)
-			return "Unable to get LAYER1-NODE for MAKER";
+			return "SC Maker cannot find LAYER1-NODE in technology " + tech.getTechName();
 		layer2Proto = layer2Arc.findPinProto();
 		if (layer2Proto == null)
-			return "Unable to get LAYER2-NODE for MAKER";
+			return "SC Maker cannot find LAYER2-NODE in technology " + tech.getTechName();
 
-		/*
-		 * find the pure-layer node on the P-well layer
-		 * if the p-well size is zero don't look for the node
-		 * allows technologies without p-wells to be routed (i.e. GaAs)
-		 */
+		// find the pure-layer node on the P-well layer
+		// if the p-well size is zero don't look for the node
+		// allows technologies without p-wells to be routed (i.e. GaAs)
 		if (localPrefs.pWellHeight == 0) pWellProto = null; else
 		{
 			pWellProto = null;
 			Layer pWellLay = tech.findLayerFromFunction(Layer.Function.WELLP, -1);
 			if (pWellLay != null) pWellProto = pWellLay.getPureLayerNode();
 			if (pWellProto == null)
-				return "Unable to get LAYER P-WELL for MAKER";
+				return "SC Maker cannot find P-WELL layer in technology " + tech.getTechName();
 		}
 		if (localPrefs.nWellHeight == 0) nWellProto = null; else
 		{
@@ -1266,7 +1257,7 @@ public class Maker
 			Layer nWellLay = tech.findLayerFromFunction(Layer.Function.WELLN, -1);
 			if (nWellLay != null) nWellProto = nWellLay.getPureLayerNode();
 			if (nWellProto == null)
-				return "Unable to get LAYER P-WELL for MAKER";
+				return "SC Maker cannot find P-WELL layer in technology " + tech.getTechName();
 		}
 
 		return null;
