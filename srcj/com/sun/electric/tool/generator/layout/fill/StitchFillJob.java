@@ -377,7 +377,7 @@ public class StitchFillJob extends Job
         Collections.sort(listOfLayers, Layer.layerSortByLevel);
 		Map<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
 		Map<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
-        boolean evenHorizontal = true; // even metal layers are horizontal. Basic assumption
+//        boolean evenHorizontal = true; // even metal layers are horizontal. Basic assumption
         List<Route> routeList = new ArrayList<Route>();
         Layer[] topLayers = new Layer[2];
         Layer bottomLayer = null;
@@ -386,11 +386,11 @@ public class StitchFillJob extends Job
         for (int i = 0; i < listOfLayers.size() - 1; i++)
         {
             Layer bottom = listOfLayers.get(i);
-            boolean horizontal = isLayerHorizontal(bottom, evenHorizontal);
+//            boolean horizontal = isLayerHorizontal(bottom, evenHorizontal);
 
-            List<ArcInst> arcs = getArcsInGivenLayer(theCell.getArcs(), horizontal, bottom, null, null);
+            List<ArcInst> arcs = getArcsInGivenLayer(theCell.getArcs(), bottom, null, null);
             Layer top = listOfLayers.get(i+1);
-            Map<String,Area> remainingGeos = new HashMap<String,Area>();
+            Map<String,ExtraArea> remainingGeos = new HashMap<String,ExtraArea>();
 
             for (ArcInst ai : arcs)
             {
@@ -402,6 +402,7 @@ public class StitchFillJob extends Job
 
                 List<PinsArcPair> pairs = new ArrayList<PinsArcPair>();
                 Rectangle2D bounds = ai.getBounds();
+                boolean horizontal = DBMath.isGreaterThan(bounds.getWidth(), bounds.getHeight());
                 Area bottomA = new Area(bounds);
 
                 if (bottomLayer == null || bottom == bottomLayer) // only for the bottom layer, the first one
@@ -425,16 +426,15 @@ public class StitchFillJob extends Job
                     }
 
                     ArcInst nai = (ArcInst)nGeom;
+                    Layer nl = nai.getProto().getLayer(0);
+
+                    if (nl != top) continue; // ascending order is easy
 
                     // Checking arc orientation with respect to layer
                     // If the orientation is not correct, then ignore it
                     // Must be perpendicular to the reference layer (bottom)
                     if (!isArcAligned(nai, !horizontal))
                         continue;
-
-                    Layer nl = nai.getProto().getLayer(0);
-
-                    if (nl != top) continue; // ascending order is easy
 
                     String topName = getExportRootName(nai, netlist);
 
@@ -454,18 +454,25 @@ public class StitchFillJob extends Job
                     if (!fullCoverageX || !fullCoverageY)
                     {
                         // adding to list of pieces of geometries
-                        Area a = remainingGeos.get(bottomName);
+                        ExtraArea ea = remainingGeos.get(bottomName);
+                        Area a = (ea != null) ? ea.getArea(horizontal) : null;
                         if (a == null)
                         {
                             a = new Area();
-                            remainingGeos.put(bottomName, a);
+                            if (ea == null)
+                            {
+                                ea = new ExtraArea(a, horizontal);
+                                remainingGeos.put(bottomName, ea);
+                            }
+                            else
+                                ea.setArea(a, horizontal);
                         }
                         a.add(topA);
                         continue; // skipping this case
                     }
 
                     EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
-                    pairs.add(new PinsArcPair(nai, insert, resultBnd));
+                    pairs.add(new PinsArcPair(nai, insert, resultBnd, horizontal));
                 }
 
                 Collections.sort(pairs, pinsArcSort);
@@ -482,11 +489,10 @@ public class StitchFillJob extends Job
                     topLayers[1] = top;
                 }
 
-                Area a = remainingGeos.get(bottomName);
+                ExtraArea ea = remainingGeos.get(bottomName);
+                Area a = (ea != null) ? ea.getArea(horizontal) : null;
                 for (PinsArcPair pair : pairs)
                 {
-                    //SplitContainter bottomSplit = splitArcAtPoint(mostLeft, pair.insert);
-                    //SplitContainter topSplit = splitArcAtPoint(pair.topArc, pair.insert);
                     Route r = router.planRoute(theCell,  mostLeft, pair.topArc, pair.insert, null, true, true, pair.cut);
                     //mostLeft = bottomSplit.rightArc;
                     routeList.add(r);
@@ -506,60 +512,68 @@ public class StitchFillJob extends Job
             }
 
             // Adding remaining contacts due to non-100% overlap with original arcs
-            for (Map.Entry<String,Area> e : remainingGeos.entrySet())
+            for (Map.Entry<String,ExtraArea> e : remainingGeos.entrySet())
             {
-                Area a = e.getValue();
-                Netlist netlist = theCell.getNetlist();
-                List<PolyBase> list = PolyBase.getPointsInArea(a, bottom, false, false);
-                List<ArcInst> at = getArcsInGivenLayer(theCell.getArcs(), !horizontal, top,  e.getKey(), netlist);
-                List<PinsArcPair> pairs = new ArrayList<PinsArcPair>(2);
-
-                // Add extra contacts. All points should be aligned in same horizontal or vertical line
-                // first the top arcs. They should be less in number (less number of splits)
-                for (PolyBase p : list)
+                ExtraArea ea = e.getValue();
+                for (int pos = 0; pos < 2; pos++)
                 {
-                    Rectangle2D resultBnd = p.getBounds2D();
+                    boolean horizontal = (pos == 0);
+                    Area a = ea.getArea(horizontal);
+                    if (a == null) continue;
+                    Netlist netlist = theCell.getNetlist();
+                    List<PolyBase> list = PolyBase.getPointsInArea(a, bottom, false, false);
+                    List<ArcInst> at = getArcsInGivenLayer(theCell.getArcs(), top, e.getKey(), netlist);
+                    List<PinsArcPair> pairs = new ArrayList<PinsArcPair>(2);
 
-                    // look for the first pair of arcs in bottom/top arcs that overlap with geometry
-                    ArcInst topA = getArcInstOverlappingWithArea(resultBnd, at, horizontal, true); // perferct if fully contains the arc
-
-                    if (topA != null)
+                    // Add extra contacts. All points should be aligned in same horizontal or vertical line
+                    // first the top arcs. They should be less in number (less number of splits)
+                    for (PolyBase p : list)
                     {
-                        EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
-                        pairs.add(new PinsArcPair(topA, insert, resultBnd));
-                    }
-                }
-                // Sort the new pairs from left/top to right/bottom
-                Collections.sort(pairs, pinsArcSort);
+                        Rectangle2D resultBnd = p.getBounds2D();
 
-                // Look for bottomLayer arcs for those given positions
-                List<ArcInst> ab = getArcsInGivenLayer(theCell.getArcs(), horizontal, bottom, e.getKey(), netlist);
-                routeList.clear();
+                        // look for the first pair of arcs in bottom/top arcs that overlap with geometry
+                        ArcInst topA = getArcInstOverlappingWithArea(resultBnd, at, horizontal, true); // perferct if fully contains the arc
 
-                for (PinsArcPair pair : pairs)
-                {
-                    ArcInst bottomA = getArcInstOverlappingWithArea(pair.cut, ab, horizontal, false);
-                    if (bottomA != null)
-                    {
-                        //SplitContainter bottomSplit = splitArcAtPoint(bottomA, pair.insert);
-                        //SplitContainter topSplit = splitArcAtPoint(pair.topArc, pair.insert);
-                        Route r = router.planRoute(theCell,  bottomA, pair.topArc, pair.insert, null, true, true, pair.cut);
-                        // remove the old one and add new arc
-                        ab.remove(bottomA);
-                        //ab.add(bottomSplit.rightArc);
-                        topLayers[0] = bottom;
-                        topLayers[1] = top;
-                        routeList.add(r);
+                        if (topA != null)
+                        {
+                            EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
+                            Rectangle2D r = topA.getBounds();
+                            boolean horizontal1 = !DBMath.isGreaterThan(r.getWidth(), r.getHeight());
+                            pairs.add(new PinsArcPair(topA, insert, resultBnd, horizontal1));
+                        }
                     }
-                    else if (Job.getDebug())
+                    // Sort the new pairs from left/top to right/bottom
+                    Collections.sort(pairs, pinsArcSort);
+
+                    // Look for bottomLayer arcs for those given positions
+                    List<ArcInst> ab = getArcsInGivenLayer(theCell.getArcs(), bottom, e.getKey(), netlist);
+                    routeList.clear();
+
+                    for (PinsArcPair pair : pairs)
                     {
-                         bottomA = getArcInstOverlappingWithArea(pair.cut, ab, horizontal, false);
-                        System.out.println("AFG: It couldn't find bottom layer for " + pair.cut);
+                        ArcInst bottomA = getArcInstOverlappingWithArea(pair.cut, ab, horizontal, false);
+                        if (bottomA != null)
+                        {
+                            //SplitContainter bottomSplit = splitArcAtPoint(bottomA, pair.insert);
+                            //SplitContainter topSplit = splitArcAtPoint(pair.topArc, pair.insert);
+                            Route r = router.planRoute(theCell,  bottomA, pair.topArc, pair.insert, null, true, true, pair.cut);
+                            // remove the old one and add new arc
+                            ab.remove(bottomA);
+                            //ab.add(bottomSplit.rightArc);
+                            topLayers[0] = bottom;
+                            topLayers[1] = top;
+                            routeList.add(r);
+                        }
+                        else if (Job.getDebug())
+                        {
+                             bottomA = getArcInstOverlappingWithArea(pair.cut, ab, horizontal, false);
+                            System.out.println("AFG: It couldn't find bottom layer for " + pair.cut);
+                        }
                     }
-                }
-                for (Route r : routeList)
-                {
-                    Router.createRouteNoJob(r, theCell, arcsCreatedMap, nodesCreatedMap);
+                    for (Route r : routeList)
+                    {
+                        Router.createRouteNoJob(r, theCell, arcsCreatedMap, nodesCreatedMap);
+                    }
                 }
             }
         }
@@ -617,7 +631,6 @@ public class StitchFillJob extends Job
                 Point2D bestCenter = null;
                 double bestDistance = Double.MAX_VALUE;
                 List<Network> netList = getNetworkFromName(netlist, rootName);
-//                        jNet = getNetworkFromName(netlist, rootName);
 
                 for (Network jNet : netList)
                 {
@@ -717,7 +730,7 @@ public class StitchFillJob extends Job
         if (wideOption)
         {
             Map<String,List<PinsArcPair>> newExports = new HashMap<String,List<PinsArcPair>>();
-            boolean horizontal = isLayerHorizontal(bottomLayer, evenHorizontal);
+//            boolean horizontal = isLayerHorizontal(bottomLayer, evenHorizontal);
 
             // For each export 1 export in the bottom layer should be insert
             for (Map.Entry<String,Export> e : inBottomLayer.entrySet())
@@ -726,7 +739,7 @@ public class StitchFillJob extends Job
                 String rootName = extractRootName(exp.getName());
                 Network net = netlist.getNetwork(exp, 0);
                 // Collect first all the arcs in that layer
-                List<ArcInst> arcs = getArcsInGivenLayer(net.getArcs(), horizontal, bottomLayer, null, null);
+                List<ArcInst> arcs = getArcsInGivenLayer(net.getArcs(), bottomLayer, null, null);
                 Area area = totalAreas.get(rootName);
                 List<PinsArcPair> l = new ArrayList<PinsArcPair>();
 
@@ -743,7 +756,8 @@ public class StitchFillJob extends Job
                         Rectangle2D bnd = ai.getBounds();
                         if (bnd.contains(insert.getX(), insert.getY()))
                         {
-                            split = new PinsArcPair(ai, insert, null);
+                            boolean horizontal = !DBMath.isGreaterThan(bnd.getWidth(), bnd.getHeight());
+                            split = new PinsArcPair(ai, insert, null, horizontal);
                             l.add(split);
                             break;
                         }
@@ -799,7 +813,8 @@ public class StitchFillJob extends Job
                 rArea.intersect(topArea);
                 Rectangle2D rect = rArea.getBounds2D();
                 boolean validArc;
-
+//                boolean horizontal = !DBMath.isGreaterThan(r.getWidth(), r.getHeight());
+                
                 if (horizontal && topLayer || !horizontal && !topLayer)  // top arc is aligned along Y or bottom arc along Y
                 {
                     validArc = DBMath.areEquals(rect.getWidth(), r.getWidth());
@@ -853,14 +868,12 @@ public class StitchFillJob extends Job
     /**
      * Method to collect arcs in a given layer with a given export name from an iterator
      * @param itAi Arcs iterator
-     * @param horizontal Variable to determine if the arc mus be aligned horizontally
      * @param layer Given layer
      * @param exportName Given export name. If null, any export name is valid
      * @param netlist  Given Netlist to find exports
      * @return List of ArcInsts
      */
-    private static List<ArcInst> getArcsInGivenLayer(Iterator<ArcInst> itAi, boolean horizontal,
-                                                     Layer layer, String exportName, Netlist netlist)
+    private static List<ArcInst> getArcsInGivenLayer(Iterator<ArcInst> itAi, Layer layer, String exportName, Netlist netlist)
     {
         List<ArcInst> arcs = new ArrayList<ArcInst>();
 
@@ -870,8 +883,8 @@ public class StitchFillJob extends Job
 
             // Checking arc orientation with respect to layer
             // If the orientation is not correct, then ignore it
-            if (!isArcAligned(ai, horizontal))
-                continue;
+//            if (!isArcAligned(ai, horizontal))
+//                continue;
 
             Layer l = ai.getProto().getLayer(0);
             if (l != layer)
@@ -1029,12 +1042,17 @@ public class StitchFillJob extends Job
         private ArcInst topArc;
         private EPoint insert;
         private Rectangle2D cut;
+        private boolean horizontal; // bottom part
 
-        PinsArcPair(ArcInst topA, EPoint point, Rectangle2D c)
+        PinsArcPair(ArcInst topA, EPoint point, Rectangle2D c, boolean hoz)
         {
             topArc = topA;
             insert = point;
             cut = c;
+            horizontal = hoz;
+            Rectangle2D r = topA.getBounds();
+            boolean extra = !DBMath.isGreaterThan(r.getWidth(), r.getHeight());
+            assert (extra == hoz);
         }
     }
 
@@ -1061,6 +1079,33 @@ public class StitchFillJob extends Job
     {
         NodeInst splitPin;
         ArcInst leftArc, rightArc; // to keep track of new arcs after the original one was split
+    }
+
+    /**
+     * Class to store temp area according to a given direction
+     */
+    private static class ExtraArea
+    {
+        Area[] areas = new Area[2]; // 0 -> bottom is horizontal, 1 -> vertical
+
+        ExtraArea(Area a, boolean hoz)
+        {
+            int pos = (hoz) ? 0 : 1;
+            areas[pos] = a;
+        }
+
+        Area getArea(boolean hoz)
+        {
+            int pos = (hoz) ? 0 : 1;
+            return areas[pos];
+        }
+
+        void setArea(Area a, boolean hoz)
+        {
+            int pos = (hoz) ? 0 : 1;
+            assert(areas[pos] == null);
+            areas[pos] = a;
+        }
     }
 
     /**
