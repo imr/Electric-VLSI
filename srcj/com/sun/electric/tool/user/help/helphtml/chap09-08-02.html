@@ -35,7 +35,7 @@ The parser is pretty picky.
 There should be a carriage return after the list word, but no other blank lines in the file.
 Here is a sample ROM file:
 <BR>
-<CODE>
+<CODE><FONT SIZE="-1">
 &nbsp;&nbsp;&nbsp;1<BR>
 &nbsp;&nbsp;&nbsp;010101<BR>
 &nbsp;&nbsp;&nbsp;011001<BR>
@@ -46,7 +46,7 @@ Here is a sample ROM file:
 &nbsp;&nbsp;&nbsp;10000000<BR>
 &nbsp;&nbsp;&nbsp;01000000<BR>
 &nbsp;&nbsp;&nbsp;11000000
-</CODE>
+</FONT></CODE>
 </LI>
 
 <LI><B>MOSIS CMOS PLA Generator...</B>
@@ -64,15 +64,15 @@ Here is some sample PLA logic:
 </TD></TR></TABLE></CENTER>
 Here is the AND file for the above logic:
 <BR>
-<CODE>
+<CODE><FONT SIZE="-1">
 &nbsp;&nbsp;&nbsp;4&nbsp;&nbsp;3<BR>
 &nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;1&nbsp;&nbsp;0<BR>
 &nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;0&nbsp;&nbsp;X<BR>
 &nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;X&nbsp;&nbsp;1<BR>
 &nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;X&nbsp;&nbsp;0
-</CODE>
+</FONT></CODE>
 </LI>
-<!-- NEED 3in -->
+<!-- NEED 4in -->
 <LI><B>Fill (MoCMOS)...</B>
 Fill cells are used to meet metal density rules in modern fabrication processes
 by filling spaces with certain metal layers.
@@ -165,27 +165,27 @@ In that case, the input cell will be instantiated instead of being flatted in th
 <!-- NEED 5in -->
 <P>
 Here is an example:
-<P>
-<CENTER><TABLE><TR><TD>
-    <code> fillAB: fillA fillB </code><br>
-    <code> fillC(W): cap(I) fillA fillB metals45 </code><br>
-    <code> fillD(2x4, 2x2): fillB metals45 metal6</code>
-</TD></TR></TABLE></CENTER>
-<P>
-<TABLE><TR>
-  <TD><TABLE><TR><TD><IMG SRC="fig09-65.png" ALT="Figure 9.65" BORDER=0></TD>
-    <TD><IMG SRC="fig09-66.png" ALT="Figure 9.66" BORDER=0></TD></TR>
-    <TR><TD COLSPAN=2 ALIGN="CENTER"><IMG SRC="fig09-67.png" ALT="Figure 9.67" BORDER=0></TD>
-    </TR></TABLE>
-</TD></TR></TABLE>
-In the example above, the first intruction will take the cells "fillA" and "fillB" and stitch the metal bars
-in "fillAB". Note that the "signalB" bars did not get stitched because the metal 2 bar does not overlap 100% with
+<BR>
+<CENTER><TABLE>
+  <TR><TD COLSPAN=2>
+<code><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fillAB: fillA fillB<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fillC(W): cap(I) fillA fillB metals45<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fillD(2x4, 2x2): fillB metals45 metal6</FONT></code>
+  </TD></TR>
+  <TR><TD><TABLE><TR><TD><IMG SRC="fig09-65.png" ALT="Figure 9.65" BORDER=0></TD>
+    <TD><IMG SRC="fig09-66.png" ALT="Figure 9.66" BORDER=0></TD>
+  </TR>
+  <TR><TD COLSPAN=2 ALIGN="CENTER"><IMG SRC="fig09-67.png" ALT="Figure 9.67" BORDER=0></TD>
+  </TR>
+</TABLE></CENTER>
+In the example above, the first line takes the cells "fillA" and "fillB" and stitches the metal bars
+in "fillAB".
+Note that the "signalB" bars did not get stitched because the metal 2 bar does not overlap 100% with
 the metal 3 bar.
-<P>
-The second instruction will generate the
+The second line generates the
 fill cell "fillCW" with an instance of "cap" and metal arcs from the rest of the input cells.
-The third instruction will generate the cells "fillD", "fillD2x4", "fillD2x2" where "fillD2x4" and "fillD2x2" are
-2x4 and 2x2 arrays of "fillB".
+The third line generates the cells "fillD", "fillD2x4", and "fillD2x2" where "fillD2x4" and "fillD2x2" are
+2x4 and 2x2 arrays of "fillD" that contains all arcs defined in "fillB metals45 metal6".
 </li>
 
 <!-- NEED 3in -->
