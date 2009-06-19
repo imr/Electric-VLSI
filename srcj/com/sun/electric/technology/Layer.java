@@ -678,6 +678,32 @@ public class Layer implements Serializable, Comparable
     /***************************************************************************************************
      * Layer Comparators
      ***************************************************************************************************/
+
+    /**
+	 * A comparator object for sorting Layers by their level.
+	 * Created once because it is used often.
+	 */
+    public static final LayerSortByLevel layerSortByLevel = new LayerSortByLevel();
+
+	/**
+	 * Comparator class for sorting Layers by their name.
+	 */
+	private static class LayerSortByLevel implements Comparator<Layer>
+	{
+		/**
+		 * Method to compare two layers by their name.
+		 * @param l1 one layer.
+		 * @param l2 another layer.
+		 * @return an integer indicating their sorting order.
+		 */
+		public int compare(Layer l1, Layer l2)
+        {
+            int level1 = l1.getFunction().getLevel();
+            int level2 = l2.getFunction().getLevel();
+            return level1 - level2;
+        }
+	}
+
     /**
 	 * A comparator object for sorting Layers by their name.
 	 * Created once because it is used often.
@@ -698,7 +724,7 @@ public class Layer implements Serializable, Comparable
 		public int compare(Layer l1, Layer l2)
         {
 			String s1 = l1.getName();
-			String s2 = l2.getName();;
+			String s2 = l2.getName();
 			return s1.compareToIgnoreCase(s2);
         }
 	}

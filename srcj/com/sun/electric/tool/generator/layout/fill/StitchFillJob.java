@@ -370,10 +370,11 @@ public class StitchFillJob extends Job
         {
             Layer l = itL.next();
             if (!l.getFunction().isMetal()) continue;  // only metals
+            l.getFunction().getLevel();
             listOfLayers.add(l);
         }
 
-        Collections.sort(listOfLayers, Layer.layerSortByName);
+        Collections.sort(listOfLayers, Layer.layerSortByLevel);
 		Map<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
 		Map<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
         boolean evenHorizontal = true; // even metal layers are horizontal. Basic assumption

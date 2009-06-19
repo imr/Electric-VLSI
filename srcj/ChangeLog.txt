@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09n: ******************************
 
+BUG: (6/19/09, GVG) Fill stitcher does not insert contacts for 40nm tech (Bug #2232)
+FIX: Sort metal layers per level
+
 BUG: (6/18/09, GVG) NPE in Pixel drawing with GlobalTextScale (Bug #2229)
 FIX: Detecting if wnd is null. If yes, use User.getGlobalTextScale()
 
