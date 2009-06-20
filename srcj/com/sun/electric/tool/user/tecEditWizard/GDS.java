@@ -195,7 +195,7 @@ public class GDS extends TechEditWizardPanel
 
     private void setData(TechEditWizardData.LayerInfo info, LabelContainer cont)
     {
-        info.setData(TechEditWizardData.getGDSValuesFromString(cont.valueField.getText() + "," +
+        info.setGDSData(TechEditWizardData.getGDSValuesFromString(cont.valueField.getText() + "," +
                 cont.pinField.getText() + "p," +  cont.textField.getText() + "t"));
     }
 
