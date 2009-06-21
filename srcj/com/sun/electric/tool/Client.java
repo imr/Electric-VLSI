@@ -499,6 +499,12 @@ public abstract class Client {
             case 12:
                 return new BeepEvent();
             default:
+                System.err.println("Unknown tag="+tag);
+                for (int i = 0; i < 20; i++) {
+                    char c = (char)reader.readByte();
+                    System.err.print(" " + Integer.toHexString(c) + "(" + c + ")");
+                }
+                System.err.println();
                 throw new AssertionError();
         }
     }
