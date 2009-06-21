@@ -138,7 +138,8 @@ class EThread extends Thread {
 //                ejob.state = EJob.State.SERVER_DONE;
             } catch (Throwable e) {
                 e.getStackTrace();
-                e.printStackTrace();
+                if (!(e instanceof JobException))
+                    e.printStackTrace();
                 if (!ejob.isExamine()) {
                     recoverDatabase(e instanceof JobException);
                     database.lowLevelEndChanging();

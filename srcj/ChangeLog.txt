@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09n: ******************************
 
+BUG: (6/20/09, DN) Failed Jobs throw exceptions (Bug #2226).
+FIX: Don't print EJobException to stderr.
+
 BUG: (6/19/09, GVG) Fill stitcher does not insert contacts for 40nm tech (Bug #2232)
 FIX: Sort metal layers per level. Removed dependency of predefined orientation of metals.
 
