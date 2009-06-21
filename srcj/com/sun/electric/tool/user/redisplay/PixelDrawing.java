@@ -497,10 +497,6 @@ public class PixelDrawing
 		Cell cell = wnd.getInPlaceEditTopCell();
 		inPlaceNodePath = wnd.getInPlaceEditNodePath();
 
-        double width = sz.width/scale;
-        double height = sz.height/scale;
-        drawBounds = new Rectangle2D.Double(drawing.da.offX - width/2, drawing.da.offY - height/2, width, height);
-
 		// set colors to use
 		textGraphics = textGraphics.withColor(gp.getColor(User.ColorPrefType.TEXT));
 		gridGraphics = gridGraphics.withColor(gp.getColor(User.ColorPrefType.GRID));
@@ -518,6 +514,10 @@ public class PixelDrawing
  		canDrawText = expandedScale > 1;
 		maxObjectSize = 2 / expandedScale;
 		halfMaxObjectSize = maxObjectSize / 2;
+
+        double width = sz.width/scale;
+        double height = sz.height/scale;
+        drawBounds = new Rectangle2D.Double(drawing.da.offX - width/2, drawing.da.offY - height/2, width, height);
 
 		// remember the true window size (since recursive calls may cache individual cells that are smaller)
 		topSz = sz;

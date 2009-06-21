@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09n: ******************************
 
+BUG: (6/21/09) Pixel drawing algorithm not working in big schematics (Bug #2228).
+FIX: In PixelDrawing.drawImage move definition of drawBounds after call of initOrigin.
+
 BUG: (6/20/09, DN) Failed Jobs throw exceptions (Bug #2226).
 FIX: Don't print EJobException to stderr.
 
