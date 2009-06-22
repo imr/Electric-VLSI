@@ -239,7 +239,7 @@ public class StitchFillJob extends Job
                     instanceFlag = fillCell.toLowerCase().indexOf("(i") != -1; // only (I) option for now
                     fillCell = fillCell.substring(0, index);
                 }
-                Cell c = topCell.getLibrary().findNodeProto(fillCell); // +"{lay}");
+                Cell c = topCell.getLibrary().findNodeProto(fillCell+"{lay}");
 
                 if (c == null)
                 {

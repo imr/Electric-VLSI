@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09n: ******************************
 
+BUG: (6/22/09, GVG) Stitch fill generator having problems to get fillCap{lay} (Bug #2242)
+FIX: Added corresponding layout extenstion to the cell name.
+
 BUG: (6/22/09, SMR) Status bar shifts as mouse moves (Bug #2234).
 FIX: Fixed size of elements, added grid lines.
 
