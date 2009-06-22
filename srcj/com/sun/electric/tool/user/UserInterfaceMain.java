@@ -892,13 +892,16 @@ public class UserInterfaceMain extends AbstractUserInterface
         Pref.resumePrefFlushing();
     }
 
+    private static boolean badAccessReported = false;
+
     public static GraphicsPreferences getGraphicsPreferences() {
-        if (!Job.isClientThread()) {
+        if (!badAccessReported && !Job.isClientThread()) {
             String msg = "GraphicsPreferences is accessed from " + Job.getRunningJob();
             if (Job.getDebug()) {
                 ActivityLogger.logMessage(msg);
                 System.out.println(msg);
             }
+            badAccessReported = true;
         }
         return currentGraphicsPreferences;
     }
