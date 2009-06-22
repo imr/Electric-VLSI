@@ -52,8 +52,10 @@ import java.awt.Insets;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.border.BevelBorder;
 
 /**
@@ -75,32 +77,53 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 		this.frame = frame;
 
 		fieldSelected = new JLabel();
-		addField(fieldSelected, 0, 0, 1, 0.20);
+		addField(fieldSelected, 0, 0, 1, 0.0);
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 1;   gbc.gridy = 0;
+		gbc.fill = GridBagConstraints.VERTICAL;
+		add(new JSeparator(JSeparator.VERTICAL), gbc);
 
 		fieldSize = new JLabel();
 //		Dimension d = new Dimension(300, 16);
 //		fieldSize.setMinimumSize(d);
 //		fieldSize.setMaximumSize(d);
 //		fieldSize.setPreferredSize(d);
-		addField(fieldSize, 1, 0, 1, 0.15);
+		addField(fieldSize, 2, 0, 1, 0.0);
+
+		gbc = new GridBagConstraints();
+		gbc.gridx = 3;   gbc.gridy = 0;
+		gbc.fill = GridBagConstraints.VERTICAL;
+		add(new JSeparator(JSeparator.VERTICAL), gbc);
 
 		fieldTech = new JLabel();
 //		d = new Dimension (400, 16);
 //		fieldTech.setMinimumSize(d);
 //		fieldTech.setMaximumSize(d);
 //		fieldTech.setPreferredSize(d);
-		addField(fieldTech, 2, 0, 1, 0.30);
+		addField(fieldTech, 4, 0, 1, 0.0);
+
+		gbc = new GridBagConstraints();
+		gbc.gridx = 5;   gbc.gridy = 0;
+		gbc.fill = GridBagConstraints.VERTICAL;
+		add(new JSeparator(JSeparator.VERTICAL), gbc);
 
 		fieldCoords = new JLabel();
 //		fieldCoords.setMinimumSize(new Dimension(100, 16));
 //		fieldCoords.setMaximumSize(new Dimension(500, 16));
 //		fieldCoords.setPreferredSize(new Dimension(140, 16));
 		fieldCoords.setHorizontalAlignment(JLabel.RIGHT);
-		addField(fieldCoords, 3, 0, 1, 0.35);
+		addField(fieldCoords, 6, 0, 1, 0.35);
+
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = 1;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.gridwidth = 7;
+		add(new JSeparator(JSeparator.HORIZONTAL), gbc);
 
 		fieldHierCoords = new JLabel(" ");
 		fieldHierCoords.setHorizontalAlignment(JLabel.RIGHT);
-		addField(fieldHierCoords, 0, 1, 4, 0.0);
+		addField(fieldHierCoords, 0, 2, 7, 0.0);
 
 		// add myself as listener for highlight changes in SDI mode
 		if (TopLevel.isMDIMode())
@@ -113,7 +136,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 		UserInterfaceMain.addDatabaseChangeListener(this);
 	}
 
-	private void addField(JLabel field, int x, int y, int width, double weight)
+	private void addField(JComponent field, int x, int y, int width, double weight)
 	{
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = x;   gbc.gridy = y;
@@ -236,7 +259,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 			} else
 			{
 				Rectangle2D bounds = cell.getBounds();
-				sizeMsg = "CELL: " + TextUtils.formatDistance(bounds.getWidth(), cell.getTechnology()) + " x " +
+				sizeMsg = "SIZE: " + TextUtils.formatDistance(bounds.getWidth(), cell.getTechnology()) + " x " +
 					TextUtils.formatDistance(bounds.getHeight(), cell.getTechnology());
 			}
 		}

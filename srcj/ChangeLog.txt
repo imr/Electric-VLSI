@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09n: ******************************
 
+BUG: (6/22/09, SMR) Status bar shifts as mouse moves (Bug #2234).
+FIX: Fixed size of elements, added grid lines.
+
 BUG: (6/21/09) Pixel drawing algorithm not working in big schematics (Bug #2228).
 FIX: In PixelDrawing.drawImage move definition of drawBounds after call of initOrigin.
 
