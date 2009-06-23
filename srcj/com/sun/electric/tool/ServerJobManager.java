@@ -57,7 +57,7 @@ import java.util.logging.Level;
  */
 public class ServerJobManager extends JobManager {
     private static final String CLASS_NAME = Job.class.getName();
-    private static final int DEFAULT_NUM_THREADS = 2;
+    private static final int defaultNumThreads = Math.max(2, Runtime.getRuntime().availableProcessors());
     /** mutex for database synchronization. */  private final Condition databaseChangesMutex = newCondition();
 
     /** started jobs */ private final ArrayList<EJob> startedJobs = new ArrayList<EJob>();
@@ -100,7 +100,7 @@ public class ServerJobManager extends JobManager {
     }
 
     private int initThreads(int recommendedNumThreads) {
-        int maxNumThreads = DEFAULT_NUM_THREADS;
+        int maxNumThreads = defaultNumThreads;
         if (recommendedNumThreads > 0)
             maxNumThreads = recommendedNumThreads;
         Job.logger.logp(Level.FINE, CLASS_NAME, "initThreads", "maxNumThreads=" + maxNumThreads);
@@ -703,7 +703,7 @@ public class ServerJobManager extends JobManager {
     }
 
     public static int getDefaultNumberOfThreads(){
-    	return DEFAULT_NUM_THREADS;
+    	return defaultNumThreads;
     }
     
     public static int getMaxNumberOfThreads(){
