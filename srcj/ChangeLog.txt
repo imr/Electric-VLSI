@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09n: ******************************
 
+BUG: (6/23/09, SMR) Epic reader gives strange error when EOF encountered (Bug #2243).
+FIX: Warn about the EOF condition.
+
 BUG: (6/22/09, DN) XML Tech Reader should warn if PrimitiveNode in Palette is not defined (Bug #2241).
 FIX: In Xml.startElement.menuNodeInst print warning if protoName isn't found.
 

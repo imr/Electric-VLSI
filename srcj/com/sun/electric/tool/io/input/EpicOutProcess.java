@@ -89,7 +89,7 @@ public class EpicOutProcess extends Simulate implements Runnable
             String exitMsg = null;
             switch (exitCode) {
                 case 0:
-                    exitMsg = "Ok";
+                    exitMsg = "Ok, but EOF encountered";
                     break;
                 case 1:
                     exitMsg = "File not found";
