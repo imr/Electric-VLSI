@@ -152,7 +152,7 @@ public class Xml {
                 System.out.println("Error creating " + fileName);
             }
         }
-        
+
         public Technology deepClone() {
             try {
                 ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -855,7 +855,7 @@ public class Xml {
                     break;
                 case logicalEffort:
                     tech.leGateCapacitance = Double.parseDouble(a("gateCapacitance"));
-                    tech.leWireRatio = Double.parseDouble(a("wireRatio")); 
+                    tech.leWireRatio = Double.parseDouble(a("wireRatio"));
                     tech.leDiffAlpha = Double.parseDouble(a("diffAlpha"));
                     break;
                 case transparentLayer:
@@ -1202,6 +1202,8 @@ public class Xml {
                 case menuNodeInst:
                     curMenuNodeInst = new MenuNodeInst();
                     curMenuNodeInst.protoName = a("protoName");
+                    if (tech.findNode(curMenuNodeInst.protoName) == null)
+                        System.out.println("Warning: cannot find node '" + curMenuNodeInst.protoName + "' for component menu");
                     curMenuNodeInst.function =  com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("function"));
                     String techBits = a_("techBits");
                     if (techBits != null)
