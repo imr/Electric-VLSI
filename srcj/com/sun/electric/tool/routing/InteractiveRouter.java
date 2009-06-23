@@ -35,6 +35,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Highlighter;
@@ -728,13 +729,16 @@ public abstract class InteractiveRouter extends Router {
             Point2D [] points2 = endPoly.getPoints();
             Point2D intersection = getIntersection(new Line2D.Double(points1[0], points1[1]),
                                                    new Line2D.Double(points2[0], points2[1]));
-            if (intersection != null) {
-                System.out.println("===========================================================");
-                System.out.println("Start Poly: "+points1[0]+", "+points1[1]);
-                System.out.println("End Poly: "+points2[0]+", "+points2[1]);
-                System.out.println("Intersection Point: "+intersection);
-                System.out.println("===========================================================");
-
+            if (intersection != null)
+            {
+                if (Job.getDebug())
+                {
+                    System.out.println("===========================================================");
+                    System.out.println("Start Poly: "+points1[0]+", "+points1[1]);
+                    System.out.println("End Poly: "+points2[0]+", "+points2[1]);
+                    System.out.println("Intersection Point: "+intersection);
+                    System.out.println("===========================================================");
+                }
                 startPoint.setLocation(intersection);
                 endPoint.setLocation(intersection);
                 return;
