@@ -2120,6 +2120,11 @@ public class Schematics extends Technology
 		{
 			extraBlobs = true;
 		}
+        // apply correction
+        ERectangle fullRectangle = np.getFullRectangle();
+        EPoint fixupCorrection = EPoint.fromGrid(fullRectangle.getGridWidth(), fullRectangle.getGridHeight());
+        for (Technology.NodeLayer nodeLayer: primLayers)
+            nodeLayer.fixup(fixupCorrection);
 
 		// check for extra blobs (on nodes that can handle it)
 		if (extraBlobs)
@@ -2164,10 +2169,6 @@ public class Schematics extends Technology
 				primLayers = blobLayers;
 			}
 		}
-        ERectangle fullRectangle = np.getFullRectangle();
-        EPoint fixupCorrection = EPoint.fromGrid(fullRectangle.getGridWidth(), fullRectangle.getGridHeight());
-        for (Technology.NodeLayer nodeLayer: primLayers)
-            nodeLayer.fixup(fixupCorrection);
 		return computeShapeOfNode(m, n, electrical, reasonable, primLayers, null);
 	}
 
@@ -2519,6 +2520,11 @@ public class Schematics extends Technology
 		{
 			extraBlobs = true;
 		}
+        // apply correction
+        ERectangle fullRectangle = pn.getFullRectangle();
+        EPoint fixupCorrection = EPoint.fromGrid(fullRectangle.getGridWidth(), fullRectangle.getGridHeight());
+        for (Technology.NodeLayer nodeLayer: primLayers)
+            nodeLayer.fixup(fixupCorrection);
 
 		// check for extra blobs (on nodes that can handle it)
 		if (extraBlobs)
@@ -2563,10 +2569,6 @@ public class Schematics extends Technology
 				primLayers = blobLayers;
 			}
 		}
-        ERectangle fullRectangle = pn.getFullRectangle();
-        EPoint fixupCorrection = EPoint.fromGrid(fullRectangle.getGridWidth(), fullRectangle.getGridHeight());
-        for (Technology.NodeLayer nodeLayer: primLayers)
-            nodeLayer.fixup(fixupCorrection);
 		b.genShapeOfNode(n, pn, primLayers, null);
 	}
 
