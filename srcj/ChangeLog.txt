@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09n: ******************************
 
+BUG: (6/22/09, DN) Pattern scale limit and M9 (Bug #2227).
+FIX: Default value of User.getPatternedScaleLimit() is 0.5 according to JonG.
+
 BUG: (6/22/09, GVG) Stitch fill generator having problems to get fillCap{lay} (Bug #2242)
 FIX: Added corresponding layout extenstion to the cell name.
 

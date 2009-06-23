@@ -2821,11 +2821,11 @@ public class User extends Listener
 	 */
 	public static double getFactoryGreekCellSizeLimit() { return cacheGreekCellSizeLimit.getDoubleFactoryValue(); }
 
-	private static Pref cachePatternedScaleLimit = Pref.makeDoublePref("PatternedScaleLimit", tool.prefs, 0.1);
+	private static Pref cachePatternedScaleLimit = Pref.makeDoublePref("PatternedScaleLimit", tool.prefs, 0.5/*0.1*/);
 	/**
 	 * Method to tell the scale of EditWindow when use patterned drawing.
 	 * Smaller scales use solid drawing.
-	 * The default is 0.1, meaning that 10 lamdas per pixel.
+	 * The default is 0.5, meaning that 2 lamdas per pixel.
 	 * @return the scale of EditWindow when use patterned drawing.
 	 */
 	public static double getPatternedScaleLimit() { return cachePatternedScaleLimit.getDouble(); }
