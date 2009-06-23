@@ -263,7 +263,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 					TextUtils.formatDistance(bounds.getHeight(), cell.getTechnology());
 			}
 		}
-		fieldSize.setText(sizeMsg);
+		fieldSize.setText(sizeMsg = "  " + sizeMsg + "  ");
 		fieldSize.setToolTipText(sizeMsg);
 
 		Technology tech = Technology.getCurrent();
@@ -280,7 +280,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 				else // relevant foundry
 					message += ",foundry=" + foundry + ")";
 			}
-			fieldTech.setText(message);
+			fieldTech.setText("  " + message + "  ");
 			fieldTech.setToolTipText(message);
 		}
 
@@ -329,7 +329,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 			Highlight2 lastHighlight = null;
 			Highlighter highlighter = getHighlighter();
 			if (highlighter == null) {
-				fieldSelected.setText(selectedMsg);
+				fieldSelected.setText("  " + selectedMsg + "  ");
 				fieldSelected.setToolTipText(selectedMsg);
 				return;
 			}
@@ -404,7 +404,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 				}
 			}
 		}
-		fieldSelected.setText(selectedMsg);
+		fieldSelected.setText("  " + selectedMsg + "  ");
 		fieldSelected.setToolTipText(selectedMsg);
 	}
 

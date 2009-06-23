@@ -2,6 +2,9 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+BUG: (6/23/09, SMR) Status bar still not readable (Bug #2234).
+FIX: Added spaces around the Selected, Size, and Tech fields.
+
 ************************* END OF Version 8.09, GNU RELEASE *************
 ************************* Version 8.09n: ******************************
 
