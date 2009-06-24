@@ -28,9 +28,15 @@ package com.sun.electric.tool.user.tecEditWizard;
  */
 public class WizardField
 {
+    public String name;
     public double v;
     public String rule;
 
+    public WizardField(String n)
+    {
+        super();
+        name = n;
+    }
     public WizardField() { rule = ""; }
 
     public WizardField(double v, String r) { this.v = v;   rule = r; }

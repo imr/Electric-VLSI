@@ -374,7 +374,7 @@ public class StitchFillJob extends Job
             listOfLayers.add(l);
         }
 
-        Collections.sort(listOfLayers, Layer.layerSortByLevel);
+        Collections.sort(listOfLayers, Layer.layerSortByFunctionLevel);
 		Map<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
 		Map<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
 //        boolean evenHorizontal = true; // even metal layers are horizontal. Basic assumption
@@ -628,7 +628,26 @@ public class StitchFillJob extends Job
                 Network jExp = netl.getNetwork((Export)epi, 0);
                 Area expA = new Area();
 
-                // Look for all arcs in the cell instances that are on the given layer and netwoek
+                // Look for all arcs in the cell instances that are on the given layer and network
+//                Cell jCell = jExp.getParent();
+//                Rectangle2D bounds = pi.getPoly().getBounds2D();
+//                // Look in the hierarchy if there is a valid arc. Need to rotate?
+//                for(Iterator<RTBounds> it = jCell.searchIterator(bounds); it.hasNext(); )
+//                {
+//                    Geometric nGeom = (Geometric)it.next();
+//
+//                    if (!(nGeom instanceof ArcInst))
+//                    {
+//                        continue; // only arcs
+//                    }
+//
+//                    ArcInst nai = (ArcInst)nGeom;
+//                    Layer nl = nai.getProto().getLayer(0);
+//                    if (nl != layer)
+//                        continue;
+//                    System.out.println();
+//                }
+
                 for (Iterator<ArcInst> itA = jExp.getArcs(); itA.hasNext();)
                 {
                     ArcInst ai = itA.next();
@@ -654,7 +673,7 @@ public class StitchFillJob extends Job
 
                         if (l == layer)
                             System.out.println("found in same layer");
-                        else if (Math.abs(l.getIndex() - layer.getIndex()) <=1)
+                        else if (Layer.layerSortByFunctionLevel.areNeightborLayers(l, layer)) // Math.abs(l.getIndex() - layer.getIndex()) <=1)
                         {
                             // Not selecting the closest element yet
                             Area bnd = new Area(ai.getBounds());

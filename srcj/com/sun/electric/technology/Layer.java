@@ -683,12 +683,12 @@ public class Layer implements Serializable, Comparable
 	 * A comparator object for sorting Layers by their level.
 	 * Created once because it is used often.
 	 */
-    public static final LayerSortByLevel layerSortByLevel = new LayerSortByLevel();
+    public static final LayerSortByFunctionLevel layerSortByFunctionLevel = new LayerSortByFunctionLevel();
 
 	/**
 	 * Comparator class for sorting Layers by their name.
 	 */
-	private static class LayerSortByLevel implements Comparator<Layer>
+	public static class LayerSortByFunctionLevel implements Comparator<Layer>
 	{
 		/**
 		 * Method to compare two layers by their name.
@@ -702,7 +702,14 @@ public class Layer implements Serializable, Comparable
             int level2 = l2.getFunction().getLevel();
             return level1 - level2;
         }
-	}
+
+        public static boolean areNeightborLayers(Layer l1, Layer l2)
+        {
+            int level1 = l1.getFunction().getLevel();
+            int level2 = l2.getFunction().getLevel();
+            return Math.abs(level2 - level1) <=1;
+        }
+    }
 
     /**
 	 * A comparator object for sorting Layers by their name.

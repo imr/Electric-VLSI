@@ -94,8 +94,21 @@ public class TechEditWizardData
     private WizardField nt_diff_overhang = new WizardField();       // extension from OD
 
     // Special rules for vth/vtl transistors if specified.
-    private WizardField vthl_diff_overhang  = new WizardField();        // Overhang of VTH/VTL with respecto to OD
-    private WizardField vthl_poly_overhang = new WizardField();        // Overhang of VTH/VTL with respecto to the gate
+    private WizardField vthl_diff_overhang  = new WizardField();    // Overhang of VTH/VTL with respecto to OD
+    private WizardField vthl_poly_overhang = new WizardField();     // Overhang of VTH/VTL with respecto to the gate
+
+    // Special rules for resistors
+//    private WizardField poly_resistor_length =
+//    private WizardField poly_resistor_width =
+//    private WizardField rpo_contact_spacing =
+//    private WizardField rpo_poly_overhang =
+
+    private WizardField[] extraVariables = new WizardField[]{
+        new WizardField("poly_resistor_length"),   // Poly resistor length
+        new WizardField("poly_resistor_width"),   // Poly resistor width
+        new WizardField("rpo_contact_spacing"),   // Spacing btw rpo edge and contact cut
+        new WizardField("rpo_poly_overhang")   // RPO overhang from poly
+    };
 
     // CONTACT RULES
 	private WizardField contact_size = new WizardField();
@@ -178,25 +191,8 @@ public class TechEditWizardData
             }
             arcs.add(arc);
         }
-        void addPin(Xml.PrimitiveNodeGroup pin)
+        private void add(List<Xml.MenuNodeInst> list, Xml.PrimitiveNodeGroup element, String shortName)
         {
-            if (pins == null)
-            {
-                pins = new ArrayList<Xml.MenuNodeInst>();
-            }
-            assert pin.isSingleton;
-            Xml.PrimitiveNode pn = pin.nodes.get(0);
-            Xml.MenuNodeInst n = new Xml.MenuNodeInst();
-            n.protoName = pn.name;
-            n.function = pn.function;
-            pins.add(n);
-        }
-        void addElement(Xml.PrimitiveNodeGroup element, String shortName)
-        {
-            if (elements == null)
-            {
-                elements = new ArrayList<Xml.MenuNodeInst>();
-            }
             assert element.isSingleton;
             Xml.PrimitiveNode pn = element.nodes.get(0);
             Xml.MenuNodeInst n = new Xml.MenuNodeInst();
@@ -206,7 +202,23 @@ public class TechEditWizardData
             {
                 n.text = shortName;
             }
-            elements.add(n);
+            list.add(n);
+        }
+        void addPinOrResistor(Xml.PrimitiveNodeGroup pin, String shortName)
+        {
+            if (pins == null)
+            {
+                pins = new ArrayList<Xml.MenuNodeInst>();
+            }
+            add(pins, pin, shortName);
+        }
+        void addElement(Xml.PrimitiveNodeGroup element, String shortName)
+        {
+            if (elements == null)
+            {
+                elements = new ArrayList<Xml.MenuNodeInst>();
+            }
+            add(elements, element, shortName);
         }
     }
 
@@ -288,6 +300,7 @@ public class TechEditWizardData
                             assert(count < 16);
                             pattern[count++] = num;
                         }
+                        if (count != 16)
                         assert(count == 16);
                     }
                 }
@@ -746,7 +759,7 @@ public class TechEditWizardData
 
                     if (varName.equalsIgnoreCase("vthl_diff_overhang")) fillRule(varValue, vthl_diff_overhang); else
                     if (varName.equalsIgnoreCase("vthl_poly_overhang")) fillRule(varValue, vthl_poly_overhang); else
-                        
+
                     if (varName.equalsIgnoreCase("contact_size")) contact_size.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("contact_size_rule")) contact_size.rule = stripQuotes(varValue); else
 					if (varName.equalsIgnoreCase("contact_spacing")) contact_spacing.v = TextUtils.atof(varValue); else
@@ -805,7 +818,7 @@ public class TechEditWizardData
                     if (varName.equalsIgnoreCase("metal_contacts_series")) fillContactSeries(varValue, metalContacts); else
                     if (varName.equalsIgnoreCase("contacts_series")) fillContactSeries(varValue, otherContacts); else
                     // Special layers
-                    if (varName.equalsIgnoreCase("gds_layers")) fillLayerSeries(varValue, extraLayers); else
+                    if (varName.equalsIgnoreCase("extra_layers")) fillLayerSeries(varValue, extraLayers); else
 
                     if (varName.equalsIgnoreCase("poly_antenna_ratio")) setPolyAntennaRatio(TextUtils.atof(varValue)); else
 					if (varName.equalsIgnoreCase("metal_antenna_ratio")) metal_antenna_ratio = makeDoubleArray(varValue); else
@@ -818,12 +831,21 @@ public class TechEditWizardData
                     if (varName.equalsIgnoreCase("gds_contact_layer")) contact_layer.setGDSData(getGDSValuesFromString(varValue)); else
 					if (varName.equalsIgnoreCase("gds_metal_layer")) metal_layers = setGDSDataArray(varValue, num_metal_layers, "Metal-"); else
 					if (varName.equalsIgnoreCase("gds_via_layer")) via_layers = setGDSDataArray(varValue, num_metal_layers - 1, "Via-"); else
-                    if (varName.equalsIgnoreCase("gds_marking_layer")) marking_layer.setGDSData(getGDSValuesFromString(varValue)); else
+                    if (varName.equalsIgnoreCase("gds_marking_layer")) marking_layer.setGDSData(getGDSValuesFromString(varValue));
+                    else
                     {
-						Job.getUserInterface().showErrorMessage("Unknown keyword '" + varName + "' on line " + lineReader.getLineNumber(),
-							"Syntax Error In Technology File");
-						break;
-					}
+                        WizardField wf = findWizardField(varName);
+                        if (wf != null)
+                        {
+                            fillRule(varValue, wf);
+                        }
+                        else
+                        {
+                            Job.getUserInterface().showErrorMessage("Unknown keyword '" + varName + "' on line " + lineReader.getLineNumber(),
+                                "Syntax Error In Technology File");
+                            break;
+                        }
+                    }
 				}
 			}
 			lineReader.close();
@@ -835,7 +857,17 @@ public class TechEditWizardData
 		return true;
 	}
 
-	private String stripQuotes(String str)
+    private WizardField findWizardField(String varName)
+    {
+        for (WizardField wf : extraVariables)
+        {
+            if (wf.name.equals(varName))
+                return wf;
+        }
+        return null;
+    }
+
+    private String stripQuotes(String str)
 	{
 		if (str.startsWith("\"") && str.endsWith("\""))
 			return str.substring(1, str.length()-1);
@@ -2288,8 +2320,8 @@ public class TechEditWizardData
                 makeXmlArcLayer(polyLayer, poly_width)));
         // poly pin
         double hla = scaledValue(poly_width.v / 2);
-        polyGroup.addPin(makeXmlPrimitivePin(t, polyLayer.name, hla, null, // new SizeOffset(hla, hla, hla, hla),
-            makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.CROSSED)));
+        polyGroup.addPinOrResistor(makeXmlPrimitivePin(t, polyLayer.name, hla, null, // new SizeOffset(hla, hla, hla, hla),
+            makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.CROSSED)), null);
         // poly contact
         portNames.clear();
         portNames.add(polyLayer.name);
@@ -2447,11 +2479,11 @@ public class TechEditWizardData
                 arcL));
 
             // active pin
-            diffG.addPin(makeXmlPrimitivePin(t, composeName, hla,
+            diffG.addPinOrResistor(makeXmlPrimitivePin(t, composeName, hla,
                 new SizeOffset(sos[i], sos[i], sos[i], sos[i]),
                 makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.CROSSED),
                 makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.CROSSED),
-                wellNodePin));
+                wellNodePin), null);
 
             // F stands for full (all layers)
             diffG.addElement(makeXmlPrimitiveCon(t.nodeGroups, "F-"+composeName, PrimitiveNode.Function.CONTACT,
@@ -2519,11 +2551,11 @@ public class TechEditWizardData
                     arcL));
 
             // well pin
-            g.addPin(makeXmlPrimitivePin(t, composeName, hla,
+            g.addPinOrResistor(makeXmlPrimitivePin(t, composeName, hla,
                 new SizeOffset(wellSos[i], wellSos[i], wellSos[i], wellSos[i]),
                 makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.CROSSED),
                 makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.CROSSED),
-                wellNodePinLayer));
+                wellNodePinLayer), null);
 
             // well contact
             // F stands for full
@@ -2547,12 +2579,12 @@ public class TechEditWizardData
             PaletteGroup group = metalPalette[i-1];  // structure created by the arc definition
 
             // Pin bottom metal
-            group.addPin(makeXmlPrimitivePin(t, lb.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
-                makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.CROSSED)));
+            group.addPinOrResistor(makeXmlPrimitivePin(t, lb.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
+                makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.CROSSED)), null);
             if (i == num_metal_layers - 1) // last pin!
             {
-                metalPalette[i].addPin(makeXmlPrimitivePin(t, lt.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
-                    makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.CROSSED)));
+                metalPalette[i].addPinOrResistor(makeXmlPrimitivePin(t, lt.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
+                    makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.CROSSED)), null);
             }
 
             if (!getExtraInfoFlag())
@@ -2639,7 +2671,7 @@ public class TechEditWizardData
 
             double protectDist = scaledValue(poly_protection_spacing.v);
             double extraSelX = 0, extraSelY = 0;
-            PrimitiveNode.Function func = null;
+            PrimitiveNode.Function func = null, prFunc = null;
 
             if (i==Technology.P_TYPE)
             {
@@ -2651,6 +2683,7 @@ public class TechEditWizardData
                 extraSelX = pplus_overhang_poly.v;
                 extraSelY = pplus_overhang_diff.v;
                 func = PrimitiveNode.Function.TRAPMOS;
+                prFunc = PrimitiveNode.Function.RESPPOLY;
             }
             else
             {
@@ -2660,6 +2693,7 @@ public class TechEditWizardData
                 extraSelX = nplus_overhang_poly.v;
                 extraSelY = nplus_overhang_diff.v;
                 func = PrimitiveNode.Function.TRANMOS;
+                prFunc = PrimitiveNode.Function.RESNPOLY;
                 if (!pWellFlag)
                 {
                     nwell_overhangY = nwell_overhangX = nwell_overhang_diff_p.v;
@@ -2983,9 +3017,24 @@ public class TechEditWizardData
                     sox = scaledValue(poly_nt_endcap.v);
                     soy = scaledValue(diff_poly_overhang.v+nt_diff_overhang.v);
                     n = makeXmlPrimitive(t.nodeGroups, "NT-" + name + "-Transistor-S", func, 0, 0, 0, 0,
-                    new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
+                        new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                     g.addElement(n, "NT-" + name + "-S");
                 }
+
+                /*************************************/
+                // Poly Resistors
+                nodesList.clear();
+                nodePorts.clear();
+                WizardField polyRL = findWizardField("poly_resistor_length");
+                WizardField polyRW = findWizardField("poly_resistor_width");
+                WizardField rpoS = findWizardField("rpo_contact_spacing");
+                WizardField rpoPEx = findWizardField("rpo_poly_overhang");
+                double halfTotalL = scaledValue(polyRL.v/2 + (rpoS.v + contact_poly_overhang.v + contact_spacing.v + 2 * contact_size.v));
+                double halfTotalW = scaledValue(polyRW.v/2);
+                nodesList.add(makeXmlNodeLayer(halfTotalL, halfTotalL, halfTotalW, halfTotalW, polyLayer, Poly.Type.FILLED));
+                n = makeXmlPrimitive(t.nodeGroups, name + "-Poly-RPO-Resistor", prFunc, 0, 0, 0, 0,
+                    /*new SizeOffset(sox, sox, soy, soy)*/null, nodesList, nodePorts, null, false);
+                g.addPinOrResistor(n, name + "-RPoly");
             }
         }
 
