@@ -400,6 +400,9 @@ public class StitchFillJob extends Job
 
                 if (bottomName == null) continue; // nothing to export
 
+//                if (ai.getName().startsWith("net@376"))
+//                    System.out.println();
+
                 List<PinsArcPair> pairs = new ArrayList<PinsArcPair>();
                 Rectangle2D bounds = ai.getBounds();
                 boolean horizontal = DBMath.isGreaterThan(bounds.getWidth(), bounds.getHeight());
@@ -472,7 +475,17 @@ public class StitchFillJob extends Job
                     }
 
                     EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
-                    pairs.add(new PinsArcPair(nai, insert, resultBnd, horizontal));
+                    boolean insertedAlready = false;
+                    for (PinsArcPair pp : pairs)
+                    {
+                        if (pp.insert.equals(insert) && pp.cut.equals(resultBnd))
+                        {
+                            System.out.println();
+                            insertedAlready = true;
+                        }
+                    }
+                    if (!insertedAlready)
+                        pairs.add(new PinsArcPair(nai, insert, resultBnd, horizontal));
                 }
 
                 Collections.sort(pairs, pinsArcSort);
