@@ -236,6 +236,7 @@ public class NetworkTool extends Tool
     {
         boolean added = false;
         if (nets == null) nets = new HashSet<Network>();
+        if (!pi.isLinked()) return nets;
 
         for(Iterator<Connection> aIt = pi.getConnections(); aIt.hasNext(); )
         {
