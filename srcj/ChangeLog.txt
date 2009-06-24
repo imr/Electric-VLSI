@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+IMP/MAN: (6/24/09, SMR) GDS import has "Cadence Compatibility" preference
+     which adjusts export locations to be inside of the geometry (Bug #2246).
+
 ************************* END OF Version 8.09, GNU RELEASE *************
 ************************* Version 8.09n: ******************************
 

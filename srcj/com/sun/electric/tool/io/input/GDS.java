@@ -31,10 +31,12 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
+import com.sun.electric.database.geometry.PolySweepMerge;
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -45,6 +47,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -66,6 +69,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -96,6 +100,7 @@ import java.util.TreeSet;
  */
 public class GDS extends Input
 {
+	private static final boolean DEBUGALL = false;				/* true for debugging */
 	private static final boolean SHOWPROGRESS = false;			/* true for debugging */
 	private static final boolean IGNOREIMMENSECELLS = false;	/* true for debugging */
 	private static final boolean TALLYCONTENTS = false;			/* true for debugging */
@@ -137,6 +142,7 @@ public class GDS extends Input
 	private boolean          layerIsPin;
 	private Technology       curTech;
 	private int              recordCount;
+	private int              curLayerNum, curLayerType;
 	private GSymbol          theToken;
 	private DatatypeSymbol   valuetype;
 	private int              tokenFlags;
@@ -145,6 +151,7 @@ public class GDS extends Input
 	private double           tokenValueDouble;
 	private String           tokenString;
 	private Point2D []       theVertices;
+	private int              numVertices;
 	private double           theScale;
 	private Map<Integer,Layer> layerNames;
 	private Map<Integer,UnknownLayerMessage> layerErrorMessages;
@@ -258,6 +265,7 @@ public class GDS extends Input
 		public boolean mergeBoxes;
 		public boolean includeText;
 		public int unknownLayerHandling;
+		public boolean cadenceCompatibility;
 
 		public GDSPreferences(boolean factory) { super(factory); }
 
@@ -271,6 +279,7 @@ public class GDS extends Input
 			mergeBoxes = IOTool.isGDSInMergesBoxes();
 			includeText = IOTool.isGDSInIncludesText();
 			unknownLayerHandling = IOTool.getGDSInUnknownLayerHandling();
+			cadenceCompatibility = IOTool.isGDSCadenceCompatibility();
 		}
 
         public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
@@ -541,8 +550,11 @@ public class GDS extends Input
 			int count = 0;
 			int renamed = 0;
 			Map<String,String> exportUnify = new HashMap<String,String>();
+
+			// first make the geometry and instances
 			for(MakeInstance mi : insts)
 			{
+				if (mi.exportName != null) continue;
 				if (countOff && ((++count % 1000) == 0))
 					System.out.println("        Made " + count + " instances");
                 if (mi.proto instanceof Cell) {
@@ -555,6 +567,81 @@ public class GDS extends Input
 				// make the instance
                 if (mi.instantiate(this.cell, exportUnify, exportNames, null)) renamed++;
 			}
+
+			// next make the exports
+			for(MakeInstance mi : insts)
+			{
+				if (mi.exportName == null) continue;
+				if (countOff && ((++count % 1000) == 0))
+					System.out.println("        Made " + count + " instances");
+                if (mi.proto instanceof Cell) {
+                    Cell subCell = (Cell)mi.proto;
+                    CellBuilder cellBuilder = allBuilders.get(subCell);
+                    if (cellBuilder != null)
+                        cellBuilder.makeInstances(builtCells);
+                }
+
+                if (localPrefs.cadenceCompatibility)
+                {
+	                // center the export if possible
+	                ArcProto theArc = mi.proto.getPort(0).getBasePort().getConnections()[0];
+	                Layer theLayer = theArc.getLayer(0);
+	                NodeProto theProto = theLayer.getPureLayerNode();
+	                Rectangle2D search = new Rectangle2D.Double(mi.loc.getX(), mi.loc.getY(), 0, 0);
+	        		for(Iterator<RTBounds> it = this.cell.searchIterator(search); it.hasNext(); )
+	        		{
+	        			Geometric geom = (Geometric)it.next();
+	        			if (geom instanceof NodeInst)
+	        			{
+	        				NodeInst ni = (NodeInst)geom;
+	        				if (ni.getProto() != theProto) continue;
+							Rectangle2D pointBounds = ni.getBounds();
+							double cX = pointBounds.getCenterX();
+							double cY = pointBounds.getCenterY();
+	        				EPoint [] trace = ni.getTrace();
+	        				if (trace != null)
+	        				{
+								Point2D [] newPoints = new Point2D[trace.length];
+								for(int i=0; i<trace.length; i++)
+								{
+									if (trace[i] != null)
+										newPoints[i] = new Point2D.Double(trace[i].getX()+cX, trace[i].getY()+cY);
+								}
+								PolyBase poly = new PolyBase(newPoints);
+								poly.transform(ni.rotateOut());
+	        					if (poly.contains(mi.loc))
+	        					{
+	        						GeometryHandler thisMerge = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
+	        						thisMerge.add(theLayer, poly);
+	        						thisMerge.postProcess(true);
+	        			            Collection<PolyBase> set = ((PolySweepMerge)thisMerge).getPolyPartition(theLayer);
+	        						for(PolyBase simplePoly : set)
+	        						{
+	        							Rectangle2D polyBounds = simplePoly.getBounds2D();
+	        							if (polyBounds.contains(mi.loc))
+	        							{
+	    	        						mi.loc.setLocation(polyBounds.getCenterX(), polyBounds.getCenterY());
+	    	        						break;
+	        							}
+	        						}
+	        						break;
+	        					}
+	        				} else
+	        				{
+	        					if (pointBounds.contains(mi.loc))
+	        					{
+	        						mi.loc.setLocation(cX, cY);
+	        						break;
+	        					}
+	        				}
+	        			}
+	        		}
+                }
+
+                // make the instance
+                if (mi.instantiate(this.cell, exportUnify, exportNames, null)) renamed++;
+			}
+
 			for(UnknownLayerMessage ulm : allErrorInsts.keySet())
 			{
         		List<Geometric> instantiated = new ArrayList<Geometric>();
@@ -1434,6 +1521,7 @@ public class GDS extends Input
 
 		theCell.makeInstanceArray(theNodeProto, nCols, nRows, Orientation.fromJava(angle, mX, mY),
 			theVertices[0], rowInterval, colInterval);
+        if (DEBUGALL) System.out.println("---- Array Reference: " + nCols + "x" + nRows + " of " + theNodeProto.describe(false));
 	}
 
 	private class ReadOrientation
@@ -1511,6 +1599,8 @@ public class GDS extends Input
 			angle = (angle + 900) % 3600;
 		}
 		theCell.makeInstance(theNodeProto, loc, Orientation.fromJava(angle, false, mY), 0, 0, null, null);
+        if (DEBUGALL) System.out.println("---- Instance of " + theNodeProto.describe(false) +
+        	" at (" + loc.getX() + "," + loc.getY() + ")");
 	}
 
 	private void determineShape()
@@ -1523,20 +1613,22 @@ public class GDS extends Input
 		if (theToken != GDS_XY) handleError("Boundary has no points");
 
 		getToken();
-		int n = determinePoints(3, MAXPOINTS);
+		determinePoints(3, MAXPOINTS);
 		if (TALLYCONTENTS)
 		{
 			countShape++;
 			return;
 		}
-		determineBoundary(n);
+		determineBoundary();
+        if (DEBUGALL) System.out.println("---- Shape on " + (layerIsPin ? "pin " : "") + "layer " + curLayerNum + "/" + curLayerType +
+        	" (" + layerNodeProto + ") has " + numVertices + " points");
 	}
 
-	private void determineBoundary(int npts)
+	private void determineBoundary()
 	{
 		boolean is90 = true;
 		boolean is45 = true;
-		for (int i=0; i<npts-1 && i<MAXPOINTS-1; i++)
+		for (int i=0; i<numVertices-1 && i<MAXPOINTS-1; i++)
 		{
 			double dx = theVertices[i+1].getX() - theVertices[i].getX();
 			double dy = theVertices[i+1].getY() - theVertices[i].getY();
@@ -1548,13 +1640,13 @@ public class GDS extends Input
 		}
 
 		ShapeType perimeter = SHAPELINE;
-		if (theVertices[0].getX() == theVertices[npts-1].getX() &&
-			theVertices[0].getY() == theVertices[npts-1].getY())
+		if (theVertices[0].getX() == theVertices[numVertices-1].getX() &&
+			theVertices[0].getY() == theVertices[numVertices-1].getY())
 				perimeter = SHAPECLOSED;
 		ShapeType oclass = SHAPEOBLIQUE;
 		if (perimeter == SHAPECLOSED && (is90 || is45))
 			oclass = SHAPEPOLY;
-		if (npts == 5 && is90 && perimeter == SHAPECLOSED)
+		if (numVertices == 5 && is90 && perimeter == SHAPECLOSED)
 			oclass = SHAPERECTANGLE;
 
 		if (oclass == SHAPERECTANGLE)
@@ -1595,7 +1687,7 @@ public class GDS extends Input
 				double hx = theVertices[0].getX();
 				double ly = theVertices[0].getY();
 				double hy = theVertices[0].getY();
-				for (int i=1; i<npts;i++)
+				for (int i=1; i<numVertices;i++)
 				{
 					if (lx > theVertices[i].getX()) lx = theVertices[i].getX();
 					if (hx < theVertices[i].getX()) hx = theVertices[i].getX();
@@ -1604,8 +1696,8 @@ public class GDS extends Input
 				}
 
 				// store the trace information
-				EPoint [] points = new EPoint[npts];
-				for(int i=0; i<npts; i++)
+				EPoint [] points = new EPoint[numVertices];
+				for(int i=0; i<numVertices; i++)
 				{
 					points[i] = new EPoint(theVertices[i].getX(), theVertices[i].getY());
 				}
@@ -1675,7 +1767,7 @@ public class GDS extends Input
 		if (theToken == GDS_XY)
 		{
 			getToken();
-			int n = determinePoints(2, MAXPOINTS);
+			determinePoints(2, MAXPOINTS);
 
 			if (TALLYCONTENTS)
 			{
@@ -1684,7 +1776,7 @@ public class GDS extends Input
 			}
 
 			// construct the path
-			for (int i=0; i < n-1; i++)
+			for (int i=0; i < numVertices-1; i++)
 			{
 				Point2D fromPt = theVertices[i];
 				Point2D toPt = theVertices[i+1];
@@ -1708,7 +1800,7 @@ public class GDS extends Input
 				{
 					fextend = bgnextend;
 				}
-				if (i+1 < n-1)
+				if (i+1 < numVertices-1)
 				{
 					Point2D nextPoint = theVertices[i+2];
 					int nextAngle = GenMath.figureAngle(toPt, nextPoint);
@@ -1768,6 +1860,8 @@ public class GDS extends Input
 		{
 			handleError("Path element has no points");
 		}
+        if (DEBUGALL) System.out.println("---- Path on " + (layerIsPin ? "pin " : "") + "layer " + curLayerNum + "/" + curLayerType +
+        	" (" + layerNodeProto + ") has " + numVertices + " points");
 	}
 
 	private void determineNode()
@@ -1812,6 +1906,8 @@ public class GDS extends Input
             theCell.makeInstance(layerNodeProto, new Point2D.Double(theVertices[0].getX(), theVertices[0].getY()),
             	Orientation.IDENT, 0, 0, null, currentUnknownLayerMessage);
 		}
+        if (DEBUGALL) System.out.println("---- Node on " + (layerIsPin ? "pin " : "") + "layer " + curLayerNum + "/" + curLayerType +
+        	" (" + layerNodeProto + ") at (" + theVertices[0].getX() + "," + theVertices[0].getY() + ")");
 	}
 
 	private void determineText()
@@ -1894,6 +1990,8 @@ public class GDS extends Input
 			return;
 		}
 		readText(textString, vert_just, horiz_just, angle, trans, scale);
+        if (DEBUGALL) System.out.println("---- Text " + (layerIsPin ? "(pin) " : "") + "'" + textString.replace('\n', '/') +
+        	"' at (" + theVertices[0].getX() + "," + theVertices[0].getY() + ")");
 	}
 
 	private void readText(String charstring, int vjust, int hjust, int angle, boolean trans, double scale)
@@ -1984,6 +2082,8 @@ public class GDS extends Input
             theCell.makeInstance(layerNodeProto, new Point2D.Double(theVertices[0].getX(), theVertices[0].getY()),
             	Orientation.IDENT, 0, 0, null, currentUnknownLayerMessage);
 		}
+        if (DEBUGALL) System.out.println("---- Box on " + (layerIsPin ? "pin " : "") + "layer " + curLayerNum + "/" + curLayerType +
+        	" (" + layerNodeProto + ") has " + numVertices + " points");
 	}
 
 	private static class UnknownLayerMessage
@@ -1998,6 +2098,8 @@ public class GDS extends Input
 
 	private void setLayer(int layerNum, int layerType)
 	{
+		curLayerNum = layerNum;
+		curLayerType = layerType;
 		layerIsPin = false;
 		currentUnknownLayerMessage = null;
 		Integer layerInt = new Integer(layerNum + (layerType<<16));
@@ -2263,30 +2365,29 @@ public class GDS extends Input
 		}
 	}
 
-	private int determinePoints(int min_points, int max_points)
+	private void determinePoints(int min_points, int max_points)
 		throws IOException
 	{
-		int point_counter = 0;
+		numVertices = 0;
 		while (theToken == GDS_NUMBER)
 		{
 			double x = tokenValue32 * theScale;
 			getToken();
 			double y = tokenValue32 * theScale;
-			theVertices[point_counter].setLocation(x, y);
-			point_counter++;
-			if (point_counter > max_points)
+			theVertices[numVertices].setLocation(x, y);
+			numVertices++;
+			if (numVertices > max_points)
 			{
-				System.out.println("Found " + point_counter + " points (too many)");
+				System.out.println("Found " + numVertices + " points (too many)");
 				handleError("Too many points in the shape");
 			}
 			getToken();
 		}
-		if (point_counter < min_points)
+		if (numVertices < min_points)
 		{
-			System.out.println("Found " + point_counter + " points (too few)");
+			System.out.println("Found " + numVertices + " points (too few)");
 			handleError("Not enough points in the shape");
 		}
-		return point_counter;
 	}
 
 	private String determineTime()

@@ -790,6 +790,27 @@ public class IOTool extends Tool
 	 */
 	public static int getFactoryGDSArraySimplification() { return cacheGDSArraySimplification.getIntFactoryValue(); }
 
+	private static Pref cacheGDSCadenceCompatibility = Pref.makeBooleanPref("GDSCadenceCompatibility", IOTool.tool.prefs, true);
+	/**
+	 * Method to tell whether GDS input is compatible with Cadence.
+	 * Cadence compatibility adjusts export locations to be centered in the geometry.
+	 * The default is "true".
+	 * @return true if GDS input is compatible with Cadence.
+	 */
+	public static boolean isGDSCadenceCompatibility() { return cacheGDSCadenceCompatibility.getBoolean(); }
+	/**
+	 * Method to set whether GDS input is compatible with Cadence.
+	 * Cadence compatibility adjusts export locations to be centered in the geometry.
+	 * @param c true if GDS input is compatible with Cadence.
+	 */
+	public static void setGDSCadenceCompatibility(boolean c) { cacheGDSCadenceCompatibility.setBoolean(c); }
+	/**
+	 * Method to tell whether GDS input is compatible with Cadence, by default.
+	 * Cadence compatibility adjusts export locations to be centered in the geometry.
+	 * @return true if GDS input is compatible with Cadence, by default.
+	 */
+	public static boolean isFactoryGDSCadenceCompatibility() { return cacheGDSCadenceCompatibility.getBooleanFactoryValue(); }
+
     /****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
 
 	private static Pref cachePrintEncapsulated = Pref.makeBooleanPref("PostScriptEncapsulated", IOTool.tool.prefs, false);

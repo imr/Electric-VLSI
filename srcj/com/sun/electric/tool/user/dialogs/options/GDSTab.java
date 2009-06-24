@@ -111,6 +111,7 @@ public class GDSTab extends PreferencePanel
         gdsArraySimplification.addItem("Merge individual arrays");
         gdsArraySimplification.addItem("Merge all arrays");
         gdsArraySimplification.setSelectedIndex(IOTool.getGDSArraySimplification());
+        gdsCadenceCompatibility.setSelected(IOTool.isGDSCadenceCompatibility());
 
         // project preferences
 		gdsOutputMergesBoxes.setSelected(getBoolean(gdsOutMergesBoxesSetting));
@@ -195,6 +196,9 @@ public class GDSTab extends PreferencePanel
         currentI = gdsArraySimplification.getSelectedIndex();
         if (currentI != IOTool.getGDSArraySimplification())
         	IOTool.setGDSArraySimplification(currentI);
+		currentValue = gdsCadenceCompatibility.isSelected();
+		if (currentValue != IOTool.isGDSCadenceCompatibility())
+			IOTool.setGDSCadenceCompatibility(currentValue);
 
         // project preferences
         setBoolean(gdsOutMergesBoxesSetting, gdsOutputMergesBoxes.isSelected());
@@ -230,6 +234,8 @@ public class GDSTab extends PreferencePanel
 			IOTool.setGDSColapseVddGndPinNames(IOTool.isFactoryGDSColapseVddGndPinNames());
 		if (IOTool.getFactoryGDSArraySimplification() != IOTool.getGDSArraySimplification())
 			IOTool.setGDSArraySimplification(IOTool.getFactoryGDSArraySimplification());
+		if (IOTool.isFactoryGDSCadenceCompatibility() != IOTool.isGDSCadenceCompatibility())
+			IOTool.setGDSCadenceCompatibility(IOTool.isFactoryGDSCadenceCompatibility());
 	}
 
     private void foundryChanged()
@@ -435,6 +441,7 @@ public class GDSTab extends PreferencePanel
         gdsUnknownLayers = new javax.swing.JComboBox();
         gdsColapseNames = new javax.swing.JCheckBox();
         gdsConvertNCCExportsConnectedByParentPins = new javax.swing.JCheckBox();
+        gdsCadenceCompatibility = new javax.swing.JCheckBox();
         projectSettings = new javax.swing.JPanel();
         gdsLayerList = new javax.swing.JScrollPane();
         jLabel6 = new javax.swing.JLabel();
@@ -579,6 +586,15 @@ public class GDSTab extends PreferencePanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         inputPanel1.add(gdsConvertNCCExportsConnectedByParentPins, gridBagConstraints);
+
+        gdsCadenceCompatibility.setText("Cadence compatibility");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        inputPanel1.add(gdsCadenceCompatibility, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -882,6 +898,7 @@ public class GDSTab extends PreferencePanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox foundrySelection;
     private javax.swing.JComboBox gdsArraySimplification;
+    private javax.swing.JCheckBox gdsCadenceCompatibility;
     private javax.swing.JTextField gdsCellNameLenMax;
     private javax.swing.JCheckBox gdsColapseNames;
     private javax.swing.JCheckBox gdsConvertNCCExportsConnectedByParentPins;
