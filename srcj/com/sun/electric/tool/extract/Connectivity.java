@@ -1012,6 +1012,12 @@ public class Connectivity
 
 	/********************************************** WIRE EXTRACTION **********************************************/
 
+	private boolean isOnGrid(double value, double grid)
+	{
+		long x = Math.round(value / grid);
+		return x * grid == value;
+	}
+
 	/**
 	 * Method to extract wires from the merge.
 	 * @param merge the merged geometry that remains (after contacts and transistors are extracted).
@@ -1037,6 +1043,7 @@ public class Connectivity
 
 		// examine each wire layer, looking for a skeletal structure that approximates it
         Dimension2D alignment = newCell.getEditingPreferences().getAlignmentToGrid();
+alignment = new Dimension2D.Double(0.5, 0.5);	// TODO: get proper value here
 		int soFar = 0;
 		Set<Layer> allLayers = geomToWire.keySet();
 		for (Layer layer : allLayers)
@@ -1069,6 +1076,34 @@ public class Connectivity
 
 					// make sure the wire fits
 					MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
+
+					// adjust extension to get alignment right
+					if (loc1.getX() == loc2.getX())
+					{
+						// vertical arc: adjust extension to make sure top and bottom are on grid
+						double loc1Y = loc1Unscaled.getY();
+						double loc2Y = loc2Unscaled.getY();
+						double halfWidth = cl.width/2/SCALEFACTOR;
+						double loc1YExtend = loc1Y + (loc1Y < loc2Y ? -halfWidth : halfWidth);
+						double loc2YExtend = loc2Y + (loc2Y < loc1Y ? -halfWidth : halfWidth);
+						if (!isOnGrid(loc1YExtend, alignment.getHeight()) && isOnGrid(loc1Y, alignment.getHeight()))
+							headExtend.setValue(false);
+						if (!isOnGrid(loc2YExtend, alignment.getHeight()) && isOnGrid(loc2Y, alignment.getHeight()))
+							tailExtend.setValue(false);
+					} else
+					{
+						// horizontal arc: adjust extension to make sure left and right are on grid
+						double loc1X = loc1Unscaled.getX();
+						double loc2X = loc2Unscaled.getX();
+						double halfWidth = cl.width/2/SCALEFACTOR;
+						double loc1XExtend = loc1X + (loc1X < loc2X ? -halfWidth : halfWidth);
+						double loc2XExtend = loc2X + (loc2X < loc1X ? -halfWidth : halfWidth);
+						if (!isOnGrid(loc1XExtend, alignment.getHeight()) && isOnGrid(loc1X, alignment.getHeight()))
+							headExtend.setValue(false);
+						if (!isOnGrid(loc2XExtend, alignment.getHeight()) && isOnGrid(loc2X, alignment.getHeight()))
+							tailExtend.setValue(false);
+					}
+
 					boolean fits = originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend);
 					if (DEBUGCENTERLINES) System.out.println("FIT="+fits+" "+cl);
 					if (!fits)

@@ -1675,7 +1675,8 @@ class HighlightText extends Highlight2
         		description = "Cell instance name " + ((NodeInst)eobj).describe(true);
         	} else
         	{
-        		description = eobj.getParameterOrVariable(varKey).getFullDescription(eobj);
+        		Variable var = eobj.getParameterOrVariable(varKey);
+        		if (var != null) description = var.getFullDescription(eobj);
         	}
         }
         return description;
