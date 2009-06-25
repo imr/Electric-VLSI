@@ -29,6 +29,8 @@ import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.Menu;
 import java.awt.MenuBar;
 import java.awt.event.ActionEvent;
@@ -83,7 +85,8 @@ import javax.swing.KeyStroke;
  *
  * @author  gainsley
  */
-public class KeyBindingManager {
+public class KeyBindingManager implements KeyEventDispatcher
+{
 
     // ----------------------------- object stuff ---------------------------------
     /** Hash table of lists all key bindings */     private Map<KeyStroke,Set<String>> inputMap;
@@ -119,7 +122,7 @@ public class KeyBindingManager {
 
         // register this with KeyboardFocusManager
         // so we receive all KeyEvents
-        //KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
         //KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventPostProcessor(this);
 
         // add to list of all managers
@@ -127,6 +130,11 @@ public class KeyBindingManager {
             allManagers.add(this);
         }
         initialize();
+    }
+
+    public boolean dispatchKeyEvent(KeyEvent e)
+    {
+    	return processKeyEvent(e);
     }
 
     /**
@@ -400,20 +408,24 @@ public class KeyBindingManager {
 		if (DEBUG) System.out.println("  Current key is "+stroke+", code="+e.getKeyCode()+", type="+stroke.getKeyEventType());
 
 		// convert arrow keys which appear only on release event
-		if ((e.getModifiers() & (InputEvent.CTRL_MASK|InputEvent.SHIFT_MASK)) != InputEvent.CTRL_MASK &&
-			stroke.getKeyEventType() == KeyEvent.KEY_RELEASED)
-		{
-			if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_RIGHT ||
-				e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN)
-			{
-				stroke = KeyStroke.getKeyStroke(e.getKeyCode(), stroke.getModifiers());
-			}
-		} else
+//		if ((e.getModifiers() & (InputEvent.CTRL_MASK|InputEvent.SHIFT_MASK)) != InputEvent.CTRL_MASK &&
+//			stroke.getKeyEventType() == KeyEvent.KEY_RELEASED)
+//		{
+//			if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_RIGHT ||
+//				e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN)
+//			{
+//				stroke = KeyStroke.getKeyStroke(e.getKeyCode(), stroke.getModifiers());
+//			}
+//		} else
 		{
 			// remove shift modifier from Events.  Lets KeyStrokes like '<' register correctly,
 			// because they are always delivered as SHIFT-'<'.
 			if ((e.getModifiers() & InputEvent.SHIFT_MASK) != 0 && !Character.isLetter(e.getKeyCode()) && !Character.isDigit(e.getKeyCode()))
-				stroke = KeyStroke.getKeyStroke(e.getKeyChar());
+			{
+				if (e.getKeyCode() != KeyEvent.VK_LEFT && e.getKeyCode() != KeyEvent.VK_RIGHT &&
+					e.getKeyCode() != KeyEvent.VK_UP && e.getKeyCode() != KeyEvent.VK_DOWN)
+						stroke = KeyStroke.getKeyStroke(e.getKeyChar());
+			}
 		}
 
 		// see if any popup menus are visible

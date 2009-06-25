@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+BUG: Auto-repeat of arrow keys does not work (Bug #2251).
+FIX: Fixed KeyBindingManager.java:
+     KeyBindingManager now implements KeyEventDispatcher
+     Constructor calls: KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
+     KeyBindingManager now has: public boolean dispatchKeyEvent(KeyEvent e) {return processKeyEvent(e);}
+     KeyBindingManager.processKeyEvent() does different shift modification
+
 IMP/MAN: (6/24/09, SMR) GDS import has "Cadence Compatibility" preference
      which adjusts export locations to be inside of the geometry (Bug #2246).
 
