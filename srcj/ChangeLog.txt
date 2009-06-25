@@ -6,7 +6,7 @@ NOTE: Please place changes under the version that will be released next.
 
 IMP: (6/25/09, GVG) Adding <resolution> in the XML tech description for bug #2239
 
-BUG: (6/25/09, GVG) Auto-repeat of arrow keys does not work (Bug #2251).
+BUG: (6/25/09, SMR) Auto-repeat of arrow keys does not work (Bug #2251).
 FIX: Fixed KeyBindingManager.java:
      KeyBindingManager now implements KeyEventDispatcher
      Constructor calls: KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
