@@ -85,6 +85,7 @@ public class Xml {
         public int maxNumMetals;
         public int defaultNumMetals;
         public double scaleValue;
+        public double resolutionValue; // min resolution value allowed by the foundry
         public boolean scaleRelevant;
         public String defaultFoundry;
         public double minResistance;
@@ -357,6 +358,7 @@ public class Xml {
         version,
         numMetals,
         scale,
+        resolution,
         defaultFoundry,
         minResistance,
         minCapacitance,
@@ -843,6 +845,9 @@ public class Xml {
                 case scale:
                     tech.scaleValue = Double.parseDouble(a("value"));
                     tech.scaleRelevant = Boolean.parseBoolean(a("relevant"));
+                    break;
+                case resolution:
+                    tech.resolutionValue = Double.parseDouble(a("value")); // default is 0;
                     break;
                 case defaultFoundry:
                     tech.defaultFoundry = a("value");
@@ -1444,6 +1449,7 @@ public class Xml {
                 case spiceHeader:
                 case numMetals:
                 case scale:
+                case resolution:
                 case defaultFoundry:
                 case minResistance:
                 case minCapacitance:
@@ -1781,6 +1787,7 @@ public class Xml {
             }
             b(XmlKeyword.numMetals); a("min", t.minNumMetals); a("max", t.maxNumMetals); a("default", t.defaultNumMetals); el();
             b(XmlKeyword.scale); a("value", t.scaleValue); a("relevant", Boolean.valueOf(t.scaleRelevant)); el();
+            b(XmlKeyword.resolution); a("value", t.resolutionValue); el();
             b(XmlKeyword.defaultFoundry); a("value", t.defaultFoundry); el();
             b(XmlKeyword.minResistance); a("value", t.minResistance); el();
             b(XmlKeyword.minCapacitance); a("value", t.minCapacitance); el();

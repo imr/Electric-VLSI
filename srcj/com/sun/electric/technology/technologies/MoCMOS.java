@@ -111,7 +111,7 @@ public class MoCMOS extends Technology
         paramAnalog = (Boolean)techParams.get(techParamAnalog);
 
 		setStaticTechnology();
-        setFactoryResolution(0.01); // value in lambdas   0.005um -> 0.05 lambdas
+        //setFactoryResolution(0.01); // value in lambdas   0.005um -> 0.05 lambdas
 
 		//**************************************** NODES ****************************************
 

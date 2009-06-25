@@ -1042,8 +1042,9 @@ public class Connectivity
 		}
 
 		// examine each wire layer, looking for a skeletal structure that approximates it
-        Dimension2D alignment = newCell.getEditingPreferences().getAlignmentToGrid();
-alignment = new Dimension2D.Double(0.5, 0.5);	// TODO: get proper value here
+//        Dimension2D alignment = newCell.getEditingPreferences().getAlignmentToGrid();
+        double scaledResolution = tech.getFactoryScaledResolution();
+        Dimension2D alignment = new Dimension2D.Double(scaledResolution, scaledResolution); //0.5, 0.5);	// TODO: get proper value here
 		int soFar = 0;
 		Set<Layer> allLayers = geomToWire.keySet();
 		for (Layer layer : allLayers)

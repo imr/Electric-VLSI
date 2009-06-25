@@ -91,6 +91,7 @@ public class GeneralInfo extends Info
 		// load up the structure with the current values
 		loadTableEntry(genTextTable, TECHSHORTNAME, shortName);
 		loadTableEntry(genTextTable, TECHSCALE, Double.valueOf(scale));
+        loadTableEntry(genTextTable, TECHRESOLUTION, Double.valueOf(resolution));
         loadTableEntry(genTextTable, TECHFOUNDRY, defaultFoundry);
         loadTableEntry(genTextTable, TECHDEFMETALS, Integer.valueOf(defaultNumMetals));
 		loadTableEntry(genTextTable, TECHDESCRIPT, description);

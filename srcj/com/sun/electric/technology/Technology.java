@@ -1084,6 +1084,7 @@ public class Technology implements Comparable<Technology>, Serializable
         setTechShortName(t.shortTechName);
         setTechDesc(t.description);
         setFactoryScale(t.scaleValue, t.scaleRelevant);
+        setFactoryResolution(t.resolutionValue);
         setFactoryParasitics(t.minResistance, t.minCapacitance);
         setFactoryLESettings(t.leGateCapacitance, t.leWireRatio, t.leDiffAlpha);
         if (!t.transparentLayers.isEmpty())
@@ -1749,6 +1750,7 @@ public class Technology implements Comparable<Technology>, Serializable
         t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = numMetals;
         t.scaleValue = getScaleSetting().getDoubleFactoryValue();
         t.scaleRelevant = isScaleRelevant();
+        t.resolutionValue = getFactoryResolution();
         t.defaultFoundry = (String)getPrefFoundrySetting().getFactoryValue();
         t.minResistance = getMinResistanceSetting().getDoubleFactoryValue();
         t.minCapacitance = getMinCapacitanceSetting().getDoubleFactoryValue();
@@ -4841,7 +4843,17 @@ public class Technology implements Comparable<Technology>, Serializable
 		return factoryResolution;
 	}
 
-	/**
+    /**
+     * Method to retrieve the default scaled resolution associated to the technology.
+     * This is the minimum size unit that can be represented once the value is scaled.
+     * @return the technology's default scaled resolution value.
+     */
+    public double getFactoryScaledResolution()
+	{
+		return factoryResolution/getScale();
+	}
+
+    /**
 	 * Method to get foundry in Tech Palette. Different foundry can define different DRC rules.
 	 * The default is "Generic".
 	 * @return the foundry to use in Tech Palette

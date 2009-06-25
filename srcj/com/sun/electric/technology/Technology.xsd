@@ -746,6 +746,11 @@
                         <xsd:attribute name="relevant" type="xsd:boolean" use="required"/>
                     </xsd:complexType>
                 </xsd:element>
+                <xsd:element name="resolution" minOccurs="0">
+                    <xsd:complexType>
+                        <xsd:attribute name="value" type="xsd:double"/>
+                    </xsd:complexType>
+                </xsd:element>
                 <xsd:element name="defaultFoundry">
                     <xsd:complexType>
                         <xsd:attribute name="value" type="tns:Foundry" use="required"/>

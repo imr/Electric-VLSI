@@ -282,6 +282,7 @@ class EClassLoader extends URLClassLoader {
     protected final Method Technology_getOldNodeNames = getMethod(classTechnology, "getOldNodeNames");
     protected final Method Technology_getPrefFoundry = getMethod(classTechnology, "getPrefFoundry");
     protected final Method Technology_getScale = getMethod(classTechnology, "getScale");
+    protected final Method Technology_getResolution = getMethod(classTechnology, "getResolution");
     protected final Method Technology_getShapeOfNode1 = getMethod(classTechnology, "getShapeOfNode", classNodeInst, Boolean.TYPE, Boolean.TYPE, classLayerFunctionSet);
     protected final Method Technology_getShapeOfNode2 = getMethod(classTechnology, "getShapeOfNode", classNodeInst, classEditWindow0, classVarContext, Boolean.TYPE, Boolean.TYPE, List.class);
     protected final Method Technology_getShapeOfNode3 = getMethod(classTechnology, "getShapeOfNode", classNodeInst, classEditWindow_, classVarContext, Boolean.TYPE, Boolean.TYPE, List.class);

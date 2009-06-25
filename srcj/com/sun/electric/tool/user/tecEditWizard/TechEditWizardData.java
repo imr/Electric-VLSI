@@ -56,7 +56,8 @@ public class TechEditWizardData
 	private String tech_name;
 	private String tech_description;
 	private int num_metal_layers;
-	private int stepsize;
+	private int stepsize;   // value in nm
+    private int resolution; // technology resolution in the same scale as stepsize
     private boolean pWellFlag = true; // to control if process is a pwell process or not. If true, Tech Creation Wizard will not create pwell layers
     private boolean horizontalFlag = true; // to control if transistor gates are aligned horizontally. True by default . If transistors are horizontal -> M1 is horizontal?
     private boolean extraInfoFlag = false; // to control if protection polys are added to transistors. False by default
@@ -407,6 +408,9 @@ public class TechEditWizardData
 	public int getStepSize() { return stepsize; }
 	public void setStepSize(int n) { stepsize = n; }
 
+    public int getResolution() { return resolution; }
+	public void setResolution(int n) { resolution = n; }
+
     public int getNumMetalLayers() { return num_metal_layers; }
 	public void setNumMetalLayers(int n)
 	{
@@ -714,6 +718,7 @@ public class TechEditWizardData
                     if (varName.equalsIgnoreCase("horizontal_transistors")) setHorizontalTransistors(Boolean.valueOf(varValue)); else
                     if (varName.equalsIgnoreCase("extra_info")) setExtraInfoFlag(Boolean.valueOf(varValue)); else
                     if (varName.equalsIgnoreCase("stepsize")) setStepSize(TextUtils.atoi(varValue)); else
+                    if (varName.equalsIgnoreCase("resolution")) setResolution(TextUtils.atoi(varValue)); else
 
                     if (varName.equalsIgnoreCase("diff_width")) diff_width.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("diff_width_rule")) diff_width.rule = stripQuotes(varValue); else
@@ -1859,6 +1864,7 @@ public class TechEditWizardData
         t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = getNumMetalLayers();
         t.scaleValue = getStepSize();
         t.scaleRelevant = true;
+        t.resolutionValue = getResolution();
 //        t.scaleRelevant = isScaleRelevant();
         t.defaultFoundry = "NONE";
         t.minResistance = 1.0;
@@ -3032,9 +3038,9 @@ public class TechEditWizardData
                 double halfTotalL = scaledValue(polyRL.v/2 + (rpoS.v + contact_poly_overhang.v + contact_spacing.v + 2 * contact_size.v));
                 double halfTotalW = scaledValue(polyRW.v/2);
                 nodesList.add(makeXmlNodeLayer(halfTotalL, halfTotalL, halfTotalW, halfTotalW, polyLayer, Poly.Type.FILLED));
-                n = makeXmlPrimitive(t.nodeGroups, name + "-Poly-RPO-Resistor", prFunc, 0, 0, 0, 0,
-                    /*new SizeOffset(sox, sox, soy, soy)*/null, nodesList, nodePorts, null, false);
-                g.addPinOrResistor(n, name + "-RPoly");
+//                n = makeXmlPrimitive(t.nodeGroups, name + "-Poly-RPO-Resistor", prFunc, 0, 0, 0, 0,
+//                    /*new SizeOffset(sox, sox, soy, soy)*/null, nodesList, nodePorts, null, false);
+//                g.addPinOrResistor(n, name + "-RPoly");
             }
         }
 

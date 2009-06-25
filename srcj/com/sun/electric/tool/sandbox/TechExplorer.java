@@ -283,6 +283,7 @@ public class TechExplorer extends ESandBox {
         t.description = (String)Technology_getTechDesc.invoke(tech);
         t.scaleValue = (Double)Technology_getScale.invoke(tech);
         t.scaleRelevant = (Boolean)Technology_isScaleRelevant.invoke(tech);
+        t.resolutionValue = (Double)Technology_getResolution.invoke(tech);
         t.defaultFoundry = "NONE";
         if (Technology_getPrefFoundry != null)
             t.defaultFoundry = Technology_getPrefFoundry.invoke(tech).toString();

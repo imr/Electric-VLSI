@@ -1956,8 +1956,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                 Technology tech = it.next();
 
                 String keyResolution = getKey(KEY_RESOLUTION, tech.getId());
-                double factoryResolution = tech.getFactoryResolution();
-                double resolution = techPrefs.getDouble(keyResolution, factoryResolution);
+                double resolution = techPrefs.getDouble(keyResolution, tech.getFactoryScaledResolution());
                 resolutions.put(tech, Double.valueOf(resolution));
 
                 String keyOverrides = getKey(KEY_OVERRIDES, tech.getId());
@@ -1993,7 +1992,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             for (Map.Entry<Technology,Double> e: resolutions.entrySet()) {
                 Technology tech = e.getKey();
                 String keyResolution = getKey(KEY_RESOLUTION, tech.getId());
-                double factoryResolution = tech.getFactoryResolution();
+                double factoryResolution = tech.getFactoryScaledResolution();
                 double resolution = e.getValue().doubleValue();
                 if (removeDefaults && resolution == factoryResolution)
                     techPrefs.remove(keyResolution);

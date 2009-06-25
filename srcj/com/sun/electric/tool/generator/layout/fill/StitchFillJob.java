@@ -629,24 +629,24 @@ public class StitchFillJob extends Job
                 Area expA = new Area();
 
                 // Look for all arcs in the cell instances that are on the given layer and network
-//                Cell jCell = jExp.getParent();
-//                Rectangle2D bounds = pi.getPoly().getBounds2D();
-//                // Look in the hierarchy if there is a valid arc. Need to rotate?
-//                for(Iterator<RTBounds> it = jCell.searchIterator(bounds); it.hasNext(); )
-//                {
-//                    Geometric nGeom = (Geometric)it.next();
-//
-//                    if (!(nGeom instanceof ArcInst))
-//                    {
-//                        continue; // only arcs
-//                    }
-//
-//                    ArcInst nai = (ArcInst)nGeom;
-//                    Layer nl = nai.getProto().getLayer(0);
-//                    if (nl != layer)
-//                        continue;
-//                    System.out.println();
-//                }
+                Cell jCell = jExp.getParent();
+                Rectangle2D bounds = pi.getPoly().getBounds2D();
+                // Look in the hierarchy if there is a valid arc. Need to rotate?
+                for(Iterator<RTBounds> it = jCell.searchIterator(bounds); it.hasNext(); )
+                {
+                    Geometric nGeom = (Geometric)it.next();
+
+                    if (!(nGeom instanceof ArcInst))
+                    {
+                        continue; // only arcs
+                    }
+
+                    ArcInst nai = (ArcInst)nGeom;
+                    Layer nl = nai.getProto().getLayer(0);
+                    if (nl != layer)
+                        continue;
+                    System.out.println();
+                }
 
                 for (Iterator<ArcInst> itA = jExp.getArcs(); itA.hasNext();)
                 {
