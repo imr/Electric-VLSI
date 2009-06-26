@@ -244,8 +244,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         this.arcId = arcId;
         this.protoId = protoId;
         this.name = name;
-//        if (name.toString().startsWith("net@1211"))
-//            System.out.println();
         this.nameDescriptor = nameDescriptor;
         this.tailNodeId = tailNodeId;
         this.tailPortId = tailPortId;
