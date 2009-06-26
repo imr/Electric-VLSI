@@ -30,20 +30,15 @@ import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.routing.*;
 import com.sun.electric.tool.routing.AutoStitch.AutoOptions;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.topology.*;
-import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
@@ -53,6 +48,7 @@ import java.util.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
+import java.awt.geom.AffineTransform;
 
 /**
  * Fill Generator working on unconnected arcs
@@ -480,7 +476,7 @@ public class StitchFillJob extends Job
                     {
                         if (pp.insert.equals(insert) && pp.cut.equals(resultBnd))
                         {
-                            System.out.println();
+//                            System.out.println();
                             insertedAlready = true;
                         }
                     }
@@ -626,37 +622,23 @@ public class StitchFillJob extends Job
                 Cell c = (Cell)np;
                 Netlist netl = c.getNetlist();
                 Network jExp = netl.getNetwork((Export)epi, 0);
-                Area expA = new Area();
 
                 // Look for all arcs in the cell instances that are on the given layer and network
                 Cell jCell = jExp.getParent();
-                Rectangle2D bounds = pi.getPoly().getBounds2D();
-                // Look in the hierarchy if there is a valid arc. Need to rotate?
-                for(Iterator<RTBounds> it = jCell.searchIterator(bounds); it.hasNext(); )
-                {
-                    Geometric nGeom = (Geometric)it.next();
+                SearchArcsInHierarchy searchArcs = new SearchArcsInHierarchy(jExp, layer);
+                HierarchyEnumerator.enumerateCell(jCell, VarContext.globalContext, searchArcs);
 
-                    if (!(nGeom instanceof ArcInst))
-                    {
-                        continue; // only arcs
-                    }
+//                for (Iterator<ArcInst> itA = jExp.getArcs(); itA.hasNext();)
+//                {
+//                    ArcInst ai = itA.next();
+//                    Layer l = ai.getProto().getLayer(0);
+//
+//                    if (l != layer) continue;
+//                    expA.add(new Area(ai.getBounds()));
+//                }
 
-                    ArcInst nai = (ArcInst)nGeom;
-                    Layer nl = nai.getProto().getLayer(0);
-                    if (nl != layer)
-                        continue;
-                    System.out.println();
-                }
-
-                for (Iterator<ArcInst> itA = jExp.getArcs(); itA.hasNext();)
-                {
-                    ArcInst ai = itA.next();
-                    Layer l = ai.getProto().getLayer(0);
-
-                    if (l != layer) continue;
-                    expA.add(new Area(ai.getBounds()));
-                }
-
+                Area expA = searchArcs.expA;
+                
                 // Algorithm will look for the closest connection.
                 Rectangle2D bestCut = null; // represents the best cut
                 ArcInst bestArc = null;
@@ -829,7 +811,68 @@ public class StitchFillJob extends Job
         }
         return true;
     }
+    // NewWellCheckVisitor wcVisitor = new NewWellCheckVisitor();
+    private static class SearchArcsInHierarchy extends HierarchyEnumerator.Visitor
+    {
+        Layer layer;
+        Network jExp;
+        Area expA;
 
+        SearchArcsInHierarchy(Network exp, Layer l)
+        {
+            jExp = exp;
+            layer = l;
+            expA = new Area();
+        }
+
+        public boolean enterCell(HierarchyEnumerator.CellInfo info)
+		{
+            Cell cell = info.getCell();
+            AffineTransform rTrans = info.getTransformToRoot();
+
+            // Checking only arcs
+            for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+            {
+                ArcInst ai = it.next();
+                Network aNet = info.getNetlist().getNetwork(ai, 0);
+                
+                if (aNet.getNetIndex() != jExp.getNetIndex()) continue; // different networks
+                
+                Technology tech = ai.getProto().getTechnology();
+                Poly[] arcInstPolyList = tech.getShapeOfArc(ai);
+                int tot = arcInstPolyList.length;
+                for(int i=0; i<tot; i++)
+                {
+                    Poly poly = arcInstPolyList[i];
+                    Layer l = poly.getLayer();
+
+                    if (l != layer)
+                        continue; // wrong layer
+                    poly.transform(rTrans);
+                    expA.add(new Area(ai.getBounds()));
+                }
+            }
+            return true;
+        }
+
+        public void exitCell(HierarchyEnumerator.CellInfo info)
+		{
+        }
+
+        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+		{
+            return true;  // nothing to do here since only arcs are sought
+        }
+    }
+
+    /**
+     * Method to collect arcs found in a given area
+     * @param resultBnd Search area
+     * @param at List with arcs to search from
+     * @param horizontal
+     * @param topLayer
+     * @return
+     */
     private static ArcInst getArcInstOverlappingWithArea(Rectangle2D resultBnd, List<ArcInst> at, boolean horizontal, boolean topLayer)
     {
         Area topArea = new Area(resultBnd);
@@ -891,11 +934,11 @@ public class StitchFillJob extends Job
      * @param evenHorizontal True if even layers are horizontal
      * @return True of layer is horizontal
      */
-    private static boolean isLayerHorizontal(Layer layer, boolean evenHorizontal)
-    {
-        int metalNumber = layer.getFunction().getLevel();
-        return (evenHorizontal && metalNumber%2==0) || (!evenHorizontal && metalNumber%2==1);
-    }
+//    private static boolean isLayerHorizontal(Layer layer, boolean evenHorizontal)
+//    {
+//        int metalNumber = layer.getFunction().getLevel();
+//        return (evenHorizontal && metalNumber%2==0) || (!evenHorizontal && metalNumber%2==1);
+//    }
 
     /**
      * Method to collect arcs in a given layer with a given export name from an iterator
