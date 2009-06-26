@@ -23,16 +23,19 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.tool.user.menus.EMenuBar;
+import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 
+import java.awt.Component;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
-import java.awt.Menu;
-import java.awt.MenuBar;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -51,9 +54,9 @@ import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
+import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
 /**
@@ -403,6 +406,32 @@ public class KeyBindingManager implements KeyEventDispatcher
         // see if this is a valid key event
         if (!validKeyEvent(e)) return false;
 
+        // ignore events that come from dialogs, or non-Control events that are not from an EditWindow/WaveformWindow
+        Component c = e.getComponent();
+        boolean valid = false;
+        while (c != null)
+        {
+            if (c instanceof EditWindow) { valid = true;   break; }
+            if (c instanceof WaveformWindow.OnePanel) { valid = true;   break; }
+        	if (c instanceof EDialog) { lastPrefix = null;  return false; }
+        	if (c instanceof OpenFile.OpenFileSwing) { lastPrefix = null;  return false; }
+        	c = c.getParent();
+        }
+        if (!valid && (e.getModifiers() & InputEvent.CTRL_MASK) == 0)
+        	{ lastPrefix = null;   return false; }
+
+		// see if any popup menus are visible
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		JMenuBar mb =  wf.getFrame().getJMenuBar();
+		for(int i=0; i<mb.getMenuCount(); i++)
+		{
+			JMenu m = mb.getMenu(i);
+        	if (m == null) continue;
+			if (!m.isPopupMenuVisible()) continue;
+            lastPrefix = null;              // someone did something with it, null prefix key
+            return false;
+        }
+
         // get KeyStroke
 		KeyStroke stroke = KeyStroke.getKeyStrokeForEvent(e);
 		if (DEBUG) System.out.println("  Current key is "+stroke+", code="+e.getKeyCode()+", type="+stroke.getKeyEventType());
@@ -427,18 +456,6 @@ public class KeyBindingManager implements KeyEventDispatcher
 						stroke = KeyStroke.getKeyStroke(e.getKeyChar());
 			}
 		}
-
-		// see if any popup menus are visible
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-		JMenuBar mb =  wf.getFrame().getJMenuBar();
-		for(int i=0; i<mb.getMenuCount(); i++)
-		{
-			JMenu m = mb.getMenu(i);
-        	if (m == null) continue;
-			if (!m.isPopupMenuVisible()) continue;
-            lastPrefix = null;              // someone did something with it, null prefix key
-            return false;
-        }
 
         // ignore if consumed
         if (e.isConsumed()) {

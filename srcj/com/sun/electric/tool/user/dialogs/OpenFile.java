@@ -44,7 +44,7 @@ import javax.swing.filechooser.FileSystemView;
  */
 public class OpenFile
 {
-	private static class OpenFileSwing extends JFileChooser
+	public static class OpenFileSwing extends JFileChooser
 	{
 		/** True if this is a file save dialog */						private boolean saveDialog;
 		/** True to set new dir as working dir (default is true) */		private boolean setSelectedDirAsWorkingDir;

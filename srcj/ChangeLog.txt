@@ -11,7 +11,8 @@ FIX: Fixed KeyBindingManager.java:
      KeyBindingManager now implements KeyEventDispatcher
      Constructor calls: KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
      KeyBindingManager now has: public boolean dispatchKeyEvent(KeyEvent e) {return processKeyEvent(e);}
-     KeyBindingManager.processKeyEvent() does different shift modification
+     KeyBindingManager.processKeyEvent() does different shift modification and has special source detection
+     (source detection required that "OpenFile.OpenFileSwing" be public)
 
 IMP/MAN: (6/24/09, SMR) GDS import has "Cadence Compatibility" preference
      which adjusts export locations to be inside of the geometry (Bug #2246).
