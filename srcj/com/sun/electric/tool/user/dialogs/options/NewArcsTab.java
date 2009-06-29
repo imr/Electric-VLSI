@@ -71,6 +71,7 @@ public class NewArcsTab extends PreferencePanel
 	public String getName() { return "Arcs"; }
 
 	private boolean newArcsDataChanging = false;
+	private boolean techChanging = false;
 	private Technology selectedTech;
 
 	/**
@@ -132,18 +133,21 @@ public class NewArcsTab extends PreferencePanel
 		incrementArcNames.setSelected(User.isArcsAutoIncremented());
 	}
 
-	/**
+    /**
 	 * Method called when the primitive arc popup is changed.
 	 */
 	private void newArcsPrimPopupChanged()
 	{
+		if (techChanging) return;
 		String techName = (String)technologySelection.getSelectedItem();
 		Technology tech = Technology.findTechnology(techName);
 		if (tech == null) return;
+		newArcsDataChanging = true;
 		if (tech != selectedTech)
 		{
 			// reload the arcs
 			selectedTech = tech;
+			techChanging = true;
 			arcProtoList.removeAllItems();
 			arcPin.removeAllItems();
 			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
@@ -151,6 +155,8 @@ public class NewArcsTab extends PreferencePanel
 				ArcProto ap = it.next();
 				arcProtoList.addItem(ap.getName());
 			}
+			arcProtoList.setSelectedIndex(0);
+			techChanging = false;
 
 			// setup popup of possible pins
 			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
@@ -167,7 +173,6 @@ public class NewArcsTab extends PreferencePanel
         int angleIncrement = ap.getAngleIncrement(ep);
         PrimitiveNode pin = ap.findOverridablePinProto(ep);
 
-		newArcsDataChanging = true;
 		arcRigid.setSelected(a.isRigid());
 		arcFixedAngle.setSelected(a.isFixedAngle());
 		arcSlidable.setSelected(a.isSlidable());
