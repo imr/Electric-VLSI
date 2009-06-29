@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+BUG/MAN: (6/29/09, SMR) Spice primitives are not centered (Bug #2249).
+FIX: Centered all primitives and added a "Probe" symbol.
+
 BUG: (6/26/09, GVG) fill generator doesn'  t connect all networks found in fillCap (Bug #2254)
 FIX: HierarchicalEnumerator added to find arcs in sub cells included as instances.
 
