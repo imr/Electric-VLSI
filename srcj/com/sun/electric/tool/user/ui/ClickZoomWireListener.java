@@ -1344,18 +1344,26 @@ public class ClickZoomWireListener
 			if (cell == null) return;
 
 			boolean sideways = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0;
-			boolean sideways2 = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
-
+			boolean zoom = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 			int rotation = evt.getWheelRotation();
 
-			// scroll left right if sideways
-			if (sideways || sideways2) {
-				// scroll right if roll foward (pos)
-				// scroll left if roll back (neg)
+			if (zoom)
+			{
+				// Control held: zoom in (roll back) or out (roll forward)
+				double scale = wnd.getScale();
+				double dY = rotation / 10.0;
+				if (dY < 0) scale = scale - scale * dY;
+					else scale = scale * Math.exp(-dY);
+				wnd.setScale(scale);
+                wnd.getSavedFocusBrowser().updateCurrentFocus();
+				wnd.fullRepaint();
+			} else if (sideways)
+			{
+				// Shift held: scroll left (roll back) or right (roll forward)
 				ZoomAndPanListener.panXOrY(0, wnd.getWindowFrame(), rotation > 0 ? 1 : -1);
-			} else {
-				// scroll up if roll forward (pos)
-				// scroll down if roll back (neg)
+			} else
+			{
+				// no shift held: scroll up (roll forward) or down (roll back)
 				ZoomAndPanListener.panXOrY(1, wnd.getWindowFrame(), rotation > 0 ? 1 : -1);
 			}
 		}

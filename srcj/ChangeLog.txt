@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+IMP/MAN: (6/29/09, SMR) Rolling mouse wheel with control held zooms in and out (Bug #2248).
+
 BUG/MAN: (6/29/09, SMR) Spice primitives are not centered (Bug #2249).
 FIX: Centered all primitives and added a "Probe" symbol.
 
