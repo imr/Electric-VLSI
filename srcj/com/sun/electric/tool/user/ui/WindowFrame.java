@@ -899,6 +899,7 @@ public class WindowFrame extends Observable
         // make sure we're not visible anymore
         if (TopLevel.isMDIMode()) {
             jif.setVisible(false);
+            jif.dispose();
         }
 
         // remove references to this
