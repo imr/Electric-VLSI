@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+BUG: (7/1/09, SMR) Arrow and Delete keys in in-place editors handled wrong (Bug #2259).
+FIX: Added EIPEditorPane and EIPTextField to KeyBindingManager.processKeyEvent().
+
 BUG: (7/1/09, SMR) Changing extension of output file is ignored (Bug #2256).
 FIX: In Output.writeLibrary() only add extension if there is none.
 

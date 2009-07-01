@@ -456,7 +456,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 	 * Class for in-line editing a single-line piece of text.
 	 * The class exists so that it can grab the focus.
 	 */
-	static private class EIPTextField extends JTextField
+	static public class EIPTextField extends JTextField
 	{
 		EIPTextField(String text) { super(text); }
 
@@ -471,7 +471,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 	 * Class for in-line editing a multiple-line piece of text.
 	 * The class exists so that it can grab the focus.
 	 */
-	static private class EIPEditorPane extends JEditorPane
+	static public class EIPEditorPane extends JEditorPane
 	{
 		EIPEditorPane(String text) { super("text/plain", text); }
 

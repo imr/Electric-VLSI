@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.KeyBindings;
@@ -415,6 +416,8 @@ public class KeyBindingManager implements KeyEventDispatcher
             if (c instanceof WaveformWindow.OnePanel) { valid = true;   break; }
         	if (c instanceof EDialog) { lastPrefix = null;  return false; }
         	if (c instanceof OpenFile.OpenFileSwing) { lastPrefix = null;  return false; }
+            if (c instanceof GetInfoText.EIPEditorPane) { lastPrefix = null;  return false; }
+            if (c instanceof GetInfoText.EIPTextField) { lastPrefix = null;  return false; }
         	c = c.getParent();
         }
         if (!valid && (e.getModifiers() & InputEvent.CTRL_MASK) == 0)
