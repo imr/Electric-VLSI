@@ -287,9 +287,8 @@ public class Connectivity
 		job = j;
 
 		this.gridAlignExtraction = gridAlignExtraction;
-//		alignment = newCell.getEditingPreferences().getAlignmentToGrid();
 	    double scaledResolution = tech.getFactoryScaledResolution();
-	    alignment = new Dimension2D.Double(scaledResolution, scaledResolution); //0.5, 0.5);	// TODO: get proper value here
+	    alignment = new Dimension2D.Double(scaledResolution, scaledResolution);
 
 		// find pure-layer nodes that are never involved in higher-level components, and should be ignored
 		ignoreNodes = new HashSet<PrimitiveNode>();
