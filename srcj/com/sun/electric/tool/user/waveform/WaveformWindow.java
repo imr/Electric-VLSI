@@ -4274,7 +4274,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	// ************************************* DRAG AND DROP CLASSES *************************************
 
 	/**
-	 * This class extends JPanel so that components of the Waveform window can be identified by the Drag and Drop system.
+	 * This class extends JPanel so that components of the Waveform window can be identified by the Drag and Drop system
+	 * and by the key binding manager.
 	 */
 	public static class OnePanel extends JPanel
 	{

@@ -748,7 +748,7 @@ public class MimicStitch
 						(portPoly1.getCenterY() + portPoly2.getCenterY()) / 2 + prefY);
 					PortInst pi1 = pa.ni1.findPortInstFromProto(pa.pp1);
 					PortInst pi2 = pa.ni2.findPortInstFromProto(pa.pp2);
-					Route route = router.planRoute(pa.ni1.getParent(), pi1, pi2, bend, null, true, true);
+					Route route = router.planRoute(pa.ni1.getParent(), pi1, pi2, bend, null, true, true, null, null);
 					if (route.size() == 0)
 					{
 						System.out.println("Problem creating arc");
@@ -974,7 +974,7 @@ public class MimicStitch
 						(portPoly1.getCenterY() + portPoly2.getCenterY()) / 2 + prefY);
 					PortInst pi1 = pa.ni1.findPortInstFromProto(pa.pp1);
 					PortInst pi2 = pa.ni2.findPortInstFromProto(pa.pp2);
-					Route route = router.planRoute(pa.ni1.getParent(), pi1, pi2, bend, null, true, true);
+					Route route = router.planRoute(pa.ni1.getParent(), pi1, pi2, bend, null, true, true, null, null);
 					if (route.size() == 0)
 					{
 						System.out.println("Problem creating arc");

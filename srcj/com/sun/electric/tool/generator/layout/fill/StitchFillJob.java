@@ -347,7 +347,7 @@ public class StitchFillJob extends Job
             }
             AutoOptions prefs = new AutoOptions();
             prefs.createExports = true;
-            AutoStitch.runAutoStitch(newTile, niList, null, job, null, null, true, prefs, true);
+            AutoStitch.runAutoStitch(newTile, niList, null, job, null, null, true, prefs, true, null);
         }
     }
 
@@ -502,7 +502,7 @@ public class StitchFillJob extends Job
                 Area a = (ea != null) ? ea.getArea(horizontal) : null;
                 for (PinsArcPair pair : pairs)
                 {
-                    Route r = router.planRoute(theCell,  mostLeft, pair.topArc, pair.insert, null, true, true, pair.cut);
+                    Route r = router.planRoute(theCell,  mostLeft, pair.topArc, pair.insert, null, true, true, pair.cut, null);
                     //mostLeft = bottomSplit.rightArc;
                     routeList.add(r);
 
@@ -565,7 +565,7 @@ public class StitchFillJob extends Job
                         {
                             //SplitContainter bottomSplit = splitArcAtPoint(bottomA, pair.insert);
                             //SplitContainter topSplit = splitArcAtPoint(pair.topArc, pair.insert);
-                            Route r = router.planRoute(theCell,  bottomA, pair.topArc, pair.insert, null, true, true, pair.cut);
+                            Route r = router.planRoute(theCell,  bottomA, pair.topArc, pair.insert, null, true, true, pair.cut, null);
                             // remove the old one and add new arc
                             ab.remove(bottomA);
                             //ab.add(bottomSplit.rightArc);
@@ -679,7 +679,7 @@ public class StitchFillJob extends Job
                 }
                 if (bestCut != null) // best location found
                 {
-                    Route r = niRouter.planRoute(theCell,  bestArc, pi, bestCenter, null, true, true, bestCut);
+                    Route r = niRouter.planRoute(theCell,  bestArc, pi, bestCenter, null, true, true, bestCut, null);
                     routeList.add(r);
                     doneExports.add(rootName);
                 }

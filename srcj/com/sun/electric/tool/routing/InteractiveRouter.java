@@ -25,29 +25,40 @@
 package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.EditingPreferences;
-import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.topology.*;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * An Interactive Router has several methods that build on Router
@@ -134,7 +145,7 @@ public abstract class InteractiveRouter extends Router {
     public void makeRoute(EditWindow wnd, Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
         if (!started) startInteractiveRoute(wnd);
         // plan the route
-        Route route = planRoute(cell, startObj, endObj, clicked, null, true, true);
+        Route route = planRoute(cell, startObj, endObj, clicked, null, true, true, null, null);
         // restore highlights at start of planning, so that
         // they will correctly show up if this job is undone.
         wnd.clearHighlighting();
@@ -240,7 +251,7 @@ public abstract class InteractiveRouter extends Router {
     public void highlightRoute(EditWindow wnd, Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
         if (!started) startInteractiveRoute(wnd);
         // highlight route
-        Route route = planRoute(cell, startObj, endObj, clicked, null, true, true);
+        Route route = planRoute(cell, startObj, endObj, clicked, null, true, true, null, null);
         highlightRoute(wnd, route, cell);
     }
 
@@ -272,29 +283,13 @@ public abstract class InteractiveRouter extends Router {
      * @param stayInside the area in which to route (null if not applicable).
      * @param extendArcHead true to use default arc extension; false to force no arc extension.
      * @param extendArcTail true to use default arc extension; false to force no arc extension.
+     * @param contactArea
+     * @param alignment edge alignment factors (null for no alignment).
      * @return a List of RouteElements denoting route
      */
     public Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked, PolyMerge stayInside,
-                           boolean extendArcHead, boolean extendArcTail) {
-        return planRoute(cell, startObj, endObj, clicked, stayInside, extendArcHead, extendArcTail, null);
-    }
-
-    /**
-     * Plan a route from startObj to endObj, taking into account
-     * where the user clicked in the cell.
-     * @param cell the cell in which to create the arc
-     * @param startObj a PortInst or ArcInst from which to start the route
-     * @param endObj a PortInst or ArcInst to end the route on. May be null
-     * if the user is drawing to empty space.
-     * @param clicked the point where the user clicked
-     * @param stayInside the area in which to route (null if not applicable).
-     * @param extendArcHead true to use default arc extension; false to force no arc extension.
-     * @param extendArcTail true to use default arc extension; false to force no arc extension.
-     * @return a List of RouteElements denoting route
-     */
-    public Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked, PolyMerge stayInside,
-                           boolean extendArcHead, boolean extendArcTail, Rectangle2D contactArea) {
-
+    	boolean extendArcHead, boolean extendArcTail, Rectangle2D contactArea, Dimension2D alignment)
+    {
         EditingPreferences ep = cell.getEditingPreferences();
         Route route = new Route();               // hold the route
         if (cell == null) return route;
@@ -363,7 +358,7 @@ public abstract class InteractiveRouter extends Router {
         // arc(s) should connect
         Point2D startPoint = new Point2D.Double(0, 0);
         Point2D endPoint = new Point2D.Double(0,0);
-        getConnectingPoints(startObj, endObj, clicked, startPoint, endPoint, startPoly, endPoly, startArc, endArc);
+        getConnectingPoints(startObj, endObj, clicked, startPoint, endPoint, startPoly, endPoly, startArc, endArc, alignment);
 
         PortInst existingStartPort = null;
         PortInst existingEndPort = null;
@@ -612,7 +607,7 @@ public abstract class InteractiveRouter extends Router {
      */
     protected static void getConnectingPoints(ElectricObject startObj, ElectricObject endObj, Point2D clicked,
                                               Point2D startPoint, Point2D endPoint, Poly startPoly, Poly endPoly,
-                                              ArcProto startArc, ArcProto endArc) {
+                                              ArcProto startArc, ArcProto endArc, Dimension2D alignment) {
 
 /*        Point2D[] points = startPoly.getPoints();
         System.out.print("StartPoly: ");
@@ -640,10 +635,9 @@ public abstract class InteractiveRouter extends Router {
             return;
         }
 
-        // just go by bounds for now
+        // default is center point, aligned to grid
         Rectangle2D startBounds = startPoly.getBounds2D();
-        // default is center point
-        startPoint.setLocation(startBounds.getCenterX(), startBounds.getCenterY());
+        getAlignedCenter(startBounds, alignment, startPoint);
 
         // if startObj is arc inst
         if (startObj instanceof ArcInst) {
@@ -668,7 +662,7 @@ public abstract class InteractiveRouter extends Router {
         }
 
         Rectangle2D endBounds = endPoly.getBounds2D();
-        endPoint.setLocation(endBounds.getCenterX(), endBounds.getCenterY());
+        getAlignedCenter(endBounds, alignment, endPoint);
 
         if (endObj instanceof ArcInst) {
             double x, y;
@@ -778,6 +772,42 @@ public abstract class InteractiveRouter extends Router {
             }
         }
     }
+
+    /**
+     * Method to find the center of a Rectangle, grid aligned.
+     * @param bounds the rectangle to evaluate.
+     * @param alignment the alignment in X and Y.
+     * @param ctr the center point is stored here.
+     */
+	private static void getAlignedCenter(Rectangle2D bounds, Dimension2D alignment, Point2D ctr)
+	{
+		double cX = bounds.getCenterX();
+		double cY = bounds.getCenterY();
+		if (alignment != null)
+		{
+			if (alignment.getWidth() > 0)
+			{
+				double xx = cX / alignment.getWidth();
+				long xxL = Math.round(xx);
+				if (xx != xxL)
+				{
+					double newX = xxL * alignment.getWidth();
+					if (newX >= bounds.getMinX() && newX <= bounds.getMaxX()) cX = newX;
+				}
+			}
+			if (alignment.getHeight() > 0)
+			{
+				double yy = cY / alignment.getHeight();
+				long yyL = Math.round(yy);
+				if (yy != yyL)
+				{
+					double newY = yyL * alignment.getHeight();
+					if (newY >= bounds.getMinY() && newY <= bounds.getMaxY()) cY = newY;
+				}
+			}
+		}
+		ctr.setLocation(cX, cY);
+	}
 
     /**
      * Get the intersection point of the two line segments, or null if none

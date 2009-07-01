@@ -149,6 +149,7 @@ public class Connectivity
 	/** total number of cells to extract when recursing */		private int totalCells;
 	/** total number of cells extracted when recursing */		private int cellsExtracted;
 	/** Job that is holding the process */						private Job job;
+	/** Grid alignment for edges */								private Dimension2D alignment;
 
 	/**
 	 * Method to examine the current cell and extract it's connectivity in a new one.
@@ -276,8 +277,7 @@ public class Connectivity
 	private Connectivity(Cell cell, Job j, ErrorLogger eLog, double smallestPolygonSize, int activeHandling,
 		boolean gridAlignExtraction, boolean approximateCuts, boolean recursive, Pattern pat)
 	{
-		this.gridAlignExtraction = gridAlignExtraction;
-		this.approximateCuts = approximateCuts;
+	    this.approximateCuts = approximateCuts;
 		this.recursive = recursive;
 		tech = cell.getTechnology();
 		convertedCells = new HashMap<Cell,Cell>();
@@ -285,6 +285,11 @@ public class Connectivity
 		bogusContacts = new HashSet<PrimitiveNode>();
 		errorLogger = eLog;
 		job = j;
+
+		this.gridAlignExtraction = gridAlignExtraction;
+//		alignment = newCell.getEditingPreferences().getAlignmentToGrid();
+	    double scaledResolution = tech.getFactoryScaledResolution();
+	    alignment = new Dimension2D.Double(scaledResolution, scaledResolution); //0.5, 0.5);	// TODO: get proper value here
 
 		// find pure-layer nodes that are never involved in higher-level components, and should be ignored
 		ignoreNodes = new HashSet<PrimitiveNode>();
@@ -565,7 +570,7 @@ public class Connectivity
 		}
 		AutoOptions prefs = new AutoOptions();
 		prefs.createExports = true;
-		AutoStitch.runAutoStitch(newCell, null, null, job, originalUnscaledMerge, null, false, prefs, !recursive);
+		AutoStitch.runAutoStitch(newCell, null, null, job, originalUnscaledMerge, null, false, prefs, !recursive, alignment);
 		if (DEBUGSTEPS)
 		{
 			initDebugging();
@@ -1014,6 +1019,7 @@ public class Connectivity
 
 	private boolean isOnGrid(double value, double grid)
 	{
+		if (grid == 0) return true;
 		long x = Math.round(value / grid);
 		return x * grid == value;
 	}
@@ -1042,9 +1048,6 @@ public class Connectivity
 		}
 
 		// examine each wire layer, looking for a skeletal structure that approximates it
-//        Dimension2D alignment = newCell.getEditingPreferences().getAlignmentToGrid();
-        double scaledResolution = tech.getFactoryScaledResolution();
-        Dimension2D alignment = new Dimension2D.Double(scaledResolution, scaledResolution); //0.5, 0.5);	// TODO: get proper value here
 		int soFar = 0;
 		Set<Layer> allLayers = geomToWire.keySet();
 		for (Layer layer : allLayers)
@@ -1069,10 +1072,10 @@ public class Connectivity
 				for(Centerline cl : lines)
 				{
 					Point2D loc1Unscaled = new Point2D.Double();
-					PortInst pi1 = locatePortOnCenterline(cl, loc1Unscaled, layer, ap, true, newCell);
 					Point2D loc2Unscaled = new Point2D.Double();
-					PortInst pi2 = locatePortOnCenterline(cl, loc2Unscaled, layer, ap, false, newCell);
+					PortInst pi1 = locatePortOnCenterline(cl, loc1Unscaled, layer, ap, true, newCell);
 					Point2D loc1 = new Point2D.Double(scaleUp(loc1Unscaled.getX()), scaleUp(loc1Unscaled.getY()));
+					PortInst pi2 = locatePortOnCenterline(cl, loc2Unscaled, layer, ap, false, newCell);
 					Point2D loc2 = new Point2D.Double(scaleUp(loc2Unscaled.getX()), scaleUp(loc2Unscaled.getY()));
 
 					// make sure the wire fits
@@ -1091,7 +1094,7 @@ public class Connectivity
 							headExtend.setValue(false);
 						if (!isOnGrid(loc2YExtend, alignment.getHeight()) && isOnGrid(loc2Y, alignment.getHeight()))
 							tailExtend.setValue(false);
-					} else
+					} else if (loc1.getY() == loc2.getY())
 					{
 						// horizontal arc: adjust extension to make sure left and right are on grid
 						double loc1X = loc1Unscaled.getX();
@@ -1099,9 +1102,9 @@ public class Connectivity
 						double halfWidth = cl.width/2/SCALEFACTOR;
 						double loc1XExtend = loc1X + (loc1X < loc2X ? -halfWidth : halfWidth);
 						double loc2XExtend = loc2X + (loc2X < loc1X ? -halfWidth : halfWidth);
-						if (!isOnGrid(loc1XExtend, alignment.getHeight()) && isOnGrid(loc1X, alignment.getHeight()))
+						if (!isOnGrid(loc1XExtend, alignment.getWidth()) && isOnGrid(loc1X, alignment.getWidth()))
 							headExtend.setValue(false);
-						if (!isOnGrid(loc2XExtend, alignment.getHeight()) && isOnGrid(loc2X, alignment.getHeight()))
+						if (!isOnGrid(loc2XExtend, alignment.getWidth()) && isOnGrid(loc2X, alignment.getWidth()))
 							tailExtend.setValue(false);
 					}
 
@@ -1159,8 +1162,78 @@ public class Connectivity
 			for(PolyBase poly : polyList)
 			{
 				Rectangle2D bounds = poly.getBounds2D();
+
+				// make sure polygon is in the merge
 				Poly rectPoly = new Poly(bounds);
 				if (!originalMerge.contains(layer, rectPoly)) continue;
+
+				// grid align the edges of this rectangle
+				double lX = bounds.getMinX()/SCALEFACTOR, hX = bounds.getMaxX()/SCALEFACTOR;
+				double lY = bounds.getMinY()/SCALEFACTOR, hY = bounds.getMaxY()/SCALEFACTOR;
+				double alignX = alignment.getWidth();
+				double alignY = alignment.getHeight();
+				if (!isOnGrid(lX, alignX)) { lX = Math.ceil(lX / alignX) * alignX; System.out.println("ADJUSTING LX FROM "+(bounds.getMinX()/SCALEFACTOR)+" TO "+lX); }
+				if (!isOnGrid(hX, alignX)) { hX = Math.floor(hX / alignX) * alignX; System.out.println("ADJUSTING HX FROM "+(bounds.getMaxX()/SCALEFACTOR)+" TO "+hX); }
+				if (!isOnGrid(lY, alignY)) { lY = Math.ceil(lY / alignY) * alignY; System.out.println("ADJUSTING LY FROM "+(bounds.getMinY()/SCALEFACTOR)+" TO "+lY); }
+				if (!isOnGrid(hY, alignY)) { hY = Math.floor(hY / alignY) * alignY; System.out.println("ADJUSTING HY FROM "+(bounds.getMaxY()/SCALEFACTOR)+" TO "+hY); }
+				if (lX >= hX || lY >= hY) continue;
+
+				// grid align the center of this rectangle
+				double cX = (lX + hX) / 2, cY = (lY + hY) / 2;
+				if (!isOnGrid(cX, alignX))
+				{
+					// try expanding to the right so center is aligned
+					double cXright = Math.ceil(cX / alignX) * alignX;
+					Poly testPoly = new Poly(cXright*SCALEFACTOR, cY*SCALEFACTOR, ((cXright-lX) * 2)*SCALEFACTOR, (hY-lY)*SCALEFACTOR);
+					if (originalMerge.contains(layer, testPoly)) bounds = testPoly.getBounds2D(); else
+					{
+						// try expanding to the left so center is aligned
+						double cXleft = Math.floor(cX / alignX) * alignX;
+						testPoly = new Poly(cXleft*SCALEFACTOR, cY*SCALEFACTOR, ((hX-cXleft) * 2)*SCALEFACTOR, (hY-lY)*SCALEFACTOR);
+						if (originalMerge.contains(layer, testPoly)) bounds = testPoly.getBounds2D(); else
+						{
+							// try contracting on the right so center is aligned
+							testPoly = new Poly(cXright*SCALEFACTOR, cY*SCALEFACTOR, ((hX-cXright) * 2)*SCALEFACTOR, (hY-lY)*SCALEFACTOR);
+							if (originalMerge.contains(layer, testPoly)) bounds = testPoly.getBounds2D(); else
+							{
+								// try contracting on the left so center is aligned
+								testPoly = new Poly(cXleft*SCALEFACTOR, cY*SCALEFACTOR, ((cXleft-lX) * 2)*SCALEFACTOR, (hY-lY)*SCALEFACTOR);
+								if (originalMerge.contains(layer, testPoly)) bounds = testPoly.getBounds2D(); else
+									continue;
+							}
+						}
+					}
+					if (bounds.getWidth() <= 0) continue;
+					lX = bounds.getMinX()/SCALEFACTOR;
+					hX = bounds.getMaxX()/SCALEFACTOR;
+					cX = (lX + hX) / 2;
+				}
+
+				if (!isOnGrid(cY, alignY))
+				{
+					// try expanding upward so center is aligned
+					double cYup = Math.ceil(cY / alignY) * alignY;
+					Poly testPoly = new Poly(cX*SCALEFACTOR, cYup*SCALEFACTOR, (hX-lX)*SCALEFACTOR, ((cYup-lY) * 2)*SCALEFACTOR);
+					if (originalMerge.contains(layer, testPoly)) bounds = testPoly.getBounds2D(); else
+					{
+						// try expanding downward so center is aligned
+						double cYdown = Math.floor(cY / alignY) * alignY;
+						testPoly = new Poly(cX*SCALEFACTOR, cYdown*SCALEFACTOR, (hX-lX)*SCALEFACTOR, ((hY-cYdown) * 2)*SCALEFACTOR);
+						if (originalMerge.contains(layer, testPoly)) bounds = testPoly.getBounds2D(); else
+						{
+							// try contracting upward so center is aligned
+							testPoly = new Poly(cX*SCALEFACTOR, cYup*SCALEFACTOR, (hX-lX)*SCALEFACTOR, ((hY-cYup) * 2)*SCALEFACTOR);
+							if (originalMerge.contains(layer, testPoly)) bounds = testPoly.getBounds2D(); else
+							{
+								// try contracting downward so center is aligned
+								testPoly = new Poly(cX*SCALEFACTOR, cYdown*SCALEFACTOR, (hX-lX)*SCALEFACTOR, ((cYdown-lY) * 2)*SCALEFACTOR);
+								if (originalMerge.contains(layer, testPoly)) bounds = testPoly.getBounds2D(); else
+									continue;
+							}
+						}
+					}
+					if (bounds.getHeight() <= 0) continue;
+				}
 
 				// figure out which arc proto to use for the layer
 				ArcProto ap = findArcProtoForPoly(layer, poly, originalMerge);
@@ -1385,14 +1458,16 @@ public class Connectivity
 	 * @param loc1 it's location (values returned through this object!)
 	 * @param layer the layer associated with the Centerline.
 	 * @param ap the type of arc to create.
-	 * @param startSide true to
+	 * @param startSide true to consider the "start" end of the Centerline, false for the "end" end.
 	 * @param newCell the Cell in which to find ports.
 	 * @return the PortInst on the Centerline.
 	 */
-	private PortInst locatePortOnCenterline(Centerline cl, Point2D loc1, Layer layer, ArcProto ap, boolean startSide, Cell newCell)
+	private PortInst locatePortOnCenterline(Centerline cl, Point2D loc1, Layer layer,
+		ArcProto ap, boolean startSide, Cell newCell)
 	{
 		PortInst piRet = null;
 		boolean isHub = cl.endHub;
+		gridAlignCenterline(cl, startSide);
 		EPoint startPoint = cl.endUnscaled;
 		if (startSide)
 		{
@@ -1479,6 +1554,81 @@ public class Connectivity
 			}
 		}
 		return piRet;
+	}
+
+	private void gridAlignCenterline(Centerline cl, boolean startSide)
+	{
+		// grid align the edges
+		double halfWidth = cl.width / 2;
+		if (cl.start.getX() == cl.end.getX())
+		{
+			// vertical arc: make sure ends align in Y
+			int ali = (int)Math.round(alignment.getHeight() * SCALEFACTOR);
+			if (ali == 0) return;
+			if (startSide)
+			{
+				// adjust the "start" end
+				if (cl.start.getY() < cl.end.getY())
+				{
+					// start on left: compute edge below it
+					double edge = cl.start.getY() - halfWidth;
+					cl.setStart(cl.start.getX(), Math.ceil(edge / ali) * ali + halfWidth);
+				} else
+				{
+					// start on right: compute edge above it
+					double edge = cl.start.getY() + halfWidth;
+					cl.setStart(cl.start.getX(), Math.floor(edge / ali) * ali - halfWidth);
+				}
+			} else
+			{
+				// adjust the "end" end
+				if (cl.end.getY() < cl.start.getY())
+				{
+					// end on left: compute edge below it
+					double edge = cl.end.getY() - halfWidth;
+					cl.setEnd(cl.end.getX(), Math.ceil(edge / ali) * ali + halfWidth);
+				} else
+				{
+					// end on right: compute edge above it
+					double edge = cl.end.getY() + halfWidth;
+					cl.setEnd(cl.end.getX(), Math.floor(edge / ali) * ali - halfWidth);
+				}
+			}
+		} else if (cl.start.getY() == cl.end.getY())
+		{
+			// horizontal arc: make sure ends align in X
+			int ali = (int)Math.round(alignment.getWidth() * SCALEFACTOR);
+			if (ali == 0) return;
+			if (startSide)
+			{
+				// adjust the "start" end
+				if (cl.start.getX() < cl.end.getX())
+				{
+					// start on left: compute edge below it
+					double edge = cl.start.getX() - halfWidth;
+					cl.setStart(Math.ceil(edge / ali) * ali + halfWidth, cl.start.getY());
+				} else
+				{
+					// start on right: compute edge above it
+					double edge = cl.start.getX() + halfWidth;
+					cl.setStart(Math.floor(edge / ali) * ali - halfWidth, cl.start.getY());
+				}
+			} else
+			{
+				// adjust the "end" end
+				if (cl.end.getX() < cl.start.getX())
+				{
+					// end on left: compute edge below it
+					double edge = cl.end.getX() - halfWidth;
+					cl.setEnd(Math.ceil(edge / ali) * ali + halfWidth, cl.end.getY());
+				} else
+				{
+					// end on right: compute edge above it
+					double edge = cl.end.getX() + halfWidth;
+					cl.setEnd(Math.floor(edge / ali) * ali - halfWidth, cl.end.getY());
+				}
+			}
+		}
 	}
 
 	private List<PortInst> findPortInstsTouchingPoint(Point2D pt, Layer layer, Cell newCell, ArcProto ap)
@@ -3827,8 +3977,40 @@ public class Connectivity
 								length = edgeCtrs[startPt].distance(edgeCtrs[endPt]);
 							}
 
+							// get the centerline points
+							double psX = possibleStart[p].getX();
+							double psY = possibleStart[p].getY();
+							double peX = possibleEnd[p].getX();
+							double peY = possibleEnd[p].getY();
+
+							// grid-align the centerline points
+							double xGrid = scaleUp(alignment.getWidth());
+							double yGrid = scaleUp(alignment.getHeight());
+							if (!isOnGrid(psX, xGrid))
+							{
+								if (psX > peX) psX = Math.floor(psX / xGrid) * xGrid; else
+									psX = Math.ceil(psX / xGrid) * xGrid;
+							}
+							if (!isOnGrid(psY, yGrid))
+							{
+								if (psY > peY) psY = Math.floor(psY / yGrid) * yGrid; else
+									psY = Math.ceil(psY / yGrid) * yGrid;
+							}
+							if (!isOnGrid(peX, xGrid))
+							{
+								if (peX > psX) peX = Math.floor(peX / xGrid) * xGrid; else
+									peX = Math.ceil(peX / xGrid) * xGrid;
+							}
+							if (!isOnGrid(peY, yGrid))
+							{
+								if (peY > psY) peY = Math.floor(peY / yGrid) * yGrid; else
+									peY = Math.ceil(peY / yGrid) * yGrid;
+							}
+
 							// create the centerline
-							Centerline newCL = new Centerline(width, possibleStart[p], possibleEnd[p]);
+							Point2D ps = new Point2D.Double(psX, psY);
+							Point2D pe = new Point2D.Double(peX, peY);
+							Centerline newCL = new Centerline(width, ps, pe);
 							if (newCL.angle >= 0) centerlines.add(newCL);
 							if (DEBUGCENTERLINES) System.out.println("  MAKE "+newCL.toString());
 							break;

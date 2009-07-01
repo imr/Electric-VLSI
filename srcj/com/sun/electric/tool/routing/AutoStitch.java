@@ -27,6 +27,7 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.ObjectQTree;
@@ -92,6 +93,7 @@ public class AutoStitch
 	/** list of all routes to be created at end of analysis */		private List<Route> allRoutes;
 	/** list of pins that may be inline pins due to created arcs */	private List<NodeInst> possibleInlinePins;
 	/** set of nodes to check (prevents duplicate checks) */		private Set<NodeInst> nodeMark;
+	/** edge alignment for arcs */									private Dimension2D alignment;
 
 	/****************************************** CONTROL ******************************************/
 
@@ -193,7 +195,7 @@ public class AutoStitch
 			Rectangle2D limitBound = null;
 			if (lX != hX && lY != hY)
 				limitBound = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
-			runAutoStitch(cell, nodesToStitch, arcsToStitch, this, null, limitBound, forced, prefs, false);
+			runAutoStitch(cell, nodesToStitch, arcsToStitch, this, null, limitBound, forced, prefs, false, null);
 			return true;
 		}
 	}
@@ -209,9 +211,10 @@ public class AutoStitch
 	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
 	 * @param prefs routing preferences.
 	 * @param showProgress true to show progress.
+	 * @param alignment grid alignment for edges of arcs (null if none).
 	 */
 	public static void runAutoStitch(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch, Job job,
-		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, AutoOptions prefs, boolean showProgress)
+		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, AutoOptions prefs, boolean showProgress, Dimension2D alignment)
 	{
 		// initialization
 		if (cell.isAllLocked())
@@ -221,6 +224,7 @@ public class AutoStitch
 		}
 
 		AutoStitch as = new AutoStitch(cell.getEditingPreferences());
+		as.alignment = alignment;
 		as.runNow(cell, nodesToStitch, arcsToStitch, job, stayInside, limitBound, forced, prefs, showProgress);
 	}
 
@@ -1786,6 +1790,13 @@ name=null;
 		// find some dummy position to help run the arc
 		double x = (oPortCenter.getX() + portCenter.getX()) / 2;
 		double y = (oPortCenter.getY() + portCenter.getY()) / 2;
+		if (alignment != null)
+		{
+			if (alignment.getWidth() > 0)
+				x = Math.round(x / alignment.getWidth()) * alignment.getWidth();
+			if (alignment.getHeight() > 0)
+				y = Math.round(y / alignment.getHeight()) * alignment.getHeight();
+		}
 
 		// run the wire
 		PortInst pi = ni.findPortInstFromProto(pp);
@@ -1817,7 +1828,8 @@ name=null;
 		if (eobj2 instanceof NodeInst) ni2 = (NodeInst)eobj2; else
 			if (eobj2 instanceof PortInst) ni2 = ((PortInst)eobj2).getNodeInst();
 
-		Route route = router.planRoute(cell, eobj1, eobj2, ctr, stayInside, true, true);
+		Rectangle2D nullRect = null;
+		Route route = router.planRoute(cell, eobj1, eobj2, ctr, stayInside, true, true, nullRect, alignment);
 		if (route.size() == 0) return false;
 
 //		// see if this caused an arc to be deleted
