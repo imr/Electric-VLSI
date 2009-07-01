@@ -92,8 +92,6 @@ public class PostScript extends Output
 	/** true to generate color PostScript. */							private boolean psUseColor;
 	/** true to generate merged color PostScript. */					private boolean psUseColorMerge;
 	/** the Cell being written. */										private Cell cell;
-	private Rectangle2D printBounds;
-	/** the EditWindow_ in which the cell resides. */					private EditWindow_ wnd;
 	/** number of patterns emitted so far. */							private int psNumPatternsEmitted;
 	/** list of patterns emitted so far. */								private HashMap<EGraphics,Integer> patternsEmitted;
 	/** current layer number (-1: do all; 0: cleanup). */				private int currentLayer;
@@ -119,8 +117,9 @@ public class PostScript extends Output
 		int printRotation = IOTool.getFactoryPrintRotation();
 		double printPSLineWidth = IOTool.getFactoryPrintPSLineWidth();
         GraphicsPreferences gp;
+        EditWindow_ wnd;
+    	Rectangle2D printBounds;
         Set<Layer> invisibleLayers = new HashSet<Layer>();
-
 
 		PostScriptPreferences(boolean factory, List<PolyBase> override)
 		{
@@ -151,6 +150,42 @@ public class PostScript extends Output
 			printMargin = IOTool.getPrintMargin();
 			printRotation = IOTool.getPrintRotation();
 			printPSLineWidth = IOTool.getPrintPSLineWidth();
+			UserInterface ui = Job.getUserInterface();
+			wnd = ui.getCurrentEditWindow_();
+
+	        // determine the area of interest
+	        printBounds = null;
+			if (override != null)
+			{
+				double lX=0, hX=0, lY=0, hY=0;
+				boolean first = true;
+				for(PolyBase poly : override)
+				{
+					Point2D [] points = poly.getPoints();
+					for(int i=0; i<points.length; i++)
+					{
+						double x = points[i].getX();
+						double y = points[i].getY();
+						if (first)
+						{
+							first = false;
+							lX = hX = x;
+							lY = hY = y;
+						} else
+						{
+							if (x < lX) lX = x;
+							if (x > hX) hX = x;
+							if (y < lY) lY = y;
+							if (y > hY) hY = y;
+						}
+					}
+				}
+				printBounds = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
+			} else
+			{
+				Cell cell = wnd.getCell();
+				printBounds = getAreaToPrint(cell, false, wnd);
+			}
 		}
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
@@ -176,6 +211,7 @@ public class PostScript extends Output
 	 */
 	private boolean writeCellToFile(String filePath)
 	{
+		if (localPrefs.printBounds == null) return true;
 		boolean error = false;
 		if (openTextOutputStream(filePath)) error = true; else
 		{
@@ -226,9 +262,7 @@ public class PostScript extends Output
 	private boolean start()
 	{
 		// find the edit window
-		UserInterface ui = Job.getUserInterface();
-		wnd = ui.getCurrentEditWindow_();
-		if (wnd != null && wnd.getCell() != cell) wnd = null;
+		if (localPrefs.wnd != null && localPrefs.wnd.getCell() != cell) localPrefs.wnd = null;
 
 		// clear flags that tell whether headers have been included
 		putHeaderDot = false;
@@ -256,40 +290,6 @@ public class PostScript extends Output
 		double pageMarginPS = localPrefs.printMargin * 75;
 		double pageMargin = pageMarginPS;		// not right!!!
 
-		// determine the area of interest
-		printBounds = null;
-		if (localPrefs.override != null)
-		{
-			double lX=0, hX=0, lY=0, hY=0;
-			boolean first = true;
-			for(PolyBase poly : localPrefs.override)
-			{
-				Point2D [] points = poly.getPoints();
-				for(int i=0; i<points.length; i++)
-				{
-					double x = points[i].getX();
-					double y = points[i].getY();
-					if (first)
-					{
-						first = false;
-						lX = hX = x;
-						lY = hY = y;
-					} else
-					{
-						if (x < lX) lX = x;
-						if (x > hX) hX = x;
-						if (y < lY) lY = y;
-						if (y > hY) hY = y;
-					}
-				}
-			}
-			printBounds = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
-		} else
-		{
-			printBounds = getAreaToPrint(cell, false, wnd);
-		}
-		if (printBounds == null) return false;
-
 		boolean rotatePlot = false;
 		switch (localPrefs.printRotation)
 		{
@@ -297,8 +297,9 @@ public class PostScript extends Output
 				rotatePlot = true;
 				break;
 			case 2:		// auto-rotate
-				if (((pageHei > pageWid || localPrefs.printForPlotter) && printBounds.getWidth() > printBounds.getHeight()) ||
-					(pageWid > pageHei && printBounds.getHeight() > printBounds.getWidth()))
+				if (((pageHei > pageWid || localPrefs.printForPlotter) &&
+					localPrefs.printBounds.getWidth() > localPrefs.printBounds.getHeight()) ||
+					(pageWid > pageHei && localPrefs.printBounds.getHeight() > localPrefs.printBounds.getWidth()))
 						rotatePlot = true;
 				break;
 		}
@@ -308,10 +309,10 @@ public class PostScript extends Output
 		{
 			if (rotatePlot)
 			{
-				pageHei = pageWid * printBounds.getWidth() / printBounds.getHeight();
+				pageHei = pageWid * localPrefs.printBounds.getWidth() / localPrefs.printBounds.getHeight();
 			} else
 			{
-				pageHei = pageWid * printBounds.getHeight() / printBounds.getWidth();
+				pageHei = pageWid * localPrefs.printBounds.getHeight() / localPrefs.printBounds.getWidth();
 			}
 		}
 
@@ -323,8 +324,8 @@ public class PostScript extends Output
 		}
 
 		// PostScript: compute the transformation matrix
-		double cX = printBounds.getCenterX();
-		double cY = printBounds.getCenterY();
+		double cX = localPrefs.printBounds.getCenterX();
+		double cY = localPrefs.printBounds.getCenterY();
 		double unitsX = (pageWid-pageMargin*2) * PSSCALE;
 		double unitsY = (pageHei-pageMargin*2) * PSSCALE;
 		if (localPrefs.printEncapsulate)
@@ -339,12 +340,12 @@ public class PostScript extends Output
 		double i, j;
 		if (localPrefs.printForPlotter)
 		{
-			i = unitsX / printBounds.getWidth();
-			j = unitsX / printBounds.getHeight();
+			i = unitsX / localPrefs.printBounds.getWidth();
+			j = unitsX / localPrefs.printBounds.getHeight();
 		} else
 		{
-			i = Math.min(unitsX / printBounds.getWidth(), unitsY / printBounds.getHeight());
-			j = Math.min(unitsX / printBounds.getHeight(), unitsY / printBounds.getWidth());
+			i = Math.min(unitsX / localPrefs.printBounds.getWidth(), unitsY / localPrefs.printBounds.getHeight());
+			j = Math.min(unitsX / localPrefs.printBounds.getHeight(), unitsY / localPrefs.printBounds.getWidth());
 		}
 		if (rotatePlot) i = j;
 		double matrix00 = i;   double matrix01 = 0;
@@ -353,7 +354,7 @@ public class PostScript extends Output
 		double matrix21;
 		if (localPrefs.printForPlotter)
 		{
-			matrix21 = - i * printBounds.getMinY() + pageMarginPS * PSSCALE;
+			matrix21 = - i * localPrefs.printBounds.getMinY() + pageMarginPS * PSSCALE;
 		} else
 		{
 			matrix21 = - i * cY + unitsY / 2 + pageMarginPS * PSSCALE;
@@ -378,10 +379,10 @@ public class PostScript extends Output
 		emitCopyright("% ", "");
 
 		// transform to PostScript units
-		double bblx = printBounds.getMinX();
-		double bbhx = printBounds.getMaxX();
-		double bbly = printBounds.getMinY();
-		double bbhy = printBounds.getMaxY();
+		double bblx = localPrefs.printBounds.getMinX();
+		double bbhx = localPrefs.printBounds.getMaxX();
+		double bbly = localPrefs.printBounds.getMinY();
+		double bbhy = localPrefs.printBounds.getMaxY();
 
 		Point2D bbCorner1 = psXform(new Point2D.Double(bblx, bbly));
 		Point2D bbCorner2 = psXform(new Point2D.Double(bbhx, bbhy));
@@ -484,10 +485,10 @@ public class PostScript extends Output
 	{
 		// draw the grid if requested
 		if (psUseColor) printWriter.println("0 0 0 setrgbcolor");
-		if (wnd != null && wnd.isGrid())
+		if (localPrefs.wnd != null && localPrefs.wnd.isGrid())
 		{
-			int gridx = (int)wnd.getGridXSpacing();
-			int gridy = (int)wnd.getGridYSpacing();
+			int gridx = (int)localPrefs.wnd.getGridXSpacing();
+			int gridy = (int)localPrefs.wnd.getGridYSpacing();
 			int lx = (int)cell.getBounds().getMinX();
 			int ly = (int)cell.getBounds().getMinY();
 			int hx = (int)cell.getBounds().getMaxX();
@@ -620,7 +621,7 @@ public class PostScript extends Output
 			{
 				Point2D [] pts = poly.getPoints();
 				for(int i=0; i<pts.length; i++)
-					poly.setPoint(i, pts[i].getX(), printBounds.getHeight() - pts[i].getY());
+					poly.setPoint(i, pts[i].getX(), localPrefs.printBounds.getHeight() - pts[i].getY());
 			}
 		}
 
@@ -755,7 +756,7 @@ public class PostScript extends Output
 			// draw any displayable variables on the node
 			if (/* topLevel && */ real && localPrefs.gp.isTextVisibilityOn(TextDescriptor.TextType.NODE))
 			{
-				Poly [] textPolys = ni.getDisplayableVariables(wnd);
+				Poly [] textPolys = ni.getDisplayableVariables(localPrefs.wnd);
 				for (int i=0; i<textPolys.length; i++)
 				{
 					textPolys[i].transform(subRot);
@@ -796,7 +797,7 @@ public class PostScript extends Output
 
 						// draw variables on the export
 						Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
-						Poly[] polys = e.getDisplayableVariables(rect, wnd, true);
+						Poly[] polys = e.getDisplayableVariables(rect, localPrefs.wnd, true);
 						for (int i=0; i<polys.length; i++)
 						{
 							psPoly(polys[i]);
@@ -828,7 +829,7 @@ public class PostScript extends Output
 				// draw any displayable variables on the arc
 				if (topLevel && localPrefs.gp.isTextVisibilityOn(TextDescriptor.TextType.ARC))
 				{
-					Poly[] textPolys = ai.getDisplayableVariables(wnd);
+					Poly[] textPolys = ai.getDisplayableVariables(localPrefs.wnd);
 					for (int i=0; i<textPolys.length; i++)
 					{
 						textPolys[i].transform(trans);
@@ -849,7 +850,7 @@ public class PostScript extends Output
 		{
 			// show displayable variables on the instance
 			Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
-			Poly[] polys = cell.getDisplayableVariables(CENTERRECT, wnd, true);
+			Poly[] polys = cell.getDisplayableVariables(CENTERRECT, localPrefs.wnd, true);
 			for (int i=0; i<polys.length; i++)
 				psPoly(polys[i]);
 		}
@@ -1351,7 +1352,7 @@ public class PostScript extends Output
 		Poly.Type style = poly.getStyle();
 		TextDescriptor td = poly.getTextDescriptor();
 		if (td == null) return;
-		int size = (int)(td.getTrueSize(wnd) * PSTEXTSCALE * PSSCALE);
+		int size = (int)(td.getTrueSize(localPrefs.wnd) * PSTEXTSCALE * PSSCALE);
 		Rectangle2D bounds = poly.getBounds2D();
 
 		// get the font size

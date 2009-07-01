@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+BUG: (7/1/09, SMR) PostScript text is incorrectly scaled (too large) and
+     PostScript gives errors about the server trying to access Preferences (Bug #2258).
+FIX: Moved preference access to client.
+
 BUG: (7/1/09, SMR) Node extractor does not grid-align (Bug #2239).
 FIX: Grid alignment added to node extractor and routers.
 
