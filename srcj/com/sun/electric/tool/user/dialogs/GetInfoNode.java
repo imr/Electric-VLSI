@@ -394,7 +394,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		mirrorY.setSelected(initialMirrorY);
 		rotation.setText(TextUtils.formatDouble(initialRotation / 10.0));
 
-		// special case for transistors
+		// special case for transistors or resistors
 		PrimitiveNodeSize npSize = ni.getPrimitiveDependentNodeSize(null);
 		if (npSize != null) {
 			xsizeLabel.setText("Width:");

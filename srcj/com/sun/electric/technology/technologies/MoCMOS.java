@@ -1279,23 +1279,23 @@ public class MoCMOS extends Technology
         return super.convertOldPortName(portName, np);
     }
 
-    /**
-     * Method to set the size of a transistor NodeInst in this Technology.
-     * Override because for MOCMOS sense of "width" and "length" are
-     * different for resistors and transistors.
-     * @param ni the NodeInst
-     * @param width the new width (positive values only)
-     * @param length the new length (positive values only)
-     */
-    @Override
-    public void setPrimitiveNodeSize(NodeInst ni, double width, double length)
-    {
-        if (ni.getFunction().isResistor()) {
-        	super.setPrimitiveNodeSize(ni, length, width);
-        } else {
-        	super.setPrimitiveNodeSize(ni, width, length);
-        }
-    }
+//    /**
+//     * Method to set the size of a transistor NodeInst in this Technology.
+//     * Override because for MOCMOS sense of "width" and "length" are
+//     * different for resistors and transistors.
+//     * @param ni the NodeInst
+//     * @param width the new width (positive values only)
+//     * @param length the new length (positive values only)
+//     */
+//    //@Override
+//    public void setPrimitiveNodeSize(NodeInst ni, double width, double length)
+//    {
+//        if (ni.getFunction().isResistor()) {
+//        	super.setPrimitiveNodeSize(ni, length, width);
+//        } else {
+//        	super.setPrimitiveNodeSize(ni, width, length);
+//        }
+//    }
 
     /**
      * Method to calculate extension of the poly gate from active layer or of the active from the poly gate.

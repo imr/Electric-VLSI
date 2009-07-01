@@ -108,7 +108,8 @@ public class TechEditWizardData
         new WizardField("poly_resistor_length"),   // Poly resistor length
         new WizardField("poly_resistor_width"),   // Poly resistor width
         new WizardField("rpo_contact_spacing"),   // Spacing btw rpo edge and contact cut
-        new WizardField("rpo_poly_overhang")   // RPO overhang from poly
+        new WizardField("rpo_poly_overhang"),   // RPO overhang from poly
+        new WizardField("rh_odpoly_overhang")   // RH overhang from poly/OD
     };
 
     // CONTACT RULES
@@ -1748,15 +1749,15 @@ public class TechEditWizardData
      */
     private Xml.NodeLayer makeXmlNodeLayer(double lx, double hx, double ly, double hy, Xml.Layer lb, Poly.Type style)
     {
-        return makeXmlNodeLayerSpecial(lx, hx, ly, hy, lb, style, true, true, 0);
+        return makeXmlNodeLayer(lx, hx, ly, hy, lb, style, true, true, 0);
     }
 
     /**
      * Method to create the XML version of NodeLayer either graphical or electrical.
      * makeXmlNodeLayer is the default one where layer is available in both mode.
      */
-    private Xml.NodeLayer makeXmlNodeLayerSpecial(double lx, double hx, double ly, double hy, Xml.Layer lb, Poly.Type style,
-                                                  boolean inLayers, boolean electricalLayers, int port)
+    private Xml.NodeLayer makeXmlNodeLayer(double lx, double hx, double ly, double hy, Xml.Layer lb, Poly.Type style,
+                                           boolean inLayers, boolean electricalLayers, int port)
     {
         Xml.NodeLayer nl = new Xml.NodeLayer();
         nl.layer = lb.name;
@@ -1770,13 +1771,29 @@ public class TechEditWizardData
         return nl;
     }
 
-    private Xml.NodeLayer makeXmlMulticut(Xml.Layer lb, double sizeRule, double sepRule, double sepRule2D) {
+    /**
+     * Method to create the default XML version of a MultiCUt NodeLayer
+     * @return
+     */
+    private Xml.NodeLayer makeXmlMulticut(Xml.Layer lb, double sizeRule, double sepRule, double sepRule2D)
+    {
+        return makeXmlMulticut(0, 0, 0, 0, lb, sizeRule, sepRule, sepRule2D);
+    }
+
+    /**
+     * Method to create the default XML version of a MultiCUt NodeLayer
+     * @return
+     */
+    private Xml.NodeLayer makeXmlMulticut(double lx, double hx, double ly, double hy, Xml.Layer lb,
+                                          double sizeRule, double sepRule, double sepRule2D)
+    {
         Xml.NodeLayer nl = new Xml.NodeLayer();
         nl.layer = lb.name;
         nl.style = Poly.Type.FILLED;
         nl.inLayers = nl.inElectricalLayers = true;
         nl.representation = Technology.NodeLayer.MULTICUTBOX;
         nl.lx.k = -1; nl.hx.k = 1; nl.ly.k = -1; nl.hy.k = 1;
+        nl.lx.addLambda(-lx); nl.hx.addLambda(hx); nl.ly.addLambda(-ly); nl.hy.addLambda(hy);
 
 //        nl.sizeRule = sizeRule;
         nl.sizex = sizeRule;
@@ -2775,10 +2792,10 @@ public class TechEditWizardData
             }
 
             // Active layers
-            nodesList.add(makeXmlNodeLayerSpecial(impx, impx, impy, impy, activeLayer, Poly.Type.FILLED, true, false, -1));
+            nodesList.add(makeXmlNodeLayer(impx, impx, impy, impy, activeLayer, Poly.Type.FILLED, true, false, -1));
             // electrical active layers
-            nodesList.add(makeXmlNodeLayerSpecial(impx, impx, impy, 0, activeLayer, Poly.Type.FILLED, false, true, 3));  // bottom
-            nodesList.add(makeXmlNodeLayerSpecial(impx, impx, 0, impy, activeLayer, Poly.Type.FILLED, false, true, 1));  // top
+            nodesList.add(makeXmlNodeLayer(impx, impx, impy, 0, activeLayer, Poly.Type.FILLED, false, true, 3));  // bottom
+            nodesList.add(makeXmlNodeLayer(impx, impx, 0, impy, activeLayer, Poly.Type.FILLED, false, true, 1));  // top
 
             // Diff port
             portNames.clear();
@@ -2792,18 +2809,18 @@ public class TechEditWizardData
 
             // Electric layers
             // Gate layer Electrical
-            nodesList.add(makeXmlNodeLayerSpecial(gatex, gatex, gatey, gatey, polyGateLayer, Poly.Type.FILLED, false, true, -1));
+            nodesList.add(makeXmlNodeLayer(gatex, gatex, gatey, gatey, polyGateLayer, Poly.Type.FILLED, false, true, -1));
 
             // Poly layers
             // left electrical
-            nodesList.add(makeXmlNodeLayerSpecial(endPolyx, endLeftOrRight, endPolyy, endTopOrBotton, polyLayer,
+            nodesList.add(makeXmlNodeLayer(endPolyx, endLeftOrRight, endPolyy, endTopOrBotton, polyLayer,
                 Poly.Type.FILLED, false, true, 0));
             // right electrical
-            nodesList.add(makeXmlNodeLayerSpecial(endLeftOrRight, endPolyx, endTopOrBotton, endPolyy, polyLayer,
+            nodesList.add(makeXmlNodeLayer(endLeftOrRight, endPolyx, endTopOrBotton, endPolyy, polyLayer,
                 Poly.Type.FILLED, false, true, 2));
 
             // non-electrical poly (just one poly layer)
-            nodesList.add(makeXmlNodeLayerSpecial(endPolyx, endPolyx, endPolyy, endPolyy, polyLayer, Poly.Type.FILLED, true, false, -1));
+            nodesList.add(makeXmlNodeLayer(endPolyx, endPolyx, endPolyy, endPolyy, polyLayer, Poly.Type.FILLED, true, false, -1));
 
             // Poly port
             portNames.clear();
@@ -2928,7 +2945,7 @@ public class TechEditWizardData
                 portNames.add(polyLayer.name);
 
                 // bottom or left
-                Xml.NodeLayer bOrL = (makeXmlNodeLayerSpecial(gatex, gatex,
+                Xml.NodeLayer bOrL = (makeXmlNodeLayer(gatex, gatex,
                     DBMath.round((protectDist + 3*endPolyy)),
                     -DBMath.round(endPolyy + protectDist),
                    polyLayer, Poly.Type.FILLED, true, false, -1/*3*/)); // port 3 for left/bottom extra poly lb=left bottom
@@ -2939,7 +2956,7 @@ public class TechEditWizardData
                 g.addElement(n, name + "-B");
 
                 // top or right
-                Xml.NodeLayer tOrR = (makeXmlNodeLayerSpecial(gatex, gatex,
+                Xml.NodeLayer tOrR = (makeXmlNodeLayer(gatex, gatex,
                     -DBMath.round(endPolyy + protectDist),
                     DBMath.round((protectDist + 3*endPolyy)),
                     polyLayer, Poly.Type.FILLED, true, false, -1/*4*/)); // port 4 for right/top extra poly rt=right top
@@ -3035,11 +3052,70 @@ public class TechEditWizardData
                 WizardField polyRW = findWizardField("poly_resistor_width");
                 WizardField rpoS = findWizardField("rpo_contact_spacing");
                 WizardField rpoPEx = findWizardField("rpo_poly_overhang");
-                double halfTotalL = scaledValue(polyRL.v/2 + (rpoS.v + contact_poly_overhang.v + contact_spacing.v + 2 * contact_size.v));
+                WizardField rhOverhang = findWizardField("rh_odpoly_overhang");
+
+                // poly
+                double soxNoScaled = (rpoS.v + contact_poly_overhang.v + contact_spacing.v + 2 * contact_size.v);
+                double halfTotalL = scaledValue(polyRL.v/2 + soxNoScaled);
                 double halfTotalW = scaledValue(polyRW.v/2);
-                nodesList.add(makeXmlNodeLayer(halfTotalL, halfTotalL, halfTotalW, halfTotalW, polyLayer, Poly.Type.FILLED));
+                nodesList.add(makeXmlNodeLayer(halfTotalL, halfTotalL, halfTotalW, halfTotalW, polyLayer,
+                    Poly.Type.FILLED, true, true, -1));
+
+                // RPO
+                Xml.Layer rpoLayer = t.findLayer("RPO");
+                double rpoY = scaledValue(polyRW.v/2 + rpoPEx.v);
+                double rpoX = scaledValue(polyRL.v/2);
+                nodesList.add(makeXmlNodeLayer(rpoX, rpoX, rpoY, rpoY, rpoLayer,
+                    Poly.Type.FILLED, true, true, -1));
+
+                // left cuts
+                double cutDistance = scaledValue(rpoS.v + polyRL.v/2);
+                // M1 and Poly overhang will be the same for now
+//                double absVal = (contact_poly_overhang.v - via_overhang[0].v);
+                double m1Distance = cutDistance - scaledValue(contact_poly_overhang.v);
+                double m1Y = scaledValue(polyRW.v/2); // - absVal);
+                double m1W = scaledValue(2 * contact_poly_overhang.v + contact_spacing.v + 2 * contact_size.v);
+                double cutSizeHalf = scaledValue(contact_size.v/2);
+                double cutEnd = cutDistance+contSize;
+                double cutSpacing = scaledValue(contact_spacing.v);
+                double cutEnd2 = cutEnd+contSize+cutSpacing;
+
+                portNames.clear();
+                portNames.add(m1Layer.name);
+                // left port
+                Xml.PrimitivePort port = makeXmlPrimitivePort("left-rpo", 0, 180, 0, minFullSize,
+                    -(cutEnd + cutSpacing), -1, -cutEnd, 1, -cutSizeHalf, -1, cutSizeHalf, 1, portNames);
+                nodePorts.add(port);
+                // right port
+                port = makeXmlPrimitivePort("right-rpo", 0, 180, 1, minFullSize,
+                    cutEnd, -1, (cutEnd + cutSpacing), 1, -cutSizeHalf, -1, cutSizeHalf, 1, portNames);
+                nodePorts.add(port);
+
+                // metal left
+                nodesList.add(makeXmlNodeLayer((m1Distance + m1W), -m1Distance, m1Y, m1Y, m1Layer,
+                    Poly.Type.FILLED, true, true, 0));
+                // right metal
+                nodesList.add(makeXmlNodeLayer(-m1Distance, (m1Distance + m1W), m1Y, m1Y, m1Layer,
+                    Poly.Type.FILLED, true, true, 1));
+
+                // select
+                double selectY = scaledValue(polyRW.v/2 + rhOverhang.v);
+                double selectX = scaledValue(polyRL.v/2 + soxNoScaled + extraSelX);
+                nodesList.add(makeXmlNodeLayer(selectX, selectX, selectY, selectY, selectLayer,
+                    Poly.Type.FILLED, true, true, -1));
+                // RH
+                Xml.Layer rhLayer = t.findLayer("RH");
+                nodesList.add(makeXmlNodeLayer(selectX, selectX, selectY, selectY, rhLayer,
+                    Poly.Type.FILLED, true, true, -1));
+
+                // cuts
+                nodesList.add(makeXmlMulticut(cutEnd2, -cutDistance, cutSizeHalf, cutSizeHalf, polyConLayer, contSize, contSpacing, contArraySpacing));
+                nodesList.add(makeXmlMulticut(-cutDistance, cutEnd2, 0, 0, polyConLayer, contSize, contSpacing, contArraySpacing));
+
+                sox = scaledValue(soxNoScaled + extraSelX);
+                soy = scaledValue(rpoPEx.v);
 //                n = makeXmlPrimitive(t.nodeGroups, name + "-Poly-RPO-Resistor", prFunc, 0, 0, 0, 0,
-//                    /*new SizeOffset(sox, sox, soy, soy)*/null, nodesList, nodePorts, null, false);
+//                    new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
 //                g.addPinOrResistor(n, name + "-RPoly");
             }
         }
@@ -3168,10 +3244,10 @@ public class TechEditWizardData
         double xSign = 1, ySign = -1;
 
         // Active layers
-        nodesList.add(makeXmlNodeLayerSpecial(impx, impx, impy, impy, activeLayer, Poly.Type.FILLED, true, false, -1));
+        nodesList.add(makeXmlNodeLayer(impx, impx, impy, impy, activeLayer, Poly.Type.FILLED, true, false, -1));
         // electrical active layers
-        nodesList.add(makeXmlNodeLayerSpecial(impx, impx, impy, 0, activeLayer, Poly.Type.FILLED, false, true, 3));  // bottom
-        nodesList.add(makeXmlNodeLayerSpecial(impx, impx, 0, impy, activeLayer, Poly.Type.FILLED, false, true, 1));  // top
+        nodesList.add(makeXmlNodeLayer(impx, impx, impy, 0, activeLayer, Poly.Type.FILLED, false, true, 3));  // bottom
+        nodesList.add(makeXmlNodeLayer(impx, impx, 0, impy, activeLayer, Poly.Type.FILLED, false, true, 1));  // top
 
         // Diff port
         List<String> portNames = new ArrayList<String>();
@@ -3194,18 +3270,18 @@ public class TechEditWizardData
         double endTopOrBotton = endPolyy;
         double polyX = endPolyx;
         double polyY = 0;
-        nodesList.add(makeXmlNodeLayerSpecial(gatex, gatex, gatey, gatey, polyGateLayer, Poly.Type.FILLED, false, true, -1));
+        nodesList.add(makeXmlNodeLayer(gatex, gatex, gatey, gatey, polyGateLayer, Poly.Type.FILLED, false, true, -1));
 
         // Poly layers
         // left electrical
-        nodesList.add(makeXmlNodeLayerSpecial(endPolyx, endLeftOrRight, endPolyy, endTopOrBotton, polyLayer,
+        nodesList.add(makeXmlNodeLayer(endPolyx, endLeftOrRight, endPolyy, endTopOrBotton, polyLayer,
             Poly.Type.FILLED, false, true, 0));
         // right electrical
-        nodesList.add(makeXmlNodeLayerSpecial(endLeftOrRight, endPolyx, endTopOrBotton, endPolyy, polyLayer,
+        nodesList.add(makeXmlNodeLayer(endLeftOrRight, endPolyx, endTopOrBotton, endPolyy, polyLayer,
             Poly.Type.FILLED, false, true, 2));
 
         // non-electrical poly (just one poly layer)
-        nodesList.add(makeXmlNodeLayerSpecial(endPolyx, endPolyx, endPolyy, endPolyy, polyLayer, Poly.Type.FILLED, true, false, -1));
+        nodesList.add(makeXmlNodeLayer(endPolyx, endPolyx, endPolyy, endPolyy, polyLayer, Poly.Type.FILLED, true, false, -1));
 
         // Poly port
         portNames.clear();

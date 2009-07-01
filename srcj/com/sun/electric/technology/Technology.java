@@ -2622,16 +2622,30 @@ public class Technology implements Comparable<Technology>, Serializable
      * @param width the new width (positive values only)
      * @param length the new length (positive values only)
      */
-    public void setPrimitiveNodeSize(NodeInst ni, double width, double length)
+    private void setPrimitiveNodeSizeLocal(NodeInst ni, double width, double length)
     {
         double oldWidth = ni.getLambdaBaseXSize();
         double oldLength = ni.getLambdaBaseYSize();
-//        SizeOffset so = ni.getSizeOffset();
-//        double oldWidth = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-//        double oldLength = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
         double dW = width - oldWidth;
         double dL = length - oldLength;
 		ni.resize(dW, dL);
+    }
+
+    /**
+     * Method to set the size of a transistor NodeInst in this Technology.
+     * Sense of "width" and "length" are different for resistors and transistors.
+     * Default function when transistor gate and resistor length are horizontal.
+     * @param ni the NodeInst
+     * @param width the new width (positive values only)
+     * @param length the new length (positive values only)
+     */
+    public void setPrimitiveNodeSize(NodeInst ni, double width, double length)
+    {
+        if (ni.getFunction().isResistor()) {
+        	setPrimitiveNodeSizeLocal(ni, length, width);
+        } else {
+        	setPrimitiveNodeSizeLocal(ni, width, length);
+        }
     }
 
     /**
