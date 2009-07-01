@@ -390,12 +390,18 @@ public class Output
 			libFile = TextUtils.makeURLToFile(lib.getName());
 
 		// make the proper output file name
+		String fullOutputName = TextUtils.URLtoString(libFile);
 		String properOutputNameWithoutExtension = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile);
-		String properOutputName = properOutputNameWithoutExtension;
-		if (type == FileType.ELIB) properOutputName += ".elib";
-		if (type == FileType.JELIB) properOutputName += ".jelib";
-		if (type == FileType.DELIB) properOutputName += ".delib";
-		if (type == FileType.READABLEDUMP) properOutputName += ".txt";
+		String properOutputName = fullOutputName;
+
+		// add an extension if there is none
+		if (properOutputNameWithoutExtension.equals(fullOutputName))
+		{
+			if (type == FileType.ELIB) properOutputName = properOutputNameWithoutExtension + ".elib";
+			if (type == FileType.JELIB) properOutputName = properOutputNameWithoutExtension + ".jelib";
+			if (type == FileType.DELIB) properOutputName = properOutputNameWithoutExtension + ".delib";
+			if (type == FileType.READABLEDUMP) properOutputName = properOutputNameWithoutExtension + ".txt";
+		}
 		if (type == FileType.ELIB || type == FileType.JELIB || type == FileType.DELIB)
 		{
 			// backup previous files if requested

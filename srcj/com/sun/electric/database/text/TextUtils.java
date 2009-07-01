@@ -1365,7 +1365,7 @@ public class TextUtils
 	 * @param url the URL
 	 * @return a String that is the path to that URL.
 	 */
-	private static String URLtoString(URL url)
+	public static String URLtoString(URL url)
 	{
 		String filePath = url.getFile();
 
