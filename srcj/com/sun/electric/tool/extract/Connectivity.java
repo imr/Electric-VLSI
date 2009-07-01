@@ -1536,17 +1536,31 @@ public class Connectivity
 			int ang = GenMath.figureAngle(cl.start, cl.end);
 			double xOff = GenMath.cos(ang) * cl.width/2;
 			double yOff = GenMath.sin(ang) * cl.width/2;
+			double aliX = 1, aliY = 1;
+			if (alignment != null)
+			{
+				if (alignment.getWidth() > 0) aliX = scaleUp(alignment.getWidth());
+				if (alignment.getHeight() > 0) aliY = scaleUp(alignment.getHeight());
+			}
 			if (startSide)
 			{
 				if (!isHub && cl.start.distance(cl.end) > cl.width)
+				{
+					xOff = Math.floor(xOff / aliX) * aliX;
+					yOff = Math.floor(yOff / aliY) * aliY;
 					cl.setStart(cl.start.getX() + xOff, cl.start.getY() + yOff);
+				}
 				NodeInst ni = wantNodeAt(cl.startUnscaled, pin, cl.width / SCALEFACTOR, newCell);
 				loc1.setLocation(cl.startUnscaled.getX(), cl.startUnscaled.getY());
 				piRet = ni.getOnlyPortInst();
 			} else
 			{
 				if (!isHub && cl.start.distance(cl.end) > cl.width)
+				{
+					xOff = Math.ceil(xOff / aliX) * aliX;
+					yOff = Math.ceil(yOff / aliY) * aliY;
 					cl.setEnd(cl.end.getX() - xOff, cl.end.getY() - yOff);
+				}
 				NodeInst ni = wantNodeAt(cl.endUnscaled, pin, cl.width / SCALEFACTOR, newCell);
 				loc1.setLocation(cl.endUnscaled.getX(), cl.endUnscaled.getY());
 				piRet = ni.getOnlyPortInst();
@@ -1559,6 +1573,7 @@ public class Connectivity
 	{
 		// grid align the edges
 		double halfWidth = cl.width / 2;
+halfWidth = 0;		// TODO: is this right?
 		if (cl.start.getX() == cl.end.getX())
 		{
 			// vertical arc: make sure ends align in Y
@@ -4624,6 +4639,12 @@ public class Connectivity
 	private ArcInst realizeArc(ArcProto ap, PortInst pi1, PortInst pi2, Point2D pt1, Point2D pt2, double width,
 		boolean noHeadExtend, boolean noTailExtend, PolyMerge merge)
 	{
+		if (alignment != null)
+		{
+			double wid2 = width/2;
+			if (alignment.getWidth() > 0)
+				width = Math.floor(wid2 / alignment.getWidth()) * alignment.getWidth() * 2;
+		}
 		ArcInst ai = ArcInst.makeInstanceBase(ap, width, pi1, pi2, pt1, pt2, null);
 		if (ai == null) return null;
 

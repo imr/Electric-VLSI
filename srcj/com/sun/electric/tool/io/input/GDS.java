@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
@@ -635,6 +636,15 @@ public class GDS extends Input
 	        					}
 	        				}
 	        			}
+	        		}
+
+	        		// grid-align the export location
+	        		double scaledResolution = tech.getFactoryScaledResolution();
+	        		if (scaledResolution > 0)
+	        		{
+						double x = Math.round(mi.loc.getX() / scaledResolution) * scaledResolution;
+						double y = Math.round(mi.loc.getY() / scaledResolution) * scaledResolution;
+						mi.loc.setLocation(x, y);
 	        		}
                 }
 
