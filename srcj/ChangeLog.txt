@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+BUG: (7/2/09, GVG) Assertion in GraphicsPreferences (Bug #2262)
+FIX: No User background color in EditWindow.getPrintImage()
+
 IMP: (7/1/09, GVG) 180nm techs not longer overwriting setPrimitiveNodeSize.
 This will allow to get 40nm resistors get properly sized.
 

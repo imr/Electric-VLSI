@@ -3768,8 +3768,9 @@ public class EditWindow extends JPanel
 			if (cs == null || cs.getValue() == 0) printMode = 2;
 			offscreen.setPrintingMode(printMode);
 			offscreen.setBackgroundColor(Color.WHITE);
-			int oldBackgroundColor = User.getColor(User.ColorPrefType.BACKGROUND);
-			User.setColor(User.ColorPrefType.BACKGROUND, 0xFFFFFF);
+            // don't set User color here otherwise it generates an assertion in UserInterfaceMain.java:910
+//			int oldBackgroundColor = User.getColor(User.ColorPrefType.BACKGROUND);
+//			User.setColor(User.ColorPrefType.BACKGROUND, 0xFFFFFF);
 
 			// initialize drawing
 			Rectangle2D cellBounds = ep.getRenderArea();
@@ -3790,7 +3791,8 @@ public class EditWindow extends JPanel
 
 			// restore display state
 			offscreen.setPrintingMode(0);
-			User.setColor(User.ColorPrefType.BACKGROUND, oldBackgroundColor);
+            // don't set User color here otherwise it generates an assertion in UserInterfaceMain.java:910
+//			User.setColor(User.ColorPrefType.BACKGROUND, oldBackgroundColor);
 		}
 
 		// copy the image to the page if graphics is not null
