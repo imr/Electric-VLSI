@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+IMP/MAN: (7/2/09, SMR) Added "Cell / Cell Info / Library Graph" to display
+     organization of library dependencies (Bug #2219).
+
 BUG: (7/2/09, SMR) Deleting individual stimuli from waveform window removes
      entire waveform (Bug #2266).
 FIX: In WaveformWindow.deleteSelectedSignals(), if a stimuli is removed,

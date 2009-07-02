@@ -279,174 +279,266 @@ public class CellChangeJobs
 		private static final double TEXTHEIGHT = 2;
 
 		private Cell top;
+		private boolean justLibraries;
 		private Cell graphCell;
 
-		private static class CellGraphNode
+		private static class GraphNode
 		{
-			int			depth;
-			int			clock;
-			double		 x;
-			double		 y;
-			double		 yoff;
-			NodeInst	   pin;
-			NodeInst	   topPin;
-			NodeInst	   botPin;
-			CellGraphNode  main;
+			String        name;
+			int			  depth;
+			int			  clock;
+			boolean       topLibrary;
+			boolean       leafLibrary;
+			double		  x;
+			double		  y;
+			double		  yoff;
+			NodeInst	  pin;
+			NodeInst	  topPin;
+			NodeInst	  botPin;
+			GraphNode main;
 		}
 
-		public GraphCells(Cell top)
+		public GraphCells(Cell top, boolean justLibraries)
 		{
 			super("Graph Cells", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.top = top;
+			this.justLibraries = justLibraries;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
 			// create the graph cell
-			graphCell = Cell.newInstance(Library.getCurrent(), "CellStructure");
+			graphCell = Cell.newInstance(Library.getCurrent(), justLibraries ? "LibraryStructure" : "CellStructure");
 			fieldVariableChanged("graphCell");
 			if (graphCell == null) return false;
 			if (graphCell.getNumVersions() > 1)
-				System.out.println("Creating new version of cell: CellStructure"); else
-					System.out.println("Creating cell: CellStructure");
+				System.out.println("Creating new version of cell: " + graphCell.getName()); else
+					System.out.println("Creating cell: " + graphCell.getName());
 
-			// create CellGraphNodes for every cell and initialize the depth to -1
-			Map<Cell,CellGraphNode> cellGraphNodes = new HashMap<Cell,CellGraphNode>();
+			// create GraphNodes for every cell/library and initialize the depth to -1
+			Map<ElectricObject,GraphNode> graphNodes = new HashMap<ElectricObject,GraphNode>();
+			Map<Library,Set<Library>> libraryDependencies = new HashMap<Library,Set<Library>>();
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
 				Library lib = it.next();
 				if (lib.isHidden()) continue;
-				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+				if (justLibraries)
 				{
-					Cell cell = cIt.next();
-					CellGraphNode cgn = new CellGraphNode();
-					cgn.depth = -1;
-					cellGraphNodes.put(cell, cgn);
-				}
-			}
-
-			// find all top-level cells
-			if (top != null)
-			{
-				CellGraphNode cgn = cellGraphNodes.get(top);
-				cgn.depth = 0;
-			} else
-			{
-				for(Iterator<Cell> cIt = Library.getCurrent().getCells(); cIt.hasNext(); )
-				{
-					Cell cell = cIt.next();
-					if (cell.getNumUsagesIn() == 0)
-					{
-						CellGraphNode cgn = cellGraphNodes.get(cell);
-						cgn.depth = 0;
-					}
-				}
-			}
-
-			// now place all cells at their proper depth
-			int maxDepth = 0;
-			boolean more = true;
-			while (more)
-			{
-				more = false;
-				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-				{
-					Library lib = it.next();
-					if (lib.isHidden()) continue;
+					GraphNode cgn = new GraphNode();
+					cgn.name = lib.getName();
+					cgn.depth = 1;
+					cgn.leafLibrary = true;
+					cgn.topLibrary = true;
+					graphNodes.put(lib, cgn);
 					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 					{
 						Cell cell = cIt.next();
-						CellGraphNode cgn = cellGraphNodes.get(cell);
-						if (cgn.depth == -1) continue;
 						for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 						{
 							NodeInst ni = nIt.next();
 							if (!ni.isCellInstance()) continue;
-							Cell sub = (Cell)ni.getProto();
 
 							// ignore recursive references (showing icon in contents)
 							if (ni.isIconOfParent()) continue;
 
-							CellGraphNode subCgn = cellGraphNodes.get(sub);
-							if (subCgn.depth <= cgn.depth)
-							{
-								subCgn.depth = cgn.depth + 1;
-								if (subCgn.depth > maxDepth) maxDepth = subCgn.depth;
-								more = true;
-							}
-							Cell trueCell = sub.contentsView();
-							if (trueCell == null) continue;
-							CellGraphNode trueCgn = cellGraphNodes.get(trueCell);
-							if (trueCgn.depth <= cgn.depth)
-							{
-								trueCgn.depth = cgn.depth + 1;
-								if (trueCgn.depth > maxDepth) maxDepth = trueCgn.depth;
-								more = true;
-							}
-						}
+							Library subLib = ((Cell)ni.getProto()).getLibrary();
+							if (subLib == lib) continue;
+							Set<Library> subLibs = libraryDependencies.get(lib);
+							if (subLibs == null) libraryDependencies.put(lib, subLibs = new HashSet<Library>());
+							subLibs.add(subLib);
+							cgn.leafLibrary = false;
+						}				
+					}
+					if (cgn.leafLibrary) cgn.depth = 2;
+				} else
+				{
+					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+					{
+						Cell cell = cIt.next();
+						GraphNode cgn = new GraphNode();
+						cgn.name = cell.describe(false);
+						cgn.depth = -1;
+						graphNodes.put(cell, cgn);
 					}
 				}
+			}
+			if (justLibraries)
+			{
+				// compute top and leaf libraries
+				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+				{
+					Library lib = it.next();
+					GraphNode cgn = graphNodes.get(lib);
+					if (cgn == null) continue;
+					Set<Library> subLibs = libraryDependencies.get(lib);
+					if (subLibs == null) continue;
+					for(Library subLib : subLibs)
+					{
+						GraphNode subCGN = graphNodes.get(subLib);
+						if (subCGN == null) continue;
+						subCGN.topLibrary = false;
+					}
+				}				
+			}
 
-				// add in any cells referenced from other libraries
-				if (!more && top == null)
+			// find all top-level cells/libraries
+			int maxDepth = 0;
+			if (top != null)
+			{
+				GraphNode cgn = graphNodes.get(top);
+				cgn.depth = 0;
+			} else
+			{
+				if (justLibraries)
+				{
+					maxDepth = 2;
+					for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+					{
+						Library lib = it.next();
+						GraphNode cgn = graphNodes.get(lib);
+						if (cgn == null) continue;
+						if (cgn.topLibrary) cgn.depth = 0;
+					}
+				} else
 				{
 					for(Iterator<Cell> cIt = Library.getCurrent().getCells(); cIt.hasNext(); )
 					{
 						Cell cell = cIt.next();
-						CellGraphNode cgn = cellGraphNodes.get(cell);
-						if (cgn.depth >= 0) continue;
-						cgn.depth = 0;
-						more = true;
+						if (cell.getNumUsagesIn() == 0)
+						{
+							GraphNode cgn = graphNodes.get(cell);
+							cgn.depth = 0;
+						}
 					}
 				}
 			}
 
-			// now assign X coordinates to each cell
-			maxDepth++;
+			double xScale = 2.0 / 3.0;
+			double yScale = 20;
+			double yOffset = TEXTHEIGHT * 1.25;
 			double maxWidth = 0;
-			double [] xval = new double[maxDepth];
-			double [] yoff = new double[maxDepth];
-			for(int i=0; i<maxDepth; i++) xval[i] = yoff[i] = 0;
-			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+			double radius = 50;
+			if (justLibraries)
 			{
-				Library lib = it.next();
-				if (lib.isHidden()) continue;
-				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+				// arrange the non-top and non-leaf libraries in a circle
+				int numCentral = 0, numTop = 0, numLeaf = 0;
+				for(ElectricObject eObj : graphNodes.keySet())
 				{
-					Cell cell = cIt.next();
-					CellGraphNode cgn = cellGraphNodes.get(cell);
+					GraphNode cgn = graphNodes.get(eObj);
+					switch (cgn.depth)
+					{
+						case 0: numTop++;      break;
+						case 1: numCentral++;  break;
+						case 2: numLeaf++;     break;
+					}
+				}
+				double curAngle = 0, curTop = 0, curLeaf = 0;
+				for(ElectricObject eObj : graphNodes.keySet())
+				{
+					GraphNode cgn = graphNodes.get(eObj);
+					switch (cgn.depth)
+					{
+						case 0:
+							cgn.x = -radius + (radius*2/numTop*curTop) + (radius*2/(numTop+1));
+							cgn.y = radius * 1.25;
+							curTop++;
+							break;
+						case 1:
+							cgn.x = Math.cos(curAngle) * radius;
+							cgn.y = Math.sin(curAngle) * radius;
+							curAngle += Math.PI * 2 / numCentral;
+							break;
+						case 2:
+							cgn.x = -radius + (radius*2/numLeaf*curLeaf) + (radius*2/(numLeaf+1));
+							cgn.y = -radius * 1.25;
+							curLeaf++;
+							break;
+					}
+				}
+				maxWidth = radius / 2;
+			} else
+			{
+				// now place all cells at their proper depth
+				boolean more = true;
+				while (more)
+				{
+					more = false;
+					for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+					{
+						Library lib = it.next();
+						if (lib.isHidden()) continue;
+						for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+						{
+							Cell cell = cIt.next();
+							GraphNode cgn = graphNodes.get(cell);
+							if (cgn.depth == -1) continue;
+							for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
+							{
+								NodeInst ni = nIt.next();
+								if (!ni.isCellInstance()) continue;
+
+								// ignore recursive references (showing icon in contents)
+								if (ni.isIconOfParent()) continue;
+
+								Cell sub = (Cell)ni.getProto();
+								GraphNode subCgn = graphNodes.get(sub);
+								if (subCgn.depth <= cgn.depth)
+								{
+									subCgn.depth = cgn.depth + 1;
+									if (subCgn.depth > maxDepth) maxDepth = subCgn.depth;
+									more = true;
+								}
+								Cell trueCell = sub.contentsView();
+								if (trueCell == null) continue;
+								GraphNode trueCgn = graphNodes.get(trueCell);
+								if (trueCgn.depth <= cgn.depth)
+								{
+									trueCgn.depth = cgn.depth + 1;
+									if (trueCgn.depth > maxDepth) maxDepth = trueCgn.depth;
+									more = true;
+								}
+							}
+						}
+					}
+
+					// add in any cells referenced from other libraries
+					if (!more && top == null)
+					{
+						for(Iterator<Cell> cIt = Library.getCurrent().getCells(); cIt.hasNext(); )
+						{
+							Cell cell = cIt.next();
+							GraphNode cgn = graphNodes.get(cell);
+							if (cgn.depth >= 0) continue;
+							cgn.depth = 0;
+							more = true;
+						}
+					}
+				}
+
+				// now assign X coordinates to each graph node
+				maxDepth++;
+				double [] xval = new double[maxDepth];
+				double [] yoff = new double[maxDepth];
+				for(int i=0; i<maxDepth; i++) xval[i] = yoff[i] = 0;
+				for(ElectricObject eObj : graphNodes.keySet())
+				{
+					GraphNode cgn = graphNodes.get(eObj);
 
 					// ignore icon cells from the graph (merge with contents)
 					if (cgn.depth == -1) continue;
 
-					// ignore associated cells for now
-					Cell trueCell = graphMainView(cell);
-					if (trueCell != null &&
-						(cell.getNumUsagesIn() == 0 || cell.isIcon() ||
-							cell.getView() == View.LAYOUTSKEL))
-					{
-						cgn.depth = -1;
-						continue;
-					}
-
 					cgn.x = xval[cgn.depth];
-					xval[cgn.depth] += cell.describe(false).length();
+					xval[cgn.depth] += cgn.name.length();
 					if (xval[cgn.depth] > maxWidth) maxWidth = xval[cgn.depth];
 					cgn.y = cgn.depth;
 					cgn.yoff = 0;
 				}
-			}
 
-			// now center each row
-			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-			{
-				Library lib = it.next();
-				if (lib.isHidden()) continue;
-				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+				// now center each row
+				for(ElectricObject eObj : graphNodes.keySet())
 				{
-					Cell cell = cIt.next();
-					CellGraphNode cgn = cellGraphNodes.get(cell);
+					GraphNode cgn = graphNodes.get(eObj);
 					if (cgn.depth == -1) continue;
 					if (xval[(int)cgn.y] < maxWidth)
 					{
@@ -454,169 +546,132 @@ public class CellChangeJobs
 						cgn.x = cgn.x * spread;
 					}
 				}
-			}
 
-			// generate accurate X/Y coordinates
-			double xScale = 2.0 / 3.0;
-			double yScale = 20;
-			double yOffset = TEXTHEIGHT * 1.25;
-			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-			{
-				Library lib = it.next();
-				if (lib.isHidden()) continue;
-				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+				// generate accurate X/Y coordinates
+				for(ElectricObject eObj : graphNodes.keySet())
 				{
-					Cell cell = cIt.next();
-					CellGraphNode cgn = cellGraphNodes.get(cell);
+					GraphNode cgn = graphNodes.get(eObj);
 					if (cgn.depth == -1) continue;
 					double x = cgn.x;   double y = cgn.y;
 					x = x * xScale;
 					y = -y * yScale + ((yoff[(int)cgn.y]++)%3) * yOffset;
 					cgn.x = x;   cgn.y = y;
 				}
-			}
 
-			// make unattached cells sit with their contents view
-			if (top == null)
-			{
-				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+				// make unattached cells sit with their contents view
+				if (top == null)
 				{
-					Library lib = it.next();
-					if (lib.isHidden()) continue;
-					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+					for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 					{
-						Cell cell = cIt.next();
-						CellGraphNode cgn = cellGraphNodes.get(cell);
-						if (cgn.depth != -1) continue;
+						Library lib = it.next();
+						if (lib.isHidden()) continue;
+						for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+						{
+							Cell cell = cIt.next();
+							GraphNode cgn = graphNodes.get(cell);
+							if (cgn.depth != -1) continue;
 
-						if (cell.getNumUsagesIn() != 0 && !cell.isIcon() &&
-							cell.getView() != View.LAYOUTSKEL) continue;
-						Cell trueCell = graphMainView(cell);
-						if (trueCell == null) continue;
-						CellGraphNode trueCgn = cellGraphNodes.get(trueCell);
-						if (trueCgn.depth == -1) continue;
+							if (cell.getNumUsagesIn() != 0 && !cell.isIcon() &&
+								cell.getView() != View.LAYOUTSKEL) continue;
+							Cell trueCell = graphMainView(cell);
+							if (trueCell == null) continue;
+							GraphNode trueCgn = graphNodes.get(trueCell);
+							if (trueCgn.depth == -1) continue;
 
-						cgn.pin = cgn.topPin = cgn.botPin = null;
-						cgn.main = trueCgn;
-						cgn.yoff += yOffset*2;
-						cgn.x = trueCgn.x;
-						cgn.y = trueCgn.y + trueCgn.yoff;
+							cgn.pin = cgn.topPin = cgn.botPin = null;
+							cgn.main = trueCgn;
+							cgn.yoff += yOffset*2;
+							cgn.x = trueCgn.x;
+							cgn.y = trueCgn.y + trueCgn.yoff;
+						}
 					}
 				}
 			}
 
 			// write the header message
-			double xsc = maxWidth * xScale / 2;
-			NodeInst titleNi = NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(xsc, yScale), 0, 0, graphCell);
-			if (titleNi == null) return false;
-			StringBuffer infstr = new StringBuffer();
-			if (top != null)
+			if (justLibraries)
 			{
-				infstr.append("Structure below " + top);
+				NodeInst titleNi = NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(0, radius*1.5), 0, 0, graphCell);
+				if (titleNi == null) return false;
+				TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withRelSize(6);
+				titleNi.newVar(Artwork.ART_MESSAGE, "Structure of library dependencies", td);
 			} else
 			{
-				infstr.append("Structure of library " + Library.getCurrent().getName());
+				double xsc = maxWidth * xScale / 2;
+				NodeInst titleNi = NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(xsc, yScale), 0, 0, graphCell);
+				if (titleNi == null) return false;
+				String msg;
+				if (top != null) msg = "Structure below " + top; else
+					msg = "Structure of library " + Library.getCurrent().getName();
+				TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withRelSize(6);
+				titleNi.newVar(Artwork.ART_MESSAGE, msg, td);
 			}
-			TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withRelSize(6);
-			titleNi.newVar(Artwork.ART_MESSAGE, infstr.toString(), td);
 
 			// place the components
-			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+			for(ElectricObject eObj : graphNodes.keySet())
 			{
-				Library lib = it.next();
-				if (lib.isHidden()) continue;
-				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-				{
-					Cell cell = cIt.next();
-					if (cell == graphCell) continue;
-					CellGraphNode cgn = cellGraphNodes.get(cell);
-					if (cgn.depth == -1) continue;
+				GraphNode cgn = graphNodes.get(eObj);
+				if (cgn.depth == -1) continue;
 
-					double x = cgn.x;   double y = cgn.y;
-					cgn.pin = NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(x, y), 0, 0, graphCell);
-					if (cgn.pin == null) return false;
-					cgn.topPin = NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(x, y+TEXTHEIGHT/2), 0, 0, graphCell);
-					if (cgn.topPin == null) return false;
-					cgn.botPin = NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(x, y-TEXTHEIGHT/2), 0, 0, graphCell);
-					if (cgn.botPin == null) return false;
-					PortInst pinPi = cgn.pin.getOnlyPortInst();
-					PortInst toppinPi = cgn.botPin.getOnlyPortInst();
-					PortInst botPinPi = cgn.topPin.getOnlyPortInst();
-					ArcInst link1 = ArcInst.makeInstanceBase(Generic.tech().invisible_arc, 0, toppinPi, pinPi);
-					ArcInst link2 = ArcInst.makeInstanceBase(Generic.tech().invisible_arc, 0, pinPi, botPinPi);
-					link1.setRigid(true);
-					link2.setRigid(true);
-					link1.setHardSelect(true);
-					link2.setHardSelect(true);
-					cgn.topPin.setHardSelect();
-					cgn.botPin.setHardSelect();
+				double x = cgn.x;   double y = cgn.y;
+				cgn.pin = NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(x, y), 0, 0, graphCell);
+				if (cgn.pin == null) return false;
+				cgn.topPin = NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(x, y+TEXTHEIGHT/2), 0, 0, graphCell);
+				if (cgn.topPin == null) return false;
+				cgn.botPin = NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(x, y-TEXTHEIGHT/2), 0, 0, graphCell);
+				if (cgn.botPin == null) return false;
+				PortInst pinPi = cgn.pin.getOnlyPortInst();
+				PortInst toppinPi = cgn.botPin.getOnlyPortInst();
+				PortInst botPinPi = cgn.topPin.getOnlyPortInst();
+				ArcInst link1 = ArcInst.makeInstanceBase(Generic.tech().invisible_arc, 0, toppinPi, pinPi);
+				ArcInst link2 = ArcInst.makeInstanceBase(Generic.tech().invisible_arc, 0, pinPi, botPinPi);
+				link1.setRigid(true);
+				link2.setRigid(true);
+				link1.setHardSelect(true);
+				link2.setHardSelect(true);
+				cgn.topPin.setHardSelect();
+				cgn.botPin.setHardSelect();
 
-					// write the cell name in the node
-					TextDescriptor ctd = TextDescriptor.getNodeTextDescriptor().withRelSize(2);
-					cgn.pin.newVar(Artwork.ART_MESSAGE, cell.describe(false), ctd);
-				}
+				// write the cell name in the node
+				TextDescriptor ctd = TextDescriptor.getNodeTextDescriptor().withRelSize(2);
+				cgn.pin.newVar(Artwork.ART_MESSAGE, cgn.name, ctd);
 			}
 
 			// attach related components with rigid arcs
-			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+			for(ElectricObject eObj : graphNodes.keySet())
 			{
-				Library lib = it.next();
-				if (lib.isHidden()) continue;
-				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-				{
-					Cell cell = cIt.next();
-					if (cell == graphCell) continue;
-					CellGraphNode cgn = cellGraphNodes.get(cell);
-					if (cgn.depth == -1) continue;
-					if (cgn.main == null) continue;
+				GraphNode cgn = graphNodes.get(eObj);
+				if (cgn.depth == -1) continue;
+				if (cgn.main == null) continue;
 
-					PortInst firstPi = cgn.pin.getOnlyPortInst();
-					ArcInst ai = ArcInst.makeInstanceBase(Artwork.tech().solidArc, 0, firstPi, firstPi);
-					if (ai == null) return false;
-					ai.setRigid(true);
-					ai.setHardSelect(true);
+				PortInst firstPi = cgn.pin.getOnlyPortInst();
+				ArcInst ai = ArcInst.makeInstanceBase(Artwork.tech().solidArc, 0, firstPi, firstPi);
+				if (ai == null) return false;
+				ai.setRigid(true);
+				ai.setHardSelect(true);
 
-					// set an invisible color on the arc
-					ai.newVar(Artwork.ART_COLOR, new Integer(0));
-				}
+				// set an invisible color on the arc
+				ai.newVar(Artwork.ART_COLOR, new Integer(0));
 			}
 
 			// build wires between the hierarchical levels
-			int clock = 0;
-			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+			if (justLibraries)
 			{
-				Library lib = it.next();
-				if (lib.isHidden()) continue;
-				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 				{
-					Cell cell = cIt.next();
-					if (cell == graphCell) continue;
-
-					// always use the contents cell, not the icon
-					Cell trueCell = cell.contentsView();
-					if (trueCell == null) trueCell = cell;
-					CellGraphNode trueCgn = cellGraphNodes.get(trueCell);
+					Library lib = it.next();
+					if (lib.isHidden()) continue;
+					GraphNode trueCgn = graphNodes.get(lib);
 					if (trueCgn.depth == -1) continue;
 
-					clock++;
-					for(Iterator<NodeInst> nIt = trueCell.getNodes(); nIt.hasNext(); )
+					Set<Library> subLibs = libraryDependencies.get(lib);
+					if (subLibs == null) continue;
+					for(Library subLib : subLibs)
 					{
-						NodeInst ni = nIt.next();
-						if (!ni.isCellInstance()) continue;
-
-						// ignore recursive references (showing icon in contents)
-						if (ni.isIconOfParent()) continue;
-						Cell sub = (Cell)ni.getProto();
-
-						Cell truesubnp = sub.contentsView();
-						if (truesubnp == null) truesubnp = sub;
-
-						CellGraphNode trueSubCgn = cellGraphNodes.get(truesubnp);
-						if (trueSubCgn.clock == clock) continue;
-						trueSubCgn.clock = clock;
+						GraphNode trueSubCgn = graphNodes.get(subLib);
+						if (trueSubCgn.depth == -1) continue;
 
 						// draw a line from cell "trueCell" to cell "truesubnp"
-						if (trueSubCgn.depth == -1) continue;
 						PortInst toppinPi = trueCgn.botPin.getOnlyPortInst();
 						PortInst niBotPi = trueSubCgn.topPin.getOnlyPortInst();
 						ArcInst ai = ArcInst.makeInstance(Artwork.tech().solidArc, toppinPi, niBotPi);
@@ -627,9 +682,63 @@ public class CellChangeJobs
 						ai.setHardSelect(true);
 
 						// set an appropriate color on the arc (red for jumps of more than 1 level of depth)
-						int color = EGraphics.BLUE;
-						if (trueCgn.y - trueSubCgn.y > yScale+yOffset+yOffset) color = EGraphics.RED;
+						int color = EGraphics.RED;
+						if (trueCgn.topLibrary) color = EGraphics.BLUE; else
+							if (trueSubCgn.leafLibrary) color = EGraphics.GREEN;
 						ai.newVar(Artwork.ART_COLOR, new Integer(color));
+					}
+				}
+			} else
+			{
+				int clock = 0;
+				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+				{
+					Library lib = it.next();
+					if (lib.isHidden()) continue;
+					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+					{
+						Cell cell = cIt.next();
+						if (cell == graphCell) continue;
+
+						// always use the contents cell, not the icon
+						Cell trueCell = cell.contentsView();
+						if (trueCell == null) trueCell = cell;
+						GraphNode trueCgn = graphNodes.get(trueCell);
+						if (trueCgn.depth == -1) continue;
+
+						clock++;
+						for(Iterator<NodeInst> nIt = trueCell.getNodes(); nIt.hasNext(); )
+						{
+							NodeInst ni = nIt.next();
+							if (!ni.isCellInstance()) continue;
+
+							// ignore recursive references (showing icon in contents)
+							if (ni.isIconOfParent()) continue;
+							Cell sub = (Cell)ni.getProto();
+
+							Cell truesubnp = sub.contentsView();
+							if (truesubnp == null) truesubnp = sub;
+
+							GraphNode trueSubCgn = graphNodes.get(truesubnp);
+							if (trueSubCgn.clock == clock) continue;
+							trueSubCgn.clock = clock;
+
+							// draw a line from cell "trueCell" to cell "truesubnp"
+							if (trueSubCgn.depth == -1) continue;
+							PortInst toppinPi = trueCgn.botPin.getOnlyPortInst();
+							PortInst niBotPi = trueSubCgn.topPin.getOnlyPortInst();
+							ArcInst ai = ArcInst.makeInstance(Artwork.tech().solidArc, toppinPi, niBotPi);
+							if (ai == null) return false;
+							ai.setRigid(false);
+							ai.setFixedAngle(false);
+							ai.setSlidable(false);
+							ai.setHardSelect(true);
+
+							// set an appropriate color on the arc (red for jumps of more than 1 level of depth)
+							int color = EGraphics.BLUE;
+							if (trueCgn.y - trueSubCgn.y > yScale+yOffset+yOffset) color = EGraphics.RED;
+							ai.newVar(Artwork.ART_COLOR, new Integer(color));
+						}
 					}
 				}
 			}
