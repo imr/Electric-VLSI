@@ -190,7 +190,7 @@ public class Simulate extends Input
                 fileURL = TextUtils.makeURLToFile(file.getPath());
 			}
 		}
-		(new ReadSimulationOutput(type, is, fileURL, cell, ww)).startJob();
+		(new ReadSimulationOutput(type, is, fileURL, cell, ww)).start();
 	}
 
     public static Stimuli readSimulationResults(FileType type, Cell cell, URL fileURL) {
@@ -209,21 +209,14 @@ public class Simulate extends Input
             return null;
         }
         ReadSimulationOutput job = new ReadSimulationOutput(type, is, fileURL, cell, null);
-        try {
-            job.doIt();
-        } catch (JobException e) {
-            System.out.println(e.getMessage());
-            return null;
-        }
+        job.run();
         return job.sd;
     }
 
 	/**
 	 * Class to read simulation output in a new thread.
-     * This job is examine job, so it contain non-serializable fields.
-     * However, showSimulationData should be shown in GUI thread (in terminateOK).
 	 */
-	private static class ReadSimulationOutput extends Job
+	private static class ReadSimulationOutput extends Thread
 	{
 		private FileType type;
 		private Simulate is;
@@ -234,7 +227,6 @@ public class Simulate extends Input
 
 		private ReadSimulationOutput(FileType type, Simulate is, URL fileURL, Cell cell, WaveformWindow ww)
 		{
-			super("Read Simulation Output for " + cell, IOTool.getIOTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
 			this.type = type;
 			this.is = is;
 			this.fileURL = fileURL;
@@ -242,7 +234,7 @@ public class Simulate extends Input
 			this.ww = ww;
 		}
 
-		public boolean doIt() throws JobException
+		public void run()
 		{
 			try
 			{
@@ -251,19 +243,13 @@ public class Simulate extends Input
 				{
 					sd.setDataType(type);
 					sd.setFileURL(fileURL);
-//					Simulation.showSimulationData(sd, ww);
+					Simulation.showSimulationData(sd, ww);
 				}
 			} catch (IOException e)
 			{
 				System.out.println("End of file reached while reading " + fileURL);
 			}
-			return true;
 		}
-
-        public void terminateOK() {
-            if (sd != null)
-                Simulation.showSimulationData(sd, ww);
-        }
 	}
 
 	/**
