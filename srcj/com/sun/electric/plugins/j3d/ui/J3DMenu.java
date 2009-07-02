@@ -54,10 +54,15 @@ public class J3DMenu {
 
         // mnemonic keys available: AB  EFGHIJKLMNOPQ S U WXYZ
         /** 3D view */
-            new EMenuItem("_3D View") { public void run() {
-                create3DViewCommand(false); }},
-            new EMenuItem("_Capture Frame/Animate") { public void run() {
-                J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame(), null); }},
+            new EMenuItem("_3D View") { public void run()
+            {
+                if (isJava3DAvailable()) create3DViewCommand(false);
+            }},
+            new EMenuItem("_Capture Frame/Animate") { public void run()
+            {
+                if (isJava3DAvailable())
+                    J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame(), null);
+            }},
 //		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(true); } });
 
@@ -72,7 +77,7 @@ public class J3DMenu {
 
             SEPARATOR,
             new EMenuItem("_Test Hardware") { public void run() {
-                runHardwareTest(); }});
+                if (isJava3DAvailable()) runHardwareTest(); }});
     }
 
     // ---------------------- THE 3D MENU FUNCTIONS -----------------
@@ -90,13 +95,25 @@ public class J3DMenu {
 //        J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame());
 //    }
 
+    private static boolean isJava3DAvailable()
+    {
+        // Checking first if j3d is installed
+        Class<?> j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
+        if (j3DUtilsClass == null) // basic j3d is not available
+        {
+            System.out.println("Java3D is not available.");
+            return false;
+        }
+        return true;
+    }
+
     /**
 	 * This method creates 3D view of current cell
      * @param transPerNode
      */
 	public static void create3DViewCommand(Boolean transPerNode)
     {
-	    Cell curCell = WindowFrame.needCurCell();
+        Cell curCell = WindowFrame.needCurCell();
 	    if (curCell == null) return;
 
         if (!curCell.isLayout())
