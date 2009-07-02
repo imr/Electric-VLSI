@@ -53,6 +53,7 @@ public class PNG extends Output
 
         try {
             ImageIO.write(img, "PNG", tmp);
+            System.out.println(filePath + " written");
         }
         catch (Exception e)
         {

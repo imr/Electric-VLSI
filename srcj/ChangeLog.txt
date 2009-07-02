@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+IMP: (7/2/09, GVG) PNG Export doesn't log message in MessageWindow (Bug #2263)
+
 BUG: (7/2/09, GVG) Assertion in GraphicsPreferences (Bug #2262)
 FIX: No User background color in EditWindow.getPrintImage()
 
