@@ -4031,20 +4031,19 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			if (!wp.isSelected()) continue;
 
+			boolean removedSingleStimuli = false;
 			for(WaveSignal ws : wp.getSignals())
 			{
 				if (ws.getSelectedControlPoints() != null)
 				{
 					if (sd.getEngine() != null)
-						sd.getEngine().removeSelectedStimuli();
+					{
+						if (sd.getEngine().removeSelectedStimuli())
+							removedSingleStimuli = true;
+					}
 				}
 			}
-			if (wp.getAnalysisType() != null) deleteSignalFromPanel(wp); else
-			{
-				// do not delete the panel: make them use the "X" button
-//				saveSignalOrder();
-//				wp.closePanel();
-			}
+			if (wp.getAnalysisType() != null && !removedSingleStimuli) deleteSignalFromPanel(wp);
 			break;
 		}
 	}

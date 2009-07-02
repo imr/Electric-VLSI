@@ -468,12 +468,13 @@ public class Simulation extends Tool
 
 	/**
 	 * Method to remove the selected stimuli.
+	 * @return true if stimuli were deleted.
 	 */
-	public static void removeSelectedStimuli()
+	public static boolean removeSelectedStimuli()
 	{
 		Engine engine = findEngine();
-		if (engine == null) return;
-		engine.removeSelectedStimuli();
+		if (engine == null) return false;
+		return engine.removeSelectedStimuli();
 	}
 
 	/**

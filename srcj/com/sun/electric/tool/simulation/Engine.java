@@ -71,8 +71,9 @@ public class Engine
 
 	/**
 	 * Method to remove the selected stimuli.
+	 * @return true if stimuli were deleted.
 	 */
-	public void removeSelectedStimuli() {}
+	public boolean removeSelectedStimuli() { return false; }
 
 	/**
 	 * Method to remove all stimuli from the simulation.

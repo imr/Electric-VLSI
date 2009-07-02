@@ -437,8 +437,9 @@ public class Analyzer extends Engine
 
 	/**
 	 * Method to remove the selected stimuli.
+	 * @return true if stimuli were deleted.
 	 */
-	public void removeSelectedStimuli()
+	public boolean removeSelectedStimuli()
 	{
 		boolean found = false;
 		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
@@ -459,12 +460,13 @@ public class Analyzer extends Engine
 		if (!found)
 		{
 			System.out.println("There are no selected control points to remove");
-			return;
+			return false;
 		}
 
 		// resimulate if requested
 		if (Simulation.isBuiltInResimulateEach())
 			playVectors();
+		return true;
 	}
 
 	/**

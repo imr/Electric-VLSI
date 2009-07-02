@@ -626,8 +626,9 @@ public class ALS extends Engine
 
 	/**
 	 * Method to remove the selected stimuli.
+	 * @return true if stimuli were deleted.
 	 */
-	public void removeSelectedStimuli()
+	public boolean removeSelectedStimuli()
 	{
 		boolean found = false;
 		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
@@ -682,12 +683,13 @@ public class ALS extends Engine
 		if (!found)
 		{
 			System.out.println("There are no selected control points to remove");
-			return;
+			return false;
 		}
 		if (Simulation.isBuiltInResimulateEach())
 		{
 			theSim.initializeSimulator(true);
 		}
+		return true;
 	}
 
 	/**

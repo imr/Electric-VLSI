@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+BUG: (7/2/09, SMR) Deleting individual stimuli from waveform window removes
+     entire waveform (Bug #2266).
+FIX: In WaveformWindow.deleteSelectedSignals(), if a stimuli is removed,
+     do not remove entire waveform.
+
 BUG: (7/2/09, SMR) LTSpice crashes when reading back stimuli (Bug #2265).
 FIX: Changed tool.io.input.Simulate.ReadSimulationOutput class to be Thread,
      not Job.
