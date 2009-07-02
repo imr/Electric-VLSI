@@ -1571,78 +1571,78 @@ public class Connectivity
 
 	private void gridAlignCenterline(Centerline cl, boolean startSide)
 	{
-		// grid align the edges
-		double halfWidth = cl.width / 2;
-halfWidth = 0;		// TODO: is this right?
-		if (cl.start.getX() == cl.end.getX())
-		{
-			// vertical arc: make sure ends align in Y
-			int ali = (int)Math.round(alignment.getHeight() * SCALEFACTOR);
-			if (ali == 0) return;
-			if (startSide)
-			{
-				// adjust the "start" end
-				if (cl.start.getY() < cl.end.getY())
-				{
-					// start on left: compute edge below it
-					double edge = cl.start.getY() - halfWidth;
-					cl.setStart(cl.start.getX(), Math.ceil(edge / ali) * ali + halfWidth);
-				} else
-				{
-					// start on right: compute edge above it
-					double edge = cl.start.getY() + halfWidth;
-					cl.setStart(cl.start.getX(), Math.floor(edge / ali) * ali - halfWidth);
-				}
-			} else
-			{
-				// adjust the "end" end
-				if (cl.end.getY() < cl.start.getY())
-				{
-					// end on left: compute edge below it
-					double edge = cl.end.getY() - halfWidth;
-					cl.setEnd(cl.end.getX(), Math.ceil(edge / ali) * ali + halfWidth);
-				} else
-				{
-					// end on right: compute edge above it
-					double edge = cl.end.getY() + halfWidth;
-					cl.setEnd(cl.end.getX(), Math.floor(edge / ali) * ali - halfWidth);
-				}
-			}
-		} else if (cl.start.getY() == cl.end.getY())
-		{
-			// horizontal arc: make sure ends align in X
-			int ali = (int)Math.round(alignment.getWidth() * SCALEFACTOR);
-			if (ali == 0) return;
-			if (startSide)
-			{
-				// adjust the "start" end
-				if (cl.start.getX() < cl.end.getX())
-				{
-					// start on left: compute edge below it
-					double edge = cl.start.getX() - halfWidth;
-					cl.setStart(Math.ceil(edge / ali) * ali + halfWidth, cl.start.getY());
-				} else
-				{
-					// start on right: compute edge above it
-					double edge = cl.start.getX() + halfWidth;
-					cl.setStart(Math.floor(edge / ali) * ali - halfWidth, cl.start.getY());
-				}
-			} else
-			{
-				// adjust the "end" end
-				if (cl.end.getX() < cl.start.getX())
-				{
-					// end on left: compute edge below it
-					double edge = cl.end.getX() - halfWidth;
-					cl.setEnd(Math.ceil(edge / ali) * ali + halfWidth, cl.end.getY());
-				} else
-				{
-					// end on right: compute edge above it
-					double edge = cl.end.getX() + halfWidth;
-					cl.setEnd(Math.floor(edge / ali) * ali - halfWidth, cl.end.getY());
-				}
-			}
-		}
+//		// grid align the edges
+//		double halfWidth = cl.width / 2;
+//halfWidth = 0;		// TODO: is this right?
+//		if (cl.start.getX() == cl.end.getX())
+//		{
+//			// vertical arc: make sure ends align in Y
+//			int ali = (int)Math.round(alignment.getHeight() * SCALEFACTOR);
+//			if (ali == 0) return;
+//			if (startSide)
+//			{
+//				// adjust the "start" end
+//				if (cl.start.getY() < cl.end.getY())
+//				{
+//					// start on left: compute edge below it
+//					double edge = cl.start.getY() - halfWidth;
+//					cl.setStart(cl.start.getX(), Math.ceil(edge / ali) * ali + halfWidth);
+//				} else
+//				{
+//					// start on right: compute edge above it
+//					double edge = cl.start.getY() + halfWidth;
+//					cl.setStart(cl.start.getX(), Math.floor(edge / ali) * ali - halfWidth);
+//				}
+//			} else
+//			{
+//				// adjust the "end" end
+//				if (cl.end.getY() < cl.start.getY())
+//				{
+//					// end on left: compute edge below it
+//					double edge = cl.end.getY() - halfWidth;
+//					cl.setEnd(cl.end.getX(), Math.ceil(edge / ali) * ali + halfWidth);
+//				} else
+//				{
+//					// end on right: compute edge above it
+//					double edge = cl.end.getY() + halfWidth;
+//					cl.setEnd(cl.end.getX(), Math.floor(edge / ali) * ali - halfWidth);
+//				}
+//			}
+//		} else if (cl.start.getY() == cl.end.getY())
+//		{
+//			// horizontal arc: make sure ends align in X
+//			int ali = (int)Math.round(alignment.getWidth() * SCALEFACTOR);
+//			if (ali == 0) return;
+//			if (startSide)
+//			{
+//				// adjust the "start" end
+//				if (cl.start.getX() < cl.end.getX())
+//				{
+//					// start on left: compute edge below it
+//					double edge = cl.start.getX() - halfWidth;
+//					cl.setStart(Math.ceil(edge / ali) * ali + halfWidth, cl.start.getY());
+//				} else
+//				{
+//					// start on right: compute edge above it
+//					double edge = cl.start.getX() + halfWidth;
+//					cl.setStart(Math.floor(edge / ali) * ali - halfWidth, cl.start.getY());
+//				}
+//			} else
+//			{
+//				// adjust the "end" end
+//				if (cl.end.getX() < cl.start.getX())
+//				{
+//					// end on left: compute edge below it
+//					double edge = cl.end.getX() - halfWidth;
+//					cl.setEnd(Math.ceil(edge / ali) * ali + halfWidth, cl.end.getY());
+//				} else
+//				{
+//					// end on right: compute edge above it
+//					double edge = cl.end.getX() + halfWidth;
+//					cl.setEnd(Math.floor(edge / ali) * ali - halfWidth, cl.end.getY());
+//				}
+//			}
+//		}
 	}
 
 	private List<PortInst> findPortInstsTouchingPoint(Point2D pt, Layer layer, Cell newCell, ArcProto ap)
@@ -3590,6 +3590,35 @@ halfWidth = 0;		// TODO: is this right?
 				for(Centerline cl : centerlines)
 				{
 					if (cl.width < minWidth) continue;
+
+					if (alignment != null)
+					{
+						if (cl.start.getX() == cl.end.getX())
+						{
+							// vertical line: align in X
+							if (alignment.getWidth() > 0)
+							{
+								double aliX = scaleUp(alignment.getWidth());
+								double newX = Math.round(cl.start.getX() / aliX) * aliX;
+								cl.width -= Math.abs(newX - cl.start.getX());
+								cl.width = Math.floor(cl.width / aliX) * aliX;
+								cl.setStart(newX, cl.start.getY());
+								cl.setEnd(newX, cl.end.getY());
+							}
+						} else if (cl.start.getY() == cl.end.getY())
+						{
+							// horizontal line: align in Y
+							if (alignment.getHeight() > 0)
+							{
+								double aliY = scaleUp(alignment.getHeight());
+								double newY = Math.round(cl.start.getY() / aliY) * aliY;
+								cl.width -= Math.abs(newY - cl.start.getY());
+								cl.width = Math.floor(cl.width / aliY) * aliY;
+								cl.setStart(cl.start.getX(), newY);
+								cl.setEnd(cl.end.getX(), newY);
+							}
+						}
+					}
 
 					// make the polygon to describe the centerline
 					double length = cl.start.distance(cl.end);
