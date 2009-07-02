@@ -1756,7 +1756,9 @@ public class TechEditWizardData
      * Method to create the XML version of NodeLayer either graphical or electrical.
      * makeXmlNodeLayer is the default one where layer is available in both mode.
      */
-    private Xml.NodeLayer makeXmlNodeLayer(double lx, double hx, double ly, double hy, Xml.Layer lb, Poly.Type style,
+    private Xml.NodeLayer makeXmlNodeLayer(double lx, int lxk, double hx, int hxk,
+                                           double ly, int lyk, double hy, int hyk,
+                                           Xml.Layer lb, Poly.Type style,
                                            boolean inLayers, boolean electricalLayers, int port)
     {
         Xml.NodeLayer nl = new Xml.NodeLayer();
@@ -1766,9 +1768,19 @@ public class TechEditWizardData
         nl.inLayers = inLayers;
         nl.inElectricalLayers = electricalLayers;
         nl.representation = Technology.NodeLayer.BOX;
-        nl.lx.k = -1; nl.hx.k = 1; nl.ly.k = -1; nl.hy.k = 1;
+        nl.lx.k = lxk; nl.hx.k = hxk; nl.ly.k = lyk; nl.hy.k = hyk;
         nl.lx.addLambda(-lx); nl.hx.addLambda(hx); nl.ly.addLambda(-ly); nl.hy.addLambda(hy);
         return nl;
+    }
+
+    /**
+     * Method to create the XML version of NodeLayer either graphical or electrical.
+     * makeXmlNodeLayer is the default one where layer is available in both mode.
+     */
+    private Xml.NodeLayer makeXmlNodeLayer(double lx, double hx, double ly, double hy, Xml.Layer lb, Poly.Type style,
+                                           boolean inLayers, boolean electricalLayers, int port)
+    {
+        return makeXmlNodeLayer(lx, -1, hx, 1, ly, -1, hy, 1, lb, style, inLayers, electricalLayers, port);
     }
 
     /**
@@ -1787,12 +1799,22 @@ public class TechEditWizardData
     private Xml.NodeLayer makeXmlMulticut(double lx, double hx, double ly, double hy, Xml.Layer lb,
                                           double sizeRule, double sepRule, double sepRule2D)
     {
+        return makeXmlMulticut(lx, -1, hx, 1, ly, -1, hy, 1, lb, sizeRule, sepRule, sepRule2D);
+    }
+    
+    /**
+     * Method to create the default XML version of a MultiCUt NodeLayer
+     * @return
+     */
+    private Xml.NodeLayer makeXmlMulticut(double lx, int lxk, double hx, int hxk, double ly, int lyk, double hy, int hyk,
+                                          Xml.Layer lb, double sizeRule, double sepRule, double sepRule2D)
+    {
         Xml.NodeLayer nl = new Xml.NodeLayer();
         nl.layer = lb.name;
         nl.style = Poly.Type.FILLED;
         nl.inLayers = nl.inElectricalLayers = true;
         nl.representation = Technology.NodeLayer.MULTICUTBOX;
-        nl.lx.k = -1; nl.hx.k = 1; nl.ly.k = -1; nl.hy.k = 1;
+        nl.lx.k = lxk; nl.hx.k = hxk; nl.ly.k = lyk; nl.hy.k = hyk;
         nl.lx.addLambda(-lx); nl.hx.addLambda(hx); nl.ly.addLambda(-ly); nl.hy.addLambda(hy);
 
 //        nl.sizeRule = sizeRule;
@@ -3054,8 +3076,10 @@ public class TechEditWizardData
                 WizardField rpoPEx = findWizardField("rpo_poly_overhang");
                 WizardField rhOverhang = findWizardField("rh_odpoly_overhang");
 
+                double resistorSpacing = contact_array_spacing.v; // using array value to guarantee proper spacing in nD cases
+
                 // poly
-                double soxNoScaled = (rpoS.v + contact_poly_overhang.v + contact_spacing.v + 2 * contact_size.v);
+                double soxNoScaled = (rpoS.v + contact_poly_overhang.v + resistorSpacing + 2 * contact_size.v);
                 double halfTotalL = scaledValue(polyRL.v/2 + soxNoScaled);
                 double halfTotalW = scaledValue(polyRW.v/2);
                 nodesList.add(makeXmlNodeLayer(halfTotalL, halfTotalL, halfTotalW, halfTotalW, polyLayer,
@@ -3074,28 +3098,28 @@ public class TechEditWizardData
 //                double absVal = (contact_poly_overhang.v - via_overhang[0].v);
                 double m1Distance = cutDistance - scaledValue(contact_poly_overhang.v);
                 double m1Y = scaledValue(polyRW.v/2); // - absVal);
-                double m1W = scaledValue(2 * contact_poly_overhang.v + contact_spacing.v + 2 * contact_size.v);
+                double m1W = scaledValue(2 * contact_poly_overhang.v + resistorSpacing + 2 * contact_size.v);
                 double cutSizeHalf = scaledValue(contact_size.v/2);
                 double cutEnd = cutDistance+contSize;
-                double cutSpacing = scaledValue(contact_spacing.v);
+                double cutSpacing = scaledValue(resistorSpacing);
                 double cutEnd2 = cutEnd+contSize+cutSpacing;
 
                 portNames.clear();
                 portNames.add(m1Layer.name);
                 // left port
                 Xml.PrimitivePort port = makeXmlPrimitivePort("left-rpo", 0, 180, 0, minFullSize,
-                    -(cutEnd + cutSpacing), -1, -cutEnd, 1, -cutSizeHalf, -1, cutSizeHalf, 1, portNames);
+                    -(cutEnd + cutSpacing), -1, -cutEnd, -1, -cutSizeHalf, -1, cutSizeHalf, 1, portNames);
                 nodePorts.add(port);
                 // right port
                 port = makeXmlPrimitivePort("right-rpo", 0, 180, 1, minFullSize,
-                    cutEnd, -1, (cutEnd + cutSpacing), 1, -cutSizeHalf, -1, cutSizeHalf, 1, portNames);
+                    cutEnd, 1, (cutEnd + cutSpacing), 1, -cutSizeHalf, -1, cutSizeHalf, 1, portNames);
                 nodePorts.add(port);
 
                 // metal left
-                nodesList.add(makeXmlNodeLayer((m1Distance + m1W), -m1Distance, m1Y, m1Y, m1Layer,
+                nodesList.add(makeXmlNodeLayer((m1Distance + m1W), -1, -m1Distance, -1, m1Y, -1, m1Y, 1, m1Layer,
                     Poly.Type.FILLED, true, true, 0));
                 // right metal
-                nodesList.add(makeXmlNodeLayer(-m1Distance, (m1Distance + m1W), m1Y, m1Y, m1Layer,
+                nodesList.add(makeXmlNodeLayer(-m1Distance, 1, (m1Distance + m1W), 1, m1Y, -1, m1Y, 1, m1Layer,
                     Poly.Type.FILLED, true, true, 1));
 
                 // select
@@ -3107,16 +3131,22 @@ public class TechEditWizardData
                 Xml.Layer rhLayer = t.findLayer("RH");
                 nodesList.add(makeXmlNodeLayer(selectX, selectX, selectY, selectY, rhLayer,
                     Poly.Type.FILLED, true, true, -1));
+                // RPDMY
+                Xml.Layer rPLayer = t.findLayer("RPDMY");
+                nodesList.add(makeXmlNodeLayer(selectX, selectX, selectY, selectY, rPLayer,
+                    Poly.Type.FILLED, true, true, -1));
 
                 // cuts
-                nodesList.add(makeXmlMulticut(cutEnd2, -cutDistance, cutSizeHalf, cutSizeHalf, polyConLayer, contSize, contSpacing, contArraySpacing));
-                nodesList.add(makeXmlMulticut(-cutDistance, cutEnd2, 0, 0, polyConLayer, contSize, contSpacing, contArraySpacing));
+                nodesList.add(makeXmlMulticut(cutEnd2, -1, -cutDistance, -1, cutSizeHalf, -1, cutSizeHalf, 1, polyConLayer, contSize,
+                    contArraySpacing, contArraySpacing));
+                nodesList.add(makeXmlMulticut(-cutDistance, 1, cutEnd2, 1, cutSizeHalf, -1, cutSizeHalf, 1, polyConLayer, contSize,
+                    contArraySpacing, contArraySpacing));
 
                 sox = scaledValue(soxNoScaled + extraSelX);
                 soy = scaledValue(rpoPEx.v);
-//                n = makeXmlPrimitive(t.nodeGroups, name + "-Poly-RPO-Resistor", prFunc, 0, 0, 0, 0,
-//                    new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-//                g.addPinOrResistor(n, name + "-RPoly");
+                n = makeXmlPrimitive(t.nodeGroups, name + "-Poly-RPO-Resistor", prFunc, 0, 0, 0, 0,
+                    new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
+                g.addPinOrResistor(n, name + "-RPoly");
             }
         }
 
