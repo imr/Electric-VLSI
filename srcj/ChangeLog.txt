@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+IMP: (7/2/09, GVG) Importing instead of exporting of Text Cell Contents (Bug #2264)
+FIX: Calling tw.writeTextCell instead of tw.readTextCell
+
 IMP: (7/2/09, GVG) PNG Export doesn't log message in MessageWindow (Bug #2263)
 
 BUG: (7/2/09, GVG) Assertion in GraphicsPreferences (Bug #2262)

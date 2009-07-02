@@ -410,9 +410,11 @@ public class TextWindow implements WindowContent
 			return;
 		}
 		TextWindow tw = (TextWindow)content;
-		String fileName = OpenFile.chooseInputFile(FileType.TEXT, null);
+        Cell cell = tw.getCell();
+        String filePath = cell.getName() + ".txt";
+        String fileName = OpenFile.chooseOutputFile(FileType.TEXT, null, filePath);
 		if (fileName == null) return;
-        tw.readTextCell(fileName);
+        tw.writeTextCell(fileName);
     }
 
     /**
