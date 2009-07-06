@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+IMP: (7/6/09, GVG) Stitch fill generator needs to find all possible connections with cell instances (Bug #2273)
+
 BUG: (7/6/09, SMR) Extension renaming broken for DELIBs (Bug #2256).
 FIX: Fixed Output.writeLibrary().
 

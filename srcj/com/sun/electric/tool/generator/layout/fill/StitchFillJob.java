@@ -624,8 +624,8 @@ public class StitchFillJob extends Job
                 String exportName = ex.getName();
                 String rootName = extractRootName(exportName);
 
-                if (doneExports.contains(rootName))   // exportName
-                    continue; // export for this given NodeInst was done
+//                if (doneExports.contains(rootName))   // exportName
+//                    continue; // export for this given NodeInst was done
 
                 PrimitiveNode n = ex.getBasePort().getParent();
                 Layer layer = n.getLayerIterator().next(); // assuming only 1
@@ -851,8 +851,10 @@ public class StitchFillJob extends Job
             {
                 ArcInst ai = it.next();
                 Network aNet = info.getNetlist().getNetwork(ai, 0);
-                
-                if (aNet.getNetIndex() != jExp.getNetIndex()) continue; // different networks
+
+                boolean found = HierarchyEnumerator.searchInExportNetwork(aNet, info, jExp);
+//                if (aNet.getNetIndex() != jExp.getNetIndex()) continue; // different networks
+                if (!found) continue; // different networks
                 
                 Technology tech = ai.getProto().getTechnology();
                 Poly[] arcInstPolyList = tech.getShapeOfArc(ai);
@@ -865,7 +867,7 @@ public class StitchFillJob extends Job
                     if (l != layer)
                         continue; // wrong layer
                     poly.transform(rTrans);
-                    expA.add(new Area(ai.getBounds()));
+                    expA.add(new Area(poly.getBounds()));
                 }
             }
             return true;
