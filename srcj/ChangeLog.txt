@@ -8,7 +8,7 @@ BUG: (7/6/09, GVG) fill generator still missing some contacts (Bug #2240)
 FIX: Added orientation instruction in doc file otherwise it is hard to look for intersections.
 
 BUG: (7/6/09, GVG) All *.  lay cells renamed to deleted after running the stitch generator? (Bug #2272)
-FIX: Undone in Output.writeLibrary() for bug #2256.
+FIX: Undone changes in Output.writeLibrary() for bug #2256.
 
 BUG: (7/6/09, SMR) Text windows cannot cut/copy/paste (Bug #2269).
 FIX: Added these functions to TextWindow.java.
