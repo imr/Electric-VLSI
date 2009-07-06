@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+BUG: (7/6/09, GVG) All *.  lay cells renamed to deleted after running the stitch generator? (Bug #2272)
+FIX: Undone in Output.writeLibrary() for bug #2256.
+
 BUG: (7/6/09, SMR) Text windows cannot cut/copy/paste (Bug #2269).
 FIX: Added these functions to TextWindow.java.
 
