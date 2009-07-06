@@ -616,7 +616,7 @@ public class CircuitChanges
 	{
 		Cell top = WindowFrame.needCurCell();
 		if (top == null) return;
-		new CellChangeJobs.GraphCells(top, false);
+		new CellChangeJobs.GraphCells(top);
 	}
 
 	/**
@@ -624,7 +624,7 @@ public class CircuitChanges
 	 */
 	public static void graphCellsInLibrary()
 	{
-		new CellChangeJobs.GraphCells(null, false);
+		new CellChangeJobs.GraphCells(null);
 	}
 
 	/**
@@ -632,7 +632,7 @@ public class CircuitChanges
 	 */
 	public static void graphLibraries()
 	{
-		new CellChangeJobs.GraphCells(null, true);
+		new CellChangeJobs.GraphLibraries();
 	}
 
 	/****************************** EXTRACT CELL INSTANCES ******************************/
