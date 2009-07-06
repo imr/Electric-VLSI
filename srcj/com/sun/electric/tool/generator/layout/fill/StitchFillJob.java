@@ -241,6 +241,11 @@ public class StitchFillJob extends Job
                 }
             }
 
+            if (rest == null)
+            {
+                System.out.println("Error parsing the fill instructions");
+                return false;
+            }
             // extracting fill subcells
             parse = new StringTokenizer(rest, " ,", false);
             String newName = fillCellName+"{lay}";
