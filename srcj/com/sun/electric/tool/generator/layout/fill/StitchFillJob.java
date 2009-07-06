@@ -502,6 +502,7 @@ public class StitchFillJob extends Job
                         if (pp.insert.equals(insert) && pp.cut.equals(resultBnd))
                         {
                             insertedAlready = true;
+                            break;
                         }
                     }
                     if (!insertedAlready)
@@ -591,7 +592,7 @@ public class StitchFillJob extends Job
                     }
                     else if (Job.getDebug())
                     {
-                         bottomA = getArcInstOverlappingWithArea(pair.cut, ab, horizontal, false);
+                         getArcInstOverlappingWithArea(pair.cut, ab, horizontal, false);
                         System.out.println("AFG: It couldn't find bottom layer for " + pair.cut);
                     }
                 }
@@ -949,13 +950,13 @@ public class StitchFillJob extends Job
     /**
      * Method to determine if Layer is aligned horizontally
      * @param layer Given Layer
-     * @param evenHorizontal True if even layers are horizontal
+     * @param evenH True if even layers are horizontal
      * @return True of layer is horizontal
      */
-    private static boolean isLayerHorizontal(Layer layer, boolean evenHorizontal)
+    private static boolean isLayerHorizontal(Layer layer, boolean evenH)
     {
         int metalNumber = layer.getFunction().getLevel();
-        return (evenHorizontal && metalNumber%2==0) || (!evenHorizontal && metalNumber%2==1);
+        return (evenH && metalNumber%2==0) || (!evenH && metalNumber%2==1);
     }
 
     /**
@@ -1136,15 +1137,12 @@ public class StitchFillJob extends Job
         private ArcInst topArc;
         private EPoint insert;
         private Rectangle2D cut;
-        private boolean horizontal; // bottom part
 
         PinsArcPair(ArcInst topA, EPoint point, Rectangle2D c)
         {
             topArc = topA;
             insert = point;
             cut = c;
-            Rectangle2D r = topA.getBounds();
-            boolean extra = !DBMath.isGreaterThan(r.getWidth(), r.getHeight());
         }
     }
 

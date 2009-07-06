@@ -721,8 +721,7 @@ public abstract class InteractiveRouter extends Router {
             // lines, allow special case where lines can be non-manhatten
             Point2D [] points1 = startPoly.getPoints();
             Point2D [] points2 = endPoly.getPoints();
-            Point2D intersection = getIntersection(new Line2D.Double(points1[0], points1[1]),
-                                                   new Line2D.Double(points2[0], points2[1]));
+            Point2D intersection = getIntersection(points1, points2);
             if (intersection != null)
             {
                 if (Job.getDebug())
@@ -811,11 +810,21 @@ public abstract class InteractiveRouter extends Router {
 
     /**
      * Get the intersection point of the two line segments, or null if none
-     * @param line1 line 1
-     * @param line2 line 2
+     * @param points1 An array of two points that define line 1
+     * @param points2 An array of two points that define line 2
      * @return the intersection point, or null if none
      */
-    public static Point2D getIntersection(Line2D line1, Line2D line2) {
+    public static Point2D getIntersection(Point2D [] points1, Point2D [] points2) {
+        // Checking if line1 is not a singular point
+        if (DBMath.areEquals(points1[0], points1[1]) || DBMath.areEquals(points2[0], points2[1]))
+        {
+            if (Job.getDebug())
+                System.out.println("Line is a singular point in InteractiveRouter.getIntersection");
+            return null;
+        }
+        Line2D line1 = new Line2D.Double(points1[0], points1[1]);
+        Line2D line2 = new Line2D.Double(points2[0], points2[1]);
+
         if (!line1.intersectsLine(line2))
             return null;
         double [] co1 = getLineCoeffs(line1);
