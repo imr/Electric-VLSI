@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+BUG: (7/6/09, SMR) Text windows cannot cut/copy/paste (Bug #2269).
+FIX: Added these functions to TextWindow.java.
+
 IMP: (7/2/09, GVG) 3D Viewer shouldn't be available if j3d package is not available (Bug #2268)
 
 IMP: (7/2/09, GVG) Add 40nm Poly Resistors (Bug #2267)

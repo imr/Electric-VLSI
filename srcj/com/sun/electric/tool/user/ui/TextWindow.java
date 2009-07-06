@@ -248,6 +248,37 @@ public class TextWindow implements WindowContent
 		}
 	}
 
+	public void copy()
+	{
+		int startSelection = textArea.getSelectionStart();
+		int endSelection = textArea.getSelectionEnd();
+        try
+        {
+            String line = textArea.getText(startSelection, endSelection - startSelection);
+    		TextUtils.setTextOnClipboard(line);
+        } catch (BadLocationException ex) {}
+	}
+
+	public void cut()
+	{
+		int startSelection = textArea.getSelectionStart();
+		int endSelection = textArea.getSelectionEnd();
+        try
+        {
+            String line = textArea.getText(startSelection, endSelection - startSelection);
+    		TextUtils.setTextOnClipboard(line);
+    		textArea.replaceRange("", startSelection, endSelection);
+        } catch (BadLocationException ex) {}
+	}
+
+	public void paste()
+	{
+		String replaceThis = TextUtils.getTextOnClipboard();
+		int startSelection = textArea.getSelectionStart();
+		int endSelection = textArea.getSelectionEnd();
+    	textArea.replaceRange(replaceThis, startSelection, endSelection);
+	}
+
 	private void textWindowContentChanged()
 	{
 		if (!reloading)

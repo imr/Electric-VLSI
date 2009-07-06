@@ -51,6 +51,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.ActionEvent;
@@ -118,7 +119,16 @@ public class Clipboard //implements ClipboardOwner
         // Clear text buffer
         TextUtils.setTextOnClipboard(null);
 
-        // see what is highlighted
+        // if current window is text window, copy from it
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf != null && wf.getContent() instanceof TextWindow)
+		{
+			TextWindow tw = (TextWindow)wf.getContent();
+			tw.copy();
+			return;
+		}
+
+		// get the edit window
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
 		Highlighter highlighter = wnd.getHighlighter();
@@ -164,7 +174,16 @@ public class Clipboard //implements ClipboardOwner
 	 */
 	public static void cut()
 	{
-		// see what is highlighted
+        // if current window is text window, cut from it
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf != null && wf.getContent() instanceof TextWindow)
+		{
+			TextWindow tw = (TextWindow)wf.getContent();
+			tw.cut();
+			return;
+		}
+
+		// get the edit window
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
 		Highlighter highlighter = wnd.getHighlighter();
@@ -212,6 +231,15 @@ public class Clipboard //implements ClipboardOwner
 	 */
 	public static void paste()
 	{
+        // if current window is text window, paste to it
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf != null && wf.getContent() instanceof TextWindow)
+		{
+			TextWindow tw = (TextWindow)wf.getContent();
+			tw.paste();
+			return;
+		}
+
         // Get text put in the clipboard but using variables.
         String extraText = TextUtils.getTextOnClipboard();
 
