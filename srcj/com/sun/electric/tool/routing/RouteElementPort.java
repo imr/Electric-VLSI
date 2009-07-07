@@ -104,7 +104,7 @@ public class RouteElementPort extends RouteElement {
         e.location = EPoint.snap(nodeInstToDelete.getTrueCenter());
         e.isBisectArcPin = false;
         e.newArcs = new ArrayList<RouteElementArc>();
-        e.setNodeSize(new Dimension2D.Double(nodeInstToDelete.getXSize(), nodeInstToDelete.getYSize()));
+        e.setNodeSize(new Dimension2D.Double(nodeInstToDelete.getXSizeWithoutOffset(), nodeInstToDelete.getYSizeWithoutOffset()));
         e.nodeInst = nodeInstToDelete;
         e.portInst = null;
         e.portInstSite = null;
@@ -139,7 +139,7 @@ public class RouteElementPort extends RouteElement {
         e.location = EPoint.snap(nodeInst.getTrueCenter());
         e.isBisectArcPin = false;
         e.newArcs = new ArrayList<RouteElementArc>();
-        e.setNodeSize(new Dimension2D.Double(nodeInst.getXSize(), nodeInst.getYSize()));
+        e.setNodeSize(new Dimension2D.Double(nodeInst.getXSizeWithoutOffset(), nodeInst.getYSizeWithoutOffset()));
         e.nodeInst = nodeInst;
         e.portInst = existingPortInst;
         e.portInstSite = portInstSite;
