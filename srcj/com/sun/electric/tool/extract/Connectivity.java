@@ -569,7 +569,7 @@ public class Connectivity
 		}
 		AutoOptions prefs = new AutoOptions();
 		prefs.createExports = true;
-		AutoStitch.runAutoStitch(newCell, null, null, job, originalUnscaledMerge, null, false, prefs, !recursive, alignment);
+		AutoStitch.runAutoStitch(newCell, null, null, job, originalUnscaledMerge, null, false, true, prefs, !recursive, alignment);
 		if (DEBUGSTEPS)
 		{
 			initDebugging();
@@ -4295,7 +4295,7 @@ public class Connectivity
 				}
 
 				// just generate a pure-layer node
-				List<NodeInst> niList = makePureLayerNodeFromPoly(poly, newCell);
+				List<NodeInst> niList = makePureLayerNodeFromPoly(poly, newCell, originalMerge);
 				if (niList == null) continue;
 
 				// connect to the rest if possible
@@ -4361,7 +4361,7 @@ public class Connectivity
 		{
 			CutInfo cInfo = allCutLayers.get(layer);
 			for(PolyBase poly : cInfo.getCuts())
-				makePureLayerNodeFromPoly(poly, newCell);
+				makePureLayerNodeFromPoly(poly, newCell, originalMerge);
 		}
 
 		if (numIgnored.intValue() > 0)
@@ -4375,7 +4375,7 @@ public class Connectivity
 	 * @param cell the Cell in which to place the node.
 	 * @return a List of NodeInsts that were created (null on error).
 	 */
-	private List<NodeInst> makePureLayerNodeFromPoly(PolyBase poly, Cell cell)
+	private List<NodeInst> makePureLayerNodeFromPoly(PolyBase poly, Cell cell, PolyMerge originalMerge)
 	{
 		Layer layer = poly.getLayer();
 
@@ -4439,9 +4439,51 @@ public class Connectivity
 				Rectangle2D polyBounds = simplePoly.getBounds2D();
 				double centerX = polyBounds.getCenterX() / SCALEFACTOR;
 				double centerY = polyBounds.getCenterY() / SCALEFACTOR;
+				double width = polyBounds.getWidth() / SCALEFACTOR;
+				double height = polyBounds.getHeight() / SCALEFACTOR;
+				if (alignment != null)
+				{
+					if (alignment.getWidth() > 0)
+					{
+						double aliX = Math.round(centerX / alignment.getWidth()) * alignment.getWidth();
+						if (aliX != centerX)
+						{
+							double newWidth = width + Math.abs(aliX-centerX)*2;
+							Poly rectPoly = new Poly(scaleUp(aliX), scaleUp(centerY), scaleUp(newWidth), scaleUp(height));
+							if (!originalMerge.contains(layer, rectPoly))
+							{
+								if (aliX > centerX) aliX -= alignment.getWidth(); else
+									aliX += alignment.getWidth();
+								newWidth = width + Math.abs(aliX-centerX)*2;
+								rectPoly = new Poly(scaleUp(aliX), scaleUp(centerY), scaleUp(newWidth), scaleUp(height));
+								if (!originalMerge.contains(layer, rectPoly)) continue;
+							}
+							centerX = aliX;
+							width = newWidth;
+						}
+					}
+					if (alignment.getHeight() > 0)
+					{
+						double aliY = Math.round(centerY / alignment.getHeight()) * alignment.getHeight();
+						if (aliY != centerY)
+						{
+							double newHeight = height + Math.abs(aliY-centerY)*2;
+							Poly rectPoly = new Poly(scaleUp(centerX), scaleUp(aliY), scaleUp(width), scaleUp(newHeight));
+							if (!originalMerge.contains(layer, rectPoly))
+							{
+								if (aliY > centerY) aliY -= alignment.getHeight(); else
+									aliY += alignment.getHeight();
+								newHeight = height + Math.abs(aliY-centerY)*2;
+								rectPoly = new Poly(scaleUp(centerX), scaleUp(aliY), scaleUp(width), scaleUp(newHeight));
+								if (!originalMerge.contains(layer, rectPoly)) continue;
+							}
+							centerY = aliY;
+							height = newHeight;
+						}
+					}
+				}
 				Point2D center = new Point2D.Double(centerX, centerY);
-				NodeInst ni = createNode(pNp, center, polyBounds.getWidth() / SCALEFACTOR,
-					polyBounds.getHeight() / SCALEFACTOR, null, cell);
+				NodeInst ni = createNode(pNp, center, width, height, null, cell);
 				createdNodes.add(ni);
 			}
 			return createdNodes;
