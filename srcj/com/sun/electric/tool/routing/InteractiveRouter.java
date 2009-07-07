@@ -1202,10 +1202,10 @@ public abstract class InteractiveRouter extends Router {
             if (pn.getFunction() == PrimitiveNode.Function.CONTACT) {
                 Dimension2D size = re.getNodeSize();
                 if (arcAngle % 1800 == 0) {
-                    if (arcWidth > size.getHeight()) return false;
+                    if (arcWidth > size.getWidth()) return false;
                 }
                 if ((arcAngle+900) % 1800 == 0) {
-                    if (arcWidth > size.getWidth()) return false;
+                    if (arcWidth > size.getHeight()) return false;
                 }
             }
         }
