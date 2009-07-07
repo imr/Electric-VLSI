@@ -868,7 +868,7 @@ public class StitchFillJob extends Job
                     if (l != layer)
                         continue; // wrong layer
                     poly.transform(rTrans);
-                    expA.add(new Area(poly.getBounds()));
+                    expA.add(new Area(poly.getBounds2D()));
                 }
             }
             return true;
