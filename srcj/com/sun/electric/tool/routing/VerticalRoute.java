@@ -66,6 +66,7 @@ public class VerticalRoute {
     /** list of all valid specified routes */   private List<SpecifiedRoute> allSpecifiedRoutes;
     /** first arc (from startRE) */             private ArcProto startArc;
     /** last arct (to endRE) */                 private ArcProto endArc;
+    /** list of contacts to use */              private List<PrimitiveNode> contacts;
 
     /** the possible start arcs */              private ArcProto [] startArcs;
     /** the possible end arcs */                private ArcProto [] endArcs;
@@ -430,6 +431,8 @@ public class VerticalRoute {
                 specifiedRoute.startArc = startArc;
                 specifiedRoute.endArc = endArc;
                 searchNumber = 0;
+                Technology tech = startArc.getTechnology();
+                //this.contacts = tech.getPreferredContacts();
                 if (DEBUGSEARCH || DEBUGTERSE) System.out.println("** Start search startArc="+startArc+", endArc="+endArc);
                 findConnectingPorts(startArc, endArc, new StringBuffer());
                 if (DEBUGSEARCH || DEBUGTERSE) System.out.println("   Search reached searchNumber "+searchNumber);
@@ -505,7 +508,8 @@ public class VerticalRoute {
         // that will connect the two arcs
 		for (Iterator<PrimitiveNode> nodesIt = tech.getNodes(); nodesIt.hasNext(); ) {
 			PrimitiveNode pn = nodesIt.next();
-            // ignore anything that is noy CONTACT
+        //for (PrimitiveNode pn : contacts) {
+            // ignore anything that is not CONTACT
             if (pn.getFunction() != PrimitiveNode.Function.CONTACT) continue;
             if (pn.isNotUsed()) continue;
 
@@ -522,8 +526,9 @@ public class VerticalRoute {
 
         // try all contact ports as an intermediate
 		for (Iterator<PrimitiveNode> nodesIt = tech.getNodes(); nodesIt.hasNext(); ) {
-			PrimitiveNode pn = nodesIt.next();
-            // ignore anything that is noy CONTACT
+            PrimitiveNode pn = nodesIt.next();
+        //for (PrimitiveNode pn : contacts) {
+            // ignore anything that is not CONTACT
             if (pn.getFunction() != PrimitiveNode.Function.CONTACT) continue;
             if (pn.isNotUsed()) continue;
 
