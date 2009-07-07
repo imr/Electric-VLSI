@@ -773,8 +773,8 @@ public abstract class InteractiveRouter extends Router {
     }
 
     /**
-     * Method to find the center of a Rectangle, grid aligned.
-     * @param bounds the rectangle to evaluate.
+     * Method to find the center of a Rectangle, grid aligned, and to grid-align the rectangle.
+     * @param bounds the rectangle to evaluate and align.
      * @param alignment the alignment in X and Y.
      * @param ctr the center point is stored here.
      */
@@ -793,6 +793,10 @@ public abstract class InteractiveRouter extends Router {
 					double newX = xxL * alignment.getWidth();
 					if (newX >= bounds.getMinX() && newX <= bounds.getMaxX()) cX = newX;
 				}
+				double lX = Math.ceil(bounds.getMinX() / alignment.getWidth()) * alignment.getWidth();
+				double hX = Math.floor(bounds.getMaxX() / alignment.getWidth()) * alignment.getWidth();
+				if (lX <= bounds.getMaxX() && hX >= bounds.getMinX())
+					bounds.setRect(lX, bounds.getMinY(), hX-lX, bounds.getHeight());
 			}
 			if (alignment.getHeight() > 0)
 			{
@@ -803,6 +807,10 @@ public abstract class InteractiveRouter extends Router {
 					double newY = yyL * alignment.getHeight();
 					if (newY >= bounds.getMinY() && newY <= bounds.getMaxY()) cY = newY;
 				}
+				double lY = Math.ceil(bounds.getMinY() / alignment.getHeight()) * alignment.getHeight();
+				double hY = Math.floor(bounds.getMaxY() / alignment.getHeight()) * alignment.getHeight();
+				if (lY <= bounds.getMaxY() && hY >= bounds.getMinY())
+					bounds.setRect(bounds.getMinX(), lY, bounds.getWidth(), hY-lY);
 			}
 		}
 		ctr.setLocation(cX, cY);

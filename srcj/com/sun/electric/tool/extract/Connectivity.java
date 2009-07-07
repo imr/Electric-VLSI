@@ -1129,13 +1129,19 @@ public class Connectivity
 							if (DEBUGCENTERLINES) System.out.println("   WID="+(cl.width/SCALEFACTOR)+" FIT="+fits);
 						}
 					}
+					while (!fits)
+					{
+						double wid = cl.width - SCALEFACTOR;
+						if (wid < 0) break;
+						cl.width = wid;
+						fits = originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend);
+						if (DEBUGCENTERLINES) System.out.println("   WID="+(cl.width/SCALEFACTOR)+" FIT="+fits);
+					}
 					if (!fits)
 					{
 						cl.width = 0;
-						fits = originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend);
-						if (DEBUGCENTERLINES) System.out.println("   WID=0 FIT="+fits);
+						ap = Generic.tech().universal_arc;
 					}
-					if (!fits) continue;
 
 					// create the wire
 					ArcInst ai = realizeArc(ap, pi1, pi2, loc1Unscaled, loc2Unscaled, cl.width / SCALEFACTOR,
@@ -1171,10 +1177,10 @@ public class Connectivity
 				double lY = bounds.getMinY()/SCALEFACTOR, hY = bounds.getMaxY()/SCALEFACTOR;
 				double alignX = alignment.getWidth();
 				double alignY = alignment.getHeight();
-				if (!isOnGrid(lX, alignX)) { lX = Math.ceil(lX / alignX) * alignX; System.out.println("ADJUSTING LX FROM "+(bounds.getMinX()/SCALEFACTOR)+" TO "+lX); }
-				if (!isOnGrid(hX, alignX)) { hX = Math.floor(hX / alignX) * alignX; System.out.println("ADJUSTING HX FROM "+(bounds.getMaxX()/SCALEFACTOR)+" TO "+hX); }
-				if (!isOnGrid(lY, alignY)) { lY = Math.ceil(lY / alignY) * alignY; System.out.println("ADJUSTING LY FROM "+(bounds.getMinY()/SCALEFACTOR)+" TO "+lY); }
-				if (!isOnGrid(hY, alignY)) { hY = Math.floor(hY / alignY) * alignY; System.out.println("ADJUSTING HY FROM "+(bounds.getMaxY()/SCALEFACTOR)+" TO "+hY); }
+				if (!isOnGrid(lX, alignX)) lX = Math.ceil(lX / alignX) * alignX;
+				if (!isOnGrid(hX, alignX)) hX = Math.floor(hX / alignX) * alignX;
+				if (!isOnGrid(lY, alignY)) lY = Math.ceil(lY / alignY) * alignY;
+				if (!isOnGrid(hY, alignY)) hY = Math.floor(hY / alignY) * alignY;
 				if (lX >= hX || lY >= hY) continue;
 
 				// grid align the center of this rectangle
@@ -2167,6 +2173,19 @@ public class Connectivity
 //boolean debug = pNp.getName().equals("Z-Metal-1-N-Diff-Con");
 //if (debug) System.out.println("LOOKING FOR LARGEST CUT...");
 		Orientation orient = Orientation.fromAngle(rot);
+		if (alignment != null)
+		{
+			if (alignment.getWidth() > 0)
+			{
+				double scale = scaleUp(alignment.getWidth());
+				x = Math.round(x / scale) * scale;
+			}
+			if (alignment.getHeight() > 0)
+			{
+				double scale = scaleUp(alignment.getHeight());
+				y = Math.round(y / scale) * scale;
+			}
+		}
 		EPoint ctr = new EPoint(x / SCALEFACTOR, y / SCALEFACTOR);
 
 		// first find an X size that does not fit
@@ -2242,6 +2261,19 @@ public class Connectivity
 				}
 			} else { sX += lowXInc;   sY += lowYInc; }
 			if (error != null) return error.getLayer();
+		}
+		if (alignment != null)
+		{
+			if (alignment.getWidth() > 0)
+			{
+				double scale = scaleUp(alignment.getWidth()) * 2;
+				sX = Math.floor(sX / scale) * scale;
+			}
+			if (alignment.getHeight() > 0)
+			{
+				double scale = scaleUp(alignment.getHeight()) * 2;
+				sY = Math.floor(sY / scale) * scale;
+			}
 		}
 		realizeNode(pNp, cutVariation, x, y, sX, sY, rot, null, merge, newCell, contactNodes);
 		return null;
@@ -3262,6 +3294,16 @@ public class Connectivity
 
 		// find the port that is being extended
 		Point2D polyCtr = new Point2D.Double(polyBounds.getCenterX(), polyBounds.getCenterY());
+		if (alignment != null)
+		{
+			double x = polyCtr.getX();
+			double y = polyCtr.getY();
+			if (alignment.getWidth() > 0)
+				x = Math.round(x / scaleUp(alignment.getWidth())) * scaleUp(alignment.getWidth());
+			if (alignment.getHeight() > 0)
+				y = Math.round(y / scaleUp(alignment.getHeight())) * scaleUp(alignment.getHeight());
+			polyCtr.setLocation(x, y);
+		}
 		if (obj instanceof ArcInst)
 		{
 			ArcInst ai = (ArcInst)obj;
@@ -4229,11 +4271,11 @@ public class Connectivity
 								end2 = new Point2D.Double(polyBounds.getCenterX() / SCALEFACTOR, (polyBounds.getMaxY()-width/2) / SCALEFACTOR);
 								size = width;
 							}
-							NodeInst ni1 = createNode(np, end1, size, size, null, newCell);
-							NodeInst ni2 = createNode(np, end2, size, size, null, newCell);
 							MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
 							if (originalMerge.arcPolyFits(layer, end1, end2, size, headExtend, tailExtend))
 							{
+								NodeInst ni1 = createNode(np, end1, size, size, null, newCell);
+								NodeInst ni2 = createNode(np, end2, size, size, null, newCell);
 								realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2,
 									size, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 							}
@@ -4674,6 +4716,7 @@ public class Connectivity
 			if (alignment.getWidth() > 0)
 				width = Math.floor(wid2 / alignment.getWidth()) * alignment.getWidth() * 2;
 		}
+		if (width == 0) ap = Generic.tech().universal_arc;
 		ArcInst ai = ArcInst.makeInstanceBase(ap, width, pi1, pi2, pt1, pt2, null);
 		if (ai == null) return null;
 

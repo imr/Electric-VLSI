@@ -1384,6 +1384,19 @@ name=null;
 				double portCY = portPoly.getCenterY();
 				Network nodeNet = top.getPortNetwork(pi);
 				if (arcNet == nodeNet) continue;
+				if (alignment != null)
+				{
+					if (alignment.getWidth() > 0)
+					{
+						portCX = Math.round(portCX / alignment.getWidth()) * alignment.getWidth();
+						aCX = Math.round(aCX / alignment.getWidth()) * alignment.getWidth();
+					}
+					if (alignment.getHeight() > 0)
+					{
+						portCY = Math.round(portCY / alignment.getHeight()) * alignment.getHeight();
+						aCY = Math.round(aCY / alignment.getHeight()) * alignment.getHeight();
+					}
+				}
 				Point2D bend1 = new Point2D.Double(portCX, aCY);
 				Point2D bend2 = new Point2D.Double(aCX, portCY);
 				if (stayInside != null)

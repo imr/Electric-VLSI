@@ -96,6 +96,11 @@ public class RouteElementArc extends RouteElement {
     	MutableBoolean headExtend = new MutableBoolean(extendArcHead);
     	MutableBoolean tailExtend = new MutableBoolean(extendArcTail);
 
+//if (headEP.getX() == 119.5 && headEP.getY() == 213.5 &&
+//	tailEP.getX() == 118.5 && tailEP.getY() == 213)
+//{
+//	arcBaseWidth *= 1;
+//}
         if (stayInside != null)
     	{
         	Set<Layer> allLayers = stayInside.getKeySet();
@@ -120,6 +125,7 @@ public class RouteElementArc extends RouteElement {
 	        	{
 	        		arcBaseWidth = Math.max(arcBaseWidth-1, 0);
 	                arcExtendOverMin = arcBaseWidth*0.5 - ap.getLambdaBaseExtend();
+	                if (arcExtendOverMin < 0) break;
 	            	good = stayInside.arcPolyFits(layer, headEP, tailEP, 2*(arcExtendOverMin+layerExtend), headExtend, tailExtend);
 	        	}
 
