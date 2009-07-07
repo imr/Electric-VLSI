@@ -1729,11 +1729,25 @@ public class EDIF extends Input
 			pi = plp.alreadyThere.findPortInstFromProto(fPp);
 		}
 		plp.createdPort = Export.newInstance(curCell, pi, convertParens(plp.name), plp.direction, false);
-
 		if (plp.createdPort == null)
 		{
 			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + plp.name + ">");
 			errorCount++;
+		}
+
+		// when creating an export on a schematic, copy characteristics from the icon
+		if (curCell.getView() == View.SCHEMATIC)
+		{
+			Cell iconCell = curCell.iconView();
+			if (iconCell != null)
+			{
+				Export e = plp.createdPort.getEquivalentPort(iconCell);
+				if (e != null)
+				{
+					if (plp.direction == PortCharacteristic.UNKNOWN && e.getCharacteristic() != PortCharacteristic.UNKNOWN)
+						plp.createdPort.setCharacteristic(e.getCharacteristic());
+				}
+			}
 		}
 
 		// create the properties on the port

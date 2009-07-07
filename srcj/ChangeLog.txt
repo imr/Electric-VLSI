@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+IMP: (7/7/09, SMR) EDIF import now gets Export characteristics right in schematic cells (Bug #2275).
+
 IMP: (7/6/09, GVG) TechWizardEditor and non-deterministic XML output (Bug #2250)
 
 BUG: (7/6/09, GVG) Stitch fill generator and flat cap cells (Bug #2274)
