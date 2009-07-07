@@ -3255,6 +3255,13 @@ public class TechEditWizardData
         l.add(new String("Cell"));
         t.menuPalette.menuBoxes.add(l);
 
+        // Sort before writing data. We might need to sort primitive nodes in group before...
+        Collections.sort(t.nodeGroups, primitiveNodeGroupSort);
+        for (Xml.PrimitiveNodeGroup nodeGroup: t.nodeGroups)
+        {
+            // sort NodeLayer before writing them
+            Collections.sort(nodeGroup.nodeLayers, nodeLayerSort);
+        }
 
         // write finally the file
         boolean includeDateAndVersion = User.isIncludeDateAndVersionInOutput();
@@ -3376,4 +3383,61 @@ public class TechEditWizardData
     }
 
     private double scaledValue(double val) { return DBMath.round(val / stepsize); }
+
+
+
+        /***************************************************************************************************
+         * PrimitiveNodeGroup Comparator
+         ***************************************************************************************************/
+        /**
+         * A comparator object for sorting NodeGroups
+         * Created once because it is used often.
+         */
+        public static final PrimitiveNodeGroupSort primitiveNodeGroupSort = new PrimitiveNodeGroupSort();
+
+        /**
+         * Comparator class for sorting PrimitiveNodeGroups by their name.
+         */
+        public static class PrimitiveNodeGroupSort implements Comparator<Xml.PrimitiveNodeGroup>
+        {
+            /**
+             * Method to compare two PrimitiveNodeGroups by their name.
+             * @param l1 one PrimitiveNodeGroup.
+             * @param l2 another PrimitiveNodeGroup.
+             * @return an integer indicating their sorting order.
+             */
+            public int compare(Xml.PrimitiveNodeGroup l1, Xml.PrimitiveNodeGroup l2)
+            {
+                // Sorting by first element
+                Xml.PrimitiveNode n1 = l1.nodes.get(0);
+                Xml.PrimitiveNode n2 = l2.nodes.get(0);
+                return n1.name.compareTo(n2.name);
+            }
+        }
+
+        /***************************************************************************************************
+         * NodeLayer Comparator
+         ***************************************************************************************************/
+        /**
+         * A comparator object for sorting NodeLayers
+         * Created once because it is used often.
+         */
+        public static final NodeLayerSort nodeLayerSort = new NodeLayerSort();
+
+        /**
+         * Comparator class for sorting PrimitiveNodeGroups by their name.
+         */
+        public static class NodeLayerSort implements Comparator<Xml.NodeLayer>
+        {
+            /**
+             * Method to compare two NodeLayers by their name.
+             * @param l1 one NodeLayer.
+             * @param l2 another NodeLayer.
+             * @return an integer indicating their sorting order.
+             */
+            public int compare(Xml.NodeLayer l1, Xml.NodeLayer l2)
+            {
+                return l1.layer.compareTo(l2.layer);
+            }
+        }
 }
