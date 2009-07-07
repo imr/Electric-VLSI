@@ -1850,7 +1850,8 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                 String msg = "Network: Layout " + cell + " has " + nodesOfType.size() +
                         " " + np.describe(true) + " nodes";
                 System.out.println(msg);
-                errorLog.logMessage(msg, Collections.<Geometric>unmodifiableList(nodesOfType), cell, errorSortNetworks, true);
+                boolean realError = np != Generic.tech().universalPinNode; // universal pins generate only warnings
+                errorLog.logMessage(msg, Collections.<Geometric>unmodifiableList(nodesOfType), cell, errorSortNetworks, realError);
             }
         }
     }
