@@ -697,7 +697,7 @@ public class EDIF extends Input
 
 				// now auto-route the schematic to connect everything
 				if (cell.isLinked())
-					AutoStitch.runAutoStitch(cell, null, null, job, null, null, false, localPrefs.autoParameters, false, null);
+					AutoStitch.runAutoStitch(cell, null, null, job, null, null, false, false, localPrefs.autoParameters, false, null);
 			}
 		}
 

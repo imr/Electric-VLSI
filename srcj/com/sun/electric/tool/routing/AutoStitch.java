@@ -94,6 +94,7 @@ public class AutoStitch
 	/** list of pins that may be inline pins due to created arcs */	private List<NodeInst> possibleInlinePins;
 	/** set of nodes to check (prevents duplicate checks) */		private Set<NodeInst> nodeMark;
 	/** edge alignment for arcs */									private Dimension2D alignment;
+	/** true to stitch pure-layer nodes */							private boolean includePureLayerNodes;
 
 	/****************************************** CONTROL ******************************************/
 
@@ -195,7 +196,7 @@ public class AutoStitch
 			Rectangle2D limitBound = null;
 			if (lX != hX && lY != hY)
 				limitBound = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
-			runAutoStitch(cell, nodesToStitch, arcsToStitch, this, null, limitBound, forced, prefs, false, null);
+			runAutoStitch(cell, nodesToStitch, arcsToStitch, this, null, limitBound, forced, false, prefs, false, null);
 			return true;
 		}
 	}
@@ -209,12 +210,14 @@ public class AutoStitch
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param limitBound if not null, only consider connections that occur in this area.
 	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
+	 * @param includePureLayerNodes true to route pure-layer nodes (normally ignorned).
 	 * @param prefs routing preferences.
 	 * @param showProgress true to show progress.
 	 * @param alignment grid alignment for edges of arcs (null if none).
 	 */
 	public static void runAutoStitch(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch, Job job,
-		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, AutoOptions prefs, boolean showProgress, Dimension2D alignment)
+		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, boolean includePureLayerNodes,
+		AutoOptions prefs, boolean showProgress, Dimension2D alignment)
 	{
 		// initialization
 		if (cell.isAllLocked())
@@ -225,6 +228,7 @@ public class AutoStitch
 
 		AutoStitch as = new AutoStitch(cell.getEditingPreferences());
 		as.alignment = alignment;
+		as.includePureLayerNodes = includePureLayerNodes;
 		as.runNow(cell, nodesToStitch, arcsToStitch, job, stayInside, limitBound, forced, prefs, showProgress);
 	}
 
@@ -263,7 +267,7 @@ public class AutoStitch
 				{
 					PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
 					if (pnp.getTechnology() == Generic.tech()) continue;
-					if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+					if (!includePureLayerNodes && pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
 				}
 				newNodesToStitch.add(ni);
 			}
@@ -768,7 +772,7 @@ name=null;
 				{
 					PrimitiveNode pnp = (PrimitiveNode)oNi.getProto();
 					if (pnp.getTechnology() == Generic.tech()) continue;
-					if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+					if (!includePureLayerNodes && pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
 				}
 
 				if (ni == null)
@@ -1920,7 +1924,7 @@ name=null;
 				{
 					PrimitiveNode pnp = (PrimitiveNode)oNi.getProto();
 					if (pnp.getTechnology() == Generic.tech()) continue;
-					if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+					if (!includePureLayerNodes && pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
 				}
 
 				if (ni == null)
