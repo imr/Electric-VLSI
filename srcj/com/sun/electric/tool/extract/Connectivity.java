@@ -3218,6 +3218,11 @@ public class Connectivity
 						double xpos = polyBounds1.getCenterX();
 						if (xpos < polyBounds2.getMinX()) xpos = polyBounds2.getMinX();
 						if (xpos > polyBounds2.getMaxX()) xpos = polyBounds2.getMaxX();
+						if (alignment != null && alignment.getWidth() > 0)
+						{
+							xpos = Math.round(xpos / scaleUp(alignment.getWidth())) * scaleUp(alignment.getWidth());
+							if (xpos < polyBounds2.getMinX() || xpos > polyBounds2.getMaxX()) continue;
+						}
 						Point2D pt1 = new Point2D.Double(xpos, polyBounds1.getCenterY());
 						Point2D pt2 = new Point2D.Double(xpos, polyBounds2.getCenterY());
 
@@ -3232,6 +3237,11 @@ public class Connectivity
 						double ypos = polyBounds1.getCenterY();
 						if (ypos < polyBounds2.getMinY()) ypos = polyBounds2.getMinY();
 						if (ypos > polyBounds2.getMaxY()) ypos = polyBounds2.getMaxY();
+						if (alignment != null && alignment.getHeight() > 0)
+						{
+							ypos = Math.round(ypos / scaleUp(alignment.getHeight())) * scaleUp(alignment.getHeight());
+							if (ypos < polyBounds2.getMinY() || ypos > polyBounds2.getMaxY()) continue;
+						}
 						Point2D pt1 = new Point2D.Double(polyBounds1.getCenterX(), ypos);
 						Point2D pt2 = new Point2D.Double(polyBounds2.getCenterX(), ypos);
 
