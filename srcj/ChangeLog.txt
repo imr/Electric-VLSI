@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+BUG: (7/8/09, SMR) Run Probe option under LTSpice simulation does not work (from BSU, Bug #2279).
+FIX: In com.sun.electric.tool.io.output.Spice.SpiceFinishedListener.processFinished(),
+     replace method with:
+        SwingUtilities.invokeLater(new Runnable() { public void run() {
+            Simulate.plotSpiceResultsThisCell();
+        }});
+
 BUG: (7/8/09, SMR) When undoing changes, index out of bounds exception when no more
      undo's are available (from BSU, Bug #2278).
 FIX: In com.sun.electric.database.change.Undo.getUndoActivity(), replaced

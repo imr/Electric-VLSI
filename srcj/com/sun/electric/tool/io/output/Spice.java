@@ -90,6 +90,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.SwingUtilities;
+
 /**
  * This is the Simulation Interface tool.
  */
@@ -3131,13 +3133,17 @@ public class Spice extends Topology
             this.file = file;
         }
 
-        public void processFinished(Exec.FinishedEvent e) {
-            URL fileURL = TextUtils.makeURLToFile(file);
-
-			// create a new waveform window
-            WaveformWindow ww = WaveformWindow.findWaveformWindow(cell);
-
-            Simulate.plotSimulationResults(type, cell, fileURL, ww);
+        public void processFinished(Exec.FinishedEvent e)
+        {
+//            URL fileURL = TextUtils.makeURLToFile(file);
+//
+//			// create a new waveform window
+//            WaveformWindow ww = WaveformWindow.findWaveformWindow(cell);
+//
+//            Simulate.plotSimulationResults(type, cell, fileURL, ww);
+            SwingUtilities.invokeLater(new Runnable() { public void run() {
+            	Simulate.plotSpiceResultsThisCell();
+            }});
         }
     }
 
