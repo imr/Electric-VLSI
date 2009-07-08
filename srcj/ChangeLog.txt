@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+IMP/MAN: (7/7/09, AM) LayoutImage dialog and implementation.
+
 BUG: (7/8/09, SMR) Run Probe option under LTSpice simulation does not work (from BSU, Bug #2279).
 FIX: In com.sun.electric.tool.io.output.Spice.SpiceFinishedListener.processFinished(),
      replace method with:

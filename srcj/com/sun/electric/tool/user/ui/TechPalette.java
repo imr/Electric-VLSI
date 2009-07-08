@@ -58,6 +58,7 @@ import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.ComponentMenu;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.LayoutText;
+import com.sun.electric.tool.user.dialogs.LayoutImage;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.redisplay.AbstractDrawing;
 import com.sun.electric.tool.user.redisplay.PixelDrawing;
@@ -523,6 +524,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 				menuItem = new JMenuItem("Layout Text...");
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLayoutTextCommand(); } });
 				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Layout Image...");
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLayoutImageCommand(); } });
+				specialMenu.add(menuItem);
 				menuItem = new JMenuItem("Annular Ring...");
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { AnnularRing.showAnnularRingDialog(); } });
 				specialMenu.add(menuItem);
@@ -798,6 +802,12 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	public void makeLayoutTextCommand()
 	{
 		LayoutText dialog = new LayoutText(TopLevel.getCurrentJFrame());
+        dialog.setVisible(true);
+	}
+
+	public void makeLayoutImageCommand()
+	{
+		LayoutImage dialog = new LayoutImage(TopLevel.getCurrentJFrame());
         dialog.setVisible(true);
 	}
 
