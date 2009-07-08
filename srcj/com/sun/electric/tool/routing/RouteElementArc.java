@@ -63,6 +63,7 @@ public class RouteElementArc extends RouteElement {
     /** Name of arc */                              private String arcName;
     /** Text descriptor of name */                  private TextDescriptor arcNameDescriptor;
     /** Angle of arc */                             private int arcAngle;
+    /** true if angle was set */                    private boolean arcAngleSet;
     /** inherit properties from this arc */         private ArcInst inheritFrom;
     /** set the arc extension if inheritFrom is null */ private boolean extendArcHead;
     /** set the arc extension if inheritFrom is null */ private boolean extendArcTail;
@@ -90,17 +91,11 @@ public class RouteElementArc extends RouteElement {
     public static RouteElementArc newArc(Cell cell, ArcProto ap, double arcBaseWidth, RouteElementPort headRE, RouteElementPort tailRE,
                                          Point2D headConnPoint, Point2D tailConnPoint, String name, TextDescriptor nameTextDescriptor,
                                          ArcInst inheritFrom, boolean extendArcHead, boolean extendArcTail, PolyMerge stayInside) {
-//        EditingPreferences ep = cell.getEditingPreferences();
         EPoint headEP = EPoint.snap(headConnPoint);
     	EPoint tailEP = EPoint.snap(tailConnPoint);
     	MutableBoolean headExtend = new MutableBoolean(extendArcHead);
     	MutableBoolean tailExtend = new MutableBoolean(extendArcTail);
 
-//if (headEP.getX() == 120 && headEP.getY() == 215.5 &&
-//	tailEP.getX() == 120 && tailEP.getY() == 213.75)
-//{
-//	arcBaseWidth *= 1;
-//}
         if (stayInside != null)
     	{
         	Set<Layer> allLayers = stayInside.getKeySet();
@@ -159,6 +154,7 @@ public class RouteElementArc extends RouteElement {
         assert(e.headConnPoint != null);
         assert(e.tailConnPoint != null);
         e.arcAngle = 0;
+        e.arcAngleSet = false;
         e.arcInst = null;
         e.inheritFrom = inheritFrom;
         e.extendArcHead = headExtend.booleanValue();
@@ -182,6 +178,7 @@ public class RouteElementArc extends RouteElement {
         e.headConnPoint = arcInstToDelete.getHeadLocation();
         e.tailConnPoint = arcInstToDelete.getTailLocation();
         e.arcAngle = 0;
+        e.arcAngleSet = false;
         e.arcInst = arcInstToDelete;
         e.inheritFrom = null;
         e.extendArcHead = e.extendArcTail = true;
@@ -242,7 +239,10 @@ public class RouteElementArc extends RouteElement {
      */
     public void setArcAngle(int angle) {
         if (getAction() == RouteElementAction.newArc)
+        {
             arcAngle = angle;
+            arcAngleSet = true;
+        }
     }
 
     public int getArcAngle() {
@@ -398,12 +398,15 @@ public class RouteElementArc extends RouteElement {
             if (newAi == null) return null;
 
             // for zero-length arcs, ensure that the angle is sensible
-            if (headPoint.getX() == tailPoint.getX() && headPoint.getY() == tailPoint.getY() && arcAngle == 0)
+            if (!arcAngleSet)
             {
-            	Rectangle2D headRect = headPi.getNodeInst().getBounds();
-            	Rectangle2D tailRect = tailPi.getNodeInst().getBounds();
-            	if (Math.abs(headRect.getCenterX() - tailRect.getCenterX()) < Math.abs(headRect.getCenterY() - tailRect.getCenterY()))
-            		arcAngle = 900;
+            	if (headPoint.getX() == tailPoint.getX() && headPoint.getY() == tailPoint.getY() && arcAngle == 0)
+	            {
+	            	Rectangle2D headRect = headPi.getNodeInst().getBounds();
+	            	Rectangle2D tailRect = tailPi.getNodeInst().getBounds();
+	            	if (Math.abs(headRect.getCenterX() - tailRect.getCenterX()) < Math.abs(headRect.getCenterY() - tailRect.getCenterY()))
+	            		arcAngle = 900;
+	            }
             }
             if (arcAngle != 0)
                 newAi.setAngle(arcAngle);

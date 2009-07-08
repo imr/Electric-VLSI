@@ -2877,6 +2877,14 @@ public class Connectivity
 			{
 				// look at all of the pieces of this layer
 				Rectangle2D transBox = poly.getBox();
+				double cX = poly.getCenterX(), cY = poly.getCenterY();
+				if (alignment != null)
+				{
+					if (alignment.getWidth() > 0)
+						cX = Math.round(cX / scaleUp(alignment.getWidth())) * scaleUp(alignment.getWidth());
+					if (alignment.getHeight() > 0)
+						cY = Math.round(cY / scaleUp(alignment.getHeight())) * scaleUp(alignment.getHeight());
+				}
 //System.out.println("EXAMINING TRANSISTOR AT ("+TextUtils.formatDistance(poly.getCenterX()/SCALEFACTOR)+","+
 //	TextUtils.formatDistance(poly.getCenterY()/SCALEFACTOR)+")");
 				if (transBox == null)
@@ -2926,7 +2934,7 @@ public class Connectivity
 						{
 							addErrorLog(newCell, "Transistor at (" + TextUtils.formatDistance(transBox.getCenterX()/SCALEFACTOR) +
 								"," + TextUtils.formatDistance(transBox.getCenterY()/SCALEFACTOR) +
-								") doesn't have proper tabs...not extracted", poly.getCenter());
+								") doesn't have proper tabs...not extracted at ("+cX+","+cY+")");
 							continue;
 						}
 						SizeOffset so = transistor.getProtoSizeOffset();
@@ -2934,20 +2942,20 @@ public class Connectivity
 						double height = hei + scaleUp(so.getLowYOffset() + so.getHighYOffset());
 
 						// make sure all layers fit
-						EPoint ctr = new EPoint(poly.getCenterX()/SCALEFACTOR, poly.getCenterY()/SCALEFACTOR);
+						EPoint ctr = new EPoint(cX/SCALEFACTOR, cY/SCALEFACTOR);
 						NodeInst ni = makeDummyNodeInst(transistor, ctr, width, height,
 							Orientation.fromAngle(angle), Technology.NodeLayer.MULTICUT_CENTERED);
 						String msg = dummyTransistorFits(ni, originalMerge, newCell);
 						if (msg != null) { errors.add(msg);   continue; }
 
-						realizeNode(transistor, Technology.NodeLayer.MULTICUT_CENTERED, poly.getCenterX(), poly.getCenterY(),
+						realizeNode(transistor, Technology.NodeLayer.MULTICUT_CENTERED, cX, cY,
 							width, height, angle, null, merge, newCell, null);
 						errors.clear();
 						break;
 					}
 					if (errors.size() > 0)
 					{
-						addErrorLog(newCell, errors.get(0), new EPoint(poly.getCenterX()/SCALEFACTOR, poly.getCenterY()/SCALEFACTOR));
+						addErrorLog(newCell, errors.get(0), new EPoint(cX/SCALEFACTOR, cY/SCALEFACTOR));
 					}
 				}
 			}
@@ -4437,76 +4445,86 @@ public class Connectivity
 			for(PolyBase simplePoly : set)
 			{
 				Rectangle2D polyBounds = simplePoly.getBounds2D();
-				double centerX = polyBounds.getCenterX() / SCALEFACTOR;
-				double centerY = polyBounds.getCenterY() / SCALEFACTOR;
-				double width = polyBounds.getWidth() / SCALEFACTOR;
-				double height = polyBounds.getHeight() / SCALEFACTOR;
-				if (alignment != null)
-				{
-					if (alignment.getWidth() > 0)
-					{
-						double aliX = Math.round(centerX / alignment.getWidth()) * alignment.getWidth();
-						if (aliX != centerX)
-						{
-							double newWidth = width + Math.abs(aliX-centerX)*2;
-							Poly rectPoly = new Poly(scaleUp(aliX), scaleUp(centerY), scaleUp(newWidth), scaleUp(height));
-							if (!originalMerge.contains(layer, rectPoly))
-							{
-								if (aliX > centerX) aliX -= alignment.getWidth(); else
-									aliX += alignment.getWidth();
-								newWidth = width + Math.abs(aliX-centerX)*2;
-								rectPoly = new Poly(scaleUp(aliX), scaleUp(centerY), scaleUp(newWidth), scaleUp(height));
-								if (!originalMerge.contains(layer, rectPoly)) continue;
-							}
-							centerX = aliX;
-							width = newWidth;
-						}
-					}
-					if (alignment.getHeight() > 0)
-					{
-						double aliY = Math.round(centerY / alignment.getHeight()) * alignment.getHeight();
-						if (aliY != centerY)
-						{
-							double newHeight = height + Math.abs(aliY-centerY)*2;
-							Poly rectPoly = new Poly(scaleUp(centerX), scaleUp(aliY), scaleUp(width), scaleUp(newHeight));
-							if (!originalMerge.contains(layer, rectPoly))
-							{
-								if (aliY > centerY) aliY -= alignment.getHeight(); else
-									aliY += alignment.getHeight();
-								newHeight = height + Math.abs(aliY-centerY)*2;
-								rectPoly = new Poly(scaleUp(centerX), scaleUp(aliY), scaleUp(width), scaleUp(newHeight));
-								if (!originalMerge.contains(layer, rectPoly)) continue;
-							}
-							centerY = aliY;
-							height = newHeight;
-						}
-					}
-				}
-				Point2D center = new Point2D.Double(centerX, centerY);
-				NodeInst ni = createNode(pNp, center, width, height, null, cell);
+				NodeInst ni = makeAlignedPoly(polyBounds, layer, originalMerge, pNp, cell);
+				if (ni == null) continue;
 				createdNodes.add(ni);
 			}
 			return createdNodes;
 		}
 		Rectangle2D polyBounds = poly.getBounds2D();
+		NodeInst ni = makeAlignedPoly(polyBounds, layer, originalMerge, pNp, cell);
+		if (ni != null)
+			createdNodes.add(ni);
+//		double centerX = polyBounds.getCenterX() / SCALEFACTOR;
+//		double centerY = polyBounds.getCenterY() / SCALEFACTOR;
+//		Point2D center = new Point2D.Double(centerX, centerY);
+//
+//		// compute any trace information if the shape is nonmanhattan
+//		EPoint [] newPoints = null;
+////		if (poly.getBox() == null)
+////		{
+////			// store the trace
+////			Point2D [] points = poly.getPoints();
+////			newPoints = new EPoint[points.length];
+////			for(int i=0; i<points.length; i++)
+////				newPoints[i] = new EPoint(points[i].getX() / SCALEFACTOR, points[i].getY() / SCALEFACTOR);
+////		}
+//		NodeInst ni = createNode(pNp, center, polyBounds.getWidth() / SCALEFACTOR,
+//			polyBounds.getHeight() / SCALEFACTOR, newPoints, cell);
+//		createdNodes.add(ni);
+		return createdNodes;
+	}
+
+	private NodeInst makeAlignedPoly(Rectangle2D polyBounds, Layer layer, PolyMerge originalMerge, PrimitiveNode pNp, Cell cell)
+	{
 		double centerX = polyBounds.getCenterX() / SCALEFACTOR;
 		double centerY = polyBounds.getCenterY() / SCALEFACTOR;
+		double width = polyBounds.getWidth() / SCALEFACTOR;
+		double height = polyBounds.getHeight() / SCALEFACTOR;
+		if (alignment != null)
+		{
+			if (alignment.getWidth() > 0)
+			{
+				double aliX = Math.round(centerX / alignment.getWidth()) * alignment.getWidth();
+				if (aliX != centerX)
+				{
+					double newWidth = width + Math.abs(aliX-centerX)*2;
+					Poly rectPoly = new Poly(scaleUp(aliX), scaleUp(centerY), scaleUp(newWidth), scaleUp(height));
+					if (!originalMerge.contains(layer, rectPoly))
+					{
+						if (aliX > centerX) aliX -= alignment.getWidth(); else
+							aliX += alignment.getWidth();
+						newWidth = width + Math.abs(aliX-centerX)*2;
+						rectPoly = new Poly(scaleUp(aliX), scaleUp(centerY), scaleUp(newWidth), scaleUp(height));
+						if (!originalMerge.contains(layer, rectPoly)) return null;
+					}
+					centerX = aliX;
+					width = newWidth;
+				}
+			}
+			if (alignment.getHeight() > 0)
+			{
+				double aliY = Math.round(centerY / alignment.getHeight()) * alignment.getHeight();
+				if (aliY != centerY)
+				{
+					double newHeight = height + Math.abs(aliY-centerY)*2;
+					Poly rectPoly = new Poly(scaleUp(centerX), scaleUp(aliY), scaleUp(width), scaleUp(newHeight));
+					if (!originalMerge.contains(layer, rectPoly))
+					{
+						if (aliY > centerY) aliY -= alignment.getHeight(); else
+							aliY += alignment.getHeight();
+						newHeight = height + Math.abs(aliY-centerY)*2;
+						rectPoly = new Poly(scaleUp(centerX), scaleUp(aliY), scaleUp(width), scaleUp(newHeight));
+						if (!originalMerge.contains(layer, rectPoly)) return null;
+					}
+					centerY = aliY;
+					height = newHeight;
+				}
+			}
+		}
 		Point2D center = new Point2D.Double(centerX, centerY);
-
-		// compute any trace information if the shape is nonmanhattan
-		EPoint [] newPoints = null;
-//		if (poly.getBox() == null)
-//		{
-//			// store the trace
-//			Point2D [] points = poly.getPoints();
-//			newPoints = new EPoint[points.length];
-//			for(int i=0; i<points.length; i++)
-//				newPoints[i] = new EPoint(points[i].getX() / SCALEFACTOR, points[i].getY() / SCALEFACTOR);
-//		}
-		NodeInst ni = createNode(pNp, center, polyBounds.getWidth() / SCALEFACTOR,
-			polyBounds.getHeight() / SCALEFACTOR, newPoints, cell);
-		createdNodes.add(ni);
-		return createdNodes;
+		NodeInst ni = createNode(pNp, center, width, height, null, cell);
+		return ni;
 	}
 
 	/**

@@ -351,7 +351,7 @@ public class AutoStitch
 			}
 
 			// now run these arcs and reinitialize the list
-			makeConnections(showProgress, arcsCreatedMap, nodesCreatedMap);
+			makeConnections(showProgress, arcsCreatedMap, nodesCreatedMap, stayInside);
 			allRoutes = new ArrayList<Route>();
 			if (showProgress) Job.getUserInterface().setProgressNote("Initializing routing");
 
@@ -426,6 +426,7 @@ public class AutoStitch
 			}
 			checkDaisyChain(ai, nodePortBounds, stayInside, top);
 		}
+
 		if (allRoutes.size() > 0)
 		{
 			// found daisy-chain elements: do them now
@@ -478,7 +479,7 @@ public class AutoStitch
 		}
 
 		// create the routes
-		makeConnections(showProgress, arcsCreatedMap, nodesCreatedMap);
+		makeConnections(showProgress, arcsCreatedMap, nodesCreatedMap, stayInside);
 
 		// report results
         boolean beep = User.isPlayClickSoundsWhenCreatingArcs();
@@ -517,7 +518,7 @@ public class AutoStitch
 	}
 
 	private void makeConnections(boolean showProgress, Map<ArcProto,Integer> arcsCreatedMap,
-		Map<NodeProto,Integer> nodesCreatedMap)
+		Map<NodeProto,Integer> nodesCreatedMap, PolyMerge stayInside)
 	{
 		// create the routes
 		int totalToStitch = allRoutes.size();
@@ -560,6 +561,18 @@ public class AutoStitch
 				if (already) continue;
 			}
 
+//			// if forced to fit in area, don't auto-rotate arcs
+//			if (stayInside != null)
+//			{
+//		        for (RouteElement e : route)
+//		        {
+//		            if (e.getAction() == RouteElement.RouteElementAction.newArc)
+//		            {
+//		                RouteElementArc rea = (RouteElementArc)e;
+//		                rea.setArcAngle(0);
+//		            }
+//		        }
+//			}
 			Router.createRouteNoJob(route, c, arcsCreatedMap, nodesCreatedMap);
 		}
 	}
@@ -1983,6 +1996,7 @@ name=null;
 		{
 			// get arc transformed to top-level
 			ArcInst breakArc = (ArcInst)sp.theObj;
+			if (!breakArc.isLinked()) return;
 			Point2D head = breakArc.getHeadLocation();
 			head = new Point2D.Double(head.getX(), head.getY());
 			Point2D tail = breakArc.getTailLocation();
@@ -2012,10 +2026,8 @@ name=null;
 			// transform the intersection point back down into low-level
 			try
 			{
-//				sp.xfToTop.invert();
 				sp.xfToTop.inverseTransform(breakPt, breakPt);
 			} catch (NoninvertibleTransformException e) { return; }
-//			sp.xfToTop.transform(breakPt, breakPt);
 
 			// break the arc at that point
 			PrimitiveNode pinType = breakArc.getProto().findPinProto();
@@ -2186,13 +2198,15 @@ name=null;
 	}
 
 	/**
-	 * Method to create a stack of exports to reach a piece of geometry down the hierarchy.
+	 * Method to create a stack of exports to reach a NodeInst down the hierarchy.
 	 * @param ni the NodeInst at the bottom of the hierarchy being exported.
 	 * @param exportThis the port on the NodeInst being exported.
 	 * @param where the hierarchical stack that defines the path to the top.
+	 * @return the coordinate at the top-level where the drill happened.
 	 */
-	private void makeExportDrill(NodeInst ni, PortProto exportThis, VarContext where)
+	private Point2D makeExportDrill(NodeInst ni, PortProto exportThis, VarContext where)
 	{
+		Point2D topCoord = new Point2D.Double(0, 0);
 		while (where != VarContext.globalContext)
 		{
 			PortInst pi = ni.findPortInstFromProto(exportThis);
@@ -2204,23 +2218,127 @@ name=null;
 			} else
 			{
 				Cell cell = ni.getParent();
-				Netlist nl = cell.acquireUserNetlist();
-				Network net = nl.getNetwork(pi);
-				String exportName = null;
-				for(Iterator<String> nIt = net.getExportedNames(); nIt.hasNext(); )
-				{
-					String eName = nIt.next();
-					if (eName.startsWith("E") && eName.length() > 1 && TextUtils.isDigit(eName.charAt(1)))
-						continue;
-					if (exportName == null || exportName.length() < eName.length()) exportName = eName;
-				}
-				if (exportName == null) exportName = "E1";
-				exportName = ElectricObject.uniqueObjectName(exportName, cell, PortProto.class, false);
+				String exportName = getExportNameInCell(cell, pi);
 	            exportThis = Export.newInstance(cell, pi, exportName);
 			}
 			ni = where.getNodable().getNodeInst();
 			where = where.pop();
+			AffineTransform trans = ni.transformOut();
+			trans.transform(pi.getPoly().getCenter(), topCoord);
 		}
+		return topCoord;
+	}
+
+	/**
+	 * Method to create a stack of exports to reach an ArcInst down the hierarchy.
+	 * @param topLoc the coordinate at the top level where the ArcInst should be broken.
+	 * @param sp the context to the ArcInst.
+	 */
+	private void makeExportDrillOnArc(Point2D topLoc, SubPolygon sp)
+	{
+		// save information about the arc
+		ArcInst lowAI = (ArcInst)sp.theObj;
+		if (!lowAI.isLinked()) return;
+		String arcName = lowAI.getName();
+		if (lowAI.getNameKey().isTempname()) arcName = null;
+		int angle = lowAI.getAngle();
+		ArcProto ap = lowAI.getProto();
+		double width = lowAI.getLambdaBaseWidth();
+		Cell cell = lowAI.getParent();
+
+		// make reverse context for drilling down to the arc
+		List<VarContext> revContext = new ArrayList<VarContext>();
+		VarContext climb = sp.context;
+		while (climb != VarContext.globalContext)
+		{
+			revContext.add(0, climb);
+			climb = climb.pop();
+		}
+
+		// transform the top coordinate down to the level of the arc
+		for(VarContext context : revContext)
+		{
+			NodeInst ni = context.getNodable().getNodeInst();
+			AffineTransform trans = ni.transformIn();
+			trans.transform(topLoc, topLoc);
+		}
+
+		// see if there is already a pin/export here
+		NodeInst ni = null;
+		Rectangle2D searchBound = new Rectangle2D.Double(topLoc.getX(), topLoc.getY(), 0, 0);
+		for(Iterator<RTBounds> it = cell.searchIterator(searchBound); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (geom instanceof ArcInst) continue;
+			NodeInst foundNI = (NodeInst)geom;
+			if (foundNI.getAnchorCenterX() != topLoc.getX() || foundNI.getAnchorCenterY() != topLoc.getY()) continue;
+			if (foundNI.getFunction() != PrimitiveNode.Function.PIN) continue;
+			ni = foundNI;
+			break;
+		}
+
+		// make a pin at the desired location on the arc
+		if (ni == null)
+		{
+			// make sure the location is on the arc
+			if (GenMath.distToLine(lowAI.getHeadLocation(), lowAI.getTailLocation(), topLoc) > 0)
+				return;
+			PrimitiveNode pNp = lowAI.getProto().findPinProto();
+			ni = NodeInst.makeInstance(pNp, topLoc, pNp.getDefWidth(), pNp.getDefHeight(), cell);
+
+			// insert the pin into the arc
+			ArcInst newAi1 = ArcInst.makeInstanceBase(ap, width, lowAI.getHeadPortInst(), ni.getOnlyPortInst(), lowAI.getHeadLocation(), topLoc, null);
+			ArcInst newAi2 = ArcInst.makeInstanceBase(ap, width, ni.getOnlyPortInst(), lowAI.getTailPortInst(), topLoc, lowAI.getTailLocation(), null);
+			newAi1.setHeadNegated(lowAI.isHeadNegated());
+			newAi1.setHeadExtended(lowAI.isHeadExtended());
+			newAi1.setHeadArrowed(lowAI.isHeadArrowed());
+			newAi2.setTailNegated(lowAI.isTailNegated());
+			newAi2.setTailExtended(lowAI.isTailExtended());
+			newAi2.setTailArrowed(lowAI.isTailArrowed());
+			lowAI.kill();
+			if (arcName != null)
+			{
+			    if (lowAI.getHeadLocation().distance(topLoc) > lowAI.getTailLocation().distance(topLoc))
+			    {
+			        newAi1.setName(arcName);
+			        newAi1.copyTextDescriptorFrom(lowAI, ArcInst.ARC_NAME);
+			    } else
+			    {
+			        newAi2.setName(arcName);
+			        newAi2.copyTextDescriptorFrom(lowAI, ArcInst.ARC_NAME);
+			    }
+			}
+			newAi1.setAngle(angle);
+			newAi2.setAngle(angle);
+		}
+
+		// make an export on the pin and drill farther up from that point
+		Export exportMade = null;
+		if (ni.getNumExports() > 0) exportMade = ni.getExports().next(); else
+		{
+			String exportName = getExportNameInCell(cell, lowAI.getHeadPortInst());
+			exportMade = Export.newInstance(cell, ni.getOnlyPortInst(), exportName);
+		}
+		Nodable no = sp.context.getNodable();
+		if (no != null)
+			makeExportDrill(no.getNodeInst(), exportMade, sp.context.pop());
+	}
+
+	private String getExportNameInCell(Cell cell, PortInst pi)
+	{
+		Netlist nl = cell.acquireUserNetlist();
+		Network net = nl.getNetwork(pi);
+		String exportName = null;
+		for(Iterator<String> nIt = net.getExportedNames(); nIt.hasNext(); )
+		{
+			String eName = nIt.next();
+			if (eName.startsWith("E") && eName.length() > 1 && TextUtils.isDigit(eName.charAt(1)))
+				continue;
+			if (exportName == null || exportName.length() < eName.length()) exportName = eName;
+		}
+		if (exportName == null) exportName = "E1";
+		exportName = ElectricObject.uniqueObjectName(exportName, cell, PortProto.class, false);
+		return exportName;
 	}
 
 	/**
@@ -2317,9 +2435,29 @@ name=null;
 		// show what is matched
 		for(PolyConnection p : polysFound)
 		{
-			if (p.sp1.theObj instanceof ArcInst || p.sp2.theObj instanceof ArcInst) continue;
-			makeExportDrill((NodeInst)p.sp1.theObj, p.sp1.poly.getPort(), p.sp1.context);
-			makeExportDrill((NodeInst)p.sp2.theObj, p.sp2.poly.getPort(), p.sp2.context);
+			if (p.sp1.theObj instanceof ArcInst && p.sp2.theObj instanceof NodeInst)
+			{
+				if (p.sp1.context != VarContext.globalContext)
+				{
+					Point2D topLoc = makeExportDrill((NodeInst)p.sp2.theObj, p.sp2.poly.getPort(), p.sp2.context);
+					makeExportDrillOnArc(topLoc, p.sp1);
+				}
+				continue;
+			}
+			if (p.sp1.theObj instanceof NodeInst && p.sp2.theObj instanceof ArcInst)
+			{
+				if (p.sp2.context != VarContext.globalContext)
+				{
+					Point2D topLoc = makeExportDrill((NodeInst)p.sp1.theObj, p.sp1.poly.getPort(), p.sp1.context);
+					makeExportDrillOnArc(topLoc, p.sp2);
+				}
+				continue;
+			}
+			if (p.sp1.theObj instanceof NodeInst && p.sp2.theObj instanceof NodeInst)
+			{
+				makeExportDrill((NodeInst)p.sp1.theObj, p.sp1.poly.getPort(), p.sp1.context);
+				makeExportDrill((NodeInst)p.sp2.theObj, p.sp2.poly.getPort(), p.sp2.context);
+			}
 		}
 	}
 
