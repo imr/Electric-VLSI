@@ -526,7 +526,7 @@ public class StitchFillJob extends Job
                 Area a = remainingGeos.get(bottomName);
                 for (PinsArcPair pair : pairs)
                 {
-                    Route r = router.planRoute(theCell,  mostLeft, pair.topArc, pair.insert, null, true, true, pair.cut, null);
+                    Route r = router.planRoute(theCell, mostLeft, pair.topArc, pair.insert, null, true, true, pair.cut, null);
                     //mostLeft = bottomSplit.rightArc;
                     routeList.add(r);
 
@@ -624,9 +624,10 @@ public class StitchFillJob extends Job
                 Export ex = itE.next();
                 String exportName = ex.getName();
                 String rootName = extractRootName(exportName);
+                boolean getAllPossibleConnection = true;
 
-//                if (doneExports.contains(rootName))   // exportName
-//                    continue; // export for this given NodeInst was done
+                if (!getAllPossibleConnection && doneExports.contains(rootName))   // exportName
+                    continue; // export for this given NodeInst was done
 
                 PrimitiveNode n = ex.getBasePort().getParent();
                 Layer layer = n.getLayerIterator().next(); // assuming only 1
@@ -644,16 +645,6 @@ public class StitchFillJob extends Job
                 Cell jCell = jExp.getParent();
                 SearchArcsInHierarchy searchArcs = new SearchArcsInHierarchy(jExp, layer);
                 HierarchyEnumerator.enumerateCell(jCell, VarContext.globalContext, searchArcs);
-
-//                for (Iterator<ArcInst> itA = jExp.getArcs(); itA.hasNext();)
-//                {
-//                    ArcInst ai = itA.next();
-//                    Layer l = ai.getProto().getLayer(0);
-//
-//                    if (l != layer) continue;
-//                    expA.add(new Area(ai.getBounds()));
-//                }
-
                 Area expA = searchArcs.expA;
                 
                 // Algorithm will look for the closest connection.
@@ -662,6 +653,10 @@ public class StitchFillJob extends Job
                 Point2D bestCenter = null;
                 double bestDistance = Double.MAX_VALUE;
                 List<Network> netList = getNetworkFromName(netlist, rootName);
+
+                Area[] theInters = new Area[]{new Area(), new Area()}; // for intersections above and below of the given Layer
+                Layer[] theLayers = new Layer[2];
+                List<ArcInst> ab = new ArrayList<ArcInst>();
 
                 for (Network jNet : netList)
                 {
@@ -672,29 +667,119 @@ public class StitchFillJob extends Job
 
                         if (l == layer)
                             System.out.println("found in same layer");
-                        else if (Layer.layerSortByFunctionLevel.areNeightborLayers(l, layer)) // Math.abs(l.getIndex() - layer.getIndex()) <=1)
+                        else
                         {
-                            // Not selecting the closest element yet
-                            Area bnd = new Area(ai.getBounds());
-                            bnd.intersect(expA);
-                            if (!bnd.isEmpty())
+                            int level = Layer.layerSortByFunctionLevel.getNeighbotLevel(l, layer);
+                            if (Math.abs(level) == 1) // direct neightbor
                             {
-                                Rectangle2D cut = bnd.getBounds2D();
-                                Point2D center = new EPoint(cut.getCenterX(), cut.getCenterY());
-                                double dist = DBMath.distBetweenPoints(center, exportCenter);
-                                if (bestCenter == null || DBMath.isLessThan(dist, bestDistance))
+                                int pos = (level == 1) ? 1 : 0;
+                                // Not selecting the closest element yet
+                                Area bnd = new Area(ai.getBounds());
+                                bnd.intersect(expA);
+                                if (!bnd.isEmpty())
                                 {
-                                    // first time or the new distance is shorter
-                                    bestCenter = center;
-                                    bestCut = cut;
-                                    bestArc = ai;
-                                    bestDistance = dist;
+                                    assert(theLayers[pos] == null || theLayers[pos] ==l);
+                                    theInters[pos].add(bnd); // add piece to the big area
+                                    theLayers[pos] = l;
+                                    ab.add(ai);
                                 }
                             }
                         }
                     }
                 }
-                if (bestCut != null) // best location found
+
+                for (int i = 0; i < theLayers.length; i++)
+                {
+                    Layer l = theLayers[i];
+                    if (l == null) continue; // nothing found
+                    Area a = theInters[i];
+                    if (a.isEmpty()) continue; // nothing found
+
+                    // get single polygons which represents the cuts
+                    List<PolyBase> pols = Poly.getLoopsFromArea(a, l);
+                    for (PolyBase p : pols)
+                    {
+                        Rectangle2D cut = p.getBounds2D();
+                        Point2D center = new EPoint(cut.getCenterX(), cut.getCenterY());
+                        ArcInst ai = getArcInstOverlappingWithArea(cut, ab);
+                        boolean horOrVer = DBMath.areEquals(center.getX(), exportCenter.getX()) ||
+                                DBMath.areEquals(center.getY(), exportCenter.getY());
+                        // angled arcs are not allowed.
+                        if (!horOrVer)
+                            continue;
+
+                        if (getAllPossibleConnection)
+                        {
+                            Route r = niRouter.planRoute(theCell, ai, pi, center, null, true, true, cut, null);
+                            routeList.add(r);
+                            doneExports.add(rootName);
+                        }
+                        else
+                        {
+                            double dist = DBMath.distBetweenPoints(center, exportCenter);
+                            if (bestCenter == null || DBMath.isLessThan(dist, bestDistance))
+                            {
+                                // first time or the new distance is shorter
+                                bestCenter = center;
+                                bestCut = cut;
+                                bestArc = ai;
+                                bestDistance = dist;
+                            }
+                        }
+                    }
+
+                }
+
+//                if (false)
+//                for (Network jNet : netList)
+//                {
+//                    for (Iterator<ArcInst> itA = jNet.getArcs(); itA.hasNext();)
+//                    {
+//                        ArcInst ai = itA.next();
+//                        Layer l = ai.getProto().getLayer(0);
+//
+//                        if (l == layer)
+//                            System.out.println("found in same layer");
+//                        else if (Layer.layerSortByFunctionLevel.areNeightborLayers(l, layer)) // Math.abs(l.getIndex() - layer.getIndex()) <=1)
+//                        {
+//                            // Not selecting the closest element yet
+//                            Area bnd = new Area(ai.getBounds());
+//                            bnd.intersect(expA);
+//                            if (!bnd.isEmpty())
+//                            {
+//                                // To get single cuts from the area.
+//                                Rectangle2D cut = bnd.getBounds2D();
+//                                Point2D center = new EPoint(cut.getCenterX(), cut.getCenterY());
+//                                boolean horOrVer = DBMath.areEquals(center.getX(), exportCenter.getX()) ||
+//                                        DBMath.areEquals(center.getY(), exportCenter.getY());
+//                                if (!horOrVer)
+//                                {
+//                                    System.out.println("Ignoring this case");
+//                                    continue;
+//                                }
+//                                if (getAllPossibleConnection)
+//                                {
+//                                    Route r = niRouter.planRoute(theCell, ai, pi, center, null, true, true, cut, null);
+//                                    routeList.add(r);
+//                                    doneExports.add(rootName);
+//                                }
+//                                else
+//                                {
+//                                    double dist = DBMath.distBetweenPoints(center, exportCenter);
+//                                    if (bestCenter == null || DBMath.isLessThan(dist, bestDistance))
+//                                    {
+//                                        // first time or the new distance is shorter
+//                                        bestCenter = center;
+//                                        bestCut = cut;
+//                                        bestArc = ai;
+//                                        bestDistance = dist;
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+                if (!getAllPossibleConnection && bestCut != null) // best location found
                 {
                     Route r = niRouter.planRoute(theCell,  bestArc, pi, bestCenter, null, true, true, bestCut, null);
                     routeList.add(r);
@@ -883,6 +968,29 @@ public class StitchFillJob extends Job
             return true;  // nothing to do here since only arcs are sought
         }
     }
+
+    /**
+         * Method to collect arcs found in a given area. It doesn't check if the arc is horizontal or top level
+         * @param resultBnd Search area
+         * @param at List with arcs to search from
+         * @return
+         */
+        private static ArcInst getArcInstOverlappingWithArea(Rectangle2D resultBnd, List<ArcInst> at)
+        {
+            Area topArea = new Area(resultBnd);
+            for (ArcInst ai : at)
+            {
+                Rectangle2D r = ai.getBounds();
+
+                // test if the current ai inserts with the given area
+                // and it is fully contained along the axis the arc is aligned
+                if (r.intersects(resultBnd))
+                {
+                    return ai;
+                }
+            }
+            return null;
+        }
 
     /**
      * Method to collect arcs found in a given area
@@ -1156,7 +1264,7 @@ public class StitchFillJob extends Job
         {
             return (!DBMath.isGreaterThan(p1.getX(), p2.getX()));
         }
-        else
+        else if (Job.getDebug())
             System.out.println("Case not considered in FillJob:isLeftTop");
 //            assert(false); // not considered yet
         return false;
