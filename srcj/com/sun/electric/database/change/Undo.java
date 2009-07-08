@@ -161,7 +161,14 @@ public class Undo
         Job.getExtendedUserInterface().showUndoRedoStatus(!doneList.isEmpty(), !undoneList.isEmpty());
     }
 
-    public static String getUndoActivity() {return doneList.get(doneList.size() - 1).activity;}
+	public static String getUndoActivity()
+	{
+		//return doneList.get(doneList.size() - 1).activity;}
+		if (!doneList.isEmpty())
+			return doneList.get(doneList.size() - 1).activity;
+		System.out.println("Nothing left to undo");
+		return "";
+	}
 
     /**
      * Method to undo a change.

@@ -1155,8 +1155,8 @@ public class ToolBar extends JToolBar
 				// do database undo
                 String task = Undo.getUndoActivity();
                 boolean realUndo = true; // always undo by default
-
-                if (task.equals(FileMenu.openJobName))
+                if (task.length() == 0) realUndo = false;
+                if (task.equals(FileMenu.openJobName) && realUndo)
                 {
                     String [] options = {"Cancel", "Undo"};
 					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
