@@ -84,7 +84,7 @@ public class ERCAntenna
         // In TECH_NODE
         private static final String KEY_ANTENNA_RATIO = "DefaultAntennaRatio";
 
-        private final TechPool techPool;
+        private transient final TechPool techPool;
         public Map<ArcProtoId,Double> antennaRatio = new HashMap<ArcProtoId,Double>();
 
         public AntennaPreferences(boolean factory, TechPool techPool)

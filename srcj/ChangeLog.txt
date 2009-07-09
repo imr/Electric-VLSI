@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+BUG: (7/8/09, GVG) ERC Antenna and NotSerializableException (Bug #2283)
+FIX: Made TechPool in AntennaPreferences transient.
+
 IMP: (7/8/09, GVG) Stitch fill generator needs to find all possible connections with cell instances (Bug #2273).
 New solution looks for all possible intersections. It might be slow.
 
