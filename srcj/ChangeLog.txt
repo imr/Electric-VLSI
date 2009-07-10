@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+IMP: (7/10/09, GVG) BJTDMY in 40nm
+
 BUG: (7/8/09, GVG) ERC Antenna and NotSerializableException (Bug #2283)
 FIX: Made TechPool in AntennaPreferences transient.
 
