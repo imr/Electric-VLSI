@@ -2880,10 +2880,11 @@ public class Connectivity
 				double cX = poly.getCenterX(), cY = poly.getCenterY();
 				if (alignment != null)
 				{
-					if (alignment.getWidth() > 0)
-						cX = Math.round(cX / scaleUp(alignment.getWidth())) * scaleUp(alignment.getWidth());
+                    // centers can be offgrid by a factor of 2, because only the edges matter for offgrid
+                    if (alignment.getWidth() > 0)
+						cX = Math.round(cX / scaleUp(alignment.getWidth()/2)) * scaleUp(alignment.getWidth()/2);
 					if (alignment.getHeight() > 0)
-						cY = Math.round(cY / scaleUp(alignment.getHeight())) * scaleUp(alignment.getHeight());
+						cY = Math.round(cY / scaleUp(alignment.getHeight()/2)) * scaleUp(alignment.getHeight()/2);
 				}
 //System.out.println("EXAMINING TRANSISTOR AT ("+TextUtils.formatDistance(poly.getCenterX()/SCALEFACTOR)+","+
 //	TextUtils.formatDistance(poly.getCenterY()/SCALEFACTOR)+")");
@@ -2955,7 +2956,8 @@ public class Connectivity
 					}
 					if (errors.size() > 0)
 					{
-						addErrorLog(newCell, errors.get(0), new EPoint(cX/SCALEFACTOR, cY/SCALEFACTOR));
+                        for (String msg : errors)
+                            addErrorLog(newCell, msg, new EPoint(cX/SCALEFACTOR, cY/SCALEFACTOR));
 					}
 				}
 			}
@@ -4207,8 +4209,14 @@ public class Connectivity
 			ArcProto ap = arcsForLayer.get(layer);
 			List<PolyBase> polyList = getMergePolys(merge, layer, numIgnored);
 
-			// implant layers may be large rectangles
-			if (layer.getFunction().isSubstrate())
+            if (layer.getFunction().isSubstrate() || layer.getFunction().isImplant()) {
+                // just dump back in original layer, as it doesn't connect to anything anyway
+                polyList = new ArrayList<PolyBase>(originalMerge.getObjects(layer, false, false));
+            }
+
+            // implant layers may be large rectangles
+            /*
+            if (layer.getFunction().isSubstrate())
 			{
 				// make a list of rectangles that are proper approximations of polygons
 				List<Rectangle2D> rectangleList = new ArrayList<Rectangle2D>();
@@ -4252,8 +4260,9 @@ public class Connectivity
 						rectangleList.remove(polyBounds);
 				}
 			}
-
-			for(PolyBase poly : polyList)
+			*/
+            
+            for(PolyBase poly : polyList)
 			{
 				// special case: a rectangle on a routable layer: make it an arc
 				if (ap != null)
@@ -4485,7 +4494,8 @@ public class Connectivity
 		{
 			if (alignment.getWidth() > 0)
 			{
-				double aliX = Math.round(centerX / alignment.getWidth()) * alignment.getWidth();
+                // centers can be offgrid, only edges matter
+                double aliX = Math.round(centerX / (alignment.getWidth()/2)) * (alignment.getWidth()/2);
 				if (aliX != centerX)
 				{
 					double newWidth = width + Math.abs(aliX-centerX)*2;
@@ -4504,7 +4514,8 @@ public class Connectivity
 			}
 			if (alignment.getHeight() > 0)
 			{
-				double aliY = Math.round(centerY / alignment.getHeight()) * alignment.getHeight();
+                // centers can be offgrid, only edges matter
+				double aliY = Math.round(centerY / (alignment.getHeight()/2)) * (alignment.getHeight()/2);
 				if (aliY != centerY)
 				{
 					double newHeight = height + Math.abs(aliY-centerY)*2;
