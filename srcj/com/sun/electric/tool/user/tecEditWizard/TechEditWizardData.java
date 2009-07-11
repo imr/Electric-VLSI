@@ -1739,8 +1739,8 @@ public class TechEditWizardData
 /*            l.pureLayerNode.size.addRule(width.rule, 1);*/
             if (pureLayerPortArc)
             {
-                if (portArcNames == null) // only 1 port
-                l.pureLayerNode.portArcs.add(name);
+                if (portArcNames.length == 0) // only 1 port
+                    l.pureLayerNode.portArcs.add(name);
                 else
                 {
                     for (String s : portArcNames)
@@ -2133,7 +2133,7 @@ public class TechEditWizardData
                 throw new IOException("invalid number of metals");
             String metalName = "Metal-"+metalNum;
             Xml.Layer layer = makeXmlLayer(t.layers, layer_width, metalName, fun, 0, graph,
-                metal_width[i], true, true, null);
+                metal_width[i], true, true);
             metalLayers.add(layer);
 
             if (getExtraInfoFlag())
@@ -2141,13 +2141,13 @@ public class TechEditWizardData
                 // dummy layers
                 graph = new EGraphics(true, true, null, tcol, r, g, b, opacity, false, nullPattern);
                 layer = makeXmlLayer(t.layers, "DMY-"+metalName, Layer.Function.getDummyMetal(metalNum), 0, graph,
-                    5*metal_width[i].v, true, false, null);
+                    5*metal_width[i].v, true, false);
                 dummyMetalLayers.add(layer);
 
                 // exclusion layers for metals
                 graph = new EGraphics(true, true, null, tcol, r, g, b, opacity, true, dexclPattern);
                 layer = makeXmlLayer(t.layers, "DEXCL-"+metalName, Layer.Function.getDummyExclMetal(i), 0, graph,
-                    2*metal_width[i].v, true, false, null);
+                    2*metal_width[i].v, true, false);
                 exclusionMetalLayers.add(layer);
             }
         }
@@ -2167,24 +2167,24 @@ public class TechEditWizardData
             if (fun == null)
                 throw new IOException("invalid number of vias");
             viaLayers.add(makeXmlLayer(t.layers, layer_width, "Via-"+metalNum, fun, Layer.Function.CONMETAL,
-                graph, via_size[i], true, false, null));
+                graph, via_size[i], true, false));
         }
 
         // Poly
         String polyN = poly_layer.name;
         EGraphics graph = new EGraphics(false, false, null, 1, 0, 0, 0, 1, true, nullPattern);
         Xml.Layer polyLayer = makeXmlLayer(t.layers, layer_width, polyN, Layer.Function.POLY1, 0, graph,
-            poly_width, true, true, null);
+            poly_width, true, true);
         // PolyGate
         Xml.Layer polyGateLayer = makeXmlLayer(t.layers, layer_width, polyN+"Gate", Layer.Function.GATE, 0, graph,
-            poly_width, true, false, null); // false for the port otherwise it won't find any type
+            poly_width, true, false); // false for the port otherwise it won't find any type
 
         if (getExtraInfoFlag())
         {
             // exclusion layer poly
             graph = new EGraphics(true, true, null, 1, 0, 0, 0, 1, true, dexclPattern);
             Xml.Layer exclusionPolyLayer = makeXmlLayer(t.layers, "DEXCL-"+polyN, Layer.Function.DEXCLPOLY1, 0, graph,
-                2*poly_width.v, true, false, null);
+                2*poly_width.v, true, false);
             makeLayerGDS(t, exclusionPolyLayer, "150/21");
         }
 
@@ -2193,10 +2193,10 @@ public class TechEditWizardData
             contact_colour.getBlue(), 0.5, true, nullPattern);
         // PolyCon
         Xml.Layer polyConLayer = makeXmlLayer(t.layers, layer_width, "Poly-Cut", Layer.Function.CONTACT1,
-            Layer.Function.CONPOLY, graph, contact_size, true, false, null);
+            Layer.Function.CONPOLY, graph, contact_size, true, false);
         // DiffCon
         Xml.Layer diffConLayer = makeXmlLayer(t.layers, layer_width, diff_layer.name+"-Cut", Layer.Function.CONTACT1,
-            Layer.Function.CONDIFF, graph, contact_size, true, false, null);
+            Layer.Function.CONDIFF, graph, contact_size, true, false);
 
         List<String> portNames = new ArrayList<String>();
         // P-Diff and N-Diff
@@ -2213,9 +2213,9 @@ public class TechEditWizardData
             // exclusion layer N/P diff
             graph = new EGraphics(true, true, null, 2, 0, 0, 0, 1, true, dexclPattern);
             Xml.Layer exclusionDiffPLayer = makeXmlLayer(t.layers, "DEXCL-P-"+ diff_layer.name, Layer.Function.DEXCLDIFF, 0, graph,
-                2*diff_width.v, true, false, null);
+                2*diff_width.v, true, false);
             Xml.Layer exclusionDiffNLayer = makeXmlLayer(t.layers, "DEXCL-N-"+ diff_layer.name, Layer.Function.DEXCLDIFF, 0, graph,
-                2*diff_width.v, true, false, null);
+                2*diff_width.v, true, false);
             makeLayerGDS(t, exclusionDiffPLayer, "150/20");
             makeLayerGDS(t, exclusionDiffNLayer, "150/20");
         }
