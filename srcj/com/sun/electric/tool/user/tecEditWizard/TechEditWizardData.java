@@ -1441,11 +1441,10 @@ public class TechEditWizardData
      * @return
      */
     private Xml.PrimitiveNodeGroup makeXmlPrimitivePin(Xml.Technology t, String name, double size,
-                                                       SizeOffset so, Xml.NodeLayer... list)
+                                                       SizeOffset so, List<String> portNames, Xml.NodeLayer... list)
     {
         List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>(list.length);
         List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
-        List<String> portNames = new ArrayList<String>();
 
         for (Xml.NodeLayer lb : list)
         {
@@ -1453,7 +1452,12 @@ public class TechEditWizardData
             nodesList.add(lb);
         }
 
-        portNames.add(name);
+        // default uses the same name from the pin node
+        if (portNames == null)
+        {
+            portNames = new ArrayList<String>();
+            portNames.add(name);
+        }
         nodePorts.add(makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0, null, 0, -1, 0, 1, 0, -1, 0, 1, portNames));
         Xml.PrimitiveNodeGroup n = makeXmlPrimitive(t.nodeGroups, name + "-Pin", PrimitiveNode.Function.PIN, size, size, 0, 0,
                 so, nodesList, nodePorts, null, true);
@@ -1691,9 +1695,10 @@ public class TechEditWizardData
 
     private Xml.Layer makeXmlLayer(List<Xml.Layer> layers, Map<Xml.Layer, WizardField> layer_width, String name,
                                    Layer.Function function, int extraf, EGraphics graph,
-                                   WizardField width, boolean pureLayerNode, boolean pureLayerPortArc)
+                                   WizardField width, boolean pureLayerNode, boolean pureLayerPortArc,
+                                   String... portArcNames)
     {
-        Xml.Layer l = makeXmlLayer(layers, name, function, extraf, graph, width.v, pureLayerNode, pureLayerPortArc);
+        Xml.Layer l = makeXmlLayer(layers, name, function, extraf, graph, width.v, pureLayerNode, pureLayerPortArc, portArcNames);
         layer_width.put(l, width);
         return l;
     }
@@ -1702,9 +1707,8 @@ public class TechEditWizardData
      * Method to create the XML version of a Layer.
      * @return
      */
-    private Xml.Layer makeXmlLayer(List<Xml.Layer> layers, String name,
-                                   Layer.Function function, int extraf, EGraphics graph,
-                                   double width, boolean pureLayerNode, boolean pureLayerPortArc)
+    private Xml.Layer makeXmlLayer(List<Xml.Layer> layers, String name, Layer.Function function, int extraf, EGraphics graph,
+                                   double width, boolean pureLayerNode, boolean pureLayerPortArc, String... portArcNames)
     {
         Xml.Layer l = new Xml.Layer();
         l.name = name;
@@ -1734,7 +1738,15 @@ public class TechEditWizardData
             l.pureLayerNode.port = "Port_" + name;
 /*            l.pureLayerNode.size.addRule(width.rule, 1);*/
             if (pureLayerPortArc)
+            {
+                if (portArcNames == null) // only 1 port
                 l.pureLayerNode.portArcs.add(name);
+                else
+                {
+                    for (String s : portArcNames)
+                    l.pureLayerNode.portArcs.add(s);
+                }
+            }
 //            for (ArcProto ap: pureLayerNode.getPort(0).getConnections()) {
 //                if (ap.getTechnology() != tech) continue;
 //                l.pureLayerNode.portArcs.add(ap.getName());
@@ -2121,7 +2133,7 @@ public class TechEditWizardData
                 throw new IOException("invalid number of metals");
             String metalName = "Metal-"+metalNum;
             Xml.Layer layer = makeXmlLayer(t.layers, layer_width, metalName, fun, 0, graph,
-                metal_width[i], true, true);
+                metal_width[i], true, true, null);
             metalLayers.add(layer);
 
             if (getExtraInfoFlag())
@@ -2129,13 +2141,13 @@ public class TechEditWizardData
                 // dummy layers
                 graph = new EGraphics(true, true, null, tcol, r, g, b, opacity, false, nullPattern);
                 layer = makeXmlLayer(t.layers, "DMY-"+metalName, Layer.Function.getDummyMetal(metalNum), 0, graph,
-                    5*metal_width[i].v, true, false);
+                    5*metal_width[i].v, true, false, null);
                 dummyMetalLayers.add(layer);
 
                 // exclusion layers for metals
                 graph = new EGraphics(true, true, null, tcol, r, g, b, opacity, true, dexclPattern);
                 layer = makeXmlLayer(t.layers, "DEXCL-"+metalName, Layer.Function.getDummyExclMetal(i), 0, graph,
-                    2*metal_width[i].v, true, false);
+                    2*metal_width[i].v, true, false, null);
                 exclusionMetalLayers.add(layer);
             }
         }
@@ -2155,24 +2167,24 @@ public class TechEditWizardData
             if (fun == null)
                 throw new IOException("invalid number of vias");
             viaLayers.add(makeXmlLayer(t.layers, layer_width, "Via-"+metalNum, fun, Layer.Function.CONMETAL,
-                graph, via_size[i], true, false));
+                graph, via_size[i], true, false, null));
         }
 
         // Poly
         String polyN = poly_layer.name;
         EGraphics graph = new EGraphics(false, false, null, 1, 0, 0, 0, 1, true, nullPattern);
         Xml.Layer polyLayer = makeXmlLayer(t.layers, layer_width, polyN, Layer.Function.POLY1, 0, graph,
-            poly_width, true, true);
+            poly_width, true, true, null);
         // PolyGate
         Xml.Layer polyGateLayer = makeXmlLayer(t.layers, layer_width, polyN+"Gate", Layer.Function.GATE, 0, graph,
-            poly_width, true, false); // false for the port otherwise it won't find any type
+            poly_width, true, false, null); // false for the port otherwise it won't find any type
 
         if (getExtraInfoFlag())
         {
             // exclusion layer poly
             graph = new EGraphics(true, true, null, 1, 0, 0, 0, 1, true, dexclPattern);
             Xml.Layer exclusionPolyLayer = makeXmlLayer(t.layers, "DEXCL-"+polyN, Layer.Function.DEXCLPOLY1, 0, graph,
-                2*poly_width.v, true, false);
+                2*poly_width.v, true, false, null);
             makeLayerGDS(t, exclusionPolyLayer, "150/21");
         }
 
@@ -2181,28 +2193,29 @@ public class TechEditWizardData
             contact_colour.getBlue(), 0.5, true, nullPattern);
         // PolyCon
         Xml.Layer polyConLayer = makeXmlLayer(t.layers, layer_width, "Poly-Cut", Layer.Function.CONTACT1,
-            Layer.Function.CONPOLY, graph, contact_size, true, false);
+            Layer.Function.CONPOLY, graph, contact_size, true, false, null);
         // DiffCon
         Xml.Layer diffConLayer = makeXmlLayer(t.layers, layer_width, diff_layer.name+"-Cut", Layer.Function.CONTACT1,
-            Layer.Function.CONDIFF, graph, contact_size, true, false);
+            Layer.Function.CONDIFF, graph, contact_size, true, false, null);
 
+        List<String> portNames = new ArrayList<String>();
         // P-Diff and N-Diff
         graph = new EGraphics(false, false, null, 2, 0, 0, 0, 1, true, nullPattern);
         // N-Diff
         Xml.Layer diffNLayer = makeXmlLayer(t.layers, layer_width, "N-"+ diff_layer.name, Layer.Function.DIFFN, 0, graph,
-            diff_width, true, true);
-        // P-Diff
+            diff_width, true, true, "N-"+ diff_layer.name, "N-Well", "S-N-Well");
+        // P-Diff                                                                                                    dd
         Xml.Layer diffPLayer = makeXmlLayer(t.layers, layer_width, "P-"+ diff_layer.name, Layer.Function.DIFFP, 0, graph,
-            diff_width, true, true);
+            diff_width, true, true, "P-"+ diff_layer.name, "P-Well", "S-P-Well");
 
         if (getExtraInfoFlag())
         {
             // exclusion layer N/P diff
             graph = new EGraphics(true, true, null, 2, 0, 0, 0, 1, true, dexclPattern);
             Xml.Layer exclusionDiffPLayer = makeXmlLayer(t.layers, "DEXCL-P-"+ diff_layer.name, Layer.Function.DEXCLDIFF, 0, graph,
-                2*diff_width.v, true, false);
+                2*diff_width.v, true, false, null);
             Xml.Layer exclusionDiffNLayer = makeXmlLayer(t.layers, "DEXCL-N-"+ diff_layer.name, Layer.Function.DEXCLDIFF, 0, graph,
-                2*diff_width.v, true, false);
+                2*diff_width.v, true, false, null);
             makeLayerGDS(t, exclusionDiffPLayer, "150/20");
             makeLayerGDS(t, exclusionDiffNLayer, "150/20");
         }
@@ -2356,7 +2369,6 @@ public class TechEditWizardData
                 makeXmlArcLayer(metalLayers.get(i-1), metal_width[i-1])));
         }
 
-        List<String> portNames = new ArrayList<String>();
         /**************************** POLY Nodes/Arcs ***********************************************/
         // poly arc
         double ant = (int)Math.round(poly_antenna_ratio) | 200;
@@ -2366,7 +2378,7 @@ public class TechEditWizardData
         // poly pin
         double hla = scaledValue(poly_width.v / 2);
         polyGroup.addPinOrResistor(makeXmlPrimitivePin(t, polyLayer.name, hla, null, // new SizeOffset(hla, hla, hla, hla),
-            makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.CROSSED)), null);
+            null, makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.CROSSED)), null);
         // poly contact
         portNames.clear();
         portNames.add(polyLayer.name);
@@ -2525,7 +2537,7 @@ public class TechEditWizardData
 
             // active pin
             diffG.addPinOrResistor(makeXmlPrimitivePin(t, composeName, hla,
-                new SizeOffset(sos[i], sos[i], sos[i], sos[i]),
+                new SizeOffset(sos[i], sos[i], sos[i], sos[i]), null,
                 makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.CROSSED),
                 makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.CROSSED),
                 wellNodePin), null);
@@ -2596,8 +2608,10 @@ public class TechEditWizardData
                     arcL));
 
             // well pin
+            List<String> arcNames = new ArrayList<String>();
+            arcNames.add(composeName); arcNames.add("S-"+composeName);
             g.addPinOrResistor(makeXmlPrimitivePin(t, composeName, hla,
-                new SizeOffset(wellSos[i], wellSos[i], wellSos[i], wellSos[i]),
+                new SizeOffset(wellSos[i], wellSos[i], wellSos[i], wellSos[i]), arcNames,
                 makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.CROSSED),
                 makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.CROSSED),
                 wellNodePinLayer), null);
@@ -2625,11 +2639,11 @@ public class TechEditWizardData
 
             // Pin bottom metal
             group.addPinOrResistor(makeXmlPrimitivePin(t, lb.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
-                makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.CROSSED)), null);
+                null, makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.CROSSED)), null);
             if (i == num_metal_layers - 1) // last pin!
             {
                 metalPalette[i].addPinOrResistor(makeXmlPrimitivePin(t, lt.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
-                    makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.CROSSED)), null);
+                    null, makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.CROSSED)), null);
             }
 
             if (!getExtraInfoFlag())

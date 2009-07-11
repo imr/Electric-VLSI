@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+BUG: (7/10/09, GVG) tsmcsun40GP tech: n/p-well arcs in palette menu, connect to p/n-diff layers (Bug #2282)
+FIX: Well arcs available for diff primitive nodes (part II)
+
 IMP: (7/10/09, JKG) nodeinst centers do not need to be ongrid (only edges matter), so relaxed restriction.
 For well and implant, put back whole original layers in, as this is simpler (no connectivity needed)
 
