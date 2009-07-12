@@ -255,7 +255,7 @@ public class EvalJavaBsh
     }
 
     /**
-     * Display specified Cell after termibation of currently running script
+     * Display specified Cell after termination of currently running script
      * @param cell
      */
     public static void displayCell(Cell cell) {
