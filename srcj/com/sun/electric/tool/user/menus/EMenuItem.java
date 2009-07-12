@@ -28,6 +28,7 @@ import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
+import com.sun.electric.Main;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -43,7 +44,7 @@ import javax.swing.KeyStroke;
 public abstract class EMenuItem implements ActionListener {
 
     public static final EMenuItem[] NULL_ARRAY = {};
-    private static final int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+    private static final int buckyBit = Main.isBatch() ? 0 : Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
     /**
      * A constant to represent separator in menus.
