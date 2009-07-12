@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+IMP: (7/12/09, AM) Move i2i from Schematics to ArrayIterator.
+
 IMP: (7/11/09, AM) Fix EMenuItem so it will not throw an exception if
      java.awt.headless=true in -batch mode.
 

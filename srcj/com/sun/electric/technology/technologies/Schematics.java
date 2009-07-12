@@ -61,6 +61,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
+import static com.sun.electric.database.text.ArrayIterator.i2i;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -3415,18 +3416,5 @@ public class Schematics extends Technology
 		if (np == muxNode) return "mux";
         return "";
     }
-
-    /** Turns an Iterator<T> into an Iterable<T> so I can use Java5's enhanced for() */
-    private static <T> Iterable<T> i2i(final Iterator<T> iterator) {
-        return new Iterable<T>() {
-            boolean used = false;
-            public Iterator<T> iterator() {
-                if (used) throw new RuntimeException();
-                used = true;
-                return iterator;
-            }
-        };
-    }
-
 
 }

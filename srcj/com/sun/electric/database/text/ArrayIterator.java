@@ -159,4 +159,16 @@ public class ArrayIterator<E> implements Iterator<E> {
     public static final <E> Iterator<E> emptyIterator() {
         return (Iterator<E>) EMPTY_ITERATOR;
     }
+
+    /** Turns an Iterator<T> into an Iterable<T> so I can use Java5's enhanced for() */
+    public static <T> Iterable<T> i2i(final Iterator<T> iterator) {
+        return new Iterable<T>() {
+            boolean used = false;
+            public Iterator<T> iterator() {
+                if (used) throw new RuntimeException("i2i() produces single-use Iterables!");
+                used = true;
+                return iterator;
+            }
+        };
+    }
 }
