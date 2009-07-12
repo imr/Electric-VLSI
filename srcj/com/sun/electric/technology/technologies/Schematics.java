@@ -26,6 +26,7 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
@@ -207,6 +208,10 @@ public class Schematics extends Technology
 	private Technology.NodeLayer [] tranLayersNJFET, tranLayersPJFET;
 	private Technology.NodeLayer [] tranLayersDMES, tranLayersEMES;
 	private Technology.NodeLayer [] twoLayersDefault, twoLayersVCVS, twoLayersVCCS, twoLayersCCVS, twoLayersCCCS, twoLayersTran;
+	private Technology.NodeLayer [] offPageInputLayers;
+	private Technology.NodeLayer [] offPageOutputLayers;
+	private Technology.NodeLayer [] offPageBidirectionalLayers;
+	private Technology.NodeLayer [] offPageLayers;
 	private Technology.NodeLayer [] tran4LayersN, tran4LayersP;
 	private Technology.NodeLayer [] tran4LayersNd, tran4LayersPd;
 	private Technology.NodeLayer [] tran4LayersNnT, tran4LayersPnT;
@@ -889,16 +894,54 @@ public class Schematics extends Technology
 		switchNode.setAutoGrowth(0, 4);
 
 		/** off page connector */
-		offpageNode = PrimitiveNode.newInstance("Off-Page", this, 4.0, 2.0, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
-					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
-					new Technology.TechPoint(RIGHTBYP5, EdgeV.makeTopEdge()),
-					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
-					new Technology.TechPoint(RIGHTBYP5, EdgeV.makeBottomEdge())})
-			});
+        offPageLayers =
+			new Technology.NodeLayer [] {
+            new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+                    new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+                    new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
+                    new Technology.TechPoint(RIGHTBYP5, EdgeV.makeTopEdge()),
+                    new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+                    new Technology.TechPoint(RIGHTBYP5, EdgeV.makeBottomEdge()),
+                }),
+        };
+        offPageOutputLayers =
+			new Technology.NodeLayer [] {
+            new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+                    new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+                    new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
+                    new Technology.TechPoint(LEFTBYP5, EdgeV.makeCenter()),
+                    new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
+                    new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
+                    new Technology.TechPoint(RIGHTBYP5, EdgeV.makeTopEdge()),
+                    new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+                    new Technology.TechPoint(RIGHTBYP5, EdgeV.makeBottomEdge()),
+                }),
+        };
+        offPageInputLayers =
+			new Technology.NodeLayer [] {
+            new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+                    new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+                    new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
+                    new Technology.TechPoint(RIGHTBYP5, EdgeV.makeTopEdge()),
+                    new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+                    new Technology.TechPoint(RIGHTBYP5, EdgeV.makeCenter()),
+                    new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+                    new Technology.TechPoint(RIGHTBYP5, EdgeV.makeBottomEdge()),
+                }),
+        };
+        offPageBidirectionalLayers =
+			new Technology.NodeLayer [] {
+            new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+                    new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+                    new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
+                    new Technology.TechPoint(LEFTBYP5, EdgeV.makeTopEdge()),
+                    new Technology.TechPoint(RIGHTBYP5, EdgeV.makeTopEdge()),
+                    new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+                    new Technology.TechPoint(RIGHTBYP5, EdgeV.makeBottomEdge()),
+                }),
+        };
+        offpageNode = PrimitiveNode.newInstance("Off-Page", this, 4.0, 2.0, null, offPageLayers);
+
 		offpageNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, offpageNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,45, 0, PortCharacteristic.UNKNOWN,
@@ -2115,7 +2158,21 @@ public class Schematics extends Technology
 				case TRANDMES:      primLayers = tran4LayersDMES;   break;
 				case TRANEMES:      primLayers = tran4LayersEMES;   break;
 			}
-		} else if (np == offpageNode || np == powerNode || np == groundNode || np == sourceNode || np == resistorNode ||
+		} else if (np == offpageNode) {
+            boolean input = false;
+            boolean output = false;
+            boolean bidirectional = false;
+            for(ImmutableExport e : i2i(m.getExports(n.nodeId))) {
+                if      (e.characteristic==PortCharacteristic.IN)    input = true;
+                else if (e.characteristic==PortCharacteristic.OUT)   output = true;
+                else if (e.characteristic==PortCharacteristic.BIDIR) bidirectional = true;
+            }
+            if      ( input && !output && !bidirectional) primLayers = offPageInputLayers;
+            else if (!input &&  output && !bidirectional) primLayers = offPageOutputLayers;
+            else if (!input && !output &&  bidirectional) primLayers = offPageBidirectionalLayers;
+            else                                          primLayers = offPageLayers;
+			extraBlobs = true;
+		} else if (np == powerNode || np == groundNode || np == sourceNode || np == resistorNode ||
 			np == inductorNode || np == meterNode || np == wellNode || np == substrateNode)
 		{
 			extraBlobs = true;
@@ -2515,7 +2572,21 @@ public class Schematics extends Technology
 				case TRANDMES:      primLayers = tran4LayersDMES;   break;
 				case TRANEMES:      primLayers = tran4LayersEMES;   break;
 			}
-		} else if (pn == offpageNode || pn == powerNode || pn == groundNode || pn == sourceNode || pn == resistorNode ||
+		} else if (pn == offpageNode) {
+            boolean input = false;
+            boolean output = false;
+            boolean bidirectional = false;
+            for(ImmutableExport e : i2i(m.getExports(n.nodeId))) {
+                if      (e.characteristic==PortCharacteristic.IN)    input = true;
+                else if (e.characteristic==PortCharacteristic.OUT)   output = true;
+                else if (e.characteristic==PortCharacteristic.BIDIR) bidirectional = true;
+            }
+            if      ( input && !output && !bidirectional) primLayers = offPageInputLayers;
+            else if (!input &&  output && !bidirectional) primLayers = offPageOutputLayers;
+            else if (!input && !output &&  bidirectional) primLayers = offPageBidirectionalLayers;
+            else                                          primLayers = offPageLayers;
+			extraBlobs = true;
+		} else if (pn == powerNode || pn == groundNode || pn == sourceNode || pn == resistorNode ||
 			pn == inductorNode || pn == meterNode || pn == wellNode || pn == substrateNode)
 		{
 			extraBlobs = true;
@@ -3344,4 +3415,18 @@ public class Schematics extends Technology
 		if (np == muxNode) return "mux";
         return "";
     }
+
+    /** Turns an Iterator<T> into an Iterable<T> so I can use Java5's enhanced for() */
+    private static <T> Iterable<T> i2i(final Iterator<T> iterator) {
+        return new Iterable<T>() {
+            boolean used = false;
+            public Iterator<T> iterator() {
+                if (used) throw new RuntimeException();
+                used = true;
+                return iterator;
+            }
+        };
+    }
+
+
 }
