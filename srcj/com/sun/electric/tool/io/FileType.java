@@ -422,4 +422,21 @@ public class FileType implements Serializable {
 		}
 		return false;
 	}
+
+    /** Get the type from the fileName, or if no valid Library type found, return defaultType.
+     */
+    public static FileType getLibraryFormat(String fileName, FileType defaultType) {
+            if (fileName != null)
+        {
+            if (fileName.endsWith(File.separator)) {
+                fileName = fileName.substring(0, fileName.length()-File.separator.length());
+            }
+            for (FileType type :  FileType.libraryTypes)
+            {
+                if (fileName.endsWith("."+type.getExtensions()[0])) return type;
+            }
+        }
+        return defaultType;
+    }
+
 }

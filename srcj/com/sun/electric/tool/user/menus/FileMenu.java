@@ -455,23 +455,13 @@ public class FileMenu {
             System.out.println("The filename provided is not a valid Electric's library: '" +
             fileName + "'.");
         else
-            new ReadLibrary(file, defType, TextUtils.getFilePath(file), null, null, null);
+            new ReadLibraryJob(file, defType, TextUtils.getFilePath(file), null, null, null);
     }
 
     /** Get the type from the fileName, or if no valid Library type found, return defaultType.
      */
     public static FileType getLibraryFormat(String fileName, FileType defaultType) {
-        if (fileName != null)
-        {
-            if (fileName.endsWith(File.separator)) {
-                fileName = fileName.substring(0, fileName.length()-File.separator.length());
-            }
-            for (FileType type :  FileType.libraryTypes)
-            {
-                if (fileName.endsWith("."+type.getExtensions()[0])) return type;
-            }
-        }
-        return defaultType;
+        return FileType.getLibraryFormat(fileName, defaultType);
     }
 
     private static class ReadProjectSettingsFromLibrary extends Job {

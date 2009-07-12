@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+IMP: (7/11/09, AM) Move getLibraryFormat() from FileMenu to FileType
+     so it can be invoked when java.awt.headless=true.
+
 IMP/MAN: (7/11/09, AM) Schematics.java: make appearance of off-page
      connection node depend on the PortCharacteristics of its Exports.
 
