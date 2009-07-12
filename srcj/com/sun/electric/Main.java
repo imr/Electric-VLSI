@@ -95,6 +95,12 @@ public final class Main
 
 	private Main() {}
 
+    private static Mode runMode;
+
+    public static boolean isBatch() {
+        return runMode == Mode.BATCH;
+    }
+
 	/**
 	 * The main entry point of Electric.
 	 * @param args the arguments to the program.
@@ -150,7 +156,7 @@ public final class Main
 		}
 
 		// -debug for debugging
-        Mode runMode = Mode.FULL_SCREEN;
+        runMode = Mode.FULL_SCREEN;
         String pipeOptions = "";
 		if (hasCommandLineOption(argsList, "-debug")) {
             pipeOptions += " -debug";
@@ -193,7 +199,10 @@ public final class Main
 
         ActivityLogger.initialize("electric.log", true, true, true/*false*/);
 
-		if (hasCommandLineOption(argsList, "-batch")) runMode = Mode.BATCH;
+		if (hasCommandLineOption(argsList, "-batch")) {
+            //System.setProperty("java.awt.headless", "true");
+            runMode = Mode.BATCH;
+        }
         if (hasCommandLineOption(argsList, "-server")) {
             if (runMode != Mode.FULL_SCREEN)
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.SERVER);
@@ -497,7 +506,7 @@ public final class Main
 	{
         private Map<String,Object> paramValuesByXmlPath = Technology.getParamValuesByXmlPath();
         private String softTechnologies = StartupPrefs.getSoftTechnologies();
-		private transient List<String> argsList;
+		private List<String> argsList;
         private Library mainLib;
 
 		private InitDatabase(List<String> argsList)
@@ -509,6 +518,7 @@ public final class Main
         @Override
 		public boolean doIt() throws JobException
 		{
+            System.out.println("InitDatabase");
             // initialize all of the technologies
             Technology.initAllTechnologies(getDatabase(), paramValuesByXmlPath, softTechnologies);
 
@@ -521,11 +531,13 @@ public final class Main
             fieldVariableChanged("mainLib");
             mainLib.clearChanged();
 
-//            if (Job.BATCHMODE) {
-//                EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, getTechPool()));
-//                if (beanShellScript != null)
-//                    EvalJavaBsh.runScript(beanShellScript);
-//            }
+            if (isBatch()) {
+                String beanShellScript = getCommandLineOption(argsList, "-s");
+                openCommandLineLibs(argsList);
+                //EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, getTechPool()));
+                if (beanShellScript != null)
+                    EvalJavaBsh.runScript(beanShellScript);
+            }
             return true;
 		}
 

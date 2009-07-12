@@ -197,6 +197,7 @@ public class Spice extends Topology
         public Map<Cell,String>             modelFiles = Collections.emptyMap();
         public String                       workdir = "";
 
+		public SpicePreferences() { this(false, false); }
 		public SpicePreferences(boolean factory, boolean cdl)
 		{
             super(factory);

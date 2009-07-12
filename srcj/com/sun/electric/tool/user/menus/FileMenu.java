@@ -455,7 +455,7 @@ public class FileMenu {
             System.out.println("The filename provided is not a valid Electric's library: '" +
             fileName + "'.");
         else
-            new ReadLibraryJob(file, defType, TextUtils.getFilePath(file), null, null, null);
+            new ReadLibrary(file, defType, TextUtils.getFilePath(file), null, null, null);
     }
 
     /** Get the type from the fileName, or if no valid Library type found, return defaultType.

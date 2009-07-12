@@ -26,6 +26,7 @@ package com.sun.electric.tool;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.Main;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
@@ -448,10 +449,10 @@ public class ServerJobManager extends JobManager {
                     selectedEJob = ejob;
                     break;
                 }
-//                if (Job.threadMode == Job.Mode.BATCH && startedJobs.isEmpty()) {
-//                    ActivityLogger.finished();
-//                    System.exit(1);
-//                }
+                if (Main.isBatch() && startedJobs.isEmpty()) {
+                    ActivityLogger.finished();
+                    System.exit(0);
+                }
                 Job.logger.logp(Level.FINE, CLASS_NAME, "selectConnection", "pause");
                 databaseChangesMutex.awaitUninterruptibly();
                 Job.logger.logp(Level.FINE, CLASS_NAME, "selectConnection", "resume");

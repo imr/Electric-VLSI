@@ -211,6 +211,7 @@ public class Verilog extends Topology
 		public boolean parameterizeModuleNames = Simulation.getFactoryVerilogParameterizeModuleNames();
         public Map<Cell,String> modelFiles = Collections.emptyMap();
 
+        public VerilogPreferences() { this(false); }
         public VerilogPreferences(boolean factory) {
             super(factory);
             if (!factory)

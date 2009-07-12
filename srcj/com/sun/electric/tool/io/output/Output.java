@@ -41,6 +41,7 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.Main;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
@@ -126,7 +127,7 @@ public class Output
      */
     public static OutputPreferences getOutputPreferences(FileType type, Cell cell, boolean factory, List<PolyBase> override)
     {
-        if (!factory && !SwingUtilities.isEventDispatchThread())
+        if (!factory && !SwingUtilities.isEventDispatchThread() && !Main.isBatch())
                 throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
 
         if (type == FileType.ARCHSIM) return new ArchSim.ArchSimPreferences(factory);
@@ -191,14 +192,15 @@ public class Output
         }
     }
 
-    public abstract static class OutputPreferences
+    public abstract static class OutputPreferences implements java.io.Serializable
 	{
         // IO Settings
         public boolean useCopyrightMessage = IOTool.isUseCopyrightMessage();
         public boolean includeDateAndVersionInOutput = User.isIncludeDateAndVersionInOutput();
 
+        protected OutputPreferences() { this(false); }
         protected OutputPreferences(boolean factory) {
-            if (!factory && !SwingUtilities.isEventDispatchThread())
+            if (!factory && !SwingUtilities.isEventDispatchThread() && !Main.isBatch())
                 throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
         }
 
