@@ -35,20 +35,8 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.*;
-import java.awt.image.*;
-import java.awt.Color;
-import java.awt.Font;
 import java.awt.Frame;
-import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
-import java.awt.RenderingHints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
-import java.awt.font.LineMetrics;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
@@ -79,7 +67,7 @@ public class LayoutImage extends EDialog {
         largestDotWidth.setText("32");
         smallestDotWidth.setText("22");
         minimumGutter.setText("16");
-        fileName.setText("/Users/megacz/proj/fleet/marina/logo/marina-logo.png");
+//        fileName.setText("/Users/megacz/proj/fleet/marina/logo/marina-logo.png");
         monochrome.setSelected(false);
         reverseVideo.setSelected(false);
 
@@ -118,6 +106,7 @@ public class LayoutImage extends EDialog {
         monochrome = new javax.swing.JCheckBox();
         fileName = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
+        openFileButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -217,7 +206,7 @@ public class LayoutImage extends EDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(textLayer, gridBagConstraints);
@@ -234,6 +223,7 @@ public class LayoutImage extends EDialog {
         getContentPane().add(reverseVideo, gridBagConstraints);
 
         monochrome.setText("Monochrome");
+        monochrome.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         monochrome.setMargin(new java.awt.Insets(0, 0, 0, 0));
         monochrome.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -250,7 +240,7 @@ public class LayoutImage extends EDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         getContentPane().add(fileName, gridBagConstraints);
 
@@ -262,6 +252,17 @@ public class LayoutImage extends EDialog {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel4, gridBagConstraints);
+
+        openFileButton.setText("Load");
+        openFileButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                openFileButtonActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        getContentPane().add(openFileButton, gridBagConstraints);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -364,6 +365,10 @@ public class LayoutImage extends EDialog {
         // TODO add your handling code here:
     }//GEN-LAST:event_monochromeActionPerformed
 
+private void openFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openFileButtonActionPerformed
+// TODO add your handling code here:
+}//GEN-LAST:event_openFileButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancel;
     private javax.swing.JTextField fileName;
@@ -376,6 +381,7 @@ public class LayoutImage extends EDialog {
     private javax.swing.JTextField minimumGutter;
     private javax.swing.JCheckBox monochrome;
     private javax.swing.JButton ok;
+    private javax.swing.JButton openFileButton;
     private javax.swing.JCheckBox reverseVideo;
     private javax.swing.JTextField smallestDotWidth;
     private javax.swing.JComboBox textLayer;
