@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+BUG: (7/13/09, GVG) tsmcsun40GP tech: n/p-well arcs in palette menu, connect to p/n-diff layers (Bug #2282)
+FIX: The n/p-well arcs should be selectable from the palette menu (part I).
+
 IMP: (7/12/09, GVG) More changes in LayoutImage dialog
 
 IMP: (7/12/09, AM) Move i2i from Schematics to ArrayIterator.

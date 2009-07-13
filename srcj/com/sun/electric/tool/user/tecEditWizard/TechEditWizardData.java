@@ -2596,16 +2596,16 @@ public class TechEditWizardData
                 arcVal = nplus_overhang_diff;
             }
             portNames.add(m1Layer.name);
-
-            // simple arc. S for simple
-            g.addArc(makeXmlArc(t, "S-"+composeName, ArcProto.Function.WELL, 0,
-                makeXmlArcLayer(wellLayers[i], diff_width, nwell_overhang_diff_p)));
-
-            // three layers arcs
+                                                                 
+            // three layers arcs. This is the first port defined so it will be the default in the palette
             g.addArc(makeXmlArc(t, composeName, ArcProto.Function.WELL, 0,
                     makeXmlArcLayer(diffLayers[i], diff_width),
                     makeXmlArcLayer(plusLayers[i], diff_width, arcVal),
                     arcL));
+
+            // simple arc. S for simple
+            g.addArc(makeXmlArc(t, "S-"+composeName, ArcProto.Function.WELL, 0,
+                makeXmlArcLayer(wellLayers[i], diff_width, nwell_overhang_diff_p)));
 
             // well pin
             List<String> arcNames = new ArrayList<String>();

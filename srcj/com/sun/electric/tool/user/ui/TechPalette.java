@@ -924,7 +924,11 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         public void actionPerformed(ActionEvent evt)
         {
             if (obj instanceof ArcProto)
-				User.getUserTool().setCurrentArcProto((ArcProto)obj);
+            {
+                assert(subList == null);
+                Collections.swap(list, 0, list.indexOf(obj));
+                User.getUserTool().setCurrentArcProto((ArcProto)obj);
+            }
             else
             {
                 PaletteFrame.PlaceNodeListener listener = PaletteFrame.placeInstance(obj, panel, false);
