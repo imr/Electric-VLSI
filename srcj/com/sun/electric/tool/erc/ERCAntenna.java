@@ -197,7 +197,16 @@ public class ERCAntenna
 		new AntennaCheckJob(cell);
 	}
 
-	/**
+    /**
+     * For test/regression/internal run
+     */
+    public static int checkERCAntenna(Cell cell, AntennaPreferences prefs, Job job)
+    {
+        ERCAntenna handler = new ERCAntenna(prefs);
+        return handler.doCheck(job, cell);
+    }
+
+    /**
 	 * Class to do antenna checking in a new thread.
 	 */
 	private static class AntennaCheckJob extends Job
@@ -214,16 +223,17 @@ public class ERCAntenna
 
 		public boolean doIt() throws JobException
 		{
-			ERCAntenna handler = new ERCAntenna(antennaPrefs);
-			handler.doCheck(this, cell);
-			return true;
+//			ERCAntenna handler = new ERCAntenna(antennaPrefs);
+//			handler.doCheck(this, cell);
+            checkERCAntenna(cell, antennaPrefs, this);
+            return true;
 		}
 	}
 
 	/**
 	 * Method to do the Antenna check.
 	 */
-	private void doCheck(Job job, Cell topCell)
+	private int doCheck(Job job, Cell topCell)
 	{
 		curTech = topCell.getTechnology();
 
@@ -287,7 +297,8 @@ public class ERCAntenna
 			System.out.println("FOUND " + errorCount + " ANTENNA ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 		}
 		errorLogger.termLogging(true);
-	}
+        return errorCount;
+    }
 
 	/**
 	 * Method to check the contents of a cell.
@@ -302,7 +313,7 @@ public class ERCAntenna
 
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			if (job.checkAbort()) return true;
+			if (job != null && job.checkAbort()) return true;
 
 			NodeInst ni = it.next();
 			if (fsGeom.contains(ni)) continue;
@@ -463,7 +474,7 @@ public class ERCAntenna
 		// keep walking along the nodes and arcs
 		for(;;)
 		{
-			if (job.checkAbort()) return ERCABORTED;
+			if (job != null && job.checkAbort()) return ERCABORTED;
 
 			// if this is a subcell, recurse on it
 			fsGeom.add(ni);
