@@ -11,6 +11,9 @@ FIX: The n/p-well arcs should be selectable from the palette menu (part I).
 
 IMP: (7/12/09, GVG) More changes in LayoutImage dialog
 
+IMP/MAN: (7/12/09, AM) If "-" is supplied as an argument to "-s" on the
+     command line, read a bean shell script from stdin.
+
 IMP: (7/12/09, AM) Move i2i from Schematics to ArrayIterator.
 
 IMP: (7/11/09, AM) Fix EMenuItem so it will not throw an exception if

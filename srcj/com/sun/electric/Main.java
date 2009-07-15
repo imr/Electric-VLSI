@@ -56,6 +56,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -469,7 +471,7 @@ public final class Main
             if (argsList.get(i).equals(option)) {
                 argsList.remove(i); // note that this shifts objects in arraylist
                 // check if next string valid (i.e. no dash)
-                if (argsList.get(i).startsWith("-")) {
+                if (argsList.get(i).startsWith("-") && argsList.get(i).length()>1) {
                     System.out.println("Bad command line option: "+ option +" "+ argsList.get(i+1));
                     return null;
                 }
@@ -535,8 +537,22 @@ public final class Main
                 String beanShellScript = getCommandLineOption(argsList, "-s");
                 openCommandLineLibs(argsList);
                 //EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, getTechPool()));
-                if (beanShellScript != null)
-                    EvalJavaBsh.runScript(beanShellScript);
+                if (beanShellScript != null) {
+                    if (beanShellScript.equals("-")) {
+                        try {
+                            StringBuffer sb = new StringBuffer();
+                            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+                            for(String s = br.readLine(); s!=null; s = br.readLine()) {
+                                sb.append(s);
+                                sb.append('\n');
+                            }
+                            EvalJavaBsh.runScript(sb.toString(), false);
+                        } catch (Exception e) {
+                            throw new JobException(e);
+                        }
+                    } else
+                        EvalJavaBsh.runScript(beanShellScript);
+                }
             }
             return true;
 		}
