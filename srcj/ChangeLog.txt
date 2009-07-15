@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10b: ******************************
 
+IMP: (7/15/09, GVG) Consider X axis while comparing points not aligned in StitchFill:isLeftTop (Bug #2281)
+
 ************************* Version 8.10a: ******************************
 
 IMP/MAN: (7/15/09, AM) Back out change from 7/12 until we figure out

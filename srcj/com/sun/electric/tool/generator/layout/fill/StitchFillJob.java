@@ -1264,10 +1264,15 @@ public class StitchFillJob extends Job
         {
             return (!DBMath.isGreaterThan(p1.getX(), p2.getX()));
         }
-        else if (Job.getDebug())
-            System.out.println("Case not considered in FillJob:isLeftTop");
+        else
+        {
+            // based on X
+            return (!DBMath.isGreaterThan(p1.getX(), p2.getX()));
+//            if (Job.getDebug())
+//                System.out.println("Case not considered in FillJob:isLeftTop");
 //            assert(false); // not considered yet
-        return false;
+        }
+//        return false;
     }
 
     /**
