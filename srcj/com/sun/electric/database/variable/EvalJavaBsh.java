@@ -249,9 +249,8 @@ public class EvalJavaBsh
     //---------------------------Running Scripts-------------------------------------
 
     /** Run a Java Bean Shell script */
-    public static void runScript(String script) { runScript(script, true); }
-    public static void runScript(String script, boolean isFileName) {
-        runScriptJob job = new runScriptJob(script, isFileName);
+    public static void runScript(String script) {
+        runScriptJob job = new runScriptJob(script);
         job.startJob();
     }
 
@@ -267,30 +266,22 @@ public class EvalJavaBsh
 
     /** Run a Java Bean Shell script */
     public static Job runScriptJob(String script) {
-        return new runScriptJob(script, false);
+        return new runScriptJob(script);
     }
 
     private static class runScriptJob extends Job
 	{
         private String script;
         private Cell cell;
-        private boolean isFileName;
 
-        protected runScriptJob(String script, boolean isFileName) {
+        protected runScriptJob(String script) {
             super("JavaBsh script: "+script, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.script = script;
-            this.isFileName = isFileName;
         }
 
         public boolean doIt() throws JobException {
             EvalJavaBsh evaluator = new EvalJavaBsh();
-            if (isFileName) return evaluator.doSource(script);
-            try {
-                evaluator.doEval(script);
-            } catch (Exception e) {
-                throw new JobException(e);
-            }
-            return true;
+            return evaluator.doSource(script);
         }
 
         private void displayCell(Cell cell) {
