@@ -518,7 +518,7 @@ public final class Main
         @Override
 		public boolean doIt() throws JobException
 		{
-            System.out.println("InitDatabase");
+            //System.out.println("InitDatabase");
             // initialize all of the technologies
             Technology.initAllTechnologies(getDatabase(), paramValuesByXmlPath, softTechnologies);
 
