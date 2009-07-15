@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10a: ******************************
 
+BUG: (7/14/09, AM) Threading assertion failure when creating waveform
+     window (Bug #2286).
+
 IMP: (7/13/09, GVG) Adding ERC Antenna to the regression (bug #2283)
 
 BUG: (7/13/09, GVG) tsmcsun40GP tech: n/p-well arcs in palette menu, connect to p/n-diff layers (Bug #2282)

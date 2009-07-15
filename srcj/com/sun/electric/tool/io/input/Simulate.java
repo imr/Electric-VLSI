@@ -44,7 +44,7 @@ import com.sun.electric.tool.user.waveform.WaveformWindow;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-
+import javax.swing.*;
 
 /**
  * This class reads simulation output files and plots them.
@@ -243,7 +243,12 @@ public class Simulate extends Input
 				{
 					sd.setDataType(type);
 					sd.setFileURL(fileURL);
-					Simulation.showSimulationData(sd, ww);
+                    final Stimuli sdx = sd;
+                    final WaveformWindow wwx = ww;
+                    SwingUtilities.invokeLater(new Runnable() {
+                            public void run() {
+                                Simulation.showSimulationData(sdx, wwx);
+                            }});
 				}
 			} catch (IOException e)
 			{
