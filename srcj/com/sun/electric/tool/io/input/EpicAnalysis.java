@@ -32,6 +32,8 @@ import com.sun.electric.tool.simulation.Waveform;
 import com.sun.electric.tool.simulation.WaveformImpl;
 import com.sun.electric.tool.user.ActivityLogger;
 
+import com.sun.electric.tool.simulation.Signal;
+
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -171,6 +173,13 @@ public class EpicAnalysis extends AnalogAnalysis {
         return sig;
     }
 
+    public List<AnalogSignal> getSignalsFromExtractedNet(Signal ws) {
+        ArrayList<AnalogSignal> ret = new ArrayList<AnalogSignal>();
+        ret.add((AnalogSignal)ws);
+        return ret;
+    }
+
+
     /**
      * Public method to build tree of EpicTreeNodes.
      * Root of the tree us EpicRootTreeNode objects.
@@ -182,7 +191,8 @@ public class EpicAnalysis extends AnalogAnalysis {
 		DefaultMutableTreeNode signalsExplorerTree = new EpicRootTreeNode(this, analysis);
         return signalsExplorerTree;
     }
-    
+
+   
     /**
      * Returns EpicSignal by its TreePath.
      * @param treePath specified TreePath.
@@ -778,7 +788,7 @@ public class EpicAnalysis extends AnalogAnalysis {
             else
                 assert type == CURRENT_TYPE;
         }
-        
+
         /**
          * Method to return the context of this simulation signal.
          * The context is the hierarchical path to the signal, and it usually contains
