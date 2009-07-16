@@ -942,7 +942,7 @@ public class ToolMenu
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
 		Cell cell = wnd.getCell();
-		if (wnd == null) return;
+		if (cell == null) return;
 		Highlighter highlighter = wnd.getHighlighter();
 		highlighter.showNetworks(cell);
 

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10b: ******************************
 
+BUG: (7/16/09, GVG) NPE in showNetworkCommand (Bug #2292)
+FIX: Wrong detection of null condition.
+
 BUG: (7/15/09, GVG) Compare Displayed Cells tool looking for subcells in wrong library (Bug #2290)
 FIX: Skip subcells not found in the same library because they are shared with other cell
 
