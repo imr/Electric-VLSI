@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10b: ******************************
 
+BUG: (7/17/09, GVG) Undoing bug #2250 due to bug #2295.
+
 BUG: (7/16/09, GVG) NPE in showNetworkCommand (Bug #2292)
 FIX: Wrong detection of null condition.
 

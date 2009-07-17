@@ -99,17 +99,19 @@ public class TechEditWizardData
     private WizardField vthl_poly_overhang = new WizardField();     // Overhang of VTH/VTL with respecto to the gate
 
     // Special rules for resistors
-//    private WizardField poly_resistor_length =
-//    private WizardField poly_resistor_width =
-//    private WizardField rpo_contact_spacing =
-//    private WizardField rpo_poly_overhang =
-
     private WizardField[] extraVariables = new WizardField[]{
         new WizardField("poly_resistor_length"),   // Poly resistor length
         new WizardField("poly_resistor_width"),   // Poly resistor width
         new WizardField("rpo_contact_spacing"),   // Spacing btw rpo edge and contact cut
-        new WizardField("rpo_poly_overhang"),   // RPO overhang from poly
-        new WizardField("rh_odpoly_overhang")   // RH overhang from poly/OD
+        new WizardField("rpo_odpoly_overhang"),   // RPO overhang from poly/OD
+        new WizardField("rh_odpoly_overhang"),   // RH overhang from poly/OD
+        new WizardField("well_resistor_length"),   // Well resistor length
+        new WizardField("well_resistor_width"),   // Well resistor width
+        new WizardField("rpo_select_overlap"),   // RPO overlap in select from center
+        new WizardField("rpo_co_space_in_nwrod"),   // rpo co distance
+        new WizardField("co_nwrod_overhang"),   // overhang of co in nwrod
+        new WizardField("od_nwrod_overhang"),   // overhang of od in nwrod
+        new WizardField("rpo_nwrod_space"),   // rpo nwrod space     
     };
 
     // CONTACT RULES
@@ -3087,7 +3089,7 @@ public class TechEditWizardData
                 WizardField polyRL = findWizardField("poly_resistor_length");
                 WizardField polyRW = findWizardField("poly_resistor_width");
                 WizardField rpoS = findWizardField("rpo_contact_spacing");
-                WizardField rpoPEx = findWizardField("rpo_poly_overhang");
+                WizardField rpoODPolyEx = findWizardField("rpo_odpoly_overhang");
                 WizardField rhOverhang = findWizardField("rh_odpoly_overhang");
 
                 double resistorSpacing = contact_array_spacing.v; // using array value to guarantee proper spacing in nD cases
@@ -3101,7 +3103,7 @@ public class TechEditWizardData
 
                 // RPO
                 Xml.Layer rpoLayer = t.findLayer("RPO");
-                double rpoY = scaledValue(polyRW.v/2 + rpoPEx.v);
+                double rpoY = scaledValue(polyRW.v/2 + rpoODPolyEx.v);
                 double rpoX = scaledValue(polyRL.v/2);
                 nodesList.add(makeXmlNodeLayer(rpoX, rpoX, rpoY, rpoY, rpoLayer,
                     Poly.Type.FILLED, true, true, -1));
@@ -3157,10 +3159,84 @@ public class TechEditWizardData
                     contArraySpacing, contArraySpacing));
 
                 sox = scaledValue(soxNoScaled + extraSelX);
-                soy = scaledValue(rpoPEx.v);
+                soy = scaledValue(rpoODPolyEx.v);
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Poly-RPO-Resistor", prFunc, 0, 0, 0, 0,
                     new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                 g.addPinOrResistor(n, name + "-RPoly");
+                
+                /*************************************/
+                // Well Resistors
+                nodesList.clear();
+                nodePorts.clear();
+                WizardField wellRL = findWizardField("well_resistor_length");
+                WizardField wellRW = findWizardField("well_resistor_width");
+                WizardField rpoSelO = findWizardField("rpo_select_overlap"); // F
+                WizardField rpoCoS = findWizardField("rpo_co_space_in_nwrod"); // G
+                WizardField coNwrodO = findWizardField("co_nwrod_overhang"); // E
+                WizardField odNwrodO = findWizardField("od_nwrod_overhang"); // D
+
+                // Total values define RPO dimensions
+                double cutEndNoScaled = /*F*/rpoSelO.v + /*G*/rpoCoS.v;
+                double cutSpacingNoScaled = /*2xCut + spacing*/resistorSpacing + 2*contact_size.v;
+                double activeXNoScaled = /*F+G*/cutEndNoScaled + /*cut spacing+2xcuts*/cutSpacingNoScaled
+                    + /*E*/coNwrodO.v + /*D*/odNwrodO.v;
+                soxNoScaled = activeXNoScaled + rpoODPolyEx.v;
+                double soyNoScaled = /*D*/odNwrodO.v + rpoODPolyEx.v;
+                halfTotalL = scaledValue(wellRL.v/2 + soxNoScaled);
+                halfTotalW = scaledValue(wellRW.v/2 + soyNoScaled);
+                double activeWX = scaledValue(activeXNoScaled);
+                double activeWY = scaledValue(wellRW.v/2 + /*D*/odNwrodO.v);
+
+                // rpo. It has two holes
+                nodesList.add(makeXmlNodeLayer(halfTotalL, halfTotalL, halfTotalW, halfTotalW, rpoLayer,
+                    Poly.Type.FILLED, true, true, -1));
+
+                // active
+                nodesList.add(makeXmlNodeLayer(activeWX, activeWX, activeWY, activeWY, activeLayer,
+                    Poly.Type.FILLED, true, true, -1));
+
+                // well
+                double halfW = scaledValue(wellRW.v/2);
+                double halfWellL = scaledValue(wellRL.v/2+/*F+G*/cutEndNoScaled+/*cut spacing+2xcuts*/cutSpacingNoScaled
+                + /*E*/coNwrodO.v);
+                if (i==Technology.N_TYPE)
+                {
+                    nodesList.add(makeXmlNodeLayer(halfWellL, halfWellL, halfW, halfW, nwellLayer,
+                        Poly.Type.FILLED, true, true, -1));
+                }
+                
+                // NWDMY-LVS
+                double halfL = scaledValue(wellRL.v/2);
+                Xml.Layer nwdmyLayer = t.findLayer("NWDMY-LVS");
+                nodesList.add(makeXmlNodeLayer(halfL, halfL, halfTotalW, halfTotalW, nwdmyLayer,
+                    Poly.Type.FILLED, true, true, -1));
+
+                cutEnd = scaledValue(wellRL.v/2+cutEndNoScaled);
+                cutSpacing = scaledValue(cutSpacingNoScaled);
+
+                // Metal1
+                m1Distance = scaledValue(wellRL.v/2 + /*F*/rpoSelO.v);
+                // metal left
+                nodesList.add(makeXmlNodeLayer(halfWellL, -1, -m1Distance, -1, halfW, -1, halfW, 1, m1Layer,
+                    Poly.Type.FILLED, true, true, 0));
+                // right metal
+                nodesList.add(makeXmlNodeLayer(-m1Distance, 1, halfWellL, 1, halfW, -1, halfW, 1, m1Layer,
+                    Poly.Type.FILLED, true, true, 1));
+
+                // left port
+                port = makeXmlPrimitivePort("left-rpo", 0, 180, 0, minFullSize,
+                    -(cutEnd + cutSpacing), -1, -cutEnd, -1, -halfW, -1, halfW, 1, portNames);
+                nodePorts.add(port);
+                // right port
+                port = makeXmlPrimitivePort("right-rpo", 0, 180, 1, minFullSize,
+                    cutEnd, 1, (cutEnd + cutSpacing), 1, -halfW, -1, halfW, 1, portNames);
+                nodePorts.add(port);
+
+                sox = scaledValue(soxNoScaled);
+                soy = scaledValue(soyNoScaled);
+//                n = makeXmlPrimitive(t.nodeGroups, name + "-Well-RPO-Resistor", prFunc, 0, 0, 0, 0,
+//                    new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
+//                g.addPinOrResistor(n, name + "-RWell");
             }
         }
 
@@ -3270,12 +3346,12 @@ public class TechEditWizardData
         t.menuPalette.menuBoxes.add(l);
 
         // Sort before writing data. We might need to sort primitive nodes in group before...
-        Collections.sort(t.nodeGroups, primitiveNodeGroupSort);
-        for (Xml.PrimitiveNodeGroup nodeGroup: t.nodeGroups)
-        {
-            // sort NodeLayer before writing them
-            Collections.sort(nodeGroup.nodeLayers, nodeLayerSort);
-        }
+//        Collections.sort(t.nodeGroups, primitiveNodeGroupSort);
+//        for (Xml.PrimitiveNodeGroup nodeGroup: t.nodeGroups)
+//        {
+//            // sort NodeLayer before writing them
+//            Collections.sort(nodeGroup.nodeLayers, nodeLayerSort);
+//        }
 
         // write finally the file
         boolean includeDateAndVersion = User.isIncludeDateAndVersionInOutput();
@@ -3407,7 +3483,7 @@ public class TechEditWizardData
          * A comparator object for sorting NodeGroups
          * Created once because it is used often.
          */
-        public static final PrimitiveNodeGroupSort primitiveNodeGroupSort = new PrimitiveNodeGroupSort();
+//        private static final PrimitiveNodeGroupSort primitiveNodeGroupSort = new PrimitiveNodeGroupSort();
 
         /**
          * Comparator class for sorting PrimitiveNodeGroups by their name.
@@ -3436,7 +3512,7 @@ public class TechEditWizardData
          * A comparator object for sorting NodeLayers
          * Created once because it is used often.
          */
-        public static final NodeLayerSort nodeLayerSort = new NodeLayerSort();
+//        private static final NodeLayerSort nodeLayerSort = new NodeLayerSort();
 
         /**
          * Comparator class for sorting PrimitiveNodeGroups by their name.
