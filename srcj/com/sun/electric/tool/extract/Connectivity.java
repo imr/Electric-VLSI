@@ -2509,7 +2509,7 @@ public class Connectivity
 		{
 			PrimitiveNode pNp = nIt.next();
 			PrimitiveNode.Function fun = pNp.getFunction();
-			if (fun != PrimitiveNode.Function.CONTACT && fun != PrimitiveNode.Function.WELL &&
+			if (!fun.isContact() && fun != PrimitiveNode.Function.WELL &&
 				fun != PrimitiveNode.Function.SUBSTRATE) continue;
 
 			// TODO do we really need to vet each contact?
@@ -2550,7 +2550,7 @@ public class Connectivity
 				} else if (lFun.isDiff() || lFun.isPoly()) hasPolyActive = true;
 
 				// ignore well/select layers if requested
-				if (ignoreActiveSelectWell && fun == PrimitiveNode.Function.CONTACT)
+				if (ignoreActiveSelectWell && fun.isContact())
 				{
 					if (lFun.isImplant() || lFun.isSubstrate() || lFun.isWell()) continue;
 				}
@@ -2577,7 +2577,7 @@ public class Connectivity
 			if (cutNodeLayer < 0) continue;
 
 			// make sure via contacts connect exactly two layers of metal, next to each other
-			if (!hasPolyActive && fun == PrimitiveNode.Function.CONTACT)
+			if (!hasPolyActive && fun.isContact())
 			{
 				boolean badContact = false;
 				if (m1Layer < 0 || m2Layer < 0) badContact = true; else

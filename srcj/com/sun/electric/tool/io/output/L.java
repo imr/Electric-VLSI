@@ -192,7 +192,7 @@ public class L extends Output
 				if (fun == PrimitiveNode.Function.SUBSTRATE) type = "MPSUB";
 
 				// special type names for contacts
-				if (fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.CONNECT)
+				if (fun.isContact() || fun == PrimitiveNode.Function.CONNECT)
 				{
 					boolean conMetal1 = false, conMetal2 = false, conPActive = false, conNActive = false, conPoly = false;
 					for(int j=0; j<npPrim.getNumPorts(); j++)

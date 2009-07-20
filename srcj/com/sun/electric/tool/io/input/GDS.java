@@ -764,7 +764,7 @@ public class GDS extends Input
             {
                 PrimitiveNode pn = itPn.next();
                 boolean allFound = true;
-                if (pn.getFunction() != PrimitiveNode.Function.CONTACT) continue; // only dealing with metal contacts for now.
+                if (!pn.getFunction().isContact()) continue; // only dealing with metal contacts for now.
 
                 Layer m1Layer = null, m2Layer = null;
                 Layer viaLayer = null;

@@ -264,7 +264,7 @@ public class LEF extends LEFDEF
 			for(Iterator<PrimitiveNode> it = curTech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode np = it.next();
-				if (np.getFunction() != PrimitiveNode.Function.CONTACT) continue;
+				if (!np.getFunction().isContact()) continue;
 				PortProto pp = np.getPort(0);
 				if (pp.connectsTo(vd.lay1) && pp.connectsTo(vd.lay2))
 				{

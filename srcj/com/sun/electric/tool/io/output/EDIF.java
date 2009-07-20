@@ -673,7 +673,7 @@ public class EDIF extends Topology
                     continue;
                 }
 				if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
-					fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.NODE ||
+					fun.isContact() || fun == PrimitiveNode.Function.NODE ||
 					//fun == PrimitiveNode.Function.CONNECT ||
                         fun == PrimitiveNode.Function.ART) continue;
 			}
@@ -893,7 +893,7 @@ public class EDIF extends Topology
 					NodeInst ni = (NodeInst)no;
 					PrimitiveNode.Function fun = ni.getFunction();
 					if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
-						fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.NODE ||
+						fun.isContact() || fun == PrimitiveNode.Function.NODE ||
 						//fun == PrimitiveNode.Function.CONNECT ||
                             fun == PrimitiveNode.Function.ART) continue;
 					for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )

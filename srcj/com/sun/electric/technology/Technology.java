@@ -5392,7 +5392,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	        	PrimitiveNode.Function fun = np.getFunction();
 	        	if (fun.isNTypeTransistor()) foundNTrans = true;
 	        	if (fun.isPTypeTransistor()) foundPTrans = true;
-	        	if (fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.CONNECT || fun == PrimitiveNode.Function.WELL)
+	        	if (fun.isContact() || fun == PrimitiveNode.Function.CONNECT || fun == PrimitiveNode.Function.WELL)
 	        	{
 	        		// check validity of contact nodes
 	        		Set<ArcProto.Function> neededArcFunctions = new HashSet<ArcProto.Function>();
@@ -5636,7 +5636,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 {
                     Xml.MenuNodeInst menuItem = (Xml.MenuNodeInst)obj;
 
-                    if (menuItem.function != PrimitiveNode.Function.CONTACT)
+                    if (!menuItem.function.isContact())
                         continue; // not a contact
                     NodeProto np = findNodeProto(((Xml.MenuNodeInst)obj).protoName);
 

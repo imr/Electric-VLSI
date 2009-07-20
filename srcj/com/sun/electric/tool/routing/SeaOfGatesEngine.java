@@ -920,7 +920,7 @@ public class SeaOfGatesEngine
 		{
 			PrimitiveNode np = it.next();
 			if (np.isNotUsed()) continue;
-			if (np.getFunction() != PrimitiveNode.Function.CONTACT) continue;
+			if (!np.getFunction().isContact()) continue;
 			ArcProto [] conns = np.getPort(0).getConnections();
 			for(int i=0; i<numMetalLayers-1; i++)
 			{

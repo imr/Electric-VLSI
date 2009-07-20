@@ -567,6 +567,12 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		public Name getBasename() { return basename; }
 
         /**
+         * Method to tell whether this function describes a contact.
+         * @return
+         */
+        public boolean isContact() { return this == CONTACT; }
+
+        /**
          * Method to tell whether this function describes a capacitor (normal or electrolytic).
          * @return true if this function describes a capacitor (normal or electrolytic).
          */

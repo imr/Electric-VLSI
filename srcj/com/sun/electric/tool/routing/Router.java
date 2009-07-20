@@ -459,7 +459,7 @@ public abstract class Router {
         if (!arcFound && (ni.getProto() instanceof PrimitiveNode)) {
             PrimitiveNode pn = (PrimitiveNode)ni.getProto();
             if (ClickZoomWireListener.theOne.getUseFatWiringMode()) {
-                if (pn.getFunction() == PrimitiveNode.Function.CONTACT) {
+                if (pn.getFunction().isContact()) {
                     // size calls take into account rotation
                     double xsize = ni.getXSizeWithoutOffset();
                     double ysize = ni.getYSizeWithoutOffset();

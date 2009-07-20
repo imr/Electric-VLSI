@@ -2026,7 +2026,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         // we only compress port if it is a rectangle
         Rectangle2D box = poly.getBox();
         if (forWiringTool && (box != null)) {
-            if ((arcWidth != -1) && (np.getFunction() == PrimitiveNode.Function.CONTACT)) {
+            if ((arcWidth != -1) && (np.getFunction().isContact())) {
                 // reduce the port size such that the connecting arc's width cannot extend
                 // beyond the width of the contact
                 SizeOffset so = np.getProtoSizeOffset();

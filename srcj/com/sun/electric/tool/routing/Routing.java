@@ -691,7 +691,7 @@ public class Routing extends Listener
 			{
 				PrimitiveNode.Function fun = ni.getFunction();
 				if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
-					fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.CONNECT ||
+					fun.isContact() || fun == PrimitiveNode.Function.CONNECT ||
 					fun == PrimitiveNode.Function.NODE) continue;
 			}
 

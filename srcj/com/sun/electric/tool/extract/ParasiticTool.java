@@ -247,7 +247,7 @@ public class ParasiticTool extends Tool {
             int numRemoveParents = context.getNumLevels();
             PrimitiveNode.Function function = ni.getFunction();
             // In case of contacts, the area is substracted.
-            boolean add = function != PrimitiveNode.Function.CONTACT;
+            boolean add = !function.isContact();
 
             Poly [] polyList = tech.getShapeOfNode(ni, true, true, null);
             int tot = polyList.length;

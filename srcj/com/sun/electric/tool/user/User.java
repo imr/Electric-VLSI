@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.StartupPrefs;
-import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Dimension2D;
@@ -34,6 +33,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
@@ -43,6 +43,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Job;
@@ -82,7 +83,8 @@ public class User extends Listener
 	/** key of Variable holding cell project name. */					public static final Variable.Key FRAME_PROJECT_NAME = Variable.newKey("USER_drawing_project_name");
 
 	private ArcProto currentArcProto = null;
-	private NodeProto currentNodeProto = null;
+    private Map<String,NodeProto> currentContactProtoMap = new HashMap<String,NodeProto>();
+//	private NodeProto currentNodeProto = null;
 //	private boolean undoRedo;
 
 	/**
@@ -686,15 +688,46 @@ public class User extends Listener
 	 * Method to return the "current" NodeProto, as maintained by the user interface.
 	 * @return the "current" NodeProto, as maintained by the user interface.
 	 */
-	public NodeProto getCurrentNodeProto() { return currentNodeProto; }
+//	public NodeProto getCurrentNodeProto() { return currentNodeProto; }
+    public NodeProto getCurrentContactNodeProto(ArcProto key1, ArcProto key2)
+    {
+        String key = null;
+        if (key1 == key2) // same key
+            key = key1.getName();
+        else
+            key = key1.getName() + key2.getName();
+        return currentContactProtoMap.get(key);
+    }
 
-	/**
+    /**
 	 * Method to set the "current" NodeProto, as maintained by the user interface.
 	 * @param np the new "current" NodeProto.
 	 */
-	public void setCurrentNodeProto(NodeProto np) { currentNodeProto = np; }
+//	public void setCurrentNodeProto(NodeProto np) { currentNodeProto = np; }
+    public void setCurrentContactNodeProto(NodeProto np)
+    {
+//        if (!np.getFunction().isContact()) return; // only for contacts
+//        String key = null;
+//        int numPorts = np.getNumPorts();
+//        assert(numPorts != 0);
+//        if (numPorts <= 1)
+//        {
+//            PortProto pp = np.getPort(0);
+//            if (pp instanceof PrimitivePort)
+//            {
+//                PrimitivePort p = (PrimitivePort)pp;
+//                p,
+//            }
+//            pp.connectsTo()
+//                key = key1.getName();
+//        }
+//        if (key1 == key2) // same key
+//        else
+//            key = key1.getName() + key2.getName();
+//        currentContactProtoMap.put(key, np);
+    }
 
-	/**
+    /**
 	 * Method to return the "current" ArcProto, as maintained by the user interface.
 	 * The current ArcProto is highlighted with a bolder red border in the component menu on the left.
 	 * @return the "current" ArcProto, as maintained by the user interface.

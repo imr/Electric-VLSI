@@ -218,7 +218,7 @@ public class IRSIM extends Output implements ParasiticGenerator
             String net1Name = null, net2Name = null;
             Technology tech = info.getCell().getTechnology();
 
-            if (fun == PrimitiveNode.Function.CONTACT)
+            if (fun.isContact())
             {
                 for (Iterator<Connection> it = ni.getConnections(); it.hasNext();)
                 {

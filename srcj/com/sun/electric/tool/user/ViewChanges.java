@@ -1442,7 +1442,7 @@ public class ViewChanges
 		if (ni.isCellInstance()) return null;
 		PrimitiveNode.Function fun = ni.getFunction();
 		if (fun.isTransistor()) return fun;
-		if (fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.CONTACT ||
+		if (fun == PrimitiveNode.Function.PIN || fun.isContact() ||
 			fun == PrimitiveNode.Function.NODE || fun == PrimitiveNode.Function.CONNECT ||
 			fun == PrimitiveNode.Function.SUBSTRATE || fun == PrimitiveNode.Function.WELL)
 				return PrimitiveNode.Function.PIN;

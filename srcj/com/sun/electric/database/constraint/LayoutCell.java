@@ -373,7 +373,7 @@ class LayoutCell {
 						if (User.isDisallowModificationComplexNodes())
 						{
 							PrimitiveNode.Function fun = ono.getFunction();
-							if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT &&
+							if (fun != PrimitiveNode.Function.PIN && !fun.isContact() &&
 								fun != PrimitiveNode.Function.NODE && fun != PrimitiveNode.Function.CONNECT)
 									locked = true;
 						}

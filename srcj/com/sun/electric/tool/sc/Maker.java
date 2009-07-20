@@ -1184,7 +1184,7 @@ public class Maker
 		// always use the standard via (David Harris)
 		if (viaProto == null) return null;
 		PrimitiveNode.Function fun = viaProto.getFunction();
-		if (fun != PrimitiveNode.Function.CONTACT && fun != PrimitiveNode.Function.CONNECT) return null;
+		if (!fun.isContact() && fun != PrimitiveNode.Function.CONNECT) return null;
 
 		// override given arc and choose one that will connect
 		if (pi.getPortProto() instanceof PrimitivePort)
@@ -1223,7 +1223,7 @@ public class Maker
 		{
 			PrimitiveNode via = it.next();
 			PrimitiveNode.Function fun = via.getFunction();
-			if (fun != PrimitiveNode.Function.CONTACT && fun != PrimitiveNode.Function.CONNECT) continue;
+			if (!fun.isContact() && fun != PrimitiveNode.Function.CONNECT) continue;
 			PrimitivePort pp = via.getPort(0);
 			if (!pp.connectsTo(layer1Arc)) continue;
 			if (!pp.connectsTo(layer2Arc)) continue;

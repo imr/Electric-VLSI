@@ -1228,7 +1228,7 @@ public class Change extends EModelessDialog implements HighlightListener
 			{
 				PrimitiveNode nextNp = it.next();
 				PrimitiveNode.Function fun = nextNp.getFunction();
-				if (fun != PrimitiveNode.Function.CONTACT) continue;
+				if (!fun.isContact()) continue;
 
 				// see if this contact connects to the destination
 				PortProto nextPp = nextNp.getPort(0);

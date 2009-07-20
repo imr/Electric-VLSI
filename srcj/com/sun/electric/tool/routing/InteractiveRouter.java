@@ -972,7 +972,7 @@ public abstract class InteractiveRouter extends Router {
                 }
 
                 // if contact, use size of contact
-                if (pn.getFunction() == PrimitiveNode.Function.CONTACT) {
+                if (pn.getFunction().isContact()) {
                     Poly p = ni.getBaseShape();
                     return p.getBounds2D();
                 }
@@ -1199,7 +1199,7 @@ public abstract class InteractiveRouter extends Router {
 //            if (pn.getFunction() == PrimitiveNode.Function.PIN) {
 //                checkAttachedArcs = true;
 //            }
-            if (pn.getFunction() == PrimitiveNode.Function.CONTACT) {
+            if (pn.getFunction().isContact()) {
                 Dimension2D size = re.getNodeSize();
                 if (arcAngle % 1800 == 0) {
                     if (arcWidth > size.getWidth()) return false;

@@ -3097,7 +3097,7 @@ public class CircuitChangeJobs
 					throw e;
 				}
 				PrimitiveNode.Function fun = item.getFunction();
-				if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT &&
+				if (fun != PrimitiveNode.Function.PIN && !fun.isContact() &&
 					fun != PrimitiveNode.Function.NODE && fun != PrimitiveNode.Function.CONNECT)
 						complexNode = true;
 			} else
@@ -3185,7 +3185,7 @@ public class CircuitChangeJobs
 					if (ret == 3) return -1;
 				}
 				PrimitiveNode.Function fun = item.getFunction();
-				if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT &&
+				if (fun != PrimitiveNode.Function.PIN && !fun.isContact() &&
 					fun != PrimitiveNode.Function.NODE && fun != PrimitiveNode.Function.CONNECT)
 						complexNode = true;
 			} else

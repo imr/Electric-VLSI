@@ -510,7 +510,7 @@ public class VerticalRoute {
 			PrimitiveNode pn = nodesIt.next();
         //for (PrimitiveNode pn : contacts) {
             // ignore anything that is not CONTACT
-            if (pn.getFunction() != PrimitiveNode.Function.CONTACT) continue;
+            if (!pn.getFunction().isContact()) continue;
             if (pn.isNotUsed()) continue;
 
 			for (Iterator<PortProto> portsIt = pn.getPorts(); portsIt.hasNext(); ) {
@@ -529,7 +529,7 @@ public class VerticalRoute {
             PrimitiveNode pn = nodesIt.next();
         //for (PrimitiveNode pn : contacts) {
             // ignore anything that is not CONTACT
-            if (pn.getFunction() != PrimitiveNode.Function.CONTACT) continue;
+            if (!pn.getFunction().isContact()) continue;
             if (pn.isNotUsed()) continue;
 
 			for (Iterator<PortProto> portsIt = pn.getPorts(); portsIt.hasNext(); ) {
