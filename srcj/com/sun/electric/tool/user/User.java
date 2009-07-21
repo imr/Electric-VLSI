@@ -41,10 +41,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.AbstractUserInterface;
@@ -83,6 +80,7 @@ public class User extends Listener
 	/** key of Variable holding cell project name. */					public static final Variable.Key FRAME_PROJECT_NAME = Variable.newKey("USER_drawing_project_name");
 
 	private ArcProto currentArcProto = null;
+    private Technology currentTech = null;
     private Map<String,PrimitivePort> currentContactPortProtoMap = new HashMap<String,PrimitivePort>();
     private Map<String,List<PrimitivePort>> equivalentPortProtoMap = new HashMap<String,List<PrimitivePort>>();
 //	private NodeProto currentNodeProto = null;
@@ -692,6 +690,12 @@ public class User extends Listener
 //	public NodeProto getCurrentNodeProto() { return currentNodeProto; }
     public PrimitivePort getCurrentContactPortProto(ArcProto key1, ArcProto key2)
     {
+        Technology tech = key1.getTechnology();
+        if (currentTech != tech)
+        {
+            // need to initialize the data
+            uploadCurrentData(tech, tech.getFactoryMenuPalette());
+        }
         String key = key1.getName() + "@" + key2.getName();
         PrimitivePort np = currentContactPortProtoMap.get(key);
         if (np != null) return np; // found
@@ -741,7 +745,7 @@ public class User extends Listener
 
     /**
 	 * Method to set the "current" PrimitivePort per a given pair of arc, as maintained by the user interface.
-	 * @param firstTime
+	 * @param tech
 	 */
 //	public void setCurrentNodeProto(NodeProto np) { currentNodeProto = np; }
     public void setCurrentContactNodeProto(Object obj)
@@ -751,8 +755,13 @@ public class User extends Listener
             np = (NodeProto)obj;
         else if (obj instanceof NodeInst)
             np = ((NodeInst)obj).getProto();
+        else if (obj instanceof Xml.PrimitiveNode)
+            np = currentTech.findNodeProto(((Xml.PrimitiveNode)obj).name);
+        else if (obj instanceof Xml.MenuNodeInst)
+            np = currentTech.findNodeProto(((Xml.MenuNodeInst)obj).protoName);
         else
             return; // not the valid object
+
         if (!(np instanceof PrimitiveNode))
             return;
 
@@ -786,11 +795,24 @@ public class User extends Listener
     /**
      * Method to clean data after switching technologies in the palette.
      */
-    public void clearCurrentData()
+    public void uploadCurrentData(Technology tech, Xml.MenuPalette menuPalette)
     {
+        currentTech = tech;
         currentContactPortProtoMap.clear();
         equivalentPortProtoMap.clear();
         currentArcProto = null;
+        setCurrentArcProto(tech.getArcs().next());
+
+        // Loading current elements from the XML information if available
+//        Xml.MenuPalette menuPalette = Job.getUserInterface().getXmlPalette(tech);
+        int numColumns = menuPalette.numColumns;
+        for (int i = 0; i < menuPalette.menuBoxes.size(); i++)
+        {
+            List<?> menuBoxList = menuPalette.menuBoxes.get(i);
+            if (menuBoxList == null || menuBoxList.isEmpty()) continue;
+
+            setCurrentContactNodeProto(menuBoxList.get(0));
+        }
     }
 
     /**

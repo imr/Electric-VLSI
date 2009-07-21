@@ -53,12 +53,7 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
-import com.sun.electric.tool.user.dialogs.AnnularRing;
-import com.sun.electric.tool.user.dialogs.CellBrowser;
-import com.sun.electric.tool.user.dialogs.ComponentMenu;
-import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.user.dialogs.LayoutText;
-import com.sun.electric.tool.user.dialogs.LayoutImage;
+import com.sun.electric.tool.user.dialogs.*;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.redisplay.AbstractDrawing;
 import com.sun.electric.tool.user.redisplay.PixelDrawing;
@@ -179,7 +174,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 			menuY = paletteMatrix.length;
 			inPalette.clear();
 
-            User.getUserTool().clearCurrentData();
 
             for (int i = 0; i < menuX; i++)
 			{
@@ -199,8 +193,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                             User.getUserTool().setEquivalentPortProto(o);
 
                             // only the first element for current contact
-                            if (k == 0)
-                            User.getUserTool().setCurrentContactNodeProto(o);
+//                            if (k == 0)
+//                            User.getUserTool().setCurrentContactNodeProto(o);
 							if (o instanceof NodeInst)
 							{
 								NodeInst ni = (NodeInst)o;
@@ -219,7 +213,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 		int ysize = (int)(size.getHeight()*0.9) / menuY;
 		if (ysize < entrySize) entrySize = ysize;
 		size.setSize(entrySize*menuX+1, entrySize*menuY+1);
-		User.getUserTool().setCurrentArcProto(tech.getArcs().next());
+//        User.getUserTool().uploadCurrentData(tech);
+//		User.getUserTool().setCurrentArcProto(tech.getArcs().next());
 
 		paletteImageStale = true;
 
@@ -336,6 +331,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
     private static Object[][] convertMenuPalette(Technology tech, Xml.MenuPalette menuPalette) {
         if (menuPalette == null) return null;
+
+        // Setting the current contacts
+        User.getUserTool().uploadCurrentData(tech, menuPalette);
+
         int numColumns = menuPalette.numColumns;
         ArrayList<Object[]> rows = new ArrayList<Object[]>();
         Object[] row = null;
