@@ -178,7 +178,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 			menuX = paletteMatrix[0].length;
 			menuY = paletteMatrix.length;
 			inPalette.clear();
-			for (int i = 0; i < menuX; i++)
+
+            User.getUserTool().clearCurrentData();
+
+            for (int i = 0; i < menuX; i++)
 			{
 				for (int j = 0; j < menuY; j++)
 				{
@@ -192,10 +195,16 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 						for(int k=0; k<nodes.size(); k++)
 						{
 							Object o = nodes.get(k);
+                            // Set equivalent ports
+                            User.getUserTool().setEquivalentPortProto(o);
+
+                            // only the first element for current contact
+                            if (k == 0)
+                            User.getUserTool().setCurrentContactNodeProto(o);
 							if (o instanceof NodeInst)
 							{
 								NodeInst ni = (NodeInst)o;
-								nodes.set(k, rotateTransistor(ni));
+                                nodes.set(k, rotateTransistor(ni));
 							}
 						}
 					}
@@ -937,6 +946,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 // the list won't match with the icon drawn
                 if (listener != null)
                 {
+                    // switching the default contact port if element is a contact
+                    User.getUserTool().setCurrentContactNodeProto(obj);
+
                     // No first element -> make it default
                     if (subList == null)
                         Collections.swap(list, 0, list.indexOf(obj));

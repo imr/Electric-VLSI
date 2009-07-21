@@ -3346,12 +3346,12 @@ public class TechEditWizardData
         t.menuPalette.menuBoxes.add(l);
 
         // Sort before writing data. We might need to sort primitive nodes in group before...
-//        Collections.sort(t.nodeGroups, primitiveNodeGroupSort);
-//        for (Xml.PrimitiveNodeGroup nodeGroup: t.nodeGroups)
-//        {
-//            // sort NodeLayer before writing them
-//            Collections.sort(nodeGroup.nodeLayers, nodeLayerSort);
-//        }
+        Collections.sort(t.nodeGroups, primitiveNodeGroupSort);
+        for (Xml.PrimitiveNodeGroup nodeGroup: t.nodeGroups)
+        {
+            // sort NodeLayer before writing them
+            Collections.sort(nodeGroup.nodeLayers, nodeLayerSort);
+        }
 
         // write finally the file
         boolean includeDateAndVersion = User.isIncludeDateAndVersionInOutput();
@@ -3483,7 +3483,7 @@ public class TechEditWizardData
          * A comparator object for sorting NodeGroups
          * Created once because it is used often.
          */
-//        private static final PrimitiveNodeGroupSort primitiveNodeGroupSort = new PrimitiveNodeGroupSort();
+        private static final PrimitiveNodeGroupSort primitiveNodeGroupSort = new PrimitiveNodeGroupSort();
 
         /**
          * Comparator class for sorting PrimitiveNodeGroups by their name.
@@ -3512,7 +3512,7 @@ public class TechEditWizardData
          * A comparator object for sorting NodeLayers
          * Created once because it is used often.
          */
-//        private static final NodeLayerSort nodeLayerSort = new NodeLayerSort();
+        private static final NodeLayerSort nodeLayerSort = new NodeLayerSort();
 
         /**
          * Comparator class for sorting PrimitiveNodeGroups by their name.

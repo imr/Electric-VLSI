@@ -44,7 +44,9 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
@@ -63,9 +65,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.geom.Rectangle2D;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import javax.swing.SwingUtilities;
 
 /**
@@ -83,7 +83,8 @@ public class User extends Listener
 	/** key of Variable holding cell project name. */					public static final Variable.Key FRAME_PROJECT_NAME = Variable.newKey("USER_drawing_project_name");
 
 	private ArcProto currentArcProto = null;
-    private Map<String,NodeProto> currentContactProtoMap = new HashMap<String,NodeProto>();
+    private Map<String,PrimitivePort> currentContactPortProtoMap = new HashMap<String,PrimitivePort>();
+    private Map<String,List<PrimitivePort>> equivalentPortProtoMap = new HashMap<String,List<PrimitivePort>>();
 //	private NodeProto currentNodeProto = null;
 //	private boolean undoRedo;
 
@@ -685,46 +686,195 @@ public class User extends Listener
 	/****************************** MISCELLANEOUS FUNCTIONS ******************************/
 
 	/**
-	 * Method to return the "current" NodeProto, as maintained by the user interface.
-	 * @return the "current" NodeProto, as maintained by the user interface.
+	 * Method to return the "current" PrimitivePort per a given pair of arcs, as maintained by the user interface.
+	 * @return the "current" PrimitivePort, as maintained by the user interface.
 	 */
 //	public NodeProto getCurrentNodeProto() { return currentNodeProto; }
-    public NodeProto getCurrentContactNodeProto(ArcProto key1, ArcProto key2)
+    public PrimitivePort getCurrentContactPortProto(ArcProto key1, ArcProto key2)
     {
-        String key = null;
-        if (key1 == key2) // same key
-            key = key1.getName();
-        else
-            key = key1.getName() + key2.getName();
-        return currentContactProtoMap.get(key);
+        String key = key1.getName() + "@" + key2.getName();
+        PrimitivePort np = currentContactPortProtoMap.get(key);
+        if (np != null) return np; // found
+        // trying the other combination
+        key = key2.getName() + "@" + key1.getName();
+        return currentContactPortProtoMap.get(key);
     }
 
     /**
-	 * Method to set the "current" NodeProto, as maintained by the user interface.
-	 * @param np the new "current" NodeProto.
+     * Method to return the "current" PrimitivePort per a given PrimitivePort, as maintained by the user interface.
+     * @param p
+     * @return
+     */
+//    public PrimitivePort getCurrentContactPortProto(PrimitivePort p)
+//    {
+//        List<String> list = getArcNamesSorted(p);
+//        return currentContactPortProtoMap.get(getKeyFromList(list));
+//    }
+
+    public List<PrimitivePort> getPrimitivePortConnectedToArc(ArcProto ap)
+    {
+        List<PrimitivePort> list = new ArrayList<PrimitivePort>();
+        String name = ap.getName();
+
+        // Look if ArcProto name is contained in any key of the contact map. It might not be very efficient.
+        for (String key : currentContactPortProtoMap.keySet())
+        {
+            if (!key.contains(name)) continue; // not a close match
+            
+            // Using tokenizer as a method to distinguish metal-1 from metal-10
+            StringTokenizer t = new StringTokenizer(key, ", @", false);
+            while (t.hasMoreTokens())
+            {
+                String str = t.nextToken();
+                if (str.equals(name))
+                {
+                    PrimitivePort p = currentContactPortProtoMap.get(key);
+                    if (p != null)
+                        list.add(p);
+                    break;
+                }
+            }
+        }
+        assert(!list.isEmpty());
+        return list;
+    }
+
+    /**
+	 * Method to set the "current" PrimitivePort per a given pair of arc, as maintained by the user interface.
+	 * @param firstTime
 	 */
 //	public void setCurrentNodeProto(NodeProto np) { currentNodeProto = np; }
-    public void setCurrentContactNodeProto(NodeProto np)
+    public void setCurrentContactNodeProto(Object obj)
     {
-//        if (!np.getFunction().isContact()) return; // only for contacts
-//        String key = null;
-//        int numPorts = np.getNumPorts();
-//        assert(numPorts != 0);
-//        if (numPorts <= 1)
-//        {
-//            PortProto pp = np.getPort(0);
-//            if (pp instanceof PrimitivePort)
-//            {
-//                PrimitivePort p = (PrimitivePort)pp;
-//                p,
-//            }
-//            pp.connectsTo()
-//                key = key1.getName();
-//        }
-//        if (key1 == key2) // same key
-//        else
-//            key = key1.getName() + key2.getName();
-//        currentContactProtoMap.put(key, np);
+        NodeProto np;
+        if (obj instanceof NodeProto)
+            np = (NodeProto)obj;
+        else if (obj instanceof NodeInst)
+            np = ((NodeInst)obj).getProto();
+        else
+            return; // not the valid object
+        if (!(np instanceof PrimitiveNode))
+            return;
+
+        PrimitiveNode pn = (PrimitiveNode)np;
+        if (pn.isNotUsed()) return;
+
+        if (!pn.getFunction().isContact()) return; // only for contacts
+
+        int numPorts = np.getNumPorts();
+        assert(numPorts == 1); // basic assumption for now.
+        PortProto pp = pn.getPort(0);
+        if (pp instanceof PrimitivePort)
+        {
+            PrimitivePort p = (PrimitivePort)pp;
+            List<String> list = getArcNamesSorted(p);
+
+            // Done only once per technology
+            String key1 = list.get(0);
+            for (int i = 0; i < list.size(); i++)
+            {
+                String key = key1 + "@" + list.get(i); // @ is not valid for arc names
+                // NOTE: other protos are found with the same key in case of diff/well contacts
+//                if (currentContactPortProtoMap.get(key) != null && currentContactPortProtoMap.get(key) != p)
+//                    System.out.println("??");
+                // just 1 combination. getCurrentContactNodeProto would check for both possibilities
+                currentContactPortProtoMap.put(key, p);
+            }
+        }
+    }
+
+    /**
+     * Method to clean data after switching technologies in the palette.
+     */
+    public void clearCurrentData()
+    {
+        currentContactPortProtoMap.clear();
+        equivalentPortProtoMap.clear();
+        currentArcProto = null;
+    }
+
+    /**
+     * Method to set equivalent PortProto in a given technology. Used by wiring tool and set by TechPalette.
+     * @param obj
+     */
+    public void setEquivalentPortProto(Object obj)
+    {
+        NodeProto np;
+        if (obj instanceof NodeProto)
+            np = (NodeProto)obj;
+        else if (obj instanceof NodeInst)
+            np = ((NodeInst)obj).getProto();
+        else
+            return; // not the valid object
+        if (!(np instanceof PrimitiveNode))
+            return;
+
+        PrimitiveNode pn = (PrimitiveNode)np;
+        if (pn.isNotUsed()) return;
+
+        if (!pn.getFunction().isContact()) return; // only for contacts
+
+        int numPorts = np.getNumPorts();
+        assert(numPorts == 1); // basic assumption for now.
+        PortProto pp = pn.getPort(0);
+        if (pp instanceof PrimitivePort)
+        {
+            PrimitivePort p = (PrimitivePort)pp;
+            List<String> list = getArcNamesSorted(p);
+            // adding to list of equivalent ports
+            String key = getKeyFromList(list); // lets see what we get
+            List<PrimitivePort> l = equivalentPortProtoMap.get(key);
+            if (l == null)
+            {
+                l = new ArrayList<PrimitivePort>();
+                equivalentPortProtoMap.put(key, l);
+            }
+            l.add(p);
+        }
+    }
+
+    /**
+     * Method to provide list of arc names per PrimitivePort. Used in equivalent functions.
+     * It doesn't include Generic arc protos.
+     * @param p
+     * @return Sorted list contained the arc names
+     */
+    private static List<String> getArcNamesSorted(PrimitivePort p)
+    {
+        ArcProto[] arcs = p.getConnections();
+        List<String> list = new ArrayList<String>(arcs.length);
+        // removing the generic arcs
+        for (int i = 0; i < arcs.length; i++)
+        {
+            ArcProto ap = arcs[i];
+            if (ap.getTechnology() == Generic.tech()) continue;
+            list.add(ap.getName());
+        }
+        assert(list.size() > 0); // basic assumption for now
+        // Sort list so it could be used for equivalent ports
+        Collections.sort(list);
+        return list;
+    }
+
+    private static String getKeyFromList(List<String> list)
+    {
+        String key = "";
+        for (String s : list)
+        {
+            key += "@" + s;
+        }
+        return key;
+    }
+
+    /**
+     * Method to provide list of equivalent ports based on the arc protos associated to it.
+     * @param p
+     * @return
+     */
+    public List<PrimitivePort> getEquivalentPorts(PrimitivePort p)
+    {
+        List<String> list = getArcNamesSorted(p);
+        return equivalentPortProtoMap.get(getKeyFromList(list));
     }
 
     /**

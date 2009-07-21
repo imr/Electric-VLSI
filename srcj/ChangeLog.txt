@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10b: ******************************
 
+IMP: (7/20/09, GVG) Adding back changes for "TechWizardEditor and non-deterministic XML output" (Bug #2250)
+after Bug #2295 and Bug #2296 are fixed.
+
+BUG: (7/20/09, GVG) Wiring tool not working as expected in 40nm (Bug #2296)
+FIX: Add equivalent list of ports.
+
+BUG: (7/20/09, GVG) Wiring tool not picking the correct node (Bug #2295)
+FIX: Add current port proto per combination of arc protos. Can be manipulated from the tech palette.
+
 BUG: (7/17/09, GVG) Undoing bug #2250 due to bug #2295.
 
 BUG: (7/16/09, GVG) NPE in showNetworkCommand (Bug #2292)

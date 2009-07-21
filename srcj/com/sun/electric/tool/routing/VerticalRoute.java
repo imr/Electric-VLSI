@@ -470,6 +470,31 @@ public class VerticalRoute {
     }
 
     /**
+     * Method to check whether an equivalent PortProto has been added to the list.
+     * @param pp
+     * @return
+     */
+    private boolean isPortProtoContained(Object pp)
+    {
+        if (specifiedRoute.contains(pp)) return true; // exactly the same port
+
+        if (!(pp instanceof PrimitivePort)) return false; // not a concern
+
+        PrimitivePort ppp = (PrimitivePort)pp;
+        List<PrimitivePort> equivalent = User.getUserTool().getEquivalentPorts(ppp);
+
+        if (equivalent != null)
+        {
+            for (PrimitivePort p : equivalent)
+            {
+                if (specifiedRoute.contains(p))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Recursive method to create a specification list of ports and arcs
      * that connect startArc to endArc.  The list will be odd in length
      * (or zero if startArc and endArc are the same). It will consist
@@ -504,44 +529,68 @@ public class VerticalRoute {
         searchNumber++;
         Technology tech = startArc.getTechnology();
 
+        PrimitivePort pp = User.getUserTool().getCurrentContactPortProto(startArc, endArc);
+        if (pp != null)
+        {
+            if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" connects between "+startArc+" and "+endArc);
+            specifiedRoute.add(pp);
+            saveRoute(specifiedRoute);
+            return;
+        }
+
         // see if we can find a port in the current technology
         // that will connect the two arcs
-		for (Iterator<PrimitiveNode> nodesIt = tech.getNodes(); nodesIt.hasNext(); ) {
-			PrimitiveNode pn = nodesIt.next();
-        //for (PrimitiveNode pn : contacts) {
-            // ignore anything that is not CONTACT
-            if (!pn.getFunction().isContact()) continue;
-            if (pn.isNotUsed()) continue;
-
-			for (Iterator<PortProto> portsIt = pn.getPorts(); portsIt.hasNext(); ) {
-				PrimitivePort pp = (PrimitivePort)portsIt.next();
-				if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" connects between "+startArc+" and "+endArc);
-				if (pp.connectsTo(startArc) && pp.connectsTo(endArc)) {
-					specifiedRoute.add(pp);
-					saveRoute(specifiedRoute);
-					return;                                // this connects between both arcs
-				}
-			}
-		}
+//		for (Iterator<PrimitiveNode> nodesIt = tech.getNodes(); nodesIt.hasNext(); ) {
+//			PrimitiveNode pn = nodesIt.next();
+//        //for (PrimitiveNode pn : contacts) {
+//            // ignore anything that is not CONTACT
+//            if (!pn.getFunction().isContact()) continue;
+//            if (pn.isNotUsed()) continue;
+//
+//            for (Iterator<PortProto> portsIt = pn.getPorts(); portsIt.hasNext(); ) {
+//				PrimitivePort ppp = (PrimitivePort)portsIt.next();
+//				if (DEBUGSEARCH) System.out.println(ds+"Checking if "+ppp+" connects between "+startArc+" and "+endArc);
+//				if (ppp.connectsTo(startArc) && ppp.connectsTo(endArc)) {
+//					specifiedRoute.add(ppp);
+//                    if (ppp != pp)
+//                        System.out.println("something diff");
+//                    saveRoute(specifiedRoute);
+//					return;                                // this connects between both arcs
+//				}
+//			}
+//		}
 
         // try all contact ports as an intermediate
-		for (Iterator<PrimitiveNode> nodesIt = tech.getNodes(); nodesIt.hasNext(); ) {
-            PrimitiveNode pn = nodesIt.next();
-        //for (PrimitiveNode pn : contacts) {
-            // ignore anything that is not CONTACT
-            if (!pn.getFunction().isContact()) continue;
-            if (pn.isNotUsed()) continue;
-
-			for (Iterator<PortProto> portsIt = pn.getPorts(); portsIt.hasNext(); ) {
-				PrimitivePort pp = (PrimitivePort)portsIt.next();
-				if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" (parent is "+pp.getParent()+") connects to "+startArc);
-				if (pp.connectsTo(startArc)) {
+//		for (Iterator<PrimitiveNode> nodesIt = tech.getNodes(); nodesIt.hasNext(); )
+//        {
+//            PrimitiveNode pn = nodesIt.next();
+//        //for (PrimitiveNode pn : contacts) {
+//            // ignore anything that is not CONTACT
+//            if (!pn.getFunction().isContact()) continue;
+//            if (pn.isNotUsed()) continue;
+//
+//			for (Iterator<PortProto> portsIt = pn.getPorts(); portsIt.hasNext(); )
+//            {
+//				pp = (PrimitivePort)portsIt.next();
+        List<PrimitivePort> portsList = User.getUserTool().getPrimitivePortConnectedToArc(startArc);
+        for (PrimitivePort p : portsList)
+        {
+            pp = p;
+                if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" (parent is "+pp.getParent()+") connects to "+startArc);
+                assert(pp.connectsTo(startArc));
+//				if (pp.connectsTo(startArc))
+                {
 					if (pp == startPort) continue;                       // ignore start port
 					if (pp == endPort) continue;                         // ignore end port
-					if (specifiedRoute.contains(pp)) continue;          // ignore ones we've already hit
-					// add to list
+
+                    if (isPortProtoContained(pp))
+//                    if (specifiedRoute.contains(pp))
+                        continue;          // ignore ones we've already hit
+
+                    // add to list
 					int prePortSize = specifiedRoute.size();
-					specifiedRoute.add(pp);
+//                    pp = User.getUserTool().getCurrentContactPortProto(pp); // get the equivalent
+                    specifiedRoute.add(pp);
 
 					// now try to connect through all arcs that can connect to the found pp
 					int preArcSize = specifiedRoute.size();
@@ -554,7 +603,8 @@ public class VerticalRoute {
 						if (tryarc.isNotUsed()) continue;
 						if (tryarc == startArc) continue;           // already connecting through startArc
 						if (tryarc == this.startArc) continue;      // original arc connecting from
-						if (specifiedRoute.contains(tryarc)) continue;       // already used this arc
+//						if (specifiedRoute.contains(tryarc)) continue;       // already used this arc
+						if (isPortProtoContained(tryarc)) continue;       // already used this arc    
                         // if it is not the first specific route, then avoid to come back to the startPin
 //                        if (specifiedRoute.size() > 0)
 //                        {
@@ -586,7 +636,7 @@ public class VerticalRoute {
 						specifiedRoute.remove(specifiedRoute.size()-1);
 					}
 				}
-			}
+//			}
 		}
 
         if (DEBUGSEARCH) System.out.println(ds+"--- Bad path ---");
