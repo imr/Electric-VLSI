@@ -4,10 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10b: ******************************
 
-BUG: EpicReaderProcess doesn't jon HSim signals to groups. (Bug #2298).
+BUG: (7/22/09, GVG) Drc generates false errors when checking pure layer node geometry with trace information (Bug #2297)
+FIX: isPointInsideCutAlgorithm is using pointInRect instead of pointInsideRect for bounding box checking.
+This is only used for non-rectangular polygons.
+
+BUG: (7/22/09, DN) EpicReaderProcess doesn't jon HSim signals to groups. (Bug #2298).
 FIX: Add class EpicReaderProcess.EpicReaderContext to join signals.
 
-BUG: EpicReaderProcess can't read HSim output (Bug #2298).
+BUG: (7/21/09, DN) EpicReaderProcess can't read HSim output (Bug #2298).
 FIX: Epic signals can share waveform numbers.
 
 IMP: (7/20/09, GVG) Adding back changes for "TechWizardEditor and non-deterministic XML output" (Bug #2250)

@@ -368,7 +368,7 @@ public class PolyBase implements Shape, PolyNodeMerge
         Rectangle2D box = getBounds2D();
 
         // The point is outside the bounding box of the polygon
-        if (!DBMath.pointInsideRect(pt, box))
+        if (!DBMath.pointInRect(pt, box))  //pointInsideRect. It could be at the edges
             return false;
 
         int count = 0;
