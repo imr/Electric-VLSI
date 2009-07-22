@@ -3325,13 +3325,14 @@ public class TechEditWizardData
 
         for (int i = 0; i < num_metal_layers; i++) {
             Xml.Layer met = metalLayers.get(i);
-            makeLayerRuleMinWid(t, met, metal_width[i]);
+            makeLayerRuleMinWid(t, met, metal_width[i]); 
+            makeLayersRule(t, met, DRCTemplate.DRCRuleType.SPACING, metal_spacing[i]);
 
             if (i >= num_metal_layers - 1) continue;
             Xml.Layer via = viaLayers.get(i);
             makeLayerRuleMinWid(t, via, via_size[i]);
-            makeLayersRule(t, via, DRCTemplate.DRCRuleType.CONSPA, via_inline_spacing[i]);
-            makeLayersRule(t, via, DRCTemplate.DRCRuleType.UCONSPA2D, via_array_spacing[i]);
+            makeLayersRule(t, via, DRCTemplate.DRCRuleType.SPACING, via_inline_spacing[i]);
+//            makeLayersRule(t, via, DRCTemplate.DRCRuleType.UCONSPA2D, via_array_spacing[i]);
         }
 
         // Finish menu with Pure, Misc and Cell
