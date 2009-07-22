@@ -34,6 +34,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -82,7 +84,8 @@ class EpicReaderProcess {
     /** String builder to build input line. */                  private StringBuilder builder = new StringBuilder();
     /** Pattern used to split input line into pieces. */        private Pattern whiteSpace = Pattern.compile("[ \t]+");
     /** Last value of progress indicater (percents(.*/          private byte lastProgress;
-     
+
+    /** ContextRoot */                                          private EpicReaderContext rootCtx = new EpicReaderContext();
     /** A map from Strings to Integer ids. */                   private HashMap<String,Integer> stringIds = new HashMap<String,Integer>();
     /** Sparce list to access signals by their Epic indices. */ private ArrayList<EpicReaderSignal> signalsByEpicIndex = new ArrayList<EpicReaderSignal>();
     /** Time resolution from input file. */                     private double timeResolution;
@@ -93,7 +96,7 @@ class EpicReaderProcess {
     /** Count of timepoints for statistics. */                  private int timesC = 0;
     /** Count of signal events for statistics. */               private int eventsC = 0;
     
-    /* DataOutputStream view of standard output. */             private DataOutputStream stdOut = new DataOutputStream(System.out);
+    /* DataOutputStream view of standard output. */             DataOutputStream stdOut = new DataOutputStream(System.out);
 
     /** Epic format we are able to read. */                     private static final String VERSION_STRING50 = ";! output_format 5.0";
     /** Epic format we are able to read. */                     private static final String VERSION_STRING53 = ";! output_format 5.3";
@@ -159,7 +162,10 @@ class EpicReaderProcess {
             if (line == null) break;
             parseNumLine(line);
         }
+        rootCtx.writeSigs(this);
+        /*
         writeContext("");
+         */
         inputStream.close();
         
         long stopTime = System.currentTimeMillis();
@@ -208,6 +214,8 @@ class EpicReaderProcess {
                 } else if (name.startsWith("i1(") && name.endsWith(")")) {
                     name = name.substring(3, name.length() - 1);
                 }
+                rootCtx.addSig(name, separator, type, sigNum);
+                /*
                 int lastSlashPos = name.lastIndexOf(separator);
                 String contextName = "";
                 if (lastSlashPos > 0) {
@@ -219,6 +227,7 @@ class EpicReaderProcess {
                 stdOut.writeByte(type);
                 stdOut.writeInt(sigNum);
                 writeString(name);
+                 **/
             } else if (split[0].equals(".vdd") && split.length == 2) {
             } else if (split[0].equals(".time_resolution") && split.length == 2) {
                 timeResolution = atof(split[1]) * 1e-9;
@@ -297,7 +306,7 @@ class EpicReaderProcess {
      * It writes string itself, if it is a new string.
      * @param s string to write.
      */
-    private void writeString(String s) throws IOException {
+    void writeString(String s) throws IOException {
         if (s == null) {
             stdOut.writeInt(-1);
             return;
@@ -473,7 +482,7 @@ class EpicReaderProcess {
             
             showProgressNote("Writing " + tempFile);
             stdOut.writeByte('F');
-            
+
             stdOut.writeDouble(timeResolution);
             stdOut.writeDouble(voltageResolution);
             stdOut.writeDouble(currentResolution);
@@ -539,6 +548,62 @@ class EpicReaderProcess {
     private void message(String s) {
         System.err.println(s + " in line " + (lineNum + 1));
     }
+}
+
+class EpicReaderContext {
+    private ArrayList<EpicReaderSig> signals = new ArrayList<EpicReaderSig>();
+    private LinkedHashMap<String,EpicReaderContext> subs = new LinkedHashMap<String,EpicReaderContext>();
+
+    EpicReaderSig addSig(String path, char separator, byte type, int sigNum) {
+        int indexOfSep = path.indexOf(separator);
+        if (indexOfSep == -1) {
+            if (type == 'I')
+                path = "i(" + path + ")";
+            EpicReaderSig sig = new EpicReaderSig(type, path, sigNum);
+            signals.add(sig);
+            return sig;
+        }
+        String subName = path.substring(0, indexOfSep);
+        if (subName.length() > 0 && subName.charAt(0) == 'x')
+            subName = subName.substring(1);
+        EpicReaderContext ctx = subs.get(subName);
+        if (ctx == null) {
+            ctx = new EpicReaderContext();
+            subs.put(subName, ctx);
+        }
+        path = path.substring(indexOfSep + 1);
+        return ctx.addSig(path, separator, type, sigNum);
+    }
+
+    void writeSigs(EpicReaderProcess reader) throws IOException {
+        DataOutputStream stdOut = reader.stdOut;
+        for (EpicReaderSig sig: signals) {
+            stdOut.writeByte(sig.type);
+            stdOut.writeInt(sig.sigNum);
+            reader.writeString(sig.name);
+        }
+        for (Map.Entry<String,EpicReaderContext> e: subs.entrySet()) {
+            String subName = e.getKey();
+            EpicReaderContext sub = e.getValue();
+            stdOut.writeByte('D');
+            reader.writeString(subName);
+            sub.writeSigs(reader);
+            stdOut.writeByte('U');
+        }
+    }
+}
+
+class EpicReaderSig {
+    final byte type;
+    final String name;
+    final int sigNum;
+
+    EpicReaderSig(byte type, String name, int sigNum) {
+        this.type = type;
+        this.name = name;
+        this.sigNum = sigNum;
+    }
+
 }
 
 /**
