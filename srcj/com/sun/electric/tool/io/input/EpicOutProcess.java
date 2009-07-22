@@ -118,6 +118,18 @@ public class EpicOutProcess extends Simulate implements Runnable
 
 //    private static String VERSION_STRING = ";! output_format 5.3";
 
+    private static class SigInfo {
+        private final int minV, maxV;
+        private final int start, len;
+
+        private SigInfo(int minV, int maxV, int start, int len) {
+            this.minV = minV;
+            this.maxV = maxV;
+            this.start = start;
+            this.len = len;
+        }
+    }
+
 	private Stimuli readEpicFile()
 		throws IOException
 	{
@@ -137,12 +149,13 @@ public class EpicOutProcess extends Simulate implements Runnable
             switch (b) {
                 case 'V':
                 case 'I':
+                    int sigNum = stdOut.readInt();
                     String name = readString();
                     if (DEBUG) printDebug(contextStackDepth, (char)b, name);
                     contextBuilder.strings.add(name);
                     byte type = b == 'V' ? EpicAnalysis.VOLTAGE_TYPE: EpicAnalysis.CURRENT_TYPE;
                     contextBuilder.contexts.add(EpicAnalysis.getContext(type));
-                    EpicAnalysis.EpicSignal s = new EpicAnalysis.EpicSignal(an, type, numSignals++);
+                    EpicAnalysis.EpicSignal s = new EpicAnalysis.EpicSignal(an, type, numSignals++, sigNum);
                     s.setSignalName(name, null);
                     break;
                 case 'D':
@@ -178,17 +191,31 @@ public class EpicOutProcess extends Simulate implements Runnable
         an.setMaxTime(stdOut.readDouble());
         List<AnalogSignal> signals = an.getSignals();
         assert numSignals == signals.size();
-        an.waveStarts = new int[numSignals + 1];
+        an.waveStarts = new int[numSignals];
+        an.waveLengths = new int[numSignals];
+
+        ArrayList<SigInfo> sigInfoByEpicIndex = new ArrayList<SigInfo>();
         int start = 0;
-        for (int i = 0; i < numSignals; i++) {
+        for (;;) {
+            int sigNum = stdOut.readInt();
+            if (sigNum == -1) break;
+            while (sigNum >= sigInfoByEpicIndex.size())
+                sigInfoByEpicIndex.add(null);
             int minV = stdOut.readInt();
             int maxV = stdOut.readInt();
             int len = stdOut.readInt();
-
-            EpicAnalysis.EpicSignal s = (EpicAnalysis.EpicSignal)signals.get(i);
-            s.setBounds(minV, maxV);
+            assert sigInfoByEpicIndex.get(sigNum) == null;
+            sigInfoByEpicIndex.set(sigNum, new SigInfo(minV, maxV, start, len));
+            assert len >= 0;
             start += len;
-            an.waveStarts[i + 1] = start;
+        }
+
+        for (int i = 0; i < numSignals; i++) {
+            EpicAnalysis.EpicSignal s = (EpicAnalysis.EpicSignal)signals.get(i);
+            SigInfo si = sigInfoByEpicIndex.get(s.sigNum);
+            s.setBounds(si.minV, si.maxV);
+            an.waveStarts[i] = si.start;
+            an.waveLengths[i] = si.len;
         }
         an.setWaveFile(new File(stdOut.readUTF()));
 

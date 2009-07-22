@@ -41,24 +41,26 @@ import java.util.regex.Pattern;
  * It doesn't import other Electric modules.
  * Waveforms are stored in temporary file.
  * Signal names are passed to std out using the following syntax:
- * StdOut :== signames resolutions signalInfo* fileName
+ * StdOut :== signames resolutions signalInfo* signalInfoEOF fileName
  * signames :== ( up | down | signal )* 'F' 
  * up :== 'U'
  * down :== 'D' stringRef
- * signal :== ( 'V' | 'I' ) stringRef
- * stringRef= INT [ UDF ]
+ * signal :== ( 'V' | 'I' ) sigEpicNum stringRef
+ * sigEpicNum ::== INT
+ * stringRef= INT [ UTF ]
  * resolutions :== timeResolution voltageResolution currentResolution timeMax
  * timeResolution :== DOUBLE
  * voltageResolution :== DOUBLE
  * currentResolution :== DOUBLE
  * timeMax :== DOUBLE
- * signalInfo :== minV maxV packedLength
+ * signalInfo :== sigEpicNum minV maxV packedLength
  * minV :== INT
  * maxV :== INT
  * packedLength :== INT
+ * signalInfoEOF :== -1
  * fileName :== UDF
  *
- * Inititially current context i sempty.
+ * Inititially current context is empty.
  * 'D' pushes a string to it.
  * 'U' pops a string.
  * 'V' and 'I' use the current context.
@@ -82,7 +84,6 @@ class EpicReaderProcess {
     /** Last value of progress indicater (percents(.*/          private byte lastProgress;
      
     /** A map from Strings to Integer ids. */                   private HashMap<String,Integer> stringIds = new HashMap<String,Integer>();
-    /** Chronological list of signals. */                       private ArrayList<EpicReaderSignal> signals = new ArrayList<EpicReaderSignal>();
     /** Sparce list to access signals by their Epic indices. */ private ArrayList<EpicReaderSignal> signalsByEpicIndex = new ArrayList<EpicReaderSignal>();
     /** Time resolution from input file. */                     private double timeResolution;
     /** Voltage resolution from input file. */                  private double voltageResolution;
@@ -94,7 +95,8 @@ class EpicReaderProcess {
     
     /* DataOutputStream view of standard output. */             private DataOutputStream stdOut = new DataOutputStream(System.out);
 
-    /** Epic format we are able to read. */                     private static final String VERSION_STRING = ";! output_format 5.3";
+    /** Epic format we are able to read. */                     private static final String VERSION_STRING50 = ";! output_format 5.0";
+    /** Epic format we are able to read. */                     private static final String VERSION_STRING53 = ";! output_format 5.3";
     /** Epic separator char. */                                 private static final char separator = '.';
     
     /** Private constructor. */
@@ -144,7 +146,7 @@ class EpicReaderProcess {
         inputStream = urlCon.getInputStream();
 		byteCount = 0;
         String firstLine = getLine();
-        if (firstLine == null || !firstLine.equals(VERSION_STRING)) {
+        if (firstLine == null || !(firstLine.equals(VERSION_STRING50) || firstLine.equals(VERSION_STRING53))) {
             message("Unknown Epic Version: " + firstLine);
         }
         for (;;) {
@@ -161,7 +163,12 @@ class EpicReaderProcess {
         inputStream.close();
         
         long stopTime = System.currentTimeMillis();
-        System.err.println((stopTime - startTime)/1000.0 + " sec to read " + byteCount + " bytes " + signals.size() + " signals " + stringIds.size() + " strings " + 
+        int numSignals = 0;
+        for (EpicReaderSignal s: signalsByEpicIndex) {
+            if (s == null) continue;
+            numSignals++;
+        }
+        System.err.println((stopTime - startTime)/1000.0 + " sec to read " + byteCount + " bytes " + numSignals + " signals (max " + (signalsByEpicIndex.size() - 1) + " ) "+ stringIds.size() + " strings " +
                 timesC + " timepoints " +  eventsC + " events from " + urlName);
     }
 
@@ -191,7 +198,6 @@ class EpicReaderProcess {
                 if (s == null) {
                     s = new EpicReaderSignal();
                     signalsByEpicIndex.set(sigNum, s);
-                    signals.add(s);
                 }
                 
                 // name the signal
@@ -211,6 +217,7 @@ class EpicReaderProcess {
                 if (type == 'I') name = "i(" + name + ")";
                 writeContext(contextName);
                 stdOut.writeByte(type);
+                stdOut.writeInt(sigNum);
                 writeString(name);
             } else if (split[0].equals(".vdd") && split.length == 2) {
             } else if (split[0].equals(".time_resolution") && split.length == 2) {
@@ -219,6 +226,7 @@ class EpicReaderProcess {
                 currentResolution = atof(split[1]);
             } else if (split[0].equals(".voltage_resolution") && split.length == 2) {
                 voltageResolution = atof(split[1]);
+            } else if (split[0].equals(".simulation_time") && split.length == 2) {
             } else if (split[0].equals(".high_threshold") && split.length == 2) {
             } else if (split[0].equals(".low_threshold") && split.length == 2) {
             } else if (split[0].equals(".nnodes") && split.length == 2) {
@@ -471,18 +479,24 @@ class EpicReaderProcess {
             stdOut.writeDouble(currentResolution);
             stdOut.writeDouble(curTime*timeResolution);
             int size = 0;
-            for (EpicReaderSignal s: signals)
+            for (EpicReaderSignal s: signalsByEpicIndex) {
+                if (s == null) continue;
                 size += s.len;
+            }
             int start = 0;
-            for (EpicReaderSignal s: signals) {
+            for (int sigNum = 0; sigNum < signalsByEpicIndex.size(); sigNum++) {
+                EpicReaderSignal s = signalsByEpicIndex.get(sigNum);
+                if (s == null) continue;
                 waveStream.write(s.waveform, 0, s.len);
-                
+
+                stdOut.writeInt(sigNum);
                 stdOut.writeInt(s.minV);
                 stdOut.writeInt(s.maxV);
                 stdOut.writeInt(s.len);
                 start += s.len;
                 showProgress(size != 0 ? start/(double)size : 0);
             }
+            stdOut.writeInt(-1);
             
             waveStream.close();
             

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10b: ******************************
 
+BUG: EpicReaderProcess can't read HSim output (Bug #2298).
+FIX: Epic signals can share waveform numbers.
+
 IMP: (7/20/09, GVG) Adding back changes for "TechWizardEditor and non-deterministic XML output" (Bug #2250)
 after Bug #2295 and Bug #2296 are fixed.
 

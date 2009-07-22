@@ -74,6 +74,7 @@ public class EpicAnalysis extends AnalogAnalysis {
     /** File name of File with waveforms. */            private File waveFileName;
     /** Opened file with waveforms. */                  private RandomAccessFile waveFile;
     /** Offsets of packed waveforms in the file. */     int[] waveStarts;
+    /** Lengths of packed waveforms in the file. */     int[] waveLengths;
     
     /** Time resolution of integer time unit. */        private double timeResolution;
     /** Voltage resolution of integer voltage unit. */  private double voltageResolution;
@@ -357,7 +358,7 @@ public class EpicAnalysis extends AnalogAnalysis {
         int index = signal.getIndexInAnalysis();
         double valueResolution = getValueResolution(index);
         int start = waveStarts[index];
-        int len = waveStarts[index + 1] - start;
+        int len = waveLengths[index];
         byte[] packedWaveform = new byte[len];
         try {
             waveFile.seek(start);
@@ -779,14 +780,16 @@ public class EpicAnalysis extends AnalogAnalysis {
      * Class which represents Epic AnalogSignal.
      */
     static class EpicSignal extends AnalogSignal {
+        int sigNum;
         
-        EpicSignal(EpicAnalysis an, byte type, int index) {
+        EpicSignal(EpicAnalysis an, byte type, int index, int sigNum) {
             super(an);
             assert getIndexInAnalysis() == index;
             if (type == VOLTAGE_TYPE)
                 an.voltageSignals.set(index);
             else
                 assert type == CURRENT_TYPE;
+            this.sigNum = sigNum;
         }
 
         /**
