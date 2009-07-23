@@ -597,10 +597,11 @@ public class VerticalRoute {
 					ArcProto [] arcs = pp.getConnections();
 					for (int i=0; i<arcs.length; i++) {
 						ArcProto tryarc = arcs[i];
-						if (tryarc == Generic.tech().universal_arc) continue;
-						if (tryarc == Generic.tech().invisible_arc) continue;
-						if (tryarc == Generic.tech().unrouted_arc) continue;
-						if (tryarc.isNotUsed()) continue;
+//						if (tryarc == Generic.tech().universal_arc) continue;
+//						if (tryarc == Generic.tech().invisible_arc) continue;
+//						if (tryarc == Generic.tech().unrouted_arc) continue;
+                        if (tryarc.getTechnology() == Generic.tech()) continue;
+                        if (tryarc.isNotUsed()) continue;
 						if (tryarc == startArc) continue;           // already connecting through startArc
 						if (tryarc == this.startArc) continue;      // original arc connecting from
 //						if (specifiedRoute.contains(tryarc)) continue;       // already used this arc

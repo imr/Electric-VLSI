@@ -36,10 +36,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
@@ -1182,7 +1179,9 @@ public class Change extends EModelessDialog implements HighlightListener
 //			}
 
 			Set<ArcProto> markedArcs = new HashSet<ArcProto>();
-			int depth = findPathToArc(lastPp, ap, 0, markedArcs);
+            int dir = getDirection(lastPp, ap);
+            boolean posDir = (dir >= 0); // consider same level as positive
+            int depth = findPathToArc(lastPp, ap, 0, lastPp, posDir, markedArcs);
 			if (depth < 0) return null;
 
 			// create the contacts
@@ -1206,20 +1205,60 @@ public class Change extends EModelessDialog implements HighlightListener
 			return lastPi;
 		}
 
-		/**
+        private int getDirection(PortProto pp, ArcProto ap)
+        {
+            // > 0 is going up, < 0 is going down, 0 is the same layer
+            ArcProto [] connections = pp.getBasePort().getConnections();
+            int maxPortLayerIndex = Integer.MIN_VALUE, minPortLayerIndex = Integer.MAX_VALUE;
+            for(int i=0; i<connections.length; i++)
+            {
+                ArcProto thisAp = connections[i];
+                if (thisAp.getTechnology() == Generic.tech()) continue;
+                for (Iterator<Layer> it = thisAp.getLayerIterator(); it.hasNext(); )
+                {
+                    int level = it.next().getFunction().getLevel();
+                    if (minPortLayerIndex > level)
+                        minPortLayerIndex = level;
+                    if (maxPortLayerIndex < level)
+                        maxPortLayerIndex = level;
+                }
+            }
+            // get layers from the arc
+            int maxArcLayerIndex = Integer.MIN_VALUE, minArcLayerIndex = Integer.MAX_VALUE;
+            for (Iterator<Layer> it = ap.getLayerIterator(); it.hasNext(); )
+            {
+                int level = it.next().getFunction().getLevel();
+                if (minArcLayerIndex > level)
+                    minArcLayerIndex = level;
+                if (maxArcLayerIndex < level)
+                    maxArcLayerIndex = level;
+            }
+
+            /// The boundaries overlap therefore. This only valid when there is a gap
+            if (minArcLayerIndex != maxArcLayerIndex && minArcLayerIndex <= maxPortLayerIndex)
+                return 0;
+            else if (minPortLayerIndex != maxPortLayerIndex && minPortLayerIndex <= maxArcLayerIndex)
+                return 0;
+            // negative if going up from the port. Positive the oppositive
+            return maxPortLayerIndex - minArcLayerIndex;
+        }
+
+        /**
 		 * Method to compute an array of contacts and arcs that connects a port to an arcproto.
 		 * @param pp the original port.
 		 * @param ap the destination arcproto.
 		 * @param depth the location in the contact array to fill.
+         * @param posDir positive if it goes up from the port
 		 * @param markedArcs a set of Arcprotos that have been used in the search.
 		 * @return the new size of the contact array.
 		 */
-		private int findPathToArc(PortProto pp, ArcProto ap, int depth, Set<ArcProto> markedArcs)
+		private int findPathToArc(PortProto pp, ArcProto ap, int depth, PortProto origPort, boolean posDir,
+                                  Set<ArcProto> markedArcs)
 		{
 			// see if the connection is made
 			if (pp.connectsTo(ap)) return depth;
 
-			// look for a contact
+            // look for a contact
 			PrimitiveNode bestNp = null;
 			ArcProto bestAp = null;
 			int bestDepth = 0;
@@ -1239,14 +1278,21 @@ public class Change extends EModelessDialog implements HighlightListener
 					ArcProto thisAp = connections[i];
 					if (thisAp.getTechnology() != tech) continue;
 					if (markedArcs.contains(thisAp)) continue;
-					if (pp.connectsTo(thisAp)) { found = thisAp;   break; }
+                int dir = getDirection(origPort, thisAp);
+                // Check whether it goes in the same direction
+                if (dir != 0)
+                {
+                    if (!(dir > 0 && posDir || dir < 0 && !posDir))
+                        continue;
+                }
+                    if (pp.connectsTo(thisAp)) { found = thisAp;   break; }
 				}
 				if (found == null) continue;
 
 				// this contact is part of the chain
 				contactStack[depth] = nextNp;
 				markedArcs.add(found);
-				int newDepth = findPathToArc(nextPp, ap, depth+1, markedArcs);
+				int newDepth = findPathToArc(nextPp, ap, depth+1, origPort, posDir, markedArcs);
 				markedArcs.remove(found);
 				if (newDepth < 0) continue;
 				if (bestNp == null || newDepth < bestDepth)
@@ -1261,7 +1307,7 @@ public class Change extends EModelessDialog implements HighlightListener
 				contactStack[depth] = bestNp;
 				contactStackArc[depth] = bestAp;
 				markedArcs.add(bestAp);
-				int newDepth = findPathToArc(bestNp.getPort(0), ap, depth+1, markedArcs);
+				int newDepth = findPathToArc(bestNp.getPort(0), ap, depth+1, origPort, posDir, markedArcs);
 				markedArcs.remove(bestAp);
 				return newDepth;
 			}

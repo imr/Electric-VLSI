@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10b: ******************************
 
+BUG: (7/23/09, GVG) performance bug when changing metal layer in layout (tsmc40GP) (Bug #2294)
+PATCH: Determine wiring direction to prune search. Not the final solution, just a patch for now.
+
 BUG: (7/23/09, GVG) java.lang.AssertionError (Bug #2304)
 FIX: Contact conditions only valid for layout techs
 
