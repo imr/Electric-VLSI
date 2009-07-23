@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10b: ******************************
 
+BUG: (7/23/09, GVG) java.lang.AssertionError (Bug #2304)
+FIX: Contact conditions only valid for layout techs
+
 BUG: (7/22/09, GVG) Missing some spacing rules in 40nm (Bug #2303)
 FIX: Added metal spacing rules. Only 1 rule per pair.
 

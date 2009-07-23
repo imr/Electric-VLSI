@@ -739,7 +739,8 @@ public class User extends Listener
                 }
             }
         }
-        assert(!list.isEmpty());
+        if (Job.getDebug() && currentTech.isLayout())
+            assert(!list.isEmpty());
         return list;
     }
 
