@@ -31,7 +31,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.tool.Consumer;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.MultiTaskJob;
+import com.sun.electric.tool.MultiTaskJobLight;
 import com.sun.electric.technology.*;
 
 import java.util.*;
@@ -40,7 +40,8 @@ import java.util.*;
  * User: gg151869
  * Date: Dec 12, 2007
  */
-public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResult, MTDRCTool.MTDRCResult>
+public abstract class MTDRCTool extends MultiTaskJobLight<Layer, MTDRCTool.MTDRCResult, MTDRCTool.MTDRCResult>
+//public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResult, MTDRCTool.MTDRCResult>
 {
     protected DRC.DRCPreferences dp;
     protected Cell topCell;

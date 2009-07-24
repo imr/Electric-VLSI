@@ -63,6 +63,10 @@ class EThread extends Thread {
         start();
     }
 
+    EThread(String name) {
+        super(name);
+    }
+
     public void run() {
         Job.logger.logp(Level.FINE, CLASS_NAME, "run", getName());
         EJob finishedEJob = null;
