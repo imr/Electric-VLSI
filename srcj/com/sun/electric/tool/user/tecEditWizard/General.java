@@ -57,7 +57,7 @@ public class General extends TechEditWizardPanel
         techName.setText(data.getTechName());
 		description.setText(data.getTechDescription());
 
-        pwellButton.setSelected(data.getPWellProcess());
+        pwellButton.setSelected(data.getNWellProcess());
         horizontalButton.setSelected(data.getHorizontalTransistors());
     }
 
@@ -72,7 +72,7 @@ public class General extends TechEditWizardPanel
         data.setResolution(TextUtils.atoi(resolution.getText()));
         data.setTechName(techName.getText());
 		data.setTechDescription(description.getText());
-        data.setPWellProcess(pwellButton.isSelected());
+        data.setNWellProcess(pwellButton.isSelected());
         data.setHorizontalTransistors(horizontalButton.isSelected());
     }
 

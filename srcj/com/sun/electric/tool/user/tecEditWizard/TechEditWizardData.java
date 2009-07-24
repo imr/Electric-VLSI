@@ -58,7 +58,7 @@ public class TechEditWizardData
 	private int num_metal_layers;
 	private int stepsize;   // value in nm
     private int resolution; // technology resolution in the same scale as stepsize
-    private boolean pWellFlag = true; // to control if process is a pwell process or not. If true, Tech Creation Wizard will not create pwell layers
+    private boolean nWellFlag = true; // to control if process is a nwell process or not. If true, Tech Creation Wizard will not create nwell layers
     private boolean horizontalFlag = true; // to control if transistor gates are aligned horizontally. True by default . If transistors are horizontal -> M1 is horizontal?
     private boolean extraInfoFlag = false; // to control if protection polys are added to transistors. False by default
 
@@ -473,8 +473,8 @@ public class TechEditWizardData
 	}
 
     // Flags
-    boolean getPWellProcess() { return pWellFlag;}
-    void setPWellProcess(boolean b) { pWellFlag = b; }
+    boolean getNWellProcess() { return nWellFlag;}
+    void setNWellProcess(boolean b) { nWellFlag = b; }
     boolean getHorizontalTransistors() { return horizontalFlag;}
     void setHorizontalTransistors(boolean b) { horizontalFlag = b; }
     boolean getExtraInfoFlag() { return extraInfoFlag;}
@@ -717,7 +717,7 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("tech_name")) setTechName(stripQuotes(varValue)); else
 					if (varName.equalsIgnoreCase("tech_description")) setTechDescription(stripQuotes(varValue)); else
 					if (varName.equalsIgnoreCase("num_metal_layers")) setNumMetalLayers(TextUtils.atoi(varValue)); else
-                    if (varName.equalsIgnoreCase("pwell_process")) setPWellProcess(Boolean.valueOf(varValue)); else
+                    if (varName.equalsIgnoreCase("nwell_process")) setNWellProcess(Boolean.valueOf(varValue)); else
                     if (varName.equalsIgnoreCase("horizontal_transistors")) setHorizontalTransistors(Boolean.valueOf(varValue)); else
                     if (varName.equalsIgnoreCase("extra_info")) setExtraInfoFlag(Boolean.valueOf(varValue)); else
                     if (varName.equalsIgnoreCase("stepsize")) setStepSize(TextUtils.atoi(varValue)); else
@@ -1201,7 +1201,7 @@ public class TechEditWizardData
 		pw.println("$tech_name = \"" + tech_name + "\";");
 		pw.println("$tech_description = \"" + tech_description + "\";");
 		pw.println("$num_metal_layers = " + num_metal_layers + ";");
-		pw.println("$pwell_process = " + pWellFlag + ";");
+		pw.println("$nwell_process = " + nWellFlag + ";");
 		pw.println("$horizontal_transistors = " + horizontalFlag + ";");
         pw.println("$extra_info = " + extraInfoFlag + ";");
         pw.println();
@@ -2410,7 +2410,7 @@ public class TechEditWizardData
         double psel = scaledValue(contact_size.v/2 + diff_contact_overhang.v + pplus_overhang_diff.v);
         double nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_p.v);
         double nso = scaledValue(nwell_overhang_diff_p.v /*+ diff_contact_overhang.v*/); // valid for elements that have nwell layers
-        double pso = (!pWellFlag)?nso:scaledValue(nplus_overhang_diff.v/* + diff_contact_overhang.v*/);
+        double pso = (!nWellFlag)?nso:scaledValue(nplus_overhang_diff.v/* + diff_contact_overhang.v*/);
 
         // ndiff/pdiff contacts
         String[] diffNames = {"P", "N"};
@@ -2522,10 +2522,10 @@ public class TechEditWizardData
             }
             else
             {
-                wellNodePin = (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED):null;
-                wellNode = (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED):null;
+                wellNodePin = (!nWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED):null;
+                wellNode = (!nWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED):null;
                 arcF = ArcProto.Function.DIFFN;
-                arcL = (!pWellFlag)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null;
+                arcL = (!nWellFlag)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null;
                 arcVal = nplus_overhang_diff;
             }
 
@@ -2557,7 +2557,7 @@ public class TechEditWizardData
         /**************************** N/P-Well Contacts ***********************************************/
         nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_n.v);
         nso = scaledValue(/*diff_contact_overhang.v +*/ nwell_overhang_diff_n.v); // valid for elements that have nwell layers
-        pso = (!pWellFlag)?nso:scaledValue(/*diff_contact_overhang.v +*/ nplus_overhang_diff.v);
+        pso = (!nWellFlag)?nso:scaledValue(/*diff_contact_overhang.v +*/ nplus_overhang_diff.v);
         double[] wellSos = {pso, nso};
         PaletteGroup[] wellPalette = new PaletteGroup[2];
 
@@ -2578,14 +2578,14 @@ public class TechEditWizardData
             portNames.clear();
             if (i == Technology.P_TYPE)
             {
-                if (!pWellFlag)
+                if (!nWellFlag)
                 {
                     portNames.add(pwellLayer.name);
                     wellNodePinLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED);
                     wellNodeLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED);
                 }
-                func = PrimitiveNode.Function.WELL;
-                arcL = (!pWellFlag)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null;
+                func = (nWellFlag) ? PrimitiveNode.Function.SUBSTRATE : PrimitiveNode.Function.WELL;
+                arcL = (!nWellFlag)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null;
                 arcVal = pplus_overhang_diff;
             }
             else
@@ -2593,7 +2593,7 @@ public class TechEditWizardData
                 portNames.add(nwellLayer.name);
                 wellNodePinLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED);
                 wellNodeLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED);
-                func = PrimitiveNode.Function.SUBSTRATE;
+                func = (nWellFlag) ? PrimitiveNode.Function.WELL : PrimitiveNode.Function.SUBSTRATE;
                 arcL = makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p);
                 arcVal = nplus_overhang_diff;
             }
@@ -2755,7 +2755,7 @@ public class TechEditWizardData
                 extraSelY = nplus_overhang_diff.v;
                 func = PrimitiveNode.Function.TRANMOS;
                 prFunc = PrimitiveNode.Function.RESNPOLY;
-                if (!pWellFlag)
+                if (!nWellFlag)
                 {
                     nwell_overhangY = nwell_overhangX = nwell_overhang_diff_p.v;
                     wellLayer = pwellLayer;

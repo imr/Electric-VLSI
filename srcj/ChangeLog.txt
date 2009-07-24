@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10b: ******************************
 
+BUG: (7/23/09, GVG) Function types are backwards for P/N Well contacts in tsmcsun40GP (Bug #2309)
+FIX: Nwell function properly defined in p/n well contacts in nwell process
+
 BUG: (7/23/09, GVG) performance bug when changing metal layer in layout (tsmc40GP) (Bug #2294)
 PATCH: Determine wiring direction to prune search. Not the final solution, just a patch for now.
 
