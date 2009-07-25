@@ -519,8 +519,7 @@ public abstract class AbstractShapeBuilder {
             Layer layer = primLayer.getLayer();
             assert primLayer.getStyle() == Poly.Type.FILLED;
             if (skipLayer(layer)) continue;
-            if (!a.makeGridBoxInt(intCoords, tailExtended, headExtended, gridExtendOverMin + protoType.getLayerGridExtend(i)))
-            	return false;
+            a.makeGridBoxInt(intCoords, tailExtended, headExtended, gridExtendOverMin + protoType.getLayerGridExtend(i));
             pushIntBox(layer);
         }
         return true;

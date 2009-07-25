@@ -857,19 +857,19 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 
     public void computeBounds(NodeInst real, Rectangle2D.Double dstBounds)
 	{
-		// handle cell bounds
-		if (protoId instanceof CellId)
-		{
-			// offset by distance from cell-center to the true center
-			Cell subCell = (Cell)real.getProto();
-			Rectangle2D bounds = subCell.getBounds();
-            orient.rectangleBounds(bounds.getMinX(), bounds.getMinY(), bounds.getMaxX(), bounds.getMaxY(), anchor.getX(), anchor.getY(), dstBounds);
-            return;
-		}
+        CellBackup.Memoization m = real.getCellBackupUnsafe().getMemoization();
+//		// handle cell bounds
+//		if (protoId instanceof CellId)
+//		{
+//			// offset by distance from cell-center to the true center
+//			Cell subCell = (Cell)real.getProto();
+//			Rectangle2D bounds = subCell.getBounds();
+//            orient.rectangleBounds(bounds.getMinX(), bounds.getMinY(), bounds.getMaxX(), bounds.getMaxY(), anchor.getX(), anchor.getY(), dstBounds);
+//            return;
+//		}
 
 		// if zero size, set the bounds directly
-		PrimitiveNode pn = real.getTechPool().getPrimitiveNode((PrimitiveNodeId)protoId);
-        assert pn == real.getProto();
+		PrimitiveNode pn = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)protoId);
         ERectangle full = pn.getFullRectangle();
         long gridWidth = size.getGridX() + full.getGridWidth();
         long gridHeight = size.getGridY() + full.getGridHeight();
@@ -886,7 +886,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		if (pn == Artwork.tech().circleNode || pn == Artwork.tech().thickCircleNode)
 		{
 			// see if this circle is only a partial one
-			double [] angles = real.getArcDegrees();
+			double [] angles = getArcDegrees();
 			if (angles[0] != 0.0 || angles[1] != 0.0)
 			{
 				Point2D [] pointList = Artwork.fillEllipse(anchor, lambdaWidth, lambdaHeight, angles[0], angles[1]);
@@ -902,7 +902,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		if (pn.isWipeOn1or2())
 		{
 			// schematic bus pins are so complex that only the technology knows their true size
-			if (real.getProto() == Schematics.tech().busPinNode)
+			if (pn == Schematics.tech().busPinNode)
 			{
 				Poly [] polys = Schematics.tech().getShapeOfNode(real);
 				if (polys.length > 0)
@@ -912,7 +912,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 					return;
 				}
 			}
-			if (!real.hasExports() && real.pinUseCount())
+			if (!m.hasExports(this) && m.pinUseCount(this))
 //			if (real.getNumExports() == 0 && real.pinUseCount())
 			{
 				dstBounds.setRect(anchor.getX(), anchor.getY(), 0, 0);
@@ -921,7 +921,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		}
 
 		// special case for polygonally-defined nodes: compute precise geometry
-		if (pn.isHoldsOutline() && real.getTrace() != null)
+		if (pn.isHoldsOutline() && getTrace() != null)
 		{
 			AffineTransform trans = orient.rotateAbout(anchor.getX(), anchor.getY());
 			Poly[] polys = pn.getTechnology().getShapeOfNode(real);

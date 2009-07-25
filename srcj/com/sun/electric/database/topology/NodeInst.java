@@ -1384,7 +1384,15 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         double oldY = visBounds.y;
         double oldWidth = visBounds.width;
         double oldHeight = visBounds.height;
-        d.computeBounds(this, visBounds);
+		// handle cell bounds
+		if (d.protoId instanceof CellId) {
+			// offset by distance from cell-center to the true center
+			Cell subCell = (Cell)getProto();
+			Rectangle2D bounds = subCell.getBounds();
+            d.orient.rectangleBounds(bounds.getMinX(), bounds.getMinY(), bounds.getMaxX(), bounds.getMaxY(), d.anchor.getX(), d.anchor.getY(), visBounds);
+		} else {
+            d.computeBounds(this, visBounds);
+        }
         if ((oldX != visBounds.x || oldY != visBounds.y || oldWidth != visBounds.width || oldHeight != visBounds.height) &&
                 parent != null) {
             parent.setDirty();
@@ -3378,9 +3386,17 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
 
         if (validVisBounds && Job.getDebug()) {
-            Rectangle2D.Double bounds = new Rectangle2D.Double();
-            d.computeBounds(this, bounds);
-            assert bounds.equals(visBounds);
+            Rectangle2D.Double chkBounds = new Rectangle2D.Double();
+            // handle cell bounds
+            if (d.protoId instanceof CellId) {
+                // offset by distance from cell-center to the true center
+                Cell subCell = (Cell)getProto();
+                Rectangle2D bounds = subCell.getBounds();
+                d.orient.rectangleBounds(bounds.getMinX(), bounds.getMinY(), bounds.getMaxX(), bounds.getMaxY(), d.anchor.getX(), d.anchor.getY(),chkBounds);
+            } else {
+                d.computeBounds(this, chkBounds);
+            }
+            assert chkBounds.equals(visBounds);
         }
 
 	}

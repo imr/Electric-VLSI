@@ -759,9 +759,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	/**
 	 * Method to fill in an AbstractShapeBuilder a polygon that describes this ImmutableArcInst in grid units.
 	 * The polygon is described by its width, and style.
-	 * @return true if the box was created.  False on error (nonmanhatten).
 	 */
-    public boolean makeGridBoxInt(int[] intCoords, boolean tailExtended, boolean headExtended, int gridExtend) {
+    public void makeGridBoxInt(int[] intCoords, boolean tailExtended, boolean headExtended, int gridExtend) {
         // make the box
         int w2 = gridExtend;
         assert w2 > 0;
@@ -800,9 +799,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
                 intCoords[3] = (int)tailLocation.getGridY() + et;
                 break;
             default:
-                return false;
+                throw new AssertionError();
         }
-        return true;
     }
 
 	/**

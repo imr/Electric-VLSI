@@ -105,8 +105,7 @@ public class BoundsBuilder extends AbstractShapeBuilder {
                 else if (shrinkH != AbstractShapeBuilder.Shrinkage.EXTEND_0)
                     return false;
             }
-            if (!a.makeGridBoxInt(intCoords, tailExtended, headExtended, gridExtendOverMin + protoType.getMaxLayerGridExtend()))
-            	return false;
+            a.makeGridBoxInt(intCoords, tailExtended, headExtended, gridExtendOverMin + protoType.getMaxLayerGridExtend());
         }
         return true;
     }
