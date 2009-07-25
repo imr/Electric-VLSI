@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10b: ******************************
 
+IMP: (7/24/09, GVG) Need some more well/substrate contact types in 40nm (Bug #2313)
+
 IMP: (7/24/09, DN) MultiTaskJobLight - light implementation of MultiTaskJob API.
 
 BUG: (7/23/09, GVG) Function types are backwards for P/N Well contacts in tsmcsun40GP (Bug #2309)

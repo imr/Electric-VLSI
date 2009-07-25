@@ -57,7 +57,7 @@ public class General extends TechEditWizardPanel
         techName.setText(data.getTechName());
 		description.setText(data.getTechDescription());
 
-        pwellButton.setSelected(data.getNWellProcess());
+        psubstrateButton.setSelected(data.getPSubstratelProcess());
         horizontalButton.setSelected(data.getHorizontalTransistors());
     }
 
@@ -72,7 +72,7 @@ public class General extends TechEditWizardPanel
         data.setResolution(TextUtils.atoi(resolution.getText()));
         data.setTechName(techName.getText());
 		data.setTechDescription(description.getText());
-        data.setNWellProcess(pwellButton.isSelected());
+        data.setPSubstratelProcess(psubstrateButton.isSelected());
         data.setHorizontalTransistors(horizontalButton.isSelected());
     }
 
@@ -103,7 +103,7 @@ public class General extends TechEditWizardPanel
         jLabel12 = new javax.swing.JLabel();
         jLabel14 = new javax.swing.JLabel();
         jLabel15 = new javax.swing.JLabel();
-        pwellButton = new javax.swing.JCheckBox();
+        psubstrateButton = new javax.swing.JCheckBox();
         horizontalButton = new javax.swing.JCheckBox();
         jLabel13 = new javax.swing.JLabel();
         resolution = new javax.swing.JTextField();
@@ -269,14 +269,19 @@ public class General extends TechEditWizardPanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 0);
         general.add(jLabel15, gridBagConstraints);
 
-        pwellButton.setText("PWell process technology");
-        pwellButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        psubstrateButton.setText("Psubstrate process");
+        psubstrateButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        psubstrateButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                psubstrateButtonActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 16;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
-        general.add(pwellButton, gridBagConstraints);
+        general.add(psubstrateButton, gridBagConstraints);
 
         horizontalButton.setText("Horizontal transistors");
         horizontalButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
@@ -316,6 +321,10 @@ public class General extends TechEditWizardPanel
 		dispose();
 	}//GEN-LAST:event_closeDialog
 
+    private void psubstrateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_psubstrateButtonActionPerformed
+        // TODO add your handling code here:
+}//GEN-LAST:event_psubstrateButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField description;
     private javax.swing.JPanel general;
@@ -335,7 +344,7 @@ public class General extends TechEditWizardPanel
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JCheckBox pwellButton;
+    private javax.swing.JCheckBox psubstrateButton;
     private javax.swing.JTextField resolution;
     private javax.swing.JTextField stepSize;
     private javax.swing.JTextField techName;
