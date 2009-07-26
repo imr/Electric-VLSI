@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10b: ******************************
 
+BUG: (7/26/09, DN) Electric highlights the wrong port when moving up the hierarchy (Bug #2314).
+FIX: In EditWindow.upoHierarchy find equivalent port if necessary.
+
 IMP: (7/24/09, GVG) Need some more well/substrate contact types in 40nm (Bug #2313).
 The process without pwell is called Psubstrate in the TechEditorWizard now.
 

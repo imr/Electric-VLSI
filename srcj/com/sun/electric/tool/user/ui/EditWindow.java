@@ -3147,6 +3147,13 @@ public class EditWindow extends JPanel
 			Nodable no = cellVarContext.getNodable();
 			if (no != null && no.getNodeInst().isLinked())
 			{
+                NodeInst ni = no.getNodeInst();
+                if (selectedExport != null && selectedExport.getParent() != ni.getProto()) {
+                    if (ni.isCellInstance() && selectedExport.getParent() == ((Cell)ni.getProto()).getEquivalent())
+                        selectedExport = selectedExport.getEquivalentPort((Cell)ni.getProto());
+                    else
+                        selectedExport = null;
+                }
 				Cell parent = no.getParent();
 
 				// see if this was in history, if so, restore offset and scale
@@ -3160,15 +3167,15 @@ public class EditWindow extends JPanel
 					// found previous in cell history: show it
 					WindowFrame.CellHistory foundHistory = wf.getCellHistoryList().get(historyIndex);
 					foundHistory.setContext(context);
-					if (selectedExport != null && selectedExport.getParent() == parent)
-						foundHistory.setSelPort(no.getNodeInst().findPortInstFromProto(selectedExport));
+					if (selectedExport != null)
+						foundHistory.setSelPort(ni.findPortInstFromProto(selectedExport));
 					if (keepFocus)
 					{
 						double newX = offx, newY = offy;
 						if (!inPlaceDisplay)
 						{
 							Point2D curCtr = new Point2D.Double(offx, offy);
-							AffineTransform up = no.getNodeInst().rotateOut(no.getNodeInst().translateOut());
+							AffineTransform up = ni.rotateOut(no.getNodeInst().translateOut());
 							up.transform(curCtr, curCtr);
 							newX = curCtr.getX();
 							newY = curCtr.getY();
@@ -3186,7 +3193,6 @@ public class EditWindow extends JPanel
 					double newX = offx, newY = offy;
 					if (keepFocus)
 					{
-						NodeInst ni = no.getNodeInst();
 						Point2D curCtr = new Point2D.Double(offx, offy);
 						AffineTransform up = ni.rotateOut(ni.translateOut());
 						up.transform(curCtr, curCtr);
@@ -3200,11 +3206,11 @@ public class EditWindow extends JPanel
 					// highlight node we came from
 					PortInst pi = null;
 					if (selectedExport != null)
-						pi = no.getNodeInst().findPortInstFromProto(selectedExport);
+						pi = ni.findPortInstFromProto(selectedExport);
 					if (pi != null)
 						highlighter.addElectricObject(pi, parent);
 					else
-						highlighter.addElectricObject(no.getNodeInst(), parent);
+						highlighter.addElectricObject(ni, parent);
 				}
 				clearSubCellCache();
 
