@@ -43,11 +43,6 @@ public class BoundsBuilder extends AbstractShapeBuilder {
     private double doubleMinX, doubleMinY, doubleMaxX, doubleMaxY;
     private boolean hasIntBounds, hasDoubleBounds;
 
-    public BoundsBuilder(Cell cell) {
-        setup(cell);
-        clear();
-    }
-
     public BoundsBuilder(CellBackup cellBackup) {
         setup(cellBackup, null, false, true, false, null);
         clear();

@@ -131,8 +131,6 @@ public class Technology implements Comparable<Technology>, Serializable
 {
     /** Skip wiped pins both in electrical and non-electrical mode */
     protected static final boolean ALWAYS_SKIP_WIPED_PINS = false;
-    /** Compare old and new getShapeOfNode */
-    private static final boolean CHECK_NODE_SHAPES = false;
 
     // Change in TechSettings takes effect only after restart
     public static final boolean IMMUTABLE_TECHS = false/*Config.TWO_JVM*/;
@@ -2833,95 +2831,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		if (ni.isCellInstance()) return null;
 
         Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
-        Poly[] polys0 = polyBuilder.getShapeArray(ni, electrical, reasonable, onlyTheseLayers);
-        if (CHECK_NODE_SHAPES && Job.getDebug()) {
-//            if (out != null)
-//                out.println(ni.getParent() + " " + ni.getName() + " " + electrical + " " + reasonable);
-            Poly[] polys1 = getShapeOfNode_(ni, electrical, reasonable, onlyTheseLayers);
-            if (onlyTheseLayers != null)
-            {
-                List<Poly> polyArray = new ArrayList<Poly>();
-
-                for (int i = 0; i < polys1.length; i++)
-                {
-                    Poly poly = polys1[i];
-                    Layer layer = poly.getLayer();
-                    if (onlyTheseLayers.contains(layer.getFunction(), layer.getFunctionExtras()))
-                        polyArray.add(poly);
-                }
-                polys1 = new Poly [polyArray.size()];
-                polyArray.toArray(polys1);
-            }
-            if (polys0.length != polys1.length) {
-                polys0 = polyBuilder.getShapeArray(ni, electrical, reasonable, onlyTheseLayers);
-                polys1 = getShapeOfNode_(ni, electrical, reasonable, onlyTheseLayers);
-            }
-            assert polys0.length == polys1.length;
-            for (int i = 0; i < polys0.length; i++) {
-                Poly p0 = polys0[i];
-                Poly p1 = polys1[i];
-                assert p0.getStyle() == p1.getStyle();
-                assert p0.getLayer() == p1.getLayer();
-                EGraphics g0 = p0.getGraphicsOverride();
-                EGraphics g1 = p0.getGraphicsOverride();
-                assert g0 != null ? g0.equals(g1) : g1 == null;
-                assert p0.getPort() == p1.getPort();
-                assert p0.getString() == p1.getString();
-                assert p0.getTextDescriptor() == p1.getTextDescriptor();
-                Point2D[] pts0 = p0.getPoints();
-                Point2D[] pts1 = p1.getPoints();
-                assert pts0.length == pts1.length;
-//                if (out != null)
-//                    out.print("  " + p0.getStyle() + " " + p0.getLayer() + " " + p0.getPort());
-                for (int j = 0; j < pts0.length; j++) {
-                    Point2D pt0 = pts0[j];
-                    Point2D pt1 = pts1[j];
-                    double x0 = DBMath.roundShapeCoord(pt0.getX()*DBMath.GRID);
-                    double y0 = DBMath.roundShapeCoord(pt0.getY()*DBMath.GRID);
-                    double x1 = DBMath.roundShapeCoord(pt1.getX()*DBMath.GRID);
-                    double y1 = DBMath.roundShapeCoord(pt1.getY()*DBMath.GRID);
-//                    if (out != null)
-//                        out.print(" " + x0 + "," + y0);
-                    if (x0 != x1 || y0 != y1) {
-                        System.out.println("Shape of " + ni.getProto() + " " + x0 + "x" + y0 + " " + x1 + "x" + y1);
-                    }
-                }
-//                if (out != null)
-//                    out.println();
-            }
-        }
-        return polys0;
-	}
-
-	private Poly [] getShapeOfNode_(NodeInst ni, boolean electrical, boolean reasonable, Layer.Function.Set onlyTheseLayers)
-	{
-		if (ni.isCellInstance()) return null;
-
-		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		NodeLayer [] primLayers = np.getNodeLayers();
-		if (electrical)
-		{
-			NodeLayer [] eLayers = np.getElectricalLayers();
-			if (eLayers != null) primLayers = eLayers;
-		}
-
-		if (onlyTheseLayers != null)
-		{
-			List<NodeLayer> layerArray = new ArrayList<NodeLayer>();
-
-			for (int i = 0; i < primLayers.length; i++)
-			{
-				NodeLayer primLayer = primLayers[i];
-				if (onlyTheseLayers.contains(primLayer.layer.getFunction(), primLayer.layer.getFunctionExtras()))
-					layerArray.add(primLayer);
-			}
-			primLayers = new NodeLayer [layerArray.size()];
-			layerArray.toArray(primLayers);
-		}
-		if (primLayers.length == 0)
-			return new Poly[0];
-
-		return getShapeOfNode(getMemoization(ni), ni.getD(), electrical, reasonable, primLayers);
+        return polyBuilder.getShapeArray(ni, electrical, reasonable, onlyTheseLayers);
 	}
 
     /**
@@ -2934,50 +2844,6 @@ public class Technology implements Comparable<Technology>, Serializable
     public boolean isEasyShape(NodeInst ni, boolean explain) {
         return false;
     }
-
-    private CellBackup.Memoization getMemoization(NodeInst ni) {
-        return ni.getCellBackupUnsafe().getMemoization();
-    }
-
-	/**
-	 * Returns the polygons that describe node "ni", given a set of
-	 * NodeLayer objects to use.
-	 * This method is overridden by specific Technologys.
-     * @param m information about including cell which is necessary for computing
-	 * @param n the ImmutableNodeInst that is being described.
-	 * @param electrical true to get the "electrical" layers
-	 * Like the list returned by "getLayers", the results describe this PrimitiveNode,
-	 * but each layer is tied to a specific port on the node.
-	 * If any piece of geometry covers more than one port,
-	 * it must be split for the purposes of an "electrical" description.<BR>
-	 * For example, the MOS transistor has 2 layers: Active and Poly.
-	 * But it has 3 electrical layers: Active, Active, and Poly.
-	 * The active must be split since each half corresponds to a different PrimitivePort on the PrimitiveNode.
-	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
-	 * The minimal set covers all edge contacts, but ignores the inner cuts in large contacts.
-	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
-	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
-	 * @return an array of Poly objects that describes this NodeInst graphically.
-	 * This array includes displayable variables on the NodeInst.
-	 */
-	protected Poly [] getShapeOfNode(CellBackup.Memoization m, ImmutableNodeInst n, boolean electrical, boolean reasonable,
-		Technology.NodeLayer [] primLayers)
-	{
-		// if node is erased, remove layers
-		if (ALWAYS_SKIP_WIPED_PINS || !electrical)
-		{
-			if (m.isWiped(n)) primLayers = nullPrimLayers; else
-			{
-				PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
-				if (np.isWipeOn1or2())
-				{
-					if (m.pinUseCount(n)) primLayers = nullPrimLayers;
-				}
-			}
-		}
-
-		return computeShapeOfNode(m, n, electrical, reasonable, primLayers, null);
-	}
 
 	/**
 	 * Puts into shape builder s the polygons that describe node "n", given a set of
@@ -2992,271 +2858,6 @@ public class Technology implements Comparable<Technology>, Serializable
     protected void genShapeOfNode(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, Technology.NodeLayer[] primLayers) {
 		b.genShapeOfNode(n, pn, primLayers, null);
     }
-
-	/**
-	 * Returns the polygons that describe node "ni", given a set of
-	 * NodeLayer objects to use.
-	 * This method is called by the specific Technology overrides of getShapeOfNode().
-     * @param m information about including cell which is necessary for computing
-	 * @param n the ImmutableNodeInst that is being described.
-	 * @param electrical true to get the "electrical" layers
-	 * Like the list returned by "getLayers", the results describe this PrimitiveNode,
-	 * but each layer is tied to a specific port on the node.
-	 * If any piece of geometry covers more than one port,
-	 * it must be split for the purposes of an "electrical" description.<BR>
-	 * For example, the MOS transistor has 2 layers: Active and Poly.
-	 * But it has 3 electrical layers: Active, Active, and Poly.
-	 * The active must be split since each half corresponds to a different PrimitivePort on the PrimitiveNode.
-	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
-	 * The minimal set covers all edge contacts, but ignores the inner cuts in large contacts.
-	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
-	 * @param graphicsOverride the graphics override to use for all generated polygons (if not null).
-	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
-	 * @return an array of Poly objects that describes this NodeInst graphically.
-	 */
-	protected Poly [] computeShapeOfNode(CellBackup.Memoization m, ImmutableNodeInst n, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, EGraphics graphicsOverride)
-	{
-		PrimitiveNode np = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)n.protoId);
-		int specialType = np.getSpecialType();
-		if (specialType != PrimitiveNode.SERPTRANS && np.isHoldsOutline())
-		{
-			Point2D [] outline = n.getTrace();
-			if (outline != null)
-			{
-                List<Poly> polyList = new ArrayList<Poly>();
-                int startPoint = 0;
-                for(int i=1; i<outline.length; i++)
-                {
-                    boolean breakPoint = (i == outline.length-1) || (outline[i] == null);
-                    if (breakPoint)
-                    {
-                        if (i == outline.length-1) i++;
-                        Point2D [] pointList = new Point2D.Double[i-startPoint];
-                        for(int j=startPoint; j<i; j++)
-                        {
-                            pointList[j-startPoint] = new Point2D.Double(n.anchor.getLambdaX() + outline[j].getX(),
-                                n.anchor.getLambdaY() + outline[j].getY());
-                        }
-                        Poly poly = new Poly(pointList);
-                        Technology.NodeLayer primLayer = primLayers[0];
-                        poly.setStyle(primLayer.getStyle());
-                        poly.setLayer(primLayer.getLayer());
-                        poly.setGraphicsOverride(graphicsOverride);
-                        if (electrical)
-                        {
-                            int portIndex = primLayer.getPortNum();
-                            assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition
-                            if (portIndex >= 0) poly.setPort(np.getPort(portIndex));
-                        }
-                        polyList.add(poly);
-                        startPoint = i+1;
-                    }
-                }
-                Poly [] polys = new Poly[polyList.size()];
-                for(int i=0; i<polyList.size(); i++) polys[i] = polyList.get(i);
-                return polys;
-			}
-		}
-
-		// determine the number of polygons (considering that it may be "wiped")
-		int numBasicLayers = primLayers.length;
-
-		// if a MultiCut contact, determine the number of extra cuts
-		int numExtraLayers = 0;
-		MultiCutData mcd = null;
-		SerpentineTrans std = null;
-		CarbonNanotube cnd = null;
-		if (np.hasMultiCuts())
-		{
-            for (NodeLayer nodeLayer: primLayers) {
-                if (nodeLayer.representation == NodeLayer.MULTICUTBOX) {
-                    mcd = new MultiCutData(n, nodeLayer);
-                    if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
-                        numExtraLayers += (mcd.cutsTotal - 1);
-                }
-           }
-		} else if (specialType == PrimitiveNode.SERPTRANS)
-		{
-			std = new SerpentineTrans(n, np, primLayers);
-			if (std.layersTotal > 0)
-			{
-				numExtraLayers = std.layersTotal;
-				numBasicLayers = 0;
-			}
-		} else if (np.getFunction() == PrimitiveNode.Function.TRANMOSCN || np.getFunction() == PrimitiveNode.Function.TRAPMOSCN)
-		{
-            for (NodeLayer nodeLayer: primLayers)
-            {
-                if (nodeLayer.layer.isCarbonNanotubeLayer())
-                {
-                	cnd = new CarbonNanotube(n, nodeLayer);
-                    numExtraLayers += (cnd.numTubes - 1);
-                }
-           }
-		}
-
-//		// determine the number of negating bubbles
-//        ArrayList<Point2D> negatingBubbles = null;
-//        if (np.hasNegatablePorts) {
-//			double bubbleRadius = Schematics.tech().getNegatingBubbleSize() / 2;
-//            BitSet headEnds = new BitSet();
-//            List<ImmutableArcInst> conArcs = m.getConnections(headEnds, n, null);
-//            for (int i = 0; i < conArcs.size(); i++) {
-//                ImmutableArcInst a = conArcs.get(i);
-//                boolean end = headEnds.get(i);
-//                int nodeId = end ? a.headNodeId : a.tailNodeId;
-//                if (nodeId != n.nodeId) break;
-//                if (!(end ? a.isHeadNegated() : a.isTailNegated())) continue;
-//                PortProtoId portId = end ? a.headPortId : a.tailPortId;
-//                EPoint location = end ? a.headLocation : a.tailLocation;
-//				// add a negating bubble
-//				AffineTransform trans = n.orient.inverse().rotateAbout(n.anchor.getLambdaX(), n.anchor.getLambdaY());
-//				Point2D portLocation = location.lambdaMutable();
-//				trans.transform(portLocation, portLocation);
-//				double x = portLocation.getX();
-//				double y = portLocation.getY();
-//				PrimitivePort pp = np.getPort(portId);
-//				int angle = pp.getAngle() * 10;
-//				double dX = DBMath.cos(angle) * bubbleRadius;
-//				double dY = DBMath.sin(angle) * bubbleRadius;
-//                if (negatingBubbles == null)
-//                    negatingBubbles = new ArrayList<Point2D>();
-//                negatingBubbles.add(new Point2D.Double(x+dX, y+dY));
-//            }
-//        }
-
-		// construct the polygon array
-		int numPolys = numBasicLayers + numExtraLayers;
-//        if (negatingBubbles != null)
-//            numPolys += negatingBubbles.size();
-		Poly [] polys = new Poly[numPolys];
-
-        double xCenter = n.anchor.getLambdaX();
-        double yCenter = n.anchor.getLambdaY();
-        double xSize = n.size.getLambdaX();
-        double ySize = n.size.getLambdaY();
-
-		// add in the basic polygons
-		int fillPoly = 0;
-		for(int i = 0; i < numBasicLayers; i++)
-		{
-			Technology.NodeLayer primLayer = primLayers[i];
-	        if (cnd != null && primLayer == cnd.tubeLayer)
-	        {
-	            Poly.Type style = primLayer.getStyle();
-	            PortProto port = null;
-	            for(int j = 0; j < cnd.numTubes; j++)
-	            {
-	                polys[fillPoly] = cnd.fillCutPoly(n, j);
-	                polys[fillPoly].setStyle(style);
-	                polys[fillPoly].setLayer(primLayer.getLayer());
-	                polys[fillPoly].setPort(port);
-	                fillPoly++;
-	            }
-                assert graphicsOverride == null;
-	            continue;
-	        }
-
-			int representation = primLayer.getRepresentation();
-			if (representation == Technology.NodeLayer.BOX)
-			{
-				EdgeH leftEdge = primLayer.getLeftEdge();
-				EdgeH rightEdge = primLayer.getRightEdge();
-				EdgeV topEdge = primLayer.getTopEdge();
-				EdgeV bottomEdge = primLayer.getBottomEdge();
-				double portLowX = xCenter + leftEdge.getMultiplier() * xSize + leftEdge.getAdder();
-				double portHighX = xCenter + rightEdge.getMultiplier() * xSize + rightEdge.getAdder();
-				double portLowY = yCenter + bottomEdge.getMultiplier() * ySize + bottomEdge.getAdder();
-				double portHighY = yCenter + topEdge.getMultiplier() * ySize + topEdge.getAdder();
-				Point2D [] pointList = Poly.makePoints(portLowX, portHighX, portLowY, portHighY);
-				polys[fillPoly] = new Poly(pointList);
-			} else if (representation == Technology.NodeLayer.POINTS)
-			{
-				TechPoint [] points = primLayer.getPoints();
-				Point2D [] pointList = new Point2D.Double[points.length];
-				for(int j=0; j<points.length; j++)
-				{
-					EdgeH xFactor = points[j].getX();
-					EdgeV yFactor = points[j].getY();
-					double x = 0, y = 0;
-					if (xFactor != null && yFactor != null)
-					{
-						x = xCenter + xFactor.getMultiplier() * xSize + xFactor.getAdder();
-						y = yCenter + yFactor.getMultiplier() * ySize + yFactor.getAdder();
-					}
-					pointList[j] = new Point2D.Double(x, y);
-				}
-				polys[fillPoly] = new Poly(pointList);
-			} else if (representation == Technology.NodeLayer.MULTICUTBOX) {
-                mcd = new MultiCutData(n, primLayer);
-                Poly.Type style = primLayer.getStyle();
-                PortProto port = null;
-                if (electrical && np.getNumPorts() > 0)
-                {
-                    int portIndex = primLayer.getPortNum();
-                    assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition
-                    if (portIndex >= 0) port = np.getPort(portIndex);
-                }
-//                if (electrical) port = np.getPort(0);
-                if (reasonable) numExtraLayers = mcd.cutsReasonable; else
-                    numExtraLayers = mcd.cutsTotal;
-                for(int j = 0; j < numExtraLayers; j++) {
-                    polys[fillPoly] = mcd.fillCutPoly(n, j);
-                    polys[fillPoly].setStyle(style);
-                    polys[fillPoly].setLayer(primLayer.getLayer());
-                    polys[fillPoly].setPort(port);
-                    fillPoly++;
-                }
-                assert graphicsOverride == null;
-                continue;
-            }
-
-			Poly.Type style = primLayer.getStyle();
-			if (style.isText())
-			{
-				polys[fillPoly].setString(primLayer.getMessage());
-				polys[fillPoly].setTextDescriptor(primLayer.getDescriptor());
-			}
-			polys[fillPoly].setStyle(style);
-			polys[fillPoly].setLayer(primLayer.getLayerOrPseudoLayer());
-            polys[fillPoly].setGraphicsOverride(graphicsOverride);
-			if (electrical && np.getNumPorts() > 0)
-			{
-				int portIndex = primLayer.getPortNum();
-                assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition
-                if (portIndex >= 0) polys[fillPoly].setPort(np.getPort(portIndex));
-			}
-			fillPoly++;
-		}
-
-//		// add in negating bubbles
-//		if (negatingBubbles != null)
-//		{
-//			double bubbleRadius = Schematics.tech().getNegatingBubbleSize() / 2;
-//            for (Point2D p: negatingBubbles) {
-//				Point2D [] points = new Point2D[2];
-//				points[0] = p;
-//				points[1] = new Point2D.Double(p.getX() + bubbleRadius, p.getY());
-//				polys[fillPoly] = new Poly(points);
-//				polys[fillPoly].setStyle(Poly.Type.CIRCLE);
-//				polys[fillPoly].setLayer(Schematics.tech().node_lay);
-//				fillPoly++;
-//			}
-//		}
-
-		// add in the extra transistor layers
-		if (std != null)
-		{
-			std.initTransPolyFilling();
-			for(int i = 0; i < numExtraLayers; i++)
-			{
-				polys[fillPoly] = std.fillTransPoly(electrical);
-				fillPoly++;
-			}
-		}
-        assert fillPoly == polys.length;
-		return polys;
-	}
 
 	/**
 	 * Method to determine if cut case is considered multi cut
@@ -3298,92 +2899,15 @@ public class Technology implements Comparable<Technology>, Serializable
 	}
 
 	/**
-	 * Class CarbonNanotube determines the location of carbon nanotube rails in the transistor.
-	 */
-	public static class CarbonNanotube
-	{
-		private ImmutableNodeInst niD;
-		private NodeLayer tubeLayer;
-		private int numTubes;
-        private long tubeSpacing;
-
-		/**
-		 * Constructor to initialize for carbon nanotube rails.
-		 */
-		public CarbonNanotube(ImmutableNodeInst niD, NodeLayer tubeLayer)
-		{
-			this.niD = niD;
-			this.tubeLayer = tubeLayer;
-			numTubes = 10;
-            Variable var = niD.getVar(NodeLayer.CARBON_NANOTUBE_COUNT);
-            if (var != null) numTubes = ((Integer)var.getObject()).intValue();
-            tubeSpacing = -1;
-            var = niD.getVar(NodeLayer.CARBON_NANOTUBE_PITCH);
-            if (var != null) tubeSpacing = DBMath.lambdaToGrid(((Double)var.getObject()).doubleValue());
-		}
-
-		/**
-		 * Method to fill in the rails of the carbon nanotube transistor.
-		 * Node is in "ni" and the nanotube number (0 based) is in "r".
-		 */
-		protected Poly fillCutPoly(ImmutableNodeInst ni, int r)
-		{
-        	EPoint size = niD.size;
-            long gridWidth = size.getGridX();
-            long gridHeight = size.getGridY();
-            TechPoint[] techPoints = tubeLayer.points;
-            long lx = techPoints[0].getX().getGridAdder() + (long)(gridWidth*techPoints[0].getX().getMultiplier());
-            long hx = techPoints[1].getX().getGridAdder() + (long)(gridWidth*techPoints[1].getX().getMultiplier());
-            long ly = techPoints[0].getY().getGridAdder() + (long)(gridHeight*techPoints[0].getY().getMultiplier());
-            long hy = techPoints[1].getY().getGridAdder() + (long)(gridHeight*techPoints[1].getY().getMultiplier());
-            if (tubeSpacing < 0) tubeSpacing = (hx-lx) / (numTubes*2-1);
-            long tubeDia = (hx-lx - (numTubes-1)*tubeSpacing) / numTubes;
-            long tubeHalfHeight = (hy-ly) / 2;
-//System.out.println("LAYER FROM "+lx+"<=X<="+hx+" AND "+ly+"<=Y<="+hy+" TUBE SPACING="+tubeSpacing+" TUBE DIAMETER="+tubeDia);
-            long cX = ni.anchor.getGridX() + lx + (tubeDia>>1) + (tubeDia+tubeSpacing)*r;
-            long cY = ni.anchor.getGridY(); // + (ly + hy)>>1;
-            double lX = DBMath.gridToLambda(cX - (tubeDia >> 1));
-            double hX = DBMath.gridToLambda(cX + (tubeDia >> 1));
-            double lY = DBMath.gridToLambda(cY - tubeHalfHeight);
-            double hY = DBMath.gridToLambda(cY + tubeHalfHeight);
-//System.out.println("   SO TUBE "+r+", CENTERED AT ("+cX+","+cY+") IS FROM "+lX+"<=X<="+hX+" AND "+lY+"<=Y<="+hY);
-            Point2D.Double[] points = new Point2D.Double[] {
-                new Point2D.Double(lX, lY),
-                new Point2D.Double(hX, lY),
-                new Point2D.Double(hX, hY),
-                new Point2D.Double(lX, hY)};
-			return new Poly(points);
-		}
-	}
-
-	/**
 	 * Class MultiCutData determines the locations of cuts in a multi-cut contact node.
 	 */
 	public static class MultiCutData
 	{
 		/** the size of each cut */													private long cutSizeX, cutSizeY;
-		/** the separation between cuts */											private long cutSep;
 		/** the separation between cuts */											private long cutSep1D;
 		/** the separation between cuts in 3-neighboring or more cases */			private long cutSep2D;
 		/** the number of cuts in X and Y */										private int cutsX, cutsY;
 		/** the total number of cuts */												private int cutsTotal;
-		/** the "reasonable" number of cuts (around the outside only) */			private int cutsReasonable;
-		/** the X coordinate of the leftmost cut's center */						private long cutBaseX;
-		/** the Y coordinate of the topmost cut's center */							private long cutBaseY;
-		/** the lowest X cut that will be shifted to the left */					private long cutShiftLeftXPos;
-		/** the lowest X cut that will be shifted to the right */					private long cutShiftRightXPos;
-		/** the X cut that will not be shifted (because it is the center cut) */	private long cutShiftNoneXPos;
-		/** the lowest Y cut that will be shifted down */							private long cutShiftDownYPos;
-		/** the lowest Y cut that will be shifted up */								private long cutShiftUpYPos;
-		/** the Y cut that will not be shifted (because it is the center cut) */	private long cutShiftNoneYPos;
-		/** the amount X cuts will be shifted to the left */						private long cutShiftLeftXAmt;
-		/** the amount X cuts will be shifted to the right */						private long cutShiftRightXAmt;
-		/** the amount Y cuts will be shifted down */								private long cutShiftDownYAmt;
-		/** the amount Y cuts will be shifted up */									private long cutShiftUpYAmt;
-
-		/** cut position of last top-edge cut (for interior-cut elimination) */		private double cutTopEdge;
-		/** cut position of last left-edge cut  (for interior-cut elimination) */	private double cutLeftEdge;
-		/** cut position of last right-edge cut  (for interior-cut elimination) */	private double cutRightEdge;
 
 		/**
 		 * Constructor to initialize for multiple cuts.
@@ -3430,8 +2954,6 @@ public class Technology implements Comparable<Technology>, Serializable
             }
 
 			// determine the actual node size
-            cutBaseX = (lx + hx)>>1;
-            cutBaseY = (ly + hy)>>1;
 			long cutAreaWidth = hx - lx;
 			long cutAreaHeight = hy - ly;
 
@@ -3440,7 +2962,6 @@ public class Technology implements Comparable<Technology>, Serializable
 			int oneDcutsY = 1 + (int)(cutAreaHeight / (cutSizeY+cutSep1D));
 
 			// check if configuration gives 2D cuts
-			cutSep = cutSep1D;
 			cutsX = oneDcutsX;
 			cutsY = oneDcutsY;
 			if (cutsX > 1 && cutsY > 1)
@@ -3448,13 +2969,11 @@ public class Technology implements Comparable<Technology>, Serializable
 				// recompute number of cuts for 2D spacing
 	            int twoDcutsX = 1 + (int)(cutAreaWidth / (cutSizeX+cutSep2D));
 				int twoDcutsY = 1 + (int)(cutAreaHeight / (cutSizeY+cutSep2D));
-				cutSep = cutSep2D;
 				cutsX = twoDcutsX;
 				cutsY = twoDcutsY;
 				if (cutsX == 1 || cutsY == 1)
 				{
 					// 1D separation sees a 2D grid, but 2D separation sees a linear array: use 1D linear settings
-					cutSep = cutSep1D;
 					if (cutAreaWidth > cutAreaHeight)
 					{
 						cutsX = oneDcutsX;
@@ -3466,54 +2985,7 @@ public class Technology implements Comparable<Technology>, Serializable
 			}
 			if (cutsX <= 0) cutsX = 1;
 			if (cutsY <= 0) cutsY = 1;
-
-			// compute spacing rules
-			cutShiftLeftXPos = cutsX;
-			cutShiftRightXPos = cutsX;
-			cutShiftDownYPos = cutsY;
-			cutShiftUpYPos = cutsY;
-			cutShiftNoneXPos = -1;
-			cutShiftNoneYPos = -1;
-            if (!niD.isEasyShape()) {
-                Integer cutAlignment = niD.getVarValue(NodeLayer.CUT_ALIGNMENT, Integer.class);
-                if (cutAlignment != null) {
-                    if (cutAlignment.intValue() == NodeLayer.MULTICUT_SPREAD)
-                    {
-                        // spread cuts to edge, leaving gap in center
-                        cutShiftLeftXPos = 0;
-                        cutShiftDownYPos = 0;
-                        cutShiftLeftXAmt = (1-cutsX)*(cutSizeX + cutSep)/2 - lx;
-                        cutShiftDownYAmt = (1-cutsY)*(cutSizeY + cutSep)/2 - ly;
-
-                        cutShiftRightXPos = cutsX/2;
-                        cutShiftUpYPos = cutsY/2;
-                        cutShiftRightXAmt = hx - (cutsX-1)*(cutSizeX + cutSep)/2;
-                        cutShiftUpYAmt = hy - (cutsY-1)*(cutSizeY + cutSep)/2;
-                        if ((cutsX&1) != 0) cutShiftNoneXPos = cutsX/2;
-                        if ((cutsY&1) != 0) cutShiftNoneYPos = cutsY/2;
-                    } else if (cutAlignment.intValue() == NodeLayer.MULTICUT_CORNER)
-                    {
-                        // shift cuts to lower edge
-                        cutShiftLeftXPos = 0;
-                        cutShiftDownYPos = 0;
-                        cutShiftLeftXAmt = (1-cutsX)*(cutSizeX + cutSep)/2 - lx;
-                        cutShiftDownYAmt = (1-cutsY)*(cutSizeY + cutSep)/2 - ly;
-                    }
-                }
-            }
-
-			cutsReasonable = cutsTotal = cutsX * cutsY;
-			if (cutsTotal != 1)
-			{
-				// prepare for the multiple contact cut locations
-				if (cutsX > 2 && cutsY > 2)
-				{
-					cutsReasonable = cutsX * 2 + (cutsY-2) * 2;
-					cutTopEdge = cutsX*2;
-					cutLeftEdge = cutsX*2 + cutsY-2;
-					cutRightEdge = cutsX*2 + (cutsY-2)*2;
-				}
-			}
+			cutsTotal = cutsX * cutsY;
         }
 
         /**
@@ -3533,94 +3005,6 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * @return the number of cuts in the contact node along Y axis.
 		 */
 		public int numCutsY() { return cutsY; }
-
-        /**
-         * Method to return the size of the cut along X.
-         */
-        public double getCutSizeX() { return cutSizeX; }
-
-        /**
-         * Method to return the size of the cut along Y.
-         */
-        public double getCutSizeY() { return cutSizeY; }
-
-        /**
-		 * Method to fill in the contact cuts of a contact when there are
-		 * multiple cuts.  Node is in "ni" and the contact cut number (0 based) is
-		 * in "cut".
-		 */
-		protected Poly fillCutPoly(ImmutableNodeInst ni, int cut)
-		{
-            return fillCutPoly(ni.anchor, cut);
-		}
-
-        /**
-         * Method to fill in the contact cuts based on anchor information.
-        */
-        public Poly fillCutPoly(EPoint anchor, int cut)
-		{
-            long cX = anchor.getGridX() + cutBaseX;
-            long cY = anchor.getGridY() + cutBaseY;
-            if (cutsX > 1 || cutsY > 1)
-            {
-                if (cutsX > 2 && cutsY > 2)
-                {
-                    // rearrange cuts so that the initial ones go around the outside
-                    if (cut < cutsX) {
-                        // bottom edge: it's ok as is
-                    } else if (cut < cutTopEdge) {
-                        // top edge: shift up
-                        cut += cutsX * (cutsY-2);
-                    } else if (cut < cutLeftEdge) {
-                        // left edge: rearrange
-                        cut = (int)((cut - cutTopEdge) * cutsX + cutsX);
-                    } else if (cut < cutRightEdge) {
-                        // right edge: rearrange
-                        cut = (int)((cut - cutLeftEdge) * cutsX + cutsX*2-1);
-                    } else {
-                        // center: rearrange and scale down
-                        cut = cut - (int)cutRightEdge;
-                        int cutx = cut % (cutsX-2);
-                        int cuty = cut / (cutsX-2);
-                        cut = cuty * cutsX + cutx+cutsX+1;
-                    }
-                }
-
-                // locate the X center of the cut
-                if (cutsX != 1)
-                {
-                	int cutNum = cut % cutsX;
-                    cX += (cutNum*2 - (cutsX - 1))*(cutSizeX + cutSep)*0.5;
-                    if (cutNum != cutShiftNoneXPos)
-                    {
-	                    if (cutNum >= cutShiftRightXPos) cX += cutShiftRightXAmt; else
-		                    if (cutNum >= cutShiftLeftXPos) cX -= cutShiftLeftXAmt;
-                    }
-                }
-
-                // locate the Y center of the cut
-                if (cutsY != 1)
-                {
-                	int cutNum = cut / cutsX;
-                    cY += (cutNum*2 - (cutsY - 1))*(cutSizeY + cutSep)*0.5;
-                    if (cutNum != cutShiftNoneYPos)
-                    {
-	                    if (cutNum >= cutShiftUpYPos) cY += cutShiftUpYAmt; else
-		                    if (cutNum >= cutShiftDownYPos) cY -= cutShiftDownYAmt;
-                    }
-                }
-            }
-            double lX = DBMath.gridToLambda(cX - (cutSizeX >> 1));
-            double hX = DBMath.gridToLambda(cX + (cutSizeX >> 1));
-            double lY = DBMath.gridToLambda(cY - (cutSizeY >> 1));
-            double hY = DBMath.gridToLambda(cY + (cutSizeY >> 1));
-            Point2D.Double[] points = new Point2D.Double[] {
-                new Point2D.Double(lX, lY),
-                new Point2D.Double(hX, lY),
-                new Point2D.Double(hX, hY),
-                new Point2D.Double(lX, hY)};
-			return new Poly(points);
-		}
 	}
 
 	/**

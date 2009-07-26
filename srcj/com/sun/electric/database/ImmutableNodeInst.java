@@ -858,15 +858,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     public void computeBounds(NodeInst real, Rectangle2D.Double dstBounds)
 	{
         CellBackup.Memoization m = real.getCellBackupUnsafe().getMemoization();
-//		// handle cell bounds
-//		if (protoId instanceof CellId)
-//		{
-//			// offset by distance from cell-center to the true center
-//			Cell subCell = (Cell)real.getProto();
-//			Rectangle2D bounds = subCell.getBounds();
-//            orient.rectangleBounds(bounds.getMinX(), bounds.getMinY(), bounds.getMaxX(), bounds.getMaxY(), anchor.getX(), anchor.getY(), dstBounds);
-//            return;
-//		}
 
 		// if zero size, set the bounds directly
 		PrimitiveNode pn = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)protoId);

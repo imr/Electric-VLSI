@@ -258,7 +258,7 @@ public class Topology {
         if (!cell.getDatabase().canComputeBounds())
             return;
         int[] intCoords = new int[4];
-        BoundsBuilder b = new BoundsBuilder(cell);
+        BoundsBuilder b = new BoundsBuilder(cell.backupUnsafe());
         for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
             ArcInst ai = arcs.get(arcIndex);
             ai.computeBounds(b, intCoords);
