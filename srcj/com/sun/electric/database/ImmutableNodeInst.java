@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdWriter;
@@ -44,11 +43,13 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 
+import com.sun.electric.tool.Job;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -855,7 +856,39 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      */
     public static int techSpecificFromElib(int elibBits) { return (elibBits & NTECHBITS) >> NTECHBITSSH; }
 
-    public void computeBounds(NodeInst real, Rectangle2D.Double dstBounds)
+    public void computeBounds(NodeInst real, Rectangle2D.Double dstBounds) {
+        computeBounds0(real, dstBounds);
+        if (Job.getDebug()) {
+            BoundsBuilder b = new BoundsBuilder(real.getCellBackupUnsafe());
+            int[] bounds = new int[4];
+            PrimitiveNode pn = (PrimitiveNode)real.getProto();
+            boolean easy = false;
+            Rectangle2D.Double bnd2 = new Rectangle2D.Double();
+            if (b.genBoundsEasy(this, bounds)) {
+                easy = true;
+                bnd2.setFrame(DBMath.gridToLambda(bounds[0]), DBMath.gridToLambda(bounds[1]),
+                        DBMath.gridToLambda(bounds[2]-bounds[0]), DBMath.gridToLambda(bounds[3]-bounds[1]));
+            } else {
+                b.genShapeOfNode(this);
+                b.makeBounds(anchor, bnd2);
+            }
+            Rectangle2D.Double bnd1 = new Rectangle2D.Double();
+            long xl = DBMath.floorLong(DBMath.roundShapeCoord(dstBounds.getMinX()*DBMath.GRID));
+            long xh = DBMath.ceilLong(DBMath.roundShapeCoord(dstBounds.getMaxX()*DBMath.GRID));
+            long yl = DBMath.floorLong(DBMath.roundShapeCoord(dstBounds.getMinY()*DBMath.GRID));
+            long yh = DBMath.ceilLong(DBMath.roundShapeCoord(dstBounds.getMaxY()*DBMath.GRID));
+            bnd1.setRect(DBMath.gridToLambda(xl), DBMath.gridToLambda(yl), DBMath.gridToLambda(xh-xl), DBMath.gridToLambda(yh-yl));
+            if (!bnd1.equals(bnd2) && pn != Artwork.tech().circleNode && pn != Artwork.tech().thickCircleNode) {
+                System.out.println("computeBounds"+easy+": "+pn+" "+dstBounds+" "+bnd1+" "+bnd2);
+                computeBounds0(real, dstBounds);
+                b.clear();
+                b.genShapeOfNode(this);
+                b.makeBounds();
+            }
+        }
+    }
+
+    public void computeBounds0(NodeInst real, Rectangle2D.Double dstBounds)
 	{
         CellBackup.Memoization m = real.getCellBackupUnsafe().getMemoization();
 
@@ -889,20 +922,23 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 			}
 		}
 
+        // schematic bus pins are so complex that only the technology knows their true size
+        if (pn == Schematics.tech().busPinNode)
+        {
+            Poly [] polys = Schematics.tech().getShapeOfNode(real);
+            if (polys.length > 0)
+            {
+                Rectangle2D bounds = polys[0].getBounds2D();
+                dstBounds.setRect(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
+            } else {
+                dstBounds.setRect(anchor.getX(), anchor.getY(), 0, 0);
+            }
+            return;
+        }
+
 		// special case for pins that become steiner points
 		if (pn.isWipeOn1or2())
 		{
-			// schematic bus pins are so complex that only the technology knows their true size
-			if (pn == Schematics.tech().busPinNode)
-			{
-				Poly [] polys = Schematics.tech().getShapeOfNode(real);
-				if (polys.length > 0)
-				{
-					Rectangle2D bounds = polys[0].getBounds2D();
-					dstBounds.setRect(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
-					return;
-				}
-			}
 			if (!m.hasExports(this) && m.pinUseCount(this))
 //			if (real.getNumExports() == 0 && real.pinUseCount())
 			{

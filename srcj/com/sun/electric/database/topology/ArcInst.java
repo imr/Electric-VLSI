@@ -733,7 +733,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
        } else {
             b.clear();
             b.genShapeOfArc(d);
-            if (b.makeBounds(visBounds))
+            if (b.makeBounds(null, visBounds))
                 parent.setDirty();
         }
     }

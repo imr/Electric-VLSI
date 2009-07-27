@@ -25,12 +25,16 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.id.PrimitiveNodeId;
+import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Schematics;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -105,6 +109,66 @@ public class BoundsBuilder extends AbstractShapeBuilder {
         return true;
     }
 
+    public boolean genBoundsEasy(ImmutableNodeInst n, int[] intCoords) {
+        TechPool techPool = getTechPool();
+		PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)n.protoId);
+        Technology tech = pn.getTechnology();
+        ERectangle full = pn.getFullRectangle();
+        long gridWidth = n.size.getGridX() + full.getGridWidth();
+        long gridHeight = n.size.getGridY() + full.getGridHeight();
+		if (gridWidth == 0 && gridHeight == 0)
+		{
+            intCoords[0] = intCoords[2] = (int)n.anchor.getGridX();
+            intCoords[1] = intCoords[3] = (int)n.anchor.getGridY();
+            return true;
+		}
+
+		// special case for arcs of circles
+        if (tech instanceof Artwork && (pn == techPool.getArtwork().circleNode || pn == techPool.getArtwork().thickCircleNode)) {
+			// see if this circle is only a partial one
+			double [] angles = n.getArcDegrees();
+			if (angles[0] != 0.0 || angles[1] != 0.0)
+                return false;
+        }
+
+		// schematic bus pins are so complex that only the technology knows their true size
+		if (tech instanceof Schematics && pn == techPool.getSchematics().busPinNode)
+            return false;
+
+		// special case for pins that become steiner points
+		if (pn.isWipeOn1or2() && !getMemoization().hasExports(n) && getMemoization().pinUseCount(n)) {
+            intCoords[0] = intCoords[2] = (int)n.anchor.getGridX();
+            intCoords[1] = intCoords[3] = (int)n.anchor.getGridY();
+            return true;
+		}
+
+        // special case for polygonally-defined nodes: compute precise geometry
+		if (pn.isHoldsOutline() && n.getTrace() != null)
+            return false;
+
+        int w2 = (int)(gridWidth >> 1);
+        int h2 = (int)(gridHeight >> 1);
+        if (n.orient.isManhattan()) {
+            intCoords[0] = -w2;
+            intCoords[1] = -h2;
+            intCoords[2] = w2;
+            intCoords[3] = h2;
+            n.orient.rectangleBounds(intCoords);
+        } else {
+            Rectangle2D.Double mbb = new Rectangle2D.Double();
+            n.orient.rectangleBounds(-w2, -h2, w2, h2, 0, 0, mbb);
+            intCoords[0] = GenMath.floorInt(mbb.getMinX());
+            intCoords[1] = GenMath.floorInt(mbb.getMinY());
+            intCoords[2] = -intCoords[0];
+            intCoords[3] = -intCoords[1];
+        }
+        intCoords[0] += (int)n.anchor.getGridX();
+        intCoords[1] += (int)n.anchor.getGridY();
+        intCoords[2] += (int)n.anchor.getGridX();
+        intCoords[3] += (int)n.anchor.getGridY();
+        return true;
+    }
+
     public ERectangle makeBounds() {
         if (!hasDoubleBounds) {
             if (!hasIntBounds) return null;
@@ -128,16 +192,21 @@ public class BoundsBuilder extends AbstractShapeBuilder {
         return ERectangle.fromGrid(longMinX, longMinY, longMaxX - longMinX, longMaxY - longMinY);
     }
 
-    public boolean makeBounds(Rectangle2D.Double visBounds) {
+    public boolean makeBounds(EPoint anchor, Rectangle2D.Double visBounds) {
         double x, y, w, h;
         if (!hasDoubleBounds) {
-            assert hasIntBounds;
-            x = intMinX;
-            y = intMinY;
-            int iw = intMaxX - intMinX;
-            w = iw >= 0 ? iw : (long)intMaxX - (long)intMinX;
-            int ih = intMaxY - intMinY;
-            h = ih >= 0 ? ih : (long)intMaxY - (long)intMinY;
+            if (hasIntBounds) {
+                x = intMinX;
+                y = intMinY;
+                int iw = intMaxX - intMinX;
+                w = iw >= 0 ? iw : (long)intMaxX - (long)intMinX;
+                int ih = intMaxY - intMinY;
+                h = ih >= 0 ? ih : (long)intMaxY - (long)intMinY;
+            } else {
+                x = anchor.getGridX();
+                y = anchor.getGridY();
+                w = h = 0;
+            }
         } else {
             if (hasIntBounds) {
                 if (intMinX < doubleMinX) doubleMinX = intMinX;
@@ -163,6 +232,24 @@ public class BoundsBuilder extends AbstractShapeBuilder {
 
     @Override
     public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
+		if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
+		{
+            Point2D.Double p0 = new Point2D.Double(doubleCoords[0], doubleCoords[1]);
+            Point2D.Double p1 = new Point2D.Double(doubleCoords[2], doubleCoords[3]);
+            Point2D.Double p2 = new Point2D.Double(doubleCoords[4], doubleCoords[5]);
+			Rectangle2D bounds = GenMath.arcBBox(p1, p2, p0);
+            if (!hasDoubleBounds) {
+                doubleMinX = doubleMinY = Double.POSITIVE_INFINITY;
+                doubleMaxX = doubleMaxY = Double.NEGATIVE_INFINITY;
+                hasDoubleBounds = true;
+            }
+            if (bounds.getMinX() < doubleMinX) doubleMinX  = bounds.getMinX();
+            if (bounds.getMaxX() > doubleMaxX) doubleMaxX  = bounds.getMaxX();
+            if (bounds.getMinY() < doubleMinY) doubleMinY  = bounds.getMinY();
+            if (bounds.getMaxY() > doubleMaxY) doubleMaxY  = bounds.getMaxY();
+			return;
+		}
+
         if (!hasDoubleBounds) {
             assert numPoints > 0;
             doubleMinX = doubleMaxX = doubleCoords[0];
@@ -178,18 +265,6 @@ public class BoundsBuilder extends AbstractShapeBuilder {
             if (cX + radius > doubleMaxX) doubleMaxX = cX + radius;
             if (cY - radius < doubleMinY) doubleMinY = cY - radius;
             if (cY + radius > doubleMaxY) doubleMaxY = cY + radius;
-			return;
-		}
-		if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
-		{
-            Point2D.Double p0 = new Point2D.Double(doubleCoords[0], doubleCoords[1]);
-            Point2D.Double p1 = new Point2D.Double(doubleCoords[2], doubleCoords[3]);
-            Point2D.Double p2 = new Point2D.Double(doubleCoords[4], doubleCoords[5]);
-			Rectangle2D bounds = GenMath.arcBBox(p1, p2, p0);
-            if (bounds.getMinX() < doubleMinX) doubleMinX  = bounds.getMinX();
-            if (bounds.getMaxX() > doubleMaxX) doubleMaxX  = bounds.getMaxX();
-            if (bounds.getMinY() < doubleMinY) doubleMinY  = bounds.getMinY();
-            if (bounds.getMaxY() > doubleMaxY) doubleMaxY  = bounds.getMaxY();
 			return;
 		}
         for (int i = 0; i < numPoints; i++) {
