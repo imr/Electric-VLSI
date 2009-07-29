@@ -39,7 +39,7 @@ import java.util.ArrayList;
 public class Foundry {
 
     public static class Type {
-        public static Type NONE = new Type("NONE", -1, 0);
+        public static Type NONE = new Type("NONE", -1, 040); // DRC_BIT_NONE_FOUNDRY = 040; /* For NONE foundry selection */
         public static Type TSMC = new Type("TSMC", 010000, 010);  // DRC_BIT_TSMC_FOUNDRY = 010; /* For TSMC foundry selection */
         public static Type ST = new Type("ST", 020000, 04); // DRC_BIT_ST_FOUNDRY = 04; /* For ST foundry selection */
         public static Type MOSIS = new Type("MOSIS", 040000, 020); // DRC_BIT_MOSIS_FOUNDRY = 020; /* For Mosis foundry selection */

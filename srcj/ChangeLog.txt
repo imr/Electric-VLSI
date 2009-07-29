@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10b: ******************************
 
+BUG: (7/28/09, GVG) Running DRC on 40nm layout causes 'assert' exception (Bug #2316)
+FIX: Add bit for foundry=NONE (from TechEditorWizard)
+
 BUG: (7/26/09, DN) Electric highlights the wrong port when moving up the hierarchy (Bug #2314).
 FIX: In EditWindow.upoHierarchy find equivalent port if necessary.
 

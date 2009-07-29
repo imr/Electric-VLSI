@@ -1009,6 +1009,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
     private static final int DRC_BIT_ST_FOUNDRY = 04; /* For ST foundry selection */
     private static final int DRC_BIT_TSMC_FOUNDRY = 010; /* For TSMC foundry selection */
     private static final int DRC_BIT_MOSIS_FOUNDRY = 020; /* For Mosis foundry selection */
+    private static final int DRC_BIT_NONE_FOUNDRY = 040; /* For NONE foundry selection */
 
     public enum DRCCheckMinArea
     {
