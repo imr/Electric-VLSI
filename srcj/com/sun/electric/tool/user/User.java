@@ -739,8 +739,9 @@ public class User extends Listener
                 }
             }
         }
-        if (Job.getDebug() && currentTech.isLayout())
-            assert(!list.isEmpty());
+        // not valid for pure layer nodes and well arcs at least
+//        if (Job.getDebug() && currentTech.isLayout())
+//            assert(!list.isEmpty());
         return list;
     }
 
