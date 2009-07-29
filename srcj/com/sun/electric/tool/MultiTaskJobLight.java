@@ -48,6 +48,7 @@ public abstract class MultiTaskJobLight<TaskKey,TaskResult,Result> extends Job {
     private transient Environment env;
     private transient EThread ownerThread;
     private transient int numberOfRunningThreads;
+    private transient int numberOfFinishedThreads;
     private Consumer<Result> consumer;
     
     /**
@@ -136,7 +137,7 @@ public abstract class MultiTaskJobLight<TaskKey,TaskResult,Result> extends Job {
 
     private synchronized void waitTasks() {
         try {
-            while (numberOfRunningThreads != 0)
+            while (numberOfFinishedThreads < numberOfRunningThreads)
                 wait();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -144,7 +145,7 @@ public abstract class MultiTaskJobLight<TaskKey,TaskResult,Result> extends Job {
     }
 
     private synchronized void finishWorkingThread() {
-        numberOfRunningThreads--;
+        numberOfFinishedThreads++;
         notify();
     }
 
