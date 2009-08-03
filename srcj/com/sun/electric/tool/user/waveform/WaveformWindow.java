@@ -4099,23 +4099,36 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Panel wp : wavePanels)
 		{
 			if (wp.getXAxisSignal() != null) continue;
-			Analysis an = sd.findAnalysis(wp.getAnalysisType());
-			if (leftEdge == rightEdge)
+			for(WaveSignal ws : wp.getSignals())
 			{
-				leftEdge = an.getLeftEdge();
-				rightEdge = an.getRightEdge();
-			} else
-			{
-				if (leftEdge < rightEdge)
+				Rectangle2D bounds = ws.getSignal().getBounds();
+				if (leftEdge == rightEdge)
 				{
-					leftEdge = Math.min(leftEdge, an.getLeftEdge());
-					rightEdge = Math.max(rightEdge, an.getRightEdge());
+					leftEdge = bounds.getMinX();
+					rightEdge = bounds.getMaxX();
 				} else
 				{
-					leftEdge = Math.max(leftEdge, an.getLeftEdge());
-					rightEdge = Math.min(rightEdge, an.getRightEdge());
+					leftEdge = Math.min(leftEdge, bounds.getMinX());
+					rightEdge = Math.max(rightEdge, bounds.getMaxX());
 				}
 			}
+//			Analysis an = sd.findAnalysis(wp.getAnalysisType());
+//			if (leftEdge == rightEdge)
+//			{
+//				leftEdge = an.getLeftEdge();
+//				rightEdge = an.getRightEdge();
+//			} else
+//			{
+//				if (leftEdge < rightEdge)
+//				{
+//					leftEdge = Math.min(leftEdge, an.getLeftEdge());
+//					rightEdge = Math.max(rightEdge, an.getRightEdge());
+//				} else
+//				{
+//					leftEdge = Math.max(leftEdge, an.getLeftEdge());
+//					rightEdge = Math.min(rightEdge, an.getRightEdge());
+//				}
+//			}
 		}
 
 		// if there is an overriding signal on the X axis, use its bounds
