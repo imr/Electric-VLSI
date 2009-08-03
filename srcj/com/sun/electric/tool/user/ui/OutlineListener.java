@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;
@@ -83,6 +82,34 @@ public class OutlineListener
 
 		high.setPoint(0);
 		if (wnd != null) wnd.fullRepaint();
+	}
+
+	public void deletePoint()
+	{
+		// delete a point
+		Point2D [] origPoints = outlineNode.getTrace();
+		if (origPoints.length <= 2)
+		{
+			System.out.println("Cannot delete the last point on an outline");
+			return;
+		}
+		AffineTransform trans = outlineNode.rotateOutAboutTrueCenter();
+		Point2D [] newPoints = new Point2D[origPoints.length-1];
+		int pt = point;
+		int j = 0;
+		for(int i=0; i<origPoints.length; i++)
+		{
+			if (i == pt) continue;
+			if (origPoints[j] != null)
+			{
+				newPoints[j] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX(),
+					outlineNode.getAnchorCenterY() + origPoints[i].getY());
+				trans.transform(newPoints[j], newPoints[j]);
+			}
+			j++;
+		}
+		if (pt > 0) pt--;
+		setNewPoints(newPoints, pt);
 	}
 
 	/**
@@ -287,49 +314,7 @@ public class OutlineListener
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
-		if (chr == KeyEvent.VK_DELETE || chr == KeyEvent.VK_BACK_SPACE)
-		{
-			// delete a point
-			Point2D [] origPoints = outlineNode.getTrace();
-			if (origPoints.length <= 2)
-			{
-				System.out.println("Cannot delete the last point on an outline");
-				return;
-			}
-			AffineTransform trans = outlineNode.rotateOutAboutTrueCenter();
-			Point2D [] newPoints = new Point2D[origPoints.length-1];
-			int pt = point;
-			int j = 0;
-			for(int i=0; i<origPoints.length; i++)
-			{
-				if (i == pt) continue;
-				if (origPoints[j] != null)
-				{
-					newPoints[j] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX(),
-						outlineNode.getAnchorCenterY() + origPoints[i].getY());
-					trans.transform(newPoints[j], newPoints[j]);
-				}
-				j++;
-			}
-			if (pt > 0) pt--;
-			setNewPoints(newPoints, pt);
-		} else if (chr == KeyEvent.VK_LEFT)
-		{
-			Dimension2D arrowDistance = User.getAlignmentToGrid();
-			moveSelectedPoint(-arrowDistance.getWidth(), 0);
-		} else if (chr == KeyEvent.VK_RIGHT)
-		{
-			Dimension2D arrowDistance = User.getAlignmentToGrid();
-			moveSelectedPoint(arrowDistance.getWidth(), 0);
-		} else if (chr == KeyEvent.VK_UP)
-		{
-			Dimension2D arrowDistance = User.getAlignmentToGrid();
-			moveSelectedPoint(0, arrowDistance.getHeight());
-		} else if (chr == KeyEvent.VK_DOWN)
-		{
-			Dimension2D arrowDistance = User.getAlignmentToGrid();
-			moveSelectedPoint(0, -arrowDistance.getHeight());
-		} else if (chr == KeyEvent.VK_PERIOD)
+		if (chr == KeyEvent.VK_PERIOD)
 		{
 			// advance to next point
 			Point2D [] origPoints = outlineNode.getTrace();
@@ -351,7 +336,7 @@ public class OutlineListener
 	public void keyReleased(KeyEvent evt) {}
 	public void keyTyped(KeyEvent evt) {}
 
-	private void moveSelectedPoint(double dx, double dy)
+	public void moveSelectedPoint(double dx, double dy)
 	{
 		Point2D [] origPoints = outlineNode.getTrace();
 		if (origPoints == null) return;

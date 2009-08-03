@@ -428,8 +428,12 @@ public class CircuitChanges
 			return;
 		}
 
-		// for edit windows doing outline editing, delete the selected point (done by listener)
-        if (WindowFrame.getListener() == OutlineListener.theOne) return;
+		// for edit windows doing outline editing, delete the selected point
+        if (WindowFrame.getListener() == OutlineListener.theOne)
+        {
+        	OutlineListener.theOne.deletePoint();
+        	return;
+        }
 
 		if (ToolBar.getSelectMode() == ToolBar.SelectMode.AREA)
 		{

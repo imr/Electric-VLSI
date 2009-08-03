@@ -1488,7 +1488,6 @@ public class ClickZoomWireListener
         // scale distance according to arrow motion
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
-        Highlighter highlighter = wnd.getHighlighter();
 		Dimension2D arrowDistance = User.getAlignmentToGrid();
 		dX *= arrowDistance.getWidth();
 		dY *= arrowDistance.getHeight();
@@ -1496,6 +1495,15 @@ public class ClickZoomWireListener
         int scaleY = User.getDefGridYBoldFrequency();
 		if (scaleMove) { dX *= scaleX;   dY *= scaleY; }
 		if (scaleMove2) { dX *= scaleX;   dY *= scaleY; }
+
+		// for edit windows doing outline editing, move the selected point
+        if (WindowFrame.getListener() == OutlineListener.theOne)
+        {
+			OutlineListener.theOne.moveSelectedPoint(dX, dY);
+        	return;
+        }
+
+        Highlighter highlighter = wnd.getHighlighter();
 		highlighter.setHighlightOffset(0, 0);
 		if (wnd.isInPlaceEdit())
 		{
