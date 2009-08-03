@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10b: ******************************
 
-BUG: (8/3/09, SMR) Waveform window colors are not saved (Bug #2301).
+BUG: (8/3/09, SMR) Waveform window colors are not saved (Bug #2302).
 FIX: Save colors with cell configurations.
 
 BUG: (8/3/09, SMR) "Fill Window" doesn't work in waveforms (Bug #2301).
