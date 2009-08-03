@@ -120,6 +120,7 @@ public class WaveSignal
 			signal.color = col;
 			signal.sigButton.setForeground(col);
 			signal.wavePanel.repaintContents();
+			signal.wavePanel.getWaveWindow().saveSignalOrder();
 		}
 	}
 
@@ -205,7 +206,11 @@ public class WaveSignal
 
 	public Color getColor() { return color; }
 
-	public void setColor(Color c) { color = c; }
+	public void setColor(Color c)
+	{
+		color = c;
+		sigButton.setForeground(c);
+	}
 
 	/**
 	 * Method to return the X values of selected control points in this WaveSignal.

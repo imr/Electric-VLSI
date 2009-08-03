@@ -57,6 +57,7 @@ import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
+import java.awt.Color;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -713,11 +714,13 @@ public class Simulation extends Tool
 			{
 				String signalName = signalNames[i];
 				Signal xAxisSignal = null;
+				int start = 0;
 				if (signalName.startsWith("\t"))
 				{
 					// has panel type and X axis information
 					int openPos = signalName.indexOf('(');
 					int tabPos = signalName.indexOf('\t', 1);
+					start = tabPos+1;
 					if (openPos >= 0) tabPos = openPos;
 					String analysisName = signalName.substring(1, tabPos);
 					Analysis.AnalysisType analysisType = Analysis.AnalysisType.findAnalysisType(analysisName);
@@ -738,7 +741,6 @@ public class Simulation extends Tool
 				boolean firstSignal = true;
 
 				// add signals to the panel
-				int start = 0;
 				for(;;)
 				{
 					int tabPos = signalName.indexOf('\t', start);
@@ -747,6 +749,17 @@ public class Simulation extends Tool
 					{
 						sigName = signalName.substring(start, tabPos);
 						start = tabPos+1;
+					}
+					Color sigColor = null;
+					int colorPos = sigName.indexOf(" {");
+					if (colorPos >= 0)
+					{
+						String [] colorNames = sigName.substring(colorPos+2).split(",");
+						int red = TextUtils.atoi(colorNames[0]);
+						int green = TextUtils.atoi(colorNames[1]);
+						int blue = TextUtils.atoi(colorNames[2]);
+						sigColor = new Color(red, green, blue);
+						sigName = sigName.substring(0, colorPos);
 					}
 					Signal sSig = an.findSignalForNetwork(sigName);
 					if (sSig != null)
@@ -760,7 +773,9 @@ public class Simulation extends Tool
 							wp.makeSelectedPanel(-1, -1);
 							showedSomething = true;
 						}
-						new WaveSignal(wp, sSig);
+						WaveSignal ws = new WaveSignal(wp, sSig);
+						if (sigColor != null)
+							ws.setColor(sigColor);
 					}
 					if (tabPos < 0) break;
 				}

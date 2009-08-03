@@ -3852,6 +3852,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 				sb.append("\t");
 				sb.append(sigName);
+				Color color = ws.getColor();
+				sb.append(" {" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "}");
 			}
 			sb.append("\n");
 		}
