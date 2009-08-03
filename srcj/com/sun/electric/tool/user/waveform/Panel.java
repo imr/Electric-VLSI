@@ -1491,24 +1491,22 @@ public class Panel extends JPanel
 							xWaveform.getEvent(i, result);
 							x = convertXDataToScreen(result[1]);
 						}
-						if ((x >= vertAxisPos && x <= sz.width) ||
-							(lastX > vertAxisPos && lastX < sz.width))
+
+						// draw lines if requested and line is on-screen
+						if (linePointMode <= 1 && x >= vertAxisPos && lastX < sz.width)
 						{
 	                        if (i != 0)
 	                        {
-	                        	if (linePointMode <= 1)
-	                        	{
-	                        		// drawing has lines
-		                            if (processALine(g, lastX, lastLY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
-		                            if (lastLY != lastHY || lowY != highY)
-		                            {
-		        						if (processALine(g, lastX, lastHY, x, highY, bounds, forPs, selectedObjects, ws, s)) break;
-		        						if (processALine(g, lastX, lastHY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
-		        						if (processALine(g, lastX, lastLY, x, highY, bounds, forPs, selectedObjects, ws, s)) break;
-		                            }
-	                        	}
+                        		// drawing has lines
+	                            if (processALine(g, lastX, lastLY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
+	                            if (lastLY != lastHY || lowY != highY)
+	                            {
+	        						if (processALine(g, lastX, lastHY, x, highY, bounds, forPs, selectedObjects, ws, s)) break;
+	        						if (processALine(g, lastX, lastHY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
+	        						if (processALine(g, lastX, lastLY, x, highY, bounds, forPs, selectedObjects, ws, s)) break;
+	                            }
 							}
-	                        if (an.extrapolateValues() && i == numEvents-1 && linePointMode <= 1)
+	                        if (an.extrapolateValues() && i == numEvents-1)
 	                    	{
 	                    		if (getMinXAxis() < getMaxXAxis())
 	                    		{
@@ -1520,11 +1518,12 @@ public class Panel extends JPanel
 		                            }
 	                    		}
 	                    	}
-	                    	if (linePointMode >= 1)
-							{
-	                    		// drawing has points
-								if (processABox(g, x-2, lowY-2, x+2, lowY+2, bounds, forPs, selectedObjects, ws, false, 0)) break;
-							}
+						}
+
+						// show points if requested and point is on-screen
+                    	if (linePointMode >= 1 && x >= vertAxisPos && x <= sz.width)
+						{
+							if (processABox(g, x-2, lowY-2, x+2, lowY+2, bounds, forPs, selectedObjects, ws, false, 0)) break;
 						}
 						lastX = x;   lastLY = lowY; lastHY = highY;
 					}

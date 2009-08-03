@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10b: ******************************
 
+BUG: (8/3/09, SMR) Waveform window drops lines if endpoints are offscreen (Bug #2299).
+FIX: In Panel.processSignals(), always draw lines.
+
 BUG: (7/29/09, GVG) tsmcsun40GP tech: User.getPrimitivePortConnectedToArc()
 throws assertion error for N-Well arc (Bug #2317)
 FIX: Assertion not valid for pure nodes
