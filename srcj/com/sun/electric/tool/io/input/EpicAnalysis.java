@@ -828,7 +828,8 @@ public class EpicAnalysis extends AnalogAnalysis {
             double resolution = an.getValueResolution(getIndexInAnalysis());
             bounds = new Rectangle2D.Double(0, minV*resolution, an.maxTime, (maxV - minV)*resolution);
             leftEdge = 0;
-            rightEdge = minV*resolution;
+            rightEdge = an.maxTime;
+//            rightEdge = minV*resolution;
         }
     }
 }
