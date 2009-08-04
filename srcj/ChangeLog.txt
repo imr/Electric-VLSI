@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10c: ******************************
 
+BUG: (8/4/09, SMR) "Change" dialog takes too long when changing arcs with nodes (Bug #2294).
+FIX: Improved efficiency of finding a contact stack by caching correct contacts to use.
+
 BUG: (8/4/09, SMR) Current cell not remembered when it switches from text to edit (Bug #2288).
 FIX: In WindowFrame.setCellWindow(), always save current cell.
 

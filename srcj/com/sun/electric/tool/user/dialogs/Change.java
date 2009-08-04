@@ -1145,6 +1145,8 @@ public class Change extends EModelessDialog implements HighlightListener
 
 		private NodeProto [] contactStack = new NodeProto[100];
 		private ArcProto [] contactStackArc = new ArcProto[100];
+        private Technology connectionTech = null;
+        private Map<ArcProto,Map<ArcProto,PrimitiveNode>> connectionMap;
 
 		/**
 		 * Method to examine end "end" of arc "ai" and return a node at that position which
@@ -1159,30 +1161,17 @@ public class Change extends EModelessDialog implements HighlightListener
 			Point2D center = ai.getLocation(end);
 			Cell cell = ai.getParent();
 
-//			// first see if it can be replaced by a simple pin
-//			boolean allSame = true;
-//			for(Iterator<Connection> it = lastNi.getConnections(); it.hasNext(); )
-//			{
-//				Connection con = it.next();
-//				ArcInst aiOnNode = con.getArc();
-//				if (aiOnNode == ai) continue;
-//				if (aiOnNode.getProto() != ap) allSame = false;
-//			}
-//			if (allSame)
-//			{
-//				PrimitiveNode np = ap.findOverridablePinProto();
-//				if (lastNi.getProto() == np) return lastPi;
-//				NodeInst newNi = NodeInst.makeInstance(np, center, np.getDefWidth(), np.getDefHeight(), cell);
-//				if (newNi == null) return null;
-//				PortInst thisPi = newNi.getOnlyPortInst();
-//				return thisPi;
-//			}
+//            int dir = getDirection(lastPp, ap);
+//            boolean posDir = (dir >= 0); // consider same level as positive
+//            int depth = findPathToArc(lastPp, ap, 0, lastPp, posDir, markedArcs);
 
+			// setup map of contacts in the technology
+            setupConnections(ap.getTechnology());
+
+            // find the path of contacts to make the connection
 			Set<ArcProto> markedArcs = new HashSet<ArcProto>();
-            int dir = getDirection(lastPp, ap);
-            boolean posDir = (dir >= 0); // consider same level as positive
-            int depth = findPathToArc(lastPp, ap, 0, lastPp, posDir, markedArcs);
-			if (depth < 0) return null;
+            int depth = findOtherPathToArc(lastPp, ai.getProto(), ap, 0, markedArcs);
+            if (depth < 0) return null;
 
 			// create the contacts
 			for(int i=0; i<depth; i++)
@@ -1205,114 +1194,210 @@ public class Change extends EModelessDialog implements HighlightListener
 			return lastPi;
 		}
 
-        private int getDirection(PortProto pp, ArcProto ap)
-        {
-            // > 0 is going up, < 0 is going down, 0 is the same layer
-            ArcProto [] connections = pp.getBasePort().getConnections();
-            int maxPortLayerIndex = Integer.MIN_VALUE, minPortLayerIndex = Integer.MAX_VALUE;
-            for(int i=0; i<connections.length; i++)
-            {
-                ArcProto thisAp = connections[i];
-                if (thisAp.getTechnology() == Generic.tech()) continue;
-                for (Iterator<Layer> it = thisAp.getLayerIterator(); it.hasNext(); )
-                {
-                    int level = it.next().getFunction().getLevel();
-                    if (minPortLayerIndex > level)
-                        minPortLayerIndex = level;
-                    if (maxPortLayerIndex < level)
-                        maxPortLayerIndex = level;
-                }
-            }
-            // get layers from the arc
-            int maxArcLayerIndex = Integer.MIN_VALUE, minArcLayerIndex = Integer.MAX_VALUE;
-            for (Iterator<Layer> it = ap.getLayerIterator(); it.hasNext(); )
-            {
-                int level = it.next().getFunction().getLevel();
-                if (minArcLayerIndex > level)
-                    minArcLayerIndex = level;
-                if (maxArcLayerIndex < level)
-                    maxArcLayerIndex = level;
-            }
+//        private int getDirection(PortProto pp, ArcProto ap)
+//        {
+//            // > 0 is going up, < 0 is going down, 0 is the same layer
+//            ArcProto [] connections = pp.getBasePort().getConnections();
+//            int maxPortLayerIndex = Integer.MIN_VALUE, minPortLayerIndex = Integer.MAX_VALUE;
+//            for(int i=0; i<connections.length; i++)
+//            {
+//                ArcProto thisAp = connections[i];
+//                if (thisAp.getTechnology() == Generic.tech()) continue;
+//                for (Iterator<Layer> it = thisAp.getLayerIterator(); it.hasNext(); )
+//                {
+//                    int level = it.next().getFunction().getLevel();
+//                    if (minPortLayerIndex > level)
+//                        minPortLayerIndex = level;
+//                    if (maxPortLayerIndex < level)
+//                        maxPortLayerIndex = level;
+//                }
+//            }
+//            // get layers from the arc
+//            int maxArcLayerIndex = Integer.MIN_VALUE, minArcLayerIndex = Integer.MAX_VALUE;
+//            for (Iterator<Layer> it = ap.getLayerIterator(); it.hasNext(); )
+//            {
+//                int level = it.next().getFunction().getLevel();
+//                if (minArcLayerIndex > level)
+//                    minArcLayerIndex = level;
+//                if (maxArcLayerIndex < level)
+//                    maxArcLayerIndex = level;
+//            }
+//
+//            /// The boundaries overlap therefore. This only valid when there is a gap
+//            if (minArcLayerIndex != maxArcLayerIndex && minArcLayerIndex <= maxPortLayerIndex)
+//                return 0;
+//            else if (minPortLayerIndex != maxPortLayerIndex && minPortLayerIndex <= maxArcLayerIndex)
+//                return 0;
+//            // negative if going up from the port. Positive the oppositive
+//            return maxPortLayerIndex - minArcLayerIndex;
+//        }
 
-            /// The boundaries overlap therefore. This only valid when there is a gap
-            if (minArcLayerIndex != maxArcLayerIndex && minArcLayerIndex <= maxPortLayerIndex)
-                return 0;
-            else if (minPortLayerIndex != maxPortLayerIndex && minPortLayerIndex <= maxArcLayerIndex)
-                return 0;
-            // negative if going up from the port. Positive the oppositive
-            return maxPortLayerIndex - minArcLayerIndex;
+		/**
+		 * Method to setup the contact network for a given Technology.
+		 * This network shows which contacts can be used to move from one ArcProto to another.
+		 * @param tech the Technology to setup.
+		 */
+        private void setupConnections(Technology tech)
+        {
+        	if (connectionTech == tech) return;
+        	connectionTech = tech;
+        	connectionMap = new HashMap<ArcProto,Map<ArcProto,PrimitiveNode>>();
+        	for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
+        	{
+        		PrimitiveNode np = it.next();
+				PrimitiveNode.Function fun = np.getFunction();
+				if (!fun.isContact()) continue;
+        		PrimitivePort pp = np.getPort(0);
+        		ArcProto[] arcs = pp.getConnections();
+        		ArcProto ap1 = null, ap2 = null;
+        		for(int i=0; i<arcs.length; i++)
+        		{
+        			ArcProto ap = arcs[i];
+        			if (ap.getTechnology() != tech) continue;
+        			if (ap1 == null) ap1 = ap; else
+        				if (ap2 == null) ap2 = ap;
+        		}
+        		if (ap1 == null || ap2 == null) continue;
+        		addConnection(ap1, ap2, np);
+        		addConnection(ap2, ap1, np);
+        	}
+        }
+
+        /**
+         * Method to update the contact network.
+         * @param ap1 an ArcProto.
+         * @param ap2 another ArcProto.
+         * @param np the contact that connects them.
+         */
+        private void addConnection(ArcProto ap1, ArcProto ap2, PrimitiveNode np)
+        {
+        	Map<ArcProto,PrimitiveNode> arcMap = connectionMap.get(ap1);
+        	if (arcMap == null) connectionMap.put(ap1, arcMap = new HashMap<ArcProto,PrimitiveNode>());
+        	if (arcMap.get(ap2) == null)
+        		arcMap.put(ap2, np);
         }
 
         /**
 		 * Method to compute an array of contacts and arcs that connects a port to an arcproto.
 		 * @param pp the original port.
-		 * @param ap the destination arcproto.
+		 * @param sourceAp the source ArcProto.
+		 * @param destAp the destination ArcProto.
 		 * @param depth the location in the contact array to fill.
-         * @param posDir positive if it goes up from the port
 		 * @param markedArcs a set of Arcprotos that have been used in the search.
 		 * @return the new size of the contact array.
 		 */
-		private int findPathToArc(PortProto pp, ArcProto ap, int depth, PortProto origPort, boolean posDir,
-                                  Set<ArcProto> markedArcs)
+		private int findOtherPathToArc(PortProto pp, ArcProto sourceAp, ArcProto destAp, int depth, Set<ArcProto> markedArcs)
 		{
 			// see if the connection is made
-			if (pp.connectsTo(ap)) return depth;
+			if (pp.connectsTo(destAp)) return depth;
 
             // look for a contact
 			PrimitiveNode bestNp = null;
 			ArcProto bestAp = null;
 			int bestDepth = 0;
-			Technology tech = ap.getTechnology();
-			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
-			{
-				PrimitiveNode nextNp = it.next();
-				PrimitiveNode.Function fun = nextNp.getFunction();
-				if (!fun.isContact()) continue;
 
-				// see if this contact connects to the destination
+			Map<ArcProto,PrimitiveNode> arcMap = connectionMap.get(sourceAp);
+			for(ArcProto nextAp : arcMap.keySet())
+			{
+				if (markedArcs.contains(nextAp)) continue;
+				PrimitiveNode nextNp = arcMap.get(nextAp);
 				PortProto nextPp = nextNp.getPort(0);
-				ArcProto [] connections = nextPp.getBasePort().getConnections();
-				ArcProto found = null;
-				for(int i=0; i<connections.length; i++)
-				{
-					ArcProto thisAp = connections[i];
-					if (thisAp.getTechnology() != tech) continue;
-					if (markedArcs.contains(thisAp)) continue;
-                int dir = getDirection(origPort, thisAp);
-                // Check whether it goes in the same direction
-                if (dir != 0)
-                {
-                    if (!(dir > 0 && posDir || dir < 0 && !posDir))
-                        continue;
-                }
-                    if (pp.connectsTo(thisAp)) { found = thisAp;   break; }
-				}
-				if (found == null) continue;
 
 				// this contact is part of the chain
 				contactStack[depth] = nextNp;
-				markedArcs.add(found);
-				int newDepth = findPathToArc(nextPp, ap, depth+1, origPort, posDir, markedArcs);
-				markedArcs.remove(found);
+				markedArcs.add(nextAp);
+				int newDepth = findOtherPathToArc(nextPp, nextAp, destAp, depth+1, markedArcs);
+				markedArcs.remove(nextAp);
 				if (newDepth < 0) continue;
 				if (bestNp == null || newDepth < bestDepth)
 				{
 					bestDepth = newDepth;
 					bestNp = nextNp;
-					bestAp = found;
+					bestAp = nextAp;
 				}
 			}
 			if (bestNp != null)
 			{
 				contactStack[depth] = bestNp;
-				contactStackArc[depth] = bestAp;
+				contactStackArc[depth] = sourceAp;
 				markedArcs.add(bestAp);
-				int newDepth = findPathToArc(bestNp.getPort(0), ap, depth+1, origPort, posDir, markedArcs);
+				int newDepth = findOtherPathToArc(bestNp.getPort(0), bestAp, destAp, depth+1, markedArcs);
 				markedArcs.remove(bestAp);
 				return newDepth;
 			}
 			return -1;
 		}
+
+//        /**
+//		 * Method to compute an array of contacts and arcs that connects a port to an arcproto.
+//		 * @param pp the original port.
+//		 * @param ap the destination arcproto.
+//		 * @param depth the location in the contact array to fill.
+//         * @param posDir positive if it goes up from the port
+//		 * @param markedArcs a set of Arcprotos that have been used in the search.
+//		 * @return the new size of the contact array.
+//		 */
+//		private int findPathToArc(PortProto pp, ArcProto ap, int depth, PortProto origPort, boolean posDir,
+//                                  Set<ArcProto> markedArcs)
+//		{
+//			// see if the connection is made
+//			if (pp.connectsTo(ap)) return depth;
+//
+//            // look for a contact
+//			PrimitiveNode bestNp = null;
+//			ArcProto bestAp = null;
+//			int bestDepth = 0;
+//			Technology tech = ap.getTechnology();
+//			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
+//			{
+//				PrimitiveNode nextNp = it.next();
+//				PrimitiveNode.Function fun = nextNp.getFunction();
+//				if (!fun.isContact()) continue;
+//
+//				// see if this contact connects to the destination
+//				PortProto nextPp = nextNp.getPort(0);
+//				ArcProto [] connections = nextPp.getBasePort().getConnections();
+//				ArcProto found = null;
+//				for(int i=0; i<connections.length; i++)
+//				{
+//					ArcProto thisAp = connections[i];
+//					if (thisAp.getTechnology() != tech) continue;
+//					if (markedArcs.contains(thisAp)) continue;
+//	                int dir = getDirection(origPort, thisAp);
+//	                // Check whether it goes in the same direction
+//	                if (dir != 0)
+//	                {
+//	                    if (!(dir > 0 && posDir || dir < 0 && !posDir))
+//	                        continue;
+//	                }
+//                    if (pp.connectsTo(thisAp)) { found = thisAp;   break; }
+//				}
+//				if (found == null) continue;
+//
+//				// this contact is part of the chain
+//				contactStack[depth] = nextNp;
+//				markedArcs.add(found);
+//				int newDepth = findPathToArc(nextPp, ap, depth+1, origPort, posDir, markedArcs);
+//				markedArcs.remove(found);
+//				if (newDepth < 0) continue;
+//				if (bestNp == null || newDepth < bestDepth)
+//				{
+//					bestDepth = newDepth;
+//					bestNp = nextNp;
+//					bestAp = found;
+//				}
+//			}
+//			if (bestNp != null)
+//			{
+//				contactStack[depth] = bestNp;
+//				contactStackArc[depth] = bestAp;
+//				markedArcs.add(bestAp);
+//				int newDepth = findPathToArc(bestNp.getPort(0), ap, depth+1, origPort, posDir, markedArcs);
+//				markedArcs.remove(bestAp);
+//				return newDepth;
+//			}
+//			return -1;
+//		}
 	}
 
 	private String getLibSelected()
