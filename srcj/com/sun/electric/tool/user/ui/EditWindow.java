@@ -541,8 +541,9 @@ public class EditWindow extends JPanel
 	 * @param toDraw the object to draw (a NodeInst or a NodeProto).
 	 * @param oldx the X position (on the screen) of the outline.
 	 * @param oldy the Y position (on the screen) of the outline.
+	 * @param rotation an extra rotation that is being applied (show it if nonzero).
 	 */
-	public void showDraggedBox(Object toDraw, int oldx, int oldy)
+	public void showDraggedBox(Object toDraw, int oldx, int oldy, int rotation)
 	{
 		// undraw it
 		Highlighter highlighter = getHighlighter();
@@ -592,7 +593,7 @@ public class EditWindow extends JPanel
 				AffineTransform rotate = orient.pureRotate();
 				AffineTransform translate = new AffineTransform();
 				translate.setToTranslation(drawnLoc.getX(), drawnLoc.getY());
-				rotate.concatenate(translate);
+				rotate.preConcatenate(translate);
 				poly.transform(rotate);
 			} else
 			{
@@ -611,6 +612,10 @@ public class EditWindow extends JPanel
 				int last = i-1;
 				if (i == 0) last = points.length - 1;
 				highlighter.addLine(points[last], points[i], getCell());
+			}
+			if (rotation != 0)
+			{
+				highlighter.addMessage(cell, "Rotated " + rotation, poly.getCenter());
 			}
 			repaint();
 		}
@@ -766,7 +771,7 @@ public class EditWindow extends JPanel
 				if (dt.getComponent() instanceof JPanel)
 				{
 					EditWindow wnd = (EditWindow)dt.getComponent();
-					wnd.showDraggedBox(obj, e.getLocation().x, e.getLocation().y);
+					wnd.showDraggedBox(obj, e.getLocation().x, e.getLocation().y, 0);
 				}
 				return;
 			}

@@ -318,13 +318,14 @@ public class PaletteFrame implements MouseListener
 	public static class PlaceNodeListener
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
-		private int oldx, oldy;
+		private int lastX, lastY;
 		private Object toDraw;
 		private EventListener oldListener;
 		private Cursor oldCursor;
 		private String textNode;
 		private boolean makePort;
         private PlaceNodeEventListener palette;
+        private int extraRotation;
 
         /**
          * Places a new Node.  You should be using the static method
@@ -343,6 +344,7 @@ public class PaletteFrame implements MouseListener
 			this.textNode = null;
 			this.makePort = false;
             this.palette = palette;
+            this.extraRotation = 0;
 		}
 
 		public void makePortWhenCreated(boolean m) { makePort = m; }
@@ -356,8 +358,6 @@ public class PaletteFrame implements MouseListener
 			if (!(evt.getSource() instanceof EditWindow)) return;
 			EditWindow wnd = (EditWindow)evt.getSource();
 
-			oldx = evt.getX();
-			oldy = evt.getY();
 			Cell cell = wnd.getCell();
 			if (cell == null)
 			{
@@ -365,7 +365,7 @@ public class PaletteFrame implements MouseListener
 					"Cannot create node: this window has no cell in it");
 				return;
 			}
-			Point2D where = wnd.screenToDatabase(oldx, oldy);
+			Point2D where = wnd.screenToDatabase(evt.getX(), evt.getY());
 			EditWindow.gridAlign(where);
 
 			// schedule the node to be created
@@ -427,7 +427,8 @@ public class PaletteFrame implements MouseListener
 			if (evt.getSource() instanceof EditWindow)
 			{
 				EditWindow wnd = (EditWindow)evt.getSource();
-				wnd.showDraggedBox(toDraw, evt.getX(), evt.getY());
+				lastX = evt.getX();   lastY = evt.getY();
+				wnd.showDraggedBox(toDraw, lastX, lastY, extraRotation/10);
 			}
 		}
 
@@ -436,7 +437,8 @@ public class PaletteFrame implements MouseListener
 			if (evt.getSource() instanceof EditWindow)
 			{
 				EditWindow wnd = (EditWindow)evt.getSource();
-				wnd.showDraggedBox(toDraw, evt.getX(), evt.getY());
+				lastX = evt.getX();   lastY = evt.getY();
+				wnd.showDraggedBox(toDraw, lastX, lastY, extraRotation/10);
 			}
 		}
 
@@ -449,6 +451,33 @@ public class PaletteFrame implements MouseListener
 			{
                 // abort
 				finished(EditWindow.getCurrent(), true);
+			}
+			if (chr == KeyEvent.VK_COMMA || chr == KeyEvent.VK_PERIOD)
+			{
+				int deltaAng = 900;
+				if (chr == KeyEvent.VK_PERIOD) deltaAng = 2700;
+				extraRotation = (extraRotation + deltaAng) % 3600;
+				NodeProto oldNp;
+				int techBits = 0;
+				int prevAngle = 0;
+				if (toDraw instanceof NodeProto)
+				{
+					oldNp = (NodeProto)toDraw;
+				} else
+				{
+					NodeInst oldNi = (NodeInst)toDraw;
+					oldNp = oldNi.getProto();
+					techBits = oldNi.getTechSpecific();
+					prevAngle = oldNi.getAngle();
+				}
+				Orientation orient = Orientation.fromAngle((prevAngle + deltaAng) % 3600);
+				toDraw = NodeInst.makeDummyInstance(oldNp, techBits, new EPoint(0, 0),
+					oldNp.getDefWidth(), oldNp.getDefHeight(), orient);
+				if (evt.getSource() instanceof EditWindow)
+				{
+					EditWindow wnd = (EditWindow)evt.getSource();
+					wnd.showDraggedBox(toDraw, lastX, lastY, extraRotation/10);
+				}
 			}
 		}
 

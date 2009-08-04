@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10c: ******************************
 
+IMP/MAN: (8/4/09, SMR) When placing a node from the component menu, typing "," or "."
+     before clicking rotates the node's initial orientation (Bug #2253).
+
 BUG: (8/4/09, SMR) "Change" dialog takes too long when changing arcs with nodes (Bug #2294).
 FIX: Improved efficiency of finding a contact stack by caching correct contacts to use.
 
