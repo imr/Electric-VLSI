@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10c: ******************************
 
+BUG: (8/4/09, SMR) Current cell not remembered when it switches from text to edit (Bug #2288).
+FIX: In WindowFrame.setCellWindow(), always save current cell.
+
 ************************* Version 8.10b: ******************************
 
 BUG: (8/3/09, SMR) Waveform window colors are not saved (Bug #2302).

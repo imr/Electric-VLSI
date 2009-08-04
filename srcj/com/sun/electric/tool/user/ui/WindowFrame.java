@@ -564,6 +564,7 @@ public class WindowFrame extends Observable
 				js.setDividerLocation(i);
 				content.fillScreen();
 				if (history == null) addToHistory(cell, VarContext.globalContext, null);
+				currentCellChanged();
 				return;
 			}
 		} else
@@ -582,6 +583,7 @@ public class WindowFrame extends Observable
 				js.setDividerLocation(i);
 				content.fillScreen();
 				if (history == null) addToHistory(cell, VarContext.globalContext, null);
+				currentCellChanged();
 				return;
 			}
 		}
