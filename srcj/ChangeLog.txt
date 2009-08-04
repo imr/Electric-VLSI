@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10c: ******************************
 
+BUG: (8/4/09, GVG) Allowable connections to P-Well-con 
+should be Pwell arc, not Pdiff arc (same for N-Well-con) (Bug #2319)
+FIX: Ports fixed for those well contacts defined in a generic way.
+
 IMP/MAN: (8/4/09, SMR) When placing a node from the component menu, typing "," or "."
      before clicking rotates the node's initial orientation (Bug #2253).
 

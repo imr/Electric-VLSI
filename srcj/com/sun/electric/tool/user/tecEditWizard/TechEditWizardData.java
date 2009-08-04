@@ -2524,17 +2524,12 @@ public class TechEditWizardData
                 }
                 else
                     assert(false); // it should not happen
-                name = ly.name + "-" + lx.name;
                 double h1x = scaledValue(contact_size.value /2 + metalLayer.overX.value);
                 double h1y = scaledValue(contact_size.value /2 + metalLayer.overY.value);
                 double h2x = scaledValue(contact_size.value /2 + otherLayer.overX.value);
                 double h2y = scaledValue(contact_size.value /2 + otherLayer.overY.value);
                 double longX = (Math.abs(metalLayer.overX.value - otherLayer.overX.value));
                 double longY = (Math.abs(metalLayer.overY.value - otherLayer.overY.value));
-
-                portNames.clear();
-                portNames.add(lx.name);
-                portNames.add(ly.name);
 
                 PrimitiveNode.Function func = PrimitiveNode.Function.CONTACT;
 //                Xml.NodeLayer extraN = null;
@@ -2548,6 +2543,8 @@ public class TechEditWizardData
                 // active or poly
                 nodes[count++] = makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED); // layer2
 
+                Xml.Layer otherLayerPort = lx;
+
                 for (int i = 2; i < c.layers.size(); i++) // rest of layers. Either select or well.
                 {
                     ContactNode node = c.layers.get(i);
@@ -2556,7 +2553,8 @@ public class TechEditWizardData
                     if ((lz == pwellLayer && lx == diffLayers[0]) ||
                         (lz == nwellLayer && lx == diffLayers[1])) // well contact
                     {
-                        name = ly.name + "-" + lz.name; // not clean
+                        otherLayerPort = lz;
+//                        name = ly.name + "-" + lz.name; // not clean
                         if (lz == pwellLayer)
                         {
                             g = wellPalette[0];
@@ -2583,33 +2581,23 @@ public class TechEditWizardData
                     if (DBMath.isGreaterThan(longYLocal, longY))
                         longY = longYLocal;
                 }
-//                if (c.layers.size() == 3) // easy solution for now
-//                {
-//                    ContactNode node = c.layers.get(2);
-//                    Xml.Layer lz = (diffLayers[0] == lx) ? plusLayers[0] : plusLayers[1];
-//                    double h3x = scaledValue(contact_size.v/2 + node.overX.v);
-//                    double h3y = scaledValue(contact_size.v/2 + node.overY.v);
-//                    extraN = makeXmlNodeLayer(h3x, h3x, h3y, h3y, lz, Poly.Type.FILLED);
-//
-//                    // This assumes no well is defined
-//                    longX = (Math.abs(node.overX.v - otherLayer.overX.v));
-//                    longY = (Math.abs(node.overY.v - otherLayer.overY.v));
-//                }
                 longX = scaledValue(longX);
                 longY = scaledValue(longY);
+
+                // prt names now after determing wheter is a diff or well contact
+                portNames.clear();
+//                if (!pSubstrateProcess || otherLayerPort == pwellLayer)
+                    portNames.add(otherLayerPort.name);
+                portNames.add(ly.name); // always should represent the metal1
+                name = ly.name + "-" + otherLayerPort.name;
+
 
                 // some primitives might not have prefix. "-" should not be in the prefix to avoid
                 // being displayed in the palette
                 String p = (c.prefix == null || c.prefix.equals("")) ? "" : c.prefix + "-";
                 g.addElement(makeXmlPrimitiveCon(t.nodeGroups, p + name, func, -1, -1,
                     new SizeOffset(longX, longX, longY, longY), portNames,
-                    nodes
-                    /*
-                    makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED), // layer1
-                    makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED), // layer2
-                    extraNodes,
-                    makeXmlMulticut(conLay, contSize, contSpacing, contArraySpacing))
-                    */), c.prefix); // contact
+                    nodes), c.prefix); // contact
             }
         }
 
@@ -2694,7 +2682,6 @@ public class TechEditWizardData
                     wellNodePinLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED);
                     wellNodeLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED);
                 }
-//                func = (pSubstrateProcess) ? PrimitiveNode.Function.SUBSTRATE : PrimitiveNode.Function.WELL;
                 arcL = (!pSubstrateProcess)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null;
                 arcVal = pplus_overhang_diff;
             }
@@ -2703,7 +2690,6 @@ public class TechEditWizardData
                 portNames.add(nwellLayer.name);
                 wellNodePinLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED);
                 wellNodeLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED);
-//                func = (pSubstrateProcess) ? PrimitiveNode.Function.WELL : PrimitiveNode.Function.SUBSTRATE;
                 arcL = makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p);
                 arcVal = nplus_overhang_diff;
             }
