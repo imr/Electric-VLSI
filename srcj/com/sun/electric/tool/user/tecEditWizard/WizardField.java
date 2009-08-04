@@ -23,21 +23,43 @@
  */
 package com.sun.electric.tool.user.tecEditWizard;
 
+import java.util.List;
+import java.util.ArrayList;
+
 /**
  * This class defines a valueField value in the Technology Creation Wizard.
  */
-public class WizardField
+class WizardFieldBasic
 {
-    public String name;
-    public double v;
+    public double value;
     public String rule;
+}
+
+public class WizardField extends WizardFieldBasic
+{
+    public String name; // mostly layer name
 
     public WizardField(String n)
     {
-        super();
+//        super();
         name = n;
     }
     public WizardField() { rule = ""; }
 
-    public WizardField(double v, String r) { this.v = v;   rule = r; }
+    public WizardField(double v, String r) { this.value = v;   rule = r; }
+}
+
+/**
+ * This class is to handle wide spacing rules
+ */
+class WideWizardField extends WizardFieldBasic
+{
+    public double maxW;
+    public double minLen;
+    public List<String> names;
+
+    public WideWizardField()
+    {
+        names = new ArrayList<String>();
+    }
 }

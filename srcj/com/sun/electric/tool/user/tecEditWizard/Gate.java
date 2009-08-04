@@ -55,13 +55,13 @@ public class Gate extends TechEditWizardPanel
 	public void init()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		length.setText(TextUtils.formatDouble(data.getGateLength().v));
+		length.setText(TextUtils.formatDouble(data.getGateLength().value));
 		lengthRule.setText(data.getGateLength().rule);
-		width.setText(TextUtils.formatDouble(data.getGateWidth().v));
+		width.setText(TextUtils.formatDouble(data.getGateWidth().value));
 		widthRule.setText(data.getGateWidth().rule);
-		contactSpacing.setText(TextUtils.formatDouble(data.getGateContactSpacing().v));
+		contactSpacing.setText(TextUtils.formatDouble(data.getGateContactSpacing().value));
 		contactSpacingRule.setText(data.getGateContactSpacing().rule);
-		spacing.setText(TextUtils.formatDouble(data.getGateSpacing().v));
+		spacing.setText(TextUtils.formatDouble(data.getGateSpacing().value));
 		spacingRule.setText(data.getGateSpacing().rule);
 	}
 

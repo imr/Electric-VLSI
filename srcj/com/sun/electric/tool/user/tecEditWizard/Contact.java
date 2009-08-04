@@ -55,19 +55,19 @@ public class Contact extends TechEditWizardPanel
 	public void init()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		size.setText(TextUtils.formatDouble(data.getContactSize().v));
+		size.setText(TextUtils.formatDouble(data.getContactSize().value));
 		sizeRule.setText(data.getContactSize().rule);
-		spacing.setText(TextUtils.formatDouble(data.getContactSpacing().v));
+		spacing.setText(TextUtils.formatDouble(data.getContactSpacing().value));
 		spacingRule.setText(data.getContactSpacing().rule);
-        arraySpacing.setText(TextUtils.formatDouble(data.getContactArraySpacing().v));
+        arraySpacing.setText(TextUtils.formatDouble(data.getContactArraySpacing().value));
 		arraySpacingRule.setText(data.getContactArraySpacing().rule);
-        metalOverhangInline.setText(TextUtils.formatDouble(data.getContactMetalOverhangInlineOnly().v));
+        metalOverhangInline.setText(TextUtils.formatDouble(data.getContactMetalOverhangInlineOnly().value));
 		metalOverhangInlineRule.setText(data.getContactMetalOverhangInlineOnly().rule);
-		metalOverhangAll.setText(TextUtils.formatDouble(data.getContactMetalOverhangAllSides().v));
+		metalOverhangAll.setText(TextUtils.formatDouble(data.getContactMetalOverhangAllSides().value));
 		metalOverhangAllRule.setText(data.getContactMetalOverhangAllSides().rule);
-		polyOverhang.setText(TextUtils.formatDouble(data.getContactPolyOverhang().v));
+		polyOverhang.setText(TextUtils.formatDouble(data.getContactPolyOverhang().value));
 		polyOverhangRule.setText(data.getContactPolyOverhang().rule);
-		activeSpacing.setText(TextUtils.formatDouble(data.getPolyconDiffSpacing().v));
+		activeSpacing.setText(TextUtils.formatDouble(data.getPolyconDiffSpacing().value));
 		activeSpacingRule.setText(data.getPolyconDiffSpacing().rule);
 	}
 

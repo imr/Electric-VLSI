@@ -141,9 +141,9 @@ public class Metal extends TechEditWizardPanel
         for(int i=0; i<numMetals; i++)
         {
         	addMetalLayer(i);
-        	width[i].setText(TextUtils.formatDouble(data.getMetalWidth()[i].v));
+        	width[i].setText(TextUtils.formatDouble(data.getMetalWidth()[i].value));
         	widthRule[i].setText(data.getMetalWidth()[i].rule);
-        	spacing[i].setText(TextUtils.formatDouble(data.getMetalSpacing()[i].v));
+        	spacing[i].setText(TextUtils.formatDouble(data.getMetalSpacing()[i].value));
         	spacingRule[i].setText(data.getMetalSpacing()[i].rule);
         }
 	}

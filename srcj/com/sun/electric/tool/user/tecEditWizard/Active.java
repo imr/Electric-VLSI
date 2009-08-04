@@ -55,13 +55,13 @@ public class Active extends TechEditWizardPanel
 	public void init()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		width.setText(TextUtils.formatDouble(data.getDiffWidth().v));
+		width.setText(TextUtils.formatDouble(data.getDiffWidth().value));
 		widthRule.setText(data.getDiffWidth().rule);
-		polyOverhang.setText(TextUtils.formatDouble(data.getDiffPolyOverhang().v));
+		polyOverhang.setText(TextUtils.formatDouble(data.getDiffPolyOverhang().value));
 		polyOverhangRule.setText(data.getDiffPolyOverhang().rule);
-		contactOverhang.setText(TextUtils.formatDouble(data.getDiffContactOverhang().v));
+		contactOverhang.setText(TextUtils.formatDouble(data.getDiffContactOverhang().value));
 		contactOverhangRule.setText(data.getDiffContactOverhang().rule);
-		spacing.setText(TextUtils.formatDouble(data.getDiffSpacing().v));
+		spacing.setText(TextUtils.formatDouble(data.getDiffSpacing().value));
 		spacingRule.setText(data.getDiffSpacing().rule);
 	}
 

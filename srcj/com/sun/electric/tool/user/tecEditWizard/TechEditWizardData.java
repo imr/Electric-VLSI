@@ -142,8 +142,9 @@ public class TechEditWizardData
 	// METAL RULES
 	private WizardField [] metal_width;
 	private WizardField [] metal_spacing;
+    private List<WideWizardField> wide_metal_spacing = new ArrayList<WideWizardField>(); // For all wide spacing rules not displayed in graphcs
 
-	// VIA RULES
+    // VIA RULES
 	private WizardField [] via_size;
 	private WizardField [] via_inline_spacing;
 	private WizardField [] via_array_spacing;
@@ -619,30 +620,30 @@ public class TechEditWizardData
 		if (stepsize == 0) return "General panel: Invalid unit size";
 
         // check the Active data
-		if (diff_width.v == 0) return "Active panel: Invalid width";
+		if (diff_width.value == 0) return "Active panel: Invalid width";
 
 		// check the Poly data
-		if (poly_width.v == 0) return "Poly panel: Invalid width";
+		if (poly_width.value == 0) return "Poly panel: Invalid width";
 
 		// check the Gate data
-		if (gate_width.v == 0) return "Gate panel: Invalid width";
-		if (gate_length.v == 0) return "Gate panel: Invalid length";
+		if (gate_width.value == 0) return "Gate panel: Invalid width";
+		if (gate_length.value == 0) return "Gate panel: Invalid length";
 
 		// check the Contact data
-		if (contact_size.v == 0) return "Contact panel: Invalid size";
+		if (contact_size.value == 0) return "Contact panel: Invalid size";
 
 		// check the Well/Implant data
-		if (nplus_width.v == 0) return "Well/Implant panel: Invalid NPlus width";
-		if (pplus_width.v == 0) return "Well/Implant panel: Invalid PPlus width";
-		if (nwell_width.v == 0) return "Well/Implant panel: Invalid NWell width";
+		if (nplus_width.value == 0) return "Well/Implant panel: Invalid NPlus width";
+		if (pplus_width.value == 0) return "Well/Implant panel: Invalid PPlus width";
+		if (nwell_width.value == 0) return "Well/Implant panel: Invalid NWell width";
 
 		// check the Metal data
 		for(int i=0; i<num_metal_layers; i++)
-			if (metal_width[i].v == 0) return "Metal panel: Invalid Metal-" + (i+1) + " width";
+			if (metal_width[i].value == 0) return "Metal panel: Invalid Metal-" + (i+1) + " width";
 
 		// check the Via data
 		for(int i=0; i<num_metal_layers-1; i++)
-			if (via_size[i].v == 0) return "Via panel: Invalid Via-" + (i+1) + " size";
+			if (via_size[i].value == 0) return "Via panel: Invalid Via-" + (i+1) + " size";
 		return null;
 	}
 
@@ -723,37 +724,37 @@ public class TechEditWizardData
                     if (varName.equalsIgnoreCase("stepsize")) setStepSize(TextUtils.atoi(varValue)); else
                     if (varName.equalsIgnoreCase("resolution")) setResolution(TextUtils.atoi(varValue)); else
 
-                    if (varName.equalsIgnoreCase("diff_width")) diff_width.v = TextUtils.atof(varValue); else
+                    if (varName.equalsIgnoreCase("diff_width")) diff_width.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("diff_width_rule")) diff_width.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("diff_poly_overhang")) diff_poly_overhang.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("diff_poly_overhang")) diff_poly_overhang.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("diff_poly_overhang_rule")) diff_poly_overhang.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("diff_contact_overhang")) diff_contact_overhang.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("diff_contact_overhang")) diff_contact_overhang.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("diff_contact_overhang_rule")) diff_contact_overhang.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("diff_contact_overhang_short_min")) diff_contact_overhang_min_short.v = TextUtils.atof(varValue); else
+                    if (varName.equalsIgnoreCase("diff_contact_overhang_short_min")) diff_contact_overhang_min_short.value = TextUtils.atof(varValue); else
                     if (varName.equalsIgnoreCase("diff_contact_overhang_short_min_rule")) diff_contact_overhang_min_short.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("diff_contact_overhang_long_min")) diff_contact_overhang_min_long.v = TextUtils.atof(varValue); else
+                    if (varName.equalsIgnoreCase("diff_contact_overhang_long_min")) diff_contact_overhang_min_long.value = TextUtils.atof(varValue); else
                     if (varName.equalsIgnoreCase("diff_contact_overhang_long_min_rule")) diff_contact_overhang_min_long.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("diff_spacing")) diff_spacing.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("diff_spacing")) diff_spacing.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("diff_spacing_rule")) diff_spacing.rule = stripQuotes(varValue); else
 
-					if (varName.equalsIgnoreCase("poly_width")) poly_width.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("poly_width")) poly_width.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("poly_width_rule")) poly_width.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("poly_endcap")) poly_endcap.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("poly_endcap")) poly_endcap.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("poly_endcap_rule")) poly_endcap.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("poly_spacing")) poly_spacing.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("poly_spacing")) poly_spacing.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("poly_spacing_rule")) poly_spacing.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("poly_diff_spacing")) poly_diff_spacing.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("poly_diff_spacing")) poly_diff_spacing.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("poly_diff_spacing_rule")) poly_diff_spacing.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("poly_protection_spacing")) poly_protection_spacing.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("poly_protection_spacing")) poly_protection_spacing.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("poly_protection_spacing_rule")) poly_protection_spacing.rule = stripQuotes(varValue); else
 
-                    if (varName.equalsIgnoreCase("gate_length")) gate_length.v = TextUtils.atof(varValue); else
+                    if (varName.equalsIgnoreCase("gate_length")) gate_length.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("gate_length_rule")) gate_length.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("gate_width")) gate_width.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("gate_width")) gate_width.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("gate_width_rule")) gate_width.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("gate_spacing")) gate_spacing.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("gate_spacing")) gate_spacing.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("gate_spacing_rule")) gate_spacing.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("gate_contact_spacing")) gate_contact_spacing.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("gate_contact_spacing")) gate_contact_spacing.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("gate_contact_spacing_rule")) gate_contact_spacing.rule = stripQuotes(varValue); else
 
                     if (varName.equalsIgnoreCase("gate_od18_length")) fillRule(varValue, gate_od18_length); else
@@ -768,53 +769,54 @@ public class TechEditWizardData
                     if (varName.equalsIgnoreCase("vthl_diff_overhang")) fillRule(varValue, vthl_diff_overhang); else
                     if (varName.equalsIgnoreCase("vthl_poly_overhang")) fillRule(varValue, vthl_poly_overhang); else
 
-                    if (varName.equalsIgnoreCase("contact_size")) contact_size.v = TextUtils.atof(varValue); else
+                    if (varName.equalsIgnoreCase("contact_size")) contact_size.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("contact_size_rule")) contact_size.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("contact_spacing")) contact_spacing.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("contact_spacing")) contact_spacing.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("contact_spacing_rule")) contact_spacing.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("contact_array_spacing")) contact_array_spacing.v = TextUtils.atof(varValue); else
+                    if (varName.equalsIgnoreCase("contact_array_spacing")) contact_array_spacing.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("contact_array_spacing_rule")) contact_array_spacing.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("contact_metal_overhang_inline_only")) contact_metal_overhang_inline_only.v = TextUtils.atof(varValue); else
+                    if (varName.equalsIgnoreCase("contact_metal_overhang_inline_only")) contact_metal_overhang_inline_only.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("contact_metal_overhang_inline_only_rule")) contact_metal_overhang_inline_only.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("contact_metal_overhang_all_sides")) contact_metal_overhang_all_sides.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("contact_metal_overhang_all_sides")) contact_metal_overhang_all_sides.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("contact_metal_overhang_all_sides_rule")) contact_metal_overhang_all_sides.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("contact_poly_overhang")) contact_poly_overhang.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("contact_poly_overhang")) contact_poly_overhang.value = TextUtils.atof(varValue); else
                     if (varName.equalsIgnoreCase("contact_poly_overhang_rule")) contact_poly_overhang.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("polycon_diff_spacing")) polycon_diff_spacing.v = TextUtils.atof(varValue); else
+                    if (varName.equalsIgnoreCase("polycon_diff_spacing")) polycon_diff_spacing.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("polycon_diff_spacing_rule")) polycon_diff_spacing.rule = stripQuotes(varValue); else
 
-					if (varName.equalsIgnoreCase("nplus_width")) nplus_width.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("nplus_width")) nplus_width.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("nplus_width_rule")) nplus_width.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("nplus_overhang_diff")) nplus_overhang_diff.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("nplus_overhang_diff")) nplus_overhang_diff.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("nplus_overhang_diff_rule")) nplus_overhang_diff.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("nplus_overhang_poly")) nplus_overhang_poly.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("nplus_overhang_poly")) nplus_overhang_poly.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("nplus_overhang_poly_rule")) nplus_overhang_poly.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("nplus_spacing")) nplus_spacing.v = TextUtils.atof(varValue); else
+                    if (varName.equalsIgnoreCase("nplus_spacing")) nplus_spacing.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("nplus_spacing_rule")) nplus_spacing.rule = stripQuotes(varValue); else
 
-					if (varName.equalsIgnoreCase("pplus_width")) pplus_width.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("pplus_width")) pplus_width.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("pplus_width_rule")) pplus_width.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("pplus_overhang_diff")) pplus_overhang_diff.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("pplus_overhang_diff")) pplus_overhang_diff.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("pplus_overhang_diff_rule")) pplus_overhang_diff.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("pplus_overhang_poly")) pplus_overhang_poly.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("pplus_overhang_poly")) pplus_overhang_poly.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("pplus_overhang_poly_rule")) pplus_overhang_poly.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("pplus_spacing")) pplus_spacing.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("pplus_spacing")) pplus_spacing.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("pplus_spacing_rule")) pplus_spacing.rule = stripQuotes(varValue); else
 
-					if (varName.equalsIgnoreCase("nwell_width")) nwell_width.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("nwell_width")) nwell_width.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("nwell_width_rule")) nwell_width.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("nwell_overhang_diff_p")) nwell_overhang_diff_p.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("nwell_overhang_diff_p")) nwell_overhang_diff_p.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("nwell_overhang_diff_rule_p")) nwell_overhang_diff_p.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("nwell_overhang_diff_n")) nwell_overhang_diff_n.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("nwell_overhang_diff_n")) nwell_overhang_diff_n.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("nwell_overhang_diff_rule_n")) nwell_overhang_diff_n.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("nwell_spacing")) nwell_spacing.v = TextUtils.atof(varValue); else
+                    if (varName.equalsIgnoreCase("nwell_spacing")) nwell_spacing.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("nwell_spacing_rule")) nwell_spacing.rule = stripQuotes(varValue); else
 
 					if (varName.equalsIgnoreCase("metal_width")) fillWizardArray(varValue, metal_width, num_metal_layers, false); else
 					if (varName.equalsIgnoreCase("metal_width_rule")) fillWizardArray(varValue, metal_width, num_metal_layers, true); else
 					if (varName.equalsIgnoreCase("metal_spacing")) fillWizardArray(varValue, metal_spacing, num_metal_layers, false); else
 					if (varName.equalsIgnoreCase("metal_spacing_rule")) fillWizardArray(varValue, metal_spacing, num_metal_layers, true); else
-					if (varName.equalsIgnoreCase("via_size")) fillWizardArray(varValue, via_size, num_metal_layers-1, false); else
+                    if (varName.equalsIgnoreCase("wide_metal_spacing_rules")) fillWizardWideArray(varValue, wide_metal_spacing); else
+                    if (varName.equalsIgnoreCase("via_size")) fillWizardArray(varValue, via_size, num_metal_layers-1, false); else
 					if (varName.equalsIgnoreCase("via_size_rule")) fillWizardArray(varValue, via_size, num_metal_layers-1, true); else
 					if (varName.equalsIgnoreCase("via_spacing")) fillWizardArray(varValue, via_inline_spacing, num_metal_layers-1, false); else
 					if (varName.equalsIgnoreCase("via_spacing_rule")) fillWizardArray(varValue, via_inline_spacing, num_metal_layers-1, true); else
@@ -914,11 +916,69 @@ public class TechEditWizardData
 		fillWizardArray(str, foundArray, num_metal_layers, false);
 		double [] retArray = new double[foundArray.length];
 		for(int i=0; i<foundArray.length; i++)
-			retArray[i] = foundArray[i].v;
+			retArray[i] = foundArray[i].value;
 		return retArray;
 	}
 
-	private void fillWizardArray(String str, WizardField [] fieldArray, int expectedLength, boolean getRule)
+    private void fillWizardWideArray(String str, List<WideWizardField> wideList)
+	{
+        StringTokenizer parse = new StringTokenizer(str, "[]", false);
+        int blocks = 0;
+        WideWizardField tmp = new WideWizardField();
+
+        while (parse.hasMoreTokens())
+        {
+            String value = parse.nextToken();
+
+            if (value.equals(";")) // end of line
+                continue;
+
+            // first block: [value, maxW, minLen, rule name]
+            if (blocks == 0)
+            {
+                StringTokenizer p = new StringTokenizer(value, ", ", false);
+                int count = 0;
+
+                while (p.hasMoreTokens())
+                {
+                    String v = p.nextToken();
+                    switch (count)
+                    {
+                        case 0: // value
+                            tmp.value = Double.parseDouble(v);
+                            break;
+                        case 1: // maxW
+                            tmp.maxW = Double.parseDouble(v);
+                            break;
+                        case 2: // minLen
+                            tmp.minLen = Double.parseDouble(v);
+                            break;
+                        case 3: // rule name
+                            tmp.rule = stripQuotes(v);
+                            break;
+                        default:
+                            assert(false); // only 4 values
+                    }
+                    count++;
+                }
+                blocks++;
+            }
+            else
+            {
+                // layers involved
+                StringTokenizer p = new StringTokenizer(value, ",", false);
+
+                while (p.hasMoreTokens())
+                {
+                    String s = p.nextToken();
+                    tmp.names.add(s);
+                }
+            }
+        }
+        wideList.add(tmp);
+    }
+
+    private void fillWizardArray(String str, WizardField [] fieldArray, int expectedLength, boolean getRule)
 	{
 		if (!str.startsWith("("))
 		{
@@ -961,7 +1021,7 @@ public class TechEditWizardData
 			} else
 			{
 				double v = TextUtils.atof(str.substring(pos));
-                fieldArray[index++].v = v;
+                fieldArray[index++].value = v;
 			}
 			while (pos < str.length() && str.charAt(pos) != ',' && str.charAt(pos) != ')') pos++;
 			if (str.charAt(pos) != ',') break;
@@ -983,7 +1043,7 @@ public class TechEditWizardData
             {
                 case 0:
                 case 2:
-                    rules[pos].v = Double.parseDouble(value);
+                    rules[pos].value = Double.parseDouble(value);
                     break;
                 case 1:
                 case 3:
@@ -1083,8 +1143,8 @@ public class TechEditWizardData
                     {
                         String name = layerNames.get(i);
                         ContactNode tmp = nodeList.get(i);
-                        ContactNode node = new ContactNode(name,  tmp.overX.v,  tmp.overX.rule,
-                        tmp.overY.v,  tmp.overY.rule);
+                        ContactNode node = new ContactNode(name,  tmp.overX.value,  tmp.overX.rule,
+                        tmp.overY.value,  tmp.overY.rule);
                         cont.layers.add(node);
                     }
 
@@ -1210,80 +1270,80 @@ public class TechEditWizardData
 		pw.println("$stepsize = " + stepsize + ";");
         pw.println();
 		pw.println("######  DIFFUSION RULES  #####");
-		pw.println("$diff_width = " + TextUtils.formatDouble(diff_width.v) + ";");
+		pw.println("$diff_width = " + TextUtils.formatDouble(diff_width.value) + ";");
 		pw.println("$diff_width_rule = \"" + diff_width.rule + "\";");
-		pw.println("$diff_poly_overhang = " + TextUtils.formatDouble(diff_poly_overhang.v) + ";        # min. diff overhang from gate edge");
+		pw.println("$diff_poly_overhang = " + TextUtils.formatDouble(diff_poly_overhang.value) + ";        # min. diff overhang from gate edge");
 		pw.println("$diff_poly_overhang_rule = \"" + diff_poly_overhang.rule + "\";        # min. diff overhang from gate edge");
-		pw.println("$diff_contact_overhang = " + TextUtils.formatDouble(diff_contact_overhang.v) + ";     # min. diff overhang contact");
+		pw.println("$diff_contact_overhang = " + TextUtils.formatDouble(diff_contact_overhang.value) + ";     # min. diff overhang contact");
 		pw.println("$diff_contact_overhang_rule = \"" + diff_contact_overhang.rule + "\";     # min. diff overhang contact");
-		pw.println("$diff_spacing = " + TextUtils.formatDouble(diff_spacing.v) + ";");
+		pw.println("$diff_spacing = " + TextUtils.formatDouble(diff_spacing.value) + ";");
 		pw.println("$diff_spacing_rule = \"" + diff_spacing.rule + "\";");
 		pw.println();
 		pw.println("######  POLY RULES  #####");
-		pw.println("$poly_width = " + TextUtils.formatDouble(poly_width.v) + ";");
+		pw.println("$poly_width = " + TextUtils.formatDouble(poly_width.value) + ";");
 		pw.println("$poly_width_rule = \"" + poly_width.rule + "\";");
-		pw.println("$poly_endcap = " + TextUtils.formatDouble(poly_endcap.v) + ";               # min. poly gate extension from edge of diffusion");
+		pw.println("$poly_endcap = " + TextUtils.formatDouble(poly_endcap.value) + ";               # min. poly gate extension from edge of diffusion");
 		pw.println("$poly_endcap_rule = \"" + poly_endcap.rule + "\";               # min. poly gate extension from edge of diffusion");
-		pw.println("$poly_spacing = " + TextUtils.formatDouble(poly_spacing.v) + ";");
+		pw.println("$poly_spacing = " + TextUtils.formatDouble(poly_spacing.value) + ";");
 		pw.println("$poly_spacing_rule = \"" + poly_spacing.rule + "\";");
-		pw.println("$poly_diff_spacing = " + TextUtils.formatDouble(poly_diff_spacing.v) + ";         # min. spacing between poly and diffusion");
+		pw.println("$poly_diff_spacing = " + TextUtils.formatDouble(poly_diff_spacing.value) + ";         # min. spacing between poly and diffusion");
 		pw.println("$poly_diff_spacing_rule = \"" + poly_diff_spacing.rule + "\";         # min. spacing between poly and diffusion");
-        pw.println("$poly_protection_spacing = " + TextUtils.formatDouble(poly_protection_spacing.v) + ";         # min. spacing between poly and dummy poly");
+        pw.println("$poly_protection_spacing = " + TextUtils.formatDouble(poly_protection_spacing.value) + ";         # min. spacing between poly and dummy poly");
 		pw.println("$poly_protection_spacing_rule = \"" + poly_protection_spacing.rule + "\";         # min. spacing between poly and dummy poly");
         pw.println();
 		pw.println("######  GATE RULES  #####");
-		pw.println("$gate_length = " + TextUtils.formatDouble(gate_length.v) + ";               # min. transistor gate length");
+		pw.println("$gate_length = " + TextUtils.formatDouble(gate_length.value) + ";               # min. transistor gate length");
 		pw.println("$gate_length_rule = \"" + gate_length.rule + "\";               # min. transistor gate length");
-		pw.println("$gate_width = " + TextUtils.formatDouble(gate_width.v) + ";                # min. transistor gate width");
+		pw.println("$gate_width = " + TextUtils.formatDouble(gate_width.value) + ";                # min. transistor gate width");
 		pw.println("$gate_width_rule = \"" + gate_width.rule + "\";                # min. transistor gate width");
-		pw.println("$gate_spacing = " + TextUtils.formatDouble(gate_spacing.v) + ";             # min. gate to gate spacing on diffusion");
+		pw.println("$gate_spacing = " + TextUtils.formatDouble(gate_spacing.value) + ";             # min. gate to gate spacing on diffusion");
 		pw.println("$gate_spacing_rule = \"" + gate_spacing.rule + "\";             # min. gate to gate spacing on diffusion");
-		pw.println("$gate_contact_spacing = " + TextUtils.formatDouble(gate_contact_spacing.v) + ";      # min. spacing from gate edge to contact inside diffusion");
+		pw.println("$gate_contact_spacing = " + TextUtils.formatDouble(gate_contact_spacing.value) + ";      # min. spacing from gate edge to contact inside diffusion");
 		pw.println("$gate_contact_spacing_rule = \"" + gate_contact_spacing.rule + "\";      # min. spacing from gate edge to contact inside diffusion");
 		pw.println();
 		pw.println("######  CONTACT RULES  #####");
-		pw.println("$contact_size = " + TextUtils.formatDouble(contact_size.v) + ";");
+		pw.println("$contact_size = " + TextUtils.formatDouble(contact_size.value) + ";");
 		pw.println("$contact_size_rule = \"" + contact_size.rule + "\";");
-		pw.println("$contact_spacing = " + TextUtils.formatDouble(contact_spacing.v) + ";");
+		pw.println("$contact_spacing = " + TextUtils.formatDouble(contact_spacing.value) + ";");
 		pw.println("$contact_spacing_rule = \"" + contact_spacing.rule + "\";");
-        pw.println("$contact_array_spacing = " + TextUtils.formatDouble(contact_array_spacing.v) + ";");
+        pw.println("$contact_array_spacing = " + TextUtils.formatDouble(contact_array_spacing.value) + ";");
 		pw.println("$contact_array_spacing_rule = \"" + contact_array_spacing.rule + "\";");
-        pw.println("$contact_metal_overhang_inline_only = " + TextUtils.formatDouble(contact_metal_overhang_inline_only.v) + ";      # metal overhang when overhanging contact from two sides only");
+        pw.println("$contact_metal_overhang_inline_only = " + TextUtils.formatDouble(contact_metal_overhang_inline_only.value) + ";      # metal overhang when overhanging contact from two sides only");
 		pw.println("$contact_metal_overhang_inline_only_rule = \"" + contact_metal_overhang_inline_only.rule + "\";      # metal overhang when overhanging contact from two sides only");
 
-        pw.println("$contact_metal_overhang_all_sides = " + TextUtils.formatDouble(contact_metal_overhang_all_sides.v) + ";         # metal overhang when surrounding contact");
+        pw.println("$contact_metal_overhang_all_sides = " + TextUtils.formatDouble(contact_metal_overhang_all_sides.value) + ";         # metal overhang when surrounding contact");
 		pw.println("$contact_metal_overhang_all_sides_rule = \"" + contact_metal_overhang_all_sides.rule + "\";         # metal overhang when surrounding contact");
-		pw.println("$contact_poly_overhang = " + TextUtils.formatDouble(contact_poly_overhang.v) + ";                    # poly overhang contact, recommended value");
+		pw.println("$contact_poly_overhang = " + TextUtils.formatDouble(contact_poly_overhang.value) + ";                    # poly overhang contact, recommended value");
 		pw.println("$contact_poly_overhang_rule = \"" + contact_poly_overhang.rule + "\";                    # poly overhang contact, recommended value");
-		pw.println("$polycon_diff_spacing = " + TextUtils.formatDouble(polycon_diff_spacing.v) + ";                    # spacing between poly-metal contact edge and diffusion");
+		pw.println("$polycon_diff_spacing = " + TextUtils.formatDouble(polycon_diff_spacing.value) + ";                    # spacing between poly-metal contact edge and diffusion");
 		pw.println("$polycon_diff_spacing_rule = \"" + polycon_diff_spacing.rule + "\";                    # spacing between poly-metal contact edge and diffusion");
 		pw.println();
 		pw.println("######  WELL AND IMPLANT RULES  #####");
-		pw.println("$nplus_width = " + TextUtils.formatDouble(nplus_width.v) + ";");
+		pw.println("$nplus_width = " + TextUtils.formatDouble(nplus_width.value) + ";");
 		pw.println("$nplus_width_rule = \"" + nplus_width.rule + "\";");
-		pw.println("$nplus_overhang_diff = " + TextUtils.formatDouble(nplus_overhang_diff.v) + ";");
+		pw.println("$nplus_overhang_diff = " + TextUtils.formatDouble(nplus_overhang_diff.value) + ";");
 		pw.println("$nplus_overhang_diff_rule = \"" + nplus_overhang_diff.rule + "\";");
-		pw.println("$nplus_overhang_poly = " + TextUtils.formatDouble(nplus_overhang_poly.v) + ";");
+		pw.println("$nplus_overhang_poly = " + TextUtils.formatDouble(nplus_overhang_poly.value) + ";");
 		pw.println("$nplus_overhang_poly_rule = \"" + nplus_overhang_poly.rule + "\";");
-		pw.println("$nplus_spacing = " + TextUtils.formatDouble(nplus_spacing.v) + ";");
+		pw.println("$nplus_spacing = " + TextUtils.formatDouble(nplus_spacing.value) + ";");
 		pw.println("$nplus_spacing_rule = \"" + nplus_spacing.rule + "\";");
 		pw.println();
-		pw.println("$pplus_width = " + TextUtils.formatDouble(pplus_width.v) + ";");
+		pw.println("$pplus_width = " + TextUtils.formatDouble(pplus_width.value) + ";");
 		pw.println("$pplus_width_rule = \"" + pplus_width.rule + "\";");
-		pw.println("$pplus_overhang_diff = " + TextUtils.formatDouble(pplus_overhang_diff.v) + ";");
+		pw.println("$pplus_overhang_diff = " + TextUtils.formatDouble(pplus_overhang_diff.value) + ";");
 		pw.println("$pplus_overhang_diff_rule = \"" + pplus_overhang_diff.rule + "\";");
-        pw.println("$pplus_overhang_poly = " + TextUtils.formatDouble(pplus_overhang_poly.v) + ";");
+        pw.println("$pplus_overhang_poly = " + TextUtils.formatDouble(pplus_overhang_poly.value) + ";");
 		pw.println("$pplus_overhang_poly_rule = \"" + pplus_overhang_poly.rule + "\";");
-        pw.println("$pplus_spacing = " + TextUtils.formatDouble(pplus_spacing.v) + ";");
+        pw.println("$pplus_spacing = " + TextUtils.formatDouble(pplus_spacing.value) + ";");
 		pw.println("$pplus_spacing_rule = \"" + pplus_spacing.rule + "\";");
 		pw.println();
-		pw.println("$nwell_width = " + TextUtils.formatDouble(nwell_width.v) + ";");
+		pw.println("$nwell_width = " + TextUtils.formatDouble(nwell_width.value) + ";");
 		pw.println("$nwell_width_rule = \"" + nwell_width.rule + "\";");
-		pw.println("$nwell_overhang_diff_p = " + TextUtils.formatDouble(nwell_overhang_diff_p.v) + ";");
+		pw.println("$nwell_overhang_diff_p = " + TextUtils.formatDouble(nwell_overhang_diff_p.value) + ";");
 		pw.println("$nwell_overhang_diff_rule_p = \"" + nwell_overhang_diff_p.rule + "\";");
-        pw.println("$nwell_overhang_diff_n = " + TextUtils.formatDouble(nwell_overhang_diff_n.v) + ";");
+        pw.println("$nwell_overhang_diff_n = " + TextUtils.formatDouble(nwell_overhang_diff_n.value) + ";");
 		pw.println("$nwell_overhang_diff_rule_n = \"" + nwell_overhang_diff_n.rule + "\";");
-        pw.println("$nwell_spacing = " + TextUtils.formatDouble(nwell_spacing.v) + ";");
+        pw.println("$nwell_spacing = " + TextUtils.formatDouble(nwell_spacing.value) + ";");
 		pw.println("$nwell_spacing_rule = \"" + nwell_spacing.rule + "\";");
 		pw.println();
 		pw.println("######  METAL RULES  #####");
@@ -1291,7 +1351,7 @@ public class TechEditWizardData
 		for(int i=0; i<num_metal_layers; i++)
 		{
 			if (i > 0) pw.print(", ");
-			pw.print(TextUtils.formatDouble(metal_width[i].v));
+			pw.print(TextUtils.formatDouble(metal_width[i].value));
 		}
 		pw.println(");");
 		pw.print("@metal_width_rule = (");
@@ -1305,7 +1365,7 @@ public class TechEditWizardData
 		for(int i=0; i<num_metal_layers; i++)
 		{
 			if (i > 0) pw.print(", ");
-			pw.print(TextUtils.formatDouble(metal_spacing[i].v));
+			pw.print(TextUtils.formatDouble(metal_spacing[i].value));
 		}
 		pw.println(");");
 		pw.print("@metal_spacing_rule = (");
@@ -1321,7 +1381,7 @@ public class TechEditWizardData
 		for(int i=0; i<num_metal_layers-1; i++)
 		{
 			if (i > 0) pw.print(", ");
-			pw.print(TextUtils.formatDouble(via_size[i].v));
+			pw.print(TextUtils.formatDouble(via_size[i].value));
 		}
 		pw.println(");");
 		pw.print("@via_size_rule = (");
@@ -1335,7 +1395,7 @@ public class TechEditWizardData
 		for(int i=0; i<num_metal_layers-1; i++)
 		{
 			if (i > 0) pw.print(", ");
-			pw.print(TextUtils.formatDouble(via_inline_spacing[i].v));
+			pw.print(TextUtils.formatDouble(via_inline_spacing[i].value));
 		}
 		pw.println(");");
 		pw.print("@via_spacing_rule = (");
@@ -1351,7 +1411,7 @@ public class TechEditWizardData
 		for(int i=0; i<num_metal_layers-1; i++)
 		{
 			if (i > 0) pw.print(", ");
-			pw.print(TextUtils.formatDouble(via_array_spacing[i].v));
+			pw.print(TextUtils.formatDouble(via_array_spacing[i].value));
 		}
 		pw.println(");");
 		pw.print("@via_array_spacing_rule = (");
@@ -1365,7 +1425,7 @@ public class TechEditWizardData
 		for(int i=0; i<num_metal_layers-1; i++)
 		{
 			if (i > 0) pw.print(", ");
-			pw.print(TextUtils.formatDouble(via_overhang[i].v));
+			pw.print(TextUtils.formatDouble(via_overhang[i].value));
 		}
 		pw.println(");");
 		pw.print("@via_overhang_inline_rule = (");
@@ -1700,7 +1760,7 @@ public class TechEditWizardData
                                    WizardField width, boolean pureLayerNode, boolean pureLayerPortArc,
                                    String... portArcNames)
     {
-        Xml.Layer l = makeXmlLayer(layers, name, function, extraf, graph, width.v, pureLayerNode, pureLayerPortArc, portArcNames);
+        Xml.Layer l = makeXmlLayer(layers, name, function, extraf, graph, width.value, pureLayerNode, pureLayerPortArc, portArcNames);
         layer_width.put(l, width);
         return l;
     }
@@ -2143,13 +2203,13 @@ public class TechEditWizardData
                 // dummy layers
                 graph = new EGraphics(true, true, null, tcol, r, g, b, opacity, false, nullPattern);
                 layer = makeXmlLayer(t.layers, "DMY-"+metalName, Layer.Function.getDummyMetal(metalNum), 0, graph,
-                    5*metal_width[i].v, true, false);
+                    5*metal_width[i].value, true, false);
                 dummyMetalLayers.add(layer);
 
                 // exclusion layers for metals
                 graph = new EGraphics(true, true, null, tcol, r, g, b, opacity, true, dexclPattern);
                 layer = makeXmlLayer(t.layers, "DEXCL-"+metalName, Layer.Function.getDummyExclMetal(i), 0, graph,
-                    2*metal_width[i].v, true, false);
+                    2*metal_width[i].value, true, false);
                 exclusionMetalLayers.add(layer);
             }
         }
@@ -2186,7 +2246,7 @@ public class TechEditWizardData
             // exclusion layer poly
             graph = new EGraphics(true, true, null, 1, 0, 0, 0, 1, true, dexclPattern);
             Xml.Layer exclusionPolyLayer = makeXmlLayer(t.layers, "DEXCL-"+polyN, Layer.Function.DEXCLPOLY1, 0, graph,
-                2*poly_width.v, true, false);
+                2*poly_width.value, true, false);
             makeLayerGDS(t, exclusionPolyLayer, "150/21");
         }
 
@@ -2215,9 +2275,9 @@ public class TechEditWizardData
             // exclusion layer N/P diff
             graph = new EGraphics(true, true, null, 2, 0, 0, 0, 1, true, dexclPattern);
             Xml.Layer exclusionDiffPLayer = makeXmlLayer(t.layers, "DEXCL-P-"+ diff_layer.name, Layer.Function.DEXCLDIFF, 0, graph,
-                2*diff_width.v, true, false);
+                2*diff_width.value, true, false);
             Xml.Layer exclusionDiffNLayer = makeXmlLayer(t.layers, "DEXCL-N-"+ diff_layer.name, Layer.Function.DEXCLDIFF, 0, graph,
-                2*diff_width.v, true, false);
+                2*diff_width.value, true, false);
             makeLayerGDS(t, exclusionDiffPLayer, "150/20");
             makeLayerGDS(t, exclusionDiffNLayer, "150/20");
         }
@@ -2378,26 +2438,26 @@ public class TechEditWizardData
         polyGroup.addArc(makeXmlArc(t, polyLayer.name, ArcProto.Function.getPoly(1), ant,
                 makeXmlArcLayer(polyLayer, poly_width)));
         // poly pin
-        double hla = scaledValue(poly_width.v / 2);
+        double hla = scaledValue(poly_width.value / 2);
         polyGroup.addPinOrResistor(makeXmlPrimitivePin(t, polyLayer.name, hla, null, // new SizeOffset(hla, hla, hla, hla),
             null, makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.CROSSED)), null);
         // poly contact
         portNames.clear();
         portNames.add(polyLayer.name);
         portNames.add(metalLayers.get(0).name);
-        hla = scaledValue((contact_size.v/2 + contact_poly_overhang.v));
+        hla = scaledValue((contact_size.value /2 + contact_poly_overhang.value));
         Xml.Layer m1Layer = metalLayers.get(0);
-        double contSize = scaledValue(contact_size.v);
-        double contSpacing = scaledValue(contact_spacing.v);
-        double contArraySpacing = scaledValue(contact_array_spacing.v);
-        double metal1Over = scaledValue(contact_size.v/2 + contact_metal_overhang_all_sides.v);
+        double contSize = scaledValue(contact_size.value);
+        double contSpacing = scaledValue(contact_spacing.value);
+        double contArraySpacing = scaledValue(contact_array_spacing.value);
+        double metal1Over = scaledValue(contact_size.value /2 + contact_metal_overhang_all_sides.value);
 
         // only for standard cases when getProtectionPoly() is false
         if (!getExtraInfoFlag())
         {
             polyGroup.addElement(makeContactSeries(t.nodeGroups, polyLayer.name, contSize, polyConLayer, contSpacing, contArraySpacing,
-                        scaledValue(contact_poly_overhang.v), polyLayer,
-                        scaledValue(via_overhang[0].v), m1Layer), null);
+                        scaledValue(contact_poly_overhang.value), polyLayer,
+                        scaledValue(via_overhang[0].value), m1Layer), null);
         }
 
         /**************************** N/P-Diff Nodes/Arcs/Group ***********************************************/
@@ -2408,12 +2468,12 @@ public class TechEditWizardData
         wellPalette[0] = new PaletteGroup(); wellPalette[1] = new PaletteGroup();
 
         // ndiff/pdiff pins
-        hla = scaledValue((contact_size.v/2 + diff_contact_overhang.v));
-        double nsel = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nplus_overhang_diff.v);
-        double psel = scaledValue(contact_size.v/2 + diff_contact_overhang.v + pplus_overhang_diff.v);
-        double nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_p.v);
-        double nso = scaledValue(nwell_overhang_diff_p.v /*+ diff_contact_overhang.v*/); // valid for elements that have nwell layers
-        double pso = (!pSubstrateProcess)?nso:scaledValue(nplus_overhang_diff.v/* + diff_contact_overhang.v*/);
+        hla = scaledValue((contact_size.value /2 + diff_contact_overhang.value));
+        double nsel = scaledValue(contact_size.value /2 + diff_contact_overhang.value + nplus_overhang_diff.value);
+        double psel = scaledValue(contact_size.value /2 + diff_contact_overhang.value + pplus_overhang_diff.value);
+        double nwell = scaledValue(contact_size.value /2 + diff_contact_overhang.value + nwell_overhang_diff_p.value);
+        double nso = scaledValue(nwell_overhang_diff_p.value /*+ diff_contact_overhang.v*/); // valid for elements that have nwell layers
+        double pso = (!pSubstrateProcess)?nso:scaledValue(nplus_overhang_diff.value/* + diff_contact_overhang.v*/);
 
         // ndiff/pdiff contacts
         String[] diffNames = {"P", "N"};
@@ -2465,12 +2525,12 @@ public class TechEditWizardData
                 else
                     assert(false); // it should not happen
                 name = ly.name + "-" + lx.name;
-                double h1x = scaledValue(contact_size.v/2 + metalLayer.overX.v);
-                double h1y = scaledValue(contact_size.v/2 + metalLayer.overY.v);
-                double h2x = scaledValue(contact_size.v/2 + otherLayer.overX.v);
-                double h2y = scaledValue(contact_size.v/2 + otherLayer.overY.v);
-                double longX = (Math.abs(metalLayer.overX.v - otherLayer.overX.v));
-                double longY = (Math.abs(metalLayer.overY.v - otherLayer.overY.v));
+                double h1x = scaledValue(contact_size.value /2 + metalLayer.overX.value);
+                double h1y = scaledValue(contact_size.value /2 + metalLayer.overY.value);
+                double h2x = scaledValue(contact_size.value /2 + otherLayer.overX.value);
+                double h2y = scaledValue(contact_size.value /2 + otherLayer.overY.value);
+                double longX = (Math.abs(metalLayer.overX.value - otherLayer.overX.value));
+                double longY = (Math.abs(metalLayer.overY.value - otherLayer.overY.value));
 
                 portNames.clear();
                 portNames.add(lx.name);
@@ -2511,13 +2571,13 @@ public class TechEditWizardData
                     if (pSubstrateProcess && lz == pwellLayer)
                         continue; // skip this layer
 
-                    double h3x = scaledValue(contact_size.v/2 + node.overX.v);
-                    double h3y = scaledValue(contact_size.v/2 + node.overY.v);
+                    double h3x = scaledValue(contact_size.value /2 + node.overX.value);
+                    double h3y = scaledValue(contact_size.value /2 + node.overY.value);
                     nodes[count++] = makeXmlNodeLayer(h3x, h3x, h3y, h3y, lz, Poly.Type.FILLED);
 
                     // This assumes no well is defined
-                    double longXLocal = (Math.abs(node.overX.v - otherLayer.overX.v));
-                    double longYLocal = (Math.abs(node.overY.v - otherLayer.overY.v));
+                    double longXLocal = (Math.abs(node.overX.value - otherLayer.overX.value));
+                    double longYLocal = (Math.abs(node.overY.value - otherLayer.overY.value));
                     if (DBMath.isGreaterThan(longXLocal, longX))
                         longX = longXLocal;
                     if (DBMath.isGreaterThan(longYLocal, longY))
@@ -2608,9 +2668,9 @@ public class TechEditWizardData
         }
 
         /**************************** N/P-Well Contacts ***********************************************/
-        nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_n.v);
-        nso = scaledValue(/*diff_contact_overhang.v +*/ nwell_overhang_diff_n.v); // valid for elements that have nwell layers
-        pso = (!pSubstrateProcess)?nso:scaledValue(/*diff_contact_overhang.v +*/ nplus_overhang_diff.v);
+        nwell = scaledValue(contact_size.value /2 + diff_contact_overhang.value + nwell_overhang_diff_n.value);
+        nso = scaledValue(/*diff_contact_overhang.v +*/ nwell_overhang_diff_n.value); // valid for elements that have nwell layers
+        pso = (!pSubstrateProcess)?nso:scaledValue(/*diff_contact_overhang.v +*/ nplus_overhang_diff.value);
         double[] wellSos = {pso, nso};
 
         Xml.Layer[] wellLayers = {pwellLayer, nwellLayer};
@@ -2684,7 +2744,7 @@ public class TechEditWizardData
         // Pins and contacts
         for(int i=1; i<num_metal_layers; i++)
 		{
-            hla = scaledValue(metal_width[i-1].v / 2);
+            hla = scaledValue(metal_width[i-1].value / 2);
             Xml.Layer lb = metalLayers.get(i-1);
             Xml.Layer lt = metalLayers.get(i);
             PaletteGroup group = metalPalette[i-1];  // structure created by the arc definition
@@ -2703,12 +2763,12 @@ public class TechEditWizardData
                 // original contact Square
                 // via
                 Xml.Layer via = viaLayers.get(i-1);
-                double viaSize = scaledValue(via_size[i-1].v);
-                double viaSpacing = scaledValue(via_inline_spacing[i-1].v);
-                double viaArraySpacing = scaledValue(via_array_spacing[i-1].v);
+                double viaSize = scaledValue(via_size[i-1].value);
+                double viaSpacing = scaledValue(via_inline_spacing[i-1].value);
+                double viaArraySpacing = scaledValue(via_array_spacing[i-1].value);
                 String name = lb.name + "-" + lt.name;
 
-                double longDist = scaledValue(via_overhang[i-1].v);
+                double longDist = scaledValue(via_overhang[i-1].value);
                 group.addElement(makeContactSeries(t.nodeGroups, name, viaSize, via, viaSpacing, viaArraySpacing,
                     longDist, lt, longDist, lb), null);
             }
@@ -2731,19 +2791,19 @@ public class TechEditWizardData
                 Xml.Layer lx = metalLayers.get(j-1);
                 String name = (j>i)?ly.name + "-" + lx.name:lx.name + "-" + ly.name;
                 int via = (j>i)?i:j;
-                double metalContSize = scaledValue(via_size[via-1].v);
-                double spacing = scaledValue(via_inline_spacing[via-1].v);
-                double arraySpacing = scaledValue(via_array_spacing[via-1].v);
+                double metalContSize = scaledValue(via_size[via-1].value);
+                double spacing = scaledValue(via_inline_spacing[via-1].value);
+                double arraySpacing = scaledValue(via_array_spacing[via-1].value);
                 Xml.Layer metalConLayer = viaLayers.get(via-1);
-                double h1x = scaledValue(via_size[via-1].v/2 + verticalLayer.overX.v);
-                double h1y = scaledValue(via_size[via-1].v/2 + verticalLayer.overY.v);
-                double h2x = scaledValue(via_size[via-1].v/2 + horizontalLayer.overX.v);
-                double h2y = scaledValue(via_size[via-1].v/2 + horizontalLayer.overY.v);
+                double h1x = scaledValue(via_size[via-1].value /2 + verticalLayer.overX.value);
+                double h1y = scaledValue(via_size[via-1].value /2 + verticalLayer.overY.value);
+                double h2x = scaledValue(via_size[via-1].value /2 + horizontalLayer.overX.value);
+                double h2y = scaledValue(via_size[via-1].value /2 + horizontalLayer.overY.value);
 
 //                double longX = scaledValue(DBMath.isGreaterThan(verticalLayer.overX.v, horizontalLayer.overX.v) ? verticalLayer.overX.v : horizontalLayer.overX.v);
 //                double longY = scaledValue(DBMath.isGreaterThan(verticalLayer.overY.v, horizontalLayer.overY.v) ? verticalLayer.overY.v : horizontalLayer.overY.v);
-                double longX = scaledValue(Math.abs(verticalLayer.overX.v - horizontalLayer.overX.v));
-                double longY = scaledValue(Math.abs(verticalLayer.overY.v - horizontalLayer.overY.v));
+                double longX = scaledValue(Math.abs(verticalLayer.overX.value - horizontalLayer.overX.value));
+                double longY = scaledValue(Math.abs(verticalLayer.overY.value - horizontalLayer.overY.value));
                 portNames.clear();
                 portNames.add(lx.name);
                 portNames.add(ly.name);
@@ -2774,25 +2834,25 @@ public class TechEditWizardData
             double selecty = 0, selectx = 0;
             Xml.Layer wellLayer = null, activeLayer, selectLayer;
             double sox = 0, soy = 0;
-            double impx = scaledValue((gate_width.v)/2);
-            double impy = scaledValue((gate_length.v+diff_poly_overhang.v*2)/2);
+            double impx = scaledValue((gate_width.value)/2);
+            double impy = scaledValue((gate_length.value +diff_poly_overhang.value *2)/2);
             double nwell_overhangX = 0, nwell_overhangY = 0;
             PaletteGroup g = new PaletteGroup();
             transPalette[i] = g;
 
-            double protectDist = scaledValue(poly_protection_spacing.v);
+            double protectDist = scaledValue(poly_protection_spacing.value);
             double extraSelX = 0, extraSelY = 0;
             PrimitiveNode.Function func = null, prFunc = null;
 
             if (i==Technology.P_TYPE)
             {
 				name = "P";
-                nwell_overhangY = nwell_overhangX = nwell_overhang_diff_n.v;
+                nwell_overhangY = nwell_overhangX = nwell_overhang_diff_n.value;
                 wellLayer = nwellLayer;
                 activeLayer = diffPLayer;
                 selectLayer = pplusLayer;
-                extraSelX = pplus_overhang_poly.v;
-                extraSelY = pplus_overhang_diff.v;
+                extraSelX = pplus_overhang_poly.value;
+                extraSelY = pplus_overhang_diff.value;
                 func = PrimitiveNode.Function.TRAPMOS;
                 prFunc = PrimitiveNode.Function.RESPPOLY;
             }
@@ -2801,40 +2861,40 @@ public class TechEditWizardData
 				name = "N";
                 activeLayer = diffNLayer;
                 selectLayer = nplusLayer;
-                extraSelX = nplus_overhang_poly.v;
-                extraSelY = nplus_overhang_diff.v;
+                extraSelX = nplus_overhang_poly.value;
+                extraSelY = nplus_overhang_diff.value;
                 func = PrimitiveNode.Function.TRANMOS;
                 prFunc = PrimitiveNode.Function.RESNPOLY;
                 if (!pSubstrateProcess)
                 {
-                    nwell_overhangY = nwell_overhangX = nwell_overhang_diff_p.v;
+                    nwell_overhangY = nwell_overhangX = nwell_overhang_diff_p.value;
                     wellLayer = pwellLayer;
                 }
                 else
                 {
-                    nwell_overhangX = poly_endcap.v+extraSelX;
+                    nwell_overhangX = poly_endcap.value +extraSelX;
                     nwell_overhangY = extraSelY;
                 }
             }
 
-            selectx = scaledValue(gate_width.v/2+poly_endcap.v+extraSelX);
-            selecty = scaledValue(gate_length.v/2+diff_poly_overhang.v+extraSelY);
+            selectx = scaledValue(gate_width.value /2+poly_endcap.value +extraSelX);
+            selecty = scaledValue(gate_length.value /2+diff_poly_overhang.value +extraSelY);
 
             // Using P values in transistors
-            double wellx = scaledValue((gate_width.v/2+nwell_overhangX));
-            double welly = scaledValue((gate_length.v/2+diff_poly_overhang.v+nwell_overhangY));
+            double wellx = scaledValue((gate_width.value /2+nwell_overhangX));
+            double welly = scaledValue((gate_length.value /2+diff_poly_overhang.value +nwell_overhangY));
 
             sox = scaledValue(nwell_overhangX);
-            soy = scaledValue(diff_poly_overhang.v+nwell_overhangY);
+            soy = scaledValue(diff_poly_overhang.value +nwell_overhangY);
 
             if (DBMath.isLessThan(wellx, selectx))
             {
-                sox = scaledValue(poly_endcap.v+extraSelX);
+                sox = scaledValue(poly_endcap.value +extraSelX);
                 wellx = selectx;
             }
             if (DBMath.isLessThan(welly, selecty))
             {
-                soy = scaledValue(diff_poly_overhang.v+extraSelY);
+                soy = scaledValue(diff_poly_overhang.value +extraSelY);
                 welly = selecty;
             }
 
@@ -2843,15 +2903,15 @@ public class TechEditWizardData
             portNames.clear();
 
             // Gate layer Electrical
-            double gatey = scaledValue(gate_length.v/2);
+            double gatey = scaledValue(gate_length.value /2);
             double gatex = impx;
             // Poly layers
             // left electrical
-            double endPolyx = scaledValue((gate_width.v+poly_endcap.v*2)/2);
+            double endPolyx = scaledValue((gate_width.value +poly_endcap.value *2)/2);
             double endPolyy = gatey;
             double endLeftOrRight = -impx;   // for horizontal transistors. Default
             double endTopOrBotton = endPolyy; // for horizontal transistors. Default
-            double diffX = 0, diffY = scaledValue(gate_length.v/2+gate_contact_spacing.v+contact_size.v/2);  // impy
+            double diffX = 0, diffY = scaledValue(gate_length.value /2+gate_contact_spacing.value +contact_size.value /2);  // impy
             double xSign = 1, ySign = -1;
             double polyX = endPolyx, polyY = 0;
 
@@ -2959,12 +3019,12 @@ public class TechEditWizardData
                 // Short transistors
                 // Adding extra transistors whose select and well are aligned with poly along the X axis
                 nodesList.remove(xTranSelLayer);
-                double shortSelectX = scaledValue(gate_width.v/2+poly_endcap.v);
+                double shortSelectX = scaledValue(gate_width.value /2+poly_endcap.value);
                 xTranSelLayer = (makeXmlNodeLayer(shortSelectX, shortSelectX, selecty, selecty, selectLayer, Poly.Type.FILLED));
                 nodesList.add(xTranSelLayer);
                 double shortSox = sox;
 
-                shortSox = scaledValue(poly_endcap.v);
+                shortSox = scaledValue(poly_endcap.value);
                 if (wellLayer != null)
                 {
                     nodesList.remove(xTranWellLayer);
@@ -2978,8 +3038,8 @@ public class TechEditWizardData
                 /*************************************/
                 // Short transistors with VTH and VTL
 
-                double vthlx = scaledValue(gate_width.v/2+vthl_diff_overhang.v);
-                double vthly = scaledValue(gate_length.v/2+ vthl_poly_overhang.v);
+                double vthlx = scaledValue(gate_width.value /2+vthl_diff_overhang.value);
+                double vthly = scaledValue(gate_length.value /2+ vthl_poly_overhang.value);
 
                 // VTH Transistor
                 String tmp = "VTH-" + name;
@@ -3007,8 +3067,8 @@ public class TechEditWizardData
 
                 // different select for those with extra protection layers
                 nodesList.remove(xTranSelLayer);
-                double endOfProtectionY = gate_length.v + poly_protection_spacing.v;
-                double selectExtraY = scaledValue(gate_length.v/2 + endOfProtectionY + extraSelX); // actually is extraSelX because of the poly distance!
+                double endOfProtectionY = gate_length.value + poly_protection_spacing.value;
+                double selectExtraY = scaledValue(gate_length.value /2 + endOfProtectionY + extraSelX); // actually is extraSelX because of the poly distance!
                 xTranSelLayer = (makeXmlNodeLayer(selectx, selectx, selectExtraY, selectExtraY, selectLayer, Poly.Type.FILLED));
                 nodesList.add(xTranSelLayer);
 
@@ -3064,21 +3124,21 @@ public class TechEditWizardData
                 /*************************************/
                 // Short transistors woth OD18
 
-                double od18x = scaledValue(gate_od18_width.v/2+od18_diff_overhang[0].v);
-                double od18y = scaledValue(gate_od18_length.v/2+diff_poly_overhang.v+od18_diff_overhang[1].v);
+                double od18x = scaledValue(gate_od18_width.value /2+od18_diff_overhang[0].value);
+                double od18y = scaledValue(gate_od18_length.value /2+diff_poly_overhang.value +od18_diff_overhang[1].value);
 
                 nodePorts.clear();
                 nodesList.clear();
-                prepareTransistor(gate_od18_width.v, gate_od18_length.v, poly_endcap.v, diff_poly_overhang.v,
-                    gate_contact_spacing.v, contact_size.v, activeLayer, polyLayer, polyGateLayer, nodesList, nodePorts);
+                prepareTransistor(gate_od18_width.value, gate_od18_length.value, poly_endcap.value, diff_poly_overhang.value,
+                    gate_contact_spacing.value, contact_size.value, activeLayer, polyLayer, polyGateLayer, nodesList, nodePorts);
 
                 // OD18
                 Xml.Layer od18Layer = t.findLayer("OD_18");
                 nodesList.add(makeXmlNodeLayer(od18x, od18x, od18y, od18y, od18Layer, Poly.Type.FILLED));
 
                 // adding short select
-                shortSelectX = scaledValue(gate_od18_width.v/2+poly_endcap.v);
-                selecty = scaledValue(gate_od18_length.v/2+diff_poly_overhang.v+extraSelY);
+                shortSelectX = scaledValue(gate_od18_width.value /2+poly_endcap.value);
+                selecty = scaledValue(gate_od18_length.value /2+diff_poly_overhang.value +extraSelY);
                 xTranSelLayer = (makeXmlNodeLayer(shortSelectX, shortSelectX, selecty, selecty, selectLayer, Poly.Type.FILLED));
                 nodesList.add(xTranSelLayer);
 
@@ -3089,8 +3149,8 @@ public class TechEditWizardData
                     nodesList.add(xTranWellLayer);
                 }
 
-                sox = scaledValue(od18_diff_overhang[0].v);
-                soy = scaledValue(diff_poly_overhang.v+od18_diff_overhang[1].v);
+                sox = scaledValue(od18_diff_overhang[0].value);
+                soy = scaledValue(diff_poly_overhang.value +od18_diff_overhang[1].value);
                 n = makeXmlPrimitive(t.nodeGroups, "OD18-" + name + "-Transistor-S", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                 g.addElement(n, "18-" + name + "-S");
@@ -3100,21 +3160,21 @@ public class TechEditWizardData
 
                 if (i==Technology.N_TYPE)
                 {
-                    double ntx = scaledValue(gate_nt_width.v/2+nt_diff_overhang.v);
-                    double nty = scaledValue(gate_nt_length.v/2+diff_poly_overhang.v+nt_diff_overhang.v);
+                    double ntx = scaledValue(gate_nt_width.value /2+nt_diff_overhang.value);
+                    double nty = scaledValue(gate_nt_length.value /2+diff_poly_overhang.value +nt_diff_overhang.value);
 
                     nodePorts.clear();
                     nodesList.clear();
-                    prepareTransistor(gate_nt_width.v, gate_nt_length.v, poly_nt_endcap.v, diff_poly_overhang.v,
-                        gate_contact_spacing.v, contact_size.v, activeLayer, polyLayer, polyGateLayer, nodesList, nodePorts);
+                    prepareTransistor(gate_nt_width.value, gate_nt_length.value, poly_nt_endcap.value, diff_poly_overhang.value,
+                        gate_contact_spacing.value, contact_size.value, activeLayer, polyLayer, polyGateLayer, nodesList, nodePorts);
 
                     // NT-N
                     Xml.Layer ntLayer = t.findLayer("NT-N");
                     nodesList.add(makeXmlNodeLayer(ntx, ntx, nty, nty, ntLayer, Poly.Type.FILLED));
 
                     // adding short select
-                    shortSelectX = scaledValue(gate_nt_width.v/2+poly_nt_endcap.v);
-                    selecty = scaledValue(gate_nt_length.v/2+diff_poly_overhang.v+extraSelY);
+                    shortSelectX = scaledValue(gate_nt_width.value /2+poly_nt_endcap.value);
+                    selecty = scaledValue(gate_nt_length.value /2+diff_poly_overhang.value +extraSelY);
                     xTranSelLayer = (makeXmlNodeLayer(shortSelectX, shortSelectX, selecty, selecty, selectLayer, Poly.Type.FILLED));
                     nodesList.add(xTranSelLayer);
 
@@ -3125,8 +3185,8 @@ public class TechEditWizardData
                         nodesList.add(xTranWellLayer);
                     }
 
-                    sox = scaledValue(poly_nt_endcap.v);
-                    soy = scaledValue(diff_poly_overhang.v+nt_diff_overhang.v);
+                    sox = scaledValue(poly_nt_endcap.value);
+                    soy = scaledValue(diff_poly_overhang.value +nt_diff_overhang.value);
                     n = makeXmlPrimitive(t.nodeGroups, "NT-" + name + "-Transistor-S", func, 0, 0, 0, 0,
                         new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                     g.addElement(n, "NT-" + name + "-S");
@@ -3142,30 +3202,30 @@ public class TechEditWizardData
                 WizardField rpoODPolyEx = findWizardField("rpo_odpoly_overhang");
                 WizardField rhOverhang = findWizardField("rh_odpoly_overhang");
 
-                double resistorSpacing = contact_array_spacing.v; // using array value to guarantee proper spacing in nD cases
+                double resistorSpacing = contact_array_spacing.value; // using array value to guarantee proper spacing in nD cases
 
                 // poly
-                double soxNoScaled = (rpoS.v + contact_poly_overhang.v + resistorSpacing + 2 * contact_size.v);
-                double halfTotalL = scaledValue(polyRL.v/2 + soxNoScaled);
-                double halfTotalW = scaledValue(polyRW.v/2);
+                double soxNoScaled = (rpoS.value + contact_poly_overhang.value + resistorSpacing + 2 * contact_size.value);
+                double halfTotalL = scaledValue(polyRL.value /2 + soxNoScaled);
+                double halfTotalW = scaledValue(polyRW.value /2);
                 nodesList.add(makeXmlNodeLayer(halfTotalL, halfTotalL, halfTotalW, halfTotalW, polyLayer,
                     Poly.Type.FILLED, true, true, -1));
 
                 // RPO
                 Xml.Layer rpoLayer = t.findLayer("RPO");
-                double rpoY = scaledValue(polyRW.v/2 + rpoODPolyEx.v);
-                double rpoX = scaledValue(polyRL.v/2);
+                double rpoY = scaledValue(polyRW.value /2 + rpoODPolyEx.value);
+                double rpoX = scaledValue(polyRL.value /2);
                 nodesList.add(makeXmlNodeLayer(rpoX, rpoX, rpoY, rpoY, rpoLayer,
                     Poly.Type.FILLED, true, true, -1));
 
                 // left cuts
-                double cutDistance = scaledValue(rpoS.v + polyRL.v/2);
+                double cutDistance = scaledValue(rpoS.value + polyRL.value /2);
                 // M1 and Poly overhang will be the same for now
 //                double absVal = (contact_poly_overhang.v - via_overhang[0].v);
-                double m1Distance = cutDistance - scaledValue(contact_poly_overhang.v);
-                double m1Y = scaledValue(polyRW.v/2); // - absVal);
-                double m1W = scaledValue(2 * contact_poly_overhang.v + resistorSpacing + 2 * contact_size.v);
-                double cutSizeHalf = scaledValue(contact_size.v/2);
+                double m1Distance = cutDistance - scaledValue(contact_poly_overhang.value);
+                double m1Y = scaledValue(polyRW.value /2); // - absVal);
+                double m1W = scaledValue(2 * contact_poly_overhang.value + resistorSpacing + 2 * contact_size.value);
+                double cutSizeHalf = scaledValue(contact_size.value /2);
                 double cutEnd = cutDistance+contSize;
                 double cutSpacing = scaledValue(resistorSpacing);
                 double cutEnd2 = cutEnd+contSize+cutSpacing;
@@ -3189,8 +3249,8 @@ public class TechEditWizardData
                     Poly.Type.FILLED, true, true, 1));
 
                 // select
-                double selectY = scaledValue(polyRW.v/2 + rhOverhang.v);
-                double selectX = scaledValue(polyRL.v/2 + soxNoScaled + extraSelX);
+                double selectY = scaledValue(polyRW.value /2 + rhOverhang.value);
+                double selectX = scaledValue(polyRL.value /2 + soxNoScaled + extraSelX);
                 nodesList.add(makeXmlNodeLayer(selectX, selectX, selectY, selectY, selectLayer,
                     Poly.Type.FILLED, true, true, -1));
                 // RH
@@ -3209,7 +3269,7 @@ public class TechEditWizardData
                     contArraySpacing, contArraySpacing));
 
                 sox = scaledValue(soxNoScaled + extraSelX);
-                soy = scaledValue(rpoODPolyEx.v);
+                soy = scaledValue(rpoODPolyEx.value);
                 n = makeXmlPrimitive(t.nodeGroups, name + "-Poly-RPO-Resistor", prFunc, 0, 0, 0, 0,
                     new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                 g.addPinOrResistor(n, name + "-RPoly");
@@ -3226,16 +3286,16 @@ public class TechEditWizardData
                 WizardField odNwrodO = findWizardField("od_nwrod_overhang"); // D
 
                 // Total values define RPO dimensions
-                double cutEndNoScaled = /*F*/rpoSelO.v + /*G*/rpoCoS.v;
-                double cutSpacingNoScaled = /*2xCut + spacing*/resistorSpacing + 2*contact_size.v;
+                double cutEndNoScaled = /*F*/rpoSelO.value + /*G*/rpoCoS.value;
+                double cutSpacingNoScaled = /*2xCut + spacing*/resistorSpacing + 2*contact_size.value;
                 double activeXNoScaled = /*F+G*/cutEndNoScaled + /*cut spacing+2xcuts*/cutSpacingNoScaled
-                    + /*E*/coNwrodO.v + /*D*/odNwrodO.v;
-                soxNoScaled = activeXNoScaled + rpoODPolyEx.v;
-                double soyNoScaled = /*D*/odNwrodO.v + rpoODPolyEx.v;
-                halfTotalL = scaledValue(wellRL.v/2 + soxNoScaled);
-                halfTotalW = scaledValue(wellRW.v/2 + soyNoScaled);
+                    + /*E*/coNwrodO.value + /*D*/odNwrodO.value;
+                soxNoScaled = activeXNoScaled + rpoODPolyEx.value;
+                double soyNoScaled = /*D*/odNwrodO.value + rpoODPolyEx.value;
+                halfTotalL = scaledValue(wellRL.value /2 + soxNoScaled);
+                halfTotalW = scaledValue(wellRW.value /2 + soyNoScaled);
                 double activeWX = scaledValue(activeXNoScaled);
-                double activeWY = scaledValue(wellRW.v/2 + /*D*/odNwrodO.v);
+                double activeWY = scaledValue(wellRW.value /2 + /*D*/odNwrodO.value);
 
                 // rpo. It has two holes
                 nodesList.add(makeXmlNodeLayer(halfTotalL, halfTotalL, halfTotalW, halfTotalW, rpoLayer,
@@ -3246,9 +3306,9 @@ public class TechEditWizardData
                     Poly.Type.FILLED, true, true, -1));
 
                 // well
-                double halfW = scaledValue(wellRW.v/2);
-                double halfWellL = scaledValue(wellRL.v/2+/*F+G*/cutEndNoScaled+/*cut spacing+2xcuts*/cutSpacingNoScaled
-                + /*E*/coNwrodO.v);
+                double halfW = scaledValue(wellRW.value /2);
+                double halfWellL = scaledValue(wellRL.value /2+/*F+G*/cutEndNoScaled+/*cut spacing+2xcuts*/cutSpacingNoScaled
+                + /*E*/coNwrodO.value);
                 if (i==Technology.N_TYPE)
                 {
                     nodesList.add(makeXmlNodeLayer(halfWellL, halfWellL, halfW, halfW, nwellLayer,
@@ -3256,16 +3316,16 @@ public class TechEditWizardData
                 }
                 
                 // NWDMY-LVS
-                double halfL = scaledValue(wellRL.v/2);
+                double halfL = scaledValue(wellRL.value /2);
                 Xml.Layer nwdmyLayer = t.findLayer("NWDMY-LVS");
                 nodesList.add(makeXmlNodeLayer(halfL, halfL, halfTotalW, halfTotalW, nwdmyLayer,
                     Poly.Type.FILLED, true, true, -1));
 
-                cutEnd = scaledValue(wellRL.v/2+cutEndNoScaled);
+                cutEnd = scaledValue(wellRL.value /2+cutEndNoScaled);
                 cutSpacing = scaledValue(cutSpacingNoScaled);
 
                 // Metal1
-                m1Distance = scaledValue(wellRL.v/2 + /*F*/rpoSelO.v);
+                m1Distance = scaledValue(wellRL.value /2 + /*F*/rpoSelO.value);
                 // metal left
                 nodesList.add(makeXmlNodeLayer(halfWellL, -1, -m1Distance, -1, halfW, -1, halfW, 1, m1Layer,
                     Poly.Type.FILLED, true, true, 0));
@@ -3342,7 +3402,7 @@ public class TechEditWizardData
         for (Xml.Layer l : diffLayers)
         {
             makeLayerRuleMinWid(t, l, diff_width);
-            makeLayersRule(t, l, DRCTemplate.DRCRuleType.SPACING, diff_spacing);
+            makeLayersRule(t, l, DRCTemplate.DRCRuleType.SPACING, diff_spacing.rule, diff_spacing.value);
         }
 
         WizardField[] plus_diff = {pplus_overhang_diff, nplus_overhang_diff};
@@ -3352,8 +3412,8 @@ public class TechEditWizardData
         for (int i = 0; i < plusLayers.length; i++)
         {
             makeLayerRuleMinWid(t, plusLayers[i], plus_width[i]);
-            makeLayersRuleSurround(t, plusLayers[i], diffLayers[i], plus_diff[i]);
-            makeLayersRule(t, plusLayers[i], DRCTemplate.DRCRuleType.SPACING, plus_spacing[i]);
+            makeLayersRuleSurround(t, plusLayers[i], diffLayers[i], plus_diff[i].rule, plus_diff[i].value);
+            makeLayersRule(t, plusLayers[i], DRCTemplate.DRCRuleType.SPACING, plus_spacing[i].rule, plus_spacing[i].value);
         }
 
         Xml.Layer[] wells = {pwellLayer, nwellLayer};
@@ -3361,28 +3421,39 @@ public class TechEditWizardData
         for (Xml.Layer w : wells)
         {
             makeLayerRuleMinWid(t, w, nwell_width);
-            makeLayersRuleSurround(t, w, diffPLayer, nwell_overhang_diff_p);
-            makeLayersRuleSurround(t, w, diffNLayer, nwell_overhang_diff_n);
-            makeLayersRule(t, w, DRCTemplate.DRCRuleType.SPACING, nwell_spacing);
+            makeLayersRuleSurround(t, w, diffPLayer, nwell_overhang_diff_p.rule, nwell_overhang_diff_p.value);
+            makeLayersRuleSurround(t, w, diffNLayer, nwell_overhang_diff_n.rule, nwell_overhang_diff_n.value);
+            makeLayersRule(t, w, DRCTemplate.DRCRuleType.SPACING, nwell_spacing.rule, nwell_spacing.value);
         }
 
         Xml.Layer[] polys = {polyLayer, polyGateLayer};
         for (Xml.Layer w : polys)
         {
             makeLayerRuleMinWid(t, w, poly_width);
-            makeLayersRule(t, w, DRCTemplate.DRCRuleType.SPACING, poly_spacing);
+            makeLayersRule(t, w, DRCTemplate.DRCRuleType.SPACING, poly_spacing.rule, poly_spacing.value);
         }
 
+        // Simple spacing rules included here
         for (int i = 0; i < num_metal_layers; i++) {
             Xml.Layer met = metalLayers.get(i);
             makeLayerRuleMinWid(t, met, metal_width[i]); 
-            makeLayersRule(t, met, DRCTemplate.DRCRuleType.SPACING, metal_spacing[i]);
+            makeLayersRule(t, met, DRCTemplate.DRCRuleType.SPACING, metal_spacing[i].rule, metal_spacing[i].value);
 
             if (i >= num_metal_layers - 1) continue;
             Xml.Layer via = viaLayers.get(i);
             makeLayerRuleMinWid(t, via, via_size[i]);
-            makeLayersRule(t, via, DRCTemplate.DRCRuleType.SPACING, via_inline_spacing[i]);
+            makeLayersRule(t, via, DRCTemplate.DRCRuleType.SPACING, via_inline_spacing[i].rule, via_inline_spacing[i].value);
 //            makeLayersRule(t, via, DRCTemplate.DRCRuleType.UCONSPA2D, via_array_spacing[i]);
+        }
+        // wide metal rules
+        for (WideWizardField w : wide_metal_spacing)
+        {
+            for (String layerName : w.names)
+            {
+                Xml.Layer layer = t.findLayer(layerName);
+                assert(layer != null);
+                makeLayersWideRule(t, layer, DRCTemplate.DRCRuleType.SPACING, w.rule, w.value, w.maxW, w.minLen);
+            }
         }
 
         // Finish menu with Pure, Misc and Cell
@@ -3490,7 +3561,7 @@ public class TechEditWizardData
         al.layer = layer.name;
         al.style = Poly.Type.FILLED;
         for (int i = 0; i < flds.length; i++)
-            al.extend.addLambda(scaledValue(flds[i].v/2));
+            al.extend.addLambda(scaledValue(flds[i].value /2));
         return al;
     }
 
@@ -3511,21 +3582,29 @@ public class TechEditWizardData
     private void makeLayerRuleMinWid(Xml.Technology t, Xml.Layer l, WizardField fld) {
         for (Xml.Foundry f: t.foundries) {
             f.rules.add(new DRCTemplate(fld.rule, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.MINWID,
-                l.name, null, new double[] {scaledValue(fld.v)}, null, null));
+                l.name, null, new double[] {scaledValue(fld.value)}, null, null));
         }
     }
 
-    private void makeLayersRule(Xml.Technology t, Xml.Layer l, DRCTemplate.DRCRuleType ruleType, WizardField fld) {
+    private void makeLayersWideRule(Xml.Technology t, Xml.Layer l, DRCTemplate.DRCRuleType ruleType, String ruleName, 
+                                    double ruleValue, double maxW, double minLen) {
         for (Xml.Foundry f: t.foundries) {
-            f.rules.add(new DRCTemplate(fld.rule, DRCTemplate.DRCMode.ALL.mode(), ruleType,
-                l.name, l.name, new double[] {scaledValue(fld.v)}, null, null));
+            f.rules.add(new DRCTemplate(ruleName, DRCTemplate.DRCMode.ALL.mode(), ruleType, maxW, minLen,
+                l.name, l.name, new double[] {scaledValue(ruleValue)}, -1));
         }
     }
 
-    private void makeLayersRuleSurround(Xml.Technology t, Xml.Layer l1, Xml.Layer l2, WizardField fld) {
-        double value = scaledValue(fld.v);
+    private void makeLayersRule(Xml.Technology t, Xml.Layer l, DRCTemplate.DRCRuleType ruleType, String ruleName, double ruleValue) {
         for (Xml.Foundry f: t.foundries) {
-            f.rules.add(new DRCTemplate(fld.rule, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.SURROUND,
+            f.rules.add(new DRCTemplate(ruleName, DRCTemplate.DRCMode.ALL.mode(), ruleType,
+                l.name, l.name, new double[] {scaledValue(ruleValue)}, null, null));
+        }
+    }
+
+    private void makeLayersRuleSurround(Xml.Technology t, Xml.Layer l1, Xml.Layer l2, String ruleName, double ruleValue) {
+        double value = scaledValue(ruleValue);
+        for (Xml.Foundry f: t.foundries) {
+            f.rules.add(new DRCTemplate(ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.SURROUND,
                 l1.name, l2.name, new double[] {value, value}, null, null));
         }
     }

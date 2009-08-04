@@ -55,13 +55,13 @@ public class Poly extends TechEditWizardPanel
 	public void init()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		width.setText(TextUtils.formatDouble(data.getPolyWidth().v));
+		width.setText(TextUtils.formatDouble(data.getPolyWidth().value));
 		widthRule.setText(data.getPolyWidth().rule);
-		endcap.setText(TextUtils.formatDouble(data.getPolyEndcap().v));
+		endcap.setText(TextUtils.formatDouble(data.getPolyEndcap().value));
 		endcapRule.setText(data.getPolyEndcap().rule);
-		activeSpacing.setText(TextUtils.formatDouble(data.getPolyDiffSpacing().v));
+		activeSpacing.setText(TextUtils.formatDouble(data.getPolyDiffSpacing().value));
 		activeSpacingRule.setText(data.getPolyDiffSpacing().rule);
-		spacing.setText(TextUtils.formatDouble(data.getPolySpacing().v));
+		spacing.setText(TextUtils.formatDouble(data.getPolySpacing().value));
 		spacingRule.setText(data.getPolySpacing().rule);
 	}
 

@@ -234,13 +234,13 @@ public class Via extends TechEditWizardPanel
 		    vOverhangInlineRule = new String[numVias];
 	        for(int i=0; i<numVias; i++)
 	        {
-	        	vSize[i] = data.getViaSize()[i].v;
+	        	vSize[i] = data.getViaSize()[i].value;
 	        	vSizeRule[i] = data.getViaSize()[i].rule;
-	        	vSpacing[i] = data.getViaSpacing()[i].v;
+	        	vSpacing[i] = data.getViaSpacing()[i].value;
 	        	vSpacingRule[i] = data.getViaSpacing()[i].rule;
-	        	vArraySpacing[i] = data.getViaArraySpacing()[i].v;
+	        	vArraySpacing[i] = data.getViaArraySpacing()[i].value;
 	        	vArraySpacingRule[i] = data.getViaArraySpacing()[i].rule;
-	        	vOverhangInline[i] = data.getViaOverhangInline()[i].v;
+	        	vOverhangInline[i] = data.getViaOverhangInline()[i].value;
 	        	vOverhangInlineRule[i] = data.getViaOverhangInline()[i].rule;
 	        }
 			whichVia.setSelectedIndex(0);
