@@ -285,7 +285,9 @@ public class DELIB extends JELIB {
         // versions 8.04n and above write files to .delib dir
         String cellName = cellId.cellName.getName();
         View view = cellId.cellName.getView();
-        return cellName + "." + view.getAbbreviation();
+        cellName = cellName + "." + view.getAbbreviation();
+        cellName = cellName.replace(File.separatorChar, ':');
+        return cellName;
     }
 
     /**

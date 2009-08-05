@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10c: ******************************
 
+IMP/MAN: (8/4/09, AM) When writing a DELIB, swap ':' for '/' in cell
+     names (Bug #2310).
+
 IMP: (8/4/09, AM) Update com/sun/electric/tool/simulation/package.html.
 
 IMP: (8/4/09, AM) Make Output.writeLibrary throw an exception instead

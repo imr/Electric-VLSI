@@ -592,6 +592,7 @@ public class JelibParser
         }
 
         cellFile = cellFile.replace(com.sun.electric.tool.io.output.DELIB.PLATFORM_INDEPENDENT_FILE_SEPARATOR, File.separatorChar);
+        cellFile = cellFile.replace(File.separatorChar, ':');
         File cellFD = new File(filePath, cellFile);
         readDelibFile(cellFD);
     }
