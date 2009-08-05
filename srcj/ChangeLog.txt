@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10c: ******************************
 
+BUG/MAN: (8/4/09, GVG) Pplus/Nplus enclosure of Well/  Subs taps should be 2 instead of 8 (Bug #2320)
+FIX: Added STRAP values to the TechEditorWizard
+
 BUG: (8/4/09, GVG) Allowable connections to P-Well-con 
 should be Pwell arc, not Pdiff arc (same for N-Well-con) (Bug #2319)
 FIX: Ports fixed for those well contacts defined in a generic way.

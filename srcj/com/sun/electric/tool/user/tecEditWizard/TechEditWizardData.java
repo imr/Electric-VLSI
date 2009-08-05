@@ -126,11 +126,13 @@ public class TechEditWizardData
 	// WELL AND IMPLANT RULES
 	private WizardField nplus_width = new WizardField();
 	private WizardField nplus_overhang_diff = new WizardField();
+	private WizardField nplus_overhang_strap = new WizardField();               // for well/substrate contact
 	private WizardField nplus_overhang_poly = new WizardField();
 	private WizardField nplus_spacing = new WizardField();
 
 	private WizardField pplus_width = new WizardField();
 	private WizardField pplus_overhang_diff = new WizardField();
+	private WizardField pplus_overhang_strap = new WizardField();               // for well/substrate contact
 	private WizardField pplus_overhang_poly = new WizardField();
 	private WizardField pplus_spacing = new WizardField();
 
@@ -535,6 +537,8 @@ public class TechEditWizardData
 	void setNPlusWidth(WizardField v) { nplus_width = v; }
 	WizardField getNPlusOverhangDiff() { return nplus_overhang_diff; }
     void setNPlusOverhangDiff(WizardField v) { nplus_overhang_diff = v; }
+	WizardField getNPlusOverhangStrap() { return nplus_overhang_strap; }
+    void setNPlusOverhangStrap(WizardField v) { nplus_overhang_strap = v; }
     WizardField getNPlusOverhangPoly() { return nplus_overhang_poly; }
     void setNPlusOverhangPoly(WizardField v) { nplus_overhang_poly = v; }
 	WizardField getNPlusSpacing() { return nplus_spacing; }
@@ -544,6 +548,8 @@ public class TechEditWizardData
 	void setPPlusWidth(WizardField v) { pplus_width = v; }
 	WizardField getPPlusOverhangDiff() { return pplus_overhang_diff; }
 	void setPPlusOverhangDiff(WizardField v) { pplus_overhang_diff = v; }
+	WizardField getPPlusOverhangStrap() { return pplus_overhang_strap; }
+	void setPPlusOverhangStrap(WizardField v) { pplus_overhang_strap = v; }
 	WizardField getPPlusOverhangPoly() { return pplus_overhang_poly; }
 	void setPPlusOverhangPoly(WizardField v) { pplus_overhang_poly = v; }
 	WizardField getPPlusSpacing() { return pplus_spacing; }
@@ -788,6 +794,8 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("nplus_width_rule")) nplus_width.rule = stripQuotes(varValue); else
 					if (varName.equalsIgnoreCase("nplus_overhang_diff")) nplus_overhang_diff.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("nplus_overhang_diff_rule")) nplus_overhang_diff.rule = stripQuotes(varValue); else
+					if (varName.equalsIgnoreCase("nplus_overhang_strap")) nplus_overhang_strap.value = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("nplus_overhang_strap_rule")) nplus_overhang_strap.rule = stripQuotes(varValue); else
 					if (varName.equalsIgnoreCase("nplus_overhang_poly")) nplus_overhang_poly.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("nplus_overhang_poly_rule")) nplus_overhang_poly.rule = stripQuotes(varValue); else
                     if (varName.equalsIgnoreCase("nplus_spacing")) nplus_spacing.value = TextUtils.atof(varValue); else
@@ -797,6 +805,8 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("pplus_width_rule")) pplus_width.rule = stripQuotes(varValue); else
 					if (varName.equalsIgnoreCase("pplus_overhang_diff")) pplus_overhang_diff.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("pplus_overhang_diff_rule")) pplus_overhang_diff.rule = stripQuotes(varValue); else
+					if (varName.equalsIgnoreCase("pplus_overhang_strap")) pplus_overhang_strap.value = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("pplus_overhang_strap_rule")) pplus_overhang_strap.rule = stripQuotes(varValue); else
 					if (varName.equalsIgnoreCase("pplus_overhang_poly")) pplus_overhang_poly.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("pplus_overhang_poly_rule")) pplus_overhang_poly.rule = stripQuotes(varValue); else
 					if (varName.equalsIgnoreCase("pplus_spacing")) pplus_spacing.value = TextUtils.atof(varValue); else
@@ -1323,6 +1333,8 @@ public class TechEditWizardData
 		pw.println("$nplus_width_rule = \"" + nplus_width.rule + "\";");
 		pw.println("$nplus_overhang_diff = " + TextUtils.formatDouble(nplus_overhang_diff.value) + ";");
 		pw.println("$nplus_overhang_diff_rule = \"" + nplus_overhang_diff.rule + "\";");
+		pw.println("$nplus_overhang_strap = " + TextUtils.formatDouble(nplus_overhang_strap.value) + ";");
+		pw.println("$nplus_overhang_strap_rule = \"" + nplus_overhang_strap.rule + "\";");
 		pw.println("$nplus_overhang_poly = " + TextUtils.formatDouble(nplus_overhang_poly.value) + ";");
 		pw.println("$nplus_overhang_poly_rule = \"" + nplus_overhang_poly.rule + "\";");
 		pw.println("$nplus_spacing = " + TextUtils.formatDouble(nplus_spacing.value) + ";");
@@ -1332,6 +1344,8 @@ public class TechEditWizardData
 		pw.println("$pplus_width_rule = \"" + pplus_width.rule + "\";");
 		pw.println("$pplus_overhang_diff = " + TextUtils.formatDouble(pplus_overhang_diff.value) + ";");
 		pw.println("$pplus_overhang_diff_rule = \"" + pplus_overhang_diff.rule + "\";");
+		pw.println("$pplus_overhang_strap = " + TextUtils.formatDouble(pplus_overhang_strap.value) + ";");
+		pw.println("$pplus_overhang_strap_rule = \"" + pplus_overhang_strap.rule + "\";");
         pw.println("$pplus_overhang_poly = " + TextUtils.formatDouble(pplus_overhang_poly.value) + ";");
 		pw.println("$pplus_overhang_poly_rule = \"" + pplus_overhang_poly.rule + "\";");
         pw.println("$pplus_spacing = " + TextUtils.formatDouble(pplus_spacing.value) + ";");
@@ -2662,6 +2676,9 @@ public class TechEditWizardData
         double[] wellSos = {pso, nso};
 
         Xml.Layer[] wellLayers = {pwellLayer, nwellLayer};
+        double nselW = scaledValue(contact_size.value /2 + diff_contact_overhang.value + nplus_overhang_strap.value);
+        double pselW = scaledValue(contact_size.value /2 + diff_contact_overhang.value + pplus_overhang_strap.value);
+        double[] wellSels = {pselW, nselW};
 
         // nwell/pwell contact
         for (int i = 0; i < 2; i++)
@@ -2720,7 +2737,7 @@ public class TechEditWizardData
                 hla, hla, new SizeOffset(wellSos[i], wellSos[i], wellSos[i], wellSos[i]), portNames,
                 makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED), // meta1 layer
                 makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED), // active layer
-                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED), // select layer
+                makeXmlNodeLayer(wellSels[i], wellSels[i], wellSels[i], wellSels[i], plusLayers[i], Poly.Type.FILLED), // select layer
                 wellNodeLayer, // well layer
                 makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)), "Full-"+diffNames[i] + "W"); // contact
         }
