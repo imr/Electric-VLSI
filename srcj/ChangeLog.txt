@@ -6,7 +6,7 @@ NOTE: Please place changes under the version that will be released next.
 
 IMP: (8/5/09, GVG) Better short names in palette icons for well and active contacts (Bug #2323)
 
-BUG: (8/5/09, JKG) Fixes for node extraction. PURELAYERNODEMODE in node extractor, probably
+BUG/MAN: (8/5/09, JKG) Fixes for node extraction. PURELAYERNODEMODE in node extractor, probably
      should be preference. Changes to auto-stitcher used by node extractor. (Bugs #2183, #2239)
 (1) changed conditions for forcing an arc to have no head/tail extends (RouteElementArc.java)
 (2) more code for aligning to grid, for node extraction (InteractiveRouter.java)
