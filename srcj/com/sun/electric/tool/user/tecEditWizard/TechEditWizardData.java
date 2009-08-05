@@ -2509,6 +2509,7 @@ public class TechEditWizardData
                 PaletteGroup g = null;
                 ContactNode metalLayer = c.layers.get(0);
                 ContactNode otherLayer = c.layers.get(1);
+                String extraName = "";
 
                 if (!TextUtils.isANumber(metalLayer.layer)) // horizontal must be!
                 {
@@ -2524,17 +2525,20 @@ public class TechEditWizardData
                 {
                     lx = diffLayers[0];
                     g = diffPalette[0];
+                    extraName = "P";
                 }
                 else if (layerName.equals(diffLayers[1].name))
                 {
                     lx = diffLayers[1];
                     g = diffPalette[1];
+                    extraName = "N";
                 }
                 else if (layerName.equals(polyLayer.name))
                 {
                     lx = polyLayer;
                     conLay = polyConLayer;
                     g = polyGroup;
+//                    extraName = "Poly"; // Poly as name is too long!
                 }
                 else
                     assert(false); // it should not happen
@@ -2568,16 +2572,17 @@ public class TechEditWizardData
                         (lz == nwellLayer && lx == diffLayers[1])) // well contact
                     {
                         otherLayerPort = lz;
-//                        name = ly.name + "-" + lz.name; // not clean
                         if (lz == pwellLayer)
                         {
                             g = wellPalette[0];
                             func = getWellContactFunction(Technology.P_TYPE);
+                            extraName = "PW"; // W for well
                         }
                         else // nwell
                         {
                             g = wellPalette[1];
                             func = getWellContactFunction(Technology.N_TYPE);
+                            extraName = "NW"; // W for well
                         }
                     }
                     if (pSubstrateProcess && lz == pwellLayer)
@@ -2611,7 +2616,7 @@ public class TechEditWizardData
                 String p = (c.prefix == null || c.prefix.equals("")) ? "" : c.prefix + "-";
                 g.addElement(makeXmlPrimitiveCon(t.nodeGroups, p + name, func, -1, -1,
                     new SizeOffset(longX, longX, longY, longY), portNames,
-                    nodes), c.prefix); // contact
+                    nodes), p + extraName); // contact
             }
         }
 
