@@ -202,7 +202,7 @@ public abstract class InteractiveRouter extends Router {
             if (route.getStart() == startRE) route.setStart(vertRoute.getStart());
         } else {
             addConnectingArc(route, cell, startRE, vertRoute.getStart(), startLoc, startLoc, startArc,
-                    startArcWidth, startAngle, true, true, null);
+                    startArcWidth, startAngle, true, true, null, null);
         }
 
         // restore highlights at start of planning, so that
@@ -374,7 +374,7 @@ public abstract class InteractiveRouter extends Router {
         }
         if (startObj instanceof ArcInst) {
             // arc: figure out where on arc to start
-            startRE = findArcConnectingPoint(route, (ArcInst)startObj, startPoint, stayInside);
+            startRE = findArcConnectingPoint(route, (ArcInst)startObj, startPoint, stayInside, alignment);
             if (startRE.isBisectArcPin()) contactsOnEndObject = false;
         }
         if (startRE == null) {
@@ -395,7 +395,7 @@ public abstract class InteractiveRouter extends Router {
             if (endObj instanceof ArcInst) {
                 // arc: figure out where on arc to end
                 // use startRE location when possible if connecting to arc
-                endRE = findArcConnectingPoint(route, (ArcInst)endObj, endPoint, stayInside);
+                endRE = findArcConnectingPoint(route, (ArcInst)endObj, endPoint, stayInside, alignment);
                 if (endRE.isBisectArcPin()) contactsOnEndObject = true;
             }
             if (endRE == null) {
@@ -477,7 +477,7 @@ public abstract class InteractiveRouter extends Router {
             } else {
                 // create arc between startRE and start of vertical route
                 addConnectingArc(route, cell, startRE, vertRoute.getStart(), startPoint, cornerLoc, startArc,
-                        startArcWidth, startAngle, extendArcHead, extendArcTail, stayInside);
+                        startArcWidth, startAngle, extendArcHead, extendArcTail, stayInside, alignment);
             }
             // replace endpoints if possible (remove redundant pins), endRE
             if (route.replacePin(endRE, vertRoute.getEnd(), stayInside)) {
@@ -486,7 +486,7 @@ public abstract class InteractiveRouter extends Router {
             } else {
                 // create arc between endRE and end of vertical route
                 addConnectingArc(route, cell, endRE, vertRoute.getEnd(), endPoint, cornerLoc, endArc,
-                        endArcWidth, endAngle, extendArcHead, extendArcTail, stayInside);
+                        endArcWidth, endAngle, extendArcHead, extendArcTail, stayInside, alignment);
             }
         }
         else {
@@ -504,7 +504,7 @@ public abstract class InteractiveRouter extends Router {
             if (startArc.getAngleIncrement(ep) == 0 || (DBMath.figureAngle(startPoint, endPoint) % (10*startArc.getAngleIncrement(ep))) == 0) {
                 // single arc
                 addConnectingArc(route, cell, startRE, endRE, startPoint, endPoint, startArc,
-                        startArcWidth, startAngle, extendArcHead, extendArcTail, stayInside);
+                        startArcWidth, startAngle, extendArcHead, extendArcTail, stayInside, alignment);
             } else {
                 PrimitiveNode pn = startArc.findOverridablePinProto(ep);
                 SizeOffset so = pn.getProtoSizeOffset();
@@ -514,9 +514,9 @@ public abstract class InteractiveRouter extends Router {
                         defwidth, defheight);
                 route.add(pinRE);
                 addConnectingArc(route, cell, startRE, pinRE, startPoint, cornerLoc, startArc,
-                        startArcWidth, startAngle, extendArcHead, extendArcTail, stayInside);
+                        startArcWidth, startAngle, extendArcHead, extendArcTail, stayInside, alignment);
                 addConnectingArc(route, cell, endRE, pinRE, endPoint, cornerLoc, endArc,
-                        endArcWidth, endAngle, extendArcHead, extendArcTail, stayInside);
+                        endArcWidth, endAngle, extendArcHead, extendArcTail, stayInside, alignment);
             }
 
         }
@@ -609,6 +609,7 @@ public abstract class InteractiveRouter extends Router {
                                               Point2D startPoint, Point2D endPoint, Poly startPoly, Poly endPoly,
                                               ArcProto startArc, ArcProto endArc, Dimension2D alignment) {
 
+        if (alignment == null) alignment = new Dimension2D.Double(0, 0);
 /*        Point2D[] points = startPoly.getPoints();
         System.out.print("StartPoly: ");
         for (int i=0; i<points.length; i++) {
@@ -636,7 +637,8 @@ public abstract class InteractiveRouter extends Router {
         }
 
         // default is center point, aligned to grid
-        Rectangle2D startBounds = startPoly.getBounds2D();
+        Rectangle2D startBounds = new Rectangle2D.Double(startPoly.getBounds2D().getX(), startPoly.getBounds2D().getY(),
+                                                         startPoly.getBounds2D().getWidth(), startPoly.getBounds2D().getHeight());
         getAlignedCenter(startBounds, alignment, startPoint);
 
         // if startObj is arc inst
@@ -644,8 +646,8 @@ public abstract class InteractiveRouter extends Router {
             double x, y;
             // if nothing to connect to, clicked will determine connecting point on startPoly
             // endPoint will be location of new pin
-            x = getClosestValue(startBounds.getMinX(), startBounds.getMaxX(), clicked.getX());
-            y = getClosestValue(startBounds.getMinY(), startBounds.getMaxY(), clicked.getY());
+            x = getClosestValue(startBounds.getMinX(), startBounds.getMaxX(), clicked.getX(), alignment.getWidth());
+            y = getClosestValue(startBounds.getMinY(), startBounds.getMaxY(), clicked.getY(), alignment.getHeight());
             startPoint.setLocation(x, y);
         }
 
@@ -661,15 +663,16 @@ public abstract class InteractiveRouter extends Router {
             return;
         }
 
-        Rectangle2D endBounds = endPoly.getBounds2D();
+        Rectangle2D endBounds = new Rectangle2D.Double(endPoly.getBounds2D().getX(), endPoly.getBounds2D().getY(),
+                                                       endPoly.getBounds2D().getWidth(), endPoly.getBounds2D().getHeight());
         getAlignedCenter(endBounds, alignment, endPoint);
 
         if (endObj instanceof ArcInst) {
             double x, y;
             // if nothing to connect to, clicked will determine connecting point on startPoly
             // endPoint will be location of new pin
-            x = getClosestValue(endBounds.getMinX(), endBounds.getMaxX(), clicked.getX());
-            y = getClosestValue(endBounds.getMinY(), endBounds.getMaxY(), clicked.getY());
+            x = getClosestValue(endBounds.getMinX(), endBounds.getMaxX(), clicked.getX(), alignment.getWidth());
+            y = getClosestValue(endBounds.getMinY(), endBounds.getMaxY(), clicked.getY(), alignment.getHeight());
             endPoint.setLocation(x, y);
         }
 
@@ -688,24 +691,30 @@ public abstract class InteractiveRouter extends Router {
                 if (startArc == endArc && startObjBounds.intersects(endObjBounds))
                     objsOverlap = true;
             }
+            // grid align if needed
+            Point2D startCenter = new Point2D.Double(startBounds.getCenterX(), startBounds.getCenterY());
+            Point2D endCenter = new Point2D.Double(endBounds.getCenterX(), endBounds.getCenterY());
+            gridAlignWithinBounds(startCenter, startBounds, alignment);
+            gridAlignWithinBounds(endCenter, endBounds, alignment);
+
             // normally we route center to center (for PortInsts) in fat wiring mode,
             // but if the objects overlap (both ports and objects themselves, then we will route directly
             if (!objsOverlap || !overlapX) {
                 // center X on both objects (if they are port insts)
                 if (startObj instanceof PortInst) {
-                    startBounds.setRect(startBounds.getCenterX(), startBounds.getY(), 0, startBounds.getHeight());
+                    startBounds.setRect(startCenter.getX(), startBounds.getY(), 0, startBounds.getHeight());
                 }
                 if (endObj instanceof PortInst) {
-                    endBounds.setRect(endBounds.getCenterX(), endBounds.getY(), 0, endBounds.getHeight());
+                    endBounds.setRect(endCenter.getX(), endBounds.getY(), 0, endBounds.getHeight());
                 }
             }
             if (!objsOverlap || !overlapY) {
                 // center Y on both objects (if they are port insts)
                 if (startObj instanceof PortInst) {
-                    startBounds.setRect(startBounds.getX(), startBounds.getCenterY(), startBounds.getWidth(), 0);
+                    startBounds.setRect(startBounds.getX(), startCenter.getY(), startBounds.getWidth(), 0);
                 }
                 if (endObj instanceof PortInst) {
-                    endBounds.setRect(endBounds.getX(), endBounds.getCenterY(), endBounds.getWidth(), 0);
+                    endBounds.setRect(endBounds.getX(), endCenter.getY(), endBounds.getWidth(), 0);
                 }
             }
             // recalculate overlaps in case bounds have changed
@@ -740,7 +749,7 @@ public abstract class InteractiveRouter extends Router {
 
         // check if bounds share X and Y space (manhatten rectangular polygons only)
         if (lowerBoundX <= upperBoundX) {
-            double x = getClosestValue(lowerBoundX, upperBoundX, clicked.getX());
+            double x = getClosestValue(lowerBoundX, upperBoundX, clicked.getX(), alignment.getWidth());
             startPoint.setLocation(x, startPoint.getY());
             endPoint.setLocation(x, endPoint.getY());
         } else {
@@ -756,7 +765,7 @@ public abstract class InteractiveRouter extends Router {
         }
         // if bounds share y-space, use closest y within that space to clicked point
         if (lowerBoundY <= upperBoundY) {
-            double y = getClosestValue(lowerBoundY, upperBoundY, clicked.getY());
+            double y = getClosestValue(lowerBoundY, upperBoundY, clicked.getY(), alignment.getHeight());
             startPoint.setLocation(startPoint.getX(), y);
             endPoint.setLocation(endPoint.getX(), y);
         } else {
@@ -770,6 +779,44 @@ public abstract class InteractiveRouter extends Router {
                 endPoint.setLocation(endPoint.getX(), endBounds.getMinY());
             }
         }
+        if (alignment.getWidth() > 0 && alignment.getHeight() > 0) {
+            if (startPoint.getX() % alignment.getWidth() != 0 || endPoint.getX() % alignment.getWidth() != 0 ||
+                startPoint.getY() % alignment.getHeight() != 0 || endPoint.getY() % alignment.getHeight() != 0) {
+                System.out.println("start and end points not aligned");
+            }
+        }
+    }
+
+    /**
+     * Grid align the point within the confine of bounds. This assumes the point is already within the bounds.
+     * @param pt the point to align
+     * @param bounds the bounds within to align
+     * @param alignment the alignment
+     */
+    private static void gridAlignWithinBounds(Point2D pt, Rectangle2D bounds, Dimension2D alignment)
+    {
+        if (alignment == null) return;
+        double x = pt.getX();
+        double y = pt.getY();
+        if (alignment.getWidth() > 0) {
+            double xfloor = Math.floor(x/alignment.getWidth()) * alignment.getWidth();
+            double xceil = Math.ceil(x/alignment.getWidth()) * alignment.getWidth();
+            if (xfloor >= bounds.getMinX() && xfloor <= bounds.getMaxX()) {
+                x = xfloor;
+            } else if (xceil >= bounds.getMinX() && xceil <= bounds.getMaxX()) {
+                x = xceil;
+            }
+        }
+        if (alignment.getHeight() > 0) {
+            double yfloor = Math.floor(y/alignment.getHeight()) * alignment.getHeight();
+            double yceil = Math.ceil(y/alignment.getHeight()) * alignment.getHeight();
+            if (yfloor >= bounds.getMinY() && yfloor <= bounds.getMaxY()) {
+                y = yfloor;
+            } else if (yceil >= bounds.getMinY() && yceil <= bounds.getMaxY()) {
+                y = yceil;
+            }
+        }
+        pt.setLocation(x, y);
     }
 
     /**
@@ -1001,11 +1048,12 @@ public abstract class InteractiveRouter extends Router {
      * @param arc the arc to draw from/to
      * @param connectingPoint point on or near arc
      * @param stayInside the area in which to route (null if not applicable).
+     * @param alignment if non-null, alignment to align to
      * @return a RouteElement holding the new pin at the bisection
      * point, or a RouteElement holding an existingPortInst if
      * drawing from either end of the ArcInst.
      */
-    protected RouteElementPort findArcConnectingPoint(Route route, ArcInst arc, Point2D connectingPoint, PolyMerge stayInside) {
+    protected RouteElementPort findArcConnectingPoint(Route route, ArcInst arc, Point2D connectingPoint, PolyMerge stayInside, Dimension2D alignment) {
 
         EPoint head = arc.getHeadLocation();
         EPoint tail = arc.getTailLocation();
@@ -1016,7 +1064,7 @@ public abstract class InteractiveRouter extends Router {
         if (tail.equals(connectingPoint)) return tailRE;
 
         // otherwise, we must be bisecting the arc
-        return bisectArc(route, arc, connectingPoint, stayInside);
+        return bisectArc(route, arc, connectingPoint, stayInside, alignment);
     }
 
     /**
@@ -1027,9 +1075,10 @@ public abstract class InteractiveRouter extends Router {
      * @param arc the arc to split
      * @param bisectPoint point on arc from which to split it
      * @param stayInside the area in which to route (null if not applicable).
+     * @param alignment alignment to align to, if non-null
      * @return the RouteElement from which to continue the route
      */
-    protected RouteElementPort bisectArc(Route route, ArcInst arc, Point2D bisectPoint, PolyMerge stayInside) {
+    protected RouteElementPort bisectArc(Route route, ArcInst arc, Point2D bisectPoint, PolyMerge stayInside, Dimension2D alignment) {
 
         Cell cell = arc.getParent();
         EPoint head = arc.getHeadLocation();
@@ -1062,10 +1111,14 @@ public abstract class InteractiveRouter extends Router {
             	name2 = nameToUse;
 
         // add two arcs to rebuild old startArc
+        boolean extendArcFromHeadSide = getExtendArcEnd(newPinRE, bisectPoint, arc.getLambdaBaseWidth(), arc.getProto(),
+                arc.getAngle(), arc.isTailExtended(), alignment);
+        boolean extendArcFromTailSide = getExtendArcEnd(newPinRE, bisectPoint, arc.getLambdaBaseWidth(), arc.getProto(),
+                arc.getAngle(), arc.isHeadExtended(), alignment);
         RouteElement newHeadArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getLambdaBaseWidth(), headRE, newPinRE,
-            head, bisectPoint, name1, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, arc.isHeadExtended(), arc.isTailExtended(), stayInside);
+            head, bisectPoint, name1, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, arc.isHeadExtended(), extendArcFromHeadSide, stayInside);
         RouteElement newTailArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getLambdaBaseWidth(), newPinRE, tailRE,
-            bisectPoint, tail, name2, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, arc.isHeadExtended(), arc.isTailExtended(), stayInside);
+            bisectPoint, tail, name2, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, extendArcFromTailSide, arc.isTailExtended(), stayInside);
         newHeadArcRE.setShowHighlight(false);
         newTailArcRE.setShowHighlight(false);
         // delete old arc
@@ -1176,17 +1229,17 @@ public abstract class InteractiveRouter extends Router {
     protected static void addConnectingArc(Route route, Cell cell, RouteElementPort startRE, RouteElementPort endRE,
                                            Point2D startPoint, Point2D endPoint,
                                            ArcProto arc, double width, int arcAngle, boolean extendArcHead,
-                                           boolean extendArcTail, PolyMerge stayInside) {
+                                           boolean extendArcTail, PolyMerge stayInside, Dimension2D alignment) {
 
-        if (extendArcHead) extendArcHead = getExtendArcEnd(startRE, width, arc, arcAngle, extendArcHead);
-        if (extendArcTail) extendArcTail = getExtendArcEnd(endRE, width, arc, arcAngle, extendArcTail);
+        if (extendArcHead) extendArcHead = getExtendArcEnd(startRE, startPoint, width, arc, arcAngle, extendArcHead, alignment);
+        if (extendArcTail) extendArcTail = getExtendArcEnd(endRE, endPoint, width, arc, arcAngle, extendArcTail, alignment);
         RouteElementArc reArc = RouteElementArc.newArc(cell, arc, width, startRE, endRE, startPoint, endPoint,
                 null, null, null, extendArcHead, extendArcTail, stayInside);
         reArc.setArcAngle(arcAngle);
         route.add(reArc);
     }
 
-    protected static boolean getExtendArcEnd(RouteElementPort re, double arcWidth, ArcProto arc, int arcAngle, boolean defExtends) {
+    protected static boolean getExtendArcEnd(RouteElementPort re, Point2D point, double arcWidth, ArcProto arc, int arcAngle, boolean defExtends, Dimension2D alignment) {
         NodeProto np = re.getNodeProto();
         if (np == null) return defExtends;
 
@@ -1209,6 +1262,27 @@ public abstract class InteractiveRouter extends Router {
                 }
             }
         }
+        if (alignment != null) {
+            if (arcAngle % 1800 == 0) {
+                // horizontal
+                if (isNumberAligned(point.getX(), alignment.getWidth()) &&
+                    !isNumberAligned(point.getX() + arcWidth/2, alignment.getWidth()))
+                    return false;
+                if (!isNumberAligned(point.getX(), alignment.getWidth()) &&
+                    isNumberAligned(point.getX() + arcWidth/2, alignment.getWidth()))
+                    return true;
+            }
+            if ((arcAngle+900) % 1800 == 0) {
+                // vertical
+                if (isNumberAligned(point.getY(), alignment.getHeight()) &&
+                    !isNumberAligned(point.getY() + arcWidth/2, alignment.getHeight()))
+                    return false;
+                if (!isNumberAligned(point.getY(), alignment.getHeight()) &&
+                    isNumberAligned(point.getY() + arcWidth/2, alignment.getHeight()))
+                    return true;
+            }
+        }
+
 /*
         if (checkAttachedArcs && re.getPortInst() != null) {
             double attachedWidth = getArcWidthToUse(re.getPortInst(), arc, arcAngle);
@@ -1218,13 +1292,22 @@ public abstract class InteractiveRouter extends Router {
         return defExtends;
     }
 
+    private static boolean isNumberAligned(double number, double alignment) {
+        if (number % alignment == 0) return true;
+        return false;
+    }
 
     // ------------------------- Spatial Dimension Calculations -------------------------
 
     /**
      * Get closest value to clicked within a range from min to max
      */
-    protected static double getClosestValue(double min, double max, double clicked) {
+    protected static double getClosestValue(double min, double max, double clicked, double alignment) {
+        if (alignment > 0) {
+            max = Math.floor(max / alignment) * alignment;
+            min = Math.ceil(max / alignment) * alignment;
+            clicked = Math.round(max / alignment) * alignment;
+        }
         if (clicked >= max) {
             return max;
         } else if (clicked <= min) {
