@@ -389,9 +389,10 @@ public class RouteElementArc extends RouteElement {
             // The arc is zero length so better if arc width is zero to avoid DRC errors if head/tail is not extended
             if (headPoint.equals(tailPoint))
             {
-                if (extendArcHead || extendArcTail)
-                    thisWidth = arcProto.getDefaultLambdaBaseWidth();   // Sept 4 2008. Force to be a flat arc
-                else
+                if (extendArcHead || extendArcTail) {
+                    if (arcProto.getDefaultLambdaBaseWidth() < thisWidth)
+                        thisWidth = arcProto.getDefaultLambdaBaseWidth();   // Sept 4 2008. Force to be a flat arc
+                } else
                     thisWidth = 0; // Sept 4 2008. Force to be a single point
             }
             ArcInst newAi = ArcInst.makeInstanceBase(arcProto, thisWidth, headPi, tailPi, headPoint, tailPoint, arcName);
