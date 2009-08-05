@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10c: ******************************
 
+IMP/MAN: (8/5/09, SMR) Added ${FILEPATH} to the possible substitutions in
+     the Spice Preferences Command/Argument fields (Bug #2318).
+
 IMP/MAN: (8/4/09, AM) When writing a DELIB, swap ':' for '/' in cell
      names (Bug #2310).
 

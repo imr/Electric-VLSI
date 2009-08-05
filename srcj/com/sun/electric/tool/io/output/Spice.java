@@ -70,7 +70,6 @@ import com.sun.electric.tool.user.Exec;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.geom.AffineTransform;
 import java.io.BufferedWriter;
@@ -79,7 +78,6 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -89,6 +87,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 
 import javax.swing.SwingUtilities;
 
@@ -329,10 +328,11 @@ public class Spice extends Topology
                 String filename = filePath.substring(start, filePath.length());
 
                 // replace vars in command and args
-                command = command.replaceAll("\\$\\{WORKING_DIR}", workdir);
-                command = command.replaceAll("\\$\\{USE_DIR}", rundir);
-                command = command.replaceAll("\\$\\{FILENAME}", filename);
-                command = command.replaceAll("\\$\\{FILENAME_NO_EXT}", filename_noext);
+                command = command.replaceAll("\\$\\{WORKING_DIR}", Matcher.quoteReplacement(workdir));
+                command = command.replaceAll("\\$\\{USE_DIR}", Matcher.quoteReplacement(rundir));
+                command = command.replaceAll("\\$\\{FILEPATH}", Matcher.quoteReplacement(filePath));
+                command = command.replaceAll("\\$\\{FILENAME}", Matcher.quoteReplacement(filename));
+                command = command.replaceAll("\\$\\{FILENAME_NO_EXT}", Matcher.quoteReplacement(filename_noext));
 
                 // set up run probe
                 FileType type = Simulate.getSpiceOutputType(outputFormat, engine);

@@ -982,15 +982,16 @@ public class SpiceTab extends PreferencePanel
     }//GEN-LAST:event_spiceRunPopupActionPerformed
 
     private void spiceRunHelpActionPerformed(ActionEvent evt) {//GEN-FIRST:event_spiceRunHelpActionPerformed
-		String [] message ={"IMPORTANT: This executes a single program with the given args.  It does NOT run a command-line command.",
+		String [] message ={"IMPORTANT: This executes a single program with the given arguments.  It does NOT run a command-line command.",
 							"For example, 'echo blah > file' will NOT work. Encapsulate it in a script if you want to do such things.",
 							"-----------------",
 							"The following variables are available to use in the program name and arguments:",
 							"   ${WORKING_DIR}:  The current working directory",
-							"   ${USE_DIR}:  The Use Dir field, if specified (otherwise defaults to WORKING_DIR)",
+							"   ${USE_DIR}:  The path entered in the 'Use Directory' field, if specified (defaults to WORKING_DIR)",
+							"   ${FILEPATH}:  The full path of the output file",
 							"   ${FILENAME}:  The output file name (with extension)",
 							"   ${FILENAME_NO_EXT}:  The output file name (without extension)",
-							"Example: Program: \"hspice\".  Args: \"${FILENAME}\"" };
+							"Example: Program: \"hspice\".  Arguments: \"${FILEPATH}\"" };
 		JOptionPane.showMessageDialog(this, message, "Spice Run Help", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_spiceRunHelpActionPerformed
 
