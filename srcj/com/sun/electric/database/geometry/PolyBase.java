@@ -38,6 +38,7 @@ import java.awt.Shape;
 import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
+import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -142,6 +143,18 @@ public class PolyBase implements Shape, PolyNodeMerge
 		this.bounds = null;
 		this.pp = null;
 	}
+
+    /**
+     * Convert to useful string
+     * @return a string describing this object
+     */
+    public String toString() {
+        StringBuffer buf = new StringBuffer();
+        if (layer != null) buf.append(layer.getName()+": ");
+        for (Point2D p : points) buf.append("("+p.getX()+", "+p.getY()+"), ");
+        if (style != null) buf.append(style.toString());
+        return buf.toString();
+    }
 
 	/**
 	 * Method to return the style associated with this Poly.
@@ -1397,7 +1410,195 @@ public class PolyBase implements Shape, PolyNodeMerge
 		return false;
 	}
 
-	/**
+    /**
+     * Method to find the intersection area of this poly with another poly.
+     * Returns null if no intersection.
+     * @param polyOther the other poly
+     * @param overlappingEdges if non-null, this list will be filled with edges that overlap
+     * between the two polygons. This is useful if the polygons touch, as the intersection area will be
+     * empty.
+     * @return the intersection area of the two, or null if none
+     */
+    public List<PolyBase> getIntersection(PolyBase polyOther, List<Line2D> overlappingEdges)
+    {
+        // get overlapping edges if requested
+        if (overlappingEdges != null) {
+            List<Line2D> overlaps = getOverlappingEdges(polyOther);
+            overlappingEdges.addAll(overlaps);
+        }
+        // get intersected area
+        Area myArea = new Area(this);
+        Area otherArea = new Area(polyOther);
+        myArea.intersect(otherArea);
+
+        List<PolyBase> polys = getPointsInArea(myArea, layer, true, false);
+        if (polys == null) return null;
+        return polys;
+    }
+
+    /**
+     * Get the overlapping edges with other polygon. Returns an empty list if none.
+     * @param polyOther the other polygon
+     * @return a list of overlapping edges
+     */
+    public List<Line2D> getOverlappingEdges(PolyBase polyOther)
+    {
+        List<Line2D> overlappingSegs = new ArrayList<Line2D>();
+
+        // quit now if bounding boxes don't overlap
+        Rectangle2D thisBounds = getBounds2D();
+        Rectangle2D otherBounds = polyOther.getBounds2D();
+        if (thisBounds.getMaxX() < otherBounds.getMinX() ||
+            otherBounds.getMaxX() < thisBounds.getMinX() ||
+            thisBounds.getMaxY() < otherBounds.getMinY() ||
+            otherBounds.getMaxY() < thisBounds.getMinY()) return overlappingSegs;
+
+        // check if any line segments intersect, and add the intersection
+        // point to the list if points
+        List<Line2D> myLineSegs = getLineSegments();
+        List<Line2D> otherLineSegs = polyOther.getLineSegments();
+
+        for (Line2D line1 : myLineSegs)
+        {
+            for (Line2D line2 : otherLineSegs)
+            {
+                Line2D seg = getLineOverlap(line1, line2);
+                if (seg != null) overlappingSegs.add(seg);
+            }
+        }
+        // remove single points if they are redundant with line segments
+        List<Line2D> realLines = new ArrayList<Line2D>();
+        List<Line2D> points = new ArrayList<Line2D>();
+        for (Line2D seg : overlappingSegs)
+        {
+            if (seg.getP1().equals(seg.getP2()))
+                points.add(seg);
+            else
+                realLines.add(seg);
+        }
+        for (Line2D p : points)
+        {
+            boolean redundant = false;
+            for (Line2D seg : realLines)
+            {
+                if (p.getP1().equals(seg.getP1()) || p.getP1().equals(seg.getP2())) {
+                    redundant = true; break;
+                }
+            }
+            if (!redundant)
+                realLines.add(p);
+        }
+
+        return realLines;
+    }
+
+    // get the line segments of this polygon
+    private List<Line2D> getLineSegments()
+    {
+        List<Line2D> lineSegs = new ArrayList<Line2D>();
+        for(int i=0; i<points.length; i++)
+        {
+            Point2D p;
+            if (i == 0)
+            {
+                if (style == Poly.Type.OPENED || style == Poly.Type.OPENEDT1 ||
+                    style == Poly.Type.OPENEDT2 || style == Poly.Type.OPENEDT3 ||
+                    style == Poly.Type.VECTORS) continue;
+                p = points[points.length-1];
+            } else
+            {
+                p = points[i-1];
+            }
+            Point2D t = points[i];
+            if (style == Poly.Type.VECTORS && (i&1) != 0) i++;
+            if (p.getX() == t.getX() && p.getY() == t.getY()) continue;
+
+            // see if this line intersects a line on the other poly
+            lineSegs.add(new Line2D.Double(p, t));
+        }
+        return lineSegs;
+    }
+
+    /**
+     * Get the intersection point of two line segments, if any.
+     * This also returns null if the two lines are the same line,
+     * as all points on either lines are intersection points.
+     * @param line1 the first line segment
+     * @param line2 the second line segment
+     * @return the intersection point, or null if none
+     */
+    public static Point2D getLineSegmentIntersection(Line2D line1, Line2D line2)
+    {
+        if (!line1.intersectsLine(line2))
+            return null;
+        double [] co1 = getLineCoeffs(line1);
+        double [] co2 = getLineCoeffs(line2);
+        // det = A1*B2 - A2*B1
+        double det = co1[0]*co2[1] - co2[0]*co1[1];
+        // if det == 0, lines are parallel, but already checked by intersection check above
+        // if det == 0 and we got here, lines are the same line.
+        if (det == 0) return null;
+        // x = (B2*C1 - B1*C2)/det
+        double x = (co2[1]*co1[2] - co1[1]*co2[2])/det;
+        // y = (A1*C2 - A2*C1)/det
+        double y = (co1[0]*co2[2] - co2[0]*co1[2])/det;
+        if (x == -0.0) x = 0;
+        if (y == -0.0) y = 0;
+        return new Point2D.Double(x, y);
+    }
+
+    /**
+     * Get the line segment that is common to both lines. Returns null if none.
+     * @param line1 the first line segment
+     * @param line2 the second line segment
+     * @return the common line segment, or null if none
+     */
+    public static Line2D getLineOverlap(Line2D line1, Line2D line2)
+    {
+        if (!line1.intersectsLine(line2))
+            return null;
+        double [] co1 = getLineCoeffs(line1);
+        double [] co2 = getLineCoeffs(line2);
+        // det = A1*B2 - A2*B1
+        double det = co1[0]*co2[1] - co2[0]*co1[1];
+        // if det == 0, lines are parallel, but already checked by intersection check above
+        // if det == 0 and we got here, lines are the same line.
+        if (det != 0) return null;
+        double minX1 = Math.min(line1.getX1(), line1.getX2());
+        double minX2 = Math.min(line2.getX1(), line2.getX2());
+        double minX = Math.max(minX1, minX2);
+
+        double minY1 = Math.min(line1.getY1(), line1.getY2());
+        double minY2 = Math.min(line2.getY1(), line2.getY2());
+        double minY = Math.max(minY1, minY2);
+
+        double maxX1 = Math.max(line1.getX1(), line1.getX2());
+        double maxX2 = Math.max(line2.getX1(), line2.getX2());
+        double maxX = Math.min(maxX1, maxX2);
+
+        double maxY1 = Math.max(line1.getY1(), line1.getY2());
+        double maxY2 = Math.max(line2.getY1(), line2.getY2());
+        double maxY = Math.min(maxY1, maxY2);
+
+        Point2D p1 = new Point2D.Double(minX, minY);
+        Point2D p2 = new Point2D.Double(maxX, maxY);
+        return new Line2D.Double(p1, p2);
+    }
+
+    /**
+     * Get the coeffecients of the line of the form Ax + By = C.
+     * Can't use y = Ax + B because it does not allow x = A type equations.
+     * @param line the line
+     * @return an array of the values A,B,C
+     */
+    private static double [] getLineCoeffs(Line2D line) {
+        double A = line.getP2().getY() - line.getP1().getY();
+        double B = line.getP1().getX() - line.getP2().getX();
+        double C = A * line.getP1().getX() + B * line.getP1().getY();
+        return new double [] {A,B,C};
+    }
+
+    /**
 	 * Method to return true if the line segment from (px1,py1) to (tx1,ty1)
 	 * intersects any line in polygon "poly"
 	 */
