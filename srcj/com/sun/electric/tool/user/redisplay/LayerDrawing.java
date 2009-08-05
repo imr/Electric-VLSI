@@ -3546,7 +3546,8 @@ class LayerDrawing
 		if (len == 0) return;
 
 		// get parameters
-		int col = color.getRGB() & 0xFFFFFF;
+        if (color == null) color = new Color(0,0,0);
+        int col = color.getRGB() & 0xFFFFFF;
 
 		// get text description
 		int size = EditWindow.getDefaultFontSize();
