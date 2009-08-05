@@ -65,20 +65,10 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 
 import com.sun.electric.tool.user.User;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+
+import java.awt.geom.*;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Class which implements the Auto Stitching tool.
@@ -95,8 +85,9 @@ public class AutoStitch
 	/** set of nodes to check (prevents duplicate checks) */		private Set<NodeInst> nodeMark;
 	/** edge alignment for arcs */									private Dimension2D alignment;
 	/** true to stitch pure-layer nodes */							private boolean includePureLayerNodes;
+    /** true to use poly merge algorithm */                         private boolean USEPOLYMERGE = false;
 
-	/****************************************** CONTROL ******************************************/
+    /****************************************** CONTROL ******************************************/
 
 	/**
 	 * Method to do auto-stitching.
@@ -322,8 +313,12 @@ public class AutoStitch
 		{
 			if (showProgress) Job.getUserInterface().setProgressNote("Routing " + totalToStitch + " objects with export creation...");
 
-			// run through the nodeinsts to be checked for export-creation stitching
-			for(NodeInst ni : nodesToStitch)
+            // make global network map
+            GatherNetworksVisitor gatherNetworks = new GatherNetworksVisitor();
+            HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, gatherNetworks);
+
+            Map<Long,List<PolyConnection>> overlapMap = new HashMap<Long,List<PolyConnection>>();
+            for(NodeInst ni : nodesToStitch)
 			{
 				soFar++;
 				if (showProgress && (soFar%100) == 0)
@@ -331,7 +326,7 @@ public class AutoStitch
 					if (job != null && job.checkAbort()) return;
 					Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
 				}
-				checkExportCreationStitching(ni);
+				checkExportCreationStitching(ni, overlapMap, gatherNetworks);
 			}
 
 			// now run through the arcinsts to be checked for export-creation stitching
@@ -347,10 +342,19 @@ public class AutoStitch
 				// only interested in arcs that are wider than their nodes (and have geometry that sticks out)
 				if (!arcTooWide(ai)) continue;
 				if (!ai.isLinked()) continue;
-				checkExportCreationStitching(ai);
+				checkExportCreationStitching(ai, overlapMap, gatherNetworks);
 			}
 
-			// now run these arcs and reinitialize the list
+            if (showProgress) Job.getUserInterface().setProgressNote("Gathering " + totalToStitch + " objects for export creation...");
+
+            // check for existing exports, or make export if needed
+            for (Long netID : overlapMap.keySet())
+            {
+                List<PolyConnection> polyConns = overlapMap.get(netID);
+                makeExport(polyConns);
+            }
+
+            // now run these arcs and reinitialize the list
 			makeConnections(showProgress, arcsCreatedMap, nodesCreatedMap, stayInside);
 			allRoutes = new ArrayList<Route>();
 			if (showProgress) Job.getUserInterface().setProgressNote("Initializing routing");
@@ -1450,9 +1454,12 @@ name=null;
 	{
 		// get network associated with the node/port
 		PortInst pi = ni.findPortInstFromProto(pp);
-		Network net = top.getNodeNetwork(ni, pp);
+        // keep track of which networks we've already tied together
+        Set<Network> netsConnectedTo = new TreeSet<Network>();
+        Network net = top.getNodeNetwork(ni, pp);
+        netsConnectedTo.add(net);
 
-		// now look at every layer in this node
+        // now look at every layer in this node
 		if (oNi.isCellInstance())
 		{
 			// complex cell: look at all exports
@@ -1468,8 +1475,18 @@ name=null;
 				{
 					for (Object obj : set)
 					{
-						PortInst oPi = (PortInst)obj;
+                        PortInst oPi = (PortInst)obj;
 						PortProto mPp = oPi.getPortProto();
+
+                        // keep track of which networks we've already tied together
+                        Cell subcell = (Cell)oNi.getProto();
+                        Netlist netlist = subcell.getNetlist();
+                        if (mPp instanceof Export) {
+                            Export mPpe = (Export)mPp;
+                            Network netm = netlist.getNetwork(mPpe, 0);
+                            if (netsConnectedTo.contains(netm)) continue;
+                            netsConnectedTo.add(netm);
+                        }
 
 						// port must be able to connect to the arc
 						if (!mPp.getBasePort().connectsTo(ap)) continue;
@@ -1512,8 +1529,7 @@ name=null;
 						{
 							// not a geometric primitive: look for ports that touch
 							Poly oPoly = oNi.getShapeOfPort(mPp);
-							if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, top, limitBound))
-								return true;
+							comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, top, limitBound);
 						} else
 						{
 							// a geometric primitive: look for ports on layers that touch
@@ -1540,7 +1556,7 @@ name=null;
 								// transform the polygon and pass it on to the next test
 								oPoly.transform(trans);
 								if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, top, limitBound))
-									return true;
+									break;
 							}
 						}
 					}
@@ -1892,14 +1908,62 @@ name=null;
 		return true;
 	}
 
-	/****************************************** EXPORT-CREATION STITCHING ******************************************/
+    private List<Layer> getLayersToUse(PortInst pi)
+    {
+        ArcProto [] arcs = pi.getPortProto().getBasePort().getConnections();
+        List<Layer> layers = new ArrayList<Layer>();
+        for (ArcProto arc : arcs) {
+            layers.add(arc.getLayer(0));
+        }
+        return layers;
+    }
+    
+    private void getBoundsOnNetwork(PortInst pi, Point2D center, PolyMerge merge, AffineTransform prevTrans, List<Layer> layersToUse)
+    {
+        NodeInst ni = pi.getNodeInst();
+        Cell cell = ni.getParent();
+        Netlist nl = cell.getNetlist();
+
+        Network net = nl.getNetwork(pi);
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+        {
+            NodeInst oNi = it.next();
+            for (Iterator<PortInst> pit = oNi.getPortInsts(); pit.hasNext(); )
+            {
+                PortInst oPi = pit.next();
+                if (nl.getNetwork(oPi) == net)
+                {
+                    if (oNi.isCellInstance())
+                    {
+                        AffineTransform subTrans = ni.translateOut(ni.rotateOut(prevTrans));
+                        getBoundsOnNetwork(oPi, center, merge, subTrans, layersToUse);
+                    } else
+                    {
+                        Technology tech = oNi.getProto().getTechnology();
+                        if (tech == null) continue;
+                        Poly [] polys = tech.getShapeOfNode(oNi, true, true, null);
+                        for (Poly p : polys)
+                        {
+                            if (!layersToUse.contains(p.getLayer())) continue;
+                            p.transform(prevTrans);
+                            if (!p.contains(center)) continue;
+                            merge.addPolygon(p.getLayer(), p);
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    /****************************************** EXPORT-CREATION STITCHING ******************************************/
 
 	/**
 	 * Method to check an object for possible stitching to neighboring objects with export creation.
 	 * Actual stitching is not done, but necessary exports are created.
 	 * @param geom the object to check for stitching.
 	 */
-	private void checkExportCreationStitching(Geometric geom)
+	private void checkExportCreationStitching(Geometric geom, Map<Long,List<PolyConnection>> overlapMap, GatherNetworksVisitor gatherNetworks)
 	{
 		Cell cell = geom.getParent();
 		NodeInst ni = null;
@@ -1928,7 +1992,7 @@ name=null;
 
 				// compare node "ni" against arc "oAi"
 				if (ni.isCellInstance())
-					compareNodeInstWithArcMakeExport(ni, oAi);
+					compareNodeInstWithArcMakeExport(ni, oAi, overlapMap, gatherNetworks);
 			} else
 			{
 				// other geometric a NodeInst
@@ -1938,20 +2002,33 @@ name=null;
 					PrimitiveNode pnp = (PrimitiveNode)oNi.getProto();
 					if (pnp.getTechnology() == Generic.tech()) continue;
 					if (!includePureLayerNodes && pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
-				}
+					if (includePureLayerNodes && pnp.getFunction() == PrimitiveNode.Function.NODE) {
+                        // check that pure layer node has routable layer (this filters dummy layers, etc)
+                        boolean hasValidLayer = false;
+                        for (Iterator<Layer> layIt = pnp.getLayerIterator(); layIt.hasNext(); ) {
+                            Layer l = layIt.next();
+                            if (l.getFunction().isMetal() || l.getFunction().isDiff() || l.getFunction().isPoly()) {
+                                hasValidLayer = true; break;
+                            }
+                        }
+                        if (!hasValidLayer) continue;
+                    } else {
+                        continue;
+                    }
+                }
 
 				if (ni == null)
 				{
 					// compare arc "geom" against node "oNi"
 					if (oNi.isCellInstance())
-						compareNodeInstWithArcMakeExport(oNi, (ArcInst)geom);
+						compareNodeInstWithArcMakeExport(oNi, (ArcInst)geom, overlapMap, gatherNetworks);
 					continue;
 				}
 
 				// compare node "ni" against node "oNi"
-				if (oNi.isCellInstance() && ni.isCellInstance())
+				if (ni.isCellInstance())
 				{
-					compareTwoNodesMakeExport(ni, oNi);
+					compareTwoNodesMakeExport(ni, oNi, overlapMap, gatherNetworks);
 				}
 			}
 		}
@@ -1962,7 +2039,7 @@ name=null;
 	 * @param ni the NodeInst to compare.
 	 * @param ai the ArcInst to compare.
 	 */
-	private void compareNodeInstWithArcMakeExport(NodeInst ni, ArcInst ai)
+	private void compareNodeInstWithArcMakeExport(NodeInst ni, ArcInst ai, Map<Long,List<PolyConnection>> overlapMap, GatherNetworksVisitor gatherNetworks)
 	{
 		// get the polygon and layer that needs to connect
 		Poly arcPoly = null;
@@ -1978,13 +2055,18 @@ name=null;
 		}
 		if (arcPoly == null) return;
 
+        // this is the arc ai at the top level
+        int netID = gatherNetworks.getGlobalNetworkID(VarContext.globalContext, ai.getHeadPortInst());
+        SubPolygon sp2 = new SubPolygon(arcPoly, VarContext.globalContext, netID, ai, null);
+
 		// look for geometry inside the cell that touches the arc, and make an export so it can connect
-		ArcTouchVisitor atv = new ArcTouchVisitor(ai, arcPoly, ni, false);
+		ArcTouchVisitor atv = new ArcTouchVisitor(ai, arcPoly, ni, false, gatherNetworks);
 		HierarchyEnumerator.enumerateCell(ni.getParent(), VarContext.globalContext, atv);
 		SubPolygon sp = atv.getExportDrillLocation();
 		if (sp != null)
 		{
-			makeExportDrill((NodeInst)sp.theObj, sp.poly.getPort(), sp.context);
+            registerPoly(overlapMap, new PolyConnection(sp, sp2));
+            //makeExportDrill((NodeInst)sp.theObj, sp.poly.getPort(), sp.context, null, null);
 			return;
 		}
 
@@ -1994,6 +2076,8 @@ name=null;
 		sp = atv.getExportDrillLocation();
 		if (sp != null)
 		{
+            registerPoly(overlapMap, new PolyConnection(sp, sp2));
+/*
 			// get arc transformed to top-level
 			ArcInst breakArc = (ArcInst)sp.theObj;
 			if (!breakArc.isLinked()) return;
@@ -2068,11 +2152,125 @@ name=null;
             }
 
             // now drill the break pin to the top
-			makeExportDrill(pin, pi.getPortProto(), sp.context);
+			makeExportDrill(pin, pi.getPortProto(), sp.context, null, null);
+*/
 		}
 	}
 
-	/**
+    /**
+     * Make an export if necessary to connect the two networks.
+     * Each pair of subpolys in the list represents the same two networks,
+     * so being able to connect one pair means the others will also be connected.
+     * @param polys A list of poly connections (pairs of subpolygons)
+     */
+    private void makeExport(List<PolyConnection> polys)
+    {
+        if (polys.size() == 0) return;
+
+        // check for existing export
+        Point2D sp1AtTop = null, sp2AtTop = null;
+        for (PolyConnection p : polys) {
+            sp1AtTop = isExportedToTop(p.sp1);
+            sp2AtTop = isExportedToTop(p.sp2);
+            if (sp1AtTop != null && sp2AtTop != null) return; // both exported to top
+        }
+        if (sp1AtTop != null) sp1AtTop = new Point2D.Double(sp1AtTop.getX(), sp1AtTop.getY()); //convert Epoint to Point2D
+        if (sp2AtTop != null) sp2AtTop = new Point2D.Double(sp2AtTop.getX(), sp2AtTop.getY()); //convert Epoint to Point2D
+
+        
+        // none can connect at top level, export up first pair
+        PolyConnection p = polys.get(0);
+        List<Line2D> overlappingEdges = new ArrayList<Line2D>();
+        List<PolyBase> intersectionList = p.sp1.poly.getIntersection(p.sp2.poly, overlappingEdges);
+        PolyBase preferredExportArea = null;
+        if (intersectionList != null && intersectionList.size() > 0) {
+            preferredExportArea = intersectionList.get(0);
+        } else if (overlappingEdges.size() > 0) {
+            preferredExportArea = new PolyBase(overlappingEdges.get(0).getBounds());
+        }
+
+        // figure out which arc to use to connect the two - needed to decide how to create exports
+        ArcProto ap = null;
+        if (p.sp1.theObj instanceof ArcInst) {
+            ap = ((ArcInst)p.sp1.theObj).getProto();
+        }
+        if (p.sp2.theObj instanceof ArcInst) {
+            ap = ((ArcInst)p.sp2.theObj).getProto();
+        }
+        if (ap == null) {
+            ap = Router.getArcToUse(p.sp1.poly.getPort(), p.sp2.poly.getPort());
+        }
+
+        // make nodeinst exports first to get locations for arc exports
+        if (sp1AtTop == null && (p.sp1.theObj instanceof NodeInst)) {
+            sp1AtTop = makeExportDrill((NodeInst)p.sp1.theObj, p.sp1.poly.getPort(), p.sp1.context, preferredExportArea, ap);
+            //System.out.println("Making export on node "+p.sp1.theObj+" in cell "+p.sp1.theObj.getParent().describe(false)+" for netID "+p.sp1.netID);
+        }
+        if (sp2AtTop == null && (p.sp2.theObj instanceof NodeInst)) {
+            sp2AtTop = makeExportDrill((NodeInst)p.sp2.theObj, p.sp2.poly.getPort(), p.sp2.context, preferredExportArea, ap);
+            //System.out.println("Making export on node "+p.sp2.theObj+" in cell "+p.sp2.theObj.getParent().describe(false)+" for netID "+p.sp2.netID);
+        }
+        // make arc inst connections
+        if (sp1AtTop == null && (p.sp1.theObj instanceof ArcInst) && sp2AtTop != null) {
+            makeExportDrillOnArc(sp2AtTop, p.sp1, preferredExportArea);
+            //System.out.println("Making export on arc for netID "+p.sp1.netID);
+        }
+        if (sp2AtTop == null && (p.sp2.theObj instanceof ArcInst) && sp1AtTop != null) {
+            makeExportDrillOnArc(sp1AtTop, p.sp2, preferredExportArea);
+            //System.out.println("Making export on arc for netID "+p.sp2.netID);
+        }
+    }
+
+    /**
+     * See if the subpolygon is exported all the way to the top level of the var context.
+     * @param sp the subpolygon
+     * @return true if exported to the top level, false otherwise
+     */
+    private Point2D isExportedToTop(SubPolygon sp) {
+        Geometric geom = sp.theObj;
+        if (geom instanceof NodeInst) {
+            NodeInst ni = (NodeInst)geom;
+            PortInst pi = ni.findPortInstFromProto(sp.poly.getPort());
+            return isExportedToTop(pi, sp.context);
+        }
+        if (geom instanceof ArcInst) {
+            ArcInst ai = (ArcInst)geom;
+            PortInst pi1 = ai.getHead().getPortInst();
+            PortInst pi2 = ai.getTail().getPortInst();
+            Point2D point1 = isExportedToTop(pi1, sp.context);
+            if (point1 != null) return point1;
+            return isExportedToTop(pi2, sp.context);
+        }
+        return null;
+    }
+
+
+    /**
+     * See if the portinst is exported all the way to the top level of the var context.
+     * @param pi the port inst
+     * @param context context
+     * @return true if exported to the top level, false otherwise
+     */
+    private Point2D isExportedToTop(PortInst pi, VarContext context) {
+        while (context != VarContext.globalContext) {
+            if (pi.getExports().hasNext()) {
+                Export e = pi.getExports().next();
+                Nodable no = context.getNodable();
+                if (no instanceof NodeInst) {
+                    NodeInst ni = (NodeInst)no;
+                    pi = ni.findPortInstFromProto(e);
+                    context = context.pop();
+                } else {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        }
+        return pi.getCenter();
+    }
+
+    /**
 	 * HierarchyEnumerator subclass to find cell geometry that touches an arc at the upper level.
 	 */
 	private class ArcTouchVisitor extends HierarchyEnumerator.Visitor
@@ -2084,8 +2282,9 @@ name=null;
 		private boolean doArcs;
 		private Rectangle2D arcBounds;
 		private SubPolygon bestSubPolygon;
+        private GatherNetworksVisitor gatherNetworks;
 
-		public ArcTouchVisitor(ArcInst arcOfInterest, Poly arcPoly, NodeInst cellOfInterest, boolean doArcs)
+        public ArcTouchVisitor(ArcInst arcOfInterest, Poly arcPoly, NodeInst cellOfInterest, boolean doArcs, GatherNetworksVisitor gatherNetworks)
 		{
 			this.arcOfInterest = arcOfInterest;
 			this.arcPoly = arcPoly;
@@ -2094,7 +2293,8 @@ name=null;
 			arcNetID = -1;
 			arcBounds = arcPoly.getBounds2D();
 			bestSubPolygon = null;
-		}
+            this.gatherNetworks = gatherNetworks;
+        }
 
 		public SubPolygon getExportDrillLocation() { return bestSubPolygon; }
 
@@ -2128,7 +2328,8 @@ name=null;
 						poly.transform(arcTrans);
 						double dist = poly.separation(arcPoly);
 						if (dist >= DBMath.getEpsilon()) continue;
-						SubPolygon sp = new SubPolygon(poly, info.getContext(), netID, ai, arcTrans);
+						int netIDglobal = gatherNetworks.getGlobalNetworkID(info.getContext(), ai.getHeadPortInst());
+                        SubPolygon sp = new SubPolygon(poly, info.getContext(), netIDglobal, ai, arcTrans);
 						bestSubPolygon = sp;
 					}
 				}
@@ -2147,9 +2348,10 @@ name=null;
 					{
 						PolyBase poly = nodeInstPolyList[i];
 						if (poly.getLayer() != arcPoly.getLayer()) continue;
-						int netID = -1;
+						int netID = -1, netIDglobal = -1;
 						if (poly.getPort() != null)
 						{
+                            netIDglobal = gatherNetworks.getGlobalNetworkID(info.getContext(), ni.findPortInstFromProto(poly.getPort()));
 							Network net = nl.getNetwork(ni, poly.getPort(), 0);
 							if (net != null) netID = info.getNetID(net);
 						}
@@ -2157,7 +2359,7 @@ name=null;
 						poly.transform(nodeTrans);
 						double dist = poly.separation(arcPoly);
 						if (dist >= DBMath.getEpsilon()) continue;
-						SubPolygon sp = new SubPolygon(poly, info.getContext(), netID, ni, null);
+						SubPolygon sp = new SubPolygon(poly, info.getContext(), netIDglobal, ni, null);
 						if (bestSubPolygon != null)
 						{
 							if (!ni.hasExports()) continue;
@@ -2204,7 +2406,7 @@ name=null;
 	 * @param where the hierarchical stack that defines the path to the top.
 	 * @return the coordinate at the top-level where the drill happened.
 	 */
-	private Point2D makeExportDrill(NodeInst ni, PortProto exportThis, VarContext where)
+	private Point2D makeExportDrill(NodeInst ni, PortProto exportThis, VarContext where, PolyBase preferredExportArea, ArcProto ap)
 	{
 		Point2D topCoord = new Point2D.Double(0, 0);
 		while (where != VarContext.globalContext)
@@ -2212,15 +2414,84 @@ name=null;
 			PortInst pi = ni.findPortInstFromProto(exportThis);
 			if (pi == null) break;
 			Iterator<Export> eIt = pi.getExports();
+            boolean existingExportFound = false;
 			if (eIt.hasNext())
 			{
 				exportThis = eIt.next();
 			} else
 			{
-				Cell cell = ni.getParent();
-				String exportName = getExportNameInCell(cell, pi);
-	            exportThis = Export.newInstance(cell, pi, exportName);
-			}
+                Rectangle2D bounds = ni.getBounds();
+                Cell cell = ni.getParent();
+
+                String exportName = getExportNameInCell(cell, pi);
+                // special case for primitive node (bottom most port) - export a pin at a different loc to make it
+                // easier to connect to at the top level
+                if (!ni.isCellInstance() && preferredExportArea != null && ap != null) // primitive node
+                {
+                    PrimitiveNode pn = (PrimitiveNode)ni.getProto();
+                    // unfortunately preferredExportArea is relative to the top level, but we need it relative to the current level
+                    for (Iterator<Nodable> noit = where.getPathIterator(); noit.hasNext(); )
+                    {
+                        Nodable no = noit.next();
+                        if (!(no instanceof NodeInst)) break;
+                        NodeInst niHier = (NodeInst)no;
+                        AffineTransform trans = niHier.transformIn();
+                        preferredExportArea.transform(trans);
+                    }
+
+                    // check if there is already an export on this network in the preferred area,
+                    // and that it can connect to pi
+                    Netlist netlist = cell.getNetlist();
+                    Network net = netlist.getNetwork(pi);
+                    for (Iterator<Export> eit = cell.getExports(); eit.hasNext(); )
+                    {
+                        Export ex = eit.next();
+                        PortInst expi = ex.getOriginalPort();
+                        if (preferredExportArea.contains(expi.getCenter()))
+                        {
+                            if (net != netlist.getNetwork(expi)) continue;
+                            if (ex.connectsTo(ap)) {
+                                existingExportFound = true;
+                                exportThis = ex;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!existingExportFound)
+                    {
+                        Point2D center = preferredExportArea.getCenter();
+                        if (alignment != null) {
+                            double x = center.getX();
+                            double y = center.getY();
+                            if (alignment.getWidth() > 0) x = Math.round(x/alignment.getWidth()) * alignment.getWidth();
+                            if (alignment.getHeight() > 0) y = Math.round(y/alignment.getHeight()) * alignment.getHeight();
+                            center = new Point2D.Double(x, y);
+                        }
+
+                        // if the new export center is still within bounds
+                        if (DBMath.pointInRect(center, bounds))
+                        {
+                            // make the new export if it is a primitive node (avoid huge export area), or if the export would
+                            // not be within the preferred area
+                            if (!preferredExportArea.contains(pi.getCenter()) || pn.getFunction() == PrimitiveNode.Function.NODE)
+                            {
+                                // make export on pin and wire to pi, rather than exporting pi
+                                PrimitiveNode pin = ap.findPinProto();
+                                NodeInst pinNi = NodeInst.newInstance(pin, center, pin.getDefWidth(), pin.getDefHeight(), cell);
+                                Route route = router.planRoute(cell, pinNi.getOnlyPortInst(), pi, center, null, false, false, null, null);
+                                if (!Router.createRouteNoJob(route, cell, new HashMap<ArcProto,Integer>(), new HashMap<NodeProto,Integer>())) {
+                                    pi = pinNi.getOnlyPortInst();
+                                } else {
+                                    if (pinNi != null) pinNi.kill(); // delete if route failed
+                                }
+                            }
+                        }
+                    }
+                }
+                if (!existingExportFound)
+                    exportThis = Export.newInstance(cell, pi, exportName);
+            }
 			ni = where.getNodable().getNodeInst();
 			where = where.pop();
 			AffineTransform trans = ni.transformOut();
@@ -2234,7 +2505,7 @@ name=null;
 	 * @param topLoc the coordinate at the top level where the ArcInst should be broken.
 	 * @param sp the context to the ArcInst.
 	 */
-	private void makeExportDrillOnArc(Point2D topLoc, SubPolygon sp)
+	private void makeExportDrillOnArc(Point2D topLoc, SubPolygon sp, PolyBase preferredExportArea)
 	{
 		// save information about the arc
 		ArcInst lowAI = (ArcInst)sp.theObj;
@@ -2246,24 +2517,36 @@ name=null;
 		double width = lowAI.getLambdaBaseWidth();
 		Cell cell = lowAI.getParent();
 
-		// make reverse context for drilling down to the arc
-		List<VarContext> revContext = new ArrayList<VarContext>();
-		VarContext climb = sp.context;
-		while (climb != VarContext.globalContext)
-		{
-			revContext.add(0, climb);
-			climb = climb.pop();
-		}
+        for (Iterator<Nodable> noit = sp.context.getPathIterator(); noit.hasNext(); )
+        {
+            NodeInst niHier = noit.next().getNodeInst();
+            AffineTransform trans = niHier.transformIn();
+            trans.transform(topLoc, topLoc);
+            if (preferredExportArea != null)
+                preferredExportArea.transform(trans);            
+        }
 
-		// transform the top coordinate down to the level of the arc
-		for(VarContext context : revContext)
-		{
-			NodeInst ni = context.getNodable().getNodeInst();
-			AffineTransform trans = ni.transformIn();
-			trans.transform(topLoc, topLoc);
-		}
+        // check if there is already an export on this network in the preferred area,
+        // and that it can connect to ai
+        Netlist netlist = cell.getNetlist();
+        Network net = netlist.getNetwork(lowAI, 0);
+        for (Iterator<Export> eit = cell.getExports(); eit.hasNext(); )
+        {
+            Export ex = eit.next();
+            PortInst expi = ex.getOriginalPort();
+            if (preferredExportArea.contains(expi.getCenter()))
+            {
+                if (net != netlist.getNetwork(expi)) continue;
+                if (ex.connectsTo(ap)) {
+                    // re-export up the hierarchy
+                    makeExportDrill(ex.getOriginalPort().getNodeInst(), ex, sp.context.pop(), preferredExportArea, ap);
+                    return;
+                }
+            }
+        }
 
-		// see if there is already a pin/export here
+/*
+        // see if there is already a pin/export here
 		NodeInst ni = null;
 		Rectangle2D searchBound = new Rectangle2D.Double(topLoc.getX(), topLoc.getY(), 0, 0);
 		for(Iterator<RTBounds> it = cell.searchIterator(searchBound); it.hasNext(); )
@@ -2276,52 +2559,43 @@ name=null;
 			ni = foundNI;
 			break;
 		}
+*/
 
 		// make a pin at the desired location on the arc
-		if (ni == null)
-		{
-			// make sure the location is on the arc
-			if (GenMath.distToLine(lowAI.getHeadLocation(), lowAI.getTailLocation(), topLoc) > 0)
-				return;
-			PrimitiveNode pNp = lowAI.getProto().findPinProto();
-			ni = NodeInst.makeInstance(pNp, topLoc, pNp.getDefWidth(), pNp.getDefHeight(), cell);
+        NodeInst ni = null;
 
-			// insert the pin into the arc
-			ArcInst newAi1 = ArcInst.makeInstanceBase(ap, width, lowAI.getHeadPortInst(), ni.getOnlyPortInst(), lowAI.getHeadLocation(), topLoc, null);
-			ArcInst newAi2 = ArcInst.makeInstanceBase(ap, width, ni.getOnlyPortInst(), lowAI.getTailPortInst(), topLoc, lowAI.getTailLocation(), null);
-			newAi1.setHeadNegated(lowAI.isHeadNegated());
-			newAi1.setHeadExtended(lowAI.isHeadExtended());
-			newAi1.setHeadArrowed(lowAI.isHeadArrowed());
-			newAi2.setTailNegated(lowAI.isTailNegated());
-			newAi2.setTailExtended(lowAI.isTailExtended());
-			newAi2.setTailArrowed(lowAI.isTailArrowed());
-			lowAI.kill();
-			if (arcName != null)
-			{
-			    if (lowAI.getHeadLocation().distance(topLoc) > lowAI.getTailLocation().distance(topLoc))
-			    {
-			        newAi1.setName(arcName);
-			        newAi1.copyTextDescriptorFrom(lowAI, ArcInst.ARC_NAME);
-			    } else
-			    {
-			        newAi2.setName(arcName);
-			        newAi2.copyTextDescriptorFrom(lowAI, ArcInst.ARC_NAME);
-			    }
-			}
-			newAi1.setAngle(angle);
-			newAi2.setAngle(angle);
-		}
+        // make sure the location is on the arc
+        if (GenMath.distToLine(lowAI.getHeadLocation(), lowAI.getTailLocation(), topLoc) > 0)
+            return;
+        PrimitiveNode pNp = lowAI.getProto().findPinProto();
+        ni = NodeInst.makeInstance(pNp, topLoc, pNp.getDefWidth(), pNp.getDefHeight(), cell);
 
-		// make an export on the pin and drill farther up from that point
-		Export exportMade = null;
-		if (ni.getNumExports() > 0) exportMade = ni.getExports().next(); else
-		{
-			String exportName = getExportNameInCell(cell, lowAI.getHeadPortInst());
-			exportMade = Export.newInstance(cell, ni.getOnlyPortInst(), exportName);
-		}
-		Nodable no = sp.context.getNodable();
-		if (no != null)
-			makeExportDrill(no.getNodeInst(), exportMade, sp.context.pop());
+        // insert the pin into the arc
+        ArcInst newAi1 = ArcInst.makeInstanceBase(ap, width, lowAI.getHeadPortInst(), ni.getOnlyPortInst(), lowAI.getHeadLocation(), topLoc, null);
+        ArcInst newAi2 = ArcInst.makeInstanceBase(ap, width, ni.getOnlyPortInst(), lowAI.getTailPortInst(), topLoc, lowAI.getTailLocation(), null);
+        newAi1.setHeadNegated(lowAI.isHeadNegated());
+        newAi1.setHeadExtended(lowAI.isHeadExtended());
+        newAi1.setHeadArrowed(lowAI.isHeadArrowed());
+        newAi2.setTailNegated(lowAI.isTailNegated());
+        newAi2.setTailExtended(lowAI.isTailExtended());
+        newAi2.setTailArrowed(lowAI.isTailArrowed());
+        lowAI.kill();
+        if (arcName != null)
+        {
+            if (lowAI.getHeadLocation().distance(topLoc) > lowAI.getTailLocation().distance(topLoc))
+            {
+                newAi1.setName(arcName);
+                newAi1.copyTextDescriptorFrom(lowAI, ArcInst.ARC_NAME);
+            } else
+            {
+                newAi2.setName(arcName);
+                newAi2.copyTextDescriptorFrom(lowAI, ArcInst.ARC_NAME);
+            }
+        }
+        newAi1.setAngle(angle);
+        newAi2.setAngle(angle);
+
+        makeExportDrill(ni, ni.getOnlyPortInst().getPortProto(), sp.context, preferredExportArea, ap);
 	}
 
 	private String getExportNameInCell(Cell cell, PortInst pi)
@@ -2386,7 +2660,7 @@ name=null;
 	 * @param ni1 the first cell instance being checked.
 	 * @param ni2 the second cell instance being checked.
 	 */
-	private void compareTwoNodesMakeExport(NodeInst ni1, NodeInst ni2)
+	private void compareTwoNodesMakeExport(NodeInst ni1, NodeInst ni2, Map<Long,List<PolyConnection>> overlapMap, GatherNetworksVisitor gatherNetworks)
 	{
 		// force the second to be a cell instance
 		if (!ni2.isCellInstance())
@@ -2394,6 +2668,8 @@ name=null;
 			NodeInst swap = ni1;   ni1 = ni2;   ni2 = swap;
 		}
 		if (!ni2.isCellInstance()) return;
+        // ignore stuff from different technologies
+        if (ni1.getProto().getTechnology() != ni2.getProto().getTechnology()) return;
 
 		// first find the area of intersection between the two nodes
 		Rectangle2D bound1 = ni1.getBounds();
@@ -2409,7 +2685,7 @@ name=null;
 		RTNode rtree = null;
 		if (ni1.isCellInstance())
 		{
-			GatherPolygonVisitor gpv = new GatherPolygonVisitor(intersectArea, ni1);
+			GatherPolygonVisitor gpv = new GatherPolygonVisitor(intersectArea, ni1, gatherNetworks);
 			HierarchyEnumerator.enumerateCell(ni1.getParent(), VarContext.globalContext, gpv);
 			rtree = gpv.getRTree();
 		} else
@@ -2422,17 +2698,27 @@ name=null;
 			{
 				Poly poly = polys[i];
 				poly.transform(trans);
-				if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
-				rtree = RTNode.linkGeom(null, rtree, new SubPolygon(poly, VarContext.globalContext, -1, ni1, null));
+                int netID = -1;
+                if (poly.getPort() != null) {
+                    netID = gatherNetworks.getGlobalNetworkID(VarContext.globalContext, ni1.findPortInstFromProto(poly.getPort()));
+                }
+                if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
+				rtree = RTNode.linkGeom(null, rtree, new SubPolygon(poly, VarContext.globalContext, netID, ni1, null));
 			}
 		}
 
 		// now take the list into the second node and look for connections
-		CheckPolygonVisitor cpv = new CheckPolygonVisitor(rtree, intersectArea, ni2);
+		CheckPolygonVisitor cpv = new CheckPolygonVisitor(rtree, intersectArea, ni2, gatherNetworks);
 		HierarchyEnumerator.enumerateCell(ni2.getParent(), VarContext.globalContext, cpv);
 		List<PolyConnection> polysFound = cpv.getFoundConnections();
 
-		// show what is matched
+        // add to map of things that overlap should be connected
+        for (PolyConnection p : polysFound) {
+            registerPoly(overlapMap, p);
+        }
+
+/*
+        // show what is matched
 		for(PolyConnection p : polysFound)
 		{
 			if (p.sp1.theObj instanceof ArcInst && p.sp2.theObj instanceof NodeInst)
@@ -2459,6 +2745,7 @@ name=null;
 				makeExportDrill((NodeInst)p.sp2.theObj, p.sp2.poly.getPort(), p.sp2.context);
 			}
 		}
+*/
 	}
 
 	/**
@@ -2470,13 +2757,15 @@ name=null;
 		private Rectangle2D intersectArea;
 		private NodeInst cellOfInterest;
 		private List<PolyConnection> connectionsFound;
+        private GatherNetworksVisitor gatherNetworks;
 
-		public CheckPolygonVisitor(RTNode rtree, Rectangle2D intersectArea, NodeInst cellOfInterest)
+        public CheckPolygonVisitor(RTNode rtree, Rectangle2D intersectArea, NodeInst cellOfInterest, GatherNetworksVisitor gatherNetworks)
 		{
 			this.rtree = rtree;
 			this.intersectArea = intersectArea;
 			this.cellOfInterest = cellOfInterest;
-			connectionsFound = new ArrayList<PolyConnection>();
+            this.gatherNetworks = gatherNetworks;
+            connectionsFound = new ArrayList<PolyConnection>();
 		}
 
 		public List<PolyConnection> getFoundConnections() { return connectionsFound; }
@@ -2507,9 +2796,8 @@ name=null;
 						SubPolygon sp = (SubPolygon)sea.next();
 						if (sp.poly.getLayer() != poly.getLayer()) continue;
 						if (sp.poly.separation(poly) >= DBMath.getEpsilon()) continue;
-						int netID = -1;
-						Network net = nl.getNetwork(ni, poly.getPort(), 0);
-						if (net != null) netID = info.getNetID(net);
+                        Network net = nl.getNetwork(ni, poly.getPort(), 0);
+						int netID = gatherNetworks.getGlobalNetworkID(info.getContext(), ni.findPortInstFromProto(poly.getPort()));
 						SubPolygon sp2 = new SubPolygon(poly, info.getContext(), netID, ni, null);
 						addConnection(sp, sp2);
 					}
@@ -2533,7 +2821,7 @@ name=null;
 						if (sp.poly.getLayer() != poly.getLayer()) continue;
 						if (sp.poly.separation(poly) > 0) continue;
 						Network net = nl.getNetwork(ai, 0);
-						int netID = info.getNetID(net);
+						int netID = gatherNetworks.getGlobalNetworkID(info.getContext(), ai.getHeadPortInst());
 						SubPolygon sp2 = new SubPolygon(poly, info.getContext(), netID, ai, null);
 						addConnection(sp, sp2);
 					}
@@ -2598,13 +2886,15 @@ name=null;
 		private RTNode rtree;
 		private Rectangle2D intersectArea;
 		private NodeInst cellOfInterest;
+        private GatherNetworksVisitor gatherNetworks;
 
-		public GatherPolygonVisitor(Rectangle2D intersectArea, NodeInst cellOfInterest)
+        public GatherPolygonVisitor(Rectangle2D intersectArea, NodeInst cellOfInterest, GatherNetworksVisitor gatherNetworks)
 		{
 			rtree = RTNode.makeTopLevel();
 			this.intersectArea = intersectArea;
 			this.cellOfInterest = cellOfInterest;
-		}
+            this.gatherNetworks = gatherNetworks;
+        }
 
 		public RTNode getRTree() { return rtree; }
 
@@ -2631,9 +2921,8 @@ name=null;
 					if (poly.getPort() == null) continue;
 					poly.transform(nodeTrans);
 					if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
-					int netID = -1;
-					Network net = nl.getNetwork(ni, poly.getPort(), 0);
-					if (net != null) netID = info.getNetID(net);
+                    Network net = nl.getNetwork(ni, poly.getPort(), 0);
+					int netID = gatherNetworks.getGlobalNetworkID(info.getContext(), ni.findPortInstFromProto(poly.getPort()));
 					rtree = RTNode.linkGeom(null, rtree, new SubPolygon(poly, info.getContext(), netID, ni, null));
 				}
 			}
@@ -2652,7 +2941,7 @@ name=null;
 					poly.transform(toTop);
 					if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
 					Network net = nl.getNetwork(ai, 0);
-					int netID = info.getNetID(net);
+					int netID = gatherNetworks.getGlobalNetworkID(info.getContext(), ai.getHeadPortInst());
 					rtree = RTNode.linkGeom(null, rtree, new SubPolygon(poly, info.getContext(), netID, ai, null));
 				}
 			}
@@ -2677,7 +2966,85 @@ name=null;
 		}
 	}
 
-	/****************************************** SUPPORT ******************************************/
+    private void registerPoly(Map<Long,List<PolyConnection>> overlapMap, PolyConnection p)
+    {
+        // make sure lower netID is in sp1
+        if (p.sp1.netID > p.sp2.netID) {
+            SubPolygon spTemp = p.sp1;
+            p.sp1 = p.sp2;
+            p.sp2 = spTemp;
+        }
+
+        long netID1 = (long)p.sp1.netID;
+        long netID2 = (long)p.sp2.netID;
+        if (netID1 == netID2) return; // already connected
+        if (netID1 < 0 || netID2 < 0) {
+            System.out.println("Ignoring poly "+p.sp1.theObj.describe(false)+", netID is "+netID1);
+            System.out.println("Ignoring poly "+p.sp2.theObj.describe(false)+", netID is "+netID2);
+            return;
+        }
+
+        // get unique key
+        long key = (netID1 << Integer.SIZE) | (netID2);
+        List<PolyConnection> polys = overlapMap.get(key);
+        if (polys == null) {
+            polys = new ArrayList<PolyConnection>();
+            overlapMap.put(key,polys);
+        }
+        polys.add(p);
+    }
+
+    /**
+     * HierarchyEnumerator subclass to gather a global consistent network map
+     */
+    private class GatherNetworksVisitor extends HierarchyEnumerator.Visitor
+    {
+        // String key is varContext.getInstPath(".")
+        private Map<String,Map<PortInst,Integer>> networkToNetID = new HashMap<String,Map<PortInst,Integer>>();
+
+        public boolean enterCell(HierarchyEnumerator.CellInfo info) {
+            return true;
+        }
+
+        public void exitCell(HierarchyEnumerator.CellInfo info) {
+            Cell cell = info.getCell();
+            VarContext context = info.getContext();
+            String key = context.getInstPath(".");
+            Map<PortInst,Integer> netIdMap = networkToNetID.get(key);
+            if (netIdMap == null) {
+                netIdMap = new HashMap<PortInst,Integer>();
+                networkToNetID.put(key, netIdMap);
+            }
+
+            Netlist netlist = info.getNetlist();
+            for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+                NodeInst ni = it.next();
+                for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
+                    PortInst pi = pit.next();
+                    Network net = netlist.getNetwork(pi);
+                    if (net == null) continue;
+                    int netID = info.getNetID(net);
+                    netIdMap.put(pi, netID);
+                }
+            }
+        }
+
+        public boolean visitNodeInst(Nodable ni, HierarchyEnumerator.CellInfo info) {
+            return true;
+        }
+
+        private int getGlobalNetworkID(VarContext context, PortInst pi) {
+            if (pi == null) return -1;
+            if (context == null) return -1;
+            String key = context.getInstPath(".");
+            Map<PortInst,Integer> netIdMap = networkToNetID.get(key);
+            if (netIdMap == null) return -1;
+            if (!netIdMap.containsKey(pi)) return -1;
+            return netIdMap.get(pi).intValue();
+        }
+    }
+
+    /****************************************** SUPPORT ******************************************/
 
 	/**
 	 * Method to determine if an arc is too wide for its ends.
