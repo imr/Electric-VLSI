@@ -562,7 +562,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		for(int i=0; i<protoName.length(); i++)
 		{
 			char chr = protoName.charAt(i);
-			if (Character.isWhitespace(chr) || chr == ':' || chr == ';' || chr == '{' || chr == '}')
+			if (Character.isWhitespace(chr) || chr == ':' || chr == ';' || chr == '{' || chr == '}' || chr == '/' || chr == '\\')
 			{
 				if (original == null) original = protoName;
 				protoName = protoName.substring(0, i) + '_' + protoName.substring(i+1);
