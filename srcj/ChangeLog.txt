@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10d: ******************************
 
+IMP: (8/5/09, JKG) fix for null color in LayerDrawing.java 
+
+IMP: (8/5/09, JKG) Changes in Node Extractor:
+(1) changed conditions for forcing an arc to have no head/tail extends (RouteElementArc.java)
+(2) more code for aligning to grid, for node extraction (InteractiveRouter.java)
+(3) fixes for node extractor, mostly in re-exporting up the hierarchy (AutoStitch.java)
+(4) purelayernodemode that extracts mostly pure layer nodes. lots of fixes (Connectivity.java)
+
 ************************* Version 8.10c: ******************************
 
 IMP/MAN: (8/5/09, SMR) Added ${FILEPATH} to the possible substitutions in
