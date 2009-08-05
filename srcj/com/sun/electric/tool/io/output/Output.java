@@ -327,11 +327,10 @@ public class Output
 	 * @param thisQuiet true to save with less information displayed.
      * @param delibHeaderOnly true to write only the header for a DELIB type library
      * @param backupScheme controls how older files are backed-up.
-     * @return true on error.
 	 */
-	public static boolean writeLibrary(Library lib, FileType type, boolean compatibleWith6,
-		boolean thisQuiet, boolean delibHeaderOnly, int backupScheme) {
-        return writeLibrary(lib, type, compatibleWith6, thisQuiet, delibHeaderOnly, backupScheme, null, null);
+	public static void writeLibrary(Library lib, FileType type, boolean compatibleWith6,
+		boolean thisQuiet, boolean delibHeaderOnly, int backupScheme) throws JobException {
+        writeLibrary(lib, type, compatibleWith6, thisQuiet, delibHeaderOnly, backupScheme, null, null);
     }
 
 	/**
@@ -348,11 +347,10 @@ public class Output
      * @param backupScheme controls how older files are backed-up.
      * @param deletedCellFiles output list of deleted cell files of DELIB library
      * @param writtenCellFiles output list of written cell files of DELIB library
-     * @return true on error.
 	 */
-	public static boolean writeLibrary(Library lib, FileType type, boolean compatibleWith6,
+	public static void writeLibrary(Library lib, FileType type, boolean compatibleWith6,
 		boolean thisQuiet, boolean delibHeaderOnly, int backupScheme,
-        List<String> deletedCellFiles, List<String> writtenCellFiles)
+        List<String> deletedCellFiles, List<String> writtenCellFiles) throws JobException
 	{
 		// make sure that all "meaning" options are attached to the database
 //		Pref.installMeaningVariables();
@@ -471,12 +469,15 @@ public class Output
 				ELIB elib = new ELIB();
 				elib.quiet = thisQuiet;
 				if (compatibleWith6) elib.write6Compatible();
-				if (elib.openBinaryOutputStream(properOutputName)) return true;
+				if (elib.openBinaryOutputStream(properOutputName))
+                    throw new JobException("elib.openBinaryOutputStream() failed");
 //                if (CVS.isEnabled()) {
 //                    CVSLibrary.savingLibrary(lib);
 //                }
-				if (elib.writeLib(snapshot, libId)) return true;
-				if (elib.closeBinaryOutputStream()) return true;
+				if (elib.writeLib(snapshot, libId))
+                    throw new JobException("elib.writeLib() failed");
+				if (elib.closeBinaryOutputStream())
+                    throw new JobException("elib.closeBinaryOutputStream() failed");
 //                if (CVS.isEnabled()) {
 //                    CVSLibrary.savedLibrary(lib);
 //                }
@@ -484,12 +485,15 @@ public class Output
 			{
 				JELIB jelib = new JELIB();
 				jelib.quiet = thisQuiet;
-				if (jelib.openTextOutputStream(properOutputName)) return true;
+				if (jelib.openTextOutputStream(properOutputName))
+                    throw new JobException("jelib.openTextOutputStream() failed");
 //                if (CVS.isEnabled()) {
 //                    CVSLibrary.savingLibrary(lib);
 //                }
-				if (jelib.writeLib(snapshot, libId, null, false)) return true;
-				if (jelib.closeTextOutputStream()) return true;
+				if (jelib.writeLib(snapshot, libId, null, false))
+                    throw new JobException("jelib.writeLib() failed");
+				if (jelib.closeTextOutputStream())
+                    throw new JobException("jelib.closeTextOutputStream() failed");
 //                if (CVS.isEnabled()) {
 //                    CVSLibrary.savedLibrary(lib);
 //                }
@@ -498,24 +502,30 @@ public class Output
 		{
             ReadableDump readableDump = new ReadableDump();
 			readableDump.quiet = thisQuiet;
-			if (readableDump.openTextOutputStream(properOutputName)) return true;
-			if (readableDump.writeLib(snapshot, libId)) return true;
-			if (readableDump.closeTextOutputStream()) return true;
+			if (readableDump.openTextOutputStream(properOutputName))
+                throw new JobException("readableDump.openTextOutputStream() failed");
+			if (readableDump.writeLib(snapshot, libId))
+                throw new JobException("readableDump.writeLib() failed");
+			if (readableDump.closeTextOutputStream())
+                throw new JobException("readableDump.closeTextOutputStream() failed");
         } else if (type == FileType.DELIB)
         {
             DELIB delib = new DELIB(delibHeaderOnly);
             delib.quiet = thisQuiet;
-            if (delib.openTextOutputStream(properOutputName)) return true;
+            if (delib.openTextOutputStream(properOutputName))
+                throw new JobException("delib.openTextOutputStream() failed");
 //            if (CVS.isEnabled() && !delibHeaderOnly) {
 //                CVSLibrary.savingLibrary(lib);
 //            }
             Set<CellId> oldCells = lib.getDelibCells();
-            if (delib.writeLib(snapshot, libId, oldCells)) return true;
+            if (delib.writeLib(snapshot, libId, oldCells))
+                throw new JobException("delib.writeLib() failed");
             lib.setDelibCells();
 //            HashSet<String> cellFiles = new HashSet<String>(lib.getDelibCellFiles());
 //            if (delib.writeLib(snapshot, libId, cellFiles)) return true;
 //            lib.setDelibCellFiles(cellFiles);
-            if (delib.closeTextOutputStream()) return true;
+            if (delib.closeTextOutputStream())
+                throw new JobException("delib.closeTextOutputStream() failed");
             if (deletedCellFiles != null)
                 deletedCellFiles.addAll(delib.getDeletedCellFiles());
             if (writtenCellFiles != null)
@@ -525,8 +535,7 @@ public class Output
 //            }
 		} else
 		{
-			System.out.println("Unknown export type: " + type);
-			return true;
+            throw new JobException("Unknown export type: " + type);
 		}
 		// clean up and return
         lib.setFromDisk();
@@ -541,7 +550,6 @@ public class Output
 */
         lib.clearChanged();
         Constraints.getCurrent().writeLibrary(lib);
-		return false;
 	}
 
 	/**
@@ -901,12 +909,12 @@ public class Output
                         lib = EDatabase.serverDatabase().getLib(idMapper.get(lib.getId()));
                 }
                 fieldVariableChanged("idMapper");
-                error = Output.writeLibrary(lib, FileType.JELIB, false, false, false, backupScheme);
             } catch (Exception e)
             {
             	throw new JobException("Exception caught when saving library: " + e.getMessage());
             }
-            return !error;
+            Output.writeLibrary(lib, FileType.JELIB, false, false, false, backupScheme);
+            return false;
         }
 
         public void terminateOK() {

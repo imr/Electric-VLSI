@@ -1155,7 +1155,8 @@ public class FileMenu {
                 libFile = lib.getLibFile();
                 deletedCellFiles = new ArrayList<String>();
                 writtenCellFiles = new ArrayList<String>();
-                success = !Output.writeLibrary(lib, type, compatibleWith6, false, false, backupScheme, deletedCellFiles, writtenCellFiles);
+                Output.writeLibrary(lib, type, compatibleWith6, false, false, backupScheme, deletedCellFiles, writtenCellFiles);
+                success = true;
             } catch (Exception e) {
                 e.printStackTrace(System.out);
                 throw new JobException("Exception caught when saving files: " +

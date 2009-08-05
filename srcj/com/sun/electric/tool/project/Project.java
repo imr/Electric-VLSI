@@ -42,6 +42,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.LibraryFiles;
@@ -697,7 +698,7 @@ public class Project extends Listener
 	 * @param backupScheme rule for backing-up old files.
 	 * @return true on error.
 	 */
-	static boolean writeCell(Cell cell, ProjectCell pc, int backupScheme)
+	static boolean writeCell(Cell cell, ProjectCell pc, int backupScheme) throws JobException
 	{
 		String dirName = pc.getProjectLibrary().getProjectDirectory() + File.separator + cell.getName();
 		File dir = new File(dirName);
@@ -729,13 +730,17 @@ public class Project extends Listener
 
 //		fLib.setCurCell(cellCopy);
 		fLib.setFromDisk();
-		boolean error = Output.writeLibrary(fLib, pc.getLibType(), false, true, false, backupScheme);
-		if (error)
-		{
-			System.out.println("Could not save library with " + cell + " in it");
-			fLib.kill("delete");
-			return true;
-		}
+        boolean error = true;
+        try {
+            Output.writeLibrary(fLib, pc.getLibType(), false, true, false, backupScheme);
+            error = false;
+        } finally {
+            if (error)
+                {
+                    System.out.println("Could not save library with " + cell + " in it");
+                    fLib.kill("delete");
+                }
+        }
 		fLib.kill("delete");
 		return false;
 	}

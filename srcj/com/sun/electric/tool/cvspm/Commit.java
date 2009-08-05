@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
@@ -144,7 +145,7 @@ public class Commit {
             if (this.cellsToCommit == null) this.cellsToCommit = new ArrayList<Cell>();
             this.backupScheme = IOTool.getBackupRedundancy();
         }
-        public boolean doIt() {
+        public boolean doIt() throws JobException {
             // list of library files to commit
             String useDir = CVS.getUseDir(libsToCommit, cellsToCommit);
             StringBuffer libs = CVS.getLibraryFiles(libsToCommit, useDir);

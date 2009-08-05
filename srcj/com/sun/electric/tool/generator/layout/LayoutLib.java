@@ -51,6 +51,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.Output;
@@ -155,7 +156,7 @@ public class LayoutLib {
 	 * Write a library in JELIB format.
 	 * @param lib the library to be written.
 	 */
-	public static void writeLibrary(Library lib, int backupScheme) {
+	public static void writeLibrary(Library lib, int backupScheme) throws JobException {
 		Output.writeLibrary(lib, FileType.JELIB, false, false, false, backupScheme);
 	}
 	/**

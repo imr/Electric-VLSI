@@ -3,6 +3,7 @@ package com.sun.electric.tool.generator.layout.fill;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.fill.FillGenConfig.FillGenType;
 import com.sun.electric.tool.generator.layout.fill.FillGeneratorTool.Units;
+import com.sun.electric.tool.JobException;
 
 
 /** Fill Generation for bean shell scripts */
@@ -63,7 +64,7 @@ public class FillGen {
 	public void makeGallery() {
 		fgt.makeGallery();
 	}
-	public void writeLibrary(int backupScheme) {
+	public void writeLibrary(int backupScheme) throws JobException {
 		fgt.writeLibrary(backupScheme);
 	}
 }

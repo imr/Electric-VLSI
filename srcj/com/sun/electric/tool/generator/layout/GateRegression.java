@@ -90,7 +90,7 @@ public class GateRegression extends Job {
 
     /** Programatic interface to gate regressions.
      * @return the number of errors detected */
-    public static int runRegression(TechType.TechTypeEnum technology, Library scratchLib, int backupScheme) {
+    public static int runRegression(TechType.TechTypeEnum technology, Library scratchLib, int backupScheme) throws JobException {
 		System.out.println("begin Gate Regression");
 
 //        Tech.setTechnology(technology);     This call can't be done inside the doIt() because it calls the preferences

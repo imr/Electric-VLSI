@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.generator.layout.Gallery;
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -848,7 +849,7 @@ public class FillGeneratorTool extends Tool {
         Gallery.makeGallery(lib);
     }
 
-    public void writeLibrary(int backupScheme) {
+    public void writeLibrary(int backupScheme) throws JobException {
         LayoutLib.writeLibrary(lib, backupScheme);
     }
 
