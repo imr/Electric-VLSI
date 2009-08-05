@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10c: ******************************
 
+IMP: (8/4/09, AM) Update com/sun/electric/tool/simulation/package.html.
+
 IMP: (8/4/09, AM) Make Output.writeLibrary throw an exception instead
      of returning a boolean, in order to eliminate worryingly vague
      "Error saving files.  Please check your disk libraries" message.
