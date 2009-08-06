@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10d: ******************************
 
+BUG: (8/6/09, DN) Exception in PixelDrawing.drawText, text rotated 270 degrees (Bug #2291).
+FIX: In PixelDrawing.drawText clean assignments to sx and ex.
+
 IMP: (8/5/09, GVG) Better short names in palette icons for well and active contacts (Bug #2323)
 
 BUG/MAN: (8/5/09, JKG) Fixes for node extraction. PURELAYERNODEMODE in node extractor, probably

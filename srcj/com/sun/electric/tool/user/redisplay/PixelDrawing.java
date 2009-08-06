@@ -3018,9 +3018,11 @@ public class PixelDrawing
 		switch (rotation)
 		{
 			case 0:			// no rotation
-				if (atX < 0) sx = -atX; else sx = 0;
-				if (atX+rasWidth >= sz.width) ex = sz.width-1 - atX; else
-					ex = rasWidth;
+                sx = Math.max(0, -atX);
+                ex = Math.min(rasWidth, sz.width - atX);
+//				if (atX < 0) sx = -atX; else sx = 0;
+//				if (atX+rasWidth >= sz.width) ex = sz.width-1 - atX; else
+//					ex = rasWidth;
 				for(int y=0; y<rasHeight; y++)
 				{
 					int trueY = atY + y;
@@ -3063,9 +3065,11 @@ public class PixelDrawing
 				}
 				break;
 			case 1:			// 90 degrees counterclockwise
-				if (atX < 0) sx = -atX; else sx = 0;
-				if (atX >= sz.width) ex = sz.width - atX; else
-					ex = rasHeight;
+                sx = Math.max(0, -atX);
+                ex = Math.min(rasHeight, sz.width - atX);
+//				if (atX < 0) sx = -atX; else sx = 0;
+//				if (atX >= sz.width) ex = sz.width - atX; else
+//					ex = rasHeight;
 				for(int y=0; y<rasWidth; y++)
 				{
 					int trueY = atY - y;
@@ -3108,9 +3112,11 @@ public class PixelDrawing
 			case 2:			// 180 degrees
 				atX -= rasWidth;
 				atY -= rasHeight;
-				if (atX < 0) sx = -atX; else sx = 0;
-				if (atX+rasWidth >= sz.width) ex = sz.width-1 - atX; else
-					ex = rasWidth;
+                sx = Math.max(0, -atX);
+                ex = Math.min(rasWidth, sz.width - atX);
+//				if (atX < 0) sx = -atX; else sx = 0;
+//				if (atX+rasWidth >= sz.width) ex = sz.width-1 - atX; else
+//					ex = rasWidth;
 
 				for(int y=0; y<rasHeight; y++)
 				{
@@ -3153,9 +3159,11 @@ public class PixelDrawing
 				}
 				break;
 			case 3:			// 90 degrees clockwise
-				if (atX < 0) sx = -atX; else sx = 0;
-				if (atX >= sz.width) ex = sz.width - atX; else
-					ex = rasHeight;
+                sx = Math.max(0, atX - sz.width + 1);
+                ex = Math.min(rasHeight, atX + 1);
+//				if (atX < 0) sx = -atX; else sx = 0;
+//				if (atX >= sz.width) ex = sz.width - atX; else
+//					ex = rasHeight;
 				for(int y=0; y<rasWidth; y++)
 				{
 					int trueY = atY + y;
