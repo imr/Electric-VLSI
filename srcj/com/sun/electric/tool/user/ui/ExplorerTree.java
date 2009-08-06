@@ -401,6 +401,14 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
         return false;
 	}
 
+//	private class RedoLater implements Runnable
+//	{
+//		private List<MutableTreeNode> contentNodes;
+//
+//		public RedoLater(List<MutableTreeNode> contentNodes) { this.contentNodes = contentNodes; }
+//		public void run() { redoContentTrees(contentNodes); }
+//	}
+
 	/**
 	 * Method to redo the explorer tree, keeping expansion.
 	 * @param contentNodes nodes that changed.
@@ -408,6 +416,11 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 	void redoContentTrees(List<MutableTreeNode> contentNodes)
 	{
         assert SwingUtilities.isEventDispatchThread();
+//        if (!SwingUtilities.isEventDispatchThread())
+//        {
+//    		SwingUtilities.invokeLater(new RedoLater(contentNodes));
+//    		return;
+//        }
 
 		// remember the state of the tree
         KeepTreeExpansion kte = new KeepTreeExpansion(this, rootNode, treeModel, new TreePath(rootNode));
@@ -2011,7 +2024,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 
 					menu.addSeparator();
 
-                    menuItem = new JMenuItem("Search");
+                    menuItem = new JMenuItem("Search...");
                     menu.add(menuItem);
                     menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { searchAction(); } });
 
@@ -2574,10 +2587,23 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
         {
             String name = JOptionPane.showInputDialog(ExplorerTree.this, "Name of cell to search","");
 			if (name == null) return;
-            System.out.println("Searching cell name like " + name);
-            Cell cell = Library.findCellInLibraries(name, null, null);
-            if (cell != null)
-                System.out.println("\t" + cell + " in " + cell.getLibrary());
+            System.out.println("Search for cells named '" + name + "'");
+            boolean found = false;
+            for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+            {
+            	Library lib = it.next();
+            	if (lib.isHidden()) continue;
+            	for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+            	{
+            		Cell cell = cIt.next();
+            		if (cell.getName().equalsIgnoreCase(name))
+            		{
+                        System.out.println("\t" + cell.noLibDescribe() + " in Library " + cell.getLibrary().getName());
+                        found = true;
+            		}
+            	}
+            }
+            if (!found) System.out.println("\t" + "NO CELLS MATCH IN ANY LIBRARIES");
         }
 
         private void addCVSMenu(JMenu cvsMenu) {

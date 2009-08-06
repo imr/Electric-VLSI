@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10d: ******************************
 
+BUG: (8/6/09, SMR) "Search" context item in LIBRARIES explorer node fails (Bug #2322).
+FIX: Rewrite ExplorerTree.searchAction() to show all results.
+
 BUG: (8/6/09, GVG) false drc error between pdiff contacts in tsmcsun40GP (Bug #2311)
 FIX: Better detection if active from contacts overlaps with transistor active
 
