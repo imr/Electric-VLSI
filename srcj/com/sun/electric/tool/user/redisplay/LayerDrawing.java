@@ -2760,6 +2760,8 @@ class LayerDrawing
                 portColor = portColorsCache.get(basePort);
                 if (portColor == null) {
                     portColor = basePort.getPortColor(gp);
+                    if (portColor == null)
+                        portColor = textColor;
                     portColorsCache.put(basePort, portColor);
                 }
             }
@@ -3546,8 +3548,8 @@ class LayerDrawing
 		if (len == 0) return;
 
 		// get parameters
-        if (color == null) color = new Color(0,0,0);
-        int col = color.getRGB() & 0xFFFFFF;
+//        if (color == null) color = new Color(0,0,0);
+//        int col = color.getRGB() & 0xFFFFFF;
 
 		// get text description
 		int size = EditWindow.getDefaultFontSize();
@@ -3565,7 +3567,8 @@ class LayerDrawing
 			if (colorIndex != 0)
 			{
 				Color full = EGraphics.getColorFromIndex(colorIndex);
-				if (full != null) col = full.getRGB() & 0xFFFFFF;
+				if (full != null) color = full;
+//				if (full != null) col = full.getRGB() & 0xFFFFFF;
 			}
 			double dSize = descript.getTrueSize(scale, wnd);
 			size = Math.min((int)dSize, MAXIMUMTEXTSIZE);
@@ -3651,6 +3654,8 @@ class LayerDrawing
         private PrimitiveNode baseNode;
 
         private TextInfo(Color color, PrimitiveNode baseNode) {
+            if (color == null)
+                throw new NullPointerException();
             this.color = color;
             this.baseNode = baseNode;
         }
@@ -3669,7 +3674,6 @@ class LayerDrawing
 	    private Rectangle2D bounds;                 // the real bounds of the rotated, anchored text (in screen units)
 	    private boolean underline;
         private int rotation;
-        private Color color;
         private Rectangle rect;
         private int offX, offY;
 
