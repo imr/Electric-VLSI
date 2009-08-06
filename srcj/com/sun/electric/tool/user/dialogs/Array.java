@@ -104,9 +104,9 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		prefYCenter = Pref.makeBooleanPref("Array_YCenter", prefs, false),
 		prefSpacingType = Pref.makeIntPref("Array_SpacingType", prefs, SPACING_EDGE),
 		prefXRepeat = Pref.makeIntPref("Array_XRepeat", prefs, 1),
-		prefYRepeat = Pref.makeIntPref("Array_YRepeat", prefs, 1),
-		prefXDistance = Pref.makeDoublePref("Array_XDistance", prefs, 0),
-		prefYDistance = Pref.makeDoublePref("Array_YDistance", prefs, 0);
+		prefYRepeat = Pref.makeIntPref("Array_YRepeat", prefs, 1);
+	private static Double lastEdgeOverlapX = null, lastEdgeOverlapY = null;
+	private static Double lastCenterlineX = null, lastCenterlineY = null;
 
 	/** amount when spacing by edge overlap */				private double spacingOverX, spacingOverY;
 	/** amount when spacing by centerline distance */		private double spacingCenterlineX, spacingCenterlineY;
@@ -160,17 +160,13 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 
 		// load the repeat factors
 		xRepeat.setText(Integer.toString(prefXRepeat.getInt()));
-//		xSpacing.setText(Double.toString(prefXDistance.getDouble()));
 		flipAlternateColumns.setSelected(prefXFlip.getBoolean());
 		staggerAlternateColumns.setSelected(prefXStagger.getBoolean());
 		centerXAboutOriginal.setSelected(prefXCenter.getBoolean());
 		yRepeat.setText(Integer.toString(prefYRepeat.getInt()));
-//		ySpacing.setText(Double.toString(prefYDistance.getDouble()));
 		flipAlternateRows.setSelected(prefYFlip.getBoolean());
 		staggerAlternateRows.setSelected(prefYStagger.getBoolean());
 		centerYAboutOriginal.setSelected(prefYCenter.getBoolean());
-		spacingOverX = prefXDistance.getDouble();
-		spacingOverY = prefYDistance.getDouble();
 
 		// load the other factors
 		linearDiagonalArray.setSelected(prefLinearDiagonal.getBoolean());
@@ -265,7 +261,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			if (spacing == null) continue;
 			double thisDistX = spacing.getWidth();
 			double thisDistY = spacing.getHeight();
-			if (ni.isMirroredAboutXAxis() ^ ni.isMirroredAboutYAxis())
+			if (ni.getAngle() == 900 || ni.getAngle() == 2700)
 			{
 				double swap = thisDistX;   thisDistX = thisDistY;   thisDistY = swap;
 			}
@@ -282,19 +278,8 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			haveEB = true;
 		}
 		spaceByEssentialBnd.setEnabled(haveEB);
-		if (prefSpacingType.getInt() == SPACING_ESSENTIALBND)
-		{
-			if (haveEB)
-			{
-				prefXDistance.setDouble(essentialBndX);
-				prefYDistance.setDouble(essentialBndY);
-			} else
-			{
-				prefSpacingType.setInt(SPACING_EDGE);
-				prefXDistance.setDouble(0);
-				prefYDistance.setDouble(0);
-			}
-		}
+		if (prefSpacingType.getInt() == SPACING_ESSENTIALBND && !haveEB)
+			prefSpacingType.setInt(SPACING_EDGE);
 
 		// see if there was a measured distance
 		Dimension2D dim = MeasureListener.getLastMeasuredDistance();
@@ -303,20 +288,11 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			spaceByMeasuredDistance.setEnabled(true);
 			spacingMeasuredX = dim.getWidth();
 			spacingMeasuredY = dim.getHeight();
-			if (prefSpacingType.getInt() == SPACING_MEASURED)
-			{
-				prefXDistance.setDouble(spacingMeasuredX);
-				prefYDistance.setDouble(spacingMeasuredY);
-			}
 		} else
 		{
 			spaceByMeasuredDistance.setEnabled(false);
 			if (prefSpacingType.getInt() == SPACING_MEASURED)
-			{
 				prefSpacingType.setInt(SPACING_EDGE);
-				prefXDistance.setDouble(0);
-				prefYDistance.setDouble(0);
-			}
 		}
 
 		// mark the list of nodes and arcs in the cell that will be arrayed
@@ -352,26 +328,43 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		}
 		spacingCenterlineX = bounds.getWidth();
 		spacingCenterlineY = bounds.getHeight();
-		if (prefSpacingType.getInt() == SPACING_CENTER)
+		if (lastCenterlineX != null && lastCenterlineY != null)
 		{
-			prefXDistance.setDouble(spacingCenterlineX);
-			prefYDistance.setDouble(spacingCenterlineY);
+			spacingCenterlineX = lastCenterlineX.doubleValue();
+			spacingCenterlineY = lastCenterlineY.doubleValue();
 		}
-		if (prefSpacingType.getInt() == SPACING_EDGE)
+
+		// determine default edge overlap value
+		spacingOverX = spacingOverY = 0;
+		if (lastEdgeOverlapX != null && lastEdgeOverlapY != null)
 		{
-			prefXDistance.setDouble(spacingOverX);
-			prefYDistance.setDouble(spacingOverY);
+			spacingOverX = lastEdgeOverlapX.doubleValue();
+			spacingOverY = lastEdgeOverlapY.doubleValue();
 		}
 
 		// load the spacing distances
-		xSpacing.setText(TextUtils.formatDistance(prefXDistance.getDouble(), tech));
-		ySpacing.setText(TextUtils.formatDistance(prefYDistance.getDouble(), tech));
 		switch (prefSpacingType.getInt())
 		{
-			case SPACING_EDGE:         spaceByEdgeOverlap.setSelected(true);          break;
-			case SPACING_CENTER:       spaceByCenterlineDistance.setSelected(true);   break;
-			case SPACING_ESSENTIALBND: spaceByEssentialBnd.setSelected(true);         break;
-			case SPACING_MEASURED:     spaceByMeasuredDistance.setSelected(true);     break;
+			case SPACING_EDGE:
+				spaceByEdgeOverlap.setSelected(true);
+				xSpacing.setText(TextUtils.formatDistance(spacingOverX, tech));
+				ySpacing.setText(TextUtils.formatDistance(spacingOverY, tech));
+				break;
+			case SPACING_CENTER:
+				spaceByCenterlineDistance.setSelected(true);
+				xSpacing.setText(TextUtils.formatDistance(spacingCenterlineX, tech));
+				ySpacing.setText(TextUtils.formatDistance(spacingCenterlineY, tech));
+				break;
+			case SPACING_ESSENTIALBND:
+				spaceByEssentialBnd.setSelected(true);
+				xSpacing.setText(TextUtils.formatDistance(essentialBndX, tech));
+				ySpacing.setText(TextUtils.formatDistance(essentialBndY, tech));
+				break;
+			case SPACING_MEASURED:
+				spaceByMeasuredDistance.setSelected(true);
+				xSpacing.setText(TextUtils.formatDistance(spacingMeasuredX, tech));
+				ySpacing.setText(TextUtils.formatDistance(spacingMeasuredY, tech));
+				break;
 		}
 		if (prefSpacingType.getInt() == SPACING_EDGE)
 		{
@@ -390,8 +383,10 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		double y = TextUtils.atofDistance(ySpacing.getText(), tech);
 		switch (prefSpacingType.getInt())
 		{
-			case SPACING_EDGE:   spacingOverX = x;         spacingOverY = y;         break;
-			case SPACING_CENTER: spacingCenterlineX = x;   spacingCenterlineY = y;   break;
+			case SPACING_EDGE:          spacingOverX = x;         spacingOverY = y;         break;
+			case SPACING_CENTER:        spacingCenterlineX = x;   spacingCenterlineY = y;   break;
+			case SPACING_ESSENTIALBND:  essentialBndX = x;        essentialBndY = y;        break;
+			case SPACING_MEASURED:      spacingMeasuredX = x;     spacingMeasuredY = y;     break;
 		}
 		if (spaceByEdgeOverlap.isSelected()) prefSpacingType.setInt(SPACING_EDGE); else
 		if (spaceByCenterlineDistance.isSelected()) prefSpacingType.setInt(SPACING_CENTER); else
@@ -428,12 +423,20 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		prefYFlip.setBoolean(flipAlternateRows.isSelected());
 		prefYStagger.setBoolean(staggerAlternateRows.isSelected());
 		prefYCenter.setBoolean(centerYAboutOriginal.isSelected());
-		prefXDistance.setDouble(TextUtils.atofDistance(xSpacing.getText()));
-		prefYDistance.setDouble(TextUtils.atofDistance(ySpacing.getText()));
 		prefLinearDiagonal.setBoolean(linearDiagonalArray.isSelected());
 		prefAddNames.setBoolean(generateArrayIndices.isSelected());
 		prefDRCGood.setBoolean(onlyDRCCorrect.isSelected());
 		prefTranspose.setBoolean(transposePlacement.isSelected());
+
+		if (prefSpacingType.getInt() == SPACING_EDGE)
+		{
+			lastEdgeOverlapX = new Double(TextUtils.atofDistance(xSpacing.getText()));
+			lastEdgeOverlapY = new Double(TextUtils.atofDistance(ySpacing.getText()));
+		} else
+		{
+			lastCenterlineX = new Double(TextUtils.atofDistance(xSpacing.getText()));
+			lastCenterlineY = new Double(TextUtils.atofDistance(ySpacing.getText()));
+		}
 	}
 
 	private void makeArray()
@@ -486,12 +489,12 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		Collections.sort(exportList);
 
 		// determine the distance between arrayed entries
-		double xOverlap = prefXDistance.getDouble();
-		double yOverlap = prefYDistance.getDouble();
+		double xOverlap = TextUtils.atofDistance(xSpacing.getText());
+		double yOverlap = TextUtils.atofDistance(ySpacing.getText());
 		if (prefSpacingType.getInt() == SPACING_EDGE)
 		{
-			xOverlap = bounds.getWidth() - prefXDistance.getDouble();
-			yOverlap = bounds.getHeight() - prefYDistance.getDouble();
+			xOverlap = bounds.getWidth() - xOverlap;
+			yOverlap = bounds.getHeight() - yOverlap;
 		}
 		double cX = bounds.getCenterX();
 		double cY = bounds.getCenterY();
@@ -543,7 +546,6 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		public boolean doIt() throws JobException
 		{
             assert(cell != null);
-//			Cell cell = nodeList.get(0).getParent();
 
 			// if only arraying where DRC clean, make an array of newly created nodes
 			Geometric [] geomsToCheck = null;
@@ -822,12 +824,12 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			int y = evt.getY();
 			Point2D pt = wnd.screenToDatabase(x, y);
 
-			double xOverlap = prefXDistance.getDouble();
-			double yOverlap = prefYDistance.getDouble();
+			double xOverlap = TextUtils.atofDistance(xSpacing.getText());
+			double yOverlap = TextUtils.atofDistance(ySpacing.getText());
 			if (prefSpacingType.getInt() == SPACING_EDGE)
 			{
-				xOverlap = bounds.getWidth() - prefXDistance.getDouble();
-				yOverlap = bounds.getHeight() - prefYDistance.getDouble();
+				xOverlap = bounds.getWidth() - xOverlap;
+				yOverlap = bounds.getHeight() - yOverlap;
 			}
 
 			double dX = pt.getX() - bounds.getCenterX();
@@ -864,12 +866,12 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 
 		private void showHighlight(MouseEvent evt, EditWindow wnd)
 		{
-			double xOverlap = prefXDistance.getDouble();
-			double yOverlap = prefYDistance.getDouble();
+			double xOverlap = TextUtils.atofDistance(xSpacing.getText());
+			double yOverlap = TextUtils.atofDistance(ySpacing.getText());
 			if (prefSpacingType.getInt() == SPACING_EDGE)
 			{
-				xOverlap = bounds.getWidth() - prefXDistance.getDouble();
-				yOverlap = bounds.getHeight() - prefYDistance.getDouble();
+				xOverlap = bounds.getWidth() - xOverlap;
+				yOverlap = bounds.getHeight() - yOverlap;
 			}
 
 			Highlighter highlighter = wnd.getHighlighter();
