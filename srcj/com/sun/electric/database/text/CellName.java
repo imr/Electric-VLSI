@@ -222,7 +222,7 @@ public class CellName implements Comparable<CellName>
 		for (int i = 0; i < name.length(); i++)
 		{
 			char ch = name.charAt(i);
-			if (ch == '\n' || ch == '{' || ch == '}' || ch == ';' || ch == '|' || ch == ':' || ch == '/' || ch == '\\')
+			if (ch == '\n' || ch == '{' || ch == '}' || ch == ';' || ch == '|' || ch == ':')
 			{
 				System.out.println("Cell name " + name + " has invalid char '" + ch + "'");
 				return null;
