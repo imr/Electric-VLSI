@@ -3670,8 +3670,15 @@ public class Quick
 		// search for intervening transistor in the cell
 		Rectangle2D bounds1 = poly1.getBounds2D();
 		Rectangle2D bounds2 = poly2.getBounds2D();
-		Rectangle2D.union(bounds1, bounds2, bounds1);
-		return activeOnTransistorRecurse(bounds1, net1, net2, cell, globalIndex, DBMath.MATID);
+        Rectangle2D result = new Rectangle2D.Double();
+        Rectangle2D.union(bounds1, bounds2, result);  // Rectangle2D.union(bounds1, bounds2, bounds1)
+        Area area = new Area(result);
+        area.subtract(new Area(bounds1));
+        area.subtract(new Area(bounds2));
+        result = area.getBounds2D();
+//        Rectangle2D.intersect(bounds1, result, result);
+//        Rectangle2D.intersect(bounds2, result, result);
+        return activeOnTransistorRecurse(result, net1, net2, cell, globalIndex, DBMath.MATID);
 	}
 
 	private boolean activeOnTransistorRecurse(Rectangle2D bounds,
@@ -3711,16 +3718,16 @@ public class Quick
             // Enough with checking if the transistor active covers 100% the union region
             boolean newStrategy = nodeBounds.contains(bounds);
 
-            if (Job.getDebug())
-            {
-                double cX = nodeBounds.getCenterX();
-                double cY = nodeBounds.getCenterY();
-                boolean oldS = !((cX < bounds.getMinX() || cX > bounds.getMaxX() ||
-                    cY < bounds.getMinY() || cY > bounds.getMaxY()));
-
-                if (newStrategy != oldS)
-                    System.out.println("Error in transistor coverage");
-            }
+//            if (Job.getDebug())
+//            {
+//                double cX = nodeBounds.getCenterX();
+//                double cY = nodeBounds.getCenterY();
+//                boolean oldS = !((cX < bounds.getMinX() || cX > bounds.getMaxX() ||
+//                    cY < bounds.getMinY() || cY > bounds.getMaxY()));
+//
+//                if (newStrategy != oldS)
+//                    System.out.println("Error in transistor coverage");
+//            }
 
             if (!newStrategy)
                 continue;
