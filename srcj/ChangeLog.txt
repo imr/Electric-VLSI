@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10d: ******************************
 
+BUG: (8/6/09, GVG) Verilog netlister isn' t writing anything and complains about preferences. (Bug #2324)
+FIX: Caching VerilogInputPreferences together with VerilogOutputPreferences.
+
 BUG: (8/6/09, SMR) "Search" context item in LIBRARIES explorer node fails (Bug #2322).
 FIX: Rewrite ExplorerTree.searchAction() to show all results.
 

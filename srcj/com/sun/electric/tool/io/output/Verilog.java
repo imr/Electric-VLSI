@@ -203,7 +203,7 @@ public class Verilog extends Topology
 
 	public static class VerilogPreferences extends OutputPreferences
     {
-        // Verilig Settings
+        // Verilog Settings
 		public boolean useTrireg = Simulation.getVerilogUseTrireg();
 		public boolean useAssign = Simulation.getVerilogUseAssign();
         // Verilog factory Prefs
@@ -211,9 +211,13 @@ public class Verilog extends Topology
 		public boolean parameterizeModuleNames = Simulation.getFactoryVerilogParameterizeModuleNames();
         public Map<Cell,String> modelFiles = Collections.emptyMap();
 
+        // Verilog ouput preferences need VerilogInputPreferences in case of doc cells with Verilog code
+        public VerilogReader.VerilogPreferences inputPrefs;
+
         public VerilogPreferences() { this(false); }
         public VerilogPreferences(boolean factory) {
             super(factory);
+            inputPrefs = new VerilogReader.VerilogPreferences(factory);
             if (!factory)
                 fillPrefs();
         }
@@ -346,8 +350,8 @@ public class Verilog extends Topology
 						return false;
 					}
 				}
-	            VerilogReader.VerilogPreferences vp = new VerilogReader.VerilogPreferences(false);
-				VerilogReader reader = new VerilogReader(vp);
+//	            VerilogReader.VerilogPreferences vp = new VerilogReader.VerilogPreferences(false);
+				VerilogReader reader = new VerilogReader(localPrefs.inputPrefs); //vp);
 				VerilogData data = reader.parseVerilog(stringArray, cell.getLibrary().getName());
 				if (data == null) {
 					reportError("Error parsing Verilog View for cell "+cell.describe(false));
