@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10e: ******************************
 
+BUG: (8/10/09, SMR) Explorer tree truncates library name (Bug #2327).
+FIX: In ExplorerTree.MyRenderer.getTreeCellRendererComponent(), force the text
+     to be the library name.
+
 ************************* Version 8.10d: ******************************
 
 BUG: (8/6/09, SMR) "Array" doesn't remember last centerline distance used (Bug #2325).

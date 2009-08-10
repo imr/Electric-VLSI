@@ -1038,6 +1038,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				if (lib.isChanged()) setFont(boldFont);
                 if (CVS.isEnabled()) setForeground(CVSLibrary.getColor(lib));
 				setIcon(iconLibrary);
+				setText(lib.getName());
 			}
 			if (nodeInfo instanceof ExplorerTreeModel.CellAndCount)
 			{
