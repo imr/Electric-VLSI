@@ -540,6 +540,18 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
     }
 
 	/**
+	 * Method to set the "factory default" directional state of this ArcProto.
+	 * Directionality causes arrows to be drawn at the head, tail, or center of the arc.
+	 * @param defaultDir has bit 0 set to put arrow on head, bit 1 set to put arrow on tail,
+	 * bit 2 set to put arrow on body.
+	 */
+	public void setFactoryDirectional(int defaultDir) {
+		if ((defaultDir&1) != 0) factoryDefaultInst = factoryDefaultInst.withFlag(ImmutableArcInst.HEAD_ARROWED, true);
+		if ((defaultDir&2) != 0) factoryDefaultInst = factoryDefaultInst.withFlag(ImmutableArcInst.TAIL_ARROWED, true);
+		if ((defaultDir&4) != 0) factoryDefaultInst = factoryDefaultInst.withFlag(ImmutableArcInst.BODY_ARROWED, true);
+    }
+
+	/**
 	 * Method to set this ArcProto so that it is not used.
 	 * Unused arcs do not appear in the component menus and cannot be created by the user.
 	 * The state is useful for hiding arcs that the user should not use.
@@ -1031,7 +1043,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
             if (function.isMetal()) ratio = ERCAntenna.DEFMETALRATIO;
             setFactoryAntennaRatio(ratio);
         }
-        assert !factoryDefaultInst.isTailArrowed() && !factoryDefaultInst.isHeadArrowed() && !factoryDefaultInst.isBodyArrowed();
+//        assert !factoryDefaultInst.isTailArrowed() && !factoryDefaultInst.isHeadArrowed() && !factoryDefaultInst.isBodyArrowed();
         assert factoryDefaultInst.isTailExtended() == factoryDefaultInst.isHeadExtended();
         assert !factoryDefaultInst.isTailNegated() && !factoryDefaultInst.isHeadNegated();
         assert !factoryDefaultInst.isHardSelect();
