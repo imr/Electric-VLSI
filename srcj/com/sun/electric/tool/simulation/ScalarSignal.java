@@ -50,8 +50,8 @@ public interface ScalarSignal {
         /** the number of indices ("events") in this approximation */   int    getNumEvents();
         /** the absolute time of the event in question */               double getTime(int event);
         /** the absolute value of the event in question */              double getValue(int event);
-        /** the numerator of the time of the specified event */         int    getTimeNumerator(int index);
-        /** the numerator of the value of the specified event */        int    getValueNumerator(int index);
+        /** the numerator of the time of the specified event */         int    getTimeNumerator(int event);
+        /** the numerator of the value of the specified event */        int    getValueNumerator(int event);
         /** the common denominator of all times */                      int    getTimeDenominator();
         /** the common denominator of all values */                     int    getValueDenominator();
         /** returns the index of the event having the least value */    int    getEventWithMinValue();
@@ -69,7 +69,8 @@ public interface ScalarSignal {
      *        getTimeDenominator() = td
      *
      * Together, the last two guarantees ensure that the time
-     * components of events are uniformly spaced.
+     * components of events are uniformly spaced, with the first event
+     * at t0 and the last event at t1.
      *
      * Subject to these constraints, the Approximation returned will
      * be the one which most accurately represents the data in the
