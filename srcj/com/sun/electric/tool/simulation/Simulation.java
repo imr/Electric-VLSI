@@ -2112,4 +2112,9 @@ public class Simulation extends Tool
     public static String getSpiceExtractedNetDelimiter() { return cacheSpiceExtractedNetDelimiter.getString(); }
     public static void setSpiceExtractedNetDelimiter(String s) { cacheSpiceExtractedNetDelimiter.setString(s); }
 	public static String getFactorySpiceExtractedNetDelimiter() { return cacheSpiceExtractedNetDelimiter.getStringFactoryValue(); }
+
+	private static Pref cachedSpiceUseRandomAccess = Pref.makeBooleanPref("SpiceUseRandomAccess", tool.prefs, false);
+	public static boolean isSpiceUseRandomAccess() { return cachedSpiceUseRandomAccess.getBoolean(); }
+	public static void setSpiceUseRandomAccess(boolean b) { cachedSpiceUseRandomAccess.setBoolean(b); }
+	public static boolean isFactorySpiceUseRandomAccess() { return cachedSpiceUseRandomAccess.getBooleanFactoryValue(); }
 }

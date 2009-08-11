@@ -139,9 +139,13 @@ public class Simulate extends Input
                 // new ScalarEpicOutProcess()" instead (and delete
                 // this comment).  Thanks!  -- Adam
                 //
+        	if (Simulation.isFactorySpiceUseRandomAccess())
+        	{
+                is = new ScalarEpicOutProcess();
+        	} else
+        	{
                 is = new EpicOutProcess();
-
-
+        	}
 //            else
 //               is = new EpicOut();
         } else if (type == FileType.VERILOGOUT)
