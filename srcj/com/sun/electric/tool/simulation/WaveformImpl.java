@@ -63,4 +63,105 @@ public class WaveformImpl implements Waveform {
         result[0] = time[index];
         result[1] = result[2] = value[index];
     }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Methods below are strictly for transitional purposes //////////////////////////////////////////////////////////////////////////////
+    // INCREDIBLY INEFFICIENT!!!                            //////////////////////////////////////////////////////////////////////////////
+    // No support for multiple sweeps!
+
+    private ScalarSignal.Approximation approximation = null;
+
+    public ScalarSignal.Approximation getApproximation(double t0, double t1, int tn,
+                                                       double v0, double v1, int vd) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public synchronized ScalarSignal.Approximation getPreferredApproximation() {
+        if (approximation==null) approximation = new ApproximationImpl();
+        return approximation;
+    }
+
+    /**
+     *  An approximation of the intersection of v(t) and the window
+     *  [t0,t1]x[y0,y1] within integer grid "[0..tn]x[0..yn]".
+     */
+    private class ApproximationImpl implements ScalarSignal.Approximation {
+        private final float[] times;
+        private final float[] values;
+        private final int eventWithMinValue;
+        private final int eventWithMaxValue;
+
+        public ApproximationImpl() {
+            /*
+            if (!(Signal.this instanceof AnalogSignal) && !(Signal.this instanceof DigitalSignal))
+                throw new RuntimeException("impossible!");
+                Waveform waveform = Signal.this instanceof AnalogSignal ? ((AnalogSignal)Signal.this).getWaveform() : null;
+            */
+            Waveform waveform = WaveformImpl.this;
+            /*
+            int count = waveform!=null
+                ? waveform.getNumEvents()
+                : ((DigitalSignal)Signal.this).getNumEvents();
+            */
+            int count = waveform.getNumEvents();
+
+            // we fake a single point at (0,0) if there are no samples
+            this.times  = new float[count==0 ? 1 : count];
+            this.values = new float[count==0 ? 1 : count];
+
+            double minValue = Double.MAX_VALUE;
+            double maxValue = Double.MIN_VALUE;
+            int    evmin = 0;
+            int    evmax = 0;
+            double[] result = new double[10 /*why?*/ ];
+            for(int i=0; i<count; i++) {
+                if (waveform != null) {
+                    waveform.getEvent(i, result);
+                    times[i]  = (float)result[0];
+                    values[i] = (float)result[1];
+                } else {
+                    /*
+                    times[i]  = (float)((DigitalSignal)Signal.this).getTime(i);
+                    values[i] = (float)((DigitalSignal)Signal.this).getState(i);
+                    */
+                }
+                if (values[i] < minValue) minValue = values[evmin = i];
+                if (values[i] > maxValue) maxValue = values[evmax = i];
+                if (i>0 && times[i] < times[i-1])
+                    throw new RuntimeException("got non-monotonic sample data, and I haven't implement sorting yet");
+            }
+            this.eventWithMinValue = evmin;
+            this.eventWithMaxValue = evmax;
+        }
+
+        public int getNumEvents() {
+            return times.length;
+        }
+        public double             getTime(int index) {
+            return times[index];
+        }
+        public double             getValue(int index) {
+            return values[index];
+        }
+        public int getTimeNumerator(int index) {
+            throw new RuntimeException("not implemented");
+        }
+        public int getValueNumerator(int index) {
+            throw new RuntimeException("not implemented");
+        }
+        public int getTimeDenominator() {
+            throw new RuntimeException("not implemented");
+        }
+        public int getValueDenominator() {
+            throw new RuntimeException("not implemented");
+        }
+        public int getEventWithMaxValue() {
+            return eventWithMaxValue;
+        }
+        public int getEventWithMinValue() {
+            return eventWithMinValue;
+        }
+    }
+
+	//public Analysis.AnalysisType getAnalysisType() { return getAnalysis().getAnalysisType(); }
 }

@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
 /**
  * Class to define an analog signal in the simulation waveform window.
  */
-public class AnalogSignal extends Signal
+public class AnalogSignal extends Signal implements MultiSweepSignal
 {
 	/** the Analysis object in which this DigitalSignal resides. */		private final AnalogAnalysis an;
 	/** index of this signal in its AnalogAnalysis */					private final int index;
@@ -65,6 +65,10 @@ public class AnalogSignal extends Signal
 	public Waveform getWaveform(int sweep) {
 		return an.getWaveform(this, sweep);
 	}
+
+    public ScalarSignal getSweep(int sweep) {
+        return an.getWaveform(this, sweep);
+    }
 
 	/**
 	 * Method to return the number of sweeps in this signal.

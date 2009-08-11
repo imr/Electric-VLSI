@@ -2,9 +2,9 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Waveform.java
+ * File: Signal.java
  *
- * Copyright (c) 2007 Sun Microsystems and Static Free Software
+ * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,24 +23,8 @@
  */
 package com.sun.electric.tool.simulation;
 
-/**
- * Waveform - piecewise linear real function of time
- */
-public interface Waveform extends ScalarSignal {
+public interface MultiSweepSignal {
 
-    /**
-     * Method to return the number of events in this signal.
-     * This is the number of events along the horizontal axis, usually "time".
-     * @return the number of events in this signal.
-     */
-    public int getNumEvents();
-
-    /**
-     * Method to return the value of this signal at a given event index.
-     * @param index the event index (0-based).
-     * @param result double array of length 3 to return (time, lowValue, highValue)
-     * If this signal is not a basic signal, return 0 and print an error message.
-     */
-    public void getEvent(int index, double[] result);
+    public ScalarSignal getSweep(int sweep);
 
 }
