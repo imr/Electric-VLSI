@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10e: ******************************
 
+IMP: (8/10/09, AM) Add ScalarEpicAnalysis and ScalarEpicOutProcess as
+     a testing ground for new on-disk random-access simulation data
+     format.
+
 IMP: (8/10/09, AM) First chunk of tool.simulation refactoring.
 
 BUG: (8/10/09, AM) Threading confusion has returned (Bug #2331).

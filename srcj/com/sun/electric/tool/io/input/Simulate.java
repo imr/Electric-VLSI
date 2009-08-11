@@ -133,7 +133,15 @@ public class Simulate extends Input
         } else if (type == FileType.EPIC)
         {
 //            if (Simulation.isSpiceEpicReaderProcess())
+                //
+                // STEVE: please add a configuration option which,
+                // when enabled, causes the line below to become "is =
+                // new ScalarEpicOutProcess()" instead (and delete
+                // this comment).  Thanks!  -- Adam
+                //
                 is = new EpicOutProcess();
+
+
 //            else
 //               is = new EpicOut();
         } else if (type == FileType.VERILOGOUT)

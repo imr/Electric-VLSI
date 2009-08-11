@@ -46,6 +46,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.EpicAnalysis;
+import com.sun.electric.tool.io.input.ScalarEpicAnalysis;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.io.output.Spice;
@@ -2124,7 +2125,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			DefaultMutableTreeNode analysisNode = ((EpicAnalysis)an).getSignalsForExplorer(analysis);
 			treePathFromAnalysis.put(an, parentPath.pathByAddingChild(analysisNode));
 			return analysisNode;
-		}
+		} else if (an instanceof EpicAnalysis)
+        {
+			DefaultMutableTreeNode analysisNode = ((ScalarEpicAnalysis)an).getSignalsForExplorer(analysis);
+			treePathFromAnalysis.put(an, parentPath.pathByAddingChild(analysisNode));
+			return analysisNode;
+        }
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(analysis);
 		TreePath analysisPath = parentPath.pathByAddingChild(signalsExplorerTree);
 		treePathFromAnalysis.put(an, analysisPath);

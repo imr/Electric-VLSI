@@ -37,6 +37,7 @@ import com.sun.electric.tool.cvspm.State;
 import com.sun.electric.tool.cvspm.Update;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.EpicAnalysis;
+import com.sun.electric.tool.io.input.ScalarEpicAnalysis;
 import com.sun.electric.tool.project.AddCellJob;
 import com.sun.electric.tool.project.AddLibraryJob;
 import com.sun.electric.tool.project.CancelCheckOutJob;
@@ -243,6 +244,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
         if (obj instanceof EpicAnalysis.EpicTreeNode)
         {
             Signal sig = EpicAnalysis.getSignal(treePath);
+            if (sig != null) return sig;
+        } else if (obj instanceof ScalarEpicAnalysis.EpicTreeNode) {
+            Signal sig = ScalarEpicAnalysis.getSignal(treePath);
             if (sig != null) return sig;
         }
         return obj;
