@@ -1,20 +1,10 @@
 package com.sun.electric.tool.simulation;
 
-import java.awt.geom.Rectangle2D;
-
 /**
  *  A ScalarSignal holds a signal which has a scalar value at any
  *  given point in time, and for which a piecewise linear
  *  approximation can be obtained for any given [t0,t1]x[v0,v1]
  *  window.
- *
- *  Although this class creates the illusion that time is completely
- *  continuous, most subclasses will have "preferred" time values at
- *  which the signal value is known exactly, whereas the value at all
- *  other times is interpolated.  Such subclasses will return a
- *  non-zero value from getNumTimePoints(), and the time value of the
- *  n^th preferred timepoint can be obtained with
- *  getNSforTimePoint(n).
  *
  *  The API exposes doubles for most methods, but subclasses will
  *  often store only floats in order to preserve memory.
@@ -36,33 +26,6 @@ public interface ScalarSignal {
 
     /** value used to represent logic "Z" (high impedence) */
     public static final double LOGIC_Z = Double.NEGATIVE_INFINITY;
-
-    /**
-     * Returns an Approximation in which:
-     *
-     *       getValueDenominator() = vd
-     *              getNumEvents() = (t1-t0)/td + 1
-     *                  getTime(0) = t0
-     *   getTime(getNumEvents()-1) = t1
-     *         getTimeNumerator(i) = i
-     *        getTimeDenominator() = td
-     *
-     * Together, the last two guarantees ensure that the time
-     * components of events are uniformly spaced.
-     *
-     * Subject to these constraints, the Approximation returned will
-     * be the one which most accurately represents the data in the
-     * window [t0,t1]x[v0,v1].
-     */
-    ScalarSignal.Approximation getApproximation(double t0, double t1, int tn,
-                                                double v0, double v1, int vd);
-
-    /**
-     *  Returns an Approximation which is "most natural" for
-     *  the data; this should be the Approximation which
-     *  causes no loss in data fidelity.
-     */
-    ScalarSignal.Approximation getPreferredApproximation();
 
     /**
      *  An Approximation is a collection of events indexed by natural
@@ -94,6 +57,33 @@ public interface ScalarSignal {
         /** returns the index of the event having the least value */    int    getEventWithMinValue();
         /** returns the index of the event having the greatest value */ int    getEventWithMaxValue();
     }
+
+    /**
+     * Returns an Approximation in which:
+     *
+     *       getValueDenominator() = vd
+     *              getNumEvents() = (t1-t0)/td + 1
+     *                  getTime(0) = t0
+     *   getTime(getNumEvents()-1) = t1
+     *         getTimeNumerator(i) = i
+     *        getTimeDenominator() = td
+     *
+     * Together, the last two guarantees ensure that the time
+     * components of events are uniformly spaced.
+     *
+     * Subject to these constraints, the Approximation returned will
+     * be the one which most accurately represents the data in the
+     * window [t0,t1]x[v0,v1].
+     */
+    ScalarSignal.Approximation getApproximation(double t0, double t1, int tn,
+                                                double v0, double v1, int vd);
+
+    /**
+     *  Returns an Approximation which is "most natural" for
+     *  the data; this should be the Approximation which
+     *  causes no loss in data fidelity.
+     */
+    ScalarSignal.Approximation getPreferredApproximation();
 }
 
 
