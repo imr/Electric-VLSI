@@ -31,6 +31,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.Main;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.verilog.VerilogReader;
@@ -184,7 +185,7 @@ public class Input
 	{
 		protected InputPreferences(boolean factory)
 		{
-			if (!factory && !SwingUtilities.isEventDispatchThread())
+			if (!factory && !SwingUtilities.isEventDispatchThread() && !Main.isBatch())
 				throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
 		}
 

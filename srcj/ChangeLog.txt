@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10e: ******************************
 
+BUG: (8/10/09, AM) Threading confusion has returned (Bug #2331).
+FIX: Remember to check Main.isBatch().
+
 BUG: (8/10/09, SMR) The GEM arcs do not draw properly (Bug #2300).
 FIX: Finish translating the original C code for this.
 
