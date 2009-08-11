@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10e: ******************************
 
+IMP/MAN: (8/11/09, SMR) Added Network Preference "Use pure-layer nodes
+     for connectivity" to control node extraction (Bug #2183).
+
 IMP: (8/10/09, AM) Add ScalarEpicAnalysis and ScalarEpicOutProcess as
      a testing ground for new on-disk random-access simulation data
      format.
