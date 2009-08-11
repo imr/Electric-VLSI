@@ -112,7 +112,6 @@ public class Connectivity
 	/** true to debug centerline determination */				private static final boolean DEBUGCENTERLINES = false;
 	/** true to debug object creation */						private static final boolean DEBUGSTEPS = false;
 	/** true to debug contact extraction */						private static final boolean DEBUGCONTACTS = false;
-	/** true to debug contact extraction */						private static final boolean PURELAYERNODEMODE = true;
 	/** amount to scale values before merging */				private static final double SCALEFACTOR = DBMath.GRID;
 
 	/** the current technology for extraction */				private Technology tech;
@@ -543,7 +542,7 @@ public class Connectivity
 		extractTransistors(merge, originalMerge, newCell);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Transistors");
 
-        if (PURELAYERNODEMODE) {
+        if (Extract.isUsePureLayerNodes()) {
             // dump back in original routing layers
             if (!startSection(oldCell, "Adding in original routing layers...")) return null;
             addInRoutingLayers(oldCell, newCell, merge, originalMerge);
@@ -1691,12 +1690,12 @@ public class Connectivity
 			int ang = GenMath.figureAngle(cl.start, cl.end);
 			double xOff = GenMath.cos(ang) * cl.width/2;
 			double yOff = GenMath.sin(ang) * cl.width/2;
-			double aliX = 1, aliY = 1;
-			if (alignment != null)
-			{
-				if (alignment.getWidth() > 0) aliX = scaleUp(alignment.getWidth());
-				if (alignment.getHeight() > 0) aliY = scaleUp(alignment.getHeight());
-			}
+//			double aliX = 1, aliY = 1;
+//			if (alignment != null)
+//			{
+//				if (alignment.getWidth() > 0) aliX = scaleUp(alignment.getWidth());
+//				if (alignment.getHeight() > 0) aliY = scaleUp(alignment.getHeight());
+//			}
 			if (startSide)
 			{
 				if (!isHub && cl.start.distance(cl.end) > cl.width)
@@ -1735,7 +1734,7 @@ public class Connectivity
 	{
 //		// grid align the edges
 //		double halfWidth = cl.width / 2;
-//halfWidth = 0;		// TODO: is this right?
+//halfWidth = 0;		// is this right?
 //		if (cl.start.getX() == cl.end.getX())
 //		{
 //			// vertical arc: make sure ends align in Y
@@ -2309,7 +2308,7 @@ public class Connectivity
 			root = RTNode.linkGeom(null, root, ni);
 
 		// recursively scan the R-Tree, merging geometry on created nodes and removing them from the main merge
-        if (!PURELAYERNODEMODE)
+        if (!Extract.isUsePureLayerNodes())
         {
             PolyMerge subtractMerge = new PolyMerge();
 		    extractContactNodes(root, merge, subtractMerge, 0, contactNodes.size());
@@ -4664,7 +4663,7 @@ public class Connectivity
             
             for(PolyBase poly : polyList)
 			{
-                if (PURELAYERNODEMODE) ap = null;
+                if (Extract.isUsePureLayerNodes()) ap = null;
 				// special case: a rectangle on a routable layer: make it an arc
                 if (ap != null)
 				{
@@ -5385,7 +5384,7 @@ public class Connectivity
 				layer = geometricLayer(layer);
 
 				poly.transform(trans);
-				if (PURELAYERNODEMODE && (layer.getFunction().isPoly() || layer.getFunction().isMetal())) continue;
+				if (Extract.isUsePureLayerNodes() && (layer.getFunction().isPoly() || layer.getFunction().isMetal())) continue;
                 removePolyFromMerge(merge, layer, poly);
 			}
 		}
@@ -5447,7 +5446,7 @@ public class Connectivity
 			// make sure the geometric database is made up of proper layers
 			layer = geometricLayer(layer);
 
-			if (!PURELAYERNODEMODE)
+			if (!Extract.isUsePureLayerNodes())
                 removePolyFromMerge(merge, layer, poly);
 		}
 		return ai;

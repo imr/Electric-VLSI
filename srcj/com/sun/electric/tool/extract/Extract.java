@@ -212,4 +212,25 @@ public class Extract extends Tool
 	 * @return true if the node extractor should flatten Cadence Pcells, by default.
 	 */
 	public static boolean isFactoryFlattenPcells() { return cacheFlattenPcells.getBooleanFactoryValue(); }
+
+	private static Pref cacheUsePureLayerNodes = Pref.makeBooleanPref("UsePureLayerNodes", Extract.tool.prefs, false);
+	/**
+	 * Method to tell whether the node extractor should use pure-layer nodes for connectivity.
+	 * The alternative is to use pins and arcs.
+	 * The default is "false".
+	 * @return true if the node extractor should use pure-layer nodes for connectivity.
+	 */
+	public static boolean isUsePureLayerNodes() { return cacheUsePureLayerNodes.getBoolean(); }
+	/**
+	 * Method to set whether the node extractor should use pure-layer nodes for connectivity.
+	 * The alternative is to use pins and arcs.
+	 * @param a true if the node extractor should flatten Cadence Pcells.
+	 */
+	public static void setUsePureLayerNodes(boolean a) { cacheUsePureLayerNodes.setBoolean(a); }
+	/**
+	 * Method to tell whether the node extractor should use pure-layer nodes for connectivity by default.
+	 * The alternative is to use pins and arcs.
+	 * @return true if the node extractor should use pure-layer nodes for connectivity, by default.
+	 */
+	public static boolean isFactoryUsePureLayerNodes() { return cacheUsePureLayerNodes.getBooleanFactoryValue(); }
 }
