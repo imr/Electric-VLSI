@@ -41,7 +41,7 @@ public interface ScalarSignal {
      *
      *  The time-distance between events is NOT guaranteed to be
      *  uniform.  However, the instances of Approximation returned by
-     *  getPreferredApproximation() <i>do</i> make this guarantee --
+     *  getApproximation(DDIDDI) <i>do</i> make this guarantee --
      *  in particular, those instances promise that for all x,
      *  getTimeNumerator(i)==i.  Instances returned by other methods
      *  do not offer this guarantee.
