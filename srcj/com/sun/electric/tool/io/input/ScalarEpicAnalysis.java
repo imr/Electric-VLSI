@@ -4,7 +4,7 @@
  *
  * File: ScalarEpicAnalysis.java
  *
- * Copyright (c) 2005 Sun Microsystems and Static Free Software
+ * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -54,7 +55,9 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 /**
- * Class to define a set of simulation data producet by Epic simulators.
+ * Class to define a set of simulation data producet by Epic
+ * simulators, using the new disk-indexed format.
+
  * This class differs from Anylisis base class by less memory consumption.
  * Waveforms are stored in a file in packed form. They are loaded to memory by
  * denand. Hierarchical structure is reconstructed from Epic flat names into Context objects.
@@ -87,12 +90,49 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
     /** Hash of all contexts. */                        private Context[] contextHash = new Context[1];
     /** Count of contexts in the hash. */               private int numContexts = 0;
 
+    private final BTree<SimulationPoint,Double> btree;
+
+    private static class SimulationPoint implements Comparable<SimulationPoint>, Externalizable {
+        public String signalName;
+        public double time;
+        public SimulationPoint() { }
+        public int compareTo(SimulationPoint sp) {
+            int ret = signalName.compareTo(sp.signalName);
+            if (ret!=0) return ret;
+            ret = Double.compare(time, sp.time);
+            if (ret!=0) return ret;
+            return 0;
+        }
+        public boolean equals(Object o) {
+            if (!(o instanceof SimulationPoint)) return false;
+            SimulationPoint sp = (SimulationPoint)o;
+            return sp.signalName.equals(signalName) && time==sp.time;
+        }
+        public int hashCode() {
+            return signalName.hashCode() ^ (int)Double.doubleToRawLongBits(time);
+        }
+        public void readExternal(ObjectInput in) throws IOException {
+            signalName = in.readUTF();
+            time = in.readDouble();
+        }
+        public void writeExternal(ObjectOutput out) throws IOException{
+            out.writeUTF(signalName);
+            out.writeDouble(time);
+        }
+    }
+
     /**
      * Package-private constructor.
      * @param sd Stimuli.
      */
     ScalarEpicAnalysis(Stimuli sd) {
         super(sd, AnalogAnalysis.ANALYSIS_TRANS, false);
+        try {
+            this.btree = (BTree<SimulationPoint,Double>)
+                Class.forName("com.sun.electric.plugins.jdbm.BTreeJDBM").newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         signalsUnmodifiable = Collections.unmodifiableList(super.getSignals());
     }
     
