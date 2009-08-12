@@ -2125,7 +2125,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			DefaultMutableTreeNode analysisNode = ((EpicAnalysis)an).getSignalsForExplorer(analysis);
 			treePathFromAnalysis.put(an, parentPath.pathByAddingChild(analysisNode));
 			return analysisNode;
-		} else if (an instanceof EpicAnalysis)
+		} else if (an instanceof ScalarEpicAnalysis)
         {
 			DefaultMutableTreeNode analysisNode = ((ScalarEpicAnalysis)an).getSignalsForExplorer(analysis);
 			treePathFromAnalysis.put(an, parentPath.pathByAddingChild(analysisNode));

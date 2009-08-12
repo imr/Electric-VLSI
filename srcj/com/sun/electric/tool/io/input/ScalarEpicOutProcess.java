@@ -148,7 +148,7 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
         char separator = '.';
         Stimuli sd = new Stimuli();
         sd.setSeparatorChar(separator);
-        EpicAnalysis an = new EpicAnalysis(sd);
+        ScalarEpicAnalysis an = new ScalarEpicAnalysis(sd);
         int numSignals = 0;
         ContextBuilder contextBuilder = new ContextBuilder();
         ArrayList<ContextBuilder> contextStack = new ArrayList<ContextBuilder>();
@@ -165,9 +165,9 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
                     String name = readString();
                     if (DEBUG) printDebug(contextStackDepth, (char)b, name);
                     contextBuilder.strings.add(name);
-                    byte type = b == 'V' ? EpicAnalysis.VOLTAGE_TYPE: EpicAnalysis.CURRENT_TYPE;
-                    contextBuilder.contexts.add(EpicAnalysis.getContext(type));
-                    EpicAnalysis.EpicSignal s = new EpicAnalysis.EpicSignal(an, type, numSignals++, sigNum);
+                    byte type = b == 'V' ? ScalarEpicAnalysis.VOLTAGE_TYPE: ScalarEpicAnalysis.CURRENT_TYPE;
+                    contextBuilder.contexts.add(ScalarEpicAnalysis.getContext(type));
+                    ScalarEpicAnalysis.EpicSignal s = new ScalarEpicAnalysis.EpicSignal(an, type, numSignals++, sigNum);
                     s.setSignalName(name, null);
                     break;
                 case 'D':
@@ -181,7 +181,7 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
                     break;
                 case 'U':
                     if (DEBUG) printDebug(contextStackDepth, (char)b, null);
-                    EpicAnalysis.Context newContext = an.getContext(contextBuilder.strings, contextBuilder.contexts);
+                    ScalarEpicAnalysis.Context newContext = an.getContext(contextBuilder.strings, contextBuilder.contexts);
                     contextBuilder.clear();
 
                     contextStackDepth--;
@@ -223,7 +223,7 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
         }
 
         for (int i = 0; i < numSignals; i++) {
-            EpicAnalysis.EpicSignal s = (EpicAnalysis.EpicSignal)signals.get(i);
+            ScalarEpicAnalysis.EpicSignal s = (ScalarEpicAnalysis.EpicSignal)signals.get(i);
             SigInfo si = sigInfoByEpicIndex.get(s.sigNum);
             s.setBounds(si.minV, si.maxV);
             an.waveStarts[i] = si.start;
@@ -291,7 +291,7 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
      */
     private static class ContextBuilder {
         ArrayList<String> strings = new ArrayList<String>();
-        ArrayList<EpicAnalysis.Context> contexts = new ArrayList<EpicAnalysis.Context>();
+        ArrayList<ScalarEpicAnalysis.Context> contexts = new ArrayList<ScalarEpicAnalysis.Context>();
 
         void clear() { strings.clear(); contexts.clear(); }
     }
