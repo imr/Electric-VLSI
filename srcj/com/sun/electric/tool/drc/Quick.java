@@ -3367,7 +3367,7 @@ public class Quick
                 if (!f)
                 {
                     DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.LAYERSURROUNDERROR,
-                        "No enough surround of " + rule.condition + ", ",
+                        "Not enough surround of " + rule.condition + ", ",
                         geom.getParent(), rule.getValue(0), -1, rule.ruleName, poly, geom, layer, null, null, null);
                     if (reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true; // no need of checking other combinations
                     break; // with next rule
@@ -3424,7 +3424,7 @@ public class Quick
 //			boolean foundAll = allPointsContainedInLayer(geom, cell, ruleBnd, null, extraPoints, founds);
 //
 //			if (!foundAll)
-//				reportError(DRCErrorType.LAYERSURROUNDERROR, "No enough surround, ", geom.getParent(), minOverlapValue,
+//				reportError(DRCErrorType.LAYERSURROUNDERROR, "Not enough surround, ", geom.getParent(), minOverlapValue,
 //                        -1, minOverlapRule.ruleName, poly, geom, layer, null, null, null);
 //		}
 //		return (!found);

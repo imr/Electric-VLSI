@@ -3158,7 +3158,7 @@ public class MTDRCLayoutTool extends MTDRCTool
 
                     if (!f)
                     {
-                        DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.LAYERSURROUNDERROR, "No enough surround of " + rule.condition + ", ", geom.getParent(), rule.getValue(0),
+                        DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.LAYERSURROUNDERROR, "Not enough surround of " + rule.condition + ", ", geom.getParent(), rule.getValue(0),
                             -1, rule.ruleName, poly, geom, layer, null, null, null);
                         if (reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE)
                             return true; // no need of checking other combinations
@@ -3216,7 +3216,7 @@ public class MTDRCLayoutTool extends MTDRCTool
 //			boolean foundAll = allPointsContainedInLayer(geom, cell, ruleBnd, null, extraPoints, founds);
 //
 //			if (!foundAll)
-//				DRC.createDRCErrorLogger(reportInfo, DRCErrorType.LAYERSURROUNDERROR, "No enough surround, ", geom.getParent(), minOverlapValue,
+//				DRC.createDRCErrorLogger(reportInfo, DRCErrorType.LAYERSURROUNDERROR, "Not enough surround, ", geom.getParent(), minOverlapValue,
 //                        -1, minOverlapRule.ruleName, poly, geom, layer, null, null, null);
 //		}
 //		return (!found);
