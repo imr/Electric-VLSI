@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10e: ******************************
 
+IMP: (8/11/09, AM) build.xml: add support for temporary use of jdbm
+     libraries (SUN builds only).
+
 IMP: (8/11/09, AM) Add BTree.java wrapper for various B-Tree
      implementations (JDBM initially, something GNU-friendly later).
 

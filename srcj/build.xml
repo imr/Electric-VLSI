@@ -31,6 +31,7 @@
         <property name="JUnit" value="packaging/junit-4.1.jar"/>
         <property name="lucene" value="packaging/lucene-1.4.3.jar"/>
         <property name="prefuse" value="packaging/prefuse.jar"/>
+        <property name="jdbm" value="packaging/jdbm-1.0.jar"/>
     </target>
 
     <!-- Patternset for 3D dependencies -->
@@ -50,6 +51,7 @@
         <exclude name="com/sun/electric/plugins/dais/" unless="SUN"/>
         <exclude name="com/sun/electric/plugins/generator/" unless="SUN"/>
         <exclude name="com/sun/electric/plugins/Java3D/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/jdbm/" unless="SUN"/>
         <exclude name="com/sun/electric/plugins/jogl/" unless="JOGL"/>
         <exclude name="com/sun/electric/plugins/irsim/" if="GNU"/>
         <exclude name="com/sun/electric/plugins/libertyRW/" unless="SUN"/>
@@ -79,6 +81,11 @@
         <pathelement location="packaging/prefuse.jar"/>
     </path>
 
+    <!-- Path for JDBM -->
+    <path id="jdbmClassPath">
+        <pathelement location="packaging/jdbm-1.0.jar"/>
+    </path>
+
 	<!-- Use -DGNU=1 to build the GNU release -->
 	<!-- Use -DSFS=1 to build the SFS release -->
 	<!-- Use -DSUN=1 to build the Sun release -->
@@ -90,6 +97,7 @@
 	    <!--compilerarg value="-Xlint:unchecked"/-->
             <classpath refid="externalClassPath" />
             <classpath refid="prefuseClassPath" />
+            <classpath refid="jdbmClassPath" />
             <patternset refid="exclusion" />
         </javac>
     </target>
@@ -190,6 +198,7 @@
      <target name="deleteExternalJars" description="Delete extracted Jar files to cleanup after build">
         <delete dir="bsh"/>   <!-- beanshell -->
         <delete dir="org"/>   <!-- lucene -->
+        <delete dir="jdbm"/>  <!-- jdbm -->
         <delete dir="prefuse"/>
         <delete dir="com/apple"/>
         <delete dir="junit"/>
@@ -202,6 +211,7 @@
     <target name="unjarSUN" if="SUN" description="Extract Jar files used in Sun release">
         <unjar dest="." src="${beanshell}"/>
         <unjar dest="." src="${lucene}"/>
+        <unjar dest="." src="${jdbm}"/>
         <unjar dest="." src="${prefuse}"/>
     </target>
 
