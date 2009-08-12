@@ -96,6 +96,10 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
         public String signalName;
         public double time;
         public SimulationPoint() { }
+        public SimulationPoint(String signalName, double time) {
+            this.signalName = signalName;
+            this.time = time;
+        }
         public int compareTo(SimulationPoint sp) {
             int ret = signalName.compareTo(sp.signalName);
             if (ret!=0) return ret;
@@ -434,6 +438,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
         count = 0;
         int t = 0;
         int v = 0;
+        System.err.println("filling btree for signal " + signal.getFullName());
         for (int i = 0; i < len; count++) {
             int l;
             int b = packedWaveform[i++] & 0xff;
@@ -468,7 +473,9 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
             }
             v = v + b;
             value[count] = v * valueResolution;
+            btree.put(new SimulationPoint(signal.getFullName(), time[count]), new Double(value[count]));
         }
+        System.err.println("  done filling btree for signal " + signal.getFullName());
         assert count == time.length;
         return new Waveform[] { new WaveformImpl(time, value) };
     }
