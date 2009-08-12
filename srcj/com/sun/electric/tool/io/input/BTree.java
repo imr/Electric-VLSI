@@ -33,10 +33,11 @@ import java.io.Serializable;
  *  deal of effort to implement without having all the data in memory
  *  (keySet()).  There is also no support for custom Comparators; the
  *  key class must serialize its instances into a form that sorts
- *  lexographically.  Lastly, this class does not distinguish between
- *  a key which is not in the collection and a key which is present
- *  but has a null value; this restriction greatly simplifies the Map
- *  interface (no need for containsKey(), etc).
+ *  lexographically (and must implement Comparable).  Lastly, this
+ *  class does not distinguish between a key which is not in the
+ *  collection and a key which is present but has a null value; this
+ *  restriction greatly simplifies the Map interface (no need for
+ *  containsKey(), etc).
  *
  *  Subclasses implement this interface; initially we will use JDBM,
  *  but that will be replaced at some point with something we can
@@ -51,7 +52,7 @@ import java.io.Serializable;
  *
  *  @author Adam Megacz <adam.megacz@sun.com>
  */
-public interface BTree<K extends Serializable, V extends Serializable> {
+public interface BTree<K extends Serializable & Comparable, V extends Serializable> {
 
     /** returns the first key, or null if tree is empty */                 public K    first();
     /** returns the last key, or null if tree is empty */                  public K    last();
