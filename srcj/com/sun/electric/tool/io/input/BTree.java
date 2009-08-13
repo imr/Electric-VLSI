@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ScalarEpicAnalysis.java
+ * File: BTree.java
  *
  * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
