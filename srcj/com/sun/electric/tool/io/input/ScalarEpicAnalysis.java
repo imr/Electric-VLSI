@@ -33,6 +33,7 @@ import com.sun.electric.tool.simulation.WaveformImpl;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.ScalarSignal;
 
 import java.awt.geom.Rectangle2D;
 import java.io.File;
@@ -90,40 +91,61 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
     /** Hash of all contexts. */                        private Context[] contextHash = new Context[1];
     /** Count of contexts in the hash. */               private int numContexts = 0;
 
-    private final BTree<SimulationPoint,Double> btree;
+    /*
+    private final BTree<SimulationKey,SimulationValue> btree;
+    */
 
-    private static class SimulationPoint implements Comparable<SimulationPoint>, Externalizable {
+    private static class SimulationKey implements Comparable<SimulationKey>, Externalizable {
         public String signalName;
-        public double time;
-        public SimulationPoint() { }
-        public SimulationPoint(String signalName, double time) {
+        public int index;
+        public SimulationKey() { }
+        public SimulationKey(String signalName, int index) {
             this.signalName = signalName;
-            this.time = time;
+            this.index = index;
         }
-        public int compareTo(SimulationPoint sp) {
+        public int compareTo(SimulationKey sp) {
             int ret = signalName.compareTo(sp.signalName);
             if (ret!=0) return ret;
-            ret = Double.compare(time, sp.time);
+            ret = index - sp.index;
             if (ret!=0) return ret;
             return 0;
         }
         public boolean equals(Object o) {
-            if (!(o instanceof SimulationPoint)) return false;
-            SimulationPoint sp = (SimulationPoint)o;
-            return sp.signalName.equals(signalName) && time==sp.time;
+            if (!(o instanceof SimulationKey)) return false;
+            SimulationKey sp = (SimulationKey)o;
+            return sp.signalName.equals(signalName) && index==sp.index;
         }
         public int hashCode() {
-            return signalName.hashCode() ^ (int)Double.doubleToRawLongBits(time);
+            return signalName.hashCode() ^ index;
         }
         public void readExternal(ObjectInput in) throws IOException {
             signalName = in.readUTF();
-            time = in.readDouble();
+            index = in.readInt();
         }
         public void writeExternal(ObjectOutput out) throws IOException{
             out.writeUTF(signalName);
-            out.writeDouble(time);
+            out.writeInt(index);
         }
     }
+
+    private static class SimulationValue implements Externalizable {
+        public double time;
+        public double value;
+        public SimulationValue() { }
+        public SimulationValue(double time, double value) {
+            this.time = time;
+            this.value = value;
+        }
+        public void readExternal(ObjectInput in) throws IOException {
+            this.time = in.readDouble();
+            this.value = in.readDouble();
+        }
+        public void writeExternal(ObjectOutput out) throws IOException{
+            out.writeDouble(time);
+            out.writeDouble(value);
+        }
+    }
+
 
     /**
      * Package-private constructor.
@@ -131,12 +153,14 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
      */
     ScalarEpicAnalysis(Stimuli sd) {
         super(sd, AnalogAnalysis.ANALYSIS_TRANS, false);
+        /*
         try {
-            this.btree = (BTree<SimulationPoint,Double>)
+            this.btree = (BTree<SimulationKey,SimulationValue>)
                 Class.forName("com.sun.electric.plugins.jdbm.BTreeJDBM").newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        */
         signalsUnmodifiable = Collections.unmodifiableList(super.getSignals());
     }
     
@@ -188,7 +212,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
      * Free allocated resources before closing.
      */
     @Override
-    public void finished() {
+        public void finished() {
         try {
             waveFile.close();
             waveFileName.delete();
@@ -205,7 +229,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
 	 * Returns null if none can be found.
 	 */
     @Override
-    public AnalogSignal findSignalForNetworkQuickly(String netName) {
+        public AnalogSignal findSignalForNetworkQuickly(String netName) {
         AnalogSignal old = super.findSignalForNetworkQuickly(netName);
         
         String lookupName = TextUtils.canonicString(netName);
@@ -267,14 +291,14 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
 	 * @return a List of signals.
 	 */
     @Override
-	public List<AnalogSignal> getSignals() { return signalsUnmodifiable; }
+        public List<AnalogSignal> getSignals() { return signalsUnmodifiable; }
 
     /**
      * This methods overrides Analysis.nameSignal.
      * It doesn't use Analisys.signalNames to use less memory.
      */
     @Override
-	public void nameSignal(AnalogSignal ws, String sigName) {}
+        public void nameSignal(AnalogSignal ws, String sigName) {}
     
     /**
      * Finds signal index of AnalogSignal with given full name.
@@ -397,8 +421,12 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
         contextHash = newHash;
     }
 
+
+    private HashMap<String,BTree<Integer,Double>> timetrees = new HashMap<String,BTree<Integer,Double>>();
+    private HashMap<String,BTree<Integer,Double>> valtrees = new HashMap<String,BTree<Integer,Double>>();
+
     @Override
-    protected Waveform[] loadWaveforms(AnalogSignal signal) {
+        protected Waveform[] loadWaveforms(AnalogSignal signal) {
         int index = signal.getIndexInAnalysis();
         double valueResolution = getValueResolution(index);
         int start = waveStarts[index];
@@ -413,72 +441,117 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
         }
             
         int count = 0;
-        for (int i = 0; i < len; count++) {
-            int l;
-            int b = packedWaveform[i++] & 0xff;
-            if (b < 0xC0)
-                l = 0;
-            else if (b < 0xFF)
-                l = 1;
-            else
-                l = 4;
-            i += l;
-            b = packedWaveform[i++] & 0xff;
-            if (b < 0xC0)
-                l = 0;
-            else if (b < 0xFF)
-                l = 1;
-            else
-                l = 4;
-            i += l;
-        }
-
-        double[] time = new double[count];
-        double[] value = new double[count];
-        count = 0;
         int t = 0;
         int v = 0;
-        System.err.println("filling btree for signal " + signal.getFullName());
+        double minValue = Double.MAX_VALUE;
+        double maxValue = Double.MIN_VALUE;
+        int    evmin = 0;
+        int    evmax = 0;
+        String sigName = signal.getFullName();
+
+        BTree<Integer,Double> timetree = timetrees.get(sigName);
+        BTree<Integer,Double> valtree = valtrees.get(sigName);
+
+        try {
+            if (timetree==null)
+                timetrees.put(sigName, timetree = (BTree<Integer,Double>)
+                              Class.forName("com.sun.electric.plugins.jdbm.BTreeJDBM").newInstance());
+            if (valtree==null)
+                valtrees.put(sigName, valtree = (BTree<Integer,Double>)
+                             Class.forName("com.sun.electric.plugins.jdbm.BTreeJDBM").newInstance());
+        } catch (Exception e) { throw new RuntimeException(e); }
+
+        System.err.println("filling btree for signal " + sigName);
         for (int i = 0; i < len; count++) {
             int l;
             int b = packedWaveform[i++] & 0xff;
-            if (b < 0xC0) {
-                l = 0;
-            } else if (b < 0xFF) {
-                l = 1;
-                b -= 0xC0;
-            } else {
-                l = 4;
-            }
+            if (b < 0xC0) { l = 0; } else if (b < 0xFF) { l = 1; b -= 0xC0; } else { l = 4; }
             while (l > 0) {
                 b = (b << 8) | packedWaveform[i++] & 0xff;
                 l--;
             }
             t = t + b;
-            time[count] = t * timeResolution;
-
             b = packedWaveform[i++] & 0xff;
-            if (b < 0xC0) {
-                l = 0;
-                b -= 0x60;
-            } else if (b < 0xFF) {
-                l = 1;
-                b -= 0xDF;
-            } else {
-                l = 4;
-            }
+            if (b < 0xC0) { l = 0; b -= 0x60; } else if (b < 0xFF) { l = 1; b -= 0xDF; } else { l = 4; }
             while (l > 0) {
                 b = (b << 8) | packedWaveform[i++] & 0xff;
                 l--;
             }
             v = v + b;
-            value[count] = v * valueResolution;
-            btree.put(new SimulationPoint(signal.getFullName(), time[count]), new Double(value[count]));
+            double value = v * valueResolution;
+            if (value < minValue) { minValue = value; evmin = count; }
+            if (value > maxValue) { maxValue = value; evmax = count; }
+            //btree.put(new SimulationKey(sigName, count), new SimulationValue(t * timeResolution, value));
+            timetree.put(count, t*timeResolution);
+            valtree.put(count, value);
         }
-        System.err.println("  done filling btree for signal " + signal.getFullName());
-        assert count == time.length;
-        return new Waveform[] { new WaveformImpl(time, value) };
+        timetree.commit();
+        valtree.commit();
+        System.err.println("  done filling btree for signal " + sigName);
+        return new Waveform[] { new ScalarWaveformImpl(sigName, count, evmin, evmax, timetree, valtree) };
     }
+
+    private class ScalarWaveformImpl implements Waveform, ScalarSignal.Approximation {
+
+        private final String signal;
+        private final int numEvents;
+        private final int eventWithMinValue;
+        private final int eventWithMaxValue;
+        private ScalarSignal.Approximation approximation = null;
+        BTree<Integer,Double> timetree;
+        BTree<Integer,Double> valtree;
+    
+        public ScalarWaveformImpl(String signal, int numEvents, int eventWithMinValue, int eventWithMaxValue,
+                                  BTree<Integer,Double> timetree,
+                                  BTree<Integer,Double> valtree
+                                  ) {
+            this.signal = signal;
+            this.numEvents = numEvents;
+            this.eventWithMinValue = eventWithMinValue;
+            this.eventWithMaxValue = eventWithMaxValue;
+            this.timetree = timetree;
+            this.valtree = valtree;
+        }
+        public int getNumEvents() { return numEvents; }
+        public void getEvent(int index, double[] result) {
+            result[0] = getTime(index);
+            result[1] = result[2] = getValue(index);
+        }
+        public double             getTime(int index) {
+            //return btree.get(new SimulationKey(signal, index)).time;
+            return timetree.get(index);
+        }
+        public double             getValue(int index) {
+            //return btree.get(new SimulationKey(signal, index)).value;
+            return valtree.get(index);
+        }
+        public ScalarSignal.Approximation getApproximation(double t0, double t1, int tn,
+                                                           double v0, double v1, int vd) {
+            throw new RuntimeException("not implemented");
+        }
+        public synchronized ScalarSignal.Approximation getPreferredApproximation() {
+            return this;
+        }
+        public int getTimeNumerator(int index) {
+            throw new RuntimeException("not implemented");
+        }
+        public int getValueNumerator(int index) {
+            throw new RuntimeException("not implemented");
+        }
+        public int getTimeDenominator() {
+            throw new RuntimeException("not implemented");
+        }
+        public int getValueDenominator() {
+            throw new RuntimeException("not implemented");
+        }
+        public int getEventWithMaxValue() {
+            return eventWithMaxValue;
+        }
+        public int getEventWithMinValue() {
+            return eventWithMinValue;
+        }
+    }
+
     
     /************************* EpicRootTreeNode *********************************************
      * This class is for root node of EpicTreeNode tree.
@@ -497,49 +570,49 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
             this.an = an;
             Vector<EpicTreeNode> children = new Vector<EpicTreeNode>();
 
-//    		// make a list of signal names with "#" in them
-//    		Map<String,DefaultMutableTreeNode> sharpMap = new HashMap<String,DefaultMutableTreeNode>();
-//            for (EpicTreeNode tn: an.rootContext.sortedNodes)
-//    		{
-//    			String sigName = tn.name;
-//    			int hashPos = sigName.indexOf('#');
-//    			if (hashPos <= 0) continue;
-//    			String sharpName = sigName.substring(0, hashPos);
-//    			DefaultMutableTreeNode parent = sharpMap.get(sharpName);
-//    			if (parent == null)
-//    			{
-//    				parent = new DefaultMutableTreeNode(sharpName + "#");
-//    				sharpMap.put(sharpName, parent);
-//    				this.add(parent);
-//    			}
-//    		}
-//
-//    		// add all signals to the tree
-//            for (EpicTreeNode tn: an.rootContext.sortedNodes)
-//    		{
-//    			String nodeName = null;
-//    			String sigName = tn.name;
-//    			int hashPos = sigName.indexOf('#');
-//    			if (hashPos > 0)
-//    			{
-//    				// force a branch with the proper name
-//    				nodeName = sigName.substring(0, hashPos);
-//    			} else
-//    			{
-//    				// if this is the pure name of a hash set, force a branch
-//    				String pureSharpName = sigName;
-//    				if (sharpMap.get(pureSharpName) != null)
-//    					nodeName = pureSharpName;
-//    			}
-//    			if (nodeName != null)
-//    			{
-//    				DefaultMutableTreeNode parent = sharpMap.get(nodeName);
-//    				parent.add(new DefaultMutableTreeNode(tn));
-//    			} else
-//    			{
-//                    children.add(tn);
-//    			}
-//    		}
+            //    		// make a list of signal names with "#" in them
+            //    		Map<String,DefaultMutableTreeNode> sharpMap = new HashMap<String,DefaultMutableTreeNode>();
+            //            for (EpicTreeNode tn: an.rootContext.sortedNodes)
+            //    		{
+            //    			String sigName = tn.name;
+            //    			int hashPos = sigName.indexOf('#');
+            //    			if (hashPos <= 0) continue;
+            //    			String sharpName = sigName.substring(0, hashPos);
+            //    			DefaultMutableTreeNode parent = sharpMap.get(sharpName);
+            //    			if (parent == null)
+            //    			{
+            //    				parent = new DefaultMutableTreeNode(sharpName + "#");
+            //    				sharpMap.put(sharpName, parent);
+            //    				this.add(parent);
+            //    			}
+            //    		}
+            //
+            //    		// add all signals to the tree
+            //            for (EpicTreeNode tn: an.rootContext.sortedNodes)
+            //    		{
+            //    			String nodeName = null;
+            //    			String sigName = tn.name;
+            //    			int hashPos = sigName.indexOf('#');
+            //    			if (hashPos > 0)
+            //    			{
+            //    				// force a branch with the proper name
+            //    				nodeName = sigName.substring(0, hashPos);
+            //    			} else
+            //    			{
+            //    				// if this is the pure name of a hash set, force a branch
+            //    				String pureSharpName = sigName;
+            //    				if (sharpMap.get(pureSharpName) != null)
+            //    					nodeName = pureSharpName;
+            //    			}
+            //    			if (nodeName != null)
+            //    			{
+            //    				DefaultMutableTreeNode parent = sharpMap.get(nodeName);
+            //    				parent.add(new DefaultMutableTreeNode(tn));
+            //    			} else
+            //    			{
+            //                    children.add(tn);
+            //    			}
+            //    		}
 
             for (EpicTreeNode tn: an.rootContext.sortedNodes)
                 children.add(tn);
@@ -717,7 +790,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
      * It partially implements TreeNode (without getParent).
      */
     public static class EpicTreeNode implements TreeNode {
-//        private final int chronIndex;
+        //        private final int chronIndex;
         private final String name;
         private final Context context;
         private final int nodeOffset;
@@ -727,7 +800,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
          * Private constructor.
          */
         private EpicTreeNode(int chronIndex, String name, Context context, int nodeOffset) {
-//            this.chronIndex = chronIndex;
+            //            this.chronIndex = chronIndex;
             this.name = name;
             this.context = context;
             this.nodeOffset = nodeOffset;
@@ -846,7 +919,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
          * @param signalContext the context of this simulation signal.
          */
         @Override
-        public void setSignalContext(String signalContext) { throw new UnsupportedOperationException(); }
+            public void setSignalContext(String signalContext) { throw new UnsupportedOperationException(); }
         
         /**
          * Method to return the context of this simulation signal.
@@ -856,7 +929,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
          * If there is no context, this returns null.
          */
         @Override
-        public String getSignalContext() {
+            public String getSignalContext() {
             return ((ScalarEpicAnalysis)getAnalysis()).makeName(getIndexInAnalysis(), false);
         }
         
@@ -866,7 +939,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
          * @return the full name of this simulation signal.
          */
         @Override
-        public String getFullName() {
+            public String getFullName() {
             return ((ScalarEpicAnalysis)getAnalysis()).makeName(getIndexInAnalysis(), true);
         }
         
@@ -876,7 +949,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
             bounds = new Rectangle2D.Double(0, minV*resolution, an.maxTime, (maxV - minV)*resolution);
             leftEdge = 0;
             rightEdge = an.maxTime;
-//            rightEdge = minV*resolution;
+            //            rightEdge = minV*resolution;
         }
     }
 }
