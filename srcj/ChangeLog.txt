@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10e: ******************************
 
+IMP/MAN: (8/15/09, AM) Add "duplicate in place" option.  When this is
+     enabled, the "duplicate" command will place the duplicated object
+     exactly where the original was.  This is far more useful than the
+     default behavior when you have layout geometry that needs to stay
+     on a grid.
+
 IMP: (8/12/09, AM) use BTree in ScalarEpicAnalysis.  It works.  But it
      is slow.
 

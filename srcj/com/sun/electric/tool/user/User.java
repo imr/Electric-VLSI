@@ -3421,6 +3421,24 @@ public class User extends Listener
 	 */
 	public static boolean isFactoryMoveAfterDuplicate() { return cacheMoveAfterDuplicate.getBooleanFactoryValue(); }
 
+	private static Pref cacheDuplicateInPlace = Pref.makeBooleanPref("DuplicateInPlace", tool.prefs, false);
+	/**
+	 * Method to tell whether to duplicate in place.
+	 * The default is "false".
+	 * @return true if the system should duplicate in place.
+	 */
+	public static boolean isDuplicateInPlace() { return cacheDuplicateInPlace.getBoolean(); }
+	/**
+	 * Method to set whether to duplicate in place.
+	 * @param on true if the system should duplicate objects in place.
+	 */
+	public static void setDuplicateInPlace(boolean on) { cacheDuplicateInPlace.setBoolean(on); }
+	/**
+	 * Method to tell whether to duplicate in place.
+	 * @return true if the system should duplicate objects in place.
+	 */
+	public static boolean isFactoryDuplicateInPlace() { return cacheDuplicateInPlace.getBooleanFactoryValue(); }
+
 	private static Pref cacheDupCopiesExports = Pref.makeBooleanPref("DupCopiesExports", tool.prefs, false);
 	/**
 	 * Method to tell whether Duplicate/Paste/Array of NodeInst copies exports.

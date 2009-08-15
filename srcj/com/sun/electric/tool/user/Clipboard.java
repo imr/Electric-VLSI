@@ -359,7 +359,11 @@ public class Clipboard //implements ClipboardOwner
 			EventListener currentListener = WindowFrame.getListener();
 			WindowFrame.setListener(new PasteListener(wnd, geomList, textList, currentListener,
 				inPlace, inPlaceOrient, false));
-		} else
+		} else if (User.isDuplicateInPlace()) {
+			new PasteObjects(parent, geomList, textList, 0, 0,
+				User.getAlignmentToGrid(), User.isDupCopiesExports(), User.isArcsAutoIncremented(),
+				inPlace, inPlaceOrient);
+        } else
 		{
 			new PasteObjects(parent, geomList, textList, lastDupX, lastDupY,
 				User.getAlignmentToGrid(), User.isDupCopiesExports(), User.isArcsAutoIncremented(),
@@ -396,6 +400,10 @@ public class Clipboard //implements ClipboardOwner
 		{
 			EventListener currentListener = WindowFrame.getListener();
 			WindowFrame.setListener(new PasteListener(wnd, geomList, textList, currentListener, null, null, true));
+		} else if (User.isDuplicateInPlace()) {
+            lastDupX = 0;
+            lastDupY = 0;
+			new DuplicateObjects(wnd.getCell(), geomList, textList, User.getAlignmentToGrid());
 		} else
 		{
 			new DuplicateObjects(wnd.getCell(), geomList, textList, User.getAlignmentToGrid());
