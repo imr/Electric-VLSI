@@ -485,9 +485,6 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
             timetree.put(count, t*timeResolution);
             valtree.put(count, value);
         }
-        // Disable temporarily these lines to enable compilation
-//        timetree.commit();
-//        valtree.commit();
         System.err.println("  done filling btree for signal " + sigName);
         return new Waveform[] { new ScalarWaveformImpl(sigName, count, evmin, evmax, timetree, valtree) };
     }
