@@ -2934,6 +2934,11 @@ public class User extends Listener
 	 */
 	public static boolean isFactoryDimUpperLevelWhenDownInPlace() { return cacheDimUpperLevelWhenDownInPlace.getBooleanFactoryValue(); }
 
+	private static Pref cacheErrorHighlightingPulsate = Pref.makeBooleanPref("ErrorHighlightingPulsate", tool.prefs, true);
+	public static boolean isErrorHighlightingPulsate() { return cacheErrorHighlightingPulsate.getBoolean(); }
+	public static void setErrorHighlightingPulsate(boolean dim) { cacheErrorHighlightingPulsate.setBoolean(dim); }
+	public static boolean isFactoryErrorHighlightingPulsate() { return cacheErrorHighlightingPulsate.getBooleanFactoryValue(); }
+
 	private static Pref cacheWhichDisplayAlgorithm = Pref.makeIntPref("WhichDisplayAlgorithm", tool.prefs, 1);
 	/**
 	 * Method to tell which display algorithm to use.

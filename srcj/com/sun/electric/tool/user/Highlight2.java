@@ -543,7 +543,41 @@ class HighlightLine extends Highlight2
         Point2D [] points = new Point2D.Double[2];
         points[0] = new Point2D.Double(start.getX(), start.getY());
         points[1] = new Point2D.Double(end.getX(), end.getY());
-        drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false, thickLine);
+        if (User.isErrorHighlightingPulsate() && thickLine) {
+            Graphics2D g2 = (Graphics2D)g;
+            Color mainColor = g.getColor();
+            float rand = (((float)(System.currentTimeMillis() % 300)) / 300f);
+            float phase = (((float)(System.currentTimeMillis() % 3000)) / 3000f);
+            g2.setColor(Color.black);
+            int period = 30;
+            for(int i=0; i<period; i++) {
+                drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false, thickLine);
+                /*
+                // hsv to rgb
+                float h = phase;
+                float s = 1;
+                float v = 1;
+                float r=0, g=0, b=0;
+                float var_h = h * 6;
+                float var_i = (float)Math.floor( var_h );
+                float var_1 = v * ( 1 - s );
+                float var_2 = v * ( 1 - s * ( var_h - var_i ) );
+                float var_3 = v * ( 1 - s * ( 1 - ( var_h - var_i ) ) );
+                if      ( var_i == 0 ) { r = v     ; g = var_3 ; b = var_1; }
+                else if ( var_i == 1 ) { r = var_2 ; g = v     ; b = var_1; }
+                else if ( var_i == 2 ) { r = var_1 ; g = v     ; b = var_3; }
+                else if ( var_i == 3 ) { r = var_1 ; g = var_2 ; b = v;     }
+                else if ( var_i == 4 ) { r = var_3 ; g = var_1 ; b = v;     }
+                else                   { r = v     ; g = var_1 ; b = var_2; }
+                g2.setColor(new Color(r, g, b, ((float)i)/period));
+                */
+                g2.setColor(new Color(mainColor.getRed(), mainColor.getGreen(), mainColor.getBlue(), (255*i)/period));
+                g2.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1, new float[] { 1, period-1 }, rand*period + i));
+            }
+            wnd.repaint(100);
+        } else {
+            drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false, thickLine);
+        }
     }
 
     Rectangle2D getHighlightedArea(EditWindow wnd)

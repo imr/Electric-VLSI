@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10e: ******************************
 
+IMP/MAN: (8/16/09, AM) Add pulsating error highlighting.  This is
+     useful because using motion to direct the user's attention (rather
+     than color) works with any color scheme.
+
 IMP/MAN: (8/15/09, AM) Add "duplicate in place" option.  When this is
      enabled, the "duplicate" command will place the duplicated object
      exactly where the original was.  This is far more useful than the
