@@ -643,9 +643,9 @@ public class StitchFillJob extends Job
 
                 // Look for all arcs in the cell instances that are on the given layer and network
                 Cell jCell = jExp.getParent();
-                SearchArcsInHierarchy searchArcs = new SearchArcsInHierarchy(jExp, layer);
-                HierarchyEnumerator.enumerateCell(jCell, VarContext.globalContext, searchArcs);
-                Area expA = searchArcs.expA;
+                SearchInHierarchy searchElems = new SearchInHierarchy(jExp, layer);
+                HierarchyEnumerator.enumerateCell(jCell, VarContext.globalContext, searchElems);
+                Area expA = searchElems.expA;
                 
                 // Algorithm will look for the closest connection.
                 Rectangle2D bestCut = null; // represents the best cut
@@ -914,16 +914,18 @@ public class StitchFillJob extends Job
         return true;
     }
     // NewWellCheckVisitor wcVisitor = new NewWellCheckVisitor();
-    private static class SearchArcsInHierarchy extends HierarchyEnumerator.Visitor
+    private static class SearchInHierarchy extends HierarchyEnumerator.Visitor
     {
         Layer layer;
+        Layer.Function.Set layerSet;
         Network jExp;
         Area expA;
 
-        SearchArcsInHierarchy(Network exp, Layer l)
+        SearchInHierarchy(Network exp, Layer l)
         {
             jExp = exp;
             layer = l;
+            layerSet = new Layer.Function.Set(l);
             expA = new Area();
         }
 
@@ -939,7 +941,6 @@ public class StitchFillJob extends Job
                 Network aNet = info.getNetlist().getNetwork(ai, 0);
 
                 boolean found = HierarchyEnumerator.searchInExportNetwork(aNet, info, jExp);
-//                if (aNet.getNetIndex() != jExp.getNetIndex()) continue; // different networks
                 if (!found) continue; // different networks
                 
                 Technology tech = ai.getProto().getTechnology();
@@ -965,7 +966,40 @@ public class StitchFillJob extends Job
 
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
-            return true;  // nothing to do here since only arcs are sought
+            NodeInst ni = no.getNodeInst();
+
+            if (ni.isCellInstance()) return true; // not interested in cells
+
+            if (NodeInst.isSpecialNode(ni)) return true; // like center or pin
+
+            // NOTE: in the past, only arcs were checked.
+            // Now regular PrimitiveNodes need to be checked because the node extractor now adds pure layer nodes.
+
+            // checking if any port in the node connects to the export in case
+            boolean found = false;
+            for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext();)
+            {
+                PortInst pi = pIt.next();
+                Network nNet = info.getNetlist().getNetwork(no, pi.getPortProto(), 0);
+                found = HierarchyEnumerator.searchInExportNetwork(nNet, info, jExp);
+                if (found)
+                    break; // found network
+            }
+            if (found)
+            {
+                Technology tech = ni.getProto().getTechnology();
+                Poly[] nodeInstPolyList = tech.getShapeOfNode(ni, true, true, layerSet);
+                assert nodeInstPolyList.length < 2; // either not found or only 1
+                if (nodeInstPolyList.length == 1)
+                {
+                    AffineTransform rTrans = info.getTransformToRoot();
+                    Poly poly = nodeInstPolyList[0];
+                    poly.transform(rTrans);
+                    expA.add(new Area(poly.getBounds2D()));
+                }
+            }
+
+            return true;
         }
     }
 

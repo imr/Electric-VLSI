@@ -630,14 +630,13 @@ public class Layer implements Serializable, Comparable
             public static final Set ALL = new Set(Function.class.getEnumConstants());
 
             /**
-             * Constructs Function.Set from a Function plus extra bits
-             * @param f Function
-             * @param extraB extra bits to check
+             * Constructs Function.Set from a Layer
+             * @param l Layer
              */
-            public Set(Function f, int extraB)
+            public Set(Layer l)
             {
-                bits.set(f.ordinal());
-                extraBits = extraB;
+                bits.set(l.getFunction().ordinal());
+                extraBits = l.getFunctionExtras();
             }
 
             /**

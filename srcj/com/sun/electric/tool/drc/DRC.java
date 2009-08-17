@@ -76,7 +76,7 @@ public class DRC extends Listener
     {
         Layer.Function.Set thisLayerFunction = (layer.getFunction().isPoly()) ?
         new Layer.Function.Set(Layer.Function.POLY1, Layer.Function.GATE) :
-        new Layer.Function.Set(layer.getFunction(), layer.getFunctionExtras());
+        new Layer.Function.Set(layer);
         return thisLayerFunction;
     }
 

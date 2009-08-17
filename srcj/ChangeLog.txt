@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10e: ******************************
 
+BUG: (8/17/09, GVG) Fill generator is not putting enough contacts in when 
+connecting to cell instance (Bug #2340)
+FIX: Adding nodes in SearchInHierarchy.
+
 BUG: (8/17/09, SMR) If two arcs are in a line, meeting at an end (not sharing
      a pin, but each having their own pin, and the pins are coincident)
      then it is not possible to select the two arcs and use right-click
