@@ -885,10 +885,21 @@ public abstract class InteractiveRouter extends Router {
         double [] co1 = getLineCoeffs(line1);
         double [] co2 = getLineCoeffs(line2);
         // det = A1*B2 - A2*B1
+
         double det = co1[0]*co2[1] - co2[0]*co1[1];
-        // if det == 0, lines are parallel, but already checked by intersection check above
+        if (det == 0)
+        {
+        	// lines are parallel.  Since they already passed the "intersection" test, they must meet at an end
+        	if (points1[0].getX() == points2[0].getX() && points1[0].getY() == points2[0].getY()) return points1[0];
+        	if (points1[0].getX() == points2[1].getX() && points1[0].getY() == points2[1].getY()) return points1[0];
+        	if (points1[1].getX() == points2[0].getX() && points1[1].getY() == points2[0].getY()) return points1[1];
+        	if (points1[1].getX() == points2[1].getX() && points1[1].getY() == points2[1].getY()) return points1[1];
+        	return null;
+        }
+
         // x = (B2*C1 - B1*C2)/det
         double x = (co2[1]*co1[2] - co1[1]*co2[2])/det;
+
         // y = (A1*C2 - A2*C1)/det
         double y = (co1[0]*co2[2] - co2[0]*co1[2])/det;
         return new Point2D.Double(x, y);

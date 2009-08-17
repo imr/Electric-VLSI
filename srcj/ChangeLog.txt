@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10e: ******************************
 
+BUG: (8/17/09, SMR) If two arcs are in a line, meeting at an end (not sharing
+     a pin, but each having their own pin, and the pins are coincident)
+     then it is not possible to select the two arcs and use right-click
+     to wire them.  Instead, all points are wired to (0,0) (Bug #2339).
+FIX: In "InteractiveRouter.getIntersection()" the parallel but intersecting
+     case is now handled.
+
 IMP: (8/16/09, AM) Finished first round of performance tuning for
      BTree-based storage of simulation data.
 
