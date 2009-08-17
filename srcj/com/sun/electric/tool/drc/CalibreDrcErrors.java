@@ -181,6 +181,7 @@ public class CalibreDrcErrors {
         DrcRuleViolation v = new DrcRuleViolation(ruleName, header);
 
         // read shapes describing errors
+        incell = topCell;
         for (int i=0; i<header.currentDrcResultsCount; i++) {
             DrcError drc = readErrorShape();
             if (drc == null) break;
@@ -188,6 +189,8 @@ public class CalibreDrcErrors {
         }
         return v;
     }
+    private Cell incell = null;
+
 
     // read the header of the rule violation
     private Header readHeader() throws IOException {
@@ -239,7 +242,6 @@ public class CalibreDrcErrors {
             }
             // need to peek ahead to see if next line specifies a subcell
             nextLine = readLine().trim();
-            Cell incell = topCell;
             if (nextLine.startsWith("CN")) {
                 parts = nextLine.split(spaces);
                 if (parts.length < 3) {
