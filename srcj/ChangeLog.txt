@@ -6,7 +6,7 @@ NOTE: Please place changes under the version that will be released next.
 
 BUG: (8/16/09, AM) Adjust CalibreDrcErrors so that a "CN" line applies
      to all the rest of the errors for that rule, rather than just the
-     next error.  Jon Gainsley: please verify this!
+     next error.  Jon Gainsley: please verify this! (Bug #2338).
 
 IMP/MAN: (8/16/09, AM) Add pulsating error highlighting.  This is
      useful because using motion to direct the user's attention (rather
