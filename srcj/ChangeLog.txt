@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10e: ******************************
 
+IMP: (8/16/09, AM) Finished first round of performance tuning for
+     BTree-based storage of simulation data.
+
 BUG: (8/16/09, AM) Adjust CalibreDrcErrors so that a "CN" line applies
      to all the rest of the errors for that rule, rather than just the
      next error.  Jon Gainsley: please verify this! (Bug #2338).

@@ -85,7 +85,7 @@ public interface ScalarSignal {
      * Returns an Approximation in which:
      *
      *       getValueDenominator() = vd
-     *              getNumEvents() = (t1-t0)/td + 1
+     *              getNumEvents() = td + 1
      *                  getTime(0) = t0
      *   getTime(getNumEvents()-1) = t1
      *         getTimeNumerator(i) = i
@@ -98,9 +98,15 @@ public interface ScalarSignal {
      * Subject to these constraints, the Approximation returned will
      * be the one which most accurately represents the data in the
      * window [t0,t1]x[v0,v1].
+     *
+     * If td==0, the number of time points returned will be that which
+     * is "most natural" for the underlying data.
+     *
+     * If vd==0, the value denominator will be that which is "most
+     * natural" for the underlying data.
      */
-    ScalarSignal.Approximation getApproximation(double t0, double t1, int tn,
-                                                double v0, double v1, int vd);
+    ScalarSignal.Approximation getApproximation(double t0, double t1, int tr,
+                                                double v0, double v1, int vr);
 
     /**
      *  Returns an Approximation which is "most natural" for

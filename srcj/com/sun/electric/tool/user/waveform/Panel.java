@@ -34,6 +34,7 @@ import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.ScalarSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
@@ -1474,7 +1475,16 @@ public class Panel extends JPanel
 					boolean included = waveWindow.isSweepSignalIncluded(an, s);
 					if (!included)
 						continue;
-					Waveform waveform = as.getWaveform(s);
+					Waveform wave = as.getWaveform(s);
+                    ScalarSignal.Approximation waveform =
+                        !Simulation.isSpiceUseRandomAccess()
+                        ? wave.getPreferredApproximation()
+                        : wave.getApproximation(convertXScreenToData(0),
+                                                convertXScreenToData(sz.width),
+                                                sz.width,
+                                                convertYScreenToData(0),
+                                                convertYScreenToData(sz.height),
+                                                0);
                     Waveform xWaveform = null;
                     if (xSignal != null)
                         xWaveform = ((AnalogSignal)xSignal).getWaveform(s);
@@ -1482,10 +1492,9 @@ public class Panel extends JPanel
 					int numEvents = waveform.getNumEvents();
 					for(int i=0; i<numEvents; i++)
 					{
-                        waveform.getEvent(i, result);
-                        int x = convertXDataToScreen(result[0]);
-                        int lowY = convertYDataToScreen(result[1]);
-                        int highY = convertYDataToScreen(result[2]);
+                        int x = convertXDataToScreen(waveform.getTime(i));
+                        int lowY = convertYDataToScreen(waveform.getValue(i));
+                        int highY = convertYDataToScreen(waveform.getValue(i));
 						if (xWaveform != null)
 						{
 							xWaveform.getEvent(i, result);
@@ -1527,6 +1536,13 @@ public class Panel extends JPanel
 						}
 						lastX = x;   lastLY = lowY; lastHY = highY;
 					}
+                    System.out.println("misses="+com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.misses + ", "+
+                                       "avg steps="+
+                                       (((float)com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.steps)/
+                                        com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.numLookups));
+                    com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.misses=0;
+                    com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.steps=0;
+                    com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.numLookups=0;
 				}
 				continue;
             }

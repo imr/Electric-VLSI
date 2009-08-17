@@ -34,6 +34,7 @@ import com.sun.electric.tool.user.ActivityLogger;
 
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.ScalarSignal;
+import com.sun.electric.tool.simulation.ScalarSignalSimpleImpl;
 
 import java.awt.geom.Rectangle2D;
 import java.io.File;
@@ -79,7 +80,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
     /** Opened file with waveforms. */                  private RandomAccessFile waveFile;
     /** Offsets of packed waveforms in the file. */     int[] waveStarts;
     /** Lengths of packed waveforms in the file. */     int[] waveLengths;
-    
+   
     /** Time resolution of integer time unit. */        private double timeResolution;
     /** Voltage resolution of integer voltage unit. */  private double voltageResolution;
     /** Current resolution of integer current unit. */  private double currentResolution;
@@ -481,7 +482,6 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
             double value = v * valueResolution;
             if (value < minValue) { minValue = value; evmin = count; }
             if (value > maxValue) { maxValue = value; evmax = count; }
-            //btree.put(new SimulationKey(sigName, count), new SimulationValue(t * timeResolution, value));
             timetree.put(count, t*timeResolution);
             valtree.put(count, value);
         }
@@ -489,15 +489,15 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
         return new Waveform[] { new ScalarWaveformImpl(sigName, count, evmin, evmax, timetree, valtree) };
     }
 
-    private class ScalarWaveformImpl implements Waveform, ScalarSignal.Approximation {
+    private class ScalarWaveformImpl extends ScalarSignalSimpleImpl implements Waveform {
 
         private final String signal;
         private final int numEvents;
         private final int eventWithMinValue;
         private final int eventWithMaxValue;
-        private ScalarSignal.Approximation approximation = null;
-        BTree<Integer,Double> timetree;
-        BTree<Integer,Double> valtree;
+        private ScalarSignal.Approximation preferredApproximation = null;
+        private final BTree<Integer,Double> timetree;
+        private final BTree<Integer,Double> valtree;
     
         public ScalarWaveformImpl(String signal, int numEvents, int eventWithMinValue, int eventWithMaxValue,
                                   BTree<Integer,Double> timetree,
@@ -507,46 +507,41 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
             this.numEvents = numEvents;
             this.eventWithMinValue = eventWithMinValue;
             this.eventWithMaxValue = eventWithMaxValue;
+            if (timetree==null) throw new RuntimeException();
+            if (valtree==null) throw new RuntimeException();
             this.timetree = timetree;
             this.valtree = valtree;
+            this.preferredApproximation = new ScalarWaveformImplApproximation();
         }
+
+        public synchronized ScalarSignal.Approximation getPreferredApproximation() {
+            return preferredApproximation;
+        }
+
         public int getNumEvents() { return numEvents; }
         public void getEvent(int index, double[] result) {
-            result[0] = getTime(index);
-            result[1] = result[2] = getValue(index);
+            result[0] = getPreferredApproximation().getTime(index);
+            result[1] = result[2] = getPreferredApproximation().getValue(index);
         }
-        public double             getTime(int index) {
-            //return btree.get(new SimulationKey(signal, index)).time;
-            return timetree.get(index);
-        }
-        public double             getValue(int index) {
-            //return btree.get(new SimulationKey(signal, index)).value;
-            return valtree.get(index);
-        }
-        public ScalarSignal.Approximation getApproximation(double t0, double t1, int tn,
-                                                           double v0, double v1, int vd) {
-            throw new RuntimeException("not implemented");
-        }
-        public synchronized ScalarSignal.Approximation getPreferredApproximation() {
-            return this;
-        }
-        public int getTimeNumerator(int index) {
-            throw new RuntimeException("not implemented");
-        }
-        public int getValueNumerator(int index) {
-            throw new RuntimeException("not implemented");
-        }
-        public int getTimeDenominator() {
-            throw new RuntimeException("not implemented");
-        }
-        public int getValueDenominator() {
-            throw new RuntimeException("not implemented");
-        }
-        public int getEventWithMaxValue() {
-            return eventWithMaxValue;
-        }
-        public int getEventWithMinValue() {
-            return eventWithMinValue;
+
+        private class ScalarWaveformImplApproximation implements ScalarSignal.Approximation {
+            public int getNumEvents() { return numEvents; }
+            public double             getTime(int index) {
+                Double d = timetree.get(index);
+                if (d==null) throw new RuntimeException("index out of bounds");
+                return d.doubleValue();
+            }
+            public double             getValue(int index) {
+                Double d = valtree.get(index);
+                if (d==null) throw new RuntimeException("index out of bounds");
+                return d.doubleValue();
+            }
+            public int getTimeNumerator(int index) { throw new RuntimeException("not implemented"); }
+            public int getValueNumerator(int index) { throw new RuntimeException("not implemented"); }
+            public int getTimeDenominator() { throw new RuntimeException("not implemented"); }
+            public int getValueDenominator() { throw new RuntimeException("not implemented"); }
+            public int getEventWithMaxValue() { return eventWithMaxValue; }
+            public int getEventWithMinValue() { return eventWithMinValue; }
         }
     }
 
