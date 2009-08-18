@@ -1304,6 +1304,7 @@ public class EditWindow extends JPanel
 				//long end = System.currentTimeMillis();
 				//System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
 			} catch (Exception e) {
+                e.printStackTrace();
 			}
 		}
 
