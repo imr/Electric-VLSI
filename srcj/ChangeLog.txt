@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10e: ******************************
 
+IMP/MAN: (8/18/09, SMR) Added Placement tool.
+
 BUG: (8/18/09, SMR) Moving diagonal arcs may break them (Bug #2341).
 FIX: Special diagonal arc handling only used if manhattan arcs connected
      to them are NOT selected.

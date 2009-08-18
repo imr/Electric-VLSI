@@ -29,7 +29,6 @@ import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
@@ -108,6 +107,7 @@ import com.sun.electric.tool.ncc.netlist.NccNetlist;
 import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.result.NccResults;
 import com.sun.electric.tool.ncc.result.equivalence.Equivalence;
+import com.sun.electric.tool.placement.Placement;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.Maze;
 import com.sun.electric.tool.routing.MimicStitch;
@@ -175,7 +175,7 @@ public class ToolMenu
 	    	setDynamicLanguageMenu();
 		}});
 
-		// mnemonic keys available:  B   F H JK    PQ      XYZ
+		// mnemonic keys available:  B   F H JK     Q      XYZ
 		return new EMenu("_Tools",
 
 		//------------------- DRC
@@ -512,7 +512,14 @@ public class ToolMenu
 		        new EMenuItem("_Load Logical Effort Libraries (Purple, Red, and Orange)") { public void run() {
                     loadLogicalEffortLibraries(); }}),
 
-		//------------------- Routing
+		//------------------- Placement
+
+		// mnemonic keys available: ABCDEFGHIJKLMNO QRSTUVWXYZ
+            new EMenu("_Placement",
+		        new EMenuItem("_Place Current Cell") { public void run() {
+                    Placement.placeCurrentCell(); }}),
+
+        //------------------- Routing
 
 		// mnemonic keys available:  B D F  IJK   OPQ    V XY
             new EMenu("_Routing",
@@ -574,7 +581,7 @@ public class ToolMenu
 
 		//------------------- Generation
 
-		// mnemonic keys available: AB DE GH JK  N  Q  TUVWXYZ
+		// mnemonic keys available: AB DE GH JK  N  Q   UVWXYZ
             new EMenu("_Generation",
 		        new EMenuItem("_Coverage Implants Generator") { public void run() {
                     layerCoverageCommand(LayerCoverageTool.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_SWEEP); }},
@@ -2227,7 +2234,6 @@ public class ToolMenu
     private static class ImportDRCDeckJob extends Job {
         private List<DRCTemplate.DRCXMLBucket> rules;
         private Technology tech;
-        private boolean inMemory;
         private DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
 
     	public ImportDRCDeckJob(List<DRCTemplate.DRCXMLBucket> rules, Technology tech) {
