@@ -68,6 +68,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.Timer;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
 /**
  * Super class for all types of highlighting.
  */
@@ -549,7 +553,7 @@ class HighlightLine extends Highlight2
             float rand = (((float)(System.currentTimeMillis() % 300)) / 300f);
             float phase = (((float)(System.currentTimeMillis() % 3000)) / 3000f);
             g2.setColor(Color.black);
-            int period = 30;
+            int period = 10;
             for(int i=0; i<period; i++) {
                 drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false, thickLine);
                 /*
@@ -574,12 +578,12 @@ class HighlightLine extends Highlight2
                 g2.setColor(new Color(mainColor.getRed(), mainColor.getGreen(), mainColor.getBlue(), (255*i)/period));
                 g2.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1, new float[] { 1, period-1 }, rand*period + i));
             }
-            wnd.repaint(100);
         } else {
             drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false, thickLine);
         }
     }
-
+    private static boolean paintwaiting = false;
+    
     Rectangle2D getHighlightedArea(EditWindow wnd)
     {
         double cX = Math.min(start.getX(), end.getX());

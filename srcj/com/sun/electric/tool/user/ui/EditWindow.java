@@ -138,6 +138,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollBar;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.tree.MutableTreeNode;
 
 /**
@@ -201,6 +202,7 @@ public class EditWindow extends JPanel
 	/** scheduled or running rendering job */				private static RenderJob runningNow = null;
 	/** Logger of this package. */							private static Logger logger = Logger.getLogger("com.sun.electric.tool.user.ui");
 	/** Class name for logging. */							private static String CLASS_NAME = EditWindow.class.getName();
+    /** Timer object for pulsating errors */                private Timer pulsatingTimer;
 
 	private static final int SCROLLBARRESOLUTION = 200;
 
@@ -275,6 +277,14 @@ public class EditWindow extends JPanel
 		//setAutoscrolls(true);
 
 		installHighlighters();
+
+        pulsatingTimer = new Timer(100, new ActionListener() {
+                public void actionPerformed(ActionEvent evt) {
+                    if (User.isErrorHighlightingPulsate())
+                        highlighter.showHighlights(EditWindow.this, (Graphics2D)getGraphics());
+                }
+            });
+        pulsatingTimer.start();
 
 		if (wf != null)
 		{
@@ -1219,6 +1229,7 @@ public class EditWindow extends JPanel
 	public JScrollBar getRightScrollBar() { return rightScrollBar; }
 
 	// ************************************* REPAINT *************************************
+
 
 	/**
 	 * Method to repaint this EditWindow.
