@@ -1733,6 +1733,7 @@ public class CircuitChangeJobs
 								if (oai == null) break;
 								if (oai.getHeadLocation().getX() != oai.getTailLocation().getX() &&
 									oai.getHeadLocation().getY() != oai.getTailLocation().getY()) break;
+								if (highlightedObjs.contains(oai)) break;
 							}
 							if (j >= 2) { found = true;   break; }
 						}
