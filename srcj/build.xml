@@ -31,7 +31,7 @@
         <property name="JUnit" value="packaging/junit-4.1.jar"/>
         <property name="lucene" value="packaging/lucene-1.4.3.jar"/>
         <property name="prefuse" value="packaging/prefuse.jar"/>
-        <property name="jdbm" value="packaging/jdbm-1.0.jar"/>
+        <property name="jdbm" value="packaging/jdbm-sourceforge-svn-r36.jar"/>
     </target>
 
     <!-- Patternset for 3D dependencies -->
@@ -83,7 +83,7 @@
 
     <!-- Path for JDBM -->
     <path id="jdbmClassPath">
-        <pathelement location="packaging/jdbm-1.0.jar"/>
+        <pathelement location="packaging/jdbm-sourceforge-svn-r36.jar"/>
     </path>
 
 	<!-- Use -DGNU=1 to build the GNU release -->
