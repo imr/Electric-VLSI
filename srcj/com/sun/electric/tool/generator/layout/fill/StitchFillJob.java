@@ -39,6 +39,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.IdMapper;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
@@ -86,6 +87,33 @@ public class StitchFillJob extends Job
             startJob(); // queue the job
     }
 
+    /**
+     * Method to replace old cell by new cell if it was instantied in other cells. It deletes the old cell after.
+     * @param oldC
+     * @param newC
+     */
+    private static Cell cleanReplacement(Cell oldC, Library lib, String fillCellName)
+    {
+        if (oldC != null)
+        {
+            String fakeName = oldC.getName()+"TMPStitch";
+            assert(lib.findNodeProto(fakeName) == null); // we don't want to use an existing name
+            IdMapper idMapper = oldC.rename(fakeName, null);
+            oldC = idMapper.get(oldC.getId()).inDatabase(EDatabase.serverDatabase());
+        }
+        Cell newCell = Cell.makeInstance(lib, fillCellName);
+        if (oldC != null)
+        {
+            for(Iterator<NodeInst> nIt = oldC.getInstancesOf(); nIt.hasNext(); )
+            {
+                NodeInst ni = nIt.next();
+                ni.replace(newCell, false, false);
+            }
+//            oldC.kill();
+        }
+        return newCell;
+    }
+
     public boolean doIt() throws JobException
     {
         Point2D center = new Point2D.Double(0, 0);
@@ -108,9 +136,13 @@ public class StitchFillJob extends Job
 
             Cell oldCell = lib.findNodeProto(fillCellName);
             // Delete previous version
-            if (oldCell != null)
-                oldCell.kill();
-            Cell newCell = Cell.makeInstance(lib, fillCellName);
+//            if (oldCell != null)
+//                oldCell.kill();
+
+//            Cell newCell = Cell.makeInstance(lib, fillCellName);
+
+            // Does a clean replacement and removal of the old cell
+            Cell newCell = cleanReplacement(oldCell, lib, fillCellName);
 
             for (Iterator<WindowFrame> itW = WindowFrame.getWindows(); itW.hasNext();)
             {
@@ -251,11 +283,15 @@ public class StitchFillJob extends Job
             String newName = fillCellName+"{lay}";
             Cell oldCell = outLibrary.findNodeProto(newName);
             // Delete previous version
-            if (oldCell != null)
-            {
-                oldCell.kill();
-            }
-            Cell newCell = Cell.makeInstance(outLibrary, newName);
+//            if (oldCell != null)
+//            {
+//                oldCell.kill();
+//            }
+//            Cell newCell = Cell.makeInstance(outLibrary, newName);
+
+            // Does a clean replacement and removal of the old cell
+            Cell newCell = cleanReplacement(oldCell, outLibrary, newName);
+
             Technology tech = null;
             List<NodeInst> fillCells = new ArrayList<NodeInst>();
             List<Geometric> fillGeoms = new ArrayList<Geometric>();
