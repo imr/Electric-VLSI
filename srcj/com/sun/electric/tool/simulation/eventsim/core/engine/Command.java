@@ -1,7 +1,7 @@
 /*
  * Created on Nov 5, 2004
  *
- * Copyright © 2005 Sun Microsystems Inc. All rights reserved. Use is subject to license terms.
+ * Copyright (c) 2005 Sun Microsystems Inc. All rights reserved. Use is subject to license terms.
  * 
  */
 package com.sun.electric.tool.simulation.eventsim.core.engine;

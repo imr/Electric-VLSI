@@ -13,7 +13,7 @@ import com.sun.electric.tool.simulation.eventsim.core.simulation.Time;
 
 /**
  *
- * Copyright © 2005 Sun Microsystems Inc. All rights reserved. Use is subject to license terms.
+ * Copyright (c) 2005 Sun Microsystems Inc. All rights reserved. Use is subject to license terms.
  * 
  * Implement Event queue with a linked list - use a Vector
  * 

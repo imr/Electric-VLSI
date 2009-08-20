@@ -13,7 +13,7 @@ import com.sun.electric.tool.simulation.eventsim.core.common.Parameters;
  * @author ib27688
  * Created on May 16, 2005
  *
- * Copyright © 2005 Sun Microsystems Inc. All rights reserved. Use is subject to license terms.
+ * Copyright (c) 2005 Sun Microsystems Inc. All rights reserved. Use is subject to license terms.
  */
 public class ChannelRecord {
 
