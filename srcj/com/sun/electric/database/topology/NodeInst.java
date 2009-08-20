@@ -431,8 +431,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	{
         if (protoType == null) return null;
         if (parent == null) return null;
+        assert parent.isLinked();
+        if (protoType instanceof Cell)
+            assert ((Cell)protoType).isLinked();
 
-		EPoint anchor = EPoint.snap(center);
+        EPoint anchor = EPoint.snap(center);
 
         Name nameKey = null;
         String msg = null;

@@ -621,6 +621,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		}
 		checkChanging();
 
+        List<NodeInst> nodesToKill = new ArrayList<NodeInst>();
+        for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); )
+            nodesToKill.add(it.next());
+        for (NodeInst ni: nodesToKill)
+            ni.kill();
+        assert !getUsagesOf().hasNext();
+
 		// remove ourselves from the cellGroup.
 		lib.removeCell(this);
 		cellGroup.remove(this);

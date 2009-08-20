@@ -104,12 +104,14 @@ public class StitchFillJob extends Job
         Cell newCell = Cell.makeInstance(lib, fillCellName);
         if (oldC != null)
         {
+            List<NodeInst> nodesToReplace = new ArrayList<NodeInst>();
             for(Iterator<NodeInst> nIt = oldC.getInstancesOf(); nIt.hasNext(); )
-            {
-                NodeInst ni = nIt.next();
-                ni.replace(newCell, false, false);
+                nodesToReplace.add(nIt.next());
+            for (NodeInst ni: nodesToReplace) {
+                NodeInst replaced = ni.replace(newCell, false, false);
+                assert replaced != null;
             }
-//            oldC.kill();
+            oldC.kill();
         }
         return newCell;
     }
