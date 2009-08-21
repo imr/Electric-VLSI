@@ -145,12 +145,12 @@ public class Topology {
 		assert arcIndex < 0;
 		arcIndex = - arcIndex - 1;
 		arcs.add(arcIndex, ai);
-		//scanline
-			ai.setArcIndex( arcIndex );
-			for ( int i = arcIndex + 1; i < arcs.size(); i++ ){
-				ArcInst a = arcs.get(i);
-				a.setArcIndex(i);
-			}
+//		//scanline
+//			ai.setArcIndex( arcIndex );
+//			for ( int i = arcIndex + 1; i < arcs.size(); i++ ){
+//				ArcInst a = arcs.get(i);
+//				a.setArcIndex(i);
+//			}
 			
 			
         int arcId = ai.getArcId();
@@ -204,12 +204,12 @@ public class Topology {
 		ArcInst removedAi = arcs.remove(arcIndex);
 		assert removedAi == ai;
 		
-		//scanline
-			for ( int i = arcIndex; i < arcs.size(); i++ ){
-				ArcInst a = arcs.get(i);
-				a.setArcIndex(i);
-			}
-			removedAi.setArcIndex( -1 );
+//		//scanline
+//			for ( int i = arcIndex; i < arcs.size(); i++ ){
+//				ArcInst a = arcs.get(i);
+//				a.setArcIndex(i);
+//			}
+//			removedAi.setArcIndex( -1 );
 		
         int arcId = ai.getArcId();
         assert chronArcs.get(arcId) == ai;
@@ -246,7 +246,7 @@ public class Topology {
                 chronArcs.set(d.arcId, ai);
             }
             arcs.add(ai);
-            ai.setArcIndex( arcs.size() - 1 ); //scanline
+//            ai.setArcIndex( arcs.size() - 1 ); //scanline
             if (!ai.isUsernamed()) {
                 Name name = ai.getNameKey();
                 assert name.getBasename() == ImmutableArcInst.BASENAME;
@@ -397,7 +397,7 @@ public class Topology {
         Poly.Builder polyBuilder = Poly.newGridBuilder();
         for(int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
             ArcInst ai = arcs.get(arcIndex);
-            assert ai.getArcIndex() == arcIndex; // scanline
+//            assert ai.getArcIndex() == arcIndex; // scanline
             ImmutableArcInst a = ai.getD();
             assert ai.getParent() == cell;
             assert chronArcs.get(a.arcId) == ai;

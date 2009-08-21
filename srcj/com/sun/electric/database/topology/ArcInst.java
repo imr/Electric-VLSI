@@ -101,7 +101,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	/** PortInst on tail end of this arc instance */	/*package*/final PortInst tailPortInst;
 	/** PortInst on head end of this arc instance */	/*package*/final PortInst headPortInst;
 	
-	/** 0-based index of this ArcInst in Cell. */			private int arcIndex = -1; //scanline
+//	/** 0-based index of this ArcInst in Cell. */			private int arcIndex = -1; //scanline
 
 	/**
 	 * Private constructor of ArcInst.
@@ -1609,22 +1609,22 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public final int getArcId() { return d.arcId; }
 
-	
-	/**
-	 * Method to return the index of this arcInst
-	 * @return the index of this arcInst
-	 */
-	public final int getArcIndex(){
-		return arcIndex;
-	}
-	
-	/**
-	 * Method to set the index of this arcInst
-	 * @param arcIndex index of this arcInst
-	 */
-	public final void setArcIndex( int arcIndex ){
-		this.arcIndex = arcIndex;
-	}
+//	
+//	/**
+//	 * Method to return the index of this arcInst
+//	 * @return the index of this arcInst
+//	 */
+//	public final int getArcIndex(){
+//		return arcIndex;
+//	}
+//
+//	/**
+//	 * Method to set the index of this arcInst
+//	 * @param arcIndex index of this arcInst
+//	 */
+//	public final void setArcIndex( int arcIndex ){
+//		this.arcIndex = arcIndex;
+//	}
 	
     /**
      * Returns true if this ArcInst is linked into database.
