@@ -1006,13 +1006,13 @@ public class EditWindow extends JPanel
 	public Highlighter getRulerHighlighter() { return rulerHighlighter; }
 
 	/**
-	 * Get the RTree with all text in this Cell.
+	 * Get the RTree with <b>all</b> text in this Cell, not just the visible text.
 	 * @return the RTree with all text in this Cell.
 	 */
 	public RTNode getTextInCell() { return textInCell; }
-
+    
 	/**
-	 * Set the RTree with all text in this Cell.
+	 * Set the RTree with <b>all</b> text in this Cell, not just the visible text.
 	 * @param tic the RTree with all text in this Cell.
 	 */
 	public void setTextInCell(RTNode tic) { textInCell = tic; }

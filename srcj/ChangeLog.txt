@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: ******************************
 
+BUG: (8/22/09, AM) Annotation text not selectable in a certain situation (Bug #2352)
+FIX: com.sun.electric.tool.user.Highlighter.findTextNow() must pass
+     all text to EditWindow.setTextInCell(), THEN filter out the text
+     that is not visible (rather than in the other order).
+
 BUG: (8/19/09, DN) fill generator does not replace old versions of existing fill cells (Bug #2342).
 FIX: In Cell.kill() remove all instances of killed Cell.
      In StitchFillJob.cleanReplacement copy all instances in a temporary list before starting modification.

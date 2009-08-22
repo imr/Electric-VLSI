@@ -1533,6 +1533,13 @@ public class Highlighter implements DatabaseChangeListener {
 	 */
 	private static void findTextNow(Cell cell, EditWindow wnd, double directHitDist, Rectangle2D bounds, boolean findSpecial, List<Highlight2> list)
 	{
+        //
+        // The if-blocks below are left over from a refactoring done
+        // by Adam to close bug 2352.  If this hasn't catastrophically
+        // broken stuff after a few weeks, please turn "if(1==1){X}"
+        // into "X".
+        //
+
 		// get the window's cache of text locations
         LayerVisibility lv = wnd.getLayerVisibility();
 		RTNode rtn = wnd.getTextInCell();
@@ -1545,7 +1552,7 @@ public class Highlighter implements DatabaseChangeListener {
 			Rectangle2D textBounds = new Rectangle2D.Double();
 
 			// start by examining all text on this Cell
-	        if (User.isTextVisibilityOnCell())
+	        if (/*User.isTextVisibilityOnCell()*/1==1)
 	        {
 	            Poly [] polys = cell.getAllText(findSpecial, wnd);
 	            if (polys != null)
@@ -1574,10 +1581,10 @@ public class Highlighter implements DatabaseChangeListener {
 	            }
 
 	    		// check out node text
-	        	if (User.isTextVisibilityOnNode())
+	        	if (/*User.isTextVisibilityOnNode()*/1==1)
 	        	{
 	            	// first see if cell name text is selectable
-	        		if (ni.isCellInstance() && !ni.isExpanded() && findSpecial && User.isTextVisibilityOnInstance())
+	        		if (ni.isCellInstance() && !ni.isExpanded() && findSpecial && /*User.isTextVisibilityOnInstance()*/1==1)
 	        		{
 	            		Poly.Type style = getHighlightTextStyleBounds(wnd, ni, NodeInst.NODE_PROTO, textBounds);
 	            		if (style != null)
@@ -1599,7 +1606,7 @@ public class Highlighter implements DatabaseChangeListener {
 	        		}
 
 	        		// look at all variables on the node
-	        		if (ni.getProto() != Generic.tech().invisiblePinNode || User.isTextVisibilityOnAnnotation())
+	        		if (ni.getProto() != Generic.tech().invisiblePinNode || /*User.isTextVisibilityOnAnnotation()*/1==1)
 	        		{
 	            		for(Iterator<Variable> vIt = ni.getParametersAndVariables(); vIt.hasNext(); )
 	                	{
@@ -1615,7 +1622,7 @@ public class Highlighter implements DatabaseChangeListener {
 	        		}
 
 	        		// look at variables on ports on the node
-	        		if (User.isTextVisibilityOnPort())
+	        		if (/*User.isTextVisibilityOnPort()*/1==1)
 	        		{
 	            		for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 	            		{
@@ -1636,7 +1643,7 @@ public class Highlighter implements DatabaseChangeListener {
 	        	}
 
 	    		// add export text
-	    		if (User.isTextVisibilityOnExport())
+	    		if (/*User.isTextVisibilityOnExport()*/1==1)
 	    		{
 	            	NodeProto np = ni.getProto();
 	            	if (!(np instanceof PrimitiveNode) || lv.isVisible((PrimitiveNode)np))
@@ -1670,7 +1677,7 @@ public class Highlighter implements DatabaseChangeListener {
 	        }
 
 	        // next examine all text on arcs in the cell
-	        if (User.isTextVisibilityOnArc())
+	        if (/*User.isTextVisibilityOnArc()*/1==1)
 	        {
 	            for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 	            {
@@ -1712,6 +1719,19 @@ public class Highlighter implements DatabaseChangeListener {
 		for(RTNode.Search sea = new RTNode.Search(searchArea, rtn, true); sea.hasNext(); )
 		{
 			TextHighlightBound thb = (TextHighlightBound)sea.next();
+            if (!User.isTextVisibilityOnCell() && thb.getElectricObject()==cell)
+                continue;
+            if (thb.getElectricObject() instanceof NodeInst) {
+                if (!User.isTextVisibilityOnNode()) continue;
+                if (!User.isTextVisibilityOnInstance() && thb.getKey()==NodeInst.NODE_PROTO) continue;
+                if (!User.isTextVisibilityOnAnnotation() && thb.getKey()!=NodeInst.NODE_PROTO) continue;
+            }
+            if (!User.isTextVisibilityOnPort() && thb.getElectricObject() instanceof PortInst)
+                continue;
+            if (!User.isTextVisibilityOnExport() && thb.getElectricObject() instanceof Export)
+                continue;
+            if (!User.isTextVisibilityOnArc() && thb.getElectricObject() instanceof ArcInst)
+                continue;
 			if (boundsIsHit(thb.getBounds(), bounds, directHitDist))
 				list.add(new HighlightText(thb.getElectricObject(), cell, thb.getKey()));
 		}
