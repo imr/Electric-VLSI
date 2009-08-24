@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: ******************************
 
+BUG: (8/24/09, SMR) Switching cells between icon and tech-edit does not
+     update the style of the Artwork technology in the component menu (Bug #2355).
+FIX: In WindowFrame.setCellWindow() call loadComponentMenuForTechnology().
+
 BUG: (8/24/09, SMR) Converting schematic technology to library fails (Bug #2354).
 FIX: Fix vector conversion and disable editing of noneditable technologies.
 

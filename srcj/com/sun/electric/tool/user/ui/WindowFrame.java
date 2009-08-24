@@ -584,6 +584,7 @@ public class WindowFrame extends Observable
 				content.fillScreen();
 				if (history == null) addToHistory(cell, VarContext.globalContext, null);
 				currentCellChanged();
+				loadComponentMenuForTechnology();
 				return;
 			}
 		}
@@ -598,6 +599,7 @@ public class WindowFrame extends Observable
 		}
 		content.setCell(cell, upperContext, da);
         currentCellChanged();
+		loadComponentMenuForTechnology();
 
         // Adding into WindowMenu
         WindowMenu.setDynamicMenus();
