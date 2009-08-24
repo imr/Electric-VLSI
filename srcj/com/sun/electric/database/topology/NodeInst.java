@@ -1428,8 +1428,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	/**
 	 * Method to set the starting and ending angle of an arc described by this NodeInst.
 	 * These values are stored in the "ART_degrees" variable on the NodeInst.
-	 * @param start the starting offset of the angle (typically 0)
-	 * @param curvature the the amount of curvature
+	 * @param start the starting offset of the angle, in radians (typically 0).
+	 * @param curvature the the amount of curvature, in radians.
 	 */
 	public void setArcDegrees(double start, double curvature)
 	{
