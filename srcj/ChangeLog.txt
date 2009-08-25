@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: ******************************
 
+BUG: (8/25/09, GVG) Assertion in techs with PrimitiveNode with more than 1 port (Bug #2356)
+FIX: Code generalized.
+
 BUG: (8/24/09, SMR) Switching cells between icon and tech-edit does not
      update the style of the Artwork technology in the component menu (Bug #2355).
 FIX: In WindowFrame.setCellWindow() call loadComponentMenuForTechnology().

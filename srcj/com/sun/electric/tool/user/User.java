@@ -774,22 +774,26 @@ public class User extends Listener
 
         int numPorts = np.getNumPorts();
         assert(numPorts == 1); // basic assumption for now.
-        PortProto pp = pn.getPort(0);
-        if (pp instanceof PrimitivePort)
-        {
-            PrimitivePort p = (PrimitivePort)pp;
-            List<String> list = getArcNamesSorted(p);
 
-            // Done only once per technology
-            String key1 = list.get(0);
-            for (int i = 0; i < list.size(); i++)
+        for (int j = 0; j < numPorts; j++)
+        {
+            PortProto pp = pn.getPort(j);
+            if (pp instanceof PrimitivePort)
             {
-                String key = key1 + "@" + list.get(i); // @ is not valid for arc names
-                // NOTE: other protos are found with the same key in case of diff/well contacts
-//                if (currentContactPortProtoMap.get(key) != null && currentContactPortProtoMap.get(key) != p)
-//                    System.out.println("??");
-                // just 1 combination. getCurrentContactNodeProto would check for both possibilities
-                currentContactPortProtoMap.put(key, p);
+                PrimitivePort p = (PrimitivePort)pp;
+                List<String> list = getArcNamesSorted(p);
+
+                // Done only once per technology
+                String key1 = list.get(0);
+                for (int i = 0; i < list.size(); i++)
+                {
+                    String key = key1 + "@" + list.get(i); // @ is not valid for arc names
+                    // NOTE: other protos are found with the same key in case of diff/well contacts
+    //                if (currentContactPortProtoMap.get(key) != null && currentContactPortProtoMap.get(key) != p)
+    //                    System.out.println("??");
+                    // just 1 combination. getCurrentContactNodeProto would check for both possibilities
+                    currentContactPortProtoMap.put(key, p);
+                }
             }
         }
     }
