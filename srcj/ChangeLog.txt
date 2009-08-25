@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: ******************************
 
+BUG: (8/25/09, SMR) Bipolar technology crashes (Bug #2332).
+FIX: Changed the function of the PNJunction node to a CONNECT.
+
 BUG: (8/25/09, GVG) Assertion in techs with PrimitiveNode with more than 1 port (Bug #2356)
 FIX: Code generalized.
 
