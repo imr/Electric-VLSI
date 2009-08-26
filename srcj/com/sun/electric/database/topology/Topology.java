@@ -102,6 +102,10 @@ public class Topology {
 		return arcId < chronArcs.size() ? chronArcs.get(arcId) : null;
 	}
 
+    /**
+     * Method to return a map from arcId of arcs in the Cell to their arcIndex in alphanumerical order.
+     * @return a map from arcId to arcIndex.
+     */
     public int[] getArcIndexByArcIdMap() {
         int[] arcIndexByArcIdMap = new int[chronArcs.size()];
         Arrays.fill(arcIndexByArcIdMap, -1);
