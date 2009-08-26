@@ -24,12 +24,14 @@
 package com.sun.electric.tool.placement;
 
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -284,6 +286,7 @@ public class Placement
 			{
 				double width = ni.getXSize();
 				double height = ni.getYSize();
+				width = height = Math.max(width, height);
 				EPoint thisOff = new EPoint(placeX, placeY);
 				if ((part.depth&1) != 0)
 				{
@@ -298,15 +301,20 @@ public class Placement
 				}
 				destinationLocation.put(ni, thisOff);
 			}
-			Map<NodeInst,Orientation> properOrientation = findOrientations(part.allNodes, netList, destinationLocation);
+			Map<NodeInst,OrientationAndOffset> properOrientation = findOrientations(part.allNodes, netList, destinationLocation);
 			for(NodeInst ni : part.allNodes)
 			{
 				double width = ni.getXSize();
 				double height = ni.getYSize();
 				EPoint thisOff = destinationLocation.get(ni);
 				if (DEBUG) System.out.println(indent+"PLACING "+ni.describe(false)+" AT ("+thisOff.getX()+","+thisOff.getY()+")");
-				Orientation or = properOrientation.get(ni);
-				if (or == null) or = ni.getOrient();
+				OrientationAndOffset orOff = properOrientation.get(ni);
+				Orientation or = ni.getOrient();
+				if (orOff != null)
+				{
+					or = orOff.orient;
+					thisOff = new EPoint(thisOff.getX() + orOff.offset.getX(), thisOff.getY() + orOff.offset.getY());
+				}
 				NodeInst newNi = NodeInst.makeInstance(ni.getProto(), thisOff, width, height, newCell, or, ni.getName(), ni.getTechSpecific());
 				oldToNew.put(ni, newNi);
 			}
@@ -314,6 +322,12 @@ public class Placement
 		}
 		if (DEBUG) System.out.println(indent+"NEW OFFSET ("+off.getX()+","+off.getY()+")");
 		return off;
+	}
+
+	private static class OrientationAndOffset
+	{
+		Orientation orient;
+		Point2D offset;
 	}
 
 	private static class OrientationConnection
@@ -354,14 +368,24 @@ public class Placement
 		}
 	}
 
+	private Point2D getOffset(NodeProto np, Orientation orient)
+	{
+		if (np instanceof PrimitiveNode) return new Point2D.Double(0, 0);
+		Cell cell = (Cell)np;
+		ERectangle bounds = cell.getBounds();
+		Point2D offset = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
+		orient.pureRotate().transform(offset, offset);
+		return offset;
+	}
+
 	/**
 	 * Method to find the ideal orientation for all of the nodes at the bottom point.
 	 * @param allNodes
 	 * @return
 	 */
-	private Map<NodeInst,Orientation> findOrientations(List<NodeInst> allNodes, Netlist netList, Map<NodeInst,EPoint> destinationLocation)
+	private Map<NodeInst,OrientationAndOffset> findOrientations(List<NodeInst> allNodes, Netlist netList, Map<NodeInst,EPoint> destinationLocation)
 	{
-		Map<NodeInst,Orientation> properOrientation = new HashMap<NodeInst,Orientation>();
+		Map<NodeInst,OrientationAndOffset> properOrientation = new HashMap<NodeInst,OrientationAndOffset>();
 		if (allNodes.size() > 1)
 		{
 			if (DEBUG) System.out.println("FINDING ORIENTATIONS FOR PARTITION WITH "+allNodes.size()+" NODES");
@@ -380,14 +404,19 @@ public class Placement
 				oc.currentDummyNode = null;
 				for(int i=0; i<standardEight.length; i++)
 				{
-					NodeInst dummyNI = NodeInst.makeDummyInstance(ni.getProto(), ni.getTechSpecific(), loc,
+					Point2D offset = getOffset(ni.getProto(), standardEight[i]);
+//System.out.println("CELL "+ni.getProto().describe(false)+" AT ORIENTATION "+standardEight[i].toString()+" IS OFFSET BY ("+offset.getX()+","+offset.getY()+")");
+					EPoint offLoc = new EPoint(loc.getX() + offset.getX(), loc.getY() + offset.getY());
+					NodeInst dummyNI = NodeInst.makeDummyInstance(ni.getProto(), ni.getTechSpecific(), offLoc,
 						ni.getXSize(), ni.getYSize(), standardEight[i]);
 					oc.dummyNodes.add(dummyNI);
 					if (ni.getOrient() == standardEight[i]) oc.currentDummyNode = dummyNI;
 				}
 				if (oc.currentDummyNode == null)
 				{
-					oc.currentDummyNode = NodeInst.makeDummyInstance(ni.getProto(), ni.getTechSpecific(), loc,
+					Point2D offset = getOffset(ni.getProto(), ni.getOrient());
+					EPoint offLoc = new EPoint(loc.getX() + offset.getX(), loc.getY() + offset.getY());
+					oc.currentDummyNode = NodeInst.makeDummyInstance(ni.getProto(), ni.getTechSpecific(), offLoc,
 						ni.getXSize(), ni.getYSize(), ni.getOrient());
 					oc.dummyNodes.add(oc.currentDummyNode);
 				}
@@ -448,7 +477,10 @@ public class Placement
 				if (betterOrientation != null)
 				{
 					oc.currentDummyNode = betterOrientation;
-					properOrientation.put(ni, betterOrientation.getOrient());
+					OrientationAndOffset orOff = new OrientationAndOffset();
+					orOff.orient = betterOrientation.getOrient();
+					orOff.offset = getOffset(ni.getProto(), orOff.orient);
+					properOrientation.put(ni, orOff);
 				}
 			}
 		}

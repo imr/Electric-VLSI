@@ -114,6 +114,7 @@ public class FileType implements Serializable {
 	/** Describes Jar file. */              public static final FileType JAR          = makeFileType("Jar", new String[] {"jar"}, "Java binary archive (jar)", JARGRP);
 	/** Describes JELIB files.*/			public static final FileType JELIB        = makeFileType("JELIB", new String[] {"jelib"}, "Library File (jelib)", DATABASEGRP);
     /** Describes J3D files.*/				public static final FileType J3D          = makeFileType("J3D", new String[] {"j3d"}, "Java3D Demo File (j3d}");
+	/** Describes Jython source. */			public static final FileType JYTHON       = makeFileType("Jython", new String[] {"jy", "py"}, "Jython Script File (jy, py)");
     /** Describes L files.*/				public static final FileType L            = makeFileType("L", new String[] {"L"}, "L File (L)", EXPORTIMPORTGRP);
 	/** Describes LEF files.*/				public static final FileType LEF          = makeFileType("LEF", new String[] {"lef"}, "LEF File (lef)", EXPORTIMPORTGRP);
 	/** Describes Library files.*/			public static final FileType LIBFILE      = makeFileType("LIBFILE", new String[] {"jelib", "elib", "txt"}, "Library File", DATABASEGRP);

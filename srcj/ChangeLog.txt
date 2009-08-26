@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: ******************************
 
+IMP/MAN: (8/26/09, SMR) Added "Tools / Languages / Run Jython Script..." (Bug #2358).
+
 BUG: (8/25/09, SMR) Bipolar technology crashes (Bug #2332).
 FIX: Changed the function of the PNJunction node to a CONNECT.
 

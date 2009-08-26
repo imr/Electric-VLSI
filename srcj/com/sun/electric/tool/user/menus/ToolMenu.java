@@ -138,7 +138,13 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -163,11 +169,13 @@ public class ToolMenu
     static EMenu makeMenu() {
 		/****************************** THE TOOLS MENU ******************************/
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRST  WXYZ
+		// mnemonic keys available: A CDEFGHI KLMNOPQR TUVWXYZ
     	languageMenu = new EMenu("Lang_uages",
-	        new EMenuItem("R_un Java Bean Shell Script...") { public void run() {
+	        new EMenuItem("Run Java _Bean Shell Script...") { public void run() {
                 javaBshScriptCommand(); }},
-	        new EMenuItem("Manage Ja_va Bean Shell Scripts...") { public void run() {
+            hasJython() ? new EMenuItem("Run _Jython Script...") { public void run() {
+			    runJython(); }} : null,
+	        new EMenuItem("Manage _Scripts...") { public void run() {
 	        	new LanguageScripts(); }},
             SEPARATOR);
 
@@ -1809,6 +1817,8 @@ public class ToolMenu
         }
     }
 
+	/****************************** BEAN SHELL ******************************/
+
     public static void javaBshScriptCommand()
     {
         String fileName = OpenFile.chooseInputFile(FileType.JAVA, null);
@@ -1868,7 +1878,132 @@ public class ToolMenu
         }
     }
 
-	private static final int CONVERT_TO_VHDL     = 1;
+	/****************************** JYTHON ******************************/
+
+    private static boolean jythonChecked = false;
+    private static boolean jythonInited= false;
+    private static Class<?> jythonClass;
+	private static Object jythonInterpreterObject;
+	private static Method jythonExecMethod;
+
+    private static boolean hasJython()
+    {
+		if (!jythonChecked)
+		{
+			jythonChecked = true;
+
+			// find the Jython class
+	        try
+	        {
+	        	jythonClass = Class.forName("org.python.util.PythonInterpreter");
+	        } catch (Exception e)
+	        {
+	        	jythonClass = null;
+	        }
+		}
+
+		// if already initialized, return state
+		return jythonClass != null;
+    }
+
+    private static void initJython()
+    {
+    	if (!hasJython()) return;
+    	if (jythonInited) return;
+        try
+        {
+            Constructor instance = jythonClass.getDeclaredConstructor();
+            jythonInterpreterObject = instance.newInstance();
+			jythonExecMethod = jythonClass.getMethod("exec", new Class[] {String.class});
+			jythonExecMethod.invoke(jythonInterpreterObject, new Object[] {"import sys"});
+        } catch (Exception e)
+        {
+        	jythonClass = null;
+        }
+    	jythonInited = true;
+    }
+
+    /**
+	 * Method to run the Jython interpreter on a given line of text.
+	 * Uses reflection to invoke the Jython interpreter (if it exists).
+	 * @param code the code to run.
+	 */
+    private static void execJython(String code)
+	{
+		try
+		{
+			jythonExecMethod.invoke(jythonInterpreterObject, new Object[] {code});
+			return;
+		} catch (Exception e)
+		{
+			System.out.println("Unable to run the Jython interpreter");
+			e.printStackTrace(System.out);
+		}
+	}
+
+    private static void runJython()
+    {
+    	if (!hasJython())
+    	{
+    		System.out.println("NO JYTHON");
+    		return;
+    	}
+        String fileName = OpenFile.chooseInputFile(FileType.JYTHON, null);
+        if (fileName != null)
+        {
+            // start a job to run the script
+        	(new RunJythonScriptJob(fileName)).startJob();
+        }
+//    	PythonInterpreter interp;
+//    	interp = new PythonInterpreter();
+//        interp.exec("import sys");
+//        interp.exec("print sys");
+//        interp.set("a", new PyInteger(42));
+//        interp.exec("print a");
+//        interp.exec("x = 2+2");
+//        PyObject x = interp.get("x");
+//        System.out.println("x: " + x);
+    }
+
+    private static class RunJythonScriptJob extends Job
+	{
+        private String script;
+
+        protected RunJythonScriptJob(String script)
+        {
+            super("Jython script: "+script, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.script = script;
+        }
+
+        public boolean doIt() throws JobException
+        {
+        	URL url = TextUtils.makeURLToFile(script);
+        	try
+        	{
+        		URLConnection urlCon = url.openConnection();
+        		InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
+        		LineNumberReader lineReader = new LineNumberReader(is);
+        		StringBuffer sb = new StringBuffer();
+        		String sep = System.getProperty("line.separator");
+        		for(;;)
+        		{
+        			String buf = lineReader.readLine();
+        			if (buf == null) break;
+        			sb.append(buf);
+        			sb.append(sep);
+        		}
+        		lineReader.close();
+        		initJython();
+        		execJython(sb.toString());
+        	} catch (IOException e)
+        	{
+        		System.out.println("Error reading " + script);
+        	}
+        	return true;
+        }
+    }
+
+    private static final int CONVERT_TO_VHDL     = 1;
 	private static final int COMPILE_VHDL_FOR_SC = 2;
 	private static final int PLACE_AND_ROUTE     = 4;
 	private static final int SHOW_CELL           = 8;
