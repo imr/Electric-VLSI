@@ -951,7 +951,10 @@ public class StitchFillJob extends Job
         }
         return true;
     }
-    // NewWellCheckVisitor wcVisitor = new NewWellCheckVisitor();
+
+    /**
+     * Class to detect other elements in the same network with same layer
+     */
     private static class SearchInHierarchy extends HierarchyEnumerator.Visitor
     {
         Layer layer;
