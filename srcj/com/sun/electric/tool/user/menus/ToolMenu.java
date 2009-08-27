@@ -53,6 +53,7 @@ import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.EvalJavaBsh;
+import com.sun.electric.database.variable.EvalJython;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -138,13 +139,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -173,8 +168,8 @@ public class ToolMenu
     	languageMenu = new EMenu("Lang_uages",
 	        new EMenuItem("Run Java _Bean Shell Script...") { public void run() {
                 javaBshScriptCommand(); }},
-            hasJython() ? new EMenuItem("Run _Jython Script...") { public void run() {
-			    runJython(); }} : null,
+            EvalJython.hasJython() ? new EMenuItem("Run _Jython Script...") { public void run() {
+			    jythonScriptCommand(); }} : null,
 	        new EMenuItem("Manage _Scripts...") { public void run() {
 	        	new LanguageScripts(); }},
             SEPARATOR);
@@ -1536,11 +1531,11 @@ public class ToolMenu
 
         public boolean doIt() throws JobException {
             Netlist netlist = cell.getNetlist();
-//            Netlist netlist = cell.getNetlist(true);
             List<Network> networks = new ArrayList<Network>();
             for (Iterator<Network> it = netlist.getNetworks(); it.hasNext(); ) {
                 networks.add(it.next());
             }
+
             // sort list of networks by name
             Collections.sort(networks, new TextUtils.NetworksByName());
             for (Network net : networks) {
@@ -1563,7 +1558,6 @@ public class ToolMenu
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-//        Netlist netlist = cell.getUserNetlist();
 		Netlist netlist = cell.acquireUserNetlist();
 		if (netlist == null)
 		{
@@ -1817,8 +1811,10 @@ public class ToolMenu
         }
     }
 
-	/****************************** BEAN SHELL ******************************/
-
+    /**
+     * Method to invoke the Bean Shell on a script file.
+     * Prompts for the file and executes it.
+     */
     public static void javaBshScriptCommand()
     {
         String fileName = OpenFile.chooseInputFile(FileType.JAVA, null);
@@ -1826,6 +1822,25 @@ public class ToolMenu
         {
             // start a job to run the script
             EvalJavaBsh.runScript(fileName);
+        }
+    }
+
+    /**
+     * Method to invoke Jython on a script file.
+     * Prompts for the file and executes it.
+     */
+    private static void jythonScriptCommand()
+    {
+    	if (!EvalJython.hasJython())
+    	{
+    		System.out.println("Jython is not installed");
+    		return;
+    	}
+        String fileName = OpenFile.chooseInputFile(FileType.JYTHON, null);
+        if (fileName != null)
+        {
+            // start a job to run the script
+        	EvalJython.runScript(fileName);
         }
     }
 
@@ -1848,9 +1863,17 @@ public class ToolMenu
             	int lastBS = menuName.lastIndexOf('\\');
             	int finalPos = Math.max(lastColon, Math.max(lastSlash, lastBS));
             	menuName = menuName.substring(finalPos+1);
-            	if (menuName.toLowerCase().endsWith(".bsh")) menuName = menuName.substring(0, menuName.length()-4);
+            	FileType type = FileType.JAVA;
+            	if (menuName.toLowerCase().endsWith(".bsh"))
+            	{
+            		menuName = menuName.substring(0, menuName.length()-4);
+            	} else if (menuName.toLowerCase().endsWith(".py") || menuName.toLowerCase().endsWith(".jy"))
+            	{
+                	menuName = menuName.substring(0, menuName.length()-3);
+                	type = FileType.JYTHON;
+            	}
             	if (script.mnemonic != 0) menuName = "_" + script.mnemonic + ": " + menuName;
-            	EMenuItem elem = new DynamicLanguageMenuItem(menuName, script.fileName);
+            	EMenuItem elem = new DynamicLanguageMenuItem(menuName, script.fileName, type);
                 JMenuItem item = elem.genMenu(null);
                 menu.add(item);
             }
@@ -1860,11 +1883,13 @@ public class ToolMenu
     private static class DynamicLanguageMenuItem extends EMenuItem
     {
         private String fileName;
+        private FileType type;
 
-        public DynamicLanguageMenuItem(String menuName, String fileName)
+        public DynamicLanguageMenuItem(String menuName, String fileName, FileType type)
         {
             super(menuName);
             this.fileName = fileName;
+            this.type = type;
         }
 
         public String getDescription() { return "Language Scripts"; }
@@ -1873,133 +1898,15 @@ public class ToolMenu
 
         public void run()
         {
-        	System.out.println("Executing commands in Bean Shell Script: " + fileName);
-            EvalJavaBsh.runScript(fileName);
-        }
-    }
-
-	/****************************** JYTHON ******************************/
-
-    private static boolean jythonChecked = false;
-    private static boolean jythonInited= false;
-    private static Class<?> jythonClass;
-	private static Object jythonInterpreterObject;
-	private static Method jythonExecMethod;
-
-    private static boolean hasJython()
-    {
-		if (!jythonChecked)
-		{
-			jythonChecked = true;
-
-			// find the Jython class
-	        try
-	        {
-	        	jythonClass = Class.forName("org.python.util.PythonInterpreter");
-	        } catch (Exception e)
-	        {
-	        	jythonClass = null;
-	        }
-		}
-
-		// if already initialized, return state
-		return jythonClass != null;
-    }
-
-    private static void initJython()
-    {
-    	if (!hasJython()) return;
-    	if (jythonInited) return;
-        try
-        {
-            Constructor instance = jythonClass.getDeclaredConstructor();
-            jythonInterpreterObject = instance.newInstance();
-			jythonExecMethod = jythonClass.getMethod("exec", new Class[] {String.class});
-			jythonExecMethod.invoke(jythonInterpreterObject, new Object[] {"import sys"});
-        } catch (Exception e)
-        {
-        	jythonClass = null;
-        }
-    	jythonInited = true;
-    }
-
-    /**
-	 * Method to run the Jython interpreter on a given line of text.
-	 * Uses reflection to invoke the Jython interpreter (if it exists).
-	 * @param code the code to run.
-	 */
-    private static void execJython(String code)
-	{
-		try
-		{
-			jythonExecMethod.invoke(jythonInterpreterObject, new Object[] {code});
-			return;
-		} catch (Exception e)
-		{
-			System.out.println("Unable to run the Jython interpreter");
-			e.printStackTrace(System.out);
-		}
-	}
-
-    private static void runJython()
-    {
-    	if (!hasJython())
-    	{
-    		System.out.println("NO JYTHON");
-    		return;
-    	}
-        String fileName = OpenFile.chooseInputFile(FileType.JYTHON, null);
-        if (fileName != null)
-        {
-            // start a job to run the script
-        	(new RunJythonScriptJob(fileName)).startJob();
-        }
-//    	PythonInterpreter interp;
-//    	interp = new PythonInterpreter();
-//        interp.exec("import sys");
-//        interp.exec("print sys");
-//        interp.set("a", new PyInteger(42));
-//        interp.exec("print a");
-//        interp.exec("x = 2+2");
-//        PyObject x = interp.get("x");
-//        System.out.println("x: " + x);
-    }
-
-    private static class RunJythonScriptJob extends Job
-	{
-        private String script;
-
-        protected RunJythonScriptJob(String script)
-        {
-            super("Jython script: "+script, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.script = script;
-        }
-
-        public boolean doIt() throws JobException
-        {
-        	URL url = TextUtils.makeURLToFile(script);
-        	try
+        	if (type == FileType.JAVA)
         	{
-        		URLConnection urlCon = url.openConnection();
-        		InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
-        		LineNumberReader lineReader = new LineNumberReader(is);
-        		StringBuffer sb = new StringBuffer();
-        		String sep = System.getProperty("line.separator");
-        		for(;;)
-        		{
-        			String buf = lineReader.readLine();
-        			if (buf == null) break;
-        			sb.append(buf);
-        			sb.append(sep);
-        		}
-        		lineReader.close();
-        		initJython();
-        		execJython(sb.toString());
-        	} catch (IOException e)
+	        	System.out.println("Executing commands in Bean Shell Script: " + fileName);
+	            EvalJavaBsh.runScript(fileName);
+        	} else if (type == FileType.JYTHON)
         	{
-        		System.out.println("Error reading " + script);
+	        	System.out.println("Executing commands in Python Script: " + fileName);
+	        	EvalJython.runScript(fileName);
         	}
-        	return true;
         }
     }
 

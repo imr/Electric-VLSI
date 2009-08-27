@@ -1311,7 +1311,7 @@ public class ManualViewer extends EModelessDialog
 		dialog.setVisible(true);
 	}
 
-	private static class EditHTML extends EModelessDialog
+	public static class EditHTML extends EModelessDialog
 	{
 		private JTextArea textArea;
 		private URL file;

@@ -36,10 +36,16 @@ to enhance the system's functionality.  Currently, these plug-ins are available:
   Electric.  The Electric version is available from Static Free Software at:
     www.staticfreesoft.com/electricIRSIM-8.09.jar
 
-> Bean Shell
-  The Bean Shell is used to do parameter evaluation in Electric.  Advanced operation
-  that make use of cell parameters will need this plug-in.  The Bean Shell is available from
-    www.beanshell.org.
+> Java
+  The Bean Shell is used to do scripting and parameter evaluation in Electric.  Advanced
+  operations that make use of cell parameters will need this plug-in.  The Bean Shell is
+  available from:
+    www.beanshell.org
+
+> Python
+  Jython is used to do scripting in Electric.  Jython is available from:
+    www.jython.org
+  Build the "standalone" installation to get the JAR file.
 
 > 3D
   The 3D facility lets you view an integrated circuit in three-dimensions. It requires
