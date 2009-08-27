@@ -33,8 +33,11 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.geom.AffineTransform;
 import java.io.Serializable;
@@ -901,5 +904,84 @@ public final class HierarchyEnumerator {
             found = searchNetworkInParent(tmpNet, info, visitorNet);
         }
         return found;
+    }
+
+    private static Network getRootNetwork(Network net, CellInfo info)
+    {
+        CellInfo cinfo = info;
+        Network result = net;
+        while (net != null && cinfo.getParentInst() != null) {
+            net = cinfo.getNetworkInParent(net);
+            if (net != null)
+                result = net;
+            cinfo = cinfo.getParentInfo();
+        }
+        return result;
+    }
+
+    // Looking for a method to determine if two Geometrics belong to the same network
+    public static boolean areGeometricsInSameNetwork(Geometric geo1, Network n1, Geometric geo2, Network n2,
+                                                     Cell top)
+    {
+        if (n1 == n2) return true; // easy
+
+        // Parent networks at Cell top
+        NetworkHierarchy search1 = new NetworkHierarchy(geo1, n1);
+        enumerateCell(top, VarContext.globalContext, search1);
+        NetworkHierarchy search2 = new NetworkHierarchy(geo2, n2);
+        enumerateCell(top, VarContext.globalContext, search2);
+        return search1.topNetwork != null && search2.topNetwork != null && search1.topNetwork == search2.topNetwork;
+    }
+
+    private static class NetworkHierarchy extends HierarchyEnumerator.Visitor
+    {
+        Geometric theGeo;
+        Network childNet;
+        Network topNetwork;
+
+        NetworkHierarchy(Geometric geo, Network childN)
+        {
+            theGeo = geo;
+            childNet = childN;
+            topNetwork = null;
+        }
+
+        public boolean enterCell(HierarchyEnumerator.CellInfo info)
+		{
+            Cell cell = info.getCell();
+
+            // Shall I look for name first? faster?
+            // Checking only arcs
+            for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+            {
+                ArcInst ai = it.next();
+                if (ai == theGeo)
+                {
+                    topNetwork = getRootNetwork(childNet, info);
+                    return false; // stop looking
+                }
+            }
+            return true; // keep looking?
+        }
+
+        public void exitCell(HierarchyEnumerator.CellInfo info)
+		{
+        }
+
+        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+		{
+            NodeInst ni = no.getNodeInst();
+
+            if (ni.isCellInstance()) return true; // not interested in cells. Keep looking
+
+            if (Generic.isSpecialGenericNode(ni)) return false; // like center or pin. Stop looking
+
+            if (ni == theGeo) // found
+            {
+                topNetwork = getRootNetwork(childNet, info);
+            }
+
+            return false; // no need of going down since only PrimitiveNodes reach this point.
+        }
     }
 }
