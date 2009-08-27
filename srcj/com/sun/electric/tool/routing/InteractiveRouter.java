@@ -1147,6 +1147,11 @@ public abstract class InteractiveRouter extends Router {
     protected static Point2D getCornerLocation(Point2D startLoc, Point2D endLoc, Point2D clicked, ArcProto startArc, ArcProto endArc,
                                                boolean contactsOnEndObj, PolyMerge stayInside, Rectangle2D contactArea,
                                                Poly startPolyFull, Poly endPolyFull, EditingPreferences ep) {
+        // connection point specified by contactArea
+        if (contactArea != null) {
+            return new Point2D.Double(contactArea.getCenterX(), contactArea.getCenterY());
+        }
+
         // if startArc and endArc are the same, see if we can connect directly with whatever angle increment is on the arc
         boolean singleArc = false;
         if (startArc == endArc) {
@@ -1168,11 +1173,6 @@ public abstract class InteractiveRouter extends Router {
                 return new Point2D.Double(endLoc.getX(), endLoc.getY());
             else
                 return new Point2D.Double(startLoc.getX(), startLoc.getY());
-        }
-
-        // connection point specified by contactArea
-        if (contactArea != null) {
-            return new Point2D.Double(contactArea.getCenterX(), contactArea.getCenterY());
         }
 
         Point2D cornerLoc = null;
