@@ -422,8 +422,12 @@ public class EvalJavaBsh
         return false;
     }
 
-    // source a Java Bean Shell script file
-    private boolean doSource(String file)
+    /**
+     * Execute a Java Bean Shell script file.
+     * @param file the file to run.
+     * @return true on success.
+     */ 
+    public boolean doSource(String file)
     {
         try {
             if (envObject != null) {

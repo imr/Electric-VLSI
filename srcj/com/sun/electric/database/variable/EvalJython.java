@@ -104,12 +104,42 @@ public class EvalJython
 	}
 
     /**
-     * Method to execute a script file.
+     * Method to execute a script file in a Job.
      * @param fileName the script file name.
      */
     public static void runScript(String fileName)
     {
     	(new EvalJython.RunJythonScriptJob(fileName)).startJob();
+    }
+
+    /**
+     * Method to execute a script file without starting a new Job.
+     * @param fileName the script file name.
+     */
+    public static void runScriptNoJob(String fileName)
+    {
+    	URL url = TextUtils.makeURLToFile(fileName);
+    	try
+    	{
+    		URLConnection urlCon = url.openConnection();
+    		InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
+    		LineNumberReader lineReader = new LineNumberReader(is);
+    		StringBuffer sb = new StringBuffer();
+    		String sep = System.getProperty("line.separator");
+    		for(;;)
+    		{
+    			String buf = lineReader.readLine();
+    			if (buf == null) break;
+    			sb.append(buf);
+    			sb.append(sep);
+    		}
+    		lineReader.close();
+    		initJython();
+    		execJython(sb.toString());
+    	} catch (IOException e)
+    	{
+    		System.out.println("Error reading " + fileName);
+    	}
     }
 
     /**
@@ -137,28 +167,7 @@ public class EvalJython
 
         public boolean doIt() throws JobException
         {
-        	URL url = TextUtils.makeURLToFile(script);
-        	try
-        	{
-        		URLConnection urlCon = url.openConnection();
-        		InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
-        		LineNumberReader lineReader = new LineNumberReader(is);
-        		StringBuffer sb = new StringBuffer();
-        		String sep = System.getProperty("line.separator");
-        		for(;;)
-        		{
-        			String buf = lineReader.readLine();
-        			if (buf == null) break;
-        			sb.append(buf);
-        			sb.append(sep);
-        		}
-        		lineReader.close();
-        		initJython();
-        		execJython(sb.toString());
-        	} catch (IOException e)
-        	{
-        		System.out.println("Error reading " + script);
-        	}
+        	runScriptNoJob(script);
         	return true;
         }
 
