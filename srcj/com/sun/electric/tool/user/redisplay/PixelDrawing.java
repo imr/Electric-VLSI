@@ -1231,7 +1231,7 @@ public class PixelDrawing
 					cellsRendered++;
                     varContext = varContext.push(ni);
 					drawCell(subCell, drawLimitBounds, fullInstantiate, subOrient, subTrans, topCell);
-                    varContext.pop();
+                    varContext = varContext.pop();
 				}
 			} else
 			{

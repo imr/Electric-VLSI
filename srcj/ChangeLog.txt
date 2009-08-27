@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: ******************************
 
+BUG: (8/27/09, DN) Pixel drawing algorithm not displaying LE result (Bug #2359)
+FIX: In PixelDrawing.drawNode replace "varContext.pop();" by "varContext = varContext.pop();".
+
 IMP/MAN: (8/26/09, SMR) Added "Tools / Languages / Run Jython Script..." (Bug #2358).
 
 BUG: (8/25/09, SMR) Bipolar technology crashes (Bug #2332).
