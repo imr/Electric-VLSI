@@ -541,26 +541,49 @@ class HighlightLine extends Highlight2
         this.thickLine = thick;
     }
 
-    public void showInternalHighlight(EditWindow wnd, Graphics g, int highOffX, int highOffY,
+    /** the highlight pattern will repeat itself rotationally every PULSATE_ROTATE_PERIOD milliseconds */
+    private final int PULSATE_ROTATE_PERIOD = 1000;
+
+    /** the overall intensity of the highlight pattern will repeat itself rotationally every PULSATE_INTENSITY_PERIOD milliseconds */
+    private final int PULSATE_INTENSITY_PERIOD = 0 /* 1000 */;
+
+    /** the hue of the highlight pattern will repeat itself rotationally every PULSATE_HUE_PERIOD milliseconds */
+    private final int PULSATE_HUE_PERIOD = 0 /* 30000 */;
+
+    /** the length of the rotating pattern */
+    private final int PULSATE_STRIPE_LENGTH = 30;
+
+    /** the number of "segments" in each stripe; increasing this number slows down rendering*/
+    private final int PULSATE_STRIPE_SEGMENTS = 10;
+
+    public void showInternalHighlight(EditWindow wnd, Graphics g_, int highOffX, int highOffY,
                                       boolean onlyHighlight, boolean setConnected)
     {
         Point2D [] points = new Point2D.Double[2];
         points[0] = new Point2D.Double(start.getX(), start.getY());
         points[1] = new Point2D.Double(end.getX(), end.getY());
         if (User.isErrorHighlightingPulsate() && thickLine) {
-            Graphics2D g2 = (Graphics2D)g;
-            Color mainColor = g.getColor();
-            float rand = (((float)(System.currentTimeMillis() % 300)) / 300f);
-            float phase = (((float)(System.currentTimeMillis() % 3000)) / 3000f);
-            g2.setColor(Color.black);
-            int period = 10;
-            for(int i=0; i<period; i++) {
-                drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false, thickLine);
-                /*
+            Graphics2D g2 = (Graphics2D)g_;
+            //Color mainColor = g2.getColor();
+            long now = System.currentTimeMillis();
+            for(int i=0; i<PULSATE_STRIPE_SEGMENTS; i++) {
                 // hsv to rgb
-                float h = phase;
+                float h = PULSATE_HUE_PERIOD==0
+                    ?
+                    0f
+                    : ((now % PULSATE_HUE_PERIOD) / ((float)PULSATE_HUE_PERIOD));
                 float s = 1;
-                float v = 1;
+                float v =
+                    (i / ((float)PULSATE_STRIPE_SEGMENTS))
+                    * 
+                    (PULSATE_INTENSITY_PERIOD == 0
+                     ? 1.0f
+                     : (float)Math.sin((
+                                        ((now % PULSATE_INTENSITY_PERIOD))
+                                        /
+                                        ((float)PULSATE_INTENSITY_PERIOD)
+                                        )
+                                       * Math.PI));
                 float r=0, g=0, b=0;
                 float var_h = h * 6;
                 float var_i = (float)Math.floor( var_h );
@@ -573,16 +596,25 @@ class HighlightLine extends Highlight2
                 else if ( var_i == 3 ) { r = var_1 ; g = var_2 ; b = v;     }
                 else if ( var_i == 4 ) { r = var_3 ; g = var_1 ; b = v;     }
                 else                   { r = v     ; g = var_1 ; b = var_2; }
-                g2.setColor(new Color(r, g, b, ((float)i)/period));
-                */
-                g2.setColor(new Color(mainColor.getRed(), mainColor.getGreen(), mainColor.getBlue(), (255*i)/period));
-                g2.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1, new float[] { 1, period-1 }, rand*period + i));
+                g2.setColor(new Color(r, g, b));
+                float segment_length = PULSATE_STRIPE_LENGTH / ((float)PULSATE_STRIPE_SEGMENTS);
+                g2.setStroke(new BasicStroke(1,
+                                             BasicStroke.CAP_ROUND,
+                                             BasicStroke.JOIN_ROUND,
+                                             20,
+                                             new float[] { segment_length,
+                                                           PULSATE_STRIPE_LENGTH-segment_length },
+                                             (((now % PULSATE_ROTATE_PERIOD) * PULSATE_STRIPE_LENGTH)
+                                              /
+                                              ((float)PULSATE_ROTATE_PERIOD))
+                                             + i
+                                             ));
+                drawOutlineFromPoints(wnd, g2, points, highOffX, highOffY, false, thickLine);
             }
         } else {
-            drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false, thickLine);
+            drawOutlineFromPoints(wnd, g_, points, highOffX, highOffY, false, thickLine);
         }
     }
-    private static boolean paintwaiting = false;
     
     Rectangle2D getHighlightedArea(EditWindow wnd)
     {

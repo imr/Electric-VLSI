@@ -598,7 +598,7 @@ public class ErrorLogger implements Serializable
                         int prev = i-1;
                         if (i == 0) prev = points.length-1;
                         l.add(new ErrorHighLine(cell, new EPoint(points[prev].getX(), points[prev].getY()),
-                            new EPoint(points[i].getX(), points[i].getY()), true));
+                                                new EPoint(points[i].getX(), points[i].getY()), true));
                     }
                     h.add(new ErrorHighPoly(cell, null, l));
                 }
@@ -609,7 +609,7 @@ public class ErrorLogger implements Serializable
         if (lineList != null)
         {
     		for(int i=0; i<lineList.size(); i += 2)
-                h.add(new ErrorHighLine(cell, lineList.get(i), lineList.get(i+1), false));
+                h.add(new ErrorHighLine(cell, lineList.get(i), lineList.get(i+1), true));
         }
         if (isErrorMsg)
             logAnError(message, cell, sortKey, h);
