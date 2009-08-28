@@ -642,7 +642,6 @@ public class StitchFillJob extends Job
             }
         }
 
-        Netlist netlist = theCell.getNetlist();
         // Connect cell instances
         for (Iterator<NodeInst> itNi = theCell.getNodes(); itNi.hasNext();)
         {
@@ -657,6 +656,7 @@ public class StitchFillJob extends Job
             routeList.clear();
             SimpleWirer niRouter = new SimpleWirer();
 
+            Netlist netlist = theCell.getNetlist();
             for (Iterator<Export> itE = ni.getExports(); itE.hasNext(); )
             {
                 Export ex = itE.next();
@@ -836,6 +836,7 @@ public class StitchFillJob extends Job
         Set<Export> toDelete = new HashSet<Export>();
         Map<String,Export> inBottomLayer = new HashMap<String,Export>(); // enough with 1 export stored
 
+        Netlist netlist = theCell.getNetlist();
         // find the highest level metal for a given network
         Map<Network,Layer> maximumLayer = new HashMap<Network,Layer>();
         for (Iterator<Export> itE = theCell.getExports(); itE.hasNext();) {
@@ -885,6 +886,7 @@ public class StitchFillJob extends Job
         {
             Map<String,List<PinsArcPair>> newExports = new HashMap<String,List<PinsArcPair>>();
             boolean horizontal = isLayerHorizontal(bottomLayer, evenHor);
+            assert netlist == theCell.getNetlist();
 
             // For each export 1 export in the bottom layer should be insert
             for (Map.Entry<String,Export> e : inBottomLayer.entrySet())
@@ -938,9 +940,10 @@ public class StitchFillJob extends Job
             theCell.killExports(toDelete);
 
         // make sure at least one export on a network is the root name
-        netlist = theCell.getNetlist();
-        for (Iterator<Network> itN = netlist.getNetworks(); itN.hasNext(); ) {
-            Network net = itN.next();
+        List<Network> nets = new ArrayList<Network>();
+        for (Iterator<Network> itN = theCell.getNetlist().getNetworks(); itN.hasNext(); )
+            nets.add(itN.next());
+        for (Network net: nets) {
             if (!net.isExported()) continue;
             String name = net.getName();
             String rootName = extractRootName(name);

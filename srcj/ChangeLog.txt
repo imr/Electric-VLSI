@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: ******************************
 
+BUG: (8/28/09, DN) Arrray exception in stitch generator if cell is instantiated (Bug #2360)
+FIX: In StitchFillJob.generateFill reload netlist after database modifications.
+
 BUG: (8/27/09, DN) Pixel drawing algorithm not displaying LE result (Bug #2359)
 FIX: In PixelDrawing.drawNode replace "varContext.pop();" by "varContext = varContext.pop();".
 
