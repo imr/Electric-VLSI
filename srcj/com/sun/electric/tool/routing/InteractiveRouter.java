@@ -281,8 +281,8 @@ public abstract class InteractiveRouter extends Router {
      * if the user is drawing to empty space.
      * @param clicked the point where the user clicked
      * @param stayInside the area in which to route (null if not applicable).
-     * @param extendArcHead true to use default arc extension; false to force no arc extension.
-     * @param extendArcTail true to use default arc extension; false to force no arc extension.
+     * @param extendArcHead true to use default arc extension; false to force no arc extension. (head connects to startObj).
+     * @param extendArcTail true to use default arc extension; false to force no arc extension. (tail connects to endObj).
      * @param contactArea
      * @param alignment edge alignment factors (null for no alignment).
      * @return a List of RouteElements denoting route
@@ -374,7 +374,10 @@ public abstract class InteractiveRouter extends Router {
         }
         if (startObj instanceof ArcInst) {
             // arc: figure out where on arc to start
-            startRE = findArcConnectingPoint(route, (ArcInst)startObj, startPoint, stayInside, alignment);
+            ArcInst ai = (ArcInst)startObj;
+            startRE = findArcConnectingPoint(route, ai, startPoint, stayInside, alignment);
+            if (startRE.getPortInst() == ai.getHeadPortInst() && extendArcHead) extendArcHead = ai.isHeadExtended();
+            if (startRE.getPortInst() == ai.getTailPortInst() && extendArcHead) extendArcHead = ai.isTailExtended();
             if (startRE.isBisectArcPin()) contactsOnEndObject = false;
         }
         if (startRE == null) {
@@ -395,7 +398,10 @@ public abstract class InteractiveRouter extends Router {
             if (endObj instanceof ArcInst) {
                 // arc: figure out where on arc to end
                 // use startRE location when possible if connecting to arc
-                endRE = findArcConnectingPoint(route, (ArcInst)endObj, endPoint, stayInside, alignment);
+                ArcInst ai = (ArcInst)endObj;
+                endRE = findArcConnectingPoint(route, ai, endPoint, stayInside, alignment);
+                if (endRE.getPortInst() == ai.getHeadPortInst() && extendArcTail) extendArcTail = ai.isHeadExtended();
+                if (endRE.getPortInst() == ai.getTailPortInst() && extendArcTail) extendArcTail = ai.isTailExtended();
                 if (endRE.isBisectArcPin()) contactsOnEndObject = true;
             }
             if (endRE == null) {
