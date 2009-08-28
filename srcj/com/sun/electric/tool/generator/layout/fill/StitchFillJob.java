@@ -138,11 +138,6 @@ public class StitchFillJob extends Job
 
             Cell oldCell = lib.findNodeProto(fillCellName);
             // Delete previous version
-//            if (oldCell != null)
-//                oldCell.kill();
-
-//            Cell newCell = Cell.makeInstance(lib, fillCellName);
-
             // Does a clean replacement and removal of the old cell
             Cell newCell = cleanReplacement(oldCell, lib, fillCellName);
 
@@ -285,12 +280,6 @@ public class StitchFillJob extends Job
             String newName = fillCellName+"{lay}";
             Cell oldCell = outLibrary.findNodeProto(newName);
             // Delete previous version
-//            if (oldCell != null)
-//            {
-//                oldCell.kill();
-//            }
-//            Cell newCell = Cell.makeInstance(outLibrary, newName);
-
             // Does a clean replacement and removal of the old cell
             Cell newCell = cleanReplacement(oldCell, outLibrary, newName);
 
@@ -360,7 +349,7 @@ public class StitchFillJob extends Job
 
         // Flatting subcells
         new CellChangeJobs.ExtractCellInstances(newCell, fillCells, Integer.MAX_VALUE, true, true);
-
+        
         // generation of master fill
         generateFill(newCell, wideOption, job.evenHorizontal);
 
