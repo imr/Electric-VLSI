@@ -73,7 +73,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 /**
- * Super class for all types of highlighting.
+ * A Highlight2 (or subclass thereof) includes a reference to
+ * something to which the user's attention is being called (an
+ * ElectricObject, some text, a region, etc) and enough information to
+ * render the highlighting (boldness, etc) on any given window.
+ *
+ * It is unclear if a Highlight2 is specific to a particular
+ * EditWindow or not --AM.
  */
 public abstract class Highlight2 implements Cloneable{
 
@@ -481,6 +487,9 @@ public abstract class Highlight2 implements Cloneable{
     }
 }
 
+/**
+ *  A Highlight2 which calls the user's attention to a Poly.
+ */
 class HighlightPoly extends Highlight2
 {
     /** The highlighted polygon */                              private Poly polygon;
@@ -528,6 +537,9 @@ class HighlightPoly extends Highlight2
     }
 }
 
+/**
+ *  A Highlight2 which calls the user's attention to a Line.
+ */
 class HighlightLine extends Highlight2
 {
 	/** The highlighted line. */								protected Point2D start, end, center;
@@ -651,6 +663,9 @@ class HighlightObject extends Highlight2
     }
 }
 
+/**
+ *  A Highlight2 which calls the user's attention to a Rectangle2D.
+ */
 class HighlightArea extends Highlight2
 {
     /** The highlighted area. */								protected Rectangle2D bounds;
@@ -741,6 +756,9 @@ class HighlightArea extends Highlight2
     }
 }
 
+/**
+ *  A Highlight2 which calls the user's attention to a Point2D and includes a text message.
+ */
 class HighlightMessage extends Highlight2
 {
 	/** The highlighted message. */								protected String msg;
@@ -803,6 +821,9 @@ class HighlightMessage extends Highlight2
     }
 }
 
+/**
+ *  A Highlight2 which calls the user's attention to an ElectricObject.
+ */
 class HighlightEOBJ extends Highlight2
 {
 	/** The highlighted object. */								protected ElectricObject eobj;
@@ -1462,6 +1483,10 @@ class HighlightEOBJ extends Highlight2
     }
 }
 
+
+/**
+ *  A Highlight2 which calls the user's attention to an ElectricObject which happens to be a piece of text.
+ */
 class HighlightText extends Highlight2
 {
 	/** The highlighted object. */								protected final ElectricObject eobj;
