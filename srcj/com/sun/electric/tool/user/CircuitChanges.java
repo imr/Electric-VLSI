@@ -461,6 +461,23 @@ public class CircuitChanges
 		}
 	}
 
+    public static void recenterOnSelected() {
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+
+        Cell cell = WindowFrame.needCurCell();
+        if (cell == null) return;
+		if (CircuitChangeJobs.cantEdit(cell, null, true, false, false) != 0) return;
+
+        Highlighter highlighter = wnd.getHighlighter();
+        if (highlighter == null) return;
+        List<ElectricObject> selected = new java.util.LinkedList<ElectricObject>();
+        for(ElectricObject eo : highlighter.getHighlightedEObjs(true, true))
+        	selected.add(eo);
+
+        new CircuitChangeJobs.RecenterOnSelection(cell, selected);
+    }
+
 	/**
 	 * Method to delete arcs connected to selected nodes.
 	 * @param both true if both ends of the arc must be selected.

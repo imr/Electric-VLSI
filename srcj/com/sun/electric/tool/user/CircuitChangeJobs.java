@@ -43,6 +43,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
+import static com.sun.electric.database.text.ArrayIterator.i2i;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
@@ -60,6 +61,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
@@ -2061,6 +2063,50 @@ public class CircuitChangeJobs
 			}
 		}
 	}
+
+	/****************************** RECENTER CELL ON SELECTION ******************************/
+
+	public static class RecenterOnSelection extends Job
+	{
+		private Cell cell;
+		private List<ElectricObject> highlightedObjs;
+
+		public RecenterOnSelection(Cell cell, List<ElectricObject> highlightedObjs)
+		{
+			super("Recenter On Selection", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.highlightedObjs = highlightedObjs;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			if (highlightedObjs.size() == 0) return false;
+
+            NodeInst center = null;
+            for(NodeInst ni : i2i(cell.getNodes()))
+                if (ni.getProto() == Generic.tech().cellCenterNode)
+                    center = ni;
+            if (center==null) {
+                System.out.println("No cell center; please add one.");
+                return false;
+            }
+
+            Rectangle2D selectedBounds = new Rectangle2D.Double();
+			for(ElectricObject obj : highlightedObjs)
+                if (obj instanceof Geometric)
+                    Rectangle2D.union(selectedBounds, ((Geometric)obj).getBounds(), selectedBounds);
+
+            System.out.println("Moving cell center from " +
+                               "(" + center.getTrueCenter().getX() + "," + center.getTrueCenter().getY() + ")" +
+                               " to " +
+                               "(" + selectedBounds.getCenterX() + "," + selectedBounds.getCenterY() + ")");
+            center.move(selectedBounds.getCenterX()-center.getTrueCenter().getX(),
+                        selectedBounds.getCenterY()-center.getTrueCenter().getY());
+            return true;
+		}
+	}
+
 
 	/**
 	 * Store information of new arc to be created that reconnects

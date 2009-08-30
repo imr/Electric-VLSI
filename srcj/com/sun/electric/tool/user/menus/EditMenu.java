@@ -185,7 +185,7 @@ public class EditMenu {
 				new EMenuItem("All Selected _Arcs...") { public void run() {
 					SizeListener.sizeAllArcs(); }}),
 
-		// mnemonic keys available:    DEFGHIJK  NOPQ   U WXYZ
+		// mnemonic keys available:    DEFGHIJK  N PQ   U WXYZ
 			new EMenu("Mo_ve",
 				new EMenuItem("_Spread...") { public void run() {
 					Spread.showSpreadDialog(); }},
@@ -237,7 +237,11 @@ public class EditMenu {
 				new EMenuItem("Align Vertically to _Bottom") { public void run() {
 					CircuitChanges.alignNodes(false, 1); }},
 				new EMenuItem("Align _Vertically to Center") { public void run() {
-					CircuitChanges.alignNodes(false, 2); }}),
+					CircuitChanges.alignNodes(false, 2); }},
+                SEPARATOR,
+				new EMenuItem("Recenter Cell _On Selected") { public void run() {
+					CircuitChanges.recenterOnSelected(); }}
+                      ),
 
 			SEPARATOR,
 
