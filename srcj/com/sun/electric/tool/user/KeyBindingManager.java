@@ -415,6 +415,7 @@ public class KeyBindingManager implements KeyEventDispatcher
         {
             if (c instanceof EditWindow) { valid = true;   break; }
             if (c instanceof WaveformWindow.OnePanel) { valid = true;   break; }
+            if (c instanceof TopLevel) { valid = true;   break; }
         	if (c instanceof EDialog) { lastPrefix = null;  return false; }
         	if (c instanceof OpenFile.OpenFileSwing) { lastPrefix = null;  return false; }
             if (c instanceof GetInfoText.EIPEditorPane) { lastPrefix = null;  return false; }
