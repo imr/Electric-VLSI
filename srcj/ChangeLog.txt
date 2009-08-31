@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: ******************************
 
+IMP: (8/30/09, AM) Right-align signal names in the waveform viewer,
+     and truncate from the left when necessary.  When a signal name is
+     very long due to being deep in the hierarchy, the *rightmost*
+     part of the signal name is most useful to the user.
+
 IMP: (8/30/09, AM) Add a menu item to Window->WaveformWindow for each
      icon button in the waveform window.  Aside from acting as
      documentation, this makes it possible for users to add a

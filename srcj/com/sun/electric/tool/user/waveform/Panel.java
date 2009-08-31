@@ -106,6 +106,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.Scrollable;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
@@ -367,9 +369,11 @@ public class Panel extends JPanel
 			}
 
 			// the list of signals in this panel (analog only)
-			signalButtons = new JPanel();
+			signalButtons = new JPanelX();
 			signalButtons.setLayout(new BoxLayout(signalButtons, BoxLayout.Y_AXIS));
 			signalButtonsPane = new JScrollPane(signalButtons);
+            signalButtonsPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            signalButtons.setAlignmentX(1.0f);
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;       gbc.gridy = 3;
 			gbc.gridwidth = 5;   gbc.gridheight = 1;
@@ -431,6 +435,24 @@ public class Panel extends JPanel
 	}
 
 	// ************************************* MISCELLANEOUS *************************************
+
+    /** A subclass of JPanel which implements Scrollable and always tracks its JScrollPane's height */
+    private static class JPanelX extends JPanel implements Scrollable {
+        public JPanelX() { }
+        public boolean getScrollableTracksViewportWidth()  { return true; }
+        public boolean getScrollableTracksViewportHeight()  { return false; }
+        public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+        public int getScrollableUnitIncrement(Rectangle visibleRect,
+                                              int orientation,
+                                              int direction) {
+            return 1;
+        }
+        public int getScrollableBlockIncrement(Rectangle visibleRect,
+                                               int orientation,
+                                               int direction) {
+            return 1;
+        }
+    }
 
 	public WaveformWindow getWaveWindow() { return waveWindow; }
 

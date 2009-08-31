@@ -30,6 +30,7 @@ import java.awt.Cursor;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Dimension;
 import java.awt.SystemColor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -45,7 +46,9 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
-import javax.swing.JButton;
+import javax.swing.*;
+import java.awt.*;
+import javax.swing.plaf.basic.*;
 
 /**
  * Class to extend a JButton so that it is draggable.
@@ -54,14 +57,51 @@ public class DragButton extends JButton implements DragGestureListener, DragSour
 {
 	private DragSource dragSource;
 	private int panelNumber;
+    private JLabel label;
 
 	public DragButton(String s, int panelNumber)
 	{
-		setText(s);
+        this.label = new JLabel(s, SwingConstants.RIGHT);
+        // workaround from http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4870187
+        this.label.setUI(new BasicLabelUI() {
+                protected String layoutCL(JLabel label, 
+                                          FontMetrics fontMetrics, 
+                                          String text, 
+                                          Icon icon, 
+                                          Rectangle viewR, 
+                                          Rectangle iconR, 
+                                          Rectangle textR) {
+                    return rev(SwingUtilities.layoutCompoundLabel(
+                                                                  (JComponent) label, 
+                                                                  fontMetrics, 
+                                                                  rev(text), 
+                                                                  icon,
+                                                                  label.getVerticalAlignment(),
+                                                                  label.getHorizontalAlignment(),
+                                                                  label.getVerticalTextPosition(),
+                                                                  label.getHorizontalTextPosition(),
+                                                                  viewR, 
+                                                                  iconR, 
+                                                                  textR,
+                                                                  label.getIconTextGap()));
+                }
+            });
+        add(label);
 		this.panelNumber = panelNumber;
 		dragSource = DragSource.getDefaultDragSource();
 		dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, this);
 	}
+
+    public void setForeground(Color c) {
+        if (label != null) label.setForeground(c);
+    }
+
+    private static String rev(String s) {
+        StringBuffer sb = new StringBuffer();
+        for(int i=s.length()-1; i>=0; i--)
+            sb.append(s.charAt(i));
+        return sb.toString();
+    }
 
 	public void dragGestureRecognized(DragGestureEvent e)
 	{
