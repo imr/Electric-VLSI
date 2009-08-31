@@ -245,7 +245,8 @@ public class WindowMenu {
 		        new EMenuItem("_Restore Waveform Window Configuration from Disk...") { public void run() {
                     WaveformWindow.restoreConfiguration(); }},
                 SEPARATOR,
-                new EMenuItem("Refresh Simulation _Data") { public void run() {
+                new EMenuItem("Refresh Simulation _Data",
+                              Resources.getResource(WaveformWindow.class, "ButtonSimRefresh.gif")) { public void run() {
                     WaveformWindow.refreshSimulationData(); }},
                 SEPARATOR,
                 new EMenuItem("_Clear All Signals in Waveform Window") { public void run() {
@@ -257,7 +258,72 @@ public class WindowMenu {
                 new EMenuItem("Fill Only in _X") { public void run() {
                     WaveformWindow.fillInX(); }},
                 new EMenuItem("Fill Only in _Y") { public void run() {
-                    WaveformWindow.fillInY(); }}
+                    WaveformWindow.fillInY(); }},
+                SEPARATOR,
+                new EMenuItem("Create new waveform panel",
+                              Resources.getResource(WaveformWindow.class, "ButtonSimAddPanel.gif")) { public void run() {
+                                  WaveformWindow.getCurrentWaveformWindow().makeNewPanel(null);
+                    }},
+                new EMenuItem("(Un)Lock all panels horizontally",
+                              Resources.getResource(WaveformWindow.class, "ButtonSimLockTime.gif")) { public void run() {
+                                  WaveformWindow.getCurrentWaveformWindow().togglePanelXAxisLock();
+                    }},
+                SEPARATOR,
+                new EMenuItem("Toggle Show Points On/On",
+                              Resources.getResource(WaveformWindow.class, "ButtonSimLineOnPointOn.gif")) { public void run() {
+                                  WaveformWindow.getCurrentWaveformWindow().toggleShowPoints();
+                    }},
+                new EMenuItem("Toggle Show Points On/Off",
+                              Resources.getResource(WaveformWindow.class, "ButtonSimLineOnPointOff.gif")) { public void run() {
+                                  WaveformWindow.getCurrentWaveformWindow().toggleShowPoints();
+                    }},
+                new EMenuItem("Toggle Show Points Off/On",
+                              Resources.getResource(WaveformWindow.class, "ButtonSimLineOffPointOn.gif")) { public void run() {
+                                  WaveformWindow.getCurrentWaveformWindow().toggleShowPoints();
+                    }},
+                SEPARATOR,
+                new EMenuItem("Toggle Grid Points",
+                              Resources.getResource(WaveformWindow.class, "ButtonSimGrid.gif")) { public void run() {
+                                  WaveformWindow.getCurrentWaveformWindow().toggleGridPoints();
+                    }},
+                SEPARATOR,
+                new EMenuItem("Increase minimum panel height",
+                              Resources.getResource(WaveformWindow.class, "ButtonSimGrow.gif")) { public void run() {
+                                  WaveformWindow.getCurrentWaveformWindow().growPanels(1.25);
+                    }},
+                new EMenuItem("Decrease minimum panel height",
+                              Resources.getResource(WaveformWindow.class, "ButtonSimShrink.gif")) { public void run() {
+                                  WaveformWindow.getCurrentWaveformWindow().growPanels(0.8);
+                    }},
+                SEPARATOR,
+                new EMenuItem("Rewind main X axis cursor to start",
+                              Resources.getResource(WaveformWindow.class, "ButtonVCRRewind.gif")) { public void run() {
+                                  WaveformWindow.getCurrentWaveformWindow().vcrClickRewind();
+                    }},
+                new EMenuItem("Play main X axis cursor backwards",
+                              Resources.getResource(WaveformWindow.class, "ButtonVCRPlayBackward.gif")) { public void run() {
+                                  WaveformWindow.getCurrentWaveformWindow().vcrClickPlayBackwards();
+                    }},
+                new EMenuItem("Stop moving main X axis cursor",
+                              Resources.getResource(WaveformWindow.class, "ButtonVCRStop.gif")) { public void run() {
+                                  WaveformWindow.getCurrentWaveformWindow().vcrClickStop();
+                    }},
+                new EMenuItem("Play main X axis cursor",
+                              Resources.getResource(WaveformWindow.class, "ButtonVCRPlay.gif")) { public void run() {
+                                  WaveformWindow.getCurrentWaveformWindow().vcrClickPlay();
+                    }},
+                new EMenuItem("Move main X axis cursor to end",
+                              Resources.getResource(WaveformWindow.class, "ButtonVCRToEnd.gif")) { public void run() {
+                                  WaveformWindow.getCurrentWaveformWindow().vcrClickToEnd();
+                    }},
+                new EMenuItem("Move main X axis cursor faster",
+                              Resources.getResource(WaveformWindow.class, "ButtonVCRFaster.gif")) { public void run() {
+                                  WaveformWindow.getCurrentWaveformWindow().vcrClickFaster();
+                    }},
+                new EMenuItem("Move main X axis cursor slower",
+                              Resources.getResource(WaveformWindow.class, "ButtonVCRSlower.gif")) { public void run() {
+                                  WaveformWindow.getCurrentWaveformWindow().vcrClickSlower();
+                    }}
                 ),
 
 		// mnemonic keys available: AB DE GHIJKLMNOPQR  UVWXYZ

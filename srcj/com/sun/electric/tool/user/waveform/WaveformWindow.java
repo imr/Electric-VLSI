@@ -1847,7 +1847,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		redrawAllPanels();
 	}
 
-	private void vcrClickRewind()
+	public void vcrClickRewind()
 	{
 		vcrClickStop();
 		Rectangle2D bounds = sd.getBounds();
@@ -1856,7 +1856,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		redrawAllPanels();
 	}
 
-	private void vcrClickPlayBackwards()
+	public void vcrClickPlayBackwards()
 	{
 		if (vcrTimer == null)
 		{
@@ -1881,7 +1881,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		vcrTimer = null;
 	}
 
-	private void vcrClickPlay()
+	public void vcrClickPlay()
 	{
 		if (vcrTimer == null)
 		{
@@ -1896,7 +1896,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		vcrPlayingBackwards = false;
 	}
 
-	private void vcrClickToEnd()
+	public void vcrClickToEnd()
 	{
 		vcrClickStop();
 		Rectangle2D bounds = sd.getBounds();
@@ -1905,14 +1905,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		redrawAllPanels();
 	}
 
-	private void vcrClickFaster()
+	public void vcrClickFaster()
 	{
 		int j = vcrAdvanceSpeed / 4;
 		if (j <= 0) j = 1;
 		vcrAdvanceSpeed += j;
 	}
 
-	private void vcrClickSlower()
+	public void vcrClickSlower()
 	{
 		int j = vcrAdvanceSpeed / 4;
 		if (j <= 0) j = 1;
@@ -3447,6 +3447,17 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				System.out.println("Simulation data reloaded from disk");
 	}
 
+    public static WaveformWindow getCurrentWaveformWindow() {
+		WindowFrame current = WindowFrame.getCurrentWindowFrame();
+		WindowContent content = current.getContent();
+		if (!(content instanceof WaveformWindow))
+		{
+			System.out.println("Must select a Waveform window first");
+			return null;
+		}
+        return (WaveformWindow)content;
+    }
+
 	/**
 	 * Method to write the simulation data as a tab-separated file.
 	 */
@@ -3939,7 +3950,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/**
 	 * Method called to toggle the display of vertex points.
 	 */
-	private void toggleShowPoints()
+	public void toggleShowPoints()
 	{
 		linePointMode = (linePointMode+1) % 3;
 		switch (linePointMode)

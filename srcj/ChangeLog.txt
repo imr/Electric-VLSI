@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: ******************************
 
+IMP: (8/30/09, AM) Add a menu item to Window->WaveformWindow for each
+     icon button in the waveform window.  Aside from acting as
+     documentation, this makes it possible for users to add a
+     keystroke for those buttons.
+
 IMP/MAN: (8/30/09, AM) Add Edit->Move->Recenter Cell on Selection.
 
 BUG: (8/28/09, AM) Pulsing error highlighting doesn't work on
