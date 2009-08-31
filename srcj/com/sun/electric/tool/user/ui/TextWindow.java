@@ -62,6 +62,7 @@ import java.util.Set;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
@@ -154,20 +155,7 @@ public class TextWindow implements WindowContent
 
 	private void updateUndoRedo()
 	{
-        // Commented temporarily DN 10-Apr-2006
-
-//		TopLevel tl = TopLevel.getCurrentJFrame();
-//		PropertyChangeEvent un = new PropertyChangeEvent(tl, UserInterfaceMain.propUndoEnabled, null, new Boolean(undo.canUndo()));
-//		PropertyChangeEvent re = new PropertyChangeEvent(tl, UserInterfaceMain.propRedoEnabled, null, new Boolean(undo.canRedo()));
-//		if (tl != null)
-//		{
-//			tl.getToolBar().propertyChange(un);
-//			tl.getToolBar().propertyChange(re);
-//		}
-//        for (Iterator<PropertyChangeListener> it = undoListeners.reverseIterator(); it.hasNext(); )
-//            it.next().propertyChange(un);
-//        for (Iterator<PropertyChangeListener> it = redoListeners.reverseIterator(); it.hasNext(); )
-//            it.next().propertyChange(un);
+		Job.getExtendedUserInterface().showUndoRedoStatus(undo.canUndo(), undo.canRedo());
 	}
 
 	/**

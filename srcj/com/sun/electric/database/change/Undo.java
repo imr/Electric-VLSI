@@ -24,6 +24,7 @@
 package com.sun.electric.database.change;
 
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
@@ -158,7 +159,11 @@ public class Undo
     }
 
     private static void updateUndoRedo() {
-        Job.getExtendedUserInterface().showUndoRedoStatus(!doneList.isEmpty(), !undoneList.isEmpty());
+    	// Ignore status if editing a text cell (the text window reports correct undo/redo status)
+    	Cell cell = Job.getUserInterface().getCurrentCell();
+    	if (cell != null && cell.getView().isTextView()) return;
+
+    	Job.getExtendedUserInterface().showUndoRedoStatus(!doneList.isEmpty(), !undoneList.isEmpty());
     }
 
 	public static String getUndoActivity()

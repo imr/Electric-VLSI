@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: *******************************
 
+BUG: (8/31/09, SMR) Undo/Redo status is not updated during text editing (Bug #2361).
+FIX: In TextWindow.updateUndoRedo(), call showUndoRedoStatus() and
+     In Undo.updateUndoRedo(), do not call showUndoRedoStatus() if in a text cell.
+
 IMP: (8/31/09, SMR) User's Manual search highlights search keys.
 
 IMP: (8/30/09, AM) Right-align signal names in the waveform viewer,
