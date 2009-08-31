@@ -240,7 +240,7 @@ public class ManualViewer extends EModelessDialog
                     PageInfo pi = theManual.pageSequence.get(i);
                     if (pi.fileName.equals(prefFileName))
                     {
-                        theManual.loadPage(i);
+                        theManual.loadPage(i, null);
                         break;
                     }
                 }
@@ -474,7 +474,7 @@ public class ManualViewer extends EModelessDialog
 			manualTree.setSelectionPath(tp);
 		}
 		// load the title page of the manual
-		loadPage(currentIndex);
+		loadPage(currentIndex, null);
 		finishInitialization();
 	}
 
@@ -736,7 +736,7 @@ public class ManualViewer extends EModelessDialog
 				PageInfo pi = dialog.pageSequence.get(i);
 				if (pi.fileName.equals(fileName))
 				{
-					dialog.loadPage(i);
+					dialog.loadPage(i, null);
 					return;
 				}
 			}
@@ -760,7 +760,7 @@ public class ManualViewer extends EModelessDialog
 		return sb.toString();
 	}
 
-	private void loadPage(int index)
+	private void loadPage(int index, String highlightThis)
 	{
 		// add to browsing history
 		history.add(new Integer(index));
@@ -781,6 +781,10 @@ public class ManualViewer extends EModelessDialog
 			return;
 		}
 		StringBuffer sb = new StringBuffer();
+
+		// setup for search
+		Pattern pattern = null;
+		if (highlightThis != null) pattern = Pattern.compile(highlightThis, Pattern.CASE_INSENSITIVE);
 
 		// emit header HTML
 		sb.append("<BASE href=\"" + pi.url.toString() + "\">");
@@ -827,6 +831,16 @@ public class ManualViewer extends EModelessDialog
 				sb.append("</HTML>\n");
 				continue;
 			}
+
+			if (pattern != null)
+			{
+				StringBuffer oneLine = new StringBuffer();
+				Matcher matcher = pattern.matcher(line);
+				while (matcher.find())
+					matcher.appendReplacement(oneLine, "<FONT style=\"BACKGROUND-COLOR: red\">" + highlightThis + "</FONT>");
+				matcher.appendTail(oneLine);
+				line = oneLine.toString();
+			}
 			sb.append(line);
 			sb.append("\n");
 		}
@@ -855,7 +869,7 @@ public class ManualViewer extends EModelessDialog
 		{
 			history.remove(len-2);
 			Integer lpi = (Integer)lastPage;
-			loadPage(lpi.intValue());
+			loadPage(lpi.intValue(), null);
 			return;
 		}
 		if (lastPage instanceof String)
@@ -872,7 +886,7 @@ public class ManualViewer extends EModelessDialog
 	{
 		int index = currentIndex - 1;
 		if (index < 0) index = pageSequence.size() - 1;
-		loadPage(index);
+		loadPage(index, null);
 	}
 
 	/**
@@ -882,7 +896,7 @@ public class ManualViewer extends EModelessDialog
 	{
 		int index = currentIndex + 1;
 		if (index >= pageSequence.size()) index = 0;
-		loadPage(index);
+		loadPage(index, null);
 	}
 
 	private void search()
@@ -893,7 +907,7 @@ public class ManualViewer extends EModelessDialog
 
 		StringBuffer sbResult = new StringBuffer();
 
-		sbResult.append("<CENTER><H1>Search Results for " + ret + "</H1></CENTER>\n");
+		sbResult.append("<CENTER><H1>Search Results for \"" + ret + "\"</H1></CENTER>\n");
 		int numFound = 0;
 		for(int index=0; index < pageSequence.size(); index++)
 		{
@@ -914,7 +928,7 @@ public class ManualViewer extends EModelessDialog
 			}
 			Matcher matcher = pattern.matcher(sb.toString());
 			if (!matcher.find()) continue;
-			sbResult.append("<B><A HREF=\"" + pi.fileName + ".html\">" + pi.fullChapterNumber + ": " + pi.title + "</A></B<BR>\n");
+			sbResult.append("<B><A HREF=\"" + pi.fileName + ".html##" + ret + "\">" + pi.fullChapterNumber + ": " + pi.title + "</A></B><BR>\n");
 			numFound++;
 		}
 		sbResult.append("<P><B>Found " + numFound + " entries</B>\n");
@@ -1412,7 +1426,7 @@ public class ManualViewer extends EModelessDialog
 
 			setVisible(false);
 			dispose();
-			world.loadPage(world.currentIndex);
+			world.loadPage(world.currentIndex, null);
 		}
 	}
 
@@ -1438,12 +1452,15 @@ public class ManualViewer extends EModelessDialog
 
 					// first see if it is one of the manual files, in which case it gets auto-generated
 					String desiredFile = desiredURL.getFile();
+					String searchString = desiredURL.getRef();
+					if (searchString != null && searchString.startsWith("#")) searchString = searchString.substring(1); else
+						searchString = null;
 			 		for(int i=0; i<dialog.pageSequence.size(); i++)
 			 		{
 			 			PageInfo pi = dialog.pageSequence.get(i);
 			 			if (pi.url.getFile().equals(desiredFile))
 			 			{
-			 				dialog.loadPage(i);
+			 				dialog.loadPage(i, searchString);
 			 				return;
 			 			}
 			 		}
@@ -1694,7 +1711,7 @@ public class ManualViewer extends EModelessDialog
 			if (obj instanceof Integer)
 			{
 				int index = ((Integer)obj).intValue();
-				dialog.loadPage(index);
+				dialog.loadPage(index, null);
 			}
 		}
 	}

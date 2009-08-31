@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: *******************************
 
+IMP: (8/31/09, SMR) User's Manual search highlights search keys.
+
 IMP: (8/30/09, AM) Right-align signal names in the waveform viewer,
      and truncate from the left when necessary.  When a signal name is
      very long due to being deep in the hierarchy, the *rightmost*

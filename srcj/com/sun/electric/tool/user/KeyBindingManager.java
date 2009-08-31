@@ -419,6 +419,7 @@ public class KeyBindingManager implements KeyEventDispatcher
         	if (c instanceof OpenFile.OpenFileSwing) { lastPrefix = null;  return false; }
             if (c instanceof GetInfoText.EIPEditorPane) { lastPrefix = null;  return false; }
             if (c instanceof GetInfoText.EIPTextField) { lastPrefix = null;  return false; }
+            if (c instanceof ManualViewer) { lastPrefix = null;  return false; }
             if (c instanceof ManualViewer.EditHTML) { lastPrefix = null;  return false; }
         	c = c.getParent();
         }
