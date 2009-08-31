@@ -2,7 +2,7 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.10f: ******************************
+************************* Version 8.10f: *******************************
 
 IMP: (8/30/09, AM) Right-align signal names in the waveform viewer,
      and truncate from the left when necessary.  When a signal name is
