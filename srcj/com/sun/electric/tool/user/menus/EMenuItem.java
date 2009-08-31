@@ -31,6 +31,7 @@ import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.Main;
 
 import java.awt.Toolkit;
+import javax.swing.Icon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JCheckBoxMenuItem;
@@ -67,6 +68,10 @@ public abstract class EMenuItem implements ActionListener {
      */
     private final String text;
     /**
+     * The icon for the menu item, or null if none.
+     */
+    private final Icon icon;
+    /**
      * Mnemonic position in text description of this EMenuItem.
      * The chanracter at this position is underlined, an Alt shortcut key is created.
      */
@@ -90,7 +95,7 @@ public abstract class EMenuItem implements ActionListener {
      * @param accelerators the shortcut keys, or null if none specified.
      * @param useMnemonics true to use mnemonics, otherwise "_" is left untouched.
      */
-    EMenuItem(String text, KeyStroke [] accelerators, boolean useMnemonics) {
+    EMenuItem(String text, KeyStroke [] accelerators, boolean useMnemonics, Icon icon) {
         int mnemonicsPos = text.indexOf('_');
         if (mnemonicsPos == text.length() - 1 || !useMnemonics)
             mnemonicsPos = -1; // Don't consider '_' at end of text
@@ -98,6 +103,17 @@ public abstract class EMenuItem implements ActionListener {
         this.text = mnemonicsPos >= 0 ? text.substring(0, mnemonicsPos) + text.substring(mnemonicsPos+1) : text;
         if (accelerators == null) accelerators = new KeyStroke [0];
         this.accelerators = accelerators;
+        this.icon = icon;
+    }
+
+    /**
+     * @param text the menu item's displayed text.  An "_" in the string
+     * indicates the location of the "mnemonic" key for that entry.
+     * @param accelerators the shortcut keys, or null if none specified.
+     * @param useMnemonics true to use mnemonics, otherwise "_" is left untouched.
+     */
+    EMenuItem(String text, KeyStroke [] accelerators, boolean useMnemonics) {
+        this(text, accelerators, useMnemonics, null);
     }
 
     /**
@@ -135,6 +151,15 @@ public abstract class EMenuItem implements ActionListener {
      */
     public EMenuItem(String text) {
         this(text, new KeyStroke [0]);
+    }
+
+    /**
+     * @param text the menu item's displayed text.  An "_" in the string
+     * @param icon the icon for the menu item
+     * indicates the location of the "mnemonic" key for that entry.
+     */
+    public EMenuItem(String text, Icon icon) {
+        this(text, new KeyStroke [0], true, icon);
     }
 
     /**
@@ -305,7 +330,7 @@ public abstract class EMenuItem implements ActionListener {
      * @return GUI instance
      */
     protected JMenuItem createMenuItem() {
-        return new JMenuItem();
+        return icon==null ? new JMenuItem() : new JMenuItem(icon);
     }
 
     /**
