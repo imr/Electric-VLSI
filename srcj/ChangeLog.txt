@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: *******************************
 
+IMP: (9/1/09, AM) Change "Recenter On Selection" to "(move) Cell
+     Center to Center of Selection".
+
 IMP: (9/1/09, AM) Renamed com.sun.electric.tool.user.Highlight2->Highlight.
 
 IMP/MAN: (9/1/09, SMR) In explorer tree, the context command "Search" under "LIBRARIES"

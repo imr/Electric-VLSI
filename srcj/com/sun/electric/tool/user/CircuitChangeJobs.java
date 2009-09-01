@@ -2066,14 +2066,14 @@ public class CircuitChangeJobs
 
 	/****************************** RECENTER CELL ON SELECTION ******************************/
 
-	public static class RecenterOnSelection extends Job
+	public static class CellCenterToCenterOfSelection extends Job
 	{
 		private Cell cell;
 		private List<ElectricObject> highlightedObjs;
 
-		public RecenterOnSelection(Cell cell, List<ElectricObject> highlightedObjs)
+		public CellCenterToCenterOfSelection(Cell cell, List<ElectricObject> highlightedObjs)
 		{
-			super("Recenter On Selection", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Cell center to center of selection", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.highlightedObjs = highlightedObjs;
 			startJob();

@@ -461,7 +461,7 @@ public class CircuitChanges
 		}
 	}
 
-    public static void recenterOnSelected() {
+    public static void cellCenterToCenterOfSelection() {
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
 
@@ -475,7 +475,7 @@ public class CircuitChanges
         for(ElectricObject eo : highlighter.getHighlightedEObjs(true, true))
         	selected.add(eo);
 
-        new CircuitChangeJobs.RecenterOnSelection(cell, selected);
+        new CircuitChangeJobs.CellCenterToCenterOfSelection(cell, selected);
     }
 
 	/**
