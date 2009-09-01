@@ -31,7 +31,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.output.FastHenry;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -89,7 +89,7 @@ public class FastHenryArc extends EDialog
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd != null)
         {
-			for(Highlight2 h : wnd.getHighlighter().getHighlights())
+			for(Highlight h : wnd.getHighlighter().getHighlights())
 			{
 				if (h.isHighlightEOBJ())
 				{

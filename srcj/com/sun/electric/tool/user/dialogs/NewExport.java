@@ -33,7 +33,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -43,7 +43,6 @@ import java.awt.Frame;
 import java.util.List;
 
 import javax.swing.JOptionPane;
-import javax.swing.text.Highlighter.Highlight;
 
 
 /**
@@ -71,10 +70,10 @@ public class NewExport extends EDialog
 		if (wnd != null)
 		{
 			Highlighter h = wnd.getHighlighter();
-			List<Highlight2> highs = h.getHighlights();
+			List<Highlight> highs = h.getHighlights();
 			if (highs.size() == 1)
 			{
-				Highlight2 high = highs.get(0);
+				Highlight high = highs.get(0);
 				ElectricObject eObj = high.getElectricObject();
 				if (eObj instanceof PortInst)
 				{
@@ -285,7 +284,7 @@ public class NewExport extends EDialog
 		// get the current node and selected port
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
-		Highlight2 h = wnd.getHighlighter().getOneHighlight();
+		Highlight h = wnd.getHighlighter().getOneHighlight();
 		if (h == null) return;
 
 		if (!h.isHighlightEOBJ())

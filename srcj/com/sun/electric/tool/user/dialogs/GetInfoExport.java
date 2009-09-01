@@ -36,7 +36,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -139,7 +139,7 @@ public class GetInfoExport extends EModelessDialog implements HighlightListener,
 		// must have a single export selected
 		Export pp = null;
 		int exportCount = 0;
-        for(Highlight2 h : curWnd.getHighlighter().getHighlights())
+        for(Highlight h : curWnd.getHighlighter().getHighlights())
         {
             if (!h.isHighlightText()) continue;
             if (h.getVarKey() != Export.EXPORT_NAME) continue;

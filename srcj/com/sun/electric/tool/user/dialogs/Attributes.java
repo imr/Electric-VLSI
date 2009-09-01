@@ -39,7 +39,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -328,7 +328,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
                 }
                 else if (curWnd.getHighlighter().getNumHighlights() == 1)
 	            {
-	                Highlight2 high = curWnd.getHighlighter().getHighlights().iterator().next();
+	                Highlight high = curWnd.getHighlighter().getHighlights().iterator().next();
 	                ElectricObject eobj = high.getElectricObject();
 	                if (high.isHighlightEOBJ())
 	                {

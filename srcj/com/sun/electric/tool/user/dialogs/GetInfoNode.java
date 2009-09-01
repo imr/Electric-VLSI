@@ -53,7 +53,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -263,7 +263,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		PortProto pp = null;
 		int nodeCount = 0;
 		if (wnd != null) {
-			for(Highlight2 h : wnd.getHighlighter().getHighlights())
+			for(Highlight h : wnd.getHighlighter().getHighlights())
 			{
 				if (!h.isHighlightEOBJ()) continue;
 				ElectricObject eobj = h.getElectricObject();

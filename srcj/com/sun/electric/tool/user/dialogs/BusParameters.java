@@ -34,7 +34,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -78,7 +78,7 @@ public class BusParameters extends EDialog
 	public static void makeBusParameter()
 	{
 		EditWindow wnd = EditWindow.getCurrent();
-		Highlight2 h = wnd.getHighlighter().getOneHighlight();
+		Highlight h = wnd.getHighlighter().getOneHighlight();
 		if (h == null)
 		{
 			Job.getUserInterface().showErrorMessage("Select a node, arc, or export name first", "Nothing Selected");

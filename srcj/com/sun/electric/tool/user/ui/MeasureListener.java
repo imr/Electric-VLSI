@@ -28,7 +28,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Client;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
@@ -55,7 +55,7 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 	private static double lastMeasuredDistanceX = 0, lastMeasuredDistanceY = 0;
 	private static double lastValidMeasuredDistanceX = 0, lastValidMeasuredDistanceY = 0;
 	private static boolean measuring = false; // true if drawing measure line
-	private static List<Highlight2> lastHighlights = new ArrayList<Highlight2>();
+	private static List<Highlight> lastHighlights = new ArrayList<Highlight>();
 	private Point2D dbStart; // start of measure in database units
 
 	private MeasureListener() {}
@@ -85,7 +85,7 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 			Point2D end = dbPoint;
 			Highlighter highlighter = wnd.getRulerHighlighter();
 
-			for (Highlight2 h : lastHighlights)
+			for (Highlight h : lastHighlights)
 			{
 				highlighter.remove(h);
 			}
@@ -153,7 +153,7 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 		Highlighter highlighter = wnd.getRulerHighlighter();
 		if (measuring)
 		{
-			for (Highlight2 h : lastHighlights)
+			for (Highlight h : lastHighlights)
 			{
 				highlighter.remove(h);
 			}

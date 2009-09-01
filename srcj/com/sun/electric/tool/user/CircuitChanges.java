@@ -380,12 +380,12 @@ public class CircuitChanges
      * Get list of Highlights in current highlighter
      * @return list of Highlights
      */
-    public static List<Highlight2> getHighlighted()
+    public static List<Highlight> getHighlighted()
     {
         WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-        if (wf == null) return new ArrayList<Highlight2>();
+        if (wf == null) return new ArrayList<Highlight>();
         Highlighter highlighter = wf.getContent().getHighlighter();
-        if (highlighter == null) return new ArrayList<Highlight2>();
+        if (highlighter == null) return new ArrayList<Highlight>();
         return highlighter.getHighlights();
     }
 
@@ -1312,13 +1312,13 @@ public class CircuitChanges
         Highlighter highlighter = wf.getContent().getHighlighter();
         if (highlighter == null) return;
 
-        List<Highlight2> highlighted = highlighter.getHighlights();
+        List<Highlight> highlighted = highlighter.getHighlights();
 
         // prevent mixing cell-center and non-cell-center
         int nonCellCenterCount = 0;
-        Highlight2 cellCenterHighlight = null;
+        Highlight cellCenterHighlight = null;
         List<ElectricObject> highlightedEObjs = new ArrayList<ElectricObject>();
-        for(Highlight2 h : highlighted)
+        for(Highlight h : highlighted)
         {
         	if (!h.isHighlightEOBJ()) continue;
         	ElectricObject eObj = h.getElectricObject();

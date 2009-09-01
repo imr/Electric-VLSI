@@ -26,7 +26,7 @@ package com.sun.electric.database.variable;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.Geometric;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
@@ -89,6 +89,6 @@ public interface EditWindow_ extends EditWindow0 {
 	public List<Geometric> getHighlightedEObjs(boolean wantNodes, boolean wantArcs);
 	public Set<Network> getHighlightedNetworks();
 	public Point2D getHighlightOffset();
-	public List<Highlight2> saveHighlightList();
-	public void restoreHighlightList(List<Highlight2> list);
+	public List<Highlight> saveHighlightList();
+	public void restoreHighlightList(List<Highlight> list);
 }

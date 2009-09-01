@@ -67,7 +67,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.AutoStitch.AutoOptions;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -5308,7 +5308,7 @@ public class Connectivity
 		{
 			if (np.getFunction() != PrimitiveNode.Function.PIN)
 			{
-				Poly niPoly = Highlight2.getNodeInstOutline(ni);
+				Poly niPoly = Highlight.getNodeInstOutline(ni);
 				addedRectangles.add(ERectangle.fromLambda(niPoly.getBounds2D()));
 			}
 		}
@@ -5361,7 +5361,7 @@ public class Connectivity
 			{
 				if (pNp.getFunction() != PrimitiveNode.Function.PIN)
 				{
-					Poly niPoly = Highlight2.getNodeInstOutline(ni);
+					Poly niPoly = Highlight.getNodeInstOutline(ni);
 					addedRectangles.add(ERectangle.fromLambda(niPoly.getBounds2D()));
 				}
 			}

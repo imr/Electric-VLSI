@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: *******************************
 
+IMP: (9/1/09, AM) Renamed com.sun.electric.tool.user.Highlight2->Highlight.
+
 IMP/MAN: (9/1/09, SMR) In explorer tree, the context command "Search" under "LIBRARIES"
      now has a more powerful dialog that does partial searches, shows results in the
      dialog, and lets the cells be edited (Bug #2322).

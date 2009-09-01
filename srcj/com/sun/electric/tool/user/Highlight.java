@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Highlight2.java
+ * File: Highlight.java
  *
  * Copyright (c) 2006 Sun Microsystems and Static Free Software
  *
@@ -73,15 +73,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 /**
- * A Highlight2 (or subclass thereof) includes a reference to
- * something to which the user's attention is being called (an
- * ElectricObject, some text, a region, etc) and enough information to
- * render the highlighting (boldness, etc) on any given window.
- *
- * It is unclear if a Highlight2 is specific to a particular
- * EditWindow or not --AM.
+ * A Highlight (or subclass thereof) includes a reference to something
+ * to which the user's attention is being called (an ElectricObject,
+ * some text, a region, etc) and enough information to render the
+ * highlighting (boldness, etc) on any given window.  It is not
+ * specific to any given EditWindow.
  */
-public abstract class Highlight2 implements Cloneable{
+public abstract class Highlight implements Cloneable{
 
 	/** for drawing solid lines */		public static final BasicStroke solidLine = new BasicStroke(0);
 	/** for drawing dotted lines */		public static final BasicStroke dottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {1}, 0);
@@ -91,7 +89,7 @@ public abstract class Highlight2 implements Cloneable{
 	/** The Cell containing the selection. */	protected Cell cell;
 	private static final int CROSSSIZE = 3;
 
-	Highlight2(Cell c)
+	Highlight(Cell c)
 	{
 		this.cell = c;
 	}
@@ -135,7 +133,7 @@ public abstract class Highlight2 implements Cloneable{
 	 * @param obj the Highlight to compare to this one.
 	 * @return true if the two refer to the same thing.
 	 */
-    boolean sameThing(Highlight2 obj)
+    boolean sameThing(Highlight obj)
     {
         return false;
     }
@@ -240,7 +238,7 @@ public abstract class Highlight2 implements Cloneable{
 	 * the export text will not be included if "unique" is true.
 	 * Return a list with the Highlight objects that point to text.
 	 */
-    void getHighlightedText(List<DisplayedText> list, boolean unique, List<Highlight2> getHighlights) {;}
+    void getHighlightedText(List<DisplayedText> list, boolean unique, List<Highlight> getHighlights) {;}
 
     /**
 	 * Method to return the bounds of the highlighted objects.
@@ -273,11 +271,11 @@ public abstract class Highlight2 implements Cloneable{
      * @param counts the array of counts to set.
      * @return a NodeInst, if it is in the list.
      */
-    public static NodeInst getInfoCommand(List<Highlight2> list, int[] counts)
+    public static NodeInst getInfoCommand(List<Highlight> list, int[] counts)
     {
         // information about the selected items
         NodeInst theNode = null;
-        for(Highlight2 h : list)
+        for(Highlight h : list)
         {
             ElectricObject eobj = h.getElectricObject();
             if (h.isHighlightEOBJ())
@@ -488,9 +486,9 @@ public abstract class Highlight2 implements Cloneable{
 }
 
 /**
- *  A Highlight2 which calls the user's attention to a Poly.
+ *  A Highlight which calls the user's attention to a Poly.
  */
-class HighlightPoly extends Highlight2
+class HighlightPoly extends Highlight
 {
     /** The highlighted polygon */                              private Poly polygon;
     /** The color used when drawing polygons */                 private Color color;
@@ -538,9 +536,9 @@ class HighlightPoly extends Highlight2
 }
 
 /**
- *  A Highlight2 which calls the user's attention to a Line.
+ *  A Highlight which calls the user's attention to a Line.
  */
-class HighlightLine extends Highlight2
+class HighlightLine extends Highlight
 {
 	/** The highlighted line. */								protected Point2D start, end, center;
     /** The highlighted line is thick. */					    protected boolean thickLine;
@@ -645,7 +643,7 @@ class HighlightLine extends Highlight2
     }
 }
 
-class HighlightObject extends Highlight2
+class HighlightObject extends Highlight
 {
 	/** The highlighted generic object */                       private Object object;
     HighlightObject(Cell c, Object obj)
@@ -664,9 +662,9 @@ class HighlightObject extends Highlight2
 }
 
 /**
- *  A Highlight2 which calls the user's attention to a Rectangle2D.
+ *  A Highlight which calls the user's attention to a Rectangle2D.
  */
-class HighlightArea extends Highlight2
+class HighlightArea extends Highlight
 {
     /** The highlighted area. */								protected Rectangle2D bounds;
     HighlightArea(Cell c, Rectangle2D area)
@@ -690,8 +688,8 @@ class HighlightArea extends Highlight2
 
     void getHighlightedEObjs(Highlighter highlighter, List<Geometric> list, boolean wantNodes, boolean wantArcs)
     {
-        List<Highlight2> inArea = Highlighter.findAllInArea(highlighter, cell, false, false, false, false, false, false, bounds, null);
-        for(Highlight2 ah : inArea)
+        List<Highlight> inArea = Highlighter.findAllInArea(highlighter, cell, false, false, false, false, false, false, bounds, null);
+        for(Highlight ah : inArea)
         {
             if (!(ah instanceof HighlightEOBJ)) continue;
             ElectricObject eobj = ((HighlightEOBJ)ah).eobj;
@@ -717,9 +715,9 @@ class HighlightArea extends Highlight2
 
     void getHighlightedNodes(Highlighter highlighter, List<NodeInst> list)
     {
-        List<Highlight2> inArea = Highlighter.findAllInArea(highlighter, cell, false, false, false, false, false, false,
+        List<Highlight> inArea = Highlighter.findAllInArea(highlighter, cell, false, false, false, false, false, false,
                 bounds, null);
-        for(Highlight2 ah : inArea)
+        for(Highlight ah : inArea)
         {
             if (!(ah instanceof HighlightEOBJ)) continue;
             ElectricObject eobj = ((HighlightEOBJ)ah).eobj;
@@ -732,9 +730,9 @@ class HighlightArea extends Highlight2
 
     void getHighlightedArcs(Highlighter highlighter, List<ArcInst> list)
     {
-        List<Highlight2> inArea = Highlighter.findAllInArea(highlighter, cell, false, false, false, false, false, false,
+        List<Highlight> inArea = Highlighter.findAllInArea(highlighter, cell, false, false, false, false, false, false,
                 bounds, null);
-        for(Highlight2 ah : inArea)
+        for(Highlight ah : inArea)
         {
             if (!(ah instanceof HighlightEOBJ)) continue;
             ElectricObject eobj = ((HighlightEOBJ)ah).eobj;
@@ -757,9 +755,9 @@ class HighlightArea extends Highlight2
 }
 
 /**
- *  A Highlight2 which calls the user's attention to a Point2D and includes a text message.
+ *  A Highlight which calls the user's attention to a Point2D and includes a text message.
  */
-class HighlightMessage extends Highlight2
+class HighlightMessage extends Highlight
 {
 	/** The highlighted message. */								protected String msg;
     /** Location of the message highlight */                    protected Point2D loc;
@@ -822,9 +820,9 @@ class HighlightMessage extends Highlight2
 }
 
 /**
- *  A Highlight2 which calls the user's attention to an ElectricObject.
+ *  A Highlight which calls the user's attention to an ElectricObject.
  */
-class HighlightEOBJ extends Highlight2
+class HighlightEOBJ extends Highlight
 {
 	/** The highlighted object. */								protected ElectricObject eobj;
 	/** For Highlighted networks, this prevents excess highlights */ private boolean highlightConnected;
@@ -879,7 +877,7 @@ class HighlightEOBJ extends Highlight2
 		return eobj.isLinked();
 	}
 
-	boolean sameThing(Highlight2 obj)
+	boolean sameThing(Highlight obj)
 	{
 		if (this == obj) return (true);
 
@@ -1430,14 +1428,14 @@ class HighlightEOBJ extends Highlight2
         if (eobj instanceof Geometric)
         {
         	boolean specialSelect = ToolBar.isSelectSpecial();
-            Highlight2 got = Highlighter.checkOutObject((Geometric)eobj, true, false, specialSelect, searchArea, wnd, directHitDist, false);
+            Highlight got = Highlighter.checkOutObject((Geometric)eobj, true, false, specialSelect, searchArea, wnd, directHitDist, false);
             if (got == null) return false;
             if (!(got instanceof HighlightEOBJ))
                 System.out.println("Error?");
             ElectricObject hObj = got.getElectricObject();
             ElectricObject hReal = hObj;
             if (hReal instanceof PortInst) hReal = ((PortInst)hReal).getNodeInst();
-            for(Highlight2 alreadyDone : highlighter.getHighlights())
+            for(Highlight alreadyDone : highlighter.getHighlights())
             {
                 if (!(alreadyDone instanceof HighlightEOBJ)) continue;
                 HighlightEOBJ alreadyHighlighted = (HighlightEOBJ)alreadyDone;
@@ -1485,9 +1483,9 @@ class HighlightEOBJ extends Highlight2
 
 
 /**
- *  A Highlight2 which calls the user's attention to an ElectricObject which happens to be a piece of text.
+ *  A Highlight which calls the user's attention to an ElectricObject which happens to be a piece of text.
  */
-class HighlightText extends Highlight2
+class HighlightText extends Highlight
 {
 	/** The highlighted object. */								protected final ElectricObject eobj;
 	/** The highlighted variable. */							protected final Variable.Key varKey;
@@ -1556,7 +1554,7 @@ class HighlightText extends Highlight2
     	return eobj.getParameterOrVariable(varKey) != null;
     }
 
-    boolean sameThing(Highlight2 obj)
+    boolean sameThing(Highlight obj)
     {
         if (this == obj) return (true);
 
@@ -1689,7 +1687,7 @@ class HighlightText extends Highlight2
     	return null;
     }
 
-    void getHighlightedText(List<DisplayedText> list, boolean unique, List<Highlight2> getHighlights)
+    void getHighlightedText(List<DisplayedText> list, boolean unique, List<Highlight> getHighlights)
     {
     	DisplayedText dt = makeDisplayedText();
     	if (dt == null) return;
@@ -1717,7 +1715,7 @@ class HighlightText extends Highlight2
             if (eobj != null)
             {
                 boolean found = false;
-                for(Highlight2 oH : getHighlights)
+                for(Highlight oH : getHighlights)
                 {
                     if (!(oH instanceof HighlightEOBJ)) continue;
                     ElectricObject fobj = ((HighlightEOBJ)oH).eobj;

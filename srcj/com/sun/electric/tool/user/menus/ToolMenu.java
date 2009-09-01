@@ -123,7 +123,7 @@ import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.CompileVHDL;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FastHenryArc;
@@ -678,7 +678,7 @@ public class ToolMenu
 			System.out.println("Nothing highlighted");
 			return;
 		}
-		for (Highlight2 h : highlighter.getHighlights()) {
+		for (Highlight h : highlighter.getHighlights()) {
 			if (!h.isHighlightEOBJ()) continue;
 
 			ElectricObject eobj = h.getElectricObject();
@@ -808,7 +808,7 @@ public class ToolMenu
 			System.out.println("Nothing highlighted");
 			return;
 		}
-		for (Highlight2 h : highlighter.getHighlights()) {
+		for (Highlight h : highlighter.getHighlights()) {
 			if (!h.isHighlightEOBJ()) continue;
 
 			ElectricObject eobj = h.getElectricObject();

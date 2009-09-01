@@ -65,7 +65,7 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.GraphicsPreferences;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -2190,9 +2190,9 @@ public class EditWindow extends JPanel
 				Rectangle2D selection = wnd.getHighlightedArea();
 				if (selection != null)
 				{
-					List<Highlight2> inArea = Highlighter.findAllInArea(wnd.getHighlighter(), cell, false, false,
+					List<Highlight> inArea = Highlighter.findAllInArea(wnd.getHighlighter(), cell, false, false,
 						false, false, true, true, selection, wnd);
-					for(Highlight2 h : inArea)
+					for(Highlight h : inArea)
 					{
 						ElectricObject eo = h.getElectricObject();
 						if (eo instanceof PortInst) eo = ((PortInst)eo).getNodeInst();
@@ -2887,15 +2887,15 @@ public class EditWindow extends JPanel
 		highlighter.setHighlightOffset(dX, dY);
 	}
 
-	public List<Highlight2> saveHighlightList()
+	public List<Highlight> saveHighlightList()
 	{
-		List<Highlight2> saveList = new ArrayList<Highlight2>();
-		for(Highlight2 h : highlighter.getHighlights())
+		List<Highlight> saveList = new ArrayList<Highlight>();
+		for(Highlight h : highlighter.getHighlights())
 			saveList.add(h);
 		return saveList;
 	}
 
-	public void restoreHighlightList(List<Highlight2> list)
+	public void restoreHighlightList(List<Highlight> list)
 	{
 		highlighter.setHighlightListGeneral(list);
 	}
@@ -2973,7 +2973,7 @@ public class EditWindow extends JPanel
 	public void downHierarchy(boolean keepFocus, boolean newWindow, boolean inPlace)
 	{
 		// get highlighted
-		Highlight2 h = highlighter.getOneHighlight();
+		Highlight h = highlighter.getOneHighlight();
 		if (h == null) return;
 		ElectricObject eobj = h.getElectricObject();
 

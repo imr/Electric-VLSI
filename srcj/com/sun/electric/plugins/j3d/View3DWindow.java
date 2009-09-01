@@ -55,7 +55,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
@@ -865,7 +865,7 @@ public class View3DWindow extends JPanel
 			highlighter2D = view2D.getHighlighter();
 			highlighter2D.clear();
 		}
-		for (Highlight2 h : highlighter.getHighlights())
+		for (Highlight h : highlighter.getHighlights())
 		{
             HighlightShape3D hObj = (HighlightShape3D)(h.getObject());
 //            Node obj = hObj.shape;

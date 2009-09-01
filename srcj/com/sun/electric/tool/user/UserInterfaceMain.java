@@ -921,7 +921,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     private static class SavedHighlights {
         /** id of this saved state */               private final int id;
         /** EditWindow_ of highlights */            private final EditWindow_ wnd;
-        /** list of saved Highlights */             private final List<Highlight2> savedHighlights;
+        /** list of saved Highlights */             private final List<Highlight> savedHighlights;
         /** saved Highlight offset */               private final Point2D savedHighlightsOffset;
 
         private SavedHighlights(int id, EditWindow_ wnd) {

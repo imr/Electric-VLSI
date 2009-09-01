@@ -39,7 +39,7 @@ import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Waveform;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.WaveformZoom;
@@ -1107,7 +1107,7 @@ public class Panel extends JPanel
 		g.setColor(new Color(User.getColor(User.ColorPrefType.WAVE_FOREGROUND)));
 
 		// draw the X position cursors
-		g.setStroke(Highlight2.dashedLine);
+		g.setStroke(Highlight.dashedLine);
 		int x = convertXDataToScreen(waveWindow.getMainXPositionCursor());
 		if (x >= vertAxisPos)
 			g.drawLine(x, 0, x, hei);
@@ -1115,7 +1115,7 @@ public class Panel extends JPanel
 		x = convertXDataToScreen(waveWindow.getExtensionXPositionCursor());
 		if (x >= vertAxisPos)
 			g.drawLine(x, 0, x, hei);
-		g.setStroke(Highlight2.solidLine);
+		g.setStroke(Highlight.solidLine);
 
 		// show dragged area if there
 		if (draggingArea)
@@ -1271,7 +1271,7 @@ public class Panel extends JPanel
 		{
 			if (localGraphics != null)
 			{
-				localGraphics.setStroke(Highlight2.dottedLine);
+				localGraphics.setStroke(Highlight.dottedLine);
 				localGraphics.setColor(gridColor);
 			}
 
@@ -1327,7 +1327,7 @@ public class Panel extends JPanel
 			}
 			if (localGraphics != null)
 			{
-				localGraphics.setStroke(Highlight2.solidLine);
+				localGraphics.setStroke(Highlight.solidLine);
 			}
 		}
 

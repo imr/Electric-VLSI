@@ -33,7 +33,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
@@ -899,7 +899,7 @@ public class ToolBar extends JToolBar
 				NodeInst ni = (NodeInst)highlighter.getOneElectricObject(NodeInst.class);
 				if (ni != null)
 				{
-					Highlight2 high = highlighter.getOneHighlight();
+					Highlight high = highlighter.getOneHighlight();
 					if (high != null)
 					{
 						high.setPoint(-1);

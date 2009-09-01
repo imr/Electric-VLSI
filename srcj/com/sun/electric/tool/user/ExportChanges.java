@@ -630,7 +630,7 @@ public final class ExportChanges
 		if (wnd == null) return;
 		Highlighter highlighter = wnd.getHighlighter();
 		if (highlighter == null) return;
-		Highlight2 high = highlighter.getOneHighlight();
+		Highlight high = highlighter.getOneHighlight();
 		if (high == null || !high.isHighlightEOBJ() || !(high.getElectricObject() instanceof PortInst))
 		{
 			System.out.println("Must first select a single node and its port");
@@ -1254,7 +1254,7 @@ public final class ExportChanges
 		Export source = null;
 		PortInst dest = null;
 		EditWindow wnd = EditWindow.getCurrent();
-		for(Highlight2 h : wnd.getHighlighter().getHighlights())
+		for(Highlight h : wnd.getHighlighter().getHighlights())
 		{
 			boolean used = false;
 			if (h.isHighlightEOBJ())
@@ -1319,7 +1319,7 @@ public final class ExportChanges
 	public static void renameExport()
 	{
 		EditWindow wnd = EditWindow.getCurrent();
-		Highlight2 h = wnd.getHighlighter().getOneHighlight();
+		Highlight h = wnd.getHighlighter().getOneHighlight();
 		if (h == null || h.getVarKey() != Export.EXPORT_NAME || !(h.getElectricObject() instanceof Export))
 		{
 			System.out.println("Must select an export name before renaming it");

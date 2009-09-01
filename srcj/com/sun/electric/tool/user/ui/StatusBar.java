@@ -41,7 +41,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Client;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.UserInterfaceMain;
@@ -326,7 +326,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 		{
 			// count the number of nodes and arcs selected
 			int nodeCount = 0, arcCount = 0, textCount = 0;
-			Highlight2 lastHighlight = null;
+			Highlight lastHighlight = null;
 			Highlighter highlighter = getHighlighter();
 			if (highlighter == null) {
 				fieldSelected.setText("  " + selectedMsg + "  ");
@@ -334,7 +334,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 				return;
 			}
 			NodeInst theNode = null;
-			for(Highlight2 h : highlighter.getHighlights())
+			for(Highlight h : highlighter.getHighlights())
 			{
 				if (h.isHighlightEOBJ())
 				{
@@ -434,7 +434,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 	 * Get a String describing the Highlight, to display in the
 	 * "Selected" part of the status bar.
 	 */
-	private String getSelectedText(Highlight2 h)
+	private String getSelectedText(Highlight h)
 	{
 		PortInst thePort;
 		NodeInst theNode;

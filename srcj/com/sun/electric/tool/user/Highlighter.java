@@ -85,10 +85,10 @@ public class Highlighter implements DatabaseChangeListener {
     private static Highlighter currentHighlighter = null;
 
     /** Screen offset for display of highlighting. */			private int highOffX; private int highOffY;
-    /** the highlighted objects. */								private List<Highlight2> highlightList;
-    /** the stack of highlights. */								private List<List<Highlight2>> highlightStack;
+    /** the highlighted objects. */								private List<Highlight> highlightList;
+    /** the stack of highlights. */								private List<List<Highlight>> highlightStack;
     /** true if highlights have changed recently */             private boolean changed;
-    /** last object selected before last clear() */             private Highlight2 lastHighlightListEndObj;
+    /** last object selected before last clear() */             private Highlight lastHighlightListEndObj;
     /** what was the last level of "showNetwork" */             private int showNetworkLevel;
 	/** the type of highlighter */                              private int type;
 	/** the WindowFrame associated with the highlighter */      private WindowFrame wf;
@@ -107,8 +107,8 @@ public class Highlighter implements DatabaseChangeListener {
      */
     public Highlighter(int type, WindowFrame wf) {
         highOffX = highOffY = 0;
-        highlightList = new ArrayList<Highlight2>();
-        highlightStack = new ArrayList<List<Highlight2>>();
+        highlightList = new ArrayList<Highlight>();
+        highlightStack = new ArrayList<List<Highlight>>();
         changed = false;
         UserInterfaceMain.addDatabaseChangeListener(this);
         if (currentHighlighter == null) currentHighlighter = this;
@@ -134,7 +134,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param cell the Cell in which the ElectricObject resides.
 	 * @return the newly created Highlight object.
 	 */
-    public Highlight2 addElectricObject(ElectricObject eobj, Cell cell)
+    public Highlight addElectricObject(ElectricObject eobj, Cell cell)
     {
         return addElectricObject(eobj, cell, true);
     }
@@ -148,9 +148,9 @@ public class Highlighter implements DatabaseChangeListener {
      * things from being highlighted later that are not connected to the network.
      * @return the newly created Highlight object.
      */
-	public Highlight2 addElectricObject(ElectricObject eobj, Cell cell, boolean highlightConnected)
+	public Highlight addElectricObject(ElectricObject eobj, Cell cell, boolean highlightConnected)
 	{
-        Highlight2 h1 = new HighlightEOBJ(eobj, cell, highlightConnected, -1);
+        Highlight h1 = new HighlightEOBJ(eobj, cell, highlightConnected, -1);
 		addHighlight(h1);
 		return h1;
 	}
@@ -161,7 +161,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param cell the Cell in which the ElectricObject resides.
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight2 addElectricObject(ElectricObject eobj, Cell cell, Color col)
+	public Highlight addElectricObject(ElectricObject eobj, Cell cell, Color col)
 	{
 		return addElectricObject(eobj, cell, true, col);
 	}
@@ -175,9 +175,9 @@ public class Highlighter implements DatabaseChangeListener {
 	 * things from being highlighted later that are not connected to the network.
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight2 addElectricObject(ElectricObject eobj, Cell cell, boolean highlightConnected, Color col)
+	public Highlight addElectricObject(ElectricObject eobj, Cell cell, boolean highlightConnected, Color col)
 	{
-		Highlight2 h1 = new HighlightEOBJ(eobj, cell, highlightConnected, -1, col);
+		Highlight h1 = new HighlightEOBJ(eobj, cell, highlightConnected, -1, col);
 		addHighlight(h1);
 		return h1;
 	}
@@ -188,7 +188,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param varKey the Variable.Key associated with the text (text is then a visual of that variable).
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight2 addText(ElectricObject eobj, Cell cell, Variable.Key varKey)
+	public Highlight addText(ElectricObject eobj, Cell cell, Variable.Key varKey)
 	{
 		HighlightText h1 = new HighlightText(eobj, cell, varKey);
 		addHighlight(h1);
@@ -202,9 +202,9 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param loc the location of the string (in database units).
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight2 addMessage(Cell cell, String message, Point2D loc)
+	public Highlight addMessage(Cell cell, String message, Point2D loc)
 	{
-		Highlight2 h1 = new HighlightMessage(cell, message, loc, 0);
+		Highlight h1 = new HighlightMessage(cell, message, loc, 0);
 		addHighlight(h1);
 		return h1;
 	}
@@ -217,9 +217,9 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param corner 0=lowerLeft, 1=upperLeft, 2=upperRight, 3=lowerRight.
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight2 addMessage(Cell cell, String message, Point2D loc, int corner)
+	public Highlight addMessage(Cell cell, String message, Point2D loc, int corner)
 	{
-		Highlight2 h1 = new HighlightMessage(cell, message, loc, corner);
+		Highlight h1 = new HighlightMessage(cell, message, loc, corner);
 		addHighlight(h1);
 		return h1;
 	}
@@ -230,9 +230,9 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param cell the Cell in which this area resides.
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight2 addArea(Rectangle2D area, Cell cell)
+	public Highlight addArea(Rectangle2D area, Cell cell)
 	{
-        Highlight2 h1 = new HighlightArea(cell, area);
+        Highlight h1 = new HighlightArea(cell, area);
         addHighlight(h1);
 		return h1;
 	}
@@ -243,9 +243,9 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param cell the Cell in which this object resides.
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight2 addObject(Object obj, Cell cell)
+	public Highlight addObject(Object obj, Cell cell)
 	{
-        Highlight2 h1 = new HighlightObject(cell, obj);
+        Highlight h1 = new HighlightObject(cell, obj);
         addHighlight(h1);
 		return h1;
 	}
@@ -257,9 +257,9 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param cell the Cell in which this line resides.
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight2 addLine(Point2D start, Point2D end, Cell cell)
+	public Highlight addLine(Point2D start, Point2D end, Cell cell)
 	{
-        Highlight2 h1 = new HighlightLine(cell, start, end, null, false);
+        Highlight h1 = new HighlightLine(cell, start, end, null, false);
         addHighlight(h1);
 		return h1;
 	}
@@ -272,9 +272,9 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param thick true for a thick line.
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight2 addLine(Point2D start, Point2D end, Cell cell, boolean thick)
+	public Highlight addLine(Point2D start, Point2D end, Cell cell, boolean thick)
 	{
-        Highlight2 h1 = new HighlightLine(cell, start, end, null, thick);
+        Highlight h1 = new HighlightLine(cell, start, end, null, thick);
         addHighlight(h1);
 		return h1;
 	}
@@ -286,9 +286,9 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param cell the Cell in which this line resides.
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight2 addThickLine(Point2D start, Point2D end, Cell cell)
+	public Highlight addThickLine(Point2D start, Point2D end, Cell cell)
 	{
-        Highlight2 h1 = new HighlightLine(cell, start, end, null, true);
+        Highlight h1 = new HighlightLine(cell, start, end, null, true);
         addHighlight(h1);
 		return h1;
 	}
@@ -300,9 +300,9 @@ public class Highlighter implements DatabaseChangeListener {
      * @param color the color to draw the poly with (if null, uses default)
      * @return the newly created highlight object
      */
-    public Highlight2 addPoly(Poly poly, Cell cell, Color color)
+    public Highlight addPoly(Poly poly, Cell cell, Color color)
     {
-        Highlight2 h1 = new HighlightPoly(cell, poly, color);
+        Highlight h1 = new HighlightPoly(cell, poly, color);
         addHighlight(h1);
         return h1;
     }
@@ -323,8 +323,8 @@ public class Highlighter implements DatabaseChangeListener {
 		}
         Set<Network> nets = new HashSet<Network>();
         nets.add(net);
-        List<Highlight2> highlights = NetworkHighlighter.getHighlights(cell, netlist, nets, 0, 0);
-        for (Highlight2 h : highlights) {
+        List<Highlight> highlights = NetworkHighlighter.getHighlights(cell, netlist, nets, 0, 0);
+        for (Highlight h : highlights) {
             addHighlight(h);
         }
 	}
@@ -376,9 +376,9 @@ public class Highlighter implements DatabaseChangeListener {
             clear();
         }
         int count = 0;
-        List<Highlight2> highlights = NetworkHighlighter.getHighlights(cell, netlist, nets,
+        List<Highlight> highlights = NetworkHighlighter.getHighlights(cell, netlist, nets,
                 showNetworkLevel, showNetworkLevel);
-        for (Highlight2 h : highlights) {
+        for (Highlight h : highlights) {
             addHighlight(h);
             count++;
         }
@@ -393,7 +393,7 @@ public class Highlighter implements DatabaseChangeListener {
     /**
      * Add a Highlight
      */
-    public synchronized void addHighlight(Highlight2 h) {
+    public synchronized void addHighlight(Highlight h) {
         if (h == null) return;
         highlightList.add(h);
         changed = true;
@@ -432,7 +432,7 @@ public class Highlighter implements DatabaseChangeListener {
         synchronized(this)
         {
             // check to see if any highlights are now invalid
-            for (Highlight2 h : getHighlights())
+            for (Highlight h : getHighlights())
             {
                 if (!h.isValid())
                 {
@@ -447,7 +447,7 @@ public class Highlighter implements DatabaseChangeListener {
 		// see if arcs of a single type were selected
 		boolean mixedArc = false;
 		ArcProto foundArcProto = null;
-		for(Highlight2 h : getHighlights())
+		for(Highlight h : getHighlights())
 		{
             if (h instanceof HighlightEOBJ)
 			{
@@ -500,7 +500,7 @@ public class Highlighter implements DatabaseChangeListener {
 		double boundsArea = bounds.getWidth() * bounds.getHeight();
 		Rectangle2D displayBounds = wnd.displayableBounds();
 		double displayArea = displayBounds.getWidth() * displayBounds.getHeight();
-		Highlight2 line1 = null, line2 = null, line3 = null, line4 = null;
+		Highlight line1 = null, line2 = null, line3 = null, line4 = null;
 
 		// if objects are offscreen, point the way
 		if (bounds.getMinX() >= displayBounds.getMaxX() ||
@@ -566,9 +566,9 @@ public class Highlighter implements DatabaseChangeListener {
 	private static class FlashActionListener implements ActionListener
 	{
 		private Highlighter hl;
-		private Highlight2 line1, line2, line3, line4;
+		private Highlight line1, line2, line3, line4;
 
-		FlashActionListener(Highlighter hl, Highlight2 line1, Highlight2 line2, Highlight2 line3, Highlight2 line4)
+		FlashActionListener(Highlighter hl, Highlight line1, Highlight line2, Highlight line3, Highlight line4)
 		{
 			this.hl = hl;
 			this.line1 = line1;
@@ -595,13 +595,13 @@ public class Highlighter implements DatabaseChangeListener {
      * @param underCursor a list of Highlights underCursor.
      * @return the last object that was selected
      */
-    private synchronized Highlight2 getLastSelected(List<Highlight2> underCursor)
+    private synchronized Highlight getLastSelected(List<Highlight> underCursor)
     {
-        List<Highlight2> currentHighlights = getHighlights();	// not that this is a copy
+        List<Highlight> currentHighlights = getHighlights();	// not that this is a copy
 
         // check underCursor list
-        for (Highlight2 h : underCursor) {
-            for (Highlight2 curHigh : currentHighlights) {
+        for (Highlight h : underCursor) {
+            for (Highlight curHigh : currentHighlights) {
                 if (h.sameThing(curHigh)) {
                     return lastHighlightListEndObj;
                 }
@@ -621,8 +621,8 @@ public class Highlighter implements DatabaseChangeListener {
     public synchronized void copyState(Highlighter highlighter) {
         clear();
         lastHighlightListEndObj = highlighter.lastHighlightListEndObj;
-        for (Highlight2 h : highlighter.getHighlights()) {
-            Highlight2 copy = (Highlight2)h.clone();
+        for (Highlight h : highlighter.getHighlights()) {
+            Highlight copy = (Highlight)h.clone();
             addHighlight(copy);
         }
 
@@ -644,13 +644,13 @@ public class Highlighter implements DatabaseChangeListener {
             highOffY = this.highOffY;
         }
 
-        List<Highlight2> list = highlightList; //getHighlights();
+        List<Highlight> list = highlightList; //getHighlights();
 
         Color colorH = new Color(User.getColor(User.ColorPrefType.HIGHLIGHT));
         Color colorM = new Color(User.getColor(User.ColorPrefType.MOUSEOVER_HIGHLIGHT));
-        Stroke stroke = Highlight2.solidLine;
+        Stroke stroke = Highlight.solidLine;
 
-        for (Highlight2 h : list)
+        for (Highlight h : list)
         {
             // only show highlights for the current cell
             if (h.getCell() == wnd.getCell())
@@ -740,8 +740,8 @@ public class Highlighter implements DatabaseChangeListener {
 	public synchronized void pushHighlight()
 	{
 		// make a copy of the highlighted list
-		List<Highlight2> pushable = new ArrayList<Highlight2>();
-		for(Highlight2 h : highlightList)
+		List<Highlight> pushable = new ArrayList<Highlight>();
+		for(Highlight h : highlightList)
 			pushable.add(h);
 		highlightStack.add(pushable);
 	}
@@ -759,12 +759,12 @@ public class Highlighter implements DatabaseChangeListener {
 		}
 
 		// get the stacked highlight
-		List<Highlight2> popable = highlightStack.get(stackSize-1);
+		List<Highlight> popable = highlightStack.get(stackSize-1);
 		highlightStack.remove(stackSize-1);
 
 		// validate each highlight as it is added
 		clear();
-		for(Highlight2 h : popable)
+		for(Highlight h : popable)
 		{
             Cell cell = h.getCell();
             if (h instanceof HighlightEOBJ)
@@ -808,7 +808,7 @@ public class Highlighter implements DatabaseChangeListener {
      * Removes a Highlight object from the current set of highlights.
      * @param h the Highlight to remove
      */
-    public synchronized void remove(Highlight2 h)
+    public synchronized void remove(Highlight h)
     {
         highlightList.remove(h);
     }
@@ -823,8 +823,8 @@ public class Highlighter implements DatabaseChangeListener {
 	 * Method to return a list that is a copy of the list of current highlights.
 	 * @return an list of highlights
 	 */
-	public synchronized List<Highlight2> getHighlights() {
-        List<Highlight2> highlightsCopy = new ArrayList<Highlight2>(highlightList);
+	public synchronized List<Highlight> getHighlights() {
+        List<Highlight> highlightsCopy = new ArrayList<Highlight>(highlightList);
         return highlightsCopy;
     }
 
@@ -832,10 +832,10 @@ public class Highlighter implements DatabaseChangeListener {
 	 * Method to load a list of Highlights into the highlighting.
 	 * @param newHighlights a List of Highlight objects.
 	 */
-	public synchronized void setHighlightListGeneral(List<Highlight2> newHighlights)
+	public synchronized void setHighlightListGeneral(List<Highlight> newHighlights)
 	{
         clear();
-		for(Highlight2 obj : newHighlights)
+		for(Highlight obj : newHighlights)
 		{
 			highlightList.add(obj);
 		}
@@ -846,10 +846,10 @@ public class Highlighter implements DatabaseChangeListener {
 	 * Method to load a list of Highlights into the highlighting.
 	 * @param newHighlights a List of Highlight objects.
 	 */
-	public synchronized void setHighlightList(List<Highlight2> newHighlights)
+	public synchronized void setHighlightList(List<Highlight> newHighlights)
 	{
         clear();
-		for(Highlight2 obj : newHighlights)
+		for(Highlight obj : newHighlights)
 		{
 			highlightList.add(obj);
 		}
@@ -866,7 +866,7 @@ public class Highlighter implements DatabaseChangeListener {
 	{
 		// now place the objects in the list
 		List<Geometric> highlightedGeoms = new ArrayList<Geometric>();
-		for(Highlight2 h : getHighlights())
+		for(Highlight h : getHighlights())
 		{
             h.getHighlightedEObjs(this, highlightedGeoms, wantNodes, wantArcs);
 		}
@@ -881,7 +881,7 @@ public class Highlighter implements DatabaseChangeListener {
 	{
 		// now place the objects in the list
 		List<NodeInst> highlightedNodes = new ArrayList<NodeInst>();
-		for(Highlight2 h : getHighlights())
+		for(Highlight h : getHighlights())
 		{
             h.getHighlightedNodes(this, highlightedNodes);
 		}
@@ -896,7 +896,7 @@ public class Highlighter implements DatabaseChangeListener {
 	{
 		// now place the objects in the list
 		List<ArcInst> highlightedArcs = new ArrayList<ArcInst>();
-		for(Highlight2 h : getHighlights())
+		for(Highlight h : getHighlights())
 		{
             h.getHighlightedArcs(this, highlightedArcs);
 		}
@@ -928,7 +928,7 @@ public class Highlighter implements DatabaseChangeListener {
 				ActivityLogger.logMessage(msg);
 				return nets;
 			}
-			for(Highlight2 h : getHighlights())
+			for(Highlight h : getHighlights())
 			{
                 h.getHighlightedNetworks(nets, netlist);
 			}
@@ -948,7 +948,7 @@ public class Highlighter implements DatabaseChangeListener {
 	{
 		// now place the objects in the list
 		List<DisplayedText> highlightedText = new ArrayList<DisplayedText>();
-		for(Highlight2 h : getHighlights())
+		for(Highlight h : getHighlights())
 		{
             h.getHighlightedText(highlightedText, unique, getHighlights());
 		}
@@ -966,7 +966,7 @@ public class Highlighter implements DatabaseChangeListener {
 		Rectangle2D bounds = null;
 
 		// look at all highlighted objects
-		for(Highlight2 h : getHighlights())
+		for(Highlight h : getHighlights())
 		{
 			// find the bounds of this highlight
 			Rectangle2D highBounds = h.getHighlightedArea(wnd);
@@ -994,15 +994,15 @@ public class Highlighter implements DatabaseChangeListener {
 	 * If there is not one highlighted object, an error is issued.
 	 * @return the highlight that selects an object (null if error).
 	 */
-	public Highlight2 getOneHighlight()
+	public Highlight getOneHighlight()
 	{
 		if (getNumHighlights() == 0)
 		{
 			System.out.println("Must select an object first");
 			return null;
 		}
-		Highlight2 h = null;
-		for(Highlight2 theH : getHighlights())
+		Highlight h = null;
+		for(Highlight theH : getHighlights())
 		{
             if (theH.getElectricObject() != null) return theH;
 		}
@@ -1021,7 +1021,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 */
 	public ElectricObject getOneElectricObject(Class type)
 	{
-		Highlight2 high = getOneHighlight();
+		Highlight high = getOneHighlight();
 		if (high == null) return null;
 		if (!(high instanceof HighlightEOBJ))
 		{
@@ -1084,13 +1084,13 @@ public class Highlighter implements DatabaseChangeListener {
 		boolean invertSelection, boolean findSpecial)
 	{
 		Rectangle2D searchArea = new Rectangle2D.Double(minSelX, minSelY, maxSelX - minSelX, maxSelY - minSelY);
-		List<Highlight2> underCursor = findAllInArea(this, wnd.getCell(), false, false, false, false, findSpecial, true, searchArea, wnd);
+		List<Highlight> underCursor = findAllInArea(this, wnd.getCell(), false, false, false, false, findSpecial, true, searchArea, wnd);
 		if (invertSelection)
 		{
-			for(Highlight2 newHigh : underCursor)
+			for(Highlight newHigh : underCursor)
 			{
 				boolean found = false;
-                for (Highlight2 oldHigh : getHighlights()) {
+                for (Highlight oldHigh : getHighlights()) {
                     if (newHigh.sameThing(oldHigh)) {
                         remove(oldHigh);
                         found = true;
@@ -1111,11 +1111,11 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param wnd the window being examined.
 	 * @param x the X screen coordinate of the point.
 	 * @param y the Y screen coordinate of the point.
-	 * @return Highlight2 if the point is over this Highlight.
+	 * @return Highlight if the point is over this Highlight.
 	 */
-	public Highlight2 overHighlighted(EditWindow wnd, int x, int y)
+	public Highlight overHighlighted(EditWindow wnd, int x, int y)
 	{
-		for(Highlight2 h : getHighlights())
+		for(Highlight h : getHighlights())
 		{
             if (h.overHighlighted(wnd, x, y, this)) return h;
 		}
@@ -1302,14 +1302,14 @@ public class Highlighter implements DatabaseChangeListener {
 	 * The name of an unexpanded cell instance is always hard-to-select.
 	 * Other objects are set this way by the user (although the cell-center is usually set this way).
 	 */
-	public Highlight2 findObject(Point2D pt, EditWindow wnd, boolean exclusively,
+	public Highlight findObject(Point2D pt, EditWindow wnd, boolean exclusively,
 		boolean another, boolean invert, boolean findPort, boolean findPoint, boolean findSpecial, boolean findText)
 	{
 		// search the relevant objects in the circuit
 		Cell cell = wnd.getCell();
         Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
-		List<Highlight2> underCursor = findAllInArea(this, cell, exclusively, another, findPort, findPoint, findSpecial, findText, bounds, wnd);
-        Highlight2 found = null;
+		List<Highlight> underCursor = findAllInArea(this, cell, exclusively, another, findPort, findPoint, findSpecial, findText, bounds, wnd);
+        Highlight found = null;
 
 		// if nothing under the cursor, stop now
 		if (underCursor.size() == 0)
@@ -1323,13 +1323,13 @@ public class Highlighter implements DatabaseChangeListener {
 		}
 
         // get last selected object. Next selected object should be related
-        Highlight2 lastSelected = getLastSelected(underCursor);
+        Highlight lastSelected = getLastSelected(underCursor);
 
         if (lastSelected != null) {
             // sort under cursor by relevance to lastSelected. first object is most relevant.
-            List<Highlight2> newUnderCursor = new ArrayList<Highlight2>();
+            List<Highlight> newUnderCursor = new ArrayList<Highlight>();
             while (!underCursor.isEmpty()) {
-                Highlight2 h = getSimiliarHighlight(underCursor, lastSelected);
+                Highlight h = getSimiliarHighlight(underCursor, lastSelected);
                 newUnderCursor.add(h);
                 underCursor.remove(h);
             }
@@ -1340,10 +1340,10 @@ public class Highlighter implements DatabaseChangeListener {
 		if (underCursor.size() > 1 && another)
 		{
             // I don't think you should loop and get getHighlight() every time
-                List<Highlight2> highlightList = getHighlights();
+                List<Highlight> highlightList = getHighlights();
 			for(int j=0; j<getNumHighlights(); j++)
 			{
-				Highlight2 oldHigh = highlightList.get(j);
+				Highlight oldHigh = highlightList.get(j);
 				for(int i=0; i<underCursor.size(); i++)
 				{
 					if (oldHigh.sameThing(underCursor.get(i)))
@@ -1375,8 +1375,8 @@ public class Highlighter implements DatabaseChangeListener {
         found = underCursor.get(0);
 		if (invert)
 		{
-            List<Highlight2> highlightList = getHighlights();
-            for (Highlight2 h : highlightList)
+            List<Highlight> highlightList = getHighlights();
+            for (Highlight h : highlightList)
 			{
 				if (found.sameThing(h))
 				{
@@ -1412,11 +1412,11 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @return a list of Highlight objects.
 	 * The list is ordered by importance, so the deault action is to select the first entry.
 	 */
-	public static List<Highlight2> findAllInArea(Highlighter highlighter, Cell cell, boolean exclusively, boolean another, boolean findPort,
+	public static List<Highlight> findAllInArea(Highlighter highlighter, Cell cell, boolean exclusively, boolean another, boolean findPort,
 		 boolean findPoint, boolean findSpecial, boolean findText, Rectangle2D bounds, EditWindow wnd)
 	{
 		// make a list of things under the cursor
-		List<Highlight2> list = new ArrayList<Highlight2>();
+		List<Highlight> list = new ArrayList<Highlight>();
 //        if (!Job.acquireExamineLock(false)) return list;
 
         try
@@ -1439,7 +1439,7 @@ public class Highlighter implements DatabaseChangeListener {
             if (exclusively)
             {
                 // special case: only review what is already highlighted
-                for(Highlight2 h : highlighter.getHighlights())
+                for(Highlight h : highlighter.getHighlights())
                 {
                     if (!(h instanceof HighlightEOBJ)) continue;
                     ElectricObject eobj = h.getElectricObject();
@@ -1465,7 +1465,7 @@ public class Highlighter implements DatabaseChangeListener {
                 for(Iterator<RTBounds> it = cell.searchIterator(searchArea); it.hasNext(); )
                 {
                     Geometric geom = (Geometric)it.next();
-                    Highlight2 h;
+                    Highlight h;
                     switch (phase)
                     {
                         case 0:			// check primitive nodes
@@ -1531,7 +1531,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param findSpecial true to find "hard-to-select" text.
 	 * @param list the place to add selected text.
 	 */
-	private static void findTextNow(Cell cell, EditWindow wnd, double directHitDist, Rectangle2D bounds, boolean findSpecial, List<Highlight2> list)
+	private static void findTextNow(Cell cell, EditWindow wnd, double directHitDist, Rectangle2D bounds, boolean findSpecial, List<Highlight> list)
 	{
         //
         // The if-blocks below are left over from a refactoring done
@@ -1778,7 +1778,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param areaMustEnclose true if the object must be completely inside of the selection area.
 	 * @return a Highlight that defines the object, or null if the point is not over any part of this object.
 	 */
-	public static Highlight2 checkOutObject(Geometric geom, boolean findPort, boolean findPoint, boolean findSpecial, Rectangle2D bounds,
+	public static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findPoint, boolean findSpecial, Rectangle2D bounds,
 		EditWindow wnd, double directHitDist, boolean areaMustEnclose)
 	{
         LayerVisibility lv = wnd != null ? wnd.getLayerVisibility() : LayerVisibility.getLayerVisibility();
@@ -1809,7 +1809,7 @@ public class Highlighter implements DatabaseChangeListener {
 			// ignore areaMustEnclose if bounds is size 0,0
 	        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 			{
-	        	Poly poly = Highlight2.getNodeInstOutline(ni);
+	        	Poly poly = Highlight.getNodeInstOutline(ni);
 	            if (poly == null) return null;
 	   			if (!poly.isInside(bounds)) return null;
                 return new HighlightEOBJ(geom, geom.getParent(), true, -1);
@@ -1894,7 +1894,7 @@ public class Highlighter implements DatabaseChangeListener {
 	        	Poly poly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.CLOSED);
 	            if (poly == null) return null;
 	   			if (!poly.isInside(bounds)) return null;
-                Highlight2 h = new HighlightEOBJ(geom, geom.getParent(), true, -1);
+                Highlight h = new HighlightEOBJ(geom, geom.getParent(), true, -1);
 				return h;
 			}
 
@@ -1904,7 +1904,7 @@ public class Highlighter implements DatabaseChangeListener {
 			// direct hit
 			if (dist <= directHitDist)
 			{
-                Highlight2 h = new HighlightEOBJ(geom, geom.getParent(), true, -1);
+                Highlight h = new HighlightEOBJ(geom, geom.getParent(), true, -1);
 				return h;
 			}
 		}
@@ -1918,13 +1918,13 @@ public class Highlighter implements DatabaseChangeListener {
      * @param exampleHigh the Highlight that serves as an example of what type
      * of Highlight should be retrieved from the highlights list.
      */
-    public static Highlight2 getSimiliarHighlight(List<Highlight2> highlights, Highlight2 exampleHigh) {
+    public static Highlight getSimiliarHighlight(List<Highlight> highlights, Highlight exampleHigh) {
         if (highlights.size() == 0) return null;
         if (exampleHigh == null) return highlights.get(0);
 
         // get Highlights of the same type
-        List<Highlight2> sameTypes = new ArrayList<Highlight2>();
-        for (Highlight2 h : highlights) {
+        List<Highlight> sameTypes = new ArrayList<Highlight>();
+        for (Highlight h : highlights) {
             if (h.getClass() == exampleHigh.getClass())
             {
                 sameTypes.add(h);
@@ -1941,8 +1941,8 @@ public class Highlighter implements DatabaseChangeListener {
         if (exampleHigh.isHighlightEOBJ())
         {
             // get Highlights of the same electric object
-            List<Highlight2> sameEObj = new ArrayList<Highlight2>();
-            for (Highlight2 h : sameTypes) {
+            List<Highlight> sameEObj = new ArrayList<Highlight>();
+            for (Highlight h : sameTypes) {
                 if (h.getElectricObject().getClass() == exampleHigh.getElectricObject().getClass())
                     sameEObj.add(h);
             }
@@ -1958,13 +1958,13 @@ public class Highlighter implements DatabaseChangeListener {
                     // see if we can find a port on the same NodeProto
                     PortInst exPi = (PortInst)exampleHigh.getElectricObject();
                     NodeProto exNp = exPi.getNodeInst().getProto();
-                    for (Highlight2 h : sameEObj) {
+                    for (Highlight h : sameEObj) {
                         PortInst pi = (PortInst)h.getElectricObject();
                         NodeProto np = pi.getNodeInst().getProto();
                         if (np == exNp) return h;
                     }
                     // nothing with the same prototype, see if we can find a port that can connect to it
-                    for (Highlight2 h : sameEObj) {
+                    for (Highlight h : sameEObj) {
                         PortInst pi = (PortInst)h.getElectricObject();
                         if (Router.getArcToUse(exPi.getPortProto(), pi.getPortProto()) != null) {
                             return h;
@@ -1975,7 +1975,7 @@ public class Highlighter implements DatabaseChangeListener {
                 if (exampleHigh.getElectricObject().getClass() == ArcInst.class) {
                     ArcInst exAi = (ArcInst)exampleHigh.getElectricObject();
                     ArcProto exAp = exAi.getProto();
-                    for (Highlight2 h : sameEObj) {
+                    for (Highlight h : sameEObj) {
                         ArcInst ai = (ArcInst)h.getElectricObject();
                         ArcProto ap = ai.getProto();
                         if (exAp == ap) return h;
@@ -1990,7 +1990,7 @@ public class Highlighter implements DatabaseChangeListener {
                     exAi = (ArcInst)exampleHigh.getElectricObject();
                 if (exampleHigh.getElectricObject().getClass() == PortInst.class)
                     exPi = (PortInst)exampleHigh.getElectricObject();
-                for (Highlight2 h : sameTypes) {
+                for (Highlight h : sameTypes) {
                     // reset ai and pi
                     ArcInst ai = exAi;
                     PortInst pi = exPi;

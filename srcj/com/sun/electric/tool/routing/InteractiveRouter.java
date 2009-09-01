@@ -48,7 +48,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -80,7 +80,7 @@ import java.util.List;
  */
 public abstract class InteractiveRouter extends Router {
 
-    /** for highlighting the start of the route */  private List<Highlight2> startRouteHighlights = new ArrayList<Highlight2>();
+    /** for highlighting the start of the route */  private List<Highlight> startRouteHighlights = new ArrayList<Highlight>();
     /** if start has been called */                 private boolean started;
     /** EditWindow we are routing in */             private EditWindow wnd;
 
@@ -112,7 +112,7 @@ public abstract class InteractiveRouter extends Router {
         this.wnd = wnd;
         // copy current highlights
         startRouteHighlights.clear();
-        for (Highlight2 h : wnd.getHighlighter().getHighlights()) {
+        for (Highlight h : wnd.getHighlighter().getHighlights()) {
             startRouteHighlights.add(h);
         }
         wnd.clearHighlighting();

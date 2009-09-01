@@ -58,7 +58,7 @@ import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Clipboard;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.Array;
@@ -512,7 +512,7 @@ public class EditMenu {
 		} else
 		{
 			int [] counts = new int[5];
-			NodeInst theNode = Highlight2.getInfoCommand(wnd.getHighlighter().getHighlights(), counts);
+			NodeInst theNode = Highlight.getInfoCommand(wnd.getHighlighter().getHighlights(), counts);
 			// information about the selected items
 			int arcCount = counts[0];
 			int nodeCount = counts[1];
@@ -1058,7 +1058,7 @@ public class EditMenu {
 
 		// make a set of prototypes and characteristics to match
 		Set<Object> likeThis = new HashSet<Object>();
-		for(Highlight2 h : highlighter.getHighlights())
+		for(Highlight h : highlighter.getHighlights())
 		{
 			// handle attribute text
 			if (h.isHighlightText())
@@ -1161,7 +1161,7 @@ public class EditMenu {
 		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return;
 		Highlighter highlighter = wnd.getHighlighter();
-		Highlight2 high = highlighter.getOneHighlight();
+		Highlight high = highlighter.getOneHighlight();
 		if (high == null) return;
 		ElectricObject eObj = high.getElectricObject();
 		if (high.isHighlightEOBJ())
@@ -1327,8 +1327,8 @@ public class EditMenu {
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-        List<Highlight2> newHighList = new ArrayList<Highlight2>();
-        for(Highlight2 h : highlighter.getHighlights())
+        List<Highlight> newHighList = new ArrayList<Highlight>();
+        for(Highlight h : highlighter.getHighlights())
         {
             if (h.isHighlightEOBJ() || h.isHighlightText())
             {

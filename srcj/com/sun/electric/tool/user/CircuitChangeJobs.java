@@ -560,14 +560,14 @@ public class CircuitChangeJobs
 		private List<ElectricObject> objList;
 		private boolean repaintContents, repaintAny;
 
-		public ChangeArcProperties(Cell cell, ChangeArcEnum how, List<Highlight2> highlighted)
+		public ChangeArcProperties(Cell cell, ChangeArcEnum how, List<Highlight> highlighted)
 		{
 			super("Align objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.how = how;
 			this.objList = new ArrayList<ElectricObject>();
 
-			for(Highlight2 h : highlighted)
+			for(Highlight h : highlighted)
 			{
 				if (!h.isHighlightEOBJ()) continue;
 				objList.add(h.getElectricObject());
@@ -693,15 +693,15 @@ public class CircuitChangeJobs
 	public static class ToggleNegationJob extends Job
 	{
 		private Cell cell;
-		private List<ElectricObject> highlighted; // Can't use Highlight2 since it is not serializable
+		private List<ElectricObject> highlighted; // Can't use Highlight since it is not serializable
 		private int numSet;
 
-		public ToggleNegationJob(Cell cell, List<Highlight2> highlighted)
+		public ToggleNegationJob(Cell cell, List<Highlight> highlighted)
 		{
 			super("Toggle negation", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.highlighted = new ArrayList<ElectricObject>();
-			for(Highlight2 h : highlighted)
+			for(Highlight h : highlighted)
 			{
 				if (!h.isHighlightEOBJ()) continue;
 				this.highlighted.add(h.getElectricObject());

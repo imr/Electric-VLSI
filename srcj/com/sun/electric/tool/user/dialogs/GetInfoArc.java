@@ -40,7 +40,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -274,7 +274,7 @@ public class GetInfoArc extends EModelessDialog implements HighlightListener, Da
 		// must have a single node selected
 		ArcInst ai = null;
 		int arcCount = 0;
-		for(Highlight2 h : wnd.getHighlighter().getHighlights())
+		for(Highlight h : wnd.getHighlighter().getHighlights())
 		{
 			if (h.isHighlightEOBJ())
 			{

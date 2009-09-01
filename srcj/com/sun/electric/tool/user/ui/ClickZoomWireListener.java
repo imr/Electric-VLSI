@@ -46,7 +46,7 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.routing.InteractiveRouter;
 import com.sun.electric.tool.routing.SimpleWirer;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.EditMenu;
@@ -120,8 +120,8 @@ public class ClickZoomWireListener
     private ArcProto currentArcWhenWiringPressed; /* current arc proto when mouse pressed to draw wire: later actions of this tool may change current arc */
 
     private int mouseX, mouseY;                 /* last known location of mouse */
-    private Highlight2 moveDelta;               /* highlight to display move delta */
-    private Highlight2 moveDRC;                 /* highlight to display design rules during a move */
+    private Highlight moveDelta;               /* highlight to display move delta */
+    private Highlight moveDRC;                 /* highlight to display design rules during a move */
 
     private EventListener oldListener;          /* used when swtiching back to old listener */
 
@@ -316,19 +316,19 @@ public class ClickZoomWireListener
 	            if (!invertSelection) {
                     // ignore anything that can't have a wire drawn to it
                     // (everything except nodes, ports, and arcs)
-                    List<Highlight2> highlights = new ArrayList<Highlight2>();
-                    for (Highlight2 h : highlighter.getHighlights()) {
+                    List<Highlight> highlights = new ArrayList<Highlight>();
+                    for (Highlight h : highlighter.getHighlights()) {
                         if (h.isHighlightEOBJ()) {
                             ElectricObject eobj = h.getElectricObject();
                             if (eobj instanceof PortInst || eobj instanceof NodeInst || eobj instanceof ArcInst)
                                 highlights.add(h);
                         }
                     }
-                    Iterator<Highlight2> hIt = highlights.iterator();
+                    Iterator<Highlight> hIt = highlights.iterator();
 	                // if already 2 objects, wire them up
 	                if (highlights.size() == 2) {
-	                    Highlight2 h1 = hIt.next();
-	                    Highlight2 h2 = hIt.next();
+	                    Highlight h1 = hIt.next();
+	                    Highlight h2 = hIt.next();
                         ElectricObject eobj1 = h1.getElectricObject();
                         ElectricObject eobj2 = h2.getElectricObject();
 	                    if (eobj1 != null && eobj2 != null) {
@@ -345,7 +345,7 @@ public class ClickZoomWireListener
 	                // if one object, put into wire find mode
 	                // which will draw possible wire route.
 	                if (highlights.size() == 1) {
-	                    Highlight2 h1 = hIt.next();
+	                    Highlight h1 = hIt.next();
                         ElectricObject eobj1 = h1.getElectricObject();
 	                    if (eobj1 != null) {
 	                        modeRight = Mode.wiringFind;
@@ -354,7 +354,7 @@ public class ClickZoomWireListener
 	                        startObj = h1.getElectricObject();
                             router.startInteractiveRoute(wnd);
                             // look for stuff under the mouse
-                            Highlight2 h2 = null;
+                            Highlight h2 = null;
                             if (!ctrlPressed)
                             	h2 = highlighter.findObject(dbClick, wnd, false, false, false, true, false, specialSelect, false);
                             if (h2 == null) {
@@ -362,7 +362,7 @@ public class ClickZoomWireListener
                                 endObj = null;
                                 wiringTarget = null;
                             } else {
-//                                Highlight2 h2 = highlighter.getHighlights().iterator().next();
+//                                Highlight h2 = highlighter.getHighlights().iterator().next();
                                 endObj = h2.getElectricObject();
                             }
                             currentArcWhenWiringPressed = User.getUserTool().getCurrentArcProto();
@@ -474,7 +474,7 @@ public class ClickZoomWireListener
 	                // findObject handles cycling through objects (another)
 	                // and inverting selection (invertSelection)
 	                // and selection special objects (specialSelection)
-	                Highlight2 h = highlighter.findObject(dbClick, wnd, false, ctrlPressed, invertSelection, true, false, specialSelect, true);
+	                Highlight h = highlighter.findObject(dbClick, wnd, false, ctrlPressed, invertSelection, true, false, specialSelect, true);
 	                if (h == null) {
 	                    // not over anything: drag out a selection rectangle
 	                    wnd.setStartDrag(clickX, clickY);
@@ -555,7 +555,7 @@ public class ClickZoomWireListener
 	            }
 	            if (modeRight == Mode.wiringFind || modeRight == Mode.stickyWiring) {
 	                // see if anything under the pointer
-	                Highlight2 h3 = null;
+	                Highlight h3 = null;
 	                if (!ctrlPressed)
 	                	h3 = highlighter.findObject(dbMouse, wnd, false, false, false, true, false, specialSelect, false);
 	                if (h3 == null) {
@@ -570,9 +570,9 @@ public class ClickZoomWireListener
 	                    if (wiringTarget != null) {
 	                        // check if still valid target
 	                        EditWindow.gridAlign(dbMouse);
-	                        List<Highlight2> underCursor = Highlighter.findAllInArea(highlighter, cell, false, true, true, false, specialSelect, false,
+	                        List<Highlight> underCursor = Highlighter.findAllInArea(highlighter, cell, false, true, true, false, specialSelect, false,
 	                            new Rectangle2D.Double(dbMouse.getX(), dbMouse.getY(), 0, 0), wnd);
-	                        for (Highlight2 h : underCursor) {
+	                        for (Highlight h : underCursor) {
 	                            ElectricObject eobj = h.getElectricObject();
 	                            if (eobj == wiringTarget) {
 	                                endObj = wiringTarget;
@@ -584,9 +584,9 @@ public class ClickZoomWireListener
 	                    }
 	                    // if target is null, find new target
 	                    if (endObj == null) {
-	                        Iterator<Highlight2> hIt = highlighter.getHighlights().iterator();
+	                        Iterator<Highlight> hIt = highlighter.getHighlights().iterator();
 	                        if (hIt.hasNext()){
-		                        Highlight2 h2 = hIt.next();
+		                        Highlight h2 = hIt.next();
 		                        endObj = h2.getElectricObject();
 	                        }
 	                    }
@@ -724,7 +724,7 @@ public class ClickZoomWireListener
 	                	Poly hPoly;
 	                	if (g instanceof NodeInst)
 	                	{
-	                		hPoly = Highlight2.getNodeInstOutline((NodeInst)g);
+	                		hPoly = Highlight.getNodeInstOutline((NodeInst)g);
 	                	} else
 	                	{
 	                		ArcInst ai = (ArcInst)g;
@@ -1264,7 +1264,7 @@ public class ClickZoomWireListener
         tempHighlighter.copyState(highlighter);
 
         Point2D screenMouse = wnd.databaseToScreen(dbMouse);
-        Highlight2 found = null;
+        Highlight found = null;
         if (!another && !invertSelection)
             // maintain current selection
             found = tempHighlighter.overHighlighted(wnd, (int)screenMouse.getX(), (int)screenMouse.getY());
@@ -1280,15 +1280,15 @@ public class ClickZoomWireListener
 
         // check if mouse-over highlight needs to change
         boolean changed = false;
-        List<Highlight2> mouseOld = mouseOverHighlighter.getHighlights();
+        List<Highlight> mouseOld = mouseOverHighlighter.getHighlights();
 //        assert(mouseOld.size() <= 1);
-        List<Highlight2> mouseNew = tempHighlighter.getHighlights();
+        List<Highlight> mouseNew = tempHighlighter.getHighlights();
 //        assert(mouseNew.size() <= 1);
 
         if (mouseOld.size() == mouseNew.size()) {
             for (int i=0; i<mouseOld.size(); i++) {
-                Highlight2 h1 = mouseOld.get(i);
-                Highlight2 h2 = mouseNew.get(i);
+                Highlight h1 = mouseOld.get(i);
+                Highlight h2 = mouseNew.get(i);
                 if (!h1.equals(h2)) { changed = true; break; }
             }
         } else
@@ -1592,8 +1592,8 @@ public class ClickZoomWireListener
             //if (endObj != null) {
                 Point2D dbMouse = new Point2D.Double(lastdbMouseX,  lastdbMouseY);
                 Rectangle2D bounds = new Rectangle2D.Double(lastdbMouseX, lastdbMouseY, 0, 0);
-                List<Highlight2> targets = Highlighter.findAllInArea(highlighter, wnd.getCell(), false, false, true, false, specialSelect, false, bounds, wnd);
-                Iterator<Highlight2> it = targets.iterator();
+                List<Highlight> targets = Highlighter.findAllInArea(highlighter, wnd.getCell(), false, false, true, false, specialSelect, false, bounds, wnd);
+                Iterator<Highlight> it = targets.iterator();
                 // find wiringTarget in list, if it exists
                 boolean found = false;
                 if (wiringTarget == null) wiringTarget = endObj;
@@ -1714,10 +1714,10 @@ public class ClickZoomWireListener
      * @param objects list of objects to put in menu
      * @return the popup menu
      */
-    public JPopupMenu selectPopupMenu(List<Highlight2> objects) {
+    public JPopupMenu selectPopupMenu(List<Highlight> objects) {
         JPopupMenu popup = new JPopupMenu("Choose One");
         JMenuItem m;
-        for (Highlight2 obj : objects) {
+        for (Highlight obj : objects) {
             m = new JMenuItem(obj.toString()); m.addActionListener(this); popup.add(m);
         }
         //lastPopupMenu = "Select";

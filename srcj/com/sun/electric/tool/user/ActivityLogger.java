@@ -108,7 +108,7 @@ public class ActivityLogger {
         EditWindow_ wnd = ui.getCurrentEditWindow_();
         if (wnd != null)
         {
-        	List<Highlight2> savedContents = wnd.saveHighlightList();
+        	List<Highlight> savedContents = wnd.saveHighlightList();
             if (savedContents != null)
             {
                 logHighlights(savedContents, wnd.getHighlightOffset());
@@ -137,7 +137,7 @@ public class ActivityLogger {
      * @param savedHighlightsOffset the starting highlight offset (currently not used)
      */
     public static synchronized void logJobStarted(String jobName, Job.Type jobType, Cell cell,
-                                                  List<Highlight2> savedHighlights, Point2D savedHighlightsOffset) {
+                                                  List<Highlight> savedHighlights, Point2D savedHighlightsOffset) {
         if (out == null) return;
         if (!logJobs) return;
         printDelimeter(true);
@@ -153,11 +153,11 @@ public class ActivityLogger {
      * @param highlights a list of Highlight objects
      * @param offset the offset
      */
-    public static synchronized void logHighlights(List<Highlight2> highlights, Point2D offset) {
+    public static synchronized void logHighlights(List<Highlight> highlights, Point2D offset) {
         if (out == null) return;
         if (highlights.size() == 0) return;
         out.println("Currently highlighted: ");
-        for (Highlight2 h: highlights) {
+        for (Highlight h: highlights) {
             out.println("    "+h.describe());
         }
     }

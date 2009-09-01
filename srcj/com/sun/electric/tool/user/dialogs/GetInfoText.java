@@ -38,7 +38,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -105,7 +105,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 	 */
 	private static class CachedTextInfo
 	{
-		private Highlight2 shownText;
+		private Highlight shownText;
 		private String initialText;
 		private Variable var;
 		private Variable.Key varKey;
@@ -119,7 +119,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 		 * Method to load the field variables from a Highlight.
 		 * @param h the Highlight of text.
 		 */
-		CachedTextInfo(Highlight2 h)
+		CachedTextInfo(Highlight h)
 		{
 			shownText = h;
 			description = "Unknown text";
@@ -292,11 +292,11 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 
 	private void loadTextInfo() {
 		// must have a single text selected
-		Highlight2 textHighlight = null;
+		Highlight textHighlight = null;
 		EditWindow curWnd = EditWindow.getCurrent();
 		int textCount = 0;
 		if (curWnd != null) {
-			for (Highlight2 h : curWnd.getHighlighter().getHighlights()) {
+			for (Highlight h : curWnd.getHighlighter().getHighlights()) {
 				if (!h.isHighlightText()) continue;
 				// ignore export text
 				if (h.getVarKey() == Export.EXPORT_NAME) continue;
@@ -398,9 +398,9 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 		if (curWnd == null) return;
 
 		// must have a single text selected
-		Highlight2 theHigh = null;
+		Highlight theHigh = null;
 		int textCount = 0;
-		for (Highlight2 h : curWnd.getHighlighter().getHighlights())
+		for (Highlight h : curWnd.getHighlighter().getHighlights())
 		{
 			if (!h.isHighlightText()) continue;
 			theHigh = h;

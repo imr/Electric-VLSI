@@ -1123,7 +1123,7 @@ public class WindowFrame extends Observable
 		/** context */											private VarContext context;
 		/** the port that is highlighted */						private PortInst selPort;
 		/** display attributes (scale, in-place, etc.) */		private DisplayAttributes da;
-		/** highlights */										private List<Highlight2> highlights;
+		/** highlights */										private List<Highlight> highlights;
 		/** highlight offset*/									private double offX, offY;
 
 		public Cell getCell() { return cell; }
@@ -1284,7 +1284,7 @@ public class WindowFrame extends Observable
 			Highlighter highlighter = wnd.getHighlighter();
 			if (highlighter.getNumHighlights() == 1)
 			{
-				Highlight2 h = highlighter.getOneHighlight();
+				Highlight h = highlighter.getOneHighlight();
 		        if (h != null)
 		        {
 		        	ElectricObject eobj = h.getElectricObject();
@@ -1294,9 +1294,9 @@ public class WindowFrame extends Observable
 			}
 
 			// save highlighting
-			current.highlights = new ArrayList<Highlight2>();
+			current.highlights = new ArrayList<Highlight>();
 			Cell cell = content.getCell();
-			for (Highlight2 h : highlighter.getHighlights()) {
+			for (Highlight h : highlighter.getHighlights()) {
 				if (h.getCell() == cell)
 					current.highlights.add(h);
 			}
@@ -1323,7 +1323,7 @@ public class WindowFrame extends Observable
 			history.context = VarContext.globalContext;
 			history.selPort = null;
 			history.da = new WindowFrame.DisplayAttributes();
-			history.highlights = new ArrayList<Highlight2>();
+			history.highlights = new ArrayList<Highlight>();
 			history.offX = history.offY = 0;
 		}
 

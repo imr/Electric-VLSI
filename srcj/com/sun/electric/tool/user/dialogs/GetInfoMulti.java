@@ -49,7 +49,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -111,7 +111,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 	private JPanel changePanel;
 	private ChangeType [] currentChangeTypes;
 	private JComponent [] currentChangeValues;
-	private List<Highlight2> highlightList;
+	private List<Highlight> highlightList;
 	private List<NodeInst> nodeList;
 	private List<ArcInst> arcList;
 	private List<Export> exportList;
@@ -256,7 +256,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 
         boolean reload = false;
         // reload if any objects that changed are part of our list of highlighted objects
-		for (Highlight2 h : highlightList) {
+		for (Highlight h : highlightList) {
 			if (e.objectChanged(h.getElectricObject())) {
 				reload = true; break;
 			}
@@ -274,7 +274,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 	private GetInfoMulti(Frame parent)
 	{
 		super(parent, false);
-		highlightList = new ArrayList<Highlight2>();
+		highlightList = new ArrayList<Highlight>();
 		initComponents();
         getRootPane().setDefaultButton(ok);
 
@@ -310,7 +310,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		highlightList.clear();
         if (wnd != null)
         {
-            for(Highlight2 h: wnd.getHighlighter().getHighlights())
+            for(Highlight h: wnd.getHighlighter().getHighlights())
                 highlightList.add(h);
             Collections.sort(highlightList, new SortMultipleHighlights());
             Cell cell = wnd.getCell();
@@ -334,7 +334,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		double traLengthLow = Double.MAX_VALUE, traLengthHigh = -Double.MAX_VALUE;
 		selectionCount.setText(Integer.toString(highlightList.size()) + " selections:");
 		List<String> displayList = new ArrayList<String>();
-        for(Highlight2 h : highlightList)
+        for(Highlight h : highlightList)
 		{
 			ElectricObject eobj = h.getElectricObject();
             displayList.add(h.getInfo());
@@ -745,9 +745,9 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		}
 	}
 
-	private static class SortMultipleHighlights implements Comparator<Highlight2>
+	private static class SortMultipleHighlights implements Comparator<Highlight>
 	{
-		public int compare(Highlight2 h1, Highlight2 h2)
+		public int compare(Highlight h1, Highlight h2)
 		{
 			// if the types are different, order by types
 			if (h1.getClass() != h2.getClass())
