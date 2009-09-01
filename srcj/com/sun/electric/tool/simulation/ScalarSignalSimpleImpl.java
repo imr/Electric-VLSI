@@ -27,9 +27,9 @@ package com.sun.electric.tool.simulation;
  *  A crude implementation of ScalarSignal which implements
  *  getApproximation() for the case where tn=vd=0 by binary search.
  */
-public abstract class ScalarSignalSimpleImpl implements ScalarSignal {
+public abstract class ScalarSignalSimpleImpl implements ScalarSignal<ScalarSample> {
 
-    private ScalarSignal.Approximation pa = null;
+    private ScalarSignal.Approximation<ScalarSample> pa = null;
     private double tmin;
     private double tmax;
     private int    emax;
@@ -73,8 +73,9 @@ public abstract class ScalarSignalSimpleImpl implements ScalarSignal {
     public static int steps = 0;
     public static int numLookups = 0;
 
-    public ScalarSignal.Approximation getApproximation(double t0, double t1, int td,
-                                                       double v0, double v1, int vd) {
+    public ScalarSignal.Approximation<ScalarSample>
+        getApproximation(double t0, double t1, int td,
+                         ScalarSample v0, ScalarSample v1, int vd) {
         if (vd!=0) throw new RuntimeException("not implemented");
 
         // FIXME: currently ignoring v0/v1
@@ -83,7 +84,7 @@ public abstract class ScalarSignalSimpleImpl implements ScalarSignal {
         return new ApproximationSimpleImpl(e0, e1, td==0 ? getPreferredApproximation().getTimeDenominator() : td);
     }
 
-    private class ApproximationSimpleImpl implements ScalarSignal.Approximation {
+    private class ApproximationSimpleImpl implements ScalarSignal.Approximation<ScalarSample> {
         private final int    minEvent;
         private final int    maxEvent;
         private final int    td;
@@ -98,16 +99,14 @@ public abstract class ScalarSignalSimpleImpl implements ScalarSignal {
         }
         public int    getNumEvents() { return td+1; }
         public double getTime(int event) { return t0 + (event*(t1-t0))/td; }
-        public double getValue(int event) {
+        public ScalarSample getSample(int event) {
             int e     = getEventForTime(getTime(event), /* FIXME: should interpolate */ true);
-            return getPreferredApproximation().getValue(e);
+            return getPreferredApproximation().getSample(e);
         }
         public int    getTimeDenominator() { return td; }
-        public int    getValueDenominator() { return getPreferredApproximation().getValueDenominator(); }
         public int    getEventWithMinValue() { throw new RuntimeException("not implemented"); }
         public int    getEventWithMaxValue() { throw new RuntimeException("not implemented"); }
         public int    getTimeNumerator(int event) { throw new RuntimeException("not implemented"); }
-        public int    getValueNumerator(int event) { throw new RuntimeException("not implemented"); }
     }
 
 }

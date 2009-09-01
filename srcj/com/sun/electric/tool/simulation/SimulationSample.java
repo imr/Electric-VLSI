@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Signal.java
+ * File: ScalarSignal.java
  *
  * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
@@ -22,9 +22,20 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.simulation;
+import java.io.*;
 
-public interface MultiSweepSignal<SS extends SimulationSample> {
+/**
+ *  A SimulationSample is the data assigned to each point in time by a
+ *  ScalarSignal.
+ */
+public interface SimulationSample extends Serializable, Comparable {
 
-    public ScalarSignal<SS> getSweep(int sweep);
+    /** returns true iff this sample is "X" (unknown) */
+    public boolean isLogicX();
+
+    /** returns true iff this sample is "Z" (unconnected) */
+    public boolean isLogicZ();
 
 }
+
+

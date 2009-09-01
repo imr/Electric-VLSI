@@ -68,14 +68,14 @@ public class WaveformImpl implements Waveform {
     // Methods below are strictly for transitional purposes //////////////////////////////////////////////////////////////////////////////
     // INCREDIBLY INEFFICIENT!!!                            //////////////////////////////////////////////////////////////////////////////
 
-    private ScalarSignal.Approximation approximation = null;
+    private ScalarSignal.Approximation<ScalarSample> approximation = null;
 
-    public ScalarSignal.Approximation getApproximation(double t0, double t1, int tn,
-                                                       double v0, double v1, int vd) {
+    public ScalarSignal.Approximation<ScalarSample> getApproximation(double t0, double t1, int tn,
+                                                                     ScalarSample v0, ScalarSample v1, int vd) {
         throw new RuntimeException("not implemented");
     }
 
-    public synchronized ScalarSignal.Approximation getPreferredApproximation() {
+    public synchronized ScalarSignal.Approximation<ScalarSample> getPreferredApproximation() {
         if (approximation==null) approximation = new ApproximationImpl();
         return approximation;
     }
@@ -84,7 +84,7 @@ public class WaveformImpl implements Waveform {
      *  An approximation of the intersection of v(t) and the window
      *  [t0,t1]x[y0,y1] within integer grid "[0..tn]x[0..yn]".
      */
-    private class ApproximationImpl implements ScalarSignal.Approximation {
+    private class ApproximationImpl implements ScalarSignal.Approximation<ScalarSample> {
         private final float[] times;
         private final float[] values;
         private final int eventWithMinValue;
@@ -139,19 +139,13 @@ public class WaveformImpl implements Waveform {
         public double             getTime(int index) {
             return times[index];
         }
-        public double             getValue(int index) {
-            return values[index];
+        public ScalarSample       getSample(int index) {
+            return new ScalarSample(values[index]);
         }
         public int getTimeNumerator(int index) {
             throw new RuntimeException("not implemented");
         }
-        public int getValueNumerator(int index) {
-            throw new RuntimeException("not implemented");
-        }
         public int getTimeDenominator() {
-            throw new RuntimeException("not implemented");
-        }
-        public int getValueDenominator() {
             throw new RuntimeException("not implemented");
         }
         public int getEventWithMaxValue() {

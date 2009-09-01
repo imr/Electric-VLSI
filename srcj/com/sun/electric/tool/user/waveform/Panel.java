@@ -35,6 +35,7 @@ import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.ScalarSignal;
+import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
@@ -1504,8 +1505,8 @@ public class Panel extends JPanel
                         : wave.getApproximation(convertXScreenToData(0),
                                                 convertXScreenToData(sz.width),
                                                 sz.width,
-                                                convertYScreenToData(0),
-                                                convertYScreenToData(sz.height),
+                                                new ScalarSample(convertYScreenToData(0)),
+                                                new ScalarSample(convertYScreenToData(sz.height)),
                                                 0);
                     Waveform xWaveform = null;
                     if (xSignal != null)
@@ -1515,8 +1516,8 @@ public class Panel extends JPanel
 					for(int i=0; i<numEvents; i++)
 					{
                         int x = convertXDataToScreen(waveform.getTime(i));
-                        int lowY = convertYDataToScreen(waveform.getValue(i));
-                        int highY = convertYDataToScreen(waveform.getValue(i));
+                        int lowY = convertYDataToScreen(((ScalarSample)waveform.getSample(i)).getValue());
+                        int highY = convertYDataToScreen(((ScalarSample)waveform.getSample(i)).getValue());
 						if (xWaveform != null)
 						{
 							xWaveform.getEvent(i, result);
@@ -1563,10 +1564,10 @@ public class Panel extends JPanel
                                        "avg steps="+
                                        (((float)com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.steps)/
                                         com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.numLookups));
-                    */
                     com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.misses=0;
                     com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.steps=0;
                     com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.numLookups=0;
+                    */
 				}
 				continue;
             }
