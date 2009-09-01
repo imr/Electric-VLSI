@@ -68,14 +68,14 @@ public class WaveformImpl implements Waveform {
     // Methods below are strictly for transitional purposes //////////////////////////////////////////////////////////////////////////////
     // INCREDIBLY INEFFICIENT!!!                            //////////////////////////////////////////////////////////////////////////////
 
-    private ScalarSignal.Approximation<ScalarSample> approximation = null;
+    private NewSignal.Approximation<ScalarSample> approximation = null;
 
-    public ScalarSignal.Approximation<ScalarSample> getApproximation(double t0, double t1, int tn,
+    public NewSignal.Approximation<ScalarSample> getApproximation(double t0, double t1, int tn,
                                                                      ScalarSample v0, ScalarSample v1, int vd) {
         throw new RuntimeException("not implemented");
     }
 
-    public synchronized ScalarSignal.Approximation<ScalarSample> getPreferredApproximation() {
+    public synchronized NewSignal.Approximation<ScalarSample> getPreferredApproximation() {
         if (approximation==null) approximation = new ApproximationImpl();
         return approximation;
     }
@@ -84,7 +84,7 @@ public class WaveformImpl implements Waveform {
      *  An approximation of the intersection of v(t) and the window
      *  [t0,t1]x[y0,y1] within integer grid "[0..tn]x[0..yn]".
      */
-    private class ApproximationImpl implements ScalarSignal.Approximation<ScalarSample> {
+    private class ApproximationImpl implements NewSignal.Approximation<ScalarSample> {
         private final float[] times;
         private final float[] values;
         private final int eventWithMinValue;

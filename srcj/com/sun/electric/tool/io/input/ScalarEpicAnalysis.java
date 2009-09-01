@@ -33,9 +33,9 @@ import com.sun.electric.tool.simulation.WaveformImpl;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.ScalarSignal;
+import com.sun.electric.tool.simulation.NewSignal;
 import com.sun.electric.tool.simulation.ScalarSample;
-import com.sun.electric.tool.simulation.ScalarSignalSimpleImpl;
+import com.sun.electric.tool.simulation.NewSignalSimpleImpl;
 
 import java.awt.geom.Rectangle2D;
 import java.io.File;
@@ -496,13 +496,13 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
         return new Waveform[] { new ScalarWaveformImpl(sigName, count, evmin, evmax, timetree, valtree) };
     }
 
-    private class ScalarWaveformImpl extends ScalarSignalSimpleImpl implements Waveform {
+    private class ScalarWaveformImpl extends NewSignalSimpleImpl implements Waveform {
 
         private final String signal;
         private final int numEvents;
         private final int eventWithMinValue;
         private final int eventWithMaxValue;
-        private ScalarSignal.Approximation<ScalarSample> preferredApproximation = null;
+        private NewSignal.Approximation<ScalarSample> preferredApproximation = null;
         private final BTree<Integer,Double> timetree;
         private final BTree<Integer,Double> valtree;
     
@@ -521,7 +521,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
             this.preferredApproximation = new ScalarWaveformImplApproximation();
         }
 
-        public synchronized ScalarSignal.Approximation<ScalarSample> getPreferredApproximation() {
+        public synchronized NewSignal.Approximation<ScalarSample> getPreferredApproximation() {
             return preferredApproximation;
         }
 
@@ -531,7 +531,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
             result[1] = result[2] = getPreferredApproximation().getSample(index).getValue();
         }
 
-        private class ScalarWaveformImplApproximation implements ScalarSignal.Approximation<ScalarSample> {
+        private class ScalarWaveformImplApproximation implements NewSignal.Approximation<ScalarSample> {
             public int getNumEvents() { return numEvents; }
             public double             getTime(int index) {
                 Double d = timetree.get(index);

@@ -34,7 +34,7 @@ import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
-import com.sun.electric.tool.simulation.ScalarSignal;
+import com.sun.electric.tool.simulation.NewSignal;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
@@ -1499,7 +1499,7 @@ public class Panel extends JPanel
 					if (!included)
 						continue;
 					Waveform wave = as.getWaveform(s);
-                    ScalarSignal.Approximation waveform =
+                    NewSignal.Approximation waveform =
                         !Simulation.isSpiceUseRandomAccess()
                         ? wave.getPreferredApproximation()
                         : wave.getApproximation(convertXScreenToData(0),
@@ -1560,13 +1560,13 @@ public class Panel extends JPanel
 						lastX = x;   lastLY = lowY; lastHY = highY;
 					}
                     /*
-                    System.out.println("misses="+com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.misses + ", "+
+                    System.out.println("misses="+com.sun.electric.tool.simulation.NewSignalSimpleImpl.misses + ", "+
                                        "avg steps="+
-                                       (((float)com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.steps)/
-                                        com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.numLookups));
-                    com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.misses=0;
-                    com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.steps=0;
-                    com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.numLookups=0;
+                                       (((float)com.sun.electric.tool.simulation.NewSignalSimpleImpl.steps)/
+                                        com.sun.electric.tool.simulation.NewSignalSimpleImpl.numLookups));
+                    com.sun.electric.tool.simulation.NewSignalSimpleImpl.misses=0;
+                    com.sun.electric.tool.simulation.NewSignalSimpleImpl.steps=0;
+                    com.sun.electric.tool.simulation.NewSignalSimpleImpl.numLookups=0;
                     */
 				}
 				continue;

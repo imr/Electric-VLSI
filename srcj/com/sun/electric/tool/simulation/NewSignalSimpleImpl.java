@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ScalarSignal.java
+ * File: NewSignal.java
  *
  * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
@@ -24,12 +24,12 @@
 package com.sun.electric.tool.simulation;
 
 /**
- *  A crude implementation of ScalarSignal which implements
+ *  A crude implementation of NewSignal which implements
  *  getApproximation() for the case where tn=vd=0 by binary search.
  */
-public abstract class ScalarSignalSimpleImpl implements ScalarSignal<ScalarSample> {
+public abstract class NewSignalSimpleImpl implements NewSignal<ScalarSample> {
 
-    private ScalarSignal.Approximation<ScalarSample> pa = null;
+    private NewSignal.Approximation<ScalarSample> pa = null;
     private double tmin;
     private double tmax;
     private int    emax;
@@ -73,7 +73,7 @@ public abstract class ScalarSignalSimpleImpl implements ScalarSignal<ScalarSampl
     public static int steps = 0;
     public static int numLookups = 0;
 
-    public ScalarSignal.Approximation<ScalarSample>
+    public NewSignal.Approximation<ScalarSample>
         getApproximation(double t0, double t1, int td,
                          ScalarSample v0, ScalarSample v1, int vd) {
         if (vd!=0) throw new RuntimeException("not implemented");
@@ -84,7 +84,7 @@ public abstract class ScalarSignalSimpleImpl implements ScalarSignal<ScalarSampl
         return new ApproximationSimpleImpl(e0, e1, td==0 ? getPreferredApproximation().getTimeDenominator() : td);
     }
 
-    private class ApproximationSimpleImpl implements ScalarSignal.Approximation<ScalarSample> {
+    private class ApproximationSimpleImpl implements NewSignal.Approximation<ScalarSample> {
         private final int    minEvent;
         private final int    maxEvent;
         private final int    td;

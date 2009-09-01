@@ -66,7 +66,7 @@ public class AnalogSignal extends Signal implements MultiSweepSignal
 		return an.getWaveform(this, sweep);
 	}
 
-    public ScalarSignal<ScalarSample> getSweep(int sweep) {
+    public NewSignal<ScalarSample> getSweep(int sweep) {
         return an.getWaveform(this, sweep);
     }
 

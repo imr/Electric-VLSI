@@ -25,6 +25,6 @@ package com.sun.electric.tool.simulation;
 
 public interface MultiSweepSignal<SS extends SimulationSample> {
 
-    public ScalarSignal<SS> getSweep(int sweep);
+    public NewSignal<SS> getSweep(int sweep);
 
 }

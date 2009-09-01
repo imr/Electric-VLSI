@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: *******************************
 
+IMP: (9/1/09, AM) Change name of ScalarSignal to NewSignal (it is no
+     longer limited to scalar samples).
+
 IMP: (9/1/09, AM) Parameterize ScalarSignal on arbitrary instances of
      SimulationSample.
 

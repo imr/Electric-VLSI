@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ScalarSignal.java
+ * File: NewSignal.java
  *
  * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
@@ -24,7 +24,7 @@
 package com.sun.electric.tool.simulation;
 
 /**
- *  A ScalarSignal holds a signal which has a SimulationSample value
+ *  A NewSignal holds a signal which has a SimulationSample value
  *  at any given point in time, and for which a piecewise linear
  *  approximation can be obtained for any given [t0,t1]x[v0,v1]
  *  window.
@@ -39,7 +39,7 @@ package com.sun.electric.tool.simulation;
  *  require data not yet read will simply block until that part of the
  *  stream is processed.
  */
-public interface ScalarSignal<SS extends SimulationSample> {
+public interface NewSignal<SS extends SimulationSample> {
 
     /**
      *  An Approximation is a collection of events indexed by natural
@@ -93,7 +93,7 @@ public interface ScalarSignal<SS extends SimulationSample> {
      * If valueResolution==0, the value resolution will be that which
      * is "most natural" for the underlying data.
      */
-    ScalarSignal.Approximation<SS>
+    NewSignal.Approximation<SS>
         getApproximation(double t0, double t1, int timeDenominator,
                          SS     v0, SS     v1, int valueResolution);
     
@@ -102,7 +102,7 @@ public interface ScalarSignal<SS extends SimulationSample> {
      *  the data; this should be the Approximation which
      *  causes no loss in data fidelity.
      */
-    ScalarSignal.Approximation<SS>
+    NewSignal.Approximation<SS>
         getPreferredApproximation();
 }
 
