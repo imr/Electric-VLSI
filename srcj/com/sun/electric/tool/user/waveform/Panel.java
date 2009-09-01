@@ -1558,10 +1558,12 @@ public class Panel extends JPanel
 						}
 						lastX = x;   lastLY = lowY; lastHY = highY;
 					}
+                    /*
                     System.out.println("misses="+com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.misses + ", "+
                                        "avg steps="+
                                        (((float)com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.steps)/
                                         com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.numLookups));
+                    */
                     com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.misses=0;
                     com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.steps=0;
                     com.sun.electric.tool.simulation.ScalarSignalSimpleImpl.numLookups=0;
