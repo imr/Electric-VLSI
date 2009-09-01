@@ -23,9 +23,19 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.change.DatabaseChangeEvent;
+import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.cvspm.AddRemove;
 import com.sun.electric.tool.cvspm.CVS;
@@ -54,13 +64,18 @@ import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.dialogs.CrossLibCopy;
+import com.sun.electric.tool.user.dialogs.EModelessDialog;
 import com.sun.electric.tool.user.dialogs.NewCell;
+import com.sun.electric.tool.user.dialogs.SelectObject;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
@@ -71,8 +86,13 @@ import com.sun.electric.tool.user.waveform.WaveformWindow;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.datatransfer.Clipboard;
@@ -93,35 +113,54 @@ import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.PixelGrabber;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.swing.ActionMap;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
+import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.TransferHandler;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.plaf.TreeUI;
@@ -142,6 +181,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
     private TreeHandler handler = null;
 	private final String rootNode;
     private TreePath [] currentSelectedPaths = new TreePath[0];
+    private static FindCellDialog theCellSearchDialog = null;
 
 	private static class IconGroup
 	{
@@ -431,6 +471,166 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
         model().updateContentExplorerNodes(contentNodes);
         kte.restore();
 	}
+
+	/**
+     * Class to handle the "Select Object" dialog.
+     */
+    public static class FindCellDialog extends EModelessDialog
+    {
+    	private JList list;
+    	private DefaultListModel model;
+        private JButton done, findText, editCell;
+        private JScrollPane objectPane;
+        private JTextField searchText;
+
+    	/** Creates new form FindCellDialog */
+    	private FindCellDialog(Frame parent)
+    	{
+    		super(parent, false);
+        	GridBagConstraints gbc;
+            setTitle("Find Cells");
+            setName("");
+            addWindowListener(new WindowAdapter()
+            {
+                public void windowClosing(WindowEvent evt) { closeDialog(); }
+            });
+            getContentPane().setLayout(new GridBagLayout());
+
+            JLabel jLabel1 = new JLabel("Search for:");
+            gbc = new GridBagConstraints();
+            gbc.gridx = 0;   gbc.gridy = 0;
+            gbc.insets = new Insets(4, 4, 4, 4);
+            getContentPane().add(jLabel1, gbc);
+
+            searchText = new JTextField();
+            searchText.setColumns(8);
+            gbc = new GridBagConstraints();
+            gbc.gridx = 1;   gbc.gridy = 0;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.weightx = 1.0;
+            gbc.insets = new Insets(4, 4, 4, 4);
+            getContentPane().add(searchText, gbc);
+
+            findText = new JButton("Find");
+            findText.addActionListener(new ActionListener()
+            {
+                public void actionPerformed(ActionEvent evt) { findTextActionPerformed(evt); }
+            });
+            gbc = new GridBagConstraints();
+            gbc.gridx = 0;   gbc.gridy = 1;
+            gbc.gridwidth = 2;
+            gbc.weightx = 1;
+            gbc.insets = new Insets(4, 4, 4, 4);
+            getContentPane().add(findText, gbc);
+    		getRootPane().setDefaultButton(findText);
+
+            objectPane = new JScrollPane();
+    		model = new DefaultListModel();
+    		list = new JList(model);
+    		objectPane.setViewportView(list);
+            objectPane.setMinimumSize(new Dimension(200, 200));
+            objectPane.setPreferredSize(new Dimension(200, 200));
+            gbc = new GridBagConstraints();
+            gbc.gridx = 0;   gbc.gridy = 2;
+            gbc.gridwidth = 2;
+            gbc.fill = GridBagConstraints.BOTH;
+            gbc.weightx = gbc.weighty = 1.0;
+            gbc.insets = new Insets(4, 4, 4, 4);
+            getContentPane().add(objectPane, gbc);
+            list.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent evt) {
+                    if (evt.getClickCount() == 2) editCell();
+                }
+            });
+
+            editCell = new JButton("Edit Cell");
+            editCell.addActionListener(new ActionListener()
+    		{
+    			public void actionPerformed(ActionEvent evt) { editCell(); }
+    		});
+            gbc = new GridBagConstraints();
+            gbc.gridx = 0;   gbc.gridy = 3;
+            gbc.weightx = 0.5;
+            gbc.insets = new Insets(4, 4, 4, 4);
+            getContentPane().add(editCell, gbc);
+            editCell.setEnabled(false);
+
+    		done = new JButton("Done");
+    		done.addActionListener(new ActionListener()
+    		{
+    			public void actionPerformed(ActionEvent evt) { closeDialog(); }
+    		});
+            gbc = new GridBagConstraints();
+            gbc.gridx = 1;   gbc.gridy = 3;
+            gbc.weightx = 0.5;
+            gbc.insets = new Insets(4, 4, 4, 4);
+            getContentPane().add(done, gbc);
+
+            pack();
+
+    		finishInitialization();
+    		setVisible(true);
+    	}
+
+    	protected void escapePressed() { closeDialog(); }
+
+    	private void findTextActionPerformed(ActionEvent evt)
+    	{
+    		String search = searchText.getText();
+            int flags = Pattern.CASE_INSENSITIVE+Pattern.UNICODE_CASE;
+    		Pattern p = Pattern.compile(search, flags);
+    		model.clear();
+    		boolean found = false;
+            for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+            {
+            	Library lib = it.next();
+            	if (lib.isHidden()) continue;
+            	for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+            	{
+            		Cell cell = cIt.next();
+        		    Matcher m = p.matcher(cell.getName());
+                    if (m.find())
+                    {
+                    	model.addElement(cell.describe(false));
+                    	found = true;
+                    }
+            	}
+            }
+            editCell.setEnabled(found);
+    	}
+
+    	private void editCell()
+    	{
+    		String cellName = (String)list.getSelectedValue();
+    		if (cellName == null) return;
+    		NodeProto np = Cell.findNodeProto(cellName);
+    		if (np == null || !(np instanceof Cell)) return;
+    		Cell cell = (Cell)np;
+    		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+    		{
+    			WindowFrame wf = it.next();
+    			if (wf.getContent() instanceof EditWindow)
+    			{
+    				EditWindow wnd = (EditWindow)wf.getContent();
+    				if (wnd.getCell() == cell)
+    				{
+    					WindowFrame.showFrame(wf);
+    					return;
+    				}
+    			}
+    			if (wf.getContent() instanceof TextWindow)
+    			{
+    				TextWindow tw = (TextWindow)wf.getContent();
+    				if (tw.getCell() == cell)
+    				{
+    					WindowFrame.showFrame(wf);
+    					return;
+    				}
+    			}
+    		}
+			WindowFrame.createEditWindow(cell);
+    	}
+    }
 
 	/**
 	 * Class to remember the expansion state of a JTree and restore it after a change.
@@ -2590,25 +2790,33 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 
         private void searchAction()
         {
-            String name = JOptionPane.showInputDialog(ExplorerTree.this, "Name of cell to search","");
-			if (name == null) return;
-            System.out.println("Search for cells named '" + name + "'");
-            boolean found = false;
-            for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+            if (theCellSearchDialog == null)
             {
-            	Library lib = it.next();
-            	if (lib.isHidden()) continue;
-            	for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-            	{
-            		Cell cell = cIt.next();
-            		if (cell.getName().equalsIgnoreCase(name))
-            		{
-                        System.out.println("\t" + cell.noLibDescribe() + " in Library " + cell.getLibrary().getName());
-                        found = true;
-            		}
-            	}
+                JFrame jf = null;
+                if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+                theCellSearchDialog = new FindCellDialog(jf);
             }
-            if (!found) System.out.println("\t" + "NO CELLS MATCH IN ANY LIBRARIES");
+            theCellSearchDialog.toFront();
+
+//            String name = JOptionPane.showInputDialog(ExplorerTree.this, "Name of cell to search","");
+//			if (name == null) return;
+//            System.out.println("Search for cells named '" + name + "'");
+//            boolean found = false;
+//            for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+//            {
+//            	Library lib = it.next();
+//            	if (lib.isHidden()) continue;
+//            	for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+//            	{
+//            		Cell cell = cIt.next();
+//            		if (cell.getName().equalsIgnoreCase(name))
+//            		{
+//                        System.out.println("\t" + cell.noLibDescribe() + " in Library " + cell.getLibrary().getName());
+//                        found = true;
+//            		}
+//            	}
+//            }
+//            if (!found) System.out.println("\t" + "NO CELLS MATCH IN ANY LIBRARIES");
         }
 
         private void addCVSMenu(JMenu cvsMenu) {

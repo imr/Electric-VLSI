@@ -4,7 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: *******************************
 
-BUG: (9/0/09, SMR) Cannot use delete key in Text windows (Bug #2372).
+IMP/MAN: (9/1/09, SMR) In explorer tree, the context command "Search" under "LIBRARIES"
+     now has a more powerful dialog that does partial searches, shows results in the
+     dialog, and lets the cells be edited (Bug #2322).
+
+BUG: (9/1/09, SMR) Cannot use delete key in Text windows (Bug #2372).
 FIX: Added recognition of TextWindow in KeyBindingManager.processKeyEvent().
 
 IMP: (9/1/09, DN) ImmutableNodeInst.computeBounds doesn't require real NodeInst.

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.EModelessDialog;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.help.ManualViewer;
@@ -418,6 +419,7 @@ public class KeyBindingManager implements KeyEventDispatcher
             if (c instanceof WaveformWindow.OnePanel) { valid = true;   break; }
             if (c instanceof TopLevel) { valid = true;   break; }
         	if (c instanceof EDialog) { lastPrefix = null;  return false; }
+        	if (c instanceof EModelessDialog) { lastPrefix = null;  return false; }
         	if (c instanceof TextWindow.TextWindowPanel) { lastPrefix = null;  return false; }
         	if (c instanceof OpenFile.OpenFileSwing) { lastPrefix = null;  return false; }
             if (c instanceof GetInfoText.EIPEditorPane) { lastPrefix = null;  return false; }
