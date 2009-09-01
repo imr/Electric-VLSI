@@ -82,7 +82,7 @@ public class TextWindow implements WindowContent
 {
 	/** the cell that is in the window */					private Cell cell;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
-	/** the overall panel with disp area and sliders */		private JPanel overall;
+	/** the overall panel with disp area and sliders */		private TextWindowPanel overall;
 	/** true if text in the window is closing. */			private boolean finishing;
 	/** true if text in the window is being reloaded. */	private boolean reloading;
 	private JTextArea textArea;
@@ -102,7 +102,7 @@ public class TextWindow implements WindowContent
 
 		textArea = new JTextArea();
 		scrollPane = new JScrollPane(textArea);
-		overall = new JPanel();
+		overall = new TextWindowPanel();
 		overall.setLayout(new BorderLayout());
 		overall.add(scrollPane, BorderLayout.CENTER);
 
@@ -114,7 +114,15 @@ public class TextWindow implements WindowContent
 		textArea.addFocusListener(twDocumentListener);
 	}
 
-    public void setCursor(Cursor cursor)
+	/**
+	 * This dummy class duplicates JPanel but makes it recognizable as
+	 * the JPanel in a TextWindow.
+	 */
+	public static class TextWindowPanel extends JPanel
+	{
+	}
+
+	public void setCursor(Cursor cursor)
     {
     	// nothing implemented in TextWindow
     }
@@ -209,7 +217,7 @@ public class TextWindow implements WindowContent
 	}
 
 	/**
-	 * Class to handle special changes to changes to design rules.
+	 * Class to handle special changes to changes to the text.
 	 */
 	private static class TextWindowDocumentListener implements DocumentListener, FocusListener
 	{

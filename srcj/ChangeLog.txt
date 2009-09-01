@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: *******************************
 
+BUG: (9/0/09, SMR) Cannot use delete key in Text windows (Bug #2372).
+FIX: Added recognition of TextWindow in KeyBindingManager.processKeyEvent().
+
 IMP: (9/1/09, DN) ImmutableNodeInst.computeBounds doesn't require real NodeInst.
 
 BUG: (8/31/09, SMR) Undo/Redo status is not updated during text editing (Bug #2361).

@@ -30,6 +30,7 @@ import com.sun.electric.tool.user.help.ManualViewer;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
+import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -417,6 +418,7 @@ public class KeyBindingManager implements KeyEventDispatcher
             if (c instanceof WaveformWindow.OnePanel) { valid = true;   break; }
             if (c instanceof TopLevel) { valid = true;   break; }
         	if (c instanceof EDialog) { lastPrefix = null;  return false; }
+        	if (c instanceof TextWindow.TextWindowPanel) { lastPrefix = null;  return false; }
         	if (c instanceof OpenFile.OpenFileSwing) { lastPrefix = null;  return false; }
             if (c instanceof GetInfoText.EIPEditorPane) { lastPrefix = null;  return false; }
             if (c instanceof GetInfoText.EIPTextField) { lastPrefix = null;  return false; }
