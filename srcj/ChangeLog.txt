@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: *******************************
 
+IMP: (9/1/09, DN) ImmutableNodeInst.computeBounds doesn't require real NodeInst.
+
 BUG: (8/31/09, SMR) Undo/Redo status is not updated during text editing (Bug #2361).
 FIX: In TextWindow.updateUndoRedo(), call showUndoRedoStatus() and
      In Undo.updateUndoRedo(), do not call showUndoRedoStatus() if in a text cell.

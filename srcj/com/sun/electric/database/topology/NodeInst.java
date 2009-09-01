@@ -57,6 +57,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveNodeSize;
 import com.sun.electric.technology.PrimitivePort;
@@ -1394,7 +1395,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			Rectangle2D bounds = subCell.getBounds();
             d.orient.rectangleBounds(bounds.getMinX(), bounds.getMinY(), bounds.getMaxX(), bounds.getMaxY(), d.anchor.getX(), d.anchor.getY(), visBounds);
 		} else {
-            d.computeBounds(this, visBounds);
+            BoundsBuilder b = new BoundsBuilder(getCellBackupUnsafe());
+            d.computeBounds(b, visBounds);
         }
         if ((oldX != visBounds.x || oldY != visBounds.y || oldWidth != visBounds.width || oldHeight != visBounds.height) &&
                 parent != null) {
@@ -3397,7 +3399,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 Rectangle2D bounds = subCell.getBounds();
                 d.orient.rectangleBounds(bounds.getMinX(), bounds.getMinY(), bounds.getMaxX(), bounds.getMaxY(), d.anchor.getX(), d.anchor.getY(),chkBounds);
             } else {
-                d.computeBounds(this, chkBounds);
+                BoundsBuilder b = new BoundsBuilder(getCellBackupUnsafe());
+                d.computeBounds(b, chkBounds);
             }
             assert chkBounds.equals(visBounds);
         }

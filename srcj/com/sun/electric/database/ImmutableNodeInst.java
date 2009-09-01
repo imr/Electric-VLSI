@@ -856,119 +856,130 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      */
     public static int techSpecificFromElib(int elibBits) { return (elibBits & NTECHBITS) >> NTECHBITSSH; }
 
-    public void computeBounds(NodeInst real, Rectangle2D.Double dstBounds) {
-        computeBounds0(real, dstBounds);
-        if (Job.getDebug()) {
-            BoundsBuilder b = new BoundsBuilder(real.getCellBackupUnsafe());
-            int[] bounds = new int[4];
-            PrimitiveNode pn = (PrimitiveNode)real.getProto();
-            boolean easy = false;
-            Rectangle2D.Double bnd2 = new Rectangle2D.Double();
-            if (b.genBoundsEasy(this, bounds)) {
-                easy = true;
-                bnd2.setFrame(DBMath.gridToLambda(bounds[0]), DBMath.gridToLambda(bounds[1]),
-                        DBMath.gridToLambda(bounds[2]-bounds[0]), DBMath.gridToLambda(bounds[3]-bounds[1]));
-            } else {
-                b.genShapeOfNode(this);
-                b.makeBounds(anchor, bnd2);
-            }
-            Rectangle2D.Double bnd1 = new Rectangle2D.Double();
-            long xl = DBMath.floorLong(DBMath.roundShapeCoord(dstBounds.getMinX()*DBMath.GRID));
-            long xh = DBMath.ceilLong(DBMath.roundShapeCoord(dstBounds.getMaxX()*DBMath.GRID));
-            long yl = DBMath.floorLong(DBMath.roundShapeCoord(dstBounds.getMinY()*DBMath.GRID));
-            long yh = DBMath.ceilLong(DBMath.roundShapeCoord(dstBounds.getMaxY()*DBMath.GRID));
-            bnd1.setRect(DBMath.gridToLambda(xl), DBMath.gridToLambda(yl), DBMath.gridToLambda(xh-xl), DBMath.gridToLambda(yh-yl));
-            if (!bnd1.equals(bnd2) && pn != Artwork.tech().circleNode && pn != Artwork.tech().thickCircleNode) {
-                System.out.println("computeBounds"+easy+": "+pn+" "+dstBounds+" "+bnd1+" "+bnd2);
-                computeBounds0(real, dstBounds);
-                b.clear();
-                b.genShapeOfNode(this);
-                b.makeBounds();
-            }
+    public void computeBounds(BoundsBuilder b, Rectangle2D.Double dstBounds) {
+        int[] bounds = new int[4];
+        if (b.genBoundsEasy(this, bounds)) {
+            dstBounds.setFrame(DBMath.gridToLambda(bounds[0]), DBMath.gridToLambda(bounds[1]),
+                    DBMath.gridToLambda(bounds[2]-bounds[0]), DBMath.gridToLambda(bounds[3]-bounds[1]));
+        } else {
+            b.genShapeOfNode(this);
+            b.makeBounds(anchor, dstBounds);
         }
     }
 
-    public void computeBounds0(NodeInst real, Rectangle2D.Double dstBounds)
-	{
-        CellBackup.Memoization m = real.getCellBackupUnsafe().getMemoization();
-
-		// if zero size, set the bounds directly
-		PrimitiveNode pn = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)protoId);
-        ERectangle full = pn.getFullRectangle();
-        long gridWidth = size.getGridX() + full.getGridWidth();
-        long gridHeight = size.getGridY() + full.getGridHeight();
-		if (gridWidth == 0 && gridHeight == 0)
-		{
-			dstBounds.setRect(anchor.getX(), anchor.getY(), 0, 0);
-            return;
-		}
-        double lambdaWidth = DBMath.gridToLambda(gridWidth);
-        double lambdaHeight = DBMath.gridToLambda(gridHeight);
-
-
-		// special case for arcs of circles
-		if (pn == Artwork.tech().circleNode || pn == Artwork.tech().thickCircleNode)
-		{
-			// see if this circle is only a partial one
-			double [] angles = getArcDegrees();
-			if (angles[0] != 0.0 || angles[1] != 0.0)
-			{
-				Point2D [] pointList = Artwork.fillEllipse(anchor, lambdaWidth, lambdaHeight, angles[0], angles[1]);
-				Poly poly = new Poly(pointList);
-				poly.setStyle(Poly.Type.OPENED);
-				poly.transform(orient.rotateAbout(anchor.getX(), anchor.getY()));
-				dstBounds.setRect(poly.getBounds2D());
-                return;
-			}
-		}
-
-        // schematic bus pins are so complex that only the technology knows their true size
-        if (pn == Schematics.tech().busPinNode)
-        {
-            Poly [] polys = Schematics.tech().getShapeOfNode(real);
-            if (polys.length > 0)
-            {
-                Rectangle2D bounds = polys[0].getBounds2D();
-                dstBounds.setRect(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
-            } else {
-                dstBounds.setRect(anchor.getX(), anchor.getY(), 0, 0);
-            }
-            return;
-        }
-
-		// special case for pins that become steiner points
-		if (pn.isWipeOn1or2())
-		{
-			if (!m.hasExports(this) && m.pinUseCount(this))
-//			if (real.getNumExports() == 0 && real.pinUseCount())
-			{
-				dstBounds.setRect(anchor.getX(), anchor.getY(), 0, 0);
-                return;
-			}
-		}
-
-		// special case for polygonally-defined nodes: compute precise geometry
-		if (pn.isHoldsOutline() && getTrace() != null)
-		{
-			AffineTransform trans = orient.rotateAbout(anchor.getX(), anchor.getY());
-			Poly[] polys = pn.getTechnology().getShapeOfNode(real);
-			for (int i = 0; i < polys.length; i++)
-			{
-				Poly poly = polys[i];
-				poly.transform(trans);
-				if (i == 0)
-					dstBounds.setRect(poly.getBounds2D());
-				else
-					Rectangle2D.union(poly.getBounds2D(), dstBounds, dstBounds);
-			}
-			return;
-		}
-
-		// normal bounds computation
-        double halfWidth = lambdaWidth*0.5;
-        double halfHeight = lambdaHeight*0.5;
-        orient.rectangleBounds(-halfWidth, -halfHeight, halfWidth, halfHeight, anchor.getX(), anchor.getY(), dstBounds);
-	}
+//    public void computeBounds(NodeInst real, Rectangle2D.Double dstBounds) {
+//        computeBounds0(real, dstBounds);
+//        if (Job.getDebug()) {
+//            BoundsBuilder b = new BoundsBuilder(real.getCellBackupUnsafe());
+//            int[] bounds = new int[4];
+//            PrimitiveNode pn = (PrimitiveNode)real.getProto();
+//            boolean easy = false;
+//            Rectangle2D.Double bnd2 = new Rectangle2D.Double();
+//            if (b.genBoundsEasy(this, bounds)) {
+//                easy = true;
+//                bnd2.setFrame(DBMath.gridToLambda(bounds[0]), DBMath.gridToLambda(bounds[1]),
+//                        DBMath.gridToLambda(bounds[2]-bounds[0]), DBMath.gridToLambda(bounds[3]-bounds[1]));
+//            } else {
+//                b.genShapeOfNode(this);
+//                b.makeBounds(anchor, bnd2);
+//            }
+//            Rectangle2D.Double bnd1 = new Rectangle2D.Double();
+//            long xl = DBMath.floorLong(DBMath.roundShapeCoord(dstBounds.getMinX()*DBMath.GRID));
+//            long xh = DBMath.ceilLong(DBMath.roundShapeCoord(dstBounds.getMaxX()*DBMath.GRID));
+//            long yl = DBMath.floorLong(DBMath.roundShapeCoord(dstBounds.getMinY()*DBMath.GRID));
+//            long yh = DBMath.ceilLong(DBMath.roundShapeCoord(dstBounds.getMaxY()*DBMath.GRID));
+//            bnd1.setRect(DBMath.gridToLambda(xl), DBMath.gridToLambda(yl), DBMath.gridToLambda(xh-xl), DBMath.gridToLambda(yh-yl));
+//            if (!bnd1.equals(bnd2) && pn != Artwork.tech().circleNode && pn != Artwork.tech().thickCircleNode) {
+//                System.out.println("computeBounds"+easy+": "+pn+" "+dstBounds+" "+bnd1+" "+bnd2);
+//                computeBounds0(real, dstBounds);
+//                b.clear();
+//                b.genShapeOfNode(this);
+//                b.makeBounds();
+//            }
+//        }
+//    }
+//
+//    public void computeBounds0(NodeInst real, Rectangle2D.Double dstBounds)
+//	{
+//        CellBackup.Memoization m = real.getCellBackupUnsafe().getMemoization();
+//
+//		// if zero size, set the bounds directly
+//		PrimitiveNode pn = m.getTechPool().getPrimitiveNode((PrimitiveNodeId)protoId);
+//        ERectangle full = pn.getFullRectangle();
+//        long gridWidth = size.getGridX() + full.getGridWidth();
+//        long gridHeight = size.getGridY() + full.getGridHeight();
+//		if (gridWidth == 0 && gridHeight == 0)
+//		{
+//			dstBounds.setRect(anchor.getX(), anchor.getY(), 0, 0);
+//            return;
+//		}
+//        double lambdaWidth = DBMath.gridToLambda(gridWidth);
+//        double lambdaHeight = DBMath.gridToLambda(gridHeight);
+//
+//
+//		// special case for arcs of circles
+//		if (pn == Artwork.tech().circleNode || pn == Artwork.tech().thickCircleNode)
+//		{
+//			// see if this circle is only a partial one
+//			double [] angles = getArcDegrees();
+//			if (angles[0] != 0.0 || angles[1] != 0.0)
+//			{
+//				Point2D [] pointList = Artwork.fillEllipse(anchor, lambdaWidth, lambdaHeight, angles[0], angles[1]);
+//				Poly poly = new Poly(pointList);
+//				poly.setStyle(Poly.Type.OPENED);
+//				poly.transform(orient.rotateAbout(anchor.getX(), anchor.getY()));
+//				dstBounds.setRect(poly.getBounds2D());
+//                return;
+//			}
+//		}
+//
+//        // schematic bus pins are so complex that only the technology knows their true size
+//        if (pn == Schematics.tech().busPinNode)
+//        {
+//            Poly [] polys = Schematics.tech().getShapeOfNode(real);
+//            if (polys.length > 0)
+//            {
+//                Rectangle2D bounds = polys[0].getBounds2D();
+//                dstBounds.setRect(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
+//            } else {
+//                dstBounds.setRect(anchor.getX(), anchor.getY(), 0, 0);
+//            }
+//            return;
+//        }
+//
+//		// special case for pins that become steiner points
+//		if (pn.isWipeOn1or2())
+//		{
+//			if (!m.hasExports(this) && m.pinUseCount(this))
+////			if (real.getNumExports() == 0 && real.pinUseCount())
+//			{
+//				dstBounds.setRect(anchor.getX(), anchor.getY(), 0, 0);
+//                return;
+//			}
+//		}
+//
+//		// special case for polygonally-defined nodes: compute precise geometry
+//		if (pn.isHoldsOutline() && getTrace() != null)
+//		{
+//			AffineTransform trans = orient.rotateAbout(anchor.getX(), anchor.getY());
+//			Poly[] polys = pn.getTechnology().getShapeOfNode(real);
+//			for (int i = 0; i < polys.length; i++)
+//			{
+//				Poly poly = polys[i];
+//				poly.transform(trans);
+//				if (i == 0)
+//					dstBounds.setRect(poly.getBounds2D());
+//				else
+//					Rectangle2D.union(poly.getBounds2D(), dstBounds, dstBounds);
+//			}
+//			return;
+//		}
+//
+//		// normal bounds computation
+//        double halfWidth = lambdaWidth*0.5;
+//        double halfHeight = lambdaHeight*0.5;
+//        orient.rectangleBounds(-halfWidth, -halfHeight, halfWidth, halfHeight, anchor.getX(), anchor.getY(), dstBounds);
+//	}
 
     /**
 	 * Method to return the "outline" information on this ImmutableNodeInst.

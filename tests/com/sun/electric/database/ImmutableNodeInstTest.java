@@ -574,7 +574,7 @@ public class ImmutableNodeInstTest
         Rectangle2D.Double dstBounds = null;
         ImmutableNodeInst instance = null;
 
-        instance.computeBounds(real, dstBounds);
+        instance.computeBounds(null, dstBounds);
 
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
