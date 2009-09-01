@@ -33,12 +33,18 @@ IMP: (8/30/09, AM) Add a menu item to Window->WaveformWindow for each
 
 IMP/MAN: (8/30/09, AM) Add Edit->Move->Recenter Cell on Selection.
 
+BUG: (8/28/09, JKG) Stitch fill generator not keeping arc extension (Bug #2364)
+FIX: InterativeRouter modified.
+
 BUG: (8/28/09, AM) Pulsing error highlighting doesn't work on
      resolution/size DRC errors (Bug #2350).
 FIX: In ErrorLogger, ensure that all error markers are logged with "thick" lines.
 
 BUG: (8/28/09, DN) Arrray exception in stitch generator if cell is instantiated (Bug #2360)
 FIX: In StitchFillJob.generateFill reload netlist after database modifications.
+
+BUG: (8/27/09, JKG) Stitch fill generator connecting subcells with wrong arc (Bug #2362)
+FIX: In InterativeRouter, Special contact code earlier so it would not be skipped in this case.
 
 BUG: (8/27/09, DN) Pixel drawing algorithm not displaying LE result (Bug #2359)
 FIX: In PixelDrawing.drawNode replace "varContext.pop();" by "varContext = varContext.pop();".
