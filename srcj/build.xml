@@ -32,6 +32,7 @@
         <property name="lucene" value="packaging/lucene-1.4.3.jar"/>
         <property name="prefuse" value="packaging/prefuse.jar"/>
         <property name="jdbm" value="packaging/jdbm-sourceforge-svn-r36.jar"/>
+        <property name="jdbm" value="packaging/jython.jar"/>
     </target>
 
     <!-- Patternset for 3D dependencies -->
