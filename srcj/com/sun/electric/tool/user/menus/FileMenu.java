@@ -130,10 +130,11 @@ import javax.swing.SwingUtilities;
  */
 public class FileMenu {
 
-    public static final EMenu openRecentLibs = new EMenu("Open Recent Library", new ArrayList<EMenuItem>());
+    private static EMenu openRecentLibs;
     public static final String openJobName = "Read External Library";
 
     static EMenu makeMenu() {
+        openRecentLibs = new EMenu("Open Recent Library", new ArrayList<EMenuItem>());
 		/****************************** THE FILE MENU ******************************/
 
 		// mnemonic keys available:    D               T  WXYZ

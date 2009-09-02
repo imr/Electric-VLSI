@@ -45,7 +45,7 @@ import javax.swing.KeyStroke;
 public abstract class EMenuItem implements ActionListener {
 
     public static final EMenuItem[] NULL_ARRAY = {};
-    private static final int buckyBit = Main.isBatch() ? 0 : Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+    private static final int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
     /**
      * A constant to represent separator in menus.
