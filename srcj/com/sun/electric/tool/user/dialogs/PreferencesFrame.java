@@ -70,6 +70,7 @@ import com.sun.electric.tool.user.dialogs.options.NetworkTab;
 import com.sun.electric.tool.user.dialogs.options.NewArcsTab;
 import com.sun.electric.tool.user.dialogs.options.NewNodesTab;
 import com.sun.electric.tool.user.dialogs.options.ParasiticTab;
+import com.sun.electric.tool.user.dialogs.options.PlacementTab;
 import com.sun.electric.tool.user.dialogs.options.PortsAndExportsTab;
 import com.sun.electric.tool.user.dialogs.options.PreferencePanel;
 import com.sun.electric.tool.user.dialogs.options.PrintingTab;
@@ -289,6 +290,7 @@ public class PreferencesFrame extends EDialog
 		}
 		addTreeNode(new NetworkTab(this, true), toolSet);
 		addTreeNode(new ParasiticTab(this, true), toolSet);
+		addTreeNode(new PlacementTab(parent, true), toolSet);
 		addTreeNode(new RoutingTab(parent, true), toolSet);
 		addTreeNode(new SiliconCompilerTab(parent, true), toolSet);
 		addTreeNode(new SimulatorsTab(parent, true), toolSet);

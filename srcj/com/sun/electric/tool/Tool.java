@@ -33,6 +33,7 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.logicaleffort.LETool;
+import com.sun.electric.tool.placement.Placement;
 import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.sc.SilComp;
@@ -134,6 +135,7 @@ public class Tool implements Comparable
         LETool.getLETool().init();
 		NetworkTool.getNetworkTool().init();
         ParasiticTool.getParasiticTool().init();
+//		Placement.getPlacementTool().init();
         Project.getProjectTool().init();
         Routing.getRoutingTool().init();
         SilComp.getSilCompTool().init();
