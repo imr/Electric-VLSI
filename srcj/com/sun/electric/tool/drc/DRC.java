@@ -2161,7 +2161,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                 try {doIt();} catch (Exception e) {e.printStackTrace();}
             }
             else // put it into the queue
-			    startJob();
+			    startJobOnMyResult();
 		}
 
         /**
