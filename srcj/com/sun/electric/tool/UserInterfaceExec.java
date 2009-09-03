@@ -36,7 +36,10 @@ import com.sun.electric.tool.user.ErrorLogger;
  * User Interface for Exec threads
  */
 public class UserInterfaceExec implements UserInterface {
-    private Job.Key jobKey;
+    private Job.Key jobKey = Job.getUserInterface().getJobKey();
+
+    public UserInterfaceExec() {
+    }
 
     /**
      * Method to return Job Key of a currently executed Job.

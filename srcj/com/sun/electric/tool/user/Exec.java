@@ -24,14 +24,8 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.Environment;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.topology.Geometric;
-import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.UserInterfaceExec;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -144,7 +138,7 @@ public class Exec extends Thread {
     private final String [] envVars;
     private final File dir;                       // working directory
     private final Environment launcherEnvironment;
-    private final ExecUserInterface userInterface;
+    private final UserInterfaceExec userInterface;
     private final OutputStream outStreamRedir;    // output of process redirected to this stream
     private final OutputStream errStreamRedir;    // error messages of process redirected to this stream
     private PrintWriter processWriter;      // connect to input of process
@@ -173,7 +167,7 @@ public class Exec extends Thread {
         this.envVars = envVars;
         this.dir = dir;
         launcherEnvironment = Environment.getThreadEnvironment();
-        userInterface = new ExecUserInterface();
+        userInterface = new UserInterfaceExec();
         this.outStreamRedir = outStreamRedir;
         this.errStreamRedir = errStreamRedir;
         this.processWriter = null;
@@ -197,7 +191,7 @@ public class Exec extends Thread {
         this.envVars = envVars;
         this.dir = dir;
         launcherEnvironment = Environment.getThreadEnvironment();
-        userInterface = new ExecUserInterface();
+        userInterface = new UserInterfaceExec();
         this.outStreamRedir = outStreamRedir;
         this.errStreamRedir = errStreamRedir;
         this.processWriter = null;
@@ -284,36 +278,6 @@ public class Exec extends Thread {
         } catch (Exception e) {
             ActivityLogger.logException(e);
         }
-    }
-
-    private static class ExecUserInterface implements UserInterface {
-        public Job.Key getJobKey() { throw new UnsupportedOperationException(); }
-        public EDatabase getDatabase() { throw new UnsupportedOperationException(); }
-        public Technology getCurrentTechnology() { throw new UnsupportedOperationException(); }
-        public Library getCurrentLibrary() { throw new UnsupportedOperationException(); }
-        public EditWindow_ getCurrentEditWindow_() { throw new UnsupportedOperationException(); }
-        public EditWindow_ needCurrentEditWindow_() { throw new UnsupportedOperationException(); }
-        public Cell getCurrentCell() { return null; }
-        public Cell needCurrentCell() { throw new UnsupportedOperationException(); }
-        public void adjustReferencePoint(Cell cell, double cX, double cY) { throw new UnsupportedOperationException(); }
-        public void repaintAllWindows() { throw new UnsupportedOperationException(); }
-        public int getDefaultTextSize() { throw new UnsupportedOperationException(); }
-        public EditWindow_ displayCell(Cell cell) { throw new UnsupportedOperationException(); }
-        public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate) { throw new UnsupportedOperationException(); }
-        public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric[] gPair, int position) { throw new UnsupportedOperationException(); }
-        public void showErrorMessage(String message, String title) { throw new UnsupportedOperationException(); }
-        public void showInformationMessage(String message, String title) { throw new UnsupportedOperationException(); }
-        public void printMessage(String message, boolean newLine) { throw new UnsupportedOperationException(); }
-        public void saveMessages(String filePath) { throw new UnsupportedOperationException(); }
-        public void beep() { throw new UnsupportedOperationException(); }
-        public boolean confirmMessage(Object message) { throw new UnsupportedOperationException(); }
-        public int askForChoice(String message, String title, String [] choices, String defaultChoice) { throw new UnsupportedOperationException(); }
-        public String askForInput(Object message, String title, String def) { throw new UnsupportedOperationException(); }
-        public void startProgressDialog(String msg, String filePath) { throw new UnsupportedOperationException(); }
-        public void stopProgressDialog() { throw new UnsupportedOperationException(); }
-        public void setProgressValue(int pct) { throw new UnsupportedOperationException(); }
-        public void setProgressNote(String message) { throw new UnsupportedOperationException(); }
-        public String getProgressNote() { throw new UnsupportedOperationException(); }
     }
 
     /**
