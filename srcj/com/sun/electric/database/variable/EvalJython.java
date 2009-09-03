@@ -96,6 +96,7 @@ public class EvalJython
 			return;
 		} catch (Exception e)
 		{
+            e.printStackTrace();
             Throwable ourCause = e.getCause();
             if (ourCause != null)
             	System.out.println("Jython: "+ourCause); else

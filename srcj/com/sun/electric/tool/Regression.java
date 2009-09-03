@@ -88,6 +88,9 @@ public class Regression {
             int protocolVersion = reader.readInt();
             if (protocolVersion != Job.PROTOCOL_VERSION) {
                 System.out.println("Client's protocol version " + Job.PROTOCOL_VERSION + " is incompatible with Server's protocol version " + protocolVersion);
+//                for (int i = 0; i < 100; i++)
+//                    System.out.print((char)reader.readByte());
+//                System.out.println();
                 System.exit(1);
             }
             int connectionId = reader.readInt();

@@ -32,7 +32,7 @@
         <property name="lucene" value="packaging/lucene-1.4.3.jar"/>
         <property name="prefuse" value="packaging/prefuse.jar"/>
         <property name="jdbm" value="packaging/jdbm-sourceforge-svn-r36.jar"/>
-        <property name="jdbm" value="packaging/jython.jar"/>
+        <property name="jython" value="packaging/jython.jar"/>
     </target>
 
     <!-- Patternset for 3D dependencies -->
@@ -85,6 +85,11 @@
     <!-- Path for JDBM -->
     <path id="jdbmClassPath">
         <pathelement location="packaging/jdbm-sourceforge-svn-r36.jar"/>
+    </path>
+
+    <!-- Path for Jython -->
+    <path id="jythonClassPath">
+        <pathelement location="packaging/jython.jar"/>
     </path>
 
 	<!-- Use -DGNU=1 to build the GNU release -->
@@ -198,10 +203,16 @@
     <!-- Delete jar files in packages -->
      <target name="deleteExternalJars" description="Delete extracted Jar files to cleanup after build">
         <delete dir="bsh"/>   <!-- beanshell -->
-        <delete dir="org"/>   <!-- lucene -->
+        <delete dir="org"/>   <!-- lucene, jython-->
         <delete dir="jdbm"/>  <!-- jdbm -->
         <delete dir="prefuse"/>
         <delete dir="com/apple"/>
+	<delete dir="com/xhaus"/> <!--jython -->
+	<delete dir="com/ziclix"/> <!--jython -->
+	<delete dir="javatests"/> <!--jython -->
+	<delete dir="jline"/> <!--jython -->
+	<delete dir="com/sun/jna"/> <!--jython -->
+	<delete dir="Lib"/> <!--jython -->
         <delete dir="junit"/>
         <delete dir="junit4.0"/>
         <delete dir="junit4.1"/>
@@ -213,6 +224,7 @@
         <unjar dest="." src="${beanshell}"/>
         <unjar dest="." src="${lucene}"/>
         <unjar dest="." src="${jdbm}"/>
+        <!--unjar dest="." src="${jython}"/-->
         <unjar dest="." src="${prefuse}"/>
     </target>
 
