@@ -289,6 +289,8 @@ public class ToolSettings extends AbstractToolSettings {
 
     { tool("parasiticTool", "tool/extract"); }
 
+    { tool("placementTool", "tool/placement"); }
+
     { tool("projectTool", "tool/project"); }
 
     { tool("routingTool", "tool/routing"); }

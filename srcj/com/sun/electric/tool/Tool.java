@@ -135,7 +135,7 @@ public class Tool implements Comparable
         LETool.getLETool().init();
 		NetworkTool.getNetworkTool().init();
         ParasiticTool.getParasiticTool().init();
-//		Placement.getPlacementTool().init();
+		Placement.getPlacementTool().init();
         Project.getProjectTool().init();
         Routing.getRoutingTool().init();
         SilComp.getSilCompTool().init();
