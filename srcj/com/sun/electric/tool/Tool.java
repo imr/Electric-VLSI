@@ -119,10 +119,11 @@ public class Tool implements Comparable
 	}
 
 	/**
-	 * This is called once, at the start of Electric, to initialize the Tools.
+	 * Method called once, at the start of Electric, to initialize the Tools.
 	 * Because of Java's "lazy evaluation", the only way to force the Tool constructors to fire
 	 * and build a proper list of Tools, each class must somehow be referenced.
-	 * So, each Tool is listed here.  If a new Tool is created, this must be updated.
+	 * So, each Tool is listed here.  If a new Tool is created, this method must be updated.
+	 * New tools should also be added to com.sun.electric.tool.ToolSettings.java
 	 */
 	public static void initAllTools()
 	{

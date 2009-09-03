@@ -25,13 +25,25 @@ package com.sun.electric.tool.placement;
 
 import java.util.List;
 
+/**
+ * Simple Placement algorithm to arbitrarily assign locations in a square grid.
+ */
 public class PlacementSimple extends PlacementFrame
 {
 	private static final int SPACING = 5;
 
+	/**
+	 * Method to return the name of this placement algorithm.
+	 * @return the name of this placement algorithm.
+	 */
 	public String getAlgorithmName() { return "Simple"; }
 
-	void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks)
+	/**
+	 * Method to do Simple Placement.
+	 * @param nodesToPlace a list of all nodes that are to be placed.
+	 * @param allNetworks a list of all networks that connect the nodes.
+	 */
+	protected void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks)
 	{
 		int numRows = (int)Math.round(Math.sqrt(nodesToPlace.size()));
 		double xPos = 0, yPos = 0;

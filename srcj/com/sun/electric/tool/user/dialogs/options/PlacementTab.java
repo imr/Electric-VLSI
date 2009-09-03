@@ -52,7 +52,7 @@ public class PlacementTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		List<PlacementFrame> algorithms = PlacementFrame.getPlacementAlgorithms();
+		PlacementFrame [] algorithms = PlacementFrame.getPlacementAlgorithms();
 		for(PlacementFrame an : algorithms)
 			placementAlgorithm.addItem(an.getAlgorithmName());
 		placementAlgorithm.setSelectedItem(Placement.getAlgorithmName());

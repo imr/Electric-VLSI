@@ -46,22 +46,67 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Class to define a framework for Placement algorithms.
+ * To make Placement algorithms easier to write, all Placement algorithms must extend this class.
+ * The Placement algorithm then defines two methods:
+ *
+ *    public String getAlgorithmName()
+ *       returns the name of the Placement algorithm
+ *
+ *    void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks)
+ *       runs the placement on the "nodesToPlace", calling each PlacementNode's "setPlacement()"
+ *       and "setOrientation()" methods to establish the proper placement.
+ *
+ * To avoid the complexities of the Electric database, three shadow-classes are defined that
+ * describe the necessary information that Placement algorithms want:
+ *
+ * PlacementNode is an actual node (primitive or cell instance) that is to be placed.
+ * PlacementPort is the connection site on the PlacementNode.
+ *    Each PlacementNode has a list of zero or more PlacementPort objects,
+ *    and each PlacementPort points to its "parent" PlacementNode.
+ * PlacementNetwork determines which PlacementPort objects will connect together.
+ *    Each PlacementNetwork has a list of two or more PlacementPort objects that it connects,
+ *    and each PlacementPort has a PlacementNetwork in which it resides.
+ */
 public class PlacementFrame
 {
-	private static List<PlacementFrame> placementAlgorithms = new ArrayList<PlacementFrame>();
+	/**
+	 * Static list of all Placement algorithms.
+	 * When you create a new algorithm, add it to the following list.
+	 */
+	private static PlacementFrame [] placementAlgorithms = {
+		new PlacementMinCut(),
+		new PlacementSimple()
+	};
 
-	static
-	{
-		placementAlgorithms.add(new PlacementMinCut());
-		placementAlgorithms.add(new PlacementSimple());
-	}
+	/**
+	 * Method to return a list of all Placement algorithms.
+	 * @return a list of all Placement algorithms.
+	 */
+	public static PlacementFrame [] getPlacementAlgorithms() { return placementAlgorithms; }
 
-	public static List<PlacementFrame> getPlacementAlgorithms() { return placementAlgorithms; }
+	/**
+	 * Method to do Placement (overridden by actual Placement algorithms).
+	 * @param nodesToPlace a list of all nodes that are to be placed.
+	 * @param allNetworks a list of all networks that connect the nodes.
+	 */
+	protected void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks) {}
 
-	void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks) {}
-
+	/**
+	 * Method to return the name of the placement algorithm (overridden by actual Placement algorithms).
+	 * @return the name of the placement algorithm.
+	 */
 	public String getAlgorithmName() { return "?"; }
 
+	/**
+	 * Class to define a node that is being placed.
+	 * This is a shadow class for the internal Electric object "NodeInst".
+	 * There are subtle differences between this object and the NodeInst,
+	 * for example, this node is presumed to be centered in the middle, with
+	 * port offsets based on that center, whereas the NodeInst has a cell-center
+	 * that may not be in the middle.
+	 */
 	protected static class PlacementNode
 	{
 		private NodeProto proto;
@@ -71,6 +116,14 @@ public class PlacementFrame
 		private double xPos, yPos;
 		private Orientation orient;
 
+		/**
+		 * Method to create a PlacementNode object.
+		 * @param np the Electric NodeProto of this PlacementNode.
+		 * @param ts technology-specific bits to customize this PlacementNode (when placing schematic primitives).
+		 * @param w the width of this PlacementNode.
+		 * @param h the height of this PlacementNode.
+		 * @param pl a list of PlacementPort on the PlacementNode, indicating connection locations.
+		 */
 		PlacementNode(NodeProto np, int ts, double w, double h, List<PlacementPort> pl)
 		{
 			proto = np;
@@ -80,18 +133,50 @@ public class PlacementFrame
 			ports = pl;
 		}
 
+		/**
+		 * Method to return a list of PlacementPorts on this PlacementNode.
+		 * @return a list of PlacementPorts on this PlacementNode.
+		 */
 		List<PlacementPort> getPorts() { return ports; }
 
+		/**
+		 * Method to return the width of this PlacementNode.
+		 * @return the width of this PlacementNode.
+		 */
 		double getWidth() { return width; }
 
+		/**
+		 * Method to return the height of this PlacementNode.
+		 * @return the height of this PlacementNode.
+		 */
 		double getHeight() { return height; }
 
+		/**
+		 * Method to return the prototype of this PlacementNode.
+		 * @return the prototype of this PlacementNode.
+		 */
 		NodeProto getProto() { return proto; }
 
+		/**
+		 * Method to return the technology-specific bits of this PlacementNode.
+		 * Technology-specific bits customize certain primitive nodes, such as Schematic elements.
+		 * @return the technology-specific bits of this PlacementNode.
+		 */
 		int getTechSpecific() { return techSpecific; }
 
+		/**
+		 * Method to set the location of this PlacementNode.
+		 * The Placement algorithm must call this method to set the final location of the PlacementNode.
+		 * @param x the X-coordinate of the center of this PlacementNode.
+		 * @param y the Y-coordinate of the center of this PlacementNode.
+		 */
 		void setPlacement(double x, double y) { xPos = x;   yPos = y; }
 
+		/**
+		 * Method to set the orientation (rotation and mirroring) of this PlacementNode.
+		 * The Placement algorithm may call this method to set the final orientation of the PlacementNode.
+		 * @param o the Orientation of this PlacementNode.
+		 */
 		void setOrientation(Orientation o)
 		{
 			orient = o;
@@ -99,13 +184,34 @@ public class PlacementFrame
 				plPort.computeRotatedOffset();
 		}
 
+		/**
+		 * Method to return the X-coordinate of the placed location of this PlacementNode.
+		 * This is the location that the Placement algorithm has established for this PlacementNode.
+		 * @return the X-coordinate of the placed location of this PlacementNode.
+		 */
 		double getPlacementX() { return xPos; }
 
+		/**
+		 * Method to return the Y-coordinate of the placed location of this PlacementNode.
+		 * This is the location that the Placement algorithm has established for this PlacementNode.
+		 * @return the Y-coordinate of the placed location of this PlacementNode.
+		 */
 		double getPlacementY() { return yPos; }
 
+		/**
+		 * Method to return the Orientation of this PlacementNode.
+		 * This is the Orientation that the Placement algorithm has established for this PlacementNode.
+		 * @return the Orientation of this PlacementNode.
+		 */
 		Orientation getPlacementOrientation() { return orient; }
+
+		public String toString() { return proto.describe(false); }
 	}
 
+	/**
+	 * Class to define ports on PlacementNode objects.
+	 * This is a shadow class for the internal Electric object "PortInst".
+	 */
 	protected static class PlacementPort
 	{
 		private double offX, offY;
@@ -114,31 +220,81 @@ public class PlacementFrame
 		private PlacementNetwork plNet;
 		private PortProto proto;
 
+		/**
+		 * Constructor to create a PlacementPort.
+		 * @param x the X offset of this PlacementPort from the center of its PlacementNode.
+		 * @param y the Y offset of this PlacementPort from the center of its PlacementNode.
+		 * @param pp the Electric PortProto of this PlacementPort.
+		 */
 		PlacementPort(double x, double y, PortProto pp)
 		{
 			offX = x;   offY = y;
 			proto = pp;
 		}
 
+		/**
+		 * Method to set the "parent" PlacementNode on which this PlacementPort resides.
+		 * @param pn the PlacementNode on which this PlacementPort resides.
+		 */
 		void setPlacementNode(PlacementNode pn) { plNode = pn; }
 
+		/**
+		 * Method to return the PlacementNode on which this PlacementPort resides.
+		 * @return the PlacementNode on which this PlacementPort resides.
+		 */
 		PlacementNode getPlacementNode() { return plNode; }
 
+		/**
+		 * Method to return the PlacementNetwork on which this PlacementPort resides.
+		 * @param pn the PlacementNetwork on which this PlacementPort resides.
+		 */
 		void setPlacementNetwork(PlacementNetwork pn) { plNet = pn; }
 
+		/**
+		 * Method to return the PlacementNetwork on which this PlacementPort resides.
+		 * @return the PlacementNetwork on which this PlacementPort resides.
+		 */
 		PlacementNetwork getPlacementNetwork() { return plNet; }
 
+		/**
+		 * Method to return the Electric PortProto that this PlacementPort uses.
+		 * @return the Electric PortProto that this PlacementPort uses.
+		 */
 		PortProto getPortProto() { return proto; }
 
+		/**
+		 * Method to return the offset of this PlacementPort's X coordinate from the center of its PlacementNode.
+		 * The offset is valid when no Orientation has been applied.
+		 * @return the offset of this PlacementPort's X coordinate from the center of its PlacementNode.
+		 */
 		double getOffX() { return offX; }
 
+		/**
+		 * Method to return the offset of this PlacementPort's Y coordinate from the center of its PlacementNode.
+		 * The offset is valid when no Orientation has been applied.
+		 * @return the offset of this PlacementPort's Y coordinate from the center of its PlacementNode.
+		 */
 		double getOffY() { return offY; }
 
+		/**
+		 * Method to return the offset of this PlacementPort's X coordinate from the center of its PlacementNode.
+		 * The coordinate assumes that the PlacementNode has been rotated by its Orientation.
+		 * @return the offset of this PlacementPort's X coordinate from the center of its PlacementNode.
+		 */
 		double getRotatedOffX() { return rotatedOffX; }
 
+		/**
+		 * Method to return the offset of this PlacementPort's Y coordinate from the center of its PlacementNode.
+		 * The coordinate assumes that the PlacementNode has been rotated by its Orientation.
+		 * @return the offset of this PlacementPort's Y coordinate from the center of its PlacementNode.
+		 */
 		double getRotatedOffY() { return rotatedOffY; }
 
-		void computeRotatedOffset()
+		/**
+		 * Internal method to compute the rotated offset of this PlacementPort
+		 * assuming that the Orientation of its PlacementNode has changed.
+		 */
+		private void computeRotatedOffset()
 		{
 			Orientation orient = plNode.getPlacementOrientation();
 			if (orient == Orientation.IDENT)
@@ -153,22 +309,46 @@ public class PlacementFrame
 			rotatedOffX = offset.getX();
 			rotatedOffY = offset.getY();
 		}
+
+		public String toString() { return proto.getName(); }
 	}
 
+	/**
+	 * Class to define networks of PlacementPort objects.
+	 * This is a shadow class for the internal Electric object "Network", but it is simplified for Placement.
+	 */
 	protected static class PlacementNetwork
 	{
 		private List<PlacementPort> portsOnNet;
 
+		/**
+		 * Constructor to create this PlacementNetwork with a list of PlacementPort objects that it connects.
+		 * @param ports a list of PlacementPort objects that it connects.
+		 */
 		PlacementNetwork(List<PlacementPort> ports)
 		{
 			portsOnNet = ports;
 		}
 
+		/**
+		 * Method to return the list of PlacementPort objects on this PlacementNetwork.
+		 * @return a list of PlacementPort objects on this PlacementNetwork.
+		 */
 		List<PlacementPort> getPortsOnNet() { return portsOnNet; }
 	}
 
+	/**
+	 * Method to do Placement.
+	 * Gathers the requirements for Placement into a collection of shadow objects
+	 * (PlacementNode, PlacementPort, and PlacementNetwork).
+	 * Then invokes "runPlacement()" in the subclass to do the actual work.
+	 * @param cell the Cell to place.
+	 * Objects in that Cell will be reorganized in and placed in a new Cell.
+	 * @return the new Cell with the placement results.
+	 */
 	public Cell doPlacement(Cell cell)
 	{
+		// get network information for the Cell
 		Netlist netList = cell.acquireUserNetlist();
 		if (netList == null)
 		{
@@ -176,7 +356,7 @@ public class PlacementFrame
 			return null;
 		}
 
-		// find all cells to be placed
+		// find all nodes in the cell that are to be placed
 		List<PlacementNode> nodesToPlace = new ArrayList<PlacementNode>();
 		Map<NodeInst,Map<PortProto,PlacementPort>> convertedNodes = new HashMap<NodeInst,Map<PortProto,PlacementPort>>();
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
@@ -271,14 +451,7 @@ public class PlacementFrame
 			placedNodes.put(plNode, ni);
 		}
 
-		// connect the nodes in the new cell
-		placeConnections(allNetworks, placedNodes);
-
-		return newCell;
-	}
-
-	private void placeConnections(List<PlacementNetwork> allNetworks, Map<PlacementNode,NodeInst> placedNodes)
-	{
+		// connect the connections in the new cell
 		for(PlacementNetwork plNet : allNetworks)
 		{
 			List<PortInst> portsToConnect = new ArrayList<PortInst>();
@@ -300,5 +473,7 @@ public class PlacementFrame
 				ArcInst.makeInstance(Generic.tech().unrouted_arc, lastPi, thisPi);
 			}
 		}
+
+		return newCell;
 	}
 }

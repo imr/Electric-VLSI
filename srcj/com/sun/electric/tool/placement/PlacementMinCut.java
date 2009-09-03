@@ -33,18 +33,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Placement algorithm to do Min-Cut placement.
+ */
 public class PlacementMinCut extends PlacementFrame
 {
 	private final double PADDING = 5;
 	private final boolean DEBUG = false;
 
-	public String getAlgorithmName() { return "Min-Cut"; }
-
 	private Map<PlacementNode,Map<PlacementNode,MutableInteger>> connectivityMap;
 
-	void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks)
+	/**
+	 * Method to return the name of this placement algorithm.
+	 * @return the name of this placement algorithm.
+	 */
+	public String getAlgorithmName() { return "Min-Cut"; }
+
+	/**
+	 * Method to do Min-Cut Placement.
+	 * @param nodesToPlace a list of all nodes that are to be placed.
+	 * @param allNetworks a list of all networks that connect the nodes.
+	 */
+	protected void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks)
 	{
-		// build the connectivity map
+		// build the connectivity map with the number of connections between any two PlacementNodes
 		connectivityMap = new HashMap<PlacementNode,Map<PlacementNode,MutableInteger>>();
 		for(PlacementNetwork plNet : allNetworks)
 		{
@@ -109,10 +121,10 @@ public class PlacementMinCut extends PlacementFrame
 			if (part.part2.allNodes.size() > 2) partitionsToOrganize.add(part.part2);
 		}
 
-		placePartition(topPart, new Point2D.Double(0, 0));
+		placePartitions(topPart, new Point2D.Double(0, 0));
 	}
 
-	private Point2D placePartition(Partition part, Point2D offset)
+	private Point2D placePartitions(Partition part, Point2D offset)
 	{
 		String indent = "";
 		if (DEBUG)
@@ -125,18 +137,18 @@ public class PlacementMinCut extends PlacementFrame
 		if (part.part1 != null && part.part2 != null)
 		{
 			if (DEBUG) System.out.println(indent+"PLACING SUBPART 1 AT ("+offset.getX()+","+offset.getY()+")");
-			Point2D off1 = placePartition(part.part1, offset);
+			Point2D off1 = placePartitions(part.part1, offset);
 			if ((part.depth&1) == 0)
 			{
 				Point2D nextOff = new Point2D.Double(offset.getX(), offset.getY() + off1.getY());
 				if (DEBUG) System.out.println(indent+"PLACING SUBPART 2 AT ("+nextOff.getX()+","+nextOff.getY()+")");
-				Point2D off2 = placePartition(part.part2, nextOff);
+				Point2D off2 = placePartitions(part.part2, nextOff);
 				off = new Point2D.Double(Math.max(off1.getX(), off2.getX()), off1.getY() + off2.getY());
 			} else
 			{
 				Point2D nextOff = new Point2D.Double(offset.getX() + off1.getX(), offset.getY());
 				if (DEBUG) System.out.println(indent+"PLACING SUBPART 2 AT ("+nextOff.getX()+","+nextOff.getY()+")");
-				Point2D off2 = placePartition(part.part2, nextOff);
+				Point2D off2 = placePartitions(part.part2, nextOff);
 				off = new Point2D.Double(off1.getX() + off2.getX(), Math.max(off1.getY(), off2.getY()));
 			}
 		} else
@@ -177,14 +189,14 @@ public class PlacementMinCut extends PlacementFrame
 	private static class OrientationConnection
 	{
 		PlacementPort thisPP;
-		PlacementNode otherNI;
+		PlacementNode otherPN;
 		PlacementPort otherPP;
 	}
 
 	/**
 	 * Method to find the ideal orientation for all of the nodes at the bottom point.
-	 * @param allNodes
-	 * @return
+	 * @param allNodes a List of PlacementNodes that have location, but not ideal orientation.
+	 * @return a Map assigning orientation to each of the PlacementNodes in the list.
 	 */
 	private Map<PlacementNode,Orientation> findOrientations(List<PlacementNode> allNodes)
 	{
@@ -216,7 +228,7 @@ public class PlacementMinCut extends PlacementFrame
 
 						OrientationConnection orc = new OrientationConnection();
 						orc.thisPP = plPort;
-						orc.otherNI = otherPlNode;
+						orc.otherPN = otherPlNode;
 						orc.otherPP = otherPlPort;
 						oc.add(orc);
 					}
@@ -240,8 +252,8 @@ public class PlacementMinCut extends PlacementFrame
 					{
 						EPoint pt = new EPoint(plNode.getPlacementX() + con.thisPP.getRotatedOffX(),
 							plNode.getPlacementY() + con.thisPP.getRotatedOffY());
-						EPoint otherPt = new EPoint(con.otherNI.getPlacementX() + con.otherPP.getRotatedOffX(),
-							con.otherNI.getPlacementY() + con.otherPP.getRotatedOffY());
+						EPoint otherPt = new EPoint(con.otherPN.getPlacementX() + con.otherPP.getRotatedOffX(),
+							con.otherPN.getPlacementY() + con.otherPP.getRotatedOffY());
 						double dist = pt.distance(otherPt);
 						length += dist;
 					}
@@ -379,8 +391,8 @@ public class PlacementMinCut extends PlacementFrame
 
 	/**
 	 * Method to return the number of connections between two PlacementNodes.
-	 * @param pln1 the first PlacementNode.
-	 * @param pln2 the second PlacementNode.
+	 * @param plNode1 the first PlacementNode.
+	 * @param plNode2 the second PlacementNode.
 	 * @return the number of connections between the PlacementNodes.
 	 */
 	private int getConnectivity(PlacementNode plNode1, PlacementNode plNode2)
@@ -396,8 +408,8 @@ public class PlacementMinCut extends PlacementFrame
 	 * Method to build the connectivity map by adding a connection between two PlacementNodes.
 	 * This method is usually called twice with the PlacementNodes in both orders because
 	 * the mapping is not symmetric.
-	 * @param pln1 the first PlacementNode.
-	 * @param pln2 the second PlacementNode.
+	 * @param plNode1 the first PlacementNode.
+	 * @param plNode2 the second PlacementNode.
 	 */
 	private void incrementMap(PlacementNode plNode1, PlacementNode plNode2)
 	{

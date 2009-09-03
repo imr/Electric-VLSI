@@ -29,7 +29,6 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -95,7 +94,7 @@ public class Placement extends Tool
 			{
 				if (algName.equals(pfObj.getAlgorithmName())) pla = pfObj;
 			}
-			if (pla == null) pla = PlacementFrame.getPlacementAlgorithms().get(0);
+			if (pla == null) pla = PlacementFrame.getPlacementAlgorithms()[0];
 			newCell = pla.doPlacement(cell);
 			fieldVariableChanged("newCell");
             return true;
