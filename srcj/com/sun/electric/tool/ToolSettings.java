@@ -207,8 +207,23 @@ public class ToolSettings extends AbstractToolSettings {
 	 * @return project preference to tell the keeper size ratio for Logical Effort.
 	 */
 	public static Setting getKeeperRatioSetting() { return t.cacheKeeperRatio; }
+    /**
+     * Returns project preferece to tell the width of the nmos of a X=1 inverter for Logical Effort.
+     * @return project preferece to tell the width of the nmos of a X=1 inverter for Logical Effort.
+     */
+    public static Setting getX1InverterNWidthSetting() { return t.cacheX1InverterNWidth; }
+    /**
+     * Returns project preferece to tell the width of the pmos of a X=1 inverter for Logical Effort.
+     * @return project preferece to tell the width of the pmos of a X=1 inverter for Logical Effort.
+     */
+    public static Setting getX1InverterPWidthSetting() { return t.cacheX1InverterPWidth; }
+    /**
+     * Returns project preference to tell the length of the pmos and nmos of a X=1 inverter for Logical Effort.
+     * @return project preference to tell the length of the pmos and nmos of a X=1 inverter for Logical Effort.
+     */
+    public static Setting getX1InverterLengthSetting() { return t.cacheX1InverterLength; }
 
-	/**
+    /**
 	 * Returns setting to tell whether Verilog deck generation should use the Assign statement.
 	 * @return setting to tell whether Verilog deck generation should use the Assign statement.
 	 */
@@ -281,11 +296,18 @@ public class ToolSettings extends AbstractToolSettings {
     private static final double DEFAULT_EPSILON      = 0.001;
     private static final int    DEFAULT_MAXITER      = 30;
     private static final double DEFAULT_KEEPERRATIO  = 0.1;
-	private final Setting cacheUseLocalSettings = makeBooleanSetting("UseLocalSettings", "Logical Effort Tab", "Use Local Settings from Cell", true);
+    private static final double DEFAULT_X1INVERTER_NWIDTH = 3.0;
+    private static final double DEFAULT_X1INVERTER_PWIDTH = 6.0;
+    private static final double DEFAULT_X1INVERTER_LENGTH = 2.0;
+    private final Setting cacheUseLocalSettings = makeBooleanSetting("UseLocalSettings", "Logical Effort Tab", "Use Local Settings from Cell", true);
     private final Setting cacheGlobalFanout = makeDoubleSetting("GlobalFanout", "Logical Effort Tab", "Global Fanout", DEFAULT_GLOBALFANOUT);
     private final Setting cacheConvergenceEpsilon = makeDoubleSetting("ConvergenceEpsilon", "Logical Effort Tab", "Convergence Epsilon", DEFAULT_EPSILON);
     private final Setting cacheMaxIterations = makeIntSetting("MaxIterations", "Logical Effort Tab", "Maximum Iterations", DEFAULT_MAXITER);
     private final Setting cacheKeeperRatio = makeDoubleSetting("KeeperRatio", "Logical Effort Tab", "Keeper Ratio", DEFAULT_KEEPERRATIO);
+    private final Setting cacheX1InverterNWidth = makeDoubleSetting("X1InverterNWidth", "Logical Effort Tab", "X=1 Inverter N Width", DEFAULT_X1INVERTER_NWIDTH);
+    private final Setting cacheX1InverterPWidth = makeDoubleSetting("X1InverterPWidth", "Logical Effort Tab", "X=1 Inverter P Width", DEFAULT_X1INVERTER_PWIDTH);
+    private final Setting cacheX1InverterLength = makeDoubleSetting("X1InverterLength", "Logical Effort Tab", "X=1 Inverter Lengths", DEFAULT_X1INVERTER_LENGTH);
+
 
     { tool("parasiticTool", "tool/extract"); }
 
