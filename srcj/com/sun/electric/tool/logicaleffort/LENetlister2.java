@@ -591,8 +591,8 @@ public class LENetlister2 extends LENetlister {
                     }
                     float length = VarContext.objectToFloat(info.getContext().evalVar(var), (float)2.0);
                     // not exactly correct because assumes all cap is area cap, which it isn't
-                    if (length != 2.0f)
-                        le = le * length / 2.0f;
+                    if (length != constants.x1inverter_length)
+                        le = le * length / constants.x1inverter_length;
                 }
             }
             lenodable.addPort(pp.getName(), dir, le, jnet);

@@ -227,6 +227,8 @@ public class LENodable {
     private float getLeX(VarContext context, LENetlister2.NetlisterConstants constants, boolean testCachebility) {
         float leX = (float)0.0;
 
+        float x1inverter_totalgate = constants.x1inverter_nwidth + constants.x1inverter_pwidth;
+
         Variable var = null;
         Object retVal = null;
         if (type == LENodable.Type.WIRE) {
@@ -263,7 +265,7 @@ public class LENodable {
                 cap = (0.95f*len + 0.05f*len*(width/3.0f));
             }
             leX = cap*constants.wireRatio;  // equivalent lambda of gate
-            leX = leX/9.0f;                         // drive strength X=1 is 9 lambda of gate
+            leX = leX/x1inverter_totalgate;                         // drive strength X=1 is x1inverter_totalgate lambda of gate
         }
         else if (type == LENodable.Type.TRANSISTOR) {
             var = no.getParameterOrVariable(Schematics.ATTR_WIDTH);
@@ -290,7 +292,7 @@ public class LENodable {
 //            if (retVal == null) return -1f;
 //            float length = VarContext.objectToFloat(retVal, (float)2.0);
             // not exactly correct because assumes all cap is area cap, which it isn't
-            leX = (float)(width/9.0f);
+            leX = (float)(width/x1inverter_totalgate);
         }
         else if (type == Type.CAPACITOR) {
             var = no.getVar(Schematics.SCHEM_CAPACITANCE);
@@ -303,7 +305,7 @@ public class LENodable {
             retVal = context.evalVar(var);
             if (testCachebility && (retVal == null)) return -1f;
             float cap = VarContext.objectToFloat(retVal, (float)0.0);
-            leX = (float)(cap/constants.gateCap/1e-15/9.0f);
+            leX = (float)(cap/constants.gateCap/1e-15/x1inverter_totalgate);
         }
         return leX;
     }

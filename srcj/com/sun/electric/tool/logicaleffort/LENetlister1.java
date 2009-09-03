@@ -289,6 +289,7 @@ public class LENetlister1 extends LENetlister {
         float leX = (float)0.0;
         boolean wire = false;
         boolean primitiveTransistor = false;
+        float x1inverter_totalgate = constants.x1inverter_nwidth + constants.x1inverter_pwidth;
 
         // Check if this NodeInst is tagged as a logical effort node
         Instance.Type type = null;
@@ -334,7 +335,7 @@ public class LENetlister1 extends LENetlister {
                 float width = VarContext.objectToFloat(info.getContext().evalVar(var), 3.0f);
                 cap = (float)(0.95f*len + 0.05f*len*(width/3.0f));      // capacitance
             }
-            leX = cap*constants.wireRatio/9.0f;     // drive strength X=1 is 9 lambda of gate
+            leX = cap*constants.wireRatio/x1inverter_totalgate;     // drive strength X=1 is x1inverter_totalgate lambda of gate
             wire = true;
         }
         else if ((ni.getProto() != null) && (ni.getProto().getFunction().isTransistor())) {
@@ -350,7 +351,7 @@ public class LENetlister1 extends LENetlister {
             float width = VarContext.objectToFloat(info.getContext().evalVar(var), (float)3.0);
 
             // note that LE will handle any gate load bloat due to increased gate length
-            leX = (float)(width/9.0f);
+            leX = (float)(width/x1inverter_totalgate);
             primitiveTransistor = true;
         }
         else if ((ni.getProto() != null) && (ni.getProto().getFunction() == PrimitiveNode.Function.CAPAC)) {
@@ -362,7 +363,7 @@ public class LENetlister1 extends LENetlister {
                 return false;
             }
             float cap = VarContext.objectToFloat(info.getContext().evalVar(var), (float)0.0);
-            leX = (float)(cap/constants.gateCap/1e-15/9.0f);
+            leX = (float)(cap/constants.gateCap/1e-15/x1inverter_totalgate);
         }
         else if (ni.getParameterOrVariable(ATTR_LESETTINGS) != null)
             return false;
@@ -401,8 +402,8 @@ public class LENetlister1 extends LENetlister {
                 }
                 float length = VarContext.objectToFloat(info.getContext().evalVar(var), (float)2.0);
                 // not exactly correct because assumes all cap is area cap, which it isn't
-                if (length != 2.0f)
-                    le = le * length / 2.0f;
+                if (length != constants.x1inverter_length)
+                    le = le * length / constants.x1inverter_length;
             }
             pins.add(new Pin(pp.getName(), dir, le, netName));
             if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getName()+", le: "+le+", netName: "+netName+", Network: "+netlist.getNetwork(ni,pp,0));

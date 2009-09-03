@@ -54,6 +54,9 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
     public static final Variable.Key ATTR_diffn = Variable.newKey("ATTR_diffn");
     public static final Variable.Key ATTR_diffp = Variable.newKey("ATTR_diffp");
     public static final Variable.Key ATTR_keeper_ratio = Variable.newKey("ATTR_keeper_ratio");
+    public static final Variable.Key ATTR_x1inverter_nwidth = Variable.newKey("ATTR_x1inverter_nwidth");
+    public static final Variable.Key ATTR_x1inverter_pwidth = Variable.newKey("ATTR_x1inverter_pwidth");
+    public static final Variable.Key ATTR_x1inverter_length = Variable.newKey("ATTR_x1inverter_length");
     public static final Variable.Key ATTR_LEGATE = Variable.newKey("ATTR_LEGATE");
     public static final Variable.Key ATTR_LEKEEPER = Variable.newKey("ATTR_LEKEEPER");
     public static final Variable.Key ATTR_LEWIRE = Variable.newKey("ATTR_LEWIRE");
@@ -71,9 +74,13 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
         /** gate cap, in fF/lambda */               public final float gateCap;
         /** ratio of diffusion to gate cap */       public final float alpha;
         /** ratio of keeper to driver size */       public final float keeperRatio;
-        
+        /** width in lambda of x=1 inverter nmos */ public final float x1inverter_nwidth;
+        /** width in lambda of x=1 inverter pmos */ public final float x1inverter_pwidth;
+        /** length in lambda of x=1 mosfets */      public final float x1inverter_length;
+
         public NetlisterConstants(float su, float wireRatio, float epsilon,
-                                  int maxIterations, float gateCap, float alpha, float keeperRatio) {
+                                  int maxIterations, float gateCap, float alpha, float keeperRatio,
+                                  float x1inverter_nwidth, float x1inverter_pwidth, float x1inverter_length) {
             this.su = su;
             this.wireRatio = wireRatio;
             this.epsilon = epsilon;
@@ -81,6 +88,9 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             this.gateCap = gateCap;
             this.alpha = alpha;
             this.keeperRatio = keeperRatio;
+            this.x1inverter_nwidth = x1inverter_nwidth;
+            this.x1inverter_pwidth = x1inverter_pwidth;
+            this.x1inverter_length = x1inverter_length;
         }
 
         /** Create a new set of constants from the user's settings */
@@ -92,6 +102,9 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             wireRatio = (float)layoutTech.getWireRatio();
             alpha = (float)layoutTech.getDiffAlpha();
             keeperRatio = (float)LETool.getKeeperRatio();
+            x1inverter_nwidth = (float)LETool.getX1InverterNWidth();
+            x1inverter_pwidth = (float)LETool.getX1InverterPWidth();
+            x1inverter_length = (float)LETool.getX1InverterLength();
         }
 
         /** Returns true if the two NetlisterConstants have the same values for all fields */
@@ -103,6 +116,9 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             if (gateCap != other.gateCap) return false;
             if (alpha != other.alpha) return false;
             if (keeperRatio != other.keeperRatio) return false;
+            if (x1inverter_nwidth != other.x1inverter_nwidth) return false;
+            if (x1inverter_pwidth != other.x1inverter_pwidth) return false;
+            if (x1inverter_length != other.x1inverter_length) return false;
             return true;
         }
     }
@@ -172,6 +188,9 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
                 float wireRatio = (float)tech.getWireRatio();
                 float alpha = (float)tech.getDiffAlpha();
                 float keeperRatio = (float)LETool.getKeeperRatio();
+                float x1inverter_nwidth = (float)LETool.getX1InverterNWidth();
+                float x1inverter_pwidth = (float)LETool.getX1InverterPWidth();
+                float x1inverter_length = (float)LETool.getX1InverterLength();
                 Variable var;
                 VarContext context = VarContext.globalContext;
                 if ((var = ni.getParameterOrVariable(ATTR_su)) != null) su = VarContext.objectToFloat(context.evalVar(var), su);
@@ -181,7 +200,10 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
                 if ((var = ni.getParameterOrVariable(ATTR_gate_cap)) != null) gateCap = VarContext.objectToFloat(context.evalVar(var), gateCap);
                 if ((var = ni.getParameterOrVariable(ATTR_alpha)) != null) alpha = VarContext.objectToFloat(context.evalVar(var), alpha);
                 if ((var = ni.getParameterOrVariable(ATTR_keeper_ratio)) != null) keeperRatio = VarContext.objectToFloat(context.evalVar(var), keeperRatio);
-                return new NetlisterConstants(su, wireRatio, epsilon, maxIterations, gateCap, alpha, keeperRatio);
+                if ((var = ni.getParameterOrVariable(ATTR_x1inverter_nwidth)) != null) x1inverter_nwidth = VarContext.objectToFloat(context.evalVar(var), x1inverter_nwidth);
+                if ((var = ni.getParameterOrVariable(ATTR_x1inverter_pwidth)) != null) x1inverter_pwidth = VarContext.objectToFloat(context.evalVar(var), x1inverter_pwidth);
+                if ((var = ni.getParameterOrVariable(ATTR_x1inverter_length)) != null) x1inverter_length = VarContext.objectToFloat(context.evalVar(var), x1inverter_length);
+                return new NetlisterConstants(su, wireRatio, epsilon, maxIterations, gateCap, alpha, keeperRatio, x1inverter_nwidth, x1inverter_pwidth, x1inverter_length);
             }
         }
         return null;
@@ -210,6 +232,9 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             if (current.gateCap != local.gateCap) System.out.println("gateCap:\t"+current.gateCap+" vs "+local.gateCap);
             if (current.alpha != local.alpha) System.out.println("alpha:\t"+current.alpha+" vs "+local.alpha);
             if (current.keeperRatio != local.keeperRatio) System.out.println("keeperRatio:\t"+current.keeperRatio+" vs "+local.keeperRatio);
+            if (current.x1inverter_nwidth != local.x1inverter_nwidth) System.out.println("x=1 inverter nwidth:\t"+current.x1inverter_nwidth+" vs "+local.x1inverter_nwidth);
+            if (current.x1inverter_pwidth != local.x1inverter_pwidth) System.out.println("x=1 inverter pwidth:\t"+current.x1inverter_pwidth+" vs "+local.x1inverter_pwidth);
+            if (current.x1inverter_length != local.x1inverter_length) System.out.println("x=1 inverter length:\t"+current.x1inverter_length+" vs "+local.x1inverter_length);
             //SwingUtilities.invokeLater(new Runnable() {
             //    public void run() {
                 	Job.getUserInterface().showErrorMessage("Conflicting global parameter settings were found, " +
@@ -284,6 +309,9 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             ni.updateVar(ATTR_gate_cap, new Float(constants.gateCap));
             ni.updateVar(ATTR_alpha, new Float(constants.alpha));
             ni.updateVar(ATTR_keeper_ratio, new Float(constants.keeperRatio));
+            ni.updateVar(ATTR_x1inverter_nwidth, new Float(constants.x1inverter_nwidth));
+            ni.updateVar(ATTR_x1inverter_pwidth, new Float(constants.x1inverter_pwidth));
+            ni.updateVar(ATTR_x1inverter_length, new Float(constants.x1inverter_length));
 
             return true;
         }
@@ -334,7 +362,10 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
                     constants.maxIterations,
                     constants.gateCap,
                     constants.alpha,
-                    constants.keeperRatio
+                    constants.keeperRatio,
+                    constants.x1inverter_nwidth,
+                    constants.x1inverter_pwidth,
+                    constants.x1inverter_length
             );
         }
 

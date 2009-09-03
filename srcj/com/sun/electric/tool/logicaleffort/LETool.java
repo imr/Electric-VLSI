@@ -1265,4 +1265,36 @@ public class LETool extends Tool {
 	 * @return project preferences to tell the keeper size ratio for Logical Effort.
 	 */
 	public static Setting getKeeperRatioSetting() { return ToolSettings.getKeeperRatioSetting(); }
+
+    /**
+     * Returns the width of the nmos of a X=1 inverter for Logical Effort.
+     * @return the width of the nmos of a X=1 inverter for Logical Effort.
+     */
+    public static double getX1InverterNWidth() { return getX1InverterNWidthSetting().getDouble(); }
+    /**
+     * Returns the width of the pmos of a X=1 inverter for Logical Effort.
+     * @return the width of the pmos of a X=1 inverter for Logical Effort.
+     */
+    public static double getX1InverterPWidth() { return getX1InverterPWidthSetting().getDouble(); }
+    /**
+     * Returns project preference to tell the length of the pmos and nmos of a X=1 inverter for Logical Effort.
+     * @return project preference to tell the length of the pmos and nmos of a X=1 inverter for Logical Effort.
+     */
+    public static double getX1InverterLength() { return getX1InverterLengthSetting().getDouble(); }
+
+    /**
+     * Returns the width of the nmos of a X=1 inverter for Logical Effort.
+     * @return the width of the nmos of a X=1 inverter for Logical Effort.
+     */
+    public static Setting getX1InverterNWidthSetting() { return ToolSettings.getX1InverterNWidthSetting(); }
+    /**
+     * Returns the width of the pmos of a X=1 inverter for Logical Effort.
+     * @return the width of the pmos of a X=1 inverter for Logical Effort.
+     */
+    public static Setting getX1InverterPWidthSetting() { return ToolSettings.getX1InverterPWidthSetting(); }
+    /**
+     * Returns project preference to tell the length of the pmos and nmos of a X=1 inverter for Logical Effort.
+     * @return project preference to tell the length of the pmos and nmos of a X=1 inverter for Logical Effort.
+     */
+    public static Setting getX1InverterLengthSetting() { return ToolSettings.getX1InverterLengthSetting(); }
 }
