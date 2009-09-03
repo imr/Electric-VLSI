@@ -37,18 +37,20 @@ import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 
+import com.sun.electric.tool.user.ActivityLogger;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 
 /**
@@ -85,6 +87,8 @@ public class Regression {
 //            OutputStrean outStream = socket.getOutputStream();
             InputStream inStream = process.getInputStream();
             OutputStream outStream = process.getOutputStream();
+            InputStream errStream = process.getErrorStream();
+            new ExecProcessReader(errStream).start();
             reader = new IdReader(new DataInputStream(new BufferedInputStream(inStream)), database.getIdManager());
             DataOutputStream clientOutputStream = new DataOutputStream(new BufferedOutputStream(outStream));
             int protocolVersion = reader.readInt();
@@ -93,9 +97,10 @@ public class Regression {
 //                for (int i = 0; i < 100; i++)
 //                    System.out.print((char)reader.readByte());
 //                System.out.println();
-                System.exit(1);
+                return false;
             }
             int connectionId = reader.readInt();
+            System.out.format("%1$tT.%1$tL ", Calendar.getInstance());
             System.out.println("Connected");
             writeEditingPreferences(clientOutputStream, database);
 
@@ -108,7 +113,7 @@ public class Regression {
             AbstractUserInterface ui = new Main.UserInterfaceDummy(connectionId);
             for (;;) {
                 byte tag = reader.readByte();
-                System.out.format("%1$tT.%1$tL ", Calendar.getInstance());
+                System.out.format("%1$tT.%1$tL %2$2d ", Calendar.getInstance(), tag);
                 if (tag == 1) {
                         currentSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
                         System.out.println("Snapshot received " + currentSnapshot.snapshotId);
@@ -130,7 +135,7 @@ public class Regression {
                         if (jobId > 0) {
                             if (!e.ejob.doItOk) {
                                 System.out.println("Job " + job.ejob.jobName + " failed");
-                                printErrorStream(process);
+//                                printErrorStream(process);
                                 ui.saveMessages(null);
                                 return false;
                             }
@@ -143,9 +148,11 @@ public class Regression {
                         if (result != null) {
                             System.out.println("Job " + job.ejob.jobName + " result:");
                             System.out.println(result);
-                            printErrorStream(process);
+//                            printErrorStream(process);
                             ui.saveMessages(null);
 //                            return false;
+                        } else {
+                            System.out.println("Job " + job.ejob.jobKey.jobId);
                         }
                         switch (jobId) {
                             case -1:
@@ -162,7 +169,6 @@ public class Regression {
                                 ui.saveMessages(null);
                                 return true;
                             default:
-                                System.out.println("Job " + job.ejob.jobKey.jobId);
                         }
                     } else {
                         serverEvent.show(ui);
@@ -172,7 +178,7 @@ public class Regression {
         } catch (IOException e) {
             reader = null;
             System.out.println("END OF FILE reading from server");
-            printErrorStream(process);
+//            printErrorStream(process);
             try {
                 process.getOutputStream().close();
             } catch (IOException e1) {
@@ -257,5 +263,56 @@ public class Regression {
         clientOutputStream.writeInt(ejob.serializedJob.length);
         clientOutputStream.write(ejob.serializedJob);
         clientOutputStream.flush();
+    }
+
+    /**
+     * This class is used to read data from an external process.
+     * If something does not consume the data, it will fill up the default
+     * buffer and deadlock.  This class also redirects data read
+     * from the process (the process' output) to another stream,
+     * if specified.
+     */
+    public static class ExecProcessReader extends Thread {
+
+        private InputStream in;
+        private char [] buf;
+
+        /**
+         * Create a stream reader that will read from the stream
+         * @param in the input stream
+         */
+        public ExecProcessReader(InputStream in) {
+            this(in, null);
+        }
+
+        /**
+         * Create a stream reader that will read from the stream, and
+         * store the read text into buffer.
+         * @param in the input stream
+         * @param redirect read text is redirected to this
+         */
+        public ExecProcessReader(InputStream in, OutputStream redirect) {
+            this.in = in;
+            buf = new char[256];
+            setName("ExecProcessReader");
+        }
+
+        public void run() {
+            try {
+                // read from stream
+                InputStreamReader reader/*input*/ = new InputStreamReader(in);
+ //               BufferedReader reader = new BufferedReader(input);
+                int read = 0;
+                while ((read = reader.read(buf)) >= 0) {
+                    System.out.format("%1$tT.%1$tL <err> %2$s </err>\n", Calendar.getInstance(), new String(buf, 0, read));
+                }
+
+                reader.close();
+ //               input.close();
+
+            } catch (java.io.IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

@@ -164,8 +164,8 @@ public final class Launcher
     }
 
     private static boolean invokeRegression(String[] args) {
-        String javaOptions = " -debug";
-        String electricOptions = "";
+        String javaOptions = "";
+        String electricOptions = " -debug";
         int regressionPos = 0;
         if (args[0].equals("-threads")) {
             regressionPos = 2;
