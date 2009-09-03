@@ -61,6 +61,7 @@ import javax.swing.InputMap;
 import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 /**
@@ -420,6 +421,7 @@ public class KeyBindingManager implements KeyEventDispatcher
             if (c instanceof TopLevel) { valid = true;   break; }
         	if (c instanceof EDialog) { lastPrefix = null;  return false; }
         	if (c instanceof EModelessDialog) { lastPrefix = null;  return false; }
+        	if (c instanceof JOptionPane) { lastPrefix = null;  return false; }
         	if (c instanceof TextWindow.TextWindowPanel) { lastPrefix = null;  return false; }
         	if (c instanceof OpenFile.OpenFileSwing) { lastPrefix = null;  return false; }
             if (c instanceof GetInfoText.EIPEditorPane) { lastPrefix = null;  return false; }

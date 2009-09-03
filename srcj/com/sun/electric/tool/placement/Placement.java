@@ -25,12 +25,17 @@ package com.sun.electric.tool.placement;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.erc.ERCWellCheck.WellCheckPreferences;
+import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
+
+import java.io.Serializable;
 
 /**
  * Class to place cells for better routing.
@@ -59,43 +64,49 @@ public class Placement extends Tool
     public static Placement getPlacementTool() { return tool; }
 
 	/**
-	 * Method to run placement on the current cell.
+	 * Method to run placement on the current cell in a new Job.
 	 */
 	public static void placeCurrentCell()
 	{
-		// get cell and network information
+		// get cell information
 		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
-
-		new PlaceJob(cell);
+		PlacementPreferences pp = new PlacementPreferences(false);
+		pp.getOptionsFromPreferences();
+		new PlaceJob(cell, pp);
 	}
 
 	/**
-	 * Class to do placement in a new job.
+	 * Method to run placement a given cell without starting a new Job.
+	 */
+	public static Cell placeCellNoJob(Cell cell, PlacementPreferences prefs)
+	{
+		PlacementFrame pla = getCurrentPlacementAlgorithm(prefs);
+		Cell newCell = pla.doPlacement(cell);
+		return newCell;
+	}
+
+	/**
+	 * Class to do placement in a Job.
 	 */
 	private static class PlaceJob extends Job
 	{
 		private Cell cell;
+		private PlacementPreferences prefs;
 		private Cell newCell;
 
-		private PlaceJob(Cell cell)
+		private PlaceJob(Cell cell, PlacementPreferences prefs)
 		{
 			super("Place cells", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
+			this.prefs = prefs;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			PlacementFrame pla = null;
-			String algName = getAlgorithmName();
-			for(PlacementFrame pfObj : PlacementFrame.getPlacementAlgorithms())
-			{
-				if (algName.equals(pfObj.getAlgorithmName())) pla = pfObj;
-			}
-			if (pla == null) pla = PlacementFrame.getPlacementAlgorithms()[0];
-			newCell = pla.doPlacement(cell);
+			newCell = placeCellNoJob(cell, prefs);
 			fieldVariableChanged("newCell");
             return true;
 		}
@@ -105,6 +116,39 @@ public class Placement extends Tool
 			if (newCell != null)
 				WindowFrame.createEditWindow(newCell);
 		}
+	}
+
+	public static class PlacementPreferences implements Serializable
+    {
+		public String placementAlgorithm;
+
+		public PlacementPreferences(boolean factory)
+		{
+			if (factory)
+			{
+				placementAlgorithm = getFactoryAlgorithmName();
+			}
+		}
+
+		public void getOptionsFromPreferences()
+		{
+			placementAlgorithm = getAlgorithmName();
+		}
+    }
+
+	/**
+	 * Method to return the current Placement algorithm.
+	 * This is a requested subclass of PlacementFrame.
+	 * @return the current Placement algorithm.
+	 */
+	private static PlacementFrame getCurrentPlacementAlgorithm(PlacementPreferences prefs)
+	{
+		String algName = prefs.placementAlgorithm;
+		for(PlacementFrame pfObj : PlacementFrame.getPlacementAlgorithms())
+		{
+			if (algName.equals(pfObj.getAlgorithmName())) return pfObj;
+		}
+		return PlacementFrame.getPlacementAlgorithms()[0];
 	}
 
 	/************************ PREFERENCES ***********************/

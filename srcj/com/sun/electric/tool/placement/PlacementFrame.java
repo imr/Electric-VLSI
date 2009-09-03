@@ -102,15 +102,14 @@ public class PlacementFrame
 	/**
 	 * Class to define a node that is being placed.
 	 * This is a shadow class for the internal Electric object "NodeInst".
-	 * There are subtle differences between this object and the NodeInst,
-	 * for example, this node is presumed to be centered in the middle, with
+	 * There are minor differences between PlacementNode and NodeInst,
+	 * for example, PlacementNode is presumed to be centered in the middle, with
 	 * port offsets based on that center, whereas the NodeInst has a cell-center
 	 * that may not be in the middle.
 	 */
 	protected static class PlacementNode
 	{
-		private NodeProto proto;
-		private int techSpecific;
+		private NodeInst original;
 		private double width, height;
 		private List<PlacementPort> ports;
 		private double xPos, yPos;
@@ -118,19 +117,17 @@ public class PlacementFrame
 
 		/**
 		 * Method to create a PlacementNode object.
-		 * @param np the Electric NodeProto of this PlacementNode.
-		 * @param ts technology-specific bits to customize this PlacementNode (when placing schematic primitives).
-		 * @param w the width of this PlacementNode.
-		 * @param h the height of this PlacementNode.
-		 * @param pl a list of PlacementPort on the PlacementNode, indicating connection locations.
+		 * @param orig the original Electric NodeInst of this PlacementNode.
+		 * @param wid the width of this PlacementNode.
+		 * @param hei the height of this PlacementNode.
+		 * @param pps a list of PlacementPort on the PlacementNode, indicating connection locations.
 		 */
-		PlacementNode(NodeProto np, int ts, double w, double h, List<PlacementPort> pl)
+		PlacementNode(NodeInst orig, double wid, double hei, List<PlacementPort> pps)
 		{
-			proto = np;
-			techSpecific = ts;
-			width = w;
-			height = h;
-			ports = pl;
+			original = orig;
+			width = wid;
+			height = hei;
+			ports = pps;
 		}
 
 		/**
@@ -152,17 +149,10 @@ public class PlacementFrame
 		double getHeight() { return height; }
 
 		/**
-		 * Method to return the prototype of this PlacementNode.
-		 * @return the prototype of this PlacementNode.
+		 * Method to return the original NodeInst of this PlacementNode.
+		 * @return the original NodeInst of this PlacementNode.
 		 */
-		NodeProto getProto() { return proto; }
-
-		/**
-		 * Method to return the technology-specific bits of this PlacementNode.
-		 * Technology-specific bits customize certain primitive nodes, such as Schematic elements.
-		 * @return the technology-specific bits of this PlacementNode.
-		 */
-		int getTechSpecific() { return techSpecific; }
+		NodeInst getOriginal() { return original; }
 
 		/**
 		 * Method to set the location of this PlacementNode.
@@ -205,7 +195,7 @@ public class PlacementFrame
 		 */
 		Orientation getPlacementOrientation() { return orient; }
 
-		public String toString() { return proto.describe(false); }
+		public String toString() { return original.describe(false); }
 	}
 
 	/**
@@ -391,7 +381,7 @@ public class PlacementFrame
 					pl.add(plPort);
 					placedPorts.put(pi.getPortProto(), plPort);
 				}
-				PlacementNode plNode = new PlacementNode(np, ni.getTechSpecific(), np.getDefWidth(), np.getDefHeight(), pl);
+				PlacementNode plNode = new PlacementNode(ni, np.getDefWidth(), np.getDefHeight(), pl);
 				nodesToPlace.add(plNode);
 				for(PlacementPort plPort : pl)
 					plPort.setPlacementNode(plNode);
@@ -438,16 +428,18 @@ public class PlacementFrame
 			double xPos = plNode.getPlacementX();
 			double yPos = plNode.getPlacementY();
 			Orientation orient = plNode.getPlacementOrientation();
-			NodeProto np = plNode.getProto();
+			NodeProto np = plNode.getOriginal().getProto();
 			if (np instanceof Cell)
 			{
 				Cell placementCell = (Cell)np;
 				ERectangle bounds = placementCell.getBounds();
-				xPos += bounds.getCenterX();
-				yPos += bounds.getCenterY();
+				Point2D centerOffset = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
+				orient.pureRotate().transform(centerOffset, centerOffset);
+				xPos -= centerOffset.getX();
+				yPos -= centerOffset.getY();
 			}
 			NodeInst ni = NodeInst.makeInstance(np, new EPoint(xPos, yPos), np.getDefWidth(), np.getDefHeight(), newCell,
-				orient, null, plNode.getTechSpecific());
+				orient, plNode.getOriginal().getName(), plNode.getOriginal().getTechSpecific());
 			placedNodes.put(plNode, ni);
 		}
 

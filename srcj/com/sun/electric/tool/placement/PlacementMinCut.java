@@ -178,7 +178,8 @@ public class PlacementMinCut extends PlacementFrame
 			for(PlacementNode plNode : part.allNodes)
 			{
 				Orientation or = properOrientation.get(plNode);
-				plNode.setOrientation(or);
+				if (or != null)
+					plNode.setOrientation(or);
 			}
 			off = new Point2D.Double(widestX, widestY);
 		}
@@ -236,13 +237,13 @@ public class PlacementMinCut extends PlacementFrame
 			}
 
 			// now find the optimal orientation choice for each NodeInst
+			Orientation [] standardEight = new Orientation[] {Orientation.IDENT, Orientation.R, Orientation.RR, Orientation.RRR,
+				Orientation.X, Orientation.XR, Orientation.XRR, Orientation.XRRR};
 			for(PlacementNode plNode : allNodes)
 			{
 				List<OrientationConnection> oc = allPossibilities.get(plNode);
 				double bestDist = Double.MAX_VALUE;
 				Orientation betterOrientation = null;
-				Orientation [] standardEight = new Orientation[] {Orientation.IDENT, Orientation.R, Orientation.RR, Orientation.RRR,
-					Orientation.X, Orientation.XR, Orientation.XRR, Orientation.XRRR};
 				for(int i=0; i<standardEight.length; i++)
 				{
 					plNode.setOrientation(standardEight[i]);
