@@ -24,6 +24,7 @@
 
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -98,6 +99,13 @@ public class EvalJavaBsh
         }
 
         setVariable("evalJavaBsh", this);
+        setVariable("launchingThread", Thread.currentThread());
+        if (Job.getDebug()) {
+            System.err.println("#launchingThread="+Thread.currentThread());
+            System.err.println("#EditingPreferences="+EditingPreferences.getThreadEditingPreferences());
+        }
+
+
         try {
             doEval("Object P(String par) { return evalJavaBsh.P(par); }");
             doEval("Object PAR(String par) { return evalJavaBsh.PAR(par); }");
