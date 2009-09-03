@@ -23,6 +23,7 @@
  */
 package com.sun.electric;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -570,7 +571,7 @@ public final class Main
             if (isBatch()) {
                 String beanShellScript = getCommandLineOption(argsList, "-s");
                 openCommandLineLibs(argsList);
-                //EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, getTechPool()));
+                EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, getTechPool()));
                 if (beanShellScript != null)
                     EvalJavaBsh.runScript(beanShellScript);
             }

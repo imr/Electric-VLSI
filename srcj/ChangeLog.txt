@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: *******************************
 
+BUG: (9/3/09, DN) Command line "-batch -s script.bsh" executes script without any EditingPreferences (Bug #2373)
+FIX: In Main.InitDatabase.doIt assign factory-default EditingPreferences.
+
+BUG: (9/2/09, DN) DRCUpdate is not executed in MultiDRC regressins.
+FIX: In "DRC.DRCUpdate()" use "startJobOnMyResult()" instead of "startJob()".
+
 IMP: (9/2/09, DN) Better regression diagnostics.
 
 IMP: (9/2/09, DN) Explicit UserInterface object for each thread.
