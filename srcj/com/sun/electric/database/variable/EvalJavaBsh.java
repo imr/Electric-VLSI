@@ -100,11 +100,6 @@ public class EvalJavaBsh
 
         setVariable("evalJavaBsh", this);
         setVariable("launchingThread", Thread.currentThread());
-        if (Job.getDebug()) {
-            System.err.println("#launchingThread="+Thread.currentThread());
-            System.err.println("#EditingPreferences="+EditingPreferences.getThreadEditingPreferences());
-        }
-
 
         try {
             doEval("Object P(String par) { return evalJavaBsh.P(par); }");
@@ -289,7 +284,8 @@ public class EvalJavaBsh
 
         public boolean doIt() throws JobException {
             EvalJavaBsh evaluator = new EvalJavaBsh();
-            return evaluator.doSource(script);
+            evaluator.doSource(script); // May throw exception
+            return true;
         }
 
         private void displayCell(Cell cell) {
@@ -435,16 +431,41 @@ public class EvalJavaBsh
      * @param file the file to run.
      * @return true on success.
      */ 
-    public boolean doSource(String file)
+    public void doSource(String file) throws JobException
     {
         try {
             if (envObject != null) {
                 sourceMethod.invoke(envObject, new Object[] {file});
             }
-            return true;
         } catch (Exception e) {
-            handleInvokeException(e, "Java Bean shell error sourcing '" + file +"'");
-            return false;
+            String description = "Java Bean shell error sourcing '" + file +"'";
+            if (e instanceof InvocationTargetException) {
+                // This wraps an exception thrown by the method invoked.
+                Throwable t = e.getCause();
+                if (t != null)
+                    handleBshError((Exception)t, description);
+                if (targetErrorClass.isInstance(t)) {
+                    // The Bean Shell had an error
+                    t = doGetTarget(t);
+                }
+                throw new JobException(t);
+            }
+            else if (e instanceof IllegalArgumentException) {
+                System.out.println(description+": "+e.getMessage());
+                if (DEBUG) e.printStackTrace(System.out);
+                throw new JobException(e);
+            }
+            else if (e instanceof IllegalAccessException) {
+                System.out.println(description+": "+e.getMessage());
+                if (DEBUG) e.printStackTrace(System.out);
+                throw new JobException(e);
+            }
+            else {
+                System.out.println("Unhandled Exception: ");
+                System.out.println(description+": "+e.getMessage());
+                e.printStackTrace(System.out);
+                throw new JobException(e);
+            }
         }
     }
 

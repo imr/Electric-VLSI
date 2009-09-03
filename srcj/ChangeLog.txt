@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: *******************************
 
+IMP: (9/2/09, DN) Better regression diagnostics.
+
 IMP: (9/2/09, DN) Explicit UserInterface object for each thread.
 
 IMP: (9/2/09, GVG) More changes to get Jython working in the regressions (Bug #2358)

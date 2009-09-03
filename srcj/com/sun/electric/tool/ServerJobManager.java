@@ -149,7 +149,10 @@ public class ServerJobManager extends JobManager {
         try {
             passiveConnections++;
             if (passiveConnections == serverConnections.size()) {
-                ActivityLogger.finished();
+                try {
+                    ActivityLogger.finished();
+                } catch (Exception e) {
+                }
                 System.exit(0);
             }
         } finally {

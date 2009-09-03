@@ -111,6 +111,7 @@ public class Regression {
             writeJob(clientOutputStream, job);
 
             AbstractUserInterface ui = new Main.UserInterfaceDummy(connectionId);
+            boolean passed = true;
             for (;;) {
                 byte tag = reader.readByte();
                 System.out.format("%1$tT.%1$tL %2$2d ", Calendar.getInstance(), tag);
@@ -136,8 +137,8 @@ public class Regression {
                             if (!e.ejob.doItOk) {
                                 System.out.println("Job " + job.ejob.jobName + " failed");
 //                                printErrorStream(process);
-                                ui.saveMessages(null);
-                                return false;
+//                                ui.saveMessages(null);
+                                passed = false;
                             }
                             continue;
                         }
@@ -147,10 +148,11 @@ public class Regression {
                         assert e.ejob.doItOk == (result == null);
                         if (result != null) {
                             System.out.println("Job " + job.ejob.jobName + " result:");
-                            System.out.println(result);
+//                            System.out.println(result);
+                            result.printStackTrace(System.out);
 //                            printErrorStream(process);
-                            ui.saveMessages(null);
-//                            return false;
+//                            ui.saveMessages(null);
+                            passed = false;
                         } else {
                             System.out.println("Job " + job.ejob.jobKey.jobId);
                         }
@@ -167,7 +169,7 @@ public class Regression {
                                 break;
                             case -3:
                                 ui.saveMessages(null);
-                                return true;
+                                return passed;
                             default:
                         }
                     } else {
@@ -304,7 +306,7 @@ public class Regression {
  //               BufferedReader reader = new BufferedReader(input);
                 int read = 0;
                 while ((read = reader.read(buf)) >= 0) {
-                    System.out.format("%1$tT.%1$tL <err> %2$s </err>\n", Calendar.getInstance(), new String(buf, 0, read));
+                    System.err.format("%1$tT.%1$tL <err> %2$s </err>\n", Calendar.getInstance(), new String(buf, 0, read));
                 }
 
                 reader.close();
