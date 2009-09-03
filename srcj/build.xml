@@ -224,7 +224,7 @@
         <unjar dest="." src="${beanshell}"/>
         <unjar dest="." src="${lucene}"/>
         <unjar dest="." src="${jdbm}"/>
-        <!--unjar dest="." src="${jython}"/-->
+        <unjar dest="." src="${jython}"/>
         <unjar dest="." src="${prefuse}"/>
     </target>
 
