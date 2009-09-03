@@ -35,6 +35,7 @@ import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Client;
@@ -247,6 +248,7 @@ public final class Main
         Pref.lockCreation();
         EDatabase database = new EDatabase(IdManager.stdIdManager.getInitialSnapshot());
         EDatabase.setClientDatabase(database);
+        Job.setUserInterface(new InitialUserInterface(database));
         InitDatabase job = new InitDatabase(argsList);
         if (runMode == Mode.CLIENT) {
             // Client or pipe mode
@@ -266,6 +268,40 @@ public final class Main
             Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job);
         }
 	}
+
+    public static class InitialUserInterface implements UserInterface {
+        private final EDatabase database;
+        public InitialUserInterface(EDatabase database) {
+            this.database = database;
+        }
+        public Job.Key getJobKey() { throw new UnsupportedOperationException(); }
+        public EDatabase getDatabase() { return database; }
+        public Technology getCurrentTechnology() { return null; }
+        public Library getCurrentLibrary() { return null; }
+        public EditWindow_ getCurrentEditWindow_() { throw new UnsupportedOperationException(); }
+        public EditWindow_ needCurrentEditWindow_() { throw new UnsupportedOperationException(); }
+        public Cell getCurrentCell() { return null; }
+        public Cell needCurrentCell() { throw new UnsupportedOperationException(); }
+        public void adjustReferencePoint(Cell cell, double cX, double cY) { throw new UnsupportedOperationException(); }
+        public void repaintAllWindows() { throw new UnsupportedOperationException(); }
+        public int getDefaultTextSize() { throw new UnsupportedOperationException(); }
+        public EditWindow_ displayCell(Cell cell) { throw new UnsupportedOperationException(); }
+        public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate) { throw new UnsupportedOperationException(); }
+        public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric[] gPair, int position) { throw new UnsupportedOperationException(); }
+        public void showErrorMessage(String message, String title) { throw new UnsupportedOperationException(); }
+        public void showInformationMessage(String message, String title) { throw new UnsupportedOperationException(); }
+        public void printMessage(String message, boolean newLine) { throw new UnsupportedOperationException(); }
+        public void saveMessages(String filePath) { throw new UnsupportedOperationException(); }
+        public void beep() { throw new UnsupportedOperationException(); }
+        public boolean confirmMessage(Object message) { throw new UnsupportedOperationException(); }
+        public int askForChoice(String message, String title, String [] choices, String defaultChoice) { throw new UnsupportedOperationException(); }
+        public String askForInput(Object message, String title, String def) { throw new UnsupportedOperationException(); }
+        public void startProgressDialog(String msg, String filePath) { throw new UnsupportedOperationException(); }
+        public void stopProgressDialog() { throw new UnsupportedOperationException(); }
+        public void setProgressValue(int pct) { throw new UnsupportedOperationException(); }
+        public void setProgressNote(String message) { throw new UnsupportedOperationException(); }
+        public String getProgressNote() { throw new UnsupportedOperationException(); }
+    }
 
     public static class UserInterfaceDummy extends AbstractUserInterface
 	{

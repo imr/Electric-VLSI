@@ -214,11 +214,11 @@ public abstract class Job implements Serializable {
 	 */
     public Job(String jobName, Tool tool, Type jobType, Cell upCell, Cell downCell, Priority priority) {
         ejob = new EJob(this, jobType, jobName, EditingPreferences.getThreadEditingPreferences());
-        database = getUserInterface() != null ? getUserInterface().getDatabase() : EDatabase.clientDatabase();
+        UserInterface ui = getUserInterface();
+        database = ui != null ? ui.getDatabase() : EDatabase.clientDatabase();
 		this.tool = tool;
         this.deleteWhenDone = true;
         startTime = endTime = 0;
-        UserInterface ui = getUserInterface();
         Technology curTech = ui != null ? ui.getCurrentTechnology() : null;
         curTechId = curTech != null ? curTech.getId() : null;
         Library curLib = ui != null ? ui.getCurrentLibrary() : null;
@@ -487,11 +487,29 @@ public abstract class Job implements Serializable {
         return true;
     }
 
+    private static final ThreadLocal<UserInterface> threadUserInterface = new ThreadLocal<UserInterface>() {
+        @Override
+        protected UserInterface initialValue() {
+            throw new IllegalStateException();
+        }
+    };
+
     public static UserInterface getUserInterface() {
         Thread currentThread = Thread.currentThread();
         if (currentThread instanceof EThread)
             return ((EThread)currentThread).getUserInterface();
-        return currentUI;
+        else if (currentThread == clientThread)
+            return currentUI;
+        else
+            return threadUserInterface.get();
+    }
+
+    public static void setUserInterface(UserInterface ui) {
+        Thread currentThread = Thread.currentThread();
+        assert !(currentThread instanceof EThread) && currentThread != clientThread;
+        if (ui == null)
+            throw new UnsupportedOperationException();
+        threadUserInterface.set(ui);
     }
 
     /**

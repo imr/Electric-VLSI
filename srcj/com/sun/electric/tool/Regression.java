@@ -98,6 +98,7 @@ public class Regression {
             writeEditingPreferences(clientOutputStream, database);
 
             int curJobId = 0;
+            Job.setUserInterface(new Main.InitialUserInterface(database));
             Job job = new InitJob();
             job.ejob.jobKey = new Job.Key(connectionId, --curJobId, true);
             writeJob(clientOutputStream, job);
