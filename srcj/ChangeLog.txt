@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: *******************************
 
+BUG: (9/3/09, JKG) bug 2351, logical effort had hard coded assumed values for gate widths and lengths
+     of the X=1 inverter. Those changed for 40nm. They are now specifiable as logical effort settings
+
 IMP: (9/3/09, GVG) Build.xml modified to unjar jyphton and to include it into electric.jar (ant jar).
 That is to run Scripting regression in batch mode (part of Bug #2358)
 
