@@ -111,7 +111,14 @@ public abstract class MultiTaskJobLight<TaskKey,TaskResult,Result> extends Job {
             new WorkingThread(id).start();
         waitTasks();
 
-        (new MergeJob()).startJobOnMyResult();
+        LinkedHashMap<TaskKey,TaskResult> taskResults = new LinkedHashMap<TaskKey,TaskResult>();
+        for (Task task: tasks.values()) {
+            if (task.taskResult != null)
+                taskResults.put(task.taskKey, task.taskResult);
+        }
+        Result result = mergeTaskResults(taskResults);
+        if (consumer != null)
+            consumer.consume(result);
         return true;
     }
     
@@ -188,41 +195,4 @@ public abstract class MultiTaskJobLight<TaskKey,TaskResult,Result> extends Job {
             finishWorkingThread();
         }
     }
-
-    private class MergeJob extends Job {
-        private Result result;
-
-        private MergeJob() {
-            super(MultiTaskJobLight.this.ejob.jobName + "merge", MultiTaskJobLight.this.tool,
-                    Job.Type.CHANGE, null, null, Job.Priority.USER);
-        }
-
-        @Override
-        public boolean doIt() throws JobException {
-            LinkedHashMap<TaskKey,TaskResult> taskResults = new LinkedHashMap<TaskKey,TaskResult>();
-            for (Task task: tasks.values()) {
-                if (task.taskResult != null)
-                    taskResults.put(task.taskKey, task.taskResult);
-            }
-            result = mergeTaskResults(taskResults);
-            if (consumer != null)
-                consumer.consume(result);
-//            fieldVariableChanged("result");
-            return true;
-        }
-
-        @Override
-        public void abort() {
-            MultiTaskJobLight.this.abort();
-        }
-//        /**
-//         * This method executes in the Client side after normal termination of doIt method.
-//         * This method should perform all needed termination actions.
-//         */
-//        @Override
-//        public void terminateOK() {
-//            MultiTaskJob.this.terminateOK(result);
-//        }
-    }
-
 }

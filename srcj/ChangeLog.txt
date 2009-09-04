@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: *******************************
 
+IMP: (9/4/09, DN) MultiTaskJobLight doesn't start additional Job for "mergeTaskResults()" and "consume()".
+
 BUG: (9/3/09, JKG) bug 2351, logical effort had hard coded assumed values for gate widths and lengths
      of the X=1 inverter. Those changed for 40nm. They are now specifiable as logical effort settings
 
