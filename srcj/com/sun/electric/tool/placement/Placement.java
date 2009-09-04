@@ -25,13 +25,10 @@ package com.sun.electric.tool.placement;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.erc.ERCWellCheck.WellCheckPreferences;
-import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
