@@ -114,7 +114,8 @@ public class Regression {
             boolean passed = true;
             for (;;) {
                 byte tag = reader.readByte();
-                System.out.format("%1$tT.%1$tL %2$2d ", Calendar.getInstance(), tag);
+                long timeStamp = reader.readLong();
+                System.out.format("%1$tT.%1$tL->%2$tT.%2$tL %3$2d ", timeStamp, Calendar.getInstance(), tag);
                 if (tag == 1) {
                         currentSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
                         System.out.println("Snapshot received " + currentSnapshot.snapshotId);
@@ -126,9 +127,9 @@ public class Regression {
                         } finally {
                             database.unlock();
                         }
-                        System.out.println("Database updated to snapshot " + currentSnapshot.snapshotId);
+                        System.out.format("            ->%1$tT.%1$tL Database updated to snapshot %2$d\n", Calendar.getInstance(), currentSnapshot.snapshotId);
                 } else {
-                    Client.ServerEvent serverEvent = Client.read(reader, tag, ui);
+                    Client.ServerEvent serverEvent = Client.read(reader, tag, timeStamp, ui);
                     if (serverEvent instanceof Client.EJobEvent) {
                         Client.EJobEvent e = (Client.EJobEvent)serverEvent;
                         int jobId = e.ejob.jobKey.jobId;
@@ -306,7 +307,10 @@ public class Regression {
  //               BufferedReader reader = new BufferedReader(input);
                 int read = 0;
                 while ((read = reader.read(buf)) >= 0) {
-                    System.err.format("%1$tT.%1$tL <err> %2$s </err>\n", Calendar.getInstance(), new String(buf, 0, read));
+                    String s = new String(buf, 0, read);
+                    Calendar c = Calendar.getInstance();
+                    System.err.print(s);
+                    System.out.format("%1$tT.%1$tL <err> %2$s </err>\n", c, s);
                 }
 
                 reader.close();

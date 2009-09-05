@@ -152,12 +152,13 @@ class ClientJobManager extends JobManager {
             try {
 //                logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readTag");
                 byte tag = reader.readByte();
+                long timeStamp = reader.readLong();
                 if (tag == 1) {
                     currentSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
                     SwingUtilities.invokeLater(new SnapshotDatabaseChangeRun(clientSnapshot, currentSnapshot));
                     clientSnapshot = currentSnapshot;
                 } else {
-                    Client.ServerEvent serverEvent = Client.read(reader, tag, Job.currentUI);
+                    Client.ServerEvent serverEvent = Client.read(reader, tag, timeStamp, Job.currentUI);
                     if (serverEvent instanceof Client.EJobEvent) {
                         Client.EJobEvent ejobEvent = (Client.EJobEvent)serverEvent;
                         EJob ejob = ejobEvent.ejob;

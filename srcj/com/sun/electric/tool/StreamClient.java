@@ -74,14 +74,19 @@ public class StreamClient extends Client {
                     reader.start();
                 writer.writeInt(Job.PROTOCOL_VERSION);
                 writer.writeInt(connectionId);
-                writeSnapshot(lastEvent.getSnapshot());
-                writer.flush();
+                writeSnapshot(lastEvent);
                 for (;;) {
-                    lastEvent = getEvent(lastEvent);
-                    if (lastEvent.getSnapshot() != currentSnapshot)
-                        writeSnapshot(lastEvent.getSnapshot());
-                    lastEvent.write(writer);
                     writer.flush();
+                    lastEvent = getEvent(lastEvent);
+                    for (;;) {
+                        if (lastEvent.getSnapshot() != currentSnapshot)
+                            writeSnapshot(lastEvent);
+                        lastEvent.write(writer);
+                        ServerEvent event = lastEvent.getNext();
+                        if (event == null)
+                            break;
+                        lastEvent = event;
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -92,8 +97,10 @@ public class StreamClient extends Client {
         }
     }
 
-    private void writeSnapshot(Snapshot newSnapshot) throws IOException {
+    private void writeSnapshot(ServerEvent event) throws IOException {
         writer.writeByte((byte)1);
+        writer.writeLong(event.timeStamp);
+        Snapshot newSnapshot = event.getSnapshot();
         newSnapshot.writeDiffs(writer, currentSnapshot);
         currentSnapshot = newSnapshot;
     }
