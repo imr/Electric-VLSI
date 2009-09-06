@@ -40,12 +40,18 @@ import java.util.List;
  *
  */
 public abstract class AbstractUserInterface extends Client implements UserInterface {
+    private static final int DEFAULT_CONNECTION_ID = 0;
     private TechId curTechId;
     private LibId curLibId;
-    private Job.Key jobKey = new Job.Key(-1, 0, false);
+    private Job.Key jobKey = new Job.Key(DEFAULT_CONNECTION_ID, 0, false);
 
-    protected AbstractUserInterface(int connectionId) {
-        super(connectionId);
+    protected AbstractUserInterface() {
+        super(DEFAULT_CONNECTION_ID);
+    }
+
+    void patchConnectionId(int connectionId) {
+        this.connectionId = connectionId;
+        jobKey = new Job.Key(connectionId, 0, false);
     }
 
     public Job.Key getJobKey() {

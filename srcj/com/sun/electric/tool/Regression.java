@@ -101,7 +101,7 @@ public class Regression {
             }
             int connectionId = reader.readInt();
             System.out.format("%1$tT.%1$tL ", Calendar.getInstance());
-            System.out.println("Connected");
+            System.out.println("Connected id="+connectionId);
             writeEditingPreferences(clientOutputStream, database);
 
             int curJobId = 0;
@@ -110,7 +110,8 @@ public class Regression {
             job.ejob.jobKey = new Job.Key(connectionId, --curJobId, true);
             writeJob(clientOutputStream, job);
 
-            AbstractUserInterface ui = new Main.UserInterfaceDummy(connectionId);
+            AbstractUserInterface ui = new Main.UserInterfaceDummy();
+            ui.patchConnectionId(connectionId);
             boolean passed = true;
             for (;;) {
                 byte tag = reader.readByte();

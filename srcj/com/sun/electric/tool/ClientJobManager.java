@@ -135,7 +135,7 @@ class ClientJobManager extends JobManager {
                 System.err.println("Client's protocol version " + Job.PROTOCOL_VERSION + " is incompatible with Server's protocol version " + protocolVersion);
                 System.exit(1);
             }
-            Job.currentUI.connectionId = reader.readInt();
+            Job.currentUI.patchConnectionId(reader.readInt());
             System.out.println("Connected");
         } catch (IOException e) {
             e.printStackTrace();

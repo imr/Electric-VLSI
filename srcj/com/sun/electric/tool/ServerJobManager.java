@@ -81,11 +81,12 @@ public class ServerJobManager extends JobManager {
     ServerJobManager(int recommendedNumThreads, String loggingFilePath, boolean pipe, int socketPort) {
         maxNumThreads = initThreads(recommendedNumThreads);
         maxNumberOfThreads = maxNumThreads;
+        if (Job.currentUI != null) {
+            assert Job.currentUI.connectionId == 0;
+            serverConnections.add(Job.currentUI);
+        }
         if (loggingFilePath != null)
-            initSnapshotLogging(loggingFilePath);
-        passiveConnections = serverConnections.size();
-        if (Job.currentUI != null)
-            passiveConnections--;
+            initSnapshotLogging(new File(loggingFilePath));
         if (pipe)
             initPipe();
         ServerSocket serverSocket = null;
@@ -108,18 +109,17 @@ public class ServerJobManager extends JobManager {
         return maxNumThreads;
     }
 
-    void initSnapshotLogging(String loggingFilePath) {
+    void initSnapshotLogging(File loggingFile) {
         int connectionId = serverConnections.size();
         StreamClient conn;
         lock();
         try {
-            File loggingFile = new File(loggingFilePath);
-//            File tempFile = File.createTempFile("elec", ".slog");
             FileOutputStream out = new FileOutputStream(loggingFile);
             System.err.println("Writing snapshot log to " + loggingFile);
             ActivityLogger.logMessage("Writing snapshot log to " + loggingFile);
             conn = new StreamClient(connectionId, null, new BufferedOutputStream(out));
             serverConnections.add(conn);
+            passiveConnections++;
         } catch (IOException e) {
             System.err.println("Failed to create snapshot log file:" + e.getMessage());
             return;

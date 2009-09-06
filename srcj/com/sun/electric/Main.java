@@ -240,7 +240,7 @@ public final class Main
         if (runMode == Mode.FULL_SCREEN || runMode == Mode.CLIENT)
             ui = new UserInterfaceMain(argsList, mode, true);
         else
-            ui = new UserInterfaceDummy(-1);
+            ui = new UserInterfaceDummy();
         MessagesStream.getMessagesStream();
 
 		// initialize database
@@ -308,8 +308,7 @@ public final class Main
 	{
         private PrintStream stdout = System.out;
 
-        public UserInterfaceDummy(int connectionId) {
-            super(connectionId);
+        public UserInterfaceDummy() {
         }
 
         public void startProgressDialog(String type, String filePath) {}

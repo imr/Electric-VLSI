@@ -123,7 +123,6 @@ public class UserInterfaceMain extends AbstractUserInterface
     private PrintStream stdout = System.out;
 
     public UserInterfaceMain(List<String> argsList, Mode mode, boolean showSplash) {
-        super(-1);
         new EventProcessor();
         try {
             EventQueue.invokeAndWait(new Runnable() {

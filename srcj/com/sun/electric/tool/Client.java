@@ -183,8 +183,8 @@ public abstract class Client {
 
         abstract void show(AbstractUserInterface ui);
 
-        void write(IdWriter writer, byte tag) throws IOException {
-            writer.writeByte(tag);
+        void writeHeader(IdWriter writer, int tag) throws IOException {
+            writer.writeByte((byte)tag);
             writer.writeLong(timeStamp);
         }
     }
@@ -214,7 +214,7 @@ public abstract class Client {
         @Override
         void write(IdWriter writer) throws IOException {
             assert newState == EJob.State.SERVER_DONE;
-            write(writer,(byte)2);
+            writeHeader(writer, 2);
             writer.writeInt(ejob.jobKey.jobId);
             writer.writeString(ejob.jobName);
             writer.writeString(ejob.jobType.toString());
@@ -248,7 +248,7 @@ public abstract class Client {
 
         @Override
         void write(IdWriter writer) throws IOException {
-            write(writer,(byte)3);
+            writeHeader(writer, 3);
             writer.writeString(s);
         }
 
@@ -269,7 +269,7 @@ public abstract class Client {
 
         @Override
         void write(IdWriter writer) throws IOException {
-            write(writer,(byte)5);
+            writeHeader(writer, 5);
             writer.writeString(filePath != null ? filePath : "");
         }
 
@@ -292,7 +292,7 @@ public abstract class Client {
 
         @Override
         void write(IdWriter writer) throws IOException {
-            write(writer,(byte)6);
+            writeHeader(writer, 6);
             writer.writeString(message);
             writer.writeString(title);
             writer.writeBoolean(isError);
@@ -316,7 +316,7 @@ public abstract class Client {
 
         @Override
         void write(IdWriter writer) throws IOException {
-            write(writer,(byte)4);
+            writeHeader(writer, 4);
             writer.writeInt(jobQueue.length);
             for (Job.Inform j: jobQueue)
                 j.write(writer);
@@ -339,7 +339,7 @@ public abstract class Client {
 
         @Override
         void write(IdWriter writer) throws IOException {
-            write(writer,(byte)7);
+            writeHeader(writer, 7);
             writer.writeString(msg);
             writer.writeBoolean(filePath != null);
             if (filePath != null)
@@ -359,7 +359,7 @@ public abstract class Client {
 
         @Override
         void write(IdWriter writer) throws IOException {
-            write(writer,(byte)8);
+            writeHeader(writer, 8);
         }
 
         @Override
@@ -377,7 +377,7 @@ public abstract class Client {
 
         @Override
         void write(IdWriter writer) throws IOException {
-            write(writer,(byte)9);
+            writeHeader(writer, 9);
             writer.writeInt(pct);
         }
 
@@ -396,7 +396,7 @@ public abstract class Client {
 
         @Override
         void write(IdWriter writer) throws IOException {
-            write(writer,(byte)10);
+            writeHeader(writer, 10);
             writer.writeBoolean(note != null);
             if (note != null)
                 writer.writeString(note);
@@ -421,7 +421,7 @@ public abstract class Client {
 
         @Override
         void write(IdWriter writer) throws IOException {
-            write(writer,(byte)11);
+            writeHeader(writer, 11);
             logger.write(writer);
             writer.writeBoolean(explain);
             writer.writeBoolean(terminate);
@@ -440,7 +440,7 @@ public abstract class Client {
 
         @Override
         void write(IdWriter writer) throws IOException {
-            write(writer,(byte)12);
+            writeHeader(writer, 12);
         }
 
         @Override
@@ -450,7 +450,6 @@ public abstract class Client {
     }
 
     static ServerEvent read(IdReader reader, byte tag, long timeStamp, Client connection) throws IOException {
-        Snapshot snapshot = null;
         switch (tag) {
             case 2:
                 int jobId = Integer.valueOf(reader.readInt());
