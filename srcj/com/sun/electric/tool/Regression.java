@@ -37,10 +37,8 @@ import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 
-import com.sun.electric.tool.user.ActivityLogger;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -184,8 +182,11 @@ public class Regression {
             System.out.println("END OF FILE reading from server");
 //            printErrorStream(process);
             try {
+                Thread.sleep(1000);
+                System.out.println("Server exit code="+process.exitValue());
                 process.getOutputStream().close();
-            } catch (IOException e1) {
+            } catch (Exception e1) {
+                e1.printStackTrace(System.out);
             }
             return false;
         }
@@ -282,20 +283,11 @@ public class Regression {
         private char [] buf;
 
         /**
-         * Create a stream reader that will read from the stream
-         * @param in the input stream
-         */
-        public ExecProcessReader(InputStream in) {
-            this(in, null);
-        }
-
-        /**
          * Create a stream reader that will read from the stream, and
          * store the read text into buffer.
          * @param in the input stream
-         * @param redirect read text is redirected to this
          */
-        public ExecProcessReader(InputStream in, OutputStream redirect) {
+        public ExecProcessReader(InputStream in) {
             this.in = in;
             buf = new char[256];
             setName("ExecProcessReader");
@@ -319,6 +311,7 @@ public class Regression {
 
             } catch (java.io.IOException e) {
                 e.printStackTrace();
+                e.printStackTrace(System.out);
             }
         }
     }
