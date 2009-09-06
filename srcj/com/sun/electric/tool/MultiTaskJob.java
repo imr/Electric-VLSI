@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.database.Environment;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -40,29 +42,34 @@ import java.util.Map;
  * This stage is performed by consumer.consume method.
  */
 public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
-    private transient LinkedHashMap<TaskKey,TaskJob> tasks;
+    private transient LinkedHashMap<TaskKey,Task> tasks;
+    private transient ArrayList<Task> allTasks;
+    private transient int tasksDone;
+    private transient Environment env;
+    private transient EThread ownerThread;
+    private transient int numberOfRunningThreads;
+    private transient int numberOfFinishedThreads;
     private Consumer<Result> consumer;
-    
+
     /**
 	 * Constructor creates a new instance of MultiTaskJob.
 	 * @param jobName a string that describes this MultiTaskJob.
 	 * @param t the Tool that originated this MultiTaskJob.
-	 * @param jobType the Type of this Job (SERVER_EXAMINE or CHANGE).
      * @param c interface which consumes the result on server
 	 */
-    public MultiTaskJob(String jobName, Tool t, Type jobType, Consumer<Result> c) {
-        super(jobName, t, jobType, null, null, Job.Priority.USER);
+    public MultiTaskJob(String jobName, Tool t, Consumer<Result> c) {
+        super(jobName, t, Job.Type.SERVER_EXAMINE, null, null, Job.Priority.USER);
         this.consumer = c;
     }
-    
+
     /**
      * This abstract method split large computation into smaller task.
      * Smaller tasks are identified by TaskKey class.
      * Each task is scheduled by startTask method.
      * @throws com.sun.electric.tool.JobException
      */
-    public abstract void prepareTasks() throws JobException; 
-    
+    public abstract void prepareTasks() throws JobException;
+
     /**
      * This abtract methods performs computation of each task.
      * @param taskKey task key which identifies the task
@@ -70,7 +77,7 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
      * @throws com.sun.electric.tool.JobException
      */
     public abstract TaskResult runTask(TaskKey taskKey) throws JobException;
-    
+
     /**
      * This abtract method combines task results into final result.
      * @param taskResults map which contains result of each completed task.
@@ -78,29 +85,14 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
      * @throws com.sun.electric.tool.JobException
      */
     public abstract Result mergeTaskResults(Map<TaskKey,TaskResult> taskResults) throws JobException;
-    
+
 //    /**
 //     * This method executes in the Client side after normal termination of full computation.
 //     * This method should perform all needed termination actions.
 //     * @param result result of full computation.
 //     */
 //    public void terminateOK(Result result) {}
-    
-    /**
-     * Schedules task. Should be callled from prepareTasks or runTask methods only.
-     * @param taskName task name which is appeared in Jobs Explorer Tree
-     * @param taskKey task key which identifies the task.
-     */
-    public void startTask(String taskName, TaskKey taskKey) {
-        TaskJob task = new TaskJob(taskName, taskKey);
-        synchronized (this) {
-            if (tasks.containsKey(taskKey))
-                throw new IllegalArgumentException();
-            tasks.put(taskKey, task);
-        }
-        task.startJobOnMyResult();
-    }
-    
+
     /**
      * This method is not overriden by subclasses.
      * Override methods prepareTasks, runTask, mergeTaskResults instead.
@@ -108,67 +100,99 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
      */
     @Override
     public final boolean doIt() throws JobException {
-        tasks = new LinkedHashMap<TaskKey,TaskJob>();
+        tasks = new LinkedHashMap<TaskKey,Task>();
+        allTasks = new ArrayList<Task>();
         prepareTasks();
-        (new MergeJob()).startJob();
+        env = Environment.getThreadEnvironment();
+        ownerThread = (EThread)Thread.currentThread();
+        numberOfRunningThreads = ServerJobManager.getMaxNumberOfThreads();
+        for (int id = 0; id < numberOfRunningThreads; id++)
+            new WorkingThread(id).start();
+        waitTasks();
+
+        LinkedHashMap<TaskKey,TaskResult> taskResults = new LinkedHashMap<TaskKey,TaskResult>();
+        for (Task task: tasks.values()) {
+            if (task.taskResult != null)
+                taskResults.put(task.taskKey, task.taskResult);
+        }
+        Result result = mergeTaskResults(taskResults);
+        if (consumer != null)
+            consumer.consume(result);
         return true;
     }
-    
-    private class TaskJob extends Job {
-        private transient final TaskKey taskKey;
-        private transient TaskResult taskResult;
-        
-        private TaskJob(String taskName, TaskKey tK) {
-            super(taskName, MultiTaskJob.this.tool, 
-                    Job.Type.SERVER_EXAMINE, null, null, Job.Priority.USER);
-            this.taskKey = tK;
+
+    /**
+     * Schedules task. Should be callled from prepareTasks or runTask methods only.
+     * @param taskName task name which is appeared in Jobs Explorer Tree
+     * @param taskKey task key which identifies the task.
+     */
+    public synchronized void startTask(String taskName, TaskKey taskKey) {
+        Task task = new Task(taskName, taskKey);
+        if (tasks.containsKey(taskKey))
+            throw new IllegalArgumentException();
+        tasks.put(taskKey, task);
+        allTasks.add(task);
+    }
+
+    private synchronized Task getTask() {
+        if (tasksDone == allTasks.size()) {
+            return null;
         }
-        
-        @Override
-        public boolean doIt() throws JobException {
-            taskResult = runTask(taskKey);
-            return true;
-        }
-        
-        @Override
-        public void abort() {
-            MultiTaskJob.this.abort();
+        return allTasks.get(tasksDone++);
+    }
+
+    private synchronized void waitTasks() {
+        try {
+            while (numberOfFinishedThreads < numberOfRunningThreads)
+                wait();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
-    
-    private class MergeJob extends Job {
-        private Result result;
-        
-        private MergeJob() {
-            super(MultiTaskJob.this.ejob.jobName + "merge", MultiTaskJob.this.tool, 
-                    Job.Type.CHANGE, null, null, Job.Priority.USER);
+
+    private synchronized void finishWorkingThread() {
+        numberOfFinishedThreads++;
+        notify();
+    }
+
+    private class Task {
+        private final String taskName;
+        private final TaskKey taskKey;
+        private TaskResult taskResult;
+
+        private Task(String taskName, TaskKey taskKey) {
+            this.taskName = taskName;
+            this.taskKey = taskKey;
         }
-        
+    }
+
+    class WorkingThread extends EThread {
+
+        private WorkingThread(int id) {
+            super("WorkingThread-"+id);
+            userInterface = new ServerJobManager.UserInterfaceRedirect(ownerThread.ejob.jobKey);
+            ejob = ownerThread.ejob;
+            isServerThread = ownerThread.isServerThread;
+            database = ownerThread.database;
+        }
+
         @Override
-        public boolean doIt() throws JobException {
-            LinkedHashMap<TaskKey,TaskResult> taskResults = new LinkedHashMap<TaskKey,TaskResult>();
-            for (TaskJob task: tasks.values()) {
-                if (task.taskResult != null)
-                    taskResults.put(task.taskKey, task.taskResult);
+        public void run() {
+            Environment.setThreadEnvironment(env);
+            for (;;) {
+                Task t = getTask();
+                if (t == null) {
+                    break;
+                }
+                try {
+                    t.taskResult = runTask(t.taskKey);
+                } catch (Throwable e) {
+                    e.getStackTrace();
+                    e.printStackTrace(System.out);
+                    e.printStackTrace();
+                }
             }
-            result = mergeTaskResults(taskResults);
-            if (consumer != null)
-                consumer.consume(result);
-//            fieldVariableChanged("result");
-            return true;
+            finishWorkingThread();
         }
-        
-        @Override
-        public void abort() {
-            MultiTaskJob.this.abort();
-        }
-//        /**
-//         * This method executes in the Client side after normal termination of doIt method.
-//         * This method should perform all needed termination actions.
-//         */
-//        @Override
-//        public void terminateOK() {
-//            MultiTaskJob.this.terminateOK(result);
-//        }
     }
 }

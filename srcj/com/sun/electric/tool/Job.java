@@ -432,16 +432,6 @@ public abstract class Job implements Serializable {
     }
 
     /**
-     * If this current thread is a EThread running a Job return the EJob.
-     * Return null otherwise.
-     * @return a running Job or null
-     */
-    static EJob getRunningEJob() {
-        Thread thread = Thread.currentThread();
-        return thread instanceof EThread ? ((EThread)thread).getRunningEJob() : null;
-    }
-
-    /**
      * Returns true if this current thread is a EThread running a server Job.
      * @return true if this current thread is a EThread running a server Job.
      */

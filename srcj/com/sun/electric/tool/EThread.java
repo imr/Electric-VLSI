@@ -53,7 +53,7 @@ class EThread extends Thread {
     /* Database in which thread is executing. */
     EDatabase database;
 
-    final ServerJobManager.UserInterfaceRedirect userInterface = new ServerJobManager.UserInterfaceRedirect();
+    ServerJobManager.UserInterfaceRedirect userInterface;
 
     /** Creates a new instance of EThread */
     EThread(int id) {
@@ -79,6 +79,7 @@ class EThread extends Thread {
 //            Throwable jobException = null;
             Environment.setThreadEnvironment(database.getEnvironment());
             EditingPreferences.setThreadEditingPreferences(ejob.editingPreferences);
+            userInterface = new ServerJobManager.UserInterfaceRedirect(ejob.jobKey);
             database.lock(!ejob.isExamine());
             ejob.oldSnapshot = database.backup();
             try {
@@ -92,9 +93,7 @@ class EThread extends Thread {
                         database.lowLevelBeginChanging(ejob.serverJob.tool);
                         database.getNetworkManager().startBatch();
                         Constraints.getCurrent().startBatch(ejob.oldSnapshot);
-                        userInterface.curTechId = ejob.serverJob.curTechId;
-                        userInterface.curLibId = ejob.serverJob.curLibId;
-                        userInterface.curCellId = ejob.serverJob.curCellId;
+                        userInterface.setCurrents(ejob.serverJob);
                         if (!ejob.serverJob.doIt())
                             throw new JobException("Job '" + ejob.jobName + "' failed");
                         Constraints.getCurrent().endBatch(ejob.client.userName);
@@ -105,9 +104,9 @@ class EThread extends Thread {
                     case UNDO:
                         database.lowLevelSetCanUndoing(true);
                         database.getNetworkManager().startBatch();
-                        userInterface.curTechId = null;
-                        userInterface.curLibId = null;
-                        userInterface.curCellId = null;
+//                        userInterface.curTechId = null;
+//                        userInterface.curLibId = null;
+//                        userInterface.curCellId = null;
                         int snapshotId = ((Undo.UndoJob)ejob.serverJob).getSnapshotId();
                         Snapshot undoSnapshot = findInCache(snapshotId);
                         if (undoSnapshot == null)
@@ -117,9 +116,7 @@ class EThread extends Thread {
                         database.lowLevelSetCanUndoing(false);
                         break;
                     case SERVER_EXAMINE:
-                        userInterface.curTechId = ejob.serverJob.curTechId;
-                        userInterface.curLibId = ejob.serverJob.curLibId;
-                        userInterface.curCellId = ejob.serverJob.curCellId;
+                        userInterface.setCurrents(ejob.serverJob);
                         if (!ejob.serverJob.doIt())
                             throw new JobException("Job '" + ejob.jobName + "' failed");
                         break;
@@ -129,9 +126,7 @@ class EThread extends Thread {
                             if (e != null)
                                 throw e;
                         }
-                        userInterface.curTechId = ejob.clientJob.curTechId;
-                        userInterface.curLibId = ejob.clientJob.curLibId;
-                        userInterface.curCellId = ejob.clientJob.curCellId;
+                        userInterface.setCurrents(ejob.clientJob);
                         if (!ejob.clientJob.doIt())
                             throw new JobException("Job '" + ejob.jobName + "' failed");
                         break;
@@ -153,6 +148,7 @@ class EThread extends Thread {
 //                ejob.state = EJob.State.SERVER_FAIL;
             } finally {
                 database.unlock();
+                userInterface = null;
                 Environment.setThreadEnvironment(null);
                 EditingPreferences.setThreadEditingPreferences(null);
             }

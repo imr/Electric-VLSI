@@ -74,7 +74,7 @@ public class ServerJobManager extends JobManager {
     private boolean runningChangeJob;
 //    private boolean guiChanged;
     private boolean signalledEThread;
-    
+
     private static int maxNumberOfThreads;
 
     /** Creates a new instance of JobPool */
@@ -468,11 +468,27 @@ public class ServerJobManager extends JobManager {
 
     /*private*/ static class UserInterfaceRedirect implements UserInterface
 	{
+        private final Job.Key jobKey;
+        private final Client client;
+        private final EDatabase database;
         TechId curTechId;
         LibId curLibId;
         CellId curCellId;
         private String progressNote;
         private int progressValue = -1;
+
+        UserInterfaceRedirect(Job.Key jobKey) {
+            this.jobKey = jobKey;
+            client = ((ServerJobManager)Job.jobManager).serverConnections.get(jobKey.clientId);
+            database = jobKey.doItOnServer ? EDatabase.serverDatabase() : EDatabase.clientDatabase();
+        }
+
+        void setCurrents(Job job) {
+            assert jobKey == job.getKey();
+            curTechId = job.curTechId;
+            curLibId = job.curLibId;
+            curCellId = job.curCellId;
+        }
 
     	private static void printStackTrace(String methodName) {
             if (!Job.getDebug()) return;
@@ -532,14 +548,13 @@ public class ServerJobManager extends JobManager {
         }
 
         public Job.Key getJobKey() {
-            return Job.getRunningEJob().jobKey;
+            return jobKey;
         }
 
     	public EDatabase getDatabase() {
-            return EDatabase.serverDatabase();
+            return database;
         }
     	public Technology getCurrentTechnology() {
-            EDatabase database = getDatabase();
             Technology tech = null;
             if (curTechId != null)
                 tech = database.getTech(curTechId);
@@ -550,7 +565,7 @@ public class ServerJobManager extends JobManager {
             return tech;
         }
         public Library getCurrentLibrary() {
-            return curLibId != null ? getDatabase().getLib(curLibId) : null;
+            return curLibId != null ? database.getLib(curLibId) : null;
         }
 
 		public EditWindow_ getCurrentEditWindow_() {
@@ -565,7 +580,7 @@ public class ServerJobManager extends JobManager {
         /** Get current cell from current library */
 		public Cell getCurrentCell()
         {
-            return curCellId != null ? getDatabase().getCell(curCellId) : null;
+            return curCellId != null ? database.getCell(curCellId) : null;
         }
 
 		public Cell needCurrentCell()
@@ -613,8 +628,7 @@ public class ServerJobManager extends JobManager {
          */
         public void showErrorMessage(String message, String title)
         {
-            EJob ejob = Job.getRunningEJob();
-            Client.fireServerEvent(new Client.ShowMessageEvent(ejob.client, message, title, true));
+            Client.fireServerEvent(new Client.ShowMessageEvent(client, message, title, true));
         }
 
         /**
@@ -624,8 +638,7 @@ public class ServerJobManager extends JobManager {
          */
         public void showInformationMessage(String message, String title)
         {
-            EJob ejob = Job.getRunningEJob();
-            Client.fireServerEvent(new Client.ShowMessageEvent(ejob.client, message, title, false));
+            Client.fireServerEvent(new Client.ShowMessageEvent(client, message, title, false));
         }
 
         /**
@@ -636,8 +649,7 @@ public class ServerJobManager extends JobManager {
         public void printMessage(String message, boolean newLine) {
             if (newLine)
                 message += "\n";
-            EJob ejob = Job.getRunningEJob();
-            Client.fireServerEvent(new Client.PrintEvent(ejob.client, message));
+            Client.fireServerEvent(new Client.PrintEvent(client, message));
         }
 
         /**
@@ -645,8 +657,7 @@ public class ServerJobManager extends JobManager {
          * @param filePath file to save
          */
         public void saveMessages(String filePath) {
-            EJob ejob = Job.getRunningEJob();
-            Client.fireServerEvent(new Client.SavePrintEvent(ejob.client, filePath));
+            Client.fireServerEvent(new Client.SavePrintEvent(client, filePath));
         }
 
         /**
@@ -709,9 +720,8 @@ public class ServerJobManager extends JobManager {
     public static int getDefaultNumberOfThreads(){
     	return defaultNumThreads;
     }
-    
+
     public static int getMaxNumberOfThreads(){
     	return maxNumberOfThreads;
     }
-    
 }

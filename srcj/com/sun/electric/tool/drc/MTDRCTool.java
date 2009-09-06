@@ -31,7 +31,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.tool.Consumer;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.MultiTaskJobLight;
+import com.sun.electric.tool.MultiTaskJob;
 import com.sun.electric.technology.*;
 
 import java.util.*;
@@ -40,7 +40,7 @@ import java.util.*;
  * User: gg151869
  * Date: Dec 12, 2007
  */
-public abstract class MTDRCTool extends MultiTaskJobLight<Layer, MTDRCTool.MTDRCResult, MTDRCTool.MTDRCResult>
+public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResult, MTDRCTool.MTDRCResult>
 //public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResult, MTDRCTool.MTDRCResult>
 {
     protected DRC.DRCPreferences dp;
@@ -52,7 +52,7 @@ public abstract class MTDRCTool extends MultiTaskJobLight<Layer, MTDRCTool.MTDRC
 
     protected MTDRCTool(String jobName, DRC.DRCPreferences dp, Cell c, Consumer<MTDRCResult> consumer)
     {
-        super(jobName, DRC.getDRCTool(), Job.Type.CHANGE, consumer);
+        super(jobName, DRC.getDRCTool(), consumer);
         this.dp = dp;
         this.topCell= c;
         // Rules set must be local to avoid concurrency issues with other tasks
