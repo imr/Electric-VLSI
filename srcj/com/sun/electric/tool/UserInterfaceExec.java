@@ -37,6 +37,8 @@ import com.sun.electric.tool.user.ErrorLogger;
  */
 public class UserInterfaceExec implements UserInterface {
     private Job.Key jobKey = Job.getUserInterface().getJobKey();
+    private String progressNote;
+    private int progressValue = -1;
 
     public UserInterfaceExec() {
     }
@@ -208,28 +210,60 @@ public class UserInterfaceExec implements UserInterface {
      * @param msg the message to show in the progress dialog.
      * @param filePath the file being read (null if not reading a file).
      */
-    public void startProgressDialog(String msg, String filePath) { throw new UnsupportedOperationException(); }
+    public void startProgressDialog(String msg, String filePath) {
+        progressValue = -1;
+        if (jobKey.doItOnServer) {
+            Client.fireServerEvent(new Client.StartProgressDialogEvent(msg, filePath));
+        } else {
+            Job.currentUI.startProgressDialog(msg, filePath);
+        }
+    }
 
     /**
      * Method to stop the progress bar
      */
-    public void stopProgressDialog() { throw new UnsupportedOperationException(); }
+    public void stopProgressDialog() {
+        progressValue = -1;
+        if (jobKey.doItOnServer) {
+            Client.fireServerEvent(new Client.StopProgressDialogEvent());
+        } else {
+            Job.currentUI.stopProgressDialog();
+        }
+    }
 
     /**
      * Method to update the progress bar
      * @param pct the percentage done (from 0 to 100).
      */
-    public void setProgressValue(int pct) { throw new UnsupportedOperationException(); }
+    public void setProgressValue(int pct) {
+        if (pct == progressValue) return;
+        progressValue = pct;
+        if (jobKey.doItOnServer) {
+            Client.fireServerEvent(new Client.ProgressValueEvent(pct));
+        } else {
+            Job.currentUI.setProgressValue(pct);
+        }
+    }
 
     /**
      * Method to set a text message in the progress dialog.
      * @param message the new progress message.
      */
-    public void setProgressNote(String message) { throw new UnsupportedOperationException(); }
+    public void setProgressNote(String message) {
+        progressNote = message;
+        progressValue = -1;
+        if (jobKey.doItOnServer) {
+            Client.fireServerEvent(new Client.ProgressNoteEvent(message));
+        } else {
+            Job.currentUI.setProgressValue(progressValue);
+        }
+    }
 
     /**
      * Method to get text message in the progress dialgo.
      * @return the current progress message.
      */
-    public String getProgressNote() { throw new UnsupportedOperationException(); }
+    public String getProgressNote() {
+        return progressNote;
+    }
 }

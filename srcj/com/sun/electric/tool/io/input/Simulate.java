@@ -25,14 +25,14 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.UserInterfaceExec;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.verilog.VerilogOut;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
@@ -230,6 +230,8 @@ public class Simulate extends Input
 		private Cell cell;
 		private WaveformWindow ww;
         private Stimuli sd;
+        private final Environment launcherEnvironment;
+        private final UserInterfaceExec userInterface;
 
 		private ReadSimulationOutput(FileType type, Simulate is, URL fileURL, Cell cell, WaveformWindow ww)
 		{
@@ -238,10 +240,17 @@ public class Simulate extends Input
 			this.fileURL = fileURL;
 			this.cell = cell;
 			this.ww = ww;
+            launcherEnvironment = Environment.getThreadEnvironment();
+            userInterface = new UserInterfaceExec();
 		}
 
 		public void run()
 		{
+            if (Thread.currentThread() == this) {
+                Environment.setThreadEnvironment(launcherEnvironment);
+                Job.setUserInterface(userInterface);
+            }
+
 			try
 			{
 				sd = is.readSimulationOutput(fileURL, cell);

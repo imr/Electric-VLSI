@@ -23,12 +23,12 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.Launcher;
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.UserInterfaceExec;
 import com.sun.electric.tool.simulation.AnalogSignal;
-import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.ActivityLogger;
 
@@ -39,11 +39,7 @@ import java.io.PipedOutputStream;
 import java.io.PipedInputStream;
 import java.io.PrintStream;
 import java.io.EOFException;
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 import java.io.BufferedOutputStream;
@@ -73,8 +69,13 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
     private PipedOutputStream epos;
     private DataInputStream stdOut;
     private ArrayList<String> strings = new ArrayList<String>();
+    private final Environment launcherEnvironment;
+    private final UserInterfaceExec userInterface;
 
-    ScalarEpicOutProcess() { }
+    ScalarEpicOutProcess() {
+        launcherEnvironment = Environment.getThreadEnvironment();
+        userInterface = new UserInterfaceExec();
+    }
 
     /**
      * Method to read an Spice output file.
@@ -261,6 +262,9 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
      * and redirects it to System.out and progress indicator.
      */
     public void run() {
+        Environment.setThreadEnvironment(launcherEnvironment);
+        Job.setUserInterface(userInterface);
+        
         final String progressKey = "**PROGRESS ";
         BufferedReader stdErr = new BufferedReader(new InputStreamReader(epis));
         try {

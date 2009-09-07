@@ -195,7 +195,7 @@
     <!-- Delete jar files in packages -->
      <target name="deleteExternalJars" description="Delete extracted Jar files to cleanup after build">
         <delete dir="bsh"/>   <!-- beanshell -->
-        <delete dir="org"/>   <!-- lucene -->
+        <delete dir="org"/>   <!-- lucene, jython -->
         <delete dir="prefuse"/>
         <delete dir="com/apple"/>
 	<delete dir="com/xhaus"/> <!--jython -->

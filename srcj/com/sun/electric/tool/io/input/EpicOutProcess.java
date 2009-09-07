@@ -24,9 +24,11 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.Launcher;
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.UserInterfaceExec;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
@@ -52,8 +54,13 @@ public class EpicOutProcess extends Simulate implements Runnable
     private Process readerProcess;
     private DataInputStream stdOut;
     private ArrayList<String> strings = new ArrayList<String>();
+    private final Environment launcherEnvironment;
+    private final UserInterfaceExec userInterface;
 
-    EpicOutProcess() {}
+    EpicOutProcess() {
+        launcherEnvironment = Environment.getThreadEnvironment();
+        userInterface = new UserInterfaceExec();
+    }
 
     /**
 	 * Method to read an Spice output file.
@@ -284,6 +291,9 @@ public class EpicOutProcess extends Simulate implements Runnable
      * and redirects it to System.out and progress indicator.
      */
     public void run() {
+        Environment.setThreadEnvironment(launcherEnvironment);
+        Job.setUserInterface(userInterface);
+        
         final String progressKey = "**PROGRESS ";
         BufferedReader stdErr = new BufferedReader(new InputStreamReader(readerProcess.getErrorStream()));
         try {
