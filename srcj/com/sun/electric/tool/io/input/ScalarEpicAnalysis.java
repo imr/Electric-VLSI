@@ -37,6 +37,15 @@ import com.sun.electric.tool.simulation.NewSignal;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.NewSignalSimpleImpl;
 
+import com.sun.electric.tool.btree.*;
+import com.sun.electric.tool.btree.unboxed.*;
+
+import com.sun.electric.tool.btree.*;
+import com.sun.electric.tool.btree.unboxed.*;
+
+import com.sun.electric.tool.btree.*;
+import com.sun.electric.tool.btree.unboxed.*;
+
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -155,14 +164,6 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
      */
     ScalarEpicAnalysis(Stimuli sd) {
         super(sd, AnalogAnalysis.ANALYSIS_TRANS, false);
-        /*
-        try {
-            this.btree = (BTree<SimulationKey,SimulationValue>)
-                Class.forName("com.sun.electric.plugins.jdbm.BTreeJDBM").newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        */
         signalsUnmodifiable = Collections.unmodifiableList(super.getSignals());
     }
     
@@ -427,6 +428,8 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
     private HashMap<String,BTree<Integer,Double>> timetrees = new HashMap<String,BTree<Integer,Double>>();
     private HashMap<String,BTree<Integer,Double>> valtrees = new HashMap<String,BTree<Integer,Double>>();
 
+    private PageStorage ps = null;
+
     @Override
         protected Waveform[] loadWaveforms(AnalogSignal signal) {
         int index = signal.getIndexInAnalysis();
@@ -454,15 +457,21 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
         BTree<Integer,Double> timetree = timetrees.get(sigName);
         BTree<Integer,Double> valtree = valtrees.get(sigName);
 
-        try {
-            if (timetree==null)
-                timetrees.put(sigName, timetree = (BTree<Integer,Double>)
-                              Class.forName("com.sun.electric.plugins.jdbm.BTreeJDBM").newInstance());
-            if (valtree==null)
-                valtrees.put(sigName, valtree = (BTree<Integer,Double>)
-                             Class.forName("com.sun.electric.plugins.jdbm.BTreeJDBM").newInstance());
-        } catch (Exception e) { throw new RuntimeException(e); }
+        if (ps==null)
+            try {
+                ps = new CachingPageStorage(FilePageStorage.create(), 16 * 1024);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
 
+        if (timetree==null)
+            timetrees.put(sigName, timetree =
+                          new com.sun.electric.tool.btree.BTree<Integer,Double,Integer>(ps, UnboxedInt.instance, null, UnboxedHalfDouble.instance));
+        if (valtree==null)
+            valtrees.put(sigName, valtree =
+                         new com.sun.electric.tool.btree.BTree<Integer,Double,Integer>(ps, UnboxedInt.instance, null, UnboxedHalfDouble.instance));
+        
+        long now = System.currentTimeMillis();
         System.err.println("filling btree for signal " + sigName);
         long last = 0;
         for (int i = 0; i < len; count++) {
@@ -492,7 +501,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
                 System.err.print("\r " + i + "/" + len + " = " + ((int)Math.round(((float)i*100)/len)) +"% ");
             }
         }
-        System.err.println("  done filling btree for signal " + sigName);
+        System.err.println("  done filling btree for signal " + sigName + "; took " + (System.currentTimeMillis()-now) +"ms");
         return new Waveform[] { new ScalarWaveformImpl(sigName, count, evmin, evmax, timetree, valtree) };
     }
 

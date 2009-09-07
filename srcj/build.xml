@@ -31,7 +31,6 @@
         <property name="JUnit" value="packaging/junit-4.1.jar"/>
         <property name="lucene" value="packaging/lucene-1.4.3.jar"/>
         <property name="prefuse" value="packaging/prefuse.jar"/>
-        <property name="jdbm" value="packaging/jdbm-sourceforge-svn-r36.jar"/>
         <property name="jython" value="packaging/jython.jar"/>
     </target>
 
@@ -52,7 +51,6 @@
         <exclude name="com/sun/electric/plugins/dais/" unless="SUN"/>
         <exclude name="com/sun/electric/plugins/generator/" unless="SUN"/>
         <exclude name="com/sun/electric/plugins/Java3D/" unless="SUN"/>
-        <exclude name="com/sun/electric/plugins/jdbm/" unless="SUN"/>
         <exclude name="com/sun/electric/plugins/jogl/" unless="JOGL"/>
         <exclude name="com/sun/electric/plugins/irsim/" if="GNU"/>
         <exclude name="com/sun/electric/plugins/libertyRW/" unless="SUN"/>
@@ -82,11 +80,6 @@
         <pathelement location="packaging/prefuse.jar"/>
     </path>
 
-    <!-- Path for JDBM -->
-    <path id="jdbmClassPath">
-        <pathelement location="packaging/jdbm-sourceforge-svn-r36.jar"/>
-    </path>
-
     <!-- Path for Jython -->
     <path id="jythonClassPath">
         <pathelement location="packaging/jython.jar"/>
@@ -103,7 +96,6 @@
 	    <!--compilerarg value="-Xlint:unchecked"/-->
             <classpath refid="externalClassPath" />
             <classpath refid="prefuseClassPath" />
-            <classpath refid="jdbmClassPath" />
             <patternset refid="exclusion" />
         </javac>
     </target>
@@ -203,8 +195,7 @@
     <!-- Delete jar files in packages -->
      <target name="deleteExternalJars" description="Delete extracted Jar files to cleanup after build">
         <delete dir="bsh"/>   <!-- beanshell -->
-        <delete dir="org"/>   <!-- lucene, jython-->
-        <delete dir="jdbm"/>  <!-- jdbm -->
+        <delete dir="org"/>   <!-- lucene -->
         <delete dir="prefuse"/>
         <delete dir="com/apple"/>
 	<delete dir="com/xhaus"/> <!--jython -->
@@ -223,7 +214,6 @@
     <target name="unjarSUN" if="SUN" description="Extract Jar files used in Sun release">
         <unjar dest="." src="${beanshell}"/>
         <unjar dest="." src="${lucene}"/>
-        <unjar dest="." src="${jdbm}"/>
         <unjar dest="." src="${jython}"/>
         <unjar dest="." src="${prefuse}"/>
     </target>

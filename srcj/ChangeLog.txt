@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: *******************************
 
+IMP: (9/7/09, AM) Remove JDBM, use com.sun.electric.tool.btree instead.
+
 IMP: (9/7/09, AM) Check in first draft of com.sun.electric.tool.btree.
 
 IMP: (9/6/09, DN) Rename MultiTaskJobLight to MultiTaskJob, remove old MultiTaskJob.
