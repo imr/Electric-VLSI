@@ -495,9 +495,9 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
             if (value > maxValue) { maxValue = value; evmax = count; }
             timetree.put(count, t*timeResolution);
             valtree.put(count, value);
-            long now = System.currentTimeMillis();
-            if (now-last > 500) {
-                last = now;
+            long now1 = System.currentTimeMillis();
+            if (now1-last > 500) {
+                last = now1;
                 System.err.print("\r " + i + "/" + len + " = " + ((int)Math.round(((float)i*100)/len)) +"% ");
             }
         }
