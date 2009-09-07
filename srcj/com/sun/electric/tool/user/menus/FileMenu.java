@@ -1883,7 +1883,7 @@ public class FileMenu {
             return false;
         }
         // set libraries to save to panic dir
-        Snapshot panicSnapshot = JobManager.findValidSnapshot();
+        Snapshot panicSnapshot = Job.findValidSnapshot();
         boolean ok = !Output.writePanicSnapshot(panicSnapshot, panicDir, false);
         if (ok) {
             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Libraries are saved to panic directory",

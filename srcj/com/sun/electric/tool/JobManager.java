@@ -23,40 +23,17 @@
  */
 package com.sun.electric.tool;
 
-import com.sun.electric.database.Snapshot;
 
 import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *
  */
 public abstract class JobManager {
-    private final ReentrantLock lock = new ReentrantLock();
-
-    void lock() { lock.lock(); }
-    void unlock() { lock.unlock(); }
-    Condition newCondition() { return lock.newCondition(); }
-    void connectionClosed() {}
-
-    abstract void runLoop(Job initialJob);
     abstract void addJob(EJob ejob, boolean onMySnapshot);
     /** Remove job from list of jobs */
     abstract void removeJob(Job j);
-    abstract EJob selectEJob(EJob finishedEJob);
     abstract void setProgress(EJob ejob, String progress);
     abstract Iterator<Job> getAllJobs();
-    abstract List<Job.Inform> getAllJobInforms();
-//    abstract void wantUpdateGui();
-
-    /**
-     * Find some valid snapshot in cache.
-     * @return some valid snapshot
-     */
-    public static Snapshot findValidSnapshot() {
-        return EThread.findValidSnapshot();
-    }
 }
 

@@ -103,7 +103,7 @@ public class Regression {
             writeEditingPreferences(clientOutputStream, database);
 
             int curJobId = 0;
-            Job.setUserInterface(new Main.InitialUserInterface(database));
+            Job.setUserInterface(new UserInterfaceInitial(database));
             Job job = new InitJob();
             job.ejob.jobKey = new Job.Key(connectionId, --curJobId, true);
             writeJob(clientOutputStream, job);
@@ -128,7 +128,7 @@ public class Regression {
                         }
                         System.out.format("            ->%1$tT.%1$tL Database updated to snapshot %2$d\n", Calendar.getInstance(), currentSnapshot.snapshotId);
                 } else {
-                    Client.ServerEvent serverEvent = Client.read(reader, tag, timeStamp, ui);
+                    Client.ServerEvent serverEvent = Client.read(reader, tag, timeStamp, ui, currentSnapshot);
                     if (serverEvent instanceof Client.EJobEvent) {
                         Client.EJobEvent e = (Client.EJobEvent)serverEvent;
                         int jobId = e.ejob.jobKey.jobId;

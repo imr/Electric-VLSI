@@ -71,7 +71,7 @@ class EThread extends Thread {
         Job.logger.logp(Level.FINE, CLASS_NAME, "run", getName());
         EJob finishedEJob = null;
         for (;;) {
-            ejob = Job.jobManager.selectEJob(finishedEJob);
+            ejob = Job.serverJobManager.selectEJob(finishedEJob);
             Job.logger.logp(Level.FINER, CLASS_NAME, "run", "selectedJob {0}", ejob.jobName);
             isServerThread = ejob.jobType != Job.Type.CLIENT_EXAMINE;
             database = isServerThread ? EDatabase.serverDatabase() : EDatabase.clientDatabase();

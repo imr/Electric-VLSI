@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
 
@@ -59,14 +60,19 @@ import java.util.logging.Level;
 public class ServerJobManager extends JobManager {
     private static final String CLASS_NAME = Job.class.getName();
     private static final int defaultNumThreads = Math.max(2, Runtime.getRuntime().availableProcessors());
-    /** mutex for database synchronization. */  private final Condition databaseChangesMutex = newCondition();
+
+    private final ReentrantLock lock = new ReentrantLock();
+
+    void lock() { lock.lock(); }
+    void unlock() { lock.unlock(); }
+    /** mutex for database synchronization. */  private final Condition databaseChangesMutex = lock.newCondition();
 
     /** started jobs */ private final ArrayList<EJob> startedJobs = new ArrayList<EJob>();
     /** waiting jobs */ private final ArrayList<EJob> waitingJobs = new ArrayList<EJob>();
 
     private final ServerSocket serverSocket;
 //    private final ArrayList<EJob> finishedJobs = new ArrayList<EJob>();
-    private final ArrayList<Client> serverConnections = new ArrayList<Client>();
+    final ArrayList<Client> serverConnections = new ArrayList<Client>();
     private int passiveConnections;
 //    private final UserInterface redirectInterface = new UserInterfaceRedirect();
     private int numThreads;
@@ -344,7 +350,7 @@ public class ServerJobManager extends JobManager {
 //                    finishedJobs.remove(ejob);
         }
         ejob.state = newState;
-        List<Job.Inform> jobs = Job.jobManager.getAllJobInforms();
+        List<Job.Inform> jobs = getAllJobInforms();
         Client.fireServerEvent(new Client.JobQueueEvent(jobs.toArray(new Job.Inform[jobs.size()])));
 
 //        if (!Job.BATCHMODE && !guiChanged)

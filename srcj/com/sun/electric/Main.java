@@ -36,7 +36,6 @@ import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Client;
@@ -44,6 +43,7 @@ import com.sun.electric.tool.EJob;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.UserInterfaceInitial;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.Clipboard;
@@ -90,6 +90,7 @@ public final class Main
      */
     private static enum Mode {
         /** Full screen run of Electric. */         FULL_SCREEN,
+        /** Thread-safe full screen run. */         THREAD_SAFE,
         /** Batch mode. */                          BATCH,
         /** Server side. */                         SERVER,
         /** Client side. */                         CLIENT;
@@ -205,6 +206,11 @@ public final class Main
             //System.setProperty("java.awt.headless", "true");
             runMode = Mode.BATCH;
         }
+        if (hasCommandLineOption(argsList, "-threadsafe")) {
+            if (runMode != Mode.FULL_SCREEN)
+                System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.THREAD_SAFE);
+            runMode = Mode.THREAD_SAFE;
+        }
         if (hasCommandLineOption(argsList, "-server")) {
             if (runMode != Mode.FULL_SCREEN)
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.SERVER);
@@ -237,7 +243,7 @@ public final class Main
         if (hasCommandLineOption(argsList, "-sdi")) mode = UserInterfaceMain.Mode.SDI;
 
         AbstractUserInterface ui;
-        if (runMode == Mode.FULL_SCREEN || runMode == Mode.CLIENT)
+        if (runMode == Mode.FULL_SCREEN || runMode == Mode.THREAD_SAFE || runMode == Mode.CLIENT)
             ui = new UserInterfaceMain(argsList, mode, true);
         else
             ui = new UserInterfaceDummy();
@@ -249,7 +255,7 @@ public final class Main
         Pref.lockCreation();
         EDatabase database = new EDatabase(IdManager.stdIdManager.getInitialSnapshot());
         EDatabase.setClientDatabase(database);
-        Job.setUserInterface(new InitialUserInterface(database));
+        Job.setUserInterface(new UserInterfaceInitial(database));
         InitDatabase job = new InitDatabase(argsList);
         if (runMode == Mode.CLIENT) {
             // Client or pipe mode
@@ -257,52 +263,22 @@ public final class Main
             if (pipe) {
                 try {
                     Process process = Launcher.invokePipeserver(pipeOptions, pipedebug);
-                    Job.pipeClient(process, ui, job, pipedebug);
+                    Job.pipeClient(process, ui, job, false/*pipedebug*/);
                 } catch (IOException e) {
                     System.exit(1);
                 }
             } else {
                 Job.socketClient(serverMachineName, socketPort, ui, job);
             }
+        } else if (runMode == Mode.THREAD_SAFE) {
+            EDatabase.setServerDatabase(new EDatabase(IdManager.stdIdManager.getInitialSnapshot()));
+            Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job); // ??? 
         } else {
             EDatabase.setServerDatabase(database);
             Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job);
+
         }
 	}
-
-    public static class InitialUserInterface implements UserInterface {
-        private final EDatabase database;
-        public InitialUserInterface(EDatabase database) {
-            this.database = database;
-        }
-        public Job.Key getJobKey() { throw new UnsupportedOperationException(); }
-        public EDatabase getDatabase() { return database; }
-        public Technology getCurrentTechnology() { return null; }
-        public Library getCurrentLibrary() { return null; }
-        public EditWindow_ getCurrentEditWindow_() { throw new UnsupportedOperationException(); }
-        public EditWindow_ needCurrentEditWindow_() { throw new UnsupportedOperationException(); }
-        public Cell getCurrentCell() { return null; }
-        public Cell needCurrentCell() { throw new UnsupportedOperationException(); }
-        public void adjustReferencePoint(Cell cell, double cX, double cY) { throw new UnsupportedOperationException(); }
-        public void repaintAllWindows() { throw new UnsupportedOperationException(); }
-        public int getDefaultTextSize() { throw new UnsupportedOperationException(); }
-        public EditWindow_ displayCell(Cell cell) { throw new UnsupportedOperationException(); }
-        public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate) { throw new UnsupportedOperationException(); }
-        public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric[] gPair, int position) { throw new UnsupportedOperationException(); }
-        public void showErrorMessage(String message, String title) { throw new UnsupportedOperationException(); }
-        public void showInformationMessage(String message, String title) { throw new UnsupportedOperationException(); }
-        public void printMessage(String message, boolean newLine) { throw new UnsupportedOperationException(); }
-        public void saveMessages(String filePath) { throw new UnsupportedOperationException(); }
-        public void beep() { throw new UnsupportedOperationException(); }
-        public boolean confirmMessage(Object message) { throw new UnsupportedOperationException(); }
-        public int askForChoice(String message, String title, String [] choices, String defaultChoice) { throw new UnsupportedOperationException(); }
-        public String askForInput(Object message, String title, String def) { throw new UnsupportedOperationException(); }
-        public void startProgressDialog(String msg, String filePath) { throw new UnsupportedOperationException(); }
-        public void stopProgressDialog() { throw new UnsupportedOperationException(); }
-        public void setProgressValue(int pct) { throw new UnsupportedOperationException(); }
-        public void setProgressNote(String message) { throw new UnsupportedOperationException(); }
-        public String getProgressNote() { throw new UnsupportedOperationException(); }
-    }
 
     public static class UserInterfaceDummy extends AbstractUserInterface
 	{

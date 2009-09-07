@@ -61,7 +61,7 @@ public class StreamClient extends Client {
     void start() { dispatcher.start(); }
 
     class ServerEventDispatcher extends Thread {
-        private ServerEvent lastEvent = getQueueTail();
+        private ServerEvent lastEvent = Client.getQueueTail();
 
         private ServerEventDispatcher() {
             super(null, null, "Dispatcher-" + connectionId, STACK_SIZE_EVENT);
@@ -77,7 +77,7 @@ public class StreamClient extends Client {
                 writeSnapshot(lastEvent);
                 for (;;) {
                     writer.flush();
-                    lastEvent = getEvent(lastEvent);
+                    lastEvent = Client.getEvent(lastEvent);
                     for (;;) {
                         if (lastEvent.getSnapshot() != currentSnapshot)
                             writeSnapshot(lastEvent);
@@ -92,14 +92,14 @@ public class StreamClient extends Client {
                 e.printStackTrace();
             } finally {
                 lastEvent = null;
-                Job.jobManager.connectionClosed();
+                Job.serverJobManager.connectionClosed();
             }
         }
     }
 
     private void writeSnapshot(ServerEvent event) throws IOException {
         writer.writeByte((byte)1);
-        writer.writeLong(event.timeStamp);
+        writer.writeLong(event.getTimeStamp());
         Snapshot newSnapshot = event.getSnapshot();
         newSnapshot.writeDiffs(writer, currentSnapshot);
         currentSnapshot = newSnapshot;
@@ -128,7 +128,7 @@ public class StreamClient extends Client {
                             in.readFully(bytes);
                             EJob ejob = new EJob(StreamClient.this, jobId, jobType, jobName, bytes);
                             ejob.editingPreferences = clientEp;
-                            Job.jobManager.addJob(ejob, false);
+                            Job.serverJobManager.addJob(ejob, false);
                             break;
                         case 2:
                             byte[] serializedEp = new byte[in.readInt()];

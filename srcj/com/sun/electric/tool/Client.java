@@ -147,7 +147,7 @@ public abstract class Client {
 
     public static abstract class ServerEvent implements Runnable {
         private Snapshot snapshot;
-        final long timeStamp;
+        private long timeStamp;
         private volatile ServerEvent next;
 
         ServerEvent() {
@@ -165,6 +165,10 @@ public abstract class Client {
 
         Snapshot getSnapshot() {
             return snapshot;
+        }
+
+        long getTimeStamp() {
+            return timeStamp;
         }
 
         ServerEvent getNext() {
@@ -190,7 +194,7 @@ public abstract class Client {
     }
 
     static void fireServerEvent(ServerEvent serverEvent) {
-        putEvent(serverEvent);
+        Client.putEvent(serverEvent);
         if (Job.currentUI != null)
             Job.currentUI.addEvent(serverEvent);
     }
@@ -449,7 +453,8 @@ public abstract class Client {
         }
     }
 
-    static ServerEvent read(IdReader reader, byte tag, long timeStamp, Client connection) throws IOException {
+    static ServerEvent read(IdReader reader, byte tag, long timeStamp, Client connection, Snapshot snapshot) throws IOException {
+        ServerEvent event;
         switch (tag) {
             case 2:
                 int jobId = Integer.valueOf(reader.readInt());
@@ -464,47 +469,58 @@ public abstract class Client {
                 ejob.state = newState;
                 ejob.doItOk = doItOk;
                 ejob.serializedResult = bytes;
-                return new EJobEvent(ejob, newState, timeStamp);
+                event = new EJobEvent(ejob, newState, timeStamp);
+                break;
             case 3:
                 String str = reader.readString();
-                return new PrintEvent(connection, str);
+                event = new PrintEvent(connection, str);
+                break;
             case 4:
                 int jobQueueSize = reader.readInt();
                 Job.Inform[] jobInforms = new Job.Inform[jobQueueSize];
                 for (int jobIndex = 0; jobIndex < jobQueueSize; jobIndex++)
                     jobInforms[jobIndex] = Job.Inform.read(reader);
-                return new JobQueueEvent(jobInforms);
+                event = new JobQueueEvent(jobInforms);
+                break;
             case 5:
                 String filePath = reader.readString();
                 if (filePath.length() == 0)
                     filePath = null;
-                return new SavePrintEvent(connection, filePath);
+                event = new SavePrintEvent(connection, filePath);
+                break;
             case 6:
                 String message = reader.readString();
                 String title = reader.readString();
                 boolean isError = reader.readBoolean();
-                return new ShowMessageEvent(connection, message, title, isError);
+                event = new ShowMessageEvent(connection, message, title, isError);
+                break;
             case 7:
                 String progressMsg = reader.readString();
                 boolean hasFilePath = reader.readBoolean();
                 String progressFilePath = hasFilePath ? reader.readString() : null;
-                return new StartProgressDialogEvent(progressMsg, progressFilePath);
+                event = new StartProgressDialogEvent(progressMsg, progressFilePath);
+                break;
             case 8:
-                return new StopProgressDialogEvent();
+                event = new StopProgressDialogEvent();
+                break;
             case 9:
                 int pct = reader.readInt();
-                return new ProgressValueEvent(pct);
+                event = new ProgressValueEvent(pct);
+                break;
             case 10:
                 boolean hasNote = reader.readBoolean();
                 String note = hasNote ? reader.readString() : null;
-                return new ProgressNoteEvent(note);
+                event = new ProgressNoteEvent(note);
+                break;
             case 11:
                 ErrorLogger logger = ErrorLogger.read(reader);
                 boolean explain = reader.readBoolean();
                 boolean terminate = reader.readBoolean();
-                return new TermLoggingEvent(logger, explain, terminate);
+                event = new TermLoggingEvent(logger, explain, terminate);
+                break;
             case 12:
-                return new BeepEvent();
+                event = new BeepEvent();
+                break;
             default:
                 System.err.println("Unknown tag="+tag);
                 for (int i = 0; i < 20; i++) {
@@ -514,5 +530,8 @@ public abstract class Client {
                 System.err.println();
                 throw new AssertionError();
         }
+        event.timeStamp = timeStamp;
+        event.snapshot = snapshot;
+        return event;
     }
 }

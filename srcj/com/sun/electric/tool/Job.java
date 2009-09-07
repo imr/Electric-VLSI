@@ -25,6 +25,7 @@ package com.sun.electric.tool;
 
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -137,6 +138,8 @@ public abstract class Job implements Serializable {
 
 	/** default execution time in milis */      /*private*/ public static final int MIN_NUM_SECONDS = 60000;
     /** job manager */                          /*private*/ static JobManager jobManager;
+    /** job manager */                          /*private*/ static ServerJobManager serverJobManager;
+    /** job manager */                          /*private*/ static ClientJobManager clientJobManager;
 	static AbstractUserInterface currentUI;
     static Thread clientThread;
 
@@ -166,22 +169,22 @@ public abstract class Job implements Serializable {
     public static void initJobManager(int numThreads, String loggingFilePath, int socketPort, AbstractUserInterface ui, Job initDatabaseJob) {
         Job.recommendedNumThreads = numThreads;
         currentUI = ui;
-        jobManager = new ServerJobManager(numThreads, loggingFilePath, false, socketPort);
-        jobManager.runLoop(initDatabaseJob);
+        jobManager = serverJobManager = new ServerJobManager(numThreads, loggingFilePath, false, socketPort);
+        serverJobManager.runLoop(initDatabaseJob);
     }
 
     public static void pipeServer(int numThreads, String loggingFilePath, int socketPort) {
         Pref.forbidPreferences();
         EDatabase.setServerDatabase(new EDatabase(IdManager.stdIdManager.getInitialSnapshot()));
         Tool.initAllTools();
-        jobManager = new ServerJobManager(numThreads, loggingFilePath, true, socketPort);
+        jobManager = serverJobManager = new ServerJobManager(numThreads, loggingFilePath, true, socketPort);
     }
 
     public static void socketClient(String serverMachineName, int socketPort, AbstractUserInterface ui, Job initDatabaseJob) {
         currentUI = ui;
         try {
-            jobManager = new ClientJobManager(serverMachineName, socketPort);
-            jobManager.runLoop(initDatabaseJob);
+            jobManager = clientJobManager = new ClientJobManager(serverMachineName, socketPort);
+            clientJobManager.runLoop(initDatabaseJob);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -190,8 +193,8 @@ public abstract class Job implements Serializable {
     public static void pipeClient(Process process, AbstractUserInterface ui, Job initDatabaseJob, boolean skipOneLine) {
         currentUI = ui;
         try {
-            jobManager = new ClientJobManager(process, skipOneLine);
-            jobManager.runLoop(initDatabaseJob);
+            jobManager = clientJobManager = new ClientJobManager(process, skipOneLine);
+            clientJobManager.runLoop(initDatabaseJob);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -269,20 +272,26 @@ public abstract class Job implements Serializable {
     {
         this.deleteWhenDone = deleteWhenDone;
 
-        Thread currentThread = Thread.currentThread();
-        if (currentThread instanceof EThread && ((EThread)currentThread).ejob.jobType != Job.Type.CLIENT_EXAMINE) {
+        UserInterface ui = getUserInterface();
+        Job.Key curJobKey = ui.getJobKey();
+        boolean startedByServer = curJobKey.jobId > 0;
+        boolean doItOnServer = ejob.jobType != Job.Type.CLIENT_EXAMINE;
+//        Thread currentThread = Thread.currentThread();
+        if (startedByServer) {
+//        if (currentThread instanceof EThread && ((EThread)currentThread).ejob.jobType != Job.Type.CLIENT_EXAMINE) {
             ejob.startedByServer = true;
-            ejob.client = ((EThread)currentThread).ejob.client;
-            ejob.jobKey = ejob.client.newJobId(ejob.startedByServer, true);
+            ejob.client = Job.serverJobManager.serverConnections.get(curJobKey.clientId);
+//            ejob.client = ((EThread)currentThread).ejob.client;
+            ejob.jobKey = ejob.client.newJobId(ejob.startedByServer, doItOnServer);
             ejob.serverJob.startTime = System.currentTimeMillis();
             ejob.serialize(EDatabase.serverDatabase());
             ejob.clientJob = null;
         } else {
             ejob.client = Job.getExtendedUserInterface();
-            ejob.jobKey = ejob.client.newJobId(ejob.startedByServer, false);
+            ejob.jobKey = ejob.client.newJobId(ejob.startedByServer, doItOnServer);
             ejob.clientJob.startTime = System.currentTimeMillis();
             ejob.serverJob = null;
-            if (ejob.jobType != Job.Type.CLIENT_EXAMINE)
+            if (doItOnServer)
                 ejob.serialize(EDatabase.clientDatabase());
         }
         jobManager.addJob(ejob, onMySnapshot);
@@ -543,6 +552,14 @@ public abstract class Job implements Serializable {
     public static void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> newErrors,
                                                   List<ErrorLogger.MessageLog> delErrors) {
         currentUI.updateIncrementalDRCErrors(cell, newErrors, delErrors);
+    }
+
+    /**
+     * Find some valid snapshot in cache.
+     * @return some valid snapshot
+     */
+    public static Snapshot findValidSnapshot() {
+        return EThread.findValidSnapshot();
     }
 
 	//-------------------------------JOB UI--------------------------------

@@ -151,15 +151,15 @@ public final class Launcher
 	}
 
     static Process invokePipeserver(String electricOptions, boolean withDebugger) throws IOException {
-        String javaOptions = " -ss2m";
+        String javaOptions = " -Xss2m";
 		int maxMemWanted = StartupPrefs.getMemorySize();
-        javaOptions += " -mx" + maxMemWanted + "m";
+        javaOptions += " -Xmx" + maxMemWanted + "m";
         long maxPermWanted = StartupPrefs.getPermSpace();
         if (maxPermWanted > 0)
             javaOptions += " -XX:MaxPermSize=" + maxPermWanted + "m";
         if (withDebugger)
-            javaOptions += " -Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=localhost:35856";;
-   //         javaOptions += " -Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=localhost:35856";
+//            javaOptions += " -Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=localhost:35856";
+            javaOptions += " -Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=localhost:35856";
         return invokePipeserver(javaOptions, electricOptions);
     }
 
