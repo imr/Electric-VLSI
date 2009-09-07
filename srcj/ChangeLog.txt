@@ -4,7 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: *******************************
 
-IMP: (9/7/09, AM) Electric throws IllegalStateException when attempting to "  plot spice listing" (Bug #2374).
+BUG: (9/7/09, DN) Starting Jobs from Jobs failes.
+FIX: In Job.startJob compute "startedByServer" correctly.
+
+IMP: (9/7/09, DN) Preparations for thread-safe database.
+
+IMP: (9/7/09, DN) Electric throws IllegalStateException when attempting to "  plot spice listing" (Bug #2374).
 FIX: Install UserInterfaceExec in Simulate.ReadSimulationOutput.run, EpicOutProcess.run, ScalarEpicOutProcess.run.
 
 IMP: (9/7/09, AM) Remove JDBM, use com.sun.electric.tool.btree instead.

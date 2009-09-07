@@ -274,7 +274,7 @@ public abstract class Job implements Serializable {
 
         UserInterface ui = getUserInterface();
         Job.Key curJobKey = ui.getJobKey();
-        boolean startedByServer = curJobKey.jobId > 0;
+        boolean startedByServer = curJobKey.doItOnServer;
         boolean doItOnServer = ejob.jobType != Job.Type.CLIENT_EXAMINE;
 //        Thread currentThread = Thread.currentThread();
         if (startedByServer) {
