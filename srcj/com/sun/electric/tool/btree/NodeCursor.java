@@ -1,0 +1,112 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: BTree.java
+ *
+ * Copyright (c) 2009 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+package com.sun.electric.tool.btree;
+
+import java.io.*;
+import java.util.*;
+import com.sun.electric.tool.btree.unboxed.*;
+
+abstract class NodeCursor {
+    protected byte[] buf;
+    protected int pageid;
+    protected boolean dirty = false;
+    protected PageStorage ps;
+    protected NodeCursor(PageStorage ps) {
+        this.ps = ps;
+    }
+    public void setBuf(int pageid, byte[] buf) {
+        assert !dirty;
+        this.buf = buf;
+        this.pageid = pageid;
+    }
+    public void writeBack() {
+        //if (!dirty) return;
+        dirty = false;
+        ps.writePage(pageid, buf, 0);
+    }
+
+    /**
+     *  This method writes back the first half of the node's contents,
+     *  deposits the second half on the pageid supplied as an
+     *  argument, and (if key!=null) writes the least key beneath the
+     *  right half into key[key_ofs].
+     */
+    public abstract void split(int pageForRightHalf, byte[] key, int key_ofs);
+
+    public abstract boolean isFull();
+    public abstract int  getParentPageId();
+    public abstract void setParentPageId(int pageid);
+    public int getPageId() { return pageid; }
+    public byte[] getBuf() { return buf; }
+
+    /**
+     *  Each node has a number of buckets, separated by keys; keys
+     *  appear between buckets as well as before the first bucket and
+     *  after the last.  All values in a bucket are greater than or
+     *  equal to the key to the left of the bucket and strictly less
+     *  than the key to the right.
+     *
+     *  Leaf nodes have a real key immediately before each entry --
+     *  this is the entry's actual key -- plus an additional imaginary
+     *  key after the last child.
+     *
+     *  Interior nodes have an imaginary key before the first node, a
+     *  real key between each pair of nodes, and an imaginary key
+     *  after the last node.
+     *
+     *  Imaginary keys are either infinitely large or infinitely
+     *  small, depending on which end of the sequence they appear on.
+     *
+     *  This numbering scheme might seem strange, but it really helps
+     *  avoid fencepost bugs -- I tried several conventions before
+     *  settling on this one.
+     */
+    public abstract int getNumKeys();
+
+    /**
+     *  Compares the key at position keynum to the key represented by
+     *  the bytes provided.  Same semantics as Comparable.compareTo().
+     *  To simplify other codepaths, if keynum<0, the return value is
+     *  always positive and if keynum>=getNumKeys() the return value is
+     *  always negative.
+     */
+    public abstract int compare(int keynum, byte[] key, int key_ofs);
+
+    public abstract boolean isLeafNode();
+
+    /** i is the position of the leftmost key which is less than or equal to the key we are testing */
+    public int search(byte[] key, int key_ofs) {
+        int left = -1;
+        int right = getNumKeys()-1;
+        while(left+1<right) {
+            assert compare(left, key, key_ofs) <= 0;
+            int i = (left+right)/2;
+            int comp = compare(i, key, key_ofs);
+            if      (comp==0)  { left=i; right=i+1; }
+            else if (comp<0)   left = i;
+            else if (comp>0)   right = i;
+        }
+        return left;
+    }
+}
