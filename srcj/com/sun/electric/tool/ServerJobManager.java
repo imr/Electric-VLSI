@@ -27,9 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.Main;
-import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.id.CellId;
-import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.topology.Geometric;
@@ -54,13 +52,11 @@ import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
-import javax.swing.SwingUtilities;
-
 
 /**
  *
  */
-public class ServerJobManager extends JobManager {
+public class ServerJobManager {
     private static final String CLASS_NAME = Job.class.getName();
     private static final int defaultNumThreads = Math.max(2, Runtime.getRuntime().availableProcessors());
 
@@ -125,7 +121,7 @@ public class ServerJobManager extends JobManager {
         } finally {
             unlock();
         }
-        new UIDispatcher(currentUI.connectionId).start();
+        currentUI.startDispatcher();
     }
 
 
@@ -178,37 +174,6 @@ public class ServerJobManager extends JobManager {
             }
         } finally {
             unlock();
-        }
-    }
-
-    private class UIDispatcher extends Thread {
-        private static final long STACK_SIZE_EVENT = 0;
-        private Client.ServerEvent lastEvent = Client.getQueueTail();
-        private final int connectionId;
-
-        private UIDispatcher(int connectionId) {
-            super(null, null, "UIDispatcher-" + connectionId, STACK_SIZE_EVENT);
-            this.connectionId = connectionId;
-        }
-
-        @Override
-        public void run() {
-            try {
-                for (;;) {
-                    lastEvent = Client.getEvent(lastEvent);
-                    for (;;) {
-                        Job.currentUI.addEvent(lastEvent);
-                        Client.ServerEvent event = lastEvent.getNext();
-                        if (event == null)
-                            break;
-                        lastEvent = event;
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                lastEvent = null;
-            }
         }
     }
 
@@ -531,7 +496,7 @@ public class ServerJobManager extends JobManager {
 
         UserInterfaceRedirect(Job.Key jobKey) {
             this.jobKey = jobKey;
-            client = ((ServerJobManager)Job.jobManager).serverConnections.get(jobKey.clientId);
+            client = Job.serverJobManager.serverConnections.get(jobKey.clientId);
             database = jobKey.doItOnServer ? EDatabase.serverDatabase() : EDatabase.clientDatabase();
         }
 

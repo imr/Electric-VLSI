@@ -98,6 +98,7 @@ public abstract class Job implements Serializable {
 
     private static boolean GLOBALDEBUG = false;
     private static int recommendedNumThreads;
+    private static boolean threadSafe;
     static final int PROTOCOL_VERSION = 19; // Apr 17
     public static boolean LOCALDEBUGFLAG; // Gilda's case
 //    private static final String CLASS_NAME = Job.class.getName();
@@ -137,7 +138,6 @@ public abstract class Job implements Serializable {
 
 
 	/** default execution time in milis */      /*private*/ public static final int MIN_NUM_SECONDS = 60000;
-    /** job manager */                          /*private*/ static JobManager jobManager;
     /** job manager */                          /*private*/ static ServerJobManager serverJobManager;
     /** job manager */                          /*private*/ static ClientJobManager clientJobManager;
 	static AbstractUserInterface currentUI;
@@ -166,24 +166,27 @@ public abstract class Job implements Serializable {
     transient EJob ejob;
     transient EDatabase database;
 
-    public static void initJobManager(int numThreads, String loggingFilePath, int socketPort, AbstractUserInterface ui, Job initDatabaseJob) {
+    public static void initJobManager(int numThreads, String loggingFilePath, int socketPort, AbstractUserInterface ui, Job initDatabaseJob, boolean threadSafe) {
+        Job.threadSafe = threadSafe;
         Job.recommendedNumThreads = numThreads;
         currentUI = ui;
-        jobManager = serverJobManager = new ServerJobManager(numThreads, loggingFilePath, false, socketPort);
+        serverJobManager = new ServerJobManager(numThreads, loggingFilePath, false, socketPort);
         serverJobManager.runLoop(initDatabaseJob);
     }
 
     public static void pipeServer(int numThreads, String loggingFilePath, int socketPort) {
+        Job.threadSafe = true;
         Pref.forbidPreferences();
         EDatabase.setServerDatabase(new EDatabase(IdManager.stdIdManager.getInitialSnapshot()));
         Tool.initAllTools();
-        jobManager = serverJobManager = new ServerJobManager(numThreads, loggingFilePath, true, socketPort);
+        serverJobManager = new ServerJobManager(numThreads, loggingFilePath, true, socketPort);
     }
 
     public static void socketClient(String serverMachineName, int socketPort, AbstractUserInterface ui, Job initDatabaseJob) {
+        Job.threadSafe = true;
         currentUI = ui;
         try {
-            jobManager = clientJobManager = new ClientJobManager(serverMachineName, socketPort);
+            clientJobManager = new ClientJobManager(serverMachineName, socketPort);
             clientJobManager.runLoop(initDatabaseJob);
         } catch (IOException e) {
             e.printStackTrace();
@@ -191,9 +194,10 @@ public abstract class Job implements Serializable {
     }
 
     public static void pipeClient(Process process, AbstractUserInterface ui, Job initDatabaseJob, boolean skipOneLine) {
+        Job.threadSafe = true;
         currentUI = ui;
         try {
-            jobManager = clientJobManager = new ClientJobManager(process, skipOneLine);
+            clientJobManager = new ClientJobManager(process, skipOneLine);
             clientJobManager.runLoop(initDatabaseJob);
         } catch (IOException e) {
             e.printStackTrace();
@@ -286,6 +290,10 @@ public abstract class Job implements Serializable {
             ejob.serverJob.startTime = System.currentTimeMillis();
             ejob.serialize(EDatabase.serverDatabase());
             ejob.clientJob = null;
+            if (serverJobManager != null)
+                serverJobManager.addJob(ejob, onMySnapshot);
+            else
+                clientJobManager.addJob(ejob, onMySnapshot);
         } else {
             ejob.client = Job.currentUI;
             ejob.jobKey = ejob.client.newJobId(startedByServer, doItOnServer);
@@ -293,9 +301,13 @@ public abstract class Job implements Serializable {
             ejob.serverJob = null;
             if (doItOnServer)
                 ejob.serialize(EDatabase.clientDatabase());
-            Job.currentUI.putProcessingEJob(ejob);
+            if (serverJobManager != null) {
+                Job.currentUI.putProcessingEJob(ejob, onMySnapshot);
+                serverJobManager.addJob(ejob, onMySnapshot);
+            } else {
+                clientJobManager.addJob(ejob, onMySnapshot);
+            }
         }
-        jobManager.addJob(ejob, onMySnapshot);
     }
 
     /**
@@ -369,7 +381,10 @@ public abstract class Job implements Serializable {
 //    }
 
     protected synchronized void setProgress(String progress) {
-        jobManager.setProgress(ejob, progress);
+        if (serverJobManager != null)
+            serverJobManager.setProgress(ejob, progress);
+        else
+            ejob.progress = progress;
     }
 
     private synchronized String getProgress() { return ejob.progress; }
@@ -429,7 +444,9 @@ public abstract class Job implements Serializable {
 	}
 
     /** get all jobs iterator */
-    public static Iterator<Job> getAllJobs() { return jobManager.getAllJobs(); }
+    public static Iterator<Job> getAllJobs() {
+        return serverJobManager != null ? serverJobManager.getAllJobs() : currentUI.getAllJobs().iterator();
+    }
 
     /**
      * If this current thread is a EThread running a Job return the Job.
@@ -483,7 +500,10 @@ public abstract class Job implements Serializable {
             //System.out.println("Cannot delete running jobs.  Wait till finished or abort");
             return false;
         }
-        jobManager.removeJob(this);
+        if (serverJobManager != null)
+            serverJobManager.removeJob(this);
+        else
+           currentUI.removeProcessingEJob(getKey());
         return true;
     }
 
@@ -561,6 +581,10 @@ public abstract class Job implements Serializable {
      */
     public static Snapshot findValidSnapshot() {
         return EThread.findValidSnapshot();
+    }
+
+    public static boolean isThreadSafe() {
+        return threadSafe;
     }
 
 	//-------------------------------JOB UI--------------------------------

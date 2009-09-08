@@ -34,6 +34,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -45,7 +46,9 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     private TechId curTechId;
     private LibId curLibId;
     private Job.Key jobKey = new Job.Key(DEFAULT_CONNECTION_ID, 0, false);
-    private HashMap<Job.Key,EJob> processingEJobs = new HashMap<Job.Key,EJob>();
+    private Job.Inform[] serverJobQueue = {};
+    private final HashMap<Job.Key,EJob> processingEJobs = new HashMap<Job.Key,EJob>();
+    private final ArrayList<EJob> clientJobs = new ArrayList<EJob>();
 
     protected AbstractUserInterface() {
         super(DEFAULT_CONNECTION_ID);
@@ -54,6 +57,10 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     void patchConnectionId(int connectionId) {
         this.connectionId = connectionId;
         jobKey = new Job.Key(connectionId, 0, false);
+    }
+
+    void startDispatcher() {
+        new UIDispatcher(connectionId).start();
     }
 
     public Job.Key getJobKey() {
@@ -124,6 +131,28 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
 
     protected abstract void showJobQueue(Job.Inform[] jobQueue);
 
+    void showJobQueue() {
+        showJobQueue(getFullJobQueue());
+    }
+
+    void showServerJobQueue(Job.Inform[] jobQueue) {
+        synchronized (this) {
+            serverJobQueue = jobQueue;
+        }
+        showJobQueue();
+    }
+
+    private synchronized Job.Inform[] getFullJobQueue() {
+        if (clientJobs.isEmpty() || !Job.isThreadSafe())
+            return serverJobQueue;
+        Job.Inform[] sq = serverJobQueue;
+        Job.Inform[] q = new Job.Inform[sq.length + clientJobs.size()];
+        System.arraycopy(sq, 0, q, 0, sq.length);
+        for (int i = 0; i < clientJobs.size(); i++)
+            q[sq.length + i] = clientJobs.get(i).getInform();
+        return q;
+    }
+
     /**
      * Show new database snapshot.
      * @param newSnapshot new snapshot.
@@ -141,16 +170,66 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
         Job.clientThread = Thread.currentThread();
     }
 
-    synchronized void putProcessingEJob(EJob ejob) {
+    synchronized void putProcessingEJob(EJob ejob, boolean onMySnapshot) {
         Job.Key jobKey = ejob.jobKey;
         assert !jobKey.startedByServer();
         assert jobKey.clientId == connectionId;
         assert ejob.clientJob != null;
         EJob oldEJob = processingEJobs.put(jobKey, ejob);
         assert oldEJob == null;
+        if (!ejob.jobKey.doItOnServer) {
+            if (onMySnapshot)
+                clientJobs.add(0, ejob);
+            else
+                clientJobs.add(ejob);
+            showJobQueue();
+        }
     }
 
     protected synchronized EJob removeProcessingEJob(Job.Key jobKey) {
-        return processingEJobs.remove(jobKey);
+        EJob ejob = processingEJobs.remove(jobKey);
+        if (ejob != null && !jobKey.doItOnServer) {
+            boolean removed = clientJobs.remove(ejob);
+            assert removed;
+            showJobQueue();
+        }
+        return ejob;
     }
- }
+
+    synchronized List<Job> getAllJobs() {
+        ArrayList<Job> list = new ArrayList<Job>();
+        for (EJob ejob: processingEJobs.values()) {
+            list.add(ejob.getJob());
+        }
+        return list;
+    }
+
+    private class UIDispatcher extends Thread {
+        private static final long STACK_SIZE_EVENT = 0;
+        private Client.ServerEvent lastEvent = Client.getQueueTail();
+
+        private UIDispatcher(int connectionId) {
+            super(null, null, "UIDispatcher-" + connectionId, STACK_SIZE_EVENT);
+        }
+
+        @Override
+        public void run() {
+            try {
+                for (;;) {
+                    lastEvent = Client.getEvent(lastEvent);
+                    for (;;) {
+                        addEvent(lastEvent);
+                        Client.ServerEvent event = lastEvent.getNext();
+                        if (event == null)
+                            break;
+                        lastEvent = event;
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                lastEvent = null;
+            }
+        }
+    }
+}

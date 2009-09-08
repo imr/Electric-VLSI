@@ -44,7 +44,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.JobManager;
 import com.sun.electric.tool.cvspm.CVS;
 import com.sun.electric.tool.cvspm.CVSLibrary;
 import com.sun.electric.tool.cvspm.Commit;

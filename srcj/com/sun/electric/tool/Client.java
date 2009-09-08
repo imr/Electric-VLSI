@@ -355,7 +355,7 @@ public abstract class Client {
 
         @Override
         void show(AbstractUserInterface ui) {
-            ui.showJobQueue(jobQueue);
+            ui.showServerJobQueue(jobQueue);
         }
     }
 
