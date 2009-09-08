@@ -83,7 +83,7 @@ class EThread extends Thread {
             database.lock(!ejob.isExamine());
             ejob.oldSnapshot = database.backup();
             try {
-                if (ejob.jobType != Job.Type.CLIENT_EXAMINE && !ejob.startedByServer) {
+                if (ejob.jobType != Job.Type.CLIENT_EXAMINE && !ejob.jobKey.startedByServer()) {
                     Throwable e = ejob.deserializeToServer();
                     if (e != null)
                         throw e;
@@ -121,7 +121,7 @@ class EThread extends Thread {
                             throw new JobException("Job '" + ejob.jobName + "' failed");
                         break;
                     case CLIENT_EXAMINE:
-                        if (ejob.startedByServer) {
+                        if (ejob.jobKey.startedByServer()) {
                             Throwable e = ejob.deserializeToClient();
                             if (e != null)
                                 throw e;

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10f: *******************************
 
+IMP: (9/7/09, DN) Job.currentUI is handled similar to StreamClient .
+
 BUG: (9/7/09, DN) Starting Jobs from Jobs failes.
 FIX: In Job.startJob compute "startedByServer" correctly.
 

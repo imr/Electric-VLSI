@@ -40,7 +40,7 @@ public class UserInterfaceInitial  implements UserInterface {
     public UserInterfaceInitial(EDatabase database) {
         this.database = database;
     }
-    public Job.Key getJobKey() { return new Job.Key(0, 0, true); }
+    public Job.Key getJobKey() { return new Job.Key(0, 0, false); }
     public EDatabase getDatabase() { return database; }
     public Technology getCurrentTechnology() { return null; }
     public Library getCurrentLibrary() { return null; }

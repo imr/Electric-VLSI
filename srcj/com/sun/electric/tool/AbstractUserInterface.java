@@ -34,6 +34,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -44,6 +45,7 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     private TechId curTechId;
     private LibId curLibId;
     private Job.Key jobKey = new Job.Key(DEFAULT_CONNECTION_ID, 0, false);
+    private HashMap<Job.Key,Job> processingJobs = new HashMap<Job.Key,Job>();
 
     protected AbstractUserInterface() {
         super(DEFAULT_CONNECTION_ID);
@@ -135,5 +137,18 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     protected void setClientThread() {
         assert Job.clientThread == null;
         Job.clientThread = Thread.currentThread();
+    }
+
+    synchronized void putProcessingJob(Job job) {
+        Job.Key jobKey = job.getKey();
+        assert !jobKey.startedByServer();
+        assert jobKey.clientId == connectionId;
+        assert job == job.ejob.clientJob;
+        Job oldJob = processingJobs.put(jobKey, job);
+        assert oldJob == null;
+    }
+
+    synchronized Job removeProcessingJob(Job.Key jobKey) {
+        return processingJobs.remove(jobKey);
     }
  }

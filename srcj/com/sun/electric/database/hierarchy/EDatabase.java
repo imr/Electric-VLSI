@@ -77,6 +77,7 @@ public class EDatabase {
     public static void setClientDatabase(EDatabase database) { clientDatabase = database; }
 
     /** IdManager which keeps Ids of objects in this database.*/private final IdManager idManager;
+    /** The optional name of this EDatabase */                  private final String name;
     /** Environment of this EDatabase */                        private Environment environment;
     /** list of linked technologies indexed by techId. */       private TechPool techPool;
 	/** list of linked libraries indexed by libId. */           private final ArrayList<Library> linkedLibs = new ArrayList<Library>();
@@ -98,7 +99,12 @@ public class EDatabase {
 
     /** Creates a new instance of EDatabase */
     public EDatabase(Snapshot snapshot) {
+        this(snapshot, null);
+    }
+
+    public EDatabase(Snapshot snapshot, String name) {
         idManager = snapshot.idManager;
+        this.name = name;
         this.snapshot = idManager.getInitialSnapshot();
         lock(true);
         canUndoing = true;
@@ -840,4 +846,8 @@ public class EDatabase {
         check();
     }
 
+    @Override
+    public String toString() {
+        return name != null ? name : super.toString();
+    }
 }

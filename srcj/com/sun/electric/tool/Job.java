@@ -279,20 +279,21 @@ public abstract class Job implements Serializable {
 //        Thread currentThread = Thread.currentThread();
         if (startedByServer) {
 //        if (currentThread instanceof EThread && ((EThread)currentThread).ejob.jobType != Job.Type.CLIENT_EXAMINE) {
-            ejob.startedByServer = true;
+//            ejob.startedByServer = true;
             ejob.client = Job.serverJobManager.serverConnections.get(curJobKey.clientId);
 //            ejob.client = ((EThread)currentThread).ejob.client;
-            ejob.jobKey = ejob.client.newJobId(ejob.startedByServer, doItOnServer);
+            ejob.jobKey = ejob.client.newJobId(startedByServer, doItOnServer);
             ejob.serverJob.startTime = System.currentTimeMillis();
             ejob.serialize(EDatabase.serverDatabase());
             ejob.clientJob = null;
         } else {
-            ejob.client = Job.getExtendedUserInterface();
-            ejob.jobKey = ejob.client.newJobId(ejob.startedByServer, doItOnServer);
+            ejob.client = Job.currentUI;
+            ejob.jobKey = ejob.client.newJobId(startedByServer, doItOnServer);
             ejob.clientJob.startTime = System.currentTimeMillis();
             ejob.serverJob = null;
             if (doItOnServer)
                 ejob.serialize(EDatabase.clientDatabase());
+            Job.currentUI.putProcessingJob(this);
         }
         jobManager.addJob(ejob, onMySnapshot);
     }
@@ -644,6 +645,10 @@ public abstract class Job implements Serializable {
 
         Key(Client client, int jobId, boolean doItOnServer) {
             this(client.connectionId, jobId, doItOnServer);
+        }
+
+        boolean startedByServer() {
+            return jobId > 0;
         }
 
         @Override

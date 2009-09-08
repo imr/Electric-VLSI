@@ -195,8 +195,8 @@ public abstract class Client {
 
     static void fireServerEvent(ServerEvent serverEvent) {
         Client.putEvent(serverEvent);
-        if (Job.currentUI != null)
-            Job.currentUI.addEvent(serverEvent);
+//        if (Job.currentUI != null)
+//            Job.currentUI.addEvent(serverEvent);
     }
 
     public static class EJobEvent extends ServerEvent {

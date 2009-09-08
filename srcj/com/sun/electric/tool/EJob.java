@@ -56,7 +56,7 @@ public class EJob {
     /*private*/ final static String ABORTING = "aborting";
 
     /** Client which is owner of the Job. */    Client client;
-    /** True if this Job was started by server */public boolean startedByServer;
+//    /** True if this Job was started by server */public boolean startedByServer;
     /** job key */                              Job.Key jobKey;
     /** type of job (change or examine) */      public final Type jobType;
     /** name of job */                          public final String jobName;
@@ -106,6 +106,10 @@ public class EJob {
 
     public boolean isExamine() {
         return jobType == Job.Type.CLIENT_EXAMINE || jobType == Job.Type.SERVER_EXAMINE;
+    }
+
+    public boolean startedByServer() {
+        return jobKey.startedByServer();
     }
 
     Throwable serialize(EDatabase database) {

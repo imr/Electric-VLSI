@@ -253,7 +253,7 @@ public final class Main
         TextDescriptor.cacheSize();
         Tool.initAllTools();
         Pref.lockCreation();
-        EDatabase database = new EDatabase(IdManager.stdIdManager.getInitialSnapshot());
+        EDatabase database = new EDatabase(IdManager.stdIdManager.getInitialSnapshot(), "clientDB");
         EDatabase.setClientDatabase(database);
         Job.setUserInterface(new UserInterfaceInitial(database));
         InitDatabase job = new InitDatabase(argsList);
@@ -271,8 +271,8 @@ public final class Main
                 Job.socketClient(serverMachineName, socketPort, ui, job);
             }
         } else if (runMode == Mode.THREAD_SAFE) {
-            EDatabase.setServerDatabase(new EDatabase(IdManager.stdIdManager.getInitialSnapshot()));
-            Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job); // ??? 
+            EDatabase.setServerDatabase(new EDatabase(IdManager.stdIdManager.getInitialSnapshot(), "serverDB"));
+            Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job); // ???
         } else {
             EDatabase.setServerDatabase(database);
             Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job);

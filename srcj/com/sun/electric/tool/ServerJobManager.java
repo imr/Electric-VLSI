@@ -27,7 +27,9 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.Main;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.topology.Geometric;
@@ -52,6 +54,7 @@ import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
+import javax.swing.SwingUtilities;
 
 
 /**
@@ -87,10 +90,8 @@ public class ServerJobManager extends JobManager {
     ServerJobManager(int recommendedNumThreads, String loggingFilePath, boolean pipe, int socketPort) {
         maxNumThreads = initThreads(recommendedNumThreads);
         maxNumberOfThreads = maxNumThreads;
-        if (Job.currentUI != null) {
-            assert Job.currentUI.connectionId == 0;
-            serverConnections.add(Job.currentUI);
-        }
+        if (Job.currentUI != null)
+            initCurrentUI(Job.currentUI);
         if (loggingFilePath != null)
             initSnapshotLogging(new File(loggingFilePath));
         if (pipe)
@@ -115,11 +116,25 @@ public class ServerJobManager extends JobManager {
         return maxNumThreads;
     }
 
+    void initCurrentUI(AbstractUserInterface currentUI) {
+        lock();
+        try {
+            assert currentUI.connectionId == 0;
+            assert serverConnections.isEmpty();
+            serverConnections.add(currentUI);
+        } finally {
+            unlock();
+        }
+        new UIDispatcher(currentUI.connectionId).start();
+    }
+
+
+
     void initSnapshotLogging(File loggingFile) {
-        int connectionId = serverConnections.size();
         StreamClient conn;
         lock();
         try {
+            int connectionId = serverConnections.size();
             FileOutputStream out = new FileOutputStream(loggingFile);
             System.err.println("Writing snapshot log to " + loggingFile);
             ActivityLogger.logMessage("Writing snapshot log to " + loggingFile);
@@ -166,6 +181,46 @@ public class ServerJobManager extends JobManager {
         }
     }
 
+    private class UIDispatcher extends Thread {
+        private static final long STACK_SIZE_EVENT = 0;
+        private Client.ServerEvent lastEvent = Client.getQueueTail();
+        private final int connectionId;
+
+        private UIDispatcher(int connectionId) {
+            super(null, null, "UIDispatcher-" + connectionId, STACK_SIZE_EVENT);
+            this.connectionId = connectionId;
+        }
+
+        @Override
+        public void run() {
+            try {
+                for (;;) {
+                    lastEvent = Client.getEvent(lastEvent);
+                    for (;;) {
+                        if (lastEvent instanceof Client.EJobEvent) {
+                            EJob ejob = ((Client.EJobEvent)lastEvent).ejob;
+                            Job.Key jobKey = ejob.jobKey;
+                            Job savedJob = Job.currentUI.removeProcessingJob(ejob.jobKey);
+                            if (!jobKey.startedByServer() && jobKey.clientId == connectionId) {
+                                assert savedJob.ejob == ejob;
+                            } else {
+                                assert savedJob == null;
+                            }
+                        }
+                        Job.currentUI.addEvent(lastEvent);
+                        Client.ServerEvent event = lastEvent.getNext();
+                        if (event == null)
+                            break;
+                        lastEvent = event;
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                lastEvent = null;
+            }
+        }
+    }
 
     /** Add job to list of jobs */
     void addJob(EJob ejob, boolean onMySnapshot) {

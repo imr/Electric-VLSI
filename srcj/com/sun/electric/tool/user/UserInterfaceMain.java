@@ -153,7 +153,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 
         //if (ejob.client != Job.getExtendedUserInterface()) return;
         Throwable jobException = null;
-        if (ejob.startedByServer)
+        if (ejob.startedByServer())
             jobException = ejob.deserializeToClient();
         if (jobException != null) {
             System.out.println("Error deserializing " + ejob.jobName);
@@ -439,7 +439,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             {
                 Highlighter highlighter = e.getValue();
                 EditWindow wnd = e.getKey();
-                
+
                 // Something found to highlight
                 if (highlighter != null)
                 {

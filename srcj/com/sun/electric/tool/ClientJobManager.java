@@ -197,9 +197,11 @@ class ClientJobManager extends JobManager {
     class ServerEventDispatcher extends Thread {
         private static final long STACK_SIZE_EVENT = 0;
         private Client.ServerEvent lastEvent = Client.getQueueTail();
+        private final int connectionId;
 
         private ServerEventDispatcher(int connectionId) {
             super(null, null, "ClientDispatcher-" + connectionId, STACK_SIZE_EVENT);
+            this.connectionId = connectionId;
         }
 
         @Override
@@ -221,6 +223,12 @@ class ClientJobManager extends JobManager {
                             assert ejob.state == ejobEvent.newState;
                             assert ejob.state == EJob.State.SERVER_DONE;
                             EJob myEjob = getServerJob(ejob.jobKey.jobId);
+                            Job savedJob = Job.currentUI.removeProcessingJob(ejob.jobKey);
+                            if (!myEjob.startedByServer() && myEjob.jobKey.clientId == connectionId) {
+                                assert savedJob.ejob == myEjob;
+                            } else {
+                                assert savedJob == null;
+                            }
                             assert myEjob.jobName.equals(ejob.jobName);
                             myEjob.state = ejob.state;
                             myEjob.serializedResult = ejob.serializedResult;
