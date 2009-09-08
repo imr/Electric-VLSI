@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.placement;
 
-import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
 
@@ -160,7 +159,7 @@ public class PlacementMinCut extends PlacementFrame
 				double width = plNode.getWidth();
 				double height = plNode.getHeight();
 				width = height = Math.max(width, height);
-				EPoint thisOff = new EPoint(placeX, placeY);
+				Point2D thisOff = new Point2D.Double(placeX, placeY);
 				if ((part.depth&1) != 0)
 				{
 					widestX += width + PADDING;
@@ -251,9 +250,9 @@ public class PlacementMinCut extends PlacementFrame
 					double length = 0;
 					for(OrientationConnection con : oc)
 					{
-						EPoint pt = new EPoint(plNode.getPlacementX() + con.thisPP.getRotatedOffX(),
+						Point2D pt = new Point2D.Double(plNode.getPlacementX() + con.thisPP.getRotatedOffX(),
 							plNode.getPlacementY() + con.thisPP.getRotatedOffY());
-						EPoint otherPt = new EPoint(con.otherPN.getPlacementX() + con.otherPP.getRotatedOffX(),
+						Point2D otherPt = new Point2D.Double(con.otherPN.getPlacementX() + con.otherPP.getRotatedOffX(),
 							con.otherPN.getPlacementY() + con.otherPP.getRotatedOffY());
 						double dist = pt.distance(otherPt);
 						length += dist;

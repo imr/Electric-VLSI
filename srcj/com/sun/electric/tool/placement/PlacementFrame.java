@@ -23,8 +23,6 @@
  */
 package com.sun.electric.tool.placement;
 
-import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -40,6 +38,7 @@ import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -432,13 +431,13 @@ public class PlacementFrame
 			if (np instanceof Cell)
 			{
 				Cell placementCell = (Cell)np;
-				ERectangle bounds = placementCell.getBounds();
+				Rectangle2D bounds = placementCell.getBounds();
 				Point2D centerOffset = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
 				orient.pureRotate().transform(centerOffset, centerOffset);
 				xPos -= centerOffset.getX();
 				yPos -= centerOffset.getY();
 			}
-			NodeInst ni = NodeInst.makeInstance(np, new EPoint(xPos, yPos), np.getDefWidth(), np.getDefHeight(), newCell,
+			NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(xPos, yPos), np.getDefWidth(), np.getDefHeight(), newCell,
 				orient, plNode.getOriginal().getName(), plNode.getOriginal().getTechSpecific());
 			placedNodes.put(plNode, ni);
 		}
