@@ -26,6 +26,7 @@ package com.sun.electric.tool.placement;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
@@ -347,6 +348,7 @@ public class PlacementFrame
 
 		// find all nodes in the cell that are to be placed
 		List<PlacementNode> nodesToPlace = new ArrayList<PlacementNode>();
+		Map<NodeInst,PlacementNode> shadowNodes = new HashMap<NodeInst,PlacementNode>();
 		Map<NodeInst,Map<PortProto,PlacementPort>> convertedNodes = new HashMap<NodeInst,Map<PortProto,PlacementPort>>();
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
@@ -386,6 +388,7 @@ public class PlacementFrame
 					plPort.setPlacementNode(plNode);
 				plNode.setOrientation(Orientation.IDENT);
 				convertedNodes.put(ni, placedPorts);
+				shadowNodes.put(ni, plNode);
 			}
 		}
 
@@ -440,6 +443,17 @@ public class PlacementFrame
 			NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(xPos, yPos), np.getDefWidth(), np.getDefHeight(), newCell,
 				orient, plNode.getOriginal().getName(), plNode.getOriginal().getTechSpecific());
 			placedNodes.put(plNode, ni);
+		}
+
+		// place exports in the new cell
+		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
+		{
+			Export e = (Export)it.next();
+			NodeInst orig = e.getOriginalPort().getNodeInst();
+			PlacementNode plNode = shadowNodes.get(orig);
+			NodeInst newNI = placedNodes.get(plNode);
+			PortInst portToExport = newNI.findPortInstFromProto(e.getOriginalPort().getPortProto());
+			Export.newInstance(newCell, portToExport, e.getName(), e.getCharacteristic());
 		}
 
 		// connect the connections in the new cell
