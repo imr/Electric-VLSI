@@ -106,6 +106,10 @@ public abstract class Client {
         this.connectionId = connectionId;
     }
 
+    public int getConnectionId() {
+        return connectionId;
+    }
+
     public synchronized Job.Key newJobId(boolean isServer, boolean doItOnServer) {
         int jobId = isServer ? ++serverJobId : --clientJobId;
         return new Job.Key(this, jobId, doItOnServer);
@@ -200,44 +204,67 @@ public abstract class Client {
     }
 
     public static class EJobEvent extends ServerEvent {
-        public final EJob ejob;
+        public final Job.Key jobKey;
+        public final String jobName;
+        public final Tool tool;
+        public final Job.Type jobType;
+        public final byte[] serializedJob;
+        public final boolean doItOk;
+        public final byte[] serializedResult;
         public final EJob.State newState;
 
-        EJobEvent(EJob ejob, EJob.State newState) {
-            super(ejob.newSnapshot);
-            this.ejob = ejob;
+        EJobEvent(Job.Key jobKey, String jobName, Tool tool, Job.Type jobType, byte[] serializedJob,
+                boolean doItOk, byte[] serializedResult, Snapshot newSnapshot, EJob.State newState) {
+            super(newSnapshot);
+            assert jobKey != null;
+            this.jobKey = jobKey;
+            this.jobName = jobName;
+            this.tool = tool;
+            this.jobType = jobType;
+            this.serializedJob = serializedJob;
+            this.doItOk = doItOk;
+            this.serializedResult = serializedResult;
             this.newState = newState;
+            assert newState == EJob.State.SERVER_DONE;
         }
 
-        EJobEvent(EJob ejob, EJob.State newState, long timeStamp) {
-            super(ejob.newSnapshot, timeStamp);
-            this.ejob = ejob;
+        EJobEvent(Job.Key jobKey, String jobName, Tool tool, Job.Type jobType, byte[] serializedJob,
+                boolean doItOk, byte[] serializedResult, Snapshot newSnapshot, EJob.State newState, long timeStamp) {
+            super(newSnapshot, timeStamp);
+            assert jobKey != null;
+            this.jobKey = jobKey;
+            this.jobName = jobName;
+            this.tool = tool;
+            this.jobType = jobType;
+            this.serializedJob = serializedJob;
+            this.doItOk = doItOk;
+            this.serializedResult = serializedResult;
             this.newState = newState;
+            assert newState == EJob.State.SERVER_DONE;
         }
 
         @Override
         void write(IdWriter writer) throws IOException {
             assert newState == EJob.State.SERVER_DONE;
             writeHeader(writer, 2);
-            writer.writeInt(ejob.jobKey.jobId);
-            writer.writeString(ejob.jobName);
-            writer.writeString(ejob.jobType.toString());
-            writer.writeString(newState.toString());
-//            writer.writeLong(timeStamp);
-            writer.writeBoolean(ejob.doItOk);
-            if (newState == EJob.State.WAITING) {
-                writer.writeBoolean(ejob.serializedJob != null);
-                if (ejob.serializedJob != null)
-                    writer.writeBytes(ejob.serializedJob);
-            }
-            if (newState == EJob.State.SERVER_DONE)
-                writer.writeBytes(ejob.serializedResult);
+            jobKey.write(writer);
+            writer.writeString(jobName);
+            writer.writeBoolean(tool != null);
+            if (tool != null)
+                writer.writeTool(tool);
+            writer.writeString(jobType.toString());
+            writer.writeBoolean(doItOk);
+            writer.writeBoolean(serializedJob != null);
+            if (serializedJob != null)
+                writer.writeBytes(serializedJob);
+            writer.writeBytes(serializedResult);
         }
 
         @Override
         void show(AbstractUserInterface ui) {
             assert newState == EJob.State.SERVER_DONE;
-            ui.terminateJob(ejob);
+            ui.terminateJob(jobKey, jobName, tool, jobType, serializedJob,
+                    doItOk, serializedResult, getSnapshot());
         }
     }
 
@@ -457,19 +484,24 @@ public abstract class Client {
         ServerEvent event;
         switch (tag) {
             case 2:
-                int jobId = Integer.valueOf(reader.readInt());
+                Job.Key jobKey = Job.Key.read(reader);
                 String jobName = reader.readString();
+                Tool tool = null;
+                if (reader.readBoolean())
+                    tool = reader.readTool();
                 Job.Type jobType = Job.Type.valueOf(reader.readString());
-                EJob.State newState = EJob.State.valueOf(reader.readString());
-//                timeStamp = reader.readLong();
                 boolean doItOk = reader.readBoolean();
-                assert newState == EJob.State.SERVER_DONE;
-                byte[] bytes = reader.readBytes();
-                EJob ejob = new EJob(connection, jobId, jobType, jobName, null);
+                EJob.State newState = EJob.State.SERVER_DONE;
+                byte[] serializedJob = null;
+                if (reader.readBoolean())
+                    serializedJob = reader.readBytes();
+                byte[] serializedResult = reader.readBytes();
+                EJob ejob = new EJob(connection, jobKey.jobId, jobType, jobName, serializedJob);
                 ejob.state = newState;
                 ejob.doItOk = doItOk;
-                ejob.serializedResult = bytes;
-                event = new EJobEvent(ejob, newState, timeStamp);
+                ejob.serializedResult = serializedResult;
+                event = new EJobEvent(jobKey, jobName, tool, jobType, serializedJob,
+                        doItOk, serializedResult, snapshot, newState, timeStamp);
                 break;
             case 3:
                 String str = reader.readString();

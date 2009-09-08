@@ -67,7 +67,7 @@ public class EJob {
 
     /** progress */                             /*private*/ String progress = null;
     byte[] serializedJob;
-    byte[] serializedResult;
+    public byte[] serializedResult;
     boolean doItOk;
     Job serverJob;
     public Job clientJob;
@@ -76,7 +76,7 @@ public class EJob {
     /** Fields changed on server side. */       ArrayList<Field> changedFields;
 
     /** Creates a new instance of EJob */
-    EJob(Client connection, int jobId, Job.Type jobType, String jobName, byte[] bytes) {
+    public EJob(Client connection, int jobId, Job.Type jobType, String jobName, byte[] bytes) {
         this.client = connection;
         jobKey = new Job.Key(connection, jobId, jobType != Job.Type.CLIENT_EXAMINE);
         this.jobType = jobType;

@@ -24,6 +24,7 @@
 package com.sun.electric;
 
 import com.sun.electric.database.EditingPreferences;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -39,7 +40,6 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Client;
-import com.sun.electric.tool.EJob;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
@@ -438,9 +438,10 @@ public final class Main
         public String askForInput(Object message, String title, String def) { return def; }
 
         @Override
-        protected void terminateJob(EJob ejob) {
-            printMessage("Job " + ejob, true);
-    //        writeEJobEvent(e.ejob, e.newState, e.timeStamp);
+        protected void terminateJob(Job.Key jobKey, String jobName, Tool tool,
+            Job.Type jobType, byte[] serializedJob,
+            boolean doItOk, byte[] serializedResult, Snapshot newSnapshot) {
+            printMessage("Job " + jobKey, true);
         }
 
         @Override

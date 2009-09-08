@@ -45,7 +45,7 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     private TechId curTechId;
     private LibId curLibId;
     private Job.Key jobKey = new Job.Key(DEFAULT_CONNECTION_ID, 0, false);
-    private HashMap<Job.Key,Job> processingJobs = new HashMap<Job.Key,Job>();
+    private HashMap<Job.Key,EJob> processingEJobs = new HashMap<Job.Key,EJob>();
 
     protected AbstractUserInterface() {
         super(DEFAULT_CONNECTION_ID);
@@ -130,7 +130,9 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
      */
     protected void showSnapshot(Snapshot newSnapshot, boolean undoRedo) {}
 
-    protected abstract void terminateJob(EJob ejob);
+    protected abstract void terminateJob(Job.Key jobKey, String jobName, Tool tool,
+            Job.Type jobType, byte[] serializedJob,
+            boolean doItOk, byte[] serializedResult, Snapshot newSnapshot);
 
     public void beep() {}
 
@@ -139,16 +141,16 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
         Job.clientThread = Thread.currentThread();
     }
 
-    synchronized void putProcessingJob(Job job) {
-        Job.Key jobKey = job.getKey();
+    synchronized void putProcessingEJob(EJob ejob) {
+        Job.Key jobKey = ejob.jobKey;
         assert !jobKey.startedByServer();
         assert jobKey.clientId == connectionId;
-        assert job == job.ejob.clientJob;
-        Job oldJob = processingJobs.put(jobKey, job);
-        assert oldJob == null;
+        assert ejob.clientJob != null;
+        EJob oldEJob = processingEJobs.put(jobKey, ejob);
+        assert oldEJob == null;
     }
 
-    synchronized Job removeProcessingJob(Job.Key jobKey) {
-        return processingJobs.remove(jobKey);
+    protected synchronized EJob removeProcessingEJob(Job.Key jobKey) {
+        return processingEJobs.remove(jobKey);
     }
  }

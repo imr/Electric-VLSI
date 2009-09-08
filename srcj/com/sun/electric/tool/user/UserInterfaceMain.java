@@ -143,23 +143,35 @@ public class UserInterfaceMain extends AbstractUserInterface
         SwingUtilities.invokeLater(new InitializationRun(argsList, mode, showSplash));
     }
 
-    protected void terminateJob(EJob ejob) {
-        boolean undoRedo = ejob.jobType == Job.Type.UNDO;
-        if (!ejob.isExamine()) {
-            int restoredHighlights = Undo.endChanges(ejob.oldSnapshot, ejob.getJob().getTool(), ejob.jobName, ejob.newSnapshot);
-            showSnapshot(ejob.newSnapshot, undoRedo);
+    @Override
+    protected void terminateJob(Job.Key jobKey, String jobName, Tool tool,
+            Job.Type jobType, byte[] serializedJob,
+            boolean doItOk, byte[] serializedResult, Snapshot newSnapshot) {
+
+        boolean undoRedo = jobType == Job.Type.UNDO;
+        if (jobType != Job.Type.SERVER_EXAMINE && jobType != Job.Type.CLIENT_EXAMINE) {
+            int restoredHighlights = Undo.endChanges(currentSnapshot, tool, jobName, newSnapshot);
+            showSnapshot(newSnapshot, undoRedo);
             restoreHighlights(restoredHighlights);
         }
 
-        //if (ejob.client != Job.getExtendedUserInterface()) return;
+        if (jobKey.clientId != getConnectionId())
+            return;
+
+        EJob ejob;
         Throwable jobException = null;
-        if (ejob.startedByServer())
+        if (jobKey.startedByServer()) {
+            ejob = new EJob(this, jobKey.jobId, jobType, jobName, serializedJob);
             jobException = ejob.deserializeToClient();
+        } else {
+            ejob = removeProcessingEJob(jobKey);
+        }
         if (jobException != null) {
-            System.out.println("Error deserializing " + ejob.jobName);
+            System.out.println("Error deserializing " + jobName);
             ActivityLogger.logException(jobException);
             return;
         }
+        ejob.serializedResult = serializedResult;
         jobException = ejob.deserializeResult();
 
         Job job = ejob.clientJob;

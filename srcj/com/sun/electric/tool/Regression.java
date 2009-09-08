@@ -131,10 +131,10 @@ public class Regression {
                     Client.ServerEvent serverEvent = Client.read(reader, tag, timeStamp, ui, currentSnapshot);
                     if (serverEvent instanceof Client.EJobEvent) {
                         Client.EJobEvent e = (Client.EJobEvent)serverEvent;
-                        int jobId = e.ejob.jobKey.jobId;
+                        int jobId = e.jobKey.jobId;
                         assert e.newState == EJob.State.SERVER_DONE;
                         if (jobId > 0) {
-                            if (!e.ejob.doItOk) {
+                            if (!e.doItOk) {
                                 System.out.println("Job " + job.ejob.jobName + " failed");
 //                                printErrorStream(process);
 //                                ui.saveMessages(null);
@@ -143,9 +143,9 @@ public class Regression {
                             continue;
                         }
                         assert jobId == curJobId;
-                        job.ejob.serializedResult = e.ejob.serializedResult;
+                        job.ejob.serializedResult = e.serializedResult;
                         Throwable result = job.ejob.deserializeResult();
-                        assert e.ejob.doItOk == (result == null);
+                        assert e.doItOk == (result == null);
                         if (result != null) {
                             System.out.println("Job " + job.ejob.jobName + " result:");
 //                            System.out.println(result);

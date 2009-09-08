@@ -197,16 +197,6 @@ public class ServerJobManager extends JobManager {
                 for (;;) {
                     lastEvent = Client.getEvent(lastEvent);
                     for (;;) {
-                        if (lastEvent instanceof Client.EJobEvent) {
-                            EJob ejob = ((Client.EJobEvent)lastEvent).ejob;
-                            Job.Key jobKey = ejob.jobKey;
-                            Job savedJob = Job.currentUI.removeProcessingJob(ejob.jobKey);
-                            if (!jobKey.startedByServer() && jobKey.clientId == connectionId) {
-                                assert savedJob.ejob == ejob;
-                            } else {
-                                assert savedJob == null;
-                            }
-                        }
                         Job.currentUI.addEvent(lastEvent);
                         Client.ServerEvent event = lastEvent.getNext();
                         if (event == null)
@@ -396,8 +386,9 @@ public class ServerJobManager extends JobManager {
 //                if (Job.threadMode != Job.Mode.BATCH && ejob.client == null)
 //                    finishedJobs.add(ejob);
                 ejob.state = newState;
-                Client.fireServerEvent(new Client.EJobEvent(ejob, ejob.state));
-
+                Client.fireServerEvent(new Client.EJobEvent(ejob.jobKey, ejob.jobName,
+                        ejob.getJob().getTool(), ejob.jobType, ejob.serializedJob,
+                        ejob.doItOk, ejob.serializedResult, ejob.newSnapshot, ejob.state));
                 break;
             case CLIENT_DONE:
                 assert oldState == EJob.State.SERVER_DONE;

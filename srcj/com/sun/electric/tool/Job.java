@@ -293,7 +293,7 @@ public abstract class Job implements Serializable {
             ejob.serverJob = null;
             if (doItOnServer)
                 ejob.serialize(EDatabase.clientDatabase());
-            Job.currentUI.putProcessingJob(this);
+            Job.currentUI.putProcessingEJob(ejob);
         }
         jobManager.addJob(ejob, onMySnapshot);
     }
@@ -647,7 +647,7 @@ public abstract class Job implements Serializable {
             this(client.connectionId, jobId, doItOnServer);
         }
 
-        boolean startedByServer() {
+        public boolean startedByServer() {
             return jobId > 0;
         }
 

@@ -219,35 +219,25 @@ class ClientJobManager extends JobManager {
                                 currentSnapshot = newSnapshot;
                             }
                             Client.EJobEvent ejobEvent = (Client.EJobEvent)lastEvent;
-                            EJob ejob = ejobEvent.ejob;
-                            assert ejob.state == ejobEvent.newState;
-                            assert ejob.state == EJob.State.SERVER_DONE;
-                            EJob myEjob = getServerJob(ejob.jobKey.jobId);
-                            Job savedJob = Job.currentUI.removeProcessingJob(ejob.jobKey);
-                            if (!myEjob.startedByServer() && myEjob.jobKey.clientId == connectionId) {
-                                assert savedJob.ejob == myEjob;
-                            } else {
-                                assert savedJob == null;
-                            }
-                            assert myEjob.jobName.equals(ejob.jobName);
-                            myEjob.state = ejob.state;
-                            myEjob.serializedResult = ejob.serializedResult;
+                            //EJob ejob = ejobEvent.ejob;
+                            assert ejobEvent.newState == EJob.State.SERVER_DONE;
+                            EJob myEjob = getServerJob(ejobEvent.jobKey.jobId);
+//                            EJob savedEJob = Job.currentUI.removeProcessingEJob(ejob.jobKey);
+//                            if (!ejob.jobKey.startedByServer() && myEjob.jobKey.clientId == connectionId) {
+//                                assert savedEJob == myEjob;
+//                                myEjob.clientJob.finished = true;
+//                            } else {
+//                                assert myEjob == null;
+//                                assert savedEJob == null;
+//                                myEjob = ejob;
+//                            }
+//                            assert myEjob.jobName.equals(ejob.jobName);
+//                            myEjob.state = ejob.state;
+//                            myEjob.serializedResult = ejob.serializedResult;
                             myEjob.oldSnapshot = oldSnapshot;
                             myEjob.newSnapshot = newSnapshot;
-                            myEjob.clientJob.finished = true;
                             showJobQueue();
-    //                        long timeStamp = reader.readLong();
-    //                        if (ejob.state == EJob.State.WAITING) {
-    //                            boolean hasSerializedJob = reader.readBoolean();
-    //                            if (hasSerializedJob) {
-    //                                ejob.serializedJob = reader.readBytes();
-    //                            }
-    //                        }
-    //                        if (ejob.state == EJob.State.SERVER_DONE) {
-    //                            ejob.serializedResult = reader.readBytes();
-    //                        }
-                            Job.currentUI.addEvent(new Client.EJobEvent(myEjob, ejobEvent.newState, ejobEvent.getTimeStamp()));
-    //                        logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult end {0}", ejob.jobKey.jobId);
+                            Job.currentUI.addEvent(ejobEvent);
                         } else if (lastEvent instanceof Client.JobQueueEvent) {
                             serverJobQueue = ((Client.JobQueueEvent)lastEvent).jobQueue;
                             showJobQueue();
@@ -304,7 +294,10 @@ class ClientJobManager extends JobManager {
                         unlock();
                     }
                     showJobQueue();
-                    Job.currentUI.addEvent(new Client.EJobEvent(ejob, EJob.State.SERVER_DONE));
+                    Job.currentUI.addEvent(new Client.EJobEvent(ejob.jobKey, ejob.jobName,
+                            ejob.getJob().getTool(), ejob.jobType, ejob.serializedJob,
+                            ejob.doItOk, ejob.serializedResult, EDatabase.clientDatabase().backup(),
+                            EJob.State.SERVER_DONE));
                 }
             });
         } else {
