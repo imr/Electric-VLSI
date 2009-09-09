@@ -165,17 +165,17 @@ public class Orientation implements Serializable {
         int ang = jAngle % 450;
         if (sect % 2 != 0) ang = 450 - ang;
         assert 0 <= ang && ang <= 450;
-	double cos0, sin0;
-	if (ang == 0) {
-	    cos0 = 1;
-	    sin0 = 0;
-	} else if (ang == 450) {
-	    cos0 = sin0 = Math.sqrt(0.5);
-	} else {
-    	    double alpha = ang * Math.PI / 1800.0;
-    	    cos0 = Math.cos(alpha);
-    	    sin0 = Math.sin(alpha);
-	}
+        double cos0, sin0;
+        if (ang == 0) {
+            cos0 = 1;
+            sin0 = 0;
+        } else if (ang == 450) {
+            cos0 = sin0 = StrictMath.sqrt(0.5);
+        } else {
+            double alpha = ang * Math.PI / 1800.0;
+            cos0 = StrictMath.cos(alpha);
+            sin0 = StrictMath.sin(alpha);
+        }
         double cos = 0, sin = 0;
         switch (sect) {
             case 0: cos =  cos0; sin =  sin0; break;
@@ -192,11 +192,6 @@ public class Orientation implements Serializable {
 		matrix[1] = sin * (jMirrorY ? -1 : 1);
 		matrix[2] = sin * (jMirrorX ? 1 : -1);
 		matrix[3] = cos * (jMirrorY ? -1 : 1);
-		if (jAngle % 900 == 0)
-		{
-			for (int i = 0; i < matrix.length; i++)
-				matrix[i] = Math.round(matrix[i]);
-		}
 		this.trans = new AffineTransform(matrix);
 
 		// compute Jelib String
