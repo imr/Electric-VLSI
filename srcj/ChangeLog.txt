@@ -2,9 +2,10 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.10g: *******************************
-
 ************************* Version 8.10f: *******************************
+
+BUG: (9/8/09, GVG) NPE while resetting all preferences in Preferences dialog (Bug #2376)
+FIX: Detecting null cases in dialogs not used before the reset.
 
 IMP: (9/8/09, DN) Move client queue from ClientJobManager to AbstractUserInterface.
 

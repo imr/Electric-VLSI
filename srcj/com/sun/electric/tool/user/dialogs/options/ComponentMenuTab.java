@@ -183,6 +183,9 @@ public class ComponentMenuTab extends PreferencePanel
 	 */
 	public void reset()
 	{
+        if (tech == null)
+            return; // nothing to reset since the dialog hasn't been used.
+        
         ComponentMenu.ComponentMenuPreferences cmp = new ComponentMenu.ComponentMenuPreferences(true);
         putPrefs(cmp);
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )

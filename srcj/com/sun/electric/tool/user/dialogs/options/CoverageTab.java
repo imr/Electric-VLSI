@@ -246,6 +246,8 @@ public class CoverageTab extends PreferencePanel
     @Override
 	public void reset()
 	{
+        if (lcp == null)
+            return; // nothing to reset
         lcp.reset();
         putPrefs(lcp);
 	}
