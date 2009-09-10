@@ -131,9 +131,11 @@ class InteriorNodeCursor
                              key, key_ofs, bt.uk.getSize());
 
         // move the second half of our entries to the front of the block, and write back
+        byte[] oldbuf = buf;
+        this.buf = new byte[buf.length];
         this.pageid = pageForRightHalf;
         int len = 2*SIZEOF_INT + INTERIOR_ENTRY_SIZE*(INTERIOR_MAX_CHILDREN/2);
-        System.arraycopy(buf, len, buf, 2*SIZEOF_INT, endOfBuf - len);
+        System.arraycopy(oldbuf, len, buf, 2*SIZEOF_INT, endOfBuf - len);
         setNumChildren(INTERIOR_MAX_CHILDREN-INTERIOR_MAX_CHILDREN/2);
         writeBack();
     }

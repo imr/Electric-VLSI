@@ -132,8 +132,10 @@ class LeafNodeCursor
             System.arraycopy(buf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*(LEAF_MAX_ENTRIES/2), key, key_ofs, bt.uk.getSize());
 
         // move the second half of our entries to the front of the block, and write back
+        byte[] oldbuf = buf;
+        initBuf(new byte[buf.length]);
         this.pageid = pageForRightHalf;
-        System.arraycopy(buf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE * (LEAF_MAX_ENTRIES/2),
+        System.arraycopy(oldbuf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE * (LEAF_MAX_ENTRIES/2),
                          buf, LEAF_HEADER_SIZE,
                          LEAF_ENTRY_SIZE * (LEAF_MAX_ENTRIES-LEAF_MAX_ENTRIES/2));
         setNumEntries(LEAF_MAX_ENTRIES-LEAF_MAX_ENTRIES/2);
