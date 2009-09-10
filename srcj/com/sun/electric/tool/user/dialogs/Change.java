@@ -1146,7 +1146,7 @@ public class Change extends EModelessDialog implements HighlightListener
 		private NodeProto [] contactStack = new NodeProto[100];
 		private ArcProto [] contactStackArc = new ArcProto[100];
         private Technology connectionTech = null;
-        private Map<ArcProto,Map<ArcProto,PrimitiveNode>> connectionMap;
+        private Map<ArcProto,Map<ArcProto,PrimitivePort>> connectionMap;
 
 		/**
 		 * Method to examine end "end" of arc "ai" and return a node at that position which
@@ -1241,7 +1241,7 @@ public class Change extends EModelessDialog implements HighlightListener
         {
         	if (connectionTech == tech) return;
         	connectionTech = tech;
-        	connectionMap = new HashMap<ArcProto,Map<ArcProto,PrimitiveNode>>();
+        	connectionMap = new HashMap<ArcProto,Map<ArcProto,PrimitivePort>>();
         	for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
         	{
         		PrimitiveNode np = it.next();
@@ -1258,8 +1258,8 @@ public class Change extends EModelessDialog implements HighlightListener
         				if (ap2 == null) ap2 = ap;
         		}
         		if (ap1 == null || ap2 == null) continue;
-        		addConnection(ap1, ap2, np);
-        		addConnection(ap2, ap1, np);
+        		addConnection(ap1, ap2, null);
+        		addConnection(ap2, ap1, null);
         	}
         }
 
@@ -1269,12 +1269,12 @@ public class Change extends EModelessDialog implements HighlightListener
          * @param ap2 another ArcProto.
          * @param np the contact that connects them.
          */
-        private void addConnection(ArcProto ap1, ArcProto ap2, PrimitiveNode np)
+        private void addConnection(ArcProto ap1, ArcProto ap2, PrimitivePort np)
         {
-        	Map<ArcProto,PrimitiveNode> arcMap = connectionMap.get(ap1);
-        	if (arcMap == null) connectionMap.put(ap1, arcMap = new HashMap<ArcProto,PrimitiveNode>());
+        	Map<ArcProto,PrimitivePort> arcMap = connectionMap.get(ap1);
+        	if (arcMap == null) connectionMap.put(ap1, arcMap = new HashMap<ArcProto,PrimitivePort>());
         	if (arcMap.get(ap2) == null)
-        		arcMap.put(ap2, np);
+        		arcMap.put(ap2, User.getUserTool().getCurrentContactPortProto(ap1, ap2));
         }
 
         /**
@@ -1296,14 +1296,16 @@ public class Change extends EModelessDialog implements HighlightListener
 			ArcProto bestAp = null;
 			int bestDepth = 0;
 
-			Map<ArcProto,PrimitiveNode> arcMap = connectionMap.get(sourceAp);
+			Map<ArcProto,PrimitivePort> arcMap = connectionMap.get(sourceAp);
 			for(ArcProto nextAp : arcMap.keySet())
 			{
 				if (markedArcs.contains(nextAp)) continue;
-				PrimitiveNode nextNp = arcMap.get(nextAp);
-				PortProto nextPp = nextNp.getPort(0);
+//				PrimitiveNode nextNp = arcMap.get(nextAp);
+//				PortProto nextPp = nextNp.getPort(0);
+                PortProto nextPp = arcMap.get(nextAp);
+                PrimitiveNode nextNp = (PrimitiveNode)nextPp.getParent();
 
-				// this contact is part of the chain
+                // this contact is part of the chain
 				contactStack[depth] = nextNp;
 				markedArcs.add(nextAp);
 				int newDepth = findOtherPathToArc(nextPp, nextAp, destAp, depth+1, markedArcs);
