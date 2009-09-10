@@ -1179,6 +1179,7 @@ public class EditWindow extends JPanel
 
 		// remove myself from listener list
 		uninstallHighlighters();
+        pulsatingTimer.stop();
 		UserInterfaceMain.removeDatabaseChangeListener(this);
 		Highlighter.removeHighlightListener(this);
 	}
