@@ -27,18 +27,18 @@ import java.io.*;
 import java.util.*;
 
 public class UnboxedPair<A extends Serializable,B extends Serializable>
-    implements Unboxed<SerializableMapEntry<A,B>> {
+    implements Unboxed<Pair<A,B>> {
 
     private final Unboxed<A> ua;
     private final Unboxed<B> ub;
     public UnboxedPair(Unboxed<A> ua, Unboxed<B> ub) { this.ua = ua; this.ub = ub; }
     public int getSize() { return ua.getSize()+ub.getSize(); }
-    public SerializableMapEntry<A,B> deserialize(byte[] buf, int ofs) {
+    public Pair<A,B> deserialize(byte[] buf, int ofs) {
         A a = ua.deserialize(buf, ofs);
         B b = ub.deserialize(buf, ofs+ua.getSize());
-        return new SerializableMapEntry<A,B>(a,b);
+        return new Pair<A,B>(a,b);
     }
-    public void serialize(SerializableMapEntry<A,B> sme, byte[] buf, int ofs) {
+    public void serialize(Pair<A,B> sme, byte[] buf, int ofs) {
         ua.serialize(sme.getKey(), buf, ofs);
         ub.serialize(sme.getValue(), buf, ofs);
     }

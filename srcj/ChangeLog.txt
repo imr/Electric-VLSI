@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10g: *******************************
 
+IMP: (9/9/09, AM) Store simulation data as BTree<Pair<Double,Double>>
+     instead of two BTree<Double>'s.  Result: 43% improvement in time
+     to build BTree.
+
 IMP: (9/9/09, AM) Remove com.sun.electric.tool.io.input.BTree (use
      c.s.e.t.btree.BTree instead)
 

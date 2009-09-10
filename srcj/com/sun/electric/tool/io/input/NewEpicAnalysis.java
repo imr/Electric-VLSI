@@ -40,12 +40,6 @@ import com.sun.electric.tool.simulation.NewSignalSimpleImpl;
 import com.sun.electric.tool.btree.*;
 import com.sun.electric.tool.btree.unboxed.*;
 
-import com.sun.electric.tool.btree.*;
-import com.sun.electric.tool.btree.unboxed.*;
-
-import com.sun.electric.tool.btree.*;
-import com.sun.electric.tool.btree.unboxed.*;
-
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -421,8 +415,8 @@ public class NewEpicAnalysis extends AnalogAnalysis {
     }
 
 
-    private HashMap<String,BTree<Integer,Double,?>> timetrees = new HashMap<String,BTree<Integer,Double,?>>();
-    private HashMap<String,BTree<Integer,Double,?>> valtrees = new HashMap<String,BTree<Integer,Double,?>>();
+    private HashMap<String,BTree<Integer,Pair<Double,Double>,Serializable>> trees =
+        new HashMap<String,BTree<Integer,Pair<Double,Double>,Serializable>>();
 
     private PageStorage ps = null;
 
@@ -450,8 +444,7 @@ public class NewEpicAnalysis extends AnalogAnalysis {
         int    evmax = 0;
         String sigName = signal.getFullName();
 
-        BTree<Integer,Double,?> timetree = timetrees.get(sigName);
-        BTree<Integer,Double,?> valtree = valtrees.get(sigName);
+        BTree<Integer,Pair<Double,Double>,Serializable> tree = trees.get(sigName);
 
         if (ps==null)
             try {
@@ -460,12 +453,12 @@ public class NewEpicAnalysis extends AnalogAnalysis {
                 throw new RuntimeException(e);
             }
 
-        if (timetree==null)
-            timetrees.put(sigName, timetree =
-                          new com.sun.electric.tool.btree.BTree<Integer,Double,Integer>(ps, UnboxedInt.instance, null, UnboxedHalfDouble.instance));
-        if (valtree==null)
-            valtrees.put(sigName, valtree =
-                         new com.sun.electric.tool.btree.BTree<Integer,Double,Integer>(ps, UnboxedInt.instance, null, UnboxedHalfDouble.instance));
+        if (tree==null)
+            trees.put(sigName, tree =
+                      new BTree<Integer,Pair<Double,Double>,Serializable>
+                      (ps, UnboxedInt.instance, null,
+                       new UnboxedPair<Double,Double>(UnboxedHalfDouble.instance,
+                                                      UnboxedHalfDouble.instance)));
         
         long now = System.currentTimeMillis();
         System.err.println("filling btree for signal " + sigName);
@@ -489,8 +482,7 @@ public class NewEpicAnalysis extends AnalogAnalysis {
             double value = v * valueResolution;
             if (value < minValue) { minValue = value; evmin = count; }
             if (value > maxValue) { maxValue = value; evmax = count; }
-            timetree.put(count, t*timeResolution);
-            valtree.put(count, value);
+            tree.put(count, new Pair<Double,Double>(t*timeResolution, value));
             long now1 = System.currentTimeMillis();
             if (now1-last > 500) {
                 last = now1;
@@ -498,7 +490,7 @@ public class NewEpicAnalysis extends AnalogAnalysis {
             }
         }
         System.err.println("  done filling btree for signal " + sigName + "; took " + (System.currentTimeMillis()-now) +"ms");
-        return new Waveform[] { new ScalarWaveformImpl(sigName, count, evmin, evmax, timetree, valtree) };
+        return new Waveform[] { new ScalarWaveformImpl(sigName, count, evmin, evmax, tree) };
     }
 
     private class ScalarWaveformImpl extends NewSignalSimpleImpl implements Waveform {
@@ -508,21 +500,20 @@ public class NewEpicAnalysis extends AnalogAnalysis {
         private final int eventWithMinValue;
         private final int eventWithMaxValue;
         private NewSignal.Approximation<ScalarSample> preferredApproximation = null;
-        private final BTree<Integer,Double,?> timetree;
-        private final BTree<Integer,Double,?> valtree;
+        private final BTree<Integer,Pair<Double,Double>,Serializable> tree;
     
-        public ScalarWaveformImpl(String signal, int numEvents, int eventWithMinValue, int eventWithMaxValue,
-                                  BTree<Integer,Double,?> timetree,
-                                  BTree<Integer,Double,?> valtree
+        public ScalarWaveformImpl(String signal,
+                                  int numEvents,
+                                  int eventWithMinValue,
+                                  int eventWithMaxValue,
+                                  BTree<Integer,Pair<Double,Double>,Serializable> tree
                                   ) {
             this.signal = signal;
             this.numEvents = numEvents;
             this.eventWithMinValue = eventWithMinValue;
             this.eventWithMaxValue = eventWithMaxValue;
-            if (timetree==null) throw new RuntimeException();
-            if (valtree==null) throw new RuntimeException();
-            this.timetree = timetree;
-            this.valtree = valtree;
+            if (tree==null) throw new RuntimeException();
+            this.tree = tree;
             this.preferredApproximation = new ScalarWaveformImplApproximation();
         }
 
@@ -539,12 +530,12 @@ public class NewEpicAnalysis extends AnalogAnalysis {
         private class ScalarWaveformImplApproximation implements NewSignal.Approximation<ScalarSample> {
             public int getNumEvents() { return numEvents; }
             public double             getTime(int index) {
-                Double d = timetree.get(index);
+                Double d = tree.get(index).getKey();
                 if (d==null) throw new RuntimeException("index out of bounds");
                 return d.doubleValue();
             }
             public ScalarSample       getSample(int index) {
-                Double d = valtree.get(index);
+                Double d = tree.get(index).getValue();
                 if (d==null) throw new RuntimeException("index out of bounds");
                 return new ScalarSample(d.doubleValue());
             }
