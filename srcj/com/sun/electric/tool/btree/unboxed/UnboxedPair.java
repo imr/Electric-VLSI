@@ -40,6 +40,6 @@ public class UnboxedPair<A extends Serializable,B extends Serializable>
     }
     public void serialize(Pair<A,B> sme, byte[] buf, int ofs) {
         ua.serialize(sme.getKey(), buf, ofs);
-        ub.serialize(sme.getValue(), buf, ofs);
+        ub.serialize(sme.getValue(), buf, ofs+ua.getSize());
     }
 }
