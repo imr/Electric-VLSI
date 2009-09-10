@@ -146,19 +146,12 @@ public class BTree
             byte[] buf = ps.readPage(largestKeyPage, null, 0);
             leafNodeCursor.setBuf(largestKeyPage, buf);
             comp = uk.compare(key, key_ofs, largestKey, 0);
-            if (leafNodeCursor.isFull()) {
-                    // nop
-            } else if (comp >= 0) {
+            if (comp >= 0 && !leafNodeCursor.isFull()) {
                 pageid = largestKeyPage;
                 buf = ps.readPage(leafNodeCursor.getParentPageId(), null, 0);
                 if (leafNodeCursor.getParentPageId()!=leafNodeCursor.getPageId())
                     parentNodeCursor.setBuf(leafNodeCursor.getParentPageId(), buf);
                 cheat = true;
-            } else {
-                System.err.println("fail: "
-                                   + uk.deserialize(key, key_ofs) + " "
-                                   + uk.deserialize(largestKey, 0) + " "
-                                   + comp);
             }
         }
 
