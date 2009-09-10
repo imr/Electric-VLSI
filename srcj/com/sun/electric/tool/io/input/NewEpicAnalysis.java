@@ -102,10 +102,6 @@ public class NewEpicAnalysis extends AnalogAnalysis {
     /** Hash of all contexts. */                        private Context[] contextHash = new Context[1];
     /** Count of contexts in the hash. */               private int numContexts = 0;
 
-    /*
-    private final BTree<SimulationKey,SimulationValue> btree;
-    */
-
     private static class SimulationKey implements Comparable<SimulationKey>, Externalizable {
         public String signalName;
         public int index;
@@ -425,8 +421,8 @@ public class NewEpicAnalysis extends AnalogAnalysis {
     }
 
 
-    private HashMap<String,BTree<Integer,Double>> timetrees = new HashMap<String,BTree<Integer,Double>>();
-    private HashMap<String,BTree<Integer,Double>> valtrees = new HashMap<String,BTree<Integer,Double>>();
+    private HashMap<String,BTree<Integer,Double,?>> timetrees = new HashMap<String,BTree<Integer,Double,?>>();
+    private HashMap<String,BTree<Integer,Double,?>> valtrees = new HashMap<String,BTree<Integer,Double,?>>();
 
     private PageStorage ps = null;
 
@@ -454,8 +450,8 @@ public class NewEpicAnalysis extends AnalogAnalysis {
         int    evmax = 0;
         String sigName = signal.getFullName();
 
-        BTree<Integer,Double> timetree = timetrees.get(sigName);
-        BTree<Integer,Double> valtree = valtrees.get(sigName);
+        BTree<Integer,Double,?> timetree = timetrees.get(sigName);
+        BTree<Integer,Double,?> valtree = valtrees.get(sigName);
 
         if (ps==null)
             try {
@@ -512,12 +508,12 @@ public class NewEpicAnalysis extends AnalogAnalysis {
         private final int eventWithMinValue;
         private final int eventWithMaxValue;
         private NewSignal.Approximation<ScalarSample> preferredApproximation = null;
-        private final BTree<Integer,Double> timetree;
-        private final BTree<Integer,Double> valtree;
+        private final BTree<Integer,Double,?> timetree;
+        private final BTree<Integer,Double,?> valtree;
     
         public ScalarWaveformImpl(String signal, int numEvents, int eventWithMinValue, int eventWithMaxValue,
-                                  BTree<Integer,Double> timetree,
-                                  BTree<Integer,Double> valtree
+                                  BTree<Integer,Double,?> timetree,
+                                  BTree<Integer,Double,?> valtree
                                   ) {
             this.signal = signal;
             this.numEvents = numEvents;

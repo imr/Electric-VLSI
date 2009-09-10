@@ -68,14 +68,11 @@ import com.sun.electric.tool.btree.unboxed.*;
  *      http://dx.doi.org/10.1145/1326542.1326544
  *
  *  @author Adam Megacz <adam.megacz@sun.com>
- *
  */
 public class BTree
     <K extends Serializable & Comparable,
      V extends Serializable,
-     S extends Serializable>
-    implements
-        com.sun.electric.tool.io.input.BTree<K,V> {
+     S extends Serializable> {
 
     final PageStorage          ps;
     final UnboxedComparable<K> uk;
@@ -194,20 +191,20 @@ public class BTree
 
     //////////////////////////////////////////////////////////////////////////////
 
-    public K    first() { throw new RuntimeException("not implemented"); }
-    public K    last() { throw new RuntimeException("not implemented"); }
-    public K    next(K key) { throw new RuntimeException("not implemented"); }
-    public K    prev(K key) { throw new RuntimeException("not implemented"); }
+    /** returns the first key, or null if tree is empty */                 public K    first() { throw new RuntimeException("not implemented"); }
+    /** returns the last key, or null if tree is empty */                  public K    last() { throw new RuntimeException("not implemented"); }
+    /** returns the least key which is greater than the one given */       public K    next(K key) { throw new RuntimeException("not implemented"); }
+    /** returns the greatest key which is less than the one given */       public K    prev(K key) { throw new RuntimeException("not implemented"); }
 
-    public void remove(K key) { throw new RuntimeException("not implemented"); }
-    public void clear() { throw new RuntimeException("not implemented"); }
+    /** no error if key doesn't exist */                                   public void remove(K key) { throw new RuntimeException("not implemented"); }
+    /** remove all entries */                                              public void clear() { throw new RuntimeException("not implemented"); }
 
-    public int  size() { throw new RuntimeException("not implemented"); }
-    public int  sizeAfter(K key) { throw new RuntimeException("not implemented"); }
-    public int  sizeBefore(K key) { throw new RuntimeException("not implemented"); }
+    /** returns the number of keys in the BTree */                         public int  size() { throw new RuntimeException("not implemented"); }
+    /** returns the number of keys strictly after the one given */         public int  sizeAfter(K key) { throw new RuntimeException("not implemented"); }
+    /** returns the number of keys strictly after the one given */         public int  sizeBefore(K key) { throw new RuntimeException("not implemented"); }
 
-    public K    seek(int ordinal) { throw new RuntimeException("not implemented"); }
-    public int  ordinal(K key) { throw new RuntimeException("not implemented"); }
+    /** returns the key with the given ordinal index */                    public K    seek(int ordinal) { throw new RuntimeException("not implemented"); }
+    /** returns the ordinal index of the given key */                      public int  ordinal(K key) { throw new RuntimeException("not implemented"); }
 
     //////////////////////////////////////////////////////////////////////////////
 

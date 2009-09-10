@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10g: *******************************
 
+IMP: (9/9/09, AM) Remove com.sun.electric.tool.io.input.BTree (use
+     c.s.e.t.btree.BTree instead)
+
 ************************* Version 8.10f: *******************************
 
 BUG: (9/9/09, DN) Orientation JUnit test fails in JVM-1.6 64-bit.
