@@ -118,7 +118,7 @@ class InteriorNodeCursor
         return bt.uk.compare(buf, INTERIOR_HEADER_SIZE + (keynum-1)*INTERIOR_ENTRY_SIZE, key, key_ofs);
     }
 
-    public void split(int pageForRightHalf, byte[] key, int key_ofs) {
+    public int split(byte[] key, int key_ofs) {
         assert isFull();
         int endOfBuf = endOfBuf();
 
@@ -133,11 +133,12 @@ class InteriorNodeCursor
         // move the second half of our entries to the front of the block, and write back
         byte[] oldbuf = buf;
         this.buf = new byte[buf.length];
-        this.pageid = pageForRightHalf;
+        this.pageid = ps.createPage();
         int len = 2*SIZEOF_INT + INTERIOR_ENTRY_SIZE*(INTERIOR_MAX_CHILDREN/2);
         System.arraycopy(oldbuf, len, buf, 2*SIZEOF_INT, endOfBuf - len);
         setNumChildren(INTERIOR_MAX_CHILDREN-INTERIOR_MAX_CHILDREN/2);
         writeBack();
+        return pageid;
     }
 
     public boolean isFull() { return getNumChildren() == INTERIOR_MAX_CHILDREN; }

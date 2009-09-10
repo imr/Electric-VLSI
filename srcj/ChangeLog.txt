@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10g: *******************************
 
+IMP: (9/9/09, AM) Change PageStorage to a zero-copy API, at the
+     expense of doing more byte[] allocation.  This made it feasible
+     to increase the default page size from 1024 bytes to just under
+     4096 bytes (because the System.arraycopy()'s are no longer
+     killing us).  Net result: 73% improvement in time to build BTree.
+     Combined with previous modification: 84% improvement (time
+     required is 26% of time previously required).
+
 IMP: (9/9/09, AM) Store simulation data as BTree<Pair<Double,Double>>
      instead of two BTree<Double>'s.  Result: 43% improvement in time
      to build BTree.

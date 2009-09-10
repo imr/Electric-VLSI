@@ -85,8 +85,6 @@ public class BTree
     private InteriorNodeCursor<K,V,S>   interiorNodeCursor2;
 
     int                  rootpage;
-    private       byte[]               buf1;
-    private       byte[]               buf2;
     private final byte[] keybuf;
 
     public BTree(PageStorage ps, UnboxedComparable<K> uk, UnboxedMonoid<S> monoid, Unboxed<V> uv) {
@@ -98,12 +96,10 @@ public class BTree
         this.interiorNodeCursor1 = new InteriorNodeCursor<K,V,S>(this);
         this.interiorNodeCursor2 = new InteriorNodeCursor<K,V,S>(this);
         this.rootpage = ps.createPage();
-        this.buf1 = new byte[ps.getPageSize()];
-        this.buf2 = new byte[ps.getPageSize()];
         this.keybuf = new byte[uk.getSize()];
-        leafNodeCursor.initBuf(buf1);
+        leafNodeCursor.initBuf(rootpage, new byte[ps.getPageSize()]);
         leafNodeCursor.setParentPageId(rootpage);
-        ps.writePage(rootpage, buf1, 0);
+        leafNodeCursor.writeBack();
     }
 
     public V get(K key) {
@@ -132,8 +128,6 @@ public class BTree
      */
     private V walk(byte[] key, int key_ofs, V val, boolean isPut) {
         int pageid = rootpage;
-        byte[] buf  = this.buf1;
-        byte[] buf2 = this.buf2;
         int idx = -1;
 
         LeafNodeCursor<K,V,S>       leafNodeCursor = this.leafNodeCursor;
@@ -142,24 +136,20 @@ public class BTree
         NodeCursor cur = null;
 
         while(true) {
-            ps.readPage(pageid, buf, 0);
+            byte[] buf = ps.readPage(pageid, null, 0);
             cur = LeafNodeCursor.isLeafNode(buf) ? leafNodeCursor : interiorNodeCursor;
             cur.setBuf(pageid, buf);
 
             if (isPut && cur.isFull()) {
                 assert cur!=parentNodeCursor;
-                assert cur.getBuf()!=parentNodeCursor.getBuf();
-                int right = ps.createPage();
                 if (pageid == rootpage) {
-                    assert buf2!=cur.getBuf();
-                    parentNodeCursor.initRoot(buf2);
+                    parentNodeCursor.initRoot(new byte[ps.getPageSize()]);
                     parentNodeCursor.setChildPageId(0, pageid);
                     cur.setParentPageId(rootpage);
                     idx = 0;
                 }
                 int ofs = parentNodeCursor.insertNewChildAt(idx+1);
-                parentNodeCursor.setChildPageId(idx+1, right);
-                cur.split(right, parentNodeCursor.getBuf(), ofs);
+                parentNodeCursor.setChildPageId(idx+1, cur.split(parentNodeCursor.getBuf(), ofs));
                 cur.writeBack();
                 parentNodeCursor.writeBack();
                 pageid = rootpage;
@@ -181,9 +171,7 @@ public class BTree
                     throw new RuntimeException("need to adjust 'least value under X' on the way down for deletions");
                 pageid = interiorNodeCursor.getChildPageId(idx);
                 InteriorNodeCursor<K,V,S> ic = interiorNodeCursor; interiorNodeCursor = parentNodeCursor; parentNodeCursor = ic;
-                byte[] b = buf; buf = buf2; buf2 = b;
                 assert interiorNodeCursor!=parentNodeCursor;
-                assert interiorNodeCursor.getBuf()!=parentNodeCursor.getBuf();
                 continue;
             }
         }
@@ -222,9 +210,10 @@ public class BTree
             System.err.println("  Creates a BTree and runs random operations on both it and an in-memory TreeMap.");
             System.err.println("  Reports any disagreements.");
             System.err.println("");
-            System.err.println("    <maxsize>  maximum number of entries in the tree, or 0 for no limit");
-            System.err.println("    <numops>   number of operations to perform, or 0 for no limit");
-            System.err.println("    <seed>     seed for random number generator, in hex");
+            System.err.println("    <maxsize>   maximum number of entries in the tree, or 0 for no limit");
+            System.err.println("    <numops>    number of operations to perform, or 0 for no limit");
+            System.err.println("    <cachesize> number of pages to cache in memory, or 0 for no cache");
+            System.err.println("    <seed>      seed for random number generator, in hex");
             System.err.println("");
             System.exit(-1);
         }

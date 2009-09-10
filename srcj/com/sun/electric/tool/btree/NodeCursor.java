@@ -48,11 +48,11 @@ abstract class NodeCursor {
 
     /**
      *  This method writes back the first half of the node's contents,
-     *  deposits the second half on the pageid supplied as an
-     *  argument, and (if key!=null) writes the least key beneath the
-     *  right half into key[key_ofs].
+     *  deposits the second half on a new page, and (if key!=null)
+     *  writes the least key beneath the right half into key[key_ofs];
+     *  it then returns the pageid of the newly-created page.
      */
-    public abstract void split(int pageForRightHalf, byte[] key, int key_ofs);
+    public abstract int split(byte[] key, int key_ofs);
 
     public abstract boolean isFull();
     public abstract int  getParentPageId();

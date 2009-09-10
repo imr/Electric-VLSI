@@ -43,8 +43,8 @@ public class FilePageStorage implements PageStorage {
     }
 
     // just a guess; should be just a bit less than some multiple of the system block size
-    //private static final int BLOCK_SIZE = 4096 * 4 - 100;
-    private static final int BLOCK_SIZE = 1024;
+    private static final int BLOCK_SIZE = 4096 * 4 - 100;
+    //private static final int BLOCK_SIZE = 1024;
 
     //////////////////////////////////////////////////////////////////////////////
 
@@ -77,13 +77,18 @@ public class FilePageStorage implements PageStorage {
         } catch (IOException e) { throw new RuntimeException(e); }
     }
 
-    public void readPage(int pageid, byte[] buf, int ofs) {
+    public byte[] readPage(int pageid, byte[] buf, int ofs) {
+        if (buf==null) {
+            buf = new byte[getPageSize()];
+            ofs = 0;
+        }
         if (pageid >= numpages)
             throw new RuntimeException("invalid pageid "+pageid);
         try {
             raf.seek(pageid * getPageSize());
             raf.readFully(buf, ofs, getPageSize());
         } catch (IOException e) { throw new RuntimeException(e); }
+        return buf;
     }
 
     public void flush(int pageid) {

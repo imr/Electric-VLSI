@@ -60,22 +60,23 @@ public class CachingPageStorage implements PageStorage {
         putCache(pageid, buf, ofs, true);
     }
 
-    public void readPage(int pageid, byte[] buf, int ofs) {
+    public byte[] readPage(int pageid, byte[] buf, int ofs) {
         Integer cachePos = cacheMap.get(pageid);
-        if (cachePos!=null) {
-            System.arraycopy(cache[cachePos.intValue()], 0, buf, ofs, getPageSize());
-            return;
-        }
+        if (cachePos!=null)
+            return cache[cachePos.intValue()];
+        buf = new byte[ps.getPageSize()];
         ps.readPage(pageid, buf, ofs);
         putCache(pageid, buf, ofs, false);
+        return buf;
     }
 
     private void putCache(int pageid, byte[] buf, int ofs, boolean makeDirty) {
         if (cacheMap.get(pageid)!=null) {
             int pos = cacheMap.get(pageid);
             assert !(!makeDirty && dirty[pos]);
+            assert buf==cache[pos];
+            assert ofs==0;
             dirty[pos] = makeDirty;
-            System.arraycopy(buf, ofs, cache[pos], 0, getPageSize());
         } else if (numCacheEntries >= cacheSize) {
             Map.Entry<Integer,Integer> ent = cacheMap.entrySet().iterator().next();
             int oldKey = ent.getKey();
@@ -85,11 +86,12 @@ public class CachingPageStorage implements PageStorage {
             cacheMap.put(pageid, oldVal);
             if (dirty[oldVal]) ps.writePage(oldKey, cache[oldVal], 0);
             dirty[oldVal] = makeDirty;
-            System.arraycopy(buf, ofs, cache[oldVal], 0, getPageSize());
+            cache[oldVal] = buf;
         } else {
-            cache[numCacheEntries] = new byte[getPageSize()];
+            //cache[numCacheEntries] = new byte[getPageSize()];
+            assert ofs==0;
+            cache[numCacheEntries] = buf;
             dirty[numCacheEntries] = makeDirty;
-            System.arraycopy(buf, ofs, cache[numCacheEntries], 0, getPageSize());
             cacheMap.put(pageid, numCacheEntries);
             numCacheEntries++;
         }

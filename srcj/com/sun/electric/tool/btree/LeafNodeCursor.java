@@ -76,7 +76,12 @@ class LeafNodeCursor
         super.setBuf(pageid, buf);
         numentries = bt.ui.deserializeInt(buf, 4*SIZEOF_INT);
     }
-    public void initBuf(byte[] buf) { this.buf = buf; bt.ui.serializeInt(0, buf, 1*SIZEOF_INT); setNumEntries(0); }
+    public void initBuf(int pageid, byte[] buf) {
+        this.buf = buf;
+        this.pageid = pageid;
+        bt.ui.serializeInt(0, buf, 1*SIZEOF_INT);
+        setNumEntries(0);
+    }
     public int  getParentPageId() { return bt.ui.deserializeInt(buf, 0*SIZEOF_INT); }
     public void setParentPageId(int pageid) { bt.ui.serializeInt(pageid, buf, 0*SIZEOF_INT); }
     public int  getLeftNeighborPageId() { return bt.ui.deserializeInt(buf, 2*SIZEOF_INT); }
@@ -121,7 +126,7 @@ class LeafNodeCursor
         writeBack();
     }
 
-    public void split(int pageForRightHalf, byte[] key, int key_ofs) {
+    public int split(byte[] key, int key_ofs) {
         assert isFull();
 
         // chop off our second half, point our parent at the page-to-be, and write back
@@ -133,13 +138,13 @@ class LeafNodeCursor
 
         // move the second half of our entries to the front of the block, and write back
         byte[] oldbuf = buf;
-        initBuf(new byte[buf.length]);
-        this.pageid = pageForRightHalf;
+        initBuf(ps.createPage(), new byte[buf.length]);
         System.arraycopy(oldbuf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE * (LEAF_MAX_ENTRIES/2),
                          buf, LEAF_HEADER_SIZE,
                          LEAF_ENTRY_SIZE * (LEAF_MAX_ENTRIES-LEAF_MAX_ENTRIES/2));
         setNumEntries(LEAF_MAX_ENTRIES-LEAF_MAX_ENTRIES/2);
         writeBack();
+        return this.pageid;
     }
 
     public boolean isFull() { return getNumEntries() >= LEAF_MAX_ENTRIES; }

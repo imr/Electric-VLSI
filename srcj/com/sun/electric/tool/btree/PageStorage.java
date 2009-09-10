@@ -41,7 +41,7 @@ public interface PageStorage {
     public void writePage(int pageid, byte[] buf, int ofs);
 
     /** reads a page */
-    public void readPage(int pageid, byte[] buf, int ofs);
+    public byte[] readPage(int pageid, byte[] buf, int ofs);
 
     /** ensure that the designated page is written to permanent storage */
     public void flush(int pageid);
