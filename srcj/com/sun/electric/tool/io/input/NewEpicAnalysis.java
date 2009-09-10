@@ -32,11 +32,7 @@ import com.sun.electric.tool.simulation.Waveform;
 import com.sun.electric.tool.simulation.WaveformImpl;
 import com.sun.electric.tool.user.ActivityLogger;
 
-import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.NewSignal;
-import com.sun.electric.tool.simulation.ScalarSample;
-import com.sun.electric.tool.simulation.NewSignalSimpleImpl;
-
+import com.sun.electric.tool.simulation.*;
 import com.sun.electric.tool.btree.*;
 import com.sun.electric.tool.btree.unboxed.*;
 
@@ -492,61 +488,9 @@ public class NewEpicAnalysis extends AnalogAnalysis {
         System.err.println("  done filling btree for signal " + sigName + "; took " + (System.currentTimeMillis()-now) +"ms");
         System.err.println("  hits="+BTree.hits);
         System.err.println("  misses="+BTree.misses);
-        return new Waveform[] { new ScalarWaveformImpl(sigName, count, evmin, evmax, tree) };
+        return new Waveform[] { new BTreeNewSignal(sigName, count, evmin, evmax, tree) };
     }
 
-    private class ScalarWaveformImpl extends NewSignalSimpleImpl implements Waveform {
-
-        private final String signal;
-        private final int numEvents;
-        private final int eventWithMinValue;
-        private final int eventWithMaxValue;
-        private NewSignal.Approximation<ScalarSample> preferredApproximation = null;
-        private final BTree<Integer,Pair<Double,Double>,Serializable> tree;
-    
-        public ScalarWaveformImpl(String signal,
-                                  int numEvents,
-                                  int eventWithMinValue,
-                                  int eventWithMaxValue,
-                                  BTree<Integer,Pair<Double,Double>,Serializable> tree
-                                  ) {
-            this.signal = signal;
-            this.numEvents = numEvents;
-            this.eventWithMinValue = eventWithMinValue;
-            this.eventWithMaxValue = eventWithMaxValue;
-            if (tree==null) throw new RuntimeException();
-            this.tree = tree;
-            this.preferredApproximation = new ScalarWaveformImplApproximation();
-        }
-
-        public synchronized NewSignal.Approximation<ScalarSample> getPreferredApproximation() {
-            return preferredApproximation;
-        }
-
-        public int getNumEvents() { return numEvents; }
-        public void getEvent(int index, double[] result) {
-            result[0] = getPreferredApproximation().getTime(index);
-            result[1] = result[2] = getPreferredApproximation().getSample(index).getValue();
-        }
-
-        private class ScalarWaveformImplApproximation implements NewSignal.Approximation<ScalarSample> {
-            public int getNumEvents() { return numEvents; }
-            public double             getTime(int index) {
-                Double d = tree.get(index).getKey();
-                if (d==null) throw new RuntimeException("index out of bounds");
-                return d.doubleValue();
-            }
-            public ScalarSample       getSample(int index) {
-                Double d = tree.get(index).getValue();
-                if (d==null) throw new RuntimeException("index out of bounds");
-                return new ScalarSample(d.doubleValue());
-            }
-            public int getTimeNumerator(int index) { throw new RuntimeException("not implemented"); }
-            public int getTimeDenominator() { throw new RuntimeException("not implemented"); }
-            public int getEventWithMaxValue() { return eventWithMaxValue; }
-            public int getEventWithMinValue() { return eventWithMinValue; }
-        }
-    }
 
     
     /************************* EpicRootTreeNode *********************************************
