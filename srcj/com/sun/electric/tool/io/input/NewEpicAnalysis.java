@@ -490,6 +490,8 @@ public class NewEpicAnalysis extends AnalogAnalysis {
             }
         }
         System.err.println("  done filling btree for signal " + sigName + "; took " + (System.currentTimeMillis()-now) +"ms");
+        System.err.println("  hits="+BTree.hits);
+        System.err.println("  misses="+BTree.misses);
         return new Waveform[] { new ScalarWaveformImpl(sigName, count, evmin, evmax, tree) };
     }
 

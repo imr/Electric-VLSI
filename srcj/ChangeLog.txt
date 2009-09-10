@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10g: *******************************
 
+IMP: (9/9/09, AM) Added a fast path to the BTree code when insertions
+     are in key-increasing order.  Net speedup when loading simulation
+     data: 74%.  Combined with two previous modifications: 96%
+     improvement (time required is 4% of time previously required).
+
 IMP: (9/9/09, AM) Change PageStorage to a zero-copy API, at the
      expense of doing more byte[] allocation.  This made it feasible
      to increase the default page size from 1024 bytes to just under

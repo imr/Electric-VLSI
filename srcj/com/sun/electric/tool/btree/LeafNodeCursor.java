@@ -71,6 +71,7 @@ class LeafNodeCursor
 
     public static boolean isLeafNode(byte[] buf) { return UnboxedInt.instance.deserializeInt(buf, 1*SIZEOF_INT)==0; }
 
+    public int getMaxEntries() { return LEAF_MAX_ENTRIES; }
     public void setBuf(int pageid, byte[] buf) {
         assert isLeafNode(buf);
         super.setBuf(pageid, buf);
@@ -89,10 +90,10 @@ class LeafNodeCursor
     public int  getNumEntries() { return numentries; }
     public void setNumEntries(int num) { bt.ui.serializeInt(numentries = num, buf, 4*SIZEOF_INT); }
     public int  getNumKeys() { return getNumEntries()+1; }
-    public int  compare(int keynum, byte[] key, int key_ofs) {
-        if (keynum<0) return -1;
-        if (keynum>=getNumKeys()-1) return 1;
-        return bt.uk.compare(buf, LEAF_HEADER_SIZE + keynum*LEAF_ENTRY_SIZE, key, key_ofs);
+    public int  compare(byte[] key, int key_ofs, int keynum) {
+        if (keynum<0) return 1;
+        if (keynum>=getNumKeys()-1) return -1;
+        return bt.uk.compare(key, key_ofs, buf, LEAF_HEADER_SIZE + keynum*LEAF_ENTRY_SIZE);
     }
     public V getVal(int slot) {
         return bt.uv.deserialize(buf, LEAF_HEADER_SIZE + bt.uk.getSize() + LEAF_ENTRY_SIZE*slot);
@@ -137,12 +138,14 @@ class LeafNodeCursor
             System.arraycopy(buf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*(LEAF_MAX_ENTRIES/2), key, key_ofs, bt.uk.getSize());
 
         // move the second half of our entries to the front of the block, and write back
+        int parent = getParentPageId();
         byte[] oldbuf = buf;
         initBuf(ps.createPage(), new byte[buf.length]);
         System.arraycopy(oldbuf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE * (LEAF_MAX_ENTRIES/2),
                          buf, LEAF_HEADER_SIZE,
                          LEAF_ENTRY_SIZE * (LEAF_MAX_ENTRIES-LEAF_MAX_ENTRIES/2));
         setNumEntries(LEAF_MAX_ENTRIES-LEAF_MAX_ENTRIES/2);
+        setParentPageId(parent);
         writeBack();
         return this.pageid;
     }

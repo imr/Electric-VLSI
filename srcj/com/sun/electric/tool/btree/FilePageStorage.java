@@ -44,7 +44,6 @@ public class FilePageStorage implements PageStorage {
 
     // just a guess; should be just a bit less than some multiple of the system block size
     private static final int BLOCK_SIZE = 4096 * 4 - 100;
-    //private static final int BLOCK_SIZE = 1024;
 
     //////////////////////////////////////////////////////////////////////////////
 

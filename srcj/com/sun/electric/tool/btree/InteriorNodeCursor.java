@@ -112,10 +112,10 @@ class InteriorNodeCursor
     public void setChildPageId(int idx, int pageid) { bt.ui.serializeInt(pageid, buf, 2*SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx); }
     public int  getNumValsBelowChild(int idx) { return bt.ui.deserializeInt(buf, 3*SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx); }
     public int  getNumKeys() { return getNumChildren()+1; }
-    public int  compare(int keynum, byte[] key, int key_ofs) {
-        if (keynum<=0) return -1;
-        if (keynum>=getNumKeys()-1) return 1;
-        return bt.uk.compare(buf, INTERIOR_HEADER_SIZE + (keynum-1)*INTERIOR_ENTRY_SIZE, key, key_ofs);
+    public int  compare(byte[] key, int key_ofs, int keynum) {
+        if (keynum<=0) return 1;
+        if (keynum>=getNumKeys()-1) return -1;
+        return bt.uk.compare(key, key_ofs, buf, INTERIOR_HEADER_SIZE + (keynum-1)*INTERIOR_ENTRY_SIZE);
     }
 
     public int split(byte[] key, int key_ofs) {
@@ -132,11 +132,13 @@ class InteriorNodeCursor
 
         // move the second half of our entries to the front of the block, and write back
         byte[] oldbuf = buf;
+        int parent = getParentPageId();
         this.buf = new byte[buf.length];
         this.pageid = ps.createPage();
         int len = 2*SIZEOF_INT + INTERIOR_ENTRY_SIZE*(INTERIOR_MAX_CHILDREN/2);
         System.arraycopy(oldbuf, len, buf, 2*SIZEOF_INT, endOfBuf - len);
         setNumChildren(INTERIOR_MAX_CHILDREN-INTERIOR_MAX_CHILDREN/2);
+        setParentPageId(parent);
         writeBack();
         return pageid;
     }

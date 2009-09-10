@@ -87,6 +87,9 @@ public class BTree
     int                  rootpage;
     private final byte[] keybuf;
 
+    private final byte[] largestKey;
+    private       int    largestKeyPage = -1;  // or -1 if unknown
+
     public BTree(PageStorage ps, UnboxedComparable<K> uk, UnboxedMonoid<S> monoid, Unboxed<V> uv) {
         this.ps = ps;
         this.uk = uk;
@@ -97,6 +100,7 @@ public class BTree
         this.interiorNodeCursor2 = new InteriorNodeCursor<K,V,S>(this);
         this.rootpage = ps.createPage();
         this.keybuf = new byte[uk.getSize()];
+        this.largestKey = new byte[uk.getSize()];
         leafNodeCursor.initBuf(rootpage, new byte[ps.getPageSize()]);
         leafNodeCursor.setParentPageId(rootpage);
         leafNodeCursor.writeBack();
@@ -135,6 +139,29 @@ public class BTree
         InteriorNodeCursor<K,V,S>   parentNodeCursor = this.interiorNodeCursor2;
         NodeCursor cur = null;
 
+        boolean cheat = false;
+        int comp = 0;
+
+        if (largestKeyPage != -1 && isPut) {
+            byte[] buf = ps.readPage(largestKeyPage, null, 0);
+            leafNodeCursor.setBuf(largestKeyPage, buf);
+            comp = uk.compare(key, key_ofs, largestKey, 0);
+            if (leafNodeCursor.isFull()) {
+                    // nop
+            } else if (comp >= 0) {
+                pageid = largestKeyPage;
+                buf = ps.readPage(leafNodeCursor.getParentPageId(), null, 0);
+                if (leafNodeCursor.getParentPageId()!=leafNodeCursor.getPageId())
+                    parentNodeCursor.setBuf(leafNodeCursor.getParentPageId(), buf);
+                cheat = true;
+            } else {
+                System.err.println("fail: "
+                                   + uk.deserialize(key, key_ofs) + " "
+                                   + uk.deserialize(largestKey, 0) + " "
+                                   + comp);
+            }
+        }
+
         while(true) {
             byte[] buf = ps.readPage(pageid, null, 0);
             cur = LeafNodeCursor.isLeafNode(buf) ? leafNodeCursor : interiorNodeCursor;
@@ -149,17 +176,29 @@ public class BTree
                     idx = 0;
                 }
                 int ofs = parentNodeCursor.insertNewChildAt(idx+1);
-                parentNodeCursor.setChildPageId(idx+1, cur.split(parentNodeCursor.getBuf(), ofs));
+                int oldpage = cur.getPageId();
+                int newpage = cur.split(parentNodeCursor.getBuf(), ofs);
+                if (largestKeyPage==oldpage) largestKeyPage = newpage;
+                parentNodeCursor.setChildPageId(idx+1, newpage);
                 cur.writeBack();
                 parentNodeCursor.writeBack();
                 pageid = rootpage;
+                cheat = false;
                 continue;
             }
 
-            idx = cur.search(key, key_ofs);
-            int comp = cur.compare(idx, key, key_ofs);
+            if (cheat) {
+                idx = leafNodeCursor.getNumEntries()-1;
+            } else {
+                idx = cur.search(key, key_ofs);
+                comp = cur.compare(key, key_ofs, idx);
+            }
             if (cur.isLeafNode()) {
                 if (!isPut) return comp==0 ? leafNodeCursor.getVal(idx) : null;
+                if (cheat) hits++; else misses++;
+                if (largestKeyPage==-1 || cheat)
+                    System.arraycopy(key, key_ofs, largestKey, 0, largestKey.length);
+                if (largestKeyPage==-1) largestKeyPage = pageid;
                 if (comp==0) {
                     if (val==null) throw new RuntimeException("deletion is not yet implemented");
                     return leafNodeCursor.setVal(idx, val);
@@ -176,6 +215,9 @@ public class BTree
             }
         }
     }
+
+    public static int hits = 0;
+    public static int misses = 0;
 
     //////////////////////////////////////////////////////////////////////////////
 

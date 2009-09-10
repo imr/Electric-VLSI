@@ -91,7 +91,7 @@ abstract class NodeCursor {
      *  always positive and if keynum>=getNumKeys() the return value is
      *  always negative.
      */
-    public abstract int compare(int keynum, byte[] key, int key_ofs);
+    public abstract int compare(byte[] key, int key_ofs, int keynum);
 
     public abstract boolean isLeafNode();
 
@@ -100,12 +100,12 @@ abstract class NodeCursor {
         int left = -1;
         int right = getNumKeys()-1;
         while(left+1<right) {
-            assert compare(left, key, key_ofs) <= 0;
+            assert compare(key, key_ofs, left) >= 0;
             int i = (left+right)/2;
-            int comp = compare(i, key, key_ofs);
+            int comp = compare(key, key_ofs, i);
             if      (comp==0)  { left=i; right=i+1; }
-            else if (comp<0)   left = i;
-            else if (comp>0)   right = i;
+            else if (comp>0)   left = i;
+            else if (comp<0)   right = i;
         }
         return left;
     }
