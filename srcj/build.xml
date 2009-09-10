@@ -85,15 +85,15 @@
         <pathelement location="packaging/jython.jar"/>
     </path>
 
-	<!-- Use -DGNU=1 to build the GNU release -->
-	<!-- Use -DSFS=1 to build the SFS release -->
-	<!-- Use -DSUN=1 to build the Sun release -->
-	<!-- Use -Dsource=1 to include source code in the release -->
+        <!-- Use -DGNU=1 to build the GNU release -->
+        <!-- Use -DSFS=1 to build the SFS release -->
+        <!-- Use -DSUN=1 to build the Sun release -->
+        <!-- Use -Dsource=1 to include source code in the release -->
     <!-- Use -DJMF=1 to include JMF plugin -->
     <target name="compile" depends="init" description="Compile">
         <javac debug="true" deprecation="true" destdir="." srcdir="."
-	    fork="true" memoryMaximumSize="512m">
-	    <!--compilerarg value="-Xlint:unchecked"/-->
+            fork="true" memoryMaximumSize="512m">
+            <!--compilerarg value="-Xlint:unchecked"/-->
             <classpath refid="externalClassPath" />
             <classpath refid="prefuseClassPath" />
             <patternset refid="exclusion" />
@@ -145,7 +145,7 @@
 
     <target name="runMain" depends="init,compile" description="Run the Main class">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="1024m">
-	    <jvmarg value="-enableassertions"/>
+            <jvmarg value="-enableassertions"/>
             <classpath>
                 <pathelement location="."/>
            </classpath>
@@ -157,7 +157,7 @@
 
     <target name="runTests" depends="compileTests" description="Run unit tests">
         <java classname="org.junit.runner.JUnitCore" failonerror="true" fork="true" maxmemory="1024m">
-	    <jvmarg value="-enableassertions"/>
+            <jvmarg value="-enableassertions"/>
             <classpath>
                 <pathelement location="${JUnit}"/>
                 <pathelement location="."/>
@@ -198,16 +198,16 @@
         <delete dir="org"/>   <!-- lucene, jython -->
         <delete dir="prefuse"/>
         <delete dir="com/apple"/>
-	<delete dir="com/xhaus"/> <!--jython -->
-	<delete dir="com/ziclix"/> <!--jython -->
-	<delete dir="javatests"/> <!--jython -->
-	<delete dir="jline"/> <!--jython -->
-	<delete dir="com/sun/jna"/> <!--jython -->
-	<delete dir="Lib"/> <!--jython -->
+        <delete dir="com/xhaus"/> <!--jython -->
+        <delete dir="com/ziclix"/> <!--jython -->
+        <delete dir="javatests"/> <!--jython -->
+        <delete dir="jline"/> <!--jython -->
+        <delete dir="com/sun/jna"/> <!--jython -->
+        <delete dir="Lib"/> <!--jython -->
         <delete dir="junit"/>
         <delete dir="junit4.0"/>
         <delete dir="junit4.1"/>
-	<delete file="acknowledgements.txt"/>
+        <delete file="acknowledgements.txt"/>
     </target>
 
     <!-- Not able to put if condition inside unjar -->
@@ -218,103 +218,103 @@
         <unjar dest="." src="${prefuse}"/>
     </target>
 
-	<target name="jarForGNUBinary" description="Make binary Jar file for GNU">
-	    <antcall target="generalPurposeJar">
-	        <param name="GNU" value="1"/>
-	    </antcall>
-	</target>
+        <target name="jarForGNUBinary" description="Make binary Jar file for GNU">
+            <antcall target="generalPurposeJar">
+                <param name="GNU" value="1"/>
+            </antcall>
+        </target>
 
-	<target name="jarForGNUSource" description="Make source Jar file for GNU">
-	    <antcall target="generalPurposeJar">
-	        <param name="GNU" value="1"/>
-	        <param name="source" value="1"/>
-	    </antcall>
-	</target>
+        <target name="jarForGNUSource" description="Make source Jar file for GNU">
+            <antcall target="generalPurposeJar">
+                <param name="GNU" value="1"/>
+                <param name="source" value="1"/>
+            </antcall>
+        </target>
 
-	<target name="jarForSFSSource" description="Make source Jar file for SFS">
-	    <antcall target="generalPurposeJar">
-	        <param name="SFS" value="1"/>
-	        <param name="source" value="1"/>
-	    </antcall>
-	</target>
+        <target name="jarForSFSSource" description="Make source Jar file for SFS">
+            <antcall target="generalPurposeJar">
+                <param name="SFS" value="1"/>
+                <param name="source" value="1"/>
+            </antcall>
+        </target>
 
-	<target name="jarWithVersion" description="Make source Jar file for Sun">
-	    <antcall target="generalPurposeJar">
-	        <param name="SUN" value="1"/>
-	        <param name="source" value="1"/>
-	    </antcall>
-	</target>
+        <target name="jarWithVersion" description="Make source Jar file for Sun">
+            <antcall target="generalPurposeJar">
+                <param name="SUN" value="1"/>
+                <param name="source" value="1"/>
+            </antcall>
+        </target>
 
-	<target name="jarForIRSIM" depends="init,compile" description="Make source Jar file for IRSIM">
+        <target name="jarForIRSIM" depends="init,compile" description="Make source Jar file for IRSIM">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
-        	<arg value="-v"/>
+                <arg value="-v"/>
         </java>
         <copy file="packaging/LicenseIRSIM.txt" tofile="LicenseIRSIM.txt"/>
         <jar basedir="." compress="true" jarfile="electricIRSIM-${version}.jar">
-        	<include name="LicenseIRSIM.txt"/>
-        	<include name="com/sun/electric/plugins/irsim/*.*"/>
+                <include name="LicenseIRSIM.txt"/>
+                <include name="com/sun/electric/plugins/irsim/*.*"/>
         </jar>
         <antcall target="deleteElectric"></antcall>
         <delete file="LicenseIRSIM.txt"/>
-	</target>
+        </target>
 
-	<target name="jarForPIE" depends="init,compile" description="Make source Jar file for Port Interchange Experiment">
+        <target name="jarForPIE" depends="init,compile" description="Make source Jar file for Port Interchange Experiment">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
-        	<arg value="-v"/>
+                <arg value="-v"/>
         </java>
         <jar basedir="." compress="true" jarfile="electricPIE-${version}.jar">
-        	<include name="com/sun/electric/plugins/pie/*"/>
-        	<include name="com/sun/electric/plugins/pie/*/*"/>
+                <include name="com/sun/electric/plugins/pie/*"/>
+                <include name="com/sun/electric/plugins/pie/*/*"/>
         </jar>
         <antcall target="deleteElectric"></antcall>
-	</target>
+        </target>
 
-	<target name="jarForRussianManual" depends="init,compile" description="Make Jar file for Russian User's Manual">
+        <target name="jarForRussianManual" depends="init,compile" description="Make Jar file for Russian User's Manual">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
-        	<arg value="-v"/>
+                <arg value="-v"/>
         </java>
         <jar basedir="." compress="true" jarfile="electricRussianManual-${version}.jar">
-        	<include name="com/sun/electric/plugins/manualRussian/*.*"/>
+                <include name="com/sun/electric/plugins/manualRussian/*.*"/>
         </jar>
         <antcall target="deleteElectric"></antcall>
-	</target>
+        </target>
 
     <target name="jarForJava3D" depends="init,compile" description="Make source Jar file for Java3D plugin">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
-        	<arg value="-v"/>
+                <arg value="-v"/>
         </java>
         <jar basedir="." compress="true" jarfile="electricJava3D-${version}.jar">
-        	<include name="com/sun/electric/plugins/Java3D/*.*"/>
+                <include name="com/sun/electric/plugins/Java3D/*.*"/>
         </jar>
         <antcall target="deleteElectric"></antcall>
-	</target>
+        </target>
 
     <target name="jarForJMF" depends="init" description="Make source Jar file for JMF plugin">
         <antcall target="compile">
-	        <param name="JMF" value="1"/>
-	    </antcall>
+                <param name="JMF" value="1"/>
+            </antcall>
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
-        	<arg value="-v"/>
+                <arg value="-v"/>
         </java>
         <jar basedir="." compress="true" jarfile="electricJMF-${version}.jar">
-        	<include name="com/sun/electric/plugins/JMF/*.*"/>
+                <include name="com/sun/electric/plugins/JMF/*.*"/>
         </jar>
         <antcall target="deleteElectric"></antcall>
-	</target>
+        </target>
 
-	<target name="generalPurposeJar" depends="init,compile" description="Make Jar file with version">
+        <target name="generalPurposeJar" depends="init,compile" description="Make Jar file with version">
         <!-- -->
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
-        	<arg value="-v"/>
+                <arg value="-v"/>
         </java>
-		<!-- -->
-    	<antcall target="unjarSUN"></antcall>
+                <!-- -->
+        <antcall target="unjarSUN"></antcall>
         <delete dir="META-INF"/>
         <copy file="packaging/electric.mf" tofile="electric.mf"/>
         <copy file="packaging/LicenseGNU.txt" tofile="COPYING.txt"/>
         <copy file="packaging/ReadmeGNUSrcDwn.txt" tofile="README.txt"/>
         <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="electric.mf">
-	        <exclude name="**/.nfs*"/>
+                <exclude name="**/.nfs*"/>
             <exclude name="apidoc/"/>
             <exclude name="build.xml" unless="source"/>
             <exclude name="ChangeLog.txt" unless="source"/>
@@ -341,24 +341,24 @@
         <delete file="README.txt"/>
         <antcall target="deleteExternalJars"></antcall>
         <antcall target="deleteElectric"></antcall>
-	    <!-- Don't move this property definition up -->
+            <!-- Don't move this property definition up -->
         <property name="version" value=""/>
     </target>
 
     <target name="jar" description="Make binary Jar file">
-	    <antcall target="jarWithTests">
-	        <param name="SUN" value="1"/>
-	    </antcall>
+            <antcall target="jarWithTests">
+                <param name="SUN" value="1"/>
+            </antcall>
     </target>
 
-	<target name="jarWithTests" depends="clean,init,compileTests" description="Make binary Jar file">
-	    <antcall target="unjarSUN"></antcall>
+        <target name="jarWithTests" depends="clean,init,compileTests" description="Make binary Jar file">
+            <antcall target="unjarSUN"></antcall>
         <unjar dest="." src="${AppleJava}"/>
         <unjar dest="." src="${JUnit}"/>
         <delete dir="META-INF"/>
         <copy file="packaging/electric.mf" tofile="electric.mf"/>
         <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
-	        <exclude name="**/.nfs*"/>
+                <exclude name="**/.nfs*"/>
             <exclude name="apidoc/"/>
             <exclude name="build.xml" unless="source"/>
             <exclude name="ChangeLog.txt" unless="source"/>
@@ -380,23 +380,23 @@
         <antcall target="deleteExternalJars"></antcall>
         <antcall target="deleteElectric"></antcall>
         <delete quiet="true"> <!-- For JUnit? -->
-		    <fileset dir=".">
-		        <include name="to-do.txt"/>
-				<include name="done.txt"/>
-				<include name=".temp$junit.arx"/>
-				<include name="stylesheet.css"/>
-		    </fileset>
+                    <fileset dir=".">
+                        <include name="to-do.txt"/>
+                                <include name="done.txt"/>
+                                <include name=".temp$junit.arx"/>
+                                <include name="stylesheet.css"/>
+                    </fileset>
         </delete>
     </target>
 
     <target name="mac-app" description="Build Macintosh Application">
-    	<!--
+        <!--
         <java classpath="." classname="com.sun.electric.Main" fork="true" outputproperty="version">
-        	<arg value="-v"/>
+                <arg value="-v"/>
         </java>
-    	-->
+        -->
         <java jar="electric.jar" fork="true" outputproperty="version">
-        	<arg value="-v"/>
+                <arg value="-v"/>
             <jvmarg value="-Xmx1000m"/>
         </java>
         <property name="releasedir" value="Release${version}"/>
@@ -425,10 +425,10 @@
     <target name="javadoc" depends="init" description="Create Javadoc">
         <mkdir dir="apidoc"/>
         <javadoc destdir="apidoc" private="false" use="true" source="1.5" maxmemory="400m">
-        	<packageset dir=".">
-        		<include name="com/sun/electric/**"/>
-        		<exclude name="com/sun/electric/plugins/**"/>
-        	</packageset>
+                <packageset dir=".">
+                        <include name="com/sun/electric/**"/>
+                        <exclude name="com/sun/electric/plugins/**"/>
+                </packageset>
             <classpath>
                 <pathelement location="${beanshell}"/>
                 <pathelement location="${AppleJava}"/>
