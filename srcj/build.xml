@@ -85,10 +85,10 @@
         <pathelement location="packaging/jython.jar"/>
     </path>
 
-        <!-- Use -DGNU=1 to build the GNU release -->
-        <!-- Use -DSFS=1 to build the SFS release -->
-        <!-- Use -DSUN=1 to build the Sun release -->
-        <!-- Use -Dsource=1 to include source code in the release -->
+    <!-- Use -DGNU=1 to build the GNU release -->
+    <!-- Use -DSFS=1 to build the SFS release -->
+    <!-- Use -DSUN=1 to build the Sun release -->
+    <!-- Use -Dsource=1 to include source code in the release -->
     <!-- Use -DJMF=1 to include JMF plugin -->
     <target name="compile" depends="init" description="Compile">
         <javac debug="true" deprecation="true" destdir="." srcdir="."
@@ -210,34 +210,34 @@
         <delete file="acknowledgements.txt"/>
     </target>
 
-        <target name="jarForGNUBinary" description="Make binary Jar file for GNU">
-            <antcall target="generalPurposeJar">
-                <param name="GNU" value="1"/>
-            </antcall>
-        </target>
+    <target name="jarForGNUBinary" description="Make binary Jar file for GNU">
+        <antcall target="generalPurposeJar">
+            <param name="GNU" value="1"/>
+        </antcall>
+    </target>
 
-        <target name="jarForGNUSource" description="Make source Jar file for GNU">
-            <antcall target="generalPurposeJar">
-                <param name="GNU" value="1"/>
-                <param name="source" value="1"/>
-            </antcall>
-        </target>
+    <target name="jarForGNUSource" description="Make source Jar file for GNU">
+        <antcall target="generalPurposeJar">
+            <param name="GNU" value="1"/>
+            <param name="source" value="1"/>
+        </antcall>
+    </target>
 
-        <target name="jarForSFSSource" description="Make source Jar file for SFS">
-            <antcall target="generalPurposeJar">
-                <param name="SFS" value="1"/>
-                <param name="source" value="1"/>
-            </antcall>
-        </target>
+    <target name="jarForSFSSource" description="Make source Jar file for SFS">
+        <antcall target="generalPurposeJar">
+            <param name="SFS" value="1"/>
+            <param name="source" value="1"/>
+        </antcall>
+    </target>
 
-        <target name="jarWithVersion" description="Make source Jar file for Sun">
-            <antcall target="generalPurposeJar">
-                <param name="SUN" value="1"/>
-                <param name="source" value="1"/>
-            </antcall>
-        </target>
+    <target name="jarWithVersion" description="Make source Jar file for Sun">
+        <antcall target="generalPurposeJar">
+            <param name="SUN" value="1"/>
+            <param name="source" value="1"/>
+        </antcall>
+    </target>
 
-        <target name="jarForIRSIM" depends="init,compile" description="Make source Jar file for IRSIM">
+    <target name="jarForIRSIM" depends="init,compile" description="Make source Jar file for IRSIM">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
                 <arg value="-v"/>
         </java>
@@ -248,9 +248,9 @@
         </jar>
         <antcall target="deleteElectric"></antcall>
         <delete file="LicenseIRSIM.txt"/>
-        </target>
+    </target>
 
-        <target name="jarForPIE" depends="init,compile" description="Make source Jar file for Port Interchange Experiment">
+    <target name="jarForPIE" depends="init,compile" description="Make source Jar file for Port Interchange Experiment">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
                 <arg value="-v"/>
         </java>
@@ -259,9 +259,9 @@
                 <include name="com/sun/electric/plugins/pie/*/*"/>
         </jar>
         <antcall target="deleteElectric"></antcall>
-        </target>
+    </target>
 
-        <target name="jarForRussianManual" depends="init,compile" description="Make Jar file for Russian User's Manual">
+    <target name="jarForRussianManual" depends="init,compile" description="Make Jar file for Russian User's Manual">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
                 <arg value="-v"/>
         </java>
@@ -269,7 +269,7 @@
                 <include name="com/sun/electric/plugins/manualRussian/*.*"/>
         </jar>
         <antcall target="deleteElectric"></antcall>
-        </target>
+    </target>
 
     <target name="jarForJava3D" depends="init,compile" description="Make source Jar file for Java3D plugin">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
@@ -279,7 +279,7 @@
                 <include name="com/sun/electric/plugins/Java3D/*.*"/>
         </jar>
         <antcall target="deleteElectric"></antcall>
-        </target>
+    </target>
 
     <target name="jarForJMF" depends="init" description="Make source Jar file for JMF plugin">
         <antcall target="compile">
@@ -292,9 +292,9 @@
                 <include name="com/sun/electric/plugins/JMF/*.*"/>
         </jar>
         <antcall target="deleteElectric"></antcall>
-        </target>
+    </target>
 
-        <target name="generalPurposeJar" depends="init,compile" description="Make Jar file with version">
+    <target name="generalPurposeJar" depends="init,compile" description="Make Jar file with version">
         <!-- -->
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
                 <arg value="-v"/>
@@ -345,7 +345,7 @@
             </antcall>
     </target>
 
-        <target name="jarWithTests" depends="clean,init,compileTests" description="Make binary Jar file">
+    <target name="jarWithTests" depends="clean,init,compileTests" description="Make binary Jar file">
         <copy file="packaging/electric.mf" tofile="electric.mf"/>
         <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
             <exclude name="**/.nfs*"/>
