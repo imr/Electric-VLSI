@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ScalarEpicOutProcess.java
+ * File: NewEpicOutProcess.java
  *
  * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
@@ -60,7 +60,7 @@ import java.util.regex.Pattern;
  * Class for reading and displaying waveforms from Epic output using
  * the new on-disk index.
  */
-public class ScalarEpicOutProcess extends Simulate implements Runnable
+public class NewEpicOutProcess extends Simulate implements Runnable
 {
     private Thread readerProcess;
     private PipedInputStream pis;
@@ -72,7 +72,7 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
     private final Environment launcherEnvironment;
     private final UserInterfaceExec userInterface;
 
-    ScalarEpicOutProcess() {
+    NewEpicOutProcess() {
         launcherEnvironment = Environment.getThreadEnvironment();
         userInterface = new UserInterfaceExec();
     }
@@ -94,7 +94,7 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
         pis = new PipedInputStream(pos);
         epos = new PipedOutputStream();
         epis = new PipedInputStream(epos);
-        readerProcess = new ScalarEpicReader(pos, epos, fileURL.getFile());
+        readerProcess = new NewEpicReader(pos, epos, fileURL.getFile());
         
         try {
             stdOut = new DataInputStream(pis);
@@ -149,7 +149,7 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
         char separator = '.';
         Stimuli sd = new Stimuli();
         sd.setSeparatorChar(separator);
-        ScalarEpicAnalysis an = new ScalarEpicAnalysis(sd);
+        NewEpicAnalysis an = new NewEpicAnalysis(sd);
         int numSignals = 0;
         ContextBuilder contextBuilder = new ContextBuilder();
         ArrayList<ContextBuilder> contextStack = new ArrayList<ContextBuilder>();
@@ -166,9 +166,9 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
                     String name = readString();
                     if (DEBUG) printDebug(contextStackDepth, (char)b, name);
                     contextBuilder.strings.add(name);
-                    byte type = b == 'V' ? ScalarEpicAnalysis.VOLTAGE_TYPE: ScalarEpicAnalysis.CURRENT_TYPE;
-                    contextBuilder.contexts.add(ScalarEpicAnalysis.getContext(type));
-                    ScalarEpicAnalysis.EpicSignal s = new ScalarEpicAnalysis.EpicSignal(an, type, numSignals++, sigNum);
+                    byte type = b == 'V' ? NewEpicAnalysis.VOLTAGE_TYPE: NewEpicAnalysis.CURRENT_TYPE;
+                    contextBuilder.contexts.add(NewEpicAnalysis.getContext(type));
+                    NewEpicAnalysis.EpicSignal s = new NewEpicAnalysis.EpicSignal(an, type, numSignals++, sigNum);
                     s.setSignalName(name, null);
                     break;
                 case 'D':
@@ -182,7 +182,7 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
                     break;
                 case 'U':
                     if (DEBUG) printDebug(contextStackDepth, (char)b, null);
-                    ScalarEpicAnalysis.Context newContext = an.getContext(contextBuilder.strings, contextBuilder.contexts);
+                    NewEpicAnalysis.Context newContext = an.getContext(contextBuilder.strings, contextBuilder.contexts);
                     contextBuilder.clear();
 
                     contextStackDepth--;
@@ -224,7 +224,7 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
         }
 
         for (int i = 0; i < numSignals; i++) {
-            ScalarEpicAnalysis.EpicSignal s = (ScalarEpicAnalysis.EpicSignal)signals.get(i);
+            NewEpicAnalysis.EpicSignal s = (NewEpicAnalysis.EpicSignal)signals.get(i);
             SigInfo si = sigInfoByEpicIndex.get(s.sigNum);
             s.setBounds(si.minV, si.maxV);
             an.waveStarts[i] = si.start;
@@ -295,7 +295,7 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
      */
     private static class ContextBuilder {
         ArrayList<String> strings = new ArrayList<String>();
-        ArrayList<ScalarEpicAnalysis.Context> contexts = new ArrayList<ScalarEpicAnalysis.Context>();
+        ArrayList<NewEpicAnalysis.Context> contexts = new ArrayList<NewEpicAnalysis.Context>();
 
         void clear() { strings.clear(); contexts.clear(); }
     }
@@ -335,7 +335,7 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
      * fileName is a name of temporary file on local machine with packed waveform data.
      * length in signalInfo is a number of bytes occupied in the file by this signal.
      */
-    private class ScalarEpicReader extends Thread {
+    private class NewEpicReader extends Thread {
         /** Input stream with Epic data. */                         private InputStream inputStream;
         /** File length of inputStream. */                          private long fileLength;
         /** Number of bytes read from stream to buffer. */          private long byteCount;
@@ -368,7 +368,7 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
         private String urlName;
     
         /** Private constructor. */
-        private ScalarEpicReader(OutputStream os, OutputStream eos, String urlName) throws IOException {
+        private NewEpicReader(OutputStream os, OutputStream eos, String urlName) throws IOException {
             this.err = new PrintStream(eos);
             this.stdOut = new DataOutputStream(new PrintStream(os));
             this.urlName = urlName;
@@ -819,7 +819,7 @@ public class ScalarEpicOutProcess extends Simulate implements Runnable
             return ctx.addSig(path, separator, type, sigNum);
         }
 
-        void writeSigs(ScalarEpicReader reader) throws IOException {
+        void writeSigs(NewEpicReader reader) throws IOException {
             DataOutputStream stdOut = reader.stdOut;
             for (EpicReaderSig sig: signals) {
                 stdOut.writeByte(sig.type);

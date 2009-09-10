@@ -135,7 +135,7 @@ public class Simulate extends Input
 //            if (Simulation.isSpiceEpicReaderProcess())
             if (Simulation.isSpiceUseRandomAccess())
         	{
-                is = new ScalarEpicOutProcess();
+                is = new NewEpicOutProcess();
         	} else
         	{
                 is = new EpicOutProcess();

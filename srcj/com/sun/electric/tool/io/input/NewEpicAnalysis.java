@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ScalarEpicAnalysis.java
+ * File: NewEpicAnalysis.java
  *
  * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
@@ -73,10 +73,10 @@ import javax.swing.tree.TreePath;
  * This class differs from Anylisis base class by less memory consumption.
  * Waveforms are stored in a file in packed form. They are loaded to memory by
  * denand. Hierarchical structure is reconstructed from Epic flat names into Context objects.
- * EpicSignals don't store signalContex strings, ScalarEpicAnalysis don't have signalNames hash map.
+ * EpicSignals don't store signalContex strings, NewEpicAnalysis don't have signalNames hash map.
  * Elements of Context are EpicTreeNodes. They partially implements interface javax.swing.tree.TreeNode .
  */
-public class ScalarEpicAnalysis extends AnalogAnalysis {
+public class NewEpicAnalysis extends AnalogAnalysis {
     
     /** Separator in Epic signal names. */              static final char separator = '.';
     
@@ -162,13 +162,13 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
      * Package-private constructor.
      * @param sd Stimuli.
      */
-    ScalarEpicAnalysis(Stimuli sd) {
+    NewEpicAnalysis(Stimuli sd) {
         super(sd, AnalogAnalysis.ANALYSIS_TRANS, false);
         signalsUnmodifiable = Collections.unmodifiableList(super.getSignals());
     }
     
     /**
-     * Set time resolution of this ScalarEpicAnalysis.
+     * Set time resolution of this NewEpicAnalysis.
      * @param timeResolution time resolution in nanoseconds.
      */
     void setTimeResolution(double timeResolution) { this.timeResolution = timeResolution; }
@@ -190,7 +190,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
     }
     
     /**
-     * Set simulation time of this ScalarEpicAnalysis.
+     * Set simulation time of this NewEpicAnalysis.
      * @param maxTime simulation time in nanoseconds.
      */
     void setMaxTime(double maxTime) { this.maxTime = maxTime; }
@@ -202,7 +202,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
     void setRootContext(Context context) { rootContext = context; }
     
     /**
-     * Set waveform file of this ScalarEpicAnalysis.
+     * Set waveform file of this NewEpicAnalysis.
      * @param waveFileName File object with name of waveform file.
      */
     void setWaveFile(File waveFileName) throws FileNotFoundException {
@@ -276,7 +276,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
         while (i < path.length && !(path[i] instanceof EpicRootTreeNode))
             i++;
         if (i >= path.length) return null;
-        ScalarEpicAnalysis an = ((EpicRootTreeNode)path[i]).an;
+        NewEpicAnalysis an = ((EpicRootTreeNode)path[i]).an;
         i++;
         int index = 0;
         for (; i < path.length; i++) {
@@ -562,17 +562,17 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
     
     /************************* EpicRootTreeNode *********************************************
      * This class is for root node of EpicTreeNode tree.
-     * It contains children from rootContext of specified ScalarEpicAnalysis.
+     * It contains children from rootContext of specified NewEpicAnalysis.
      */
     private static class EpicRootTreeNode extends DefaultMutableTreeNode {
-        /** ScalarEpicAnalysis which owns the tree. */    private ScalarEpicAnalysis an;
+        /** NewEpicAnalysis which owns the tree. */    private NewEpicAnalysis an;
         
         /**
          * Private constructor.
          * @param an specified EpicAnalysy.
          * @paran name name of bwq EpicRootTreeNode
          */
-        private EpicRootTreeNode(ScalarEpicAnalysis an, String name) {
+        private EpicRootTreeNode(NewEpicAnalysis an, String name) {
             super(name);
             this.an = an;
             Vector<EpicTreeNode> children = new Vector<EpicTreeNode>();
@@ -909,7 +909,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
     static class EpicSignal extends AnalogSignal {
         int sigNum;
         
-        EpicSignal(ScalarEpicAnalysis an, byte type, int index, int sigNum) {
+        EpicSignal(NewEpicAnalysis an, byte type, int index, int sigNum) {
             super(an);
             assert getIndexInAnalysis() == index;
             if (type == VOLTAGE_TYPE)
@@ -937,7 +937,7 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
          */
         @Override
             public String getSignalContext() {
-            return ((ScalarEpicAnalysis)getAnalysis()).makeName(getIndexInAnalysis(), false);
+            return ((NewEpicAnalysis)getAnalysis()).makeName(getIndexInAnalysis(), false);
         }
         
         /**
@@ -947,11 +947,11 @@ public class ScalarEpicAnalysis extends AnalogAnalysis {
          */
         @Override
             public String getFullName() {
-            return ((ScalarEpicAnalysis)getAnalysis()).makeName(getIndexInAnalysis(), true);
+            return ((NewEpicAnalysis)getAnalysis()).makeName(getIndexInAnalysis(), true);
         }
         
         void setBounds(int minV, int maxV) {
-            ScalarEpicAnalysis an = (ScalarEpicAnalysis)getAnalysis();
+            NewEpicAnalysis an = (NewEpicAnalysis)getAnalysis();
             double resolution = an.getValueResolution(getIndexInAnalysis());
             bounds = new Rectangle2D.Double(0, minV*resolution, an.maxTime, (maxV - minV)*resolution);
             leftEdge = 0;
