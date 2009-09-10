@@ -23,15 +23,18 @@
  */
 package com.sun.electric.tool.placement;
 
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.technologies.Schematics;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Simple Placement algorithm to arbitrarily assign locations in a square grid.
+ * Simple Placement algorithm to assign locations based on simple criteria.
  */
 public class PlacementSimple extends PlacementFrame
 {
-	private static final int SPACING = 5;
-
 	/**
 	 * Method to return the name of this placement algorithm.
 	 * @return the name of this placement algorithm.
@@ -45,21 +48,51 @@ public class PlacementSimple extends PlacementFrame
 	 */
 	protected void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks)
 	{
-		int numRows = (int)Math.round(Math.sqrt(nodesToPlace.size()));
-		double xPos = 0, yPos = 0;
-		double maxHeight = 0;
-		for(int i=0; i<nodesToPlace.size(); i++)
+		// gather lists of transistors, resistors, capacitors, and instances
+		double pPos = 0, nPos = 0, iPos = 0;
+		List<PlacementNode> resistors = new ArrayList<PlacementNode>();
+		List<PlacementNode> capacitors = new ArrayList<PlacementNode>();
+		for(PlacementNode plNode : nodesToPlace)
 		{
-			PlacementNode plNode = nodesToPlace.get(i);
-			plNode.setPlacement(xPos, yPos);
-			xPos += plNode.getWidth() + SPACING;
-			maxHeight = Math.max(maxHeight, plNode.getHeight());
-			if ((i%numRows) == numRows-1)
+			if (plNode.getType() == Schematics.tech().transistorNode ||
+				plNode.getType() == Schematics.tech().transistor4Node)
 			{
-				xPos = 0;
-				yPos += maxHeight + SPACING;
-				maxHeight = 0;
+				PrimitiveNode.Function fun = Schematics.tech().getPrimitiveFunction((PrimitiveNode)plNode.getType(),
+					plNode.getTechBits());
+				if (fun.isPTypeTransistor())
+				{
+					plNode.setPlacement(pPos, 5);
+					plNode.setOrientation(Orientation.R);
+					pPos += 10;
+				} else
+				{
+					plNode.setPlacement(nPos, -5);
+					plNode.setOrientation(Orientation.R);
+					nPos += 10;
+				}
+			} else if (plNode.getType() == Schematics.tech().resistorNode)
+			{
+				resistors.add(plNode);
+			} if (plNode.getType() == Schematics.tech().capacitorNode)
+			{
+				capacitors.add(plNode);
+			} else
+			{
+				plNode.setPlacement(iPos, -10-plNode.getType().getDefHeight());
+				iPos += 30;
 			}
+		}
+
+		// place resistors and capacitors at the end of the transistor rows
+		for(PlacementNode plNode : resistors)
+		{
+			plNode.setPlacement(pPos, 5);
+			pPos += 10;
+		}
+		for(PlacementNode plNode : capacitors)
+		{
+			plNode.setPlacement(nPos, -5);
+			nPos += 10;
 		}
 	}
 }

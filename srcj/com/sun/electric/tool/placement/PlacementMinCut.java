@@ -77,9 +77,21 @@ public class PlacementMinCut extends PlacementFrame
 		}
 
 		// make initial partition with all nodes
+		List<PlacementNode> singletons = new ArrayList<PlacementNode>();
 		Partition topPart = new Partition();
 		topPart.depth = 0;
-		for(PlacementNode plNode : nodesToPlace) topPart.allNodes.add(plNode);
+		for(PlacementNode plNode : nodesToPlace)
+		{
+			boolean connected = false;
+			for(PlacementPort plPort : plNode.getPorts())
+			{
+				PlacementNetwork net = plPort.getPlacementNetwork();
+				if (net == null) continue;
+				if (net.getPortsOnNet().size() > 1) { connected = true;   break; }
+			}
+			if (connected) topPart.allNodes.add(plNode); else
+				singletons.add(plNode);
+		}
 
 		// build list of partitions to organize
 		List<Partition> partitionsToOrganize = new ArrayList<Partition>();
@@ -120,7 +132,13 @@ public class PlacementMinCut extends PlacementFrame
 			if (part.part2.allNodes.size() > 2) partitionsToOrganize.add(part.part2);
 		}
 
-		placePartitions(topPart, new Point2D.Double(0, 0));
+		Point2D lastOffset = placePartitions(topPart, new Point2D.Double(0, 0));
+		double x = lastOffset.getX(), y = lastOffset.getY();
+		for(PlacementNode plNode : singletons)
+		{
+			plNode.setPlacement(x, y);
+			x += PADDING;
+		}
 	}
 
 	private Point2D placePartitions(Partition part, Point2D offset)
@@ -220,6 +238,7 @@ public class PlacementMinCut extends PlacementFrame
 				for(PlacementPort plPort : plNode.getPorts())
 				{
 					PlacementNetwork plNet = plPort.getPlacementNetwork();
+					if (plNet == null) continue;
 					for(PlacementPort otherPlPort : plNet.getPortsOnNet())
 					{
 						PlacementNode otherPlNode = otherPlPort.getPlacementNode();

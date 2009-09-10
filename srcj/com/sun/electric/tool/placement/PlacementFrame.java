@@ -23,19 +23,27 @@
  */
 package com.sun.electric.tool.placement;
 
+import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.Variable.Key;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -58,7 +66,7 @@ import java.util.Map;
  *       runs the placement on the "nodesToPlace", calling each PlacementNode's "setPlacement()"
  *       and "setOrientation()" methods to establish the proper placement.
  *
- * To avoid the complexities of the Electric database, three shadow-classes are defined that
+ * To avoid the complexities of the Electric database, four shadow-classes are defined that
  * describe the necessary information that Placement algorithms want:
  *
  * PlacementNode is an actual node (primitive or cell instance) that is to be placed.
@@ -68,6 +76,9 @@ import java.util.Map;
  * PlacementNetwork determines which PlacementPort objects will connect together.
  *    Each PlacementNetwork has a list of two or more PlacementPort objects that it connects,
  *    and each PlacementPort has a PlacementNetwork in which it resides.
+ * PlacementExport describes exports in the cell.
+ *    Placement algorithms do not usually need this information:
+ *    it exists as a way to communicate the information internally.
  */
 public class PlacementFrame
 {
@@ -77,7 +88,8 @@ public class PlacementFrame
 	 */
 	private static PlacementFrame [] placementAlgorithms = {
 		new PlacementMinCut(),
-		new PlacementSimple()
+		new PlacementSimple(),
+		new PlacementRandom()
 	};
 
 	/**
@@ -107,27 +119,48 @@ public class PlacementFrame
 	 * port offsets based on that center, whereas the NodeInst has a cell-center
 	 * that may not be in the middle.
 	 */
-	protected static class PlacementNode
+	public static class PlacementNode
 	{
-		private NodeInst original;
+		private NodeProto original;
+		private String nodeName;
+		private int techBits;
 		private double width, height;
 		private List<PlacementPort> ports;
 		private double xPos, yPos;
 		private Orientation orient;
+		private Map<Key,Object> addedVariables;
 
 		/**
 		 * Method to create a PlacementNode object.
-		 * @param orig the original Electric NodeInst of this PlacementNode.
+		 * @param type the original Electric type of this PlacementNode.
+		 * @param name the name to give the node once placed (can be null).
+		 * @param tBits the technology-specific bits of this PlacementNode
+		 * (typically 0 except for specialized Schematics components).
 		 * @param wid the width of this PlacementNode.
 		 * @param hei the height of this PlacementNode.
 		 * @param pps a list of PlacementPort on the PlacementNode, indicating connection locations.
 		 */
-		PlacementNode(NodeInst orig, double wid, double hei, List<PlacementPort> pps)
+		public PlacementNode(NodeProto type, String name, int tBits, double wid, double hei, List<PlacementPort> pps)
 		{
-			original = orig;
+			original = type;
+			nodeName = name;
+			techBits = tBits;
 			width = wid;
 			height = hei;
 			ports = pps;
+		}
+
+		/**
+		 * Method to add variables to this PlacementNode.
+		 * Variables are extra name/value pairs, for example a transistor width and length.
+		 * @param name the Key of the variable to add.
+		 * @param value the value of the variable to add.
+		 */
+		public void addVariable(Key name, Object value)
+		{
+			if (addedVariables == null)
+				addedVariables = new HashMap<Key,Object>();
+			addedVariables.put(name, value);
 		}
 
 		/**
@@ -149,12 +182,6 @@ public class PlacementFrame
 		double getHeight() { return height; }
 
 		/**
-		 * Method to return the original NodeInst of this PlacementNode.
-		 * @return the original NodeInst of this PlacementNode.
-		 */
-		NodeInst getOriginal() { return original; }
-
-		/**
 		 * Method to set the location of this PlacementNode.
 		 * The Placement algorithm must call this method to set the final location of the PlacementNode.
 		 * @param x the X-coordinate of the center of this PlacementNode.
@@ -167,7 +194,7 @@ public class PlacementFrame
 		 * The Placement algorithm may call this method to set the final orientation of the PlacementNode.
 		 * @param o the Orientation of this PlacementNode.
 		 */
-		void setOrientation(Orientation o)
+		public void setOrientation(Orientation o)
 		{
 			orient = o;
 			for(PlacementPort plPort : ports)
@@ -195,14 +222,33 @@ public class PlacementFrame
 		 */
 		Orientation getPlacementOrientation() { return orient; }
 
-		public String toString() { return original.describe(false); }
+		/**
+		 * Method to return the NodeProto of this PlacementNode.
+		 * @return the NodeProto of this PlacementNode.
+		 */
+		NodeProto getType() { return original; }
+
+		/**
+		 * Method to return the technology-specific information of this PlacementNode.
+		 * @return the technology-specific information of this PlacementNode
+		 * (typically 0 except for specialized Schematics components).
+		 */
+		int getTechBits() { return techBits; }
+
+		public String toString()
+		{
+			String name = original.describe(false);
+			if (nodeName != null) name += "[" + nodeName + "]";
+			if (techBits != 0) name += "("+techBits+")";
+			return name;
+		}
 	}
 
 	/**
 	 * Class to define ports on PlacementNode objects.
 	 * This is a shadow class for the internal Electric object "PortInst".
 	 */
-	protected static class PlacementPort
+	public static class PlacementPort
 	{
 		private double offX, offY;
 		private double rotatedOffX, rotatedOffY;
@@ -216,7 +262,7 @@ public class PlacementFrame
 		 * @param y the Y offset of this PlacementPort from the center of its PlacementNode.
 		 * @param pp the Electric PortProto of this PlacementPort.
 		 */
-		PlacementPort(double x, double y, PortProto pp)
+		public PlacementPort(double x, double y, PortProto pp)
 		{
 			offX = x;   offY = y;
 			proto = pp;
@@ -226,7 +272,7 @@ public class PlacementFrame
 		 * Method to set the "parent" PlacementNode on which this PlacementPort resides.
 		 * @param pn the PlacementNode on which this PlacementPort resides.
 		 */
-		void setPlacementNode(PlacementNode pn) { plNode = pn; }
+		public void setPlacementNode(PlacementNode pn) { plNode = pn; }
 
 		/**
 		 * Method to return the PlacementNode on which this PlacementPort resides.
@@ -238,11 +284,13 @@ public class PlacementFrame
 		 * Method to return the PlacementNetwork on which this PlacementPort resides.
 		 * @param pn the PlacementNetwork on which this PlacementPort resides.
 		 */
-		void setPlacementNetwork(PlacementNetwork pn) { plNet = pn; }
+		public void setPlacementNetwork(PlacementNetwork pn) { plNet = pn; }
 
 		/**
 		 * Method to return the PlacementNetwork on which this PlacementPort resides.
 		 * @return the PlacementNetwork on which this PlacementPort resides.
+		 * If this PlacementPort does not connect to any other PlacementPort,
+		 * the PlacementNetwork may be null.
 		 */
 		PlacementNetwork getPlacementNetwork() { return plNet; }
 
@@ -307,7 +355,7 @@ public class PlacementFrame
 	 * Class to define networks of PlacementPort objects.
 	 * This is a shadow class for the internal Electric object "Network", but it is simplified for Placement.
 	 */
-	protected static class PlacementNetwork
+	public static class PlacementNetwork
 	{
 		private List<PlacementPort> portsOnNet;
 
@@ -315,7 +363,7 @@ public class PlacementFrame
 		 * Constructor to create this PlacementNetwork with a list of PlacementPort objects that it connects.
 		 * @param ports a list of PlacementPort objects that it connects.
 		 */
-		PlacementNetwork(List<PlacementPort> ports)
+		public PlacementNetwork(List<PlacementPort> ports)
 		{
 			portsOnNet = ports;
 		}
@@ -324,14 +372,41 @@ public class PlacementFrame
 		 * Method to return the list of PlacementPort objects on this PlacementNetwork.
 		 * @return a list of PlacementPort objects on this PlacementNetwork.
 		 */
-		List<PlacementPort> getPortsOnNet() { return portsOnNet; }
+		public List<PlacementPort> getPortsOnNet() { return portsOnNet; }
 	}
 
 	/**
-	 * Method to do Placement.
+	 * Class to define an Export that will be placed in the circuit.
+	 */
+	public static class PlacementExport
+	{
+		private PlacementPort portToExport;
+		private String exportName;
+		private PortCharacteristic characteristic;
+
+		/**
+		 * Constructor to create a PlacementExport with the information about an Export to be created.
+		 * @param port the PlacementPort that is being exported.
+		 * @param name the name to give the Export.
+		 * @param chr the PortCharacteristic (input, output, etc.) to give the Export.
+		 */
+		public PlacementExport(PlacementPort port, String name, PortCharacteristic chr)
+		{
+			portToExport = port;
+			exportName = name;
+			characteristic = chr;
+		}
+
+		PlacementPort getPort() { return portToExport; }
+		String getName() { return exportName; }
+		PortCharacteristic getCharacteristic() { return characteristic; }
+	}
+
+	/**
+	 * Entry point to do Placement of a Cell and create a new, placed Cell.
 	 * Gathers the requirements for Placement into a collection of shadow objects
-	 * (PlacementNode, PlacementPort, and PlacementNetwork).
-	 * Then invokes "runPlacement()" in the subclass to do the actual work.
+	 * (PlacementNode, PlacementPort, PlacementNetwork, and PlacementExport).
+	 * Then invokes the alternate version of "doPlacement()" that works from shadow objedts.
 	 * @param cell the Cell to place.
 	 * Objects in that Cell will be reorganized in and placed in a new Cell.
 	 * @return the new Cell with the placement results.
@@ -346,14 +421,20 @@ public class PlacementFrame
 			return null;
 		}
 
-		// find all nodes in the cell that are to be placed
+		// convert nodes in the Cell into PlacementNode objects
+		NodeProto iconToPlace = null;
 		List<PlacementNode> nodesToPlace = new ArrayList<PlacementNode>();
 		Map<NodeInst,PlacementNode> shadowNodes = new HashMap<NodeInst,PlacementNode>();
 		Map<NodeInst,Map<PortProto,PlacementPort>> convertedNodes = new HashMap<NodeInst,Map<PortProto,PlacementPort>>();
+		List<PlacementExport> exportsToPlace = new ArrayList<PlacementExport>();
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.isIconOfParent()) continue;
+			if (ni.isIconOfParent())
+			{
+				iconToPlace = ni.getProto();
+				continue;
+			}
 			boolean validNode = ni.isCellInstance();
 			if (!validNode)
 			{
@@ -381,18 +462,26 @@ public class PlacementFrame
 					PlacementPort plPort = new PlacementPort(offX, offY, pi.getPortProto());
 					pl.add(plPort);
 					placedPorts.put(pi.getPortProto(), plPort);
+					for(Iterator<Export> eIt = pi.getExports(); eIt.hasNext(); )
+					{
+						Export e = eIt.next();
+						PlacementExport plExport = new PlacementExport(plPort, e.getName(), e.getCharacteristic());
+						exportsToPlace.add(plExport);
+					}
 				}
-				PlacementNode plNode = new PlacementNode(ni, np.getDefWidth(), np.getDefHeight(), pl);
+				String name = ni.getName();
+				if (ni.getNameKey().isTempname()) name = null;
+				PlacementNode plNode = new PlacementNode(np, name, ni.getTechSpecific(), np.getDefWidth(), np.getDefHeight(), pl);
 				nodesToPlace.add(plNode);
 				for(PlacementPort plPort : pl)
 					plPort.setPlacementNode(plNode);
 				plNode.setOrientation(Orientation.IDENT);
 				convertedNodes.put(ni, placedPorts);
-				shadowNodes.put(ni, plNode);
+				if (ni.hasExports()) shadowNodes.put(ni, plNode);
 			}
 		}
 
-		// gather connectivity information
+		// gather connectivity information in a list of PlacementNetwork objects
 		List<PlacementNetwork> allNetworks = new ArrayList<PlacementNetwork>();
 		for(Iterator<Network> it = netList.getNetworks(); it.hasNext(); )
 		{
@@ -408,7 +497,7 @@ public class PlacementFrame
 				PlacementPort plPort = convertedPorts.get(pp);
 				if (plPort != null) portsOnNet.add(plPort);
 			}
-			if (portsOnNet.size() > 0)
+			if (portsOnNet.size() > 1)
 			{
 				PlacementNetwork plNet = new PlacementNetwork(portsOnNet);
 				for(PlacementPort plPort : portsOnNet)
@@ -417,11 +506,30 @@ public class PlacementFrame
 			}
 		}
 
+		// do the placement from the shadow objects
+		Cell newCell = doPlacement(cell.getLibrary(), cell.noLibDescribe(), nodesToPlace, allNetworks, exportsToPlace, iconToPlace);
+		return newCell;
+	}
+
+	/**
+	 * Entry point for other tools that wish to describe a network to be placed.
+	 * Creates a cell with the placed network.
+	 * @param lib the Library in which to create the placed Cell.
+	 * @param cellName the name of the Cell to create.
+	 * @param nodesToPlace a List of PlacementNodes to place in the Cell.
+	 * @param allNetworks a List of PlacementNetworks to connect in the Cell.
+	 * @param exportsToPlace a List of PlacementExports to create in the Cell.
+	 * @param iconToPlace non-null to place an instance of itself (the icon) in the Cell.
+	 * @return the newly created Cell.
+	 */
+	public Cell doPlacement(Library lib, String cellName, List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks,
+		List<PlacementExport> exportsToPlace, NodeProto iconToPlace)
+	{
 		// do the real work of placement
 		runPlacement(nodesToPlace, allNetworks);
 
 		// create a new cell for the placement results
-		Cell newCell = Cell.makeInstance(cell.getLibrary(), cell.noLibDescribe());
+		Cell newCell = Cell.makeInstance(lib, cellName);
 
 		// place the nodes in the new cell
 		Map<PlacementNode,NodeInst> placedNodes = new HashMap<PlacementNode,NodeInst>();
@@ -430,7 +538,7 @@ public class PlacementFrame
 			double xPos = plNode.getPlacementX();
 			double yPos = plNode.getPlacementY();
 			Orientation orient = plNode.getPlacementOrientation();
-			NodeProto np = plNode.getOriginal().getProto();
+			NodeProto np = plNode.original;
 			if (np instanceof Cell)
 			{
 				Cell placementCell = (Cell)np;
@@ -441,22 +549,56 @@ public class PlacementFrame
 				yPos -= centerOffset.getY();
 			}
 			NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(xPos, yPos), np.getDefWidth(), np.getDefHeight(), newCell,
-				orient, plNode.getOriginal().getName(), plNode.getOriginal().getTechSpecific());
-			placedNodes.put(plNode, ni);
+				orient, plNode.nodeName, plNode.techBits);
+			if (ni == null) System.out.println("Placement failed to create node"); else
+				placedNodes.put(plNode, ni);
+			if (plNode.addedVariables != null)
+			{
+				for(Key key : plNode.addedVariables.keySet())
+				{
+					Object value = plNode.addedVariables.get(key);
+					Variable var = ni.newDisplayVar(key, value);
+					if (key == Schematics.SCHEM_RESISTANCE)
+					{
+						ni.setTextDescriptor(key, var.getTextDescriptor().withOff(0, 0.5).
+							withDispPart(TextDescriptor.DispPos.VALUE));
+					} else if (key == Schematics.ATTR_WIDTH)
+					{
+						ni.setTextDescriptor(key, var.getTextDescriptor().withOff(0.5, -1).
+							withRelSize(1).withDispPart(TextDescriptor.DispPos.VALUE));
+					} else if (key == Schematics.ATTR_LENGTH)
+					{
+						ni.setTextDescriptor(key, var.getTextDescriptor().withOff(-0.5, -1).
+							withRelSize(0.5).withDispPart(TextDescriptor.DispPos.VALUE));
+					} else
+					{
+						ni.setTextDescriptor(key, var.getTextDescriptor().withDispPart(TextDescriptor.DispPos.VALUE));
+					}
+				}
+			}
+		}
+
+		// place an icon if requested
+		if (iconToPlace != null)
+		{
+			ERectangle bounds = newCell.getBounds();
+			EPoint center = new EPoint(bounds.getMaxX() + iconToPlace.getDefWidth(), bounds.getMaxY() + iconToPlace.getDefHeight());
+			NodeInst.makeInstance(iconToPlace, center, iconToPlace.getDefWidth(), iconToPlace.getDefHeight(), newCell);
 		}
 
 		// place exports in the new cell
-		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
+		for(PlacementExport plExport : exportsToPlace)
 		{
-			Export e = (Export)it.next();
-			NodeInst orig = e.getOriginalPort().getNodeInst();
-			PlacementNode plNode = shadowNodes.get(orig);
+			PlacementPort plPort = plExport.getPort();
+			String exportName = plExport.getName();
+			PlacementNode plNode = plPort.getPlacementNode();
 			NodeInst newNI = placedNodes.get(plNode);
-			PortInst portToExport = newNI.findPortInstFromProto(e.getOriginalPort().getPortProto());
-			Export.newInstance(newCell, portToExport, e.getName(), e.getCharacteristic());
+			if (newNI == null) continue;
+			PortInst portToExport = newNI.findPortInstFromProto(plPort.getPortProto());
+			Export.newInstance(newCell, portToExport, exportName, plExport.getCharacteristic());
 		}
 
-		// connect the connections in the new cell
+		// add the connections in the new cell
 		for(PlacementNetwork plNet : allNetworks)
 		{
 			List<PortInst> portsToConnect = new ArrayList<PortInst>();

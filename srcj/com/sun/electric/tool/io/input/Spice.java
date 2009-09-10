@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -36,15 +37,20 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.placement.Placement;
+import com.sun.electric.tool.placement.PlacementFrame;
+import com.sun.electric.tool.placement.Placement.PlacementPreferences;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementExport;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,7 +73,14 @@ public class Spice extends Input
 
 	public static class SpicePreferences extends InputPreferences
     {
+		public String placementAlgorithm;
+
 		public SpicePreferences(boolean factory) { super(factory); }
+
+		public void initFromUserDefaults()
+		{
+			placementAlgorithm = Placement.getAlgorithmName();
+		}
 
         public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
         {
@@ -164,9 +177,9 @@ public class Spice extends Input
 				for(int i=6; i<traPieces.length; i++)
 				{
 					if (traPieces[i].toLowerCase().startsWith("w="))
-						td.width = traPieces[i];
+						td.width = traPieces[i].substring(2);
 					if (traPieces[i].toLowerCase().startsWith("l="))
-						td.length = traPieces[i];
+						td.length = traPieces[i].substring(2);
 				}
 				continue;
 			}
@@ -269,96 +282,77 @@ public class Spice extends Input
 		for(String name : allCells.keySet())
 		{
 			SubcktDef sd = allCells.get(name);
-			Cell cell = Cell.makeInstance(lib, name + "{sch}");
-			if (sd.iconCell != null)
-			{
-				EPoint center = new EPoint(0, 15);
-				NodeInst.makeInstance(sd.iconCell, center, sd.iconCell.getDefWidth(), sd.iconCell.getDefHeight(), cell);
-			}
 
-			// place transistors
-			double pPos = 0, nPos = 0;
+			// use the placement tool to situate the objects
+			List<PlacementNode> nodesToPlace = new ArrayList<PlacementNode>();
+			Map<String,PlacementNetwork> allNetworks = new HashMap<String,PlacementNetwork>();
+			List<PlacementExport> exportsToPlace = new ArrayList<PlacementExport>();
+
+			// make PlacementNodes for the transistors
 			for(TransistorDef td : sd.transistors)
 			{
-				EPoint center = null;
-				PrimitiveNode.Function func = null;
-				if (td.type.equals("p"))
-				{
-					center = new EPoint(pPos, 5);
-					pPos += 10;
-					func = PrimitiveNode.Function.TRAPMOS;
-				} else
-				{
-					center = new EPoint(nPos, -5);
-					nPos += 10;
-					func = PrimitiveNode.Function.TRANMOS;
-				}
+				int bits = 0;
+				if (td.type.equals("p")) bits = Schematics.getPrimitiveFunctionBits(PrimitiveNode.Function.TRAPMOS); else
+					bits = Schematics.getPrimitiveFunctionBits(PrimitiveNode.Function.TRANMOS);
 				PrimitiveNode np = Schematics.tech().transistorNode;
-				Orientation o = Orientation.R;
-				NodeInst ni = NodeInst.makeInstance(np, center, np.getDefWidth(), np.getDefHeight(),
-					cell, o, "m" + td.name, func);
-				TextDescriptor tdesc = TextDescriptor.newTextDescriptor(MutableTextDescriptor.getNodeTextDescriptor());
-		        TextDescriptor.Rotation r = TextDescriptor.Rotation.getRotation(270);
-				ni.setTextDescriptor(NodeInst.NODE_NAME, tdesc.withRotation(r).withPos(TextDescriptor.Position.DOWNLEFT));
-				if (td.width != null)
-				{
-					Variable var = ni.newDisplayVar(Schematics.ATTR_WIDTH, td.width);
-					TextDescriptor newTD = var.getTextDescriptor().
-						withRotation(r).withOff(0.5, -0.5).withRelSize(1).withPos(TextDescriptor.Position.DOWN);
-					ni.setTextDescriptor(Schematics.ATTR_WIDTH, newTD);
-				}
-				if (td.length != null)
-				{
-					Variable var = ni.newDisplayVar(Schematics.ATTR_LENGTH, td.length);
-					TextDescriptor newTD = var.getTextDescriptor().
-						withRotation(r).withOff(-0.5, -0.75).withRelSize(0.5).withPos(TextDescriptor.Position.DOWN);
-					ni.setTextDescriptor(Schematics.ATTR_LENGTH, newTD);
-				}
-				PortInst piSource = ni.getTransistorSourcePort();
-				addLead(piSource, 0, -2, cell, td.source, sd.exports, sd.usedExports);
-				PortInst piGate = ni.getTransistorGatePort();
-				addLead(piGate, -2, 0, cell, td.gate, sd.exports, sd.usedExports);
-				PortInst piDrain = ni.getTransistorDrainPort();
-				addLead(piDrain, 0, 2, cell, td.drain, sd.exports, sd.usedExports);
+				NodeInst niDummy = NodeInst.makeDummyInstance(np);
+
+				List<PlacementPort> ports = new ArrayList<PlacementPort>();
+				PortInst piSource = niDummy.getTransistorSourcePort();
+				ports.add(addPlacementPort(niDummy, piSource, td.source, allNetworks, sd.exports, sd.usedExports, exportsToPlace));
+				PortInst piGate = niDummy.getTransistorGatePort();
+				ports.add(addPlacementPort(niDummy, piGate, td.gate, allNetworks, sd.exports, sd.usedExports, exportsToPlace));
+				PortInst piDrain = niDummy.getTransistorDrainPort();
+				ports.add(addPlacementPort(niDummy, piDrain, td.drain, allNetworks, sd.exports, sd.usedExports, exportsToPlace));
+
+				PlacementNode plNode = new PlacementNode(np, "m" + td.name, bits, np.getDefWidth(), np.getDefHeight(), ports);
+				nodesToPlace.add(plNode);
+				for(PlacementPort plPort : ports)
+					plPort.setPlacementNode(plNode);
+				plNode.setOrientation(Orientation.IDENT);
+				if (td.width != null) plNode.addVariable(Schematics.ATTR_WIDTH, td.width);
+				if (td.length != null) plNode.addVariable(Schematics.ATTR_LENGTH, td.length);
 			}
 
 			// place resistors and capacitors
 			for(ResistorDef rd : sd.resistors)
 			{
-				EPoint center = new EPoint(pPos, 5);
-				pPos += 10;
 				PrimitiveNode np = Schematics.tech().resistorNode;
-				NodeInst ni = NodeInst.makeInstance(np, center, np.getDefWidth(), np.getDefHeight(),
-					cell, Orientation.IDENT, "r" + rd.name);
-				if (rd.resistance != null)
-				{
-					Variable var = ni.newDisplayVar(Schematics.SCHEM_RESISTANCE, rd.resistance);
-					TextDescriptor newTD = var.getTextDescriptor().
-						withOff(0, 0.5).withPos(TextDescriptor.Position.UP);
-					ni.setTextDescriptor(Schematics.SCHEM_RESISTANCE, newTD);
-				}
-				PortInst piSource = ni.getPortInst(0);
-				addLead(piSource, -2, 0, cell, rd.left, sd.exports, sd.usedExports);
-				PortInst piGate = ni.getPortInst(1);
-				addLead(piGate, 2, 0, cell, rd.right, sd.exports, sd.usedExports);
+				NodeInst niDummy = NodeInst.makeDummyInstance(np);
+
+				List<PlacementPort> ports = new ArrayList<PlacementPort>();
+				PortInst piSource = niDummy.getPortInst(0);
+				ports.add(addPlacementPort(niDummy, piSource, rd.left, allNetworks, sd.exports, sd.usedExports, exportsToPlace));
+				PortInst piGate = niDummy.getPortInst(1);
+				ports.add(addPlacementPort(niDummy, piGate, rd.right, allNetworks, sd.exports, sd.usedExports, exportsToPlace));
+
+				PlacementNode plNode = new PlacementNode(np, "r" + rd.name, 0, np.getDefWidth(), np.getDefHeight(), ports);
+				nodesToPlace.add(plNode);
+				for(PlacementPort plPort : ports)
+					plPort.setPlacementNode(plNode);
+				plNode.setOrientation(Orientation.IDENT);
+				if (rd.resistance != null) plNode.addVariable(Schematics.SCHEM_RESISTANCE, rd.resistance);
 			}
 			for(CapacitorDef cd : sd.capacitors)
 			{
-				EPoint center = new EPoint(nPos, -5);
-				nPos += 10;
 				PrimitiveNode np = Schematics.tech().capacitorNode;
-				NodeInst ni = NodeInst.makeInstance(np, center, np.getDefWidth(), np.getDefHeight(),
-					cell, Orientation.IDENT, "c" + cd.name);
-				if (cd.capacitance != null)
-					ni.newDisplayVar(Schematics.SCHEM_CAPACITANCE, cd.capacitance);
-				PortInst piSource = ni.getPortInst(0);
-				addLead(piSource, 0, 2, cell, cd.top, sd.exports, sd.usedExports);
-				PortInst piGate = ni.getPortInst(1);
-				addLead(piGate, 0, -2, cell, cd.bottom, sd.exports, sd.usedExports);
+				NodeInst niDummy = NodeInst.makeDummyInstance(np);
+
+				List<PlacementPort> ports = new ArrayList<PlacementPort>();
+				PortInst piSource = niDummy.getPortInst(0);
+				ports.add(addPlacementPort(niDummy, piSource, cd.top, allNetworks, sd.exports, sd.usedExports, exportsToPlace));
+				PortInst piGate = niDummy.getPortInst(1);
+				ports.add(addPlacementPort(niDummy, piGate, cd.bottom, allNetworks, sd.exports, sd.usedExports, exportsToPlace));
+
+				PlacementNode plNode = new PlacementNode(np, "c" + cd.name, 0, np.getDefWidth(), np.getDefHeight(), ports);
+				nodesToPlace.add(plNode);
+				for(PlacementPort plPort : ports)
+					plPort.setPlacementNode(plNode);
+				plNode.setOrientation(Orientation.IDENT);
+				if (cd.capacitance != null) plNode.addVariable(Schematics.SCHEM_CAPACITANCE, cd.capacitance);
 			}
 
 			// place instances
-			double iPos = 0;
 			for(InstanceDef id : sd.instances)
 			{
 				SubcktDef subSD = allCells.get(id.instName);
@@ -368,68 +362,250 @@ public class Spice extends Input
 					continue;
 				}
 				Cell np = subSD.iconCell;
-				EPoint center = new EPoint(iPos, -10-np.getDefHeight());
-				iPos += 30;
-				NodeInst ni = NodeInst.makeInstance(np, center, np.getDefWidth(), np.getDefHeight(), cell);
-				ni.setName(id.name.replace('@', '_'));
-				TextDescriptor newTD = ni.getTextDescriptor(NodeInst.NODE_NAME).
-					withOff(1, -1).withPos(TextDescriptor.Position.DOWN);
-				ni.setTextDescriptor(NodeInst.NODE_NAME, newTD);
+				NodeInst niDummy = NodeInst.makeDummyInstance(np);
 				if (subSD.exports.size() != id.signals.size())
 				{
 					System.out.println("Error: Subcircuit " + id.instName + " has " + subSD.exports.size() +
-						" exports but instance " + id.name + " of it in cell " + cell.describe(false) +
+						" exports but instance " + id.name + " of it in cell " + name + "{sch}" +
 						" has " + id.signals.size() + " signals on it");
 					continue;
 				}
+				List<PlacementPort> ports = new ArrayList<PlacementPort>();
 				for(int i=0; i<subSD.exports.size(); i++)
 				{
 					PortProto pp = subSD.iconCell.findPortProto(subSD.exports.get(i));
 					if (pp == null) continue;
-					PortInst pi = ni.findPortInstFromProto(pp);
+					PortInst pi = niDummy.findPortInstFromProto(pp);
 					String sigName = id.signals.get(i);
-					addLead(pi, -2, 0, cell, sigName, sd.exports, sd.usedExports);
+					ports.add(addPlacementPort(niDummy, pi, sigName, allNetworks, sd.exports, sd.usedExports, exportsToPlace));
 				}
+
+				PlacementNode plNode = new PlacementNode(np, id.name.replace('@', '_'), 0, np.getDefWidth(), np.getDefHeight(), ports);
+				nodesToPlace.add(plNode);
+				for(PlacementPort plPort : ports)
+					plPort.setPlacementNode(plNode);
+				plNode.setOrientation(Orientation.IDENT);
 			}
 
 			// add dummy pins for unused exports
-			double dummyPos = 30;
 			for(String export : sd.exports)
 			{
 				if (sd.usedExports.contains(export)) continue;
-				EPoint ctr = new EPoint(dummyPos, 15);
-				dummyPos += 10;
 				PrimitiveNode np = Schematics.tech().wirePinNode;
-				NodeInst ni = NodeInst.makeInstance(np, ctr, np.getDefWidth(), np.getDefHeight(), cell);
-				Export.newInstance(cell, ni.getOnlyPortInst(), export, PortCharacteristic.UNKNOWN);
+				NodeInst niDummy = NodeInst.makeDummyInstance(np);
+				List<PlacementPort> ports = new ArrayList<PlacementPort>();
+				PortInst pi = niDummy.getPortInst(0);
+				ports.add(addPlacementPort(niDummy, pi, export, allNetworks, sd.exports, sd.usedExports, exportsToPlace));
+
+				PlacementNode plNode = new PlacementNode(np, null, 0, np.getDefWidth(), np.getDefHeight(), ports);
+				nodesToPlace.add(plNode);
+				for(PlacementPort plPort : ports)
+					plPort.setPlacementNode(plNode);
+				plNode.setOrientation(Orientation.IDENT);
 			}
+
+			// make a list of PlacementNetworks
+			List<PlacementNetwork> nets = new ArrayList<PlacementNetwork>();
+			for(String netName : allNetworks.keySet())
+			{
+				PlacementNetwork net = allNetworks.get(netName);
+				for(PlacementPort port : net.getPortsOnNet())
+					port.setPlacementNetwork(net);
+				if (net.getPortsOnNet() == null || net.getPortsOnNet().size() <= 1) continue;
+				nets.add(net);
+			}
+
+			// run placement
+			PlacementPreferences prefs = new PlacementPreferences(false);
+			prefs.placementAlgorithm = localPrefs.placementAlgorithm;
+			PlacementFrame pla = Placement.getCurrentPlacementAlgorithm(prefs);
+			pla.doPlacement(lib, name + "{sch}", nodesToPlace, nets, exportsToPlace, sd.iconCell);
+
+			// the old way...
+//			Cell cell = Cell.makeInstance(lib, name + "{sch}");
+//			if (sd.iconCell != null)
+//			{
+//				EPoint center = new EPoint(0, 15);
+//				NodeInst.makeInstance(sd.iconCell, center, sd.iconCell.getDefWidth(), sd.iconCell.getDefHeight(), cell);
+//			}
+//
+//			// place transistors
+//			double pPos = 0, nPos = 0;
+//			for(TransistorDef td : sd.transistors)
+//			{
+//				EPoint center = null;
+//				PrimitiveNode.Function func = null;
+//				if (td.type.equals("p"))
+//				{
+//					center = new EPoint(pPos, 5);
+//					pPos += 10;
+//					func = PrimitiveNode.Function.TRAPMOS;
+//				} else
+//				{
+//					center = new EPoint(nPos, -5);
+//					nPos += 10;
+//					func = PrimitiveNode.Function.TRANMOS;
+//				}
+//				PrimitiveNode np = Schematics.tech().transistorNode;
+//				Orientation o = Orientation.R;
+//				NodeInst ni = NodeInst.makeInstance(np, center, np.getDefWidth(), np.getDefHeight(),
+//					cell, o, "m" + td.name, func);
+//				TextDescriptor tdesc = TextDescriptor.newTextDescriptor(MutableTextDescriptor.getNodeTextDescriptor());
+//		        TextDescriptor.Rotation r = TextDescriptor.Rotation.getRotation(270);
+//				ni.setTextDescriptor(NodeInst.NODE_NAME, tdesc.withRotation(r).withPos(TextDescriptor.Position.DOWNLEFT));
+//				if (td.width != null)
+//				{
+//					Variable var = ni.newDisplayVar(Schematics.ATTR_WIDTH, td.width);
+//					TextDescriptor newTD = var.getTextDescriptor().
+//						withRotation(r).withOff(0.5, -0.5).withRelSize(1).withPos(TextDescriptor.Position.DOWN);
+//					ni.setTextDescriptor(Schematics.ATTR_WIDTH, newTD);
+//				}
+//				if (td.length != null)
+//				{
+//					Variable var = ni.newDisplayVar(Schematics.ATTR_LENGTH, td.length);
+//					TextDescriptor newTD = var.getTextDescriptor().
+//						withRotation(r).withOff(-0.5, -0.75).withRelSize(0.5).withPos(TextDescriptor.Position.DOWN);
+//					ni.setTextDescriptor(Schematics.ATTR_LENGTH, newTD);
+//				}
+//				PortInst piSource = ni.getTransistorSourcePort();
+//				addLead(piSource, 0, -2, cell, td.source, sd.exports, sd.usedExports);
+//				PortInst piGate = ni.getTransistorGatePort();
+//				addLead(piGate, -2, 0, cell, td.gate, sd.exports, sd.usedExports);
+//				PortInst piDrain = ni.getTransistorDrainPort();
+//				addLead(piDrain, 0, 2, cell, td.drain, sd.exports, sd.usedExports);
+//			}
+//
+//			// place resistors and capacitors
+//			for(ResistorDef rd : sd.resistors)
+//			{
+//				EPoint center = new EPoint(pPos, 5);
+//				pPos += 10;
+//				PrimitiveNode np = Schematics.tech().resistorNode;
+//				NodeInst ni = NodeInst.makeInstance(np, center, np.getDefWidth(), np.getDefHeight(),
+//					cell, Orientation.IDENT, "r" + rd.name);
+//				if (rd.resistance != null)
+//				{
+//					Variable var = ni.newDisplayVar(Schematics.SCHEM_RESISTANCE, rd.resistance);
+//					TextDescriptor newTD = var.getTextDescriptor().
+//						withOff(0, 0.5).withPos(TextDescriptor.Position.UP);
+//					ni.setTextDescriptor(Schematics.SCHEM_RESISTANCE, newTD);
+//				}
+//				PortInst piSource = ni.getPortInst(0);
+//				addLead(piSource, -2, 0, cell, rd.left, sd.exports, sd.usedExports);
+//				PortInst piGate = ni.getPortInst(1);
+//				addLead(piGate, 2, 0, cell, rd.right, sd.exports, sd.usedExports);
+//			}
+//			for(CapacitorDef cd : sd.capacitors)
+//			{
+//				EPoint center = new EPoint(nPos, -5);
+//				nPos += 10;
+//				PrimitiveNode np = Schematics.tech().capacitorNode;
+//				NodeInst ni = NodeInst.makeInstance(np, center, np.getDefWidth(), np.getDefHeight(),
+//					cell, Orientation.IDENT, "c" + cd.name);
+//				if (cd.capacitance != null)
+//					ni.newDisplayVar(Schematics.SCHEM_CAPACITANCE, cd.capacitance);
+//				PortInst piSource = ni.getPortInst(0);
+//				addLead(piSource, 0, 2, cell, cd.top, sd.exports, sd.usedExports);
+//				PortInst piGate = ni.getPortInst(1);
+//				addLead(piGate, 0, -2, cell, cd.bottom, sd.exports, sd.usedExports);
+//			}
+//
+//			// place instances
+//			double iPos = 0;
+//			for(InstanceDef id : sd.instances)
+//			{
+//				SubcktDef subSD = allCells.get(id.instName);
+//				if (subSD == null)
+//				{
+//					System.out.println("Cannot find subcircuit "+id.instName);
+//					continue;
+//				}
+//				Cell np = subSD.iconCell;
+//				EPoint center = new EPoint(iPos, -10-np.getDefHeight());
+//				iPos += 30;
+//				NodeInst ni = NodeInst.makeInstance(np, center, np.getDefWidth(), np.getDefHeight(), cell);
+//				ni.setName(id.name.replace('@', '_'));
+//				TextDescriptor newTD = ni.getTextDescriptor(NodeInst.NODE_NAME).
+//					withOff(1, -1).withPos(TextDescriptor.Position.DOWN);
+//				ni.setTextDescriptor(NodeInst.NODE_NAME, newTD);
+//				if (subSD.exports.size() != id.signals.size())
+//				{
+//					System.out.println("Error: Subcircuit " + id.instName + " has " + subSD.exports.size() +
+//						" exports but instance " + id.name + " of it in cell " + cell.describe(false) +
+//						" has " + id.signals.size() + " signals on it");
+//					continue;
+//				}
+//				for(int i=0; i<subSD.exports.size(); i++)
+//				{
+//					PortProto pp = subSD.iconCell.findPortProto(subSD.exports.get(i));
+//					if (pp == null) continue;
+//					PortInst pi = ni.findPortInstFromProto(pp);
+//					String sigName = id.signals.get(i);
+//					addLead(pi, -2, 0, cell, sigName, sd.exports, sd.usedExports);
+//				}
+//			}
+//
+//			// add dummy pins for unused exports
+//			double dummyPos = 30;
+//			for(String export : sd.exports)
+//			{
+//				if (sd.usedExports.contains(export)) continue;
+//				EPoint ctr = new EPoint(dummyPos, 15);
+//				dummyPos += 10;
+//				PrimitiveNode np = Schematics.tech().wirePinNode;
+//				NodeInst ni = NodeInst.makeInstance(np, ctr, np.getDefWidth(), np.getDefHeight(), cell);
+//				Export.newInstance(cell, ni.getOnlyPortInst(), export, PortCharacteristic.UNKNOWN);
+//			}
 		}
 	}
 
-	private void addLead(PortInst pi, double dX, double dY, Cell cell, String name, List<String> exports, Set<String> usedExports)
+	private PlacementPort addPlacementPort(NodeInst ni, PortInst pi, String name, Map<String,PlacementNetwork> allNetworks,
+		List<String> exports, Set<String> usedExports, List<PlacementExport> exportsToPlace)
 	{
-		EPoint ctr1 = pi.getCenter();
-		EPoint ctr2 = new EPoint(ctr1.getX()+dX, ctr1.getY()+dY);
+		PlacementNetwork net = allNetworks.get(name);
+		if (net == null) allNetworks.put(name, net = new PlacementNetwork(new ArrayList<PlacementPort>()));
+		List<PlacementPort> portsOnNet = net.getPortsOnNet();
 
-		PrimitiveNode np = Schematics.tech().wirePinNode;
-		NodeInst ni = NodeInst.makeInstance(np, ctr2, np.getDefWidth(), np.getDefHeight(), cell);
-		ArcProto ap = Schematics.tech().wire_arc;
-		PortInst pi2 = ni.getOnlyPortInst();
-		ArcInst ai = ArcInst.makeInstance(ap, pi, pi2);
+		Poly poly = pi.getPoly();
+		double offX = poly.getCenterX() - ni.getTrueCenterX();
+		double offY = poly.getCenterY() - ni.getTrueCenterY();
+		PlacementPort plPort = new PlacementPort(offX, offY, pi.getPortProto());
+		portsOnNet.add(plPort);
 
-		name = name.replace('@', '_');
+		// see if this port is exported
 		if (exports.contains(name) && !usedExports.contains(name))
 		{
 			usedExports.add(name);
-			Export.newInstance(cell, pi2, name, PortCharacteristic.UNKNOWN);
-		} else
-		{
-			ai.setName(name);
-			TextDescriptor.Position p = (dX == 0) ? TextDescriptor.Position.LEFT : TextDescriptor.Position.DOWN;
-			TextDescriptor newTD = ai.getTextDescriptor(ArcInst.ARC_NAME).withPos(p);
-			ai.setTextDescriptor(ArcInst.ARC_NAME, newTD);
+			PlacementExport plExport = new PlacementExport(plPort, name, PortCharacteristic.UNKNOWN);
+			exportsToPlace.add(plExport);
 		}
+		return plPort;
 	}
+
+//	private void addLead(PortInst pi, double dX, double dY, Cell cell, String name, List<String> exports, Set<String> usedExports)
+//	{
+//		EPoint ctr1 = pi.getCenter();
+//		EPoint ctr2 = new EPoint(ctr1.getX()+dX, ctr1.getY()+dY);
+//
+//		PrimitiveNode np = Schematics.tech().wirePinNode;
+//		NodeInst ni = NodeInst.makeInstance(np, ctr2, np.getDefWidth(), np.getDefHeight(), cell);
+//		ArcProto ap = Schematics.tech().wire_arc;
+//		PortInst pi2 = ni.getOnlyPortInst();
+//		ArcInst ai = ArcInst.makeInstance(ap, pi, pi2);
+//
+//		name = name.replace('@', '_');
+//		if (exports.contains(name) && !usedExports.contains(name))
+//		{
+//			usedExports.add(name);
+//			Export.newInstance(cell, pi2, name, PortCharacteristic.UNKNOWN);
+//		} else
+//		{
+//			ai.setName(name);
+//			TextDescriptor.Position p = (dX == 0) ? TextDescriptor.Position.LEFT : TextDescriptor.Position.DOWN;
+//			TextDescriptor newTD = ai.getTextDescriptor(ArcInst.ARC_NAME).withPos(p);
+//			ai.setTextDescriptor(ArcInst.ARC_NAME, newTD);
+//		}
+//	}
 
 	private String lastLine = null;
 

@@ -138,7 +138,7 @@ public class Placement extends Tool
 	 * This is a requested subclass of PlacementFrame.
 	 * @return the current Placement algorithm.
 	 */
-	private static PlacementFrame getCurrentPlacementAlgorithm(PlacementPreferences prefs)
+	public static PlacementFrame getCurrentPlacementAlgorithm(PlacementPreferences prefs)
 	{
 		String algName = prefs.placementAlgorithm;
 		for(PlacementFrame pfObj : PlacementFrame.getPlacementAlgorithms())
