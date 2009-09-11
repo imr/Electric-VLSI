@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.10h: *******************************
+
 ************************* Version 8.10g: *******************************
 
 IMP: Ability to duplicate cells in anoter cell (for Bug #2023 investigation)
