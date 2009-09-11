@@ -113,7 +113,11 @@ public class UserInterfaceExec implements UserInterface {
 
     // ErrorLogger related functions
     public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate) {
-        throw new UnsupportedOperationException();
+        if (jobKey.doItOnServer) {
+            Client.fireServerEvent(new Client.TermLoggingEvent(logger, explain, terminate));
+        } else {
+            Job.currentUI.termLogging(logger, explain, terminate);
+        }
     }
 
     /**
