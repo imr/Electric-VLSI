@@ -706,7 +706,7 @@ public class CellMenu {
 					JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[] {"Yes", "Cancel"}, "Yes");
 				if (response != 0) return;
 			}
-			new CellChangeJobs.DuplicateCell(cell, newName, allInGroup);
+			new CellChangeJobs.DuplicateCell(cell, newName, cell.getLibrary(), allInGroup, false);
 		}
 	}
 

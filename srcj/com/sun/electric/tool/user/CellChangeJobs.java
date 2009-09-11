@@ -1226,30 +1226,41 @@ public class CellChangeJobs
 	public static class DuplicateCell extends Job
 	{
 		private Cell cell;
-		private String newName;
+        private Library destLib;
+        private String newName;
 		private boolean entireGroup;
 		private Cell dupCell;
+        private boolean startNow;
 
-		public DuplicateCell(Cell cell, String newName, boolean entireGroup)
+        public DuplicateCell(Cell cell, String newName, Library lib, boolean entireGroup, boolean startN)
 		{
 			super("Duplicate " + cell, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newName = newName;
-			this.entireGroup = entireGroup;
-			startJob();
+            this.destLib = lib;
+            this.entireGroup = entireGroup;
+            this.startNow = startN;
+            if (startNow)
+            {
+                // mainly due to regressions
+                try {doIt(); } catch (Exception e) {e.printStackTrace();}
+            }
+            else
+                startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
 			Map<Cell,Cell> newCells = new HashMap<Cell,Cell>();
 			String newCellName = newName + cell.getView().getAbbreviationExtension();
-			dupCell = Cell.copyNodeProto(cell, cell.getLibrary(), newCellName, false);
+			dupCell = Cell.copyNodeProto(cell, destLib, newCellName, false);
 			if (dupCell == null) {
 				System.out.println("Could not duplicate "+cell);
 				return false;
 			}
 			newCells.put(cell, dupCell);
-			fieldVariableChanged("dupCell");
+            if (!startNow)
+                fieldVariableChanged("dupCell");
 
 			System.out.println("Duplicated cell "+cell+".  New cell is "+dupCell+".");
 
