@@ -51,6 +51,17 @@ import com.sun.electric.tool.btree.unboxed.*;
  *  yet support situations where a single page is too small for one
  *  key and one value.
  *
+ *  You must distinguish between insert() and replace() ahead of time;
+ *  you can't call insert() on a key that is already in the tree or
+ *  replace() on one that isn't.  This lets us update the interior
+ *  node invariants as we walk down the tree and avoid having to walk
+ *  back up afterwards.  If you're not sure if a key is in the tree,
+ *  just do a get() -- the net result is two passes over the tree,
+ *  which is what we'd have to do anyways if the user didn't
+ *  distinguish insert() from replace().  We're just offering the option
+ *  to double the performance in the case where the user already knows
+ *  if the key is in the tree or not.
+ *
  *  The coding style in this file is pretty unusual; it looks a lot
  *  like "Java as a better C".  This is mainly because Hotspot is
  *  remarkably good at inlining methods, but remarkably bad (still,
@@ -106,14 +117,53 @@ public class BTree
         leafNodeCursor.writeBack();
     }
 
-    public V get(K key) {
-        uk.serialize(key, keybuf, 0);
-        return walk(keybuf, 0, null, false);
+    private int size = 0;
+    public int  size() {
+        return size;
     }
 
-    public void put(K key, V val) {
+    /** returns the value in the tree, or null if not found */
+    public V get(K key) {
         uk.serialize(key, keybuf, 0);
-        walk(keybuf, 0, val, true);
+        return walk(keybuf, 0, null, Op.GET);
+    }
+
+    /** returns the least key greater than  */
+    public V getNext(K key) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public V getPrev(K key) {
+        throw new RuntimeException("not implemented");
+    }
+
+    /** returns the i^th key in the tree */
+    /*
+    public K get(int i) {
+        throw new RuntimeException("not implemented");
+    }
+    */
+
+    /** will throw an exception if the key is already in the tree */
+    public void insert(K key, V val) {
+        uk.serialize(key, keybuf, 0);
+        walk(keybuf, 0, val, Op.INSERT);
+        size++;
+    }
+
+    /** returns value previously in the tree; will throw an exception if the key is not already in the tree */
+    public V remove(K key) {
+        throw new RuntimeException("not implemented");
+    }
+
+    /** returns value previously in the tree; will throw an exception if the key is not already in the tree */
+    public V replace(K key, V val) {
+        uk.serialize(key, keybuf, 0);
+        return walk(keybuf, 0, val, Op.REPLACE);
+    }
+    
+    private static enum Op {
+        GET, GET_NEXT, GET_PREV, REMOVE, INSERT, REPLACE
     }
     
 
@@ -129,8 +179,9 @@ public class BTree
      *  on stack inspection).
      *
      *  On writes/deletes, this returns the previous value.
+     *
      */
-    private V walk(byte[] key, int key_ofs, V val, boolean isPut) {
+    private V walk(byte[] key, int key_ofs, V val, Op op) {
         int pageid = rootpage;
         int idx = -1;
 
@@ -142,7 +193,7 @@ public class BTree
         boolean cheat = false;
         int comp = 0;
 
-        if (largestKeyPage != -1 && isPut) {
+        if (largestKeyPage != -1 && op==Op.INSERT) {
             byte[] buf = ps.readPage(largestKeyPage, null, 0);
             leafNodeCursor.setBuf(largestKeyPage, buf);
             comp = uk.compare(key, key_ofs, largestKey, 0);
@@ -160,7 +211,7 @@ public class BTree
             cur = LeafNodeCursor.isLeafNode(buf) ? leafNodeCursor : interiorNodeCursor;
             cur.setBuf(pageid, buf);
 
-            if (isPut && cur.isFull()) {
+            if ((op==Op.INSERT || op==Op.REPLACE) && cur.isFull()) {
                 assert cur!=parentNodeCursor;
                 if (pageid == rootpage) {
                     parentNodeCursor.initRoot(new byte[ps.getPageSize()]);
@@ -187,7 +238,9 @@ public class BTree
                 comp = cur.compare(key, key_ofs, idx);
             }
             if (cur.isLeafNode()) {
-                if (!isPut) return comp==0 ? leafNodeCursor.getVal(idx) : null;
+                if (op==Op.GET) return comp==0 ? leafNodeCursor.getVal(idx) : null;
+                if (op==Op.INSERT && comp==0) throw new RuntimeException("attempt to re-insert a value");
+                if (op==Op.REPLACE && comp!=0) throw new RuntimeException("attempt to replace a value that did not exist");
                 if (cheat) hits++; else misses++;
                 if (largestKeyPage==-1 || cheat)
                     System.arraycopy(key, key_ofs, largestKey, 0, largestKey.length);
@@ -199,7 +252,7 @@ public class BTree
                 leafNodeCursor.insertVal(idx+1, key, key_ofs, val);
                 return null;
             } else {
-                if (isPut && val==null)
+                if (op!=Op.GET && val==null)
                     throw new RuntimeException("need to adjust 'least value under X' on the way down for deletions");
                 pageid = interiorNodeCursor.getChildPageId(idx);
                 InteriorNodeCursor<K,V,S> ic = interiorNodeCursor; interiorNodeCursor = parentNodeCursor; parentNodeCursor = ic;
@@ -214,15 +267,9 @@ public class BTree
 
     //////////////////////////////////////////////////////////////////////////////
 
-    /** returns the first key, or null if tree is empty */                 public K    first() { throw new RuntimeException("not implemented"); }
-    /** returns the last key, or null if tree is empty */                  public K    last() { throw new RuntimeException("not implemented"); }
-    /** returns the least key which is greater than the one given */       public K    next(K key) { throw new RuntimeException("not implemented"); }
-    /** returns the greatest key which is less than the one given */       public K    prev(K key) { throw new RuntimeException("not implemented"); }
-
-    /** no error if key doesn't exist */                                   public void remove(K key) { throw new RuntimeException("not implemented"); }
     /** remove all entries */                                              public void clear() { throw new RuntimeException("not implemented"); }
 
-    /** returns the number of keys in the BTree */                         public int  size() { throw new RuntimeException("not implemented"); }
+
     /** returns the number of keys strictly after the one given */         public int  sizeAfter(K key) { throw new RuntimeException("not implemented"); }
     /** returns the number of keys strictly after the one given */         public int  sizeBefore(K key) { throw new RuntimeException("not implemented"); }
 
@@ -295,8 +342,18 @@ public class BTree
 
                 case 1: { // put
                     int val = rand.nextInt();
-                    if (do_tm) tm.put(key, val);
-                    if (do_bt) btree.put(key, val);
+                    boolean already_there = false;
+                    if (do_tm) {
+                        if (do_bt) already_there = tm.get(key)!=null;
+                        tm.put(key, val);
+                    }
+                    if (do_bt) {
+                        if (!do_tm) already_there = btree.get(key)!=null;
+                        if (already_there)
+                            btree.replace(key, val);
+                        else
+                            btree.insert(key, val);
+                    }
                     puts++;
                     break;
                 }

@@ -478,7 +478,7 @@ public class NewEpicAnalysis extends AnalogAnalysis {
             double value = v * valueResolution;
             if (value < minValue) { minValue = value; evmin = count; }
             if (value > maxValue) { maxValue = value; evmax = count; }
-            tree.put(count, new Pair<Double,Double>(t*timeResolution, value));
+            tree.insert(count, new Pair<Double,Double>(t*timeResolution, value));
             long now1 = System.currentTimeMillis();
             if (now1-last > 500) {
                 last = now1;
