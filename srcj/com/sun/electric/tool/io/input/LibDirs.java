@@ -116,8 +116,10 @@ public class LibDirs {
                     lineNumber++;
                 }
             }
+            in.close();
         } catch (IOException e) {
-            System.out.println("IOError "+e.getMessage());
+            error = true;
+//            System.out.println("IOError "+e.getMessage());
         }
         return error;
     }

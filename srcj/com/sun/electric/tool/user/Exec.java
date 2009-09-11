@@ -55,6 +55,7 @@ public class Exec extends Thread {
         private InputStream in;
         private OutputStream redirect;
         private char [] buf;
+        private final UserInterfaceExec userInterface = new UserInterfaceExec();
 
         /**
          * Create a stream reader that will read from the stream
@@ -78,7 +79,11 @@ public class Exec extends Thread {
         }
 
         public void run() {
-            try {
+                if (Thread.currentThread() == this) {
+//                    Environment.setThreadEnvironment(launcherEnvironment);
+                    Job.setUserInterface(userInterface);
+                }
+                    try {
                 PrintWriter pw = null;
                 if (redirect != null) pw = new PrintWriter(redirect);
 

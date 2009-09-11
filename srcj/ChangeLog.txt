@@ -5,7 +5,8 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 8.10g: *******************************
 
 BUG: (9/10/09, DN) Cannot run calibre DRC (Bug #2379).
-FIX: Implement UserInterfaceExec.termLogging while discussing with Jon and Adam other solution.
+FIX: Implement UserInterfaceExec.termLogging and Exec.ExecProcess.userInterface
+     while discussing with Jon and Adam other solution.
 
 BUG: (9/10/09, AM) EditWindow.java: stop pulsating timer when window
      is closed (Bug #2371)
