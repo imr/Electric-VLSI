@@ -3100,7 +3100,7 @@ public class SeaOfGatesEngine
 						pt1 = new Point2D.Double(xv+offset, yv-0.5);
 						pt2 = new Point2D.Double(xv+offset, yv+0.5);
 					}
-					wnd.addHighlightLine(pt1, pt2, cell, false);
+					wnd.addHighlightLine(pt1, pt2, cell, false, false);
 				}
 			}
 		}

@@ -5638,7 +5638,7 @@ public class Connectivity
 			List<ERectangle> lines = addedBatchLines.get(batchPosition);
 			for(ERectangle er : lines)
 				wnd.addHighlightLine(new Point2D.Double(er.getMinX(), er.getMinY()),
-					new Point2D.Double(er.getMaxX(), er.getMaxY()), cell, false);
+                                     new Point2D.Double(er.getMaxX(), er.getMaxY()), cell, false, false);
 			wnd.finishedHighlighting();
 		}
 	}

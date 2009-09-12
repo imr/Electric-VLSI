@@ -259,7 +259,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 */
 	public Highlight addLine(Point2D start, Point2D end, Cell cell)
 	{
-        Highlight h1 = new HighlightLine(cell, start, end, null, false);
+        Highlight h1 = new HighlightLine(cell, start, end, null, false, false);
         addHighlight(h1);
 		return h1;
 	}
@@ -272,9 +272,9 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param thick true for a thick line.
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight addLine(Point2D start, Point2D end, Cell cell, boolean thick)
+	public Highlight addLine(Point2D start, Point2D end, Cell cell, boolean thick, boolean isError)
 	{
-        Highlight h1 = new HighlightLine(cell, start, end, null, thick);
+        Highlight h1 = new HighlightLine(cell, start, end, null, thick, isError);
         addHighlight(h1);
 		return h1;
 	}
@@ -286,9 +286,9 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param cell the Cell in which this line resides.
 	 * @return the newly created Highlight object.
 	 */
-	public Highlight addThickLine(Point2D start, Point2D end, Cell cell)
+	public Highlight addThickLine(Point2D start, Point2D end, Cell cell, boolean isError)
 	{
-        Highlight h1 = new HighlightLine(cell, start, end, null, true);
+        Highlight h1 = new HighlightLine(cell, start, end, null, true, isError);
         addHighlight(h1);
 		return h1;
 	}
@@ -792,7 +792,7 @@ public class Highlighter implements DatabaseChangeListener {
 			{
                 HighlightLine hh = (HighlightLine)h;
                 if (hh.thickLine)
-                    addThickLine(hh.start, hh.end, cell);
+                    addThickLine(hh.start, hh.end, cell, hh.isError);
                 else
 				    addLine(hh.start, hh.end, cell);
 			} else if (h instanceof HighlightMessage) //type == Highlight.Type.MESSAGE)

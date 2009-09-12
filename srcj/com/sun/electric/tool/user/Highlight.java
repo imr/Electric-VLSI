@@ -542,13 +542,15 @@ class HighlightLine extends Highlight
 {
 	/** The highlighted line. */								protected Point2D start, end, center;
     /** The highlighted line is thick. */					    protected boolean thickLine;
-    HighlightLine(Cell c, Point2D s, Point2D e, Point2D cen, boolean thick)
+    /** The highlighted line is thick. */					    protected boolean isError;
+    HighlightLine(Cell c, Point2D s, Point2D e, Point2D cen, boolean thick, boolean isError)
     {
         super(c);
         this.start = s;
         this.end = e;
         this.center = cen;
         this.thickLine = thick;
+        this.isError = isError;
     }
 
     /** the highlight pattern will repeat itself rotationally every PULSATE_ROTATE_PERIOD milliseconds */
@@ -572,7 +574,7 @@ class HighlightLine extends Highlight
         Point2D [] points = new Point2D.Double[2];
         points[0] = new Point2D.Double(start.getX(), start.getY());
         points[1] = new Point2D.Double(end.getX(), end.getY());
-        if (User.isErrorHighlightingPulsate() && thickLine) {
+        if (User.isErrorHighlightingPulsate() && isError) {
             Graphics2D g2 = (Graphics2D)g_;
             //Color mainColor = g2.getColor();
             long now = System.currentTimeMillis();

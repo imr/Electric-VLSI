@@ -743,7 +743,7 @@ public class ClickZoomWireListener
 	                    	new Point2D.Double(minX + dbDelta.getX(), maxY + dbDelta.getY()));
 	                    Point2D end1 = new Point2D.Double(ws.getOnePoint().getX() - dbDelta.getX(), ws.getOnePoint().getY() - dbDelta.getY());
 	                    Point2D end2 = new Point2D.Double(ws.getOtherPoint().getX() - dbDelta.getX(), ws.getOtherPoint().getY() - dbDelta.getY());
-	                    moveDRC = highlighter.addLine(end1, end2, cell, tooClose);
+	                    moveDRC = highlighter.addLine(end1, end2, cell, tooClose, true);
                 	}
 	                wnd.repaint();
 	            }

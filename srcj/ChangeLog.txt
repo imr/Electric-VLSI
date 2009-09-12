@@ -6,6 +6,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10g: *******************************
 
+BUG: (9/10/09, AM) Garbled export names (Bug #2382).
+FIX: Distinguish between HighlightLine instances which correspond to
+     errors and those which do not.
+
 IMP: Ability to duplicate cells in anoter cell (for Bug #2023 investigation)
 
 BUG: (9/10/09, DN) Cannot run calibre DRC (Bug #2379).

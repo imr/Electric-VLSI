@@ -267,13 +267,13 @@ public class TechConversionResult implements Serializable
 		// first draw bold bars above/below example at the edges and center
 		Point2D pt1 = makeDisplayPoint(e, 0, exampleCtr-exampleHalfSize, xDir);
 		Point2D pt2 = makeDisplayPoint(e, singleStep, exampleCtr-exampleHalfSize, xDir);
-		wnd.addHighlightLine(pt1, pt2, cell, true);
+		wnd.addHighlightLine(pt1, pt2, cell, true, false);
 		pt1 = makeDisplayPoint(e, 0, exampleCtr+exampleHalfSize, xDir);
 		pt2 = makeDisplayPoint(e, singleStep, exampleCtr+exampleHalfSize, xDir);
-		wnd.addHighlightLine(pt1, pt2, cell, true);
+		wnd.addHighlightLine(pt1, pt2, cell, true, false);
 		pt1 = makeDisplayPoint(e, 0, exampleCtr, xDir);
 		pt2 = makeDisplayPoint(e, doubleStep, exampleCtr, xDir);
-		wnd.addHighlightLine(pt1, pt2, cell, true);
+		wnd.addHighlightLine(pt1, pt2, cell, true, false);
 
 		Rectangle2D mainSampleBounds = ns.assoc.node.getBounds();
 		Rectangle2D sampleBounds = ns.node.getBounds();
@@ -326,20 +326,20 @@ public class TechConversionResult implements Serializable
 			// now draw bar where problem is
 			pt1 = makeDisplayPoint(e, halfStep, sampleCoord, xDir);
 			pt2 = makeDisplayPoint(e, doubleStep+singleStep, sampleCoord, xDir);
-			wnd.addHighlightLine(pt1, pt2, cell, false);
+			wnd.addHighlightLine(pt1, pt2, cell, false, false);
 
 			// draw arrow from opposite edge to problem location
 			if (sampleCoord != farEnd)
 			{
 				pt1 = makeDisplayPoint(e, singleStep, farEnd, xDir);
 				pt2 = makeDisplayPoint(e, singleStep, sampleCoord, xDir);
-				wnd.addHighlightLine(pt1, pt2, cell, false);
+				wnd.addHighlightLine(pt1, pt2, cell, false, false);
 				pt1 = makeDisplayPoint(e, singleStep, sampleCoord, xDir);
 				pt2 = makeDisplayPoint(e, singleStep-singleStep/3, arrowCoord, xDir);
-				wnd.addHighlightLine(pt1, pt2, cell, false);
+				wnd.addHighlightLine(pt1, pt2, cell, false, false);
 				pt1 = makeDisplayPoint(e, singleStep, sampleCoord, xDir);
 				pt2 = makeDisplayPoint(e, singleStep+singleStep/3, arrowCoord, xDir);
-				wnd.addHighlightLine(pt1, pt2, cell, false);
+				wnd.addHighlightLine(pt1, pt2, cell, false, false);
 			}
 
 			// draw arrow from center to problem location
@@ -347,13 +347,13 @@ public class TechConversionResult implements Serializable
 			{
 				pt1 = makeDisplayPoint(e, doubleStep, exampleCtr, xDir);
 				pt2 = makeDisplayPoint(e, doubleStep, sampleCoord, xDir);
-				wnd.addHighlightLine(pt1, pt2, cell, false);
+				wnd.addHighlightLine(pt1, pt2, cell, false, false);
 				pt1 = makeDisplayPoint(e, doubleStep, sampleCoord, xDir);
 				pt2 = makeDisplayPoint(e, doubleStep-singleStep/3, arrowCoord, xDir);
-				wnd.addHighlightLine(pt1, pt2, cell, false);
+				wnd.addHighlightLine(pt1, pt2, cell, false, false);
 				pt1 = makeDisplayPoint(e, doubleStep, sampleCoord, xDir);
 				pt2 = makeDisplayPoint(e, doubleStep+singleStep/3, arrowCoord, xDir);
-				wnd.addHighlightLine(pt1, pt2, cell, false);
+				wnd.addHighlightLine(pt1, pt2, cell, false, false);
 			}
 
 			// draw arrow from close edge to problem location
@@ -361,13 +361,13 @@ public class TechConversionResult implements Serializable
 			{
 				pt1 = makeDisplayPoint(e, doubleStep, closeEnd, xDir);
 				pt2 = makeDisplayPoint(e, doubleStep, sampleCoord, xDir);
-				wnd.addHighlightLine(pt1, pt2, cell, false);
+				wnd.addHighlightLine(pt1, pt2, cell, false, false);
 				pt1 = makeDisplayPoint(e, doubleStep, sampleCoord, xDir);
 				pt2 = makeDisplayPoint(e, doubleStep-singleStep/3, arrowCoordInv, xDir);
-				wnd.addHighlightLine(pt1, pt2, cell, false);
+				wnd.addHighlightLine(pt1, pt2, cell, false, false);
 				pt1 = makeDisplayPoint(e, doubleStep, sampleCoord, xDir);
 				pt2 = makeDisplayPoint(e, doubleStep+singleStep/3, arrowCoordInv, xDir);
-				wnd.addHighlightLine(pt1, pt2, cell, false);
+				wnd.addHighlightLine(pt1, pt2, cell, false, false);
 			}
 
 			// write factors

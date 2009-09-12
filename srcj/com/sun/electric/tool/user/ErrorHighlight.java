@@ -357,7 +357,7 @@ class ErrorHighLine extends ErrorHighlight {
     public void addToHighlighter(Highlighter h, EDatabase database)
     {
         Cell cell = getCell(database);
-        if (thickLine) h.addThickLine(p1, p2, cell);
+        if (thickLine) h.addThickLine(p1, p2, cell, true);
         else h.addLine(p1, p2, cell);
     }
     

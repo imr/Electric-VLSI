@@ -2851,9 +2851,9 @@ public class EditWindow extends JPanel
 		highlighter.addArea(rect, cell);
 	}
 
-	public void addHighlightLine(Point2D pt1, Point2D pt2, Cell cell, boolean thick)
+	public void addHighlightLine(Point2D pt1, Point2D pt2, Cell cell, boolean thick, boolean isError)
 	{
-		highlighter.addLine(pt1, pt2, cell, thick);
+		highlighter.addLine(pt1, pt2, cell, thick, isError);
 	}
 
 	public void addHighlightMessage(Cell cell, String message, Point2D loc)
