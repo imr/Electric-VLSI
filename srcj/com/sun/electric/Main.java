@@ -89,17 +89,18 @@ public final class Main
      * Mode of Job manager
      */
     private static enum Mode {
-        /** Full screen run of Electric. */         FULL_SCREEN,
-        /** Thread-safe full screen run. */         THREAD_SAFE,
-        /** Batch mode. */                          BATCH,
-        /** Server side. */                         SERVER,
-        /** Client side. */                         CLIENT;
+        /** Full screen run of Electric. */                                    FULL_SCREEN,
+        /** Thread-safe full screen run. */                                    THREAD_SAFE,
+        /** JonG: "I think batch mode implies 'no GUI', and nothing more." */  BATCH,
+        /** Server side. */                                                    SERVER,
+        /** Client side. */                                                    CLIENT;
     }
 
 	private Main() {}
 
     private static Mode runMode;
 
+    /** JonG: "I think batch mode implies 'no GUI', and nothing more." */
     public static boolean isBatch() {
         return runMode == Mode.BATCH;
     }
@@ -150,7 +151,7 @@ public final class Main
             System.out.println("\t-threads <numThreads>: recommended size of thread pool for Job execution.");
             System.out.println("\t-logging <filePath>: log server events in a binary file");
             System.out.println("\t-socket <socket>: socket port for client/server interaction");
-	        System.out.println("\t-batch: running in batch mode.");
+	        System.out.println("\t-batch: batch mode implies 'no GUI', and nothing more");
             System.out.println("\t-server: dump trace of snapshots");
             System.out.println("\t-client <machine name>: replay trace of snapshots");
 	        System.out.println("\t-help: this message");
