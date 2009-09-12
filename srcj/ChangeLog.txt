@@ -4,18 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
-************************* Version 8.10g: *******************************
-
-BUG: (9/10/09, AM) We need to agree on what "batch" means and how to
+BUG: (9/11/09, AM) We need to agree on what "batch" means and how to
      launch Electric in headless mode (Bug #2375).
 FIX: JonG says: "I think batch mode implies 'no GUI', and nothing
      more.".  Updated documentation and Main.java.
 
-BUG: (9/10/09, AM) Garbled export names (Bug #2382).
+BUG: (9/11/09, AM) Garbled export names (Bug #2382).
 FIX: Distinguish between HighlightLine instances which correspond to
      errors and those which do not.
 
-IMP: Ability to duplicate cells in anoter cell (for Bug #2023 investigation)
+************************* Version 8.10g: *******************************
+
+IMP (9/11/09, GVG): Ability to duplicate cells in anoter cell (for Bug #2023 investigation)
 
 BUG: (9/10/09, DN) Cannot run calibre DRC (Bug #2379).
 FIX: Implement UserInterfaceExec.termLogging and Exec.ExecProcess.userInterface
