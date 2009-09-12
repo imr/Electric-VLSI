@@ -38,7 +38,7 @@ import java.util.*;
  *  memory pressure.  Probably only usable for non-dirty pages.
  *  Probably requires previous feature.
  */
-public class CachingPageStorage implements PageStorage {
+public class CachingPageStorage extends PageStorage {
 
     private final PageStorage ps;
     private byte[][] cache = null;

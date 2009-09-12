@@ -29,24 +29,24 @@ import java.io.*;
  *  Stores and retrieves fixed-size byte sequences indexed by a page
  *  number.
  */
-public interface PageStorage {
+public abstract class PageStorage {
 
     /** returns the size, in bytes, of each page */
-    public int getPageSize();
+    public abstract int getPageSize();
 
     /** creates a new page with undefined contents; returns its pageid */
-    public int  createPage();
+    public abstract int  createPage();
 
     /** writes a page; throws an exception if the page did not exist */ 
-    public void writePage(int pageid, byte[] buf, int ofs);
+    public abstract void writePage(int pageid, byte[] buf, int ofs);
 
     /** reads a page */
-    public byte[] readPage(int pageid, byte[] buf, int ofs);
+    public abstract byte[] readPage(int pageid, byte[] buf, int ofs);
 
     /** ensure that the designated page is written to permanent storage */
-    public void flush(int pageid);
+    public abstract void flush(int pageid);
     
     /** ensure that the all pages are written to permanent storage */
-    public void flush();
-    
+    public abstract void flush();
+
 }

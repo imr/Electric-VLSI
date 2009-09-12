@@ -33,7 +33,7 @@ import java.io.*;
  *
  *  It would be nice to move towards a zero-copy architecture.
  */
-public class FilePageStorage implements PageStorage {
+public class FilePageStorage extends PageStorage {
 
     public static FilePageStorage create() throws IOException {
         File f = File.createTempFile("pagestorage", ".ebtree");
