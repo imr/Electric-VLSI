@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--ChainG: GUI JTAG utility by Eric Kim 8/1/03-->
+<!--Document type declaration for scan chain XML file
+    of Async group chip testing software.
+    For tips on reading XML, see
+    http://www.xml.com/pub/a/98/10/guide2.html and
+    http://www.xml.com/pub/a/axml/axmlintro.html. -->
+
+<!--
+ * Copyright (c) 2004,2005 by Sun Microsystems, Inc.
+ *
+ * All rights reserved. No part of this design may be reproduced stored in
+ * a retrieval system, or transmitted, in any form or by any means,
+ * electronic, mechanical, photocopying, recording, or otherwise, without
+ * prior written permission of Sun Microsystems, Inc.
+ *
+ * Sun Proprietary/Confidential.
+ *
+-->
+
+<!--Hardware part
+    Assumption: chips are listed in order of
+    appearance in chain (chip at bottom is the
+    last one on the chain and vice versa. -->
+<!ELEMENT ChainG (system, configRoot?, testplanRoot?) >
+<!ELEMENT system (comment?, chip+, scandatanets?) >
+<!ATTLIST system access CDATA "?">
+<!ATTLIST system clears CDATA "?">
+
+<!--Node chip has optional comment, contains >= 1 chain nodes. 
+    Requires text strings for node name and length of instruction
+    register -->
+<!ELEMENT chip (comment?, (chain | duplicatechain)+) >
+<!ATTLIST chip name CDATA #REQUIRED>
+<!ATTLIST chip lengthIR CDATA #REQUIRED>
+<!ATTLIST chip access CDATA #IMPLIED>
+<!ATTLIST chip clears CDATA #IMPLIED>
+
+<!--Node chain may contain any number of subchains or forloops,
+    interleaved in any order. Length has no default, not required-->
+<!ELEMENT chain (comment?, ((subchain | forloop)*) )>
+<!ATTLIST chain name CDATA #REQUIRED>
+<!ATTLIST chain opcode CDATA #REQUIRED>
+<!ATTLIST chain length CDATA #IMPLIED>
+<!ATTLIST chain access CDATA #IMPLIED>
+<!ATTLIST chain clears CDATA #IMPLIED>
+
+<!--A leaf node should have a valid length.  Any length value provided
+    for a stem (non-leaf)
+    node will be ignored by program.  A subchain node can contain any
+    number of subchains or forloops. -->
+<!ELEMENT subchain (comment?, ((subchain | forloop)*) )>
+<!ATTLIST subchain name CDATA #REQUIRED>
+<!ATTLIST subchain length CDATA #IMPLIED>
+<!ATTLIST subchain access CDATA #IMPLIED>
+<!ATTLIST subchain clears CDATA #IMPLIED>
+<!ATTLIST subchain pin CDATA #IMPLIED>
+<!ATTLIST subchain dataNet CDATA #IMPLIED>
+<!ATTLIST subchain dataNet2 CDATA #IMPLIED>
+<!ATTLIST subchain dataNetBar CDATA #IMPLIED>
+
+<!ELEMENT comment (#PCDATA)>
+
+<!--A duplicate chain is an existing chain with a different opcode -->
+<!ELEMENT duplicatechain (comment?) >
+<!ATTLIST duplicatechain name CDATA #REQUIRED>
+<!ATTLIST duplicatechain opcode CDATA #REQUIRED>
+<!ATTLIST duplicatechain sameas CDATA #REQUIRED>
+
+<!--Node for defines an integer-index for() loop.  Requires initial,
+    final index values.  Increment parameter is optional, defaults to 1.
+    If specified, it must be greater than zero. -->
+<!ELEMENT forloop (comment?, subchain+)>
+<!ATTLIST forloop initial CDATA #REQUIRED>
+<!ATTLIST forloop final CDATA #REQUIRED>
+<!ATTLIST forloop increment CDATA "1">
+
+<!--setting chain and bit sequence-->
+<!ELEMENT configRoot (config*)>
+<!ELEMENT config (comment?, operator*, config*)>
+<!ATTLIST config name CDATA #REQUIRED>
+
+<!-- operator list 
+set bitposition
+clear startIndex:endIndex
+flip startIndex:endIndex:step
+-->
+<!ELEMENT operator (#PCDATA)>
+<!ATTLIST operator name CDATA #REQUIRED>
+<!ATTLIST operator argv CDATA #REQUIRED>
+
+<!--interact with chips via JTAG interface -->
+<!ELEMENT testplanRoot (loop|testplan)*>
+<!ELEMENT testplan (comment?, (command|testplan|loop)*)>
+<!ATTLIST testplan name CDATA #REQUIRED>
+
+<!--
+loop __variable__, startIndex:endIndex:step
+-->
+<!ELEMENT loop (comment?, (command|testplan|loop)+)>
+<!ATTLIST loop name CDATA #REQUIRED>
+<!ATTLIST loop argv CDATA #REQUIRED>
+
+<!--
+Removed data nets from bit chain description in <chain> section
+into own section, called <datanets>
+-->
+<!ELEMENT scandatanets (comment?, datachain+)>
+
+<!--
+A chain of data nets that correspond to a scan chain (<chain>)
+-->
+<!ELEMENT datachain (comment?, datanet+)>
+<!ATTLIST datachain name CDATA #REQUIRED>
+
+<!--
+A list of scan chain elements and their data nets.
+These are the nets that are written to or read from during
+write/read of the scan chain
+-->
+<!ELEMENT datanet (comment?)>
+<!ATTLIST datanet name CDATA #REQUIRED>
+<!ATTLIST datanet net CDATA #IMPLIED>
+<!ATTLIST datanet net2 CDATA #IMPLIED>
+
+<!-- Future work -->
+<!-- * current implementation is weak for boundary scan(IO pin) -->
+<!-- * chain might need more element about IO direction  -->
+<!-- * support for sample/preload and extest operation -->

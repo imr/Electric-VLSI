@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+BUG: (9/14/09, AM) Merge com.sun.async.test.* into Electric codebase
+     (Bug #2347).  As discussed with SMR (in person), JKG (in person),
+     GVG (on phone), and DN (on phone).
+FIX: After appropriate massaging, check former contents of
+     /proj/async/cad/cvs/test/ into electric/srcj/com/sun/async/test/.
+     Please see the package.html for details.  I have also
+     write-protected the old CVS repo so people don't accidentally
+     check in anything new (any changes should go in here now).
+
 IMP/MAN: (9/14/09, SMR) "Manipulate Exports" now lets you change the name and
      characteristic of an export (Bug #2383).
 
