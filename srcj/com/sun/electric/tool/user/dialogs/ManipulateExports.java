@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
@@ -35,6 +36,7 @@ import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Component;
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -44,9 +46,12 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.DefaultCellEditor;
+import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
@@ -81,7 +86,15 @@ public class ManipulateExports extends EDialog
 			tc = getColumn(getColumnName(2));
 			if (tc != null) tc.setPreferredWidth(100);
 			tc = getColumn(getColumnName(3));
-			if (tc != null) tc.setPreferredWidth(80);
+			if (tc != null)
+			{
+				tc.setPreferredWidth(80);
+				List<PortCharacteristic> chars = PortCharacteristic.getOrderedCharacteristics();
+				PortCharacteristic [] charNames = new PortCharacteristic[chars.size()];
+				for(int i=0; i<chars.size(); i++) charNames[i] = chars.get(i);
+				tc.setCellRenderer(new CellComboBoxRenderer(charNames));
+				tc.setCellEditor(new CellComboBoxEditor(charNames));
+			}
 			tc = getColumn(getColumnName(4));
 			if (tc != null) tc.setPreferredWidth(20);
 		}
@@ -109,6 +122,40 @@ public class ManipulateExports extends EDialog
 		public void showSelected() { model.showSelected(); }
 	}
 
+	public class CellComboBoxEditor extends DefaultCellEditor
+	{
+		public CellComboBoxEditor(Object[] items)
+		{
+			super(new JComboBox(items));
+		}
+	}
+
+	public class CellComboBoxRenderer extends JComboBox implements TableCellRenderer
+	{
+		public CellComboBoxRenderer(Object[] items)
+		{
+			super(items);
+		}
+
+		public Component getTableCellRendererComponent(JTable table, Object value,
+			boolean isSelected, boolean hasFocus, int row, int column)
+		{
+			if (isSelected)
+			{
+				setForeground(table.getSelectionForeground());
+				super.setBackground(table.getSelectionBackground());
+			} else
+			{
+				setForeground(table.getForeground());
+				setBackground(table.getBackground());
+			}
+
+			// Select the current value
+			setSelectedItem(value);
+			return this;
+		}
+	}
+
 	/**
 	 * Model for storing Table data
 	 */
@@ -120,9 +167,16 @@ public class ManipulateExports extends EDialog
 		private class ExportEntry
 		{
 			private boolean selected;
+			private String name;
+			private PortCharacteristic ch;
 			private Export e;
 
-			private ExportEntry(Export e) { this.e = e; }
+			private ExportEntry(Export e)
+			{
+				this.e = e;
+				this.name = e.getName();
+				this.ch = e.getCharacteristic();
+			}
 
 			private Export getExport() { return e; }
 
@@ -163,16 +217,16 @@ public class ManipulateExports extends EDialog
 						if (b1) return 1;
 						return -1;
 					case 1:		// name
-						s1 = p1.getExport().getName();
-						s2 = p2.getExport().getName();
+						s1 = p1.name;
+						s2 = p2.name;
 						break;
 					case 2:		// layer
 						s1 = getLayer(p1.getExport());
 						s2 = getLayer(p2.getExport());
 						break;
 					case 3:		// characteristics
-						s1 = p1.getExport().getCharacteristic().getName();
-						s2 = p2.getExport().getCharacteristic().getName();
+						s1 = p1.ch.getName();
+						s2 = p2.ch.getName();
 						return s1.compareTo(s2);
 					case 4:		// body-only
 						b1 = p1.getExport().isBodyOnly();
@@ -281,14 +335,13 @@ public class ManipulateExports extends EDialog
 				case 0: return Boolean.valueOf(pe.isSelected());
 
 				// name
-				case 1: return pe.getExport().getName();
+				case 1: return pe.name;
 
 				// layer
-				case 2:
-					return getLayer(pe.getExport());
+				case 2: return getLayer(pe.getExport());
 
 				// characteristic
-				case 3: return pe.getExport().getCharacteristic().getName();
+				case 3: return pe.ch;
 
 				// body-only
 				case 4: return Boolean.valueOf(pe.getExport().isBodyOnly());
@@ -338,7 +391,7 @@ public class ManipulateExports extends EDialog
 		/** Method to determine whether a cell is editable. */
 		public boolean isCellEditable(int row, int col)
 		{
-			if (col == 0) return true;
+			if (col == 0 || col == 1 || col == 3) return true;
 			return false;
 		}
 
@@ -348,13 +401,29 @@ public class ManipulateExports extends EDialog
 			ExportEntry ve = exports.get(row);
 			if (ve == null) return;
 
-			if (col != 0) return;
-
-			Boolean b = (Boolean)aValue;
-			if (ve.isSelected() != b.booleanValue())
+			if (col == 0)
 			{
-				ve.setSelected(b.booleanValue());
-				fireTableCellUpdated(row, col);
+				// change the "checked" state of the export
+				Boolean b = (Boolean)aValue;
+				if (ve.isSelected() != b.booleanValue())
+				{
+					ve.setSelected(b.booleanValue());
+					fireTableCellUpdated(row, col);
+				}
+			} else if (col == 1)
+			{
+				// change the name of the export
+				ExportEntry pe = exports.get(row);
+				if (pe == null) return;
+				pe.name = (String)aValue;
+				new ExportChanges.RenameExport(pe.getExport(), pe.name);
+			} else if (col == 3)
+			{
+				// change the characteristics of the export
+				ExportEntry pe = exports.get(row);
+				if (pe == null) return;
+				pe.ch = (PortCharacteristic)aValue;
+				new ExportChanges.ChangeExportCharacteristic(pe.getExport(), pe.ch);
 			}
 		}
 
@@ -565,7 +634,7 @@ public class ManipulateExports extends EDialog
 
     private void showExportsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_showExportsActionPerformed
     {//GEN-HEADEREND:event_showExportsActionPerformed
-    	exportTable.showSelected();
+		exportTable.showSelected();
     }//GEN-LAST:event_showExportsActionPerformed
 
 	private void deleteExportsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_deleteExportsActionPerformed
@@ -576,7 +645,7 @@ public class ManipulateExports extends EDialog
 
     private void reNumberExportsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_reNumberExportsActionPerformed
     {//GEN-HEADEREND:event_reNumberExportsActionPerformed
-    	exportTable.renumberSelectedExports();
+		exportTable.renumberSelectedExports();
 		closeDialog(null);
     }//GEN-LAST:event_reNumberExportsActionPerformed
 

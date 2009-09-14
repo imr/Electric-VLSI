@@ -1334,12 +1334,12 @@ public final class ExportChanges
 	/**
 	 * Class to rename an export in a new thread.
 	 */
-	private static class RenameExport extends Job
+	public static class RenameExport extends Job
 	{
 		private Export pp;
 		private String newName;
 
-		protected RenameExport(Export pp, String newName)
+		public RenameExport(Export pp, String newName)
 		{
 			super("Rename Export" + pp.getName(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.pp = pp;
@@ -1350,6 +1350,29 @@ public final class ExportChanges
 		public boolean doIt() throws JobException
 		{
 			pp.rename(newName);
+			return true;
+		}
+	}
+
+	/**
+	 * Class to change the characteristic of an export in a new thread.
+	 */
+	public static class ChangeExportCharacteristic extends Job
+	{
+		private Export pp;
+		private PortCharacteristic newCh;
+
+		public ChangeExportCharacteristic(Export pp, PortCharacteristic newCh)
+		{
+			super("Change Export Characteristics" + pp.getName(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.pp = pp;
+			this.newCh = newCh;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			pp.setCharacteristic(newCh);
 			return true;
 		}
 	}

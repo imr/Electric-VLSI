@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+IMP/MAN: (9/14/09, SMR) "Manipulate Exports" now lets you change the name and
+     characteristic of an export (Bug #2383).
+
 BUG: (9/14/09, AM) SwingUtilities.isEventThread() assertion failure.
 FIX: Use SwingUitilities.invokeLater() in SunAsyncMenu gdsJob.startJob.
 
