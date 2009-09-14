@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+BUG: (9/14/09, SMR) Explorer tree Library Search function doesn't close
+     properly and needs an "Edit All Cells" button (Bug #2322).
+FIX: Fixed closure and added button.
+
 BUG: (9/11/09, AM) We need to agree on what "batch" means and how to
      launch Electric in headless mode (Bug #2375).
 FIX: JonG says: "I think batch mode implies 'no GUI', and nothing

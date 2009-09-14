@@ -473,164 +473,192 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 	}
 
 	/**
-     * Class to handle the "Select Object" dialog.
-     */
-    public static class FindCellDialog extends EModelessDialog
-    {
-    	private JList list;
-    	private DefaultListModel model;
-        private JButton done, findText, editCell;
-        private JScrollPane objectPane;
-        private JTextField searchText;
+	 * Class to handle the "Select Object" dialog.
+	 */
+	public static class FindCellDialog extends EModelessDialog
+	{
+		private JList list;
+		private DefaultListModel model;
+		private JButton done, findText, editCell, editAllCells;
+		private JScrollPane objectPane;
+		private JTextField searchText;
 
-    	/** Creates new form FindCellDialog */
-    	private FindCellDialog(Frame parent)
-    	{
-    		super(parent, false);
-        	GridBagConstraints gbc;
-            setTitle("Find Cells");
-            setName("");
-            addWindowListener(new WindowAdapter()
-            {
-                public void windowClosing(WindowEvent evt) { closeDialog(); }
-            });
-            getContentPane().setLayout(new GridBagLayout());
+		/** Creates new form FindCellDialog */
+		private FindCellDialog(Frame parent)
+		{
+			super(parent, false);
+			GridBagConstraints gbc;
+			setTitle("Find Cells");
+			setName("");
+			addWindowListener(new WindowAdapter()
+			{
+				public void windowClosing(WindowEvent evt) { closeDialog(); }
+			});
+			getContentPane().setLayout(new GridBagLayout());
 
-            JLabel jLabel1 = new JLabel("Search for:");
-            gbc = new GridBagConstraints();
-            gbc.gridx = 0;   gbc.gridy = 0;
-            gbc.insets = new Insets(4, 4, 4, 4);
-            getContentPane().add(jLabel1, gbc);
+			JLabel jLabel1 = new JLabel("Search for:");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 0;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			getContentPane().add(jLabel1, gbc);
 
-            searchText = new JTextField();
-            searchText.setColumns(8);
-            gbc = new GridBagConstraints();
-            gbc.gridx = 1;   gbc.gridy = 0;
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-            gbc.weightx = 1.0;
-            gbc.insets = new Insets(4, 4, 4, 4);
-            getContentPane().add(searchText, gbc);
+			searchText = new JTextField();
+			searchText.setColumns(8);
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;   gbc.gridy = 0;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.weightx = 1.0;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			getContentPane().add(searchText, gbc);
 
-            findText = new JButton("Find");
-            findText.addActionListener(new ActionListener()
-            {
-                public void actionPerformed(ActionEvent evt) { findTextActionPerformed(evt); }
-            });
-            gbc = new GridBagConstraints();
-            gbc.gridx = 0;   gbc.gridy = 1;
-            gbc.gridwidth = 2;
-            gbc.weightx = 1;
-            gbc.insets = new Insets(4, 4, 4, 4);
-            getContentPane().add(findText, gbc);
-    		getRootPane().setDefaultButton(findText);
+			findText = new JButton("Find");
+			findText.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { findTextActionPerformed(evt); }
+			});
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 1;
+			gbc.gridwidth = 2;
+			gbc.weightx = 1;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			getContentPane().add(findText, gbc);
+			getRootPane().setDefaultButton(findText);
 
-            objectPane = new JScrollPane();
-    		model = new DefaultListModel();
-    		list = new JList(model);
-    		objectPane.setViewportView(list);
-            objectPane.setMinimumSize(new Dimension(200, 200));
-            objectPane.setPreferredSize(new Dimension(200, 200));
-            gbc = new GridBagConstraints();
-            gbc.gridx = 0;   gbc.gridy = 2;
-            gbc.gridwidth = 2;
-            gbc.fill = GridBagConstraints.BOTH;
-            gbc.weightx = gbc.weighty = 1.0;
-            gbc.insets = new Insets(4, 4, 4, 4);
-            getContentPane().add(objectPane, gbc);
-            list.addMouseListener(new MouseAdapter() {
-                public void mouseClicked(MouseEvent evt) {
-                    if (evt.getClickCount() == 2) editCell();
-                }
-            });
+			objectPane = new JScrollPane();
+			model = new DefaultListModel();
+			list = new JList(model);
+			objectPane.setViewportView(list);
+			objectPane.setMinimumSize(new Dimension(200, 200));
+			objectPane.setPreferredSize(new Dimension(200, 200));
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 2;
+			gbc.gridwidth = 2;
+			gbc.fill = GridBagConstraints.BOTH;
+			gbc.weightx = gbc.weighty = 1.0;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			getContentPane().add(objectPane, gbc);
+			list.addMouseListener(new MouseAdapter() {
+				public void mouseClicked(MouseEvent evt) {
+					if (evt.getClickCount() == 2) editCell(false);
+				}
+			});
 
-            editCell = new JButton("Edit Cell");
-            editCell.addActionListener(new ActionListener()
-    		{
-    			public void actionPerformed(ActionEvent evt) { editCell(); }
-    		});
-            gbc = new GridBagConstraints();
-            gbc.gridx = 0;   gbc.gridy = 3;
-            gbc.weightx = 0.5;
-            gbc.insets = new Insets(4, 4, 4, 4);
-            getContentPane().add(editCell, gbc);
-            editCell.setEnabled(false);
+			editCell = new JButton("Edit Selected Cell");
+			editCell.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { editCell(false); }
+			});
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 3;
+			gbc.weightx = 0.5;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			getContentPane().add(editCell, gbc);
+			editCell.setEnabled(false);
 
-    		done = new JButton("Done");
-    		done.addActionListener(new ActionListener()
-    		{
-    			public void actionPerformed(ActionEvent evt) { closeDialog(); }
-    		});
-            gbc = new GridBagConstraints();
-            gbc.gridx = 1;   gbc.gridy = 3;
-            gbc.weightx = 0.5;
-            gbc.insets = new Insets(4, 4, 4, 4);
-            getContentPane().add(done, gbc);
+			editAllCells = new JButton("Edit All Cells");
+			editAllCells.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { editCell(true); }
+			});
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;   gbc.gridy = 3;
+			gbc.weightx = 0.5;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			getContentPane().add(editAllCells, gbc);
+			editAllCells.setEnabled(false);
 
-            pack();
+			done = new JButton("Done");
+			done.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { closeDialog(); }
+			});
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 4;
+			gbc.gridwidth = 2;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			getContentPane().add(done, gbc);
 
-    		finishInitialization();
-    		setVisible(true);
-    	}
+			pack();
 
-    	protected void escapePressed() { closeDialog(); }
+			finishInitialization();
+			setVisible(true);
+		}
 
-    	private void findTextActionPerformed(ActionEvent evt)
-    	{
-    		String search = searchText.getText();
-            int flags = Pattern.CASE_INSENSITIVE+Pattern.UNICODE_CASE;
-    		Pattern p = Pattern.compile(search, flags);
-    		model.clear();
-    		boolean found = false;
-            for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-            {
-            	Library lib = it.next();
-            	if (lib.isHidden()) continue;
-            	for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-            	{
-            		Cell cell = cIt.next();
-        		    Matcher m = p.matcher(cell.getName());
-                    if (m.find())
-                    {
-                    	model.addElement(cell.describe(false));
-                    	found = true;
-                    }
-            	}
-            }
-            editCell.setEnabled(found);
-    	}
+		protected void escapePressed() { closeDialog(); }
 
-    	private void editCell()
-    	{
-    		String cellName = (String)list.getSelectedValue();
-    		if (cellName == null) return;
-    		NodeProto np = Cell.findNodeProto(cellName);
-    		if (np == null || !(np instanceof Cell)) return;
-    		Cell cell = (Cell)np;
-    		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-    		{
-    			WindowFrame wf = it.next();
-    			if (wf.getContent() instanceof EditWindow)
-    			{
-    				EditWindow wnd = (EditWindow)wf.getContent();
-    				if (wnd.getCell() == cell)
-    				{
-    					WindowFrame.showFrame(wf);
-    					return;
-    				}
-    			}
-    			if (wf.getContent() instanceof TextWindow)
-    			{
-    				TextWindow tw = (TextWindow)wf.getContent();
-    				if (tw.getCell() == cell)
-    				{
-    					WindowFrame.showFrame(wf);
-    					return;
-    				}
-    			}
-    		}
+		private void findTextActionPerformed(ActionEvent evt)
+		{
+			String search = searchText.getText();
+			int flags = Pattern.CASE_INSENSITIVE+Pattern.UNICODE_CASE;
+			Pattern p = Pattern.compile(search, flags);
+			model.clear();
+			boolean found = false;
+			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = it.next();
+				if (lib.isHidden()) continue;
+				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = cIt.next();
+					Matcher m = p.matcher(cell.getName());
+					if (m.find())
+					{
+						model.addElement(cell.describe(false));
+						found = true;
+					}
+				}
+			}
+			editCell.setEnabled(found);
+			editAllCells.setEnabled(found);
+		}
+
+		private void editCell(boolean all)
+		{
+			if (all)
+			{
+				for(int i=0; i<model.getSize(); i++)
+				{
+					String cellName = (String)model.getElementAt(i);
+					if (cellName != null) editACell(cellName);
+				}
+			} else
+			{
+				String cellName = (String)list.getSelectedValue();
+				if (cellName == null) return;
+				editACell(cellName);
+			}
+		}
+
+		private void editACell(String cellName)
+		{
+			NodeProto np = Cell.findNodeProto(cellName);
+			if (np == null || !(np instanceof Cell)) return;
+			Cell cell = (Cell)np;
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = it.next();
+				if (wf.getContent() instanceof EditWindow)
+				{
+					EditWindow wnd = (EditWindow)wf.getContent();
+					if (wnd.getCell() == cell)
+					{
+						WindowFrame.showFrame(wf);
+						return;
+					}
+				}
+				if (wf.getContent() instanceof TextWindow)
+				{
+					TextWindow tw = (TextWindow)wf.getContent();
+					if (tw.getCell() == cell)
+					{
+						WindowFrame.showFrame(wf);
+						return;
+					}
+				}
+			}
 			WindowFrame.createEditWindow(cell);
-    	}
-    }
+		}
+	}
 
 	/**
 	 * Class to remember the expansion state of a JTree and restore it after a change.
@@ -1445,7 +1473,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			// popup menu event (right click)
 			if (e.isPopupTrigger())
 			{
-            	selectTreeElement(e.getX(), e.getY());
+				selectTreeElement(e.getX(), e.getY());
                 cacheEvent(e);
 				doContextMenu();
 				return;
@@ -1463,7 +1491,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				{
 	                Object obj = cp.getLastPathComponent();
 	                if (obj instanceof DefaultMutableTreeNode)
-	                	clickedObject = ((DefaultMutableTreeNode)obj).getUserObject();
+	    				clickedObject = ((DefaultMutableTreeNode)obj).getUserObject();
 				}
 
 				// handle things that can accomodate multiple selections
@@ -1591,7 +1619,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
             // popup menu event (right click)
             if (e.isPopupTrigger())
             {
-            	selectTreeElement(e.getX(), e.getY());
+				selectTreeElement(e.getX(), e.getY());
                 cacheEvent(e);
                 doContextMenu();
             }
@@ -2795,7 +2823,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
                 JFrame jf = null;
                 if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
                 theCellSearchDialog = new FindCellDialog(jf);
-            }
+            } else theCellSearchDialog.setVisible(true);
             theCellSearchDialog.toFront();
 
 //            String name = JOptionPane.showInputDialog(ExplorerTree.this, "Name of cell to search","");
@@ -2804,17 +2832,17 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 //            boolean found = false;
 //            for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 //            {
-//            	Library lib = it.next();
-//            	if (lib.isHidden()) continue;
-//            	for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-//            	{
-//            		Cell cell = cIt.next();
-//            		if (cell.getName().equalsIgnoreCase(name))
-//            		{
+//				Library lib = it.next();
+//				if (lib.isHidden()) continue;
+//				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+//				{
+//					Cell cell = cIt.next();
+//					if (cell.getName().equalsIgnoreCase(name))
+//					{
 //                        System.out.println("\t" + cell.noLibDescribe() + " in Library " + cell.getLibrary().getName());
 //                        found = true;
-//            		}
-//            	}
+//					}
+//				}
 //            }
 //            if (!found) System.out.println("\t" + "NO CELLS MATCH IN ANY LIBRARIES");
         }
