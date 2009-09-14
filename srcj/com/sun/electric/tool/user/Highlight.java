@@ -87,6 +87,7 @@ public abstract class Highlight implements Cloneable{
 	/** for drawing dashed lines */		public static final BasicStroke boldLine = new BasicStroke(3);
 
 	/** The Cell containing the selection. */	protected Cell cell;
+    /** The highlight is an error */		    public boolean isError;
 	private static final int CROSSSIZE = 3;
 
 	Highlight(Cell c)
@@ -149,19 +150,84 @@ public abstract class Highlight implements Cloneable{
 		return false;
 	}
 
+    /** the highlight pattern will repeat itself rotationally every PULSATE_ROTATE_PERIOD milliseconds */
+    private final int PULSATE_ROTATE_PERIOD = 1000;
+
+    /** the overall intensity of the highlight pattern will repeat itself rotationally every PULSATE_INTENSITY_PERIOD milliseconds */
+    private final int PULSATE_INTENSITY_PERIOD = 0 /* 1000 */;
+
+    /** the hue of the highlight pattern will repeat itself rotationally every PULSATE_HUE_PERIOD milliseconds */
+    private final int PULSATE_HUE_PERIOD = 0 /* 30000 */;
+
+    /** the length of the rotating pattern */
+    private final int PULSATE_STRIPE_LENGTH = 30;
+
+    /** the number of "segments" in each stripe; increasing this number slows down rendering*/
+    private final int PULSATE_STRIPE_SEGMENTS = 10;
+
     /**
 	 * Method to display this Highlight in a window.
 	 * @param wnd the window in which to draw this highlight.
 	 * @param g the Graphics associated with the window.
 	 */
-	public void showHighlight(EditWindow wnd, Graphics g, int highOffX, int highOffY, boolean onlyHighlight,
+	public void showHighlight(EditWindow wnd, Graphics g_, int highOffX, int highOffY, boolean onlyHighlight,
                               Color mainColor, Stroke primaryStroke, boolean setConnected)
     {
         if (!isValid()) return;
-		g.setColor(mainColor);
-        Graphics2D g2 = (Graphics2D)g;
+		g_.setColor(mainColor);
+        Graphics2D g2 = (Graphics2D)g_;
         g2.setStroke(primaryStroke);
-        showInternalHighlight(wnd, g, highOffX, highOffY, onlyHighlight, setConnected);
+        if (User.isErrorHighlightingPulsate() && isError) {
+            //Color mainColor = g2.getColor();
+            long now = System.currentTimeMillis();
+            for(int i=0; i<PULSATE_STRIPE_SEGMENTS; i++) {
+                // hsv to rgb
+                float h = PULSATE_HUE_PERIOD==0
+                    ?
+                    0f
+                    : ((now % PULSATE_HUE_PERIOD) / ((float)PULSATE_HUE_PERIOD));
+                float s = 1;
+                float v =
+                    (i / ((float)PULSATE_STRIPE_SEGMENTS))
+                    * 
+                    (PULSATE_INTENSITY_PERIOD == 0
+                     ? 1.0f
+                     : (float)Math.sin((
+                                        ((now % PULSATE_INTENSITY_PERIOD))
+                                        /
+                                        ((float)PULSATE_INTENSITY_PERIOD)
+                                        )
+                                       * Math.PI));
+                float r=0, g=0, b=0;
+                float var_h = h * 6;
+                float var_i = (float)Math.floor( var_h );
+                float var_1 = v * ( 1 - s );
+                float var_2 = v * ( 1 - s * ( var_h - var_i ) );
+                float var_3 = v * ( 1 - s * ( 1 - ( var_h - var_i ) ) );
+                if      ( var_i == 0 ) { r = v     ; g = var_3 ; b = var_1; }
+                else if ( var_i == 1 ) { r = var_2 ; g = v     ; b = var_1; }
+                else if ( var_i == 2 ) { r = var_1 ; g = v     ; b = var_3; }
+                else if ( var_i == 3 ) { r = var_1 ; g = var_2 ; b = v;     }
+                else if ( var_i == 4 ) { r = var_3 ; g = var_1 ; b = v;     }
+                else                   { r = v     ; g = var_1 ; b = var_2; }
+                g2.setColor(new Color(r, g, b));
+                float segment_length = PULSATE_STRIPE_LENGTH / ((float)PULSATE_STRIPE_SEGMENTS);
+                g2.setStroke(new BasicStroke(1,
+                                             BasicStroke.CAP_ROUND,
+                                             BasicStroke.JOIN_ROUND,
+                                             20,
+                                             new float[] { segment_length,
+                                                           PULSATE_STRIPE_LENGTH-segment_length },
+                                             (((now % PULSATE_ROTATE_PERIOD) * PULSATE_STRIPE_LENGTH)
+                                              /
+                                              ((float)PULSATE_ROTATE_PERIOD))
+                                             + i
+                                             ));
+			showInternalHighlight(wnd, g2, highOffX, highOffY, onlyHighlight, setConnected);
+            }
+		} else {
+			showInternalHighlight(wnd, g_, highOffX, highOffY, onlyHighlight, setConnected);
+		}
     }
 
     abstract void showInternalHighlight(EditWindow wnd, Graphics g, int highOffX, int highOffY,
@@ -542,7 +608,6 @@ class HighlightLine extends Highlight
 {
 	/** The highlighted line. */								protected Point2D start, end, center;
     /** The highlighted line is thick. */					    protected boolean thickLine;
-    /** The highlighted line is thick. */					    protected boolean isError;
     HighlightLine(Cell c, Point2D s, Point2D e, Point2D cen, boolean thick, boolean isError)
     {
         super(c);
@@ -553,79 +618,13 @@ class HighlightLine extends Highlight
         this.isError = isError;
     }
 
-    /** the highlight pattern will repeat itself rotationally every PULSATE_ROTATE_PERIOD milliseconds */
-    private final int PULSATE_ROTATE_PERIOD = 1000;
-
-    /** the overall intensity of the highlight pattern will repeat itself rotationally every PULSATE_INTENSITY_PERIOD milliseconds */
-    private final int PULSATE_INTENSITY_PERIOD = 0 /* 1000 */;
-
-    /** the hue of the highlight pattern will repeat itself rotationally every PULSATE_HUE_PERIOD milliseconds */
-    private final int PULSATE_HUE_PERIOD = 0 /* 30000 */;
-
-    /** the length of the rotating pattern */
-    private final int PULSATE_STRIPE_LENGTH = 30;
-
-    /** the number of "segments" in each stripe; increasing this number slows down rendering*/
-    private final int PULSATE_STRIPE_SEGMENTS = 10;
-
     public void showInternalHighlight(EditWindow wnd, Graphics g_, int highOffX, int highOffY,
                                       boolean onlyHighlight, boolean setConnected)
     {
         Point2D [] points = new Point2D.Double[2];
         points[0] = new Point2D.Double(start.getX(), start.getY());
         points[1] = new Point2D.Double(end.getX(), end.getY());
-        if (User.isErrorHighlightingPulsate() && isError) {
-            Graphics2D g2 = (Graphics2D)g_;
-            //Color mainColor = g2.getColor();
-            long now = System.currentTimeMillis();
-            for(int i=0; i<PULSATE_STRIPE_SEGMENTS; i++) {
-                // hsv to rgb
-                float h = PULSATE_HUE_PERIOD==0
-                    ?
-                    0f
-                    : ((now % PULSATE_HUE_PERIOD) / ((float)PULSATE_HUE_PERIOD));
-                float s = 1;
-                float v =
-                    (i / ((float)PULSATE_STRIPE_SEGMENTS))
-                    * 
-                    (PULSATE_INTENSITY_PERIOD == 0
-                     ? 1.0f
-                     : (float)Math.sin((
-                                        ((now % PULSATE_INTENSITY_PERIOD))
-                                        /
-                                        ((float)PULSATE_INTENSITY_PERIOD)
-                                        )
-                                       * Math.PI));
-                float r=0, g=0, b=0;
-                float var_h = h * 6;
-                float var_i = (float)Math.floor( var_h );
-                float var_1 = v * ( 1 - s );
-                float var_2 = v * ( 1 - s * ( var_h - var_i ) );
-                float var_3 = v * ( 1 - s * ( 1 - ( var_h - var_i ) ) );
-                if      ( var_i == 0 ) { r = v     ; g = var_3 ; b = var_1; }
-                else if ( var_i == 1 ) { r = var_2 ; g = v     ; b = var_1; }
-                else if ( var_i == 2 ) { r = var_1 ; g = v     ; b = var_3; }
-                else if ( var_i == 3 ) { r = var_1 ; g = var_2 ; b = v;     }
-                else if ( var_i == 4 ) { r = var_3 ; g = var_1 ; b = v;     }
-                else                   { r = v     ; g = var_1 ; b = var_2; }
-                g2.setColor(new Color(r, g, b));
-                float segment_length = PULSATE_STRIPE_LENGTH / ((float)PULSATE_STRIPE_SEGMENTS);
-                g2.setStroke(new BasicStroke(1,
-                                             BasicStroke.CAP_ROUND,
-                                             BasicStroke.JOIN_ROUND,
-                                             20,
-                                             new float[] { segment_length,
-                                                           PULSATE_STRIPE_LENGTH-segment_length },
-                                             (((now % PULSATE_ROTATE_PERIOD) * PULSATE_STRIPE_LENGTH)
-                                              /
-                                              ((float)PULSATE_ROTATE_PERIOD))
-                                             + i
-                                             ));
-                drawOutlineFromPoints(wnd, g2, points, highOffX, highOffY, false, thickLine);
-            }
-        } else {
-            drawOutlineFromPoints(wnd, g_, points, highOffX, highOffY, false, thickLine);
-        }
+		drawOutlineFromPoints(wnd, g_, points, highOffX, highOffY, false, thickLine);
     }
     
     Rectangle2D getHighlightedArea(EditWindow wnd)
@@ -838,6 +837,16 @@ class HighlightEOBJ extends Highlight
 		this.highlightConnected = connected;
 		this.point = p;
 		this.color = null;
+	}
+
+	public HighlightEOBJ(ElectricObject e, Cell c, boolean connected, int p, boolean isError)
+	{
+		super(c);
+		this.eobj = e;
+		this.highlightConnected = connected;
+		this.point = p;
+		this.color = null;
+		this.isError = isError;
 	}
 
 	public HighlightEOBJ(ElectricObject e, Cell c, boolean connected, int p, Color col)

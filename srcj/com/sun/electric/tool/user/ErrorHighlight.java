@@ -357,8 +357,7 @@ class ErrorHighLine extends ErrorHighlight {
     public void addToHighlighter(Highlighter h, EDatabase database)
     {
         Cell cell = getCell(database);
-        if (thickLine) h.addThickLine(p1, p2, cell, true);
-        else h.addLine(p1, p2, cell);
+        h.addLine(p1, p2, cell, thickLine, true);
     }
     
     @Override
@@ -472,7 +471,7 @@ class ErrorHighNode extends ErrorHighlight {
     {
         NodeInst ni = (NodeInst)getObject(database);
         if (ni != null)
-            h.addElectricObject(ni, ni.getParent());
+            h.addElectricObject(ni, true, ni.getParent());
     }
     
     @Override
@@ -525,7 +524,7 @@ class ErrorHighArc extends ErrorHighlight {
     {
         ArcInst ai = (ArcInst)getObject(database);
         if (ai != null)
-            h.addElectricObject(ai, ai.getParent());
+            h.addElectricObject(ai, true, ai.getParent());
     }
     
     @Override

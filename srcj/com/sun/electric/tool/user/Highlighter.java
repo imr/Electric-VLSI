@@ -139,6 +139,13 @@ public class Highlighter implements DatabaseChangeListener {
         return addElectricObject(eobj, cell, true);
     }
 
+    public Highlight addElectricObject(ElectricObject eobj, boolean isError, Cell cell)
+    {
+        Highlight h1 = new HighlightEOBJ(eobj, cell, true, -1, isError);
+		addHighlight(h1);
+		return h1;
+    }
+
     /**
      * Method to add an ElectricObject to the list of highlighted objects.
      * @param eobj the ElectricObject to add to the list of highlighted objects.
@@ -636,7 +643,8 @@ public class Highlighter implements DatabaseChangeListener {
      * @param wnd
      * @param g
      */
-    public void showHighlights(EditWindow wnd, Graphics g) {
+    public void showHighlights(EditWindow wnd, Graphics g) { showHighlights(wnd, g, false); }
+    public void showHighlights(EditWindow wnd, Graphics g, boolean errorsOnly) {
         int num = getNumHighlights();
         int highOffX, highOffY;
         synchronized(this) {
@@ -662,7 +670,8 @@ public class Highlighter implements DatabaseChangeListener {
                     color = colorM;
                     setConnected = false;
                 }
-                h.showHighlight(wnd, g, highOffX, highOffY, (num == 1), color, stroke, setConnected);
+				if (h.isError || !errorsOnly)
+					h.showHighlight(wnd, g, highOffX, highOffY, (num == 1), color, stroke, setConnected);
             }
         }
     }
