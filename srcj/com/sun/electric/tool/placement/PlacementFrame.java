@@ -62,7 +62,7 @@ import java.util.Map;
  *    public String getAlgorithmName()
  *       returns the name of the Placement algorithm
  *
- *    void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks)
+ *    void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks, String cellName)
  *       runs the placement on the "nodesToPlace", calling each PlacementNode's "setPlacement()"
  *       and "setOrientation()" methods to establish the proper placement.
  *
@@ -102,8 +102,9 @@ public class PlacementFrame
 	 * Method to do Placement (overridden by actual Placement algorithms).
 	 * @param nodesToPlace a list of all nodes that are to be placed.
 	 * @param allNetworks a list of all networks that connect the nodes.
+	 * @param cellName the name of the cell being placed.
 	 */
-	protected void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks) {}
+	protected void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks, String cellName) {}
 
 	/**
 	 * Method to return the name of the placement algorithm (overridden by actual Placement algorithms).
@@ -424,7 +425,6 @@ public class PlacementFrame
 		// convert nodes in the Cell into PlacementNode objects
 		NodeProto iconToPlace = null;
 		List<PlacementNode> nodesToPlace = new ArrayList<PlacementNode>();
-		Map<NodeInst,PlacementNode> shadowNodes = new HashMap<NodeInst,PlacementNode>();
 		Map<NodeInst,Map<PortProto,PlacementPort>> convertedNodes = new HashMap<NodeInst,Map<PortProto,PlacementPort>>();
 		List<PlacementExport> exportsToPlace = new ArrayList<PlacementExport>();
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
@@ -445,10 +445,11 @@ public class PlacementFrame
 						fun != PrimitiveNode.Function.PIN)
 							validNode = true;
 				}
+				if (ni.hasExports()) validNode = true;
 			}
 			if (validNode)
 			{
-				// make the PlacementNode for this NodeInst
+				// make a list of PlacementPorts on this NodeInst
 				NodeProto np = ni.getProto();
 				List<PlacementPort> pl = new ArrayList<PlacementPort>();
 				NodeInst niDummy = NodeInst.makeDummyInstance(np);
@@ -462,13 +463,18 @@ public class PlacementFrame
 					PlacementPort plPort = new PlacementPort(offX, offY, pi.getPortProto());
 					pl.add(plPort);
 					placedPorts.put(pi.getPortProto(), plPort);
-					for(Iterator<Export> eIt = pi.getExports(); eIt.hasNext(); )
-					{
-						Export e = eIt.next();
-						PlacementExport plExport = new PlacementExport(plPort, e.getName(), e.getCharacteristic());
-						exportsToPlace.add(plExport);
-					}
 				}
+
+				// add to the list of PlacementExports
+				for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
+				{
+					Export e = eIt.next();
+					PlacementPort plPort = placedPorts.get(e.getOriginalPort().getPortProto());
+					PlacementExport plExport = new PlacementExport(plPort, e.getName(), e.getCharacteristic());
+					exportsToPlace.add(plExport);
+				}
+
+				// make the PlacementNode for this NodeInst
 				String name = ni.getName();
 				if (ni.getNameKey().isTempname()) name = null;
 				PlacementNode plNode = new PlacementNode(np, name, ni.getTechSpecific(), np.getDefWidth(), np.getDefHeight(), pl);
@@ -477,7 +483,6 @@ public class PlacementFrame
 					plPort.setPlacementNode(plNode);
 				plNode.setOrientation(Orientation.IDENT);
 				convertedNodes.put(ni, placedPorts);
-				if (ni.hasExports()) shadowNodes.put(ni, plNode);
 			}
 		}
 
@@ -526,7 +531,7 @@ public class PlacementFrame
 		List<PlacementExport> exportsToPlace, NodeProto iconToPlace)
 	{
 		// do the real work of placement
-		runPlacement(nodesToPlace, allNetworks);
+		runPlacement(nodesToPlace, allNetworks, cellName);
 
 		// create a new cell for the placement results
 		Cell newCell = Cell.makeInstance(lib, cellName);

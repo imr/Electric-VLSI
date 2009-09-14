@@ -23,6 +23,9 @@
  */
 package com.sun.electric.tool.placement;
 
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+
 import java.util.List;
 
 /**
@@ -42,8 +45,9 @@ public class PlacementRandom extends PlacementFrame
 	 * Method to do Random Placement.
 	 * @param nodesToPlace a list of all nodes that are to be placed.
 	 * @param allNetworks a list of all networks that connect the nodes.
+	 * @param cellName the name of the cell being placed.
 	 */
-	protected void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks)
+	protected void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks, String cellName)
 	{
 		int numRows = (int)Math.round(Math.sqrt(nodesToPlace.size()));
 		double xPos = 0, yPos = 0;

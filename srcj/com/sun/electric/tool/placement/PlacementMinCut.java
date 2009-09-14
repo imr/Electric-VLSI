@@ -25,6 +25,8 @@ package com.sun.electric.tool.placement;
 
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -52,8 +54,9 @@ public class PlacementMinCut extends PlacementFrame
 	 * Method to do Min-Cut Placement.
 	 * @param nodesToPlace a list of all nodes that are to be placed.
 	 * @param allNetworks a list of all networks that connect the nodes.
+	 * @param cellName the name of the cell being placed.
 	 */
-	protected void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks)
+	protected void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks, String cellName)
 	{
 		// build the connectivity map with the number of connections between any two PlacementNodes
 		connectivityMap = new HashMap<PlacementNode,Map<PlacementNode,MutableInteger>>();
@@ -103,6 +106,7 @@ public class PlacementMinCut extends PlacementFrame
 			// get partition
 			Partition part = partitionsToOrganize.get(0);
 			partitionsToOrganize.remove(0);
+			if (part.allNodes.size() <= 2) continue;
 
 			// split the partition randomly
 			part.splitRandomly();
@@ -221,11 +225,12 @@ public class PlacementMinCut extends PlacementFrame
 		Map<PlacementNode,Orientation> properOrientation = new HashMap<PlacementNode,Orientation>();
 		if (allNodes.size() > 1)
 		{
-			if (DEBUG) System.out.println("FINDING ORIENTATIONS FOR PARTITION WITH "+allNodes.size()+" NODES");
+//boolean debug = currentCellName.equals("spiceHier{sch}");
+//if (debug) System.out.println("FINDING ORIENTATIONS FOR PARTITION WITH "+allNodes.size()+" NODES");
 			Map<PlacementNode,List<OrientationConnection>> allPossibilities = new HashMap<PlacementNode,List<OrientationConnection>>();
 			for(PlacementNode plNode : allNodes)
 			{
-				// create an OrientationChoices object for this NodeInst
+				// create a List of OrientationConnection objects for this NodeInst
 				List<OrientationConnection> oc = new ArrayList<OrientationConnection>();
 				allPossibilities.put(plNode, oc);
 			}
@@ -257,35 +262,81 @@ public class PlacementMinCut extends PlacementFrame
 			// now find the optimal orientation choice for each NodeInst
 			Orientation [] standardEight = new Orientation[] {Orientation.IDENT, Orientation.R, Orientation.RR, Orientation.RRR,
 				Orientation.X, Orientation.XR, Orientation.XRR, Orientation.XRRR};
-			for(PlacementNode plNode : allNodes)
+//			if (allNodes.size() == 2)
+//			{
+//				// try all combinations of the two
+//				PlacementNode plNode1 = allNodes.get(0);
+//				PlacementNode plNode2 = allNodes.get(1);
+//				List<OrientationConnection> oc = allPossibilities.get(plNode1);
+//				Orientation betterOrientation1 = null;
+//				Orientation betterOrientation2 = null;
+//				double bestDist = Double.MAX_VALUE;
+//				for(int i=0; i<standardEight.length; i++)
+//				{
+//					plNode1.setOrientation(standardEight[i]);
+//					for(int j=0; j<standardEight.length; j++)
+//					{
+//						plNode2.setOrientation(standardEight[j]);
+//						double length = 0;
+//						for(OrientationConnection con : oc)
+//						{
+//							Point2D pt1 = new Point2D.Double(plNode1.getPlacementX() + con.thisPP.getRotatedOffX(),
+//								plNode1.getPlacementY() + con.thisPP.getRotatedOffY());
+//							Point2D pt2 = new Point2D.Double(plNode2.getPlacementX() + con.otherPP.getRotatedOffX(),
+//								plNode2.getPlacementY() + con.otherPP.getRotatedOffY());
+//							double dist = pt1.distance(pt2);
+//							length += dist;
+//						}
+//						if (betterOrientation1 == null || length < bestDist)
+//						{
+//							bestDist = length;
+//							betterOrientation1 = standardEight[i];
+//							betterOrientation2 = standardEight[j];
+//						}
+//					}
+//				}
+//				if (betterOrientation1 != null)
+//				{
+//					plNode1.setOrientation(betterOrientation1);
+//					properOrientation.put(plNode1, betterOrientation1);
+//					plNode2.setOrientation(betterOrientation2);
+//					properOrientation.put(plNode2, betterOrientation2);
+//				}
+//			} else
 			{
-				List<OrientationConnection> oc = allPossibilities.get(plNode);
-				double bestDist = Double.MAX_VALUE;
-				Orientation betterOrientation = null;
-				for(int i=0; i<standardEight.length; i++)
+				for(PlacementNode plNode : allNodes)
 				{
-					plNode.setOrientation(standardEight[i]);
+					List<OrientationConnection> oc = allPossibilities.get(plNode);
+					double bestDist = Double.MAX_VALUE;
+					Orientation betterOrientation = null;
+					for(int i=0; i<standardEight.length; i++)
+					{
+						plNode.setOrientation(standardEight[i]);
 
-					double length = 0;
-					for(OrientationConnection con : oc)
-					{
-						Point2D pt = new Point2D.Double(plNode.getPlacementX() + con.thisPP.getRotatedOffX(),
-							plNode.getPlacementY() + con.thisPP.getRotatedOffY());
-						Point2D otherPt = new Point2D.Double(con.otherPN.getPlacementX() + con.otherPP.getRotatedOffX(),
-							con.otherPN.getPlacementY() + con.otherPP.getRotatedOffY());
-						double dist = pt.distance(otherPt);
-						length += dist;
+//if (debug) System.out.println("COMPUTING LENGTH FOR NODE "+plNode+" ORIENTATION "+standardEight[i]);
+						double length = 0;
+						for(OrientationConnection con : oc)
+						{
+							Point2D pt = new Point2D.Double(plNode.getPlacementX() + con.thisPP.getRotatedOffX(),
+								plNode.getPlacementY() + con.thisPP.getRotatedOffY());
+							Point2D otherPt = new Point2D.Double(con.otherPN.getPlacementX() + con.otherPP.getRotatedOffX(),
+								con.otherPN.getPlacementY() + con.otherPP.getRotatedOffY());
+							double dist = pt.distance(otherPt);
+//if (debug) System.out.println("  ("+pt.getX()+","+pt.getY()+") TO ("+otherPt.getX()+","+otherPt.getY()+") = "+dist);
+							length += dist;
+						}
+//if (debug) System.out.println("  ======= LENGTH="+length);
+						if (betterOrientation == null || length < bestDist)
+						{
+							bestDist = length;
+							betterOrientation = standardEight[i];
+						}
 					}
-					if (betterOrientation == null || length < bestDist)
+					if (betterOrientation != null)
 					{
-						bestDist = length;
-						betterOrientation = standardEight[i];
+						plNode.setOrientation(betterOrientation);
+						properOrientation.put(plNode, betterOrientation);
 					}
-				}
-				if (betterOrientation != null)
-				{
-					plNode.setOrientation(betterOrientation);
-					properOrientation.put(plNode, betterOrientation);
 				}
 			}
 		}

@@ -26,6 +26,8 @@ package com.sun.electric.tool.placement;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +47,9 @@ public class PlacementSimple extends PlacementFrame
 	 * Method to do Simple Placement.
 	 * @param nodesToPlace a list of all nodes that are to be placed.
 	 * @param allNetworks a list of all networks that connect the nodes.
+	 * @param cellName the name of the cell being placed.
 	 */
-	protected void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks)
+	protected void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks, String cellName)
 	{
 		// gather lists of transistors, resistors, capacitors, and instances
 		double pPos = 0, nPos = 0, iPos = 0;
@@ -73,7 +76,7 @@ public class PlacementSimple extends PlacementFrame
 			} else if (plNode.getType() == Schematics.tech().resistorNode)
 			{
 				resistors.add(plNode);
-			} if (plNode.getType() == Schematics.tech().capacitorNode)
+			} else if (plNode.getType() == Schematics.tech().capacitorNode)
 			{
 				capacitors.add(plNode);
 			} else

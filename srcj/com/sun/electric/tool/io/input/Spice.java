@@ -243,6 +243,11 @@ public class Spice extends Input
 
 	private void placeCells(Library lib)
 	{
+		PlacementPreferences prefs = new PlacementPreferences(false);
+		prefs.placementAlgorithm = localPrefs.placementAlgorithm;
+		PlacementFrame pla = Placement.getCurrentPlacementAlgorithm(prefs);
+		System.out.println("Placing cells using the " + pla.getAlgorithmName() + " algorithm");
+
 		// make icons
 		for(String name : allCells.keySet())
 		{
@@ -273,7 +278,7 @@ public class Spice extends Input
 			EPoint center = new EPoint(7, (yPos-2+lowY)/2);
 			PrimitiveNode np = Artwork.tech().boxNode;
 			NodeInst ni = NodeInst.makeInstance(np, center, width, height, cell);
-			ni.setName(name);
+			ni.setName(name.replaceAll("@", "_"));
 			TextDescriptor newTD = ni.getTextDescriptor(NodeInst.NODE_NAME).withRelSize(2);
 			ni.setTextDescriptor(NodeInst.NODE_NAME, newTD);
 		}
@@ -416,9 +421,6 @@ public class Spice extends Input
 			}
 
 			// run placement
-			PlacementPreferences prefs = new PlacementPreferences(false);
-			prefs.placementAlgorithm = localPrefs.placementAlgorithm;
-			PlacementFrame pla = Placement.getCurrentPlacementAlgorithm(prefs);
 			pla.doPlacement(lib, name + "{sch}", nodesToPlace, nets, exportsToPlace, sd.iconCell);
 
 			// the old way...
