@@ -27,13 +27,19 @@ import java.io.*;
 import java.util.*;
 import com.sun.electric.tool.btree.unboxed.*;
 
-abstract class NodeCursor {
+abstract class NodeCursor
+    <K extends Serializable & Comparable,
+     V extends Serializable,
+     S extends Serializable> {
     protected byte[] buf;
     protected int pageid;
     protected boolean dirty = false;
     protected PageStorage ps;
-    protected NodeCursor(PageStorage ps) {
-        this.ps = ps;
+    protected static final int          SIZEOF_INT = 4;
+    protected        final BTree<K,V,S> bt;
+    protected NodeCursor(BTree<K,V,S> bt) {
+        this.bt = bt;
+        this.ps = bt.ps;
     }
     public void setBuf(int pageid, byte[] buf) {
         assert !dirty;
@@ -81,14 +87,20 @@ abstract class NodeCursor {
      *  This numbering scheme might seem strange, but it really helps
      *  avoid fencepost bugs -- I tried several conventions before
      *  settling on this one.
+     *
+     *  Key zero is to the left of bucket zero, and the last key is to
+     *  the right of the last child (and has an index one greater than
+     *  it).
      */
-    public abstract int getNumKeys();
+    public abstract int getNumBuckets();
+
+    public abstract int getMaxBuckets();
 
     /**
      *  Compares the key at position keynum to the key represented by
      *  the bytes provided.  Same semantics as Comparable.compareTo().
      *  To simplify other codepaths, if keynum<0, the return value is
-     *  always positive and if keynum>=getNumKeys() the return value is
+     *  always positive and if keynum>=getNumBuckets()+1 the return value is
      *  always negative.
      */
     public abstract int compare(byte[] key, int key_ofs, int keynum);
@@ -98,7 +110,7 @@ abstract class NodeCursor {
     /** i is the position of the leftmost key which is less than or equal to the key we are testing */
     public int search(byte[] key, int key_ofs) {
         int left = -1;
-        int right = getNumKeys()-1;
+        int right = getNumBuckets();
         while(left+1<right) {
             assert compare(key, key_ofs, left) >= 0;
             int i = (left+right)/2;
@@ -109,4 +121,7 @@ abstract class NodeCursor {
         }
         return left;
     }
+
+    protected abstract int endOfBuf();
+    public abstract void getKey(int keynum, byte[] key, int key_ofs);
 }

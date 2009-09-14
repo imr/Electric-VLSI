@@ -52,47 +52,44 @@ class LeafNodeCursor
     <K extends Serializable & Comparable,
      V extends Serializable,
      S extends Serializable>
-    extends NodeCursor {
+    extends NodeCursor<K,V,S> {
 
-    private static final int SIZEOF_INT = 4;
     private        final int LEAF_HEADER_SIZE;
     private        final int LEAF_ENTRY_SIZE;
-    private        final int LEAF_MAX_ENTRIES;
-    private        final BTree<K,V,S> bt;
-    private int numentries = 0;
+    private        final int LEAF_MAX_BUCKETS;
+    private int numbuckets = 0;
+
+    public int getMaxBuckets() { return LEAF_MAX_BUCKETS; }
 
     public LeafNodeCursor(BTree<K,V,S> bt) {
-        super(bt.ps);
-        this.bt = bt;
+        super(bt);
         this.LEAF_HEADER_SIZE = 5 * SIZEOF_INT;
         this.LEAF_ENTRY_SIZE  = bt.uk.getSize() + bt.uv.getSize();
-        this.LEAF_MAX_ENTRIES = (ps.getPageSize() - LEAF_HEADER_SIZE) / LEAF_ENTRY_SIZE;
+        this.LEAF_MAX_BUCKETS = (ps.getPageSize() - LEAF_HEADER_SIZE) / LEAF_ENTRY_SIZE;
     }
 
     public static boolean isLeafNode(byte[] buf) { return UnboxedInt.instance.deserializeInt(buf, 1*SIZEOF_INT)==0; }
 
-    public int getMaxEntries() { return LEAF_MAX_ENTRIES; }
     public void setBuf(int pageid, byte[] buf) {
         assert isLeafNode(buf);
         super.setBuf(pageid, buf);
-        numentries = bt.ui.deserializeInt(buf, 4*SIZEOF_INT);
+        numbuckets = bt.ui.deserializeInt(buf, 4*SIZEOF_INT);
     }
     public void initBuf(int pageid, byte[] buf) {
         this.buf = buf;
         this.pageid = pageid;
         bt.ui.serializeInt(0, buf, 1*SIZEOF_INT);
-        setNumEntries(0);
+        setNumBuckets(0);
     }
     public int  getParentPageId() { return bt.ui.deserializeInt(buf, 0*SIZEOF_INT); }
     public void setParentPageId(int pageid) { bt.ui.serializeInt(pageid, buf, 0*SIZEOF_INT); }
     public int  getLeftNeighborPageId() { return bt.ui.deserializeInt(buf, 2*SIZEOF_INT); }
     public int  getRightNeighborPageId() { return bt.ui.deserializeInt(buf, 3*SIZEOF_INT); }
-    public int  getNumEntries() { return numentries; }
-    public void setNumEntries(int num) { bt.ui.serializeInt(numentries = num, buf, 4*SIZEOF_INT); }
-    public int  getNumKeys() { return getNumEntries()+1; }
+    public void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, buf, 4*SIZEOF_INT); }
+    public int  getNumBuckets() { return numbuckets; }
     public int  compare(byte[] key, int key_ofs, int keynum) {
         if (keynum<0) return 1;
-        if (keynum>=getNumKeys()-1) return -1;
+        if (keynum>=getNumBuckets()) return -1;
         return bt.uk.compare(key, key_ofs, buf, LEAF_HEADER_SIZE + keynum*LEAF_ENTRY_SIZE);
     }
     public V getVal(int slot) {
@@ -114,13 +111,13 @@ class LeafNodeCursor
      */
     public void insertVal(int slot, byte[] key, int key_ofs, V val) {
         assert val!=null;
-        assert getNumEntries() < LEAF_MAX_ENTRIES;
+        assert getNumBuckets() < getMaxBuckets();
         System.arraycopy(buf,
                          LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*slot,
                          buf,
                          LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*(slot+1),
-                         (getNumEntries()-slot)*LEAF_ENTRY_SIZE);
-        setNumEntries(getNumEntries()+1);
+                         (getNumBuckets()-slot)*LEAF_ENTRY_SIZE);
+        setNumBuckets(getNumBuckets()+1);
         System.arraycopy(key, key_ofs, buf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*slot, bt.uk.getSize());
         setVal(slot, val);
 
@@ -129,27 +126,33 @@ class LeafNodeCursor
 
     public int split(byte[] key, int key_ofs) {
         assert isFull();
+        int endOfBuf = endOfBuf();
 
         // chop off our second half, point our parent at the page-to-be, and write back
-        setNumEntries(LEAF_MAX_ENTRIES/2);
+        setNumBuckets(getMaxBuckets()/2);
         writeBack();
 
         if (key!=null)
-            System.arraycopy(buf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*(LEAF_MAX_ENTRIES/2), key, key_ofs, bt.uk.getSize());
+            getKey(getMaxBuckets()/2, key, key_ofs);
 
-        // move the second half of our entries to the front of the block, and write back
-        int parent = getParentPageId();
+        // move the second half of our buckets to the front of the block, and write back
         byte[] oldbuf = buf;
+        int parent = getParentPageId();
         initBuf(ps.createPage(), new byte[buf.length]);
-        System.arraycopy(oldbuf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE * (LEAF_MAX_ENTRIES/2),
+        setNumBuckets(getMaxBuckets()-getMaxBuckets()/2);
+        int len = LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE * (getMaxBuckets()/2);
+        System.arraycopy(oldbuf, len,
                          buf, LEAF_HEADER_SIZE,
-                         LEAF_ENTRY_SIZE * (LEAF_MAX_ENTRIES-LEAF_MAX_ENTRIES/2));
-        setNumEntries(LEAF_MAX_ENTRIES-LEAF_MAX_ENTRIES/2);
+                         endOfBuf - len);
         setParentPageId(parent);
         writeBack();
         return this.pageid;
     }
 
-    public boolean isFull() { return getNumEntries() >= LEAF_MAX_ENTRIES; }
+    public boolean isFull() { return getNumBuckets() >= getMaxBuckets(); }
     public boolean isLeafNode() { return true; }
+    protected int endOfBuf() { return LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE * getNumBuckets(); }
+    public void getKey(int keynum, byte[] key, int key_ofs) {
+        System.arraycopy(buf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*keynum, key, key_ofs, bt.uk.getSize());
+    }
 }

@@ -32,7 +32,7 @@ import com.sun.electric.tool.btree.unboxed.*;
  *   for the page format.
  *
  *    int: pageid of parent (root points to self)
- *    int: number of children
+ *    int: number of buckets
  *    int: pageid of first child
  *    int: number of values below first child
  *    S:   summary of first child
@@ -51,14 +51,14 @@ class InteriorNodeCursor
     <K extends Serializable & Comparable,
      V extends Serializable,
      S extends Serializable>
-    extends NodeCursor {
+    extends NodeCursor<K,V,S> {
 
-    private static final int          SIZEOF_INT = 4;
     private        final int          INTERIOR_HEADER_SIZE;
     private        final int          INTERIOR_ENTRY_SIZE;
-    private        final int          INTERIOR_MAX_CHILDREN;
-    private        final BTree<K,V,S> bt;
-    private              int          numchildren;  // just a cache
+    private        final int          INTERIOR_MAX_BUCKETS;
+    private              int          numbuckets;  // just a cache
+
+    public int getMaxBuckets() { return INTERIOR_MAX_BUCKETS; }
 
     /**
      *  Creates a new slot for a child at index "idx" by shifting over
@@ -66,22 +66,21 @@ class InteriorNodeCursor
      *  Returns the offset in the buffer at which to write the least
      *  key beneath the new child.
      */
-    public int insertNewChildAt(int idx) {
+    public int insertNewBucketAt(int idx) {
         assert !isFull();
         assert idx!=0;
         System.arraycopy(buf, INTERIOR_HEADER_SIZE + (idx-1)*INTERIOR_ENTRY_SIZE,
                          buf, INTERIOR_HEADER_SIZE + idx*INTERIOR_ENTRY_SIZE,
                          endOfBuf() - (INTERIOR_HEADER_SIZE + (idx-1)*INTERIOR_ENTRY_SIZE));
-        setNumChildren(getNumChildren()+1);
+        setNumBuckets(getNumBuckets()+1);
         return INTERIOR_HEADER_SIZE + (idx-1)*INTERIOR_ENTRY_SIZE;
     }
 
     public InteriorNodeCursor(BTree<K,V,S> bt) {
-        super(bt.ps);
-        this.bt = bt;
+        super(bt);
         this.INTERIOR_HEADER_SIZE = (bt.monoid==null ? 0 : bt.monoid.getSize()) + 4 * SIZEOF_INT;
         this.INTERIOR_ENTRY_SIZE  = bt.uk.getSize() + (bt.monoid==null ? 0 : bt.monoid.getSize()) + SIZEOF_INT + SIZEOF_INT;
-        this.INTERIOR_MAX_CHILDREN = ((ps.getPageSize()-INTERIOR_HEADER_SIZE) / INTERIOR_ENTRY_SIZE);
+        this.INTERIOR_MAX_BUCKETS = ((ps.getPageSize()-INTERIOR_HEADER_SIZE) / INTERIOR_ENTRY_SIZE);
     }
 
     public static boolean isInteriorNode(byte[] buf) { return UnboxedInt.instance.deserializeInt(buf, 1*SIZEOF_INT)!=0; }
@@ -89,11 +88,15 @@ class InteriorNodeCursor
     public void setBuf(int pageid, byte[] buf) {
         assert pageid==-1 || isInteriorNode(buf);
         super.setBuf(pageid, buf);
-        numchildren = bt.ui.deserializeInt(buf, 1*SIZEOF_INT);
+        numbuckets = bt.ui.deserializeInt(buf, 1*SIZEOF_INT);
+    }
+
+    public void initBuf(int pageid, byte[] buf) {
+        super.setBuf(pageid, buf);
     }
 
     /**
-     *  Initialize a new root node whose childrens' pageids are child1
+     *  Initialize a new root node whose bucketss' pageids are child1
      *  and child2; buf must already contain the least key under
      *  child2 at position key_ofs.
      */
@@ -101,20 +104,19 @@ class InteriorNodeCursor
         bt.rootpage = ps.createPage();
         super.setBuf(bt.rootpage, buf);
         setParentPageId(bt.rootpage);
-        setNumChildren(1);
+        setNumBuckets(1);
     }
 
     public int  getParentPageId() { return bt.ui.deserializeInt(buf, 0*SIZEOF_INT); }
     public void setParentPageId(int pageid) { bt.ui.serializeInt(pageid, buf, 0*SIZEOF_INT); }
-    public int  getNumChildren() { return numchildren; }
-    public void setNumChildren(int num) { bt.ui.serializeInt(numchildren = num, buf, 1*SIZEOF_INT); }
-    public int  getChildPageId(int idx) { return bt.ui.deserializeInt(buf, 2*SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx); }
-    public void setChildPageId(int idx, int pageid) { bt.ui.serializeInt(pageid, buf, 2*SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx); }
-    public int  getNumValsBelowChild(int idx) { return bt.ui.deserializeInt(buf, 3*SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx); }
-    public int  getNumKeys() { return getNumChildren()+1; }
+    public int  getNumBuckets() { return numbuckets; }
+    public void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, buf, 1*SIZEOF_INT); }
+    public int  getBucketPageId(int idx) { return bt.ui.deserializeInt(buf, 2*SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx); }
+    public void setBucketPageId(int idx, int pageid) { bt.ui.serializeInt(pageid, buf, 2*SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx); }
+    public int  getNumValsBelowBucket(int idx) { return bt.ui.deserializeInt(buf, 3*SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx); }
     public int  compare(byte[] key, int key_ofs, int keynum) {
         if (keynum<=0) return 1;
-        if (keynum>=getNumKeys()-1) return -1;
+        if (keynum>=getNumBuckets()) return -1;
         return bt.uk.compare(key, key_ofs, buf, INTERIOR_HEADER_SIZE + (keynum-1)*INTERIOR_ENTRY_SIZE);
     }
 
@@ -123,27 +125,31 @@ class InteriorNodeCursor
         int endOfBuf = endOfBuf();
 
         // chop off our second half, point our parent at the page-to-be, and write back
-        setNumChildren(INTERIOR_MAX_CHILDREN/2);
+        setNumBuckets(getMaxBuckets()/2);
         writeBack();
 
         if (key!=null)
-            System.arraycopy(buf, INTERIOR_HEADER_SIZE + INTERIOR_ENTRY_SIZE*((INTERIOR_MAX_CHILDREN/2)-1),
-                             key, key_ofs, bt.uk.getSize());
+            getKey(getMaxBuckets()/2, key, key_ofs);
 
         // move the second half of our entries to the front of the block, and write back
         byte[] oldbuf = buf;
         int parent = getParentPageId();
-        this.buf = new byte[buf.length];
-        this.pageid = ps.createPage();
-        int len = 2*SIZEOF_INT + INTERIOR_ENTRY_SIZE*(INTERIOR_MAX_CHILDREN/2);
-        System.arraycopy(oldbuf, len, buf, 2*SIZEOF_INT, endOfBuf - len);
-        setNumChildren(INTERIOR_MAX_CHILDREN-INTERIOR_MAX_CHILDREN/2);
+        initBuf(ps.createPage(), new byte[buf.length]);
+        setNumBuckets(getMaxBuckets()-getMaxBuckets()/2);
+        int len = 2*SIZEOF_INT + INTERIOR_ENTRY_SIZE*(getMaxBuckets()/2);
+        System.arraycopy(oldbuf, len,
+                         buf, 2*SIZEOF_INT,
+                         endOfBuf - len);
         setParentPageId(parent);
         writeBack();
         return pageid;
     }
 
-    public boolean isFull() { return getNumChildren() == INTERIOR_MAX_CHILDREN; }
+    public boolean isFull() { return getNumBuckets() == getMaxBuckets(); }
     public boolean isLeafNode() { return false; }
-    private int endOfBuf() { return 2*SIZEOF_INT + getNumChildren()*INTERIOR_ENTRY_SIZE; }
+    protected int endOfBuf() { return 2*SIZEOF_INT + getNumBuckets()*INTERIOR_ENTRY_SIZE; }
+    public void getKey(int keynum, byte[] key, int key_ofs) {
+        System.arraycopy(buf, INTERIOR_HEADER_SIZE + INTERIOR_ENTRY_SIZE*(keynum-1),
+                         key, key_ofs, bt.uk.getSize());
+    }
 }

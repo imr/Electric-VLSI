@@ -215,15 +215,15 @@ public class BTree
                 assert cur!=parentNodeCursor;
                 if (pageid == rootpage) {
                     parentNodeCursor.initRoot(new byte[ps.getPageSize()]);
-                    parentNodeCursor.setChildPageId(0, pageid);
+                    parentNodeCursor.setBucketPageId(0, pageid);
                     cur.setParentPageId(rootpage);
                     idx = 0;
                 }
-                int ofs = parentNodeCursor.insertNewChildAt(idx+1);
+                int ofs = parentNodeCursor.insertNewBucketAt(idx+1);
                 int oldpage = cur.getPageId();
                 int newpage = cur.split(parentNodeCursor.getBuf(), ofs);
                 if (largestKeyPage==oldpage) largestKeyPage = newpage;
-                parentNodeCursor.setChildPageId(idx+1, newpage);
+                parentNodeCursor.setBucketPageId(idx+1, newpage);
                 cur.writeBack();
                 parentNodeCursor.writeBack();
                 pageid = rootpage;
@@ -232,7 +232,7 @@ public class BTree
             }
 
             if (cheat) {
-                idx = leafNodeCursor.getNumEntries()-1;
+                idx = leafNodeCursor.getNumBuckets()-1;
             } else {
                 idx = cur.search(key, key_ofs);
                 comp = cur.compare(key, key_ofs, idx);
@@ -254,7 +254,7 @@ public class BTree
             } else {
                 if (op!=Op.GET && val==null)
                     throw new RuntimeException("need to adjust 'least value under X' on the way down for deletions");
-                pageid = interiorNodeCursor.getChildPageId(idx);
+                pageid = interiorNodeCursor.getBucketPageId(idx);
                 InteriorNodeCursor<K,V,S> ic = interiorNodeCursor; interiorNodeCursor = parentNodeCursor; parentNodeCursor = ic;
                 assert interiorNodeCursor!=parentNodeCursor;
                 continue;
