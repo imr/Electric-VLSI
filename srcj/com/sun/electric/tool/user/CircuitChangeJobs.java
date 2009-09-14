@@ -2097,10 +2097,9 @@ public class CircuitChangeJobs
                 if (obj instanceof Geometric)
                     Rectangle2D.union(selectedBounds, ((Geometric)obj).getBounds(), selectedBounds);
 
-            System.out.println("Moving cell center from " +
-                               "(" + center.getTrueCenter().getX() + "," + center.getTrueCenter().getY() + ")" +
-                               " to " +
-                               "(" + selectedBounds.getCenterX() + "," + selectedBounds.getCenterY() + ")");
+            System.out.println("Moving cell center;");
+            System.out.println("   selection bounds = " + selectedBounds);
+            System.out.println("   new center       = " + "(" + selectedBounds.getCenterX() + "," + selectedBounds.getCenterY() + ")");
             center.move(selectedBounds.getCenterX()-center.getTrueCenter().getX(),
                         selectedBounds.getCenterY()-center.getTrueCenter().getY());
             return true;
