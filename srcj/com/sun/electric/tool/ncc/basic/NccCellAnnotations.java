@@ -123,6 +123,8 @@ public class NccCellAnnotations {
 	private List<String> annotText = new ArrayList<String>();
 	/** NamePatterns matching Exports connected by parent cell */
 	private List<List<NamePattern>> exportsConnByParent = new ArrayList<List<NamePattern>>();
+    /** NamePatterns matching Exports to ignore */
+    private List<List<NamePattern>> exportsToIgnore = new ArrayList<List<NamePattern>>();
 	/** reason given by user for skipping NCC of this Cell */
 	private String skipReason;
 	/** reason given by user for treating this Cell as a subcircuit 
@@ -152,6 +154,14 @@ public class NccCellAnnotations {
 		}
 		if (connected.size()>0) exportsConnByParent.add(connected); 
 	}
+
+    private void processExportsToIgnoreAnnot(NamePatternLexer lex) {
+        List<NamePattern> ignore = new ArrayList<NamePattern>();
+        for (NamePattern np=lex.nextPattern(); np!=null; np=lex.nextPattern()) {
+            ignore.add(np);
+        }
+        if (ignore.size()>0) exportsToIgnore.add(ignore);
+    }
 
 	private void processSkipAnnotation(NamePatternLexer lex) {
 		skipReason = lex.restOfLine();
@@ -294,6 +304,8 @@ public class NccCellAnnotations {
 			// skip blank lines
 		} else if (key.stringEquals("exportsConnectedByParent")) {
 			processExportsConnAnnot(lex);
+        } else if (key.stringEquals("exportsToIgnore")) {
+            processExportsToIgnoreAnnot(lex);
 		} else if (key.stringEquals("skipNCC")) {
 			processSkipAnnotation(lex);
 		} else if (key.stringEquals("notSubcircuit")) {
@@ -431,8 +443,12 @@ public class NccCellAnnotations {
 	 * the names (or regular expressions that match the names) of Exports 
 	 * that the user expects to be connected by the Cell's parent. */  
 	public Iterator<List<NamePattern>> getExportsConnected() {return exportsConnByParent.iterator();}
-	
-	public Iterator<String> getAnnotationText() {return annotText.iterator();}
+    /** @return an Iterator over Lists of NamePatterns. Each List specifies
+     * the names (or regular expressions that match the names) of Exports
+     * that the user wants to be ignored. */      
+    public Iterator<List<NamePattern>> getExportsToIgnore() { return exportsToIgnore.iterator(); }
+
+    public Iterator<String> getAnnotationText() {return annotText.iterator();}
 	/** @return the CellGroup specified by a joinGroup annotation */
 	public Cell.CellGroup getGroupToJoin() {return groupToJoin;}
 	/** @return true if a flattenInstance annotation says to flatten instName */

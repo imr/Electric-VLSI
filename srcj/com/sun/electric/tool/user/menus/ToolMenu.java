@@ -418,6 +418,8 @@ public class ToolMenu
                         NccCellAnnotations.makeNCCAnnotationMenuCommand("exportsConnectedByParent vdd /vdd_[0-9]+/"); }},
 		        	new EMenuItem("Exports Connected By Parent _gnd") { public void run() {
                         NccCellAnnotations.makeNCCAnnotationMenuCommand("exportsConnectedByParent gnd /gnd_[0-9]+/"); }},
+                    new EMenuItem("Exports To Ignore /E[0-9]+/") { public void run() {
+                        NccCellAnnotations.makeNCCAnnotationMenuCommand("exportsToIgnore /E[0-9]+/"); }},
 		        	new EMenuItem("_Skip NCC") { public void run() {
                         NccCellAnnotations.makeNCCAnnotationMenuCommand("skipNCC <comment explaining why>"); }},
 		        	new EMenuItem("_Not a Subcircuit") { public void run() {

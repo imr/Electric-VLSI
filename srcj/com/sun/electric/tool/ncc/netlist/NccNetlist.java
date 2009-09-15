@@ -229,7 +229,8 @@ class NccCellInfo extends CellInfo {
 		// first collect all exports
 		for (Iterator<PortProto> it=getCell().getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
-			int[] expNetIDs = getExportNetIDs(e);
+            if (ignoreExport(e.getName(), getAnnotations())) continue;
+            int[] expNetIDs = getExportNetIDs(e);
 			for (int i=0; i<expNetIDs.length; i++) {
 				String nm = e.getNameKey().subname(i).toString();
 				ExportGlobal eg = 
@@ -288,6 +289,19 @@ class NccCellInfo extends CellInfo {
 		}
 		return expGlob.iterator();
 	}
+
+    private boolean ignoreExport(String name, NccCellAnnotations ann) {
+        if (ann==null) return false;
+        for (Iterator<List<NamePattern>> patit=ann.getExportsToIgnore(); patit.hasNext();) {
+            List<NamePattern> patterns = patit.next();
+            for (NamePattern pat : patterns) {
+                if (pat.matches(name)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
 
 /** Information from either an Export or a Global signal */
@@ -393,8 +407,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		for (Port p : portSet) 
 			ports.add(p);
 	}
-	
-	/** Get the Wire that's attached to port pi. The Nodable must be an 
+
+	/** Get the Wire that's attached to port pi. The Nodable must be an
 	 * instance of a PrimitiveNode. 
 	 * @return the attached Wire. */
 	private Wire getWireForPortInst(PortInst pi, CellInfo info) {

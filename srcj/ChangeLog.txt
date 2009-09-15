@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+IMP: (9/14/09, JKG) Add "exportsToIngore" NCC annotation (bug #2387)
+
 BUG: (9/14/09, AM) Merge com.sun.async.test.* into Electric codebase
      (Bug #2347).  As discussed with SMR (in person), JKG (in person),
      GVG (on phone), and DN (on phone).
