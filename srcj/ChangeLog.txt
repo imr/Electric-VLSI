@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+IMP: (9/15/09, GVG) Well resistors in 40nm (Bug #2392)
+
 IMP/MAN: (9/15/09, SMR) Added two new error-reporting commands to
      "Edit / Selection" which do NOT popup a new window:
      "Show Next Error, same Window" and "Show Previous Error, same Window"

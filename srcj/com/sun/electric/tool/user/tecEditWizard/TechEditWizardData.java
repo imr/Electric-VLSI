@@ -3271,10 +3271,10 @@ public class TechEditWizardData
                     Poly.Type.FILLED, true, true, -1));
 
                 // cuts
-                nodesList.add(makeXmlMulticut(cutEnd2, -1, -cutDistance, -1, cutSizeHalf, -1, cutSizeHalf, 1, polyConLayer, contSize,
-                    contArraySpacing, contArraySpacing));
-                nodesList.add(makeXmlMulticut(-cutDistance, 1, cutEnd2, 1, cutSizeHalf, -1, cutSizeHalf, 1, polyConLayer, contSize,
-                    contArraySpacing, contArraySpacing));
+                nodesList.add(makeXmlMulticut(cutEnd2, -1, -cutDistance, -1, cutSizeHalf, -1, cutSizeHalf, 1,
+                    polyConLayer, contSize, contArraySpacing, contArraySpacing));
+                nodesList.add(makeXmlMulticut(-cutDistance, 1, cutEnd2, 1, cutSizeHalf, -1, cutSizeHalf, 1,
+                    polyConLayer, contSize, contArraySpacing, contArraySpacing));
 
                 sox = scaledValue(soxNoScaled + extraSelX);
                 soy = scaledValue(rpoODPolyEx.value);
@@ -3292,37 +3292,35 @@ public class TechEditWizardData
                 WizardField rpoCoS = findWizardField("rpo_co_space_in_nwrod"); // G
                 WizardField coNwrodO = findWizardField("co_nwrod_overhang"); // E
                 WizardField odNwrodO = findWizardField("od_nwrod_overhang"); // D
+                WizardField rpoNwrodS = findWizardField("rpo_nwrod_space"); // c
 
                 // Total values define RPO dimensions
                 double cutEndNoScaled = /*F*/rpoSelO.value + /*G*/rpoCoS.value;
                 double cutSpacingNoScaled = /*2xCut + spacing*/resistorSpacing + 2*contact_size.value;
-                double activeXNoScaled = /*F+G*/cutEndNoScaled + /*cut spacing+2xcuts*/cutSpacingNoScaled
-                    + /*E*/coNwrodO.value + /*D*/odNwrodO.value;
+                double wellFromnwdmyWidth = /*F+G*/cutEndNoScaled + /*cut spacing+2xcuts*/cutSpacingNoScaled
+                    + /*E*/coNwrodO.value;
+                double activeXNoScaled = wellFromnwdmyWidth + /*D*/odNwrodO.value;
                 soxNoScaled = activeXNoScaled + rpoODPolyEx.value;
                 double soyNoScaled = /*D*/odNwrodO.value + rpoODPolyEx.value;
                 halfTotalL = scaledValue(wellRL.value /2 + soxNoScaled);
                 halfTotalW = scaledValue(wellRW.value /2 + soyNoScaled);
-                double activeWX = scaledValue(activeXNoScaled);
+                double activeWX = scaledValue(wellRL.value /2 + activeXNoScaled);
                 double activeWY = scaledValue(wellRW.value /2 + /*D*/odNwrodO.value);
-
-                // rpo. It has two holes
-                nodesList.add(makeXmlNodeLayer(halfTotalL, halfTotalL, halfTotalW, halfTotalW, rpoLayer,
-                    Poly.Type.FILLED, true, true, -1));
-
+                
                 // active
                 nodesList.add(makeXmlNodeLayer(activeWX, activeWX, activeWY, activeWY, activeLayer,
                     Poly.Type.FILLED, true, true, -1));
 
                 // well
                 double halfW = scaledValue(wellRW.value /2);
-                double halfWellL = scaledValue(wellRL.value /2+/*F+G*/cutEndNoScaled+/*cut spacing+2xcuts*/cutSpacingNoScaled
-                + /*E*/coNwrodO.value);
+                double halfWellLNoScaled = wellRL.value /2 + wellFromnwdmyWidth;
+                double halfWellL = scaledValue(halfWellLNoScaled);
                 if (i==Technology.N_TYPE)
                 {
                     nodesList.add(makeXmlNodeLayer(halfWellL, halfWellL, halfW, halfW, nwellLayer,
                         Poly.Type.FILLED, true, true, -1));
                 }
-                
+
                 // NWDMY-LVS
                 double halfL = scaledValue(wellRL.value /2);
                 Xml.Layer nwdmyLayer = t.findLayer("NWDMY-LVS");
@@ -3341,7 +3339,18 @@ public class TechEditWizardData
                 nodesList.add(makeXmlNodeLayer(-m1Distance, 1, halfWellL, 1, halfW, -1, halfW, 1, m1Layer,
                     Poly.Type.FILLED, true, true, 1));
 
-                // left port
+                // Select
+                double deltaFromActve = /*DodNwrodO.value - */ /*C*/rpoNwrodS.value + /*F*/rpoSelO.value;
+                selectY = scaledValue(wellRW.value /2 + deltaFromActve); // Y end of well + F + C value
+                selectX = scaledValue(halfWellLNoScaled + deltaFromActve); // X end of well + F + CO value
+                // Left
+                nodesList.add(makeXmlNodeLayer(selectX, -1, -halfL, -1, selectY, -1, selectY, 1, selectLayer,
+                    Poly.Type.FILLED, true, true, 0));
+                // right
+                nodesList.add(makeXmlNodeLayer(-halfL, -1, selectX, 1, selectY, -1, selectY, 1, selectLayer,
+                    Poly.Type.FILLED, true, true, 0));
+
+                // m1 left port
                 port = makeXmlPrimitivePort("left-rpo", 0, 180, 0, minFullSize,
                     -(cutEnd + cutSpacing), -1, -cutEnd, -1, -halfW, -1, halfW, 1, portNames);
                 nodePorts.add(port);
@@ -3350,11 +3359,40 @@ public class TechEditWizardData
                     cutEnd, 1, (cutEnd + cutSpacing), 1, -halfW, -1, halfW, 1, portNames);
                 nodePorts.add(port);
 
+                // RPO in 5 pieces to represent the two holes for the contacts
+                double holeStartX = scaledValue(halfWellLNoScaled + /*C*/rpoNwrodS.value);
+                double holeStartY = scaledValue(wellRW.value /2 + /*C*/rpoNwrodS.value);
+                // left piece
+                nodesList.add(makeXmlNodeLayer(halfTotalL, -1, -holeStartX, -1, halfTotalW, -1, halfTotalW, 1,
+                    rpoLayer, Poly.Type.FILLED, true, true, -1));
+                // right piece
+                nodesList.add(makeXmlNodeLayer(-holeStartX, -1, halfTotalL, -1, halfTotalW, -1, halfTotalW, 1,
+                    rpoLayer, Poly.Type.FILLED, true, true, -1));
+                // center bottom
+               nodesList.add(makeXmlNodeLayer(holeStartX, -1, holeStartX, 1, halfTotalW, -1, -holeStartY, -1,
+                   rpoLayer, Poly.Type.FILLED, true, true, -1));
+                // center top
+                nodesList.add(makeXmlNodeLayer(holeStartX, -1, holeStartX, 1, -holeStartY, -1, halfTotalW, 1,
+                   rpoLayer, Poly.Type.FILLED, true, true, -1));
+                // center
+                nodesList.add(makeXmlNodeLayer(m1Distance, m1Distance, holeStartY, holeStartY, rpoLayer,
+                    Poly.Type.FILLED, true, true, -1));
+
+                // Cuts
+                cutEnd2 = cutEnd+cutSpacing;
+                double cutEndY = scaledValue(wellRW.value /2 - coNwrodO.value); // E should also be applied along Y
+                // left
+                nodesList.add(makeXmlMulticut(cutEnd2, -1, -cutEnd, -1, cutEndY, -1, cutEndY, 1,
+                    diffConLayer, contSize, contArraySpacing, contArraySpacing));
+                // right
+                nodesList.add(makeXmlMulticut(-cutEnd, 1, cutEnd2, 1, cutEndY, -1, cutEndY, 1,
+                    diffConLayer, contSize, contArraySpacing, contArraySpacing));
+
                 sox = scaledValue(soxNoScaled);
                 soy = scaledValue(soyNoScaled);
-//                n = makeXmlPrimitive(t.nodeGroups, name + "-Well-RPO-Resistor", prFunc, 0, 0, 0, 0,
-//                    new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-//                g.addPinOrResistor(n, name + "-RWell");
+                n = makeXmlPrimitive(t.nodeGroups, name + "-Well-RPO-Resistor", prFunc, 0, 0, 0, 0,
+                    new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
+                g.addPinOrResistor(n, name + "-RWell");
             }
         }
 
