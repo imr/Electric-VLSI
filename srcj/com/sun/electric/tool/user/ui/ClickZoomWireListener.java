@@ -570,7 +570,7 @@ public class ClickZoomWireListener
 	                    if (wiringTarget != null) {
 	                        // check if still valid target
 	                        EditWindow.gridAlign(dbMouse);
-	                        List<Highlight> underCursor = Highlighter.findAllInArea(highlighter, cell, false, true, true, false, specialSelect, false,
+	                        List<Highlight> underCursor = Highlighter.findAllInArea(highlighter, cell, false, true, false, specialSelect, false,
 	                            new Rectangle2D.Double(dbMouse.getX(), dbMouse.getY(), 0, 0), wnd);
 	                        for (Highlight h : underCursor) {
 	                            ElectricObject eobj = h.getElectricObject();
@@ -1592,7 +1592,7 @@ public class ClickZoomWireListener
             //if (endObj != null) {
                 Point2D dbMouse = new Point2D.Double(lastdbMouseX,  lastdbMouseY);
                 Rectangle2D bounds = new Rectangle2D.Double(lastdbMouseX, lastdbMouseY, 0, 0);
-                List<Highlight> targets = Highlighter.findAllInArea(highlighter, wnd.getCell(), false, false, true, false, specialSelect, false, bounds, wnd);
+                List<Highlight> targets = Highlighter.findAllInArea(highlighter, wnd.getCell(), false, true, false, specialSelect, false, bounds, wnd);
                 Iterator<Highlight> it = targets.iterator();
                 // find wiringTarget in list, if it exists
                 boolean found = false;

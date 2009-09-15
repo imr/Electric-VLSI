@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+BUG: (9/15/09, SMR) No way to select two coincident exports (Bug #2385).
+FIX: Holding "Control" now cycles through the ports that are equidistant
+     from the cursor.
+
 IMP: (9/14/09, JKG) Add "exportsToIngore" NCC annotation (bug #2387)
 
 BUG: (9/14/09, AM) Merge com.sun.async.test.* into Electric codebase

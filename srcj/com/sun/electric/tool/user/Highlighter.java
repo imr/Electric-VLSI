@@ -1093,7 +1093,7 @@ public class Highlighter implements DatabaseChangeListener {
 		boolean invertSelection, boolean findSpecial)
 	{
 		Rectangle2D searchArea = new Rectangle2D.Double(minSelX, minSelY, maxSelX - minSelX, maxSelY - minSelY);
-		List<Highlight> underCursor = findAllInArea(this, wnd.getCell(), false, false, false, false, findSpecial, true, searchArea, wnd);
+		List<Highlight> underCursor = findAllInArea(this, wnd.getCell(), false, false, false, findSpecial, true, searchArea, wnd);
 		if (invertSelection)
 		{
 			for(Highlight newHigh : underCursor)
@@ -1317,7 +1317,7 @@ public class Highlighter implements DatabaseChangeListener {
 		// search the relevant objects in the circuit
 		Cell cell = wnd.getCell();
         Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
-		List<Highlight> underCursor = findAllInArea(this, cell, exclusively, another, findPort, findPoint, findSpecial, findText, bounds, wnd);
+		List<Highlight> underCursor = findAllInArea(this, cell, exclusively, findPort, findPoint, findSpecial, findText, bounds, wnd);
         Highlight found = null;
 
 		// if nothing under the cursor, stop now
@@ -1355,7 +1355,7 @@ public class Highlighter implements DatabaseChangeListener {
 				Highlight oldHigh = highlightList.get(j);
 				for(int i=0; i<underCursor.size(); i++)
 				{
-					if (oldHigh.sameThing(underCursor.get(i)))
+					if (sameHighlight(oldHigh, underCursor.get(i)))
 					{
 						// found the same thing: loop
 						if (invert)
@@ -1404,12 +1404,18 @@ public class Highlighter implements DatabaseChangeListener {
 		return found;
 	}
 
+	boolean sameHighlight(Highlight obj1, Highlight obj2)
+	{
+		if (obj1 == obj2) return true;
+	    if (obj1 == null || obj2.getClass() != obj1.getClass()) return false;
+        return obj1.getElectricObject() == obj2.getElectricObject();
+    }
+
 	/**
 	 * Method to search a Cell for all objects at a point.
 	 * @param cell the cell to search.
 	 * @param exclusively true if the currently selected object must remain selected.
 	 * This happens during "outline edit" when the node doesn't change, just the point on it.
-	 * @param another true to find another object under the point (when there are multiple ones).
 	 * @param findPort true to also show the closest port on a selected node.
 	 * @param findPoint true to also show the closest point on a selected outline node.
 	 * @param findSpecial true to select hard-to-find objects.
@@ -1421,7 +1427,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @return a list of Highlight objects.
 	 * The list is ordered by importance, so the deault action is to select the first entry.
 	 */
-	public static List<Highlight> findAllInArea(Highlighter highlighter, Cell cell, boolean exclusively, boolean another, boolean findPort,
+	public static List<Highlight> findAllInArea(Highlighter highlighter, Cell cell, boolean exclusively, boolean findPort,
 		 boolean findPoint, boolean findSpecial, boolean findText, Rectangle2D bounds, EditWindow wnd)
 	{
 		// make a list of things under the cursor
@@ -1455,8 +1461,8 @@ public class Highlighter implements DatabaseChangeListener {
                     if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
                     if (eobj instanceof NodeInst)
                     {
-                        h = checkOutObject((Geometric)eobj, findPort, findPoint, findSpecial, bounds, wnd, Double.MAX_VALUE, areaMustEnclose);
-                        if (h != null) list.add(h);
+                        List<Highlight> found = checkOutObject((Geometric)eobj, findPort, findPoint, findSpecial, bounds, wnd, Double.MAX_VALUE, areaMustEnclose);
+                        for(Highlight h2 : found) list.add(h2);
                     }
                 }
 //                Job.releaseExamineLock();
@@ -1474,26 +1480,25 @@ public class Highlighter implements DatabaseChangeListener {
                 for(Iterator<RTBounds> it = cell.searchIterator(searchArea); it.hasNext(); )
                 {
                     Geometric geom = (Geometric)it.next();
-                    Highlight h;
                     switch (phase)
                     {
                         case 0:			// check primitive nodes
                             if (!(geom instanceof NodeInst)) break;
                             if (((NodeInst)geom).isCellInstance()) break;
-                            h = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
-                            if (h != null) list.add(h);
+                            List<Highlight> found = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
+                            for(Highlight h2 : found) list.add(h2);
                             break;
                         case 1:			// check Cell instances
                             if (!findSpecial && !User.isEasySelectionOfCellInstances()) break; // ignore cells if requested
                             if (!(geom instanceof NodeInst)) break;
                             if (!((NodeInst)geom).isCellInstance()) break;
-                            h = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
-                            if (h != null) list.add(h);
+                            found = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
+                            for(Highlight h2 : found) list.add(h2);
                             break;
                         case 2:			// check arcs
                             if (!(geom instanceof ArcInst)) break;
-                            h = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
-                            if (h != null) list.add(h);
+                            found = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
+                            for(Highlight h2 : found) list.add(h2);
                             break;
                     }
                 }
@@ -1785,11 +1790,12 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param wnd the window being examined (null to ignore window scaling).
 	 * @param directHitDist the slop area to forgive when searching (a few pixels in screen space, transformed to database units).
 	 * @param areaMustEnclose true if the object must be completely inside of the selection area.
-	 * @return a Highlight that defines the object, or null if the point is not over any part of this object.
+	 * @return a List of Highlights that define the object, empty if the point is not over any part of this object.
 	 */
-	public static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findPoint, boolean findSpecial, Rectangle2D bounds,
+	public static List<Highlight> checkOutObject(Geometric geom, boolean findPort, boolean findPoint, boolean findSpecial, Rectangle2D bounds,
 		EditWindow wnd, double directHitDist, boolean areaMustEnclose)
 	{
+		List<Highlight> found = new ArrayList<Highlight>();
         LayerVisibility lv = wnd != null ? wnd.getLayerVisibility() : LayerVisibility.getLayerVisibility();
 		if (geom instanceof NodeInst)
 		{
@@ -1807,21 +1813,22 @@ public class Highlighter implements DatabaseChangeListener {
 				if (!User.isHighlightInvisibleObjects())
 				{
 					PrimitiveNode np = (PrimitiveNode)ni.getProto();
-					if (!lv.isVisible(np)) return null;
+					if (!lv.isVisible(np)) return found;
 				}
 			}
-			if (!findSpecial && hardToSelect) return null;
+			if (!findSpecial && hardToSelect) return found;
 
 			// do not "find" Invisible-Pins if they have text or exports
-			if (ni.isInvisiblePinWithText()) return null;
+			if (ni.isInvisiblePinWithText()) return found;
 
 			// ignore areaMustEnclose if bounds is size 0,0
 	        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 			{
 	        	Poly poly = Highlight.getNodeInstOutline(ni);
-	            if (poly == null) return null;
-	   			if (!poly.isInside(bounds)) return null;
-                return new HighlightEOBJ(geom, geom.getParent(), true, -1);
+	            if (poly == null) return found;
+	   			if (!poly.isInside(bounds)) return found;
+	   			found.add(new HighlightEOBJ(geom, geom.getParent(), true, -1));
+                return found;
 			}
 
 			// get the distance to the object
@@ -1831,13 +1838,12 @@ public class Highlighter implements DatabaseChangeListener {
 			if (dist <= directHitDist)
 			{
                 HighlightEOBJ h = new HighlightEOBJ(null, geom.getParent(), true, -1);
-				ElectricObject eobj = geom;
+				List<PortInst> bestPorts = new ArrayList<PortInst>();
 
 				// add the closest port
 				if (findPort)
 				{
 					double bestDist = Double.MAX_VALUE;
-					PortInst bestPort = null;
 					for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 					{
 						PortInst pi = it.next();
@@ -1847,14 +1853,28 @@ public class Highlighter implements DatabaseChangeListener {
 							if (((PrimitivePort)pp).isWellPort() && !findSpecial) continue;
 						}
 						Poly poly = pi.getPoly();
-						dist = poly.polyDistance(bounds);
+						Point2D ctr = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
+
+						double boundCX = bounds.getCenterX();
+						double boundCY = bounds.getCenterY();
+						dist = ctr.distance(new Point2D.Double(boundCX, boundCY));
+						if (bounds.getWidth() == 0 && bounds.getHeight() == 0)
+						{
+							if (poly.getCenterX() == boundCX && poly.getCenterY() == boundCY) dist = Double.MIN_VALUE;
+						} else
+						{
+							if (bounds.contains(ctr)) dist = Double.MIN_VALUE;
+						}
 						if (dist < bestDist)
 						{
 							bestDist = dist;
-							bestPort = pi;
+							bestPorts.clear();
+							bestPorts.add(pi);
+						} else if (dist == bestDist)
+						{
+							bestPorts.add(pi);
 						}
 					}
-					if (bestPort != null) eobj = bestPort;
 				}
 
 				// add the closest point
@@ -1883,8 +1903,20 @@ public class Highlighter implements DatabaseChangeListener {
 						if (bestPoint >= 0) h.point = bestPoint;
 					}
 				}
-				h.eobj = eobj;
-				return h;
+				if (bestPorts.size() > 0)
+				{
+					h.eobj = bestPorts.get(0);
+					found.add(h);
+					for(int i=1; i<bestPorts.size(); i++)
+					{
+		                HighlightEOBJ hMore = new HighlightEOBJ(bestPorts.get(i), geom.getParent(), true, h.point);
+						found.add(hMore);
+					}
+				} else
+				{
+					found.add(h);
+				}
+				return found;
 			}
 		} else
 		{
@@ -1892,19 +1924,20 @@ public class Highlighter implements DatabaseChangeListener {
 			ArcInst ai = (ArcInst)geom;
 
 			// do not "find" hard-to-find arcs if "findSpecial" is not set
-			if (!findSpecial && ai.isHardSelect()) return null;
+			if (!findSpecial && ai.isHardSelect()) return found;
 
 			// do not include arcs that have all layers invisible
-			if (!User.isHighlightInvisibleObjects() && !lv.isVisible(ai.getProto())) return null;
+			if (!User.isHighlightInvisibleObjects() && !lv.isVisible(ai.getProto())) return found;
 
 			// ignore areaMustEnclose if bounds is size 0,0
 	        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 			{
 	        	Poly poly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.CLOSED);
-	            if (poly == null) return null;
-	   			if (!poly.isInside(bounds)) return null;
+	            if (poly == null) return found;
+	   			if (!poly.isInside(bounds)) return found;
                 Highlight h = new HighlightEOBJ(geom, geom.getParent(), true, -1);
-				return h;
+                found.add(h);
+				return found;
 			}
 
 			// get distance to arc
@@ -1914,10 +1947,11 @@ public class Highlighter implements DatabaseChangeListener {
 			if (dist <= directHitDist)
 			{
                 Highlight h = new HighlightEOBJ(geom, geom.getParent(), true, -1);
-				return h;
+                found.add(h);
+				return found;
 			}
 		}
-		return null;
+		return found;
 	}
 
     /**

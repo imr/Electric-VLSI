@@ -43,9 +43,7 @@ import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
 
@@ -67,10 +65,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-
-import javax.swing.Timer;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 /**
  * A Highlight (or subclass thereof) includes a reference to something
@@ -689,7 +683,7 @@ class HighlightArea extends Highlight
 
     void getHighlightedEObjs(Highlighter highlighter, List<Geometric> list, boolean wantNodes, boolean wantArcs)
     {
-        List<Highlight> inArea = Highlighter.findAllInArea(highlighter, cell, false, false, false, false, false, false, bounds, null);
+        List<Highlight> inArea = Highlighter.findAllInArea(highlighter, cell, false, false, false, false, false, bounds, null);
         for(Highlight ah : inArea)
         {
             if (!(ah instanceof HighlightEOBJ)) continue;
@@ -716,7 +710,7 @@ class HighlightArea extends Highlight
 
     void getHighlightedNodes(Highlighter highlighter, List<NodeInst> list)
     {
-        List<Highlight> inArea = Highlighter.findAllInArea(highlighter, cell, false, false, false, false, false, false,
+        List<Highlight> inArea = Highlighter.findAllInArea(highlighter, cell, false, false, false, false, false,
                 bounds, null);
         for(Highlight ah : inArea)
         {
@@ -731,7 +725,7 @@ class HighlightArea extends Highlight
 
     void getHighlightedArcs(Highlighter highlighter, List<ArcInst> list)
     {
-        List<Highlight> inArea = Highlighter.findAllInArea(highlighter, cell, false, false, false, false, false, false,
+        List<Highlight> inArea = Highlighter.findAllInArea(highlighter, cell, false, false, false, false, false,
                 bounds, null);
         for(Highlight ah : inArea)
         {
@@ -1254,7 +1248,7 @@ class HighlightEOBJ extends Highlight
                     Set<Network> networks = new HashSet<Network>();
                     networks = NetworkTool.getNetworksOnPort(originalPi, netlist, networks);
 
-                    HashSet<Geometric> markObj = new HashSet<Geometric>();
+                    Set<Geometric> markObj = new HashSet<Geometric>();
                     for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
                     {
                         ArcInst ai = it.next();
@@ -1439,33 +1433,39 @@ class HighlightEOBJ extends Highlight
         if (eobj instanceof Geometric)
         {
         	boolean specialSelect = ToolBar.isSelectSpecial();
-            Highlight got = Highlighter.checkOutObject((Geometric)eobj, true, false, specialSelect, searchArea, wnd, directHitDist, false);
-            if (got == null) return false;
-            if (!(got instanceof HighlightEOBJ))
-                System.out.println("Error?");
-            ElectricObject hObj = got.getElectricObject();
-            ElectricObject hReal = hObj;
-            if (hReal instanceof PortInst) hReal = ((PortInst)hReal).getNodeInst();
-            for(Highlight alreadyDone : highlighter.getHighlights())
+            List<Highlight> gotAll = Highlighter.checkOutObject((Geometric)eobj, true, false, specialSelect, searchArea, wnd, directHitDist, false);
+            if (gotAll.size() == 0) return false;
+            boolean found = false;
+            for(Highlight got : gotAll)
             {
-                if (!(alreadyDone instanceof HighlightEOBJ)) continue;
-                HighlightEOBJ alreadyHighlighted = (HighlightEOBJ)alreadyDone;
-                ElectricObject aHObj = alreadyHighlighted.getElectricObject();
-                ElectricObject aHReal = aHObj;
-                if (aHReal instanceof PortInst) aHReal = ((PortInst)aHReal).getNodeInst();
-                if (hReal == aHReal)
-                {
-                    // found it: adjust the port/point
-                    if (hObj != aHObj || alreadyHighlighted.point != ((HighlightEOBJ)got).point)
-                    {
-                        alreadyHighlighted.eobj = got.getElectricObject();
-                        alreadyHighlighted.point = ((HighlightEOBJ)got).point;
-                        synchronized(highlighter) {
-                            highlighter.setChanged(true);
-                        }
-                    }
-                    break;
-                }
+	            if (!(got instanceof HighlightEOBJ))
+	                System.out.println("Error?");
+	            ElectricObject hObj = got.getElectricObject();
+	            ElectricObject hReal = hObj;
+	            if (hReal instanceof PortInst) hReal = ((PortInst)hReal).getNodeInst();
+	            for(Highlight alreadyDone : highlighter.getHighlights())
+	            {
+	                if (!(alreadyDone instanceof HighlightEOBJ)) continue;
+	                HighlightEOBJ alreadyHighlighted = (HighlightEOBJ)alreadyDone;
+	                ElectricObject aHObj = alreadyHighlighted.getElectricObject();
+	                ElectricObject aHReal = aHObj;
+	                if (aHReal instanceof PortInst) aHReal = ((PortInst)aHReal).getNodeInst();
+	                if (hReal == aHReal)
+	                {
+	                    // found it: adjust the port/point
+	                	found = true;
+	                    if (hObj != aHObj || alreadyHighlighted.point != ((HighlightEOBJ)got).point)
+	                    {
+	                        alreadyHighlighted.eobj = got.getElectricObject();
+	                        alreadyHighlighted.point = ((HighlightEOBJ)got).point;
+	                        synchronized(highlighter) {
+	                            highlighter.setChanged(true);
+	                        }
+	                    }
+	                    break;
+	                }
+	            }
+	            if (found) break;
             }
             return true;
         }

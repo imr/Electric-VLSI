@@ -281,7 +281,7 @@ public class EditWindow extends JPanel
         pulsatingTimer = new Timer(100, new ActionListener() {
                 public void actionPerformed(ActionEvent evt) {
                     if (User.isErrorHighlightingPulsate())
-                        highlighter.showHighlights(EditWindow.this, (Graphics2D)getGraphics());
+                        highlighter.showHighlights(EditWindow.this, getGraphics());
                 }
             });
         pulsatingTimer.start();
@@ -2191,7 +2191,7 @@ public class EditWindow extends JPanel
 				Rectangle2D selection = wnd.getHighlightedArea();
 				if (selection != null)
 				{
-					List<Highlight> inArea = Highlighter.findAllInArea(wnd.getHighlighter(), cell, false, false,
+					List<Highlight> inArea = Highlighter.findAllInArea(wnd.getHighlighter(), cell, false,
 						false, false, true, true, selection, wnd);
 					for(Highlight h : inArea)
 					{
