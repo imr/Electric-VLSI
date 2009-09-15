@@ -38,6 +38,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 
 import java.awt.geom.Point2D;
 import java.io.FileOutputStream;
@@ -1086,29 +1087,21 @@ public class ErrorLogger implements Serializable
 
     public static class XMLParser
     {
-        public ErrorLogger process(URL fileURL, boolean verbose)
+        public ErrorLogger process(URL fileURL, boolean verbose) throws Exception
         {
-            try
-            {
-                // Factory call
-                SAXParserFactory factory = SAXParserFactory.newInstance();
-                factory.setNamespaceAware(true);
-                factory.setValidating(true);
-                // create the parser
-                SAXParser parser = factory.newSAXParser();
-                URLConnection urlCon = fileURL.openConnection();
-                InputStream inputStream = urlCon.getInputStream();
-                if (verbose) System.out.println("Parsing XML file \"" + fileURL + "\"");
-                XMLHandler handler = new XMLHandler();
-                parser.parse(inputStream, handler);
-                if (verbose) System.out.println("End Parsing XML file ...");
-                return handler.logger;
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-                return null;
-            }
+            // Factory call
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            factory.setNamespaceAware(true);
+            factory.setValidating(true);
+            // create the parser
+            SAXParser parser = factory.newSAXParser();
+            URLConnection urlCon = fileURL.openConnection();
+            InputStream inputStream = urlCon.getInputStream();
+            if (verbose) System.out.println("Parsing XML file \"" + fileURL + "\"");
+            XMLHandler handler = new XMLHandler();
+            parser.parse(inputStream, handler);
+            if (verbose) System.out.println("End Parsing XML file ...");
+            return handler.logger;
         }
 
         private class XMLHandler extends DefaultHandler

@@ -409,8 +409,7 @@ public class ErrorLoggerTree {
         try {
             ErrorLogger.XMLParser parser = new ErrorLogger.XMLParser();
             ErrorLogger logger = parser.process(TextUtils.makeURLToFile(fileName), true);
-            if (logger != null)
-                addLogger(logger, false, true);
+            addLogger(logger, false, true);
         } catch (Exception e)
 		{
 			System.out.println("Error loading " + fileName);
