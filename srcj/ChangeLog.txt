@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+BUG: (9/15/09, GVG) Missing "subrractAll" method in GeometryHandler (Bug #2384)
+FIX: Fixed inconsistent refactoring of HashMap parameter to TreeMap in the subtractAll function.
+
 BUG: (9/15/09, SMR) Highlighting crashes when over portless cell (Bug #2391).
 FIX: Fixed Highlighter.checkOutObject().
 

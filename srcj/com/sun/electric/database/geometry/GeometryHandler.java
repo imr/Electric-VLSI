@@ -29,11 +29,7 @@ import com.sun.electric.technology.Layer;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.TreeMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * To handle merge operation. Two different classes have been proposed
@@ -102,7 +98,7 @@ public abstract class GeometryHandler {
      * Method to subtract all geometries stored in hash map from corresponding layers
      * @param map
      */
-    public void subtractAll(TreeMap<Layer,List<PolyBase>> map)
+    public void subtractAll(Map<Layer,List<PolyBase>> map)
     {
         System.out.println("Error: subtractAll not implemented for GeometryHandler subclass " + this.getClass().getName());
     }

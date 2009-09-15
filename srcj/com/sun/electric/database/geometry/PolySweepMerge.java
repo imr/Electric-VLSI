@@ -130,7 +130,7 @@ public class PolySweepMerge extends GeometryHandler
      * Method to subtract all geometries stored in hash map from corresponding layers
      * @param map
      */
-    public void subtractAll(HashMap<Layer,List<PolyBase>> map)
+    public void subtractAll(Map<Layer,List<PolyBase>> map)
     {
        // Need to add exclusion before final calculation
         for (Map.Entry<Layer,List<PolyBase>> e : map.entrySet())
