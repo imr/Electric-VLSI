@@ -463,7 +463,7 @@ public class KeyBindingManager implements KeyEventDispatcher
 			// remove shift modifier from Events.  Lets KeyStrokes like '<' register correctly,
 			// because they are always delivered as SHIFT-'<'.
 //			if ((e.getModifiers() & InputEvent.SHIFT_MASK) != 0 && !Character.isLetter(e.getKeyCode()) && !Character.isDigit(e.getKeyCode()))
-			if (!Character.isLetter(e.getKeyCode()))
+			if (!Character.isLetter(e.getKeyCode()) && !Character.isDigit(e.getKeyCode()))
 			{
 				if (e.getKeyCode() != KeyEvent.VK_LEFT && e.getKeyCode() != KeyEvent.VK_RIGHT &&
 					e.getKeyCode() != KeyEvent.VK_UP && e.getKeyCode() != KeyEvent.VK_DOWN)
