@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+IMP/MAN: (9/15/09, SMR) Added two new error-reporting commands to
+     "Edit / Selection" which do NOT popup a new window:
+     "Show Next Error, same Window" and "Show Previous Error, same Window"
+     These are bound to "[" and "]" (Bug #2388).
+
 BUG: (9/15/09, SMR) No way to select two coincident exports (Bug #2385).
 FIX: Holding "Control" now cycles through the ports that are equidistant
      from the cursor.

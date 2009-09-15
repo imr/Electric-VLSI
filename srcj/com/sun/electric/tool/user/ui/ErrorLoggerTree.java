@@ -95,30 +95,32 @@ public class ErrorLoggerTree {
    /**
      * Method to advance to the next error and report it.
      */
-    public static void reportSingleGeometry()
+    public static void reportSingleGeometry(boolean separateWindow)
    {
        if (currentLogger == null)
        {
            System.out.println("No errors to report");
            return;
        }
-        ((ErrorLoggerTreeNode)currentLogger.getUserObject()).reportSingleGeometry_(true);
+        ((ErrorLoggerTreeNode)currentLogger.getUserObject()).reportSingleGeometry_(true, separateWindow);
     }
 
     /**
      * Method to advance to the next error and report it.
+     * @param separateWindow true to show each cell in its own window; false to show in the current window.
      */
-    public static String reportNextMessage() {
+    public static String reportNextMessage(boolean separateWindow) {
         if (currentLogger == null) return "No errors to report";
-        return ((ErrorLoggerTreeNode)currentLogger.getUserObject()).reportNextMessage_(true);
+        return ((ErrorLoggerTreeNode)currentLogger.getUserObject()).reportNextMessage_(true, separateWindow);
     }
 
     /**
      * Method to back up to the previous error and report it.
+     * @param separateWindow true to show each cell in its own window; false to show in the current window.
      */
-    public static String reportPrevMessage() {
+    public static String reportPrevMessage(boolean separateWindow) {
         if (currentLogger == null) return "No errors to report";
-        return ((ErrorLoggerTreeNode)currentLogger.getUserObject()).reportPrevMessage_();
+        return ((ErrorLoggerTreeNode)currentLogger.getUserObject()).reportPrevMessage_(separateWindow);
     }
 
     /**
@@ -473,38 +475,38 @@ public class ErrorLoggerTree {
 
         public String toString() { return "ErrorLogger Information: " +  logger.getInfo();}
 
-        private void reportSingleGeometry_(boolean showHigh)
+        private void reportSingleGeometry_(boolean showHigh, boolean separateWindow)
         {
             assert(currentMsgLog != null);
-            String message = Job.getUserInterface().reportLog(currentMsgLog, showHigh, null, currentMsgLogGeoIndex);
+            String message = Job.getUserInterface().reportLog(currentMsgLog, showHigh, separateWindow, null, currentMsgLogGeoIndex);
             currentMsgLogGeoIndex = (currentMsgLogGeoIndex < currentMsgLog.getNumHighlights() - 1) ?
                 currentMsgLogGeoIndex+1 : 0;
         }
 
-        private String reportNextMessage_(boolean showHigh) {
+        private String reportNextMessage_(boolean showHigh, boolean separateWindow) {
             if (currentLogNumber < logger.getNumLogs()-1) {
                 currentLogNumber++;
             } else {
                 if (logger.getNumLogs() <= 0) return "No "+logger.getSystem()+" errors";
                 currentLogNumber = 0;
             }
-            return reportLog(currentLogNumber, showHigh);
+            return reportLog(currentLogNumber, showHigh, separateWindow);
         }
 
-        private String reportPrevMessage_() {
+        private String reportPrevMessage_(boolean separateWindow) {
             if (currentLogNumber > 0) {
                 currentLogNumber--;
             } else {
                 if (logger.getNumLogs() <= 0) return "No "+logger.getSystem()+" errors";
                 currentLogNumber = logger.getNumLogs() - 1;
             }
-            return reportLog(currentLogNumber, true);
+            return reportLog(currentLogNumber, true, separateWindow);
         }
 
         /**
          * Report an error
          */
-        private String reportLog(int logNumber, boolean showHigh) {
+        private String reportLog(int logNumber, boolean showHigh, boolean separateWindow) {
 
             if (logNumber < 0 || (logNumber >= logger.getNumLogs())) {
                 return logger.getSystem() + ": no such error or warning "+(logNumber+1)+", only "+logger.getNumLogs()+" errors.";
@@ -518,7 +520,7 @@ public class ErrorLoggerTree {
             } else {
                 extraMsg = " warning " + (logNumber+1-logger.getNumErrors()) + " of " + logger.getNumWarnings();
             }
-            String message = Job.getUserInterface().reportLog(currentMsgLog, showHigh, null, -1);
+            String message = Job.getUserInterface().reportLog(currentMsgLog, showHigh, separateWindow, null, -1);
             return (logger.getSystem() + extraMsg + ": " + message);
         }
 

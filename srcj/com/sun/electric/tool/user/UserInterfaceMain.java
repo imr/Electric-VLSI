@@ -373,10 +373,10 @@ public class UserInterfaceMain extends AbstractUserInterface
 
     /**
      * Method to return the error message associated with the current error.
-     * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
+     * Highlights associated graphics if "showhigh" is nonzero.  Fills "gPair"
      * with associated geometry modules (if nonzero).
      */
-    public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric[] gPair, int position)
+    public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, boolean separateWindow, Geometric[] gPair, int position)
     {
         EDatabase database = EDatabase.clientDatabase();
 
@@ -424,8 +424,23 @@ public class UserInterfaceMain extends AbstractUserInterface
                     }
 
                     // make sure it is shown
-                    EditWindow wnd = EditWindow.showEditWindowForCell(cell, eh.getVarContext());
+                    EditWindow wnd;
+                    if (separateWindow)
+                    {
+                    	wnd = EditWindow.showEditWindowForCell(cell, eh.getVarContext());
+                    } else
+                    {
+                    	wnd = EditWindow.getCurrent();
+                    	if (wnd != null)
+                    	{
+                    		wnd.setCell(cell, eh.getVarContext(), null);
+                    	} else
+                    	{
+                        	wnd = EditWindow.showEditWindowForCell(cell, eh.getVarContext());
+                    	}
+                    }
                     highlighter = hMap.get(wnd);
+
                     // nothing clean yet
                     if (highlighter == null)
                     {

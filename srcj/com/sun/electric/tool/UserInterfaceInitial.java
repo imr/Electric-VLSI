@@ -53,7 +53,7 @@ public class UserInterfaceInitial  implements UserInterface {
     public int getDefaultTextSize() { throw new UnsupportedOperationException(); }
     public EditWindow_ displayCell(Cell cell) { throw new UnsupportedOperationException(); }
     public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate) { throw new UnsupportedOperationException(); }
-    public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric[] gPair, int position) { throw new UnsupportedOperationException(); }
+    public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, boolean separateWindow, Geometric[] gPair, int position) { throw new UnsupportedOperationException(); }
     public void showErrorMessage(String message, String title) { throw new UnsupportedOperationException(); }
     public void showInformationMessage(String message, String title) { throw new UnsupportedOperationException(); }
     public void printMessage(String message, boolean newLine) {

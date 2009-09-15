@@ -125,7 +125,7 @@ public class UserInterfaceExec implements UserInterface {
      * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
      * with associated geometry modules (if nonzero).
      */
-    public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric[] gPair, int position) {
+    public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, boolean separateWindow, Geometric[] gPair, int position) {
         throw new UnsupportedOperationException();
     }
 

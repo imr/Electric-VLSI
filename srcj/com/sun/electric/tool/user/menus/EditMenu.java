@@ -433,7 +433,7 @@ public class EditMenu {
 				new EMenuItem("Technology Creation _Wizard...") { public void run() {
 					TechEditWizard.techEditWizardCommand(); }}),
 
-		// mnemonic keys available:  B   F    K M   Q        Z
+		// mnemonic keys available:      F    K     Q        Z
 			new EMenu("_Selection",
 				new EMenuItem("Sele_ct All", 'A') { public void run() {
 					selectAllCommand(); }},
@@ -451,7 +451,7 @@ public class EditMenu {
 				new EMenuItem("Select _Previous Like This") { public void run() {
 					selectNextLikeThisCommand(false); }},
 				SEPARATOR,
-				new EMenuItem("_Select Object...") { public void run() {
+				new EMenuItem("Select O_bject...") { public void run() {
 					SelectObject.selectObjectDialog(null, false); }},
 				new EMenuItem("Deselect All _Arcs") { public void run() {
 					deselectAllArcsCommand(); }},
@@ -472,9 +472,13 @@ public class EditMenu {
 					selectEnclosedObjectsCommand(); }},
 				SEPARATOR,
 				new EMenuItem("Show Ne_xt Error", KeyStroke.getKeyStroke('>')) { public void run() {
-					showNextErrorCommand(); }},
+					showNextErrorCommand(true); }},
 				new EMenuItem("Show Pre_vious Error", KeyStroke.getKeyStroke('<')) { public void run() {
-					showPrevErrorCommand(); }},
+					showPrevErrorCommand(true); }},
+				new EMenuItem("Show Next Error, _same Window", KeyStroke.getKeyStroke(']')) { public void run() {
+					showNextErrorCommand(false); }},
+				new EMenuItem("Show Previous Error, sa_me Window", KeyStroke.getKeyStroke('[')) { public void run() {
+					showPrevErrorCommand(false); }},
                 new EMenuItem("Show Single Geometry", KeyStroke.getKeyStroke(KeyEvent.VK_SLASH, 0)) { public void run() {
 					showSingleGeometryCommand(); }},
                 new EMenuItem("Show Current Co_llection of Errors") { public void run() {
@@ -1429,10 +1433,11 @@ public class EditMenu {
     /**
      * This method implements the command to show the next logged error.
      * The error log lists the results of the latest command (DRC, NCC, etc.)
+     * @param separateWindow true to show each cell in its own window; false to show in the current window.
      */
-    private static void showNextErrorCommand()
+    private static void showNextErrorCommand(boolean separateWindow)
     {
-        String msg = ErrorLoggerTree.reportNextMessage();
+        String msg = ErrorLoggerTree.reportNextMessage(separateWindow);
         System.out.println(msg);
     }
 
@@ -1443,16 +1448,17 @@ public class EditMenu {
      */
     private static void showSingleGeometryCommand()
     {
-        ErrorLoggerTree.reportSingleGeometry();
+        ErrorLoggerTree.reportSingleGeometry(true);
     }
 
     /**
      * This method implements the command to show the last logged error.
      * The error log lists the results of the latest command (DRC, NCC, etc.)
+     * @param separateWindow true to show each cell in its own window; false to show in the current window.
      */
-    private static void showPrevErrorCommand()
+    private static void showPrevErrorCommand(boolean separateWindow)
     {
-        String msg = ErrorLoggerTree.reportPrevMessage();
+        String msg = ErrorLoggerTree.reportPrevMessage(separateWindow);
         System.out.println(msg);
     }
 
