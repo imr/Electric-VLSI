@@ -1914,6 +1914,7 @@ public class Highlighter implements DatabaseChangeListener {
 					}
 				} else
 				{
+					h.eobj = ni;
 					found.add(h);
 				}
 				return found;

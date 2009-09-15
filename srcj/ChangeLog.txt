@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+BUG: (9/15/09, SMR) Highlighting crashes when over portless cell (Bug #2391).
+FIX: Fixed Highlighter.checkOutObject().
+
 IMP: (9/15/09, GVG) Improve error message in case XML ErrorLogger import fails (Bug #2393)
 
 IMP: (9/15/09, GVG) Well resistors in 40nm (Bug #2392)
