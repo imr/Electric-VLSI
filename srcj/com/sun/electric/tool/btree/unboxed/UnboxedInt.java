@@ -44,8 +44,16 @@ public class UnboxedInt implements UnboxedComparable<Integer> {
         buf[ofs+3] = (byte)((i >> 24) & 0xff);
     }
     public int compare(byte[] buf1, int ofs1, byte[] buf2, int ofs2) {
+        int buf1msb = buf1[ofs1+3] & 0xff;
+        int buf2msb = buf2[ofs2+3] & 0xff;
+        boolean buf1negative = (buf1msb >> 7) != 0;
+        boolean buf2negative = (buf2msb >> 7) != 0;
+        if ( buf1negative && !buf2negative) return -1;
+        if (!buf1negative &&  buf2negative) return  1;
+        buf1msb &= 127;
+        buf2msb &= 127;
         int i;
-        i = (buf1[ofs1+3] & 0xff) - (buf2[ofs2+3] & 0xff); if (i!=0) return i;
+        i = (buf1msb            ) - (buf2msb            ); if (i!=0) return i;
         i = (buf1[ofs1+2] & 0xff) - (buf2[ofs2+2] & 0xff); if (i!=0) return i;
         i = (buf1[ofs1+1] & 0xff) - (buf2[ofs2+1] & 0xff); if (i!=0) return i;
         i = (buf1[ofs1+0] & 0xff) - (buf2[ofs2+0] & 0xff); if (i!=0) return i;
