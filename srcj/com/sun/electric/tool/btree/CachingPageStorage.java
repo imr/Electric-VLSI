@@ -40,12 +40,12 @@ import java.util.*;
  */
 public class CachingPageStorage extends PageStorage {
 
-    private final PageStorage ps;
-    private byte[][] cache = null;
-    private boolean[] dirty = null;
-    private LinkedHashMap<Integer,Integer> cacheMap = null;
-    private int cacheSize;
-    private int numCacheEntries = 0;
+    private final PageStorage                    ps;
+    private       byte[][]                       cache = null;
+    private       boolean[]                      dirty = null;
+    private       LinkedHashMap<Integer,Integer> cacheMap = null;
+    private       int                            cacheSize;
+    private       int                            numCacheEntries = 0;
 
     public CachingPageStorage(PageStorage ps, int cacheSize) {
         this.ps = ps;

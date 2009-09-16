@@ -45,12 +45,14 @@ abstract class NodeCursor
     <K extends Serializable & Comparable,
      V extends Serializable,
      S extends Serializable> {
-    protected byte[] buf;
-    protected int pageid;
-    protected boolean dirty = false;
-    protected PageStorage ps;
+
+    protected              byte[]       buf;
+    protected              int          pageid;
+    protected              boolean      dirty = false;
+    protected              PageStorage  ps;
     protected static final int          SIZEOF_INT = 4;
     protected        final BTree<K,V,S> bt;
+
     protected NodeCursor(BTree<K,V,S> bt) {
         this.bt = bt;
         this.ps = bt.ps;
@@ -162,4 +164,16 @@ abstract class NodeCursor
 
     /** kludge */
     protected abstract void scoot(byte[] oldbuf, int endOfBuf);
+
+    /** the total number of values stored in this node and any descendent thereof */
+    public int numValuesBelowNode() {
+        int ret = 0;
+        for(int i=0; i<getNumBuckets(); i++)
+            ret += numValuesBelowBucket(i);
+        return ret;
+    }
+
+    /** the total number of values stored in bucket or any descendent thereof */
+    public abstract int numValuesBelowBucket(int bucket);
+
 }

@@ -32,10 +32,11 @@ import com.sun.electric.tool.btree.unboxed.*;
  *
  *    int: pageid of parent (root points to self)
  *    int: number of buckets
+ *
  *    int: pageid of first bucket
  *    S:   summary of first bucket
  *    repeat
- *       int: number of values (transitively) in (N-1)^th bucket
+ *       int: number of values in (N-1)^th bucket
  *       key: least key in N^th bucket
  *       int: pageid of N^th bucket
  *       S:   summary of N^th bucket
@@ -48,6 +49,11 @@ import com.sun.electric.tool.btree.unboxed.*;
  *   happen very often).  This maintains the O(1)-unless-we-split
  *   fastpath for appends while still keeping enough interior data to
  *   perform ordinal queries.
+ *
+ *   Note that we still need to keep the summary for the last bucket,
+ *   because we don't know as much about its semantics.  This is just
+ *   one of the reasons why "number of values below here" is computed
+ *   separately rather than being part of the summary monoid.
  */     
 class InteriorNodeCursor
     <K extends Serializable & Comparable,
@@ -58,9 +64,16 @@ class InteriorNodeCursor
     private        final int          INTERIOR_HEADER_SIZE;
     private        final int          INTERIOR_ENTRY_SIZE;
     private        final int          INTERIOR_MAX_BUCKETS;
+    private        final int          SIZEOF_SUMMARY;
     private              int          numbuckets;  // just a cache
 
-    public int getMaxBuckets() { return INTERIOR_MAX_BUCKETS; }
+    public InteriorNodeCursor(BTree<K,V,S> bt) {
+        super(bt);
+        this.SIZEOF_SUMMARY       = bt.monoid==null ? 0 : bt.monoid.getSize();
+        this.INTERIOR_HEADER_SIZE = 2*SIZEOF_INT;
+        this.INTERIOR_ENTRY_SIZE  = bt.uk.getSize() + SIZEOF_SUMMARY + SIZEOF_INT + SIZEOF_INT;
+        this.INTERIOR_MAX_BUCKETS = ((ps.getPageSize()-INTERIOR_HEADER_SIZE-SIZEOF_INT-this.SIZEOF_SUMMARY) / INTERIOR_ENTRY_SIZE)+1;
+    }
 
     /**
      *  Creates a new bucket for a child at index "idx" by shifting over
@@ -75,26 +88,21 @@ class InteriorNodeCursor
                          buf, INTERIOR_HEADER_SIZE + idx*INTERIOR_ENTRY_SIZE,
                          endOfBuf() - (INTERIOR_HEADER_SIZE + (idx-1)*INTERIOR_ENTRY_SIZE));
         setNumBuckets(getNumBuckets()+1);
-        return INTERIOR_HEADER_SIZE + (idx-1)*INTERIOR_ENTRY_SIZE;
-    }
-
-    public InteriorNodeCursor(BTree<K,V,S> bt) {
-        super(bt);
-        this.INTERIOR_HEADER_SIZE = (bt.monoid==null ? 0 : bt.monoid.getSize()) + 4 * SIZEOF_INT;
-        this.INTERIOR_ENTRY_SIZE  = bt.uk.getSize() + (bt.monoid==null ? 0 : bt.monoid.getSize()) + SIZEOF_INT + SIZEOF_INT;
-        this.INTERIOR_MAX_BUCKETS = ((ps.getPageSize()-INTERIOR_HEADER_SIZE) / INTERIOR_ENTRY_SIZE);
+        return INTERIOR_HEADER_SIZE + idx*INTERIOR_ENTRY_SIZE - bt.uk.getSize();
     }
 
     public static boolean isInteriorNode(byte[] buf) { return UnboxedInt.instance.deserializeInt(buf, 1*SIZEOF_INT)!=0; }
+    public int getMaxBuckets() { return INTERIOR_MAX_BUCKETS; }
+    public void initBuf(int pageid, byte[] buf) { super.setBuf(pageid, buf); }
+    public int  getParentPageId() { return bt.ui.deserializeInt(buf, 0*SIZEOF_INT); }
+    public void setParentPageId(int pageid) { bt.ui.serializeInt(pageid, buf, 0*SIZEOF_INT); }
+    public int  getNumBuckets() { return numbuckets; }
+    public void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, buf, 1*SIZEOF_INT); }
 
     public void setBuf(int pageid, byte[] buf) {
         assert pageid==-1 || isInteriorNode(buf);
         super.setBuf(pageid, buf);
         numbuckets = bt.ui.deserializeInt(buf, 1*SIZEOF_INT);
-    }
-
-    public void initBuf(int pageid, byte[] buf) {
-        super.setBuf(pageid, buf);
     }
 
     /** Initialize a new root node. */
@@ -105,31 +113,38 @@ class InteriorNodeCursor
         setNumBuckets(1);
     }
 
-    public int  getParentPageId() { return bt.ui.deserializeInt(buf, 0*SIZEOF_INT); }
-    public void setParentPageId(int pageid) { bt.ui.serializeInt(pageid, buf, 0*SIZEOF_INT); }
-    public int  getNumBuckets() { return numbuckets; }
-    public void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, buf, 1*SIZEOF_INT); }
-    public int  getBucketPageId(int idx) { return bt.ui.deserializeInt(buf, 2*SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx); }
-    public void setBucketPageId(int idx, int pageid) { bt.ui.serializeInt(pageid, buf, 2*SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx); }
+    public boolean isFull() { return getNumBuckets() == getMaxBuckets(); }
+    public boolean isLeafNode() { return false; }
+
+
+
+    protected int endOfBuf() { return INTERIOR_HEADER_SIZE + getNumBuckets()*INTERIOR_ENTRY_SIZE - SIZEOF_SUMMARY - SIZEOF_INT; }
+
+    public int  getBucketPageId(int idx) { return bt.ui.deserializeInt(buf, INTERIOR_HEADER_SIZE+INTERIOR_ENTRY_SIZE*idx); }
+    public void setBucketPageId(int idx, int pageid) { bt.ui.serializeInt(pageid, buf, INTERIOR_HEADER_SIZE+INTERIOR_ENTRY_SIZE*idx); }
     public int  getNumValsBelowBucket(int idx) { return bt.ui.deserializeInt(buf, 3*SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx); }
+
     public int  compare(byte[] key, int key_ofs, int keynum) {
         if (keynum<=0) return 1;
         if (keynum>=getNumBuckets()) return -1;
-        return bt.uk.compare(key, key_ofs, buf, INTERIOR_HEADER_SIZE + (keynum-1)*INTERIOR_ENTRY_SIZE);
+        return bt.uk.compare(key, key_ofs, buf, INTERIOR_HEADER_SIZE + keynum*INTERIOR_ENTRY_SIZE - bt.uk.getSize());
     }
 
     protected void scoot(byte[] oldbuf, int endOfBuf) {
-        int len = 2*SIZEOF_INT + INTERIOR_ENTRY_SIZE*(getMaxBuckets()/2);
+        int len = INTERIOR_HEADER_SIZE + INTERIOR_ENTRY_SIZE*(getMaxBuckets()/2);
         System.arraycopy(oldbuf, len,
-                         buf, 2*SIZEOF_INT,
+                         buf, INTERIOR_HEADER_SIZE,
                          endOfBuf - len);
     }
 
-    public boolean isFull() { return getNumBuckets() == getMaxBuckets(); }
-    public boolean isLeafNode() { return false; }
-    protected int endOfBuf() { return 2*SIZEOF_INT + getNumBuckets()*INTERIOR_ENTRY_SIZE; }
     public void getKey(int keynum, byte[] key, int key_ofs) {
-        System.arraycopy(buf, INTERIOR_HEADER_SIZE + INTERIOR_ENTRY_SIZE*(keynum-1),
+        System.arraycopy(buf, INTERIOR_HEADER_SIZE + keynum*INTERIOR_ENTRY_SIZE - bt.uk.getSize(),
                          key, key_ofs, bt.uk.getSize());
+    }
+
+    public int numValuesBelowBucket(int bucket) {
+        if (bucket==0) return 0;
+        if (bucket>=getNumBuckets()) return 0;
+        throw new RuntimeException("not implemented");
     }
 }
