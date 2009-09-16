@@ -628,10 +628,9 @@ public class ServerJobManager {
 
         /**
          * Method to return the error message associated with the current error.
-         * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
-         * with associated geometry modules (if nonzero).
+         * Highlights associated graphics if "showhigh" is nonzero.
          */
-        public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, boolean separateWindow, Geometric[] gPair, int position)
+        public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, boolean separateWindow, int position)
         {
             printStackTrace("reportLog");
             // return the error message

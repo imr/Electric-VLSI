@@ -477,7 +477,7 @@ public class ErrorLoggerTree {
         private void reportSingleGeometry_(boolean showHigh, boolean separateWindow)
         {
             assert(currentMsgLog != null);
-            String message = Job.getUserInterface().reportLog(currentMsgLog, showHigh, separateWindow, null, currentMsgLogGeoIndex);
+            String message = Job.getUserInterface().reportLog(currentMsgLog, showHigh, separateWindow, currentMsgLogGeoIndex);
             currentMsgLogGeoIndex = (currentMsgLogGeoIndex < currentMsgLog.getNumHighlights() - 1) ?
                 currentMsgLogGeoIndex+1 : 0;
         }
@@ -519,7 +519,7 @@ public class ErrorLoggerTree {
             } else {
                 extraMsg = " warning " + (logNumber+1-logger.getNumErrors()) + " of " + logger.getNumWarnings();
             }
-            String message = Job.getUserInterface().reportLog(currentMsgLog, showHigh, separateWindow, null, -1);
+            String message = Job.getUserInterface().reportLog(currentMsgLog, showHigh, separateWindow, -1);
             return (logger.getSystem() + extraMsg + ": " + message);
         }
 

@@ -2192,7 +2192,6 @@ public class Highlighter implements DatabaseChangeListener {
 		// standard distance to the arc
 		long gridWid = ai.getGridBaseWidth();
 		if (gridWid == 0) gridWid = DBMath.lambdaToSizeGrid(1);
-//		if (DBMath.doublesEqual(wid, 0)) wid = 1;
 		Poly poly = ai.makeLambdaPoly(gridWid, Poly.Type.FILLED);
 		return poly.polyDistance(bounds);
 	}

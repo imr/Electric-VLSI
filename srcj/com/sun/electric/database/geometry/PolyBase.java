@@ -42,7 +42,11 @@ import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Stack;
 
 /**
  * The Poly class describes an extended set of points
@@ -959,7 +963,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 				localStyle = Poly.Type.CLOSED;
 			} else
 			{
-				if (otherBounds.intersects(polyBounds)) return Double.MIN_VALUE;
+				if (DBMath.rectsIntersect(otherBounds, polyBounds)) return Double.MIN_VALUE;
 				return otherPt.distance(polyCenter);
 			}
 		}
@@ -983,7 +987,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 				return bestDist;
 			} else
 			{
-				if (otherBounds.intersects(polyBounds)) return Double.MIN_VALUE;
+				if (DBMath.rectsIntersect(otherBounds, polyBounds)) return Double.MIN_VALUE;
 				return otherPt.distance(polyCenter);
 			}
 		}
@@ -1008,7 +1012,6 @@ public class PolyBase implements Shape, PolyNodeMerge
 			} else
 			{
 				if (DBMath.rectsIntersect(otherBounds,polyBounds)) return Double.MIN_VALUE;
-//				if (otherBounds.intersects(polyBounds)) return Double.MIN_VALUE;
 				return otherPt.distance(polyCenter);
 			}
 		}
@@ -1356,7 +1359,6 @@ public class PolyBase implements Shape, PolyNodeMerge
 	/**
 	 * Method to tell whether a rectangle intersects this Poly.
 	 * This method is a requirement of the Shape implementation.
-	 * THIS METHOD HAS NOT BEEN WRITTEN YET!!!
 	 * @param r the rectangle.
 	 * @return true if the rectangle intersects the Poly.
 	 */

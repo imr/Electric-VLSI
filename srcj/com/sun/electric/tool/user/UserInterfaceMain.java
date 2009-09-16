@@ -373,28 +373,11 @@ public class UserInterfaceMain extends AbstractUserInterface
 
     /**
      * Method to return the error message associated with the current error.
-     * Highlights associated graphics if "showhigh" is nonzero.  Fills "gPair"
-     * with associated geometry modules (if nonzero).
+     * Highlights associated graphics if "showhigh" is nonzero.
      */
-    public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, boolean separateWindow, Geometric[] gPair, int position)
+    public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, boolean separateWindow, int position)
     {
         EDatabase database = EDatabase.clientDatabase();
-
-        // if two highlights are requested, find them
-        if (gPair != null)
-        {
-            Geometric geom1 = null, geom2 = null;
-            for(Iterator<ErrorHighlight> it = log.getHighlights(); it.hasNext(); )
-            {
-                ErrorHighlight eh = it.next();
-                    if (geom1 == null) geom1 = (Geometric)eh.getObject(database);
-                    else if (geom2 == null) geom2 = (Geometric)eh.getObject(database);
-            }
-
-            // return geometry if requested
-            if (geom1 != null) gPair[0] = geom1;
-            if (geom2 != null) gPair[1] = geom2;
-        }
 
         // show the error
         if (showhigh)

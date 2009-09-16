@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+BUG: (9/16/09, SMR) Zero-size arcs are not area-selectable (Bug #2394).
+FIX: In PolyBase.polyDistance() use DBMath.rectsIntersect() instead of
+     Rectangle.intersects() because the later doesn't handle zero-size rects.
+
 IMP: (9/16/09, DN) Command-line switch "-threadsafe" turns on thread-safe mode.
 
 BUG: (9/16/09, GVG) IRSIM on layouts and exceptions (Bug #2397)
