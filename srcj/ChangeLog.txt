@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+IMP: (9/15/09, AM) Implement BTree.getOrdinal() query and supporting
+     data structures.
+
 BUG: (9/15/09, AM) Fix erroneous UnboxedInt.compare().
 
 BUG: (9/15/09, SMR) Delete key doesn't work (Bug #2395), and ctrl-numpad 0

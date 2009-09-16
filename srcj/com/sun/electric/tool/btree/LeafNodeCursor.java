@@ -127,6 +127,5 @@ class LeafNodeCursor
         System.arraycopy(buf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*keynum, key, key_ofs, bt.uk.getSize());
     }
 
-    public int numValuesBelowNode() { return getNumBuckets(); }
     public int numValuesBelowBucket(int bucket) { return bucket < getNumBuckets() ? 1 : 0; }
 }

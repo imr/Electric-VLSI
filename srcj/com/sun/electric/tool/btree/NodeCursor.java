@@ -74,11 +74,16 @@ abstract class NodeCursor
      *  This method writes back the first half of the node's contents,
      *  deposits the second half on a new page, and (if key!=null)
      *  writes the least key beneath the right half into key[key_ofs];
-     *  it then returns the pageid of the newly-created page.
+     *  it then returns the number of values appearing anywhere below
+     *  the left page.
      */
-    public void split(byte[] key, int key_ofs) {
+    public int split(byte[] key, int key_ofs) {
         assert isFull();
         int endOfBuf = endOfBuf();
+
+        int ret = 0;
+        for(int i=0; i<getMaxBuckets()/2; i++)
+            ret += numValuesBelowBucket(i);
 
         // chop off our second half, point our parent at the page-to-be, and write back
         setNumBuckets(getMaxBuckets()/2);
@@ -95,6 +100,7 @@ abstract class NodeCursor
         scoot(oldbuf, endOfBuf);
         setParentPageId(parent);
         writeBack();
+        return ret;
     }
 
     public abstract boolean isFull();
@@ -152,7 +158,7 @@ abstract class NodeCursor
             assert compare(key, key_ofs, left) >= 0;
             int i = (left+right)/2;
             int comp = compare(key, key_ofs, i);
-            if      (comp==0)  { left=i; right=i+1; }
+            if      (comp==0)  return i;
             else if (comp>0)   left = i;
             else if (comp<0)   right = i;
         }
@@ -164,14 +170,6 @@ abstract class NodeCursor
 
     /** kludge */
     protected abstract void scoot(byte[] oldbuf, int endOfBuf);
-
-    /** the total number of values stored in this node and any descendent thereof */
-    public int numValuesBelowNode() {
-        int ret = 0;
-        for(int i=0; i<getNumBuckets(); i++)
-            ret += numValuesBelowBucket(i);
-        return ret;
-    }
 
     /** the total number of values stored in bucket or any descendent thereof */
     public abstract int numValuesBelowBucket(int bucket);

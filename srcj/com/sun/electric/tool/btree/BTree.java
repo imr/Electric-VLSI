@@ -125,7 +125,7 @@ public class BTree
     /** returns the value in the tree, or null if not found */
     public V get(K key) {
         uk.serialize(key, keybuf, 0);
-        return walk(keybuf, 0, null, Op.GET);
+        return walk(keybuf, 0, null, Op.GET, 0);
     }
 
     /** returns the least key greater than  */
@@ -137,33 +137,32 @@ public class BTree
         throw new RuntimeException("not implemented");
     }
 
-    /** returns the i^th key in the tree */
-    /*
-    public K get(int i) {
-        throw new RuntimeException("not implemented");
+    /** returns the i^th value in the tree */
+    public V getOrdinal(int ord) {
+        return walk(null, 0, null, Op.GET_ORDINAL, ord);
     }
-    */
 
     /** will throw an exception if the key is already in the tree */
     public void insert(K key, V val) {
         uk.serialize(key, keybuf, 0);
-        walk(keybuf, 0, val, Op.INSERT);
+        walk(keybuf, 0, val, Op.INSERT, 0);
         size++;
     }
 
     /** returns value previously in the tree; will throw an exception if the key is not already in the tree */
     public V remove(K key) {
         throw new RuntimeException("not implemented");
+        // size--;
     }
 
     /** returns value previously in the tree; will throw an exception if the key is not already in the tree */
     public V replace(K key, V val) {
         uk.serialize(key, keybuf, 0);
-        return walk(keybuf, 0, val, Op.REPLACE);
+        return walk(keybuf, 0, val, Op.REPLACE, 0);
     }
     
     private static enum Op {
-        GET, GET_NEXT, GET_PREV, REMOVE, INSERT, REPLACE
+        GET, GET_ORDINAL, GET_NEXT, GET_PREV, REMOVE, INSERT, REPLACE
     }
     
 
@@ -181,7 +180,7 @@ public class BTree
      *  On writes/deletes, this returns the previous value.
      *
      */
-    private V walk(byte[] key, int key_ofs, V val, Op op) {
+    private V walk(byte[] key, int key_ofs, V val, Op op, int ord) {
         int pageid = rootpage;
         int idx = -1;
 
@@ -213,18 +212,26 @@ public class BTree
 
             if ((op==Op.INSERT || op==Op.REPLACE) && cur.isFull()) {
                 assert cur!=parentNodeCursor;
+                int old;
                 if (pageid == rootpage) {
                     parentNodeCursor.initRoot(new byte[ps.getPageSize()]);
                     parentNodeCursor.setBucketPageId(0, pageid);
                     cur.setParentPageId(rootpage);
                     idx = 0;
+                    old = size;
+                } else {
+                    old = idx>=parentNodeCursor.getNumBuckets()-1 ? -1 : parentNodeCursor.getNumValsBelowBucket(idx);
                 }
+                if (op==Op.INSERT && old!=-1) old -= 1;
                 int ofs = parentNodeCursor.insertNewBucketAt(idx+1);
                 int oldpage = cur.getPageId();
-                cur.split(parentNodeCursor.getBuf(), ofs);
+                int num = cur.split(parentNodeCursor.getBuf(), ofs);
+                parentNodeCursor.setNumValsBelowBucket(idx, num);
                 int newpage = cur.getPageId();
                 if (largestKeyPage==oldpage) largestKeyPage = newpage;
                 parentNodeCursor.setBucketPageId(idx+1, newpage);
+                if (old > -1 && idx+1 < parentNodeCursor.getNumBuckets()-1)
+                    parentNodeCursor.setNumValsBelowBucket(idx+1, old-num);
                 cur.writeBack();
                 parentNodeCursor.writeBack();
                 pageid = rootpage;
@@ -232,13 +239,16 @@ public class BTree
                 continue;
             }
 
+
             if (cheat) {
                 idx = leafNodeCursor.getNumBuckets()-1;
-            } else {
+            } else if (op!=Op.GET_ORDINAL) {
                 idx = cur.search(key, key_ofs);
                 comp = cur.compare(key, key_ofs, idx);
             }
             if (cur.isLeafNode()) {
+                if (op==Op.GET_ORDINAL)
+                    return ord >= leafNodeCursor.getNumBuckets() ? null : leafNodeCursor.getVal(ord);
                 if (op==Op.GET) return comp==0 ? leafNodeCursor.getVal(idx) : null;
                 if (op==Op.INSERT && comp==0) throw new RuntimeException("attempt to re-insert a value");
                 if (op==Op.REPLACE && comp!=0) throw new RuntimeException("attempt to replace a value that did not exist");
@@ -253,9 +263,20 @@ public class BTree
                 leafNodeCursor.insertVal(idx+1, key, key_ofs, val);
                 return null;
             } else {
-                if (op!=Op.GET && val==null)
+                // FIXME: linear scan is inefficient
+                if (op==Op.GET_ORDINAL)
+                    for(idx = 0; idx < interiorNodeCursor.getNumBuckets()-1; idx++) {
+                        int k = interiorNodeCursor.getNumValsBelowBucket(idx);
+                        if (ord < k) break;
+                        ord -= k;
+                    }
+                if (op!=Op.GET && op!=Op.GET_ORDINAL && val==null)
                     throw new RuntimeException("need to adjust 'least value under X' on the way down for deletions");
                 pageid = interiorNodeCursor.getBucketPageId(idx);
+                if (op==Op.INSERT && idx < interiorNodeCursor.getNumBuckets()-1) {
+                    interiorNodeCursor.setNumValsBelowBucket(idx, interiorNodeCursor.getNumValsBelowBucket(idx)+1);
+                    interiorNodeCursor.writeBack();
+                }
                 InteriorNodeCursor<K,V,S> ic = interiorNodeCursor; interiorNodeCursor = parentNodeCursor; parentNodeCursor = ic;
                 assert interiorNodeCursor!=parentNodeCursor;
                 continue;
@@ -326,7 +347,7 @@ public class BTree
                 System.out.print("\r puts="+puts+" gets="+(gets-misses)+"/"+gets+" deletes="+deletes);
             }
             int key = rand.nextInt() % 1000000;
-            switch(rand.nextInt() % 2) {
+            switch(rand.nextInt() % 3) {
                 case 0: { // get
                     Integer tget = do_tm ? tm.get(key) : null;
                     Integer bget = do_bt ? btree.get(key) : null;
@@ -339,9 +360,28 @@ public class BTree
                         System.out.println();
                         throw new RuntimeException("  disagreement on key " + key + ": btree="+bget+", treemap="+tget);
                     }
+                    break;
                 }
 
-                case 1: { // put
+                case 1: { // get ordinal
+                    int sz = do_bt ? btree.size() : tm.size();
+                    int ord = sz==0 ? 0 : Math.abs(rand.nextInt()) % sz;
+                    Integer tget = do_tm ? (sz==0 ? null : tm.values().toArray(new Integer[0])[ord]) : null;
+                    Integer bget = do_bt ? btree.getOrdinal(ord) : null;
+                    gets++;
+                    if (do_tm && do_bt) {
+                        if (tget==null && bget==null) break;
+                        if (tget!=null && bget!=null && tget.equals(bget)) break;
+                        System.out.print("\r puts="+puts+" gets="+(gets-misses)+"/"+gets+" deletes="+deletes);
+                        System.out.println();
+                        System.out.println();
+                        System.out.println("dump:");
+                        throw new RuntimeException("  disagreement on ordinal " + ord + ": btree="+bget+", treemap="+tget);
+                    }
+                    break;
+                }
+
+                case 2: { // put
                     int val = rand.nextInt();
                     boolean already_there = false;
                     if (do_tm) {
@@ -359,7 +399,7 @@ public class BTree
                     break;
                 }
 
-                case 2: // delete
+                case 3: // delete
                     deletes++;
                     break;
             }
