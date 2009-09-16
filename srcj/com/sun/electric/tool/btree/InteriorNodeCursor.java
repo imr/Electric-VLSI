@@ -120,29 +120,11 @@ class InteriorNodeCursor
         return bt.uk.compare(key, key_ofs, buf, INTERIOR_HEADER_SIZE + (keynum-1)*INTERIOR_ENTRY_SIZE);
     }
 
-    public int split(byte[] key, int key_ofs) {
-        assert isFull();
-        int endOfBuf = endOfBuf();
-
-        // chop off our second half, point our parent at the page-to-be, and write back
-        setNumBuckets(getMaxBuckets()/2);
-        writeBack();
-
-        if (key!=null)
-            getKey(getMaxBuckets()/2, key, key_ofs);
-
-        // move the second half of our entries to the front of the block, and write back
-        byte[] oldbuf = buf;
-        int parent = getParentPageId();
-        initBuf(ps.createPage(), new byte[buf.length]);
-        setNumBuckets(getMaxBuckets()-getMaxBuckets()/2);
+    protected void scoot(byte[] oldbuf, int endOfBuf) {
         int len = 2*SIZEOF_INT + INTERIOR_ENTRY_SIZE*(getMaxBuckets()/2);
         System.arraycopy(oldbuf, len,
                          buf, 2*SIZEOF_INT,
                          endOfBuf - len);
-        setParentPageId(parent);
-        writeBack();
-        return pageid;
     }
 
     public boolean isFull() { return getNumBuckets() == getMaxBuckets(); }

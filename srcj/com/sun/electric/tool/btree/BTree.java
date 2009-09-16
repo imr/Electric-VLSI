@@ -221,7 +221,8 @@ public class BTree
                 }
                 int ofs = parentNodeCursor.insertNewBucketAt(idx+1);
                 int oldpage = cur.getPageId();
-                int newpage = cur.split(parentNodeCursor.getBuf(), ofs);
+                cur.split(parentNodeCursor.getBuf(), ofs);
+                int newpage = cur.getPageId();
                 if (largestKeyPage==oldpage) largestKeyPage = newpage;
                 parentNodeCursor.setBucketPageId(idx+1, newpage);
                 cur.writeBack();

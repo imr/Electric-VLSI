@@ -41,6 +41,8 @@ abstract class NodeCursor
         this.bt = bt;
         this.ps = bt.ps;
     }
+    public abstract void initBuf(int pageid, byte[] buf);
+    public abstract void setNumBuckets(int num);
     public void setBuf(int pageid, byte[] buf) {
         assert !dirty;
         this.buf = buf;
@@ -58,7 +60,26 @@ abstract class NodeCursor
      *  writes the least key beneath the right half into key[key_ofs];
      *  it then returns the pageid of the newly-created page.
      */
-    public abstract int split(byte[] key, int key_ofs);
+    public void split(byte[] key, int key_ofs) {
+        assert isFull();
+        int endOfBuf = endOfBuf();
+
+        // chop off our second half, point our parent at the page-to-be, and write back
+        setNumBuckets(getMaxBuckets()/2);
+        writeBack();
+
+        if (key!=null)
+            getKey(getMaxBuckets()/2, key, key_ofs);
+
+        // move the second half of our entries to the front of the block, and write back
+        byte[] oldbuf = buf;
+        int parent = getParentPageId();
+        initBuf(ps.createPage(), new byte[buf.length]);
+        setNumBuckets(getMaxBuckets()-getMaxBuckets()/2);
+        scoot(oldbuf, endOfBuf);
+        setParentPageId(parent);
+        writeBack();
+    }
 
     public abstract boolean isFull();
     public abstract int  getParentPageId();
@@ -124,4 +145,7 @@ abstract class NodeCursor
 
     protected abstract int endOfBuf();
     public abstract void getKey(int keynum, byte[] key, int key_ofs);
+
+    /** kludge */
+    protected abstract void scoot(byte[] oldbuf, int endOfBuf);
 }
