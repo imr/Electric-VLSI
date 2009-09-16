@@ -1158,9 +1158,12 @@ public class FileMenu {
                 Output.writeLibrary(lib, type, compatibleWith6, false, false, backupScheme, deletedCellFiles, writtenCellFiles);
                 success = true;
             } catch (Exception e) {
-                e.printStackTrace(System.out);
-                throw new JobException("Exception caught when saving files: " +
-                        e.getMessage() + "Please check your disk libraries");
+            	// throwing a JobException here causes the UI to freeze...SMR
+                System.out.println("Error saving files.  Please check your disk libraries");
+                return null;
+//                e.printStackTrace(System.out);
+//                throw new JobException("Exception caught when saving files: " +
+//                        e.getMessage() + "Please check your disk libraries");
             }
             if (!success)
                 throw new JobException("Error saving files.  Please check your disk libraries");

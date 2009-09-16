@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+BUG: (9/16/09, SMR) Saving to a write-protected directory freezes the UI (Bug #2293).
+FIX: In FileMenu.RenameAndSaveLibraryTask.renameAndSave() do not throw a
+     JobException on error.
+
 BUG: (9/16/09, SMR) Messages window doesn't handle standard text editing (Bug #2398).
 FIX: Improved Edit commands so that cut/copy/paste/erase/select all work properly.
 
