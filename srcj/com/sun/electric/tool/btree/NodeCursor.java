@@ -27,6 +27,20 @@ import java.io.*;
 import java.util.*;
 import com.sun.electric.tool.btree.unboxed.*;
 
+/**
+ *   Internal use only; kind of a hack.  This is just a "parser"
+ *   for the page format.
+ *
+ *   Possible feature: store the buckets of an interior node
+ *   internally as a simple balanced tree (a splay tree?).  The
+ *   System.arraycopy()'s are scaling very poorly as the page size
+ *   increases.
+ *
+ *     - once we do this, we can probably afford to move to 32Kb
+ *       pages, which will give us great performance on nearly any
+ *       filesystem or storage device, even RAID storage (which has
+ *       huge block sizes).
+ */
 abstract class NodeCursor
     <K extends Serializable & Comparable,
      V extends Serializable,

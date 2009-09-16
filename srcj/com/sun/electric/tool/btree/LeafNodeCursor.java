@@ -28,11 +28,9 @@ import java.util.*;
 import com.sun.electric.tool.btree.unboxed.*;
 
 /**
- *  Internal use only; kind of a hack.  This is just a "parser" for
- *  the page format.  Only this class knows the internal structure of
- *  a leaf node page.
+ *  Page format:
  *
- *    int: pageid of parent
+ *    int: pageid of parent (root points to self)
  *    int: 0
  *    int: pageid of left neighbor (not used)
  *    int: pageid of right neighbor (not used)
@@ -40,13 +38,6 @@ import com.sun.electric.tool.btree.unboxed.*;
  *    repeat
  *       key: key
  *       val: val
- *
- *  Possible feature: store the buckets of an interior node
- *  internally as a simple balanced tree (a splay tree?).  The
- *  System.arraycopy()'s are scaling very poorly as the page size
- *  increases.
- *
- *  Possible feature: try to share more code with InteriorNodeCursor.
  */
 class LeafNodeCursor
     <K extends Serializable & Comparable,
@@ -57,7 +48,7 @@ class LeafNodeCursor
     private        final int LEAF_HEADER_SIZE;
     private        final int LEAF_ENTRY_SIZE;
     private        final int LEAF_MAX_BUCKETS;
-    private int numbuckets = 0;
+    private              int numbuckets = 0;
 
     public int getMaxBuckets() { return LEAF_MAX_BUCKETS; }
 
@@ -92,34 +83,32 @@ class LeafNodeCursor
         if (keynum>=getNumBuckets()) return -1;
         return bt.uk.compare(key, key_ofs, buf, LEAF_HEADER_SIZE + keynum*LEAF_ENTRY_SIZE);
     }
-    public V getVal(int slot) {
-        return bt.uv.deserialize(buf, LEAF_HEADER_SIZE + bt.uk.getSize() + LEAF_ENTRY_SIZE*slot);
+    public V getVal(int bucket) {
+        return bt.uv.deserialize(buf, LEAF_HEADER_SIZE + bt.uk.getSize() + LEAF_ENTRY_SIZE*bucket);
     }
 
-    /** returns the value previously in the slot */
-    public V setVal(int slot, V val) {
+    /** returns the value previously in the bucket */
+    public V setVal(int bucket, V val) {
         assert val!=null;
-        int pos = LEAF_HEADER_SIZE + bt.uk.getSize() + LEAF_ENTRY_SIZE*slot;
+        int pos = LEAF_HEADER_SIZE + bt.uk.getSize() + LEAF_ENTRY_SIZE*bucket;
         V ret = bt.uv.deserialize(buf, pos);
         bt.uv.serialize(val, buf, pos);
         writeBack();
         return ret;
     }
 
-    /**
-     *  Insert a key/value pair at the designated slot;
-     */
-    public void insertVal(int slot, byte[] key, int key_ofs, V val) {
+    /** Insert a key/value pair at the designated bucket. */
+    public void insertVal(int bucket, byte[] key, int key_ofs, V val) {
         assert val!=null;
         assert getNumBuckets() < getMaxBuckets();
         System.arraycopy(buf,
-                         LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*slot,
+                         LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket,
                          buf,
-                         LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*(slot+1),
-                         (getNumBuckets()-slot)*LEAF_ENTRY_SIZE);
+                         LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*(bucket+1),
+                         (getNumBuckets()-bucket)*LEAF_ENTRY_SIZE);
         setNumBuckets(getNumBuckets()+1);
-        System.arraycopy(key, key_ofs, buf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*slot, bt.uk.getSize());
-        setVal(slot, val);
+        System.arraycopy(key, key_ofs, buf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket, bt.uk.getSize());
+        setVal(bucket, val);
 
         writeBack();
     }

@@ -28,24 +28,26 @@ import java.util.*;
 import com.sun.electric.tool.btree.unboxed.*;
 
 /**
- *   Internal use only; kind of a hack.  This is just a "parser"
- *   for the page format.
+ *  Page format:
  *
  *    int: pageid of parent (root points to self)
  *    int: number of buckets
- *    int: pageid of first child
- *    int: number of values below first child
- *    S:   summary of first child
+ *    int: pageid of first bucket
+ *    S:   summary of first bucket
  *    repeat
- *       key: least key somewhere in child X
- *       int: pageid of child X
- *       int: number of values below child X
- *       S:   summary of child X
+ *       int: number of values (transitively) in (N-1)^th bucket
+ *       key: least key in N^th bucket
+ *       int: pageid of N^th bucket
+ *       S:   summary of N^th bucket
  *
- *   Possible feature: store the buckets of an interior node
- *   internally as a simple balanced tree (a splay tree?).  The
- *   System.arraycopy()'s are scaling very poorly as the page size
- *   increases.
+ *   The arrangement above was chosen to deliberately avoid tracking
+ *   the number of values in the last bucket.  This ensures that we
+ *   can append new values to the last bucket of the rightmost leaf
+ *   without touching any interior nodes (unless we're forced to
+ *   split, of course, but if the pages are large enough that doesn't
+ *   happen very often).  This maintains the O(1)-unless-we-split
+ *   fastpath for appends while still keeping enough interior data to
+ *   perform ordinal queries.
  */     
 class InteriorNodeCursor
     <K extends Serializable & Comparable,
@@ -61,8 +63,8 @@ class InteriorNodeCursor
     public int getMaxBuckets() { return INTERIOR_MAX_BUCKETS; }
 
     /**
-     *  Creates a new slot for a child at index "idx" by shifting over
-     *  the child previously in that slot (if any) and all after it.
+     *  Creates a new bucket for a child at index "idx" by shifting over
+     *  the child previously in that bucket (if any) and all after it.
      *  Returns the offset in the buffer at which to write the least
      *  key beneath the new child.
      */
@@ -95,11 +97,7 @@ class InteriorNodeCursor
         super.setBuf(pageid, buf);
     }
 
-    /**
-     *  Initialize a new root node whose bucketss' pageids are child1
-     *  and child2; buf must already contain the least key under
-     *  child2 at position key_ofs.
-     */
+    /** Initialize a new root node. */
     public void initRoot(byte[] buf) {
         bt.rootpage = ps.createPage();
         super.setBuf(bt.rootpage, buf);
