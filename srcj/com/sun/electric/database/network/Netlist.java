@@ -32,6 +32,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.tool.Job;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -217,6 +218,7 @@ public abstract class Netlist
 	private final void checkForModification() {
 		if (expectedModCount != netCell.modCount)
 			throw new ConcurrentModificationException();
+        netCell.database.checkExamine();
 	}
 
 	// ---------------------- public methods -----------------

@@ -273,6 +273,7 @@ public final class Main
             }
         } else if (runMode == Mode.THREAD_SAFE) {
             EDatabase.setServerDatabase(new EDatabase(IdManager.stdIdManager.getInitialSnapshot(), "serverDB"));
+            EDatabase.setCheckExamine();
             Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job, true);
         } else {
             EDatabase.setServerDatabase(database);

@@ -48,21 +48,22 @@ import java.util.Iterator;
  *
  */
 public class NetworkManager {
-    
+
     /** Database to which this network manager belongs. */ private final EDatabase database;
     /** Database snapshot before undo */            private Snapshot lastSnapshot;
 	/** NetCells. */								private NetCell[] cells = new NetCell[1];
+	/** All cells have networks up-to-date */ 		boolean networksValid = false;
 
     /** The cell for logging network errors */      private Cell currentErrorCell;
     /** buffer of highlights for next error */      private ArrayList<ErrorHighlight> errorHighlights = new ArrayList<ErrorHighlight>();
     /** list of errors for current cell */          private ArrayList<ErrorLogger.MessageLog> errors = new ArrayList<ErrorLogger.MessageLog>();
-    
+
     /** Creates a new instance of NetworkManager */
 	public NetworkManager(EDatabase database) {
         this.database = database;
         lastSnapshot = database.getInitialSnapshot();
 	}
-    
+
 	void setCell(Cell cell, NetCell netCell) {
 		int cellIndex = cell.getCellIndex();
 		if (cellIndex >= cells.length)
@@ -77,7 +78,11 @@ public class NetworkManager {
 		cells[cellIndex] = netCell;
 	}
 
-	final NetCell getNetCell(Cell cell) { return cells[cell.getCellIndex()]; }
+	final NetCell getNetCell(Cell cell) {
+        assert cell.getDatabase() == database;
+        database.checkExamine();
+        return cells[cell.getCellIndex()];
+    }
 
     void redoNetworkNumbering(boolean reload)
     {
@@ -109,32 +114,38 @@ public class NetworkManager {
 		if (ncell != 0 && reload && NetworkTool.showInfo)
 			System.out.println("**** Renumber networks of " + ncell + " cells took " + finalTime + " seconds");
 
-		synchronized(NetworkTool.mutex) {
-			NetworkTool.networksValid = true;
-			NetworkTool.mutex.notify();
-		}
+        if (Job.isThreadSafe()) {
+            networksValid = true;
+        } else {
+            synchronized(NetworkTool.mutex) {
+                networksValid = true;
+                NetworkTool.mutex.notify();
+            }
+        }
     }
 
 	private void invalidate() {
 		// Check that we are in changing thread
 		assert database.canComputeNetlist();
 
-		if (!NetworkTool.networksValid)
-			return;
-		synchronized(NetworkTool.mutex) {
-			NetworkTool.networksValid = false;
-		}
+        if (Job.isThreadSafe()) {
+            networksValid = false;
+        } else if (networksValid) {
+            synchronized(NetworkTool.mutex) {
+                networksValid = false;
+            }
+        }
 	}
-    
+
     void advanceSnapshot() {
         assert database.canComputeNetlist();
         Snapshot newSnapshot = database.backup();
         if (newSnapshot == lastSnapshot) return;
-        assert !NetworkTool.networksValid;
+        assert !networksValid;
         updateAll(lastSnapshot, newSnapshot);
         lastSnapshot = newSnapshot;
     }
-    
+
     /****************************** CHANGE LISTENER ******************************/
 
 	public void startBatch()
@@ -229,7 +240,7 @@ public class NetworkManager {
             // oldGroupMap[oldGroupIndex] == newGroupIndex >= 0 ==> oldGroupIndex is a subset of newGroupIndex
             // oldGroupMap[oldGroupIndex] == -1 ==> oldGroupIndex contains only killed cells
             // oldGroupMap[oldGroupIndex] == -3 ==> oldGroupIndex contains new cells from different new groups or has both new and old cells
-            
+
             int maxNewGroupIndex = -1;
             for (int newGroupIndex: newSnapshot.cellGroups)
                 maxNewGroupIndex = Math.max(maxNewGroupIndex, newGroupIndex);
@@ -249,7 +260,7 @@ public class NetworkManager {
             // newGroupMap[newGroupIndex] == oldGroupIndex >= 0 ==> newGroupIndex is a subset of oldGroupIndex
             // newGroupMap[newGroupIndex] == -1 ==> newGroupIndex contains only new cells
             // newGroupMap[newGroupIndex] == -3 ==> newGroupIndex contains old cells from different old groups or has both new and old cells
-            
+
             for (int cellIndex = 0; cellIndex < newSnapshot.cellGroups.length; cellIndex++) {
                 int newGroupIndex = newSnapshot.cellGroups[cellIndex];
                 if (newGroupIndex == -1) continue;
@@ -285,7 +296,7 @@ public class NetworkManager {
         }
  //       redoNetworkNumbering(false);
     }
-    
+
     void startErrorLogging(Cell cell) {
         currentErrorCell = cell;
         errorHighlights.clear();
@@ -296,12 +307,12 @@ public class NetworkManager {
 //        assert e.getParent() == currentErrorCell;
         errorHighlights.add(ErrorHighlight.newInstance(e));
     }
-    
+
     void pushHighlight(Geometric geom) {
         assert geom.getParent() == currentErrorCell;
         errorHighlights.add(ErrorHighlight.newInstance(null, geom));
     }
-    
+
     void pushHighlight(PortInst pi) {
         Poly poly = pi.getPoly();
         Point2D [] points = poly.getPoints();
@@ -311,19 +322,19 @@ public class NetworkManager {
             if (i == 0) prev = points.length - 1;
             errorHighlights.add(ErrorHighlight.newInstance(currentErrorCell, points[prev], points[i]));
         }
-        
+
     }
-    
+
     void logError(String message, int sortKey) {
         errors.add(new ErrorLogger.MessageLog(message, currentErrorCell, sortKey, errorHighlights));
         errorHighlights.clear();
     }
-    
+
     void logWarning(String message, int sortKey) {
         errors.add(new ErrorLogger.WarningLog(message, currentErrorCell, sortKey, errorHighlights));
         errorHighlights.clear();
     }
-    
+
     void finishErrorLogging() {
         Job.updateNetworkErrors(currentErrorCell, errors);
         errorHighlights.clear();

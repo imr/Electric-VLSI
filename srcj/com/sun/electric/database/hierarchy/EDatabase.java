@@ -70,11 +70,13 @@ public class EDatabase {
 
     private static EDatabase serverDatabase;
     private static EDatabase clientDatabase;
+    private static boolean checkExamine;
     public static EDatabase serverDatabase() { return serverDatabase; }
     public static EDatabase clientDatabase() { return clientDatabase; }
     public static EDatabase currentDatabase() { return Job.getUserInterface().getDatabase(); }
     public static void setServerDatabase(EDatabase database) { serverDatabase = database; }
     public static void setClientDatabase(EDatabase database) { clientDatabase = database; }
+    public static void setCheckExamine() { checkExamine = true; }
 
     /** IdManager which keeps Ids of objects in this database.*/private final IdManager idManager;
     /** The optional name of this EDatabase */                  private final String name;
@@ -261,7 +263,11 @@ public class EDatabase {
 	 * Method to check whether examining of database is allowed.
 	 */
     public void checkExamine() {
-        if (writingThread == null || Thread.currentThread() == writingThread) return;
+        if (checkExamine) {
+            if (Job.getUserInterface().getDatabase() == this) return;
+        } else {
+            if (writingThread == null || Thread.currentThread() == writingThread) return;
+        }
         IllegalStateException e = new IllegalStateException("Cuncurrent database examine");
 //        e.printStackTrace();
         logger.logp(Level.FINE, CLASS_NAME, "checkExamine", e.getMessage(), e);
@@ -568,10 +574,10 @@ public class EDatabase {
             recoverCellGroups();
         snapshotFresh = true;
         long endTime = System.currentTimeMillis();
-        if (Job.getDebug()) {
-            System.out.println("undo took: " + (endTime - startTime) + " msec");
+//        if (Job.getDebug()) {
+//            System.out.println("undo took: " + (endTime - startTime) + " msec");
 //            checkFresh(snapshot);
-        }
+//        }
     }
 
     private void undoRecursively(Snapshot oldSnapshot, CellId cellId, BitSet updated, BitSet exportsModified, BitSet boundsModified) {

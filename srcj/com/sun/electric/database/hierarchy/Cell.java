@@ -4471,6 +4471,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      */
 	public boolean isLinked()
 	{
+        database.checkExamine();
         return inCurrentThread(getId()) == this;
 	}
 

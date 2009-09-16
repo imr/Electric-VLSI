@@ -105,7 +105,6 @@ public class NetworkTool extends Tool
 	// ---------------------- private and protected methods -----------------
 
 	/** the Network tool. */						private static final NetworkTool tool = new NetworkTool();
-	/** All cells have networks up-to-date */ 		static boolean networksValid = false;
 	/** Mutex object */								static Object mutex = new Object();
 	/** flag for debug print. */					static boolean debug = false;
 	/** flag for information print. */				static boolean showInfo = true;
@@ -181,21 +180,29 @@ public class NetworkTool extends Tool
 			System.out.println("getUserNetlist() used in GUI thread");
 		}
 		Netlist.ShortResistors shortResistors = isIgnoreResistors_();
-		synchronized(NetworkTool.mutex) {
-			while (!NetworkTool.networksValid) {
-				try {
-					System.out.println("Waiting for User Netlist...");
-					NetworkTool.mutex.wait(1000);
-					if (!NetworkTool.networksValid)
-						throw new NetlistNotReady();
-				} catch (InterruptedException e) {
-				} catch (NetlistNotReady e) {
-					e.printStackTrace(System.err);
-				}
-			}
-			NetCell netCell = mgr.getNetCell(cell);
-			return netCell.getNetlist(shortResistors);
-		}
+        if (Job.isThreadSafe()) {
+            assert mgr.networksValid;
+            if (!cell.isLinked())
+                return null;
+            NetCell netCell = mgr.getNetCell(cell);
+            return netCell.getNetlist(shortResistors);
+        } else{
+            synchronized(NetworkTool.mutex) {
+                while (!mgr.networksValid) {
+                    try {
+                        System.out.println("Waiting for User Netlist...");
+                        NetworkTool.mutex.wait(1000);
+                        if (!mgr.networksValid)
+                            throw new NetlistNotReady();
+                    } catch (InterruptedException e) {
+                    } catch (NetlistNotReady e) {
+                        e.printStackTrace(System.err);
+                    }
+                }
+                NetCell netCell = mgr.getNetCell(cell);
+                return netCell.getNetlist(shortResistors);
+            }
+        }
 	}
 
 	/** Recompute the Netlist structure for given Cell.
@@ -214,14 +221,22 @@ public class NetworkTool extends Tool
 			NetCell netCell = mgr.getNetCell(cell);
 			return netCell.getNetlist(shortResistors);
 		}
-		synchronized(NetworkTool.mutex) {
-			if (!NetworkTool.networksValid)
-				throw new NetlistNotReady();
+        if (Job.isThreadSafe()) {
+            assert mgr.networksValid;
             if (!cell.isLinked())
                 return null;
-			NetCell netCell = mgr.getNetCell(cell);
-			return netCell.getNetlist(shortResistors);
-		}
+            NetCell netCell = mgr.getNetCell(cell);
+            return netCell.getNetlist(shortResistors);
+        } else{
+            synchronized(NetworkTool.mutex) {
+                if (!mgr.networksValid)
+                    throw new NetlistNotReady();
+                if (!cell.isLinked())
+                    return null;
+                NetCell netCell = mgr.getNetCell(cell);
+                return netCell.getNetlist(shortResistors);
+            }
+        }
 	}
 
     /**

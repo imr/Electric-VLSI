@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+IMP: (9/16/09, DN) Command-line switch "-threadsafe" turns on thread-safe mode.
+
 BUG: (9/16/09, GVG) IRSIM on layouts and exceptions (Bug #2397)
 FIX: Prevent to run IRSIM on non-schematic cells.
 
