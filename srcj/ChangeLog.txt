@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+BUG: (9/15/09, AM) IllegalStateException when attempting to load
+     libraries in batch mode (Bug #2390).
+FIX: Kludge in MessagesStream.print().
+
 IMP: (9/15/09, AM) Implement BTree.getOrdinal() query and supporting
      data structures.
 

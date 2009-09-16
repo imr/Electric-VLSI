@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.io.FileType;
@@ -94,7 +95,12 @@ public class MessagesStream extends PrintStream
     @Override public void println(Object obj) { print(String.valueOf(obj), true); }
 
     private void print(String s, boolean newLine) {
-        Job.getUserInterface().printMessage(s, newLine);
+        if (Main.isBatch()) {
+            if (newLine) Main.UserInterfaceDummy.stdout.println(s);
+            else         Main.UserInterfaceDummy.stdout.println(s);
+        } else {
+            Job.getUserInterface().printMessage(s, newLine);
+        }
     }
 
 	/**

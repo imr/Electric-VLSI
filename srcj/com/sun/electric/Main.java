@@ -283,7 +283,7 @@ public final class Main
 
     public static class UserInterfaceDummy extends AbstractUserInterface
 	{
-        private PrintStream stdout = System.out;
+        public static final PrintStream stdout = System.out;
 
         public UserInterfaceDummy() {
         }
