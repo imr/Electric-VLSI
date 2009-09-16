@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+BUG: (9/16/09, GVG) IRSIM on layouts and exceptions (Bug #2397)
+FIX: Prevent to run IRSIM on non-schematic cells.
+
 BUG: (9/15/09, AM) IllegalStateException when attempting to load
      libraries in batch mode (Bug #2390).
 FIX: Kludge in MessagesStream.print().

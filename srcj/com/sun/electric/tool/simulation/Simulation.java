@@ -184,7 +184,10 @@ public class Simulation extends Tool
 
 			case IRSIM_ENGINE:
 				if (!hasIRSIM()) return;
-				runIRSIM(cell, context, fileName);
+                if (!cell.isSchematic()) // not valid cell
+                    System.out.println("Can't run IRSIM on a non-schematic cell: " + cell);
+                else
+                    runIRSIM(cell, context, fileName);
 				break;
 		}
 	}
