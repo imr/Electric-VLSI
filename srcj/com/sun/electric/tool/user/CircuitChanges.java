@@ -54,6 +54,7 @@ import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.LayerVisibility;
+import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.OutlineListener;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -412,7 +413,15 @@ public class CircuitChanges
 	 */
 	public static void deleteSelected()
 	{
-		// see what type of window is selected
+        // is this the messages window?
+        MessagesWindow mw = TopLevel.getMessagesWindow();
+        if (mw.isFocusOwner())
+        {
+        	mw.clear(false);
+        	return;
+        }
+
+        // see what type of window is selected
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return;
 		Cell cell = WindowFrame.needCurCell();

@@ -61,6 +61,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.text.BadLocationException;
 
 /**
  * a console for the Java side of Electric.  Used because the standard
@@ -73,12 +74,10 @@ import javax.swing.SwingUtilities;
 public class MessagesWindow
 	implements MouseListener, ClipboardOwner
 {
-
 	private JTextArea info;
 	private Container contentFrame;
 	private Container jf;
 
-	// -------------------- private and protected methods ------------------------
 	public MessagesWindow()
 	{
 		Dimension scrnSize = TopLevel.getScreenSize();
@@ -127,11 +126,15 @@ public class MessagesWindow
 		}
 	}
 
-	public Component getComponent()
-	{
-		return jf;
-	}
+//	public Component getComponent()
+//	{
+//		return jf;
+//	}
 
+	/**
+	 * Method to tell whether the Messages Window is the current window.
+	 * @return true if the Messages Window is the current window.
+	 */
 	public boolean isFocusOwner()
 	{
 		if (TopLevel.isMDIMode())
@@ -140,10 +143,12 @@ public class MessagesWindow
 	}
 
 	/**
-	 * Method to request focus on this window
+	 * Method to request focus on the Messages Window.
 	 */
-	public void requestFocus() {
-		if (!Job.isClientThread()) {
+	public void requestFocus()
+	{
+		if (!Job.isClientThread())
+		{
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() { requestFocusUnsafe(); }
 			});
@@ -167,11 +172,19 @@ public class MessagesWindow
 		}
 	}
 
+	/**
+	 * Method to return the bounds of the Messages Window.
+	 * @return the bounds of the Messages Window.
+	 */
 	public Rectangle getMessagesLocation()
 	{
 		return jf.getBounds();
 	}
 
+	/**
+	 * Method to return the number of columns in the Messages Window.
+	 * @return the number of columns in the Messages Window.
+	 */
 	public int getMessagesCharWidth()
 	{
 		return info.getColumns();
@@ -200,13 +213,9 @@ public class MessagesWindow
 	}
 
 	/**
-	 * Method to erase everything in the messages window.
+	 * Method to add text to the Messages Window.
+	 * @param str the text to add.
 	 */
-	public void clear()
-	{
-		info.setText("");
-	}
-
 	public void appendString(String str)
 	{
 		info.append(str);
@@ -214,7 +223,7 @@ public class MessagesWindow
 		{
 			Rectangle r = info.modelToView(info.getDocument().getLength());
 			info.scrollRectToVisible(r);
-		} catch (javax.swing.text.BadLocationException ble)
+		} catch (BadLocationException ble)
 		{
 		}
 	}
@@ -263,17 +272,25 @@ public class MessagesWindow
 		menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { copyText(true, false); } });
 		menuItem = new JMenuItem("Clear");
 		menu.add(menuItem);
-		menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { clear(); } });
+		menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { clear(true); } });
 
 		menu.show((Component)e.getSource(), e.getX(), e.getY());
 	}
 
-	private void pasteText()
+	/**
+	 * Method to paste text from the clipboard to the Messages Window.
+	 */
+	public void pasteText()
 	{
 		info.paste();
 	}
 
-	private void copyText(boolean all, boolean cut)
+	/**
+	 * Method to copy text from the Messages Window.
+	 * @param all true to copy ALL text in the Messages Window; false to copy only the selected text.
+	 * @param cut true to cut instead of copy (delete after copying).
+	 */
+	public void copyText(boolean all, boolean cut)
 	{
 		if (all)
 		{
@@ -291,6 +308,29 @@ public class MessagesWindow
 			if (cut) info.cut(); else
 				info.copy();
 		}
+	}
+
+	/**
+	 * Method to erase everything in the Messages Window.
+	 * @param all true to delete all text; false to delete only selected text.
+	 */
+	public void clear(boolean all)
+	{
+		if (all)
+		{
+			info.setText("");
+		} else
+		{
+			info.replaceSelection("");
+		}
+	}
+
+	/**
+	 * Method to select all text in the Messages Window.
+	 */
+	public void selectAll()
+	{
+		info.selectAll();
 	}
 
 	/************************************ MESSAGES WINDOW FONT SETTING ************************************/

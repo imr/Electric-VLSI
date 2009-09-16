@@ -333,7 +333,7 @@ public class WindowMenu {
                 new EMenuItem("_Save Messages...") { public void run() {
                     MessagesStream.getMessagesStream().save(); }},
                 new EMenuItem("_Clear") { public void run() {
-                    TopLevel.getMessagesWindow().clear(); }},
+                    TopLevel.getMessagesWindow().clear(true); }},
                 new EMenuItem("Set F_ont...") { public void run() {
                     TopLevel.getMessagesWindow().selectFont(); }}),
 

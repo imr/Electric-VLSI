@@ -89,6 +89,7 @@ import com.sun.electric.tool.user.ui.CurveListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ErrorLoggerTree;
 import com.sun.electric.tool.user.ui.LayerVisibility;
+import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.OutlineListener;
 import com.sun.electric.tool.user.ui.PaletteFrame;
 import com.sun.electric.tool.user.ui.SizeListener;
@@ -910,7 +911,15 @@ public class EditMenu {
 	 */
 	public static void selectAllCommand()
 	{
-		doSelection(false, false);
+        // is this the messages window?
+        MessagesWindow mw = TopLevel.getMessagesWindow();
+        if (mw.isFocusOwner())
+        {
+        	mw.selectAll();
+        	return;
+        }
+
+        doSelection(false, false);
 	}
 
 	/**

@@ -51,7 +51,9 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.ActionEvent;
@@ -119,6 +121,14 @@ public class Clipboard //implements ClipboardOwner
         // Clear text buffer
         TextUtils.setTextOnClipboard(null);
 
+        // is this the messages window?
+        MessagesWindow mw = TopLevel.getMessagesWindow();
+        if (mw.isFocusOwner())
+        {
+        	mw.copyText(false, false);
+        	return;
+        }
+
         // if current window is text window, copy from it
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf != null && wf.getContent() instanceof TextWindow)
@@ -174,6 +184,14 @@ public class Clipboard //implements ClipboardOwner
 	 */
 	public static void cut()
 	{
+        // is this the messages window?
+        MessagesWindow mw = TopLevel.getMessagesWindow();
+        if (mw.isFocusOwner())
+        {
+        	mw.copyText(false, true);
+        	return;
+        }
+
         // if current window is text window, cut from it
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf != null && wf.getContent() instanceof TextWindow)
@@ -231,6 +249,14 @@ public class Clipboard //implements ClipboardOwner
 	 */
 	public static void paste()
 	{
+        // is this the messages window?
+        MessagesWindow mw = TopLevel.getMessagesWindow();
+        if (mw.isFocusOwner())
+        {
+        	mw.pasteText();
+        	return;
+        }
+
         // if current window is text window, paste to it
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf != null && wf.getContent() instanceof TextWindow)

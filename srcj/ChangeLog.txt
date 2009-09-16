@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10h: *******************************
 
+BUG: (9/16/09, SMR) Messages window doesn't handle standard text editing (Bug #2398).
+FIX: Improved Edit commands so that cut/copy/paste/erase/select all work properly.
+
 BUG: (9/16/09, SMR) Zero-size arcs are not area-selectable (Bug #2394).
 FIX: In PolyBase.polyDistance() use DBMath.rectsIntersect() instead of
      Rectangle.intersects() because the later doesn't handle zero-size rects.
