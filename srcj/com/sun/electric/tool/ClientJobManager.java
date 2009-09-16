@@ -173,39 +173,4 @@ class ClientJobManager {
             e.printStackTrace();
         }
     }
-
-    /** Add job to list of jobs */
-    void addJob(final EJob ejob, boolean onMySnapshot) {
-        assert SwingUtilities.isEventDispatchThread();
-        if (ejob.jobType == Job.Type.CLIENT_EXAMINE) {
-            Job.currentUI.putProcessingEJob(ejob, onMySnapshot);
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    ejob.state = EJob.State.RUNNING;
-                    Job.currentUI.showJobQueue();
-                    ejob.changedFields = new ArrayList<Field>();
-                    try {
-                        if (!ejob.clientJob.doIt())
-                            throw new JobException("Job '" + ejob.jobName + "' failed");
-                        ejob.serializeResult(EDatabase.clientDatabase());
-                    } catch (Throwable e) {
-                        e.getStackTrace();
-                        e.printStackTrace();
-                        ejob.serializeExceptionResult(e, EDatabase.clientDatabase());
-                    }
-                    Job.currentUI.addEvent(new Client.EJobEvent(ejob.jobKey, ejob.jobName,
-                            ejob.getJob().getTool(), ejob.jobType, ejob.serializedJob,
-                            ejob.doItOk, ejob.serializedResult, EDatabase.clientDatabase().backup(),
-                            EJob.State.SERVER_DONE));
-                }
-            });
-        } else {
-            Job.currentUI.putProcessingEJob(ejob, onMySnapshot);
-            try {
-                writeEJob(ejob);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 }

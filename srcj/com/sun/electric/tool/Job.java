@@ -46,10 +46,13 @@ import com.sun.electric.tool.user.ErrorLogger;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 
 /**
  * Jobs are processes that will run in the background, such as
@@ -97,7 +100,6 @@ import java.util.logging.Logger;
 public abstract class Job implements Serializable {
 
     private static boolean GLOBALDEBUG = false;
-    private static int recommendedNumThreads;
     private static boolean threadSafe;
     static final int PROTOCOL_VERSION = 19; // Apr 17
     public static boolean LOCALDEBUGFLAG; // Gilda's case
@@ -168,7 +170,6 @@ public abstract class Job implements Serializable {
 
     public static void initJobManager(int numThreads, String loggingFilePath, int socketPort, AbstractUserInterface ui, Job initDatabaseJob, boolean threadSafe) {
         Job.threadSafe = threadSafe;
-        Job.recommendedNumThreads = numThreads;
         currentUI = ui;
         serverJobManager = new ServerJobManager(numThreads, loggingFilePath, false, socketPort);
         serverJobManager.runLoop(initDatabaseJob);
@@ -280,32 +281,61 @@ public abstract class Job implements Serializable {
         Job.Key curJobKey = ui.getJobKey();
         boolean startedByServer = curJobKey.doItOnServer;
         boolean doItOnServer = ejob.jobType != Job.Type.CLIENT_EXAMINE;
-//        Thread currentThread = Thread.currentThread();
         if (startedByServer) {
-//        if (currentThread instanceof EThread && ((EThread)currentThread).ejob.jobType != Job.Type.CLIENT_EXAMINE) {
-//            ejob.startedByServer = true;
+            assert doItOnServer;
             ejob.client = Job.serverJobManager.serverConnections.get(curJobKey.clientId);
-//            ejob.client = ((EThread)currentThread).ejob.client;
             ejob.jobKey = ejob.client.newJobId(startedByServer, doItOnServer);
             ejob.serverJob.startTime = System.currentTimeMillis();
             ejob.serialize(EDatabase.serverDatabase());
             ejob.clientJob = null;
-            if (serverJobManager != null)
-                serverJobManager.addJob(ejob, onMySnapshot);
-            else
-                clientJobManager.addJob(ejob, onMySnapshot);
+            Job.serverJobManager.addJob(ejob, onMySnapshot);
         } else {
             ejob.client = Job.currentUI;
             ejob.jobKey = ejob.client.newJobId(startedByServer, doItOnServer);
             ejob.clientJob.startTime = System.currentTimeMillis();
             ejob.serverJob = null;
-            if (doItOnServer)
+            if (doItOnServer) {
                 ejob.serialize(EDatabase.clientDatabase());
-            if (serverJobManager != null) {
                 Job.currentUI.putProcessingEJob(ejob, onMySnapshot);
-                serverJobManager.addJob(ejob, onMySnapshot);
+                if (serverJobManager != null) {
+                    serverJobManager.addJob(ejob, onMySnapshot);
+                } else {
+                    assert SwingUtilities.isEventDispatchThread();
+                    try {
+                        clientJobManager.writeEJob(ejob);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             } else {
-                clientJobManager.addJob(ejob, onMySnapshot);
+                Job.currentUI.putProcessingEJob(ejob, onMySnapshot);
+                if (!isThreadSafe()) {
+                    serverJobManager.addJob(ejob, onMySnapshot);
+                } else {
+                    assert SwingUtilities.isEventDispatchThread();
+                    SwingUtilities.invokeLater(new Runnable() {
+
+                        public void run() {
+                            ejob.state = EJob.State.RUNNING;
+                            Job.currentUI.showJobQueue();
+                            ejob.changedFields = new ArrayList<Field>();
+                            try {
+                                if (!ejob.clientJob.doIt()) {
+                                    throw new JobException("Job '" + ejob.jobName + "' failed");
+                                }
+                                ejob.serializeResult(EDatabase.clientDatabase());
+                            } catch (Throwable e) {
+                                e.getStackTrace();
+                                e.printStackTrace();
+                                ejob.serializeExceptionResult(e, EDatabase.clientDatabase());
+                            }
+                            Job.currentUI.addEvent(new Client.EJobEvent(ejob.jobKey, ejob.jobName,
+                                    ejob.getJob().getTool(), ejob.jobType, ejob.serializedJob,
+                                    ejob.doItOk, ejob.serializedResult, EDatabase.clientDatabase().backup(),
+                                    EJob.State.SERVER_DONE));
+                        }
+                    });
+                }
             }
         }
     }
