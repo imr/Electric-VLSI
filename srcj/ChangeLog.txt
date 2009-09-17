@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.10i: ******************************
+
 ************************* Version 8.10h: *******************************
 
 IMP: (9/16/09, DN) Lazy evaluation of RTree in thread-safe mode.
