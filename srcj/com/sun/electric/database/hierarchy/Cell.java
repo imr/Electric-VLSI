@@ -1330,7 +1330,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             cellBounds = computeBounds();
         }
         boundsDirty = BOUNDS_CORRECT;
-        topology.rebuildRTree();
+        if (Job.isThreadSafe())
+            topology.unfreshRTree();
+        else
+            topology.rebuildRTree();
         assert boundsDirty == BOUNDS_CORRECT;
     }
 
@@ -1356,7 +1359,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             boundsDirty = BOUNDS_CORRECT;
         }
         assert boundsDirty == BOUNDS_CORRECT;
-        topology.rebuildRTree();
+        if (Job.isThreadSafe())
+            topology.unfreshRTree();
+        else
+            topology.rebuildRTree();
         assert boundsDirty == BOUNDS_CORRECT;
     }
 

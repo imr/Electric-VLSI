@@ -255,7 +255,14 @@ public class EDatabase {
         throw e;
 	}
 
-    public boolean canComputeBounds() { return Thread.currentThread() == writingThread && (canChanging || canUndoing); }
+    public boolean canComputeBounds() {
+        if (Thread.currentThread() == writingThread && (canChanging || canUndoing))
+            return true;
+        if (Job.isThreadSafe()) {
+            return Job.getUserInterface().getDatabase() == this;
+        }
+        return false;
+    }
 
     public boolean canComputeNetlist() { return Thread.currentThread() == writingThread && (canChanging || canUndoing); }
 
@@ -441,7 +448,8 @@ public class EDatabase {
 				cellBackups[cellIndex] = cell.backup();
                 cell.getMemoization();
                 cellBounds[cellIndex] = cell.getBounds();
-                cell.getTopology().getRTree();
+                if (!Job.isThreadSafe())
+                    cell.getTopology().getRTree();
                 assert cell.backup() == cellBackups[cellIndex];
                 assert cell.getBounds() == cellBounds[cellIndex];
             }

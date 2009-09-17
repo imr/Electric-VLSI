@@ -617,6 +617,10 @@ public abstract class Job implements Serializable {
         return threadSafe;
     }
 
+    static void setThreadSafe() {
+        threadSafe = true;
+    }
+
 	//-------------------------------JOB UI--------------------------------
 
     public String toString() { return ejob.jobName+" ("+getStatus()+")"; }
