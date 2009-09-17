@@ -581,6 +581,12 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			pack();
 
 			finishInitialization();
+		}
+
+		public void init()
+		{
+			searchText.setText("");
+			model.clear();
 			setVisible(true);
 		}
 
@@ -2823,7 +2829,8 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
                 JFrame jf = null;
                 if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
                 theCellSearchDialog = new FindCellDialog(jf);
-            } else theCellSearchDialog.setVisible(true);
+            }
+            theCellSearchDialog.init();
             theCellSearchDialog.toFront();
 
 //            String name = JOptionPane.showInputDialog(ExplorerTree.this, "Name of cell to search","");

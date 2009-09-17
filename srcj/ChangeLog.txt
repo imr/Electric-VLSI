@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10i: ******************************
 
+BUG: (9/14/09, SMR) Explorer tree Library Search function doesn't clear
+     fields from last time (Bug #2322).
+FIX: Fixed.
+
 ************************* Version 8.10h: *******************************
 
 IMP: (9/16/09, DN) Lazy evaluation of RTree in thread-safe mode.
