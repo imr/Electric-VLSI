@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10i: ******************************
 
-BUG: (9/14/09, SMR) Explorer tree Library Search function doesn't clear
+BUG: (09/17/09, GVG) tmscSun40GP tech f-p-well node needs to be able to connect to p-well arc (Bug #2399)
+FIX: arc added.
+
+BUG: (9/17/09, SMR) Explorer tree Library Search function doesn't clear
      fields from last time (Bug #2322).
 FIX: Fixed.
 
@@ -92,7 +95,7 @@ FIX: Distinguish between HighlightLine instances which correspond to
 
 ************************* Version 8.10g: *******************************
 
-IMP (9/11/09, GVG): Ability to duplicate cells in anoter cell (for Bug #2023 investigation)
+IMP (9/11/09, GVG): Ability to duplicate cells in another cell (for Bug #2023 investigation)
 
 BUG: (9/10/09, DN) Cannot run calibre DRC (Bug #2379).
 FIX: Implement UserInterfaceExec.termLogging and Exec.ExecProcess.userInterface

@@ -2700,10 +2700,10 @@ public class TechEditWizardData
             {
                 if (!pSubstrateProcess)
                 {
-                    portNames.add(pwellLayer.name);
                     wellNodePinLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED);
                     wellNodeLayer = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED);
                 }
+                portNames.add(pwellLayer.name);
                 arcL = (!pSubstrateProcess)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null;
                 arcVal = pplus_overhang_diff;
             }
