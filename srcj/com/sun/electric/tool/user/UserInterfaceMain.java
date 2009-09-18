@@ -198,7 +198,15 @@ public class UserInterfaceMain extends AbstractUserInterface
     }
 
     @Override
-    protected void showJobQueue(Job.Inform[] jobQueue) {
+    protected void showJobQueue(final Job.Inform[] jobQueue) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    showJobQueue(jobQueue);
+                }
+            });
+            return;
+        }
         boolean busyCursor = false;
         for (Job.Inform jobInform: jobQueue) {
             if (jobInform.isChangeJobQueuedOrRunning())
