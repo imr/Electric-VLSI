@@ -115,7 +115,7 @@ public class Regression {
             for (;;) {
                 byte tag = reader.readByte();
                 long timeStamp = reader.readLong();
-                System.out.format("%1$tT.%1$tL->%2$tT.%2$tL %3$2d ", timeStamp, Calendar.getInstance(), tag);
+//                System.out.format("%1$tT.%1$tL->%2$tT.%2$tL %3$2d ", timeStamp, Calendar.getInstance(), tag);
                 if (tag == 1) {
                         currentSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
                         System.out.println("Snapshot received " + currentSnapshot.snapshotId);

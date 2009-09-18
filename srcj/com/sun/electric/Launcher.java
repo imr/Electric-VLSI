@@ -64,7 +64,8 @@ public final class Launcher
         if (javaHome != null) program = javaHome + File.separator + "bin" + File.separator + program;
 
         if (args.length >= 2 && args[0].equals("-regression") ||
-                args.length >= 4 && args[0].equals("-threads") && args[2].equals("-regression")) {
+                args.length >= 4 && args[0].equals("-threads") && args[2].equals("-regression") ||
+                args.length >= 4 && args[0].equals("-logging") && args[2].equals("-regression")) {
             System.exit(invokeRegression(args) ? 0 : 1);
             return;
         }
@@ -170,6 +171,9 @@ public final class Launcher
         if (args[0].equals("-threads")) {
             regressionPos = 2;
             electricOptions += " -threads " + args[1];
+        } else if (args[0].equals("-logging")) {
+            regressionPos = 2;
+            electricOptions += " -logging " + args[1];
         }
         String script = args[regressionPos + 1];
 
