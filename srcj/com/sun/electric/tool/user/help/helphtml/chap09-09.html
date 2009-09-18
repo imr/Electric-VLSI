@@ -145,4 +145,21 @@ There is an undocumented cell called <tt>LEsettings</tt> with the following undo
 <tt>LESETTINGS</tt>.
 </P>
 
+<pre>
+Jonathan Gainsley writes:
+
+... alpha is a modulation applied to the logical effort
+defined on each gate's output.  Alpha is defined as the ratio of
+diffusion capacitance to gate capacitance; it converts the output
+self-loading (diffusion) capacitance to equivalent units of input
+loading capacitance.
+
+The self-loading is calculated as:
+
+ selfXsize * outputLE * alpha
+
+Therefore, if you set alpha to 0, the self-loading load is ignored
+for LE calculation.
+</pre>
+
 <!-- TRAILER -->
