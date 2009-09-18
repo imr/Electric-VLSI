@@ -131,7 +131,8 @@ public class FileMenu {
 
     private static EMenu openRecentLibs;
     public static final String openJobName = "Read External Library";
-
+    private static final boolean THROW_EXCEPTION_IN_RENAME_AND_SAVE = false;
+    
     static EMenu makeMenu() {
         openRecentLibs = new EMenu("Open Recent Library", new ArrayList<EMenuItem>());
 		/****************************** THE FILE MENU ******************************/
@@ -1158,12 +1159,15 @@ public class FileMenu {
                 Output.writeLibrary(lib, type, compatibleWith6, false, false, backupScheme, deletedCellFiles, writtenCellFiles);
                 success = true;
             } catch (Exception e) {
-            	// throwing a JobException here causes the UI to freeze...SMR
-                System.out.println("Error saving files.  Please check your disk libraries");
-                return null;
-//                e.printStackTrace(System.out);
-//                throw new JobException("Exception caught when saving files: " +
-//                        e.getMessage() + "Please check your disk libraries");
+                if (THROW_EXCEPTION_IN_RENAME_AND_SAVE) {
+                     e.printStackTrace(System.out);
+                    throw new JobException("Exception caught when saving files: " +
+                            e.getMessage() + "Please check your disk libraries");
+                } else {
+                   // throwing a JobException here causes the UI to freeze...SMR
+                    System.out.println("Error saving files.  Please check your disk libraries");
+                    return null;
+                }
             }
             if (!success)
                 throw new JobException("Error saving files.  Please check your disk libraries");
