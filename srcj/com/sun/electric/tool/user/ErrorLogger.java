@@ -38,7 +38,6 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
 
 import java.awt.geom.Point2D;
 import java.io.FileOutputStream;
@@ -390,6 +389,12 @@ public class ErrorLogger implements Serializable
                 allErrors.add(m);
         }
 //        if (persistent) Job.getUserInterface(). wantToRedoErrorTree();
+    }
+
+    public void addMessages(ErrorLogger logger)
+    {
+        allWarnings.addAll(logger.allWarnings);
+        allErrors.addAll(logger.allErrors);
     }
 
     public void deleteMessages(List<MessageLog> messages)

@@ -83,7 +83,7 @@ public class MTDRCAreaTool extends MTDRCTool
     @Override
     public MTDRCResult runTaskInternal(Layer theLayer)
     {
-        ErrorLogger errorLogger = DRC.getDRCErrorLogger(true, false, ", Layer " + theLayer.getName());
+        ErrorLogger errorLogger = DRC.getDRCErrorLogger(true, ", Layer " + theLayer.getName());
         String msg = "Cell " + topCell.getName() + " , layer " + theLayer.getName();
         DRC.ReportInfo reportInfo = new DRC.ReportInfo(errorLogger, topCell.getTechnology(), dp, false);
 

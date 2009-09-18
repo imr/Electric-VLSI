@@ -64,26 +64,19 @@ import java.util.Set;
 public class Schematic
 {
     // Cells, nodes and arcs
-	private static Set<ElectricObject> nodesChecked = new HashSet<ElectricObject>();
-    private static ErrorLogger errorLogger = null;
-    private static Map<Geometric,List<Variable>> newVariables = new HashMap<Geometric,List<Variable>>();
+	private Set<ElectricObject> nodesChecked = new HashSet<ElectricObject>();
+    private ErrorLogger errorLogger;
+    private Map<Geometric,List<Variable>> newVariables = new HashMap<Geometric,List<Variable>>();
 
-	public static ErrorLogger doCheck(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, DRC.DRCPreferences dp)
+	public static void doCheck(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, DRC.DRCPreferences dp)
 	{
-		nodesChecked.clear();
-        newVariables.clear();
-
-        errorLogger = errorLog;
-        // null when it comes from the regression
-        if (errorLogger == null) errorLogger = DRC.getDRCErrorLogger(false, false, null);
-
-		checkSchematicCellRecursively(cell, geomsToCheck);
-		errorLogger.termLogging(true);
-        DRC.addDRCUpdate(0, null, null, null, null, newVariables, dp);
-		return(errorLogger);
+        Schematic s = new Schematic();
+        s.errorLogger = errorLog;
+		s.checkSchematicCellRecursively(cell, geomsToCheck);
+        DRC.addDRCUpdate(0, null, null, null, null, s.newVariables, dp);
 	}
 
-    private static Cell isACellToCheck(Geometric geo)
+    private Cell isACellToCheck(Geometric geo)
     {
         if (geo instanceof NodeInst)
         {
@@ -103,7 +96,7 @@ public class Schematic
         return null;
     }
 
-	private static void checkSchematicCellRecursively(Cell cell, Geometric[] geomsToCheck)
+	private void checkSchematicCellRecursively(Cell cell, Geometric[] geomsToCheck)
 	{
 		nodesChecked.add(cell);
 
@@ -139,12 +132,13 @@ public class Schematic
 		checkSchematicCell(cell, false, geomsToCheck, eg);
 	}
 
-	private static class ErrorGrouper
+    private int cellIndexCounter;
+
+    private class ErrorGrouper
 	{
 		private boolean inited;
 		private int cellIndex;
 		private Cell cell;
-		private static int cellIndexCounter = 0;
 
 		ErrorGrouper(Cell cell)
 		{
@@ -164,7 +158,7 @@ public class Schematic
 		}
 	}
 
-	private static void checkSchematicCell(Cell cell, boolean justThis, Geometric[] geomsToCheck, ErrorGrouper eg)
+	private void checkSchematicCell(Cell cell, boolean justThis, Geometric[] geomsToCheck, ErrorGrouper eg)
 	{
 		int initialErrorCount = errorLogger.getNumErrors();
 		Netlist netlist = NetworkTool.getUserNetlist(cell);
@@ -202,7 +196,7 @@ public class Schematic
     /**
      * Method to add all variables of a given NodeInst that must be added after Schematics DRC job is done.
      */
-    private static void addVariable(NodeInst ni, Variable var)
+    private void addVariable(NodeInst ni, Variable var)
     {
         List<Variable> list = newVariables.get(ni);
 
@@ -217,7 +211,7 @@ public class Schematic
 	/**
 	 * Method to check schematic object "geom".
 	 */
-	private static void schematicDoCheck(Netlist netlist, Geometric geom, ErrorGrouper eg)
+	private void schematicDoCheck(Netlist netlist, Geometric geom, ErrorGrouper eg)
 	{
         // Checked already
         if (nodesChecked.contains(geom))
@@ -492,7 +486,7 @@ public class Schematic
 	/**
 	 * Method to check whether any port on a node overlaps others without connecting.
 	 */
-	private static void checkPortOverlap(Netlist netlist, NodeInst ni, ErrorGrouper eg)
+	private void checkPortOverlap(Netlist netlist, NodeInst ni, ErrorGrouper eg)
 	{
 		if (ni.getProto().getTechnology() == Generic.tech() ||
 			ni.getProto().getTechnology() == Artwork.tech()) return;

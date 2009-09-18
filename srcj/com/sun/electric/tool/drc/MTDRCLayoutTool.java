@@ -170,7 +170,7 @@ public class MTDRCLayoutTool extends MTDRCTool
             int count = (geomsToCheck != null) ? geomsToCheck.length : 0;
             boolean[] validity = null;
             Rectangle2D bounds = null;
-            ErrorLogger errorLogger = DRC.getDRCErrorLogger(true, false, ", " + name);
+            ErrorLogger errorLogger = DRC.getDRCErrorLogger(true, ", " + name);
             reportInfo = new DRC.ReportInfo(errorLogger, tech, dp, (count > 0));
 
             // caching bits

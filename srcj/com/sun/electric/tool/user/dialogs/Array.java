@@ -727,7 +727,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			// if only arraying where DRC valid, check them now and delete what is not valid
 			if (prefDRCGood.getBoolean())
 			{
-				Quick.checkDesignRules(dp, null, cell, geomsToCheck, validity, null);
+				Quick.checkDesignRules(dp, cell, geomsToCheck, validity).termLogging(true);
 				for(int i=1; i<checkNodeCount; i++)
 				{
 					if (!validity[i])

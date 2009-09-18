@@ -122,12 +122,12 @@ public class Quick
     // To speed up the layer process
     private ValidationLayers validLayers;
 
-    public static ErrorLogger checkDesignRules(DRC.DRCPreferences dp, ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
-                                               Rectangle2D bounds)
+    public static ErrorLogger checkDesignRules(DRC.DRCPreferences dp, Cell cell, Geometric[] geomsToCheck, boolean[] validity)
     {
-        if (errorLog == null) errorLog = DRC.getDRCErrorLogger(true, false, null);
-        return checkDesignRules(errorLog, cell, geomsToCheck, validity, bounds, null, dp,
+        ErrorLogger errorLog = DRC.getDRCErrorLogger(true, null);
+        checkDesignRules(errorLog, cell, geomsToCheck, validity, null, null, dp,
                 GeometryHandler.GHMode.ALGO_SWEEP, false);
+        return errorLog;
     }
 
     /**
@@ -142,15 +142,15 @@ public class Quick
 	 * @param onlyArea
      * @return ErrorLogger containing the information
 	 */
-	public static ErrorLogger checkDesignRules(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
+	public static void checkDesignRules(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
                                                Rectangle2D bounds, DRC.CheckDRCJob drcJob, DRC.DRCPreferences dp, GeometryHandler.GHMode mode, boolean onlyArea)
 	{
 		Quick q = new Quick(drcJob, dp, mode);
-        return q.doCheck(errorLog, cell, geomsToCheck, validity, bounds, onlyArea);
+        q.doCheck(errorLog, cell, geomsToCheck, validity, bounds, onlyArea);
 	}
 
     // returns the number of errors found
-	private ErrorLogger doCheck(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
+	private void doCheck(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
                                 Rectangle2D bounds, boolean onlyArea)
 	{
 		// Check if there are DRC rules for particular tech
@@ -167,7 +167,7 @@ public class Quick
         System.out.println("Running DRC with " + DRC.explainBits(reportInfo.activeSpacingBits, dp));
 
 		// Nothing to check for this particular technology
-		if (rules == null || rules.getNumberOfRules() == 0) return errorLogger;
+		if (rules == null || rules.getNumberOfRules() == 0) return /*errorLogger*/;
 
 	    topCell = cell; /* Especially important for minArea checking */
 
@@ -223,7 +223,7 @@ public class Quick
                 else
                     cleanAreaDRCDate.add(cell);
                 System.out.println("Missing update in dates");
-                return errorLogger;
+                return /*errorLogger*/;
             }
         }
 
@@ -335,10 +335,10 @@ public class Quick
 			checkTheseGeometrics(cell, count, geomsToCheck, validity);
 		}
 
-		if (errorLogger != null) {
-            errorLogger.termLogging(true);
-            logsFound = errorLogger.getNumLogs() - logsFound;
-        }
+//		if (errorLogger != null) {
+//            errorLogger.termLogging(true);
+//            logsFound = errorLogger.getNumLogs() - logsFound;
+//        }
 
         // -2 if cells and subcells are ok
         // Commentted out on May 2, 2006. Not sure why this condition is valid
@@ -353,8 +353,6 @@ public class Quick
             DRC.addDRCUpdate(reportInfo.activeSpacingBits, goodSpacingDRCDate, cleanSpacingDRCDate,
                 goodAreaDRCDate, cleanAreaDRCDate, null, dp);
 	    }
-
-        return errorLogger;
 	}
 
     /*************************** QUICK DRC CELL EXAMINATION ***************************/
