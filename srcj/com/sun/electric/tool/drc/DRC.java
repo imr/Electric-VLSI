@@ -1167,21 +1167,10 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	}
 
 	/****************************** DRC INTERFACE ******************************/
-    public static ErrorLogger getDRCErrorLogger(boolean layout, boolean incremental, String extraMsg)
+    public static ErrorLogger getDRCErrorLogger(boolean layout, String extraMsg)
     {
-        ErrorLogger errorLogger = null;
         String title = (layout) ? "Layout " : "Schematic ";
-
-        if (incremental)
-        {
-//            if (errorLoggerIncremental == null) errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)"/*, true*/);
-            errorLogger = errorLoggerIncremental;
-        }
-        else
-        {
-            errorLogger = ErrorLogger.newInstance(title + "DRC (full)" + ((extraMsg != null) ? extraMsg:""));
-        }
-        return errorLogger;
+        return ErrorLogger.newInstance(title + "DRC (full)" + ((extraMsg != null) ? extraMsg:""));
     }
 
     public static ErrorLogger getDRCIncrementalLogger() {return errorLoggerIncremental;}
@@ -1261,12 +1250,13 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 		public boolean doIt()
 		{
 			long startTime = System.currentTimeMillis();
-            ErrorLogger errorLog = getDRCErrorLogger(isLayout, false, null);
+            ErrorLogger errorLog = getDRCErrorLogger(isLayout, null);
             checkNetworks(errorLog, cell, isLayout);
             if (isLayout)
                 Quick.checkDesignRules(errorLog, cell, geoms, null, bounds, this, dp, mergeMode, onlyArea);
             else
                 Schematic.doCheck(errorLog, cell, geoms, dp);
+            errorLog.termLogging(true);
             long endTime = System.currentTimeMillis();
             int errorCount = errorLog.getNumErrors();
             int warnCount = errorLog.getNumWarnings();
@@ -1295,11 +1285,14 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 		public boolean doIt()
 		{
 			incrementalRunning = true;
-            ErrorLogger errorLog = getDRCErrorLogger(isLayout, true, null);
+            ErrorLogger errorLog = getDRCErrorLogger(isLayout, null);
             if (isLayout)
-                errorLog = Quick.checkDesignRules(dp, errorLog, cell, objectsToCheck, null, null);
+                Quick.checkDesignRules(errorLog, cell, objectsToCheck, null, null, null, dp,
+                    GeometryHandler.GHMode.ALGO_SWEEP, false);
             else
-                errorLog = Schematic.doCheck(errorLog, cell, objectsToCheck, dp);
+                Schematic.doCheck(errorLog, cell, objectsToCheck, dp);
+            errorLoggerIncremental.addMessages(errorLog);
+            errorLoggerIncremental.termLogging(true);
             int errorsFound = errorLog.getNumErrors();
 			if (errorsFound > 0)
 				System.out.println("Incremental DRC found " + errorsFound + " errors/warnings in "+ cell);
@@ -1841,7 +1834,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                 ArrayList<NodeInst> pinsOfType = unconnectedPins.get(np);
                 String msg = "Network: " + cell + " has " + pinsOfType.size() + " unconnected pins " + np;
                 System.out.println(msg);
-                errorLog.logMessage(msg, Collections.<Geometric>unmodifiableList(pinsOfType), cell, 
+                errorLog.logMessage(msg, Collections.<Geometric>unmodifiableList(pinsOfType), cell,
                     errorSortNodes, false);
             }
         }

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10i: ******************************
 
+IMP: (09/17/09, DN) Quick.doCheck() and Schematic.doCheck don't call termLogging.
+    Instead caller terms Logging or do anything else.
+
 BUG: (09/17/09, DN) Assertion in JobTree.updateJobs().
 FIX: In UserInterfaceMain.java use SwingUtilities.invokeLater for updating Jobs.
 
