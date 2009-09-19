@@ -537,9 +537,12 @@ public final class Main
             Technology.initAllTechnologies(getDatabase(), paramValuesByXmlPath, softTechnologies);
 
             // open no name library first
-            Library clipLib = Library.newInstance(Clipboard.clipCellId.libId.libName, null);
+            Library clipLib = Library.newInstance(Clipboard.CLIPBOARD_LIBRAY_NAME, null);
             clipLib.setHidden();
-            Cell.newInstance(clipLib, Clipboard.clipCellId.cellName.toString()).setTechnology(getTechPool().getGeneric());
+            Cell clipCell = Cell.newInstance(clipLib, Clipboard.CLIPBOARD_CELL_NAME);
+            assert clipCell.getId().cellIndex == Clipboard.CLIPBOARD_CELL_INDEX;
+            clipCell.setTechnology(getTechPool().getGeneric());
+
             mainLib = Library.newInstance("noname", null);
             if (mainLib == null) return false;
             fieldVariableChanged("mainLib");

@@ -88,7 +88,10 @@ import javax.swing.KeyStroke;
 public class Clipboard //implements ClipboardOwner
 {
     /** The Clipboard CellId. */
-    public static final CellId clipCellId = IdManager.stdIdManager.newLibId("Clipboard!!").newCellId(CellName.parseName("Clipboard!!;1{}"));
+    public static final String CLIPBOARD_LIBRAY_NAME = "Clipboard!!";
+    public static final String CLIPBOARD_CELL_NAME =  "Clipboard!!;1{}";
+    public static final int CLIPBOARD_CELL_INDEX = 0;
+
 //	/** the last node that was duplicated */			private static NodeInst  lastDup = null;
 	/** the amount that the last node moved */			private static double    lastDupX = 10, lastDupY = 10;
 //    private static final Clipboard clip = new Clipboard();
@@ -858,12 +861,16 @@ public class Clipboard //implements ClipboardOwner
 
     /****************************** CHANGE JOB SUPPORT ******************************/
 
+    public static CellId getClipCellId() {
+        return IdManager.stdIdManager.getCellId(CLIPBOARD_CELL_INDEX);
+    }
+
 	/**
 	 * Method to clear the clipboard.
 	 */
 	private static Cell getClipCell()
 	{
-        return Job.getUserInterface().getDatabase().getCell(clipCellId);
+        return Job.getUserInterface().getDatabase().getCell(getClipCellId());
 	}
 
 	/**

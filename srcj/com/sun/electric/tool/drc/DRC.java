@@ -65,10 +65,17 @@ import java.util.prefs.Preferences;
 public class DRC extends Listener
 {
 	/** the DRC tool. */								     protected static DRC tool = new DRC();
+
+    private static final boolean THREAD_SAFE_DRC = false;
+     // Client static variables
+    /** for logging incremental errors */                    private static ErrorLogger errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)", true);
 	/** map of cells and their objects to DRC */		     private static Map<Cell,Set<Geometric>> cellsToCheck = new HashMap<Cell,Set<Geometric>>();
+    /** flag to show that incrementatal DRC is running */    private static boolean incrementalRunning = false;
+
+   // Server static variables
     /** to temporary store DRC dates for spacing checking */ private static Map<Cell,StoreDRCInfo> storedSpacingDRCDate = new HashMap<Cell,StoreDRCInfo>();
     /** to temporary store DRC dates for area checking */    private static Map<Cell,StoreDRCInfo> storedAreaDRCDate = new HashMap<Cell,StoreDRCInfo>();
-    /** for logging incremental errors */                    private static ErrorLogger errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)", true);
+
     static final double TINYDELTA = DBMath.getEpsilon()*1.1;
     /** key of Variable holding DRC Cell annotations. */	static final Variable.Key DRC_ANNOTATION_KEY = Variable.newKey("ATTR_DRC");
 
@@ -1002,7 +1009,6 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         }
     }
 
-    private static boolean incrementalRunning = false;
     /** key of Variable for last valid DRC date on a Cell. Only area rules */
 //    private static final int DRC_BIT_AREA = 01; /* Min area condition */
     private static final int DRC_BIT_EXTENSION = 02;   /* Coverage DRC condition */
@@ -1073,6 +1079,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	{
         Cell cell = geom.getParent();
 
+        assert !THREAD_SAFE_DRC || Job.isClientThread();
         synchronized (cellsToCheck)
 		{
 			Set<Geometric> cellSet = cellsToCheck.get(cell);
@@ -1088,6 +1095,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
     private static void doIncrementalDRCTask(DRCPreferences dp, Cell cellToCheck)
 	{
 		if (!dp.incrementalDRC) return;
+        assert !THREAD_SAFE_DRC || Job.isClientThread();
 		if (incrementalRunning) return;
 
 		Set<Geometric> cellSet = null;
@@ -1173,7 +1181,10 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         return ErrorLogger.newInstance(title + "DRC (full)" + ((extraMsg != null) ? extraMsg:""));
     }
 
-    public static ErrorLogger getDRCIncrementalLogger() {return errorLoggerIncremental;}
+    public static ErrorLogger getDRCIncrementalLogger() {
+        assert !THREAD_SAFE_DRC || Job.isClientThread();
+        return errorLoggerIncremental;
+    }
 
     /**
      * This method generates a DRC job from the GUI or for a bash script.
@@ -1205,7 +1216,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         private static String getJobName(Cell cell) { return "Design-Rule Check " + cell; }
 		protected CheckDRCJob(Cell cell, Listener tool, Priority priority, DRCPreferences dp, boolean layout)
 		{
-			super(getJobName(cell), tool, Job.Type.CLIENT_EXAMINE, null, null, priority);
+			super(getJobName(cell), tool, THREAD_SAFE_DRC ? Job.Type.SERVER_EXAMINE : Job.Type.CLIENT_EXAMINE, null, null, priority);
 			this.cell = cell;
             this.dp = dp;
             this.isLayout = layout;
@@ -1271,6 +1282,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	{
 		Geometric [] objectsToCheck;
         Cell cellToCheck;
+        ErrorLogger errorLog;
 
 		protected CheckDRCIncrementally(DRCPreferences dp, Cell cell, Geometric[] objectsToCheck, boolean layout)
 		{
@@ -1279,27 +1291,45 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             Library curLib = Library.getCurrent();
             if (curLib == null) return;
             cellToCheck = curLib.getCurCell();
+            if (THREAD_SAFE_DRC) {
+                assert Job.isClientThread();
+                incrementalRunning  = true;
+            }
 			startJob();
 		}
 
 		public boolean doIt()
 		{
-			incrementalRunning = true;
-            ErrorLogger errorLog = getDRCErrorLogger(isLayout, null);
+            if (!THREAD_SAFE_DRC)
+                incrementalRunning = true;
+            errorLog = getDRCErrorLogger(isLayout, null);
             if (isLayout)
                 Quick.checkDesignRules(errorLog, cell, objectsToCheck, null, null, null, dp,
                     GeometryHandler.GHMode.ALGO_SWEEP, false);
             else
                 Schematic.doCheck(errorLog, cell, objectsToCheck, dp);
-            errorLoggerIncremental.addMessages(errorLog);
-            errorLoggerIncremental.termLogging(true);
             int errorsFound = errorLog.getNumErrors();
 			if (errorsFound > 0)
 				System.out.println("Incremental DRC found " + errorsFound + " errors/warnings in "+ cell);
-			incrementalRunning = false;
-			doIncrementalDRCTask(dp, cellToCheck);
+            if (THREAD_SAFE_DRC) {
+                fieldVariableChanged("errorLog");
+            } else {
+                errorLoggerIncremental.addMessages(errorLog);
+                errorLoggerIncremental.termLogging(true);
+                incrementalRunning = false;
+                doIncrementalDRCTask(dp, cellToCheck);
+            }
 			return true;
 		}
+
+        public void terminateOK() {
+            if (THREAD_SAFE_DRC) {
+                errorLoggerIncremental.addMessages(errorLog);
+                errorLoggerIncremental.termLogging(true);
+    			incrementalRunning = false;
+        		doIncrementalDRCTask(dp, cellToCheck);
+            }
+        }
 	}
 
 	/****************************** DESIGN RULE CONTROL ******************************/
@@ -1693,6 +1723,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
     public static Date getLastDRCDateBasedOnBits(Cell cell, boolean spacingCheck,
                                                  int activeBits, boolean fromDisk)
     {
+        assert !THREAD_SAFE_DRC || Job.inServerThread();
         StoreDRCInfo data = getCellGoodDRCDateAndBits(cell, spacingCheck, fromDisk);
 
         // if data is null -> nothing found

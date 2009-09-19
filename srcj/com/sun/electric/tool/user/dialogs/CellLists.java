@@ -41,6 +41,7 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.extract.TransistorSearch;
 import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -138,7 +139,7 @@ public class CellLists extends EDialog
 
 	protected void escapePressed() { cancel(null); }
 
-	private static String makeCellLine(Cell cell, int maxlen)
+	private static String makeCellLine(Cell cell, int maxlen, DRC.DRCPreferences dp)
 	{
 		String line = cell.noLibDescribe();
 		if (maxlen < 0) line += "\t"; else
@@ -223,7 +224,6 @@ public class CellLists extends EDialog
 		if (maxlen < 0) line += "\t"; else line += " ";
 
 		boolean goodDRC = false;
-        DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
 		int activeBits = DRC.getActiveBits(cell.getTechnology(), dp);
 		Date lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, true, activeBits, true);
 		// checking spacing drc
@@ -239,24 +239,6 @@ public class CellLists extends EDialog
 //		if (net_ncchasmatch(cell) != 0) addstringtoinfstr(infstr, x_("N")); else
 //			addstringtoinfstr(infstr, x_(" "));
 		return line;
-	}
-
-	/**
-	 * Method to recursively walk the hierarchy from "np", marking all cells below it.
-	 */
-	private void recursiveMark(Cell cell, Set<Cell> cellsSeen)
-	{
-		if (cellsSeen.contains(cell)) return;
-		cellsSeen.add(cell);
-		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = it.next();
-			if (!ni.isCellInstance()) continue;
-			Cell subCell = (Cell)ni.getProto();
-			recursiveMark(subCell, cellsSeen);
-			Cell contentsCell = subCell.contentsView();
-			if (contentsCell != null) recursiveMark(contentsCell, cellsSeen);
-		}
 	}
 
 	private static class SortByCellStructure implements Comparator<Cell>
@@ -601,18 +583,34 @@ public class CellLists extends EDialog
 	{
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
-		int maxLen = curCell.describe(false).length();
-		printHeaderLine(maxLen);
-		String line = makeCellLine(curCell, maxLen);
-		System.out.println(line);
-
-		// also give range of X and Y
-		ERectangle bounds = curCell.getBounds();
-		Technology tech = curCell.getTechnology();
-		System.out.println("Cell runs from " + TextUtils.formatDistance(bounds.getMinX(), tech) + " <= X <= " +
-			TextUtils.formatDistance(bounds.getMaxX(), tech) + " and " + TextUtils.formatDistance(bounds.getMinY(), tech) +
-			" <= Y <= " + TextUtils.formatDistance(bounds.getMaxY(), tech));
+        new DescribeThisCellJob(curCell).startJob();
 	}
+
+    private static class DescribeThisCellJob extends Job {
+        private Cell cell;
+        private DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
+
+        public DescribeThisCellJob(Cell cell) {
+            super("DescribeThisCell", User.getUserTool(), Job.Type.SERVER_EXAMINE, null, null, Job.Priority.USER);
+            this.cell = cell;
+        }
+
+        @Override
+        public boolean doIt() {
+            int maxLen = cell.describe(false).length();
+            printHeaderLine(maxLen);
+            String line = makeCellLine(cell, maxLen, dp);
+            System.out.println(line);
+
+            // also give range of X and Y
+            ERectangle bounds = cell.getBounds();
+            Technology tech = cell.getTechnology();
+            System.out.println("Cell runs from " + TextUtils.formatDistance(bounds.getMinX(), tech) + " <= X <= " +
+                TextUtils.formatDistance(bounds.getMaxX(), tech) + " and " + TextUtils.formatDistance(bounds.getMinY(), tech) +
+                " <= Y <= " + TextUtils.formatDistance(bounds.getMaxY(), tech));
+            return true;
+        }
+    }
 
 	private static void printHeaderLine(int maxLen)
 	{
@@ -956,239 +954,309 @@ public class CellLists extends EDialog
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
-		// get cell and port markers
-		Set<Cell> cellsSeen = new HashSet<Cell>();
-
-		// mark cells to be shown
-		if (allCells.isSelected())
-		{
-			// mark all cells for display
-			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-			{
-				Library lib = it.next();
-				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-				{
-					Cell cell = cIt.next();
-					cellsSeen.add(cell);
-				}
-			}
-		} else
-		{
-			// mark no cells for display, filter according to request
-			if (onlyCellsUnderCurrent.isSelected())
-			{
-				// mark those that are under this
-				recursiveMark(curCell, cellsSeen);
-			} else if (onlyCellsUsedElsewhere.isSelected())
-			{
-				// mark those that are in use
-				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-				{
-					Library lib = it.next();
-					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-					{
-						Cell cell = cIt.next();
-						Cell iconCell = cell.iconView();
-						if (iconCell == null) iconCell = cell;
-						if (cell.getInstancesOf().hasNext() || iconCell.getInstancesOf().hasNext())
-							cellsSeen.add(cell);
-					}
-				}
-			} else if (onlyCellsNotUsedElsewhere.isSelected())
-			{
-				// mark those that are not in use
-				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-				{
-					Library lib = it.next();
-					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-					{
-						Cell cell = cIt.next();
-						Cell iconCell = cell.iconView();
-						if (iconCell != null)
-						{
-							// has icon: acceptable if the only instances are examples
-							if (cell.getInstancesOf().hasNext()) continue;
-							boolean found = false;
-							for(Iterator<NodeInst> nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
-							{
-								NodeInst ni = nIt.next();
-								if (ni.isIconOfParent()) { found = true;   break; }
-							}
-							if (found) continue;
-						} else
-						{
-							// no icon: reject if this has instances
-							if (cell.isIcon())
-							{
-								// this is an icon: reject if instances are not examples
-								boolean found = false;
-								for(Iterator<NodeInst> nIt = cell.getInstancesOf(); nIt.hasNext(); )
-								{
-									NodeInst ni = nIt.next();
-									if (ni.isIconOfParent()) { found = true;   break; }
-								}
-								if (found) continue;
-							} else
-							{
-								if (cell.getInstancesOf().hasNext()) continue;
-							}
-						}
-						cellsSeen.add(cell);
-					}
-				}
-			} else
-			{
-				// mark placeholder cells
-				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-				{
-					Library lib = it.next();
-					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-					{
-						Cell cell = cIt.next();
-						Variable var = cell.getVar("IO_true_library");
-						if (var != null) cellsSeen.add(cell);
-					}
-				}
-			}
-		}
-
-		// filter views
-		if (onlyThisView.isSelected())
-		{
-			String viewName = (String)views.getSelectedItem();
-			View v = View.findView(viewName);
-			if (v != null)
-			{
-				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-				{
-					Library lib = it.next();
-					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-					{
-						Cell cell = cIt.next();
-						if (cell.getView() != v)
-						{
-							if (cell.isIcon())
-							{
-								if (alsoIconViews.isSelected()) continue;
-							}
-							cellsSeen.remove(cell);
-						}
-					}
-				}
-			}
-		}
-
-		// filter versions
-		if (excludeOlderVersions.isSelected())
-		{
-			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-			{
-				Library lib = it.next();
-				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-				{
-					Cell cell = cIt.next();
-					if (cell.getNewestVersion() != cell) cellsSeen.remove(cell);
-				}
-			}
-		}
-		if (excludeNewestVersions.isSelected())
-		{
-			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-			{
-				Library lib = it.next();
-				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-				{
-					Cell cell = cIt.next();
-					if (cell.getNewestVersion() == cell) cellsSeen.remove(cell);
-				}
-			}
-		}
-
-		// now make a list and sort it
-		List<Cell> cellList = new ArrayList<Cell>();
-		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = it.next();
-			if (lib.isHidden()) continue;
-			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = cIt.next();
-				if (cellsSeen.contains(cell)) cellList.add(cell);
-			}
-		}
-		if (cellList.size() == 0) System.out.println("No cells match this request"); else
-		{
-			if (orderByName.isSelected())
-			{
-				if (evaluateNumerically.isSelected())
-				{
-					Collections.sort(cellList);
-				} else
-				{
-					Collections.sort(cellList, new TextUtils.CellsByName());
-				}
-			} else if (orderByDate.isSelected())
-			{
-				Collections.sort(cellList, new TextUtils.CellsByDate());
-			} else if (orderByStructure.isSelected())
-			{
-				Collections.sort(cellList, new SortByCellStructure());
-			}
-
-			// finally show the results
-			if (saveToDisk.isSelected())
-			{
-				String trueName = OpenFile.chooseOutputFile(FileType.READABLEDUMP, null, "celllist.txt");
-				if (trueName == null) System.out.println("Cannot write cell listing"); else
-				{
-					FileOutputStream fileOutputStream = null;
-					try {
-						fileOutputStream = new FileOutputStream(trueName);
-					} catch (FileNotFoundException e) {}
-					BufferedOutputStream bufStrm = new BufferedOutputStream(fileOutputStream);
-					DataOutputStream dataOutputStream = new DataOutputStream(bufStrm);
-					try
-					{
-						DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
-						String header = "List of cells created on " + df.format(new Date()) + "\n";
-						dataOutputStream.write(header.getBytes(), 0, header.length());
-						header = "Cell\tVersion\tCreation date\tRevision Date\tSize\tUsage\tLock\tInst-lock\tCell-lib\tDRC\tNCC\n";
-						dataOutputStream.write(header.getBytes(), 0, header.length());
-						for(Cell cell : cellList)
-						{
-							String line =  makeCellLine(cell, -1) + "\n";
-							dataOutputStream.write(line.getBytes(), 0, line.length());
-						}
-						dataOutputStream.close();
-						System.out.println("Wrote " + trueName);
-					} catch (IOException e)
-					{
-						System.out.println("Error closing " + trueName);
-					}
-				}
-			} else
-			{
-				int maxLen = 0;
-				for(Cell cell : cellList)
-				{
-					maxLen = Math.max(maxLen, cell.noLibDescribe().length());
-				}
-				maxLen = Math.max(maxLen+2, 7);
-				printHeaderLine(maxLen);
-				Library lib = null;
-				for(Cell cell : cellList)
-				{
-					if (cell.getLibrary() != lib)
-					{
-						lib = cell.getLibrary();
-						System.out.println("======== LIBRARY " + lib.getName() + ": ========");
-					}
-					System.out.println(makeCellLine(cell, maxLen));
-				}
-			}
-		}
-
+        new GeneralCellListsJob(curCell, allCells.isSelected(),
+                onlyCellsUnderCurrent.isSelected(), onlyCellsUsedElsewhere.isSelected(), onlyCellsNotUsedElsewhere.isSelected(),
+                onlyThisView.isSelected(), (String)views.getSelectedItem(), alsoIconViews.isSelected(),
+                excludeOlderVersions.isSelected(), excludeNewestVersions.isSelected(),
+                orderByName.isSelected(), evaluateNumerically.isSelected(), orderByDate.isSelected(), orderByStructure.isSelected(),
+                saveToDisk.isSelected()).startJob();
 		closeDialog(null);
+    }
+
+    private static class GeneralCellListsJob extends Job {
+        private final Cell curCell;
+        private final boolean allCells;
+        private final boolean onlyCellsUnderCurrent;
+        private final boolean onlyCellsUsedElsewhere;
+        private final boolean onlyCellsNotUsedElsewhere;
+        private final boolean onlyThisView;
+        private final String viewName;
+        private final boolean alsoIconViews;
+        private final boolean excludeOlderVersions;
+        private final boolean excludeNewestVersions;
+        private final boolean orderByName;
+        private final boolean evaluateNumerically;
+        private final boolean orderByDate;
+        private final boolean orderByStructure;
+        private final boolean saveToDisk;
+        private DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
+
+        private GeneralCellListsJob(Cell curCell, boolean allCells,
+                boolean onlyCellsUnderCurrent, boolean onlyCellsUsedElsewhere, boolean onlyCellsNotUsedElsewhere,
+                boolean onlyThisView, String viewName, boolean alsoIconViews,
+                boolean excludeOlderVersions, boolean excludeNewestVersions,
+                boolean orderByName, boolean evaluateNumerically, boolean orderByDate, boolean orderByStructure,
+                boolean saveToDisk) {
+            super("GeneralCellLists", User.getUserTool(), Job.Type.SERVER_EXAMINE, null, null, Job.Priority.USER);
+            this.curCell = curCell;
+            this.allCells = allCells;
+            this.onlyCellsUnderCurrent = onlyCellsUnderCurrent;
+            this.onlyCellsUsedElsewhere = onlyCellsUsedElsewhere;
+            this.onlyCellsNotUsedElsewhere = onlyCellsNotUsedElsewhere;
+            this.onlyThisView = onlyThisView;
+            this.viewName = viewName;
+            this.alsoIconViews = alsoIconViews;
+            this.excludeOlderVersions = excludeOlderVersions;
+            this.excludeNewestVersions = excludeNewestVersions;
+            this.orderByName = orderByName;
+            this.evaluateNumerically = evaluateNumerically;
+            this.orderByDate = orderByDate;
+            this.orderByStructure = orderByStructure;
+            this.saveToDisk = saveToDisk;
+        }
+
+        @Override
+        public boolean doIt() {
+            // get cell and port markers
+            Set<Cell> cellsSeen = new HashSet<Cell>();
+
+            // mark cells to be shown
+            if (allCells)
+            {
+                // mark all cells for display
+                for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+                {
+                    Library lib = it.next();
+                    for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+                    {
+                        Cell cell = cIt.next();
+                        cellsSeen.add(cell);
+                    }
+                }
+            } else
+            {
+                // mark no cells for display, filter according to request
+                if (onlyCellsUnderCurrent)
+                {
+                    // mark those that are under this
+                    recursiveMark(curCell, cellsSeen);
+                } else if (onlyCellsUsedElsewhere)
+                {
+                    // mark those that are in use
+                    for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+                    {
+                        Library lib = it.next();
+                        for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+                        {
+                            Cell cell = cIt.next();
+                            Cell iconCell = cell.iconView();
+                            if (iconCell == null) iconCell = cell;
+                            if (cell.getInstancesOf().hasNext() || iconCell.getInstancesOf().hasNext())
+                                cellsSeen.add(cell);
+                        }
+                    }
+                } else if (onlyCellsNotUsedElsewhere)
+                {
+                    // mark those that are not in use
+                    for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+                    {
+                        Library lib = it.next();
+                        for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+                        {
+                            Cell cell = cIt.next();
+                            Cell iconCell = cell.iconView();
+                            if (iconCell != null)
+                            {
+                                // has icon: acceptable if the only instances are examples
+                                if (cell.getInstancesOf().hasNext()) continue;
+                                boolean found = false;
+                                for(Iterator<NodeInst> nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
+                                {
+                                    NodeInst ni = nIt.next();
+                                    if (ni.isIconOfParent()) { found = true;   break; }
+                                }
+                                if (found) continue;
+                            } else
+                            {
+                                // no icon: reject if this has instances
+                                if (cell.isIcon())
+                                {
+                                    // this is an icon: reject if instances are not examples
+                                    boolean found = false;
+                                    for(Iterator<NodeInst> nIt = cell.getInstancesOf(); nIt.hasNext(); )
+                                    {
+                                        NodeInst ni = nIt.next();
+                                        if (ni.isIconOfParent()) { found = true;   break; }
+                                    }
+                                    if (found) continue;
+                                } else
+                                {
+                                    if (cell.getInstancesOf().hasNext()) continue;
+                                }
+                            }
+                            cellsSeen.add(cell);
+                        }
+                    }
+                } else
+                {
+                    // mark placeholder cells
+                    for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+                    {
+                        Library lib = it.next();
+                        for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+                        {
+                            Cell cell = cIt.next();
+                            Variable var = cell.getVar("IO_true_library");
+                            if (var != null) cellsSeen.add(cell);
+                        }
+                    }
+                }
+            }
+
+            // filter views
+            if (onlyThisView)
+            {
+                View v = View.findView(viewName);
+                if (v != null)
+                {
+                    for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+                    {
+                        Library lib = it.next();
+                        for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+                        {
+                            Cell cell = cIt.next();
+                            if (cell.getView() != v)
+                            {
+                                if (cell.isIcon())
+                                {
+                                    if (alsoIconViews) continue;
+                                }
+                                cellsSeen.remove(cell);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // filter versions
+            if (excludeOlderVersions)
+            {
+                for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+                {
+                    Library lib = it.next();
+                    for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+                    {
+                        Cell cell = cIt.next();
+                        if (cell.getNewestVersion() != cell) cellsSeen.remove(cell);
+                    }
+                }
+            }
+            if (excludeNewestVersions)
+            {
+                for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+                {
+                    Library lib = it.next();
+                    for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+                    {
+                        Cell cell = cIt.next();
+                        if (cell.getNewestVersion() == cell) cellsSeen.remove(cell);
+                    }
+                }
+            }
+
+            // now make a list and sort it
+            List<Cell> cellList = new ArrayList<Cell>();
+            for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+            {
+                Library lib = it.next();
+                if (lib.isHidden()) continue;
+                for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+                {
+                    Cell cell = cIt.next();
+                    if (cellsSeen.contains(cell)) cellList.add(cell);
+                }
+            }
+            if (cellList.size() == 0) System.out.println("No cells match this request"); else
+            {
+                if (orderByName)
+                {
+                    if (evaluateNumerically)
+                    {
+                        Collections.sort(cellList);
+                    } else
+                    {
+                        Collections.sort(cellList, new TextUtils.CellsByName());
+                    }
+                } else if (orderByDate)
+                {
+                    Collections.sort(cellList, new TextUtils.CellsByDate());
+                } else if (orderByStructure)
+                {
+                    Collections.sort(cellList, new SortByCellStructure());
+                }
+
+                // finally show the results
+                if (saveToDisk)
+                {
+                    String trueName = OpenFile.chooseOutputFile(FileType.READABLEDUMP, null, "celllist.txt");
+                    if (trueName == null) System.out.println("Cannot write cell listing"); else
+                    {
+                        FileOutputStream fileOutputStream = null;
+                        try {
+                            fileOutputStream = new FileOutputStream(trueName);
+                        } catch (FileNotFoundException e) {}
+                        BufferedOutputStream bufStrm = new BufferedOutputStream(fileOutputStream);
+                        DataOutputStream dataOutputStream = new DataOutputStream(bufStrm);
+                        try
+                        {
+                            DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
+                            String header = "List of cells created on " + df.format(new Date()) + "\n";
+                            dataOutputStream.write(header.getBytes(), 0, header.length());
+                            header = "Cell\tVersion\tCreation date\tRevision Date\tSize\tUsage\tLock\tInst-lock\tCell-lib\tDRC\tNCC\n";
+                            dataOutputStream.write(header.getBytes(), 0, header.length());
+                            for(Cell cell : cellList)
+                            {
+                                String line =  makeCellLine(cell, -1, dp) + "\n";
+                                dataOutputStream.write(line.getBytes(), 0, line.length());
+                            }
+                            dataOutputStream.close();
+                            System.out.println("Wrote " + trueName);
+                        } catch (IOException e)
+                        {
+                            System.out.println("Error closing " + trueName);
+                        }
+                    }
+                } else
+                {
+                    int maxLen = 0;
+                    for(Cell cell : cellList)
+                    {
+                        maxLen = Math.max(maxLen, cell.noLibDescribe().length());
+                    }
+                    maxLen = Math.max(maxLen+2, 7);
+                    printHeaderLine(maxLen);
+                    Library lib = null;
+                    for(Cell cell : cellList)
+                    {
+                        if (cell.getLibrary() != lib)
+                        {
+                            lib = cell.getLibrary();
+                            System.out.println("======== LIBRARY " + lib.getName() + ": ========");
+                        }
+                        System.out.println(makeCellLine(cell, maxLen, dp));
+                    }
+                }
+            }
+            return true;
+        }
+
+        /**
+         * Method to recursively walk the hierarchy from "np", marking all cells below it.
+         */
+        private static void recursiveMark(Cell cell, Set<Cell> cellsSeen)
+        {
+            if (cellsSeen.contains(cell)) return;
+            cellsSeen.add(cell);
+            for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+            {
+                NodeInst ni = it.next();
+                if (!ni.isCellInstance()) continue;
+                Cell subCell = (Cell)ni.getProto();
+                recursiveMark(subCell, cellsSeen);
+                Cell contentsCell = subCell.contentsView();
+                if (contentsCell != null) recursiveMark(contentsCell, cellsSeen);
+            }
+        }
 	}//GEN-LAST:event_ok
 
 	/** Closes the dialog */

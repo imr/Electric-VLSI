@@ -44,6 +44,7 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
@@ -1170,7 +1171,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
     public CellBackup getCellBackupUnsafe() {
         if (parent != null) return parent.backupUnsafe();
-        ImmutableCell cell = ImmutableCell.newInstance(Clipboard.clipCellId, 0);
+        CellId clipCellId = Clipboard.getClipCellId();
+        ImmutableCell cell = ImmutableCell.newInstance(clipCellId, 0);
         cell = cell.withTechId(getProto().getTechnology().getId());
         TechPool techPool = TechPool.getThreadTechPool();
         CellBackup cellBackup = CellBackup.newInstance(cell, techPool);

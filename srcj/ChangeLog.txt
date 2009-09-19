@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10i: ******************************
 
+IMP: (09/19/09, DN) If DRC.THREAD_SAFE_DRC=true, then DRC Jobs are SERVER_EXAMINE and can
+    run in thread-safe mode.
+
 IMP: (09/17/09, DN) Quick.doCheck() and Schematic.doCheck don't call termLogging.
     Instead caller terms Logging or do anything else.
 
