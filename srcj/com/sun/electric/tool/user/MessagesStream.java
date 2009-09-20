@@ -97,7 +97,7 @@ public class MessagesStream extends PrintStream
     private void print(String s, boolean newLine) {
         if (Main.isBatch()) {
             if (newLine) Main.UserInterfaceDummy.stdout.println(s);
-            else         Main.UserInterfaceDummy.stdout.println(s);
+            else         Main.UserInterfaceDummy.stdout.print(s);
         } else {
             Job.getUserInterface().printMessage(s, newLine);
         }
