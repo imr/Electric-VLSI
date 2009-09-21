@@ -69,35 +69,16 @@ public class Regression {
         Job.setThreadSafe();
         IdReader reader = null;
         Snapshot currentSnapshot = IdManager.stdIdManager.getInitialSnapshot();
-        EDatabase database = new EDatabase(currentSnapshot);
-        EDatabase.setClientDatabase(database);
+//        EDatabase database = new EDatabase(currentSnapshot);
+//        EDatabase.setClientDatabase(database);
         System.out.println("Running " + script);
 
         try {
-//            System.out.println("Attempting to connect to port " + port + " ...");
-//            Socket socket = null;
-//            for (int i = 0; i < 100; i++) {
-//                try {
-//                    Thread.sleep(20);
-//                    socket = new Socket((String)null, port);
-//                } catch (IOException e) {
-//                } catch (InterruptedException e) {
-//                }
-//                if (socket != null)
-//                    break;
-//            }
-//            if (socket == null) {
-//                System.out.println("Can't connect");
-//                return;
-//            }
-//            InputStream inStream = socket.getInputStream();
-//            OutputStrean outStream = socket.getOutputStream();
             InputStream inStream = process.getInputStream();
             OutputStream outStream = process.getOutputStream();
             InputStream errStream = process.getErrorStream();
             new ExecProcessReader(errStream).start();
-            reader = new IdReader(new DataInputStream(new BufferedInputStream(inStream)), database.getIdManager());
-            DataOutputStream clientOutputStream = new DataOutputStream(new BufferedOutputStream(outStream));
+            reader = new IdReader(new DataInputStream(new BufferedInputStream(inStream)), IdManager.stdIdManager);
             int protocolVersion = reader.readInt();
             if (protocolVersion != Job.PROTOCOL_VERSION) {
                 System.out.println("Client's protocol version " + Job.PROTOCOL_VERSION + " is incompatible with Server's protocol version " + protocolVersion);
@@ -109,14 +90,12 @@ public class Regression {
             int connectionId = reader.readInt();
             System.out.format("%1$tT.%1$tL ", Calendar.getInstance());
             System.out.println("Connected id="+connectionId);
-            writeEditingPreferences(clientOutputStream, database);
 
-            int curJobId = 0;
-            Job.setUserInterface(new UserInterfaceInitial(database));
-            Job job = new InitJob();
-            job.ejob.jobKey = new Job.Key(connectionId, --curJobId, true);
-            writeJob(clientOutputStream, job);
+            DataOutputStream clientOutputStream = new DataOutputStream(new BufferedOutputStream(outStream));
+            writeServerJobs(clientOutputStream, connectionId, script);
+            clientOutputStream.close();
 
+            int curJobId = -1;
             AbstractUserInterface ui = new Main.UserInterfaceDummy();
             ui.patchConnectionId(connectionId);
             boolean passed = true;
@@ -127,15 +106,15 @@ public class Regression {
                 if (tag == 1) {
                         currentSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
                         System.out.println("Snapshot received " + currentSnapshot.snapshotId);
-                        database.lock(true);
-                        try {
-                            database.lowLevelSetCanUndoing(true);
-                            database.undo(currentSnapshot);
-                            database.lowLevelSetCanUndoing(false);
-                        } finally {
-                            database.unlock();
-                        }
-                        System.out.format("            ->%1$tT.%1$tL Database updated to snapshot %2$d\n", Calendar.getInstance(), currentSnapshot.snapshotId);
+//                        database.lock(true);
+//                        try {
+//                            database.lowLevelSetCanUndoing(true);
+//                            database.undo(currentSnapshot);
+//                            database.lowLevelSetCanUndoing(false);
+//                        } finally {
+//                            database.unlock();
+//                        }
+//                        System.out.format("            ->%1$tT.%1$tL Database updated to snapshot %2$d\n", Calendar.getInstance(), currentSnapshot.snapshotId);
                 } else {
                     Client.ServerEvent serverEvent = Client.read(reader, tag, timeStamp, ui, currentSnapshot);
                     if (serverEvent instanceof Client.EJobEvent) {
@@ -144,7 +123,7 @@ public class Regression {
                         assert e.newState == EJob.State.SERVER_DONE;
                         if (jobId > 0) {
                             if (!e.doItOk) {
-                                System.out.println("Job " + job.ejob.jobName + " failed");
+                                System.out.println("Job " + e.jobName + " failed");
 //                                printErrorStream(process);
 //                                ui.saveMessages(null);
                                 passed = false;
@@ -152,37 +131,45 @@ public class Regression {
                             continue;
                         }
                         assert jobId == curJobId;
-                        job.ejob.serializedResult = e.serializedResult;
-                        Throwable result = job.ejob.deserializeResult();
-                        assert e.doItOk == (result == null);
-                        if (result != null) {
-                            System.out.println("Job " + job.ejob.jobName + " result:");
+//                        EJob ejob = new EJob(client, jobId, e.jobType, e.jobName, e.serializedJob);
+//                        ejob.serializedResult = e.serializedResult;
+//                        Throwable result = ejob.deserializeResult();
+//                        assert e.doItOk == (result == null);
+                        if (!e.doItOk) {
+                            System.out.println("Job " + e.jobName + " exception");
 //                            System.out.println(result);
-                            result.printStackTrace(System.out);
+//                            result.printStackTrace(System.out);
 //                            printErrorStream(process);
 //                            ui.saveMessages(null);
                             passed = false;
                         } else {
-                            System.out.println("Job " + job.ejob.jobKey.jobId);
+                            System.out.println("Job " + jobId + " ok");
                         }
                         switch (jobId) {
                             case -1:
-                                job = script.equals("CRASH") ? new CrashJob() : EvalJavaBsh.runScriptJob(script);
-                                job.ejob.jobKey = new Job.Key(connectionId, --curJobId, true);
-                                writeJob(clientOutputStream, job);
+                                curJobId = -2;
+//                                job = script.equals("CRASH") ? new CrashJob() : EvalJavaBsh.runScriptJob(script);
+//                                job.ejob.jobKey = new Job.Key(connectionId, --curJobId, true);
+//                                writeJob(clientOutputStream, job);
                                 break;
                             case -2:
-                                job = new QuitJob();
-                                job.ejob.jobKey = new Job.Key(connectionId, --curJobId, true);
-                                writeJob(clientOutputStream, job);
+                                curJobId = -3;
+//                                job = new QuitJob();
+//                                job.ejob.jobKey = new Job.Key(connectionId, --curJobId, true);
+//                                writeJob(clientOutputStream, job);
                                 break;
-                            case -3:
-                                ui.saveMessages(null);
-                                return passed;
+//                            case -3:
+//                                ui.saveMessages(null);
+//                                return passed;
                             default:
                         }
                     } else {
                         serverEvent.show(ui);
+                        if (serverEvent instanceof Client.ShutdownEvent) {
+                            assert curJobId == -3;
+                            ui.saveMessages(null);
+                            return passed;
+                        }
                     }
                 }
             }
@@ -276,8 +263,28 @@ public class Regression {
         }
 
         public boolean doIt() throws JobException {
+            Client.fireServerEvent(new Client.ShutdownEvent());
             return true;
        }
+    }
+
+    private static void writeServerJobs(DataOutputStream clientOutputStream, int connectionId, String script) throws IOException {
+            EDatabase database = new EDatabase(IdManager.stdIdManager.getInitialEnvironment());
+            Job.setUserInterface(new UserInterfaceInitial(database));
+
+            Job job1 = new InitJob();
+            job1.ejob.jobKey = new Job.Key(connectionId, -1, true);
+
+            Job job2 = script.equals("CRASH") ? new CrashJob() : EvalJavaBsh.runScriptJob(script);
+            job2.ejob.jobKey = new Job.Key(connectionId, -2, true);
+
+            Job job3 = new QuitJob();
+            job3.ejob.jobKey = new Job.Key(connectionId, -3, true);
+
+            writeEditingPreferences(clientOutputStream, database);
+            writeJob(clientOutputStream, job1);
+            writeJob(clientOutputStream, job2);
+            writeJob(clientOutputStream, job3);
     }
 
     private static void writeEditingPreferences(DataOutputStream clientOutputStream, EDatabase database) throws IOException {

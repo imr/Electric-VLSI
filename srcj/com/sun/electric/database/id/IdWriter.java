@@ -177,9 +177,14 @@ public class IdWriter {
         writeInt(-1);
     }
 
-    /** Flushes this SnapshotWriter */
+    /** Flushes this IdWriter */
     public void flush() throws IOException {
         out.flush();
+    }
+
+    /** Flushes this IdWriter */
+    public void close() throws IOException {
+        out.close();
     }
 
     /**

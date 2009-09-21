@@ -82,6 +82,10 @@ public class StreamClient extends Client {
                         if (lastEvent.getSnapshot() != currentSnapshot)
                             writeSnapshot(lastEvent);
                         lastEvent.write(writer);
+                        if (lastEvent instanceof ShutdownEvent) {
+                            writer.close();
+                            return;
+                        }
                         ServerEvent event = lastEvent.getNext();
                         if (event == null)
                             break;
@@ -117,7 +121,9 @@ public class StreamClient extends Client {
             try {
                 EditingPreferences clientEp = null;
                 for (;;) {
-                    byte tag = in.readByte();
+                    int tag = in.read();
+                    if (tag == -1)
+                        break;
                     switch (tag) {
                         case 1:
                             int jobId = in.readInt();
@@ -150,7 +156,7 @@ public class StreamClient extends Client {
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                dispatcher.interrupt();
+//                dispatcher.interrupt();
             }
         }
     }

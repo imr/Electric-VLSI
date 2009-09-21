@@ -480,6 +480,22 @@ public abstract class Client {
         }
     }
 
+    public static class ShutdownEvent extends ServerEvent {
+
+        ShutdownEvent() {
+        }
+
+        @Override
+        void write(IdWriter writer) throws IOException {
+            writeHeader(writer, 13);
+        }
+
+        @Override
+        void show(AbstractUserInterface ui) {
+            ui.printMessage("SHUTDOWN !", true);
+        }
+    }
+
     static ServerEvent read(IdReader reader, byte tag, long timeStamp, Client connection, Snapshot snapshot) throws IOException {
         ServerEvent event;
         switch (tag) {
@@ -552,6 +568,9 @@ public abstract class Client {
                 break;
             case 12:
                 event = new BeepEvent();
+                break;
+            case 13:
+                event = new ShutdownEvent();
                 break;
             default:
                 System.err.println("Unknown tag="+tag);
