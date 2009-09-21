@@ -70,7 +70,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -710,7 +709,7 @@ public class EDIF extends Input
 			for(String name : arcsInCell.keySet())
 			{
 				List<ArcInst> arcsWithName = arcsInCell.get(name);
-				Collections.sort(arcsWithName, new ArcsByLength());
+				Collections.sort(arcsWithName, new ArcInst.ArcsByLength());
 				Set<Network> netsNamed = new HashSet<Network>();
 				for(int i=0; i<arcsWithName.size(); i++)
 				{
@@ -739,24 +738,6 @@ public class EDIF extends Input
 					second.setTextDescriptor(ArcInst.ARC_NAME, td);
 				}
 			}
-		}
-	}
-
-	/**
-	 * Comparator class for sorting ArcInst by their length.
-	 */
-	private static class ArcsByLength implements Comparator<ArcInst>
-	{
-		/**
-		 * Method to sort ArcInst by their length.
-		 */
-		public int compare(ArcInst a1, ArcInst a2)
-		{
-			double len1 = a1.getHeadLocation().distance(a1.getTailLocation());
-			double len2 = a2.getHeadLocation().distance(a2.getTailLocation());
-			if (len1 == len2) return 0;
-			if (len1 < len2) return 1;
-			return -1;
 		}
 	}
 

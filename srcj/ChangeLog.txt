@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10i: ******************************
 
+BUG: (09/21/09, GVG) Non-deterministic results in AutoFillTemplate test (bug #2380)
+FIX: Sorting arcs based on length while selecting the best port to connect to.
+
 IMP: (09/21/09, DN) Regression driver doesn't allocate mutable database.
 
 IMP: (09/19/09, DN) If DRC.THREAD_SAFE_DRC=true, then DRC Jobs are SERVER_EXAMINE and can
