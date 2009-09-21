@@ -66,7 +66,7 @@ public class DRC extends Listener
 {
 	/** the DRC tool. */								     protected static DRC tool = new DRC();
 
-    private static final boolean THREAD_SAFE_DRC = false;
+    private static final boolean THREAD_SAFE_DRC = true;
      // Client static variables
     /** for logging incremental errors */                    private static ErrorLogger errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)", true);
 	/** map of cells and their objects to DRC */		     private static Map<Cell,Set<Geometric>> cellsToCheck = new HashMap<Cell,Set<Geometric>>();
