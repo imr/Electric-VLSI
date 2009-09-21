@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool;
 
-import com.sun.electric.Launcher;
 import com.sun.electric.Main;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.EditingPreferences;
@@ -49,6 +48,7 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -266,6 +266,20 @@ public class Regression {
             Client.fireServerEvent(new Client.ShutdownEvent());
             return true;
        }
+    }
+
+    public static void main(String[] args) {
+        makeCrashInput(args[0]);
+    }
+
+    private static void makeCrashInput(String fileName) {
+        try {
+            DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(fileName)));
+            writeServerJobs(out, 0, "CRASH");
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void writeServerJobs(DataOutputStream clientOutputStream, int connectionId, String script) throws IOException {
