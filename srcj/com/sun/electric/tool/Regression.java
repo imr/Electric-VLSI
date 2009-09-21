@@ -23,20 +23,27 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.Launcher;
 import com.sun.electric.Main;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.MessagesStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -49,6 +56,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -159,7 +167,7 @@ public class Regression {
                         }
                         switch (jobId) {
                             case -1:
-                                job = EvalJavaBsh.runScriptJob(script);
+                                job = script.equals("CRASH") ? new CrashJob() : EvalJavaBsh.runScriptJob(script);
                                 job.ejob.jobKey = new Job.Key(connectionId, --curJobId, true);
                                 writeJob(clientOutputStream, job);
                                 break;
@@ -229,6 +237,37 @@ public class Regression {
 //            EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, database.getTechPool()));
             return true;
        }
+    }
+
+    private static class CrashJob extends Job {
+
+        protected CrashJob() {
+            super("CrashTest", null, Job.Type.CHANGE, null, null, Job.Priority.USER);
+        }
+
+        public boolean doIt() throws JobException {
+            String regressionname = "qFourP2-electric-final-jelib";
+            String libname = "qFourP2.jelib";
+            String cellname = "qFourP1top";
+            String rootPath = "../../";
+            boolean caching = true;
+
+            String logname = "output/"+libname+"_"+cellname+"_LE_"+(caching ? "C" : "NC")+"-"+Version.getVersion()+".log";
+
+            MessagesStream.getMessagesStream().save(logname);
+
+            Library rootLib = LayoutLib.openLibForRead(rootPath+"data/"+regressionname+"/"+libname);
+            ErrorLogger repairLogger = ErrorLogger.newInstance("Repair Libraries");
+            for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
+                Library lib = (Library)it.next();
+                lib.checkAndRepair(true, repairLogger);
+            }
+
+            System.out.println("Repair Libraries: " + repairLogger.getNumErrors() + " errors," + repairLogger.getNumWarnings() + " warnings");
+            Cell lay = rootLib.findNodeProto(cellname+"{sch}");
+            System.out.println("Cell = "+lay);
+            return true;
+        }
     }
 
     private static class QuitJob extends Job {
