@@ -4,6 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10i: ******************************
 
+IMP: (09/22/09, AM) build.xml: produce jdk1.5-compatible bytecodes.
 
 BUG: (09/21/09, GVG) Non-deterministic results in AutoFillTemplate test (bug #2380)
 FIX: Sorting arcs based on length while selecting the best port to connect to.
