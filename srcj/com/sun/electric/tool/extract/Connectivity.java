@@ -81,18 +81,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -118,7 +107,8 @@ public class Connectivity
 	/** layers to use for given arc functions */				private Map<Layer.Function,Layer> layerForFunction;
 	/** the layer to use for "polysilicon" geometry */			private Layer polyLayer;
 	/** temporary layers to use for geometric manipulation */	private Layer tempLayer1;
-	/** the layers to use for "active" geometry */				private Layer pActiveLayer, nActiveLayer;
+	/** the layers to use for "active" geometry */				private Layer activeLayer, pActiveLayer, nActiveLayer;
+	/** the layers to use for "select" geometry */				private Layer pSelectLayer, nSelectLayer;
 	/** the real "active" layers */								private Layer realPActiveLayer, realNActiveLayer;
     /** the well and substrate layers */                        private Layer wellLayer, substrateLayer;
     /** associates arc prototypes with layers */				private Map<Layer,ArcProto> arcsForLayer;
@@ -320,24 +310,22 @@ public class Connectivity
 
 		// find important layers
 		polyLayer = null;
-		pActiveLayer = nActiveLayer = null;
+		activeLayer = pActiveLayer = nActiveLayer = null;
 		realPActiveLayer = realNActiveLayer = null;
+        pSelectLayer = nSelectLayer = null;
         wellLayer = substrateLayer = null;
         for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
 			Layer.Function fun = layer.getFunction();
 			if (polyLayer == null && fun == Layer.Function.POLY1) polyLayer = layer;
-			if (unifyActive)
-			{
-				if (pActiveLayer == null && fun.isDiff()) pActiveLayer = layer;
-			} else
-			{
-				if (pActiveLayer == null && fun == Layer.Function.DIFFP) pActiveLayer = layer;
-				if (nActiveLayer == null && fun == Layer.Function.DIFFN) nActiveLayer = layer;
-			}
+            if (activeLayer == null && fun == Layer.Function.DIFF) activeLayer = layer;
+            if (pActiveLayer == null && fun == Layer.Function.DIFFP) pActiveLayer = layer;
+            if (nActiveLayer == null && fun == Layer.Function.DIFFN) nActiveLayer = layer;
 			if (realPActiveLayer == null && fun == Layer.Function.DIFFP) realPActiveLayer = layer;
 			if (realNActiveLayer == null && fun == Layer.Function.DIFFN) realNActiveLayer = layer;
+            if (pSelectLayer == null && fun == Layer.Function.IMPLANTP) pSelectLayer = layer;
+            if (nSelectLayer == null && fun == Layer.Function.IMPLANTN) nSelectLayer = layer;
             if (pSubstrateProcess) // psubstrate
             {
                 if (wellLayer == null && fun == Layer.Function.WELLN) wellLayer = layer;
@@ -352,9 +340,14 @@ public class Connectivity
 		polyLayer = polyLayer.getNonPseudoLayer();
 		if (polyLayer != null)
 			tempLayer1 = polyLayer.getPseudoLayer();
-		pActiveLayer = pActiveLayer.getNonPseudoLayer();
-		if (unifyActive) nActiveLayer = pActiveLayer; else
-			nActiveLayer = nActiveLayer.getNonPseudoLayer();
+        if (pActiveLayer == null || nActiveLayer == null && activeLayer != null) {
+            unifyActive = true;
+            pActiveLayer = nActiveLayer = activeLayer;
+        } else {
+            unifyActive = false;
+            pActiveLayer = pActiveLayer.getNonPseudoLayer();
+            nActiveLayer = nActiveLayer.getNonPseudoLayer();
+        }
 
 		// figure out which arcs to use for a layer
 		arcsForLayer = new HashMap<Layer,ArcProto>();
@@ -505,6 +498,8 @@ public class Connectivity
 			return null;
 		}
 		convertedCells.put(oldCell, newCell);
+
+        fixActiveNodes(oldCell);
 
 		// create a merge for the geometry in the cell
 		PolyMerge merge = new PolyMerge();
@@ -941,16 +936,7 @@ public class Connectivity
 		}
 
 		// see how active layers should be handled
-		unifyActive = (activeHandling == 1);
 		ignoreActiveSelectWell = (activeHandling == 2);
-		if (!unifyActive)
-		{
-			if (!haveNActive || !havePActive)
-			{
-				System.out.println("Found only one type of active layer...unifying all active layers");
-				unifyActive = true;
-			}
-		}
 	}
 
 	/**
@@ -1394,7 +1380,101 @@ public class Connectivity
 		return false;
 	}
 
-	/**
+    /**
+     * Choose the right type of active for the active in the merge (takes into account select)
+     */
+    private void fixActiveNodes(Cell cell)
+    {
+        if (unifyActive) return; // no need to fix active
+        if (ignoreActiveSelectWell) return;
+        // if unifyActive is set, then Electric tech must only have one active
+        // Otherwise, imported GDS may only have one active, but Electric has two, so
+        // we need to fix that here.
+
+        PrimitiveNode pDiffNode = null, nDiffNode = null;
+        for (Iterator<PrimitiveNode> it = cell.getTechnology().getNodes(); it.hasNext(); )
+        {
+            PrimitiveNode pn = it.next();
+            if (pn.getFunction() == PrimitiveNode.Function.NODE) {
+                Layer layer = pn.getLayerIterator().next();
+                if (layer.getFunction() == Layer.Function.DIFFN)
+                    nDiffNode = pn;
+                if (layer.getFunction() == Layer.Function.DIFFP)
+                    pDiffNode = pn;
+            }
+        }
+
+        // first get all select layers
+        PolyMerge merge = new PolyMerge();
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+            NodeInst ni = it.next();
+            if (ni.isCellInstance()) continue;
+            Poly [] polys = tech.getShapeOfNode(ni);
+            for(int j=0; j<polys.length; j++)
+            {
+                Poly poly = polys[j];
+
+                // get the layer for the geometry
+                Layer layer = poly.getLayer();
+                if (layer == null) continue;
+
+                // make sure the geometric database is made up of proper layers
+                layer = geometricLayer(layer);
+                if (layer.getFunction() != Layer.Function.IMPLANTN && layer.getFunction() != Layer.Function.IMPLANTP) continue;
+
+                merge.add(layer, poly);
+            }
+        }
+        // now fix any active nodes
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+            NodeInst ni = it.next();
+            if (ni.isCellInstance()) continue;
+            PrimitiveNode pn = (PrimitiveNode)ni.getProto();
+            if (pn.getFunction() == PrimitiveNode.Function.NODE) {
+                Layer nodeLayer = pn.getLayerIterator().next();
+                PrimitiveNode newType = null;
+
+                if (nodeLayer.getFunction() == Layer.Function.DIFFN) {
+                    // make sure n-diffusion is in n-select
+                    Poly [] polys = tech.getShapeOfNode(ni);
+                    for (Poly poly : polys) {
+                        if (merge.contains(pSelectLayer, poly)) {
+                            // switch it pactive
+                            newType = pDiffNode;
+                            break;
+                        }
+                    }
+                }
+                if (nodeLayer.getFunction() == Layer.Function.DIFFP) {
+                    // make sure p-diffusion is in p-select
+                    Poly [] polys = tech.getShapeOfNode(ni);
+                    for (Poly poly : polys) {
+                        if (merge.contains(nSelectLayer, poly)) {
+                            // switch it nactive
+                            newType = nDiffNode;
+                            break;
+                        }
+                    }
+                }
+
+                if (newType == null) continue;
+                NodeInst newNi = NodeInst.newInstance(newType, ni.getAnchorCenter(), ni.getXSize(), ni.getYSize(), cell);
+                if (ni.getTrace() != null && ni.getTrace().length > 0)
+                {
+                    EPoint [] origPoints = ni.getTrace();
+                    Point2D [] points = new Point2D[origPoints.length];
+                    // for some reason getTrace returns points relative to center, but setTrace expects absolute coords
+                    for (int i=0; i<origPoints.length; i++) {
+                        points[i] = new Point2D.Double(origPoints[i].getX()+ni.getAnchorCenterX(), origPoints[i].getY()+ni.getAnchorCenterY());
+                    }
+                    newNi.setTrace(points);
+                }
+                ni.kill();
+            }
+        }
+    }
+
+    /**
 	 * Method to figure out which ArcProto to use for a polygon on a layer.
 	 * In the case of Active layers, it examines the well and select layers to figure out
 	 * which arctive arc to use.
@@ -1405,6 +1485,7 @@ public class Connectivity
 	 */
 	private ArcProto findArcProtoForPoly(Layer layer, PolyBase poly, PolyMerge originalMerge)
 	{
+/*
 		Layer.Function fun = layer.getFunction();
 		if (fun.isPoly() || fun.isMetal()) return arcsForLayer.get(layer);
 		if (!fun.isDiff()) return null;
@@ -1453,6 +1534,71 @@ public class Connectivity
 			if (ap.getFunction() == neededFunction) return ap;
 		}
 		return null;
+*/
+
+        Layer.Function fun = layer.getFunction();
+        if (fun.isPoly() || fun.isMetal()) return arcsForLayer.get(layer);
+        if (!fun.isDiff()) return null;
+
+        ArrayList<Layer> requiredLayers = new ArrayList<Layer>();
+        ArrayList<Layer> requiredAbsentLayers = new ArrayList<Layer>();
+
+        // must further differentiate the active arcs...find implants
+        Layer wellP = null, wellN = null, selectP = null, selectN = null;
+        for(Layer l : originalMerge.getKeySet())
+        {
+            if (l.getFunction() == Layer.Function.WELLP) wellP = l;
+            if (l.getFunction() == Layer.Function.WELLN) wellN = l;
+        }
+
+        // Active must have P-Select or N-Select
+        if (pSelectLayer != null && originalMerge.intersects(pSelectLayer, poly)) {
+            if (unifyActive)
+                requiredLayers.add(activeLayer);
+            else
+                requiredLayers.add(realPActiveLayer);
+            requiredLayers.add(pSelectLayer);
+        }
+        if (nSelectLayer != null && originalMerge.intersects(nSelectLayer, poly)) {
+            if (unifyActive)
+                requiredLayers.add(activeLayer);
+            else
+                requiredLayers.add(realNActiveLayer);
+            requiredLayers.add(nSelectLayer);
+        }
+
+        // Active could either be an Active arc or a Well arc, depending on well type
+        if (wellN == null || !originalMerge.intersects(wellN, poly))
+            requiredAbsentLayers.add(wellN);
+        if (wellN != null && originalMerge.intersects(wellN, poly))
+            requiredLayers.add(wellN);
+
+        // Active could either be an Active arc or a Well arc, depending on well type
+        if (wellP == null || !originalMerge.intersects(wellP, poly))
+            requiredAbsentLayers.add(wellP);
+        if (wellP != null && originalMerge.intersects(wellP, poly))
+            requiredLayers.add(wellP);
+
+        // now find the arc with the desired function
+        for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
+        {
+            ArcProto ap = aIt.next();
+            List<Layer> apLayers = new ArrayList<Layer>();
+            for (Iterator<Layer> layit = ap.getLayerIterator(); layit.hasNext(); )
+                apLayers.add(layit.next());
+            // make sure required layers exist
+            boolean failed = false;
+            for (Layer l : requiredLayers) {
+                if (!apLayers.contains(l)) { failed = true; break; }
+            }
+            if (failed) continue;
+            for (Layer l : requiredAbsentLayers) {
+                if (apLayers.contains(l)) { failed = true; break; }
+            }
+            if (failed) continue;
+            return ap;
+        }
+        return null;
 	}
 
 	/**
@@ -2144,19 +2290,58 @@ public class Connectivity
 					double cutLimit = Math.ceil(Math.max(pv.multicutSep1D, pv.multicutSep2D) +
 						Math.max(pv.multicutSizeX, pv.multicutSizeY)) * SCALEFACTOR;
 					boolean foundMore = true;
-					while (foundMore)
+                    double xspacing = 0, yspacing = 0;
+                    while (foundMore)
 					{
 						foundMore = false;
-						Rectangle2D searchArea = new Rectangle2D.Double(multiCutBounds.getMinX()-cutLimit, multiCutBounds.getMinY()-cutLimit,
+                        Rectangle2D searchArea = new Rectangle2D.Double(multiCutBounds.getMinX()-cutLimit, multiCutBounds.getMinY()-cutLimit,
 							multiCutBounds.getWidth() + cutLimit*2, multiCutBounds.getHeight() + cutLimit*2);
-						for(RTNode.Search sea = new RTNode.Search(searchArea, cInfo.getRTree(), true); sea.hasNext(); )
+/*
+                        Rectangle2D searchArea2 = new Rectangle2D.Double(searchArea.getMinX()/SCALEFACTOR, searchArea.getMinY()/SCALEFACTOR,
+                                searchArea.getWidth()/SCALEFACTOR, searchArea.getHeight()/SCALEFACTOR);
+                        System.out.println("Checking search area "+searchArea2);
+*/
+                        for(RTNode.Search sea = new RTNode.Search(searchArea, cInfo.getRTree(), true); sea.hasNext(); )
 						{
 							CutBound cBound = (CutBound)sea.next();
 							if (cutsInArea.contains(cBound.cut)) continue;
 							Rectangle2D bound = cBound.getBounds();
 							if (!searchArea.contains(bound.getCenterX(), bound.getCenterY())) continue;
 
-							double lX = Math.min(multiCutBounds.getMinX(), bound.getMinX());
+                            // use only cuts at a spacing that matches (a multiple of) the nearest contact spacing
+                            double distX = cut.getCenterX() - bound.getCenterX();
+                            double distY = cut.getCenterY() - bound.getCenterY();
+
+                            if (xspacing == 0) xspacing = distX;
+                            else if (distX % xspacing != 0) continue;
+                            if (yspacing == 0) yspacing = distY;
+                            else if (distY % yspacing != 0) continue;
+
+/*
+                            // make sure cuts are in a contiguous array at the initial spacing
+                            if (furthestX == 0) furthestX = distX;
+                            if (furthestY == 0) furthestY = distY;
+                            if (distX > furthestX) {
+                                if (distX == furthestX + xspacing)
+                                    furthestX = distX; // this is the next one on grid
+                                else
+                                    continue; // on grid, but not contiguous
+                            }
+                            if (distY > furthestY) {
+                                if (distY == furthestY + yspacing)
+                                    furthestY = distY; // this is the next one on grid
+                                else
+                                    continue; // on grid, but not contiguous
+                            }
+
+                            // record height of first column
+                            if (maxColumnHeight == 0 && distX != 0) {
+                                // first contact of the second column
+                                maxColumnHeight = furthestY;
+                            }
+*/
+
+                            double lX = Math.min(multiCutBounds.getMinX(), bound.getMinX());
 							double hX = Math.max(multiCutBounds.getMaxX(), bound.getMaxX());
 							double lY = Math.min(multiCutBounds.getMinY(), bound.getMinY());
 							double hY = Math.max(multiCutBounds.getMaxY(), bound.getMaxY());
@@ -2182,7 +2367,23 @@ public class Connectivity
 						}
 					}
 
-					if (DEBUGCONTACTS) System.out.println("   FOUND LARGE CONTACT WITH "+cutsInArea.size()+" CUTS, IN "+
+                    // reduce via array to rectangle
+                    if (xspacing == 0) xspacing = cutLimit;
+                    if (yspacing == 0) yspacing = cutLimit;
+                    Set<PolyBase> rectVias = getLargestRectangleOfVias(cutsInArea, cut, xspacing, yspacing, multiCutBounds);
+                    cutsInArea.clear();
+                    cutsInArea.addAll(rectVias);
+                    multiCutBounds = (Rectangle2D)cutBox.clone();
+                    for (PolyBase via : rectVias) {
+                        Rectangle2D bound = via.getBounds2D();
+                        double lX = Math.min(multiCutBounds.getMinX(), bound.getMinX());
+                        double hX = Math.max(multiCutBounds.getMaxX(), bound.getMaxX());
+                        double lY = Math.min(multiCutBounds.getMinY(), bound.getMinY());
+                        double hY = Math.max(multiCutBounds.getMaxY(), bound.getMaxY());
+                        multiCutBounds = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
+                    }
+
+                    if (DEBUGCONTACTS) System.out.println("   FOUND LARGE CONTACT WITH "+cutsInArea.size()+" CUTS, IN "+
 						TextUtils.formatDouble(multiCutBounds.getMinX()/SCALEFACTOR)+"<=X<="+TextUtils.formatDouble(multiCutBounds.getMaxX()/SCALEFACTOR)+" AND "+
 						TextUtils.formatDouble(multiCutBounds.getMinY()/SCALEFACTOR)+"<=Y<="+TextUtils.formatDouble(multiCutBounds.getMaxY()/SCALEFACTOR));
 
@@ -2317,7 +2518,99 @@ public class Connectivity
         return true;
 	}
 
-	/**
+    /**
+     * Multi-cut vias must be rectangular - get the largest rectangle that fits in the set of vias,
+     * that includes the initial via
+     * @param vias set of vias
+     * @param initialVia the initial via
+     * @param xspacing x spacing between vias
+     * @param yspacing y spacing between vias
+     * @param bounds bounds of all the vias
+     * @return the subset of vias that form a contiguous rectangle, containing the initial via
+     */
+    private Set<PolyBase> getLargestRectangleOfVias(Set<PolyBase> vias, PolyBase initialVia, double xspacing, double yspacing, Rectangle2D bounds)
+    {
+        xspacing = Math.abs(xspacing);
+        yspacing = Math.abs(yspacing);
+        if (xspacing == 0) xspacing = SCALEFACTOR;
+        if (yspacing == 0) yspacing = SCALEFACTOR;
+        int numViasWide = (int)Math.ceil(bounds.getWidth() / xspacing);
+        int numViasHigh = (int)Math.ceil(bounds.getHeight() / yspacing);
+        PolyBase [][] viaMap = new PolyBase[numViasWide][numViasHigh];
+        int nomX = 0, nomY = 0;
+
+        for (int x=0; x<numViasWide; x++) {
+            Arrays.fill(viaMap[x], null);
+        }
+
+        // populate map
+        for (PolyBase via : vias) {
+            int x = (int)((via.getCenterX() - bounds.getMinX()) / xspacing);
+            int y = (int)((via.getCenterY() - bounds.getMinY()) / yspacing);
+            viaMap[x][y] = via;
+            if (via == initialVia) {
+                nomX = x; nomY = y;
+            }
+        }
+        // find maxY and minY from initial via
+        int maxY = nomY, minY = nomY;
+        boolean initial = true;
+        for (int x=0; x<numViasWide; x++) {
+            if (viaMap[x][nomY] == null) continue; // skip this column, will be taken into account in X max/min
+            // max
+            int colMaxY = nomY;
+            for (int y=nomY; y<numViasHigh; y++) {
+                if (viaMap[x][y] == null) break;
+                colMaxY = y;
+            }
+            if (initial) maxY = colMaxY; // initial column
+            else if (colMaxY < maxY) maxY = colMaxY;
+            // min
+            int colMinY = nomY;
+            for (int y=nomY; y>=0; y--) {
+                if (viaMap[x][y] == null) break;
+                colMinY = y;
+            }
+            if (initial) minY = colMinY; // initial column
+            else if (colMinY > minY) minY = colMinY;
+            initial = false;
+        }
+
+        // find maxX and minX from initial via
+        int maxX = nomX, minX = nomX;
+        initial = true;
+        for (int y=0; y<numViasHigh; y++) {
+            if (viaMap[nomX][y] == null) continue; // skip this row, will be taken into account in Y max/min
+            // max
+            int colMaxX = nomX;
+            for (int x=nomX; x<numViasWide; x++) {
+                if (viaMap[x][y] == null) break;
+                colMaxX = x;
+            }
+            if (initial) maxX = colMaxX; // initial row
+            else if (colMaxX < maxX) maxX = colMaxX;
+            // min
+            int colMinX = nomX;
+            for (int x=nomX; x>=0; x--) {
+                if (viaMap[x][y] == null) break;
+                colMinX = x;
+            }
+            if (initial) minX = colMinX; // initial row
+            else if (colMinX > minX) minX = colMinX;
+            initial = false;
+        }
+
+        // get rectangle
+        Set<PolyBase> rectVias = new HashSet<PolyBase>();
+        for (int x=minX; x<=maxX; x++) {
+            for (int y=minY; y<=maxY; y++) {
+                rectVias.add(viaMap[x][y]);
+            }
+        }
+        return rectVias;
+    }
+
+    /**
 	 * Method to create the biggest contact node in a given location.
 	 * @param pNp the type of node to create.
 	 * @param cutVariation the contact cut spacing rule.
@@ -4820,7 +5113,7 @@ public class Connectivity
             {
                 Layer layer = pn.getLayerIterator().next();
                 Layer.Function fun = layer.getFunction();
-                if (fun.isPoly() || fun.isMetal())
+                if (fun.isPoly() || fun.isMetal() || fun.isDiff())
                 {
                     List<NodeInst> newNis = new ArrayList<NodeInst>();
                     // create same node in new cell
@@ -4892,7 +5185,7 @@ public class Connectivity
         {
             Layer.Function fun = layer.getFunction();
             ArcProto ap = Generic.tech().universal_arc;
-            if (fun.isPoly() || fun.isMetal()) ap = arcsForLayer.get(layer);
+            if (fun.isPoly() || fun.isMetal() || fun.isDiff()) ap = arcsForLayer.get(layer);
 
             List<NodeInst> nodes = newNodes.get(layer);
             int i=0, j=1;
@@ -4950,6 +5243,15 @@ public class Connectivity
                     }
                     if (connectionPoint != null)
                     {
+                        // check on ap, we need to decide if diff arc is really diff arc or well arc
+                        // scale up poly so units match originalMerge units
+                        PolyBase poly1Scaled = scaleUpPoly(poly1);
+
+                        if (fun.isDiff()) {
+                            ap = findArcProtoForPoly(layer, poly1Scaled, originalMerge);
+                        }
+                        if (ap == null) ap = Generic.tech().universal_arc;
+                        
                         double width = ap.getDefaultLambdaBaseWidth();
                         ArcProto arcProto = ap;
                         if (arcProto != Generic.tech().universal_arc)
@@ -4991,6 +5293,21 @@ public class Connectivity
         }
         return true;
     }
+
+    /**
+     * Returns a new poly that is a scaled up version of the given poly
+     * @param poly the poly
+     * @return a new, scaled up poly
+     */
+    private PolyBase scaleUpPoly(PolyBase poly) {
+        Point2D [] points = new Point2D.Double[poly.getPoints().length];
+        for(int p=0; p<points.length; p++)
+            points[p] = new Point2D.Double(scaleUp(poly.getPoints()[p].getX()), scaleUp(poly.getPoints()[p].getY()));
+        PolyBase newpoly = new PolyBase(points);
+        newpoly.setStyle(poly.getStyle());
+        return newpoly;
+    }
+
 
     /**
 	 * Method to convert a Poly to one or more pure-layer nodes.
