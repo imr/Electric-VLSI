@@ -4,6 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10i: ******************************
 
+
 BUG: (09/21/09, GVG) Non-deterministic results in AutoFillTemplate test (bug #2380)
 FIX: Sorting arcs based on length while selecting the best port to connect to.
 
