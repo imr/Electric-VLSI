@@ -941,7 +941,24 @@ public class Clipboard //implements ClipboardOwner
 		// make a list of all objects to be copied (includes end points of arcs)
 		List<NodeInst> theNodes = new ArrayList<NodeInst>();
 		List<ArcInst> theArcs = new ArrayList<ArcInst>();
-		for (Geometric geom : geomList)
+
+        if (copyExports)
+        {
+            for(DisplayedText dt : textList)
+            {
+                ElectricObject eObj = dt.getElectricObject();
+                if (eObj instanceof Export)
+                {
+                    // add the object exported to the list
+                    Export e = (Export)eObj;
+                    NodeInst ni = e.getOriginalPort().getNodeInst();
+                    if (!geomList.contains(ni))
+                        geomList.add(ni);
+                }
+            }
+        }
+
+        for (Geometric geom : geomList)
 		{
 			if (geom instanceof NodeInst)
 			{
