@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10i: ******************************
 
+IMP: (09/22/09, JKG) if only export text is selected during copy,
+     it adds in the node the export is on so it can be copied (if copyExports is on)
+
 IMP: (09/22/09, JKG) Node extractor: improved active type selection, improved
      multi-cut contact extraction to prevent lots of single contacts.
 
