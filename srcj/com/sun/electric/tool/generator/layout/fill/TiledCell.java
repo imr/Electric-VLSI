@@ -150,6 +150,7 @@ public class TiledCell {
                 ports.add(pi);
             }
         }
+        Collections.sort(ports, new OrderPortInstsByName());
         FillRouter.connectCoincident(ports);
         return ports;
     }
