@@ -2,7 +2,12 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+
 ************************* Version 8.10i: ******************************
+
+BUG: (09/23/09, AM) Export names change size rapidly when mousing over
+     highlighted objects (Bug #2382).
+FIX: In pulsating Timer, use highlighter.showHighlights(,,true).
 
 IMP: (09/22/09, JKG) if only export text is selected during copy,
      it adds in the node the export is on so it can be copied (if copyExports is on)

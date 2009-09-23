@@ -281,7 +281,7 @@ public class EditWindow extends JPanel
         pulsatingTimer = new Timer(100, new ActionListener() {
                 public void actionPerformed(ActionEvent evt) {
                     if (User.isErrorHighlightingPulsate())
-                        highlighter.showHighlights(EditWindow.this, getGraphics());
+                        highlighter.showHighlights(EditWindow.this, getGraphics(), true);
                 }
             });
         pulsatingTimer.start();
