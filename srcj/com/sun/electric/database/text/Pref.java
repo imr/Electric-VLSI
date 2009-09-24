@@ -469,7 +469,7 @@ public class Pref {
 	 * The object must have been created as "double".
 	 * @return the double value on this Pref object.
 	 */
-	public double getDouble() { return ((Double)getValue()).doubleValue(); }
+	public double getDouble() { return ((Number)getValue()).doubleValue(); }
 
 	/**
 	 * Method to get the string value on this Pref object.
