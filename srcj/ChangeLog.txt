@@ -5,6 +5,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10i: ******************************
 
+IMP: (09/23/09, AM) Allow bold dots on non-integer lambda multiples.
+
 IMP: (09/23/09, AM) Prefs.java: support "upgrading" a pref from
      Integer to Double.
 

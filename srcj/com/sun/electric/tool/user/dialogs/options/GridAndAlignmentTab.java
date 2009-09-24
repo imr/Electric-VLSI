@@ -151,13 +151,13 @@ public class GridAndAlignmentTab extends PreferencePanel
 		if (currDouble != User.getDefGridYSpacing())
 			User.setDefGridYSpacing(currDouble);
 
-		int currInt = TextUtils.atoi(gridBoldHoriz.getText());
-		if (currInt != User.getDefGridXBoldFrequency())
-			User.setDefGridXBoldFrequency(currInt);
+		currDouble = TextUtils.atof(gridBoldHoriz.getText());
+		if (currDouble != User.getDefGridXBoldFrequency())
+			User.setDefGridXBoldFrequency(currDouble);
 
-		currInt = TextUtils.atoi(gridBoldVert.getText());
-		if (currInt != User.getDefGridYBoldFrequency())
-			User.setDefGridYBoldFrequency(currInt);
+		currDouble = TextUtils.atof(gridBoldVert.getText());
+		if (currDouble != User.getDefGridYBoldFrequency())
+			User.setDefGridYBoldFrequency(currDouble);
 
 		boolean curBoolean = gridShowAxes.isSelected();
 		if (curBoolean != User.isGridAxesShown())

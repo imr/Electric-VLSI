@@ -1491,8 +1491,8 @@ public class ClickZoomWireListener
 		Dimension2D arrowDistance = User.getAlignmentToGrid();
 		dX *= arrowDistance.getWidth();
 		dY *= arrowDistance.getHeight();
-		int scaleX = User.getDefGridXBoldFrequency();
-        int scaleY = User.getDefGridYBoldFrequency();
+		double scaleX = User.getDefGridXBoldFrequency();
+        double scaleY = User.getDefGridYBoldFrequency();
 		if (scaleMove) { dX *= scaleX;   dY *= scaleY; }
 		if (scaleMove2) { dX *= scaleX;   dY *= scaleY; }
 
