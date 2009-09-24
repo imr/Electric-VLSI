@@ -543,7 +543,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				}
 			});
 
-			editCell = new JButton("Edit Selected Cell");
+			editCell = new JButton("Edit Selected Cell(s)");
 			editCell.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent evt) { editCell(false); }
@@ -629,9 +629,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				}
 			} else
 			{
-				String cellName = (String)list.getSelectedValue();
-				if (cellName == null) return;
-				editACell(cellName);
+				Object [] cellNames = list.getSelectedValues();
+				for(int i=0; i<cellNames.length; i++)
+					editACell((String)cellNames[i]);
 			}
 		}
 
