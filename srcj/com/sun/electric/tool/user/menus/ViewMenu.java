@@ -28,6 +28,7 @@ import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ViewControl;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -183,8 +184,10 @@ public class ViewMenu {
 		Cell otherCell = curCell.otherView(v);
 		if (otherCell != null)
 		{
-			WindowFrame wf = WindowFrame.createEditWindow(otherCell);
-			wf.setCellWindow(otherCell, null);
+            WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+			if (User.isShowCellsInNewWindow()) wf = null;
+			if (wf == null) wf = WindowFrame.createEditWindow(otherCell);
+            wf.setCellWindow(otherCell, null);
 			return;
 		}
 		String [] options = {"Yes", "No"};

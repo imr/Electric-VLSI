@@ -2080,12 +2080,16 @@ public class ToolMenu
         @Override
         public void terminateOK()
         {
-            for(Cell cell : textCellsToRedraw) {
+            for(Cell cell : textCellsToRedraw)
+            {
                 TextWindow.updateText(cell);
             }
-            if ((activities&SHOW_CELL) != 0) {
-                // show the cell
-                WindowFrame.createEditWindow(cell);
+            if ((activities&SHOW_CELL) != 0)
+            {
+                WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+    			if (User.isShowCellsInNewWindow()) wf = null;
+    			if (wf == null) wf = WindowFrame.createEditWindow(cell);
+                wf.setCellWindow(cell, null);
             }
         }
 

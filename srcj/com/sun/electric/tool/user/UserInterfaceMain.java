@@ -357,7 +357,10 @@ public class UserInterfaceMain extends AbstractUserInterface
 
 	public EditWindow_ displayCell(Cell cell)
 	{
-		WindowFrame wf = WindowFrame.createEditWindow(cell);
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (User.isShowCellsInNewWindow()) wf = null;
+		if (wf == null) wf = WindowFrame.createEditWindow(cell);
+        wf.setCellWindow(cell, null);
 		if (wf.getContent() instanceof EditWindow_) return (EditWindow_)wf.getContent();
 		return null;
 	}

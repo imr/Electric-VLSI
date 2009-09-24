@@ -220,7 +220,12 @@ public class PLA
         public void terminateOK()
         {
             if (newCell != null)
-                WindowFrame.createEditWindow(newCell);
+            {
+                WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+    			if (User.isShowCellsInNewWindow()) wf = null;
+    			if (wf == null) wf = WindowFrame.createEditWindow(newCell);
+                wf.setCellWindow(newCell, null);
+            }
         }
 	}
 

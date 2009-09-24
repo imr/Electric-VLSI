@@ -139,7 +139,10 @@ public class ViewChanges
 
 		public void terminateOK()
 		{
-			WindowFrame.createEditWindow(c);
+            WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+			if (User.isShowCellsInNewWindow()) wf = null;
+			if (wf == null) wf = WindowFrame.createEditWindow(c);
+            wf.setCellWindow(c, null);
 		}
 	}
 
@@ -362,7 +365,10 @@ public class ViewChanges
 			{
 				System.out.println("Cell " + skeletonCell.describe(true) + " created with a skeletal representation of " +
 					curCell);
-				WindowFrame.createEditWindow(skeletonCell);
+                WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+    			if (User.isShowCellsInNewWindow()) wf = null;
+    			if (wf == null) wf = WindowFrame.createEditWindow(skeletonCell);
+                wf.setCellWindow(skeletonCell, null);
 			}
 		}
 	}
@@ -1182,7 +1188,10 @@ public class ViewChanges
 			if (newCell != null)
 			{
 				System.out.println("Cell " + newCell.describe(true) + " created with a schematic representation of " + oldCell);
-				WindowFrame.createEditWindow(newCell);
+                WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+    			if (User.isShowCellsInNewWindow()) wf = null;
+    			if (wf == null) wf = WindowFrame.createEditWindow(newCell);
+                wf.setCellWindow(newCell, null);
 			}
 		}
 	}
@@ -1675,7 +1684,12 @@ public class ViewChanges
 //				System.out.println("Created cell " + cell.describe(true) + " in technology " + newTech.getTechName());
 			}
 			if (showCell != null)
-				WindowFrame.createEditWindow(showCell);
+			{
+                WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+    			if (User.isShowCellsInNewWindow()) wf = null;
+    			if (wf == null) wf = WindowFrame.createEditWindow(showCell);
+                wf.setCellWindow(showCell, null);
+			}
 		}
 
 		private static class Info extends HierarchyEnumerator.CellInfo

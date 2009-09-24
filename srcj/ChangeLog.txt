@@ -5,6 +5,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10i: ******************************
 
+IMP/MAN: (9/24/09, SMR) New Display Preference: "Show cell results in new window"
+     causes commands that show a cell to do it in a new window.  The commands are:
+     "Edit XXX View", "Make XXX View", do Placement, ROM generation, PLA generation,
+     etc. (Bug #2388).
+
 BUG: (09/24/09, GVG) Non-deterministic results in AutoFillTemplate test (bug #2380)
 FIX: Sorting ports before FillRouter.
 

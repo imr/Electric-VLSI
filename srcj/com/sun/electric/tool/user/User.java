@@ -41,7 +41,11 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Xml;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.AbstractUserInterface;
@@ -62,7 +66,14 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.geom.Rectangle2D;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
+
 import javax.swing.SwingUtilities;
 
 /**
@@ -811,7 +822,7 @@ public class User extends Listener
 
         // Loading current elements from the XML information if available
 //        Xml.MenuPalette menuPalette = Job.getUserInterface().getXmlPalette(tech);
-        int numColumns = menuPalette.numColumns;
+//        int numColumns = menuPalette.numColumns;
         for (int i = 0; i < menuPalette.menuBoxes.size(); i++)
         {
             List<?> menuBoxList = menuPalette.menuBoxes.get(i);
@@ -2938,9 +2949,43 @@ public class User extends Listener
 	 */
 	public static boolean isFactoryDimUpperLevelWhenDownInPlace() { return cacheDimUpperLevelWhenDownInPlace.getBooleanFactoryValue(); }
 
+	private static Pref cacheShowCellsInNewWindow = Pref.makeBooleanPref("ShowCellsInNewWindow", tool.prefs, true);
+	/**
+	 * Method to tell whether to show cells in a new window (or overwrite the current one).
+	 * When true, a new window is popped-up for commands that request to see a cell.
+	 * The default is "true".
+	 * @return true to show cells in a new window (or overwrite the current one).
+	 */
+	public static boolean isShowCellsInNewWindow() { return cacheShowCellsInNewWindow.getBoolean(); }
+	/**
+	 * Method to set whether to show cells in a new window (or overwrite the current one).
+	 * When true, a new window is popped-up for commands that request to see a cell.
+	 * @param dim true to show cells in a new window (or overwrite the current one).
+	 */
+	public static void setShowCellsInNewWindow(boolean dim) { cacheShowCellsInNewWindow.setBoolean(dim); }
+	/**
+	 * Method to tell whether to show cells in a new window, by default.
+	 * When true, a new window is popped-up for commands that request to see a cell.
+	 * @return true to show cells in a new window, by default.
+	 */
+	public static boolean isFactoryShowCellsInNewWindow() { return cacheShowCellsInNewWindow.getBooleanFactoryValue(); }
+
 	private static Pref cacheErrorHighlightingPulsate = Pref.makeBooleanPref("ErrorHighlightingPulsate", tool.prefs, true);
+	/**
+	 * Method to tell whether to show error highlights with pulsating outlines.
+	 * The default is "true".
+	 * @return true to show error highlights with pulsating outlines.
+	 */
 	public static boolean isErrorHighlightingPulsate() { return cacheErrorHighlightingPulsate.getBoolean(); }
+	/**
+	 * Method to set whether to show error highlights with pulsating outlines.
+	 * @param dim true to show error highlights with pulsating outlines.
+	 */
 	public static void setErrorHighlightingPulsate(boolean dim) { cacheErrorHighlightingPulsate.setBoolean(dim); }
+	/**
+	 * Method to tell whether to show error highlights with pulsating outlines, by default.
+	 * @return true to show error highlights with pulsating outlines, by default.
+	 */
 	public static boolean isFactoryErrorHighlightingPulsate() { return cacheErrorHighlightingPulsate.getBooleanFactoryValue(); }
 
 	private static Pref cacheWhichDisplayAlgorithm = Pref.makeIntPref("WhichDisplayAlgorithm", tool.prefs, 1);
