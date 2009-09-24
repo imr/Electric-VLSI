@@ -40,11 +40,7 @@ import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.TechType;
 
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 abstract class MetalFloorplanBase extends Floorplan
 {
@@ -528,7 +524,11 @@ class FillRouter {
 			}
 			l.add(pi);
 		}
-		for (String str : portMap.keySet()) {
+        // to guarantee deterministic results
+        List<String> keys = new ArrayList<String>();
+        keys.addAll(portMap.keySet());
+        Collections.sort(keys);
+        for (String str : keys) {
 			connectPorts(portMap.get(str));
 		}
 	}

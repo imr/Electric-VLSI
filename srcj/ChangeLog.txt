@@ -5,6 +5,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10i: ******************************
 
+BUG: (09/24/09, GVG) Non-deterministic results in AutoFillTemplate test (bug #2380)
+FIX: Sorting ports before FillRouter.
+
 BUG: (9/24/09, SMR) GDS Preferences doesn't show enough scale precision (Bug #2402).
 FIX: In GDSTab.java, use more precision.
 
