@@ -48,8 +48,8 @@ public class StreamClient extends Client {
     private Snapshot currentSnapshot = EDatabase.serverDatabase().getInitialSnapshot();
     private final ServerEventDispatcher dispatcher;
     private final ClientReader reader;
-    private static final long STACK_SIZE_EVENT = isOSMac()?0:32*(1 << 10);
-    private final static int STACK_SIZE_READER = isOSMac()?0:32*(1 << 10);
+    private static final long STACK_SIZE_EVENT = 0/*isOSMac()?0:32*(1 << 10)*/;
+    private final static int STACK_SIZE_READER = 0/*isOSMac()?0:32*(1 << 10)*/;
 
     StreamClient(int connectionId, InputStream inputStream, OutputStream outputStream) {
         super(connectionId);
