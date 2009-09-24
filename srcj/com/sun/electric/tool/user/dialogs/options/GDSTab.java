@@ -120,7 +120,7 @@ public class GDSTab extends PreferencePanel
 		gdsDefaultTextLayer.setText(Integer.toString(getInt(gdsOutDefaultTextLayerSetting)));
         gdsOutputConvertsBracketsInExports.setSelected(getBoolean(gdsOutputConvertsBracketsInExportsSetting));
         gdsCellNameLenMax.setText(Integer.toString(getInt(gdsCellNameLenMaxSetting)));
-        gdsInputScale.setText(TextUtils.formatDouble(getDouble(gdsInputScaleSetting)));
+        gdsInputScale.setText(TextUtils.formatDouble(getDouble(gdsInputScaleSetting), 0));
 
 		// build the layers list
 		gdsLayersModel = new DefaultListModel();
