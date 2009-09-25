@@ -638,6 +638,7 @@ public class Output
 		this.filePath = fileP;
         try
 		{
+            // Extra step with URL is needed for MacOSX paths.
             URL fileURL = TextUtils.makeURLToFile(fileP);
             printWriter = new PrintWriter(new BufferedWriter(new FileWriter(TextUtils.getFile(fileURL))));
         } catch (IOException e)
