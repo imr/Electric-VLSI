@@ -1284,16 +1284,16 @@ public class GDS extends Input
 		double microScale = TextUtils.convertFromDistance(1, curTech, TextUtils.UnitScale.MICRO);
 		theScale = meterUnit * 1000000.0 * microScale * localPrefs.inputScale;
 
-		// round the scale
-		double shift = 1;
-		double roundedScale = theScale;
-		while (roundedScale < 1)
-		{
-			roundedScale *= 10;
-			shift *= 10;
-		}
-		roundedScale = DBMath.round(roundedScale) / shift;
-		theScale = roundedScale;
+//		// round the scale
+//		double shift = 1;
+//		double roundedScale = theScale;
+//		while (roundedScale < 1)
+//		{
+//			roundedScale *= 10;
+//			shift *= 10;
+//		}
+//		roundedScale = DBMath.round(roundedScale) / shift;
+//		theScale = roundedScale;
 	}
 
 	private void showResultsOfCell()
