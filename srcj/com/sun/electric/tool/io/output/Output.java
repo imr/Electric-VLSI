@@ -638,7 +638,8 @@ public class Output
 		this.filePath = fileP;
         try
 		{
-        	printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileP)));
+            URL fileURL = TextUtils.makeURLToFile(fileP);
+            printWriter = new PrintWriter(new BufferedWriter(new FileWriter(TextUtils.getFile(fileURL))));
         } catch (IOException e)
 		{
             reportError("Error opening " + fileP+": "+e.getMessage());
