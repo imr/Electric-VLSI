@@ -92,58 +92,6 @@ public class NewEpicAnalysis extends AnalogAnalysis {
     /** Hash of all contexts. */                        private Context[] contextHash = new Context[1];
     /** Count of contexts in the hash. */               private int numContexts = 0;
 
-    private static class SimulationKey implements Comparable<SimulationKey>, Externalizable {
-        public String signalName;
-        public int index;
-        public SimulationKey() { }
-        public SimulationKey(String signalName, int index) {
-            this.signalName = signalName;
-            this.index = index;
-        }
-        public int compareTo(SimulationKey sp) {
-            int ret = signalName.compareTo(sp.signalName);
-            if (ret!=0) return ret;
-            ret = index - sp.index;
-            if (ret!=0) return ret;
-            return 0;
-        }
-        public boolean equals(Object o) {
-            if (!(o instanceof SimulationKey)) return false;
-            SimulationKey sp = (SimulationKey)o;
-            return sp.signalName.equals(signalName) && index==sp.index;
-        }
-        public int hashCode() {
-            return signalName.hashCode() ^ index;
-        }
-        public void readExternal(ObjectInput in) throws IOException {
-            signalName = in.readUTF();
-            index = in.readInt();
-        }
-        public void writeExternal(ObjectOutput out) throws IOException{
-            out.writeUTF(signalName);
-            out.writeInt(index);
-        }
-    }
-
-    private static class SimulationValue implements Externalizable {
-        public double time;
-        public double value;
-        public SimulationValue() { }
-        public SimulationValue(double time, double value) {
-            this.time = time;
-            this.value = value;
-        }
-        public void readExternal(ObjectInput in) throws IOException {
-            this.time = in.readDouble();
-            this.value = in.readDouble();
-        }
-        public void writeExternal(ObjectOutput out) throws IOException{
-            out.writeDouble(time);
-            out.writeDouble(value);
-        }
-    }
-
-
     /**
      * Package-private constructor.
      * @param sd Stimuli.
