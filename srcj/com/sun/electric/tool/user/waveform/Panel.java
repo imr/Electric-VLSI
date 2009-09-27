@@ -158,6 +158,7 @@ public class Panel extends JPanel
 	/** the location of the Y axis vertical line */			private int vertAxisPos;
 	/** the smallest nonzero X value (for log drawing) */	private double smallestXValue;
 	/** the smallest nonzero Y value (for log drawing) */	private double smallestYValue;
+    /** true iff this panel is using BTrees */                      boolean isUsingBTrees;
 
 	/** the background color of a button */					private static Color background = null;
 	/** The color of the grid (a gray) */					private static Color gridColor = new Color(0x808080);
@@ -180,9 +181,13 @@ public class Panel extends JPanel
 	 * @param waveWindow the WaveformWindow in which to place this Panel.
 	 * @param analysisType the type of data shown in this Panel.
 	 */
-	public Panel(WaveformWindow waveWindow, boolean analog, Analysis.AnalysisType analysisType)
+	public Panel(WaveformWindow waveWindow, boolean analog, Analysis.AnalysisType analysisType) {
+        this(waveWindow, analog, analysisType, false);
+    }
+	public Panel(WaveformWindow waveWindow, boolean analog, Analysis.AnalysisType analysisType, boolean isUsingBTrees)
 	{
 		// remember state
+        this.isUsingBTrees = isUsingBTrees;
 		this.waveWindow = waveWindow;
 		setAnalysisType(analysisType);
 		this.analog = analog;
@@ -1453,6 +1458,28 @@ public class Panel extends JPanel
 
 	private List<WaveSelection> processSignals(Graphics g, Rectangle2D bounds, List<PolyBase> forPs)
 	{
+
+        //
+        // At the moment we have two simulation data storage
+        // mechanisms: the old array-based mechanism and the new
+        // BTree-based mechanism.  Sometimes people forget which one
+        // they have turned on, so until the BTree code replaces the
+        // old code (ie until we delete the old code) we display this
+        // reminder so people know which backend they are using and
+        // can report bugs appropriately.  This code will be removed
+        // once the BTree mechanism replaces the old mechanism.
+        //
+        if (isUsingBTrees && g!=null) {
+            g.setColor(gridColor);
+            g.setColor(Color.gray);
+            g.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+            String msg = "(using btrees)";
+            g.drawString(msg,
+                         (int)getWidth()-g.getFontMetrics().stringWidth(msg)-10,
+                         (int)getHeight()-10
+                         );
+        }
+
 		List<WaveSelection> selectedObjects = null;
 		if (bounds != null) selectedObjects = new ArrayList<WaveSelection>();
 		int hei = sz.height;
