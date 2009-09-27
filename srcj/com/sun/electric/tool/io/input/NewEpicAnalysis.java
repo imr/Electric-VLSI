@@ -781,7 +781,9 @@ public class NewEpicAnalysis extends AnalogAnalysis {
 
         
         public void calcBounds() {
-            BTreeNewSignal btns = (BTreeNewSignal)getWaveform(0);
+            Waveform wave = getWaveform(0);
+            if (!(wave instanceof BTreeNewSignal)) { super.calcBounds(); return; }
+            BTreeNewSignal btns = (BTreeNewSignal)wave;
             this.bounds = new Rectangle2D.Double(btns.getPreferredApproximation().getTime(0),
                                                  ((ScalarSample)btns.getPreferredApproximation().getSample(btns.eventWithMinValue)).getValue(),
                                                  btns.getPreferredApproximation().getTime(btns.getNumEvents()-1),

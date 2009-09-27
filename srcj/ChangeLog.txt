@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+IMP: (9/28/09, AM) Successfully loaded a 1.1GB simulation file using a
+     400MB JVM heap (-Xmx=400m).  Loading time was 3.8 minutes, and
+     once loaded panning/scrolling showed no perceptible delay.
+
 IMP: (9/28/09, AM) Stream simulation data directly from the disk into
      the BTree rather than storing it in an intermediate byte[].  We
      can now officially load simulation files that are "bigger than
