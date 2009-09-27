@@ -104,6 +104,11 @@ public class ServerJobManager {
         this.serverSocket = serverSocket;
     }
 
+    ServerJobManager() {
+        this(0, null, false, 0);
+        serverConnections.add(new Client(0) {});
+    }
+
     private int initThreads(int recommendedNumThreads) {
         int maxNumThreads = defaultNumThreads;
         if (recommendedNumThreads > 0)
@@ -498,6 +503,12 @@ public class ServerJobManager {
             this.jobKey = jobKey;
             client = Job.serverJobManager.serverConnections.get(jobKey.clientId);
             database = jobKey.doItOnServer ? EDatabase.serverDatabase() : EDatabase.clientDatabase();
+        }
+
+        UserInterfaceRedirect(EDatabase database) {
+            jobKey = null;
+            client = null;
+            this.database = database;
         }
 
         void setCurrents(Job job) {
