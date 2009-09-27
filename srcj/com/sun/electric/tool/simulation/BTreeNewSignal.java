@@ -34,13 +34,13 @@ public class BTreeNewSignal extends NewSignalSimpleImpl implements Waveform {
     private final int eventWithMinValue;
     private final int eventWithMaxValue;
     private NewSignal.Approximation<ScalarSample> preferredApproximation = null;
-    private final BTree<Double,Pair<Double,Double>,Serializable> tree;
+    private final BTree<Double,Double,Serializable> tree;
     
     public BTreeNewSignal(String signal,
                           int numEvents,
                           int eventWithMinValue,
                           int eventWithMaxValue,
-                          BTree<Double,Pair<Double,Double>,Serializable> tree
+                          BTree<Double,Double,Serializable> tree
                           ) {
         this.signal = signal;
         this.numEvents = numEvents;
@@ -69,7 +69,7 @@ public class BTreeNewSignal extends NewSignalSimpleImpl implements Waveform {
             return d.doubleValue();
         }
         public ScalarSample       getSample(int index) {
-            Double d = tree.getOrdinal(index).getValue();
+            Double d = tree.getOrdinal(index);
             if (d==null) throw new RuntimeException("index out of bounds");
             return new ScalarSample(d.doubleValue());
         }
