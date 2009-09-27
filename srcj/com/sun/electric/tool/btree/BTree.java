@@ -125,7 +125,7 @@ public class BTree
     /** returns the value in the tree, or null if not found */
     public V get(K key) {
         uk.serialize(key, keybuf, 0);
-        return walk(keybuf, 0, null, Op.GET, 0);
+        return (V)walk(keybuf, 0, null, Op.GET, 0);
     }
 
     /** returns the least key greater than  */
@@ -139,7 +139,12 @@ public class BTree
 
     /** returns the i^th value in the tree */
     public V getOrdinal(int ord) {
-        return walk(null, 0, null, Op.GET_ORDINAL, ord);
+        return (V)walk(null, 0, null, Op.GET_ORDINAL, ord);
+    }
+
+    /** returns the i^th key in the tree */
+    public K getOrdinalKey(int ord) {
+        return (K)walk(null, 0, null, Op.GET_ORDINAL_KEY, ord);
     }
 
     /** will throw an exception if the key is already in the tree */
@@ -158,11 +163,11 @@ public class BTree
     /** returns value previously in the tree; will throw an exception if the key is not already in the tree */
     public V replace(K key, V val) {
         uk.serialize(key, keybuf, 0);
-        return walk(keybuf, 0, val, Op.REPLACE, 0);
+        return (V)walk(keybuf, 0, val, Op.REPLACE, 0);
     }
     
     private static enum Op {
-        GET, GET_ORDINAL, GET_NEXT, GET_PREV, REMOVE, INSERT, REPLACE
+        GET, GET_ORDINAL, GET_ORDINAL_KEY, GET_NEXT, GET_PREV, REMOVE, INSERT, REPLACE
     }
     
 
@@ -180,7 +185,7 @@ public class BTree
      *  On writes/deletes, this returns the previous value.
      *
      */
-    private V walk(byte[] key, int key_ofs, V val, Op op, int ord) {
+    private Object walk(byte[] key, int key_ofs, V val, Op op, int ord) {
         int pageid = rootpage;
         int idx = -1;
 
@@ -242,13 +247,17 @@ public class BTree
 
             if (cheat) {
                 idx = leafNodeCursor.getNumBuckets()-1;
-            } else if (op!=Op.GET_ORDINAL) {
+            } else if (op!=Op.GET_ORDINAL && op!=Op.GET_ORDINAL_KEY) {
                 idx = cur.search(key, key_ofs);
                 comp = cur.compare(key, key_ofs, idx);
             }
             if (cur.isLeafNode()) {
-                if (op==Op.GET_ORDINAL)
-                    return ord >= leafNodeCursor.getNumBuckets() ? null : leafNodeCursor.getVal(ord);
+                if (op==Op.GET_ORDINAL || op==Op.GET_ORDINAL_KEY)
+                    return ord >= leafNodeCursor.getNumBuckets()
+                        ? null
+                        : op==Op.GET_ORDINAL
+                        ? leafNodeCursor.getVal(ord)
+                        : leafNodeCursor.getKey(ord);
                 if (op==Op.GET) return comp==0 ? leafNodeCursor.getVal(idx) : null;
                 if (op==Op.INSERT && comp==0) throw new RuntimeException("attempt to re-insert a value");
                 if (op==Op.REPLACE && comp!=0) throw new RuntimeException("attempt to replace a value that did not exist");
@@ -264,13 +273,13 @@ public class BTree
                 return null;
             } else {
                 // FIXME: linear scan is inefficient
-                if (op==Op.GET_ORDINAL)
+                if (op==Op.GET_ORDINAL || op==Op.GET_ORDINAL_KEY)
                     for(idx = 0; idx < interiorNodeCursor.getNumBuckets()-1; idx++) {
                         int k = interiorNodeCursor.getNumValsBelowBucket(idx);
                         if (ord < k) break;
                         ord -= k;
                     }
-                if (op!=Op.GET && op!=Op.GET_ORDINAL && val==null)
+                if (op!=Op.GET && op!=Op.GET_ORDINAL && op!=Op.GET_ORDINAL_KEY && val==null)
                     throw new RuntimeException("need to adjust 'least value under X' on the way down for deletions");
                 pageid = interiorNodeCursor.getBucketPageId(idx);
                 if (op==Op.INSERT && idx < interiorNodeCursor.getNumBuckets()-1) {

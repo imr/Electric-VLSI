@@ -123,9 +123,10 @@ class LeafNodeCursor
     public boolean isFull() { return getNumBuckets() >= getMaxBuckets(); }
     public boolean isLeafNode() { return true; }
     protected int endOfBuf() { return LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE * getNumBuckets(); }
-    public void getKey(int keynum, byte[] key, int key_ofs) {
-        System.arraycopy(buf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*keynum, key, key_ofs, bt.uk.getSize());
+    public void getKey(int bucket, byte[] key, int key_ofs) {
+        System.arraycopy(buf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket, key, key_ofs, bt.uk.getSize());
     }
 
+    public K getKey(int bucket) { return bt.uk.deserialize(buf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket); }
     public int numValuesBelowBucket(int bucket) { return bucket < getNumBuckets() ? 1 : 0; }
 }
