@@ -4,6 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+IMP: (9/28/09, AM) Stream simulation data directly from the disk into
+     the BTree rather than storing it in an intermediate byte[].  We
+     can now officially load simulation files that are "bigger than
+     memory".
+
+IMP: (9/28/09, AM) Finish implementing BTree.getValFromOrd(), which
+     lets us switch from a BTree<Integer,Pair<Double,Double>> to a
+     BTree<Double,Double>.  Not much impact on time to load a file,
+     but cuts memory use by ~33%.  Making the rasterization code use
+     getValFromOrd() instead of doing a binary search made a huge
+     difference in UI responsiveness, though.
+
 BUG: (9/25/09, GVG) Can't save file in MacOSX after browsing in the save dialog box (Bug #2326)
 FIX: Using URL instead of String to open the FileWriter
 

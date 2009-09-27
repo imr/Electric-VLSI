@@ -358,84 +358,34 @@ public class NewEpicAnalysis extends AnalogAnalysis {
         contextHash = newHash;
     }
 
-
-    private HashMap<String,BTree<Double,Double,Serializable>> trees =
-        new HashMap<String,BTree<Double,Double,Serializable>>();
-
-    private PageStorage ps = null;
-
-    @Override
-        protected Waveform[] loadWaveforms(AnalogSignal signal) {
-        int index = signal.getIndexInAnalysis();
-        double valueResolution = getValueResolution(index);
-        int start = waveStarts[index];
-        int len = waveLengths[index];
-        byte[] packedWaveform = new byte[len];
-        try {
-            waveFile.seek(start);
-            waveFile.readFully(packedWaveform);
-        } catch (IOException e) {
-            ActivityLogger.logException(e);
-            return new Waveform[] { new WaveformImpl(new double[0], new double[0]) };
-        }
-            
-        int count = 0;
-        int t = 0;
-        int v = 0;
-        double minValue = Double.MAX_VALUE;
-        double maxValue = Double.MIN_VALUE;
-        int    evmin = 0;
-        int    evmax = 0;
-        String sigName = signal.getFullName();
-
-        BTree<Double,Double,Serializable> tree = trees.get(sigName);
-
+    private static PageStorage ps = null;
+    public static BTree<Double,Double,Serializable> getTree() {
         if (ps==null)
             try {
                 ps = new CachingPageStorage(FilePageStorage.create(), 16 * 1024);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-
-        if (tree==null)
-            trees.put(sigName, tree =
-                      new BTree<Double,Double,Serializable>
-                      (ps, UnboxedHalfDouble.instance, null, UnboxedHalfDouble.instance));
-        
-        long now = System.currentTimeMillis();
-        System.err.println("filling btree for signal " + sigName);
-        long last = 0;
-        for (int i = 0; i < len; count++) {
-            int l;
-            int b = packedWaveform[i++] & 0xff;
-            if (b < 0xC0) { l = 0; } else if (b < 0xFF) { l = 1; b -= 0xC0; } else { l = 4; }
-            while (l > 0) {
-                b = (b << 8) | packedWaveform[i++] & 0xff;
-                l--;
-            }
-            t = t + b;
-            b = packedWaveform[i++] & 0xff;
-            if (b < 0xC0) { l = 0; b -= 0x60; } else if (b < 0xFF) { l = 1; b -= 0xDF; } else { l = 4; }
-            while (l > 0) {
-                b = (b << 8) | packedWaveform[i++] & 0xff;
-                l--;
-            }
-            v = v + b;
-            double value = v * valueResolution;
-            if (value < minValue) { minValue = value; evmin = count; }
-            if (value > maxValue) { maxValue = value; evmax = count; }
-            tree.insert(t*timeResolution, value);
-            long now1 = System.currentTimeMillis();
-            if (now1-last > 500) {
-                last = now1;
-                System.err.print("\r " + i + "/" + len + " = " + ((int)Math.round(((float)i*100)/len)) +"% ");
-            }
-        }
-        System.err.println("  done filling btree for signal " + sigName + "; took " + (System.currentTimeMillis()-now) +"ms");
-        System.err.println("    insertion fast path = "+BTree.insertionFastPath+"/"+(BTree.insertionFastPath+BTree.insertionSlowPath));
-        System.err.println("    split uneven        = "+BTree.splitUnEven+"/"+(BTree.splitUnEven+BTree.splitEven));
-        return new Waveform[] { new BTreeNewSignal(sigName, count, evmin, evmax, tree) };
+        return new BTree<Double,Double,Serializable>
+            (ps, UnboxedHalfDouble.instance, null, UnboxedHalfDouble.instance);
     }
+
+    HashMap<Integer, Waveform> loadWaveformCache =
+        new HashMap<Integer, Waveform>();
+
+    @Override
+        protected Waveform[] loadWaveforms(AnalogSignal signal) {
+        int index = signal.getIndexInAnalysis();
+        Waveform wave = loadWaveformCache.get(index);
+        if (wave == null)
+            return new Waveform[] { new WaveformImpl(new double[0], new double[0]) };
+        return new Waveform[] { wave };
+    }
+
+    void putWaveform(int signum, Waveform w) {
+        loadWaveformCache.put(signum, w);
+    }
+    
 
 
     
@@ -828,14 +778,24 @@ public class NewEpicAnalysis extends AnalogAnalysis {
             public String getFullName() {
             return ((NewEpicAnalysis)getAnalysis()).makeName(getIndexInAnalysis(), true);
         }
+
         
+        public void calcBounds() {
+            BTreeNewSignal btns = (BTreeNewSignal)getWaveform(0);
+            this.bounds = new Rectangle2D.Double(btns.getPreferredApproximation().getTime(0),
+                                                 ((ScalarSample)btns.getPreferredApproximation().getSample(btns.eventWithMinValue)).getValue(),
+                                                 btns.getPreferredApproximation().getTime(btns.getNumEvents()-1),
+                                                 ((ScalarSample)btns.getPreferredApproximation().getSample(btns.eventWithMaxValue)).getValue());
+        }
+        /*
         void setBounds(int minV, int maxV) {
             NewEpicAnalysis an = (NewEpicAnalysis)getAnalysis();
             double resolution = an.getValueResolution(getIndexInAnalysis());
-            bounds = new Rectangle2D.Double(0, minV*resolution, an.maxTime, (maxV - minV)*resolution);
-            leftEdge = 0;
-            rightEdge = an.maxTime;
+            leftEdge = minT;
+            rightEdge = maxT;
+            bounds = new Rectangle2D.Double(leftEdge, minV*resolution, rightEdge, (maxV - minV)*resolution);
             //            rightEdge = minV*resolution;
         }
+        */
     }
 }

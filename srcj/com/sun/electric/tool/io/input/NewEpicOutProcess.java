@@ -32,22 +32,11 @@ import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.ActivityLogger;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.OutputStream;
-import java.io.PipedOutputStream;
-import java.io.PipedInputStream;
-import java.io.PrintStream;
-import java.io.EOFException;
-import java.io.InputStreamReader;
-import java.util.List;
+import com.sun.electric.tool.simulation.*;
+import com.sun.electric.tool.btree.*;
+import java.io.*;
+import java.util.*;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -71,6 +60,7 @@ public class NewEpicOutProcess extends Simulate implements Runnable
     private ArrayList<String> strings = new ArrayList<String>();
     private final Environment launcherEnvironment;
     private final UserInterfaceExec userInterface;
+    NewEpicAnalysis epicAnalysis = null;
 
     NewEpicOutProcess() {
         launcherEnvironment = Environment.getThreadEnvironment();
@@ -87,19 +77,24 @@ public class NewEpicOutProcess extends Simulate implements Runnable
         startProgressDialog("EPIC output", fileURL.getFile());
 
         // read the actual signal data from the .spo file
-        Stimuli sd = null;
         boolean eof = false;
 
         pos = new PipedOutputStream();
         pis = new PipedInputStream(pos);
         epos = new PipedOutputStream();
         epis = new PipedInputStream(epos);
+
+        Stimuli sd = new Stimuli();
+        char separator = '.';
+        sd.setSeparatorChar(separator);
+        this.epicAnalysis = new NewEpicAnalysis(sd);
+
         readerProcess = new NewEpicReader(pos, epos, fileURL.getFile());
         
         try {
             stdOut = new DataInputStream(pis);
             (new Thread(this, "EpicReaderErrors")).start();
-            sd = readEpicFile();
+            sd = readEpicFile(sd);
             sd.setCell(cell);
         } catch (EOFException e) {
             eof = true;
@@ -143,13 +138,10 @@ public class NewEpicOutProcess extends Simulate implements Runnable
         }
     }
 
-    private Stimuli readEpicFile()
+    private Stimuli readEpicFile(Stimuli sd)
         throws IOException
     {
-        char separator = '.';
-        Stimuli sd = new Stimuli();
-        sd.setSeparatorChar(separator);
-        NewEpicAnalysis an = new NewEpicAnalysis(sd);
+        NewEpicAnalysis an = this.epicAnalysis;
         int numSignals = 0;
         ContextBuilder contextBuilder = new ContextBuilder();
         ArrayList<ContextBuilder> contextStack = new ArrayList<ContextBuilder>();
@@ -223,6 +215,7 @@ public class NewEpicOutProcess extends Simulate implements Runnable
             start += len;
         }
 
+        /*
         for (int i = 0; i < numSignals; i++) {
             NewEpicAnalysis.EpicSignal s = (NewEpicAnalysis.EpicSignal)signals.get(i);
             SigInfo si = sigInfoByEpicIndex.get(s.sigNum);
@@ -230,6 +223,7 @@ public class NewEpicOutProcess extends Simulate implements Runnable
             an.waveStarts[i] = si.start;
             an.waveLengths[i] = si.len;
         }
+        */
         an.setWaveFile(new File(stdOut.readUTF()));
 
         return sd;
@@ -300,6 +294,10 @@ public class NewEpicOutProcess extends Simulate implements Runnable
         void clear() { strings.clear(); contexts.clear(); }
     }
 
+    /** Time resolution from input file. */                     private double timeResolution;
+    /** Voltage resolution from input file. */                  private double voltageResolution;
+    /** Current resolution from input file. */                  private double currentResolution;
+
     /**
      * This class is a launched in external JVM to read Epic output file.
      * It doesn't import other Electric modules.
@@ -350,9 +348,6 @@ public class NewEpicOutProcess extends Simulate implements Runnable
         /** ContextRoot */                                          private EpicReaderContext rootCtx = new EpicReaderContext();
         /** A map from Strings to Integer ids. */                   private HashMap<String,Integer> stringIds = new HashMap<String,Integer>();
         /** Sparce list to access signals by their Epic indices. */ private ArrayList<EpicReaderSignal> signalsByEpicIndex = new ArrayList<EpicReaderSignal>();
-        /** Time resolution from input file. */                     private double timeResolution;
-        /** Voltage resolution from input file. */                  private double voltageResolution;
-        /** Current resolution from input file. */                  private double currentResolution;
         /** Current time (in integer units). */                     private int curTime = 0;
         /** A stack of signal context pieces. */                    private ArrayList<String> contextStack = new ArrayList<String>();
         /** Count of timepoints for statistics. */                  private int timesC = 0;
@@ -446,7 +441,7 @@ public class NewEpicOutProcess extends Simulate implements Runnable
                         signalsByEpicIndex.add(null);
                     EpicReaderSignal s = signalsByEpicIndex.get(sigNum);
                     if (s == null) {
-                        s = new EpicReaderSignal();
+                        s = new EpicReaderSignal(sigNum, epicAnalysis.getTree());
                         signalsByEpicIndex.set(sigNum, s);
                     }
                 
@@ -734,23 +729,9 @@ public class NewEpicOutProcess extends Simulate implements Runnable
                 int size = 0;
                 for (EpicReaderSignal s: signalsByEpicIndex) {
                     if (s == null) continue;
-                    size += s.len;
-                }
-                int start = 0;
-                for (int sigNum = 0; sigNum < signalsByEpicIndex.size(); sigNum++) {
-                    EpicReaderSignal s = signalsByEpicIndex.get(sigNum);
-                    if (s == null) continue;
-                    waveStream.write(s.waveform, 0, s.len);
-
-                    stdOut.writeInt(sigNum);
-                    stdOut.writeInt(s.minV);
-                    stdOut.writeInt(s.maxV);
-                    stdOut.writeInt(s.len);
-                    start += s.len;
-                    showProgress(size != 0 ? start/(double)size : 0);
+                    epicAnalysis.putWaveform(s.sigNum, s.getBWaveform());
                 }
                 stdOut.writeInt(-1);
-            
                 waveStream.close();
             
                 stdOut.writeUTF(tempFile.toString());
@@ -862,18 +843,34 @@ public class NewEpicOutProcess extends Simulate implements Runnable
         /** Packed waveform. */                 byte[] waveform = new byte[512];
         /** Count of bytes used in waveform. */ int len;
 
+        int    evmin = 0;
+        int    evmax = 0;
+        double minValue = Double.MAX_VALUE;
+        double maxValue = Double.MIN_VALUE;
+        BTree<Double,Double,Serializable> tree;
+        int sigNum;
+        int count = 0;
+
+        public EpicReaderSignal(int sigNum, BTree<Double,Double,Serializable> tree) {
+            this.sigNum = sigNum;
+            this.tree = tree;
+        }
+
+        public Waveform getBWaveform() {
+            return new BTreeNewSignal(evmin, evmax, tree);
+        }
+
         /**
          * Puts event into waveform. 
          * @param t time of event.
          * @param v value of event.
          */
         void putEvent(int t, int v) {
-            putUnsigned(t - lastT);
-            putSigned(v - lastV);
-            lastT = t;
-            lastV = v;
-            minV = Math.min(minV, v);
-            maxV = Math.max(maxV, v);
+            double value = v * voltageResolution;
+            if (value < minValue) { minValue = value; evmin = count; }
+            if (value > maxValue) { maxValue = value; evmax = count; }
+            count++;
+            tree.insert(t*timeResolution, value);
         }
 
         /**

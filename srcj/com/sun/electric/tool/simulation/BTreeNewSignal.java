@@ -29,21 +29,17 @@ import com.sun.electric.tool.simulation.*;
 
 public class BTreeNewSignal extends NewSignalSimpleImpl implements Waveform {
 
-    private final String signal;
-    private final int numEvents;
-    private final int eventWithMinValue;
-    private final int eventWithMaxValue;
+    public final int numEvents;
+    public final int eventWithMinValue;
+    public final int eventWithMaxValue;
     private NewSignal.Approximation<ScalarSample> preferredApproximation = null;
     private final BTree<Double,Double,Serializable> tree;
     
-    public BTreeNewSignal(String signal,
-                          int numEvents,
-                          int eventWithMinValue,
+    public BTreeNewSignal(int eventWithMinValue,
                           int eventWithMaxValue,
                           BTree<Double,Double,Serializable> tree
                           ) {
-        this.signal = signal;
-        this.numEvents = numEvents;
+        this.numEvents = tree.size();
         this.eventWithMinValue = eventWithMinValue;
         this.eventWithMaxValue = eventWithMaxValue;
         if (tree==null) throw new RuntimeException();
