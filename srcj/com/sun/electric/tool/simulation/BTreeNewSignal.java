@@ -64,7 +64,7 @@ public class BTreeNewSignal extends NewSignalSimpleImpl implements Waveform {
     private class BTreeNewSignalApproximation implements NewSignal.Approximation<ScalarSample> {
         public int getNumEvents() { return numEvents; }
         public double             getTime(int index) {
-            Double d = tree.getOrdinal(index).getKey();
+            Double d = tree.getOrdinalKey(index);
             if (d==null) throw new RuntimeException("index out of bounds");
             return d.doubleValue();
         }
