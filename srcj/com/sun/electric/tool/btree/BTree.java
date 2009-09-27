@@ -145,6 +145,19 @@ public class BTree
     }
 
     /** returns the ordinal of the given key */
+    public V getValFromKeyFloor(K key) {
+        uk.serialize(key, keybuf, 0);
+        return (V)walk(keybuf, 0, null, Op.GET_VAL_FROM_KEY_FLOOR, 0);
+    }
+
+    /** returns the ordinal of the given key */
+    public V getValFromKeyCeiling(K key) {
+        uk.serialize(key, keybuf, 0);
+        //return (V)walk(keybuf, 0, null, Op.GET_VAL_FROM_KEY_CEIL, 0);
+        throw new RuntimeException("not implemented");
+    }
+
+    /** returns the ordinal of the given key */
     public int getOrdFromKey(K key) {
         uk.serialize(key, keybuf, 0);
         //return (V)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY, 0);
@@ -205,6 +218,8 @@ public class BTree
     
     private static enum Op {
         GET_VAL_FROM_KEY,
+        GET_VAL_FROM_KEY_FLOOR,
+        GET_VAL_FROM_KEY_CEIL,
         GET_ORD_FROM_KEY,
         GET_ORD_FROM_KEY_FLOOR,
         GET_ORD_FROM_KEY_CEIL,
@@ -219,6 +234,28 @@ public class BTree
             switch(this) {
                 case GET_VAL_FROM_ORD:
                 case GET_KEY_FROM_ORD:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+        public boolean isGetFromKey() {
+            switch(this) {
+                case GET_VAL_FROM_KEY:
+                case GET_VAL_FROM_KEY_FLOOR:
+                case GET_VAL_FROM_KEY_CEIL:
+                case GET_ORD_FROM_KEY:
+                case GET_ORD_FROM_KEY_FLOOR:
+                case GET_ORD_FROM_KEY_CEIL:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+        public boolean isGetFromKeyFloor() {
+            switch(this) {
+                case GET_VAL_FROM_KEY_FLOOR:
+                case GET_ORD_FROM_KEY_FLOOR:
                     return true;
                 default:
                     return false;
@@ -314,7 +351,7 @@ public class BTree
                         : op==Op.GET_VAL_FROM_ORD
                         ? leafNodeCursor.getVal(ord)
                         : leafNodeCursor.getKey(ord);
-                if (op==Op.GET_VAL_FROM_KEY) return comp==0 ? leafNodeCursor.getVal(idx) : null;
+                if (op.isGetFromKey()) return (comp==0 || op.isGetFromKeyFloor()) ? leafNodeCursor.getVal(idx) : null;
                 if (op==Op.INSERT && comp==0) throw new RuntimeException("attempt to re-insert a value");
                 if (op==Op.REPLACE && comp!=0) throw new RuntimeException("attempt to replace a value that did not exist");
                 if (cheat) hits++; else misses++;
@@ -335,7 +372,7 @@ public class BTree
                         if (ord < k) break;
                         ord -= k;
                     }
-                if (op!=Op.GET_VAL_FROM_KEY && !op.isGetFromOrd() && val==null)
+                if (op==Op.REMOVE)
                     throw new RuntimeException("need to adjust 'least value under X' on the way down for deletions");
                 pageid = interiorNodeCursor.getBucketPageId(idx);
                 if (op==Op.INSERT && idx < interiorNodeCursor.getNumBuckets()-1) {
