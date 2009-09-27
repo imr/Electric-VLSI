@@ -34,6 +34,22 @@ import com.sun.electric.tool.btree.unboxed.*;
  *
  *  This is a B-Plus-Tree; values are stored only in leaf nodes.
  *
+ *  Each element in a BTree is conceptually a triple:
+ *
+ *      < ordinal, key, value >
+ *
+ *  Where "key" is a user-supplied key (belonging to a type that is
+ *  Comparable), "value" is a user-supplied value (no restrictions)
+ *  and "ordinal" is an integer indicating the number of keys in the
+ *  tree less than this one.  Note that the ordinal is not actually
+ *  stored on disk, and inserting a new value can potentially modify
+ *  the ordinals of all preexisting elements!  Each of the getXXX()
+ *  methods takes one of these three coordinates (ordinal, key, or
+ *  value) and returns one of the others.  Additionally, the
+ *  getXXXFromKey() methods include floor/ceiling versions that take
+ *  an upper/lower bound and search for the largest/smallest key which
+ *  is less/greater than the one supplied.
+ *
  *  A value drawn from a monoid is associated with each node of the
  *  tree.  An interior node's value is the monoid-product of its
  *  childrens' values.  A query method is provided to return the
@@ -123,9 +139,30 @@ public class BTree
     }
 
     /** returns the value in the tree, or null if not found */
-    public V get(K key) {
+    public V getValFromKey(K key) {
         uk.serialize(key, keybuf, 0);
-        return (V)walk(keybuf, 0, null, Op.GET, 0);
+        return (V)walk(keybuf, 0, null, Op.GET_VAL_FROM_KEY, 0);
+    }
+
+    /** returns the ordinal of the given key */
+    public int getOrdFromKey(K key) {
+        uk.serialize(key, keybuf, 0);
+        //return (V)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY, 0);
+        throw new RuntimeException("not implemented");
+    }
+
+    /** returns the ordinal of the given key */
+    public int getOrdFromKeyFloor(K key) {
+        uk.serialize(key, keybuf, 0);
+        //return (V)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY_FLOOR, 0);
+        throw new RuntimeException("not implemented");
+    }
+
+    /** returns the ordinal of the given key */
+    public int getOrdFromKeyCeiling(K key) {
+        uk.serialize(key, keybuf, 0);
+        //return (V)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY_CEIL, 0);
+        throw new RuntimeException("not implemented");
     }
 
     /** returns the least key greater than  */
@@ -138,13 +175,13 @@ public class BTree
     }
 
     /** returns the i^th value in the tree */
-    public V getOrdinal(int ord) {
-        return (V)walk(null, 0, null, Op.GET_ORDINAL, ord);
+    public V getValFromOrd(int ord) {
+        return (V)walk(null, 0, null, Op.GET_VAL_FROM_ORD, ord);
     }
 
     /** returns the i^th key in the tree */
-    public K getOrdinalKey(int ord) {
-        return (K)walk(null, 0, null, Op.GET_ORDINAL_KEY, ord);
+    public K getKeyFromOrd(int ord) {
+        return (K)walk(null, 0, null, Op.GET_KEY_FROM_ORD, ord);
     }
 
     /** will throw an exception if the key is already in the tree */
@@ -167,7 +204,26 @@ public class BTree
     }
     
     private static enum Op {
-        GET, GET_ORDINAL, GET_ORDINAL_KEY, GET_NEXT, GET_PREV, REMOVE, INSERT, REPLACE
+        GET_VAL_FROM_KEY,
+        GET_ORD_FROM_KEY,
+        GET_ORD_FROM_KEY_FLOOR,
+        GET_ORD_FROM_KEY_CEIL,
+        GET_VAL_FROM_ORD,
+        GET_KEY_FROM_ORD,
+        GET_NEXT,
+        GET_PREV,
+        REMOVE,
+        INSERT,
+        REPLACE;
+        public boolean isGetFromOrd() {
+            switch(this) {
+                case GET_VAL_FROM_ORD:
+                case GET_KEY_FROM_ORD:
+                    return true;
+                default:
+                    return false;
+            }
+        }
     }
     
 
@@ -247,18 +303,18 @@ public class BTree
 
             if (cheat) {
                 idx = leafNodeCursor.getNumBuckets()-1;
-            } else if (op!=Op.GET_ORDINAL && op!=Op.GET_ORDINAL_KEY) {
+            } else if (!op.isGetFromOrd()) {
                 idx = cur.search(key, key_ofs);
                 comp = cur.compare(key, key_ofs, idx);
             }
             if (cur.isLeafNode()) {
-                if (op==Op.GET_ORDINAL || op==Op.GET_ORDINAL_KEY)
+                if (op.isGetFromOrd())
                     return ord >= leafNodeCursor.getNumBuckets()
                         ? null
-                        : op==Op.GET_ORDINAL
+                        : op==Op.GET_VAL_FROM_ORD
                         ? leafNodeCursor.getVal(ord)
                         : leafNodeCursor.getKey(ord);
-                if (op==Op.GET) return comp==0 ? leafNodeCursor.getVal(idx) : null;
+                if (op==Op.GET_VAL_FROM_KEY) return comp==0 ? leafNodeCursor.getVal(idx) : null;
                 if (op==Op.INSERT && comp==0) throw new RuntimeException("attempt to re-insert a value");
                 if (op==Op.REPLACE && comp!=0) throw new RuntimeException("attempt to replace a value that did not exist");
                 if (cheat) hits++; else misses++;
@@ -273,13 +329,13 @@ public class BTree
                 return null;
             } else {
                 // FIXME: linear scan is inefficient
-                if (op==Op.GET_ORDINAL || op==Op.GET_ORDINAL_KEY)
+                if (op.isGetFromOrd())
                     for(idx = 0; idx < interiorNodeCursor.getNumBuckets()-1; idx++) {
                         int k = interiorNodeCursor.getNumValsBelowBucket(idx);
                         if (ord < k) break;
                         ord -= k;
                     }
-                if (op!=Op.GET && op!=Op.GET_ORDINAL && op!=Op.GET_ORDINAL_KEY && val==null)
+                if (op!=Op.GET_VAL_FROM_KEY && !op.isGetFromOrd() && val==null)
                     throw new RuntimeException("need to adjust 'least value under X' on the way down for deletions");
                 pageid = interiorNodeCursor.getBucketPageId(idx);
                 if (op==Op.INSERT && idx < interiorNodeCursor.getNumBuckets()-1) {
@@ -359,7 +415,7 @@ public class BTree
             switch(rand.nextInt() % 3) {
                 case 0: { // get
                     Integer tget = do_tm ? tm.get(key) : null;
-                    Integer bget = do_bt ? btree.get(key) : null;
+                    Integer bget = do_bt ? btree.getValFromKey(key) : null;
                     gets++;
                     if (do_tm && do_bt) {
                         if (tget==null && bget==null) { misses++; break; }
@@ -376,7 +432,7 @@ public class BTree
                     int sz = do_bt ? btree.size() : tm.size();
                     int ord = sz==0 ? 0 : Math.abs(rand.nextInt()) % sz;
                     Integer tget = do_tm ? (sz==0 ? null : tm.values().toArray(new Integer[0])[ord]) : null;
-                    Integer bget = do_bt ? btree.getOrdinal(ord) : null;
+                    Integer bget = do_bt ? btree.getValFromOrd(ord) : null;
                     gets++;
                     if (do_tm && do_bt) {
                         if (tget==null && bget==null) break;
@@ -398,7 +454,7 @@ public class BTree
                         tm.put(key, val);
                     }
                     if (do_bt) {
-                        if (!do_tm) already_there = btree.get(key)!=null;
+                        if (!do_tm) already_there = btree.getValFromKey(key)!=null;
                         if (already_there)
                             btree.replace(key, val);
                         else

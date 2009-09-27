@@ -40,7 +40,7 @@ public abstract class NewSignalSimpleImpl implements NewSignal<ScalarSample> {
     // help start the search for e1.  This ensures that any
     // caching done by the subclass is exploited as fully as
     // possible.
-    private int getEventForTime(double t, boolean justLessThan) {
+    protected int getEventForTime(double t, boolean justLessThan) {
         if (pa==null) {
             this.pa = getPreferredApproximation();
             this.emax = pa.getNumEvents()-1;
