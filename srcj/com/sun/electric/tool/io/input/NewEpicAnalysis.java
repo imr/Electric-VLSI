@@ -411,8 +411,8 @@ public class NewEpicAnalysis extends AnalogAnalysis {
     }
 
 
-    private HashMap<String,BTree<Integer,Pair<Double,Double>,Serializable>> trees =
-        new HashMap<String,BTree<Integer,Pair<Double,Double>,Serializable>>();
+    private HashMap<String,BTree<Double,Pair<Double,Double>,Serializable>> trees =
+        new HashMap<String,BTree<Double,Pair<Double,Double>,Serializable>>();
 
     private PageStorage ps = null;
 
@@ -440,7 +440,7 @@ public class NewEpicAnalysis extends AnalogAnalysis {
         int    evmax = 0;
         String sigName = signal.getFullName();
 
-        BTree<Integer,Pair<Double,Double>,Serializable> tree = trees.get(sigName);
+        BTree<Double,Pair<Double,Double>,Serializable> tree = trees.get(sigName);
 
         if (ps==null)
             try {
@@ -451,8 +451,8 @@ public class NewEpicAnalysis extends AnalogAnalysis {
 
         if (tree==null)
             trees.put(sigName, tree =
-                      new BTree<Integer,Pair<Double,Double>,Serializable>
-                      (ps, UnboxedInt.instance, null,
+                      new BTree<Double,Pair<Double,Double>,Serializable>
+                      (ps, UnboxedHalfDouble.instance, null,
                        new UnboxedPair<Double,Double>(UnboxedHalfDouble.instance,
                                                       UnboxedHalfDouble.instance)));
         
@@ -478,7 +478,7 @@ public class NewEpicAnalysis extends AnalogAnalysis {
             double value = v * valueResolution;
             if (value < minValue) { minValue = value; evmin = count; }
             if (value > maxValue) { maxValue = value; evmax = count; }
-            tree.insert(count, new Pair<Double,Double>(t*timeResolution, value));
+            tree.insert(t*timeResolution, new Pair<Double,Double>(t*timeResolution, value));
             long now1 = System.currentTimeMillis();
             if (now1-last > 500) {
                 last = now1;
