@@ -84,6 +84,11 @@ public abstract class NewSignalSimpleImpl implements NewSignal<ScalarSample> {
         return new ApproximationSimpleImpl(e0, e1, td==0 ? getPreferredApproximation().getTimeDenominator() : td);
     }
 
+    protected ScalarSample getSampleForTime(double t, boolean justLessThan) {
+        int e     = getEventForTime(t, justLessThan);
+        return getPreferredApproximation().getSample(e);
+    }
+
     private class ApproximationSimpleImpl implements NewSignal.Approximation<ScalarSample> {
         private final int    minEvent;
         private final int    maxEvent;
@@ -100,8 +105,7 @@ public abstract class NewSignalSimpleImpl implements NewSignal<ScalarSample> {
         public int    getNumEvents() { return td+1; }
         public double getTime(int event) { return t0 + (event*(t1-t0))/td; }
         public ScalarSample getSample(int event) {
-            int e     = getEventForTime(getTime(event), /* FIXME: should interpolate */ true);
-            return getPreferredApproximation().getSample(e);
+            return getSampleForTime(getTime(event), /* FIXME: should interpolate */ true);
         }
         public int    getTimeDenominator() { return td; }
         public int    getEventWithMinValue() { throw new RuntimeException("not implemented"); }

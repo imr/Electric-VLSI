@@ -55,11 +55,11 @@ public class BTreeNewSignal extends NewSignalSimpleImpl implements Waveform {
         return preferredApproximation;
     }
 
-    /*
-    protected int getEventForTime(double t, boolean justLessThan) {
-        
+    protected ScalarSample getSampleForTime(double t, boolean justLessThan) {
+        Double d = tree.getValFromKeyFloor(t);
+        if (d==null) throw new RuntimeException("index out of bounds");
+        return new ScalarSample(d.doubleValue());
     }
-    */
 
     public int getNumEvents() { return numEvents; }
     public void getEvent(int index, double[] result) {
