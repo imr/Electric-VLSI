@@ -77,27 +77,27 @@ abstract class NodeCursor
      *  it then returns the number of values appearing anywhere below
      *  the left page.
      */
-    public int split(byte[] key, int key_ofs) {
+    public int split(byte[] key, int key_ofs, int splitPoint) {
         assert isFull();
         int endOfBuf = endOfBuf();
 
         int ret = 0;
-        for(int i=0; i<getMaxBuckets()/2; i++)
+        for(int i=0; i<splitPoint; i++)
             ret += getNumValsBelowBucket(i);
 
         // chop off our second half, point our parent at the page-to-be, and write back
-        setNumBuckets(getMaxBuckets()/2);
+        setNumBuckets(splitPoint);
         writeBack();
 
         if (key!=null)
-            getKey(getMaxBuckets()/2, key, key_ofs);
+            getKey(splitPoint, key, key_ofs);
 
         // move the second half of our entries to the front of the block, and write back
         byte[] oldbuf = buf;
         int parent = getParentPageId();
         initBuf(ps.createPage(), new byte[buf.length]);
-        setNumBuckets(getMaxBuckets()-getMaxBuckets()/2);
-        scoot(oldbuf, endOfBuf);
+        setNumBuckets(getMaxBuckets()-splitPoint);
+        scoot(oldbuf, endOfBuf, splitPoint);
         setParentPageId(parent);
         writeBack();
         return ret;
@@ -169,7 +169,7 @@ abstract class NodeCursor
     public abstract void getKey(int keynum, byte[] key, int key_ofs);
 
     /** kludge */
-    protected abstract void scoot(byte[] oldbuf, int endOfBuf);
+    protected abstract void scoot(byte[] oldbuf, int endOfBuf, int splitPoint);
 
     /** the total number of values stored in bucket or any descendent thereof */
     public abstract int getNumValsBelowBucket(int bucket);

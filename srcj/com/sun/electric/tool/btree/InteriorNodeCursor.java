@@ -132,8 +132,8 @@ class InteriorNodeCursor
         return bt.uk.compare(key, key_ofs, buf, INTERIOR_HEADER_SIZE + keynum*INTERIOR_ENTRY_SIZE - bt.uk.getSize());
     }
 
-    protected void scoot(byte[] oldbuf, int endOfBuf) {
-        int len = INTERIOR_HEADER_SIZE + INTERIOR_ENTRY_SIZE*(getMaxBuckets()/2);
+    protected void scoot(byte[] oldbuf, int endOfBuf, int splitPoint) {
+        int len = INTERIOR_HEADER_SIZE + INTERIOR_ENTRY_SIZE*(splitPoint);
         System.arraycopy(oldbuf, len,
                          buf, INTERIOR_HEADER_SIZE,
                          endOfBuf - len);

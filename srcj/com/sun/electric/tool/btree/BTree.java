@@ -287,6 +287,7 @@ public class BTree
         InteriorNodeCursor<K,V,S>   parentNodeCursor = this.interiorNodeCursor2;
         NodeCursor cur = null;
 
+        boolean rightEdge = true;
         boolean cheat = false;
         int comp = 0;
 
@@ -329,7 +330,15 @@ public class BTree
                 if (op==Op.INSERT && old!=-1) old -= 1;
                 int ofs = parentNodeCursor.insertNewBucketAt(idx+1);
                 int oldpage = cur.getPageId();
-                int num = cur.split(parentNodeCursor.getBuf(), ofs);
+
+                // optimization: if we're splitting a node on the
+                // "right edge" of the tree, make the split uneven --
+                // put everything on the left side.
+
+                int splitPoint = rightEdge ? cur.getNumBuckets()-1 : cur.getMaxBuckets()/2;
+                if (rightEdge) splitUnEven++; else splitEven++;
+                int num = cur.split(parentNodeCursor.getBuf(), ofs, splitPoint);
+
                 parentNodeCursor.setNumValsBelowBucket(idx, num);
                 int newpage = cur.getPageId();
                 if (largestKeyPage==oldpage) largestKeyPage = newpage;
@@ -350,6 +359,7 @@ public class BTree
                 idx = cur.search(key, key_ofs);
                 comp = cur.compare(key, key_ofs, idx);
             } else if (!cur.isLeafNode()) {
+                // FIXME: linear scan => bad
                 for(idx = 0; idx < interiorNodeCursor.getNumBuckets()-1; idx++) {
                     int k = interiorNodeCursor.getNumValsBelowBucket(idx);
                     if (ord < k) break;
@@ -366,7 +376,7 @@ public class BTree
                 if (op.isGetFromKey()) return (comp==0 || op.isGetFromKeyFloor()) ? leafNodeCursor.getVal(idx) : null;
                 if (op==Op.INSERT && comp==0) throw new RuntimeException("attempt to re-insert a value");
                 if (op==Op.REPLACE && comp!=0) throw new RuntimeException("attempt to replace a value that did not exist");
-                if (cheat) hits++; else misses++;
+                if (op==Op.INSERT) { if (cheat) insertionFastPath++; else insertionSlowPath++; }
                 if (largestKeyPage==-1 || cheat)
                     System.arraycopy(key, key_ofs, largestKey, 0, largestKey.length);
                 if (largestKeyPage==-1) largestKeyPage = pageid;
@@ -383,6 +393,7 @@ public class BTree
                     interiorNodeCursor.setNumValsBelowBucket(idx, interiorNodeCursor.getNumValsBelowBucket(idx)+1);
                     interiorNodeCursor.writeBack();
                 }
+                rightEdge &= idx==interiorNodeCursor.getNumBuckets()-1;
                 pageid = interiorNodeCursor.getBucketPageId(idx);
                 InteriorNodeCursor<K,V,S> ic = interiorNodeCursor; interiorNodeCursor = parentNodeCursor; parentNodeCursor = ic;
                 assert interiorNodeCursor!=parentNodeCursor;
@@ -391,8 +402,10 @@ public class BTree
         }
     }
 
-    public static int hits = 0;
-    public static int misses = 0;
+    public static int insertionFastPath = 0;
+    public static int insertionSlowPath = 0;
+    public static int splitEven = 0;
+    public static int splitUnEven = 0;
 
     //////////////////////////////////////////////////////////////////////////////
 

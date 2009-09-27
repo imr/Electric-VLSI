@@ -113,8 +113,8 @@ class LeafNodeCursor
         writeBack();
     }
 
-    protected void scoot(byte[] oldbuf, int endOfBuf) {
-        int len = LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE * (getMaxBuckets()/2);
+    protected void scoot(byte[] oldbuf, int endOfBuf, int splitPoint) {
+        int len = LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE * splitPoint;
         System.arraycopy(oldbuf, len,
                          buf, LEAF_HEADER_SIZE,
                          endOfBuf - len);

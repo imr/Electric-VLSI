@@ -484,8 +484,8 @@ public class NewEpicAnalysis extends AnalogAnalysis {
             }
         }
         System.err.println("  done filling btree for signal " + sigName + "; took " + (System.currentTimeMillis()-now) +"ms");
-        System.err.println("  hits="+BTree.hits);
-        System.err.println("  misses="+BTree.misses);
+        System.err.println("    insertion fast path = "+BTree.insertionFastPath+"/"+(BTree.insertionFastPath+BTree.insertionSlowPath));
+        System.err.println("    split uneven        = "+BTree.splitUnEven+"/"+(BTree.splitUnEven+BTree.splitEven));
         return new Waveform[] { new BTreeNewSignal(sigName, count, evmin, evmax, tree) };
     }
 
