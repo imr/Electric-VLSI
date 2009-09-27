@@ -113,19 +113,15 @@ class InteriorNodeCursor
         setNumBuckets(1);
     }
 
-    public boolean isFull() { return getNumBuckets() == getMaxBuckets(); }
     public boolean isLeafNode() { return false; }
 
     protected int endOfBuf() { return INTERIOR_HEADER_SIZE + getNumBuckets()*INTERIOR_ENTRY_SIZE - SIZEOF_SUMMARY - SIZEOF_INT; }
 
     public int  getBucketPageId(int idx) { return bt.ui.deserializeInt(buf, INTERIOR_HEADER_SIZE+INTERIOR_ENTRY_SIZE*idx); }
     public void setBucketPageId(int idx, int pageid) { bt.ui.serializeInt(pageid, buf, INTERIOR_HEADER_SIZE+INTERIOR_ENTRY_SIZE*idx); }
-    public int  getNumValsBelowBucket(int idx) {
-        assert idx>=0 && idx<getNumBuckets()-1;
-        return bt.ui.deserializeInt(buf, INTERIOR_HEADER_SIZE+SIZEOF_INT+SIZEOF_SUMMARY+INTERIOR_ENTRY_SIZE*idx);
-    }
     public void setNumValsBelowBucket(int idx, int num) {
-        if (num==getNumBuckets()-1) return;
+        if (idx==getNumBuckets()-1)
+            throw new RuntimeException("InteriorNodeCursors don't store numValuesBelowBucket() for their last bucket");
         assert idx>=0 && idx<getNumBuckets()-1;
         bt.ui.serializeInt(num, buf, INTERIOR_HEADER_SIZE+SIZEOF_INT+SIZEOF_SUMMARY+INTERIOR_ENTRY_SIZE*idx);
     }
@@ -148,9 +144,13 @@ class InteriorNodeCursor
                          key, key_ofs, bt.uk.getSize());
     }
 
-    public int numValuesBelowBucket(int bucket) {
-        if (bucket==0) return 0;
+    public int getNumValsBelowBucket(int bucket) {
         if (bucket>=getNumBuckets()) return 0;
-        throw new RuntimeException("not implemented");
+
+        // FIXME: should be an assertion
+        if (bucket==getNumBuckets()-1)
+            throw new RuntimeException("InteriorNodeCursors don't store numValuesBelowBucket() for their last bucket");
+
+        return bt.ui.deserializeInt(buf, INTERIOR_HEADER_SIZE+SIZEOF_INT+SIZEOF_SUMMARY+INTERIOR_ENTRY_SIZE*bucket);
     }
 }

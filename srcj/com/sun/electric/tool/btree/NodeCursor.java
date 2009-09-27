@@ -83,7 +83,7 @@ abstract class NodeCursor
 
         int ret = 0;
         for(int i=0; i<getMaxBuckets()/2; i++)
-            ret += numValuesBelowBucket(i);
+            ret += getNumValsBelowBucket(i);
 
         // chop off our second half, point our parent at the page-to-be, and write back
         setNumBuckets(getMaxBuckets()/2);
@@ -103,7 +103,7 @@ abstract class NodeCursor
         return ret;
     }
 
-    public abstract boolean isFull();
+    public boolean isFull() { return getNumBuckets() >= getMaxBuckets(); }
     public abstract int  getParentPageId();
     public abstract void setParentPageId(int pageid);
     public int getPageId() { return pageid; }
@@ -172,6 +172,6 @@ abstract class NodeCursor
     protected abstract void scoot(byte[] oldbuf, int endOfBuf);
 
     /** the total number of values stored in bucket or any descendent thereof */
-    public abstract int numValuesBelowBucket(int bucket);
+    public abstract int getNumValsBelowBucket(int bucket);
 
 }

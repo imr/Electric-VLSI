@@ -311,14 +311,20 @@ public class BTree
             if ((op==Op.INSERT || op==Op.REPLACE) && cur.isFull()) {
                 assert cur!=parentNodeCursor;
                 int old;
+
+                // is the node we're splitting the last child of its parent or the root node?
+                boolean splitting_last_or_root = false;
                 if (pageid == rootpage) {
                     parentNodeCursor.initRoot(new byte[ps.getPageSize()]);
                     parentNodeCursor.setBucketPageId(0, pageid);
                     cur.setParentPageId(rootpage);
                     idx = 0;
                     old = size;
+                    splitting_last_or_root = true;
                 } else {
-                    old = idx>=parentNodeCursor.getNumBuckets()-1 ? -1 : parentNodeCursor.getNumValsBelowBucket(idx);
+                    assert !parentNodeCursor.isFull();
+                    splitting_last_or_root = idx>=parentNodeCursor.getNumBuckets()-1;
+                    old = splitting_last_or_root ? -1 : parentNodeCursor.getNumValsBelowBucket(idx);
                 }
                 if (op==Op.INSERT && old!=-1) old -= 1;
                 int ofs = parentNodeCursor.insertNewBucketAt(idx+1);
@@ -328,7 +334,7 @@ public class BTree
                 int newpage = cur.getPageId();
                 if (largestKeyPage==oldpage) largestKeyPage = newpage;
                 parentNodeCursor.setBucketPageId(idx+1, newpage);
-                if (old > -1 && idx+1 < parentNodeCursor.getNumBuckets()-1)
+                if (!splitting_last_or_root)
                     parentNodeCursor.setNumValsBelowBucket(idx+1, old-num);
                 cur.writeBack();
                 parentNodeCursor.writeBack();
@@ -343,6 +349,12 @@ public class BTree
             } else if (!op.isGetFromOrd()) {
                 idx = cur.search(key, key_ofs);
                 comp = cur.compare(key, key_ofs, idx);
+            } else if (!cur.isLeafNode()) {
+                for(idx = 0; idx < interiorNodeCursor.getNumBuckets()-1; idx++) {
+                    int k = interiorNodeCursor.getNumValsBelowBucket(idx);
+                    if (ord < k) break;
+                    ord -= k;
+                }
             }
             if (cur.isLeafNode()) {
                 if (op.isGetFromOrd())
@@ -365,20 +377,13 @@ public class BTree
                 leafNodeCursor.insertVal(idx+1, key, key_ofs, val);
                 return null;
             } else {
-                // FIXME: linear scan is inefficient
-                if (op.isGetFromOrd())
-                    for(idx = 0; idx < interiorNodeCursor.getNumBuckets()-1; idx++) {
-                        int k = interiorNodeCursor.getNumValsBelowBucket(idx);
-                        if (ord < k) break;
-                        ord -= k;
-                    }
                 if (op==Op.REMOVE)
                     throw new RuntimeException("need to adjust 'least value under X' on the way down for deletions");
-                pageid = interiorNodeCursor.getBucketPageId(idx);
                 if (op==Op.INSERT && idx < interiorNodeCursor.getNumBuckets()-1) {
                     interiorNodeCursor.setNumValsBelowBucket(idx, interiorNodeCursor.getNumValsBelowBucket(idx)+1);
                     interiorNodeCursor.writeBack();
                 }
+                pageid = interiorNodeCursor.getBucketPageId(idx);
                 InteriorNodeCursor<K,V,S> ic = interiorNodeCursor; interiorNodeCursor = parentNodeCursor; parentNodeCursor = ic;
                 assert interiorNodeCursor!=parentNodeCursor;
                 continue;
