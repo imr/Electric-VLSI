@@ -72,7 +72,7 @@ class InteriorNodeCursor
         this.SIZEOF_SUMMARY       = bt.monoid==null ? 0 : bt.monoid.getSize();
         this.INTERIOR_HEADER_SIZE = 2*SIZEOF_INT;
         this.INTERIOR_ENTRY_SIZE  = bt.uk.getSize() + SIZEOF_SUMMARY + SIZEOF_INT + SIZEOF_INT;
-        this.INTERIOR_MAX_BUCKETS = ((ps.getPageSize()-INTERIOR_HEADER_SIZE-SIZEOF_INT-this.SIZEOF_SUMMARY) / INTERIOR_ENTRY_SIZE)+1;
+        this.INTERIOR_MAX_BUCKETS = ((ps.getPageSize()-INTERIOR_HEADER_SIZE-SIZEOF_INT-this.SIZEOF_SUMMARY) / INTERIOR_ENTRY_SIZE);
     }
 
     /**
