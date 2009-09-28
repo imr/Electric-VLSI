@@ -829,13 +829,26 @@ public class Xml {
                 case technology:
                     tech.techName = a("name");
                     tech.className = a_("class");
+                    if (tech.className != null)
+                    {
+                        int index = tech.className.indexOf(".");
+                        String realName = tech.className;
+                        while (index != -1)
+                        {
+                            realName = realName.substring(index+1);
+                            index = realName.indexOf(".");
+                        }
+                        if (!realName.toLowerCase().equals(tech.techName.toLowerCase()))
+                            System.out.println("Mismatch between techName '" + tech.techName +
+                                "' and className '" + realName + "' in the XML technology file.");
+                    }
 //                    dump = true;
                     break;
                 case version:
-                    Version version = new Version();
-                    version.techVersion = Integer.parseInt(a("tech"));
-                    version.electricVersion = com.sun.electric.database.text.Version.parseVersion(a("electric"));
-                    tech.versions.add(version);
+                    Version localVersion = new Version();
+                    localVersion.techVersion = Integer.parseInt(a("tech"));
+                    localVersion.electricVersion = com.sun.electric.database.text.Version.parseVersion(a("electric"));
+                    tech.versions.add(localVersion);
                     break;
                 case numMetals:
                     tech.minNumMetals = Integer.parseInt(a("min"));

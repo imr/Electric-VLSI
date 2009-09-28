@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+IMP: (9/28/09, GVG) Extra code to detect case described in Bug #2151
+
 BUG: (9/28/09, GVG) NPE in Export PS (Bug #2407)
 FIX: Detect the 3D case and aborts the action. PS is only available from an EditWindow instance
 
