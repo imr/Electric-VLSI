@@ -25,6 +25,8 @@ package com.sun.electric.tool;
 
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.EditingPreferences;
+import com.sun.electric.database.Environment;
+import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -110,6 +112,7 @@ public class Crash {
         return ep;
     }
 
+    // 5 failures
     private static void crash1() {
         EditingPreferences ep = initDatabase();
 
@@ -123,39 +126,107 @@ public class Crash {
         Job.serverJobManager.addJob(job.ejob, false);
     }
 
-    public static void crash2() {
+    // 1 failure
+    private static void crash2() {
         EditingPreferences ep = initDatabase();
+
+        Job.serverJobManager = new ServerJobManager();
+        int connectionId = 0;
+
+        Job job = new CrashJob();
+        EJob ejob = job.ejob;
+        ejob.jobKey = new Job.Key(connectionId, 2, true);
+        ejob.client = Job.serverJobManager.serverConnections.get(0);
+        ejob.editingPreferences = ep;
+//        Job.serverJobManager.addJob(job.ejob, false);
+
         EDatabase database = EDatabase.serverDatabase();
-
-        String regressionname = "qFourP2-electric-final-jelib";
-        String libname = "qFourP2.jelib";
-        String cellname = "qFourP1top";
-        String rootPath = "../../";
-        boolean caching = true;
-
-        String logname = "output/"+libname+"_"+cellname+"_LE_"+(caching ? "C" : "NC")+"-"+Version.getVersion()+".log";
-
-        Job.setUserInterface(new ServerJobManager.UserInterfaceRedirect(database));
-        MessagesStream.getMessagesStream().save(logname);
-
-        database.lock(true);
-        database.lowLevelBeginChanging(null);
-        EditingPreferences.setThreadEditingPreferences(ep);
-        Library rootLib = LayoutLib.openLibForRead(rootPath+"data/"+regressionname+"/"+libname);
-        ErrorLogger repairLogger = ErrorLogger.newInstance("Repair Libraries");
-        for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
-            Library lib = (Library)it.next();
-            lib.checkAndRepair(true, repairLogger);
+        Environment.setThreadEnvironment(database.getEnvironment());
+        EditingPreferences.setThreadEditingPreferences(ejob.editingPreferences);
+        ServerJobManager.UserInterfaceRedirect userInterface = new ServerJobManager.UserInterfaceRedirect(ejob.jobKey);
+        Job.setUserInterface(userInterface);
+        database.lock(!ejob.isExamine());
+        ejob.oldSnapshot = database.backup();
+        database.lowLevelBeginChanging(ejob.serverJob.tool);
+        database.getNetworkManager().startBatch();
+        Constraints.getCurrent().startBatch(ejob.oldSnapshot);
+        userInterface.setCurrents(ejob.serverJob);
+        try {
+            if (!ejob.serverJob.doIt())
+                throw new JobException("Job '" + ejob.jobName + "' failed");
+        } catch (JobException e) {
+            e.printStackTrace();
         }
-        database.lowLevelEndChanging();
-        database.unlock();
+    }
 
-        System.out.println("Repair Libraries: " + repairLogger.getNumErrors() + " errors," + repairLogger.getNumWarnings() + " warnings");
-        Cell lay = rootLib.findNodeProto(cellname+"{sch}");
-        System.out.println("Cell = "+lay);
-   }
+    // 1 failure
+    private static void crash3() {
+        EditingPreferences ep = initDatabase();
 
-   public static void main(String[] args) {
-       crash1();
-   }
+        Job.serverJobManager = new ServerJobManager();
+        int connectionId = 0;
+
+        Job job = new CrashJob();
+        EJob ejob = job.ejob;
+        ejob.jobKey = new Job.Key(connectionId, 2, true);
+        ejob.client = Job.serverJobManager.serverConnections.get(0);
+        ejob.editingPreferences = ep;
+//        Job.serverJobManager.addJob(job.ejob, false);
+
+        EDatabase database = EDatabase.serverDatabase();
+        Environment.setThreadEnvironment(database.getEnvironment());
+        EditingPreferences.setThreadEditingPreferences(ejob.editingPreferences);
+        ServerJobManager.UserInterfaceRedirect userInterface = new ServerJobManager.UserInterfaceRedirect(ejob.jobKey);
+        Job.setUserInterface(userInterface);
+        database.lock(!ejob.isExamine());
+        ejob.oldSnapshot = database.backup();
+        database.lowLevelBeginChanging(ejob.serverJob.tool);
+        database.getNetworkManager().startBatch();
+//        Constraints.getCurrent().startBatch(ejob.oldSnapshot);
+//        userInterface.setCurrents(ejob.serverJob);
+        try {
+            if (!ejob.serverJob.doIt())
+                throw new JobException("Job '" + ejob.jobName + "' failed");
+        } catch (JobException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 0 failures
+    // 0 failures
+    private static void crash4() {
+        EditingPreferences ep = initDatabase();
+
+        Job.serverJobManager = new ServerJobManager();
+        int connectionId = 0;
+
+        Job job = new CrashJob();
+        EJob ejob = job.ejob;
+        ejob.jobKey = new Job.Key(connectionId, 2, true);
+        ejob.client = Job.serverJobManager.serverConnections.get(0);
+        ejob.editingPreferences = ep;
+//        Job.serverJobManager.addJob(job.ejob, false);
+
+        EDatabase database = EDatabase.serverDatabase();
+        Environment.setThreadEnvironment(database.getEnvironment());
+        EditingPreferences.setThreadEditingPreferences(ejob.editingPreferences);
+        ServerJobManager.UserInterfaceRedirect userInterface = new ServerJobManager.UserInterfaceRedirect(ejob.jobKey);
+        Job.setUserInterface(userInterface);
+        database.lock(!ejob.isExamine());
+        ejob.oldSnapshot = database.backup();
+        database.lowLevelBeginChanging(ejob.serverJob.tool);
+//        database.getNetworkManager().startBatch();
+//        Constraints.getCurrent().startBatch(ejob.oldSnapshot);
+//        userInterface.setCurrents(ejob.serverJob);
+        try {
+            if (!ejob.serverJob.doIt())
+                throw new JobException("Job '" + ejob.jobName + "' failed");
+        } catch (JobException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        crash4();
+    }
 }
