@@ -116,7 +116,8 @@ public class Connectivity
 	/** map of cut layers to lists of polygons on that layer */	private Map<Layer,CutInfo> allCutLayers;
 	/** set of pure-layer nodes that are not processed */		private Set<PrimitiveNode> ignoreNodes;
 	/** set of contacts that are not used for extraction */		private Set<PrimitiveNode> bogusContacts;
-	/** list of Exports to restore after extraction */			private List<Export> exportsToRestore;
+    /** PrimitiveNodes for pdiff and ndiff */                   private PrimitiveNode diffNode, pDiffNode, nDiffNode;
+    /** list of Exports to restore after extraction */			private List<Export> exportsToRestore;
 	/** auto-generated exports that may need better names */	private List<Export> generatedExports;
 	/** true if this is a P-well process (presume P-well) */	private boolean pSubstrateProcess;
 	/** true if this is a N-well process (presume N-well) */	private boolean nSubstrateProcess;
@@ -284,7 +285,8 @@ public class Connectivity
 	    double scaledResolution = tech.getFactoryScaledResolution();
 	    alignment = new Dimension2D.Double(scaledResolution, scaledResolution);
 
-		// find pure-layer nodes that are never involved in higher-level components, and should be ignored
+        diffNode = pDiffNode = nDiffNode = null;
+        // find pure-layer nodes that are never involved in higher-level components, and should be ignored
 		ignoreNodes = new HashSet<PrimitiveNode>();
 		for(Iterator<PrimitiveNode> pIt = tech.getNodes(); pIt.hasNext(); )
 		{
@@ -303,7 +305,16 @@ public class Connectivity
 				validLayers = true;
 			}
 			if (!validLayers) ignoreNodes.add(np);
-		}
+
+            // determine diffusion nodes
+            Layer layer = np.getLayerIterator().next();
+            if (layer.getFunction() == Layer.Function.DIFF)
+                diffNode = np;
+            if (layer.getFunction() == Layer.Function.DIFFN)
+                nDiffNode = np;
+            if (layer.getFunction() == Layer.Function.DIFFP)
+                pDiffNode = np;
+        }
 
 		// determine if this is a "P-well" or "N-well" process
 		findMissingWells(cell, recursive, pat, activeHandling);
@@ -499,12 +510,11 @@ public class Connectivity
 		}
 		convertedCells.put(oldCell, newCell);
 
-        fixActiveNodes(oldCell);
-
 		// create a merge for the geometry in the cell
 		PolyMerge merge = new PolyMerge();
+        PolyMerge selectMerge = new PolyMerge();
 
-		// convert the nodes
+        // convert the nodes
 		if (!startSection(oldCell, "Gathering geometry in " + oldCell + "..."))		// HAS PROGRESS IN IT
 			return null; // aborted
 		Set<Cell> expandedCells = new HashSet<Cell>();
@@ -512,7 +522,7 @@ public class Connectivity
 		generatedExports = new ArrayList<Export>();
 		pinsForLater = new ArrayList<ExportedPin>();
 		allCutLayers = new TreeMap<Layer,CutInfo>();
-		extractCell(oldCell, newCell, pat, flattenPcells, expandedCells, merge, GenMath.MATID, Orientation.IDENT);
+		extractCell(oldCell, newCell, pat, flattenPcells, expandedCells, merge, selectMerge, GenMath.MATID, Orientation.IDENT);
 		if (expandedCells.size() > 0)
 		{
 			System.out.print("These cells were expanded:");
@@ -700,12 +710,41 @@ public class Connectivity
 	 * @param prevTrans the transformation coming into this cell.
 	 */
 	private void extractCell(Cell oldCell, Cell newCell, Pattern pat, boolean flattenPcells, Set<Cell> expandedCells,
-		PolyMerge merge, AffineTransform prevTrans, Orientation orient)
+		PolyMerge merge, PolyMerge selectMerge, AffineTransform prevTrans, Orientation orient)
 	{
 		Map<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
 		int totalNodes = oldCell.getNumNodes();
         Dimension2D alignementToGrid = newCell.getEditingPreferences().getAlignmentToGrid();
-		int soFar = 0;
+
+        // first get select, so we can determine proper active type
+        if (!unifyActive && !ignoreActiveSelectWell)
+        {
+            for (Iterator<NodeInst> nIt = oldCell.getNodes(); nIt.hasNext(); )
+            {
+                NodeInst ni = nIt.next();
+                if (ni.isCellInstance()) continue;
+                Poly [] polys = tech.getShapeOfNode(ni);
+                for(int j=0; j<polys.length; j++)
+                {
+                    Poly poly = polys[j];
+
+                    // get the layer for the geometry
+                    Layer layer = poly.getLayer();
+                    if (layer == null) continue;
+
+                    // make sure the geometric database is made up of proper layers
+                    layer = geometricLayer(layer);
+                    if (layer.getFunction() != Layer.Function.IMPLANTN && layer.getFunction() != Layer.Function.IMPLANTP) continue;
+
+                    // selectMerge has non-scaled-up coords, and has all geom coords relative to top level
+                    AffineTransform trans = ni.rotateOut(prevTrans);
+                    poly.transform(trans);
+                    selectMerge.add(layer, poly);
+                }
+            }
+        }
+
+        int soFar = 0;
 		for(Iterator<NodeInst> nIt = oldCell.getNodes(); nIt.hasNext(); )
 		{
 			NodeInst ni = nIt.next();
@@ -727,7 +766,7 @@ public class Connectivity
 					expandedCells.add(subCell);
 					AffineTransform subTrans = ni.translateOut(ni.rotateOut(prevTrans));
 					Orientation or = orient.concatenate(ni.getOrient());
-					extractCell(subCell, newCell, pat, flattenPcells, expandedCells, merge, subTrans, or);
+					extractCell(subCell, newCell, pat, flattenPcells, expandedCells, merge, selectMerge, subTrans, or);
 					continue;
 				}
 
@@ -840,6 +879,23 @@ public class Connectivity
 						}
 					}
 				}
+
+                // check overlap with selectMerge here, after poly has been rotated up to top level, but before scaling
+                if (layer.getFunction() == Layer.Function.DIFFN) {
+                    // make sure n-diffusion is in n-select
+                    if (selectMerge.contains(pSelectLayer, poly)) {
+                        // switch it pactive
+                        layer = pActiveLayer;
+                    }
+                }
+                if (layer.getFunction() == Layer.Function.DIFFP) {
+                    // make sure p-diffusion is in p-select
+                    if (selectMerge.contains(nSelectLayer, poly)) {
+                        // switch it nactive
+                        layer = nActiveLayer;
+                    }
+                }
+
 				for(int i=0; i<points.length; i++)
 					poly.setPoint(i, scaleUp(points[i].getX()), scaleUp(points[i].getY()));
 
@@ -5128,11 +5184,11 @@ public class Connectivity
 
                         boolean BREAKUPTRACE = true;
 
+                        PolyBase poly = new PolyBase(points);
+                        poly.setLayer(layer);
+
                         if (BREAKUPTRACE)
                         {
-                            PolyBase poly = new PolyBase(points);
-                            poly.setLayer(layer);
-
                             // irregular shape: break it up with simpler polygon merging algorithm
                             GeometryHandler thisMerge = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
                             thisMerge.add(layer, poly);
@@ -5141,13 +5197,17 @@ public class Connectivity
                             Collection<PolyBase> set = ((PolySweepMerge)thisMerge).getPolyPartition(layer);
                             for(PolyBase simplePoly : set)
                             {
-                                Rectangle2D polyBounds = simplePoly.getBounds2D();
+                                PolyBase simplePolyScaledUp = scaleUpPoly(simplePoly);
+                                pn = getActiveNodeType(layer, simplePolyScaledUp, originalMerge, pn);
+                                layer = pn.getLayerIterator().next();Rectangle2D polyBounds = simplePoly.getBounds2D();
                                 NodeInst newNi = NodeInst.makeInstance(pn, simplePoly.getCenter(), polyBounds.getWidth(), polyBounds.getHeight(),
                                                                        newCell);
                                 if (newNi == null) continue;
                                 newNis.add(newNi);
                             }
                         } else {
+                            PolyBase polyScaledUp = scaleUpPoly(poly);
+                            pn = getActiveNodeType(layer, polyScaledUp, originalMerge, pn);
                             NodeInst newNi = NodeInst.makeInstance(pn, ni.getAnchorCenter(), ni.getXSize(), ni.getYSize(), newCell);
                             if (newNi != null) {
                                 newNis.add(newNi);
@@ -5155,12 +5215,16 @@ public class Connectivity
                             }
                         }
                     } else {
+                        PolyBase poly = new PolyBase(ni.getBounds());
+                        PolyBase polyScaledUp = scaleUpPoly(poly);
+                        pn = getActiveNodeType(layer, polyScaledUp, originalMerge, pn);
                         NodeInst newNi = NodeInst.makeInstance(pn, ni.getAnchorCenter(), ni.getXSize(), ni.getYSize(),
                                                                newCell, ni.getOrient(), null);
                         if (newNi != null)
                             newNis.add(newNi);
                     }
                     // substract out layers
+                    layer = pn.getLayerIterator().next();
                     for (NodeInst newNi : newNis) {
                         Poly [] polys = tech.getShapeOfNode(newNi);
                         for (Poly p : polys)
@@ -5277,6 +5341,28 @@ public class Connectivity
                 }
             }
         }
+    }
+
+    private PrimitiveNode getActiveNodeType(Layer activeLayer, PolyBase poly, PolyMerge merge, PrimitiveNode defaultNode)
+    {
+        if (unifyActive || ignoreActiveSelectWell) return defaultNode;
+        if (defaultNode != pDiffNode && defaultNode != nDiffNode && defaultNode != diffNode) return defaultNode;
+
+        if (activeLayer.getFunction() == Layer.Function.DIFFN) {
+            // make sure n-diffusion is in n-select
+            if (merge.contains(pSelectLayer, poly)) {
+                // switch it pactive
+                return pDiffNode;
+            }
+        }
+        if (activeLayer.getFunction() == Layer.Function.DIFFP) {
+            // make sure p-diffusion is in p-select
+            if (merge.contains(nSelectLayer, poly)) {
+                // switch it nactive
+                return nDiffNode;
+            }
+        }
+        return defaultNode;
     }
 
     private boolean isOnGrid(Poly poly)
