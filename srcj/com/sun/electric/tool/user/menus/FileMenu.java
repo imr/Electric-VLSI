@@ -1356,9 +1356,19 @@ public class FileMenu {
         {
             if (cell.getView() == View.DOC)
             {
-                System.out.println("Document cells can't be exported as postscript.");
-                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Document cells can't be exported as postscript.\n" +
+                String msg = "Document cells can't be exported as postscript.\n";
+                System.out.print(msg);
+                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg +
                         "Try \"Export -> Text Cell Contents\"",
+                    "Exporting PS", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (!(wnd instanceof EditWindow))
+            {
+                String msg = "This type of window can't be exported as postscript.\n";
+                System.out.print(msg);
+                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg +
+                        "Try \"Export -> PNG (Portable Network Graphcs)\"",
                     "Exporting PS", JOptionPane.ERROR_MESSAGE);
                 return;
             }

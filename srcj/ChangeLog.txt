@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+BUG: (9/28/09, GVG) NPE in Export PS (Bug #2407)
+FIX: Detect the 3D case and aborts the action. PS is only available from an EditWindow instance
+
 IMP: (9/28/09, AM) Successfully loaded a 1.1GB simulation file using a
      400MB JVM heap (-Xmx=400m).  Loading time was 3.8 minutes, and
      once loaded panning/scrolling showed no perceptible delay.
