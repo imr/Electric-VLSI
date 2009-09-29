@@ -500,7 +500,9 @@ public class LayerCoverageTool extends Tool
                                         for (Object poly : polyArray)
                                         {
                                         	PolyBase pb = (PolyBase)poly;
-                                        	covered = pb.getBounds2D().contains(r);
+                                        	Rectangle2D pbRect = pb.getBox();
+                                        	if (pbRect == null) continue;
+                                        	covered = pbRect.contains(r);
                                             if (covered) break;
                                         }
                                         if (covered) continue;
