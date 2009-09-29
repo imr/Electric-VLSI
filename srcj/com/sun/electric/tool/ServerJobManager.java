@@ -505,6 +505,13 @@ public class ServerJobManager {
             database = jobKey.doItOnServer ? EDatabase.serverDatabase() : EDatabase.clientDatabase();
         }
 
+        UserInterfaceRedirect(Job.Key jobKey, AbstractUserInterface client) {
+            this.jobKey = jobKey;
+            this.client = client;
+            assert !jobKey.doItOnServer;
+            database = EDatabase.clientDatabase();
+        }
+
         UserInterfaceRedirect(EDatabase database) {
             jobKey = null;
             client = null;

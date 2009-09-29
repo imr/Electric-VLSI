@@ -442,6 +442,9 @@ public final class Main
             Job.Type jobType, byte[] serializedJob,
             boolean doItOk, byte[] serializedResult, Snapshot newSnapshot) {
             printMessage("Job " + jobKey, true);
+            if (!jobType.isExamine()) {
+                endChanging();
+            }
         }
 
         @Override

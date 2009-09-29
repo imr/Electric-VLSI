@@ -125,6 +125,10 @@ public abstract class Job implements Serializable {
 		/** Describes a server database examination. */	SERVER_EXAMINE,
 
 		/** Describes a client database examination. */ CLIENT_EXAMINE;
+
+        public boolean isExamine() {
+            return this == Job.Type.CLIENT_EXAMINE || this == Job.Type.SERVER_EXAMINE;
+        }
 	}
 
 
@@ -311,30 +315,6 @@ public abstract class Job implements Serializable {
                 Job.currentUI.putProcessingEJob(ejob, onMySnapshot);
                 if (!isThreadSafe()) {
                     serverJobManager.addJob(ejob, onMySnapshot);
-                } else {
-                    assert SwingUtilities.isEventDispatchThread();
-                    SwingUtilities.invokeLater(new Runnable() {
-
-                        public void run() {
-                            ejob.state = EJob.State.RUNNING;
-                            Job.currentUI.showJobQueue();
-                            ejob.changedFields = new ArrayList<Field>();
-                            try {
-                                if (!ejob.clientJob.doIt()) {
-                                    throw new JobException("Job '" + ejob.jobName + "' failed");
-                                }
-                                ejob.serializeResult(EDatabase.clientDatabase());
-                            } catch (Throwable e) {
-                                e.getStackTrace();
-                                e.printStackTrace();
-                                ejob.serializeExceptionResult(e, EDatabase.clientDatabase());
-                            }
-                            Job.currentUI.addEvent(new Client.EJobEvent(ejob.jobKey, ejob.jobName,
-                                    ejob.getJob().getTool(), ejob.jobType, ejob.serializedJob,
-                                    ejob.doItOk, ejob.serializedResult, EDatabase.clientDatabase().backup(),
-                                    EJob.State.SERVER_DONE));
-                        }
-                    });
                 }
             }
         }

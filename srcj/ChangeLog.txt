@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+IMP: (9/29/09, DN) A simple scheduler for CLIENT_EXAMINE jobs in thread-safe mode.
+
 IMP: (9/28/09, GVG) Extra code to detect case described in Bug #2151
 
 BUG: (9/28/09, GVG) NPE in Export PS (Bug #2407)

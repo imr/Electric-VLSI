@@ -771,6 +771,7 @@ public class UserInterfaceMain extends AbstractUserInterface
                 database.lowLevelSetCanUndoing(false);
             } finally {
                 database.unlock();
+                endChanging();
             }
         }
         currentSnapshot = newSnapshot;

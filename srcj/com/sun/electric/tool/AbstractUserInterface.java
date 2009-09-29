@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.database.EditingPreferences;
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -34,6 +36,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +52,9 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     private Job.Inform[] serverJobQueue = {};
     private final HashMap<Job.Key,EJob> processingEJobs = new HashMap<Job.Key,EJob>();
     private final ArrayList<EJob> clientJobs = new ArrayList<EJob>();
+    private boolean goSleeping;
+    private boolean waitChanging;
+    private UIDispatcher uiDispatcher;
 
     protected AbstractUserInterface() {
         super(DEFAULT_CONNECTION_ID);
@@ -60,7 +66,8 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     }
 
     void startDispatcher() {
-        new UIDispatcher(connectionId).start();
+        uiDispatcher = new UIDispatcher(connectionId);
+        uiDispatcher.start();
     }
 
     public Job.Key getJobKey() {
@@ -183,6 +190,10 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
             else
                 clientJobs.add(ejob);
             showJobQueue();
+            if (goSleeping) {
+                assert Job.isThreadSafe();
+                uiDispatcher.interrupt();
+            }
         }
     }
 
@@ -190,10 +201,18 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
         EJob ejob = processingEJobs.remove(jobKey);
         if (ejob != null && !jobKey.doItOnServer) {
             boolean removed = clientJobs.remove(ejob);
-            assert removed;
+//            assert removed;
             showJobQueue();
         }
         return ejob;
+    }
+
+    private synchronized EJob getClientJob() {
+        return clientJobs.isEmpty() ? null : clientJobs.remove(0);
+    }
+
+    private synchronized boolean hasClientJobs() {
+        return !clientJobs.isEmpty();
     }
 
     synchronized List<Job> getAllJobs() {
@@ -204,6 +223,31 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
         return list;
     }
 
+    synchronized void setGoSleeping(boolean b) {
+        assert goSleeping != b;
+        goSleeping = b;
+    }
+
+    private synchronized void startChanging() {
+        assert !waitChanging;
+        waitChanging = true;
+    }
+
+    protected synchronized void endChanging() {
+        assert waitChanging;
+        waitChanging = false;
+        notify();
+    }
+
+    private synchronized void waitChanging() {
+        while (waitChanging) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+            }
+        }
+    }
+
     private class UIDispatcher extends Thread {
         private static final long STACK_SIZE_EVENT = 0;
         private Client.ServerEvent lastEvent = Client.getQueueTail();
@@ -212,17 +256,106 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
             super(null, null, "UIDispatcher-" + connectionId, STACK_SIZE_EVENT);
         }
 
+        private void doSafe() {
+            EJob ejob = getClientJob();
+            if (ejob != null) {
+                doClientExamine(ejob);
+                return;
+            }
+            Client.ServerEvent event;
+            for (;;) {
+                event = lastEvent.getNext();
+                if (event == null) break;
+                lastEvent = event;
+                if (event instanceof EJobEvent) break;
+                addEvent(event);
+            }
+            if (event == null) {
+                setGoSleeping(true);
+                if (hasClientJobs()) {
+                    setGoSleeping(false);
+                    interrupted();
+                    return;
+                }
+                try {
+                    lastEvent = getEvent(lastEvent);
+                } catch (InterruptedException e) {
+                    setGoSleeping(false);
+                    interrupted();
+                    return;
+                }
+                setGoSleeping(false);
+                interrupted();
+            }
+            if (lastEvent instanceof EJobEvent && !((EJobEvent)lastEvent).jobType.isExamine()) {
+                startChanging();
+                addEvent(lastEvent);
+                waitChanging();
+            } else {
+                addEvent(lastEvent);
+            }
+        }
+
+        private void doClientExamine(EJob ejob) {
+            assert ejob.jobType == Job.Type.CLIENT_EXAMINE;
+            assert Job.isThreadSafe();
+            ejob.state = EJob.State.RUNNING;
+            Job.currentUI.showJobQueue();
+            ejob.changedFields = new ArrayList<Field>();
+            EDatabase database = EDatabase.clientDatabase();
+            Environment.setThreadEnvironment(database.getEnvironment());
+            EditingPreferences.setThreadEditingPreferences(ejob.editingPreferences);
+            ServerJobManager.UserInterfaceRedirect userInterface = new ServerJobManager.UserInterfaceRedirect(ejob.jobKey, Job.currentUI);
+            Job.setUserInterface(userInterface);
+            database.lock(!ejob.isExamine());
+            ejob.oldSnapshot = database.backup();
+            try {
+                userInterface.setCurrents(ejob.clientJob);
+                if (!ejob.clientJob.doIt()) {
+                    throw new JobException("Job '" + ejob.jobName + "' failed");
+                }
+                ejob.serializeResult(database);
+                ejob.newSnapshot = database.backup();
+             } catch (Throwable e) {
+                e.getStackTrace();
+                if (!(e instanceof JobException))
+                    e.printStackTrace();
+                ejob.serializeExceptionResult(e, database);
+            } finally {
+                database.unlock();
+                userInterface = null;
+                Environment.setThreadEnvironment(null);
+                EditingPreferences.setThreadEditingPreferences(null);
+            }
+            Job.currentUI.addEvent(new Client.EJobEvent(ejob.jobKey, ejob.jobName,
+                    ejob.getJob().getTool(), ejob.jobType, ejob.serializedJob,
+                    ejob.doItOk, ejob.serializedResult, database.backup(),
+                    EJob.State.SERVER_DONE));
+        }
+
+        private void doUnsafe() {
+            try {
+                lastEvent = Client.getEvent(lastEvent);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            for (;;) {
+                addEvent(lastEvent);
+                Client.ServerEvent event = lastEvent.getNext();
+                if (event == null)
+                    break;
+                lastEvent = event;
+            }
+        }
+
         @Override
         public void run() {
             try {
                 for (;;) {
-                    lastEvent = Client.getEvent(lastEvent);
-                    for (;;) {
-                        addEvent(lastEvent);
-                        Client.ServerEvent event = lastEvent.getNext();
-                        if (event == null)
-                            break;
-                        lastEvent = event;
+                    if (Job.isThreadSafe()) {
+                        doSafe();
+                    } else {
+                        doUnsafe();
                     }
                 }
             } catch (Exception e) {

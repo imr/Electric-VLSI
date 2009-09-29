@@ -105,7 +105,7 @@ public class EJob {
     }
 
     public boolean isExamine() {
-        return jobType == Job.Type.CLIENT_EXAMINE || jobType == Job.Type.SERVER_EXAMINE;
+        return jobType.isExamine();
     }
 
     public boolean startedByServer() {
