@@ -52,8 +52,8 @@ import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.routing.SeaOfGates;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.routing.SeaOfGates;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 
@@ -414,7 +414,12 @@ public class LayerCoverageTool extends Tool
                         for (Layer layer : tree.getKeySet())
                         {
                             Collection<PolyBase> set = tree.getObjects(layer, !isMerge, true);
-                            Set<PolyBase> polySet = (function == LCMode.IMPLANT) ? originalPolygons.get(layer) : null;
+                            Object[] polyArray = null;
+                            if (function == LCMode.IMPLANT)
+                            {
+                            	Set<PolyBase> polySet = originalPolygons.get(layer);
+                            	polyArray = polySet.toArray();
+                            }
                             List<Rectangle2D> newImplants = new ArrayList<Rectangle2D>();
 
                             // Ready to create new implants.
@@ -423,23 +428,20 @@ public class LayerCoverageTool extends Tool
                                 points = polyB.getPoints();
                                 rect = polyB.getBounds2D();
 
-                                // One of the original elements
-                                if (polySet != null)
-                                {
-                                    Object[] array = polySet.toArray();
-                                    boolean foundOrigPoly = false;
-                                    for (Object poly : array)
-                                    {
-                                        foundOrigPoly = polyB.polySame((PolyBase)poly);
-                                        if (foundOrigPoly)
-                                            break;
-                                    }
-                                    if (foundOrigPoly)
-                                        continue;
-                                }
-
                                 if (isMerge)
                                 {
+                                    // ignore if one of the original elements (implant merge only)
+                                    if (polyArray != null)
+                                    {
+                                        boolean foundOrigPoly = false;
+                                        for (Object poly : polyArray)
+                                        {
+                                            foundOrigPoly = polyB.polySame((PolyBase)poly);
+                                            if (foundOrigPoly) break;
+                                        }
+                                        if (foundOrigPoly) continue;
+                                    }
+
                                     // Adding the new implant. New implant not assigned to any local variable
                                     Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
                                     PrimitiveNode priNode = layer.getPureLayerNode();
@@ -450,8 +452,7 @@ public class LayerCoverageTool extends Tool
                                     for(int j=0; j<points.length; j++)
                                         ePoints[j] = new EPoint(points[j].getX(), points[j].getY());
                                     node.setTrace(ePoints);
-                                }
-                                else
+                                } else
                                 {
                                 	newImplants.add(rect);
                                 }
@@ -492,7 +493,19 @@ public class LayerCoverageTool extends Tool
                                 PrimitiveNode priNode = layer.getPureLayerNode();
                             	for(Rectangle2D r : newImplants)
                             	{
-                            		// TODO Do not create if it is covered by original geometry
+                                    // ignore if one of the original elements
+                                    if (polyArray != null)
+                                    {
+                                        boolean covered = false;
+                                        for (Object poly : polyArray)
+                                        {
+                                        	PolyBase pb = (PolyBase)poly;
+                                        	covered = pb.getBounds2D().contains(r);
+                                            if (covered) break;
+                                        }
+                                        if (covered) continue;
+                                    }
+
                                     Point2D center = new Point2D.Double(r.getCenterX(), r.getCenterY());
                                     NodeInst node = NodeInst.makeInstance(priNode, center, r.getWidth(), r.getHeight(), curCell);
                                     nodesToExamine.add(node);

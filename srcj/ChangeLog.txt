@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+BUG: (9/29/09, SMR) Implant coverage generator leaves notches (Bug #2408).
+FIX: Better testing for areas within DRC limits.
+
 BUG: (9/29/09, SMR) GDS import is imprecise (Bug #2402).
 FIX: Rounded the "meter unit" read from the GDS file.
 
