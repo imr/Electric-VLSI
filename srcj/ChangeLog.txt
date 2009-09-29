@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+BUG: (9/29/09, SMR) Bold grid dot spacing cannot be changed (Bug #2405).
+FIX: Made bold spacing use integers, not doubles.
+
 BUG: (9/29/09, SMR) Implant coverage generator leaves notches (Bug #2408).
 FIX: Better testing for areas within DRC limits.
 

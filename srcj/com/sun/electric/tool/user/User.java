@@ -1881,17 +1881,17 @@ public class User extends Listener
 	 * The default is 10.
 	 * @return the default frequency of bold grid dots in the X direction.
 	 */
-	public static double getDefGridXBoldFrequency() { return cacheDefGridXBoldFrequency.getDouble(); }
+	public static int getDefGridXBoldFrequency() { return cacheDefGridXBoldFrequency.getInt(); }
 	/**
 	 * Method to set the default frequency of bold grid dots in the X direction.
 	 * @param dist the default frequency of bold grid dots in the X direction.
 	 */
-	public static void setDefGridXBoldFrequency(double dist) { cacheDefGridXBoldFrequency.setDouble(dist); }
+	public static void setDefGridXBoldFrequency(int dist) { cacheDefGridXBoldFrequency.setInt(dist); }
 	/**
 	 * Method to return the default frequency of bold grid dots in the X direction (factory setting).
 	 * @return the default frequency of bold grid dots in the X direction (factory setting).
 	 */
-	public static double getFactoryDefGridXBoldFrequency() { return cacheDefGridXBoldFrequency.getDoubleFactoryValue(); }
+	public static int getFactoryDefGridXBoldFrequency() { return cacheDefGridXBoldFrequency.getIntFactoryValue(); }
 
 	private static Pref cacheDefGridYBoldFrequency = Pref.makeIntPref("DefGridYBoldFrequency", tool.prefs, 10);
 	/**
@@ -1899,17 +1899,17 @@ public class User extends Listener
 	 * The default is 10.
 	 * @return the default frequency of bold grid dots in the Y direction.
 	 */
-	public static double getDefGridYBoldFrequency() { return cacheDefGridYBoldFrequency.getDouble(); }
+	public static int getDefGridYBoldFrequency() { return cacheDefGridYBoldFrequency.getInt(); }
 	/**
 	 * Method to set the default frequency of bold grid dots in the Y direction.
 	 * @param dist the default frequency of bold grid dots in the Y direction.
 	 */
-	public static void setDefGridYBoldFrequency(double dist) { cacheDefGridYBoldFrequency.setDouble(dist); }
+	public static void setDefGridYBoldFrequency(int dist) { cacheDefGridYBoldFrequency.setInt(dist); }
 	/**
 	 * Method to return the default frequency of bold grid dots in the Y direction (factory setting).
 	 * @return the default frequency of bold grid dots in the Y direction (factory setting).
 	 */
-	public static double getFactoryDefGridYBoldFrequency() { return cacheDefGridYBoldFrequency.getDoubleFactoryValue(); }
+	public static int getFactoryDefGridYBoldFrequency() { return cacheDefGridYBoldFrequency.getIntFactoryValue(); }
 
 	/**
 	 * Method to return the default alignment of objects to the grid.

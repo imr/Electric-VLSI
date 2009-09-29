@@ -95,8 +95,8 @@ public class GridAndAlignmentTab extends PreferencePanel
 
 		gridNewHoriz.setText(TextUtils.formatDouble(User.getDefGridXSpacing()));
 		gridNewVert.setText(TextUtils.formatDouble(User.getDefGridYSpacing()));
-		gridBoldHoriz.setText(TextUtils.formatDouble(User.getDefGridXBoldFrequency()));
-		gridBoldVert.setText(TextUtils.formatDouble(User.getDefGridYBoldFrequency()));
+		gridBoldHoriz.setText(Integer.toString(User.getDefGridXBoldFrequency()));
+		gridBoldVert.setText(Integer.toString(User.getDefGridYBoldFrequency()));
 		gridShowAxes.setSelected(User.isGridAxesShown());
 
         EditingPreferences ep = getEditingPreferences();
@@ -151,13 +151,13 @@ public class GridAndAlignmentTab extends PreferencePanel
 		if (currDouble != User.getDefGridYSpacing())
 			User.setDefGridYSpacing(currDouble);
 
-		currDouble = TextUtils.atof(gridBoldHoriz.getText());
-		if (currDouble != User.getDefGridXBoldFrequency())
-			User.setDefGridXBoldFrequency(currDouble);
+		int currInt = TextUtils.atoi(gridBoldHoriz.getText());
+		if (currInt != User.getDefGridXBoldFrequency())
+			User.setDefGridXBoldFrequency(currInt);
 
-		currDouble = TextUtils.atof(gridBoldVert.getText());
-		if (currDouble != User.getDefGridYBoldFrequency())
-			User.setDefGridYBoldFrequency(currDouble);
+		currInt = TextUtils.atoi(gridBoldVert.getText());
+		if (currInt != User.getDefGridYBoldFrequency())
+			User.setDefGridYBoldFrequency(currInt);
 
 		boolean curBoolean = gridShowAxes.isSelected();
 		if (curBoolean != User.isGridAxesShown())
