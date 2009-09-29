@@ -206,10 +206,12 @@ public final class Main
             //System.setProperty("java.awt.headless", "true");
             runMode = Mode.BATCH;
         }
-        if (hasCommandLineOption(argsList, "-threadsafe")) {
-            if (runMode != Mode.FULL_SCREEN)
-                System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.THREAD_SAFE);
-            runMode = Mode.THREAD_SAFE;
+
+        if (runMode != Mode.FULL_SCREEN)
+            System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.THREAD_SAFE);
+        runMode = Mode.THREAD_SAFE;
+        if (hasCommandLineOption(argsList, "-nothreadsafe")) {
+            runMode = Mode.FULL_SCREEN; // back to original default
         }
         if (hasCommandLineOption(argsList, "-server")) {
             if (runMode != Mode.FULL_SCREEN)

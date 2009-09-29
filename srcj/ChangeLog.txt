@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+IMP: (9/29/09, GVG) Made "-threadsafe" (Mode.THREAD_SAFE) by default to test new mode and fixes for bug #2293
+
 IMP: (9/29/09, DN) A simple scheduler for CLIENT_EXAMINE jobs in thread-safe mode.
 
 IMP: (9/28/09, GVG) Extra code to detect case described in Bug #2151
