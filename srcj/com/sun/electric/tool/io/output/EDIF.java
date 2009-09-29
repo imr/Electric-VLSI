@@ -101,7 +101,12 @@ public class EDIF extends Topology
 		private int busIndex;
 		private int splitterIndex;
 		private String busName;
-		private static HashMap<Cell,List<BusRipper>> rippersPerCell = null;
+		private static HashMap<Cell,List<BusRipper>> rippersPerCell;
+
+		public static void init()
+		{
+			rippersPerCell = null;
+		}
 
 		private BusRipper(NodeInst ni, Network net, int busWidth, int busIndex, int splitterIndex, String busName)
 		{
@@ -158,11 +163,6 @@ public class EDIF extends Topology
 				if (br.busName.equals(busName)) ripperList.add(br);
 			}
 			return ripperList;
-		}
-
-		public static void done()
-		{
-			rippersPerCell = null;
 		}
 	}
 
@@ -227,6 +227,7 @@ public class EDIF extends Topology
         libsToWrite = new HashMap<Library,LibToWrite>();
         libsToWriteOrder = new ArrayList<Library>();
         equivs = new EDIFEquiv(localPrefs.configurationFile);
+        BusRipper.init();
 	}
 
 	protected void start()

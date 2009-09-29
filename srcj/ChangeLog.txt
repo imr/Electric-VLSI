@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+BUG: (9/29/09, SMR) GDS import is imprecise (Bug #2402).
+FIX: Rounded the "meter unit" read from the GDS file.
+
 IMP: (9/29/09, GVG) Made "-threadsafe" (Mode.THREAD_SAFE) by default to test new mode and fixes for bug #2293
 
 IMP: (9/29/09, DN) A simple scheduler for CLIENT_EXAMINE jobs in thread-safe mode.

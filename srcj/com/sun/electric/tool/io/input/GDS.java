@@ -313,6 +313,7 @@ public class GDS extends Input
 		CellBuilder.init();
 		theLibrary = lib;
 		curTech = tech;
+		initialize();
 
 		try
 		{
@@ -1196,8 +1197,6 @@ public class GDS extends Input
 	private void loadFile()
 		throws IOException
 	{
-		initialize();
-
 		getToken();
 		readHeader();
 		getToken();
@@ -1279,8 +1278,22 @@ public class GDS extends Input
 		getToken();
 		if (theToken != GDS_REALNUM) handleError("Units statement has invalid number format");
 
+		// get the meter unit
 		getToken();
 		double meterUnit = tokenValueDouble;
+
+		// round the meter unit
+		double shift = 1;
+		double roundedScale = meterUnit;
+		while (roundedScale < 1)
+		{
+			roundedScale *= 10;
+			shift *= 10;
+		}
+		roundedScale = DBMath.round(roundedScale) / shift;
+		meterUnit = roundedScale;
+
+		// compute the scale
 		double microScale = TextUtils.convertFromDistance(1, curTech, TextUtils.UnitScale.MICRO);
 		theScale = meterUnit * 1000000.0 * microScale * localPrefs.inputScale;
 
@@ -1294,6 +1307,12 @@ public class GDS extends Input
 //		}
 //		roundedScale = DBMath.round(roundedScale) / shift;
 //		theScale = roundedScale;
+	}
+
+	private double scaleValue(double value)
+	{
+		double result = value * theScale;
+		return result;
 	}
 
 	private void showResultsOfCell()
@@ -1755,7 +1774,7 @@ public class GDS extends Input
 		if (theToken == GDS_WIDTH)
 		{
 			getToken();
-			width = tokenValue32 * theScale;
+			width = scaleValue(tokenValue32);
 			getToken();
 		}
 		double bgnextend = (endcode == 0 || endcode == 4 ? 0 : width/2);
@@ -1764,14 +1783,14 @@ public class GDS extends Input
 		{
 			getToken();
 			if (endcode == 4)
-				bgnextend = tokenValue32 * theScale;
+				bgnextend = scaleValue(tokenValue32);
 			getToken();
 		}
 		if (theToken == GDS_ENDEXTN)
 		{
 			getToken();
 			if (endcode == 4)
-				endextend = tokenValue32 * theScale;
+				endextend = scaleValue(tokenValue32);
 			getToken();
 		}
 		if (theToken == GDS_XY)
@@ -2381,9 +2400,9 @@ public class GDS extends Input
 		numVertices = 0;
 		while (theToken == GDS_NUMBER)
 		{
-			double x = tokenValue32 * theScale;
+			double x = scaleValue(tokenValue32);
 			getToken();
-			double y = tokenValue32 * theScale;
+			double y = scaleValue(tokenValue32);
 			theVertices[numVertices].setLocation(x, y);
 			numVertices++;
 			if (numVertices > max_points)
