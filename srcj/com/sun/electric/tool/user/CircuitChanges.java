@@ -480,11 +480,9 @@ public class CircuitChanges
 
         Highlighter highlighter = wnd.getHighlighter();
         if (highlighter == null) return;
-        List<ElectricObject> selected = new java.util.LinkedList<ElectricObject>();
-        for(ElectricObject eo : highlighter.getHighlightedEObjs(true, true))
-        	selected.add(eo);
-
-        new CircuitChangeJobs.CellCenterToCenterOfSelection(cell, selected);
+		Rectangle2D bounds = highlighter.getHighlightedArea(wnd);
+		if (bounds == null) return;
+        new CircuitChangeJobs.CellCenterToCenterOfSelection(cell, new EPoint(bounds.getCenterX(), bounds.getCenterY()));
     }
 
 	/**

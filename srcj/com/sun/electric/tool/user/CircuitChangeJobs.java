@@ -2069,39 +2069,30 @@ public class CircuitChangeJobs
 	public static class CellCenterToCenterOfSelection extends Job
 	{
 		private Cell cell;
-		private List<ElectricObject> highlightedObjs;
+		private EPoint ctr;
 
-		public CellCenterToCenterOfSelection(Cell cell, List<ElectricObject> highlightedObjs)
+		public CellCenterToCenterOfSelection(Cell cell, EPoint ctr)
 		{
 			super("Cell center to center of selection", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
-			this.highlightedObjs = highlightedObjs;
+			this.ctr = ctr;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			if (highlightedObjs.size() == 0) return false;
-
             NodeInst center = null;
             for(NodeInst ni : i2i(cell.getNodes()))
                 if (ni.getProto() == Generic.tech().cellCenterNode)
                     center = ni;
-            if (center==null) {
+            if (center == null)
+            {
                 System.out.println("No cell center; please add one.");
                 return false;
             }
 
-            Rectangle2D selectedBounds = new Rectangle2D.Double();
-			for(ElectricObject obj : highlightedObjs)
-                if (obj instanceof Geometric)
-                    Rectangle2D.union(selectedBounds, ((Geometric)obj).getBounds(), selectedBounds);
-
-            System.out.println("Moving cell center;");
-            System.out.println("   selection bounds = " + selectedBounds);
-            System.out.println("   new center       = " + "(" + selectedBounds.getCenterX() + "," + selectedBounds.getCenterY() + ")");
-            center.move(selectedBounds.getCenterX()-center.getTrueCenter().getX(),
-                        selectedBounds.getCenterY()-center.getTrueCenter().getY());
+//            System.out.println("Moving cell center to (" + ctr.getX() + "," + ctr.getY() + ")");
+            center.move(ctr.getX(), ctr.getY());
             return true;
 		}
 	}
