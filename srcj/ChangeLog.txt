@@ -1,7 +1,6 @@
 			Java Electric change log ( MAIN branch )
 
 NOTE: Please place changes under the version that will be released next.
-
 ************************* Version 8.10j: ******************************
 
 BUG: (9/29/09, SMR) Bold grid dot spacing cannot be changed (Bug #2405).
@@ -13,14 +12,17 @@ FIX: Better testing for areas within DRC limits.
 BUG: (9/29/09, SMR) GDS import is imprecise (Bug #2402).
 FIX: Rounded the "meter unit" read from the GDS file.
 
-IMP: (9/29/09, GVG) Made "-threadsafe" (Mode.THREAD_SAFE) by default to test new mode and fixes for bug #2293
+IMP: (9/29/09, GVG) Made "-threadsafe" (Mode.THREAD_SAFE) by default to test new
+     mode and fixes for bug #2293
 
-IMP: (9/29/09, DN) A simple scheduler for CLIENT_EXAMINE jobs in thread-safe mode.
+IMP: (9/29/09, DN) A simple scheduler for CLIENT_EXAMINE jobs in thread-safe
+     mode.
 
 IMP: (9/28/09, GVG) Extra code to detect case described in Bug #2151
 
 BUG: (9/28/09, GVG) NPE in Export PS (Bug #2407)
-FIX: Detect the 3D case and aborts the action. PS is only available from an EditWindow instance
+FIX: Detect the 3D case and aborts the action. PS is only available from an
+     EditWindow instance
 
 IMP: (9/28/09, AM) Successfully loaded a 1.1GB simulation file using a
      400MB JVM heap (-Xmx=400m).  Loading time was 3.8 minutes, and
@@ -38,7 +40,8 @@ IMP: (9/28/09, AM) Finish implementing BTree.getValFromOrd(), which
      getValFromOrd() instead of doing a binary search made a huge
      difference in UI responsiveness, though.
 
-BUG: (9/25/09, GVG) Can't save file in MacOSX after browsing in the save dialog box (Bug #2326)
+BUG: (9/25/09, GVG) Can't save file in MacOSX after browsing in the save dialog
+     box (Bug #2326)
 FIX: Using URL instead of String to open the FileWriter
 
 ************************* Version 8.10i: ******************************
@@ -48,14 +51,16 @@ BUG: (9/24/09, SMR) Explorer tree "Search" dialog doesn't allow multiple
 FIX: Now handle all selected cells.
 
 IMP/MAN: (9/24/09, SMR) New Display Preference: "Show cell results in new window"
-     causes commands that show a cell to do it in a new window.  The commands are:
-     "Edit XXX View", "Make XXX View", do Placement, ROM generation, PLA generation,
-     etc. (Bug #2388).
+     causes commands that show a cell to do it in a new window.  The commands
+     are: "Edit XXX View", "Make XXX View", do Placement, ROM generation, PLA
+     generation, etc. (Bug #2388).
 
-BUG: (09/24/09, GVG) Non-deterministic results in AutoFillTemplate test (bug #2380)
+BUG: (09/24/09, GVG) Non-deterministic results in AutoFillTemplate test (Bug
+     #2380)
 FIX: Sorting ports before FillRouter.
 
-BUG: (9/24/09, SMR) GDS Preferences doesn't show enough scale precision (Bug #2402).
+BUG: (9/24/09, SMR) GDS Preferences doesn't show enough scale precision (Bug
+     #2402).
 FIX: In GDSTab.java, use more precision.
 
 BUG: (09/24/09, GVG) Remove RDL layer from tsmcSun40GP tech (Bug #2403)
@@ -71,30 +76,33 @@ BUG: (09/23/09, AM) Export names change size rapidly when mousing over
 FIX: In pulsating Timer, use highlighter.showHighlights(,,true).
 
 IMP: (09/22/09, JKG) if only export text is selected during copy,
-     it adds in the node the export is on so it can be copied (if copyExports is on)
+     it adds in the node the export is on so it can be copied (if copyExports is
+     on)
 
 IMP: (09/22/09, JKG) Node extractor: improved active type selection, improved
      multi-cut contact extraction to prevent lots of single contacts.
 
 IMP: (09/22/09, AM) build.xml: produce jdk1.5-compatible bytecodes.
 
-BUG: (09/21/09, GVG) Non-deterministic results in AutoFillTemplate test (bug #2380)
+BUG: (09/21/09, GVG) Non-deterministic results in AutoFillTemplate test (Bug
+     #2380)
 FIX: Sorting arcs based on length while selecting the best port to connect to.
 
 IMP: (09/21/09, DN) Regression driver doesn't allocate mutable database.
 
-IMP: (09/19/09, DN) If DRC.THREAD_SAFE_DRC=true, then DRC Jobs are SERVER_EXAMINE and can
-    run in thread-safe mode.
+IMP: (09/19/09, DN) If DRC.THREAD_SAFE_DRC=true, then DRC Jobs are SERVER_EXAMINE
+     and can run in thread-safe mode.
 
 IMP: (09/17/09, DN) Quick.doCheck() and Schematic.doCheck don't call termLogging.
-    Instead caller terms Logging or do anything else.
+     Instead caller terms Logging or do anything else.
 
 BUG: (09/17/09, DN) Assertion in JobTree.updateJobs().
 FIX: In UserInterfaceMain.java use SwingUtilities.invokeLater for updating Jobs.
 
 ************************* Version 8.10h: *******************************
 
-BUG: (09/17/09, GVG) tmscSun40GP tech f-p-well node needs to be able to connect to p-well arc (Bug #2399)
+BUG: (09/17/09, GVG) tmscSun40GP tech f-p-well node needs to be able to connect
+     to p-well arc (Bug #2399)
 FIX: arc added.
 
 BUG: (9/17/09, SMR) Explorer tree Library Search function doesn't clear
@@ -103,12 +111,15 @@ FIX: Fixed.
 
 IMP: (9/16/09, DN) Lazy evaluation of RTree in thread-safe mode.
 
-BUG: (9/16/09, SMR) Saving to a write-protected directory freezes the UI (Bug #2293).
+BUG: (9/16/09, SMR) Saving to a write-protected directory freezes the UI (Bug
+     #2293).
 FIX: In FileMenu.RenameAndSaveLibraryTask.renameAndSave() do not throw a
      JobException on error.
 
-BUG: (9/16/09, SMR) Messages window doesn't handle standard text editing (Bug #2398).
-FIX: Improved Edit commands so that cut/copy/paste/erase/select all work properly.
+BUG: (9/16/09, SMR) Messages window doesn't handle standard text editing (Bug
+     #2398).
+FIX: Improved Edit commands so that cut/copy/paste/erase/select all work
+     properly.
 
 BUG: (9/16/09, SMR) Zero-size arcs are not area-selectable (Bug #2394).
 FIX: In PolyBase.polyDistance() use DBMath.rectsIntersect() instead of
@@ -133,12 +144,14 @@ BUG: (9/15/09, SMR) Delete key doesn't work (Bug #2395), and ctrl-numpad 0
 FIX: More special cases in KeyBindingManager.processKeyEvent().
 
 BUG: (9/15/09, GVG) Missing "subtractAll" method in GeometryHandler (Bug #2384)
-FIX: Fixed inconsistent refactoring of HashMap parameter to TreeMap in the subtractAll function.
+FIX: Fixed inconsistent refactoring of HashMap parameter to TreeMap in the
+     subtractAll function.
 
 BUG: (9/15/09, SMR) Highlighting crashes when over portless cell (Bug #2391).
 FIX: Fixed Highlighter.checkOutObject().
 
-IMP: (9/15/09, GVG) Improve error message in case XML ErrorLogger import fails (Bug #2393)
+IMP: (9/15/09, GVG) Improve error message in case XML ErrorLogger import fails
+     (Bug #2393)
 
 IMP: (9/15/09, GVG) Well resistors in 40nm (Bug #2392)
 
@@ -153,13 +166,13 @@ FIX: Holding "Control" now cycles through the ports that are equidistant
 
 IMP: (9/14/09, JKG) Add "exportsToIngore" NCC annotation (Bug #2387)
 
-BUG: (9/14/09, AM) Merge com.sun.async.test.* into Electric codebase
+BUG: (9/14/09, AM) Merge com.sun.async.test.* into Electric code base
      (Bug #2347).  As discussed with SMR (in person), JKG (in person),
      GVG (on phone), and DN (on phone).
 FIX: After appropriate massaging, check former contents of
      /proj/async/cad/cvs/test/ into electric/srcj/com/sun/async/test/.
      Please see the package.html for details.  I have also
-     write-protected the old CVS repo so people don't accidentally
+     write-protected the old CVS repository so people don't accidentally
      check in anything new (any changes should go in here now).
 
 IMP/MAN: (9/14/09, SMR) "Manipulate Exports" now lets you change the name and
@@ -183,7 +196,8 @@ FIX: Distinguish between HighlightLine instances which correspond to
 
 ************************* Version 8.10g: *******************************
 
-IMP (9/11/09, GVG): Ability to duplicate cells in another cell (for Bug #2023 investigation)
+IMP (9/11/09, GVG): Ability to duplicate cells in another cell (for Bug #2023
+     investigation)
 
 BUG: (9/10/09, DN) Cannot run calibre DRC (Bug #2379).
 FIX: Implement UserInterfaceExec.termLogging and Exec.ExecProcess.userInterface
@@ -220,12 +234,14 @@ IMP: (9/9/09, AM) Remove com.sun.electric.tool.io.input.BTree (use
 ************************* Version 8.10f: *******************************
 
 BUG: (9/9/09, DN) Orientation JUnit test fails in JVM-1.6 64-bit.
-FIX: In Orientation consturctor use StringMath instaed of Math.
+FIX: In Orientation consturctor use StringMath instead of Math.
 
-BUG: (9/8/09, GVG) NPE while resetting all preferences in Preferences dialog (Bug #2376)
+BUG: (9/8/09, GVG) NPE while resetting all preferences in Preferences dialog (Bug
+     #2376)
 FIX: Detecting null cases in dialogs not used before the reset.
 
-IMP: (9/8/09, DN) Move client queue from ClientJobManager to AbstractUserInterface.
+IMP: (9/8/09, DN) Move client queue from ClientJobManager to
+     AbstractUserInterface.
 
 IMP: (9/7/09, DN) Job.currentUI is handled similar to StreamClient .
 
@@ -234,22 +250,28 @@ FIX: In Job.startJob compute "startedByServer" correctly.
 
 IMP: (9/7/09, DN) Preparations for thread-safe database.
 
-IMP: (9/7/09, DN) Electric throws IllegalStateException when attempting to "  plot spice listing" (Bug #2374).
-FIX: Install UserInterfaceExec in Simulate.ReadSimulationOutput.run, EpicOutProcess.run, ScalarEpicOutProcess.run.
+IMP: (9/7/09, DN) Electric throws IllegalStateException when attempting to
+     "plot spice listing" (Bug #2374).
+FIX: Install UserInterfaceExec in Simulate.ReadSimulationOutput.run,
+     EpicOutProcess.run, ScalarEpicOutProcess.run.
 
 IMP: (9/7/09, AM) Remove JDBM, use com.sun.electric.tool.btree instead.
 
 IMP: (9/7/09, AM) Check in first draft of com.sun.electric.tool.btree.
 
-IMP: (9/6/09, DN) Rename MultiTaskJobLight to MultiTaskJob, remove old MultiTaskJob.
+IMP: (9/6/09, DN) Rename MultiTaskJobLight to MultiTaskJob, remove old
+     MultiTaskJob.
 
-BUG: (9/3/09, JKG) bug 2351, logical effort had hard coded assumed values for gate widths and lengths
-     of the X=1 inverter. Those changed for 40nm. They are now specifiable as logical effort settings
+BUG: (9/3/09, JKG) bug 2351, logical effort had hard coded assumed values for
+     gate widths and lengths of the X=1 inverter. Those changed for 40nm.
+     They are now specifiable as logical effort settings
 
-IMP: (9/3/09, GVG) Build.xml modified to unjar jyphton and to include it into electric.jar (ant jar).
+IMP: (9/3/09, GVG) Build.xml modified to unjar Jython and to include it into
+     electric.jar (ant jar).
 That is to run Scripting regression in batch mode (part of Bug #2358)
 
-BUG: (9/3/09, DN) Command line "-batch -s script.bsh" executes script without any EditingPreferences (Bug #2373)
+BUG: (9/3/09, DN) Command line "-batch -s script.bsh" executes script without any
+     EditingPreferences (Bug #2373)
 FIX: In Main.InitDatabase.doIt assign factory-default EditingPreferences.
 
 BUG: (9/2/09, DN) DRCUpdate is not executed in MultiDRC regressins.
@@ -259,7 +281,8 @@ IMP: (9/2/09, DN) Better regression diagnostics.
 
 IMP: (9/2/09, DN) Explicit UserInterface object for each thread.
 
-IMP: (9/2/09, GVG) More changes to get Jython working in the regressions (Bug #2358)
+IMP: (9/2/09, GVG) More changes to get Jython working in the regressions (Bug
+     #2358)
 
 IMP: (9/1/09, AM) Change name of ScalarSignal to NewSignal (it is no
      longer limited to scalar samples).
@@ -272,18 +295,20 @@ IMP: (9/1/09, AM) Change "Recenter On Selection" to "(move) Cell
 
 IMP: (9/1/09, AM) Renamed com.sun.electric.tool.user.Highlight2->Highlight.
 
-IMP/MAN: (9/1/09, SMR) In explorer tree, the context command "Search" under "LIBRARIES"
-     now has a more powerful dialog that does partial searches, shows results in the
-     dialog, and lets the cells be edited (Bug #2322).
+IMP/MAN: (9/1/09, SMR) In explorer tree, the context command "Search" under
+     "LIBRARIES" now has a more powerful dialog that does partial searches, shows
+     results in the dialog, and lets the cells be edited (Bug #2322).
 
 BUG: (9/1/09, SMR) Cannot use delete key in Text windows (Bug #2372).
 FIX: Added recognition of TextWindow in KeyBindingManager.processKeyEvent().
 
 IMP: (9/1/09, DN) ImmutableNodeInst.computeBounds doesn't require real NodeInst.
 
-BUG: (8/31/09, SMR) Undo/Redo status is not updated during text editing (Bug #2361).
+BUG: (8/31/09, SMR) Undo/Redo status is not updated during text editing (Bug
+     #2361).
 FIX: In TextWindow.updateUndoRedo(), call showUndoRedoStatus() and
-     In Undo.updateUndoRedo(), do not call showUndoRedoStatus() if in a text cell.
+     In Undo.updateUndoRedo(), do not call showUndoRedoStatus() if in a text
+     cell.
 
 IMP: (8/31/09, SMR) User's Manual search highlights search keys.
 
@@ -306,53 +331,62 @@ BUG: (8/28/09, AM) Pulsing error highlighting doesn't work on
      resolution/size DRC errors (Bug #2350).
 FIX: In ErrorLogger, ensure that all error markers are logged with "thick" lines.
 
-BUG: (8/28/09, DN) Arrray exception in stitch generator if cell is instantiated (Bug #2360)
+BUG: (8/28/09, DN) Array exception in stitch generator if cell is instantiated
+     (Bug #2360)
 FIX: In StitchFillJob.generateFill reload netlist after database modifications.
 
-BUG: (8/27/09, JKG) Stitch fill generator connecting subcells with wrong arc (Bug #2362)
-FIX: In InterativeRouter, Special contact code earlier so it would not be skipped in this case.
+BUG: (8/27/09, JKG) Stitch fill generator connecting subcells with wrong arc (Bug
+     #2362)
+FIX: In InterativeRouter, Special contact code earlier so it would not be skipped
+     in this case.
 
 BUG: (8/27/09, DN) Pixel drawing algorithm not displaying LE result (Bug #2359)
-FIX: In PixelDrawing.drawNode replace "varContext.pop();" by "varContext = varContext.pop();".
+FIX: In PixelDrawing.drawNode replace "varContext.pop();" by
+     "varContext = varContext.pop();".
 
-IMP/MAN: (8/26/09, SMR) Added "Tools / Languages / Run Jython Script..." (Bug #2358).
+IMP/MAN: (8/26/09, SMR) Added "Tools / Languages / Run Jython Script..." (Bug
+     #2358).
 
 BUG: (8/25/09, SMR) Bipolar technology crashes (Bug #2332).
 FIX: Changed the function of the PNJunction node to a CONNECT.
 
-BUG: (8/25/09, GVG) Assertion in techs with PrimitiveNode with more than 1 port (Bug #2356)
+BUG: (8/25/09, GVG) Assertion in techs with PrimitiveNode with more than 1 port
+     (Bug #2356)
 FIX: Code generalized.
 
-BUG: (8/24/09, SMR) Switching cells between icon and tech-edit does not
-     update the style of the Artwork technology in the component menu (Bug #2355).
+BUG: (8/24/09, SMR) Switching cells between icon and tech-edit does not update
+     the style of the Artwork technology in the component menu (Bug #2355).
 FIX: In WindowFrame.setCellWindow() call loadComponentMenuForTechnology().
 
 BUG: (8/24/09, SMR) Converting schematic technology to library fails (Bug #2354).
 FIX: Fix vector conversion and disable editing of noneditable technologies.
 
-BUG: (8/22/09, AM) Annotation text not selectable in a certain situation (Bug #2352)
+BUG: (8/22/09, AM) Annotation text not selectable in a certain situation (Bug
+     #2352)
 FIX: com.sun.electric.tool.user.Highlighter.findTextNow() must pass
      all text to EditWindow.setTextInCell(), THEN filter out the text
      that is not visible (rather than in the other order).
 
-BUG: (8/19/09, DN) fill generator does not replace old versions of existing fill cells (Bug #2342).
+BUG: (8/19/09, DN) fill generator does not replace old versions of existing fill
+     cells (Bug #2342).
 FIX: In Cell.kill() remove all instances of killed Cell.
-     In StitchFillJob.cleanReplacement copy all instances in a temporary list before starting modification.
+     In StitchFillJob.cleanReplacement copy all instances in a temporary list
+     before starting modification.
 
 ************************* Version 8.10e: ******************************
 
 IMP/MAN: (8/18/09, SMR) Added Placement tool.
 
 BUG: (8/18/09, SMR) Moving diagonal arcs may break them (Bug #2341).
-FIX: Special diagonal arc handling only used if manhattan arcs connected
+FIX: Special diagonal arc handling only used if Manhattan arcs connected
      to them are NOT selected.
 
 BUG: (8/17/09, AM) Pulsating error highlighting causes 100% CPU usage
      (Bug #2348)
 FIX: Use a javax.swing.Timer instead of repaint requests.
 
-BUG: (8/17/09, GVG) Fill generator is not putting enough contacts in when 
-connecting to cell instance (Bug #2340)
+BUG: (8/17/09, GVG) Fill generator is not putting enough contacts in when
+     connecting to cell instance (Bug #2340)
 FIX: Adding nodes in SearchInHierarchy.
 
 BUG: (8/17/09, SMR) If two arcs are in a line, meeting at an end (not sharing
@@ -412,29 +446,40 @@ FIX: In ExplorerTree.MyRenderer.getTreeCellRendererComponent(), force the text
 
 ************************* Version 8.10d: ******************************
 
-BUG: (8/6/09, SMR) "Array" doesn't remember last centerline distance used (Bug #2325).
+BUG: (8/6/09, SMR) "Array" doesn't remember last centerline distance used (Bug
+     #2325).
 FIX: Now remember for the current session.
 
-BUG: (8/6/09, GVG) Verilog netlister isn' t writing anything and complains about preferences. (Bug #2324)
+BUG: (8/6/09, GVG) Verilog netlister isn't writing anything and complains about
+     preferences. (Bug #2324)
 FIX: Caching VerilogInputPreferences together with VerilogOutputPreferences.
 
-BUG: (8/6/09, SMR) "Search" context item in LIBRARIES explorer node fails (Bug #2322).
+BUG: (8/6/09, SMR) "Search" context item in LIBRARIES explorer node fails (Bug
+     #2322).
 FIX: Rewrite ExplorerTree.searchAction() to show all results.
 
-BUG: (8/6/09, GVG) false drc error between pdiff contacts in tsmcsun40GP (Bug #2311)
+BUG: (8/6/09, GVG) false DRC error between pdiff contacts in tsmcsun40GP (Bug
+     #2311)
 FIX: Better detection if active from contacts overlaps with transistor active
 
-BUG: (8/6/09, DN) Exception in PixelDrawing.drawText, text rotated 270 degrees (Bug #2291).
+BUG: (8/6/09, DN) Exception in PixelDrawing.drawText, text rotated 270 degrees
+     (Bug #2291).
 FIX: In PixelDrawing.drawText clean assignments to sx and ex.
 
-IMP: (8/5/09, GVG) Better short names in palette icons for well and active contacts (Bug #2323)
+IMP: (8/5/09, GVG) Better short names in palette icons for well and active
+     contacts (Bug #2323)
 
-BUG/MAN: (8/5/09, JKG) Fixes for node extraction. PURELAYERNODEMODE in node extractor, probably
-     should be preference. Changes to auto-stitcher used by node extractor. (Bugs #2183, #2239)
-(1) changed conditions for forcing an arc to have no head/tail extends (RouteElementArc.java)
-(2) more code for aligning to grid, for node extraction (InteractiveRouter.java)
-(3) fixes for node extractor, mostly in re-exporting up the hierarchy (AutoStitch.java)
-(4) purelayernodemode that extracts mostly pure layer nodes. lots of fixes (Connectivity.java)
+BUG/MAN: (8/5/09, JKG) Fixes for node extraction. PURELAYERNODEMODE in node
+     extractor, probably should be preference. Changes to auto-stitcher used by
+     node extractor. (Bugs #2183, #2239)
+     (1) changed conditions for forcing an arc to have no head/tail extends
+        (RouteElementArc.java)
+     (2) more code for aligning to grid, for node extraction
+        (InteractiveRouter.java)
+     (3) fixes for node extractor, mostly in re-exporting up the hierarchy
+         (AutoStitch.java)
+     (4) purelayernodemode that extracts mostly pure layer nodes. lots of fixes
+         (Connectivity.java)
 
 IMP: (8/5/09, JKG) fix for null color in LayerDrawing.java
 
@@ -453,22 +498,26 @@ IMP: (8/4/09, AM) Make Output.writeLibrary throw an exception instead
      "Error saving files.  Please check your disk libraries" message.
 
 IMP/MAN: (8/4/09, GVG) TechEditorWizard and a multiple spacing rules (Bug #2305).
-Feature added but not turn on for 40nm yet.
+     Feature added but not turn on for 40nm yet.
 
-BUG/MAN: (8/4/09, GVG) Pplus/Nplus enclosure of Well/  Subs taps should be 2 instead of 8 (Bug #2320)
+BUG/MAN: (8/4/09, GVG) Pplus/Nplus enclosure of Well/  Subs taps should be 2
+     instead of 8 (Bug #2320)
 FIX: Added STRAP values to the TechEditorWizard
 
-BUG: (8/4/09, GVG) Allowable connections to P-Well-con 
-should be Pwell arc, not Pdiff arc (same for N-Well-con) (Bug #2319)
+BUG: (8/4/09, GVG) Allowable connections to P-Well-con should be Pwell arc,
+     not Pdiff arc (same for N-Well-con) (Bug #2319)
 FIX: Ports fixed for those well contacts defined in a generic way.
 
-IMP/MAN: (8/4/09, SMR) When placing a node from the component menu, typing "," or "."
-     before clicking rotates the node's initial orientation (Bug #2253).
+IMP/MAN: (8/4/09, SMR) When placing a node from the component menu, typing "," or
+     "." before clicking rotates the node's initial orientation (Bug #2253).
 
-BUG: (8/4/09, SMR) "Change" dialog takes too long when changing arcs with nodes (Bug #2294).
-FIX: Improved efficiency of finding a contact stack by caching correct contacts to use.
+BUG: (8/4/09, SMR) "Change" dialog takes too long when changing arcs with nodes
+     (Bug #2294).
+FIX: Improved efficiency of finding a contact stack by caching correct contacts
+     to use.
 
-BUG: (8/4/09, SMR) Current cell not remembered when it switches from text to edit (Bug #2288).
+BUG: (8/4/09, SMR) Current cell not remembered when it switches from text to edit
+     (Bug #2288).
 FIX: In WindowFrame.setCellWindow(), always save current cell.
 
 ************************* Version 8.10b: ******************************
@@ -483,32 +532,39 @@ FIX: In WaveformWindow.fillWaveform(), computes left and right "fill" edges from
 BUG: (8/3/09, SMR) Delete key doesn't work in outline-edit mode (Bug #2280).
 FIX: Moved delete handling to the Erase function.
 
-BUG: (8/3/09, SMR) Waveform window drops lines if endpoints are offscreen (Bug #2299).
+BUG: (8/3/09, SMR) Waveform window drops lines if endpoints are offscreen (Bug
+     #2299).
 FIX: In Panel.processSignals(), always draw lines.
 
 BUG: (7/29/09, GVG) tsmcsun40GP tech: User.getPrimitivePortConnectedToArc()
-throws assertion error for N-Well arc (Bug #2317)
+     throws assertion error for N-Well arc (Bug #2317)
 FIX: Assertion not valid for pure nodes
 
 BUG: (7/29/09, DN) Race conditions in MultiTaskJobLight (reported by Eric).
 FIX: Add field MultiTaskJobLight.numberOfFinishedJobs.
 
-BUG: (7/28/09, GVG) Running DRC on 40nm layout causes 'assert' exception (Bug #2316)
+BUG: (7/28/09, GVG) Running DRC on 40nm layout causes 'assert' exception (Bug
+     #2316)
 FIX: Add bit for foundry=NONE (from TechEditorWizard)
 
-BUG: (7/26/09, DN) Electric highlights the wrong port when moving up the hierarchy (Bug #2314).
+BUG: (7/26/09, DN) Electric highlights the wrong port when moving up the
+     hierarchy (Bug #2314).
 FIX: In EditWindow.upoHierarchy find equivalent port if necessary.
 
-IMP: (7/24/09, GVG) Need some more well/substrate contact types in 40nm (Bug #2313).
-The process without pwell is called Psubstrate in the TechEditorWizard now.
+IMP: (7/24/09, GVG) Need some more well/substrate contact types in 40nm (Bug
+     #2313).  The process without pwell is called Psubstrate in the
+     TechEditorWizard now.
 
 IMP: (7/24/09, DN) MultiTaskJobLight - light implementation of MultiTaskJob API.
 
-BUG: (7/23/09, GVG) Function types are backwards for P/N Well contacts in tsmcsun40GP (Bug #2309)
+BUG: (7/23/09, GVG) Function types are backwards for P/N Well contacts in
+     tsmcsun40GP (Bug #2309)
 FIX: Nwell function properly defined in p/n well contacts in nwell process
 
-BUG: (7/23/09, GVG) performance bug when changing metal layer in layout (tsmc40GP) (Bug #2294)
-PATCH: Determine wiring direction to prune search. Not the final solution, just a patch for now.
+BUG: (7/23/09, GVG) performance bug when changing metal layer in layout
+     (tsmc40GP) (Bug #2294)
+FIX: Determine wiring direction to prune search. Not the final solution, just a
+     patch for now.
 
 BUG: (7/23/09, GVG) java.lang.AssertionError (Bug #2304)
 FIX: Contact conditions only valid for layout techs
@@ -516,36 +572,44 @@ FIX: Contact conditions only valid for layout techs
 BUG: (7/22/09, GVG) Missing some spacing rules in 40nm (Bug #2303)
 FIX: Added metal spacing rules. Only 1 rule per pair.
 
-BUG: (7/22/09, GVG) Drc generates false errors when checking pure layer node geometry with trace information (Bug #2297)
-FIX: isPointInsideCutAlgorithm is using pointInRect instead of pointInsideRect for bounding box checking.
-This is only used for non-rectangular polygons.
+BUG: (7/22/09, GVG) Drc generates false errors when checking pure layer node
+     geometry with trace information (Bug #2297)
+FIX: isPointInsideCutAlgorithm is using pointInRect instead of pointInsideRect
+     for bounding box checking.  This is only used for non-rectangular polygons.
 
-BUG: (7/22/09, DN) EpicReaderProcess doesn't jon HSim signals to groups. (Bug #2298).
+BUG: (7/22/09, DN) EpicReaderProcess doesn't join HSim signals to groups. (Bug
+     #2298).
 FIX: Add class EpicReaderProcess.EpicReaderContext to join signals.
 
 BUG: (7/21/09, DN) EpicReaderProcess can't read HSim output (Bug #2298).
 FIX: Epic signals can share waveform numbers.
 
-IMP: (7/20/09, GVG) Adding back changes for "TechWizardEditor and non-deterministic XML output" (Bug #2250)
-after Bug #2295 and Bug #2296 are fixed.
+IMP: (7/20/09, GVG) Adding back changes for "TechWizardEditor and non-
+     deterministic XML output" (Bug #2250) after Bug #2295 and Bug #2296 are
+     fixed.
 
 BUG: (7/20/09, GVG) Wiring tool not working as expected in 40nm (Bug #2296)
 FIX: Add equivalent list of ports.
 
 BUG: (7/20/09, GVG) Wiring tool not picking the correct node (Bug #2295)
-FIX: Add current port proto per combination of arc protos. Can be manipulated from the tech palette.
+FIX: Add current port proto per combination of arc protos. Can be manipulated
+     from the tech palette.
 
 BUG: (7/17/09, GVG) Undoing bug #2250 due to bug #2295.
 
 BUG: (7/16/09, GVG) NPE in showNetworkCommand (Bug #2292)
 FIX: Wrong detection of null condition.
 
-BUG: (7/15/09, GVG) Compare Displayed Cells tool looking for subcells in wrong library (Bug #2290)
-FIX: Skip subcells not found in the same library because they are shared with other cell
+BUG: (7/15/09, GVG) Compare Displayed Cells tool looking for subcells in wrong
+     library (Bug #2290)
+FIX: Skip subcells not found in the same library because they are shared with
+     other cell
 
-IMP: (7/15/09, GVG) Compare Displayed Cells tool should ignore 0-sized nodes (Bug #2289)
+IMP: (7/15/09, GVG) Compare Displayed Cells tool should ignore 0-sized nodes (Bug
+     #2289)
 
-IMP: (7/15/09, GVG) Consider X axis while comparing points not aligned in StitchFill:isLeftTop (Bug #2281)
+IMP: (7/15/09, GVG) Consider X axis while comparing points not aligned in
+     StitchFill:isLeftTop (Bug #2281)
 
 ************************* Version 8.10a: ******************************
 
@@ -560,7 +624,8 @@ BUG: (7/14/09, AM) Threading assertion failure when creating waveform
 
 IMP: (7/13/09, GVG) Adding ERC Antenna to the regression (bug #2283)
 
-BUG: (7/13/09, GVG) tsmcsun40GP tech: n/p-well arcs in palette menu, connect to p/n-diff layers (Bug #2282)
+BUG: (7/13/09, GVG) tsmcsun40GP tech: n/p-well arcs in palette menu, connect to
+     p/n-diff layers (Bug #2282)
 FIX: The n/p-well arcs should be selectable from the palette menu (part I).
 
 IMP: (7/12/09, GVG) More changes in LayoutImage dialog
@@ -582,35 +647,40 @@ IMP: (7/11/09, AM) Move getLibraryFormat() from FileMenu to FileType
 IMP/MAN: (7/11/09, AM) Schematics.java: make appearance of off-page
      connection node depend on the PortCharacteristics of its Exports.
 
-BUG: (7/10/09, GVG) tsmcsun40GP tech: n/p-well arcs in palette menu, connect to p/n-diff layers (Bug #2282)
+BUG: (7/10/09, GVG) tsmcsun40GP tech: n/p-well arcs in palette menu, connect to
+     p/n-diff layers (Bug #2282)
 FIX: Well arcs available for diff primitive nodes (part II)
 
-IMP: (7/10/09, JKG) nodeinst centers do not need to be ongrid (only edges matter), so relaxed restriction.
-For well and implant, put back whole original layers in, as this is simpler (no connectivity needed)
+IMP: (7/10/09, JKG) NodeInst centers do not need to be on grid (only edges
+     matter), so relaxed restriction.  For well and implant, put back whole
+     original layers in, as this is simpler (no connectivity needed)
 
 IMP: (7/10/09, GVG) BJTDMY in 40nm
 
 BUG: (7/8/09, GVG) ERC Antenna and NotSerializableException (Bug #2283)
 FIX: Made TechPool in AntennaPreferences transient.
 
-IMP: (7/8/09, GVG) Stitch fill generator needs to find all possible connections with cell instances (Bug #2273).
-New solution looks for all possible intersections. It might be slow.
+IMP: (7/8/09, GVG) Stitch fill generator needs to find all possible connections
+     with cell instances (Bug #2273).  New solution looks for all possible
+     intersections. It might be slow.
 
 IMP/MAN: (7/8/09, AM) LayoutImage dialog and implementation.
 
-BUG: (7/8/09, SMR) Run Probe option under LTSpice simulation does not work (from BSU, Bug #2279).
-FIX: In com.sun.electric.tool.io.output.Spice.SpiceFinishedListener.processFinished(),
-     replace method with:
+BUG: (7/8/09, SMR) Run Probe option under LTSpice simulation does not work (from
+     BSU, Bug #2279).
+FIX: In com.sun.electric.tool.io.output.Spice.SpiceFinishedListener.
+     processFinished(), replace method with:
         SwingUtilities.invokeLater(new Runnable() { public void run() {
             Simulate.plotSpiceResultsThisCell();
         }});
 
-BUG: (7/8/09, SMR) When undoing changes, index out of bounds exception when no more
-     undo's are available (from BSU, Bug #2278).
+BUG: (7/8/09, SMR) When undoing changes, index out of bounds exception when no
+     more undo's are available (from BSU, Bug #2278).
 FIX: In com.sun.electric.database.change.Undo.getUndoActivity(), replaced
         return doneList.get(doneList.size() - 1).activity;
      with:
-        if (!doneList.isEmpty()) return doneList.get(doneList.size() - 1).activity;
+        if (!doneList.isEmpty()) return doneList.get(doneList.size() - 1).
+            activity;
         System.out.println("Nothing left to undo");
         return "";
      In com.sun.electric.tool.user.ui.ToolBar.java, added:
@@ -622,13 +692,16 @@ FIX: In com.sun.electric.database.change.Undo.getUndoActivity(), replaced
      With:
         if (task.equals(FileMenu.openJobName) && realUndo)
 
-BUG: (7/7/09, JKG) Some arcs generated by Stitch fill gen have extended tail/head (Bug #2277)
-FIX: swapped width/height check in getExtendArcEnd to choose proper ends extended state.
-fixed call to node size to get without offset.
+BUG: (7/7/09, JKG) Some arcs generated by Stitch fill gen have extended tail/head
+     (Bug #2277)
+FIX: swapped width/height check in getExtendArcEnd to choose proper ends extended
+     state.  Fixed call to node size to get without offset.
 
-IMP: (7/7/09, GVG) Generic pins in layout should generate only DRC warnings (Bug #2276)
+IMP: (7/7/09, GVG) Generic pins in layout should generate only DRC warnings (Bug
+     #2276)
 
-IMP: (7/7/09, SMR) EDIF import now gets Export characteristics right in schematic cells (Bug #2275).
+IMP: (7/7/09, SMR) EDIF import now gets Export characteristics right in schematic
+     cells (Bug #2275).
 
 IMP: (7/6/09, GVG) TechWizardEditor and non-deterministic XML output (Bug #2250)
 
@@ -641,15 +714,18 @@ BUG: (7/6/09, SMR) Extension renaming broken for DELIBs (Bug #2256).
 FIX: Fixed Output.writeLibrary().
 
 BUG: (7/6/09, GVG) fill generator still missing some contacts (Bug #2240)
-FIX: Added orientation instruction in doc file otherwise it is hard to look for intersections.
+FIX: Added orientation instruction in doc file otherwise it is hard to look for
+     intersections.
 
-BUG: (7/6/09, GVG) All *.  lay cells renamed to deleted after running the stitch generator? (Bug #2272)
+BUG: (7/6/09, GVG) All *.  lay cells renamed to deleted after running the stitch
+     generator? (Bug #2272)
 FIX: Undone changes in Output.writeLibrary() for bug #2256.
 
 BUG: (7/6/09, SMR) Text windows cannot cut/copy/paste (Bug #2269).
 FIX: Added these functions to TextWindow.java.
 
-IMP: (7/2/09, GVG) 3D Viewer shouldn't be available if j3d package is not available (Bug #2268)
+IMP: (7/2/09, GVG) 3D Viewer shouldn't be available if j3d package is not
+     available (Bug #2268)
 
 IMP: (7/2/09, GVG) Add 40nm Poly Resistors (Bug #2267)
 
@@ -665,7 +741,8 @@ BUG: (7/2/09, SMR) LTSpice crashes when reading back stimuli (Bug #2265).
 FIX: Changed tool.io.input.Simulate.ReadSimulationOutput class to be Thread,
      not Job.
 
-IMP: (7/2/09, GVG) Importing instead of exporting of Text Cell Contents (Bug #2264)
+IMP: (7/2/09, GVG) Importing instead of exporting of Text Cell Contents (Bug
+     #2264)
 FIX: Calling tw.writeTextCell instead of tw.readTextCell
 
 IMP: (7/2/09, GVG) PNG Export doesn't log message in MessageWindow (Bug #2263)
@@ -674,19 +751,22 @@ BUG: (7/2/09, GVG) Assertion in GraphicsPreferences (Bug #2262)
 FIX: No User background color in EditWindow.getPrintImage()
 
 IMP: (7/1/09, GVG) 180nm techs not longer overwriting setPrimitiveNodeSize.
-This will allow to get 40nm resistors get properly sized.
+     This will allow to get 40nm resistors get properly sized.
 
 BUG: (7/1/09, SMR) Memory leak in WindowFrame (Bug #2261).
-FIX: (fixed by Winway Pang of BSU) Call "jif.dispose()" in WindowFrame.finished().
+FIX: (fixed by Winway Pang of BSU) Call "jif.dispose()" in
+     WindowFrame.finished().
 
-BUG: (7/1/09, SMR) Arrow and Delete keys in in-place editors handled wrong (Bug #2259).
+BUG: (7/1/09, SMR) Arrow and Delete keys in in-place editors handled wrong (Bug
+     #2259).
 FIX: Added EIPEditorPane and EIPTextField to KeyBindingManager.processKeyEvent().
 
 BUG: (7/1/09, SMR) Changing extension of output file is ignored (Bug #2256).
 FIX: In Output.writeLibrary() only add extension if there is none.
 
 BUG: (7/1/09, SMR) PostScript text is incorrectly scaled (too large) and
-     PostScript gives errors about the server trying to access Preferences (Bug #2258).
+     PostScript gives errors about the server trying to access Preferences (Bug
+     #2258).
 FIX: Moved preference access to client.
 
 BUG: (7/1/09, SMR) Node extractor does not grid-align (Bug #2239).
@@ -695,23 +775,30 @@ FIX: Grid alignment added to node extractor and routers.
 BUG: (6/29/09, SMR) Arc Preferences crashes when changing technology (Bug #2255).
 FIX: In NewArcsTabnewArcsPrimPopupChanged(), ignore if already changing.
 
-IMP/MAN: (6/29/09, SMR) Rolling mouse wheel with control held zooms in and out (Bug #2248).
+IMP/MAN: (6/29/09, SMR) Rolling mouse wheel with control held zooms in and out
+     (Bug #2248).
 
 BUG/MAN: (6/29/09, SMR) Spice primitives are not centered (Bug #2249).
 FIX: Centered all primitives and added a "Probe" symbol.
 
-BUG: (6/26/09, GVG) fill generator doesn'  t connect all networks found in fillCap (Bug #2254)
-FIX: HierarchicalEnumerator added to find arcs in sub cells included as instances.
+BUG: (6/26/09, GVG) fill generator doesn't connect all networks found in
+     fillCap (Bug #2254)
+FIX: HierarchicalEnumerator added to find arcs in sub cells included as
+     instances.
 
-IMP/MAN: (6/25/09, GVG) Adding <resolution> in the XML tech description for bug #2239
+IMP/MAN: (6/25/09, GVG) Adding <resolution> in the XML tech description for Bug
+     #2239
 
 BUG: (6/25/09, SMR) Auto-repeat of arrow keys does not work (Bug #2251).
 FIX: Fixed KeyBindingManager.java:
      KeyBindingManager now implements KeyEventDispatcher
-     Constructor calls: KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
-     KeyBindingManager now has: public boolean dispatchKeyEvent(KeyEvent e) {return processKeyEvent(e);}
-     KeyBindingManager.processKeyEvent() does different shift modification and has special source detection
-     (source detection required that "OpenFile.OpenFileSwing" be public)
+     Constructor calls: KeyboardFocusManager.getCurrentKeyboardFocusManager().
+       addKeyEventDispatcher(this);
+     KeyBindingManager now has:
+       public boolean dispatchKeyEvent(KeyEvent e) {return processKeyEvent(e);}
+     KeyBindingManager.processKeyEvent() does different shift modification and
+     has special source detection (source detection required that
+     "OpenFile.OpenFileSwing" be public)
 
 IMP/MAN: (6/24/09, SMR) GDS import has "Cadence Compatibility" preference
      which adjusts export locations to be inside of the geometry (Bug #2246).
