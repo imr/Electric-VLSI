@@ -243,6 +243,7 @@ Tools
   Node Extraction                    =chap09-10-02
  Compaction                          =chap09-11
  Silicon Compiler                    =chap09-12
+ Placement                           =chap09-13
 
 The JELIB and DELIB File Format
  Introduction                        =chap10-01

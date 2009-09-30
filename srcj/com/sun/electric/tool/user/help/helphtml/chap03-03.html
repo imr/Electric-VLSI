@@ -1,6 +1,7 @@
 <!-- HEADER 3-3: Creating Instances -->
 
 <!-- COMMAND Cell/Place Cell Instance... -->
+<!-- COMMAND Edit/Move/Cell Center to Center of Selection -->
 
 To place an instance of a cell in another cell,
 use the "Cell" button in the component menu.
@@ -47,7 +48,15 @@ Most cells have a cell-center node placed automatically in them.
 If there isn't one and you want it, click on the "Misc" button in the component menu on the left,
 and choose "Cell Center".
 A cell-center node, placed inside of the cell definition, affects the anchor point for all subsequent
-creation of instances of the cell. 
+creation of instances of the cell.
+<P>
+The cell-center is always at the origin of the cell.
+If you move it, then the origin moves
+(in other words, moving the cell center is really like moving everything else in the cell).
+Note that the cell center is "hard to select" and can only be moved in "special select" mode
+(see <A HREF="chap02-01-05.html#chap2-01-05">Section 2-1-5</A>).
+You can move the cell center to the center of the selected objects by using the
+<B>Cell Center to Center of Selection</B> command (from menu <B>Edit / Move</B>).
 
 <P>
 <H4>Schematic Instances</H4>

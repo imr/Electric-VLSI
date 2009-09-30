@@ -133,6 +133,10 @@ The default is "Convert to DRC Exclusion layer" which creates an orange DRC-Node
 If you set this to "Ignore", the unknown layers are simply ignored.
 A final choice is "Convert to random layer" which picks a different layer in the technology for each unknown GDS layer number.
 This allows the distinction between layers to be seen, even if the correct layer associations are not known.</LI>
+<LI>"Cadence compatibility".
+This forces a GDS import to do things that assume the GDS has come from a Cadence system.
+Export locations are forced to be inside of the geometry on which they reside.
+</LI>
 </UL>
 
 <!-- TRAILER -->

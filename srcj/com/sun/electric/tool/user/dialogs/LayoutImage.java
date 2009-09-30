@@ -31,11 +31,15 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.*;
+import java.awt.Canvas;
 import java.awt.Frame;
+import java.awt.Image;
+import java.awt.MediaTracker;
+import java.awt.Toolkit;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
@@ -73,11 +77,11 @@ public class LayoutImage extends EDialog {
 
         Technology tech = Technology.getCurrent();
         for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
-            {
-                PrimitiveNode np = it.next();
-                if (np.getFunction() == PrimitiveNode.Function.NODE)
-                    textLayer.addItem(np.getName());
-            }
+        {
+            PrimitiveNode np = it.next();
+            if (np.getFunction() == PrimitiveNode.Function.NODE)
+                textLayer.addItem(np.getName());
+        }
 
         finishInitialization();
     }
@@ -109,6 +113,7 @@ public class LayoutImage extends EDialog {
         openFileButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Layout Image");
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         cancel.setText("Cancel");
@@ -120,8 +125,6 @@ public class LayoutImage extends EDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 9;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
 
@@ -132,10 +135,8 @@ public class LayoutImage extends EDialog {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 9;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ok, gridBagConstraints);
 
@@ -143,7 +144,6 @@ public class LayoutImage extends EDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel1, gridBagConstraints);
@@ -151,9 +151,8 @@ public class LayoutImage extends EDialog {
         smallestDotWidth.setColumns(8);
         smallestDotWidth.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(smallestDotWidth, gridBagConstraints);
@@ -162,7 +161,6 @@ public class LayoutImage extends EDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel2, gridBagConstraints);
@@ -170,9 +168,8 @@ public class LayoutImage extends EDialog {
         largestDotWidth.setColumns(8);
         largestDotWidth.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(largestDotWidth, gridBagConstraints);
@@ -181,7 +178,6 @@ public class LayoutImage extends EDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel3, gridBagConstraints);
@@ -189,9 +185,8 @@ public class LayoutImage extends EDialog {
         minimumGutter.setColumns(8);
         minimumGutter.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(minimumGutter, gridBagConstraints);
@@ -206,7 +201,6 @@ public class LayoutImage extends EDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(textLayer, gridBagConstraints);
@@ -217,7 +211,6 @@ public class LayoutImage extends EDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(reverseVideo, gridBagConstraints);
@@ -227,28 +220,27 @@ public class LayoutImage extends EDialog {
         monochrome.setMargin(new java.awt.Insets(0, 0, 0, 0));
         monochrome.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                monochromeActionPerformed(evt);
+                monochromeActionPerford(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(monochrome, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
         getContentPane().add(fileName, gridBagConstraints);
 
         jLabel4.setText("Image file name:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel4, gridBagConstraints);
@@ -260,8 +252,9 @@ public class LayoutImage extends EDialog {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 12, 4);
         getContentPane().add(openFileButton, gridBagConstraints);
 
         pack();
@@ -281,7 +274,7 @@ public class LayoutImage extends EDialog {
         final int minimumGutter = (int)TextUtils.atofDistance(this.minimumGutter.getText(), tech);
         final int largestDotWidth = (int)TextUtils.atofDistance(this.largestDotWidth.getText(), tech);
         final int smallestDotWidth = (int)TextUtils.atofDistance(this.smallestDotWidth.getText(), tech);
-        final boolean reverseVideo = this.reverseVideo.isSelected();
+//        final boolean reverseVideo = this.reverseVideo.isSelected();
         final String layer = (String)textLayer.getSelectedItem();
 
         // determine the primitive to use for the layout
@@ -350,8 +343,8 @@ public class LayoutImage extends EDialog {
             int samp = 0;
             for(int y=0; y<height; y++) {
                 for(int x=0; x<width; x++) {
-                    int w = (int)(((int)(((((float)(255-(samples[samp++] & 0xff))))/(255f)) *
-                                         ((float)(largestDotWidth-smallestDotWidth))))+smallestDotWidth);
+                    int w = ((int)(((255-(samples[samp++] & 0xff)) / 255f) *
+                                         ((largestDotWidth-smallestDotWidth))))+smallestDotWidth;
                     Point2D center = new Point2D.Double((x-xOffset)*scale, -(y+yOffset)*scale);
                     NodeInst.newInstance(primNode, center, w, w, curCell);
                 }
@@ -361,13 +354,15 @@ public class LayoutImage extends EDialog {
     }
 
 
-    private void monochromeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_monochromeActionPerformed
+    private void monochromeActionPerford(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_monochromeActionPerford
         // TODO add your handling code here:
-    }//GEN-LAST:event_monochromeActionPerformed
+    }//GEN-LAST:event_monochromeActionPerford
 
-private void openFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openFileButtonActionPerformed
-// TODO add your handling code here:
-}//GEN-LAST:event_openFileButtonActionPerformed
+	private void openFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openFileButtonActionPerformed
+		String fn = OpenFile.chooseInputFile(FileType.ANY, null);
+		if (fn == null) return;
+		fileName.setText(fn);
+	}//GEN-LAST:event_openFileButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancel;

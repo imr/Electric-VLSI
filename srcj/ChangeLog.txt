@@ -50,7 +50,7 @@ BUG: (9/24/09, SMR) Explorer tree "Search" dialog doesn't allow multiple
      cells to be selected and viewed (Bug #2322).
 FIX: Now handle all selected cells.
 
-IMP/MAN: (9/24/09, SMR) New Display Preference: "Show cell results in new window"
+IMP: (9/24/09, SMR) New Display Preference: "Show cell results in new window"
      causes commands that show a cell to do it in a new window.  The commands
      are: "Edit XXX View", "Make XXX View", do Placement, ROM generation, PLA
      generation, etc. (Bug #2388).
@@ -155,7 +155,7 @@ IMP: (9/15/09, GVG) Improve error message in case XML ErrorLogger import fails
 
 IMP: (9/15/09, GVG) Well resistors in 40nm (Bug #2392)
 
-IMP/MAN: (9/15/09, SMR) Added two new error-reporting commands to
+IMP: (9/15/09, SMR) Added two new error-reporting commands to
      "Edit / Selection" which do NOT popup a new window:
      "Show Next Error, same Window" and "Show Previous Error, same Window"
      These are bound to "[" and "]" (Bug #2388).
@@ -175,7 +175,7 @@ FIX: After appropriate massaging, check former contents of
      write-protected the old CVS repository so people don't accidentally
      check in anything new (any changes should go in here now).
 
-IMP/MAN: (9/14/09, SMR) "Manipulate Exports" now lets you change the name and
+IMP: (9/14/09, SMR) "Manipulate Exports" now lets you change the name and
      characteristic of an export (Bug #2383).
 
 BUG: (9/14/09, AM) SwingUtilities.isEventThread() assertion failure.
@@ -295,7 +295,7 @@ IMP: (9/1/09, AM) Change "Recenter On Selection" to "(move) Cell
 
 IMP: (9/1/09, AM) Renamed com.sun.electric.tool.user.Highlight2->Highlight.
 
-IMP/MAN: (9/1/09, SMR) In explorer tree, the context command "Search" under
+IMP: (9/1/09, SMR) In explorer tree, the context command "Search" under
      "LIBRARIES" now has a more powerful dialog that does partial searches, shows
      results in the dialog, and lets the cells be edited (Bug #2322).
 
@@ -322,7 +322,7 @@ IMP: (8/30/09, AM) Add a menu item to Window->WaveformWindow for each
      documentation, this makes it possible for users to add a
      keystroke for those buttons.
 
-IMP/MAN: (8/30/09, AM) Add Edit->Move->Recenter Cell on Selection.
+IMP: (8/30/09, AM) Add Edit->Move->Recenter Cell on Selection.
 
 BUG: (8/28/09, JKG) Stitch fill generator not keeping arc extension (Bug #2364)
 FIX: InterativeRouter modified.
@@ -344,7 +344,7 @@ BUG: (8/27/09, DN) Pixel drawing algorithm not displaying LE result (Bug #2359)
 FIX: In PixelDrawing.drawNode replace "varContext.pop();" by
      "varContext = varContext.pop();".
 
-IMP/MAN: (8/26/09, SMR) Added "Tools / Languages / Run Jython Script..." (Bug
+IMP: (8/26/09, SMR) Added "Tools / Languages / Run Jython Script..." (Bug
      #2358).
 
 BUG: (8/25/09, SMR) Bipolar technology crashes (Bug #2332).
@@ -375,7 +375,7 @@ FIX: In Cell.kill() remove all instances of killed Cell.
 
 ************************* Version 8.10e: ******************************
 
-IMP/MAN: (8/18/09, SMR) Added Placement tool.
+IMP: (8/18/09, SMR) Added Placement tool.
 
 BUG: (8/18/09, SMR) Moving diagonal arcs may break them (Bug #2341).
 FIX: Special diagonal arc handling only used if Manhattan arcs connected
@@ -403,11 +403,11 @@ BUG: (8/16/09, AM) Adjust CalibreDrcErrors so that a "CN" line applies
      to all the rest of the errors for that rule, rather than just the
      next error.  Jon Gainsley: please verify this! (Bug #2338).
 
-IMP/MAN: (8/16/09, AM) Add pulsating error highlighting.  This is
+IMP: (8/16/09, AM) Add pulsating error highlighting.  This is
      useful because using motion to direct the user's attention (rather
      than color) works with any color scheme.
 
-IMP/MAN: (8/15/09, AM) Add "duplicate in place" option.  When this is
+IMP: (8/15/09, AM) Add "duplicate in place" option.  When this is
      enabled, the "duplicate" command will place the duplicated object
      exactly where the original was.  This is far more useful than the
      default behavior when you have layout geometry that needs to stay
@@ -425,7 +425,7 @@ IMP: (8/11/09, AM) build.xml: add support for temporary use of jdbm
 IMP: (8/11/09, AM) Add BTree.java wrapper for various B-Tree
      implementations (JDBM initially, something GNU-friendly later).
 
-IMP/MAN: (8/11/09, SMR) Added Network Preference "Use pure-layer nodes
+IMP: (8/11/09, SMR) Added Network Preference "Use pure-layer nodes
      for connectivity" to control node extraction (Bug #2183).
 
 IMP: (8/10/09, AM) Add ScalarEpicAnalysis and ScalarEpicOutProcess as
@@ -469,7 +469,7 @@ FIX: In PixelDrawing.drawText clean assignments to sx and ex.
 IMP: (8/5/09, GVG) Better short names in palette icons for well and active
      contacts (Bug #2323)
 
-BUG/MAN: (8/5/09, JKG) Fixes for node extraction. PURELAYERNODEMODE in node
+BUG: (8/5/09, JKG) Fixes for node extraction. PURELAYERNODEMODE in node
      extractor, probably should be preference. Changes to auto-stitcher used by
      node extractor. (Bugs #2183, #2239)
      (1) changed conditions for forcing an arc to have no head/tail extends
@@ -485,10 +485,10 @@ IMP: (8/5/09, JKG) fix for null color in LayerDrawing.java
 
 ************************* Version 8.10c: ******************************
 
-IMP/MAN: (8/5/09, SMR) Added ${FILEPATH} to the possible substitutions in
+IMP: (8/5/09, SMR) Added ${FILEPATH} to the possible substitutions in
      the Spice Preferences Command/Argument fields (Bug #2318).
 
-IMP/MAN: (8/4/09, AM) When writing a DELIB, swap ':' for '/' in cell
+IMP: (8/4/09, AM) When writing a DELIB, swap ':' for '/' in cell
      names (Bug #2310).
 
 IMP: (8/4/09, AM) Update com/sun/electric/tool/simulation/package.html.
@@ -497,10 +497,10 @@ IMP: (8/4/09, AM) Make Output.writeLibrary throw an exception instead
      of returning a boolean, in order to eliminate worryingly vague
      "Error saving files.  Please check your disk libraries" message.
 
-IMP/MAN: (8/4/09, GVG) TechEditorWizard and a multiple spacing rules (Bug #2305).
+IMP: (8/4/09, GVG) TechEditorWizard and a multiple spacing rules (Bug #2305).
      Feature added but not turn on for 40nm yet.
 
-BUG/MAN: (8/4/09, GVG) Pplus/Nplus enclosure of Well/  Subs taps should be 2
+BUG: (8/4/09, GVG) Pplus/Nplus enclosure of Well/  Subs taps should be 2
      instead of 8 (Bug #2320)
 FIX: Added STRAP values to the TechEditorWizard
 
@@ -508,7 +508,7 @@ BUG: (8/4/09, GVG) Allowable connections to P-Well-con should be Pwell arc,
      not Pdiff arc (same for N-Well-con) (Bug #2319)
 FIX: Ports fixed for those well contacts defined in a generic way.
 
-IMP/MAN: (8/4/09, SMR) When placing a node from the component menu, typing "," or
+IMP: (8/4/09, SMR) When placing a node from the component menu, typing "," or
      "." before clicking rotates the node's initial orientation (Bug #2253).
 
 BUG: (8/4/09, SMR) "Change" dialog takes too long when changing arcs with nodes
@@ -613,7 +613,7 @@ IMP: (7/15/09, GVG) Consider X axis while comparing points not aligned in
 
 ************************* Version 8.10a: ******************************
 
-IMP/MAN: (7/15/09, AM) Back out change from 7/12 until we figure out
+IMP: (7/15/09, AM) Back out change from 7/12 until we figure out
      what's going on with the regressions.
 
 BUG: (7/14/09, AM) EpicAnalysis.getSignalsFromExtractedNet() always
@@ -630,7 +630,7 @@ FIX: The n/p-well arcs should be selectable from the palette menu (part I).
 
 IMP: (7/12/09, GVG) More changes in LayoutImage dialog
 
-IMP/MAN: (7/12/09, AM) If "-" is supplied as an argument to "-s" on the
+IMP: (7/12/09, AM) If "-" is supplied as an argument to "-s" on the
      command line, read a bean shell script from stdin.
 
 IMP: (7/12/09, AM) Move i2i from Schematics to ArrayIterator.
@@ -644,7 +644,7 @@ IMP: (7/11/09, AM) Fix "-batch" mode; it broke somewhere between 8.08k
 IMP: (7/11/09, AM) Move getLibraryFormat() from FileMenu to FileType
      so it can be invoked when java.awt.headless=true.
 
-IMP/MAN: (7/11/09, AM) Schematics.java: make appearance of off-page
+IMP: (7/11/09, AM) Schematics.java: make appearance of off-page
      connection node depend on the PortCharacteristics of its Exports.
 
 BUG: (7/10/09, GVG) tsmcsun40GP tech: n/p-well arcs in palette menu, connect to
@@ -664,7 +664,7 @@ IMP: (7/8/09, GVG) Stitch fill generator needs to find all possible connections
      with cell instances (Bug #2273).  New solution looks for all possible
      intersections. It might be slow.
 
-IMP/MAN: (7/8/09, AM) LayoutImage dialog and implementation.
+IMP: (7/8/09, AM) LayoutImage dialog and implementation.
 
 BUG: (7/8/09, SMR) Run Probe option under LTSpice simulation does not work (from
      BSU, Bug #2279).
@@ -729,7 +729,7 @@ IMP: (7/2/09, GVG) 3D Viewer shouldn't be available if j3d package is not
 
 IMP: (7/2/09, GVG) Add 40nm Poly Resistors (Bug #2267)
 
-IMP/MAN: (7/2/09, SMR) Added "Cell / Cell Info / Library Graph" to display
+IMP: (7/2/09, SMR) Added "Cell / Cell Info / Library Graph" to display
      organization of library dependencies (Bug #2219).
 
 BUG: (7/2/09, SMR) Deleting individual stimuli from waveform window removes
@@ -775,10 +775,10 @@ FIX: Grid alignment added to node extractor and routers.
 BUG: (6/29/09, SMR) Arc Preferences crashes when changing technology (Bug #2255).
 FIX: In NewArcsTabnewArcsPrimPopupChanged(), ignore if already changing.
 
-IMP/MAN: (6/29/09, SMR) Rolling mouse wheel with control held zooms in and out
+IMP: (6/29/09, SMR) Rolling mouse wheel with control held zooms in and out
      (Bug #2248).
 
-BUG/MAN: (6/29/09, SMR) Spice primitives are not centered (Bug #2249).
+BUG: (6/29/09, SMR) Spice primitives are not centered (Bug #2249).
 FIX: Centered all primitives and added a "Probe" symbol.
 
 BUG: (6/26/09, GVG) fill generator doesn't connect all networks found in
@@ -800,7 +800,7 @@ FIX: Fixed KeyBindingManager.java:
      has special source detection (source detection required that
      "OpenFile.OpenFileSwing" be public)
 
-IMP/MAN: (6/24/09, SMR) GDS import has "Cadence Compatibility" preference
+IMP: (6/24/09, SMR) GDS import has "Cadence Compatibility" preference
      which adjusts export locations to be inside of the geometry (Bug #2246).
 
 ************************* END OF Version 8.09, GNU RELEASE *************

@@ -11,6 +11,23 @@
 <!-- COMMAND Window/Waveform Window/Fill Only in Y -->
 <!-- COMMAND Window/Waveform Window/Clear All Signals in Waveform Window -->
 
+<!-- COMMAND Window/Waveform Window/Create New Waveform Panel -->
+<!-- COMMAND Window/Waveform Window/Toggle Horizontal Panel Lock -->
+<!-- COMMAND Window/Waveform Window/Show Points and Lines -->
+<!-- COMMAND Window/Waveform Window/Show Lines -->
+<!-- COMMAND Window/Waveform Window/Show Points -->
+<!-- COMMAND Window/Waveform Window/Toggle Grid Points -->
+<!-- COMMAND Window/Waveform Window/Increase Minimum Panel Height -->
+<!-- COMMAND Window/Waveform Window/Decrease Minimum Panel Height -->
+<!-- COMMAND Window/Waveform Window/Rewind Main X Axis Cursor to Start -->
+<!-- COMMAND Window/Waveform Window/Play Main X Axis Cursor Backwards -->
+<!-- COMMAND Window/Waveform Window/Stop Moving Main X Axis Cursor -->
+<!-- COMMAND Window/Waveform Window/Play Main X Axis Cursor -->
+<!-- COMMAND Window/Waveform Window/Move Main X Axis Cursor to End -->
+<!-- COMMAND Window/Waveform Window/Move Main X Axis Cursor Faster -->
+<!-- COMMAND Window/Waveform Window/Move Main X Axis Cursor Slower -->
+
+
 The waveform window is able to display analog simulation output.
 This simulation output comes from external simulators (such as Spice).
 When the system is asked to display the results of an external simulation, it reads
@@ -59,7 +76,7 @@ You can add signals to the list by double-clicking on their name in the "SIGNALS
 (or by dragging those names to the waveform part on the right).
 The signals will be added to the highlighted panel (the one with the bold vertical axis).
 You can create a new panel, with no signals in it, by clicking on the button in the upper-left of the waveform window
-(<IMG SRC="fig09-29.png" ALT="Figure 9.29">).
+(<IMG SRC="fig09-29.png" ALT="Figure 9.29">) or by using the <B>Create New Waveform Panel</B> command.
 <P>
 If the layout or schematics cell that produced the simulation is being displayed in another window,
 and the currently selected network in that window is found in the simulation output,
@@ -134,6 +151,7 @@ The different panels in the waveform window are locked in time: they all show th
 as shown at the top of the waveform window.
 If you click on the "time lock" button at the top of the waveform window
 (looks like a lock with the time on it:&nbsp;<IMG SRC="fig09-18.png" ALT="Figure 9.18">&nbsp;)
+or use the <B>Toggle Horizontal Panel Lock</B> command,
 then time is unlocked, and each panel has its own time scale.
 Now individual panels can show a different range of time than the rest.
 <P>
@@ -141,6 +159,13 @@ A set of VCR buttons is available to animate the main time cursor.
 The play rate can be controlled by the up-arrow and down-arrow buttons to the right of the VCR controls.
 These buttons make the playback run faster or slower.
 As the time cursor sweeps across the waveform window, the original circuit can be seen to change levels.
+These VCR controls are also available by using the <B>Rewind Main X Axis Cursor to Start</B>,
+<B>Play Main X Axis Cursor Backwards</B>,
+<B>Stop Moving Main X Axis Cursor</B>,
+<B>Play Main X Axis Cursor</B>,
+<B>Move Main X Axis Cursor to End</B>,
+<B>Move Main X Axis Cursor Faster</B>, and
+<B>Move Main X Axis Cursor Slower</B> commands.
 <P>
 These window functions apply to the analog simulation windows:
 <UL>
@@ -184,11 +209,15 @@ This function is also available with the <B>Refresh Simulation Data</B> command
 Controls the display of dots on the vertices of the waveforms.
 The button toggles between three states:
 (1) showing lines only, (2) showing lines and dots, and (3) showing dots only.
+These functions are also available with the <B>Show Points and Lines</B>, <B>Show Lines</B>, and <B>Show Points</B> commands
+(in menu <B>Window / Waveform Window</B>).
 </LI>
 
 <LI><B>"Show Grid"</B>&nbsp;<IMG SRC="fig09-27.png" ALT="Figure 9.27">&nbsp;&nbsp;
 Displays a grid in the waveform panels.
 The button toggles between showing and not-showing the grid.
+This function is also available with the <B>Toggle Grid Points</B> command
+(in menu <B>Window / Waveform Window</B>).
 </LI>
 
 <LI><B>The Panel popup</B> This is a list of all panels, including the hidden ones.
@@ -198,6 +227,8 @@ and making a hidden one reappear.</LI>
 <LI><B>"Grow" and "Shrink"</B>&nbsp;<IMG SRC="fig09-31.png" ALT="Figure 9.31">&nbsp;&nbsp;
 These buttons, which show a waveform being stretched or squeezed,
 cause the minimum panel size to change.
+These functions are also available with the <B>Increase Minimum Panel Height</B> and <B>Decrease Minimum Panel Height</B> commands
+(in menu <B>Window / Waveform Window</B>).
 By shrinking the panel size, more of them can fit in the window without having to use a slider to access them.
 Also, the panels can be resized individually by dragging any of the dividers.</LI>
 </UL>

@@ -67,6 +67,12 @@ In multi-cut situations, this may be many more nodes than are necessary.
 When unusual geometries are extracted, there can be many tiny polygons needed to fill in gaps.
 By default, any polygon smaller than 1/4 unit in area is ignored.
 <P>
+"Use pure-layer nodes for connectivity" requests that all wires in the extracted layout be run
+using pure-layer nodes.  When unchecked, arcs and pins are created to make connections.
+Because complex layout can cause many little arcs and pins to be created in order to mimic the geometry,
+this preference lets a simpler set of pure-layer nodes do the wiring.
+Pure-layer nodes are harder to edit, but simpler when modeling complex geometry.
+<P>
 Active and implant regions can be handled in a number of different ways, depending on the way that
 these layers are defined in the original CIF/GDS.
 <UL>

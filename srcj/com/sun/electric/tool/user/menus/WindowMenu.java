@@ -260,24 +260,24 @@ public class WindowMenu {
                 new EMenuItem("Fill Only in _Y") { public void run() {
                     WaveformWindow.fillInY(); }},
                 SEPARATOR,
-                new EMenuItem("Create new waveform panel",
+                new EMenuItem("Create New Waveform Panel",
                               Resources.getResource(WaveformWindow.class, "ButtonSimAddPanel.gif")) { public void run() {
                                   WaveformWindow.getCurrentWaveformWindow().makeNewPanel(null);
                     }},
-                new EMenuItem("(Un)Lock all panels horizontally",
+                new EMenuItem("Toggle Horizontal Panel Lock",
                               Resources.getResource(WaveformWindow.class, "ButtonSimLockTime.gif")) { public void run() {
                                   WaveformWindow.getCurrentWaveformWindow().togglePanelXAxisLock();
                     }},
                 SEPARATOR,
-                new EMenuItem("Toggle Show Points On/On",
+                new EMenuItem("Show Points and Lines",
                               Resources.getResource(WaveformWindow.class, "ButtonSimLineOnPointOn.gif")) { public void run() {
                                   WaveformWindow.getCurrentWaveformWindow().toggleShowPoints();
                     }},
-                new EMenuItem("Toggle Show Points On/Off",
+                new EMenuItem("Show Lines",
                               Resources.getResource(WaveformWindow.class, "ButtonSimLineOnPointOff.gif")) { public void run() {
                                   WaveformWindow.getCurrentWaveformWindow().toggleShowPoints();
                     }},
-                new EMenuItem("Toggle Show Points Off/On",
+                new EMenuItem("Show Points",
                               Resources.getResource(WaveformWindow.class, "ButtonSimLineOffPointOn.gif")) { public void run() {
                                   WaveformWindow.getCurrentWaveformWindow().toggleShowPoints();
                     }},
@@ -287,40 +287,40 @@ public class WindowMenu {
                                   WaveformWindow.getCurrentWaveformWindow().toggleGridPoints();
                     }},
                 SEPARATOR,
-                new EMenuItem("Increase minimum panel height",
+                new EMenuItem("Increase Minimum Panel Height",
                               Resources.getResource(WaveformWindow.class, "ButtonSimGrow.gif")) { public void run() {
                                   WaveformWindow.getCurrentWaveformWindow().growPanels(1.25);
                     }},
-                new EMenuItem("Decrease minimum panel height",
+                new EMenuItem("Decrease Minimum Panel Height",
                               Resources.getResource(WaveformWindow.class, "ButtonSimShrink.gif")) { public void run() {
                                   WaveformWindow.getCurrentWaveformWindow().growPanels(0.8);
                     }},
                 SEPARATOR,
-                new EMenuItem("Rewind main X axis cursor to start",
+                new EMenuItem("Rewind Main X Axis Cursor to Start",
                               Resources.getResource(WaveformWindow.class, "ButtonVCRRewind.gif")) { public void run() {
                                   WaveformWindow.getCurrentWaveformWindow().vcrClickRewind();
                     }},
-                new EMenuItem("Play main X axis cursor backwards",
+                new EMenuItem("Play Main X Axis Cursor Backwards",
                               Resources.getResource(WaveformWindow.class, "ButtonVCRPlayBackward.gif")) { public void run() {
                                   WaveformWindow.getCurrentWaveformWindow().vcrClickPlayBackwards();
                     }},
-                new EMenuItem("Stop moving main X axis cursor",
+                new EMenuItem("Stop Moving Main X Axis Cursor",
                               Resources.getResource(WaveformWindow.class, "ButtonVCRStop.gif")) { public void run() {
                                   WaveformWindow.getCurrentWaveformWindow().vcrClickStop();
                     }},
-                new EMenuItem("Play main X axis cursor",
+                new EMenuItem("Play Main X Axis Cursor",
                               Resources.getResource(WaveformWindow.class, "ButtonVCRPlay.gif")) { public void run() {
                                   WaveformWindow.getCurrentWaveformWindow().vcrClickPlay();
                     }},
-                new EMenuItem("Move main X axis cursor to end",
+                new EMenuItem("Move Main X Axis Cursor to End",
                               Resources.getResource(WaveformWindow.class, "ButtonVCRToEnd.gif")) { public void run() {
                                   WaveformWindow.getCurrentWaveformWindow().vcrClickToEnd();
                     }},
-                new EMenuItem("Move main X axis cursor faster",
+                new EMenuItem("Move Main X Axis Cursor Faster",
                               Resources.getResource(WaveformWindow.class, "ButtonVCRFaster.gif")) { public void run() {
                                   WaveformWindow.getCurrentWaveformWindow().vcrClickFaster();
                     }},
-                new EMenuItem("Move main X axis cursor slower",
+                new EMenuItem("Move Main X Axis Cursor Slower",
                               Resources.getResource(WaveformWindow.class, "ButtonVCRSlower.gif")) { public void run() {
                                   WaveformWindow.getCurrentWaveformWindow().vcrClickSlower();
                     }}
