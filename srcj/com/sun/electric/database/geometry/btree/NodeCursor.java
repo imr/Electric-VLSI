@@ -21,11 +21,11 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.btree;
+package com.sun.electric.database.geometry.btree;
 
 import java.io.*;
 import java.util.*;
-import com.sun.electric.tool.btree.unboxed.*;
+import com.sun.electric.database.geometry.btree.unboxed.*;
 
 /**
  *   Internal use only; kind of a hack.  This is just a "parser"

@@ -2,8 +2,6 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: BTree.java
- *
  * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
@@ -21,28 +19,28 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.btree.unboxed;
+package com.sun.electric.database.geometry.btree.unboxed;
 
 import java.io.*;
+import java.util.*;
 
 /**
- *  An Unboxed for some type, paired with an associative operator on
- *  that type and an identity value for the operator.
+ *  Note that Map.Entry<A,B> is just the Java idiom for Pair<A,B>
+ *  (there is no standard generic Pair).
  *
- *  http://en.wikipedia.org/wiki/Monoid
+ *  JDK1.6 has AbstractMap.SimpleImmutableEntry for this.
  */
-public interface UnboxedMonoid<V extends Serializable>
-    extends Unboxed<V> {
-
-    /** Write the monoid's identity value into the buffer at ofs */
-    public void identity(byte[] buf, int ofs);
-  
-    /**
-     *  Compute (buf1,ofs1)*(buf2,ofs2) and write it to (buf_dest,ofs_dest).
-     *  MUST support the case where (buf1,ofs1)==(buf_dest,ofs_dest)
-     *  or (buf2,ofs2)==(buf_dest,ofs_dest) or ther is some overlap.
-     */
-    public void multiply(byte[] buf1, int ofs1,
-                         byte[] buf2, int ofs2,
-                         byte[] buf_dest, int ofs_dest);
+public class Pair<A,B> implements Serializable, Map.Entry<A,B> {
+    private final A a;
+    private final B b;
+    public Pair(A a, B b) { this.a = a; this.b = b; }
+    public B setValue(B b) { throw new Error("don't do this"); }
+    public A getKey() { return a; }
+    public B getValue() { return b; }
+    public int hashCode() { return a.hashCode() ^ b.hashCode(); }
+    public boolean equals(Object o) {
+        if (o==null || !(o instanceof Pair)) return false;
+        Pair<A,B> sme = (Pair<A,B>)o;
+        return a.equals(sme.a) && b.equals(sme.b);
+    }
 }

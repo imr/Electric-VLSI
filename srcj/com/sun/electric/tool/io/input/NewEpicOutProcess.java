@@ -33,7 +33,7 @@ import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import com.sun.electric.tool.simulation.*;
-import com.sun.electric.tool.btree.*;
+import com.sun.electric.database.geometry.btree.*;
 import java.io.*;
 import java.util.*;
 

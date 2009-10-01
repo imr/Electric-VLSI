@@ -33,8 +33,8 @@ import com.sun.electric.tool.simulation.WaveformImpl;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import com.sun.electric.tool.simulation.*;
-import com.sun.electric.tool.btree.*;
-import com.sun.electric.tool.btree.unboxed.*;
+import com.sun.electric.database.geometry.btree.*;
+import com.sun.electric.database.geometry.btree.unboxed.*;
 
 import java.awt.geom.Rectangle2D;
 import java.io.File;

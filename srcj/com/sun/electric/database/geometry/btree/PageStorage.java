@@ -2,6 +2,8 @@
  *
  * Electric(tm) VLSI Design System
  *
+ * File: BTree.java
+ *
  * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
@@ -19,28 +21,32 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.btree.unboxed;
+package com.sun.electric.database.geometry.btree;
 
 import java.io.*;
-import java.util.*;
 
 /**
- *  Note that Map.Entry<A,B> is just the Java idiom for Pair<A,B>
- *  (there is no standard generic Pair).
- *
- *  JDK1.6 has AbstractMap.SimpleImmutableEntry for this.
+ *  Stores and retrieves fixed-size byte sequences indexed by a page
+ *  number.
  */
-public class Pair<A,B> implements Serializable, Map.Entry<A,B> {
-    private final A a;
-    private final B b;
-    public Pair(A a, B b) { this.a = a; this.b = b; }
-    public B setValue(B b) { throw new Error("don't do this"); }
-    public A getKey() { return a; }
-    public B getValue() { return b; }
-    public int hashCode() { return a.hashCode() ^ b.hashCode(); }
-    public boolean equals(Object o) {
-        if (o==null || !(o instanceof Pair)) return false;
-        Pair<A,B> sme = (Pair<A,B>)o;
-        return a.equals(sme.a) && b.equals(sme.b);
-    }
+public abstract class PageStorage {
+
+    /** returns the size, in bytes, of each page */
+    public abstract int getPageSize();
+
+    /** creates a new page with undefined contents; returns its pageid */
+    public abstract int  createPage();
+
+    /** writes a page; throws an exception if the page did not exist */ 
+    public abstract void writePage(int pageid, byte[] buf, int ofs);
+
+    /** reads a page */
+    public abstract byte[] readPage(int pageid, byte[] buf, int ofs);
+
+    /** ensure that the designated page is written to permanent storage */
+    public abstract void flush(int pageid);
+    
+    /** ensure that the all pages are written to permanent storage */
+    public abstract void flush();
+
 }

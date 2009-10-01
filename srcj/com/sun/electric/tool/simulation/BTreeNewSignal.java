@@ -23,8 +23,8 @@ package com.sun.electric.tool.simulation;
 
 import java.io.*;
 import java.util.*;
-import com.sun.electric.tool.btree.*;
-import com.sun.electric.tool.btree.unboxed.*;
+import com.sun.electric.database.geometry.btree.*;
+import com.sun.electric.database.geometry.btree.unboxed.*;
 import com.sun.electric.tool.simulation.*;
 
 public class BTreeNewSignal extends NewSignalSimpleImpl implements Waveform {

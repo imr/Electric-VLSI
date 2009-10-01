@@ -1,7 +1,11 @@
 			Java Electric change log ( MAIN branch )
 
 NOTE: Please place changes under the version that will be released next.
+
 ************************* Version 8.10j: ******************************
+
+IMP: (9/30/09, AM) Rename com.sun.electric.tool.btree to
+     com.sun.electric.database.geometry.btree as instructed by SMR.
 
 BUG: (9/29/09, SMR) Bold grid dot spacing cannot be changed (Bug #2405).
 FIX: Made bold spacing use integers, not doubles.

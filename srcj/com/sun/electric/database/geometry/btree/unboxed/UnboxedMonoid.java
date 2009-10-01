@@ -21,32 +21,28 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.btree;
+package com.sun.electric.database.geometry.btree.unboxed;
 
 import java.io.*;
 
 /**
- *  Stores and retrieves fixed-size byte sequences indexed by a page
- *  number.
+ *  An Unboxed for some type, paired with an associative operator on
+ *  that type and an identity value for the operator.
+ *
+ *  http://en.wikipedia.org/wiki/Monoid
  */
-public abstract class PageStorage {
+public interface UnboxedMonoid<V extends Serializable>
+    extends Unboxed<V> {
 
-    /** returns the size, in bytes, of each page */
-    public abstract int getPageSize();
-
-    /** creates a new page with undefined contents; returns its pageid */
-    public abstract int  createPage();
-
-    /** writes a page; throws an exception if the page did not exist */ 
-    public abstract void writePage(int pageid, byte[] buf, int ofs);
-
-    /** reads a page */
-    public abstract byte[] readPage(int pageid, byte[] buf, int ofs);
-
-    /** ensure that the designated page is written to permanent storage */
-    public abstract void flush(int pageid);
-    
-    /** ensure that the all pages are written to permanent storage */
-    public abstract void flush();
-
+    /** Write the monoid's identity value into the buffer at ofs */
+    public void identity(byte[] buf, int ofs);
+  
+    /**
+     *  Compute (buf1,ofs1)*(buf2,ofs2) and write it to (buf_dest,ofs_dest).
+     *  MUST support the case where (buf1,ofs1)==(buf_dest,ofs_dest)
+     *  or (buf2,ofs2)==(buf_dest,ofs_dest) or ther is some overlap.
+     */
+    public void multiply(byte[] buf1, int ofs1,
+                         byte[] buf2, int ofs2,
+                         byte[] buf_dest, int ofs_dest);
 }
