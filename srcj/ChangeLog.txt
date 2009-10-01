@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+BUG: (10/1/09, GVG) Marina scripts fail with "Conflicting thread modes: 
+BATCH and THREAD_SAFE" (Bug #2411)
+FIX: New Mode.THREAD_SAFE is defined (bug #2293) before -batch condition.
+
 IMP: (9/30/09, AM) Rename com.sun.electric.tool.btree to
      com.sun.electric.database.geometry.btree as instructed by SMR.
 

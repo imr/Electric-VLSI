@@ -37,6 +37,7 @@ import javax.swing.*;
  */
 public class J3DAlpha extends Alpha implements ChangeListener
 {
+    
     private Alpha alpha;
     private float manualValue = 0.5f; // in the middle
     private boolean autoMode = true;

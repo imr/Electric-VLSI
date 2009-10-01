@@ -202,14 +202,14 @@ public final class Main
 
         ActivityLogger.initialize("electric.log", true, true, true/*false*/);
 
-		if (hasCommandLineOption(argsList, "-batch")) {
-            //System.setProperty("java.awt.headless", "true");
-            runMode = Mode.BATCH;
-        }
-
         if (runMode != Mode.FULL_SCREEN)
             System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.THREAD_SAFE);
         runMode = Mode.THREAD_SAFE;
+
+        if (hasCommandLineOption(argsList, "-batch")) {
+            //System.setProperty("java.awt.headless", "true");
+            runMode = Mode.BATCH;
+        }
         if (hasCommandLineOption(argsList, "-nothreadsafe")) {
             runMode = Mode.FULL_SCREEN; // back to original default
         }
