@@ -2834,7 +2834,7 @@ public class Spice extends Topology
     private static final boolean CELLISEMPTYDEBUG = false;
     private Map<Cell,Boolean> checkedCells = new HashMap<Cell,Boolean>();
 
-    private boolean cellIsEmpty(Cell cell)
+    public boolean cellIsEmpty(Cell cell)
     {
         Boolean b = checkedCells.get(cell);
         if (b != null) return b.booleanValue();
