@@ -39,6 +39,7 @@ public class SCLibraryGen {
     private Variable.Key sizeKey = Variable.findKey("ATTR_X");
 
     public static final Variable.Key STANDARDCELL = Variable.newKey("ATTR_StandardCell");
+    public static final Variable.Key DONOTEXTRACTFORDSPF = Variable.newKey("ATTR_ExcludeFromDSPFExtraction");
 
     private static final int blueColorIndex = EGraphics.makeIndex(Color.blue);
 
@@ -261,7 +262,7 @@ public class SCLibraryGen {
      * @param notStandardCells a list of Cells to remove the standard cell attribute marker.
      */
     public static void markStandardCellJob(List<Cell> standardCells, List<Cell> notStandardCells) {
-        CreateVar job = new CreateVar(standardCells, notStandardCells);
+        CreateVar job = new CreateVar(standardCells, notStandardCells, STANDARDCELL);
         job.startJob();
     }
 
@@ -271,7 +272,7 @@ public class SCLibraryGen {
      * @param notStandardCells a list of Cells to remove the standard cell attribute marker.
      */
     public static void markStandardCell(List<Cell> standardCells, List<Cell> notStandardCells) {
-        CreateVar job = new CreateVar(standardCells, notStandardCells);
+        CreateVar job = new CreateVar(standardCells, notStandardCells, STANDARDCELL);
         job.doIt();
     }
 
@@ -280,7 +281,7 @@ public class SCLibraryGen {
         private List<Cell> standardCells;
         private List<Cell> notStandardCells;
 
-        public CreateVar(List<Cell> standardCells, List<Cell> notStandardCells)
+        public CreateVar(List<Cell> standardCells, List<Cell> notStandardCells, Variable.Key varName)
         {
             super("Create Var", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.standardCells = standardCells;
@@ -298,6 +299,15 @@ public class SCLibraryGen {
 	            	cell.delVar(STANDARDCELL);
             return true;
         }
+    }
+
+    /**
+     * Mark the cell to not be extracted for DSPF
+     * @param cells the cells
+     */
+    public static void markDoNotExtractForDSPFJob(List<Cell> cells) {
+        CreateVar job = new CreateVar(cells, null, DONOTEXTRACTFORDSPF);
+        job.startJob();
     }
 
     /**
@@ -324,6 +334,18 @@ public class SCLibraryGen {
         return cell.getVar(STANDARDCELL) != null;
     }
 
+    /**
+     * Returns true if the cell is marked to not be extracted for DSPF,
+     * for Static Timing Analysis
+     * @param cell the cell to check
+     * @return true if marked to not extract for DSPF
+     */
+    public static boolean isMarkedDoNotExtractForDSPF(Cell cell) {
+        Cell schcell = cell.getCellGroup().getMainSchematics();
+        if (schcell != null) cell = schcell;
+        return cell.getVar(DONOTEXTRACTFORDSPF) != null;
+    }
+
     private void prErr(String msg) {
         System.out.println("Standard Cell Library Generator Error: "+msg);
     }
@@ -347,10 +369,14 @@ public class SCLibraryGen {
         private List<VarContext> standardCellContexts = new ArrayList<VarContext>();
         private Map<VarContext,VarContext> emptyCellContexts = new HashMap<VarContext,VarContext>();
         private Map<VarContext,VarContext> containsStandardCellContexts = new HashMap<VarContext,VarContext>();
+        private Set<Cell> doNotExtractForDSPF = new HashSet<Cell>();
         private boolean nameConflict = false;
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info) {
             Cell cell = info.getCell();
+
+            if (isMarkedDoNotExtractForDSPF(cell)) doNotExtractForDSPF.add(cell);
+
             // skip cached and does not contain standard cell
             // (we want to traverse all hierarchy that contains standard cells
             // to produce the standard cell contexts list)
@@ -491,6 +517,15 @@ public class SCLibraryGen {
             }
             return sorted;
         }
+
+        /**
+         * Get cells that have been marked to not be extracted for DSPF
+         * @return the cells
+         */
+        public Set<Cell> getCellsMarkedToNotExtractForDSPF() {
+            return doNotExtractForDSPF;
+        }
+
         /**
          * Get cells of the given type. The type is one of
          * Type.StandardCell
