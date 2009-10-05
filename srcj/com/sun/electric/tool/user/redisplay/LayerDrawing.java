@@ -1441,7 +1441,11 @@ class LayerDrawing
 			y1 = DBMath.toNearest(y1, boldSpacingY);   spacingY = boldSpacingY;
 
 			// if even the bold dots are too close, don't draw a grid
-			if (spacingX * scaleX < 10 || spacingY * scaleY < 10) return;
+			if (spacingX * scaleX < 10 || spacingY * scaleY < 10)
+            {
+                wnd.printGridWarning();
+                return;
+            }
 		} else if (spacingX * scaleX > 75 && spacingY * scaleY > 75)
 		{
 			// if zoomed-out far enough, show all bold dots
@@ -2127,7 +2131,7 @@ class LayerDrawing
             layerBitMap = new int[height*numIntsPerRow];
         }
 
-        private void init(int[] layerBitMap, int intsPerRow) {
+        void init(int[] layerBitMap, int intsPerRow) {
             this.layerBitMap = layerBitMap;
             this.intsPerRow = intsPerRow;
         }

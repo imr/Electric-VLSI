@@ -179,7 +179,8 @@ public class EditWindow extends JPanel
 	/** the right scrollbar on the edit window. */			private JScrollBar rightScrollBar;
 
 	/** true if showing grid in this window */				private boolean showGrid = false;
-	/** X spacing of grid dots in this window */			private double gridXSpacing;
+    /** true if resolution warning has to be printed */     private boolean showGridWarning = false;
+    /** X spacing of grid dots in this window */			private double gridXSpacing;
 	/** Y spacing of grid dots in this window */			private double gridYSpacing;
 
 	/** true if doing object-selection drag */				private boolean doingAreaDrag = false;
@@ -1869,21 +1870,36 @@ public class EditWindow extends JPanel
 
 	/**
 	 * Method to set the display of a grid in this window.
-	 * @param showGrid true to show the grid.
+	 * @param showG true to show the grid.
 	 */
-	public void setGrid(boolean showGrid)
+	public void setGrid(boolean showG)
 	{
-		this.showGrid = showGrid;
-		fullRepaint();
+		this.showGrid = showG;
+        this.showGridWarning = showG;
+
+        fullRepaint();
 	}
 
-	/**
+    /**
 	 * Method to return the state of grid display in this window.
 	 * @return true if the grid is displayed in this window.
 	 */
 	public boolean isGrid() { return showGrid; }
 
-	/**
+    /**
+     * Method to print warning message in case grid is not displayed
+     * due to the resolution in this window.
+     */
+    public void printGridWarning()
+    {
+        if (showGridWarning)
+        {
+            System.out.println("Toggle grid is on but grid is not drawn due to the resolution");
+            showGridWarning = false;
+        }
+    }
+
+    /**
 	 * Method to return the distance between grid dots in the X direction.
 	 * @return the distance between grid dots in the X direction.
 	 */
