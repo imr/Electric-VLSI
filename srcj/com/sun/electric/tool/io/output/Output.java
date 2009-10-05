@@ -638,10 +638,10 @@ public class Output
 		this.filePath = fileP;
         try
 		{
+            //printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileP)));
             // Extra step with URL is needed for MacOSX paths.
             URL fileURL = TextUtils.makeURLToFile(fileP);
             printWriter = new PrintWriter(new BufferedWriter(new FileWriter(TextUtils.getFile(fileURL))));
-            printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileP)));
         } catch (IOException e)
 		{
             reportError("Error opening " + fileP+": "+e.getMessage());
