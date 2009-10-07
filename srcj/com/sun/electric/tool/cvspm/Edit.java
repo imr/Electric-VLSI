@@ -252,6 +252,7 @@ public class Edit {
         private List<Cell> cells;
         private boolean unedit;         // true to unmark rather than mark
         private boolean checkConflicts;
+        private List<String> uneditMatchedStrings;
         private List<Editor> editors;
         private String cvsProgram = CVS.getCVSProgram();
         private String repository = CVS.getRepository();
@@ -294,10 +295,14 @@ public class Edit {
                 if (args.trim().equals("")) return true;
 
                 Exec.OutputStreamChecker checker = new Exec.OutputStreamChecker(System.out, "has been modified; revert changes?", false, null);
-                checker.addOutputStreamCheckerListener(new UneditResponder(libs, cells));
+                UneditResponder uneditResponder = new UneditResponder();
+                checker.addOutputStreamCheckerListener(uneditResponder);
+//                checker.addOutputStreamCheckerListener(new UneditResponder(libs, cells));
 
                 //System.out.println("Unmarking CVS edit: "+args);
                 CVS.runCVSCommand(cvsProgram, repository, "unedit -l "+args, "CVS Unedit", useDir, checker);
+                uneditMatchedStrings = uneditResponder.matchedStrings;
+                fieldVariableChanged("uneditMatchedStrings");
                 return true;
             }
 
@@ -326,7 +331,24 @@ public class Edit {
         }
 
         public void terminateOK() {
-            if (!unedit && checkConflicts) {
+            if (unedit) {
+                for (String matched: uneditMatchedStrings) {
+                    // set status to modified
+                    String [] parts = matched.split("\\s+");
+                    if (parts[0].endsWith(".jelib")) {
+                        Library lib = Library.findLibrary(parts[0].substring(0, parts[0].length()-6));
+                        if (lib != null) {
+                            CVSLibrary.setState(lib, State.MODIFIED);
+                        }
+                    } else {
+                        // try delib
+                        Cell cell = CVS.getCellFromPath(parts[0]);
+                        if (cell != null) {
+                            CVSLibrary.setState(cell, State.MODIFIED);
+                        }
+                    }
+                }
+            } else if (checkConflicts) {
                 // if there are any editors, let the user know.
                 List<Editor> filteredEditors = new ArrayList<Editor>();
                 for (Editor e : editors) {
@@ -383,29 +405,32 @@ public class Edit {
     }
 
     private static class UneditResponder implements Exec.OutputStreamCheckerListener {
-        List<Library> libs;
-        List<Cell> cells;
-        private UneditResponder(List<Library> libs, List<Cell> cells) {
-            this.libs = libs;
-            this.cells = cells;
-        }
+        private List<String> matchedStrings = new ArrayList<String>();
+        
+//        List<Library> libs;
+//        List<Cell> cells;
+//        private UneditResponder(List<Library> libs, List<Cell> cells) {
+//            this.libs = libs;
+//            this.cells = cells;
+//        }
 
         public void matchFound(Exec process, String matched) {
             process.writeln("n\n");
-            // set status to modified
-            String [] parts = matched.split("\\s+");
-            if (parts[0].endsWith(".jelib")) {
-                Library lib = Library.findLibrary(parts[0].substring(0, parts[0].length()-6));
-                if (lib != null) {
-                    CVSLibrary.setState(lib, State.MODIFIED);
-                }
-            } else {
-                // try delib
-                Cell cell = CVS.getCellFromPath(parts[0]);
-                if (cell != null) {
-                    CVSLibrary.setState(cell, State.MODIFIED);
-                }
-            }
+            matchedStrings.add(matched);
+//            // set status to modified
+//            String [] parts = matched.split("\\s+");
+//            if (parts[0].endsWith(".jelib")) {
+//                Library lib = Library.findLibrary(parts[0].substring(0, parts[0].length()-6));
+//                if (lib != null) {
+//                    CVSLibrary.setState(lib, State.MODIFIED);
+//                }
+//            } else {
+//                // try delib
+//                Cell cell = CVS.getCellFromPath(parts[0]);
+//                if (cell != null) {
+//                    CVSLibrary.setState(cell, State.MODIFIED);
+//                }
+//            }
         }
     }
 

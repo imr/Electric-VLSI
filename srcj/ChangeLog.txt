@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+IMP: (10/7/09) cvspm.Edit.UneditResponder stores matched Strings in a list for later processing
+    in Edit.MarkForEditJob.terminateOK (Bug #2417).
+
 BUG: (10/7/09, DN) Threadsafe mode doesn't remember cells expanded (Bug #2416).
 FIX: Move Cell.loadExpandStatus from Library readers to FileMenu.ReadLibrary.terminateOK.
 
