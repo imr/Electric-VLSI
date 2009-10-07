@@ -88,8 +88,8 @@ public final class Main
      * Mode of Job manager
      */
     private static enum Mode {
-        /** Full screen run of Electric. */                                    FULL_SCREEN,
-        /** Thread-safe full screen run. */                                    THREAD_SAFE,
+        /** Full screen run of Electric. */                                    FULL_SCREEN_UNSAFE,
+        /** Thread-safe full screen run. */                                    FULL_SCREEN,
         /** JonG: "I think batch mode implies 'no GUI', and nothing more." */  BATCH,
         /** Server side. */                                                    SERVER,
         /** Client side. */                                                    CLIENT;
@@ -202,16 +202,14 @@ public final class Main
 
         ActivityLogger.initialize("electric.log", true, true, true/*false*/);
 
-        if (runMode != Mode.FULL_SCREEN)
-            System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.THREAD_SAFE);
-        runMode = Mode.THREAD_SAFE;
-
         if (hasCommandLineOption(argsList, "-batch")) {
             //System.setProperty("java.awt.headless", "true");
             runMode = Mode.BATCH;
         }
         if (hasCommandLineOption(argsList, "-nothreadsafe")) {
-            runMode = Mode.FULL_SCREEN; // back to original default
+            if (runMode != Mode.FULL_SCREEN)
+                System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.FULL_SCREEN_UNSAFE);
+            runMode = Mode.FULL_SCREEN_UNSAFE; // back to original default
         }
         if (hasCommandLineOption(argsList, "-server")) {
             if (runMode != Mode.FULL_SCREEN)
@@ -245,7 +243,7 @@ public final class Main
         if (hasCommandLineOption(argsList, "-sdi")) mode = UserInterfaceMain.Mode.SDI;
 
         AbstractUserInterface ui;
-        if (runMode == Mode.FULL_SCREEN || runMode == Mode.THREAD_SAFE || runMode == Mode.CLIENT)
+        if (runMode == Mode.FULL_SCREEN_UNSAFE || runMode == Mode.FULL_SCREEN || runMode == Mode.CLIENT)
             ui = new UserInterfaceMain(argsList, mode, true);
         else
             ui = new UserInterfaceDummy();
@@ -272,11 +270,12 @@ public final class Main
             } else {
                 Job.socketClient(serverMachineName, socketPort, ui, job);
             }
-        } else if (runMode == Mode.THREAD_SAFE) {
+        } else if (runMode == Mode.FULL_SCREEN) {
             EDatabase.setServerDatabase(new EDatabase(IdManager.stdIdManager.getInitialSnapshot(), "serverDB"));
             EDatabase.setCheckExamine();
             Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job, true);
         } else {
+            assert runMode == Mode.FULL_SCREEN_UNSAFE || runMode == Mode.BATCH || runMode == Mode.SERVER;
             EDatabase.setServerDatabase(database);
             Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job, false);
 
@@ -444,7 +443,7 @@ public final class Main
             Job.Type jobType, byte[] serializedJob,
             boolean doItOk, byte[] serializedResult, Snapshot newSnapshot) {
             printMessage("Job " + jobKey, true);
-            if (!jobType.isExamine()) {
+            if (Job.isThreadSafe() && !jobType.isExamine()) {
                 endChanging();
             }
         }

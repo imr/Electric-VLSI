@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+BUG: (10/7/09, DN) Marina scripts fail with "java.lang.AssertionError" (Bug #2414).
+FIX: Change Output.OutputCellInfo from CLIENT_EXAMINE to SERVER_EXAMINE .
+     In Make.UserInterfacDummy.terminateJob check for Job.isThreadSeafe().
+
 IMP: (10/5/09, GVG) Toggle Grid and resolution warnings (Bug# 2404)
 
 BUG: (10/1/09, GVG) Marina scripts fail with "Conflicting thread modes: 

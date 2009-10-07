@@ -176,7 +176,7 @@ public class Output
          */
         public OutputCellInfo(Cell cell, VarContext context, String filePath, FileType type, List<PolyBase> override)
         {
-            super("Export "+cell+" ("+type+")", IOTool.getIOTool(), Job.Type.CLIENT_EXAMINE, null, null, Priority.USER);
+            super("Export "+cell+" ("+type+")", IOTool.getIOTool(), Job.Type.SERVER_EXAMINE, null, null, Priority.USER);
             this.cell = cell;
             this.context = context;
             this.filePath = filePath;
