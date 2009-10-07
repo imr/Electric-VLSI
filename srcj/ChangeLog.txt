@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+IMP: (10/7/09, AM) Ensure that the JVM exits with nonzero exit code if
+    an exception is thrown in Batch mode (so Electric can be called
+    from Makefiles).
+
 IMP: (10/7/09, GVG) Back to DEFAULT_MODE = Mode.FULL_SCREEN_UNSAFE until 
 "threadsafe mode slow?" (bug #2420) is further investigated.
 

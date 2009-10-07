@@ -24,6 +24,7 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.StartupPrefs;
+import com.sun.electric.Main;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.Snapshot;
@@ -136,6 +137,15 @@ class EThread extends Thread {
 //                database.checkFresh(ejob.newSnapshot);
 //                ejob.state = EJob.State.SERVER_DONE;
             } catch (Throwable e) {
+
+                // Batch mode is used from scripts in which it is VERY
+                // important for the JVM to exit with a nonzero error
+                // code whenever something goes wrong.
+                if (Main.isBatch()) {
+                    e.printStackTrace();
+                    System.exit(-1);
+                }
+
                 e.getStackTrace();
                 if (!(e instanceof JobException))
                     e.printStackTrace();
