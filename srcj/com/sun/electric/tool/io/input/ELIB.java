@@ -1332,7 +1332,7 @@ public class ELIB extends LibraryFiles
 //			for(int i=startNode; i<endNode; i++)
 //				nodeInstList.theNode[i] = oldNodes[j++];
 //		}
-        cell.loadExpandStatus();
+//        cell.loadExpandStatus();
 	}
 
 	protected boolean spreadLambda(Cell cell, int cellIndex)

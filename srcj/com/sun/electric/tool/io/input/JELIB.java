@@ -218,7 +218,7 @@ public class JELIB extends LibraryFiles
 		cellsConstructed++;
         setProgressValue(cellsConstructed * 100 / totalCells);
 		recursiveSetupFlag.add(cell);
-        cell.loadExpandStatus();
+//        cell.loadExpandStatus();
 	}
 
 	/**

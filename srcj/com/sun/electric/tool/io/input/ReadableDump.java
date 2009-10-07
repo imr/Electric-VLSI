@@ -638,7 +638,7 @@ public class ReadableDump extends LibraryFiles
 		// do the arcs now
 		realizeArcs(cell, cellIndex);
 
-        cell.loadExpandStatus();
+//        cell.loadExpandStatus();
 	}
 
 	protected boolean spreadLambda(Cell cell, int cellIndex)

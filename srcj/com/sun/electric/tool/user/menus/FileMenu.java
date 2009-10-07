@@ -131,7 +131,7 @@ public class FileMenu {
 
     private static EMenu openRecentLibs;
     public static final String openJobName = "Read External Library";
-    
+
     static EMenu makeMenu() {
         openRecentLibs = new EMenu("Open Recent Library", new ArrayList<EMenuItem>());
 		/****************************** THE FILE MENU ******************************/
@@ -609,6 +609,12 @@ public class FileMenu {
             Cell showThisCell = cellName != null ? lib.findNodeProto(cellName) : lib.getCurCell();
         	doneOpeningLibrary(showThisCell);
             convertVarsToModelFiles(newLibs);
+            for (Library lib: newLibs) {
+                for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+                    Cell cell = it.next();
+                    cell.loadExpandStatus();
+                }
+            }
             if (CVS.isEnabled()) {
                 if (saveTask != null)
                     saveTask.librarySaved();

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+BUG: (10/7/09, DN) Threadsafe mode doesn't remember cells expanded (Bug #2416).
+FIX: Move Cell.loadExpandStatus from Library readers to FileMenu.ReadLibrary.terminateOK.
+
 BUG: (10/7/09, DN) DefGridXBoldFrequency is accessed from null (Bug #2415).
 FIX: Create class AbstractDrawing.DrawingPreferences to pass preferences to RenderJob.
 
