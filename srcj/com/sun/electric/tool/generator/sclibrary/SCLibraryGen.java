@@ -280,12 +280,14 @@ public class SCLibraryGen {
     {
         private List<Cell> standardCells;
         private List<Cell> notStandardCells;
+        private Variable.Key varName;
 
         public CreateVar(List<Cell> standardCells, List<Cell> notStandardCells, Variable.Key varName)
         {
             super("Create Var", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.standardCells = standardCells;
             this.notStandardCells = notStandardCells;
+            this.varName = varName;
         }
 
         public boolean doIt()
@@ -293,10 +295,10 @@ public class SCLibraryGen {
             TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
             if (standardCells != null)
             	for(Cell cell : standardCells)
-            		cell.newVar(STANDARDCELL, new Integer(1), td);
+            		cell.newVar(varName, new Integer(1), td);
             if (notStandardCells != null)
 	            for(Cell cell : notStandardCells)
-	            	cell.delVar(STANDARDCELL);
+	            	cell.delVar(varName);
             return true;
         }
     }
