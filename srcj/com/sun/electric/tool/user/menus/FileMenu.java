@@ -131,7 +131,6 @@ public class FileMenu {
 
     private static EMenu openRecentLibs;
     public static final String openJobName = "Read External Library";
-    private static final boolean THROW_EXCEPTION_IN_RENAME_AND_SAVE = false;
     
     static EMenu makeMenu() {
         openRecentLibs = new EMenu("Open Recent Library", new ArrayList<EMenuItem>());
@@ -1159,7 +1158,7 @@ public class FileMenu {
                 Output.writeLibrary(lib, type, compatibleWith6, false, false, backupScheme, deletedCellFiles, writtenCellFiles);
                 success = true;
             } catch (Exception e) {
-                if (THROW_EXCEPTION_IN_RENAME_AND_SAVE) {
+                if (Job.isThreadSafe()) {
                      e.printStackTrace(System.out);
                     throw new JobException("Exception caught when saving files: " +
                             e.getMessage() + "Please check your disk libraries");

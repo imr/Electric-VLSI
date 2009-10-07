@@ -46,8 +46,6 @@ import com.sun.electric.tool.user.ErrorLogger;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -173,14 +171,16 @@ public abstract class Job implements Serializable {
     transient EDatabase database;
 
     public static void initJobManager(int numThreads, String loggingFilePath, int socketPort, AbstractUserInterface ui, Job initDatabaseJob, boolean threadSafe) {
-        Job.threadSafe = threadSafe;
+        if (threadSafe) {
+            setThreadSafe();
+        }
         currentUI = ui;
         serverJobManager = new ServerJobManager(numThreads, loggingFilePath, false, socketPort);
         serverJobManager.runLoop(initDatabaseJob);
     }
 
     public static void pipeServer(int numThreads, String loggingFilePath, int socketPort) {
-        Job.threadSafe = true;
+        setThreadSafe();
         Pref.forbidPreferences();
         EDatabase.setServerDatabase(new EDatabase(IdManager.stdIdManager.getInitialSnapshot()));
         Tool.initAllTools();
@@ -188,7 +188,7 @@ public abstract class Job implements Serializable {
     }
 
     public static void socketClient(String serverMachineName, int socketPort, AbstractUserInterface ui, Job initDatabaseJob) {
-        Job.threadSafe = true;
+        setThreadSafe();
         currentUI = ui;
         try {
             clientJobManager = new ClientJobManager(serverMachineName, socketPort);
@@ -199,7 +199,7 @@ public abstract class Job implements Serializable {
     }
 
     public static void pipeClient(Process process, AbstractUserInterface ui, Job initDatabaseJob, boolean skipOneLine) {
-        Job.threadSafe = true;
+        setThreadSafe();
         currentUI = ui;
         try {
             clientJobManager = new ClientJobManager(process, skipOneLine);
