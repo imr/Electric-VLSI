@@ -89,11 +89,13 @@ public final class Main
      */
     private static enum Mode {
         /** Full screen run of Electric. */                                    FULL_SCREEN_UNSAFE,
-        /** Thread-safe full screen run. */                                    FULL_SCREEN,
+        /** Thread-safe full screen run. */                                    FULL_SCREEN_SAFE,
         /** JonG: "I think batch mode implies 'no GUI', and nothing more." */  BATCH,
         /** Server side. */                                                    SERVER,
         /** Client side. */                                                    CLIENT;
     }
+
+    private static final Mode DEFAULT_MODE = Mode.FULL_SCREEN_SAFE;
 
 	private Main() {}
 
@@ -159,7 +161,7 @@ public final class Main
 		}
 
 		// -debug for debugging
-        runMode = Mode.FULL_SCREEN;
+        runMode = DEFAULT_MODE;
         String pipeOptions = "";
 		if (hasCommandLineOption(argsList, "-debug")) {
             pipeOptions += " -debug";
@@ -206,32 +208,37 @@ public final class Main
             //System.setProperty("java.awt.headless", "true");
             runMode = Mode.BATCH;
         }
+        if (hasCommandLineOption(argsList, "-threadsafe")) {
+            if (runMode != DEFAULT_MODE)
+                System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.FULL_SCREEN_SAFE);
+            runMode = Mode.FULL_SCREEN_SAFE; // back to original default
+        }
         if (hasCommandLineOption(argsList, "-nothreadsafe")) {
-            if (runMode != Mode.FULL_SCREEN)
+            if (runMode != DEFAULT_MODE)
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.FULL_SCREEN_UNSAFE);
             runMode = Mode.FULL_SCREEN_UNSAFE; // back to original default
         }
         if (hasCommandLineOption(argsList, "-server")) {
-            if (runMode != Mode.FULL_SCREEN)
+            if (runMode != DEFAULT_MODE)
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.SERVER);
             runMode = Mode.SERVER;
         }
         String serverMachineName = getCommandLineOption(argsList, "-client");
         if (serverMachineName != null) {
-            if (runMode != Mode.FULL_SCREEN)
+            if (runMode != DEFAULT_MODE)
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.CLIENT);
             runMode = Mode.CLIENT;
         }
         boolean pipe = false;
         boolean pipedebug = false;
         if (hasCommandLineOption(argsList, "-pipe")) {
-            if (runMode != Mode.FULL_SCREEN)
+            if (runMode != DEFAULT_MODE)
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.CLIENT);
              runMode = Mode.CLIENT;
            pipe = true;
         }
         if (hasCommandLineOption(argsList, "-pipedebug")) {
-            if (runMode != Mode.FULL_SCREEN)
+            if (runMode != DEFAULT_MODE)
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.CLIENT);
             runMode = Mode.CLIENT;
             pipe = true;
@@ -243,7 +250,7 @@ public final class Main
         if (hasCommandLineOption(argsList, "-sdi")) mode = UserInterfaceMain.Mode.SDI;
 
         AbstractUserInterface ui;
-        if (runMode == Mode.FULL_SCREEN_UNSAFE || runMode == Mode.FULL_SCREEN || runMode == Mode.CLIENT)
+        if (runMode == Mode.FULL_SCREEN_UNSAFE || runMode == Mode.FULL_SCREEN_SAFE || runMode == Mode.CLIENT)
             ui = new UserInterfaceMain(argsList, mode, true);
         else
             ui = new UserInterfaceDummy();
@@ -270,7 +277,7 @@ public final class Main
             } else {
                 Job.socketClient(serverMachineName, socketPort, ui, job);
             }
-        } else if (runMode == Mode.FULL_SCREEN) {
+        } else if (runMode == Mode.FULL_SCREEN_SAFE) {
             EDatabase.setServerDatabase(new EDatabase(IdManager.stdIdManager.getInitialSnapshot(), "serverDB"));
             EDatabase.setCheckExamine();
             Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job, true);
