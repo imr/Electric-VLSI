@@ -95,7 +95,7 @@ public final class Main
         /** Client side. */                                                    CLIENT;
     }
 
-    private static final Mode DEFAULT_MODE = Mode.FULL_SCREEN_SAFE;
+    private static final Mode DEFAULT_MODE = Mode.FULL_SCREEN_UNSAFE;
 
 	private Main() {}
 
