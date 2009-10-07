@@ -305,6 +305,7 @@ public class PixelDrawing
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
     static GraphicsPreferences gp;
+    static AbstractDrawing.DrawingPreferences dp;
     static LayerVisibility lv;
 	static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
@@ -350,8 +351,10 @@ public class PixelDrawing
         }
 
         @Override
-        public void render(Dimension sz, WindowFrame.DisplayAttributes da, GraphicsPreferences gp, boolean fullInstantiate, Rectangle2D bounds) {
+        public void render(Dimension sz, WindowFrame.DisplayAttributes da, GraphicsPreferences gp,
+                DrawingPreferences dp, boolean fullInstantiate, Rectangle2D bounds) {
             PixelDrawing.gp = gp;
+            PixelDrawing.dp = dp;
             PixelDrawing offscreen_ = this.offscreen;
             if (offscreen_ == null || !offscreen_.getSize().equals(sz))
                     this.offscreen = offscreen_ = new PixelDrawing(sz);
@@ -941,8 +944,8 @@ public class PixelDrawing
 		double spacingX = wnd.getGridXSpacing();
 		double spacingY = wnd.getGridYSpacing();
 		if (spacingX == 0 || spacingY == 0) return;
-		double boldSpacingX = spacingX * User.getDefGridXBoldFrequency();
-		double boldSpacingY = spacingY * User.getDefGridYBoldFrequency();
+		double boldSpacingX = spacingX * PixelDrawing.dp.gridXBoldFrequency;
+		double boldSpacingY = spacingY * PixelDrawing.dp.gridYBoldFrequency;
 		double boldSpacingThreshX = spacingX / 4;
 		double boldSpacingThreshY = spacingY / 4;
 
@@ -1030,7 +1033,7 @@ public class PixelDrawing
 				opaqueData[y * sz.width + x] = col;
 			}
 		}
-		if (User.isGridAxesShown())
+		if (dp.gridAxesShown)
 		{
             tmpPt.setLocation(0, 0);
             outofCellTransform.transform(tmpPt, tmpPt);

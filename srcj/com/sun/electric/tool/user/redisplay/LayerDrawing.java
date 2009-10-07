@@ -299,6 +299,7 @@ class LayerDrawing
 
     // Color things only at top offscreen
     private GraphicsPreferences gp;
+    private AbstractDrawing.DrawingPreferences dp;
     private Color textColor;
     /** cache of port colors */                             private HashMap<PrimitivePort,Color> portColorsCache;
 
@@ -830,7 +831,8 @@ class LayerDrawing
          * This method is called from Job thread.
          */
         @Override
-        public void render(Dimension sz, WindowFrame.DisplayAttributes da, GraphicsPreferences gp, boolean fullInstantiate, Rectangle2D bounds) {
+        public void render(Dimension sz, WindowFrame.DisplayAttributes da, GraphicsPreferences gp,
+                DrawingPreferences dp, boolean fullInstantiate, Rectangle2D bounds) {
             LayerDrawing offscreen = null;
             if (drawingData != null && drawingData.offscreen.getSize().equals(sz))
                 offscreen = drawingData.offscreen;
@@ -838,6 +840,7 @@ class LayerDrawing
                 offscreen = new LayerDrawing(sz);
             this.da = da;
             offscreen.gp = gp;
+            offscreen.dp = dp;
             offscreen.textColor = gp.getColor(User.ColorPrefType.TEXT);
             offscreen.portColorsCache = new HashMap<PrimitivePort,Color>();
 //            updateScaleAndOffset();
@@ -1415,8 +1418,8 @@ class LayerDrawing
 		double spacingX = wnd.getGridXSpacing();
 		double spacingY = wnd.getGridYSpacing();
 		if (spacingX == 0 || spacingY == 0) return;
-		double boldSpacingX = spacingX * User.getDefGridXBoldFrequency();
-		double boldSpacingY = spacingY * User.getDefGridYBoldFrequency();
+		double boldSpacingX = spacingX * dp.gridXBoldFrequency;
+		double boldSpacingY = spacingY * dp.gridYBoldFrequency;
 		double boldSpacingThreshX = spacingX / 4;
 		double boldSpacingThreshY = spacingY / 4;
 
@@ -1524,7 +1527,7 @@ class LayerDrawing
 //				opaqueData[y * sz.width + x] = col;
 			}
 		}
-		if (User.isGridAxesShown())
+		if (dp.gridAxesShown)
 		{
             tmpPt.setLocation(0, 0);
             outofCellTransform.transform(tmpPt, tmpPt);

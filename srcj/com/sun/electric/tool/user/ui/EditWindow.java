@@ -1011,7 +1011,7 @@ public class EditWindow extends JPanel
 	 * @return the RTree with all text in this Cell.
 	 */
 	public RTNode getTextInCell() { return textInCell; }
-    
+
 	/**
 	 * Set the RTree with <b>all</b> text in this Cell, not just the visible text.
 	 * @param tic the RTree with all text in this Cell.
@@ -1505,7 +1505,16 @@ public class EditWindow extends JPanel
 	 * @param bounds the area to redraw (null to draw everything).
 	 * @param fullInstantiate true to display to the bottom of the hierarchy (for peeking).
 	 */
-	public void repaintContents(Rectangle2D bounds, boolean fullInstantiate)
+	public void repaintContents(Rectangle2D bounds, boolean fullInstantiate) {
+        repaintContents(bounds, fullInstantiate, new AbstractDrawing.DrawingPreferences());
+    }
+
+	/**
+	 * Method requests that this EditWindow be redrawn, including a rerendering of the contents.
+	 * @param bounds the area to redraw (null to draw everything).
+	 * @param fullInstantiate true to display to the bottom of the hierarchy (for peeking).
+	 */
+	public void repaintContents(Rectangle2D bounds, boolean fullInstantiate, AbstractDrawing.DrawingPreferences dp)
 	{
 		// start rendering thread
 		if (wf == null) return;
@@ -1522,17 +1531,18 @@ public class EditWindow extends JPanel
 			fullInstantiateBounds = bounds.getBounds2D();
 			DBMath.transformRect(fullInstantiateBounds, outofCell);
 		}
-		invokeRenderJob(this);
+		invokeRenderJob(this, dp);
 
 		logger.exiting(CLASS_NAME, "repaintContents");
 	}
 
 	public static void invokeRenderJob() {
-		invokeRenderJob(null);
+		invokeRenderJob(null, new AbstractDrawing.DrawingPreferences());
 	}
 
-	private static void invokeRenderJob(EditWindow wnd) {
+	private static void invokeRenderJob(EditWindow wnd, AbstractDrawing.DrawingPreferences dp) {
 		logger.entering(CLASS_NAME, "invokeRenderJob", wnd);
+        GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
 		synchronized(lock)
 		{
 			if (wnd != null) {
@@ -1544,7 +1554,7 @@ public class EditWindow extends JPanel
 				logger.exiting(CLASS_NAME, "invokeRenderJob running now");
 				return;
 			}
-			runningNow = new RenderJob();
+			runningNow = new RenderJob(gp, dp);
 		}
 		runningNow.startJob();
 		logger.exiting(CLASS_NAME, "invokeRenderJob starting job");
@@ -1559,11 +1569,13 @@ public class EditWindow extends JPanel
 		private static Snapshot oldSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
 		volatile boolean hasTasks;
         private GraphicsPreferences gp;
+        private AbstractDrawing.DrawingPreferences dp;
 
-		protected RenderJob()
+		protected RenderJob(GraphicsPreferences gp, AbstractDrawing.DrawingPreferences dp)
 		{
 			super("Display", User.getUserTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
-            gp = UserInterfaceMain.getGraphicsPreferences();
+            this.gp = gp;
+            this.dp = dp;
 		}
 
 		public boolean doIt() throws JobException {
@@ -1573,7 +1585,7 @@ public class EditWindow extends JPanel
 					hasTasks = false;
 					Snapshot snapshot = EDatabase.clientDatabase().backup();
 					if (snapshot != oldSnapshot) {
-						endBatch(oldSnapshot, snapshot);
+						endBatch(oldSnapshot, snapshot, dp);
 						oldSnapshot = snapshot;
 					}
 					EditWindow wnd = null;
@@ -1595,7 +1607,7 @@ public class EditWindow extends JPanel
 				RenderJob j = null;
 				synchronized (lock) {
 					if (hasTasks) {
-						runningNow = j = new RenderJob();
+						runningNow = j = new RenderJob(gp, dp);
 					} else {
 						runningNow = null;
 					}
@@ -1629,7 +1641,7 @@ public class EditWindow extends JPanel
 			}
 			WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(wnd.scaleRequested,
 				wnd.offxRequested, wnd.offyRequested, wnd.inPlaceDescent);
-			wnd.drawing.render(wnd.getSize(), da, gp, fullInstantiate, bounds);
+			wnd.drawing.render(wnd.getSize(), da, gp, dp, fullInstantiate, bounds);
 			wnd.repaint();
 			logger.exiting(RENDER_JOB_CLASS_NAME, "render");
 		}
@@ -3444,7 +3456,7 @@ public class EditWindow extends JPanel
 	 * @param newSnapshot database snapshot after Job and constraint propagation.
 	 * @param undoRedo true if Job was Undo/Redo job.
 	 */
-	private static void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot) {
+	private static void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, AbstractDrawing.DrawingPreferences dp) {
 		// Mark cells for redraw
 		Set<CellId> topCells = new HashSet<CellId>();
 		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
@@ -3471,7 +3483,7 @@ public class EditWindow extends JPanel
 			if (winCell == null) continue;
 			EditWindow wnd = (EditWindow)content;
 			if (changedVisibility.contains(winCell.getId()))
-				wnd.fullRepaint();
+				wnd.repaintContents(null, false, dp);
 		}
 	}
 

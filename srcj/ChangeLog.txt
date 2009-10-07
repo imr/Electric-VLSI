@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+BUG: (10/7/09, DN) DefGridXBoldFrequency is accessed from null (Bug #2415).
+FIX: Create class AbstractDrawing.DrawingPreferences to pass preferences to RenderJob.
+
 BUG: (10/7/09, DN) Inconsistent state of linkedlibs in DB after getting errors in SaveAs (Bug #2406).
 FIX: In FileMenu.RenameAndSaveLibraryTask.renameAndSave() throw JobException on failure in thread-safe mode.
 

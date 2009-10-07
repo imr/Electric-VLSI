@@ -62,7 +62,7 @@ public abstract class AbstractDrawing {
 
     public abstract boolean paintComponent(Graphics2D g, LayerVisibility lv, Dimension sz);
 
-    public abstract void render(Dimension sz, WindowFrame.DisplayAttributes da, GraphicsPreferences gp, boolean fullInstantiate, Rectangle2D bounds);
+    public abstract void render(Dimension sz, WindowFrame.DisplayAttributes da, GraphicsPreferences gp, DrawingPreferences dp, boolean fullInstantiate, Rectangle2D bounds);
 
     public void abortRendering() {
     }
@@ -142,5 +142,12 @@ public abstract class AbstractDrawing {
             premultipliedBlue = compArray[2];
             inverseAlpha = 0;
         }
+    }
+
+    public static class DrawingPreferences {
+        boolean gridAxesShown = User.isGridAxesShown();
+        double gridXBoldFrequency = User.getDefGridXBoldFrequency();
+        double gridYBoldFrequency = User.getDefGridYBoldFrequency();
+        double globalTextScale = User.getGlobalTextScale();
     }
 }

@@ -137,7 +137,7 @@ class VectorDrawing
 		this.scale = (float)scale;
 		scale_ = (float)(scale/DBMath.GRID);
 		maxObjectSize = (float)greekSizeLimit / this.scale;
-		maxTextSize = maxObjectSize / (float)User.getGlobalTextScale();
+		maxTextSize = (float)(maxObjectSize / PixelDrawing.dp.globalTextScale);
 		double screenArea = sz.getWidth()/scale * sz.getHeight()/scale;
 		maxCellSize = (float)(greekCellSizeLimit * screenArea);
 
