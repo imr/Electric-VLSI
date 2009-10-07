@@ -26,9 +26,7 @@ package com.sun.electric.tool.user.menus;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
-import com.sun.electric.Main;
 
 import java.awt.Toolkit;
 import javax.swing.Icon;
@@ -52,7 +50,7 @@ public abstract class EMenuItem implements ActionListener {
      */
     public static final EMenuItem SEPARATOR = new EMenuItem("---------------") {
         @Override void registerTree(EMenuBar menuBar, int[] parentPath, int indexInParent) {}
-        @Override public JMenuItem genMenu(WindowFrame frame) { throw new UnsupportedOperationException(); }
+        @Override public JMenuItem genMenu() { throw new UnsupportedOperationException(); }
         @Override public void run() { throw new UnsupportedOperationException(); }
     };
 
@@ -94,6 +92,7 @@ public abstract class EMenuItem implements ActionListener {
      * indicates the location of the "mnemonic" key for that entry.
      * @param accelerators the shortcut keys, or null if none specified.
      * @param useMnemonics true to use mnemonics, otherwise "_" is left untouched.
+     * @param icon the icon for the menu item
      */
     EMenuItem(String text, KeyStroke [] accelerators, boolean useMnemonics, Icon icon) {
         int mnemonicsPos = text.indexOf('_');
@@ -223,6 +222,7 @@ public abstract class EMenuItem implements ActionListener {
 
     /**
      * Returns hort text description of this EMenuElement.
+     * @return String with text description
      */
     public String getText() { return text; }
 
@@ -304,9 +304,8 @@ public abstract class EMenuItem implements ActionListener {
     /**
      * Generates menu item by this this generic EMenuItem.
      * @return generated instance.
-     * @param frame
      */
-    JMenuItem genMenu(WindowFrame frame) {
+    JMenuItem genMenu() {
         JMenuItem item = createMenuItem();
         item.setText(text);
         if (mnemonicsPos >= 0) {

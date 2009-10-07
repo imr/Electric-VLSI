@@ -241,8 +241,8 @@ public class EMenuBar extends EMenu {
     	return keyBindingManager.getKeyMaps();
     }
     
-    public Instance genInstance(WindowFrame frame) {
-        return new Instance(frame);
+    public Instance genInstance() {
+        return new Instance();
     }
 
     public class Instance extends JMenuBar {
@@ -255,11 +255,10 @@ public class EMenuBar extends EMenu {
          * serves to maintain consistency of state and key bindings across
          * multiple instances of MenuBars that share the same layout of
          * menu items.
-         * @param frame
          */
-        public Instance(WindowFrame frame) {
+        public Instance() {
             for (EMenuItem item: getItems())
-                add(item.genMenu(frame));
+                add(item.genMenu());
         }
         
         public EMenuBar getMenuBarGroup() { return EMenuBar.this; }

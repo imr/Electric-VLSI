@@ -1876,7 +1876,7 @@ public class ToolMenu
             	}
             	if (script.mnemonic != 0) menuName = "_" + script.mnemonic + ": " + menuName;
             	EMenuItem elem = new DynamicLanguageMenuItem(menuName, script.fileName, type);
-                JMenuItem item = elem.genMenu(null);
+                JMenuItem item = elem.genMenu();
                 menu.add(item);
             }
         }

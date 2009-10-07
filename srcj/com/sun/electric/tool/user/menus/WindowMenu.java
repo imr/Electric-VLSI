@@ -410,7 +410,7 @@ public class WindowMenu {
                 }
                 if (!hasMore) menu.addSeparator();
                 hasMore = true;
-                JMenuItem item = elem.genMenu(null);
+                JMenuItem item = elem.genMenu();
                 menu.add(item);
             }
         }

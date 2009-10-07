@@ -339,7 +339,7 @@ public class ToolBar extends JToolBar
 		{
 			// preferences set
 			List<EToolBarButton> knownButtons = getAllButtons();
-			EMenuBar.Instance bar = MenuCommands.menuBar().genInstance(null);
+			EMenuBar.Instance bar = MenuCommands.menuBar().genInstance();
 
 			String [] entries = prefOrder.split("\\|");
 			EToolBarButton[] buttons = new EToolBarButton[entries.length];

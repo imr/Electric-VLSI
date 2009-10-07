@@ -24,7 +24,7 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -94,8 +94,8 @@ public class EMenu extends EMenuItem {
     protected void registerItem() {}
 
     @Override
-    JMenu genMenu(WindowFrame frame) {
-        JMenu subMenu = (JMenu)super.genMenu(frame);
+    JMenu genMenu() {
+        JMenu subMenu = (JMenu)super.genMenu();
         genMenuElems(subMenu, items);
         return subMenu;
     }
@@ -111,7 +111,7 @@ public class EMenu extends EMenuItem {
                 menu.addSeparator();
                 continue;
             }
-            JMenuItem item = elem.genMenu(null);
+            JMenuItem item = elem.genMenu();
             menu.add(item);
         }
     }

@@ -129,7 +129,7 @@ public class TopLevel extends JFrame
     public void createStructure(WindowFrame frame) {
 		// create the menu bar
         try{
-            menuBar = MenuCommands.menuBar().genInstance(frame);
+            menuBar = MenuCommands.menuBar().genInstance();
         } catch (Exception e)
         {
             e.printStackTrace();
