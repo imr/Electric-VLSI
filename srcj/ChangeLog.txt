@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+IMP: (10/8/09, GVG) Making extra_layers definition in TechEditorWizard available by default
+
 BUG: (10/8/09, GVG) GDS and too large coordinates (Bug #2423)
 FIX: Caching IllegalArgumentException in EPoint
 

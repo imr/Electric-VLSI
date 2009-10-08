@@ -2400,7 +2400,7 @@ public class TechEditWizardData
             nplus_width, true, false);
 
         // Extra layers
-        if (getExtraInfoFlag())
+//        if (getExtraInfoFlag())
         {
             for (LayerInfo info : extraLayers)
             {
