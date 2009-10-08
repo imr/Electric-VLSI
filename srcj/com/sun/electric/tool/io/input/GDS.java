@@ -28,7 +28,6 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
@@ -318,10 +317,11 @@ public class GDS extends Input
 		try
 		{
 			loadFile();
-		} catch (IOException e)
+        } catch (Exception e)
 		{
-			System.out.println("ERROR reading GDS file");
-		}
+			System.out.println("ERROR reading GDS file: check input file");
+            return null;
+        }
 
 		// now build all instances recursively
 		CellBuilder.buildInstances();

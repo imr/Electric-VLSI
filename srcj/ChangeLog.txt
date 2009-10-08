@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+BUG: (10/8/09, GVG) GDS and too large coordinates (Bug #2423)
+FIX: Caching IllegalArgumentException in EPoint
+
 BUG: (10/8/09, GVG) Exceptions in TechEditorWizard with incomplete tech txt files (Bug #2422)
 FIX: Consider incomplete metal definition.
 
