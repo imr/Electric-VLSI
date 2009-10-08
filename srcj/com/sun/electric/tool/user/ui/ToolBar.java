@@ -1165,6 +1165,10 @@ public class ToolBar extends JToolBar
 					if (ret == 0)
                         realUndo = false;
                 }
+                if (task.startsWith("Save Library"))
+                {
+                    System.out.println();
+                }
                 if (realUndo)
                     Undo.undo();
 			}

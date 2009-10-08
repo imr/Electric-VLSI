@@ -525,6 +525,11 @@ public class Xml {
                    + e.getMessage() + "\n";
             System.out.println(msg);
             Job.getUserInterface().showErrorMessage(msg, "Error loading Xml technology");
+        } catch (Error a)
+        {
+            String msg = "Assertion while loading Xml technology " + fileURL;
+            System.out.println(msg);
+            //Job.getUserInterface().showErrorMessage(msg, "Error loading Xml technology");
         }
         return null;
     }
