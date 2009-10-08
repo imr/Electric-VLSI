@@ -763,7 +763,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             EDatabase database = EDatabase.clientDatabase();
             database.lock(true);
             try {
-                database.checkFresh(oldSnapshot);
+//                database.checkFresh(oldSnapshot);
                 database.lowLevelSetCanUndoing(true);
                 database.getNetworkManager().startBatch();
                 database.undo(newSnapshot);

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+BUG: (10/8/09, DN) Threadsafe mode slow? (Bug #2420).
+FIX: Disable database self-test in UserInterfaceMain.showSnapshot.
+
 IMP: (10/7/09, GVG) Show cell results in new window not working for errors? (Bug #2421)
 
 IMP: (10/7/09, AM) Ensure that the JVM exits with nonzero exit code if
