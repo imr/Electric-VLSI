@@ -420,14 +420,19 @@ public class TechEditWizardData
     public int getNumMetalLayers() { return num_metal_layers; }
 	public void setNumMetalLayers(int n)
 	{
-		int smallest = Math.min(n, num_metal_layers);
-
-		WizardField [] new_metal_width = new WizardField[n];
+        if (n < 1)
+        {
+            System.out.println("Setting zero as number of metal layers");
+            return; // nothing to do
+        }
+        int smallest = Math.min(n, num_metal_layers);
+        
+        WizardField [] new_metal_width = new WizardField[n];
 		for(int i=0; i<smallest; i++) new_metal_width[i] = metal_width[i];
 		for(int i=smallest; i<n; i++) new_metal_width[i] = new WizardField();
 		metal_width = new_metal_width;
 
-		WizardField [] new_metal_spacing = new WizardField[n];
+        WizardField [] new_metal_spacing = new WizardField[n];
 		for(int i=0; i<smallest; i++) new_metal_spacing[i] = metal_spacing[i];
 		for(int i=smallest; i<n; i++) new_metal_spacing[i] = new WizardField();
 		metal_spacing = new_metal_spacing;
@@ -2469,9 +2474,12 @@ public class TechEditWizardData
         // only for standard cases when getProtectionPoly() is false
         if (!getExtraInfoFlag())
         {
-            polyGroup.addElement(makeContactSeries(t.nodeGroups, polyLayer.name, contSize, polyConLayer, contSpacing, contArraySpacing,
+            if (via_overhang.length > 0)
+                polyGroup.addElement(makeContactSeries(t.nodeGroups, polyLayer.name, contSize, polyConLayer, contSpacing, contArraySpacing,
                         scaledValue(contact_poly_overhang.value), polyLayer,
                         scaledValue(via_overhang[0].value), m1Layer), null);
+            else
+                System.out.println("Not via 0 layer");
         }
 
         /**************************** N/P-Diff Nodes/Arcs/Group ***********************************************/
