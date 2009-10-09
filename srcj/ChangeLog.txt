@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10j: ******************************
 
+BUG: (10/8/09, DN) NPE while getting the default tech (Bug #2424).
+FIX: Check that Environment.settingValues are of correct type.
+
 IMP: (10/8/09, GVG) Better error explanation while reading XML tech (Bug #2425)
 
 IMP: (10/8/09, GVG) Making extra_layers definition in TechEditorWizard available by default
@@ -13,6 +16,9 @@ FIX: Caching IllegalArgumentException in EPoint
 
 BUG: (10/8/09, GVG) Exceptions in TechEditorWizard with incomplete tech txt files (Bug #2422)
 FIX: Consider incomplete metal definition.
+
+BUG: (10/8/09, DN) Threadsafe mode slow? (Bug #2420).
+FIX: Disable database self-test in UserInterfaceMain.showSnapshot.
 
 BUG: (10/8/09, DN) Threadsafe mode slow? (Bug #2420).
 FIX: Disable database self-test in UserInterfaceMain.showSnapshot.

@@ -293,6 +293,12 @@ public class Environment {
     public void check() {
         if (!toolSettings.isLocked())
             throw new IllegalArgumentException("Tool Settings are not locked");
+        for (Map.Entry<Setting,Object> e : settingValues.entrySet()) {
+            Setting setting = e.getKey();
+            Object value = e.getValue();
+            if (value.getClass() != setting.getFactoryValue().getClass())
+                throw new IllegalArgumentException("Setting " + setting.getXmlPath() + " has bad value " + value);
+        }
         HashMap<String,Object> xmlPaths = new HashMap<String,Object>();
         checkSettings(toolSettings, settingValues, xmlPaths);
         for (Technology tech: techPool.values()) {
