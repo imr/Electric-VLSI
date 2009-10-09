@@ -1165,9 +1165,10 @@ public class ToolBar extends JToolBar
 					if (ret == 0)
                         realUndo = false;
                 }
-                if (task.startsWith("Save Library"))
+                if (task.startsWith("Write"))
                 {
-                    System.out.println();
+                    JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Write can not be undone");
+                    realUndo = false;
                 }
                 if (realUndo)
                     Undo.undo();
