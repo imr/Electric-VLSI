@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+BUG: (10/9/09, DN) NPE while getting the default tech (Bug #2424).
+FIX: In User.endBatch don't invoke render job on initial empty Environment.
+
 ************************* Version 8.10j: ******************************
 
 IMP: (10/8/09, GVG) Undo of Write library doesn't remove the file (Bug #2329)

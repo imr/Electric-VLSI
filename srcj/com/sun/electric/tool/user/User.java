@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -536,7 +537,9 @@ public class User extends Listener
 			if (!winCell.isLinked())
 				wnd.setCell(null, null, null);
 		}
-		EditWindow.invokeRenderJob();
+        if (newSnapshot.environment != IdManager.stdIdManager.getInitialEnvironment()) {
+            EditWindow.invokeRenderJob();
+        }
 //		// Mark cells for redraw
 //		HashSet<Cell> marked = new HashSet<Cell>();
 //		for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {

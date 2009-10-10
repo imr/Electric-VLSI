@@ -1369,9 +1369,9 @@ public class Xml {
                     case fixedAngle:
                         curArc.fixedAngle = Boolean.parseBoolean(text);
                         break;
-                    case wipable:
-                        curArc.wipable = Boolean.parseBoolean(text);
-                        break;
+//                    case wipable:
+//                        curArc.wipable = Boolean.parseBoolean(text);
+//                        break;
                     case angleIncrement:
                         curArc.angleIncrement = Integer.parseInt(text);
                         break;
