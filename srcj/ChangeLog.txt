@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+IMP: (10/10/09, AM) NewSignal: request approximations by supplying a
+     desired number of events rather than an integer time denominator
+     -- the latter did not offer any way of asking for events which
+     are more than one time unit apart.
+
 IMP: (10/10/09, AM) Implement BTree.{getOrdFromKey,getOrdFromKeyFloor}.
 
 BUG: (10/10/09, AM) changes to grid do not take effect until next repaint (Bug #2409)

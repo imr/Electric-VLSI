@@ -71,11 +71,10 @@ public interface NewSignal<SS extends SimulationSample> {
     /**
      * Returns an Approximation in which:
      *
-     *              getNumEvents() = timeDenominator + 1
+     *              getNumEvents() = numEvents
      *                  getTime(0) = t0
      *   getTime(getNumEvents()-1) = t1
      *         getTimeNumerator(i) = i
-     *        getTimeDenominator() = timeDenominator
      *
      * Together, the last two guarantees ensure that the time
      * components of events are uniformly spaced, with the first event
@@ -87,14 +86,14 @@ public interface NewSignal<SS extends SimulationSample> {
      * "valueResolution".  The precise meaning of valueResolution may
      * depend on which subclass of SimulationSample is in use.
      *
-     * If timeDenominator==0, the number of time points returned will
+     * If numEvents==0, the number of time points returned will
      * be that which is "most natural" for the underlying data.
      *
      * If valueResolution==0, the value resolution will be that which
      * is "most natural" for the underlying data.
      */
     NewSignal.Approximation<SS>
-        getApproximation(double t0, double t1, int timeDenominator,
+        getApproximation(double t0, double t1, int numEvents,
                          SS     v0, SS     v1, int valueResolution);
     
     /**
