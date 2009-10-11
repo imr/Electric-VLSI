@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+IMP: (10/10/09, AM) Implement BTree.{getOrdFromKey,getOrdFromKeyFloor}.
+
 BUG: (10/10/09, AM) changes to grid do not take effect until next repaint (Bug #2409)
 FIX: Invoke EditWindow.repaintAllContents() from GridAndAlignmentTab.
 

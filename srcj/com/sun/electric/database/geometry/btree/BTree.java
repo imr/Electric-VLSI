@@ -94,6 +94,44 @@ import com.sun.electric.database.geometry.btree.unboxed.*;
  *  Possible feature: COWTree like Oracle's btrfs:
  *      http://dx.doi.org/10.1145/1326542.1326544
  *
+ *    -> I'm actually already most of the way there.  I don't have
+ *       sibling pointers and I don't actually use the parent pointer;
+ *       all my tree operations are done top-down already.  I just
+ *       need to add lazy reference counts.  I guess I might need an
+ *       "intent log".
+ *
+ *  Normal B-Trees don't have parent links; they use sibling links at
+ *  the leaves instead.  But sibling trees inhibit COW, so we don't
+ *  want them anyways.
+ *
+ *  Possible feature: use extents rather than blocks?
+ *
+ *  Possible feature: delete-range
+ *
+ *  Possible feature: two btrees-of-extents, one indexed by starting
+ *  offset, one indexed by size.  Lets you very efficiently respond to
+ *  allocation requests of varying sizes.
+ *
+ *  Sub-block allocation using extents.
+ *
+ *  Crazy: you can even store the free extents in the very tree that
+ *  uses those extents as its underlying storage!  The trick here is
+ *  that performing an extent allocation merely reduces the length of
+ *  some existing free extent (and perhaps also advances it), but does
+ *  not change the number of free extents (it might reduce that number
+ *  by one, unless you add a "I am not really free" bit to the free
+ *  extents).  This means that you can always perform an allocation
+ *  without modifying the structure of the btree, which might in turn
+ *  require an allocation.  So allocations are never circular.  If you
+ *  bootstrap all of this by initializing a tree that contains one big
+ *  extent, you're all set.
+ *
+ *    So you have one big massive tree with three kinds of entries:
+ *
+ *       - Actual items
+ *       - Free extent, indexed by starting offset
+ *       - Free extent, indexed by length
+ *
  *  @author Adam Megacz <adam.megacz@sun.com>
  */
 public class BTree
@@ -160,21 +198,19 @@ public class BTree
     /** returns the ordinal of the given key */
     public int getOrdFromKey(K key) {
         uk.serialize(key, keybuf, 0);
-        //return (V)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY, 0);
-        throw new RuntimeException("not implemented");
+        return ((Integer)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY, 0)).intValue();
     }
 
     /** returns the ordinal of the given key */
     public int getOrdFromKeyFloor(K key) {
         uk.serialize(key, keybuf, 0);
-        //return (V)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY_FLOOR, 0);
-        throw new RuntimeException("not implemented");
+        return ((Integer)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY_FLOOR, 0)).intValue();
     }
 
     /** returns the ordinal of the given key */
     public int getOrdFromKeyCeiling(K key) {
         uk.serialize(key, keybuf, 0);
-        //return (V)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY_CEIL, 0);
+        //return ((Integer)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY_CEIL, 0)).intValue();
         throw new RuntimeException("not implemented");
     }
 
@@ -239,6 +275,16 @@ public class BTree
                     return false;
             }
         }
+        public boolean isGetOrd() {
+            switch(this) {
+                case GET_ORD_FROM_KEY:
+                case GET_ORD_FROM_KEY_FLOOR:
+                case GET_ORD_FROM_KEY_CEIL:
+                    return true;
+                default:
+                    return false;
+            }
+        }
         public boolean isGetFromKey() {
             switch(this) {
                 case GET_VAL_FROM_KEY:
@@ -281,6 +327,7 @@ public class BTree
     private Object walk(byte[] key, int key_ofs, V val, Op op, int ord) {
         int pageid = rootpage;
         int idx = -1;
+        int global_ord = 0;
 
         LeafNodeCursor<K,V,S>       leafNodeCursor = this.leafNodeCursor;
         InteriorNodeCursor<K,V,S>   interiorNodeCursor = this.interiorNodeCursor1;
@@ -373,8 +420,16 @@ public class BTree
                         : op==Op.GET_VAL_FROM_ORD
                         ? leafNodeCursor.getVal(ord)
                         : leafNodeCursor.getKey(ord);
-                if (op.isGetFromKey()) return (comp==0 || op.isGetFromKeyFloor()) ? leafNodeCursor.getVal(idx) : null;
-                if (op==Op.INSERT && comp==0) throw new RuntimeException("attempt to re-insert a value");
+                if (op.isGetFromKey()) {
+                    switch(op) {
+                        case GET_VAL_FROM_KEY:       return comp==0 ? leafNodeCursor.getVal(idx) : null;
+                        case GET_VAL_FROM_KEY_FLOOR: return leafNodeCursor.getVal(idx);
+                        case GET_ORD_FROM_KEY:       return comp==0 ? new Integer(idx+global_ord) : new Integer(-1);
+                        case GET_ORD_FROM_KEY_FLOOR: return new Integer(idx+global_ord);
+                        default: throw new RuntimeException();
+                    }
+                }
+                if (op==Op.INSERT && comp==0) throw new RuntimeException("attempt to re-insert a value at key " + leafNodeCursor.getKey(idx));
                 if (op==Op.REPLACE && comp!=0) throw new RuntimeException("attempt to replace a value that did not exist");
                 if (op==Op.INSERT) { if (cheat) insertionFastPath++; else insertionSlowPath++; }
                 if (largestKeyPage==-1 || cheat)
@@ -393,6 +448,9 @@ public class BTree
                     interiorNodeCursor.setNumValsBelowBucket(idx, interiorNodeCursor.getNumValsBelowBucket(idx)+1);
                     interiorNodeCursor.writeBack();
                 }
+                if (op.isGetOrd())
+                    for(int i = 0; i < idx; i++)
+                        global_ord += interiorNodeCursor.getNumValsBelowBucket(i);
                 rightEdge &= idx==interiorNodeCursor.getNumBuckets()-1;
                 pageid = interiorNodeCursor.getBucketPageId(idx);
                 InteriorNodeCursor<K,V,S> ic = interiorNodeCursor; interiorNodeCursor = parentNodeCursor; parentNodeCursor = ic;
