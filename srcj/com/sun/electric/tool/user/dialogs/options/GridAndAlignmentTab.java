@@ -183,6 +183,9 @@ public class GridAndAlignmentTab extends PreferencePanel
 
 		if (redraw && wnd != null)
 			wnd.repaint();
+
+        // force repaint of all windows in case the grid spacing changed
+        EditWindow.repaintAllContents();
 	}
 
 	/**
