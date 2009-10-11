@@ -73,15 +73,17 @@ public abstract class NewSignalSimpleImpl implements NewSignal<ScalarSample> {
     public static int steps = 0;
     public static int numLookups = 0;
 
-    public NewSignal.Approximation<ScalarSample>
-        getApproximation(double t0, double t1, int td,
-                         ScalarSample v0, ScalarSample v1, int vd) {
+    public NewSignal.Approximation<ScalarSample> getApproximation(double t0, double t1, int numEvents,
+                                                                  ScalarSample v0, ScalarSample v1, int vd) {
         if (vd!=0) throw new RuntimeException("not implemented");
 
         // FIXME: currently ignoring v0/v1
         int e0 = getEventForTime(t0, true);
         int e1 = getEventForTime(t1, false);
-        return new ApproximationSimpleImpl(e0, e1, td==0 ? getPreferredApproximation().getTimeDenominator() : td);
+        //System.err.println("t0="+t0+", e0="+e0+", getPreferredApproximation().getTime(e0)="+getPreferredApproximation().getTime(e0));
+        //System.err.println("t1="+t1+", e1="+e1+", getPreferredApproximation().getTime(e1)="+getPreferredApproximation().getTime(e1));
+        if (numEvents==0) throw new RuntimeException("invalid!");
+        return new ApproximationSimpleImpl(e0, e1, numEvents, t0, t1);
     }
 
     protected ScalarSample getSampleForTime(double t, boolean justLessThan) {
@@ -92,22 +94,23 @@ public abstract class NewSignalSimpleImpl implements NewSignal<ScalarSample> {
     private class ApproximationSimpleImpl implements NewSignal.Approximation<ScalarSample> {
         private final int    minEvent;
         private final int    maxEvent;
-        private final int    td;
+        private final int    numEvents;
         private final double t0;
         private final double t1;
-        public ApproximationSimpleImpl(int minEvent, int maxEvent, int td) {
+        public ApproximationSimpleImpl(int minEvent, int maxEvent, int numEvents, double t0, double t1) {
             this.minEvent=minEvent;
             this.maxEvent=maxEvent;
-            this.t0 = getPreferredApproximation().getTime(minEvent);
-            this.t1 = getPreferredApproximation().getTime(maxEvent);
-            this.td = td;
+            this.t0 = t0;
+            this.t1 = t1;
+            this.numEvents = numEvents;
+            //System.err.println("minEvent="+minEvent+", maxEvent="+maxEvent+", ne="+numEvents + " t0="+t0+ " t1="+t1);
         }
-        public int    getNumEvents() { return td+1; }
-        public double getTime(int event) { return t0 + (event*(t1-t0))/td; }
+        public int    getNumEvents() { return numEvents; }
+        public double getTime(int event) { return t0 + (event*(t1-t0))/(numEvents-1); }
         public ScalarSample getSample(int event) {
             return getSampleForTime(getTime(event), /* FIXME: should interpolate */ true);
         }
-        public int    getTimeDenominator() { return td; }
+        public int    getTimeDenominator() { throw new RuntimeException("not implemented"); }
         public int    getEventWithMinValue() { throw new RuntimeException("not implemented"); }
         public int    getEventWithMaxValue() { throw new RuntimeException("not implemented"); }
         public int    getTimeNumerator(int event) { throw new RuntimeException("not implemented"); }

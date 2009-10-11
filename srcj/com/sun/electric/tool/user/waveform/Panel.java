@@ -40,6 +40,7 @@ import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Waveform;
+import com.sun.electric.tool.simulation.WaveformImpl;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
@@ -1526,9 +1527,10 @@ public class Panel extends JPanel
 					if (!included)
 						continue;
 					Waveform wave = as.getWaveform(s);
+                    NewSignal.Approximation pref = wave.getPreferredApproximation();
                     NewSignal.Approximation waveform =
-                        !Simulation.isSpiceUseRandomAccess()
-                        ? wave.getPreferredApproximation()
+                        (!Simulation.isSpiceUseRandomAccess() || wave instanceof WaveformImpl)
+                        ? pref
                         : wave.getApproximation(convertXScreenToData(0),
                                                 convertXScreenToData(sz.width),
                                                 sz.width,

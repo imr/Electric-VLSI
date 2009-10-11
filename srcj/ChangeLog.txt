@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+BUG: (10/10/09, AM) Waveform viewer sometimes truncates data
+     horizontally when using BTrees (Bug #2413)
+FIX: Do not snap the least and greatest visible times (t0 and t1) to
+     events before partitioning the space between them into equal
+     sized chunks.
+
 IMP: (10/10/09, AM) NewSignal: request approximations by supplying a
      desired number of events rather than an integer time denominator
      -- the latter did not offer any way of asking for events which

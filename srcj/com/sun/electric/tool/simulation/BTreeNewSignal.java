@@ -58,6 +58,9 @@ public class BTreeNewSignal extends NewSignalSimpleImpl implements Waveform {
     }
 
     public int getNumEvents() { return numEvents; }
+    protected int getEventForTime(double t, boolean justLessThan) {
+        return tree.getOrdFromKeyFloor(t);
+    }
     public void getEvent(int index, double[] result) {
         result[0] = getPreferredApproximation().getTime(index);
         result[1] = result[2] = getPreferredApproximation().getSample(index).getValue();
