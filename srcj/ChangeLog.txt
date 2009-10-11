@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+BUG: (10/10/09, AM) Reading Logical Effort libraries produces many errors (Bug #2410)
+FIX: Open each of the three libraries, change something, save it, and exit.
+
 IMP: (10/10/09, AM) update the LESettings{ic,sch} in purpleGeneric180.jelib.
 
 BUG: (10/9/09, DN) NPE while getting the default tech (Bug #2424).
