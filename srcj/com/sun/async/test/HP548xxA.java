@@ -115,7 +115,7 @@ public class HP548xxA extends Equipment {
 		int minSamplesOld = 0;
 
 		do {
-			Infrastructure.waitSeconds(DELAY_FOR_SAMPLES);
+                    try { Thread.sleep((int)(1000*DELAY_FOR_SAMPLES)); } catch (InterruptedException _) { }
 			getStatistics(nchan, results);
 
 			System.out.print("Got");

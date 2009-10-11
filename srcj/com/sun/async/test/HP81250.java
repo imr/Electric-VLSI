@@ -29,7 +29,7 @@ public class HP81250 extends Equipment {
         s = read(200).trim();
         //s = s.substring(0,s.length()-1);
         System.out.println("dvt idn " + s);
-        Infrastructure.waitSeconds(.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
         handle = _handle;
     }//end testConnection
 
@@ -37,7 +37,7 @@ public class HP81250 extends Equipment {
         write(":dvt:instrument:handle:create? " + handle + ", \"DSR\",\"DSRA\"");
         s = read(200).trim();
         System.out.println("successfully created handle " + s);
-        Infrastructure.waitSeconds(.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
     }//end start
 
     void run(boolean state) {
@@ -45,7 +45,7 @@ public class HP81250 extends Equipment {
             write(":_" + handle + ":sgen:glob:init:cont ON");
         else
             write(":_" + handle + ":sgen:glob:init:cont OFF");
-        Infrastructure.waitSeconds(.3f);
+        try { Thread.sleep(300); } catch (InterruptedException _) { }
 
         //write(":_"+handle+":sgen:glob:init:cont?");
         //s = read(200).trim();
@@ -58,7 +58,7 @@ public class HP81250 extends Equipment {
         s = read(200).trim();
         //s = s.substring(0,s.length()-1);
         System.out.println("list of handles " + s);
-        Infrastructure.waitSeconds(.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
     }//end list
 
     void load_setting(String setting_name) {
@@ -69,7 +69,7 @@ public class HP81250 extends Equipment {
             // "\" ");
             write(":_" + handle + ":mmem:setting:load \"" + setting_name
                     + "\" ");
-            Infrastructure.waitSeconds(0.1f);
+            try { Thread.sleep(100); } catch (InterruptedException _) { }
             String acSt = get_setting();
             actualSetting = acSt.substring(1, acSt.length() - 1);
             //System.out.println(actualSetting + " " + setting_name);
@@ -81,7 +81,7 @@ public class HP81250 extends Equipment {
         write(":_" + handle + ":mmem:sett:name?");
         s = read(200).trim();
         //System.out.println("setting " + s);
-        Infrastructure.waitSeconds(.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
         return s;
     }//end get_setting
 
@@ -100,7 +100,7 @@ public class HP81250 extends Equipment {
             s = read(200).trim();
             System.out.println("module number " + i + " has " + s
                     + " connectors");
-            Infrastructure.waitSeconds(.1f);
+            try { Thread.sleep(100); } catch (InterruptedException _) { }
         }//end for
 
     }//end countConnector
@@ -108,7 +108,7 @@ public class HP81250 extends Equipment {
     void setFreq(int f) {
         write(":_" + handle + ":sgen:global:freq " + f + "e6");
         write(":_" + handle + ":sgen:global:mux 4");
-        Infrastructure.waitSeconds(.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
         write(":_" + handle + ":sgen:global:freq?");
         s = read(200).trim();
         //System.out.println("freq set to " + s);
@@ -198,7 +198,7 @@ public class HP81250 extends Equipment {
         String s = read(200).trim();
         System.out.println("handles left " + s);
 
-        Infrastructure.waitSeconds(.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
     }//end stop
 
     private void stepThruRefresh() {

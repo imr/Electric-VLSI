@@ -28,31 +28,31 @@ public class HP80000 extends Equipment {
     public void reset() {
         write("*CLS");
         write("*RST");
-        Infrastructure.waitSeconds(.3f);
+        try { Thread.sleep(300); } catch (InterruptedException _) { }
     }
     
     public void start() {
         write(":INST:SEL SYSTEMCLOCK");
         write(":TRIG:STAR");
-        Infrastructure.waitSeconds(.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
     }
     
     public void stop() {
         write(":INST:SEL SYSTEMCLOCK");
         write(":TRIG:STOP");
-        Infrastructure.waitSeconds(.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
     }
     
     public void pause() {
         write(":INST:SEL SYSTEMCLOCK");
         write(":TRIG:PAUS");
-        Infrastructure.waitSeconds(.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
     }
     
     public void cont() {
         write(":INST:SEL SYSTEMCLOCK");
         write(":TRIG:CONT");
-        Infrastructure.waitSeconds(.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
     }
     
     
@@ -192,7 +192,7 @@ public class HP80000 extends Equipment {
             cycleTimes = 255;
         }
         write(":PATT:CYCL "+startLength+","+cycleLength+","+l);
-		Infrastructure.waitSeconds(0.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
     }
 
     /**
@@ -223,11 +223,11 @@ public class HP80000 extends Equipment {
                 cmd.append(binData[j].charAt(i));
             }
             write(cmd.toString());
-			Infrastructure.waitSeconds(0.1f);
+            try { Thread.sleep(100); } catch (InterruptedException _) { }
             //System.out.println("wrote: "+cmd.toString());
         }
         write(":PATT:UPD");
-		Infrastructure.waitSeconds(0.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
     }
 
     /**
@@ -286,7 +286,7 @@ public class HP80000 extends Equipment {
         //write(":PATT:DATA"+signal+"?");
         //write(":PATT:DATA?");
         write(":PATT:DATA"+signal+"? "+start+","+end);
-        Infrastructure.waitSeconds(2);
+        try { Thread.sleep(2000); } catch (InterruptedException _) { }
         String s = read(600);
         System.out.println("Data for signal "+signal+" is: (len="+s.length()+")");
         System.out.println(s);

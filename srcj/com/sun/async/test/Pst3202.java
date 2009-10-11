@@ -42,7 +42,7 @@ class Pst3202 extends Equipment {
     public Pst3202(String name) {
         super(name);
         logInit("  Initializing Pst3202 " + name);
-        Infrastructure.waitSeconds(GPIB_DELAY);
+        try { Thread.sleep((int)(1000*GPIB_DELAY)); } catch (InterruptedException _) { }
         writeAndWait(":*CLS");
         //        System.out.println("Error4: " + readError());
         //System.out.println("Error5: " + readError());
@@ -75,7 +75,7 @@ class Pst3202 extends Equipment {
 
     private void writeAndWait(String data) {
         super.write(data);
-        Infrastructure.waitSeconds(GPIB_DELAY);
+        try { Thread.sleep((int)(1000*GPIB_DELAY)); } catch (InterruptedException _) { }
     }
     
     public void write(String data) {
@@ -250,7 +250,7 @@ class Pst3202 extends Equipment {
      */
     public void clear() {
         super.clear();
-        Infrastructure.waitSeconds(GPIB_DELAY);
+        try { Thread.sleep((int)(1000*GPIB_DELAY)); } catch (InterruptedException _) { }
     }
 
 
@@ -268,7 +268,7 @@ class Pst3202 extends Equipment {
 
     public void switchOnOff(int state) {
         write(":OUTPUT:STATE " + state);
-        Infrastructure.waitSeconds(0.1f);
+        try { Thread.sleep((int)(1000*GPIB_DELAY)); } catch (InterruptedException _) { }
         write(":OUTPUT:STATE?");
         s = read(200).trim();
         System.out.println("state " + s);

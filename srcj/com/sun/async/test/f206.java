@@ -26,14 +26,14 @@ public class f206 extends Equipment {
         s = read(2000).trim();
         //s = s.substring(0,s.length()-1);
         System.out.println("help " + s);
-        Infrastructure.waitSeconds(.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
         write("ini");
-        Infrastructure.waitSeconds(.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
     }//end testConnection
 
     void initialize() {
         write("ini");
-        Infrastructure.waitSeconds(.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
     }//end initialize
 
     void move(float x, float y, float z, float u, float v, float w) {
@@ -74,11 +74,11 @@ public class f206 extends Equipment {
 
     void moveV(float val) {
         write("mov v " + val);
-        Infrastructure.waitSeconds(.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
         write("mov?");
         s = read(2000).trim();
         System.out.println("move complete " + s);
-        Infrastructure.waitSeconds(.1f);
+        try { Thread.sleep(100); } catch (InterruptedException _) { }
     }//end moveV
 
     void moveW(float val) {

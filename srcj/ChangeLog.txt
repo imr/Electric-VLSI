@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+BUG: (10/10/09, AM) Re-deprecate Infrastructure.waitSeconds() (Bug #2386)
+FIX: Use Thread.sleep() instead.
+
 BUG: (10/10/09, AM) Make of ColorPrefType.HIGHLIGH* values in pulsing highlight (Bug #2401)
 FIX: Convert HIGHLIGHT color to HSV, then use hue for pulsation.
 

@@ -90,7 +90,7 @@ public class Pst3202Channel extends PowerChannel {
         logSet("Pst3202Channel setting voltage on " + getName() + " to "
                 + volts + " V");
         if (this.supply.setVoltage(this.channel, volts) == false) {
-            Infrastructure.waitSeconds(1.f);
+            try { Thread.sleep(1000); } catch (InterruptedException _) { }
             if (this.supply.setVoltage(this.channel, volts) == false) {
                 Infrastructure.fatal(this.getName()
                         + " power supply error setting voltage " + volts);

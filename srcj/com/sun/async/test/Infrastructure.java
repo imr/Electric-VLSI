@@ -222,9 +222,8 @@ public class Infrastructure {
      *
      * Pause for the specified number of seconds
      * 
-     * @param seconds
-     *            number of seconds to wait
-     * was deprecated Replaced by ChipModel.wait(), but I temporarily un-deprecated it (AM, 14-Sep-09)
+     * @param seconds number of seconds to wait
+     * @deprecated Replaced by ChipModel.wait()
      */
     public static void waitSeconds(float seconds) {
         wait(seconds);

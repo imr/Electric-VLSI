@@ -138,7 +138,7 @@ public abstract class PowerChannel extends Logger implements CurrentReadable,
                             + " V and current is " + readCurrent() + " A.");
                 }
             }
-            Infrastructure.waitSeconds(settleResolution);
+            try { Thread.sleep( (int)(1000 * settleResolution) ); } catch (InterruptedException _) { }
             endTime = java.lang.System.currentTimeMillis();
         } while ((endTime - startTime) <= maxSettleMsec);
 

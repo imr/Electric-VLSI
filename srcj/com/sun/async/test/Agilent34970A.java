@@ -40,7 +40,7 @@ class Agilent34970A extends Equipment {
     public void selfTest() {
         System.out.println("Initiating self-test, please wait...");
         write("*TST?");
-        Infrastructure.waitSeconds(5);
+        try { Thread.sleep(5000); } catch (InterruptedException _) { }
         String s = read(40);
         System.out.println("Self-test output: " + s);
     }

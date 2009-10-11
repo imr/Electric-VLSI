@@ -97,7 +97,7 @@ public class AmpsVsVolts {
         file.println("# (volts, amps) samples");
         for (float volts = voltsMin; volts < voltsMax; volts += voltsStep) {
             supply.setVoltageWait(volts);
-            Infrastructure.waitSeconds(settleTime);
+            try { Thread.sleep( (int)(1000*settleTime) ); } catch (InterruptedException _) { }
             float amps = ammeter.readCurrent();
             System.out.println(volts + " V:  " + amps + " A");
             file.println(volts + " " + amps);
