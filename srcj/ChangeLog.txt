@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+BUG: (10/12/09, GVG) NPE in Spicie if no schematic associated to an icon is found.
+FIX: Detecting the case and assigning icon name as unique name.
+
 BUG: (10/10/09, AM) Waveform viewer sometimes truncates data
      horizontally when using BTrees (Bug #2413)
 FIX: Do not snap the least and greatest visible times (t0 and t1) to

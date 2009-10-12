@@ -1565,7 +1565,15 @@ public class Spice extends Topology
     protected String parameterizedName(Nodable no, VarContext context)
     {
         Cell cell = (Cell)no.getProto();
-        StringBuffer uniqueCellName = new StringBuffer(getUniqueCellName(cell));
+        String uniqueName = getUniqueCellName(cell);
+        if (uniqueName == null)
+        {
+            uniqueName = cell.getName();
+            String msg = "Cell " + cell.describe(true) + " is missing information. Corresponding schematic might be missing";
+            msg += " Taking '" + uniqueName + "' now.";
+            dumpMessage(msg, true);
+        }
+        StringBuffer uniqueCellName = new StringBuffer(uniqueName);
 
         if (uniquifyCells.get(cell) != null && modelOverrides.get(cell) == null) {
             // if this cell is marked to be make unique, make a unique name out of the var context
