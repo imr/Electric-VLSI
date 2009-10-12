@@ -294,11 +294,20 @@
         <antcall target="deleteElectric"></antcall>
     </target>
 
+    <!-- Not able to put if condition inside unjar -->
+    <target name="unjarSUN" if="SUN" description="Extract Jar files used in Sun release">
+        <unjar dest="." src="${beanshell}"/>
+        <unjar dest="." src="${lucene}"/>
+        <unjar dest="." src="${jython}"/>
+        <unjar dest="." src="${prefuse}"/>
+    </target>
+    
     <target name="generalPurposeJar" depends="init,compile" description="Make Jar file with version">
         <!-- -->
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
                 <arg value="-v"/>
         </java>
+        <antcall target="unjarSUN"></antcall>
         <delete dir="META-INF"/>
         <copy file="packaging/electric.mf" tofile="electric.mf"/>
         <copy file="packaging/LicenseGNU.txt" tofile="COPYING.txt"/>
@@ -325,10 +334,12 @@
             <patternset refid="exclusion" />
             <exclude name="**/*.java" unless="source"/>
             <exclude name="**/*.form" unless="source"/>
+            <!-- out due to #2427
             <zipfileset src="${beanshell}"/>
             <zipfileset src="${lucene}"/>
             <zipfileset src="${jython}"/>
             <zipfileset src="${prefuse}"/>
+            -->
         </jar>
         <delete file="electric.mf"/>
         <delete file="COPYING.txt"/>
