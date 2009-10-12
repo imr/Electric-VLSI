@@ -334,6 +334,10 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		double traLengthLow = Double.MAX_VALUE, traLengthHigh = -Double.MAX_VALUE;
 		selectionCount.setText(Integer.toString(highlightList.size()) + " selections:");
 		List<String> displayList = new ArrayList<String>();
+
+        // Sort the highlights so they will be grouped by type
+        Collections.sort(highlightList, new Highlight.HighlightSorting());
+        
         for(Highlight h : highlightList)
 		{
 			ElectricObject eobj = h.getElectricObject();

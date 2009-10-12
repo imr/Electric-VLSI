@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+IMP: (10/12/09, GVG) Export names not sorted multi-object properties dialog (Bug #2419).
+Adding sorting of highlights before they added into the selection list.
+
 BUG: (10/12/09, GVG) build.xml broken: not producing the right thing for GNU releases (Bug #2427)
 FIX: In generalPurposeJar, rolling back to unjarSun and zipfilesets commented out
 

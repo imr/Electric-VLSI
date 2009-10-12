@@ -62,10 +62,7 @@ import java.awt.font.LineMetrics;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A Highlight (or subclass thereof) includes a reference to something
@@ -530,6 +527,18 @@ public abstract class Highlight implements Cloneable{
 //                g.drawLine(x1, y1, x2, y2);
 //        }
     }
+
+
+    /**
+     * General purpose function to sort Highlight objects based on their getInfo output
+     */
+    public static class HighlightSorting implements Comparator<Highlight>
+    {
+        public int compare(Highlight h1, Highlight h2)
+        {
+            return  h1.getInfo().compareTo(h2.getInfo());
+        }
+    }
 }
 
 /**
@@ -759,6 +768,8 @@ class HighlightMessage extends Highlight
         desc.append(msg);
     }
 
+    public String getInfo() {return msg;}
+    
     public void showInternalHighlight(EditWindow wnd, Graphics g, int highOffX, int highOffY,
                                       boolean onlyHighlight, boolean setConnected)
     {
