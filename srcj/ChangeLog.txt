@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+IMP: (10/13/09, GVG) Threadsafe (FULL_SCREEN_SAFE) mode back to default. 
+Use -nothreadsafe to switch to previous mode.
+
 IMP: (10/12/09, GVG) Export names not sorted multi-object properties dialog (Bug #2419).
 Adding sorting of highlights before they added into the selection list.
 
