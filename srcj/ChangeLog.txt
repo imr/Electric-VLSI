@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+IMP: (10/16/09, GVG) Better caching of IllegalArgumentException in GDS IO (bug #2423)
+
 BUG: (10/16/09, DN) NPE while moving objects (Bug #2431).
 FIX: Measures to prevent Electric from hang:
      1) Assertion Errors don't stop GUI thread;

@@ -317,9 +317,18 @@ public class GDS extends Input
 		try
 		{
 			loadFile();
-        } catch (Exception e)
+        } catch (IllegalArgumentException e)
+        {
+            System.out.println("ERROR reading GDS file: " + e.getMessage());
+            if (Job.getDebug())
+                e.printStackTrace();
+            return null;
+        }
+        catch (Exception e)
 		{
-			System.out.println("ERROR reading GDS file: check input file");
+            System.out.println("ERROR reading GDS file: check input file, " + e.getMessage());
+            if (Job.getDebug())
+                e.printStackTrace();
             return null;
         }
 
