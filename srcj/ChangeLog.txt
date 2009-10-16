@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+BUG: (10/16/09, GVG) TechEditorWizard  doesn't write metal pin when numMetals=1 (Bug #2433)
+FIX: Pins not longer defined in same loop as the metal contacts. Extra code to detect arcs
+without pins associated (in an invalid tech for example).
+
 BUG: (10/16/09, GVG) NPE if no pin associated to the arc is found (bug #2432)
 FIX: Case detected (probably due to invalid tech) and routing path is discarded
 

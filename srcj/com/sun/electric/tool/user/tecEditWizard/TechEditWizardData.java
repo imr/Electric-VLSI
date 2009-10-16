@@ -2757,22 +2757,32 @@ public class TechEditWizardData
 
         /**************************** Metals Nodes/Arcs ***********************************************/
 
-        // Pins and contacts
+        // Pins
+        for (int i = 0; i < num_metal_layers; i++)
+        {
+            hla = scaledValue(metal_width[i].value / 2);
+            Xml.Layer lt = metalLayers.get(i);
+            PaletteGroup group = metalPalette[i];  // structure created by the arc definition
+            group.addPinOrResistor(makeXmlPrimitivePin(t, lt.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
+                null, makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.CROSSED)), null);
+        }
+
+        // contacts
         for(int i=1; i<num_metal_layers; i++)
 		{
-            hla = scaledValue(metal_width[i-1].value / 2);
+//            hla = scaledValue(metal_width[i-1].value / 2);
             Xml.Layer lb = metalLayers.get(i-1);
             Xml.Layer lt = metalLayers.get(i);
             PaletteGroup group = metalPalette[i-1];  // structure created by the arc definition
 
             // Pin bottom metal
-            group.addPinOrResistor(makeXmlPrimitivePin(t, lb.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
-                null, makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.CROSSED)), null);
-            if (i == num_metal_layers - 1) // last pin!
-            {
-                metalPalette[i].addPinOrResistor(makeXmlPrimitivePin(t, lt.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
-                    null, makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.CROSSED)), null);
-            }
+//            group.addPinOrResistor(makeXmlPrimitivePin(t, lb.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
+//                null, makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.CROSSED)), null);
+//            if (i == num_metal_layers - 1) // last pin!
+//            {
+//                metalPalette[i].addPinOrResistor(makeXmlPrimitivePin(t, lt.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
+//                    null, makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.CROSSED)), null);
+//            }
 
             if (!getExtraInfoFlag())
             {

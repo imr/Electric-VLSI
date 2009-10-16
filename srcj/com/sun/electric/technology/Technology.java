@@ -1106,10 +1106,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
             // Check if there is any pin defined to connect to otherwise it should not create the arc!
             if (t.findPinNode(a.name) == null)
-            {
                 System.out.println("Error: no pin found for arc '" + a.name + "'");
-                continue;
-            }
 
             ArcLayer[] arcLayers = new ArcLayer[a.arcLayers.size()];
             for (int i = 0; i < arcLayers.length; i++) {
