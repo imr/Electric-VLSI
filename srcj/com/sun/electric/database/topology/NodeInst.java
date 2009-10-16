@@ -121,7 +121,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public static boolean isSpecialNode(NodeInst ni)
 	{
 		NodeProto np = ni.getProto();
-		return (Generic.isSpecialGenericNode(ni) || np.getFunction() == PrimitiveNode.Function.PIN ||
+		return (Generic.isSpecialGenericNode(ni) || np.getFunction().isPin() ||
 		        np.getFunction() == PrimitiveNode.Function.CONNECT);
 	}
 
@@ -2499,7 +2499,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public boolean isInlinePin()
 	{
-		if (protoType.getFunction() != PrimitiveNode.Function.PIN) return false;
+		if (!protoType.getFunction().isPin()) return false;
 
 		// see if the pin is connected to two arcs along the same slope
 		int j = 0;
@@ -2852,7 +2852,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public Point2D invisiblePinWithOffsetText(boolean repair)
 	{
 		// look for pins that are invisible and have text in different location
-		if (protoType.getFunction() != PrimitiveNode.Function.PIN) return null;
+		if (!protoType.getFunction().isPin()) return null;
 		if (hasConnections()) return null;
 //		if (this.getNumConnections() != 0) return null;
 

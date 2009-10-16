@@ -1048,7 +1048,7 @@ public class Change extends EModelessDialog implements HighlightListener
 			{
 				NodeInst ni = it.next();
 				if (ni.isCellInstance()) continue;
-				if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
+				if (!ni.getFunction().isPin()) continue;
 				boolean allArcs = true;
 				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 				{

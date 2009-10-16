@@ -668,7 +668,7 @@ public class Quick
         if (!np.getTechnology().isLayout())
             return (false); // only layout nodes
 
-        if (np.getFunction() == PrimitiveNode.Function.PIN) return false; // Sept 30
+        if (np.getFunction().isPin()) return false; // Sept 30
 
         if (coverByExclusion(ni)) return false; // no errors
 
@@ -3787,7 +3787,7 @@ public class Quick
 	                             Layer nLayer, int nNet, Geometric nGeom, Rectangle2D bound)
 	{
 		Technology tech = ni.getProto().getTechnology();
-        assert(ni.getProto().getFunction() != PrimitiveNode.Function.PIN);
+        assert(!ni.getProto().getFunction().isPin());
         Poly [] cropNodePolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
 		convertPseudoLayers(ni, cropNodePolyList);
 		int tot = cropNodePolyList.length;
@@ -3925,7 +3925,7 @@ public class Quick
 	 */
 	private void convertPseudoLayers(NodeInst ni, Poly [] pList)
 	{
-		if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) return;
+		if (!ni.getProto().getFunction().isPin()) return;
 		if (ni.hasConnections()) return;
 //		if (ni.getNumConnections() != 0) return;
 		if (!ni.hasExports()) return;

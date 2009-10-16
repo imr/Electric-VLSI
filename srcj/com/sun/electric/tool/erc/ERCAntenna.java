@@ -556,7 +556,7 @@ public class ERCAntenna
 	private boolean hasDiffusion(NodeInst ni)
 	{
 		// stop if this is a pin
-		if (ni.getFunction() == PrimitiveNode.Function.PIN) return false;
+		if (ni.getFunction().isPin()) return false;
 
 		// analyze to see if there is diffusion here
 		Technology tech = ni.getProto().getTechnology();

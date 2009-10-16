@@ -712,7 +712,7 @@ class NetSchem extends NetCell {
 			NodeInst ni = cell.getNode(i);
 			NodeProto np = ni.getProto();
 			if (!ni.isCellInstance()) {
-				if (np.getFunction() == PrimitiveNode.Function.PIN) continue;
+				if (np.getFunction().isPin()) continue;
 				if (np == Schematics.tech().offpageNode) continue;
 			}
 			int numPortInsts = np.getNumPorts();

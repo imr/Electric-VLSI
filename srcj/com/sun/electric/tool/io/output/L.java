@@ -178,7 +178,7 @@ public class L extends Output
 			} else
 			{
 				PrimitiveNode npPrim = (PrimitiveNode)np;
-				if (fun == PrimitiveNode.Function.PIN)
+				if (fun.isPin())
 				{
 					// if pin is an export, don't write separate node statement
 					if (ni.hasExports()) continue;
@@ -293,7 +293,7 @@ public class L extends Output
 					printWriter.print(" W=" + TextUtils.formatDouble(ai.getLambdaBaseWidth()));
 
 				// write the starting node name (use port name if pin is an export)
-				if (ni.hasExports() && ni.getFunction() == PrimitiveNode.Function.PIN)
+				if (ni.hasExports() && ni.getFunction().isPin())
 				{
 					Export e = ni.getExports().next();
 					printWriter.print(" " + getLegalName(e.getName()));
@@ -382,7 +382,7 @@ public class L extends Output
 				} else printWriter.print(" TO");
 
 				// write the terminating node name (use port name if pin is an export)
-				if (oNi.hasExports() && oNi.getFunction() == PrimitiveNode.Function.PIN)
+				if (oNi.hasExports() && oNi.getFunction().isPin())
 				{
 					Export e = oNi.getExports().next();
 					printWriter.print(" " + getLegalName(e.getName()));
@@ -482,7 +482,7 @@ public class L extends Output
 		if (ni.isCellInstance()) return INSTANCE;
 		PrimitiveNode.Function fun = ni.getFunction();
 		if (fun.isFET()) return TRANSISTOR;
-		if (fun != PrimitiveNode.Function.PIN) return OTHERNODE;
+		if (!fun.isPin()) return OTHERNODE;
 		if (ni.getNumConnections() != 2) return OTHERNODE;
 		return TRUEPIN;
 	}

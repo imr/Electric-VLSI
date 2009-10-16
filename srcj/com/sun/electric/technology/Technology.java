@@ -24,7 +24,6 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.StartupPrefs;
-import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.Environment;
@@ -1104,6 +1103,14 @@ public class Technology implements Comparable<Technology>, Serializable
                 System.out.println("Error: technology " + getTechName() + " has multiple arcs named " + a.name);
                 continue;
             }
+
+            // Check if there is any pin defined to connect to otherwise it should not create the arc!
+            if (t.findPinNode(a.name) == null)
+            {
+                System.out.println("Error: no pin found for arc '" + a.name + "'");
+                continue;
+            }
+
             ArcLayer[] arcLayers = new ArcLayer[a.arcLayers.size()];
             for (int i = 0; i < arcLayers.length; i++) {
                 Xml.ArcLayer al = a.arcLayers.get(i);

@@ -778,7 +778,7 @@ public class Connectivity
 				PrimitiveNode np = (PrimitiveNode)ni.getProto();
 
 				// special case for exported but unconnected pins: save for later
-				if (np.getFunction() == PrimitiveNode.Function.PIN)
+				if (np.getFunction().isPin())
 				{
 					if (ni.hasExports() && !ni.hasConnections())
 					{
@@ -2040,7 +2040,7 @@ public class Connectivity
 			}
 
 			// for pins, must be centered over the desired point
-			if (ni.getFunction() == PrimitiveNode.Function.PIN)
+			if (ni.getFunction().isPin())
 			{
 				if (!ni.getOnlyPortInst().getPortProto().connectsTo(ap)) continue;
 				if (ni.getAnchorCenter().equals(pt))
@@ -5587,7 +5587,7 @@ public class Connectivity
 				for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 				{
 					PrimitiveNode pn = it.next();
-					if (pn.getFunction() != PrimitiveNode.Function.PIN) continue;
+					if (!pn.getFunction().isPin()) continue;
 					if (!sameConnection(e, pn.getPort(0))) continue;
 					pnUse = pn;
 					break;
@@ -5699,7 +5699,7 @@ public class Connectivity
 	private NodeInst createNode(NodeProto np, Point2D loc, double wid, double hei, EPoint [] points, Cell cell)
 	{
 		// pins cannot be smaller than their default size
-		if (np.getFunction() == PrimitiveNode.Function.PIN)
+		if (np.getFunction().isPin())
 		{
 			if (wid < np.getDefWidth()) wid = np.getDefWidth();
 			if (hei < np.getDefHeight()) hei = np.getDefHeight();
@@ -5709,7 +5709,7 @@ public class Connectivity
 			ni.setTrace(points);
 		if (DEBUGSTEPS)
 		{
-			if (np.getFunction() != PrimitiveNode.Function.PIN)
+			if (!np.getFunction().isPin())
 			{
 				Poly niPoly = Highlight.getNodeInstOutline(ni);
 				addedRectangles.add(ERectangle.fromLambda(niPoly.getBounds2D()));
@@ -5762,7 +5762,7 @@ public class Connectivity
 		{
 			if (DEBUGSTEPS)
 			{
-				if (pNp.getFunction() != PrimitiveNode.Function.PIN)
+				if (!pNp.getFunction().isPin())
 				{
 					Poly niPoly = Highlight.getNodeInstOutline(ni);
 					addedRectangles.add(ERectangle.fromLambda(niPoly.getBounds2D()));

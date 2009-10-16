@@ -482,7 +482,7 @@ public abstract class Router {
                     }
                 }
             }
-            if (pn.getFunction() == PrimitiveNode.Function.PIN) {
+            if (pn.getFunction().isPin()) {
                 for (Iterator<Connection> it = pi.getConnections(); it.hasNext(); ) {
                     Connection c = it.next();
                     ArcInst ai = c.getArc();

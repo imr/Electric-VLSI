@@ -280,7 +280,7 @@ public class Tegas extends Topology
 		{
 			Nodable no = it.next();
 			PrimitiveNode.Function fun = getNodableFunction(no);
-			if (fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.ART) continue;
+			if (fun.isPin() || fun == PrimitiveNode.Function.ART) continue;
 			if (fun == PrimitiveNode.Function.CONPOWER)
 			{
 				if (wrotePower) continue;

@@ -1252,7 +1252,7 @@ public class ViewChanges
 			PrimitiveNode.Function type = getNodeType(mosNI);
 			NodeInst schemNI = null;
 			if (type == PrimitiveNode.Function.UNKNOWN) continue;
-			if (type == PrimitiveNode.Function.PIN)
+			if (type.isPin())
 			{
 				// compute new x, y coordinates
 				NodeProto prim = Schematics.tech().wirePinNode;
@@ -1356,7 +1356,7 @@ public class ViewChanges
 	private static PortInst convertPort(NodeInst mosNI, PortProto mosPP, NodeInst schemNI)
 	{
 		PrimitiveNode.Function fun = getNodeType(schemNI);
-		if (fun == PrimitiveNode.Function.PIN)
+		if (fun.isPin())
 		{
 			return schemNI.getOnlyPortInst();
 		}
@@ -1451,7 +1451,7 @@ public class ViewChanges
 		if (ni.isCellInstance()) return null;
 		PrimitiveNode.Function fun = ni.getFunction();
 		if (fun.isTransistor()) return fun;
-		if (fun == PrimitiveNode.Function.PIN || fun.isContact() ||
+		if (fun.isPin() || fun.isContact() ||
 			fun == PrimitiveNode.Function.NODE || fun == PrimitiveNode.Function.CONNECT ||
 			fun == PrimitiveNode.Function.SUBSTRATE || fun == PrimitiveNode.Function.WELL)
 				return PrimitiveNode.Function.PIN;
@@ -1861,7 +1861,7 @@ public class ViewChanges
 							convertedNodes.put(no, newNi);
 						} else
 						{
-							if (np.getFunction() == PrimitiveNode.Function.PIN) continue;
+							if (np.getFunction().isPin()) continue;
 							if (np.getFunction() == PrimitiveNode.Function.CONNECT) continue;
 							if (no.getName().startsWith("fill") || no.getName().startsWith("tfill")) continue;
 
@@ -2708,7 +2708,7 @@ public class ViewChanges
 					NodeInst ni = it.next();
 					if (ni.isIconOfParent()) continue;
 					PrimitiveNode.Function fun = ni.getFunction();
-					if (fun == PrimitiveNode.Function.PIN) continue;
+					if (fun.isPin()) continue;
 					if (fun == PrimitiveNode.Function.CONNECT) continue;
 					if (fun == PrimitiveNode.Function.ART) continue;
 					if (essentialContent != null) { essentialContent = null;   break; }

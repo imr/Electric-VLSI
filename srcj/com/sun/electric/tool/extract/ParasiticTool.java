@@ -448,7 +448,7 @@ public class ParasiticTool extends Tool {
 
                     if (np == Generic.tech().cellCenterNode) continue;
 
-                    if (np.getFunction() == PrimitiveNode.Function.PIN) continue;
+                    if (np.getFunction().isPin()) continue;
 
                     // don't check between technologies
 					if (np.getTechnology() != tech) continue;

@@ -1610,7 +1610,7 @@ public class TechEditWizardData
         EPoint size =  EPoint.fromLambda(width, height);
 
         double getDefWidth = width, getDefHeight = height;
-        if (function == PrimitiveNode.Function.PIN && isArcsShrink) {
+        if (function.isPin() && isArcsShrink) {
 //            assert getNumPorts() == 1;
 //            assert nodeSizeRule == null;
 //            PrimitivePort pp = getPort(0);

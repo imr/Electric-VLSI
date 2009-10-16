@@ -578,7 +578,7 @@ public class EDIF extends Topology
 				if (ni.isCellInstance()) continue;
                 if (equivs.getNodeEquivalence(ni) != null) continue;        // will be defined by external reference
 				PrimitiveNode.Function fun = ni.getFunction();
-				if (fun != PrimitiveNode.Function.PIN) continue;
+				if (!fun.isPin()) continue;
 
 				// check all the connections
 				ArcInst busFound = null;
@@ -673,7 +673,7 @@ public class EDIF extends Topology
                     blockClose("commentGraphics");
                     continue;
                 }
-				if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
+				if (fun == PrimitiveNode.Function.UNKNOWN || fun.isPin() ||
 					fun.isContact() || fun == PrimitiveNode.Function.NODE ||
 					//fun == PrimitiveNode.Function.CONNECT ||
                         fun == PrimitiveNode.Function.ART) continue;
@@ -893,7 +893,7 @@ public class EDIF extends Topology
 				{
 					NodeInst ni = (NodeInst)no;
 					PrimitiveNode.Function fun = ni.getFunction();
-					if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
+					if (fun == PrimitiveNode.Function.UNKNOWN || fun.isPin() ||
 						fun.isContact() || fun == PrimitiveNode.Function.NODE ||
 						//fun == PrimitiveNode.Function.CONNECT ||
                             fun == PrimitiveNode.Function.ART) continue;
@@ -1252,7 +1252,7 @@ public class EDIF extends Topology
 				}
                 if (primsFound.get(getPrimKey(ni, i)) != null) continue;    // already written
 
-                if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.ART)
+                if (fun == PrimitiveNode.Function.UNKNOWN || fun.isPin() || fun == PrimitiveNode.Function.ART)
                     continue;
                 writePrimitive(pn, i, fun);
                 primsFound.put(getPrimKey(ni, i), pn);
@@ -1288,7 +1288,7 @@ public class EDIF extends Topology
 			{
                 if (equivs.getNodeEquivalence(ni) != null) continue;        // will be defined by external reference
 				PrimitiveNode.Function fun = ni.getFunction();
-				if (fun == PrimitiveNode.Function.PIN)
+				if (fun.isPin())
 				{
 					// check all the connections
 					int busWidthFound = -1;

@@ -1889,7 +1889,7 @@ name=null;
 		// if either ni or oNi is a pin primitive, see if it is a candidate for clean-up
 		if (ni1 != null)
 		{
-			if (ni1.getFunction() == PrimitiveNode.Function.PIN &&
+			if (ni1.getFunction().isPin() &&
 				!ni1.hasExports() && !ni1.hasConnections())
 			{
 				if (!possibleInlinePins.contains(ni1))
@@ -1898,7 +1898,7 @@ name=null;
 		}
 		if (ni2 != null)
 		{
-			if (ni2.getFunction() == PrimitiveNode.Function.PIN &&
+			if (ni2.getFunction().isPin() &&
 				!ni2.hasExports() && !ni2.hasConnections())
 			{
 				if (!possibleInlinePins.contains(ni2))
@@ -3087,7 +3087,7 @@ name=null;
 		if (nodePolys.length == 0) return nodePolys;
 
 		// if this is a pin, check the arcs that cover it
-		if (ni.getFunction() == PrimitiveNode.Function.PIN)
+		if (ni.getFunction().isPin())
 		{
 			// pins must be covered by an arc that is extended and has enough width to cover the pin
 			boolean gotOne = false;

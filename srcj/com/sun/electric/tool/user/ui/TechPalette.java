@@ -1306,7 +1306,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         double largest = 0;
         PrimitiveNode.Function groupFunction = np.getGroupFunction();
 
-        if (np.getGroupFunction() == PrimitiveNode.Function.PIN)
+        if (np.getGroupFunction().isPin())
         {
             // for pins, make them the same scale as the arcs
             for(Iterator<ArcProto> it = np.getTechnology().getArcs(); it.hasNext(); )

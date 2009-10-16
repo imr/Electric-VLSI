@@ -188,7 +188,7 @@ public class Route extends ArrayList<RouteElement> {
         NodeInst ni = pi.getNodeInst();
 
         // only replace pins
-        if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) return false;
+        if (!ni.getProto().getFunction().isPin()) return false;
 
         // if the pins is exported, do not replace
         if (pi.getExports().hasNext()) return false;

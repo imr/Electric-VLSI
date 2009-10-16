@@ -1760,7 +1760,7 @@ public class EditMenu {
             if (np.isNotUsed()) continue;
             PrimitiveNode.Function fun = np.getFunction();
             totalCount++;
-            if (fun == PrimitiveNode.Function.PIN) pinCount++; else
+            if (fun.isPin()) pinCount++; else
             if (fun.isContact() || fun == PrimitiveNode.Function.CONNECT) contactCount++; else
             if (fun == PrimitiveNode.Function.NODE) pureCount++;
         }
@@ -1774,7 +1774,7 @@ public class EditMenu {
                 PrimitiveNode np = it.next();
                 if (np.isNotUsed()) continue;
                 PrimitiveNode.Function fun = np.getFunction();
-                if (fun != PrimitiveNode.Function.PIN) continue;
+                if (!fun.isPin()) continue;
                 String addThis = " " + np.getName();
                 if (sb.length() + addThis.length() > pageWidth)
                 {
@@ -1819,7 +1819,7 @@ public class EditMenu {
                 PrimitiveNode np = it.next();
                 if (np.isNotUsed()) continue;
                 PrimitiveNode.Function fun = np.getFunction();
-                if (fun == PrimitiveNode.Function.PIN || fun.isContact() ||
+                if (fun.isPin() || fun.isContact() ||
                     fun == PrimitiveNode.Function.CONNECT || fun == PrimitiveNode.Function.NODE)
                     continue;
                 String addThis = " " + np.getName();

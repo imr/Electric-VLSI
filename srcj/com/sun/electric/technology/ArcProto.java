@@ -753,7 +753,9 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 			PrimitiveNode pn = it.next();
 			if (pn.isPin())
 			{
-				PrimitivePort pp = (PrimitivePort) pn.getPorts().next();
+                if (pn.getNumPorts() > 1)
+                    System.out.println("Missing cases in ArcProto:findPinProto");
+                PrimitivePort pp = (PrimitivePort) pn.getPorts().next();
 				if (pp.connectsTo(this)) return pn;
 			}
 		}

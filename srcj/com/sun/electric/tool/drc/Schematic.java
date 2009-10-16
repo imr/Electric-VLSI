@@ -267,7 +267,7 @@ public class Schematic
 			}
 
 			// check all pins
-			if (np.getFunction() == PrimitiveNode.Function.PIN)
+			if (np.getFunction().isPin())
 			{
 				// may be stranded if there are no exports or arcs
 				if (!ni.hasExports() && !ni.hasConnections())
@@ -426,7 +426,7 @@ public class Schematic
 					NodeInst ni = ai.getPortInst(i).getNodeInst();
 
 					// OK if not a pin
-					if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
+					if (!ni.getProto().getFunction().isPin()) continue;
 
 					// OK if it has exports on it
 					if (ni.hasExports()) continue;

@@ -468,7 +468,7 @@ public class Routing extends Listener
 				{
 					// not a network end: mark the node for removal
 					boolean deleteNode = !mustBeUnrouted;
-					if (ni.getProto().getFunction() == PrimitiveNode.Function.PIN)
+					if (ni.getProto().getFunction().isPin())
 						deleteNode = true;
 					if (deleteNode) nodesToDelete.add(ni);
 				}
@@ -690,7 +690,7 @@ public class Routing extends Listener
 			if (!ni.isCellInstance() &&!ni.hasExports())
 			{
 				PrimitiveNode.Function fun = ni.getFunction();
-				if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
+				if (fun == PrimitiveNode.Function.UNKNOWN || fun.isPin() ||
 					fun.isContact() || fun == PrimitiveNode.Function.CONNECT ||
 					fun == PrimitiveNode.Function.NODE) continue;
 			}

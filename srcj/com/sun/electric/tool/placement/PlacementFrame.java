@@ -442,7 +442,7 @@ public class PlacementFrame
 				{
 					PrimitiveNode.Function fun = ni.getFunction();
 					if (fun != PrimitiveNode.Function.CONNECT && fun != PrimitiveNode.Function.CONTACT &&
-						fun != PrimitiveNode.Function.PIN)
+						!fun.isPin())
 							validNode = true;
 				}
 				if (ni.hasExports()) validNode = true;

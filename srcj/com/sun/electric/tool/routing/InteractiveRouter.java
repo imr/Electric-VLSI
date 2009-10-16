@@ -228,7 +228,7 @@ public abstract class InteractiveRouter extends Router {
                 // if this is a pin, replace it with the first contact in vertical route
                 PortInst pi = startRE.getPortInst();
                 NodeInst ni = pi.getNodeInst();
-                if (ni.getProto().getFunction() == PrimitiveNode.Function.PIN) {
+                if (ni.getProto().getFunction().isPin()) {
                 	CircuitChangeJobs.Reconnect re = CircuitChangeJobs.Reconnect.erasePassThru(ni, false, true);
                     if (re != null) re.reconnectArcs();
                     if (!ni.hasExports()) ni.kill();
@@ -1015,7 +1015,7 @@ public abstract class InteractiveRouter extends Router {
                 PrimitiveNode pn = (PrimitiveNode)np;
 
                 // if pin, use area of arcs connected to it
-                if (pn.getFunction() == PrimitiveNode.Function.PIN) {
+                if (pn.getFunction().isPin()) {
                     // determine size by arcs connected to it
                     Rectangle2D horiz = null;
                     Rectangle2D vert = null;

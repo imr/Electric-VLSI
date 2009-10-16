@@ -172,12 +172,12 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
 	                PortInst pi = ai.getHeadPortInst();
 	                if (!pi.getNodeInst().isCellInstance()) {
 	                    // ignore pins
-	                    if (pi.getNodeInst().getProto().getFunction() != PrimitiveNode.Function.PIN)
+	                    if (!pi.getNodeInst().getProto().getFunction().isPin())
 	                        objs.add(pi);
 	                }
 	                pi = ai.getTailPortInst();
 	                if (!pi.getNodeInst().isCellInstance()) {
-	                    if (pi.getNodeInst().getProto().getFunction() != PrimitiveNode.Function.PIN)
+	                    if (!pi.getNodeInst().getProto().getFunction().isPin())
 	                        objs.add(pi);
 	                }
         		}

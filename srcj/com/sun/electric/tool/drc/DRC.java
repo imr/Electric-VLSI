@@ -1823,7 +1823,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                         System.out.println(msg);
                         errorLog.logError(msg, ni, cell, null, errorSortNodes);
                     }
-                } else if (np.getFunction() == PrimitiveNode.Function.PIN &&
+                } else if (np.getFunction().isPin() &&
                         cell.getTechnology().isLayout() && !ni.hasConnections()) {
                     if (unconnectedPins == null)
                         unconnectedPins = new HashMap<NodeProto,ArrayList<NodeInst>>();

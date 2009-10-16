@@ -1254,12 +1254,12 @@ public class CircuitChangeJobs
 				ai.kill();
 
 				// also delete freed pin nodes
-				if (h.getProto().getFunction() == PrimitiveNode.Function.PIN &&
+				if (h.getProto().getFunction().isPin() &&
 					!h.hasConnections() && !h.hasExports())
 				{
 					h.kill();
 				}
-				if (t.getProto().getFunction() == PrimitiveNode.Function.PIN &&
+				if (t.getProto().getFunction().isPin() &&
 					!t.hasConnections() && !t.hasExports())
 				{
 					t.kill();
@@ -1426,7 +1426,7 @@ public class CircuitChangeJobs
 			if (!ni.isLinked()) continue;
 			if (!ni.isCellInstance())
 			{
-				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
+				if (!ni.getProto().getFunction().isPin()) continue;
 				if (ni.hasConnections() || ni.hasExports()) continue;
 				deleteTheseNodes.add(ni);
 			}
@@ -1439,7 +1439,7 @@ public class CircuitChangeJobs
 		{
 			if (!ni.isCellInstance())
 			{
-				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
+				if (!ni.getProto().getFunction().isPin()) continue;
 				if (ni.hasExports()) continue;
 				if (!ni.isInlinePin()) continue;
 				nodesToPassThru.add(ni);
@@ -2126,7 +2126,7 @@ public class CircuitChangeJobs
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
+			if (!ni.getFunction().isPin()) continue;
 
 			// if the pin is an export, save it
 			if (ni.hasExports()) continue;
@@ -3134,7 +3134,7 @@ public class CircuitChangeJobs
 					throw e;
 				}
 				PrimitiveNode.Function fun = item.getFunction();
-				if (fun != PrimitiveNode.Function.PIN && !fun.isContact() &&
+				if (!fun.isPin() && !fun.isContact() &&
 					fun != PrimitiveNode.Function.NODE && fun != PrimitiveNode.Function.CONNECT)
 						complexNode = true;
 			} else
@@ -3222,7 +3222,7 @@ public class CircuitChangeJobs
 					if (ret == 3) return -1;
 				}
 				PrimitiveNode.Function fun = item.getFunction();
-				if (fun != PrimitiveNode.Function.PIN && !fun.isContact() &&
+				if (!fun.isPin() && !fun.isContact() &&
 					fun != PrimitiveNode.Function.NODE && fun != PrimitiveNode.Function.CONNECT)
 						complexNode = true;
 			} else

@@ -789,7 +789,7 @@ public class CircuitChanges
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
+			if (!ni.getFunction().isPin()) continue;
 
 			// if the pin is an export, save it
 			if (ni.hasExports()) continue;
@@ -819,7 +819,7 @@ public class CircuitChanges
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
+			if (!ni.getFunction().isPin()) continue;
 
 			// if the pin is standard size, leave it alone
 			double overSizeX = ni.getXSize() - ni.getProto().getDefWidth();
@@ -883,7 +883,7 @@ public class CircuitChanges
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
+			if (!ni.getFunction().isPin()) continue;
 
 			// make sure all arcs touch each other
 			boolean nodeIsBad = false;

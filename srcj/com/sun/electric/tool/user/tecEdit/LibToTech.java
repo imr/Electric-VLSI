@@ -387,7 +387,7 @@ public class LibToTech
 		if (nList == null) return null;
 
 		for(NodeInfo ni: nList)
-			ni.arcsShrink = ni.func == PrimitiveNode.Function.PIN && !ni.wipes;
+			ni.arcsShrink = ni.func.isPin() && !ni.wipes;
 
 		// create the pure-layer associations
 		for(int i=0; i<lList.length; i++)
@@ -849,8 +849,8 @@ public class LibToTech
 			NodeInfo nIn = NodeInfo.parseCell(np);
 
 			// only want pins on pass 0, pure-layer nodes on pass 2
-			if (pass == 0 && nIn.func != PrimitiveNode.Function.PIN) continue;
-			if (pass == 1 && (nIn.func == PrimitiveNode.Function.PIN || nIn.func == PrimitiveNode.Function.NODE)) continue;
+			if (pass == 0 && !nIn.func.isPin()) continue;
+			if (pass == 1 && (nIn.func.isPin() || nIn.func == PrimitiveNode.Function.NODE)) continue;
 			if (pass == 2 && nIn.func != PrimitiveNode.Function.NODE) continue;
 			if (nIn.func == PrimitiveNode.Function.NODE)
 			{

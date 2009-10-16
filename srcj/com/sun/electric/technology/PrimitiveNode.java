@@ -573,6 +573,12 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         public boolean isContact() { return this == CONTACT; }
 
         /**
+         * Method to tell whether this function describes a pin.
+         * @return
+         */
+        public boolean isPin() { return this == PIN; }
+
+        /**
          * Method to tell whether this function describes a capacitor (normal or electrolytic).
          * @return true if this function describes a capacitor (normal or electrolytic).
          */
@@ -1759,7 +1765,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	public boolean isPin()
 	{
-		return (getFunction() == Function.PIN);
+		return (getFunction().isPin());
 	}
 
 	/**

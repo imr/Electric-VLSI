@@ -651,7 +651,7 @@ public class MTDRCLayoutTool extends MTDRCTool
 
             if (!np.getTechnology().isLayout()) return (false); // only layout nodes
 
-            if (np.getFunction() == PrimitiveNode.Function.PIN) return false; // Sept 30
+            if (np.getFunction().isPin()) return false; // Sept 30
 
             if (coverByExclusion(ni)) return false; // no errors
 
@@ -3777,7 +3777,7 @@ public class MTDRCLayoutTool extends MTDRCTool
          */
         private void convertPseudoLayers(NodeInst ni, Poly[] pList)
         {
-            if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) return;
+            if (!ni.getProto().getFunction().isPin()) return;
             assert (false); // When do I get this?
             System.out.println("I should not get this");
 

@@ -137,6 +137,34 @@ public class Xml {
             return null;
         }
 
+        /**
+         * Method to find the first PrimitiveNode which would have the given arc
+         */
+        public PrimitiveNode findPinNode(String arc)
+        {
+            for (PrimitiveNodeGroup nodeGroup: nodeGroups)
+            {
+                boolean foundPort = false;
+                for (PrimitivePort p: nodeGroup.ports)
+                {
+                    if(p.portArcs.contains(arc))
+                    {
+                        foundPort = true;
+                        break;
+                    }
+                }
+                if (foundPort) // now checking if there is a pin associated with the arc
+                {
+                    for (PrimitiveNode n: nodeGroup.nodes)
+                    {
+                        if (n.function.isPin())
+                            return n;
+                    }
+                }
+            }
+            return null;
+        }
+
         public void writeXml(String fileName) {
             writeXml(fileName, true, null);
         }

@@ -328,7 +328,7 @@ public class LEF extends Output
 			if (ni.isCellInstance()) continue;
 			if (nodesUnderExports.contains(ni)) continue;
 			PrimitiveNode.Function fun = ni.getFunction();
-			if (fun != PrimitiveNode.Function.PIN &&
+			if (!fun.isPin() &&
 				!fun.isContact() &&
 				fun != PrimitiveNode.Function.NODE &&
 				// added WELL so that WELL contacts which are part of either

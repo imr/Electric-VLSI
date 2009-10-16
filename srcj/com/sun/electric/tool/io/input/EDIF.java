@@ -1403,7 +1403,7 @@ public class EDIF extends Input
 		for (int i = 0; i < 2; i++)
 		{
 			NodeInst ni = ai.getPortInst(i).getNodeInst();
-			if (ni.getFunction() == PrimitiveNode.Function.PIN)
+			if (ni.getFunction().isPin())
 			{
 				// scan through this nodes portarcinst's
 				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
