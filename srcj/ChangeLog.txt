@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+BUG: (10/16/09, GVG) NPE if no pin associated to the arc is found (bug #2432)
+FIX: Case detected (probably due to invalid tech) and routing path is discarded
+
 IMP: (10/16/09, GVG) Better caching of IllegalArgumentException in GDS IO (bug #2423)
 
 BUG: (10/16/09, DN) NPE while moving objects (Bug #2431).

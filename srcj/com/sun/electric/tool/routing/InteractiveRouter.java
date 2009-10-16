@@ -313,6 +313,11 @@ public abstract class InteractiveRouter extends Router {
             ArcProto useArc = getArcToUse(startPort, null);
             if (useArc == null) return route;
             PrimitiveNode pn = useArc.findOverridablePinProto(ep);
+            if (pn == null) // something wrong with technology. No pin found
+            {
+                System.out.println("No primitive node found for arc '" + useArc.getName() + "'");
+                return route; // error
+            }
             endPort = pn.getPort(0);
         } else {
             endPort = getRoutePort(endObj);
