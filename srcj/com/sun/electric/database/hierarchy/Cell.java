@@ -1325,7 +1325,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         boundsDirty = BOUNDS_RECOMPUTE;
         if (newBackup != null) {
             ERectangle newBounds = computeBounds();
-            assert newBounds == cellBounds;
+            if (newBounds != cellBounds) {
+                System.out.println("update "+this.libDescribe()+" cellBounds="+cellBounds+" newBounds="+newBounds);
+                if (full) {
+                    cellBounds = newBounds;
+                    ActivityLogger.logException(new AssertionError("Bad bounds"));
+                } else {
+                    assert newBounds == cellBounds;
+                }
+            }
         } else {
             cellBounds = computeBounds();
         }
@@ -1355,6 +1363,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (boundsModified != null) {
             assert boundsDirty == BOUNDS_RECOMPUTE;
             ERectangle newBounds = computeBounds();
+            if (newBounds != cellBounds) {
+                System.out.println("updateSubCell "+this.libDescribe()+" cellBounds="+cellBounds+" newBounds="+newBounds);
+            }
             assert newBounds == cellBounds;
             boundsDirty = BOUNDS_CORRECT;
         }

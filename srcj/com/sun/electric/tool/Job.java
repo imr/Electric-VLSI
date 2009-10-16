@@ -518,10 +518,10 @@ public abstract class Job implements Serializable {
     }
 
     private static final ThreadLocal<UserInterface> threadUserInterface = new ThreadLocal<UserInterface>() {
-        @Override
-        protected UserInterface initialValue() {
-            throw new IllegalStateException();
-        }
+//        @Override
+//        protected UserInterface initialValue() {
+//            throw new IllegalStateException();
+//        }
     };
 
     public static UserInterface getUserInterface() {

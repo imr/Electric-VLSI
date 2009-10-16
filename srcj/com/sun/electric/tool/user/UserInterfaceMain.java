@@ -766,7 +766,12 @@ public class UserInterfaceMain extends AbstractUserInterface
 //                database.checkFresh(oldSnapshot);
                 database.lowLevelSetCanUndoing(true);
                 database.getNetworkManager().startBatch();
-                database.undo(newSnapshot);
+                try {
+                    database.undo(newSnapshot);
+                } catch (Throwable e) {
+                    ActivityLogger.logException(e);
+                    database.recover(newSnapshot);
+                }
                 database.getNetworkManager().endBatch();
                 database.lowLevelSetCanUndoing(false);
             } finally {
@@ -1094,7 +1099,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             catch(Throwable ex) {
                 ex.printStackTrace(System.err);
                 ActivityLogger.logException(ex);
-                if (ex instanceof Error) {
+                if (ex instanceof Error && (!(ex instanceof AssertionError))) {
                     logger.throwing(CLASS_NAME, "dispatchEvent", ex);
                     throw (Error)ex;
                 }

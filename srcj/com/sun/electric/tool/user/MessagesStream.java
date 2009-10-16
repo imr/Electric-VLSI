@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.io.FileType;
@@ -99,7 +100,21 @@ public class MessagesStream extends PrintStream
             if (newLine) Main.UserInterfaceDummy.stdout.println(s);
             else         Main.UserInterfaceDummy.stdout.print(s);
         } else {
-            Job.getUserInterface().printMessage(s, newLine);
+            UserInterface ui = Job.getUserInterface();
+            if (ui != null) {
+                ui.printMessage(s, newLine);
+                return;
+            }
+            ui = Job.getExtendedUserInterface();
+            if (ui != null) {
+                ui.printMessage(s, newLine);
+                return;
+            }
+            if (newLine) {
+                System.err.println(s);
+            } else {
+                System.err.print(s);
+            }
         }
     }
 
