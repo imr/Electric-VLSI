@@ -272,10 +272,8 @@ public class Edit {
             StringBuffer libsBuf = CVS.getLibraryFiles(libs, useDir);
             StringBuffer cellsBuf = CVS.getCellFiles(cells, useDir);
 
-            String args = libsBuf + " " + cellsBuf;
-            if (args.trim().equals("")) return true;
-
             if (unedit) {
+                fieldVariableChanged("uneditMatchedStrings");
                 // can only unedit files that are up-to-date
                 // otherwise, you cvs will ask if you want to rollback local copy
                 List<Library> libsToUnedit = new ArrayList<Library>();
@@ -291,7 +289,7 @@ public class Edit {
                 libsBuf = CVS.getLibraryFiles(libsToUnedit, useDir);
                 cellsBuf = CVS.getCellFiles(cellsToUnedit, useDir);
 
-                args = libsBuf + " " + cellsBuf;
+                String args = libsBuf + " " + cellsBuf;
                 if (args.trim().equals("")) return true;
 
                 Exec.OutputStreamChecker checker = new Exec.OutputStreamChecker(System.out, "has been modified; revert changes?", false, null);
@@ -302,9 +300,11 @@ public class Edit {
                 //System.out.println("Unmarking CVS edit: "+args);
                 CVS.runCVSCommand(cvsProgram, repository, "unedit -l "+args, "CVS Unedit", useDir, checker);
                 uneditMatchedStrings = uneditResponder.matchedStrings;
-                fieldVariableChanged("uneditMatchedStrings");
                 return true;
             }
+
+            String args = libsBuf + " " + cellsBuf;
+            if (args.trim().equals("")) return true;
 
             if (checkConflicts) {
                 //System.out.println("Checking editors for: "+args);
@@ -330,6 +330,7 @@ public class Edit {
             return true;
         }
 
+        @Override
         public void terminateOK() {
             if (unedit) {
                 for (String matched: uneditMatchedStrings) {
@@ -351,9 +352,11 @@ public class Edit {
             } else if (checkConflicts) {
                 // if there are any editors, let the user know.
                 List<Editor> filteredEditors = new ArrayList<Editor>();
-                for (Editor e : editors) {
-                    if (e.getUser().equals(System.getProperty("user.name"))) continue;
-                    filteredEditors.add(e);
+                if (editors != null) {
+                    for (Editor e : editors) {
+                        if (e.getUser().equals(System.getProperty("user.name"))) continue;
+                        filteredEditors.add(e);
+                    }
                 }
                 editors = filteredEditors;
 
@@ -406,7 +409,7 @@ public class Edit {
 
     private static class UneditResponder implements Exec.OutputStreamCheckerListener {
         private List<String> matchedStrings = new ArrayList<String>();
-        
+
 //        List<Library> libs;
 //        List<Cell> cells;
 //        private UneditResponder(List<Library> libs, List<Cell> cells) {

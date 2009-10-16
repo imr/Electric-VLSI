@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
-IMP: (10/13/09, GVG) Threadsafe (FULL_SCREEN_SAFE) mode back to default. 
+BUG: (10/16/09, DN) NPE in CVS with threadsafe mode on (Bug #2429).
+FIX: In Edit.MarkForEditJob.doIt call fieldVariableChanged("uneditMatchedStrings") earlier.
+
+IMP: (10/13/09, GVG) Threadsafe (FULL_SCREEN_SAFE) mode back to default.
 Use -nothreadsafe to switch to previous mode.
 
 IMP: (10/12/09, GVG) Export names not sorted multi-object properties dialog (Bug #2419).
@@ -75,7 +78,7 @@ IMP: (10/7/09, AM) Ensure that the JVM exits with nonzero exit code if
     an exception is thrown in Batch mode (so Electric can be called
     from Makefiles).
 
-IMP: (10/7/09, GVG) Back to DEFAULT_MODE = Mode.FULL_SCREEN_UNSAFE until 
+IMP: (10/7/09, GVG) Back to DEFAULT_MODE = Mode.FULL_SCREEN_UNSAFE until
 "threadsafe mode slow?" (bug #2420) is further investigated.
 
 IMP: (10/7/09, DN) cvspm.Edit.UneditResponder stores matched Strings in a list for later processing
@@ -96,7 +99,7 @@ FIX: Change Output.OutputCellInfo from CLIENT_EXAMINE to SERVER_EXAMINE .
 
 IMP: (10/5/09, GVG) Toggle Grid and resolution warnings (Bug# 2404)
 
-BUG: (10/1/09, GVG) Marina scripts fail with "Conflicting thread modes: 
+BUG: (10/1/09, GVG) Marina scripts fail with "Conflicting thread modes:
 BATCH and THREAD_SAFE" (Bug #2411)
 FIX: New Mode.THREAD_SAFE is defined (bug #2293) before -batch condition.
 
