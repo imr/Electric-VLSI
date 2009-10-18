@@ -57,7 +57,12 @@ public class UserInterfaceInitial  implements UserInterface {
     public void showErrorMessage(String message, String title) { throw new UnsupportedOperationException(); }
     public void showInformationMessage(String message, String title) { throw new UnsupportedOperationException(); }
     public void printMessage(String message, boolean newLine) {
-        Job.currentUI.printMessage(message, newLine);
+        if (Job.currentUI != null)
+            Job.currentUI.printMessage(message, newLine);
+        else if (newLine)
+            System.err.println(message);
+        else
+            System.err.print(message);
     }
     public void saveMessages(String filePath) { throw new UnsupportedOperationException(); }
     public void beep() { throw new UnsupportedOperationException(); }

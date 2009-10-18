@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+BUG: (10/18/09, DN) NPE while moving objects in threadsafe mode (Bug #2431).
+    Cell.getBounds() algorithm had a bug which appeared in threadsafe mode with
+    its lazy RTree calculation. Previously RTree calculated always and these calculation
+    hid this bug.
+FIX: In Cell.getBounds() recalculate bounds of subcells in BOUNDS_CORRECT_GEOM
+    and BOUNDS_RECOMPUTE cases.
+
 BUG: (10/16/09, GVG) TechEditorWizard  doesn't write metal pin when numMetals=1 (Bug #2433)
 FIX: Pins not longer defined in same loop as the metal contacts. Extra code to detect arcs
 without pins associated (in an invalid tech for example).

@@ -1111,7 +1111,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * @throws IllegalStateException if recalculation of Snapshot is requred in thread which is not enabled to do it.
 	 */
     public CellBackup backupUnsafe() {
-        if (cellBackupFresh || !database.canComputeBounds()) return backup;
+        if (cellBackupFresh) return backup;
+        if (!database.canComputeBounds())
+            return backup;
         return doBackup();
     }
 
@@ -1517,6 +1519,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             }
             if (boundsDirty == BOUNDS_CORRECT)
                 return cellBounds;
+        }
+        // Recalculate bounds of subcells.
+        for (Iterator<CellUsage> it = getUsagesIn(); it.hasNext(); ) {
+            CellUsage u = it.next();
+            u.getProto(database).getBounds();
         }
         if (boundsDirty == BOUNDS_CORRECT_GEOM) {
             boundsDirty = BOUNDS_CORRECT;
