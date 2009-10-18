@@ -375,7 +375,7 @@ public class NewEpicAnalysis extends AnalogAnalysis {
 
     @Override
         protected Waveform[] loadWaveforms(AnalogSignal signal) {
-        int index = signal.getIndexInAnalysis();
+        int index = ((EpicSignal)signal).sigNum;
         Waveform wave = loadWaveformCache.get(index);
         if (wave == null)
             return new Waveform[] { new WaveformImpl(new double[0], new double[0]) };
