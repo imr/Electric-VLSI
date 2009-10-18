@@ -114,6 +114,8 @@ import com.sun.electric.database.geometry.btree.unboxed.*;
  *
  *  Sub-block allocation using extents.
  *
+ *  Use ARC http://en.wikipedia.org/wiki/Adaptive_Replacement_Cache
+ *
  *  Crazy: you can even store the free extents in the very tree that
  *  uses those extents as its underlying storage!  The trick here is
  *  that performing an extent allocation merely reduces the length of
@@ -182,36 +184,34 @@ public class BTree
         return (V)walk(keybuf, 0, null, Op.GET_VAL_FROM_KEY, 0);
     }
 
-    /** returns the ordinal of the given key */
+    /** returns the value of the largest key less than or equal to the one supplied */
     public V getValFromKeyFloor(K key) {
         uk.serialize(key, keybuf, 0);
         return (V)walk(keybuf, 0, null, Op.GET_VAL_FROM_KEY_FLOOR, 0);
     }
 
-    /** returns the ordinal of the given key */
+    /** returns the value of the smallest key greater than or equal to the one supplied */
     public V getValFromKeyCeiling(K key) {
         uk.serialize(key, keybuf, 0);
-        //return (V)walk(keybuf, 0, null, Op.GET_VAL_FROM_KEY_CEIL, 0);
-        throw new RuntimeException("not implemented");
+        return (V)walk(keybuf, 0, null, Op.GET_VAL_FROM_KEY_CEIL, 0);
     }
 
-    /** returns the ordinal of the given key */
+    /** returns the ordinal of the given key, or -1 if not found */
     public int getOrdFromKey(K key) {
         uk.serialize(key, keybuf, 0);
         return ((Integer)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY, 0)).intValue();
     }
 
-    /** returns the ordinal of the given key */
+    /** returns the ordinal of the largest key less than or equal to the one supplied */
     public int getOrdFromKeyFloor(K key) {
         uk.serialize(key, keybuf, 0);
         return ((Integer)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY_FLOOR, 0)).intValue();
     }
 
-    /** returns the ordinal of the given key */
+    /** returns the ordinal of the smallest key greater than or equal to the one supplied */
     public int getOrdFromKeyCeiling(K key) {
         uk.serialize(key, keybuf, 0);
-        //return ((Integer)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY_CEIL, 0)).intValue();
-        throw new RuntimeException("not implemented");
+        return ((Integer)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY_CEIL, 0)).intValue();
     }
 
     /** returns the least key greater than  */
@@ -302,6 +302,15 @@ public class BTree
             switch(this) {
                 case GET_VAL_FROM_KEY_FLOOR:
                 case GET_ORD_FROM_KEY_FLOOR:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+        public boolean isGetFromKeyCeil() {
+            switch(this) {
+                case GET_VAL_FROM_KEY_CEIL:
+                case GET_ORD_FROM_KEY_CEIL:
                     return true;
                 default:
                     return false;
@@ -414,20 +423,16 @@ public class BTree
                 }
             }
             if (cur.isLeafNode()) {
-                if (op.isGetFromOrd())
-                    return ord >= leafNodeCursor.getNumBuckets()
-                        ? null
-                        : op==Op.GET_VAL_FROM_ORD
-                        ? leafNodeCursor.getVal(ord)
-                        : leafNodeCursor.getKey(ord);
-                if (op.isGetFromKey()) {
-                    switch(op) {
-                        case GET_VAL_FROM_KEY:       return comp==0 ? leafNodeCursor.getVal(idx) : null;
-                        case GET_VAL_FROM_KEY_FLOOR: return leafNodeCursor.getVal(idx);
-                        case GET_ORD_FROM_KEY:       return comp==0 ? new Integer(idx+global_ord) : new Integer(-1);
-                        case GET_ORD_FROM_KEY_FLOOR: return new Integer(idx+global_ord);
-                        default: throw new RuntimeException();
-                    }
+                switch(op) {
+                    case GET_VAL_FROM_ORD:       return ord >= leafNodeCursor.getNumBuckets() ? null : leafNodeCursor.getVal(ord);
+                    case GET_KEY_FROM_ORD:       return ord >= leafNodeCursor.getNumBuckets() ? null : leafNodeCursor.getKey(ord);
+                    case GET_VAL_FROM_KEY:       return comp==0 ? leafNodeCursor.getVal(idx) : null;
+                    case GET_VAL_FROM_KEY_FLOOR: return leafNodeCursor.getVal(idx);
+                    case GET_VAL_FROM_KEY_CEIL:  /* FIXME: might need to backtrack one step */ throw new RuntimeException("not implemented");
+                    case GET_ORD_FROM_KEY:       return comp==0 ? new Integer(idx+global_ord) : new Integer(-1);
+                    case GET_ORD_FROM_KEY_FLOOR: return new Integer(idx+global_ord /*FIXME: off the end?*/);
+                    case GET_ORD_FROM_KEY_CEIL:  return comp==0 ? new Integer(idx+global_ord) : new Integer(idx+global_ord+1 /*FIXME: off the end?*/);
+                    default: /* INSERT or REPLACE; fall through */
                 }
                 if (op==Op.INSERT && comp==0) throw new RuntimeException("attempt to re-insert a value at key " + leafNodeCursor.getKey(idx));
                 if (op==Op.REPLACE && comp!=0) throw new RuntimeException("attempt to replace a value that did not exist");
