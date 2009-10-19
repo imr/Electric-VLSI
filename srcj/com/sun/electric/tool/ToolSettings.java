@@ -250,7 +250,8 @@ public class ToolSettings extends AbstractToolSettings {
     public static Setting getPmosWellHeightSetting() {return t.cachepheight;}
     public static Setting getSimpleNameSetting() {return t.cachesimpleName;}
 
-    public static Setting getGlobalSDCCommandsSetting() { return t.cacheGlobalSDCCommands; }
+    public static Setting getGlobalSDCCommandsMAXSetting() { return t.cacheGlobalSDCCommandsMAX; }
+    public static Setting getGlobalSDCCommandsMINSetting() { return t.cacheGlobalSDCCommandsMIN; }
     public static Setting getNumWorstPathsSetting() { return t.cacheNumWorstPaths; }
 
     public static void attachToGroup(Setting.RootGroup rootSettingGroup) {
@@ -347,7 +348,8 @@ public class ToolSettings extends AbstractToolSettings {
     { tool("CVSTool", "tool/cvspm"); }
 
     { tool("STATool", "plugins/sctiming"); }
-    private final Setting cacheGlobalSDCCommands = makeStringSetting("GlobalSDCCommands", "Static Timing Analysis Tab", "Global SDC Constraints", "");
+    private final Setting cacheGlobalSDCCommandsMAX = makeStringSetting("GlobalSDCCommands", "Static Timing Analysis Tab", "Global SDC Constraints (MAX)", "");
+    private final Setting cacheGlobalSDCCommandsMIN = makeStringSetting("GlobalSDCCommandsMIN", "Static Timing Analysis Tab", "Global SDC Constraints (MIN)", "");
     private final Setting cacheNumWorstPaths = makeIntSetting("NumWorstPaths", "Static Timing Analysis Tab", "Num Worst Paths", 10);
 
     private ToolSettings(Setting.RootGroup rootSettingGroup) {
