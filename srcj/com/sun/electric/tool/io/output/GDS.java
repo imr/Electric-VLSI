@@ -34,7 +34,6 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -129,7 +128,7 @@ public class GDS extends Geometry
 	/** Current layer for gds output */			private static GDSLayers currentLayerNumbers;
 	/** Position of next byte in the buffer */	private static int bufferPosition;
 	/** Number data buffers output so far */	private static int blockCount;
-	/** constant for GDS units */				private static double scaleFactor;
+	/** constant for GDS units */				private double scaleFactor;
 	/** cell naming map */						private Map<Cell,String> cellNames;
 	/** layer number map */						private Map<Layer,GDSLayers> layerNumbers;
 	/** separator string for lib + cell concatanated cell names */  public static final String concatStr = ".";
@@ -150,6 +149,7 @@ public class GDS extends Geometry
 		int cellNameLenMax = IOTool.getGDSCellNameLenMax();
 		boolean outUpperCase = IOTool.isGDSOutUpperCase();
         boolean includeText = IOTool.isGDSInIncludesText();
+        double outputScale =  IOTool.getGDSOutputScale();
 
         public GDSPreferences(boolean factory)
 		{
@@ -665,7 +665,7 @@ public class GDS extends Geometry
 		for (int i=0; i<DSIZE; i++) emptyBuffer[i] = 0;
 
 		Technology tech = topCell.getTechnology();
-		scaleFactor = tech.getScale();
+		scaleFactor = tech.getScale() * localPrefs.outputScale;
 		layerNumbers = new HashMap<Layer,GDSLayers>();
 		nameRemapping = new HashMap<String,Set<String>>();
 

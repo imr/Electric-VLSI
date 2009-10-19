@@ -593,7 +593,19 @@ public class IOTool extends Tool
 	 */
 	public static Setting getGDSInputScaleSetting() { return ToolSettings.getGDSInputScaleSetting(); }
 
-	private static Pref cacheGDSInMergesBoxes = Pref.makeBooleanPref("GDSInMergesBoxes", IOTool.tool.prefs, false);
+    /**
+	 * Method to tell the scale to be applied when writing GDS.
+	 * The default is 1 (no scaling).
+	 * @return the scale to be applied when writing GDS.
+	 */
+	public static double getGDSOutputScale() { return getGDSOutputScaleSetting().getDouble(); }
+	/**
+	 * Method to set the scale to be applied when writing GDS.
+	 * @return the scale to be applied when writing GDS.
+	 */
+	public static Setting getGDSOutputScaleSetting() { return ToolSettings.getGDSOutputScaleSetting(); }
+
+    private static Pref cacheGDSInMergesBoxes = Pref.makeBooleanPref("GDSInMergesBoxes", IOTool.tool.prefs, false);
 	/**
 	 * Method to tell whether GDS Input merges boxes into complex polygons.
 	 * This takes more time but produces a smaller database.

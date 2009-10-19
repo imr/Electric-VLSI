@@ -164,7 +164,12 @@ public class ToolSettings extends AbstractToolSettings {
 	 * @return the scale to be applied when reading GDS.
 	 */
 	public static Setting getGDSInputScaleSetting() { return t.cacheGDSInputScale; }
-	/**
+    /**
+	 * Method to set the scale to be applied when writing GDS.
+	 * @return the scale to be applied when writing GDS.
+	 */
+	public static Setting getGDSOutputScaleSetting() { return t.cacheGDSOutputScale; }
+    /**
 	 * Returns project preference to tell the DXF scale.
 	 * The DXF scale is:
 	 * <UL>
@@ -289,6 +294,7 @@ public class ToolSettings extends AbstractToolSettings {
 	private final Setting cacheGDSOutputConvertsBracketsInExports = makeBooleanSetting("GDSOutputConvertsBracketsInExports", "GDS tab", "GDS output converts brackets in exports", true);
 	private final Setting cacheGDSCellNameLenMax = makeIntSetting("GDSCellNameLenMax", "GDS tab", "GDS name length limit", 32);
     private final Setting cacheGDSInputScale = makeDoubleSetting("GDSInputScale", "GDS tab", "GDS input scale", 1.0);
+    private final Setting cacheGDSOutputScale = makeDoubleSetting("GDSOutputScale", "GDS tab", "GDS output scale", 1.0);
 	private final Setting cacheDXFScale = makeIntSetting("DXFScale", "DXF tab", "DXF scale factor", 2);
 
     { tool("logeffortTool", "tool/logicaleffort"); }
