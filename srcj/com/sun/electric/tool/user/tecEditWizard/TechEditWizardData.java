@@ -247,6 +247,8 @@ public class TechEditWizardData
         Color graphicsColor; // uses this color with no fill
         EGraphics.Outline graphicsOutline; // uses this outline with graphicsColor
         int [] graphicsPattern; // uses this pattern with graphicsColor
+        double width = 0; // width of the pure layer node to create
+        boolean addArc = false;
 
         LayerInfo(String n)
         {
@@ -264,6 +266,35 @@ public class TechEditWizardData
             pinType = vals[3];
             text = vals[4];
             textType = vals[5];
+        }
+
+        void setPinArcInfo(String s)
+        {
+            if (!s.startsWith("{"))
+                return; // nothing to parser
+
+            StringTokenizer p = new StringTokenizer(s, ", {}", false);
+            int itemCount = 0;
+            while (p.hasMoreTokens())
+            {
+                String str = p.nextToken();
+                switch (itemCount)
+                {
+                    case 0: // W=?
+                        int index = str.indexOf("=");
+                        assert(index != -1);
+                        width = Double.parseDouble(str.substring(index+1));
+                        break;
+                    case 1: // A in some cases. If A is requested then P is requested as well
+                        assert (str.length() == 1 && str.toLowerCase().equals("a")); // It must be A
+                        addArc = true;
+                        break;
+                    default:
+                        assert(false); // it should not reach this point
+                }
+                itemCount++;
+            }
+            assert(itemCount == 2 || itemCount == 1);
         }
 
         void setGraphicsTemplate(String s)
@@ -342,9 +373,7 @@ public class TechEditWizardData
 	private LayerInfo [] metal_layers;
 	private LayerInfo [] via_layers;
     private LayerInfo marking_layer = new LayerInfo("Marking");		// Device marking layer
-
-    // extra layers
-    private List<LayerInfo> extraLayers;
+    private List<LayerInfo> extraLayers; // extra layers
 
     LayerInfo[] getBasicLayers()
     {
@@ -400,7 +429,6 @@ public class TechEditWizardData
 
         // extra layers
         extraLayers = new ArrayList<LayerInfo>();
-
     }
 
 	/************************************** ACCESSOR METHODS **************************************/
@@ -685,7 +713,7 @@ public class TechEditWizardData
         metalContacts.clear();
         otherContacts.clear();
         extraLayers.clear();
-        
+
         try
 		{
 			URLConnection urlCon = url.openConnection();
@@ -826,25 +854,25 @@ public class TechEditWizardData
                     if (varName.equalsIgnoreCase("nwell_spacing")) nwell_spacing.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("nwell_spacing_rule")) nwell_spacing.rule = stripQuotes(varValue); else
 
-					if (varName.equalsIgnoreCase("metal_width")) fillWizardArray(varValue, metal_width, num_metal_layers, false); else
-					if (varName.equalsIgnoreCase("metal_width_rule")) fillWizardArray(varValue, metal_width, num_metal_layers, true); else
-					if (varName.equalsIgnoreCase("metal_spacing")) fillWizardArray(varValue, metal_spacing, num_metal_layers, false); else
-					if (varName.equalsIgnoreCase("metal_spacing_rule")) fillWizardArray(varValue, metal_spacing, num_metal_layers, true); else
+					if (varName.equalsIgnoreCase("metal_width")) fillWizardArray(varValue, metal_width, false); else
+					if (varName.equalsIgnoreCase("metal_width_rule")) fillWizardArray(varValue, metal_width, true); else
+					if (varName.equalsIgnoreCase("metal_spacing")) fillWizardArray(varValue, metal_spacing, false); else
+					if (varName.equalsIgnoreCase("metal_spacing_rule")) fillWizardArray(varValue, metal_spacing, true); else
                     if (varName.equalsIgnoreCase("wide_metal_spacing_rules")) fillWizardWideArray(varValue, wide_metal_spacing); else
-                    if (varName.equalsIgnoreCase("via_size")) fillWizardArray(varValue, via_size, num_metal_layers-1, false); else
-					if (varName.equalsIgnoreCase("via_size_rule")) fillWizardArray(varValue, via_size, num_metal_layers-1, true); else
-					if (varName.equalsIgnoreCase("via_spacing")) fillWizardArray(varValue, via_inline_spacing, num_metal_layers-1, false); else
-					if (varName.equalsIgnoreCase("via_spacing_rule")) fillWizardArray(varValue, via_inline_spacing, num_metal_layers-1, true); else
-					if (varName.equalsIgnoreCase("via_array_spacing")) fillWizardArray(varValue, via_array_spacing, num_metal_layers-1, false); else
-					if (varName.equalsIgnoreCase("via_array_spacing_rule")) fillWizardArray(varValue, via_array_spacing, num_metal_layers-1, true); else
-					if (varName.equalsIgnoreCase("via_overhang_inline")) fillWizardArray(varValue, via_overhang, num_metal_layers-1, false); else
-					if (varName.equalsIgnoreCase("via_overhang_inline_rule")) fillWizardArray(varValue, via_overhang, num_metal_layers-1, true); else
+                    if (varName.equalsIgnoreCase("via_size")) fillWizardArray(varValue, via_size, false); else
+					if (varName.equalsIgnoreCase("via_size_rule")) fillWizardArray(varValue, via_size, true); else
+					if (varName.equalsIgnoreCase("via_spacing")) fillWizardArray(varValue, via_inline_spacing, false); else
+					if (varName.equalsIgnoreCase("via_spacing_rule")) fillWizardArray(varValue, via_inline_spacing, true); else
+					if (varName.equalsIgnoreCase("via_array_spacing")) fillWizardArray(varValue, via_array_spacing, false); else
+					if (varName.equalsIgnoreCase("via_array_spacing_rule")) fillWizardArray(varValue, via_array_spacing, true); else
+					if (varName.equalsIgnoreCase("via_overhang_inline")) fillWizardArray(varValue, via_overhang, false); else
+					if (varName.equalsIgnoreCase("via_overhang_inline_rule")) fillWizardArray(varValue, via_overhang, true); else
 
                     if (varName.equalsIgnoreCase("metal_contacts_series")) fillContactSeries(varValue, metalContacts); else
                     if (varName.equalsIgnoreCase("contacts_series")) fillContactSeries(varValue, otherContacts); else
                     // Special layers
                     if (varName.equalsIgnoreCase("extra_layers")) fillLayerSeries(varValue, extraLayers); else
-
+                        
                     if (varName.equalsIgnoreCase("poly_antenna_ratio")) setPolyAntennaRatio(TextUtils.atof(varValue)); else
 					if (varName.equalsIgnoreCase("metal_antenna_ratio")) metal_antenna_ratio = makeDoubleArray(varValue); else
 
@@ -928,7 +956,7 @@ public class TechEditWizardData
 	{
 		WizardField [] foundArray = new WizardField[num_metal_layers];
 		for(int i=0; i<num_metal_layers; i++) foundArray[i] = new WizardField();
-		fillWizardArray(str, foundArray, num_metal_layers, false);
+		fillWizardArray(str, foundArray, false);
 		double [] retArray = new double[foundArray.length];
 		for(int i=0; i<foundArray.length; i++)
 			retArray[i] = foundArray[i].value;
@@ -993,7 +1021,7 @@ public class TechEditWizardData
         wideList.add(tmp);
     }
 
-    private void fillWizardArray(String str, WizardField [] fieldArray, int expectedLength, boolean getRule)
+    private void fillWizardArray(String str, WizardField[] fieldArray, boolean getRule)
 	{
 		if (!str.startsWith("("))
 		{
@@ -1084,7 +1112,7 @@ public class TechEditWizardData
             if (!value.contains(",")) // only white space
                 continue;
 
-            // Sequence ("layer name", "GDS value")
+            // Sequence ("layer name", "GDS value", "[Display data]", "{A|P,W=?}")
             StringTokenizer p = new StringTokenizer(value, " \"", false);
             int itemCount = 0; // 2 max items: layer name and GDS value
             LayerInfo layer = null;
@@ -1103,15 +1131,18 @@ public class TechEditWizardData
                         layer.setGDSData(getGDSValuesFromString(s));
                         break;
                     case 2:
-                        layer.setGraphicsTemplate(s);
+                    case 3:
+                        if (s.startsWith("{"))
+                            layer.setPinArcInfo(s);
+                        else
+                            layer.setGraphicsTemplate(s);
                         break;
                     default:
                         assert(false);
                 }
                 itemCount++;
             }
-            if (itemCount != 2 && itemCount != 3)
-            assert(itemCount == 2 || itemCount == 3);
+            assert(itemCount > 1 && itemCount < 5); // 2, 3 or 3
         }
     }
 
@@ -1774,13 +1805,13 @@ public class TechEditWizardData
         return a;
     }
 
-    private Xml.Layer makeXmlLayer(List<Xml.Layer> layers, Map<Xml.Layer, WizardField> layer_width, String name,
+    private Xml.Layer makeXmlLayer(List<Xml.Layer> layers, Map<Xml.Layer, WizardField> layerMap, String name,
                                    Layer.Function function, int extraf, EGraphics graph,
                                    WizardField width, boolean pureLayerNode, boolean pureLayerPortArc,
                                    String... portArcNames)
     {
         Xml.Layer l = makeXmlLayer(layers, name, function, extraf, graph, width.value, pureLayerNode, pureLayerPortArc, portArcNames);
-        layer_width.put(l, width);
+        layerMap.put(l, width);
         return l;
     }
 
@@ -2043,7 +2074,7 @@ public class TechEditWizardData
         List<Xml.Layer> dummyMetalLayers = new ArrayList<Xml.Layer>();
         List<Xml.Layer> exclusionMetalLayers = new ArrayList<Xml.Layer>();
         List<Xml.Layer> viaLayers = new ArrayList<Xml.Layer>();
-        Map<Xml.Layer,WizardField> layer_width = new LinkedHashMap<Xml.Layer,WizardField>();
+        Map<Xml.Layer,WizardField> layerMap = new LinkedHashMap<Xml.Layer,WizardField>();
         int[] nullPattern = new int[] {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
             0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
         int[] dexclPattern = new int[] {
@@ -2213,7 +2244,7 @@ public class TechEditWizardData
             if (fun == null)
                 throw new IOException("invalid number of metals");
             String metalName = "Metal-"+metalNum;
-            Xml.Layer layer = makeXmlLayer(t.layers, layer_width, metalName, fun, 0, graph,
+            Xml.Layer layer = makeXmlLayer(t.layers, layerMap, metalName, fun, 0, graph,
                 metal_width[i], true, true);
             metalLayers.add(layer);
 
@@ -2247,17 +2278,17 @@ public class TechEditWizardData
             Layer.Function fun = Layer.Function.getContact(metalNum+1); //via contact starts with CONTACT2
             if (fun == null)
                 throw new IOException("invalid number of vias");
-            viaLayers.add(makeXmlLayer(t.layers, layer_width, "Via-"+metalNum, fun, Layer.Function.CONMETAL,
+            viaLayers.add(makeXmlLayer(t.layers, layerMap, "Via-"+metalNum, fun, Layer.Function.CONMETAL,
                 graph, via_size[i], true, false));
         }
 
         // Poly
         String polyN = poly_layer.name;
         EGraphics graph = new EGraphics(false, false, null, 1, 0, 0, 0, 1, true, nullPattern);
-        Xml.Layer polyLayer = makeXmlLayer(t.layers, layer_width, polyN, Layer.Function.POLY1, 0, graph,
+        Xml.Layer polyLayer = makeXmlLayer(t.layers, layerMap, polyN, Layer.Function.POLY1, 0, graph,
             poly_width, true, true);
         // PolyGate
-        Xml.Layer polyGateLayer = makeXmlLayer(t.layers, layer_width, polyN+"Gate", Layer.Function.GATE, 0, graph,
+        Xml.Layer polyGateLayer = makeXmlLayer(t.layers, layerMap, polyN+"Gate", Layer.Function.GATE, 0, graph,
             poly_width, true, false); // false for the port otherwise it won't find any type
 
         if (getExtraInfoFlag())
@@ -2273,20 +2304,20 @@ public class TechEditWizardData
         graph = new EGraphics(false, false, null, 0, contact_colour.getRed(), contact_colour.getGreen(),
             contact_colour.getBlue(), 0.5, true, nullPattern);
         // PolyCon
-        Xml.Layer polyConLayer = makeXmlLayer(t.layers, layer_width, "Poly-Cut", Layer.Function.CONTACT1,
+        Xml.Layer polyConLayer = makeXmlLayer(t.layers, layerMap, "Poly-Cut", Layer.Function.CONTACT1,
             Layer.Function.CONPOLY, graph, contact_size, true, false);
         // DiffCon
-        Xml.Layer diffConLayer = makeXmlLayer(t.layers, layer_width, diff_layer.name+"-Cut", Layer.Function.CONTACT1,
+        Xml.Layer diffConLayer = makeXmlLayer(t.layers, layerMap, diff_layer.name+"-Cut", Layer.Function.CONTACT1,
             Layer.Function.CONDIFF, graph, contact_size, true, false);
 
         List<String> portNames = new ArrayList<String>();
         // P-Diff and N-Diff
         graph = new EGraphics(false, false, null, 2, 0, 0, 0, 1, true, nullPattern);
         // N-Diff
-        Xml.Layer diffNLayer = makeXmlLayer(t.layers, layer_width, "N-"+ diff_layer.name, Layer.Function.DIFFN, 0, graph,
+        Xml.Layer diffNLayer = makeXmlLayer(t.layers, layerMap, "N-"+ diff_layer.name, Layer.Function.DIFFN, 0, graph,
             diff_width, true, true, "N-"+ diff_layer.name, "N-Well", "S-N-Well");
         // P-Diff                                                                                                    dd
-        Xml.Layer diffPLayer = makeXmlLayer(t.layers, layer_width, "P-"+ diff_layer.name, Layer.Function.DIFFP, 0, graph,
+        Xml.Layer diffPLayer = makeXmlLayer(t.layers, layerMap, "P-"+ diff_layer.name, Layer.Function.DIFFP, 0, graph,
             diff_width, true, true, "P-"+ diff_layer.name, "P-Well", "S-P-Well");
 
         if (getExtraInfoFlag())
@@ -2375,64 +2406,74 @@ public class TechEditWizardData
         // NPlus
         graph = new EGraphics(true, true, null, 0, nplus_colour.getRed(), nplus_colour.getGreen(),
             nplus_colour.getBlue(), 1, true, patternSlash);
-        Xml.Layer nplusLayer = makeXmlLayer(t.layers, layer_width, nplus_layer.name, Layer.Function.IMPLANTN, 0, graph,
+        Xml.Layer nplusLayer = makeXmlLayer(t.layers, layerMap, nplus_layer.name, Layer.Function.IMPLANTN, 0, graph,
             nplus_width, true, false);
         // PPlus
         graph = new EGraphics(true, true, null, 0, pplus_colour.getRed(), pplus_colour.getGreen(),
             pplus_colour.getBlue(), 1, true, patternDots);
-        Xml.Layer pplusLayer = makeXmlLayer(t.layers, layer_width, pplus_layer.name, Layer.Function.IMPLANTP, 0, graph,
+        Xml.Layer pplusLayer = makeXmlLayer(t.layers, layerMap, pplus_layer.name, Layer.Function.IMPLANTP, 0, graph,
             pplus_width, true, false);
 
         // N-Well
         graph = new EGraphics(true, true, null, 0, nwell_colour.getRed(), nwell_colour.getGreen(),
             nwell_colour.getBlue(), 1, true, patternDotsShift);
-        Xml.Layer nwellLayer = makeXmlLayer(t.layers, layer_width, nwell_layer.name, Layer.Function.WELLN, 0, graph,
+        Xml.Layer nwellLayer = makeXmlLayer(t.layers, layerMap, nwell_layer.name, Layer.Function.WELLN, 0, graph,
             nwell_width, true, false);
         // P-Well
         graph = new EGraphics(true, true, null, 0, nwell_colour.getRed(), nwell_colour.getGreen(),
             nwell_colour.getBlue(), 1, true, patternBackSlash);
-        Xml.Layer pwellLayer = makeXmlLayer(t.layers, layer_width, "P-Well", Layer.Function.WELLP, 0, graph,
+        Xml.Layer pwellLayer = makeXmlLayer(t.layers, layerMap, "P-Well", Layer.Function.WELLP, 0, graph,
             nwell_width, true, false);
 
         // DeviceMark
         graph = new EGraphics(false, false, null, 0, 255, 0, 0, 0.4, true, nullPattern);
-        Xml.Layer deviceMarkLayer = makeXmlLayer(t.layers, layer_width, "DeviceMark", Layer.Function.CONTROL, 0, graph,
+        Xml.Layer deviceMarkLayer = makeXmlLayer(t.layers, layerMap, "DeviceMark", Layer.Function.CONTROL, 0, graph,
             nplus_width, true, false);
 
         // Extra layers
-//        if (getExtraInfoFlag())
+        for (LayerInfo info : extraLayers)
         {
-            for (LayerInfo info : extraLayers)
+            graph = null;
+            // either color or template
+            assert (info.graphicsTemplate == null || info.graphicsColor == null);
+            if (info.graphicsTemplate != null)
             {
-                graph = null;
-                // either color or template
-                assert (info.graphicsTemplate == null || info.graphicsColor == null);
-                if (info.graphicsTemplate != null)
+                // look for layer name and get its EGraphics
+                for (Xml.Layer l : t.layers)
                 {
-                    // look for layer name and get its EGraphics
-                    for (Xml.Layer l : t.layers)
+                    if (l.name.equals(info.graphicsTemplate))
                     {
-                        if (l.name.equals(info.graphicsTemplate))
-                        {
-                            graph = l.desc;
-                            break;
-                        }
+                        graph = l.desc;
+                        break;
                     }
-                    if (graph == null)
-                        System.out.println("No template layer " + info.graphicsTemplate + " found");
-                }
-                else if (info.graphicsColor != null)
-                {
-                    graph = new EGraphics(true, true, info.graphicsOutline, 0,
-                        info.graphicsColor.getRed(), info.graphicsColor.getGreen(), info.graphicsColor.getBlue(),
-                        1, true, info.graphicsPattern);
                 }
                 if (graph == null)
-                    graph = new EGraphics(false, false, null, 0, 255, 0, 0, 0.4, true, nullPattern);
+                    System.out.println("No template layer " + info.graphicsTemplate + " found");
+            }
+            else if (info.graphicsColor != null)
+            {
+                graph = new EGraphics(true, true, info.graphicsOutline, 0,
+                    info.graphicsColor.getRed(), info.graphicsColor.getGreen(), info.graphicsColor.getBlue(),
+                    1, true, info.graphicsPattern);
+            }
+            if (graph == null)
+                graph = new EGraphics(false, false, null, 0, 255, 0, 0, 0.4, true, nullPattern);
 
-                Xml.Layer layer = makeXmlLayer(t.layers, layer_width, info.name, Layer.Function.ART, 0, graph,
-                    nplus_width, true, false);
-                makeLayerGDS(t, layer, String.valueOf(info));
+            if (DBMath.areEquals(info.width, 0))
+                System.out.println("Adding pure layer node '" + info.name + "' with zero width");
+            WizardField wf = new WizardField(info.width, info.name); // name is irrelevant
+            Xml.Layer layer = makeXmlLayer(t.layers, layerMap, info.name, Layer.Function.ART, 0, graph,
+                wf, true, info.addArc, info.name);
+            makeLayerGDS(t, layer, String.valueOf(info));
+
+            PaletteGroup grp = new PaletteGroup();
+            if (info.addArc)
+            {
+                grp.addArc(makeXmlArc(t, info.name, ArcProto.Function.UNKNOWN, 0,
+                    makeXmlArcLayer(layer, wf)));
+                double hla = scaledValue(info.width / 2);
+                grp.addPinOrResistor(makeXmlPrimitivePin(t, info.name, hla, null,
+                    null, makeXmlNodeLayer(hla, hla, hla, hla, layer, Poly.Type.CROSSED)), null);
             }
         }
 

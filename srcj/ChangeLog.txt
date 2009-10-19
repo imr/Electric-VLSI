@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+IMP: (10/19/09, GVG) Ability to add pins/arcs to extra layers defined in txt file
+used by TechEditorWizard (Bug #2435)
+
 IMP: (10/19/09, GVG) Scale GDS on export option (Bug #2434)
 
 BUG: (10/18/09, AM) BTree waveform code randomly transposes signals.
