@@ -905,7 +905,22 @@ public class Verilog extends Topology
 
 			// write the type of the node
 			StringBuffer infstr = new StringBuffer();
-			infstr.append("  " + nodeName + " " + nameNoIndices(no.getName()) + "(");
+			String instName = nameNoIndices(no.getName());
+
+			// make sure instance name doesn't duplicate net name
+			boolean clean = false;
+			while (!clean)
+			{
+				clean = true;
+				for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
+				{
+					CellAggregateSignal cas = it.next();
+					if (cas.getName().equals(instName)) { clean = false;   break; }
+				}
+				if (!clean) instName += "_";
+			}
+
+			infstr.append("  " + nodeName + " " + instName + "(");
 
 			// write the rest of the ports
 			first = true;
