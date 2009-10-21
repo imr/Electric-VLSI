@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+BUG: (10/20/09, GVG) System clipboard data unavailable 
+after second copy/ paste on MacOSX (Bug #2440)
+FIX: Catching the exception on MacOSX. It is a known issue on that platform.
+
 BUG: (10/20/09, GVG) NPE on Window -> Move to other display (Bug #2436)
 FIX: Not finalizing old objects until new ones are created.
 

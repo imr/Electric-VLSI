@@ -35,7 +35,6 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.tool.AbstractUserInterface;
@@ -103,7 +102,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     /**
      * Describe the windowing mode.  The current modes are MDI and SDI.
      */
-    public static enum Mode { MDI, SDI };
+    public static enum Mode { MDI, SDI }
 
 //	/** Property fired if ability to Undo changes */	public static final String propUndoEnabled = "UndoEnabled";
 //	/** Property fired if ability to Redo changes */	public static final String propRedoEnabled = "RedoEnabled";

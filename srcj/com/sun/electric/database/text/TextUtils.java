@@ -31,6 +31,8 @@ import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.Client;
+import com.sun.electric.Main;
 
 import java.awt.Color;
 import java.awt.Toolkit;
@@ -1280,21 +1282,21 @@ public class TextUtils
 	public static String getTextOnClipboard()
 	{
 		String result = null;
-		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		Transferable contents = clipboard.getContents(null);
-		if (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor))
-		{
-			try
-			{
-				result = (String)contents.getTransferData(DataFlavor.stringFlavor);
-            } catch (UnsupportedFlavorException ex)
-			{
-				ex.printStackTrace();
-			} catch (IOException ex)
-			{
-				ex.printStackTrace();
-			}
-		}
+        try
+        {
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            Transferable contents = clipboard.getContents(null);
+            if (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor))
+                result = (String)contents.getTransferData(DataFlavor.stringFlavor);
+        } catch (UnsupportedFlavorException ex)
+        {
+            ex.printStackTrace();
+        } catch (IOException ex)
+        {
+            // known problem on MacOSX
+            if (!Client.isOSMac() || !ex.getMessage().toLowerCase().contains("system clipboard data unavailable"))
+                ex.printStackTrace();
+        }
 		return result;
 	}
 
