@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10k: ******************************
 
+BUG: (10/20/09, GVG) NPE on Window -> Move to other display (Bug #2436)
+FIX: Not finalizing old objects until new ones are created.
+
 IMP: (10/19/09, GVG) Ability to add pins/arcs to extra layers defined in txt file
 used by TechEditorWizard (Bug #2435)
 

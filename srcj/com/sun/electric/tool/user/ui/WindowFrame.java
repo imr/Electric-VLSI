@@ -614,12 +614,12 @@ public class WindowFrame extends Observable
 		//System.out.println("Set unfocasable: "+jf.getFocusOwner());
 		depopulateJFrame();                         // remove all components from old Frame
 		TopLevel oldFrame = jf;
-		oldFrame.finished();                        // clear and garbage collect old Frame
 		Cell cell = content.getCell();                  // get current cell
 		String cellDescription = (cell == null) ? "no cell" : cell.describe(false);  // new title
 		createJFrame(cellDescription, gc);          // create new Frame
 		populateJFrame();                           // populate new Frame
 		fireCellHistoryStatus();                // update tool bar history buttons
+		oldFrame.finished();                        // clear and garbage collect old Frame
 	}
 
 	//******************************** EXPLORER PART ********************************
