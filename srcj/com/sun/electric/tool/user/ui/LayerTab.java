@@ -659,30 +659,23 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
             {
                 indices[i] = i;
                 Layer layer = getSelectedLayer(i);
-                Layer.Function func = layer.getFunction();
-                if (func.isContact() || func.isDiff() || func.isGatePoly() || func.isImplant() ||
-                    func.isMetal() || func.isPoly() || func.isWell() || func.isDummy() || func.isDummyExclusion()) {
-                    boolean b = false;
-                    if (level == 2 && layer.getFunction() == Layer.Function.GATE)
-                        b = true;
-                    if (level == 2 && (layer.getFunction() == Layer.Function.DIFF || layer.getFunction() == Layer.Function.DIFFN || layer.getFunction() == Layer.Function.DIFFP))
-                        b = true;
-                    if (level == 1 && layer.getFunction().getLevel() <= 1)
-                        b = true;
-                    if (layer.getFunction().getLevel() == level) {
-                        b = true;
-                        if (layer.getFunction().isMetal())
-                            metalLayer = layer;
-                    }
-                    if (layer.getFunction().getLevel() == (level-1) || level == 0)
-                        b = true;
-                    if (layer.getFunction().isContact() && layer.getFunction().getLevel() == (level-1))
-                        b = false;
-                    visible[i] = b;
-                } else
-                {
-                    visible[i] = lv.isVisible(layer);
+                boolean b = false;
+                if (level == 2 && layer.getFunction() == Layer.Function.GATE)
+                    b = true;
+                if (level == 2 && (layer.getFunction() == Layer.Function.DIFF || layer.getFunction() == Layer.Function.DIFFN || layer.getFunction() == Layer.Function.DIFFP))
+                    b = true;
+                if (level == 1 && (layer.getFunction().getLevel() <= 1 || layer.getFunction() == Layer.Function.ART))
+                    b = true;
+                if (layer.getFunction().getLevel() == level) {
+                    b = true;
+                    if (layer.getFunction().isMetal())
+                        metalLayer = layer;
                 }
+                if (layer.getFunction().getLevel() == (level-1) || level == 0)
+                    b = true;
+                if (layer.getFunction().isContact() && layer.getFunction().getLevel() == (level-1))
+                    b = false;
+                visible[i] = b;
             }
         }
         setVisibility(indices, visible);
