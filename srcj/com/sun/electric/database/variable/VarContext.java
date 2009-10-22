@@ -461,6 +461,8 @@ public class VarContext implements Serializable
                 }
                 return ifNotNumberTryToConvertToNumber(value);
             case SPICE:
+                if (ce.getExpr().equals("")) // empty expression
+                    return new String("?");
                 Object obj = evalSpice_(ce, true);
                 if (obj instanceof Number) {
                     Number n = (Number)obj;
