@@ -249,6 +249,7 @@ public class TechEditWizardData
         int [] graphicsPattern; // uses this pattern with graphicsColor
         double width = 0; // width of the pure layer node to create
         boolean addArc = false;
+        Layer.Function function = Layer.Function.ART; // ART is better default than UNKNOWN
 
         LayerInfo(String n)
         {
@@ -274,27 +275,45 @@ public class TechEditWizardData
                 return; // nothing to parser
 
             StringTokenizer p = new StringTokenizer(s, ", {}", false);
-            int itemCount = 0;
             while (p.hasMoreTokens())
             {
                 String str = p.nextToken();
-                switch (itemCount)
+                if (str.startsWith("W")) // width
                 {
-                    case 0: // W=?
-                        int index = str.indexOf("=");
-                        assert(index != -1);
-                        width = Double.parseDouble(str.substring(index+1));
-                        break;
-                    case 1: // A in some cases. If A is requested then P is requested as well
-                        assert (str.length() == 1 && str.toLowerCase().equals("a")); // It must be A
-                        addArc = true;
-                        break;
-                    default:
-                        assert(false); // it should not reach this point
+                    int index = str.indexOf("=");
+                    assert(index != -1);
+                    width = Double.parseDouble(str.substring(index+1));
                 }
-                itemCount++;
+                else if (str.startsWith("A")) // for arcs
+                {
+                    assert (str.length() == 1 && str.toLowerCase().equals("a")); // It must be A
+                    addArc = true;
+                }
+                else if (str.startsWith("F")) // function
+                {
+                    int index = str.indexOf("=");
+                    assert(index != -1);
+                    function = Layer.Function.valueOf(str.substring(index+1));
+                }
+                else
+                {
+                    System.out.println("Case not implemented");
+                    assert(false);
+                }
+//                switch (itemCount)
+//                {
+//                    case 0: // W=?
+//                        int index = str.indexOf("=");
+//                        break;
+//                    case 1: // A in some cases. If A is requested then P is requested as well
+//                        assert (str.length() == 1 && str.toLowerCase().equals("a")); // It must be A
+//                        addArc = true;
+//                        break;
+//                    default:
+//                        assert(false); // it should not reach this point
+//                }
+//                itemCount++;
             }
-            assert(itemCount == 2 || itemCount == 1);
         }
 
         void setGraphicsTemplate(String s)
@@ -2462,7 +2481,7 @@ public class TechEditWizardData
             if (DBMath.areEquals(info.width, 0))
                 System.out.println("Adding pure layer node '" + info.name + "' with zero width");
             WizardField wf = new WizardField(info.width, info.name); // name is irrelevant
-            Xml.Layer layer = makeXmlLayer(t.layers, layerMap, info.name, Layer.Function.ART, 0, graph,
+            Xml.Layer layer = makeXmlLayer(t.layers, layerMap, info.name, info.function, 0, graph,
                 wf, true, info.addArc, info.name);
             makeLayerGDS(t, layer, String.valueOf(info));
 

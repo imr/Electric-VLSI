@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+IMP: (10/23/09, GVG) Ability to provide layer functions in extra layer defintion (Bug #2445)
+
 BUG: (10/23/09, SMR) Nodes in the component menu are drawn too small
      when there are larger nodes in the same class (Bug #2233).
 FIX: Nodes in the component menu are now drawn to fill the menu square.
