@@ -944,7 +944,12 @@ public class Clipboard //implements ClipboardOwner
 
         if (copyExports)
         {
-            for(DisplayedText dt : textList)
+        	// copy the geometry list since it might be augmented
+        	List<Geometric> internalGeomList = new ArrayList<Geometric>();
+        	for(Geometric geom : geomList) internalGeomList.add(geom);
+        	geomList = internalGeomList;
+
+        	for(DisplayedText dt : textList)
             {
                 ElectricObject eObj = dt.getElectricObject();
                 if (eObj instanceof Export)

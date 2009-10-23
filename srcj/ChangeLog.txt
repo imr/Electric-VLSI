@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+BUG: (10/23/09, SMR) When "Duplicate/Array/Paste copies exports" is set,
+     deleting export text tries to delete it twice (Bug #2443).
+FIX: In Clipboard.copyListToCell() copy the geometric list before modifying it.
+
 IMP: (10/23/09, AM) Add partial implementation of Signalyzer driver.
 
 IMP: (10/23/09, AM) Add compileTestCode target which will compile
