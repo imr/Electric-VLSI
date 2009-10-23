@@ -4,7 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
-BUG: (10/22/09, SMR) Crash when changing cell parameters (Bug #2442)
+BUG: (10/23/09, SMR) Nodes in the component menu are drawn too small
+     when there are larger nodes in the same class (Bug #2233).
+FIX: Nodes in the component menu are now drawn to fill the menu square.
+
+BUG: (10/23/09, SMR) Crash when changing cell parameters (Bug #2442)
 FIX: Handle missing parameters and treat them as empty strings.
 
 BUG: (10/23/09, SMR) When "Duplicate/Array/Paste copies exports" is set,

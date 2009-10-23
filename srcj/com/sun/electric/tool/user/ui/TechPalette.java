@@ -1172,6 +1172,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         double wid = DBMath.gridToLambda(2*(otherAp.getFactoryDefaultInst().getGridExtendOverMin() + otherAp.getMaxLayerGridExtend()));
                         if (wid+menuArcLength > largest) largest = wid+menuArcLength;
                     }
+                    double arcLength = menuArcLength;
+                    double wid = DBMath.gridToLambda(2*(ap.getFactoryDefaultInst().getGridExtendOverMin() + ap.getMaxLayerGridExtend()));
+                    if (wid+arcLength < largest) arcLength = largest - wid;
 
                     // render the arc
                     double scalex = entrySize/largest * 0.8;
@@ -1180,9 +1183,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
             		// draw the arc
                     ImmutableArcInst a = ap.getDefaultInst(EditingPreferences.getThreadEditingPreferences());
-                    long l2 = DBMath.lambdaToGrid(menuArcLength/2);
+                    long l2 = DBMath.lambdaToGrid(arcLength/2);
                     a = a.withLocations(EPoint.fromGrid(-l2, 0), EPoint.fromGrid(l2, 0));
-                    VectorCache.VectorBase[] shapes = VectorCache.drawPolys(a, ap.getShapeOfDummyArc(menuArcLength));
+                    VectorCache.VectorBase[] shapes = VectorCache.drawPolys(a, ap.getShapeOfDummyArc(arcLength));
                     drawShapes(g, gp, imgX, imgY, scale, shapes);
 
                     g.setColor(Color.RED);
@@ -1304,7 +1307,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     private double getLargestDimension(PrimitiveNode np)
     {
         double largest = 0;
-        PrimitiveNode.Function groupFunction = np.getGroupFunction();
 
         if (np.getGroupFunction().isPin())
         {
@@ -1319,15 +1321,20 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             }
         } else
         {
-        	// just find the largest in the group
-	        for(Iterator<PrimitiveNode> it = np.getTechnology().getNodes(); it.hasNext(); )
-	        {
-	            PrimitiveNode otherNp = it.next();
-				if (otherNp.getGroupFunction() != groupFunction) continue;
-	            if (otherNp.isSkipSizeInPalette()) continue;
-	            if (otherNp.getDefHeight() > largest) largest = otherNp.getDefHeight();
-	            if (otherNp.getDefWidth() > largest) largest = otherNp.getDefWidth();
-	        }
+        	// not a pin: just use the largest dimension of the node
+            if (np.getDefHeight() > largest) largest = np.getDefHeight();
+            if (np.getDefWidth() > largest) largest = np.getDefWidth();
+
+//			// just find the largest in the group
+//			PrimitiveNode.Function groupFunction = np.getGroupFunction();
+//			for(Iterator<PrimitiveNode> it = np.getTechnology().getNodes(); it.hasNext(); )
+//			{
+//				PrimitiveNode otherNp = it.next();
+//				if (otherNp.getGroupFunction() != groupFunction) continue;
+//				if (otherNp.isSkipSizeInPalette()) continue;
+//				if (otherNp.getDefHeight() > largest) largest = otherNp.getDefHeight();
+//				if (otherNp.getDefWidth() > largest) largest = otherNp.getDefWidth();
+//				}
         }
         if (largest == 0) largest = 1;
         return largest;
