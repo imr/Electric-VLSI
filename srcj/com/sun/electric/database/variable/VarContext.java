@@ -461,8 +461,8 @@ public class VarContext implements Serializable
                 }
                 return ifNotNumberTryToConvertToNumber(value);
             case SPICE:
-                if (ce.getExpr().equals("")) // empty expression
-                    return new String("?");
+//                if (ce.getExpr().equals("")) // empty expression
+//                    return new String("?");
                 Object obj = evalSpice_(ce, true);
                 if (obj instanceof Number) {
                     Number n = (Number)obj;
@@ -519,7 +519,10 @@ public class VarContext implements Serializable
 //                        isSpiceCode = protoVar.getCode() == TextDescriptor.Code.SPICE;
 //                }
                 if (recurse || !isSpiceCode)
+                {
                     value = pop().evalVarRecurse(parentVar, getNodable());
+                    if (value == null) value = "";   	
+                }
             }
             pMat.appendReplacement(sb, value.toString());
         }
