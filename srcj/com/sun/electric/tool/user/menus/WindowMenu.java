@@ -129,6 +129,12 @@ public class WindowMenu {
             	{ public void run() { setLayerVisible(8); }},
             new EMenuItem(InvisibleLayerConfiguration.getOnly().getMenuName(9), KeyStroke.getKeyStroke(KeyEvent.VK_9, InputEvent.SHIFT_MASK))
             	{ public void run() { setLayerVisible(9); }},
+            new EMenuItem(InvisibleLayerConfiguration.getOnly().getMenuName(10), KeyStroke.getKeyStroke(KeyEvent.VK_0, InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK))
+                { public void run() { setLayerVisible(10); }},
+            new EMenuItem(InvisibleLayerConfiguration.getOnly().getMenuName(11), KeyStroke.getKeyStroke(KeyEvent.VK_1, InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK))
+                { public void run() { setLayerVisible(11); }},
+            new EMenuItem(InvisibleLayerConfiguration.getOnly().getMenuName(12), KeyStroke.getKeyStroke(KeyEvent.VK_2, InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK))
+                { public void run() { setLayerVisible(12); }},
             new EMenuItem(InvisibleLayerConfiguration.getOnly().getMenuName(0), KeyStroke.getKeyStroke(KeyEvent.VK_0, InputEvent.SHIFT_MASK))
             	{ public void run() { setLayerVisible(0); }});
 
@@ -398,7 +404,7 @@ public class WindowMenu {
         for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars())
         {
             JMenu menu = (JMenu)menuBarInstance.findMenuItem(visibleLayersMenu.getPath());
-            while (menu.getMenuComponentCount() > 10)
+            while (menu.getMenuComponentCount() > InvisibleLayerConfiguration.NumConfigs)
             	menu.remove(menu.getMenuComponentCount()-1);
             boolean hasMore = false;
             for (EMenuItem elem : list)

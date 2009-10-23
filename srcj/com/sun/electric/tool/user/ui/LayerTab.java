@@ -643,6 +643,9 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 	 */
 	public void setVisibilityLevel(int level)
 	{
+        Technology tech = Technology.getCurrent();
+        int numMetals = tech.getNumMetals();
+        System.out.println("Setting for level "+level);
         int len = layerListModel.size();
         int[] indices = new int[len];
         boolean[] visible = new boolean[len];
@@ -659,23 +662,43 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
             {
                 indices[i] = i;
                 Layer layer = getSelectedLayer(i);
-                boolean b = false;
-                if (level == 2 && layer.getFunction() == Layer.Function.GATE)
-                    b = true;
-                if (level == 2 && (layer.getFunction() == Layer.Function.DIFF || layer.getFunction() == Layer.Function.DIFFN || layer.getFunction() == Layer.Function.DIFFP))
-                    b = true;
-                if (level == 1 && (layer.getFunction().getLevel() <= 1 || layer.getFunction() == Layer.Function.ART))
-                    b = true;
-                if (layer.getFunction().getLevel() == level) {
-                    b = true;
-                    if (layer.getFunction().isMetal())
-                        metalLayer = layer;
+                Layer.Function func = layer.getFunction();
+                if (func.isContact() || func.isDiff() || func.isGatePoly() || func.isImplant() ||
+                    func.isMetal() || func.isPoly() || func.isWell() || func.isDummy() || func.isDummyExclusion()) {
+                    // handle layers that have a valid level
+                    boolean b = false;
+                    if (level == 2 && layer.getFunction() == Layer.Function.GATE)
+                        b = true;
+                    if (level == 2 && (layer.getFunction() == Layer.Function.DIFF || layer.getFunction() == Layer.Function.DIFFN || layer.getFunction() == Layer.Function.DIFFP))
+                        b = true;
+                    if (level == 1 && (layer.getFunction().getLevel() <= 1 || layer.getFunction() == Layer.Function.ART))
+                        b = true;
+                    if (layer.getFunction().getLevel() == level) {
+                        b = true;
+                        if (layer.getFunction().isMetal())
+                            metalLayer = layer;
+                    }
+                    if (layer.getFunction().getLevel() == (level-1) || level == 0)
+                        b = true;
+                    if (layer.getFunction().isContact() && layer.getFunction().getLevel() == (level-1))
+                        b = false;
+                    visible[i] = b;
+                } else if (func == Layer.Function.ART || func == Layer.Function.OVERGLASS)
+                {
+                    // handle layers that do not have a valid level
+                    boolean b = false;
+                    if (level == 0) b = true;          // turn on for ALL setting
+
+                    if (func == Layer.Function.ART) {
+                        if (level <= 1) b = true;   // turn on for transistor-level
+                    }
+                    if (func == Layer.Function.OVERGLASS) {
+                        if (level >= numMetals) b = true; // turn on passivation for top-metal
+                    }
+                    visible[i] = b;
+                } else {
+                    visible[i] = lv.isVisible(layer);
                 }
-                if (layer.getFunction().getLevel() == (level-1) || level == 0)
-                    b = true;
-                if (layer.getFunction().isContact() && layer.getFunction().getLevel() == (level-1))
-                    b = false;
-                visible[i] = b;
             }
         }
         setVisibility(indices, visible);

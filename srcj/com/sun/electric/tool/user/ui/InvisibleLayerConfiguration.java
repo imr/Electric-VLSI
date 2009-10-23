@@ -54,7 +54,9 @@ public class InvisibleLayerConfiguration
 	private Map<String,String> configurations;
 	private Pref savedConfigurations;
 
-	/**
+    public static int NumConfigs = 13;
+
+    /**
 	 * Constructor gets the saved configurations from the Preferences.
 	 */
 	private InvisibleLayerConfiguration()
@@ -63,7 +65,7 @@ public class InvisibleLayerConfiguration
 		Pref.Group prefs = Pref.groupForPackage(InvisibleLayerConfiguration.class);
 		savedConfigurations = Pref.makeStringPref("LayerVisibilityConfigurations", prefs, "");
 		String sc = savedConfigurations.getString();
-		boolean [] overridden = new boolean[10];
+		boolean [] overridden = new boolean[13];
 		for(;;)
 		{
 			int openPos = sc.indexOf('[');
@@ -84,7 +86,7 @@ public class InvisibleLayerConfiguration
 			}
 			configurations.put(cName, con);
 		}
-		for(int i=0; i<10; i++)
+		for(int i=0; i<13; i++)
 		{
 			if (overridden[i]) continue;
 			String menuName = getDefaultHardwiredName(i);
