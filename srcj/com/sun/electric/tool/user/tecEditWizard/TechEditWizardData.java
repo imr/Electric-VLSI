@@ -300,19 +300,6 @@ public class TechEditWizardData
                     System.out.println("Case not implemented");
                     assert(false);
                 }
-//                switch (itemCount)
-//                {
-//                    case 0: // W=?
-//                        int index = str.indexOf("=");
-//                        break;
-//                    case 1: // A in some cases. If A is requested then P is requested as well
-//                        assert (str.length() == 1 && str.toLowerCase().equals("a")); // It must be A
-//                        addArc = true;
-//                        break;
-//                    default:
-//                        assert(false); // it should not reach this point
-//                }
-//                itemCount++;
             }
         }
 
