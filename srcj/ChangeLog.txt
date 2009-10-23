@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+IMP: (10/23/09, AM) Add partial implementation of Signalyzer driver.
+
 IMP: (10/23/09, AM) Add compileTestCode target which will compile
      com.sun.electric.tool.simulation.test.  I have confirmed that
      this will fail (as desired) if the test code depends on any other
