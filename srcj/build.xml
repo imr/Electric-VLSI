@@ -477,4 +477,14 @@
         </delete>
     </target>
 
+    <target name="compileTestCode">
+        <javac debug="true" deprecation="true" destdir="." srcdir="com/sun/electric/tool/simulation/test/"
+               fork="true" memoryMaximumSize="512m" target="1.5">
+            <include name="*.java"/>
+        </javac>
+        <jar basedir="." compress="true" jarfile="test.jar">
+            <include name="com/sun/electric/tool/simulation/test/**"/>
+        </jar>
+    </target>
+
 </project>
