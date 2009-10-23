@@ -109,7 +109,9 @@ public class StitchFillJob extends Job
                 nodesToReplace.add(nIt.next());
             for (NodeInst ni: nodesToReplace) {
                 NodeInst replaced = ni.replace(newCell, false, false);
-                assert replaced != null;
+                if (replaced == null)
+                    System.out.println("Warning: conflicts while replacing existing cell in StitchFill");
+//                assert replaced != null;
             }
             oldC.kill();
         }

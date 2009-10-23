@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+BUG: (10/23/09, GVG) Fill generator exception when cell already exists (Bug #2444)
+FIX: Printing warning instead of throwing assertion.
+
+IMP: (10/23/09, JG) Added more invisible layer configs for metals 10, 11, 12 in 40nm
+
 IMP: (10/23/09, GVG) Ability to provide layer functions in extra layer defintion (Bug #2445)
 
 BUG: (10/23/09, SMR) Nodes in the component menu are drawn too small
