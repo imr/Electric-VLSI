@@ -32,8 +32,12 @@ import java.io.*;
  */
 public abstract class PageStorage {
 
+    private final int pageSize;
+
+    public PageStorage(int pageSize) { this.pageSize = pageSize; }
+
     /** returns the size, in bytes, of each page */
-    public abstract int getPageSize();
+    public final int getPageSize() { return pageSize; }
 
     /** creates a new page with undefined contents; returns its pageid */
     public abstract int  createPage();

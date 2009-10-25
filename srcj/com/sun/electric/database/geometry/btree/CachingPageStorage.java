@@ -85,6 +85,7 @@ public class CachingPageStorage extends PageStorage {
      *  is explicitly requested.
      */
     public CachingPageStorage(PageStorage ps, int cacheSize, boolean asyncFlush) {
+        super(ps.getPageSize());
         this.ps = ps;
         this.cacheSize = cacheSize;
         this.cache = new LinkedHashMap<Integer,CachedPage>(cacheSize+3, 0.75f, true);
@@ -92,7 +93,6 @@ public class CachingPageStorage extends PageStorage {
             throw new RuntimeException("asyncFlush is not yet supported");
     }
 
-    public int getPageSize() { return ps.getPageSize(); }
     public int createPage() { return ps.createPage(); }
     public int getNumPages() { return ps.getNumPages(); }
 

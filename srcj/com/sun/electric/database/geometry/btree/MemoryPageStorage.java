@@ -28,15 +28,13 @@ public class MemoryPageStorage extends PageStorage {
 
     private       byte[][] pages;
     private       int      numpages;
-    private final int      pagesize;
 
     public MemoryPageStorage(int pagesize) {
-        this.pagesize = pagesize;
+        super(pagesize);
         this.numpages = 0;
         this.pages = new byte[0][];
     }
 
-    public int getPageSize() { return pagesize; }
     public int getNumPages() { return numpages; }
     public int createPage() {
         if (numpages >= pages.length) {
@@ -44,15 +42,15 @@ public class MemoryPageStorage extends PageStorage {
             System.arraycopy(pages, 0, newpages, 0, pages.length);
             pages = newpages;
         }
-        pages[numpages] = new byte[pagesize];
+        pages[numpages] = new byte[getPageSize()];
         return numpages++;
     }
     public void fsync(int pageid) { }
     public void fsync() { }
     public void writePage(int pageid, byte[] buf, int ofs) {
-        System.arraycopy(buf, ofs, pages[pageid], 0, pagesize);
+        System.arraycopy(buf, ofs, pages[pageid], 0, getPageSize());
     }
     public void readPage(int pageid, byte[] buf, int ofs) {
-        System.arraycopy(pages[pageid], 0, buf, ofs, pagesize);
+        System.arraycopy(pages[pageid], 0, buf, ofs, getPageSize());
     }
 }

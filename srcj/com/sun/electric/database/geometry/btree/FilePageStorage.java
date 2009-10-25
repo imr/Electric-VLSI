@@ -52,14 +52,11 @@ public class FilePageStorage extends PageStorage {
 
     /** private because the file format is not yet finalized */
     private FilePageStorage(RandomAccessFile raf) {
+        super(BLOCK_SIZE);
         try {
             this.raf = raf;
             numpages = (int)(raf.length() % (long)getPageSize());
         } catch (IOException e) { throw new RuntimeException(e); }
-    }
-
-    public int getPageSize() {
-        return BLOCK_SIZE;
     }
 
     public synchronized int createPage() {
