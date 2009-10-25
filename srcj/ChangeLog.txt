@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+IMP: (10/25/09, AM) Change PCB examples in schematic.jelib to be
+     layout views.
+
 IMP: (10/25/09, AM) Fix some typos in the manual.
 
 IMP: (10/24/09, AM) Do not write files to disk unless simulation data
