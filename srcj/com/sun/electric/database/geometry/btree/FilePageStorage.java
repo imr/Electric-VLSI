@@ -28,16 +28,14 @@ import java.io.*;
 /**
  *  PageStorage implemented via a RandomAccessFile.
  *
- *  It would be nice to have an implementation which used asynchronous
- *  I/O for background writes.
- *
- *  It would be nice to move towards a zero-copy architecture.
  */
 public class FilePageStorage extends PageStorage {
 
+    // FEATURE: use asynchronous I/O for background writes.
+
     public static FilePageStorage create() throws IOException {
         File f = File.createTempFile("pagestorage", ".ebtree");
-        // XXX: consider "rws" or "rwd"
+        // FEATURE: consider "rws" or "rwd"
         RandomAccessFile raf = new RandomAccessFile(f, "rw");
         return new FilePageStorage(raf);
     }
@@ -50,7 +48,7 @@ public class FilePageStorage extends PageStorage {
     private final RandomAccessFile raf;
     private int numpages;
 
-    public int  getNumPages() { return numpages; }
+    public synchronized int getNumPages() { return numpages; }
 
     /** private because the file format is not yet finalized */
     private FilePageStorage(RandomAccessFile raf) {
@@ -70,34 +68,25 @@ public class FilePageStorage extends PageStorage {
     }
 
     public void writePage(int pageid, byte[] buf, int ofs) {
-        if (pageid >= numpages)
-            throw new RuntimeException("invalid pageid "+pageid);
         try {
             raf.seek(pageid * getPageSize());
             raf.write(buf, ofs, getPageSize());
         } catch (IOException e) { throw new RuntimeException(e); }
     }
 
-    public byte[] readPage(int pageid, byte[] buf, int ofs) {
-        if (buf==null) {
-            buf = new byte[getPageSize()];
-            ofs = 0;
-        }
-        if (pageid >= numpages)
-            throw new RuntimeException("invalid pageid "+pageid);
+    public void readPage(int pageid, byte[] buf, int ofs) {
         try {
             raf.seek(pageid * getPageSize());
             raf.readFully(buf, ofs, getPageSize());
         } catch (IOException e) { throw new RuntimeException(e); }
-        return buf;
     }
 
-    public void flush(int pageid) {
+    public void fsync(int pageid) {
         // FIXME: ugly
-        flush();
+        fsync();
     }
 
-    public void flush() {
+    public void fsync() {
         // do nothing because we currently make no guarantees about when things hit the disk
     }
 

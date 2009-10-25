@@ -47,13 +47,12 @@ public class MemoryPageStorage extends PageStorage {
         pages[numpages] = new byte[pagesize];
         return numpages++;
     }
-    public void flush(int pageid) { }
-    public void flush() { }
+    public void fsync(int pageid) { }
+    public void fsync() { }
     public void writePage(int pageid, byte[] buf, int ofs) {
         System.arraycopy(buf, ofs, pages[pageid], 0, pagesize);
     }
-    public byte[] readPage(int pageid, byte[] buf, int ofs) {
+    public void readPage(int pageid, byte[] buf, int ofs) {
         System.arraycopy(pages[pageid], 0, buf, ofs, pagesize);
-        return buf;
     }
 }

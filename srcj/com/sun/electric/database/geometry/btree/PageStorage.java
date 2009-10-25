@@ -45,12 +45,12 @@ public abstract class PageStorage {
     public abstract void writePage(int pageid, byte[] buf, int ofs);
 
     /** reads a page */
-    public abstract byte[] readPage(int pageid, byte[] buf, int ofs);
+    public abstract void readPage(int pageid, byte[] buf, int ofs);
 
     /** ensure that the designated page is written to permanent storage */
-    public abstract void flush(int pageid);
+    public abstract void fsync(int pageid);
     
     /** ensure that the all pages are written to permanent storage */
-    public abstract void flush();
+    public abstract void fsync();
 
 }

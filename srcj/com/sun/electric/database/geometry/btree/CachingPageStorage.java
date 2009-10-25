@@ -141,13 +141,9 @@ public class CachingPageStorage extends PageStorage {
         page.flush();
     }
 
-    public byte[] readPage(int pageid, byte[] buf, int ofs) {
+    public void readPage(int pageid, byte[] buf, int ofs) {
         CachedPage page = getPage(pageid, true);
-        if (buf != null) {
-            System.arraycopy(page.buf, 0, buf, ofs, ps.getPageSize());
-            return buf;
-        }
-        return page.buf;
+        System.arraycopy(page.buf, 0, buf, ofs, ps.getPageSize());
     }
 
     /** Sets the cache size, evicting pages if necessary. */
@@ -170,8 +166,8 @@ public class CachingPageStorage extends PageStorage {
         }
     }
 
-    public void flush(int pageid) { ps.flush(pageid); }
-    public void flush() { ps.flush(); }
+    public void fsync(int pageid) { ps.fsync(pageid); }
+    public void fsync() { ps.fsync(); }
 
     /** A page which is currently in the cache. */
     public class CachedPage {
