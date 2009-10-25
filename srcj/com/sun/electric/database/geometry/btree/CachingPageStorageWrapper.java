@@ -105,13 +105,17 @@ public class CachingPageStorageWrapper extends CachingPageStorage {
     public CachedPage getPage(int pageid, boolean readBytes) {
         CachedPageImpl page = null;
         boolean doWait = false;
-        synchronized(CachingPageStorageWrapper.this) { do {
+        boolean doNotify = false;
+        synchronized(CachingPageStorageWrapper.this) {
+            do {
                 page = cache.get(pageid);
                 if (page!=null) { readBytes = false; break; }
                 page = allCachedPages.get(pageid);
                 if (page!=null) { readBytes = false; doWait = true; break; }
                 page = new CachedPageImpl(pageid, new byte[ps.getPageSize()]);
-            } while(false); }
+                doNotify = true;
+            } while(false);
+        }
 
         //
         // unfortunately we'd like to acquire a local lock before
@@ -124,12 +128,13 @@ public class CachingPageStorageWrapper extends CachingPageStorage {
         if (readBytes) ps.readPage(pageid, page.buf, 0);
         page.touch();
 
-        synchronized(page) {
-            if (!page.initialized) {
-                page.initialized = true;
-                page.notifyAll();
+        if (doNotify)
+            synchronized(page) {
+                if (!page.initialized) {
+                    page.initialized = true;
+                    page.notifyAll();
+                }
             }
-        }
         return page;
     }
 

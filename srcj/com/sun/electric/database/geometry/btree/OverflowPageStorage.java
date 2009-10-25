@@ -48,7 +48,6 @@ public class OverflowPageStorage extends PageStorage {
     public synchronized int createPage() {
         if (overflowed) return ps2.createPage();
         if (ps1.getNumPages() < highWaterMark) return ps1.createPage();
-        //System.err.println("overflowing...");
         byte[] buf = new byte[getPageSize()];
         for(int i=0; i<ps1.getNumPages(); i++) {
             while(ps2.getNumPages() < i+1) ps2.createPage();

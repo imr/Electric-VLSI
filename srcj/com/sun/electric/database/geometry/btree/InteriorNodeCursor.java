@@ -26,6 +26,7 @@ package com.sun.electric.database.geometry.btree;
 import java.io.*;
 import java.util.*;
 import com.sun.electric.database.geometry.btree.unboxed.*;
+import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
 
 /**
  *  Page format:
@@ -84,8 +85,8 @@ class InteriorNodeCursor
     public int insertNewBucketAt(int idx) {
         assert !isFull();
         assert idx!=0;
-        System.arraycopy(buf, INTERIOR_HEADER_SIZE + (idx-1)*INTERIOR_ENTRY_SIZE,
-                         buf, INTERIOR_HEADER_SIZE + idx*INTERIOR_ENTRY_SIZE,
+        System.arraycopy(getBuf(), INTERIOR_HEADER_SIZE + (idx-1)*INTERIOR_ENTRY_SIZE,
+                         getBuf(), INTERIOR_HEADER_SIZE + idx*INTERIOR_ENTRY_SIZE,
                          endOfBuf() - (INTERIOR_HEADER_SIZE + (idx-1)*INTERIOR_ENTRY_SIZE));
         setNumBuckets(getNumBuckets()+1);
         return INTERIOR_HEADER_SIZE + idx*INTERIOR_ENTRY_SIZE - bt.uk.getSize();
@@ -93,22 +94,21 @@ class InteriorNodeCursor
 
     public static boolean isInteriorNode(byte[] buf) { return UnboxedInt.instance.deserializeInt(buf, 1*SIZEOF_INT)!=0; }
     public int getMaxBuckets() { return INTERIOR_MAX_BUCKETS; }
-    public void initBuf(int pageid, byte[] buf) { super.setBuf(pageid, buf); }
-    public int  getParentPageId() { return bt.ui.deserializeInt(buf, 0*SIZEOF_INT); }
-    public void setParentPageId(int pageid) { bt.ui.serializeInt(pageid, buf, 0*SIZEOF_INT); }
+    public void initBuf(CachedPage cp) { super.setBuf(cp); }
+    public int  getParentPageId() { return bt.ui.deserializeInt(getBuf(), 0*SIZEOF_INT); }
+    public void setParentPageId(int pageid) { bt.ui.serializeInt(pageid, getBuf(), 0*SIZEOF_INT); }
     public int  getNumBuckets() { return numbuckets; }
-    public void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, buf, 1*SIZEOF_INT); }
+    public void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, getBuf(), 1*SIZEOF_INT); }
 
-    public void setBuf(int pageid, byte[] buf) {
-        assert pageid==-1 || isInteriorNode(buf);
-        super.setBuf(pageid, buf);
-        numbuckets = bt.ui.deserializeInt(buf, 1*SIZEOF_INT);
+    public void setBuf(CachedPage cp) {
+        super.setBuf(cp);
+        numbuckets = bt.ui.deserializeInt(getBuf(), 1*SIZEOF_INT);
     }
 
     /** Initialize a new root node. */
-    public void initRoot(byte[] buf) {
+    public void initRoot() {
         bt.rootpage = ps.createPage();
-        super.setBuf(bt.rootpage, buf);
+        super.setBuf(ps.getPage(bt.rootpage, false));
         setParentPageId(bt.rootpage);
         setNumBuckets(1);
     }
@@ -117,30 +117,30 @@ class InteriorNodeCursor
 
     protected int endOfBuf() { return INTERIOR_HEADER_SIZE + getNumBuckets()*INTERIOR_ENTRY_SIZE - SIZEOF_SUMMARY - SIZEOF_INT; }
 
-    public int  getBucketPageId(int idx) { return bt.ui.deserializeInt(buf, INTERIOR_HEADER_SIZE+INTERIOR_ENTRY_SIZE*idx); }
-    public void setBucketPageId(int idx, int pageid) { bt.ui.serializeInt(pageid, buf, INTERIOR_HEADER_SIZE+INTERIOR_ENTRY_SIZE*idx); }
+    public int  getBucketPageId(int idx) { return bt.ui.deserializeInt(getBuf(), INTERIOR_HEADER_SIZE+INTERIOR_ENTRY_SIZE*idx); }
+    public void setBucketPageId(int idx, int pageid) { bt.ui.serializeInt(pageid, getBuf(), INTERIOR_HEADER_SIZE+INTERIOR_ENTRY_SIZE*idx); }
     public void setNumValsBelowBucket(int idx, int num) {
         if (idx==getNumBuckets()-1)
             throw new RuntimeException("InteriorNodeCursors don't store numValuesBelowBucket() for their last bucket");
         assert idx>=0 && idx<getNumBuckets()-1;
-        bt.ui.serializeInt(num, buf, INTERIOR_HEADER_SIZE+SIZEOF_INT+SIZEOF_SUMMARY+INTERIOR_ENTRY_SIZE*idx);
+        bt.ui.serializeInt(num, getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+SIZEOF_SUMMARY+INTERIOR_ENTRY_SIZE*idx);
     }
 
     public int  compare(byte[] key, int key_ofs, int keynum) {
         if (keynum<=0) return 1;
         if (keynum>=getNumBuckets()) return -1;
-        return bt.uk.compare(key, key_ofs, buf, INTERIOR_HEADER_SIZE + keynum*INTERIOR_ENTRY_SIZE - bt.uk.getSize());
+        return bt.uk.compare(key, key_ofs, getBuf(), INTERIOR_HEADER_SIZE + keynum*INTERIOR_ENTRY_SIZE - bt.uk.getSize());
     }
 
-    protected void scoot(byte[] oldbuf, int endOfBuf, int splitPoint) {
+    protected void scoot(byte[] oldBuf, int endOfBuf, int splitPoint) {
         int len = INTERIOR_HEADER_SIZE + INTERIOR_ENTRY_SIZE*(splitPoint);
-        System.arraycopy(oldbuf, len,
-                         buf, INTERIOR_HEADER_SIZE,
+        System.arraycopy(oldBuf, len,
+                         getBuf(), INTERIOR_HEADER_SIZE,
                          endOfBuf - len);
     }
 
     public void getKey(int keynum, byte[] key, int key_ofs) {
-        System.arraycopy(buf, INTERIOR_HEADER_SIZE + keynum*INTERIOR_ENTRY_SIZE - bt.uk.getSize(),
+        System.arraycopy(getBuf(), INTERIOR_HEADER_SIZE + keynum*INTERIOR_ENTRY_SIZE - bt.uk.getSize(),
                          key, key_ofs, bt.uk.getSize());
     }
 
@@ -151,6 +151,6 @@ class InteriorNodeCursor
         if (bucket==getNumBuckets()-1)
             throw new RuntimeException("InteriorNodeCursors don't store numValuesBelowBucket() for their last bucket");
 
-        return bt.ui.deserializeInt(buf, INTERIOR_HEADER_SIZE+SIZEOF_INT+SIZEOF_SUMMARY+INTERIOR_ENTRY_SIZE*bucket);
+        return bt.ui.deserializeInt(getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+SIZEOF_SUMMARY+INTERIOR_ENTRY_SIZE*bucket);
     }
 }

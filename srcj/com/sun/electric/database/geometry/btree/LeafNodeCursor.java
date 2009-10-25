@@ -26,6 +26,7 @@ package com.sun.electric.database.geometry.btree;
 import java.io.*;
 import java.util.*;
 import com.sun.electric.database.geometry.btree.unboxed.*;
+import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
 
 /**
  *  Page format:
@@ -59,40 +60,39 @@ class LeafNodeCursor
         this.LEAF_MAX_BUCKETS = (ps.getPageSize() - LEAF_HEADER_SIZE) / LEAF_ENTRY_SIZE;
     }
 
-    public static boolean isLeafNode(byte[] buf) { return UnboxedInt.instance.deserializeInt(buf, 1*SIZEOF_INT)==0; }
+    public static boolean isLeafNode(CachedPage cp) { return UnboxedInt.instance.deserializeInt(cp.getBuf(), 1*SIZEOF_INT)==0; }
 
-    public void setBuf(int pageid, byte[] buf) {
-        assert isLeafNode(buf);
-        super.setBuf(pageid, buf);
-        numbuckets = bt.ui.deserializeInt(buf, 4*SIZEOF_INT);
+    public void setBuf(CachedPage cp) {
+        assert isLeafNode(cp);
+        super.setBuf(cp);
+        numbuckets = bt.ui.deserializeInt(getBuf(), 4*SIZEOF_INT);
     }
-    public void initBuf(int pageid, byte[] buf) {
-        this.buf = buf;
-        this.pageid = pageid;
-        bt.ui.serializeInt(0, buf, 1*SIZEOF_INT);
+    public void initBuf(CachedPage cp) {
+        super.setBuf(cp);
+        bt.ui.serializeInt(0, getBuf(), 1*SIZEOF_INT);
         setNumBuckets(0);
     }
-    public int  getParentPageId() { return bt.ui.deserializeInt(buf, 0*SIZEOF_INT); }
-    public void setParentPageId(int pageid) { bt.ui.serializeInt(pageid, buf, 0*SIZEOF_INT); }
-    public int  getLeftNeighborPageId() { return bt.ui.deserializeInt(buf, 2*SIZEOF_INT); }
-    public int  getRightNeighborPageId() { return bt.ui.deserializeInt(buf, 3*SIZEOF_INT); }
-    public void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, buf, 4*SIZEOF_INT); }
+    public int  getParentPageId() { return bt.ui.deserializeInt(getBuf(), 0*SIZEOF_INT); }
+    public void setParentPageId(int pageid) { bt.ui.serializeInt(pageid, getBuf(), 0*SIZEOF_INT); }
+    public int  getLeftNeighborPageId() { return bt.ui.deserializeInt(getBuf(), 2*SIZEOF_INT); }
+    public int  getRightNeighborPageId() { return bt.ui.deserializeInt(getBuf(), 3*SIZEOF_INT); }
+    public void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, getBuf(), 4*SIZEOF_INT); }
     public int  getNumBuckets() { return numbuckets; }
     public int  compare(byte[] key, int key_ofs, int keynum) {
         if (keynum<0) return 1;
         if (keynum>=getNumBuckets()) return -1;
-        return bt.uk.compare(key, key_ofs, buf, LEAF_HEADER_SIZE + keynum*LEAF_ENTRY_SIZE);
+        return bt.uk.compare(key, key_ofs, getBuf(), LEAF_HEADER_SIZE + keynum*LEAF_ENTRY_SIZE);
     }
     public V getVal(int bucket) {
-        return bt.uv.deserialize(buf, LEAF_HEADER_SIZE + bt.uk.getSize() + LEAF_ENTRY_SIZE*bucket);
+        return bt.uv.deserialize(getBuf(), LEAF_HEADER_SIZE + bt.uk.getSize() + LEAF_ENTRY_SIZE*bucket);
     }
 
     /** returns the value previously in the bucket */
     public V setVal(int bucket, V val) {
         assert val!=null;
         int pos = LEAF_HEADER_SIZE + bt.uk.getSize() + LEAF_ENTRY_SIZE*bucket;
-        V ret = bt.uv.deserialize(buf, pos);
-        bt.uv.serialize(val, buf, pos);
+        V ret = bt.uv.deserialize(getBuf(), pos);
+        bt.uv.serialize(val, getBuf(), pos);
         writeBack();
         return ret;
     }
@@ -101,31 +101,31 @@ class LeafNodeCursor
     public void insertVal(int bucket, byte[] key, int key_ofs, V val) {
         assert val!=null;
         assert getNumBuckets() < getMaxBuckets();
-        System.arraycopy(buf,
+        System.arraycopy(getBuf(),
                          LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket,
-                         buf,
+                         getBuf(),
                          LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*(bucket+1),
                          (getNumBuckets()-bucket)*LEAF_ENTRY_SIZE);
         setNumBuckets(getNumBuckets()+1);
-        System.arraycopy(key, key_ofs, buf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket, bt.uk.getSize());
+        System.arraycopy(key, key_ofs, getBuf(), LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket, bt.uk.getSize());
         setVal(bucket, val);
 
         writeBack();
     }
 
-    protected void scoot(byte[] oldbuf, int endOfBuf, int splitPoint) {
+    protected void scoot(byte[] oldBuf, int endOfBuf, int splitPoint) {
         int len = LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE * splitPoint;
-        System.arraycopy(oldbuf, len,
-                         buf, LEAF_HEADER_SIZE,
+        System.arraycopy(oldBuf, len,
+                         getBuf(), LEAF_HEADER_SIZE,
                          endOfBuf - len);
     }
 
     public boolean isLeafNode() { return true; }
     protected int endOfBuf() { return LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE * getNumBuckets(); }
     public void getKey(int bucket, byte[] key, int key_ofs) {
-        System.arraycopy(buf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket, key, key_ofs, bt.uk.getSize());
+        System.arraycopy(getBuf(), LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket, key, key_ofs, bt.uk.getSize());
     }
 
-    public K getKey(int bucket) { return bt.uk.deserialize(buf, LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket); }
+    public K getKey(int bucket) { return bt.uk.deserialize(getBuf(), LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket); }
     public int getNumValsBelowBucket(int bucket) { return bucket < getNumBuckets() ? 1 : 0; }
 }

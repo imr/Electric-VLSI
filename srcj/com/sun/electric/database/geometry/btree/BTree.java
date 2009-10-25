@@ -26,6 +26,7 @@ package com.sun.electric.database.geometry.btree;
 import java.io.*;
 import java.util.*;
 import com.sun.electric.database.geometry.btree.unboxed.*;
+import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
 
 /**
  *  A B+Tree implemented using PageStorage.
@@ -166,7 +167,7 @@ public class BTree
         this.rootpage = ps.createPage();
         this.keybuf = new byte[uk.getSize()];
         this.largestKey = new byte[uk.getSize()];
-        leafNodeCursor.initBuf(rootpage, new byte[ps.getPageSize()]);
+        leafNodeCursor.initBuf(ps.getPage(rootpage, false));
         leafNodeCursor.setParentPageId(rootpage);
         leafNodeCursor.writeBack();
     }
@@ -346,22 +347,23 @@ public class BTree
         int comp = 0;
 
         if (largestKeyPage != -1 && op==Op.INSERT) {
-            byte[] buf = ps.getPage(largestKeyPage, true).getBuf();
-            leafNodeCursor.setBuf(largestKeyPage, buf);
+            leafNodeCursor.setBuf(ps.getPage(largestKeyPage, true));
             comp = uk.compare(key, key_ofs, largestKey, 0);
             if (comp >= 0 && !leafNodeCursor.isFull()) {
                 pageid = largestKeyPage;
-                ps.readPage(leafNodeCursor.getParentPageId(), buf, 0);
                 if (leafNodeCursor.getParentPageId()!=leafNodeCursor.getPageId())
-                    parentNodeCursor.setBuf(leafNodeCursor.getParentPageId(), buf);
+                    parentNodeCursor.setBuf(ps.getPage(leafNodeCursor.getParentPageId(), true));
                 cheat = true;
+                cur = leafNodeCursor;
             }
         }
 
         while(true) {
-            byte[] buf = ps.getPage(pageid, true).getBuf();
-            cur = LeafNodeCursor.isLeafNode(buf) ? leafNodeCursor : interiorNodeCursor;
-            cur.setBuf(pageid, buf);
+            if (cur==null || cur.getCachedPage()==null || cur.getPageId() != pageid) {
+                CachedPage cp = ps.getPage(pageid, true);
+                cur = LeafNodeCursor.isLeafNode(cp) ? leafNodeCursor : interiorNodeCursor;
+                cur.setBuf(cp);
+            }
 
             if ((op==Op.INSERT || op==Op.REPLACE) && cur.isFull()) {
                 assert cur!=parentNodeCursor;
@@ -370,7 +372,7 @@ public class BTree
                 // is the node we're splitting the last child of its parent or the root node?
                 boolean splitting_last_or_root = false;
                 if (pageid == rootpage) {
-                    parentNodeCursor.initRoot(new byte[ps.getPageSize()]);
+                    parentNodeCursor.initRoot();
                     parentNodeCursor.setBucketPageId(0, pageid);
                     cur.setParentPageId(rootpage);
                     idx = 0;

@@ -24,34 +24,48 @@
 package com.sun.electric.database.geometry.btree;
 
 /** A PageStorage that uses plain old memory. */
-public class MemoryPageStorage extends PageStorage {
+public class MemoryPageStorage extends CachingPageStorage {
 
-    private       byte[][] pages;
-    private       int      numpages;
+    private       CachedPageImpl[] pages;
+    private       int              numpages;
 
     public MemoryPageStorage(int pagesize) {
         super(pagesize);
         this.numpages = 0;
-        this.pages = new byte[1][];
+        this.pages = new CachedPageImpl[1];
     }
 
     public int getNumPages() { return numpages; }
     public int createPage() {
         if (numpages >= pages.length) {
-            byte[][] newpages = new byte[pages.length*2][];
+            CachedPageImpl[] newpages = new CachedPageImpl[pages.length*2];
             System.arraycopy(pages, 0, newpages, 0, pages.length);
             pages = newpages;
         }
-        pages[numpages] = new byte[getPageSize()];
+        pages[numpages] = new CachedPageImpl(numpages);
         return numpages++;
     }
     public void fsync(int pageid) { }
     public void fsync() { }
     public void writePage(int pageid, byte[] buf, int ofs) {
-        System.arraycopy(buf, ofs, pages[pageid], 0, getPageSize());
+        System.arraycopy(buf, ofs, pages[pageid].buf, 0, getPageSize());
     }
     public void readPage(int pageid, byte[] buf, int ofs) {
-        System.arraycopy(pages[pageid], 0, buf, ofs, getPageSize());
+        System.arraycopy(pages[pageid].buf, 0, buf, ofs, getPageSize());
     }
     public synchronized void close() { pages = null; }
+    public CachedPage getPage(int pageid, boolean readBytes) { return pages[pageid]; }
+
+    private class CachedPageImpl extends CachedPage {
+        private int pageid;
+        private byte[] buf;
+        private boolean dirty;
+        public CachedPageImpl(int pageid) { this.pageid = pageid; this.buf = new byte[getPageSize()]; }
+        public byte[] getBuf() { return buf; }
+        public int    getPageId() { return pageid; }
+        public void touch() { }
+        public void setDirty() { this.dirty = true; }
+        public void flush() { this.dirty = false; }
+        public boolean isDirty() { return dirty; }
+    }
 }

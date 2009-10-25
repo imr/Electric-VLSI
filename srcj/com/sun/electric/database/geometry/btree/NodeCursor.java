@@ -26,6 +26,7 @@ package com.sun.electric.database.geometry.btree;
 import java.io.*;
 import java.util.*;
 import com.sun.electric.database.geometry.btree.unboxed.*;
+import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
 
 /**
  *   Internal use only; kind of a hack.  This is just a "parser"
@@ -46,28 +47,26 @@ abstract class NodeCursor
      V extends Serializable,
      S extends Serializable> {
 
-    protected              byte[]       buf;
-    protected              int          pageid;
     protected              boolean      dirty = false;
-    protected              PageStorage  ps;
+    protected              CachingPageStorage  ps;
     protected static final int          SIZEOF_INT = 4;
     protected        final BTree<K,V,S> bt;
+    protected              CachedPage   cp;
 
     protected NodeCursor(BTree<K,V,S> bt) {
         this.bt = bt;
         this.ps = bt.ps;
     }
-    public abstract void initBuf(int pageid, byte[] buf);
+    public abstract void initBuf(CachedPage cp);
     public abstract void setNumBuckets(int num);
-    public void setBuf(int pageid, byte[] buf) {
+    public void setBuf(CachedPage cp) {
         assert !dirty;
-        this.buf = buf;
-        this.pageid = pageid;
+        this.cp = cp;
     }
+    public CachedPage getCachedPage() { return cp; }
     public void writeBack() {
-        //if (!dirty) return;
         dirty = false;
-        ps.writePage(pageid, buf, 0);
+        cp.setDirty();
     }
 
     /**
@@ -93,9 +92,9 @@ abstract class NodeCursor
             getKey(splitPoint, key, key_ofs);
 
         // move the second half of our entries to the front of the block, and write back
-        byte[] oldbuf = buf;
+        byte[] oldbuf = cp.getBuf();
         int parent = getParentPageId();
-        initBuf(ps.createPage(), new byte[buf.length]);
+        initBuf(ps.getPage(ps.createPage(), false));
         setNumBuckets(getMaxBuckets()-splitPoint);
         scoot(oldbuf, endOfBuf, splitPoint);
         setParentPageId(parent);
@@ -106,8 +105,8 @@ abstract class NodeCursor
     public boolean isFull() { return getNumBuckets() >= getMaxBuckets(); }
     public abstract int  getParentPageId();
     public abstract void setParentPageId(int pageid);
-    public int getPageId() { return pageid; }
-    public byte[] getBuf() { return buf; }
+    public int getPageId() { return cp.getPageId(); }
+    public byte[] getBuf() { return cp.getBuf(); }
 
     /**
      *  Each node has a number of buckets, separated by keys; keys
