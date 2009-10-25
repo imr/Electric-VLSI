@@ -207,6 +207,7 @@ public class CachingPageStorage extends PageStorage {
          *  eviction.  Touching an evicted page will un-evict it.
          */
         public void touch() {
+            if (cacheSize==0) return;
             synchronized(CachingPageStorage.this) {
                 // will fail if evicted, but that's okay
                 cache.remove(pageid);

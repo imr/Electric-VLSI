@@ -139,7 +139,7 @@ public class BTree
      V extends Serializable,
      S extends Serializable> {
 
-    final PageStorage          ps;
+    final CachingPageStorage   ps;
     final UnboxedComparable<K> uk;
     final UnboxedMonoid<S>     monoid;    // XXX: would be nice if the monoid had acesss to the K-value too...
     final Unboxed<V>           uv;
@@ -155,7 +155,7 @@ public class BTree
     private final byte[] largestKey;
     private       int    largestKeyPage = -1;  // or -1 if unknown
 
-    public BTree(PageStorage ps, UnboxedComparable<K> uk, UnboxedMonoid<S> monoid, Unboxed<V> uv) {
+    public BTree(CachingPageStorage ps, UnboxedComparable<K> uk, UnboxedMonoid<S> monoid, Unboxed<V> uv) {
         this.ps = ps;
         this.uk = uk;
         this.monoid = monoid;
@@ -346,8 +346,7 @@ public class BTree
         int comp = 0;
 
         if (largestKeyPage != -1 && op==Op.INSERT) {
-            byte[] buf = new byte[ps.getPageSize()];
-            ps.readPage(largestKeyPage, buf, 0);
+            byte[] buf = ps.getPage(largestKeyPage, true).getBuf();
             leafNodeCursor.setBuf(largestKeyPage, buf);
             comp = uk.compare(key, key_ofs, largestKey, 0);
             if (comp >= 0 && !leafNodeCursor.isFull()) {
@@ -360,8 +359,7 @@ public class BTree
         }
 
         while(true) {
-            byte[] buf = new byte[ps.getPageSize()];
-            ps.readPage(pageid, buf, 0);
+            byte[] buf = ps.getPage(pageid, true).getBuf();
             cur = LeafNodeCursor.isLeafNode(buf) ? leafNodeCursor : interiorNodeCursor;
             cur.setBuf(pageid, buf);
 
@@ -509,9 +507,7 @@ public class BTree
         int numops = Integer.parseInt(s[1]);
         int maxsize = Integer.parseInt(s[0]);
         int size = 0;
-        PageStorage ps = cachesize==0
-            ? FilePageStorage.create()
-            : new CachingPageStorage(FilePageStorage.create(), cachesize, false);
+        CachingPageStorage ps = new CachingPageStorage(FilePageStorage.create(), cachesize, false);
         BTree<Integer,Integer,Integer> btree =
             new BTree<Integer,Integer,Integer>(ps, UnboxedInt.instance, null, UnboxedInt.instance);
         TreeMap<Integer,Integer> tm = 

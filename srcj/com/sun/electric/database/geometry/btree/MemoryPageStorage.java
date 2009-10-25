@@ -32,7 +32,7 @@ public class MemoryPageStorage extends PageStorage {
     public MemoryPageStorage(int pagesize) {
         super(pagesize);
         this.numpages = 0;
-        this.pages = new byte[0][];
+        this.pages = new byte[1][];
     }
 
     public int getNumPages() { return numpages; }
