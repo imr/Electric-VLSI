@@ -57,4 +57,6 @@ public abstract class PageStorage {
     /** ensure that the all pages are written to permanent storage */
     public abstract void fsync();
 
+    /** close the PageStorage; invocation of any other methods after close() has undefined results */
+    public abstract void close();
 }

@@ -273,4 +273,11 @@ public class CachingPageStorage extends PageStorage {
         }
     }
 
+    public synchronized void close() {
+        for(CachedPage cp : allCachedPages.values())
+            cp.evict();
+        ps.close();
+        this.cache.clear();
+        this.allCachedPages.clear();
+    }
 }

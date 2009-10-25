@@ -53,4 +53,5 @@ public class MemoryPageStorage extends PageStorage {
     public void readPage(int pageid, byte[] buf, int ofs) {
         System.arraycopy(pages[pageid], 0, buf, ofs, getPageSize());
     }
+    public synchronized void close() { pages = null; }
 }

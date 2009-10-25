@@ -96,4 +96,5 @@ public class FilePageStorage extends PageStorage {
         // do nothing because we currently make no guarantees about when things hit the disk
     }
 
+    public synchronized void close() { }
 }
