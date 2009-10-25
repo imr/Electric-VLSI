@@ -38,6 +38,9 @@ public class Signalyzer extends JtagTester {
         urjtag = new ExecProcess("jtag", new String[0], new File("."), null, null);
         urjtag.run();
         urjtag.writeln("cable Signalyzer");
+
+        logicOutput = new LogicSettableArray(1);
+        setLogicOutput(0, true);
     }
 
     public void configure(float tapVolt, long kiloHerz) {
@@ -47,7 +50,7 @@ public class Signalyzer extends JtagTester {
 
     public void reset() {
         urjtag.writeln("pod set TRST=0");
-        // FIXME: sleep here
+        try { Thread.sleep(1000); } catch (Exception e) { throw new RuntimeException(e); }
         urjtag.writeln("pod set TRST=1");
     }
 
@@ -61,6 +64,7 @@ public class Signalyzer extends JtagTester {
 
     public void setLogicOutput(int index, boolean newLevel) {
         if (index!=0) throw new RuntimeException("we only support one GPIO, pin 15");
+        logicOutput.setLogicState(index, newLevel);
         urjtag.writeln("pod set RESET="+(newLevel?"1":"0"));
     }
 
