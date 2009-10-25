@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+IMP: (10/24/09, AM) Do not write files to disk unless simulation data
+     exceeds 50MB.
+
 IMP: (10/24/09, AM) BTree: take advantage of CachingPageStorage API.
 
 IMP: (10/24/09, AM) FileBasedPageStorage: defer creating the file

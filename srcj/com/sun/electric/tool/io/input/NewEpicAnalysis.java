@@ -364,12 +364,9 @@ public class NewEpicAnalysis extends AnalogAnalysis {
             try {
                 long highWaterMarkInBytes = 50 * 1024 * 1024;
                 PageStorage fps = FilePageStorage.create();
-                /*
                 PageStorage ops = new OverflowPageStorage(new MemoryPageStorage(fps.getPageSize()), fps, highWaterMarkInBytes);
                 ps = new CachingPageStorageWrapper(ops, 16 * 1024, false);
-                */
-                //ps = new CachingPageStorageWrapper(fps, 16 * 1024, false);
-                ps = new CachingPageStorageWrapper(new MemoryPageStorage(1000), 0, false);
+                //ps = new MemoryPageStorage(256);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
