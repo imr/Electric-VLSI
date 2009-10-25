@@ -4,6 +4,20 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+IMP: (10/24/09, AM) Rewrite CachingPageStorage, make it thread-safe.
+
+IMP: (10/23/09, AM) Add partial implementation of Signalyzer driver.
+
+IMP: (10/23/09, AM) Add compileTestCode target which will compile
+     com.sun.electric.tool.simulation.test.  I have confirmed that
+     this will fail (as desired) if the test code depends on any other
+     part of electric.  We should call this build target from the
+     regression tests every night.
+
+IMP: (10/23/09, AM) Move com.sun.async.test to
+     com.sun.electric.tool.simulation.test (as discussed with SMR,
+     JKG)
+
 BUG: (10/23/09, GVG) Fill generator exception when cell already exists (Bug #2444)
 FIX: Printing warning instead of throwing assertion.
 
@@ -21,18 +35,6 @@ FIX: Handle missing parameters and treat them as empty strings.
 BUG: (10/23/09, SMR) When "Duplicate/Array/Paste copies exports" is set,
      deleting export text tries to delete it twice (Bug #2443).
 FIX: In Clipboard.copyListToCell() copy the geometric list before modifying it.
-
-IMP: (10/23/09, AM) Add partial implementation of Signalyzer driver.
-
-IMP: (10/23/09, AM) Add compileTestCode target which will compile
-     com.sun.electric.tool.simulation.test.  I have confirmed that
-     this will fail (as desired) if the test code depends on any other
-     part of electric.  We should call this build target from the
-     regression tests every night.
-
-IMP: (10/23/09, AM) Move com.sun.async.test to
-     com.sun.electric.tool.simulation.test (as discussed with SMR,
-     JKG)
 
 BUG: (10/22/09, GVG) Crash when changing cell parameters (Bug #2442)
 FIX: Temporary patch to avoid the exception. Not the solution yet.

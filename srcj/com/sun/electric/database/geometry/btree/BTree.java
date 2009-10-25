@@ -114,8 +114,6 @@ import com.sun.electric.database.geometry.btree.unboxed.*;
  *
  *  Sub-block allocation using extents.
  *
- *  Use ARC http://en.wikipedia.org/wiki/Adaptive_Replacement_Cache
- *
  *  Crazy: you can even store the free extents in the very tree that
  *  uses those extents as its underlying storage!  The trick here is
  *  that performing an extent allocation merely reduces the length of
@@ -511,7 +509,7 @@ public class BTree
         int size = 0;
         PageStorage ps = cachesize==0
             ? FilePageStorage.create()
-            : new CachingPageStorage(FilePageStorage.create(), cachesize);
+            : new CachingPageStorage(FilePageStorage.create(), cachesize, false);
         BTree<Integer,Integer,Integer> btree =
             new BTree<Integer,Integer,Integer>(ps, UnboxedInt.instance, null, UnboxedInt.instance);
         TreeMap<Integer,Integer> tm = 

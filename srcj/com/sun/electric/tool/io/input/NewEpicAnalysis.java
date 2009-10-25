@@ -362,7 +362,7 @@ public class NewEpicAnalysis extends AnalogAnalysis {
     public static BTree<Double,Double,Serializable> getTree() {
         if (ps==null)
             try {
-                ps = new CachingPageStorage(FilePageStorage.create(), 16 * 1024);
+                ps = new CachingPageStorage(FilePageStorage.create(), 16 * 1024, false);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

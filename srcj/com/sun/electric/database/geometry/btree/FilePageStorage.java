@@ -64,7 +64,7 @@ public class FilePageStorage extends PageStorage {
         return BLOCK_SIZE;
     }
 
-    public int  createPage() {
+    public synchronized int createPage() {
         // note, any pages created but not written will vanish when the file is closed
         return numpages++;
     }
