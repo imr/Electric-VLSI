@@ -27,7 +27,8 @@ import java.io.*;
 
 /**
  *  Stores and retrieves fixed-size byte sequences indexed by a page
- *  number.
+ *  number; page numbers are guaranteed to be contiguous starting at
+ *  zero.
  */
 public abstract class PageStorage {
 
@@ -36,6 +37,9 @@ public abstract class PageStorage {
 
     /** creates a new page with undefined contents; returns its pageid */
     public abstract int  createPage();
+
+    /** returns the number of pages; all pageids strictly less than this are valid */
+    public abstract int  getNumPages();
 
     /** writes a page; throws an exception if the page did not exist */ 
     public abstract void writePage(int pageid, byte[] buf, int ofs);

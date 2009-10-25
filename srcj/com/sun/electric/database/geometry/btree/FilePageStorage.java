@@ -50,6 +50,8 @@ public class FilePageStorage extends PageStorage {
     private final RandomAccessFile raf;
     private int numpages;
 
+    public int  getNumPages() { return numpages; }
+
     /** private because the file format is not yet finalized */
     private FilePageStorage(RandomAccessFile raf) {
         try {

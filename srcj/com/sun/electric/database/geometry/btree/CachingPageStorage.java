@@ -56,6 +56,8 @@ public class CachingPageStorage extends PageStorage {
 
     public int createPage() { return ps.createPage(); }
 
+    public int  getNumPages() { return ps.getNumPages(); }
+
     public void writePage(int pageid, byte[] buf, int ofs) {
         putCache(pageid, buf, ofs, true);
     }
