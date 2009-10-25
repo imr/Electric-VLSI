@@ -33,11 +33,8 @@ public class FilePageStorage extends PageStorage {
 
     // FEATURE: use asynchronous I/O for background writes.
 
-    public static FilePageStorage create() throws IOException {
-        File f = File.createTempFile("pagestorage", ".ebtree");
-        // FEATURE: consider "rws" or "rwd"
-        RandomAccessFile raf = new RandomAccessFile(f, "rw");
-        return new FilePageStorage(raf);
+    public static FilePageStorage create() {
+        return new FilePageStorage();
     }
 
     // just a guess; should be just a bit less than some multiple of the system block size
@@ -45,10 +42,16 @@ public class FilePageStorage extends PageStorage {
 
     //////////////////////////////////////////////////////////////////////////////
 
-    private final RandomAccessFile raf;
+    private RandomAccessFile raf;
     private int numpages;
 
     public synchronized int getNumPages() { return numpages; }
+
+    private FilePageStorage() {
+        super(BLOCK_SIZE);
+        this.raf = null;
+        this.numpages = 0;
+    }
 
     /** private because the file format is not yet finalized */
     private FilePageStorage(RandomAccessFile raf) {
@@ -60,6 +63,12 @@ public class FilePageStorage extends PageStorage {
     }
 
     public synchronized int createPage() {
+        if (raf == null)
+            try {
+                // FEATURE: consider "rws" or "rwd"
+                this.raf = new RandomAccessFile(File.createTempFile("pagestorage", ".ebtree"), "rw");
+            } catch (Exception e) { throw new RuntimeException(e); }
+
         // note, any pages created but not written will vanish when the file is closed
         return numpages++;
     }
