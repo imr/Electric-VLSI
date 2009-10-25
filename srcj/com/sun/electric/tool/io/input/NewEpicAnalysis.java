@@ -358,11 +358,18 @@ public class NewEpicAnalysis extends AnalogAnalysis {
         contextHash = newHash;
     }
 
-    private static PageStorage ps = null;
+    private static CachingPageStorage ps = null;
     public static BTree<Double,Double,Serializable> getTree() {
         if (ps==null)
             try {
-                ps = new CachingPageStorage(FilePageStorage.create(), 16 * 1024, false);
+                long highWaterMarkInBytes = 50 * 1024 * 1024;
+                PageStorage fps = FilePageStorage.create();
+                /*
+                PageStorage ops = new OverflowPageStorage(new MemoryPageStorage(fps.getPageSize()), fps, highWaterMarkInBytes);
+                ps = new CachingPageStorageWrapper(ops, 16 * 1024, false);
+                */
+                //ps = new CachingPageStorageWrapper(fps, 16 * 1024, false);
+                ps = new CachingPageStorageWrapper(new MemoryPageStorage(1000), 0, false);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
