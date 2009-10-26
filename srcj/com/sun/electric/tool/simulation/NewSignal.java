@@ -97,6 +97,22 @@ public interface NewSignal<SS extends SimulationSample> {
                          SS     v0, SS     v1, int valueResolution);
     
     /**
+     * In general terms, the resulting approximation will divide the
+     * region [t0,t1] into numRegions-many equal-sized regions with AT
+     * MOST one event in each region.  Some regions may lack events.
+     * No additional sample points (which were not already present in
+     * the original data) will be created.
+     *
+     * The amount of time required is linear in numRegions, so callers
+     * must take care not to invoke this method with extremely large
+     * values (the idea is that it should be determined by the pixel
+     * resolution of the user's display, which is probably never
+     * greater than 10,000 or so).
+     */
+    NewSignal.Approximation<SS>
+        getPixelatedApproximation(double t0, double t1, int numRegions);
+
+    /**
      *  Returns an Approximation which is "most natural" for
      *  the data; this should be the Approximation which
      *  causes no loss in data fidelity.

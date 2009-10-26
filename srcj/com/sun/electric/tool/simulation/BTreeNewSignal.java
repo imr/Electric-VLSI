@@ -66,6 +66,11 @@ public class BTreeNewSignal extends NewSignalSimpleImpl implements Waveform {
         result[1] = result[2] = getPreferredApproximation().getSample(index).getValue();
     }
 
+    public NewSignal.Approximation<ScalarSample>
+        getPixelatedApproximation(double t0, double t1, int numRegions) {
+        return new BTreePixelatedApproximation(t0, t1, numRegions);
+    }
+
     private class BTreeNewSignalApproximation implements NewSignal.Approximation<ScalarSample> {
         public int getNumEvents() { return numEvents; }
         public double             getTime(int index) {
@@ -82,5 +87,49 @@ public class BTreeNewSignal extends NewSignalSimpleImpl implements Waveform {
         public int getTimeDenominator() { throw new RuntimeException("not implemented"); }
         public int getEventWithMaxValue() { return eventWithMaxValue; }
         public int getEventWithMinValue() { return eventWithMinValue; }
+    }
+
+    private class BTreePixelatedApproximation implements NewSignal.Approximation<ScalarSample> {
+        int[] events;
+        public BTreePixelatedApproximation(double t0, double t1, int numRegions) {
+            int[] events = new int[numRegions];
+            int j = 0;
+            double stride = (t1-t0)/(numRegions*2);
+            for(int i=0; i<numRegions; i++) {
+                double t = t0 + (2*i+1)*stride;
+                int idx = i==numRegions-1
+                    ? tree.getOrdFromKeyCeiling(t)
+                    : tree.getOrdFromKeyFloor(t);
+                if (j>0 && events[j-1]==idx) idx = tree.getOrdFromKeyCeiling(t);
+                if (j>0 && events[j-1]==idx) continue;
+                if (idx==tree.size()) continue;
+                if (idx==-1) continue;
+                if (j < numRegions-1 && tree.getKeyFromOrd(idx) > t+2*stride) continue;
+                events[j++] = idx;
+            }
+            this.events = new int[j];
+            System.arraycopy(events, 0, this.events, 0, j);
+        }
+        public int getNumEvents() { return events.length; }
+        public double getTime(int index) {
+            Double d = tree.getKeyFromOrd(events[index]);
+            if (d==null) throw new RuntimeException("index "+index+"/"+events[index]+" out of bounds, size="+tree.size());
+            return d.doubleValue();
+        }
+        public ScalarSample getSample(int index) {
+            Double d = tree.getValFromOrd(events[index]);
+            if (d==null) throw new RuntimeException("index out of bounds");
+            return new ScalarSample(d.doubleValue());
+        }
+        public int getTimeNumerator(int index) { throw new RuntimeException("not implemented"); }
+        public int getTimeDenominator() { throw new RuntimeException("not implemented"); }
+        public int getEventWithMaxValue() {
+            //return eventWithMaxValue;
+            throw new RuntimeException("not implemented");
+        }
+        public int getEventWithMinValue() { 
+            //return eventWithMinValue;
+            throw new RuntimeException("not implemented");
+        }
     }
 }

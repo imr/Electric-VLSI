@@ -75,6 +75,11 @@ public class WaveformImpl implements Waveform {
         throw new RuntimeException("not implemented");
     }
 
+    public NewSignal.Approximation<ScalarSample>
+        getPixelatedApproximation(double t0, double t1, int numRegions) {
+        throw new RuntimeException("not implemented");
+    }
+
     public synchronized NewSignal.Approximation<ScalarSample> getPreferredApproximation() {
         if (approximation==null) approximation = new ApproximationImpl();
         return approximation;

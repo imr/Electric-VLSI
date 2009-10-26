@@ -1531,12 +1531,9 @@ public class Panel extends JPanel
                     NewSignal.Approximation waveform =
                         (!Simulation.isSpiceUseRandomAccess() || wave instanceof WaveformImpl)
                         ? pref
-                        : wave.getApproximation(convertXScreenToData(0),
-                                                convertXScreenToData(sz.width),
-                                                sz.width,
-                                                new ScalarSample(convertYScreenToData(0)),
-                                                new ScalarSample(convertYScreenToData(sz.height)),
-                                                0);
+                        : wave.getPixelatedApproximation(convertXScreenToData(0),
+                                                         convertXScreenToData(sz.width),
+                                                         sz.width);
                     Waveform xWaveform = null;
                     if (xSignal != null)
                         xWaveform = ((AnalogSignal)xSignal).getWaveform(s);

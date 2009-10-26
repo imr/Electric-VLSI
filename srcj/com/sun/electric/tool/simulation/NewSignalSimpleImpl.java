@@ -73,6 +73,12 @@ public abstract class NewSignalSimpleImpl implements NewSignal<ScalarSample> {
     public static int steps = 0;
     public static int numLookups = 0;
 
+    public NewSignal.Approximation<ScalarSample>
+        getPixelatedApproximation(double t0, double t1, int numRegions) {
+        // FIXME: bad
+        return getApproximation(t0, t1, numRegions, new ScalarSample(0), new ScalarSample(0), 0);
+    }
+
     public NewSignal.Approximation<ScalarSample> getApproximation(double t0, double t1, int numEvents,
                                                                   ScalarSample v0, ScalarSample v1, int vd) {
         if (vd!=0) throw new RuntimeException("not implemented");

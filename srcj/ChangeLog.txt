@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+BUF: (10/25/09, AM) New simulation data code needs to reinstate the
+     distinction between interpolated points and sampled points (Bug
+     #2346).
+FIX: NewSignal.getPixelatedApproximation().
+
 IMP: (10/25/09, AM) Change PCB examples in schematic.jelib to be
      layout views.
 
