@@ -1191,6 +1191,11 @@ public class FileMenu {
      */
     public static void saveAsLibraryCommand(Library lib)
     {
+        if (lib == null)
+        {
+            System.out.println("No library to save");
+            return;
+        }
         saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true, true);
         WindowFrame.wantToRedoTitleNames();
     }

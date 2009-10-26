@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+BUG: (10/26/09, GVG) NPE in SaveAs command (Bug #2447)
+FIX: Detect the case when no current library is available.
+
 BUG: (10/26/09, GVG) NPE in Array dialog (Bug #2446)
 FIX: Detecting cases where no valid cell/window is available
 
