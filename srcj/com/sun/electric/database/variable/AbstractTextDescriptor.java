@@ -98,6 +98,7 @@ abstract class AbstractTextDescriptor implements Serializable
 	/*private*/ static final int VTUNITSTIME =                    7;		/* 1:   units: time */
 
 	/*private*/ static final int VTOFFMAX = (1 << VTOFFMASKWID) - 1;	/* 0: Maximal value of unshifted VTXOFF and VTYOFF */
+	/*private*/ static final int VTSCALEMAX = (int)(VTOFFSCALE >> VTOFFSCALESH);	/* 1: Maximal value of unshifted VTOFFSCALE */
 
 	/** Semantic bits - those bits which are meaningful in non-displayable text descriptors. */
     static long VTSEMANTIC = VTISPARAMETER | VTINTERIOR | VTINHERIT | VTUNITS;

@@ -362,6 +362,7 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
         if (yneg) yd = -yd;
 
 		int scale = ((int)(Math.max(xd,yd) * 4)) >> VTOFFMASKWID;
+        if (scale > VTSCALEMAX) scale = VTSCALEMAX;
 		int x = Math.min( (int)(xd * 4/(scale + 1) + 0.5), VTOFFMAX);
 		int y = Math.min( (int)(yd * 4/(scale + 1) + 0.5), VTOFFMAX);
         setField(VTXOFF, VTXOFFSH, x);
