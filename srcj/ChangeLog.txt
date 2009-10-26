@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+BUG: (10/26/09, GVG) NPE in Array dialog (Bug #2446)
+FIX: Detecting cases where no valid cell/window is available
+
 BUG: (10/26/09, SMR) Moving Cell variables beyond the 4088 offset limit
      causes them to overflow and jump to a random location (Bug #1641).
 FIX: In MutableTextDescriptor.setOff() now clip the scale factor.

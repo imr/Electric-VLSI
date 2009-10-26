@@ -236,7 +236,9 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 
 		// see what is highlighted
 		EditWindow wnd = EditWindow.getCurrent();
-		tech = wnd.getCell().getTechnology();
+        if (wnd == null || wnd.getCell() == null) return; // invalid window or cell
+        
+        tech = wnd.getCell().getTechnology();
 		List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
 
 		// if a single cell instance is selected, enable DRC-guided placement
