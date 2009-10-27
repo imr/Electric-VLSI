@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+BUG: (10/27/09, GVG) Inconsistent cell expansion after undo (Bug #1138)
+FIX: Detecting if user previously expanded/unexpanded the cell node instance.
+
 BUG: (10/26/09, GVG) NPE in SaveAs command (Bug #2447)
 FIX: Detect the case when no current library is available.
 
