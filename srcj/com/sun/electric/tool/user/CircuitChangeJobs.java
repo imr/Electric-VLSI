@@ -134,10 +134,26 @@ public class CircuitChangeJobs
 			int nicount = 0;
 			NodeInst theNi = null;
 			Rectangle2D selectedBounds = new Rectangle2D.Double();
-			for(Geometric geom : highs)
+
+            // Add arc if both pins are in the list to avoid weird changes by the constraints system
+            for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext();)
+            {
+                ArcInst ai = it.next();
+                PortInst tail = ai.getTailPortInst();
+                PortInst head = ai.getHeadPortInst();
+
+                if (highs.contains(tail) && highs.contains(tail))
+                    highs.add(ai); // better to add the arc here
+            }
+
+            for(Geometric geom : highs)
 			{
 				if (!(geom instanceof NodeInst)) continue;
-				NodeInst ni = (NodeInst)geom;
+                NodeInst ni = (NodeInst)geom;
+
+                if (Generic.isSpecialGenericNode(ni))
+                    continue; // like center
+
 				if (cantEdit(cell, ni, true, false, true) != 0)
 				{
 					return false;
