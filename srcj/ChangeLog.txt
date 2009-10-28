@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+BUG: (10/28/09, DN) Export not visible while editing in place (Bug #2438).
+FIX: In VectorDrawing.render and LayerDrawing.drawCell pass proper
+     expansion status to drawPortList.
+
 BUG: (10/27/09, GVG) Inconsistent cell expansion after undo (Bug #1138)
 FIX: Detecting if user previously expanded/unexpanded the cell node instance.
 

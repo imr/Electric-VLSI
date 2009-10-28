@@ -1674,7 +1674,8 @@ class LayerDrawing
 				}
 			}
 			if (canDrawText && (topLevel || onPathDown || inPlaceCurrent == cell))
-                drawPortList(vsc, subVC, soX, soY, isExpanded);
+                drawPortList(vsc, subVC, soX, soY, expanded);
+//                drawPortList(vsc, subVC, soX, soY, isExpanded);
         }
 
         // draw primitives
