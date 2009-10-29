@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+IMP: (10/29/09, AM) Support HSpice output in BTree code.
+
 BUG: (10/28/09, GVG) Bizarre rotation with facet-center selected (Bug #2449)
 FIX: Facet center ignored if selected. Arcs whose both NI nodes are in the list are also
 included.

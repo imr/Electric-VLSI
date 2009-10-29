@@ -23,9 +23,10 @@
  */
 package com.sun.electric.tool.simulation;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import com.sun.electric.tool.io.input.*;
+import com.sun.electric.database.geometry.btree.*;
+import java.io.*;
 
 /**
  * Analysis which contains analog signals
@@ -133,8 +134,24 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	public AnalogSignal addSignal(String signalName, String signalContext, double[] values)
 	{
 		AnalogSignal as = addEmptySignal(signalName, signalContext);
-		Waveform[] waveforms = { new WaveformImpl(getCommonTimeArray(), values) };
-		waveformCache.put(as, waveforms);
+        if (Simulation.isSpiceUseRandomAccess()) {
+            BTree<Double,Double,Serializable> tree = NewEpicAnalysis.getTree();
+            int evmax = 0;
+            int evmin = 0;
+            double valmax = Double.MIN_VALUE;
+            double valmin = Double.MAX_VALUE;
+            for(int i=0; i<commonTime.length; i++) {
+                tree.insert(commonTime[i], values[i]);
+                if (values[i] > valmax) { evmax = i; valmax = values[i]; }
+                if (values[i] < valmin) { evmin = i; valmin = values[i]; }
+            }
+            Waveform[] waveforms = { new BTreeNewSignal(evmin, evmax, tree) };
+            waveformCache.put(as, waveforms);
+            System.err.println("put a btree");
+        } else {
+            Waveform[] waveforms = { new WaveformImpl(getCommonTimeArray(), values) };
+            waveformCache.put(as, waveforms);
+        }
 		return as;
 	}
 

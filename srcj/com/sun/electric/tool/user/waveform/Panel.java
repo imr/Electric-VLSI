@@ -41,6 +41,7 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Waveform;
 import com.sun.electric.tool.simulation.WaveformImpl;
+import com.sun.electric.tool.simulation.*;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
@@ -1460,6 +1461,16 @@ public class Panel extends JPanel
 	private List<WaveSelection> processSignals(Graphics g, Rectangle2D bounds, List<PolyBase> forPs)
 	{
 
+		List<WaveSelection> selectedObjects = null;
+		if (bounds != null) selectedObjects = new ArrayList<WaveSelection>();
+		int hei = sz.height;
+		Signal xSignal = xAxisSignal;
+		if (waveWindow.isXAxisLocked()) xSignal = waveWindow.getXAxisSignalAll();
+		double[] result = new double[3];
+
+		int linePointMode = waveWindow.getLinePointMode();
+		Collection<WaveSignal> sigs = waveSignals.values();
+
         //
         // At the moment we have two simulation data storage
         // mechanisms: the old array-based mechanism and the new
@@ -1470,6 +1481,20 @@ public class Panel extends JPanel
         // can report bugs appropriately.  This code will be removed
         // once the BTree mechanism replaces the old mechanism.
         //
+        boolean isUsingBTrees = true;
+        for(WaveSignal ws : sigs) {
+            Signal sig = ws.getSignal();
+            if (!(sig instanceof AnalogSignal)) {
+                isUsingBTrees = false;                
+                System.err.println("nope because got a " + sig.getClass().getName());
+            } else {
+                Waveform wave = ((AnalogSignal)sig).getWaveform(0);
+                if (!(wave instanceof BTreeNewSignal)) {
+                    System.err.println("nope because got a " + wave.getClass().getName());
+                    isUsingBTrees = false;
+                }
+            }
+        }
         if (isUsingBTrees && g!=null) {
             g.setColor(gridColor);
             g.setColor(Color.gray);
@@ -1481,15 +1506,6 @@ public class Panel extends JPanel
                          );
         }
 
-		List<WaveSelection> selectedObjects = null;
-		if (bounds != null) selectedObjects = new ArrayList<WaveSelection>();
-		int hei = sz.height;
-		Signal xSignal = xAxisSignal;
-		if (waveWindow.isXAxisLocked()) xSignal = waveWindow.getXAxisSignalAll();
-		double[] result = new double[3];
-
-		int linePointMode = waveWindow.getLinePointMode();
-		Collection<WaveSignal> sigs = waveSignals.values();
 		int sigIndex = 0;
 		for(WaveSignal ws : sigs)
 		{

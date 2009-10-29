@@ -42,6 +42,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.io.*;
+import com.sun.electric.tool.io.input.*;
+import com.sun.electric.database.geometry.btree.*;
+import com.sun.electric.tool.simulation.*;
 
 /**
  * Class for reading and displaying waveforms from HSpice output.
@@ -121,7 +125,21 @@ public class HSpiceOut extends Simulate
 					double[] values = new double[times.length];
 					for (int eventNum = 0; eventNum < values.length; eventNum++)
 						values[eventNum] = theSweep.get(eventNum)[sigIndex + 1];
-					waveform = new WaveformImpl(times, values);
+                    if (Simulation.isSpiceUseRandomAccess()) {
+                        BTree<Double,Double,Serializable> tree = NewEpicAnalysis.getTree();
+                        int evmax = 0;
+                        int evmin = 0;
+                        double valmax = Double.MIN_VALUE;
+                        double valmin = Double.MAX_VALUE;
+                        for(int i=0; i<times.length; i++) {
+                            tree.insert(times[i], values[i]);
+                            if (values[i] > valmax) { evmax = i; valmax = values[i]; }
+                            if (values[i] < valmin) { evmin = i; valmin = values[i]; }
+                        }
+                        waveform = new BTreeNewSignal(evmin, evmax, tree);
+                    } else {
+                        waveform = new WaveformImpl(times, values);
+                    }
 				}
 				waveforms[sweep] = waveform;
 			}
