@@ -282,11 +282,12 @@ public class GDS extends Input
 			cadenceCompatibility = IOTool.isGDSCadenceCompatibility();
 		}
 
-        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
+        @Override
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
         {
         	GDS in = new GDS(this);
 			if (in.openBinaryInput(fileURL)) return null;
-			lib = in.importALibrary(lib, tech, currentCells);
+			lib = in.importALibrary(lib, tech, currentCells, nodesToExpand);
 			in.closeInput();
 			return lib;
         }
@@ -301,10 +302,11 @@ public class GDS extends Input
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
      * @param currentCells this map will be filled with currentCells in Libraries found in library file
+     * @param nodesToExpand this map will contain node to expand en each read Cell
 	 * @return the created library (null on error).
 	 */
     @Override
-	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand)
 	{
 		// initialize
         this.currentCells = currentCells;
@@ -1043,7 +1045,7 @@ public class GDS extends Input
     		            if (ni != null)
     		            {
 	    		            if (localPrefs.expandCells && ni.isCellInstance())
-	    		                ni.setExpanded();
+	    		                ni.setExpanded(true);
     		            }
     				}
 
@@ -1169,7 +1171,7 @@ public class GDS extends Input
             }
 
             if (localPrefs.expandCells && ni.isCellInstance())
-                ni.setExpanded();
+                ni.setExpanded(true);
             if (points != null && GenMath.getAreaOfPoints(points) != wid*hei)
                 ni.setTrace(points);
             boolean renamed = false;

@@ -87,6 +87,7 @@ import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -2185,6 +2186,19 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (oldValue == value) return;
         expandedNodes.set(nodeId, value);
         expandStatusModified = true;
+    }
+
+    /**
+	 * Method to set expand specified subcell.
+	 * Expanded NodeInsts are instances of Cells that show their contents.
+     * @param subCells set of subCells to expand
+	 */
+    public void expand(Collection<NodeInst> subCells) {
+        for (NodeInst ni: subCells) {
+            if (ni.getParent() != this)
+                throw new IllegalArgumentException("This is not my subcell");
+            setExpanded(ni.getD().nodeId, true);
+        }
     }
 
 	/**

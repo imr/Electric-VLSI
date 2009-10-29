@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.Main;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.verilog.VerilogReader;
@@ -48,6 +49,7 @@ import java.io.Serializable;
 import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Collection;
 import java.util.Map;
 
 import javax.swing.SwingUtilities;
@@ -97,7 +99,7 @@ public class Input
 	 * @return the imported Library, or null if an error occurred.
 	 */
 	public static Library importLibrary(InputPreferences prefs, URL fileURL, FileType type, Library lib,
-		Technology tech, Map<Library,Cell> currentCells, Job job)
+		Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
 	{
 		// make sure the file exists
 		if (fileURL == null) return null;
@@ -132,7 +134,7 @@ public class Input
 			startProgressDialog("import", fileURL.getFile());
 
 			if (prefs != null)
-				lib = prefs.doInput(fileURL, lib, tech, currentCells, job);
+				lib = prefs.doInput(fileURL, lib, tech, currentCells, nodesToExpand, job);
 		} finally
 		{
 			// clean up
@@ -191,7 +193,7 @@ public class Input
 
 		public void initFromUserDefaults() {}
 
-		public abstract Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job);
+		public abstract Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExspand, Job job);
 	}
 
 	/**
@@ -199,9 +201,10 @@ public class Input
 	 * This method must be overridden by the various import modules.
 	 * @param lib the library to fill
 	 * @param currentCells this map will be filled with currentCells in Libraries found in library file
+     * @param nodesToExpand this map will contain node to expand en each read Cell
 	 * @return the created library (null on error).
 	 */
-	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells) { return lib; }
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand) { return lib; }
 
 	protected boolean openBinaryInput(URL fileURL)
 	{

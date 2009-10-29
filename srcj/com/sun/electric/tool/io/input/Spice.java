@@ -56,6 +56,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -82,7 +83,8 @@ public class Spice extends Input
 			placementAlgorithm = Placement.getAlgorithmName();
 		}
 
-        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
+        @Override
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
         {
         	Spice in = new Spice(this);
 			in.readDirectory(fileURL, lib);
@@ -282,7 +284,7 @@ public class Spice extends Input
 			TextDescriptor newTD = ni.getTextDescriptor(NodeInst.NODE_NAME).withRelSize(2);
 			ni.setTextDescriptor(NodeInst.NODE_NAME, newTD);
 		}
-		
+
 		// now make the schematic cells
 		for(String name : allCells.keySet())
 		{

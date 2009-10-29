@@ -317,7 +317,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
             if (cell != null) tech = cell.getTechnology();
         }
 
-		// show the list        
+		// show the list
 		nodeList = new ArrayList<NodeInst>();
 		arcList = new ArrayList<ArcInst>();
 		exportList = new ArrayList<Export>();
@@ -337,7 +337,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 
         // Sort the highlights so they will be grouped by type
         Collections.sort(highlightList, new Highlight.HighlightSorting());
-        
+
         for(Highlight h : highlightList)
 		{
 			ElectricObject eobj = h.getElectricObject();
@@ -914,11 +914,11 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 					{
 						if (mcp.expanded == 1)
 						{
-							ni.setExpanded();
+							ni.setExpanded(true);
 							changes = true;
 						} else if (mcp.expanded == 2)
 						{
-							ni.clearExpanded();
+							ni.setExpanded(false);
 							changes = true;
 						}
 					}

@@ -237,7 +237,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		// see what is highlighted
 		EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null || wnd.getCell() == null) return; // invalid window or cell
-        
+
         tech = wnd.getCell().getTechnology();
 		List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
 
@@ -617,7 +617,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 					if (newNi == null) continue;
 					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO);
 					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
-					if (ni.isExpanded()) newNi.setExpanded(); else newNi.clearExpanded();
+					newNi.setExpanded(ni.isExpanded());
 					if (ni.isHardSelect()) newNi.setHardSelect(); else newNi.clearHardSelect();
 					newNi.setTechSpecific(ni.getTechSpecific());
 					newNi.copyVarsFrom(ni);

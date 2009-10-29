@@ -56,6 +56,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -82,11 +83,12 @@ public class Applicon860 extends Input
     {
 		public Applicon860Preferences(boolean factory) { super(factory); }
 
-        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
+        @Override
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
         {
         	Applicon860 in = new Applicon860(this);
 			if (in.openBinaryInput(fileURL)) return null;
-			lib = in.importALibrary(lib, tech, currentCells);
+			lib = in.importALibrary(lib, tech, currentCells, nodesToExpand);
 			in.closeInput();
 			return lib;
         }
@@ -101,10 +103,11 @@ public class Applicon860 extends Input
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
      * @param currentCells this map will be filled with currentCells in Libraries found in library file
+     * @param nodesToExpand this map will contain node to expand en each read Cell
 	 * @return the created library (null on error).
 	 */
     @Override
-	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand)
 	{
 		try
 		{

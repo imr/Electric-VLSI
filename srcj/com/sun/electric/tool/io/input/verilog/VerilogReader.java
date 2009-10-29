@@ -17,7 +17,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.ViewChanges;
 
@@ -25,6 +24,7 @@ import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -52,11 +52,12 @@ public class VerilogReader extends Input
     {
 		public VerilogPreferences(boolean factory) { super(factory); }
 
-        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
+        @Override
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
         {
         	VerilogReader in = new VerilogReader(this);
 			if (in.openTextInput(fileURL)) return null;
-			lib = in.importALibrary(lib, tech, currentCells);
+			lib = in.importALibrary(lib, tech, currentCells, nodesToExpand);
 			in.closeInput();
 			return lib;
         }
@@ -647,10 +648,11 @@ public class VerilogReader extends Input
 	 * Method to import a Verilog file from disk.
 	 * @param lib the library to ready
      * @param currentCells this map will be filled with currentCells in Libraries found in library file
+     * @param nodesToExpand this map will contain node to expand en each read Cell
 	 * @return the created library (null on error).
 	 */
     @Override
-	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand)
     {
         initKeywordParsing();
         boolean fullOyster = true;

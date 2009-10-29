@@ -48,6 +48,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -121,11 +122,12 @@ public class DXF extends Input
 			scale = IOTool.getDXFScale();
 		}
 
-        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
+        @Override
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
         {
         	DXF in = new DXF(this);
 			if (in.openTextInput(fileURL)) return null;
-			lib = in.importALibrary(lib, tech, currentCells);
+			lib = in.importALibrary(lib, tech, currentCells, nodesToExpand);
 			in.closeInput();
 			return lib;
         }
@@ -140,10 +142,11 @@ public class DXF extends Input
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
      * @param currentCells this map will be filled with currentCells in Libraries found in library file
+     * @param nodesToExpand this map will contain node to expand en each read Cell
 	 * @return the created library (null on error).
 	 */
     @Override
-	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand)
 	{
 		try
 		{
@@ -275,7 +278,7 @@ public class DXF extends Input
                 Orientation orient = Orientation.fromAngle(fr.rot*10);
 				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(fr.x, fr.y), bounds.getWidth(), bounds.getHeight(), fr.parent, orient, null);
 				if (ni == null) return true;
-				ni.setExpanded();
+				ni.setExpanded(true);
 			}
 		}
 
@@ -868,7 +871,7 @@ public class DXF extends Input
                 Orientation orient = Orientation.fromAngle(rot*10);
 				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(x, y), sX, sY, curCell, orient, null);
 				if (ni == null) return true;
-				ni.setExpanded();
+				ni.setExpanded(true);
 			}
 		}
 		readInserts++;

@@ -69,6 +69,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -426,12 +427,13 @@ public class EDIF extends Input
 			autoParameters.createExports = false;
 		}
 
-		public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
+        @Override
+		public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
 		{
 			EDIF in = new EDIF(this);
 			in.job = job;
 			if (in.openTextInput(fileURL)) return null;
-			lib = in.importALibrary(lib, tech, currentCells);
+			lib = in.importALibrary(lib, tech, currentCells, nodesToExpand);
 			in.closeInput();
 			return lib;
 		}
@@ -446,10 +448,11 @@ public class EDIF extends Input
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
 	 * @param currentCells this map will be filled with currentCells in Libraries found in library file
+     * @param nodesToExpand this map will contain node to expand en each read Cell
 	 * @return the created library (null on error).
 	 */
 	@Override
-	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand)
 	{
 		// setup keyword prerequisites: XX.stateArray = new EDIFKEY [] {KYY};	means YYs can be found inside of XX: (xx (yy))
 		KARRAY.stateArray = new EDIFKEY [] {KINSTANCE, KPORT, KNET};
@@ -1771,7 +1774,7 @@ public class EDIF extends Input
 							par = par.substring(4, par.length()-4);
 						x = x.substring(0, parPos) + "@" + par + x.substring(closePos+1);
 						checkAgain = true;
-						continue;						
+						continue;
 					}
 				}
 				if (x.indexOf("%34%") >= 0)
@@ -2159,7 +2162,7 @@ public class EDIF extends Input
 			freePointList();
 		}
 	}
-	
+
 	private class KeyContents extends EDIFKEY
 	{
 		private KeyContents() { super("contents"); }
@@ -2479,7 +2482,7 @@ public class EDIF extends Input
 						if (cellRefProto instanceof Cell)
 						{
 							if (((Cell)cellRefProto).isWantExpanded())
-								ni.setExpanded();
+								ni.setExpanded(true);
 						}
 
 						// update the current position
@@ -2610,7 +2613,7 @@ public class EDIF extends Input
 							if (cellRefProto instanceof Cell)
 							{
 								if (((Cell)cellRefProto).isWantExpanded())
-									ni.setExpanded();
+									ni.setExpanded(true);
 							}
 							if (curGeometryType == GPORTIMPLEMENTATION && lX == 0 && lY == 0)
 							{
@@ -2871,7 +2874,7 @@ public class EDIF extends Input
 						{
 							td = td.withDisplay(true);
 							ni.newVar(Artwork.ART_MESSAGE, curCell.getName(), td);
-						}						
+						}
 					}
 				}
 			}
@@ -4102,7 +4105,7 @@ public class EDIF extends Input
 							if (pure == null) continue;
 							curActiveFigure.node = pure;
 							break;
-						}			
+						}
 					}
 				}
 			}
@@ -4244,7 +4247,7 @@ public class EDIF extends Input
 						pts[2] = new EPoint(p1.getX(), p1.getY());
 						pts[3] = new EPoint(p1.getX(), p0.getY());
 						pts[4] = new EPoint(p0.getX(), p0.getY());
-	
+
 						// store the trace information
 						ni.setTrace(pts);
 					} else if (curGeometryType == GPORTIMPLEMENTATION)

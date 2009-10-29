@@ -181,7 +181,7 @@ public class ManualViewer extends EModelessDialog
         if (theManual != null && setVisible)
             theManual.setVisible(true);
     }
-    
+
     /**
 	 * Method to display the user's manual.
 	 */
@@ -292,7 +292,7 @@ public class ManualViewer extends EModelessDialog
 		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
 		{
 			NodeInst ni = it.next();
-			ni.setExpanded();
+			ni.setExpanded(true);
 		}
 
 		// to guarantee the redisplay with extended
@@ -1008,7 +1008,7 @@ public class ManualViewer extends EModelessDialog
 								String prefix = pageName.substring(0, secondDash) + ": ";
 								printWriter.println("<CENTER><H2>" + prefix + pi.outerChapterTitle + "</H2></CENTER>");
 								printWriter.println("<HR>");
-								printWriter.println("<BR>");								
+								printWriter.println("<BR>");
 							}
 						}
 					}
@@ -1245,7 +1245,7 @@ public class ManualViewer extends EModelessDialog
 							int firstDash = pageName.indexOf('-');
 							int secondDash = pageName.indexOf('-', firstDash+1);
 							String prefix = pageName.substring(0, secondDash) + ": ";
-							intermediateTitle = prefix + pi.outerChapterTitle;							
+							intermediateTitle = prefix + pi.outerChapterTitle;
 						}
 					}
 

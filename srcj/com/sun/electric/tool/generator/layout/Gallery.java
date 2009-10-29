@@ -129,10 +129,10 @@ public class Gallery {
 			// label instance with text
 			double defSz = LayoutLib.DEF_SIZE;
 
-			NodeInst ti = 
-			  LayoutLib.newNodeInst(textPin, curLeftX+width(ni)/2, centerY-TEXT_OFFSET_BELOW_CELL, defSz, 
+			NodeInst ti =
+			  LayoutLib.newNodeInst(textPin, curLeftX+width(ni)/2, centerY-TEXT_OFFSET_BELOW_CELL, defSz,
 			                        defSz, 0, gallery);
-			ti.setExpanded();
+			ti.setExpanded(true);
 //			String partNm = ni.getProto().getName();
 //			System.out.println("Cell: "+partNm+" has width: "+width(ni));
 			//ti.setVar("ART_message", partNm);
@@ -149,7 +149,7 @@ public class Gallery {
 			double[] hiLo = getRow(row, it);
 			double highestAboveCenter = hiLo[0];
 			double lowestBelowCenter = hiLo[1];
-			double centerY = topY - highestAboveCenter; 
+			double centerY = topY - highestAboveCenter;
 			placeRow(row, centerY, gallery);
 			topY = centerY + lowestBelowCenter - VERTICAL_SPACE;
 		}

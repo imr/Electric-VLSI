@@ -1401,7 +1401,7 @@ public class CircuitChanges
 		if (!ni.isExpanded())
 		{
 			// expanded the cell
-			ni.setExpanded();
+			ni.setExpanded(true);
 
 			// if depth limit reached, quit
 			if (++sofar >= amount) return;
@@ -1440,7 +1440,7 @@ public class CircuitChanges
 		// expanded the cell
 		if (expandFlagBit.contains(ni))
 		{
-			ni.clearExpanded();
+			ni.setExpanded(false);
 		}
 	}
 

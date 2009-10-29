@@ -38,6 +38,7 @@ import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
@@ -687,6 +688,7 @@ public class FileMenu {
 		private Library createLib;
 		private Technology tech;
         private Map<Library,Cell> currentCells = new HashMap<Library,Cell>();
+        private Map<Cell,Collection<NodeInst>> nodesToExpand = new HashMap<Cell,Collection<NodeInst>>();
 
 		public ImportLibrary(URL fileURL, FileType type, Library libToRead,
             Library deleteLib, Technology tech, RenameAndSaveLibraryTask saveTask)
@@ -727,7 +729,7 @@ public class FileMenu {
 				if (!deleteLib.kill("replace")) return false;
 				deleteLib = null;
 			}
-			createLib = Input.importLibrary(prefs, fileURL, type, curLib, tech, currentCells, this);
+			createLib = Input.importLibrary(prefs, fileURL, type, curLib, tech, currentCells, nodesToExpand, this);
 			if (createLib == null) return false;
 
             // new library open: check for default "noname" library and close if empty
@@ -740,6 +742,7 @@ public class FileMenu {
 
 			fieldVariableChanged("createLib");
             fieldVariableChanged("currentCells");
+            fieldVariableChanged("nodesToExpand");
 			return true;
 		}
 
@@ -757,6 +760,11 @@ public class FileMenu {
                 lib.setCurCell(cell);
             }
         	Cell showThisCell = createLib.getCurCell();
+            for (Map.Entry<Cell,Collection<NodeInst>> e: nodesToExpand.entrySet()) {
+                Cell cell = e.getKey();
+                Collection<NodeInst> toExpand = e.getValue();
+                cell.expand(toExpand);
+            }
         	doneOpeningLibrary(showThisCell);
         }
 	}

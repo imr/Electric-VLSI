@@ -1196,8 +1196,7 @@ public class Clipboard //implements ClipboardOwner
 		destNode = CircuitChangeJobs.replaceNodeInst(destNode, srcNode.getProto(), true, false);
 		if (destNode == null) return null;
 
-		destNode.clearExpanded();
-		if (srcNode.isExpanded()) destNode.setExpanded();
+		destNode.setExpanded(srcNode.isExpanded());
 
 		if (!destNode.isCellInstance() && !srcNode.isCellInstance()) {
 			if (srcNode.getProto().getTechnology() == destNode.getProto().getTechnology()) {
@@ -1248,7 +1247,7 @@ public class Clipboard //implements ClipboardOwner
 
 		// copy any special user bits
 		destNode.copyStateBits(srcNode);
-		destNode.clearExpanded();
+		destNode.setExpanded(false);
 		destNode.clearLocked();
 
 		return(destNode);

@@ -1019,8 +1019,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			{
 				if (currentExpansion != initialExpansion)
 				{
-					if (currentExpansion) ni.setExpanded(); else
-						ni.clearExpanded();
+					ni.setExpanded(currentExpansion);
 					changed = true;
 					expansionChanged = true;
 				}

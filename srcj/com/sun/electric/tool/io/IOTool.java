@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
@@ -39,6 +40,7 @@ import com.sun.electric.tool.io.output.Output;
 
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
@@ -230,7 +232,8 @@ public class IOTool extends Tool
 			readConnectivity = IOTool.isDaisReadConnectivity();
 		}
 
-        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Job job)
+        @Override
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
         {
     		if (!hasDais()) return null;
     		try

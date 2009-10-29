@@ -288,7 +288,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			if (protoType instanceof Cell)
 			{
 				// for cells, use the default expansion on this instance
-				if (((Cell)protoType).isWantExpanded()) ni.setExpanded();
+				if (((Cell)protoType).isWantExpanded()) ni.setExpanded(true);
 			} else
 			{
 				// for primitives, set a default outline if appropriate
@@ -719,8 +719,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			if (getProto() instanceof Cell)
 			{
 				// replacing an instance: copy the expansion information
-				if (isExpanded()) newNi.setExpanded(); else
-					newNi.clearExpanded();
+				newNi.setExpanded(isExpanded());
 			}
 		}
 
@@ -3440,22 +3439,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param value true if NodeInst is expanded.
 	 */
     public void setExpanded(boolean value) { if (parent != null) parent.setExpanded(getD().nodeId, value); }
-
-	/**
-	 * Method to set this NodeInst to be expanded.
-	 * Expanded NodeInsts are instances of Cells that show their contents.
-	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
-	 * The state has no meaning for instances of primitive node prototypes.
-	 */
-	public void setExpanded() { setExpanded(true); }
-
-	/**
-	 * Method to set this NodeInst to be unexpanded.
-	 * Expanded NodeInsts are instances of Cells that show their contents.
-	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
-	 * The state has no meaning for instances of primitive node prototypes.
-	 */
-	public void clearExpanded() { setExpanded(false); }
 
 	/**
 	 * Method to tell whether this NodeInst is expanded.
