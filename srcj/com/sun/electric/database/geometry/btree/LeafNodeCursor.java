@@ -101,15 +101,15 @@ class LeafNodeCursor
     public void insertVal(int bucket, byte[] key, int key_ofs, V val) {
         assert val!=null;
         assert getNumBuckets() < getMaxBuckets();
-        System.arraycopy(getBuf(),
-                         LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket,
-                         getBuf(),
-                         LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*(bucket+1),
-                         (getNumBuckets()-bucket)*LEAF_ENTRY_SIZE);
+        if (bucket < getNumBuckets())
+            System.arraycopy(getBuf(),
+                             LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket,
+                             getBuf(),
+                             LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*(bucket+1),
+                             (getNumBuckets()-bucket)*LEAF_ENTRY_SIZE);
         setNumBuckets(getNumBuckets()+1);
         System.arraycopy(key, key_ofs, getBuf(), LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket, bt.uk.getSize());
         setVal(bucket, val);
-
         writeBack();
     }
 

@@ -411,6 +411,7 @@ public class BTree
 
             if (cheat) {
                 idx = leafNodeCursor.getNumBuckets()-1;
+                comp = 1;
             } else if (!op.isGetFromOrd()) {
                 idx = cur.search(key, key_ofs);
                 comp = cur.compare(key, key_ofs, idx);
@@ -465,10 +466,10 @@ public class BTree
         }
     }
 
-    public static int insertionFastPath = 0;
-    public static int insertionSlowPath = 0;
-    public static int splitEven = 0;
-    public static int splitUnEven = 0;
+    public static long insertionFastPath = 0;
+    public static long insertionSlowPath = 0;
+    public static long splitEven = 0;
+    public static long splitUnEven = 0;
 
     //////////////////////////////////////////////////////////////////////////////
 

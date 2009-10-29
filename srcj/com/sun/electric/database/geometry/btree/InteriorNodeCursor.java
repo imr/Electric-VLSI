@@ -85,9 +85,10 @@ class InteriorNodeCursor
     public int insertNewBucketAt(int idx) {
         assert !isFull();
         assert idx!=0;
-        System.arraycopy(getBuf(), INTERIOR_HEADER_SIZE + (idx-1)*INTERIOR_ENTRY_SIZE,
-                         getBuf(), INTERIOR_HEADER_SIZE + idx*INTERIOR_ENTRY_SIZE,
-                         endOfBuf() - (INTERIOR_HEADER_SIZE + (idx-1)*INTERIOR_ENTRY_SIZE));
+        if (idx < getNumBuckets())
+            System.arraycopy(getBuf(), INTERIOR_HEADER_SIZE + (idx-1)*INTERIOR_ENTRY_SIZE,
+                             getBuf(), INTERIOR_HEADER_SIZE + idx*INTERIOR_ENTRY_SIZE,
+                             endOfBuf() - (INTERIOR_HEADER_SIZE + (idx-1)*INTERIOR_ENTRY_SIZE));
         setNumBuckets(getNumBuckets()+1);
         return INTERIOR_HEADER_SIZE + idx*INTERIOR_ENTRY_SIZE - bt.uk.getSize();
     }
