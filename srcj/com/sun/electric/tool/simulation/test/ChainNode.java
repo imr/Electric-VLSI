@@ -27,7 +27,7 @@ import java.util.ArrayList;
  *
  */
 
-class ChainNode extends SubchainNode {
+public class ChainNode extends SubchainNode {
 
     /**
      * Little-endian character string (e.g., "101010") representation of the

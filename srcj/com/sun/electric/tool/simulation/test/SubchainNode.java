@@ -26,7 +26,7 @@ import java.util.regex.Matcher;
  *
  */
 
-class SubchainNode extends TestNode {
+public class SubchainNode extends TestNode {
 
     /**
      * Number of scan chain elements in or below this node. Includes
@@ -273,7 +273,7 @@ class SubchainNode extends TestNode {
      * 
      * @return absolute address of the node wrt the chain root
      */
-    private int getBitIndex() {
+    public int getBitIndex() {
         if (getParent() == null || getParent().getClass() == ChipNode.class || getParent().getClass() == TestNode.class) {
             return 0;
         } //chainRoot
@@ -287,7 +287,7 @@ class SubchainNode extends TestNode {
     }
 
     /** Return the chainRoot node that this node is a descendent of */
-    ChainNode getParentChain() {
+    public ChainNode getParentChain() {
         MyTreeNode node;
         for (node = this; !ChainNode.class.isInstance(node); node = node
                 .getParent())
