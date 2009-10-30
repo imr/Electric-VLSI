@@ -40,6 +40,7 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.TextUtils.UnitScale;
 import com.sun.electric.database.topology.NodeInst;
@@ -56,7 +57,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collection;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -84,11 +85,11 @@ public class Applicon860 extends Input
 		public Applicon860Preferences(boolean factory) { super(factory); }
 
         @Override
-        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)
         {
         	Applicon860 in = new Applicon860(this);
 			if (in.openBinaryInput(fileURL)) return null;
-			lib = in.importALibrary(lib, tech, currentCells, nodesToExpand);
+			lib = in.importALibrary(lib, tech, currentCells);
 			in.closeInput();
 			return lib;
         }
@@ -103,11 +104,10 @@ public class Applicon860 extends Input
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
      * @param currentCells this map will be filled with currentCells in Libraries found in library file
-     * @param nodesToExpand this map will contain node to expand en each read Cell
 	 * @return the created library (null on error).
 	 */
     @Override
-	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
 	{
 		try
 		{

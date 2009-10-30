@@ -35,6 +35,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
@@ -69,7 +70,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -428,12 +429,12 @@ public class EDIF extends Input
 		}
 
         @Override
-		public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
+		public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)
 		{
 			EDIF in = new EDIF(this);
 			in.job = job;
 			if (in.openTextInput(fileURL)) return null;
-			lib = in.importALibrary(lib, tech, currentCells, nodesToExpand);
+			lib = in.importALibrary(lib, tech, currentCells);
 			in.closeInput();
 			return lib;
 		}
@@ -448,11 +449,10 @@ public class EDIF extends Input
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
 	 * @param currentCells this map will be filled with currentCells in Libraries found in library file
-     * @param nodesToExpand this map will contain node to expand en each read Cell
 	 * @return the created library (null on error).
 	 */
 	@Override
-	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
 	{
 		// setup keyword prerequisites: XX.stateArray = new EDIFKEY [] {KYY};	means YYs can be found inside of XX: (xx (yy))
 		KARRAY.stateArray = new EDIFKEY [] {KINSTANCE, KPORT, KNET};
@@ -2479,11 +2479,11 @@ public class EDIF extends Input
 							break;
 						}
 
-						if (cellRefProto instanceof Cell)
-						{
-							if (((Cell)cellRefProto).isWantExpanded())
-								ni.setExpanded(true);
-						}
+//						if (cellRefProto instanceof Cell)
+//						{
+//							if (((Cell)cellRefProto).isWantExpanded())
+//								ni.setExpanded(true);
+//						}
 
 						// update the current position
 						if ((width + 2) > sheetOffset)
@@ -2610,11 +2610,11 @@ public class EDIF extends Input
 								freePointList();
 								return;
 							}
-							if (cellRefProto instanceof Cell)
-							{
-								if (((Cell)cellRefProto).isWantExpanded())
-									ni.setExpanded(true);
-							}
+//							if (cellRefProto instanceof Cell)
+//							{
+//								if (((Cell)cellRefProto).isWantExpanded())
+//									ni.setExpanded(true);
+//							}
 							if (curGeometryType == GPORTIMPLEMENTATION && lX == 0 && lY == 0)
 							{
 								// inside a PortImplementation: determine an appropriate port name

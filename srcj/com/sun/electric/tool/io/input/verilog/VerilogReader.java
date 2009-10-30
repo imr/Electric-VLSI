@@ -5,6 +5,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
@@ -24,6 +25,7 @@ import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,11 +55,11 @@ public class VerilogReader extends Input
 		public VerilogPreferences(boolean factory) { super(factory); }
 
         @Override
-        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)
         {
         	VerilogReader in = new VerilogReader(this);
 			if (in.openTextInput(fileURL)) return null;
-			lib = in.importALibrary(lib, tech, currentCells, nodesToExpand);
+			lib = in.importALibrary(lib, tech, currentCells);
 			in.closeInput();
 			return lib;
         }
@@ -648,11 +650,10 @@ public class VerilogReader extends Input
 	 * Method to import a Verilog file from disk.
 	 * @param lib the library to ready
      * @param currentCells this map will be filled with currentCells in Libraries found in library file
-     * @param nodesToExpand this map will contain node to expand en each read Cell
 	 * @return the created library (null on error).
 	 */
     @Override
-	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
     {
         initKeywordParsing();
         boolean fullOyster = true;

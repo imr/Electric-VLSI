@@ -1027,19 +1027,6 @@ public class Library extends ElectricObject implements Comparable<Library>
             libPrefs.put(key, curCell.noLibDescribe());
 	}
 
-    /**
-     * Method to save isExpanded status of NodeInsts in this Library to Preferences.
-     */
-    public static void saveExpandStatus() throws BackingStoreException {
-        for (Iterator<Library> lit = getLibraries(); lit.hasNext(); ) {
-            Library lib = lit.next();
-            for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
-                Cell cell = it.next();
-                cell.saveExpandStatus();
-            }
-        }
-     }
-
     public static Cell findCellInLibraries(String cellName, View view, String libraryName)
     {
         if (libraryName != null)

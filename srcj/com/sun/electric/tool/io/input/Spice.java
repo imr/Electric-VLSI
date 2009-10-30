@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
@@ -56,7 +57,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -84,7 +85,7 @@ public class Spice extends Input
 		}
 
         @Override
-        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)
         {
         	Spice in = new Spice(this);
 			in.readDirectory(fileURL, lib);

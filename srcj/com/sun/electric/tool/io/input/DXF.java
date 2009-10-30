@@ -28,8 +28,10 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
@@ -48,7 +50,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -123,12 +125,37 @@ public class DXF extends Input
 		}
 
         @Override
-        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)
         {
         	DXF in = new DXF(this);
 			if (in.openTextInput(fileURL)) return null;
-			lib = in.importALibrary(lib, tech, currentCells, nodesToExpand);
+
+            // Librarys before loading
+            HashSet oldLibs = new HashSet();
+            for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+                oldLibs.add(it.next());
+            oldLibs.remove(lib);
+
+			lib = in.importALibrary(lib, tech, currentCells);
 			in.closeInput();
+
+            if (!flattenHierarchy) {
+                // Expand subCells
+                EDatabase database = EDatabase.currentDatabase();
+                for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
+                    Library l = it.next();
+                    if (oldLibs.contains(l)) continue;
+                    for (Iterator<Cell> cit = l.getCells(); cit.hasNext(); ) {
+                        Cell cell =cit.next();
+                        for (Iterator<NodeInst> nit = cell.getNodes(); nit.hasNext(); ) {
+                            NodeInst ni = nit.next();
+                            if (ni.isCellInstance())
+                                database.addToNodes(nodesToExpand, ni);
+                        }
+                    }
+                }
+            }
+
 			return lib;
         }
     }
@@ -142,11 +169,10 @@ public class DXF extends Input
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
      * @param currentCells this map will be filled with currentCells in Libraries found in library file
-     * @param nodesToExpand this map will contain node to expand en each read Cell
 	 * @return the created library (null on error).
 	 */
     @Override
-	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
 	{
 		try
 		{
@@ -278,7 +304,7 @@ public class DXF extends Input
                 Orientation orient = Orientation.fromAngle(fr.rot*10);
 				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(fr.x, fr.y), bounds.getWidth(), bounds.getHeight(), fr.parent, orient, null);
 				if (ni == null) return true;
-				ni.setExpanded(true);
+//				ni.setExpanded(true);
 			}
 		}
 
@@ -871,7 +897,7 @@ public class DXF extends Input
                 Orientation orient = Orientation.fromAngle(rot*10);
 				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(x, y), sX, sY, curCell, orient, null);
 				if (ni == null) return true;
-				ni.setExpanded(true);
+//				ni.setExpanded(true);
 			}
 		}
 		readInserts++;

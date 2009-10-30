@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
@@ -69,6 +70,7 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -239,11 +241,11 @@ public class Sue extends Input
 		}
 
         @Override
-        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)
         {
         	Sue in = new Sue(this);
 			if (in.openTextInput(fileURL)) return null;
-			lib = in.importALibrary(lib, tech, currentCells, nodesToExpand);
+			lib = in.importALibrary(lib, tech, currentCells);
 			in.closeInput();
 			return lib;
         }
@@ -258,10 +260,9 @@ public class Sue extends Input
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
      * @param currentCells this map will be filled with currentCells in Libraries found in library file
-     * @param nodesToExpand this map will contain node to expand en each read Cell
 	 * @return the created library (null on error).
 	 */
-	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
 	{
 		// determine the cell name
 		String cellName = lib.getName();
@@ -305,7 +306,7 @@ public class Sue extends Input
 		// read the file
 		try
 		{
-			Cell topCell = readFile(lib, cellName, lineReader, nodesToExpand);
+			Cell topCell = readFile(lib, cellName, lineReader);
             if (topCell == null) return null;
             currentCells.put(lib, topCell);
 		} catch (IOException e)
@@ -319,7 +320,7 @@ public class Sue extends Input
 	/**
 	 * Method to read the SUE file.
 	 */
-	private Cell readFile(Library lib, String cellName, LineNumberReader lr, Map<Cell,Collection<NodeInst>> nodesToExpand)
+	private Cell readFile(Library lib, String cellName, LineNumberReader lr)
 		throws IOException
 	{
 		boolean placeIcon = false;
@@ -538,7 +539,7 @@ public class Sue extends Input
 					// find node or read it from disk
 					proto = getNodeProto(lib, keyword1);
 					if (proto == null)
-						proto = readFromDisk(lib, keyword1, nodesToExpand);
+						proto = readFromDisk(lib, keyword1);
 
 					// set proper offsets for the cell
 					if (proto != null)
@@ -576,8 +577,8 @@ public class Sue extends Input
 					or, null, detailFunct);
 				if (ni == null) continue;
 				if (invertOutput) invertNodeOutput.add(ni);
-				if (proto instanceof Cell && ((Cell)proto).isIcon())
-					ni.setExpanded(true);
+//				if (proto instanceof Cell && ((Cell)proto).isIcon())
+//					lib.getDatabase().addToNodes(nodesToExpand, ni);
 
 				// add any extra wires to the node
 				if (extraWires != null)
@@ -1079,7 +1080,7 @@ public class Sue extends Input
 			double wid = bounds.getWidth();
 			double hei = bounds.getHeight();
 			NodeInst ni = NodeInst.makeInstance(iconCell, iconPt, wid, hei, schemCell);
-			if (ni != null) ni.setExpanded(true);
+//			if (ni != null) lib.getDatabase().addToNodes(nodesToExpand, ni);
 		}
 
 		// make warnings about duplicate names
@@ -1156,7 +1157,7 @@ public class Sue extends Input
 	 * Method to find the SUE file "name" on disk, and read it into library "lib".
 	 * Returns NONODEPROTO if the file is not found or not read properly.
 	 */
-	private NodeProto readFromDisk(Library lib, String name, Map<Cell,Collection<NodeInst>> nodesToExpand)
+	private NodeProto readFromDisk(Library lib, String name)
 	{
 		// look for another "sue" file that describes this cell
 		for(String directory : sueDirectories)
@@ -1182,7 +1183,7 @@ public class Sue extends Input
 			{
 				String saveLastLine = sueLastLine;
 				sueLastLine = null;
-				readFile(lib, name, lr, nodesToExpand);
+				readFile(lib, name, lr);
 				sueLastLine = saveLastLine;
 				Cell cell = lib.findNodeProto(name);
 				if (cell != null) return cell;

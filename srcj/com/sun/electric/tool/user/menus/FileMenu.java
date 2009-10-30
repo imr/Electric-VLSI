@@ -34,11 +34,11 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
@@ -104,6 +104,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -688,7 +689,7 @@ public class FileMenu {
 		private Library createLib;
 		private Technology tech;
         private Map<Library,Cell> currentCells = new HashMap<Library,Cell>();
-        private Map<Cell,Collection<NodeInst>> nodesToExpand = new HashMap<Cell,Collection<NodeInst>>();
+        private Map<CellId,BitSet> nodesToExpand = new HashMap<CellId,BitSet>();
 
 		public ImportLibrary(URL fileURL, FileType type, Library libToRead,
             Library deleteLib, Technology tech, RenameAndSaveLibraryTask saveTask)
@@ -760,11 +761,7 @@ public class FileMenu {
                 lib.setCurCell(cell);
             }
         	Cell showThisCell = createLib.getCurCell();
-            for (Map.Entry<Cell,Collection<NodeInst>> e: nodesToExpand.entrySet()) {
-                Cell cell = e.getKey();
-                Collection<NodeInst> toExpand = e.getValue();
-                cell.expand(toExpand);
-            }
+            getDatabase().expandNodes(nodesToExpand);
         	doneOpeningLibrary(showThisCell);
         }
 	}
@@ -1697,7 +1694,7 @@ public class FileMenu {
             for (RenameAndSaveLibraryTask saveTask: saveTasks)
                 saveTask.librarySaved();
             try {
-                Library.saveExpandStatus();
+                getDatabase().saveExpandStatus();
                 Pref.getPrefRoot().flush();
             } catch (BackingStoreException e)
             {

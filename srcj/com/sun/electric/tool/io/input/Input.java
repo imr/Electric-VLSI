@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.Main;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
@@ -49,6 +50,7 @@ import java.io.Serializable;
 import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Map;
 
@@ -95,11 +97,12 @@ public class Input
 	 * @param lib the library in which to place the circuitry (null to create a new one).
 	 * @param tech the technology to use for import.
 	 * @param currentCells this map will be filled with currentCells in Libraries found in library file.
+     * @param nodesToExpand this map will be filled with nodes to expand in Libraries found in library file.
 	 * @param job the Job that is doing the import.
 	 * @return the imported Library, or null if an error occurred.
 	 */
 	public static Library importLibrary(InputPreferences prefs, URL fileURL, FileType type, Library lib,
-		Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
+		Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)
 	{
 		// make sure the file exists
 		if (fileURL == null) return null;
@@ -193,7 +196,7 @@ public class Input
 
 		public void initFromUserDefaults() {}
 
-		public abstract Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExspand, Job job);
+		public abstract Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job);
 	}
 
 	/**
@@ -204,7 +207,7 @@ public class Input
      * @param nodesToExpand this map will contain node to expand en each read Cell
 	 * @return the created library (null on error).
 	 */
-	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand) { return lib; }
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells) { return lib; }
 
 	protected boolean openBinaryInput(URL fileURL)
 	{

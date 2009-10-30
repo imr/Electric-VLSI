@@ -2189,15 +2189,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     }
 
     /**
-	 * Method to set expand specified subcell.
+	 * Method to set expand specified subcells.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
-     * @param subCells set of subCells to expand
+     * @param subCells nodeIds of subCells to expand
 	 */
-    public void expand(Collection<NodeInst> subCells) {
-        for (NodeInst ni: subCells) {
-            if (ni.getParent() != this)
-                throw new IllegalArgumentException("This is not my subcell");
-            setExpanded(ni.getD().nodeId, true);
+    void expand(BitSet subCells) {
+        for (int nodeId = subCells.nextSetBit(0); nodeId >= 0; nodeId = subCells.nextSetBit(nodeId+1)) {
+            setExpanded(nodeId, true);
         }
     }
 

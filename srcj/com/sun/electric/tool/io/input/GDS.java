@@ -39,8 +39,10 @@ import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.PolySweepMerge;
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -69,6 +71,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -283,12 +286,37 @@ public class GDS extends Input
 		}
 
         @Override
-        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand, Job job)
+        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)
         {
         	GDS in = new GDS(this);
 			if (in.openBinaryInput(fileURL)) return null;
-			lib = in.importALibrary(lib, tech, currentCells, nodesToExpand);
+
+            // Librarys before loading
+            HashSet oldLibs = new HashSet();
+            for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+                oldLibs.add(it.next());
+            oldLibs.remove(lib);
+
+			lib = in.importALibrary(lib, tech, currentCells);
 			in.closeInput();
+
+            if (expandCells) {
+                // Expand subCells
+                EDatabase database = EDatabase.currentDatabase();
+                for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
+                    Library l = it.next();
+                    if (oldLibs.contains(l)) continue;
+                    for (Iterator<Cell> cit = l.getCells(); cit.hasNext(); ) {
+                        Cell cell =cit.next();
+                        for (Iterator<NodeInst> nit = cell.getNodes(); nit.hasNext(); ) {
+                            NodeInst ni = nit.next();
+                            if (ni.isCellInstance())
+                                database.addToNodes(nodesToExpand, ni);
+                        }
+                    }
+                }
+            }
+
 			return lib;
         }
     }
@@ -302,11 +330,10 @@ public class GDS extends Input
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
      * @param currentCells this map will be filled with currentCells in Libraries found in library file
-     * @param nodesToExpand this map will contain node to expand en each read Cell
 	 * @return the created library (null on error).
 	 */
     @Override
-	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells, Map<Cell,Collection<NodeInst>> nodesToExpand)
+	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
 	{
 		// initialize
         this.currentCells = currentCells;
@@ -1042,11 +1069,11 @@ public class GDS extends Input
     				{
     					Point2D loc = new Point2D.Double(ptX, ptY);
     		            NodeInst ni = NodeInst.makeInstance(proto, loc, proto.getDefWidth(), proto.getDefHeight(), parent, orient, null);
-    		            if (ni != null)
-    		            {
-	    		            if (localPrefs.expandCells && ni.isCellInstance())
-	    		                ni.setExpanded(true);
-    		            }
+//    		            if (ni != null)
+//    		            {
+//	    		            if (localPrefs.expandCells && ni.isCellInstance())
+//	    		                ni.setExpanded(true);
+//    		            }
     				}
 
     				// add the row displacement
@@ -1170,8 +1197,8 @@ public class GDS extends Input
                 System.out.println(errorMsg);
             }
 
-            if (localPrefs.expandCells && ni.isCellInstance())
-                ni.setExpanded(true);
+//            if (localPrefs.expandCells && ni.isCellInstance())
+//                ni.setExpanded(true);
             if (points != null && GenMath.getAreaOfPoints(points) != wid*hei)
                 ni.setTrace(points);
             boolean renamed = false;

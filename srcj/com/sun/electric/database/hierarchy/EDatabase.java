@@ -39,6 +39,7 @@ import com.sun.electric.database.network.NetworkManager;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
@@ -60,6 +61,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.BackingStoreException;
 
 /**
  * Electric run-time database is a graph of ElectricObjects.
@@ -739,6 +741,43 @@ public class EDatabase {
         }
         for (int i = 0; i < groups.size(); i++)
             new Cell.CellGroup(groups.get(i));
+    }
+
+    /**
+     * Method to save isExpanded status of NodeInsts in this Library to Preferences.
+     */
+    public void saveExpandStatus() throws BackingStoreException {
+        for (Iterator<Library> lit = getLibraries(); lit.hasNext(); ) {
+            Library lib = lit.next();
+            for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+                Cell cell = it.next();
+                cell.saveExpandStatus();
+            }
+        }
+    }
+
+    /**
+     * Add specified NodeInst to a set of nodes.
+     * @param nodes a data structure to accumulate nodes
+     * @param ni NodeInst to add
+     */
+    public void addToNodes(Map<CellId,BitSet> nodes, NodeInst ni) {
+        if (ni.getDatabase() != this || !ni.isLinked())
+            throw new IllegalArgumentException();
+        CellId cellId = ni.getParent().getId();
+        BitSet nodesInCell = nodes.get(cellId);
+        if (nodesInCell == null) {
+            nodesInCell = new BitSet();
+            nodes.put(cellId, nodesInCell);
+        }
+        nodesInCell.set(ni.getD().nodeId);
+    }
+
+    public void expandNodes(Map<CellId,BitSet> nodesToExpand) {
+        for (Map.Entry<CellId,BitSet> e: nodesToExpand.entrySet()) {
+            Cell cell = getCell(e.getKey());
+            cell.expand(e.getValue());
+        }
     }
 
 	/**
