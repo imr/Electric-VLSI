@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+BUG: (10/30/09, GVG) Inconsistencies in 3D values for Active-cut and n-active (Bug #2450)
+FIX: 3D values for Active-cut and n-active in cmos90 fixed.
+
 IMP: (10/29/09, AM) Signalyzer: implementation complete, tested, and
      working (on Marina, chip #19).
 
