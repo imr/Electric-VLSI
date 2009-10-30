@@ -82,10 +82,11 @@ public abstract class NetscanGeneric extends JtagTester {
      *            Bit sequence to write to instruction register
      * @param scanOut
      *            Bits scanned out of instruction register
+     * @param drBits
+     *            Number of bits in the selected chain
      * @return 0x00 (success), 0x11 (transmit error), 0x33 (receive error)
      */
-    protected abstract int hw_net_scan_ir(int numBits, short[] scanIn,
-            short[] scanOut);
+    protected abstract int hw_net_scan_ir(int numBits, short[] scanIn, short[] scanOut, int drBits);
 
     /**
      * Write the bits <code>scanIn</code> to the JTAG controller's data
@@ -191,8 +192,27 @@ public abstract class NetscanGeneric extends JtagTester {
         int numShorts = irbits.length() / 16 + 1;
         short[] scanOut = new short[numShorts];
 
+        MyTreeNode root = chain.getParentChip().getParent();
+        int numPrebits = 0;
+        int numPostbits = 0;
+        boolean foundChain = false;
+        for (int i=0; i<root.getChildCount(); i++) {
+            MyTreeNode child = root.getChildAt(i);
+            if (child instanceof ChipNode) {
+                ChipNode chip = (ChipNode)child;
+                if (chip == chain.getParentChip()) {
+                    foundChain = true; continue;
+                }
+                if (foundChain)
+                    numPostbits++;
+                else
+                    numPrebits++;
+            }
+        }
+
         // Scan bits scanIn into the instruction register, and bits scanOut out
-        int result = hw_net_scan_ir(irbits.length(), scanIn, scanOut);
+        int result = hw_net_scan_ir(irbits.length(), scanIn, scanOut,
+                                    chain.getInBits().getNumBits()+numPrebits+numPostbits);
 
         if (result != 0) {
             Infrastructure.fatal("net_scan_ir returned error code 0x"
@@ -210,7 +230,7 @@ public abstract class NetscanGeneric extends JtagTester {
                 one = '0';
             }
 
-            MyTreeNode root = chain.getParentChip().getParent();
+            root = chain.getParentChip().getParent();
             int ind = 0;
             for (int i=0; i<root.getChildCount(); i++) {
                 MyTreeNode child = root.getChildAt(i);

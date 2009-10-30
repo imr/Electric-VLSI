@@ -188,7 +188,7 @@ public class Netscan extends NetscanGeneric {
      * @return 0x00 (success), 0x11 (transmit error), 0x33 (receive error)
      */
     protected int hw_net_scan_ir(int numBits, short[] scanIn,
-            short[] scanOut) {
+            short[] scanOut, int drBits) {
         logOther("IR in:  # shorts=" + scanIn.length + ", "
                 + shortsToString(scanIn));
         int result = NetscanJNI.net_scan_ir(scanIn, numBits, scanOut);

@@ -136,7 +136,7 @@ public class Netscan4 extends NetscanGeneric {
      * @return 0x00 (success), 0x11 (transmit error), 0x33 (receive error)
      */
     protected int hw_net_scan_ir(int numBits, short[] scanIn,
-            short[] scanOut) {
+            short[] scanOut, int drBits) {
         return Netscan4Driver.hw_net_scan_ir(jtagPort, numBits, scanIn, scanOut, this);
     }
 

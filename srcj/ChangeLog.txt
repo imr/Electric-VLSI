@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+IMP: (10/29/09, AM) NetscanGeneric.hw_net_scan_ir(): pass along the
+     length of the now-selected scan chain.
+
 IMP: (10/29/09, AM) Make ExecProcessReader a Daemon thread.
 
 IMP: (10/29/09, AM) Make ChainNode and
