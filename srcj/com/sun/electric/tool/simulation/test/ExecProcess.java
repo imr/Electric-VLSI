@@ -36,6 +36,7 @@ class ExecProcess extends Thread {
          */
         public ExecProcessReader(InputStream in) {
             this(in, null);
+            setDaemon(true);
         }
 
         /**
