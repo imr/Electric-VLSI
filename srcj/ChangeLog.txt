@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+IMP: (10/30/09, GVG) TechEditWizard improvements: scrolls in some tabs, 
+image and labels overlap in well/implant tab
+
+BUG: (10/30/09, GVG) Wrong setup of metal layers in Metal tab (Bug @2451)
+FIX: Wrong loop limit detected in TechEditWizardData.setNumMetalLayers.
+
 BUG: (10/30/09, GVG) Inconsistencies in 3D values for Active-cut and n-active (Bug #2450)
 FIX: 3D values for Active-cut and n-active in cmos90 fixed.
 

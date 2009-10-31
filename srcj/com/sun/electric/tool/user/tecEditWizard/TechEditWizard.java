@@ -55,8 +55,6 @@ public class TechEditWizard extends EDialog
 {
 	private JSplitPane splitPane;
 	private JTree optionTree;
-//    private List<Object> originalContext;
-//    private List<Object> currentContext;
     private TechEditWizardPanel currentOptionPanel;
 	private DefaultMutableTreeNode currentDMTN;
 	private static TechEditWizardData data = new TechEditWizardData();
@@ -75,8 +73,6 @@ public class TechEditWizard extends EDialog
 	public TechEditWizard(Frame parent)
 	{
 		super(parent, true);
-//        originalContext = Setting.getContext();
-//        currentContext = new ArrayList<Object>(originalContext);
 		getContentPane().setLayout(new GridBagLayout());
 		setTitle("Technology Creation Wizard");
 		setName("");
@@ -195,8 +191,6 @@ public class TechEditWizard extends EDialog
 
 	public TechEditWizardData getTechEditData() { return data; }
 
-//	public List<Object> getContext() { return currentContext; }
-
     private boolean openSelectedPath(DefaultMutableTreeNode rootNode)
     {
         for (int i = 0; i < rootNode.getChildCount(); i++)
@@ -253,7 +247,7 @@ public class TechEditWizard extends EDialog
             currentOptionPanel.term();
         currentOptionPanel = ti;
         ti.init();
-        splitPane.setRightComponent(ti.getPanel());
+        splitPane.setRightComponent(ti.getComponent());
 	}
 
     private TechEditWizardPanel createOptionPanel(boolean modal)

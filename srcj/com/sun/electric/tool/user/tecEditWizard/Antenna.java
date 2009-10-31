@@ -25,9 +25,7 @@ package com.sun.electric.tool.user.tecEditWizard;
 
 import com.sun.electric.database.text.TextUtils;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.*;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -77,7 +75,7 @@ public class Antenna extends TechEditWizardPanel
 	}
 
 	/** return the panel to use for this Numeric Technology Editor tab. */
-	public JPanel getPanel() { return antenna; }
+	public Component getComponent() { return antenna; }
 
 	/** return the name of this Numeric Technology Editor tab. */
 	public String getName() { return "Antenna"; }

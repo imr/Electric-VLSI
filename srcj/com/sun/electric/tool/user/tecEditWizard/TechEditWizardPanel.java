@@ -25,7 +25,7 @@ package com.sun.electric.tool.user.tecEditWizard;
 
 import com.sun.electric.tool.user.dialogs.EDialog;
 
-import java.awt.Frame;
+import java.awt.*;
 
 import javax.swing.JPanel;
 
@@ -43,7 +43,7 @@ public class TechEditWizardPanel extends EDialog
 	}
 
 	/** return the panel to use for this Technology Creation Wizard tab. */
-	public JPanel getPanel() { return null; }
+	public Component getComponent() { return null; }
 
 	/** return the name of this Technology Creation Wizard tab. */
 	public String getName() { return ""; }

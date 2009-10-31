@@ -26,7 +26,7 @@ package com.sun.electric.tool.user.tecEditWizard;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.Resources;
 
-import javax.swing.JPanel;
+import java.awt.*;
 
 /**
  * Class to handle the "Poly" tab of the Numeric Technology Editor dialog.
@@ -43,7 +43,7 @@ public class Poly extends TechEditWizardPanel
 	}
 
 	/** return the panel to use for this Numeric Technology Editor tab. */
-	public JPanel getPanel() { return poly; }
+	public Component getComponent() { return poly; }
 
 	/** return the name of this Numeric Technology Editor tab. */
 	public String getName() { return "Poly"; }

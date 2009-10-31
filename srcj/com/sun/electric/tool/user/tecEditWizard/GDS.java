@@ -23,13 +23,9 @@
  */
 package com.sun.electric.tool.user.tecEditWizard;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.*;
 
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
 
 /**
  * Class to handle the "GDS" tab of the Numeric Technology Editor dialog.
@@ -37,6 +33,7 @@ import javax.swing.JTextField;
 public class GDS extends TechEditWizardPanel
 {
     private JPanel gds;
+    private JScrollPane gdsPane;
     private LabelContainer[] metalContainers, viaContainers;
     private LabelContainer[] basicContainers;
 
@@ -58,6 +55,8 @@ public class GDS extends TechEditWizardPanel
 
         gds = new JPanel();
         gds.setLayout(new GridBagLayout());
+
+        gdsPane = new javax.swing.JScrollPane();
 
         // Head
         JLabel heading = new JLabel("Name");
@@ -88,6 +87,11 @@ public class GDS extends TechEditWizardPanel
         gbc.insets = new Insets(4, 4, 4, 4);
         gds.add(heading, gbc);
 
+        gdsPane.setViewportView(gds);
+
+        getContentPane().setLayout(new java.awt.GridBagLayout());
+        getContentPane().add(gdsPane, new java.awt.GridBagConstraints());
+
         TechEditWizardData data = wizard.getTechEditData();
         TechEditWizardData.LayerInfo[] basics = data.getBasicLayers();
         basicContainers = new LabelContainer[basics.length];
@@ -104,7 +108,7 @@ public class GDS extends TechEditWizardPanel
     }
 
     /** return the panel to use for this Numeric Technology Editor tab. */
-	public JPanel getPanel() { return gds; }
+	public Component getComponent() { return gdsPane; }
 
 	/** return the name of this Numeric Technology Editor tab. */
 	public String getName() { return "GDS"; }
@@ -125,17 +129,17 @@ public class GDS extends TechEditWizardPanel
 
 		// remove former metal data
 		if (metalContainers != null)
-            for(int i=0; i<metalContainers.length; i++)
+            for (LabelContainer mc : metalContainers)
             {
-                gds.remove(metalContainers[i].label);
-                gds.remove(metalContainers[i].valueField);
+                gds.remove(mc.label);
+                gds.remove(mc.valueField);
             }
 
         if (viaContainers != null)
-            for(int i=0; i<viaContainers.length; i++)
+            for (LabelContainer vc : viaContainers)
             {
-                gds.remove(viaContainers[i].label);
-                gds.remove(viaContainers[i].valueField);
+                gds.remove(vc.label);
+                gds.remove(vc.valueField);
             }
 
         // add appropriate number of metal layers

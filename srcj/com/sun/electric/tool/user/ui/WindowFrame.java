@@ -39,7 +39,6 @@ import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.WindowMenu;
-import com.sun.electric.tool.user.ui.WindowFrame.DisplayAttributes;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.*;

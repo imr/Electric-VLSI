@@ -27,16 +27,11 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Resources;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
 
 /**
  * Class to handle the "Metal" tab of the Numeric Technology Editor dialog.
@@ -44,14 +39,17 @@ import javax.swing.JTextField;
 public class Metal extends TechEditWizardPanel
 {
     private JPanel metal;
-    private JLabel [] widthLabel;
-    private JLabel [] spacingLabel;
-    private JTextField [] spacing;
-    private JTextField [] spacingRule;
-    private JTextField [] width;
-    private JTextField [] widthRule;
+    private JScrollPane metalPane;
+    private MetalContainer[] metalContainers;
     private int numMetals;
     private TechEditWizard parent;
+
+    private class MetalContainer
+    {
+        JLabel widthLabel, spacingLabel;
+        JTextField spacing, spacingRule;
+        JTextField width, widthRule;
+    }
 
     /** Creates new form Metal */
 	public Metal(TechEditWizard parent, boolean modal)
@@ -64,6 +62,8 @@ public class Metal extends TechEditWizardPanel
 
         metal = new JPanel();
         metal.setLayout(new GridBagLayout());
+
+        metalPane = new javax.swing.JScrollPane();
 
         JLabel heading = new JLabel("Metal Parameters");
         GridBagConstraints gbc = new GridBagConstraints();
@@ -110,6 +110,11 @@ public class Metal extends TechEditWizardPanel
         gbc.gridx = 2;   gbc.gridy = 3;
         metal.add(l2, gbc);
 
+        metalPane.setViewportView(metal);
+
+        getContentPane().setLayout(new java.awt.GridBagLayout());
+        getContentPane().add(metalPane, new java.awt.GridBagConstraints());
+
         JLabel nano = new JLabel("Distances are in nanometers");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;   gbc.gridy = 99;
@@ -119,7 +124,7 @@ public class Metal extends TechEditWizardPanel
 	}
 
 	/** return the panel to use for this Numeric Technology Editor tab. */
-	public JPanel getPanel() { return metal; }
+	public Component getComponent() { return metalPane; }
 
 	/** return the name of this Numeric Technology Editor tab. */
 	public String getName() { return "Metal"; }
@@ -132,19 +137,10 @@ public class Metal extends TechEditWizardPanel
 	{
 		TechEditWizardData data = wizard.getTechEditData();
         numMetals = data.getNumMetalLayers();
-        widthLabel = new JLabel[numMetals];
-        width = new JTextField[numMetals];
-        widthRule = new JTextField[numMetals];
-        spacingLabel = new JLabel[numMetals];
-        spacing = new JTextField[numMetals];
-        spacingRule = new JTextField[numMetals];
+        metalContainers = new MetalContainer[numMetals];
         for(int i=0; i<numMetals; i++)
         {
-        	addMetalLayer(i);
-        	width[i].setText(TextUtils.formatDouble(data.getMetalWidth()[i].value));
-        	widthRule[i].setText(data.getMetalWidth()[i].rule);
-        	spacing[i].setText(TextUtils.formatDouble(data.getMetalSpacing()[i].value));
-        	spacingRule[i].setText(data.getMetalSpacing()[i].rule);
+        	metalContainers[i] = addMetalLayer(i, data);
         }
 	}
 
@@ -152,50 +148,61 @@ public class Metal extends TechEditWizardPanel
 	 * Method to create the dialog fields for a metal layer.
 	 * @param i the metal layer to fill-in.
 	 */
-	private void addMetalLayer(int i)
+	private MetalContainer addMetalLayer(int i, TechEditWizardData data)
 	{
-    	widthLabel[i] = new JLabel("Metal-" + (i+1) + " width (A):");
+        MetalContainer mc = new MetalContainer();
+        mc.widthLabel = new JLabel("Metal-" + (i+1) + " width (A):");
     	GridBagConstraints gbc = new GridBagConstraints();
     	gbc.gridx = 0;   gbc.gridy = 4+i*2;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(4, 4, 1, 0);
-        metal.add(widthLabel[i], gbc);
+        metal.add(mc.widthLabel, gbc);
 
-        width[i] = new JTextField();
-        width[i].setColumns(8);
+        mc.width = new JTextField();
+        mc.width.setColumns(8);
     	gbc = new GridBagConstraints();
     	gbc.gridx = 1;   gbc.gridy = 4+i*2;
         gbc.insets = new Insets(4, 0, 1, 2);
-        metal.add(width[i], gbc);
+        metal.add(mc.width, gbc);
 
-        widthRule[i] = new JTextField();
-        widthRule[i].setColumns(8);
+        mc.widthRule = new JTextField();
+        mc.widthRule.setColumns(8);
     	gbc = new GridBagConstraints();
     	gbc.gridx = 2;   gbc.gridy = 4+i*2;
         gbc.insets = new Insets(4, 0, 1, 2);
-        metal.add(widthRule[i], gbc);
+        metal.add(mc.widthRule, gbc);
 
-        spacingLabel[i] = new JLabel("Metal-" + (i+1) + " spacing (B):");
+        mc.spacingLabel = new JLabel("Metal-" + (i+1) + " spacing (B):");
     	gbc = new GridBagConstraints();
     	gbc.gridx = 0;   gbc.gridy = 5+i*2;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(1, 4, 4, 0);
-        metal.add(spacingLabel[i], gbc);
+        metal.add(mc.spacingLabel, gbc);
 
-        spacing[i] = new JTextField();
-        spacing[i].setColumns(8);
+        mc.spacing = new JTextField();
+        mc.spacing.setColumns(8);
     	gbc = new GridBagConstraints();
     	gbc.gridx = 1;   gbc.gridy = 5+i*2;
         gbc.insets = new Insets(1, 0, 4, 2);
-        metal.add(spacing[i], gbc);
+        metal.add(mc.spacing, gbc);
 
-        spacingRule[i] = new JTextField();
-        spacingRule[i].setColumns(8);
+        mc.spacingRule = new JTextField();
+        mc.spacingRule.setColumns(8);
     	gbc = new GridBagConstraints();
     	gbc.gridx = 2;   gbc.gridy = 5+i*2;
         gbc.insets = new Insets(1, 0, 4, 2);
-        metal.add(spacingRule[i], gbc);
-	}
+        metal.add(mc.spacingRule, gbc);
+
+        if (data != null)
+        {
+            mc.width.setText(TextUtils.formatDouble(data.getMetalWidth()[i].value));
+            mc.widthRule.setText(data.getMetalWidth()[i].rule);
+            mc.spacing.setText(TextUtils.formatDouble(data.getMetalSpacing()[i].value));
+            mc.spacingRule.setText(data.getMetalSpacing()[i].rule);
+        }
+
+        return mc;
+    }
 
 	/**
 	 * Method called when the user clicks "Add Metal"
@@ -203,27 +210,10 @@ public class Metal extends TechEditWizardPanel
 	private void addMetal()
 	{
         numMetals++;
-	    JLabel [] newWidthLabel = new JLabel[numMetals];
-	    JTextField [] newWidth = new JTextField[numMetals];
-	    JTextField [] newWidthRule = new JTextField[numMetals];
-	    JLabel [] newSpacingLabel = new JLabel[numMetals];
-	    JTextField [] newSpacing = new JTextField[numMetals];
-	    JTextField [] newSpacingRule = new JTextField[numMetals];
-
-        System.arraycopy(width, 0, newWidth, 0, numMetals-1);
-        System.arraycopy(widthLabel, 0, newWidthLabel, 0, numMetals-1);
-        System.arraycopy(widthRule, 0, newWidthRule, 0, numMetals-1);
-        System.arraycopy(spacingLabel, 0, newSpacingLabel, 0, numMetals-1);
-        System.arraycopy(spacing, 0, newSpacing, 0, numMetals-1);
-        System.arraycopy(spacingRule, 0, newSpacingRule, 0, numMetals-1);
-        
-        widthLabel = newWidthLabel;
-	    width = newWidth;
-	    widthRule = newWidthRule;
-	    spacingLabel = newSpacingLabel;
-	    spacing = newSpacing;
-	    spacingRule = newSpacingRule;
-	    addMetalLayer(numMetals-1);
+        MetalContainer[] newMetalContainers = new MetalContainer[numMetals];
+        System.arraycopy(metalContainers, 0, newMetalContainers, 0, numMetals-1);
+        metalContainers = newMetalContainers;
+	    metalContainers[numMetals-1] = addMetalLayer(numMetals-1, null);
 		parent.pack();
 	}
 
@@ -239,12 +229,14 @@ public class Metal extends TechEditWizardPanel
 			return;
 		}
         numMetals--;
-        metal.remove(widthLabel[numMetals]);
-        metal.remove(width[numMetals]);
-        metal.remove(widthRule[numMetals]);
-        metal.remove(spacingLabel[numMetals]);
-        metal.remove(spacing[numMetals]);
-        metal.remove(spacingRule[numMetals]);
+        MetalContainer mc = metalContainers[numMetals];
+        metalContainers[numMetals] = null;
+        metal.remove(mc.widthLabel);
+        metal.remove(mc.width);
+        metal.remove(mc.widthRule);
+        metal.remove(mc.spacingLabel);
+        metal.remove(mc.spacing);
+        metal.remove(mc.spacingRule);
 		parent.pack();
 	}
 
@@ -258,8 +250,9 @@ public class Metal extends TechEditWizardPanel
 		data.setNumMetalLayers(numMetals);
         for(int i=0; i<numMetals; i++)
         {
-        	data.setMetalWidth(i, new WizardField(TextUtils.atof(width[i].getText()), widthRule[i].getText()));
-        	data.setMetalSpacing(i, new WizardField(TextUtils.atof(spacing[i].getText()), spacingRule[i].getText()));
+            MetalContainer mc = metalContainers[i];
+        	data.setMetalWidth(i, new WizardField(TextUtils.atof(mc.width.getText()), mc.widthRule.getText()));
+        	data.setMetalSpacing(i, new WizardField(TextUtils.atof(mc.spacing.getText()), mc.spacingRule.getText()));
         }
 	}
 }

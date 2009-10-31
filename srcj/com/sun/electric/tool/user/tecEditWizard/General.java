@@ -25,7 +25,7 @@ package com.sun.electric.tool.user.tecEditWizard;
 
 import com.sun.electric.database.text.TextUtils;
 
-import javax.swing.JPanel;
+import java.awt.*;
 
 /**
  * Class to handle the "General" tab of the Numeric Technology Editor dialog.
@@ -40,7 +40,7 @@ public class General extends TechEditWizardPanel
 	}
 
 	/** return the panel to use for this Numeric Technology Editor tab. */
-	public JPanel getPanel() { return general; }
+	public Component getComponent() { return general; }
 
 	/** return the name of this Numeric Technology Editor tab. */
 	public String getName() { return "General"; }
