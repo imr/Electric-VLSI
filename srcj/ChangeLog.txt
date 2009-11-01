@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+IMP: (11/01/09, AM) PowerChannelResistorVoltageReadable: finish
+     implementation.
+
 IMP: (11/01/09, AM) com.sun.electric.tool.simulation.test needs its
      own JNI binaries because the class names changed.  I added an "e"
      (for Electric) to the end of these names and put them in
