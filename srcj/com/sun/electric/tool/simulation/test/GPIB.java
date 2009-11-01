@@ -288,7 +288,7 @@ class GPIB {
 
     // Load the native C library
     static {
-        System.loadLibrary("test");
+        System.loadLibrary("teste");
     }
 
     public native static int ibwrt(int ud, byte[] data, int length, int[] ierr);

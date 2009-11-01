@@ -20,7 +20,7 @@ class NetscanJNI {
     // Load libtest.so, the library including the native C methods whose
     // signatures are given below
     static {
-        System.loadLibrary("NetscanJNI");
+        System.loadLibrary("NetscanJNIe");
     }
 
     // native function declarations

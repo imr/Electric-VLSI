@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+IMP: (11/01/09, AM) com.sun.electric.tool.simulation.test needs its
+     own JNI binaries because the class names changed.  I added an "e"
+     (for Electric) to the end of these names and put them in
+     /proj/async/cad/test/ and changed the loadLibrary() calls to
+     point to them.
+
 IMP: (10/30/09, GVG) TechEditWizard improvements: scrolls in some tabs, 
 image and labels overlap in well/implant tab
 

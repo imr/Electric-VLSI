@@ -253,7 +253,7 @@ configureXML() {
 ## Modified 21 Jul 2008 to compile as 32-bit binaries under 64-bit Linux (replaced Javamake with javac) JKG
 
 #JAVA32BIT = /proj/async/cad/linux/lib/j2sdk_1_4_2_nb/j2sdk1.4.2
-JAVA32BIT = /proj/async/cad/linux/lib/jdk1.5.0_05-linux-i586
+JAVA32BIT = /import/async/cad/linux/lib/jdk1.5/
 JAVADIR = $(JAVA32BIT)
 JAVA = $(JAVADIR)/bin/java
 JAVAC = $(JAVADIR)/bin/javac
@@ -267,7 +267,7 @@ DOCDIR = ./doc
 
 BASEDIR = com/sun/async/test/
 PACKAGE = com.sun.electric.tool.simulation.test
-WRAP_PREFIX = com_sun_async_test
+WRAP_PREFIX = com_sun_electric_tool_simulation_test
 MAIN = miniHeater
 JARFILE = test.jar
 INP_JARFILES = ./jfreechart.jar:./jcommon.jar
@@ -276,8 +276,8 @@ INP_JARFILES = ./jfreechart.jar:./jcommon.jar
 # WRAP_NAME = $(PACKAGE).NetscanJNI $(PACKAGE).NetscanJNI4 $(PACKAGE).GPIB
 #WRAP_CLASS = $(BASEDIR)/NetscanJNI.class \
 #   $(BASEDIR)/NetscanJNI4.class $(BASEDIR)/GPIB.class
-#WRAP_HDR = com_sun_async_test_NetscanJNI.h \
-#   com_sun_async_test_NetscanJNI4.h com_sun_async_test_GPIB.h
+#WRAP_HDR = com_sun_electric_tool_simulation_test_NetscanJNI.h \
+#   com_sun_electric_tool_simulation_test_NetscanJNI4.h com_sun_electric_tool_simulation_test_GPIB.h
 #WRAP_OBJ = NetscanJNI.o NetscanJNI4.o GPIB.o
 
 WRAP = GPIB
@@ -337,7 +337,6 @@ clean :
 $(WRAP_PREFIX)_$(WRAP).h \
 $(WRAP_PREFIX)_$(WRAP2).h lib$(WRAP2).so \
 $(WRAP_PREFIX)_$(WRAP3).h lib$(WRAP3).so
-
 </pre>
 
 

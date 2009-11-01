@@ -17,7 +17,7 @@ package com.sun.electric.tool.simulation.test;
 class Netscan4JNI {
     static {
         System.out.print("Loading NetUSB library... ");
-        System.loadLibrary("Netscan4JNI");
+        System.loadLibrary("Netscan4JNIe");
         System.out.println("Done.");
     }
 
