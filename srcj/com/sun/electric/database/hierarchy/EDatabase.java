@@ -110,6 +110,9 @@ public class EDatabase {
         idManager = snapshot.idManager;
         this.name = name;
         this.snapshot = idManager.getInitialSnapshot();
+        environment = this.snapshot.environment;
+        techPool = environment.techPool;
+        snapshotFresh = true;
         lock(true);
         canUndoing = true;
         undo(snapshot);

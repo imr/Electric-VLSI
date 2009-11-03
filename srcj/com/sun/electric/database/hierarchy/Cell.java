@@ -1213,6 +1213,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         } else if (exportsModified != null || boundsModified != null) {
             updateSubCells(exportsModified, boundsModified);
         }
+        assert boundsDirty == BOUNDS_CORRECT;
+        assert this.cellBounds == cellBounds;
     }
 
     void resize() {
@@ -1517,14 +1519,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public ERectangle getBounds()
 	{
-        if (boundsDirty == BOUNDS_CORRECT)
-            return cellBounds;
-        if (Job.isThreadSafe()) {
-            checkChanging();
-        } else {
-            if (!database.canComputeBounds())
-                return cellBounds;
-        }
+        if (boundsDirty != BOUNDS_CORRECT)
+            computeBounds1();
+        return cellBounds;
+	}
+
+	private void computeBounds1()
+	{
+        assert boundsDirty != BOUNDS_CORRECT;
+        if (!Job.isThreadSafe() && !database.canComputeBounds())
+            return;
 
 		checkChanging();
         if (boundsDirty == BOUNDS_CORRECT_SUB) {
@@ -1535,7 +1539,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 u.getProto(database).getBounds();
             }
             if (boundsDirty == BOUNDS_CORRECT)
-                return cellBounds;
+                return;
         }
         // Recalculate bounds of subcells.
         for (Iterator<CellUsage> it = getUsagesIn(); it.hasNext(); ) {
@@ -1549,7 +1553,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             for (Iterator<ArcInst> it = topology.getArcs(); it.hasNext(); )
                 it.next().getBounds();
             if (boundsDirty == BOUNDS_CORRECT)
-                return cellBounds;
+                return;
         }
 
         // recompute bounds
@@ -1565,7 +1569,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             }
         }
         boundsDirty = BOUNDS_CORRECT;
-		return cellBounds;
 	}
 
     ERectangle computeBounds() {

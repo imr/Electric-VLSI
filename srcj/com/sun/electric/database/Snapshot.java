@@ -88,13 +88,13 @@ public class Snapshot {
         this.libBackups = libBackups;
         this.environment = environment;
         techPool = environment.techPool;
-        this.cellBounds = new ERectangle[cellBackups.size()];
+        if (cellBounds.length != cellBackups.size())
+            throw new IllegalArgumentException();
+        this.cellBounds = cellBounds;
         for (int cellIndex = 0; cellIndex < cellBounds.length; cellIndex++) {
-            ERectangle r = cellBounds[cellIndex];
-            if (r == null) continue;
+            if ((cellBounds[cellIndex] == null) != (cellBackups.get(cellIndex) == null))
             if (cellBackups.get(cellIndex) == null)
                 throw new IllegalArgumentException();
-            this.cellBounds[cellIndex] = r;
         }
 //        if (Job.getDebug())
 //            check();
@@ -130,14 +130,8 @@ public class Snapshot {
         ImmutableArrayList<LibraryBackup> libBackups = copyArray(libBackupsArray, this.libBackups);
         boolean namesChanged = this.libBackups != libBackups || this.cellBackups.size() != cellBackups.size();
         if (!namesChanged && this.environment == environment && this.cellBackups == cellBackups) {
-            if (cellBoundsArray != null) {
-                for (int cellIndex = 0; cellIndex < cellBoundsArray.length; cellIndex++) {
-                    ERectangle r = cellBoundsArray[cellIndex];
-                    if (r == null) continue;
-                    setCellBounds(cellBackups.get(cellIndex).cellRevision.d.cellId, r);
-                }
-            }
-            return this;
+            if (cellBoundsArray == null || Arrays.equals(cellBounds, cellBoundsArray))
+                return this;
         }
 
         // Check usages in cells
@@ -247,25 +241,6 @@ public class Snapshot {
 //        long endTime = System.currentTimeMillis();
 //        System.out.println("Creating snapshot took: " + (endTime - startTime) + " msec");
         return snapshot;
-    }
-
-    /**
-     * Sets cell bounds for a cell with given CellId
-     * @param cellId given CellId
-     * @param r cell boubds
-     * @throws IllegalArgumentException if snapshot has not cell with given cellId or on bounds conflict.
-     */
-    public void setCellBounds(CellId cellId, ERectangle r) {
-        if (r == null)
-            throw new NullPointerException();
-        CellBackup cellBackup = getCell(cellId);
-        if (cellBackup == null)
-            throw new IllegalArgumentException();
-        int cellIndex = cellId.cellIndex;
-        ERectangle oldR = cellBounds[cellIndex];
-        if (oldR != null && oldR != r)
-            throw new IllegalArgumentException();
-        cellBounds[cellIndex] = r;
     }
 
 //    private void checkUsedLibs(BitSet usedLibs) {
@@ -802,7 +777,7 @@ public class Snapshot {
      * Checks if all cell bounds are defined.
      * @return true if all cell bounds are defined.
      */
-    public boolean cellBoundsDefined() {
+    private boolean cellBoundsDefined() {
         assert cellBackups.size() == cellBounds.length;
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             if (cellBackups.get(cellIndex) == null) continue;
@@ -879,6 +854,7 @@ public class Snapshot {
             }
             assert cellBackup.techPool == techPool.restrict(cellRevision.techUsages, cellBackup.techPool);
         }
+        assert cellBoundsDefined();
         assert techPool.idManager == idManager;
         for (int techIndex = 0; techIndex < checkUsedTechs.length(); techIndex++) {
             if (!checkUsedTechs.get(techIndex)) continue;
