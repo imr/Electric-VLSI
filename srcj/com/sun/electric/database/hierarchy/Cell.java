@@ -83,6 +83,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -121,6 +122,7 @@ import java.util.prefs.Preferences;
  */
 public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 {
+    private static final boolean LAZY_TOPOLOGY = false;
 	// ------------------------- private classes -----------------------------
 
 	/**
@@ -448,7 +450,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     /** The newest version of this Cell. */                         Cell newestVersion;
     /** An array of Exports on the Cell by chronological index. */  private Export[] chronExports = new Export[2];
 	/** A sorted array of Exports on the Cell. */					private Export[] exports = NULL_EXPORT_ARRAY;
-    /** Cell's topology. */                                         private final Topology topology = new Topology(this, false);
+    /** Cell's topology. */                                         private WeakReference<Topology> weakTopology;
+    /** Cell's topology. */                                         private Topology strongTopology;
 	/** The Cell's essential-bounds. */								private final List<NodeInst> essenBounds = new ArrayList<NodeInst>();
     /** Chronological list of NodeInsts in this Cell. */            private final List<NodeInst> chronNodes = new ArrayList<NodeInst>();
     /** Set containing nodeIds of expanded cells. */                private final BitSet expandedNodes = new BitSet();
@@ -482,6 +485,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         assert lib != null;
         if (d.techId != null)
             tech = database.getTech(d.techId);
+        if (!LAZY_TOPOLOGY || !Job.isThreadSafe()) {
+            strongTopology = new Topology(this, false);
+            weakTopology = new WeakReference(strongTopology);
+        }
+
 	}
 
     private Object writeReplace() { return new CellKey(this); }
@@ -1139,7 +1147,27 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         return backupUnsafe().getShrinkage();
     }
 
-    public Topology getTopology() { return topology; }
+    public Topology getTopology() {
+
+        if (weakTopology != null) {
+            Topology topology = weakTopology.get();
+            if (topology != null)
+                return topology;
+        }
+        return createTopology();
+    }
+
+    private synchronized Topology createTopology() {
+        assert strongTopology == null;
+        assert LAZY_TOPOLOGY && Job.isThreadSafe();
+        Topology topology = new Topology(this, true);
+        weakTopology = new WeakReference(topology);
+        return topology;
+    }
+
+    Topology getTopologyOptional() {
+        return weakTopology != null ? weakTopology.get() : null;
+    }
 
     private CellBackup doBackup() {
         TechPool techPool = getTechPool();
@@ -1153,13 +1181,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         ImmutableExport[] exports = null;
         if (!cellContentsFresh) {
 //            System.out.println("Refresh contents of " + this);
+            Topology topology = getTopologyOptional();
             nodes = backupNodes();
-            arcs = topology.backupArcs(backup.cellRevision.arcs);
+            arcs = topology != null ? topology.backupArcs(backup.cellRevision.arcs) : null;
             exports = backupExports();
         }
         backup = backup.with(getD(), nodes, arcs, exports, techPool);
         cellBackupFresh = true;
         cellContentsFresh = true;
+        if (LAZY_TOPOLOGY && Job.isThreadSafe())
+            strongTopology = null;
         if (backup.modified)
             lib.setChanged();
         return backup;
@@ -1287,7 +1318,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         assert nodeCount == nodes.size();
 
-        topology.updateArcs(newRevision);
+        Topology topology = getTopologyOptional();
+        if (topology != null)
+            topology.updateArcs(newRevision);
 
         exports = new Export[newRevision.exports.size()];
         for (int i = 0; i < newRevision.exports.size(); i++) {
@@ -1331,6 +1364,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         cellBackupFresh = true;
         cellContentsFresh = true;
+        if (LAZY_TOPOLOGY && Job.isThreadSafe())
+            strongTopology = null;
         revisionDateFresh = true;
 
         getMemoization();
@@ -1350,10 +1385,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             cellBounds = computeBounds();
         }
         boundsDirty = BOUNDS_CORRECT;
-        if (Job.isThreadSafe())
-            topology.unfreshRTree();
-        else
+        if (Job.isThreadSafe()) {
+            unfreshRTree();
+        } else {
             topology.rebuildRTree();
+        }
         assert boundsDirty == BOUNDS_CORRECT;
     }
 
@@ -1382,10 +1418,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             boundsDirty = BOUNDS_CORRECT;
         }
         assert boundsDirty == BOUNDS_CORRECT;
-        if (Job.isThreadSafe())
-            topology.unfreshRTree();
-        else
-            topology.rebuildRTree();
+        if (Job.isThreadSafe()) {
+            unfreshRTree();
+        } else {
+            getTopologyOptional().rebuildRTree();
+        }
         assert boundsDirty == BOUNDS_CORRECT;
     }
 
@@ -1507,7 +1544,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @return an iterator over all of the RTBounds objects in that area.
 	 */
     public Iterator<RTBounds> searchIterator(Rectangle2D bounds, boolean includeEdges) {
-        return topology.searchIterator(bounds, includeEdges);
+        return getTopology().searchIterator(bounds, includeEdges);
     }
 
 	/**
@@ -2500,7 +2537,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to return the number of ArcInst objects in this Cell.
 	 * @return the number of ArcInst objects in this Cell.
 	 */
-	public int getNumArcs() { return topology.getNumArcs(); }
+	public int getNumArcs() {
+        Topology topology = getTopologyOptional();
+        return topology != null ? topology.getNumArcs() : backup().cellRevision.arcs.size();
+    }
 
 	/**
 	 * Method to return the ArcInst at specified position.
@@ -2515,6 +2555,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @return the ArcInst with specified chronological index.
 	 */
 	public ArcInst getArcById(int arcId) { return getTopology().getArcById(arcId); }
+
+    /**
+     * Method to return a map from arcId of arcs in the Cell to their arcIndex in alphanumerical order.
+     * @return a map from arcId to arcIndex.
+     */
+    public int[] getArcIndexByArcIdMap() {
+        Topology topology = getTopologyOptional();
+        return topology != null ? topology.getArcIndexByArcIdMap() : backup().cellRevision.getArcIndexByArcIdMap();
+    }
 
 	/**
 	 * Method to find a named ArcInst on this Cell.
@@ -4337,6 +4386,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     }
 
     public void setTopologyModified() {
+        strongTopology = getTopology();
         setContentsModified();
     }
 
@@ -4354,7 +4404,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         database.unfreshSnapshot();
     }
 
-    private void unfreshRTree() { topology.unfreshRTree(); }
+    private void unfreshRTree() {
+        Topology topology = getTopologyOptional();
+        if (topology != null)
+            topology.unfreshRTree();
+    }
 
     /**
      * Method to load isExpanded status of subcell instances from Preferences.
@@ -4545,10 +4599,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             assert cellRevision.d == getD();
             assert cellContentsFresh;
         }
+        Topology topology = getTopologyOptional();
         if (cellContentsFresh) {
             assert cellRevision.nodes.size() == nodes.size();
-            assert cellRevision.arcs.size() == topology.getNumArcs();
+            if (topology != null)
+                assert cellRevision.arcs.size() == topology.getNumArcs();
             assert cellRevision.exports.size() == exports.length;
+            if (LAZY_TOPOLOGY && Job.isThreadSafe())
+                assert strongTopology == null;
         }
 
         // check exports

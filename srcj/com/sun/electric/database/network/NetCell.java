@@ -249,7 +249,7 @@ class NetCell
 			ni_pi[i] = offset;
 			offset += ni.getProto().getNumPorts();
 		}
-        arcIndexByArcIdMap = cell.getTopology().getArcIndexByArcIdMap();
+        arcIndexByArcIdMap = cell.getArcIndexByArcIdMap();
 		arcsOffset = offset;
 		offset += numArcs;
 		if (headConn == null || headConn.length != offset) {

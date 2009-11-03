@@ -300,6 +300,24 @@ public class CellRevision {
     public ImmutableArcInst getArc(int arcId) { return arcId < arcs.size() ? arcs.get(arcId) : null; }
 
     /**
+     * Method to return a map from arcId of arcs in the Cell to their arcIndex in alphanumerical order.
+     * @return a map from arcId to arcIndex.
+     */
+    public int[] getArcIndexByArcIdMap() {
+        int maxId = -1;
+        for (ImmutableArcInst a: arcs)
+            maxId = Math.max(maxId, a.arcId);
+        int[] arcIndexByArcIdMap = new int[maxId+1];
+        Arrays.fill(arcIndexByArcIdMap, -1);
+        for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
+            int arcId = arcs.get(arcIndex).arcId;
+            assert arcIndexByArcIdMap[arcId] == -1;
+            arcIndexByArcIdMap[arcId] = arcIndex;
+        }
+        return arcIndexByArcIdMap;
+    }
+
+    /**
      * Returns ImmutableExport by its export id.
      * @param exportId id of export.
      * @return ImmutableExport with this id or null if node doesn't exist.
