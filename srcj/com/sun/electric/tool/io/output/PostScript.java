@@ -32,13 +32,17 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
@@ -51,12 +55,16 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.GraphicsPreferences;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.LayerVisibility;
 
 import java.awt.Color;
+import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -117,9 +125,11 @@ public class PostScript extends Output
 		int printRotation = IOTool.getFactoryPrintRotation();
 		double printPSLineWidth = IOTool.getFactoryPrintPSLineWidth();
         GraphicsPreferences gp;
-        EditWindow_ wnd;
+        EditWindow0.EditWindowSmall wnd;
     	Rectangle2D printBounds;
         Set<Layer> invisibleLayers = new HashSet<Layer>();
+        boolean isGrid = false;
+        double gridXSpacing, gridYSpacing;
 
 		PostScriptPreferences(boolean factory, List<PolyBase> override)
 		{
@@ -151,7 +161,11 @@ public class PostScript extends Output
 			printRotation = IOTool.getPrintRotation();
 			printPSLineWidth = IOTool.getPrintPSLineWidth();
 			UserInterface ui = Job.getUserInterface();
-			wnd = ui.getCurrentEditWindow_();
+			EditWindow_ localWnd = ui.getCurrentEditWindow_();
+			wnd = new EditWindow0.EditWindowSmall(localWnd);
+	        isGrid = localWnd.isGrid();
+	        gridXSpacing = localWnd.getGridXSpacing();
+	        gridYSpacing = localWnd.getGridYSpacing();
 
 	        // determine the area of interest
 	        printBounds = null;
@@ -183,8 +197,8 @@ public class PostScript extends Output
 				printBounds = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
 			} else
 			{
-				Cell cell = wnd.getCell();
-				printBounds = getAreaToPrint(cell, false, wnd);
+				Cell cell = localWnd.getCell();
+				printBounds = getAreaToPrint(cell, false, localWnd);
 			}
 		}
 
@@ -262,7 +276,7 @@ public class PostScript extends Output
 	private boolean start()
 	{
 		// find the edit window
-		if (localPrefs.wnd != null && localPrefs.wnd.getCell() != cell) localPrefs.wnd = null;
+//		if (localPrefs.wnd != null && localPrefs.wnd.getCell() != cell) localPrefs.wnd = null;
 
 		// clear flags that tell whether headers have been included
 		putHeaderDot = false;
@@ -485,10 +499,10 @@ public class PostScript extends Output
 	{
 		// draw the grid if requested
 		if (psUseColor) printWriter.println("0 0 0 setrgbcolor");
-		if (localPrefs.wnd != null && localPrefs.wnd.isGrid())
+		if (localPrefs.wnd != null && localPrefs.isGrid)
 		{
-			int gridx = (int)localPrefs.wnd.getGridXSpacing();
-			int gridy = (int)localPrefs.wnd.getGridYSpacing();
+			int gridx = (int)localPrefs.gridXSpacing;
+			int gridy = (int)localPrefs.gridYSpacing;
 			int lx = (int)cell.getBounds().getMinX();
 			int ly = (int)cell.getBounds().getMinY();
 			int hx = (int)cell.getBounds().getMaxX();
