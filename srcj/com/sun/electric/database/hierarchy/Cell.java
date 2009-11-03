@@ -1100,8 +1100,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
     public CellBackup backup() {
         if (cellBackupFresh) return backup;
-        if (!database.canComputeBounds())
-            throw new IllegalStateException();
+        if (Job.isThreadSafe()) {
+            checkChanging();
+        } else {
+            if (!database.canComputeBounds())
+                throw new IllegalStateException();
+        }
         return doBackup();
     }
 
@@ -1113,8 +1117,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
     public CellBackup backupUnsafe() {
         if (cellBackupFresh) return backup;
-        if (!database.canComputeBounds())
-            return backup;
+        if (Job.isThreadSafe()) {
+            checkChanging();
+        } else {
+            if (!database.canComputeBounds())
+                return backup;
+        }
         return doBackup();
     }
 
@@ -1509,8 +1517,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public ERectangle getBounds()
 	{
-        if (boundsDirty == BOUNDS_CORRECT || !database.canComputeBounds())
+        if (boundsDirty == BOUNDS_CORRECT)
             return cellBounds;
+        if (Job.isThreadSafe()) {
+            checkChanging();
+        } else {
+            if (!database.canComputeBounds())
+                return cellBounds;
+        }
 
 		checkChanging();
         if (boundsDirty == BOUNDS_CORRECT_SUB) {

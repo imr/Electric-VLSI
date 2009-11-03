@@ -1374,17 +1374,17 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
     @Override
     public Rectangle2D getBounds() {
-        if (validVisBounds)
-            return visBounds;
-        EDatabase database = getDatabase();
-        if (database != null && !database.canComputeBounds())
-            return visBounds;
-        computeBounds();
-        validVisBounds = true;
+        if (!validVisBounds)
+            computeBounds();
         return visBounds;
     }
 
     private void computeBounds() {
+        if (!Job.isThreadSafe()) {
+            EDatabase database = getDatabase();
+            if (database != null && !database.canComputeBounds())
+                return;
+        }
         double oldX = visBounds.x;
         double oldY = visBounds.y;
         double oldWidth = visBounds.width;
@@ -1403,6 +1403,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 parent != null) {
             parent.setDirty();
         }
+        validVisBounds = true;
     }
 
     /**

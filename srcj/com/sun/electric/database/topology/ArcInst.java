@@ -101,7 +101,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
 	/** PortInst on tail end of this arc instance */	/*package*/final PortInst tailPortInst;
 	/** PortInst on head end of this arc instance */	/*package*/final PortInst headPortInst;
-	
+
 //	/** 0-based index of this ArcInst in Cell. */			private int arcIndex = -1; //scanline
 
 	/**
@@ -176,7 +176,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			return -1;
 		}
 	}
-    
+
     /****************************** CREATE, DELETE, MODIFY ******************************/
 
 	/**
@@ -731,9 +731,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      */
     @Override
     public Rectangle2D getBounds() {
-        if (topology.validArcBounds)
-            return visBounds;
-        topology.computeArcBounds();
+        if (!topology.validArcBounds)
+            topology.computeArcBounds();
         return visBounds;
     }
 
@@ -1628,7 +1627,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public final int getArcId() { return d.arcId; }
 
-//	
+//
 //	/**
 //	 * Method to return the index of this arcInst
 //	 * @return the index of this arcInst
@@ -1644,7 +1643,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 //	public final void setArcIndex( int arcIndex ){
 //		this.arcIndex = arcIndex;
 //	}
-	
+
     /**
      * Returns true if this ArcInst is linked into database.
      * @return true if this ArcInst is linked into database.

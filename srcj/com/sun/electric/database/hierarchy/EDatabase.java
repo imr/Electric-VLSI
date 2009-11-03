@@ -258,12 +258,8 @@ public class EDatabase {
 	}
 
     public boolean canComputeBounds() {
-        if (Thread.currentThread() == writingThread && (canChanging || canUndoing))
-            return true;
-        if (Job.isThreadSafe()) {
-            return Job.getUserInterface().getDatabase() == this;
-        }
-        return false;
+        assert !Job.isThreadSafe();
+        return Thread.currentThread() == writingThread && (canChanging || canUndoing);
     }
 
     public boolean canComputeNetlist() { return Thread.currentThread() == writingThread && (canChanging || canUndoing); }
@@ -421,8 +417,12 @@ public class EDatabase {
      */
     public Snapshot backup() {
         if (snapshotFresh) return snapshot;
-        if (!canComputeBounds())
-            throw new IllegalStateException();
+        if (Job.isThreadSafe()) {
+            checkChanging();
+        } else {
+            if (!canComputeBounds())
+                throw new IllegalStateException();
+        }
         return doBackup();
     }
 
@@ -432,7 +432,13 @@ public class EDatabase {
      * @return snapshot of the current state of Electric database.
      */
     public Snapshot backupUnsafe() {
-        if (snapshotFresh || !canComputeBounds()) return snapshot;
+        if (snapshotFresh) return snapshot;
+        if (Job.isThreadSafe()) {
+            checkChanging();
+        } else {
+            if (!canComputeBounds())
+                return snapshot;
+        }
         return doBackup();
     }
 

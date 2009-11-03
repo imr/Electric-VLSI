@@ -35,6 +35,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.BoundsBuilder;
 
+import com.sun.electric.tool.Job;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -155,8 +156,8 @@ public class Topology {
 //				ArcInst a = arcs.get(i);
 //				a.setArcIndex(i);
 //			}
-			
-			
+
+
         int arcId = ai.getArcId();
         while (chronArcs.size() <= arcId) chronArcs.add(null);
         assert chronArcs.get(arcId) == null;
@@ -207,14 +208,14 @@ public class Topology {
 		int arcIndex = searchArc(ai);
 		ArcInst removedAi = arcs.remove(arcIndex);
 		assert removedAi == ai;
-		
+
 //		//scanline
 //			for ( int i = arcIndex; i < arcs.size(); i++ ){
 //				ArcInst a = arcs.get(i);
 //				a.setArcIndex(i);
 //			}
 //			removedAi.setArcIndex( -1 );
-		
+
         int arcId = ai.getArcId();
         assert chronArcs.get(arcId) == ai;
         chronArcs.set(arcId, null);
@@ -276,7 +277,7 @@ public class Topology {
      * Low-level routine.
      */
     public void computeArcBounds() {
-        if (!cell.getDatabase().canComputeBounds())
+        if (!Job.isThreadSafe() && !cell.getDatabase().canComputeBounds())
             return;
         int[] intCoords = new int[4];
         BoundsBuilder b = new BoundsBuilder(cell.backupUnsafe());
@@ -359,7 +360,7 @@ public class Topology {
     public RTNode getRTree() {
         if (rTreeFresh) return rTree;
         EDatabase database = cell.getDatabase();
-        if (database.canComputeBounds()) {
+        if (Job.isThreadSafe() || database.canComputeBounds()) {
             rebuildRTree();
             rTreeFresh = true;
 //        } else {
