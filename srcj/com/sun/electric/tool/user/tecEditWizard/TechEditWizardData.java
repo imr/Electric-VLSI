@@ -1874,6 +1874,28 @@ public class TechEditWizardData
         return l;
     }
 
+    private Xml.NodeLayer addXmlNodeLayer(List<Xml.NodeLayer> nodesList, Xml.Technology t, String layerName,
+                                          double xVal, double yVal)
+    {
+        return addXmlNodeLayerInternal(nodesList, t, layerName, xVal, yVal, true, true, 0);
+    }
+
+    private Xml.NodeLayer addXmlNodeLayerInternal(List<Xml.NodeLayer> nodesList, Xml.Technology t, String layerName,
+                                                  double xVal, double yVal,
+                                                  boolean inLayers, boolean electricalLayers, int port)
+    {
+        Xml.Layer layer = t.findLayer(layerName);
+        if (layer == null)
+        {
+            System.out.println("Error adding layer '" + layerName + "'");
+            return null;
+        }
+        Xml.NodeLayer nl = makeXmlNodeLayer(xVal, xVal, yVal, yVal, layer, Poly.Type.FILLED,
+                inLayers, electricalLayers, port);
+        nodesList.add(nl);
+        return nl;
+    }
+
     /**
      * Method to create the XML version of NodeLayer
      */
@@ -2437,6 +2459,7 @@ public class TechEditWizardData
             nplus_width, true, false);
 
         // Extra layers
+        List<PaletteGroup> extraPaletteList = new ArrayList<PaletteGroup>();
         for (LayerInfo info : extraLayers)
         {
             graph = null;
@@ -2472,14 +2495,15 @@ public class TechEditWizardData
                 wf, true, info.addArc, info.name);
             makeLayerGDS(t, layer, String.valueOf(info));
 
-            PaletteGroup grp = new PaletteGroup();
             if (info.addArc)
             {
+                PaletteGroup grp = new PaletteGroup();
                 grp.addArc(makeXmlArc(t, info.name, ArcProto.Function.UNKNOWN, 0,
                     makeXmlArcLayer(layer, wf)));
                 double hla = scaledValue(info.width / 2);
                 grp.addPinOrResistor(makeXmlPrimitivePin(t, info.name, hla, null,
                     null, makeXmlNodeLayer(hla, hla, hla, hla, layer, Poly.Type.CROSSED)), null);
+                extraPaletteList.add(grp);
             }
         }
 
@@ -2817,19 +2841,9 @@ public class TechEditWizardData
         // contacts
         for(int i=1; i<num_metal_layers; i++)
 		{
-//            hla = scaledValue(metal_width[i-1].value / 2);
             Xml.Layer lb = metalLayers.get(i-1);
             Xml.Layer lt = metalLayers.get(i);
             PaletteGroup group = metalPalette[i-1];  // structure created by the arc definition
-
-            // Pin bottom metal
-//            group.addPinOrResistor(makeXmlPrimitivePin(t, lb.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
-//                null, makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.CROSSED)), null);
-//            if (i == num_metal_layers - 1) // last pin!
-//            {
-//                metalPalette[i].addPinOrResistor(makeXmlPrimitivePin(t, lt.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
-//                    null, makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.CROSSED)), null);
-//            }
 
             if (!getExtraInfoFlag())
             {
@@ -3116,9 +3130,7 @@ public class TechEditWizardData
 
                 // VTH Transistor
                 String tmp = "VTH-" + name;
-                Xml.Layer vthLayer = t.findLayer(tmp);
-                Xml.NodeLayer nl = makeXmlNodeLayer(vthlx, vthlx, vthly, vthly, vthLayer, Poly.Type.FILLED);
-                nodesList.add(nl);
+                Xml.NodeLayer nl = addXmlNodeLayer(nodesList, t, tmp, vthlx, vthly);
 
                 n = makeXmlPrimitive(t.nodeGroups, tmp + "-Transistor-S", func, 0, 0, 0, 0,
                      new SizeOffset(shortSox, shortSox, soy, soy), nodesList, nodePorts, null, false);
@@ -3127,9 +3139,7 @@ public class TechEditWizardData
                 // VTL Transistor
                 nodesList.remove(nl);
                 tmp = "VTL-" + name;
-                vthLayer = t.findLayer(tmp);
-                nl = makeXmlNodeLayer(vthlx, vthlx, vthly, vthly, vthLayer, Poly.Type.FILLED);
-                nodesList.add(nl);
+                nl = addXmlNodeLayer(nodesList, t, tmp, vthlx, vthly);
 
                 n = makeXmlPrimitive(t.nodeGroups, tmp + "-Transistor-S", func, 0, 0, 0, 0,
                      new SizeOffset(shortSox, shortSox, soy, soy), nodesList, nodePorts, null, false);
@@ -3206,8 +3216,7 @@ public class TechEditWizardData
                     gate_contact_spacing.value, contact_size.value, activeLayer, polyLayer, polyGateLayer, nodesList, nodePorts);
 
                 // OD18
-                Xml.Layer od18Layer = t.findLayer("OD_18");
-                nodesList.add(makeXmlNodeLayer(od18x, od18x, od18y, od18y, od18Layer, Poly.Type.FILLED));
+                addXmlNodeLayer(nodesList, t, "OD_18", od18x, od18y);
 
                 // adding short select
                 shortSelectX = scaledValue(gate_od18_width.value /2+poly_endcap.value);
@@ -3242,8 +3251,7 @@ public class TechEditWizardData
                         gate_contact_spacing.value, contact_size.value, activeLayer, polyLayer, polyGateLayer, nodesList, nodePorts);
 
                     // NT-N
-                    Xml.Layer ntLayer = t.findLayer("NT-N");
-                    nodesList.add(makeXmlNodeLayer(ntx, ntx, nty, nty, ntLayer, Poly.Type.FILLED));
+                    addXmlNodeLayer(nodesList, t, "NT-N", ntx, nty);
 
                     // adding short select
                     shortSelectX = scaledValue(gate_nt_width.value /2+poly_nt_endcap.value);
@@ -3285,11 +3293,10 @@ public class TechEditWizardData
                     Poly.Type.FILLED, true, true, -1));
 
                 // RPO
-                Xml.Layer rpoLayer = t.findLayer("RPO");
                 double rpoY = scaledValue(polyRW.value /2 + rpoODPolyEx.value);
                 double rpoX = scaledValue(polyRL.value /2);
-                nodesList.add(makeXmlNodeLayer(rpoX, rpoX, rpoY, rpoY, rpoLayer,
-                    Poly.Type.FILLED, true, true, -1));
+                Xml.Layer rpoLayer = t.findLayer("RPO");
+                addXmlNodeLayerInternal(nodesList, t, "RPO", rpoX, rpoY, true, true, -1);
 
                 // left cuts
                 double cutDistance = scaledValue(rpoS.value + polyRL.value /2);
@@ -3327,13 +3334,10 @@ public class TechEditWizardData
                 nodesList.add(makeXmlNodeLayer(selectX, selectX, selectY, selectY, selectLayer,
                     Poly.Type.FILLED, true, true, -1));
                 // RH
-                Xml.Layer rhLayer = t.findLayer("RH");
-                nodesList.add(makeXmlNodeLayer(selectX, selectX, selectY, selectY, rhLayer,
-                    Poly.Type.FILLED, true, true, -1));
+                addXmlNodeLayerInternal(nodesList, t, "RH", selectX, selectY, true, true, -1);
+
                 // RPDMY
-                Xml.Layer rPLayer = t.findLayer("RPDMY");
-                nodesList.add(makeXmlNodeLayer(selectX, selectX, selectY, selectY, rPLayer,
-                    Poly.Type.FILLED, true, true, -1));
+                addXmlNodeLayerInternal(nodesList, t, "RPDMY", selectX, selectY, true, true, -1);
 
                 // cuts
                 nodesList.add(makeXmlMulticut(cutEnd2, -1, -cutDistance, -1, cutSizeHalf, -1, cutSizeHalf, 1,
@@ -3388,9 +3392,7 @@ public class TechEditWizardData
 
                 // NWDMY-LVS
                 double halfL = scaledValue(wellRL.value /2);
-                Xml.Layer nwdmyLayer = t.findLayer("NWDMY-LVS");
-                nodesList.add(makeXmlNodeLayer(halfL, halfL, halfTotalW, halfTotalW, nwdmyLayer,
-                    Poly.Type.FILLED, true, true, -1));
+                addXmlNodeLayerInternal(nodesList, t, "NWDMY-LVS", halfL, halfTotalW, true, true, -1);
 
                 cutEnd = scaledValue(wellRL.value /2+cutEndNoScaled);
                 cutSpacing = scaledValue(cutSpacingNoScaled);
@@ -3427,21 +3429,28 @@ public class TechEditWizardData
                 // RPO in 5 pieces to represent the two holes for the contacts
                 double holeStartX = scaledValue(halfWellLNoScaled + /*C*/rpoNwrodS.value);
                 double holeStartY = scaledValue(wellRW.value /2 + /*C*/rpoNwrodS.value);
-                // left piece
-                nodesList.add(makeXmlNodeLayer(halfTotalL, -1, -holeStartX, -1, halfTotalW, -1, halfTotalW, 1,
-                    rpoLayer, Poly.Type.FILLED, true, true, -1));
-                // right piece
-                nodesList.add(makeXmlNodeLayer(-holeStartX, -1, halfTotalL, -1, halfTotalW, -1, halfTotalW, 1,
-                    rpoLayer, Poly.Type.FILLED, true, true, -1));
-                // center bottom
-               nodesList.add(makeXmlNodeLayer(holeStartX, -1, holeStartX, 1, halfTotalW, -1, -holeStartY, -1,
-                   rpoLayer, Poly.Type.FILLED, true, true, -1));
-                // center top
-                nodesList.add(makeXmlNodeLayer(holeStartX, -1, holeStartX, 1, -holeStartY, -1, halfTotalW, 1,
-                   rpoLayer, Poly.Type.FILLED, true, true, -1));
-                // center
-                nodesList.add(makeXmlNodeLayer(m1Distance, m1Distance, holeStartY, holeStartY, rpoLayer,
-                    Poly.Type.FILLED, true, true, -1));
+                if (rpoLayer != null)
+                {
+                    // left piece
+                    nodesList.add(makeXmlNodeLayer(halfTotalL, -1, -holeStartX, -1, halfTotalW, -1, halfTotalW, 1,
+                        rpoLayer, Poly.Type.FILLED, true, true, -1));
+                    // right piece
+                    nodesList.add(makeXmlNodeLayer(-holeStartX, -1, halfTotalL, -1, halfTotalW, -1, halfTotalW, 1,
+                        rpoLayer, Poly.Type.FILLED, true, true, -1));
+                    // center bottom
+                   nodesList.add(makeXmlNodeLayer(holeStartX, -1, holeStartX, 1, halfTotalW, -1, -holeStartY, -1,
+                       rpoLayer, Poly.Type.FILLED, true, true, -1));
+                    // center top
+                    nodesList.add(makeXmlNodeLayer(holeStartX, -1, holeStartX, 1, -holeStartY, -1, halfTotalW, 1,
+                       rpoLayer, Poly.Type.FILLED, true, true, -1));
+                    // center
+                    nodesList.add(makeXmlNodeLayer(m1Distance, m1Distance, holeStartY, holeStartY, rpoLayer,
+                        Poly.Type.FILLED, true, true, -1));
+                }
+                else
+                {
+                    System.out.println("Error: layer rpo doesn't exist");
+                }
 
                 // Cuts
                 cutEnd2 = cutEnd+cutSpacing;
@@ -3470,6 +3479,8 @@ public class TechEditWizardData
         allGroups.add(polyGroup);
         for (PaletteGroup g : metalPalette)
             allGroups.add(g);
+        // Extra layers with pins/arcs
+        allGroups.addAll(extraPaletteList);
 
         // Adding elements in palette
         for (PaletteGroup o : allGroups)
