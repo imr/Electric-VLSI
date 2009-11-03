@@ -276,7 +276,7 @@ public class Topology {
     /**
      * Low-level routine.
      */
-    public void computeArcBounds() {
+    void computeArcBounds() {
         if (!Job.isThreadSafe() && !cell.getDatabase().canComputeBounds())
             return;
         int[] intCoords = new int[4];
@@ -346,6 +346,12 @@ public class Topology {
 	 */
     public Iterator<RTBounds> searchIterator(Rectangle2D bounds, boolean includeEdges) {
         return new RTNode.Search(bounds, getRTree(), includeEdges);
+    }
+
+    void setArcsDirty() {
+        cell.setDirty();
+        validArcBounds = false;
+        unfreshRTree();
     }
 
     public void unfreshRTree() {

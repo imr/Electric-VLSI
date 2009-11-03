@@ -40,7 +40,6 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.id.PortProtoId;
-import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.NetworkTool;
@@ -64,7 +63,6 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.TechPool;
@@ -87,7 +85,6 @@ import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -1550,8 +1547,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             boundsDirty = BOUNDS_CORRECT;
             for (NodeInst ni: nodes)
                 ni.getBounds();
-            for (Iterator<ArcInst> it = topology.getArcs(); it.hasNext(); )
-                it.next().getBounds();
+//            for (Iterator<ArcInst> it = topology.getArcs(); it.hasNext(); )
+//                it.next().getBounds();
             if (boundsDirty == BOUNDS_CORRECT)
                 return;
         }
@@ -1607,8 +1604,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         long gridMaxX = DBMath.lambdaToGrid(cellHighX);
         long gridMaxY = DBMath.lambdaToGrid(cellHighY);
 
-        topology.computeArcBounds();
-        ERectangle primitiveBounds = computePrimitiveBounds(backup());
+//        topology.computeArcBounds();
+        ERectangle primitiveBounds = backup().getPrimitiveBounds();
         if (primitiveBounds != null) {
             if (boundsEmpty) {
                 gridMinX = primitiveBounds.getGridMinX();
@@ -1625,65 +1622,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (cellBounds != null && gridMinX == cellBounds.getGridMinX() && gridMinY == cellBounds.getGridMinY() &&
                 gridMaxX == cellBounds.getGridMaxX() && gridMaxY == cellBounds.getGridMaxY())
             return cellBounds;
-        return ERectangle.fromGrid(gridMinX, gridMinY, gridMaxX - gridMinX, gridMaxY - gridMinY);
-    }
-
-    private static ERectangle computePrimitiveBounds(CellBackup cellBackup) {
-        double cellLowX = 0, cellHighX = 0, cellLowY = 0, cellHighY = 0;
-        boolean boundsEmpty = true;
-        BoundsBuilder b = new BoundsBuilder(cellBackup);
-        Rectangle2D.Double bounds = new Rectangle2D.Double();
-        for(ImmutableNodeInst n: cellBackup.cellRevision.nodes) {
-            if (!(n.protoId instanceof PrimitiveNodeId)) continue;
-            NodeProto np = cellBackup.techPool.getPrimitiveNode((PrimitiveNodeId)n.protoId);
-            n.computeBounds(b, bounds);
-
-            // special case: do not include "cell center" primitives from Generic
-            if (np == Generic.tech().cellCenterNode) continue;
-
-            // special case for invisible pins: do not include if inheritable or interior-only
-            if (np == Generic.tech().invisiblePinNode) {
-                boolean found = false;
-                for(Iterator<Variable> it = n.getVariables(); it.hasNext(); ) {
-                    Variable var = it.next();
-                    if (var.isDisplay()) {
-                        TextDescriptor td = var.getTextDescriptor();
-                        if (td.isInterior() || td.isInherit()) { found = true;   break; }
-                    }
-                }
-                if (found) continue;
-            }
-
-            double lowx = bounds.getMinX();
-            double highx = bounds.getMaxX();
-            double lowy = bounds.getMinY();
-            double highy = bounds.getMaxY();
-            if (boundsEmpty) {
-                boundsEmpty = false;
-                cellLowX = lowx;   cellHighX = highx;
-                cellLowY = lowy;   cellHighY = highy;
-            } else {
-                if (lowx < cellLowX) cellLowX = lowx;
-                if (highx > cellHighX) cellHighX = highx;
-                if (lowy < cellLowY) cellLowY = lowy;
-                if (highy > cellHighY) cellHighY = highy;
-            }
-        }
-        long gridMinX = DBMath.lambdaToGrid(cellLowX);
-        long gridMinY = DBMath.lambdaToGrid(cellLowY);
-        long gridMaxX = DBMath.lambdaToGrid(cellHighX);
-        long gridMaxY = DBMath.lambdaToGrid(cellHighY);
-
-        ERectangle primitiveArcBounds = cellBackup.getPrimitiveBounds();
-        if (boundsEmpty)
-            return primitiveArcBounds;
-        if (primitiveArcBounds != null) {
-            assert !boundsEmpty;
-            gridMinX = Math.min(gridMinX, primitiveArcBounds.getGridMinX());
-            gridMaxX = Math.max(gridMaxX, primitiveArcBounds.getGridMaxX());
-            gridMinY = Math.min(gridMinY, primitiveArcBounds.getGridMinY());
-            gridMaxY = Math.max(gridMaxY, primitiveArcBounds.getGridMaxY());
-        }
         return ERectangle.fromGrid(gridMinX, gridMinY, gridMaxX - gridMinX, gridMaxY - gridMinY);
     }
 

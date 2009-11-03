@@ -648,7 +648,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         if (renamed)
             topology.addArc(this);
 
-        redoGeometric();
+        topology.setArcsDirty();
 
 		// update end shrinkage information ?????????????????????
 //		headPortInst.getNodeInst().updateShrinkage();
@@ -749,23 +749,14 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
             if (x == visBounds.getX() && y == visBounds.getY() && w == visBounds.getWidth() && h == visBounds.getHeight())
                 return;
             visBounds.setRect(x, y, w, h);
-            parent.setDirty();
+//            parent.setDirty();
        } else {
             b.clear();
             b.genShapeOfArc(d);
-            if (b.makeBounds(null, visBounds))
-                parent.setDirty();
+            b.makeBounds(null, visBounds);
+//            if (b.makeBounds(null, visBounds))
+//                parent.setDirty();
         }
-    }
-
-    /**
-     * Method to recalculate the Geometric bounds for this NodeInst.
-     */
-    public void redoGeometric() {
-        if (parent != null)
-            parent.setGeomDirty();
-        topology.validArcBounds = false;
-        topology.unfreshRTree();
     }
 
 	/**
@@ -1239,7 +1230,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     private void setFlag(ImmutableArcInst.Flag flag, boolean state) {
         checkChanging();
         if (setD(d.withFlag(flag, state), true))
-            redoGeometric();
+            topology.setArcsDirty();
     }
 
 	/**

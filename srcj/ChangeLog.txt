@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
+IMP: (11/03/09, DN) Cell.computeBounds() doesn't use ArcInsts.
+
 IMP: (11/03/09, DN) Compaction.compactNow starts uses job.startOMyResult to be scheduled
     in regressions before QuitJob.
 
