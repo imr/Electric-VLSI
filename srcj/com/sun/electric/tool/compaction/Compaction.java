@@ -101,7 +101,7 @@ public class Compaction extends Tool
 	{
 		// do the compaction in a job
 		CompactCellJob job = new CompactCellJob(cell, true, CompactCell.Axis.HORIZONTAL, allowSpreading);
-        job.startJob();
+        job.startJobOnMyResult(); // start on my result. Otherwise regressions fail
 	}
 
 private static int limitLoops = 10;
