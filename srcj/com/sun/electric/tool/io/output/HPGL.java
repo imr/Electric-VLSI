@@ -38,6 +38,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
@@ -70,8 +71,8 @@ public class HPGL extends Output
 
 	/** conversion from Layers to pen numbers */	private HashMap<Layer,List<PolyBase>> cellGeoms;
 	/** conversion from Colors to pen numbers */	private LinkedHashMap<Color,Integer>  penNumbers = new LinkedHashMap<Color,Integer>();
-	/** the Cell being written. */					private Cell        cell;
-	/** the Window being printed (for text). */		private EditWindow_ wnd;
+//	/** the Cell being written. */					private Cell        cell;
+//	/** the Window being printed (for text). */		private EditWindow_ wnd;
 	/** the current line type */					private int         currentLineType;
 	/** the current pen number */					private int         currentPen;
 	/** if fill info written for the current pen */	private boolean     fillEmitted;
@@ -92,6 +93,8 @@ public class HPGL extends Output
 		boolean textVisibilityOnExport;
 		int exportDisplayLevel;
         Map<Layer,Color> layerColors = new HashMap<Layer,Color>();
+        EditWindow0.EditWindowSmall wnd;
+        Rectangle2D printBounds;
 
         public HPGLPreferences(boolean factory) {
             super(factory);
@@ -107,12 +110,26 @@ public class HPGL extends Output
                     layerColors.put(layer, graphics.getColor(transparentColors));
                 }
             }
+            if (!factory)
+                fillPrefs();
+        }
+
+        private void fillPrefs()
+        {
+    		// determine the window to use for text scaling
+			UserInterface ui = Job.getUserInterface();
+			EditWindow_ localWnd = ui.getCurrentEditWindow_();
+			wnd = new EditWindow0.EditWindowSmall(localWnd);
+
+			Cell cell = localWnd.getCell();
+			printBounds = getAreaToPrint(cell, false, localWnd);
+
         }
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
         {
+			if (printBounds == null) return null;
     		HPGL out = new HPGL(this);
-    		out.cell = cell;
     		if (out.openTextOutputStream(filePath)) return out.finishWrite();
     		HPGLVisitor visitor = out.makeHPGLVisitor();
 
@@ -139,21 +156,12 @@ public class HPGL extends Output
 		currentPen = -1;
 		fillEmitted = false;
 
-		// determine the window to use for text scaling
-		UserInterface ui = Job.getUserInterface();
-		wnd = ui.getCurrentEditWindow_();
-		if (wnd != null && wnd.getCell() != cell) wnd = null;
-
 		// initialize pen information
 		initPenData();
 	}
 
 	protected void done()
 	{
-		// find the area to print
-		Rectangle2D printBounds = getAreaToPrint(cell, false, wnd);
-		if (printBounds == null) return;
-
 		// HPGL/2 setup and defaults
 		writeLine("\033%0BBPIN");
 		writeLine("LA1,4,2,4QLMC0");
@@ -192,7 +200,7 @@ public class HPGL extends Output
 
 		// set default location of "P1" and "P2" points on the plotter
 		writeLine("IP;");
-		writeLine("SC" + makeCoord(printBounds.getMinX()) + ",1," + makeCoord(printBounds.getMinY()) + ",1,2;");
+		writeLine("SC" + makeCoord(localPrefs.printBounds.getMinX()) + ",1," + makeCoord(localPrefs.printBounds.getMinY()) + ",1,2;");
 
 		// write all geometry collected
 		for(Map.Entry<Layer,List<PolyBase>> e: cellGeoms.entrySet())
@@ -231,9 +239,9 @@ public class HPGL extends Output
 		 */
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
-			NodeInst ni = (NodeInst)no;
-			if (ni.isCellInstance())
+			if (no.isCellInstance())
 			{
+				NodeInst ni = no.getNodeInst();
 				if (!ni.isExpanded()) return false;
 			}
 			return true;
@@ -264,7 +272,7 @@ public class HPGL extends Output
 					for (int i=0; i<polys.length; i++)
 						polys[i].transform(nodeTrans);
 					addPolys(polys, merge);
-                    Poly[] textPolys = ni.getDisplayableVariables(wnd);
+                    Poly[] textPolys = ni.getDisplayableVariables(localPrefs.wnd);
 					for (int i=0; i<textPolys.length; i++)
 						textPolys[i].transform(nodeTrans);
 					addPolys(textPolys, merge);
@@ -326,7 +334,7 @@ public class HPGL extends Output
 				ArcProto ap = ai.getProto();
 				Technology tech = ap.getTechnology();
 				addPolys(tech.getShapeOfArc(ai), merge);
-				addPolys(ai.getDisplayableVariables(wnd), merge);
+				addPolys(ai.getDisplayableVariables(localPrefs.wnd), merge);
 			}
 
 			// extract merged data and add it to overall geometry
