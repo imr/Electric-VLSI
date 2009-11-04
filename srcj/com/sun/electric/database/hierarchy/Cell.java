@@ -122,7 +122,7 @@ import java.util.prefs.Preferences;
  */
 public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 {
-    private static final boolean LAZY_TOPOLOGY = true;
+    private static final boolean LAZY_TOPOLOGY = false;
 	// ------------------------- private classes -----------------------------
 
 	/**

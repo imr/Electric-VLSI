@@ -240,6 +240,19 @@ public class TechPool extends AbstractMap<TechId, Technology> {
     }
 
     /**
+     * Returns a BitSet of techIndices of Technologies from this TechPool.
+     * @return techIndices of Technologies from this TechPool.
+     */
+    public BitSet getTechUsages() {
+        BitSet bs = new BitSet(techs.length);
+        for (int techIndex = 0; techIndex < techs.length; techIndex++) {
+            if (techs[techIndex] != null)
+                bs.set(techIndex);
+        }
+        return bs;
+    }
+
+    /**
      * Returns new TechPool which differs from this TechPool by adding
      * new technology
      * @param tech Technology to add

@@ -4,8 +4,6 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10l: ******************************
 
-IMP: (11/03/09, DN) Topology is attached to its Cell by WeakReference.
-
 BUG: (11/4/09, SMR) PostScript output crashes (Bug #2455).
 FIX: Created EditWindow0.EditWindowSmall to pass to Jobs.
 
