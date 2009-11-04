@@ -122,7 +122,7 @@ import java.util.prefs.Preferences;
  */
 public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 {
-    private static final boolean LAZY_TOPOLOGY = false;
+    private static final boolean LAZY_TOPOLOGY = true;
 	// ------------------------- private classes -----------------------------
 
 	/**
@@ -4750,8 +4750,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @return return the Technology of this Cell.
 	 */
 	public Technology getTechnology() {
-        if (tech == null)
-            setTechnology(Technology.whatTechnology(this, null, 0, 0, null));
+        if (tech == null) {
+            ArcProto[] arcProtos = null;
+            if (backup == null && getTopologyOptional() == null)
+                arcProtos = new ArcProto[0];
+            setTechnology(Technology.whatTechnology(this, null, 0, 0, arcProtos));
+        }
 		return tech;
 	}
 
