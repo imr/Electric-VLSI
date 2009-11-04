@@ -1162,6 +1162,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         assert LAZY_TOPOLOGY && Job.isThreadSafe();
         Topology topology = new Topology(this, true);
         weakTopology = new WeakReference(topology);
+//        System.out.println("Created topology "+database+":"+this);
         return topology;
     }
 

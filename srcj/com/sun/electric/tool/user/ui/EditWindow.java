@@ -1506,7 +1506,7 @@ public class EditWindow extends JPanel
 	 * @param fullInstantiate true to display to the bottom of the hierarchy (for peeking).
 	 */
 	public void repaintContents(Rectangle2D bounds, boolean fullInstantiate) {
-        repaintContents(bounds, fullInstantiate, new AbstractDrawing.DrawingPreferences());
+        repaintContents(bounds, fullInstantiate, new AbstractDrawing.DrawingPreferences(), UserInterfaceMain.getGraphicsPreferences());
     }
 
 	/**
@@ -1514,7 +1514,7 @@ public class EditWindow extends JPanel
 	 * @param bounds the area to redraw (null to draw everything).
 	 * @param fullInstantiate true to display to the bottom of the hierarchy (for peeking).
 	 */
-	public void repaintContents(Rectangle2D bounds, boolean fullInstantiate, AbstractDrawing.DrawingPreferences dp)
+	public void repaintContents(Rectangle2D bounds, boolean fullInstantiate, AbstractDrawing.DrawingPreferences dp, GraphicsPreferences gp)
 	{
 		// start rendering thread
 		if (wf == null) return;
@@ -1531,18 +1531,17 @@ public class EditWindow extends JPanel
 			fullInstantiateBounds = bounds.getBounds2D();
 			DBMath.transformRect(fullInstantiateBounds, outofCell);
 		}
-		invokeRenderJob(this, dp);
+		invokeRenderJob(this, dp, gp);
 
 		logger.exiting(CLASS_NAME, "repaintContents");
 	}
 
 	public static void invokeRenderJob() {
-		invokeRenderJob(null, new AbstractDrawing.DrawingPreferences());
+		invokeRenderJob(null, new AbstractDrawing.DrawingPreferences(), UserInterfaceMain.getGraphicsPreferences());
 	}
 
-	private static void invokeRenderJob(EditWindow wnd, AbstractDrawing.DrawingPreferences dp) {
+	private static void invokeRenderJob(EditWindow wnd, AbstractDrawing.DrawingPreferences dp, GraphicsPreferences gp) {
 		logger.entering(CLASS_NAME, "invokeRenderJob", wnd);
-        GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
 		synchronized(lock)
 		{
 			if (wnd != null) {
@@ -1585,7 +1584,7 @@ public class EditWindow extends JPanel
 					hasTasks = false;
 					Snapshot snapshot = EDatabase.clientDatabase().backup();
 					if (snapshot != oldSnapshot) {
-						endBatch(oldSnapshot, snapshot, dp);
+						endBatch(dp, gp);
 						oldSnapshot = snapshot;
 					}
 					EditWindow wnd = null;
@@ -3452,11 +3451,9 @@ public class EditWindow extends JPanel
 
    /**
 	 * Handles database changes of a Job.
-	 * @param oldSnapshot database snapshot before Job.
-	 * @param newSnapshot database snapshot after Job and constraint propagation.
 	 * @param undoRedo true if Job was Undo/Redo job.
 	 */
-	private static void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, AbstractDrawing.DrawingPreferences dp) {
+	private static void endBatch(AbstractDrawing.DrawingPreferences dp, GraphicsPreferences gp) {
 		// Mark cells for redraw
 		Set<CellId> topCells = new HashSet<CellId>();
 		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
@@ -3483,7 +3480,7 @@ public class EditWindow extends JPanel
 			if (winCell == null) continue;
 			EditWindow wnd = (EditWindow)content;
 			if (changedVisibility.contains(winCell.getId()))
-				wnd.repaintContents(null, false, dp);
+				wnd.repaintContents(null, false, dp, gp);
 		}
 	}
 
