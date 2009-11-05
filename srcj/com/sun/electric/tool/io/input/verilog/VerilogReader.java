@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -375,6 +374,12 @@ public class VerilogReader extends Input
         for (;;)
         {
             String input = getRestOfLine();
+            if (!input.contains(";"))
+            {
+                // doesn't contain proper end of line
+                System.out.println("Missing end of line character ';' in input/output'" + input + "'");
+               throw new IOException("");
+            }
             StringTokenizer parse = new StringTokenizer(input, ";,", true); // extracting only input name
 
             while (parse.hasMoreTokens())
@@ -393,7 +398,7 @@ public class VerilogReader extends Input
                     String name = p.nextToken();
                     l.add(name); // it could be "input a;" or "input [9:0] a;"
                 }
-                PrimitiveNode primitive = Schematics.tech().wirePinNode;
+//                PrimitiveNode primitive = Schematics.tech().wirePinNode;
                 int size = l.size();
                 if (size == 0) continue;
                 assert(size == 1 || size == 2);
@@ -401,7 +406,7 @@ public class VerilogReader extends Input
                 if (l.size() == 2) // "input a[];"
                 {
 //                    name += l.get(0); busPin not longer containing [x:y]
-                    primitive = Schematics.tech().busPinNode;
+//                    primitive = Schematics.tech().busPinNode;
                 }
 
                 VerilogData.VerilogPort export = module.findPort(name);

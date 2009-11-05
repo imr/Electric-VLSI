@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
-IMP: (11/4/, GVG) Ability to generate light internal version (Bug #2457)
+BUG: (11/5/09, GVG) Out of bounds expection in Verilog writing with invalid syntax (Bug #2458)
+FIX: Added extra code to detect syntax errors in input/output lines
+
+IMP: (11/4/09, GVG) Ability to generate light internal version (Bug #2457)
 
 ************************* Version 8.10l: ******************************
 
