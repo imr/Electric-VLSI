@@ -360,7 +360,7 @@
             </antcall>
     </target>
 
-    <target name="jarWithoutJython" description="Make binary Jar file without Jython">
+    <target name="jarLight" description="Make binary Jar file without Jython">
             <antcall target="jarWithTests">
                 <param name="SUN" value="1"/>
                 <param name="NOJYTHON" value="1"/>
