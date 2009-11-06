@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+IMP: (11/6/09, GVG) Improving syntaxt in TechEditorWizard file to include rules in @extra_layers
+
 BUG: (11/5/09, GVG) [Bug 2459] New: VerilogReader can't parser /* comments (Bug #2459)
 FIX: Added ability to read until end of the */ comment.
 

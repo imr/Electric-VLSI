@@ -271,16 +271,24 @@ public class TechEditWizardData
 
         void setPinArcInfo(String s)
         {
-            if (!s.startsWith("{"))
-                return; // nothing to parser
+//            if (!s.startsWith("["))
+//                return; // nothing to parser
 
-            StringTokenizer p = new StringTokenizer(s, ", {}", false);
+            StringTokenizer p = new StringTokenizer(s, ":", false);
             while (p.hasMoreTokens())
             {
                 String str = p.nextToken();
-                if (str.startsWith("W")) // width
+
+                // Remove white spaces
+                str = TextUtils.eatWhiteSpaces(str);
+
+                int index = str.indexOf("=");
+                if (str.startsWith("G"))
                 {
-                    int index = str.indexOf("=");
+                    setGDSData(getGDSValuesFromString(str.substring(index+1)));
+                }
+                else if (str.startsWith("W")) // width
+                {
                     assert(index != -1);
                     width = Double.parseDouble(str.substring(index+1));
                 }
@@ -291,9 +299,13 @@ public class TechEditWizardData
                 }
                 else if (str.startsWith("F")) // function
                 {
-                    int index = str.indexOf("=");
                     assert(index != -1);
                     function = Layer.Function.valueOf(str.substring(index+1));
+                }
+                else if (str.startsWith("C")) // color
+                {
+                    assert(index != -1);
+                    setGraphicsTemplate(str.substring(index+1));
                 }
                 else
                 {
@@ -307,7 +319,7 @@ public class TechEditWizardData
         {
             if (s.startsWith("[")) // color
             {
-                StringTokenizer p = new StringTokenizer(s, ", []", false);
+                StringTokenizer p = new StringTokenizer(s, ". []", false);
                 int[] colors = new int[3];
                 String outlineOrPattern = null; // EGraphics.Outline.NOPAT.name(); // default
                 int itemCount = 0;
@@ -1119,7 +1131,8 @@ public class TechEditWizardData
                 continue;
 
             // Sequence ("layer name", "GDS value", "[Display data]", "{A|P,W=?}")
-            StringTokenizer p = new StringTokenizer(value, " \"", false);
+            StringTokenizer p = new StringTokenizer(value, ",", false);
+            // can't use space as token because of possible DRC rules
             int itemCount = 0; // 2 max items: layer name and GDS value
             LayerInfo layer = null;
 
@@ -1134,14 +1147,13 @@ public class TechEditWizardData
                         layersList.add(layer);
                         break;
                     case 1:
-                        layer.setGDSData(getGDSValuesFromString(s));
-                        break;
+//                        layer.setGDSData(getGDSValuesFromString(s));
+//                        break;
                     case 2:
                     case 3:
-                        if (s.startsWith("{"))
                             layer.setPinArcInfo(s);
-                        else
-                            layer.setGraphicsTemplate(s);
+//                        else
+//                            layer.setGraphicsTemplate(s);
                         break;
                     default:
                         assert(false);

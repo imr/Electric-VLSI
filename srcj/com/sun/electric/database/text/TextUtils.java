@@ -104,7 +104,25 @@ public class TextUtils
 		return isDigit(ch) || Character.isLetter(ch);
 	}
 
-	/**
+    /**
+     * Method to remove white spaces at the beginning of the String
+     * @param str
+     * @return
+     */
+    public static String eatWhiteSpaces(String str)
+    {
+        for (int i = 0; i <str.length(); i++)
+        {
+            // Found first non-whitespace character
+            if (!Character.isWhitespace(str.charAt(i)))
+            {
+                return str.substring(i);
+            }
+        }
+        return "";
+    }
+
+    /**
 	 * Returns canonic char for ignore-case comparison .
 	 * This is the same as Character.toLowerCase(Character.toUpperCase(ch)).
 	 * @param ch given char.
