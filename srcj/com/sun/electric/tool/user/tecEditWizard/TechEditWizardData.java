@@ -248,7 +248,10 @@ public class TechEditWizardData
         EGraphics.Outline graphicsOutline; // uses this outline with graphicsColor
         int [] graphicsPattern; // uses this pattern with graphicsColor
         double width = 0; // width of the pure layer node to create
+        double height = -1; // height for 3D view
+        double thickness = -1; // thickness for 3D view
         boolean addArc = false;
+        WizardField spacing, minimum;
         Layer.Function function = Layer.Function.ART; // ART is better default than UNKNOWN
 
         LayerInfo(String n)
@@ -269,11 +272,8 @@ public class TechEditWizardData
             textType = vals[5];
         }
 
-        void setPinArcInfo(String s)
+        void setLayerInformation(String s)
         {
-//            if (!s.startsWith("["))
-//                return; // nothing to parser
-
             StringTokenizer p = new StringTokenizer(s, ":", false);
             while (p.hasMoreTokens())
             {
@@ -291,6 +291,28 @@ public class TechEditWizardData
                 {
                     assert(index != -1);
                     width = Double.parseDouble(str.substring(index+1));
+                }
+                else if (str.startsWith("T")) // thick for 3D View
+                {
+                    assert(index != -1);
+                    thickness = Double.parseDouble(str.substring(index+1));
+                }
+                else if (str.startsWith("H")) // height for 3D View
+                {
+                    assert(index != -1);
+                    height = Double.parseDouble(str.substring(index+1));
+                }
+                else if (str.startsWith("S")) // spacing rule
+                {
+                    assert(index != -1);
+                    spacing = new WizardField();
+                    fillRule(str.substring(index+1), "{/}", spacing);
+                }
+                else if (str.startsWith("M")) // spacing rule
+                {
+                    assert(index != -1);
+                    minimum = new WizardField();
+                    fillRule(str.substring(index+1), "{/}", minimum);
                 }
                 else if (str.startsWith("A")) // for arcs
                 {
@@ -1091,9 +1113,14 @@ public class TechEditWizardData
 	}
 
     // fillRule
-    private void fillRule(String str, WizardField... rules)
+    private static void fillRule(String str, WizardField... rules)
     {
-        StringTokenizer parse = new StringTokenizer(str, "(,)", false);
+        fillRule(str, "(,)", rules);
+    }
+
+    private static void fillRule(String str, String tokens, WizardField... rules)
+    {
+        StringTokenizer parse = new StringTokenizer(str, tokens, false);
         int count = 0;
         int pos = 0;
 
@@ -1108,6 +1135,7 @@ public class TechEditWizardData
                     break;
                 case 1:
                 case 3:
+                    value = value.replaceAll("\"", ""); // remove extra quotes
                     rules[pos].rule = value;
                     break;
                 default:
@@ -1147,13 +1175,9 @@ public class TechEditWizardData
                         layersList.add(layer);
                         break;
                     case 1:
-//                        layer.setGDSData(getGDSValuesFromString(s));
-//                        break;
                     case 2:
                     case 3:
-                            layer.setPinArcInfo(s);
-//                        else
-//                            layer.setGraphicsTemplate(s);
+                        layer.setLayerInformation(s);
                         break;
                     default:
                         assert(false);
@@ -1823,6 +1847,10 @@ public class TechEditWizardData
         return a;
     }
 
+    /**
+     * Method to create the XML version of a Layer.
+     * @return
+     */
     private Xml.Layer makeXmlLayer(List<Xml.Layer> layers, Map<Xml.Layer, WizardField> layerMap, String name,
                                    Layer.Function function, int extraf, EGraphics graph,
                                    WizardField width, boolean pureLayerNode, boolean pureLayerPortArc,
@@ -2517,6 +2545,12 @@ public class TechEditWizardData
                     null, makeXmlNodeLayer(hla, hla, hla, hla, layer, Poly.Type.CROSSED)), null);
                 extraPaletteList.add(grp);
             }
+
+            // Adding 3D info
+            if (info.height > -1) // -1 is the default valuu
+                layer.height3D = info.height;
+            if (info.thickness > -1) // -1 is the default valuu
+                layer.thick3D = info.thickness;
         }
 
         // Palette elements should be added at the end so they will appear in groups
@@ -3577,7 +3611,6 @@ public class TechEditWizardData
             Xml.Layer via = viaLayers.get(i);
             makeLayerRuleMinWid(t, via, via_size[i]);
             makeLayersRule(t, via, DRCTemplate.DRCRuleType.SPACING, via_inline_spacing[i].rule, via_inline_spacing[i].value);
-//            makeLayersRule(t, via, DRCTemplate.DRCRuleType.UCONSPA2D, via_array_spacing[i]);
         }
         // wide metal rules
         for (WideWizardField w : wide_metal_spacing)
@@ -3588,6 +3621,15 @@ public class TechEditWizardData
                 assert(layer != null);
                 makeLayersWideRule(t, layer, DRCTemplate.DRCRuleType.SPACING, w.rule, w.value, w.maxW, w.minLen);
             }
+        }
+        // spacing/min rules in extra layers
+        for (LayerInfo layer : extraLayers)
+        {
+            Xml.Layer l = t.findLayer(layer.name);
+            if (layer.minimum != null)
+                makeLayerRuleMinWid(t, l, layer.minimum);
+            if (layer.spacing != null)
+                makeLayersRule(t, l, DRCTemplate.DRCRuleType.SPACING, layer.spacing.rule, layer.spacing.value);
         }
 
         // Finish menu with Pure, Misc and Cell
