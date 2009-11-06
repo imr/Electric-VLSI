@@ -376,7 +376,31 @@ public class Input
 		return rest;
 	}
 
-	private void readNewLine() throws IOException
+    /**
+	 * Method to read comments in the form of /*
+	 */
+	protected void getRestOfComment() throws IOException
+	{
+        lineBufferPosition++; // only increment if it is the first time
+        for (;;)
+        {
+            // +1 to skip the space
+		    int next = lineBufferPosition;
+		    String rest = (next < lineBuffer.length()) ? lineBuffer.substring(next, lineBuffer.length()) : "";
+            int index = rest.indexOf("*/");
+
+            if (index != -1)
+            {
+                // found end
+                lineBufferPosition = index + 2; // or plus 1?
+                return;
+            }
+            lineBufferPosition = lineBuffer.length();
+            readNewLine();
+        }
+	}
+
+    private void readNewLine() throws IOException
 	{
 		lineBuffer = lineReader.readLine();
 
@@ -403,7 +427,8 @@ public class Input
 		// keep reading from file until something is found on a line
 		for(;;)
 		{
-			if (lineBuffer == null) return null;
+			if (lineBuffer == null)
+                return null;
 			if (lineBufferPosition >= lineBuffer.length())
 			{
 				readNewLine();

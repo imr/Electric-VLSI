@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+BUG: (11/5/09, GVG) [Bug 2459] New: VerilogReader can't parser /* comments (Bug #2459)
+FIX: Added ability to read until end of the */ comment.
+
 BUG: (11/5/09, GVG) Out of bounds expection in Verilog writing with invalid syntax (Bug #2458)
 FIX: Added extra code to detect syntax errors in input/output lines
 

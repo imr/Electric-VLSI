@@ -377,8 +377,9 @@ public class VerilogReader extends Input
             if (!input.contains(";"))
             {
                 // doesn't contain proper end of line
-                System.out.println("Missing end of line character ';' in input/output'" + input + "'");
-               throw new IOException("");
+                String msg = "Missing end of line character ';' in input/output'" + input + "'";
+                System.out.println(msg);
+               throw new IOException(msg);
             }
             StringTokenizer parse = new StringTokenizer(input, ";,", true); // extracting only input name
 
@@ -460,7 +461,19 @@ public class VerilogReader extends Input
             else
                 key = getAKeyword();
 
-            if (key.startsWith("/")) // comment
+            if (key == null)
+            {
+                String msg = "Reach end of file without finding a valid key, i.e. end of a comment";
+                System.out.println(msg);
+                throw new IOException(msg);
+            }
+            if (key.startsWith("/*"))
+            {
+                // read until */ is found
+                getRestOfComment();
+                continue;
+            }
+            if (key.startsWith("/")) // comment like //
             {
                 getRestOfLine();
                 continue;
@@ -517,25 +530,22 @@ public class VerilogReader extends Input
                 ignoreUntilEndOfStatement(endStatement); // either ; or end
                 continue;
             }
-
-//            if (verilogData == null)
+            
+            if (key.equals("tranif1")) // transistors
             {
-                if (key.equals("tranif1")) // transistors
-                {
-                    // reading gates
-                    //tranif1 nmos4p_0(gnd, gnd, vPlt); -> nmos
-                    assert(false); // implement again
-                    nextToken = readGate(cell, PrimitiveNode.Function.TRANMOS);
-                    continue;
-                }
-                if (key.equals("tranif0")) // transistors
-                {
-                    // reading gates
-                    //tranif1 nmos4p_0(gnd, gnd, vPlt); -> nmos
-                    assert(false); // implement again
-                    nextToken = readGate(cell, PrimitiveNode.Function.TRAPMOS);
-                    continue;
-                }
+                // reading gates
+                //tranif1 nmos4p_0(gnd, gnd, vPlt); -> nmos
+                assert(false); // implement again
+                nextToken = readGate(cell, PrimitiveNode.Function.TRANMOS);
+                continue;
+            }
+            if (key.equals("tranif0")) // transistors
+            {
+                // reading gates
+                //tranif1 nmos4p_0(gnd, gnd, vPlt); -> nmos
+                assert(false); // implement again
+                nextToken = readGate(cell, PrimitiveNode.Function.TRAPMOS);
+                continue;
             }
 
             // reading cell instances
