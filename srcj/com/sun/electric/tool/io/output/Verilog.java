@@ -1908,23 +1908,36 @@ public class Verilog extends Topology
 	 * @param preferredView the preferred cell view. Schematic if null.
 	 * @return the cell, or null if not found
 	 */
-	public static Cell findCell(String verilogName, View preferredView) {
-		String [] parts = verilogName.split("__");
-		if (parts.length != 2) {
-			//System.out.println("Invalid Verilog-style module name: "+verilogName);
-			return null;
-		}
-		Library lib = Library.findLibrary(parts[0]);
-		if (lib == null) {
-			System.out.println("Cannot find library "+parts[0]+" for Verilog-style module name: "+verilogName);
-			return null;
-		}
-		if (preferredView == null) preferredView = View.SCHEMATIC;
-		Cell cell = lib.findNodeProto(parts[1]);
-		if (cell == null) {
-			System.out.println("Cannot find Cell "+parts[1]+" in Library "+parts[0]+" for Verilog-style module name: "+verilogName);
-			return null;
-		}
+	public static Cell findCell(String verilogName, View preferredView)
+    {
+        Cell cell = null;
+        String [] parts = verilogName.split("__");
+
+        // Assuming Library_Cell format
+        if (parts.length == 2)
+        {
+            Library lib = Library.findLibrary(parts[0]);
+            if (lib == null) {
+                System.out.println("Cannot find library "+parts[0]+" for Verilog-style module name: "+verilogName);
+                return null;
+            }
+            if (preferredView == null) preferredView = View.SCHEMATIC;
+            cell = lib.findNodeProto(parts[1]);
+
+            if (cell == null) {
+                System.out.println("Cannot find Cell "+parts[1]+" in Library "+parts[0]+" for Verilog-style module name: "+verilogName);
+                return null;
+		    }
+        }
+        else
+        {
+            // just try to find first cell with name
+            cell = Library.findCellInLibraries(verilogName, View.SCHEMATIC, null);
+            if (cell == null) {
+                System.out.println("Cannot find Cell '" + verilogName +"' for Verilog-style module name: "+verilogName);
+                return null;
+		    }
+        }
 		Cell preferred = cell.otherView(preferredView);
 		if (preferred != null) return preferred;
 

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+BUG: (11/6/09, GVG) Writing Verilog deck from Verilog view (Bug #1323)
+FIX: Library_Cell format is just one option.
+
 IMP: (11/6/09, GVG) Ability to specify min/spacing rules for other layers (Bug #2460)
 IMP: (11/6/09, GVG) Improving syntaxt in TechEditorWizard file to include rules in @extra_layers
 
