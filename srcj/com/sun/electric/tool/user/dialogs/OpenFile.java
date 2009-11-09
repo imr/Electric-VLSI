@@ -66,9 +66,17 @@ public class OpenFile
 			if (saveDialog)
 			{
 				String filename = f.getName();
-				if (f.exists())
+                FileType selectedType = FileType.getType(getFileFilter());
+                String extension = TextUtils.getExtension(filename);
+                FileType givenExtension = FileType.findTypeByExtension(extension);
+
+                if (givenExtension != selectedType)
+                {
+                    f = new File(f.getAbsolutePath() + "." + selectedType.getExtensions()[0]);
+                }
+                if (f.exists())
 				{
-					int result = JOptionPane.showConfirmDialog(this, "The file "+filename+" already exists, would you like to overwrite it?",
+					int result = JOptionPane.showConfirmDialog(this, "The file "+f.getName()+" already exists, would you like to overwrite it?",
 						"Overwrite?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 					if (result != JOptionPane.OK_OPTION) return;
 				}
@@ -140,7 +148,11 @@ public class OpenFile
 			}
 			return super.isDirectorySelectionEnabled();
 		}
-	}
+
+        public void setSelectedFile(File file) {
+            super.setSelectedFile(file);
+        }
+    }
 
 //	/** the location of the open file dialog */		private static Point location = null;
 
@@ -210,8 +222,8 @@ public class OpenFile
 		String path = (type != null) ? type.getGroupPath() : null;
 		if (path != null)
 			initialDir = path;
-
-		if (useSwing)
+        
+        if (useSwing)
 		{
 			OpenFileSwing dialog = new OpenFileSwing();
 			dialog.saveDialog = false;

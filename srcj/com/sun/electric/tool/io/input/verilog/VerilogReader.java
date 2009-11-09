@@ -722,7 +722,7 @@ public class VerilogReader extends Input
         Cell theCell = null;
 
         Library library = Library.newInstance(verilogData.name, null);
-        String topCellName = TextUtils.getFileNameWithoutExtension(verilogData.name);
+        String topCellName = TextUtils.getFileNameWithoutExtension(verilogData.name, true);
         buildCells(verilogData, library, false);
         theCell = library.findNodeProto(topCellName);
         if (job != null)

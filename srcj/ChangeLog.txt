@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+BUG: (11/09/09, GVG) Switching fro JELIB to DELIB generates wrong file extensions (Bug #2328)
+FIX: Warns now about the correct filename. Points 1 and 3 not implemented.
+
 BUG: (11/9/09, DN) Null pointer exception while pasting layout cells (Bug #2462).
 FIX: In CellTree.with always continue cellUsages loop when cui == null.
 

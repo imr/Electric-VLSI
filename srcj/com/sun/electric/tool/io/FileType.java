@@ -24,7 +24,6 @@
 package com.sun.electric.tool.io;
 
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.tool.user.User;
 
 import javax.swing.filechooser.FileFilter;
 import java.util.ArrayList;
@@ -339,6 +338,25 @@ public class FileType implements Serializable {
 		return null;
     }
 
+    /**
+     * Method to find a given type by extension name.
+     * @param extName name of the extension
+     * @return FileType instance
+     */
+    public static FileType findTypeByExtension(String extName)
+    {
+        String n = extName.toLowerCase();
+        for (FileType type : allTypes)
+        {
+            for (String ex : type.extensions)
+            {
+                if (ex.toLowerCase().equals(n))
+                    return type;
+            }
+		}
+		return null;
+    }
+
     private static class FileFilterSwing extends FileFilter
 	{
 		/** list of valid extensions */				private String[] extensions;
@@ -366,7 +384,7 @@ public class FileType implements Serializable {
 		}
 
 		public String getDescription() { return desc; }
-	}
+    }
 
 	private static class FileFilterAWT implements FilenameFilter
 	{
@@ -439,5 +457,4 @@ public class FileType implements Serializable {
         }
         return defaultType;
     }
-
 }

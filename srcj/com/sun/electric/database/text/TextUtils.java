@@ -32,7 +32,6 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Client;
-import com.sun.electric.Main;
 
 import java.awt.Color;
 import java.awt.Toolkit;
@@ -1441,7 +1440,7 @@ public class TextUtils
 	 * @return the pure file name.
 	 */
 	public static String getFileNameWithoutExtension(URL url) {
-		return getFileNameWithoutExtension(URLtoString(url));
+		return getFileNameWithoutExtension(URLtoString(url), true);
 	}
 
 	/**
@@ -1450,21 +1449,25 @@ public class TextUtils
 	 * It is used to find the library name from a file patj.
 	 * For example, the file path "file:/users/strubin/gates.elib" has the pure file name "gates".
 	 * @param fileName full name of file.
-	 * @return the pure file name.
+	 * @param removePath if only file name without path should be extracted
+     * @return the pure file name.
 	 */
-	public static String getFileNameWithoutExtension(String fileName)
+	public static String getFileNameWithoutExtension(String fileName, boolean removePath)
 	{
-		// special case if the library path came from a different computer system and still has separators
-		while (fileName.endsWith("\\") || fileName.endsWith(":") || fileName.endsWith("/"))
-			fileName = fileName.substring(0, fileName.length()-1);
-		int backSlashPos = fileName.lastIndexOf('\\');
-		int colonPos = fileName.lastIndexOf(':');
-		int slashPos = fileName.lastIndexOf('/');
-		int charPos = Math.max(backSlashPos, Math.max(colonPos, slashPos));
-		if (charPos >= 0)
-			fileName = fileName.substring(charPos+1);
+        if (removePath)
+        {
+            // special case if the library path came from a different computer system and still has separators
+            while (fileName.endsWith("\\") || fileName.endsWith(":") || fileName.endsWith("/"))
+                fileName = fileName.substring(0, fileName.length()-1);
+            int backSlashPos = fileName.lastIndexOf('\\');
+            int colonPos = fileName.lastIndexOf(':');
+            int slashPos = fileName.lastIndexOf('/');
+            int charPos = Math.max(backSlashPos, Math.max(colonPos, slashPos));
+            if (charPos >= 0)
+                fileName = fileName.substring(charPos+1);
+        }
 
-		int dotPos = fileName.lastIndexOf('.');
+        int dotPos = fileName.lastIndexOf('.');
 		if (dotPos >= 0) fileName = fileName.substring(0, dotPos);
 
 		// make sure the file name is legal
@@ -1506,12 +1509,24 @@ public class TextUtils
 	{
 		if (url == null) return "";
 		String fileName = URLtoString(url);
+        return getExtension(fileName);
+	}
+
+    /**
+	 * Method to return the extension of the file.
+	 * The extension is the part after the last dot.
+	 * For example, the URL "file:/users/strubin/gates.elib" has the extension "elib".
+	 * @param fileName String containing the file name.
+	 * @return the extension of the file ("" if none).
+	 */
+    public static String getExtension(String fileName)
+    {
 		int dotPos = fileName.lastIndexOf('.');
 		if (dotPos < 0) return "";
 		return fileName.substring(dotPos+1);
-	}
+    }
 
-	/**
+    /**
 	 * Method to open an input stream to a URL.
 	 * @param url the URL to the file.
 	 * @return the InputStream, or null if the file cannot be found.

@@ -53,9 +53,6 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.cvspm.CVS;
-import com.sun.electric.tool.cvspm.CVSLibrary;
-import com.sun.electric.tool.cvspm.Update;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
@@ -791,7 +788,7 @@ public abstract class LibraryFiles extends Input
 	protected Library readExternalLibraryFromFilename(String theFileName, FileType defaultType)
 	{
 		// get the path to the library file
-		String legalLibName = TextUtils.getFileNameWithoutExtension(theFileName);
+		String legalLibName = TextUtils.getFileNameWithoutExtension(theFileName, true);
         // Checking if the library is already open
 		Library elib = Library.findLibrary(legalLibName);
 		if (elib != null) return elib;
