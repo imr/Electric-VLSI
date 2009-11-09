@@ -126,8 +126,11 @@ public class CellTree {
         for (int i = 0; i < cellRevision.cellUsages.length; i++) {
             CellRevision.CellUsageInfo cui = cellRevision.cellUsages[i];
             CellTree subTree = subTrees[i];
-            if (cui == null && subTree != null)
-                throw new IllegalArgumentException();
+            if (cui == null) {
+                if (subTree != null)
+                    throw new IllegalArgumentException();
+                continue;
+            }
             BitSet subTechUsages = subTree.techPool.getTechUsages();
             if (subTree.techPool != superPool.restrict(subTechUsages, subTree.techPool))
                 throw new IllegalArgumentException();

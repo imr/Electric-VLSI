@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+BUG: (11/9/09, DN) Null pointer exception while pasting layout cells (Bug #2462).
+FIX: In CellTree.with always continue cellUsages loop when cui == null.
+
 BUG: (11/9/09, GVG) Incorrrect verilog netlist for individual ports with bus tags (Bug #2461)
 FIX: Fixed wrong export selection when the signal is descending.
 
