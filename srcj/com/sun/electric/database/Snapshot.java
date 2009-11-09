@@ -51,8 +51,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +69,7 @@ public class Snapshot {
     public final Environment environment;
     public final TechPool techPool;
     private final ERectangle[] cellBounds;
+    private final CellTree[] cellTrees;
 
     /** Creates a new instance of Snapshot */
     private Snapshot(IdManager idManager, int snapshotId, Tool tool,
@@ -78,7 +77,8 @@ public class Snapshot {
             int[] cellGroups, CellId[] groupMainSchematics,
             ImmutableArrayList<LibraryBackup> libBackups,
             Environment environment,
-            ERectangle[] cellBounds) {
+            ERectangle[] cellBounds,
+            CellTree[] cellTrees) {
         this.idManager = idManager;
         this.snapshotId = snapshotId;
         this.tool = tool;
@@ -96,6 +96,7 @@ public class Snapshot {
             if (cellBackups.get(cellIndex) == null)
                 throw new IllegalArgumentException();
         }
+        this.cellTrees = cellTrees;
 //        if (Job.getDebug())
 //            check();
     }
@@ -106,7 +107,8 @@ public class Snapshot {
     public Snapshot(IdManager idManager) {
         this(idManager, 0, null, CellBackup.EMPTY_LIST,
                 new int[0], new CellId[0],
-                LibraryBackup.EMPTY_LIST, idManager.getInitialEnvironment(), ERectangle.NULL_ARRAY);
+                LibraryBackup.EMPTY_LIST, idManager.getInitialEnvironment(),
+                ERectangle.NULL_ARRAY, CellTree.NULL_ARRAY);
     }
 
     /**
@@ -235,9 +237,10 @@ public class Snapshot {
 
         if (cellBoundsArray == null)
             cellBoundsArray = this.cellBounds;
+        CellTree[] cellTrees = computeCellTrees(cellBackups, environment.techPool);
         Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool, cellBackups,
                 cellGroups, groupMainSchematics,
-                libBackups, environment, cellBoundsArray);
+                libBackups, environment, cellBoundsArray, cellTrees);
 //        long endTime = System.currentTimeMillis();
 //        System.out.println("Creating snapshot took: " + (endTime - startTime) + " msec");
         return snapshot;
@@ -281,6 +284,38 @@ public class Snapshot {
 //            throw new ConcurrentModificationException();
 //        return copyArray;
 //    }
+
+    private CellTree[] computeCellTrees(ImmutableArrayList<CellBackup> cellBackups, TechPool techPool) {
+        CellTree[] result = new CellTree[cellBackups.size()];
+        for (int cellIndex = 0; cellIndex < result.length; cellIndex++) {
+            CellBackup cellBackup = cellBackups.get(cellIndex);
+            if (cellBackup == null) continue;
+            computeCellTrees(cellBackup.cellRevision.d.cellId, cellBackups, techPool, result);
+        }
+        return result;
+    }
+
+    private CellTree computeCellTrees(CellId topCellId, ImmutableArrayList<CellBackup> cellBackups, TechPool techPool, CellTree[] cellTrees) {
+        int cellIndex = topCellId.cellIndex;
+        CellTree cellTree = cellTrees[cellIndex];
+        if (cellTree == null) {
+            CellBackup top = cellBackups.get(cellIndex);
+            int[] instCounts = top.cellRevision.getInstCounts();
+            CellTree[] subTrees = new CellTree[instCounts.length];
+            for (int i = 0; i < subTrees.length; i++) {
+                if (instCounts[i] == 0) continue;
+                subTrees[i] = computeCellTrees(topCellId.getUsageIn(i).protoId, cellBackups, techPool, cellTrees);
+            }
+            if (cellIndex < this.cellTrees.length)
+                cellTree = this.cellTrees[cellIndex];
+            if (cellTree == null)
+                cellTree = CellTree.newInstance(top.cellRevision.d, techPool);
+            cellTree = cellTree.with(top, subTrees, techPool);
+            cellTrees[cellIndex] = cellTree;
+        }
+        return cellTree;
+    }
+
 
 	/**
 	 * Returns Snapshot which differs from this Snapshot by renamed Ids.
@@ -768,9 +803,10 @@ public class Snapshot {
             assert (cellBackups.get(i) != null) == (cellBoundsArray[i] != null);
             assert (cellBackups.get(i) != null) == (cellGroups[i] >= 0);
         }
+        CellTree[] cellTrees = oldSnapshot.computeCellTrees(cellBackups, environment.techPool);
         return new Snapshot(oldSnapshot.idManager, snapshotId, tool, cellBackups,
                 cellGroups, groupMainSchematics,
-                libBackups, environment, cellBoundsArray);
+                libBackups, environment, cellBoundsArray, cellTrees);
     }
 
     /**
@@ -834,13 +870,16 @@ public class Snapshot {
             assert foundMainSchematics.get(groupIndex) == (groupMainSchematics[groupIndex] != null);
         }
         assert cellBackups.size() == cellBounds.length;
+        assert cellBackups.size() == cellTrees.length;
         BitSet checkUsedTechs = new BitSet();
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup cellBackup = cellBackups.get(cellIndex);
             if (cellBackup == null) {
                 assert cellBounds[cellIndex] == null;
+                assert cellTrees[cellIndex] == null;
                 continue;
             }
+            assert cellTrees[cellIndex].top == cellBackup;
             CellRevision cellRevision = cellBackup.cellRevision;
 //            assert cellBounds.get(cellIndex) != null;
             checkUsedTechs.or(cellRevision.techUsages);
@@ -851,8 +890,10 @@ public class Snapshot {
                 CellUsage u = cellId.getUsageIn(i);
                 int subCellIndex = u.protoId.cellIndex;
                 cui.checkUsage(cellBackups.get(subCellIndex).cellRevision);
+                assert cellTrees[cellIndex].subTrees[i] == cellTrees[subCellIndex];
             }
             assert cellBackup.techPool == techPool.restrict(cellRevision.techUsages, cellBackup.techPool);
+            assert cellBounds[cellIndex].equals(cellTrees[cellIndex].getBounds());
         }
         assert cellBoundsDefined();
         assert techPool.idManager == idManager;

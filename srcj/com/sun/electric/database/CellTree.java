@@ -31,32 +31,164 @@ import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.technology.TechPool;
 
 import java.awt.geom.Rectangle2D;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.Set;
 
 /**
  * CellTree consists of top CellBackup and all CellTrees for all subcells.
  * It can compute Cell bounds and shape of Exports.
  */
 public class CellTree {
+    public static final CellTree[] NULL_ARRAY = {};
+
+    /**
+     * top CellBackup
+     */
     public final CellBackup top;
+    final CellTree[] subTrees;
+
+    /**
+     * TechPool containing all Technologies used in this CellTree
+     */
     public final TechPool techPool;
-    private final CellTree[] subTrees;
+    /**
+     * All cells used in this CellTree
+     */
+    public final Set<CellId> allCells;
     private ERectangle bounds;
 
-    private CellTree(CellBackup top, TechPool techPool, CellTree[] subTrees) {
+    private CellTree(CellBackup top, CellTree[] subTrees, TechPool techPool, Set<CellId> allCells) {
         this.top = top;
-        this.techPool = techPool;
         this.subTrees = subTrees;
+        this.techPool = techPool;
+        this.allCells = allCells;
     }
 
+    public static CellTree newInstance(ImmutableCell d, TechPool techPool) {
+        CellBackup top = CellBackup.newInstance(d, techPool);
+        assert top.cellRevision.cellUsages.length == 0;
+        return new CellTree(top, NULL_ARRAY, top.techPool, Collections.singleton(top.cellRevision.d.cellId));
+    }
+
+    /**
+     * Returns CellTree which differs from this CellTree.
+     * @param top new top CellBackup
+     * @param subTrees new subCellTrees
+     * @param superPool TechPool which contains
+     * @return CellTree which differs from this CellTree.
+     */
+    public CellTree with(CellBackup top, CellTree[] subTrees, TechPool superPool) {
+        // Canonize subTrees
+        if (Arrays.equals(this.subTrees, subTrees)) {
+            subTrees = this.subTrees;
+        } else {
+            subTrees = subTrees.clone();
+            int l = subTrees.length;
+            while (l > 0 && subTrees[l - 1] == null)
+                l--;
+            if (l == 0) {
+                subTrees = NULL_ARRAY;
+            } else if (l != subTrees.length) {
+                CellTree[] newSubTrees = null;
+                if (l == this.subTrees.length) {
+                    newSubTrees = this.subTrees;
+                    for (int i = 0; i < l; i++) {
+                        if (newSubTrees[i] != subTrees[i]) {
+                            newSubTrees = null;
+                            break;
+                        }
+                    }
+                }
+                if (newSubTrees == null) {
+                    newSubTrees = new CellTree[l];
+                    System.arraycopy(subTrees, 0, newSubTrees, 0, l);
+                }
+                subTrees = newSubTrees;
+            }
+        }
+        // Check if unchanged
+        if (this.top == top && this.subTrees == subTrees) return this;
+
+        // Check if subTrees match the top backup
+        // Check technologies against superPool
+        // Compute cells and technologies used in new tree
+        CellRevision cellRevision = top.cellRevision;
+        CellId cellId = cellRevision.d.cellId;
+        BitSet techUsages = new BitSet();
+        if (top.techPool != superPool.restrict(cellRevision.techUsages, top.techPool))
+            throw new IllegalArgumentException();
+        techUsages.or(cellRevision.techUsages);
+        HashSet<CellId> allCellsAccum = new HashSet<CellId>();
+        for (int i = 0; i < cellRevision.cellUsages.length; i++) {
+            CellRevision.CellUsageInfo cui = cellRevision.cellUsages[i];
+            CellTree subTree = subTrees[i];
+            if (cui == null && subTree != null)
+                throw new IllegalArgumentException();
+            BitSet subTechUsages = subTree.techPool.getTechUsages();
+            if (subTree.techPool != superPool.restrict(subTechUsages, subTree.techPool))
+                throw new IllegalArgumentException();
+            techUsages.or(subTechUsages);
+            allCellsAccum.addAll(subTree.allCells);
+            CellRevision subCellRevision = subTree.top.cellRevision;
+            if (subCellRevision.d.cellId != cellId.getUsageIn(i).protoId)
+                throw new IllegalArgumentException();
+            cui.checkUsage(subCellRevision);
+        }
+
+        // Check for recursion
+        if (allCellsAccum.contains(cellId))
+            throw new IllegalArgumentException("Recursive "+cellId);
+        // Canonize new allCells
+        allCellsAccum.add(cellId);
+        Set<CellId> allCells;
+        if (allCellsAccum.equals(this.allCells)) {
+            allCells = this.allCells;
+        } else if (allCellsAccum.size() == 1) {
+            allCells = Collections.singleton(cellId);
+        } else {
+            allCells = Collections.unmodifiableSet(allCellsAccum);
+        }
+        assert allCellsAccum.equals(allCells);
+
+        // Construct new CellTree
+        TechPool techPool = superPool.restrict(techUsages, this.techPool);
+        CellTree newCellTree = new CellTree(top, subTrees, techPool, allCells);
+
+        // Try to reuse cell bounds
+        if (this.bounds != null && this.top == top) {
+            assert newCellTree.subTrees.length == this.subTrees.length;
+            ERectangle cellBounds = this.bounds;
+            for (int i = 0; i < this.subTrees.length; i++) {
+                assert this.subTrees[i].bounds != null;
+                if (newCellTree.subTrees[i].bounds != this.subTrees[i].bounds) {
+                    cellBounds = null;
+                    break;
+                }
+            }
+            if (cellBounds != null)
+                newCellTree.bounds = cellBounds;
+                ERectangle oldPrimBounds = this.top.getPrimitiveBounds();
+        }
+
+        // Return the new CellTree
+        return newCellTree;
+    }
+
+    /**
+     * Returns cell bounds of this CellTree
+     * @return cell bounds of this CellTree
+     */
     public ERectangle getBounds() {
         if (bounds == null)
-            computeBounds(null);
+            bounds = computeBounds(null);
         return bounds;
     }
 
-    private void computeBounds(ERectangle candidateBounds) {
+    private ERectangle computeBounds(ERectangle candidateBounds) {
         CellRevision cellRevision = top.cellRevision;
 
         // Collect subcell bounds
@@ -114,16 +246,16 @@ public class CellTree {
         }
         if (candidateBounds != null && gridMinX == candidateBounds.getGridMinX() && gridMinY == candidateBounds.getGridMinY() &&
                 gridMaxX == candidateBounds.getGridMaxX() && gridMaxY == candidateBounds.getGridMaxY())
-            bounds = candidateBounds;
-        else
-            bounds = ERectangle.fromGrid(gridMinX, gridMinY, gridMaxX - gridMinX, gridMaxY - gridMinY);
+            return candidateBounds;
+        return ERectangle.fromGrid(gridMinX, gridMinY, gridMaxX - gridMinX, gridMaxY - gridMinY);
     }
 
-    void check() {
+    public void check() {
         CellId cellId = top.cellRevision.d.cellId;
         BitSet techUsages = new BitSet();
         techUsages.or(top.cellRevision.techUsages);
         assert subTrees.length == top.cellRevision.cellUsages.length;
+        HashSet<CellId> allCells = new HashSet<CellId>();
         for (int i = 0; i < subTrees.length; i++) {
             CellTree subTree = subTrees[i];
             CellRevision.CellUsageInfo cui = top.cellRevision.cellUsages[i];
@@ -131,13 +263,24 @@ public class CellTree {
                 assert subTree == null;
                 continue;
             }
+            CellRevision subCellRevision = subTree.top.cellRevision;
             CellUsage cu = cellId.getUsageIn(i);
-            assert subTree.top.cellRevision.d.cellId == cu.protoId;
+            assert subCellRevision.d.cellId == cu.protoId;
+            cui.checkUsage(subCellRevision);
             BitSet subTechUsage = subTree.techPool.getTechUsages();
             assert subTree.techPool == techPool.restrict(subTechUsage, subTree.techPool);
             techUsages.or(subTechUsage);
+            allCells.addAll(subTree.allCells);
         }
         assert top.techPool == techPool.restrict(top.cellRevision.techUsages, top.techPool);
         assert techUsages.equals(techPool.getTechUsages());
+        assert !allCells.contains(cellId);
+        allCells.add(cellId);
+        assert allCells.equals(this.allCells);
+        if (bounds != null)
+            assert bounds == computeBounds(bounds);
     }
+
+    @Override
+    public String toString() { return top.toString(); }
 }

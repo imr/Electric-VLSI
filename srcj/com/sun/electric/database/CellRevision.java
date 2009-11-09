@@ -606,7 +606,7 @@ public class CellRevision {
         private boolean isIcon() { return usedAttributes != null; }
 
         private void check(CellUsage u) {
-            assert instCount >= 0;
+            assert instCount > 0;
             assert usedExportsLength == usedExports.length();
             if (usedExportsLength == 0)
                 assert usedExports == EMPTY_BITSET;

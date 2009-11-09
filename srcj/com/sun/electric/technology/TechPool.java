@@ -216,6 +216,15 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         return techStates.isEmpty() ? new TechPool(idManager) : new TechPool(techStates);
     }
 
+    /**
+     * Returns true if this pool is the restriction of specified super pool.
+     * @param superPool specified super pool
+     * @return true if this pool is the restriction of specified super pool.
+     */
+    public boolean isRestriction(TechPool superPool) {
+        return isRestriction(superPool, getTechUsages());
+    }
+
     private boolean isRestriction(TechPool superPool, BitSet techUsed) {
         if (techUsed.length() != techs.length)
             return false;

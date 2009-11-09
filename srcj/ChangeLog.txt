@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+IMP: (11/9/09, DN) Snapshot contains CellTree objects which can compute Cell bounds.
+    For some time Cell bounds will be computed both by Snapshot and by EDatabase to self-check.
+
 BUG: (11/6/09, GVG) Writing Verilog deck from Verilog view (Bug #1323)
 FIX: Library_Cell format is just one option.
 
