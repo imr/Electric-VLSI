@@ -700,7 +700,7 @@ public class Verilog extends Topology
 			// look for a Verilog template on the prototype
 			if (no.isCellInstance())
 			{
-				// if writing standard cell netlist, do not write out cells that
+                // if writing standard cell netlist, do not write out cells that
 				// do not contain standard cells
 				if (localPrefs.stopAtStandardCells)
 				{
@@ -956,13 +956,14 @@ public class Verilog extends Topology
 								// broken bus internally, write signals individually
 								for(int i=0; i<indices.length; i++)
 								{
-									CellSignal cInnerSig = cas.getSignal(i);
-									Network net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
-									CellSignal outerSignal = cni.getCellSignal(net);
-									accumulatePortConnectivity(instancePortsOnNet, net, (Export)pp);
-
 									int ind = i;
 									if (cas.isDescending()) ind = indices.length - i - 1;
+									CellSignal cInnerSig = cas.getSignal(ind);
+//									Network net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
+                                    Network net = netList.getNetwork(no, cInnerSig.getExport(), cInnerSig.getExportIndex());
+                                    CellSignal outerSignal = cni.getCellSignal(net);
+									accumulatePortConnectivity(instancePortsOnNet, net, (Export)pp);
+
 									if (i > 0) infstr.append(", ");
 									infstr.append(".\\" + cas.getName() + "[" + indices[ind] + "] (");
 								   	infstr.append(getSignalName(outerSignal));

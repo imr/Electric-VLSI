@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+BUG: (11/9/09, GVG) Incorrrect verilog netlist for individual ports with bus tags (Bug #2461)
+FIX: Fixed wrong export selection when the signal is descending.
+
 IMP: (11/9/09, DN) Snapshot contains CellTree objects which can compute Cell bounds.
     For some time Cell bounds will be computed both by Snapshot and by EDatabase to self-check.
 
