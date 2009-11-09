@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+IMP: (11/09/09, GVG) TechEditorWizard should produce some 3D values (Bug #2235)
+Implemented with Bug #2460
+
 BUG: (11/09/09, GVG) Switching fro JELIB to DELIB generates wrong file extensions (Bug #2328)
 FIX: Warns now about the correct filename. Points 1 and 3 not implemented.
 
@@ -22,7 +25,7 @@ FIX: Library_Cell format is just one option.
 IMP: (11/6/09, GVG) Ability to specify min/spacing rules for other layers (Bug #2460)
 IMP: (11/6/09, GVG) Improving syntaxt in TechEditorWizard file to include rules in @extra_layers
 
-BUG: (11/5/09, GVG) [Bug 2459] New: VerilogReader can't parser /* comments (Bug #2459)
+BUG: (11/5/09, GVG) VerilogReader can't parser /* comments (Bug #2459)
 FIX: Added ability to read until end of the */ comment.
 
 BUG: (11/5/09, GVG) Out of bounds expection in Verilog writing with invalid syntax (Bug #2458)
