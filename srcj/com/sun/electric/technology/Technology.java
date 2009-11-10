@@ -3700,8 +3700,9 @@ public class Technology implements Comparable<Technology>, Serializable
 		{
 			// serpentine transistors use a more complex port determination
 			SerpentineTrans std = new SerpentineTrans(n, pn, pn.getNodeLayers());
-			if (std.hasValidData())
-				return std.fillTransPort(pp);
+//			if (std.hasValidData())
+//				return std.fillTransPort(pp);
+            return;
 		}
 
 		// standard port determination, see if there is outline information
