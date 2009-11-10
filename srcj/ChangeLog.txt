@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
-IMP: (11/10/09, GVG) Export doesn't contain a strong reference to original PortInst.
+BUG: (11/10/09, GVG) Verilog not including subcells found in other libraries (Bug #2466)
+FIX: Using Library.findCellInLibraries() instead of lib.findNodeProto()
+
+IMP: (11/10/09, DN) Export doesn't contain a strong reference to original PortInst.
 
 IMP: (11/09/09, GVG) TechEditorWizard should produce some 3D values (Bug #2235)
 Implemented with Bug #2460

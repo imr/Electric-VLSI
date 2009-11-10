@@ -719,12 +719,10 @@ public class VerilogReader extends Input
 
     public Cell createCellsOnly(VerilogData verilogData, Job job)
     {
-        Cell theCell = null;
-
         Library library = Library.newInstance(verilogData.name, null);
         String topCellName = TextUtils.getFileNameWithoutExtension(verilogData.name, true);
         buildCells(verilogData, library, false);
-        theCell = library.findNodeProto(topCellName);
+        Cell theCell = library.findNodeProto(topCellName);
         if (job != null)
             System.out.println("Accumulative time after creating cells '" + verilogData.name + "' " + job.getInfo());
         return theCell; // still work because VerilogReader remembers the top cell
@@ -741,10 +739,10 @@ public class VerilogReader extends Input
         return verilogData;
     }
 
-    public Cell readVerilog(String testName, String file, boolean createCells, boolean fullOyster, Job job)
+    public Cell readVerilog(String testName, String file, boolean createCells, boolean simplifyWires, Job job)
     {
         URL fileURL = TextUtils.makeURLToFile(file);
-        VerilogData verilogData = parseVerilog(file, fullOyster);
+        VerilogData verilogData = parseVerilog(file, simplifyWires);
         if (verilogData == null) return null; // error
         int index = file.lastIndexOf("/");
         String libName = file.substring(index+1);
@@ -756,7 +754,7 @@ public class VerilogReader extends Input
         {
             Library library = Library.newInstance(libName, null);
             String topCellName = TextUtils.getFileNameWithoutExtension(fileURL);
-            topCell = buildCells(verilogData, library, fullOyster);
+            topCell = buildCells(verilogData, library, simplifyWires);
             Cell c = library.findNodeProto(topCellName);
             if (c == null)
             {
@@ -822,15 +820,15 @@ public class VerilogReader extends Input
      * Function to build cells from a VerilogData object
      * @param verilogCell
      * @param lib
-     * @param fullOyster
+     * @param createIconCells
      */
-    private Cell buildCells(VerilogData verilogCell, Library lib, boolean fullOyster)
+    private Cell buildCells(VerilogData verilogCell, Library lib, boolean createIconCells)
     {
         Cell topCell = null; // assumes the first module in the list is the top cell
 
         for (VerilogData.VerilogModule module : verilogCell.getModules())
         {
-            Cell cell = buildCellFromModule(module, lib, fullOyster);
+            Cell cell = buildCellFromModule(module, lib, createIconCells);
             if (topCell == null)
                 topCell = cell;
         }
@@ -871,13 +869,13 @@ public class VerilogReader extends Input
     /**
      * Function to build cell fro a VerilogModule object
      * @param lib
-     * @param fullOyster
+     * @param createIconcells
      * @return Cell object representing this module
      */
-    private Cell buildCellFromModule(VerilogData.VerilogModule module, Library lib, boolean fullOyster)
+    private Cell buildCellFromModule(VerilogData.VerilogModule module, Library lib, boolean createIconcells)
     {
         String cellName = module.name + View.SCHEMATIC.getAbbreviationExtension();
-        Cell cell = lib.findNodeProto(cellName);
+        Cell cell = Library.findCellInLibraries(cellName, View.SCHEMATIC, null);
         if (cell != null) return cell; // already created;
 
         cell = Cell.makeInstance(lib, cellName);
@@ -898,7 +896,7 @@ public class VerilogReader extends Input
 //        for (VerilogData.VerilogWire wire : module.getWires())
         {
             VerilogData.VerilogWire wire = (VerilogData.VerilogWire)obj;
-            addPins(wire, cell, false, fullOyster);
+            addPins(wire, cell, false, createIconcells);
         }
 
         else if (obj instanceof VerilogData.VerilogPort)
@@ -918,7 +916,7 @@ public class VerilogReader extends Input
                     portType == PortCharacteristic.UNKNOWN) // unknown when modules are read as instances
             {
                 // new code
-                addPins(port, cell, true, fullOyster);
+                addPins(port, cell, true, createIconcells);
             }
             else if (portType == PortCharacteristic.PWR ||
                     portType == PortCharacteristic.GND)
@@ -948,11 +946,11 @@ public class VerilogReader extends Input
         // instances
         for (VerilogData.VerilogInstance inst : module.getInstances())
         {
-            buildNodeInstFromModule(inst, lib, cell, fullOyster);
+            buildNodeInstFromModule(inst, lib, cell, createIconcells);
         }
 
         // making icon
-        if (fullOyster)
+        if (createIconcells)
             ViewChanges.makeIconViewNoGUI(cell, true, true);
 
         return cell; // not too much sense?
@@ -963,12 +961,12 @@ public class VerilogReader extends Input
      * @param inst
      * @param lib
      * @param parent
-     * @param fullOyster
+     * @param useIconCell
      */
-    Cell buildNodeInstFromModule(VerilogData.VerilogInstance inst, Library lib, Cell parent, boolean fullOyster)
+    Cell buildNodeInstFromModule(VerilogData.VerilogInstance inst, Library lib, Cell parent, boolean useIconCell)
     {
-        Cell schematics = buildCellFromModule(inst.element, lib, fullOyster);
-        Cell icon = (fullOyster) ? schematics.iconView() : schematics;
+        Cell schematics = buildCellFromModule(inst.element, lib, useIconCell);
+        Cell icon = (useIconCell) ? schematics.iconView() : schematics;
 //        if (icon == null)
 //        assert(icon != null);
 

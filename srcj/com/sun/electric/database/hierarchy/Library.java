@@ -53,7 +53,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 /**
@@ -1055,7 +1054,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 
     /**
 	 * Method to find the Cell with the given name in this Library.
-	 * @param name the name of the desired Cell.
+	 * @param name the name of the desired Cell. It must have the view included in the name.
 	 * @return the Cell with the given name in this Library.
 	 */
 	public Cell findNodeProto(String name)

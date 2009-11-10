@@ -33,7 +33,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.Main;
 import com.sun.electric.database.id.CellId;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.verilog.VerilogReader;
@@ -51,7 +50,6 @@ import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.Map;
 
 import javax.swing.SwingUtilities;
