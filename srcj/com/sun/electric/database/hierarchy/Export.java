@@ -85,7 +85,6 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
     /** persistent data of this Export. */                  private ImmutableExport d;
 	/** The parent Cell of this Export. */					private final Cell parent;
 	/** Index of this Export in Cell ports. */				private int portIndex;
-	/** the PortInst that the exported port belongs to */	private PortInst originalPort;
 
 	// -------------------- protected and private methods --------------
 
@@ -98,7 +97,6 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         this.parent = parent;
         this.d = d;
         assert d.exportId.parentId == parent.getId();
-        originalPort = parent.getPortInst(d.originalNodeId, d.originalPortId);
     }
 
     private Object writeReplace() { return new ExportKey(this); }
@@ -328,7 +326,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         ImmutableExport d = ImmutableExport.newInstance(exportId, Name.findName(name), nameTextDescriptor,
                 originalNode.getD().nodeId, subpp.getId(), alwaysDrawn, bodyOnly, characteristic);
         Export e = new Export(d, parent);
-        assert e.originalPort == originalPort;
+        assert e.getOriginalPort() == originalPort;
 		originalNode.redoGeometric();
 		parent.addExport(e);
         if (errorMsg != null) {
@@ -358,21 +356,19 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		checkChanging();
 
         // get unique name
-        Cell cell = originalPort.getNodeInst().getParent();
-
 		// special case: if changing case only, allow it
 //		if (!getName().equalsIgnoreCase(newName) || getName().equals(newName))
 //		{
 			// not changing case
-	        String dupName = ElectricObject.uniqueObjectName(newName, cell, PortProto.class, false);
+	        String dupName = ElectricObject.uniqueObjectName(newName, parent, PortProto.class, false);
 	        if (!dupName.equals(newName))
 	        {
-	            System.out.println(cell + " already has an export named " + newName +
+	            System.out.println(parent + " already has an export named " + newName +
 	                    ", making new export named "+dupName);
 	            newName = dupName;
 	        }
 //		}
-        Name newNameKey = ImmutableExport.validExportName(newName, cell.busNamesAllowed());
+        Name newNameKey = ImmutableExport.validExportName(newName, parent.busNamesAllowed());
         if (newNameKey == null) {
             System.out.println("Bad export name " + newName + " : " + Name.checkName(newName));
             return;
@@ -385,8 +381,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
  //       parent.notifyRename(false);
 
         // rename associated export in icon, if any
-        Cell iconCell = cell.iconView();
-        if ((iconCell != null) && (iconCell != cell)) {
+        Cell iconCell = parent.iconView();
+        if ((iconCell != null) && (iconCell != parent)) {
             for (Iterator<Export> it = iconCell.getExports(); it.hasNext(); ) {
                 Export pp = it.next();
                 if (pp.getName().equals(oldName.toString())) {
@@ -443,8 +439,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         boolean moved = this.d.originalNodeId != d.originalNodeId || this.d.originalPortId != d.originalPortId;
 		// remove the old linkage
         if (moved) {
-            NodeInst origNode = getOriginalPort().getNodeInst();
-            origNode.redoGeometric();
+            parent.getNodeById(this.d.originalNodeId).redoGeometric();
         }
         if (renamed)
             parent.moveExport(portIndex, d.name.toString());
@@ -453,8 +448,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 
 		// create the new linkage
         if (moved) {
-            originalPort = parent.getPortInst(d.originalNodeId, d.originalPortId);
-            originalPort.getNodeInst().redoGeometric();
+            parent.getNodeById(d.originalNodeId).redoGeometric();
         }
 	}
 
@@ -562,7 +556,6 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
     void setDInUndo(ImmutableExport newD) {
         checkUndoing();
         d = newD;
-        originalPort = parent.getPortInst(d.originalNodeId, d.originalPortId);
     }
 
     /**
@@ -855,7 +848,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 * Method to return the port on the NodeInst inside of the cell that is the origin of this Export.
 	 * @return the port on the NodeInst inside of the cell that is the origin of this Export.
 	 */
-	public PortInst getOriginalPort() { return originalPort; }
+	public PortInst getOriginalPort() { return parent.getPortInst(d.originalNodeId, d.originalPortId); }
 
 	/**
 	 * Method to return the base-level port that this PortProto is created from.
@@ -865,7 +858,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 */
 	public PrimitivePort getBasePort()
 	{
-		PortProto pp = originalPort.getPortProto();
+        PortProto pp = d.originalPortId.inDatabase(getDatabase());
 		return pp.getBasePort();
 	}
 
@@ -958,7 +951,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 */
 	public boolean isGlobalPartition()
 	{
-		return originalPort.getNodeInst().getProto() == Schematics.tech().globalPartitionNode;
+		return d.originalPortId.parentId == Schematics.tech().globalPartitionNode.getId();
 	}
 
 
