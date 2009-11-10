@@ -35,7 +35,6 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.PortProtoId;
-import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.Connection;
@@ -2342,6 +2341,157 @@ public class Schematics extends Technology
 		// special selection did not apply: do normal port computation
 		return super.getShapeOfPort(ni, pp, selectPt);
 	}
+
+	/**
+	 * Puts into shape builder s the polygons that describe node "n", given a set of
+	 * NodeLayer objects to use.
+	 * This method is overridden by specific Technologys.
+     * @param b shape builder where to put polygons
+	 * @param n the ImmutableNodeInst that is being described.
+     * @param pn proto of the ImmutableNodeInst in this Technology
+	 * @param selectPt if not null, it requests a new location on the port,
+	 * away from existing arcs, and close to this point.
+	 * This is useful for "area" ports such as the left side of AND and OR gates.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 */
+    @Override
+    protected void genShapeOfPort(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, PrimitivePort pp, Point2D selectPt) {
+		// determine the grid size
+        double sizeX = n.size.getLambdaX();
+        double sizeY = n.size.getLambdaY();
+		double lambda = 0;
+		if (pn == andNode)
+		{
+			lambda = n.size.getLambdaX() / 8;
+			if (n.size.getLambdaY() < lambda * 6) lambda = n.size.getLambdaY() / 6;
+//			lambda = width / 8;
+//			if (height < lambda * 6) lambda = height / 6;
+		} else if (pn == orNode || pn == xorNode)
+		{
+			lambda = n.size.getLambdaX() / 10;
+			if (n.size.getLambdaY() < lambda * 6) lambda = n.size.getLambdaY() / 6;
+//			lambda = width / 10;
+//			if (height < lambda * 6) lambda = height / 6;
+		}
+        lambda += 1;
+
+		// only care if special selection is requested
+		if (selectPt != null)
+		{
+            NodeInst ni = null; //DUMMY
+			// special selection only works for AND, OR, XOR, MUX, SWITCH
+			if (pn == andNode || pn == orNode || pn == xorNode || pn == muxNode || pn == switchNode)
+			{
+				// special selection only works for the input port (the first port, 0)
+				if (pp.getId().chronIndex == 0)
+				{
+					// initialize
+//					PortInst pi = ni.findPortInstFromProto(pp);
+					double wantX = selectPt.getX();
+					double wantY = selectPt.getY();
+					double bestDist = Double.MAX_VALUE;
+					double bestX = 0, bestY = 0;
+
+					// determine total number of arcs already on this port
+					int total = 0;
+                    BitSet headEnds = new BitSet();
+                    List<ImmutableArcInst> connArcs = b.getMemoization().getConnections(headEnds, n, pp.getId());
+//					for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
+//					{
+//						Connection con = it.next();
+//						if (con.getPortInst() == pi) total++;
+//					}
+                    total = connArcs.size();
+
+					// cycle through the arc positions
+					total = Math.max(total+2, 3);
+					for(int i=0; i<total; i++)
+					{
+						// compute the position along the left edge
+						double yPosition = (i+1)/2 * 2;
+						if ((i&1) != 0) yPosition = -yPosition;
+
+						// compute indentation
+						double xPosition = -4;
+						if (pn == switchNode)
+						{
+							xPosition = -2;
+						} else if (pn == muxNode)
+						{
+							xPosition = -ni.getXSize() * 4 / 10;
+						} else if (pn == orNode || pn == xorNode)
+						{
+							switch (i)
+							{
+								case 0: xPosition += 0.75;   break;
+								case 1:
+								case 2: xPosition += 0.5;    break;
+							}
+						}
+
+						// fill the polygon with that point
+						double x = ni.getAnchorCenterX() + xPosition * lambda;
+						double y = ni.getAnchorCenterY() + yPosition * lambda;
+
+						// check for duplication
+						boolean found = false;
+						for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
+						{
+							Connection con = it.next();
+							if (con.getLocation().getX() == x && con.getLocation().getY() == y)
+							{
+								found = true;
+								break;
+							}
+						}
+
+						// if there is no duplication, this is a possible position
+						if (!found)
+						{
+							double dist = Math.abs(wantX - x) + Math.abs(wantY - y);
+							if (dist < bestDist)
+							{
+								bestDist = dist;   bestX = x;   bestY = y;   //bestIndex = i;
+							}
+						}
+					}
+					if (bestDist == Double.MAX_VALUE) System.out.println("Warning: cannot find gate port");
+
+					// set the closest port
+//					Point2D [] points = new Point2D[1];
+//					points[0] = new Point2D.Double(bestX, bestY);
+                    b.pushPoint(bestX, bestY);
+                    b.pushPoly(Poly.Type.FILLED, null, null, null);
+//					Poly poly = new Poly(points);
+//					poly.setStyle(Poly.Type.FILLED);
+//					return poly;
+				}
+			}
+		}
+		if (lambda != 1)
+		{
+			// standard port computation
+			double portLowX = n.anchor.getGridX() + pp.getLeft().getMultiplier() * sizeX + pp.getLeft().getAdder() * lambda;
+			double portHighX = n.anchor.getGridX() + pp.getRight().getMultiplier() * sizeX + pp.getRight().getAdder() * lambda;
+			double portLowY = n.anchor.getGridY() + pp.getBottom().getMultiplier() * sizeY + pp.getBottom().getAdder() * lambda;
+			double portHighY = n.anchor.getGridY() + pp.getTop().getMultiplier() * sizeY + pp.getTop().getAdder() * lambda;
+            b.pushPoint(portLowX, portLowY);
+            b.pushPoint(portHighX, portLowY);
+            b.pushPoint(portHighX, portHighY);
+            b.pushPoint(portLowX, portHighY);
+//			double portX = (portLowX + portHighX) / 2;
+//			double portY = (portLowY + portHighY) / 2;
+            b.pushPoly(Poly.Type.FILLED, null, null, null);
+//			Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
+//			portPoly.setStyle(Poly.Type.FILLED);
+//			portPoly.setTextDescriptor(TextDescriptor.getExportTextDescriptor()/*pp.getTextDescriptor()*/);
+//			return portPoly;
+            return;
+		}
+
+		// special selection did not apply: do normal port computation
+		super.genShapeOfPort(b, n, pn, pp, selectPt);
+    }
 
 	/**
 	 * Method to get the base (highlight) ERectangle associated with a NodeInst

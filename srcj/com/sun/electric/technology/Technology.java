@@ -3684,6 +3684,87 @@ public class Technology implements Comparable<Technology>, Serializable
 	}
 
 	/**
+	 * Puts into shape builder s the polygons that describe node "n", given a set of
+	 * NodeLayer objects to use.
+	 * This method is overridden by specific Technologys.
+     * @param b shape builder where to put polygons
+	 * @param n the ImmutableNodeInst that is being described.
+     * @param pn proto of the ImmutableNodeInst in this Technology
+	 * @param selectPt if not null, it requests a new location on the port,
+	 * away from existing arcs, and close to this point.
+	 * This is useful for "area" ports such as the left side of AND and OR gates.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 */
+    protected void genShapeOfPort(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, PrimitivePort pp, Point2D selectPt) {
+		if (pn.getSpecialType() == PrimitiveNode.SERPTRANS)
+		{
+			// serpentine transistors use a more complex port determination
+			SerpentineTrans std = new SerpentineTrans(n, pn, pn.getNodeLayers());
+			if (std.hasValidData())
+				return std.fillTransPort(pp);
+		}
+
+		// standard port determination, see if there is outline information
+		if (pn.isHoldsOutline())
+		{
+			// outline may determine the port
+			EPoint [] outline = n.getTrace();
+			if (outline != null)
+			{
+				int endPortPoly = outline.length;
+                for(int i=1; i<outline.length; i++)
+                {
+                    if (outline[i] == null)
+                    {
+                        endPortPoly = i;
+                        break;
+                    }
+                }
+//				double cX = n.anchor.getLambdaX();
+//				double cY = n.anchor.getLambdaY();
+//				Point2D [] pointList = new Point2D.Double[endPortPoly];
+				for(int i=0; i<endPortPoly; i++) {
+//					pointList[i] = new Point2D.Double(cX + outline[i].getX(), cY + outline[i].getY());
+                    b.pushPoint(n.anchor, outline[i].getGridX(), outline[i].getGridY());
+                }
+//				Poly portPoly = new Poly(pointList);
+                Poly.Type style;
+				if (pn.getTechnology().getPrimitiveFunction(pn, n.techBits) == PrimitiveNode.Function.NODE)
+				{
+					style = Poly.Type.FILLED;
+				} else
+				{
+					style = Poly.Type.OPENED;
+				}
+                b.pushPoly(style, null, null, null);
+//				portPoly.setTextDescriptor(TextDescriptor.getExportTextDescriptor());
+//				return portPoly;
+			}
+		}
+
+		// standard port computation
+        double sizeX = n.size.getGridX();
+        double sizeY = n.size.getGridY();
+//        double sizeX = n.size.getLambdaX();
+//        double sizeY = n.size.getLambdaY();
+		double portLowX = n.anchor.getGridX() + pp.getLeft().getMultiplier() * sizeX + pp.getLeft().getAdder();
+		double portHighX = n.anchor.getGridX() + pp.getRight().getMultiplier() * sizeX + pp.getRight().getAdder();
+		double portLowY = n.anchor.getGridY() + pp.getBottom().getMultiplier() * sizeY + pp.getBottom().getAdder();
+		double portHighY = n.anchor.getGridY() + pp.getTop().getMultiplier() * sizeY + pp.getTop().getAdder();
+        b.pushPoint(portLowX, portLowY);
+        b.pushPoint(portHighX, portLowY);
+        b.pushPoint(portHighX, portHighY);
+        b.pushPoint(portLowX, portHighY);
+//		double portX = (portLowX + portHighX) / 2;
+//		double portY = (portLowY + portHighY) / 2;
+//		Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
+        b.pushPoly(Poly.Type.FILLED, null, null, null);
+//		portPoly.setStyle(Poly.Type.FILLED);
+//		portPoly.setTextDescriptor(TextDescriptor.getExportTextDescriptor());
+//		return portPoly;
+    }
+
+	/**
 	 * Method to convert old primitive port names to their proper PortProtos.
 	 * This method is overridden by those technologies that have any special port name conversion issues.
 	 * By default, there is little to be done, because by the time this

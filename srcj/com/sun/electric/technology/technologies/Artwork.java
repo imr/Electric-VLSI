@@ -547,6 +547,40 @@ public class Artwork extends Technology
 	}
 
 	/**
+	 * Puts into shape builder s the polygons that describe node "n", given a set of
+	 * NodeLayer objects to use.
+	 * This method is overridden by specific Technologys.
+     * @param b shape builder where to put polygons
+	 * @param n the ImmutableNodeInst that is being described.
+     * @param pn proto of the ImmutableNodeInst in this Technology
+	 * @param selectPt if not null, it requests a new location on the port,
+	 * away from existing arcs, and close to this point.
+	 * This is useful for "area" ports such as the left side of AND and OR gates.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 */
+    @Override
+    protected void genShapeOfPort(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, PrimitivePort pp, Point2D selectPt) {
+		if (pn == pinNode || pn == arrowNode || pn == circleNode || pn == thickCircleNode || pn == filledCircleNode)
+		{
+			super.genShapeOfPort(b, n, pn, pp, selectPt);
+            return;
+		} else if (pn == splineNode)
+		{
+			EPoint [] tracePoints = n.getTrace();
+			if (tracePoints != null)
+			{
+				Point2D [] pointList = fillSpline(0, 0, tracePoints);
+                for (Point2D p: pointList)
+                    b.pushPoint(p.getX()*DBMath.GRID, p.getY()*DBMath.GRID);
+                b.pushPoly(Poly.Type.OPENED, null, null, null);
+                return;
+			}
+		} else {
+            b.genShapeOfNode(n, pn, pn.getNodeLayers(), null);
+        }
+    }
+
+	/**
 	 * Fill the polygons that describe arc "a".
 	 * @param b AbstractShapeBuilder to fill polygons.
 	 * @param a the ImmutableArcInst that is being described.
