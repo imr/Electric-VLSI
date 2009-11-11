@@ -68,16 +68,12 @@ public class VerilogReader extends Input
         	VerilogReader in = new VerilogReader(this);
 			if (in.openTextInput(fileURL)) return null;
 			lib = in.importALibrary(lib, tech, currentCells);
-            if (lib != null)
+            // running placement tool if selected
+            if (lib != null && runPlacement)
             {
-                // running placement tool if selected
-                if (runPlacement)
-                {
-                    //
-                    Placement.PlacementPreferences pp = new Placement.PlacementPreferences(false);
-		            pp.getOptionsFromPreferences();
-                    Placement.placeCellNoJob(currentCells.get(lib), pp);
-                }
+                Placement.PlacementPreferences pp = new Placement.PlacementPreferences(false);
+                pp.getOptionsFromPreferences();
+                Placement.placeCellNoJob(currentCells.get(lib), pp);
             }
             in.closeInput();
 			return lib;
