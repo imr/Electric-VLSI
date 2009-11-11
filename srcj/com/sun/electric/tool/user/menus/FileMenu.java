@@ -710,7 +710,8 @@ public class FileMenu {
             }
 
 			prefs = Input.getInputPreferences(type, false);
-            prefs.initFromUserDefaults();
+            if (prefs != null)
+                prefs.initFromUserDefaults();
 			startJob();
 		}
 
@@ -823,6 +824,7 @@ public class FileMenu {
 	 * It is interactive, and pops up a dialog box.
 	 * @param wholeDirectory true to import a directory instead of a file.
 	 * @param canMerge true to allow merging into an existing library.
+     * @param techSpecific true if a particular technology is needed for the import.
 	 */
 	public static void importLibraryCommand(FileType type, boolean wholeDirectory, boolean canMerge, boolean techSpecific)
 	{
