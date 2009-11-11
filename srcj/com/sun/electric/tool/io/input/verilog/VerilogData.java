@@ -2,6 +2,9 @@ package com.sun.electric.tool.io.input.verilog;
 
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 
 import java.util.*;
@@ -22,6 +25,13 @@ public class VerilogData implements Serializable
     }
 
     public String getName() {return name;}
+
+    public Cell getTopSchematicCell()
+    {
+        String topCellName = TextUtils.getFileNameWithoutExtension(name, true);
+        String cellName = topCellName + View.SCHEMATIC.getAbbreviationExtension();
+        return Library.findCellInLibraries(cellName, View.SCHEMATIC, null);
+    }
 
     VerilogModule addModule(String name, boolean primitive)
     {

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+IMP/MAN: (11/11/09, GVG) Run placement tool after Verilog reader (Bug #2467)
+New preferene added.
+
 BUG: (11/10/09, GVG) Verilog not including subcells found in other libraries (Bug #2466)
 FIX: Using Library.findCellInLibraries() instead of lib.findNodeProto()
 

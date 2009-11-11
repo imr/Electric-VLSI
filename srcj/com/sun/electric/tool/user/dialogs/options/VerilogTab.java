@@ -114,10 +114,12 @@ public class VerilogTab extends PreferencePanel
 
         jSeparator1 = new javax.swing.JSeparator();
         preferences = new javax.swing.JPanel();
+        inputPanel = new javax.swing.JPanel();
+        runPlacement = new javax.swing.JCheckBox();
+        outputPanel = new javax.swing.JPanel();
         stopAtStandardCells = new javax.swing.JCheckBox();
         preserveVerilogFormatting = new javax.swing.JCheckBox();
         parameterizeModuleNames = new javax.swing.JCheckBox();
-        runPlacement = new javax.swing.JCheckBox();
         projectSettings = new javax.swing.JPanel();
         verDefWireTrireg = new javax.swing.JCheckBox();
         verUseAssign = new javax.swing.JCheckBox();
@@ -138,34 +140,10 @@ public class VerilogTab extends PreferencePanel
 
         preferences.setLayout(new java.awt.GridBagLayout());
 
-        stopAtStandardCells.setText("Do not netlist Standard Cells");
-        stopAtStandardCells.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        preferences.add(stopAtStandardCells, gridBagConstraints);
+        inputPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Input"));
+        inputPanel.setLayout(new java.awt.GridBagLayout());
 
-        preserveVerilogFormatting.setText("Preserve Verilog formatting");
-        preserveVerilogFormatting.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        preferences.add(preserveVerilogFormatting, gridBagConstraints);
-
-        parameterizeModuleNames.setText("Parameterize Verilog module names");
-        parameterizeModuleNames.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        preferences.add(parameterizeModuleNames, gridBagConstraints);
-
-        runPlacement.setText("Run Placement tool after reading");
+        runPlacement.setText("Run Placement after import");
         runPlacement.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         runPlacement.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -174,10 +152,54 @@ public class VerilogTab extends PreferencePanel
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, -55, 0, 0);
+        inputPanel.add(runPlacement, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        preferences.add(inputPanel, gridBagConstraints);
+
+        outputPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Output"));
+        outputPanel.setLayout(new java.awt.GridBagLayout());
+
+        stopAtStandardCells.setText("Do not netlist Standard Cells");
+        stopAtStandardCells.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        preferences.add(runPlacement, gridBagConstraints);
+        outputPanel.add(stopAtStandardCells, gridBagConstraints);
+
+        preserveVerilogFormatting.setText("Preserve Verilog formatting");
+        preserveVerilogFormatting.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        outputPanel.add(preserveVerilogFormatting, gridBagConstraints);
+
+        parameterizeModuleNames.setText("Parameterize Verilog module names");
+        parameterizeModuleNames.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        outputPanel.add(parameterizeModuleNames, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        preferences.add(outputPanel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -230,7 +252,9 @@ public class VerilogTab extends PreferencePanel
     }//GEN-LAST:event_runPlacementActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel inputPanel;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JPanel outputPanel;
     private javax.swing.JCheckBox parameterizeModuleNames;
     private javax.swing.JPanel preferences;
     private javax.swing.JCheckBox preserveVerilogFormatting;

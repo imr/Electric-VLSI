@@ -55,7 +55,12 @@ public class VerilogReader extends Input
     {
 		public boolean runPlacement = Simulation.getFactoryVerilogRunPlacementTool();
 
-        public VerilogPreferences(boolean factory) { super(factory); }
+        public VerilogPreferences(boolean factory)
+        {
+            super(factory);
+            if (!factory)
+                runPlacement = Simulation.getVerilogRunPlacementTool();
+        }
 
         @Override
         public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)
@@ -687,9 +692,14 @@ public class VerilogReader extends Input
     {
         initKeywordParsing();
         VerilogData verilogData = parseVerilogInternal(lib.getName(), true);
-        Cell topCell = buildCells(verilogData, lib, true);
-        currentCells.put(lib, topCell);
-        return (topCell != null) ? lib : null;
+        buildCells(verilogData, lib, true);
+        topCell = verilogData.getTopSchematicCell();
+        if (topCell != null)
+        {
+            currentCells.put(topCell.getLibrary(), topCell);
+            return topCell.getLibrary();
+        }
+        return null;
     }
 
     public VerilogData parseVerilog(String[] lines, String verilogName)
@@ -732,15 +742,15 @@ public class VerilogReader extends Input
         return verilogData;
     }
 
-    public Cell createCellsOnly(VerilogData verilogData, Job job)
+    public void createCellsOnly(VerilogData verilogData, Job job)
     {
         Library library = Library.newInstance(verilogData.name, null);
-        String topCellName = TextUtils.getFileNameWithoutExtension(verilogData.name, true);
+//        String topCellName = TextUtils.getFileNameWithoutExtension(verilogData.name, true);
         buildCells(verilogData, library, false);
-        Cell theCell = library.findNodeProto(topCellName);
+//        Cell theCell = library.findNodeProto(topCellName);
         if (job != null)
             System.out.println("Accumulative time after creating cells '" + verilogData.name + "' " + job.getInfo());
-        return theCell; // still work because VerilogReader remembers the top cell
+//        return theCell; // still work because VerilogReader remembers the top cell
     }
 
     public VerilogData readVerilogOnly(String file, boolean fullOyster, Job job)
@@ -769,15 +779,12 @@ public class VerilogReader extends Input
         {
             Library library = Library.newInstance(libName, null);
             String topCellName = TextUtils.getFileNameWithoutExtension(fileURL);
-            topCell = buildCells(verilogData, library, simplifyWires);
-            Cell c = library.findNodeProto(topCellName);
-            if (c == null)
+            buildCells(verilogData, library, simplifyWires);
+            topCell = verilogData.getTopSchematicCell();
+            if (topCell == null)
             {
                 System.out.println("Check this case in readVerilog");  // is it relevant?
-//                assert(false);
             }
-            else
-                topCell = c;
         }
         if (job != null)
             System.out.println("Accumulative time after creating cells '" + testName + "' " + job.getInfo());
@@ -837,17 +844,14 @@ public class VerilogReader extends Input
      * @param lib
      * @param createIconCells
      */
-    private Cell buildCells(VerilogData verilogCell, Library lib, boolean createIconCells)
+    private void buildCells(VerilogData verilogCell, Library lib, boolean createIconCells)
     {
-        Cell topCell = null; // assumes the first module in the list is the top cell
-
         for (VerilogData.VerilogModule module : verilogCell.getModules())
         {
             Cell cell = buildCellFromModule(module, lib, createIconCells);
-            if (topCell == null)
-                topCell = cell;
+//            if (topCell == null && cell.getLibrary() == lib) // first new
+//                topCell = cell;
         }
-        return topCell;
     }
 
     private void addPins(VerilogData.VerilogConnection port, Cell cell, boolean addExport, boolean fullOyster)
