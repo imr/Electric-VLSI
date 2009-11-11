@@ -1974,7 +1974,7 @@ public class TextUtils
 		index = n.indexOf("\\");
 		if (index != -1)
 		{
-			assert(false); // detect this before
+//            assert(false); // detect this before
 			n = n.substring(index+1);
 		}
 		return n;

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+BUG: (11/11/09, GVG) "\" character causing errors in VerilogReader (Bug #2465)
+FIX: Assertion removed. The "\" removed from the name.
+
 IMP/MAN: (11/11/09, GVG) Run placement tool after Verilog reader (Bug #2467)
 New preferene added.
 
