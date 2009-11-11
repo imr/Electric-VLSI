@@ -63,8 +63,9 @@ public class VerilogTab extends PreferencePanel
 		stopAtStandardCells.setSelected(Simulation.getVerilogStopAtStandardCells());
 		preserveVerilogFormatting.setSelected(Simulation.getPreserveVerilogFormating());
 		parameterizeModuleNames.setSelected(Simulation.getVerilogParameterizeModuleNames());
+        runPlacement.setSelected(Simulation.getVerilogRunPlacementTool());
 
-		// project preferences
+        // project preferences
 		verUseAssign.setSelected(getBoolean(verilogUseAssignSetting));
 		verDefWireTrireg.setSelected(getBoolean(verilogUseTriregSetting));
 	}
@@ -76,14 +77,10 @@ public class VerilogTab extends PreferencePanel
 	public void term()
 	{
 		// user preferences
-		boolean nowBoolean = stopAtStandardCells.isSelected();
-		Simulation.setVerilogStopAtStandardCells(nowBoolean);
-
-		nowBoolean = preserveVerilogFormatting.isSelected();
-		Simulation.setPreserveVerilogFormating(nowBoolean);
-		
-		nowBoolean = parameterizeModuleNames.isSelected();
-		Simulation.setVerilogParameterizeModuleNames(nowBoolean);
+		Simulation.setVerilogStopAtStandardCells(stopAtStandardCells.isSelected());
+		Simulation.setPreserveVerilogFormating(preserveVerilogFormatting.isSelected());
+		Simulation.setVerilogParameterizeModuleNames(parameterizeModuleNames.isSelected());
+		Simulation.setVerilogRunPlacementTool(runPlacement.isSelected());
 
 		// project preferences
         setBoolean(verilogUseAssignSetting, verUseAssign.isSelected());
@@ -102,7 +99,9 @@ public class VerilogTab extends PreferencePanel
 			Simulation.setPreserveVerilogFormating(Simulation.getFactoryPreserveVerilogFormating());
 		if (Simulation.getFactoryVerilogParameterizeModuleNames() != Simulation.getVerilogParameterizeModuleNames())
 			Simulation.setVerilogParameterizeModuleNames(Simulation.getFactoryVerilogParameterizeModuleNames());
-	}
+		if (Simulation.getFactoryVerilogRunPlacementTool() != Simulation.getVerilogRunPlacementTool())
+			Simulation.setVerilogRunPlacementTool(Simulation.getFactoryVerilogRunPlacementTool());
+    }
 
 	/** This method is called from within the constructor to
 	 * initialize the form.

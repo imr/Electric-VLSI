@@ -1248,7 +1248,6 @@ public class Verilog extends Topology
      * take a Electric Variable (Attribute) and write it out as a parameter.
      * @param line
      * @param no
-     * @param cni
      * @param context
      * @return
      */
@@ -1308,7 +1307,7 @@ public class Verilog extends Topology
 	 * variable and replace that as well.
 	 * Added for ArchGen Plugin - BVE
 	 *
-	 * @param line
+	 * @param varName
 	 * @param no
 	 * @param context
 	 * @return
@@ -1342,7 +1341,7 @@ public class Verilog extends Topology
 	 * electric variable and replace it with the attribute value.
 	 * Added for ArchGen Plugin - BVE
 	 *
-	 * @param line
+	 * @param varName
 	 * @param cell
 	 * @return
 	 */

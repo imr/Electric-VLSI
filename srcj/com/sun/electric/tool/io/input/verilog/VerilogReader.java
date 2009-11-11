@@ -18,6 +18,8 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.placement.Placement;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.ViewChanges;
 
@@ -51,7 +53,9 @@ public class VerilogReader extends Input
 
 	public static class VerilogPreferences extends InputPreferences
     {
-		public VerilogPreferences(boolean factory) { super(factory); }
+		public boolean runPlacement = Simulation.getFactoryVerilogRunPlacementTool();
+
+        public VerilogPreferences(boolean factory) { super(factory); }
 
         @Override
         public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)
@@ -59,7 +63,18 @@ public class VerilogReader extends Input
         	VerilogReader in = new VerilogReader(this);
 			if (in.openTextInput(fileURL)) return null;
 			lib = in.importALibrary(lib, tech, currentCells);
-			in.closeInput();
+            if (lib != null)
+            {
+                // running placement tool if selected
+                if (runPlacement)
+                {
+                    //
+                    Placement.PlacementPreferences pp = new Placement.PlacementPreferences(false);
+		            pp.getOptionsFromPreferences();
+                    Placement.placeCellNoJob(currentCells.get(lib), pp);
+                }
+            }
+            in.closeInput();
 			return lib;
         }
     }
@@ -671,9 +686,9 @@ public class VerilogReader extends Input
 	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
     {
         initKeywordParsing();
-        boolean fullOyster = true;
-        VerilogData verilogData = parseVerilogInternal(lib.getName(), fullOyster);
-        Cell topCell = buildCells(verilogData, lib, fullOyster);
+        VerilogData verilogData = parseVerilogInternal(lib.getName(), true);
+        Cell topCell = buildCells(verilogData, lib, true);
+        currentCells.put(lib, topCell);
         return (topCell != null) ? lib : null;
     }
 

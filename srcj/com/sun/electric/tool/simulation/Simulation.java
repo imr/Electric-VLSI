@@ -1239,7 +1239,12 @@ public class Simulation extends Tool
     public static boolean getVerilogParameterizeModuleNames() { return cacheVerilogParameterizeModuleNames.getBoolean(); }
     public static boolean getFactoryVerilogParameterizeModuleNames() { return cacheVerilogParameterizeModuleNames.getBooleanFactoryValue(); }
 
-	/****************************** CDL OPTIONS ******************************/
+    private static Pref cacheVerilogRunPlacementTool = Pref.makeBooleanPref("cacheVerilogRunPlacementTool", tool.prefs, false);
+    public static void setVerilogRunPlacementTool(boolean b) { cacheVerilogRunPlacementTool.setBoolean(b); }
+    public static boolean getVerilogRunPlacementTool() { return cacheVerilogRunPlacementTool.getBoolean(); }
+    public static boolean getFactoryVerilogRunPlacementTool() { return cacheVerilogRunPlacementTool.getBooleanFactoryValue(); }
+
+    /****************************** CDL OPTIONS ******************************/
 
 	private static Pref cacheCDLLibName = Pref.makeStringPref("CDLLibName", tool.prefs, "");
 //	static { cacheCDLLibName.attachToObject(tool, "IO/CDL tab", "Cadence library name"); }
