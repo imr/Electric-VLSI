@@ -24,8 +24,10 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
@@ -573,6 +575,21 @@ public class Poly extends PolyBase {
             }
             isChanging = false;
             return polys;
+        }
+
+        public Poly getShape(NodeInst ni, PrimitivePort pp, Point2D selectPt) {
+            isChanging = true;
+            setup(ni.getCellBackupUnsafe(), null, false, true, false, null);
+            lastPolys.clear();
+            genShapeOfPort(ni.getD(), (PrimitivePortId)pp.getId(), selectPt);
+            assert lastPolys.size() == 1;
+            Poly poly = lastPolys.get(0);
+            if (inLambda) {
+                poly.gridToLambda();
+            }
+            isChanging = false;
+            poly.setLayer(null);
+            return poly;
         }
 
         /**

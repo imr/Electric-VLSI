@@ -37,6 +37,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
+import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
@@ -148,7 +149,7 @@ public abstract class AbstractShapeBuilder {
     }
 
 	/**
-	 * Returns the polygons that describe node "ni", given a set of
+	 * Returns the polygons that describe node "n", given a set of
 	 * NodeLayer objects to use.
 	 * This method is called by the specific Technology overrides of getShapeOfNode().
 	 * @param n the ImmutableNodeInst that is being described.
@@ -260,6 +261,93 @@ public abstract class AbstractShapeBuilder {
             }
         }
 	}
+
+    public void genShapeOfPort(ImmutableNodeInst n, PrimitivePortId portId, Point2D selectPt) {
+        PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)n.protoId);
+        PrimitivePort pp = pn.getPort(portId);
+        pointCount = 0;
+        curNode = n;
+        pn.getTechnology().genShapeOfPort(this, n, pn, pp, selectPt);
+    }
+
+	/**
+	 * Puts into shape builder s the polygons that describes port "pp" of node "n".
+	 * This method is overridden by specific Technologys.
+     * @param b shape builder where to put polygons
+	 * @param n the ImmutableNodeInst that is being described.
+     * @param pn proto of the ImmutableNodeInst in this Technology
+     * @param pp PrimitivePort
+	 */
+    public void genShapeOfPort(ImmutableNodeInst n, PrimitiveNode pn, PrimitivePort pp) {
+		if (pn.getSpecialType() == PrimitiveNode.SERPTRANS)
+		{
+			// serpentine transistors use a more complex port determination
+			SerpentineTrans std = new SerpentineTrans(n, pn, pn.getNodeLayers());
+			if (std.hasValidData()) {
+                std.fillTransPort(pp);
+                return;
+            }
+		}
+
+		// standard port determination, see if there is outline information
+		if (pn.isHoldsOutline())
+		{
+			// outline may determine the port
+			EPoint [] outline = n.getTrace();
+			if (outline != null)
+			{
+				int endPortPoly = outline.length;
+                for(int i=1; i<outline.length; i++)
+                {
+                    if (outline[i] == null)
+                    {
+                        endPortPoly = i;
+                        break;
+                    }
+                }
+//				double cX = n.anchor.getLambdaX();
+//				double cY = n.anchor.getLambdaY();
+//				Point2D [] pointList = new Point2D.Double[endPortPoly];
+				for(int i=0; i<endPortPoly; i++) {
+//					pointList[i] = new Point2D.Double(cX + outline[i].getX(), cY + outline[i].getY());
+                    pushPoint(/*n.anchor,*/ outline[i].getGridX(), outline[i].getGridY());
+                }
+//				Poly portPoly = new Poly(pointList);
+                Poly.Type style;
+				if (pn.getTechnology().getPrimitiveFunction(pn, n.techBits) == PrimitiveNode.Function.NODE)
+				{
+					style = Poly.Type.FILLED;
+				} else
+				{
+					style = Poly.Type.OPENED;
+				}
+                pushPoly(style, null, null, null);
+//				portPoly.setTextDescriptor(TextDescriptor.getExportTextDescriptor());
+//				return portPoly;
+			}
+		}
+
+		// standard port computation
+        double sizeX = n.size.getGridX();
+        double sizeY = n.size.getGridY();
+//        double sizeX = n.size.getLambdaX();
+//        double sizeY = n.size.getLambdaY();
+		double portLowX = /*n.anchor.getGridX() +*/ pp.getLeft().getMultiplier() * sizeX + pp.getLeft().getGridAdder();
+		double portHighX = /*n.anchor.getGridX() +*/ pp.getRight().getMultiplier() * sizeX + pp.getRight().getGridAdder();
+		double portLowY = /*n.anchor.getGridY() +*/ pp.getBottom().getMultiplier() * sizeY + pp.getBottom().getGridAdder();
+		double portHighY = /*n.anchor.getGridY() +*/ pp.getTop().getMultiplier() * sizeY + pp.getTop().getGridAdder();
+        pushPoint(portLowX, portLowY);
+        pushPoint(portHighX, portLowY);
+        pushPoint(portHighX, portHighY);
+        pushPoint(portLowX, portHighY);
+//		double portX = (portLowX + portHighX) / 2;
+//		double portY = (portLowY + portHighY) / 2;
+//		Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
+        pushPoly(Poly.Type.FILLED, null, null, null);
+//		portPoly.setStyle(Poly.Type.FILLED);
+//		portPoly.setTextDescriptor(TextDescriptor.getExportTextDescriptor());
+//		return portPoly;
+    }
 
 	/**
 	 * Method to fill in an AbstractShapeBuilder a polygon that describes this ImmutableArcInst in grid units.
@@ -1384,7 +1472,7 @@ public abstract class AbstractShapeBuilder {
 		 * The diffusion ports are extended "diffExtend" from the polysilicon edge
 		 * and set in "diffInset" from the ends of the trace segment.
 		 */
-		private Poly fillTransPort(PortProto pp)
+		private void fillTransPort(PortProto pp)
 		{
 			double diffInset = specialValues[1];
 			double diffExtend = specialValues[2];
@@ -1393,10 +1481,7 @@ public abstract class AbstractShapeBuilder {
 			double polyExtend = specialValues[5];
 
 			// prepare to fill the serpentine transistor port
-			double xOff = theNode.anchor.getX();
-			double yOff = theNode.anchor.getY();
 			int total = points.length;
-			AffineTransform trans = theNode.orient.rotateAbout(theNode.anchor.getX(), theNode.anchor.getY());
 
 			// determine which port is being described
 			int which = 0;
@@ -1406,6 +1491,7 @@ public abstract class AbstractShapeBuilder {
 				if (lpp == pp) break;
 				which++;
 			}
+            assert which == pp.getPortIndex();
 
 			// ports 0 and 2 are poly (simple)
 			if (which == 0)
@@ -1414,8 +1500,8 @@ public abstract class AbstractShapeBuilder {
 				Point2D nextPt = new Point2D.Double(points[1].getX(), points[1].getY());
 				int angle = DBMath.figureAngle(thisPt, nextPt);
 				int ang = (angle+1800) % 3600;
-				thisPt.setLocation(thisPt.getX() + DBMath.cos(ang) * polyExtend + xOff,
-					thisPt.getY() + DBMath.sin(ang) * polyExtend + yOff);
+				thisPt.setLocation(thisPt.getX() + DBMath.cos(ang) * polyExtend,
+					thisPt.getY() + DBMath.sin(ang) * polyExtend);
 
 				ang = (angle+LEFTANGLE) % 3600;
 				Point2D end1 = new Point2D.Double(thisPt.getX() + DBMath.cos(ang) * (defWid/2-polyInset),
@@ -1425,13 +1511,17 @@ public abstract class AbstractShapeBuilder {
 				Point2D end2 = new Point2D.Double(thisPt.getX() + DBMath.cos(ang) * (defWid/2-polyInset),
 					thisPt.getY() + DBMath.sin(ang) * (defWid/2-polyInset));
 
-				Point2D [] portPoints = new Point2D.Double[2];
-				portPoints[0] = end1;
-				portPoints[1] = end2;
-				trans.transform(portPoints, 0, portPoints, 0, 2);
-				Poly retPoly = new Poly(portPoints);
-				retPoly.setStyle(Poly.Type.OPENED);
-				return retPoly;
+                pushPoint(end1.getX()*DBMath.GRID, end1.getY()*DBMath.GRID);
+                pushPoint(end2.getX()*DBMath.GRID, end2.getY()*DBMath.GRID);
+                pushPoly(Poly.Type.OPENED, null, null, null);
+                return;
+//				Point2D [] portPoints = new Point2D.Double[2];
+//				portPoints[0] = end1;
+//				portPoints[1] = end2;
+//				trans.transform(portPoints, 0, portPoints, 0, 2);
+//				Poly retPoly = new Poly(portPoints);
+//				retPoly.setStyle(Poly.Type.OPENED);
+//				return retPoly;
 			}
 			if (which == 2)
 			{
@@ -1439,8 +1529,8 @@ public abstract class AbstractShapeBuilder {
 				Point2D nextPt = new Point2D.Double(points[total-2].getX(), points[total-2].getY());
 				int angle = DBMath.figureAngle(thisPt, nextPt);
 				int ang = (angle+1800) % 3600;
-				thisPt.setLocation(thisPt.getX() + DBMath.cos(ang) * polyExtend + xOff,
-					thisPt.getY() + DBMath.sin(ang) * polyExtend + yOff);
+				thisPt.setLocation(thisPt.getX() + DBMath.cos(ang) * polyExtend,
+					thisPt.getY() + DBMath.sin(ang) * polyExtend);
 
 				ang = (angle+LEFTANGLE) % 3600;
 				Point2D end1 = new Point2D.Double(thisPt.getX() + DBMath.cos(ang) * (defWid/2-polyInset),
@@ -1450,13 +1540,17 @@ public abstract class AbstractShapeBuilder {
 				Point2D end2 = new Point2D.Double(thisPt.getX() + DBMath.cos(ang) * (defWid/2-polyInset),
 					thisPt.getY() + DBMath.sin(ang) * (defWid/2-polyInset));
 
-				Point2D [] portPoints = new Point2D.Double[2];
-				portPoints[0] = end1;
-				portPoints[1] = end2;
-				trans.transform(portPoints, 0, portPoints, 0, 2);
-				Poly retPoly = new Poly(portPoints);
-				retPoly.setStyle(Poly.Type.OPENED);
-				return retPoly;
+                pushPoint(end1.getX()*DBMath.GRID, end1.getY()*DBMath.GRID);
+                pushPoint(end2.getX()*DBMath.GRID, end2.getY()*DBMath.GRID);
+                pushPoly(Poly.Type.OPENED, null, null, null);
+                return;
+//				Point2D [] portPoints = new Point2D.Double[2];
+//				portPoints[0] = end1;
+//				portPoints[1] = end2;
+//				trans.transform(portPoints, 0, portPoints, 0, 2);
+//				Poly retPoly = new Poly(portPoints);
+//				retPoly.setStyle(Poly.Type.OPENED);
+//				return retPoly;
 			}
 
 			// port 3 is the negated path side of port 1
@@ -1475,8 +1569,8 @@ public abstract class AbstractShapeBuilder {
 			for(int nextIndex=1; nextIndex<total; nextIndex++)
 			{
 				int thisIndex = nextIndex-1;
-				Point2D thisPt = new Point2D.Double(points[thisIndex].getX() + xOff, points[thisIndex].getY() + yOff);
-				Point2D nextPt = new Point2D.Double(points[nextIndex].getX() + xOff, points[nextIndex].getY() + yOff);
+				Point2D thisPt = new Point2D.Double(points[thisIndex].getX(), points[thisIndex].getY());
+				Point2D nextPt = new Point2D.Double(points[nextIndex].getX(), points[nextIndex].getY());
 				int angle = DBMath.figureAngle(thisPt, nextPt);
 
 				// determine the points
@@ -1514,11 +1608,14 @@ public abstract class AbstractShapeBuilder {
 				if (nextIndex == total-1)
 					portPoints[nextIndex] = nextPt;
 			}
-			if (total > 0)
-				trans.transform(portPoints, 0, portPoints, 0, total);
-			Poly retPoly = new Poly(portPoints);
-			retPoly.setStyle(Poly.Type.OPENED);
-			return retPoly;
+            for (Point2D point: portPoints)
+                pushPoint(point.getX()*DBMath.GRID, point.getY()*DBMath.GRID);
+            pushPoly(Poly.Type.OPENED, null, null, null);
+//			if (total > 0)
+//				trans.transform(portPoints, 0, portPoints, 0, total);
+//			Poly retPoly = new Poly(portPoints);
+//			retPoly.setStyle(Poly.Type.OPENED);
+//			return retPoly;
 		}
 	}
 }

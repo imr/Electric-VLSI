@@ -535,12 +535,13 @@ public class Artwork extends Technology
 	 * @param pp the PrimitivePort on that NodeInst that is being described.
 	 * @return a Poly object that describes this PrimitivePort graphically.
 	 */
-	public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp, Point2D selectPt)
+    @Override
+	protected Poly getShapeOfPort0(NodeInst ni, PrimitivePort pp, Point2D selectPt)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		if (np == pinNode || np == arrowNode || np == circleNode || np == thickCircleNode || np == filledCircleNode)
 		{
-			return super.getShapeOfPort(ni, pp, selectPt);
+			return super.getShapeOfPort0(ni, pp, selectPt);
 		}
 		Poly [] polys = getShapeOfNode(ni);
 		return polys[0];
@@ -562,9 +563,10 @@ public class Artwork extends Technology
     protected void genShapeOfPort(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, PrimitivePort pp, Point2D selectPt) {
 		if (pn == pinNode || pn == arrowNode || pn == circleNode || pn == thickCircleNode || pn == filledCircleNode)
 		{
-			super.genShapeOfPort(b, n, pn, pp, selectPt);
+			b.genShapeOfPort(n, pn, pp);
             return;
-		} else if (pn == splineNode)
+        }
+		if (pn == splineNode)
 		{
 			EPoint [] tracePoints = n.getTrace();
 			if (tracePoints != null)
@@ -575,9 +577,8 @@ public class Artwork extends Technology
                 b.pushPoly(Poly.Type.OPENED, null, null, null);
                 return;
 			}
-		} else {
-            b.genShapeOfNode(n, pn, pn.getNodeLayers(), null);
         }
+        b.genShapeOfNode(n, pn, pn.getNodeLayers(), null);
     }
 
 	/**

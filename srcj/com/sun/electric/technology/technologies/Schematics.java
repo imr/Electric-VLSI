@@ -2217,7 +2217,8 @@ public class Schematics extends Technology
 	 * This is useful for "area" ports such as the left side of AND and OR gates.
 	 * @return a Poly object that describes this PrimitivePort graphically.
 	 */
-	public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp, Point2D selectPt)
+    @Override
+	protected Poly getShapeOfPort0(NodeInst ni, PrimitivePort pp, Point2D selectPt)
 	{
 		// determine the grid size
 		double width = ni.getXSize();
@@ -2339,7 +2340,7 @@ public class Schematics extends Technology
 		}
 
 		// special selection did not apply: do normal port computation
-		return super.getShapeOfPort(ni, pp, selectPt);
+		return super.getShapeOfPort0(ni, pp, selectPt);
 	}
 
 	/**
@@ -2378,7 +2379,6 @@ public class Schematics extends Technology
 		// only care if special selection is requested
 		if (selectPt != null)
 		{
-            NodeInst ni = null; //DUMMY
 			// special selection only works for AND, OR, XOR, MUX, SWITCH
 			if (pn == andNode || pn == orNode || pn == xorNode || pn == muxNode || pn == switchNode)
 			{
@@ -2418,7 +2418,7 @@ public class Schematics extends Technology
 							xPosition = -2;
 						} else if (pn == muxNode)
 						{
-							xPosition = -ni.getXSize() * 4 / 10;
+							xPosition = -(8.0 + n.size.getLambdaX()) * 4 / 10;
 						} else if (pn == orNode || pn == xorNode)
 						{
 							switch (i)
@@ -2430,28 +2430,41 @@ public class Schematics extends Technology
 						}
 
 						// fill the polygon with that point
-						double x = ni.getAnchorCenterX() + xPosition * lambda;
-						double y = ni.getAnchorCenterY() + yPosition * lambda;
+                        Point2D.Double pt = new Point2D.Double(xPosition * lambda, yPosition * lambda);
+                        Point2D.Double pt1 = new Point2D.Double();
+                        n.orient.pureRotate().transform(pt, pt1);
+                        pt1.setLocation(n.anchor.getLambdaX() + pt1.getX(), n.anchor.getLambdaY() + pt1.getY());
+//						double x = n.anchor.getLambdaX() + xPosition * lambda;
+//						double y = n.anchor.getLambdaY() + yPosition * lambda;
 
 						// check for duplication
 						boolean found = false;
-						for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
-						{
-							Connection con = it.next();
-							if (con.getLocation().getX() == x && con.getLocation().getY() == y)
-							{
-								found = true;
-								break;
-							}
-						}
+                        for (int j = 0; j < connArcs.size(); j++) {
+                            ImmutableArcInst a = connArcs.get(j);
+                            boolean isHead = headEnds.get(j);
+                            EPoint connLocation = isHead ? a.headLocation : a.tailLocation;
+                            if (connLocation.equals(pt1)) {
+                                found = true;
+                                break;
+                            }
+                        }
+//						for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
+//						{
+//							Connection con = it.next();
+//							if (con.getLocation().getX() == x && con.getLocation().getY() == y)
+//							{
+//								found = true;
+//								break;
+//							}
+//						}
 
 						// if there is no duplication, this is a possible position
 						if (!found)
 						{
-							double dist = Math.abs(wantX - x) + Math.abs(wantY - y);
+							double dist = Math.abs(wantX - pt1.getX()) + Math.abs(wantY - pt1.getY());
 							if (dist < bestDist)
 							{
-								bestDist = dist;   bestX = x;   bestY = y;   //bestIndex = i;
+								bestDist = dist;   bestX = pt.getX();   bestY = pt.getY();   //bestIndex = i;
 							}
 						}
 					}
@@ -2460,8 +2473,9 @@ public class Schematics extends Technology
 					// set the closest port
 //					Point2D [] points = new Point2D[1];
 //					points[0] = new Point2D.Double(bestX, bestY);
-                    b.pushPoint(bestX, bestY);
+                    b.pushPoint(bestX*DBMath.GRID, bestY*DBMath.GRID);
                     b.pushPoly(Poly.Type.FILLED, null, null, null);
+                    return;
 //					Poly poly = new Poly(points);
 //					poly.setStyle(Poly.Type.FILLED);
 //					return poly;
