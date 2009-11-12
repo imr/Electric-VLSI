@@ -103,12 +103,19 @@ public class VectorCache {
 	private EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
-    private final EditWindow0 dummyWnd = new EditWindow0() {
+    private final EditWindow0 dummyWnd = new EditWindow0()
+    {
+        double globalScale = User.getGlobalTextScale();
+
         public VarContext getVarContext() { return varContext; }
 
         public double getScale() { return curScale; }
 
-        public double getGlobalTextScale() { return User.getGlobalTextScale(); }
+        public double getGlobalTextScale()
+        {
+            return globalScale;
+//            return User.getGlobalTextScale();
+        }
     };
 
 	/**

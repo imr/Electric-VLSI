@@ -54,12 +54,16 @@ public class VerilogReader extends Input
 	public static class VerilogPreferences extends InputPreferences
     {
 		public boolean runPlacement = Simulation.getFactoryVerilogRunPlacementTool();
+        Placement.PlacementPreferences placementPrefs;
 
         public VerilogPreferences(boolean factory)
         {
             super(factory);
             if (!factory)
                 runPlacement = Simulation.getVerilogRunPlacementTool();
+            // need to cache placement preference here even though it might not be used later
+            placementPrefs = new Placement.PlacementPreferences(factory);
+            placementPrefs.getOptionsFromPreferences();
         }
 
         @Override
@@ -71,9 +75,7 @@ public class VerilogReader extends Input
             // running placement tool if selected
             if (lib != null && runPlacement)
             {
-                Placement.PlacementPreferences pp = new Placement.PlacementPreferences(false);
-                pp.getOptionsFromPreferences();
-                Placement.placeCellNoJob(currentCells.get(lib), pp);
+                Placement.placeCellNoJob(currentCells.get(lib), placementPrefs);
             }
             in.closeInput();
 			return lib;

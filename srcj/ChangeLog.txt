@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+IMP: (11/12/09, GVG) EditWindow0.globalScale cached during class creation.
+Caching placement prefs in Verilog input prefs.
+
 IMP: (11/12/09, GVG) "\" character causing errors in VerilogReader (Bug #2465)
 Not removing "\" from cell instance name.
 
