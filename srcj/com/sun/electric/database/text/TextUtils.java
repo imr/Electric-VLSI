@@ -1971,12 +1971,12 @@ public class TextUtils
 		if (index != -1)
 			n = n.replaceAll("/", "_");
 		// Remove possible space character representing as \
-		index = n.indexOf("\\");
-		if (index != -1)
-		{
-//            assert(false); // detect this before
-			n = n.substring(index+1);
-		}
+//		index = n.indexOf("\\");
+//		if (index != -1)
+//		{
+////            assert(false); // detect this before
+//			n = n.substring(index+1);
+//		}
 		return n;
 	}
 

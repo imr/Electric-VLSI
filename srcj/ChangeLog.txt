@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+IMP: (11/12/09, GVG) "\" character causing errors in VerilogReader (Bug #2465)
+Not removing "\" from cell instance name.
+
 IMP: (11/12/09, DN) Technology.getShapeOfPort() computes shape of ports both in mutable and immutable way
     for self-check.
 
