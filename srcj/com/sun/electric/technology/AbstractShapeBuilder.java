@@ -322,6 +322,7 @@ public abstract class AbstractShapeBuilder {
 					style = Poly.Type.OPENED;
 				}
                 pushPoly(style, null, null, null);
+                return;
 //				portPoly.setTextDescriptor(TextDescriptor.getExportTextDescriptor());
 //				return portPoly;
 			}
