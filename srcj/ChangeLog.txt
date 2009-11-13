@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+IMP/MAN: (11/13/09, SMR) Arc Preferences now has control over "fat wiring mode" (Bug #2470).
+
 BUG: (11/12/09, DN) AssertionError in getShapeOfPort (Bug #2468)
 FIX: In Schematics.genShapeOfPort gen shape in grid units when lambda != 1.
 Not getting double polys in NodeInsts with outline.

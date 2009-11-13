@@ -184,7 +184,8 @@ public abstract class InteractiveRouter extends Router {
         ArcProto startArc = vroute.getStartArc();
         ArcProto endArc = vroute.getEndArc();
 
-        ContactSize sizer = new ContactSize(startPort, null, startLoc, startLoc, startLoc, startArc, endArc, false);
+        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
+        ContactSize sizer = new ContactSize(startPort, null, startLoc, startLoc, startLoc, startArc, endArc, false, ep.fatWires);
         Rectangle2D contactArea = sizer.getContactSize();
         Dimension2D contactSize = new Dimension2D.Double(contactArea.getWidth(), contactArea.getHeight());
         int startAngle = sizer.getStartAngle();
@@ -285,6 +286,7 @@ public abstract class InteractiveRouter extends Router {
      * @param extendArcTail true to use default arc extension; false to force no arc extension. (tail connects to endObj).
      * @param contactArea
      * @param alignment edge alignment factors (null for no alignment).
+     * @param fatWiringMode true to make arcs as wide as their connecting nodes.
      * @return a List of RouteElements denoting route
      */
     public Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked, PolyMerge stayInside,
@@ -336,11 +338,11 @@ public abstract class InteractiveRouter extends Router {
         double startArcWidth = 0;
         double endArcWidth = 0;
 
-        if (!ClickZoomWireListener.theOne.getUseFatWiringMode()) {
+        if (!ep.fatWires) {
             // if not using fat wiring mode, determine arc sizes now, and
             // start and end points based off of arc sizes and startObj and endObj port sizes
-            startArcWidth = getArcWidthToUse(startObj, startArc, 0, true);
-            endArcWidth = (endObj == null) ? startArcWidth : getArcWidthToUse(endObj, endArc, 0, true);
+            startArcWidth = getArcWidthToUse(startObj, startArc, 0, true, ep.fatWires);
+            endArcWidth = (endObj == null) ? startArcWidth : getArcWidthToUse(endObj, endArc, 0, true, ep.fatWires);
             if (startArc == endArc) {
                 if (startArcWidth > endArcWidth) endArcWidth = startArcWidth;
                 if (endArcWidth > startArcWidth) startArcWidth = endArcWidth;
@@ -363,7 +365,8 @@ public abstract class InteractiveRouter extends Router {
         // arc(s) should connect
         Point2D startPoint = new Point2D.Double(0, 0);
         Point2D endPoint = new Point2D.Double(0,0);
-        getConnectingPoints(startObj, endObj, clicked, startPoint, endPoint, startPoly, endPoly, startArc, endArc, alignment);
+        getConnectingPoints(startObj, endObj, clicked, startPoint, endPoint, startPoly, endPoly,
+        	startArc, endArc, alignment, ep.fatWires);
 
         PortInst existingStartPort = null;
         PortInst existingEndPort = null;
@@ -450,7 +453,7 @@ public abstract class InteractiveRouter extends Router {
         int endAngle = GenMath.figureAngle(endPoint, cornerLoc);
 
         // figure out sizes to use
-        ContactSize sizer = new ContactSize(startObj, endObj, startPoint, endPoint, cornerLoc, startArc, endArc, false);
+        ContactSize sizer = new ContactSize(startObj, endObj, startPoint, endPoint, cornerLoc, startArc, endArc, false, ep.fatWires);
         contactArea = sizer.getContactSize();
         startAngle = sizer.getStartAngle();
         endAngle = sizer.getEndAngle();
@@ -615,10 +618,11 @@ public abstract class InteractiveRouter extends Router {
      * @param endPoly valid port site on endObj
      * @param startArc the arc type to connect to startObj
      * @param endArc the arc type to connect to endObj
+     * @param fatWiringMode true to make arcs as wide as their connecting nodes.
      */
     protected static void getConnectingPoints(ElectricObject startObj, ElectricObject endObj, Point2D clicked,
                                               Point2D startPoint, Point2D endPoint, Poly startPoly, Poly endPoly,
-                                              ArcProto startArc, ArcProto endArc, Dimension2D alignment) {
+                                              ArcProto startArc, ArcProto endArc, Dimension2D alignment, boolean fatWiringMode) {
 
         if (alignment == null) alignment = new Dimension2D.Double(0, 0);
 /*        Point2D[] points = startPoly.getPoints();
@@ -694,7 +698,7 @@ public abstract class InteractiveRouter extends Router {
         double upperBoundY = Math.min(startBounds.getMaxY(), endBounds.getMaxY());
         boolean overlapY = lowerBoundY <= upperBoundY;
 
-        if (ClickZoomWireListener.theOne.getUseFatWiringMode()) {
+        if (fatWiringMode) {
             Rectangle2D startObjBounds = getBounds(startObj);
             Rectangle2D endObjBounds = getBounds(endObj);
             boolean objsOverlap = false;

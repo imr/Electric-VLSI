@@ -76,6 +76,8 @@ import java.util.*;
 public class AutoStitch
 {
 	/** true to use Quad-trees for port searching */				private static final boolean USEQTREE = true;
+	/** true to ignore true pin size */								private static final boolean ZEROSIZEPINS = true;
+	
 
 	/** router used to wire */  									private static InteractiveRouter router = new SimpleWirer();
 
@@ -384,6 +386,8 @@ public class AutoStitch
 
 				Rectangle2D bounds = new Rectangle2D.Double(rNi.getAnchorCenterX() - rNi.getXSize()/2,
 					rNi.getAnchorCenterY() - rNi.getYSize()/2, rNi.getXSize(), rNi.getYSize());
+				if (ZEROSIZEPINS && rNi.getFunction() == PrimitiveNode.Function.PIN)
+					bounds.setRect(rNi.getAnchorCenterX(), rNi.getAnchorCenterY(), 0, 0);
 				DBMath.transformRect(bounds, trans);
 				bbArray[i++] = bounds;
 			}
@@ -404,6 +408,8 @@ public class AutoStitch
 
 					Rectangle2D bounds = new Rectangle2D.Double(rNi.getAnchorCenterX() - rNi.getXSize()/2,
 						rNi.getAnchorCenterY() - rNi.getYSize()/2, rNi.getXSize(), rNi.getYSize());
+					if (ZEROSIZEPINS && rNi.getFunction() == PrimitiveNode.Function.PIN)
+						bounds.setRect(rNi.getAnchorCenterX(), rNi.getAnchorCenterY(), 0, 0);
 					DBMath.transformRect(bounds, trans);
 					oqt.add(pi, bounds);
 				}
@@ -1103,6 +1109,16 @@ name=null;
 				} else
 				{
 					polyPtr = polys[j];
+
+					// make pin polygons zero-size
+					if (ZEROSIZEPINS && ni.getFunction() == PrimitiveNode.Function.PIN)
+					{
+						Poly npp = new Poly(polyPtr.getCenterX(), polyPtr.getCenterY(), 0, 0);
+						npp.setLayer(polyPtr.getLayer());
+						npp.setPort(polyPtr.getPort());
+						npp.setStyle(polyPtr.getStyle());
+						polyPtr = npp;
+					}
 
 					// only want electrically connected polygons
 					if (polyPtr.getPort() == null) continue;

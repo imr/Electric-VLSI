@@ -425,9 +425,10 @@ public abstract class Router {
      * @param ap the Arc type to connect with
      * @param arcAngle of the arc that will be drawn (in tenth-degrees)
      * @param ignoreAngle to ignore the angle of arc to be drawn and existing arcs
+     * @param fatWires true to make arcs as wide as connecting nodes.
      * @return the width to use to connect
      */
-    public static double getArcWidthToUse(ElectricObject obj, ArcProto ap, int arcAngle, boolean ignoreAngle) {
+    public static double getArcWidthToUse(ElectricObject obj, ArcProto ap, int arcAngle, boolean ignoreAngle, boolean fatWires) {
 
         if (obj instanceof ArcInst) {
             ArcInst ai = (ArcInst)obj;
@@ -458,7 +459,7 @@ public abstract class Router {
         // if still default width and node is a contact, use the width/height of the contact
         if (!arcFound && (ni.getProto() instanceof PrimitiveNode)) {
             PrimitiveNode pn = (PrimitiveNode)ni.getProto();
-            if (ClickZoomWireListener.theOne.getUseFatWiringMode()) {
+            if (fatWires) {
                 if (pn.getFunction().isContact()) {
                     // size calls take into account rotation
                     double xsize = ni.getXSizeWithoutOffset();
@@ -499,7 +500,7 @@ public abstract class Router {
             Cell cell = (Cell)ni.getProto();
             Export export = cell.findExport(pi.getPortProto().getName());
             PortInst exportedInst = export.getOriginalPort();
-            double width2 = getArcWidthToUse(exportedInst, ap, arcAngle, ignoreAngle);
+            double width2 = getArcWidthToUse(exportedInst, ap, arcAngle, ignoreAngle, fatWires);
             if (width2 > width) width = width2;
         }
 
@@ -563,16 +564,17 @@ public abstract class Router {
          * @param startArc start arc type
          * @param endArc end arc type
          * @param ignoreAngles whether to ignore angles when determining sizes
+         * @param fatWires true to make arcs as wide as connecting nodes.
          */
         public ContactSize(ElectricObject startObj, ElectricObject endObj, Point2D startLoc, Point2D endLoc,
-                           Point2D cornerLoc, ArcProto startArc, ArcProto endArc, boolean ignoreAngles) {
+                           Point2D cornerLoc, ArcProto startArc, ArcProto endArc, boolean ignoreAngles, boolean fatWires) {
 
             Dimension2D startDim = new Dimension2D.Double(0, 0);
             Dimension2D endDim = new Dimension2D.Double(0, 0);
             Dimension2D startPref = new Dimension2D.Double(0, 0);
             Dimension2D endPref = new Dimension2D.Double(0, 0);
-            startAngle = getAngleAndDimension(startDim, startObj, startLoc, cornerLoc, startArc, endObj == null, ignoreAngles, startPref);
-            endAngle = getAngleAndDimension(endDim, endObj, endLoc, cornerLoc, endArc, startObj == null, ignoreAngles, endPref);
+            startAngle = getAngleAndDimension(startDim, startObj, startLoc, cornerLoc, startArc, endObj == null, ignoreAngles, fatWires, startPref);
+            endAngle = getAngleAndDimension(endDim, endObj, endLoc, cornerLoc, endArc, startObj == null, ignoreAngles, fatWires, endPref);
 
             double startW = startDim.getWidth();
             double startH = startDim.getHeight();
@@ -595,7 +597,7 @@ public abstract class Router {
                 if (endH < startH) startH = endH;
             }
 
-            if (endObj == null && ClickZoomWireListener.theOne.getUseFatWiringMode()) {
+            if (endObj == null && fatWires) {
                 if (startW > startH) startH = startW;
                 if (startH > startW) startW = startH;
             }
@@ -613,7 +615,7 @@ public abstract class Router {
 
         private static int getAngleAndDimension(Dimension2D dim, ElectricObject obj, Point2D loc, Point2D cornerLoc,
                                                 ArcProto arc, boolean otherObjNull, boolean ignoreAngles,
-                                                Dimension2D pref) {
+                                                boolean fatWires, Dimension2D pref) {
             double w = 0, h = 0;
             int angle = 0;
 
@@ -646,13 +648,13 @@ public abstract class Router {
                 if (otherObjNull) ignoreAngles = true;
 
                 if (loc.equals(cornerLoc)) {
-                    w = getArcWidthToUse(pi, arc, 900, ignoreAngles);
-                    h = getArcWidthToUse(pi, arc, 0, ignoreAngles);
+                    w = getArcWidthToUse(pi, arc, 900, ignoreAngles, fatWires);
+                    h = getArcWidthToUse(pi, arc, 0, ignoreAngles, fatWires);
                 } else {
                     angle = GenMath.figureAngle(loc, cornerLoc);
-                    if (angle % 1800 == 0) h = getArcWidthToUse(pi, arc, angle, ignoreAngles);
-                    else if ((angle + 900) % 1800 == 0) w = getArcWidthToUse(pi, arc, angle, ignoreAngles);
-                    else h = w = getArcWidthToUse(pi, arc, angle, true);
+                    if (angle % 1800 == 0) h = getArcWidthToUse(pi, arc, angle, ignoreAngles, fatWires);
+                    else if ((angle + 900) % 1800 == 0) w = getArcWidthToUse(pi, arc, angle, ignoreAngles, fatWires);
+                    else h = w = getArcWidthToUse(pi, arc, angle, true, fatWires);
                 }
             }
 

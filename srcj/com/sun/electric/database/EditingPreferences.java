@@ -112,12 +112,19 @@ public class EditingPreferences extends PrefPackage {
     @IntegerPref(node = USER_NODE, key = "SmartVerticalPlacementArc", factory = 0)
     public final int smartVerticalPlacementArc = 0;
 
-	/** what type of "smart" text placement should be done for horizontal Arcs.
+	/** What type of "smart" text placement should be done for horizontal Arcs.
 	 * The values can be 0: place text inside; 1: place text above; 2: place text below.
 	 * The default is 0.
      */
     @IntegerPref(node = USER_NODE, key = "SmartHorizontalPlacementArc", factory = 0)
     public final int smartHorizontalPlacementArc = 0;
+
+    /** What type of arcs are drawn: true to make them as wide as connecting nodes,
+     * false to make them normal size.
+     * The default is true.
+     */
+    @BooleanPref(node = USER_NODE, key = "FatWires", factory = true)
+    public boolean fatWires;
 
     public EditingPreferences(boolean factory, TechPool techPool) {
         super(factory);
@@ -626,6 +633,10 @@ public class EditingPreferences extends PrefPackage {
 
     public EditingPreferences withPlacementReset() {
         return withSmartHorizontalPlacementArc(0).withSmartVerticalPlacementArc(0).withSmartHorizontalPlacementExport(0).withSmartVerticalPlacementExport(0);
+    }
+
+    public EditingPreferences withFatWiresReset() {
+    	return (EditingPreferences)withField("fatWires", Boolean.TRUE);
     }
 
  	private static Dimension2D[] correctAlignmentGridVector(Dimension2D [] retVal)
