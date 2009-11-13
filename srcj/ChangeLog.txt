@@ -4,8 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
-BUG: (11/12/09, DN) AssertionError in getShapeOfPort (Bug #2468)/
+BUG: (11/12/09, DN) AssertionError in getShapeOfPort (Bug #2468)
 FIX: In Schematics.genShapeOfPort gen shape in grid units when lambda != 1.
+Not getting double polys in NodeInsts with outline.
 
 IMP: (11/12/09, GVG) EditWindow0.globalScale cached during class creation.
 Caching placement prefs in Verilog input prefs.
