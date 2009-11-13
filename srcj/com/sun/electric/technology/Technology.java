@@ -3643,6 +3643,10 @@ public class Technology implements Comparable<Technology>, Serializable
             for (int i = 0; i < ps1.length; i++) {
                 Point2D pt0 = ps0[i];
                 Point2D pt1 = ps1[i];
+//                if (DBMath.roundShapeCoord(pt0.getX()) != DBMath.roundShapeCoord(pt1.getX())) {
+//                    Poly poly2 = getShapeOfPort0(ni, pp, selectPt);
+//                    Poly poly3 = polyBuilder.getShape(ni, pp, selectPt);
+//                }
                 assert DBMath.roundShapeCoord(pt0.getX()) == DBMath.roundShapeCoord(pt1.getX());
                 assert DBMath.roundShapeCoord(pt0.getY()) == DBMath.roundShapeCoord(pt1.getY());
             }

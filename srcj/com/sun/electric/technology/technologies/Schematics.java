@@ -2358,8 +2358,6 @@ public class Schematics extends Technology
     @Override
     protected void genShapeOfPort(AbstractShapeBuilder b, ImmutableNodeInst n, PrimitiveNode pn, PrimitivePort pp, Point2D selectPt) {
 		// determine the grid size
-        double sizeX = n.size.getLambdaX();
-        double sizeY = n.size.getLambdaY();
 		double lambda = 0;
 		if (pn == andNode)
 		{
@@ -2485,10 +2483,12 @@ public class Schematics extends Technology
 		if (lambda != 1)
 		{
 			// standard port computation
-			double portLowX = n.anchor.getGridX() + pp.getLeft().getMultiplier() * sizeX + pp.getLeft().getAdder() * lambda;
-			double portHighX = n.anchor.getGridX() + pp.getRight().getMultiplier() * sizeX + pp.getRight().getAdder() * lambda;
-			double portLowY = n.anchor.getGridY() + pp.getBottom().getMultiplier() * sizeY + pp.getBottom().getAdder() * lambda;
-			double portHighY = n.anchor.getGridY() + pp.getTop().getMultiplier() * sizeY + pp.getTop().getAdder() * lambda;
+            double sizeX = n.size.getGridX();
+            double sizeY = n.size.getGridY();
+			double portLowX = pp.getLeft().getMultiplier() * sizeX + pp.getLeft().getGridAdder() * lambda;
+			double portHighX = pp.getRight().getMultiplier() * sizeX + pp.getRight().getGridAdder() * lambda;
+			double portLowY = pp.getBottom().getMultiplier() * sizeY + pp.getBottom().getGridAdder() * lambda;
+			double portHighY = pp.getTop().getMultiplier() * sizeY + pp.getTop().getGridAdder() * lambda;
             b.pushPoint(portLowX, portLowY);
             b.pushPoint(portHighX, portLowY);
             b.pushPoint(portHighX, portHighY);
