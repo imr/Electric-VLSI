@@ -903,6 +903,7 @@ class HighlightEOBJ extends Highlight
     {
         Graphics2D g2 = (Graphics2D)g;
         highlightConnected = setConnected;
+        if (eobj == null || !eobj.isLinked()) return;
 
 		// switch colors if specified
         Color oldColor = null;
