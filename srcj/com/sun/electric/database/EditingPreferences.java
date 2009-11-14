@@ -539,7 +539,8 @@ public class EditingPreferences extends PrefPackage {
                     this.defaultArcPins.equals(that.defaultArcPins) &&
                     Arrays.equals(this.alignments, that.alignments) &&
                     this.alignmentIndex == that.alignmentIndex &&
-                    Arrays.equals(this.textDescriptors, that.textDescriptors);
+                    Arrays.equals(this.textDescriptors, that.textDescriptors) &&
+                    this.fatWires == that.fatWires;
         }
         return false;
     }
