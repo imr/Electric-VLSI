@@ -181,7 +181,7 @@ public class Input
 		if (type == FileType.SPICE) return new Spice.SpicePreferences(factory);
 		if (type == FileType.SUE) return new Sue.SuePreferences(factory);
 		if (type == FileType.VERILOG) return new VerilogReader.VerilogPreferences(factory);
-//		if (type == FileType.DSPF) return new DSPFReader.DSPFReaderPreferences(factory);
+		if (type == FileType.DSPF) return new DSPFReader.DSPFReaderPreferences(factory);
 		return null;
 	}
 
