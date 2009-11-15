@@ -20,6 +20,7 @@ package com.sun.electric.tool.simulation.test;
  */
 public class PowerChannelResistorVoltageReadable extends PowerChannel {
 
+    private boolean fastConvergence;
     private PowerChannel pc;
     private double ohms;
     private VoltageReadable vr;
@@ -55,7 +56,13 @@ public class PowerChannelResistorVoltageReadable extends PowerChannel {
                              ".setVoltageWait():"+
                              " desired/actual="+v+"/"+vl);
             if (vl+EPSILON_VOLTS < v || vl-EPSILON_VOLTS > v) {
-                vs = v+i*ohms;
+                if (fastConvergence) {
+                    double delta = v+i*ohms - vs;
+                    delta *= 1.5;
+                    vs = vs + delta;
+                } else {
+                    vs = v+i*ohms;
+                }
                 pc.setVoltageWait((float)vs);
             } else {
                 readCurrent();  // to force the sanity check
@@ -67,9 +74,12 @@ public class PowerChannelResistorVoltageReadable extends PowerChannel {
 
     public PowerChannelResistorVoltageReadable(PowerChannel pc,
                                                float ohmsOfResistor,
-                                               VoltageReadable voltMeterAcrossResistor) {
+                                               VoltageReadable voltMeterAcrossResistor,
+                                               boolean fastConvergence) {
         this.pc = pc;
         this.ohms = ohmsOfResistor;
         this.vr = voltMeterAcrossResistor;
+        this.fastConvergence = fastConvergence;
     }
+
 }
