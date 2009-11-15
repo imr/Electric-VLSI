@@ -160,7 +160,6 @@ public class Panel extends JPanel
 	/** the location of the Y axis vertical line */			private int vertAxisPos;
 	/** the smallest nonzero X value (for log drawing) */	private double smallestXValue;
 	/** the smallest nonzero Y value (for log drawing) */	private double smallestYValue;
-    /** true iff this panel is using BTrees */                      boolean isUsingBTrees;
 
 	/** the background color of a button */					private static Color background = null;
 	/** The color of the grid (a gray) */					private static Color gridColor = new Color(0x808080);
@@ -184,12 +183,7 @@ public class Panel extends JPanel
 	 * @param analysisType the type of data shown in this Panel.
 	 */
 	public Panel(WaveformWindow waveWindow, boolean analog, Analysis.AnalysisType analysisType) {
-        this(waveWindow, analog, analysisType, false);
-    }
-	public Panel(WaveformWindow waveWindow, boolean analog, Analysis.AnalysisType analysisType, boolean isUsingBTrees)
-	{
 		// remember state
-        this.isUsingBTrees = isUsingBTrees;
 		this.waveWindow = waveWindow;
 		setAnalysisType(analysisType);
 		this.analog = analog;
@@ -1486,20 +1480,17 @@ public class Panel extends JPanel
             Signal sig = ws.getSignal();
             if (!(sig instanceof AnalogSignal)) {
                 isUsingBTrees = false;                
-                System.err.println("nope because got a " + sig.getClass().getName());
             } else {
                 Waveform wave = ((AnalogSignal)sig).getWaveform(0);
-                if (!(wave instanceof BTreeNewSignal)) {
-                    System.err.println("nope because got a " + wave.getClass().getName());
+                if (!(wave instanceof BTreeNewSignal))
                     isUsingBTrees = false;
-                }
             }
         }
-        if (isUsingBTrees && g!=null) {
+        if (!isUsingBTrees && g!=null) {
             g.setColor(gridColor);
             g.setColor(Color.gray);
             g.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
-            String msg = "(using btrees)";
+            String msg = "(using legacy simulation code)";
             g.drawString(msg,
                          (int)getWidth()-g.getFontMetrics().stringWidth(msg)-10,
                          (int)getHeight()-10
@@ -1545,7 +1536,7 @@ public class Panel extends JPanel
 					Waveform wave = as.getWaveform(s);
                     NewSignal.Approximation pref = wave.getPreferredApproximation();
                     NewSignal.Approximation waveform =
-                        (!Simulation.isSpiceUseRandomAccess() || wave instanceof WaveformImpl)
+                        (Simulation.isUseLegacySimulationCode() || wave instanceof WaveformImpl)
                         ? pref
                         : wave.getPixelatedApproximation(convertXScreenToData(0),
                                                          convertXScreenToData(sz.width),

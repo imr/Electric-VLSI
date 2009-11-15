@@ -133,7 +133,7 @@ public class Simulate extends Input
         } else if (type == FileType.EPIC)
         {
 //            if (Simulation.isSpiceEpicReaderProcess())
-            if (Simulation.isSpiceUseRandomAccess())
+            if (!Simulation.isUseLegacySimulationCode())
         	{
                 is = new NewEpicOutProcess();
         	} else

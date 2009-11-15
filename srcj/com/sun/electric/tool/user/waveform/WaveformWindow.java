@@ -1330,7 +1330,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		// create the new panel
-		Panel panel = new Panel(this, sd.isAnalog(), analysisType, an instanceof NewEpicAnalysis);
+		Panel panel = new Panel(this, sd.isAnalog(), analysisType);
 
 		// set the X and Y ranges
 		panel.setXAxisRange(leftEdge, rightEdge);
@@ -3776,8 +3776,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							}
 						}
 					}
-					curPanel = new Panel(ww, ww.getSimData().isAnalog(), analysisType,
-                                         ww.getSimData().findAnalysis(analysisType) instanceof NewEpicAnalysis);
+					curPanel = new Panel(ww, ww.getSimData().isAnalog(), analysisType);
 					if (xLog)
 					{
 						if (ww.isXAxisLocked()) ww.togglePanelXAxisLock();

@@ -125,7 +125,7 @@ public class HSpiceOut extends Simulate
 					double[] values = new double[times.length];
 					for (int eventNum = 0; eventNum < values.length; eventNum++)
 						values[eventNum] = theSweep.get(eventNum)[sigIndex + 1];
-                    if (Simulation.isSpiceUseRandomAccess()) {
+                    if (!Simulation.isUseLegacySimulationCode()) {
                         BTree<Double,Double,Serializable> tree = NewEpicAnalysis.getTree();
                         int evmax = 0;
                         int evmin = 0;

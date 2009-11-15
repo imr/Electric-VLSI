@@ -193,7 +193,6 @@ public class SpiceTab extends PreferencePanel
 
 		epicText.setText(String.valueOf(Simulation.getSpiceEpicMemorySize()));
 		spiceNetworkDelimiter.setText(Simulation.getSpiceExtractedNetDelimiter());
-		spiceUseRandomAccess.setSelected(Simulation.isSpiceUseRandomAccess());
 	}
 
 	private void spiceBrowseTrailerFileActionPerformed()
@@ -310,9 +309,6 @@ public class SpiceTab extends PreferencePanel
 
 		stringNow = spiceNetworkDelimiter.getText();
 		if (!Simulation.getSpiceExtractedNetDelimiter().equals(stringNow)) Simulation.setSpiceExtractedNetDelimiter(stringNow);
-
-		booleanNow = spiceUseRandomAccess.isSelected();
-		if (Simulation.isSpiceUseRandomAccess() != booleanNow) Simulation.setSpiceUseRandomAccess(booleanNow);
 	}
 
 	/**
@@ -373,8 +369,6 @@ public class SpiceTab extends PreferencePanel
 			Simulation.setSpiceEpicMemorySize(Simulation.getFactorySpiceEpicMemorySize());
 		if (Simulation.getFactorySpiceExtractedNetDelimiter() != Simulation.getSpiceExtractedNetDelimiter())
 			Simulation.setSpiceExtractedNetDelimiter(Simulation.getFactorySpiceExtractedNetDelimiter());
-		if (Simulation.isFactorySpiceUseRandomAccess() != Simulation.isSpiceUseRandomAccess())
-			Simulation.setSpiceUseRandomAccess(Simulation.isFactorySpiceUseRandomAccess());
 	}
 
 	// enable or disable the spice run options
@@ -412,7 +406,6 @@ public class SpiceTab extends PreferencePanel
         epicText = new javax.swing.JTextField();
         jLabel7 = new javax.swing.JLabel();
         spiceNetworkDelimiter = new javax.swing.JTextField();
-        spiceUseRandomAccess = new javax.swing.JCheckBox();
         execution = new javax.swing.JPanel();
         spiceRunPopup = new javax.swing.JComboBox();
         spiceRunProgram = new javax.swing.JTextField();
@@ -530,14 +523,6 @@ public class SpiceTab extends PreferencePanel
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 4);
         readingOutput.add(spiceNetworkDelimiter, gridBagConstraints);
-
-        spiceUseRandomAccess.setText("Use random-access on-disk index for simulation data");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        readingOutput.add(spiceUseRandomAccess, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1058,7 +1043,6 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JRadioButton spiceTrailerCardsFromFile;
     private javax.swing.JRadioButton spiceTrailerCardsWithExtension;
     private javax.swing.JCheckBox spiceUseCellParameters;
-    private javax.swing.JCheckBox spiceUseRandomAccess;
     private javax.swing.JCheckBox spiceWriteEndStatement;
     private javax.swing.JCheckBox spiceWritePwrGndSubcircuit;
     private javax.swing.JCheckBox spiceWriteSubcktTopCell;

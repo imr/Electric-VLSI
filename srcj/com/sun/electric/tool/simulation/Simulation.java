@@ -771,8 +771,7 @@ public class Simulation extends Tool
 						if (firstSignal)
 						{
 							firstSignal = false;
-							wp = new Panel(ww, sd.isAnalog(), an.getAnalysisType(),
-                                           an instanceof NewEpicAnalysis);
+							wp = new Panel(ww, sd.isAnalog(), an.getAnalysisType());
 							if (xAxisSignal != null)
 								wp.setXAxisSignal(xAxisSignal);
 							wp.makeSelectedPanel(-1, -1);
@@ -813,8 +812,7 @@ public class Simulation extends Tool
 		// nothing saved, so show a default set of signals (if it even exists)
 		if (sd.isAnalog())
 		{
-			Panel wp = new Panel(ww, sd.isAnalog(), an.getAnalysisType(),
-                                 an instanceof NewEpicAnalysis);
+			Panel wp = new Panel(ww, sd.isAnalog(), an.getAnalysisType());
 			Rectangle2D bounds = an.getBounds();
 			double lowValue = bounds.getMinY();
 			double highValue = bounds.getMaxY();
@@ -832,8 +830,7 @@ public class Simulation extends Tool
 				if (sDSig.getSignalContext() != null) continue;
 				if (sDSig.isInBus()) continue;
 				if (sDSig.getSignalName().indexOf('@') >= 0) continue;
-				Panel wp = new Panel(ww, sd.isAnalog(), an.getAnalysisType(),
-                                     an instanceof NewEpicAnalysis);
+				Panel wp = new Panel(ww, sd.isAnalog(), an.getAnalysisType());
 				wp.makeSelectedPanel(-1, -1);
 				new WaveSignal(wp, sDSig);
 				numSignals++;
@@ -2125,8 +2122,8 @@ public class Simulation extends Tool
     public static void setSpiceExtractedNetDelimiter(String s) { cacheSpiceExtractedNetDelimiter.setString(s); }
 	public static String getFactorySpiceExtractedNetDelimiter() { return cacheSpiceExtractedNetDelimiter.getStringFactoryValue(); }
 
-	private static Pref cachedSpiceUseRandomAccess = Pref.makeBooleanPref("SpiceUseRandomAccess", tool.prefs, false);
-	public static boolean isSpiceUseRandomAccess() { return cachedSpiceUseRandomAccess.getBoolean(); }
-	public static void setSpiceUseRandomAccess(boolean b) { cachedSpiceUseRandomAccess.setBoolean(b); }
-	public static boolean isFactorySpiceUseRandomAccess() { return cachedSpiceUseRandomAccess.getBooleanFactoryValue(); }
+	private static Pref cachedUseLegacySimulationCode = Pref.makeBooleanPref("UseLegacySimulationCode", tool.prefs, false);
+	public static boolean isUseLegacySimulationCode() { return cachedUseLegacySimulationCode.getBoolean(); }
+	public static void setUseLegacySimulationCode(boolean b) { cachedUseLegacySimulationCode.setBoolean(b); }
+	public static boolean isFactoryUseLegacySimulationCode() { return cachedUseLegacySimulationCode.getBooleanFactoryValue(); }
 }
