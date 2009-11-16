@@ -76,7 +76,7 @@ import java.util.*;
 public class AutoStitch
 {
 	/** true to use Quad-trees for port searching */				private static final boolean USEQTREE = true;
-	/** true to ignore true pin size */								private static final boolean ZEROSIZEPINS = true;
+	/** true to ignore true pin size */								private static final boolean ZEROSIZEPINS = false;
 	
 
 	/** router used to wire */  									private static InteractiveRouter router = new SimpleWirer();
