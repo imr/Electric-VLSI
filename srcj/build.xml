@@ -26,12 +26,12 @@
 <project basedir="." default="jar" name="electric">
 
     <target name="init" description="Initialization">
-        <property name="beanshell" value="packaging/bsh-2.0b4.jar"/>
-        <property name="AppleJava" value="packaging/AppleJavaExtensions.jar"/>
-        <property name="JUnit" value="packaging/junit-4.1.jar"/>
-        <property name="lucene" value="packaging/lucene-1.4.3.jar"/>
-        <property name="prefuse" value="packaging/prefuse.jar"/>
-        <property name="jython" value="packaging/jython.jar"/>
+        <property name="beanshell" value="../packaging/bsh-2.0b4.jar"/>
+        <property name="AppleJava" value="../packaging/AppleJavaExtensions.jar"/>
+        <property name="JUnit" value="../packaging/junit-4.5.jar"/>
+        <property name="lucene" value="../packaging/lucene-1.4.3.jar"/>
+        <property name="prefuse" value="../packaging/prefuse.jar"/>
+        <property name="jython" value="../packaging/jython.jar"/>
     </target>
 
     <!-- Patternset for 3D dependencies -->
@@ -70,19 +70,19 @@
 
     <!-- Path for minimum set of external jars -->
     <path id="externalClassPath">
-        <pathelement location="packaging/bsh-2.0b2.jar"/>
-        <pathelement location="packaging/AppleJavaExtensions.jar"/>
+        <pathelement location="../packaging/bsh-2.0b2.jar"/>
+        <pathelement location="../packaging/AppleJavaExtensions.jar"/>
     </path>
 
     <!-- Path for prefuse libraries -->
     <path id="prefuseClassPath">
         <!--<pathelement location="${lucene}"/>-->
-        <pathelement location="packaging/prefuse.jar"/>
+        <pathelement location="../packaging/prefuse.jar"/>
     </path>
 
     <!-- Path for Jython -->
     <path id="jythonClassPath">
-        <pathelement location="packaging/jython.jar"/>
+        <pathelement location="../packaging/jython.jar"/>
     </path>
 
     <!-- Use -DGNU=1 to build the GNU release -->
@@ -92,7 +92,7 @@
     <!-- Use -DJMF=1 to include JMF plugin -->
     <target name="compile" depends="init" description="Compile">
         <javac debug="true" deprecation="true" destdir="." srcdir="."
-            fork="true" memoryMaximumSize="512m" target="1.5">
+            fork="true" memoryMaximumSize="512m" source="1.5" target="1.5">
             <!--compilerarg value="-Xlint:unchecked"/-->
             <classpath refid="externalClassPath" />
             <classpath refid="prefuseClassPath" />
@@ -101,7 +101,7 @@
     </target>
 
     <target name="compileToBin" depends="init" description="Compile to 'bin' directory">
-        <javac debug="true" deprecation="true" destdir="bin" srcdir="." target="1.5"
+        <javac debug="true" deprecation="true" destdir="bin" srcdir="." source="1.5" target="1.5"
             fork="true" memoryMaximumSize="512m">
             <classpath refid="externalClassPath" />
             <classpath refid="prefuseClassPath" />
@@ -125,7 +125,7 @@
     </target>
 
     <target name="compileTests" depends="init,compile" description="Compile tests">
-        <javac debug="true" deprecation="true" destdir="." srcdir="../tests" target="1.5"
+        <javac debug="true" deprecation="true" destdir="." srcdir="../tests" source="1.5" target="1.5"
             fork="true" memoryMaximumSize="512m">
             <classpath><pathelement location="${JUnit}"/></classpath>
         </javac>
@@ -241,7 +241,7 @@
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
                 <arg value="-v"/>
         </java>
-        <copy file="packaging/LicenseIRSIM.txt" tofile="LicenseIRSIM.txt"/>
+        <copy file="../packaging/LicenseIRSIM.txt" tofile="LicenseIRSIM.txt"/>
         <jar basedir="." compress="true" jarfile="electricIRSIM-${version}.jar">
                 <include name="LicenseIRSIM.txt"/>
                 <include name="com/sun/electric/plugins/irsim/*.*"/>
@@ -313,9 +313,9 @@
         </java>
         <antcall target="unjarSUN"></antcall>
         <delete dir="META-INF"/>
-        <copy file="packaging/electric.mf" tofile="electric.mf"/>
-        <copy file="packaging/LicenseGNU.txt" tofile="COPYING.txt"/>
-        <copy file="packaging/ReadmeGNUSrcDwn.txt" tofile="README.txt"/>
+        <copy file="../packaging/electric.mf" tofile="electric.mf"/>
+        <copy file="../packaging/LicenseGNU.txt" tofile="COPYING.txt"/>
+        <copy file="../packaging/ReadmeGNUSrcDwn.txt" tofile="README.txt"/>
         <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="electric.mf">
             <exclude name="**/.nfs*"/>
             <exclude name="apidoc/"/>
@@ -329,10 +329,10 @@
             <exclude name="electric.mf"/>
             <exclude name="nbproject/"/>
             <exclude name=".settings/"/>
-            <exclude name="packaging/*.jar"/>
-            <exclude name="packaging/*.gif"/>
-            <exclude name="packaging/*.lsm"/>
-            <exclude name="packaging/MakePDF.book"/>
+            <exclude name="../packaging/*.jar"/>
+            <exclude name="../packaging/*.gif"/>
+            <exclude name="../packaging/*.lsm"/>
+            <exclude name="../packaging/MakePDF.book"/>
             <exclude name=".settings"/>
             <exclude name="xml/"/>
             <patternset refid="exclusion" />
@@ -369,7 +369,7 @@
 
     <target name="jarWithTests" depends="clean,init,compileTests" description="Make binary Jar file">
         <antcall target="unjarSUN"></antcall>
-        <copy file="packaging/electric.mf" tofile="electric.mf"/>
+        <copy file="../packaging/electric.mf" tofile="electric.mf"/>
         <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
             <exclude name="**/.nfs*"/>
             <exclude name="apidoc/"/>
@@ -382,7 +382,7 @@
             <exclude name="electric.log"/>
             <exclude name="electric.mf"/>
             <exclude name="nbproject/"/>
-            <exclude name="packaging/"/>
+            <exclude name="../packaging/"/>
             <exclude name=".settings"/>
             <exclude name="xml/"/>
             <patternset refid="exclusion" />
@@ -447,15 +447,15 @@
         <mkdir dir="${appdir}/Contents/Resources/Java"/>
         <copy file="/System/Library/Frameworks/JavaVM.framework/Versions/Current/Resources/MacOS/JavaApplicationStub" todir="${appdir}/Contents/MacOS"/>
         <chmod file="${appdir}/Contents/MacOS/JavaApplicationStub" perm="755"/>
-        <copy file="packaging/Info.plist" todir="${appdir}/Contents"/>
+        <copy file="../packaging/Info.plist" todir="${appdir}/Contents"/>
         <replace file="${appdir}/Contents/Info.plist" token="@VERSION" value="${version}"/>
-        <copy file="packaging/PkgInfo" todir="${appdir}/Contents"/>
-        <copy file="packaging/electric.icns" todir="${appdir}/Contents/Resources"/>
+        <copy file="../packaging/PkgInfo" todir="${appdir}/Contents"/>
+        <copy file="../packaging/electric.icns" todir="${appdir}/Contents/Resources"/>
         <copy file="electric.jar" todir="${appdir}/Contents/Resources/Java"/>
         <exec executable="/Developer/Tools/SetFile">
             <arg value="-a"/> <arg value="B" /> <arg value="${appdir}" />
         </exec>
-        <exec executable="packaging/mkdmg.sh">
+        <exec executable="../packaging/mkdmg.sh">
             <arg value="Electric${version}"/> <arg value="${releasedir}" />
         </exec>
     </target>
@@ -494,7 +494,7 @@
 
     <target name="compileTestCode">
         <javac debug="true" deprecation="true" destdir="." srcdir="com/sun/electric/tool/simulation/test/"
-               fork="true" memoryMaximumSize="512m" target="1.5">
+               fork="true" memoryMaximumSize="512m" source="1.5" target="1.5">
             <include name="*.java"/>
         </javac>
         <jar basedir="." compress="true" jarfile="test.jar">
