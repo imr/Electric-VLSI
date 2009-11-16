@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+IMP: (11/15/09, DN) Ensure that Cell.cellBounds are the same as CellTree.getBounds().
+
 IMP: (11/15/09, DN) Don't need to supply cell bounds to Snapshot.
 
 IMP: (11/15/09, DN) Move "packaging" upper due to netbeans project.

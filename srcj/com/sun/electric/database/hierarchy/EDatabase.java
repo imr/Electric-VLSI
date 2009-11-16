@@ -26,6 +26,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
+import com.sun.electric.database.CellTree;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
@@ -451,10 +452,10 @@ public class EDatabase {
         boolean cellsChanged = cellBackups.length != snapshot.cellBackups.size();
         for (int cellIndex = 0; cellIndex < cellBackups.length; cellIndex++) {
             Cell cell = getCell(cellIndex);
-			if (cell != null) {
+            if (cell != null) {
                 if (techPool != snapshot.techPool)
                     cell.cellBackupFresh = false;
-				cellBackups[cellIndex] = cell.backup();
+                cellBackups[cellIndex] = cell.backup();
                 cell.getMemoization();
                 cell.getBounds(); // ????
                 if (!Job.isThreadSafe())
@@ -477,6 +478,15 @@ public class EDatabase {
 
         setSnapshot(snapshot.with(changingTool, environment, cellBackups, libBackups), true);
         environment.activate();
+        for (CellTree cellTree: snapshot.cellTrees) {
+            if (cellTree == null) continue;
+            Cell cell = getCell(cellTree.top.cellRevision.d.cellId);
+            ERectangle cellBounds = cellTree.getBounds();
+            if (cellBounds != cell.cellBounds) {
+                assert cell.cellBounds.equals(cellBounds);
+                cell.cellBounds = cellBounds;
+            }
+        }
 //        long endTime = System.currentTimeMillis();
 //        if (Job.getDebug()) System.out.println("backup took: " + (endTime - startTime) + " msec");
         return snapshot;
@@ -512,7 +522,8 @@ public class EDatabase {
     private void recoverRecursively(CellId cellId, BitSet recovered) {
         int cellIndex = cellId.cellIndex;
         if (recovered.get(cellIndex)) return;
-        CellBackup newBackup = snapshot.getCell(cellId);
+        CellTree newTree = snapshot.getCellTree(cellId);
+        CellBackup newBackup = newTree.top;
         CellRevision newRevision = newBackup.cellRevision;
         for (int i = 0, numUsages = cellId.numUsagesIn(); i < numUsages; i++) {
             CellUsage u = cellId.getUsageIn(i);
@@ -520,7 +531,7 @@ public class EDatabase {
             recoverRecursively(u.protoId, recovered);
         }
         Cell cell = getCell(cellId);
-        cell.recover(newBackup, snapshot.getCellBounds(cellId));
+        cell.recover(newTree);
     	recovered.set(cellIndex);
     }
 
@@ -597,7 +608,8 @@ public class EDatabase {
     private void undoRecursively(Snapshot oldSnapshot, CellId cellId, BitSet updated, BitSet exportsModified, BitSet boundsModified) {
         int cellIndex = cellId.cellIndex;
     	if (updated.get(cellIndex)) return;
-        CellBackup newBackup = snapshot.getCell(cellId);
+        CellTree newTree = snapshot.getCellTree(cellId);
+        CellBackup newBackup = newTree.top;
         CellRevision newRevision = newBackup.cellRevision;
         assert cellId != null;
         boolean subCellsExportsModified = false;
@@ -615,7 +627,7 @@ public class EDatabase {
         Cell cell = getCell(cellId);
         CellRevision oldRevision = oldSnapshot.getCellRevision(cellId);
         ERectangle oldBounds = oldSnapshot.getCellBounds(cellId);
-        cell.undo(newBackup, snapshot.getCellBounds(cellId),
+        cell.undo(newTree,
                 subCellsExportsModified ? exportsModified : null,
                 subCellsBoundsModified ? boundsModified : null);
     	updated.set(cellIndex);
@@ -637,35 +649,14 @@ public class EDatabase {
         this.techPool = environment.techPool;
         environment.activate();
         lowLevelSetCanUndoing(true);
-        BitSet updated = new BitSet();
-        for (CellBackup cellBackup: snapshot.cellBackups) {
-            if (cellBackup != null)
-                resizeRecursively(cellBackup.cellRevision.d.cellId, updated);
-        }
+        undo(snapshot.with(changingTool, environment));
         lowLevelSetCanUndoing(false);
-        snapshotFresh = false;
-        backup();
+        assert snapshotFresh;
         long endTime = System.currentTimeMillis();
         if (Job.getDebug()) {
 //            System.out.println("resize took: " + (endTime - startTime) + " msec");
             checkFresh(snapshot);
         }
-    }
-
-    private void resizeRecursively(CellId cellId, BitSet updated) {
-        int cellIndex = cellId.cellIndex;
-    	if (updated.get(cellIndex)) return;
-        CellBackup cellBackup = snapshot.getCell(cellId);
-        CellRevision cellRevision = cellBackup.cellRevision;
-        assert cellId != null;
-        for (int i = 0, numUsages = cellId.numUsagesIn(); i < numUsages; i++) {
-            CellUsage u = cellId.getUsageIn(i);
-            if (cellRevision.getInstCount(u) <= 0) continue;
-            resizeRecursively(u.protoId, updated);
-        }
-        Cell cell = getCell(cellId);
-        cell.resize();
-    	updated.set(cellIndex);
     }
 
     private void recoverLibraries() {

@@ -25,6 +25,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
+import com.sun.electric.database.CellTree;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.IdMapper;
@@ -413,29 +414,29 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		}
 	}
 
-	private class MaxSuffix { int v = 0; }
+    private class MaxSuffix { int v = 0; }
 
-	// -------------------------- private data ---------------------------------
+    // -------------------------- private data ---------------------------------
 
-	/** Variable key for characteristic spacing for a cell. */		public static final Variable.Key CHARACTERISTIC_SPACING = Variable.newKey("FACET_characteristic_spacing");
-	/** Variable key for text cell contents. */						public static final Variable.Key CELL_TEXT_KEY = Variable.newKey("FACET_message");
-	/** Variable key for number of multipage pages. */				public static final Variable.Key MULTIPAGE_COUNT_KEY = Variable.newKey("CELL_page_count");
-	/** Variable key for font of text in textual cells. */			public static final Variable.Key TEXT_CELL_FONT_NAME = Variable.newKey("CELL_text_font");
-	/** Variable key for size of text in textual cells. */			public static final Variable.Key TEXT_CELL_FONT_SIZE = Variable.newKey("CELL_text_size");
+    /** Variable key for characteristic spacing for a cell. */      public static final Variable.Key CHARACTERISTIC_SPACING = Variable.newKey("FACET_characteristic_spacing");
+    /** Variable key for text cell contents. */                     public static final Variable.Key CELL_TEXT_KEY = Variable.newKey("FACET_message");
+    /** Variable key for number of multipage pages. */              public static final Variable.Key MULTIPAGE_COUNT_KEY = Variable.newKey("CELL_page_count");
+    /** Variable key for font of text in textual cells. */          public static final Variable.Key TEXT_CELL_FONT_NAME = Variable.newKey("CELL_text_font");
+    /** Variable key for size of text in textual cells. */          public static final Variable.Key TEXT_CELL_FONT_SIZE = Variable.newKey("CELL_text_size");
 
     private static final int[] NULL_INT_ARRAY = {};
 	private static final Export[] NULL_EXPORT_ARRAY = {};
 
-	/** set if instances should be expanded */						public static final int WANTNEXPAND   =           02;
-//	/** set if cell is modified */						            private static final int MODIFIED      =     01000000;
-	/** set if everything in cell is locked */						public static final int NPLOCKED      =     04000000;
-	/** set if instances in cell are locked */						public static final int NPILOCKED     =    010000000;
-	/** set if cell is part of a "cell library" */					public static final int INCELLLIBRARY =    020000000;
-	/** set if cell is from a technology-library */					public static final int TECEDITCELL   =    040000000;
-	/** set if cell is a multi-page schematic */					private static final int MULTIPAGE     = 017600000000;
+    /** set if instances should be expanded */                      public static final int WANTNEXPAND   =           02;
+//  /** set if cell is modified */                                  private static final int MODIFIED      =     01000000;
+    /** set if everything in cell is locked */                      public static final int NPLOCKED      =     04000000;
+    /** set if instances in cell are locked */                      public static final int NPILOCKED     =    010000000;
+    /** set if cell is part of a "cell library" */                  public static final int INCELLLIBRARY =    020000000;
+    /** set if cell is from a technology-library */                 public static final int TECEDITCELL   =    040000000;
+    /** set if cell is a multi-page schematic */                    private static final int MULTIPAGE     = 017600000000;
 
-	/** Length of base name for autonaming. */						private static final int ABBREVLEN = 8;
-	/** zero rectangle */											private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
+    /** Length of base name for autonaming. */                      private static final int ABBREVLEN = 8;
+    /** zero rectangle */                                           private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 
     /** Bounds are correct */                                       private static final byte BOUNDS_CORRECT = 0;
     /** Bounds are correct if all subcells have correct bounds. */  private static final byte BOUNDS_CORRECT_SUB = 1;
@@ -444,27 +445,27 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
     /** Database to which this Library belongs. */                  private final EDatabase database;
     /** Persistent data of this Cell. */                            private ImmutableCell d;
-	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
-	/** The library this Cell belongs to. */						private Library lib;
+    /** The CellGroup this Cell belongs to. */                      private CellGroup cellGroup;
+    /** The library this Cell belongs to. */                        private Library lib;
     /** The technology of this Cell. */                             private Technology tech;
     /** The newest version of this Cell. */                         Cell newestVersion;
     /** An array of Exports on the Cell by chronological index. */  private Export[] chronExports = new Export[2];
-	/** A sorted array of Exports on the Cell. */					private Export[] exports = NULL_EXPORT_ARRAY;
+    /** A sorted array of Exports on the Cell. */                   private Export[] exports = NULL_EXPORT_ARRAY;
     /** Cell's topology. */                                         private WeakReference<Topology> weakTopology;
     /** Cell's topology. */                                         private Topology strongTopology;
-	/** The Cell's essential-bounds. */								private final List<NodeInst> essenBounds = new ArrayList<NodeInst>();
+    /** The Cell's essential-bounds. */                             private final List<NodeInst> essenBounds = new ArrayList<NodeInst>();
     /** Chronological list of NodeInsts in this Cell. */            private final List<NodeInst> chronNodes = new ArrayList<NodeInst>();
     /** Set containing nodeIds of expanded cells. */                private final BitSet expandedNodes = new BitSet();
-	/** A list of NodeInsts in this Cell. */						private final List<NodeInst> nodes = new ArrayList<NodeInst>();
+    /** A list of NodeInsts in this Cell. */                        private final List<NodeInst> nodes = new ArrayList<NodeInst>();
     /** Counts of NodeInsts for each CellUsage. */                  private int[] cellUsages = NULL_INT_ARRAY;
-	/** A map from canonic String to Integer maximal numeric suffix */private final Map<String,MaxSuffix> maxSuffix = new HashMap<String,MaxSuffix>();
-	/** The bounds of the Cell. */									private ERectangle cellBounds;
-	/** Whether the bounds need to be recomputed.
+    /** A map from canonic String to Integer maximal numeric suffix */private final Map<String,MaxSuffix> maxSuffix = new HashMap<String,MaxSuffix>();
+    /** The bounds of the Cell. */                                  ERectangle cellBounds;
+    /** Whether the bounds need to be recomputed.
      * BOUNDS_CORRECT - bounds are correct.
      * BOUNDS_CORRECT_SUB - bounds are correct provided that bounds of subcells are correct.
      * BOUNDS_CORRECT_GEOM - bounds are correct proveded that bounds of nodes and arcs are correct.
      * BOUNDS_RECOMPUTE - bounds need to be recomputed. */          private byte boundsDirty = BOUNDS_RECOMPUTE;
-	/** The temporary integer value. */								private int tempInt;
+    /** The temporary integer value. */                             private int tempInt;
     /** Set if expanded status of subcell instances is modified. */ private boolean expandStatusModified;
     /** Last backup of this Cell */                                 CellBackup backup;
     /** True if cell together with contents matches cell backup. */ boolean cellBackupFresh;
@@ -1076,33 +1077,33 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         return cellName;
     }
 
-	/**
-	 * Low-level method to get the user bits.
-	 * The "user bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @return the "user bits".
-	 */
-	public int lowLevelGetUserbits() { return getD().flags; }
+    /**
+     * Low-level method to get the user bits.
+     * The "user bits" are a collection of flags that are more sensibly accessed
+     * through special methods.
+     * This general access to the bits is required because the ELIB
+     * file format stores it as a full integer.
+     * This should not normally be called by any other part of the system.
+     * @return the "user bits".
+     */
+    public int lowLevelGetUserbits() { return getD().flags; }
 
-	/**
-	 * Low-level method to set the user bits.
-	 * The "user bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @param userBits the new "user bits".
-	 */
-	public void lowLevelSetUserbits(int userBits) { setD(getD().withFlags(userBits)); }
+    /**
+     * Low-level method to set the user bits.
+     * The "user bits" are a collection of flags that are more sensibly accessed
+     * through special methods.
+     * This general access to the bits is required because the ELIB
+     * file format stores it as a full integer.
+     * This should not normally be called by any other part of the system.
+     * @param userBits the new "user bits".
+     */
+    public void lowLevelSetUserbits(int userBits) { setD(getD().withFlags(userBits)); }
 
-	/*
-	 * Low-level method to backup this Cell to CellBackup.
+    /*
+     * Low-level method to backup this Cell to CellBackup.
      * @return CellBackup which is the backup of this Cell.
      * @throws IllegalStateException if recalculation of Snapshot is requred in thread which is not enabled to do it.
-	 */
+     */
     public CellBackup backup() {
         if (cellBackupFresh) return backup;
         if (Job.isThreadSafe()) {
@@ -1114,12 +1115,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         return doBackup();
     }
 
-	/*
-	 * Low-level method to backup this Cell to CellBackup.
+    /*
+     * Low-level method to backup this Cell to CellBackup.
      * If there is no fresh backup for this database and thread is not enabled to calculate snspshot, returns the latest backup.
      * @return CellBackup which is the backup of this Cell.
      * @throws IllegalStateException if recalculation of Snapshot is requred in thread which is not enabled to do it.
-	 */
+     */
     public CellBackup backupUnsafe() {
         if (cellBackupFresh) return backup;
         if (Job.isThreadSafe()) {
@@ -1223,45 +1224,34 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         return changed ? newExports : null;
     }
 
-    void recover(CellBackup newBackup, ERectangle cellBounds) {
-        assert cellBounds != null;
-        this.cellBounds = cellBounds;
-        update(true, newBackup, null);
+    void recover(CellTree newTree) {
+        this.cellBounds = newTree.getBounds();
+        update(true, newTree, null);
     }
 
-    void undo(CellBackup newBackup, ERectangle cellBounds, BitSet exportsModified, BitSet boundsModified) {
+    void undo(CellTree newTree, BitSet exportsModified, BitSet boundsModified) {
         if (backup == null) {
-            recover(newBackup, cellBounds);
+            recover(newTree);
             return;
         }
         assert cellBackupFresh;
         assert boundsDirty == BOUNDS_CORRECT;
-        this.cellBounds = cellBounds;
-        if (backup != newBackup) {
-            update(false, newBackup, exportsModified);
+        this.cellBounds = newTree.getBounds();
+        if (backup != newTree.top) {
+            update(false, newTree, exportsModified);
         } else if (exportsModified != null || boundsModified != null) {
             updateSubCells(exportsModified, boundsModified);
         }
         assert boundsDirty == BOUNDS_CORRECT;
-        assert this.cellBounds == cellBounds;
+        assert this.cellBounds == newTree.getBounds();
     }
 
-    void resize() {
-        assert cellBackupFresh;
-        update(false, null, null);
-    }
-
-    private void update(boolean full, CellBackup newBackup, BitSet exportsModified) {
+    private void update(boolean full, CellTree newTree, BitSet exportsModified) {
         checkUndoing();
         boundsDirty = BOUNDS_RECOMPUTE;
         unfreshRTree();
-        CellRevision newRevision;
-        if (newBackup != null) {
-            newRevision = newBackup.cellRevision;
-        } else {
-            newRevision = backup.cellRevision;
-            cellBounds = null;
-        }
+        CellBackup newBackup = newTree.top;
+        CellRevision newRevision = newBackup.cellRevision;
      	this.d = newRevision.d;
         lib = database.getLib(newRevision.d.getLibId());
         tech = database.getTech(newRevision.d.techId);
@@ -1358,11 +1348,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         assert exportCount == exports.length;
 
-        if (newBackup != null) {
-            backup = newBackup;
-        } else {
-            backup = backup.withTechPool(getTechPool());
-        }
+        backup = newBackup;
         cellBackupFresh = true;
         cellContentsFresh = true;
         if (LAZY_TOPOLOGY && Job.isThreadSafe())
@@ -1371,19 +1357,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
         getMemoization();
         boundsDirty = BOUNDS_RECOMPUTE;
-        if (newBackup != null) {
-            ERectangle newBounds = computeBounds();
-            if (newBounds != cellBounds) {
-                System.out.println("update "+this.libDescribe()+" cellBounds="+cellBounds+" newBounds="+newBounds);
-                if (full) {
-                    cellBounds = newBounds;
-                    ActivityLogger.logException(new AssertionError("Bad bounds"));
-                } else {
-                    assert newBounds == cellBounds;
-                }
+        ERectangle newBounds = computeBounds();
+        if (newBounds != cellBounds) {
+            System.out.println("update "+this.libDescribe()+" cellBounds="+cellBounds+" newBounds="+newBounds);
+            if (full) {
+                cellBounds = newBounds;
+                ActivityLogger.logException(new AssertionError("Bad bounds"));
+            } else {
+                assert newBounds == cellBounds;
             }
-        } else {
-            cellBounds = computeBounds();
         }
         boundsDirty = BOUNDS_CORRECT;
         if (Job.isThreadSafe()) {

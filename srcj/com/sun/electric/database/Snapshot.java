@@ -232,6 +232,16 @@ public class Snapshot {
         return snapshot;
     }
 
+    public Snapshot with(Tool tool, Environment environment) {
+        TechPool techPool = environment.techPool;
+        CellBackup[] cellBackupArray = new CellBackup[cellBackups.size()];
+        for (CellBackup cellBackup: cellBackups) {
+            if (cellBackup == null) continue;
+            cellBackupArray[cellBackup.cellRevision.d.cellId.cellIndex] = cellBackup.withTechPool(techPool);
+        }
+        return with(tool, environment, cellBackupArray, null);
+    }
+
 //    private void checkUsedLibs(BitSet usedLibs) {
 //        if (usedLibs.isEmpty()) return;
 //        int usedLibsLength = usedLibs.length();
