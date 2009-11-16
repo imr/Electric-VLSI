@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+BUG: (11/16/09, SMR) Auto-stitch broken: adjacent ports from two instances do not stitch (Bug #2472)
+FIX: AutoStitch.ZEROSIZEPINS = false
+
 IMP: (11/16/09, DN) Don't check in Snapshot.with those invariants which were checked in CellTree.with .
 
 IMP: (11/15/09, DN) Ensure that Cell.cellBounds are the same as CellTree.getBounds().
@@ -17,7 +20,7 @@ IMP: (11/15/09, AM) Make legacy code off-by-default.
 BUG:(11/13/09, DN) NullPointerException in repaint when trying to highlight deleted port (Bug #2471).
 FIX: In Highlight.HighlightEOBJ.showInternalHighlight return when eobj is not linked.
 
-IMP/MAN: (11/12/09, GVG) Working on a new DSPF reader
+IMP/MAN: (11/13/09, GVG) Working on a new DSPF reader
 
 IMP/MAN: (11/13/09, SMR) Arc Preferences now has control over "fat wiring mode" (Bug #2470).
 
