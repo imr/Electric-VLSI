@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.CellUsage;
+import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.technology.TechPool;
 
 import java.awt.geom.Rectangle2D;
@@ -44,6 +45,7 @@ import java.util.Set;
  */
 public class CellTree {
     public static final CellTree[] NULL_ARRAY = {};
+    public static final ImmutableArrayList<CellTree> EMPTY_LIST = new ImmutableArrayList<CellTree>(NULL_ARRAY);
 
     /**
      * top CellBackup
@@ -181,6 +183,10 @@ public class CellTree {
         return newCellTree;
     }
 
+    public CellTree[] getSubTrees() {
+        return subTrees.clone();
+    }
+
     /**
      * Returns cell bounds of this CellTree
      * @return cell bounds of this CellTree
@@ -254,6 +260,7 @@ public class CellTree {
     }
 
     public void check() {
+        top.check();
         CellId cellId = top.cellRevision.d.cellId;
         BitSet techUsages = new BitSet();
         techUsages.or(top.cellRevision.techUsages);

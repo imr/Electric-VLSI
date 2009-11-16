@@ -111,19 +111,15 @@ public class SnapshotTest {
         CellBackup cellBackup = CellBackup.newInstance(c, techPool);
 
         CellBackup[] cellBackupsArray = { cellBackup };
-        ERectangle emptyBound = ERectangle.fromGrid(0, 0, 0, 0);
-        ERectangle[] cellBoundsArray = { emptyBound };
         LibraryBackup[] libBackupsArray = { libBackup };
-        Snapshot instance = initialSnapshot.with(null, env, null, null, null);
+        Snapshot instance = initialSnapshot.with(null, env, null, null);
         assertEquals(1, instance.snapshotId);
 
         List<CellBackup> expCellBackups = Collections.singletonList(cellBackup);
-        List<ERectangle> expCellBounds = Collections.singletonList(emptyBound);
         List<LibraryBackup> expLibBackups = Collections.singletonList(libBackup);
-        Snapshot result = instance.with(null, null, cellBackupsArray, cellBoundsArray, libBackupsArray);
+        Snapshot result = instance.with(null, null, cellBackupsArray, libBackupsArray);
         assertEquals(2, result.snapshotId);
         assertEquals(expCellBackups, result.cellBackups);
-//        assertEquals(expCellBounds, result.cellBounds);
         assertEquals(expLibBackups, result.libBackups);
 
 //        CellId otherId = new CellId();
@@ -153,10 +149,9 @@ public class SnapshotTest {
         ImmutableCell cellA = ImmutableCell.newInstance(cellId0, 0).withTechId(schematicTechId);
         CellBackup cellBackupA = CellBackup.newInstance(cellA, techPool);
         CellBackup[] cellBackupArray = new CellBackup[] { cellBackupA };
-        ERectangle[] cellBoundsArray = new ERectangle[] { ERectangle.fromGrid(0, 0, 0, 0) };
         LibId libIdA = idManager.newLibId("A");
 
-        Snapshot oldSnapshot = initialSnapshot.with(null, env, cellBackupArray, cellBoundsArray, libBackupArray);
+        Snapshot oldSnapshot = initialSnapshot.with(null, env, cellBackupArray, libBackupArray);
         IdMapper idMapper = IdMapper.renameLibrary(oldSnapshot, libIdX, libIdA);
         Snapshot newSnapshot = oldSnapshot.withRenamedIds(idMapper, null, null);
 

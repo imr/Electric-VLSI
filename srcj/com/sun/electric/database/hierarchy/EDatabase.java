@@ -98,7 +98,7 @@ public class EDatabase {
     /** Tool which initiated changing. */                       private Tool changingTool;
 
     public EDatabase(Environment environment) {
-        this(environment.techPool.idManager.getInitialSnapshot().with(null, environment, null, null, null));
+        this(environment.techPool.idManager.getInitialSnapshot().with(null, environment, null, null));
     }
 
     /** Creates a new instance of EDatabase */
@@ -448,9 +448,7 @@ public class EDatabase {
     private Snapshot doBackup() {
 //        long startTime = System.currentTimeMillis();
         CellBackup[] cellBackups = new CellBackup[linkedCells.size()];
-        ERectangle[] cellBounds = new ERectangle[cellBackups.length];
         boolean cellsChanged = cellBackups.length != snapshot.cellBackups.size();
-        boolean cellBoundsChanged = cellsChanged;
         for (int cellIndex = 0; cellIndex < cellBackups.length; cellIndex++) {
             Cell cell = getCell(cellIndex);
 			if (cell != null) {
@@ -458,17 +456,14 @@ public class EDatabase {
                     cell.cellBackupFresh = false;
 				cellBackups[cellIndex] = cell.backup();
                 cell.getMemoization();
-                cellBounds[cellIndex] = cell.getBounds();
+                cell.getBounds(); // ????
                 if (!Job.isThreadSafe())
                     cell.getTopology().getRTree();
                 assert cell.backup() == cellBackups[cellIndex];
-                assert cell.getBounds() == cellBounds[cellIndex];
             }
             cellsChanged = cellsChanged || cellBackups[cellIndex] != snapshot.getCell(cellIndex);
-            cellBoundsChanged = cellBoundsChanged || cellBounds[cellIndex] != snapshot.getCellBounds(cellIndex);
         }
         if (!cellsChanged) cellBackups = null;
-        if (!cellBoundsChanged) cellBounds = null;
 
         LibraryBackup[] libBackups = new LibraryBackup[linkedLibs.size()];
         boolean libsChanged = libBackups.length != snapshot.libBackups.size();
@@ -480,7 +475,7 @@ public class EDatabase {
         }
         if (!libsChanged) libBackups = null;
 
-        setSnapshot(snapshot.with(changingTool, environment, cellBackups, cellBounds, libBackups), true);
+        setSnapshot(snapshot.with(changingTool, environment, cellBackups, libBackups), true);
         environment.activate();
 //        long endTime = System.currentTimeMillis();
 //        if (Job.getDebug()) System.out.println("backup took: " + (endTime - startTime) + " msec");

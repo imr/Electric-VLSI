@@ -62,41 +62,31 @@ public class Snapshot {
     public final IdManager idManager;
     public final int snapshotId;
     public final Tool tool;
+    public final ImmutableArrayList<CellTree> cellTrees;
     public final ImmutableArrayList<CellBackup> cellBackups;
     public final int[] cellGroups;
     public final CellId[] groupMainSchematics;
     public final ImmutableArrayList<LibraryBackup> libBackups;
     public final Environment environment;
     public final TechPool techPool;
-    private final ERectangle[] cellBounds;
-    private final CellTree[] cellTrees;
 
     /** Creates a new instance of Snapshot */
     private Snapshot(IdManager idManager, int snapshotId, Tool tool,
+            ImmutableArrayList<CellTree> cellTrees,
             ImmutableArrayList<CellBackup> cellBackups,
             int[] cellGroups, CellId[] groupMainSchematics,
             ImmutableArrayList<LibraryBackup> libBackups,
-            Environment environment,
-            ERectangle[] cellBounds,
-            CellTree[] cellTrees) {
+            Environment environment) {
         this.idManager = idManager;
         this.snapshotId = snapshotId;
         this.tool = tool;
+        this.cellTrees = cellTrees;
         this.cellBackups = cellBackups;
         this.cellGroups = cellGroups;
         this.groupMainSchematics = groupMainSchematics;
         this.libBackups = libBackups;
         this.environment = environment;
         techPool = environment.techPool;
-        if (cellBounds.length != cellBackups.size())
-            throw new IllegalArgumentException();
-        this.cellBounds = cellBounds;
-        for (int cellIndex = 0; cellIndex < cellBounds.length; cellIndex++) {
-            if ((cellBounds[cellIndex] == null) != (cellBackups.get(cellIndex) == null))
-            if (cellBackups.get(cellIndex) == null)
-                throw new IllegalArgumentException();
-        }
-        this.cellTrees = cellTrees;
 //        if (Job.getDebug())
 //            check();
     }
@@ -105,10 +95,9 @@ public class Snapshot {
      * Creates empty snapshot.
      */
     public Snapshot(IdManager idManager) {
-        this(idManager, 0, null, CellBackup.EMPTY_LIST,
+        this(idManager, 0, null, CellTree.EMPTY_LIST, CellBackup.EMPTY_LIST,
                 new int[0], new CellId[0],
-                LibraryBackup.EMPTY_LIST, idManager.getInitialEnvironment(),
-                ERectangle.NULL_ARRAY, CellTree.NULL_ARRAY);
+                LibraryBackup.EMPTY_LIST, idManager.getInitialEnvironment());
     }
 
     /**
@@ -117,13 +106,12 @@ public class Snapshot {
      * @param tool Tool which initiated database changes.
      * @param environment Environment of this Snapshot
      * @param cellBackupsArray array indexed by cellIndex of new CellBackups.
-     * @param cellBoundsArray array indexed by cellIndex of cell bounds.
      * @param libBackupsArray array indexed by libIndex of LibraryBackups.
      * @return new snapshot which differs froms this Snapshot or this Snapshot.
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    public Snapshot with(Tool tool, Environment environment, CellBackup[] cellBackupsArray, ERectangle[] cellBoundsArray, LibraryBackup[] libBackupsArray) {
+    public Snapshot with(Tool tool, Environment environment, CellBackup[] cellBackupsArray, LibraryBackup[] libBackupsArray) {
 //        long startTime = System.currentTimeMillis();
         if (environment == null)
             environment = this.environment;
@@ -132,8 +120,7 @@ public class Snapshot {
         ImmutableArrayList<LibraryBackup> libBackups = copyArray(libBackupsArray, this.libBackups);
         boolean namesChanged = this.libBackups != libBackups || this.cellBackups.size() != cellBackups.size();
         if (!namesChanged && this.environment == environment && this.cellBackups == cellBackups) {
-            if (cellBoundsArray == null || Arrays.equals(cellBounds, cellBoundsArray))
-                return this;
+            return this;
         }
 
         // Check usages in cells
@@ -235,12 +222,11 @@ public class Snapshot {
             }
         }
 
-        if (cellBoundsArray == null)
-            cellBoundsArray = this.cellBounds;
-        CellTree[] cellTrees = computeCellTrees(cellBackups, environment.techPool);
-        Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool, cellBackups,
+        CellTree[] cellTreesArray = computeCellTrees(cellBackups, environment.techPool);
+        ImmutableArrayList<CellTree> cellTrees = new ImmutableArrayList<CellTree>(cellTreesArray);
+        Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool, cellTrees, cellBackups,
                 cellGroups, groupMainSchematics,
-                libBackups, environment, cellBoundsArray, cellTrees);
+                libBackups, environment);
 //        long endTime = System.currentTimeMillis();
 //        System.out.println("Creating snapshot took: " + (endTime - startTime) + " msec");
         return snapshot;
@@ -306,8 +292,7 @@ public class Snapshot {
                 if (instCounts[i] == 0) continue;
                 subTrees[i] = computeCellTrees(topCellId.getUsageIn(i).protoId, cellBackups, techPool, cellTrees);
             }
-            if (cellIndex < this.cellTrees.length)
-                cellTree = this.cellTrees[cellIndex];
+            cellTree = getCellTree(topCellId);
             if (cellTree == null)
                 cellTree = CellTree.newInstance(top.cellRevision.d, techPool);
             cellTree = cellTree.with(top, subTrees, techPool);
@@ -335,11 +320,9 @@ public class Snapshot {
         }
 
         CellBackup[] cellBackupsArray = new CellBackup[maxCellIndex + 1];
-        ERectangle[] cellBoundsArray = new ERectangle[maxCellIndex + 1];
         LibraryBackup[] libBackupsArray = new LibraryBackup[maxLibIndex + 1];
 
         BitSet cellBackupsChangedInLib = new BitSet();
-        boolean cellIdsChanged = false;
         BitSet fromGroupCellIds = new BitSet();
         BitSet toGroupCellIds = new BitSet();
         CellName fromGroupName = null;
@@ -401,15 +384,10 @@ public class Snapshot {
             if (newCellBackup != oldCellBackup)
                 cellBackupsChangedInLib.set(newCellBackup.cellRevision.d.cellId.libId.libIndex);
             int newCellIndex = newCellBackup.cellRevision.d.cellId.cellIndex;
-            if (newCellIndex != cellIndex)
-                cellIdsChanged = true;
             cellBackupsArray[newCellIndex] = newCellBackup;
-            cellBoundsArray[newCellIndex] = this.cellBounds[cellIndex];
         }
         if (cellBackupsChangedInLib.isEmpty())
             cellBackupsArray = null;
-        if (!cellIdsChanged)
-            cellBoundsArray = null;
 
         boolean libBackupsChanged = false;
         for (int libIndex = 0; libIndex < libBackups.size(); libIndex++) {
@@ -425,8 +403,8 @@ public class Snapshot {
         if (!libBackupsChanged)
             libBackupsArray = null;
 
-        if (cellBackupsArray == null && cellBounds == null && libBackups == null) return this;
-        return with(tool, null, cellBackupsArray, cellBoundsArray, libBackupsArray);
+        if (cellBackupsArray == null && libBackups == null) return this;
+        return with(tool, null, cellBackupsArray, libBackupsArray);
     }
 
     public List<LibId> getChangedLibraries(Snapshot oldSnapshot) {
@@ -484,6 +462,12 @@ public class Snapshot {
         assert added;
     }
 
+    public CellTree getCellTree(CellId cellId) {
+        if (cellId.getIdManager() != idManager)
+            throw new IllegalArgumentException();
+        return getCellTree(cellId.cellIndex);
+    }
+
     public CellBackup getCell(CellId cellId) {
         if (cellId.getIdManager() != idManager)
             throw new IllegalArgumentException();
@@ -493,6 +477,10 @@ public class Snapshot {
     public CellRevision getCellRevision(CellId cellId) {
         CellBackup cellBackup = getCell(cellId);
         return cellBackup != null ? cellBackup.cellRevision : null;
+    }
+
+    public CellTree getCellTree(int cellIndex) {
+        return cellIndex < cellTrees.size() ? cellTrees.get(cellIndex) : null;
     }
 
     public CellBackup getCell(int cellIndex) {
@@ -559,7 +547,8 @@ public class Snapshot {
     public ERectangle getCellBounds(CellId cellId) { return getCellBounds(cellId.cellIndex); }
 
     public ERectangle getCellBounds(int cellIndex) {
-        return cellIndex < cellBounds.length ? cellBounds[cellIndex] : null;
+        CellTree cellTree = getCellTree(cellIndex);
+        return cellTree != null ? cellTree.getBounds() : null;
     }
 
     /** Returns TechPool of this Snapshot */
@@ -598,11 +587,6 @@ public class Snapshot {
         return environment.getSettings();
     }
 
-    private void gatherSettings(Map<Setting,Object> map, Collection<Setting> c) {
-        for (Setting setting: c)
-            map.put(setting, setting.getValue());
-    }
-
     public LibraryBackup getLib(LibId libId) { return getLib(libId.libIndex); }
 
     private LibraryBackup getLib(int libIndex) {
@@ -617,8 +601,6 @@ public class Snapshot {
 //    }
 
     public void writeDiffs(IdWriter writer, Snapshot oldSnapshot) throws IOException {
-        assert oldSnapshot.cellBoundsDefined();
-        assert cellBoundsDefined();
         writer.writeDiffs();
         writer.writeInt(snapshotId);
 
@@ -650,12 +632,6 @@ public class Snapshot {
         }
 
         writer.writeInt(cellBackups.size());
-        boolean boundsChanged = oldSnapshot.cellBounds.length != cellBounds.length;
-        for (int cellIndex = 0; cellIndex < cellBounds.length; cellIndex++) {
-            if (cellBackups.get(cellIndex) == null) continue;
-            boundsChanged = boundsChanged || cellBounds[cellIndex] != oldSnapshot.cellBounds[cellIndex];
-        }
-        writer.writeBoolean(boundsChanged);
         for (int i = 0; i < cellBackups.size(); i++) {
             CellBackup oldBackup = oldSnapshot.getCell(i);
             CellBackup newBackup = getCell(i);
@@ -672,21 +648,6 @@ public class Snapshot {
         }
         writer.writeInt(Integer.MAX_VALUE);
 
-        if (boundsChanged) {
-            for (int i = 0; i < cellBackups.size(); i++) {
-                CellBackup newBackup = getCell(i);
-                if (newBackup == null) continue;
-                ERectangle oldBounds = oldSnapshot.getCellBounds(i);
-                ERectangle newBounds = getCellBounds(i);
-                assert newBounds != null;
-                if (oldBounds != newBounds) {
-                    writer.writeInt(i);
-                    writer.writeRectangle(newBounds);
-                }
-            }
-            writer.writeInt(Integer.MAX_VALUE);
-        }
-
         boolean cellGroupsChanged = cellGroups != oldSnapshot.cellGroups;
         writer.writeBoolean(cellGroupsChanged);
         if (cellGroupsChanged) {
@@ -702,7 +663,6 @@ public class Snapshot {
 
     public static Snapshot readSnapshot(IdReader reader, Snapshot oldSnapshot) throws IOException {
         assert reader.idManager == oldSnapshot.idManager;
-        assert oldSnapshot.cellBoundsDefined();
         reader.readDiffs();
         int snapshotId = reader.readInt();
         boolean hasTool = reader.readBoolean();
@@ -739,13 +699,6 @@ public class Snapshot {
         CellBackup[] cellBackupsArray = new CellBackup[cellLen];
         for (int cellIndex = 0; cellIndex < cellMax; cellIndex++)
             cellBackupsArray[cellIndex] = oldSnapshot.cellBackups.get(cellIndex);
-        boolean boundsChanged = reader.readBoolean();
-        ERectangle[] cellBoundsArray = oldSnapshot.cellBounds;
-        if (boundsChanged) {
-            cellBoundsArray = new ERectangle[cellLen];
-            for (int cellIndex = 0, numCells = Math.min(oldSnapshot.cellBounds.length, cellLen); cellIndex < numCells; cellIndex++)
-                cellBoundsArray[cellIndex] = oldSnapshot.cellBounds[cellIndex];
-        }
         if (technologiesChanged) {
             for (int cellIndex = 0; cellIndex < cellLen; cellIndex++) {
                 CellBackup cellBackup = cellBackupsArray[cellIndex];
@@ -763,21 +716,9 @@ public class Snapshot {
                 cellIndex = ~cellIndex;
                 assert cellBackupsArray[cellIndex] != null;
                 cellBackupsArray[cellIndex] = null;
-                assert boundsChanged;
-                assert cellBoundsArray[cellIndex] != null;
-                cellBoundsArray[cellIndex] = null;
             }
         }
         ImmutableArrayList<CellBackup> cellBackups = new ImmutableArrayList<CellBackup>(cellBackupsArray);
-
-        if (boundsChanged) {
-            for (;;) {
-                int cellIndex = reader.readInt();
-                if (cellIndex == Integer.MAX_VALUE) break;
-                ERectangle newBounds = reader.readRectangle();
-                cellBoundsArray[cellIndex] = newBounds;
-            }
-        }
 
         int[] cellGroups = oldSnapshot.cellGroups;
         CellId[] groupMainSchematics = oldSnapshot.groupMainSchematics;
@@ -800,26 +741,13 @@ public class Snapshot {
             }
         }
         for (int i = 0; i < cellBackups.size(); i++) {
-            assert (cellBackups.get(i) != null) == (cellBoundsArray[i] != null);
             assert (cellBackups.get(i) != null) == (cellGroups[i] >= 0);
         }
-        CellTree[] cellTrees = oldSnapshot.computeCellTrees(cellBackups, environment.techPool);
-        return new Snapshot(oldSnapshot.idManager, snapshotId, tool, cellBackups,
+        CellTree[] cellTreesArray = oldSnapshot.computeCellTrees(cellBackups, environment.techPool);
+        ImmutableArrayList<CellTree> cellTrees = new ImmutableArrayList<CellTree>(cellTreesArray);
+        return new Snapshot(oldSnapshot.idManager, snapshotId, tool, cellTrees, cellBackups,
                 cellGroups, groupMainSchematics,
-                libBackups, environment, cellBoundsArray, cellTrees);
-    }
-
-    /**
-     * Checks if all cell bounds are defined.
-     * @return true if all cell bounds are defined.
-     */
-    private boolean cellBoundsDefined() {
-        assert cellBackups.size() == cellBounds.length;
-        for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
-            if (cellBackups.get(cellIndex) == null) continue;
-            if (cellBounds[cellIndex] == null) return false;
-        }
-        return true;
+                libBackups, environment);
     }
 
     /**
@@ -869,17 +797,16 @@ public class Snapshot {
         for (int groupIndex = 0; groupIndex < groupMainSchematics.length; groupIndex++) {
             assert foundMainSchematics.get(groupIndex) == (groupMainSchematics[groupIndex] != null);
         }
-        assert cellBackups.size() == cellBounds.length;
-        assert cellBackups.size() == cellTrees.length;
+        assert cellBackups.size() == cellTrees.size();
         BitSet checkUsedTechs = new BitSet();
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
-            CellBackup cellBackup = cellBackups.get(cellIndex);
-            if (cellBackup == null) {
-                assert cellBounds[cellIndex] == null;
-                assert cellTrees[cellIndex] == null;
+            CellTree cellTree = cellTrees.get(cellIndex);
+            if (cellTree == null) {
+                assert cellBackups.get(cellIndex) == null;
                 continue;
             }
-            assert cellTrees[cellIndex].top == cellBackup;
+            CellBackup cellBackup = cellBackups.get(cellIndex);
+            assert cellTree.top == cellBackup;
             CellRevision cellRevision = cellBackup.cellRevision;
 //            assert cellBounds.get(cellIndex) != null;
             checkUsedTechs.or(cellRevision.techUsages);
@@ -890,12 +817,10 @@ public class Snapshot {
                 CellUsage u = cellId.getUsageIn(i);
                 int subCellIndex = u.protoId.cellIndex;
                 cui.checkUsage(cellBackups.get(subCellIndex).cellRevision);
-                assert cellTrees[cellIndex].subTrees[i] == cellTrees[subCellIndex];
+                assert cellTree.subTrees[i] == cellTrees.get(subCellIndex);
             }
             assert cellBackup.techPool == techPool.restrict(cellRevision.techUsages, cellBackup.techPool);
-            assert cellBounds[cellIndex].equals(cellTrees[cellIndex].getBounds());
         }
-        assert cellBoundsDefined();
         assert techPool.idManager == idManager;
         for (int techIndex = 0; techIndex < checkUsedTechs.length(); techIndex++) {
             if (!checkUsedTechs.get(techIndex)) continue;
