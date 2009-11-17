@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+BUG: (11/16/09, GVG) User Prefs/Proj Prefs/Text exports: double file extensions (Bug #2473)
+FIX: Considering case when two FileTypes have the same extensions
+
 BUG: (11/16/09, SMR) Auto-stitch broken: adjacent ports from two instances do not stitch (Bug #2472)
 FIX: AutoStitch.ZEROSIZEPINS = false
 
