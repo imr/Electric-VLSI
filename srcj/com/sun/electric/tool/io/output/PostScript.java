@@ -25,24 +25,18 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
@@ -55,16 +49,12 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.GraphicsPreferences;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.LayerVisibility;
 
 import java.awt.Color;
-import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -126,7 +116,7 @@ public class PostScript extends Output
 		double printPSLineWidth = IOTool.getFactoryPrintPSLineWidth();
         GraphicsPreferences gp;
         EditWindow0.EditWindowSmall wnd;
-    	Rectangle2D printBounds;
+    	ERectangle printBounds;
         Set<Layer> invisibleLayers = new HashSet<Layer>();
         boolean isGrid = false;
         double gridXSpacing, gridYSpacing;
@@ -194,11 +184,11 @@ public class PostScript extends Output
 						}
 					}
 				}
-				printBounds = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
+				printBounds = ERectangle.fromLambda(lX, lY, hX-lX, hY-lY);
 			} else
 			{
 				Cell cell = localWnd.getCell();
-				printBounds = getAreaToPrint(cell, false, localWnd);
+				printBounds = ERectangle.fromLambda(getAreaToPrint(cell, false, localWnd));
 			}
 		}
 
