@@ -38,10 +38,11 @@ import org.junit.Test;
  * Unit test of ERectangle
  */
 public class ERectangleTest {
-    
+
     ERectangle rect;
-    
-    @Before public void setUp() throws Exception {
+
+    @Before
+    public void setUp() throws Exception {
         rect = ERectangle.fromLambda(100, 100, 10, 20);
     }
 
@@ -52,24 +53,25 @@ public class ERectangleTest {
     /**
      * Test of setRect method, of class com.sun.electric.database.geometry.ERectangle.
      */
-    @Test public void testSerialization() {
+    @Test
+    public void testSerialization() {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             ObjectOutputStream out = new ObjectOutputStream(byteStream);
             out.writeObject(rect);
             out.close();
             byte[] serializedRect = byteStream.toByteArray();
-            
+
             ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(serializedRect));
-            ERectangle r = (ERectangle)in.readObject();
+            ERectangle r = (ERectangle) in.readObject();
             in.close();
-            
+
             assertEquals(rect, r);
         } catch (IOException e) {
             fail(e.getMessage());
         } catch (ClassNotFoundException e) {
             fail(e.getMessage());
         }
-        
+
     }
 }

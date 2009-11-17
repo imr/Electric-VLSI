@@ -35,12 +35,15 @@ import java.io.IOException;
  *
  */
 public class LibraryBackup {
+
     public static final LibraryBackup[] NULL_ARRAY = {};
     public static final ImmutableArrayList<LibraryBackup> EMPTY_LIST = new ImmutableArrayList<LibraryBackup>(NULL_ARRAY);
-
-    /** Library persistent data. */                                     public final ImmutableLibrary d;
-    /** True if library needs saving to disk. */                        public final boolean modified;
-    /** Array of referenced libs */                                     public final LibId[] referencedLibs;
+    /** Library persistent data. */
+    public final ImmutableLibrary d;
+    /** True if library needs saving to disk. */
+    public final boolean modified;
+    /** Array of referenced libs */
+    public final LibId[] referencedLibs;
 
     /** Creates a new instance of LibraryBackup */
     public LibraryBackup(ImmutableLibrary d, boolean modified, LibId[] referencedLibs) {
@@ -49,20 +52,22 @@ public class LibraryBackup {
         this.referencedLibs = referencedLibs;
     }
 
-	/**
-	 * Returns LibraryBackup which differs from this LibraryBackup by "modified" flag set.
+    /**
+     * Returns LibraryBackup which differs from this LibraryBackup by "modified" flag set.
      * @return LibraryBackup with "modified" flag set.
-	 */
+     */
     LibraryBackup withModified() {
-        if (modified) return this;
+        if (modified) {
+            return this;
+        }
         return new LibraryBackup(d, true, referencedLibs);
     }
 
-	/**
-	 * Returns LibraryBackup which differs from this LibraryBackup by renamed Ids.
-	 * @param idMapper a map from old Ids to new Ids.
+    /**
+     * Returns LibraryBackup which differs from this LibraryBackup by renamed Ids.
+     * @param idMapper a map from old Ids to new Ids.
      * @return LibraryBackup with renamed Ids.
-	 */
+     */
     LibraryBackup withRenamedIds(IdMapper idMapper) {
         ImmutableLibrary d = this.d.withRenamedIds(idMapper);
         LibId[] referencedLibs = null;
@@ -73,12 +78,16 @@ public class LibraryBackup {
                 referencedLibs = new LibId[this.referencedLibs.length];
                 System.arraycopy(this.referencedLibs, 0, referencedLibs, 0, referencedLibs.length);
             }
-            if (referencedLibs != null)
+            if (referencedLibs != null) {
                 referencedLibs[i] = newLibId;
+            }
         }
-        if (referencedLibs == null)
+        if (referencedLibs == null) {
             referencedLibs = this.referencedLibs;
-        if (this.d == d && this.referencedLibs == referencedLibs) return this;
+        }
+        if (this.d == d && this.referencedLibs == referencedLibs) {
+            return this;
+        }
         LibraryBackup newBackup = new LibraryBackup(d, true, referencedLibs);
         newBackup.check();
         return newBackup;
@@ -92,8 +101,9 @@ public class LibraryBackup {
         d.write(writer);
         writer.writeBoolean(modified);
         writer.writeInt(referencedLibs.length);
-        for (int i = 0; i < referencedLibs.length; i++)
+        for (int i = 0; i < referencedLibs.length; i++) {
             writer.writeLibId(referencedLibs[i]);
+        }
     }
 
     /**
@@ -105,21 +115,25 @@ public class LibraryBackup {
         boolean modified = reader.readBoolean();
         int refsLength = reader.readInt();
         LibId[] refs = new LibId[refsLength];
-        for (int i = 0; i < refsLength; i++)
+        for (int i = 0; i < refsLength; i++) {
             refs[i] = reader.readLibId();
+        }
         return new LibraryBackup(d, modified, refs);
     }
 
     /**
-	 * Checks invariant of this CellBackup.
-	 * @throws AssertionError if invariant is broken.
-	 */
+     * Checks invariant of this CellBackup.
+     * @throws AssertionError if invariant is broken.
+     */
     public void check() {
         d.check();
-        for (LibId libId: referencedLibs)
+        for (LibId libId : referencedLibs) {
             assert libId != null;
+        }
     }
 
     @Override
-    public String toString() { return d.toString(); }
+    public String toString() {
+        return d.toString();
+    }
 }

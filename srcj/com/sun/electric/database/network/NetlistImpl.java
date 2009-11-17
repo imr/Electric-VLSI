@@ -38,8 +38,8 @@ import java.util.Iterator;
  * @author dn146861
  */
 public class NetlistImpl extends Netlist {
-    private static final String[] NULL_STRING_ARRAY = {};
 
+    private static final String[] NULL_STRING_ARRAY = {};
     /**
      * Arrays of names for each net.
      * First names are exported names in STRING_NUMBER_ORDER,
@@ -55,7 +55,7 @@ public class NetlistImpl extends Netlist {
     private int[] exportedNamesCount;
     private int[] equivPortIndexByNetIndex;
 
-	NetlistImpl(NetCell netCell, int numExternals, int[] map) {
+    NetlistImpl(NetCell netCell, int numExternals, int[] map) {
         super(netCell, Netlist.ShortResistors.NO, numExternals, map);
         exportedNamesCount = new int[numExternalNets];
         equivPortIndexByNetIndex = new int[numExternalNets];
@@ -87,29 +87,39 @@ public class NetlistImpl extends Netlist {
     @Override
     boolean hasName(int netIndex, String nm) {
         String[] theseNames = names[netIndex];
-        for (int i = 0; i < theseNames.length; i++)
-            if (theseNames[i].equals(nm)) return true;
+        for (int i = 0; i < theseNames.length; i++) {
+            if (theseNames[i].equals(nm)) {
+                return true;
+            }
+        }
         return false;
     }
 
     @Override
     void fillNames(int netIndex, Collection<String> exportedNames, Collection<String> privateNames) {
-        if (!isUsernamed(netIndex))
+        if (!isUsernamed(netIndex)) {
             return;
+        }
         String[] names = this.names[netIndex];
         int exportedNamesCount = netIndex < numExternalNets ? this.exportedNamesCount[netIndex] : 0;
-        for (int i = 0; i < exportedNamesCount; i++)
+        for (int i = 0; i < exportedNamesCount; i++) {
             exportedNames.add(names[i]);
+        }
         if (privateNames != null) {
-            for (int i = exportedNamesCount; i < names.length; i++)
+            for (int i = exportedNamesCount; i < names.length; i++) {
                 privateNames.add(names[i]);
+            }
         }
     }
 
     @Override
-    boolean isUsernamed(int netIndex) { return isUsernamed.get(netIndex); }
+    boolean isUsernamed(int netIndex) {
+        return isUsernamed.get(netIndex);
+    }
 
-    boolean hasNames(int netIndex) { return names[netIndex].length > 0; }
+    boolean hasNames(int netIndex) {
+        return names[netIndex].length > 0;
+    }
 
     @Override
     int getEquivPortIndexByNetIndex(int netIndex) {
@@ -127,17 +137,22 @@ public class NetlistImpl extends Netlist {
         String name = nameKey.toString();
         String[] theseNames = names[netIndex];
         int exportedCount = netIndex < numExternalNets ? exportedNamesCount[netIndex] : 0;
-        if (exported)
+        if (exported) {
             assert exportedCount == theseNames.length;
+        }
         int i = 0;
         for (; i < theseNames.length; i++) {
             String n = names[netIndex][i];
             int cmp = TextUtils.STRING_NUMBER_ORDER.compare(name, n);
-            if (cmp == 0) return;
-            if (cmp < 0 && (exported || i >= exportedCount)) break;
+            if (cmp == 0) {
+                return;
+            }
+            if (cmp < 0 && (exported || i >= exportedCount)) {
+                break;
+            }
         }
         if (theseNames.length == 0) {
-            names[netIndex] = new String[] { name };
+            names[netIndex] = new String[]{name};
         } else {
             String[] newNames = new String[theseNames.length + 1];
             System.arraycopy(theseNames, 0, newNames, 0, i);
@@ -145,13 +160,14 @@ public class NetlistImpl extends Netlist {
             System.arraycopy(theseNames, i, newNames, i + 1, theseNames.length - i);
             names[netIndex] = newNames;
         }
-        if (exported)
+        if (exported) {
             exportedNamesCount[netIndex]++;
+        }
         isUsernamed.set(netIndex);
     }
 
     void addTempName(int netIndex, String name) {
         assert names[netIndex].length == 0;
-        names[netIndex] = new String[] { name };
-   }
+        names[netIndex] = new String[]{name};
+    }
 }

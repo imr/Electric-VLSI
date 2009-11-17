@@ -36,80 +36,79 @@ import com.sun.electric.database.geometry.EPoint;
  *
  * This class and its subclasses are immutable.
  */
-public abstract class Connection
-{
-	// ------------------------- private data --------------------------------
+public abstract class Connection {
+    // ------------------------- private data --------------------------------
 
-	/** the arc on one side of this Connection */	/*package*/ final ArcInst arc;
+    /** the arc on one side of this Connection */	/*package*/ final ArcInst arc;
 
-	/**
-	 * The constructor creates a new Connection of the given ArcInst.
-	 * @param arc the ArcInst that makes a Connection.
-	 */
-	/*package*/ Connection(ArcInst arc)
-	{
-		this.arc = arc;
-	}
+    /**
+     * The constructor creates a new Connection of the given ArcInst.
+     * @param arc the ArcInst that makes a Connection.
+     */
+    /*package*/ Connection(ArcInst arc) {
+        this.arc = arc;
+    }
 
-	// --------------------------- public methods --------------------------
+    // --------------------------- public methods --------------------------
+    /**
+     * Method to return the ArcInst on this Connection.
+     * @return the ArcInst on this Connection.
+     */
+    public ArcInst getArc() {
+        return arc;
+    }
 
-	/**
-	 * Method to return the ArcInst on this Connection.
-	 * @return the ArcInst on this Connection.
-	 */
-	public ArcInst getArc() { return arc; }
+    /**
+     * Method to return the PortInst on this Connection.
+     * @return the PortInst on this Connection.
+     */
+    public abstract PortInst getPortInst();
 
-	/**
-	 * Method to return the PortInst on this Connection.
-	 * @return the PortInst on this Connection.
-	 */
-	public abstract PortInst getPortInst();
+    /**
+     * Method to return the location on this Connection.
+     * @return the location on this Connection.
+     */
+    public abstract EPoint getLocation();
 
-	/**
-	 * Method to return the location on this Connection.
-	 * @return the location on this Connection.
-	 */
-	public abstract EPoint getLocation();
+    /**
+     * Method to tell whether this connection is arrowed.
+     * @return true if this connection is arrowed.
+     */
+    public abstract boolean isArrowed();
 
-	/**
-	 * Method to tell whether this connection is arrowed.
-	 * @return true if this connection is arrowed.
-	 */
-	public abstract boolean isArrowed();
+    /**
+     * Method to set whether this connection is arrowed.
+     * @param state true to set that end of this arc to be arrowed.
+     */
+    public abstract void setArrowed(boolean state);
 
-	/**
-	 * Method to set whether this connection is arrowed.
-	 * @param state true to set that end of this arc to be arrowed.
-	 */
-	public abstract void setArrowed(boolean state);
+    /**
+     * Method to tell whether this connection is extended.
+     * @return true if this connection is negated.
+     */
+    public abstract boolean isExtended();
 
-	/**
-	 * Method to tell whether this connection is extended.
-	 * @return true if this connection is negated.
-	 */
-	public abstract boolean isExtended();
+    /**
+     * Method to set whether this connection is extended.
+     * @param e true to set that end of this arc to be extended.
+     */
+    public abstract void setExtended(boolean e);
 
-	/**
-	 * Method to set whether this connection is extended.
-	 * @param e true to set that end of this arc to be extended.
-	 */
-	public abstract void setExtended(boolean e);
+    /**
+     * Method to tell whether this connection is negated.
+     * @return true if this connection is negated.
+     */
+    public abstract boolean isNegated();
 
-	/**
-	 * Method to tell whether this connection is negated.
-	 * @return true if this connection is negated.
-	 */
-	public abstract boolean isNegated();
+    /**
+     * Method to set whether this connection is negated.
+     * @param negated true if this connection is negated.
+     */
+    public abstract void setNegated(boolean negated);
 
-	/**
-	 * Method to set whether this connection is negated.
-	 * @param negated true if this connection is negated.
-	 */
-	public abstract void setNegated(boolean negated);
-
-	/**
-	 * Method to determine the index of this Connection on its ArcInst.
-	 * @return HEADEND if this Connection is on the head; TAILEND if this Connection is on the head.
-	 */
-	public abstract int getEndIndex();
+    /**
+     * Method to determine the index of this Connection on its ArcInst.
+     * @return HEADEND if this Connection is on the head; TAILEND if this Connection is on the head.
+     */
+    public abstract int getEndIndex();
 }

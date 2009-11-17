@@ -32,58 +32,57 @@ import com.sun.electric.database.hierarchy.EDatabase;
  * Vertices of the edge are CellIds of parent cell and proto subcell.
  * This possible edge can be an edge in one thread, and not an edge in another thread.
  */
-public final class CellUsage
-{
+public final class CellUsage {
+
     /** Empty CellUsage array for initialization. */
     public static final CellUsage[] NULL_ARRAY = {};
-
     /** CellId of the parent Cell */
     public final CellId parentId;
-	/** CellId of the (prototype) subCell */
+    /** CellId of the (prototype) subCell */
     public final CellId protoId;
-
-	// ---------------------- private data ----------------------------------
+    // ---------------------- private data ----------------------------------
     public final int indexInParent;
 
-	// --------------------- private and protected methods ---------------------
-
-	/**
-	 * The constructor.
-	 */
-	CellUsage(CellId parentId, CellId protoId, int indexInParent)
-	{
-		// initialize this object
+    // --------------------- private and protected methods ---------------------
+    /**
+     * The constructor.
+     */
+    CellUsage(CellId parentId, CellId protoId, int indexInParent) {
+        // initialize this object
         this.parentId = parentId;
-		this.protoId = protoId;
+        this.protoId = protoId;
         this.indexInParent = indexInParent;
-	}
+    }
 
-	// ------------------------ public methods -------------------------------
+    // ------------------------ public methods -------------------------------
+    /**
+     * Method to return the prototype of this NodeUsage.
+     * @return the prototype of this NodeUsage in this thread.
+     */
+    public Cell getProto(EDatabase database) {
+        return database.getCell(protoId);
+    }
 
-	/**
-	 * Method to return the prototype of this NodeUsage.
-	 * @return the prototype of this NodeUsage in this thread.
-	 */
-	public Cell getProto(EDatabase database) { return database.getCell(protoId); }
-	/**
-	 * Method to return the Cell that contains this Geometric object.
-	 * @return the Cell that contains this Geometric object in this thread.
-	 */
-	public Cell getParent(EDatabase database) { return database.getCell(parentId); }
+    /**
+     * Method to return the Cell that contains this Geometric object.
+     * @return the Cell that contains this Geometric object in this thread.
+     */
+    public Cell getParent(EDatabase database) {
+        return database.getCell(parentId);
+    }
 
-	/**
-	 * Returns a printable version of this CellUsage.
-	 * @return a printable version of this CellUsage.
-	 */
-	public String toString()
-	{
-		return "CellUsage of " + protoId + " in " + parentId;
-	}
+    /**
+     * Returns a printable version of this CellUsage.
+     * @return a printable version of this CellUsage.
+     */
+    public String toString() {
+        return "CellUsage of " + protoId + " in " + parentId;
+    }
 
-	/**
-	 * Checks invariants in this CellUsage.
-	 * @exception AssertionError if invariants are not valid
-	 */
+    /**
+     * Checks invariants in this CellUsage.
+     * @exception AssertionError if invariants are not valid
+     */
     void check() {
         // Check that this CellUsage is properly owned by its parentId.
         assert this == parentId.getUsageIn(indexInParent);

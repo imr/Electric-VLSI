@@ -25,7 +25,6 @@ package com.sun.electric.database.change;
 
 import java.util.EventListener;
 
-
 /**
  * The database changes its state in transactional manner.
  * When the state is changed, DatabaseChangeEvent occurs.
@@ -53,7 +52,6 @@ public interface DatabaseChangeListener extends EventListener {
      * @param e database change event.
      */
     public void databaseChanged(DatabaseChangeEvent e);
-
 //     /**
 //      * Called when a batch of changes has been completed by a Tool.
 //      * The batch contains all the Change events done for that batch.
@@ -61,7 +59,6 @@ public interface DatabaseChangeListener extends EventListener {
 //      * @param batch a batch of changes.
 //      */
 //     public void databaseEndChangeBatch(Undo.ChangeBatch batch);
-
 //     /**
 //      * Called every time a change is made. It is not recommened you
 //      * use this method unless (a) you need fine-grained change notification,
@@ -73,8 +70,6 @@ public interface DatabaseChangeListener extends EventListener {
 //      * @param evt the change event.
 //      */
 //     public void databaseChanged(Undo.Change evt);
-
-
 //     /**
 //      * It is very important that you take care to implement this method properly.
 //      * If the listener is a Swing component, or will modify Swing components as a result

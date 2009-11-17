@@ -36,8 +36,8 @@ import com.sun.electric.database.prototype.NodeProto;
  * some of them (Cells) will be owned by threads  in transactional database. PrimitiveNodes will
  * be shared too, so they are both NodeProtoId and NodeProto.
  */
-public interface NodeProtoId
-{
+public interface NodeProtoId {
+
     /**
      * Returns PortProtoId in this node proto with specified chronological index.
      * @param chronIndex chronological index of ExportId.
@@ -56,13 +56,13 @@ public interface NodeProtoId
      */
     public PortProtoId newPortId(String externalId);
 
-   /**
+    /**
      * Returns true if this NodeProtoId is Id of icon Cell.
      * @return true if this NodeProtoId is Id of icon Cell.
      */
     public boolean isIcon();
 
-   /**
+    /**
      * Method to return the NodeProto representing NodeProtoId in the specified EDatabase.
      * @param database EDatabase where to get from.
      * @return the NodeProto representing NodeProtoId in the specified database.

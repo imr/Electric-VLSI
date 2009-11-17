@@ -47,12 +47,12 @@ import java.util.TreeMap;
  * If a subcell is used and no its ExportIds are used, it is represented by empty BitSet.
  */
 class UsageCollector {
-    static final BitSet EMPTY_BITSET = new BitSet();
-    static final TreeMap<Variable.AttrKey,TextDescriptor.Unit> EMPTY_ATTRIBUTES = new TreeMap<Variable.AttrKey,TextDescriptor.Unit>();
 
+    static final BitSet EMPTY_BITSET = new BitSet();
+    static final TreeMap<Variable.AttrKey, TextDescriptor.Unit> EMPTY_ATTRIBUTES = new TreeMap<Variable.AttrKey, TextDescriptor.Unit>();
     private final ImmutableCell d;
-    private final HashMap<CellId, CellUsageInfoBuilder> cellIndices = new HashMap<CellId,CellUsageInfoBuilder>(16, 0.5f);
-    private final HashSet<TechId> techUsed = new HashSet<TechId> (16, 0.5f);
+    private final HashMap<CellId, CellUsageInfoBuilder> cellIndices = new HashMap<CellId, CellUsageInfoBuilder>(16, 0.5f);
+    private final HashSet<TechId> techUsed = new HashSet<TechId>(16, 0.5f);
 
     /**
      * Collect usages in lists of nodes/arcs/exports together with Cell's variables.
@@ -65,22 +65,26 @@ class UsageCollector {
         for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
             ImmutableNodeInst n = nodes.get(nodeIndex);
             if (n.protoId instanceof CellId) {
-                CellUsageInfoBuilder cellCount = add((CellId)n.protoId, true);
+                CellUsageInfoBuilder cellCount = add((CellId) n.protoId, true);
                 if (cellCount.isIcon) {
-                    for (Variable param: n.getDefinedParams())
-                        cellCount.addAttribute((Variable.AttrKey)param.getKey(), param.getUnit());
+                    for (Variable param : n.getDefinedParams()) {
+                        cellCount.addAttribute((Variable.AttrKey) param.getKey(), param.getUnit());
+                    }
                     for (int varIndex = 0; varIndex < n.getNumVariables(); varIndex++) {
                         Variable.Key varKey = n.getVar(varIndex).getKey();
-                        if (varKey.isAttribute())
-                            cellCount.addAttribute((Variable.AttrKey)varKey, null);
+                        if (varKey.isAttribute()) {
+                            cellCount.addAttribute((Variable.AttrKey) varKey, null);
+                        }
                     }
                 }
             } else {
-                techUsed.add(((PrimitiveNodeId)n.protoId).techId);
+                techUsed.add(((PrimitiveNodeId) n.protoId).techId);
             }
             for (int chronIndex = 0; chronIndex < n.ports.length; chronIndex++) {
                 ImmutablePortInst pi = n.ports[chronIndex];
-                if (pi == ImmutablePortInst.EMPTY) continue;
+                if (pi == ImmutablePortInst.EMPTY) {
+                    continue;
+                }
                 PortProtoId pp = n.protoId.getPortId(chronIndex);
                 add(pp);
             }
@@ -98,8 +102,10 @@ class UsageCollector {
     }
 
     private void add(PortProtoId portId) {
-        if (portId instanceof PrimitivePortId) return;
-        ExportId eId = (ExportId)portId;
+        if (portId instanceof PrimitivePortId) {
+            return;
+        }
+        ExportId eId = (ExportId) portId;
         add(eId.getParentId(), false).usedExports.set(eId.chronIndex);
     }
 
@@ -109,8 +115,9 @@ class UsageCollector {
             cellCount = new CellUsageInfoBuilder(d.cellId.getUsageIn(cellId));
             cellIndices.put(cellId, cellCount);
         }
-        if (isInstance)
+        if (isInstance) {
             cellCount.instCount++;
+        }
         return cellCount;
     }
 
@@ -120,8 +127,9 @@ class UsageCollector {
     BitSet getTechUsages(BitSet oldTechUsages) {
         BitSet techUsages = new BitSet();
         techUsages.set(d.techId.techIndex);
-        for (TechId techId: techUsed)
+        for (TechId techId : techUsed) {
             techUsages.set(techId.techIndex);
+        }
         return bitSetWith(oldTechUsages, techUsages);
     }
 
@@ -129,13 +137,16 @@ class UsageCollector {
      * Return usages for CellRevision.
      */
     CellRevision.CellUsageInfo[] getCellUsages(CellRevision.CellUsageInfo[] oldCellUsages) {
-        if (cellIndices.isEmpty()) return CellRevision.NULL_CELL_USAGE_INFO_ARRAY;
+        if (cellIndices.isEmpty()) {
+            return CellRevision.NULL_CELL_USAGE_INFO_ARRAY;
+        }
         CellId parentId = d.cellId;
         int length = 0;
-        for (CellId cellId: cellIndices.keySet())
+        for (CellId cellId : cellIndices.keySet()) {
             length = Math.max(length, parentId.getUsageIn(cellId).indexInParent + 1);
+        }
         CellRevision.CellUsageInfo[] newCellUsages = new CellRevision.CellUsageInfo[length];
-        for (CellId cellId: cellIndices.keySet()) {
+        for (CellId cellId : cellIndices.keySet()) {
             CellUsage u = parentId.getUsageIn(cellId);
             int indexInParent = u.indexInParent;
             CellUsageInfoBuilder cellCount = cellIndices.get(cellId);
@@ -148,21 +159,25 @@ class UsageCollector {
     }
 
     static BitSet bitSetWith(BitSet oldBitSet, BitSet newBitSet) {
-        if (newBitSet.isEmpty())
+        if (newBitSet.isEmpty()) {
             return EMPTY_BITSET;
+        }
         return newBitSet.equals(oldBitSet) ? oldBitSet : newBitSet;
     }
 
-    static TreeMap<Variable.AttrKey,TextDescriptor.Unit> usedAttributesWith(TreeMap<Variable.AttrKey,TextDescriptor.Unit> oldAttributes,
-            TreeMap<Variable.AttrKey,TextDescriptor.Unit> newAttributes) {
-        if (newAttributes == null)
+    static TreeMap<Variable.AttrKey, TextDescriptor.Unit> usedAttributesWith(TreeMap<Variable.AttrKey, TextDescriptor.Unit> oldAttributes,
+            TreeMap<Variable.AttrKey, TextDescriptor.Unit> newAttributes) {
+        if (newAttributes == null) {
             return null;
-        if (newAttributes.isEmpty())
+        }
+        if (newAttributes.isEmpty()) {
             return EMPTY_ATTRIBUTES;
+        }
         return newAttributes.equals(oldAttributes) ? oldAttributes : newAttributes;
     }
 
     private static class CellUsageInfoBuilder {
+
         private final CellUsage cellUsage;
         private final boolean isIcon;
         private int instCount;
@@ -178,18 +193,20 @@ class UsageCollector {
         private void addAttribute(Variable.AttrKey attrKey, TextDescriptor.Unit unit) {
             TextDescriptor.Unit oldUnit = usedAttributes.get(attrKey);
             if (oldUnit != null) {
-                if (unit != oldUnit)
+                if (unit != oldUnit) {
                     throw new IllegalArgumentException(attrKey + " " + unit);
+                }
             } else {
                 usedAttributes.put(attrKey, unit);
             }
         }
 
         private CellRevision.CellUsageInfo getCellUsageInfo(CellRevision.CellUsageInfo oldCellUsageInfo) {
-            if (oldCellUsageInfo != null)
+            if (oldCellUsageInfo != null) {
                 return oldCellUsageInfo.with(instCount, usedExports, usedAttributes);
-            else
+            } else {
                 return new CellRevision.CellUsageInfo(instCount, usedExports, usedAttributes);
+            }
         }
     }
 }

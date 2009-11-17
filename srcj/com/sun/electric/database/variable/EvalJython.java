@@ -1,27 +1,26 @@
 /* -*- tab-width: 4 -*-
-*
-* Electric(tm) VLSI Design System
-*
-* File: EvalJython.java
-*
-* Copyright (c) 2009 Sun Microsystems and Static Free Software
-*
-* Electric(tm) is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 3 of the License, or
-* (at your option) any later version.
-*
-* Electric(tm) is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with Electric(tm); see the file COPYING.  If not, write to
-* the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
-* Boston, Mass 02111-1307, USA.
-*/
-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: EvalJython.java
+ *
+ * Copyright (c) 2009 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.hierarchy.Cell;
@@ -38,153 +37,144 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLConnection;
 
-public class EvalJython
-{
+public class EvalJython {
+
     private static boolean jythonChecked = false;
-    private static boolean jythonInited= false;
+    private static boolean jythonInited = false;
     private static Class<?> jythonClass;
-	private static Object jythonInterpreterObject;
-	private static Method jythonExecMethod;
+    private static Object jythonInterpreterObject;
+    private static Method jythonExecMethod;
 
-    public static boolean hasJython()
-    {
-		if (!jythonChecked)
-		{
-			jythonChecked = true;
+    public static boolean hasJython() {
+        if (!jythonChecked) {
+            jythonChecked = true;
 
-			// find the Jython class
-	        try
-	        {
-	        	jythonClass = Class.forName("org.python.util.PythonInterpreter");
-	        } catch (Exception e)
-	        {
-	        	jythonClass = null;
-	        }
-		}
+            // find the Jython class
+            try {
+                jythonClass = Class.forName("org.python.util.PythonInterpreter");
+            } catch (Exception e) {
+                jythonClass = null;
+            }
+        }
 
-		// if already initialized, return state
-		return jythonClass != null;
+        // if already initialized, return state
+        return jythonClass != null;
     }
 
-    private static void initJython()
-    {
-    	if (!hasJython()) return;
-    	if (jythonInited) return;
-        try
-        {
+    private static void initJython() {
+        if (!hasJython()) {
+            return;
+        }
+        if (jythonInited) {
+            return;
+        }
+        try {
             Constructor instance = jythonClass.getDeclaredConstructor();
             jythonInterpreterObject = instance.newInstance();
-			jythonExecMethod = jythonClass.getMethod("exec", new Class[] {String.class});
-			jythonExecMethod.invoke(jythonInterpreterObject, new Object[] {"import sys"});
-        } catch (Exception e)
-        {
-        	jythonClass = null;
+            jythonExecMethod = jythonClass.getMethod("exec", new Class[]{String.class});
+            jythonExecMethod.invoke(jythonInterpreterObject, new Object[]{"import sys"});
+        } catch (Exception e) {
+            jythonClass = null;
         }
-    	jythonInited = true;
+        jythonInited = true;
     }
 
     /**
-	 * Method to run the Jython interpreter on a given line of text.
-	 * Uses reflection to invoke the Jython interpreter (if it exists).
-	 * @param code the code to run.
-	 */
-    public static void execJython(String code)
-	{
-		try
-		{
-			jythonExecMethod.invoke(jythonInterpreterObject, new Object[] {code});
-			return;
-		} catch (Exception e)
-		{
+     * Method to run the Jython interpreter on a given line of text.
+     * Uses reflection to invoke the Jython interpreter (if it exists).
+     * @param code the code to run.
+     */
+    public static void execJython(String code) {
+        try {
+            jythonExecMethod.invoke(jythonInterpreterObject, new Object[]{code});
+            return;
+        } catch (Exception e) {
             e.printStackTrace();
             Throwable ourCause = e.getCause();
-            if (ourCause != null)
-            	System.out.println("Jython: "+ourCause); else
-            		System.out.println("Jython error");
-		}
-	}
+            if (ourCause != null) {
+                System.out.println("Jython: " + ourCause);
+            } else {
+                System.out.println("Jython error");
+            }
+        }
+    }
 
     /**
      * Method to execute a script file in a Job.
      * @param fileName the script file name.
      */
-    public static void runScript(String fileName)
-    {
-    	(new EvalJython.RunJythonScriptJob(fileName)).startJob();
+    public static void runScript(String fileName) {
+        (new EvalJython.RunJythonScriptJob(fileName)).startJob();
     }
 
     /**
      * Method to execute a script file without starting a new Job.
      * @param fileName the script file name.
      */
-    public static void runScriptNoJob(String fileName)
-    {
-    	URL url = TextUtils.makeURLToFile(fileName);
-    	try
-    	{
-    		URLConnection urlCon = url.openConnection();
-    		InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
-    		LineNumberReader lineReader = new LineNumberReader(is);
-    		StringBuffer sb = new StringBuffer();
-    		String sep = System.getProperty("line.separator");
-    		for(;;)
-    		{
-    			String buf = lineReader.readLine();
-    			if (buf == null) break;
-    			sb.append(buf);
-    			sb.append(sep);
-    		}
-    		lineReader.close();
-    		initJython();
-    		execJython(sb.toString());
-    	} catch (IOException e)
-    	{
-    		System.out.println("Error reading " + fileName);
-    	}
+    public static void runScriptNoJob(String fileName) {
+        URL url = TextUtils.makeURLToFile(fileName);
+        try {
+            URLConnection urlCon = url.openConnection();
+            InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
+            LineNumberReader lineReader = new LineNumberReader(is);
+            StringBuffer sb = new StringBuffer();
+            String sep = System.getProperty("line.separator");
+            for (;;) {
+                String buf = lineReader.readLine();
+                if (buf == null) {
+                    break;
+                }
+                sb.append(buf);
+                sb.append(sep);
+            }
+            lineReader.close();
+            initJython();
+            execJython(sb.toString());
+        } catch (IOException e) {
+            System.out.println("Error reading " + fileName);
+        }
     }
 
     /**
      * Display specified Cell after termination of currently running script
      * @param cell the Cell to display.
      */
-    public static void displayCell(Cell cell)
-    {
+    public static void displayCell(Cell cell) {
         Job curJob = Job.getRunningJob();
-        if (curJob instanceof RunJythonScriptJob)
-            ((RunJythonScriptJob)curJob).displayCell(cell);
+        if (curJob instanceof RunJythonScriptJob) {
+            ((RunJythonScriptJob) curJob).displayCell(cell);
+        }
     }
 
-    private static class RunJythonScriptJob extends Job
-	{
+    private static class RunJythonScriptJob extends Job {
+
         private String script;
         private Cell cellToDisplay;
 
-        public RunJythonScriptJob(String script)
-        {
-            super("Jython script: "+script, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+        public RunJythonScriptJob(String script) {
+            super("Jython script: " + script, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.script = script;
             cellToDisplay = null;
         }
 
-        public boolean doIt() throws JobException
-        {
-        	runScriptNoJob(script);
-        	return true;
+        public boolean doIt() throws JobException {
+            runScriptNoJob(script);
+            return true;
         }
 
-        private void displayCell(Cell cell)
-        {
-            if (cellToDisplay != null) return;
+        private void displayCell(Cell cell) {
+            if (cellToDisplay != null) {
+                return;
+            }
             cellToDisplay = cell;
             fieldVariableChanged("cellToDisplay");
         }
 
         @Override
-        public void terminateOK()
-        {
-            if (cellToDisplay != null)
+        public void terminateOK() {
+            if (cellToDisplay != null) {
                 Job.getUserInterface().displayCell(cellToDisplay);
+            }
         }
     }
-
 }

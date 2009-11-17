@@ -31,45 +31,45 @@ import java.util.NoSuchElementException;
  * An iterator over an array.
  */
 public class ArrayIterator<E> implements Iterator<E> {
-	private final E[] array;
-    private final int limit;
-	private int cursor;
 
-	private ArrayIterator(E[] array) {
+    private final E[] array;
+    private final int limit;
+    private int cursor;
+
+    private ArrayIterator(E[] array) {
         this.array = array;
         limit = array.length;
         cursor = 0;
     }
 
-	private ArrayIterator(E[] array, int start, int limit)
-	{
-		this.array = array;
+    private ArrayIterator(E[] array, int start, int limit) {
+        this.array = array;
         this.limit = limit;
         cursor = start;
-	}
+    }
 
-	/**
-	 * Returns iterator over elements of array.
-	 * @param array array with elements or null.
-	 * @return iterator over elements of the array or NULL_ITERATOR.
-	 */
-	public static <E> Iterator<E> iterator(E[] array)
-	{
-		if (array != null && array.length > 0) return new ArrayIterator<E>(array);
+    /**
+     * Returns iterator over elements of array.
+     * @param array array with elements or null.
+     * @return iterator over elements of the array or NULL_ITERATOR.
+     */
+    public static <E> Iterator<E> iterator(E[] array) {
+        if (array != null && array.length > 0) {
+            return new ArrayIterator<E>(array);
+        }
         Iterator<E> emptyIterator = emptyIterator();
         return emptyIterator;
-	}
+    }
 
-	/**
-	 * Returns iterator over range [start,limit) of elements of array.
-	 * @param array array with elements or null.
+    /**
+     * Returns iterator over range [start,limit) of elements of array.
+     * @param array array with elements or null.
      * @param start start index of the range.
      * @param limit limit of the range
-	 * @return iterator over range of elements of the array or EMPTY_ITERATOR.
+     * @return iterator over range of elements of the array or EMPTY_ITERATOR.
      * @throws IndexOutOfBoundsException if start or limit are not correct
-	 */
-	public static <E> Iterator<E> iterator(E[] array, int start, int limit)
-	{
+     */
+    public static <E> Iterator<E> iterator(E[] array, int start, int limit) {
         if (array != null) {
             if (start >= 0 && limit <= array.length) {
                 if (start < limit) {
@@ -84,63 +84,62 @@ public class ArrayIterator<E> implements Iterator<E> {
             return emptyIterator;
         }
         throw new IndexOutOfBoundsException();
-	}
-
-	/**
-	 * Returns <tt>true</tt> if the iteration has more elements. (In other
-	 * words, returns <tt>true</tt> if <tt>next</tt> would return an element
-	 * rather than throwing an exception.)
-	 *
-	 * @return <tt>true</tt> if the iterator has more elements.
-	 */
-	public boolean hasNext()
-	{
-		return cursor < limit;
-	}
-
-	/**
-	 * Returns the next element in the iteration.  Calling this method
-	 * repeatedly until the {@link #hasNext()} method returns false will
-	 * return each element in the underlying collection exactly once.
-	 *
-	 * @return the next element in the iteration.
-	 * @exception NoSuchElementException iteration has no more elements.
-	 */
-	public E next()
-	{
-        if (cursor >= limit)
-			throw new NoSuchElementException();
-		E next = array[cursor];
-		cursor++;
-		return next;
     }
 
-	/**
-	 * Removes from the underlying collection the last element returned by the
-	 * iterator (unsupported operation).
-	 *
-	 * @exception UnsupportedOperationException 
-	 */
-    public void remove()
-    {
-		throw new UnsupportedOperationException();
+    /**
+     * Returns <tt>true</tt> if the iteration has more elements. (In other
+     * words, returns <tt>true</tt> if <tt>next</tt> would return an element
+     * rather than throwing an exception.)
+     *
+     * @return <tt>true</tt> if the iterator has more elements.
+     */
+    public boolean hasNext() {
+        return cursor < limit;
     }
-    
-	/**
-	 * Null iterator which has no elements.
-	 */
+
+    /**
+     * Returns the next element in the iteration.  Calling this method
+     * repeatedly until the {@link #hasNext()} method returns false will
+     * return each element in the underlying collection exactly once.
+     *
+     * @return the next element in the iteration.
+     * @exception NoSuchElementException iteration has no more elements.
+     */
+    public E next() {
+        if (cursor >= limit) {
+            throw new NoSuchElementException();
+        }
+        E next = array[cursor];
+        cursor++;
+        return next;
+    }
+
+    /**
+     * Removes from the underlying collection the last element returned by the
+     * iterator (unsupported operation).
+     *
+     * @exception UnsupportedOperationException
+     */
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Null iterator which has no elements.
+     */
     private static class EmptyIterator extends ArrayIterator<Object> {
-        EmptyIterator() { super(new Object[0]); }
-    }
-    
 
+        EmptyIterator() {
+            super(new Object[0]);
+        }
+    }
     /**
      * The empty iterator (immutable).
      *
      * @see #emptyIterator()
      */
-	public static final EmptyIterator EMPTY_ITERATOR = new EmptyIterator();
-    
+    public static final EmptyIterator EMPTY_ITERATOR = new EmptyIterator();
+
     /**
      * Returns the empty iterator (immutable).
      * Unlike the like-named field, this method is parameterized.
@@ -163,9 +162,13 @@ public class ArrayIterator<E> implements Iterator<E> {
     /** Turns an Iterator<T> into an Iterable<T> so I can use Java5's enhanced for() */
     public static <T> Iterable<T> i2i(final Iterator<T> iterator) {
         return new Iterable<T>() {
+
             boolean used = false;
+
             public Iterator<T> iterator() {
-                if (used) throw new RuntimeException("i2i() produces single-use Iterables!");
+                if (used) {
+                    throw new RuntimeException("i2i() produces single-use Iterables!");
+                }
                 used = true;
                 return iterator;
             }

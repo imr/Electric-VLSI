@@ -26,7 +26,6 @@ package com.sun.electric.database.variable;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -34,75 +33,80 @@ import com.sun.electric.tool.user.ErrorLogger;
 /**
  * This interface provides information from the user interface.
  */
-public interface UserInterface
-{
+public interface UserInterface {
+
     /**
      * Method to return Job Key of a currently executed Job.
      * Jobless context (Gui) is represented by a Job Key with jobId=0.
      */
     public Job.Key getJobKey();
-	/**
-	 * Method to return the current database object.
-	 * @return the current database (null if none).
-	 */
-	public EDatabase getDatabase();
-	/**
-	 * Method to return the current Technology.
-	 * @return the current database (null if none).
-	 */
-	public Technology getCurrentTechnology();
-	/**
-	 * Method to return the current Library.
-	 * @return the current Library.
-	 */
-	public Library getCurrentLibrary();
-	/**
-	 * Method to return the current "EditWindow_" object.
-	 * @return the current "EditWindow_" object (null if none).
-	 */
-	public EditWindow_ getCurrentEditWindow_();
-	/**
-	 * Method to demand the current "EditWindow_" object.
-	 * If none exists, an error message is displayed.
-	 * @return the current "EditWindow_" object (null if none).
-	 */
-	public EditWindow_ needCurrentEditWindow_();
 
-	/**
-	 * Method to return the current Cell in the current Library.
-	 * @return the current Cell (null if none).
-	 */
-	public Cell getCurrentCell();
+    /**
+     * Method to return the current database object.
+     * @return the current database (null if none).
+     */
+    public EDatabase getDatabase();
 
-	/**
-	 * Method to demand the current Cell.
-	 * If none exists, an error message is displayed.
-	 * @return the current Cell (null if none).
-	 */
-	public Cell needCurrentCell();
+    /**
+     * Method to return the current Technology.
+     * @return the current database (null if none).
+     */
+    public Technology getCurrentTechnology();
+
+    /**
+     * Method to return the current Library.
+     * @return the current Library.
+     */
+    public Library getCurrentLibrary();
+
+    /**
+     * Method to return the current "EditWindow_" object.
+     * @return the current "EditWindow_" object (null if none).
+     */
+    public EditWindow_ getCurrentEditWindow_();
+
+    /**
+     * Method to demand the current "EditWindow_" object.
+     * If none exists, an error message is displayed.
+     * @return the current "EditWindow_" object (null if none).
+     */
+    public EditWindow_ needCurrentEditWindow_();
+
+    /**
+     * Method to return the current Cell in the current Library.
+     * @return the current Cell (null if none).
+     */
+    public Cell getCurrentCell();
+
+    /**
+     * Method to demand the current Cell.
+     * If none exists, an error message is displayed.
+     * @return the current Cell (null if none).
+     */
+    public Cell needCurrentCell();
 
     /**
      * Method to adjust reference point in WindowFrame containing the cell
      */
     public void adjustReferencePoint(Cell cell, double cX, double cY);
 
-	/**
-	 * Method to request that all windows be redisplayed including palettes.
-	 */
-	public void repaintAllWindows();
+    /**
+     * Method to request that all windows be redisplayed including palettes.
+     */
+    public void repaintAllWindows();
 
-	/**
-	 * Method to return the height of default text (in points).
-	 * @return the height of default text (in points).
-	 */
-	public int getDefaultTextSize();
+    /**
+     * Method to return the height of default text (in points).
+     * @return the height of default text (in points).
+     */
+    public int getDefaultTextSize();
 
-	/**
-	 * Method to request that a Cell be displayed in a new window.
-	 * @param cell the Cell to be displayed.
-	 * @return the EditWindow_ object created to show the Cell.
-	 */
-	public EditWindow_ displayCell(Cell cell);
+    /**
+     * Method to request that a Cell be displayed in a new window.
+     * @param cell the Cell to be displayed.
+     * @return the EditWindow_ object created to show the Cell.
+     */
+    public EditWindow_ displayCell(Cell cell);
 
     // ErrorLogger related functions
     public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate);
@@ -134,11 +138,10 @@ public interface UserInterface
      */
     public void printMessage(String message, boolean newLine);
 
-
-	/**
-	 * Method to start saving messages.
+    /**
+     * Method to start saving messages.
      * @param filePath file to save
-	 */
+     */
     public void saveMessages(String filePath);
 
     /**
@@ -161,7 +164,7 @@ public interface UserInterface
      * @param defaultChoice the default choice.
      * @return the index into the choices array that was selected.
      */
-    public int askForChoice(String message, String title, String [] choices, String defaultChoice);
+    public int askForChoice(String message, String title, String[] choices, String defaultChoice);
 
     /**
      * Method to ask for a line of text.

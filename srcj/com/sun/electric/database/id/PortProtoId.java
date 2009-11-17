@@ -41,18 +41,17 @@ import java.io.Serializable;
  * The PortProtoId is immutable and identifies PortProto independently of threads. It differs from PortProto objects,
  * which are owned by threads in transactional database.
  */
-public abstract class  PortProtoId implements Serializable {
+public abstract class PortProtoId implements Serializable {
+
     /** Parent NodeProtoId of this PortProtoId */
     public final NodeProtoId parentId;
-    
     /** chronological index of this PortProtoId in parent. */
     public final int chronIndex;
-    
     /** representation of PortProtoId in disk files.
      * This name isn't chaged when Export is renamed.
      */
     public final String externalId;
-    
+
     /**
      * PortPortId constructor.
      */
@@ -62,75 +61,88 @@ public abstract class  PortProtoId implements Serializable {
         this.chronIndex = chronIndex;
         this.externalId = externalId;
     }
-    
-    Object writeReplace() { return new PortProtoIdKey(this); }
-    
+
+    Object writeReplace() {
+        return new PortProtoIdKey(this);
+    }
+
     private static class PortProtoIdKey extends EObjectInputStream.Key<PortProtoId> {
-        public PortProtoIdKey() {}
-        private PortProtoIdKey(PortProtoId portProtoId) { super(portProtoId); }
-        
+
+        public PortProtoIdKey() {
+        }
+
+        private PortProtoIdKey(PortProtoId portProtoId) {
+            super(portProtoId);
+        }
+
         @Override
         public void writeExternal(EObjectOutputStream out, PortProtoId portProtoId) throws IOException {
             out.writeObject(portProtoId.parentId);
             out.writeInt(portProtoId.chronIndex);
         }
-        
+
         @Override
         public PortProtoId readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
-            NodeProtoId parentId = (NodeProtoId)in.readObject();
+            NodeProtoId parentId = (NodeProtoId) in.readObject();
             int chronIndex = in.readInt();
             return parentId.getPortId(chronIndex);
         }
     }
-    
-	/**
-	 * Method to return the parent NodeProtoId of this PortProtoId.
-	 * @return the parent NodeProtoId of this PortProtoId.
-	 */
-	public NodeProtoId getParentId() { return parentId; }
+
+    /**
+     * Method to return the parent NodeProtoId of this PortProtoId.
+     * @return the parent NodeProtoId of this PortProtoId.
+     */
+    public NodeProtoId getParentId() {
+        return parentId;
+    }
 
     /**
      * Method to return chronological index of this PortProtoId in parent.
      * @return chronological index of this PortProtoId in parent.
      */
-    public int getChronIndex() { return chronIndex; }
-    
+    public int getChronIndex() {
+        return chronIndex;
+    }
+
     /**
      * Method to return the representation of this PortProtoId in disk files.
      */
-    public String getExternalId() { return externalId; }
-    
-	/**
-	 * Method to return the name of this PortProtoId in a specified Snapshot.
-     * @param snapshot snapshot for name search.
-	 * @return the name of this PortProtoId.
-	 */
-	public abstract String getName(Snapshot snapshot);
+    public String getExternalId() {
+        return externalId;
+    }
 
-   /**
+    /**
+     * Method to return the name of this PortProtoId in a specified Snapshot.
+     * @param snapshot snapshot for name search.
+     * @return the name of this PortProtoId.
+     */
+    public abstract String getName(Snapshot snapshot);
+
+    /**
      * Method to return the PortProto representing PortProtoId in the specified EDatabase.
      * @param database EDatabase where to get from.
      * @return the PortProto representing PortProtoId in the specified database.
      * This method is not properly synchronized.
      */
     public abstract PortProto inDatabase(EDatabase database);
-    
+
     @Override
     public int hashCode() {
         return externalId.hashCode();
     }
-    
+
     @Override
     public String toString() {
         return parentId + ":" + externalId;
     }
-    
+
     /**
      * Check invariants of this ExportId.
      * @throws AssertionError if this ExportId is not valid.
      */
-     void check() {
+    void check() {
         assert this == parentId.getPortId(chronIndex);
         assert externalId != null;
-     }
+    }
 }

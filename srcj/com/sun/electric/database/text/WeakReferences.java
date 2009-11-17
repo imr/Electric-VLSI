@@ -35,13 +35,15 @@ import java.util.Iterator;
  * a pool of some Listeners. This class is not synchronized
  */
 public class WeakReferences<E> {
+
     private final ArrayList<WeakReference<E>> references = new ArrayList<WeakReference<E>>();
-    
+
     /**
      * Constructs an empty pool.
      */
-    public WeakReferences() {}
-    
+    public WeakReferences() {
+    }
+
     /**
      * Appends the specified element to the pool.
      * @param o specified element.
@@ -51,7 +53,7 @@ public class WeakReferences<E> {
         references.add(new WeakReference<E>(o));
         return true;
     }
-    
+
     /**
      * Removes a single instance of the specified element from this
      * list, if it is present (optional operation).
@@ -60,7 +62,7 @@ public class WeakReferences<E> {
      * @return true if element was removed.
      **/
     public boolean remove(E o) {
-        for (Iterator<WeakReference<E>> it = references.iterator(); it.hasNext(); ) {
+        for (Iterator<WeakReference<E>> it = references.iterator(); it.hasNext();) {
             WeakReference<E> ref = it.next();
             E i = ref.get();
             if (i == null) {
@@ -74,33 +76,39 @@ public class WeakReferences<E> {
         }
         return false;
     }
-    
+
     /**
      * Returns an iterator over live elements in this pool in proper sequence.
      * Also purges refetences whose referents are not alive.
      * @return an iterator over the elements in this pool in proper sequence.
      */
-    public Iterator<E> iterator() { return iterator(false); }
-    
+    public Iterator<E> iterator() {
+        return iterator(false);
+    }
+
     /**
      * Returns an iterator over live elements in this pool in reverse sequence.
      * Also purges refetences whose referents are not alive.
      * @return an iterator over the elements in this pool in reverse sequence.
      */
-    public Iterator<E> reverseIterator() { return iterator(true); }
-    
+    public Iterator<E> reverseIterator() {
+        return iterator(true);
+    }
+
     private Iterator<E> iterator(boolean reverse) {
         ArrayList<E> items = new ArrayList<E>();
-        for (Iterator<WeakReference<E>> it = references.iterator(); it.hasNext(); ) {
+        for (Iterator<WeakReference<E>> it = references.iterator(); it.hasNext();) {
             WeakReference<E> ref = it.next();
             E i = ref.get();
-            if (i != null)
+            if (i != null) {
                 items.add(i);
-            else
+            } else {
                 it.remove();
+            }
         }
-        if (reverse)
+        if (reverse) {
             Collections.reverse(items);
+        }
         return items.iterator();
     }
 }

@@ -32,29 +32,68 @@ import java.util.prefs.PreferencesFactory;
  * Empty Preferences to ensure that Electric server doesn't touch real Preferences.
  */
 public class EmptyPreferencesFactory implements PreferencesFactory {
+
     /**
      * Returns the system root preference node.  (Multiple calls on this
      * method will return the same object reference.)
      */
-    public Preferences systemRoot() { throw new UnsupportedOperationException(); }
+    public Preferences systemRoot() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Returns the user root preference node corresponding to the calling
      * user.  In a server, the returned value will typically depend on
      * some implicit client-context.
      */
-    public Preferences userRoot() { return factoryPrefRoot; }
-
+    public Preferences userRoot() {
+        return factoryPrefRoot;
+    }
     static final Preferences factoryPrefRoot = new AbstractPreferences(null, "") {
-        @Override protected String getSpi(String key) { return null; }
-        @Override protected AbstractPreferences childSpi(String name) { return this; }
 
-        @Override protected void putSpi(String key, String value) { throw new UnsupportedOperationException(); }
-        @Override protected void removeSpi(String key) { throw new UnsupportedOperationException(); }
-        @Override protected void removeNodeSpi() { throw new UnsupportedOperationException(); }
-        @Override protected String[] keysSpi() { throw new UnsupportedOperationException(); }
-        @Override protected String[] childrenNamesSpi() throws BackingStoreException { return new String[0]; }
-        @Override protected void syncSpi() throws BackingStoreException { throw new UnsupportedOperationException(); }
-        @Override protected void flushSpi() throws BackingStoreException { throw new UnsupportedOperationException(); }
+        @Override
+        protected String getSpi(String key) {
+            return null;
+        }
+
+        @Override
+        protected AbstractPreferences childSpi(String name) {
+            return this;
+        }
+
+        @Override
+        protected void putSpi(String key, String value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        protected void removeSpi(String key) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        protected void removeNodeSpi() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        protected String[] keysSpi() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        protected String[] childrenNamesSpi() throws BackingStoreException {
+            return new String[0];
+        }
+
+        @Override
+        protected void syncSpi() throws BackingStoreException {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        protected void flushSpi() throws BackingStoreException {
+            throw new UnsupportedOperationException();
+        }
     };
 }

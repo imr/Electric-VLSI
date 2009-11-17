@@ -42,9 +42,9 @@ import java.util.Map;
  * This class is thread-safe except inCurrentThread method.
  */
 public final class LibId implements Serializable {
+
     /** Empty LibId array for initialization. */
     public static final LibId[] NULL_ARRAY = {};
-    
     /** IdManager which owns this LibId. */
     public final IdManager idManager;
     /** Library name */
@@ -52,41 +52,51 @@ public final class LibId implements Serializable {
     /** Unique index of this lib in the database. */
     public final int libIndex;
     /** HashMap of CellIds in this library by their cell name. */
-    private final HashMap<CellName,CellId> cellIdsByCellName = new HashMap<CellName,CellId>();
-    
+    private final HashMap<CellName, CellId> cellIdsByCellName = new HashMap<CellName, CellId>();
+
     /**
      * LibId constructor.
      */
     LibId(IdManager idManager, String libName, int libIndex) {
-        if (libName == null)
+        if (libName == null) {
             throw new NullPointerException();
-        if (legalLibraryName(libName) != libName)
+        }
+        if (legalLibraryName(libName) != libName) {
             throw new IllegalArgumentException(libName);
+        }
         this.idManager = idManager;
         this.libName = libName;
         this.libIndex = libIndex;
     }
-    
-    private Object writeReplace() { return new LibIdKey(this); }
-    
+
+    private Object writeReplace() {
+        return new LibIdKey(this);
+    }
+
     private static class LibIdKey extends EObjectInputStream.Key<LibId> {
-        public LibIdKey() {}
-        private LibIdKey(LibId libId) { super(libId); }
-        
+
+        public LibIdKey() {
+        }
+
+        private LibIdKey(LibId libId) {
+            super(libId);
+        }
+
         @Override
         public void writeExternal(EObjectOutputStream out, LibId libId) throws IOException {
-            if (libId.idManager != out.getIdManager())
+            if (libId.idManager != out.getIdManager()) {
                 throw new NotSerializableException(libId + " from other IdManager");
+            }
             out.writeInt(libId.libIndex);
         }
-        
+
         @Override
         public LibId readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             int libIndex = in.readInt();
             return in.getIdManager().getLibId(libIndex);
         }
     }
-         
+
     /**
      * Returns new CellId with cellIndex unique in this IdManager.
      * @return new CellId.
@@ -94,32 +104,41 @@ public final class LibId implements Serializable {
     public CellId newCellId(CellName cellName) {
         return idManager.newCellId(this, cellName);
     }
-    
+
     /**
      * Method to return the Library representing LibId in the specified EDatabase.
      * @param database EDatabase where to get from.
      * @return the Library representing LibId in the specified database.
      * This method is not properly synchronized.
      */
-    public Library inDatabase(EDatabase database) { return database.getLib(this); }
-    
-	/**
-	 * Returns a printable version of this LibId.
-	 * @return a printable version of this LibId.
-	 */
-    public String toString() { return libName; }
-    
-    CellId getCellId(CellName cellName) { return cellIdsByCellName.get(cellName); }
-    void putCellId(CellId cellId) { cellIdsByCellName.put(cellId.cellName, cellId); }
-    
-	/**
-	 * Checks invariants in this LibId.
+    public Library inDatabase(EDatabase database) {
+        return database.getLib(this);
+    }
+
+    /**
+     * Returns a printable version of this LibId.
+     * @return a printable version of this LibId.
+     */
+    public String toString() {
+        return libName;
+    }
+
+    CellId getCellId(CellName cellName) {
+        return cellIdsByCellName.get(cellName);
+    }
+
+    void putCellId(CellId cellId) {
+        cellIdsByCellName.put(cellId.cellName, cellId);
+    }
+
+    /**
+     * Checks invariants in this LibId.
      * @exception AssertionError if invariants are not valid
-	 */
+     */
     void check() {
         assert this == idManager.getLibId(libIndex);
         assert libName != null && legalLibraryName(libName) == libName;
-        for (Map.Entry<CellName,CellId> e: cellIdsByCellName.entrySet()) {
+        for (Map.Entry<CellName, CellId> e : cellIdsByCellName.entrySet()) {
             CellId cellId = e.getValue();
             assert cellId.libId == this;
             assert cellId.cellName == e.getKey();
@@ -127,7 +146,6 @@ public final class LibId implements Serializable {
         }
     }
 
-    
     /**
      * Checks that string is legal library name.
      * If not, tries to convert string to legal library name.
@@ -136,14 +154,20 @@ public final class LibId implements Serializable {
      *   or null if speicifed name is null or empty.
      */
     public static String legalLibraryName(String libName) {
-        if (libName == null || libName.length() == 0) return null;
+        if (libName == null || libName.length() == 0) {
+            return null;
+        }
         int i = 0;
         for (; i < libName.length(); i++) {
             char ch = libName.charAt(i);
-            if (Character.isWhitespace(ch) || ch == ':') break;
+            if (Character.isWhitespace(ch) || ch == ':') {
+                break;
+            }
         }
-        if (i == libName.length()) return libName;
-        
+        if (i == libName.length()) {
+            return libName;
+        }
+
         char[] chars = libName.toCharArray();
         for (; i < libName.length(); i++) {
             char ch = chars[i];

@@ -36,20 +36,20 @@ import java.util.List;
 /**
  * This interface defines changes that are made to the database.
  */
-public class Undo
-{
-	/**
-	 * Class to describe a batch of changes to the Electric database.
-	 */
-	private static class ChangeBatch
-	{
-        private int oldSnapshotId, newSnapshotId;
-		private Tool tool;
-		private String activity;
-		private int startingHighlights = -1;				// highlights before changes made
-		private int preUndoHighlights = -1;				// highlights before undo of changes done
+public class Undo {
 
-		private ChangeBatch(Snapshot oldSnapshot, Tool tool, String activity, int startingHighlights, Snapshot newSnapshot) {
+    /**
+     * Class to describe a batch of changes to the Electric database.
+     */
+    private static class ChangeBatch {
+
+        private int oldSnapshotId, newSnapshotId;
+        private Tool tool;
+        private String activity;
+        private int startingHighlights = -1;				// highlights before changes made
+        private int preUndoHighlights = -1;				// highlights before undo of changes done
+
+        private ChangeBatch(Snapshot oldSnapshot, Tool tool, String activity, int startingHighlights, Snapshot newSnapshot) {
             oldSnapshotId = oldSnapshot.snapshotId;
             this.tool = tool;
             this.activity = activity;
@@ -57,40 +57,48 @@ public class Undo
             newSnapshotId = newSnapshot.snapshotId;
         }
 
-        public int getStartingHighlights() { return startingHighlights; }
-        public int getPreUndoHighlights() { return preUndoHighlights; }
+        public int getStartingHighlights() {
+            return startingHighlights;
+        }
 
-		/**
-		 * Method to return the Tool associated with this ChangeBatch.
-		 * @return the Tool associated with this ChangeBatch.
-		 */
-		public Tool getTool() { return tool; }
+        public int getPreUndoHighlights() {
+            return preUndoHighlights;
+        }
 
-		private void describe(String title)
-		{
+        /**
+         * Method to return the Tool associated with this ChangeBatch.
+         * @return the Tool associated with this ChangeBatch.
+         */
+        public Tool getTool() {
+            return tool;
+        }
+
+        private void describe(String title) {
             String activityFromTool = activity;
-            if (tool != null) activityFromTool += " from " + tool.getName() + " tool";
-			String message = "*** Batch '" + title + "', " + oldSnapshotId + "->" + newSnapshotId + " (" + activityFromTool + ")";
-			System.out.println(message);
-		}
-	}
-
-	private static int maximumBatches = User.getMaxUndoHistory();
-	private static final List<ChangeBatch> doneList = new ArrayList<ChangeBatch>();
-	private static final List<ChangeBatch> undoneList = new ArrayList<ChangeBatch>();
+            if (tool != null) {
+                activityFromTool += " from " + tool.getName() + " tool";
+            }
+            String message = "*** Batch '" + title + "', " + oldSnapshotId + "->" + newSnapshotId + " (" + activityFromTool + ")";
+            System.out.println(message);
+        }
+    }
+    private static int maximumBatches = User.getMaxUndoHistory();
+    private static final List<ChangeBatch> doneList = new ArrayList<ChangeBatch>();
+    private static final List<ChangeBatch> undoneList = new ArrayList<ChangeBatch>();
 
     /**
-	 * Method to terminate the current batch of changes.
-	 */
-	public static int endChanges(Snapshot oldSnapshot, Tool tool, String activity, Snapshot newSnapshot)
-	{
+     * Method to terminate the current batch of changes.
+     */
+    public static int endChanges(Snapshot oldSnapshot, Tool tool, String activity, Snapshot newSnapshot) {
         int highlights = Job.getExtendedUserInterface().saveHighlights();
         int oldId = oldSnapshot.snapshotId;
         int newId = newSnapshot.snapshotId;
-        while (!doneList.isEmpty() && doneList.get(doneList.size() - 1).newSnapshotId != oldId)
+        while (!doneList.isEmpty() && doneList.get(doneList.size() - 1).newSnapshotId != oldId) {
             doneList.remove(doneList.size() - 1);
-        while (!undoneList.isEmpty() && undoneList.get(0).oldSnapshotId != oldId)
+        }
+        while (!undoneList.isEmpty() && undoneList.get(0).oldSnapshotId != oldId) {
             undoneList.remove(0);
+        }
         int doneIndex = indexOf(doneList, newId);
         int undoneIndex = indexOf(undoneList, newId);
         if (doneIndex >= 0) {
@@ -121,7 +129,7 @@ public class Undo
         }
         updateUndoRedo();
         return highlights;
-	}
+    }
 
     private static void invalidate(int snapshotId) {
         int doneIndex = indexOf(doneList, snapshotId);
@@ -131,8 +139,9 @@ public class Undo
             if (doneIndex == 0) {
                 doneList.clear();
             } else {
-                while (doneList.size() >= doneIndex)
+                while (doneList.size() >= doneIndex) {
                     doneList.remove(doneList.size() - 1);
+                }
             }
         }
         if (undoneIndex >= 0) {
@@ -141,8 +150,9 @@ public class Undo
                 undoneList.clear();
             } else {
                 for (int i = 0; i < undoneIndex; i++) {
-                    if (!undoneList.isEmpty())
+                    if (!undoneList.isEmpty()) {
                         undoneList.remove(0);
+                    }
                 }
             }
         }
@@ -152,53 +162,62 @@ public class Undo
     private static int indexOf(List<ChangeBatch> list, int snapshotId) {
         for (int i = 0; i < list.size(); i++) {
             ChangeBatch batch = list.get(i);
-            if (batch.oldSnapshotId == snapshotId) return i;
-            if (batch.newSnapshotId == snapshotId) return i + 1;
+            if (batch.oldSnapshotId == snapshotId) {
+                return i;
+            }
+            if (batch.newSnapshotId == snapshotId) {
+                return i + 1;
+            }
         }
         return -1;
     }
 
     private static void updateUndoRedo() {
-    	// Ignore status if editing a text cell (the text window reports correct undo/redo status)
-    	Cell cell = Job.getUserInterface().getCurrentCell();
-    	if (cell != null && cell.getView().isTextView()) return;
+        // Ignore status if editing a text cell (the text window reports correct undo/redo status)
+        Cell cell = Job.getUserInterface().getCurrentCell();
+        if (cell != null && cell.getView().isTextView()) {
+            return;
+        }
 
-    	Job.getExtendedUserInterface().showUndoRedoStatus(!doneList.isEmpty(), !undoneList.isEmpty());
+        Job.getExtendedUserInterface().showUndoRedoStatus(!doneList.isEmpty(), !undoneList.isEmpty());
     }
 
-	public static String getUndoActivity()
-	{
-		//return doneList.get(doneList.size() - 1).activity;}
-		if (!doneList.isEmpty())
-			return doneList.get(doneList.size() - 1).activity;
-		System.out.println("Nothing left to undo");
-		return "";
-	}
+    public static String getUndoActivity() {
+        //return doneList.get(doneList.size() - 1).activity;}
+        if (!doneList.isEmpty()) {
+            return doneList.get(doneList.size() - 1).activity;
+        }
+        System.out.println("Nothing left to undo");
+        return "";
+    }
 
     /**
      * Method to undo a change.
      */
     public static void undo() {
-        if (!doneList.isEmpty())
+        if (!doneList.isEmpty()) {
             new UndoJob("Undo", doneList.get(doneList.size() - 1).oldSnapshotId);
-        else
+        } else {
             System.out.println("Undo failed");
+        }
     }
 
     /**
      * Method to redo a change.
      */
     public static void redo() {
-        if (!undoneList.isEmpty())
+        if (!undoneList.isEmpty()) {
             new UndoJob("Redo", undoneList.get(0).newSnapshotId);
-        else
+        } else {
             System.out.println("Redo failed");
+        }
     }
 
     /**
      * Class to schedule an undo in a separate Job.
      */
     public static class UndoJob extends Job {
+
         int snapshotId;
 
         public UndoJob(String jobName, int snapshotId) {
@@ -207,7 +226,9 @@ public class Undo
             startJob();
         }
 
-        public int getSnapshotId() { return snapshotId; }
+        public int getSnapshotId() {
+            return snapshotId;
+        }
 
         public boolean doIt() throws JobException {
             // must not be called.
@@ -279,52 +300,47 @@ public class Undo
 // 		undoneList.clear();
 //        updateUndoRedo();
 //	}
-
-	/**
-	 * Method to prevent redo by deleting all undone change batches.
-	 */
-	public static void noRedoAllowed()
-	{
-		undoneList.clear();
+    /**
+     * Method to prevent redo by deleting all undone change batches.
+     */
+    public static void noRedoAllowed() {
+        undoneList.clear();
         updateUndoRedo();
-	}
+    }
 
-	/**
-	 * Method to set the size of the history list and return the former size.
-	 * @param newSize the new size of the history list (number of batches of changes).
-	 * If not positive, the list size is not changed.
-	 * @return the former size of the history list.
-	 */
-	public static int setHistoryListSize(int newSize)
-	{
-		if (newSize <= 0) return maximumBatches;
+    /**
+     * Method to set the size of the history list and return the former size.
+     * @param newSize the new size of the history list (number of batches of changes).
+     * If not positive, the list size is not changed.
+     * @return the former size of the history list.
+     */
+    public static int setHistoryListSize(int newSize) {
+        if (newSize <= 0) {
+            return maximumBatches;
+        }
 
-		int oldSize = maximumBatches;
-		maximumBatches = newSize;
-		if (doneList.size() > maximumBatches)
-		{
-			doneList.remove(0);
-		}
+        int oldSize = maximumBatches;
+        maximumBatches = newSize;
+        if (doneList.size() > maximumBatches) {
+            doneList.remove(0);
+        }
         updateUndoRedo();
-		return oldSize;
-	}
+        return oldSize;
+    }
 
-	/**
-	 * Method to display all changes.
-	 */
-	public static void showHistoryList()
-	{
-		System.out.println("----------  Done batches (" + doneList.size() + ") ----------:");
-		for(int i=0; i<doneList.size(); i++)
-		{
-			ChangeBatch batch = doneList.get(i);
-			batch.describe("Done");
-		}
-		System.out.println("----------  Undone batches (" + undoneList.size() + ") ----------:");
-		for(int i=0; i<undoneList.size(); i++)
-		{
-			ChangeBatch batch = undoneList.get(i);
-			batch.describe("Undone");
-		}
-	}
+    /**
+     * Method to display all changes.
+     */
+    public static void showHistoryList() {
+        System.out.println("----------  Done batches (" + doneList.size() + ") ----------:");
+        for (int i = 0; i < doneList.size(); i++) {
+            ChangeBatch batch = doneList.get(i);
+            batch.describe("Done");
+        }
+        System.out.println("----------  Undone batches (" + undoneList.size() + ") ----------:");
+        for (int i = 0; i < undoneList.size(); i++) {
+            ChangeBatch batch = undoneList.get(i);
+            batch.describe("Undone");
+        }
+    }
 }

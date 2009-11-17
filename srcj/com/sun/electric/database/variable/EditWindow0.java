@@ -30,58 +30,62 @@ import java.io.Serializable;
  * for calculating a shape of some primitives.
  */
 public interface EditWindow0 {
+
     /**
      * Get the window's VarContext
      * @return the current VarContext
      */
     public VarContext getVarContext();
-    
-	/**
-	 * Method to return the scale factor for this window.
-	 * @return the scale factor for this window.
-	 */
-	public double getScale();
-    
-	/**
-	 * Method to return the text scale factor for this window.
-	 * @return the text scale factor for this window.
-	 */
-	public double getGlobalTextScale();
 
-	/**
-	 * Class to encapsulate the minimal EditWindow0 data needed to pass into Jobs.
-	 */
-	public static class EditWindowSmall implements EditWindow0, Serializable
-	{
-		private VarContext context;
-		private double scale;
-		private double globalScale;
+    /**
+     * Method to return the scale factor for this window.
+     * @return the scale factor for this window.
+     */
+    public double getScale();
 
-		public EditWindowSmall(EditWindow_ wnd)
-		{
-			context = wnd.getVarContext();
-			scale = wnd.getScale();
-			globalScale = wnd.getGlobalTextScale();
-		}
-	    
-	    /**
-	     * Get the window's VarContext
-	     * @return the current VarContext
-	     */
-	    public VarContext getVarContext() { return context; }
-	    
-		/**
-		 * Method to return the scale factor for this window.
-		 * @return the scale factor for this window.
-		 */
-		public double getScale() { return scale; }
-	    
-		/**
-		 * Method to return the text scale factor for this window.
-		 * @return the text scale factor for this window.
-		 */
-		public double getGlobalTextScale() { return globalScale; }
+    /**
+     * Method to return the text scale factor for this window.
+     * @return the text scale factor for this window.
+     */
+    public double getGlobalTextScale();
 
-	}
+    /**
+     * Class to encapsulate the minimal EditWindow0 data needed to pass into Jobs.
+     */
+    public static class EditWindowSmall implements EditWindow0, Serializable {
 
+        private VarContext context;
+        private double scale;
+        private double globalScale;
+
+        public EditWindowSmall(EditWindow_ wnd) {
+            context = wnd.getVarContext();
+            scale = wnd.getScale();
+            globalScale = wnd.getGlobalTextScale();
+        }
+
+        /**
+         * Get the window's VarContext
+         * @return the current VarContext
+         */
+        public VarContext getVarContext() {
+            return context;
+        }
+
+        /**
+         * Method to return the scale factor for this window.
+         * @return the scale factor for this window.
+         */
+        public double getScale() {
+            return scale;
+        }
+
+        /**
+         * Method to return the text scale factor for this window.
+         * @return the text scale factor for this window.
+         */
+        public double getGlobalTextScale() {
+            return globalScale;
+        }
+    }
 }

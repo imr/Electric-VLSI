@@ -26,7 +26,7 @@ package com.sun.electric.database.network;
 
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.TextUtils;
-import java.util.AbstractCollection;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -74,16 +74,18 @@ public class NetlistShorted extends Netlist {
             int thisNetIndex = baseNetToThisNet[baseNetIndex];
             baseNetNext[baseNetIndex] = thisNetHead[thisNetIndex];
             thisNetHead[thisNetIndex] = baseNetIndex;
-            if (baseNetlist.isUsernamed(baseNetIndex))
+            if (baseNetlist.isUsernamed(baseNetIndex)) {
                 isUsernamed.set(thisNetIndex);
+            }
         }
         for (int thisHead : thisNetHead) {
             assert thisHead >= 0;
         }
 
         firstNames = new String[getNumNetworks()];
-        for (int thisNetIndex = 0; thisNetIndex < getNumNetworks(); thisNetIndex++)
+        for (int thisNetIndex = 0; thisNetIndex < getNumNetworks(); thisNetIndex++) {
             makeName(thisNetIndex);
+        }
     }
 
     /**
@@ -91,12 +93,13 @@ public class NetlistShorted extends Netlist {
      * Intitialized net has at least one name - user-defiend or temporary.
      */
     @Override
-    String getName( int netIndex) {
+    String getName(int netIndex) {
         String name = firstNames[netIndex];
-        if (name != null)
+        if (name != null) {
             return name;
-        else
+        } else {
             return makeName(netIndex);
+        }
     }
 
     private String makeName(int thisNetIndex) {
@@ -104,10 +107,13 @@ public class NetlistShorted extends Netlist {
         String firstName = null;
         if (isUsernamed(thisNetIndex)) {
             for (int baseNetIndex = thisNetHead[thisNetIndex]; baseNetIndex >= 0 && baseNetIndex < baseIndexLimit; baseNetIndex = baseNetNext[baseNetIndex]) {
-                if (!baseNetlist.isUsernamed(baseNetIndex)) continue;
+                if (!baseNetlist.isUsernamed(baseNetIndex)) {
+                    continue;
+                }
                 String name = baseNetlist.getName(baseNetIndex);
-                if (firstName == null || TextUtils.STRING_NUMBER_ORDER.compare(name, firstName) < 0)
+                if (firstName == null || TextUtils.STRING_NUMBER_ORDER.compare(name, firstName) < 0) {
                     firstName = name;
+                }
             }
         } else {
             firstName = baseNetlist.getName(thisNetHead[thisNetIndex]);
@@ -117,13 +123,13 @@ public class NetlistShorted extends Netlist {
     }
 
     @Override
-    Iterator<String> getNames( int netIndex) {
+    Iterator<String> getNames(int netIndex) {
         if (isUsernamed(netIndex)) {
             TreeSet<String> exportedNames = new TreeSet<String>(TextUtils.STRING_NUMBER_ORDER);
             TreeSet<String> privateNames = new TreeSet<String>(TextUtils.STRING_NUMBER_ORDER);
             fillNames(netIndex, exportedNames, privateNames);
             ArrayList<String> allNames = new ArrayList<String>(exportedNames);
-            for ( String name : privateNames) {
+            for (String name : privateNames) {
                 if (exportedNames.contains(name)) {
                     continue;
                 }
@@ -136,7 +142,7 @@ public class NetlistShorted extends Netlist {
     }
 
     @Override
-    Iterator<String> getExportedNames( int netIndex) {
+    Iterator<String> getExportedNames(int netIndex) {
         if (isExported(netIndex)) {
             TreeSet<String> exportedNames = new TreeSet<String>(TextUtils.STRING_NUMBER_ORDER);
             fillNames(netIndex, exportedNames, null);
@@ -151,8 +157,9 @@ public class NetlistShorted extends Netlist {
     boolean hasName(int netIndex, String nm) {
         if (isUsernamed(netIndex)) {
             for (int baseNetIndex = thisNetHead[netIndex]; baseNetIndex >= 0; baseNetIndex = baseNetNext[baseNetIndex]) {
-                if (baseNetlist.hasName(baseNetIndex, nm))
+                if (baseNetlist.hasName(baseNetIndex, nm)) {
                     return true;
+                }
             }
             return false;
         } else {
@@ -166,11 +173,13 @@ public class NetlistShorted extends Netlist {
      * @param privateNames Collection for unexported names.
      */
     @Override
-    void fillNames( int netIndex,  Collection<String> exportedNames,  Collection<String> privateNames) {
-        if (!isUsernamed(netIndex))
+    void fillNames(int netIndex, Collection<String> exportedNames, Collection<String> privateNames) {
+        if (!isUsernamed(netIndex)) {
             return;
-        for ( int baseNetIndex = thisNetHead[netIndex]; baseNetIndex >= 0; baseNetIndex = baseNetNext[baseNetIndex])
+        }
+        for (int baseNetIndex = thisNetHead[netIndex]; baseNetIndex >= 0; baseNetIndex = baseNetNext[baseNetIndex]) {
             baseNetlist.fillNames(baseNetIndex, exportedNames, privateNames);
+        }
     }
 
     /**
@@ -186,7 +195,6 @@ public class NetlistShorted extends Netlist {
     int getEquivPortIndexByNetIndex(int netIndex) {
         return baseNetlist.getEquivPortIndexByNetIndex(thisNetHead[netIndex]);
     }
-
 //    void checkNames() {
 //        TreeSet<String> exportedNames = new TreeSet<String>(TextUtils.STRING_NUMBER_ORDER);
 //        TreeSet<String> privateNames = new TreeSet<String>(TextUtils.STRING_NUMBER_ORDER);

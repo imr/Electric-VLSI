@@ -192,42 +192,42 @@ public class GenMathTest {
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
-
     /**
      * Test of figureAngle methods, of class com.sun.electric.database.geometry.GenMath.
      */
-    @Test public void testFigureAngle() {
+    @Test
+    public void testFigureAngle() {
         System.out.println("testFigureAngle");
 
-        assertEquals(   0, GenMath.figureAngle(0.0, 0.0));
-        assertEquals(   0, GenMath.figureAngle(0.0, -0.0));
-        assertEquals(   0, GenMath.figureAngle(-0.0, 0.0));
-        assertEquals(   0, GenMath.figureAngle(-0.0, -0.0));
-        assertEquals(   0, GenMath.figureAngle(Double.NaN, 0));
-        assertEquals(   0, GenMath.figureAngle(Double.NaN, 100));
-        assertEquals(   0, GenMath.figureAngle(Double.NaN, -100));
-        assertEquals(   0, GenMath.figureAngle(0, Double.NaN));
-        assertEquals(   0, GenMath.figureAngle(100, Double.NaN));
-        assertEquals(   0, GenMath.figureAngle(-100, Double.NaN));
+        assertEquals(0, GenMath.figureAngle(0.0, 0.0));
+        assertEquals(0, GenMath.figureAngle(0.0, -0.0));
+        assertEquals(0, GenMath.figureAngle(-0.0, 0.0));
+        assertEquals(0, GenMath.figureAngle(-0.0, -0.0));
+        assertEquals(0, GenMath.figureAngle(Double.NaN, 0));
+        assertEquals(0, GenMath.figureAngle(Double.NaN, 100));
+        assertEquals(0, GenMath.figureAngle(Double.NaN, -100));
+        assertEquals(0, GenMath.figureAngle(0, Double.NaN));
+        assertEquals(0, GenMath.figureAngle(100, Double.NaN));
+        assertEquals(0, GenMath.figureAngle(-100, Double.NaN));
 
-        assertEquals(   0, GenMath.figureAngle(Double.POSITIVE_INFINITY, Double.MAX_VALUE));
-        assertEquals(   0, GenMath.figureAngle(Double.POSITIVE_INFINITY, -Double.MAX_VALUE));
+        assertEquals(0, GenMath.figureAngle(Double.POSITIVE_INFINITY, Double.MAX_VALUE));
+        assertEquals(0, GenMath.figureAngle(Double.POSITIVE_INFINITY, -Double.MAX_VALUE));
         assertEquals(1800, GenMath.figureAngle(Double.NEGATIVE_INFINITY, Double.MAX_VALUE));
         assertEquals(1800, GenMath.figureAngle(Double.NEGATIVE_INFINITY, -Double.MAX_VALUE));
-        assertEquals( 900, GenMath.figureAngle(Double.MAX_VALUE, Double.POSITIVE_INFINITY));
-        assertEquals( 900, GenMath.figureAngle(-Double.MAX_VALUE, Double.POSITIVE_INFINITY));
+        assertEquals(900, GenMath.figureAngle(Double.MAX_VALUE, Double.POSITIVE_INFINITY));
+        assertEquals(900, GenMath.figureAngle(-Double.MAX_VALUE, Double.POSITIVE_INFINITY));
         assertEquals(2700, GenMath.figureAngle(Double.MAX_VALUE, Double.NEGATIVE_INFINITY));
         assertEquals(2700, GenMath.figureAngle(-Double.MAX_VALUE, Double.NEGATIVE_INFINITY));
 
-        assertEquals( 450, GenMath.figureAngle(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
+        assertEquals(450, GenMath.figureAngle(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         assertEquals(1350, GenMath.figureAngle(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
         assertEquals(2250, GenMath.figureAngle(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY));
         assertEquals(3150, GenMath.figureAngle(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY));
 
         double r1 = 0.1;
-        assertEquals(   0, GenMath.figureAngle(r1, 0));
-        assertEquals( 450, GenMath.figureAngle(r1, r1));
-        assertEquals( 900, GenMath.figureAngle(0, r1));
+        assertEquals(0, GenMath.figureAngle(r1, 0));
+        assertEquals(450, GenMath.figureAngle(r1, r1));
+        assertEquals(900, GenMath.figureAngle(0, r1));
         assertEquals(1350, GenMath.figureAngle(-r1, r1));
         assertEquals(1800, GenMath.figureAngle(-r1, 0));
         assertEquals(2250, GenMath.figureAngle(-r1, -r1));
@@ -239,10 +239,10 @@ public class GenMathTest {
         Point2D p0 = new Point2D.Double(x0, y0);
         double r2 = Double.MAX_VALUE;
         for (int i = 0; i < 3600; i++) {
-            double a = i*Math.PI/1800;
-            assertEquals(i, GenMath.figureAngle(r1*Math.cos(a), r1*Math.sin(a)));
-            assertEquals(i, GenMath.figureAngle(r2*Math.cos(a), r2*Math.sin(a)));
-            assertEquals(i, GenMath.figureAngle(p0, new Point2D.Double(x0 + r1*Math.cos(a), y0 + r1*Math.sin(a))));
+            double a = i * Math.PI / 1800;
+            assertEquals(i, GenMath.figureAngle(r1 * Math.cos(a), r1 * Math.sin(a)));
+            assertEquals(i, GenMath.figureAngle(r2 * Math.cos(a), r2 * Math.sin(a)));
+            assertEquals(i, GenMath.figureAngle(p0, new Point2D.Double(x0 + r1 * Math.cos(a), y0 + r1 * Math.sin(a))));
         }
     }
 
@@ -449,7 +449,8 @@ public class GenMathTest {
     /**
      * Test of round method, of class com.sun.electric.database.geometry.GenMath.
      */
-    @Test public void testRoundHalf() {
+    @Test
+    public void testRoundHalf() {
         System.out.println("testRoundHalf");
         assertEquals(0L, GenMath.roundLong(Double.NaN));
         assertEquals(Long.MIN_VALUE, GenMath.roundLong(Double.NEGATIVE_INFINITY));
@@ -498,7 +499,7 @@ public class GenMathTest {
         checkRound(x);
         checkRound(MutableInterval.next(x));
 
-        x = x/DBMath.GRID;
+        x = x / DBMath.GRID;
         checkRound(MutableInterval.prev(x));
         checkRound(x);
         checkRound(MutableInterval.next(x));
@@ -512,10 +513,10 @@ public class GenMathTest {
         checkFloorInt(x);
         checkCeilInt(x);
 
-        assertEquals(x/DBMath.GRID, DBMath.gridToLambda(x), 0);
-        assertEquals(GenMath.roundLong(x*DBMath.GRID), DBMath.lambdaToGrid(x));
-        assertEquals(GenMath.roundLong(x*(DBMath.GRID/2))*2, DBMath.lambdaToSizeGrid(x));
-        assertEquals(GenMath.roundLong(x*DBMath.GRID)/DBMath.GRID, DBMath.round(x), 0);
+        assertEquals(x / DBMath.GRID, DBMath.gridToLambda(x), 0);
+        assertEquals(GenMath.roundLong(x * DBMath.GRID), DBMath.lambdaToGrid(x));
+        assertEquals(GenMath.roundLong(x * (DBMath.GRID / 2)) * 2, DBMath.lambdaToSizeGrid(x));
+        assertEquals(GenMath.roundLong(x * DBMath.GRID) / DBMath.GRID, DBMath.round(x), 0);
     }
 
     private void checkRoundLong(double x) {
@@ -524,10 +525,12 @@ public class GenMathTest {
         BigDecimal bl = new BigDecimal(l);
         int cl = bx.compareTo(bl.add(new BigDecimal(-0.5)));
         int cr = bx.compareTo(bl.add(new BigDecimal(0.5)));
-        if (l != Long.MIN_VALUE)
-            assertTrue((cl&1) == 0 ? cl >= 0 : cl > 0);
-        if (l != Long.MAX_VALUE)
-            assertTrue((cr&1) == 0 ? cr <= 0 : cr < 0);
+        if (l != Long.MIN_VALUE) {
+            assertTrue((cl & 1) == 0 ? cl >= 0 : cl > 0);
+        }
+        if (l != Long.MAX_VALUE) {
+            assertTrue((cr & 1) == 0 ? cr <= 0 : cr < 0);
+        }
     }
 
     private void checkFloorLong(double x) {
@@ -536,10 +539,12 @@ public class GenMathTest {
         BigDecimal bl = new BigDecimal(l);
         int cl = bx.compareTo(bl);
         int cr = bx.compareTo(bl.add(new BigDecimal(1.0)));
-        if (l != Long.MIN_VALUE)
+        if (l != Long.MIN_VALUE) {
             assertTrue(cl >= 0);
-        if (l != Long.MAX_VALUE)
+        }
+        if (l != Long.MAX_VALUE) {
             assertTrue(cr < 0);
+        }
     }
 
     private void checkCeilLong(double x) {
@@ -548,10 +553,12 @@ public class GenMathTest {
         BigDecimal bl = new BigDecimal(l);
         int cl = bx.compareTo(bl.add(new BigDecimal(-1.0)));
         int cr = bx.compareTo(bl);
-        if (l != Long.MIN_VALUE)
+        if (l != Long.MIN_VALUE) {
             assertTrue(cl > 0);
-        if (l != Long.MAX_VALUE)
+        }
+        if (l != Long.MAX_VALUE) {
             assertTrue(cr <= 0);
+        }
     }
 
     private void checkRoundInt(double x) {
@@ -560,10 +567,12 @@ public class GenMathTest {
         BigDecimal bl = new BigDecimal(l);
         int cl = bx.compareTo(bl.add(new BigDecimal(-0.5)));
         int cr = bx.compareTo(bl.add(new BigDecimal(0.5)));
-        if (l != Integer.MIN_VALUE)
-            assertTrue((cl&1) == 0 ? cl >= 0 : cl > 0);
-        if (l != Integer.MAX_VALUE)
-            assertTrue((cr&1) == 0 ? cr <= 0 : cr < 0);
+        if (l != Integer.MIN_VALUE) {
+            assertTrue((cl & 1) == 0 ? cl >= 0 : cl > 0);
+        }
+        if (l != Integer.MAX_VALUE) {
+            assertTrue((cr & 1) == 0 ? cr <= 0 : cr < 0);
+        }
     }
 
     private void checkFloorInt(double x) {
@@ -572,10 +581,12 @@ public class GenMathTest {
         BigDecimal bl = new BigDecimal(l);
         int cl = bx.compareTo(bl);
         int cr = bx.compareTo(bl.add(new BigDecimal(1.0)));
-        if (l != Integer.MIN_VALUE)
+        if (l != Integer.MIN_VALUE) {
             assertTrue(cl >= 0);
-        if (l != Integer.MAX_VALUE)
+        }
+        if (l != Integer.MAX_VALUE) {
             assertTrue(cr < 0);
+        }
     }
 
     private void checkCeilInt(double x) {
@@ -584,13 +595,17 @@ public class GenMathTest {
         BigDecimal bl = new BigDecimal(l);
         int cl = bx.compareTo(bl.add(new BigDecimal(-1.0)));
         int cr = bx.compareTo(bl);
-        if (l != Integer.MIN_VALUE)
+        if (l != Integer.MIN_VALUE) {
             assertTrue(cl > 0);
-        if (l != Integer.MAX_VALUE)
+        }
+        if (l != Integer.MAX_VALUE) {
             assertTrue(cr <= 0);
+        }
     }
 
-    @Ignore @Test public void benchRound() {
+    @Ignore
+    @Test
+    public void benchRound() {
         System.out.println("benchRound");
         int len = 1000;
         doubleValues = new double[len];
@@ -605,83 +620,100 @@ public class GenMathTest {
         }
         BenchLoop[] benches = {
             new BenchLoop("DoubleSum") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     double s = 0;
-                    for (double x: values)
+                    for (double x : values) {
                         s = s + x;
-                    return (long)s;
+                    }
+                    return (long) s;
                 }
             },
             new BenchLoop("DoubleMult") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     double s = 0;
-                    for (double x: values)
+                    for (double x : values) {
                         s += x * DBMath.GRID;
-                    return (long)s;
+                    }
+                    return (long) s;
                 }
             },
             new BenchLoop("DoubleDiv") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     double s = 0;
-                    for (double x: values)
+                    for (double x : values) {
                         s = s + x / DBMath.GRID;
-                    return (long)s;
+                    }
+                    return (long) s;
                 }
             },
             new BenchLoop("Math.rint") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     double s = 0;
-                    for (double x: values)
+                    for (double x : values) {
                         s = s + Math.rint(x);
-                    return (long)s;
+                    }
+                    return (long) s;
                 }
             },
             new BenchLoop("DBMath.rint") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     double s = 0;
-                    for (double x: values)
+                    for (double x : values) {
                         s = s + DBMath.rint(x);
-                    return (long)s;
+                    }
+                    return (long) s;
                 }
             },
             new BenchLoop("long DBMath.rint") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     long s = 0;
-                    for (double x: values)
-                        s = s + (long)DBMath.rint(x);
+                    for (double x : values) {
+                        s = s + (long) DBMath.rint(x);
+                    }
                     return s;
                 }
             },
             new BenchLoop("DBMath.roundShapeCoord") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     double s = 0;
-                    for (double x: values)
+                    for (double x : values) {
                         s = s + DBMath.roundShapeCoord(x);
-                    return (long)s;
+                    }
+                    return (long) s;
                 }
             },
             null,
             new BenchLoop("DBMathRound") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     double s = 0;
-                    for (double x: values)
+                    for (double x : values) {
                         s = s + DBMath.round(x);
-                    return (long)s;
+                    }
+                    return (long) s;
                 }
             },
             new BenchLoop("DBMathLambdaToGrid") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     long s = 0;
-                    for (double x: values) {
+                    for (double x : values) {
                         long lx = DBMath.lambdaToGrid(x);
                         s = s + lx;
                     }
@@ -689,10 +721,11 @@ public class GenMathTest {
                 }
             },
             new BenchLoop("DBMathLambdaToSizeGrid") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     long s = 0;
-                    for (double x: values) {
+                    for (double x : values) {
                         long lx = DBMath.lambdaToSizeGrid(x);
                         s = s + lx;
                     }
@@ -700,42 +733,47 @@ public class GenMathTest {
                 }
             },
             new BenchLoop("DBMathGridToLambda") {
+
                 long loop() {
                     long[] values = GenMathTest.this.longValues;
                     double s = 0;
-                    for (long l: values) {
+                    for (long l : values) {
                         double x = DBMath.gridToLambda(l);
                         s = s + x;
                     }
-                    return (long)s;
+                    return (long) s;
                 }
             },
             null,
             new BenchLoop("LongSum") {
+
                 long loop() {
                     long[] values = GenMathTest.this.longValues;
                     long s = 0;
-                    for (long x: values)
+                    for (long x : values) {
                         s = s + x;
+                    }
                     return s;
                 }
             },
             new BenchLoop("LangToLong") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     long s = 0;
-                    for (double x: values) {
-                        long lx = (long)x;
+                    for (double x : values) {
+                        long lx = (long) x;
                         s = s + lx;
                     }
                     return s;
                 }
             },
             new BenchLoop("GenMathRoundLong") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     long s = 0;
-                    for (double x: values) {
+                    for (double x : values) {
                         long lx = GenMath.roundLong(x);
                         s = s + lx;
                     }
@@ -743,10 +781,11 @@ public class GenMathTest {
                 }
             },
             new BenchLoop("GenMathFloorLong") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     long s = 0;
-                    for (double x: values) {
+                    for (double x : values) {
                         long lx = GenMath.floorLong(x);
                         s = s + lx;
                     }
@@ -754,75 +793,80 @@ public class GenMathTest {
                 }
             },
             new BenchLoop("GenMathCeilLong") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     long s = 0;
-                    for (double x: values) {
+                    for (double x : values) {
                         long lx = GenMath.ceilLong(x);
                         s = s + lx;
                     }
                     return s;
                 }
             },
-//            new BenchLoop("MathRound") {
-//                long loop() {
-//                    double[] values = GenMathTest.this.doubleValues;
-//                    long s = 0;
-//                    for (double x: values) {
-//                        long lx = Math.round(x);
-//                        s = s + lx;
-//                    }
-//                    return s;
-//                }
-//            },
-//            new BenchLoop("MathFloorLong") {
-//                long loop() {
-//                    double[] values = GenMathTest.this.doubleValues;
-//                    long s = 0;
-//                    for (double x: values) {
-//                        long lx = (long)Math.floor(x);
-//                        s = s + lx;
-//                    }
-//                    return s;
-//                }
-//            },
-//            new BenchLoop("MathCeilLong") {
-//                long loop() {
-//                    double[] values = GenMathTest.this.doubleValues;
-//                    long s = 0;
-//                    for (double x: values) {
-//                        long lx = (long)Math.ceil(x);
-//                        s = s + lx;
-//                    }
-//                    return s;
-//                }
-//            },
+            //            new BenchLoop("MathRound") {
+            //                long loop() {
+            //                    double[] values = GenMathTest.this.doubleValues;
+            //                    long s = 0;
+            //                    for (double x: values) {
+            //                        long lx = Math.round(x);
+            //                        s = s + lx;
+            //                    }
+            //                    return s;
+            //                }
+            //            },
+            //            new BenchLoop("MathFloorLong") {
+            //                long loop() {
+            //                    double[] values = GenMathTest.this.doubleValues;
+            //                    long s = 0;
+            //                    for (double x: values) {
+            //                        long lx = (long)Math.floor(x);
+            //                        s = s + lx;
+            //                    }
+            //                    return s;
+            //                }
+            //            },
+            //            new BenchLoop("MathCeilLong") {
+            //                long loop() {
+            //                    double[] values = GenMathTest.this.doubleValues;
+            //                    long s = 0;
+            //                    for (double x: values) {
+            //                        long lx = (long)Math.ceil(x);
+            //                        s = s + lx;
+            //                    }
+            //                    return s;
+            //                }
+            //            },
             null,
             new BenchLoop("IntSum") {
+
                 long loop() {
                     int[] values = GenMathTest.this.intValues;
                     int s = 0;
-                    for (int x: values)
+                    for (int x : values) {
                         s = s + x;
+                    }
                     return s;
                 }
             },
             new BenchLoop("LangToInt") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     int s = 0;
-                    for (double x: values) {
-                        int lx = (int)x;
+                    for (double x : values) {
+                        int lx = (int) x;
                         s = s + lx;
                     }
                     return s;
                 }
             },
             new BenchLoop("GenMathRoundInt") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     int s = 0;
-                    for (double x: values) {
+                    for (double x : values) {
                         int lx = GenMath.roundInt(x);
                         s = s + lx;
                     }
@@ -830,10 +874,11 @@ public class GenMathTest {
                 }
             },
             new BenchLoop("GenMathFloorInt") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     int s = 0;
-                    for (double x: values) {
+                    for (double x : values) {
                         int lx = GenMath.floorInt(x);
                         s = s + lx;
                     }
@@ -841,70 +886,78 @@ public class GenMathTest {
                 }
             },
             new BenchLoop("GenMathCeilInt") {
+
                 long loop() {
                     double[] values = GenMathTest.this.doubleValues;
                     int s = 0;
-                    for (double x: values) {
+                    for (double x : values) {
                         int lx = GenMath.ceilInt(x);
                         s = s + lx;
                     }
                     return s;
                 }
-            },
-//            new BenchLoop("MathFloorInt") {
-//                long loop() {
-//                    double[] values = GenMathTest.this.doubleValues;
-//                    int s = 0;
-//                    for (double x: values) {
-//                        int lx = (int)Math.floor(x);
-//                        s = s + lx;
-//                    }
-//                    return s;
-//                }
-//            },
-//            new BenchLoop("MathCeilInt") {
-//                long loop() {
-//                    double[] values = GenMathTest.this.doubleValues;
-//                    int s = 0;
-//                    for (double x: values) {
-//                        int lx = (int)Math.ceil(x);
-//                        s = s + lx;
-//                    }
-//                    return s;
-//                }
-//            },
+            }, //            new BenchLoop("MathFloorInt") {
+        //                long loop() {
+        //                    double[] values = GenMathTest.this.doubleValues;
+        //                    int s = 0;
+        //                    for (double x: values) {
+        //                        int lx = (int)Math.floor(x);
+        //                        s = s + lx;
+        //                    }
+        //                    return s;
+        //                }
+        //            },
+        //            new BenchLoop("MathCeilInt") {
+        //                long loop() {
+        //                    double[] values = GenMathTest.this.doubleValues;
+        //                    int s = 0;
+        //                    for (double x: values) {
+        //                        int lx = (int)Math.ceil(x);
+        //                        s = s + lx;
+        //                    }
+        //                    return s;
+        //                }
+        //            },
         };
         doBenchmarks(benches, 200, 100000);
     }
 
     private static void doBenchmarks(BenchLoop[] benches, int warmLoops, int benchLoops) {
         System.out.println("benchLoops=" + benchLoops + " warmLoops=" + warmLoops);
-        for (BenchLoop bench: benches) {
+        for (BenchLoop bench : benches) {
             if (bench == null) {
                 System.out.println();
                 continue;
             }
             long s = 0;
-            for (int k = 0; k < warmLoops; k++)
+            for (int k = 0; k < warmLoops; k++) {
                 s += bench.loop();
+            }
             long startTime = System.currentTimeMillis();
-            for (int k = 0; k < benchLoops; k++)
+            for (int k = 0; k < benchLoops; k++) {
                 s += bench.loop();
+            }
             long stopTime = System.currentTimeMillis();
             System.out.println(bench.name + " t=" + (stopTime - startTime) + " s=" + s);
         }
     }
 
     private abstract class BenchLoop {
+
         String name;
-        BenchLoop(String name) { this.name = name; }
+
+        BenchLoop(String name) {
+            this.name = name;
+        }
+
         abstract long loop();
     }
 
     /**
      * Test of sin and cos method, of class com.sun.electric.database.geometry.GenMath.
      */
-    @Test public void testSinCos() {
+    @Test
+    public void testSinCos() {
         System.out.println("testSinCos");
 
         assertEquals(1.0, GenMath.cosSmall(0), 0);
@@ -915,14 +968,15 @@ public class GenMathTest {
         assertEquals(0.0, GenMath.cosSmall(900), 0);
         assertEquals(1.0, GenMath.sinSmall(900), 0);
         for (int angle = 0; angle < 900; angle++) {
-            assertEquals(Math.cos(angle*Math.PI/1800), GenMath.cosSmall(angle), 1.25*Math.ulp(1.0));
+            assertEquals(Math.cos(angle * Math.PI / 1800), GenMath.cosSmall(angle), 1.25 * Math.ulp(1.0));
         }
     }
 
     /**
      * Test of sin and cos method, of class com.sun.electric.database.geometry.GenMath.
      */
-    @Test public void testPolarXY() {
+    @Test
+    public void testPolarXY() {
         System.out.println("testPolarXY");
 
         for (int len = 0; len < 1000; len++) {
@@ -930,12 +984,12 @@ public class GenMathTest {
                 long xy = GenMath.polarToXY(len, angle);
                 int x = GenMath.getX(xy);
                 int y = GenMath.getY(xy);
-                long r2 = x*(long)x + y*(long)y;
+                long r2 = x * (long) x + y * (long) y;
                 if (angle % 900 == 0) {
-                    assertTrue(r2 == len*(long)len);
+                    assertTrue(r2 == len * (long) len);
                 } else {
-                    assertTrue(r2 >= len*(long)len);
-                    assertTrue(r2 < (len + Math.sqrt(2))*(len + Math.sqrt(2)));
+                    assertTrue(r2 >= len * (long) len);
+                    assertTrue(r2 < (len + Math.sqrt(2)) * (len + Math.sqrt(2)));
                 }
             }
         }
@@ -944,7 +998,8 @@ public class GenMathTest {
     /**
      * Test of packXY method, of class com.sun.electric.database.geometry.GenMath.
      */
-    @Test public void testPackXY() {
+    @Test
+    public void testPackXY() {
         System.out.println("testPackXY");
 
         assertEquals(0L, GenMath.packXY(0, 0));
@@ -961,9 +1016,12 @@ public class GenMathTest {
 
     public void benchPackXY() {
         int[] values = new int[10000];
-        for (int i = 0; i < values.length; i++) values[i] = i;
-        for (int k = 0; k < 5; k++)
+        for (int i = 0; i < values.length; i++) {
+            values[i] = i;
+        }
+        for (int k = 0; k < 5; k++) {
             loopPackXY(values);
+        }
         long startTime = System.currentTimeMillis();
         long s = loopPackXY(values);
         long stopTime = System.currentTimeMillis();
@@ -972,8 +1030,8 @@ public class GenMathTest {
 
     private long loopPackXY(int[] values) {
         long s = 0;
-        for (int x: values) {
-            for (int y: values) {
+        for (int x : values) {
+            for (int y : values) {
                 long xy = GenMath.packXY(x, y);
                 s ^= xy;
             }
@@ -984,12 +1042,13 @@ public class GenMathTest {
     /**
      * Test of getX method, of class com.sun.electric.database.geometry.GenMath.
      */
-    @Test public void testGetXY() {
+    @Test
+    public void testGetXY() {
         System.out.println("testGetXY");
 
-        int[] values = { 0, -1, -2, 1, 2, Integer.MIN_VALUE, Integer.MAX_VALUE };
-        for (int x: values) {
-            for (int y: values) {
+        int[] values = {0, -1, -2, 1, 2, Integer.MIN_VALUE, Integer.MAX_VALUE};
+        for (int x : values) {
+            for (int y : values) {
                 long xy = GenMath.packXY(x, y);
                 assertEquals(x, GenMath.getX(xy));
                 assertEquals(y, GenMath.getY(xy));
@@ -1001,11 +1060,12 @@ public class GenMathTest {
         long[] values = new long[1000000];
         for (int x = 0; x < 1000; x++) {
             for (int y = 0; y < 1000; y++) {
-                values[x + y*1000] = GenMath.packXY(x, y);
+                values[x + y * 1000] = GenMath.packXY(x, y);
             }
         }
-        for (int k = 0; k < 5; k++)
+        for (int k = 0; k < 5; k++) {
             loopGetX(values);
+        }
         long startTime = System.currentTimeMillis();
         int s = loopGetX(values);
         long stopTime = System.currentTimeMillis();
@@ -1014,15 +1074,17 @@ public class GenMathTest {
 
     private int loopGetX(long[] values) {
         int s = 0;
-        for (long xy = 0; xy < 1000000000; xy++)
+        for (long xy = 0; xy < 1000000000; xy++) {
             s += GenMath.getX(xy);
+        }
         return s;
     }
 
     /**
      * Test of unsignedIntValue method, of class com.sun.electric.database.geometry.GenMath.
      */
-    @Test public void testUnsignedIntValue() {
+    @Test
+    public void testUnsignedIntValue() {
         System.out.println("testUnsignedIntValue");
 
         assertEquals(0L, GenMath.unsignedIntValue(0));
@@ -1034,15 +1096,16 @@ public class GenMathTest {
     /**
      * Test of isSmallInt methods, of class com.sun.electric.database.geometry.GenMath.
      */
-    @Test public void testIsSmallInt() {
+    @Test
+    public void testIsSmallInt() {
         System.out.println("testIsSmallInt");
 
         assertFalse(GenMath.isSmallInt(0x80000000));
         assertFalse(GenMath.isSmallInt(0xBFFFFFFF));
-        assertTrue (GenMath.isSmallInt(0xC0000000));
-        assertTrue (GenMath.isSmallInt(0xFFFFFFFF));
-        assertTrue (GenMath.isSmallInt(0x00000000));
-        assertTrue (GenMath.isSmallInt(0x3FFFFFFF));
+        assertTrue(GenMath.isSmallInt(0xC0000000));
+        assertTrue(GenMath.isSmallInt(0xFFFFFFFF));
+        assertTrue(GenMath.isSmallInt(0x00000000));
+        assertTrue(GenMath.isSmallInt(0x3FFFFFFF));
         assertFalse(GenMath.isSmallInt(0x40000000));
         assertFalse(GenMath.isSmallInt(0x7FFFFFFF));
 
@@ -1050,10 +1113,10 @@ public class GenMathTest {
         assertFalse(GenMath.isSmallInt(0xFFFFFFFE00000000L));
         assertFalse(GenMath.isSmallInt(0xFFFFFFFF80000000L));
         assertFalse(GenMath.isSmallInt(0xFFFFFFFFBFFFFFFFL));
-        assertTrue (GenMath.isSmallInt(0xFFFFFFFFC0000000L));
-        assertTrue (GenMath.isSmallInt(0xFFFFFFFFFFFFFFFFL));
-        assertTrue (GenMath.isSmallInt(0x0000000000000000L));
-        assertTrue (GenMath.isSmallInt(0x000000003FFFFFFFL));
+        assertTrue(GenMath.isSmallInt(0xFFFFFFFFC0000000L));
+        assertTrue(GenMath.isSmallInt(0xFFFFFFFFFFFFFFFFL));
+        assertTrue(GenMath.isSmallInt(0x0000000000000000L));
+        assertTrue(GenMath.isSmallInt(0x000000003FFFFFFFL));
         assertFalse(GenMath.isSmallInt(0x0000000040000000L));
         assertFalse(GenMath.isSmallInt(0x000000007FFFFFFFL));
         assertFalse(GenMath.isSmallInt(0x0000000080000000L));
@@ -1065,7 +1128,8 @@ public class GenMathTest {
     /**
      * Test of primeSince method, of class com.sun.electric.database.geometry.GenMath.
      */
-    @Test public void testPrimeSince() {
+    @Test
+    public void testPrimeSince() {
         System.out.println("testPrimeSince");
 
         int prime = GenMath.primeSince(Integer.MIN_VALUE);
@@ -1073,7 +1137,9 @@ public class GenMathTest {
             assertPrime(prime);
             assertEquals(prime, GenMath.primeSince(prime - 1));
             assertEquals(prime, GenMath.primeSince(prime));
-            if (prime == Integer.MAX_VALUE) break;
+            if (prime == Integer.MAX_VALUE) {
+                break;
+            }
             int newPrime = GenMath.primeSince(prime + 1);
             assertTrue(newPrime >= prime + 1);
             prime = newPrime;
@@ -1082,9 +1148,12 @@ public class GenMathTest {
 
     private void assertPrime(int p) {
         assertTrue(p >= 2);
-        if (p == 2) return;
-        assertTrue(p%2 != 0);
-        for (int i = 3; i <= p/i; i += 2)
-            assertTrue(p%i != 0);
+        if (p == 2) {
+            return;
+        }
+        assertTrue(p % 2 != 0);
+        for (int i = 3; i <= p / i; i += 2) {
+            assertTrue(p % i != 0);
+        }
     }
 }

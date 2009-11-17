@@ -34,6 +34,7 @@ import com.sun.electric.database.variable.ElectricObject;
  * A semantic event which indicates that Electric database changed its state.
  */
 public class DatabaseChangeEvent {
+
     public final Snapshot oldSnapshot;
     public final Snapshot newSnapshot;
 
@@ -41,15 +42,14 @@ public class DatabaseChangeEvent {
         this.oldSnapshot = oldSnapshot;
         this.newSnapshot = newSnapshot;
     }
-        
+
     /**
      * Returns true if ElectricObject eObj was created, killed or modified
      * in the new database state.
      * @param eObj ElectricObject to test.
      * @return true if the ElectricObject was changed.
      */
-    public boolean objectChanged(ElectricObject eObj)
-    {
+    public boolean objectChanged(ElectricObject eObj) {
         return true;
 //        for (Iterator<Undo.Change> it = batch.getChanges(); it.hasNext(); ) {
 //            Undo.Change change = (Undo.Change)it.next();
@@ -66,16 +66,26 @@ public class DatabaseChangeEvent {
      * @return true if cell explorer tree was changed.
      */
     public boolean cellTreeChanged() {
-        if (!newSnapshot.getChangedLibraries(oldSnapshot).isEmpty()) return true;
-        for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
+        if (!newSnapshot.getChangedLibraries(oldSnapshot).isEmpty()) {
+            return true;
+        }
+        for (CellId cellId : newSnapshot.getChangedCells(oldSnapshot)) {
             CellBackup oldBackup = oldSnapshot.getCell(cellId);
             CellBackup newBackup = newSnapshot.getCell(cellId);
-            if (oldBackup == null || newBackup == null) return true;
-            if (oldBackup.modified != newBackup.modified) return true;
+            if (oldBackup == null || newBackup == null) {
+                return true;
+            }
+            if (oldBackup.modified != newBackup.modified) {
+                return true;
+            }
             ImmutableCell oldD = oldBackup.cellRevision.d;
             ImmutableCell newD = newBackup.cellRevision.d;
-            if (oldD.groupName != newD.groupName) return true;
-            if (oldD.getVar(Cell.MULTIPAGE_COUNT_KEY) != newD.getVar(Cell.MULTIPAGE_COUNT_KEY)) return true;
+            if (oldD.groupName != newD.groupName) {
+                return true;
+            }
+            if (oldD.getVar(Cell.MULTIPAGE_COUNT_KEY) != newD.getVar(Cell.MULTIPAGE_COUNT_KEY)) {
+                return true;
+            }
         }
         return false;
 //        for (Iterator<Undo.Change> it = batch.getChanges(); it.hasNext(); ) {

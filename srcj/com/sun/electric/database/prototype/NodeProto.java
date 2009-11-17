@@ -49,108 +49,108 @@ import java.util.Iterator;
  * <P>
  * The basic NodeProto has a list of varibales, a list of ports, the bounds and much more.
  */
-public interface NodeProto
-{
+public interface NodeProto {
+
     /** Method to return NodeProtoId of this NodeProto.
      * NodeProtoId identifies NodeProto independently of threads.
      * @return NodeProtoId of this NodeProto.
      */
     public NodeProtoId getId();
-    
-	/**
-	 * Method to return the function of this NodeProto.
-	 * The Function is a technology-independent description of the behavior of this NodeProto.
-	 * @return the function of this NodeProto.
-	 */
-	public PrimitiveNode.Function getFunction();
 
-	/**
-	 * Method to return the default width of this NodeProto.
-	 * Cells return the actual width of the contents.
-	 * PrimitiveNodes return the default width of new instances of this NodeProto.
-	 * @return the width to use when creating new NodeInsts of this NodeProto.
-	 */
-	public double getDefWidth();
+    /**
+     * Method to return the function of this NodeProto.
+     * The Function is a technology-independent description of the behavior of this NodeProto.
+     * @return the function of this NodeProto.
+     */
+    public PrimitiveNode.Function getFunction();
 
-	/**
-	 * Method to return the default height of this NodeProto.
-	 * Cells return the actual height of the contents.
-	 * PrimitiveNodes return the default height of new instances of this NodeProto.
-	 * @return the height to use when creating new NodeInsts of this NodeProto.
-	 */
-	public double getDefHeight();
+    /**
+     * Method to return the default width of this NodeProto.
+     * Cells return the actual width of the contents.
+     * PrimitiveNodes return the default width of new instances of this NodeProto.
+     * @return the width to use when creating new NodeInsts of this NodeProto.
+     */
+    public double getDefWidth();
 
-	/**
-	 * Method to size offset of this NodeProto.
-	 * @return the size offset of this NodeProto.  It is always zero for cells.
-	 */
-	public SizeOffset getProtoSizeOffset();
+    /**
+     * Method to return the default height of this NodeProto.
+     * Cells return the actual height of the contents.
+     * PrimitiveNodes return the default height of new instances of this NodeProto.
+     * @return the height to use when creating new NodeInsts of this NodeProto.
+     */
+    public double getDefHeight();
 
-	/**
-	 * Method to return the Technology to which this NodeProto belongs.
-	 * For Cells, the Technology varies with the View and contents.
-	 * For PrimitiveNodes, the Technology is simply the one that owns it.
-	 * @return the Technology associated with this NodeProto.
-	 */
-	public Technology getTechnology();
+    /**
+     * Method to size offset of this NodeProto.
+     * @return the size offset of this NodeProto.  It is always zero for cells.
+     */
+    public SizeOffset getProtoSizeOffset();
 
-	/**
-	 * Method to find the PortProto that has a particular name.
-	 * @return the PortProto, or null if there is no PortProto with that name.
-	 */
-	public PortProto findPortProto(String name);
+    /**
+     * Method to return the Technology to which this NodeProto belongs.
+     * For Cells, the Technology varies with the View and contents.
+     * For PrimitiveNodes, the Technology is simply the one that owns it.
+     * @return the Technology associated with this NodeProto.
+     */
+    public Technology getTechnology();
 
-	/**
-	 * Method to find the PortProto that has a particular Name.
-	 * @return the PortProto, or null if there is no PortProto with that name.
-	 */
-	public PortProto findPortProto(Name name);
+    /**
+     * Method to find the PortProto that has a particular name.
+     * @return the PortProto, or null if there is no PortProto with that name.
+     */
+    public PortProto findPortProto(String name);
 
-	/**
-	 * Method to return an iterator over all PortProtos of this NodeProto.
-	 * @return an iterator over all PortProtos of this NodeProto.
-	 */
-	public Iterator<PortProto> getPorts();
+    /**
+     * Method to find the PortProto that has a particular Name.
+     * @return the PortProto, or null if there is no PortProto with that name.
+     */
+    public PortProto findPortProto(Name name);
 
-	/**
-	 * Method to return the number of PortProtos on this NodeProto.
-	 * @return the number of PortProtos on this NodeProto.
-	 */
-	public int getNumPorts();
+    /**
+     * Method to return an iterator over all PortProtos of this NodeProto.
+     * @return an iterator over all PortProtos of this NodeProto.
+     */
+    public Iterator<PortProto> getPorts();
 
-	/**
-	 * Method to return the PortProto at specified position.
-	 * @param portIndex specified position of PortProto.
-	 * @return the PortProto at specified position..
-	 */
-	public PortProto getPort(int portIndex);
+    /**
+     * Method to return the number of PortProtos on this NodeProto.
+     * @return the number of PortProtos on this NodeProto.
+     */
+    public int getNumPorts();
 
-	/**
-	 * Method to return the PortProto by thread-independent PortProtoId.
-	 * @param portProtoId thread-independent PortProtoId.
-	 * @return the PortProto.
-	 */
-	public PortProto getPort(PortProtoId portProtoId);
+    /**
+     * Method to return the PortProto at specified position.
+     * @param portIndex specified position of PortProto.
+     * @return the PortProto at specified position..
+     */
+    public PortProto getPort(int portIndex);
 
-	/**
-	 * Method to describe this NodeProto as a string.
-	 * PrimitiveNodes may prepend their Technology name if it is
-	 * not the current technology (for example, "mocmos:N-Transistor").
-	 * Cells may prepend their Library if it is not the current library,
-	 * and they will include view and version information
-	 * (for example: "Wires:wire100{ic}").
+    /**
+     * Method to return the PortProto by thread-independent PortProtoId.
+     * @param portProtoId thread-independent PortProtoId.
+     * @return the PortProto.
+     */
+    public PortProto getPort(PortProtoId portProtoId);
+
+    /**
+     * Method to describe this NodeProto as a string.
+     * PrimitiveNodes may prepend their Technology name if it is
+     * not the current technology (for example, "mocmos:N-Transistor").
+     * Cells may prepend their Library if it is not the current library,
+     * and they will include view and version information
+     * (for example: "Wires:wire100{ic}").
      * @param withQuotes to wrap description between quotes
-	 * @return a String describing this NodeProto.
-	 */
-	public String describe(boolean withQuotes);
+     * @return a String describing this NodeProto.
+     */
+    public String describe(boolean withQuotes);
 
-	/**
-	 * Method to return the name of this NodeProto.
-	 * When this is a PrimitiveNode, the name is just its name in
-	 * the Technology.
-	 * When this is a Cell, the name is the pure cell name, without
-	 * any view or version information.
-	 * @return the prototype name of this NodeProto.
-	 */
-	public String getName();
+    /**
+     * Method to return the name of this NodeProto.
+     * When this is a PrimitiveNode, the name is just its name in
+     * the Technology.
+     * When this is a Cell, the name is the pure cell name, without
+     * any view or version information.
+     * @return the prototype name of this NodeProto.
+     */
+    public String getName();
 }

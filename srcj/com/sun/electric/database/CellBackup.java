@@ -62,18 +62,23 @@ import java.util.List;
  * known, but subcells are unknown.
  */
 public class CellBackup {
+
     public static final CellBackup[] NULL_ARRAY = {};
     public static final ImmutableArrayList<CellBackup> EMPTY_LIST = new ImmutableArrayList<CellBackup>(NULL_ARRAY);
-
     static int cellBackupsCreated = 0;
     static int cellBackupsMemoized = 0;
-    /** Cell data. */                                               public final CellRevision cellRevision;
-    /** Technologies mapping */                                     public final TechPool techPool;
-    /** "Modified" flag of the Cell. */                             public final boolean modified;
-
-    /** Memoized data for size computation (connectivity etc). */   private volatile Memoization m;
-    /** Arc shrinkage data */                                       private AbstractShapeBuilder.Shrinkage shrinkage;
-    /** Bounds of primitive arcs in this Cell. */                   private ERectangle primitiveBounds;
+    /** Cell data. */
+    public final CellRevision cellRevision;
+    /** Technologies mapping */
+    public final TechPool techPool;
+    /** "Modified" flag of the Cell. */
+    public final boolean modified;
+    /** Memoized data for size computation (connectivity etc). */
+    private volatile Memoization m;
+    /** Arc shrinkage data */
+    private AbstractShapeBuilder.Shrinkage shrinkage;
+    /** Bounds of primitive arcs in this Cell. */
+    private ERectangle primitiveBounds;
 
     /** Creates a new instance of CellBackup */
     private CellBackup(CellRevision cellRevision, TechPool techPool, boolean modified) {
@@ -81,16 +86,19 @@ public class CellBackup {
         this.techPool = techPool;
         this.modified = modified;
         cellBackupsCreated++;
-        if (Job.getDebug())
+        if (Job.getDebug()) {
             check();
+        }
     }
 
     /** Creates a new instance of CellBackup */
     public static CellBackup newInstance(ImmutableCell d, TechPool techPool) {
-        if (d.cellId.idManager != techPool.idManager)
+        if (d.cellId.idManager != techPool.idManager) {
             throw new IllegalArgumentException();
-        if (techPool.getTech(d.techId) == null)
+        }
+        if (techPool.getTech(d.techId) == null) {
             throw new IllegalArgumentException();
+        }
         CellRevision cellRevision = new CellRevision(d);
         TechPool restrictedPool = techPool.restrict(cellRevision.techUsages, techPool);
         return new CellBackup(cellRevision, restrictedPool, true);
@@ -113,11 +121,14 @@ public class CellBackup {
             TechPool superPool) {
         CellRevision newRevision = cellRevision.with(d, nodesArray, arcsArray, exportsArray);
         TechPool restrictedPool = superPool.restrict(newRevision.techUsages, techPool);
-        if (newRevision == cellRevision && restrictedPool == techPool) return this;
+        if (newRevision == cellRevision && restrictedPool == techPool) {
+            return this;
+        }
         if (arcsArray != null) {
-            for (ImmutableArcInst a: arcsArray) {
-                if (a != null && !a.check(restrictedPool))
+            for (ImmutableArcInst a : arcsArray) {
+                if (a != null && !a.check(restrictedPool)) {
                     throw new IllegalArgumentException("arc " + a.name + " is not compatible with TechPool");
+                }
             }
         }
         return new CellBackup(newRevision, restrictedPool, modified || newRevision != cellRevision);
@@ -130,7 +141,9 @@ public class CellBackup {
      */
     public CellBackup withRevisionDate(long revisionDate) {
         CellRevision newRevision = cellRevision.withRevisionDate(revisionDate);
-        if (newRevision == cellRevision) return this;
+        if (newRevision == cellRevision) {
+            return this;
+        }
         return new CellBackup(newRevision, this.techPool, true);
     }
 
@@ -139,20 +152,25 @@ public class CellBackup {
      * @return new snapshot which differs froms this Snapshot or this Snapshot.
      */
     public CellBackup withoutModified() {
-        if (!this.modified) return this;
+        if (!this.modified) {
+            return this;
+        }
         return new CellBackup(this.cellRevision, this.techPool, false);
     }
 
-	/**
-	 * Returns CellBackup which differs from this CellBackup by TechPool.
-	 * @param techPool technology map.
+    /**
+     * Returns CellBackup which differs from this CellBackup by TechPool.
+     * @param techPool technology map.
      * @return CellBackup with new TechPool.
-	 */
+     */
     public CellBackup withTechPool(TechPool techPool) {
         TechPool restrictedPool = techPool.restrict(cellRevision.techUsages, this.techPool);
-        if (this.techPool == restrictedPool) return this;
-        if (techPool.idManager != this.techPool.idManager)
+        if (this.techPool == restrictedPool) {
+            return this;
+        }
+        if (techPool.idManager != this.techPool.idManager) {
             throw new IllegalArgumentException();
+        }
 //        for (Technology tech: this.techPool.values()) {
 //            if (techPool.get(tech.getId()) != tech)
 //                throw new IllegalArgumentException();
@@ -160,14 +178,16 @@ public class CellBackup {
         return new CellBackup(this.cellRevision, restrictedPool, this.modified);
     }
 
-	/**
-	 * Returns CellBackup which differs from this CellBackup by renamed Ids.
-	 * @param idMapper a map from old Ids to new Ids.
+    /**
+     * Returns CellBackup which differs from this CellBackup by renamed Ids.
+     * @param idMapper a map from old Ids to new Ids.
      * @return CellBackup with renamed Ids.
-	 */
+     */
     CellBackup withRenamedIds(IdMapper idMapper, CellName newGroupName) {
         CellRevision newRevision = cellRevision.withRenamedIds(idMapper, newGroupName);
-        if (newRevision == cellRevision) return this;
+        if (newRevision == cellRevision) {
+            return this;
+        }
         return new CellBackup(newRevision, this.techPool, true);
     }
 
@@ -192,15 +212,15 @@ public class CellBackup {
     }
 
     /**
-	 * Checks invariant of this CellBackup.
-	 * @throws AssertionError if invariant is broken.
-	 */
+     * Checks invariant of this CellBackup.
+     * @throws AssertionError if invariant is broken.
+     */
     public void check() {
         cellRevision.check();
         IdManager idManager = cellRevision.d.cellId.idManager;
         assert techPool.idManager == idManager;
         BitSet techUsages = new BitSet();
-        for (Technology tech: techPool.values()) {
+        for (Technology tech : techPool.values()) {
             int techIndex = tech.getId().techIndex;
             assert !techUsages.get(techIndex);
             techUsages.set(techIndex);
@@ -210,16 +230,21 @@ public class CellBackup {
 //            if (cellRevision.techUsages.get(techIndex))
 //                assert techPool.getTech(idManager.getTechId(techIndex)) != null;
 //        }
-        for (ImmutableArcInst a: cellRevision.arcs) {
-            if (a != null) a.check(techPool);
+        for (ImmutableArcInst a : cellRevision.arcs) {
+            if (a != null) {
+                a.check(techPool);
+            }
         }
 
-        if (m != null)
+        if (m != null) {
             m.check();
+        }
     }
 
     @Override
-    public String toString() { return cellRevision.toString(); }
+    public String toString() {
+        return cellRevision.toString();
+    }
 
     /**
      * Returns data for size computation (connectivity etc).
@@ -227,7 +252,9 @@ public class CellBackup {
      */
     public Memoization getMemoization() {
         Memoization m = this.m;
-        if (m != null) return m;
+        if (m != null) {
+            return m;
+        }
         return this.m = new Memoization();
     }
 
@@ -236,8 +263,9 @@ public class CellBackup {
      * @return data for arc shrinkage computation.
      */
     public AbstractShapeBuilder.Shrinkage getShrinkage() {
-        if (shrinkage == null)
+        if (shrinkage == null) {
             shrinkage = new AbstractShapeBuilder.Shrinkage(this);
+        }
         return shrinkage;
     }
 
@@ -247,7 +275,9 @@ public class CellBackup {
      */
     public ERectangle getPrimitiveBounds() {
         ERectangle primitiveBounds = this.primitiveBounds;
-        if (primitiveBounds != null) return primitiveBounds;
+        if (primitiveBounds != null) {
+            return primitiveBounds;
+        }
         return this.primitiveBounds = computePrimitiveBounds();
     }
 
@@ -256,25 +286,34 @@ public class CellBackup {
         boolean boundsEmpty = true;
         BoundsBuilder b = new BoundsBuilder(this);
         Rectangle2D.Double bounds = new Rectangle2D.Double();
-        for(ImmutableNodeInst n: cellRevision.nodes) {
-            if (!(n.protoId instanceof PrimitiveNodeId)) continue;
-            NodeProto np = techPool.getPrimitiveNode((PrimitiveNodeId)n.protoId);
+        for (ImmutableNodeInst n : cellRevision.nodes) {
+            if (!(n.protoId instanceof PrimitiveNodeId)) {
+                continue;
+            }
+            NodeProto np = techPool.getPrimitiveNode((PrimitiveNodeId) n.protoId);
             n.computeBounds(b, bounds);
 
             // special case: do not include "cell center" primitives from Generic
-            if (np == Generic.tech().cellCenterNode) continue;
+            if (np == Generic.tech().cellCenterNode) {
+                continue;
+            }
 
             // special case for invisible pins: do not include if inheritable or interior-only
             if (np == Generic.tech().invisiblePinNode) {
                 boolean found = false;
-                for(Iterator<Variable> it = n.getVariables(); it.hasNext(); ) {
+                for (Iterator<Variable> it = n.getVariables(); it.hasNext();) {
                     Variable var = it.next();
                     if (var.isDisplay()) {
                         TextDescriptor td = var.getTextDescriptor();
-                        if (td.isInterior() || td.isInherit()) { found = true;   break; }
+                        if (td.isInterior() || td.isInherit()) {
+                            found = true;
+                            break;
+                        }
                     }
                 }
-                if (found) continue;
+                if (found) {
+                    continue;
+                }
             }
 
             double lowx = bounds.getMinX();
@@ -283,13 +322,23 @@ public class CellBackup {
             double highy = bounds.getMaxY();
             if (boundsEmpty) {
                 boundsEmpty = false;
-                cellLowX = lowx;   cellHighX = highx;
-                cellLowY = lowy;   cellHighY = highy;
+                cellLowX = lowx;
+                cellHighX = highx;
+                cellLowY = lowy;
+                cellHighY = highy;
             } else {
-                if (lowx < cellLowX) cellLowX = lowx;
-                if (highx > cellHighX) cellHighX = highx;
-                if (lowy < cellLowY) cellLowY = lowy;
-                if (highy > cellHighY) cellHighY = highy;
+                if (lowx < cellLowX) {
+                    cellLowX = lowx;
+                }
+                if (highx > cellHighX) {
+                    cellHighX = highx;
+                }
+                if (lowy < cellLowY) {
+                    cellLowY = lowy;
+                }
+                if (highy > cellHighY) {
+                    cellHighY = highy;
+                }
             }
         }
         long gridMinX = DBMath.lambdaToGrid(cellLowX);
@@ -298,8 +347,9 @@ public class CellBackup {
         long gridMaxY = DBMath.lambdaToGrid(cellHighY);
 
         ERectangle primitiveArcBounds = computePrimitiveBoundsOfArcs();
-        if (boundsEmpty)
+        if (boundsEmpty) {
             return primitiveArcBounds;
+        }
         if (primitiveArcBounds != null) {
             assert !boundsEmpty;
             gridMinX = Math.min(gridMinX, primitiveArcBounds.getGridMinX());
@@ -312,20 +362,30 @@ public class CellBackup {
 
     public ERectangle computePrimitiveBoundsOfArcs() {
         ImmutableArrayList<ImmutableArcInst> arcs = cellRevision.arcs;
-        if (arcs.isEmpty()) return null;
+        if (arcs.isEmpty()) {
+            return null;
+        }
         int intMinX = Integer.MAX_VALUE, intMinY = Integer.MAX_VALUE, intMaxX = Integer.MIN_VALUE, intMaxY = Integer.MIN_VALUE;
         int[] intCoords = new int[4];
         BoundsBuilder boundsBuilder = new BoundsBuilder(this);
-        for (ImmutableArcInst a: arcs) {
+        for (ImmutableArcInst a : arcs) {
             if (boundsBuilder.genBoundsEasy(a, intCoords)) {
                 int x1 = intCoords[0];
-                if (x1 < intMinX) intMinX = x1;
+                if (x1 < intMinX) {
+                    intMinX = x1;
+                }
                 int y1 = intCoords[1];
-                if (y1 < intMinY) intMinY = y1;
+                if (y1 < intMinY) {
+                    intMinY = y1;
+                }
                 int x2 = intCoords[2];
-                if (x2 > intMaxX) intMaxX = x2;
+                if (x2 > intMaxX) {
+                    intMaxX = x2;
+                }
                 int y2 = intCoords[3];
-                if (y2 > intMaxY) intMaxY = y2;
+                if (y2 > intMaxY) {
+                    intMaxY = y2;
+                }
                 continue;
             }
             boundsBuilder.genShapeOfArc(a);
@@ -336,11 +396,12 @@ public class CellBackup {
             int iw = intMaxX - intMinX;
             int ih = intMaxY - intMinY;
             return ERectangle.fromGrid(intMinX, intMinY,
-                    iw >= 0 ? iw : (long)intMaxX - (long)intMinX,
-                    ih >= 0 ? ih : (long)intMaxY - (long)intMinY);
+                    iw >= 0 ? iw : (long) intMaxX - (long) intMinX,
+                    ih >= 0 ? ih : (long) intMaxY - (long) intMinY);
         }
-        if (intMinX > intMaxX)
+        if (intMinX > intMaxX) {
             return bounds;
+        }
         long longMinX = Math.min(bounds.getGridMinX(), intMinX);
         long longMinY = Math.min(bounds.getGridMinY(), intMinY);
         long longMaxX = Math.max(bounds.getGridMaxX(), intMaxX);
@@ -356,6 +417,7 @@ public class CellBackup {
 //         * ImmutableNodeInsts accessed by their nodeId.
 //         */
 //        private final int[] nodesById;
+
         private final int[] connections;
         /** ImmutableExports sorted by original PortInst. */
         private final ImmutableExport[] exportIndexByOriginalPort;
@@ -368,8 +430,9 @@ public class CellBackup {
             ImmutableArrayList<ImmutableNodeInst> nodes = cellRevision.nodes;
             ImmutableArrayList<ImmutableArcInst> arcs = cellRevision.arcs;
             int maxNodeId = -1;
-            for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++)
+            for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
                 maxNodeId = Math.max(maxNodeId, nodes.get(nodeIndex).nodeId);
+            }
 //            int[] nodesById = new int[maxNodeId + 1];
 //            for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
 //                ImmutableNodeInst n = nodes.get(nodeIndex);
@@ -378,9 +441,9 @@ public class CellBackup {
 //            this.nodesById = nodesById;
 
             // Put connections into buckets by nodeId.
-            int[] connections = new int[arcs.size()*2];
-            int[] connectionsByNodeId = new int[maxNodeId+1];
-            for (ImmutableArcInst a: arcs) {
+            int[] connections = new int[arcs.size() * 2];
+            int[] connectionsByNodeId = new int[maxNodeId + 1];
+            for (ImmutableArcInst a : arcs) {
                 connectionsByNodeId[a.headNodeId]++;
                 connectionsByNodeId[a.tailNodeId]++;
             }
@@ -392,8 +455,8 @@ public class CellBackup {
             }
             for (int i = 0; i < arcs.size(); i++) {
                 ImmutableArcInst a = arcs.get(i);
-                connections[connectionsByNodeId[a.tailNodeId]++] = i*2;
-                connections[connectionsByNodeId[a.headNodeId]++] = i*2 + 1;
+                connections[connectionsByNodeId[a.tailNodeId]++] = i * 2;
+                connections[connectionsByNodeId[a.headNodeId]++] = i * 2 + 1;
             }
 
             // Sort each bucket by portId.
@@ -401,8 +464,9 @@ public class CellBackup {
             for (int nodeId = 0; nodeId < connectionsByNodeId.length; nodeId++) {
                 int start = sum;
                 sum = connectionsByNodeId[nodeId];
-                if (sum - 1 > start)
+                if (sum - 1 > start) {
                     sortConnections(connections, start, sum - 1);
+                }
             }
             this.connections = connections;
 
@@ -410,7 +474,7 @@ public class CellBackup {
             Arrays.sort(exportIndexByOriginalPort, BY_ORIGINAL_PORT);
             this.exportIndexByOriginalPort = exportIndexByOriginalPort;
 
-            for (ImmutableArcInst a: arcs) {
+            for (ImmutableArcInst a : arcs) {
                 ArcProto ap = techPool.getArcProto(a.protoId);
                 // wipe status
                 if (ap.isWipable()) {
@@ -418,27 +482,31 @@ public class CellBackup {
                     wiped.set(a.headNodeId);
                 }
                 // hard arcs
-                if (!ap.getTechnology().isEasyShape(a, false))
+                if (!ap.getTechnology().isEasyShape(a, false)) {
                     hardArcs.set(a.arcId);
+                }
             }
             for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
                 ImmutableNodeInst n = nodes.get(nodeIndex);
                 NodeProtoId np = n.protoId;
-                if (!(np instanceof PrimitiveNodeId && techPool.getPrimitiveNode((PrimitiveNodeId)np).isArcsWipe()))
+                if (!(np instanceof PrimitiveNodeId && techPool.getPrimitiveNode((PrimitiveNodeId) np).isArcsWipe())) {
                     wiped.clear(n.nodeId);
+                }
             }
 //            long stopTime = System.currentTimeMillis();
 //            System.out.println("Memoization " + cellRevision.d.cellId + " took " + (stopTime - startTime) + " msec");
         }
 
-       /**
+        /**
          * Returns true of there are Exports on specified NodeInst.
          * @param originalNode specified NodeInst.
          * @return true if there are Exports on specified NodeInst.
          */
         public boolean hasExports(ImmutableNodeInst originalNode) {
             int startIndex = searchExportByOriginalPort(originalNode.nodeId, 0);
-            if (startIndex >= exportIndexByOriginalPort.length) return false;
+            if (startIndex >= exportIndexByOriginalPort.length) {
+                return false;
+            }
             ImmutableExport e = exportIndexByOriginalPort[startIndex];
             return e.originalNodeId == originalNode.nodeId;
         }
@@ -453,7 +521,9 @@ public class CellBackup {
             int j = startIndex;
             for (; j < exportIndexByOriginalPort.length; j++) {
                 ImmutableExport e = exportIndexByOriginalPort[j];
-                if (e.originalNodeId != originalNodeId) break;
+                if (e.originalNodeId != originalNodeId) {
+                    break;
+                }
             }
             return j - startIndex;
         }
@@ -468,7 +538,9 @@ public class CellBackup {
             int j = startIndex;
             for (; j < exportIndexByOriginalPort.length; j++) {
                 ImmutableExport e = exportIndexByOriginalPort[j];
-                if (e.originalNodeId != originalNodeId) break;
+                if (e.originalNodeId != originalNodeId) {
+                    break;
+                }
             }
             return ArrayIterator.iterator(exportIndexByOriginalPort, startIndex, j);
         }
@@ -480,12 +552,17 @@ public class CellBackup {
          * @param pin specified pin ImmutableNodeInst
          * @return true if specieifed pin NodeInst should be supressed.
          */
-        public boolean pinUseCount(ImmutableNodeInst pin)
-        {
+        public boolean pinUseCount(ImmutableNodeInst pin) {
             int numConnections = getNumConnections(pin);
-            if (numConnections > 2) return false;
-            if (hasExports(pin)) return true;
-            if (numConnections == 0) return false;
+            if (numConnections > 2) {
+                return false;
+            }
+            if (hasExports(pin)) {
+                return true;
+            }
+            if (numConnections == 0) {
+                return false;
+            }
             return true;
         }
 
@@ -499,8 +576,9 @@ public class CellBackup {
          */
         public List<ImmutableArcInst> getConnections(BitSet headEnds, ImmutableNodeInst n, PortProtoId portId) {
             ArrayList<ImmutableArcInst> result = null;
-            if (headEnds != null)
+            if (headEnds != null) {
                 headEnds.clear();
+            }
             int myNodeId = n.nodeId;
             int chronIndex = 0;
             if (portId != null) {
@@ -514,15 +592,21 @@ public class CellBackup {
                 ImmutableArcInst a = getArcs().get(con >>> 1);
                 boolean end = (con & 1) != 0;
                 int nodeId = end ? a.headNodeId : a.tailNodeId;
-                if (nodeId != myNodeId) break;
+                if (nodeId != myNodeId) {
+                    break;
+                }
                 if (portId != null) {
                     PortProtoId endProtoId = end ? a.headPortId : a.tailPortId;
-                    if (endProtoId.getChronIndex() != chronIndex) break;
+                    if (endProtoId.getChronIndex() != chronIndex) {
+                        break;
+                    }
                 }
-                if (result == null)
+                if (result == null) {
                     result = new ArrayList<ImmutableArcInst>();
-                if (headEnds != null && end)
+                }
+                if (headEnds != null && end) {
                     headEnds.set(result.size());
+                }
                 result.add(a);
             }
             return result != null ? result : Collections.<ImmutableArcInst>emptyList();
@@ -542,12 +626,16 @@ public class CellBackup {
                 chronIndex = portId.chronIndex;
             }
             int i = searchConnectionByPort(n.nodeId, chronIndex);
-            if (i >= connections.length) return false;
+            if (i >= connections.length) {
+                return false;
+            }
             int con = connections[i];
             ImmutableArcInst a = getArcs().get(con >>> 1);
             boolean end = (con & 1) != 0;
             int nodeId = end ? a.headNodeId : a.tailNodeId;
-            if (nodeId != n.nodeId) return false;
+            if (nodeId != n.nodeId) {
+                return false;
+            }
             return portId == null || portId == (end ? a.headPortId : a.tailPortId);
         }
 
@@ -565,32 +653,36 @@ public class CellBackup {
                 ImmutableArcInst a = getArcs().get(con >>> 1);
                 boolean end = (con & 1) != 0;
                 int nodeId = end ? a.headNodeId : a.tailNodeId;
-                if (nodeId != myNodeId) break;
+                if (nodeId != myNodeId) {
+                    break;
+                }
             }
             return j - i;
         }
 
         private int searchExportByOriginalPort(int originalNodeId, int originalChronIndex) {
             int low = 0;
-            int high = exportIndexByOriginalPort.length-1;
+            int high = exportIndexByOriginalPort.length - 1;
             while (low <= high) {
                 int mid = (low + high) >> 1; // try in a middle
                 ImmutableExport e = exportIndexByOriginalPort[mid];
                 int cmp = e.originalNodeId - originalNodeId;
-                if (cmp == 0)
+                if (cmp == 0) {
                     cmp = e.originalPortId.getChronIndex() >= originalChronIndex ? 1 : -1;
+                }
 
-                if (cmp < 0)
+                if (cmp < 0) {
                     low = mid + 1;
-                else
+                } else {
                     high = mid - 1;
+                }
             }
             return low;
         }
 
         private int searchConnectionByPort(int nodeId, int chronIndex) {
             int low = 0;
-            int high = connections.length-1;
+            int high = connections.length - 1;
             while (low <= high) {
                 int mid = (low + high) >> 1; // try in a middle
                 int con = connections[mid];
@@ -603,17 +695,26 @@ public class CellBackup {
                     cmp = portId.getChronIndex() - chronIndex;
                 }
 
-                if (cmp < 0)
+                if (cmp < 0) {
                     low = mid + 1;
-                else
+                } else {
                     high = mid - 1;
+                }
             }
             return low;
         }
 
-        public CellBackup getCellBackup() { return CellBackup.this; }
-        public TechPool getTechPool() { return techPool; }
-        public ImmutableArrayList<ImmutableArcInst> getArcs() { return cellRevision.arcs; }
+        public CellBackup getCellBackup() {
+            return CellBackup.this;
+        }
+
+        public TechPool getTechPool() {
+            return techPool;
+        }
+
+        public ImmutableArrayList<ImmutableArcInst> getArcs() {
+            return cellRevision.arcs;
+        }
 
         /**
          * Method to tell whether the specified ImmutableNodeInst is wiped.
@@ -639,15 +740,17 @@ public class CellBackup {
         private void check() {
             assert exportIndexByOriginalPort.length == cellRevision.exports.size();
             ImmutableExport prevE = null;
-            for (ImmutableExport e: exportIndexByOriginalPort) {
-                if (prevE != null)
+            for (ImmutableExport e : exportIndexByOriginalPort) {
+                if (prevE != null) {
                     assert BY_ORIGINAL_PORT.compare(prevE, e) < 0;
+                }
                 assert e == cellRevision.getExport(e.exportId);
                 prevE = e;
             }
-            assert connections.length == cellRevision.arcs.size()*2;
-            for (int i = 1; i < connections.length; i++)
+            assert connections.length == cellRevision.arcs.size() * 2;
+            for (int i = 1; i < connections.length; i++) {
                 assert compareConnections(connections[i - 1], connections[i]) < 0;
+            }
         }
 
         private void sortConnections(int[] connections, int l, int r) {
@@ -666,8 +769,12 @@ public class CellBackup {
                         ImmutableArcInst a = arcs.get(con >>> 1);
                         boolean end = (con & 1) != 0;
                         PortProtoId portId = end ? a.headPortId : a.tailPortId;
-                        if (portId.getChronIndex() > chronIndexX) break;
-                        if (portId.getChronIndex() == chronIndexX && con >= x) break;
+                        if (portId.getChronIndex() > chronIndexX) {
+                            break;
+                        }
+                        if (portId.getChronIndex() == chronIndexX && con >= x) {
+                            break;
+                        }
                         i++;
                     }
 
@@ -677,8 +784,12 @@ public class CellBackup {
                         ImmutableArcInst a = arcs.get(con >>> 1);
                         boolean end = (con & 1) != 0;
                         PortProtoId portId = end ? a.headPortId : a.tailPortId;
-                        if (chronIndexX > portId.getChronIndex()) break;
-                        if (chronIndexX == portId.getChronIndex() && x >= con) break;
+                        if (chronIndexX > portId.getChronIndex()) {
+                            break;
+                        }
+                        if (chronIndexX == portId.getChronIndex() && x >= con) {
+                            break;
+                        }
                         j--;
                     }
 
@@ -686,7 +797,8 @@ public class CellBackup {
                         int w = connections[i];
                         connections[i] = connections[j];
                         connections[j] = w;
-                        i++; j--;
+                        i++;
+                        j--;
                     }
                 } while (i <= j);
                 if (j - l < r - i) {
@@ -722,22 +834,30 @@ public class CellBackup {
             int nodeId1 = end1 ? a1.headNodeId : a1.tailNodeId;
             int nodeId2 = end2 ? a2.headNodeId : a2.tailNodeId;
             int cmp = nodeId1 - nodeId2;
-            if (cmp != 0) return cmp;
+            if (cmp != 0) {
+                return cmp;
+            }
             PortProtoId portId1 = end1 ? a1.headPortId : a1.tailPortId;
             PortProtoId portId2 = end2 ? a2.headPortId : a2.tailPortId;
             cmp = portId1.getChronIndex() - portId2.getChronIndex();
-            if (cmp != 0) return cmp;
+            if (cmp != 0) {
+                return cmp;
+            }
             return con1 - con2;
         }
     }
-
     private static final Comparator<ImmutableExport> BY_ORIGINAL_PORT = new Comparator<ImmutableExport>() {
+
         public int compare(ImmutableExport e1, ImmutableExport e2) {
             int result = e1.originalNodeId - e2.originalNodeId;
-            if (result != 0) return result;
+            if (result != 0) {
+                return result;
+            }
             result = e1.originalPortId.getChronIndex() - e2.originalPortId.getChronIndex();
-            if (result != 0) return result;
+            if (result != 0) {
+                return result;
+            }
             return e1.exportId.chronIndex - e2.exportId.chronIndex;
         }
     };
- }
+}

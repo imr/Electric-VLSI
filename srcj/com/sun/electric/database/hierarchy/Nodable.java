@@ -34,53 +34,51 @@ import java.util.Iterator;
 /**
  * This interface defines real or virtual instance of NodeProto in a Cell..
  */
-public interface Nodable
-{
-	// ------------------------ public methods -------------------------------
+public interface Nodable {
+    // ------------------------ public methods -------------------------------
 
-	/**
-	 * Method to return the prototype of this Nodable.
-	 * @return the prototype of this Nodable.
-	 */
-	public NodeProto getProto();
+    /**
+     * Method to return the prototype of this Nodable.
+     * @return the prototype of this Nodable.
+     */
+    public NodeProto getProto();
 
-	/**
-	 * Method to tell whether this Nodable is a cell instance.
-	 * @return true if this Nodable is a cell instance, false if it is a primitive
-	 */
-	public boolean isCellInstance();
+    /**
+     * Method to tell whether this Nodable is a cell instance.
+     * @return true if this Nodable is a cell instance, false if it is a primitive
+     */
+    public boolean isCellInstance();
 
-	/**
-	 * Method to return the Cell that contains this Nodable.
-	 * @return the Cell that contains this Nodable.
-	 */
-	public Cell getParent();
+    /**
+     * Method to return the Cell that contains this Nodable.
+     * @return the Cell that contains this Nodable.
+     */
+    public Cell getParent();
 
-	/**
-	 * Method to return the name of this Nodable.
-	 * @return the name of this Nodable.
-	 */
-	public String getName();
+    /**
+     * Method to return the name of this Nodable.
+     * @return the name of this Nodable.
+     */
+    public String getName();
 
-	/**
-	 * Method to return the name key of this Nodable.
-	 * @return the name key of this Nodable.
-	 */
-	public Name getNameKey();
+    /**
+     * Method to return the name key of this Nodable.
+     * @return the name key of this Nodable.
+     */
+    public Name getNameKey();
 
     /**
      * Method to return the Variable on this ElectricObject with a given key.
      * @param key the key of the Variable.
      * @return the Variable with that key, or null if there is no such Variable.
      */
-	public Variable getVar(Variable.Key key);
+    public Variable getVar(Variable.Key key);
 
 //	/**
 //	 * Method to return an iterator over all Variables on this Nodable.
 //	 * @return an iterator over all Variables on this Nodable.
 //	 */
 //	public Iterator<Variable> getVariables();
-
     /**
      * Method to return the Parameter on this Nodable with the given key.
      * If the parameter is not found on this Nodable, it
@@ -91,13 +89,13 @@ public interface Nodable
      */
     public Variable getParameter(Variable.Key key);
 
-	/**
-	 * Method to return the Parameter or Variable on this Nodable with a given key.
-	 * @param key the key of the Parameter or Variable.
-	 * @return the Parameter or Variable with that key, or null if there is no such Parameter or Variable Variable.
+    /**
+     * Method to return the Parameter or Variable on this Nodable with a given key.
+     * @param key the key of the Parameter or Variable.
+     * @return the Parameter or Variable with that key, or null if there is no such Parameter or Variable Variable.
      * @throws NullPointerException if key is null
-	 */
-	public Variable getParameterOrVariable(Variable.Key key);
+     */
+    public Variable getParameterOrVariable(Variable.Key key);
 
     /**
      * Method to tell if the Variable.Key is a defined parameters of this Nodable.
@@ -121,11 +119,11 @@ public interface Nodable
      */
     public Iterator<Variable> getDefinedParameters();
 
-	/**
-	 * Returns a printable version of this Nodable.
-	 * @return a printable version of this Nodable.
-	 */
-	public String toString();
+    /**
+     * Returns a printable version of this Nodable.
+     * @return a printable version of this Nodable.
+     */
+    public String toString();
 
     // JKG: trying this out
     /**
@@ -143,5 +141,4 @@ public interface Nodable
      * @return the NodeInst associate with this Nodable
      */
     public NodeInst getNodeInst();
-
 }

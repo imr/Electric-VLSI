@@ -42,6 +42,7 @@ import java.util.List;
  */
 public class Network implements Comparable {
     // ------------------------- private data ------------------------------
+
     private final Netlist netlist; // Netlist that owns this Network
     private final int netIndex; // Index of this Network in Netlist.
 
@@ -56,7 +57,6 @@ public class Network implements Comparable {
     }
 
     // --------------------------- public methods ------------------------------
-
     /** Returns the Netlist of this Network.
      * @return Netlist of this Network.
      */
@@ -67,11 +67,10 @@ public class Network implements Comparable {
     /**
      * Networks are sorted by their description text.
      */
-    public int compareTo(Object other)
-    {
-		String s = toString();
-		String sOther = other.toString();
-		return s.compareToIgnoreCase(sOther);
+    public int compareTo(Object other) {
+        String s = toString();
+        String sOther = other.toString();
+        return s.compareToIgnoreCase(sOther);
     }
 
     /** Returns parent cell of this Network.
@@ -82,7 +81,9 @@ public class Network implements Comparable {
     }
 
     /** Returns index of this Network in netlist. */
-    public int getNetIndex() { return netIndex; }
+    public int getNetIndex() {
+        return netIndex;
+    }
 
     /** A net can have multiple names. Return alphabetized list of names. */
     public Iterator<String> getNames() {
@@ -91,7 +92,7 @@ public class Network implements Comparable {
 
     /** A net can have multiple names. Return alphabetized list of names. */
     public Iterator<String> getExportedNames() {
-        return netlist.getExportedNames(netIndex); 
+        return netlist.getExportedNames(netIndex);
     }
 
     /**
@@ -115,15 +116,15 @@ public class Network implements Comparable {
         return ports.iterator();
     }
 
-    public List<PortInst> getPortsList()
-    {
+    public List<PortInst> getPortsList() {
         ArrayList<PortInst> ports = new ArrayList<PortInst>();
-        for (Iterator<NodeInst> it = getParent().getNodes(); it.hasNext(); ) {
+        for (Iterator<NodeInst> it = getParent().getNodes(); it.hasNext();) {
             NodeInst ni = it.next();
-            for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
+            for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext();) {
                 PortInst pi = pit.next();
-                if (netlist.getNetIndex(ni, pi.getPortProto(), 0) == netIndex)
+                if (netlist.getNetIndex(ni, pi.getPortProto(), 0) == netIndex) {
                     ports.add(pi);
+                }
             }
         }
         return ports;
@@ -132,15 +133,13 @@ public class Network implements Comparable {
     /**
      * Get iterator over all NodeInsts on Network.
      */
-    public Iterator<NodeInst> getNodes()
-    {
+    public Iterator<NodeInst> getNodes() {
         ArrayList<NodeInst> nodes = new ArrayList<NodeInst>();
-        for (Iterator<NodeInst> it = getParent().getNodes(); it.hasNext(); ) {
+        for (Iterator<NodeInst> it = getParent().getNodes(); it.hasNext();) {
             NodeInst ni = it.next();
-            for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
+            for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext();) {
                 PortInst pi = pit.next();
-                if (netlist.getNetIndex(ni, pi.getPortProto(), 0) == netIndex)
-                {
+                if (netlist.getNetIndex(ni, pi.getPortProto(), 0) == netIndex) {
                     nodes.add(ni);
                     break; // stop the loop here
                 }
@@ -155,9 +154,10 @@ public class Network implements Comparable {
         ArrayList<Global> globalsOnNet = new ArrayList<Global>();
         for (int i = 0; i < globals.size(); i++) {
             Global g = globals.get(i);
-            if (getNetlist().getNetIndex(g) == netIndex)
+            if (getNetlist().getNetIndex(g) == netIndex) {
                 globalsOnNet.add(g);
-            
+            }
+
         }
         return globalsOnNet.iterator();
     }
@@ -198,13 +198,17 @@ public class Network implements Comparable {
      * Method to tell whether this network has any exports or globals on it.
      * @return true if there are exports or globals on this Network.
      */
-    public boolean isExported() { return netlist.isExported(netIndex); }
+    public boolean isExported() {
+        return netlist.isExported(netIndex);
+    }
 
     /**
      * Method to tell whether this network has user-defined name.
      * @return true if this Network has user-defined name.
      */
-    public boolean isUsernamed() { return netlist.isUsernamed(netIndex); }
+    public boolean isUsernamed() {
+        return netlist.isUsernamed(netIndex);
+    }
 
     /**
      * Method to describe this Network as a string.
@@ -214,19 +218,19 @@ public class Network implements Comparable {
     public String describe(boolean withQuotes) {
         Iterator<String> it = getNames();
         String name = it.next();
-        while (it.hasNext())
+        while (it.hasNext()) {
             name += "/" + it.next();
-        if (withQuotes) name = "'"+name+"'";
+        }
+        if (withQuotes) {
+            name = "'" + name + "'";
+        }
         return name;
     }
 
-    public Export findExportWithSameCharacteristic(PortProto p)
-    {
-        for (Iterator<Export> itP = getExports(); itP.hasNext(); )
-        {
+    public Export findExportWithSameCharacteristic(PortProto p) {
+        for (Iterator<Export> itP = getExports(); itP.hasNext();) {
             Export exp = itP.next();
-            if (exp.getCharacteristic() == p.getCharacteristic())
-            {
+            if (exp.getCharacteristic() == p.getCharacteristic()) {
                 return exp;
             }
         }
@@ -239,6 +243,6 @@ public class Network implements Comparable {
      */
     @Override
     public String toString() {
-        return "network "+describe(true);
+        return "network " + describe(true);
     }
 }

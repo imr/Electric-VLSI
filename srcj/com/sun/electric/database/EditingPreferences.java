@@ -51,6 +51,7 @@ import java.util.prefs.Preferences;
  */
 public class EditingPreferences extends PrefPackage {
     // In TECH_NODE
+
     private static final String KEY_EXTEND_X = "DefaultExtendX";
     private static final String KEY_EXTEND_Y = "DefaultExtendY";
     private static final String KEY_EXTEND = "DefaultExtend";
@@ -61,8 +62,7 @@ public class EditingPreferences extends PrefPackage {
     private static final String KEY_SLIDABLE = "DefaultSlidable";
     private static final String KEY_EXTENDED = "DefaultExtended";
     private static final String KEY_DIRECTIONAL = "DefaultDirectional";
-	private static final String KEY_ANGLE = "DefaultAngle";
-
+    private static final String KEY_ANGLE = "DefaultAngle";
     private static final String KEY_ALIGNMENT = "AlignmentToGridVector";
     private static final Dimension2D[] DEFAULT_ALIGNMENTS = {
         new ImmutableDimension2D(20),
@@ -72,53 +72,44 @@ public class EditingPreferences extends PrefPackage {
         new ImmutableDimension2D(0.5)
     };
     private static final int DEFAULT_ALIGNMENT_INDEX = 3;
-
     private static final String TEXT_DESCRIPTOR_NODE = "database/variable";
     // In TEXT_DESCRIPTOR_NODE
     private static final String KEY_TEXT_DESCRIPTOR = "TextDescriptorFor";
     private static final String KEY_TEXT_DESCRIPTOR_COLOR = "TextDescriptorColorFor";
     private static final String KEY_TEXT_DESCRIPTOR_FONT = "TextDescriptorFontFor";
-
-
     private static final ThreadLocal<EditingPreferences> threadEditingPreferences = new ThreadLocal<EditingPreferences>();
-
     private transient final TechPool techPool;
-    private final HashMap<PrimitiveNodeId,ImmutableNodeInst> defaultNodes;
-    private HashMap<ArcProtoId,ImmutableArcInst> defaultArcs;
-    private HashMap<ArcProtoId,Integer> defaultArcAngleIncrements;
-    private HashMap<ArcProtoId,PrimitiveNodeId> defaultArcPins;
+    private final HashMap<PrimitiveNodeId, ImmutableNodeInst> defaultNodes;
+    private HashMap<ArcProtoId, ImmutableArcInst> defaultArcs;
+    private HashMap<ArcProtoId, Integer> defaultArcAngleIncrements;
+    private HashMap<ArcProtoId, PrimitiveNodeId> defaultArcPins;
     private Dimension2D[] alignments;
     private int alignmentIndex;
     private TextDescriptor[] textDescriptors;
-
-	/** What type of "smart" vertical text placement should be done for Exports.
-	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
-	 * The default is 0.
+    /** What type of "smart" vertical text placement should be done for Exports.
+     * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
+     * The default is 0.
      */
     @IntegerPref(node = USER_NODE, key = "SmartVerticalPlacementExport", factory = 0)
     public final int smartVerticalPlacementExport = 0;
-
-	/** What type of "smart" horizontal text placement should be done for Exports.
-	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
-	 * The default is 0.
+    /** What type of "smart" horizontal text placement should be done for Exports.
+     * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
+     * The default is 0.
      */
     @IntegerPref(node = USER_NODE, key = "SmartHorizontalPlacementExport", factory = 0)
     public final int smartHorizontalPlacementExport = 0;
-
-	/** What type of "smart" text placement should be done for vertical Arcs.
-	 * The values can be 0: place text inside; 1: place text to left; 2: place text to right.
-	 * The default is 0.
+    /** What type of "smart" text placement should be done for vertical Arcs.
+     * The values can be 0: place text inside; 1: place text to left; 2: place text to right.
+     * The default is 0.
      */
     @IntegerPref(node = USER_NODE, key = "SmartVerticalPlacementArc", factory = 0)
     public final int smartVerticalPlacementArc = 0;
-
-	/** What type of "smart" text placement should be done for horizontal Arcs.
-	 * The values can be 0: place text inside; 1: place text above; 2: place text below.
-	 * The default is 0.
+    /** What type of "smart" text placement should be done for horizontal Arcs.
+     * The values can be 0: place text inside; 1: place text above; 2: place text below.
+     * The default is 0.
      */
     @IntegerPref(node = USER_NODE, key = "SmartHorizontalPlacementArc", factory = 0)
     public final int smartHorizontalPlacementArc = 0;
-
     /** What type of arcs are drawn: true to make them as wide as connecting nodes,
      * false to make them normal size.
      * The default is true.
@@ -129,20 +120,20 @@ public class EditingPreferences extends PrefPackage {
     public EditingPreferences(boolean factory, TechPool techPool) {
         super(factory);
         this.techPool = techPool;
-        defaultNodes = new HashMap<PrimitiveNodeId,ImmutableNodeInst>();
-        defaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>();
-        defaultArcAngleIncrements = new HashMap<ArcProtoId,Integer>();
-        defaultArcPins = new HashMap<ArcProtoId,PrimitiveNodeId>();
+        defaultNodes = new HashMap<PrimitiveNodeId, ImmutableNodeInst>();
+        defaultArcs = new HashMap<ArcProtoId, ImmutableArcInst>();
+        defaultArcAngleIncrements = new HashMap<ArcProtoId, Integer>();
+        defaultArcPins = new HashMap<ArcProtoId, PrimitiveNodeId>();
 
         TextDescriptor.TextType[] textTypes = TextDescriptor.TextType.class.getEnumConstants();
-        textDescriptors = new TextDescriptor[textTypes.length*2];
+        textDescriptors = new TextDescriptor[textTypes.length * 2];
         if (factory) {
             alignments = DEFAULT_ALIGNMENTS;
             alignmentIndex = DEFAULT_ALIGNMENT_INDEX;
             for (int i = 0; i < textTypes.length; i++) {
                 TextDescriptor.TextType t = textTypes[i];
-                textDescriptors[i*2 + 0] = t.getFactoryTextDescriptor().withDisplay(false);
-                textDescriptors[i*2 + 1] = t.getFactoryTextDescriptor();
+                textDescriptors[i * 2 + 0] = t.getFactoryTextDescriptor().withDisplay(false);
+                textDescriptors[i * 2 + 1] = t.getFactoryTextDescriptor();
             }
             return;
         }
@@ -152,8 +143,8 @@ public class EditingPreferences extends PrefPackage {
         Preferences userPrefs = prefRoot.node(USER_NODE);
         Preferences textDescriptorPrefs = prefRoot.node(TEXT_DESCRIPTOR_NODE);
 
-        for (Technology tech: techPool.values()) {
-            for (Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); ) {
+        for (Technology tech : techPool.values()) {
+            for (Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext();) {
                 PrimitiveNode pn = it.next();
                 PrimitiveNodeId pnId = pn.getId();
                 ImmutableNodeInst factoryInst = pn.getFactoryDefaultInst();
@@ -161,19 +152,21 @@ public class EditingPreferences extends PrefPackage {
 
                 // TECH_NODE
                 String keyExtendX = getKey(KEY_EXTEND_X, pnId);
-                double factoryExtendX = factorySize.getLambdaX()*0.5;
+                double factoryExtendX = factorySize.getLambdaX() * 0.5;
                 double extendX = techPrefs.getDouble(keyExtendX, factoryExtendX);
 
                 String keyExtendY = getKey(KEY_EXTEND_Y, pnId);
-                double factoryExtendY = factorySize.getLambdaY()*0.5;
+                double factoryExtendY = factorySize.getLambdaY() * 0.5;
                 double extendY = techPrefs.getDouble(keyExtendY, factoryExtendY);
 
-                if (extendX == factoryExtendX && extendY == factoryExtendY) continue;
-                EPoint size = EPoint.fromLambda(extendX*2, extendY*2);
+                if (extendX == factoryExtendX && extendY == factoryExtendY) {
+                    continue;
+                }
+                EPoint size = EPoint.fromLambda(extendX * 2, extendY * 2);
                 defaultNodes.put(pnId, factoryInst.withSize(size));
             }
 
-            for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
+            for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext();) {
                 ArcProto ap = it.next();
                 ArcProtoId apId = ap.getId();
                 ImmutableArcInst factoryInst = ap.getFactoryDefaultInst();
@@ -214,24 +207,26 @@ public class EditingPreferences extends PrefPackage {
                 flags = ImmutableArcInst.HEAD_ARROWED.set(flags, directional);
                 flags = ImmutableArcInst.BODY_ARROWED.set(flags, directional);
 
-                ImmutableArcInst a = factoryInst.
-                        withGridExtendOverMin(DBMath.lambdaToGrid(extend)).
+                ImmutableArcInst a = factoryInst.withGridExtendOverMin(DBMath.lambdaToGrid(extend)).
                         withFlags(flags);
-                if (a != factoryInst)
+                if (a != factoryInst) {
                     defaultArcs.put(apId, a);
+                }
 
                 String keyAngle = getKey(KEY_ANGLE, apId);
                 int factoryAngleIncrement = ap.getFactoryAngleIncrement();
                 int angleIncrement = userPrefs.getInt(keyAngle, factoryAngleIncrement);
-                if (angleIncrement != factoryAngleIncrement)
+                if (angleIncrement != factoryAngleIncrement) {
                     defaultArcAngleIncrements.put(apId, Integer.valueOf(angleIncrement));
+                }
 
                 String keyPin = getKey(KEY_PIN, apId);
                 String arcPinName = techPrefs.get(keyPin, "");
                 if (arcPinName.length() > 0) {
                     PrimitiveNode pin = tech.findNodeProto(arcPinName);
-                    if (pin != null)
+                    if (pin != null) {
                         defaultArcPins.put(apId, pin.getId());
+                    }
                 }
             }
         }
@@ -257,13 +252,14 @@ public class EditingPreferences extends PrefPackage {
             int face = 0;
             if (fontName.length() > 0) {
                 TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontName);
-                if (af != null)
+                if (af != null) {
                     face = af.getIndex();
+                }
             }
             mtd.setFace(face);
-            textDescriptors[i*2 + 1] = TextDescriptor.newTextDescriptor(mtd);
+            textDescriptors[i * 2 + 1] = TextDescriptor.newTextDescriptor(mtd);
             mtd.setDisplay(false);
-            textDescriptors[i*2 + 0] = TextDescriptor.newTextDescriptor(mtd);
+            textDescriptors[i * 2 + 0] = TextDescriptor.newTextDescriptor(mtd);
         }
     }
 
@@ -275,82 +271,93 @@ public class EditingPreferences extends PrefPackage {
     public void putPrefs(Preferences prefRoot, boolean removeDefaults, EditingPreferences oldEp) {
         super.putPrefs(prefRoot, removeDefaults);
 
-        if (oldEp != null && oldEp.techPool != techPool)
+        if (oldEp != null && oldEp.techPool != techPool) {
             oldEp = null;
+        }
 
         Preferences techPrefs = prefRoot.node(TECH_NODE);
         Preferences userPrefs = prefRoot.node(USER_NODE);
         Preferences textDescriptorPrefs = prefRoot.node(TEXT_DESCRIPTOR_NODE);
-        for (Technology tech: techPool.values()) {
-            for (Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); ) {
+        for (Technology tech : techPool.values()) {
+            for (Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext();) {
                 PrimitiveNode pn = it.next();
                 PrimitiveNodeId pnId = pn.getId();
                 ImmutableNodeInst n = defaultNodes.get(pnId);
                 if (oldEp == null || n != oldEp.defaultNodes.get(pnId)) {
                     ImmutableNodeInst factoryInst = pn.getFactoryDefaultInst();
-                    if (n == null)
+                    if (n == null) {
                         n = factoryInst;
+                    }
 
                     String keyX = getKey(KEY_EXTEND_X, pnId);
-                    if (removeDefaults && n.size.getGridX() == factoryInst.size.getGridX())
+                    if (removeDefaults && n.size.getGridX() == factoryInst.size.getGridX()) {
                         techPrefs.remove(keyX);
-                    else
-                        techPrefs.putDouble(keyX, n.size.getLambdaX()*0.5);
+                    } else {
+                        techPrefs.putDouble(keyX, n.size.getLambdaX() * 0.5);
+                    }
 
                     String keyY = getKey(KEY_EXTEND_Y, pnId);
-                    if (removeDefaults && n.size.getGridY() == factoryInst.size.getGridY())
+                    if (removeDefaults && n.size.getGridY() == factoryInst.size.getGridY()) {
                         techPrefs.remove(keyY);
-                    else
-                        techPrefs.putDouble(keyY, n.size.getLambdaY()*0.5);
+                    } else {
+                        techPrefs.putDouble(keyY, n.size.getLambdaY() * 0.5);
+                    }
                 }
             }
 
-            for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
+            for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext();) {
                 ArcProto ap = it.next();
                 ArcProtoId apId = ap.getId();
                 ImmutableArcInst a = defaultArcs.get(apId);
                 if (oldEp == null || a != oldEp.defaultArcs.get(apId)) {
                     ImmutableArcInst factoryInst = ap.getFactoryDefaultInst();
-                    if (a == null)
+                    if (a == null) {
                         a = factoryInst;
+                    }
 
                     // TECH_NODE
                     String keyExtend = getKey(KEY_EXTEND, apId);
-                    if (removeDefaults && a.getGridExtendOverMin() == factoryInst.getGridExtendOverMin())
+                    if (removeDefaults && a.getGridExtendOverMin() == factoryInst.getGridExtendOverMin()) {
                         techPrefs.remove(keyExtend);
-                    else
+                    } else {
                         techPrefs.putDouble(keyExtend, a.getLambdaExtendOverMin());
+                    }
 
                     // USER_NODE
                     String keyRigid = getKey(KEY_RIGID, apId);
-                    if (removeDefaults && a.isRigid() == factoryInst.isRigid())
+                    if (removeDefaults && a.isRigid() == factoryInst.isRigid()) {
                         userPrefs.remove(keyRigid);
-                    else
+                    } else {
                         userPrefs.putBoolean(keyRigid, a.isRigid());
+                    }
 
                     String keyFixedAngle = getKey(KEY_FIXED_ANGLE, apId);
-                    if (removeDefaults && a.isFixedAngle() == factoryInst.isFixedAngle())
+                    if (removeDefaults && a.isFixedAngle() == factoryInst.isFixedAngle()) {
                         userPrefs.remove(keyFixedAngle);
-                    else
+                    } else {
                         userPrefs.putBoolean(keyFixedAngle, a.isFixedAngle());
+                    }
 
                     String keySlidable = getKey(KEY_SLIDABLE, apId);
-                    if (removeDefaults && a.isSlidable() == factoryInst.isSlidable())
+                    if (removeDefaults && a.isSlidable() == factoryInst.isSlidable()) {
                         userPrefs.remove(keySlidable);
-                    else
+                    } else {
                         userPrefs.putBoolean(keySlidable, a.isSlidable());
+                    }
 
                     String keyExtended = getKey(KEY_EXTENDED, apId);
-                    if (removeDefaults && a.isTailExtended() == factoryInst.isTailExtended())
+                    if (removeDefaults && a.isTailExtended() == factoryInst.isTailExtended()) {
                         userPrefs.remove(keyExtended);
-                    else
+                    } else {
                         userPrefs.putBoolean(keyExtended, a.isTailExtended());
+                    }
 
                     String keyDirectional = getKey(KEY_DIRECTIONAL, apId);
-                    if (removeDefaults && a.isHeadArrowed() == factoryInst.isHeadArrowed())
+                    if (removeDefaults && a.isHeadArrowed() == factoryInst.isHeadArrowed()) {
                         userPrefs.remove(keyDirectional);
-                    else
+                    } else {
                         userPrefs.putBoolean(keyDirectional, a.isHeadArrowed());
+                    }
                 }
 
                 Integer angleIncrementObj = defaultArcAngleIncrements.get(apId);
@@ -358,34 +365,37 @@ public class EditingPreferences extends PrefPackage {
                     int factoryAngleIncrement = ap.getFactoryAngleIncrement();
                     int angleIncrement = angleIncrementObj != null ? angleIncrementObj.intValue() : factoryAngleIncrement;
                     String keyAngle = getKey(KEY_ANGLE, apId);
-                    if (removeDefaults && angleIncrement == factoryAngleIncrement)
+                    if (removeDefaults && angleIncrement == factoryAngleIncrement) {
                         userPrefs.remove(keyAngle);
-                    else
+                    } else {
                         userPrefs.putInt(keyAngle, angleIncrement);
+                    }
                 }
 
                 PrimitiveNodeId pinId = defaultArcPins.get(apId);
                 if (oldEp == null || pinId != oldEp.defaultArcPins.get(apId)) {
                     String keyPin = getKey(KEY_PIN, apId);
                     String pinName = pinId != null ? pinId.name : "";
-                    if (removeDefaults && pinName.length() == 0)
+                    if (removeDefaults && pinName.length() == 0) {
                         techPrefs.remove(keyPin);
-                    else
+                    } else {
                         techPrefs.put(keyPin, pinName);
+                    }
                 }
             }
         }
         if (oldEp == null || alignments != oldEp.alignments || alignmentIndex != oldEp.alignmentIndex) {
-            if (removeDefaults && Arrays.equals(alignments, DEFAULT_ALIGNMENTS) && alignmentIndex == DEFAULT_ALIGNMENT_INDEX)
+            if (removeDefaults && Arrays.equals(alignments, DEFAULT_ALIGNMENTS) && alignmentIndex == DEFAULT_ALIGNMENT_INDEX) {
                 userPrefs.remove(KEY_ALIGNMENT);
-            else
+            } else {
                 userPrefs.put(KEY_ALIGNMENT, transformArrayIntoString(alignments, alignmentIndex));
+            }
         }
         if (oldEp == null || textDescriptors != oldEp.textDescriptors) {
             TextDescriptor.TextType[] textTypes = TextDescriptor.TextType.class.getEnumConstants();
             for (int i = 0; i < textTypes.length; i++) {
                 TextDescriptor.TextType t = textTypes[i];
-                TextDescriptor td = textDescriptors[i*2 + 1];
+                TextDescriptor td = textDescriptors[i * 2 + 1];
 
                 String keyTextDescriptor = t.getKey(KEY_TEXT_DESCRIPTOR);
                 String keyTextDescriptorColor = t.getKey(KEY_TEXT_DESCRIPTOR_COLOR);
@@ -403,93 +413,123 @@ public class EditingPreferences extends PrefPackage {
                     mtd.setFace(0);
                     bits = mtd.lowLevelGet();
                 }
-                if (removeDefaults && bits == factoryBits)
+                if (removeDefaults && bits == factoryBits) {
                     textDescriptorPrefs.remove(keyTextDescriptor);
-                else
+                } else {
                     textDescriptorPrefs.putLong(keyTextDescriptor, swap(bits));
-                if (removeDefaults && td.getColorIndex() == 0)
+                }
+                if (removeDefaults && td.getColorIndex() == 0) {
                     textDescriptorPrefs.remove(keyTextDescriptorColor);
-                else
+                } else {
                     textDescriptorPrefs.putInt(keyTextDescriptorColor, td.getColorIndex());
-                if (removeDefaults && fontName.length() == 0)
+                }
+                if (removeDefaults && fontName.length() == 0) {
                     textDescriptorPrefs.remove(keyTextDescriptorFont);
-                else
+                } else {
                     textDescriptorPrefs.put(keyTextDescriptorFont, fontName);
+                }
             }
         }
     }
 
     public EditingPreferences withNodeSize(PrimitiveNodeId pnId, EPoint size) {
         PrimitiveNode pn = techPool.getPrimitiveNode(pnId);
-        if (pn == null) return this;
+        if (pn == null) {
+            return this;
+        }
         ImmutableNodeInst n = pn.getDefaultInst(this);
         assert n.protoId == pnId;
-        if (n.size.equals(size)) return this;
-        HashMap<PrimitiveNodeId,ImmutableNodeInst> newDefaultNodes = new HashMap<PrimitiveNodeId,ImmutableNodeInst>(defaultNodes);
-        if (size.equals(pn.getFactoryDefaultInst().size))
+        if (n.size.equals(size)) {
+            return this;
+        }
+        HashMap<PrimitiveNodeId, ImmutableNodeInst> newDefaultNodes = new HashMap<PrimitiveNodeId, ImmutableNodeInst>(defaultNodes);
+        if (size.equals(pn.getFactoryDefaultInst().size)) {
             newDefaultNodes.remove(pnId);
-        else
+        } else {
             newDefaultNodes.put(pnId, n.withSize(size));
-        return (EditingPreferences)withField("defaultNodes", newDefaultNodes);
+        }
+        return (EditingPreferences) withField("defaultNodes", newDefaultNodes);
     }
 
     public EditingPreferences withNodesReset() {
-        if (defaultNodes.isEmpty()) return this;
-        return (EditingPreferences)withField("defaultNodes", new HashMap<PrimitiveNodeId,ImmutableNodeInst>());
+        if (defaultNodes.isEmpty()) {
+            return this;
+        }
+        return (EditingPreferences) withField("defaultNodes", new HashMap<PrimitiveNodeId, ImmutableNodeInst>());
     }
 
     public EditingPreferences withArcFlags(ArcProtoId apId, int flags) {
         ArcProto ap = techPool.getArcProto(apId);
-        if (ap == null) return this;
+        if (ap == null) {
+            return this;
+        }
         ImmutableArcInst a = ap.getDefaultInst(this);
-        if (flags == a.flags) return this;
-        HashMap<ArcProtoId,ImmutableArcInst> newDefaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>(defaultArcs);
+        if (flags == a.flags) {
+            return this;
+        }
+        HashMap<ArcProtoId, ImmutableArcInst> newDefaultArcs = new HashMap<ArcProtoId, ImmutableArcInst>(defaultArcs);
         ImmutableArcInst factoryA = ap.getFactoryDefaultInst();
-        if (flags == factoryA.flags)
+        if (flags == factoryA.flags) {
             newDefaultArcs.remove(apId);
-        else
+        } else {
             newDefaultArcs.put(apId, a.withFlags(flags));
-        return (EditingPreferences)withField("defaultArcs", newDefaultArcs);
+        }
+        return (EditingPreferences) withField("defaultArcs", newDefaultArcs);
     }
 
     public EditingPreferences withArcGridExtend(ArcProtoId apId, long gridExtend) {
         ArcProto ap = techPool.getArcProto(apId);
-        if (ap == null) return this;
+        if (ap == null) {
+            return this;
+        }
         ImmutableArcInst a = ap.getDefaultInst(this);
-        if (gridExtend == a.getGridExtendOverMin()) return this;
-        HashMap<ArcProtoId,ImmutableArcInst> newDefaultArcs = new HashMap<ArcProtoId,ImmutableArcInst>(defaultArcs);
+        if (gridExtend == a.getGridExtendOverMin()) {
+            return this;
+        }
+        HashMap<ArcProtoId, ImmutableArcInst> newDefaultArcs = new HashMap<ArcProtoId, ImmutableArcInst>(defaultArcs);
         ImmutableArcInst factoryA = ap.getFactoryDefaultInst();
-        if (gridExtend == factoryA.getGridExtendOverMin())
+        if (gridExtend == factoryA.getGridExtendOverMin()) {
             newDefaultArcs.remove(apId);
-        else
+        } else {
             newDefaultArcs.put(apId, a.withGridExtendOverMin(gridExtend));
-        return (EditingPreferences)withField("defaultArcs", newDefaultArcs);
+        }
+        return (EditingPreferences) withField("defaultArcs", newDefaultArcs);
     }
 
     public EditingPreferences withArcAngleIncrement(ArcProtoId apId, int angleIncrement) {
         ArcProto ap = techPool.getArcProto(apId);
-        if (ap == null) return this;
-        if (angleIncrement == ap.getAngleIncrement(this)) return this;
-        HashMap<ArcProtoId,Integer> newDefaultArcAngleIncrements = new HashMap<ArcProtoId,Integer>(defaultArcAngleIncrements);
+        if (ap == null) {
+            return this;
+        }
+        if (angleIncrement == ap.getAngleIncrement(this)) {
+            return this;
+        }
+        HashMap<ArcProtoId, Integer> newDefaultArcAngleIncrements = new HashMap<ArcProtoId, Integer>(defaultArcAngleIncrements);
         int factoryAngleIncrement = ap.getFactoryAngleIncrement();
-        if (angleIncrement == factoryAngleIncrement)
+        if (angleIncrement == factoryAngleIncrement) {
             newDefaultArcAngleIncrements.remove(apId);
-        else
+        } else {
             newDefaultArcAngleIncrements.put(apId, Integer.valueOf(angleIncrement));
-        return (EditingPreferences)withField("defaultArcAngleIncrements", newDefaultArcAngleIncrements);
+        }
+        return (EditingPreferences) withField("defaultArcAngleIncrements", newDefaultArcAngleIncrements);
     }
 
     public EditingPreferences withArcPin(ArcProtoId apId, PrimitiveNodeId arcPinId) {
         ArcProto ap = techPool.getArcProto(apId);
-        if (ap == null) return this;
-        if (arcPinId == ap.findOverridablePinProto(this).getId()) return this;
-        HashMap<ArcProtoId,PrimitiveNodeId> newDefaultArcPins = new HashMap<ArcProtoId,PrimitiveNodeId>(defaultArcPins);
+        if (ap == null) {
+            return this;
+        }
+        if (arcPinId == ap.findOverridablePinProto(this).getId()) {
+            return this;
+        }
+        HashMap<ArcProtoId, PrimitiveNodeId> newDefaultArcPins = new HashMap<ArcProtoId, PrimitiveNodeId>(defaultArcPins);
         PrimitiveNodeId factoryArcPinId = ap.findPinProto().getId();
-        if (arcPinId == factoryArcPinId)
+        if (arcPinId == factoryArcPinId) {
             newDefaultArcPins.remove(apId);
-        else
+        } else {
             newDefaultArcPins.put(apId, arcPinId);
-        return (EditingPreferences)withField("defaultArcPins", newDefaultArcPins);
+        }
+        return (EditingPreferences) withField("defaultArcPins", newDefaultArcPins);
     }
 
     public EditingPreferences withArcsReset() {
@@ -497,18 +537,24 @@ public class EditingPreferences extends PrefPackage {
     }
 
     private EditingPreferences withDefaultArcsReset() {
-        if (defaultArcs.isEmpty()) return this;
-        return (EditingPreferences)withField("defaultArcs", new HashMap<ArcProtoId,ImmutableArcInst>());
+        if (defaultArcs.isEmpty()) {
+            return this;
+        }
+        return (EditingPreferences) withField("defaultArcs", new HashMap<ArcProtoId, ImmutableArcInst>());
     }
 
     private EditingPreferences withDefaultAngleIncrementsReset() {
-        if (defaultArcAngleIncrements.isEmpty()) return this;
-        return (EditingPreferences)withField("defaultArcAngleIncrements", new HashMap<ArcProtoId,Integer>());
+        if (defaultArcAngleIncrements.isEmpty()) {
+            return this;
+        }
+        return (EditingPreferences) withField("defaultArcAngleIncrements", new HashMap<ArcProtoId, Integer>());
     }
 
     private EditingPreferences withDefaultArcPinsReset() {
-        if (defaultArcPins.isEmpty()) return this;
-        return (EditingPreferences)withField("defaultArcPins", new HashMap<ArcProtoId,PrimitiveNodeId>());
+        if (defaultArcPins.isEmpty()) {
+            return this;
+        }
+        return (EditingPreferences) withField("defaultArcPins", new HashMap<ArcProtoId, PrimitiveNodeId>());
     }
 
     public ImmutableNodeInst getDefaultNode(PrimitiveNodeId pnId) {
@@ -529,46 +575,54 @@ public class EditingPreferences extends PrefPackage {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this) return true;
+        if (o == this) {
+            return true;
+        }
         if (o instanceof EditingPreferences) {
-            EditingPreferences that = (EditingPreferences)o;
-            return this.techPool == that.techPool &&
-                    this.defaultNodes.equals(that.defaultNodes) &&
-                    this.defaultArcs.equals(that.defaultArcs) &&
-                    this.defaultArcAngleIncrements.equals(that.defaultArcAngleIncrements) &&
-                    this.defaultArcPins.equals(that.defaultArcPins) &&
-                    Arrays.equals(this.alignments, that.alignments) &&
-                    this.alignmentIndex == that.alignmentIndex &&
-                    Arrays.equals(this.textDescriptors, that.textDescriptors) &&
-                    this.fatWires == that.fatWires;
+            EditingPreferences that = (EditingPreferences) o;
+            return this.techPool == that.techPool
+                    && this.defaultNodes.equals(that.defaultNodes)
+                    && this.defaultArcs.equals(that.defaultArcs)
+                    && this.defaultArcAngleIncrements.equals(that.defaultArcAngleIncrements)
+                    && this.defaultArcPins.equals(that.defaultArcPins)
+                    && Arrays.equals(this.alignments, that.alignments)
+                    && this.alignmentIndex == that.alignmentIndex
+                    && Arrays.equals(this.textDescriptors, that.textDescriptors)
+                    && this.fatWires == that.fatWires;
         }
         return false;
     }
 
-	/**
-	 * Method to return the default alignment of objects to the grid.
-	 * The default is (1,1), meaning that placement and movement should land on whole grid units.
-	 * @return the default alignment of objects to the grid.
-	 */
-	public Dimension2D getAlignmentToGrid() { return alignments[alignmentIndex]; }
-
-	/**
-	 * Method to return index of the current alignment.
-	 * @return the index of the current alignment.
-	 */
-	public int getAlignmentToGridIndex() { return alignmentIndex; }
-
-	/**
-	 * Method to return an array of five grid alignment values.
-	 * @return an array of five grid alignment values.
-	 */
-	public Dimension2D[] getAlignmentToGridVector() { return alignments.clone(); }
+    /**
+     * Method to return the default alignment of objects to the grid.
+     * The default is (1,1), meaning that placement and movement should land on whole grid units.
+     * @return the default alignment of objects to the grid.
+     */
+    public Dimension2D getAlignmentToGrid() {
+        return alignments[alignmentIndex];
+    }
 
     /**
-	 * Method to set the default alignment of objects to the grid.
-	 * @param dist the array of grid alignment values.
-	 * @param current the index in the array that is the current grid alignment.
-	 */
+     * Method to return index of the current alignment.
+     * @return the index of the current alignment.
+     */
+    public int getAlignmentToGridIndex() {
+        return alignmentIndex;
+    }
+
+    /**
+     * Method to return an array of five grid alignment values.
+     * @return an array of five grid alignment values.
+     */
+    public Dimension2D[] getAlignmentToGridVector() {
+        return alignments.clone();
+    }
+
+    /**
+     * Method to set the default alignment of objects to the grid.
+     * @param dist the array of grid alignment values.
+     * @param current the index in the array that is the current grid alignment.
+     */
     public EditingPreferences withAlignment(Dimension2D[] dist, int current) {
         dist = correctAlignmentGridVector(dist.clone());
         current = Math.max(0, Math.min(dist.length - 1, current));
@@ -580,26 +634,32 @@ public class EditingPreferences extends PrefPackage {
     }
 
     private EditingPreferences withAlignments(Dimension2D[] alignments) {
-        if (Arrays.equals(alignments, this.alignments)) return this;
-        return (EditingPreferences)withField("alignments", alignments);
+        if (Arrays.equals(alignments, this.alignments)) {
+            return this;
+        }
+        return (EditingPreferences) withField("alignments", alignments);
     }
 
     private EditingPreferences withAlignmentIndex(int alignmentIndex) {
-        if (alignmentIndex == this.alignmentIndex) return this;
-        return (EditingPreferences)withField("alignmentIndex", alignmentIndex);
+        if (alignmentIndex == this.alignmentIndex) {
+            return this;
+        }
+        return (EditingPreferences) withField("alignmentIndex", alignmentIndex);
     }
 
     public TextDescriptor getTextDescriptor(TextDescriptor.TextType textType, boolean display) {
-        return textDescriptors[textType.ordinal()*2 + (display ? 1 : 0)];
+        return textDescriptors[textType.ordinal() * 2 + (display ? 1 : 0)];
     }
 
     public EditingPreferences withTextDescriptor(TextDescriptor.TextType textType, TextDescriptor td) {
         td = td.withDisplay(true);
-        if (td == textDescriptors[textType.ordinal()*2 + 1]) return this;
+        if (td == textDescriptors[textType.ordinal() * 2 + 1]) {
+            return this;
+        }
         TextDescriptor[] newTextDescriptors = textDescriptors.clone();
-        newTextDescriptors[textType.ordinal()*2 + 1] = td;
-        newTextDescriptors[textType.ordinal()*2 + 0] = td.withDisplay(false);
-        return (EditingPreferences)withField("textDescriptors", newTextDescriptors);
+        newTextDescriptors[textType.ordinal() * 2 + 1] = td;
+        newTextDescriptors[textType.ordinal() * 2 + 0] = td.withDisplay(false);
+        return (EditingPreferences) withField("textDescriptors", newTextDescriptors);
     }
 
     public EditingPreferences withTextDescriptorsReset() {
@@ -613,23 +673,31 @@ public class EditingPreferences extends PrefPackage {
     }
 
     public EditingPreferences withSmartVerticalPlacementExport(int smartVerticalPlacementExport) {
-        if (smartVerticalPlacementExport == this.smartVerticalPlacementExport) return this;
-        return (EditingPreferences)withField("smartVerticalPlacementExport", Integer.valueOf(smartVerticalPlacementExport));
+        if (smartVerticalPlacementExport == this.smartVerticalPlacementExport) {
+            return this;
+        }
+        return (EditingPreferences) withField("smartVerticalPlacementExport", Integer.valueOf(smartVerticalPlacementExport));
     }
 
     public EditingPreferences withSmartHorizontalPlacementExport(int smartHorizontalPlacementExport) {
-        if (smartHorizontalPlacementExport == this.smartHorizontalPlacementExport) return this;
-        return (EditingPreferences)withField("smartHorizontalPlacementExport", Integer.valueOf(smartHorizontalPlacementExport));
+        if (smartHorizontalPlacementExport == this.smartHorizontalPlacementExport) {
+            return this;
+        }
+        return (EditingPreferences) withField("smartHorizontalPlacementExport", Integer.valueOf(smartHorizontalPlacementExport));
     }
 
     public EditingPreferences withSmartVerticalPlacementArc(int smartVerticalPlacementArc) {
-        if (smartVerticalPlacementArc == this.smartVerticalPlacementArc) return this;
-        return (EditingPreferences)withField("smartVerticalPlacementArc", Integer.valueOf(smartVerticalPlacementArc));
+        if (smartVerticalPlacementArc == this.smartVerticalPlacementArc) {
+            return this;
+        }
+        return (EditingPreferences) withField("smartVerticalPlacementArc", Integer.valueOf(smartVerticalPlacementArc));
     }
 
     public EditingPreferences withSmartHorizontalPlacementArc(int smartHorizontalPlacementArc) {
-        if (smartHorizontalPlacementArc == this.smartHorizontalPlacementArc) return this;
-        return (EditingPreferences)withField("smartHorizontalPlacementArc", Integer.valueOf(smartHorizontalPlacementArc));
+        if (smartHorizontalPlacementArc == this.smartHorizontalPlacementArc) {
+            return this;
+        }
+        return (EditingPreferences) withField("smartHorizontalPlacementArc", Integer.valueOf(smartHorizontalPlacementArc));
     }
 
     public EditingPreferences withPlacementReset() {
@@ -637,27 +705,27 @@ public class EditingPreferences extends PrefPackage {
     }
 
     public EditingPreferences withFatWiresReset() {
-    	return (EditingPreferences)withField("fatWires", Boolean.TRUE);
+        return (EditingPreferences) withField("fatWires", Boolean.TRUE);
     }
 
- 	private static Dimension2D[] correctAlignmentGridVector(Dimension2D [] retVal)
-	{
-		if (retVal.length < 5)
-		{
-			Dimension2D [] newRetVal = new Dimension2D[5];
-			int shift = 5 - retVal.length;
-			for(int i=retVal.length-1; i>=0; i--) newRetVal[i+shift] = retVal[i];
-			while (shift > 0)
-			{
-				shift--;
-				newRetVal[shift] = new Dimension2D.Double(newRetVal[shift+1].getWidth() * 2, newRetVal[shift+1].getHeight() * 2);
-			}
-			retVal = newRetVal;
-		}
-        for (int i = 0; i < retVal.length; i++)
+    private static Dimension2D[] correctAlignmentGridVector(Dimension2D[] retVal) {
+        if (retVal.length < 5) {
+            Dimension2D[] newRetVal = new Dimension2D[5];
+            int shift = 5 - retVal.length;
+            for (int i = retVal.length - 1; i >= 0; i--) {
+                newRetVal[i + shift] = retVal[i];
+            }
+            while (shift > 0) {
+                shift--;
+                newRetVal[shift] = new Dimension2D.Double(newRetVal[shift + 1].getWidth() * 2, newRetVal[shift + 1].getHeight() * 2);
+            }
+            retVal = newRetVal;
+        }
+        for (int i = 0; i < retVal.length; i++) {
             retVal[i] = new ImmutableDimension2D(retVal[i]);
-		return retVal;
-	}
+        }
+        return retVal;
+    }
 
     /**
      * Method to extract an array of Dimensions from a string.
@@ -667,31 +735,31 @@ public class EditingPreferences extends PrefPackage {
      * @param vector the input string.
      * @return the array of values.
      */
-    private static Dimension2D[] transformStringIntoArray(String vector)
-    {
+    private static Dimension2D[] transformStringIntoArray(String vector) {
         StringTokenizer parse = new StringTokenizer(vector, "( )", false);
         List<Dimension2D> valuesFound = new ArrayList<Dimension2D>();
-        while (parse.hasMoreTokens())
-        {
+        while (parse.hasMoreTokens()) {
             String value = parse.nextToken();
-            if (value.startsWith("*")) value = value.substring(1);
+            if (value.startsWith("*")) {
+                value = value.substring(1);
+            }
             int slashPos = value.indexOf('/');
             String xPart = value, yPart = value;
-            if (slashPos >= 0)
-            {
-            	xPart = value.substring(0, slashPos);
-            	yPart = value.substring(slashPos+1);
+            if (slashPos >= 0) {
+                xPart = value.substring(0, slashPos);
+                yPart = value.substring(slashPos + 1);
             }
             try {
-            	Dimension2D dim = new Dimension2D.Double(Math.abs(Double.parseDouble(xPart)), Math.abs(Double.parseDouble(yPart)));
+                Dimension2D dim = new Dimension2D.Double(Math.abs(Double.parseDouble(xPart)), Math.abs(Double.parseDouble(yPart)));
                 valuesFound.add(dim);
-            } catch (Exception e)
-            {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        Dimension2D [] values = new Dimension2D[valuesFound.size()];
-        for(int i=0; i<valuesFound.size(); i++) values[i] = valuesFound.get(i);
+        Dimension2D[] values = new Dimension2D[valuesFound.size()];
+        for (int i = 0; i < valuesFound.size(); i++) {
+            values[i] = valuesFound.get(i);
+        }
         return values;
     }
 
@@ -703,16 +771,18 @@ public class EditingPreferences extends PrefPackage {
      * @param vector the input string.
      * @return the array of values.
      */
-    private static int getDefaultAlignmentIndex(String vector)
-    {
-    	int curVal = 0;
+    private static int getDefaultAlignmentIndex(String vector) {
+        int curVal = 0;
         StringTokenizer parse = new StringTokenizer(vector, "( )", false);
-        while (parse.hasMoreTokens())
-        {
+        while (parse.hasMoreTokens()) {
             String value = parse.nextToken();
-            if (value.startsWith("*")) return curVal;
-        	if (TextUtils.atof(value) < 0) return curVal;
-        	curVal++;
+            if (value.startsWith("*")) {
+                return curVal;
+            }
+            if (TextUtils.atof(value) < 0) {
+                return curVal;
+            }
+            curVal++;
         }
         return 0;
     }
@@ -725,44 +795,70 @@ public class EditingPreferences extends PrefPackage {
      * @param current the current value index (0-based).
      * @return string representing the array.
      */
-    private static String transformArrayIntoString(Dimension2D [] s, int current)
-    {
-    	StringBuffer sb = new StringBuffer();
-    	for(int i=0; i<s.length; i++)
-    	{
-    		if (i == 0) sb.append('('); else
-    			sb.append(' ');
-    		if (i == current) sb.append('*');
-    		sb.append(s[i].getWidth());
-    		if (s[i].getWidth() != s[i].getHeight())
-    		{
-        		sb.append('/');
-        		sb.append(s[i].getHeight());
-    		}
-    	}
-    	sb.append(')');
+    private static String transformArrayIntoString(Dimension2D[] s, int current) {
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < s.length; i++) {
+            if (i == 0) {
+                sb.append('(');
+            } else {
+                sb.append(' ');
+            }
+            if (i == current) {
+                sb.append('*');
+            }
+            sb.append(s[i].getWidth());
+            if (s[i].getWidth() != s[i].getHeight()) {
+                sb.append('/');
+                sb.append(s[i].getHeight());
+            }
+        }
+        sb.append(')');
         String dir = sb.toString();
         return dir;
     }
 
     private static class ImmutableDimension2D extends Dimension2D {
+
         private final double width;
         private final double height;
-        private ImmutableDimension2D(Dimension2D d) { this(d.getWidth(), d.getHeight()); }
-        private ImmutableDimension2D(double size) { this(size, size); }
-        private ImmutableDimension2D(double width, double height) {
-            this.width = DBMath.round(width*0.5)*2;
-            this.height = DBMath.round(height*0.5)*2;
+
+        private ImmutableDimension2D(Dimension2D d) {
+            this(d.getWidth(), d.getHeight());
         }
-        @Override public double getWidth() { return width; }
-        @Override public double getHeight() { return height; }
-        @Override public void setSize(java.awt.geom.Dimension2D d) { throw new UnsupportedOperationException(); }
-        @Override public void setSize(double width, double height) { throw new UnsupportedOperationException(); }
+
+        private ImmutableDimension2D(double size) {
+            this(size, size);
+        }
+
+        private ImmutableDimension2D(double width, double height) {
+            this.width = DBMath.round(width * 0.5) * 2;
+            this.height = DBMath.round(height * 0.5) * 2;
+        }
+
+        @Override
+        public double getWidth() {
+            return width;
+        }
+
+        @Override
+        public double getHeight() {
+            return height;
+        }
+
+        @Override
+        public void setSize(java.awt.geom.Dimension2D d) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setSize(double width, double height) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     private static long swap(long value) {
-        int v0 = (int)value;
-        return (value >>> 32) | ((long)v0 << 32);
+        int v0 = (int) value;
+        return (value >>> 32) | ((long) v0 << 32);
     }
 
     @Override

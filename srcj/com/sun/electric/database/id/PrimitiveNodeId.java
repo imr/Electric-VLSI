@@ -42,6 +42,7 @@ import java.util.Map;
  * This class is thread-safe except inCurrentThread method.
  */
 public class PrimitiveNodeId implements NodeProtoId, Serializable {
+
     /** TechId of this PrimitiveNodeId. */
     public final TechId techId;
     /** PrimitiveNode name */
@@ -53,32 +54,41 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
     /** List of PrimitivePortIds created so far. */
     final ArrayList<PrimitivePortId> primitivePortIds = new ArrayList<PrimitivePortId>();
     /** HashMap of PrimitivePortIds by their name. */
-    private final HashMap<String,PrimitivePortId> primitivePortIdsByName = new HashMap<String,PrimitivePortId>();
+    private final HashMap<String, PrimitivePortId> primitivePortIdsByName = new HashMap<String, PrimitivePortId>();
 
     /**
      * PrimtiveNodeId constructor.
      */
     PrimitiveNodeId(TechId techId, String name, int chronIndex) {
         assert techId != null;
-        if (name.length() == 0 || !TechId.jelibSafeName(name, true))
+        if (name.length() == 0 || !TechId.jelibSafeName(name, true)) {
             throw new IllegalArgumentException("PrimtiveNodeId.name");
+        }
         this.techId = techId;
         this.name = name;
         fullName = techId.techName + ":" + name;
         this.chronIndex = chronIndex;
     }
 
-    private Object writeReplace() { return new PrimitiveNodeIdKey(this); }
+    private Object writeReplace() {
+        return new PrimitiveNodeIdKey(this);
+    }
 
     private static class PrimitiveNodeIdKey extends EObjectInputStream.Key<PrimitiveNodeId> {
-        public PrimitiveNodeIdKey() {}
-        private PrimitiveNodeIdKey(PrimitiveNodeId primitiveNodeId) { super(primitiveNodeId); }
+
+        public PrimitiveNodeIdKey() {
+        }
+
+        private PrimitiveNodeIdKey(PrimitiveNodeId primitiveNodeId) {
+            super(primitiveNodeId);
+        }
 
         @Override
         public void writeExternal(EObjectOutputStream out, PrimitiveNodeId primitiveNodeId) throws IOException {
             TechId techId = primitiveNodeId.techId;
-            if (techId.idManager != out.getIdManager())
+            if (techId.idManager != out.getIdManager()) {
                 throw new NotSerializableException(primitiveNodeId + " from other IdManager");
+            }
             out.writeInt(techId.techIndex);
             out.writeInt(primitiveNodeId.chronIndex);
         }
@@ -120,7 +130,9 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
      */
     public synchronized PrimitivePortId newPortId(String externalId) {
         PrimitivePortId primitivePortId = primitivePortIdsByName.get(externalId);
-        if (primitivePortId != null) return primitivePortId;
+        if (primitivePortId != null) {
+            return primitivePortId;
+        }
         assert !techId.idManager.readOnly;
         return newPrimitivePortIdInternal(externalId);
     }
@@ -137,7 +149,7 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
         return primitivePortId;
     }
 
-   /**
+    /**
      * Returns true if this NodeProtoId is Id of icon Cell.
      * @return true if this NodeProtoId is Id of icon Cell.
      */
@@ -145,7 +157,7 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
         return false;
     }
 
-   /**
+    /**
      * Method to return the NodeProto representing NodeProtoId in the specified EDatabase.
      * @param database EDatabase where to get from.
      * @return the NodeProto representing NodeProtoId in the specified database.
@@ -155,23 +167,26 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
         return database.getTechPool().getPrimitiveNode(this);
     }
 
-	/**
-	 * Returns a printable version of this ArcProtoId.
-	 * @return a printable version of this ArcProtoId.
-	 */
+    /**
+     * Returns a printable version of this ArcProtoId.
+     * @return a printable version of this ArcProtoId.
+     */
     @Override
-    public String toString() { return fullName; }
+    public String toString() {
+        return fullName;
+    }
 
-	/**
-	 * Checks invariants in this ArcProtoId.
+    /**
+     * Checks invariants in this ArcProtoId.
      * @exception AssertionError if invariants are not valid
-	 */
+     */
     void check() {
         assert this == techId.getPrimitiveNodeId(chronIndex);
         assert name.length() > 0 && TechId.jelibSafeName(name, true);
-        for (PrimitivePortId primitivePortId: primitivePortIds)
+        for (PrimitivePortId primitivePortId : primitivePortIds) {
             primitivePortId.check();
-        for (Map.Entry<String,PrimitivePortId> e: primitivePortIdsByName.entrySet()) {
+        }
+        for (Map.Entry<String, PrimitivePortId> e : primitivePortIdsByName.entrySet()) {
             PrimitivePortId primitivePortId = e.getValue();
             assert primitivePortId.parentId == this;
             assert primitivePortId.externalId == e.getKey();

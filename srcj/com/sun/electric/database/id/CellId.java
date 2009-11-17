@@ -42,9 +42,9 @@ import java.util.Random;
  * This class is thread-safe except inCurrentThread method in 1.5, but not thread-safe in 1.4  .
  */
 public final class CellId implements NodeProtoId, Serializable {
+
     /** Empty CellId array for initialization. */
     public static final CellId[] NULL_ARRAY = {};
-
     /** IdManager which owns this LibId. */
     public final IdManager idManager;
     /** LibId which owns this CellId. */
@@ -67,13 +67,11 @@ public final class CellId implements NodeProtoId, Serializable {
      * in the search sequence.
      */
     private volatile CellUsage[] hashUsagesIn = EMPTY_USAGE_HASH;
-
     /**
      * Usages of this proto cell in other parent cells.
      * CellUsages are in chronological order by time of their creation.
      */
     private volatile CellUsage[] usagesOf = CellUsage.NULL_ARRAY;
-
     /**
      * Number of exportIds allocated so far.
      */
@@ -92,44 +90,50 @@ public final class CellId implements NodeProtoId, Serializable {
      * in the search sequence.
      */
     private volatile int[] hashExportIds = EMPTY_EXPORT_HASH;
-
     /**
      * Number of nodeIds returned by newNodeId.
      **/
     private volatile int numNodeIds = 0;
-
     /**
      * Number of arcIds returned by newArcId.
      **/
     private volatile int numArcIds = 0;
-
     /** Empty usage hash for initialization. */
-    private static final CellUsage[] EMPTY_USAGE_HASH = { null };
+    private static final CellUsage[] EMPTY_USAGE_HASH = {null};
     /** Empty usage hash for initialization. */
-    private static final int[] EMPTY_EXPORT_HASH = { -1 };
+    private static final int[] EMPTY_EXPORT_HASH = {-1};
 
     /**
      * CellId constructor.
      */
     CellId(LibId libId, CellName cellName, int cellIndex) {
-        if (cellName.getVersion() <= 0)
+        if (cellName.getVersion() <= 0) {
             throw new IllegalArgumentException("cell version");
+        }
         idManager = libId.idManager;
         this.libId = libId;
         this.cellName = cellName;
         this.cellIndex = cellIndex;
     }
 
-    private Object writeReplace() { return new CellIdKey(this); }
+    private Object writeReplace() {
+        return new CellIdKey(this);
+    }
 
     private static class CellIdKey extends EObjectInputStream.Key<CellId> {
-        public CellIdKey() {}
-        private CellIdKey(CellId cellId) { super(cellId); }
+
+        public CellIdKey() {
+        }
+
+        private CellIdKey(CellId cellId) {
+            super(cellId);
+        }
 
         @Override
         public void writeExternal(EObjectOutputStream out, CellId cellId) throws IOException {
-            if (cellId.idManager != out.getIdManager())
+            if (cellId.idManager != out.getIdManager()) {
                 throw new NotSerializableException(cellId + " from other IdManager");
+            }
             out.writeInt(cellId.cellIndex);
         }
 
@@ -144,7 +148,9 @@ public final class CellId implements NodeProtoId, Serializable {
      * Returns IdManager which is owner of this CellId.
      * @return IdManager which is owner of this CellId.
      */
-    public IdManager getIdManager() { return idManager; }
+    public IdManager getIdManager() {
+        return idManager;
+    }
 
     /**
      * Returns a number CellUsages with this CellId as a parent cell.
@@ -196,7 +202,9 @@ public final class CellId implements NodeProtoId, Serializable {
      * @return CellUsage with this CellId as parent and protoId as a proto subcell.
      * @throws NullPointerException if prootId is null.
      */
-    public CellUsage getUsageIn(CellId protoId) { return getUsageIn(protoId, true); }
+    public CellUsage getUsageIn(CellId protoId) {
+        return getUsageIn(protoId, true);
+    }
 
     /**
      * Returns a number ExportIds in this parent cell.
@@ -227,7 +235,9 @@ public final class CellId implements NodeProtoId, Serializable {
      * @return ExportId with specified external id.
      * @throws NullPointerException if externalId is null.
      */
-    public ExportId newPortId(String externalId) { return newExportId(externalId, true); }
+    public ExportId newPortId(String externalId) {
+        return newExportId(externalId, true);
+    }
 
     /**
      * Creates new random exportId, unique in this session for this parent CellId.
@@ -238,10 +248,11 @@ public final class CellId implements NodeProtoId, Serializable {
         // Create random id
         String prefix = suggestedId;
         int ind = prefix.indexOf('@');
-        if (ind >= 0)
+        if (ind >= 0) {
             prefix = prefix.substring(0, ind + 1);
-        else
+        } else {
             prefix = prefix + '@';
+        }
         Random random = new Random();
         for (;;) {
             int suffix = random.nextInt() & 0x3FFFFFFF;
@@ -258,13 +269,17 @@ public final class CellId implements NodeProtoId, Serializable {
      * Returns new nodeId unique for this CellId.
      * @return new nodeId unique for this CellId.
      */
-    public int newNodeId() { return numNodeIds++; }
+    public int newNodeId() {
+        return numNodeIds++;
+    }
 
     /**
      * Returns new arcId unique for this CellId.
      * @return new arcId unique for this CellId.
      */
-    public int newArcId() { return numArcIds++; }
+    public int newArcId() {
+        return numArcIds++;
+    }
 
     /**
      * Method to return the Cell representing CellId in the specified EDatabase.
@@ -272,7 +287,9 @@ public final class CellId implements NodeProtoId, Serializable {
      * @return the Cell representing CellId in the specified database.
      * This method is not properly synchronized.
      */
-    public Cell inDatabase(EDatabase database) { return database.getCell(this); }
+    public Cell inDatabase(EDatabase database) {
+        return database.getCell(this);
+    }
 
     /**
      * Returns a printable version of this CellId.
@@ -282,18 +299,18 @@ public final class CellId implements NodeProtoId, Serializable {
         return libId + ":" + cellName.toString();
     }
 
-	/**
-	 * Method to determine whether this CellId is an id of an icon Cell.
-	 * @return true if this CellId is an id of an icon Cell.
-	 */
+    /**
+     * Method to determine whether this CellId is an id of an icon Cell.
+     * @return true if this CellId is an id of an icon Cell.
+     */
     public boolean isIcon() {
         return cellName.isIcon();
     }
 
-	/**
-	 * Method to determine whether this CellId is an id of an schematic Cell.
-	 * @return true if this CellId is an id of an schematic Cell.
-	 */
+    /**
+     * Method to determine whether this CellId is an id of an schematic Cell.
+     * @return true if this CellId is an id of an schematic Cell.
+     */
     public boolean isSchematic() {
         return cellName.isSchematic();
     }
@@ -327,10 +344,14 @@ public final class CellId implements NodeProtoId, Serializable {
 
             // We scanned a seqence of non-null entries and found the result.
             // It is correct to return it without synchronization.
-            if (u.protoId == protoId) return u;
+            if (u.protoId == protoId) {
+                return u;
+            }
 
             i += j;
-            if (i >= hash.length) i -= hash.length;
+            if (i >= hash.length) {
+                i -= hash.length;
+            }
         }
 
         // Need to enter into the synchronized mode.
@@ -339,9 +360,11 @@ public final class CellId implements NodeProtoId, Serializable {
             if (hash == hashUsagesIn && hash[i] == null) {
                 // There we no rehash during our search and the last null entry is really null.
                 // So we can safely use results of unsynchronized search.
-                if (!create) return null;
+                if (!create) {
+                    return null;
+                }
 
-                if (usagesIn.length*2 <= hash.length - 3) {
+                if (usagesIn.length * 2 <= hash.length - 3) {
                     // create a new CellUsage, if enough space in the hash
                     CellUsage u = new CellUsage(this, protoId, usagesIn.length);
                     hash[i] = u;
@@ -365,8 +388,10 @@ public final class CellId implements NodeProtoId, Serializable {
      */
     private void rehashUsagesIn() {
         CellUsage[] usagesIn = this.usagesIn;
-        int newSize = usagesIn.length*2 + 3;
-        if (newSize < 0) throw new IndexOutOfBoundsException();
+        int newSize = usagesIn.length * 2 + 3;
+        if (newSize < 0) {
+            throw new IndexOutOfBoundsException();
+        }
         CellUsage[] newHash = new CellUsage[GenMath.primeSince(newSize)];
         for (int k = usagesIn.length - 1; k >= 0; k--) {
             CellUsage u = usagesIn[k];
@@ -374,7 +399,9 @@ public final class CellId implements NodeProtoId, Serializable {
             i %= newHash.length;
             for (int j = 1; newHash[i] != null; j += 2) {
                 i += j;
-                if (i >= newHash.length) i -= newHash.length;
+                if (i >= newHash.length) {
+                    i -= newHash.length;
+                }
             }
             newHash[i] = u;
         }
@@ -408,9 +435,13 @@ public final class CellId implements NodeProtoId, Serializable {
         try {
             for (int j = 1; hash[i] >= 0; j += 2) {
                 ExportId exportId = exportIds[hash[i]];
-                if (exportId.externalId.equals(externalId)) return exportId;
+                if (exportId.externalId.equals(externalId)) {
+                    return exportId;
+                }
                 i += j;
-                if (i >= hash.length) i -= hash.length;
+                if (i >= hash.length) {
+                    i -= hash.length;
+                }
             }
         } catch (ArrayIndexOutOfBoundsException e) {
             // This may happen if some hash entries were concurrently filled with index out of ExportId range.
@@ -419,16 +450,18 @@ public final class CellId implements NodeProtoId, Serializable {
             if (hash == hashExportIds && hash[i] == -1) {
                 // There we no rehash during our search and the last -1 entry is really -1.
                 // So we are sure that there is not ExportId with specified external id.
-                if (!create) return null;
+                if (!create) {
+                    return null;
+                }
 
                 int chronIndex = numExportIds;
                 exportIds = this.exportIds;
-                if (chronIndex*2 <= hash.length - 3) {
+                if (chronIndex * 2 <= hash.length - 3) {
                     ExportId e = new ExportId(this, chronIndex, externalId);
                     hash[i] = chronIndex;
                     if (chronIndex >= exportIds.length) {
                         assert chronIndex == exportIds.length;
-                        int newLength = (int)Math.min(exportIds.length*3L/2 + 1, Integer.MAX_VALUE);
+                        int newLength = (int) Math.min(exportIds.length * 3L / 2 + 1, Integer.MAX_VALUE);
                         ExportId[] newExportIds = new ExportId[newLength];
                         System.arraycopy(exportIds, 0, newExportIds, 0, chronIndex);
                         exportIds = newExportIds;
@@ -453,8 +486,10 @@ public final class CellId implements NodeProtoId, Serializable {
      * This method may be called only inside synchronized block.
      */
     private void rehashExportIds(ExportId[] exportIds, int numExports) {
-        int newSize = exportIds.length*2 + 3;
-        if (newSize < 0) throw new IndexOutOfBoundsException();
+        int newSize = exportIds.length * 2 + 3;
+        if (newSize < 0) {
+            throw new IndexOutOfBoundsException();
+        }
         int[] newHash = new int[GenMath.primeSince(newSize)];
         Arrays.fill(newHash, -1);
         for (int k = 0; k < numExports; k++) {
@@ -464,7 +499,9 @@ public final class CellId implements NodeProtoId, Serializable {
             for (int j = 1; newHash[i] >= 0; j += 2) {
                 assert exportIds[newHash[i]] != exportId;
                 i += j;
-                if (i >= newHash.length) i -= newHash.length;
+                if (i >= newHash.length) {
+                    i -= newHash.length;
+                }
             }
             newHash[i] = k;
         }
@@ -571,7 +608,9 @@ public final class CellId implements NodeProtoId, Serializable {
         int count = 0;
         for (int i = 0; i < hash.length; i++) {
             CellUsage u = hash[i];
-            if (u == null) continue;
+            if (u == null) {
+                continue;
+            }
             assert u.parentId == this;
             assert u == usagesIn[u.indexInParent];
             count++;
@@ -592,7 +631,9 @@ public final class CellId implements NodeProtoId, Serializable {
         int count = 0;
         for (int i = 0; i < hash.length; i++) {
             int k = hash[i];
-            if (k == -1) continue;
+            if (k == -1) {
+                continue;
+            }
             assert k >= 0 && k < exportIds.length;
             count++;
         }
@@ -619,7 +660,7 @@ public final class CellId implements NodeProtoId, Serializable {
         cellId.newPortId(s);
 
         long startTime = System.currentTimeMillis();
-        int numTries = 100*1000*1000;
+        int numTries = 100 * 1000 * 1000;
         int k = 0;
         for (int i = 0; i < numTries; i++) {
             ExportId eId = cellId.newPortId(s);

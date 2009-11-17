@@ -44,15 +44,14 @@ import java.util.Set;
  * It can compute Cell bounds and shape of Exports.
  */
 public class CellTree {
+
     public static final CellTree[] NULL_ARRAY = {};
     public static final ImmutableArrayList<CellTree> EMPTY_LIST = new ImmutableArrayList<CellTree>(NULL_ARRAY);
-
     /**
      * top CellBackup
      */
     public final CellBackup top;
     final CellTree[] subTrees;
-
     /**
      * TechPool containing all Technologies used in this CellTree
      */
@@ -90,8 +89,9 @@ public class CellTree {
         } else {
             subTrees = subTrees.clone();
             int l = subTrees.length;
-            while (l > 0 && subTrees[l - 1] == null)
+            while (l > 0 && subTrees[l - 1] == null) {
                 l--;
+            }
             if (l == 0) {
                 subTrees = NULL_ARRAY;
             } else if (l != subTrees.length) {
@@ -113,7 +113,9 @@ public class CellTree {
             }
         }
         // Check if unchanged
-        if (this.top == top && this.subTrees == subTrees) return this;
+        if (this.top == top && this.subTrees == subTrees) {
+            return this;
+        }
 
         // Check if subTrees match the top backup
         // Check technologies against superPool
@@ -121,32 +123,37 @@ public class CellTree {
         CellRevision cellRevision = top.cellRevision;
         CellId cellId = cellRevision.d.cellId;
         BitSet techUsages = new BitSet();
-        if (top.techPool != superPool.restrict(cellRevision.techUsages, top.techPool))
+        if (top.techPool != superPool.restrict(cellRevision.techUsages, top.techPool)) {
             throw new IllegalArgumentException();
+        }
         techUsages.or(cellRevision.techUsages);
         HashSet<CellId> allCellsAccum = new HashSet<CellId>();
         for (int i = 0; i < cellRevision.cellUsages.length; i++) {
             CellRevision.CellUsageInfo cui = cellRevision.cellUsages[i];
             CellTree subTree = subTrees[i];
             if (cui == null) {
-                if (subTree != null)
+                if (subTree != null) {
                     throw new IllegalArgumentException();
+                }
                 continue;
             }
             BitSet subTechUsages = subTree.techPool.getTechUsages();
-            if (subTree.techPool != superPool.restrict(subTechUsages, subTree.techPool))
+            if (subTree.techPool != superPool.restrict(subTechUsages, subTree.techPool)) {
                 throw new IllegalArgumentException();
+            }
             techUsages.or(subTechUsages);
             allCellsAccum.addAll(subTree.allCells);
             CellRevision subCellRevision = subTree.top.cellRevision;
-            if (subCellRevision.d.cellId != cellId.getUsageIn(i).protoId)
+            if (subCellRevision.d.cellId != cellId.getUsageIn(i).protoId) {
                 throw new IllegalArgumentException();
+            }
             cui.checkUsage(subCellRevision);
         }
 
         // Check for recursion
-        if (allCellsAccum.contains(cellId))
-            throw new IllegalArgumentException("Recursive "+cellId);
+        if (allCellsAccum.contains(cellId)) {
+            throw new IllegalArgumentException("Recursive " + cellId);
+        }
         // Canonize new allCells
         allCellsAccum.add(cellId);
         Set<CellId> allCells;
@@ -174,9 +181,10 @@ public class CellTree {
                     break;
                 }
             }
-            if (cellBounds != null)
+            if (cellBounds != null) {
                 newCellTree.bounds = cellBounds;
-                ERectangle oldPrimBounds = this.top.getPrimitiveBounds();
+            }
+            ERectangle oldPrimBounds = this.top.getPrimitiveBounds();
         }
 
         // Return the new CellTree
@@ -192,8 +200,9 @@ public class CellTree {
      * @return cell bounds of this CellTree
      */
     public ERectangle getBounds() {
-        if (bounds == null)
+        if (bounds == null) {
             bounds = computeBounds(null);
+        }
         return bounds;
     }
 
@@ -201,9 +210,11 @@ public class CellTree {
         CellRevision cellRevision = top.cellRevision;
 
         // Collect subcell bounds
-        IdentityHashMap<CellId,ERectangle> subCellBounds = new IdentityHashMap<CellId,ERectangle>(cellRevision.cellUsages.length);
-        for (CellTree subTree: subTrees) {
-            if (subTree == null) continue;
+        IdentityHashMap<CellId, ERectangle> subCellBounds = new IdentityHashMap<CellId, ERectangle>(cellRevision.cellUsages.length);
+        for (CellTree subTree : subTrees) {
+            if (subTree == null) {
+                continue;
+            }
             subCellBounds.put(subTree.top.cellRevision.d.cellId, subTree.getBounds());
         }
 
@@ -212,10 +223,12 @@ public class CellTree {
         cellLowX = cellHighX = cellLowY = cellHighY = 0;
 
         Rectangle2D.Double sb = new Rectangle2D.Double();
-        for (ImmutableNodeInst n: top.cellRevision.nodes) {
-            if (!(n.protoId instanceof CellId)) continue;
+        for (ImmutableNodeInst n : top.cellRevision.nodes) {
+            if (!(n.protoId instanceof CellId)) {
+                continue;
+            }
 
-            ERectangle b = subCellBounds.get((CellId)n.protoId);
+            ERectangle b = subCellBounds.get((CellId) n.protoId);
             n.orient.rectangleBounds(b.getMinX(), b.getMinY(), b.getMaxX(), b.getMaxY(),
                     n.anchor.getX(), n.anchor.getY(), sb);
 
@@ -225,13 +238,23 @@ public class CellTree {
             double highy = sb.getMaxY();
             if (boundsEmpty) {
                 boundsEmpty = false;
-                cellLowX = lowx;   cellHighX = highx;
-                cellLowY = lowy;   cellHighY = highy;
+                cellLowX = lowx;
+                cellHighX = highx;
+                cellLowY = lowy;
+                cellHighY = highy;
             } else {
-                if (lowx < cellLowX) cellLowX = lowx;
-                if (highx > cellHighX) cellHighX = highx;
-                if (lowy < cellLowY) cellLowY = lowy;
-                if (highy > cellHighY) cellHighY = highy;
+                if (lowx < cellLowX) {
+                    cellLowX = lowx;
+                }
+                if (highx > cellHighX) {
+                    cellHighX = highx;
+                }
+                if (lowy < cellLowY) {
+                    cellLowY = lowy;
+                }
+                if (highy > cellHighY) {
+                    cellHighY = highy;
+                }
             }
         }
         long gridMinX = DBMath.lambdaToGrid(cellLowX);
@@ -253,9 +276,10 @@ public class CellTree {
                 gridMaxY = Math.max(gridMaxY, primitiveBounds.getGridMaxY());
             }
         }
-        if (candidateBounds != null && gridMinX == candidateBounds.getGridMinX() && gridMinY == candidateBounds.getGridMinY() &&
-                gridMaxX == candidateBounds.getGridMaxX() && gridMaxY == candidateBounds.getGridMaxY())
+        if (candidateBounds != null && gridMinX == candidateBounds.getGridMinX() && gridMinY == candidateBounds.getGridMinY()
+                && gridMaxX == candidateBounds.getGridMaxX() && gridMaxY == candidateBounds.getGridMaxY()) {
             return candidateBounds;
+        }
         return ERectangle.fromGrid(gridMinX, gridMinY, gridMaxX - gridMinX, gridMaxY - gridMinY);
     }
 
@@ -287,10 +311,13 @@ public class CellTree {
         assert !allCells.contains(cellId);
         allCells.add(cellId);
         assert allCells.equals(this.allCells);
-        if (bounds != null)
+        if (bounds != null) {
             assert bounds == computeBounds(bounds);
+        }
     }
 
     @Override
-    public String toString() { return top.toString(); }
+    public String toString() {
+        return top.toString();
+    }
 }

@@ -53,8 +53,8 @@ public class ImmutableElectricObjectTest {
     private final Variable ATTR_A_foo = Variable.newInstance(Variable.newKey("ATTR_A"), foo, td);
     private final Variable B_F = Variable.newInstance(Variable.newKey("B"), Boolean.FALSE, td);
     private final Variable a_foo = Variable.newInstance(Variable.newKey("a"), foo, td.withParam(true));
-    private final ImmutableElectricObject obj_a = new ImmutableElectricObjectImpl(new Variable[] { a_foo });
-    private final Variable[] Aa = new Variable[] { ATTR_A_F, a_foo  };
+    private final ImmutableElectricObject obj_a = new ImmutableElectricObjectImpl(new Variable[]{a_foo});
+    private final Variable[] Aa = new Variable[]{ATTR_A_F, a_foo};
     private final ImmutableElectricObject obj_Aa = new ImmutableElectricObjectImpl(Aa);
 
     public static junit.framework.Test suite() {
@@ -64,7 +64,8 @@ public class ImmutableElectricObjectTest {
     /**
      * Test of arrayWithVariable method, of class com.sun.electric.database.ImmutableElectricObject.
      */
-    @Test public void testArrayWithVariable() {
+    @Test
+    public void testArrayWithVariable() {
         System.out.println("arrayWithVariable");
 
         assertSame(obj_a.getVars(), obj_a.arrayWithVariable(a_foo));
@@ -84,7 +85,8 @@ public class ImmutableElectricObjectTest {
     /**
      * Test of arrayWithoutVariable method, of class com.sun.electric.database.ImmutableElectricObject.
      */
-    @Test public void testArrayWithoutVariable() {
+    @Test
+    public void testArrayWithoutVariable() {
         System.out.println("arrayWithoutVariable");
 
         assertSame(obj_a.getVars(), obj_a.arrayWithoutVariable(Variable.newKey("ATTR_A")));
@@ -98,7 +100,8 @@ public class ImmutableElectricObjectTest {
     /**
      * Test of arrayWithRenamedIds method, of class com.sun.electric.database.ImmutableElectricObject.
      */
-    @Test public void testArrayWithRenamedIds() {
+    @Test
+    public void testArrayWithRenamedIds() {
         System.out.println("arrayWithRenamedIds");
 
         IdMapper idMapper = new IdMapper();
@@ -109,44 +112,48 @@ public class ImmutableElectricObjectTest {
     /**
      * Test of getVar method, of class com.sun.electric.database.ImmutableElectricObject.
      */
-    @Test public void testGetVar() {
+    @Test
+    public void testGetVar() {
         System.out.println("getVar");
 
-        assertNull( obj_Aa.getVar(Variable.newKey("B")) );
-        assertSame( ATTR_A_F, obj_Aa.getVar(Variable.newKey("ATTR_A")));
-        assertSame( a_foo, obj_Aa.getVar(Variable.newKey("a")));
+        assertNull(obj_Aa.getVar(Variable.newKey("B")));
+        assertSame(ATTR_A_F, obj_Aa.getVar(Variable.newKey("ATTR_A")));
+        assertSame(a_foo, obj_Aa.getVar(Variable.newKey("a")));
     }
 
     /**
      * Test of getVariables method, of class com.sun.electric.database.ImmutableElectricObject.
      */
-    @Test public void testGetVariables() {
+    @Test
+    public void testGetVariables() {
         System.out.println("getVariables");
 
         Iterator<Variable> it0 = obj0.getVariables();
-        assertTrue( !it0.hasNext() );
+        assertTrue(!it0.hasNext());
 
         Iterator<Variable> it = obj_Aa.getVariables();
-        assertSame( ATTR_A_F, it.next()  );
-        assertSame( a_foo, it.next() );
-        assertTrue( !it.hasNext() );
+        assertSame(ATTR_A_F, it.next());
+        assertSame(a_foo, it.next());
+        assertTrue(!it.hasNext());
     }
 
     /**
      * Test of getVariables method, of class com.sun.electric.database.ImmutableElectricObject.
      */
-    @Test(expected= UnsupportedOperationException.class) public void testGetVariablesRemove() {
+    @Test(expected = UnsupportedOperationException.class)
+    public void testGetVariablesRemove() {
         System.out.println("getVariablesRemove");
 
         Iterator<Variable> it = obj_Aa.getVariables();
-        assertSame( ATTR_A_F, it.next()  );
+        assertSame(ATTR_A_F, it.next());
         it.remove();
     }
 
     /**
      * Test of toVariableArray method, of class com.sun.electric.database.ImmutableElectricObject.
      */
-    @Test public void testToVariableArray() {
+    @Test
+    public void testToVariableArray() {
         System.out.println("toVariableArray");
 
         Variable[] vars2 = obj_Aa.toVariableArray();
@@ -160,7 +167,8 @@ public class ImmutableElectricObjectTest {
     /**
      * Test of getNumVariables method, of class com.sun.electric.database.ImmutableElectricObject.
      */
-    @Test public void testGetNumVariables() {
+    @Test
+    public void testGetNumVariables() {
         System.out.println("getNumVariables");
 
         assertEquals(0, obj0.getNumVariables());
@@ -171,7 +179,8 @@ public class ImmutableElectricObjectTest {
     /**
      * Test of getVars method, of class com.sun.electric.database.ImmutableElectricObject.
      */
-    @Test public void testGetVars() {
+    @Test
+    public void testGetVars() {
         System.out.println("getVars");
 
         assertSame(Aa, obj_Aa.getVars());
@@ -180,7 +189,8 @@ public class ImmutableElectricObjectTest {
     /**
      * Test of searchVar method, of class com.sun.electric.database.ImmutableElectricObject.
      */
-    @Test public void testSearchVar() {
+    @Test
+    public void testSearchVar() {
         System.out.println("searchVar");
 
         assertEquals(0, obj_Aa.searchVar(Variable.newKey("ATTR_A")));
@@ -193,7 +203,8 @@ public class ImmutableElectricObjectTest {
     /**
      * Test of searchVar method, of class com.sun.electric.database.ImmutableElectricObject.
      */
-    @Test(expected= NullPointerException.class) public void testSearchVarNull() {
+    @Test(expected = NullPointerException.class)
+    public void testSearchVarNull() {
         System.out.println("searchVar");
 
         obj0.searchVar(null);
@@ -202,7 +213,8 @@ public class ImmutableElectricObjectTest {
     /**
      * Test of writeDiffs and readDiff method, of class com.sun.electric.database.ImmutableElectricObject.
      */
-    @Test public void testReadWrite() {
+    @Test
+    public void testReadWrite() {
         System.out.println("readWrite");
 
         try {
@@ -221,11 +233,11 @@ public class ImmutableElectricObjectTest {
             IdReader reader = new IdReader(new DataInputStream(new ByteArrayInputStream(bytes)), idManager);
 
             // Check mirrorIdManager after first update
-            assertEquals( false, reader.readBoolean() );
-            assertSame( 0, ImmutableElectricObject.readVars(reader).length );
-            assertEquals( true, reader.readBoolean() );
+            assertEquals(false, reader.readBoolean());
+            assertSame(0, ImmutableElectricObject.readVars(reader).length);
+            assertEquals(true, reader.readBoolean());
             Variable[] vars2 = ImmutableElectricObject.readVars(reader);
-            assertTrue( Arrays.equals(Aa, vars2) );
+            assertTrue(Arrays.equals(Aa, vars2));
         } catch (IOException e) {
             fail(e.getMessage());
         }
@@ -234,7 +246,8 @@ public class ImmutableElectricObjectTest {
     /**
      * Test of check method, of class com.sun.electric.database.ImmutableElectricObject.
      */
-    @Test(expected=AssertionError.class) public void testCheckFailed() {
+    @Test(expected = AssertionError.class)
+    public void testCheckFailed() {
         System.out.println("checkFailed");
 
         obj_Aa.check(false);
@@ -244,8 +257,17 @@ public class ImmutableElectricObjectTest {
      * Generated implementation of abstract class com.sun.electric.database.ImmutableElectricObject. Please fill dummy bodies of generated methods.
      */
     private class ImmutableElectricObjectImpl extends ImmutableElectricObject {
-        ImmutableElectricObjectImpl(Variable[] vars) { super(vars, 0); }
-        public int hashCodeExceptVariables() { return 0; }
-        public boolean equalsExceptVariables(ImmutableElectricObject o) { return false; }
+
+        ImmutableElectricObjectImpl(Variable[] vars) {
+            super(vars, 0);
+        }
+
+        public int hashCodeExceptVariables() {
+            return 0;
+        }
+
+        public boolean equalsExceptVariables(ImmutableElectricObject o) {
+            return false;
+        }
     }
 }

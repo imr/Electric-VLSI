@@ -39,56 +39,79 @@ import java.util.Set;
  * for calculating a shape of some primitives.
  */
 public interface EditWindow_ extends EditWindow0 {
-    
-	/**
-	 * Method to return the cell that is shown in this window.
-	 * @return the cell that is shown in this window.
-	 */
-	public Cell getCell();
-    
+
+    /**
+     * Method to return the cell that is shown in this window.
+     * @return the cell that is shown in this window.
+     */
+    public Cell getCell();
+
     /**
      * Get the window's VarContext
      * @return the current VarContext
      */
     public VarContext getVarContext();
-    
-	/**
-	 * Method to return the scale factor for this window.
-	 * @return the scale factor for this window.
-	 */
-	public double getScale();
 
-	// *************************************************** NEW METHODS FROM STEVE ***************************************************
+    /**
+     * Method to return the scale factor for this window.
+     * @return the scale factor for this window.
+     */
+    public double getScale();
 
-	public Point getScreenLocationOfCorner();
-	public Rectangle2D getDisplayedBounds();
-	public Point2D getOffset();
-	public void setOffset(Point2D off);
-	public void setScale(double scale);
-	public void fillScreen();
-	public Rectangle2D getBoundsInWindow();
-	public Point databaseToScreen(double dbX, double dbY);
-	public void repaintContents(Rectangle2D bounds, boolean fullInstantiate);
+    // *************************************************** NEW METHODS FROM STEVE ***************************************************
+    public Point getScreenLocationOfCorner();
 
-	public boolean isGrid();
-	public double getGridXSpacing();
-	public double getGridYSpacing();
+    public Rectangle2D getDisplayedBounds();
 
-	// highlighting methods
+    public Point2D getOffset();
+
+    public void setOffset(Point2D off);
+
+    public void setScale(double scale);
+
+    public void fillScreen();
+
+    public Rectangle2D getBoundsInWindow();
+
+    public Point databaseToScreen(double dbX, double dbY);
+
+    public void repaintContents(Rectangle2D bounds, boolean fullInstantiate);
+
+    public boolean isGrid();
+
+    public double getGridXSpacing();
+
+    public double getGridYSpacing();
+
+    // highlighting methods
 //	public Highlighter getHighlighter();
-	public void addElectricObject(ElectricObject ni, Cell cell);
-	public Rectangle2D getHighlightedArea();
-	public void addHighlightArea(Rectangle2D pointRect, Cell cell);
-	public void addHighlightMessage(Cell cell, String message, Point2D loc);
-	public void addHighlightLine(Point2D pt1, Point2D pt2, Cell cell, boolean thick, boolean isError);
-	public void addHighlightText(ElectricObject eobj, Cell cell, Variable.Key varKey);
-	public ElectricObject getOneElectricObject(Class clz);
-	public void clearHighlighting();
-	public void finishedHighlighting();
-	public void setHighlightOffset(int dX, int dY);
-	public List<Geometric> getHighlightedEObjs(boolean wantNodes, boolean wantArcs);
-	public Set<Network> getHighlightedNetworks();
-	public Point2D getHighlightOffset();
-	public List<Highlight> saveHighlightList();
-	public void restoreHighlightList(List<Highlight> list);
+    public void addElectricObject(ElectricObject ni, Cell cell);
+
+    public Rectangle2D getHighlightedArea();
+
+    public void addHighlightArea(Rectangle2D pointRect, Cell cell);
+
+    public void addHighlightMessage(Cell cell, String message, Point2D loc);
+
+    public void addHighlightLine(Point2D pt1, Point2D pt2, Cell cell, boolean thick, boolean isError);
+
+    public void addHighlightText(ElectricObject eobj, Cell cell, Variable.Key varKey);
+
+    public ElectricObject getOneElectricObject(Class clz);
+
+    public void clearHighlighting();
+
+    public void finishedHighlighting();
+
+    public void setHighlightOffset(int dX, int dY);
+
+    public List<Geometric> getHighlightedEObjs(boolean wantNodes, boolean wantArcs);
+
+    public Set<Network> getHighlightedNetworks();
+
+    public Point2D getHighlightOffset();
+
+    public List<Highlight> saveHighlightList();
+
+    public void restoreHighlightList(List<Highlight> list);
 }

@@ -22,7 +22,6 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.database.id;
 
 import com.sun.electric.database.geometry.EPoint;
@@ -52,7 +51,9 @@ public class IdReader {
 
     /** Creates a new instance of SnapshotWriter */
     public IdReader(DataInputStream in, IdManager idManager) {
-        if (in == null || idManager == null) throw new NullPointerException();
+        if (in == null || idManager == null) {
+            throw new NullPointerException();
+        }
         this.in = in;
         this.idManager = idManager;
     }
@@ -65,11 +66,13 @@ public class IdReader {
             oldCellIdsCount = idManager.cellIds.size();
         }
         int techIdsCount = readInt();
-        for (int techIndex = oldTechIdsCount; techIndex < techIdsCount; techIndex++)
+        for (int techIndex = oldTechIdsCount; techIndex < techIdsCount; techIndex++) {
             idManager.newTechIdInternal(readString());
+        }
         int libIdsCount = readInt();
-        for (int libIndex = oldLibIdsCount; libIndex < libIdsCount; libIndex++)
+        for (int libIndex = oldLibIdsCount; libIndex < libIdsCount; libIndex++) {
             idManager.newLibIdInternal(readString());
+        }
         int cellIdsCount = readInt();
         for (int cellIndex = oldCellIdsCount; cellIndex < cellIdsCount; cellIndex++) {
             LibId libId = readLibId();
@@ -82,7 +85,9 @@ public class IdReader {
         }
         for (;;) {
             int techIndex = readInt();
-            if (techIndex == -1) break;
+            if (techIndex == -1) {
+                break;
+            }
             TechId techId = idManager.getTechId(techIndex);
 
             int numNewLayerIds = readInt();
@@ -105,7 +110,9 @@ public class IdReader {
 
             for (;;) {
                 int primIndex = readInt();
-                if (primIndex == -1) break;
+                if (primIndex == -1) {
+                    break;
+                }
                 PrimitiveNodeId primitiveNodeId = techId.getPrimitiveNodeId(primIndex);
                 int numNewPrimitivePortIds = readInt();
                 for (int i = 0; i < numNewPrimitivePortIds; i++) {
@@ -116,7 +123,9 @@ public class IdReader {
         }
         for (;;) {
             int cellIndex = readInt();
-            if (cellIndex == -1) break;
+            if (cellIndex == -1) {
+                break;
+            }
             CellId cellId = idManager.getCellId(cellIndex);
             int numNewExportIds = readInt();
             for (int i = 0; i < numNewExportIds; i++) {
@@ -182,7 +191,7 @@ public class IdReader {
         return in.readDouble();
     }
 
-     /**
+    /**
      * Reads bytes.
      * @return bytes.
      */
@@ -193,7 +202,7 @@ public class IdReader {
         return bytes;
     }
 
-     /**
+    /**
      * Reads string.
      * @return string.
      */
@@ -221,7 +230,9 @@ public class IdReader {
      */
     public TextDescriptor readTextDescriptor() throws IOException {
         int i = in.readInt();
-        if (i == -1) return null;
+        if (i == -1) {
+            return null;
+        }
         if (i == textDescriptors.size()) {
             long bits = in.readLong();
             int colorIndex = in.readInt();
@@ -308,7 +319,7 @@ public class IdReader {
         return nodeProtoId.getPortId(chronIndex);
     }
 
-   /**
+    /**
      * Reads node id.
      * @return node id.
      */
@@ -316,7 +327,7 @@ public class IdReader {
         return in.readInt();
     }
 
-   /**
+    /**
      * Reads arc id.
      * @return arc id.
      */

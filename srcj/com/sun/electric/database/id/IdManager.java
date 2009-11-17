@@ -42,15 +42,14 @@ public class IdManager {
 
     /** Standard IdManager */
     public static final IdManager stdIdManager = new IdManager();
-
     /** List of TechIds created so far. */
     final ArrayList<TechId> techIds = new ArrayList<TechId>();
     /** HashMap of TechIds by their tech name. */
-    private final HashMap<String,TechId> techIdsByName = new HashMap<String,TechId>();
+    private final HashMap<String, TechId> techIdsByName = new HashMap<String, TechId>();
     /** List of LibIds created so far. */
     final ArrayList<LibId> libIds = new ArrayList<LibId>();
     /** HashMap of LibIds by their lib name. */
-    private final HashMap<String,LibId> libIdsByName = new HashMap<String,LibId>();
+    private final HashMap<String, LibId> libIdsByName = new HashMap<String, LibId>();
     /** List of CellIds created so far. */
     final ArrayList<CellId> cellIds = new ArrayList<CellId>();
     /** Count of Snapshots created with this IdManager. */
@@ -61,7 +60,6 @@ public class IdManager {
     private final Environment initialEnvironment = new Environment(this);
     /** Initial Snapshot. */
     private final Snapshot initialSnapshot = new Snapshot(this);
-
     volatile boolean readOnly;
 
     /** Creates a new instance of IdManager */
@@ -80,7 +78,9 @@ public class IdManager {
      */
     public synchronized TechId newTechId(String techName) {
         TechId techId = techIdsByName.get(techName);
-        if (techId != null) return techId;
+        if (techId != null) {
+            return techId;
+        }
         assert !readOnly;
         return newTechIdInternal(techName);
     }
@@ -162,18 +162,26 @@ public class IdManager {
         return cellId;
     }
 
-    public TechPool getInitialTechPool() { return initialTechPool; }
+    public TechPool getInitialTechPool() {
+        return initialTechPool;
+    }
 
-    public Environment getInitialEnvironment() { return initialEnvironment; }
+    public Environment getInitialEnvironment() {
+        return initialEnvironment;
+    }
 
-    public Snapshot getInitialSnapshot() { return initialSnapshot; }
+    public Snapshot getInitialSnapshot() {
+        return initialSnapshot;
+    }
 
-    public int newSnapshotId() { return snapshotCount.incrementAndGet(); }
+    public int newSnapshotId() {
+        return snapshotCount.incrementAndGet();
+    }
 
-	/**
-	 * Method to check invariants in all Libraries.
-	 */
-	public void checkInvariants() {
+    /**
+     * Method to check invariants in all Libraries.
+     */
+    public void checkInvariants() {
         int numTechIds;
         int numLibIds;
         int numCellIds;
@@ -196,7 +204,7 @@ public class IdManager {
                 libId.check();
                 assert libIdsByName.get(libId.libName) == libId;
             }
-            for (Map.Entry<String,LibId> e: libIdsByName.entrySet()) {
+            for (Map.Entry<String, LibId> e : libIdsByName.entrySet()) {
                 LibId libId = e.getValue();
                 assert libId.idManager == this;
                 assert libId.libName == e.getKey();
@@ -216,14 +224,16 @@ public class IdManager {
 
     public void dump() {
         System.out.println(techIds.size() + " TechIds:");
-        for (TechId techId: new TreeMap<String,TechId>(techIdsByName).values()) {
+        for (TechId techId : new TreeMap<String, TechId>(techIdsByName).values()) {
             System.out.println("TechId " + techId + " " + techId.primitiveNodeIds.size() + " " + techId.arcProtoIds.size());
         }
         System.out.println(libIds.size() + " LibIds:");
-        for (LibId libId: new TreeMap<String,LibId>(libIdsByName).values()) {
+        for (LibId libId : new TreeMap<String, LibId>(libIdsByName).values()) {
             System.out.println("LibId " + libId);
-            for (CellId cellId: cellIds) {
-                if (cellId.libId != libId) continue;
+            for (CellId cellId : cellIds) {
+                if (cellId.libId != libId) {
+                    continue;
+                }
                 System.out.println(cellId + " " + cellId.numUsagesIn() + " " + cellId.numUsagesOf() + " " + cellId.numExportIds());
             }
         }

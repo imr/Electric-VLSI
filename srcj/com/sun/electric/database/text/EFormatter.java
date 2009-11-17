@@ -36,17 +36,15 @@ import java.util.logging.LogRecord;
  * It is derived from java.util.logging.SimpleFormatter
  */
 public class EFormatter extends Formatter {
-    
+
     Date dat = new Date();
     private final static String format = "{0,time,medium}";
     private MessageFormat formatter;
-    
     private Object args[] = new Object[1];
-    
     // Line separator string.  This is the value of the line.separator
     // property at the moment that the SimpleFormatter was created.
     private String lineSeparator = System.getProperty("line.separator");
-    
+
     /**
      * Format the given LogRecord.
      * @param record the log record to be formatted.

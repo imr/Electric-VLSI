@@ -45,63 +45,65 @@ import java.util.Iterator;
  * A class to manage nodes and arcs of a Cell.
  */
 public class Topology {
-    /** Owner cell of this Topology. */                             final Cell cell;
 
-    /** A maximal suffix of temporary arc name. */                  private int maxArcSuffix = -1;
-    /** Chronological list of ArcInst in this Cell. */              private final ArrayList<ArcInst> chronArcs = new ArrayList<ArcInst>();
-    /** A list of ArcInsts in this Cell. */							private final ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
-    /** True if arc bounds are valid. */                            boolean validArcBounds;
-
-	/** The geometric data structure. */							private RTNode rTree = RTNode.makeTopLevel();
-    /** True of RTree matches node/arc sizes */                     private boolean rTreeFresh;
+    /** Owner cell of this Topology. */
+    final Cell cell;
+    /** A maximal suffix of temporary arc name. */
+    private int maxArcSuffix = -1;
+    /** Chronological list of ArcInst in this Cell. */
+    private final ArrayList<ArcInst> chronArcs = new ArrayList<ArcInst>();
+    /** A list of ArcInsts in this Cell. */
+    private final ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
+    /** True if arc bounds are valid. */
+    boolean validArcBounds;
+    /** The geometric data structure. */
+    private RTNode rTree = RTNode.makeTopLevel();
+    /** True of RTree matches node/arc sizes */
+    private boolean rTreeFresh;
 
     /** Creates a new instance of Topology */
     public Topology(Cell cell, boolean loadBackup) {
         this.cell = cell;
-        if (loadBackup)
+        if (loadBackup) {
             updateArcs(cell.backup().cellRevision);
+        }
     }
 
-	/****************************** ARCS ******************************/
-
-	/**
-	 * Method to return an Iterator over all ArcInst objects in this Cell.
-	 * @return an Iterator over all ArcInst objects in this Cell.
-	 */
-	public synchronized Iterator<ArcInst> getArcs()
-	{
+    /****************************** ARCS ******************************/
+    /**
+     * Method to return an Iterator over all ArcInst objects in this Cell.
+     * @return an Iterator over all ArcInst objects in this Cell.
+     */
+    public synchronized Iterator<ArcInst> getArcs() {
         ArrayList<ArcInst> arcsCopy = new ArrayList<ArcInst>(arcs);
-		return arcsCopy.iterator();
-	}
+        return arcsCopy.iterator();
+    }
 
-	/**
-	 * Method to return the number of ArcInst objects in this Cell.
-	 * @return the number of ArcInst objects in this Cell.
-	 */
-	public int getNumArcs()
-	{
-		return arcs.size();
-	}
+    /**
+     * Method to return the number of ArcInst objects in this Cell.
+     * @return the number of ArcInst objects in this Cell.
+     */
+    public int getNumArcs() {
+        return arcs.size();
+    }
 
-	/**
-	 * Method to return the ArcInst at specified position.
-	 * @param arcIndex specified position of ArcInst.
-	 * @return the ArcInst at specified position..
-	 */
-	public final ArcInst getArc(int arcIndex)
-	{
-		return arcs.get(arcIndex);
-	}
+    /**
+     * Method to return the ArcInst at specified position.
+     * @param arcIndex specified position of ArcInst.
+     * @return the ArcInst at specified position..
+     */
+    public final ArcInst getArc(int arcIndex) {
+        return arcs.get(arcIndex);
+    }
 
-	/**
-	 * Method to return the ArcInst by its chronological index.
-	 * @param arcId chronological index of ArcInst.
-	 * @return the ArcInst with specified chronological index.
-	 */
-	public ArcInst getArcById(int arcId)
-	{
-		return arcId < chronArcs.size() ? chronArcs.get(arcId) : null;
-	}
+    /**
+     * Method to return the ArcInst by its chronological index.
+     * @param arcId chronological index of ArcInst.
+     * @return the ArcInst with specified chronological index.
+     */
+    public ArcInst getArcById(int arcId) {
+        return arcId < chronArcs.size() ? chronArcs.get(arcId) : null;
+    }
 
     /**
      * Method to return a map from arcId of arcs in the Cell to their arcIndex in alphanumerical order.
@@ -118,38 +120,39 @@ public class Topology {
         return arcIndexByArcIdMap;
     }
 
-	/**
-	 * Method to find a named ArcInst on this Cell.
-	 * @param name the name of the ArcInst.
-	 * @return the ArcInst.  Returns null if none with that name are found.
-	 */
-	public ArcInst findArc(String name)
-	{
-		int arcIndex = searchArc(name, 0);
-		if (arcIndex >= 0) return arcs.get(arcIndex);
-		arcIndex = - arcIndex - 1;
-		if (arcIndex < arcs.size())
-		{
-			ArcInst ai = arcs.get(arcIndex);
-			if (ai.getName().equals(name)) return ai;
-		}
-		return null;
-	}
+    /**
+     * Method to find a named ArcInst on this Cell.
+     * @param name the name of the ArcInst.
+     * @return the ArcInst.  Returns null if none with that name are found.
+     */
+    public ArcInst findArc(String name) {
+        int arcIndex = searchArc(name, 0);
+        if (arcIndex >= 0) {
+            return arcs.get(arcIndex);
+        }
+        arcIndex = -arcIndex - 1;
+        if (arcIndex < arcs.size()) {
+            ArcInst ai = arcs.get(arcIndex);
+            if (ai.getName().equals(name)) {
+                return ai;
+            }
+        }
+        return null;
+    }
 
-	/**
-	 * Method to add a new ArcInst to the cell.
-	 * @param ai the ArcInst to be included in the cell.
-	 */
-	void addArc(ArcInst ai)
-	{
+    /**
+     * Method to add a new ArcInst to the cell.
+     * @param ai the ArcInst to be included in the cell.
+     */
+    void addArc(ArcInst ai) {
         cell.setTopologyModified();
         validArcBounds = false;
         unfreshRTree();
 
-		int arcIndex = searchArc(ai);
-		assert arcIndex < 0;
-		arcIndex = - arcIndex - 1;
-		arcs.add(arcIndex, ai);
+        int arcIndex = searchArc(ai);
+        assert arcIndex < 0;
+        arcIndex = -arcIndex - 1;
+        arcs.add(arcIndex, ai);
 //		//scanline
 //			ai.setArcIndex( arcIndex );
 //			for ( int i = arcIndex + 1; i < arcs.size(); i++ ){
@@ -159,55 +162,59 @@ public class Topology {
 
 
         int arcId = ai.getArcId();
-        while (chronArcs.size() <= arcId) chronArcs.add(null);
+        while (chronArcs.size() <= arcId) {
+            chronArcs.add(null);
+        }
         assert chronArcs.get(arcId) == null;
         chronArcs.set(arcId, ai);
 
         // update maximal arc name suffux temporary name
-		if (ai.isUsernamed()) return;
-		Name name = ai.getNameKey();
+        if (ai.isUsernamed()) {
+            return;
+        }
+        Name name = ai.getNameKey();
         assert name.getBasename() == ImmutableArcInst.BASENAME;
         maxArcSuffix = Math.max(maxArcSuffix, name.getNumSuffix());
         cell.setDirty();
-	}
+    }
 
-	/**
-	 * Method to return unique autoname for ArcInst in this cell.
-	 * @return a unique autoname for ArcInst in this cell.
-	 */
-	Name getArcAutoname()
-	{
-        if (maxArcSuffix < Integer.MAX_VALUE)
+    /**
+     * Method to return unique autoname for ArcInst in this cell.
+     * @return a unique autoname for ArcInst in this cell.
+     */
+    Name getArcAutoname() {
+        if (maxArcSuffix < Integer.MAX_VALUE) {
             return ImmutableArcInst.BASENAME.findSuffixed(++maxArcSuffix);
+        }
         for (int i = 0;; i++) {
             Name name = ImmutableArcInst.BASENAME.findSuffixed(i);
-            if (!hasTempArcName(name)) return name;
+            if (!hasTempArcName(name)) {
+                return name;
+            }
         }
-	}
+    }
 
-	/**
-	 * Method check if ArcInst with specified temporary name key exists in a cell.
-	 * @param name specified temorary name key.
-	 */
-	boolean hasTempArcName(Name name)
-	{
-		return name.isTempname() && findArc(name.toString()) != null;
-	}
+    /**
+     * Method check if ArcInst with specified temporary name key exists in a cell.
+     * @param name specified temorary name key.
+     */
+    boolean hasTempArcName(Name name) {
+        return name.isTempname() && findArc(name.toString()) != null;
+    }
 
-	/**
-	 * Method to remove an ArcInst from the cell.
-	 * @param ai the ArcInst to be removed from the cell.
-	 */
-	void removeArc(ArcInst ai)
-	{
-		cell.checkChanging();
+    /**
+     * Method to remove an ArcInst from the cell.
+     * @param ai the ArcInst to be removed from the cell.
+     */
+    void removeArc(ArcInst ai) {
+        cell.checkChanging();
         cell.setTopologyModified();
         unfreshRTree();
 
-		assert ai.isLinked();
-		int arcIndex = searchArc(ai);
-		ArcInst removedAi = arcs.remove(arcIndex);
-		assert removedAi == ai;
+        assert ai.isLinked();
+        int arcIndex = searchArc(ai);
+        ArcInst removedAi = arcs.remove(arcIndex);
+        assert removedAi == ai;
 
 //		//scanline
 //			for ( int i = arcIndex; i < arcs.size(); i++ ){
@@ -220,7 +227,7 @@ public class Topology {
         assert chronArcs.get(arcId) == ai;
         chronArcs.set(arcId, null);
         cell.setDirty();
-	}
+    }
 
     public ImmutableArcInst[] backupArcs(ImmutableArrayList<ImmutableArcInst> oldArcs) {
         ImmutableArcInst[] newArcs = new ImmutableArcInst[arcs.size()];
@@ -240,11 +247,13 @@ public class Topology {
         maxArcSuffix = -1;
         for (int i = 0; i < newRevision.arcs.size(); i++) {
             ImmutableArcInst d = newRevision.arcs.get(i);
-            while (d.arcId >= chronArcs.size()) chronArcs.add(null);
+            while (d.arcId >= chronArcs.size()) {
+                chronArcs.add(null);
+            }
             ArcInst ai = chronArcs.get(d.arcId);
             PortInst headPi = cell.getPortInst(d.headNodeId, d.headPortId);
             PortInst tailPi = cell.getPortInst(d.tailNodeId, d.tailPortId);
-            if (ai != null && (/*!full ||*/ ai.getHeadPortInst() == headPi && ai.getTailPortInst() == tailPi)) {
+            if (ai != null && (/*!full ||*/ai.getHeadPortInst() == headPi && ai.getTailPortInst() == tailPi)) {
                 ai.setDInUndo(d);
             } else {
                 ai = new ArcInst(this, d, headPi, tailPi);
@@ -262,7 +271,9 @@ public class Topology {
         int arcCount = 0;
         for (int i = 0; i < chronArcs.size(); i++) {
             ArcInst ai = chronArcs.get(i);
-            if (ai == null) continue;
+            if (ai == null) {
+                continue;
+            }
             int arcIndex = searchArc(ai);
             if (arcIndex < 0 || arcIndex >= arcs.size() || ai != arcs.get(arcIndex)) {
                 chronArcs.set(i, null);
@@ -277,8 +288,9 @@ public class Topology {
      * Low-level routine.
      */
     void computeArcBounds() {
-        if (!Job.isThreadSafe() && !cell.getDatabase().canComputeBounds())
+        if (!Job.isThreadSafe() && !cell.getDatabase().canComputeBounds()) {
             return;
+        }
         int[] intCoords = new int[4];
         BoundsBuilder b = new BoundsBuilder(cell.backupUnsafe());
         for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
@@ -296,7 +308,7 @@ public class Topology {
      * Searches the arcs for the specified (name,arcId) using the binary
      * search algorithm.
      * @param name the name to be searched.
-	 * @param arcId the arcId index to be searched.
+     * @param arcId the arcId index to be searched.
      * @return index of the search name, if it is contained in the arcs;
      *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *	       <i>insertion point</i> is defined as the point at which the
@@ -306,44 +318,44 @@ public class Topology {
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the ArcInst is found.
      */
-	private int searchArc(String name, int arcId)
-	{
-		int low = 0;
-		int high = arcs.size()-1;
+    private int searchArc(String name, int arcId) {
+        int low = 0;
+        int high = arcs.size() - 1;
         int pick = high; // initially try the last postition
 
-		while (low <= high) {
-			ArcInst ai = arcs.get(pick);
-			int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ai.getName(), name);
-			if (cmp == 0) cmp = ai.getArcId() - arcId;
+        while (low <= high) {
+            ArcInst ai = arcs.get(pick);
+            int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ai.getName(), name);
+            if (cmp == 0) {
+                cmp = ai.getArcId() - arcId;
+            }
 
-			if (cmp < 0)
-				low = pick + 1;
-			else if (cmp > 0)
-				high = pick - 1;
-			else
-				return pick; // ArcInst found
-			pick = (low + high) >> 1; // try in a middle
-		}
-		return -(low + 1);  // ArcInst not found.
+            if (cmp < 0) {
+                low = pick + 1;
+            } else if (cmp > 0) {
+                high = pick - 1;
+            } else {
+                return pick; // ArcInst found
+            }
+            pick = (low + high) >> 1; // try in a middle
+        }
+        return -(low + 1);  // ArcInst not found.
     }
 
 //    void setArcsModified() {
 //        cell.checkChanging();
 //        cell.setTopologyModified();
 //    }
-
-	/****************************** GRAPHICS ******************************/
-
+    /****************************** GRAPHICS ******************************/
     /**
-	 * Method to return an interator over all RTBounds objects in a given area of this Cell that allows
+     * Method to return an interator over all RTBounds objects in a given area of this Cell that allows
      * to ignore elements touching the area.
      * Note that Geometric objects implement RTBounds, so for database searches, the iterator
      * returns Geometrics (NodeInsts and ArcInsts).
-	 * @param bounds the specified area to search.
+     * @param bounds the specified area to search.
      * @param includeEdges true if RTBounds objects along edges are considered in.
-	 * @return an iterator over all of the RTBounds objects in that area.
-	 */
+     * @return an iterator over all of the RTBounds objects in that area.
+     */
     public Iterator<RTBounds> searchIterator(Rectangle2D bounds, boolean includeEdges) {
         return new RTNode.Search(bounds, getRTree(), includeEdges);
     }
@@ -358,13 +370,15 @@ public class Topology {
         rTreeFresh = false;
     }
 
-	/**
-	 * Method to R-Tree of this Cell.
-	 * The R-Tree organizes all of the Geometric objects spatially for quick search.
-	 * @return R-Tree of this Cell.
-	 */
+    /**
+     * Method to R-Tree of this Cell.
+     * The R-Tree organizes all of the Geometric objects spatially for quick search.
+     * @return R-Tree of this Cell.
+     */
     public RTNode getRTree() {
-        if (rTreeFresh) return rTree;
+        if (rTreeFresh) {
+            return rTree;
+        }
         EDatabase database = cell.getDatabase();
         if (Job.isThreadSafe() || database.canComputeBounds()) {
             rebuildRTree();
@@ -379,15 +393,16 @@ public class Topology {
 
     public void rebuildRTree() {
 //        long startTime = System.currentTimeMillis();
-        if (!validArcBounds)
+        if (!validArcBounds) {
             computeArcBounds();
+        }
         CellId cellId = cell.getId();
         RTNode root = RTNode.makeTopLevel();
-        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();) {
             NodeInst ni = it.next();
             root = RTNode.linkGeom(cellId, root, ni);
         }
-        for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
+        for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext();) {
             ArcInst ai = it.next();
             root = RTNode.linkGeom(cellId, root, ai);
         }
@@ -406,7 +421,7 @@ public class Topology {
         // check arcs
         ArcInst prevAi = null;
         Poly.Builder polyBuilder = Poly.newGridBuilder();
-        for(int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
+        for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
             ArcInst ai = arcs.get(arcIndex);
 //            assert ai.getArcIndex() == arcIndex; // scanline
             ImmutableArcInst a = ai.getD();
@@ -415,8 +430,9 @@ public class Topology {
             if (prevAi != null) {
                 int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevAi.getName(), ai.getName());
                 assert cmp <= 0;
-                if (cmp == 0)
+                if (cmp == 0) {
                     assert prevAi.getArcId() < a.arcId;
+                }
             }
             assert ai.getHeadPortInst() == cell.getPortInst(a.headNodeId, a.headPortId);
             assert ai.getTailPortInst() == cell.getPortInst(a.tailNodeId, a.tailPortId);
@@ -425,13 +441,16 @@ public class Topology {
         }
         for (int arcId = 0; arcId < chronArcs.size(); arcId++) {
             ArcInst ai = chronArcs.get(arcId);
-            if (ai == null) continue;
+            if (ai == null) {
+                continue;
+            }
             assert ai.getArcId() == arcId;
             int arcIndex = searchArc(ai);
             assert ai == arcs.get(arcIndex);
         }
 
-        if (rTreeFresh)
+        if (rTreeFresh) {
             rTree.checkRTree(0, cell.getId());
+        }
     }
 }

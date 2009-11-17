@@ -39,6 +39,7 @@ import java.io.Serializable;
  * This class is thread-safe except inCurrentThread method.
  */
 public class ArcProtoId implements Serializable {
+
     /** TechId of this ArcProtoId. */
     public final TechId techId;
     /** ArcProto name */
@@ -47,35 +48,44 @@ public class ArcProtoId implements Serializable {
     public final String fullName;
     /** Unique index of this ArcProtoId in TechId. */
     public final int chronIndex;
-    
+
     /**
      * ArcProtoId constructor.
      */
     ArcProtoId(TechId techId, String name, int chronIndex) {
         assert techId != null;
-        if (name.length() == 0 || !TechId.jelibSafeName(name))
+        if (name.length() == 0 || !TechId.jelibSafeName(name)) {
             throw new IllegalArgumentException("ArcProtoId.name");
+        }
         this.techId = techId;
         this.name = name;
         fullName = techId.techName + ":" + name;
         this.chronIndex = chronIndex;
-     }
-    
-    private Object writeReplace() { return new ArcProtoIdKey(this); }
-    
+    }
+
+    private Object writeReplace() {
+        return new ArcProtoIdKey(this);
+    }
+
     private static class ArcProtoIdKey extends EObjectInputStream.Key<ArcProtoId> {
-        public ArcProtoIdKey() {}
-        private ArcProtoIdKey(ArcProtoId arcProtoId) { super(arcProtoId); }
-        
+
+        public ArcProtoIdKey() {
+        }
+
+        private ArcProtoIdKey(ArcProtoId arcProtoId) {
+            super(arcProtoId);
+        }
+
         @Override
         public void writeExternal(EObjectOutputStream out, ArcProtoId arcProtoId) throws IOException {
             TechId techId = arcProtoId.techId;
-            if (techId.idManager != out.getIdManager())
+            if (techId.idManager != out.getIdManager()) {
                 throw new NotSerializableException(arcProtoId + " from other IdManager");
+            }
             out.writeInt(techId.techIndex);
             out.writeInt(arcProtoId.chronIndex);
         }
-        
+
         @Override
         public ArcProtoId readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             int techIndex = in.readInt();
@@ -83,7 +93,7 @@ public class ArcProtoId implements Serializable {
             return in.getIdManager().getTechId(techIndex).getArcProtoId(chronIndex);
         }
     }
-    
+
     /**
      * Method to return the ArcProto representing ArcProtoId in the specified EDatabase.
      * @param database EDatabase where to get from.
@@ -93,18 +103,20 @@ public class ArcProtoId implements Serializable {
     public ArcProto inDatabase(EDatabase database) {
         return database.getTechPool().getArcProto(this);
     }
-    
-	/**
-	 * Returns a printable version of this ArcProtoId.
-	 * @return a printable version of this ArcProtoId.
-	 */
+
+    /**
+     * Returns a printable version of this ArcProtoId.
+     * @return a printable version of this ArcProtoId.
+     */
     @Override
-    public String toString() { return fullName; }
-    
-	/**
-	 * Checks invariants in this ArcProtoId.
+    public String toString() {
+        return fullName;
+    }
+
+    /**
+     * Checks invariants in this ArcProtoId.
      * @exception AssertionError if invariants are not valid
-	 */
+     */
     void check() {
         assert this == techId.getArcProtoId(chronIndex);
         assert name.length() > 0 && TechId.jelibSafeName(name);

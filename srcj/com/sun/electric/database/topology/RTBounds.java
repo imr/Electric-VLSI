@@ -31,8 +31,8 @@ import java.awt.geom.Rectangle2D;
  * For most database work, the Geometric is used.
  * However, other simpler objects may also be used.
  */
-public interface RTBounds
-{
-	public Rectangle2D getBounds();
+public interface RTBounds {
+
+    public Rectangle2D getBounds();
 }
 

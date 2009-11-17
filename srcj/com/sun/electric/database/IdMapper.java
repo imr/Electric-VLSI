@@ -36,22 +36,26 @@ import java.util.HashMap;
  * Class to describe mapping of Electric database Ids (LibIds, CellIds, ExportIds).
  */
 public class IdMapper implements Serializable {
-    
-    private final HashMap<LibId,LibId> libIdMap = new HashMap<LibId,LibId>();
-    private final HashMap<CellId,CellId> cellIdMap = new HashMap<CellId,CellId>();
-    private final HashMap<ExportId,ExportId> exportIdMap = new HashMap<ExportId,ExportId>();
-    
+
+    private final HashMap<LibId, LibId> libIdMap = new HashMap<LibId, LibId>();
+    private final HashMap<CellId, CellId> cellIdMap = new HashMap<CellId, CellId>();
+    private final HashMap<ExportId, ExportId> exportIdMap = new HashMap<ExportId, ExportId>();
+
     /** Creates a new instance of IdMapper */
     public IdMapper() {
     }
-    
+
     public static IdMapper renameLibrary(Snapshot snapshot, LibId oldLibId, LibId newLibId) {
         IdMapper idMapper = new IdMapper();
         idMapper.libIdMap.put(oldLibId, newLibId);
-        for (CellBackup cellBackup: snapshot.cellBackups) {
-            if (cellBackup == null) continue;
+        for (CellBackup cellBackup : snapshot.cellBackups) {
+            if (cellBackup == null) {
+                continue;
+            }
             CellId oldCellId = cellBackup.cellRevision.d.cellId;
-            if (oldCellId.libId != oldLibId) continue;
+            if (oldCellId.libId != oldLibId) {
+                continue;
+            }
             CellId newCellId = newLibId.newCellId(oldCellId.cellName);
             idMapper.moveCell(cellBackup, newCellId);
         }
@@ -67,18 +71,22 @@ public class IdMapper implements Serializable {
 
     public static IdMapper consolidateExportIds(Snapshot snapshot) {
         IdMapper idMapper = new IdMapper();
-        for (CellBackup cellBackup: snapshot.cellBackups) {
-            if (cellBackup == null) continue;
+        for (CellBackup cellBackup : snapshot.cellBackups) {
+            if (cellBackup == null) {
+                continue;
+            }
             CellRevision cellRevision = cellBackup.cellRevision;
             CellId cellId = cellRevision.d.cellId;
-            for (ImmutableExport e: cellRevision.exports) {
-                if (e.name.toString().equals(e.exportId.externalId)) continue;
+            for (ImmutableExport e : cellRevision.exports) {
+                if (e.name.toString().equals(e.exportId.externalId)) {
+                    continue;
+                }
                 idMapper.exportIdMap.put(e.exportId, cellId.newPortId(e.name.toString()));
             }
         }
         return idMapper;
     }
-    
+
     /**
      * Add to this idMapper mapping from old cellBackup to new cellId together with all exports.
      * @param cellBackup old cellBackup
@@ -87,12 +95,13 @@ public class IdMapper implements Serializable {
     public void moveCell(CellBackup cellBackup, CellId newCellId) {
         CellId oldCellId = cellBackup.cellRevision.d.cellId;
         if (oldCellId.cellName.getView() != newCellId.cellName.getView()) {
-            if (oldCellId.isIcon() || oldCellId.isSchematic() || newCellId.isIcon() || newCellId.isSchematic())
+            if (oldCellId.isIcon() || oldCellId.isSchematic() || newCellId.isIcon() || newCellId.isSchematic()) {
                 throw new IllegalArgumentException("Can't rename " + oldCellId + " to " + newCellId);
+            }
         }
         cellIdMap.put(oldCellId, newCellId);
     }
-    
+
     /**
      * Get mappinmg of LibId.
      * @param key key LibId.
@@ -102,7 +111,7 @@ public class IdMapper implements Serializable {
         LibId value = libIdMap.get(key);
         return value != null ? value : key;
     }
-    
+
     /**
      * Get mappinmg of CellId.
      * @param key key CellId.
@@ -112,7 +121,7 @@ public class IdMapper implements Serializable {
         CellId value = cellIdMap.get(key);
         return value != null ? value : key;
     }
-    
+
     /**
      * Get mapping of ExportId.
      * @param key key ExportId.
@@ -120,10 +129,14 @@ public class IdMapper implements Serializable {
      */
     public ExportId get(ExportId key) {
         ExportId newExportId = exportIdMap.get(key);
-        if (newExportId != null) return newExportId;
+        if (newExportId != null) {
+            return newExportId;
+        }
         CellId newParentId = cellIdMap.get(key.parentId);
         return newParentId != null ? newParentId.newPortId(key.externalId) : key;
     }
 
-    public Collection<CellId> getNewCellIds() { return cellIdMap.values(); }
+    public Collection<CellId> getNewCellIds() {
+        return cellIdMap.values();
+    }
 }

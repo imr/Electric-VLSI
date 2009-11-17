@@ -44,6 +44,7 @@ import java.util.prefs.Preferences;
  * their persistence representation in Java Preferences.
  */
 public abstract class PrefPackage implements Serializable, Cloneable {
+
     protected static final String TECH_NODE = Technology.TECH_NODE;
     protected static final String USER_NODE = "tool/user";
 
@@ -59,7 +60,7 @@ public abstract class PrefPackage implements Serializable, Cloneable {
 
     protected PrefPackage withField(String fieldName, Object value) {
         try {
-            PrefPackage that = (PrefPackage)clone();
+            PrefPackage that = (PrefPackage) clone();
             Field field = findField(fieldName);
             field.setAccessible(true);
             field.set(that, value);
@@ -93,7 +94,7 @@ public abstract class PrefPackage implements Serializable, Cloneable {
      */
     protected PrefPackage(Preferences prefRoot) {
         Class cls = getClass();
-        for (Field field: cls.getDeclaredFields()) {
+        for (Field field : cls.getDeclaredFields()) {
             try {
                 BooleanPref ba = field.getAnnotation(BooleanPref.class);
                 if (ba != null) {
@@ -138,57 +139,62 @@ public abstract class PrefPackage implements Serializable, Cloneable {
      */
     public void putPrefs(Preferences prefRoot, boolean removeDefaults) {
         Class cls = getClass();
-        for (Field field: cls.getDeclaredFields()) {
+        for (Field field : cls.getDeclaredFields()) {
             try {
                 BooleanPref ba = field.getAnnotation(BooleanPref.class);
                 if (ba != null) {
                     assert field.getType() == Boolean.TYPE;
                     boolean v = field.getBoolean(this);
                     Preferences prefs = prefRoot.node(ba.node());
-                    if (removeDefaults && v == ba.factory())
+                    if (removeDefaults && v == ba.factory()) {
                         prefs.remove(ba.key());
-                    else
+                    } else {
                         prefs.putBoolean(ba.key(), v);
+                    }
                 }
                 IntegerPref ia = field.getAnnotation(IntegerPref.class);
                 if (ia != null) {
                     assert field.getType() == Integer.TYPE;
                     int v = field.getInt(this);
                     Preferences prefs = prefRoot.node(ia.node());
-                    if (removeDefaults && v == ia.factory())
+                    if (removeDefaults && v == ia.factory()) {
                         prefs.remove(ia.key());
-                    else
+                    } else {
                         prefs.putInt(ia.key(), v);
+                    }
                 }
                 LongPref la = field.getAnnotation(LongPref.class);
                 if (la != null) {
                     assert field.getType() == Long.TYPE;
                     long v = field.getLong(this);
                     Preferences prefs = prefRoot.node(la.node());
-                    if (removeDefaults && v == la.factory())
+                    if (removeDefaults && v == la.factory()) {
                         prefs.remove(la.key());
-                    else
+                    } else {
                         prefs.putLong(la.key(), v);
+                    }
                 }
                 DoublePref da = field.getAnnotation(DoublePref.class);
                 if (da != null) {
                     assert field.getType() == Double.TYPE;
                     double v = field.getDouble(this);
                     Preferences prefs = prefRoot.node(da.node());
-                    if (removeDefaults && v == da.factory())
+                    if (removeDefaults && v == da.factory()) {
                         prefs.remove(da.key());
-                    else
+                    } else {
                         prefs.putDouble(da.key(), v);
+                    }
                 }
                 StringPref sa = field.getAnnotation(StringPref.class);
                 if (sa != null) {
                     assert field.getType() == String.class;
-                    String v = (String)field.get(this);
+                    String v = (String) field.get(this);
                     Preferences prefs = prefRoot.node(sa.node());
-                    if (removeDefaults && v.equals(sa.factory()))
+                    if (removeDefaults && v.equals(sa.factory())) {
                         prefs.remove(sa.key());
-                    else
+                    } else {
                         prefs.put(sa.key(), v);
+                    }
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
@@ -263,15 +269,18 @@ public abstract class PrefPackage implements Serializable, Cloneable {
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
     protected @interface BooleanPref {
+
         /**
          * Preferences node path where the annotated option is stored.
          * The path is relative.
          */
         public String node();
+
         /**
          * Preferences key with which the annotated option is associated.
          */
         public String key();
+
         /**
          * Factory default value of the annotated option.
          */
@@ -284,15 +293,18 @@ public abstract class PrefPackage implements Serializable, Cloneable {
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
     protected @interface IntegerPref {
+
         /**
          * Preferences node path where the annotated option is stored.
          * The path is relative.
          */
         public String node();
+
         /**
          * Preferences key with which the annotated option is associated.
          */
         public String key();
+
         /**
          * Factory default value of the annotated option.
          */
@@ -305,15 +317,18 @@ public abstract class PrefPackage implements Serializable, Cloneable {
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
     protected @interface LongPref {
+
         /**
          * Preferences node path where the annotated option is stored.
          * The path is relative.
          */
         public String node();
+
         /**
          * Preferences key with which the annotated option is associated.
          */
         public String key();
+
         /**
          * Factory default value of the annotated option.
          */
@@ -326,15 +341,18 @@ public abstract class PrefPackage implements Serializable, Cloneable {
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
     protected @interface DoublePref {
+
         /**
          * Preferences node path where the annotated option is stored.
          * The path is relative.
          */
         public String node();
+
         /**
          * Preferences key with which the annotated option is associated.
          */
         public String key();
+
         /**
          * Factory default value of the annotated option.
          */
@@ -347,15 +365,18 @@ public abstract class PrefPackage implements Serializable, Cloneable {
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
     protected @interface StringPref {
+
         /**
          * Preferences node path where the annotated option is stored.
          * The path is relative.
          */
         public String node();
+
         /**
          * Preferences key with which the annotated option is associated.
          */
         public String key();
+
         /**
          * Factory default value of the annotated option.
          */

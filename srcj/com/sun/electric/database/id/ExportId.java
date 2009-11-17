@@ -37,6 +37,7 @@ import com.sun.electric.database.hierarchy.Export;
  * This class is thread-safe except inCurrentThread method .
  */
 public final class ExportId extends PortProtoId {
+
     /**
      * ExportId constructor.
      */
@@ -45,21 +46,25 @@ public final class ExportId extends PortProtoId {
 //        if (externalId.length() == 0)
 //            throw new IllegalArgumentException("ExportId");
     }
-    
+
     /**
      * Method to return the parent NodeProtoId of this ExportId.
      * @return the parent NodeProtoId of this ExportId.
      */
     @Override
-    public CellId getParentId() { return (CellId)parentId; }
-    
-	/**
-	 * Method to return the name of this PortProtoId in a specified Snapshot.
+    public CellId getParentId() {
+        return (CellId) parentId;
+    }
+
+    /**
+     * Method to return the name of this PortProtoId in a specified Snapshot.
      * @param snapshot snapshot for name search.
-	 * @return the name of this PortProtoId.
-	 */
+     * @return the name of this PortProtoId.
+     */
     @Override
-	public String getName(Snapshot snapshot) { return inSnapshot(snapshot).name.toString(); }
+    public String getName(Snapshot snapshot) {
+        return inSnapshot(snapshot).name.toString();
+    }
 
     /**
      * Method to return the ImmutableExport representing ExportId in the specified Snapshot.
@@ -70,7 +75,7 @@ public final class ExportId extends PortProtoId {
         CellRevision cellRevision = snapshot.getCellRevision(getParentId());
         return cellRevision != null ? cellRevision.getExport(this) : null;
     }
-    
+
     /**
      * Method to return the Export representing ExportId in the specified EDatabase.
      * @param database EDatabase where to get from.
@@ -82,14 +87,14 @@ public final class ExportId extends PortProtoId {
         Cell cell = database.getCell(getParentId());
         return cell != null ? cell.getExportChron(chronIndex) : null;
     }
-    
+
     /**
      * Check invariants of this ExportId.
      * @throws AssertionError if this ExportId is not valid.
      */
     @Override
-     void check() {
-         super.check();
+    void check() {
+        super.check();
 //         assert externalId.length() > 0;
-     }
+    }
 }

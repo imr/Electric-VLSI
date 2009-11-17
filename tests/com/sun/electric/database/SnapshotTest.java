@@ -63,7 +63,8 @@ public class SnapshotTest {
     private TechId genericTechId;
     private TechId schematicTechId;
 
-    @Before public void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         idManager = new IdManager();
         initialSnapshot = idManager.getInitialSnapshot();
         genericTechId = idManager.newTechId("generic");
@@ -83,7 +84,8 @@ public class SnapshotTest {
         }
     }
 
-    @After public void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         idManager = null;
         initialSnapshot = null;
     }
@@ -95,7 +97,8 @@ public class SnapshotTest {
     /**
      * Test of with method, of class com.sun.electric.database.Snapshot.
      */
-    @Test public void testWith() {
+    @Test
+    public void testWith() {
         System.out.println("with");
 
         LibId libId = idManager.newLibId("libId0");
@@ -111,8 +114,8 @@ public class SnapshotTest {
         CellBackup cellBackup = CellBackup.newInstance(c, techPool);
         CellTree cellTree = CellTree.newInstance(c, techPool).with(cellBackup, CellTree.NULL_ARRAY, techPool);
 
-        CellTree[] cellTreesArray = { cellTree };
-        LibraryBackup[] libBackupsArray = { libBackup };
+        CellTree[] cellTreesArray = {cellTree};
+        LibraryBackup[] libBackupsArray = {libBackup};
         Snapshot instance = initialSnapshot.with(null, env, null, null);
         assertEquals(1, instance.snapshotId);
 
@@ -133,7 +136,8 @@ public class SnapshotTest {
 //        Snapshot newSnapshot = result.with(newCellBackups, cellGroups, cellBoundsArray, libBackupsArray);
     }
 
-    @Test public void testWithRenamedIds() {
+    @Test
+    public void testWithRenamedIds() {
         System.out.println("withReanmedIds");
 
         LibId libIdX = idManager.newLibId("X");
@@ -146,13 +150,13 @@ public class SnapshotTest {
         LibId libIdY = idManager.newLibId("Y");
         ImmutableLibrary libY = ImmutableLibrary.newInstance(libIdY, null, null);
         LibraryBackup libBackupY = new LibraryBackup(libY, false, new LibId[0]);
-        LibraryBackup[] libBackupArray = new LibraryBackup[] { libBackupX, libBackupY };
+        LibraryBackup[] libBackupArray = new LibraryBackup[]{libBackupX, libBackupY};
         CellName cellNameA = CellName.parseName("A;1{sch}");
         CellId cellId0 = libIdX.newCellId(cellNameA);
         ImmutableCell cellA = ImmutableCell.newInstance(cellId0, 0).withTechId(schematicTechId);
         CellBackup cellBackupA = CellBackup.newInstance(cellA, techPool);
         CellTree cellTreeA = CellTree.newInstance(cellA, techPool).with(cellBackupA, CellTree.NULL_ARRAY, techPool);
-        CellTree[] cellTreeArray = new CellTree[] { cellTreeA };
+        CellTree[] cellTreeArray = new CellTree[]{cellTreeA};
         LibId libIdA = idManager.newLibId("A");
 
         Snapshot oldSnapshot = initialSnapshot.with(null, env, cellTreeArray, libBackupArray);
@@ -160,25 +164,26 @@ public class SnapshotTest {
         Snapshot newSnapshot = oldSnapshot.withRenamedIds(idMapper, null, null);
 
         assertEquals(3, newSnapshot.libBackups.size());
-        assertNull( newSnapshot.libBackups.get(0) );
-        assertSame( libBackupY, newSnapshot.libBackups.get(1) );
+        assertNull(newSnapshot.libBackups.get(0));
+        assertSame(libBackupY, newSnapshot.libBackups.get(1));
         LibraryBackup libBackupA = newSnapshot.libBackups.get(2);
-        assertSame( libIdA, libBackupA.d.libId );
-        assertTrue( libBackupA.modified );
+        assertSame(libIdA, libBackupA.d.libId);
+        assertTrue(libBackupA.modified);
 
         assertEquals(2, newSnapshot.cellBackups.size());
-        assertNull( newSnapshot.cellBackups.get(0) );
+        assertNull(newSnapshot.cellBackups.get(0));
         CellBackup newCellA = newSnapshot.cellBackups.get(1);
-        assertSame( libIdA, newCellA.cellRevision.d.cellId.libId );
-        assertSame( cellNameA, newCellA.cellRevision.d.cellId.cellName );
-        assertSame( libIdA, newCellA.cellRevision.d.getLibId() );
-        assertEquals( idManager.getCellId(1), newCellA.cellRevision.d.cellId );
+        assertSame(libIdA, newCellA.cellRevision.d.cellId.libId);
+        assertSame(cellNameA, newCellA.cellRevision.d.cellId.cellName);
+        assertSame(libIdA, newCellA.cellRevision.d.getLibId());
+        assertEquals(idManager.getCellId(1), newCellA.cellRevision.d.cellId);
     }
 
     /**
      * Test of getChangedLibraries method, of class com.sun.electric.database.Snapshot.
      */
-    @Test public void testGetChangedLibraries() {
+    @Test
+    public void testGetChangedLibraries() {
         System.out.println("getChangedLibraries");
 
         Snapshot oldSnapshot = initialSnapshot;
@@ -192,7 +197,8 @@ public class SnapshotTest {
     /**
      * Test of getChangedCells method, of class com.sun.electric.database.Snapshot.
      */
-    @Test public void testGetChangedCells() {
+    @Test
+    public void testGetChangedCells() {
         System.out.println("getChangedCells");
 
         Snapshot oldSnapshot = initialSnapshot;
@@ -206,7 +212,8 @@ public class SnapshotTest {
     /**
      * Test of getCell method, of class com.sun.electric.database.Snapshot.
      */
-    @Test public void testGetCell() {
+    @Test
+    public void testGetCell() {
         System.out.println("getCell");
 
         LibId libId = idManager.newLibId("lib");
@@ -222,7 +229,8 @@ public class SnapshotTest {
     /**
      * Test of getCellBounds method, of class com.sun.electric.database.Snapshot.
      */
-    @Test public void testGetCellBounds() {
+    @Test
+    public void testGetCellBounds() {
         System.out.println("getCellBounds");
 
         LibId libId = idManager.newLibId("lib");
@@ -238,7 +246,8 @@ public class SnapshotTest {
     /**
      * Test of getLib method, of class com.sun.electric.database.Snapshot.
      */
-    @Test public void testGetLib() {
+    @Test
+    public void testGetLib() {
         System.out.println("getLib");
 
         LibId libId = idManager.newLibId("libId0");
@@ -253,7 +262,8 @@ public class SnapshotTest {
     /**
      * Test of writeDiffs method, of class com.sun.electric.database.Snapshot.
      */
-    @Test public void testWriteDiffs() throws Exception {
+    @Test
+    public void testWriteDiffs() throws Exception {
         System.out.println("writeDiffs");
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -268,7 +278,8 @@ public class SnapshotTest {
     /**
      * Test of readSnapshot method, of class com.sun.electric.database.Snapshot.
      */
-    @Test public void testReadSnapshot() throws Exception {
+    @Test
+    public void testReadSnapshot() throws Exception {
         System.out.println("readSnapshot");
 
         IdManager idManager = new IdManager();
@@ -283,7 +294,8 @@ public class SnapshotTest {
     /**
      * Test of check method, of class com.sun.electric.database.Snapshot.
      */
-    @Test public void testCheck() {
+    @Test
+    public void testCheck() {
         System.out.println("check");
 
         Snapshot instance = initialSnapshot;

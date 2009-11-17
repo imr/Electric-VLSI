@@ -51,8 +51,8 @@ import org.junit.Test;
 /**
  * Unit test of ImmutableNodeInst
  */
-public class ImmutableNodeInstTest
-{
+public class ImmutableNodeInstTest {
+
     private IdManager idManager;
     private Generic generic;
     private Technology tech;
@@ -62,7 +62,8 @@ public class ImmutableNodeInstTest
     private Name nameA0;
     private ImmutableNodeInst n0;
 
-    @Before public void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         idManager = new IdManager();
         generic = Generic.newInstance(idManager);
         tech = TechFactory.getTechFactory("mocmos").newInstance(generic);
@@ -128,12 +129,11 @@ public class ImmutableNodeInstTest
 //            fail("The test case is a prototype.");
 //        }
 //    }
-
-
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    @Test public void testNewInstance() {
+    @Test
+    public void testNewInstance() {
         System.out.println("newInstance");
 
         TextDescriptor td = TextDescriptor.newTextDescriptor(new MutableTextDescriptor()).withParam(true);
@@ -146,50 +146,59 @@ public class ImmutableNodeInstTest
         assertSame(n1.size, EPoint.ORIGIN);
     }
 
-    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadNodeId() {
+    @Test(expected = IllegalArgumentException.class)
+    public void testNewInstanceBadNodeId() {
         System.out.println("newInstanceBadNodeId");
         ImmutableNodeInst.newInstance(-1, cellCenterNodeId, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
-    @Test(expected = NullPointerException.class) public void testNewInstanceBadProtoId() {
+    @Test(expected = NullPointerException.class)
+    public void testNewInstanceBadProtoId() {
         System.out.println("newInstanceBadProtoId");
         ImmutableNodeInst.newInstance(0, null, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
-    @Test(expected = NullPointerException.class) public void testNewInstanceBadName1() {
+    @Test(expected = NullPointerException.class)
+    public void testNewInstanceBadName1() {
         System.out.println("newInstanceBadName1");
         ImmutableNodeInst.newInstance(0, cellCenterNodeId, null, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
-    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName2() {
+    @Test(expected = IllegalArgumentException.class)
+    public void testNewInstanceBadName2() {
         System.out.println("newInstanceBadName2");
         Name name = Name.findName("a[0]_b");
         ImmutableNodeInst.newInstance(0, cellCenterNodeId, name, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
-    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName3() {
+    @Test(expected = IllegalArgumentException.class)
+    public void testNewInstanceBadName3() {
         System.out.println("newInstanceBadName3");
         Name name = Name.findName("i@0[0:1]");
         ImmutableNodeInst.newInstance(0, cellCenterNodeId, name, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
-    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName4() {
+    @Test(expected = IllegalArgumentException.class)
+    public void testNewInstanceBadName4() {
         System.out.println("newInstanceBadName4");
         Name name = Name.findName("a[0:5],b,a[5:8]");
         ImmutableNodeInst.newInstance(0, cellCenterNodeId, name, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
-    @Test(expected = NullPointerException.class) public void testNewInstanceBadOrient() {
+    @Test(expected = NullPointerException.class)
+    public void testNewInstanceBadOrient() {
         System.out.println("newInstanceBadOrient");
         ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, null, null, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
-    @Test(expected = NullPointerException.class) public void testNewInstanceBadAnchor() {
+    @Test(expected = NullPointerException.class)
+    public void testNewInstanceBadAnchor() {
         System.out.println("newInstanceBadAnchor");
         ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, null, Orientation.R, null, EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
-    @Test(expected = NullPointerException.class) public void testNewInstanceBadSize1() {
+    @Test(expected = NullPointerException.class)
+    public void testNewInstanceBadSize1() {
         System.out.println("newInstanceBadSize1");
         ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), null, 0, 0, null);
     }
@@ -203,11 +212,11 @@ public class ImmutableNodeInstTest
 //        System.out.println("newInstanceBadSize3");
 //        ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, -17), 0, 0, null);
 //    }
-
     /**
      * Test of withName method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    @Test public void testWithName() {
+    @Test
+    public void testWithName() {
         System.out.println("withName");
         assertSame(n0, n0.withName(Name.findName("a0")));
 
@@ -215,22 +224,26 @@ public class ImmutableNodeInstTest
         assertSame(name_B, n0.withName(name_B).name);
     }
 
-    @Test(expected = NullPointerException.class) public void testWithBadName1() {
+    @Test(expected = NullPointerException.class)
+    public void testWithBadName1() {
         System.out.println("withBadName1");
         n0.withName(null);
     }
 
-    @Test(expected = IllegalArgumentException.class) public void testWithBadName2() {
+    @Test(expected = IllegalArgumentException.class)
+    public void testWithBadName2() {
         System.out.println("withBadName2");
         n0.withName(Name.findName("a[0]_b"));
     }
 
-    @Test(expected = IllegalArgumentException.class) public void testWithBadName3() {
+    @Test(expected = IllegalArgumentException.class)
+    public void testWithBadName3() {
         System.out.println("newWithBadName3");
         n0.withName(Name.findName("i@0[0:1]"));
     }
 
-    @Test(expected = IllegalArgumentException.class) public void testWithBadName4() {
+    @Test(expected = IllegalArgumentException.class)
+    public void testWithBadName4() {
         System.out.println("newWithBadName4");
         n0.withName(Name.findName("a[0:5],b,a[5:8]"));
     }
@@ -238,7 +251,8 @@ public class ImmutableNodeInstTest
     /**
      * Test of withNameDescriptor method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    @Test public void testWithNameDescriptor() {
+    @Test
+    public void testWithNameDescriptor() {
         System.out.println("withNameDescriptor");
         assertSame(n0, n0.withNameDescriptor(null));
     }
@@ -246,7 +260,8 @@ public class ImmutableNodeInstTest
     /**
      * Test of withOrient method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    @Test public void testWithOrient() {
+    @Test
+    public void testWithOrient() {
         System.out.println("withOrient");
         assertSame(n0, n0.withOrient(Orientation.IDENT));
     }
@@ -254,7 +269,8 @@ public class ImmutableNodeInstTest
     /**
      * Test of withAnchor method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    @Test public void testWithAnchor() {
+    @Test
+    public void testWithAnchor() {
         System.out.println("withAnchor");
         assertSame(n0, n0.withAnchor(EPoint.fromLambda(1, 2)));
     }
@@ -262,7 +278,8 @@ public class ImmutableNodeInstTest
     /**
      * Test of withSize method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    @Test public void testWithSize() {
+    @Test
+    public void testWithSize() {
         System.out.println("withSize");
         assertSame(n0, n0.withSize(EPoint.ORIGIN));
     }
@@ -270,7 +287,8 @@ public class ImmutableNodeInstTest
     /**
      * Test of withStateBits method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    @Test public void testWithStateBits() {
+    @Test
+    public void testWithStateBits() {
         System.out.println("withStateBits");
         assertSame(n0, n0.withStateBits(n0));
     }
@@ -278,7 +296,8 @@ public class ImmutableNodeInstTest
     /**
      * Test of withFlag method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    @Test public void testWithFlag() {
+    @Test
+    public void testWithFlag() {
         System.out.println("withFlag");
         assertSame(n0, n0.withFlag(ImmutableNodeInst.HARD_SELECT, n0.is(ImmutableNodeInst.HARD_SELECT)));
         assertSame(n0, n0.withFlag(ImmutableNodeInst.VIS_INSIDE, n0.is(ImmutableNodeInst.VIS_INSIDE)));
@@ -288,7 +307,8 @@ public class ImmutableNodeInstTest
     /**
      * Test of withTechSpecific method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    @Test public void testWithTechSpecific() {
+    @Test
+    public void testWithTechSpecific() {
         System.out.println("withTechSpecific");
         assertSame(n0, n0.withTechSpecific(n0.techBits));
     }
@@ -296,7 +316,8 @@ public class ImmutableNodeInstTest
     /**
      * Test of withProtoDescriptor method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    @Test public void testWithProtoDescriptor() {
+    @Test
+    public void testWithProtoDescriptor() {
         System.out.println("withProtoDescriptor");
         assertSame(n0, n0.withProtoDescriptor(null));
     }
@@ -304,7 +325,8 @@ public class ImmutableNodeInstTest
     /**
      * Test of withVariable method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    @Test public void testWithVariable() {
+    @Test
+    public void testWithVariable() {
         System.out.println("withVariable");
         Variable.Key varKey = Variable.newKey("key");
         Variable var = Variable.newInstance(varKey, "valueA", TextDescriptor.newTextDescriptor(new MutableTextDescriptor()));
@@ -317,7 +339,8 @@ public class ImmutableNodeInstTest
     /**
      * Test of withoutVariable method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    @Test public void testWithoutVariable() {
+    @Test
+    public void testWithoutVariable() {
         System.out.println("withoutVariable");
         Variable.Key varKey = Variable.newKey("key");
         Variable var = Variable.newInstance(varKey, "valueA", TextDescriptor.newTextDescriptor(new MutableTextDescriptor()));
@@ -332,7 +355,8 @@ public class ImmutableNodeInstTest
     /**
      * Test of withRenamedIds method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    @Test public void testWithRenamedIds() {
+    @Test
+    public void testWithRenamedIds() {
         System.out.println("withRenamedIds");
         IdMapper idMapper = new IdMapper();
         assertSame(n0, n0.withRenamedIds(idMapper));
@@ -452,7 +476,6 @@ public class ImmutableNodeInstTest
 //        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
-
     /**
      * Test of read method, of class com.sun.electric.database.ImmutableNodeInst.
      */
@@ -611,5 +634,4 @@ public class ImmutableNodeInstTest
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
-
 }

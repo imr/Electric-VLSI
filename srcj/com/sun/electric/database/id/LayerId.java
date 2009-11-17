@@ -39,6 +39,7 @@ import java.io.Serializable;
  * This class is thread-safe except inCurrentThread method.
  */
 public class LayerId implements Serializable {
+
     /** TechId of this LayerId. */
     public final TechId techId;
     /** Layer name */
@@ -53,25 +54,34 @@ public class LayerId implements Serializable {
      */
     LayerId(TechId techId, String name, int chronIndex) {
         assert techId != null;
-        if (name.length() == 0 || !TechId.jelibSafeName(name))
+        if (name.length() == 0 || !TechId.jelibSafeName(name)) {
             throw new IllegalArgumentException("LayerId.name");
+        }
         this.techId = techId;
         this.name = name;
         fullName = techId.techName + ":" + name;
         this.chronIndex = chronIndex;
-     }
+    }
 
-    private Object writeReplace() { return new LayerIdKey(this); }
+    private Object writeReplace() {
+        return new LayerIdKey(this);
+    }
 
     private static class LayerIdKey extends EObjectInputStream.Key<LayerId> {
-        public LayerIdKey() {}
-        private LayerIdKey(LayerId layerId) { super(layerId); }
+
+        public LayerIdKey() {
+        }
+
+        private LayerIdKey(LayerId layerId) {
+            super(layerId);
+        }
 
         @Override
         public void writeExternal(EObjectOutputStream out, LayerId layerId) throws IOException {
             TechId techId = layerId.techId;
-            if (techId.idManager != out.getIdManager())
+            if (techId.idManager != out.getIdManager()) {
                 throw new NotSerializableException(layerId + " from other IdManager");
+            }
             out.writeInt(techId.techIndex);
             out.writeInt(layerId.chronIndex);
         }
@@ -94,17 +104,19 @@ public class LayerId implements Serializable {
         return database.getTechPool().getLayer(this);
     }
 
-	/**
-	 * Returns a printable version of this LayerId.
-	 * @return a printable version of this LayerId.
-	 */
+    /**
+     * Returns a printable version of this LayerId.
+     * @return a printable version of this LayerId.
+     */
     @Override
-    public String toString() { return fullName; }
+    public String toString() {
+        return fullName;
+    }
 
-	/**
-	 * Checks invariants in this LayerId.
+    /**
+     * Checks invariants in this LayerId.
      * @exception AssertionError if invariants are not valid
-	 */
+     */
     void check() {
         assert this == techId.getLayerId(chronIndex);
         assert name.length() > 0 && TechId.jelibSafeName(name);

@@ -34,30 +34,33 @@ import com.sun.electric.technology.PrimitivePort;
  * This class is thread-safe except inCurrentThread method.
  */
 public class PrimitivePortId extends PortProtoId {
-    
+
     /**
      * PrimitivePortId constructor.
      */
     PrimitivePortId(PrimitiveNodeId parentId, String externalId, int chronIndex) {
         super(parentId, externalId, chronIndex);
-        if (!TechId.jelibSafeName(externalId))
+        if (!TechId.jelibSafeName(externalId)) {
             throw new IllegalArgumentException("PortProtoId.name");
+        }
     }
-    
-	/**
-	 * Method to return the parent NodeProtoId of this PortProtoId.
-	 * @return the parent NodeProtoId of this PortProtoId.
-	 */
-    @Override
-	public PrimitiveNodeId getParentId() { return (PrimitiveNodeId)parentId; }
 
-	/**
-	 * Method to return the name of this PortProtoId in a specified Snapshot.
-     * @param snapshot snapshot for name search.
-	 * @return the name of this PortProtoId.
-	 */
+    /**
+     * Method to return the parent NodeProtoId of this PortProtoId.
+     * @return the parent NodeProtoId of this PortProtoId.
+     */
     @Override
-	public String getName(Snapshot snapshot) {
+    public PrimitiveNodeId getParentId() {
+        return (PrimitiveNodeId) parentId;
+    }
+
+    /**
+     * Method to return the name of this PortProtoId in a specified Snapshot.
+     * @param snapshot snapshot for name search.
+     * @return the name of this PortProtoId.
+     */
+    @Override
+    public String getName(Snapshot snapshot) {
         PrimitivePort pp = inSnapshot(snapshot);
         return pp != null ? pp.getName() : null;
     }
@@ -70,8 +73,8 @@ public class PrimitivePortId extends PortProtoId {
     public PrimitivePort inSnapshot(Snapshot snapshot) {
         return snapshot.getTechPool().getPrimitivePort(this);
     }
-    
-   /**
+
+    /**
      * Method to return the PortProto representing PortProtoId in the specified EDatabase.
      * @param database EDatabase where to get from.
      * @return the PortProto representing PortProtoId in the specified database.
@@ -81,11 +84,11 @@ public class PrimitivePortId extends PortProtoId {
     public PrimitivePort inDatabase(EDatabase database) {
         return database.getTechPool().getPrimitivePort(this);
     }
-    
-	/**
-	 * Checks invariants in this PrimitivePortId.
+
+    /**
+     * Checks invariants in this PrimitivePortId.
      * @exception AssertionError if invariants are not valid
-	 */
+     */
     @Override
     void check() {
         super.check();

@@ -61,7 +61,8 @@ public class ImmutableCellTest {
     private ImmutableCell d;
     private Variable var;
 
-    @Before public void setUp() {
+    @Before
+    public void setUp() {
         idManager = new IdManager();
         genericTechId = idManager.newTechId("generic");
         schematicTechId = idManager.newTechId("schematic");
@@ -70,7 +71,7 @@ public class ImmutableCellTest {
         cellId = libId.newCellId(fooName);
         groupName = CellName.parseName("foo{sch}");
         d = ImmutableCell.newInstance(cellId, 12345).withGroupName(groupName).withTechId(genericTechId);
-        var = Variable.newInstance(Variable.newKey("A"), "foo", TextDescriptor.EMPTY.withParam(true) );
+        var = Variable.newInstance(Variable.newKey("A"), "foo", TextDescriptor.EMPTY.withParam(true));
     }
 
     @After
@@ -84,7 +85,8 @@ public class ImmutableCellTest {
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableCell.
      */
-    @Test(expected= NullPointerException.class) public void testNewInstance() {
+    @Test(expected = NullPointerException.class)
+    public void testNewInstance() {
         System.out.println("newInstance");
 
         long creationDate = 0L;
@@ -94,7 +96,8 @@ public class ImmutableCellTest {
     /**
      * Test of withGroupName method, of class com.sun.electric.database.ImmutableCell.
      */
-    @Test public void testWithGroupName() {
+    @Test
+    public void testWithGroupName() {
         System.out.println("withGroupName");
 
         assertSame(d, d.withGroupName(CellName.parseName("foo{sch}")));
@@ -113,7 +116,8 @@ public class ImmutableCellTest {
     /**
      * Test of withGroupName method, of class com.sun.electric.database.ImmutableCell.
      */
-    @Test(expected= NullPointerException.class) public void testWithGroupNameNull() {
+    @Test(expected = NullPointerException.class)
+    public void testWithGroupNameNull() {
         System.out.println("withGroupNameNull");
 
         d.withGroupName(CellName.parseName(null));
@@ -122,7 +126,8 @@ public class ImmutableCellTest {
     /**
      * Test of withGroupName method, of class com.sun.electric.database.ImmutableCell.
      */
-    @Test(expected= IllegalArgumentException.class) public void testWithGroupNameBad() {
+    @Test(expected = IllegalArgumentException.class)
+    public void testWithGroupNameBad() {
         System.out.println("withGroupNameBad");
 
         d.withGroupName(CellName.parseName("foo{ic}"));
@@ -131,10 +136,11 @@ public class ImmutableCellTest {
     /**
      * Test of withCreationDate method, of class com.sun.electric.database.ImmutableCell.
      */
-    @Test public void testWithCreationDate() {
+    @Test
+    public void testWithCreationDate() {
         System.out.println("withCreationDate");
 
-        assertSame(d, d.withCreationDate(12345) );
+        assertSame(d, d.withCreationDate(12345));
 
         long creationDate = 2006L;
         ImmutableCell d1 = d.withCreationDate(creationDate);
@@ -150,7 +156,8 @@ public class ImmutableCellTest {
     /**
      * Test of withTechId method, of class com.sun.electric.database.ImmutableCell.
      */
-    @Test public void testWithTecId() {
+    @Test
+    public void testWithTecId() {
         System.out.println("withTechId");
 
         assertSame(d, d.withTechId(genericTechId));
@@ -164,13 +171,14 @@ public class ImmutableCellTest {
         assertSame(d.getVars(), d1.getVars());
         assertEquals(d.flags, d1.flags);
 
-        assertNull( d.withTechId(null).techId );
+        assertNull(d.withTechId(null).techId);
     }
 
     /**
      * Test of withTechId method, of class com.sun.electric.database.ImmutableCell.
      */
-    @Test(expected= IllegalArgumentException.class) public void testWithTecIdBad() {
+    @Test(expected = IllegalArgumentException.class)
+    public void testWithTecIdBad() {
         System.out.println("withTechIdBad");
         d.withTechId(new IdManager().newTechId(genericTechId.techName));
     }
@@ -178,7 +186,8 @@ public class ImmutableCellTest {
     /**
      * Test of withFlags method, of class com.sun.electric.database.ImmutableCell.
      */
-    @Test public void testWithFlags() {
+    @Test
+    public void testWithFlags() {
         System.out.println("withFlags");
 
         assertSame(d, d.withFlags(0));
@@ -197,7 +206,8 @@ public class ImmutableCellTest {
     /**
      * Test of withVariable method, of class com.sun.electric.database.ImmutableCell.
      */
-    @Test public void testWithVariable() {
+    @Test
+    public void testWithVariable() {
         System.out.println("withVariable");
 
         ImmutableCell d1 = d.withVariable(var);
@@ -216,25 +226,28 @@ public class ImmutableCellTest {
     /**
      * Test of withoutVariable method, of class com.sun.electric.database.ImmutableCell.
      */
-    @Test public void testWithoutVariable() {
+    @Test
+    public void testWithoutVariable() {
         System.out.println("withoutVariable");
 
-        assertSame( d, d.withoutVariable(Variable.newKey("A")) );
+        assertSame(d, d.withoutVariable(Variable.newKey("A")));
     }
 
     /**
      * Test of withoutVariables method, of class com.sun.electric.database.ImmutableCell.
      */
-    @Test public void testWithoutVariables() {
+    @Test
+    public void testWithoutVariables() {
         System.out.println("withoutVariables");
 
-        assertSame( d, d.withoutVariables() );
+        assertSame(d, d.withoutVariables());
     }
 
     /**
      * Test of writeDiffs and readDiff method, of class com.sun.electric.database.ImmutableCell.
      */
-    @Test public void testReadWrite() {
+    @Test
+    public void testReadWrite() {
         System.out.println("readReadWrite");
 
         try {
@@ -256,7 +269,7 @@ public class ImmutableCellTest {
             assertEquals(d.creationDate, d1.creationDate);
             assertSame(d.techId, d1.techId);
             assertEquals(d.flags, d1.flags);
-            assertTrue( Arrays.equals(d.getVars(), d1.getVars()) );
+            assertTrue(Arrays.equals(d.getVars(), d1.getVars()));
         } catch (IOException e) {
             fail(e.getMessage());
         }
@@ -265,24 +278,26 @@ public class ImmutableCellTest {
     /**
      * Test of hashCodeExceptVariables method, of class com.sun.electric.database.ImmutableCell.
      */
-    @Test public void testHashCodeExceptVariables() {
+    @Test
+    public void testHashCodeExceptVariables() {
         System.out.println("hashCodeExceptVariables");
 
-        assertEquals( cellId.hashCode(), d.hashCodeExceptVariables() );
+        assertEquals(cellId.hashCode(), d.hashCodeExceptVariables());
     }
 
     /**
      * Test of equalsExceptVariables method, of class com.sun.electric.database.ImmutableCell.
      */
-    @Test public void testEqualsExceptVariables() {
+    @Test
+    public void testEqualsExceptVariables() {
         System.out.println("equalsExceptVariables");
 
-        assertTrue( d.equalsExceptVariables(d) );
-        assertFalse( d.equalsExceptVariables(d.withGroupName(CellName.parseName("bar{sch}"))) );
-        assertFalse( d.equalsExceptVariables(d.withCreationDate(1)) );
-        assertFalse( d.equalsExceptVariables(d.withTechId(schematicTechId)) );
-        assertFalse( d.equalsExceptVariables(d.withFlags(1)) );
-        assertTrue( d.equalsExceptVariables(d.withVariable(var)) );
+        assertTrue(d.equalsExceptVariables(d));
+        assertFalse(d.equalsExceptVariables(d.withGroupName(CellName.parseName("bar{sch}"))));
+        assertFalse(d.equalsExceptVariables(d.withCreationDate(1)));
+        assertFalse(d.equalsExceptVariables(d.withTechId(schematicTechId)));
+        assertFalse(d.equalsExceptVariables(d.withFlags(1)));
+        assertTrue(d.equalsExceptVariables(d.withVariable(var)));
     }
 
     /**

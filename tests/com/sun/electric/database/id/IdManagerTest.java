@@ -38,15 +38,16 @@ import org.junit.Test;
  * Unit tests of IdManager
  */
 public class IdManagerTest {
-    
+
     private IdManager idManager;
     private Snapshot initialSnapshot;
     private LibId libId0;
     private LibId libId1;
     private CellId cellId0;
     private CellId cellId1;
-    
-    @Before public void setUp() throws Exception {
+
+    @Before
+    public void setUp() throws Exception {
         idManager = new IdManager();
         initialSnapshot = idManager.getInitialSnapshot();
         libId0 = idManager.newLibId("libId0");
@@ -57,7 +58,8 @@ public class IdManagerTest {
         cellId1 = libId0.newCellId(cellName1);
     }
 
-    @After public void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         idManager = null;
         initialSnapshot = null;
         libId0 = libId1 = null;
@@ -71,9 +73,10 @@ public class IdManagerTest {
     /**
      * Test of newLibId method, of class com.sun.electric.database.IdManager.
      */
-    @Test public void testNewLibId() {
+    @Test
+    public void testNewLibId() {
         System.out.println("newLibId");
-        
+
         assertLibId(0, libId0);
         assertLibId(1, libId1);
         LibId libId2 = idManager.newLibId("libId2");
@@ -84,9 +87,10 @@ public class IdManagerTest {
     /**
      * Test of getLibId method, of class com.sun.electric.database.IdManager.
      */
-    @Test public void testGetLibId() {
+    @Test
+    public void testGetLibId() {
         System.out.println("getLibId");
-        
+
         assertSame(libId1, idManager.getLibId(1));
         LibId libId2 = idManager.newLibId("libId2");
         LibId libId3 = idManager.newLibId("libId3");
@@ -96,7 +100,7 @@ public class IdManagerTest {
         assertSame(libId4, idManager.getLibId(4));
         assertSame(libId5, idManager.getLibId(5));
     }
-    
+
     private void assertLibId(int libIndex, LibId libId) {
         assertSame(idManager, libId.idManager);
         assertEquals(libIndex, libId.libIndex);
@@ -105,9 +109,10 @@ public class IdManagerTest {
     /**
      * Test of newCellId method, of class com.sun.electric.database.IdManager.
      */
-    @Test public void testNewCellId() {
+    @Test
+    public void testNewCellId() {
         System.out.println("newCellId");
-        
+
         assertCellId(0, cellId0);
         assertCellId(1, cellId1);
         CellName cellName2 = CellName.parseName("cell2;1{sch}");
@@ -118,9 +123,10 @@ public class IdManagerTest {
     /**
      * Test of getCellId method, of class com.sun.electric.database.IdManager.
      */
-    @Test public void testGetCellId() {
+    @Test
+    public void testGetCellId() {
         System.out.println("getCellId");
-        
+
         assertSame(cellId1, idManager.getCellId(1));
         CellName cellName2 = CellName.parseName("cell2;1{sch}");
         CellName cellName3 = CellName.parseName("cell3;1{sch}");
@@ -134,7 +140,7 @@ public class IdManagerTest {
         assertSame(cellId4, idManager.getCellId(4));
         assertSame(cellId5, idManager.getCellId(5));
     }
-    
+
     private void assertCellId(int cellIndex, CellId cellId) {
         assertSame(idManager, cellId.getIdManager());
         assertEquals(cellIndex, cellId.cellIndex);
@@ -143,23 +149,25 @@ public class IdManagerTest {
     /**
      * Test of getInitialSnapshot method, of class com.sun.electric.database.IdManager.
      */
-    @Test public void testGetInitialSnapshot() {
+    @Test
+    public void testGetInitialSnapshot() {
         System.out.println("getInitialSnapshot");
-        
+
         assertSame(idManager, initialSnapshot.idManager);
         assertEquals(0, initialSnapshot.snapshotId);
         assertSame(CellBackup.EMPTY_LIST, initialSnapshot.cellBackups);
         assertEquals(0, initialSnapshot.cellGroups.length);
 //        assertSame(ERectangle.EMPTY_LIST, initialSnapshot.cellBounds);
         assertSame(LibraryBackup.EMPTY_LIST, initialSnapshot.libBackups);
-        
+
         assertSame(initialSnapshot, idManager.getInitialSnapshot());
     }
-    
+
     /**
      * Test of newSnapshotId method, of class com.sun.electric.database.IdManager.
      */
-    @Test public void testNewSnapshotId() {
+    @Test
+    public void testNewSnapshotId() {
         System.out.println("newSnapshotId");
         assertEquals(1, idManager.newSnapshotId());
         assertEquals(2, idManager.newSnapshotId());

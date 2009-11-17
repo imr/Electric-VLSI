@@ -59,6 +59,7 @@ import java.util.Map;
  *
  */
 public class Snapshot {
+
     public final IdManager idManager;
     public final int snapshotId;
     public final Tool tool;
@@ -112,11 +113,13 @@ public class Snapshot {
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
     private Snapshot with(Tool tool, Environment environment, CellBackup[] cellBackupsArray, LibraryBackup[] libBackupsArray) {
-        if (environment == null)
+        if (environment == null) {
             environment = this.environment;
+        }
         CellTree[] cellTreesArray = null;
-        if (cellBackupsArray != null)
+        if (cellBackupsArray != null) {
             cellTreesArray = computeCellTrees(new ImmutableArrayList<CellBackup>(cellBackupsArray), environment.techPool);
+        }
         return with(tool, environment, cellTreesArray, libBackupsArray);
     }
 
@@ -133,11 +136,14 @@ public class Snapshot {
      */
     public Snapshot with(Tool tool, Environment environment, CellTree[] cellTreesArray, LibraryBackup[] libBackupsArray) {
 //        long startTime = System.currentTimeMillis();
-        if (environment == null)
+        if (environment == null) {
             environment = this.environment;
+        }
         ImmutableArrayList<CellTree> cellTrees = copyArray(cellTreesArray, this.cellTrees);
         ImmutableArrayList<LibraryBackup> libBackups = copyArray(libBackupsArray, this.libBackups);
-        if (this.cellTrees == cellTrees && this.libBackups == libBackups && this.environment == environment) return this;
+        if (this.cellTrees == cellTrees && this.libBackups == libBackups && this.environment == environment) {
+            return this;
+        }
         TechPool techPool = environment.techPool;
 
         // Check usages in cells
@@ -146,37 +152,46 @@ public class Snapshot {
             CellTree newTree = cellTrees.get(cellIndex);
             CellTree oldTree = getCellTree(cellIndex);
             if (newTree == null) {
-                if (oldTree != null)
+                if (oldTree != null) {
                     namesChanged = true;
+                }
                 continue;
             }
             CellBackup newBackup = newTree.top;
             ImmutableCell newCell = newBackup.cellRevision.d;
-            if (!newBackup.techPool.isRestriction(techPool))
+            if (!newBackup.techPool.isRestriction(techPool)) {
                 throw new IllegalArgumentException();
+            }
             // Check that sub trees match
-            if (newCell.cellId.cellIndex != cellIndex)
+            if (newCell.cellId.cellIndex != cellIndex) {
                 throw new IllegalArgumentException();
-            if (newCell.cellId.idManager != idManager)
+            }
+            if (newCell.cellId.idManager != idManager) {
                 throw new IllegalArgumentException();
-            for (CellTree cellSubTree: newTree.subTrees) {
-                if (cellSubTree == null) continue;
-                if (cellSubTree != cellTrees.get(cellSubTree.top.cellRevision.d.cellId.cellIndex))
+            }
+            for (CellTree cellSubTree : newTree.subTrees) {
+                if (cellSubTree == null) {
+                    continue;
+                }
+                if (cellSubTree != cellTrees.get(cellSubTree.top.cellRevision.d.cellId.cellIndex)) {
                     throw new IllegalArgumentException();
+                }
             }
 
             CellBackup oldBackup = getCell(cellIndex);
-            if (oldBackup == null || newCell.groupName != oldBackup.cellRevision.d.groupName ||
-                    newCell.params != oldBackup.cellRevision.d.params)
+            if (oldBackup == null || newCell.groupName != oldBackup.cellRevision.d.groupName
+                    || newCell.params != oldBackup.cellRevision.d.params) {
                 namesChanged = true;
+            }
         }
         ImmutableArrayList<CellBackup> cellBackups = this.cellBackups;
         if (this.cellTrees != cellTrees) {
             CellBackup[] cellBackupArray = new CellBackup[cellTrees.size()];
             for (int cellIndex = 0; cellIndex < cellTrees.size(); cellIndex++) {
                 CellTree cellTree = cellTrees.get(cellIndex);
-                if (cellTree != null)
+                if (cellTree != null) {
                     cellBackupArray[cellIndex] = cellTree.top;
+                }
             }
             cellBackups = new ImmutableArrayList<CellBackup>(cellBackupArray);
         }
@@ -191,21 +206,28 @@ public class Snapshot {
                 cellGroups = this.cellGroups;
             } else {
                 int maxGroup = -1;
-                for (int groupIndex: cellGroups)
+                for (int groupIndex : cellGroups) {
                     maxGroup = Math.max(maxGroup, groupIndex);
+                }
                 groupMainSchematics = new CellId[maxGroup + 1];
                 for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
                     CellBackup cellBackup = cellBackups.get(cellIndex);
-                    if (cellBackup == null) continue;
+                    if (cellBackup == null) {
+                        continue;
+                    }
                     CellId cellId = cellBackup.cellRevision.d.cellId;
-                    if (!cellId.isSchematic()) continue;
+                    if (!cellId.isSchematic()) {
+                        continue;
+                    }
                     int groupIndex = cellGroups[cellIndex];
                     CellId mainSchematics = groupMainSchematics[groupIndex];
-                    if (mainSchematics == null || cellId.cellName.compareTo(mainSchematics.cellName) < 0)
+                    if (mainSchematics == null || cellId.cellName.compareTo(mainSchematics.cellName) < 0) {
                         groupMainSchematics[groupIndex] = cellId;
+                    }
                 }
-                if (Arrays.equals(this.groupMainSchematics, groupMainSchematics))
+                if (Arrays.equals(this.groupMainSchematics, groupMainSchematics)) {
                     groupMainSchematics = this.groupMainSchematics;
+                }
             }
         }
 
@@ -220,21 +242,29 @@ public class Snapshot {
     public Snapshot with(Tool tool, Environment environment) {
         TechPool techPool = environment.techPool;
         CellBackup[] cellBackupArray = new CellBackup[cellBackups.size()];
-        for (CellBackup cellBackup: cellBackups) {
-            if (cellBackup == null) continue;
+        for (CellBackup cellBackup : cellBackups) {
+            if (cellBackup == null) {
+                continue;
+            }
             cellBackupArray[cellBackup.cellRevision.d.cellId.cellIndex] = cellBackup.withTechPool(techPool);
         }
         return with(tool, environment, cellBackupArray, null);
     }
 
     private static <T> ImmutableArrayList<T> copyArray(T[] newArray, ImmutableArrayList<T> oldList) {
-        if (newArray == null) return oldList;
+        if (newArray == null) {
+            return oldList;
+        }
         int l;
         for (l = newArray.length; l > 0 && newArray[l - 1] == null; l--);
         if (l == oldList.size()) {
             int i = 0;
-            while (i < oldList.size() && newArray[i] == oldList.get(i)) i++;
-            if (i == l) return oldList;
+            while (i < oldList.size() && newArray[i] == oldList.get(i)) {
+                i++;
+            }
+            if (i == l) {
+                return oldList;
+            }
         }
         return new ImmutableArrayList<T>(newArray, 0, l);
     }
@@ -243,7 +273,9 @@ public class Snapshot {
         CellTree[] result = new CellTree[cellBackups.size()];
         for (int cellIndex = 0; cellIndex < result.length; cellIndex++) {
             CellBackup cellBackup = cellBackups.get(cellIndex);
-            if (cellBackup == null) continue;
+            if (cellBackup == null) {
+                continue;
+            }
             computeCellTrees(cellBackup.cellRevision.d.cellId, cellBackups, techPool, result);
         }
         return result;
@@ -257,33 +289,39 @@ public class Snapshot {
             int[] instCounts = top.cellRevision.getInstCounts();
             CellTree[] subTrees = new CellTree[instCounts.length];
             for (int i = 0; i < subTrees.length; i++) {
-                if (instCounts[i] == 0) continue;
+                if (instCounts[i] == 0) {
+                    continue;
+                }
                 subTrees[i] = computeCellTrees(topCellId.getUsageIn(i).protoId, cellBackups, techPool, cellTrees);
             }
             cellTree = getCellTree(topCellId);
-            if (cellTree == null)
+            if (cellTree == null) {
                 cellTree = CellTree.newInstance(top.cellRevision.d, techPool);
+            }
             cellTree = cellTree.with(top, subTrees, techPool);
             cellTrees[cellIndex] = cellTree;
         }
         return cellTree;
     }
 
-
-	/**
-	 * Returns Snapshot which differs from this Snapshot by renamed Ids.
-	 * @param idMapper a map from old Ids to new Ids.
+    /**
+     * Returns Snapshot which differs from this Snapshot by renamed Ids.
+     * @param idMapper a map from old Ids to new Ids.
      * @return Snapshot with renamed Ids.
-	 */
+     */
     public Snapshot withRenamedIds(IdMapper idMapper, CellId fromGroup, String toGroup) {
         int maxCellIndex = -1;
-        for (CellBackup cellBackup: cellBackups) {
-            if (cellBackup == null) continue;
+        for (CellBackup cellBackup : cellBackups) {
+            if (cellBackup == null) {
+                continue;
+            }
             maxCellIndex = Math.max(maxCellIndex, idMapper.get(cellBackup.cellRevision.d.cellId).cellIndex);
         }
         int maxLibIndex = -1;
-        for (LibraryBackup libBackup: libBackups) {
-            if (libBackup == null) continue;
+        for (LibraryBackup libBackup : libBackups) {
+            if (libBackup == null) {
+                continue;
+            }
             maxLibIndex = Math.max(maxLibIndex, idMapper.get(libBackup.d.libId).libIndex);
         }
 
@@ -303,17 +341,22 @@ public class Snapshot {
             int fromGroupIndex = cellGroups[fromGroup.cellIndex];
             assert fromGroupIndex >= 0;
             int toGroupIndex1 = -1, toGroupIndex2 = -1;
-            if (toGroup == null)
+            if (toGroup == null) {
                 toGroupIndex2 = fromGroupIndex;
+            }
             for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
                 CellBackup cellBackup = cellBackups.get(cellIndex);
-                if (cellBackup == null) continue;
+                if (cellBackup == null) {
+                    continue;
+                }
                 CellId cellId = cellBackup.cellRevision.d.cellId;
                 if (cellId.libId == fromGroup.libId) {
-                    if (cellId.cellName.getName().equals(toGroupCellId.cellName.getName()))
+                    if (cellId.cellName.getName().equals(toGroupCellId.cellName.getName())) {
                         toGroupIndex1 = cellGroups[cellIndex];
-                    if (toGroup != null && cellId.cellName.getName().equals(toGroup))
+                    }
+                    if (toGroup != null && cellId.cellName.getName().equals(toGroup)) {
                         toGroupIndex2 = cellGroups[cellIndex];
+                    }
                 }
             }
             ArrayList<CellName> fromCellNames = new ArrayList<CellName>();
@@ -322,7 +365,9 @@ public class Snapshot {
             toCellNames.add(toGroupCellId.cellName);
             for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
                 CellBackup cellBackup = cellBackups.get(cellIndex);
-                if (cellBackup == null || cellIndex == fromGroup.cellIndex) continue;
+                if (cellBackup == null || cellIndex == fromGroup.cellIndex) {
+                    continue;
+                }
                 CellId cellId = cellBackup.cellRevision.d.cellId;
                 if (cellGroups[cellIndex] == fromGroupIndex) {
                     fromGroupCellIds.set(cellIndex);
@@ -333,96 +378,134 @@ public class Snapshot {
                     toCellNames.add(cellId.cellName);
                 }
             }
-            if (!fromCellNames.isEmpty())
+            if (!fromCellNames.isEmpty()) {
                 fromGroupName = makeCellGroupName(fromCellNames);
-            if (!toCellNames.isEmpty())
+            }
+            if (!toCellNames.isEmpty()) {
                 toGroupName = makeCellGroupName(toCellNames);
+            }
         }
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup oldCellBackup = cellBackups.get(cellIndex);
-            if (oldCellBackup == null) continue;
+            if (oldCellBackup == null) {
+                continue;
+            }
             CellName newGroupName = oldCellBackup.cellRevision.d.groupName;
             if (fromGroup != null) {
-                if (toGroupCellIds.get(cellIndex) || cellIndex == fromGroup.cellIndex)
+                if (toGroupCellIds.get(cellIndex) || cellIndex == fromGroup.cellIndex) {
                     newGroupName = toGroupName;
-                else if (fromGroupCellIds.get(cellIndex))
+                } else if (fromGroupCellIds.get(cellIndex)) {
                     newGroupName = fromGroupName;
+                }
             }
             CellBackup newCellBackup = oldCellBackup.withRenamedIds(idMapper, newGroupName);
-            if (newCellBackup != oldCellBackup)
+            if (newCellBackup != oldCellBackup) {
                 cellBackupsChangedInLib.set(newCellBackup.cellRevision.d.cellId.libId.libIndex);
+            }
             int newCellIndex = newCellBackup.cellRevision.d.cellId.cellIndex;
             cellBackupsArray[newCellIndex] = newCellBackup;
         }
-        if (cellBackupsChangedInLib.isEmpty())
+        if (cellBackupsChangedInLib.isEmpty()) {
             cellBackupsArray = null;
+        }
 
         boolean libBackupsChanged = false;
         for (int libIndex = 0; libIndex < libBackups.size(); libIndex++) {
             LibraryBackup oldLibBackup = libBackups.get(libIndex);
-            if (oldLibBackup == null) continue;
+            if (oldLibBackup == null) {
+                continue;
+            }
             LibraryBackup newLibBackup = oldLibBackup.withRenamedIds(idMapper);
-            if (cellBackupsChangedInLib.get(libIndex))
+            if (cellBackupsChangedInLib.get(libIndex)) {
                 newLibBackup = newLibBackup.withModified();
-            if (newLibBackup != oldLibBackup)
+            }
+            if (newLibBackup != oldLibBackup) {
                 libBackupsChanged = true;
+            }
             libBackupsArray[newLibBackup.d.libId.libIndex] = newLibBackup;
         }
-        if (!libBackupsChanged)
+        if (!libBackupsChanged) {
             libBackupsArray = null;
+        }
 
-        if (cellBackupsArray == null && libBackups == null) return this;
+        if (cellBackupsArray == null && libBackups == null) {
+            return this;
+        }
         return with(tool, null, cellBackupsArray, libBackupsArray);
     }
 
     public List<LibId> getChangedLibraries(Snapshot oldSnapshot) {
-        if (oldSnapshot == null) oldSnapshot = idManager.getInitialSnapshot();
-        if (idManager != oldSnapshot.idManager) throw new IllegalArgumentException();
+        if (oldSnapshot == null) {
+            oldSnapshot = idManager.getInitialSnapshot();
+        }
+        if (idManager != oldSnapshot.idManager) {
+            throw new IllegalArgumentException();
+        }
         List<LibId> changed = null;
         if (oldSnapshot.libBackups != libBackups) {
             int numLibs = Math.max(oldSnapshot.libBackups.size(), libBackups.size());
             for (int i = 0; i < numLibs; i++) {
                 LibraryBackup oldBackup = oldSnapshot.getLib(i);
                 LibraryBackup newBackup = getLib(i);
-                if (oldBackup == newBackup) continue;
-                if (changed == null) changed = new ArrayList<LibId>();
+                if (oldBackup == newBackup) {
+                    continue;
+                }
+                if (changed == null) {
+                    changed = new ArrayList<LibId>();
+                }
                 changed.add(idManager.getLibId(i));
             }
         }
-        if (changed == null) changed = Collections.emptyList();
+        if (changed == null) {
+            changed = Collections.emptyList();
+        }
         return changed;
     }
 
     public List<CellId> getChangedCells(Snapshot oldSnapshot) {
-        if (oldSnapshot == null) oldSnapshot = idManager.getInitialSnapshot();
+        if (oldSnapshot == null) {
+            oldSnapshot = idManager.getInitialSnapshot();
+        }
         List<CellId> changed = null;
         int numCells = Math.max(oldSnapshot.cellBackups.size(), cellBackups.size());
         for (int i = 0; i < numCells; i++) {
             CellBackup oldBackup = oldSnapshot.getCell(i);
             CellBackup newBackup = getCell(i);
-            if (oldBackup == newBackup) continue;
-            if (changed == null) changed = new ArrayList<CellId>();
+            if (oldBackup == newBackup) {
+                continue;
+            }
+            if (changed == null) {
+                changed = new ArrayList<CellId>();
+            }
             changed.add(idManager.getCellId(i));
         }
-        if (changed == null) changed = Collections.emptyList();
+        if (changed == null) {
+            changed = Collections.emptyList();
+        }
         return changed;
     }
 
     public Collection<CellId> getCellsDownTop() {
         LinkedHashSet<CellId> order = new LinkedHashSet<CellId>();
-        for (CellBackup cellBackup: cellBackups) {
-            if (cellBackup == null) continue;
+        for (CellBackup cellBackup : cellBackups) {
+            if (cellBackup == null) {
+                continue;
+            }
             getCellsDownTop(cellBackup.cellRevision.d.cellId, order);
         }
         return order;
     }
 
     private void getCellsDownTop(CellId root, LinkedHashSet<CellId> order) {
-        if (order.contains(root)) return;
+        if (order.contains(root)) {
+            return;
+        }
         CellBackup cellBackup = getCell(root);
         CellRevision cellRevision = cellBackup.cellRevision;
         for (int i = 0; i < cellRevision.cellUsages.length; i++) {
-            if (cellRevision.cellUsages[i] == null) continue;
+            if (cellRevision.cellUsages[i] == null) {
+                continue;
+            }
             CellUsage cu = root.getUsageIn(i);
             getCellsDownTop(cu.protoId, order);
         }
@@ -431,14 +514,16 @@ public class Snapshot {
     }
 
     public CellTree getCellTree(CellId cellId) {
-        if (cellId.getIdManager() != idManager)
+        if (cellId.getIdManager() != idManager) {
             throw new IllegalArgumentException();
+        }
         return getCellTree(cellId.cellIndex);
     }
 
     public CellBackup getCell(CellId cellId) {
-        if (cellId.getIdManager() != idManager)
+        if (cellId.getIdManager() != idManager) {
             throw new IllegalArgumentException();
+        }
         return getCell(cellId.cellIndex);
     }
 
@@ -469,28 +554,35 @@ public class Snapshot {
      * @throws InvalidArgumentException if cellNames is empty
      */
     public static CellName makeCellGroupName(Collection<CellName> cellNames) {
-        if (cellNames.isEmpty())
+        if (cellNames.isEmpty()) {
             throw new IllegalArgumentException();
+        }
         String groupName = null;
-        for (CellName cellName: cellNames) {
-            if (!cellName.isSchematic()) continue;
+        for (CellName cellName : cellNames) {
+            if (!cellName.isSchematic()) {
+                continue;
+            }
             String name = cellName.getName();
-            if (groupName == null || TextUtils.STRING_NUMBER_ORDER.compare(name, groupName) < 0)
+            if (groupName == null || TextUtils.STRING_NUMBER_ORDER.compare(name, groupName) < 0) {
                 groupName = name;
+            }
         }
         if (groupName == null) {
-            for (CellName cellName: cellNames) {
+            for (CellName cellName : cellNames) {
                 String name = cellName.getName();
-                if (groupName == null || name.length() < groupName.length() ||
-                        name.length() == groupName.length() && TextUtils.STRING_NUMBER_ORDER.compare(name, groupName) < 0)
+                if (groupName == null || name.length() < groupName.length()
+                        || name.length() == groupName.length() && TextUtils.STRING_NUMBER_ORDER.compare(name, groupName) < 0) {
                     groupName = name;
+                }
             }
         }
         assert groupName != null;
         return CellName.parseName(groupName + "{sch}");
     }
 
-    public ERectangle getCellBounds(CellId cellId) { return getCellBounds(cellId.cellIndex); }
+    public ERectangle getCellBounds(CellId cellId) {
+        return getCellBounds(cellId.cellIndex);
+    }
 
     public ERectangle getCellBounds(int cellIndex) {
         CellTree cellTree = getCellTree(cellIndex);
@@ -498,16 +590,20 @@ public class Snapshot {
     }
 
     /** Returns TechPool of this Snapshot */
-    public TechPool getTechPool() { return techPool; }
+    public TechPool getTechPool() {
+        return techPool;
+    }
 
-   /**
+    /**
      * Get Technology by TechId
      * TechId must belong to same IdManager as TechPool
      * @param techId TechId to find
      * @return Technology b giben TechId or null
      * @throws IllegalArgumentException of TechId is not from this IdManager
      */
-    public Technology getTech(TechId techId) { return techPool.getTech(techId); }
+    public Technology getTech(TechId techId) {
+        return techPool.getTech(techId);
+    }
 
     /** Returns Artwork technology in this database */
     public Artwork getArtwork() {
@@ -527,13 +623,14 @@ public class Snapshot {
 //    private Technology getTech(int techIndex) {
 //        return techIndex < technologies.size() ? technologies.get(techIndex) : null;
 //    }
-
     /** Returns map from Setting to its value in this Snapshot */
-    public Map<Setting,Object> getSettings() {
+    public Map<Setting, Object> getSettings() {
         return environment.getSettings();
     }
 
-    public LibraryBackup getLib(LibId libId) { return getLib(libId.libIndex); }
+    public LibraryBackup getLib(LibId libId) {
+        return getLib(libId.libIndex);
+    }
 
     private LibraryBackup getLib(int libIndex) {
         return libIndex < libBackups.size() ? libBackups.get(libIndex) : null;
@@ -545,14 +642,14 @@ public class Snapshot {
 //                Arrays.equals(this.cellGroups, that.cellGroups) &&
 //                this.cellBounds.equals(that.cellBounds);
 //    }
-
     public void writeDiffs(IdWriter writer, Snapshot oldSnapshot) throws IOException {
         writer.writeDiffs();
         writer.writeInt(snapshotId);
 
         writer.writeBoolean(tool != null);
-        if (tool != null)
+        if (tool != null) {
             writer.writeTool(tool);
+        }
 
         environment.writeDiff(writer, oldSnapshot.environment);
 
@@ -563,7 +660,9 @@ public class Snapshot {
             for (int i = 0; i < libBackups.size(); i++) {
                 LibraryBackup oldBackup = oldSnapshot.getLib(i);
                 LibraryBackup newBackup = getLib(i);
-                if (oldBackup == newBackup) continue;
+                if (oldBackup == newBackup) {
+                    continue;
+                }
                 if (oldBackup == null) {
                     writer.writeInt(i);
                     newBackup.write(writer);
@@ -581,7 +680,9 @@ public class Snapshot {
         for (int i = 0; i < cellBackups.size(); i++) {
             CellBackup oldBackup = oldSnapshot.getCell(i);
             CellBackup newBackup = getCell(i);
-            if (oldBackup == newBackup) continue;
+            if (oldBackup == newBackup) {
+                continue;
+            }
             if (oldBackup == null) {
                 writer.writeInt(i);
                 newBackup.write(writer);
@@ -598,8 +699,9 @@ public class Snapshot {
         writer.writeBoolean(cellGroupsChanged);
         if (cellGroupsChanged) {
             assert cellGroups.length == cellBackups.size();
-            for (int cellIndex = 0; cellIndex < cellGroups.length; cellIndex++)
+            for (int cellIndex = 0; cellIndex < cellGroups.length; cellIndex++) {
                 writer.writeInt(cellGroups[cellIndex]);
+            }
             for (int groupIndex = 0; groupIndex < groupMainSchematics.length; groupIndex++) {
                 CellId mainSchematics = groupMainSchematics[groupIndex];
                 writer.writeInt(mainSchematics != null ? mainSchematics.cellIndex : -1);
@@ -623,11 +725,14 @@ public class Snapshot {
         if (libsChanged) {
             int libLen = reader.readInt();
             LibraryBackup[] libBackupsArray = new LibraryBackup[libLen];
-            for (int libIndex = 0, numLibs = Math.min(oldSnapshot.libBackups.size(), libLen); libIndex < numLibs; libIndex++)
+            for (int libIndex = 0, numLibs = Math.min(oldSnapshot.libBackups.size(), libLen); libIndex < numLibs; libIndex++) {
                 libBackupsArray[libIndex] = oldSnapshot.libBackups.get(libIndex);
+            }
             for (;;) {
                 int libIndex = reader.readInt();
-                if (libIndex == Integer.MAX_VALUE) break;
+                if (libIndex == Integer.MAX_VALUE) {
+                    break;
+                }
                 if (libIndex >= 0) {
                     LibraryBackup newBackup = LibraryBackup.read(reader);
                     libBackupsArray[libIndex] = newBackup;
@@ -643,18 +748,23 @@ public class Snapshot {
         int cellLen = reader.readInt();
         int cellMax = Math.min(oldSnapshot.cellBackups.size(), cellLen);
         CellBackup[] cellBackupsArray = new CellBackup[cellLen];
-        for (int cellIndex = 0; cellIndex < cellMax; cellIndex++)
+        for (int cellIndex = 0; cellIndex < cellMax; cellIndex++) {
             cellBackupsArray[cellIndex] = oldSnapshot.cellBackups.get(cellIndex);
+        }
         if (technologiesChanged) {
             for (int cellIndex = 0; cellIndex < cellLen; cellIndex++) {
                 CellBackup cellBackup = cellBackupsArray[cellIndex];
-                if (cellBackup == null) continue;
+                if (cellBackup == null) {
+                    continue;
+                }
                 cellBackupsArray[cellIndex] = cellBackup.withTechPool(techPool);
             }
         }
         for (;;) {
             int cellIndex = reader.readInt();
-            if (cellIndex == Integer.MAX_VALUE) break;
+            if (cellIndex == Integer.MAX_VALUE) {
+                break;
+            }
             if (cellIndex >= 0) {
                 CellBackup newBackup = CellBackup.read(reader, techPool);
                 cellBackupsArray[cellIndex] = newBackup;
@@ -681,8 +791,9 @@ public class Snapshot {
             for (int groupIndex = 0; groupIndex < groupMainSchematics.length; groupIndex++) {
                 CellId mainSchematics = null;
                 int cellIndex = reader.readInt();
-                if (cellIndex >= 0)
+                if (cellIndex >= 0) {
                     mainSchematics = reader.idManager.getCellId(cellIndex);
+                }
                 groupMainSchematics[groupIndex] = mainSchematics;
             }
         }
@@ -697,20 +808,22 @@ public class Snapshot {
     }
 
     /**
-	 * Checks invariant of this Snapshot.
+     * Checks invariant of this Snapshot.
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      * @throws AssertionError if invariant is broken.
-	 * @throws AssertionError if invariant is broken.
-	 */
+     * @throws AssertionError if invariant is broken.
+     */
     public void check() {
 //        long startTime = System.currentTimeMillis();
         techPool.check();
         environment.check();
         assert environment.techPool == techPool;
         assert techPool.idManager == idManager;
-        for (LibraryBackup libBackup: libBackups) {
-            if (libBackup == null) continue;
+        for (LibraryBackup libBackup : libBackups) {
+            if (libBackup == null) {
+                continue;
+            }
             libBackup.check();
         }
         assert cellTrees.size() == cellBackups.size();
@@ -722,31 +835,40 @@ public class Snapshot {
                 continue;
             }
             assert cellBackup == cellTree.top;
-            for (CellTree subCellTree: cellTree.subTrees) {
-                if (subCellTree == null) continue;
+            for (CellTree subCellTree : cellTree.subTrees) {
+                if (subCellTree == null) {
+                    continue;
+                }
                 CellId subCellId = subCellTree.top.cellRevision.d.cellId;
                 assert subCellTree == cellTrees.get(subCellId.cellIndex);
             }
             cellTree.check();
             assert cellTree.techPool.isRestriction(techPool);
         }
-        if (libBackups.size() > 0)
+        if (libBackups.size() > 0) {
             assert libBackups.get(libBackups.size() - 1) != null;
-        if (cellTrees.size() > 0)
+        }
+        if (cellTrees.size() > 0) {
             assert cellTrees.get(cellTrees.size() - 1) != null;
+        }
         checkRecursion(cellBackups);
         int[] cellGroups = new int[cellBackups.size()];
         checkNames(idManager, cellBackups, cellGroups, libBackups);
         assert Arrays.equals(this.cellGroups, cellGroups);
         int maxGroup = -1;
-        for (int groupIndex: cellGroups)
+        for (int groupIndex : cellGroups) {
             maxGroup = Math.max(maxGroup, groupIndex);
+        }
         assert groupMainSchematics.length == maxGroup + 1;
         BitSet foundMainSchematics = new BitSet();
-        for (CellBackup cellBackup: cellBackups) {
-            if (cellBackup == null) continue;
+        for (CellBackup cellBackup : cellBackups) {
+            if (cellBackup == null) {
+                continue;
+            }
             CellId cellId = cellBackup.cellRevision.d.cellId;
-            if (!cellId.isSchematic()) continue;
+            if (!cellId.isSchematic()) {
+                continue;
+            }
             int groupIndex = cellGroups[cellId.cellIndex];
             int cmp = cellId.cellName.compareTo(groupMainSchematics[groupIndex].cellName);
             assert cmp >= 0;
@@ -769,9 +891,9 @@ public class Snapshot {
      */
     private static void checkNames(IdManager idManager, ImmutableArrayList<CellBackup> cellBackups, int[] cellGroups, ImmutableArrayList<LibraryBackup> libBackups) {
         HashSet<String> libNames = new HashSet<String>();
-        ArrayList<HashMap<String,CellName>> protoNameToGroupName = new ArrayList<HashMap<String,CellName>>();
+        ArrayList<HashMap<String, CellName>> protoNameToGroupName = new ArrayList<HashMap<String, CellName>>();
         ArrayList<HashSet<CellName>> cellNames = new ArrayList<HashSet<CellName>>();
-        ArrayList<HashMap<CellName,Integer>> groupNameToGroupIndex = new ArrayList<HashMap<CellName,Integer>>();
+        ArrayList<HashMap<CellName, Integer>> groupNameToGroupIndex = new ArrayList<HashMap<CellName, Integer>>();
         for (int libIndex = 0; libIndex < libBackups.size(); libIndex++) {
             LibraryBackup libBackup = libBackups.get(libIndex);
             if (libBackup == null) {
@@ -780,17 +902,20 @@ public class Snapshot {
                 groupNameToGroupIndex.add(null);
                 continue;
             }
-            protoNameToGroupName.add(new HashMap<String,CellName>());
+            protoNameToGroupName.add(new HashMap<String, CellName>());
             cellNames.add(new HashSet<CellName>());
-            groupNameToGroupIndex.add(new HashMap<CellName,Integer>());
-            if (libBackup.d.libId != idManager.getLibId(libIndex))
+            groupNameToGroupIndex.add(new HashMap<CellName, Integer>());
+            if (libBackup.d.libId != idManager.getLibId(libIndex)) {
                 throw new IllegalArgumentException("LibId");
+            }
             String libName = libBackup.d.libId.libName;
-            if (!libNames.add(libName))
+            if (!libNames.add(libName)) {
                 throw new IllegalArgumentException("duplicate libName");
-            for (LibId libId: libBackup.referencedLibs) {
-                if (libId != libBackups.get(libId.libIndex).d.libId)
+            }
+            for (LibId libId : libBackup.referencedLibs) {
+                if (libId != libBackups.get(libId.libIndex).d.libId) {
                     throw new IllegalArgumentException("LibId in referencedLibs");
+                }
             }
         }
         assert protoNameToGroupName.size() == libBackups.size() && cellNames.size() == libBackups.size() && groupNameToGroupIndex.size() == libBackups.size();
@@ -800,25 +925,30 @@ public class Snapshot {
         ArrayList<ImmutableCell> groupParamOwners = new ArrayList<ImmutableCell>();
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup cellBackup = cellBackups.get(cellIndex);
-            if (cellBackup == null) continue;
+            if (cellBackup == null) {
+                continue;
+            }
             ImmutableCell d = cellBackup.cellRevision.d;
             CellId cellId = d.cellId;
-            if (cellId != idManager.getCellId(cellIndex))
+            if (cellId != idManager.getCellId(cellIndex)) {
                 throw new IllegalArgumentException("CellId");
+            }
             LibId libId = d.getLibId();
             int libIndex = libId.libIndex;
-            if (libId != libBackups.get(libIndex).d.libId)
+            if (libId != libBackups.get(libIndex).d.libId) {
                 throw new IllegalArgumentException("LibId in ImmutableCell");
-            HashMap<String,CellName> cellNameToGroupNameInLibrary = protoNameToGroupName.get(libId.libIndex);
+            }
+            HashMap<String, CellName> cellNameToGroupNameInLibrary = protoNameToGroupName.get(libId.libIndex);
             HashSet<CellName> cellNamesInLibrary = cellNames.get(libId.libIndex);
-            HashMap<CellName,Integer> groupNameToGroupIndexInLibrary = groupNameToGroupIndex.get(libId.libIndex);
+            HashMap<CellName, Integer> groupNameToGroupIndexInLibrary = groupNameToGroupIndex.get(libId.libIndex);
             String protoName = cellId.cellName.getName();
             CellName groupName = cellNameToGroupNameInLibrary.get(protoName);
             if (groupName == null) {
                 groupName = d.groupName;
                 cellNameToGroupNameInLibrary.put(protoName, groupName);
-            } else if (!d.groupName.equals(groupName))
+            } else if (!d.groupName.equals(groupName)) {
                 throw new IllegalArgumentException("cells with same proto name in different groups");
+            }
             Integer gn = groupNameToGroupIndexInLibrary.get(groupName);
             if (gn == null) {
                 gn = Integer.valueOf(groupParamOwners.size());
@@ -826,14 +956,16 @@ public class Snapshot {
                 groupNameToGroupIndexInLibrary.put(groupName, gn);
             }
             cellGroups[cellIndex] = gn.intValue();
-            if (!cellNamesInLibrary.add(cellId.cellName))
+            if (!cellNamesInLibrary.add(cellId.cellName)) {
                 throw new IllegalArgumentException("duplicate CellName in library");
+            }
             if (d.paramsAllowed()) {
                 ImmutableCell paramOwner = groupParamOwners.get(gn.intValue());
-                if (paramOwner != null)
+                if (paramOwner != null) {
                     d.checkSimilarParams(paramOwner);
-                else
+                } else {
                     groupParamOwners.set(gn.intValue(), paramOwner);
+                }
             }
         }
     }
@@ -841,8 +973,10 @@ public class Snapshot {
     private static void checkRecursion(ImmutableArrayList<CellBackup> cellBackups) {
         BitSet visited = new BitSet();
         BitSet checked = new BitSet();
-        for (CellBackup cellBackup: cellBackups) {
-            if (cellBackup == null) continue;
+        for (CellBackup cellBackup : cellBackups) {
+            if (cellBackup == null) {
+                continue;
+            }
             checkRecursion(cellBackup.cellRevision.d.cellId, cellBackups, visited, checked);
         }
         assert visited.equals(checked);
@@ -850,19 +984,26 @@ public class Snapshot {
 
     private static void checkRecursion(CellId cellId, ImmutableArrayList<CellBackup> cellBackups, BitSet visited, BitSet checked) {
         int cellIndex = cellId.cellIndex;
-        if (checked.get(cellIndex)) return;
+        if (checked.get(cellIndex)) {
+            return;
+        }
         assert !visited.get(cellIndex);
         visited.set(cellIndex);
         CellBackup cellBackup = cellBackups.get(cellIndex);
         CellRevision cellRevision = cellBackup.cellRevision;
         for (int i = 0; i < cellRevision.cellUsages.length; i++) {
             CellRevision.CellUsageInfo cui = cellRevision.cellUsages[i];
-            if (cui == null) continue;
+            if (cui == null) {
+                continue;
+            }
             CellUsage u = cellId.getUsageIn(i);
             int subCellIndex = u.protoId.cellIndex;
-            if (checked.get(subCellIndex)) continue;
-            if (visited.get(subCellIndex))
+            if (checked.get(subCellIndex)) {
+                continue;
+            }
+            if (visited.get(subCellIndex)) {
                 throw new IllegalArgumentException("Recursive instance of " + u.protoId + " in " + u.parentId);
+            }
             checkRecursion(u.protoId, cellBackups, visited, checked);
         }
         checked.set(cellIndex);

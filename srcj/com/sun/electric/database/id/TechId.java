@@ -42,9 +42,9 @@ import java.util.Map;
  * This class is thread-safe except inCurrentThread method.
  */
 public final class TechId implements Serializable {
+
     /** Empty TechId array for initialization. */
     public static final TechId[] NULL_ARRAY = {};
-
     /** IdManager which owns this TechId. */
     public final IdManager idManager;
     /** Technology name */
@@ -54,15 +54,15 @@ public final class TechId implements Serializable {
     /** List of LayerIds created so far. */
     final ArrayList<LayerId> layerIds = new ArrayList<LayerId>();
     /** HashMap of LayerIds by their name. */
-    private final HashMap<String,LayerId> layerIdsByName = new HashMap<String,LayerId>();
+    private final HashMap<String, LayerId> layerIdsByName = new HashMap<String, LayerId>();
     /** List of ArcProtoIds created so far. */
     final ArrayList<ArcProtoId> arcProtoIds = new ArrayList<ArcProtoId>();
     /** HashMap of ArcProtoIds by their name. */
-    private final HashMap<String,ArcProtoId> arcProtoIdsByName = new HashMap<String,ArcProtoId>();
+    private final HashMap<String, ArcProtoId> arcProtoIdsByName = new HashMap<String, ArcProtoId>();
     /** List of PrimitiveNodeIds created so far. */
     final ArrayList<PrimitiveNodeId> primitiveNodeIds = new ArrayList<PrimitiveNodeId>();
     /** HashMap of PrimitiveNodeIds by their name. */
-    private final HashMap<String,PrimitiveNodeId> primitiveNodeIdsByName = new HashMap<String,PrimitiveNodeId>();
+    private final HashMap<String, PrimitiveNodeId> primitiveNodeIdsByName = new HashMap<String, PrimitiveNodeId>();
     /**
      * Variable which is incremented every time when ArcProtoId, PrimitiveNodeId or PrimitiveNodeId is
      * created below this TechId
@@ -73,25 +73,35 @@ public final class TechId implements Serializable {
      * TechId constructor.
      */
     TechId(IdManager idManager, String techName, int techIndex) {
-        if (techName == null)
+        if (techName == null) {
             throw new NullPointerException();
-        if (techName.length() == 0 || !jelibSafeName(techName))
+        }
+        if (techName.length() == 0 || !jelibSafeName(techName)) {
             throw new IllegalArgumentException(techName);
+        }
         this.idManager = idManager;
         this.techName = techName;
         this.techIndex = techIndex;
     }
 
-    private Object writeReplace() { return new TechIdKey(this); }
+    private Object writeReplace() {
+        return new TechIdKey(this);
+    }
 
     private static class TechIdKey extends EObjectInputStream.Key<TechId> {
-        public TechIdKey() {}
-        private TechIdKey(TechId techId) { super(techId); }
+
+        public TechIdKey() {
+        }
+
+        private TechIdKey(TechId techId) {
+            super(techId);
+        }
 
         @Override
         public void writeExternal(EObjectOutputStream out, TechId techId) throws IOException {
-            if (techId.idManager != out.getIdManager())
+            if (techId.idManager != out.getIdManager()) {
                 throw new NotSerializableException(techId + " from other IdManager");
+            }
             out.writeInt(techId.techIndex);
         }
 
@@ -128,7 +138,9 @@ public final class TechId implements Serializable {
      */
     public synchronized LayerId newLayerId(String layerName) {
         LayerId layerId = layerIdsByName.get(layerName);
-        if (layerId != null) return layerId;
+        if (layerId != null) {
+            return layerId;
+        }
         assert !idManager.readOnly;
         return newLayerIdInternal(layerName);
     }
@@ -169,7 +181,9 @@ public final class TechId implements Serializable {
      */
     public synchronized ArcProtoId newArcProtoId(String arcProtoName) {
         ArcProtoId arcProtoId = arcProtoIdsByName.get(arcProtoName);
-        if (arcProtoId != null) return arcProtoId;
+        if (arcProtoId != null) {
+            return arcProtoId;
+        }
         assert !idManager.readOnly;
         return newArcProtoIdInternal(arcProtoName);
     }
@@ -210,7 +224,9 @@ public final class TechId implements Serializable {
      */
     public synchronized PrimitiveNodeId newPrimitiveNodeId(String primitiveNodeName) {
         PrimitiveNodeId primitiveNodeId = primitiveNodeIdsByName.get(primitiveNodeName);
-        if (primitiveNodeId != null) return primitiveNodeId;
+        if (primitiveNodeId != null) {
+            return primitiveNodeId;
+        }
         assert !idManager.readOnly;
         return newPrimitiveNodeIdInternal(primitiveNodeName);
     }
@@ -231,22 +247,26 @@ public final class TechId implements Serializable {
      * @return the Technology representing TechId in the specified database.
      * This method is not properly synchronized.
      */
-    public Technology inDatabase(EDatabase database) { return database.getTech(this); }
+    public Technology inDatabase(EDatabase database) {
+        return database.getTech(this);
+    }
 
-	/**
-	 * Returns a printable version of this TechId.
-	 * @return a printable version of this TechId.
-	 */
-    public String toString() { return techName; }
+    /**
+     * Returns a printable version of this TechId.
+     * @return a printable version of this TechId.
+     */
+    public String toString() {
+        return techName;
+    }
 
-	/**
-	 * Checks invariants in this TechId.
+    /**
+     * Checks invariants in this TechId.
      * @exception AssertionError if invariants are not valid
-	 */
+     */
     void check() {
         assert this == idManager.getTechId(techIndex);
         assert techName.length() > 0 && jelibSafeName(techName);
-        for (Map.Entry<String,ArcProtoId> e: arcProtoIdsByName.entrySet()) {
+        for (Map.Entry<String, ArcProtoId> e : arcProtoIdsByName.entrySet()) {
             ArcProtoId arcProtoId = e.getValue();
             assert arcProtoId.techId == this;
             assert arcProtoId.name == e.getKey();
@@ -258,7 +278,7 @@ public final class TechId implements Serializable {
             assert arcProtoIdsByName.get(arcProtoId.name) == arcProtoId;
         }
 
-        for (Map.Entry<String,PrimitiveNodeId> e: primitiveNodeIdsByName.entrySet()) {
+        for (Map.Entry<String, PrimitiveNodeId> e : primitiveNodeIdsByName.entrySet()) {
             PrimitiveNodeId primitiveNodeId = e.getValue();
             assert primitiveNodeId.techId == this;
             assert primitiveNodeId.name == e.getKey();
@@ -271,33 +291,33 @@ public final class TechId implements Serializable {
         }
     }
 
-	/**
-	 * Method checks that string is safe to write into JELIB file without
-	 * conversion.
-	 * @param str the string to check.
-	 * @return true if string is safe to write into JELIB file.
-	 */
-	public static boolean jelibSafeName(String str)
-	{
+    /**
+     * Method checks that string is safe to write into JELIB file without
+     * conversion.
+     * @param str the string to check.
+     * @return true if string is safe to write into JELIB file.
+     */
+    public static boolean jelibSafeName(String str) {
         return jelibSafeName(str, false);
-	}
-	/**
-	 * Method checks that string is safe to write into JELIB file without
-	 * conversion.
-	 * @param str the string to check.
+    }
+
+    /**
+     * Method checks that string is safe to write into JELIB file without
+     * conversion.
+     * @param str the string to check.
      * @param allowSpace exemption for space char
-	 * @return true if string is safe to write into JELIB file.
-	 */
-	static boolean jelibSafeName(String str, boolean allowSpace)
-	{
-		for (int i = 0; i < str.length(); i++)
-		{
-			char ch = str.charAt(i);
-			if (ch == ':' || ch == '|' || ch == '^' || ch == '\\' || ch == '"')
-				return false;
-            if (Character.isWhitespace(ch) && !(allowSpace && ch == ' '))
+     * @return true if string is safe to write into JELIB file.
+     */
+    static boolean jelibSafeName(String str, boolean allowSpace) {
+        for (int i = 0; i < str.length(); i++) {
+            char ch = str.charAt(i);
+            if (ch == ':' || ch == '|' || ch == '^' || ch == '\\' || ch == '"') {
                 return false;
-		}
-		return true;
-	}
+            }
+            if (Character.isWhitespace(ch) && !(allowSpace && ch == ' ')) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

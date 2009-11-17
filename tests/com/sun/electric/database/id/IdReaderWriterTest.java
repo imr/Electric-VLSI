@@ -56,7 +56,7 @@ public class IdReaderWriterTest {
     private LibId libId1;
     private CellId cellId0;
     private CellId cellId1;
-    
+
     public IdReaderWriterTest() {
     }
 
@@ -98,52 +98,52 @@ public class IdReaderWriterTest {
         try {
             String nameA = "A";
             idManager.getCellId(1).newPortId(nameA);
-            
+
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             IdWriter writer = new IdWriter(idManager, new DataOutputStream(byteStream));
             writer.writeDiffs();
             writer.flush();
             byte[] diffs1 = byteStream.toByteArray();
             byteStream.reset();
-            
+
             writer.writeDiffs();
             writer.flush();
             assertEquals(20, byteStream.toByteArray().length); // No writing when no changes
             byteStream.reset();
-            
+
             IdManager mirrorIdManager = new IdManager();
-            
+
             // First update of mirrorIdManager
             IdReader reader1 = new IdReader(new DataInputStream(new ByteArrayInputStream(diffs1)), mirrorIdManager);
             reader1.readDiffs();
-            
+
             // Check mirrorIdManager after first update
-            assertEquals( techId0.techName, mirrorIdManager.getTechId(0).techName );
-            assertEquals( techId1.techName, mirrorIdManager.getTechId(1).techName );
-            assertEquals( aId1_a.fullName, mirrorIdManager.getTechId(1).getArcProtoId(0).fullName );
-            assertEquals( nId1_b.fullName, mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).fullName );
-            assertEquals( pId1_b_p.toString(), mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).getPortId(0).toString() );
-            assertEquals( libId0.libName, mirrorIdManager.getLibId(0).libName );
-            assertEquals( libId1.libName, mirrorIdManager.getLibId(1).libName );
+            assertEquals(techId0.techName, mirrorIdManager.getTechId(0).techName);
+            assertEquals(techId1.techName, mirrorIdManager.getTechId(1).techName);
+            assertEquals(aId1_a.fullName, mirrorIdManager.getTechId(1).getArcProtoId(0).fullName);
+            assertEquals(nId1_b.fullName, mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).fullName);
+            assertEquals(pId1_b_p.toString(), mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).getPortId(0).toString());
+            assertEquals(libId0.libName, mirrorIdManager.getLibId(0).libName);
+            assertEquals(libId1.libName, mirrorIdManager.getLibId(1).libName);
             CellId cellId0 = mirrorIdManager.getCellId(0);
-            assertEquals( 0, cellId0.numExportIds() );
+            assertEquals(0, cellId0.numExportIds());
             CellId cellId1 = mirrorIdManager.getCellId(1);
-            assertEquals( 1, cellId1.numExportIds() );
-            assertEquals( nameA, cellId1.getPortId(0).externalId );
-            
+            assertEquals(1, cellId1.numExportIds());
+            assertEquals(nameA, cellId1.getPortId(0).externalId);
+
             // Add new staff to database
-            assertEquals( 2, idManager.newTechId("techId2").techIndex );
-            assertEquals( 0, techId0.newArcProtoId("a").chronIndex );
-            assertEquals( 1, techId0.newArcProtoId("b").chronIndex );
-            assertEquals( 1, nId1_b.newPortId("Q").chronIndex );
-            assertEquals( 2, idManager.newLibId("libId2").libIndex );
-            assertEquals( 3, idManager.newLibId("libId3").libIndex );
-            assertEquals( 2, libId1.newCellId(CellName.parseName("cellId2;1")).cellIndex );
+            assertEquals(2, idManager.newTechId("techId2").techIndex);
+            assertEquals(0, techId0.newArcProtoId("a").chronIndex);
+            assertEquals(1, techId0.newArcProtoId("b").chronIndex);
+            assertEquals(1, nId1_b.newPortId("Q").chronIndex);
+            assertEquals(2, idManager.newLibId("libId2").libIndex);
+            assertEquals(3, idManager.newLibId("libId3").libIndex);
+            assertEquals(2, libId1.newCellId(CellName.parseName("cellId2;1")).cellIndex);
             String nameB = "B";
             idManager.getCellId(1).newPortId(nameB);
             String nameC = "C";
             idManager.getCellId(2).newPortId(nameC);
-            
+
             // Second update of mirrorIdManager
             writer.writeDiffs();
             writer.flush();
@@ -151,35 +151,35 @@ public class IdReaderWriterTest {
             byteStream.reset();
             IdReader reader2 = new IdReader(new DataInputStream(new ByteArrayInputStream(diffs2)), mirrorIdManager);
             reader2.readDiffs();
-            
+
             writer.writeDiffs();
             writer.flush();
             assertEquals(20, byteStream.toByteArray().length); // No writing when no changes
             byteStream.reset();
-            
-            assertEquals( techId0.techName, mirrorIdManager.getTechId(0).techName );
-            assertEquals( techId1.techName, mirrorIdManager.getTechId(1).techName );
-            assertEquals( "techId2", mirrorIdManager.getTechId(2).techName );
-            assertEquals( "techId0:a", mirrorIdManager.getTechId(0).getArcProtoId(0).fullName );
-            assertEquals( "techId0:b", mirrorIdManager.getTechId(0).getArcProtoId(1).fullName );
-            assertEquals( aId1_a.fullName, mirrorIdManager.getTechId(1).getArcProtoId(0).fullName );
-            assertEquals( nId1_b.fullName, mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).fullName );
-            assertEquals( pId1_b_p.toString(), mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).getPortId(0).toString() );
-            assertEquals( "techId1:b:Q", mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).getPortId(1).toString() );
-            
-            assertEquals( libId0.libName, mirrorIdManager.getLibId(0).libName );
-            assertEquals( libId1.libName, mirrorIdManager.getLibId(1).libName );
-            assertEquals( "libId2", mirrorIdManager.getLibId(2).libName );
-            assertEquals( "libId3", mirrorIdManager.getLibId(3).libName );
-            assertSame( cellId0, mirrorIdManager.getCellId(0) );
-            assertEquals( 0, cellId0.numExportIds() );
-            assertSame( cellId1, mirrorIdManager.getCellId(1) );
-            assertEquals( 2, cellId1.numExportIds() );
-            assertEquals( nameA, cellId1.getPortId(0).externalId );
-            assertEquals( nameB, cellId1.getPortId(1).externalId );
+
+            assertEquals(techId0.techName, mirrorIdManager.getTechId(0).techName);
+            assertEquals(techId1.techName, mirrorIdManager.getTechId(1).techName);
+            assertEquals("techId2", mirrorIdManager.getTechId(2).techName);
+            assertEquals("techId0:a", mirrorIdManager.getTechId(0).getArcProtoId(0).fullName);
+            assertEquals("techId0:b", mirrorIdManager.getTechId(0).getArcProtoId(1).fullName);
+            assertEquals(aId1_a.fullName, mirrorIdManager.getTechId(1).getArcProtoId(0).fullName);
+            assertEquals(nId1_b.fullName, mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).fullName);
+            assertEquals(pId1_b_p.toString(), mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).getPortId(0).toString());
+            assertEquals("techId1:b:Q", mirrorIdManager.getTechId(1).getPrimitiveNodeId(0).getPortId(1).toString());
+
+            assertEquals(libId0.libName, mirrorIdManager.getLibId(0).libName);
+            assertEquals(libId1.libName, mirrorIdManager.getLibId(1).libName);
+            assertEquals("libId2", mirrorIdManager.getLibId(2).libName);
+            assertEquals("libId3", mirrorIdManager.getLibId(3).libName);
+            assertSame(cellId0, mirrorIdManager.getCellId(0));
+            assertEquals(0, cellId0.numExportIds());
+            assertSame(cellId1, mirrorIdManager.getCellId(1));
+            assertEquals(2, cellId1.numExportIds());
+            assertEquals(nameA, cellId1.getPortId(0).externalId);
+            assertEquals(nameB, cellId1.getPortId(1).externalId);
             CellId cellId2 = mirrorIdManager.getCellId(2);
-            assertEquals( 1, cellId2.numExportIds() );
-            assertEquals( nameC, cellId2.getPortId(0).externalId );
+            assertEquals(1, cellId2.numExportIds());
+            assertEquals(nameC, cellId2.getPortId(0).externalId);
         } catch (IOException e) {
             fail(e.getMessage());
         }

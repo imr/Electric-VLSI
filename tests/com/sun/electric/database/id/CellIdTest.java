@@ -24,7 +24,6 @@
  */
 package com.sun.electric.database.id;
 
-
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.CellName;
@@ -48,7 +47,8 @@ public class CellIdTest {
     String nameA = "A";
     ExportId e1_A;
 
-    @Before public void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         idManager = new IdManager();
         LibId libId = idManager.newLibId("lib");
         CellName cellName0 = CellName.parseName("cell0;1{sch}");
@@ -70,7 +70,8 @@ public class CellIdTest {
     /**
      * Test of getIdManager method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testGetIdManager() {
+    @Test
+    public void testGetIdManager() {
         System.out.println("getIdManager");
 
         CellId instance = cellId0;
@@ -83,7 +84,8 @@ public class CellIdTest {
     /**
      * Test of numUsagesIn method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testNumUsagesIn() {
+    @Test
+    public void testNumUsagesIn() {
         System.out.println("numUsagesIn");
 
         int expResult = 2;
@@ -94,7 +96,8 @@ public class CellIdTest {
     /**
      * Test of getUsageIn method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testGetUsageIn() {
+    @Test
+    public void testGetUsageIn() {
         System.out.println("getUsageIn");
 
         int i = 0;
@@ -108,7 +111,8 @@ public class CellIdTest {
     /**
      * Test of numUsagesOf method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testNumUsagesOf() {
+    @Test
+    public void testNumUsagesOf() {
         System.out.println("numUsagesOf");
 
         CellId instance = cellId2;
@@ -121,7 +125,8 @@ public class CellIdTest {
     /**
      * Test of getUsageOf method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testGetUsageOf() {
+    @Test
+    public void testGetUsageOf() {
         System.out.println("getUsageOf");
 
         int i = 1;
@@ -135,7 +140,8 @@ public class CellIdTest {
     /**
      * Test of numExportIds method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testNumExportIds() {
+    @Test
+    public void testNumExportIds() {
         System.out.println("numExportIds");
 
         CellId instance = cellId1;
@@ -148,7 +154,8 @@ public class CellIdTest {
     /**
      * Test of getPortId method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testGetPortId() {
+    @Test
+    public void testGetPortId() {
         System.out.println("getPortId");
 
         int chronIndex = 0;
@@ -162,7 +169,8 @@ public class CellIdTest {
     /**
      * Test of newPortId method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testNewPortId() {
+    @Test
+    public void testNewPortId() {
         System.out.println("newPortId");
 
         String name = nameA;
@@ -178,7 +186,7 @@ public class CellIdTest {
         ExportId idB = instance.newPortId(nameB);
         assertSame(instance, idB.parentId);
         assertEquals(1, idB.chronIndex);
-        assertSame( nameB, idB.externalId );
+        assertSame(nameB, idB.externalId);
         assertEquals(2, cellId1.numExportIds());
 
         idManager.checkInvariants();
@@ -187,7 +195,8 @@ public class CellIdTest {
     /**
      * Test of newPortId method, of class com.sun.electric.database.CellId.
      */
-    @Test(expected = NullPointerException.class) public void testNewPortIdNull() {
+    @Test(expected = NullPointerException.class)
+    public void testNewPortIdNull() {
         System.out.println("newPortId null");
 
         cellId0.newPortId(null);
@@ -196,7 +205,8 @@ public class CellIdTest {
     /**
      * Test of randomExportId method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testRandomExportId() {
+    @Test
+    public void testRandomExportId() {
         System.out.println("randomExportId");
 
         String suggestedId = "A";
@@ -204,15 +214,16 @@ public class CellIdTest {
         assertEquals(1, instance.numExportIds());
 
         ExportId result = instance.randomExportId(suggestedId);
-        assertNotSame(e1_A, result );
+        assertNotSame(e1_A, result);
         assertEquals(2, instance.numExportIds());
         assertSame(instance.getPortId(1), result);
         assertTrue(result.externalId.startsWith("A@"));
 
         int numCopies = 100000;
-        for (int i = 0; i < numCopies; i++)
+        for (int i = 0; i < numCopies; i++) {
             instance.randomExportId(suggestedId);
-        assertEquals(numCopies + 2, instance.numExportIds() );
+        }
+        assertEquals(numCopies + 2, instance.numExportIds());
 
         idManager.checkInvariants();
     }
@@ -220,7 +231,8 @@ public class CellIdTest {
     /**
      * Test of newNodeId method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testNewNodeId() {
+    @Test
+    public void testNewNodeId() {
         System.out.println("newNodeId");
 
         CellId instance = cellId2;
@@ -233,7 +245,8 @@ public class CellIdTest {
     /**
      * Test of newArcId method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testNewArcId() {
+    @Test
+    public void testNewArcId() {
         System.out.println("newArcId");
 
         CellId instance = cellId1;
@@ -246,7 +259,8 @@ public class CellIdTest {
     /**
      * Test of inDatabase method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testInDatabase() {
+    @Test
+    public void testInDatabase() {
         System.out.println("inDatabase");
 
         EDatabase database = new EDatabase(idManager.getInitialEnvironment());
@@ -260,7 +274,8 @@ public class CellIdTest {
     /**
      * Test of toString method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testToString() {
+    @Test
+    public void testToString() {
         System.out.println("toString");
 
         CellId instance = cellId0;
@@ -273,7 +288,8 @@ public class CellIdTest {
     /**
      * Test of check method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testCheck() {
+    @Test
+    public void testCheck() {
         System.out.println("check");
 
         CellId instance = cellId1;

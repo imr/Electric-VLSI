@@ -48,74 +48,74 @@ import com.sun.electric.technology.ArcProto;
  * at a higher level in the schematic or layout hierarchy.
  * The PortProto also has a parent cell, characteristics, and more.
  */
-public interface PortProto
-{
+public interface PortProto {
+
     /** Method to return PortProtoId of this PortProto.
      * PortProtoId identifies PortProto independently of threads.
      * @return PortProtoId of this PortProto.
      */
     public PortProtoId getId();
-    
-	/**
-	 * Method to get the index of this PortProto.
-	 * This is a zero-based index of ports on the NodeProto.
-	 * @return the index of this PortProto.
-	 */
-	public int getPortIndex();
 
-	/**
-	 * Method to return the name key of this PortProto.
-	 * @return the Name key of this PortProto.
-	 */
-	public Name getNameKey();
+    /**
+     * Method to get the index of this PortProto.
+     * This is a zero-based index of ports on the NodeProto.
+     * @return the index of this PortProto.
+     */
+    public int getPortIndex();
 
-	/**
-	 * Method to return the name of this PortProto.
-	 * @return the name of this PortProto.
-	 */
-	public String getName();
+    /**
+     * Method to return the name key of this PortProto.
+     * @return the Name key of this PortProto.
+     */
+    public Name getNameKey();
 
-	/**
-	 * Method to return the parent NodeProto of this PortProto.
-	 * @return the parent NodeProto of this PortProto.
-	 */
-	public NodeProto getParent();
+    /**
+     * Method to return the name of this PortProto.
+     * @return the name of this PortProto.
+     */
+    public String getName();
 
-	/**
-	 * Method to return the PortCharacteristic of this PortProto.
-	 * @return the PortCharacteristic of this PortProto.
-	 */
-	public PortCharacteristic getCharacteristic();
+    /**
+     * Method to return the parent NodeProto of this PortProto.
+     * @return the parent NodeProto of this PortProto.
+     */
+    public NodeProto getParent();
 
-	/**
-	 * Method to determine whether this PortProto is of type Power.
-	 * This is determined by either having the proper Characteristic, or by
-	 * having the proper name (starting with "vdd", "vcc", "pwr", or "power").
-	 * @return true if this PortProto is of type Power.
-	 */
-	public boolean isPower();
+    /**
+     * Method to return the PortCharacteristic of this PortProto.
+     * @return the PortCharacteristic of this PortProto.
+     */
+    public PortCharacteristic getCharacteristic();
 
-	/**
-	 * Method to determine whether this PortProto is of type Ground.
-	 * This is determined by either having the proper PortCharacteristic, or by
-	 * having the proper name (starting with "vss", "gnd", or "ground").
-	 * @return true if this PortProto is of type Ground.
-	 */
-	public boolean isGround();
+    /**
+     * Method to determine whether this PortProto is of type Power.
+     * This is determined by either having the proper Characteristic, or by
+     * having the proper name (starting with "vdd", "vcc", "pwr", or "power").
+     * @return true if this PortProto is of type Power.
+     */
+    public boolean isPower();
 
-	/**
-	 * method to return the base-level port that this PortProto is created from.
-	 * For a PrimitivePort, it simply returns itself.
-	 * For an Export, it returns the base port of its sub-port, the port on the NodeInst
-	 * from which the Export was created.
-	 * @return the base-level port that this PortProto is created from.
-	 */
-	public PrimitivePort getBasePort();
+    /**
+     * Method to determine whether this PortProto is of type Ground.
+     * This is determined by either having the proper PortCharacteristic, or by
+     * having the proper name (starting with "vss", "gnd", or "ground").
+     * @return true if this PortProto is of type Ground.
+     */
+    public boolean isGround();
 
-	/**
-	 * Method to return true if the specified ArcProto can connect to this PortProto.
-	 * @param arc the ArcProto to test for connectivity.
-	 * @return true if this PortProto can connect to the ArcProto, false if it can't.
-	 */
-	public boolean connectsTo(ArcProto arc);
+    /**
+     * method to return the base-level port that this PortProto is created from.
+     * For a PrimitivePort, it simply returns itself.
+     * For an Export, it returns the base port of its sub-port, the port on the NodeInst
+     * from which the Export was created.
+     * @return the base-level port that this PortProto is created from.
+     */
+    public PrimitivePort getBasePort();
+
+    /**
+     * Method to return true if the specified ArcProto can connect to this PortProto.
+     * @param arc the ArcProto to test for connectivity.
+     * @return true if this PortProto can connect to the ArcProto, false if it can't.
+     */
+    public boolean connectsTo(ArcProto arc);
 }

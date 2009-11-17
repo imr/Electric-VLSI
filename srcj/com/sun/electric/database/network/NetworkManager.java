@@ -49,61 +49,68 @@ import java.util.Iterator;
  */
 public class NetworkManager {
 
-    /** Database to which this network manager belongs. */ private final EDatabase database;
-    /** Database snapshot before undo */            private Snapshot lastSnapshot;
-	/** NetCells. */								private NetCell[] cells = new NetCell[1];
-	/** All cells have networks up-to-date */ 		boolean networksValid = false;
-
-    /** The cell for logging network errors */      private Cell currentErrorCell;
-    /** buffer of highlights for next error */      private ArrayList<ErrorHighlight> errorHighlights = new ArrayList<ErrorHighlight>();
-    /** list of errors for current cell */          private ArrayList<ErrorLogger.MessageLog> errors = new ArrayList<ErrorLogger.MessageLog>();
+    /** Database to which this network manager belongs. */
+    private final EDatabase database;
+    /** Database snapshot before undo */
+    private Snapshot lastSnapshot;
+    /** NetCells. */
+    private NetCell[] cells = new NetCell[1];
+    /** All cells have networks up-to-date */
+    boolean networksValid = false;
+    /** The cell for logging network errors */
+    private Cell currentErrorCell;
+    /** buffer of highlights for next error */
+    private ArrayList<ErrorHighlight> errorHighlights = new ArrayList<ErrorHighlight>();
+    /** list of errors for current cell */
+    private ArrayList<ErrorLogger.MessageLog> errors = new ArrayList<ErrorLogger.MessageLog>();
 
     /** Creates a new instance of NetworkManager */
-	public NetworkManager(EDatabase database) {
+    public NetworkManager(EDatabase database) {
         this.database = database;
         lastSnapshot = database.getInitialSnapshot();
-	}
+    }
 
-	void setCell(Cell cell, NetCell netCell) {
-		int cellIndex = cell.getCellIndex();
-		if (cellIndex >= cells.length)
-		{
-			int newLength = cells.length;
-			while (cellIndex >= newLength) newLength *= 2;
-			NetCell[] newCells = new NetCell[newLength];
-			for (int i = 0; i < cells.length; i++)
-				newCells[i] = cells[i];
-			cells = newCells;
-		}
-		cells[cellIndex] = netCell;
-	}
+    void setCell(Cell cell, NetCell netCell) {
+        int cellIndex = cell.getCellIndex();
+        if (cellIndex >= cells.length) {
+            int newLength = cells.length;
+            while (cellIndex >= newLength) {
+                newLength *= 2;
+            }
+            NetCell[] newCells = new NetCell[newLength];
+            for (int i = 0; i < cells.length; i++) {
+                newCells[i] = cells[i];
+            }
+            cells = newCells;
+        }
+        cells[cellIndex] = netCell;
+    }
 
-	final NetCell getNetCell(Cell cell) {
+    final NetCell getNetCell(Cell cell) {
         assert cell.getDatabase() == database;
         database.checkExamine();
         return cells[cell.getCellIndex()];
     }
 
-    void redoNetworkNumbering(boolean reload)
-    {
-		// Check that we are in changing thread
-		assert database.canComputeNetlist();
+    void redoNetworkNumbering(boolean reload) {
+        // Check that we are in changing thread
+        assert database.canComputeNetlist();
 
         long startTime = System.currentTimeMillis();
-		if (reload) {
-			lastSnapshot = database.getInitialSnapshot();
+        if (reload) {
+            lastSnapshot = database.getInitialSnapshot();
             cells = new NetCell[1];
-		}
+        }
         advanceSnapshot();
         int ncell = 0;
-        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-        {
+        for (Iterator<Library> it = Library.getLibraries(); it.hasNext();) {
             Library lib = it.next();
             // Handling clipboard case (one type of hidden libraries)
-            if (lib.isHidden()) continue;
+            if (lib.isHidden()) {
+                continue;
+            }
 
-            for(Iterator<Cell> cit = lib.getCells(); cit.hasNext(); )
-            {
+            for (Iterator<Cell> cit = lib.getCells(); cit.hasNext();) {
                 Cell cell = cit.next();
                 ncell++;
                 cell.getNetlist();
@@ -111,67 +118,71 @@ public class NetworkManager {
         }
         long endTime = System.currentTimeMillis();
         float finalTime = (endTime - startTime) / 1000F;
-		if (ncell != 0 && reload && NetworkTool.showInfo)
-			System.out.println("**** Renumber networks of " + ncell + " cells took " + finalTime + " seconds");
+        if (ncell != 0 && reload && NetworkTool.showInfo) {
+            System.out.println("**** Renumber networks of " + ncell + " cells took " + finalTime + " seconds");
+        }
 
         if (Job.isThreadSafe()) {
             networksValid = true;
         } else {
-            synchronized(NetworkTool.mutex) {
+            synchronized (NetworkTool.mutex) {
                 networksValid = true;
                 NetworkTool.mutex.notify();
             }
         }
     }
 
-	private void invalidate() {
-		// Check that we are in changing thread
-		assert database.canComputeNetlist();
+    private void invalidate() {
+        // Check that we are in changing thread
+        assert database.canComputeNetlist();
 
         if (Job.isThreadSafe()) {
             networksValid = false;
         } else if (networksValid) {
-            synchronized(NetworkTool.mutex) {
+            synchronized (NetworkTool.mutex) {
                 networksValid = false;
             }
         }
-	}
+    }
 
     void advanceSnapshot() {
         assert database.canComputeNetlist();
         Snapshot newSnapshot = database.backup();
-        if (newSnapshot == lastSnapshot) return;
+        if (newSnapshot == lastSnapshot) {
+            return;
+        }
         assert !networksValid;
         updateAll(lastSnapshot, newSnapshot);
         lastSnapshot = newSnapshot;
     }
 
     /****************************** CHANGE LISTENER ******************************/
-
-	public void startBatch()
-	{
+    public void startBatch() {
         invalidate();
-		if (!NetworkTool.debug) return;
-		System.out.println("NetworkTool.startBatch()");
-	}
+        if (!NetworkTool.debug) {
+            return;
+        }
+        System.out.println("NetworkTool.startBatch()");
+    }
 
-   /**
+    /**
      * Method to annonunce database changes of a Job.
      */
-    public void endBatch()
-	{
-		try {
+    public void endBatch() {
+        try {
             redoNetworkNumbering(false);
-		} catch (Exception e) {
-			e.printStackTrace(System.err);
-			System.err.println("Full Network renumbering after crash.");
-			e.printStackTrace(System.out);
-			System.out.println("Full Network renumbering after crash.");
-			redoNetworkNumbering(true);
-		}
-		if (!NetworkTool.debug) return;
-		System.out.println("NetworkTool.endBatch()");
-	}
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+            System.err.println("Full Network renumbering after crash.");
+            e.printStackTrace(System.out);
+            System.out.println("Full Network renumbering after crash.");
+            redoNetworkNumbering(true);
+        }
+        if (!NetworkTool.debug) {
+            return;
+        }
+        System.out.println("NetworkTool.endBatch()");
+    }
 
     /**
      * Update network information from old immutable snapshot to new immutable snapshot.
@@ -182,7 +193,7 @@ public class NetworkManager {
         invalidate();
         int maxCells = Math.max(oldSnapshot.cellBackups.size(), newSnapshot.cellBackups.size());
         if (cells.length < maxCells) {
-            NetCell[] newCells = new NetCell[Math.max(cells.length*2, maxCells)];
+            NetCell[] newCells = new NetCell[Math.max(cells.length * 2, maxCells)];
             System.arraycopy(cells, 0, newCells, 0, cells.length);
             cells = newCells;
         }
@@ -190,83 +201,109 @@ public class NetworkManager {
         for (int i = 0; i < maxCells; i++) {
             CellBackup oldBackup = oldSnapshot.getCell(i);
             CellBackup newBackup = newSnapshot.getCell(i);
-            if (newBackup != null || oldBackup == null) continue;
+            if (newBackup != null || oldBackup == null) {
+                continue;
+            }
             cells[i] = null;
         }
         // new Cells
         for (int i = 0; i < maxCells; i++) {
             CellRevision oldRevision = oldSnapshot.getCellRevision(i);
             CellRevision newRevision = newSnapshot.getCellRevision(i);
-            if (newRevision == null || oldRevision != null) continue;
+            if (newRevision == null || oldRevision != null) {
+                continue;
+            }
             CellId cellId = newRevision.d.cellId;
             Cell cell = database.getCell(cellId);
-            if (cell.isIcon() || cell.isSchematic())
+            if (cell.isIcon() || cell.isSchematic()) {
                 new NetSchem(cell);
-            else
+            } else {
                 new NetCell(cell);
+            }
         }
         // recreated Cells
         for (int i = 0; i < maxCells; i++) {
             CellRevision oldRevision = oldSnapshot.getCellRevision(i);
             CellRevision newRevision = newSnapshot.getCellRevision(i);
-            if (newRevision == null || oldRevision == null) continue;
+            if (newRevision == null || oldRevision == null) {
+                continue;
+            }
             CellId cellId = newRevision.d.cellId;
             Cell cell = database.getCell(cellId);
             NetCell netCell = getNetCell(cell);
-            if (netCell.cell == cell) continue;
-            if (cell.isIcon() || cell.isSchematic())
+            if (netCell.cell == cell) {
+                continue;
+            }
+            if (cell.isIcon() || cell.isSchematic()) {
                 new NetSchem(cell);
-            else
+            } else {
                 new NetCell(cell);
+            }
         }
         // Changed CellGroups
         if (oldSnapshot.cellGroups != newSnapshot.cellGroups) {
             int maxOldGroupIndex = -1;
-            for (int oldGroupIndex: oldSnapshot.cellGroups)
+            for (int oldGroupIndex : oldSnapshot.cellGroups) {
                 maxOldGroupIndex = Math.max(maxOldGroupIndex, oldGroupIndex);
+            }
             int[] oldGroupMap = new int[maxOldGroupIndex + 1];
             Arrays.fill(oldGroupMap, -2);
             for (int cellIndex = 0; cellIndex < oldSnapshot.cellGroups.length; cellIndex++) {
                 int oldGroupIndex = oldSnapshot.cellGroups[cellIndex];
-                if (oldGroupIndex < 0) continue;
+                if (oldGroupIndex < 0) {
+                    continue;
+                }
                 int newGroupIndex = cellIndex < newSnapshot.cellGroups.length ? newSnapshot.cellGroups[cellIndex] : -1;
-                if (oldGroupMap[oldGroupIndex] == -2)
+                if (oldGroupMap[oldGroupIndex] == -2) {
                     oldGroupMap[oldGroupIndex] = newGroupIndex;
-                else if (oldGroupMap[oldGroupIndex] != newGroupIndex)
+                } else if (oldGroupMap[oldGroupIndex] != newGroupIndex) {
                     oldGroupMap[oldGroupIndex] = -3;
+                }
             }
-            for (int oldGroupIndex: oldGroupMap)
+            for (int oldGroupIndex : oldGroupMap) {
                 assert oldGroupIndex != -2;
+            }
             // oldGroupMap[oldGroupIndex] == newGroupIndex >= 0 ==> oldGroupIndex is a subset of newGroupIndex
             // oldGroupMap[oldGroupIndex] == -1 ==> oldGroupIndex contains only killed cells
             // oldGroupMap[oldGroupIndex] == -3 ==> oldGroupIndex contains new cells from different new groups or has both new and old cells
 
             int maxNewGroupIndex = -1;
-            for (int newGroupIndex: newSnapshot.cellGroups)
+            for (int newGroupIndex : newSnapshot.cellGroups) {
                 maxNewGroupIndex = Math.max(maxNewGroupIndex, newGroupIndex);
+            }
             int[] newGroupMap = new int[maxNewGroupIndex + 1];
             Arrays.fill(newGroupMap, -2);
             for (int cellIndex = 0; cellIndex < newSnapshot.cellGroups.length; cellIndex++) {
                 int newGroupIndex = newSnapshot.cellGroups[cellIndex];
-                if (newGroupIndex < 0) continue;
+                if (newGroupIndex < 0) {
+                    continue;
+                }
                 int oldGroupIndex = cellIndex < oldSnapshot.cellGroups.length ? oldSnapshot.cellGroups[cellIndex] : -1;
-                if (newGroupMap[newGroupIndex] == -2)
+                if (newGroupMap[newGroupIndex] == -2) {
                     newGroupMap[newGroupIndex] = oldGroupIndex;
-                else if (newGroupMap[newGroupIndex] != oldGroupIndex)
+                } else if (newGroupMap[newGroupIndex] != oldGroupIndex) {
                     newGroupMap[newGroupIndex] = -3;
+                }
             }
-            for (int newGroupIndex: newGroupMap)
+            for (int newGroupIndex : newGroupMap) {
                 assert newGroupIndex != -2;
+            }
             // newGroupMap[newGroupIndex] == oldGroupIndex >= 0 ==> newGroupIndex is a subset of oldGroupIndex
             // newGroupMap[newGroupIndex] == -1 ==> newGroupIndex contains only new cells
             // newGroupMap[newGroupIndex] == -3 ==> newGroupIndex contains old cells from different old groups or has both new and old cells
 
             for (int cellIndex = 0; cellIndex < newSnapshot.cellGroups.length; cellIndex++) {
                 int newGroupIndex = newSnapshot.cellGroups[cellIndex];
-                if (newGroupIndex == -1) continue;
+                if (newGroupIndex == -1) {
+                    continue;
+                }
                 int oldGroupIndex = newGroupMap[newGroupIndex];
-                if (oldGroupIndex == -1) continue;
-                if (oldGroupIndex >= 0 && oldGroupMap[oldGroupIndex] == newGroupIndex) continue;
+                if (oldGroupIndex == -1) {
+                    continue;
+                }
+                if (oldGroupIndex >= 0 && oldGroupMap[oldGroupIndex] == newGroupIndex) {
+                    continue;
+                }
                 CellId cellId = newSnapshot.getCellRevision(cellIndex).d.cellId;
                 Cell cell = database.getCell(cellId);
                 NetSchem.updateCellGroup(cell.getCellGroup());
@@ -277,24 +314,30 @@ public class NetworkManager {
         for (int i = 0; i < maxCells; i++) {
             CellRevision oldRevision = oldSnapshot.getCellRevision(i);
             CellRevision newRevision = newSnapshot.getCellRevision(i);
-            if (newRevision == null || oldRevision == null) continue;
-            if (oldRevision == newRevision) continue;
+            if (newRevision == null || oldRevision == null) {
+                continue;
+            }
+            if (oldRevision == newRevision) {
+                continue;
+            }
             CellId cellId = newRevision.d.cellId;
             Cell cell = database.getCell(cellId);
             boolean exportsChanged = !newRevision.sameExports(oldRevision);
             if (!exportsChanged) {
                 for (int j = 0; j < newRevision.exports.size(); j++) {
-                    if (newRevision.exports.get(j).name != oldRevision.exports.get(j).name)
+                    if (newRevision.exports.get(j).name != oldRevision.exports.get(j).name) {
                         exportsChanged = true;
+                    }
                 }
             }
             NetCell netCell = getNetCell(cell);
-            if (exportsChanged)
+            if (exportsChanged) {
                 netCell.exportsChanged();
-            else
+            } else {
                 netCell.setNetworksDirty();
+            }
         }
- //       redoNetworkNumbering(false);
+        //       redoNetworkNumbering(false);
     }
 
     void startErrorLogging(Cell cell) {
@@ -315,11 +358,12 @@ public class NetworkManager {
 
     void pushHighlight(PortInst pi) {
         Poly poly = pi.getPoly();
-        Point2D [] points = poly.getPoints();
-        for(int i=0; i<points.length; i++)
-        {
+        Point2D[] points = poly.getPoints();
+        for (int i = 0; i < points.length; i++) {
             int prev = i - 1;
-            if (i == 0) prev = points.length - 1;
+            if (i == 0) {
+                prev = points.length - 1;
+            }
             errorHighlights.add(ErrorHighlight.newInstance(currentErrorCell, points[prev], points[i]));
         }
 

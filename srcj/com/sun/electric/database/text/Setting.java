@@ -49,14 +49,16 @@ import java.util.prefs.Preferences;
  * Settings are grouped in a Setting Trees. Each Tree consists of a RootGroup and lower Groups.
  */
 public class Setting {
+
     /**
      * This class manages a group of Settings.
      */
     public static class Group {
+
         public final String xmlPath;
         private final RootGroup root;
-        private final LinkedHashMap<String,Group> children = new LinkedHashMap<String,Group>();
-        private final LinkedHashMap<String,Setting> settings = new LinkedHashMap<String,Setting>();
+        private final LinkedHashMap<String, Group> children = new LinkedHashMap<String, Group>();
+        private final LinkedHashMap<String, Setting> settings = new LinkedHashMap<String, Setting>();
 
         private Group(RootGroup root, String xmlPath) {
             this.root = root;
@@ -64,7 +66,7 @@ public class Setting {
         }
 
         private Group() {
-            root = (RootGroup)this;
+            root = (RootGroup) this;
             xmlPath = "";
         }
 
@@ -76,12 +78,14 @@ public class Setting {
          */
         public Group node(String nodeName) {
             assert nodeName.indexOf('.') == -1;
-            if (nodeName.length() == 0)
+            if (nodeName.length() == 0) {
                 return this;
+            }
             Group child = children.get(nodeName);
             if (child == null) {
-                if (root.isLocked())
+                if (root.isLocked()) {
                     throw new IllegalStateException();
+                }
                 child = new Group(root, xmlPath + nodeName + '.');
                 children.put(nodeName, child);
             }
@@ -106,7 +110,7 @@ public class Setting {
          * @param factory the "factory" default value (if nothing is stored).
          */
         public Setting makeBooleanSetting(String prefName, String prefGroup, String xmlName,
-                                          String location, String description, boolean factory) {
+                String location, String description, boolean factory) {
             return new Setting(prefName, prefGroup, this, xmlName, location, description, Boolean.valueOf(factory));
         }
 
@@ -120,7 +124,7 @@ public class Setting {
          * @param factory the "factory" default value (if nothing is stored).
          */
         public Setting makeIntSetting(String prefName, String prefGroup, String xmlName,
-                                      String location, String description, int factory, String... trueMeaning) {
+                String location, String description, int factory, String... trueMeaning) {
             return new Setting(prefName, prefGroup, this, xmlName, location, description, Integer.valueOf(factory), trueMeaning);
         }
 
@@ -134,7 +138,7 @@ public class Setting {
          * @param factory the "factory" default value (if nothing is stored).
          */
         public Setting makeLongSetting(String prefName, String prefGroup, String xmlName,
-                                       String location, String description, long factory) {
+                String location, String description, long factory) {
             return new Setting(prefName, prefGroup, this, xmlName, location, description, Long.valueOf(factory));
         }
 
@@ -148,7 +152,7 @@ public class Setting {
          * @param factory the "factory" default value (if nothing is stored).
          */
         public Setting makeDoubleSetting(String prefName, String prefGroup, String xmlName,
-                                         String location, String description, double factory) {
+                String location, String description, double factory) {
             return new Setting(prefName, prefGroup, this, xmlName, location, description, Double.valueOf(factory));
         }
 
@@ -162,7 +166,7 @@ public class Setting {
          * @param factory the "factory" default value (if nothing is stored).
          */
         public Setting makeStringSetting(String prefName, String prefGroup, String xmlName,
-                                         String location, String description, String factory) {
+                String location, String description, String factory) {
             return new Setting(prefName, prefGroup, this, xmlName, location, description, factory);
         }
 
@@ -173,11 +177,13 @@ public class Setting {
          */
         public Setting getSetting(String xmlPath) {
             int pos = xmlPath.indexOf('.');
-            if (pos < 0)
+            if (pos < 0) {
                 return settings.get(xmlPath);
+            }
             Group child = children.get(xmlPath.substring(0, pos));
-            if (child == null)
+            if (child == null) {
                 return null;
+            }
             return child.getSetting(xmlPath.substring(pos + 1));
         }
 
@@ -193,8 +199,9 @@ public class Setting {
 
         private void gatherSettings(ArrayList<Setting> list) {
             list.addAll(settings.values());
-            for (Group child: children.values())
+            for (Group child : children.values()) {
                 child.gatherSettings(list);
+            }
         }
 
         /**
@@ -202,12 +209,16 @@ public class Setting {
          * which should be written to disk libraries
          * @return a collection of project preferences
          */
-        public Map<Setting,Object> getDiskSettings(Map<Setting,Object> settingValues) {
-            Map<Setting,Object> result = new TreeMap<Setting,Object>(SETTINGS_BY_PREF_NAME);
-            for (Setting setting: getSettings()) {
+        public Map<Setting, Object> getDiskSettings(Map<Setting, Object> settingValues) {
+            Map<Setting, Object> result = new TreeMap<Setting, Object>(SETTINGS_BY_PREF_NAME);
+            for (Setting setting : getSettings()) {
                 Object value = settingValues.get(setting);
-                if (!setting.isValidOption()) continue;
-                if (value.equals(setting.getFactoryValue())) continue;
+                if (!setting.isValidOption()) {
+                    continue;
+                }
+                if (value.equals(setting.getFactoryValue())) {
+                    continue;
+                }
                 result.put(setting, value);
             }
             return result;
@@ -220,14 +231,14 @@ public class Setting {
 
         void write(IdWriter writer) throws IOException {
             writer.writeInt(settings.size());
-            for (Map.Entry<String,Setting> e: settings.entrySet()) {
+            for (Map.Entry<String, Setting> e : settings.entrySet()) {
                 String key = e.getKey();
                 Setting setting = e.getValue();
                 writer.writeString(key);
                 setting.writeSetting(writer);
             }
             writer.writeInt(children.size());
-            for (Map.Entry<String,Group> e: children.entrySet()) {
+            for (Map.Entry<String, Group> e : children.entrySet()) {
                 String key = e.getKey();
                 Group child = e.getValue();
                 writer.writeString(key);
@@ -254,12 +265,14 @@ public class Setting {
      * This class manages a tree of Settings.
      */
     public static class RootGroup extends Group {
+
         private boolean locked;
 
         /**
          * Constructs a root of empty tree of Settings
          */
-        public RootGroup() {}
+        public RootGroup() {
+        }
 
         /**
          * Returns empty locked RootGroup
@@ -308,25 +321,27 @@ public class Setting {
         root.lock();
         return root;
     }
-
     private final Group xmlGroup;
     private final String xmlPath;
-	private final Object factoryObj;
+    private final Object factoryObj;
     private final String prefNode;
     private final String prefName;
     private boolean valid;
     private final String description, location;
-    private final String [] trueMeaning;
+    private final String[] trueMeaning;
 
     /** Creates a new instance of Setting */
     protected Setting(String prefName, String prefGroup, Group xmlGroup, String xmlName,
             String location, String description, Object factoryObj, String... trueMeaning) {
-        if (xmlGroup.root.isLocked())
+        if (xmlGroup.root.isLocked()) {
             throw new IllegalStateException();
-        if (xmlGroup == null)
+        }
+        if (xmlGroup == null) {
             throw new NullPointerException();
-        if (xmlName == null)
+        }
+        if (xmlName == null) {
             xmlName = prefName;
+        }
         assert xmlName.length() > 0;
         assert xmlName.indexOf('.') == -1;
         assert !xmlGroup.settings.containsKey(xmlName);
@@ -350,28 +365,36 @@ public class Setting {
      * The object must have been created as "boolean".
      * @return the boolean value on this TechSetting object.
      */
-    public boolean getBoolean() { return ((Boolean)getValue()).booleanValue(); }
+    public boolean getBoolean() {
+        return ((Boolean) getValue()).booleanValue();
+    }
 
     /**
      * Method to get the integer value on this Setting object.
      * The object must have been created as "integer".
      * @return the integer value on this TechSetting object.
      */
-    public int getInt() { return ((Integer)getValue()).intValue(); }
+    public int getInt() {
+        return ((Integer) getValue()).intValue();
+    }
 
     /**
      * Method to get the long value on this Setting object.
      * The object must have been created as "long".
      * @return the long value on this TechSetting object.
      */
-    public long getLong() { return ((Long)getValue()).longValue(); }
+    public long getLong() {
+        return ((Long) getValue()).longValue();
+    }
 
     /**
      * Method to get the double value on this Setting object.
      * The object must have been created as "double".
      * @return the double value on this TechSetting object.
      */
-    public double getDouble() { return ((Double)getValue()).doubleValue(); }
+    public double getDouble() {
+        return ((Double) getValue()).doubleValue();
+    }
 
     /**
      * Method to get the string value on this Setting object.
@@ -379,19 +402,20 @@ public class Setting {
      * @return the string value on this TechSetting object.
      */
     public String getString() {
-        String s = (String)getValue();
-        if (s == null)
+        String s = (String) getValue();
+        if (s == null) {
             throw new NullPointerException();
+        }
         return s;
     }
 
-	/**
-	 * Method to get the value of this Setting object as an Object.
-	 * The proper way to get the current value is to use one of the type-specific
-	 * methods such as getInt(), getBoolean(), etc.
-	 * @return the Object value of this Setting object.
-	 */
-	public Object getValue() {
+    /**
+     * Method to get the value of this Setting object as an Object.
+     * The proper way to get the current value is to use one of the type-specific
+     * methods such as getInt(), getBoolean(), etc.
+     * @return the Object value of this Setting object.
+     */
+    public Object getValue() {
         return Environment.getThreadEnvironment().getValue(this);
     }
 
@@ -400,35 +424,45 @@ public class Setting {
         return getXmlPath();
     }
 
-     /**
+    /**
      * Method to get the xml name of this Setting object.
      * @return the xml name of this Setting object.
      */
-    public String getXmlPath() { return xmlPath; }
+    public String getXmlPath() {
+        return xmlPath;
+    }
 
-   /**
+    /**
      * Method to get the name of this Setting object.
      * @return the name of this Setting object.
      */
-    public String getPrefName() { return prefName; }
+    public String getPrefName() {
+        return prefName;
+    }
 
-   /**
+    /**
      * Method to get the pref name of this Setting object.
      * @return the name of this Setting object.
      */
-    public String getPrefPath() { return prefNode + "/" + prefName; }
+    public String getPrefPath() {
+        return prefNode + "/" + prefName;
+    }
 
     /**
      * Method to return the user-command that can affect this Meaning option.
      * @return the user-command that can affect this Meaning option.
      */
-    public String getLocation() { return location; }
+    public String getLocation() {
+        return location;
+    }
 
     /**
      * Method to return the description of this Meaning option.
      * @return the Pref description of this Meaning option.
      */
-    public String getDescription() { return description; }
+    public String getDescription() {
+        return description;
+    }
 
     /**
      * Method to set whether this Meaning option is valid and should be reconciled.
@@ -437,8 +471,9 @@ public class Setting {
      * @param valid true if this Meaning option is valid and should be reconciled.
      */
     public void setValidOption(boolean valid) {
-        if (xmlGroup.root.isLocked())
+        if (xmlGroup.root.isLocked()) {
             throw new IllegalStateException();
+        }
         this.valid = valid;
     }
 
@@ -448,7 +483,9 @@ public class Setting {
      * don't use scaling (such as Schematics, Artwork, etc.)
      * @return true if this Meaning option is valid and should be reconciled.
      */
-    public boolean isValidOption() { return valid; }
+    public boolean isValidOption() {
+        return valid;
+    }
 
     /**
      * Method to return an array of strings to be used for integer Meaning options.
@@ -458,21 +495,27 @@ public class Setting {
      * can be given to the user.
      * @return the array of strings that should be used for this integer Meaning option.
      */
-    public String [] getTrueMeaning() { return trueMeaning != null ? trueMeaning.clone() : null; }
+    public String[] getTrueMeaning() {
+        return trueMeaning != null ? trueMeaning.clone() : null;
+    }
 
-	/**
-	 * Method to get the factory-default value of this Pref object.
-	 * @return the factory-default value of this Pref object.
-	 */
-	public Object getFactoryValue() { return factoryObj; }
+    /**
+     * Method to get the factory-default value of this Pref object.
+     * @return the factory-default value of this Pref object.
+     */
+    public Object getFactoryValue() {
+        return factoryObj;
+    }
 
-	/**
-	 * Method to get the factory-default double value of this Pref object.
-	 * @return the factory-default double value of this Pref object.
-	 */
-	public double getDoubleFactoryValue() { return ((Double)factoryObj).doubleValue(); }
+    /**
+     * Method to get the factory-default double value of this Pref object.
+     * @return the factory-default double value of this Pref object.
+     */
+    public double getDoubleFactoryValue() {
+        return ((Double) factoryObj).doubleValue();
+    }
+    private static Comparator<Setting> SETTINGS_BY_PREF_NAME = new Comparator<Setting>() {
 
-    private static Comparator<Setting> SETTINGS_BY_PREF_NAME = new Comparator<Setting> () {
         public int compare(Setting s1, Setting s2) {
             String n1 = s1.getPrefName();
             String n2 = s2.getPrefName();
@@ -484,20 +527,20 @@ public class Setting {
         assert v.getClass() == factoryObj.getClass();
         Preferences prefs = prefRoot.node(prefNode);
         if (v.equals(factoryObj)) {
-             prefs.remove(prefName);
-             return;
+            prefs.remove(prefName);
+            return;
         }
-        if (v instanceof Boolean)
-            prefs.putBoolean(prefName, ((Boolean)v).booleanValue());
-        else if (v instanceof Integer)
-            prefs.putInt(prefName, ((Integer)v).intValue());
-        else if (v instanceof Long)
-            prefs.putLong(prefName, ((Long)v).longValue());
-        else if (v instanceof Double)
-            prefs.putDouble(prefName, ((Double)v).doubleValue());
-        else if (v instanceof String)
-            prefs.put(prefName, (String)v);
-        else {
+        if (v instanceof Boolean) {
+            prefs.putBoolean(prefName, ((Boolean) v).booleanValue());
+        } else if (v instanceof Integer) {
+            prefs.putInt(prefName, ((Integer) v).intValue());
+        } else if (v instanceof Long) {
+            prefs.putLong(prefName, ((Long) v).longValue());
+        } else if (v instanceof Double) {
+            prefs.putDouble(prefName, ((Double) v).doubleValue());
+        } else if (v instanceof String) {
+            prefs.put(prefName, (String) v);
+        } else {
             assert false;
         }
     }
@@ -506,15 +549,15 @@ public class Setting {
         Preferences prefs = prefRoot.node(prefNode);
         Object cachedObj = null;
         if (factoryObj instanceof Boolean) {
-            cachedObj = Boolean.valueOf(prefs.getBoolean(prefName, ((Boolean)factoryObj).booleanValue()));
+            cachedObj = Boolean.valueOf(prefs.getBoolean(prefName, ((Boolean) factoryObj).booleanValue()));
         } else if (factoryObj instanceof Integer) {
-            cachedObj = Integer.valueOf(prefs.getInt(prefName, ((Integer)factoryObj).intValue()));
+            cachedObj = Integer.valueOf(prefs.getInt(prefName, ((Integer) factoryObj).intValue()));
         } else if (factoryObj instanceof Long) {
-            cachedObj = Long.valueOf(prefs.getLong(prefName, ((Long)factoryObj).longValue()));
+            cachedObj = Long.valueOf(prefs.getLong(prefName, ((Long) factoryObj).longValue()));
         } else if (factoryObj instanceof Double) {
-            cachedObj = Double.valueOf(prefs.getDouble(prefName, ((Double)factoryObj).doubleValue()));
+            cachedObj = Double.valueOf(prefs.getDouble(prefName, ((Double) factoryObj).doubleValue()));
         } else if (factoryObj instanceof String) {
-            cachedObj = prefs.get(prefName, (String)factoryObj);
+            cachedObj = prefs.get(prefName, (String) factoryObj);
         }
         assert cachedObj != null;
         return cachedObj;
@@ -532,8 +575,9 @@ public class Setting {
         writer.writeBoolean(hasTrueMeaning);
         if (hasTrueMeaning) {
             writer.writeInt(trueMeaning.length);
-            for (String s: trueMeaning)
+            for (String s : trueMeaning) {
                 writer.writeString(s);
+            }
         }
     }
 
@@ -548,8 +592,9 @@ public class Setting {
         boolean hasTrueMeaning = reader.readBoolean();
         if (hasTrueMeaning) {
             trueMeaning = new String[reader.readInt()];
-            for (int i = 0; i < trueMeaning.length; i++)
+            for (int i = 0; i < trueMeaning.length; i++) {
                 trueMeaning[i] = reader.readString();
+            }
         }
         Setting setting = new Setting(prefName, prefGroup, group, xmlName, location, description, factoryObj, trueMeaning);
         setting.setValidOption(valid);
@@ -557,7 +602,8 @@ public class Setting {
     }
 
     public static class SettingChangeBatch implements Serializable {
-        public HashMap<String,Object> changesForSettings = new HashMap<String,Object>();
+
+        public HashMap<String, Object> changesForSettings = new HashMap<String, Object>();
 
         public void add(Setting setting, Object newValue) {
             changesForSettings.put(setting.xmlPath, newValue);

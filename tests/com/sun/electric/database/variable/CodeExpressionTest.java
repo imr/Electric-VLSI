@@ -67,7 +67,8 @@ public class CodeExpressionTest {
     /**
      * Test of getCFlags method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Code.
      */
-    @Test public void testCodeGetCFlags() {
+    @Test
+    public void testCodeGetCFlags() {
         System.out.println("getCFlags");
 
         CodeExpression.Code instance = CodeExpression.Code.NONE;
@@ -80,7 +81,8 @@ public class CodeExpressionTest {
     /**
      * Test of toString method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Code.
      */
-    @Test public void testCodeToString() {
+    @Test
+    public void testCodeToString() {
         System.out.println("toString");
 
         CodeExpression.Code instance = CodeExpression.Code.NONE;
@@ -93,26 +95,28 @@ public class CodeExpressionTest {
     /**
      * Test of getCodes method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Code.
      */
-    @Test public void testCodeGetCodes() {
+    @Test
+    public void testCodeGetCodes() {
         System.out.println("getCodes");
 
         List<CodeExpression.Code> expResult = Arrays.asList(
                 CodeExpression.Code.JAVA,
                 CodeExpression.Code.SPICE,
                 CodeExpression.Code.TCL,
-                CodeExpression.Code.NONE
-                );
+                CodeExpression.Code.NONE);
         Iterator<CodeExpression.Code> result = CodeExpression.Code.getCodes();
         int i = 0;
-        while (result.hasNext())
+        while (result.hasNext()) {
             assertEquals(expResult.get(i++), result.next());
+        }
         assertEquals(expResult.size(), i);
     }
 
     /**
      * Test of getByCBits method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Code.
      */
-    @Test public void testCodeGetByCBits() {
+    @Test
+    public void testCodeGetByCBits() {
         System.out.println("getByCBits");
 
         int cBits = 0;
@@ -121,7 +125,6 @@ public class CodeExpressionTest {
         CodeExpression.Code result = CodeExpression.Code.getByCBits(cBits);
         assertEquals(expResult, result);
     }
-
 
     /**
      * Test of valueOf method, of class CodeExpression.
@@ -202,7 +205,7 @@ public class CodeExpressionTest {
         goodJava("(@layer==0?7.6:@layer<6?0.086:0.036)*@L/@width", "(layer==0?7.6:layer<6?86m:36m)*L/width");
         goodJava("0.8334", "0.833");
         goodJava("1", "1");
-        goodJava("10/3.00",	"10/3");
+        goodJava("10/3.00", "10/3");
         goodJava("100", "100");
         goodJava("2", "2");
         goodJava("2*P(\"S\")", "2*S");
@@ -237,7 +240,6 @@ public class CodeExpressionTest {
         assertNull(ce.getParseException());
         assertEquals(expected, ce.getSpiceText());
     }
-
 
     @Test
     public void testGoodSpice() {
@@ -373,8 +375,7 @@ public class CodeExpressionTest {
     private void testEval(String expr, double expected) {
         CodeExpression ce = CodeExpression.valueOf(expr, CodeExpression.Code.SPICE);
         assertNull(ce.getParseException());
-        Double result = (Double)ce.eval();
+        Double result = (Double) ce.eval();
         assertEquals(expected, result, 0);
     }
-
 }

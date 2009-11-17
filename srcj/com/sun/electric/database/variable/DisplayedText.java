@@ -33,56 +33,63 @@ import java.io.Serializable;
 /**
  * DisplayedText is the combination of an ElectricObject and a Variable Key.
  */
-public class DisplayedText implements Serializable
-{
-	private ElectricObject eObj;
-	private Variable.Key key;
+public class DisplayedText implements Serializable {
 
-	public DisplayedText(ElectricObject eObj, Variable.Key key)
-	{
-		this.eObj = eObj;
-		this.key = key;
-	}
+    private ElectricObject eObj;
+    private Variable.Key key;
 
-	public ElectricObject getElectricObject() { return eObj; }
+    public DisplayedText(ElectricObject eObj, Variable.Key key) {
+        this.eObj = eObj;
+        this.key = key;
+    }
 
-	public Variable.Key getVariableKey() { return key; }
+    public ElectricObject getElectricObject() {
+        return eObj;
+    }
 
-	public Variable getVariable() { return eObj.getParameterOrVariable(key); }
+    public Variable.Key getVariableKey() {
+        return key;
+    }
 
-    /**
-	 * Method to tell whether this DisplayedText stays with its node.
-	 * The two possibilities are (1) text on invisible pins
-	 * (2) export names, when the option to move exports with their labels is requested.
-	 * @return true if this DisplayedText should move with its node.
-	 */
-	public boolean movesWithText()
-	{
-		return objectMovesWithText(eObj, key);
-	}
+    public Variable getVariable() {
+        return eObj.getParameterOrVariable(key);
+    }
 
     /**
-	 * Method to tell whether text stays with its node.
-	 * The two possibilities are (1) text on invisible pins
-	 * (2) export names, when the option to move exports with their labels is requested.
-	 * @param eObj the ElectricObject with text on it.
-	 * @param key the Variable Key of the text on the object.
-	 * @return true if the text should move with its node.
-	 */
-	public static boolean objectMovesWithText(ElectricObject eObj, Variable.Key key)
-	{
-		if (eObj instanceof NodeInst)
-		{
-			// moving variable text
-			NodeInst ni = (NodeInst)eObj;
-			if (ni.isInvisiblePinWithText()) return true;
-		} else if (eObj instanceof Export && key == Export.EXPORT_NAME)
-		{
-			// moving export text
-			Export pp = (Export)eObj;
-			if (pp.getOriginalPort().getNodeInst().getProto() == Generic.tech().invisiblePinNode) return true;
-			if (User.isMoveNodeWithExport()) return true;
-		}
-		return false;
-	}
+     * Method to tell whether this DisplayedText stays with its node.
+     * The two possibilities are (1) text on invisible pins
+     * (2) export names, when the option to move exports with their labels is requested.
+     * @return true if this DisplayedText should move with its node.
+     */
+    public boolean movesWithText() {
+        return objectMovesWithText(eObj, key);
+    }
+
+    /**
+     * Method to tell whether text stays with its node.
+     * The two possibilities are (1) text on invisible pins
+     * (2) export names, when the option to move exports with their labels is requested.
+     * @param eObj the ElectricObject with text on it.
+     * @param key the Variable Key of the text on the object.
+     * @return true if the text should move with its node.
+     */
+    public static boolean objectMovesWithText(ElectricObject eObj, Variable.Key key) {
+        if (eObj instanceof NodeInst) {
+            // moving variable text
+            NodeInst ni = (NodeInst) eObj;
+            if (ni.isInvisiblePinWithText()) {
+                return true;
+            }
+        } else if (eObj instanceof Export && key == Export.EXPORT_NAME) {
+            // moving export text
+            Export pp = (Export) eObj;
+            if (pp.getOriginalPort().getNodeInst().getProto() == Generic.tech().invisiblePinNode) {
+                return true;
+            }
+            if (User.isMoveNodeWithExport()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

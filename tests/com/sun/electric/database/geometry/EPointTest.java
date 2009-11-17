@@ -37,7 +37,8 @@ public class EPointTest {
 
     private EPoint p0;
 
-    @Before public void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         p0 = EPoint.fromGrid(10, 20);
     }
 
@@ -48,23 +49,26 @@ public class EPointTest {
     /**
      * Test of fromLambda method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test public void testFromLambda() {
+    @Test
+    public void testFromLambda() {
         System.out.println("fromLambda");
-        assertEquals(p0, EPoint.fromLambda(10/DBMath.GRID, 20/DBMath.GRID));
+        assertEquals(p0, EPoint.fromLambda(10 / DBMath.GRID, 20 / DBMath.GRID));
     }
 
     /**
      * Test of fromGrid method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test public void testFromGrid() {
+    @Test
+    public void testFromGrid() {
         System.out.println("fromGrid");
-        assertSame(EPoint.ORIGIN, EPoint.fromGrid(0,0));
+        assertSame(EPoint.ORIGIN, EPoint.fromGrid(0, 0));
     }
 
     /**
      * Test of snap method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test public void testSnap() {
+    @Test
+    public void testSnap() {
         System.out.println("snap");
         assertSame(p0, EPoint.snap(p0));
     }
@@ -72,39 +76,44 @@ public class EPointTest {
     /**
      * Test of getX method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test public void testGetX() {
+    @Test
+    public void testGetX() {
         System.out.println("getX");
-        assertEquals(10/DBMath.GRID, p0.getX(), 0);
+        assertEquals(10 / DBMath.GRID, p0.getX(), 0);
     }
 
     /**
      * Test of getY method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test public void testGetY() {
+    @Test
+    public void testGetY() {
         System.out.println("getY");
-        assertEquals(20/DBMath.GRID, p0.getY(), 0);
+        assertEquals(20 / DBMath.GRID, p0.getY(), 0);
     }
 
     /**
      * Test of getLambdaX method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test public void testGetLambdaX() {
+    @Test
+    public void testGetLambdaX() {
         System.out.println("getLambdaX");
-        assertEquals(10/DBMath.GRID, p0.getLambdaX(), 0);
+        assertEquals(10 / DBMath.GRID, p0.getLambdaX(), 0);
     }
 
     /**
      * Test of getLambdaY method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test public void testGetLambdaY() {
+    @Test
+    public void testGetLambdaY() {
         System.out.println("getLambdaY");
-        assertEquals(20/DBMath.GRID, p0.getLambdaY(), 0);
+        assertEquals(20 / DBMath.GRID, p0.getLambdaY(), 0);
     }
 
     /**
      * Test of getGridX method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test public void testGetGridX() {
+    @Test
+    public void testGetGridX() {
         System.out.println("getGridX");
         assertEquals(10L, p0.getGridX());
     }
@@ -112,7 +121,8 @@ public class EPointTest {
     /**
      * Test of getGridY method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test public void testGetGridY() {
+    @Test
+    public void testGetGridY() {
         System.out.println("getGridY");
         assertEquals(20L, p0.getGridY());
     }
@@ -120,7 +130,8 @@ public class EPointTest {
     /**
      * Test of setLocation method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test(expected = UnsupportedOperationException.class) public void testSetLocation() {
+    @Test(expected = UnsupportedOperationException.class)
+    public void testSetLocation() {
         System.out.println("setLocation");
         p0.setLocation(1, 2);
     }
@@ -128,17 +139,19 @@ public class EPointTest {
     /**
      * Test of lambdaMutable method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test public void testLambdaMutable() {
+    @Test
+    public void testLambdaMutable() {
         System.out.println("lambdaMutable");
         Point2D.Double result = p0.lambdaMutable();
         assertTrue(result instanceof Point2D.Double);
-        assertEquals(new Point2D.Double(10/DBMath.GRID, 20/DBMath.GRID), result);
+        assertEquals(new Point2D.Double(10 / DBMath.GRID, 20 / DBMath.GRID), result);
     }
 
     /**
      * Test of gridMutable method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test public void testGridMutable() {
+    @Test
+    public void testGridMutable() {
         System.out.println("gridMutable");
         Point2D.Double result = p0.gridMutable();
         assertTrue(result instanceof Point2D.Double);
@@ -148,15 +161,17 @@ public class EPointTest {
     /**
      * Test of lambdaDistance method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test public void testLambdaDistance() {
+    @Test
+    public void testLambdaDistance() {
         System.out.println("lambdaDistance");
-        assertEquals(Math.sqrt(500)/DBMath.GRID, p0.lambdaDistance(EPoint.ORIGIN), 0);
+        assertEquals(Math.sqrt(500) / DBMath.GRID, p0.lambdaDistance(EPoint.ORIGIN), 0);
     }
 
     /**
      * Test of gridDistance method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test public void testGridDistance() {
+    @Test
+    public void testGridDistance() {
         System.out.println("gridDistance");
         assertEquals(Math.sqrt(500), p0.gridDistance(EPoint.ORIGIN), 0);
     }
@@ -164,7 +179,8 @@ public class EPointTest {
     /**
      * Test of isSmall method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test public void testIsSmall() {
+    @Test
+    public void testIsSmall() {
         System.out.println("isSmall");
         assertTrue(p0.isSmall());
         assertFalse((EPoint.fromGrid(-(1 << 30) - 1, 0)).isSmall());
@@ -180,8 +196,9 @@ public class EPointTest {
     /**
      * Test of toString method, of class com.sun.electric.database.geometry.EPoint.
      */
-    @Test public void testToString() {
+    @Test
+    public void testToString() {
         System.out.println("toString");
-        assertEquals("EPoint["+(10/DBMath.GRID)+", "+(20/DBMath.GRID)+"]", p0.toString());
+        assertEquals("EPoint[" + (10 / DBMath.GRID) + ", " + (20 / DBMath.GRID) + "]", p0.toString());
     }
 }

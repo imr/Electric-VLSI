@@ -90,30 +90,42 @@ import java.util.regex.Matcher;
  * <P>
  * This class is thread-safe.
  */
-public class VarContext implements Serializable
-{
+public class VarContext implements Serializable {
+
     private static class ValueCache {
 
         private static class EvalPair {
+
             private final CodeExpression ce;
             private final Object info;
-            public EvalPair(CodeExpression e, Object i) {ce=e;  info=i;}
-            public int hashCode() {return ce.hashCode() * info.hashCode();}
+
+            public EvalPair(CodeExpression e, Object i) {
+                ce = e;
+                info = i;
+            }
+
+            public int hashCode() {
+                return ce.hashCode() * info.hashCode();
+            }
+
             public boolean equals(Object o) {
-                if (!(o instanceof EvalPair)) return false;
+                if (!(o instanceof EvalPair)) {
+                    return false;
+                }
                 EvalPair ep = (EvalPair) o;
-                return ce==ep.ce && info==ep.info;
+                return ce == ep.ce && info == ep.info;
             }
         }
-
-        private final Map<EvalPair,Object> cache = new HashMap<EvalPair,Object>();
+        private final Map<EvalPair, Object> cache = new HashMap<EvalPair, Object>();
 
         public synchronized boolean containsKey(CodeExpression ce, Object info) {
             return cache.containsKey(new EvalPair(ce, info));
         }
+
         public synchronized Object get(CodeExpression ce, Object info) {
             return cache.get(new EvalPair(ce, info));
         }
+
         public synchronized void put(CodeExpression ce, Object info, Object value) {
             EvalPair key = new EvalPair(ce, info);
             LayoutLib.error(cache.containsKey(key), "duplicate keys in ValueCache?");
@@ -121,22 +133,19 @@ public class VarContext implements Serializable
         }
     }
     private static final Object FAST_EVAL_FAILED = new Object();
-
     private final VarContext prev;
     private final Nodable ni;
     private transient ValueCache cache;
 
     // ------------------------ private methods -------------------------------
     // For the global context.
-    private VarContext()
-    {
+    private VarContext() {
         this.ni = null;
         this.prev = this;
         this.cache = null;
     }
 
-    private VarContext(Nodable ni, VarContext prev, boolean caching)
-    {
+    private VarContext(Nodable ni, VarContext prev, boolean caching) {
         this.ni = ni;
         this.prev = prev;
         this.cache = caching ? new ValueCache() : null;
@@ -147,12 +156,16 @@ public class VarContext implements Serializable
     }
 
     private void throwNotFound(String name) throws EvalException {
-        throw new EvalException(name.replaceFirst("ATTR_", "")+" not found");
+        throw new EvalException(name.replaceFirst("ATTR_", "") + " not found");
     }
 
     private Object ifNotNumberTryToConvertToNumber(Object val) {
-        if (val == null) return val;
-        if (val instanceof Number) return val;
+        if (val == null) {
+            return val;
+        }
+        if (val instanceof Number) {
+            return val;
+        }
         try {
             Number d = TextUtils.parsePostFixNumber(val.toString(), null);
             val = d;
@@ -170,7 +183,7 @@ public class VarContext implements Serializable
         final String pClose = "\")";
         final int pCloseLen = pClose.length();
         if (expr.startsWith(pOpen) && expr.endsWith(pClose)) {
-            String varNm = expr.substring(pOpenLen, expr.length()-pCloseLen);
+            String varNm = expr.substring(pOpenLen, expr.length() - pCloseLen);
             return isValidIdentifier(varNm) ? varNm : null;
         }
         if (expr.startsWith("@")) {
@@ -182,8 +195,10 @@ public class VarContext implements Serializable
 
     private boolean isValidIdentifier(String identifier) {
         final int len = identifier.length();
-        for (int i=0; i<len; i++) {
-            if (!TextUtils.isLetterOrDigit(identifier.charAt(i))) return false;
+        for (int i = 0; i < len; i++) {
+            if (!TextUtils.isLetterOrDigit(identifier.charAt(i))) {
+                return false;
+            }
         }
         return true;
     }
@@ -191,8 +206,8 @@ public class VarContext implements Serializable
     private Object fastJavaVarEval(CodeExpression ce, Object info) throws EvalException {
         // Avoid re-computing the value if it is already in the cache.
         // Use "contains" because the value might be null.
-        synchronized(this) {
-            if (cache!=null && cache.containsKey(ce, info)) {
+        synchronized (this) {
+            if (cache != null && cache.containsKey(ce, info)) {
                 return cache.get(ce, info);
             }
         }
@@ -200,16 +215,16 @@ public class VarContext implements Serializable
         // variable.
         String expr = ce.getExpr();
         String varNm = getSimpleVarRef(expr);
-        if (varNm==null) return FAST_EVAL_FAILED;
-        return lookupVarEval("ATTR_"+varNm);
+        if (varNm == null) {
+            return FAST_EVAL_FAILED;
+        }
+        return lookupVarEval("ATTR_" + varNm);
     }
-
 //    private void printValueCheckValue(Object value, Object checkValue) {
 //        System.out.println("fast eval mismatch");
 //        System.out.println("  fast value: "+value.toString());
 //        System.out.println("  slow value: "+checkValue.toString());
 //    }
-
 //    private void checkFastValue(Object value, Variable var, Object info) throws EvalException {
 //        if (value==FAST_EVAL_FAILED) return;
 //        Object checkValue = EvalJavaBsh.evalJavaBsh.evalVarObject(var.getObject(), this, info);
@@ -223,7 +238,6 @@ public class VarContext implements Serializable
 //            }
 //        }
 //    }
-
     // ----------------------------- public methods ---------------------------
     /**
      * The blank VarContext that is the parent of all VarContext chains.
@@ -234,8 +248,7 @@ public class VarContext implements Serializable
      * get a new VarContext that consists of the current VarContext with
      * the given NodeInst pushed onto the stack
      */
-    public VarContext push(Nodable ni)
-    {
+    public VarContext push(Nodable ni) {
         return new VarContext(ni, this, false);
     }
 
@@ -260,8 +273,7 @@ public class VarContext implements Serializable
      * get the VarContext that existed before you called push on it.
      * may return globalContext if the stack is empty.
      */
-    public VarContext pop()
-    {
+    public VarContext pop() {
         return prev;
     }
 
@@ -269,8 +281,7 @@ public class VarContext implements Serializable
      * Return the Node Instance that provides the context for the
      * variable evaluation for this level.
      */
-    public Nodable getNodable()
-    {
+    public Nodable getNodable() {
         return ni;
     }
 
@@ -278,8 +289,7 @@ public class VarContext implements Serializable
      * Return the PortInst that resides on the NodeInst that provides
      * the context. This is currently only useful for Highlighting.
      */
-    public PortInst getPortInst()
-    {
+    public PortInst getPortInst() {
         return null;
     }
 
@@ -291,22 +301,28 @@ public class VarContext implements Serializable
      * @param o the VarContext to compare against.
      * @return true if equal, false otherwise.
      */
-    public boolean equals(Object o)
-    {
-        if (!(o instanceof VarContext)) return false;
-        VarContext c = (VarContext)o;
-        if (this == c) return true;             // both globalContext, or the same object
-
+    public boolean equals(Object o) {
+        if (!(o instanceof VarContext)) {
+            return false;
+        }
+        VarContext c = (VarContext) o;
+        if (this == c) {
+            return true;             // both globalContext, or the same object
+        }
         // the following line doesn't work (R KAO, IvanM)
         //if (ni != c.getNodable()) return false; // compare nodeinsts
 
-        if (ni == null || c.getNodable() == null) return ni == c.getNodable();
+        if (ni == null || c.getNodable() == null) {
+            return ni == c.getNodable();
+        }
         Cell c1 = ni.getParent();
         Cell c2 = c.getNodable().getParent();
         String name1 = ni.getName();
         String name2 = c.getNodable().getName();
 
-        if (! ((c1 == c2) && (name1.equals(name2)))) return false;
+        if (!((c1 == c2) && (name1.equals(name2)))) {
+            return false;
+        }
         return prev.equals(c.pop());            // compare parents
     }
 
@@ -324,8 +340,9 @@ public class VarContext implements Serializable
             context = context.pop();
         }
         List<Nodable> path = new ArrayList<Nodable>();
-        while (!stack.isEmpty())
+        while (!stack.isEmpty()) {
             path.add(stack.pop());
+        }
         return path.iterator();
     }
 
@@ -344,11 +361,12 @@ public class VarContext implements Serializable
             nodes.push(acontext.getNodable());
             acontext = acontext.pop();
         }
-        for (int i=0; i<levels; i++)
+        for (int i = 0; i < levels; i++) {
             nodes.pop();
+        }
         acontext = VarContext.globalContext;
         int size = nodes.size();
-        for (int i=0; i<size; i++) {
+        for (int i = 0; i < size; i++) {
             Nodable no = nodes.pop();
             acontext = acontext.push(no);
         }
@@ -360,7 +378,7 @@ public class VarContext implements Serializable
      * @return the number of levels of context in this VarContext
      */
     public int getNumLevels() {
-        int i=0;
+        int i = 0;
         VarContext acontext = this;
         while (acontext != VarContext.globalContext) {
             i++;
@@ -370,11 +388,11 @@ public class VarContext implements Serializable
     }
 
     /** Get rid of the variable cache thereby release its storage */
-    public synchronized void deleteVariableCache() { cache=null; }
-
+    public synchronized void deleteVariableCache() {
+        cache = null;
+    }
 
     // ------------------------------ Variable Evaluation -----------------------
-
     /**
      * Gets the value of Variable @param var.
      * If variable is Java, uses EvalJavaBsh to evaluate
@@ -384,8 +402,7 @@ public class VarContext implements Serializable
      * @return the evlauated Object. Returns null if the variable
      * is code and evaluation fails.
      */
-    public Object evalVar(Variable var)
-    {
+    public Object evalVar(Variable var) {
         return evalVar(var, null);
     }
 
@@ -396,9 +413,10 @@ public class VarContext implements Serializable
      * @return the evlauated Object. Returns null if the variable
      * is code and evaluation fails.
      */
-    public Object evalVar(Variable var, Object info)
-    {
-        if (var == null) return null;
+    public Object evalVar(Variable var, Object info) {
+        if (var == null) {
+            return null;
+        }
         try {
             return evalVarRecurse(var, info);
         } catch (EvalException e) {
@@ -408,21 +426,35 @@ public class VarContext implements Serializable
     }
 
     public static class EvalException extends Exception {
-        public EvalException() { super(); }
-        public EvalException(String message) { super(message); }
-        public EvalException(String message, Throwable cause) { super(message, cause); }
-        public EvalException(Throwable cause) { super(cause); }
+
+        public EvalException() {
+            super();
+        }
+
+        public EvalException(String message) {
+            super(message);
+        }
+
+        public EvalException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public EvalException(Throwable cause) {
+            super(cause);
+        }
     }
 
     public static void printException(EvalException e, Variable var, VarContext context, Object info) {
         // If cause is null, this was an error in electric (var lookup etc)
-        if (e.getCause() == null) return;
+        if (e.getCause() == null) {
+            return;
+        }
         // otherwise, this is an error in the bean shell
-        String msg = "Exception caught evaluating "+var.getCode()+
-                " var "+var.getTrueName()+(e.getMessage() == null ? "" : ": "+e.getMessage());
+        String msg = "Exception caught evaluating " + var.getCode()
+                + " var " + var.getTrueName() + (e.getMessage() == null ? "" : ": " + e.getMessage());
         if (info instanceof Nodable) {
-            NodeInst ni = ((Nodable)info).getNodeInst();
-            System.out.println("In Cell "+ni.getParent().describe(false)+", on Node "+ni.describe(false)+": "+msg);
+            NodeInst ni = ((Nodable) info).getNodeInst();
+            System.out.println("In Cell " + ni.getParent().describe(false) + ", on Node " + ni.describe(false) + ": " + msg);
         } else {
             System.out.println(msg);
         }
@@ -443,8 +475,9 @@ public class VarContext implements Serializable
      */
     public Object evalVarRecurse(Variable var, Object info) throws EvalException {
         CodeExpression ce = var.getCodeExpression();
-        if (ce == null)
+        if (ce == null) {
             return ifNotNumberTryToConvertToNumber(var.getObject());
+        }
         switch (ce.getCode()) {
             case JAVA:
                 Object value = fastJavaVarEval(ce, info);
@@ -452,11 +485,13 @@ public class VarContext implements Serializable
                 // testing code
                 //checkFastValue(value, var, info);
 
-                if (value==FAST_EVAL_FAILED) {
+                if (value == FAST_EVAL_FAILED) {
                     // OK, I give up.  Call the darn bean shell.
                     value = EvalJavaBsh.evalJavaBsh.evalVarObject(ce, this, info);
-                    synchronized(this) {
-                        if (cache!=null) cache.put(ce, info, value);
+                    synchronized (this) {
+                        if (cache != null) {
+                            cache.put(ce, info, value);
+                        }
                     }
                 }
                 return ifNotNumberTryToConvertToNumber(value);
@@ -465,9 +500,10 @@ public class VarContext implements Serializable
 //                    return new String("?");
                 Object obj = evalSpice_(ce, true);
                 if (obj instanceof Number) {
-                    Number n = (Number)obj;
-                    if (n.doubleValue() < 0.001)
+                    Number n = (Number) obj;
+                    if (n.doubleValue() < 0.001) {
                         return TextUtils.formatDoublePostFix(n.doubleValue());
+                    }
                 }
                 if (obj instanceof EvalSpice.SimpleEq) {
                     // couldn't parse, just return original
@@ -495,8 +531,9 @@ public class VarContext implements Serializable
             return null;
         }
     }
+    /** For replacing @variable */
+    private static final Pattern pPat = Pattern.compile("P\\(\"(\\w+)\"\\)");
 
-    /** For replacing @variable */ private static final Pattern pPat = Pattern.compile("P\\(\"(\\w+)\"\\)");
     private Object evalSpice_(CodeExpression ce, boolean recurse) throws EvalException {
         assert ce.getCode() == CodeExpression.Code.SPICE;
         String expr = EvalJavaBsh.replace(ce.getExpr());
@@ -506,8 +543,9 @@ public class VarContext implements Serializable
             Object value = pMat.group(1).substring(5);
             Variable parentVar = null;
             Nodable no = getNodable();
-            if (no != null)
+            if (no != null) {
                 parentVar = no.getParameter(Variable.findKey(pMat.group(1)));
+            }
             if (parentVar != null) {
                 // see if param is spice code by looking at instance code
                 boolean isSpiceCode = parentVar.getCode() == CodeExpression.Code.SPICE;
@@ -518,10 +556,11 @@ public class VarContext implements Serializable
 //                    if (protoVar != null)
 //                        isSpiceCode = protoVar.getCode() == TextDescriptor.Code.SPICE;
 //                }
-                if (recurse || !isSpiceCode)
-                {
+                if (recurse || !isSpiceCode) {
                     value = pop().evalVarRecurse(parentVar, getNodable());
-                    if (value == null) value = "";   	
+                    if (value == null) {
+                        value = "";
+                    }
                 }
             }
             pMat.appendReplacement(sb, value.toString());
@@ -540,11 +579,14 @@ public class VarContext implements Serializable
      * @return an object representing the evaluated variable,
      * or null if no var or default var found.
      */
-    protected Object lookupVarEval(String name) throws EvalException
-    {
-        if (ni == null) throwNotFound(name);
+    protected Object lookupVarEval(String name) throws EvalException {
+        if (ni == null) {
+            throwNotFound(name);
+        }
         Variable.Key key = Variable.findKey(name);
-        if (key == null) throwNotFound(name);
+        if (key == null) {
+            throwNotFound(name);
+        }
 
         // Topology.java concludes that all instances of a Cell have
         // the same transistor sizes if that Cell has no parameters.
@@ -564,14 +606,20 @@ public class VarContext implements Serializable
 //			var = cell.getVar(key);
 //        }
 
-        if (var == null) throwNotFound(name);
+        if (var == null) {
+            throwNotFound(name);
+        }
 
         // evaluate var in it's context
         Object val = this.pop().evalVarRecurse(var, ni);
-        if (val == null) throwNotFound(name);
+        if (val == null) {
+            throwNotFound(name);
+        }
 
         val = ifNotNumberTryToConvertToNumber(val);
-        if (val == null) throwNotFound(name);
+        if (val == null) {
+            throwNotFound(name);
+        }
 
         return val;
     }
@@ -628,21 +676,20 @@ public class VarContext implements Serializable
 //
 //        return value;
 //	}
-
     // ---------------------------------- Utility Methods ----------------------------
-
     /** Return the concatonation of all instances names left to right
      * from the root to the leaf. Begin with the string with a separator
      * and place a separator between adjacent instance names.
      * @param sep the separator string.
      */
-    public String getInstPath(String sep)
-    {
-        if (this==globalContext) return "";
+    public String getInstPath(String sep) {
+        if (this == globalContext) {
+            return "";
+        }
 
-        String prefix = pop()==globalContext ? "" : pop().getInstPath(sep);
+        String prefix = pop() == globalContext ? "" : pop().getInstPath(sep);
         Nodable no = getNodable();
-        if (no==null) {
+        if (no == null) {
             System.out.println("VarContext.getInstPath: context with null NodeInst?");
         }
         String me = no.getName();
@@ -656,7 +703,9 @@ public class VarContext implements Serializable
 //             //System.out.println("VarContext.getInstPath: NodeInst in VarContext with no name!!!");
 //             me = ni.describe();
 //         }
-        if (prefix.equals("")) return me;
+        if (prefix.equals("")) {
+            return me;
+        }
         return prefix + sep + me;
     }
 
@@ -664,12 +713,17 @@ public class VarContext implements Serializable
      * if not possible, return @param def.
      */
     public static float objectToFloat(Object obj, float def) {
-        if (obj == null) return def;
-        if (obj instanceof Number) return ((Number)obj).floatValue();
+        if (obj == null) {
+            return def;
+        }
+        if (obj instanceof Number) {
+            return ((Number) obj).floatValue();
+        }
         try {
             Number n = TextUtils.parsePostFixNumber(obj.toString(), null);
             return n.floatValue();
-        } catch (NumberFormatException e) {}
+        } catch (NumberFormatException e) {
+        }
         return def;
     }
 
@@ -677,12 +731,17 @@ public class VarContext implements Serializable
      * if not possible, return @param def.
      */
     public static int objectToInt(Object obj, int def) {
-        if (obj == null) return def;
-        if (obj instanceof Number) return ((Number)obj).intValue();
+        if (obj == null) {
+            return def;
+        }
+        if (obj instanceof Number) {
+            return ((Number) obj).intValue();
+        }
         try {
             Number n = TextUtils.parsePostFixNumber(obj.toString(), null);
             return n.intValue();
-        } catch (NumberFormatException e) {}
+        } catch (NumberFormatException e) {
+        }
         return def;
     }
 
@@ -690,26 +749,35 @@ public class VarContext implements Serializable
      * if not possible, return @param def.
      */
     public static short objectToShort(Object obj, short def) {
-        if (obj == null) return def;
-        if (obj instanceof Number) return ((Number)obj).shortValue();
+        if (obj == null) {
+            return def;
+        }
+        if (obj instanceof Number) {
+            return ((Number) obj).shortValue();
+        }
         try {
             Number n = TextUtils.parsePostFixNumber(obj.toString(), null);
             return n.shortValue();
-        } catch (NumberFormatException e) {}
+        } catch (NumberFormatException e) {
+        }
         return def;
     }
 
-   /** Helper method to convert an Object to a double, if possible.
+    /** Helper method to convert an Object to a double, if possible.
      * if not possible, return @param def.
      */
     public static double objectToDouble(Object obj, double def) {
-        if (obj == null) return def;
-        if (obj instanceof Number) return ((Number)obj).doubleValue();
+        if (obj == null) {
+            return def;
+        }
+        if (obj instanceof Number) {
+            return ((Number) obj).doubleValue();
+        }
         try {
             Number n = TextUtils.parsePostFixNumber(obj.toString(), null);
             return n.doubleValue();
-        } catch (NumberFormatException e) {}
+        } catch (NumberFormatException e) {
+        }
         return def;
     }
-
 }

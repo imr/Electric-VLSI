@@ -127,17 +127,17 @@ public class SerializationTest {
             out.close();
 
             ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serialized), database);
-            TechId techId = (TechId)in.readObject();
-            ArcProtoId arcProtoId = (ArcProtoId)in.readObject();
-            PrimitiveNodeId primitiveNodeId = (PrimitiveNodeId)in.readObject();
-            PrimitivePortId primitivePortId = (PrimitivePortId)in.readObject();
-            LibId libId = (LibId)in.readObject();
-            CellId cellId = (CellId)in.readObject();
-            ExportId exportId = (ExportId)in.readObject();
-            Technology tech = (Technology)in.readObject();
-            ArcProto ap = (ArcProto)in.readObject();
-            PrimitiveNode pn = (PrimitiveNode)in.readObject();
-            PrimitivePort pp = (PrimitivePort)in.readObject();
+            TechId techId = (TechId) in.readObject();
+            ArcProtoId arcProtoId = (ArcProtoId) in.readObject();
+            PrimitiveNodeId primitiveNodeId = (PrimitiveNodeId) in.readObject();
+            PrimitivePortId primitivePortId = (PrimitivePortId) in.readObject();
+            LibId libId = (LibId) in.readObject();
+            CellId cellId = (CellId) in.readObject();
+            ExportId exportId = (ExportId) in.readObject();
+            Technology tech = (Technology) in.readObject();
+            ArcProto ap = (ArcProto) in.readObject();
+            PrimitiveNode pn = (PrimitiveNode) in.readObject();
+            PrimitivePort pp = (PrimitivePort) in.readObject();
             in.close();
 
             assertSame(techId0, techId);
@@ -234,6 +234,7 @@ public class SerializationTest {
     }
 
     private static class CellIdPtr implements Serializable {
+
         private CellId cellId;
     }
 
@@ -296,6 +297,4 @@ public class SerializationTest {
         ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serialized), database);
         Technology tech = (Technology) in.readObject();
     }
-
-
 }

@@ -38,23 +38,24 @@ import java.io.ObjectOutput;
  * EObjectInputStream resolves Electric objects in specified database from Key objects.
  */
 public class EObjectInputStream extends ObjectInputStream {
-    
+
     public abstract static class Key<T> implements Externalizable {
+
         private T obj;
-        
+
         public Key(T obj) {
             this.obj = obj;
         }
-	
+
         public void writeExternal(ObjectOutput out) throws IOException {
-            writeExternal((EObjectOutputStream)out, obj);
+            writeExternal((EObjectOutputStream) out, obj);
         }
 
         public Key() {
         }
-        
+
         public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-            obj = readExternal((EObjectInputStream)in);
+            obj = readExternal((EObjectInputStream) in);
         }
 
         /**
@@ -75,7 +76,7 @@ public class EObjectInputStream extends ObjectInputStream {
          * @exception IOException Includes any I/O exceptions that may occur
          */
         public abstract void writeExternal(EObjectOutputStream out, T obj) throws IOException;
-        
+
         /**
          * The oclass implements the readExternal method to restore an
          * object by calling the methods of DataInput for primitive
@@ -93,22 +94,22 @@ public class EObjectInputStream extends ObjectInputStream {
          */
         public abstract T readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException;
     }
-    
     private final EDatabase database;
-    
+
     /** Creates a new instance of EObjectInputStream */
     public EObjectInputStream(InputStream in, EDatabase database) throws IOException {
         super(in);
         enableResolveObject(true);
         this.database = database;
     }
-    
+
     protected Object resolveObject(Object obj) throws IOException {
-        if (obj instanceof Key)
-            return ((Key)obj).obj;
+        if (obj instanceof Key) {
+            return ((Key) obj).obj;
+        }
         return obj;
     }
-    
+
     public EDatabase getDatabase() {
         return database;
     }

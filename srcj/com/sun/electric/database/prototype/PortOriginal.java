@@ -59,109 +59,113 @@ import java.awt.geom.AffineTransform;
  * <LI>The apparent angle of the lowest node when viewed from the top.
  * In this case, it is a combination of the contact, BOT cell instance, and MID cell instance rotations.</LI>
  */
-public class PortOriginal
-{
-	private AffineTransform subrot;
-	private Orientation orient;
-	private PortInst bottomPort;
-	private NodeInst bottomNi;
-	private PortProto bottomPp;
+public class PortOriginal {
 
-	/**
-	 * Constructor takes a PortInst and traverses it down to the bottom of the hierarchy.
-	 * @param startPort the initial PortInst.
-	 */
-	public PortOriginal(PortInst startPort)
-	{
-		bottomPort = startPort;
-		bottomNi = bottomPort.getNodeInst();
-		bottomPp = bottomPort.getPortProto();
-		subrot = bottomNi.rotateOut();
-		traverse();
-	}
+    private AffineTransform subrot;
+    private Orientation orient;
+    private PortInst bottomPort;
+    private NodeInst bottomNi;
+    private PortProto bottomPp;
 
-	/**
-	 * Constructor takes a PortInst and traverses it down to the bottom of the hierarchy.
-	 * Also takes a transformation matrix to include in the final computation.
-	 * @param startPort the initial PortInst.
-	 * @param pre the transformation matrix to add to the final transformation.
-	 */
-	public PortOriginal(PortInst startPort, AffineTransform pre)
-	{
-		bottomPort = startPort;
-		bottomNi = bottomPort.getNodeInst();
-		bottomPp = bottomPort.getPortProto();
-		subrot = bottomNi.rotateOut(pre);
-		traverse();
-	}
+    /**
+     * Constructor takes a PortInst and traverses it down to the bottom of the hierarchy.
+     * @param startPort the initial PortInst.
+     */
+    public PortOriginal(PortInst startPort) {
+        bottomPort = startPort;
+        bottomNi = bottomPort.getNodeInst();
+        bottomPp = bottomPort.getPortProto();
+        subrot = bottomNi.rotateOut();
+        traverse();
+    }
 
-	/**
-	 * Constructor takes a NodeInst/PortProto combination and traverses it down to the bottom of the hierarchy.
-	 * @param ni the initial NodeInst.
-	 * @param pp the initial PortProto.
-	 */
-	public PortOriginal(NodeInst ni, PortProto pp)
-	{
-		bottomPort = null;
-		bottomNi = ni;
-		bottomPp = pp;
-		subrot = bottomNi.rotateOut();
-		traverse();
-	}
+    /**
+     * Constructor takes a PortInst and traverses it down to the bottom of the hierarchy.
+     * Also takes a transformation matrix to include in the final computation.
+     * @param startPort the initial PortInst.
+     * @param pre the transformation matrix to add to the final transformation.
+     */
+    public PortOriginal(PortInst startPort, AffineTransform pre) {
+        bottomPort = startPort;
+        bottomNi = bottomPort.getNodeInst();
+        bottomPp = bottomPort.getPortProto();
+        subrot = bottomNi.rotateOut(pre);
+        traverse();
+    }
 
-	private void traverse()
-	{
+    /**
+     * Constructor takes a NodeInst/PortProto combination and traverses it down to the bottom of the hierarchy.
+     * @param ni the initial NodeInst.
+     * @param pp the initial PortProto.
+     */
+    public PortOriginal(NodeInst ni, PortProto pp) {
+        bottomPort = null;
+        bottomNi = ni;
+        bottomPp = pp;
+        subrot = bottomNi.rotateOut();
+        traverse();
+    }
+
+    private void traverse() {
         orient = bottomNi.getOrient();
-		while (bottomNi.isCellInstance())
-		{
-			subrot = bottomNi.translateOut(subrot);
-			bottomPort = ((Export)bottomPp).getOriginalPort();
-			bottomNi = bottomPort.getNodeInst();
-			bottomPp = bottomPort.getPortProto();
-			subrot = bottomNi.rotateOut(subrot);
+        while (bottomNi.isCellInstance()) {
+            subrot = bottomNi.translateOut(subrot);
+            bottomPort = ((Export) bottomPp).getOriginalPort();
+            bottomNi = bottomPort.getNodeInst();
+            bottomPp = bottomPort.getPortProto();
+            subrot = bottomNi.rotateOut(subrot);
             orient = orient.concatenate(bottomNi.getOrient());
-		}
-	}
+        }
+    }
 
-	/**
-	 * Method to return the bottommost NodeInst (a primitive)
-	 * from the initial port information given to the constructor.
-	 * @return the NodeInst at the bottom of the hierarchy (a primitive).
-	 */
-	public NodeInst getBottomNodeInst() { return bottomNi; }
+    /**
+     * Method to return the bottommost NodeInst (a primitive)
+     * from the initial port information given to the constructor.
+     * @return the NodeInst at the bottom of the hierarchy (a primitive).
+     */
+    public NodeInst getBottomNodeInst() {
+        return bottomNi;
+    }
 
-	/**
-	 * Method to return the bottommost PortProto (a PrimitivePort)
-	 * from the initial port information given to the constructor.
-	 * @return the PortProto at the bottom of the hierarchy (a PrimitivePort).
-	 */
-	public PrimitivePort getBottomPortProto() { return (PrimitivePort)bottomPp; }
+    /**
+     * Method to return the bottommost PortProto (a PrimitivePort)
+     * from the initial port information given to the constructor.
+     * @return the PortProto at the bottom of the hierarchy (a PrimitivePort).
+     */
+    public PrimitivePort getBottomPortProto() {
+        return (PrimitivePort) bottomPp;
+    }
 
-	/**
-	 * Method to return the bottommost PortInst (on a primitive NodeInst)
-	 * from the initial port information given to the constructor.
-	 * @return the PortInst at the bottom of the hierarchy (on a primitive NodeInst).
-	 */
-	public PortInst getBottomPort()
-	{
-		if (bottomPort == null) bottomPort = bottomNi.findPortInstFromProto(bottomPp);			
-		return bottomPort;
-	}
+    /**
+     * Method to return the bottommost PortInst (on a primitive NodeInst)
+     * from the initial port information given to the constructor.
+     * @return the PortInst at the bottom of the hierarchy (on a primitive NodeInst).
+     */
+    public PortInst getBottomPort() {
+        if (bottomPort == null) {
+            bottomPort = bottomNi.findPortInstFromProto(bottomPp);
+        }
+        return bottomPort;
+    }
 
-	/**
-	 * Method to return the transformation matrix from the bottommost NodeInst
-	 * to the Cell containing the topmost PortInst.
-	 * The transformation includes any rotation on the node with the topmost PortInst.
-	 * @return the the transformation matrix from the bottommost NodeInst
-	 * to the Cell containing the topmost PortInst.
-	 */
-	public AffineTransform getTransformToTop() { return subrot; }
+    /**
+     * Method to return the transformation matrix from the bottommost NodeInst
+     * to the Cell containing the topmost PortInst.
+     * The transformation includes any rotation on the node with the topmost PortInst.
+     * @return the the transformation matrix from the bottommost NodeInst
+     * to the Cell containing the topmost PortInst.
+     */
+    public AffineTransform getTransformToTop() {
+        return subrot;
+    }
 
-	/**
-	 * Method to return the apparent orientation of the lowest node when viewed from the top.
-	 * The angle can be used to replicate a node at the top level that is in the same
-	 * orientation of the node at the bottom.
-	 * @return the apparent orientation of the lowest node when viewed from the top.
-	 */
-	public Orientation getOrientToTop() { return orient; }
+    /**
+     * Method to return the apparent orientation of the lowest node when viewed from the top.
+     * The angle can be used to replicate a node at the top level that is in the same
+     * orientation of the node at the bottom.
+     * @return the apparent orientation of the lowest node when viewed from the top.
+     */
+    public Orientation getOrientToTop() {
+        return orient;
+    }
 }

@@ -54,179 +54,184 @@ import java.util.StringTokenizer;
  *    "8.01"      major=8, minor=1, detail=999     (a Release)
  *    "8.01.1"    major=8, minor=1, detail=1001    (a PostRelease update)
  */
-public class Version implements Comparable<Version>, Serializable
-{
-	/**
-	 * This is the current version of Electric
-	 */
-	private static final String CURRENT = "8.10m";
-	private static final String ROOTARNAME = "electric";
+public class Version implements Comparable<Version>, Serializable {
 
-	private final String version;
-	private final int major;
-	private final int minor;
-	private final int details;
+    /**
+     * This is the current version of Electric
+     */
+    private static final String CURRENT = "8.10m";
+    private static final String ROOTARNAME = "electric";
+    private final String version;
+    private final int major;
+    private final int minor;
+    private final int details;
+    private static final Version current = new Version(CURRENT);
 
-	private static final Version current = new Version(CURRENT);
+    /**
+     * Constructs a <CODE>Version</CODE> (cannot be called).
+     * Routine to parse the version of Electric in "version" into three fields:
+     * the major version number, minor version, and a detail version number.
+     * The detail version number can be letters.  If it is omitted, it is
+     * assumed to be 999.  If it is a number, it is beyond 1000.
+     */
+    private Version(String version) {
+        int major = 0;
+        int minor = 0;
+        int details = 0;
 
-	/**
-	 * Constructs a <CODE>Version</CODE> (cannot be called).
-	 * Routine to parse the version of Electric in "version" into three fields:
-	 * the major version number, minor version, and a detail version number.
-	 * The detail version number can be letters.  If it is omitted, it is
-	 * assumed to be 999.  If it is a number, it is beyond 1000.
-	 */
-	private Version(String version)
-	{
-		int major = 0;
-		int minor = 0;
-		int details = 0;
+        /* parse the version fields */
+        int dot = version.indexOf('.');
+        if (dot == -1) {
+            // no "." in the string: version should be a pure number
+            major = Integer.parseInt(version);
+        } else {
+            // found the "." so parse the major version number (to the left of the ".")
+            String majorString = version.substring(0, dot);
+            String restOfString = version.substring(dot + 1);
+            major = Integer.parseInt(majorString);
 
-		/* parse the version fields */
-		int dot = version.indexOf('.');
-		if (dot == -1)
-		{
-			// no "." in the string: version should be a pure number
-			major = Integer.parseInt(version);
-		} else
-		{
-			// found the "." so parse the major version number (to the left of the ".")
-			String majorString = version.substring(0, dot);
-			String restOfString = version.substring(dot+1);
-			major = Integer.parseInt(majorString);
+            int letters;
+            for (letters = 0; letters < restOfString.length(); letters++) {
+                if (!TextUtils.isDigit(restOfString.charAt(letters))) {
+                    break;
+                }
+            }
+            String minorString = restOfString.substring(0, letters);
+            minor = Integer.parseInt(minorString);
+            restOfString = restOfString.substring(letters);
 
-			int letters;
-			for(letters = 0; letters < restOfString.length(); letters++)
-				if (!TextUtils.isDigit(restOfString.charAt(letters))) break;
-			String minorString = restOfString.substring(0, letters);
-			minor = Integer.parseInt(minorString);
-			restOfString = restOfString.substring(letters);
-		
-			// see what else follows the minor version number
-			if (restOfString.length() == 0)
-			{
-				details = 999;
-			} else if (restOfString.charAt(0) == '.')
-			{
-				details = 1000 + Integer.parseInt(restOfString.substring(1));
-			} else
-			{
-				while (restOfString.length() > 0 &&
-					   Character.isLetter(restOfString.charAt(0)))
-				{
-					details = (details * 26) + Character.toLowerCase(restOfString.charAt(0)) - 'a' + 1;
-					restOfString = restOfString.substring(1);
-				}
-				if (restOfString.length() > 0)
-					System.out.println("Invalid version string " + version);
-			}
-		}
+            // see what else follows the minor version number
+            if (restOfString.length() == 0) {
+                details = 999;
+            } else if (restOfString.charAt(0) == '.') {
+                details = 1000 + Integer.parseInt(restOfString.substring(1));
+            } else {
+                while (restOfString.length() > 0
+                        && Character.isLetter(restOfString.charAt(0))) {
+                    details = (details * 26) + Character.toLowerCase(restOfString.charAt(0)) - 'a' + 1;
+                    restOfString = restOfString.substring(1);
+                }
+                if (restOfString.length() > 0) {
+                    System.out.println("Invalid version string " + version);
+                }
+            }
+        }
 
-		this.version = version;
-		this.major = major;
-		this.minor = minor;
-		this.details = details;
-	}
+        this.version = version;
+        this.major = major;
+        this.minor = minor;
+        this.details = details;
+    }
 
-	/**
-	 * Method to return author information
-	 * @return Steven M. Rubin
-	 */
-	public static String getAuthorInformation() { return "Written by Steven M. Rubin"; }
+    /**
+     * Method to return author information
+     * @return Steven M. Rubin
+     */
+    public static String getAuthorInformation() {
+        return "Written by Steven M. Rubin";
+    }
 
-	/**
-	 * Method to return official name of Electric
-	 * @return the official name
-	 */
-	public static String getApplicationInformation() { return "The Electric VLSI Design System"; }
+    /**
+     * Method to return official name of Electric
+     * @return the official name
+     */
+    public static String getApplicationInformation() {
+        return "The Electric VLSI Design System";
+    }
 
-	/**
-	 * Method to return copyright information
-	 * @return Sun Microsystems and Static Free Software
-	 */
-	public static String getCopyrightInformation() { return "Copyright (c) 2009 Sun Microsystems and Static Free Software"; }
+    /**
+     * Method to return copyright information
+     * @return Sun Microsystems and Static Free Software
+     */
+    public static String getCopyrightInformation() {
+        return "Copyright (c) 2009 Sun Microsystems and Static Free Software";
+    }
 
-	/**
-	 * Method to return a short description of warranty
-	 * @return short description of warranty
-	 */
-	public static String getWarrantyInformation() { return "Electric comes with ABSOLUTELY NO WARRANTY"; }
+    /**
+     * Method to return a short description of warranty
+     * @return short description of warranty
+     */
+    public static String getWarrantyInformation() {
+        return "Electric comes with ABSOLUTELY NO WARRANTY";
+    }
 
-	/**
-	 * Method to return version and compilation date if available
-	 * @return string containing version number and date of jar file
-	 */
-	public static String getVersionInformation()
-	{
-		String versionText =  "Version " + getVersion();
+    /**
+     * Method to return version and compilation date if available
+     * @return string containing version number and date of jar file
+     */
+    public static String getVersionInformation() {
+        String versionText = "Version " + getVersion();
         String buildText = getBuildDate();
-        if (buildText != null)
-           versionText += " (built on " + buildText + ")";
-		return (versionText);
-	}
+        if (buildText != null) {
+            versionText += " (built on " + buildText + ")";
+        }
+        return (versionText);
+    }
 
-	/**
-	 * Method to return the current Electric version.
-	 * @return the current Electric version.
-	 */
-	public static Version getVersion() { return current; }
+    /**
+     * Method to return the current Electric version.
+     * @return the current Electric version.
+     */
+    public static Version getVersion() {
+        return current;
+    }
 
     /**
      * Method to return build date of main jar file
      * @return string containing the date in short format
      */
-    public static String getBuildDate()
-    {
+    public static String getBuildDate() {
         // Might need to adjust token delim depending on operating system
         StringTokenizer parse = new StringTokenizer(System.getProperty("java.class.path"));
         String delim = System.getProperty("path.separator");
-        try
-        {
-            while (parse.hasMoreElements())
-            {
+        try {
+            while (parse.hasMoreElements()) {
                 String val = parse.nextToken(delim);
                 // Find path for main jar
-	            String filename = ROOTARNAME+".jar";
-                if (val.lastIndexOf(filename) != -1)
-                {
+                String filename = ROOTARNAME + ".jar";
+                if (val.lastIndexOf(filename) != -1) {
                     File electricJar = new File(val);
                     long date = electricJar.lastModified();
                     Date d = new Date(date);
                     return (DateFormat.getDateInstance().format(d));
                 }
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             ActivityLogger.logException(e);
         }
         return (null);
     }
 
-	/**
-	 * Method to return the major part of a parsed Version number.
-	 * @return the major part of a parsed Version number.
-	 */
-	public int getMajor() { return major; }
+    /**
+     * Method to return the major part of a parsed Version number.
+     * @return the major part of a parsed Version number.
+     */
+    public int getMajor() {
+        return major;
+    }
 
-	/**
-	 * Method to return the minor part of a parsed Version number.
-	 * @return the minor part of a parsed Version number.
-	 */
-	public int getMinor() { return minor; }
+    /**
+     * Method to return the minor part of a parsed Version number.
+     * @return the minor part of a parsed Version number.
+     */
+    public int getMinor() {
+        return minor;
+    }
 
-	/**
-	 * Method to return the details part of a parsed Version number.
-	 * @return the details part of a parsed Version number.
-	 */
-	public int getDetail() { return details; }
+    /**
+     * Method to return the details part of a parsed Version number.
+     * @return the details part of a parsed Version number.
+     */
+    public int getDetail() {
+        return details;
+    }
 
     /**
      * Returns a hash code for this <code>Version</code>.
      * @return  a hash code value for this Version.
-	 */
+     */
     public int hashCode() {
-		return major*1000000 + minor*10000 + details;
+        return major * 1000000 + minor * 10000 + details;
     }
 
     /**
@@ -240,11 +245,11 @@ public class Version implements Comparable<Version>, Serializable
      *          <code>false</code> otherwise.
      */
     public boolean equals(Object obj) {
-		if (obj instanceof Version) {
-			Version v = (Version)obj;
-			return major == v.major && minor == v.minor && details == v.details;
-		}
-		return false;
+        if (obj instanceof Version) {
+            Version v = (Version) obj;
+            return major == v.major && minor == v.minor && details == v.details;
+        }
+        return false;
     }
 
     /**
@@ -253,18 +258,30 @@ public class Version implements Comparable<Version>, Serializable
      * @param v the object to be compared.
      * @return the result of comparison.
      */
-	public int compareTo(Version v) {
+    public int compareTo(Version v) {
 
-		if (major < v.major) return -1;
-		if (major > v.major) return 1;
+        if (major < v.major) {
+            return -1;
+        }
+        if (major > v.major) {
+            return 1;
+        }
 
-		if (minor < v.minor) return -1;
-		if (minor > v.minor) return 1;
+        if (minor < v.minor) {
+            return -1;
+        }
+        if (minor > v.minor) {
+            return 1;
+        }
 
-		if (details < v.details) return -1;
-		if (details > v.details) return 1;
-		
-		return 0;
+        if (details < v.details) {
+            return -1;
+        }
+        if (details > v.details) {
+            return 1;
+        }
+
+        return 0;
     }
 
     /**
@@ -272,16 +289,15 @@ public class Version implements Comparable<Version>, Serializable
      * @return  a string representation of this Version
      */
     public String toString() {
-		return version;
+        return version;
     }
 
-	/**
-	 * Method to parse the specified Version number and return a Version object.
-	 * @param version the version of Electric.
-	 * @return a Version object with the fields parsed.
-	 */
-	public static Version parseVersion(String version)
-	{
-		return new Version(version);
-	}
+    /**
+     * Method to parse the specified Version number and return a Version object.
+     * @param version the version of Electric.
+     * @return a Version object with the fields parsed.
+     */
+    public static Version parseVersion(String version) {
+        return new Version(version);
+    }
 }

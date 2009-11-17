@@ -45,7 +45,8 @@ public class TextDescriptorTest {
 
     AbstractTextDescriptor emptyDescriptor;
 
-    @Before public void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         emptyDescriptor = new MutableTextDescriptor();
     }
 
@@ -65,7 +66,6 @@ public class TextDescriptorTest {
 //
 //            return suite;
 //        }
-
         /**
          * Test of getIndex method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Position.
          */
@@ -193,7 +193,6 @@ public class TextDescriptorTest {
         }
     }
 
-
     public static class DispPosTest {
 
         protected void setUp() throws Exception {
@@ -207,7 +206,6 @@ public class TextDescriptorTest {
 //
 //            return suite;
 //        }
-
         /**
          * Test of getIndex method, of class com.sun.electric.database.variable.AbstractTextDescriptor.DispPos.
          */
@@ -301,7 +299,6 @@ public class TextDescriptorTest {
         }
     }
 
-
     public static class SizeTest {
 
         protected void setUp() throws Exception {
@@ -315,7 +312,6 @@ public class TextDescriptorTest {
 //
 //            return suite;
 //        }
-
         /**
          * Test of getBits method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Size.
          */
@@ -430,7 +426,6 @@ public class TextDescriptorTest {
         }
     }
 
-
     public static class RotationTest {
 
         protected void setUp() throws Exception {
@@ -444,7 +439,6 @@ public class TextDescriptorTest {
 //
 //            return suite;
 //        }
-
         /**
          * Test of getIndex method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Rotation.
          */
@@ -570,7 +564,6 @@ public class TextDescriptorTest {
         }
     }
 
-
     public static class UnitTest {
 
         protected void setUp() throws Exception {
@@ -584,7 +577,6 @@ public class TextDescriptorTest {
 //
 //            return suite;
 //        }
-
         /**
          * Test of getIndex method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Unit.
          */
@@ -678,7 +670,6 @@ public class TextDescriptorTest {
         }
     }
 
-
     public static class ActiveFontTest {
 
         protected void setUp() throws Exception {
@@ -692,7 +683,6 @@ public class TextDescriptorTest {
 //
 //            return suite;
 //        }
-
         /**
          * Test of getMaxIndex method, of class com.sun.electric.database.variable.AbstractTextDescriptor.ActiveFont.
          */
@@ -772,7 +762,6 @@ public class TextDescriptorTest {
         }
     }
 
-
 //    public static class DescriptorPrefTest {
 //
 //        protected void setUp() throws Exception {
@@ -835,8 +824,6 @@ public class TextDescriptorTest {
 //            fail("The test case is a prototype.");
 //        }
 //    }
-
-
     public static junit.framework.Test suite() {
         junit.framework.Test suite = new junit.framework.JUnit4TestAdapter(TextDescriptorTest.class);
 //        suite.addTestSuite(CodeTest.class);
@@ -941,11 +928,11 @@ public class TextDescriptorTest {
 //        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
-
     /**
      * Test of equals method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testEquals() {
+    @Test
+    public void testEquals() {
         System.out.println("equals");
 
         Object anObject = new MutableTextDescriptor();
@@ -965,8 +952,8 @@ public class TextDescriptorTest {
 //        long result = emptyDescriptor.lowLevelGet();
 //        assertEquals(expResult, result);
 //    }
-
-    @Test public void testSerialization() {
+    @Test
+    public void testSerialization() {
         TextDescriptor emptyImmutableDescriptor = TextDescriptor.newTextDescriptor(emptyDescriptor);
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -977,8 +964,8 @@ public class TextDescriptorTest {
             byte[] serializedRect = byteStream.toByteArray();
 
             ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(serializedRect));
-            MutableTextDescriptor mtd = (MutableTextDescriptor)in.readObject();
-            TextDescriptor td = (TextDescriptor)in.readObject();
+            MutableTextDescriptor mtd = (MutableTextDescriptor) in.readObject();
+            TextDescriptor td = (TextDescriptor) in.readObject();
             in.close();
 
             assertEquals(emptyDescriptor, mtd);
@@ -993,10 +980,11 @@ public class TextDescriptorTest {
     /**
      * Test of lowLevelGet0 method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testLowLevelGet0() {
+    @Test
+    public void testLowLevelGet0() {
         System.out.println("lowLevelGet0");
 
-        int expResult = (int)emptyDescriptor.lowLevelGet();
+        int expResult = (int) emptyDescriptor.lowLevelGet();
         int result = emptyDescriptor.lowLevelGet0();
         assertEquals(expResult, result);
     }
@@ -1004,10 +992,11 @@ public class TextDescriptorTest {
     /**
      * Test of lowLevelGet1 method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testLowLevelGet1() {
+    @Test
+    public void testLowLevelGet1() {
         System.out.println("lowLevelGet1");
 
-        int expResult = (int)(emptyDescriptor.lowLevelGet() >>> 32);
+        int expResult = (int) (emptyDescriptor.lowLevelGet() >>> 32);
         int result = emptyDescriptor.lowLevelGet1();
         assertEquals(expResult, result);
     }
@@ -1015,7 +1004,8 @@ public class TextDescriptorTest {
     /**
      * Test of isDisplay method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testIsDisplay() {
+    @Test
+    public void testIsDisplay() {
         System.out.println("isDisplay");
 
         boolean expResult = true;
@@ -1026,7 +1016,8 @@ public class TextDescriptorTest {
     /**
      * Test of getPos method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testGetPos() {
+    @Test
+    public void testGetPos() {
         System.out.println("getPos");
 
         TextDescriptor.Position expResult = TextDescriptor.Position.CENT;
@@ -1037,7 +1028,8 @@ public class TextDescriptorTest {
     /**
      * Test of getSize method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testGetSize() {
+    @Test
+    public void testGetSize() {
         System.out.println("getSize");
 
         TextDescriptor.Size expResult = TextDescriptor.Size.newRelSize(1);
@@ -1048,7 +1040,8 @@ public class TextDescriptorTest {
     /**
      * Test of getTrueSize method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testGetTrueSize() {
+    @Test
+    public void testGetTrueSize() {
         System.out.println("getTrueSize");
 
         EditWindow0 wnd = null;
@@ -1061,7 +1054,8 @@ public class TextDescriptorTest {
     /**
      * Test of getFace method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testGetFace() {
+    @Test
+    public void testGetFace() {
         System.out.println("getFace");
 
         int expResult = 0;
@@ -1072,7 +1066,8 @@ public class TextDescriptorTest {
     /**
      * Test of getRotation method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testGetRotation() {
+    @Test
+    public void testGetRotation() {
         System.out.println("getRotation");
 
         TextDescriptor.Rotation expResult = TextDescriptor.Rotation.ROT0;
@@ -1083,7 +1078,8 @@ public class TextDescriptorTest {
     /**
      * Test of getDispPart method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testGetDispPart() {
+    @Test
+    public void testGetDispPart() {
         System.out.println("getDispPart");
 
         TextDescriptor.DispPos expResult = TextDescriptor.DispPos.VALUE;
@@ -1094,7 +1090,8 @@ public class TextDescriptorTest {
     /**
      * Test of isItalic method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testIsItalic() {
+    @Test
+    public void testIsItalic() {
         System.out.println("isItalic");
 
         boolean expResult = false;
@@ -1105,7 +1102,8 @@ public class TextDescriptorTest {
     /**
      * Test of isBold method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testIsBold() {
+    @Test
+    public void testIsBold() {
         System.out.println("isBold");
 
         boolean expResult = false;
@@ -1116,7 +1114,8 @@ public class TextDescriptorTest {
     /**
      * Test of isUnderline method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testIsUnderline() {
+    @Test
+    public void testIsUnderline() {
         System.out.println("isUnderline");
 
         boolean expResult = false;
@@ -1127,7 +1126,8 @@ public class TextDescriptorTest {
     /**
      * Test of isInterior method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testIsInterior() {
+    @Test
+    public void testIsInterior() {
         System.out.println("isInterior");
 
         boolean expResult = false;
@@ -1138,7 +1138,8 @@ public class TextDescriptorTest {
     /**
      * Test of isInherit method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testIsInherit() {
+    @Test
+    public void testIsInherit() {
         System.out.println("isInherit");
 
         boolean expResult = false;
@@ -1149,7 +1150,8 @@ public class TextDescriptorTest {
     /**
      * Test of isParam method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testIsParam() {
+    @Test
+    public void testIsParam() {
         System.out.println("isParam");
 
         boolean expResult = false;
@@ -1160,7 +1162,8 @@ public class TextDescriptorTest {
     /**
      * Test of getXOff method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testGetXOff() {
+    @Test
+    public void testGetXOff() {
         System.out.println("getXOff");
 
         double expResult = 0.0;
@@ -1171,7 +1174,8 @@ public class TextDescriptorTest {
     /**
      * Test of getYOff method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testGetYOff() {
+    @Test
+    public void testGetYOff() {
         System.out.println("getYOff");
 
         double expResult = 0.0;
@@ -1182,7 +1186,8 @@ public class TextDescriptorTest {
     /**
      * Test of getUnit method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testGetUnit() {
+    @Test
+    public void testGetUnit() {
         System.out.println("getUnit");
 
         TextDescriptor.Unit expResult = TextDescriptor.Unit.NONE;
@@ -1193,7 +1198,8 @@ public class TextDescriptorTest {
     /**
      * Test of getColorIndex method, of class com.sun.electric.database.variable.AbstractTextDescriptor.
      */
-    @Test public void testGetColorIndex() {
+    @Test
+    public void testGetColorIndex() {
         System.out.println("getColorIndex");
 
         int expResult = 0;

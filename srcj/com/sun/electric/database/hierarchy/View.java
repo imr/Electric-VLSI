@@ -42,176 +42,162 @@ import java.util.TreeSet;
  * <P>
  * Electric has a set of Views at the start, and users can define their own.
  */
-public class View implements Comparable<View>
-{
-	// -------------------------- private data -----------------------------
+public class View implements Comparable<View> {
+    // -------------------------- private data -----------------------------
 
-	/** view contains only text */							private final static int TEXTVIEW       = 01;	
-	/** view is statically defined and cannot be deleted */ private final static int PERMANENTVIEW  = 04;	
+    /** view contains only text */
+    private final static int TEXTVIEW = 01;
+    /** view is statically defined and cannot be deleted */
+    private final static int PERMANENTVIEW = 04;
+    /** the full name of the view */
+    private final String fullName;
+    /** the abbreviation of the view */
+    private final String abbreviation;
+    /** ordering for this view */
+    private final int order;
+    /** flag bits for the view */
+    private final int type;
+    /** a set of all views in existence */
+    private static TreeSet<View> views = new TreeSet<View>();
+    /** unmodifiable set of all views in existence */
+    private static Set<View> unmodifiableViews = Collections.unmodifiableSet(views);
+    /** a list of views by short and long names */
+    private static HashMap<String, View> viewNames = new HashMap<String, View>();
+    /** the index for new Views. */
+    private static int overallOrder = 16;
+    // -------------------------- public data -----------------------------
+    /**
+     * Defines the Schematic view.
+     */
+    public static final View SCHEMATIC = makeInstance("schematic", "sch", PERMANENTVIEW, 0);
+    /**
+     * Defines the Icon view.
+     * This is used in schematics to represent instances.
+     * Cells with this view typically use primitives from the Artwork Technology.
+     */
+    public static final View ICON = makeInstance("icon", "ic", PERMANENTVIEW, 1);
+    /**
+     * Defines the Layout view.
+     */
+    public static final View LAYOUT = makeInstance("layout", "lay", PERMANENTVIEW, 2);
+    /**
+     * Defines the Skeleton view.
+     * Cells with this view contains only a protection frame or other dummy version of true layout.
+     */
+    public static final View LAYOUTSKEL = makeInstance("layout.skeleton", "lay.sk", PERMANENTVIEW, 3);
+    /**
+     * Defines the Compensated view.
+     * Cells with this view contains compensated layout (adjusted for fabrication).
+     */
+    public static final View LAYOUTCOMP = makeInstance("layout.compensated", "lay.comp", PERMANENTVIEW, 4);
+    /**
+     * Defines the VHDL view (a text view).
+     * Cells with this view contains a textual description in the VHDL hardware-description language.
+     * The text is located in the "FACET_message" variable on the cell.
+     */
+    public static final View VHDL = makeInstance("VHDL", "vhdl", PERMANENTVIEW | TEXTVIEW, 5);
+    /**
+     * Defines the Verilog view (a text view).
+     * Cells with this view contains a textual description in the Verilog hardware-description language.
+     * The text is located in the "FACET_message" variable on the cell.
+     */
+    public static final View VERILOG = makeInstance("Verilog", "ver", PERMANENTVIEW | TEXTVIEW, 6);
+    /**
+     * Defines the Documentation view (a text view).
+     * Cells with this view contain documentation for other cells in the cell group.
+     * The text is located in the "FACET_message" variable on the cell.
+     */
+    public static final View DOC = makeInstance("documentation", "doc", PERMANENTVIEW | TEXTVIEW, 7);
+    /**
+     * Defines the simulation snapshot view.
+     * Cells with this view contain snapshots of the simulation waveform window.
+     */
+    public static final View DOCWAVE = makeInstance("documentation.waveform", "doc.wave", PERMANENTVIEW, 8);
+    /**
+     * Defines the general Netlist view (a text view).
+     * Cells with this view contain an unknown format netlist.
+     * The text is located in the "FACET_message" variable on the cell.
+     */
+    public static final View NETLIST = makeInstance("netlist", "net", PERMANENTVIEW | TEXTVIEW, 9);
+    /**
+     * Defines the NetLisp (netlist) view (a text view).
+     * Cells with this view contain a "netlisp" format netlist (for simulation).
+     * The text is located in the "FACET_message" variable on the cell.
+     */
+    public static final View NETLISTNETLISP = makeInstance("netlist.netlisp", "net.netlisp", PERMANENTVIEW | TEXTVIEW, 10);
+    /**
+     * Defines the RSIM (netlist) view (a text view).
+     * Cells with this view contain an "RSIM" format netlist (for simulation).
+     * The text is located in the "FACET_message" variable on the cell.
+     */
+    public static final View NETLISTRSIM = makeInstance("netlist.rsim", "net.rsim", PERMANENTVIEW | TEXTVIEW, 11);
+    /**
+     * Defines the SILOS (netlist) view (a text view).
+     * Cells with this view contain a "SILOS" format netlist (for simulation).
+     * The text is located in the "FACET_message" variable on the cell.
+     */
+    public static final View NETLISTSILOS = makeInstance("netlist.silos", "net.silos", PERMANENTVIEW | TEXTVIEW, 12);
+    /**
+     * Defines the QUISC (netlist) view (a text view).
+     * Cells with this view contain an "QUISC" format netlist (for place-and-route by the QUISC Silicon Compiler).
+     * The text is located in the "FACET_message" variable on the cell.
+     */
+    public static final View NETLISTQUISC = makeInstance("netlist.quisc", "net.quisc", PERMANENTVIEW | TEXTVIEW, 13);
+    /**
+     * Defines the ALS (netlist) view (a text view).
+     * Cells with this view contain an "ALS" format netlist (for simulation).
+     * The text is located in the "FACET_message" variable on the cell.
+     */
+    public static final View NETLISTALS = makeInstance("netlist.als", "net.als", PERMANENTVIEW | TEXTVIEW, 14);
+    /**
+     * Defines the unknown view.
+     * This view has an empty abbreviation.
+     */
+    public static final View UNKNOWN = makeInstance("unknown", "", PERMANENTVIEW, 15);
 
-	/** the full name of the view */						private final String fullName;
-	/** the abbreviation of the view */						private final String abbreviation;
-	/** ordering for this view */							private final int order;
-	/** flag bits for the view */							private final int type;
+    /****************************** CREATE, DELETE ******************************/
+    /**
+     * Method to create a View with the given name.
+     * @param fullName the full name of the View, for example "layout".
+     * @param abbreviation the short name of the View, for example "lay".
+     * The short name is used inside of braces when naming a cell (for example "gate{lay}").
+     * @return the newly created View.
+     */
+    public static View newInstance(String fullName, String abbreviation) {
+        // make sure this can be done now
+        EDatabase.serverDatabase().checkChanging();
 
-	/** a set of all views in existence */					private static TreeSet<View> views = new TreeSet<View>();
-	/** unmodifiable set of all views in existence */		private static Set<View> unmodifiableViews = Collections.unmodifiableSet(views);
-	/** a list of views by short and long names */			private static HashMap<String,View> viewNames = new HashMap<String,View>();
-	/** the index for new Views. */							private static int overallOrder = 16;
+        View view = makeInstance(fullName, abbreviation, 0, getNextOrder());
 
-	// -------------------------- public data -----------------------------
-
-	/**
-	 * Defines the Schematic view.
-	 */
-	public static final View SCHEMATIC = makeInstance("schematic", "sch", PERMANENTVIEW, 0);
-
-	/**
-	 * Defines the Icon view.
-	 * This is used in schematics to represent instances.
-	 * Cells with this view typically use primitives from the Artwork Technology.
-	 */
-	public static final View ICON = makeInstance("icon", "ic", PERMANENTVIEW, 1);
-
-	/**
-	 * Defines the Layout view.
-	 */
-	public static final View LAYOUT = makeInstance("layout", "lay", PERMANENTVIEW, 2);
-
-	/**
-	 * Defines the Skeleton view.
-	 * Cells with this view contains only a protection frame or other dummy version of true layout.
-	 */
-	public static final View LAYOUTSKEL = makeInstance("layout.skeleton", "lay.sk", PERMANENTVIEW, 3);
-
-	/**
-	 * Defines the Compensated view.
-	 * Cells with this view contains compensated layout (adjusted for fabrication).
-	 */
-	public static final View LAYOUTCOMP = makeInstance("layout.compensated", "lay.comp", PERMANENTVIEW, 4);
-
-	/**
-	 * Defines the VHDL view (a text view).
-	 * Cells with this view contains a textual description in the VHDL hardware-description language.
-	 * The text is located in the "FACET_message" variable on the cell.
-	 */
-	public static final View VHDL = makeInstance("VHDL", "vhdl", PERMANENTVIEW|TEXTVIEW, 5);
-
-	/**
-	 * Defines the Verilog view (a text view).
-	 * Cells with this view contains a textual description in the Verilog hardware-description language.
-	 * The text is located in the "FACET_message" variable on the cell.
-	 */
-	public static final View VERILOG = makeInstance("Verilog", "ver", PERMANENTVIEW|TEXTVIEW, 6);
-
-	/**
-	 * Defines the Documentation view (a text view).
-	 * Cells with this view contain documentation for other cells in the cell group.
-	 * The text is located in the "FACET_message" variable on the cell.
-	 */
-	public static final View DOC = makeInstance("documentation", "doc", PERMANENTVIEW|TEXTVIEW, 7);
-
-	/**
-	 * Defines the simulation snapshot view.
-	 * Cells with this view contain snapshots of the simulation waveform window.
-	 */
-	public static final View DOCWAVE = makeInstance("documentation.waveform", "doc.wave", PERMANENTVIEW, 8);
-
-	/**
-	 * Defines the general Netlist view (a text view).
-	 * Cells with this view contain an unknown format netlist.
-	 * The text is located in the "FACET_message" variable on the cell.
-	 */
-	public static final View NETLIST = makeInstance("netlist", "net", PERMANENTVIEW|TEXTVIEW, 9);
-
-	/**
-	 * Defines the NetLisp (netlist) view (a text view).
-	 * Cells with this view contain a "netlisp" format netlist (for simulation).
-	 * The text is located in the "FACET_message" variable on the cell.
-	 */
-	public static final View NETLISTNETLISP = makeInstance("netlist.netlisp", "net.netlisp", PERMANENTVIEW|TEXTVIEW, 10);
-
-	/**
-	 * Defines the RSIM (netlist) view (a text view).
-	 * Cells with this view contain an "RSIM" format netlist (for simulation).
-	 * The text is located in the "FACET_message" variable on the cell.
-	 */
-	public static final View NETLISTRSIM = makeInstance("netlist.rsim", "net.rsim", PERMANENTVIEW|TEXTVIEW, 11);
-
-	/**
-	 * Defines the SILOS (netlist) view (a text view).
-	 * Cells with this view contain a "SILOS" format netlist (for simulation).
-	 * The text is located in the "FACET_message" variable on the cell.
-	 */
-	public static final View NETLISTSILOS = makeInstance("netlist.silos", "net.silos", PERMANENTVIEW|TEXTVIEW, 12);
-
-	/**
-	 * Defines the QUISC (netlist) view (a text view).
-	 * Cells with this view contain an "QUISC" format netlist (for place-and-route by the QUISC Silicon Compiler).
-	 * The text is located in the "FACET_message" variable on the cell.
-	 */
-	public static final View NETLISTQUISC = makeInstance("netlist.quisc", "net.quisc", PERMANENTVIEW|TEXTVIEW, 13);
-
-	/**
-	 * Defines the ALS (netlist) view (a text view).
-	 * Cells with this view contain an "ALS" format netlist (for simulation).
-	 * The text is located in the "FACET_message" variable on the cell.
-	 */
-	public static final View NETLISTALS = makeInstance("netlist.als", "net.als", PERMANENTVIEW|TEXTVIEW, 14);
-
-	/**
-	 * Defines the unknown view.
-	 * This view has an empty abbreviation.
-	 */
-	public static final View UNKNOWN = makeInstance("unknown", "", PERMANENTVIEW, 15);
-
-	/****************************** CREATE, DELETE ******************************/
-
-	/**
-	 * Method to create a View with the given name.
-	 * @param fullName the full name of the View, for example "layout".
-	 * @param abbreviation the short name of the View, for example "lay".
-	 * The short name is used inside of braces when naming a cell (for example "gate{lay}").
-	 * @return the newly created View.
-	 */
-	public static View newInstance(String fullName, String abbreviation)
-	{
-		// make sure this can be done now
-		EDatabase.serverDatabase().checkChanging();
-
-		View view = makeInstance(fullName, abbreviation, 0, getNextOrder());
-
-		// handle change control, constraint, and broadcast
+        // handle change control, constraint, and broadcast
 //		Undo.newObject(view);
-		return view;
-	}
+        return view;
+    }
 
-	/**
-	 * Method to create a Text-only View with the given name.
-	 * Cells with text-only views have no nodes or arcs, just text.
-	 * @param fullName the full name of the View, for example "documentation".
-	 * @param abbreviation the short name of the View, for example "doc".
-	 * The short name is used inside of braces when naming a cell (for example "gate{doc}").
-	 * @return the newly created Text-only View.
-	 */
-	public static View newTextInstance(String fullName, String abbreviation)
-	{
-		// make sure this can be done now
-		EDatabase.serverDatabase().checkChanging();
+    /**
+     * Method to create a Text-only View with the given name.
+     * Cells with text-only views have no nodes or arcs, just text.
+     * @param fullName the full name of the View, for example "documentation".
+     * @param abbreviation the short name of the View, for example "doc".
+     * The short name is used inside of braces when naming a cell (for example "gate{doc}").
+     * @return the newly created Text-only View.
+     */
+    public static View newTextInstance(String fullName, String abbreviation) {
+        // make sure this can be done now
+        EDatabase.serverDatabase().checkChanging();
 
-		View view = makeInstance(fullName, abbreviation, TEXTVIEW, getNextOrder());
+        View view = makeInstance(fullName, abbreviation, TEXTVIEW, getNextOrder());
 
-		// handle change control, constraint, and broadcast
+        // handle change control, constraint, and broadcast
 //		Undo.newObject(view);
-		return view;
-	}
+        return view;
+    }
 
-	/**
-	 * Method to delete this View.
-	 */
-	public void kill()
-	{
-		System.out.println("Cannot delete views");
+    /**
+     * Method to delete this View.
+     */
+    public void kill() {
+        System.out.println("Cannot delete views");
 // 		// cannot delete the permanent views (created at initialization)
 // 		if (isPermanentView()) return;
 // 
@@ -243,153 +229,157 @@ public class View implements Comparable<View>
 //             viewNames.remove(abbreviation);
 //             views.remove(this);
 //         }
-	}
+    }
 
-	/****************************** IMPLEMENTATION ******************************/
-
-	/**
-	 * This constructor is never called.  Use the factory "makeInstance" instead.
-	 */
-	private View(String fullName, String abbr, int type, int order)
-	{
+    /****************************** IMPLEMENTATION ******************************/
+    /**
+     * This constructor is never called.  Use the factory "makeInstance" instead.
+     */
+    private View(String fullName, String abbr, int type, int order) {
         this.fullName = fullName;
         this.abbreviation = abbr;
         this.type = type;
         this.order = order;
-	}
+    }
 
-	private static View makeInstance(String fullName, String abbreviation, int type, int order)
-	{
-		// make sure the view doesn't already exist
-		if (viewNames.containsKey(abbreviation))
-		{
-			System.out.println("multiple views with same name: " + abbreviation);
-			return null;
-		}
-		if (viewNames.containsKey(fullName))
-		{
-			System.out.println("multiple views with same name: " + fullName);
-			return null;
-		}
+    private static View makeInstance(String fullName, String abbreviation, int type, int order) {
+        // make sure the view doesn't already exist
+        if (viewNames.containsKey(abbreviation)) {
+            System.out.println("multiple views with same name: " + abbreviation);
+            return null;
+        }
+        if (viewNames.containsKey(fullName)) {
+            System.out.println("multiple views with same name: " + fullName);
+            return null;
+        }
 
-		// create the view
-		View v = new View(fullName, abbreviation, type, order);
+        // create the view
+        View v = new View(fullName, abbreviation, type, order);
 
-		// enter both the full and short names into the hash table
-        synchronized(View.class) {
+        // enter both the full and short names into the hash table
+        synchronized (View.class) {
             viewNames.put(fullName, v);
             viewNames.put(abbreviation, v);
             views.add(v);
         }
-		return v;
-	}
+        return v;
+    }
 
     private static int getNextOrder() {
-        synchronized(View.class) {
+        synchronized (View.class) {
             return overallOrder++;
         }
     }
 
-	/****************************** INFORMATION ******************************/
+    /****************************** INFORMATION ******************************/
+    /**
+     * Method to return a View using its full or short name.
+     * @param name the name of the View.
+     * @return the named View, or null if no such View exists.
+     */
+    public static View findView(String name) {
+        return viewNames.get(name);
+    }
 
-	/**
-	 * Method to return a View using its full or short name.
-	 * @param name the name of the View.
-	 * @return the named View, or null if no such View exists.
-	 */
-	public static View findView(String name)
-	{
-		return viewNames.get(name);
-	}
+    /**
+     * Method to return the full name of this View.
+     * @return the full name of this View.
+     */
+    public String getFullName() {
+        return fullName;
+    }
 
-	/**
-	 * Method to return the full name of this View.
-	 * @return the full name of this View.
-	 */
-	public String getFullName() { return fullName; }
-
-	/**
-	 * Method to return the short name of this View.
-	 * The short name is used inside of braces when naming a cell (for example "gate{doc}").
-	 * @return the short name of this View.
-	 */
-	public String getAbbreviation() { return abbreviation; }
+    /**
+     * Method to return the short name of this View.
+     * The short name is used inside of braces when naming a cell (for example "gate{doc}").
+     * @return the short name of this View.
+     */
+    public String getAbbreviation() {
+        return abbreviation;
+    }
 
     /**
      * Method to return the string containing the extension to be used for cell names
      * @return the short name of this View with appropiated parentesis
      */
-    public String getAbbreviationExtension() { return "{" + getAbbreviation() + "}"; }
+    public String getAbbreviationExtension() {
+        return "{" + getAbbreviation() + "}";
+    }
 
     /**
-	 * Method to get the ordering of this View for sorting.
-	 * @return the ordering this View.
-	 */
-	public int getOrder() { return order; }
+     * Method to get the ordering of this View for sorting.
+     * @return the ordering this View.
+     */
+    public int getOrder() {
+        return order;
+    }
 
-	/**
-	 * Method to return true if this View is Text-only.
-	 * Cells with text-only views have no nodes or arcs, just text.
-	 * @return true if this View is Text-only.
-	 */
-	public boolean isTextView() { return (type & TEXTVIEW) != 0; }
+    /**
+     * Method to return true if this View is Text-only.
+     * Cells with text-only views have no nodes or arcs, just text.
+     * @return true if this View is Text-only.
+     */
+    public boolean isTextView() {
+        return (type & TEXTVIEW) != 0;
+    }
 
-	/**
-	 * Method to return true if this View is permanent.
-	 * Permanent views are those that are created initially, and cannot be deleted.
-	 * @return true if this View is permanent.
-	 */
-	public boolean isPermanentView() { return (type & PERMANENTVIEW) != 0; }
+    /**
+     * Method to return true if this View is permanent.
+     * Permanent views are those that are created initially, and cannot be deleted.
+     * @return true if this View is permanent.
+     */
+    public boolean isPermanentView() {
+        return (type & PERMANENTVIEW) != 0;
+    }
 
-	/**
-	 * Method to return an iterator over the views.
-	 * @return an iterator over the views.
-	 */
-	public static Iterator<View> getViews() { return unmodifiableViews.iterator(); }
+    /**
+     * Method to return an iterator over the views.
+     * @return an iterator over the views.
+     */
+    public static Iterator<View> getViews() {
+        return unmodifiableViews.iterator();
+    }
 
-	/**
-	 * Method to return the number of views.
-	 * @return the number of views.
-	 */
-	public static int getNumViews() { return views.size(); }
+    /**
+     * Method to return the number of views.
+     * @return the number of views.
+     */
+    public static int getNumViews() {
+        return views.size();
+    }
 
-	/**
-	 * Method to return a List of all libraries, sorted by name.
-	 * The list excludes hidden libraries (i.e. the clipboard).
-	 * @return a List of all libraries, sorted by name.
-	 */
-	public static List<View> getOrderedViews()
-	{
-		List<View> sortedList = new ArrayList<View>(views);
-		Collections.sort(sortedList, new ViewByOrder());
-		return sortedList;
-	}
+    /**
+     * Method to return a List of all libraries, sorted by name.
+     * The list excludes hidden libraries (i.e. the clipboard).
+     * @return a List of all libraries, sorted by name.
+     */
+    public static List<View> getOrderedViews() {
+        List<View> sortedList = new ArrayList<View>(views);
+        Collections.sort(sortedList, new ViewByOrder());
+        return sortedList;
+    }
 
-	private static class ViewByOrder implements Comparator<View>
-	{
-		public int compare(View v1, View v2)
-		{
-			return v1.getOrder() - v2.getOrder();
-		}
-	}
+    private static class ViewByOrder implements Comparator<View> {
+
+        public int compare(View v1, View v2) {
+            return v1.getOrder() - v2.getOrder();
+        }
+    }
 
     /**
      * Compares two <code>View</code> objects.
      * @param that the View to be compared.
      * @return the result of comparison.
      */
-	public int compareTo(View that)
-	{
-		return TextUtils.STRING_NUMBER_ORDER.compare(getAbbreviation(), that.getAbbreviation());
+    public int compareTo(View that) {
+        return TextUtils.STRING_NUMBER_ORDER.compare(getAbbreviation(), that.getAbbreviation());
     }
 
-	/**
-	 * Returns a printable version of this View.
-	 * @return a printable version of this View.
-	 */
-	public String toString()
-	{
-		return "View " + fullName;
-	}
-
+    /**
+     * Returns a printable version of this View.
+     * @return a printable version of this View.
+     */
+    public String toString() {
+        return "View " + fullName;
+    }
 }
