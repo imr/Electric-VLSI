@@ -175,7 +175,7 @@ public class Topology {
         Name name = ai.getNameKey();
         assert name.getBasename() == ImmutableArcInst.BASENAME;
         maxArcSuffix = Math.max(maxArcSuffix, name.getNumSuffix());
-        cell.setDirty();
+//        cell.setDirty();
     }
 
     /**
@@ -226,7 +226,7 @@ public class Topology {
         int arcId = ai.getArcId();
         assert chronArcs.get(arcId) == ai;
         chronArcs.set(arcId, null);
-        cell.setDirty();
+//        cell.setDirty();
     }
 
     public ImmutableArcInst[] backupArcs(ImmutableArrayList<ImmutableArcInst> oldArcs) {
@@ -361,7 +361,8 @@ public class Topology {
     }
 
     void setArcsDirty() {
-        cell.setDirty();
+        cell.setTopologyModified();
+//        cell.setDirty();
         validArcBounds = false;
         unfreshRTree();
     }
@@ -391,7 +392,7 @@ public class Topology {
         return rTree;
     }
 
-    public void rebuildRTree() {
+    private void rebuildRTree() {
 //        long startTime = System.currentTimeMillis();
         if (!validArcBounds) {
             computeArcBounds();

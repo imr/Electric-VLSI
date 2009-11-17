@@ -35,7 +35,6 @@ import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.CellId;
@@ -463,14 +462,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     private static final int ABBREVLEN = 8;
     /** zero rectangle */
     private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
-    /** Bounds are correct */
-    private static final byte BOUNDS_CORRECT = 0;
-    /** Bounds are correct if all subcells have correct bounds. */
-    private static final byte BOUNDS_CORRECT_SUB = 1;
-    /** Bounds are correct if all geoms have correct bounds. */
-    private static final byte BOUNDS_CORRECT_GEOM = 2;
-    /** Bounds need to be recomputed. */
-    private static final byte BOUNDS_RECOMPUTE = 3;
     /** Database to which this Library belongs. */
     private final EDatabase database;
     /** Persistent data of this Cell. */
@@ -503,14 +494,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     private int[] cellUsages = NULL_INT_ARRAY;
     /** A map from canonic String to Integer maximal numeric suffix */
     private final Map<String, MaxSuffix> maxSuffix = new HashMap<String, MaxSuffix>();
-    /** The bounds of the Cell. */
-    ERectangle cellBounds;
-    /** Whether the bounds need to be recomputed.
-     * BOUNDS_CORRECT - bounds are correct.
-     * BOUNDS_CORRECT_SUB - bounds are correct provided that bounds of subcells are correct.
-     * BOUNDS_CORRECT_GEOM - bounds are correct proveded that bounds of nodes and arcs are correct.
-     * BOUNDS_RECOMPUTE - bounds need to be recomputed. */
-    private byte boundsDirty = BOUNDS_RECOMPUTE;
     /** The temporary integer value. */
     private int tempInt;
     /** Set if expanded status of subcell instances is modified. */
@@ -1377,8 +1360,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     }
 
     void recover(CellTree newTree) {
-        this.cellBounds = newTree.getBounds();
         update(true, newTree, null);
+        if (!Job.isThreadSafe()) {
+            getTopology().getRTree();
+        }
     }
 
     void undo(CellTree newTree, BitSet exportsModified, BitSet boundsModified) {
@@ -1387,8 +1372,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             return;
         }
         assert cellBackupFresh;
-        assert boundsDirty == BOUNDS_CORRECT;
-        this.cellBounds = newTree.getBounds();
         if (backup != newTree.top) {
             update(false, newTree, exportsModified);
         } else {
@@ -1398,13 +1381,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             cellTreeFresh = true;
             tree = newTree;
         }
-        assert boundsDirty == BOUNDS_CORRECT;
-        assert this.cellBounds == newTree.getBounds();
+        if (!Job.isThreadSafe()) {
+            getTopology().getRTree();
+        }
     }
 
     private void update(boolean full, CellTree newTree, BitSet exportsModified) {
         checkUndoing();
-        boundsDirty = BOUNDS_RECOMPUTE;
         unfreshRTree();
         CellBackup newBackup = newTree.top;
         CellRevision newRevision = newBackup.cellRevision;
@@ -1522,34 +1505,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             strongTopology = null;
         }
         revisionDateFresh = true;
-
-        getMemoization();
-        boundsDirty = BOUNDS_RECOMPUTE;
-        ERectangle newBounds = computeBounds();
-        if (newBounds != cellBounds) {
-            System.out.println("update " + this.libDescribe() + " cellBounds=" + cellBounds + " newBounds=" + newBounds);
-            if (full) {
-                cellBounds = newBounds;
-                ActivityLogger.logException(new AssertionError("Bad bounds"));
-            } else {
-                assert newBounds == cellBounds;
-            }
-        }
-        boundsDirty = BOUNDS_CORRECT;
-        if (Job.isThreadSafe()) {
-            unfreshRTree();
-        } else {
-            topology.rebuildRTree();
-        }
-        assert boundsDirty == BOUNDS_CORRECT;
     }
 
     private void updateSubCells(BitSet exportsModified, BitSet boundsModified) {
         checkUndoing();
         unfreshRTree();
-        if (boundsModified != null) {
-            boundsDirty = BOUNDS_RECOMPUTE;
-        }
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
             if (!ni.isCellInstance()) {
@@ -1563,22 +1523,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
                 ni.redoGeometric();
             }
         }
-        if (boundsModified != null) {
-            assert boundsDirty == BOUNDS_RECOMPUTE;
-            ERectangle newBounds = computeBounds();
-            if (newBounds != cellBounds) {
-                System.out.println("updateSubCell " + this.libDescribe() + " cellBounds=" + cellBounds + " newBounds=" + newBounds);
-            }
-            assert newBounds == cellBounds;
-            boundsDirty = BOUNDS_CORRECT;
-        }
-        assert boundsDirty == BOUNDS_CORRECT;
-        if (Job.isThreadSafe()) {
-            unfreshRTree();
-        } else {
-            getTopologyOptional().rebuildRTree();
-        }
-        assert boundsDirty == BOUNDS_CORRECT;
     }
 
     /****************************** GRAPHICS ******************************/
@@ -1607,91 +1551,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     }
 
     /**
-     * Method to get the characteristic spacing for this Cell.
-     * The characteristic spacing is used by the Array command to space these cells sensibly.
-     * @return a dimension that is the characteristic spacing for this cell.
-     * Returns null if there is no spacing defined.
-     */
-//	public Dimension2D getCharacteristicSpacing()
-//	{
-//		Variable var = getVar(CHARACTERISTIC_SPACING);
-//		if (var != null)
-//		{
-//			Object obj = var.getObject();
-//			if (obj instanceof Integer[])
-//			{
-//				Integer [] iSpac = (Integer [])obj;
-//				Dimension2D spacing = new Dimension2D.Double(iSpac[0].intValue(), iSpac[1].intValue());
-//				return spacing;
-//			} else if (obj instanceof Double[])
-//			{
-//				Double [] dSpac = (Double [])obj;
-//				Dimension2D spacing = new Dimension2D.Double(dSpac[0].doubleValue(), dSpac[1].doubleValue());
-//				return spacing;
-//			}
-//		}
-//		return null;
-//	}
-    /**
-     * Method to set the characteristic spacing for this Cell.
-     * The characteristic spacing is used by the Array command to space these cells sensibly.
-     * @param x the characteristic width.
-     * @param y the characteristic height.
-     */
-//	public void setCharacteristicSpacing(double x, double y)
-//	{
-//		Double [] newVals = new Double[2];
-//		newVals[0] = new Double(x);
-//		newVals[1] = new Double(y);
-//		newVar(CHARACTERISTIC_SPACING, newVals);
-//	}
-    /**
-     * Method to indicate that the bounds of this Cell are incorrect because
-     * a node or arc has been created, deleted, or modified.
-     */
-    public void setDirty() {
-        setDirty(BOUNDS_RECOMPUTE);
-    }
-
-    /**
-     * Method to indicate that the bounds of this Cell are incorrect because
-     * a node or arc may have been modified.
-     */
-    public void setGeomDirty() {
-        setDirty(BOUNDS_CORRECT_GEOM);
-    }
-
-    /**
-     * Debug method to check that bound dirty flag is clear
-     */
-    void checkBoundsCorrect() {
-        assert boundsDirty == BOUNDS_CORRECT;
-        for (NodeInst ni : nodes) {
-            if (ni.isCellInstance()) {
-                Cell subCell = (Cell) ni.getProto();
-                assert subCell.boundsDirty == BOUNDS_CORRECT;
-            }
-        }
-    }
-
-    /**
-     * Method to indicate that the bounds of this Cell are incorrect because
-     * a node or arc has been created, deleted, or modified.
-     */
-    private void setDirty(byte boundsLevel) {
-        unfreshRTree();
-        if (boundsDirty == BOUNDS_CORRECT) {
-            boundsDirty = boundsLevel;
-            for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext();) {
-                CellUsage u = it.next();
-                u.getParent(database).setDirty(BOUNDS_CORRECT_SUB);
-            }
-        } else if (boundsDirty < boundsLevel) {
-            boundsDirty = boundsLevel;
-        }
-    }
-
-    /**
      * Method to return an interator over all RTBounds objects in a given area of this Cell.
      * @param bounds the specified area to search.
      * @return an iterator over all of the RTBounds objects in that area.
@@ -1716,130 +1575,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @return an ERectangle with the bounds of this cell's contents
      */
     public ERectangle getBounds() {
-        if (boundsDirty != BOUNDS_CORRECT) {
-            computeBounds1();
-        }
-        return cellBounds;
-    }
-
-    private void computeBounds1() {
-        assert boundsDirty != BOUNDS_CORRECT;
-        if (!Job.isThreadSafe() && !database.canComputeBounds()) {
-            return;
-        }
-
-        checkChanging();
-        if (boundsDirty == BOUNDS_CORRECT_SUB) {
-            boundsDirty = BOUNDS_CORRECT;
-            // Recalculate bounds of subcells.
-            for (Iterator<CellUsage> it = getUsagesIn(); it.hasNext();) {
-                CellUsage u = it.next();
-                u.getProto(database).getBounds();
-            }
-            if (boundsDirty == BOUNDS_CORRECT) {
-                return;
-            }
-        }
-        // Recalculate bounds of subcells.
-        for (Iterator<CellUsage> it = getUsagesIn(); it.hasNext();) {
-            CellUsage u = it.next();
-            u.getProto(database).getBounds();
-        }
-        if (boundsDirty == BOUNDS_CORRECT_GEOM) {
-            boundsDirty = BOUNDS_CORRECT;
-            for (NodeInst ni : nodes) {
-                ni.getBounds();
-            }
-//            for (Iterator<ArcInst> it = topology.getArcs(); it.hasNext(); )
-//                it.next().getBounds();
-            if (boundsDirty == BOUNDS_CORRECT) {
-                return;
-            }
-        }
-
-        // recompute bounds
-        unfreshRTree();
-        assert boundsDirty != BOUNDS_CORRECT;
-        ERectangle newBounds = computeBounds();
-        if (newBounds != cellBounds) {
-            cellBounds = newBounds;
-            for (Iterator<NodeInst> it = getInstancesOf(); it.hasNext();) {
-                NodeInst ni = it.next();
-                // Fake modify to recalcualte bounds and RTree
-                ni.redoGeometric();
-            }
-        }
-        boundsDirty = BOUNDS_CORRECT;
-    }
-
-    ERectangle computeBounds() {
-        double cellLowX, cellHighX, cellLowY, cellHighY;
-        boolean boundsEmpty = true;
-        cellLowX = cellHighX = cellLowY = cellHighY = 0;
-
-        // Ensure that all subcells have correct bounds
-        for (Iterator<CellUsage> it = getUsagesIn(); it.hasNext();) {
-            CellUsage u = it.next();
-            u.getProto(database).getBounds();
-        }
-
-        for (int i = 0; i < nodes.size(); i++) {
-            NodeInst ni = nodes.get(i);
-            Rectangle2D bounds = ni.getBounds(); // compute bounds of both primitives and subcells
-            if (!ni.isCellInstance()) {
-                continue;
-            }
-
-            double lowx = bounds.getMinX();
-            double highx = bounds.getMaxX();
-            double lowy = bounds.getMinY();
-            double highy = bounds.getMaxY();
-            if (boundsEmpty) {
-                boundsEmpty = false;
-                cellLowX = lowx;
-                cellHighX = highx;
-                cellLowY = lowy;
-                cellHighY = highy;
-            } else {
-                if (lowx < cellLowX) {
-                    cellLowX = lowx;
-                }
-                if (highx > cellHighX) {
-                    cellHighX = highx;
-                }
-                if (lowy < cellLowY) {
-                    cellLowY = lowy;
-                }
-                if (highy > cellHighY) {
-                    cellHighY = highy;
-                }
-            }
-        }
-        long gridMinX = DBMath.lambdaToGrid(cellLowX);
-        long gridMinY = DBMath.lambdaToGrid(cellLowY);
-        long gridMaxX = DBMath.lambdaToGrid(cellHighX);
-        long gridMaxY = DBMath.lambdaToGrid(cellHighY);
-
-//        topology.computeArcBounds();
-        ERectangle primitiveBounds = backup().getPrimitiveBounds();
-        if (primitiveBounds != null) {
-            if (boundsEmpty) {
-                gridMinX = primitiveBounds.getGridMinX();
-                gridMaxX = primitiveBounds.getGridMaxX();
-                gridMinY = primitiveBounds.getGridMinY();
-                gridMaxY = primitiveBounds.getGridMaxY();
-            } else {
-                gridMinX = Math.min(gridMinX, primitiveBounds.getGridMinX());
-                gridMaxX = Math.max(gridMaxX, primitiveBounds.getGridMaxX());
-                gridMinY = Math.min(gridMinY, primitiveBounds.getGridMinY());
-                gridMaxY = Math.max(gridMaxY, primitiveBounds.getGridMaxY());
-            }
-        }
-        if (cellBounds != null && gridMinX == cellBounds.getGridMinX() && gridMinY == cellBounds.getGridMinY()
-                && gridMaxX == cellBounds.getGridMaxX() && gridMaxY == cellBounds.getGridMaxY()) {
-            return cellBounds;
-        }
-        return ERectangle.fromGrid(gridMinX, gridMinY, gridMaxX - gridMinX, gridMaxY - gridMinY);
+        return treeUnsafe().getBounds();
     }
 
     /**
@@ -2569,7 +2305,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         if (ni.getProto() == Generic.tech().essentialBoundsNode) {
             essenBounds.add(ni);
         }
-        setDirty();
+//        setDirty();
 
         return false;
     }
@@ -2667,7 +2403,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         int nodeId = ni.getD().nodeId;
         assert chronNodes.get(nodeId) == ni;
         chronNodes.set(nodeId, null);
-        setDirty();
+//        setDirty();
     }
 
     /**
@@ -4531,6 +4267,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         backup = backup().withRevisionDate(revisionDate);
         d = backup.cellRevision.d;
         revisionDateFresh = true;
+        unfreshCellTree();
         database.unfreshSnapshot();
     }
 
@@ -4742,6 +4479,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     void clearModified() {
         if (isModified()) {
             backup = backup().withoutModified();
+            unfreshCellTree();
             database.unfreshSnapshot();
         }
         assert cellBackupFresh;
@@ -4774,6 +4512,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             return;
         }
         unfreshRTree();
+        for (Iterator<NodeInst> it = getNodes(); it.hasNext(); ) {
+            NodeInst ni = it.next();
+            if (ni.isCellInstance())
+                ni.redoGeometric();
+        }
         cellTreeFresh = false;
         for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext();) {
             CellUsage cu = it.next();
@@ -4789,7 +4532,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         database.unfreshSnapshot();
     }
 
-    private void unfreshRTree() {
+    public void unfreshRTree() {
         Topology topology = getTopologyOptional();
         if (topology != null) {
             topology.unfreshRTree();
@@ -5109,12 +4852,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
 
         // check group pointers
         assert cellGroup.containsCell(this);
-
-        // check bounds and RTree
-        if (boundsDirty == BOUNDS_CORRECT) {
-            assert computeBounds() == cellBounds;
-            assert boundsDirty == BOUNDS_CORRECT;
-        }
     }
 
     /**

@@ -1468,10 +1468,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             BoundsBuilder b = new BoundsBuilder(getCellBackupUnsafe());
             d.computeBounds(b, visBounds);
         }
-        if ((oldX != visBounds.x || oldY != visBounds.y || oldWidth != visBounds.width || oldHeight != visBounds.height)
-                && parent != null) {
-            parent.setDirty();
-        }
+//        if ((oldX != visBounds.x || oldY != visBounds.y || oldWidth != visBounds.width || oldHeight != visBounds.height)
+//                && parent != null) {
+//            parent.setDirty();
+//        }
         validVisBounds = true;
     }
 
@@ -1479,9 +1479,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * Method to recalculate the Geometric bounds for this NodeInst.
      */
     public void redoGeometric() {
-        if (parent != null) {
-            parent.setGeomDirty();
-        }
+        if (parent != null)
+            parent.unfreshRTree();
         validVisBounds = false;
     }
 

@@ -480,6 +480,7 @@ public class EDatabase {
         environment = snapshot.environment;
         techPool = environment.techPool;
         this.snapshotFresh = fresh;
+        environment.activate();
     }
 
     /**
@@ -536,15 +537,7 @@ public class EDatabase {
         for (int cellIndex = 0; cellIndex < cellTrees.length; cellIndex++) {
             Cell cell = getCell(cellIndex);
             if (cell != null) {
-//                if (techPool != snapshot.techPool)
-//                    cell.cellBackupFresh = false;
                 cellTrees[cellIndex] = cell.tree();
-                cell.getMemoization();
-                cell.getBounds(); // ????
-                if (!Job.isThreadSafe()) {
-                    cell.getTopology().getRTree();
-                }
-                assert cell.tree() == cellTrees[cellIndex];
             }
             cellsChanged = cellsChanged || cellTrees[cellIndex] != snapshot.getCellTree(cellIndex);
         }
@@ -565,17 +558,15 @@ public class EDatabase {
         }
 
         setSnapshot(snapshot.with(changingTool, environment, cellTrees, libBackups), true);
-        environment.activate();
         for (CellTree cellTree : snapshot.cellTrees) {
             if (cellTree == null) {
                 continue;
             }
             Cell cell = getCell(cellTree.top.cellRevision.d.cellId);
-            ERectangle cellBounds = cellTree.getBounds();
-            if (cellBounds != cell.cellBounds) {
-                assert cell.cellBounds.equals(cellBounds);
-                cell.cellBounds = cellBounds;
+            if (!Job.isThreadSafe()) {
+                cell.getTopology().getRTree();
             }
+            assert cell.tree() == cellTree;
         }
 //        long endTime = System.currentTimeMillis();
 //        if (Job.getDebug()) System.out.println("backup took: " + (endTime - startTime) + " msec");
@@ -590,7 +581,6 @@ public class EDatabase {
     public void recover(Snapshot snapshot) {
         long startTime = System.currentTimeMillis();
         setSnapshot(snapshot, false);
-        environment.activate();
         recoverLibraries();
         recycleCells();
         BitSet recovered = new BitSet();
@@ -643,7 +633,6 @@ public class EDatabase {
             return;
         }
         setSnapshot(snapshot, false);
-        environment.activate();
         boolean cellGroupsChanged = oldSnapshot.cellGroups != snapshot.cellGroups;
         if (oldSnapshot.libBackups != snapshot.libBackups) {
             recoverLibraries();
@@ -979,7 +968,7 @@ public class EDatabase {
                 assert cell.cellBackupFresh;
                 assert cell.backup == snapshot.cellBackups.get(cellIndex);
                 assert cell.getBounds() == snapshot.getCellBounds(cellId);
-                cell.checkBoundsCorrect();
+//                cell.checkBoundsCorrect();
             }
         }
 
