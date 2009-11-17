@@ -111,7 +111,7 @@ public class Snapshot {
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    public Snapshot with(Tool tool, Environment environment, CellBackup[] cellBackupsArray, LibraryBackup[] libBackupsArray) {
+    private Snapshot with(Tool tool, Environment environment, CellBackup[] cellBackupsArray, LibraryBackup[] libBackupsArray) {
         if (environment == null)
             environment = this.environment;
         CellTree[] cellTreesArray = null;
@@ -131,7 +131,7 @@ public class Snapshot {
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    private Snapshot with(Tool tool, Environment environment, CellTree[] cellTreesArray, LibraryBackup[] libBackupsArray) {
+    public Snapshot with(Tool tool, Environment environment, CellTree[] cellTreesArray, LibraryBackup[] libBackupsArray) {
 //        long startTime = System.currentTimeMillis();
         if (environment == null)
             environment = this.environment;

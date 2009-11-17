@@ -467,19 +467,21 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * BOUNDS_RECOMPUTE - bounds need to be recomputed. */          private byte boundsDirty = BOUNDS_RECOMPUTE;
     /** The temporary integer value. */                             private int tempInt;
     /** Set if expanded status of subcell instances is modified. */ private boolean expandStatusModified;
+    /** Last CellTree of this Cell */                               CellTree tree;
+    /** True if cell together with subcells matches cell tree. */   boolean cellTreeFresh;
     /** Last backup of this Cell */                                 CellBackup backup;
     /** True if cell together with contents matches cell backup. */ boolean cellBackupFresh;
     /** True if cell contents matches cell backup. */               private boolean cellContentsFresh;
     /** True if cell revision date is just set by lowLevelSetRevisionDate*/private boolean revisionDateFresh;
 
 
-	// ------------------ protected and private methods -----------------------
+    // ------------------ protected and private methods -----------------------
 
-	/**
-	 * This constructor should not be called.
-	 * Use the factory "newInstance" to create a Cell.
-	 */
-	Cell(EDatabase database, ImmutableCell d) {
+    /**
+     * This constructor should not be called.
+     * Use the factory "newInstance" to create a Cell.
+     */
+    Cell(EDatabase database, ImmutableCell d) {
         this.database = database;
         this.d = d;
         lib = database.getLib(d.getLibId());
@@ -490,8 +492,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             strongTopology = new Topology(this, false);
             weakTopology = new WeakReference(strongTopology);
         }
-
-	}
+    }
 
     private Object writeReplace() { return new CellKey(this); }
 
@@ -1100,6 +1101,22 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     public void lowLevelSetUserbits(int userBits) { setD(getD().withFlags(userBits)); }
 
     /*
+     * Low-level method to backup this Cell to CellTree.
+     * @return CellTree which is the backup of this Cell.
+     * @throws IllegalStateException if recalculation of Snapshot is requred in thread which is not enabled to do it.
+     */
+    public CellTree tree() {
+        if (cellTreeFresh) return tree;
+        if (Job.isThreadSafe()) {
+            checkChanging();
+        } else {
+            if (!database.canComputeBounds())
+                throw new IllegalStateException();
+        }
+        return doTree();
+    }
+
+    /*
      * Low-level method to backup this Cell to CellBackup.
      * @return CellBackup which is the backup of this Cell.
      * @throws IllegalStateException if recalculation of Snapshot is requred in thread which is not enabled to do it.
@@ -1113,6 +1130,23 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 throw new IllegalStateException();
         }
         return doBackup();
+    }
+
+    /*
+     * Low-level method to backup this Cell to CellTree.
+     * If there is no fresh tree for this database and thread is not enabled to calculate snspshot, returns the latest tree.
+     * @return CellTrrr which is the backup of this Cell.
+     * @throws IllegalStateException if recalculation of Snapshot is requred in thread which is not enabled to do it.
+     */
+    public CellTree treeUnsafe() {
+        if (cellTreeFresh) return tree;
+        if (Job.isThreadSafe()) {
+            checkChanging();
+        } else {
+            if (!database.canComputeBounds())
+                return tree;
+        }
+        return doTree();
     }
 
     /*
@@ -1171,12 +1205,26 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         return weakTopology != null ? weakTopology.get() : null;
     }
 
+    private CellTree doTree() {
+        CellBackup top = backup();
+        CellTree[] subTrees = new CellTree[cellUsages.length];
+        for (int i = 0; i < cellUsages.length; i++) {
+            if (cellUsages[i] == 0) continue;
+            CellId subCellId = getId().getUsageIn(i).protoId;
+            subTrees[i] = database.getCell(subCellId).tree();
+        }
+        tree = tree.with(top, subTrees, getTechPool());
+        cellTreeFresh = true;
+        return tree;
+    }
+
     private CellBackup doBackup() {
         TechPool techPool = getTechPool();
         if (backup == null) {
             getTechnology();
             backup = CellBackup.newInstance(getD().withoutVariables(), techPool);
-            assert !cellBackupFresh && !cellContentsFresh && !revisionDateFresh;
+            tree = CellTree.newInstance(backup.cellRevision.d, techPool).with(backup, CellTree.NULL_ARRAY, techPool);
+            assert !cellTreeFresh && !cellBackupFresh && !cellContentsFresh && !revisionDateFresh;
         }
         ImmutableNodeInst[] nodes = null;
         ImmutableArcInst[] arcs = null;
@@ -1239,8 +1287,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         this.cellBounds = newTree.getBounds();
         if (backup != newTree.top) {
             update(false, newTree, exportsModified);
-        } else if (exportsModified != null || boundsModified != null) {
-            updateSubCells(exportsModified, boundsModified);
+        } else {
+            if (exportsModified != null || boundsModified != null)
+                updateSubCells(exportsModified, boundsModified);
+            cellTreeFresh = true;
+            tree = newTree;
         }
         assert boundsDirty == BOUNDS_CORRECT;
         assert this.cellBounds == newTree.getBounds();
@@ -1255,7 +1306,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      	this.d = newRevision.d;
         lib = database.getLib(newRevision.d.getLibId());
         tech = database.getTech(newRevision.d.techId);
-       // Update NodeInsts
+        // Update NodeInsts
         nodes.clear();
         essenBounds.clear();
         maxSuffix.clear();
@@ -1348,7 +1399,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         assert exportCount == exports.length;
 
+        tree = newTree;
         backup = newBackup;
+        cellTreeFresh = true;
         cellBackupFresh = true;
         cellContentsFresh = true;
         if (LAZY_TOPOLOGY && Job.isThreadSafe())
@@ -4381,9 +4434,22 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         unfreshBackup();
     }
 
+    private void unfreshCellTree() {
+        if (!cellTreeFresh)
+            return;
+        unfreshRTree();
+        cellTreeFresh = false;
+        for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); ) {
+            CellUsage cu = it.next();
+            Cell cell = database.getCell(cu.parentId);
+            cell.unfreshCellTree();
+        }
+    }
+
     private void unfreshBackup() {
         cellBackupFresh = false;
         revisionDateFresh = false;
+        unfreshCellTree();
         database.unfreshSnapshot();
     }
 
@@ -4499,39 +4565,39 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * Returns true if this Cell is linked into database.
      * @return true if this Cell is linked into database.
      */
-	public boolean isLinked()
-	{
+    public boolean isLinked()
+    {
         database.checkExamine();
         return inCurrentThread(getId()) == this;
-	}
+    }
 
-	/**
-	 * Returns database to which this Cell belongs.
+    /**
+     * Returns database to which this Cell belongs.
      * @return database to which this ElectricObject belongs.
-	 */
-	public EDatabase getDatabase() { return database; }
+     */
+    public EDatabase getDatabase() { return database; }
 
-	/**
-	 * Method to check and repair data structure errors in this Cell.
-	 */
-	public int checkAndRepair(boolean repair, ErrorLogger errorLogger)
-	{
-		int errorCount = 0;
+    /**
+     * Method to check and repair data structure errors in this Cell.
+     */
+    public int checkAndRepair(boolean repair, ErrorLogger errorLogger)
+    {
+        int errorCount = 0;
         List<Geometric> list = new ArrayList<Geometric>();
 
-		for(Iterator<ArcInst> it = getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = it.next();
+        for(Iterator<ArcInst> it = getArcs(); it.hasNext(); )
+        {
+            ArcInst ai = it.next();
             errorCount += ai.checkAndRepair(repair, list, errorLogger);
-		}
-		for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = it.next();
-			errorCount += ni.checkAndRepair(repair, list, errorLogger);
-		}
+        }
+        for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
+        {
+            NodeInst ni = it.next();
+            errorCount += ni.checkAndRepair(repair, list, errorLogger);
+        }
         if (repair && list.size() > 0)
         {
-        	CircuitChangeJobs.eraseObjectsInList(this, list, false, null);
+            CircuitChangeJobs.eraseObjectsInList(this, list, false, null);
         }
 
         if (isSchematic() && getNewestVersion() == this && getCellGroup().getMainSchematics() != this) {
@@ -4558,13 +4624,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             }
         }
 
-		return errorCount;
-	}
+        return errorCount;
+    }
 
     /**
      * Method to check invariants in this Cell.
      * @exception AssertionError if invariants are not valid
      */
+    @Override
     protected void check() {
         CellId cellId = getD().cellId;
         super.check();
@@ -4577,6 +4644,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         assert getCellName() != null;
         assert getVersion() > 0;
 
+        if (cellTreeFresh) {
+            assert cellBackupFresh;
+            assert backup == tree.top;
+            for (CellTree subCellTree: tree.getSubTrees()) {
+                if (subCellTree == null) continue;
+                Cell subCell = database.getCell(subCellTree.top.cellRevision.d.cellId);
+                assert subCell.cellTreeFresh;
+                assert subCell.tree == subCellTree;
+            }
+        }
         CellRevision cellRevision = backup != null ? backup.cellRevision : null;
         if (cellBackupFresh) {
             assert cellRevision.d == getD();

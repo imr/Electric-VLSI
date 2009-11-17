@@ -109,16 +109,19 @@ public class SnapshotTest {
         CellId cellId = libId.newCellId(cellName);
         ImmutableCell c = ImmutableCell.newInstance(cellId, 0).withTechId(schematicTechId);
         CellBackup cellBackup = CellBackup.newInstance(c, techPool);
+        CellTree cellTree = CellTree.newInstance(c, techPool).with(cellBackup, CellTree.NULL_ARRAY, techPool);
 
-        CellBackup[] cellBackupsArray = { cellBackup };
+        CellTree[] cellTreesArray = { cellTree };
         LibraryBackup[] libBackupsArray = { libBackup };
         Snapshot instance = initialSnapshot.with(null, env, null, null);
         assertEquals(1, instance.snapshotId);
 
+        List<CellTree> expCellTrees = Collections.singletonList(cellTree);
         List<CellBackup> expCellBackups = Collections.singletonList(cellBackup);
         List<LibraryBackup> expLibBackups = Collections.singletonList(libBackup);
-        Snapshot result = instance.with(null, null, cellBackupsArray, libBackupsArray);
+        Snapshot result = instance.with(null, null, cellTreesArray, libBackupsArray);
         assertEquals(2, result.snapshotId);
+        assertEquals(expCellTrees, result.cellTrees);
         assertEquals(expCellBackups, result.cellBackups);
         assertEquals(expLibBackups, result.libBackups);
 
@@ -148,10 +151,11 @@ public class SnapshotTest {
         CellId cellId0 = libIdX.newCellId(cellNameA);
         ImmutableCell cellA = ImmutableCell.newInstance(cellId0, 0).withTechId(schematicTechId);
         CellBackup cellBackupA = CellBackup.newInstance(cellA, techPool);
-        CellBackup[] cellBackupArray = new CellBackup[] { cellBackupA };
+        CellTree cellTreeA = CellTree.newInstance(cellA, techPool).with(cellBackupA, CellTree.NULL_ARRAY, techPool);
+        CellTree[] cellTreeArray = new CellTree[] { cellTreeA };
         LibId libIdA = idManager.newLibId("A");
 
-        Snapshot oldSnapshot = initialSnapshot.with(null, env, cellBackupArray, libBackupArray);
+        Snapshot oldSnapshot = initialSnapshot.with(null, env, cellTreeArray, libBackupArray);
         IdMapper idMapper = IdMapper.renameLibrary(oldSnapshot, libIdX, libIdA);
         Snapshot newSnapshot = oldSnapshot.withRenamedIds(idMapper, null, null);
 

@@ -448,23 +448,24 @@ public class EDatabase {
 
     private Snapshot doBackup() {
 //        long startTime = System.currentTimeMillis();
-        CellBackup[] cellBackups = new CellBackup[linkedCells.size()];
-        boolean cellsChanged = cellBackups.length != snapshot.cellBackups.size();
-        for (int cellIndex = 0; cellIndex < cellBackups.length; cellIndex++) {
+        assert techPool == snapshot.techPool;
+        CellTree[] cellTrees = new CellTree[linkedCells.size()];
+        boolean cellsChanged = cellTrees.length != snapshot.cellTrees.size();
+        for (int cellIndex = 0; cellIndex < cellTrees.length; cellIndex++) {
             Cell cell = getCell(cellIndex);
             if (cell != null) {
-                if (techPool != snapshot.techPool)
-                    cell.cellBackupFresh = false;
-                cellBackups[cellIndex] = cell.backup();
+//                if (techPool != snapshot.techPool)
+//                    cell.cellBackupFresh = false;
+                cellTrees[cellIndex] = cell.tree();
                 cell.getMemoization();
                 cell.getBounds(); // ????
                 if (!Job.isThreadSafe())
                     cell.getTopology().getRTree();
-                assert cell.backup() == cellBackups[cellIndex];
+                assert cell.tree() == cellTrees[cellIndex];
             }
-            cellsChanged = cellsChanged || cellBackups[cellIndex] != snapshot.getCell(cellIndex);
+            cellsChanged = cellsChanged || cellTrees[cellIndex] != snapshot.getCellTree(cellIndex);
         }
-        if (!cellsChanged) cellBackups = null;
+        if (!cellsChanged) cellTrees = null;
 
         LibraryBackup[] libBackups = new LibraryBackup[linkedLibs.size()];
         boolean libsChanged = libBackups.length != snapshot.libBackups.size();
@@ -476,7 +477,7 @@ public class EDatabase {
         }
         if (!libsChanged) libBackups = null;
 
-        setSnapshot(snapshot.with(changingTool, environment, cellBackups, libBackups), true);
+        setSnapshot(snapshot.with(changingTool, environment, cellTrees, libBackups), true);
         environment.activate();
         for (CellTree cellTree: snapshot.cellTrees) {
             if (cellTree == null) continue;
@@ -645,9 +646,9 @@ public class EDatabase {
     public void resize(Environment environment) {
         long startTime = System.currentTimeMillis();
         backup();
-        this.environment = environment;
-        this.techPool = environment.techPool;
-        environment.activate();
+//        this.environment = environment;
+//        this.techPool = environment.techPool;
+//        environment.activate();
         lowLevelSetCanUndoing(true);
         undo(snapshot.with(changingTool, environment));
         lowLevelSetCanUndoing(false);
