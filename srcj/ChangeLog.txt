@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10m: ******************************
 
+IMP: (11/17/09, GVG) 4 new layers in 40nm (Bug #2475)
+
 IMP: (11/16/09, DN) CellTree is cached in Cell.tree .
     Remove cell bounds computation code from mutable database.
 
