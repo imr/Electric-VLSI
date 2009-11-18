@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+IMP/MAN: (11/18/09, SMR) Arrow-key movement now goes by grid-aligned amount.
+
 BUG: (11/17/09, DN) datatbase exceptions, cannot save... (Bug #2479)
 FIX: In CellTree.with() test for empty subTrees[i] .
 

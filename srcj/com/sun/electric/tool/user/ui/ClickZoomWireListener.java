@@ -1498,6 +1498,11 @@ public class ClickZoomWireListener
 		if (scaleMove) { dX *= scaleX;   dY *= scaleY; }
 		if (scaleMove2) { dX *= scaleX;   dY *= scaleY; }
 
+		// make sure the movement amount is grid-aligned
+		Point2D del = new Point2D.Double(dX, dY);
+		EditWindow.gridAlign(del);
+		dX = del.getX();   dY = del.getY();
+
 		// for edit windows doing outline editing, move the selected point
         if (WindowFrame.getListener() == OutlineListener.theOne)
         {
