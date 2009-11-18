@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/18/09, GVG) Crash when typing "/" (Bug #2483)
+FIX: Detect the null case.
+
 BUG: (11/18/09, SMR) Crash when reading waveforms (Bug #2481).
 FIX: Do not request current technology in TextUtils.atof().
 

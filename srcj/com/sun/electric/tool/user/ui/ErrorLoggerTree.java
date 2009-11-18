@@ -476,7 +476,7 @@ public class ErrorLoggerTree {
 
         private void reportSingleGeometry_(boolean showHigh, boolean separateWindow)
         {
-            assert(currentMsgLog != null);
+            if (currentMsgLog == null) return; // nothing available yet.
             String message = Job.getUserInterface().reportLog(currentMsgLog, showHigh, separateWindow, currentMsgLogGeoIndex);
             currentMsgLogGeoIndex = (currentMsgLogGeoIndex < currentMsgLog.getNumHighlights() - 1) ?
                 currentMsgLogGeoIndex+1 : 0;
