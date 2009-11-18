@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/18/09, GVG/JKG) NullPointerException on wiring switching wiring targets (Bug #2480)
+FIX: Rounding dbmouse in ClickZoomWireListener:switchWiringTarget. Extra DBMath in InteractiveRouter.getCornerLocation()
+
 BUG: (11/18/09, GVG) Crash when typing "/" (Bug #2483)
 FIX: Load next message if nothing has been shown yet.
 

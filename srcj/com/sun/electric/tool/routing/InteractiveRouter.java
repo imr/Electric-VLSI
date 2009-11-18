@@ -50,7 +50,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Line2D;
@@ -1179,7 +1178,7 @@ public abstract class InteractiveRouter extends Router {
         }
         else {
             // see if start and end line up in X or Y
-            if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY()) singleArc = true;
+            if (DBMath.areEquals(startLoc.getX(), endLoc.getX()) || DBMath.areEquals(startLoc.getY(), endLoc.getY())) singleArc = true;
         }
 
         // if single arc, corner loc is either start or end loc

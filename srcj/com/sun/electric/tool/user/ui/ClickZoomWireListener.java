@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -1597,7 +1598,7 @@ public class ClickZoomWireListener
         if (modeRight == Mode.wiringFind || modeRight == Mode.stickyWiring) {
             // can only switch if something under the mouse to wire to
             //if (endObj != null) {
-                Point2D dbMouse = new Point2D.Double(lastdbMouseX,  lastdbMouseY);
+                Point2D dbMouse = new Point2D.Double(DBMath.round(lastdbMouseX), DBMath.round(lastdbMouseY));
                 Rectangle2D bounds = new Rectangle2D.Double(lastdbMouseX, lastdbMouseY, 0, 0);
                 List<Highlight> targets = Highlighter.findAllInArea(highlighter, wnd.getCell(), false, true, false, specialSelect, false, bounds, wnd);
                 Iterator<Highlight> it = targets.iterator();
