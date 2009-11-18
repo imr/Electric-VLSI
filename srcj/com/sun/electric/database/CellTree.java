@@ -175,8 +175,10 @@ public class CellTree {
             assert newCellTree.subTrees.length == this.subTrees.length;
             ERectangle cellBounds = this.bounds;
             for (int i = 0; i < this.subTrees.length; i++) {
-                assert this.subTrees[i].bounds != null;
-                if (newCellTree.subTrees[i].bounds != this.subTrees[i].bounds) {
+                CellTree oldSubTree = this.subTrees[i];
+                if (oldSubTree == null) continue;
+                assert oldSubTree.bounds != null;
+                if (!newCellTree.subTrees[i].getBounds().equals(oldSubTree.bounds)) {
                     cellBounds = null;
                     break;
                 }
@@ -184,7 +186,6 @@ public class CellTree {
             if (cellBounds != null) {
                 newCellTree.bounds = cellBounds;
             }
-            ERectangle oldPrimBounds = this.top.getPrimitiveBounds();
         }
 
         // Return the new CellTree

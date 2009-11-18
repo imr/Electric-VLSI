@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/17/09, DN) datatbase exceptions, cannot save... (Bug #2479)
+FIX: In CellTree.with() test for empty subTrees[i] .
+
 IMP: (11/17/09, GVG) Avoid NPE in Pad generation in case of errors in input (Bug #2478)
 
 BUG: (11/17/09, GVG) Electric postscript output not working (Bug #2477)
