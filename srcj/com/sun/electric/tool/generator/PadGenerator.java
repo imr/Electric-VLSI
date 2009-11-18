@@ -1012,7 +1012,12 @@ public class PadGenerator
 								continue;
 							}
 							PortInst pi2 = pad.ni.findPortInst(pa.portname);
-							ArcProto ap = Generic.tech().unrouted_arc;
+                            if (pi2 == null)
+                            {
+                                err("no port called '" + pa.portname + "' on Cell " + pad.cellname);
+                                continue;
+                            }
+                            ArcProto ap = Generic.tech().unrouted_arc;
 							ArcInst ai = ArcInst.newInstanceBase(ap, ap.getDefaultLambdaBaseWidth(), pi1, pi2);
 							if (nameArc)
 							{
