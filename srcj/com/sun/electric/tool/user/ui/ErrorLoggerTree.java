@@ -474,21 +474,38 @@ public class ErrorLoggerTree {
 
         public String toString() { return "ErrorLogger Information: " +  logger.getInfo();}
 
+        private int getNextMessageNumber()
+        {
+            int  currentLogNumber = this.currentLogNumber;
+
+            if (currentLogNumber < logger.getNumLogs()-1) {
+                currentLogNumber++;
+            } else {
+                if (logger.getNumLogs() <= 0) return -1; //"No "+logger.getSystem()+" errors";
+                currentLogNumber = 0;
+            }
+            return currentLogNumber;
+        }
+
         private void reportSingleGeometry_(boolean showHigh, boolean separateWindow)
         {
-            if (currentMsgLog == null) return; // nothing available yet.
-            String message = Job.getUserInterface().reportLog(currentMsgLog, showHigh, separateWindow, currentMsgLogGeoIndex);
+            if (currentMsgLog == null)
+            {
+                currentLogNumber = getNextMessageNumber();
+                if (currentLogNumber < 0) return; // nothing to show.
+                currentMsgLog = logger.getLog(currentLogNumber);
+                currentMsgLogGeoIndex = 0;
+            }
+            Job.getUserInterface().reportLog(currentMsgLog, showHigh, separateWindow, currentMsgLogGeoIndex);
             currentMsgLogGeoIndex = (currentMsgLogGeoIndex < currentMsgLog.getNumHighlights() - 1) ?
                 currentMsgLogGeoIndex+1 : 0;
         }
 
-        private String reportNextMessage_(boolean showHigh, boolean separateWindow) {
-            if (currentLogNumber < logger.getNumLogs()-1) {
-                currentLogNumber++;
-            } else {
-                if (logger.getNumLogs() <= 0) return "No "+logger.getSystem()+" errors";
-                currentLogNumber = 0;
-            }
+        private String reportNextMessage_(boolean showHigh, boolean separateWindow)
+        {
+            currentLogNumber = getNextMessageNumber();
+            if (currentLogNumber < 0)
+                return "No "+logger.getSystem()+" errors";
             return reportLog(currentLogNumber, showHigh, separateWindow);
         }
 
