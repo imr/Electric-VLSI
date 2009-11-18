@@ -141,13 +141,13 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
             double valmax = Double.MIN_VALUE;
             double valmin = Double.MAX_VALUE;
             for(int i=0; i<commonTime.length; i++) {
-                tree.insert(commonTime[i], values[i]);
+                tree.insert(new Double(commonTime[i]), new Double(values[i]));
                 if (values[i] > valmax) { evmax = i; valmax = values[i]; }
                 if (values[i] < valmin) { evmin = i; valmin = values[i]; }
             }
             Waveform[] waveforms = { new BTreeNewSignal(evmin, evmax, tree) };
             waveformCache.put(as, waveforms);
-            System.err.println("put a btree");
+//            System.err.println("put a btree");
         } else {
             Waveform[] waveforms = { new WaveformImpl(getCommonTimeArray(), values) };
             waveformCache.put(as, waveforms);

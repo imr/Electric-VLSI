@@ -215,7 +215,7 @@ public class TextUtils {
 //			return Double.parseDouble(text);
 //		} catch (NumberFormatException e)
 //		{
-        return atof(text, null, null, Technology.getCurrent());
+        return atof(text, null, null, null);
 //		}
     }
 
@@ -227,7 +227,7 @@ public class TextUtils {
      * @return the numeric value.
      */
     public static double atof(String text, Double defaultVal) {
-        return atof(text, defaultVal, null, Technology.getCurrent());
+        return atof(text, defaultVal, null, null);
     }
 
     /**
