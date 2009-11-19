@@ -33,6 +33,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.prototype.PortProto;
@@ -118,12 +119,11 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      * @param tailPort the tail end PortInst.
      */
     public ArcInst(Topology topology, ImmutableArcInst d, PortInst headPort, PortInst tailPort) {
-        super(topology.cell);
         this.topology = topology;
 
         // initialize this object
-        assert parent == headPort.getNodeInst().getParent();
-        assert parent == tailPort.getNodeInst().getParent();
+        assert topology == headPort.getNodeInst().topology;
+        assert topology == tailPort.getNodeInst().topology;
         assert d.headNodeId == headPort.getNodeInst().getD().nodeId;
         assert d.tailNodeId == tailPort.getNodeInst().getD().nodeId;
         assert d.headPortId == headPort.getPortProto().getId();
@@ -157,7 +157,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
             if (ai.getDatabase() != out.getDatabase() || !ai.isLinked()) {
                 throw new NotSerializableException(ai + " not linked");
             }
-            out.writeObject(ai.getParent());
+            out.writeObject(ai.topology.cell);
             out.writeInt(ai.getArcId());
         }
 
@@ -335,7 +335,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
         }
 
         // make sure points are valid
-        Cell parent = head.getNodeInst().getParent();
+        Cell parent = head.getNodeInst().topology.cell;
         Poly headPoly = head.getPoly();
         if (!stillInPoly(headP, headPoly)) {
             System.out.println("Error in " + parent + ": head of " + type.getName()
@@ -390,11 +390,11 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
             return null;
         }
 
-        if (parent != headPort.getNodeInst().getParent() || parent != tailPort.getNodeInst().getParent()) {
+        if (topology != headPort.getNodeInst().topology || topology != tailPort.getNodeInst().topology) {
             System.out.println("ArcProto.newInst: the 2 PortInsts are in different Cells!");
             System.out.println("Cell " + parent.getName());
-            System.out.println("Head " + headPort.getNodeInst().getParent().getName());
-            System.out.println("Tail " + tailPort.getNodeInst().getParent().getName());
+            System.out.println("Head " + headPort.getNodeInst().topology.cell.getName());
+            System.out.println("Tail " + tailPort.getNodeInst().topology.cell.getName());
             return null;
         }
 
@@ -592,7 +592,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
         if (newD == oldD) {
             return false;
         }
-        parent.setTopologyModified();
+        topology.cell.setTopologyModified();
         d = newD;
         if (notify) {
             Constraints.getCurrent().modifyArcInst(this, oldD);
@@ -732,9 +732,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
         checkChanging();
         ImmutableArcInst oldD = d;
         lowLevelModify(d.withAngle(angle));
-        if (parent != null) {
-            Constraints.getCurrent().modifyArcInst(this, oldD);
-        }
+        assert topology != null;
+        Constraints.getCurrent().modifyArcInst(this, oldD);
     }
 
     /**
@@ -794,7 +793,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      */
     public Poly makeLambdaPoly(long gridWidth, Poly.Type style) {
         Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
-        polyBuilder.setup(parent);
+        polyBuilder.setup(topology.cell);
         return polyBuilder.makePoly(getD(), gridWidth, style);
     }
 
@@ -817,7 +816,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      */
     public Poly curvedArcLambdaOutline(Poly.Type style, long gridWidth, long gridRadius) {
         Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
-        polyBuilder.setup(parent);
+        polyBuilder.setup(topology.cell);
         Variable radius = Variable.newInstance(ImmutableArcInst.ARC_RADIUS, new Double(DBMath.gridToLambda(gridRadius)), TextDescriptor.getArcTextDescriptor());
         return polyBuilder.makePoly(getD().withVariable(radius), gridWidth, style);
     }
@@ -892,6 +891,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
     }
 
     /****************************** CONNECTIONS ******************************/
+
     /**
      * Method to return the Connection on the tail end of this ArcInst.
      * @return the Connection on the tail end of this ArcInst.
@@ -1244,8 +1244,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      */
     public int compareTo(ArcInst that) {
         int cmp;
-        if (this.parent != that.parent) {
-            cmp = this.parent.compareTo(that.parent);
+        if (this.topology != that.topology) {
+            cmp = this.topology.cell.compareTo(that.topology.cell);
             if (cmp != 0) {
                 return cmp;
             }
@@ -1593,6 +1593,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
         int errorCount = 0;
         ArcProto ap = getProto();
 
+        Cell parent = topology.cell;
         if (ap.isNotUsed()) {
 //            if (repair)
             if (errorLogger != null) {
@@ -1729,10 +1730,47 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      */
     public boolean isLinked() {
         try {
-            return parent != null && parent.isLinked() && parent.getArcById(getArcId()) == this;
+            Cell parent = topology.cell;
+            return parent.isLinked() && parent.getArcById(getArcId()) == this;
         } catch (IndexOutOfBoundsException e) {
             return false;
         }
+    }
+
+    /**
+     * Method to return the Cell Topology that contains this ArcInst.
+     * @return the Topology that contains this ArcInst.
+     */
+    @Override
+    public Topology getTopology() {
+        return topology;
+    }
+
+    /**
+     * Routing to check whether changing of this cell allowed or not.
+     * By default checks whole database change. Overriden in subclasses.
+     */
+    @Override
+    public void checkChanging() {
+        topology.cell.checkChanging();
+    }
+
+    /**
+     * Method to determine the appropriate Cell associated with this ElectricObject.
+     * @return the appropriate Cell associated with this ElectricicObject.
+     */
+    @Override
+    public Cell whichCell() {
+        return topology.cell;
+    }
+
+    /**
+     * Returns database to which this ArcInst belongs.
+     * @return database to which this ArcInst belongs.
+     */
+    @Override
+    public EDatabase getDatabase() {
+        return topology.cell.getDatabase();
     }
 
     /**
@@ -1781,9 +1819,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
             flags = ImmutableArcInst.HEAD_NEGATED.set(flags, false);
         }
         lowLevelModify(d.withFlags(flags).withAngle(fromAi.getAngle()));
-        if (parent != null) {
-            Constraints.getCurrent().modifyArcInst(this, oldD);
-        }
+        assert topology != null;
+        Constraints.getCurrent().modifyArcInst(this, oldD);
     }
 
 //	/**

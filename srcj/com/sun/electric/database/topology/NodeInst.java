@@ -141,6 +141,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         PortInst assn;
     }
     // ---------------------- private data ----------------------------------
+    /** Owner of this NodeInst. */
+    final Topology topology;
     /** persistent data of this NodeInst. */
     private ImmutableNodeInst d;
     /** prototype of this NodeInst. */
@@ -158,10 +160,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     /**
      * The constructor of NodeInst. Use the factory "newInstance" instead.
      * @param d persistent data of this NodeInst.
-     * @param parent the Cell in which this NodeInst will reside.
+     * @param topology the Topology in which this NodeInst will reside.
      */
-    NodeInst(ImmutableNodeInst d, Cell parent) {
-        super(parent);
+    NodeInst(ImmutableNodeInst d, Topology topology) {
+        this.topology = topology;
         protoType = d.protoId.inDatabase(getDatabase());
         this.d = d;
 
@@ -174,7 +176,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
     private NodeInst(NodeProto protoType, ImmutableNodeInst d) {
-        super(null);
+        topology = null;
         assert d.protoId == protoType.getId();
         this.d = d;
         this.protoType = protoType;
@@ -205,7 +207,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             if (ni.getDatabase() != out.getDatabase() || !ni.isLinked()) {
                 throw new NotSerializableException(ni + " not linked");
             }
-            out.writeObject(ni.getParent());
+            out.writeObject(ni.topology.cell);
             out.writeInt(ni.getD().nodeId);
         }
 
@@ -442,6 +444,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         if (protoType instanceof Cell) {
             assert ((Cell) protoType).isLinked();
         }
+        Topology topology = parent.getTopology();
 
         EPoint anchor = EPoint.snap(center);
 
@@ -466,7 +469,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 PrimitiveNode np = (PrimitiveNode) protoType;
                 baseName = np.getTechnology().getPrimitiveFunction(np, techBits).getBasename();
             }
-            nameKey = parent.getNodeAutoname(baseName);
+            nameKey = topology.getNodeAutoname(baseName);
             if (msg != null) {
                 msg += ", renamed to \"" + nameKey + "\"";
                 System.out.println(msg);
@@ -523,7 +526,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             return null;
         }
 
-        NodeInst ni = lowLevelNewInstance(parent, d);
+        NodeInst ni = lowLevelNewInstance(parent.getTopology(), d);
 
         if (ni.checkAndRepair(true, null, null) > 0) {
             return null;
@@ -542,11 +545,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         return ni;
     }
 
-    public static NodeInst lowLevelNewInstance(Cell parent, ImmutableNodeInst d) {
+    public static NodeInst lowLevelNewInstance(Topology topology, ImmutableNodeInst d) {
         if (d.protoId instanceof CellId && ((CellId) d.protoId).isIcon()) {
-            return new IconNodeInst(d, parent);
+            return new IconNodeInst(d, topology);
         }
-        return new NodeInst(d, parent);
+        return new NodeInst(d, topology);
     }
 
     /**
@@ -557,7 +560,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             System.out.println("NodeInst already killed");
             return;
         }
-        parent.killNodes(Collections.singleton(this));
+        topology.cell.killNodes(Collections.singleton(this));
     }
 
     /**
@@ -600,7 +603,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      */
     public void modifyInstance(double dX, double dY, double dXSize, double dYSize, Orientation dOrient) {
         if (ImmutableNodeInst.isCellCenter(protoType.getId())) {
-            parent.adjustReferencePoint(dX, dY);
+            topology.cell.adjustReferencePoint(dX, dY);
             return;
         }
 
@@ -617,7 +620,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
         d = d.withOrient(dOrient.concatenate(d.orient));
         lowLevelModify(d);
-        if (parent != null) {
+        if (topology != null) {
             Constraints.getCurrent().modifyNodeInst(this, oldD);
         }
 
@@ -674,7 +677,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             }
             double dX = dXs != null ? dXs[i] : 0;
             double dY = dYs != null ? dYs[i] : 0;
-            ni.getParent().adjustReferencePoint(dX, dY);
+            ni.topology.cell.adjustReferencePoint(dX, dY);
         }
     }
 
@@ -690,7 +693,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     public NodeInst replace(NodeProto np, boolean ignorePortNames, boolean allowMissingPorts) {
         // check for recursion
         if (np instanceof Cell) {
-            if (Cell.isInstantiationRecursive((Cell) np, getParent())) {
+            if (Cell.isInstantiationRecursive((Cell) np, topology.cell)) {
                 System.out.println("Cannot replace because it would be recursive");
                 return null;
             }
@@ -723,7 +726,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
 
         // see if nodeinst is mirrored
-        NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getParent(), getOrient(), null);
+        NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, topology.cell, getOrient(), null);
         if (newNi == null) {
             return null;
         }
@@ -970,7 +973,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 NodeProto pinNp = ai.getProto().findOverridablePinProto(ep);
                 double psx = pinNp.getDefWidth();
                 double psy = pinNp.getDefHeight();
-                NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, getParent());
+                NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, topology.cell);
                 PortInst pinPi = pinNi.getOnlyPortInst();
                 newAi = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), newPortInst[ArcInst.HEADEND], pinPi, newPoint[ArcInst.HEADEND],
                         new Point2D.Double(cX, cY), null, 0);
@@ -1030,7 +1033,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         newNi.copyStateBits(this);
         if (!getNameKey().isTempname()) {
             String savedName = getName();
-            String tempName = ElectricObject.uniqueObjectName(savedName, parent, NodeInst.class, true);
+            String tempName = ElectricObject.uniqueObjectName(savedName, topology.cell, NodeInst.class, true);
             setName(tempName);
             newNi.setName(savedName);
         }
@@ -1062,8 +1065,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         if (newD == oldD) {
             return false;
         }
-        if (parent != null) {
-            parent.setContentsModified();
+        if (topology != null) {
+            topology.cell.setContentsModified();
             d = newD;
             assert protoType == d.protoId.inDatabase(getDatabase());
             if (notify) {
@@ -1142,17 +1145,17 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param d the new persistent data of this NodeInst.
      */
     public void lowLevelModify(ImmutableNodeInst d) {
-        if (parent != null) {
+        if (topology != null) {
             checkChanging();
             boolean renamed = this.d.name != d.name;
             if (renamed) {
-                parent.removeNodeName(this);
+                topology.removeNodeName(this);
             }
 
             // make the change
             setD(d, false);
             if (renamed) {
-                parent.addNodeName(this);
+                topology.addNodeName(this);
             }
 
             // fill in the Geometric fields
@@ -1171,7 +1174,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return true if this NodeInst is an icon of its parent.
      */
     public boolean isIconOfParent() {
-        return (protoType instanceof Cell) && ((Cell) protoType).isIconOf(parent);
+        return (protoType instanceof Cell) && ((Cell) protoType).isIconOf(topology.cell);
     }
 
     /**
@@ -1198,10 +1201,52 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      */
     public boolean isLinked() {
         try {
-            return parent != null && parent.isLinked() && parent.getNode(nodeIndex) == this;
+            if (topology == null) return false;
+            Cell parent = topology.cell;
+            return parent.isLinked() && parent.getNode(nodeIndex) == this;
         } catch (IndexOutOfBoundsException e) {
             return false;
         }
+    }
+
+    /**
+     * Method to return the Cell Topology that contains this NodeInst.
+     * @return the Topology that contains this NodeInst.
+     */
+    @Override
+    public Topology getTopology() {
+        return topology;
+    }
+
+    /**
+     * Routing to check whether changing of this cell allowed or not.
+     * By default checks whole database change. Overriden in subclasses.
+     */
+    @Override
+    public void checkChanging() {
+        if (topology != null) {
+            topology.cell.checkChanging();
+        }
+    }
+
+    /**
+     * Method to determine the appropriate Cell associated with this ElectricObject.
+     * @return the appropriate Cell associated with this ElectricicObject.
+     */
+    @Override
+    public Cell whichCell() {
+        return topology.cell;
+    }
+
+    /**
+     * Returns database to which this NodeInst belongs.
+     * Some objects are not in database, for example NodeInsts in PaletteFrame.
+     * Method returns null for non-database objects.
+     * @return database to which this Geometric belongs.
+     */
+    @Override
+    public EDatabase getDatabase() {
+        return topology != null ? topology.cell.getDatabase() : null;
     }
 
     /**
@@ -1210,8 +1255,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return CellBackup containing this NodeInst.
      */
     public CellBackup getCellBackupUnsafe() {
-        if (parent != null) {
-            return parent.backupUnsafe();
+        if (topology != null) {
+            return topology.cell.backupUnsafe();
         }
         CellId clipCellId = Clipboard.getClipCellId();
         ImmutableCell cell = ImmutableCell.newInstance(clipCellId, 0);
@@ -1479,8 +1524,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * Method to recalculate the Geometric bounds for this NodeInst.
      */
     public void redoGeometric() {
-        if (parent != null)
-            parent.unfreshRTree();
+        if (topology != null)
+            topology.cell.unfreshRTree();
         validVisBounds = false;
     }
 
@@ -2259,7 +2304,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     public PortInst getOnlyPortInst() {
         int sz = portInsts.length;
         if (sz != 1) {
-            System.out.println("NodeInst.getOnlyPortInst: " + parent
+            System.out.println("NodeInst.getOnlyPortInst: " + topology.cell
                     + ", " + this + " doesn't have just one port, it has " + sz);
             return null;
         }
@@ -2382,7 +2427,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return true if there are Exports on this NodeInst.
      */
     public boolean hasExports() {
-        return parent != null && parent.getMemoization().hasExports(getD());
+        return topology != null && topology.cell.getMemoization().hasExports(getD());
     }
 
     /**
@@ -2391,8 +2436,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      */
     public Iterator<Export> getExports() {
         Iterator<Export> eit = ArrayIterator.emptyIterator();
-        if (parent != null) {
-            Iterator<ImmutableExport> it = parent.getMemoization().getExports(getD().nodeId);
+        if (topology != null) {
+            Iterator<ImmutableExport> it = topology.cell.getMemoization().getExports(getD().nodeId);
             if (it.hasNext()) {
                 eit = new ExportIterator(it);
             }
@@ -2413,7 +2458,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
 
         public Export next() {
-            return parent.getExportChron(it.next().exportId.chronIndex);
+            return topology.cell.getExportChron(it.next().exportId.chronIndex);
         }
 
         public void remove() {
@@ -2426,7 +2471,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return the number of Exports on this NodeInst.
      */
     public int getNumExports() {
-        return parent != null ? parent.getMemoization().getNumExports(getD().nodeId) : 0;
+        return topology != null ? topology.cell.getMemoization().getNumExports(getD().nodeId) : 0;
     }
 
     /**
@@ -2593,7 +2638,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return true if this pin NodeInst should be supressed.
      */
     public boolean pinUseCount() {
-        return parent != null && parent.getMemoization().pinUseCount(getD());
+        return topology != null && topology.cell.getMemoization().pinUseCount(getD());
     }
 
     /**
@@ -2694,11 +2739,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return an Iterator over all Connections on this NodeInst.
      */
     public Iterator<Connection> getConnections() {
-        if (parent == null) {
+        if (topology == null) {
             Iterator<Connection> cit = ArrayIterator.emptyIterator();
             return cit;
         }
-        return new ConnectionIterator(parent.getMemoization(), getD());
+        return new ConnectionIterator(topology.cell.getMemoization(), getD());
     }
 
     /**
@@ -2707,11 +2752,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return an Iterator over Connections on this NodeInst since portIndex.
      */
     Iterator<Connection> getConnections(PortProtoId portId) {
-        if (parent == null) {
+        if (topology == null) {
             Iterator<Connection> cit = ArrayIterator.emptyIterator();
             return cit;
         }
-        return new ConnectionIterator(parent.getMemoization(), getD(), portId);
+        return new ConnectionIterator(topology.cell.getMemoization(), getD(), portId);
     }
 
     /**
@@ -2719,7 +2764,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return true if there are Connections on this NodeInst.
      */
     public boolean hasConnections() {
-        return parent != null && parent.getMemoization().hasConnections(getD(), null);
+        return topology != null && topology.cell.getMemoization().hasConnections(getD(), null);
     }
 
     /**
@@ -2727,7 +2772,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return the number of Connections on this NodeInst.
      */
     public int getNumConnections() {
-        return parent != null ? parent.getMemoization().getNumConnections(getD()) : 0;
+        return topology != null ? topology.cell.getMemoization().getNumConnections(getD()) : 0;
     }
 
     private class ConnectionIterator implements Iterator<Connection> {
@@ -2766,7 +2811,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
         private void findNext() {
             for (; i < arcs.size(); i++) {
-                ArcInst ai = parent.getArcById(arcs.get(i).arcId);
+                ArcInst ai = topology.cell.getArcById(arcs.get(i).arcId);
                 if (ai != null) {
                     nextConn = headEnds.get(i) ? ai.getHead() : ai.getTail();
                     i++;
@@ -2823,6 +2868,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     public boolean setName(String name) {
         assert isLinked();
         Name key = null;
+        Cell parent = topology.cell;
         if (name != null && name.length() > 0) {
             if (name.equals(getName())) {
                 return false;
@@ -2836,7 +2882,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             if (!isUsernamed()) {
                 return false;
             }
-            key = parent.getNodeAutoname(getBasename());
+            key = topology.getNodeAutoname(getBasename());
         }
         if (checkNameKey(key, parent)) {
             return true;
@@ -3100,8 +3146,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      */
     public int compareTo(NodeInst that) {
         int cmp;
-        if (this.parent != that.parent) {
-            cmp = this.parent.compareTo(that.parent);
+        if (this.topology != that.topology) {
+            cmp = this.topology.cell.compareTo(that.topology.cell);
             if (cmp != 0) {
                 return cmp;
             }
@@ -3443,11 +3489,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 //		int warningCount = 0;
         double width = getXSize();
         double height = getYSize();
+        Cell parent = topology != null ? topology.cell : null;
         if (protoType instanceof Cell) {
             Variable var = getVar(NccCellAnnotations.NCC_ANNOTATION_KEY);
             if (var != null) {
                 // cleanup NCC cell annotations which were inheritable
-                String nccMsg = "Removed extraneous NCC annotations from cell instance " + describe(false) + " in " + getParent();
+                String nccMsg = "Removed extraneous NCC annotations from cell instance " + describe(false) + " in " + topology.cell;
                 if (repair) {
                     delVar(var.getKey());
                     nccMsg += " (REPAIRED)";
@@ -3599,8 +3646,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param value true if NodeInst is expanded.
      */
     public void setExpanded(boolean value) {
-        if (parent != null) {
-            parent.setExpanded(getD().nodeId, value);
+        if (topology != null) {
+            topology.cell.setExpanded(getD().nodeId, value);
         }
     }
 
@@ -3612,7 +3659,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return true if this NodeInst is expanded.
      */
     public boolean isExpanded() {
-        return parent != null && parent.isExpanded(getD().nodeId);
+        return topology != null && topology.cell.isExpanded(getD().nodeId);
     }
 
     /**
@@ -3624,10 +3671,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return true if this NodeInst is wiped.
      */
     public boolean isWiped() {
-        if (parent == null || !(protoType instanceof PrimitiveNode && ((PrimitiveNode) protoType).isArcsWipe())) {
+        if (topology == null || !(protoType instanceof PrimitiveNode && ((PrimitiveNode) protoType).isArcsWipe())) {
             return false;
         }
-        return parent.getMemoization().isWiped(getD());
+        return topology.cell.getMemoization().isWiped(getD());
     }
 
     /**

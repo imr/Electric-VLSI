@@ -43,10 +43,10 @@ class IconNodeInst extends NodeInst {
     /**
      * The constructor of IconNodeInst. Use the factory "newInstance" instead.
      * @param d persistent data of this IconNodeInst.
-     * @param parent the Cell in which this IconNodeInst will reside.
+     * @param topology the Topology in which this IconNodeInst will reside.
      */
-    IconNodeInst(ImmutableNodeInst d, Cell parent) {
-        super(d, parent);
+    IconNodeInst(ImmutableNodeInst d, Topology topology) {
+        super(d, topology);
     }
 
     /**

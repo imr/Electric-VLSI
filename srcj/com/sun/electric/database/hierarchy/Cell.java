@@ -482,14 +482,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     private WeakReference<Topology> weakTopology;
     /** Cell's topology. */
     private Topology strongTopology;
-    /** The Cell's essential-bounds. */
-    private final List<NodeInst> essenBounds = new ArrayList<NodeInst>();
-    /** Chronological list of NodeInsts in this Cell. */
-    private final List<NodeInst> chronNodes = new ArrayList<NodeInst>();
     /** Set containing nodeIds of expanded cells. */
     private final BitSet expandedNodes = new BitSet();
-    /** A list of NodeInsts in this Cell. */
-    private final List<NodeInst> nodes = new ArrayList<NodeInst>();
     /** Counts of NodeInsts for each CellUsage. */
     private int[] cellUsages = NULL_INT_ARRAY;
     /** A map from canonic String to Integer maximal numeric suffix */
@@ -1317,7 +1311,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         if (!cellContentsFresh) {
 //            System.out.println("Refresh contents of " + this);
             Topology topology = getTopologyOptional();
-            nodes = backupNodes();
+            nodes = topology != null ? topology.backupNodes(backup.cellRevision.nodes) : null;
             arcs = topology != null ? topology.backupArcs(backup.cellRevision.arcs) : null;
             exports = backupExports();
         }
@@ -1331,19 +1325,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             lib.setChanged();
         }
         return backup;
-    }
-
-    private ImmutableNodeInst[] backupNodes() {
-        ImmutableNodeInst[] newNodes = new ImmutableNodeInst[nodes.size()];
-        ImmutableArrayList<ImmutableNodeInst> oldNodes = backup.cellRevision.nodes;
-        boolean changed = nodes.size() != oldNodes.size();
-        for (int i = 0; i < nodes.size(); i++) {
-            NodeInst ni = nodes.get(i);
-            ImmutableNodeInst d = ni.getD();
-            changed = changed || oldNodes.get(i) != d;
-            newNodes[i] = d;
-        }
-        return changed ? newNodes : null;
     }
 
     private ImmutableExport[] backupExports() {
@@ -1376,7 +1357,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             update(false, newTree, exportsModified);
         } else {
             if (exportsModified != null || boundsModified != null) {
-                updateSubCells(exportsModified, boundsModified);
+                checkUndoing();
+                Topology topology = getTopologyOptional();
+                if (topology != null)
+                    topology.updateSubCells(exportsModified, boundsModified);
             }
             cellTreeFresh = true;
             tree = newTree;
@@ -1394,68 +1378,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         this.d = newRevision.d;
         lib = database.getLib(newRevision.d.getLibId());
         tech = database.getTech(newRevision.d.techId);
-        // Update NodeInsts
-        nodes.clear();
-        essenBounds.clear();
-        maxSuffix.clear();
         cellUsages = newRevision.getInstCounts();
-        for (int i = 0; i < newRevision.nodes.size(); i++) {
-            ImmutableNodeInst d = newRevision.nodes.get(i);
-            while (d.nodeId >= chronNodes.size()) {
-                chronNodes.add(null);
-            }
-            NodeInst ni = chronNodes.get(d.nodeId);
-            if (ni != null && ni.getProto().getId().isIcon() == d.protoId.isIcon()) {
-                NodeProto oldProto = ni.getProto();
-                ni.setDInUndo(d);
-                if (ni.isCellInstance()) {
-                    int subCellIndex = ((Cell) ni.getProto()).getCellIndex();
-                    if (full || exportsModified != null && exportsModified.get(subCellIndex)) {
-                        ni.updatePortInsts(full || ni.getProto() != oldProto);
-                    }
-                } else if (ni.getProto() != oldProto) {
-                    ni.updatePortInsts(true);
-                }
-            } else {
-                ni = NodeInst.lowLevelNewInstance(this, d);
-                chronNodes.set(d.nodeId, ni);
-                if (ni.isCellInstance()) {
-                    Cell subCell = (Cell) ni.getProto();
-                    boolean oldEx = expandedNodes.get(d.nodeId);
-                    // Remember previous user'setup
-                    expandedNodes.set(d.nodeId, oldEx || subCell.isWantExpanded());
-                    expandStatusModified = true;
-                }
-            }
-            ni.setNodeIndex(i);
-            nodes.add(ni);
-            updateMaxSuffix(ni);
-            NodeProto np = ni.getProto();
-            if (np == Generic.tech().essentialBoundsNode) {
-                essenBounds.add(ni);
-            }
-//            ni.check();
-        }
-        assert nodes.size() == newRevision.nodes.size();
-
-        int nodeCount = 0;
-        for (int i = 0; i < chronNodes.size(); i++) {
-            NodeInst ni = chronNodes.get(i);
-            if (ni == null) {
-                continue;
-            }
-            int nodeIndex = ni.getNodeIndex();
-            if (nodeIndex >= nodes.size() || ni != nodes.get(nodeIndex)) {
-                ni.setNodeIndex(-1);
-                chronNodes.set(i, null);
-                continue;
-            }
-            nodeCount++;
-        }
-        assert nodeCount == nodes.size();
+        // Update NodeInsts
 
         Topology topology = getTopologyOptional();
         if (topology != null) {
+            if (topology.updateNodes(full, newRevision, exportsModified, expandedNodes))
+                expandStatusModified = true;
             topology.updateArcs(newRevision);
         }
 
@@ -1505,24 +1434,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             strongTopology = null;
         }
         revisionDateFresh = true;
-    }
-
-    private void updateSubCells(BitSet exportsModified, BitSet boundsModified) {
-        checkUndoing();
-        unfreshRTree();
-        for (int i = 0; i < nodes.size(); i++) {
-            NodeInst ni = nodes.get(i);
-            if (!ni.isCellInstance()) {
-                continue;
-            }
-            int subCellIndex = ((Cell) ni.getProto()).getCellIndex();
-            if (exportsModified != null && exportsModified.get(subCellIndex)) {
-                ni.updatePortInsts(false);
-            }
-            if (boundsModified != null && boundsModified.get(subCellIndex)) {
-                ni.redoGeometric();
-            }
-        }
     }
 
     /****************************** GRAPHICS ******************************/
@@ -1586,23 +1497,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * Returns null if an essential bounds cannot be determined.
      */
     public Rectangle2D findEssentialBounds() {
-        if (essenBounds.size() < 2) {
-            return null;
-        }
-        double minX = Double.MAX_VALUE;
-        double maxX = Double.MIN_VALUE;
-        double minY = Double.MAX_VALUE;
-        double maxY = Double.MIN_VALUE;
-
-        for (int i = 0; i < essenBounds.size(); i++) {
-            NodeInst ni = essenBounds.get(i);
-            minX = Math.min(minX, ni.getTrueCenterX());
-            maxX = Math.max(maxX, ni.getTrueCenterX());
-            minY = Math.min(minY, ni.getTrueCenterY());
-            maxY = Math.max(maxY, ni.getTrueCenterY());
-        }
-
-        return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
+        return getTopology().findEssentialBounds();
     }
 
     /**
@@ -2026,8 +1921,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @return an Iterator over all NodeInst objects in this Cell.
      */
     public synchronized Iterator<NodeInst> getNodes() {
-        List<NodeInst> nodesCopy = new ArrayList<NodeInst>(nodes);
-        return nodesCopy.iterator();
+        return getTopology().getNodes();
     }
 
     /**
@@ -2035,8 +1929,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @return an Iterator over all NodeInst objects in this Cell.
      */
     public synchronized Iterator<Nodable> getNodables() {
-        List<Nodable> nodesCopy = new ArrayList<Nodable>(nodes);
-        return nodesCopy.iterator();
+        return getTopology().getNodables();
     }
 
     /**
@@ -2044,7 +1937,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @return the number of NodeInst objects in this Cell.
      */
     public int getNumNodes() {
-        return nodes.size();
+        Topology topology = getTopologyOptional();
+        return topology != null ? topology.getNumNodes() : backup().cellRevision.nodes.size();
     }
 
     /**
@@ -2053,7 +1947,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @return the NodeInst at specified position.
      */
     public final NodeInst getNode(int nodeIndex) {
-        return nodes.get(nodeIndex);
+        return getTopology().getNode(nodeIndex);
     }
 
     /**
@@ -2062,7 +1956,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @return the NodeInst with specified chronological index.
      */
     public NodeInst getNodeById(int nodeId) {
-        return nodeId < chronNodes.size() ? chronNodes.get(nodeId) : null;
+        return getTopology().getNodeById(nodeId);
     }
 
     /**
@@ -2071,6 +1965,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      */
     public boolean isExpanded(int nodeId) {
         return expandedNodes.get(nodeId);
+    }
+
+    public BitSet lowLevelExpandedNodes() {
+        return expandedNodes;
     }
 
     /**
@@ -2116,14 +2014,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @return the PortInst at specified position..
      */
     public PortInst getPortInst(int nodeId, PortProtoId portProtoId) {
-        NodeInst ni = chronNodes.get(nodeId);
-        assert ni.getD().protoId == portProtoId.getParentId();
-        NodeProto np = ni.getProto();
-        PortProto pp = np.getPort(portProtoId);
-        PortInst pi = ni.getPortInst(pp.getPortIndex());
-        assert pi.getNodeInst().getD().nodeId == nodeId;
-        assert pi.getPortProto().getId() == portProtoId;
-        return pi;
+        return getTopology().getPortInst(nodeId, portProtoId);
     }
 
     /**
@@ -2187,8 +2078,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @return the NodeInst.  Returns null if none with that name are found.
      */
     public NodeInst findNode(String name) {
-        int nodeIndex = searchNode(name);
-        return nodeIndex >= 0 ? nodes.get(nodeIndex) : null;
+        return getTopology().findNode(name);
     }
 
     /**
@@ -2278,13 +2168,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         }
 
         setContentsModified();
-        addNodeName(ni);
-        int nodeId = ni.getD().nodeId;
-        while (chronNodes.size() <= nodeId) {
-            chronNodes.add(null);
-        }
-        assert chronNodes.get(nodeId) == null;
-        chronNodes.set(nodeId, ni);
+        int nodeId = getTopology().addNode(ni);
+//        addNodeName(ni);
+//        int nodeId = ni.getD().nodeId;
+//        while (chronNodes.size() <= nodeId) {
+//            chronNodes.add(null);
+//        }
+//        assert chronNodes.get(nodeId) == null;
+//        chronNodes.set(nodeId, ni);
 
         // expand status and count usage
         if (ni.isCellInstance()) {
@@ -2301,33 +2192,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             cellUsages[u.indexInParent]++;
         }
 
-        // make additional checks to keep circuit up-to-date
-        if (ni.getProto() == Generic.tech().essentialBoundsNode) {
-            essenBounds.add(ni);
-        }
-//        setDirty();
+//        // make additional checks to keep circuit up-to-date
+//        if (ni.getProto() == Generic.tech().essentialBoundsNode) {
+//            essenBounds.add(ni);
+//        }
 
         return false;
-    }
-
-    /**
-     * Method to add a new NodeInst to the name index of this cell.
-     * @param ni the NodeInst to be included tp the name index in the cell.
-     */
-    public void addNodeName(NodeInst ni) {
-        // Gilda's test
-//        int nodeIndex = nodes.size();
-//        nodes.add(ni);
-//        ni.setNodeIndex(nodeIndex);
-        int nodeIndex = searchNode(ni.getName());
-        assert nodeIndex < 0;
-        nodeIndex = -nodeIndex - 1;
-        nodes.add(nodeIndex, ni);
-        for (; nodeIndex < nodes.size(); nodeIndex++) {
-            NodeInst n = nodes.get(nodeIndex);
-            n.setNodeIndex(nodeIndex);
-        }
-        updateMaxSuffix(ni);
     }
 
     /**
@@ -2355,36 +2225,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     }
 
     /**
-     * Method to return unique autoname for NodeInst in this cell.
-     * @param basename base name of autoname
-     * @return autoname
-     */
-    public Name getNodeAutoname(Name basename) {
-        String basenameString = basename.toString();
-//        String basenameString = basename.canonicString();
-        MaxSuffix ms = maxSuffix.get(basenameString);
-        Name name;
-        if (ms == null) {
-            ms = new MaxSuffix();
-            maxSuffix.put(basenameString, ms);
-            name = basename.findSuffixed(0);
-        } else {
-            ms.v++;
-            name = basename.findSuffixed(ms.v);
-        }
-        assert searchNode(name.toString()) < 0;
-        return name;
-    }
-
-    /**
      * Method to remove an NodeInst from the cell.
      * @param ni the NodeInst to be removed from the cell.
      */
     private void removeNode(NodeInst ni) {
         checkChanging();
         assert ni.isLinked();
+        getTopology().removeNode(ni);
 
-        essenBounds.remove(ni);
+//        essenBounds.remove(ni);
 
         // remove usage count
         if (ni.isCellInstance()) {
@@ -2399,60 +2248,27 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         }
 
         setContentsModified();
-        removeNodeName(ni);
-        int nodeId = ni.getD().nodeId;
-        assert chronNodes.get(nodeId) == ni;
-        chronNodes.set(nodeId, null);
+//        removeNodeName(ni);
+//        int nodeId = ni.getD().nodeId;
+//        assert chronNodes.get(nodeId) == ni;
+//        chronNodes.set(nodeId, null);
 //        setDirty();
     }
 
-    /**
-     * Method to remove an NodeInst from the name index of this cell.
-     * @param ni the NodeInst to be removed from the cell.
-     */
-    public void removeNodeName(NodeInst ni) {
-        int nodeIndex = ni.getNodeIndex();
-        NodeInst removedNi = nodes.remove(nodeIndex);
-        assert removedNi == ni;
-        for (int i = nodeIndex; i < nodes.size(); i++) {
-            NodeInst n = nodes.get(i);
-            n.setNodeIndex(i);
-        }
-        ni.setNodeIndex(-1);
-    }
-
-    /**
-     * Searches the nodes for the specified name using the binary
-     * search algorithm.
-     * @param name the name to be searched.
-     * @return index of the search name, if it is contained in the nodes;
-     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
-     *	       <i>insertion point</i> is defined as the point at which the
-     *	       NodeInst would be inserted into the list: the index of the first
-     *	       element greater than the name, or <tt>nodes.size()</tt>, if all
-     *	       elements in the list are less than the specified name.  Note
-     *	       that this guarantees that the return value will be &gt;= 0 if
-     *	       and only if the NodeInst is found.
-     */
-    private int searchNode(String name) {
-        int low = 0;
-        int high = nodes.size() - 1;
-        int pick = high; // initially try the last postition
-        while (low <= high) {
-            NodeInst ni = nodes.get(pick);
-            int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ni.getName(), name);
-
-            if (cmp < 0) {
-                low = pick + 1;
-            } else if (cmp > 0) {
-                high = pick - 1;
-            } else {
-                return pick; // NodeInst found
-            }
-            pick = (low + high) >> 1; // try in a middle
-        }
-        return -(low + 1);  // NodeInst not found.
-    }
+//    /**
+//     * Method to remove an NodeInst from the name index of this cell.
+//     * @param ni the NodeInst to be removed from the cell.
+//     */
+//    public void removeNodeName(NodeInst ni) {
+//        int nodeIndex = ni.getNodeIndex();
+//        NodeInst removedNi = nodes.remove(nodeIndex);
+//        assert removedNi == ni;
+//        for (int i = nodeIndex; i < nodes.size(); i++) {
+//            NodeInst n = nodes.get(i);
+//            n.setNodeIndex(i);
+//        }
+//        ni.setNodeIndex(-1);
+//    }
 
     /****************************** ARCS ******************************/
     /**
@@ -2739,7 +2555,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             }
 
             // delete variables on port instances
-            for (NodeInst ni : higherCell.nodes) {
+            for (Iterator<NodeInst> it = higherCell.getNodes(); it.hasNext(); ) {
+                NodeInst ni = it.next();
                 if (ni.getProto() != this) {
                     continue;
                 }
@@ -4761,12 +4578,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             assert cellRevision.d == getD();
             assert cellContentsFresh;
         }
-        Topology topology = getTopologyOptional();
         if (cellContentsFresh) {
-            assert cellRevision.nodes.size() == nodes.size();
-            if (topology != null) {
-                assert cellRevision.arcs.size() == topology.getNumArcs();
-            }
             assert cellRevision.exports.size() == exports.length;
             if (LAZY_TOPOLOGY && Job.isThreadSafe()) {
                 assert strongTopology == null;
@@ -4796,58 +4608,24 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             assert e == exports[e.getPortIndex()];
         }
 
-        // check arcs
+        // check topology
+        Topology topology = getTopologyOptional();
         if (topology != null) {
-            topology.check();
+            topology.check(cellUsages);
             if (cellContentsFresh) {
+                assert cellRevision.arcs.size() == topology.getNumArcs();
                 for (int arcIndex = 0; arcIndex < topology.getNumArcs(); arcIndex++) {
                     ArcInst ai = topology.getArc(arcIndex);
                     ImmutableArcInst a = ai.getD();
                     assert cellRevision.arcs.get(arcIndex) == a;
                 }
+                assert cellRevision.nodes.size() == topology.getNumNodes();
+                for (int nodeIndex = 0; nodeIndex < topology.getNumNodes(); nodeIndex++) {
+                    NodeInst ni = topology.getNode(nodeIndex);
+                    ImmutableNodeInst n = ni.getD();
+                    assert cellRevision.nodes.get(nodeIndex) == n;
+                }
             }
-        }
-
-        // check nodes
-        NodeInst prevNi = null;
-        int[] usages = new int[cellId.numUsagesIn()];
-        for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
-            NodeInst ni = nodes.get(nodeIndex);
-            ImmutableNodeInst n = ni.getD();
-            assert ni.getParent() == this;
-            assert ni.getNodeIndex() == nodeIndex;
-            assert chronNodes.get(n.nodeId) == ni;
-            if (cellContentsFresh) {
-                assert cellRevision.nodes.get(nodeIndex) == n;
-            }
-            if (prevNi != null) {
-                assert TextUtils.STRING_NUMBER_ORDER.compare(prevNi.getName(), ni.getName()) < 0;
-            }
-            if (ni.isCellInstance()) {
-                Cell subCell = (Cell) ni.getProto();
-                assert subCell.isLinked();
-                assert subCell.database == database;
-                CellUsage u = cellId.getUsageIn(subCell.getId());
-                usages[u.indexInParent]++;
-            }
-            ni.check();
-            prevNi = ni;
-        }
-        for (int nodeId = 0; nodeId < chronNodes.size(); nodeId++) {
-            NodeInst ni = chronNodes.get(nodeId);
-            if (ni == null) {
-                continue;
-            }
-            assert ni.getD().nodeId == nodeId;
-            assert ni == nodes.get(ni.getNodeIndex());
-        }
-
-        // check node usages
-        for (int i = 0; i < cellUsages.length; i++) {
-            assert cellUsages[i] == usages[i];
-        }
-        for (int i = cellUsages.length; i < usages.length; i++) {
-            assert usages[i] == 0;
         }
 
         // check group pointers
@@ -4936,11 +4714,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      */
     public Technology getTechnology() {
         if (tech == null) {
+            NodeProto[] nodeProtos = null;
             ArcProto[] arcProtos = null;
             if (backup == null && getTopologyOptional() == null) {
+                nodeProtos = new NodeProto[0];
                 arcProtos = new ArcProto[0];
             }
-            setTechnology(Technology.whatTechnology(this, null, 0, 0, arcProtos));
+            setTechnology(Technology.whatTechnology(this, nodeProtos, 0, 0, arcProtos));
         }
         return tech;
     }
@@ -5211,15 +4991,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         }
         int initial = set.size();
 
-        for (int i = 0; i < nodes.size(); i++) {
-            NodeInst ni = nodes.get(i);
-            if (ni.isCellInstance()) {
-                Cell nCell = (Cell) ni.getProto();
-                if (nCell.getLibrary() == elib) {
-                    set.add(this);
-                } else {
-                    nCell.findReferenceInCell(elib, set);
-                }
+        for (Iterator<CellUsage> it = getUsagesIn(); it.hasNext(); ) {
+            CellUsage cu = it.next();
+            Cell nCell = cu.getProto(database);
+            if (nCell.getLibrary() == elib) {
+                set.add(this);
+            } else {
+                nCell.findReferenceInCell(elib, set);
             }
         }
         return (set.size() != initial);

@@ -26,28 +26,55 @@ package com.sun.electric.database.topology;
 
 import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.CellUsage;
+import com.sun.electric.database.id.PortProtoId;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.BoundsBuilder;
-
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  * A class to manage nodes and arcs of a Cell.
  */
 public class Topology {
 
+    private class MaxSuffix {
+        int v = 0;
+    }
+
     /** Owner cell of this Topology. */
     final Cell cell;
+
+    /** The Cell's essential-bounds. */
+    private final ArrayList<NodeInst> essenBounds = new ArrayList<NodeInst>();
+    /** Chronological list of NodeInsts in this Cell. */
+    private final ArrayList<NodeInst> chronNodes = new ArrayList<NodeInst>();
+    /** A list of NodeInsts in this Cell. */
+    private final ArrayList<NodeInst> nodes = new ArrayList<NodeInst>();
+    /** A map from canonic String to Integer maximal numeric suffix */
+    private final HashMap<String, MaxSuffix> maxSuffix = new HashMap<String, MaxSuffix>();
+
     /** A maximal suffix of temporary arc name. */
     private int maxArcSuffix = -1;
     /** Chronological list of ArcInst in this Cell. */
@@ -56,6 +83,7 @@ public class Topology {
     private final ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
     /** True if arc bounds are valid. */
     boolean validArcBounds;
+
     /** The geometric data structure. */
     private RTNode rTree = RTNode.makeTopLevel();
     /** True of RTree matches node/arc sizes */
@@ -65,8 +93,498 @@ public class Topology {
     public Topology(Cell cell, boolean loadBackup) {
         this.cell = cell;
         if (loadBackup) {
-            updateArcs(cell.backup().cellRevision);
+            CellRevision cellRevision = cell.backup().cellRevision;
+            updateNodes(true, cellRevision, null, cell.lowLevelExpandedNodes());
+            updateArcs(cellRevision);
         }
+    }
+
+    /****************************** NODES ******************************/
+    /**
+     * Method to return an Iterator over all NodeInst objects in this Cell.
+     * @return an Iterator over all NodeInst objects in this Cell.
+     */
+    public synchronized Iterator<NodeInst> getNodes() {
+        ArrayList<NodeInst> nodesCopy = new ArrayList<NodeInst>(nodes);
+        return nodesCopy.iterator();
+    }
+
+    /**
+     * Method to return an Iterator over all NodeInst objects in this Cell.
+     * @return an Iterator over all NodeInst objects in this Cell.
+     */
+    public synchronized Iterator<Nodable> getNodables() {
+        ArrayList<Nodable> nodesCopy = new ArrayList<Nodable>(nodes);
+        return nodesCopy.iterator();
+    }
+
+    /**
+     * Method to return the number of NodeInst objects in this Cell.
+     * @return the number of NodeInst objects in this Cell.
+     */
+    public int getNumNodes() {
+        return nodes.size();
+    }
+
+    /**
+     * Method to return the NodeInst at specified position.
+     * @param nodeIndex specified position of NodeInst.
+     * @return the NodeInst at specified position.
+     */
+    public final NodeInst getNode(int nodeIndex) {
+        return nodes.get(nodeIndex);
+    }
+
+    /**
+     * Method to return the NodeInst by its chronological index.
+     * @param nodeId chronological index of NodeInst.
+     * @return the NodeInst with specified chronological index.
+     */
+    public NodeInst getNodeById(int nodeId) {
+        return nodeId < chronNodes.size() ? chronNodes.get(nodeId) : null;
+    }
+
+//    /**
+//     * Tells expanded status of NodeInst with specified nodeId.
+//     * @return true if NodeInst with specified nodeId is expanded.
+//     */
+//    public boolean isExpanded(int nodeId) {
+//        return expandedNodes.get(nodeId);
+//    }
+//
+//    /**
+//     * Method to set expanded status of specified NodeInst.
+//     * Expanded NodeInsts are instances of Cells that show their contents.
+//     * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
+//     * The state has no meaning for instances of primitive node prototypes.
+//     * @param nodeId specified nodeId
+//     * @param value true if NodeInst is expanded.
+//     */
+//    public void setExpanded(int nodeId, boolean value) {
+//        NodeInst ni = getNodeById(nodeId);
+//        if (ni == null) {
+//            return;
+//        }
+//        NodeProto protoType = ni.getProto();
+//        if (!(protoType instanceof Cell) || ((Cell) protoType).isIcon()) {
+//            return;
+//        }
+//        boolean oldValue = expandedNodes.get(nodeId);
+//        if (oldValue == value) {
+//            return;
+//        }
+//        expandedNodes.set(nodeId, value);
+//        expandStatusModified = true;
+//    }
+//
+//    /**
+//     * Method to set expand specified subcells.
+//     * Expanded NodeInsts are instances of Cells that show their contents.
+//     * @param subCells nodeIds of subCells to expand
+//     */
+//    void expand(BitSet subCells) {
+//        for (int nodeId = subCells.nextSetBit(0); nodeId >= 0; nodeId = subCells.nextSetBit(nodeId + 1)) {
+//            setExpanded(nodeId, true);
+//        }
+//    }
+
+    /**
+     * Method to return the PortInst by nodeId and PortProtoId.
+     * @param nodeId specified NodeId.
+     * @param portProtoId
+     * @return the PortInst at specified position..
+     */
+    public PortInst getPortInst(int nodeId, PortProtoId portProtoId) {
+        NodeInst ni = chronNodes.get(nodeId);
+        assert ni.getD().protoId == portProtoId.getParentId();
+        NodeProto np = ni.getProto();
+        PortProto pp = np.getPort(portProtoId);
+        PortInst pi = ni.getPortInst(pp.getPortIndex());
+        assert pi.getNodeInst().getD().nodeId == nodeId;
+        assert pi.getPortProto().getId() == portProtoId;
+        return pi;
+    }
+
+    /**
+     * Method to find a named NodeInst on this Cell.
+     * @param name the name of the NodeInst.
+     * @return the NodeInst.  Returns null if none with that name are found.
+     */
+    public NodeInst findNode(String name) {
+        int nodeIndex = searchNode(name);
+        return nodeIndex >= 0 ? nodes.get(nodeIndex) : null;
+    }
+
+    /**
+     * Method to unlink a set of these NodeInsts from this Cell.
+     * @param killedNodes a set of NodeInsts to kill.
+     */
+    public void killNodes(Set<NodeInst> killedNodes) {
+        if (killedNodes.isEmpty()) {
+            return;
+        }
+        for (NodeInst ni : killedNodes) {
+            if (ni.getParent() != cell) {
+                throw new IllegalArgumentException("parent");
+            }
+        }
+        Set<ArcInst> arcsToKill = new HashSet<ArcInst>();
+        for (Iterator<ArcInst> it = getArcs(); it.hasNext();) {
+            ArcInst ai = it.next();
+            if (killedNodes.contains(ai.getTailPortInst().getNodeInst()) || killedNodes.contains(ai.getHeadPortInst().getNodeInst())) {
+                arcsToKill.add(ai);
+            }
+
+        }
+        Set<Export> exportsToKill = new HashSet<Export>();
+        for (Iterator<Export> it = cell.getExports(); it.hasNext();) {
+            Export export = it.next();
+            if (killedNodes.contains(export.getOriginalPort().getNodeInst())) {
+                exportsToKill.add(export);
+            }
+        }
+
+        for (ArcInst ai : arcsToKill) {
+            ai.kill();
+        }
+        cell.killExports(exportsToKill);
+
+        for (NodeInst ni : killedNodes) {
+            if (!ni.isLinked()) {
+                continue;
+            }
+            // remove this node from the cell
+            removeNode(ni);
+
+            // handle change control, constraint, and broadcast
+            Constraints.getCurrent().killObject(ni);
+        }
+    }
+
+    public ImmutableNodeInst[] backupNodes(ImmutableArrayList<ImmutableNodeInst> oldNodes) {
+        ImmutableNodeInst[] newNodes = new ImmutableNodeInst[nodes.size()];
+        boolean changed = nodes.size() != oldNodes.size();
+        for (int i = 0; i < nodes.size(); i++) {
+            NodeInst ni = nodes.get(i);
+            ImmutableNodeInst d = ni.getD();
+            changed = changed || oldNodes.get(i) != d;
+            newNodes[i] = d;
+        }
+        return changed ? newNodes : null;
+    }
+
+    public boolean updateNodes(boolean full, CellRevision newRevision, BitSet exportsModified, BitSet expandedNodes) {
+        boolean expandStatusModified = false;
+        // Update NodeInsts
+        nodes.clear();
+        essenBounds.clear();
+        maxSuffix.clear();
+//        cellUsages = newRevision.getInstCounts();
+        for (int i = 0; i < newRevision.nodes.size(); i++) {
+            ImmutableNodeInst d = newRevision.nodes.get(i);
+            while (d.nodeId >= chronNodes.size()) {
+                chronNodes.add(null);
+            }
+            NodeInst ni = chronNodes.get(d.nodeId);
+            if (ni != null && ni.getProto().getId().isIcon() == d.protoId.isIcon()) {
+                NodeProto oldProto = ni.getProto();
+                ni.setDInUndo(d);
+                if (ni.isCellInstance()) {
+                    int subCellIndex = ((Cell) ni.getProto()).getCellIndex();
+                    if (full || exportsModified != null && exportsModified.get(subCellIndex)) {
+                        ni.updatePortInsts(full || ni.getProto() != oldProto);
+                    }
+                } else if (ni.getProto() != oldProto) {
+                    ni.updatePortInsts(true);
+                }
+            } else {
+                ni = NodeInst.lowLevelNewInstance(this, d);
+                chronNodes.set(d.nodeId, ni);
+                if (ni.isCellInstance()) {
+                    Cell subCell = (Cell) ni.getProto();
+                    boolean oldEx = expandedNodes.get(d.nodeId);
+                    // Remember previous user'setup
+                    expandedNodes.set(d.nodeId, oldEx || subCell.isWantExpanded());
+                    expandStatusModified = true;
+                }
+            }
+            ni.setNodeIndex(i);
+            nodes.add(ni);
+            updateMaxSuffix(ni);
+            NodeProto np = ni.getProto();
+            if (np == Generic.tech().essentialBoundsNode) {
+                essenBounds.add(ni);
+            }
+//            ni.check();
+        }
+        assert nodes.size() == newRevision.nodes.size();
+
+        int nodeCount = 0;
+        for (int i = 0; i < chronNodes.size(); i++) {
+            NodeInst ni = chronNodes.get(i);
+            if (ni == null) {
+                continue;
+            }
+            int nodeIndex = ni.getNodeIndex();
+            if (nodeIndex >= nodes.size() || ni != nodes.get(nodeIndex)) {
+                ni.setNodeIndex(-1);
+                chronNodes.set(i, null);
+                continue;
+            }
+            nodeCount++;
+        }
+        assert nodeCount == nodes.size();
+        return expandStatusModified;
+    }
+
+    public void updateSubCells(BitSet exportsModified, BitSet boundsModified) {
+        unfreshRTree();
+        for (int i = 0; i < nodes.size(); i++) {
+            NodeInst ni = nodes.get(i);
+            if (!ni.isCellInstance()) {
+                continue;
+            }
+            int subCellIndex = ((Cell) ni.getProto()).getCellIndex();
+            if (exportsModified != null && exportsModified.get(subCellIndex)) {
+                ni.updatePortInsts(false);
+            }
+            if (boundsModified != null && boundsModified.get(subCellIndex)) {
+                ni.redoGeometric();
+            }
+        }
+    }
+
+    /**
+     * Method to add a new NodeInst to the cell.
+     * @param ni the NodeInst to be included in the cell.
+     * @return true on failure
+     */
+    public int addNode(NodeInst ni) {
+        cell.checkChanging();
+
+//        // check to see if this instantiation would create a circular library dependency
+//        if (ni.isCellInstance()) {
+//            Cell instProto = (Cell) ni.getProto();
+//            if (instProto.getLibrary() != cell.getLibrary()) {
+//                // a reference will be created, check it
+//                Library.LibraryDependency libDep = cell.getLibrary().addReferencedLib(instProto.getLibrary());
+//                if (libDep != null) {
+//                    // addition would create circular dependency
+//                    if (!allowCirDep) {
+//                        System.out.println("ERROR: " + cell.libDescribe() + " cannot instantiate "
+//                                + instProto.libDescribe() + " because it would create a circular library dependence: ");
+//                        System.out.println(libDep.toString());
+//                        return true;
+//                    }
+//                    System.out.println("WARNING: " + cell.libDescribe() + " instantiates "
+//                            + instProto.libDescribe() + " which causes a circular library dependence: ");
+//                    System.out.println(libDep.toString());
+//                }
+//            }
+//        }
+
+        addNodeName(ni);
+        int nodeId = ni.getD().nodeId;
+        while (chronNodes.size() <= nodeId) {
+            chronNodes.add(null);
+        }
+        assert chronNodes.get(nodeId) == null;
+        chronNodes.set(nodeId, ni);
+
+//        // expand status and count usage
+//        if (ni.isCellInstance()) {
+//            Cell subCell = (Cell) ni.getProto();
+//            expandedNodes.set(nodeId, subCell.isWantExpanded());   // TODO !!!!
+//            expandStatusModified = true;
+//
+//            CellUsage u = cell.getId().getUsageIn(subCell.getId());
+//            if (cellUsages.length <= u.indexInParent) {
+//                int[] newCellUsages = new int[u.indexInParent + 1];
+//                System.arraycopy(cellUsages, 0, newCellUsages, 0, cellUsages.length);
+//                cellUsages = newCellUsages;
+//            }
+//            cellUsages[u.indexInParent]++;
+//        }
+
+        // make additional checks to keep circuit up-to-date
+        if (ni.getProto() == Generic.tech().essentialBoundsNode) {
+            essenBounds.add(ni);
+        }
+//        setDirty();
+
+        return nodeId;
+    }
+
+    /**
+     * Method to add a new NodeInst to the name index of this cell.
+     * @param ni the NodeInst to be included tp the name index in the cell.
+     */
+    void addNodeName(NodeInst ni) {
+        // Gilda's test
+//        int nodeIndex = nodes.size();
+//        nodes.add(ni);
+//        ni.setNodeIndex(nodeIndex);
+        int nodeIndex = searchNode(ni.getName());
+        assert nodeIndex < 0;
+        nodeIndex = -nodeIndex - 1;
+        nodes.add(nodeIndex, ni);
+        for (; nodeIndex < nodes.size(); nodeIndex++) {
+            NodeInst n = nodes.get(nodeIndex);
+            n.setNodeIndex(nodeIndex);
+        }
+        updateMaxSuffix(ni);
+    }
+
+    /**
+     * add temp name of NodeInst to maxSuffix map.
+     * @param ni NodeInst.
+     */
+    private void updateMaxSuffix(NodeInst ni) {
+        Name name = ni.getNameKey();
+        if (!name.isTempname()) {
+            return;
+        }
+
+        Name basename = name.getBasename();
+        String basenameString = basename.toString();
+//        String basenameString = basename.canonicString();
+        MaxSuffix ms = maxSuffix.get(basenameString);
+        if (ms == null) {
+            ms = new MaxSuffix();
+            maxSuffix.put(basenameString, ms);
+        }
+        int numSuffix = name.getNumSuffix();
+        if (numSuffix > ms.v) {
+            ms.v = numSuffix;
+        }
+    }
+
+    /**
+     * Method to return unique autoname for NodeInst in this cell.
+     * @param basename base name of autoname
+     * @return autoname
+     */
+    Name getNodeAutoname(Name basename) {
+        String basenameString = basename.toString();
+//        String basenameString = basename.canonicString();
+        MaxSuffix ms = maxSuffix.get(basenameString);
+        Name name;
+        if (ms == null) {
+            ms = new MaxSuffix();
+            maxSuffix.put(basenameString, ms);
+            name = basename.findSuffixed(0);
+        } else {
+            ms.v++;
+            name = basename.findSuffixed(ms.v);
+        }
+        assert searchNode(name.toString()) < 0;
+        return name;
+    }
+
+    /**
+     * Method to remove an NodeInst from the cell.
+     * @param ni the NodeInst to be removed from the cell.
+     */
+    public void removeNode(NodeInst ni) {
+        assert ni.topology == this;
+//        cell.checkChanging();
+//        assert ni.isLinked();
+
+        essenBounds.remove(ni);
+
+//        // remove usage count
+//        if (ni.isCellInstance()) {
+//            Cell subCell = (Cell) ni.getProto();
+//            CellUsage u = cell.getId().getUsageIn(subCell.getId());
+//            cellUsages[u.indexInParent]--;
+//            if (cellUsages[u.indexInParent] <= 0) {
+//                assert cellUsages[u.indexInParent] == 0;
+//                // remove library dependency, if possible
+//                cell.getLibrary().removeReferencedLib(((Cell) ni.getProto()).getLibrary());
+//            }
+//        }
+
+//        cell.setContentsModified();
+        removeNodeName(ni);
+        int nodeId = ni.getD().nodeId;
+        assert chronNodes.get(nodeId) == ni;
+        chronNodes.set(nodeId, null);
+//        setDirty();
+    }
+
+    /**
+     * Method to remove an NodeInst from the name index of this cell.
+     * @param ni the NodeInst to be removed from the cell.
+     */
+    void removeNodeName(NodeInst ni) {
+        int nodeIndex = ni.getNodeIndex();
+        NodeInst removedNi = nodes.remove(nodeIndex);
+        assert removedNi == ni;
+        for (int i = nodeIndex; i < nodes.size(); i++) {
+            NodeInst n = nodes.get(i);
+            n.setNodeIndex(i);
+        }
+        ni.setNodeIndex(-1);
+    }
+
+    /**
+     * Searches the nodes for the specified name using the binary
+     * search algorithm.
+     * @param name the name to be searched.
+     * @return index of the search name, if it is contained in the nodes;
+     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
+     *	       <i>insertion point</i> is defined as the point at which the
+     *	       NodeInst would be inserted into the list: the index of the first
+     *	       element greater than the name, or <tt>nodes.size()</tt>, if all
+     *	       elements in the list are less than the specified name.  Note
+     *	       that this guarantees that the return value will be &gt;= 0 if
+     *	       and only if the NodeInst is found.
+     */
+    private int searchNode(String name) {
+        int low = 0;
+        int high = nodes.size() - 1;
+        int pick = high; // initially try the last postition
+        while (low <= high) {
+            NodeInst ni = nodes.get(pick);
+            int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ni.getName(), name);
+
+            if (cmp < 0) {
+                low = pick + 1;
+            } else if (cmp > 0) {
+                high = pick - 1;
+            } else {
+                return pick; // NodeInst found
+            }
+            pick = (low + high) >> 1; // try in a middle
+        }
+        return -(low + 1);  // NodeInst not found.
+    }
+
+    /**
+     * Method to compute the "essential bounds" of this Cell.
+     * It looks for NodeInst objects in the cell that are of the type
+     * "generic:Essential-Bounds" and builds a rectangle from their locations.
+     * @return the bounding area of the essential bounds.
+     * Returns null if an essential bounds cannot be determined.
+     */
+    public Rectangle2D findEssentialBounds() {
+        if (essenBounds.size() < 2) {
+            return null;
+        }
+        double minX = Double.MAX_VALUE;
+        double maxX = Double.MIN_VALUE;
+        double minY = Double.MAX_VALUE;
+        double maxY = Double.MIN_VALUE;
+
+        for (int i = 0; i < essenBounds.size(); i++) {
+            NodeInst ni = essenBounds.get(i);
+            minX = Math.min(minX, ni.getTrueCenterX());
+            maxX = Math.max(maxX, ni.getTrueCenterX());
+            minY = Math.min(minY, ni.getTrueCenterY());
+            maxY = Math.max(maxY, ni.getTrueCenterY());
+        }
+
+        return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
     }
 
     /****************************** ARCS ******************************/
@@ -251,8 +769,8 @@ public class Topology {
                 chronArcs.add(null);
             }
             ArcInst ai = chronArcs.get(d.arcId);
-            PortInst headPi = cell.getPortInst(d.headNodeId, d.headPortId);
-            PortInst tailPi = cell.getPortInst(d.tailNodeId, d.tailPortId);
+            PortInst headPi = getPortInst(d.headNodeId, d.headPortId);
+            PortInst tailPi = getPortInst(d.tailNodeId, d.tailPortId);
             if (ai != null && (/*!full ||*/ai.getHeadPortInst() == headPi && ai.getTailPortInst() == tailPi)) {
                 ai.setDInUndo(d);
             } else {
@@ -418,7 +936,7 @@ public class Topology {
      * Method to check invariants in this Cell.
      * @exception AssertionError if invariants are not valid
      */
-    public void check() {
+    public void check(int[] cellUsages) {
         // check arcs
         ArcInst prevAi = null;
         Poly.Builder polyBuilder = Poly.newGridBuilder();
@@ -450,6 +968,47 @@ public class Topology {
             assert ai == arcs.get(arcIndex);
         }
 
+        // check nodes
+        NodeInst prevNi = null;
+        EDatabase database = cell.getDatabase();
+        CellId cellId = cell.getId();
+        int[] usages = new int[cellId.numUsagesIn()];
+        for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
+            NodeInst ni = nodes.get(nodeIndex);
+            ImmutableNodeInst n = ni.getD();
+            assert ni.getParent() == cell;
+            assert ni.getNodeIndex() == nodeIndex;
+            assert chronNodes.get(n.nodeId) == ni;
+            if (prevNi != null) {
+                assert TextUtils.STRING_NUMBER_ORDER.compare(prevNi.getName(), ni.getName()) < 0;
+            }
+            if (ni.isCellInstance()) {
+                Cell subCell = (Cell) ni.getProto();
+                assert subCell.isLinked();
+                assert subCell.getDatabase() == database;
+                CellUsage u = cellId.getUsageIn(subCell.getId());
+                usages[u.indexInParent]++;
+            }
+            ni.check();
+            prevNi = ni;
+        }
+        for (int nodeId = 0; nodeId < chronNodes.size(); nodeId++) {
+            NodeInst ni = chronNodes.get(nodeId);
+            if (ni == null) {
+                continue;
+            }
+            assert ni.getD().nodeId == nodeId;
+            assert ni == nodes.get(ni.getNodeIndex());
+        }
+
+        // check node usages
+        for (int i = 0; i < cellUsages.length; i++) {
+            assert cellUsages[i] == usages[i];
+        }
+        for (int i = cellUsages.length; i < usages.length; i++) {
+            assert usages[i] == 0;
+        }
+        
         if (rTreeFresh) {
             rTree.checkRTree(0, cell.getId());
         }

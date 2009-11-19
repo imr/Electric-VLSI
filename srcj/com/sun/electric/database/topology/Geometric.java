@@ -38,17 +38,11 @@ import java.util.Iterator;
  * bounds on the screen, specifically NodeInst and ArcInst.
  */
 public abstract class Geometric extends ElectricObject implements RTBounds {
-    // ------------------------------- private data ------------------------------
-
-    /** Cell containing this Geometric object. */
-    protected final Cell parent;
-
     // ------------------------ private and protected methods--------------------
     /**
      * The constructor is only called from subclasses.
      */
-    protected Geometric(Cell parent) {
-        this.parent = parent;
+    protected Geometric() {
     }
 
     /**
@@ -57,27 +51,7 @@ public abstract class Geometric extends ElectricObject implements RTBounds {
      * @param withQuotes to wrap description between quotes
      * @return a description of this Geometric as a string.
      */
-    public String describe(boolean withQuotes) {
-        return "?";
-    }
-
-    /**
-     * Routing to check whether changing of this cell allowed or not.
-     * By default checks whole database change. Overriden in subclasses.
-     */
-    public void checkChanging() {
-        if (parent != null) {
-            parent.checkChanging();
-        }
-    }
-
-    /**
-     * Method to determine the appropriate Cell associated with this ElectricObject.
-     * @return the appropriate Cell associated with this ElectricicObject.
-     */
-    public Cell whichCell() {
-        return parent;
-    }
+    public abstract String describe(boolean withQuotes);
 
     /**
      * Method to determine which page of a multi-page schematic this Geometric is on.
@@ -85,7 +59,7 @@ public abstract class Geometric extends ElectricObject implements RTBounds {
      */
     public int whichMultiPage() {
         int pageNo = 0;
-        if (parent.isMultiPage()) {
+        if (getParent().isMultiPage()) {
             double cY = getBounds().getCenterY();
             pageNo = (int) ((cY + Cell.FrameDescription.MULTIPAGESEPARATION / 2) / Cell.FrameDescription.MULTIPAGESEPARATION);
         }
@@ -93,24 +67,15 @@ public abstract class Geometric extends ElectricObject implements RTBounds {
     }
 
     /**
-     * Returns database to which this Geometric belongs.
-     * Some objects are not in database, for example Geometrics in PaletteFrame.
-     * Method returns null for non-database objects.
-     * @return database to which this Geometric belongs.
-     */
-    public EDatabase getDatabase() {
-        return parent != null ? parent.getDatabase() : null;
-    }
-
-    /**
      * Method to write a description of this Geometric.
      * Displays the description in the Messages Window.
      */
+    @Override
     public void getInfo() {
         Rectangle2D visBounds = getBounds();
         System.out.println(" Bounds: (" + visBounds.getCenterX() + "," + visBounds.getCenterY() + "), size: "
                 + visBounds.getWidth() + "x" + visBounds.getHeight());
-        System.out.println(" Parent: " + parent);
+        System.out.println(" Parent: " + getParent());
         super.getInfo();
     }
 
@@ -120,8 +85,16 @@ public abstract class Geometric extends ElectricObject implements RTBounds {
      * @return the Cell that contains this Geometric object.
      */
     public Cell getParent() {
-        return parent;
+        Topology topology = getTopology();
+        return topology != null ? topology.cell : null;
     }
+
+    /**
+     * Method to return the Cell Topology that contains this Geometric object.
+     * @return the Topology that contains this Geometric object.
+     */
+    public abstract Topology getTopology();
+
 
     /**
      * Returns the polygons that describe this Geometric.
