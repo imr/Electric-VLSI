@@ -499,7 +499,9 @@ public class GenMath
 		double y1 = 0;
 		for(int i=1; i<points.length; i++)
 		{
-			double x1 = points[i].getX();
+            if (points[i] == null) continue; // it could be a complex node from GDS import 
+
+            double x1 = points[i].getX();
 			y1 = points[i].getY();
 
 			// triangulate around the polygon

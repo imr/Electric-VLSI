@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/19/09, GVG) NullPointerException importing GDS (Bug #2486).
+FIX: GenMath.getAreaOfPoints() didn't consider some points are null from GDS.buildComplexNode for example.
+
 BUG: (11/19/09, SMR) Auto-stitcher does too much (Bug #2363).
 FIX: Made stitcher shrink pin ports to the size of connected extended arcs.
 
