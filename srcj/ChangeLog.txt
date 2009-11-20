@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/20/09, DN) can't change export name (Bug #2490)
+FIX: In Cell.unfreshCellTree redoGeometric only if Topology is alive.
+
 BUG: (11/20/09, DN) UnsupportedOperationException in Quit with EmptyPreferencesFactory (Bug #2489)
 FIX: In EmptyPreferencesFactory.flushSpi don't throw an exception.
 

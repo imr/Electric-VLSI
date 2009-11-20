@@ -4330,10 +4330,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             return;
         }
         unfreshRTree();
-        for (Iterator<NodeInst> it = getNodes(); it.hasNext();) {
-            NodeInst ni = it.next();
-            if (ni.isCellInstance()) {
-                ni.redoGeometric();
+        Topology topology = getTopologyOptional();
+        if (topology != null) {
+            for (Iterator<NodeInst> it = topology.getNodes(); it.hasNext();) {
+                NodeInst ni = it.next();
+                if (ni.isCellInstance()) {
+                    ni.redoGeometric();
+                }
             }
         }
         cellTreeFresh = false;
