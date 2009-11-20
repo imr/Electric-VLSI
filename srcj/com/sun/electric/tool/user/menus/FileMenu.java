@@ -822,6 +822,7 @@ public class FileMenu {
 	/**
 	 * This method implements the command to import a library.
 	 * It is interactive, and pops up a dialog box.
+     * @param type Type of file to import.
 	 * @param wholeDirectory true to import a directory instead of a file.
 	 * @param canMerge true to allow merging into an existing library.
      * @param techSpecific true if a particular technology is needed for the import.
@@ -836,63 +837,73 @@ public class FileMenu {
 		{
 			fileName = OpenFile.chooseInputFile(type, null);
 		}
-		if (fileName != null)
-		{
-			URL fileURL = TextUtils.makeURLToFile(fileName);
-			String libName = TextUtils.getFileNameWithoutExtension(fileURL);
-			Library deleteLib = Library.findLibrary(libName);
-			Library libToRead = null;
-            RenameAndSaveLibraryTask saveTask = null;
-			if (deleteLib != null)
-			{
-				// library already exists, prompt for save
-				MutableBoolean wantToMerge = null;
-				if (canMerge) wantToMerge = new MutableBoolean(false);
-                Collection<RenameAndSaveLibraryTask> librariesToSave = preventLoss(deleteLib, 2, wantToMerge);
-                if (librariesToSave == null) return;
-                if (canMerge && wantToMerge.booleanValue())
+        if (fileName == null) return; // nothing to import
+        importLibraryCommandNoGUI(fileName, type, canMerge, techSpecific);
+    }
+
+    /**
+     * A non-interactive method to import a given file. Used in batch mode as well.
+     * @param fileName Name of the file to import
+     * @param type Type of the file to import.
+	 * @param canMerge true to allow merging into an existing library.
+     * @param techSpecific true if a particular technology is needed for the import.
+     */
+    public static void importLibraryCommandNoGUI(String fileName, FileType type, boolean canMerge, boolean techSpecific)
+    {
+        URL fileURL = TextUtils.makeURLToFile(fileName);
+        String libName = TextUtils.getFileNameWithoutExtension(fileURL);
+        Library deleteLib = Library.findLibrary(libName);
+        Library libToRead = null;
+        RenameAndSaveLibraryTask saveTask = null;
+        if (deleteLib != null)
+        {
+            // library already exists, prompt for save
+            MutableBoolean wantToMerge = null;
+            if (canMerge) wantToMerge = new MutableBoolean(false);
+            Collection<RenameAndSaveLibraryTask> librariesToSave = preventLoss(deleteLib, 2, wantToMerge);
+            if (librariesToSave == null) return;
+            if (canMerge && wantToMerge.booleanValue())
+            {
+                libToRead = deleteLib;
+                deleteLib = null;
+            } else
+            {
+                if (!librariesToSave.isEmpty())
                 {
-                	libToRead = deleteLib;
-                	deleteLib = null;
-                } else
-                {
-	                if (!librariesToSave.isEmpty())
-	                {
-	                    assert librariesToSave.size() == 1;
-	                    saveTask = librariesToSave.iterator().next();
-	                    assert saveTask.libId == deleteLib.getId();
-	                }
-					WindowFrame.removeLibraryReferences(deleteLib);
+                    assert librariesToSave.size() == 1;
+                    saveTask = librariesToSave.iterator().next();
+                    assert saveTask.libId == deleteLib.getId();
                 }
-			}
-			Technology tech = null;
-			if (techSpecific)
-			{
-				// prompt for the technology to use
-				List<Technology> layoutTechnologies = new ArrayList<Technology>();
-				String curTech = null;
-				for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-				{
-					Technology t = it.next();
-					if (!t.isLayout()) continue;
-					if (t == Technology.getCurrent()) curTech = t.getTechName();
-					layoutTechnologies.add(t);
-				}
-				if (curTech == null) curTech = User.getSchematicTechnology().getTechName();
-				String [] techArray = new String[layoutTechnologies.size()];
-				for(int i=0; i<layoutTechnologies.size(); i++)
-					techArray[i] = layoutTechnologies.get(i).getTechName();
-				String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
-					"Which layout technology should be used to import the file:", "Choose Technology",
-					JOptionPane.QUESTION_MESSAGE, null, techArray, curTech);
-				if (chosen == null) return;
-				tech = Technology.findTechnology(chosen);
-			}
-            if (type == FileType.ELIB || type == FileType.READABLEDUMP)
-                new ReadLibrary(fileURL, type, null, deleteLib, saveTask, null);
-            else
-                new ImportLibrary(fileURL, type, libToRead, deleteLib, tech, saveTask);
-		}
+                WindowFrame.removeLibraryReferences(deleteLib);
+            }
+        }
+        Technology tech = null;
+        if (techSpecific)
+        {
+            // prompt for the technology to use
+            List<Technology> layoutTechnologies = new ArrayList<Technology>();
+            String curTech = null;
+            for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+            {
+                Technology t = it.next();
+                if (!t.isLayout()) continue;
+                if (t == Technology.getCurrent()) curTech = t.getTechName();
+                layoutTechnologies.add(t);
+            }
+            if (curTech == null) curTech = User.getSchematicTechnology().getTechName();
+            String [] techArray = new String[layoutTechnologies.size()];
+            for(int i=0; i<layoutTechnologies.size(); i++)
+                techArray[i] = layoutTechnologies.get(i).getTechName();
+            String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
+                "Which layout technology should be used to import the file:", "Choose Technology",
+                JOptionPane.QUESTION_MESSAGE, null, techArray, curTech);
+            if (chosen == null) return;
+            tech = Technology.findTechnology(chosen);
+        }
+        if (type == FileType.ELIB || type == FileType.READABLEDUMP)
+            new ReadLibrary(fileURL, type, null, deleteLib, saveTask, null);
+        else
+            new ImportLibrary(fileURL, type, libToRead, deleteLib, tech, saveTask);
 	}
 
     public static void closeLibraryCommand(Library lib)

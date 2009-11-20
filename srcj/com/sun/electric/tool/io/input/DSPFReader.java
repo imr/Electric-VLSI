@@ -389,6 +389,13 @@ public class DSPFReader extends Input
                     continue;
                 }
 
+                // Ignoring globlas for now
+                if (key.toUpperCase().startsWith(".GLOBAL"))
+                {
+                    getRestOfLine();
+                    continue;
+                }
+
                 // Comments or Coupled capacitors
                 if (key.startsWith("CC"))
                 {
@@ -418,6 +425,7 @@ public class DSPFReader extends Input
 //                    parseData.addCoupling(key, p1, p2, cap, DParaElemBase.ParasiticType.CC);
                     continue;
                 }
+                if (!key.startsWith("*"))
                 assert (key.startsWith("*"));
                 getRestOfLine();
             }
