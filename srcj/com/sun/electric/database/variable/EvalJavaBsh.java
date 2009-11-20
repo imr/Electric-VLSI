@@ -64,6 +64,8 @@ public class EvalJavaBsh {
     private static Class<?> interpreterClass = null;
     /** The bean shell TargetError class */
     private static Class<?> targetErrorClass;
+    /** The bean shell EvalError class */
+    private static Class<?> evalErrorClass;
     /** For replacing @variable */
     private static final Pattern atPat = Pattern.compile("@(\\w+)");
     /** For replacing @variable */
@@ -336,6 +338,7 @@ public class EvalJavaBsh {
         try {
             interpreterClass = Class.forName("bsh.Interpreter");
             targetErrorClass = Class.forName("bsh.TargetError");
+            evalErrorClass = Class.forName("bsh.EvalError");
         } catch (ClassNotFoundException e) {
             if (Job.getDebug()) {
                 System.out.println("GNU Release can't find the Bean Shell: " + e.getMessage());
@@ -456,7 +459,7 @@ public class EvalJavaBsh {
                 if (t != null) {
                     handleBshError((Exception) t, description);
                 }
-                if (targetErrorClass.isInstance(t)) {
+                if (evalErrorClass.isInstance(t)) {
                     // The Bean Shell had an error
                     t = doGetTarget(t);
                 }

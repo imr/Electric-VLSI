@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/19/09, DN) Bad diagnostics when ".bsh" script calls unavailable Java method. (Bug #2484).
+FIX: In EvalJavaBsh.doSource apply doGetTarget not only to bsh.TargetError but to any bsh.EvalError .
+
 BUG: (11/19/09, DN) Exception in fill gen/gate generation with EmptyPreferencesFactory (Bug #2485).
 FIX: Use Cell.isTopologyModified() instead of Cell.isContentsModified() when changing nodes.
 
