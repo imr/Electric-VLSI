@@ -1272,7 +1272,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     private synchronized Topology createTopology() {
         assert strongTopology == null;
         assert LAZY_TOPOLOGY && Job.isThreadSafe();
-        Topology topology = new Topology(this, true);
+        Topology topology = new Topology(this, backup != null);
         weakTopology = new WeakReference(topology);
 //        System.out.println("Created topology "+database+":"+this);
         return topology;
@@ -1359,8 +1359,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             if (exportsModified != null || boundsModified != null) {
                 checkUndoing();
                 Topology topology = getTopologyOptional();
-                if (topology != null)
+                if (topology != null) {
                     topology.updateSubCells(exportsModified, boundsModified);
+                }
             }
             cellTreeFresh = true;
             tree = newTree;
@@ -1383,8 +1384,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
 
         Topology topology = getTopologyOptional();
         if (topology != null) {
-            if (topology.updateNodes(full, newRevision, exportsModified, expandedNodes))
+            if (topology.updateNodes(full, newRevision, exportsModified, expandedNodes)) {
                 expandStatusModified = true;
+            }
             topology.updateArcs(newRevision);
         }
 
@@ -2167,7 +2169,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             }
         }
 
-        setContentsModified();
+        setTopologyModified();
         int nodeId = getTopology().addNode(ni);
 //        addNodeName(ni);
 //        int nodeId = ni.getD().nodeId;
@@ -2247,7 +2249,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             }
         }
 
-        setContentsModified();
+        setTopologyModified();
 //        removeNodeName(ni);
 //        int nodeId = ni.getD().nodeId;
 //        assert chronNodes.get(nodeId) == ni;
@@ -2269,7 +2271,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
 //        }
 //        ni.setNodeIndex(-1);
 //    }
-
     /****************************** ARCS ******************************/
     /**
      * Method to return an Iterator over all ArcInst objects in this Cell.
@@ -2555,7 +2556,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             }
 
             // delete variables on port instances
-            for (Iterator<NodeInst> it = higherCell.getNodes(); it.hasNext(); ) {
+            for (Iterator<NodeInst> it = higherCell.getNodes(); it.hasNext();) {
                 NodeInst ni = it.next();
                 if (ni.getProto() != this) {
                     continue;
@@ -4329,10 +4330,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             return;
         }
         unfreshRTree();
-        for (Iterator<NodeInst> it = getNodes(); it.hasNext(); ) {
+        for (Iterator<NodeInst> it = getNodes(); it.hasNext();) {
             NodeInst ni = it.next();
-            if (ni.isCellInstance())
+            if (ni.isCellInstance()) {
                 ni.redoGeometric();
+            }
         }
         cellTreeFresh = false;
         for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext();) {
@@ -4991,7 +4993,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         }
         int initial = set.size();
 
-        for (Iterator<CellUsage> it = getUsagesIn(); it.hasNext(); ) {
+        for (Iterator<CellUsage> it = getUsagesIn(); it.hasNext();) {
             CellUsage cu = it.next();
             Cell nCell = cu.getProto(database);
             if (nCell.getLibrary() == elib) {

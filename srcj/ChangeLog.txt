@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/19/09, DN) Exception in fill gen/gate generation with EmptyPreferencesFactory (Bug #2485).
+FIX: Use Cell.isTopologyModified() instead of Cell.isContentsModified() when changing nodes.
+
 BUG: (11/19/09, GVG) NullPointerException importing GDS (Bug #2486).
 FIX: GenMath.getAreaOfPoints() didn't consider some points are null from GDS.buildComplexNode for example.
 

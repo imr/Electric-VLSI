@@ -1066,7 +1066,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             return false;
         }
         if (topology != null) {
-            topology.cell.setContentsModified();
+            topology.cell.setTopologyModified();
             d = newD;
             assert protoType == d.protoId.inDatabase(getDatabase());
             if (notify) {
@@ -1201,7 +1201,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      */
     public boolean isLinked() {
         try {
-            if (topology == null) return false;
+            if (topology == null) {
+                return false;
+            }
             Cell parent = topology.cell;
             return parent.isLinked() && parent.getNode(nodeIndex) == this;
         } catch (IndexOutOfBoundsException e) {
@@ -1524,8 +1526,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * Method to recalculate the Geometric bounds for this NodeInst.
      */
     public void redoGeometric() {
-        if (topology != null)
+        if (topology != null) {
             topology.cell.unfreshRTree();
+        }
         validVisBounds = false;
     }
 
