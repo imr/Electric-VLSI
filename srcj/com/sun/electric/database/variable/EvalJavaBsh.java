@@ -584,7 +584,7 @@ public class EvalJavaBsh {
                 }
             }
         } else {
-            System.out.println("Unhandled Java Bsh Exception: " + description + ": " + e.getMessage());
+            System.out.println("Unhandled Java Bsh Exception: " + description + ":\n " + e.getMessage());
             if (DEBUGSTACKTRACE) {
                 e.printStackTrace(System.out);
             }
