@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/20/09, DN) UnsupportedOperationException in Quit with EmptyPreferencesFactory (Bug #2489)
+FIX: In EmptyPreferencesFactory.flushSpi don't throw an exception.
+
 BUG: (11/20/09, DN) UnsupportedOperationException on MacOSX with EmptyPreferencesFactory (Bug #2488)
 FIX: Don't setRemoteType in SunAsyncMenu class initialization. Instead replace TYPE_LOCAL
      by TYPE_SSH in SunAsyncMenu.getExec and SunAsyncMenu.getCdToDir .

@@ -93,7 +93,7 @@ public class EmptyPreferencesFactory implements PreferencesFactory {
 
         @Override
         protected void flushSpi() throws BackingStoreException {
-            throw new UnsupportedOperationException();
+//            throw new UnsupportedOperationException();
         }
     };
 }
