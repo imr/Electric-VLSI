@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/20/09, DN) UnsupportedOperationException on MacOSX with EmptyPreferencesFactory (Bug #2488)
+FIX: Don't setRemoteType in SunAsyncMenu class initialization. Instead replace TYPE_LOCAL
+     by TYPE_SSH in SunAsyncMenu.getExec and SunAsyncMenu.getCdToDir .
+
 BUG: (11/19/09, DN) Bad diagnostics when ".bsh" script calls unavailable Java method. (Bug #2484).
 FIX: In EvalJavaBsh.doSource apply doGetTarget not only to bsh.TargetError but to any bsh.EvalError .
 
@@ -148,7 +152,7 @@ IMP: (11/01/09, AM) com.sun.electric.tool.simulation.test needs its
      /proj/async/cad/test/ and changed the loadLibrary() calls to
      point to them.
 
-IMP: (10/30/09, GVG) TechEditWizard improvements: scrolls in some tabs, 
+IMP: (10/30/09, GVG) TechEditWizard improvements: scrolls in some tabs,
 image and labels overlap in well/implant tab (Bug #2452)
 
 BUG: (10/30/09, GVG) Wrong setup of metal layers in Metal tab (Bug @2451)
@@ -249,7 +253,7 @@ FIX: Temporary patch to avoid the exception. Not the solution yet.
 BUG: (10/21/09, SMR) Verilog needs to separate instance names and network names (Bug #2430)
 FIX: In Verilog.writeCellTopology() detect and modify instance names.
 
-BUG: (10/20/09, GVG) System clipboard data unavailable 
+BUG: (10/20/09, GVG) System clipboard data unavailable
 after second copy/ paste on MacOSX (Bug #2440)
 FIX: Catching the exception on MacOSX. It is a known issue on that platform.
 
