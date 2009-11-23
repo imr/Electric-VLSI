@@ -413,10 +413,10 @@ public class CellBackup {
      * Class which memoizes data for size computation (connectivity etc).
      */
     public class Memoization {
-//        /**
-//         * ImmutableNodeInsts accessed by their nodeId.
-//         */
-//        private final int[] nodesById;
+        /**
+         * ImmutableNodeInsts accessed by their nodeId.
+         */
+        private final int[] nodesById;
 
         private final int[] connections;
         /** ImmutableExports sorted by original PortInst. */
@@ -433,12 +433,13 @@ public class CellBackup {
             for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
                 maxNodeId = Math.max(maxNodeId, nodes.get(nodeIndex).nodeId);
             }
-//            int[] nodesById = new int[maxNodeId + 1];
-//            for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
-//                ImmutableNodeInst n = nodes.get(nodeIndex);
-//                nodesById[n.nodeId] = nodeIndex;
-//            }
-//            this.nodesById = nodesById;
+            int[] nodesById = new int[maxNodeId + 1];
+            Arrays.fill(nodesById, -1);
+            for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
+                ImmutableNodeInst n = nodes.get(nodeIndex);
+                nodesById[n.nodeId] = nodeIndex;
+            }
+            this.nodesById = nodesById;
 
             // Put connections into buckets by nodeId.
             int[] connections = new int[arcs.size() * 2];
@@ -710,6 +711,13 @@ public class CellBackup {
 
         public TechPool getTechPool() {
             return techPool;
+        }
+
+        public ImmutableNodeInst getNodeById(int nodeId) {
+            if (nodeId >= nodesById.length)
+                return null;
+            int nodeIndex = nodesById[nodeId];
+            return nodeIndex >= 0 ? cellRevision.nodes.get(nodeIndex) : null;
         }
 
         public ImmutableArrayList<ImmutableArcInst> getArcs() {
