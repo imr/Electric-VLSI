@@ -457,6 +457,16 @@ public class Orientation implements Serializable {
 
     /**
      * Calculate bounds of rectangle transformed by this Orientation.
+     * @param src rectangle.
+     * @param c shift
+     * @param dst destination rectangle.
+     */
+    public void rectangleBounds(Rectangle2D src, Point2D c, Rectangle2D dst) {
+        rectangleBounds(src.getMinX(), src.getMinY(), src.getMaxX(), src.getMaxY(), c.getX(), c.getY(), dst);
+    }
+
+    /**
+     * Calculate bounds of rectangle transformed by this Orientation.
      * @param xl lower x coordinate.
      * @param yl lower y coordinate.
      * @param xh higher x coordinate.

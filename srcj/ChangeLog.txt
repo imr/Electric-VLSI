@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/23/09, DN) Routing regressions crashed attempting to save preferences.
+FIX: In RoutingTest comment out ep.putPrefs .
+
+IMP: (11/22/09, DN) NodeInst.getShapeOfPort doen't allocate Topologies of subcells.
+
 BUG: (11/20/09, DN) can't change export name (Bug #2490)
 FIX: In Cell.unfreshCellTree redoGeometric only if Topology is alive.
 

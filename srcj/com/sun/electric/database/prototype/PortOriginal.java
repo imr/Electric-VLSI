@@ -23,8 +23,13 @@
  */
 package com.sun.electric.database.prototype;
 
+import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.PrimitivePort;
@@ -63,9 +68,11 @@ public class PortOriginal {
 
     private AffineTransform subrot;
     private Orientation orient;
+    private Cell bottomCell;
+    private ImmutableNodeInst bottomNode;
     private PortInst bottomPort;
     private NodeInst bottomNi;
-    private PortProto bottomPp;
+    private PrimitivePort bottomPp;
 
     /**
      * Constructor takes a PortInst and traverses it down to the bottom of the hierarchy.
@@ -73,10 +80,8 @@ public class PortOriginal {
      */
     public PortOriginal(PortInst startPort) {
         bottomPort = startPort;
-        bottomNi = bottomPort.getNodeInst();
-        bottomPp = bottomPort.getPortProto();
-        subrot = bottomNi.rotateOut();
-        traverse();
+//        subrot = bottomNi.rotateOut();
+        traverse(startPort.getNodeInst(), startPort.getPortProto(), null);
     }
 
     /**
@@ -87,10 +92,7 @@ public class PortOriginal {
      */
     public PortOriginal(PortInst startPort, AffineTransform pre) {
         bottomPort = startPort;
-        bottomNi = bottomPort.getNodeInst();
-        bottomPp = bottomPort.getPortProto();
-        subrot = bottomNi.rotateOut(pre);
-        traverse();
+        traverse(startPort.getNodeInst(), startPort.getPortProto(), pre);
     }
 
     /**
@@ -99,23 +101,37 @@ public class PortOriginal {
      * @param pp the initial PortProto.
      */
     public PortOriginal(NodeInst ni, PortProto pp) {
-        bottomPort = null;
-        bottomNi = ni;
-        bottomPp = pp;
-        subrot = bottomNi.rotateOut();
-        traverse();
+        traverse(ni, pp, null);
     }
 
-    private void traverse() {
-        orient = bottomNi.getOrient();
-        while (bottomNi.isCellInstance()) {
-            subrot = bottomNi.translateOut(subrot);
-            bottomPort = ((Export) bottomPp).getOriginalPort();
-            bottomNi = bottomPort.getNodeInst();
-            bottomPp = bottomPort.getPortProto();
-            subrot = bottomNi.rotateOut(subrot);
-            orient = orient.concatenate(bottomNi.getOrient());
+    private void traverse(NodeInst ni, PortProto pp, AffineTransform pre) {
+        bottomCell = ni.getParent();
+        bottomNode = ni.getD();
+        bottomNi = ni;
+        EDatabase database = bottomCell.getDatabase();
+        orient = bottomNode.orient;
+        subrot = orient.rotateAbout(bottomNode.anchor.getLambdaX(), bottomNode.anchor.getLambdaY(), 0, 0);
+        if (pre != null) {
+            subrot.preConcatenate(pre);
         }
+        while (bottomNode.protoId instanceof CellId) {
+            bottomCell = database.getCell((CellId)bottomNode.protoId);
+            ImmutableExport bottomExport = ((Export)pp).getD();
+            bottomNode = bottomCell.backupUnsafe().getMemoization().getNodeById(bottomExport.originalNodeId);
+            if (bottomNode == null)
+                bottomNode = bottomNode;
+            bottomPort = null;
+            bottomNi = null;
+//            bottomPort = bottomExport.getOriginalPort();
+//            bottomNi = bottomPort.getNodeInst();
+            pp = bottomExport.originalPortId.inDatabase(database);
+
+            orient = orient.concatenate(bottomNode.orient);
+            AffineTransform transform = bottomNode.orient.rotateAbout(bottomNode.anchor.getLambdaX(), bottomNode.anchor.getLambdaY(), 0, 0);
+            subrot.concatenate(transform);
+        }
+        bottomPp = (PrimitivePort)pp;
+        subrot.translate(-bottomNode.anchor.getLambdaX(), -bottomNode.anchor.getLambdaY());
     }
 
     /**
@@ -124,7 +140,29 @@ public class PortOriginal {
      * @return the NodeInst at the bottom of the hierarchy (a primitive).
      */
     public NodeInst getBottomNodeInst() {
+        if (bottomNi == null) {
+            bottomPort = bottomCell.getPortInst(bottomNode.nodeId, bottomPp.getId());
+            bottomNi = bottomPort.getNodeInst();
+        }
         return bottomNi;
+    }
+
+    /**
+     * Method to return the bottommost Cell
+     * from the initial port information given to the constructor.
+     * @return the Cell at the bottom of the hierarchy.
+     */
+    public Cell getBottomCell() {
+        return bottomCell;
+    }
+
+    /**
+     * Method to return the bottommost ImmutableNodeInst (a primitive)
+     * from the initial port information given to the constructor.
+     * @return the ImmutableNodeInst at the bottom of the hierarchy (a primitive).
+     */
+    public ImmutableNodeInst getBottomImmutableNodeInst() {
+        return bottomNode;
     }
 
     /**
@@ -133,7 +171,7 @@ public class PortOriginal {
      * @return the PortProto at the bottom of the hierarchy (a PrimitivePort).
      */
     public PrimitivePort getBottomPortProto() {
-        return (PrimitivePort) bottomPp;
+        return bottomPp;
     }
 
     /**
@@ -143,7 +181,8 @@ public class PortOriginal {
      */
     public PortInst getBottomPort() {
         if (bottomPort == null) {
-            bottomPort = bottomNi.findPortInstFromProto(bottomPp);
+            getBottomNodeInst();
+            bottomPort = bottomNi != null ? bottomNi.findPortInstFromProto(bottomPp) : null;
         }
         return bottomPort;
     }

@@ -2132,12 +2132,15 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         // look down to the bottom level node/port
         PortOriginal fp = new PortOriginal(this, thePort);
         AffineTransform trans = fp.getTransformToTop();
-        NodeInst ni = fp.getBottomNodeInst();
-        PortProto pp = fp.getBottomPortProto();
-
-        PrimitiveNode np = (PrimitiveNode) ni.getProto();
-        Technology tech = np.getTechnology();
-        Poly poly = tech.getShapeOfPort(ni, (PrimitivePort) pp, selectPt);
+        Cell cell = fp.getBottomCell();
+//        NodeInst ni = fp.getBottomNodeInst();
+        ImmutableNodeInst n = fp.getBottomImmutableNodeInst();
+        PrimitivePort pp = fp.getBottomPortProto();
+        PrimitiveNode np = pp.getParent();
+//        Technology tech = np.getTechnology();
+        Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
+        Poly poly = polyBuilder.getShape(cell.backupUnsafe(), n, pp, selectPt);
+//        Poly poly = tech.getShapeOfPort(ni, (PrimitivePort) pp, selectPt);
 
         // we only compress port if it is a rectangle
         Rectangle2D box = poly.getBox();
@@ -2145,9 +2148,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             if ((arcWidth != -1) && (np.getFunction().isContact())) {
                 // reduce the port size such that the connecting arc's width cannot extend
                 // beyond the width of the contact
-                SizeOffset so = np.getProtoSizeOffset();
-                double width = ni.getXSize() - so.getHighXOffset() - so.getLowXOffset();
-                double height = ni.getYSize() - so.getHighYOffset() - so.getLowYOffset();
+                ERectangle baseRectangle = np.getBaseRectangle();
+                double width = DBMath.gridToLambda(n.size.getGridX() + baseRectangle.getGridWidth());
+                double height = DBMath.gridToLambda(n.size.getGridY() + baseRectangle.getGridHeight());
+//                SizeOffset so = np.getProtoSizeOffset();
+//                double width = ni.getXSize() - so.getHighXOffset() - so.getLowXOffset();
+//                double height = ni.getYSize() - so.getHighYOffset() - so.getLowYOffset();
                 double newportwidth = width - arcWidth;
                 double newportheight = height - arcWidth;
                 if (newportwidth < 0) {
@@ -2168,11 +2174,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                     box = new Rectangle2D.Double(box.getX(), box.getY() - offsetY, box.getWidth(), box.getHeight() + 2 * offsetY);
                 }
             }
-            if (ni.getXSize() == np.getDefWidth()) {
+            EditingPreferences ep = cell.getEditingPreferences();
+            if (n.size.getGridX() >> 1 == np.getDefaultGridExtendX(ep)) {
                 double x = poly.getCenterX();
                 box = new Rectangle2D.Double(x, box.getMinY(), 0, box.getHeight());
             }
-            if (ni.getYSize() == np.getDefHeight()) {
+            if (n.size.getGridY() >> 1 == np.getDefaultGridExtendY(ep)) {
                 double y = poly.getCenterY();
                 box = new Rectangle2D.Double(box.getMinX(), y, box.getWidth(), 0);
             }

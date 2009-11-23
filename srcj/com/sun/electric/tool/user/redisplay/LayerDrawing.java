@@ -23,9 +23,11 @@
  */
 package com.sun.electric.tool.user.redisplay;
 
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -209,11 +211,11 @@ class LayerDrawing {
 
     private static class ExpandedCellKey {
 
-        private Cell cell;
+        private CellId cellId;
         private Orientation orient;
 
-        private ExpandedCellKey(Cell cell, Orientation orient) {
-            this.cell = cell;
+        private ExpandedCellKey(CellId cellId, Orientation orient) {
+            this.cellId = cellId;
             this.orient = orient;
         }
 
@@ -221,14 +223,14 @@ class LayerDrawing {
         public boolean equals(Object obj) {
             if (obj instanceof ExpandedCellKey) {
                 ExpandedCellKey that = (ExpandedCellKey) obj;
-                return this.cell == that.cell && this.orient.equals(that.orient);
+                return this.cellId == that.cellId && this.orient.equals(that.orient);
             }
             return false;
         }
 
         @Override
         public int hashCode() {
-            return cell.hashCode() ^ orient.hashCode();
+            return cellId.hashCode() ^ orient.hashCode();
         }
     }
 
@@ -256,6 +258,8 @@ class LayerDrawing {
     private final Dimension sz;
     /** the scale of the EditWindow */
     private double scale;
+    /** the global text scale of the EditWindow */
+    private double globalTextScale;
     /** the VarContext of the EditWindow */
     private VarContext varContext;
     /** the X origin of the cell in display coordinates. */
@@ -351,7 +355,7 @@ class LayerDrawing {
         }
 
         public double getGlobalTextScale() {
-            return wnd.getGlobalTextScale();
+            return globalTextScale;
         }
     };
 
@@ -1427,6 +1431,7 @@ class LayerDrawing {
             expandedScale = drawing.da.scale;
         }
         varContext = wnd.getVarContext();
+        globalTextScale = wnd.getGlobalTextScale();
         initOrigin(expandedScale, new Point2D.Double(drawing.da.offX, drawing.da.offY));
         patternedDisplay = expandedScale > patternedScaleLimit;
         alphaBlendingOvercolor = expandedScale > alphaBlendingOvercolorLimit;
@@ -1892,7 +1897,7 @@ class LayerDrawing {
             return false;
         }
 
-        ExpandedCellKey expansionKey = new ExpandedCellKey(subCell, orient);
+        ExpandedCellKey expansionKey = new ExpandedCellKey(subCell.getId(), orient);
         ExpandedCellInfo expandedCellCount = expandedCells.get(expansionKey);
         if (expandedCellCount != null && expandedCellCount.offscreen == null) {
             if (expandedCellCount.tooLarge) {
@@ -1974,46 +1979,47 @@ class LayerDrawing {
      */
     private void countCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, AffineTransform prevTrans) {
         // look for subcells
-        for (Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext();) {
-            NodeInst ni = nodes.next();
-            if (!ni.isCellInstance()) {
+        for (ImmutableNodeInst n: cell.backupUnsafe().cellRevision.nodes) {
+            if (!(n.protoId instanceof CellId)) {
                 continue;
             }
 
             // if limiting drawing, reject when out of area
             if (drawLimitBounds != null) {
-                Rectangle2D curBounds = ni.getBounds();
-                Rectangle2D bounds = new Rectangle2D.Double(curBounds.getX(), curBounds.getY(), curBounds.getWidth(), curBounds.getHeight());
+                Cell subCell = cell.getDatabase().getCell((CellId)n.protoId);
+                Rectangle2D bounds = new Rectangle2D.Double();
+                n.orient.rectangleBounds(subCell.getBounds(), n.anchor, bounds);
                 DBMath.transformRect(bounds, prevTrans);
                 if (!DBMath.rectsIntersect(bounds, drawLimitBounds)) {
                     return;
                 }
             }
 
-            countNode(ni, drawLimitBounds, fullInstantiate, orient, prevTrans);
+            countNode(cell, n, fullInstantiate, orient, prevTrans);
         }
     }
 
     /**
      * Recursive method to count the number of times that a cell-transformation is used
      */
-    private void countNode(NodeInst ni, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, AffineTransform trans) {
+    private void countNode(Cell parent, ImmutableNodeInst n, boolean fullInstantiate, Orientation orient, AffineTransform trans) {
+        CellId subCellId = (CellId)n.protoId;
+        Cell subCell = parent.getDatabase().getCell(subCellId);
+        Rectangle2D cellBounds = subCell.getBounds();
         // if the node is tiny, it will be approximated
-        double objWidth = Math.max(ni.getXSize(), ni.getYSize());
+        double objWidth = Math.max(cellBounds.getWidth(), cellBounds.getHeight());
+//        double objWidth = Math.max(ni.getXSize(), ni.getYSize());
         if (objWidth < maxObjectSize) {
             return;
         }
 
         // transform into the subcell
-        Orientation subOrient = orient.concatenate(ni.getOrient());
-        AffineTransform subTrans = ni.transformOut(trans);
-//		AffineTransform localTrans = ni.rotateOut(trans);
-//		AffineTransform subTrans = ni.translateOut(localTrans);
+        Orientation subOrient = orient.concatenate(n.orient);
+        AffineTransform subTrans = n.orient.rotateAbout(n.anchor.getLambdaX(), n.anchor.getLambdaY(), 0, 0);
+        subTrans.preConcatenate(trans);
+//        AffineTransform subTrans = ni.transformOut(trans);
 
         // compute where this cell lands on the screen
-        NodeProto np = ni.getProto();
-        Cell subCell = (Cell) np;
-        Rectangle2D cellBounds = subCell.getBounds();
         Poly poly = new Poly(cellBounds);
         poly.transform(subTrans);
 //		if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
@@ -2030,7 +2036,8 @@ class LayerDrawing {
         }
 
         // only interested in expanded instances
-        boolean expanded = ni.isExpanded();
+        boolean expanded = parent.isExpanded(n.nodeId);
+//        boolean expanded = ni.isExpanded();
         if (fullInstantiate) {
             expanded = true;
         }
@@ -2043,7 +2050,7 @@ class LayerDrawing {
 
         if (screenBounds.width < sz.width / 2 || screenBounds.height <= sz.height / 2) {
             // construct the cell name that combines with the transformation
-            ExpandedCellKey expansionKey = new ExpandedCellKey(subCell, subOrient);
+            ExpandedCellKey expansionKey = new ExpandedCellKey(subCell.getId(), subOrient);
             ExpandedCellInfo expansionCount = expandedCells.get(expansionKey);
             if (expansionCount == null) {
                 expansionCount = new ExpandedCellInfo();
@@ -2079,7 +2086,7 @@ class LayerDrawing {
             keys.add(eck);
         }
         for (ExpandedCellKey expansionKey : keys) {
-            if (changedCells.contains(expansionKey.cell.getId())) {
+            if (changedCells.contains(expansionKey.cellId)) {
                 expandedCells.remove(expansionKey);
             }
         }
@@ -2821,6 +2828,7 @@ class LayerDrawing {
      */
     private void drawList(int oX, int oY, List<VectorCache.VectorBase> shapes) //		throws AbortRenderingException
     {
+        EditWindow0 textWnd = wnd != null ? wnd : dummyWnd;
         // render all shapes
         for (VectorCache.VectorBase vb : shapes) {
 //			if (stopRendering) throw new AbortRenderingException();
@@ -2831,7 +2839,7 @@ class LayerDrawing {
                 VectorCache.VectorText vt = (VectorCache.VectorText) vb;
                 TextDescriptor td = vt.descript;
                 if (td != null && !td.isAbsoluteSize()) {
-                    double size = td.getTrueSize(scale, wnd);
+                    double size = td.getTrueSize(scale, textWnd);
                     if (size <= canDrawRelativeText) {
                         continue;
                     }
