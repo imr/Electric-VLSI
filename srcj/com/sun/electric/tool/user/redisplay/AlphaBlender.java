@@ -38,14 +38,11 @@ class AlphaBlender {
     /** Creates a new instance of AlphaBlender */
     public AlphaBlender() {
     }
-
     private static final int SCALE_SH = 8;
     private static final int SCALE = 1 << SCALE_SH;
-
     private AlphaBlendGroup[] groups;
     private int[][] layerBits;
 //    private int m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16, m17, m18, m19, m20, m21, m22, m23, m24, m25, m26, m27, m28, m29, m30, m31;
-
     private int r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19, r20, r21, r22, r23, r24, r25, r26, r27, r28, r29, r30, r31;
     private int g0, g1, g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13, g14, g15, g16, g17, g18, g19, g20, g21, g22, g23, g24, g25, g26, g27, g28, g29, g30, g31;
     private int b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31;
@@ -54,7 +51,7 @@ class AlphaBlender {
         this.background = background;
         this.layerBits = bits.toArray(new int[bits.size()][]);
 
-        groups = new AlphaBlendGroup[bits.size()/13 + 1];
+        groups = new AlphaBlendGroup[bits.size() / 13 + 1];
         int k = 0;
         for (int i = 0; i < groups.length; i++) {
             int l = (bits.size() - k) / (groups.length - i);
@@ -138,101 +135,134 @@ class AlphaBlender {
 //        m30 = pixel30;
 //        m31 = pixel31;
 //    }
-
     void composeLine(int inputOffset, int minX, int maxX, int[] opaqueData, int opaqueOffset) {
-        int minInt = minX>>5;
-        int maxInt = maxX>>5;
+        int minInt = minX >> 5;
+        int maxInt = maxX >> 5;
         this.opaqueData = opaqueData;
         if (minInt == maxInt) {
-            int mask = (1 << ((maxX&31) + 1)) - (1 << (minX&31));
-            composeBits(inputOffset + minInt, mask, opaqueOffset + (minInt<<5));
+            int mask = (1 << ((maxX & 31) + 1)) - (1 << (minX & 31));
+            composeBits(inputOffset + minInt, mask, opaqueOffset + (minInt << 5));
             return;
         }
-        if ((minX&31) != 0) {
-            int headMask = -(1 << (minX&31));
-            composeBits(inputOffset + minInt, headMask, opaqueOffset + (minInt<<5));
+        if ((minX & 31) != 0) {
+            int headMask = -(1 << (minX & 31));
+            composeBits(inputOffset + minInt, headMask, opaqueOffset + (minInt << 5));
             minInt++;
         }
-        if ((maxX&31) != 31) {
-            int tailMask = (1 << ((maxX&31) + 1)) - 1;
-            composeBits(inputOffset + maxInt, tailMask, opaqueOffset + (maxInt<<5));
+        if ((maxX & 31) != 31) {
+            int tailMask = (1 << ((maxX & 31) + 1)) - 1;
+            composeBits(inputOffset + maxInt, tailMask, opaqueOffset + (maxInt << 5));
             maxInt--;
         }
-        opaqueOffset += minInt<<5;
+        opaqueOffset += minInt << 5;
         for (int index = minInt; index <= maxInt; index++) {
-            for (AlphaBlendGroup group: groups)
+            for (AlphaBlendGroup group : groups) {
                 group.unpackBytes(inputOffset + index);
+            }
             opaqueOffset = storeRGB32(opaqueOffset);
         }
     }
 
     void composeBits(int inputOffset, int mask, int outputOffset) {
-        for (AlphaBlendGroup group: groups)
+        for (AlphaBlendGroup group : groups) {
             group.unpackBytes(inputOffset);
-        if ((mask & (1 << 0)) != 0)
+        }
+        if ((mask & (1 << 0)) != 0) {
             storeRGB(outputOffset + 0, r0, g0, b0);
-        if ((mask & (1 << 1)) != 0)
+        }
+        if ((mask & (1 << 1)) != 0) {
             storeRGB(outputOffset + 1, r1, g1, b1);
-        if ((mask & (1 << 2)) != 0)
+        }
+        if ((mask & (1 << 2)) != 0) {
             storeRGB(outputOffset + 2, r2, g2, b2);
-        if ((mask & (1 << 3)) != 0)
+        }
+        if ((mask & (1 << 3)) != 0) {
             storeRGB(outputOffset + 3, r3, g3, b3);
-        if ((mask & (1 << 4)) != 0)
+        }
+        if ((mask & (1 << 4)) != 0) {
             storeRGB(outputOffset + 4, r4, g4, b4);
-        if ((mask & (1 << 5)) != 0)
+        }
+        if ((mask & (1 << 5)) != 0) {
             storeRGB(outputOffset + 5, r5, g5, b5);
-        if ((mask & (1 << 6)) != 0)
+        }
+        if ((mask & (1 << 6)) != 0) {
             storeRGB(outputOffset + 6, r6, g6, b6);
-        if ((mask & (1 << 7)) != 0)
+        }
+        if ((mask & (1 << 7)) != 0) {
             storeRGB(outputOffset + 7, r7, g7, b7);
-        if ((mask & (1 << 8)) != 0)
+        }
+        if ((mask & (1 << 8)) != 0) {
             storeRGB(outputOffset + 8, r8, g8, b8);
-        if ((mask & (1 << 9)) != 0)
+        }
+        if ((mask & (1 << 9)) != 0) {
             storeRGB(outputOffset + 9, r9, g9, b9);
-        if ((mask & (1 << 10)) != 0)
+        }
+        if ((mask & (1 << 10)) != 0) {
             storeRGB(outputOffset + 10, r10, g10, b10);
-        if ((mask & (1 << 11)) != 0)
+        }
+        if ((mask & (1 << 11)) != 0) {
             storeRGB(outputOffset + 11, r11, g11, b11);
-        if ((mask & (1 << 12)) != 0)
+        }
+        if ((mask & (1 << 12)) != 0) {
             storeRGB(outputOffset + 12, r12, g12, b12);
-        if ((mask & (1 << 13)) != 0)
+        }
+        if ((mask & (1 << 13)) != 0) {
             storeRGB(outputOffset + 13, r13, g13, b13);
-        if ((mask & (1 << 14)) != 0)
+        }
+        if ((mask & (1 << 14)) != 0) {
             storeRGB(outputOffset + 14, r14, g14, b14);
-        if ((mask & (1 << 15)) != 0)
+        }
+        if ((mask & (1 << 15)) != 0) {
             storeRGB(outputOffset + 15, r15, g15, b15);
-        if ((mask & (1 << 16)) != 0)
+        }
+        if ((mask & (1 << 16)) != 0) {
             storeRGB(outputOffset + 16, r16, g16, b16);
-        if ((mask & (1 << 17)) != 0)
+        }
+        if ((mask & (1 << 17)) != 0) {
             storeRGB(outputOffset + 17, r17, g17, b17);
-        if ((mask & (1 << 18)) != 0)
+        }
+        if ((mask & (1 << 18)) != 0) {
             storeRGB(outputOffset + 18, r18, g18, b18);
-        if ((mask & (1 << 19)) != 0)
+        }
+        if ((mask & (1 << 19)) != 0) {
             storeRGB(outputOffset + 19, r19, g19, b19);
-        if ((mask & (1 << 20)) != 0)
+        }
+        if ((mask & (1 << 20)) != 0) {
             storeRGB(outputOffset + 20, r20, g20, b20);
-        if ((mask & (1 << 21)) != 0)
+        }
+        if ((mask & (1 << 21)) != 0) {
             storeRGB(outputOffset + 21, r21, g21, b21);
-        if ((mask & (1 << 22)) != 0)
+        }
+        if ((mask & (1 << 22)) != 0) {
             storeRGB(outputOffset + 22, r22, g22, b22);
-        if ((mask & (1 << 23)) != 0)
+        }
+        if ((mask & (1 << 23)) != 0) {
             storeRGB(outputOffset + 23, r23, g23, b23);
-        if ((mask & (1 << 24)) != 0)
+        }
+        if ((mask & (1 << 24)) != 0) {
             storeRGB(outputOffset + 24, r24, g24, b24);
-        if ((mask & (1 << 25)) != 0)
+        }
+        if ((mask & (1 << 25)) != 0) {
             storeRGB(outputOffset + 25, r25, g25, b25);
-        if ((mask & (1 << 26)) != 0)
+        }
+        if ((mask & (1 << 26)) != 0) {
             storeRGB(outputOffset + 26, r26, g26, b26);
-        if ((mask & (1 << 27)) != 0)
+        }
+        if ((mask & (1 << 27)) != 0) {
             storeRGB(outputOffset + 27, r27, g27, b27);
-        if ((mask & (1 << 28)) != 0)
+        }
+        if ((mask & (1 << 28)) != 0) {
             storeRGB(outputOffset + 28, r28, g28, b28);
-        if ((mask & (1 << 29)) != 0)
+        }
+        if ((mask & (1 << 29)) != 0) {
             storeRGB(outputOffset + 29, r29, g29, b29);
-        if ((mask & (1 << 30)) != 0)
+        }
+        if ((mask & (1 << 30)) != 0) {
             storeRGB(outputOffset + 30, r30, g30, b30);
-        if ((mask & (1 << 31)) != 0)
+        }
+        if ((mask & (1 << 31)) != 0) {
             storeRGB(outputOffset + 31, r31, g31, b31);
+        }
     }
 
 //    private int storeRGB32(int baseIndex) {
@@ -270,7 +300,6 @@ class AlphaBlender {
 //        storeRGB_(baseIndex++, m31);
 //        return baseIndex;
 //    }
-
     private int storeRGB32(int baseIndex) {
         storeRGB(baseIndex++, r0, g0, b0);
         storeRGB(baseIndex++, r1, g1, b1);
@@ -332,7 +361,6 @@ class AlphaBlender {
 //        int color = (r << 16) | (g << 8) + b;
 //        opaqueData[baseIndex] = color;
 //    }
-
     private void storeRGB(int baseIndex, int red, int green, int blue) {
         int color;
         if (((red | green | blue) & ~0xFF) == 0) {
@@ -353,7 +381,6 @@ class AlphaBlender {
 //        blue = Math.max(0, Math.min(0xFF, red));
 //        return (red << 16) | (green << 8) | blue;
 //    }
-
     private int normalizeRgbDim(int red, int green, int blue) {
         int min, max;
         if (red <= green) {
@@ -363,10 +390,12 @@ class AlphaBlender {
             min = green;
             max = red;
         }
-        if (blue > max)
+        if (blue > max) {
             max = blue;
-        if (blue < min)
+        }
+        if (blue < min) {
             min = blue;
+        }
 
         if (max - min <= 255) {
             int dec = min < 0 ? min : max - 255;
@@ -383,8 +412,8 @@ class AlphaBlender {
     }
 
     //********************************************************************
-
     private class AlphaBlendGroup {
+
         int groupShift;
         int groupMask;
         int[] redMap;
@@ -420,7 +449,9 @@ class AlphaBlender {
                     ia = 0.0;
                 }
                 for (int i = 0; i < len; i++) {
-                    if ((k & (1 << i)) == 0) continue;
+                    if ((k & (1 << i)) == 0) {
+                        continue;
+                    }
                     AbstractDrawing.LayerColor lc = cols.get(offset + i);
                     double iAlpha = lc.inverseAlpha;
                     red *= iAlpha;
@@ -431,10 +462,10 @@ class AlphaBlender {
                     green += lc.premultipliedGreen;
                     blue += lc.premultipliedBlue;
                 }
-                redMap[k] = (int)(red*SCALE*255);
-                greenMap[k] = (int)(green*SCALE*255);
-                blueMap[k] = (int)(blue*SCALE*255);
-                inverseAlphaMap[k] = (int)(ia*SCALE);
+                redMap[k] = (int) (red * SCALE * 255);
+                greenMap[k] = (int) (green * SCALE * 255);
+                blueMap[k] = (int) (blue * SCALE * 255);
+                inverseAlphaMap[k] = (int) (ia * SCALE);
             }
         }
 
@@ -446,7 +477,9 @@ class AlphaBlender {
             int pixel24 = 0, pixel25 = 0, pixel26 = 0, pixel27 = 0, pixel28 = 0, pixel29 = 0, pixel30 = 0, pixel31 = 0;
             for (int i = 0; i < bits.length; i++) {
                 int value = bits[i][index];
-                if (value == 0) continue;
+                if (value == 0) {
+                    continue;
+                }
                 pixel0 |= (value & 1) << i;
                 pixel1 |= ((value >> 1) & 1) << i;
                 pixel2 |= ((value >> 2) & 1) << i;

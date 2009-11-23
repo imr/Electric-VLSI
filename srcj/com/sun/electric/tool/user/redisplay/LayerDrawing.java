@@ -184,28 +184,31 @@ import javax.swing.SwingUtilities;
  * </UL>
  *
  */
-class LayerDrawing
-{
-	/** Text smaller than this will not be drawn. */				public static final int MINIMUMTEXTSIZE =   5;
-	/** Number of singleton cells to cache when redisplaying. */	public static final int SINGLETONSTOADD =   5;
-	/** Text size is limited by this. */                			public static final int MAXIMUMTEXTSIZE = 200;
+class LayerDrawing {
 
-	private static class PolySeg
-	{
-		private int fx,fy, tx,ty, direction, increment;
-		private PolySeg nextedge;
-		private PolySeg nextactive;
-	}
+    /** Text smaller than this will not be drawn. */
+    public static final int MINIMUMTEXTSIZE = 5;
+    /** Number of singleton cells to cache when redisplaying. */
+    public static final int SINGLETONSTOADD = 5;
+    /** Text size is limited by this. */
+    public static final int MAXIMUMTEXTSIZE = 200;
 
-	// statistics stuff
-	private static final boolean TAKE_STATS = false;
-	private static int tinyCells, tinyPrims, totalCells, renderedCells, totalPrims, tinyArcs, linedArcs, totalArcs;
-	private static int offscreensCreated, offscreenPixelsCreated, offscreensUsed, offscreenPixelsUsed, cellsRendered;
+    private static class PolySeg {
+
+        private int fx, fy, tx, ty, direction, increment;
+        private PolySeg nextedge;
+        private PolySeg nextactive;
+    }
+    // statistics stuff
+    private static final boolean TAKE_STATS = false;
+    private static int tinyCells, tinyPrims, totalCells, renderedCells, totalPrims, tinyArcs, linedArcs, totalArcs;
+    private static int offscreensCreated, offscreenPixelsCreated, offscreensUsed, offscreenPixelsUsed, cellsRendered;
     private static Set<ExpandedCellKey> offscreensUsedSet = new HashSet<ExpandedCellKey>();
     private static int boxArrayCount, boxCount, boxDisplayCount, lineCount, polygonCount, crossCount, circleCount, discCount, arcCount;
     private static final boolean DEBUG = false;
 
     private static class ExpandedCellKey {
+
         private Cell cell;
         private Orientation orient;
 
@@ -217,110 +220,150 @@ class LayerDrawing
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof ExpandedCellKey) {
-                ExpandedCellKey that = (ExpandedCellKey)obj;
+                ExpandedCellKey that = (ExpandedCellKey) obj;
                 return this.cell == that.cell && this.orient.equals(that.orient);
             }
             return false;
         }
 
         @Override
-        public int hashCode() { return cell.hashCode()^orient.hashCode(); }
+        public int hashCode() {
+            return cell.hashCode() ^ orient.hashCode();
+        }
     }
 
-	/**
-	 * This class holds information about expanded cell instances.
-	 * For efficiency, Electric remembers the bits in an expanded cell instance
-	 * and uses them when another expanded instance appears elsewhere.
-	 * Of course, the orientation of the instance matters, so each combination of
-	 * cell and orientation forms a "cell cache".  The Cell Cache is stored in the
-	 * "wnd" field (which has its own PixelDrawing object).
-	 */
-	private static class ExpandedCellInfo
-	{
-		private boolean singleton;
-		private int instanceCount;
+    /**
+     * This class holds information about expanded cell instances.
+     * For efficiency, Electric remembers the bits in an expanded cell instance
+     * and uses them when another expanded instance appears elsewhere.
+     * Of course, the orientation of the instance matters, so each combination of
+     * cell and orientation forms a "cell cache".  The Cell Cache is stored in the
+     * "wnd" field (which has its own PixelDrawing object).
+     */
+    private static class ExpandedCellInfo {
+
+        private boolean singleton;
+        private int instanceCount;
         private boolean tooLarge;
-		private LayerDrawing offscreen;
+        private LayerDrawing offscreen;
 
-		ExpandedCellInfo()
-		{
-			singleton = true;
-			offscreen = null;
-		}
-	}
-
-	/** the size of the EditWindow */						private final Dimension sz;
-    /** the scale of the EditWindow */                      private double scale;
-    /** the VarContext of the EditWindow */                 private VarContext varContext;
-    /** the X origin of the cell in display coordinates. */ private double originX;
-    /** the Y origin of the cell in display coordinates. */ private double originY;
-    /** the scale of the EditWindow */                      private double scale_;
-	/** the window scale and pan factor */					private float factorX, factorY;
-	/** 0: color display, 1: color printing, 2: B&W printing */	private static final int nowPrinting = 0;
-
-	/** true if the last display was a full-instantiate */	private boolean lastFullInstantiate = false;
-	/** A set of subcells being in-place edited. */         private BitSet inPlaceSubcellPath;
-	/** The current cell being in-place edited. */			private Cell inPlaceCurrent;
-	/** true if text can be drawn (not too zoomed-out) */	private boolean canDrawText;
-    /** Threshold for relative text can be drawn */         private double canDrawRelativeText = Double.MAX_VALUE;
-	/** maximum size before an object is too small */		private static double maxObjectSize;
-	/** half of maximum object size */						private static double halfMaxObjectSize;
-	/** temporary objects (saves reallocation) */			private final Point tempPt1 = new Point(), tempPt2 = new Point();
-	/** temporary objects (saves reallocation) */			private final Point tempPt3 = new Point(), tempPt4 = new Point();
-
-	// the full-depth image
-	/** size of the opaque layer of the window */			private final int total;
-    /** list of render text. */                             private final ArrayList<RenderTextInfo> renderTextList = new ArrayList<RenderTextInfo>();
-    /** list of greek text. */                              private final ArrayList<GreekTextInfo> greekTextList = new ArrayList<GreekTextInfo>();
-    /** list of cross text. */                              private final ArrayList<CrossTextInfo> crossTextList = new ArrayList<CrossTextInfo>();
-
-	// the transparent bitmaps
-	/** the number of ints per row in offscreen maps */     private final int numIntsPerRow;
-
-	/** the map from layers to layer bitmaps */             private Map<Layer,TransparentRaster> layerRasters = new HashMap<Layer,TransparentRaster>();
-    /** Raster with unexpanded instances */                 private TransparentRaster instanceRaster;
-    /** Raster with grid */                                 private TransparentRaster gridRaster;
-    /** temporary raster for patterned layers */            private PatternedTransparentRaster currentPatternedTransparentRaster = new PatternedTransparentRaster();
-	/** the top-level window being rendered */				private boolean renderedWindow;
-
-	/** whether to occasionally update the display. */		private boolean periodicRefresh;
-	/** keeps track of when to update the display. */		private int objectCount;
-	/** keeps track of when to update the display. */		private long lastRefreshTime;
-	/** the EditWindow being drawn */						private EditWindow wnd;
-
-	/** the size of the top-level EditWindow */				private static Dimension topSz;
-    /** draw layers patterned (depends on scale). */        private boolean patternedDisplay;
-    /** Alpha blending with overcolor (depends on scale). */private static boolean alphaBlendingOvercolor;
-	/** list of cell expansions. */							private static Map<ExpandedCellKey,ExpandedCellInfo> expandedCells = null;
-    /** Set of changed cells. */                            private static final Set<CellId> changedCells = new HashSet<CellId>();
-	/** scale of cell expansions. */						private static double expandedScale = 0;
-	/** number of extra cells to render this time */		private static int numberToReconcile;
-	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
-
+        ExpandedCellInfo() {
+            singleton = true;
+            offscreen = null;
+        }
+    }
+    /** the size of the EditWindow */
+    private final Dimension sz;
+    /** the scale of the EditWindow */
+    private double scale;
+    /** the VarContext of the EditWindow */
+    private VarContext varContext;
+    /** the X origin of the cell in display coordinates. */
+    private double originX;
+    /** the Y origin of the cell in display coordinates. */
+    private double originY;
+    /** the scale of the EditWindow */
+    private double scale_;
+    /** the window scale and pan factor */
+    private float factorX, factorY;
+    /** 0: color display, 1: color printing, 2: B&W printing */
+    private static final int nowPrinting = 0;
+    /** true if the last display was a full-instantiate */
+    private boolean lastFullInstantiate = false;
+    /** A set of subcells being in-place edited. */
+    private BitSet inPlaceSubcellPath;
+    /** The current cell being in-place edited. */
+    private Cell inPlaceCurrent;
+    /** true if text can be drawn (not too zoomed-out) */
+    private boolean canDrawText;
+    /** Threshold for relative text can be drawn */
+    private double canDrawRelativeText = Double.MAX_VALUE;
+    /** maximum size before an object is too small */
+    private static double maxObjectSize;
+    /** half of maximum object size */
+    private static double halfMaxObjectSize;
+    /** temporary objects (saves reallocation) */
+    private final Point tempPt1 = new Point(), tempPt2 = new Point();
+    /** temporary objects (saves reallocation) */
+    private final Point tempPt3 = new Point(), tempPt4 = new Point();
+    // the full-depth image
+    /** size of the opaque layer of the window */
+    private final int total;
+    /** list of render text. */
+    private final ArrayList<RenderTextInfo> renderTextList = new ArrayList<RenderTextInfo>();
+    /** list of greek text. */
+    private final ArrayList<GreekTextInfo> greekTextList = new ArrayList<GreekTextInfo>();
+    /** list of cross text. */
+    private final ArrayList<CrossTextInfo> crossTextList = new ArrayList<CrossTextInfo>();
+    // the transparent bitmaps
+    /** the number of ints per row in offscreen maps */
+    private final int numIntsPerRow;
+    /** the map from layers to layer bitmaps */
+    private Map<Layer, TransparentRaster> layerRasters = new HashMap<Layer, TransparentRaster>();
+    /** Raster with unexpanded instances */
+    private TransparentRaster instanceRaster;
+    /** Raster with grid */
+    private TransparentRaster gridRaster;
+    /** temporary raster for patterned layers */
+    private PatternedTransparentRaster currentPatternedTransparentRaster = new PatternedTransparentRaster();
+    /** the top-level window being rendered */
+    private boolean renderedWindow;
+    /** whether to occasionally update the display. */
+    private boolean periodicRefresh;
+    /** keeps track of when to update the display. */
+    private int objectCount;
+    /** keeps track of when to update the display. */
+    private long lastRefreshTime;
+    /** the EditWindow being drawn */
+    private EditWindow wnd;
+    /** the size of the top-level EditWindow */
+    private static Dimension topSz;
+    /** draw layers patterned (depends on scale). */
+    private boolean patternedDisplay;
+    /** Alpha blending with overcolor (depends on scale). */
+    private static boolean alphaBlendingOvercolor;
+    /** list of cell expansions. */
+    private static Map<ExpandedCellKey, ExpandedCellInfo> expandedCells = null;
+    /** Set of changed cells. */
+    private static final Set<CellId> changedCells = new HashSet<CellId>();
+    /** scale of cell expansions. */
+    private static double expandedScale = 0;
+    /** number of extra cells to render this time */
+    private static int numberToReconcile;
+    /** zero rectangle */
+    private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
     // Color things only at top offscreen
     private GraphicsPreferences gp;
     private AbstractDrawing.DrawingPreferences dp;
     private Color textColor;
-    /** cache of port colors */                             private HashMap<PrimitivePort,Color> portColorsCache;
-
+    /** cache of port colors */
+    private HashMap<PrimitivePort, Color> portColorsCache;
     private int clipLX, clipHX, clipLY, clipHY;
     private final int width;
-
     private final EditWindow0 dummyWnd = new EditWindow0() {
-        public VarContext getVarContext() { return varContext; }
 
-        public double getScale() { return scale; }
+        public VarContext getVarContext() {
+            return varContext;
+        }
 
-        public double getGlobalTextScale() { return wnd.getGlobalTextScale(); }
+        public double getScale() {
+            return scale;
+        }
+
+        public double getGlobalTextScale() {
+            return wnd.getGlobalTextScale();
+        }
     };
 
     private static class DrawingData {
+
         private final LayerDrawing offscreen;
         private final int width;
         private final int height;
         private final int numIntsPerRow;
         private final boolean patternedDisplay;
-        /** the map from layers to layer bitmaps */             private final Map<Layer,TransparentRaster> layerRasters;
+        /** the map from layers to layer bitmaps */
+        private final Map<Layer, TransparentRaster> layerRasters;
         private final TransparentRaster instanceRaster;
         private final TransparentRaster gridRaster;
         private final GreekTextInfo[] greekText;
@@ -333,7 +376,7 @@ class LayerDrawing
             height = offscreen.sz.height;
             numIntsPerRow = offscreen.numIntsPerRow;
             patternedDisplay = offscreen.patternedDisplay;
-            layerRasters = new HashMap<Layer,TransparentRaster>(offscreen.layerRasters);
+            layerRasters = new HashMap<Layer, TransparentRaster>(offscreen.layerRasters);
             instanceRaster = offscreen.instanceRaster;
             gridRaster = offscreen.gridRaster;
             greekText = offscreen.greekTextList.toArray(new GreekTextInfo[offscreen.greekTextList.size()]);
@@ -343,17 +386,19 @@ class LayerDrawing
     }
 
     static class Drawing extends AbstractDrawing {
+
         private static final int SMALL_IMG_HEIGHT = 2;
-        /** the offscreen opaque image of the window */ private VolatileImage vImg;
+        /** the offscreen opaque image of the window */
+        private VolatileImage vImg;
         private BufferedImage smallImg;
         private int[] smallOpaqueData;
-        /** alpha blender of layer maps */                      private final AlphaBlender alphaBlender = new AlphaBlender();
-
+        /** alpha blender of layer maps */
+        private final AlphaBlender alphaBlender = new AlphaBlender();
         // The following fields are produced by "render" method in Job thread.
         private volatile boolean needComposite;
         private volatile DrawingData drawingData;
-
-        /** whether any layers are highlighted/dimmed */		boolean highlightingLayers;
+        /** whether any layers are highlighted/dimmed */
+        boolean highlightingLayers;
         private final double patternedScaleLimit = User.getPatternedScaleLimit();
         private final double alphaBlendingOvercolorLimit = User.getAlphaBlendingOvercolorLimit();
 
@@ -370,19 +415,21 @@ class LayerDrawing
             GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
             assert sz.equals(wnd.getSize());
             DrawingData drawingData = this.drawingData;
-            if (drawingData == null || !drawingData.offscreen.getSize().equals(sz))
+            if (drawingData == null || !drawingData.offscreen.getSize().equals(sz)) {
                 return false;
+            }
 
             if (vImg == null || vImg.getWidth() != sz.width || vImg.getHeight() != sz.height) {
-                if (vImg != null)
+                if (vImg != null) {
                     vImg.flush();
+                }
                 vImg = wnd.createVolatileImage(sz.width, sz.height);
             }
 
 //            smallImg = (BufferedImage)wnd.createImage(sz.width, 1);
             if (smallImg == null || smallImg.getWidth() != sz.width) {
                 smallImg = new BufferedImage(sz.width, SMALL_IMG_HEIGHT, BufferedImage.TYPE_INT_RGB);
-                DataBufferInt smallDbi = (DataBufferInt)smallImg.getRaster().getDataBuffer();
+                DataBufferInt smallDbi = (DataBufferInt) smallImg.getRaster().getDataBuffer();
                 smallOpaqueData = smallDbi.getData();
             }
 
@@ -423,16 +470,18 @@ class LayerDrawing
 
                 // see if any layers are being highlighted/dimmed
                 highlightingLayers = false;
-                for(Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext(); ) {
+                for (Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext();) {
                     Layer layer = it.next();
-                    if (lv.isHighlighted(layer))
+                    if (lv.isHighlighted(layer)) {
                         highlightingLayers = true;
+                    }
                 }
 
-                if (User.isLegacyComposite())
+                if (User.isLegacyComposite()) {
                     legacyLayerComposite(g, gp, lv, dd);
-                else
+                } else {
                     layerComposite(g, gp, lv, dd);
+                }
 //                if (alphaBlendingComposite) {
 //                    boolean TRY_OVERBLEND = false;
 //                    if (TRY_OVERBLEND) {
@@ -444,18 +493,21 @@ class LayerDrawing
 //                    layerCompositeCompatable(g);
 //                }
                 long compositeTime = System.currentTimeMillis();
-                for (GreekTextInfo greekInfo: dd.greekText)
+                for (GreekTextInfo greekInfo : dd.greekText) {
                     greekInfo.draw(g, lv);
-                for (CrossTextInfo crossInfo: dd.crossText)
+                }
+                for (CrossTextInfo crossInfo : dd.crossText) {
                     crossInfo.draw(g, lv);
+                }
                 g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-                for (RenderTextInfo textInfo: dd.renderText)
+                for (RenderTextInfo textInfo : dd.renderText) {
                     textInfo.draw(g, lv);
+                }
                 g.dispose();
                 if (TAKE_STATS) {
                     long endTime = System.currentTimeMillis();
                     System.out.println((alphaBlendingOvercolor ? "alphaBlendingOvercolor took " : "alphaBlending took ")
-                    + (compositeTime - startTime) + " msec, textRendering " + dd.renderText.length + "+" + dd.greekText.length + "+" + dd.crossText.length + " took " + (endTime - compositeTime) + " msec");
+                            + (compositeTime - startTime) + " msec, textRendering " + dd.renderText.length + "+" + dd.greekText.length + "+" + dd.crossText.length + " took " + (endTime - compositeTime) + " msec");
                 }
             } while (vImg.contentsLost());
         }
@@ -477,17 +529,20 @@ class LayerDrawing
         }
 
         @Override
-        public boolean hasOpacity() { return !User.isLegacyComposite(); }
+        public boolean hasOpacity() {
+            return !User.isLegacyComposite();
+        }
 
         private void layerComposite(Graphics2D g, GraphicsPreferences gp, LayerVisibility lv, DrawingData dd) {
-            Map<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
-            for (Map.Entry<Layer,TransparentRaster> e: dd.layerRasters.entrySet())
+            Map<Layer, int[]> layerBits = new HashMap<Layer, int[]>();
+            for (Map.Entry<Layer, TransparentRaster> e : dd.layerRasters.entrySet()) {
                 layerBits.put(e.getKey(), e.getValue().layerBitMap);
+            }
             List<AbstractDrawing.LayerColor> blendingOrder = getBlendingOrder(layerBits.keySet(), gp, lv, dd.patternedDisplay, alphaBlendingOvercolor);
             if (TAKE_STATS) {
                 System.out.print("BlendingOrder:");
-                for (AbstractDrawing.LayerColor lc: blendingOrder) {
-                    int alpha = (int)((1 - lc.inverseAlpha) * 100 + 0.5);
+                for (AbstractDrawing.LayerColor lc : blendingOrder) {
+                    int alpha = (int) ((1 - lc.inverseAlpha) * 100 + 0.5);
                     System.out.print(" " + lc.layer.getName() + ":" + alpha);
                 }
                 System.out.println();
@@ -495,9 +550,11 @@ class LayerDrawing
 
             ArrayList<AbstractDrawing.LayerColor> colors = new ArrayList<AbstractDrawing.LayerColor>();
             ArrayList<int[]> bits = new ArrayList<int[]>();
-            for (AbstractDrawing.LayerColor layerColor: blendingOrder) {
+            for (AbstractDrawing.LayerColor layerColor : blendingOrder) {
                 int[] b = layerBits.get(layerColor.layer);
-                if (b == null) continue;
+                if (b == null) {
+                    continue;
+                }
                 colors.add(layerColor);
                 bits.add(b);
             }
@@ -539,46 +596,60 @@ class LayerDrawing
 
             Technology curTech = Technology.getCurrent();
             if (curTech == null) {
-                for (Layer layer: dd.layerRasters.keySet()) {
+                for (Layer layer : dd.layerRasters.keySet()) {
                     int transparentDepth = gp.getGraphics(layer).getTransparentLayer();
-                    if (transparentDepth != 0 && layer.getTechnology() != null)
+                    if (transparentDepth != 0 && layer.getTechnology() != null) {
                         curTech = layer.getTechnology();
+                    }
                 }
             }
-            if (curTech == null)
+            if (curTech == null) {
                 curTech = Generic.tech();
+            }
 
             // get the technology's color map
-            Color [] colorMap = gp.getColorMap(curTech);
+            Color[] colorMap = gp.getColorMap(curTech);
 
             // adjust the colors if any of the transparent layers are dimmed
             boolean dimmedTransparentLayers = false;
-            for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
+            for (Iterator<Layer> it = curTech.getLayers(); it.hasNext();) {
                 Layer layer = it.next();
-                if (!highlightingLayers || lv.isHighlighted(layer)) continue;
-                if (gp.getGraphics(layer).getTransparentLayer() == 0) continue;
+                if (!highlightingLayers || lv.isHighlighted(layer)) {
+                    continue;
+                }
+                if (gp.getGraphics(layer).getTransparentLayer() == 0) {
+                    continue;
+                }
                 dimmedTransparentLayers = true;
                 break;
             }
             if (dimmedTransparentLayers) {
-                Color [] newColorMap = new Color[colorMap.length];
+                Color[] newColorMap = new Color[colorMap.length];
                 int numTransparents = curTech.getNumTransparentLayers();
-                boolean [] dimLayer = new boolean[numTransparents];
-                for(int i=0; i<numTransparents; i++) dimLayer[i] = true;
-                for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
+                boolean[] dimLayer = new boolean[numTransparents];
+                for (int i = 0; i < numTransparents; i++) {
+                    dimLayer[i] = true;
+                }
+                for (Iterator<Layer> it = curTech.getLayers(); it.hasNext();) {
                     Layer layer = it.next();
-                    if (!lv.isHighlighted(layer)) continue;
+                    if (!lv.isHighlighted(layer)) {
+                        continue;
+                    }
                     int tIndex = gp.getGraphics(layer).getTransparentLayer();
-                    if (tIndex == 0) continue;
-                    dimLayer[tIndex-1] = false;
+                    if (tIndex == 0) {
+                        continue;
+                    }
+                    dimLayer[tIndex - 1] = false;
                 }
 
-                for(int i=0; i<colorMap.length; i++) {
+                for (int i = 0; i < colorMap.length; i++) {
                     newColorMap[i] = colorMap[i];
-                    if (i == 0) continue;
+                    if (i == 0) {
+                        continue;
+                    }
                     boolean dimThisEntry = true;
-                    for(int j=0; j<numTransparents; j++) {
-                        if ((i & (1<<j)) != 0) {
+                    for (int j = 0; j < numTransparents; j++) {
+                        if ((i & (1 << j)) != 0) {
                             if (!dimLayer[j]) {
                                 dimThisEntry = false;
                                 break;
@@ -596,8 +667,10 @@ class LayerDrawing
 
             int numTransparent = 0, numOpaque = 0;
             int deepestTransparentDepth = 0;
-            for (Layer layer: dd.layerRasters.keySet()) {
-                if (!lv.isVisible(layer)) continue;
+            for (Layer layer : dd.layerRasters.keySet()) {
+                if (!lv.isVisible(layer)) {
+                    continue;
+                }
                 if (gp.getGraphics(layer).getTransparentLayer() == 0) {
                     numOpaque++;
                 } else {
@@ -610,9 +683,11 @@ class LayerDrawing
             int[] opaqueCols = new int[numOpaque];
 
             numTransparent = numOpaque = 0;
-            for (Map.Entry<Layer,TransparentRaster> e: dd.layerRasters.entrySet()) {
+            for (Map.Entry<Layer, TransparentRaster> e : dd.layerRasters.entrySet()) {
                 Layer layer = e.getKey();
-                if (!lv.isVisible(layer)) continue;
+                if (!lv.isVisible(layer)) {
+                    continue;
+                }
                 TransparentRaster raster = e.getValue();
                 int transparentNum = gp.getGraphics(layer).getTransparentLayer();
                 if (transparentNum != 0) {
@@ -627,19 +702,20 @@ class LayerDrawing
             // determine range
             int numIntsPerRow = dd.numIntsPerRow;
             int backgroundColor = gp.getColor(User.ColorPrefType.BACKGROUND).getRGB() & GraphicsPreferences.RGB_MASK;
-            int lx = 0, hx = dd.width-1;
-            int ly = 0, hy = dd.height-1;
+            int lx = 0, hx = dd.width - 1;
+            int ly = 0, hy = dd.height - 1;
 
-            for(int y=ly; y<=hy; y++) {
-                int baseByteIndex = y*numIntsPerRow;
+            for (int y = ly; y <= hy; y++) {
+                int baseByteIndex = y * numIntsPerRow;
 //                int baseIndex = y * dd.width;
-                for(int x=0; x<=hx; x++) {
-                    int entry = baseByteIndex + (x>>5);
+                for (int x = 0; x <= hx; x++) {
+                    int entry = baseByteIndex + (x >> 5);
                     int maskBit = 1 << (x & 31);
                     int opaqueIndex = -1;
                     for (int i = 0; i < opaqueRasters.length; i++) {
-                        if ((opaqueRasters[i].layerBitMap[entry] & maskBit) != 0)
+                        if ((opaqueRasters[i].layerBitMap[entry] & maskBit) != 0) {
                             opaqueIndex = i;
+                        }
                     }
                     int pixelValue;
                     if (opaqueIndex >= 0) {
@@ -647,8 +723,9 @@ class LayerDrawing
                     } else {
                         int bits = 0;
                         for (int i = 0; i < transparentRasters.length; i++) {
-                            if ((transparentRasters[i].layerBitMap[entry] & maskBit) != 0)
+                            if ((transparentRasters[i].layerBitMap[entry] & maskBit) != 0) {
                                 bits |= transparentMasks[i];
+                            }
                         }
                         pixelValue = bits != 0 ? colorMap[bits].getRGB() & 0xFFFFFF : backgroundColor;
                     }
@@ -658,27 +735,28 @@ class LayerDrawing
             }
         }
 
-        int getTheColor(EGraphics desc, boolean dimmed)
-        {
-            if (nowPrinting == 2) return 0;
+        int getTheColor(EGraphics desc, boolean dimmed) {
+            if (nowPrinting == 2) {
+                return 0;
+            }
             int col = desc.getRGB();
-            if (highlightingLayers)
-            {
-                if (dimmed) col = dimColor(col); else
+            if (highlightingLayers) {
+                if (dimmed) {
+                    col = dimColor(col);
+                } else {
                     col = brightenColor(col);
+                }
             }
             return col;
         }
-
-        private double [] hsvTempArray = new double[3];
+        private double[] hsvTempArray = new double[3];
 
         /**
          * Method to dim a color by reducing its saturation.
          * @param col the color as a 24-bit integer.
          * @return the dimmed color, a 24-bit integer.
          */
-        private int dimColor(int col)
-        {
+        private int dimColor(int col) {
             int r = col & 0xFF;
             int g = (col >> 8) & 0xFF;
             int b = (col >> 16) & 0xFF;
@@ -693,14 +771,15 @@ class LayerDrawing
          * @param col the color as a 24-bit integer.
          * @return the brightened color, a 24-bit integer.
          */
-        private int brightenColor(int col)
-        {
+        private int brightenColor(int col) {
             int r = col & 0xFF;
             int g = (col >> 8) & 0xFF;
             int b = (col >> 16) & 0xFF;
             fromRGBtoHSV(r, g, b, hsvTempArray);
             hsvTempArray[1] *= 1.5;
-            if (hsvTempArray[1] > 1) hsvTempArray[1] = 1;
+            if (hsvTempArray[1] > 1) {
+                hsvTempArray[1] = 1;
+            }
             col = fromHSVtoRGB(hsvTempArray[0], hsvTempArray[1], hsvTempArray[2]);
             return col;
         }
@@ -709,8 +788,7 @@ class LayerDrawing
          * Method to convert a red/green/blue color to a hue/saturation/intensity color.
          * Why not use Color.RGBtoHSB?  It doesn't work as well.
          */
-        private void fromRGBtoHSV(int ir, int ig, int ib, double [] hsi)
-        {
+        private void fromRGBtoHSV(int ir, int ig, int ib, double[] hsi) {
             double r = ir / 255.0f;
             double g = ig / 255.0f;
             double b = ib / 255.0f;
@@ -722,22 +800,33 @@ class LayerDrawing
             double x = Math.min(Math.min(r, g), b);
 
             // "saturation" is (i-x)/i
-            if (hsi[2] == 0.0) hsi[1] = 0.0; else hsi[1] = (hsi[2] - x) / hsi[2];
+            if (hsi[2] == 0.0) {
+                hsi[1] = 0.0;
+            } else {
+                hsi[1] = (hsi[2] - x) / hsi[2];
+            }
 
             // hue is quadrant-based
             hsi[0] = 0.0;
-            if (hsi[1] != 0.0)
-            {
+            if (hsi[1] != 0.0) {
                 double rdot = (hsi[2] - r) / (hsi[2] - x);
                 double gdot = (hsi[2] - g) / (hsi[2] - x);
                 double bdot = (hsi[2] - b) / (hsi[2] - x);
-                if (b == x && r == hsi[2]) hsi[0] = (1.0 - gdot) / 6.0; else
-                if (b == x && g == hsi[2]) hsi[0] = (1.0 + rdot) / 6.0; else
-                if (r == x && g == hsi[2]) hsi[0] = (3.0 - bdot) / 6.0; else
-                if (r == x && b == hsi[2]) hsi[0] = (3.0 + gdot) / 6.0; else
-                if (g == x && b == hsi[2]) hsi[0] = (5.0 - rdot) / 6.0; else
-                if (g == x && r == hsi[2]) hsi[0] = (5.0 + bdot) / 6.0; else
+                if (b == x && r == hsi[2]) {
+                    hsi[0] = (1.0 - gdot) / 6.0;
+                } else if (b == x && g == hsi[2]) {
+                    hsi[0] = (1.0 + rdot) / 6.0;
+                } else if (r == x && g == hsi[2]) {
+                    hsi[0] = (3.0 - bdot) / 6.0;
+                } else if (r == x && b == hsi[2]) {
+                    hsi[0] = (3.0 + gdot) / 6.0;
+                } else if (g == x && b == hsi[2]) {
+                    hsi[0] = (5.0 - rdot) / 6.0;
+                } else if (g == x && r == hsi[2]) {
+                    hsi[0] = (5.0 + bdot) / 6.0;
+                } else {
                     System.out.println("Cannot convert (" + ir + "," + ig + "," + ib + "), for x=" + x + " i=" + hsi[2] + " s=" + hsi[1]);
+                }
             }
         }
 
@@ -745,33 +834,66 @@ class LayerDrawing
          * Method to convert a hue/saturation/intensity color to a red/green/blue color.
          * Why not use Color.HSBtoRGB?  It doesn't work as well.
          */
-        private int fromHSVtoRGB(double h, double s, double v)
-        {
+        private int fromHSVtoRGB(double h, double s, double v) {
             h = h * 6.0;
-            int i = (int)h;
-            double f = h - (double)i;
+            int i = (int) h;
+            double f = h - (double) i;
             double m = v * (1.0 - s);
             double n = v * (1.0 - s * f);
             double k = v * (1.0 - s * (1.0 - f));
             int r = 0, g = 0, b = 0;
-            switch (i)
-            {
-                case 0: r = (int)(v*255.0); g = (int)(k*255.0); b = (int)(m*255.0);   break;
-                case 1: r = (int)(n*255.0); g = (int)(v*255.0); b = (int)(m*255.0);   break;
-                case 2: r = (int)(m*255.0); g = (int)(v*255.0); b = (int)(k*255.0);   break;
-                case 3: r = (int)(m*255.0); g = (int)(n*255.0); b = (int)(v*255.0);   break;
-                case 4: r = (int)(k*255.0); g = (int)(m*255.0); b = (int)(v*255.0);   break;
-                case 5: r = (int)(v*255.0); g = (int)(m*255.0); b = (int)(n*255.0);   break;
+            switch (i) {
+                case 0:
+                    r = (int) (v * 255.0);
+                    g = (int) (k * 255.0);
+                    b = (int) (m * 255.0);
+                    break;
+                case 1:
+                    r = (int) (n * 255.0);
+                    g = (int) (v * 255.0);
+                    b = (int) (m * 255.0);
+                    break;
+                case 2:
+                    r = (int) (m * 255.0);
+                    g = (int) (v * 255.0);
+                    b = (int) (k * 255.0);
+                    break;
+                case 3:
+                    r = (int) (m * 255.0);
+                    g = (int) (n * 255.0);
+                    b = (int) (v * 255.0);
+                    break;
+                case 4:
+                    r = (int) (k * 255.0);
+                    g = (int) (m * 255.0);
+                    b = (int) (v * 255.0);
+                    break;
+                case 5:
+                    r = (int) (v * 255.0);
+                    g = (int) (m * 255.0);
+                    b = (int) (n * 255.0);
+                    break;
             }
-            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
-            {
+            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
                 System.out.println("(" + h + "," + s + "," + v + ") -> (" + r + "," + g + "," + b + ") (i=" + i + ")");
-                if (r < 0) r = 0;
-                if (r > 255) r = 255;
-                if (g < 0) g = 0;
-                if (g > 255) g = 255;
-                if (b < 0) b = 0;
-                if (b > 255) b = 255;
+                if (r < 0) {
+                    r = 0;
+                }
+                if (r > 255) {
+                    r = 255;
+                }
+                if (g < 0) {
+                    g = 0;
+                }
+                if (g > 255) {
+                    g = 255;
+                }
+                if (b < 0) {
+                    b = 0;
+                }
+                if (b > 255) {
+                    b = 255;
+                }
             }
             return (b << 16) | (g << 8) | r;
         }
@@ -798,21 +920,27 @@ class LayerDrawing
             float bRed = backgroundComps[0];
             float bGreen = backgroundComps[1];
             float bBlue = backgroundComps[2];
-            for(Layer layer : sortedLayers) {
-                if (!lv.isVisible(layer)) continue;
-                if (layer == Generic.tech().glyphLay && !patternedDisplay) continue;
+            for (Layer layer : sortedLayers) {
+                if (!lv.isVisible(layer)) {
+                    continue;
+                }
+                if (layer == Generic.tech().glyphLay && !patternedDisplay) {
+                    continue;
+                }
                 Color color = gp.getGraphics(layer).getColor();
                 float[] compArray = color.getRGBComponents(null);
                 float red = compArray[0];
                 float green = compArray[1];
                 float blue = compArray[2];
                 float opacity = lv.getOpacity(layer);
-                if (opacity <= 0) continue;
+                if (opacity <= 0) {
+                    continue;
+                }
                 float inverseAlpha = 1 - opacity;
                 if (alphaBlendingOvercolor) {
-                    red -= bRed*inverseAlpha;
-                    green -= bGreen*inverseAlpha;
-                    blue -= bBlue*inverseAlpha;
+                    red -= bRed * inverseAlpha;
+                    green -= bGreen * inverseAlpha;
+                    blue -= bBlue * inverseAlpha;
                 } else {
                     red *= opacity;
                     green *= opacity;
@@ -834,22 +962,23 @@ class LayerDrawing
         public void render(Dimension sz, WindowFrame.DisplayAttributes da, GraphicsPreferences gp,
                 DrawingPreferences dp, boolean fullInstantiate, Rectangle2D bounds) {
             LayerDrawing offscreen = null;
-            if (drawingData != null && drawingData.offscreen.getSize().equals(sz))
+            if (drawingData != null && drawingData.offscreen.getSize().equals(sz)) {
                 offscreen = drawingData.offscreen;
-            if (offscreen == null)
+            }
+            if (offscreen == null) {
                 offscreen = new LayerDrawing(sz);
+            }
             this.da = da;
             offscreen.gp = gp;
             offscreen.dp = dp;
             offscreen.textColor = gp.getColor(User.ColorPrefType.TEXT);
-            offscreen.portColorsCache = new HashMap<PrimitivePort,Color>();
+            offscreen.portColorsCache = new HashMap<PrimitivePort, Color>();
 //            updateScaleAndOffset();
 
             offscreen.drawImage(this, fullInstantiate, bounds, patternedScaleLimit, alphaBlendingOvercolorLimit);
             needComposite = true;
             drawingData = new DrawingData(offscreen);
         }
-
         private static boolean joglChecked = false;
         private static Class<?> layerDrawerClass;
         private static Method joglShowLayerMethod;
@@ -867,8 +996,9 @@ class LayerDrawing
                 // find the LayerDrawer class
                 try {
                     layerDrawerClass = Class.forName("com.sun.electric.plugins.jogl.LayerDrawer");
-                    joglShowLayerMethod = layerDrawerClass.getMethod("showLayer", new Class[] {Dimension.class, (new int[0]).getClass(), Double.TYPE, Double.TYPE, Double.TYPE});
-                } catch (Exception e) {}
+                    joglShowLayerMethod = layerDrawerClass.getMethod("showLayer", new Class[]{Dimension.class, (new int[0]).getClass(), Double.TYPE, Double.TYPE, Double.TYPE});
+                } catch (Exception e) {
+                }
             }
             return joglShowLayerMethod != null;
         }
@@ -878,14 +1008,14 @@ class LayerDrawing
             if (hasJogl()) {
                 try {
                     int numBoxes = 1000000;
-                    int[] boxes = new int[numBoxes*4];
+                    int[] boxes = new int[numBoxes * 4];
                     for (int i = 0; i < numBoxes; i++) {
-                        int x = (i*5) % 501 - 100;
-                        int y = (i*7) % 500 - 200;
-                        boxes[i*4 + 0] = x;
-                        boxes[i*4 + 1] = y;
-                        boxes[i*4 + 2] = x + 10;
-                        boxes[i*4 + 3] = y + 10;
+                        int x = (i * 5) % 501 - 100;
+                        int y = (i * 7) % 500 - 200;
+                        boxes[i * 4 + 0] = x;
+                        boxes[i * 4 + 1] = y;
+                        boxes[i * 4 + 2] = x + 10;
+                        boxes[i * 4 + 3] = y + 10;
                     }
 //                    joglShowLayerMethod.invoke(layerDrawerClass, new Object[] {offscreen___.sz, boxes, 1.0, 0.0, 0.0});
                 } catch (Exception e) {
@@ -896,7 +1026,6 @@ class LayerDrawing
             }
 //            testJogl_();
         }
-
 //        private void testJogl_() {
 //            JFrame frame = new JFrame("Jogl");
 //            GLCapabilities capabilities = new GLCapabilities();
@@ -1058,51 +1187,53 @@ class LayerDrawing
     static void drawTechPalette(Graphics2D g, GraphicsPreferences gp, int imgX, int imgY, Rectangle entrySize, double scale, VectorCache.VectorBase[] shapes) {
 
         BufferedImage smallImg = new BufferedImage(entrySize.width, Drawing.SMALL_IMG_HEIGHT, BufferedImage.TYPE_INT_RGB);
-        DataBufferInt smallDbi = (DataBufferInt)smallImg.getRaster().getDataBuffer();
+        DataBufferInt smallDbi = (DataBufferInt) smallImg.getRaster().getDataBuffer();
         int[] smallOpaqueData = smallDbi.getData();
 
         LayerDrawing offscreen = new LayerDrawing(new Dimension(entrySize.width, entrySize.height));
         offscreen.gp = gp;
-		// set colors to use
+        // set colors to use
         offscreen.textColor = gp.getColor(User.ColorPrefType.TEXT);
 
-		// initialize the cache of expanded cell displays
+        // initialize the cache of expanded cell displays
 //        varContext = wnd.getVarContext();
         offscreen.initOrigin(scale, EPoint.ORIGIN);
         offscreen.renderedWindow = true;
         offscreen.patternedDisplay = true;
- 		offscreen.canDrawText = true;
+        offscreen.canDrawText = true;
         offscreen.canDrawRelativeText = 0;
 
-		// remember the true window size (since recursive calls may cache individual cells that are smaller)
+        // remember the true window size (since recursive calls may cache individual cells that are smaller)
 //		topSz = sz;
 
-		// initialize rendering into the offscreen image
+        // initialize rendering into the offscreen image
         offscreen.clipLX = 0;
         offscreen.clipHX = offscreen.sz.width - 1;
         offscreen.clipLY = 0;
         offscreen.clipHY = offscreen.sz.height - 1;
-		offscreen.clearImage(null);
+        offscreen.clearImage(null);
 
         // now render it all
         offscreen.renderTextList.clear();
         offscreen.greekTextList.clear();
         offscreen.crossTextList.clear();
         ArrayList<VectorCache.VectorBase> shapeList = new ArrayList<VectorCache.VectorBase>();
-        for (VectorCache.VectorBase shape: shapes)
+        for (VectorCache.VectorBase shape : shapes) {
             shapeList.add(shape);
+        }
         offscreen.drawList(0, 0, shapeList);
 
 
         AlphaBlender alphaBlender = new AlphaBlender();
-        Map<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
-        for (Map.Entry<Layer,TransparentRaster> e: offscreen.layerRasters.entrySet())
+        Map<Layer, int[]> layerBits = new HashMap<Layer, int[]>();
+        for (Map.Entry<Layer, TransparentRaster> e : offscreen.layerRasters.entrySet()) {
             layerBits.put(e.getKey(), e.getValue().layerBitMap);
+        }
         List<AbstractDrawing.LayerColor> blendingOrder = getBlendingOrderForTechPalette(gp, layerBits.keySet());
         if (TAKE_STATS) {
             System.out.print("BlendingOrder:");
-            for (AbstractDrawing.LayerColor lc: blendingOrder) {
-                int alpha = (int)((1 - lc.inverseAlpha) * 100 + 0.5);
+            for (AbstractDrawing.LayerColor lc : blendingOrder) {
+                int alpha = (int) ((1 - lc.inverseAlpha) * 100 + 0.5);
                 System.out.print(" " + lc.layer.getName() + ":" + alpha);
             }
             System.out.println();
@@ -1110,9 +1241,11 @@ class LayerDrawing
 
         ArrayList<AbstractDrawing.LayerColor> colors = new ArrayList<AbstractDrawing.LayerColor>();
         ArrayList<int[]> bits = new ArrayList<int[]>();
-        for (AbstractDrawing.LayerColor layerColor: blendingOrder) {
+        for (AbstractDrawing.LayerColor layerColor : blendingOrder) {
             int[] b = layerBits.get(layerColor.layer);
-            if (b == null) continue;
+            if (b == null) {
+                continue;
+            }
             colors.add(layerColor);
             bits.add(b);
         }
@@ -1136,7 +1269,7 @@ class LayerDrawing
         }
 
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        for (RenderTextInfo textInfo: offscreen.renderTextList) {
+        for (RenderTextInfo textInfo : offscreen.renderTextList) {
             textInfo.offX += imgX;
             textInfo.offY += imgY;
             textInfo.draw(g, null);
@@ -1157,7 +1290,7 @@ class LayerDrawing
         float bRed = backgroundComps[0];
         float bGreen = backgroundComps[1];
         float bBlue = backgroundComps[2];
-        for(Layer layer : sortedLayers) {
+        for (Layer layer : sortedLayers) {
             Color color = gp.getGraphics(layer).getColor();
             float[] compArray = color.getRGBComponents(null);
             float red = compArray[0];
@@ -1166,9 +1299,9 @@ class LayerDrawing
             float opacity = 0.7f;
             float inverseAlpha = 1 - opacity;
             if (alphaBlendingOvercolor) {
-                red -= bRed*inverseAlpha;
-                green -= bGreen*inverseAlpha;
-                blue -= bBlue*inverseAlpha;
+                red -= bRed * inverseAlpha;
+                green -= bGreen * inverseAlpha;
+                blue -= bBlue * inverseAlpha;
             } else {
                 red *= opacity;
                 green *= opacity;
@@ -1180,34 +1313,32 @@ class LayerDrawing
     }
 
     // ************************************* TOP LEVEL *************************************
-
-	/**
-	 * Constructor creates an offscreen PixelDrawing object.
-	 * @param sz the size of an offscreen PixelDrawinf object.
-	 */
-	public LayerDrawing(Dimension sz)
-	{
-		this.sz = new Dimension(sz);
+    /**
+     * Constructor creates an offscreen PixelDrawing object.
+     * @param sz the size of an offscreen PixelDrawinf object.
+     */
+    public LayerDrawing(Dimension sz) {
+        this.sz = new Dimension(sz);
         width = sz.width;
         clipLX = 0;
         clipHX = sz.width - 1;
         clipLY = 0;
         clipHY = sz.height - 1;
 
-		// allocate pointer to the opaque image
-		total = sz.height * sz.width;
-		numIntsPerRow = (sz.width + Integer.SIZE - 1) / Integer.SIZE;
-		renderedWindow = true;
-	}
+        // allocate pointer to the opaque image
+        total = sz.height * sz.width;
+        numIntsPerRow = (sz.width + Integer.SIZE - 1) / Integer.SIZE;
+        renderedWindow = true;
+    }
 
     public LayerDrawing(double scale, int lX, int hX, int lY, int hY) {
         this.scale = scale;
-        scale_ = (float)(scale/DBMath.GRID);
+        scale_ = (float) (scale / DBMath.GRID);
 
         this.originX = -lX;
         this.originY = hY;
-        factorX = (float)(-originX/scale_);
-        factorY = (float)(originY/scale_);
+        factorX = (float) (-originX / scale_);
+        factorY = (float) (originY / scale_);
         this.sz = new Dimension(hX - lX + 1, hY - lY + 1);
         width = sz.width;
         clipLX = 0;
@@ -1215,18 +1346,18 @@ class LayerDrawing
         clipLY = 0;
         clipHY = sz.height - 1;
 
-		// allocate pointer to the opaque image
-		total = sz.height * sz.width;
-		numIntsPerRow = (sz.width + Integer.SIZE - 1) / Integer.SIZE;
+        // allocate pointer to the opaque image
+        total = sz.height * sz.width;
+        numIntsPerRow = (sz.width + Integer.SIZE - 1) / Integer.SIZE;
     }
 
     void initOrigin(double scale, Point2D offset) {
         this.scale = scale;
-        scale_ = (float)(scale/DBMath.GRID);
-        this.originX = sz.width/2 - offset.getX()*scale;
-        this.originY = sz.height/2 + offset.getY()*scale;
-		factorX = (float)(offset.getX()*DBMath.GRID - sz.width/2/scale_);
-		factorY = (float)(offset.getY()*DBMath.GRID + sz.height/2/scale_);
+        scale_ = (float) (scale / DBMath.GRID);
+        this.originX = sz.width / 2 - offset.getX() * scale;
+        this.originY = sz.height / 2 + offset.getY() * scale;
+        factorX = (float) (offset.getX() * DBMath.GRID - sz.width / 2 / scale_);
+        factorY = (float) (offset.getY() * DBMath.GRID + sz.height / 2 / scale_);
     }
 
     /**
@@ -1234,105 +1365,100 @@ class LayerDrawing
      * @param mode the printing mode:  0=color display (default), 1=color printing, 2=B&W printing.
      */
 //    public void setPrintingMode(int mode) { nowPrinting = mode; }
+    /**
+     * Method for obtaining the size of the offscreen bitmap.
+     * @return the size of the offscreen bitmap.
+     */
+    public Dimension getSize() {
+        return sz;
+    }
 
-	/**
-	 * Method for obtaining the size of the offscreen bitmap.
-	 * @return the size of the offscreen bitmap.
-	 */
-	public Dimension getSize() { return sz; }
+    /**
+     * Method to clear the cache of expanded subcells.
+     * This is used by layer visibility which, when changed, causes everything to be redrawn.
+     */
+    public static void clearSubCellCache() {
+        expandedCells = new HashMap<ExpandedCellKey, ExpandedCellInfo>();
+    }
 
-	/**
-	 * Method to clear the cache of expanded subcells.
-	 * This is used by layer visibility which, when changed, causes everything to be redrawn.
-	 */
-	public static void clearSubCellCache()
-	{
-		expandedCells = new HashMap<ExpandedCellKey,ExpandedCellInfo>();
-	}
-
-	/**
-	 * This is the entry point for rendering.
-	 * It displays a cell in this offscreen window.
-	 * @param fullInstantiate true to display to the bottom of the hierarchy (for peeking).
-	 * @param drawLimitBounds the area in the cell to display (null to show all).
-	 * The rendered Image can then be obtained with "getImage()".
-	 */
-	private void drawImage(Drawing drawing, boolean fullInstantiate, Rectangle2D drawLimitBounds,
-            double patternedScaleLimit, double alphaBlendingOvercolorLimit)
-	{
-		long startTime = 0, clearTime = 0, countTime = 0;
-		long initialUsed = 0;
-		if (TAKE_STATS)
-		{
+    /**
+     * This is the entry point for rendering.
+     * It displays a cell in this offscreen window.
+     * @param fullInstantiate true to display to the bottom of the hierarchy (for peeking).
+     * @param drawLimitBounds the area in the cell to display (null to show all).
+     * The rendered Image can then be obtained with "getImage()".
+     */
+    private void drawImage(Drawing drawing, boolean fullInstantiate, Rectangle2D drawLimitBounds,
+            double patternedScaleLimit, double alphaBlendingOvercolorLimit) {
+        long startTime = 0, clearTime = 0, countTime = 0;
+        long initialUsed = 0;
+        if (TAKE_STATS) {
 //			Runtime.getRuntime().gc();
-			startTime = System.currentTimeMillis();
-			initialUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-			tinyCells = tinyPrims = totalCells = renderedCells = totalPrims = tinyArcs = linedArcs = totalArcs = 0;
-			offscreensCreated = offscreenPixelsCreated = offscreensUsed = offscreenPixelsUsed = cellsRendered = 0;
+            startTime = System.currentTimeMillis();
+            initialUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+            tinyCells = tinyPrims = totalCells = renderedCells = totalPrims = tinyArcs = linedArcs = totalArcs = 0;
+            offscreensCreated = offscreenPixelsCreated = offscreensUsed = offscreenPixelsUsed = cellsRendered = 0;
             offscreensUsedSet.clear();
             boxArrayCount = boxCount = boxDisplayCount = lineCount = polygonCount = crossCount = circleCount = discCount = arcCount = 0;
-		}
+        }
 
-		if (fullInstantiate != lastFullInstantiate)
-		{
-			clearSubCellCache();
-			lastFullInstantiate = fullInstantiate;
-		}
+        if (fullInstantiate != lastFullInstantiate) {
+            clearSubCellCache();
+            lastFullInstantiate = fullInstantiate;
+        }
 
         EditWindow wnd = drawing.wnd;
-		Cell cell = wnd.getInPlaceEditTopCell();
+        Cell cell = wnd.getInPlaceEditTopCell();
         List<NodeInst> inPlaceNodePath = wnd.getInPlaceEditNodePath();
         if (inPlaceNodePath.isEmpty()) {
             inPlaceSubcellPath = null;
         } else {
             inPlaceSubcellPath = new BitSet();
-            for (NodeInst ni: inPlaceNodePath) {
-                Cell subCell = (Cell)ni.getProto();
+            for (NodeInst ni : inPlaceNodePath) {
+                Cell subCell = (Cell) ni.getProto();
                 inPlaceSubcellPath.set(subCell.getId().cellIndex);
             }
         }
-		inPlaceCurrent = wnd.getCell();
+        inPlaceCurrent = wnd.getCell();
 
-		// initialize the cache of expanded cell displays
-		if (expandedScale != drawing.da.scale)
-		{
-			clearSubCellCache();
-			expandedScale = drawing.da.scale;
-		}
+        // initialize the cache of expanded cell displays
+        if (expandedScale != drawing.da.scale) {
+            clearSubCellCache();
+            expandedScale = drawing.da.scale;
+        }
         varContext = wnd.getVarContext();
         initOrigin(expandedScale, new Point2D.Double(drawing.da.offX, drawing.da.offY));
         patternedDisplay = expandedScale > patternedScaleLimit;
         alphaBlendingOvercolor = expandedScale > alphaBlendingOvercolorLimit;
- 		canDrawText = expandedScale > 1;
+        canDrawText = expandedScale > 1;
         canDrawRelativeText = canDrawText ? 0 : MINIMUMTEXTSIZE;
-		maxObjectSize = 2 / expandedScale;
-		halfMaxObjectSize = maxObjectSize / 2;
+        maxObjectSize = 2 / expandedScale;
+        halfMaxObjectSize = maxObjectSize / 2;
 
-		// remember the true window size (since recursive calls may cache individual cells that are smaller)
-		topSz = sz;
+        // remember the true window size (since recursive calls may cache individual cells that are smaller)
+        topSz = sz;
 
-		// initialize rendering into the offscreen image
-		Rectangle renderBounds = null;
-		if (drawLimitBounds != null)
-		{
-			renderBounds = databaseToScreen(drawLimitBounds);
+        // initialize rendering into the offscreen image
+        Rectangle renderBounds = null;
+        if (drawLimitBounds != null) {
+            renderBounds = databaseToScreen(drawLimitBounds);
             clipLX = Math.max(renderBounds.x, 0);
             clipHX = Math.min(renderBounds.x + renderBounds.width, sz.width) - 1;
             clipLY = Math.max(renderBounds.y, 0);
             clipHY = Math.min(renderBounds.y + renderBounds.height, sz.height) - 1;
-		} else {
+        } else {
             clipLX = 0;
             clipHX = sz.width - 1;
             clipLY = 0;
             clipHY = sz.height - 1;
         }
-		clearImage(renderBounds);
-		periodicRefresh = true;
-		this.wnd = wnd;
-		objectCount = 0;
-		lastRefreshTime = System.currentTimeMillis();
+        clearImage(renderBounds);
+        periodicRefresh = true;
+        this.wnd = wnd;
+        objectCount = 0;
+        lastRefreshTime = System.currentTimeMillis();
 
-		Set<CellId> changedCellsCopy;
+        Set<CellId> changedCellsCopy;
         synchronized (changedCells) {
             changedCellsCopy = new HashSet<CellId>(changedCells);
             changedCells.clear();
@@ -1341,13 +1467,18 @@ class LayerDrawing
         VectorCache.theCache.forceRedraw();
         // reset cached cell counts
         numberToReconcile = SINGLETONSTOADD;
-        for(ExpandedCellInfo count : expandedCells.values())
+        for (ExpandedCellInfo count : expandedCells.values()) {
             count.instanceCount = 0;
-        if (TAKE_STATS) clearTime = System.currentTimeMillis();
+        }
+        if (TAKE_STATS) {
+            clearTime = System.currentTimeMillis();
+        }
 
         // determine which cells should be cached (must have at least 2 instances)
         countCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID);
-        if (TAKE_STATS) countTime = System.currentTimeMillis();
+        if (TAKE_STATS) {
+            countTime = System.currentTimeMillis();
+        }
 
         // now render it all
         renderTextList.clear();
@@ -1355,136 +1486,177 @@ class LayerDrawing
         crossTextList.clear();
         drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, 0, 0, true, wnd.getVarContext());
         // if a grid is requested, overlay it
-		if (cell != null && wnd.isGrid()) drawGrid(wnd, drawing.da);
+        if (cell != null && wnd.isGrid()) {
+            drawGrid(wnd, drawing.da);
+        }
 
-		if (TAKE_STATS)
-		{
-			long endTime = System.currentTimeMillis();
-			long curUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-			long memConsumed = curUsed - initialUsed;
-			System.out.println("Took "+TextUtils.getElapsedTime(endTime-startTime) +
-                "(" + (clearTime-startTime) + "+" + (countTime - clearTime) + "+" + (endTime-countTime) + ")"+
-				", rendered "+cellsRendered+" cells, used "+offscreensUsed+" ("+offscreenPixelsUsed+" pixels) " + offscreensUsedSet.size() + "cached cells, created "+
-				offscreensCreated+" ("+offscreenPixelsCreated+" pixels) new cell caches (my size is "+total+" pixels), memory used="+memConsumed);
-			System.out.println("   Cells ("+totalCells+") "+tinyCells+" are tiny;"+
-				" Primitives ("+totalPrims+") "+tinyPrims+" are tiny;"+
-				" Arcs ("+totalArcs+") "+tinyArcs+" are tiny, "+linedArcs+" are lines" +
-                " Texts " + renderTextList.size() + " Greeks " + greekTextList.size());
+        if (TAKE_STATS) {
+            long endTime = System.currentTimeMillis();
+            long curUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+            long memConsumed = curUsed - initialUsed;
+            System.out.println("Took " + TextUtils.getElapsedTime(endTime - startTime)
+                    + "(" + (clearTime - startTime) + "+" + (countTime - clearTime) + "+" + (endTime - countTime) + ")"
+                    + ", rendered " + cellsRendered + " cells, used " + offscreensUsed + " (" + offscreenPixelsUsed + " pixels) " + offscreensUsedSet.size() + "cached cells, created "
+                    + offscreensCreated + " (" + offscreenPixelsCreated + " pixels) new cell caches (my size is " + total + " pixels), memory used=" + memConsumed);
+            System.out.println("   Cells (" + totalCells + ") " + tinyCells + " are tiny;"
+                    + " Primitives (" + totalPrims + ") " + tinyPrims + " are tiny;"
+                    + " Arcs (" + totalArcs + ") " + tinyArcs + " are tiny, " + linedArcs + " are lines"
+                    + " Texts " + renderTextList.size() + " Greeks " + greekTextList.size());
             if (true) {
-                System.out.print("    " + (boxCount+polygonCount+discCount+lineCount+crossCount+circleCount+arcCount)+" rendered: ");
-                if (boxArrayCount != 0) System.out.print(boxCount+"("+boxArrayCount+","+boxDisplayCount+") boxes ");
-                if (polygonCount != 0) System.out.print(polygonCount+" polygons ");
-                if (discCount != 0) System.out.print(discCount+" discs ");
-                if (lineCount != 0) System.out.print(lineCount+" lines ");
-                if (crossCount != 0) System.out.print(crossCount+" crosses ");
-                if (circleCount != 0) System.out.print(circleCount+" circles ");
-                if (arcCount != 0) System.out.print(arcCount+" circleArcs ");
+                System.out.print("    " + (boxCount + polygonCount + discCount + lineCount + crossCount + circleCount + arcCount) + " rendered: ");
+                if (boxArrayCount != 0) {
+                    System.out.print(boxCount + "(" + boxArrayCount + "," + boxDisplayCount + ") boxes ");
+                }
+                if (polygonCount != 0) {
+                    System.out.print(polygonCount + " polygons ");
+                }
+                if (discCount != 0) {
+                    System.out.print(discCount + " discs ");
+                }
+                if (lineCount != 0) {
+                    System.out.print(lineCount + " lines ");
+                }
+                if (crossCount != 0) {
+                    System.out.print(crossCount + " crosses ");
+                }
+                if (circleCount != 0) {
+                    System.out.print(circleCount + " circles ");
+                }
+                if (arcCount != 0) {
+                    System.out.print(arcCount + " circleArcs ");
+                }
                 System.out.println();
             }
-		}
-	}
-
-	// ************************************* INTERMEDIATE CONTROL LEVEL *************************************
-
-	/**
-	 * Method to erase the offscreen data in this PixelDrawing.
-	 * This is called before any rendering is done.
-	 * @param bounds the area of the image to actually draw (null to draw all).
-	 */
-    public void clearImage(Rectangle bounds) {
-        // erase the patterned opaque layer bitmaps
-        if (bounds == null) {
-            for(TransparentRaster raster: layerRasters.values())
-                raster.eraseAll();
-            if (instanceRaster != null)
-                instanceRaster.eraseAll();
-            if (gridRaster != null)
-                gridRaster.eraseAll();
-        } else {
-            for(TransparentRaster raster: layerRasters.values())
-                raster.eraseBox(clipLX, clipHX, clipLY, clipHY);
-            if (instanceRaster != null)
-                instanceRaster.eraseBox(clipLX, clipHX, clipLY, clipHY);
-            if (gridRaster != null)
-                gridRaster.eraseBox(clipLX, clipHX, clipLY, clipHY);
         }
     }
 
-	/**
-	 * Method to draw the grid into the offscreen buffer
-	 */
-	private void drawGrid(EditWindow wnd, WindowFrame.DisplayAttributes da)
-	{
-		double spacingX = wnd.getGridXSpacing();
-		double spacingY = wnd.getGridYSpacing();
-		if (spacingX == 0 || spacingY == 0) return;
-		double boldSpacingX = spacingX * dp.gridXBoldFrequency;
-		double boldSpacingY = spacingY * dp.gridYBoldFrequency;
-		double boldSpacingThreshX = spacingX / 4;
-		double boldSpacingThreshY = spacingY / 4;
+    // ************************************* INTERMEDIATE CONTROL LEVEL *************************************
+    /**
+     * Method to erase the offscreen data in this PixelDrawing.
+     * This is called before any rendering is done.
+     * @param bounds the area of the image to actually draw (null to draw all).
+     */
+    public void clearImage(Rectangle bounds) {
+        // erase the patterned opaque layer bitmaps
+        if (bounds == null) {
+            for (TransparentRaster raster : layerRasters.values()) {
+                raster.eraseAll();
+            }
+            if (instanceRaster != null) {
+                instanceRaster.eraseAll();
+            }
+            if (gridRaster != null) {
+                gridRaster.eraseAll();
+            }
+        } else {
+            for (TransparentRaster raster : layerRasters.values()) {
+                raster.eraseBox(clipLX, clipHX, clipLY, clipHY);
+            }
+            if (instanceRaster != null) {
+                instanceRaster.eraseBox(clipLX, clipHX, clipLY, clipHY);
+            }
+            if (gridRaster != null) {
+                gridRaster.eraseBox(clipLX, clipHX, clipLY, clipHY);
+            }
+        }
+    }
 
-		// screen extent
+    /**
+     * Method to draw the grid into the offscreen buffer
+     */
+    private void drawGrid(EditWindow wnd, WindowFrame.DisplayAttributes da) {
+        double spacingX = wnd.getGridXSpacing();
+        double spacingY = wnd.getGridYSpacing();
+        if (spacingX == 0 || spacingY == 0) {
+            return;
+        }
+        double boldSpacingX = spacingX * dp.gridXBoldFrequency;
+        double boldSpacingY = spacingY * dp.gridYBoldFrequency;
+        double boldSpacingThreshX = spacingX / 4;
+        double boldSpacingThreshY = spacingY / 4;
 
-		Rectangle2D displayable = displayableBounds(da.getIntoCellTransform());
-		double lX = displayable.getMinX();  double lY = displayable.getMaxY();
-		double hX = displayable.getMaxX();  double hY = displayable.getMinY();
-		double scaleX = sz.width / (hX - lX);
-		double scaleY = sz.height / (lY - hY);
+        // screen extent
 
-		// initial grid location
-		double x1 = DBMath.toNearest(lX, spacingX);
-		double y1 = DBMath.toNearest(lY, spacingY);
+        Rectangle2D displayable = displayableBounds(da.getIntoCellTransform());
+        double lX = displayable.getMinX();
+        double lY = displayable.getMaxY();
+        double hX = displayable.getMaxX();
+        double hY = displayable.getMinY();
+        double scaleX = sz.width / (hX - lX);
+        double scaleY = sz.height / (lY - hY);
 
-		// adjust grid placement according to scale
-		boolean allBoldDots = false;
-		if (spacingX * scaleX < 5 || spacingY * scaleY < 5)
-		{
-			// normal grid is too fine: only show the "bold dots"
-			x1 = DBMath.toNearest(x1, boldSpacingX);   spacingX = boldSpacingX;
-			y1 = DBMath.toNearest(y1, boldSpacingY);   spacingY = boldSpacingY;
+        // initial grid location
+        double x1 = DBMath.toNearest(lX, spacingX);
+        double y1 = DBMath.toNearest(lY, spacingY);
 
-			// if even the bold dots are too close, don't draw a grid
-			if (spacingX * scaleX < 10 || spacingY * scaleY < 10)
-            {
+        // adjust grid placement according to scale
+        boolean allBoldDots = false;
+        if (spacingX * scaleX < 5 || spacingY * scaleY < 5) {
+            // normal grid is too fine: only show the "bold dots"
+            x1 = DBMath.toNearest(x1, boldSpacingX);
+            spacingX = boldSpacingX;
+            y1 = DBMath.toNearest(y1, boldSpacingY);
+            spacingY = boldSpacingY;
+
+            // if even the bold dots are too close, don't draw a grid
+            if (spacingX * scaleX < 10 || spacingY * scaleY < 10) {
                 wnd.printGridWarning();
                 return;
             }
-		} else if (spacingX * scaleX > 75 && spacingY * scaleY > 75)
-		{
-			// if zoomed-out far enough, show all bold dots
-			allBoldDots = true;
-		}
+        } else if (spacingX * scaleX > 75 && spacingY * scaleY > 75) {
+            // if zoomed-out far enough, show all bold dots
+            allBoldDots = true;
+        }
 
-		// draw the grid
+        // draw the grid
         Point2D.Double tmpPt = new Point2D.Double();
         AffineTransform outofCellTransform = da.getOutofCellTransform();
         ERaster raster = getGridRaster();
-		for(double i = y1; i > hY; i -= spacingY)
-		{
-			double boldValueY = i;
-			if (i < 0) boldValueY -= boldSpacingThreshY/2; else
-				boldValueY += boldSpacingThreshY/2;
-			boolean everyTenY = Math.abs(boldValueY) % boldSpacingY < boldSpacingThreshY;
-			for(double j = x1; j < hX; j += spacingX)
-			{
+        for (double i = y1; i > hY; i -= spacingY) {
+            double boldValueY = i;
+            if (i < 0) {
+                boldValueY -= boldSpacingThreshY / 2;
+            } else {
+                boldValueY += boldSpacingThreshY / 2;
+            }
+            boolean everyTenY = Math.abs(boldValueY) % boldSpacingY < boldSpacingThreshY;
+            for (double j = x1; j < hX; j += spacingX) {
                 tmpPt.setLocation(j, i);
                 outofCellTransform.transform(tmpPt, tmpPt);
-				databaseToScreen(tmpPt.getX(), tmpPt.getY(), tempPt1);
-				int x = tempPt1.x;
-				int y = tempPt1.y;
-				if (x < 0 || x >= sz.width) continue;
-				if (y < 0 || y >= sz.height) continue;
+                databaseToScreen(tmpPt.getX(), tmpPt.getY(), tempPt1);
+                int x = tempPt1.x;
+                int y = tempPt1.y;
+                if (x < 0 || x >= sz.width) {
+                    continue;
+                }
+                if (y < 0 || y >= sz.height) {
+                    continue;
+                }
 
-				double boldValueX = j;
-				if (j < 0) boldValueX -= boldSpacingThreshX/2; else
-					boldValueX += boldSpacingThreshX/2;
-				boolean everyTenX = Math.abs(boldValueX) % boldSpacingX < boldSpacingThreshX;
-				if (allBoldDots && everyTenX && everyTenY)
-				{
-					int boxLX = x-2;   if (boxLX < 0) boxLX = 0;
-					int boxHX = x+2;   if (boxHX >= sz.width) boxHX = sz.width-1;
-					int boxLY = y-2;   if (boxLY < 0) boxLY = 0;
-					int boxHY = y+2;   if (boxHY >= sz.height) boxHY = sz.height-1;
+                double boldValueX = j;
+                if (j < 0) {
+                    boldValueX -= boldSpacingThreshX / 2;
+                } else {
+                    boldValueX += boldSpacingThreshX / 2;
+                }
+                boolean everyTenX = Math.abs(boldValueX) % boldSpacingX < boldSpacingThreshX;
+                if (allBoldDots && everyTenX && everyTenY) {
+                    int boxLX = x - 2;
+                    if (boxLX < 0) {
+                        boxLX = 0;
+                    }
+                    int boxHX = x + 2;
+                    if (boxHX >= sz.width) {
+                        boxHX = sz.width - 1;
+                    }
+                    int boxLY = y - 2;
+                    if (boxLY < 0) {
+                        boxLY = 0;
+                    }
+                    int boxHY = y + 2;
+                    if (boxHY >= sz.height) {
+                        boxHY = sz.height - 1;
+                    }
 
                     // draw box  in opaque area
                     raster.fillBox(boxLX, boxHX, boxLY, boxHY);
@@ -1495,46 +1667,60 @@ class LayerDrawing
 //                        baseIndex += sz.width;
 //                    }
 
-					if (x > 1) raster.fillPoint(x - 2, y);
-					if (x < sz.width-2) raster.fillPoint(x + 2, y);
-					if (y > 1) raster.fillPoint(x, y - 2);
-					if (y < sz.height-2) raster.fillPoint(x, y + 2);
+                    if (x > 1) {
+                        raster.fillPoint(x - 2, y);
+                    }
+                    if (x < sz.width - 2) {
+                        raster.fillPoint(x + 2, y);
+                    }
+                    if (y > 1) {
+                        raster.fillPoint(x, y - 2);
+                    }
+                    if (y < sz.height - 2) {
+                        raster.fillPoint(x, y + 2);
+                    }
 //					if (x > 1) opaqueData[y * sz.width + (x-2)] = col;
 //					if (x < sz.width-2) opaqueData[y * sz.width + (x+2)] = col;
 //					if (y > 1) opaqueData[(y-2) * sz.width + x] = col;
 //					if (y < sz.height-2) opaqueData[(y+2) * sz.width + x] = col;
-					continue;
-				}
+                    continue;
+                }
 
-				// special case every 10 grid points in each direction
-				if (allBoldDots || (everyTenX && everyTenY))
-				{
-					raster.fillPoint(x, y);
-					if (x > 0) raster.fillPoint(x - 1, y);
-					if (x < sz.width-1) raster.fillPoint(x + 1, y);
-					if (y > 0) raster.fillPoint(x, y - 1);
-					if (y < sz.height-1) raster.fillPoint(x, y + 1);
+                // special case every 10 grid points in each direction
+                if (allBoldDots || (everyTenX && everyTenY)) {
+                    raster.fillPoint(x, y);
+                    if (x > 0) {
+                        raster.fillPoint(x - 1, y);
+                    }
+                    if (x < sz.width - 1) {
+                        raster.fillPoint(x + 1, y);
+                    }
+                    if (y > 0) {
+                        raster.fillPoint(x, y - 1);
+                    }
+                    if (y < sz.height - 1) {
+                        raster.fillPoint(x, y + 1);
+                    }
 //					opaqueData[y * sz.width + x] = col;
 //					if (x > 0) opaqueData[y * sz.width + (x-1)] = col;
 //					if (x < sz.width-1) opaqueData[y * sz.width + (x+1)] = col;
 //					if (y > 0) opaqueData[(y-1) * sz.width + x] = col;
 //					if (y < sz.height-1) opaqueData[(y+1) * sz.width + x] = col;
-					continue;
-				}
+                    continue;
+                }
 
-				// just a single dot
+                // just a single dot
                 raster.fillPoint(x, y);
 //				opaqueData[y * sz.width + x] = col;
-			}
-		}
-		if (dp.gridAxesShown)
-		{
+            }
+        }
+        if (dp.gridAxesShown) {
             tmpPt.setLocation(0, 0);
             outofCellTransform.transform(tmpPt, tmpPt);
-			databaseToScreen(tmpPt.getX(), tmpPt.getY(), tempPt1);
-			int x = tempPt1.x;
-			int y = tempPt1.y;
-			if (x >= 0 && x < sz.width) {
+            databaseToScreen(tmpPt.getX(), tmpPt.getY(), tempPt1);
+            int x = tempPt1.x;
+            int y = tempPt1.y;
+            if (x >= 0 && x < sz.width) {
                 raster.fillVerLine(x, 0, sz.height - 1);
 //                int baseIndex = xy.x;
 //                for (int y = 0; y < sz.height; y++) {
@@ -1542,35 +1728,34 @@ class LayerDrawing
 //                    baseIndex += sz.width;
 //                }
             }
-			if (y >= 0 && y < sz.height) {
+            if (y >= 0 && y < sz.height) {
                 raster.fillHorLine(y, 0, sz.width - 1);
 //                int baseIndex = xy.y * sz.width;
 //                for (int x = 0; x < sz.width; x++)
 //                    opaqueData[baseIndex + x] = col;
             }
-		}
-	}
+        }
+    }
 
-	/**
-	 * Method to return a rectangle in database coordinates that covers the viewable extent of this window.
-	 * @return a rectangle that describes the viewable extent of this window (database coordinates).
-	 */
-	private Rectangle2D displayableBounds(AffineTransform intoCellTransform)
-	{
-		Point2D low = new Point2D.Double();
+    /**
+     * Method to return a rectangle in database coordinates that covers the viewable extent of this window.
+     * @return a rectangle that describes the viewable extent of this window (database coordinates).
+     */
+    private Rectangle2D displayableBounds(AffineTransform intoCellTransform) {
+        Point2D low = new Point2D.Double();
         screenToDatabase(0, 0, low);
         intoCellTransform.transform(low, low);
-		Point2D high = new Point2D.Double();
-        screenToDatabase(sz.width-1, sz.height-1, high);
+        Point2D high = new Point2D.Double();
+        screenToDatabase(sz.width - 1, sz.height - 1, high);
         intoCellTransform.transform(high, high);
 
-		double lowX = Math.min(low.getX(), high.getX());
-		double lowY = Math.min(low.getY(), high.getY());
-		double sizeX = Math.abs(high.getX()-low.getX());
-		double sizeY = Math.abs(high.getY()-low.getY());
-		Rectangle2D bounds = new Rectangle2D.Double(lowX, lowY, sizeX, sizeY);
-		return bounds;
-	}
+        double lowX = Math.min(low.getX(), high.getX());
+        double lowY = Math.min(low.getY(), high.getY());
+        double sizeX = Math.abs(high.getX() - low.getX());
+        double sizeY = Math.abs(high.getY() - low.getY());
+        Rectangle2D bounds = new Rectangle2D.Double(lowX, lowY, sizeX, sizeY);
+        return bounds;
+    }
 
     private void periodicRefresh() {
         // handle refreshing
@@ -1586,22 +1771,20 @@ class LayerDrawing
         }
     }
 
-	// ************************************* HIERARCHY TRAVERSAL *************************************
-
-	/**
-	 * Method to draw the contents of a cell, transformed through "prevTrans".
-	 */
-	private void drawCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, int oX, int oY, boolean topLevel, VarContext context)
-	{
-		renderedCells++;
+    // ************************************* HIERARCHY TRAVERSAL *************************************
+    /**
+     * Method to draw the contents of a cell, transformed through "prevTrans".
+     */
+    private void drawCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, int oX, int oY, boolean topLevel, VarContext context) {
+        renderedCells++;
 
         VectorCache.VectorCell vc = VectorCache.theCache.drawCell(cell.getId(), orient, context, scale);
 
-		// draw all subcells
-		for(VectorCache.VectorSubCell vsc : vc.subCells) {
-			totalCells++;
+        // draw all subcells
+        for (VectorCache.VectorSubCell vsc : vc.subCells) {
+            totalCells++;
 
-			// get instance location
+            // get instance location
             int soX = vsc.offsetX + oX;
             int soY = vsc.offsetY + oY;
             VectorCache.VectorCell subVC = VectorCache.theCache.findVectorCell(vsc.subCellId, vc.orient.concatenate(vsc.n.orient));
@@ -1612,39 +1795,42 @@ class LayerDrawing
             int hX = tempPt2.x;
             int hY = tempPt2.y;
 
-			// see if the subcell is clipped
-			if (hX < clipLX || lX > clipHX) continue;
-			if (hY < clipLY || lY > clipHY) continue;
+            // see if the subcell is clipped
+            if (hX < clipLX || lX > clipHX) {
+                continue;
+            }
+            if (hY < clipLY || lY > clipHY) {
+                continue;
+            }
 
-			// see if drawing "down in place"
-			boolean onPathDown = inPlaceSubcellPath != null && inPlaceSubcellPath.get(vsc.subCellId.cellIndex);
+            // see if drawing "down in place"
+            boolean onPathDown = inPlaceSubcellPath != null && inPlaceSubcellPath.get(vsc.subCellId.cellIndex);
 
-			// see if cell contents should be drawn
+            // see if cell contents should be drawn
             boolean isExpanded = cell.isExpanded(vsc.n.nodeId);
-			boolean expanded = isExpanded || fullInstantiate;
+            boolean expanded = isExpanded || fullInstantiate;
 
-			// if not expanded, but viewing this cell in-place, expand it
-			if (!expanded && onPathDown) expanded = true;
+            // if not expanded, but viewing this cell in-place, expand it
+            if (!expanded && onPathDown) {
+                expanded = true;
+            }
 
-			// two ways to draw a cell instance
+            // two ways to draw a cell instance
             CellId subCellId = vsc.subCellId;
-			Cell subCell = VectorCache.theCache.database.getCell(subCellId);
-			if (expanded)
-			{
-				// show the contents of the cell
+            Cell subCell = VectorCache.theCache.database.getCell(subCellId);
+            if (expanded) {
+                // show the contents of the cell
                 Orientation subOrient = orient.concatenate(vsc.n.orient);
                 int soX_ = vsc.offsetX + oX;
                 int soY_ = vsc.offsetY + oY;
-				if (!expandedCellCached(subCell, subOrient, soX_, soY_, context, fullInstantiate))
-				{
-					// just draw it directly
-					cellsRendered++;
+                if (!expandedCellCached(subCell, subOrient, soX_, soY_, context, fullInstantiate)) {
+                    // just draw it directly
+                    cellsRendered++;
                     NodeInst ni = subCell.getNodeById(vsc.n.nodeId);
-					drawCell(subCell, drawLimitBounds, fullInstantiate, subOrient, soX_, soY_, false, context.push(ni));
-				}
-			} else
-			{
-				// draw the black box of the instance
+                    drawCell(subCell, drawLimitBounds, fullInstantiate, subOrient, soX_, soY_, false, context.push(ni));
+                }
+            } else {
+                // draw the black box of the instance
                 int[] op = subVC.outlinePoints;
                 int p1x = op[0] + soX;
                 int p1y = op[1] + soY;
@@ -1654,248 +1840,276 @@ class LayerDrawing
                 int p3y = op[5] + soY;
                 int p4x = op[6] + soX;
                 int p4y = op[7] + soY;
-                gridToScreen(p1x, p1y, tempPt1);   gridToScreen(p2x, p2y, tempPt2);
+                gridToScreen(p1x, p1y, tempPt1);
+                gridToScreen(p2x, p2y, tempPt2);
                 ERaster instanceRaster = getInstanceRaster();
-				drawLine(tempPt1, tempPt2, 0, instanceRaster);
-				gridToScreen(p2x, p2y, tempPt1);   gridToScreen(p3x, p3y, tempPt2);
-				drawLine(tempPt1, tempPt2, 0, instanceRaster);
-				gridToScreen(p3x, p3y, tempPt1);   gridToScreen(p4x, p4y, tempPt2);
-				drawLine(tempPt1, tempPt2, 0, instanceRaster);
-				gridToScreen(p1x, p1y, tempPt1);   gridToScreen(p4x, p4y, tempPt2);
-				drawLine(tempPt1, tempPt2, 0, instanceRaster);
+                drawLine(tempPt1, tempPt2, 0, instanceRaster);
+                gridToScreen(p2x, p2y, tempPt1);
+                gridToScreen(p3x, p3y, tempPt2);
+                drawLine(tempPt1, tempPt2, 0, instanceRaster);
+                gridToScreen(p3x, p3y, tempPt1);
+                gridToScreen(p4x, p4y, tempPt2);
+                drawLine(tempPt1, tempPt2, 0, instanceRaster);
+                gridToScreen(p1x, p1y, tempPt1);
+                gridToScreen(p4x, p4y, tempPt2);
+                drawLine(tempPt1, tempPt2, 0, instanceRaster);
 
-				// draw the instance name
-				if (canDrawText && gp.isTextVisibilityOn(TextDescriptor.TextType.INSTANCE))
-				{
-					tempRect.setBounds(lX, lY, hX-lX, hY-lY);
-					TextDescriptor descript = vsc.n.protoDescriptor;
-					NodeProto np = VectorCache.theCache.database.getCell(vsc.subCellId);
-					drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), textColor, null);
-				}
-			}
-			if (canDrawText && (topLevel || onPathDown || inPlaceCurrent == cell))
+                // draw the instance name
+                if (canDrawText && gp.isTextVisibilityOn(TextDescriptor.TextType.INSTANCE)) {
+                    tempRect.setBounds(lX, lY, hX - lX, hY - lY);
+                    TextDescriptor descript = vsc.n.protoDescriptor;
+                    NodeProto np = VectorCache.theCache.database.getCell(vsc.subCellId);
+                    drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), textColor, null);
+                }
+            }
+            if (canDrawText && (topLevel || onPathDown || inPlaceCurrent == cell)) {
                 drawPortList(vsc, subVC, soX, soY, expanded);
+            }
 //                drawPortList(vsc, subVC, soX, soY, isExpanded);
         }
 
         // draw primitives
         drawList(oX, oY, vc.shapes);
 
-		// show cell variables if at the top level
-        if (topLevel)
+        // show cell variables if at the top level
+        if (topLevel) {
             drawList(oX, oY, vc.getTopOnlyShapes());
-	}
+        }
+    }
 
-	/**
-	 * @return true if the cell is properly handled and need no further processing.
-	 * False to render the contents recursively.
-	 */
-	private boolean expandedCellCached(Cell subCell, Orientation orient, int oX, int oY, VarContext context, boolean fullInstantiate)
-	{
-		// if there is no global for remembering cached cells, do not cache
-		if (expandedCells == null) return false;
+    /**
+     * @return true if the cell is properly handled and need no further processing.
+     * False to render the contents recursively.
+     */
+    private boolean expandedCellCached(Cell subCell, Orientation orient, int oX, int oY, VarContext context, boolean fullInstantiate) {
+        // if there is no global for remembering cached cells, do not cache
+        if (expandedCells == null) {
+            return false;
+        }
 
-		// do not cache icons: they can be redrawn each time
-		if (subCell.isIcon()) return false;
+        // do not cache icons: they can be redrawn each time
+        if (subCell.isIcon()) {
+            return false;
+        }
 
         ExpandedCellKey expansionKey = new ExpandedCellKey(subCell, orient);
-		ExpandedCellInfo expandedCellCount = expandedCells.get(expansionKey);
-		if (expandedCellCount != null && expandedCellCount.offscreen == null)
-		{
-            if (expandedCellCount.tooLarge) return false;
-			// if this combination is not used multiple times, do not cache it
-			if (expandedCellCount.singleton && expandedCellCount.instanceCount < 2)
-			{
-				if (numberToReconcile > 0)
-				{
-					numberToReconcile--;
-					expandedCellCount.singleton = false;
-				} else return false;
-			}
-		}
+        ExpandedCellInfo expandedCellCount = expandedCells.get(expansionKey);
+        if (expandedCellCount != null && expandedCellCount.offscreen == null) {
+            if (expandedCellCount.tooLarge) {
+                return false;
+            }
+            // if this combination is not used multiple times, do not cache it
+            if (expandedCellCount.singleton && expandedCellCount.instanceCount < 2) {
+                if (numberToReconcile > 0) {
+                    numberToReconcile--;
+                    expandedCellCount.singleton = false;
+                } else {
+                    return false;
+                }
+            }
+        }
 
-		if (expandedCellCount == null || expandedCellCount.offscreen == null)
-		{
+        if (expandedCellCount == null || expandedCellCount.offscreen == null) {
             // compute the cell's location on the screen
             Rectangle2D cellBounds = new Rectangle2D.Double();
             cellBounds.setRect(subCell.getBounds());
             if (canDrawText) {
                 Rectangle2D textBounds = subCell.getTextBounds(dummyWnd);
-                if (textBounds != null)
+                if (textBounds != null) {
                     cellBounds.add(textBounds);
+                }
             }
             AffineTransform rotTrans = orient.pureRotate();
             DBMath.transformRect(cellBounds, rotTrans);
-            int lX = (int)Math.ceil(cellBounds.getMinX()*scale - 0.5);
-            int hX = (int)Math.floor(cellBounds.getMaxX()*scale + 0.5);
-            int lY = (int)Math.ceil(cellBounds.getMinY()*scale - 0.5);
-            int hY = (int)Math.floor(cellBounds.getMaxY()*scale + 0.5);
+            int lX = (int) Math.ceil(cellBounds.getMinX() * scale - 0.5);
+            int hX = (int) Math.floor(cellBounds.getMaxX() * scale + 0.5);
+            int lY = (int) Math.ceil(cellBounds.getMinY() * scale - 0.5);
+            int hY = (int) Math.floor(cellBounds.getMaxY() * scale + 0.5);
             assert lX <= hX && lY <= hY;
 
-			// if this is the first use, create the offscreen buffer
-			if (expandedCellCount == null)
-			{
-				expandedCellCount = new ExpandedCellInfo();
-				expandedCells.put(expansionKey, expandedCellCount);
-			}
+            // if this is the first use, create the offscreen buffer
+            if (expandedCellCount == null) {
+                expandedCellCount = new ExpandedCellInfo();
+                expandedCells.put(expansionKey, expandedCellCount);
+            }
 
             // do not cache if the cell is too large (creates immense offscreen buffers)
-            if (hX - lX >= topSz.width/32 && hY - lY >= topSz.height/32) {
+            if (hX - lX >= topSz.width / 32 && hY - lY >= topSz.height / 32) {
                 expandedCellCount.tooLarge = true;
                 return false;
             }
 
             expandedCellCount.offscreen = new LayerDrawing(scale, lX, hX, lY, hY);
-			expandedCellCount.offscreen.drawCell(subCell, null, fullInstantiate, orient, 0, 0, false, context);
-			offscreensCreated++;
+            expandedCellCount.offscreen.drawCell(subCell, null, fullInstantiate, orient, 0, 0, false, context);
+            offscreensCreated++;
             offscreenPixelsCreated += expandedCellCount.offscreen.total;
             if (DEBUG) {
-                System.out.print(subCell + " " + orient + " rendered in " + expandedCellCount.offscreen.total + " pixels" +
-                        " t=" + System.currentTimeMillis());
-                for (Layer layer: expandedCellCount.offscreen.layerRasters.keySet())
+                System.out.print(subCell + " " + orient + " rendered in " + expandedCellCount.offscreen.total + " pixels"
+                        + " t=" + System.currentTimeMillis());
+                for (Layer layer : expandedCellCount.offscreen.layerRasters.keySet()) {
                     System.out.print(" " + layer.getName());
-                if (instanceRaster != null)
+                }
+                if (instanceRaster != null) {
                     System.out.print(" INSTANCE");
+                }
                 System.out.println();
                 assert gridRaster == null;
-           }
-		}
+            }
+        }
 
-		// copy out of the offscreen buffer into the main buffer
+        // copy out of the offscreen buffer into the main buffer
         gridToScreen(oX, oY, tempPt1);
-		copyBits(expandedCellCount.offscreen, tempPt1.x, tempPt1.y);
-		offscreensUsed++;
-        if (TAKE_STATS) offscreensUsedSet.add(expansionKey);
+        copyBits(expandedCellCount.offscreen, tempPt1.x, tempPt1.y);
+        offscreensUsed++;
+        if (TAKE_STATS) {
+            offscreensUsedSet.add(expansionKey);
+        }
         offscreenPixelsUsed += expandedCellCount.offscreen.total;
-		return true;
-	}
+        return true;
+    }
 
-	// ************************************* CELL CACHING *************************************
+    // ************************************* CELL CACHING *************************************
+    /**
+     * Recursive method to count the number of times that a cell-transformation is used
+     */
+    private void countCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, AffineTransform prevTrans) {
+        // look for subcells
+        for (Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext();) {
+            NodeInst ni = nodes.next();
+            if (!ni.isCellInstance()) {
+                continue;
+            }
 
-	/**
-	 * Recursive method to count the number of times that a cell-transformation is used
-	 */
-	private void countCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, AffineTransform prevTrans)
-	{
-		// look for subcells
-		for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); )
-		{
-			NodeInst ni = nodes.next();
-			if (!ni.isCellInstance()) continue;
+            // if limiting drawing, reject when out of area
+            if (drawLimitBounds != null) {
+                Rectangle2D curBounds = ni.getBounds();
+                Rectangle2D bounds = new Rectangle2D.Double(curBounds.getX(), curBounds.getY(), curBounds.getWidth(), curBounds.getHeight());
+                DBMath.transformRect(bounds, prevTrans);
+                if (!DBMath.rectsIntersect(bounds, drawLimitBounds)) {
+                    return;
+                }
+            }
 
-			// if limiting drawing, reject when out of area
-			if (drawLimitBounds != null)
-			{
-				Rectangle2D curBounds = ni.getBounds();
-				Rectangle2D bounds = new Rectangle2D.Double(curBounds.getX(), curBounds.getY(), curBounds.getWidth(), curBounds.getHeight());
-				DBMath.transformRect(bounds, prevTrans);
-				if (!DBMath.rectsIntersect(bounds, drawLimitBounds)) return;
-			}
+            countNode(ni, drawLimitBounds, fullInstantiate, orient, prevTrans);
+        }
+    }
 
-			countNode(ni, drawLimitBounds, fullInstantiate, orient, prevTrans);
-		}
-	}
+    /**
+     * Recursive method to count the number of times that a cell-transformation is used
+     */
+    private void countNode(NodeInst ni, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, AffineTransform trans) {
+        // if the node is tiny, it will be approximated
+        double objWidth = Math.max(ni.getXSize(), ni.getYSize());
+        if (objWidth < maxObjectSize) {
+            return;
+        }
 
-	/**
-	 * Recursive method to count the number of times that a cell-transformation is used
-	 */
-	private void countNode(NodeInst ni, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, AffineTransform trans)
-	{
-		// if the node is tiny, it will be approximated
-		double objWidth = Math.max(ni.getXSize(), ni.getYSize());
-		if (objWidth < maxObjectSize) return;
-
-		// transform into the subcell
+        // transform into the subcell
         Orientation subOrient = orient.concatenate(ni.getOrient());
-		AffineTransform subTrans = ni.transformOut(trans);
+        AffineTransform subTrans = ni.transformOut(trans);
 //		AffineTransform localTrans = ni.rotateOut(trans);
 //		AffineTransform subTrans = ni.translateOut(localTrans);
 
-		// compute where this cell lands on the screen
-		NodeProto np = ni.getProto();
-		Cell subCell = (Cell)np;
-		Rectangle2D cellBounds = subCell.getBounds();
-		Poly poly = new Poly(cellBounds);
-		poly.transform(subTrans);
+        // compute where this cell lands on the screen
+        NodeProto np = ni.getProto();
+        Cell subCell = (Cell) np;
+        Rectangle2D cellBounds = subCell.getBounds();
+        Poly poly = new Poly(cellBounds);
+        poly.transform(subTrans);
 //		if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
-		cellBounds = poly.getBounds2D();
-		Rectangle screenBounds = databaseToScreen(cellBounds);
-		if (screenBounds.width <= 0 || screenBounds.height <= 0) return;
-		if (screenBounds.x > sz.width || screenBounds.x+screenBounds.width < 0) return;
-		if (screenBounds.y > sz.height || screenBounds.y+screenBounds.height < 0) return;
+        cellBounds = poly.getBounds2D();
+        Rectangle screenBounds = databaseToScreen(cellBounds);
+        if (screenBounds.width <= 0 || screenBounds.height <= 0) {
+            return;
+        }
+        if (screenBounds.x > sz.width || screenBounds.x + screenBounds.width < 0) {
+            return;
+        }
+        if (screenBounds.y > sz.height || screenBounds.y + screenBounds.height < 0) {
+            return;
+        }
 
-		// only interested in expanded instances
-		boolean expanded = ni.isExpanded();
-		if (fullInstantiate) expanded = true;
+        // only interested in expanded instances
+        boolean expanded = ni.isExpanded();
+        if (fullInstantiate) {
+            expanded = true;
+        }
 
-		// if not expanded, but viewing this cell in-place, expand it
+        // if not expanded, but viewing this cell in-place, expand it
         expanded = expanded || inPlaceSubcellPath != null && inPlaceSubcellPath.get(subCell.getId().cellIndex);
-		if (!expanded) return;
+        if (!expanded) {
+            return;
+        }
 
-		if (screenBounds.width < sz.width/2 || screenBounds.height <= sz.height/2)
-		{
-			// construct the cell name that combines with the transformation
-			ExpandedCellKey expansionKey = new ExpandedCellKey(subCell, subOrient);
-			ExpandedCellInfo expansionCount = expandedCells.get(expansionKey);
-			if (expansionCount == null)
-			{
-				expansionCount = new ExpandedCellInfo();
-				expansionCount.instanceCount = 1;
-				expandedCells.put(expansionKey, expansionCount);
-			} else
-			{
-				expansionCount.instanceCount++;
-				if (expansionCount.instanceCount > 1) return;
-			}
-		}
+        if (screenBounds.width < sz.width / 2 || screenBounds.height <= sz.height / 2) {
+            // construct the cell name that combines with the transformation
+            ExpandedCellKey expansionKey = new ExpandedCellKey(subCell, subOrient);
+            ExpandedCellInfo expansionCount = expandedCells.get(expansionKey);
+            if (expansionCount == null) {
+                expansionCount = new ExpandedCellInfo();
+                expansionCount.instanceCount = 1;
+                expandedCells.put(expansionKey, expansionCount);
+            } else {
+                expansionCount.instanceCount++;
+                if (expansionCount.instanceCount > 1) {
+                    return;
+                }
+            }
+        }
 
-		// now recurse
+        // now recurse
 
-		countCell(subCell, null, fullInstantiate, subOrient, subTrans);
-	}
+        countCell(subCell, null, fullInstantiate, subOrient, subTrans);
+    }
 
-	public static void forceRedraw(Cell cell)
-	{
+    public static void forceRedraw(Cell cell) {
         synchronized (changedCells) {
             changedCells.add(cell.getId());
         }
-	}
+    }
 
-	private static void forceRedraw(Set<CellId> changedCells)
-	{
-		// if there is no global for remembering cached cells, do not cache
-		if (expandedCells == null) return;
+    private static void forceRedraw(Set<CellId> changedCells) {
+        // if there is no global for remembering cached cells, do not cache
+        if (expandedCells == null) {
+            return;
+        }
 
-		List<ExpandedCellKey> keys = new ArrayList<ExpandedCellKey>();
-		for(ExpandedCellKey eck : expandedCells.keySet() )
-			keys.add(eck);
-		for(ExpandedCellKey expansionKey : keys)
-		{
-            if (changedCells.contains(expansionKey.cell.getId()))
-				expandedCells.remove(expansionKey);
-		}
-	}
+        List<ExpandedCellKey> keys = new ArrayList<ExpandedCellKey>();
+        for (ExpandedCellKey eck : expandedCells.keySet()) {
+            keys.add(eck);
+        }
+        for (ExpandedCellKey expansionKey : keys) {
+            if (changedCells.contains(expansionKey.cell.getId())) {
+                expandedCells.remove(expansionKey);
+            }
+        }
+    }
 
-	/**
-	 * Method to copy the offscreen bits for a cell into the offscreen bits for the entire screen.
-	 */
-	private void copyBits(LayerDrawing srcOffscreen, int centerX, int centerY)
-	{
-		if (srcOffscreen == null) return;
-		Dimension dim = srcOffscreen.sz;
-        int cornerX = centerX - (int)srcOffscreen.originX;
-        int cornerY = centerY - (int)srcOffscreen.originY;
+    /**
+     * Method to copy the offscreen bits for a cell into the offscreen bits for the entire screen.
+     */
+    private void copyBits(LayerDrawing srcOffscreen, int centerX, int centerY) {
+        if (srcOffscreen == null) {
+            return;
+        }
+        Dimension dim = srcOffscreen.sz;
+        int cornerX = centerX - (int) srcOffscreen.originX;
+        int cornerY = centerY - (int) srcOffscreen.originY;
         int minSrcX = Math.max(0, clipLX - cornerX);
         int maxSrcX = Math.min(dim.width - 1, clipHX - cornerX);
         int minSrcY = Math.max(0, clipLY - cornerY);
         int maxSrcY = Math.min(dim.height - 1, clipHY - cornerY);
-        if (minSrcX > maxSrcX || minSrcY > maxSrcY) return;
+        if (minSrcX > maxSrcX || minSrcY > maxSrcY) {
+            return;
+        }
 
-		// copy the patterned opaque layers
-        for(Map.Entry<Layer,TransparentRaster> e : srcOffscreen.layerRasters.entrySet()) {
+        // copy the patterned opaque layers
+        for (Map.Entry<Layer, TransparentRaster> e : srcOffscreen.layerRasters.entrySet()) {
             Layer layer = e.getKey();
             ERaster raster = getRaster(layer, null, false);
-            if (raster == null) continue;
+            if (raster == null) {
+                continue;
+            }
             TransparentRaster polSrc = e.getValue();
             raster.copyBits(polSrc, minSrcX, maxSrcX, minSrcY, maxSrcY, cornerX, cornerY);
         }
@@ -1906,8 +2120,7 @@ class LayerDrawing
         assert srcOffscreen.gridRaster == null;
     }
 
-	// ************************************* RENDERING POLY SHAPES *************************************
-
+    // ************************************* RENDERING POLY SHAPES *************************************
     /**
      * A class representing a rectangular array of pixels. References
      * to pixels outside of the bounding rectangle may result in an
@@ -1916,6 +2129,7 @@ class LayerDrawing
      * responsibility to avoid accessing such pixels.
      */
     static interface ERaster {
+
         /**
          * Method to fill a box [lX,hX] x [lY,hY].
          * Both low and high coordiantes are inclusive.
@@ -2002,8 +2216,9 @@ class LayerDrawing
     }
 
     ERaster getRaster(Layer layer, EGraphics graphics, boolean forceVisible) {
-        if (layer == null)
+        if (layer == null) {
             layer = Artwork.tech().defaultLayer;
+        }
         assert !layer.isPseudoLayer();
         TransparentRaster raster = layerRasters.get(layer);
         if (raster == null) {
@@ -2011,15 +2226,18 @@ class LayerDrawing
             layerRasters.put(layer, raster);
         }
         if (patternedDisplay && renderedWindow) {
-            int [] pattern = null;
-            if (graphics == null && layer != null)
+            int[] pattern = null;
+            if (graphics == null && layer != null) {
                 graphics = gp.getGraphics(layer);
-            if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
+            }
+            if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay()) {
                 pattern = graphics.getReversedPattern();
+            }
             if (pattern != null) {
                 EGraphics.Outline o = graphics.getOutlined();
-                if (o == EGraphics.Outline.NOPAT)
+                if (o == EGraphics.Outline.NOPAT) {
                     o = null;
+                }
                 currentPatternedTransparentRaster.init(raster.layerBitMap, raster.intsPerRow, pattern, o);
                 raster = currentPatternedTransparentRaster;
             }
@@ -2028,14 +2246,16 @@ class LayerDrawing
     }
 
     ERaster getInstanceRaster() {
-        if (instanceRaster == null)
+        if (instanceRaster == null) {
             instanceRaster = new TransparentRaster(sz.height, numIntsPerRow);
+        }
         return instanceRaster;
     }
 
     ERaster getGridRaster() {
-        if (gridRaster == null)
+        if (gridRaster == null) {
             gridRaster = new TransparentRaster(sz.height, numIntsPerRow);
+        }
         return gridRaster;
     }
 
@@ -2118,21 +2338,21 @@ class LayerDrawing
 //            }
 //        }
 //    }
-
     /**
      * ERaster for solid transparent layers.
      */
     private static class TransparentRaster implements ERaster {
-        private static TransparentRaster current = new TransparentRaster();
 
+        private static TransparentRaster current = new TransparentRaster();
         int[] layerBitMap;
         int intsPerRow;
 
-        private TransparentRaster() {}
+        private TransparentRaster() {
+        }
 
         TransparentRaster(int height, int numIntsPerRow) {
             this.intsPerRow = numIntsPerRow;
-            layerBitMap = new int[height*numIntsPerRow];
+            layerBitMap = new int[height * numIntsPerRow];
         }
 
         void init(int[] layerBitMap, int intsPerRow) {
@@ -2141,22 +2361,23 @@ class LayerDrawing
         }
 
         public void fillBox(int lX, int hX, int lY, int hY) {
-            int baseIndex = lY*intsPerRow;
-            int lIndex = baseIndex + (lX>>5);
-            int hIndex = baseIndex + (hX>>5);
+            int baseIndex = lY * intsPerRow;
+            int lIndex = baseIndex + (lX >> 5);
+            int hIndex = baseIndex + (hX >> 5);
             if (lIndex == hIndex) {
-                int mask = (2 << (hX&31)) - (1 << (lX&31));
+                int mask = (2 << (hX & 31)) - (1 << (lX & 31));
                 for (int y = lY; y < hY; y++) {
                     layerBitMap[lIndex] |= mask;
                     lIndex += intsPerRow;
                 }
             } else {
-                int lMask = -(1 << (lX&31));
-                int hMask = (2 << (hX&31)) - 1;
+                int lMask = -(1 << (lX & 31));
+                int hMask = (2 << (hX & 31)) - 1;
                 for (int y = lY; y <= hY; y++) {
                     layerBitMap[lIndex] |= lMask;
-                    for (int index = lIndex + 1; index < hIndex; index++)
+                    for (int index = lIndex + 1; index < hIndex; index++) {
                         layerBitMap[index] = -1;
+                    }
                     layerBitMap[hIndex] |= hMask;
                     lIndex += intsPerRow;
                     hIndex += intsPerRow;
@@ -2165,25 +2386,26 @@ class LayerDrawing
         }
 
         public void eraseBox(int lX, int hX, int lY, int hY) {
-            int baseIndex = lY*intsPerRow;
-            int lIndex = baseIndex + (lX>>5);
-            int hIndex = baseIndex + (hX>>5);
+            int baseIndex = lY * intsPerRow;
+            int lIndex = baseIndex + (lX >> 5);
+            int hIndex = baseIndex + (hX >> 5);
             if (lIndex == hIndex) {
-                int mask = (2 << (hX&31)) - (1 << (lX&31));
+                int mask = (2 << (hX & 31)) - (1 << (lX & 31));
                 mask = ~mask;
                 for (int y = lY; y < hY; y++) {
                     layerBitMap[lIndex] &= mask;
                     lIndex += intsPerRow;
                 }
             } else {
-                int lMask = -(1 << (lX&31));
-                int hMask = (2 << (hX&31)) - 1;
+                int lMask = -(1 << (lX & 31));
+                int hMask = (2 << (hX & 31)) - 1;
                 lMask = ~lMask;
                 hMask = ~hMask;
                 for (int y = lY; y <= hY; y++) {
                     layerBitMap[lIndex] &= lMask;
-                    for (int index = lIndex + 1; index < hIndex; index++)
+                    for (int index = lIndex + 1; index < hIndex; index++) {
                         layerBitMap[index] = 0;
+                    }
                     layerBitMap[hIndex] &= hMask;
                     lIndex += intsPerRow;
                     hIndex += intsPerRow;
@@ -2192,27 +2414,29 @@ class LayerDrawing
         }
 
         public void eraseAll() {
-            for (int i = 0; i < layerBitMap.length; i++)
+            for (int i = 0; i < layerBitMap.length; i++) {
                 layerBitMap[i] = 0;
+            }
         }
 
         public void fillHorLine(int y, int lX, int hX) {
-            int baseIndex = y*intsPerRow;
-            int lIndex = baseIndex + (lX>>5);
-            int hIndex = baseIndex + (hX>>5);
+            int baseIndex = y * intsPerRow;
+            int lIndex = baseIndex + (lX >> 5);
+            int hIndex = baseIndex + (hX >> 5);
             if (lIndex == hIndex) {
-                layerBitMap[lIndex] |= (2 << (hX&31)) - (1 << (lX&31));
+                layerBitMap[lIndex] |= (2 << (hX & 31)) - (1 << (lX & 31));
             } else {
-                layerBitMap[lIndex++] |= -(1 << (lX&31));
-                while (lIndex < hIndex)
+                layerBitMap[lIndex++] |= -(1 << (lX & 31));
+                while (lIndex < hIndex) {
                     layerBitMap[lIndex++] |= -1;
-                layerBitMap[hIndex] |= (2 << (hX&31)) - 1;
+                }
+                layerBitMap[hIndex] |= (2 << (hX & 31)) - 1;
             }
         }
 
         public void fillVerLine(int x, int lY, int hY) {
-            int baseIndex = lY*intsPerRow + (x>>5);
-            int mask = 1 << (x&31);
+            int baseIndex = lY * intsPerRow + (x >> 5);
+            int mask = 1 << (x & 31);
             for (int y = lY; y <= hY; y++) {
                 layerBitMap[baseIndex] |= mask;
                 baseIndex += intsPerRow;
@@ -2220,26 +2444,27 @@ class LayerDrawing
         }
 
         public void fillPoint(int x, int y) {
-            layerBitMap[y*intsPerRow + (x>>5)] |= (1 << (x&31));
+            layerBitMap[y * intsPerRow + (x >> 5)] |= (1 << (x & 31));
         }
 
         public void drawHorLine(int y, int lX, int hX) {
-            int baseIndex = y*intsPerRow;
-            int lIndex = baseIndex + (lX>>5);
-            int hIndex = baseIndex + (hX>>5);
+            int baseIndex = y * intsPerRow;
+            int lIndex = baseIndex + (lX >> 5);
+            int hIndex = baseIndex + (hX >> 5);
             if (lIndex == hIndex) {
-                layerBitMap[lIndex] |= (2 << (hX&31)) - (1 << (lX&31));
+                layerBitMap[lIndex] |= (2 << (hX & 31)) - (1 << (lX & 31));
             } else {
-                layerBitMap[lIndex++] |= -(1 << (lX&31));
-                while (lIndex < hIndex)
+                layerBitMap[lIndex++] |= -(1 << (lX & 31));
+                while (lIndex < hIndex) {
                     layerBitMap[lIndex++] |= -1;
-                layerBitMap[hIndex] |= (2 << (hX&31)) - 1;
+                }
+                layerBitMap[hIndex] |= (2 << (hX & 31)) - 1;
             }
         }
 
         public void drawVerLine(int x, int lY, int hY) {
-            int baseIndex = lY*intsPerRow + (x>>5);
-            int mask = 1 << (x&31);
+            int baseIndex = lY * intsPerRow + (x >> 5);
+            int mask = 1 << (x & 31);
             for (int y = lY; y <= hY; y++) {
                 layerBitMap[baseIndex] |= mask;
                 baseIndex += intsPerRow;
@@ -2247,7 +2472,7 @@ class LayerDrawing
         }
 
         public void drawPoint(int x, int y) {
-            layerBitMap[y*intsPerRow + (x>>5)] |= (1 << (x&31));
+            layerBitMap[y * intsPerRow + (x >> 5)] |= (1 << (x & 31));
         }
 
         public EGraphics.Outline getOutline() {
@@ -2255,37 +2480,39 @@ class LayerDrawing
         }
 
         public void copyBits(TransparentRaster src, int minSrcX, int maxSrcX, int minSrcY, int maxSrcY, int dx, int dy) {
-            int [] srcLayerBitMap = src.layerBitMap;
+            int[] srcLayerBitMap = src.layerBitMap;
             int minDestX = minSrcX + dx;
             int maxDestX = maxSrcX + dx;
             int minDestY = minSrcY + dy;
             int maxDestY = maxSrcY + dy;
-            int leftShift = dx&31;
+            int leftShift = dx & 31;
             int rightShift = 32 - leftShift;
-            int srcBaseIndex = minSrcY*src.intsPerRow + (minSrcX>>5);
-            int destBaseIndex = minDestY*intsPerRow + (minDestX>>5);
-            int numDestInts = (maxDestX>>5) - (minDestX>>5);
+            int srcBaseIndex = minSrcY * src.intsPerRow + (minSrcX >> 5);
+            int destBaseIndex = minDestY * intsPerRow + (minDestX >> 5);
+            int numDestInts = (maxDestX >> 5) - (minDestX >> 5);
             if (numDestInts == 0) {
                 // Single destination byte.
-                int destMask = (2 << (maxDestX&31)) - (1 << (minDestX&31));
-                if ((minSrcX>>5) != (maxSrcX>>5)) {
+                int destMask = (2 << (maxDestX & 31)) - (1 << (minDestX & 31));
+                if ((minSrcX >> 5) != (maxSrcX >> 5)) {
                     // A pair of source bytes
                     for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
                         int s0 = srcLayerBitMap[srcBaseIndex];
                         int s1 = srcLayerBitMap[srcBaseIndex + 1];
                         int v = ((s0 >>> rightShift) | (s1 << leftShift)) & destMask;
-                        if (v != 0)
+                        if (v != 0) {
                             layerBitMap[destBaseIndex] |= v;
+                        }
                         srcBaseIndex += src.intsPerRow;
                         destBaseIndex += intsPerRow;
                     }
-                } else if ((minDestX&31) >= (minSrcX&31)) {
+                } else if ((minDestX & 31) >= (minSrcX & 31)) {
                     // source byte shifted left
                     for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
                         int s = srcLayerBitMap[srcBaseIndex];
                         int v = (s << leftShift) & destMask;
-                        if (v != 0)
+                        if (v != 0) {
                             layerBitMap[destBaseIndex] |= v;
+                        }
                         srcBaseIndex += src.intsPerRow;
                         destBaseIndex += intsPerRow;
                     }
@@ -2294,76 +2521,85 @@ class LayerDrawing
                     for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
                         int s = srcLayerBitMap[srcBaseIndex];
                         int v = (s >>> rightShift) & destMask;
-                        if (v != 0)
+                        if (v != 0) {
                             layerBitMap[destBaseIndex] |= v;
+                        }
                         srcBaseIndex += src.intsPerRow;
                         destBaseIndex += intsPerRow;
                     }
                 }
             } else {
-                int minDestMask = - (1 << (minDestX&31));
-                int maxDestMask = (2 << (maxDestX&31)) - 1;
-                int srcIncr = src.intsPerRow - (maxSrcX>>5) + (minSrcX>>5) - 1;
+                int minDestMask = -(1 << (minDestX & 31));
+                int maxDestMask = (2 << (maxDestX & 31)) - 1;
+                int srcIncr = src.intsPerRow - (maxSrcX >> 5) + (minSrcX >> 5) - 1;
                 if (leftShift == 0) {
                     for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
-                        assert srcBaseIndex == srcY*src.intsPerRow + (minSrcX>>5);
-                        assert destBaseIndex == (srcY + dy)*intsPerRow + (minDestX>>5);
+                        assert srcBaseIndex == srcY * src.intsPerRow + (minSrcX >> 5);
+                        assert destBaseIndex == (srcY + dy) * intsPerRow + (minDestX >> 5);
                         int v0 = srcLayerBitMap[srcBaseIndex++] & minDestMask;
-                        if (v0 != 0)
+                        if (v0 != 0) {
                             layerBitMap[destBaseIndex] |= v0;
+                        }
                         destBaseIndex++;
                         for (int i = 1; i < numDestInts; i++) {
                             int v = srcLayerBitMap[srcBaseIndex++];
-                            if (v != 0)
+                            if (v != 0) {
                                 layerBitMap[destBaseIndex] |= v;
+                            }
                             destBaseIndex++;
                         }
                         int vf = srcLayerBitMap[srcBaseIndex++] & maxDestMask;
-                        if (vf != 0)
+                        if (vf != 0) {
                             layerBitMap[destBaseIndex] |= vf;
+                        }
                         srcBaseIndex += srcIncr;
                         destBaseIndex += (intsPerRow - numDestInts);
                     }
-                } else if (numDestInts == 2 && (minSrcX>>5) == (maxSrcX>>5)) {
+                } else if (numDestInts == 2 && (minSrcX >> 5) == (maxSrcX >> 5)) {
                     for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
-                        assert srcBaseIndex == srcY*src.intsPerRow + (minSrcX>>5);
-                        assert destBaseIndex == (srcY + dy)*intsPerRow + (minDestX>>5);
+                        assert srcBaseIndex == srcY * src.intsPerRow + (minSrcX >> 5);
+                        assert destBaseIndex == (srcY + dy) * intsPerRow + (minDestX >> 5);
                         int s = srcLayerBitMap[srcBaseIndex];
                         int b0 = srcLayerBitMap[srcBaseIndex++];
                         int v0 = (s << leftShift) & minDestMask;
-                        if (v0 != 0)
+                        if (v0 != 0) {
                             layerBitMap[destBaseIndex] |= v0;
+                        }
                         int vf = (s >>> rightShift) & maxDestMask;
-                        if (vf != 0)
+                        if (vf != 0) {
                             layerBitMap[destBaseIndex + 1] |= vf;
+                        }
                         srcBaseIndex += src.intsPerRow;
                         destBaseIndex += intsPerRow;
                     }
                 } else {
-                    boolean minSrcPair = leftShift > (minDestX&31);
-                    boolean maxSrcPair = leftShift <= (maxDestX&31);
+                    boolean minSrcPair = leftShift > (minDestX & 31);
+                    boolean maxSrcPair = leftShift <= (maxDestX & 31);
                     for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
-                        assert srcBaseIndex == srcY*src.intsPerRow + (minSrcX>>5);
-                        assert destBaseIndex == (srcY + dy)*intsPerRow + (minDestX>>5);
+                        assert srcBaseIndex == srcY * src.intsPerRow + (minSrcX >> 5);
+                        assert destBaseIndex == (srcY + dy) * intsPerRow + (minDestX >> 5);
                         int s = minSrcPair ? srcLayerBitMap[srcBaseIndex++] : 0;
                         int b0 = srcLayerBitMap[srcBaseIndex++];
                         int v0 = ((s >>> rightShift) | (b0 << leftShift)) & minDestMask;
-                        if (v0 != 0)
+                        if (v0 != 0) {
                             layerBitMap[destBaseIndex] |= v0;
+                        }
                         destBaseIndex++;
                         s = b0;
                         for (int i = 1; i < numDestInts; i++) {
                             int b = srcLayerBitMap[srcBaseIndex++];
                             int v = (s >>> rightShift) | (b << leftShift);
-                            if (v != 0)
+                            if (v != 0) {
                                 layerBitMap[destBaseIndex] |= v;
+                            }
                             destBaseIndex++;
                             s = b;
                         }
                         int bf = maxSrcPair ? srcLayerBitMap[srcBaseIndex++] : 0;
                         int vf = ((s >>> rightShift) | (bf << leftShift)) & maxDestMask;
-                        if (vf != 0)
+                        if (vf != 0) {
                             layerBitMap[destBaseIndex] |= vf;
+                        }
                         srcBaseIndex += srcIncr;
                         destBaseIndex += (intsPerRow - numDestInts);
                     }
@@ -2451,15 +2687,16 @@ class LayerDrawing
 //            }
 //        }
 //    }
-
     /**
      * ERaster for patterned transparent layers.
      */
     private static class PatternedTransparentRaster extends TransparentRaster {
+
         int[] pattern;
         EGraphics.Outline outline;
 
-        PatternedTransparentRaster() {}
+        PatternedTransparentRaster() {
+        }
 
         private void init(int[] layerBitMap, int intsPerRow, int[] pattern, EGraphics.Outline outline) {
             super.init(layerBitMap, intsPerRow);
@@ -2468,26 +2705,28 @@ class LayerDrawing
         }
 
         public void fillBox(int lX, int hX, int lY, int hY) {
-            int baseIndex = lY*intsPerRow;
-            int lIndex = baseIndex + (lX>>5);
-            int hIndex = baseIndex + (hX>>5);
+            int baseIndex = lY * intsPerRow;
+            int lIndex = baseIndex + (lX >> 5);
+            int hIndex = baseIndex + (hX >> 5);
             if (lIndex == hIndex) {
-                int mask = (2 << (hX&31)) - (1 << (lX&31));
+                int mask = (2 << (hX & 31)) - (1 << (lX & 31));
                 for (int y = lY; y < hY; y++) {
-                    int pat = mask & pattern[y&15];
-                    if (pat != 0)
+                    int pat = mask & pattern[y & 15];
+                    if (pat != 0) {
                         layerBitMap[lIndex] |= pat;
+                    }
                     lIndex += intsPerRow;
                 }
             } else {
-                int lMask = -(1 << (lX&31));
-                int hMask = (2 << (hX&31)) - 1;
+                int lMask = -(1 << (lX & 31));
+                int hMask = (2 << (hX & 31)) - 1;
                 for (int y = lY; y <= hY; y++) {
-                    int pat = pattern[y&15];
+                    int pat = pattern[y & 15];
                     if (pat != 0) {
                         layerBitMap[lIndex] |= lMask & pat;
-                        for (int index = lIndex + 1; index < hIndex; index++)
+                        for (int index = lIndex + 1; index < hIndex; index++) {
                             layerBitMap[index] |= pat;
+                        }
                         layerBitMap[hIndex] |= hMask & pat;
                     }
                     lIndex += intsPerRow;
@@ -2498,36 +2737,42 @@ class LayerDrawing
 
         public void fillHorLine(int y, int lX, int hX) {
             int pat = pattern[y & 15];
-            if (pat == 0) return;
-            int baseIndex = y*intsPerRow;
-            int lIndex = baseIndex + (lX>>5);
-            int hIndex = baseIndex + (hX>>5);
+            if (pat == 0) {
+                return;
+            }
+            int baseIndex = y * intsPerRow;
+            int lIndex = baseIndex + (lX >> 5);
+            int hIndex = baseIndex + (hX >> 5);
             if (lIndex == hIndex) {
-                int mask = pat & ((2 << (hX&31)) - (1 << (lX&31)));
-                if (mask != 0)
+                int mask = pat & ((2 << (hX & 31)) - (1 << (lX & 31)));
+                if (mask != 0) {
                     layerBitMap[lIndex] |= mask;
+                }
             } else {
-                layerBitMap[lIndex++] |= pat & (-(1 << (lX&31)));
-                while (lIndex < hIndex)
+                layerBitMap[lIndex++] |= pat & (-(1 << (lX & 31)));
+                while (lIndex < hIndex) {
                     layerBitMap[lIndex++] |= pat;
-                layerBitMap[hIndex] |= pat & ((2 << (hX&31)) - 1);
+                }
+                layerBitMap[hIndex] |= pat & ((2 << (hX & 31)) - 1);
             }
         }
 
         public void fillVerLine(int x, int lY, int hY) {
-            int baseIndex = lY*intsPerRow + (x>>5);
-            int mask = 1 << (x&31);
+            int baseIndex = lY * intsPerRow + (x >> 5);
+            int mask = 1 << (x & 31);
             for (int y = lY; y <= hY; y++) {
-                if ((pattern[y&15] & mask) != 0)
+                if ((pattern[y & 15] & mask) != 0) {
                     layerBitMap[baseIndex] |= mask;
+                }
                 baseIndex += intsPerRow;
             }
         }
 
         public void fillPoint(int x, int y) {
-            int mask = (1 << (x&31)) & pattern[y&15];
-            if (mask != 0)
-                layerBitMap[y*intsPerRow + (x>>5)] |= mask;
+            int mask = (1 << (x & 31)) & pattern[y & 15];
+            if (mask != 0) {
+                layerBitMap[y * intsPerRow + (x >> 5)] |= mask;
+            }
         }
 
         public EGraphics.Outline getOutline() {
@@ -2536,79 +2781,95 @@ class LayerDrawing
 
         public void copyBits(TransparentRaster src, int minSrcX, int maxSrcX, int minSrcY, int maxSrcY, int dx, int dy) {
             int[] srcLayerBitMap = src.layerBitMap;
-            assert (minSrcY + dy)*intsPerRow + ((minSrcX + dx) >> 5) >= 0;
-            assert (maxSrcY + dy)*intsPerRow + ((maxSrcX + dx) >> 5) < layerBitMap.length;
-            for(int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
+            assert (minSrcY + dy) * intsPerRow + ((minSrcX + dx) >> 5) >= 0;
+            assert (maxSrcY + dy) * intsPerRow + ((maxSrcX + dx) >> 5) < layerBitMap.length;
+            for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
                 int destY = srcY + dy;
                 int pat = pattern[destY & 15];
-                if (pat == 0) continue;
-                int srcBaseIndex = srcY*src.intsPerRow;
-                int destBaseIndex = destY*intsPerRow;
+                if (pat == 0) {
+                    continue;
+                }
+                int srcBaseIndex = srcY * src.intsPerRow;
+                int destBaseIndex = destY * intsPerRow;
                 for (int srcX = minSrcX; srcX <= maxSrcX; srcX++) {
                     int destX = srcX + dx;
-                    if ((srcLayerBitMap[srcBaseIndex + (srcX>>5)] & (1<<(srcX&31))) != 0) {
-                        int destMask = 1 << (destX&31);
-                        if ((pat & destMask) != 0)
-                            layerBitMap[destBaseIndex + (destX>>5)] |= destMask;
+                    if ((srcLayerBitMap[srcBaseIndex + (srcX >> 5)] & (1 << (srcX & 31))) != 0) {
+                        int destMask = 1 << (destX & 31);
+                        if ((pat & destMask) != 0) {
+                            layerBitMap[destBaseIndex + (destX >> 5)] |= destMask;
+                        }
                     }
                 }
             }
         }
     }
-
-	// ************************************* RENDERING POLY SHAPES *************************************
-
+    // ************************************* RENDERING POLY SHAPES *************************************
     private static Rectangle tempRect = new Rectangle();
+
     private void gridToScreen(int dbX, int dbY, Point result) {
         double scrX = (dbX - factorX) * scale_;
         double scrY = (factorY - dbY) * scale_;
-        result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
-        result.y = (int)(scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
+        result.x = (int) (scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
+        result.y = (int) (scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
     }
 
-	/**
-	 * Method to draw a list of cached shapes.
-	 * @param oX the X offset to draw the shapes (in database grid coordinates).
-	 * @param oY the Y offset to draw the shapes (in database grid coordinates).
-	 * @param shapes the List of shapes (VectorBase objects).
-	 */
-	private void drawList(int oX, int oY, List<VectorCache.VectorBase> shapes)
-//		throws AbortRenderingException
-	{
-		// render all shapes
-		for(VectorCache.VectorBase vb : shapes)
-		{
+    /**
+     * Method to draw a list of cached shapes.
+     * @param oX the X offset to draw the shapes (in database grid coordinates).
+     * @param oY the Y offset to draw the shapes (in database grid coordinates).
+     * @param shapes the List of shapes (VectorBase objects).
+     */
+    private void drawList(int oX, int oY, List<VectorCache.VectorBase> shapes) //		throws AbortRenderingException
+    {
+        // render all shapes
+        for (VectorCache.VectorBase vb : shapes) {
 //			if (stopRendering) throw new AbortRenderingException();
-			// handle refreshing
-			periodicRefresh();
+            // handle refreshing
+            periodicRefresh();
 
             if (vb instanceof VectorCache.VectorText) {
-                VectorCache.VectorText vt = (VectorCache.VectorText)vb;
+                VectorCache.VectorText vt = (VectorCache.VectorText) vb;
                 TextDescriptor td = vt.descript;
                 if (td != null && !td.isAbsoluteSize()) {
                     double size = td.getTrueSize(scale, wnd);
-                    if (size <= canDrawRelativeText) continue;
+                    if (size <= canDrawRelativeText) {
+                        continue;
+                    }
                 } else {
-                    if (!canDrawText) continue;
+                    if (!canDrawText) {
+                        continue;
+                    }
                 }
                 switch (vt.textType) {
                     case VectorCache.VectorText.TEXTTYPEARC:
-                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.ARC)) continue;
+                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.ARC)) {
+                            continue;
+                        }
                         break;
                     case VectorCache.VectorText.TEXTTYPENODE:
-                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.NODE)) continue;
+                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.NODE)) {
+                            continue;
+                        }
                         break;
                     case VectorCache.VectorText.TEXTTYPECELL:
-                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.CELL)) continue;
+                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.CELL)) {
+                            continue;
+                        }
                         break;
                     case VectorCache.VectorText.TEXTTYPEEXPORT:
-                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.EXPORT)) continue;
+                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.EXPORT)) {
+                            continue;
+                        }
                         break;
                     case VectorCache.VectorText.TEXTTYPEANNOTATION:
-                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.ANNOTATION)) continue;
+                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.ANNOTATION)) {
+                            continue;
+                        }
                         break;
                     case VectorCache.VectorText.TEXTTYPEINSTANCE:
-                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.INSTANCE)) continue;
+                        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.INSTANCE)) {
+                            continue;
+                        }
                         break;
                 }
 //				if (vt.height < maxTextSize) continue;
@@ -2626,8 +2887,9 @@ class LayerDrawing
                 hY = tempPt2.y;
 
                 Color color = textColor;
-                if (vt.layer != null)
+                if (vt.layer != null) {
                     color = gp.getGraphics(vt.layer).getColor();
+                }
                 PrimitiveNode baseNode = null;
                 if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.basePort != null) {
                     baseNode = vt.basePort.getParent();
@@ -2641,33 +2903,36 @@ class LayerDrawing
                     }
 
                     // draw export as text
-                    if (exportDisplayLevel == 1)
+                    if (exportDisplayLevel == 1) {
                         drawString = Export.getShortName(drawString);
+                    }
                     color = textColor;
                 }
 
-                tempRect.setBounds(lX, lY, hX-lX, hY-lY);
+                tempRect.setBounds(lX, lY, hX - lX, hY - lY);
                 drawText(tempRect, vt.style, vt.descript, drawString, color, baseNode);
                 continue;
             }
 
             ERaster raster = getRaster(vb.layer, vb.graphicsOverride, false);
-            if (raster == null) continue;
+            if (raster == null) {
+                continue;
+            }
 
             // handle each shape
             if (vb instanceof VectorCache.VectorManhattan) {
                 boxCount++;
-                VectorCache.VectorManhattan vm = (VectorCache.VectorManhattan)vb;
-                boxArrayCount += vm.coords.length/4;
+                VectorCache.VectorManhattan vm = (VectorCache.VectorManhattan) vb;
+                boxArrayCount += vm.coords.length / 4;
                 for (int i = 0; i < vm.coords.length; i += 4) {
                     int c1X = vm.coords[i];
-                    int c1Y = vm.coords[i+1];
-                    int c2X = vm.coords[i+2];
-                    int c2Y = vm.coords[i+3];
+                    int c1Y = vm.coords[i + 1];
+                    int c2X = vm.coords[i + 2];
+                    int c2Y = vm.coords[i + 3];
 
                     // determine coordinates of rectangle on the screen
-                    gridToScreen(c1X+oX, c2Y+oY, tempPt1);
-                    gridToScreen(c2X+oX, c1Y+oY, tempPt2);
+                    gridToScreen(c1X + oX, c2Y + oY, tempPt1);
+                    gridToScreen(c2X + oX, c1Y + oY, tempPt2);
                     int lX = tempPt1.x;
                     int lY = tempPt1.y;
                     int hX = tempPt2.x;
@@ -2677,34 +2942,34 @@ class LayerDrawing
                 }
             } else if (vb instanceof VectorCache.VectorPolygon) {
                 polygonCount++;
-                VectorCache.VectorPolygon vp = (VectorCache.VectorPolygon)vb;
-                Point [] intPoints = new Point[vp.points.length];
-                for(int i=0; i<vp.points.length; i++) {
+                VectorCache.VectorPolygon vp = (VectorCache.VectorPolygon) vb;
+                Point[] intPoints = new Point[vp.points.length];
+                for (int i = 0; i < vp.points.length; i++) {
                     intPoints[i] = new Point();
-                    gridToScreen(vp.points[i].x+oX, vp.points[i].y+oY, intPoints[i]);
+                    gridToScreen(vp.points[i].x + oX, vp.points[i].y + oY, intPoints[i]);
                 }
-                Point [] clippedPoints = GenMath.clipPoly(intPoints, clipLX, clipHX, clipLY, clipHY);
+                Point[] clippedPoints = GenMath.clipPoly(intPoints, clipLX, clipHX, clipLY, clipHY);
                 drawPolygon(clippedPoints, raster);
             } else if (vb instanceof VectorCache.VectorLine) {
                 lineCount++;
-                VectorCache.VectorLine vl = (VectorCache.VectorLine)vb;
+                VectorCache.VectorLine vl = (VectorCache.VectorLine) vb;
 
                 // determine coordinates of line on the screen
-                gridToScreen(vl.fX+oX, vl.fY+oY, tempPt1);
-                gridToScreen(vl.tX+oX, vl.tY+oY, tempPt2);
+                gridToScreen(vl.fX + oX, vl.fY + oY, tempPt1);
+                gridToScreen(vl.tX + oX, vl.tY + oY, tempPt2);
 
                 // clip and draw the line
                 drawLine(tempPt1, tempPt2, vl.texture, raster);
             } else if (vb instanceof VectorCache.VectorCross) {
                 crossCount++;
-                VectorCache.VectorCross vcr = (VectorCache.VectorCross)vb;
-                gridToScreen(vcr.x+oX, vcr.y+oY, tempPt1);
+                VectorCache.VectorCross vcr = (VectorCache.VectorCross) vb;
+                gridToScreen(vcr.x + oX, vcr.y + oY, tempPt1);
                 int size = vcr.small ? 3 : 5;
                 drawCross(tempPt1.x, tempPt1.y, size, raster);
             } else if (vb instanceof VectorCache.VectorCircle) {
-                VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
-                gridToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
-                gridToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
+                VectorCache.VectorCircle vci = (VectorCache.VectorCircle) vb;
+                gridToScreen(vci.cX + oX, vci.cY + oY, tempPt1);
+                gridToScreen(vci.eX + oX, vci.eY + oY, tempPt2);
                 switch (vci.nature) {
                     case 0:
                         circleCount++;
@@ -2722,44 +2987,47 @@ class LayerDrawing
 
             } else if (vb instanceof VectorCache.VectorCircleArc) {
                 arcCount++;
-                VectorCache.VectorCircleArc vca = (VectorCache.VectorCircleArc)vb;
-                gridToScreen(vca.cX+oX, vca.cY+oY, tempPt1);
-                gridToScreen(vca.eX1+oX, vca.eY1+oY, tempPt2);
-                gridToScreen(vca.eX2+oX, vca.eY2+oY, tempPt3);
+                VectorCache.VectorCircleArc vca = (VectorCache.VectorCircleArc) vb;
+                gridToScreen(vca.cX + oX, vca.cY + oY, tempPt1);
+                gridToScreen(vca.eX1 + oX, vca.eY1 + oY, tempPt2);
+                gridToScreen(vca.eX2 + oX, vca.eY2 + oY, tempPt3);
                 drawCircleArc(tempPt1, tempPt2, tempPt3, vca.thick, raster);
             }
-		}
-	}
+        }
+    }
 
-	/**
-	 * Method to draw a list of cached port shapes.
-	 * @param oX the X offset to draw the shapes (in database grid coordinates).
-	 * @param oY the Y offset to draw the shapes (in database grid coordinates).
+    /**
+     * Method to draw a list of cached port shapes.
+     * @param oX the X offset to draw the shapes (in database grid coordinates).
+     * @param oY the Y offset to draw the shapes (in database grid coordinates).
      * @parem true to draw a list on expanded instance
-	 */
-	private void drawPortList(VectorCache.VectorSubCell vsc, VectorCache.VectorCell subVC_, int oX, int oY, boolean expanded)
-//		throws AbortRenderingException
-	{
-        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.PORT)) return;
-		// render all shapes
+     */
+    private void drawPortList(VectorCache.VectorSubCell vsc, VectorCache.VectorCell subVC_, int oX, int oY, boolean expanded) //		throws AbortRenderingException
+    {
+        if (!gp.isTextVisibilityOn(TextDescriptor.TextType.PORT)) {
+            return;
+        }
+        // render all shapes
         List<VectorCache.VectorCellExport> portShapes = subVC_.vcg.getPortShapes();
         int[] portCenters = subVC_.getPortCenters();
-        assert portShapes.size()*2 == portCenters.length;
+        assert portShapes.size() * 2 == portCenters.length;
         for (int i = 0; i < portShapes.size(); i++) {
             VectorCache.VectorCellExport vce = portShapes.get(i);
 //			if (stopRendering) throw new AbortRenderingException();
 
-			// get visual characteristics of shape
-            if (vsc.shownPorts.get(vce.getChronIndex())) continue;
+            // get visual characteristics of shape
+            if (vsc.shownPorts.get(vce.getChronIndex())) {
+                continue;
+            }
 //			if (vt.height < maxTextSize) continue;
 
-            int cX = portCenters[i*2];
-            int cY = portCenters[i*2 + 1];
+            int cX = portCenters[i * 2];
+            int cY = portCenters[i * 2 + 1];
             gridToScreen(cX + oX, cY + oY, tempPt1);
             cX = tempPt1.x;
             cY = tempPt1.y;
 
-			int portDisplayLevel = gp.portDisplayLevel;
+            int portDisplayLevel = gp.portDisplayLevel;
             Color portColor;
             if (expanded) {
                 portColor = textColor;
@@ -2768,78 +3036,96 @@ class LayerDrawing
                 portColor = portColorsCache.get(basePort);
                 if (portColor == null) {
                     portColor = basePort.getPortColor(gp);
-                    if (portColor == null)
+                    if (portColor == null) {
                         portColor = textColor;
+                    }
                     portColorsCache.put(basePort, portColor);
                 }
             }
-			if (portDisplayLevel == 2)
-			{
-				// draw port as a cross
+            if (portDisplayLevel == 2) {
+                // draw port as a cross
                 crossTextList.add(new CrossTextInfo(cX, cY, portColor, null));
-				continue;
-			}
+                continue;
+            }
 
-			// draw port as text
+            // draw port as text
             boolean shortName = portDisplayLevel == 1;
             String drawString = vce.getName(shortName);
 
-			tempRect.setBounds(cX, cY, 0, 0);
-			drawText(tempRect, vce.style, vce.descript, drawString, portColor, null);
-		}
-	}
+            tempRect.setBounds(cX, cY, 0, 0);
+            drawText(tempRect, vce.style, vce.descript, drawString, portColor, null);
+        }
+    }
 
-	// ************************************* BOX DRAWING *************************************
-
+    // ************************************* BOX DRAWING *************************************
     /**
      * Method to draw a box on the off-screen buffer.
      */
     public void drawBox(int lX, int hX, int lY, int hY, ERaster raster) {
-        if (lX < clipLX) lX = clipLX;
-        if (hX > clipHX) hX = clipHX;
-        if (lY < clipLY) lY = clipLY;
-        if (hY > clipHY) hY = clipHY;
-        if (lX > hX || lY > hY) return;
+        if (lX < clipLX) {
+            lX = clipLX;
+        }
+        if (hX > clipHX) {
+            hX = clipHX;
+        }
+        if (lY < clipLY) {
+            lY = clipLY;
+        }
+        if (hY > clipHY) {
+            hY = clipHY;
+        }
+        if (lX > hX || lY > hY) {
+            return;
+        }
         boxDisplayCount++;
         EGraphics.Outline o = raster.getOutline();
         if (lY == hY) {
             if (lX == hX) {
-                if (o == null)
+                if (o == null) {
                     raster.fillPoint(lX, lY);
-                else
+                } else {
                     raster.drawPoint(lX, lY);
+                }
             } else {
-                if (o == null)
+                if (o == null) {
                     raster.fillHorLine(lY, lX, hX);
-                else
+                } else {
                     raster.drawHorLine(lY, lX, hX);
+                }
             }
             return;
         }
         if (lX == hX) {
-            if (o == null)
+            if (o == null) {
                 raster.fillVerLine(lX, lY, hY);
-            else
+            } else {
                 raster.drawVerLine(lX, lY, hY);
+            }
             return;
         }
         raster.fillBox(lX, hX, lY, hY);
-        if (o == null) return;
+        if (o == null) {
+            return;
+        }
         if (o.isSolidPattern()) {
             raster.drawVerLine(lX, lY, hY);
             raster.drawHorLine(hY, lX, hX);
             raster.drawVerLine(hX, lY, hY);
             raster.drawHorLine(lY, lX, hX);
             if (o.getThickness() != 1) {
-                for(int i=1; i<o.getThickness(); i++) {
-                    if (lX + i <= clipHX)
-                        raster.drawVerLine(lX+i, lY, hY);
-                    if (hY - i >= clipLX)
-                        raster.drawHorLine(hY-i, lX, hX);
-                    if (hX - i >= clipLY)
-                        raster.drawVerLine(hX-i, lY, hY);
-                    if (lY + i <= clipHY)
-                        raster.drawHorLine(lY+i, lX, hX);
+                for (int i = 1; i < o.getThickness(); i++) {
+                    if (lX + i <= clipHX) {
+                        raster.drawVerLine(lX + i, lY, hY);
+                    }
+                    if (hY - i >= clipLX) {
+                        raster.drawHorLine(hY - i, lX, hX);
+                    }
+                    if (hX - i >= clipLY) {
+                        raster.drawVerLine(hX - i, lY, hY);
+                    }
+                    if (lY + i <= clipHY) {
+                        raster.drawHorLine(lY + i, lX, hX);
+                    }
                 }
             }
         } else {
@@ -2850,15 +3136,19 @@ class LayerDrawing
             drawVerOutline(hX, lY, hY, pattern, len, raster);
             drawHorOutline(lY, lX, hX, pattern, len, raster);
             if (o.getThickness() != 1) {
-                for(int i=1; i<o.getThickness(); i++) {
-                    if (lX + i <= clipHX)
-                        drawVerOutline(lX+i, lY, hY, pattern, len, raster);
-                    if (hY - i >= clipLX)
-                        drawHorOutline(hY-i, lX, hX, pattern, len, raster);
-                    if (hX - i >= clipLY)
-                        drawVerOutline(hX-i, lY, hY, pattern, len, raster);
-                    if (lY + i <= clipHY)
-                        drawHorOutline(lY+i, lX, hX, pattern, len, raster);
+                for (int i = 1; i < o.getThickness(); i++) {
+                    if (lX + i <= clipHX) {
+                        drawVerOutline(lX + i, lY, hY, pattern, len, raster);
+                    }
+                    if (hY - i >= clipLX) {
+                        drawHorOutline(hY - i, lX, hX, pattern, len, raster);
+                    }
+                    if (hX - i >= clipLY) {
+                        drawVerOutline(hX - i, lY, hY, pattern, len, raster);
+                    }
+                    if (lY + i <= clipHY) {
+                        drawHorOutline(lY + i, lX, hX, pattern, len, raster);
+                    }
                 }
             }
         }
@@ -2867,20 +3157,26 @@ class LayerDrawing
     private static void drawHorOutline(int y, int lX, int hX, int pattern, int len, ERaster raster) {
         int i = 0;
         for (int x = lX; x <= hX; x++) {
-            if ((pattern & (1 << i)) != 0)
+            if ((pattern & (1 << i)) != 0) {
                 raster.drawPoint(x, y);
+            }
             i++;
-            if (i == len) i = 0;
+            if (i == len) {
+                i = 0;
+            }
         }
     }
 
     private static void drawVerOutline(int x, int lY, int hY, int pattern, int len, ERaster raster) {
         int i = 0;
         for (int y = lY; y <= hY; y++) {
-            if ((pattern & (1 << i)) != 0)
+            if ((pattern & (1 << i)) != 0) {
                 raster.drawPoint(x, y);
+            }
             i++;
-            if (i == len) i = 0;
+            if (i == len) {
+                i = 0;
+            }
         }
     }
 
@@ -2912,103 +3208,126 @@ class LayerDrawing
 //            }
 //        }
 //    }
+    // ************************************* LINE DRAWING *************************************
+    /**
+     * Method to draw a line on the off-screen buffer.
+     */
+    void drawLine(Point pt1, Point pt2, int texture, ERaster raster) {
+        // first clip the line
+        if (GenMath.clipLine(pt1, pt2, 0, sz.width - 1, 0, sz.height - 1)) {
+            return;
+        }
 
-	// ************************************* LINE DRAWING *************************************
-
-	/**
-	 * Method to draw a line on the off-screen buffer.
-	 */
-	void drawLine(Point pt1, Point pt2, int texture, ERaster raster)
-	{
-		// first clip the line
-		if (GenMath.clipLine(pt1, pt2, 0, sz.width-1, 0, sz.height-1)) return;
-
-		// now draw with the proper line type
-		switch (texture)
-		{
-			case 0: drawSolidLine(pt1.x, pt1.y, pt2.x, pt2.y, raster);          break;
-			case 1: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, 0x88, 8, raster);   break;
-			case 2: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, 0xE7, 8, raster);   break;
-			case 3: drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, raster);          break;
-		}
-	}
+        // now draw with the proper line type
+        switch (texture) {
+            case 0:
+                drawSolidLine(pt1.x, pt1.y, pt2.x, pt2.y, raster);
+                break;
+            case 1:
+                drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, 0x88, 8, raster);
+                break;
+            case 2:
+                drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, 0xE7, 8, raster);
+                break;
+            case 3:
+                drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, raster);
+                break;
+        }
+    }
 
     private void drawCross(int cX, int cY, int size, ERaster raster) {
         if (clipLY <= cY && cY <= clipHY) {
             int lX = Math.max(clipLX, cX - size);
             int hX = Math.min(clipHX, cX + size);
-            if (lX <= hX)
+            if (lX <= hX) {
                 raster.drawHorLine(cY, lX, hX);
+            }
         }
         if (clipLX <= cX && cX <= clipHX) {
             int lY = Math.max(clipLY, cY - size);
             int hY = Math.min(clipHY, cY + size);
-            if (lY <= hY)
+            if (lY <= hY) {
                 raster.drawVerLine(cX, lY, hY);
+            }
         }
     }
 
-	private void drawSolidLine(int x1, int y1, int x2, int y2, ERaster raster)
-	{
-		// initialize the Bresenham algorithm
-		int dx = Math.abs(x2-x1);
-		int dy = Math.abs(y2-y1);
-		if (dx > dy)
-		{
-			// initialize for lines that increment along X
-			int incr1 = 2 * dy;
-			int incr2 = 2 * (dy - dx);
-			int d = incr2;
-			int x, y, xend, yend, yincr;
-			if (x1 > x2)
-			{
-				x = x2;   y = y2;   xend = x1;   yend = y1;
-			} else
-			{
-				x = x1;   y = y1;   xend = x2;   yend = y2;
-			}
-			if (yend < y) yincr = -1; else yincr = 1;
+    private void drawSolidLine(int x1, int y1, int x2, int y2, ERaster raster) {
+        // initialize the Bresenham algorithm
+        int dx = Math.abs(x2 - x1);
+        int dy = Math.abs(y2 - y1);
+        if (dx > dy) {
+            // initialize for lines that increment along X
+            int incr1 = 2 * dy;
+            int incr2 = 2 * (dy - dx);
+            int d = incr2;
+            int x, y, xend, yend, yincr;
+            if (x1 > x2) {
+                x = x2;
+                y = y2;
+                xend = x1;
+                yend = y1;
+            } else {
+                x = x1;
+                y = y1;
+                xend = x2;
+                yend = y2;
+            }
+            if (yend < y) {
+                yincr = -1;
+            } else {
+                yincr = 1;
+            }
             raster.drawPoint(x, y);
 
-			// draw line that increments along X
-			while (x < xend)
-			{
-				x++;
-				if (d < 0) d += incr1; else
-				{
-					y += yincr;   d += incr2;
-				}
+            // draw line that increments along X
+            while (x < xend) {
+                x++;
+                if (d < 0) {
+                    d += incr1;
+                } else {
+                    y += yincr;
+                    d += incr2;
+                }
                 raster.drawPoint(x, y);
-			}
-		} else
-		{
-			// initialize for lines that increment along Y
-			int incr1 = 2 * dx;
-			int incr2 = 2 * (dx - dy);
-			int d = incr2;
-			int x, y, xend, yend, xincr;
-			if (y1 > y2)
-			{
-				x = x2;   y = y2;   xend = x1;   yend = y1;
-			} else
-			{
-				x = x1;   y = y1;   xend = x2;   yend = y2;
-			}
-			if (xend < x) xincr = -1; else xincr = 1;
+            }
+        } else {
+            // initialize for lines that increment along Y
+            int incr1 = 2 * dx;
+            int incr2 = 2 * (dx - dy);
+            int d = incr2;
+            int x, y, xend, yend, xincr;
+            if (y1 > y2) {
+                x = x2;
+                y = y2;
+                xend = x1;
+                yend = y1;
+            } else {
+                x = x1;
+                y = y1;
+                xend = x2;
+                yend = y2;
+            }
+            if (xend < x) {
+                xincr = -1;
+            } else {
+                xincr = 1;
+            }
             raster.drawPoint(x, y);
 
-			// draw line that increments along X
-			while (y < yend)
-			{
-				y++;
-				if (d < 0) d += incr1; else
-				{
-					x += xincr;   d += incr2;
-				}
+            // draw line that increments along X
+            while (y < yend) {
+                y++;
+                if (d < 0) {
+                    d += incr1;
+                } else {
+                    x += xincr;
+                    d += incr2;
+                }
                 raster.drawPoint(x, y);
-			}
-		}
-	}
+            }
+        }
+    }
 
 //    private void drawSolidLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask) {
 //        solidLines++;
@@ -3078,90 +3397,113 @@ class LayerDrawing
 //            }
 //        }
 //    }
-
-	private void drawOutline(int x1, int y1, int x2, int y2, int pattern, int len, ERaster raster)
-	{
+    private void drawOutline(int x1, int y1, int x2, int y2, int pattern, int len, ERaster raster) {
         tempPt3.x = x1;
         tempPt3.y = y1;
         tempPt4.x = x2;
         tempPt4.y = y2;
 
-		// first clip the line
-		if (GenMath.clipLine(tempPt3, tempPt4, 0, sz.width-1, 0, sz.height-1)) return;
+        // first clip the line
+        if (GenMath.clipLine(tempPt3, tempPt4, 0, sz.width - 1, 0, sz.height - 1)) {
+            return;
+        }
 
         drawPatLine(tempPt3.x, tempPt3.y, tempPt4.x, tempPt4.y, pattern, len, raster);
-	}
+    }
 
-	private void drawPatLine(int x1, int y1, int x2, int y2, int pattern, int len, ERaster raster)
-	{
-		// initialize counter for line style
-		int i = 0;
+    private void drawPatLine(int x1, int y1, int x2, int y2, int pattern, int len, ERaster raster) {
+        // initialize counter for line style
+        int i = 0;
 
-		// initialize the Bresenham algorithm
-		int dx = Math.abs(x2-x1);
-		int dy = Math.abs(y2-y1);
-		if (dx > dy)
-		{
-			// initialize for lines that increment along X
-			int incr1 = 2 * dy;
-			int incr2 = 2 * (dy - dx);
-			int d = incr2;
-			int x, y, xend, yend, yincr;
-			if (x1 > x2)
-			{
-				x = x2;   y = y2;   xend = x1;   yend = y1;
-			} else
-			{
-				x = x1;   y = y1;   xend = x2;   yend = y2;
-			}
-			if (yend < y) yincr = -1; else yincr = 1;
+        // initialize the Bresenham algorithm
+        int dx = Math.abs(x2 - x1);
+        int dy = Math.abs(y2 - y1);
+        if (dx > dy) {
+            // initialize for lines that increment along X
+            int incr1 = 2 * dy;
+            int incr2 = 2 * (dy - dx);
+            int d = incr2;
+            int x, y, xend, yend, yincr;
+            if (x1 > x2) {
+                x = x2;
+                y = y2;
+                xend = x1;
+                yend = y1;
+            } else {
+                x = x1;
+                y = y1;
+                xend = x2;
+                yend = y2;
+            }
+            if (yend < y) {
+                yincr = -1;
+            } else {
+                yincr = 1;
+            }
             raster.drawPoint(x, y);
 
-			// draw line that increments along X
-			while (x < xend)
-			{
-				x++;
-				if (d < 0) d += incr1; else
-				{
-					y += yincr;   d += incr2;
-				}
-				i++;
-				if (i == len) i = 0;
-				if ((pattern & (1 << i)) == 0) continue;
+            // draw line that increments along X
+            while (x < xend) {
+                x++;
+                if (d < 0) {
+                    d += incr1;
+                } else {
+                    y += yincr;
+                    d += incr2;
+                }
+                i++;
+                if (i == len) {
+                    i = 0;
+                }
+                if ((pattern & (1 << i)) == 0) {
+                    continue;
+                }
                 raster.drawPoint(x, y);
-			}
-		} else
-		{
-			// initialize for lines that increment along Y
-			int incr1 = 2 * dx;
-			int incr2 = 2 * (dx - dy);
-			int d = incr2;
-			int x, y, xend, yend, xincr;
-			if (y1 > y2)
-			{
-				x = x2;   y = y2;   xend = x1;   yend = y1;
-			} else
-			{
-				x = x1;   y = y1;   xend = x2;   yend = y2;
-			}
-			if (xend < x) xincr = -1; else xincr = 1;
+            }
+        } else {
+            // initialize for lines that increment along Y
+            int incr1 = 2 * dx;
+            int incr2 = 2 * (dx - dy);
+            int d = incr2;
+            int x, y, xend, yend, xincr;
+            if (y1 > y2) {
+                x = x2;
+                y = y2;
+                xend = x1;
+                yend = y1;
+            } else {
+                x = x1;
+                y = y1;
+                xend = x2;
+                yend = y2;
+            }
+            if (xend < x) {
+                xincr = -1;
+            } else {
+                xincr = 1;
+            }
             raster.drawPoint(x, y);
 
-			// draw line that increments along X
-			while (y < yend)
-			{
-				y++;
-				if (d < 0) d += incr1; else
-				{
-					x += xincr;   d += incr2;
-				}
-				i++;
-				if (i == len) i = 0;
-				if ((pattern & (1 << i)) == 0) continue;
+            // draw line that increments along X
+            while (y < yend) {
+                y++;
+                if (d < 0) {
+                    d += incr1;
+                } else {
+                    x += xincr;
+                    d += incr2;
+                }
+                i++;
+                if (i == len) {
+                    i = 0;
+                }
+                if ((pattern & (1 << i)) == 0) {
+                    continue;
+                }
                 raster.drawPoint(x, y);
-			}
-		}
-	}
+            }
+        }
+    }
 
 //    private void drawPatLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask, int pattern, int len) {
 //        patLines++;
@@ -3236,70 +3578,82 @@ class LayerDrawing
 //            }
 //        }
 //    }
+    private void drawThickLine(int x1, int y1, int x2, int y2, ERaster raster) {
+        // initialize the Bresenham algorithm
+        int dx = Math.abs(x2 - x1);
+        int dy = Math.abs(y2 - y1);
+        if (dx > dy) {
+            // initialize for lines that increment along X
+            int incr1 = 2 * dy;
+            int incr2 = 2 * (dy - dx);
+            int d = incr2;
+            int x, y, xend, yend, yincr;
+            if (x1 > x2) {
+                x = x2;
+                y = y2;
+                xend = x1;
+                yend = y1;
+            } else {
+                x = x1;
+                y = y1;
+                xend = x2;
+                yend = y2;
+            }
+            if (yend < y) {
+                yincr = -1;
+            } else {
+                yincr = 1;
+            }
+            drawThickPoint(x, y, raster);
 
-	private void drawThickLine(int x1, int y1, int x2, int y2, ERaster raster)
-	{
-		// initialize the Bresenham algorithm
-		int dx = Math.abs(x2-x1);
-		int dy = Math.abs(y2-y1);
-		if (dx > dy)
-		{
-			// initialize for lines that increment along X
-			int incr1 = 2 * dy;
-			int incr2 = 2 * (dy - dx);
-			int d = incr2;
-			int x, y, xend, yend, yincr;
-			if (x1 > x2)
-			{
-				x = x2;   y = y2;   xend = x1;   yend = y1;
-			} else
-			{
-				x = x1;   y = y1;   xend = x2;   yend = y2;
-			}
-			if (yend < y) yincr = -1; else yincr = 1;
-			drawThickPoint(x, y, raster);
+            // draw line that increments along X
+            while (x < xend) {
+                x++;
+                if (d < 0) {
+                    d += incr1;
+                } else {
+                    y += yincr;
+                    d += incr2;
+                }
+                drawThickPoint(x, y, raster);
+            }
+        } else {
+            // initialize for lines that increment along Y
+            int incr1 = 2 * dx;
+            int incr2 = 2 * (dx - dy);
+            int d = incr2;
+            int x, y, xend, yend, xincr;
+            if (y1 > y2) {
+                x = x2;
+                y = y2;
+                xend = x1;
+                yend = y1;
+            } else {
+                x = x1;
+                y = y1;
+                xend = x2;
+                yend = y2;
+            }
+            if (xend < x) {
+                xincr = -1;
+            } else {
+                xincr = 1;
+            }
+            drawThickPoint(x, y, raster);
 
-			// draw line that increments along X
-			while (x < xend)
-			{
-				x++;
-				if (d < 0) d += incr1; else
-				{
-					y += yincr;
-					d += incr2;
-				}
-				drawThickPoint(x, y, raster);
-			}
-		} else
-		{
-			// initialize for lines that increment along Y
-			int incr1 = 2 * dx;
-			int incr2 = 2 * (dx - dy);
-			int d = incr2;
-			int x, y, xend, yend, xincr;
-			if (y1 > y2)
-			{
-				x = x2;   y = y2;   xend = x1;   yend = y1;
-			} else
-			{
-				x = x1;   y = y1;   xend = x2;   yend = y2;
-			}
-			if (xend < x) xincr = -1; else xincr = 1;
-			drawThickPoint(x, y, raster);
-
-			// draw line that increments along X
-			while (y < yend)
-			{
-				y++;
-				if (d < 0) d += incr1; else
-				{
-					x += xincr;
-					d += incr2;
-				}
-				drawThickPoint(x, y, raster);
-			}
-		}
-	}
+            // draw line that increments along X
+            while (y < yend) {
+                y++;
+                if (d < 0) {
+                    d += incr1;
+                } else {
+                    x += xincr;
+                    d += incr2;
+                }
+                drawThickPoint(x, y, raster);
+            }
+        }
+    }
 
 //    private void drawThickLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask) {
 //        thickLines++;
@@ -3369,271 +3723,284 @@ class LayerDrawing
 //            }
 //        }
 //    }
+    // ************************************* POLYGON DRAWING *************************************
+    /**
+     * Method to draw a polygon on the off-screen buffer.
+     */
+    void drawPolygon(Point[] points, ERaster raster) {
+        // fill in internal structures
+        PolySeg edgelist = null;
+        PolySeg[] polySegs = new PolySeg[points.length];
+        for (int i = 0; i < points.length; i++) {
+            polySegs[i] = new PolySeg();
+            if (i == 0) {
+                polySegs[i].fx = points[points.length - 1].x;
+                polySegs[i].fy = points[points.length - 1].y;
+            } else {
+                polySegs[i].fx = points[i - 1].x;
+                polySegs[i].fy = points[i - 1].y;
+            }
+            polySegs[i].tx = points[i].x;
+            polySegs[i].ty = points[i].y;
+        }
+        for (int i = 0; i < points.length; i++) {
+            // compute the direction of this edge
+            int j = polySegs[i].ty - polySegs[i].fy;
+            if (j > 0) {
+                polySegs[i].direction = 1;
+            } else if (j < 0) {
+                polySegs[i].direction = -1;
+            } else {
+                polySegs[i].direction = 0;
+            }
 
-	// ************************************* POLYGON DRAWING *************************************
+            // compute the X increment of this edge
+            if (j == 0) {
+                polySegs[i].increment = 0;
+            } else {
+                polySegs[i].increment = polySegs[i].tx - polySegs[i].fx;
+                if (polySegs[i].increment != 0) {
+                    polySegs[i].increment =
+                            (polySegs[i].increment * 65536 - j + 1) / j;
+                }
+            }
+            polySegs[i].tx <<= 16;
+            polySegs[i].fx <<= 16;
 
-	/**
-	 * Method to draw a polygon on the off-screen buffer.
-	 */
-	void drawPolygon(Point [] points, ERaster raster)
-	{
-		// fill in internal structures
-		PolySeg edgelist = null;
-		PolySeg [] polySegs = new PolySeg[points.length];
-		for(int i=0; i<points.length; i++)
-		{
-			polySegs[i] = new PolySeg();
-			if (i == 0)
-			{
-				polySegs[i].fx = points[points.length-1].x;
-				polySegs[i].fy = points[points.length-1].y;
-			} else
-			{
-				polySegs[i].fx = points[i-1].x;
-				polySegs[i].fy = points[i-1].y;
-			}
-			polySegs[i].tx = points[i].x;   polySegs[i].ty = points[i].y;
-		}
-		for(int i=0; i<points.length; i++)
-		{
-			// compute the direction of this edge
-			int j = polySegs[i].ty - polySegs[i].fy;
-			if (j > 0) polySegs[i].direction = 1; else
-				if (j < 0) polySegs[i].direction = -1; else
-					polySegs[i].direction = 0;
+            // make sure "from" is above "to"
+            if (polySegs[i].fy > polySegs[i].ty) {
+                j = polySegs[i].tx;
+                polySegs[i].tx = polySegs[i].fx;
+                polySegs[i].fx = j;
+                j = polySegs[i].ty;
+                polySegs[i].ty = polySegs[i].fy;
+                polySegs[i].fy = j;
+            }
 
-			// compute the X increment of this edge
-			if (j == 0) polySegs[i].increment = 0; else
-			{
-				polySegs[i].increment = polySegs[i].tx - polySegs[i].fx;
-				if (polySegs[i].increment != 0) polySegs[i].increment =
-					(polySegs[i].increment * 65536 - j + 1) / j;
-			}
-			polySegs[i].tx <<= 16;   polySegs[i].fx <<= 16;
+            // insert this edge into the edgelist, sorted by ascending "fy"
+            if (edgelist == null) {
+                edgelist = polySegs[i];
+                polySegs[i].nextedge = null;
+            } else {
+                // insert by ascending "fy"
+                if (edgelist.fy > polySegs[i].fy) {
+                    polySegs[i].nextedge = edgelist;
+                    edgelist = polySegs[i];
+                } else {
+                    for (PolySeg a = edgelist; a != null; a = a.nextedge) {
+                        if (a.nextedge == null
+                                || a.nextedge.fy > polySegs[i].fy) {
+                            // insert after this
+                            polySegs[i].nextedge = a.nextedge;
+                            a.nextedge = polySegs[i];
+                            break;
+                        }
+                    }
+                }
+            }
+        }
 
-			// make sure "from" is above "to"
-			if (polySegs[i].fy > polySegs[i].ty)
-			{
-				j = polySegs[i].tx;
-				polySegs[i].tx = polySegs[i].fx;
-				polySegs[i].fx = j;
-				j = polySegs[i].ty;
-				polySegs[i].ty = polySegs[i].fy;
-				polySegs[i].fy = j;
-			}
+        // scan polygon and render
+        int ycur = 0;
+        PolySeg active = null;
+        while (active != null || edgelist != null) {
+            if (active == null) {
+                active = edgelist;
+                active.nextactive = null;
+                edgelist = edgelist.nextedge;
+                ycur = active.fy;
+            }
 
-			// insert this edge into the edgelist, sorted by ascending "fy"
-			if (edgelist == null)
-			{
-				edgelist = polySegs[i];
-				polySegs[i].nextedge = null;
-			} else
-			{
-				// insert by ascending "fy"
-				if (edgelist.fy > polySegs[i].fy)
-				{
-					polySegs[i].nextedge = edgelist;
-					edgelist = polySegs[i];
-				} else for(PolySeg a = edgelist; a != null; a = a.nextedge)
-				{
-					if (a.nextedge == null ||
-						a.nextedge.fy > polySegs[i].fy)
-					{
-						// insert after this
-						polySegs[i].nextedge = a.nextedge;
-						a.nextedge = polySegs[i];
-						break;
-					}
-				}
-			}
-		}
+            // introduce edges from edge list into active list
+            while (edgelist != null && edgelist.fy <= ycur) {
+                // insert "edgelist" into active list, sorted by "fx" coordinate
+                if (active.fx > edgelist.fx
+                        || (active.fx == edgelist.fx && active.increment > edgelist.increment)) {
+                    edgelist.nextactive = active;
+                    active = edgelist;
+                    edgelist = edgelist.nextedge;
+                } else {
+                    for (PolySeg a = active; a != null; a = a.nextactive) {
+                        if (a.nextactive == null
+                                || a.nextactive.fx > edgelist.fx
+                                || (a.nextactive.fx == edgelist.fx
+                                && a.nextactive.increment > edgelist.increment)) {
+                            // insert after this
+                            edgelist.nextactive = a.nextactive;
+                            a.nextactive = edgelist;
+                            edgelist = edgelist.nextedge;
+                            break;
+                        }
+                    }
+                }
+            }
 
-		// scan polygon and render
-		int ycur = 0;
-		PolySeg active = null;
-		while (active != null || edgelist != null)
-		{
-			if (active == null)
-			{
-				active = edgelist;
-				active.nextactive = null;
-				edgelist = edgelist.nextedge;
-				ycur = active.fy;
-			}
-
-			// introduce edges from edge list into active list
-			while (edgelist != null && edgelist.fy <= ycur)
-			{
-				// insert "edgelist" into active list, sorted by "fx" coordinate
-				if (active.fx > edgelist.fx ||
-					(active.fx == edgelist.fx && active.increment > edgelist.increment))
-				{
-					edgelist.nextactive = active;
-					active = edgelist;
-					edgelist = edgelist.nextedge;
-				} else for(PolySeg a = active; a != null; a = a.nextactive)
-				{
-					if (a.nextactive == null ||
-						a.nextactive.fx > edgelist.fx ||
-							(a.nextactive.fx == edgelist.fx &&
-								a.nextactive.increment > edgelist.increment))
-					{
-						// insert after this
-						edgelist.nextactive = a.nextactive;
-						a.nextactive = edgelist;
-						edgelist = edgelist.nextedge;
-						break;
-					}
-				}
-			}
-
-			// generate regions to be filled in on current scan line
-			int wrap = 0;
-			PolySeg left = active;
-			for(PolySeg edge = active; edge != null; edge = edge.nextactive)
-			{
-				wrap = wrap + edge.direction;
-				if (wrap == 0)
-				{
-					int j = (left.fx + 32768) >> 16;
-					int k = (edge.fx + 32768) >> 16;
+            // generate regions to be filled in on current scan line
+            int wrap = 0;
+            PolySeg left = active;
+            for (PolySeg edge = active; edge != null; edge = edge.nextactive) {
+                wrap = wrap + edge.direction;
+                if (wrap == 0) {
+                    int j = (left.fx + 32768) >> 16;
+                    int k = (edge.fx + 32768) >> 16;
 
                     raster.fillHorLine(ycur, j, k);
 
-					left = edge.nextactive;
-				}
-			}
-			ycur++;
+                    left = edge.nextactive;
+                }
+            }
+            ycur++;
 
-			// update edges in active list
-			PolySeg lastedge = null;
-			for(PolySeg edge = active; edge != null; edge = edge.nextactive)
-			{
-				if (ycur >= edge.ty)
-				{
-					if (lastedge == null) active = edge.nextactive;
-						else lastedge.nextactive = edge.nextactive;
-				} else
-				{
-					edge.fx += edge.increment;
-					lastedge = edge;
-				}
-			}
-		}
+            // update edges in active list
+            PolySeg lastedge = null;
+            for (PolySeg edge = active; edge != null; edge = edge.nextactive) {
+                if (ycur >= edge.ty) {
+                    if (lastedge == null) {
+                        active = edge.nextactive;
+                    } else {
+                        lastedge.nextactive = edge.nextactive;
+                    }
+                } else {
+                    edge.fx += edge.increment;
+                    lastedge = edge;
+                }
+            }
+        }
 
-		// if outlined pattern, draw the outline
+        // if outlined pattern, draw the outline
         EGraphics.Outline o = raster.getOutline();
-        if (o == null) return;
-        for(int i=0; i<points.length; i++) {
-            int last = i-1;
-            if (last < 0) last = points.length - 1;
-            int fX = points[last].x;   int fY = points[last].y;
-            int tX = points[i].x;      int tY = points[i].y;
+        if (o == null) {
+            return;
+        }
+        for (int i = 0; i < points.length; i++) {
+            int last = i - 1;
+            if (last < 0) {
+                last = points.length - 1;
+            }
+            int fX = points[last].x;
+            int fY = points[last].y;
+            int tX = points[i].x;
+            int tY = points[i].y;
             drawOutline(fX, fY, tX, tY, o.getPattern(), o.getLen(), raster);
             if (o.getThickness() != 1) {
                 int ang = GenMath.figureAngle(new Point2D.Double(fX, fY), new Point2D.Double(tX, tY));
-                double sin = DBMath.sin(ang+900);
-                double cos = DBMath.cos(ang+900);
-                for(int t=1; t<o.getThickness(); t++) {
-                    int dX = (int)(cos*t + 0.5);
-                    int dY = (int)(sin*t + 0.5);
-                    drawOutline(fX+dX, fY+dY, tX+dX, tY+dY, o.getPattern(), o.getLen(), raster);
+                double sin = DBMath.sin(ang + 900);
+                double cos = DBMath.cos(ang + 900);
+                for (int t = 1; t < o.getThickness(); t++) {
+                    int dX = (int) (cos * t + 0.5);
+                    int dY = (int) (sin * t + 0.5);
+                    drawOutline(fX + dX, fY + dY, tX + dX, tY + dY, o.getPattern(), o.getLen(), raster);
                 }
             }
-		}
-	}
+        }
+    }
 
-	// ************************************* TEXT DRAWING *************************************
+    // ************************************* TEXT DRAWING *************************************
+    /**
+     * Method to draw a text on the off-screen buffer
+     */
+    public void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, Color color, PrimitiveNode baseNode) {
+        // quit if string is null
+        if (s == null) {
+            return;
+        }
+        int len = s.length();
+        if (len == 0) {
+            return;
+        }
 
-	/**
-	 * Method to draw a text on the off-screen buffer
-	 */
-	public void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, Color color, PrimitiveNode baseNode)
-	{
-		// quit if string is null
-		if (s == null) return;
-		int len = s.length();
-		if (len == 0) return;
-
-		// get parameters
+        // get parameters
 //        if (color == null) color = new Color(0,0,0);
 //        int col = color.getRGB() & 0xFFFFFF;
 
-		// get text description
-		int size = EditWindow.getDefaultFontSize();
-		int fontStyle = Font.PLAIN;
-		String fontName = gp.defaultFont;
-		boolean italic = false;
-		boolean bold = false;
-		boolean underline = false;
-		int rotation = 0;
-		int greekScale = 0;
-		if (descript != null)
-		{
-			rotation = descript.getRotation().getIndex();
-			int colorIndex = descript.getColorIndex();
-			if (colorIndex != 0)
-			{
-				Color full = EGraphics.getColorFromIndex(colorIndex);
-				if (full != null) color = full;
+        // get text description
+        int size = EditWindow.getDefaultFontSize();
+        int fontStyle = Font.PLAIN;
+        String fontName = gp.defaultFont;
+        boolean italic = false;
+        boolean bold = false;
+        boolean underline = false;
+        int rotation = 0;
+        int greekScale = 0;
+        if (descript != null) {
+            rotation = descript.getRotation().getIndex();
+            int colorIndex = descript.getColorIndex();
+            if (colorIndex != 0) {
+                Color full = EGraphics.getColorFromIndex(colorIndex);
+                if (full != null) {
+                    color = full;
+                }
 //				if (full != null) col = full.getRGB() & 0xFFFFFF;
-			}
-			double dSize = descript.getTrueSize(scale, wnd);
-			size = Math.min((int)dSize, MAXIMUMTEXTSIZE);
-			if (size < MINIMUMTEXTSIZE)
-			{
-				// text too small: scale it to get proper size
-				greekScale = 2;
-				for(;;)
-				{
-					size = (int)(dSize * greekScale);
-					if (size >= MINIMUMTEXTSIZE) break;
-					greekScale *= 2;
-				}
-			}
+            }
+            double dSize = descript.getTrueSize(scale, wnd);
+            size = Math.min((int) dSize, MAXIMUMTEXTSIZE);
+            if (size < MINIMUMTEXTSIZE) {
+                // text too small: scale it to get proper size
+                greekScale = 2;
+                for (;;) {
+                    size = (int) (dSize * greekScale);
+                    if (size >= MINIMUMTEXTSIZE) {
+                        break;
+                    }
+                    greekScale *= 2;
+                }
+            }
 
-			italic = descript.isItalic();
-			bold = descript.isBold();
-			underline = descript.isUnderline();
-			int fontIndex = descript.getFace();
-			if (fontIndex != 0)
-			{
-				TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontIndex);
-				if (af != null) fontName = af.getName();
-			}
-		}
-
-		// get box information for limiting text size
-		if (style == Poly.Type.TEXTBOX)
-		{
-            if (rect.x >= sz.width || rect.x + rect.width < 0 || rect.y >= sz.height || rect.y + rect.height < 0)
-                return;
+            italic = descript.isItalic();
+            bold = descript.isBold();
+            underline = descript.isUnderline();
+            int fontIndex = descript.getFace();
+            if (fontIndex != 0) {
+                TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontIndex);
+                if (af != null) {
+                    fontName = af.getName();
+                }
+            }
         }
 
-		// create RenderInfo
-		long startTime = 0;
-		RenderTextInfo renderInfo = new RenderTextInfo(color, baseNode);
-		if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation))
-			return;
+        // get box information for limiting text size
+        if (style == Poly.Type.TEXTBOX) {
+            if (rect.x >= sz.width || rect.x + rect.width < 0 || rect.y >= sz.height || rect.y + rect.height < 0) {
+                return;
+            }
+        }
 
-		// if text was made "greek", just draw a line
-		if (greekScale != 0)
-		{
-			// text too small: make it "greek"
-	        int width = (int)renderInfo.bounds.getWidth() / greekScale;
-			int sizeIndent = (size/greekScale+1) / 4;
-			Point pt = getTextCorner(width, size/greekScale, style, rect, rotation);
+        // create RenderInfo
+        long startTime = 0;
+        RenderTextInfo renderInfo = new RenderTextInfo(color, baseNode);
+        if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation)) {
+            return;
+        }
 
-			// do clipping
-			int lX = pt.x;   int hX = lX + width;
-			int lY = pt.y + sizeIndent;   int hY = lY;
-			if (lX < 0) lX = 0;
-			if (hX >= sz.width) hX = sz.width-1;
-			if (lY < 0) lY = 0;
-			if (hY >= sz.height) hY = sz.height-1;
+        // if text was made "greek", just draw a line
+        if (greekScale != 0) {
+            // text too small: make it "greek"
+            int width = (int) renderInfo.bounds.getWidth() / greekScale;
+            int sizeIndent = (size / greekScale + 1) / 4;
+            Point pt = getTextCorner(width, size / greekScale, style, rect, rotation);
+
+            // do clipping
+            int lX = pt.x;
+            int hX = lX + width;
+            int lY = pt.y + sizeIndent;
+            int hY = lY;
+            if (lX < 0) {
+                lX = 0;
+            }
+            if (hX >= sz.width) {
+                hX = sz.width - 1;
+            }
+            if (lY < 0) {
+                lY = 0;
+            }
+            if (hY >= sz.height) {
+                hY = sz.height - 1;
+            }
 
             // greeked box in opaque area
-            if (lX > hX || lY > hY) return;
+            if (lX > hX || lY > hY) {
+                return;
+            }
 
             greekTextList.add(new GreekTextInfo(lX, hX, lY, hY, color, baseNode));
 //            for(int y=lY; y<=hY; y++) {
@@ -3645,116 +4012,124 @@ class LayerDrawing
 //                }
 //            }
             return;
-		}
+        }
 
-		// check if text is on-screen
-        if (renderInfo.bounds.getMinX() >= sz.width || renderInfo.bounds.getMaxX() < 0 ||
-            renderInfo.bounds.getMinY() >= sz.height || renderInfo.bounds.getMaxY() < 0)
-                return;
+        // check if text is on-screen
+        if (renderInfo.bounds.getMinX() >= sz.width || renderInfo.bounds.getMaxX() < 0
+                || renderInfo.bounds.getMinY() >= sz.height || renderInfo.bounds.getMaxY() < 0) {
+            return;
+        }
 
-		// render the text
+        // render the text
         renderTextList.add(renderInfo);
 //        renderInfo.draw();
-	}
+    }
 
     private static class TextInfo {
+
         private Color color;
         private PrimitiveNode baseNode;
 
         private TextInfo(Color color, PrimitiveNode baseNode) {
-            if (color == null)
+            if (color == null) {
                 throw new NullPointerException();
+            }
             this.color = color;
             this.baseNode = baseNode;
         }
 
         boolean isDrawn(Graphics2D g, LayerVisibility lv) {
-            if (baseNode != null && !lv.isVisible(baseNode)) return false;
+            if (baseNode != null && !lv.isVisible(baseNode)) {
+                return false;
+            }
             g.setColor(color);
             return true;
         }
     }
 
-	private static class RenderTextInfo extends TextInfo {
-		private GlyphVector gv;
-		private LineMetrics lm;
-	    private Rectangle2D rasBounds;              // the raster bounds of the unrotated text, in pixels (screen units)
-	    private Rectangle2D bounds;                 // the real bounds of the rotated, anchored text (in screen units)
-	    private boolean underline;
+    private static class RenderTextInfo extends TextInfo {
+
+        private GlyphVector gv;
+        private LineMetrics lm;
+        private Rectangle2D rasBounds;              // the raster bounds of the unrotated text, in pixels (screen units)
+        private Rectangle2D bounds;                 // the real bounds of the rotated, anchored text (in screen units)
+        private boolean underline;
         private int rotation;
         private Rectangle rect;
         private int offX, offY;
 
-        private RenderTextInfo(Color color, PrimitiveNode baseNode) { super(color, baseNode); }
+        private RenderTextInfo(Color color, PrimitiveNode baseNode) {
+            super(color, baseNode);
+        }
 
-	    private boolean buildInfo(String msg, String fontName, int tSize, boolean italic, boolean bold, boolean underline,
-	    	Rectangle probableBoxedBounds, Poly.Type style, int rotation)
-	    {
-			Font font = getFont(msg, fontName, tSize, italic, bold, underline);
-			this.underline = underline;
+        private boolean buildInfo(String msg, String fontName, int tSize, boolean italic, boolean bold, boolean underline,
+                Rectangle probableBoxedBounds, Poly.Type style, int rotation) {
+            Font font = getFont(msg, fontName, tSize, italic, bold, underline);
+            this.underline = underline;
             this.rotation = rotation;
-            rect = (Rectangle)probableBoxedBounds.clone();
+            rect = (Rectangle) probableBoxedBounds.clone();
 
-			// convert the text to a GlyphVector
-			FontRenderContext frc = new FontRenderContext(null, true, true);
-			gv = font.createGlyphVector(frc, msg);
-			lm = font.getLineMetrics(msg, frc);
+            // convert the text to a GlyphVector
+            FontRenderContext frc = new FontRenderContext(null, true, true);
+            gv = font.createGlyphVector(frc, msg);
+            lm = font.getLineMetrics(msg, frc);
 
-			// figure bounding box of text
-			Rectangle2D rasRect = gv.getLogicalBounds();
-			int width = (int)rasRect.getWidth();
-			int height = (int)(lm.getHeight()+0.5);
-			if (width <= 0 || height <= 0) return false;
-			int fontStyle = font.getStyle();
+            // figure bounding box of text
+            Rectangle2D rasRect = gv.getLogicalBounds();
+            int width = (int) rasRect.getWidth();
+            int height = (int) (lm.getHeight() + 0.5);
+            if (width <= 0 || height <= 0) {
+                return false;
+            }
+            int fontStyle = font.getStyle();
 
-			int boxedWidth = (int)probableBoxedBounds.getWidth();
-			int boxedHeight = (int)probableBoxedBounds.getHeight();
+            int boxedWidth = (int) probableBoxedBounds.getWidth();
+            int boxedHeight = (int) probableBoxedBounds.getHeight();
 
-			// if text is to be "boxed", make sure it fits
-			if (boxedWidth > 1 && boxedHeight > 1)
-            {
-                if (width > boxedWidth || height > boxedHeight)
-                {
-                    double scale = Math.min((double)boxedWidth / width, (double)boxedHeight / height);
-                    font = new Font(fontName, fontStyle, (int)(tSize*scale));
-                    if (font != null)
-                    {
+            // if text is to be "boxed", make sure it fits
+            if (boxedWidth > 1 && boxedHeight > 1) {
+                if (width > boxedWidth || height > boxedHeight) {
+                    double scale = Math.min((double) boxedWidth / width, (double) boxedHeight / height);
+                    font = new Font(fontName, fontStyle, (int) (tSize * scale));
+                    if (font != null) {
                         // convert the text to a GlyphVector
                         gv = font.createGlyphVector(frc, msg);
                         lm = font.getLineMetrics(msg, frc);
                         rasRect = gv.getLogicalBounds();
-                        height = (int)(lm.getHeight()+0.5);
-                        if (height <= 0) return false;
-                        width = (int)rasRect.getWidth();
+                        height = (int) (lm.getHeight() + 0.5);
+                        if (height <= 0) {
+                            return false;
+                        }
+                        width = (int) rasRect.getWidth();
                     }
                 }
             }
-			if (underline) height++;
-			rasBounds = new Rectangle2D.Double(0, (float)lm.getAscent()-lm.getLeading(), width, height);
+            if (underline) {
+                height++;
+            }
+            rasBounds = new Rectangle2D.Double(0, (float) lm.getAscent() - lm.getLeading(), width, height);
 
-			Point2D anchorPoint = getTextCorner(width, height, style, probableBoxedBounds, rotation);
-			if (rotation == 1 || rotation == 3)
-            {
+            Point2D anchorPoint = getTextCorner(width, height, style, probableBoxedBounds, rotation);
+            if (rotation == 1 || rotation == 3) {
                 bounds = new Rectangle2D.Double(anchorPoint.getX(), anchorPoint.getY(), height, width);
-            } else
-            {
+            } else {
                 bounds = new Rectangle2D.Double(anchorPoint.getX(), anchorPoint.getY(), width, height);
             }
-            int textWidth = (int)rasBounds.getWidth();
-            int textHeight = (int)rasBounds.getHeight();
+            int textWidth = (int) rasBounds.getWidth();
+            int textHeight = (int) rasBounds.getHeight();
             if (style == Poly.Type.TEXTCENT) {
-                offX = -textWidth/2;
-                offY = -textHeight/2;
+                offX = -textWidth / 2;
+                offY = -textHeight / 2;
             } else if (style == Poly.Type.TEXTTOP) {
-                offX = -textWidth/2;
+                offX = -textWidth / 2;
             } else if (style == Poly.Type.TEXTBOT) {
-                offX = -textWidth/2;
+                offX = -textWidth / 2;
                 offY = -textHeight;
             } else if (style == Poly.Type.TEXTLEFT) {
-                offY = -textHeight/2;
+                offY = -textHeight / 2;
             } else if (style == Poly.Type.TEXTRIGHT) {
                 offX = -textWidth;
-                offY = -textHeight/2;
+                offY = -textHeight / 2;
             } else if (style == Poly.Type.TEXTTOPLEFT) {
             } else if (style == Poly.Type.TEXTBOTLEFT) {
                 offY = -textHeight;
@@ -3763,36 +4138,42 @@ class LayerDrawing
             } else if (style == Poly.Type.TEXTBOTRIGHT) {
                 offX = -textWidth;
                 offY = -textHeight;
-            } if (style == Poly.Type.TEXTBOX) {
-                offX = -textWidth/2;
-                offY = -textHeight/2;
+            }
+            if (style == Poly.Type.TEXTBOX) {
+                offX = -textWidth / 2;
+                offY = -textHeight / 2;
             }
             return true;
         }
 
         private void draw(Graphics2D g, LayerVisibility lv) {
-            if (!isDrawn(g, lv)) return;
-            int width = (int)rasBounds.getWidth();
-            int height = (int)rasBounds.getHeight();
+            if (!isDrawn(g, lv)) {
+                return;
+            }
+            int width = (int) rasBounds.getWidth();
+            int height = (int) rasBounds.getHeight();
             if (rotation == 0) {
-                int atX = (int)rect.getCenterX() + offX;
-                int atY = (int)rect.getCenterY() + offY;
-                g.drawGlyphVector(gv, (float)(atX - rasBounds.getX()), atY + (lm.getAscent()-lm.getLeading()));
-                if (underline)
-                    g.drawLine(atX, atY + height-1, atX + width-1, atY + height-1);
+                int atX = (int) rect.getCenterX() + offX;
+                int atY = (int) rect.getCenterY() + offY;
+                g.drawGlyphVector(gv, (float) (atX - rasBounds.getX()), atY + (lm.getAscent() - lm.getLeading()));
+                if (underline) {
+                    g.drawLine(atX, atY + height - 1, atX + width - 1, atY + height - 1);
+                }
             } else {
                 AffineTransform saveAT = g.getTransform();
                 g.translate(rect.getCenterX(), rect.getCenterY());
-                g.rotate(-rotation*Math.PI/2);
-                g.drawGlyphVector(gv, (float)(offX - rasBounds.getX()), offY + (lm.getAscent()-lm.getLeading()));
-                if (underline)
-                    g.drawLine(offX, offY + height-1, offX + width-1, offY + height-1);
+                g.rotate(-rotation * Math.PI / 2);
+                g.drawGlyphVector(gv, (float) (offX - rasBounds.getX()), offY + (lm.getAscent() - lm.getLeading()));
+                if (underline) {
+                    g.drawLine(offX, offY + height - 1, offX + width - 1, offY + height - 1);
+                }
                 g.setTransform(saveAT);
             }
         }
     }
 
     private class GreekTextInfo extends TextInfo {
+
         int lX, hX, lY, hY;
 
         private GreekTextInfo(int lX, int hX, int lY, int hY, Color color, PrimitiveNode baseNode) {
@@ -3804,12 +4185,15 @@ class LayerDrawing
         }
 
         private void draw(Graphics2D g, LayerVisibility lv) {
-            if (!isDrawn(g, lv)) return;
+            if (!isDrawn(g, lv)) {
+                return;
+            }
             g.drawLine(lX, lY, hX, hY);
         }
     }
 
     private class CrossTextInfo extends TextInfo {
+
         int x, y;
 
         private CrossTextInfo(int x, int y, Color color, PrimitiveNode baseNode) {
@@ -3819,123 +4203,113 @@ class LayerDrawing
         }
 
         private void draw(Graphics2D g, LayerVisibility lv) {
-            if (!isDrawn(g, lv)) return;
+            if (!isDrawn(g, lv)) {
+                return;
+            }
             g.drawLine(x - 3, y, x + 3, y);
             g.drawLine(x, y - 3, x, y + 3);
         }
     }
 
-	/**
-	 * Method to return the coordinates of the lower-left corner of text in this window.
-	 * @param rasterWidth the width of the text.
-	 * @param rasterHeight the height of the text.
-	 * @param style the anchor information for the text.
-	 * @param rect the bounds of the polygon containing the text.
-	 * @param rotation the rotation of the text (0=normal, 1=90 counterclockwise, 2=180, 3=90 clockwise).
-	 * @return the coordinates of the lower-left corner of the text.
-	 */
-	private static Point getTextCorner(int rasterWidth, int rasterHeight, Poly.Type style, Rectangle rect, int rotation)
-	{
-		// adjust to place text in the center
-		int textWidth = rasterWidth;
-		int textHeight = rasterHeight;
-		int offX = 0, offY = 0;
-		if (style == Poly.Type.TEXTCENT)
-		{
-			offX = -textWidth/2;
-			offY = -textHeight/2;
-		} else if (style == Poly.Type.TEXTTOP)
-		{
-			offX = -textWidth/2;
-		} else if (style == Poly.Type.TEXTBOT)
-		{
-			offX = -textWidth/2;
-			offY = -textHeight;
-		} else if (style == Poly.Type.TEXTLEFT)
-		{
-			offY = -textHeight/2;
-		} else if (style == Poly.Type.TEXTRIGHT)
-		{
-			offX = -textWidth;
-			offY = -textHeight/2;
-		} else if (style == Poly.Type.TEXTTOPLEFT)
-		{
-		} else if (style == Poly.Type.TEXTBOTLEFT)
-		{
-			offY = -textHeight;
-		} else if (style == Poly.Type.TEXTTOPRIGHT)
-		{
-			offX = -textWidth;
-		} else if (style == Poly.Type.TEXTBOTRIGHT)
-		{
-			offX = -textWidth;
-			offY = -textHeight;
-		} if (style == Poly.Type.TEXTBOX)
-		{
-			offX = -textWidth/2;
-			offY = -textHeight/2;
-		}
-		if (rotation != 0)
-		{
-			int saveOffX = offX;
-			switch (rotation)
-			{
-				case 1:
-					offX = offY;
-					offY = -saveOffX;
-					break;
-				case 2:
-					offX = -offX;
-					offY = -offY;
-					break;
-				case 3:
-					offX = -offY;
-					offY = saveOffX;
-					break;
-			}
-		}
-		int cX = (int)rect.getCenterX() + offX;
-		int cY = (int)rect.getCenterY() + offY;
-		return new Point(cX, cY);
-	}
+    /**
+     * Method to return the coordinates of the lower-left corner of text in this window.
+     * @param rasterWidth the width of the text.
+     * @param rasterHeight the height of the text.
+     * @param style the anchor information for the text.
+     * @param rect the bounds of the polygon containing the text.
+     * @param rotation the rotation of the text (0=normal, 1=90 counterclockwise, 2=180, 3=90 clockwise).
+     * @return the coordinates of the lower-left corner of the text.
+     */
+    private static Point getTextCorner(int rasterWidth, int rasterHeight, Poly.Type style, Rectangle rect, int rotation) {
+        // adjust to place text in the center
+        int textWidth = rasterWidth;
+        int textHeight = rasterHeight;
+        int offX = 0, offY = 0;
+        if (style == Poly.Type.TEXTCENT) {
+            offX = -textWidth / 2;
+            offY = -textHeight / 2;
+        } else if (style == Poly.Type.TEXTTOP) {
+            offX = -textWidth / 2;
+        } else if (style == Poly.Type.TEXTBOT) {
+            offX = -textWidth / 2;
+            offY = -textHeight;
+        } else if (style == Poly.Type.TEXTLEFT) {
+            offY = -textHeight / 2;
+        } else if (style == Poly.Type.TEXTRIGHT) {
+            offX = -textWidth;
+            offY = -textHeight / 2;
+        } else if (style == Poly.Type.TEXTTOPLEFT) {
+        } else if (style == Poly.Type.TEXTBOTLEFT) {
+            offY = -textHeight;
+        } else if (style == Poly.Type.TEXTTOPRIGHT) {
+            offX = -textWidth;
+        } else if (style == Poly.Type.TEXTBOTRIGHT) {
+            offX = -textWidth;
+            offY = -textHeight;
+        }
+        if (style == Poly.Type.TEXTBOX) {
+            offX = -textWidth / 2;
+            offY = -textHeight / 2;
+        }
+        if (rotation != 0) {
+            int saveOffX = offX;
+            switch (rotation) {
+                case 1:
+                    offX = offY;
+                    offY = -saveOffX;
+                    break;
+                case 2:
+                    offX = -offX;
+                    offY = -offY;
+                    break;
+                case 3:
+                    offX = -offY;
+                    offY = saveOffX;
+                    break;
+            }
+        }
+        int cX = (int) rect.getCenterX() + offX;
+        int cY = (int) rect.getCenterY() + offY;
+        return new Point(cX, cY);
+    }
 
     public static Font getFont(String msg, String font, int tSize, boolean italic, boolean bold, boolean underline) {
         // get the font
         int fontStyle = Font.PLAIN;
-        if (italic) fontStyle |= Font.ITALIC;
-        if (bold) fontStyle |= Font.BOLD;
+        if (italic) {
+            fontStyle |= Font.ITALIC;
+        }
+        if (bold) {
+            fontStyle |= Font.BOLD;
+        }
         Font theFont = new Font(font, fontStyle, tSize);
-        if (theFont == null)
-        {
-            System.out.println("Could not find font "+font+" to render text: "+msg);
+        if (theFont == null) {
+            System.out.println("Could not find font " + font + " to render text: " + msg);
             return null;
         }
         return theFont;
     }
 
-	// ************************************* CIRCLE DRAWING *************************************
+    // ************************************* CIRCLE DRAWING *************************************
+    /**
+     * Method to draw a circle on the off-screen buffer
+     */
+    void drawCircle(Point center, Point edge, ERaster raster) {
+        // get parameters
+        int radius = (int) center.distance(edge);
 
-	/**
-	 * Method to draw a circle on the off-screen buffer
-	 */
-	void drawCircle(Point center, Point edge, ERaster raster)
-	{
-		// get parameters
-		int radius = (int)center.distance(edge);
+        // set redraw area
+        int left = center.x - radius;
+        int right = center.x + radius + 1;
+        int top = center.y - radius;
+        int bottom = center.y + radius + 1;
 
-		// set redraw area
-		int left = center.x - radius;
-		int right = center.x + radius + 1;
-		int top = center.y - radius;
-		int bottom = center.y + radius + 1;
-
-		int x = 0;   int y = radius;
-		int d = 3 - 2 * radius;
-		if (left >= 0 && right < sz.width && top >= 0 && bottom < sz.height)
-		{
-			// no clip version is faster
-			while (x <= y)
-			{
+        int x = 0;
+        int y = radius;
+        int d = 3 - 2 * radius;
+        if (left >= 0 && right < sz.width && top >= 0 && bottom < sz.height) {
+            // no clip version is faster
+            while (x <= y) {
                 raster.drawPoint(center.x + x, center.y + y);
                 raster.drawPoint(center.x - x, center.y + y);
                 raster.drawPoint(center.x + x, center.y - y);
@@ -3945,491 +4319,565 @@ class LayerDrawing
                 raster.drawPoint(center.x + y, center.y - x);
                 raster.drawPoint(center.x - y, center.y - x);
 
-				if (d < 0) d += 4*x + 6; else
-				{
-					d += 4 * (x-y) + 10;
-					y--;
-				}
-				x++;
-			}
-		} else
-		{
-			// clip version
-			while (x <= y)
-			{
-				int thisy = center.y + y;
-				if (thisy >= 0 && thisy < sz.height)
-				{
-					int thisx = center.x + x;
-					if (thisx >= 0 && thisx < sz.width)
-						raster.drawPoint(thisx, thisy);
-					thisx = center.x - x;
-					if (thisx >= 0 && thisx < sz.width)
-						raster.drawPoint(thisx, thisy);
-				}
+                if (d < 0) {
+                    d += 4 * x + 6;
+                } else {
+                    d += 4 * (x - y) + 10;
+                    y--;
+                }
+                x++;
+            }
+        } else {
+            // clip version
+            while (x <= y) {
+                int thisy = center.y + y;
+                if (thisy >= 0 && thisy < sz.height) {
+                    int thisx = center.x + x;
+                    if (thisx >= 0 && thisx < sz.width) {
+                        raster.drawPoint(thisx, thisy);
+                    }
+                    thisx = center.x - x;
+                    if (thisx >= 0 && thisx < sz.width) {
+                        raster.drawPoint(thisx, thisy);
+                    }
+                }
 
-				thisy = center.y - y;
-				if (thisy >= 0 && thisy < sz.height)
-				{
-					int thisx = center.x + x;
-					if (thisx >= 0 && thisx < sz.width)
-						raster.drawPoint(thisx, thisy);
-					thisx = center.x - x;
-					if (thisx >= 0 && thisx < sz.width)
-						raster.drawPoint(thisx, thisy);
-				}
+                thisy = center.y - y;
+                if (thisy >= 0 && thisy < sz.height) {
+                    int thisx = center.x + x;
+                    if (thisx >= 0 && thisx < sz.width) {
+                        raster.drawPoint(thisx, thisy);
+                    }
+                    thisx = center.x - x;
+                    if (thisx >= 0 && thisx < sz.width) {
+                        raster.drawPoint(thisx, thisy);
+                    }
+                }
 
-				thisy = center.y + x;
-				if (thisy >= 0 && thisy < sz.height)
-				{
-					int thisx = center.x + y;
-					if (thisx >= 0 && thisx < sz.width)
-						raster.drawPoint(thisx, thisy);
-					thisx = center.x - y;
-					if (thisx >= 0 && thisx < sz.width)
-						raster.drawPoint(thisx, thisy);
-				}
+                thisy = center.y + x;
+                if (thisy >= 0 && thisy < sz.height) {
+                    int thisx = center.x + y;
+                    if (thisx >= 0 && thisx < sz.width) {
+                        raster.drawPoint(thisx, thisy);
+                    }
+                    thisx = center.x - y;
+                    if (thisx >= 0 && thisx < sz.width) {
+                        raster.drawPoint(thisx, thisy);
+                    }
+                }
 
-				thisy = center.y - x;
-				if (thisy >= 0 && thisy < sz.height)
-				{
-					int thisx = center.x + y;
-					if (thisx >= 0 && thisx < sz.width)
-						raster.drawPoint(thisx, thisy);
-					thisx = center.x - y;
-					if (thisx >= 0 && thisx < sz.width)
-						raster.drawPoint(thisx, thisy);
-				}
+                thisy = center.y - x;
+                if (thisy >= 0 && thisy < sz.height) {
+                    int thisx = center.x + y;
+                    if (thisx >= 0 && thisx < sz.width) {
+                        raster.drawPoint(thisx, thisy);
+                    }
+                    thisx = center.x - y;
+                    if (thisx >= 0 && thisx < sz.width) {
+                        raster.drawPoint(thisx, thisy);
+                    }
+                }
 
-				if (d < 0) d += 4*x + 6; else
-				{
-					d += 4 * (x-y) + 10;
-					y--;
-				}
-				x++;
-			}
-		}
-	}
+                if (d < 0) {
+                    d += 4 * x + 6;
+                } else {
+                    d += 4 * (x - y) + 10;
+                    y--;
+                }
+                x++;
+            }
+        }
+    }
 
-	/**
-	 * Method to draw a thick circle on the off-screen buffer
-	 */
-	void drawThickCircle(Point center, Point edge, ERaster raster)
-	{
-		// get parameters
-		int radius = (int)center.distance(edge);
+    /**
+     * Method to draw a thick circle on the off-screen buffer
+     */
+    void drawThickCircle(Point center, Point edge, ERaster raster) {
+        // get parameters
+        int radius = (int) center.distance(edge);
 
-		int x = 0;   int y = radius;
-		int d = 3 - 2 * radius;
-		while (x <= y)
-		{
-			int thisy = center.y + y;
-			if (thisy >= 0 && thisy < sz.height)
-			{
-				int thisx = center.x + x;
-				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, raster);
-				thisx = center.x - x;
-				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, raster);
-			}
+        int x = 0;
+        int y = radius;
+        int d = 3 - 2 * radius;
+        while (x <= y) {
+            int thisy = center.y + y;
+            if (thisy >= 0 && thisy < sz.height) {
+                int thisx = center.x + x;
+                if (thisx >= 0 && thisx < sz.width) {
+                    drawThickPoint(thisx, thisy, raster);
+                }
+                thisx = center.x - x;
+                if (thisx >= 0 && thisx < sz.width) {
+                    drawThickPoint(thisx, thisy, raster);
+                }
+            }
 
-			thisy = center.y - y;
-			if (thisy >= 0 && thisy < sz.height)
-			{
-				int thisx = center.x + x;
-				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, raster);
-				thisx = center.x - x;
-				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, raster);
-			}
+            thisy = center.y - y;
+            if (thisy >= 0 && thisy < sz.height) {
+                int thisx = center.x + x;
+                if (thisx >= 0 && thisx < sz.width) {
+                    drawThickPoint(thisx, thisy, raster);
+                }
+                thisx = center.x - x;
+                if (thisx >= 0 && thisx < sz.width) {
+                    drawThickPoint(thisx, thisy, raster);
+                }
+            }
 
-			thisy = center.y + x;
-			if (thisy >= 0 && thisy < sz.height)
-			{
-				int thisx = center.x + y;
-				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, raster);
-				thisx = center.x - y;
-				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, raster);
-			}
+            thisy = center.y + x;
+            if (thisy >= 0 && thisy < sz.height) {
+                int thisx = center.x + y;
+                if (thisx >= 0 && thisx < sz.width) {
+                    drawThickPoint(thisx, thisy, raster);
+                }
+                thisx = center.x - y;
+                if (thisx >= 0 && thisx < sz.width) {
+                    drawThickPoint(thisx, thisy, raster);
+                }
+            }
 
-			thisy = center.y - x;
-			if (thisy >= 0 && thisy < sz.height)
-			{
-				int thisx = center.x + y;
-				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, raster);
-				thisx = center.x - y;
-				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, raster);
-			}
+            thisy = center.y - x;
+            if (thisy >= 0 && thisy < sz.height) {
+                int thisx = center.x + y;
+                if (thisx >= 0 && thisx < sz.width) {
+                    drawThickPoint(thisx, thisy, raster);
+                }
+                thisx = center.x - y;
+                if (thisx >= 0 && thisx < sz.width) {
+                    drawThickPoint(thisx, thisy, raster);
+                }
+            }
 
-			if (d < 0) d += 4*x + 6; else
-			{
-				d += 4 * (x-y) + 10;
-				y--;
-			}
-			x++;
-		}
-	}
+            if (d < 0) {
+                d += 4 * x + 6;
+            } else {
+                d += 4 * (x - y) + 10;
+                y--;
+            }
+            x++;
+        }
+    }
 
-	// ************************************* DISC DRAWING *************************************
-
-	/**
-	 * Method to draw a scan line of the filled-in circle of radius "radius"
-	 */
-	private void drawDiscRow(int thisy, int startx, int endx, ERaster raster)
-	{
-		if (thisy < clipLY || thisy > clipHY) return;
-		if (startx < clipLX) startx = clipLX;
-		if (endx > clipHX) endx = clipHX;
+    // ************************************* DISC DRAWING *************************************
+    /**
+     * Method to draw a scan line of the filled-in circle of radius "radius"
+     */
+    private void drawDiscRow(int thisy, int startx, int endx, ERaster raster) {
+        if (thisy < clipLY || thisy > clipHY) {
+            return;
+        }
+        if (startx < clipLX) {
+            startx = clipLX;
+        }
+        if (endx > clipHX) {
+            endx = clipHX;
+        }
         raster.fillHorLine(thisy, startx, endx);
-	}
+    }
 
-	/**
-	 * Method to draw a filled-in circle of radius "radius" on the off-screen buffer
-	 */
-	void drawDisc(Point center, Point edge, ERaster raster)
-	{
-		// get parameters
-		int radius = (int)center.distance(edge);
+    /**
+     * Method to draw a filled-in circle of radius "radius" on the off-screen buffer
+     */
+    void drawDisc(Point center, Point edge, ERaster raster) {
+        // get parameters
+        int radius = (int) center.distance(edge);
         EGraphics.Outline o = raster.getOutline();
-        if (o != null)
+        if (o != null) {
             drawCircle(center, edge, raster);
+        }
 
-		// set redraw area
-		int left = center.x - radius;
-		int right = center.x + radius + 1;
-		int top = center.y - radius;
-		int bottom = center.y + radius + 1;
+        // set redraw area
+        int left = center.x - radius;
+        int right = center.x + radius + 1;
+        int top = center.y - radius;
+        int bottom = center.y + radius + 1;
 
-		if (radius == 1)
-		{
-			// just fill the area for discs this small
-			if (left < 0) left = 0;
-			if (right >= sz.width) right = sz.width - 1;
-			for(int y=top; y<bottom; y++)
-			{
-				if (y < 0 || y >= sz.height) continue;
-				for(int x=left; x<right; x++)
-					raster.drawPoint(x, y);
-			}
-			return;
-		}
+        if (radius == 1) {
+            // just fill the area for discs this small
+            if (left < 0) {
+                left = 0;
+            }
+            if (right >= sz.width) {
+                right = sz.width - 1;
+            }
+            for (int y = top; y < bottom; y++) {
+                if (y < 0 || y >= sz.height) {
+                    continue;
+                }
+                for (int x = left; x < right; x++) {
+                    raster.drawPoint(x, y);
+                }
+            }
+            return;
+        }
 
-		int x = 0;   int y = radius;
-		int d = 3 - 2 * radius;
-		while (x <= y)
-		{
-			drawDiscRow(center.y+y, center.x-x, center.x+x, raster);
-			drawDiscRow(center.y-y, center.x-x, center.x+x, raster);
-			drawDiscRow(center.y+x, center.x-y, center.x+y, raster);
-			drawDiscRow(center.y-x, center.x-y, center.x+y, raster);
+        int x = 0;
+        int y = radius;
+        int d = 3 - 2 * radius;
+        while (x <= y) {
+            drawDiscRow(center.y + y, center.x - x, center.x + x, raster);
+            drawDiscRow(center.y - y, center.x - x, center.x + x, raster);
+            drawDiscRow(center.y + x, center.x - y, center.x + y, raster);
+            drawDiscRow(center.y - x, center.x - y, center.x + y, raster);
 
-			if (d < 0) d += 4*x + 6; else
-			{
-				d += 4 * (x-y) + 10;
-				y--;
-			}
-			x++;
-		}
-	}
+            if (d < 0) {
+                d += 4 * x + 6;
+            } else {
+                d += 4 * (x - y) + 10;
+                y--;
+            }
+            x++;
+        }
+    }
+    // ************************************* ARC DRAWING *************************************
+    private boolean[] arcOctTable = new boolean[9];
+    private Point arcCenter;
+    private int arcRadius;
+    private int arcCol;
+    private ERaster arcRaster;
+    private boolean arcThick;
 
-	// ************************************* ARC DRAWING *************************************
+    private int arcFindOctant(int x, int y) {
+        if (x > 0) {
+            if (y >= 0) {
+                if (y >= x) {
+                    return 7;
+                }
+                return 8;
+            }
+            if (x >= -y) {
+                return 1;
+            }
+            return 2;
+        }
+        if (y > 0) {
+            if (y > -x) {
+                return 6;
+            }
+            return 5;
+        }
+        if (y > x) {
+            return 4;
+        }
+        return 3;
+    }
 
-	private boolean [] arcOctTable = new boolean[9];
-	private Point      arcCenter;
-	private int        arcRadius;
-	private int        arcCol;
-	private ERaster    arcRaster;
-	private boolean    arcThick;
+    private Point arcXformOctant(int x, int y, int oct) {
+        switch (oct) {
+            case 1:
+                return new Point(-y, x);
+            case 2:
+                return new Point(x, -y);
+            case 3:
+                return new Point(-x, -y);
+            case 4:
+                return new Point(-y, -x);
+            case 5:
+                return new Point(y, -x);
+            case 6:
+                return new Point(-x, y);
+            case 7:
+                return new Point(x, y);
+            case 8:
+                return new Point(y, x);
+        }
+        return null;
+    }
 
-	private int arcFindOctant(int x, int y)
-	{
-		if (x > 0)
-		{
-			if (y >= 0)
-			{
-				if (y >= x) return 7;
-				return 8;
-			}
-			if (x >= -y) return 1;
-			return 2;
-		}
-		if (y > 0)
-		{
-			if (y > -x) return 6;
-			return 5;
-		}
-		if (y > x) return 4;
-		return 3;
-	}
+    private void arcDoPixel(int x, int y) {
+        if (x < clipLX || x > clipHX || y < clipLY || y > clipHY) {
+            return;
+        }
+        if (arcThick) {
+            drawThickPoint(x, y, arcRaster);
+        } else {
+            arcRaster.drawPoint(x, y);
+        }
+    }
 
-	private Point arcXformOctant(int x, int y, int oct)
-	{
-		switch (oct)
-		{
-			case 1 : return new Point(-y,  x);
-			case 2 : return new Point( x, -y);
-			case 3 : return new Point(-x, -y);
-			case 4 : return new Point(-y, -x);
-			case 5 : return new Point( y, -x);
-			case 6 : return new Point(-x,  y);
-			case 7 : return new Point( x,  y);
-			case 8 : return new Point( y,  x);
-		}
-		return null;
-	}
+    private void arcOutXform(int x, int y) {
+        if (arcOctTable[1]) {
+            arcDoPixel(y + arcCenter.x, -x + arcCenter.y);
+        }
+        if (arcOctTable[2]) {
+            arcDoPixel(x + arcCenter.x, -y + arcCenter.y);
+        }
+        if (arcOctTable[3]) {
+            arcDoPixel(-x + arcCenter.x, -y + arcCenter.y);
+        }
+        if (arcOctTable[4]) {
+            arcDoPixel(-y + arcCenter.x, -x + arcCenter.y);
+        }
+        if (arcOctTable[5]) {
+            arcDoPixel(-y + arcCenter.x, x + arcCenter.y);
+        }
+        if (arcOctTable[6]) {
+            arcDoPixel(-x + arcCenter.x, y + arcCenter.y);
+        }
+        if (arcOctTable[7]) {
+            arcDoPixel(x + arcCenter.x, y + arcCenter.y);
+        }
+        if (arcOctTable[8]) {
+            arcDoPixel(y + arcCenter.x, x + arcCenter.y);
+        }
+    }
 
-	private void arcDoPixel(int x, int y)
-	{
-		if (x < clipLX || x > clipHX || y < clipLY || y > clipHY) return;
-		if (arcThick)
-		{
-			drawThickPoint(x, y, arcRaster);
-		} else
-		{
-			arcRaster.drawPoint(x, y);
-		}
-	}
+    private void arcBresCW(Point pt, Point pt1) {
+        int d = 3 - 2 * pt.y + 4 * pt.x;
+        while (pt.x < pt1.x && pt.y > pt1.y) {
+            arcOutXform(pt.x, pt.y);
+            if (d < 0) {
+                d += 4 * pt.x + 6;
+            } else {
+                d += 4 * (pt.x - pt.y) + 10;
+                pt.y--;
+            }
+            pt.x++;
+        }
 
-	private void arcOutXform(int x, int y)
-	{
-		if (arcOctTable[1]) arcDoPixel( y + arcCenter.x, -x + arcCenter.y);
-		if (arcOctTable[2]) arcDoPixel( x + arcCenter.x, -y + arcCenter.y);
-		if (arcOctTable[3]) arcDoPixel(-x + arcCenter.x, -y + arcCenter.y);
-		if (arcOctTable[4]) arcDoPixel(-y + arcCenter.x, -x + arcCenter.y);
-		if (arcOctTable[5]) arcDoPixel(-y + arcCenter.x,  x + arcCenter.y);
-		if (arcOctTable[6]) arcDoPixel(-x + arcCenter.x,  y + arcCenter.y);
-		if (arcOctTable[7]) arcDoPixel( x + arcCenter.x,  y + arcCenter.y);
-		if (arcOctTable[8]) arcDoPixel( y + arcCenter.x,  x + arcCenter.y);
-	}
+        // get to the end
+        for (; pt.x < pt1.x; pt.x++) {
+            arcOutXform(pt.x, pt.y);
+        }
+        for (; pt.y > pt1.y; pt.y--) {
+            arcOutXform(pt.x, pt.y);
+        }
+        arcOutXform(pt1.x, pt1.y);
+    }
 
-	private void arcBresCW(Point pt, Point pt1)
-	{
-		int d = 3 - 2 * pt.y + 4 * pt.x;
-		while (pt.x < pt1.x && pt.y > pt1.y)
-		{
-			arcOutXform(pt.x, pt.y);
-			if (d < 0) d += 4 * pt.x + 6; else
-			{
-				d += 4 * (pt.x-pt.y) + 10;
-				pt.y--;
-			}
-			pt.x++;
-		}
+    private void arcBresMidCW(Point pt) {
+        int d = 3 - 2 * pt.y + 4 * pt.x;
+        while (pt.x < pt.y) {
+            arcOutXform(pt.x, pt.y);
+            if (d < 0) {
+                d += 4 * pt.x + 6;
+            } else {
+                d += 4 * (pt.x - pt.y) + 10;
+                pt.y--;
+            }
+            pt.x++;
+        }
+        if (pt.x == pt.y) {
+            arcOutXform(pt.x, pt.y);
+        }
+    }
 
-		// get to the end
-		for ( ; pt.x < pt1.x; pt.x++) arcOutXform(pt.x, pt.y);
-		for ( ; pt.y > pt1.y; pt.y--) arcOutXform(pt.x, pt.y);
-		arcOutXform(pt1.x, pt1.y);
-	}
+    private void arcBresMidCCW(Point pt) {
+        int d = 3 + 2 * pt.y - 4 * pt.x;
+        while (pt.x > 0) {
+            arcOutXform(pt.x, pt.y);
+            if (d > 0) {
+                d += 6 - 4 * pt.x;
+            } else {
+                d += 4 * (pt.y - pt.x) + 10;
+                pt.y++;
+            }
+            pt.x--;
+        }
+        arcOutXform(0, arcRadius);
+    }
 
-	private void arcBresMidCW(Point pt)
-	{
-		int d = 3 - 2 * pt.y + 4 * pt.x;
-		while (pt.x < pt.y)
-		{
-			arcOutXform(pt.x, pt.y);
-			if (d < 0) d += 4 * pt.x + 6; else
-			{
-				d += 4 * (pt.x-pt.y) + 10;
-				pt.y--;
-			}
-			pt.x++;
-	   }
-	   if (pt.x == pt.y) arcOutXform(pt.x, pt.y);
-	}
+    private void arcBresCCW(Point pt, Point pt1) {
+        int d = 3 + 2 * pt.y + 4 * pt.x;
+        while (pt.x > pt1.x && pt.y < pt1.y) {
+            // not always correct
+            arcOutXform(pt.x, pt.y);
+            if (d > 0) {
+                d += 6 - 4 * pt.x;
+            } else {
+                d += 4 * (pt.y - pt.x) + 10;
+                pt.y++;
+            }
+            pt.x--;
+        }
 
-	private void arcBresMidCCW(Point pt)
-	{
-		int d = 3 + 2 * pt.y - 4 * pt.x;
-		while (pt.x > 0)
-		{
-			arcOutXform(pt.x, pt.y);
-			if (d > 0) d += 6-4 * pt.x; else
-			{
-				d += 4 * (pt.y-pt.x) + 10;
-				pt.y++;
-			}
-			pt.x--;
-	   }
-	   arcOutXform(0, arcRadius);
-	}
+        // get to the end
+        for (; pt.x > pt1.x; pt.x--) {
+            arcOutXform(pt.x, pt.y);
+        }
+        for (; pt.y < pt1.y; pt.y++) {
+            arcOutXform(pt.x, pt.y);
+        }
+        arcOutXform(pt1.x, pt1.y);
+    }
 
-	private void arcBresCCW(Point pt, Point pt1)
-	{
-		int d = 3 + 2 * pt.y + 4 * pt.x;
-		while(pt.x > pt1.x && pt.y < pt1.y)
-		{
-			// not always correct
-			arcOutXform(pt.x, pt.y);
-			if (d > 0) d += 6 - 4 * pt.x; else
-			{
-				d += 4 * (pt.y-pt.x) + 10;
-				pt.y++;
-			}
-			pt.x--;
-		}
+    /**
+     * draws an arc centered at (centerx, centery), clockwise,
+     * passing by (x1,y1) and (x2,y2)
+     */
+    void drawCircleArc(Point center, Point p1, Point p2, boolean thick, ERaster raster) {
+        // ignore tiny arcs
+        if (p1.x == p2.x && p1.y == p2.y) {
+            return;
+        }
 
-		// get to the end
-		for ( ; pt.x > pt1.x; pt.x--) arcOutXform(pt.x, pt.y);
-		for ( ; pt.y < pt1.y; pt.y++) arcOutXform(pt.x, pt.y);
-		arcOutXform(pt1.x, pt1.y);
-	}
+        // get parameters
+        arcRaster = raster;
 
-	/**
-	 * draws an arc centered at (centerx, centery), clockwise,
-	 * passing by (x1,y1) and (x2,y2)
-	 */
-	void drawCircleArc(Point center, Point p1, Point p2, boolean thick, ERaster raster)
-	{
-		// ignore tiny arcs
-		if (p1.x == p2.x && p1.y == p2.y) return;
+        arcCenter = center;
+        int pa_x = p2.x - arcCenter.x;
+        int pa_y = p2.y - arcCenter.y;
+        int pb_x = p1.x - arcCenter.x;
+        int pb_y = p1.y - arcCenter.y;
+        arcRadius = (int) arcCenter.distance(p2);
+        int alternate = (int) arcCenter.distance(p1);
+        int start_oct = arcFindOctant(pa_x, pa_y);
+        int end_oct = arcFindOctant(pb_x, pb_y);
+        arcThick = thick;
 
-		// get parameters
-		arcRaster = raster;
+        // move the point
+        if (arcRadius != alternate) {
+            int diff = arcRadius - alternate;
+            switch (end_oct) {
+                case 6:
+                case 7: /*  y >  x */ pb_y += diff;
+                    break;
+                case 8: /*  x >  y */
+                case 1: /*  x > -y */ pb_x += diff;
+                    break;
+                case 2: /* -y >  x */
+                case 3: /* -y > -x */ pb_y -= diff;
+                    break;
+                case 4: /* -y < -x */
+                case 5: /*  y < -x */ pb_x -= diff;
+                    break;
+            }
+        }
 
-		arcCenter = center;
-		int pa_x = p2.x - arcCenter.x;
-		int pa_y = p2.y - arcCenter.y;
-		int pb_x = p1.x - arcCenter.x;
-		int pb_y = p1.y - arcCenter.y;
-		arcRadius = (int)arcCenter.distance(p2);
-		int alternate = (int)arcCenter.distance(p1);
-		int start_oct = arcFindOctant(pa_x, pa_y);
-		int end_oct   = arcFindOctant(pb_x, pb_y);
-		arcThick = thick;
+        for (int i = 1; i < 9; i++) {
+            arcOctTable[i] = false;
+        }
 
-		// move the point
-		if (arcRadius != alternate)
-		{
-			int diff = arcRadius-alternate;
-			switch (end_oct)
-			{
-				case 6:
-				case 7: /*  y >  x */ pb_y += diff;  break;
-				case 8: /*  x >  y */
-				case 1: /*  x > -y */ pb_x += diff;  break;
-				case 2: /* -y >  x */
-				case 3: /* -y > -x */ pb_y -= diff;  break;
-				case 4: /* -y < -x */
-				case 5: /*  y < -x */ pb_x -= diff;  break;
-			}
-		}
+        if (start_oct == end_oct) {
+            arcOctTable[start_oct] = true;
+            Point pa = arcXformOctant(pa_x, pa_y, start_oct);
+            Point pb = arcXformOctant(pb_x, pb_y, start_oct);
 
-		for(int i=1; i<9; i++) arcOctTable[i] = false;
+            if ((start_oct & 1) != 0) {
+                arcBresCW(pa, pb);
+            } else {
+                arcBresCCW(pa, pb);
+            }
+            arcOctTable[start_oct] = false;
+        } else {
+            arcOctTable[start_oct] = true;
+            Point pt = arcXformOctant(pa_x, pa_y, start_oct);
+            if ((start_oct & 1) != 0) {
+                arcBresMidCW(pt);
+            } else {
+                arcBresMidCCW(pt);
+            }
+            arcOctTable[start_oct] = false;
 
-		if (start_oct == end_oct)
-		{
-			arcOctTable[start_oct] = true;
-			Point pa = arcXformOctant(pa_x, pa_y, start_oct);
-			Point pb = arcXformOctant(pb_x, pb_y, start_oct);
+            arcOctTable[end_oct] = true;
+            pt = arcXformOctant(pb_x, pb_y, end_oct);
+            if ((end_oct & 1) != 0) {
+                arcBresMidCCW(pt);
+            } else {
+                arcBresMidCW(pt);
+            }
+            arcOctTable[end_oct] = false;
 
-			if ((start_oct&1) != 0) arcBresCW(pa, pb);
-			else                    arcBresCCW(pa, pb);
-			arcOctTable[start_oct] = false;
-		} else
-		{
-			arcOctTable[start_oct] = true;
-			Point pt = arcXformOctant(pa_x, pa_y, start_oct);
-			if ((start_oct&1) != 0) arcBresMidCW(pt);
-			else			    	arcBresMidCCW(pt);
-			arcOctTable[start_oct] = false;
+            if (MODP(start_oct + 1) != end_oct) {
+                if (MODP(start_oct + 1) == MODM(end_oct - 1)) {
+                    arcOctTable[MODP(start_oct + 1)] = true;
+                } else {
+                    for (int i = MODP(start_oct + 1); i != end_oct; i = MODP(i + 1)) {
+                        arcOctTable[i] = true;
+                    }
+                }
+                arcBresMidCW(new Point(0, arcRadius));
+            }
+        }
+    }
 
-			arcOctTable[end_oct] = true;
-			pt = arcXformOctant(pb_x, pb_y, end_oct);
-			if ((end_oct&1) != 0) arcBresMidCCW(pt);
-			else			      arcBresMidCW(pt);
-			arcOctTable[end_oct] = false;
+    private int MODM(int x) {
+        return (x < 1) ? x + 8 : x;
+    }
 
-			if (MODP(start_oct+1) != end_oct)
-			{
-				if (MODP(start_oct+1) == MODM(end_oct-1))
-				{
-					arcOctTable[MODP(start_oct+1)] = true;
-				} else
-				{
-					for(int i = MODP(start_oct+1); i != end_oct; i = MODP(i+1))
-						arcOctTable[i] = true;
-				}
-				arcBresMidCW(new Point(0, arcRadius));
-			}
-		}
-	}
+    private int MODP(int x) {
+        return (x > 8) ? x - 8 : x;
+    }
 
-	private int MODM(int x) { return (x<1) ? x+8 : x; }
-	private int MODP(int x) { return (x>8) ? x-8 : x; }
-
-	// ************************************* RENDERING SUPPORT *************************************
-
+    // ************************************* RENDERING SUPPORT *************************************
     private void drawPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
         layerBitMap[y * width + x] |= layerBitMask;
     }
 
     private void drawThickPoint(int x, int y, ERaster raster) {
         raster.drawPoint(x, y);
-        if (x > clipLX)
+        if (x > clipLX) {
             raster.drawPoint(x - 1, y);
-        if (x < clipHX)
+        }
+        if (x < clipHX) {
             raster.drawPoint(x + 1, y);
-        if (y > clipLY)
+        }
+        if (y > clipLY) {
             raster.drawPoint(x, y - 1);
-        if (y < sz.height-1)
+        }
+        if (y < sz.height - 1) {
             raster.drawPoint(x, y + 1);
+        }
     }
 
     private void drawThickPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
         int baseIndex = y * sz.width + x;
         layerBitMap[baseIndex] |= layerBitMask;
-        if (x > clipLX)
+        if (x > clipLX) {
             layerBitMap[baseIndex - 1] |= layerBitMask;
-        if (x < clipHX)
+        }
+        if (x < clipHX) {
             layerBitMap[baseIndex + 1] |= layerBitMask;
-        if (y > clipLY)
+        }
+        if (y > clipLY) {
             layerBitMap[baseIndex - width] |= layerBitMask;
-        if (y < sz.height-1)
+        }
+        if (y < sz.height - 1) {
             layerBitMap[baseIndex + width] |= layerBitMask;
+        }
     }
 
-	/**
-	 * Method to convert a database coordinate to screen coordinates.
-	 * @param dbX the X coordinate (in database units).
-	 * @param dbY the Y coordinate (in database units).
-	 * @param result the Point in which to store the screen coordinates.
-	 */
-	private void databaseToScreen(double dbX, double dbY, Point result) {
-        double scrX = originX + dbX*scale;
-        double scrY = originY - dbY*scale;
-		result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
-		result.y = (int)(scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
+    /**
+     * Method to convert a database coordinate to screen coordinates.
+     * @param dbX the X coordinate (in database units).
+     * @param dbY the Y coordinate (in database units).
+     * @param result the Point in which to store the screen coordinates.
+     */
+    private void databaseToScreen(double dbX, double dbY, Point result) {
+        double scrX = originX + dbX * scale;
+        double scrY = originY - dbY * scale;
+        result.x = (int) (scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
+        result.y = (int) (scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
     }
 
     private void screenToDatabase(int x, int y, Point2D result) {
-        result.setLocation((x - originX)/scale, (originY - y)/scale);
+        result.setLocation((x - originX) / scale, (originY - y) / scale);
     }
 
-	/**
-	 * Method to convert a database rectangle to screen coordinates.
-	 * @param db the rectangle (in database units).
-	 * @return the rectangle on the screen.
-	 */
-	private Rectangle databaseToScreen(Rectangle2D db)
-	{
+    /**
+     * Method to convert a database rectangle to screen coordinates.
+     * @param db the rectangle (in database units).
+     * @return the rectangle on the screen.
+     */
+    private Rectangle databaseToScreen(Rectangle2D db) {
         Point llPt = tempPt1;
         Point urPt = tempPt2;
-		databaseToScreen(db.getMinX(), db.getMinY(), llPt);
-		databaseToScreen(db.getMaxX(), db.getMaxY(), urPt);
-		int screenLX = llPt.x;
-		int screenHX = urPt.x;
-		int screenLY = llPt.y;
-		int screenHY = urPt.y;
-		if (screenHX < screenLX) { int swap = screenHX;   screenHX = screenLX; screenLX = swap; }
-		if (screenHY < screenLY) { int swap = screenHY;   screenHY = screenLY; screenLY = swap; }
-		return new Rectangle(screenLX, screenLY, screenHX-screenLX+1, screenHY-screenLY+1);
-	}
-
+        databaseToScreen(db.getMinX(), db.getMinY(), llPt);
+        databaseToScreen(db.getMaxX(), db.getMaxY(), urPt);
+        int screenLX = llPt.x;
+        int screenHX = urPt.x;
+        int screenLY = llPt.y;
+        int screenHY = urPt.y;
+        if (screenHX < screenLX) {
+            int swap = screenHX;
+            screenHX = screenLX;
+            screenLX = swap;
+        }
+        if (screenHY < screenLY) {
+            int swap = screenHY;
+            screenHY = screenLY;
+            screenLY = swap;
+        }
+        return new Rectangle(screenLX, screenLY, screenHX - screenLX + 1, screenHY - screenLY + 1);
+    }
 }

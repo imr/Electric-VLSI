@@ -53,10 +53,11 @@ public abstract class AbstractDrawing {
 
     public static AbstractDrawing createDrawing(EditWindow wnd, AbstractDrawing drawing, Cell cell) {
         boolean isLayerDrawing = User.getDisplayAlgorithm() == 2 && cell != null && cell.getTechnology().isLayout();
-        if (isLayerDrawing)
+        if (isLayerDrawing) {
             drawing = new LayerDrawing.Drawing(wnd);
-        else
+        } else {
             drawing = new PixelDrawing.Drawing(wnd);
+        }
         return drawing;
     }
 
@@ -78,31 +79,32 @@ public abstract class AbstractDrawing {
         return true;
     }
 
-    public boolean hasOpacity() { return false; }
+    public boolean hasOpacity() {
+        return false;
+    }
 
     public void testJogl() {
     }
 
-	/**
-	 * Method to clear the cache of expanded subcells.
-	 * This is used by layer visibility which, when changed, causes everything to be redrawn.
-	 */
-	public static void clearSubCellCache(boolean layerAlso)
-	{
+    /**
+     * Method to clear the cache of expanded subcells.
+     * This is used by layer visibility which, when changed, causes everything to be redrawn.
+     */
+    public static void clearSubCellCache(boolean layerAlso) {
         PixelDrawing.clearSubCellCache();
-        if (layerAlso)
+        if (layerAlso) {
             LayerDrawing.clearSubCellCache();
-	}
+        }
+    }
 
-	public static void forceRedraw(Cell cell)
-	{
+    public static void forceRedraw(Cell cell) {
         PixelDrawing.forceRedraw(cell);
         LayerDrawing.forceRedraw(cell);
-	}
+    }
 
-	/**
-	 * Method to draw polygon "poly", transformed through "trans".
-	 */
+    /**
+     * Method to draw polygon "poly", transformed through "trans".
+     */
     public static void drawShapes(Graphics2D g, GraphicsPreferences gp, int imgX, int imgY, double scale, VectorCache.VectorBase[] shapes,
             PixelDrawing offscreen, Rectangle entryRect) {
         if (User.getDisplayAlgorithm() < 2 || User.isLegacyComposite()) {
@@ -145,6 +147,7 @@ public abstract class AbstractDrawing {
     }
 
     public static class DrawingPreferences {
+
         boolean gridAxesShown = User.isGridAxesShown();
         double gridXBoldFrequency = User.getDefGridXBoldFrequency();
         double gridYBoldFrequency = User.getDefGridYBoldFrequency();
