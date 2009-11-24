@@ -615,7 +615,7 @@ public class PixelDrawing
 	 */
 	public void printImage(double scale, Point2D offset, Cell cell, VarContext varContext, GraphicsPreferences gp)
 	{
-        this.gp = gp;
+        PixelDrawing.gp = gp;
         clearSubCellCache();
         lastFullInstantiate = false;
         expandedScale = this.scale = scale;
@@ -1185,11 +1185,6 @@ public class PixelDrawing
 		{
 			// cell instance
 			totalCells++;
-//			if (objWidth < maxObjectSize)
-//			{
-//				tinyCells++;
-//				return;
-//			}
 
 			// see if it is on the screen
 			Cell subCell = (Cell)np;
@@ -1212,6 +1207,7 @@ public class PixelDrawing
 			if (fullInstantiate) expanded = true;
 
 			// if not expanded, but viewing this cell in-place, expand it
+			boolean onPathDown = false;
 			if (!expanded)
 			{
 				if (inPlaceNodePath != null)
@@ -1222,6 +1218,7 @@ public class PixelDrawing
 						if (niOnPath.getProto() == subCell)
 						{
 							expanded = true;
+							onPathDown = true;
 							break;
 						}
 					}
@@ -1245,7 +1242,7 @@ public class PixelDrawing
 				// draw the black box of the instance
 				drawUnexpandedCell(ni, poly);
 			}
-			if (canDrawText) showCellPorts(ni, trans, expanded);
+			if (canDrawText) showCellPorts(ni, trans, expanded, onPathDown);
 
 			// draw any displayable variables on the instance
 			if (canDrawText && gp.isTextVisibilityOn(TextDescriptor.TextType.NODE))
@@ -1393,7 +1390,7 @@ public class PixelDrawing
     		drawPolys(ai.getDisplayableVariables(dummyWnd), trans, forceVisible);
 	}
 
-	private void showCellPorts(NodeInst ni, AffineTransform trans, boolean expanded)
+	private void showCellPorts(NodeInst ni, AffineTransform trans, boolean expanded, boolean onPathDown)
 	{
 		// show the ports that are not further exported or connected
 		int numPorts = ni.getProto().getNumPorts();
@@ -1417,7 +1414,7 @@ public class PixelDrawing
 		int portDisplayLevel = gp.portDisplayLevel;
 		for(int i = 0; i < numPorts; i++)
 		{
-			if (shownPorts[i]) continue;
+			if (!onPathDown && shownPorts[i]) continue;
 			Export pp = (Export)ni.getProto().getPort(i);
 
 			Poly portPoly = ni.getShapeOfPort(pp);
@@ -1434,7 +1431,7 @@ public class PixelDrawing
 				if (gp.isTextVisibilityOn(TextDescriptor.TextType.PORT))
 				{
 					// combine all features of port text with color of the port
-					TextDescriptor descript = portPoly.getTextDescriptor();
+					TextDescriptor descript = pp.getNamePoly().getTextDescriptor();
 					TextDescriptor portDescript = pp.getTextDescriptor(Export.EXPORT_NAME).withColorIndex(descript.getColorIndex());
 					Poly.Type type = descript.getPos().getPolyType();
 					String portName = pp.getName();

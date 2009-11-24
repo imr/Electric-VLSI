@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/24/09, SMR) Export names not shown when editing down-in-place (Bug #2438).
+FIX: Patched all three display algorithms.
+
 IMP: (11/24/09, DN) Release arrays NetCell.headConn and NetCell.tailConn when they are no more used.
 
 IMP: (11/24/09, DN) Redisplay in LayerDrawing doesn't allocate Topologies of subcells.

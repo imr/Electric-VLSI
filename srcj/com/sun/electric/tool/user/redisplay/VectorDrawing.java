@@ -116,8 +116,8 @@ class VectorDrawing
 	 * @param screenLimit the area in the cell to display (null to show all).
 	 */
 	public void render(PixelDrawing offscreen, double scale, Point2D offset, Cell cell, boolean fullInstantiate,
-		List<NodeInst> inPlaceNodePath, Cell inPlaceCurrent, Rectangle screenLimit, VarContext context,
-        double greekSizeLimit, double greekCellSizeLimit)
+		List<NodeInst> inPlaceNodePath, Cell inPlaceCurrent, Rectangle screenLimit,
+		VarContext context, double greekSizeLimit, double greekCellSizeLimit)
 	{
 		// see if any layers are being highlighted/dimmed
 		this.offscreen = offscreen;
@@ -395,7 +395,7 @@ class VectorDrawing
 				}
 			}
 			if (level == 0 || onPathDown || inPlaceCurrent == cell)
-				drawPortList(vsc, subVC, soX, soY, expanded);
+				drawPortList(vsc, subVC, soX, soY, expanded, onPathDown);
 //				drawPortList(vsc, subVC, soX, soY, ni.isExpanded());
 		}
 	}
@@ -684,10 +684,12 @@ class VectorDrawing
 	 * Method to draw a list of cached port shapes.
 	 * @param oX the X offset to draw the shapes (in database grid coordinates).
 	 * @param oY the Y offset to draw the shapes (in database grid coordinates).
-	 * @parem true to draw a list on expanded instance
+	 * @param expanded true to draw a list on expanded instance.
+	 * @param onPathDown true if this level of hierarchy is the current one in "down-in-place" editing.
 	 */
-	private void drawPortList(VectorCache.VectorSubCell vsc, VectorCache.VectorCell subVC_, int oX, int oY, boolean expanded)
-		throws AbortRenderingException
+	private void drawPortList(VectorCache.VectorSubCell vsc, VectorCache.VectorCell subVC_,
+		int oX, int oY, boolean expanded, boolean onPathDown)
+			throws AbortRenderingException
 	{
 		if (!PixelDrawing.gp.isTextVisibilityOn(TextDescriptor.TextType.PORT)) return;
 		// render all shapes
@@ -699,7 +701,7 @@ class VectorDrawing
 			if (stopRendering) throw new AbortRenderingException();
 
 			// get visual characteristics of shape
-			if (vsc.shownPorts.get(vce.getChronIndex())) continue;
+			if (!onPathDown && vsc.shownPorts.get(vce.getChronIndex())) continue;
 			if (vce.height < maxTextSize) continue;
 
 			int cX = portCenters[i*2];

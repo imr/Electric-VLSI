@@ -27,7 +27,6 @@ import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -284,8 +283,6 @@ class LayerDrawing {
     private double canDrawRelativeText = Double.MAX_VALUE;
     /** maximum size before an object is too small */
     private static double maxObjectSize;
-    /** half of maximum object size */
-    private static double halfMaxObjectSize;
     /** temporary objects (saves reallocation) */
     private final Point tempPt1 = new Point(), tempPt2 = new Point();
     /** temporary objects (saves reallocation) */
@@ -334,8 +331,6 @@ class LayerDrawing {
     private static double expandedScale = 0;
     /** number of extra cells to render this time */
     private static int numberToReconcile;
-    /** zero rectangle */
-    private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
     // Color things only at top offscreen
     private GraphicsPreferences gp;
     private AbstractDrawing.DrawingPreferences dp;
@@ -343,7 +338,7 @@ class LayerDrawing {
     /** cache of port colors */
     private HashMap<PrimitivePort, Color> portColorsCache;
     private int clipLX, clipHX, clipLY, clipHY;
-    private final int width;
+//    private final int width;
     private final EditWindow0 dummyWnd = new EditWindow0() {
 
         public VarContext getVarContext() {
@@ -573,7 +568,7 @@ class LayerDrawing {
             alphaBlender.init(gp.getColor(User.ColorPrefType.BACKGROUND), colors, bits);
 
             int width = dd.width;
-            int height = dd.height, clipLY = 0, clipHY = height - 1;
+            int height = dd.height;
             int numIntsPerRow = dd.numIntsPerRow;
             int baseByteIndex = 0;
             int y = 0;
@@ -670,7 +665,6 @@ class LayerDrawing {
             }
 
             int numTransparent = 0, numOpaque = 0;
-            int deepestTransparentDepth = 0;
             for (Layer layer : dd.layerRasters.keySet()) {
                 if (!lv.isVisible(layer)) {
                     continue;
@@ -706,8 +700,10 @@ class LayerDrawing {
             // determine range
             int numIntsPerRow = dd.numIntsPerRow;
             int backgroundColor = gp.getColor(User.ColorPrefType.BACKGROUND).getRGB() & GraphicsPreferences.RGB_MASK;
-            int lx = 0, hx = dd.width - 1;
-            int ly = 0, hy = dd.height - 1;
+//            int lx = 0;
+            int hx = dd.width - 1;
+            int ly = 0;
+            int hy = dd.height - 1;
 
             for (int y = ly; y <= hy; y++) {
                 int baseByteIndex = y * numIntsPerRow;
@@ -841,7 +837,7 @@ class LayerDrawing {
         private int fromHSVtoRGB(double h, double s, double v) {
             h = h * 6.0;
             int i = (int) h;
-            double f = h - (double) i;
+            double f = h - i;
             double m = v * (1.0 - s);
             double n = v * (1.0 - s * f);
             double k = v * (1.0 - s * (1.0 - f));
@@ -1256,7 +1252,7 @@ class LayerDrawing {
         alphaBlender.init(gp.getColor(User.ColorPrefType.BACKGROUND), colors, bits);
 
         int width = offscreen.sz.width;
-        int height = offscreen.sz.height, clipLY = 0, clipHY = height - 1;
+        int height = offscreen.sz.height;
         int numIntsPerRow = offscreen.numIntsPerRow;
         int baseByteIndex = 0;
         int y = 0;
@@ -1323,7 +1319,7 @@ class LayerDrawing {
      */
     public LayerDrawing(Dimension sz) {
         this.sz = new Dimension(sz);
-        width = sz.width;
+//        width = sz.width;
         clipLX = 0;
         clipHX = sz.width - 1;
         clipLY = 0;
@@ -1344,7 +1340,7 @@ class LayerDrawing {
         factorX = (float) (-originX / scale_);
         factorY = (float) (originY / scale_);
         this.sz = new Dimension(hX - lX + 1, hY - lY + 1);
-        width = sz.width;
+//        width = sz.width;
         clipLX = 0;
         clipHX = sz.width - 1;
         clipLY = 0;
@@ -1438,7 +1434,6 @@ class LayerDrawing {
         canDrawText = expandedScale > 1;
         canDrawRelativeText = canDrawText ? 0 : MINIMUMTEXTSIZE;
         maxObjectSize = 2 / expandedScale;
-        halfMaxObjectSize = maxObjectSize / 2;
 
         // remember the true window size (since recursive calls may cache individual cells that are smaller)
         topSz = sz;
@@ -1868,7 +1863,7 @@ class LayerDrawing {
                 }
             }
             if (canDrawText && (topLevel || onPathDown || inPlaceCurrent == cell)) {
-                drawPortList(vsc, subVC, soX, soY, expanded);
+                drawPortList(vsc, subVC, soX, soY, expanded, onPathDown);
             }
 //                drawPortList(vsc, subVC, soX, soY, isExpanded);
         }
@@ -2491,7 +2486,7 @@ class LayerDrawing {
             int minDestX = minSrcX + dx;
             int maxDestX = maxSrcX + dx;
             int minDestY = minSrcY + dy;
-            int maxDestY = maxSrcY + dy;
+//            int maxDestY = maxSrcY + dy;
             int leftShift = dx & 31;
             int rightShift = 32 - leftShift;
             int srcBaseIndex = minSrcY * src.intsPerRow + (minSrcX >> 5);
@@ -3008,9 +3003,12 @@ class LayerDrawing {
      * Method to draw a list of cached port shapes.
      * @param oX the X offset to draw the shapes (in database grid coordinates).
      * @param oY the Y offset to draw the shapes (in database grid coordinates).
-     * @parem true to draw a list on expanded instance
+     * @param expanded true to draw a list on expanded instance.
+	 * @param onPathDown true if this level of hierarchy is the current one in "down-in-place" editing.
      */
-    private void drawPortList(VectorCache.VectorSubCell vsc, VectorCache.VectorCell subVC_, int oX, int oY, boolean expanded) //		throws AbortRenderingException
+    private void drawPortList(VectorCache.VectorSubCell vsc, VectorCache.VectorCell subVC_,
+    	int oX, int oY, boolean expanded, boolean onPathDown)
+    //		throws AbortRenderingException
     {
         if (!gp.isTextVisibilityOn(TextDescriptor.TextType.PORT)) {
             return;
@@ -3024,7 +3022,7 @@ class LayerDrawing {
 //			if (stopRendering) throw new AbortRenderingException();
 
             // get visual characteristics of shape
-            if (vsc.shownPorts.get(vce.getChronIndex())) {
+            if (!onPathDown && vsc.shownPorts.get(vce.getChronIndex())) {
                 continue;
             }
 //			if (vt.height < maxTextSize) continue;
@@ -3923,7 +3921,6 @@ class LayerDrawing {
 
         // get text description
         int size = EditWindow.getDefaultFontSize();
-        int fontStyle = Font.PLAIN;
         String fontName = gp.defaultFont;
         boolean italic = false;
         boolean bold = false;
@@ -3974,7 +3971,6 @@ class LayerDrawing {
         }
 
         // create RenderInfo
-        long startTime = 0;
         RenderTextInfo renderInfo = new RenderTextInfo(color, baseNode);
         if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation)) {
             return;
@@ -4115,7 +4111,7 @@ class LayerDrawing {
             if (underline) {
                 height++;
             }
-            rasBounds = new Rectangle2D.Double(0, (float) lm.getAscent() - lm.getLeading(), width, height);
+            rasBounds = new Rectangle2D.Double(0, lm.getAscent() - lm.getLeading(), width, height);
 
             Point2D anchorPoint = getTextCorner(width, height, style, probableBoxedBounds, rotation);
             if (rotation == 1 || rotation == 3) {
@@ -4541,7 +4537,6 @@ class LayerDrawing {
     private boolean[] arcOctTable = new boolean[9];
     private Point arcCenter;
     private int arcRadius;
-    private int arcCol;
     private ERaster arcRaster;
     private boolean arcThick;
 
@@ -4808,9 +4803,9 @@ class LayerDrawing {
     }
 
     // ************************************* RENDERING SUPPORT *************************************
-    private void drawPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
-        layerBitMap[y * width + x] |= layerBitMask;
-    }
+//    private void drawPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
+//        layerBitMap[y * width + x] |= layerBitMask;
+//    }
 
     private void drawThickPoint(int x, int y, ERaster raster) {
         raster.drawPoint(x, y);
@@ -4828,22 +4823,22 @@ class LayerDrawing {
         }
     }
 
-    private void drawThickPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
-        int baseIndex = y * sz.width + x;
-        layerBitMap[baseIndex] |= layerBitMask;
-        if (x > clipLX) {
-            layerBitMap[baseIndex - 1] |= layerBitMask;
-        }
-        if (x < clipHX) {
-            layerBitMap[baseIndex + 1] |= layerBitMask;
-        }
-        if (y > clipLY) {
-            layerBitMap[baseIndex - width] |= layerBitMask;
-        }
-        if (y < sz.height - 1) {
-            layerBitMap[baseIndex + width] |= layerBitMask;
-        }
-    }
+//    private void drawThickPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
+//        int baseIndex = y * sz.width + x;
+//        layerBitMap[baseIndex] |= layerBitMask;
+//        if (x > clipLX) {
+//            layerBitMap[baseIndex - 1] |= layerBitMask;
+//        }
+//        if (x < clipHX) {
+//            layerBitMap[baseIndex + 1] |= layerBitMask;
+//        }
+//        if (y > clipLY) {
+//            layerBitMap[baseIndex - width] |= layerBitMask;
+//        }
+//        if (y < sz.height - 1) {
+//            layerBitMap[baseIndex + width] |= layerBitMask;
+//        }
+//    }
 
     /**
      * Method to convert a database coordinate to screen coordinates.

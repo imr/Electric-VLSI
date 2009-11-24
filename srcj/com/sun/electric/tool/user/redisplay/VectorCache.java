@@ -1324,7 +1324,6 @@ public class VectorCache {
      * @param vc the cached cell in which to place the NodeInst.
      */
     private void drawSubcell(NodeInst ni, AffineTransform trans, VectorCell vc) {
-        NodeProto np = ni.getProto();
         AffineTransform localTrans = ni.rotateOut(trans);
 
         // draw the node
