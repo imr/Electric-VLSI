@@ -289,6 +289,16 @@ public abstract class Netlist {
     }
 
     /**
+     * Returns number of drawn networks in this Netlist.
+     * Drawn networks are computed from this Cell only.
+     * They doesn't consider buses or shortcuts in subcells.
+     * @return set of number of drawn networks in this Netlist.
+     */
+    public int getNumDrawns() {
+        return netCell.numDrawns;
+    }
+
+    /**
      * Get number of networks in this Netlist.
      * @return number of networks in this Netlist.
      */
