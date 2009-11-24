@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+IMP: (11/24/09, DN) Redisplay in LayerDrawing doesn't allocate Topologies of subcells.
+
 BUG: (11/23/09, DN) ArrayIndexOutOfBoundsException when re-exporting highlighted ports (Bug #2491).
 FIX: In Cell.updatePortInsts don't update PortInsts of parent Cell if its Topology is not allocated.
 

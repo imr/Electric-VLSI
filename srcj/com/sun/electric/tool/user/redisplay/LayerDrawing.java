@@ -1831,8 +1831,8 @@ class LayerDrawing {
                 if (!expandedCellCached(subCell, subOrient, soX_, soY_, context, fullInstantiate)) {
                     // just draw it directly
                     cellsRendered++;
-                    NodeInst ni = subCell.getNodeById(vsc.n.nodeId);
-                    drawCell(subCell, drawLimitBounds, fullInstantiate, subOrient, soX_, soY_, false, context.push(ni));
+//                    NodeInst ni = subCell.getNodeById(vsc.n.nodeId);
+                    drawCell(subCell, drawLimitBounds, fullInstantiate, subOrient, soX_, soY_, false, context.push(cell, vsc.n));
                 }
             } else {
                 // draw the black box of the instance

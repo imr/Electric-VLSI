@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.text.Name;
@@ -134,21 +135,37 @@ public class VarContext implements Serializable {
     }
     private static final Object FAST_EVAL_FAILED = new Object();
     private final VarContext prev;
-    private final Nodable ni;
+    private final Cell cell;
+    private final int nodeId;
+    private Nodable ni;
     private transient ValueCache cache;
 
     // ------------------------ private methods -------------------------------
     // For the global context.
     private VarContext() {
-        this.ni = null;
+        this.cell = null;
+        this.nodeId = -1;
         this.prev = this;
         this.cache = null;
     }
 
     private VarContext(Nodable ni, VarContext prev, boolean caching) {
+        this.cell = ni.getParent();
+        this.nodeId = ni instanceof NodeInst ? ((NodeInst)ni).getD().nodeId : -1;
         this.ni = ni;
         this.prev = prev;
         this.cache = caching ? new ValueCache() : null;
+    }
+
+    private VarContext(Cell cell, ImmutableNodeInst n, VarContext prev) {
+        if (cell == null)
+            throw new NullPointerException();
+        if (n == null)
+            throw new NullPointerException();
+        this.cell = cell;
+        this.nodeId = n.nodeId;
+        this.prev = prev;
+        this.cache = null;
     }
 
     private Object readResolve() {
@@ -270,6 +287,14 @@ public class VarContext implements Serializable {
     }
 
     /**
+     * get a new VarContext that consists of the current VarContext with
+     * the given pair (Cell,ImmutableNodeInst) pushed onto the stack
+     */
+    public VarContext push(Cell cell, ImmutableNodeInst n) {
+        return new VarContext(cell, n, this);
+    }
+
+    /**
      * get the VarContext that existed before you called push on it.
      * may return globalContext if the stack is empty.
      */
@@ -282,15 +307,10 @@ public class VarContext implements Serializable {
      * variable evaluation for this level.
      */
     public Nodable getNodable() {
+        if (ni == null && nodeId >= 0) {
+            ni = cell.getNodeById(nodeId);
+        }
         return ni;
-    }
-
-    /**
-     * Return the PortInst that resides on the NodeInst that provides
-     * the context. This is currently only useful for Highlighting.
-     */
-    public PortInst getPortInst() {
-        return null;
     }
 
     /**
@@ -312,12 +332,12 @@ public class VarContext implements Serializable {
         // the following line doesn't work (R KAO, IvanM)
         //if (ni != c.getNodable()) return false; // compare nodeinsts
 
-        if (ni == null || c.getNodable() == null) {
-            return ni == c.getNodable();
+        Cell c1 = cell;
+        Cell c2 = c.cell;
+        if (c1 == null || c2 == null) {
+            return c1 == c2;
         }
-        Cell c1 = ni.getParent();
-        Cell c2 = c.getNodable().getParent();
-        String name1 = ni.getName();
+        String name1 = getNodable().getName();
         String name2 = c.getNodable().getName();
 
         if (!((c1 == c2) && (name1.equals(name2)))) {
@@ -580,6 +600,7 @@ public class VarContext implements Serializable {
      * or null if no var or default var found.
      */
     protected Object lookupVarEval(String name) throws EvalException {
+        Nodable ni = getNodable();
         if (ni == null) {
             throwNotFound(name);
         }
