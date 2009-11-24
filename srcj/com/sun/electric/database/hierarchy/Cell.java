@@ -2500,9 +2500,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @param pattern array with elements describing new PortInsts.
      */
     public void updatePortInsts(int[] pattern) {
-        for (Iterator<NodeInst> it = getInstancesOf(); it.hasNext();) {
-            NodeInst ni = it.next();
-            ni.updatePortInsts(pattern);
+        for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); ) {
+            CellUsage cu = it.next();
+            Cell parentCell = cu.getParent(database);
+            Topology topology = parentCell.getTopologyOptional();
+            if (topology != null) {
+                topology.updatePortInsts(this, pattern);
+            }
         }
     }
 

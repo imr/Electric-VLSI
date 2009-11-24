@@ -189,6 +189,21 @@ public class Topology {
 //    }
 
     /**
+     * Update PortInsts of all instances of specified Cell accoding to pattern.
+     * Pattern contains an element for each Export.
+     * If Export was just created, the element contains -1.
+     * For old Exports the element contains old index of the Export.
+     * @param pattern array with elements describing new PortInsts.
+     */
+    public void updatePortInsts(Cell proto, int[] pattern) {
+        for (NodeInst ni: nodes) {
+            if (ni.getProto() == proto) {
+                ni.updatePortInsts(pattern);
+                ni.check();
+            }
+        }
+    }
+    /**
      * Method to return the PortInst by nodeId and PortProtoId.
      * @param nodeId specified NodeId.
      * @param portProtoId

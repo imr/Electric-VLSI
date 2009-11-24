@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/23/09, DN) ArrayIndexOutOfBoundsException when re-exporting highlighted ports (Bug #2491).
+FIX: In Cell.updatePortInsts don't update PortInsts of parent Cell if its Topology is not allocated.
+
 BUG: (11/23/09, DN) Routing regressions crashed attempting to save preferences.
 FIX: In RoutingTest comment out ep.putPrefs .
 
