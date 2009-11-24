@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/24/09, SMR) Waveform window draws extra garbage (Bug #2493).
+FIX: In HorizRuler.renderRuler() clear the area first.
+
 BUG: (11/24/09, SMR) Export names not shown when editing down-in-place (Bug #2438).
 FIX: Patched all three display algorithms.
 

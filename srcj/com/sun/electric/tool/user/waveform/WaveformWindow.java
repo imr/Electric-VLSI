@@ -52,7 +52,14 @@ import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.ncc.NccCrossProbing;
 import com.sun.electric.tool.ncc.result.NccResult;
-import com.sun.electric.tool.simulation.*;
+import com.sun.electric.tool.simulation.AnalogAnalysis;
+import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.Analysis;
+import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.Waveform;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -118,8 +125,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-
 import java.util.prefs.Preferences;
+
 import javax.print.attribute.standard.ColorSupported;
 import javax.swing.AbstractCellEditor;
 import javax.swing.BoxLayout;
@@ -202,7 +209,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** Font for all text in the window */					private static Font waveWindowFont;
 	/** For rendering text */								private static FontRenderContext waveWindowFRC;
 	/** The colors of signal lines */						private static Color offStrengthColor, nodeStrengthColor, gateStrengthColor, powerStrengthColor;
-
+	/** The background color */								private static Color backgroundColor;
 	/** drop target (for drag and drop) */					public static WaveFormDropTarget waveformDropTarget = new WaveFormDropTarget();
 
 	private static final ImageIcon iconAddPanel = Resources.getResource(WaveformWindow.class, "ButtonSimAddPanel.gif");
@@ -637,6 +644,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			public void actionPerformed(ActionEvent evt) { vcrClickSlower(); }
 		});
 
+		backgroundColor = vcrButtonSlower.getBackground();
 		// the single horizontal ruler panel (when the X axes are locked)
 		if (xAxisLocked)
 		{
@@ -1266,6 +1274,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public JPanel getSignalTracesPanel() { return right; }
 
 	public JTable getWaveformTable() { return table; }
+
+	public static Color getBackgroundColor() { return backgroundColor; }
 
 	// ************************************* CONTROL OF PANELS IN THE WINDOW *************************************
 

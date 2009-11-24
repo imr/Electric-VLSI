@@ -32,6 +32,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
+import com.sun.electric.tool.simulation.BTreeNewSignal;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.NewSignal;
@@ -41,7 +42,6 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Waveform;
 import com.sun.electric.tool.simulation.WaveformImpl;
-import com.sun.electric.tool.simulation.*;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
@@ -109,10 +109,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.Scrollable;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 
 /**
@@ -1492,8 +1492,8 @@ public class Panel extends JPanel
             g.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
             String msg = "(using legacy simulation code)";
             g.drawString(msg,
-                         (int)getWidth()-g.getFontMetrics().stringWidth(msg)-10,
-                         (int)getHeight()-10
+                         getWidth()-g.getFontMetrics().stringWidth(msg)-10,
+                         getHeight()-10
                          );
         }
 
