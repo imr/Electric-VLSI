@@ -685,6 +685,14 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     }
 
     /**
+     * Method to tell whether this NodeInst is a cell instance.
+     * @return true if this NodeInst is a cell instance, false if it is a primitive
+     */
+    public boolean isCellInstance() {
+        return protoId instanceof CellId;
+    }
+
+    /**
      * Returns ImmutablePortInst of this ImmutableNodeInst with the specified PortProtoId.
      * @param portProtoId PortProtoId of port instance.
      * @return ImmutablePortInst of this ImmutableNodeInst with the specified PortProtoId.

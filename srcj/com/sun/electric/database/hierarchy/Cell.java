@@ -1982,12 +1982,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @param value true if NodeInst is expanded.
      */
     public void setExpanded(int nodeId, boolean value) {
-        NodeInst ni = getNodeById(nodeId);
-        if (ni == null) {
+        ImmutableNodeInst n = backupUnsafe().getMemoization().getNodeById(nodeId);
+        if (n == null) {
             return;
         }
-        NodeProto protoType = ni.getProto();
-        if (!(protoType instanceof Cell) || ((Cell) protoType).isIcon()) {
+        if (!(n.protoId instanceof CellId) || ((CellId) n.protoId).isIcon()) {
             return;
         }
         boolean oldValue = expandedNodes.get(nodeId);

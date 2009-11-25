@@ -24,11 +24,13 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -1348,124 +1350,94 @@ public class CircuitChanges
             new CircuitChangeJobs.ManyMove(cell, highlightedEObjs, highlightedText, dX, dY);
 	}
 
-	/****************************** CHANGE CELL EXPANSION ******************************/
+    /****************************** CHANGE CELL EXPANSION ******************************/
 
-	private static HashSet<NodeInst> expandFlagBit;
+    /**
+     * Method to change the expansion of the selected instances.
+     * @param unExpand true to unexpand the instances (draw them as black boxes),
+     * false to expand them (draw their contents).
+     * @param amount the number of levels of hierarchy to expand/unexpand.
+     * If negative, prompt for an amount.
+     */
+    public static void DoExpandCommands(boolean unExpand, int amount)
+    {
+        if (amount < 0)
+        {
+            Object obj = JOptionPane.showInputDialog("Number of levels to " + (unExpand ? "unexpand" : "expand"), "1");
+            if (obj != null) amount = TextUtils.atoi((String)obj);
+            if (amount <= 0) return;
+        }
 
-	/**
-	 * Method to change the expansion of the selected instances.
-	 * @param unExpand true to unexpand the instances (draw them as black boxes),
-	 * false to expand them (draw their contents).
-	 * @param amount the number of levels of hierarchy to expand/unexpand.
-	 * If negative, prompt for an amount.
-	 */
-	public static void DoExpandCommands(boolean unExpand, int amount)
-	{
-		if (amount < 0)
-		{
-			Object obj = JOptionPane.showInputDialog("Number of levels to " + (unExpand ? "unexpand" : "expand"), "1");
-			if (obj != null) amount = TextUtils.atoi((String)obj);
-			if (amount <= 0) return;
-		}
+        List<NodeInst> list = MenuCommands.getSelectedNodes();
+        if (list.isEmpty()) return;
+        Cell cell = list.get(0).getParent();
+        for(NodeInst ni : list)
+        {
+            assert ni.getParent() == cell;
+            if (!ni.isCellInstance()) continue;
+            if (!unExpand)
+                doExpand(cell, ni.getD(), amount, 0);
+            else if (ni.isExpanded())
+                doUnExpand(cell, ni.getD(), amount);
+        }
+        EditWindow.expansionChanged(cell);
+        EditWindow.clearSubCellCache();
+        EditWindow.repaintAllContents();
+    }
 
-		List<NodeInst> list = MenuCommands.getSelectedNodes();
-		expandFlagBit = new HashSet<NodeInst>();
-		if (unExpand)
-		{
-			for(NodeInst ni : list)
-			{
-				if (!ni.isCellInstance()) continue;
-				{
-					if (ni.isExpanded())
-						setUnExpand(ni, amount);
-				}
-			}
-		}
-		for(NodeInst ni : list)
-		{
-			if (unExpand) doUnExpand(ni); else
-				doExpand(ni, amount, 0);
-			EditWindow.expansionChanged(ni.getParent());
-		}
-		expandFlagBit = null;
-		EditWindow.clearSubCellCache();
-		EditWindow.repaintAllContents();
-	}
+    /**
+     * Method to recursively expand the cell "ni" by "amount" levels.
+     * "sofar" is the number of levels that this has already been expanded.
+     */
+    private static void doExpand(Cell parent, ImmutableNodeInst n, int amount, int sofar)
+    {
+        if (!parent.isExpanded(n.nodeId))
+        {
+            // expanded the cell
+            parent.setExpanded(n.nodeId, true);
 
-	/**
-	 * Method to recursively expand the cell "ni" by "amount" levels.
-	 * "sofar" is the number of levels that this has already been expanded.
-	 */
-	private static void doExpand(NodeInst ni, int amount, int sofar)
-	{
-		if (!ni.isExpanded())
-		{
-			// expanded the cell
-			ni.setExpanded(true);
+            // if depth limit reached, quit
+            if (++sofar >= amount) return;
+        }
 
-			// if depth limit reached, quit
-			if (++sofar >= amount) return;
-		}
+        // explore insides of this one
+        if (!n.isCellInstance()) return;
+        EDatabase database = parent.getDatabase();
+        Cell cell = (Cell)(Cell)n.protoId.inDatabase(database);
+        for (ImmutableNodeInst subN: cell.backupUnsafe().cellRevision.nodes)
+        {
+            if (!subN.isCellInstance()) continue;
 
-		// explore insides of this one
-		if (!ni.isCellInstance()) return;
-		Cell cell = (Cell)ni.getProto();
-		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst subNi = it.next();
-			if (!subNi.isCellInstance()) continue;
+            // ignore recursive references (showing icon in contents)
+            Cell subCell = (Cell)subN.protoId.inDatabase(database);
+            if (subCell.isIconOf(cell)) continue;
+            doExpand(cell, subN, amount, sofar);
+        }
+    }
 
-			// ignore recursive references (showing icon in contents)
-			if (subNi.isIconOfParent()) continue;
-			doExpand(subNi, amount, sofar);
-		}
-	}
+    private static int doUnExpand(Cell parent, ImmutableNodeInst n, int amount)
+    {
+        if (!parent.isExpanded(n.nodeId)) return 0;
 
-	private static void doUnExpand(NodeInst ni)
-	{
-		if (!ni.isExpanded()) return;
+        if (!n.isCellInstance()) return 1;
+        EDatabase database = parent.getDatabase();
+        int depth = 0;
+        Cell cell = (Cell)n.protoId.inDatabase(database);
+        for (ImmutableNodeInst subN: cell.backupUnsafe().cellRevision.nodes)
+        {
+            if (!subN.isCellInstance()) continue;
 
-		if (!ni.isCellInstance()) return;
-		Cell cell = (Cell)ni.getProto();
-		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst subNi = it.next();
-			if (!subNi.isCellInstance()) continue;
-
-			// ignore recursive references (showing icon in contents)
-			if (subNi.isIconOfParent()) continue;
-			if (subNi.isExpanded()) doUnExpand(subNi);
-		}
-
-		// expanded the cell
-		if (expandFlagBit.contains(ni))
-		{
-			ni.setExpanded(false);
-		}
-	}
-
-	private static int setUnExpand(NodeInst ni, int amount)
-	{
-		expandFlagBit.remove(ni);
-		if (!ni.isExpanded()) return(0);
-		int depth = 0;
-		if (ni.isCellInstance())
-		{
-			Cell cell = (Cell)ni.getProto();
-			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst subNi = it.next();
-				if (!subNi.isCellInstance()) continue;
-
-				// ignore recursive references (showing icon in contents)
-				if (subNi.isIconOfParent()) continue;
-				if (subNi.isExpanded())
-					depth = Math.max(depth, setUnExpand(subNi, amount));
-			}
-			if (depth < amount) expandFlagBit.add(ni);
-		}
-		return depth+1;
-	}
+            // ignore recursive references (showing icon in contents)
+            Cell subCell = (Cell)subN.protoId.inDatabase(database);
+            if (subCell.isIconOf(cell)) continue;
+            if (cell.isExpanded(subN.nodeId))
+                depth = Math.max(depth, doUnExpand(cell, subN, amount));
+        }
+        if (depth < amount) {
+            parent.setExpanded(n.nodeId, false);
+        }
+        return depth+1;
+    }
 
 	/****************************** LIBRARY CHANGES ******************************/
 

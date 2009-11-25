@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+IMP: (11/24/09, DN) Expand/unexpand command doesn't allocate Topologies of subcells.
+
 BUG: (11/24/09, SMR) Waveform window draws extra garbage (Bug #2493).
 FIX: In HorizRuler.renderRuler() clear the area first.
 
