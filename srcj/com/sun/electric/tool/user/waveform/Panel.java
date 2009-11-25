@@ -255,8 +255,8 @@ public class Panel extends JPanel
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;       gbc.gridy = 1;
 			gbc.weightx = 1;     gbc.weighty = 1;
-			gbc.anchor = GridBagConstraints.CENTER;
-			gbc.fill = GridBagConstraints.NONE;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
 			gbc.insets = new Insets(0, 4, 0, 4);
 			leftHalf.add(digitalSignalButton, gbc);
 			digitalSignalButton.addActionListener(new ActionListener()
