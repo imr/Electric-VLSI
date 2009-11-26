@@ -26,6 +26,7 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
@@ -33,6 +34,7 @@ import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
@@ -41,6 +43,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.BoundsBuilder;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 
@@ -53,6 +56,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -414,9 +418,19 @@ public class CellBackup {
      */
     public class Memoization {
         /**
-         * ImmutableNodeInsts accessed by their nodeId.
+         * nodeIndex by nodeId.
          */
         private final int[] nodesById;
+        /**
+         * Base of a segment in portCounts array for valid nodeIds
+         */
+        private int[] portBasesForNodes;
+        /**
+         * Array which has an entry for every port instance.
+         * The index for port instance (nodeInd, portProtoId) is
+         * portBasesForNodes[nodeId] + portProtoId.chronIndex
+         */
+        private int[] portCounts;
 
         private final int[] connections;
         /** ImmutableExports sorted by original PortInst. */
@@ -441,9 +455,51 @@ public class CellBackup {
             }
             this.nodesById = nodesById;
 
+            initPortCounts();
+            int[] connections2 = makeConnections2();
+            ImmutableExport[] exportIndexByOriginalPort2 = makeExportIndexByOriginalPort2();
+
+            connections = makeConnections1();
+            exportIndexByOriginalPort = makeExportIndexByOriginalPort1();
+            assert Arrays.equals(connections, connections2);
+            assert Arrays.equals(exportIndexByOriginalPort, exportIndexByOriginalPort2);
+            portBasesForNodes = null;
+            portCounts = null;
+
+            for (ImmutableArcInst a : arcs) {
+                ArcProto ap = techPool.getArcProto(a.protoId);
+                // wipe status
+                if (ap.isWipable()) {
+                    wiped.set(a.tailNodeId);
+                    wiped.set(a.headNodeId);
+                }
+                // hard arcs
+                if (!ap.getTechnology().isEasyShape(a, false)) {
+                    hardArcs.set(a.arcId);
+                }
+            }
+            for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
+                ImmutableNodeInst n = nodes.get(nodeIndex);
+                NodeProtoId np = n.protoId;
+                if (!(np instanceof PrimitiveNodeId && techPool.getPrimitiveNode((PrimitiveNodeId) np).isArcsWipe())) {
+                    wiped.clear(n.nodeId);
+                }
+            }
+//            long stopTime = System.currentTimeMillis();
+//            System.out.println("Memoization " + cellRevision.d.cellId + " took " + (stopTime - startTime) + " msec");
+            check();
+        }
+
+        /**
+         * Compute connections using sortConnections
+         * @return connections
+         */
+        private int[] makeConnections1() {
+            ImmutableArrayList<ImmutableArcInst> arcs = cellRevision.arcs;
+
             // Put connections into buckets by nodeId.
             int[] connections = new int[arcs.size() * 2];
-            int[] connectionsByNodeId = new int[maxNodeId + 1];
+            int[] connectionsByNodeId = new int[nodesById.length];
             for (ImmutableArcInst a : arcs) {
                 connectionsByNodeId[a.headNodeId]++;
                 connectionsByNodeId[a.tailNodeId]++;
@@ -469,33 +525,125 @@ public class CellBackup {
                     sortConnections(connections, start, sum - 1);
                 }
             }
-            this.connections = connections;
+            return connections;
+        }
 
+        /**
+         * Compute exportIndexByOriginalPort using Arrays.sort
+         * @return exportIndexByOriginalPort
+         */
+        private ImmutableExport[] makeExportIndexByOriginalPort1() {
             ImmutableExport[] exportIndexByOriginalPort = cellRevision.exports.toArray(new ImmutableExport[cellRevision.exports.size()]);
             Arrays.sort(exportIndexByOriginalPort, BY_ORIGINAL_PORT);
-            this.exportIndexByOriginalPort = exportIndexByOriginalPort;
+            return exportIndexByOriginalPort;
+        }
 
-            for (ImmutableArcInst a : arcs) {
-                ArcProto ap = techPool.getArcProto(a.protoId);
-                // wipe status
-                if (ap.isWipable()) {
-                    wiped.set(a.tailNodeId);
-                    wiped.set(a.headNodeId);
-                }
-                // hard arcs
-                if (!ap.getTechnology().isEasyShape(a, false)) {
-                    hardArcs.set(a.arcId);
-                }
+        /**
+         * Compute connections using portBasesForNodes and portCounts
+         * @return connections
+         */
+        private int[] makeConnections2() {
+            ImmutableArrayList<ImmutableArcInst> arcs = cellRevision.arcs;
+
+            clearPortCounts();
+            for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
+                ImmutableArcInst a = arcs.get(arcIndex);
+                incrementPortCount(a.tailNodeId, a.tailPortId);
+                incrementPortCount(a.headNodeId, a.headPortId);
             }
-            for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
-                ImmutableNodeInst n = nodes.get(nodeIndex);
-                NodeProtoId np = n.protoId;
-                if (!(np instanceof PrimitiveNodeId && techPool.getPrimitiveNode((PrimitiveNodeId) np).isArcsWipe())) {
-                    wiped.clear(n.nodeId);
-                }
+            portCountsToPortOffsets();
+            int[] connections = new int[arcs.size() * 2];
+            Arrays.fill(connections, -1);
+            for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
+                ImmutableArcInst a = arcs.get(arcIndex);
+                connections[incrementPortCount(a.tailNodeId, a.tailPortId)] = arcIndex << 1;
+                connections[incrementPortCount(a.headNodeId, a.headPortId)] = (arcIndex << 1) | 1;
             }
-//            long stopTime = System.currentTimeMillis();
-//            System.out.println("Memoization " + cellRevision.d.cellId + " took " + (stopTime - startTime) + " msec");
+            return connections;
+        }
+
+        /**
+         * Compute exportIndexByOriginalPort using portBasesForNodes and portCounts
+         * @return exportIndexByOriginalPort
+         */
+        private ImmutableExport[] makeExportIndexByOriginalPort2() {
+            clearPortCounts();
+            for (ImmutableExport e: cellRevision.exports) {
+                incrementPortCount(e.originalNodeId, e.originalPortId);
+            }
+            portCountsToPortOffsets();
+            ImmutableExport[] exportIndexByOriginalPort = new ImmutableExport[cellRevision.exports.size()];
+            for (int exportId = 0; exportId < cellRevision.exportIndex.length; exportId++) {
+                int exportIndex = cellRevision.exportIndex[exportId];
+                if (exportIndex < 0) continue;
+                ImmutableExport e = cellRevision.exports.get(exportIndex);
+                exportIndexByOriginalPort[incrementPortCount(e.originalNodeId, e.originalPortId)] = e;
+            }
+            return exportIndexByOriginalPort;
+        }
+
+        /**
+         * Initialize portBasesForNodes and portCounts
+         */
+        private void initPortCounts() {
+            // Prepare port map
+            CellId cellId = cellRevision.d.cellId;
+            IdentityHashMap<NodeProtoId,Integer> maxPortIds = new IdentityHashMap<NodeProtoId,Integer>();
+            for (int i = 0; i < cellRevision.cellUsages.length; i++) {
+                CellRevision.CellUsageInfo cui = cellRevision.cellUsages[i];
+                if (cui == null) continue;
+                assert cui.instCount > 0;
+                maxPortIds.put(cellId.getUsageIn(i).protoId, cui.usedExportsLength);
+            }
+            int totalPortCount = 0;
+            portBasesForNodes = new int[nodesById.length];
+            Arrays.fill(portBasesForNodes, Integer.MIN_VALUE);
+            for (int nodeId = 0; nodeId < nodesById.length; nodeId++) {
+                int nodeIndex = nodesById[nodeId];
+                if (nodeIndex < 0) continue;
+                ImmutableNodeInst n = cellRevision.nodes.get(nodeIndex);
+                Integer portCount = maxPortIds.get(n.protoId);
+                if (portCount == null) {
+                    PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)n.protoId);
+                    int maxPortId = -1;
+                    for (Iterator<PortProto> it = pn.getPorts(); it.hasNext(); )
+                        maxPortId = Math.max(maxPortId, it.next().getId().chronIndex);
+                    portCount = maxPortId + 1;
+                    maxPortIds.put(n.protoId, portCount);
+                }
+                portBasesForNodes[n.nodeId] = totalPortCount;
+                totalPortCount += portCount;
+            }
+            portCounts = new int[totalPortCount];
+        }
+
+        /*
+         * Clear portCounts
+         */
+        private void clearPortCounts() {
+            Arrays.fill(portCounts, 0);
+        }
+
+        /**
+         * Increment portCounts entry for specified port intance
+         * @param nodeId nodeId of port instance
+         * @param portId PortProtoId of port instance
+         * @return the value of portCounts entry before increment
+         */
+        private int incrementPortCount(int nodeId, PortProtoId portId) {
+            return portCounts[portBasesForNodes[nodeId] + portId.chronIndex]++;
+        }
+
+        /**
+         * Convert port counts to port offsets
+         */
+        private void portCountsToPortOffsets() {
+            int connOffset = 0;
+            for (int i = 0; i < portCounts.length; i++) {
+                int numConns = portCounts[i];
+                portCounts[i] = connOffset;
+                connOffset += numConns;
+            }
         }
 
         /**
@@ -746,6 +894,17 @@ public class CellBackup {
          * @throws AssertionError if invariant is broken.
          */
         private void check() {
+            for (int nodeIndex = 0; nodeIndex < cellRevision.nodes.size(); nodeIndex++) {
+                ImmutableNodeInst n = cellRevision.nodes.get(nodeIndex);
+                assert nodesById[n.nodeId] == nodeIndex;
+            }
+            int numNodes = 0;
+            for (int nodeId = 0; nodeId < nodesById.length; nodeId++) {
+                if (nodesById[nodeId] == -1) continue;
+                numNodes++;
+            }
+            assert numNodes == cellRevision.nodes.size();
+            
             assert exportIndexByOriginalPort.length == cellRevision.exports.size();
             ImmutableExport prevE = null;
             for (ImmutableExport e : exportIndexByOriginalPort) {
