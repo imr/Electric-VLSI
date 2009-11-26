@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/25/09, GVG) Error Logger: first time you use next error, you go to error number 2 (Bug #2496)
+FIX: Correct initialization of current log number
+
 BUG: (11/25/09, SMR) Digital waveforms show panel and signal name badly (Bug #2495).
 FIX: In DragButton.java, combine the names instead of overlapping them.
 

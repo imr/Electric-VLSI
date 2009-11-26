@@ -455,7 +455,7 @@ public class ErrorLoggerTree {
     public static class ErrorLoggerTreeNode implements DatabaseChangeListener //, ActionListener
     {
         private ErrorLogger logger;
-        private int currentLogNumber;
+        private int currentLogNumber = -1;
         private ErrorLogger.MessageLog currentMsgLog;
         private int currentMsgLogGeoIndex;
 
