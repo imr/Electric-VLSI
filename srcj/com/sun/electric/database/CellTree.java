@@ -62,6 +62,8 @@ public class CellTree {
     public final Set<CellId> allCells;
     private ERectangle bounds;
 
+    private NetCell netCell;
+
     private CellTree(CellBackup top, CellTree[] subTrees, TechPool techPool, Set<CellId> allCells) {
         this.top = top;
         this.subTrees = subTrees;
@@ -282,6 +284,13 @@ public class CellTree {
             return candidateBounds;
         }
         return ERectangle.fromGrid(gridMinX, gridMinY, gridMaxX - gridMinX, gridMaxY - gridMinY);
+    }
+
+    public NetCell getNetCell() {
+        if (netCell == null) {
+            netCell = new NetCell(this);
+        }
+        return netCell;
     }
 
     public void check() {
