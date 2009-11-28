@@ -364,7 +364,15 @@ public class CellBackup {
         return ERectangle.fromGrid(gridMinX, gridMinY, gridMaxX - gridMinX, gridMaxY - gridMinY);
     }
 
-    public ERectangle computePrimitiveBoundsOfArcs() {
+    /**
+     * Method to return a map from arcId of arcs in the Cell to their arcIndex in alphanumerical order.
+     * @return a map from arcId to arcIndex.
+     */
+    public int[] getArcIndexByArcIdMap() {
+        return getMemoization().arcIndexByArcId.clone();
+    }
+
+    private ERectangle computePrimitiveBoundsOfArcs() {
         ImmutableArrayList<ImmutableArcInst> arcs = cellRevision.arcs;
         if (arcs.isEmpty()) {
             return null;
@@ -420,7 +428,11 @@ public class CellBackup {
         /**
          * nodeIndex by nodeId.
          */
-        private final int[] nodesById;
+        private final int[] nodeIndexByNodeId;
+        /**
+         * arcIndex by arcId.
+         */
+        private final int[] arcIndexByArcId;
         /**
          * Base of a segment in portCounts array for valid nodeIds
          */
@@ -441,19 +453,9 @@ public class CellBackup {
         Memoization() {
 //            long startTime = System.currentTimeMillis();
             cellBackupsMemoized++;
-            ImmutableArrayList<ImmutableNodeInst> nodes = cellRevision.nodes;
-            ImmutableArrayList<ImmutableArcInst> arcs = cellRevision.arcs;
-            int maxNodeId = -1;
-            for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
-                maxNodeId = Math.max(maxNodeId, nodes.get(nodeIndex).nodeId);
-            }
-            int[] nodesById = new int[maxNodeId + 1];
-            Arrays.fill(nodesById, -1);
-            for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
-                ImmutableNodeInst n = nodes.get(nodeIndex);
-                nodesById[n.nodeId] = nodeIndex;
-            }
-            this.nodesById = nodesById;
+
+            nodeIndexByNodeId = makeNodeIndexByNodeId();
+            arcIndexByArcId = makeArcIndexByArcId();
 
             initPortCounts();
             int[] connections2 = makeConnections2();
@@ -466,7 +468,7 @@ public class CellBackup {
             portBasesForNodes = null;
             portCounts = null;
 
-            for (ImmutableArcInst a : arcs) {
+            for (ImmutableArcInst a : cellRevision.arcs) {
                 ArcProto ap = techPool.getArcProto(a.protoId);
                 // wipe status
                 if (ap.isWipable()) {
@@ -478,6 +480,8 @@ public class CellBackup {
                     hardArcs.set(a.arcId);
                 }
             }
+
+            ImmutableArrayList<ImmutableNodeInst> nodes = cellRevision.nodes;
             for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
                 ImmutableNodeInst n = nodes.get(nodeIndex);
                 NodeProtoId np = n.protoId;
@@ -490,6 +494,36 @@ public class CellBackup {
             check();
         }
 
+        private int[] makeNodeIndexByNodeId() {
+            ImmutableArrayList<ImmutableNodeInst> nodes = cellRevision.nodes;
+            int maxNodeId = -1;
+            for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
+                maxNodeId = Math.max(maxNodeId, nodes.get(nodeIndex).nodeId);
+            }
+            int[] nodesById = new int[maxNodeId + 1];
+            Arrays.fill(nodesById, -1);
+            for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
+                ImmutableNodeInst n = nodes.get(nodeIndex);
+                nodesById[n.nodeId] = nodeIndex;
+            }
+            return nodesById;
+        }
+
+        private int[] makeArcIndexByArcId() {
+            ImmutableArrayList<ImmutableArcInst> arcs = cellRevision.arcs;
+            int maxArcId = -1;
+            for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
+                maxArcId = Math.max(maxArcId, arcs.get(arcIndex).arcId);
+            }
+            int[] arcsById = new int[maxArcId + 1];
+            Arrays.fill(arcsById, -1);
+            for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
+                ImmutableArcInst a = arcs.get(arcIndex);
+                arcsById[a.arcId] = arcIndex;
+            }
+            return arcsById;
+        }
+
         /**
          * Compute connections using sortConnections
          * @return connections
@@ -499,7 +533,7 @@ public class CellBackup {
 
             // Put connections into buckets by nodeId.
             int[] connections = new int[arcs.size() * 2];
-            int[] connectionsByNodeId = new int[nodesById.length];
+            int[] connectionsByNodeId = new int[nodeIndexByNodeId.length];
             for (ImmutableArcInst a : arcs) {
                 connectionsByNodeId[a.headNodeId]++;
                 connectionsByNodeId[a.tailNodeId]++;
@@ -596,10 +630,10 @@ public class CellBackup {
                 maxPortIds.put(cellId.getUsageIn(i).protoId, cui.usedExportsLength);
             }
             int totalPortCount = 0;
-            portBasesForNodes = new int[nodesById.length];
+            portBasesForNodes = new int[nodeIndexByNodeId.length];
             Arrays.fill(portBasesForNodes, Integer.MIN_VALUE);
-            for (int nodeId = 0; nodeId < nodesById.length; nodeId++) {
-                int nodeIndex = nodesById[nodeId];
+            for (int nodeId = 0; nodeId < nodeIndexByNodeId.length; nodeId++) {
+                int nodeIndex = nodeIndexByNodeId[nodeId];
                 if (nodeIndex < 0) continue;
                 ImmutableNodeInst n = cellRevision.nodes.get(nodeIndex);
                 Integer portCount = maxPortIds.get(n.protoId);
@@ -644,6 +678,15 @@ public class CellBackup {
                 portCounts[i] = connOffset;
                 connOffset += numConns;
             }
+        }
+
+        /**
+         * Returns arcIndex of specified ImmutableArcInst.
+         * @param a specified ImmutableArcInst.
+         * @return arcIndex of specified ImmutableArcInst.
+         */
+        public int getArcIndex(ImmutableArcInst a) {
+            return arcIndexByArcId[a.arcId];
         }
 
         /**
@@ -861,11 +904,28 @@ public class CellBackup {
             return techPool;
         }
 
+        /**
+         * Returns ImmutableNodeInst by its node id.
+         * @param nodeId id of node.
+         * @return ImmutableNodeInst with this id or null if node doesn't exist.
+         */
         public ImmutableNodeInst getNodeById(int nodeId) {
-            if (nodeId >= nodesById.length)
+            if (nodeId >= nodeIndexByNodeId.length)
                 return null;
-            int nodeIndex = nodesById[nodeId];
+            int nodeIndex = nodeIndexByNodeId[nodeId];
             return nodeIndex >= 0 ? cellRevision.nodes.get(nodeIndex) : null;
+        }
+
+        /**
+         * Returns ImmutableArcInst by its arc id.
+         * @param arcId id of node.
+         * @return ImmutableArcInst with this id or null if node doesn't exist.
+         */
+        public ImmutableArcInst getArcById(int arcId) {
+            if (arcId >= arcIndexByArcId.length)
+                return null;
+            int arcIndex = arcIndexByArcId[arcId];
+            return arcIndex >= 0 ? cellRevision.arcs.get(arcIndex) : null;
         }
 
         public ImmutableArrayList<ImmutableArcInst> getArcs() {
@@ -896,15 +956,26 @@ public class CellBackup {
         private void check() {
             for (int nodeIndex = 0; nodeIndex < cellRevision.nodes.size(); nodeIndex++) {
                 ImmutableNodeInst n = cellRevision.nodes.get(nodeIndex);
-                assert nodesById[n.nodeId] == nodeIndex;
+                assert nodeIndexByNodeId[n.nodeId] == nodeIndex;
             }
             int numNodes = 0;
-            for (int nodeId = 0; nodeId < nodesById.length; nodeId++) {
-                if (nodesById[nodeId] == -1) continue;
+            for (int nodeId = 0; nodeId < nodeIndexByNodeId.length; nodeId++) {
+                if (nodeIndexByNodeId[nodeId] == -1) continue;
                 numNodes++;
             }
             assert numNodes == cellRevision.nodes.size();
             
+            for (int arcIndex = 0; arcIndex < cellRevision.arcs.size(); arcIndex++) {
+                ImmutableArcInst a = cellRevision.arcs.get(arcIndex);
+                assert arcIndexByArcId[a.arcId] == arcIndex;
+            }
+            int numArcs = 0;
+            for (int arcId = 0; arcId < arcIndexByArcId.length; arcId++) {
+                if (arcIndexByArcId[arcId] == -1) continue;
+                numArcs++;
+            }
+            assert numArcs == cellRevision.arcs.size();
+
             assert exportIndexByOriginalPort.length == cellRevision.exports.size();
             ImmutableExport prevE = null;
             for (ImmutableExport e : exportIndexByOriginalPort) {

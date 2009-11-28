@@ -91,8 +91,6 @@ class NetCell {
     int[] equivPortsA;
     /** Node offsets. */
     int[] ni_pi;
-    /** arc index in alpanumeric order by arcId */
-    private int[] arcIndexByArcIdMap;
     /** */
     int arcsOffset;
     /** */
@@ -276,7 +274,7 @@ class NetCell {
 
     int getArcDrawn(ArcInst ai) {
         assert ai.getParent() == cell;
-        int arcIndex = arcIndexByArcIdMap[ai.getArcId()];
+        int arcIndex = cell.getMemoization().getArcIndex(ai.getD());
         return drawns[arcsOffset + arcIndex];
     }
 
@@ -293,7 +291,6 @@ class NetCell {
             ni_pi[i] = offset;
             offset += ni.getProto().getNumPorts();
         }
-        arcIndexByArcIdMap = cell.getArcIndexByArcIdMap();
         arcsOffset = offset;
         offset += numArcs;
         if (headConn == null || headConn.length != offset) {

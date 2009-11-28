@@ -1154,16 +1154,17 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                 Cell cell = Cell.inCurrentThread(cellId);
                 if (cell == null) continue;
                 CellBackup oldBackup = oldSnapshot.getCell(cellId);
+                CellBackup.Memoization m = oldBackup != null ? oldBackup.getMemoization() : null;
                 for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
                     NodeInst ni = it.next();
                     ImmutableNodeInst d = ni.getD();
-                    if (oldBackup == null || oldBackup.cellRevision.getNode(d.nodeId) != d)
+                    if (m == null || m.getNodeById(d.nodeId) != d)
                         includeGeometric(ni);
                 }
                 for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
                     ArcInst ai = it.next();
                     ImmutableArcInst d = ai.getD();
-                    if (oldBackup == null || oldBackup.cellRevision.getArc(d.arcId) != d)
+                    if (m == null || m.getArcById(d.arcId) != d)
                         includeGeometric(ai);
                 }
             }

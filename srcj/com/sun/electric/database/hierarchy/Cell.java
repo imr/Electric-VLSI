@@ -2311,8 +2311,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @return a map from arcId to arcIndex.
      */
     public int[] getArcIndexByArcIdMap() {
-        Topology topology = getTopologyOptional();
-        return topology != null ? topology.getArcIndexByArcIdMap() : backup().cellRevision.getArcIndexByArcIdMap();
+        return backup().getArcIndexByArcIdMap();
     }
 
     /**

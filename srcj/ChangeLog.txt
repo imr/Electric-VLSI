@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/27/09, DN) Incremental DRC used incorret conditions when to invoke.
+FIX: Move CellRevision.getNode()/getArc() to CellBackup.Memoization.getNodeById()/getArcById().
+
+IMP: (11/27/09, DN) Move arcIndexByArcId from NetCell to CellBackup.Memoization.
+
 IMP: (11/26/09, DN) Another algorithm for calculation connection and export indices in CellBackup.Memoization .
 
 BUG: (11/25/09, GVG) Error Logger: first time you use next error, you go to error number 2 (Bug #2496)
