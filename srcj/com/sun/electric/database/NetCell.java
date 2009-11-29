@@ -30,6 +30,7 @@ import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -83,10 +84,11 @@ public class NetCell {
             if (npi.numPorts == 1) {
                 continue;
             }
+            int nodeBase = ni_pi[n.nodeId];
             for (int i = 1; i < npi.equivPortsN.length; i++) {
                 int eq = npi.equivPortsN[i];
                 if (eq != i) {
-                    connectMap(netMap, i, eq);
+                    connectMap(netMap, nodeBase + i, nodeBase + eq);
                 }
             }
         }
@@ -95,37 +97,49 @@ public class NetCell {
         TechPool techPool = cellTree.techPool;
         Schematics schemTech = techPool.getSchematics();
         PrimitiveNodeId schemResistor = schemTech != null ? schemTech.resistorNode.getId() : null;
-        boolean change = false;
+        boolean changed = false;
         for (ImmutableNodeInst n: cellRevision.nodes) {
             NodeProtoInfo npi = nodeProtoInfos.get(n.protoId);
             if (npi.equivPortsP == npi.equivPortsN || n.protoId == schemResistor && n.techBits != 0) {
                 continue;
             }
-            change = true;
+            int nodeBase = ni_pi[n.nodeId];
             for (int i = 1; i < npi.equivPortsP.length; i++) {
                 int eq = npi.equivPortsP[i];
-                if (eq != i) {
-                    connectMap(netMap, i, eq);
+                if (eq != i && connectMap(netMap, nodeBase + i, nodeBase + eq)) {
+                        changed = true;
                 }
             }
         }
-        equivPortsP = change ? equivMap(equivPortsN) : equivPortsN;
+        equivPortsP = changed ? equivMap(equivPortsN) : equivPortsN;
 
-        change = false;
+        changed = false;
         for (ImmutableNodeInst n: cellRevision.nodes) {
             NodeProtoInfo npi = nodeProtoInfos.get(n.protoId);
             if (npi.equivPortsA == npi.equivPortsP && (n.protoId != schemResistor || n.techBits == 0)) {
                 continue;
             }
-            change = true;
+            int nodeBase = ni_pi[n.nodeId];
             for (int i = 1; i < npi.equivPortsA.length; i++) {
                 int eq = npi.equivPortsA[i];
-                if (eq != i) {
-                    connectMap(netMap, i, eq);
+                if (eq != i && connectMap(netMap, nodeBase + i, nodeBase + eq)) {
+                    changed = true;
                 }
             }
         }
-        equivPortsA = change ? equivMap(equivPortsP) :  equivPortsP;
+        equivPortsA = changed ? equivMap(equivPortsP) :  equivPortsP;
+    }
+
+    public int[] getEquivPortsN() {
+        return equivPortsN.clone();
+    }
+
+    public int[] getEquivPortsP() {
+        return equivPortsP.clone();
+    }
+
+    public int[] getEquivPortsA() {
+        return equivPortsA.clone();
     }
 
     private static final int[] EQUIV_PORTS_1 = { 0 };
@@ -198,6 +212,9 @@ public class NetCell {
         }
         ni_pi = new int[maxNodeId + 1];
         nodeProtoInfos = new IdentityHashMap<NodeProtoId,NodeProtoInfo>();
+        IdentityHashMap<PortProtoId,Object> isolatedPorts = null;
+        TechPool techPool = cellTree.techPool;
+        Schematics schemTech = techPool.getSchematics();
         int nodeBase = numExports;
         for (ImmutableNodeInst n: cellRevision.nodes) {
             ni_pi[n.nodeId] = nodeBase;
@@ -205,6 +222,19 @@ public class NetCell {
             if (npi == null) {
                 npi = new NodeProtoInfo(cellTree, n.protoId);
                 nodeProtoInfos.put(n.protoId, npi);
+                if (n.protoId instanceof PrimitiveNodeId) {
+                    PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)n.protoId);
+                    if (pn.getTechnology() == schemTech) {
+                        for (PrimitivePort pp: ArrayIterator.i2i(pn.getPrimitivePorts())) {
+                            if (pp.isIsolated()) {
+                                if (isolatedPorts == null) {
+                                    isolatedPorts = new IdentityHashMap<PortProtoId,Object>();
+                                }
+                                isolatedPorts.put(pp.getId(), null);
+                            }
+                        }
+                    }
+                }
             }
             nodeBase += npi.numPorts;
         }
@@ -216,24 +246,18 @@ public class NetCell {
             ImmutableExport e = cellRevision.exports.get(exportIndex);
             connectMap(netMap, exportIndex, mapIndex(e.originalNodeId, e.originalPortId));
         }
-        TechPool techPool = cellTree.techPool;
-        Schematics schemTech = techPool.getSchematics();
-        PrimitivePort busPinPort = schemTech != null ? schemTech.busPinNode.getPort(0) : null;
+        PrimitivePortId busPinPortId = schemTech != null ? schemTech.busPinNode.getPort(0).getId() : null;
         ArcProto busArc = schemTech != null ? schemTech.bus_arc : null;
         for (ImmutableArcInst a: cellRevision.arcs) {
             ArcProto ap = techPool.getArcProto(a.protoId);
             if (ap.getFunction() == ArcProto.Function.NONELEC) {
                 continue;
             }
-            if (ap.getTechnology() == schemTech) {
-                PrimitivePort tailPort = techPool.getPrimitivePort((PrimitivePortId)a.tailPortId);
-                PrimitivePort headPort = techPool.getPrimitivePort((PrimitivePortId)a.headPortId);
-                if (tailPort.isIsolated() || headPort.isIsolated()) {
-                    continue;
-                }
-                if ((tailPort == busPinPort || headPort == busPinPort) && ap != busArc) {
-                    continue;
-                }
+            if (isolatedPorts != null && (isolatedPorts.containsKey(a.tailPortId) || isolatedPorts.containsKey(a.headPortId))) {
+                continue;
+            }
+            if ((a.tailPortId == busPinPortId || a.headPortId == busPinPortId) && ap != busArc) {
+                continue;
             }
             connectMap(netMap, mapIndex(a.tailNodeId, a.tailPortId), mapIndex(a.headNodeId, a.headPortId));
         }
@@ -279,12 +303,14 @@ public class NetCell {
 
     /**
      * Merge classes of equivalence map to which elements a1 and a2 belong.
+     * Returns true if the classes were different
      */
-    static void connectMap(int[] map, int a1, int a2) {
+    static boolean connectMap(int[] map, int a1, int a2) {
         int m1, m2, m;
 
         for (m1 = a1; map[m1] != m1; m1 = map[m1]);
         for (m2 = a2; map[m2] != m2; m2 = map[m2]);
+        boolean changed = m1 != m2;
         m = m1 < m2 ? m1 : m2;
 
         for (;;) {
@@ -303,6 +329,7 @@ public class NetCell {
             }
             a2 = k;
         }
+        return changed;
     }
 
     /**
