@@ -42,8 +42,7 @@ import java.util.IdentityHashMap;
 /**
  *
  */
-public class NetCell {
-    private final CellTree cellTree;
+public class EquivPorts {
     private final int numExports;
     /**
      * Equivalence of ports.
@@ -54,80 +53,89 @@ public class NetCell {
     private final int[] equivPortsP;
     private final int[] equivPortsA;
 
+    private CellBackup cellBackup;
     private CellRevision cellRevision;
     private IdentityHashMap<NodeProtoId,NodeProtoInfo> nodeProtoInfos;
-/** Node offsets. */
+    private IdentityHashMap<PortProtoId,Object> isolatedPorts;
+    /** Node offsets. */
     int[] ni_pi;
     /** */
     int[] netMap;
-    int arcsOffset;
-    /** */
-    private int[] headConn;
-    /** */
-    private int[] tailConn;
-    /** */
-    int[] drawns;
-    /** */
-    int numDrawns;
-    /** */
-    int numExportedDrawns;
-    /** */
-    int numConnectedDrawns;
 
-    NetCell(CellTree cellTree) {
-        this.cellTree = cellTree;
+    EquivPorts(CellTree cellTree) {
+        cellBackup = cellTree.top;
         numExports = cellTree.top.cellRevision.exports.size();
-        initConnections();
+        initConnections(cellTree);
 
+        equivPortsN = computePortsN();
+        equivPortsP = computePortsP();
+        equivPortsA = computePortsA();
+
+        cellBackup = null;
+        cellRevision = null;
+        nodeProtoInfos = null;
+        isolatedPorts = null;
+        ni_pi = null;
+        netMap = null;
+    }
+
+    private int[] computePortsN() {
         for (ImmutableNodeInst n: cellRevision.nodes) {
             NodeProtoInfo npi = nodeProtoInfos.get(n.protoId);
             if (npi.numPorts == 1) {
                 continue;
             }
-            int nodeBase = ni_pi[n.nodeId];
-            for (int i = 1; i < npi.equivPortsN.length; i++) {
-                int eq = npi.equivPortsN[i];
-                if (eq != i) {
-                    connectMap(netMap, nodeBase + i, nodeBase + eq);
-                }
-            }
+            connectInternals(n, npi.equivPortsN);
         }
-        equivPortsN = equivMap(null);
+        return equivMap(null);
+    }
 
-        TechPool techPool = cellTree.techPool;
+    private int[] computePortsP() {
+        TechPool techPool = cellBackup.techPool;
         Schematics schemTech = techPool.getSchematics();
         PrimitiveNodeId schemResistor = schemTech != null ? schemTech.resistorNode.getId() : null;
+
         boolean changed = false;
         for (ImmutableNodeInst n: cellRevision.nodes) {
             NodeProtoInfo npi = nodeProtoInfos.get(n.protoId);
             if (npi.equivPortsP == npi.equivPortsN || n.protoId == schemResistor && n.techBits != 0) {
                 continue;
             }
-            int nodeBase = ni_pi[n.nodeId];
-            for (int i = 1; i < npi.equivPortsP.length; i++) {
-                int eq = npi.equivPortsP[i];
-                if (eq != i && connectMap(netMap, nodeBase + i, nodeBase + eq)) {
-                        changed = true;
-                }
+            if (connectInternals(n, npi.equivPortsP)) {
+                changed = true;
             }
         }
-        equivPortsP = changed ? equivMap(equivPortsN) : equivPortsN;
+        return changed ? equivMap(equivPortsN) : equivPortsN;
+   }
 
-        changed = false;
+    private int[] computePortsA() {
+        TechPool techPool = cellBackup.techPool;
+        Schematics schemTech = techPool.getSchematics();
+
+        PrimitiveNodeId schemResistor = schemTech != null ? schemTech.resistorNode.getId() : null;
+        boolean changed = false;
         for (ImmutableNodeInst n: cellRevision.nodes) {
             NodeProtoInfo npi = nodeProtoInfos.get(n.protoId);
             if (npi.equivPortsA == npi.equivPortsP && (n.protoId != schemResistor || n.techBits == 0)) {
                 continue;
             }
-            int nodeBase = ni_pi[n.nodeId];
-            for (int i = 1; i < npi.equivPortsA.length; i++) {
-                int eq = npi.equivPortsA[i];
-                if (eq != i && connectMap(netMap, nodeBase + i, nodeBase + eq)) {
-                    changed = true;
-                }
+            if (connectInternals(n, npi.equivPortsA)) {
+                changed = true;
             }
         }
-        equivPortsA = changed ? equivMap(equivPortsP) :  equivPortsP;
+        return changed ? equivMap(equivPortsP) :  equivPortsP;
+    }
+
+    private boolean connectInternals(ImmutableNodeInst n, int[] equivPorts) {
+        boolean changed = false;
+        int nodeBase = ni_pi[n.nodeId];
+        for (int i = 1; i < equivPorts.length; i++) {
+            int eq = equivPorts[i];
+            if (eq != i && connectMap(netMap, nodeBase + i, nodeBase + eq)) {
+                changed = true;
+            }
+        }
+        return changed;
     }
 
     public int[] getEquivPortsN() {
@@ -142,6 +150,12 @@ public class NetCell {
         return equivPortsA.clone();
     }
 
+    public boolean equalsPorts(EquivPorts that) {
+        return Arrays.equals(this.equivPortsN, that.equivPortsN)
+                && Arrays.equals(this.equivPortsP, that.equivPortsP)
+                && Arrays.equals(this.equivPortsA, that.equivPortsA);
+    }
+
     private static final int[] EQUIV_PORTS_1 = { 0 };
 
     private static class NodeProtoInfo {
@@ -150,13 +164,13 @@ public class NetCell {
         final int[] equivPortsP;
         final int[] equivPortsA;
         final int[] portIndexByChron;
-        final NetCell subNet;
+        final EquivPorts subNet;
 
         private NodeProtoInfo(CellTree cellTree, NodeProtoId nodeProtoId) {
             if (nodeProtoId instanceof CellId) {
                 CellUsage cu = cellTree.top.cellRevision.d.cellId.getUsageIn((CellId)nodeProtoId);
                 CellTree subTree = cellTree.subTrees[cu.indexInParent];
-                subNet = subTree.getNetCell();
+                subNet = subTree.getEquivPorts();
                 numPorts = subNet.numExports;
                 equivPortsN = subNet.equivPortsN;
                 equivPortsP = subNet.equivPortsP;
@@ -204,16 +218,21 @@ public class NetCell {
         }
     }
 
-    private void initConnections() {
-        cellRevision = cellTree.top.cellRevision;
+    private void initConnections(CellTree cellTree) {
+        cellRevision = cellBackup.cellRevision;
         int maxNodeId = -1;
         for (ImmutableNodeInst n: cellRevision.nodes) {
             maxNodeId = Math.max(maxNodeId, n.nodeId);
         }
         ni_pi = new int[maxNodeId + 1];
         nodeProtoInfos = new IdentityHashMap<NodeProtoId,NodeProtoInfo>();
-        IdentityHashMap<PortProtoId,Object> isolatedPorts = null;
-        TechPool techPool = cellTree.techPool;
+        initNetMap(cellTree);
+        connectExports();
+        connectArcs();
+    }
+
+    private void initNetMap(CellTree cellTree) {
+        TechPool techPool = cellBackup.techPool;
         Schematics schemTech = techPool.getSchematics();
         int nodeBase = numExports;
         for (ImmutableNodeInst n: cellRevision.nodes) {
@@ -239,13 +258,18 @@ public class NetCell {
             nodeBase += npi.numPorts;
         }
         netMap = initMap(nodeBase);
-        for (int i = 0; i < netMap.length; i++) {
-            netMap[i] = i;
-        }
+    }
+
+    private void connectExports() {
         for (int exportIndex = 0; exportIndex < cellRevision.exports.size(); exportIndex++) {
             ImmutableExport e = cellRevision.exports.get(exportIndex);
             connectMap(netMap, exportIndex, mapIndex(e.originalNodeId, e.originalPortId));
         }
+    }
+
+    private void connectArcs() {
+        TechPool techPool = cellBackup.techPool;
+        Schematics schemTech = techPool.getSchematics();
         PrimitivePortId busPinPortId = schemTech != null ? schemTech.busPinNode.getPort(0).getId() : null;
         ArcProto busArc = schemTech != null ? schemTech.bus_arc : null;
         for (ImmutableArcInst a: cellRevision.arcs) {

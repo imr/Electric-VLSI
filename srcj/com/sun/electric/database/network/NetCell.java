@@ -24,7 +24,7 @@
  */
 package com.sun.electric.database.network;
 
-import com.sun.electric.database.CellTree;
+import com.sun.electric.database.EquivPorts;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -44,7 +44,6 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 
-import com.sun.electric.tool.Job;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -816,10 +815,10 @@ class NetCell {
         }
 
         if (true) {
-            CellTree cellTree = cell.tree();
-            assert Arrays.equals(equivPortsN, cellTree.getNetCell().getEquivPortsN());
-            assert Arrays.equals(equivPortsP, cellTree.getNetCell().getEquivPortsP());
-            assert Arrays.equals(equivPortsA, cellTree.getNetCell().getEquivPortsA());
+            EquivPorts equivPorts = cell.tree().getEquivPorts();
+            assert Arrays.equals(equivPortsN, equivPorts.getEquivPortsN());
+            assert Arrays.equals(equivPortsP, equivPorts.getEquivPortsP());
+            assert Arrays.equals(equivPortsA, equivPorts.getEquivPortsA());
         }
 
         return changed;

@@ -62,7 +62,7 @@ public class CellTree {
     public final Set<CellId> allCells;
     private ERectangle bounds;
 
-    private NetCell netCell;
+    private EquivPorts equivPorts;
 
     private CellTree(CellBackup top, CellTree[] subTrees, TechPool techPool, Set<CellId> allCells) {
         this.top = top;
@@ -172,21 +172,40 @@ public class CellTree {
         TechPool techPool = superPool.restrict(techUsages, this.techPool);
         CellTree newCellTree = new CellTree(top, subTrees, techPool, allCells);
 
-        // Try to reuse cell bounds
-        if (this.bounds != null && this.top == top) {
-            assert newCellTree.subTrees.length == this.subTrees.length;
-            ERectangle cellBounds = this.bounds;
-            for (int i = 0; i < this.subTrees.length; i++) {
-                CellTree oldSubTree = this.subTrees[i];
-                if (oldSubTree == null) continue;
-                assert oldSubTree.bounds != null;
-                if (!newCellTree.subTrees[i].getBounds().equals(oldSubTree.bounds)) {
-                    cellBounds = null;
-                    break;
+        if (this.top == top) {
+            // Try to reuse cell bounds
+            if (this.bounds != null) {
+                assert newCellTree.subTrees.length == this.subTrees.length;
+                ERectangle cellBounds = this.bounds;
+                for (int i = 0; i < this.subTrees.length; i++) {
+                    CellTree oldSubTree = this.subTrees[i];
+                    if (oldSubTree == null) continue;
+                    assert oldSubTree.bounds != null;
+                    if (!newCellTree.subTrees[i].getBounds().equals(oldSubTree.bounds)) {
+                        cellBounds = null;
+                        break;
+                    }
+                }
+                if (cellBounds != null) {
+                    newCellTree.bounds = cellBounds;
                 }
             }
-            if (cellBounds != null) {
-                newCellTree.bounds = cellBounds;
+            // Try to reuse NetCell
+            if (this.equivPorts != null) {
+                assert newCellTree.subTrees.length == this.subTrees.length;
+                EquivPorts netCell = this.equivPorts;
+                for (int i = 0; i < this.subTrees.length; i++) {
+                    CellTree oldSubTree = this.subTrees[i];
+                    if (oldSubTree == null) continue;
+                    assert oldSubTree.equivPorts != null;
+                    if (!newCellTree.subTrees[i].getEquivPorts().equalsPorts(oldSubTree.equivPorts)) {
+                        netCell = null;
+                        break;
+                    }
+                }
+                if (netCell != null) {
+                    newCellTree.equivPorts = netCell;
+                }
             }
         }
 
@@ -286,11 +305,15 @@ public class CellTree {
         return ERectangle.fromGrid(gridMinX, gridMinY, gridMaxX - gridMinX, gridMaxY - gridMinY);
     }
 
-    public NetCell getNetCell() {
-        if (netCell == null) {
-            netCell = new NetCell(this);
+    public EquivPorts getEquivPorts() {
+        if (equivPorts == null) {
+            equivPorts = new EquivPorts(this);
         }
-        return netCell;
+        return equivPorts;
+    }
+
+    public EquivPorts computeEquivPorts() {
+        return new EquivPorts(this);
     }
 
     public void check() {
