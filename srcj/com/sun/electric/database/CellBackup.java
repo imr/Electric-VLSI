@@ -492,7 +492,7 @@ public class CellBackup {
             }
 //            long stopTime = System.currentTimeMillis();
 //            System.out.println("Memoization " + cellRevision.d.cellId + " took " + (stopTime - startTime) + " msec");
-//            check();
+            check();
         }
 
         private int[] makeNodeIndexByNodeId() {
