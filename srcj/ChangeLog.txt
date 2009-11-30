@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/30/09, SMR) MOSIS CMOS PLA generator fails (Bug #2499).
+FIX: In PLA.java, must start a Job.
+
 BUG: (11/30/09, SMR) Going Up-Hierarchy when editing down-in-place should not alter scale/pan (Bug #2497).
 FIX: In EditWindow.upHierarchy() always keep focus when editing down-in-place.
 

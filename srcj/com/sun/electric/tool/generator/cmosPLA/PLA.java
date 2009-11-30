@@ -123,7 +123,7 @@ public class PLA
 		if (dialog.failed()) return;
 
 		generate(Library.getCurrent(), dialog.getCellName(), dialog.getAndFileName(), dialog.getOrFileName(),
-			dialog.isInputsOnTop(), dialog.isOutputsOnBottom());
+			dialog.isInputsOnTop(), dialog.isOutputsOnBottom(), false);
 	}
 
 	/**
@@ -134,45 +134,12 @@ public class PLA
 	 * @param orFileName the disk file with the OR plane.
 	 * @param inputsOnTop true to place inputs on the top of the plane.
 	 * @param outputsOnBottom true to place outputs on the bottom of the plane.
+	 * @param doItNow true if already in a Job and so do not start another.
 	 */
 	public static void generate(Library destLib, String cellName, String andFileName, String orFileName,
-                                boolean inputsOnTop, boolean outputsOnBottom)
+                                boolean inputsOnTop, boolean outputsOnBottom, boolean doItNow)
 	{
-		// make sure the standard cell library is read in
-		String libName = "pla_mocmos";
-		if (Library.findLibrary(libName) == null)
-		{
-            // start a job to read the PLA support library
-			new ReadPLALibraryJob(libName, true);
-		}
-		new GeneratePLAJob(destLib, cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom, true);
-	}
-
-	/**
-	 * Class to read the PLA support library in a new job.
-	 */
-	private static class ReadPLALibraryJob extends Job
-	{
-		private String libName;
-
-		private ReadPLALibraryJob(String libName, boolean doItNow)
-		{
-			super("Read PLA Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.libName = libName;
-            if (doItNow)
-            {
-                try { doIt(); } catch (Exception e) { e.printStackTrace(); }
-            }
-            else
-			    startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			URL fileURL = LibFile.getLibFile(libName + ".jelib");
-    		LibraryFiles.readLibrary(fileURL, libName, FileType.JELIB, true);
-			return true;
-		}
+		new GeneratePLAJob(destLib, cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom, doItNow);
 	}
 
 	/**
@@ -200,16 +167,25 @@ public class PLA
 			this.inputsOnTop = inputsOnTop;
 			this.outputsOnBottom = outputsOnBottom;
             this.doItNow = doItNow;
-            if (!doItNow)
-			    startJob();
-            else
+            if (doItNow)
             {
                 try {doIt();} catch (Exception e) { e.printStackTrace();}
+            } else
+            {
+			    startJob();
             }
 		}
 
 		public boolean doIt() throws JobException
 		{
+			String libName = "pla_mocmos";
+			if (Library.findLibrary(libName) == null)
+			{
+	            // start a job to read the PLA support library
+				URL fileURL = LibFile.getLibFile(libName + ".jelib");
+	    		LibraryFiles.readLibrary(fileURL, libName, FileType.JELIB, true);
+			}
+
 			PLA pla = new PLA(cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom);
 			newCell = pla.doStep(destLib);
             if (!doItNow)
