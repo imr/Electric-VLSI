@@ -118,18 +118,18 @@ public class Variable implements Serializable {
             for (Key key : varKeys.values()) {
                 keyLength += key.getName().length();
             }
-            int canonicCount = 0;
-            long canonicLength = 0;
-            for (String canonic : varCanonicKeys.keySet()) {
-                Key key = varCanonicKeys.get(canonic);
-                if (key != null && key.getName() == canonic) {
-                    continue;
-                }
-                canonicCount++;
-                canonicLength += canonic.length();
-            }
-            System.out.println(varKeys.size() + " variable keys with " + keyLength + " chars."
-                    + " Canonic " + varCanonicKeys.size() + " entries " + canonicCount + " strings with " + canonicLength + " chars.");
+//            int canonicCount = 0;
+//            long canonicLength = 0;
+//            for (String canonic : varCanonicKeys.keySet()) {
+//                Key key = varCanonicKeys.get(canonic);
+//                if (key != null && key.getName() == canonic) {
+//                    continue;
+//                }
+//                canonicCount++;
+//                canonicLength += canonic.length();
+//            }
+            System.out.println(varKeys.size() + " variable keys with " + keyLength + " chars.");
+//                    + " Canonic " + varCanonicKeys.size() + " entries " + canonicCount + " strings with " + canonicLength + " chars.");
         }
     }
 
