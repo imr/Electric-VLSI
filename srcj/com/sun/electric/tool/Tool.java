@@ -351,13 +351,13 @@ public class Tool implements Comparable
 	}
 
 	/**
-	 * Class for scheduling a wiring task.
+	 * Class for setting a variable in a new Job.
 	 */
 	private static class SetVarJob extends Job
 	{
-		ElectricObject obj;
-		Variable.Key key;
-		Object newVal;
+		private ElectricObject obj;
+		private Variable.Key key;
+		private Object newVal;
 
 		protected SetVarJob(Tool tool, ElectricObject obj, Variable.Key key, Object newVal)
 		{

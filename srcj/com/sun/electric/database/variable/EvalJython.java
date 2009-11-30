@@ -24,7 +24,9 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
@@ -177,4 +179,50 @@ public class EvalJython {
             }
         }
     }
+
+    /**
+	 * Method to set a variable on a NodeInst in a new Job.
+	 * It is necessary to use IDs because Jython makes copies of objects,
+	 * so the Jython copy of the NodeInst is "not linked".
+	 * @param cellId the ID of the Cell in which to set a variable.
+	 * @param nodeId the ID of the NodeInst (in the Cell) on which to set a variable.
+	 * @param key the Variable key.
+	 * @param newVal the new value of the Variable.
+	 * @param td the Textdescriptor.
+	 */
+	public static void setVarInJob(CellId cellId, int nodeId, Variable.Key key, Object newVal, TextDescriptor td)
+	{
+		new SetVarJob(cellId, nodeId, key, newVal, td);
+	}
+
+	/**
+	 * Class for setting a variable in a new Job.
+	 */
+	private static class SetVarJob extends Job
+	{
+		private CellId cellId;
+		private int nodeId;
+		private Variable.Key key;
+		private Object newVal;
+		private TextDescriptor td;
+
+		protected SetVarJob(CellId cellId, int nodeId, Variable.Key key, Object newVal, TextDescriptor td)
+		{
+			super("Add Variable", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cellId = cellId;
+			this.nodeId = nodeId;
+			this.key = key;
+			this.newVal = newVal;
+			this.td = td;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			Cell c = Cell.inCurrentThread(cellId);
+			NodeInst ni = c.getNodeById(nodeId);
+			ni.newVar(key, newVal, td);
+			return true;
+		}
+	}
 }
