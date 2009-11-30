@@ -917,6 +917,10 @@ public class CellBackup {
             return nodeIndex >= 0 ? cellRevision.nodes.get(nodeIndex) : null;
         }
 
+        public int getNodeIndexByNodeId(int nodeId) {
+            return nodeIndexByNodeId[nodeId];
+        }
+
         /**
          * Returns ImmutableArcInst by its arc id.
          * @param arcId id of node.

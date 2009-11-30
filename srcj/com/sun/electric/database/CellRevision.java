@@ -347,6 +347,14 @@ public class CellRevision {
         return portIndex >= 0 ? exports.get(portIndex) : null;
     }
 
+    public int getExportIndexByExportId(ExportId exportId) {
+        if (exportId.parentId != d.cellId) {
+            throw new IllegalArgumentException();
+        }
+        int chronIndex = exportId.chronIndex;
+        return chronIndex < exportIndex.length ? exportIndex[chronIndex] : -1;
+    }
+
     /**
      * Returns subcell instance counts, indexed by CellUsage.indexInParent.
      * @return subcell instance counts, indexed by CellUsage.indexInParent.
