@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/30/09, SMR) Going Up-Hierarchy when editing down-in-place should not alter scale/pan (Bug #2497).
+FIX: In EditWindow.upHierarchy() always keep focus when editing down-in-place.
+
 IMP/MAN: (11/30/09, DN) Bus names of arcs and nodes are allowed only in icon and schematic cells.
   The prototype of arc with bus name must be Schematics.bus_arc .
   The prototype of node with bus name must be an Icon cell.

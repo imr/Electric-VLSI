@@ -775,7 +775,13 @@ public class EditWindow extends JPanel
 			Object obj = getDraggedObject(e.getCurrentDataFlavors());
 			if (obj != null)
 			{
-				e.acceptDrag(e.getDropAction());
+				int action = e.getDropAction();
+//if (action == DnDConstants.ACTION_LINK) System.out.print("(ACTION_LINK) ");
+//if (action == DnDConstants.ACTION_MOVE) System.out.print("(ACTION_MOVE) ");
+//if (action == DnDConstants.ACTION_COPY) System.out.print("(ACTION_COPY) ");
+//if (action == DnDConstants.ACTION_NONE) System.out.print("(ACTION_NONE) ");
+//System.out.println("DROP ACTION="+action);
+				e.acceptDrag(action);
 
 				// determine the window
 				DropTarget dt = (DropTarget)e.getSource();
@@ -3173,6 +3179,9 @@ public class EditWindow extends JPanel
 	{
 		if (cell == null) return;
 		Cell oldCell = cell;
+
+		// when doing in-place display, always go up keeping the focus
+		if (inPlaceDisplay) keepFocus = true;
 
 		// determine which export is selected so it can be shown in the upper level
 		Export selectedExport = null;
