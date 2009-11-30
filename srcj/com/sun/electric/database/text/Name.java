@@ -51,8 +51,8 @@ public class Name implements Comparable<Name> {
     private static final boolean INTERN = true;
     /** the original name */
     private final String ns;
-    /** the canonic name */
-    private final String canonicString;
+//    /** the canonic name */
+//    private final String canonicString;
     /** list of subnames */
     private Name[] subnames;
     /** basename */
@@ -106,9 +106,9 @@ public class Name implements Comparable<Name> {
         int userNames = 0;
         int busCount = 0;
         int busWidth = 0;
-        int lowerCase = 0;
+//        int lowerCase = 0;
         long length = 0;
-        HashSet<String> canonic = new HashSet<String>();
+//        HashSet<String> canonic = new HashSet<String>();
         for (Name n : allNames) {
             if (n == null) {
                 continue;
@@ -124,42 +124,43 @@ public class Name implements Comparable<Name> {
                 busCount++;
                 busWidth += n.subnames.length;
             }
-            if (n.toString() == n.canonicString()) {
-                lowerCase++;
-            } else {
-                canonic.add(n.canonicString());
-            }
+//            if (n.toString() == n.canonicString()) {
+//                lowerCase++;
+//            } else {
+//                canonic.add(n.canonicString());
+//            }
         }
-        for (Name n : allNames) {
-            if (n == null) {
-                continue;
-            }
-            canonic.remove(n.toString());
-        }
-        long canonicLength = 0;
-        for (String s : canonic) {
-            canonicLength += s.length();
-        }
+//        for (Name n : allNames) {
+//            if (n == null) {
+//                continue;
+//            }
+//            canonic.remove(n.toString());
+//        }
+//        long canonicLength = 0;
+//        for (String s : canonic) {
+//            canonicLength += s.length();
+//        }
         System.out.println(allNamesCount + " Names " + length + " chars. " + validNames + " valid " + userNames + " usernames "
-                + busCount + " buses with " + busWidth + " elements. "
-                + lowerCase + " lowercase " + canonic.size() + " canonic strings with " + canonicLength + " chars.");
+                + busCount + " buses with " + busWidth + " elements.");
+//                + lowerCase + " lowercase " + canonic.size() + " canonic strings with " + canonicLength + " chars.");
     }
 
     /**
      * Returns a printable version of this Name.
      * @return a printable version of this Name.
      */
+    @Override
     public final String toString() {
         return ns;
     }
 
-    /**
-     * Returns canonic equivalent String of this Name.
-     * @return canonic equivalent String of this Name.
-     */
-    public final String canonicString() {
-        return canonicString;
-    }
+//    /**
+//     * Returns canonic equivalent String of this Name.
+//     * @return canonic equivalent String of this Name.
+//     */
+//    public final String canonicString() {
+//        return canonicString;
+//    }
 
     /**
      * Compares this Name with the specified Name for order.  Returns a
@@ -422,32 +423,32 @@ public class Name implements Comparable<Name> {
         String canonic;
         if (INTERN) {
             s = s.intern();
-            canonic = TextUtils.canonicString(s);
-            if (canonic != s) {
-                canonic = canonic.intern();
-            }
-        } else {
-            canonic = TextUtils.canonicString(s);
-            if (canonic == s) {
-                Name canonicName = canonicNames.get(s);
-                if (canonicName != null) {
-                    canonic = s = canonicName.canonicString;
-                    canonicNames.remove(canonic);
-                }
-            } else {
-                Name canonicName = findTrimmedName(canonic, false, false);
-                if (canonicName == null) {
-                    canonicName = canonicNames.get(s);
-                }
-                if (canonicName != null) {
-                    canonic = canonicName.canonicString;
-                } else {
-                    canonicNames.put(canonic, this);
-                }
-            }
+//            canonic = TextUtils.canonicString(s);
+//            if (canonic != s) {
+//                canonic = canonic.intern();
+//            }
+//        } else {
+//            canonic = TextUtils.canonicString(s);
+//            if (canonic == s) {
+//                Name canonicName = canonicNames.get(s);
+//                if (canonicName != null) {
+//                    canonic = s = canonicName.canonicString;
+//                    canonicNames.remove(canonic);
+//                }
+//            } else {
+//                Name canonicName = findTrimmedName(canonic, false, false);
+//                if (canonicName == null) {
+//                    canonicName = canonicNames.get(s);
+//                }
+//                if (canonicName != null) {
+//                    canonic = canonicName.canonicString;
+//                } else {
+//                    canonicNames.put(canonic, this);
+//                }
+//            }
         }
         ns = s;
-        canonicString = canonic;
+//        canonicString = canonic;
         int suffix = -1;
         Name base = null;
         try {

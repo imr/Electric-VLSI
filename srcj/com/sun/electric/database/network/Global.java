@@ -27,6 +27,7 @@ package com.sun.electric.database.network;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Name;
 
+import com.sun.electric.database.text.TextUtils;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.HashMap;
@@ -67,10 +68,11 @@ public class Global {
         newGlobals[index] = this;
         allGlobals = newGlobals;
         globalsByName.put(name.toString(), this);
-        if (globalsByCanonicName.containsKey(name.canonicString())) {
-            System.out.println("!!! " + globalsByCanonicName.get(name.canonicString()) + " and " + this + " are not connected now !!!");
+        String canonicString = TextUtils.canonicString(name.toString());
+        if (globalsByCanonicName.containsKey(canonicString)) {
+            System.out.println("!!! " + globalsByCanonicName.get(canonicString) + " and " + this + " are not connected now !!!");
         }
-        globalsByCanonicName.put(name.canonicString(), this);
+        globalsByCanonicName.put(canonicString, this);
     }
 
     /**

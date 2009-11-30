@@ -1069,29 +1069,29 @@ class NetSchem extends NetCell {
         }
 
         Netlist.closureMap(netMap);
-        HashMap<String, Name> canonicToName = new HashMap<String, Name>();
-        for (Map.Entry<Name, GenMath.MutableInteger> e : netNames.entrySet()) {
-            Name name = e.getKey();
-            int index = e.getValue().intValue();
-            assert index >= 0;
-            String canonicString = name.canonicString();
-            Name canonicName = canonicToName.get(canonicString);
-            if (canonicName == null) {
-                canonicName = name;
-                canonicToName.put(canonicString, canonicName);
-                continue;
-            }
-            int mapIndex0 = netNamesOffset + index;
-            int mapIndex1 = netNamesOffset + netNames.get(canonicName).intValue();
-            if (netMap[mapIndex0] != netMap[mapIndex1]) {
-                String msg = "Network: Schematic " + cell + " doesn't connect nets with names '" + name + "' and '" + canonicName + "'";
-                System.out.println(msg);
-                pushName(name);
-                pushName(canonicName);
-                networkManager.logWarning(msg, NetworkTool.errorSortNetworks);
-//                Netlist.connectMap(netMap, mapIndex0, mapIndex1);
-            }
-        }
+//        HashMap<String, Name> canonicToName = new HashMap<String, Name>();
+//        for (Map.Entry<Name, GenMath.MutableInteger> e : netNames.entrySet()) {
+//            Name name = e.getKey();
+//            int index = e.getValue().intValue();
+//            assert index >= 0;
+//            String canonicString = name.canonicString();
+//            Name canonicName = canonicToName.get(canonicString);
+//            if (canonicName == null) {
+//                canonicName = name;
+//                canonicToName.put(canonicString, canonicName);
+//                continue;
+//            }
+//            int mapIndex0 = netNamesOffset + index;
+//            int mapIndex1 = netNamesOffset + netNames.get(canonicName).intValue();
+//            if (netMap[mapIndex0] != netMap[mapIndex1]) {
+//                String msg = "Network: Schematic " + cell + " doesn't connect nets with names '" + name + "' and '" + canonicName + "'";
+//                System.out.println(msg);
+//                pushName(name);
+//                pushName(canonicName);
+//                networkManager.logWarning(msg, NetworkTool.errorSortNetworks);
+////                Netlist.connectMap(netMap, mapIndex0, mapIndex1);
+//            }
+//        }
     }
 
     private void pushName(Name name) {

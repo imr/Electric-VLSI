@@ -153,8 +153,8 @@ public class Variable implements Serializable {
     }
     /** a list of all variable keys */
     private static final HashMap<String, Key> varKeys = new HashMap<String, Key>();
-    /** all variable keys addressed by lower case name */
-    private static final HashMap<String, Key> varCanonicKeys = new HashMap<String, Key>();
+//    /** all variable keys addressed by lower case name */
+//    private static final HashMap<String, Key> varCanonicKeys = new HashMap<String, Key>();
 
     /**
      * Method to return the Key object for a given Variable name.
@@ -166,18 +166,18 @@ public class Variable implements Serializable {
         if (key != null) {
             return key;
         }
-        if (varKeys.containsKey(name)) {
-            return null;
-        }
-        name = name.intern();
-        varKeys.put(name, null);
-        String canonicName = TextUtils.canonicString(name);
-        key = varCanonicKeys.get(canonicName);
-        if (key != null) {
-            String msg = "WARNING: Variable \"" + name + "\" not found though variable \"" + key.getName() + "\" exists";
-            ActivityLogger.logMessage(msg);
-            System.out.println(msg);
-        }
+//        if (varKeys.containsKey(name)) {
+//            return null;
+//        }
+//        name = name.intern();
+//        varKeys.put(name, null);
+//        String canonicName = TextUtils.canonicString(name);
+//        key = varCanonicKeys.get(canonicName);
+//        if (key != null) {
+//            String msg = "WARNING: Variable \"" + name + "\" not found though variable \"" + key.getName() + "\" exists";
+//            ActivityLogger.logMessage(msg);
+//            System.out.println(msg);
+//        }
         return null;
     }
 
@@ -210,53 +210,53 @@ public class Variable implements Serializable {
         name = name.intern();
         key = name.startsWith("ATTR_") ? new AttrKey(name) : new Key(name);
         varKeys.put(name, key);
-        String canonicName = TextUtils.canonicString(name);
-        Key key2 = varCanonicKeys.get(canonicName);
-        if (key2 != null && parent != null) {
-            // find examples of these two variables
-            String ex = null;
-            for (Library lib : Library.getVisibleLibraries()) {
-                if (ex == null) {
-                    ex = findVariable(lib, key2);
-                }
-                for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext();) {
-                    Cell cell = cIt.next();
-                    if (ex == null) {
-                        ex = findVariable(cell, key2);
-                    }
-                    for (Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext();) {
-                        NodeInst ni = nIt.next();
-                        if (ex == null) {
-                            ex = findVariable(ni, key2);
-                        }
-                    }
-                    for (Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext();) {
-                        ArcInst ai = aIt.next();
-                        if (ex == null) {
-                            ex = findVariable(ai, key2);
-                        }
-                    }
-                    for (Iterator<Export> eIt = cell.getExports(); eIt.hasNext();) {
-                        Export e = eIt.next();
-                        if (ex == null) {
-                            ex = findVariable(e, key2);
-                        }
-                    }
-                }
-            }
-            String msg = "WARNING: Variables with similar names are used: \"" + name + "\"";
-            if (parent != null) {
-                msg += " (on " + getObjectName(parent) + ")";
-            }
-            msg += " and \"" + key2.getName() + "\"";
-            if (ex != null) {
-                msg += " (on " + ex + ")";
-            }
-            ActivityLogger.logMessage(msg);
-            System.out.println(msg);
-        } else {
-            varCanonicKeys.put(canonicName.intern(), key);
-        }
+//        String canonicName = TextUtils.canonicString(name);
+//        Key key2 = varCanonicKeys.get(canonicName);
+//        if (key2 != null && parent != null) {
+//            // find examples of these two variables
+//            String ex = null;
+//            for (Library lib : Library.getVisibleLibraries()) {
+//                if (ex == null) {
+//                    ex = findVariable(lib, key2);
+//                }
+//                for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext();) {
+//                    Cell cell = cIt.next();
+//                    if (ex == null) {
+//                        ex = findVariable(cell, key2);
+//                    }
+//                    for (Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext();) {
+//                        NodeInst ni = nIt.next();
+//                        if (ex == null) {
+//                            ex = findVariable(ni, key2);
+//                        }
+//                    }
+//                    for (Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext();) {
+//                        ArcInst ai = aIt.next();
+//                        if (ex == null) {
+//                            ex = findVariable(ai, key2);
+//                        }
+//                    }
+//                    for (Iterator<Export> eIt = cell.getExports(); eIt.hasNext();) {
+//                        Export e = eIt.next();
+//                        if (ex == null) {
+//                            ex = findVariable(e, key2);
+//                        }
+//                    }
+//                }
+//            }
+//            String msg = "WARNING: Variables with similar names are used: \"" + name + "\"";
+//            if (parent != null) {
+//                msg += " (on " + getObjectName(parent) + ")";
+//            }
+//            msg += " and \"" + key2.getName() + "\"";
+//            if (ex != null) {
+//                msg += " (on " + ex + ")";
+//            }
+//            ActivityLogger.logMessage(msg);
+//            System.out.println(msg);
+//        } else {
+//            varCanonicKeys.put(canonicName.intern(), key);
+//        }
         return key;
     }
 

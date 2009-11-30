@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+IMP: (11/30/09, DN) Remove diagnostics of case-insensitive match of Variables.
+
+IMP/MAN: (11/30/09, DN) Move diagnistics of Networks with case-insensitive match into Schematics DRC.
+    Remove field database.text.Name.canonicString.
+
 IMP: (11/29/09, DN) CellTree containts EquivPorts which represents internal connections in Layout CellTree.
 
 BUG: (11/27/09, DN) Incremental DRC used incorret conditions when to invoke.
