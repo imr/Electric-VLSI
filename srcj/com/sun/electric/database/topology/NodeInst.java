@@ -452,7 +452,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         String msg = null;
         if (name != null) {
             nameKey = Name.findName(name);
-            if (checkNameKey(nameKey, parent)) {
+            if (checkNameKey(nameKey, parent) || nameKey.isBus() && (!(protoType instanceof Cell) || !((Cell)protoType).isIcon())) {
                 nameKey = null;
             } else if (parent.findNode(name) != null) {
                 if (!nameKey.isTempname()) {
@@ -2894,7 +2894,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             }
             key = topology.getNodeAutoname(getBasename());
         }
-        if (checkNameKey(key, parent)) {
+        if (checkNameKey(key, parent) || key.isBus() && (!(protoType instanceof Cell) || !((Cell)protoType).isIcon())) {
             return true;
         }
 
@@ -2916,9 +2916,15 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             System.out.println(extrMsg + ": Invalid name \"" + name + "\" wasn't assigned to node" + " :" + Name.checkName(name.toString()));
             return true;
         }
-        if (name.isTempname() && name.isBus()) {
-            System.out.println(extrMsg + ": Temporary name \"" + name + "\" can't be bus");
-            return true;
+        if (name.isBus()) {
+            if (name.isTempname()) {
+                System.out.println(extrMsg + ": Temporary name \"" + name + "\" can't be bus");
+                return true;
+            }
+            if (!parent.busNamesAllowed()) {
+                System.out.println(extrMsg + ": Bus name \"" + name + "\" can be in icons and schematics only");
+                return true;
+            }
         }
         if (name.hasEmptySubnames()) {
             if (name.isBus()) {

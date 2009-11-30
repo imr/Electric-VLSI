@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+IMP/MAN: (11/30/09, DN) Bus names of arcs and nodes are allowed only in icon and schematic cells.
+  The prototype of arc with bus name must be Schematics.bus_arc .
+  The prototype of node with bus name must be an Icon cell.
+
 IMP: (11/30/09, DN) Remove diagnostics of case-insensitive match of Variables.
 
 IMP/MAN: (11/30/09, DN) Move diagnistics of Networks with case-insensitive match into Schematics DRC.

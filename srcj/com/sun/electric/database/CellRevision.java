@@ -183,10 +183,29 @@ public class CellRevision {
                     }
                     hasCellCenter = true;
                 }
+                if (!busNamesAllowed && n.name.isBus()) {
+                    throw new IllegalArgumentException("arrayedName " + n.name);
+                }
                 if (prevN != null && TextUtils.STRING_NUMBER_ORDER.compare(prevN.name.toString(), n.name.toString()) >= 0) {
                     throw new IllegalArgumentException("nodes order");
                 }
                 prevN = n;
+            }
+        }
+
+        if (arcs != this.arcs && !arcs.isEmpty()) {
+            ImmutableArcInst prevA = null;
+            for (int i = 0; i < arcs.size(); i++) {
+                ImmutableArcInst a = arcs.get(i);
+                if (!busNamesAllowed && a.name.isBus()) {
+                    throw new IllegalArgumentException("arrayedName " + a.name);
+                }
+                if (prevA != null) {
+                    int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevA.name.toString(), a.name.toString());
+                    if (cmp > 0 || cmp == 0 && (a.name.isTempname() || prevA.arcId >= a.arcId))
+                        throw new IllegalArgumentException("arcs order");
+                }
+                prevA = a;
             }
         }
 
@@ -202,7 +221,7 @@ public class CellRevision {
                     throw new IllegalArgumentException("exportId");
                 }
                 String exportName = e.name.toString();
-                if (!busNamesAllowed && e.name.busWidth() != 1) {
+                if (!busNamesAllowed && e.name.isBus()) {
                     throw new IllegalArgumentException("arrayedName " + e.name);
                 }
                 if (prevExportName != null && TextUtils.STRING_NUMBER_ORDER.compare(prevExportName, exportName) >= 0) {
@@ -457,6 +476,7 @@ public class CellRevision {
             }
             ImmutableNodeInst oldNode = nodesById.set(n.nodeId, n);
             assert oldNode == null;
+            assert busNamesAllowed || !n.name.isBus();
             if (prevN != null) {
                 assert TextUtils.STRING_NUMBER_ORDER.compare(prevN.name.toString(), n.name.toString()) < 0;
             }
@@ -498,6 +518,7 @@ public class CellRevision {
         for (ImmutableArcInst a : arcs) {
             assert !arcIds.get(a.arcId);
             arcIds.set(a.arcId);
+            assert busNamesAllowed || !a.name.isBus();
             if (prevA != null) {
                 int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevA.name.toString(), a.name.toString());
                 assert cmp <= 0;
@@ -525,9 +546,7 @@ public class CellRevision {
             e.check();
             assert e.exportId.parentId == cellId;
             assert exportIndex[e.exportId.chronIndex] == i;
-            if (!busNamesAllowed) {
-                assert e.name.busWidth() == 1;
-            }
+            assert busNamesAllowed || !e.name.isBus();
             if (i > 0) {
                 assert (TextUtils.STRING_NUMBER_ORDER.compare(exports.get(i - 1).name.toString(), e.name.toString()) < 0) : i;
             }

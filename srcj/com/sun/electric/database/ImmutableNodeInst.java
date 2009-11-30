@@ -255,7 +255,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (name == null) {
             throw new NullPointerException("name");
         }
-        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) {
+        boolean isIcon = protoId instanceof CellId && ((CellId)protoId).isIcon();
+        if (!name.isValid() || name.hasEmptySubnames()
+                || name.isBus() && (name.isTempname() || !isIcon)) {
             throw new IllegalArgumentException("bad name: " + name);
         }
         if (name.hasDuplicates()) {
@@ -318,7 +320,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (name == null) {
             throw new NullPointerException("name");
         }
-        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) {
+        if (!name.isValid() || name.hasEmptySubnames() ||
+                name.isBus() && (name.isTempname() || !(this instanceof ImmutableIconInst))) {
             throw new IllegalArgumentException("name");
         }
         if (name.hasDuplicates()) {
@@ -903,7 +906,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         assert getClass() == (isIcon ? ImmutableIconInst.class : ImmutableNodeInst.class);
         assert name != null;
         assert name.isValid() && !name.hasEmptySubnames();
-        assert !(name.isTempname() && name.isBus());
+        assert !name.isBus() || isIcon && !name.isTempname();
         assert !name.hasDuplicates();
         if (nameDescriptor != null) {
             assert nameDescriptor.isDisplay() && !nameDescriptor.isParam();

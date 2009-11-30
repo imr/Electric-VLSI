@@ -47,6 +47,7 @@ import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 
@@ -422,7 +423,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
             nameDescriptor = TextDescriptor.getArcTextDescriptor();
         }
         Name nameKey = name != null ? Name.findName(name) : null;
-        if (nameKey == null || checkNameKey(nameKey, topology)) {
+        if (nameKey == null || checkNameKey(nameKey, topology)
+                || nameKey.isBus() && protoType != Schematics.tech().bus_arc) {
             nameKey = topology.getArcAutoname();
 //		} else
 //		{
@@ -1095,7 +1097,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
             }
             key = topology.getArcAutoname();
         }
-        if (checkNameKey(key, topology)) {
+        if (checkNameKey(key, topology) || key.isBus() && getProto() != Schematics.tech().bus_arc) {
             return true;
         }
         ImmutableArcInst oldD = d;
@@ -1155,6 +1157,16 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
         if (!name.isValid()) {
             System.out.println(parent + ": Invalid name \"" + name + "\" wasn't assigned to arc" + " :" + Name.checkName(name.toString()));
             return true;
+        }
+        if (name.isBus()) {
+            if (name.isTempname()) {
+                System.out.println(parent + ": Temporary name \"" + name + "\" can't be bus");
+                return true;
+            }
+            if (!parent.busNamesAllowed()) {
+                System.out.println(parent + ": Bus name \"" + name + "\" can be in icons and schematics only");
+                return true;
+            }
         }
         if (name.isTempname() && name.getBasename() != ImmutableArcInst.BASENAME) {
             System.out.println(parent + ": Temporary arc name \"" + name + "\" must have prefix net@");

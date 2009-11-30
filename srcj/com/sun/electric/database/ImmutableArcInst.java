@@ -40,6 +40,8 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 
 import com.sun.electric.technology.TechPool;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Schematics;
 import java.io.IOException;
 
 /**
@@ -560,7 +562,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (name == null) {
             throw new NullPointerException("name");
         }
-        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.getBasename() != BASENAME) {
+        if (!name.isValid() || name.hasEmptySubnames()
+                || name.isTempname() && (name.getBasename() != BASENAME || name.isBus())) {
             throw new IllegalArgumentException("name");
         }
         if (nameDescriptor != null) {
@@ -621,7 +624,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (name == null) {
             throw new NullPointerException("name");
         }
-        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.getBasename() != BASENAME) {
+        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && (name.getBasename() != BASENAME || name.isBus())) {
             throw new IllegalArgumentException("name");
         }
         return new ImmutableArcInst(this.arcId, this.protoId, name, this.nameDescriptor,
@@ -969,6 +972,11 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         ArcProto protoType = techPool.getArcProto(protoId);
         if (protoType == null) {
             return false;
+        }
+        if (name.isBus()) {
+            Technology tech = protoType.getTechnology();
+            if (!(tech instanceof Schematics) || protoType != ((Schematics)tech).bus_arc)
+                return false;
         }
         if (isTailNegated()) {
             if (!techPool.getPrimitivePort((PrimitivePortId) tailPortId).isNegatable()) {
