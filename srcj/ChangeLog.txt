@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (11/30/09, GVG) No cleanUnusedNodesInLibrary for MoCMOS special nodes such as poly2 contact (Bug #2500)
+FIX: CMOS90.cleanUnusedNodesInLibrary functionality moved to Technology.cleanUnusedNodesInLibrary
+
 BUG: (11/30/09, SMR) MOSIS CMOS PLA generator fails (Bug #2499).
 FIX: In PLA.java, must start a Job.
 

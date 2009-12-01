@@ -1590,7 +1590,17 @@ public class Technology implements Comparable<Technology>, Serializable
      * @param list nodes that will be removed in a remove job.
      * @return true if node is not in used
      */
-    public boolean cleanUnusedNodesInLibrary(NodeInst ni, List<Geometric> list) {return false;}
+    public boolean cleanUnusedNodesInLibrary(NodeInst ni, List<Geometric> list) 
+    {
+        NodeProto np = ni.getProto();
+    	// To remove
+        if (np instanceof PrimitiveNode && ((PrimitiveNode)np).isNotUsed())
+        {
+            if (list != null) list.add(ni);
+            return true;
+        }
+    	return false;
+    }
 
     public void dump(PrintWriter out, Map<Setting,Object> settings) {
         final String[] techBits = {
