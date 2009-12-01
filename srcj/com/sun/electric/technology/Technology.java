@@ -134,6 +134,9 @@ public class Technology implements Comparable<Technology>, Serializable
     // Change in TechSettings takes effect only after restart
     public static final boolean IMMUTABLE_TECHS = false/*Config.TWO_JVM*/;
 
+    /** Compare mutable and immutable calcualtions of #getShapeOfPort */
+    private static final boolean CHECK_SHAPE_OF_PORTS = true;
+
     /** Jelib writes base sizes since this Electric Version */
     public static final Version DISK_VERSION_1 = Version.parseVersion("8.05g");
     /** Jelib writes oversize over standard primitive since this Electric Version */
@@ -3609,39 +3612,39 @@ public class Technology implements Comparable<Technology>, Serializable
 
     public Map<String,PrimitiveNode> getOldNodeNames() { return new TreeMap<String,PrimitiveNode>(oldNodeNames); }
 
-	/****************************** PORTS ******************************/
+    /****************************** PORTS ******************************/
 
-	/**
-	 * Returns a polygon that describes a particular port on a NodeInst.
-	 * @param ni the NodeInst that has the port of interest.
-	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
-	 * @param pp the PrimitivePort on that NodeInst that is being described.
-	 * @return a Poly object that describes this PrimitivePort graphically.
-	 */
-	public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp)
-	{
-		return getShapeOfPort(ni, pp, null);
-	}
+    /**
+     * Returns a polygon that describes a particular port on a NodeInst.
+     * @param ni the NodeInst that has the port of interest.
+     * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+     * @param pp the PrimitivePort on that NodeInst that is being described.
+     * @return a Poly object that describes this PrimitivePort graphically.
+     */
+    public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp)
+    {
+        return getShapeOfPort(ni, pp, null);
+    }
 
-	/**
-	 * Returns a polygon that describes a particular port on a NodeInst.
-	 * @param ni the NodeInst that has the port of interest.
-	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
-	 * @param pp the PrimitivePort on that NodeInst that is being described.
-	 * @param selectPt if not null, it requests a new location on the port,
-	 * away from existing arcs, and close to this point.
-	 * This is useful for "area" ports such as the left side of AND and OR gates.
-	 * @return a Poly object that describes this PrimitivePort graphically.
-	 */
-	public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp, Point2D selectPt)
-	{
-        Poly poly = getShapeOfPort0(ni, pp, selectPt);
-        poly.setLayer(null);
-        poly.setGraphicsOverride(null);
+    /**
+     * Returns a polygon that describes a particular port on a NodeInst.
+     * @param ni the NodeInst that has the port of interest.
+     * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+     * @param pp the PrimitivePort on that NodeInst that is being described.
+     * @param selectPt if not null, it requests a new location on the port,
+     * away from existing arcs, and close to this point.
+     * This is useful for "area" ports such as the left side of AND and OR gates.
+     * @return a Poly object that describes this PrimitivePort graphically.
+     */
+    public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp, Point2D selectPt)
+    {
+        Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
+        Poly poly = polyBuilder.getShape(ni, pp, selectPt);
 
-        if (Job.getDebug()) {
-            Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
-            Poly poly1 = polyBuilder.getShape(ni, pp, selectPt);
+        if (CHECK_SHAPE_OF_PORTS) {
+            Poly poly1 = getShapeOfPort0(ni, pp, selectPt);
+            poly1.setLayer(null);
+            poly1.setGraphicsOverride(null);
             assert poly.getStyle() == poly1.getStyle();
             assert poly.getLayer() == null && poly1.getLayer() == null;
             assert poly.getGraphicsOverride() == null && poly1.getGraphicsOverride() == null;
