@@ -22,13 +22,13 @@ FIX: In PLA.java, must start a Job.
 BUG: (11/30/09, SMR) Going Up-Hierarchy when editing down-in-place should not alter scale/pan (Bug #2497).
 FIX: In EditWindow.upHierarchy() always keep focus when editing down-in-place.
 
-IMP/MAN: (11/30/09, DN) Bus names of arcs and nodes are allowed only in icon and schematic cells.
+IMP: (11/30/09, DN) Bus names of arcs and nodes are allowed only in icon and schematic cells.
   The prototype of arc with bus name must be Schematics.bus_arc .
   The prototype of node with bus name must be an Icon cell.
 
 IMP: (11/30/09, DN) Remove diagnostics of case-insensitive match of Variables.
 
-IMP/MAN: (11/30/09, DN) Move diagnistics of Networks with case-insensitive match into Schematics DRC.
+IMP: (11/30/09, DN) Move diagnostics of Networks with case-insensitive match into Schematics DRC.
     Remove field database.text.Name.canonicString.
 
 IMP: (11/29/09, DN) CellTree containts EquivPorts which represents internal connections in Layout CellTree.
@@ -100,7 +100,7 @@ FIX: Do not request current technology in TextUtils.atof().
 
 ************************* Version 8.10m: ******************************
 
-IMP/MAN: (11/18/09, SMR) Arrow-key movement now goes by grid-aligned amount.
+IMP: (11/18/09, SMR) Arrow-key movement now goes by grid-aligned amount.
 
 BUG: (11/17/09, DN) datatbase exceptions, cannot save... (Bug #2479)
 FIX: In CellTree.with() test for empty subTrees[i] .
@@ -134,9 +134,9 @@ IMP: (11/15/09, AM) Make legacy code off-by-default.
 BUG:(11/13/09, DN) NullPointerException in repaint when trying to highlight deleted port (Bug #2471).
 FIX: In Highlight.HighlightEOBJ.showInternalHighlight return when eobj is not linked.
 
-IMP/MAN: (11/13/09, GVG) Working on a new DSPF reader
+IMP: (11/13/09, GVG) Working on a new DSPF reader
 
-IMP/MAN: (11/13/09, SMR) Arc Preferences now has control over "fat wiring mode" (Bug #2470).
+IMP: (11/13/09, SMR) Arc Preferences now has control over "fat wiring mode" (Bug #2470).
 
 BUG: (11/12/09, DN) AssertionError in getShapeOfPort (Bug #2468)
 FIX: In Schematics.genShapeOfPort gen shape in grid units when lambda != 1.
@@ -154,7 +154,7 @@ IMP: (11/12/09, DN) Technology.getShapeOfPort() computes shape of ports both in 
 BUG: (11/11/09, GVG) "\" character causing errors in VerilogReader (Bug #2465)
 FIX: Assertion removed. The "\" removed from the name.
 
-IMP/MAN: (11/11/09, GVG) Run placement tool after Verilog reader (Bug #2467)
+IMP: (11/11/09, GVG) Run placement tool after Verilog reader (Bug #2467)
 New preferene added.
 
 BUG: (11/10/09, GVG) Verilog not including subcells found in other libraries (Bug #2466)
@@ -1242,7 +1242,7 @@ BUG: (6/26/09, GVG) fill generator doesn't connect all networks found in
 FIX: HierarchicalEnumerator added to find arcs in sub cells included as
      instances.
 
-IMP/MAN: (6/25/09, GVG) Adding <resolution> in the XML tech description for Bug
+IMP: (6/25/09, GVG) Adding <resolution> in the XML tech description for Bug
      #2239
 
 BUG: (6/25/09, SMR) Auto-repeat of arrow keys does not work (Bug #2251).

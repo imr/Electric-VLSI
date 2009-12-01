@@ -144,7 +144,7 @@ public class VerilogTab extends PreferencePanel
         inputPanel.setLayout(new java.awt.GridBagLayout());
 
         runPlacement.setText("Run Placement after import");
-        runPlacement.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        runPlacement.setBorder(null);
         runPlacement.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 runPlacementActionPerformed(evt);
@@ -152,9 +152,11 @@ public class VerilogTab extends PreferencePanel
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, -55, 0, 0);
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         inputPanel.add(runPlacement, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
