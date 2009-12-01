@@ -40,6 +40,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -788,11 +789,11 @@ class NetSchem extends NetCell {
         }
         int arcIndex = 0;
         for (Iterator<ArcInst> it = cell.getArcs(); arcIndex < numArcs; arcIndex++) {
+            ArcInst ai = it.next();
             int drawn = drawns[arcsOffset + arcIndex];
             if (drawn < 0) {
                 continue;
             }
-            ArcInst ai = it.next();
             Name name = ai.getNameKey();
             if (name.isTempname()) {
                 continue;
@@ -815,11 +816,11 @@ class NetSchem extends NetCell {
         ArcProto busArc = Schematics.tech().bus_arc;
         arcIndex = 0;
         for (Iterator<ArcInst> it = cell.getArcs(); arcIndex < numArcs; arcIndex++) {
+            ArcInst ai = it.next();
             int drawn = drawns[arcsOffset + arcIndex];
             if (drawn < 0) {
                 continue;
             }
-            ArcInst ai = it.next();
             Name name = ai.getNameKey();
             if (!name.isTempname()) {
                 continue;
@@ -1482,6 +1483,30 @@ class NetSchem extends NetCell {
         }
         if (updateInterface()) {
             changed = true;
+        }
+        if (Job.getDebug()) {
+            ImmutableNetSchem netSchem = ImmutableNetSchem.makeNetSchem(cell.getDatabase().backup(), cell.getId());
+            assert Arrays.equals(ni_pi, netSchem.ni_pi);
+            assert arcsOffset == netSchem.arcsOffset;
+            assert Arrays.equals(drawns, netSchem.drawns);
+            assert Arrays.equals(drawnWidths, netSchem.drawnWidths);
+            assert Arrays.equals(drawnNames, netSchem.drawnNames);
+//            assert drawnOffsets.length == netSchem.drawnOffsets.length;
+//            for (int i = 0; i < drawnOffsets.length; i++) {
+//                if (drawnOffsets[i] != netSchem.drawnOffsets[i])
+//                    System.out.println(cell + " drawnOffsets[" + i + "] " + drawnOffsets[i] + " " + netSchem.drawnOffsets[i]);
+//            }
+//            if (!Arrays.equals(drawnOffsets, netSchem.drawnOffsets)) {
+//                ImmutableNetSchem.makeNetSchem(cell.getDatabase().backup(), cell.getId());
+//            }
+            assert Arrays.equals(drawnOffsets, netSchem.drawnOffsets);
+            assert Arrays.equals(nodeOffsets, netSchem.nodeOffsets);
+
+            assert globals.equals(netSchem.globals);
+            assert Arrays.equals(portOffsets, netSchem.portOffsets);
+            assert Arrays.equals(equivPortsN, netSchem.equivPortsN);
+            assert Arrays.equals(equivPortsP, netSchem.equivPortsP);
+            assert Arrays.equals(equivPortsA, netSchem.equivPortsA);
         }
         return changed;
     }

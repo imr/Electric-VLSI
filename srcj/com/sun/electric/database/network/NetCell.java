@@ -54,6 +54,8 @@ import java.util.Map;
  * This is the Cell mirror in Network tool.
  */
 class NetCell {
+    /** Check immutable algorithm which computes equivalent ports */
+    private static final boolean CHECK_EQUIV_PORTS = true;
 
     /** If bit set, netlist is valid for cell tree.*/
     static final int VALID = 1;
@@ -814,7 +816,7 @@ class NetCell {
             }
         }
 
-        if (true) {
+        if (CHECK_EQUIV_PORTS) {
             EquivPorts equivPorts = cell.tree().getEquivPorts();
             assert Arrays.equals(equivPortsN, equivPorts.getEquivPortsN());
             assert Arrays.equals(equivPortsP, equivPorts.getEquivPortsP());
