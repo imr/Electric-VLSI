@@ -260,7 +260,7 @@ class ImmutableNetSchem {
             }
             drawns[arcsOffset + i] = numDrawns;
             if (NetworkTool.debug) {
-                System.out.println(numDrawns + ": " + ai);
+                System.out.println(numDrawns + ": " + a.name);
             }
             PortInst hpi = new PortInst(a, ImmutableArcInst.HEADEND);
             if (hpi.portId != busPinPortId || ap == busArc) {
