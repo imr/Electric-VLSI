@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (12/2/09, SMR) Missing plugins cause hang (Bug #2501).
+FIX: Cleaned-up warnings.
+
 IMP: (12/1/09, DN) Self-test in "-debug" mode for immutable algorithm of computing connected Exports in schematic cells.
 
 IMP: (12/1/09, DN) Self-test for immutable algorithm of computing connected Exports in layout cells.

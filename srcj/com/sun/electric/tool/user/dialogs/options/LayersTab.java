@@ -182,10 +182,9 @@ public class LayersTab extends PreferencePanel
                 Method setMethod = j3DUtilsClass.getDeclaredMethod("get3DColorsInTab", new Class[] {Map.class});
                 setMethod.invoke(j3DUtilsClass, new Object[]{nameTypeSpecialMap});
             }
-            else
-                System.out.println("Cannot call 3D plugin method get3DColorsInTab");
+//            else System.out.println("Cannot call 3D plugin method get3DColorsInTab");
         } catch (Exception e) {
-            System.out.println("Cannot call 3D plugin method get3DColorsInTab");
+            System.out.println("Error calling 3D plugin method get3DColorsInTab");
             e.printStackTrace();
         }
 

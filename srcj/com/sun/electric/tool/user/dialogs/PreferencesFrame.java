@@ -483,7 +483,7 @@ public class PreferencesFrame extends EDialog
             Object panel = panelClass.getConstructor(PreferencesFrame.class, Boolean.class).newInstance(frame, Boolean.valueOf(modal));
             return (PreferencePanel)panel;
         } catch (Exception e) {
-            System.out.println("Exception while loading plugin class "+className+": "+e.getMessage());
+//            System.out.println("Exception while loading plugin class "+className+": "+e.getMessage());
         }
         return null;
     }
