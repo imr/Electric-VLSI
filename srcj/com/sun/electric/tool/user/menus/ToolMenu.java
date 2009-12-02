@@ -183,7 +183,7 @@ public class ToolMenu
 
 		//------------------- DRC
 
-		// mnemonic keys available:  B  EFG IJK MNOPQR  UVWXYZ
+			// mnemonic keys available:  B  EFG IJK MNOPQR  UVWXYZ
             new EMenu("_DRC",
 		        new EMenuItem("Check _Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0))
                 { public void run() {
@@ -224,7 +224,7 @@ public class ToolMenu
 
 		//------------------- Simulation (Built-in)
 
-		// mnemonic keys available:  B       JK  N PQ      XYZ
+			// mnemonic keys available:  B       JK  N PQ      XYZ
             new EMenu("Simulation (Built-in)",
                 Simulation.hasIRSIM() ? new EMenuItem("IRSI_M: Simulate Current Cell") { public void run() {
 				    Simulation.startSimulation(Simulation.IRSIM_ENGINE, false, null, null); }} : null,
@@ -278,7 +278,7 @@ public class ToolMenu
 
 		//------------------- Simulation (SPICE)
 
-		// mnemonic keys available: AB      IJK  NO QR   VWXYZ
+			// mnemonic keys available: AB      IJK  NO QR   VWXYZ
             new EMenu("Simulation (_Spice)",
 		        new EMenuItem("Write Spice _Deck...") { public void run() {
                     FileMenu.exportCommand(FileType.SPICE, true); }},
@@ -320,7 +320,7 @@ public class ToolMenu
 
 		//------------------- Simulation (Verilog)
 
-		// mnemonic keys available: AB  EFGHIJKLMNO QRS U WXYZ
+			// mnemonic keys available: AB  EFGHIJKLMNO QRS U WXYZ
             new EMenu("Simulation (_Verilog)",
 		        new EMenuItem("Write _Verilog Deck...") { public void run() {
                     Simulation.setVerilogStopAtStandardCells(false);
@@ -337,7 +337,7 @@ public class ToolMenu
 
                 SEPARATOR,
 
-		// mnemonic keys available: ABC EFGHIJKLMNOPQRS UV XYZ
+				// mnemonic keys available: ABC EFGHIJKLMNOPQRS UV XYZ
                 new EMenu("Set Verilog _Wire",
 		        	new EMenuItem("_Wire") { public void run() {
                         Simulation.setVerilogWireCommand(0); }},
@@ -346,7 +346,7 @@ public class ToolMenu
 		        	new EMenuItem("_Default") { public void run() {
                         Simulation.setVerilogWireCommand(2); }}),
 
-		// mnemonic keys available: ABCDEFGHIJKLM OPQRSTUV XYZ
+				// mnemonic keys available: ABCDEFGHIJKLM OPQRSTUV XYZ
                 new EMenu("_Transistor Strength",
 		        	new EMenuItem("_Weak") { public void run() {
                         Simulation.setTransistorStrengthCommand(true); }},
@@ -355,7 +355,7 @@ public class ToolMenu
 
 		//------------------- Simulation (others)
 
-		// mnemonic keys available:  B D  G   KL N  Q   UVWXYZ
+			// mnemonic keys available:  B D  G   KL N  Q   UVWXYZ
             new EMenu("Simulation (_Others)",
 		        new EMenuItem("Write _Maxwell Deck...") { public void run() {
                     FileMenu.exportCommand(FileType.MAXWELL, true); }},
@@ -389,7 +389,7 @@ public class ToolMenu
 
 		//------------------- ERC
 
-		// mnemonic keys available:  BCDEFGHIJKLMNOPQRSTUV XYZ
+            // mnemonic keys available:  BCDEFGHIJKLMNOPQRSTUV XYZ
             new EMenu("_ERC",
 		        new EMenuItem("Check _Wells") { public void run() {
                     ERCWellCheck.analyzeCurCell(GeometryHandler.GHMode.ALGO_SWEEP); }},
@@ -397,7 +397,8 @@ public class ToolMenu
                     ERCAntenna.doAntennaCheck(); }}),
 
 		// ------------------- NCC
-		// mnemonic keys available: AB DEFGHIJKLMNOPQRS UVWXYZ
+
+            // mnemonic keys available:  B D FGHIJKLM O QRS  VWXYZ
             new EMenu("_NCC",
 		        new EMenuItem("Schematic and Layout Views of Cell in _Current Window") { public void run() {
                     new NccJob(1); }},
@@ -410,15 +411,16 @@ public class ToolMenu
                     new AllSchemNamesToLay.RenameJob(); }},
    		        new EMenuItem("Highlight _Equivalent") { public void run() {
    			        HighlightEquivalent.highlight(); }},
-                new EMenuItem("Run NCC for Schematic Cross-Probing") { public void run() {
+                new EMenuItem("Run NCC for Schematic Cross-_Probing") { public void run() {
                     runNccSchematicCrossProbing(); }},
 
+            	// mnemonic keys available: A CDE  H  KLM O Q   U  XYZ
                 new EMenu("Add NCC _Annotation to Cell",
 		        	new EMenuItem("Exports Connected by Parent _vdd") { public void run() {
                         NccCellAnnotations.makeNCCAnnotationMenuCommand("exportsConnectedByParent vdd /vdd_[0-9]+/"); }},
 		        	new EMenuItem("Exports Connected By Parent _gnd") { public void run() {
                         NccCellAnnotations.makeNCCAnnotationMenuCommand("exportsConnectedByParent gnd /gnd_[0-9]+/"); }},
-                    new EMenuItem("Exports To Ignore /E[0-9]+/") { public void run() {
+                    new EMenuItem("Exports To _Ignore") { public void run() {
                         NccCellAnnotations.makeNCCAnnotationMenuCommand("exportsToIgnore /E[0-9]+/"); }},
 		        	new EMenuItem("_Skip NCC") { public void run() {
                         NccCellAnnotations.makeNCCAnnotationMenuCommand("skipNCC <comment explaining why>"); }},
@@ -433,28 +435,15 @@ public class ToolMenu
 		        	new EMenuItem("_Resistor Type") { public void run() {
                         NccCellAnnotations.makeNCCAnnotationMenuCommand("resistorType <typeName>"); }},
        		        new EMenuItem("Force _Part Match") { public void run() {
-                            NccCellAnnotations.makeNCCAnnotationMenuCommand("forcePartMatch <Part name shared by schematic and layout>"); }},
+                        NccCellAnnotations.makeNCCAnnotationMenuCommand("forcePartMatch <Part name shared by schematic and layout>"); }},
     		        new EMenuItem("Force _Wire Match") { public void run() {
-                            NccCellAnnotations.makeNCCAnnotationMenuCommand("forceWireMatch <Wire name shared by schematic and layout>"); }},
+                        NccCellAnnotations.makeNCCAnnotationMenuCommand("forceWireMatch <Wire name shared by schematic and layout>"); }},
 		        	new EMenuItem("_Black Box") { public void run() {
                         NccCellAnnotations.makeNCCAnnotationMenuCommand("blackBox <comment explaining why>"); }})),
 
-        // ------------------- PIE
-            // If Pie package is installed then add menu entries to call it
-            Pie.hasPie() ? new EMenu("_PIE",
-               new EMenuItem("PIE Schematic and Layout Views of Cell in Current Window") { public void run() {
-                    Pie.invokePieNcc(1); }},
-               new EMenuItem("Cells from _Two Windows") { public void run() {
-                    Pie.invokePieNcc(2); }}) : null,
-
-
-        // ------------------- Architecture Generator
-//            // If ArchGen package is installed then add menu entries to call it
-//            ArchGenPlugin.hasArchGen() ? ArchGenPlugin.getEMenu() : null,
-
         //------------------- Network
 
-		// mnemonic keys available:    D F  IJK M O Q S   W YZ
+			// mnemonic keys available:    D F  IJK M O Q S   W YZ
             new EMenu("Net_work",
 		        new EMenuItem("Show _Network", 'K') { public void run() {
                     showNetworkCommand(); }},
@@ -495,7 +484,7 @@ public class ToolMenu
 
 		//------------------- Logical Effort
 
-		// mnemonic keys available:    D FGH JK M  PQRSTUVWXYZ
+			// mnemonic keys available:    D FGH JK M  PQRSTUVWXYZ
             new EMenu("_Logical Effort",
 		        new EMenuItem("_Optimize for Equal Gate Delays") { public void run() {
                     optimizeEqualGateDelaysCommand(true); }},
@@ -519,14 +508,14 @@ public class ToolMenu
 
 		//------------------- Placement
 
-		// mnemonic keys available: ABCDEFGHIJKLMNO QRSTUVWXYZ
+			// mnemonic keys available: ABCDEFGHIJKLMNO QRSTUVWXYZ
             new EMenu("_Placement",
 		        new EMenuItem("_Place Current Cell") { public void run() {
                     Placement.placeCurrentCell(); }}),
 
         //------------------- Routing
 
-		// mnemonic keys available:  B D F  IJK   OPQ    V XY
+			// mnemonic keys available:  B D F  IJK   OPQ    V XY
             new EMenu("_Routing",
                 new EMenuItem.CheckBox("Enable _Auto-Stitching") {
                     public boolean isSelected() { return Routing.isAutoStitchOn(); }
@@ -586,7 +575,7 @@ public class ToolMenu
 
 		//------------------- Generation
 
-		// mnemonic keys available: AB DE GH JK  N  Q   UVWXYZ
+			// mnemonic keys available: AB DE GH JK  N  Q   UVWXYZ
             new EMenu("_Generation",
 		        new EMenuItem("_Coverage Implants Generator") { public void run() {
                     layerCoverageCommand(LayerCoverageTool.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_SWEEP); }},
@@ -618,7 +607,7 @@ public class ToolMenu
 
 		//------------------- Silicon Compiler
 
-		// mnemonic keys available: AB DEFGHIJKLM OPQRSTUVWXYZ
+			// mnemonic keys available: AB DEFGHIJKLM OPQRSTUVWXYZ
             new EMenu("Silicon Co_mpiler",
 		        new EMenuItem("_Convert Current Cell to Layout") { public void run() {
                     doSiliconCompilation(WindowFrame.needCurCell(), false); }},
@@ -628,7 +617,7 @@ public class ToolMenu
 
 		//------------------- Compaction
 
-		// mnemonic keys available: AB DEFGHIJKLMNOPQRSTUVWXYZ
+			// mnemonic keys available: AB DEFGHIJKLMNOPQRSTUVWXYZ
             new EMenu("_Compaction",
 		        new EMenuItem("Do _Compaction") { public void run() {
                     Cell cell = WindowFrame.getCurrentCell();

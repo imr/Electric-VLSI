@@ -104,6 +104,13 @@ Do not put this internal connection on any example other than the main one.
 To see the location of all ports on the main example,
 use the <B>Identify Ports</B> command (in menu <B>Edit / Technology Editing</B>).
 <P>
+For simple nodes, such as pins and contacts, there is typically one port which is in the center of the node.
+However, some of Electric's built-in technologies give these ports a nonzero size.
+The idea behind doing this is to allow arcs to "slide" within that port
+(see <A HREF="chap05-02-02.html#chap05-02-02">Section 5-2-2</A>).
+Many disagree with the idea of having nonzero ports on pin nodes,
+and so it is now recommended that all pin nodes have zero size ports.
+<P>
 As with arcs, use the <B>Identify Primitive Layers</B> command to label each piece of geometry in the main example.
 <P>
 <H4>Node Variations</H4>

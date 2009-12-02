@@ -1,44 +1,26 @@
 <!-- HEADER 9-7-1: Introduction -->
 
-
-Electric can compare two different cells and determine whether their
-networks have the same topology.  This operation is sometimes called
-Layout vs. Schematic (LVS), but because Electric can compare any two
-circuits (including two layouts or two schematics) we use the term Network
-Consistency Checking (NCC).
+Electric can compare two different cells and determine whether their networks have the same topology.
+This operation is sometimes called Layout vs. Schematic (LVS),
+but because Electric can compare any two circuits (including two layouts or two schematics)
+we use the term Network Consistency Checking (NCC).
 <p>
-The Java Electric NCC differs from the C Electric NCC in two
-significant ways.
+The Electric Network Consistency Checker has two algorithms for matching networks:
 <UL>
-<LI>
-  The Java Electric NCC firsts attempts to discover circuit mismatches
-  using a new algorithm called "Local Partitioning".  We do this
-  because Local Partitioning provides much more precise and
-  intelligible mismatch diagnostics.  We fall back upon the <A
-  HREF="http://www.cs.washington.edu/research/projects/lis/www/gemini/gemini.html">
-  Gemini algorithm</A> (Ebeling, Carl, "GeminiII: A Second Generation
-  Layout Validation Program", <I>Proceedings of ICCAD</I> 1988,
-  p322-325.) only as a last resort. In practice upwards of 95% of all
-  errors are found by Local Partitioning.
-</li>
-<li>
-  The Java Electric NCC has a "hierarchical" mode. When comparing a
-  cell hierarchically, NCC first tries to compare the cell's
-  descendants.  We <i>strongly</i> recommend this mode to the user
-  because it allows the Local Partitioning algorithm to provide even
-  more precise and intelligible mismatch diagnostics.
-</li>
+<LI>NCC firsts attempts to discover circuit mismatches using an algorithm called "Local Partitioning".
+Local Partitioning provides precise and intelligible mismatch diagnostics.</li>
+<li>After Local Partitioning, NCC uses the
+<A HREF="http://www.cs.washington.edu/research/projects/lis/www/gemini/gemini.html">Gemini algorithm</A>
+(Ebeling, Carl, "GeminiII: A Second Generation Layout Validation Program", <I>Proceedings of ICCAD</I> 1988,
+p322-325.)
+In practice upwards of 95% of all errors are found by Local Partitioning.</li>
 </ul>
-The Java Electric NCC is also significantly faster than the C Electric
-NCC.  For example, for one of our chips, C-NCC flat took 48 minutes,
-Java-NCC flat took 3.5 minutes, and Java-NCC hierarchical took 9
-seconds.
 <p>
-
-<H4>New body connection checking (Version 8.09b onwards)</H4>
-This version of NCC can now optionally check that transistor bodies
-are properly connected. See the description of the NCC preferences
-dialog.
+NCC has a "hierarchical" mode which starts at the bottom of the hierarchy in the leaf cells
+and proceeds upward.
+This mode is recommended because it allows the Local Partitioning algorithm to provide even
+more precise and intelligible mismatch diagnostics.
+</p>
 
 <H4>Example</H4>
 
