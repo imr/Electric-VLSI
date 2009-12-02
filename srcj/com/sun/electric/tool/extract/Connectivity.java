@@ -2171,7 +2171,7 @@ public class Connectivity
 						}
 						boolean genFakeName = (exportName == null);
 						if (genFakeName) exportName = "E";
-						exportName = ElectricObject.uniqueObjectName(exportName, subCell, PortProto.class, true);
+						exportName = ElectricObject.uniqueObjectName(exportName, subCell, PortProto.class, true, true);
 						Export e = Export.newInstance(subCell, pi, exportName);
 						if (genFakeName)
                             generatedExports.add(e);
@@ -5656,7 +5656,7 @@ public class Connectivity
 			}
 			if (exportName != null)
 			{
-				exportName = ElectricObject.uniqueObjectName(exportName, cell, PortProto.class, true);
+				exportName = ElectricObject.uniqueObjectName(exportName, cell, PortProto.class, true, true);
 				e.rename(exportName);
 			}
 		}

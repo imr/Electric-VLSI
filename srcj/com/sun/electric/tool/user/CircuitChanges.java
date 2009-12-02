@@ -739,7 +739,8 @@ public class CircuitChanges
 			System.out.println("No cell instances are selected...no extraction done");
 			return;
 		}
-		new CellChangeJobs.ExtractCellInstances(cell, instances, depth, User.isExtractCopiesExports(), false);
+		new CellChangeJobs.ExtractCellInstances(cell, instances, depth, User.isExtractCopiesExports(),
+			User.isIncrementRightmostIndex(), false);
 	}
 
 	/****************************** CLEAN-UP ******************************/
@@ -1403,7 +1404,7 @@ public class CircuitChanges
         // explore insides of this one
         if (!n.isCellInstance()) return;
         EDatabase database = parent.getDatabase();
-        Cell cell = (Cell)(Cell)n.protoId.inDatabase(database);
+        Cell cell = (Cell)n.protoId.inDatabase(database);
         for (ImmutableNodeInst subN: cell.backupUnsafe().cellRevision.nodes)
         {
             if (!subN.isCellInstance()) continue;

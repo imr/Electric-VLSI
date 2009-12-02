@@ -99,6 +99,7 @@ public class NewNodesTab extends PreferencePanel
 		nodeMoveAfterDuplicate.setSelected(User.isMoveAfterDuplicate());
 		nodeDupArrayCopyExports1.setSelected(User.isDuplicateInPlace());
 		nodeDupArrayCopyExports.setSelected(User.isDupCopiesExports());
+		nodeIncrementRightmostIndex.setSelected(User.isIncrementRightmostIndex());
 		nodeExtractCopyExports.setSelected(User.isExtractCopiesExports());
 
 		// setup listeners to react to any changes to a primitive size
@@ -225,6 +226,10 @@ public class NewNodesTab extends PreferencePanel
 		if (currBoolean != User.isDupCopiesExports())
 			User.setDupCopiesExports(currBoolean);
 
+		currBoolean = nodeIncrementRightmostIndex.isSelected();
+		if (currBoolean != User.isIncrementRightmostIndex())
+			User.setIncrementRightmostIndex(currBoolean);
+
 		currBoolean = nodeExtractCopyExports.isSelected();
 		if (currBoolean != User.isExtractCopiesExports())
 			User.setExtractCopiesExports(currBoolean);
@@ -259,6 +264,8 @@ public class NewNodesTab extends PreferencePanel
 			User.setDuplicateInPlace(User.isFactoryDuplicateInPlace());
 		if (User.isFactoryDupCopiesExports() != User.isDupCopiesExports())
 			User.setDupCopiesExports(User.isFactoryDupCopiesExports());
+		if (User.isFactoryIncrementRightmostIndex() != User.isIncrementRightmostIndex())
+			User.setIncrementRightmostIndex(User.isFactoryIncrementRightmostIndex());
 		if (User.isFactoryExtractCopiesExports() != User.isExtractCopiesExports())
 			User.setExtractCopiesExports(User.isFactoryExtractCopiesExports());
 	}
@@ -295,6 +302,7 @@ public class NewNodesTab extends PreferencePanel
         nodeExtractCopyExports = new javax.swing.JCheckBox();
         nodeDisallowModificationComplexNodes = new javax.swing.JCheckBox();
         nodeDupArrayCopyExports1 = new javax.swing.JCheckBox();
+        nodeIncrementRightmostIndex = new javax.swing.JCheckBox();
 
         setTitle("Edit Options");
         setName(""); // NOI18N
@@ -458,13 +466,13 @@ public class NewNodesTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
         jPanel4.add(nodeDupArrayCopyExports, gridBagConstraints);
 
         nodeExtractCopyExports.setText("Extract copies exports");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel4.add(nodeExtractCopyExports, gridBagConstraints);
@@ -478,17 +486,20 @@ public class NewNodesTab extends PreferencePanel
         jPanel4.add(nodeDisallowModificationComplexNodes, gridBagConstraints);
 
         nodeDupArrayCopyExports1.setText("Duplicate In Place");
-        nodeDupArrayCopyExports1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                nodeDuplicateInPlace(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel4.add(nodeDupArrayCopyExports1, gridBagConstraints);
+
+        nodeIncrementRightmostIndex.setText("Increment rightmost array index");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 2, 4);
+        jPanel4.add(nodeIncrementRightmostIndex, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -508,10 +519,6 @@ public class NewNodesTab extends PreferencePanel
 		dispose();
 	}//GEN-LAST:event_closeDialog
 
-        private void nodeDuplicateInPlace(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nodeDuplicateInPlace
-            // TODO add your handling code here:
-        }//GEN-LAST:event_nodeDuplicateInPlace
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -527,6 +534,7 @@ public class NewNodesTab extends PreferencePanel
     private javax.swing.JCheckBox nodeDupArrayCopyExports;
     private javax.swing.JCheckBox nodeDupArrayCopyExports1;
     private javax.swing.JCheckBox nodeExtractCopyExports;
+    private javax.swing.JCheckBox nodeIncrementRightmostIndex;
     private javax.swing.JCheckBox nodeMoveAfterDuplicate;
     private javax.swing.JCheckBox nodePlaceCellCenter;
     private javax.swing.JComboBox nodePrimitive;

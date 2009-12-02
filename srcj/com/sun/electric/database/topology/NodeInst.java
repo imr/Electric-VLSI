@@ -1033,7 +1033,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         newNi.copyStateBits(this);
         if (!getNameKey().isTempname()) {
             String savedName = getName();
-            String tempName = ElectricObject.uniqueObjectName(savedName, topology.cell, NodeInst.class, true);
+            String tempName = ElectricObject.uniqueObjectName(savedName, topology.cell, NodeInst.class, true, true);
             setName(tempName);
             newNi.setName(savedName);
         }

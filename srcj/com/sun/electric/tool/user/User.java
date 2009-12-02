@@ -3514,6 +3514,27 @@ public class User extends Listener
 	 */
 	public static boolean isFactoryDupCopiesExports() { return cacheDupCopiesExports.getBooleanFactoryValue(); }
 
+	private static Pref cacheIncrementRightmostIndex = Pref.makeBooleanPref("IncrementRightmostIndex", tool.prefs, true);
+	/**
+	 * Method to tell whether auto-incrementing of array indices works from the rightmost index.
+	 * This applies only for multimensional arrays.
+	 * The default is "true".
+	 * @return true if auto-incrementing of array indices works from the rightmost index.
+	 */
+	public static boolean isIncrementRightmostIndex() { return cacheIncrementRightmostIndex.getBoolean(); }
+	/**
+	 * Method to set whether auto-incrementing of array indices works from the rightmost index.
+	 * This applies only for multimensional arrays.
+	 * @param on true if auto-incrementing of array indices works from the rightmost index.
+	 */
+	public static void setIncrementRightmostIndex(boolean on) { cacheIncrementRightmostIndex.setBoolean(on); }
+	/**
+	 * Method to tell whether auto-incrementing of array indices works from the rightmost index, by default.
+	 * This applies only for multimensional arrays.
+	 * @return true if auto-incrementing of array indices works from the rightmost index, by default.
+	 */
+	public static boolean isFactoryIncrementRightmostIndex() { return cacheIncrementRightmostIndex.getBooleanFactoryValue(); }
+
 	private static Pref cacheExtractCopiesExports = Pref.makeBooleanPref("ExtractCopiesExports", tool.prefs, true);
 	/**
 	 * Method to tell whether Extract of NodeInst copies exports.

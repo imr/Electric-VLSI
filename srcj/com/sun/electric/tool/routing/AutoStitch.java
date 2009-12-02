@@ -2409,7 +2409,7 @@ name=null;
 			if (exportName == null || exportName.length() < eName.length()) exportName = eName;
 		}
 		if (exportName == null) exportName = "E1";
-		exportName = ElectricObject.uniqueObjectName(exportName, cell, PortProto.class, false);
+		exportName = ElectricObject.uniqueObjectName(exportName, cell, PortProto.class, false, true);
 		return exportName;
 	}
 

@@ -346,11 +346,11 @@ public class StitchFillJob extends Job
                                  List<Geometric> fillGeoms, List<TileInfo> tileList, boolean wideOption, StitchFillJob job)
     {
         // Re-exporting
-        ExportChanges.reExportNodes(newCell, fillGeoms, false, true, false, true);
+        ExportChanges.reExportNodes(newCell, fillGeoms, false, true, false, true, true);
 //        if (!doFill) return;
 
         // Flatting subcells
-        new CellChangeJobs.ExtractCellInstances(newCell, fillCells, Integer.MAX_VALUE, true, true);
+        new CellChangeJobs.ExtractCellInstances(newCell, fillCells, Integer.MAX_VALUE, true, true, true);
         
         // generation of master fill
         generateFill(newCell, wideOption, job.evenHorizontal);

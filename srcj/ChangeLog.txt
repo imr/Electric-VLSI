@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+IMP/MAN: (12/2/09, SMR) New Node Preference "Increment rightmost array index"
+     allows export duplication to auto-increment from the left (if unchecked)
+     (Bug #2501).
+
 BUG: (12/2/09, SMR) Missing plugins cause hang (Bug #2501).
 FIX: Cleaned-up warnings.
 

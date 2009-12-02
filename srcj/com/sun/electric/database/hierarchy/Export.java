@@ -191,7 +191,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 
         if (parent.findExport(protoName) != null) {
             String oldName = protoName;
-            protoName = ElectricObject.uniqueObjectName(protoName, parent, PortProto.class, false);
+            protoName = ElectricObject.uniqueObjectName(protoName, parent, PortProto.class, false, true);
             if (protoName == null) {
                 System.out.println(parent + " already has an export named " + oldName + ", export was not created");
                 return null;
@@ -370,7 +370,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 //		if (!getName().equalsIgnoreCase(newName) || getName().equals(newName))
 //		{
         // not changing case
-        String dupName = ElectricObject.uniqueObjectName(newName, parent, PortProto.class, false);
+        String dupName = ElectricObject.uniqueObjectName(newName, parent, PortProto.class, false, true);
         if (!dupName.equals(newName)) {
             System.out.println(parent + " already has an export named " + newName
                     + ", making new export named " + dupName);
@@ -819,7 +819,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
             }
         }
         if (validExportName(newName, oldBusWidth)) {
-            newName = ElectricObject.uniqueObjectName(newName, parent, PortProto.class, false);
+            newName = ElectricObject.uniqueObjectName(newName, parent, PortProto.class, false, true);
             if (validExportName(newName, oldBusWidth)) {
                 return newName;
             }
@@ -835,7 +835,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         }
         newName = sb.toString();
         if (validExportName(newName, oldBusWidth)) {
-            newName = ElectricObject.uniqueObjectName(newName, parent, PortProto.class, false);
+            newName = ElectricObject.uniqueObjectName(newName, parent, PortProto.class, false, true);
             if (validExportName(newName, oldBusWidth)) {
                 return newName;
             }

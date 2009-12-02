@@ -522,7 +522,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		private List<Export> exportList;
 		private int xRepeat, yRepeat;
 		private double xOverlap, yOverlap, cX, cY;
-		private boolean arcsAutoIncrement;
+		private boolean arcsAutoIncrement, fromRight;
         private Cell cell;
         private DRC.DRCPreferences dp;
 
@@ -541,6 +541,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			this.cX = cX;
 			this.cY = cY;
 			this.arcsAutoIncrement = arcsAutoIncrement;
+			this.fromRight = User.isIncrementRightmostIndex();
             dp = new DRC.DRCPreferences(false);
 			startJob();
 		}
@@ -629,7 +630,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 						Name nodeNameKey = ni.getNameKey();
 						if (!nodeNameKey.isTempname())
 						{
-							newNi.setName(ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class, false));
+							newNi.setName(ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class, false, fromRight));
 							newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 						}
 					}
@@ -691,7 +692,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 						{
 							String newName = ai.getName();
 							if (arcsAutoIncrement)
-								newName = ElectricObject.uniqueObjectName(newName, cell, ArcInst.class, false);
+								newName = ElectricObject.uniqueObjectName(newName, cell, ArcInst.class, false, fromRight);
 							newAi.setName(newName);
 							newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME);
 						}
@@ -710,7 +711,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 					portInstsToExport.add(pi);
 					originalExports.put(pi, pp);
 				}
-				ExportChanges.reExportPorts(cell, portInstsToExport, false, true, true, false, originalExports);
+				ExportChanges.reExportPorts(cell, portInstsToExport, false, true, true, false, fromRight, originalExports);
 			}
 
 			// rename the replicated objects

@@ -1208,7 +1208,7 @@ public class GDS extends Input
             		exportName = exportName.substring(0, exportName.length()-1);
         		if (parent.findExport(exportName) != null)
         		{
-                    String newName = ElectricObject.uniqueObjectName(exportName, parent, PortProto.class, true);
+                    String newName = ElectricObject.uniqueObjectName(exportName, parent, PortProto.class, true, true);
 //                	while (exportNames.contains(newName))
 //                	{
 //                		int lastUnder = newName.lastIndexOf('_');

@@ -953,14 +953,17 @@ public class CellChangeJobs
 		private Cell cell;
 		private List<NodeInst> nodes;
 		private boolean copyExports;
+		private boolean fromRight;
 		private int depth;
 
-		public ExtractCellInstances(Cell cell, List<NodeInst> highlighted, int depth, boolean copyExports, boolean startNow)
+		public ExtractCellInstances(Cell cell, List<NodeInst> highlighted, int depth, boolean copyExports,
+			boolean fromRight, boolean startNow)
 		{
 			super("Extract Cell Instances", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.nodes = highlighted;
 			this.copyExports = copyExports;
+			this.fromRight = fromRight;
 			this.depth = depth;
 			if (!startNow)
 				startJob();
@@ -972,12 +975,12 @@ public class CellChangeJobs
 
 		public boolean doIt() throws JobException
 		{
-			doArbitraryExtraction(cell, nodes, copyExports, depth);
+			doArbitraryExtraction(cell, nodes, copyExports, depth, fromRight);
 			return true;
 		}
 	}
 
-	private static void doArbitraryExtraction(Cell cell, List<NodeInst> nodes, boolean copyExports, int depth)
+	private static void doArbitraryExtraction(Cell cell, List<NodeInst> nodes, boolean copyExports, int depth, boolean fromRight)
 	{
 		Job.getUserInterface().startProgressDialog("Extracting " + nodes.size() + " cells", null);
 		Map<NodeInst,Map<PortInst,PortInst>> newNodes = new HashMap<NodeInst,Map<PortInst,PortInst>>();
@@ -988,7 +991,7 @@ public class CellChangeJobs
 		{
 			if (!ni.isCellInstance()) continue;
 			Map<PortInst,PortInst> portMap = new HashMap<PortInst,PortInst>();
-			extractOneLevel(cell, ni, GenMath.MATID, portMap, 1, depth);
+			extractOneLevel(cell, ni, GenMath.MATID, portMap, 1, depth, fromRight);
 
 			newNodes.put(ni, portMap);
 			for (Iterator<Export> it = ni.getExports(); it.hasNext(); )
@@ -1000,7 +1003,7 @@ public class CellChangeJobs
 
 		// replace arcs to the cell and exports on the cell
 		Job.getUserInterface().setProgressNote("Replacing top-level arcs and exports");
-		replaceExtractedArcs(cell, newNodes, GenMath.MATID);
+		replaceExtractedArcs(cell, newNodes, GenMath.MATID, fromRight);
 
 		// replace the exports if needed
 		if (copyExports)
@@ -1026,7 +1029,7 @@ public class CellChangeJobs
 	}
 
 	private static void extractOneLevel(Cell cell, NodeInst topno, AffineTransform prevTrans,
-		Map<PortInst,PortInst> portMap, int curDepth, int totDepth)
+		Map<PortInst,PortInst> portMap, int curDepth, int totDepth, boolean fromRight)
 	{
 		Map<NodeInst,Map<PortInst,PortInst>> newNodes = new HashMap<NodeInst,Map<PortInst,PortInst>>();
 
@@ -1061,7 +1064,7 @@ public class CellChangeJobs
 			if (ni.isCellInstance() && curDepth < totDepth) extractCell = true;
 			if (extractCell)
 			{
-				extractOneLevel(cell, ni, localTrans, subPortMap, curDepth+1, totDepth);
+				extractOneLevel(cell, ni, localTrans, subPortMap, curDepth+1, totDepth, fromRight);
 
 				// add to the portmap
 				for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
@@ -1075,7 +1078,7 @@ public class CellChangeJobs
 			{
 				String name = null;
 				if (ni.isUsernamed())
-					name = ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class, false);
+					name = ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class, false, fromRight);
 				Orientation orient = topno.getOrient().concatenate(ni.getOrient());
 				Point2D pt = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 				AffineTransform instTrans = ni.rotateOut(localTrans);
@@ -1105,11 +1108,11 @@ public class CellChangeJobs
 			}
 		}
 
-		replaceExtractedArcs(subCell, newNodes, localTrans);
+		replaceExtractedArcs(subCell, newNodes, localTrans, fromRight);
 	}
 
 	private static void replaceExtractedArcs(Cell cell, Map<NodeInst,Map<PortInst,PortInst>> nodeMaps,
-		AffineTransform trans)
+		AffineTransform trans, boolean fromRight)
 	{
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
@@ -1161,7 +1164,7 @@ public class CellChangeJobs
 			double wid = ai.getLambdaBaseWidth();
 			String name = null;
 			if (ai.isUsernamed())
-				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false);
+				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false, fromRight);
 
 			ArcInst newAi = ArcInst.makeInstanceBase(ap, wid, newHeadPi, newTailPi, headLoc, tailLoc, name);
 			if (newAi == null)

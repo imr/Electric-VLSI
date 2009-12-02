@@ -882,13 +882,17 @@ public abstract class ElectricObject implements Serializable {
      * @param cls the class of the object on which this name resides.
      * @param leaveIndexValues true to leave the index values untouched
      * (i.e. "m[17]" will become "m_1[17]" instead of "m[18]").
+     * @param fromRight true to increment multidimensional arrays starting at the rightmost index.
      * @return a unique name for that class in that Cell.
      */
-    public static String uniqueObjectName(String name, Cell cell, Class cls, boolean leaveIndexValues) {
+    public static String uniqueObjectName(String name, Cell cell, Class cls, boolean leaveIndexValues, boolean fromRight)
+    {
         String newName = name;
-        for (int i = 0; !cell.isUniqueName(newName, cls, null); i++) {
-            newName = uniqueObjectNameLow(newName, cell, cls, null, null, leaveIndexValues);
-            if (i > 100) {
+        for (int i = 0; !cell.isUniqueName(newName, cls, null); i++)
+        {
+            newName = uniqueObjectNameLow(newName, cell, cls, null, null, leaveIndexValues, fromRight);
+            if (i > 100)
+            {
                 System.out.println("Can't create unique object name in " + cell + " from original " + name + " attempted " + newName);
                 return null;
             }
@@ -904,15 +908,19 @@ public abstract class ElectricObject implements Serializable {
      * @param already a Set of names already in use (lower case).
      * @param leaveIndexValues true to leave the index values untouches
      * (i.e. "m[17]" will become "m_1[17]" instead of "m[18]").
+     * @param fromRight true to increment multidimensional arrays starting at the rightmost index.
      * @return a unique name for that class in that Cell.
      */
-    public static String uniqueObjectName(String name, Cell cell, Class cls,
-            Set already, Map<String, GenMath.MutableInteger> nextPlainIndex, boolean leaveIndexValues) {
+    public static String uniqueObjectName(String name, Cell cell, Class cls, Set already,
+    	Map<String, GenMath.MutableInteger> nextPlainIndex, boolean leaveIndexValues, boolean fromRight)
+    {
         String newName = name;
         String lcName = TextUtils.canonicString(newName);
-        for (int i = 0; already.contains(lcName); i++) {
-            newName = uniqueObjectNameLow(newName, cell, cls, already, nextPlainIndex, leaveIndexValues);
-            if (i > 100) {
+        for (int i = 0; already.contains(lcName); i++)
+        {
+            newName = uniqueObjectNameLow(newName, cell, cls, already, nextPlainIndex, leaveIndexValues, fromRight);
+            if (i > 100)
+            {
                 System.out.println("Can't create unique object name in " + cell + " from original " + name + " attempted " + newName);
                 return null;
             }
@@ -921,8 +929,20 @@ public abstract class ElectricObject implements Serializable {
         return newName;
     }
 
-    private static String uniqueObjectNameLow(String name, Cell cell, Class cls,
-            Set already, Map<String, GenMath.MutableInteger> nextPlainIndex, boolean leaveIndexValues) {
+    /**
+     * Internal method to return a unique object name in a Cell.
+     * @param name the original name that is not unique.
+     * @param cell the Cell in which this name resides.
+     * @param cls the class of the object on which this name resides.
+     * @param already a Set of names already in use (lower case).
+     * @param leaveIndexValues true to leave the index values untouches
+     * (i.e. "m[17]" will become "m_1[17]" instead of "m[18]").
+     * @param fromRight true to increment multidimensional arrays starting at the rightmost index.
+     * @return a unique name for that class in that Cell.
+     */
+    private static String uniqueObjectNameLow(String name, Cell cell, Class cls, Set already,
+    	Map<String, GenMath.MutableInteger> nextPlainIndex, boolean leaveIndexValues, boolean fromRight)
+    {
         // first see if the name is unique
         if (already != null) {
             if (!already.contains(TextUtils.canonicString(name))) {
@@ -1020,94 +1040,96 @@ public abstract class ElectricObject implements Serializable {
         }
 
         char separateChar = '_';
-        for (ArrayName an : names) {
+        for (ArrayName an : names)
+        {
             // adjust the index part if possible
             boolean indexAdjusted = false;
             String index = an.indexPart;
-            if (index != null && !leaveIndexValues) {
-                int possibleEnd = 0;
-                int nameLen = index.length();
+            if (index != null && !leaveIndexValues)
+            {
+            	// make a list of bracketed expressions
+            	List<BracketedExpression> bracketedExpressions = new ArrayList<BracketedExpression>();
+            	int pos = 0;
+            	for(;;)
+            	{
+            		int st = index.indexOf('[', pos);
+            		if (st < 0) break;
+            		int en = index.indexOf(']', st);
+            		if (en < 0) break;
+            		BracketedExpression be = new BracketedExpression();
+            		be.start = st;
+            		be.end = en;
+            		if (fromRight) bracketedExpressions.add(0, be); else
+            			bracketedExpressions.add(be);
+            		pos = en;
+            	}
 
-                // see if the index part can be incremented
+            	// now scan the expressions to find one that can be incremented
+            	int possibleEnd = 0;
                 int possibleStart = -1;
-                int endPos = nameLen - 1;
-                for (;;) {
+				for(BracketedExpression be : bracketedExpressions)
+            	{
                     // find the range of characters in square brackets
-                    int startPos = index.lastIndexOf('[', endPos);
-                    if (startPos < 0) {
-                        break;
-                    }
+                    int startPos = be.start;
+                    int endPos = be.end;
+                    String expr = index.substring(startPos+1, endPos);
 
-                    // see if there is a comma in the bracketed expression
-                    int i = index.indexOf(',', startPos);
-                    if (i >= 0 && i < endPos) {
-                        // this bracketed expression cannot be incremented: move on
-                        if (startPos > 0 && index.charAt(startPos - 1) == ']') {
-                            endPos = startPos - 1;
-                            continue;
-                        }
-                        break;
-                    }
+                    // if there is a comma in the bracketed expression, it cannot be incremented
+                    if (expr.indexOf(',') >= 0) continue;
 
                     // see if there is a colon in the bracketed expression
-                    i = index.indexOf(':', startPos);
-                    if (i >= 0 && i < endPos) {
+                    int i = expr.indexOf(':');
+                    if (i >= 0)
+                    {
                         // colon: make sure there are two numbers
-                        String firstIndex = index.substring(startPos + 1, i);
-                        String secondIndex = index.substring(i + 1, endPos);
-                        if (TextUtils.isANumber(firstIndex) && TextUtils.isANumber(secondIndex)) {
+                        String firstIndex = expr.substring(0, i);
+                        String secondIndex = expr.substring(i + 1);
+                        if (TextUtils.isANumber(firstIndex) && TextUtils.isANumber(secondIndex))
+                        {
                             int startIndex = TextUtils.atoi(firstIndex);
                             int endIndex = TextUtils.atoi(secondIndex);
                             int spacing = Math.abs(endIndex - startIndex) + 1;
-                            for (int nextIndex = 1;; nextIndex++) {
-                                String newIndex = index.substring(0, startPos) + "[" + (startIndex + spacing * nextIndex)
-                                        + ":" + (endIndex + spacing * nextIndex) + index.substring(endPos);
+                            for (int nextIndex = 1;; nextIndex++)
+                            {
+                                String newIndex = index.substring(0, startPos) + "[" + (startIndex + spacing * nextIndex) +
+                                    ":" + (endIndex + spacing * nextIndex) + index.substring(endPos);
                                 boolean unique;
-                                if (already != null) {
-                                    unique = !already.contains(TextUtils.canonicString(an.baseName + newIndex));
-                                } else {
-                                    unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
-                                }
-                                if (unique) {
+                                if (already != null)
+                                    unique = !already.contains(TextUtils.canonicString(an.baseName + newIndex)); else
+                                    	unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
+                                if (unique)
+                                {
                                     indexAdjusted = true;
                                     an.indexPart = newIndex;
                                     break;
                                 }
                             }
-                            if (indexAdjusted) {
-                                break;
-                            }
+                            if (indexAdjusted) break;
                         }
 
                         // this bracketed expression cannot be incremented: move on
-                        if (startPos > 0 && index.charAt(startPos - 1) == ']') {
-                            endPos = startPos - 1;
-                            continue;
-                        }
-                        break;
+                        continue;
                     }
 
                     // see if this bracketed expression is a pure number
-                    String bracketedExpression = index.substring(startPos + 1, endPos);
-                    if (TextUtils.isANumber(bracketedExpression)) {
-                        int nextIndex = TextUtils.atoi(bracketedExpression) + 1;
-                        for (;; nextIndex++) {
+                    if (TextUtils.isANumber(expr))
+                    {
+                        int nextIndex = TextUtils.atoi(expr) + 1;
+                        for (;; nextIndex++)
+                        {
                             String newIndex = index.substring(0, startPos) + "[" + nextIndex + index.substring(endPos);
                             boolean unique;
-                            if (already != null) {
-                                unique = !already.contains(TextUtils.canonicString(an.baseName + newIndex));
-                            } else {
-                                unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
-                            }
-                            if (unique) {
+                            if (already != null)
+                                unique = !already.contains(TextUtils.canonicString(an.baseName + newIndex)); else
+                                	unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
+                            if (unique)
+                            {
                                 indexAdjusted = true;
                                 an.indexPart = newIndex;
                                 break;
                             }
                         }
-                        if (indexAdjusted) {
-                            break;
-                        }
+                        if (indexAdjusted) break;
                     }
 
                     // remember the first index that could be incremented in a pinch
@@ -1115,38 +1137,130 @@ public abstract class ElectricObject implements Serializable {
                         possibleStart = startPos;
                         possibleEnd = endPos;
                     }
+				}
 
-                    // this bracketed expression cannot be incremented: move on
-                    if (startPos > 0 && index.charAt(startPos - 1) == ']') {
-                        endPos = startPos - 1;
-                        continue;
-                    }
-                    break;
-                }
+//            	// see if the index part can be incremented
+//            	int possibleEnd = 0;
+//                int nameLen = index.length();
+//                int possibleStart = -1;
+//                int endPos = nameLen - 1;
+//                for (;;)
+//                {
+//                    // find the range of characters in square brackets
+//                    int startPos = index.lastIndexOf('[', endPos);
+//                    if (startPos < 0) {
+//                        break;
+//                    }
+//
+//                    // see if there is a comma in the bracketed expression
+//                    int i = index.indexOf(',', startPos);
+//                    if (i >= 0 && i < endPos) {
+//                        // this bracketed expression cannot be incremented: move on
+//                        if (startPos > 0 && index.charAt(startPos - 1) == ']') {
+//                            endPos = startPos - 1;
+//                            continue;
+//                        }
+//                        break;
+//                    }
+//
+//                    // see if there is a colon in the bracketed expression
+//                    i = index.indexOf(':', startPos);
+//                    if (i >= 0 && i < endPos) {
+//                        // colon: make sure there are two numbers
+//                        String firstIndex = index.substring(startPos + 1, i);
+//                        String secondIndex = index.substring(i + 1, endPos);
+//                        if (TextUtils.isANumber(firstIndex) && TextUtils.isANumber(secondIndex)) {
+//                            int startIndex = TextUtils.atoi(firstIndex);
+//                            int endIndex = TextUtils.atoi(secondIndex);
+//                            int spacing = Math.abs(endIndex - startIndex) + 1;
+//                            for (int nextIndex = 1;; nextIndex++) {
+//                                String newIndex = index.substring(0, startPos) + "[" + (startIndex + spacing * nextIndex)
+//                                        + ":" + (endIndex + spacing * nextIndex) + index.substring(endPos);
+//                                boolean unique;
+//                                if (already != null) {
+//                                    unique = !already.contains(TextUtils.canonicString(an.baseName + newIndex));
+//                                } else {
+//                                    unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
+//                                }
+//                                if (unique) {
+//                                    indexAdjusted = true;
+//                                    an.indexPart = newIndex;
+//                                    break;
+//                                }
+//                            }
+//                            if (indexAdjusted) {
+//                                break;
+//                            }
+//                        }
+//
+//                        // this bracketed expression cannot be incremented: move on
+//                        if (startPos > 0 && index.charAt(startPos - 1) == ']') {
+//                            endPos = startPos - 1;
+//                            continue;
+//                        }
+//                        break;
+//                    }
+//
+//                    // see if this bracketed expression is a pure number
+//                    String bracketedExpression = index.substring(startPos + 1, endPos);
+//                    if (TextUtils.isANumber(bracketedExpression)) {
+//                        int nextIndex = TextUtils.atoi(bracketedExpression) + 1;
+//                        for (;; nextIndex++) {
+//                            String newIndex = index.substring(0, startPos) + "[" + nextIndex + index.substring(endPos);
+//                            boolean unique;
+//                            if (already != null) {
+//                                unique = !already.contains(TextUtils.canonicString(an.baseName + newIndex));
+//                            } else {
+//                                unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
+//                            }
+//                            if (unique) {
+//                                indexAdjusted = true;
+//                                an.indexPart = newIndex;
+//                                break;
+//                            }
+//                        }
+//                        if (indexAdjusted) {
+//                            break;
+//                        }
+//                    }
+//
+//                    // remember the first index that could be incremented in a pinch
+//                    if (possibleStart < 0) {
+//                        possibleStart = startPos;
+//                        possibleEnd = endPos;
+//                    }
+//
+//                    // this bracketed expression cannot be incremented: move on
+//                    if (startPos > 0 && index.charAt(startPos - 1) == ']') {
+//                        endPos = startPos - 1;
+//                        continue;
+//                    }
+//                    break;
+//                }
 
                 // if there was a possible place to increment, do it
-                if (!indexAdjusted && possibleStart >= 0) {
+				if (!indexAdjusted && possibleStart >= 0)
+				{
                     // nothing simple, but this one can be incremented
                     int i;
-                    for (i = possibleEnd - 1; i > possibleStart; i--) {
-                        if (!TextUtils.isDigit(index.charAt(i))) {
-                            break;
-                        }
+                    for (i = possibleEnd - 1; i > possibleStart; i--)
+                    {
+                        if (!TextUtils.isDigit(index.charAt(i))) break;
                     }
                     int nextIndex = TextUtils.atoi(index.substring(i + 1)) + 1;
                     int startPos = i + 1;
                     if (index.charAt(startPos - 1) == separateChar) {
                         startPos--;
                     }
-                    for (;; nextIndex++) {
+                    for (;; nextIndex++)
+                    {
                         String newIndex = index.substring(0, startPos) + separateChar + nextIndex + index.substring(possibleEnd);
                         boolean unique;
-                        if (already != null) {
-                            unique = !already.contains(TextUtils.canonicString(an.baseName + newIndex));
-                        } else {
-                            unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
-                        }
-                        if (unique) {
+                        if (already != null)
+                            unique = !already.contains(TextUtils.canonicString(an.baseName + newIndex)); else
+                            	unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
+                        if (unique)
+                        {
                             indexAdjusted = true;
                             an.indexPart = newIndex;
                             break;
@@ -1156,7 +1270,8 @@ public abstract class ElectricObject implements Serializable {
             }
 
             // if the index was not adjusted, adjust the base part
-            if (!indexAdjusted) {
+            if (!indexAdjusted)
+            {
                 // array contents cannot be incremented: increment base name
                 String base = an.baseName;
                 int startPos = base.length();
@@ -1207,6 +1322,14 @@ public abstract class ElectricObject implements Serializable {
             }
         }
         return result.toString();
+    }
+
+    /**
+     * Class to describe bracketed expressions in a name.
+     */
+    private static class BracketedExpression
+    {
+    	int start, end;
     }
 
     /**

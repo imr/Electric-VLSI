@@ -36,6 +36,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -286,7 +287,8 @@ public class ManipulatePorts extends EDialog
 				if (!pe.isSelected()) continue;
 				queuedExports.add(pe.getPort());
 			}
-	        new ExportChanges.ReExportPorts(ni.getParent(), queuedExports, true, true, true, false, null);
+	        new ExportChanges.ReExportPorts(ni.getParent(), queuedExports, true, true, true,
+	        	false, User.isIncrementRightmostIndex(), null);
 		}
 
 		public void unExportSelected()

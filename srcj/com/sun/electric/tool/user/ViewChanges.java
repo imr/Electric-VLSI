@@ -178,12 +178,14 @@ public class ViewChanges
 	{
 		private List<Cell> multiPageCells;
 		private Dimension2D alignment;
+		private boolean fromRight;
 
 		protected FixOldMultiPageSchematics(List<Cell> multiPageCells, Dimension2D alignment)
 		{
 			super("Repair old-style Multi-Page Schematics", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.multiPageCells = multiPageCells;
 			this.alignment = alignment;
+			this.fromRight = User.isIncrementRightmostIndex();
 			startJob();
 		}
 
@@ -215,7 +217,7 @@ public class ViewChanges
 				for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 					geomList.add(aIt.next());
 				Clipboard.copyListToCell(destCell, geomList, textList, null, null, new Point2D.Double(0, dY),
-					true, true, alignment, null, null);
+					true, fromRight, true, alignment, null, null);
 
 				// also copy any variables on the cell
 				for(Iterator<Variable> vIt = cell.getVariables(); vIt.hasNext(); )
