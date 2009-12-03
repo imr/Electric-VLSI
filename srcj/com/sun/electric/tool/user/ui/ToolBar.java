@@ -1165,7 +1165,7 @@ public class ToolBar extends JToolBar
 					if (ret == 0)
                         realUndo = false;
                 }
-                if (task.startsWith("Write"))
+                if (realUndo && task.startsWith("Write"))
                 {
                     JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Write can not be undone");
                     realUndo = false;
