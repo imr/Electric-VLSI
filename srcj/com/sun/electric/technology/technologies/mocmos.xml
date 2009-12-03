@@ -1664,10 +1664,10 @@
     </primitiveNode>
 
     <primitiveNode name="Poly-Capacitor" fun="CAPAC">
-        <diskOffset untilVersion="2" x="10.0" y="10.0"/>
+       <!-- <diskOffset untilVersion="2" x="20.0" y="20.0"/>   -->
         <nodeBase>
             <box>
-                <lambdaBox klx="-5.0" khx="5.0" kly="-5.0" khy="5.0"/>
+                <lambdaBox klx="-10.0" khx="10.0" kly="-10.0" khy="10.0"/>
             </box>
         </nodeBase>
         <nodeLayer layer="Metal-1" style="FILLED">
