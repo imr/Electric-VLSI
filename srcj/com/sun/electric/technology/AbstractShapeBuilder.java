@@ -273,7 +273,6 @@ public abstract class AbstractShapeBuilder {
 	/**
 	 * Puts into shape builder s the polygons that describes port "pp" of node "n".
 	 * This method is overridden by specific Technologys.
-     * @param b shape builder where to put polygons
 	 * @param n the ImmutableNodeInst that is being described.
      * @param pn proto of the ImmutableNodeInst in this Technology
      * @param pp PrimitivePort

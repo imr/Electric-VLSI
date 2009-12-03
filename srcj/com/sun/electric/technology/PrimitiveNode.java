@@ -568,13 +568,13 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
         /**
          * Method to tell whether this function describes a contact.
-         * @return
+         * @return true if this function is a contact.
          */
         public boolean isContact() { return this == CONTACT; }
 
         /**
          * Method to tell whether this function describes a pin.
-         * @return
+         * @return true if this function is a pin.
          */
         public boolean isPin() { return this == PIN; }
 

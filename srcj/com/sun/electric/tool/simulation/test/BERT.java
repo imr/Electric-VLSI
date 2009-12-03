@@ -196,14 +196,14 @@ public interface BERT {
         /**
          * Get the names of pins connected to the true output
          * of this terminal (String iterator).
-         * @return
+         * @return Iterator over pin names.
          */
         public Iterator getPinNames();
 
         /**
          * Get the names of pins connected to the complement output
          * of this terminal (String iterator).
-         * @return
+         * @return Iterator over pin names in complement output.
          */
         public Iterator getPinNamesComplement();
 
@@ -282,7 +282,7 @@ public interface BERT {
 
         /**
          * Return a BitVector representing the captured data
-         * @return
+         * @return the BitVector of the captured data.
          */
         public BitVector getCapturedData();
     }

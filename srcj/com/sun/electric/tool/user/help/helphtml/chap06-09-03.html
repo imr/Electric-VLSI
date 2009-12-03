@@ -25,7 +25,10 @@ b[0], c[3], c[5], d[1], d[2], e[8], e[7], e[6].
 
 <LI><B>Multidimensional array indices</B> Arrays can be multiply indexed
 (for example "b[1:2][100,102]" defines a bus with 4 entries: b[1][100], b[1][102], b[2][100], and b[2][102]).
-You can have any number of dimensions in an array.</LI>
+You can have any number of dimensions in an array.
+Note that the order of signals in a multidimensional array is such that the rightmost index varies the fastest.
+For example, the bus "D[1:2][1:2]" has signals in this order: D[1][1], D[1][2], D[2][1], D[2][2].
+</LI>
 
 <LI><B>Symbolic array indices</B> It is possible to use symbolic indices in bus naming
 (for example, the bus "r[x,y]" defines a 2-wide bus with the signals r[x] and r[y]).

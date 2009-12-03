@@ -293,7 +293,6 @@ public abstract class SimulationModel implements ChipModel {
      * @param command the command to start the simulation.
      * @param simFile the file to simulate.
      * @param recordSim the level of simulation recording used.
-     * @param simFile a chip netlist of the simulation type.
      * @param bypassScanning true to bypass scanning in of data. See {@link #bypassScanning}.
      */
     public void start(String command, String simFile, int recordSim, boolean bypassScanning) {

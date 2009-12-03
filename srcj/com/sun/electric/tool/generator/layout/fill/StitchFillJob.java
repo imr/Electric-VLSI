@@ -698,7 +698,7 @@ public class StitchFillJob extends Job
                             System.out.println("found in same layer");
                         else
                         {
-                            int level = Layer.layerSortByFunctionLevel.getNeighbotLevel(l, layer);
+                            int level = Layer.LayerSortByFunctionLevel.getNeighborLevel(l, layer);
                             if (Math.abs(level) == 1) // direct neightbor
                             {
                                 int pos = (level == 1) ? 1 : 0;

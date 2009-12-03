@@ -718,11 +718,11 @@ public class User extends Listener
         return currentContactPortProtoMap.get(key);
     }
 
-    /**
-     * Method to return the "current" PrimitivePort per a given PrimitivePort, as maintained by the user interface.
-     * @param p
-     * @return
-     */
+//    /**
+//     * Method to return the "current" PrimitivePort per a given PrimitivePort, as maintained by the user interface.
+//     * @param p
+//     * @return
+//     */
 //    public PrimitivePort getCurrentContactPortProto(PrimitivePort p)
 //    {
 //        List<String> list = getArcNamesSorted(p);
@@ -759,11 +759,12 @@ public class User extends Listener
         return list;
     }
 
-    /**
-	 * Method to set the "current" PrimitivePort per a given pair of arc, as maintained by the user interface.
-	 * @param tech
-	 */
+//    /**
+//	 * Method to set the "current" PrimitivePort per a given pair of arc, as maintained by the user interface.
+//	 * @param tech
+//	 */
 //	public void setCurrentNodeProto(NodeProto np) { currentNodeProto = np; }
+
     public void setCurrentContactNodeProto(Object obj)
     {
         NodeProto np;
@@ -910,8 +911,8 @@ public class User extends Listener
 
     /**
      * Method to provide list of equivalent ports based on the arc protos associated to it.
-     * @param p
-     * @return
+     * @param p the Port to examine for equivalence.
+     * @return a List of equivalent ports.
      */
     public List<PrimitivePort> getEquivalentPorts(PrimitivePort p)
     {

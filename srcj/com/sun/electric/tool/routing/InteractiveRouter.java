@@ -285,7 +285,6 @@ public abstract class InteractiveRouter extends Router {
      * @param extendArcTail true to use default arc extension; false to force no arc extension. (tail connects to endObj).
      * @param contactArea
      * @param alignment edge alignment factors (null for no alignment).
-     * @param fatWiringMode true to make arcs as wide as their connecting nodes.
      * @return a List of RouteElements denoting route
      */
     public Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked, PolyMerge stayInside,

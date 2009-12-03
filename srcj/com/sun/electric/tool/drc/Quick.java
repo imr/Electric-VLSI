@@ -140,7 +140,6 @@ public class Quick
 	 * @param bounds if null, check entire cell. If not null, only check area in bounds.
      * @param drcJob
 	 * @param onlyArea
-     * @return ErrorLogger containing the information
 	 */
 	public static void checkDesignRules(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
                                                Rectangle2D bounds, DRC.CheckDRCJob drcJob, DRC.DRCPreferences dp, GeometryHandler.GHMode mode, boolean onlyArea)

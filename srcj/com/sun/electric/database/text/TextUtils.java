@@ -104,9 +104,10 @@ public class TextUtils {
     }
 
     /**
-     * Method to remove white spaces at the beginning of the String
-     * @param str
-     * @return
+     * Method to remove white spaces at the beginning of the String.
+     * @param str the string to trim.
+     * @return original string without leading whitespaces.
+     * TODO: why can't String.trim() be used?
      */
     public static String eatWhiteSpaces(String str) {
         for (int i = 0; i < str.length(); i++) {

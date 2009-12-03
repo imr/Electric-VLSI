@@ -706,17 +706,17 @@ public class Layer implements Serializable, Comparable
 //        {
 //            int level1 = l1.getFunction().getLevel();
 //            int level2 = l2.getFunction().getLevel();
-//            return Math.abs(getNeighbotLevel(l1, l2)) <=1;
+//            return Math.abs(getNeighborLevel(l1, l2)) <=1;
 //        }
 
         /**
          * Method to determine level of Layer2 with respect to Layer1.
          * Positive if Layer2 is above Layer1.
-         * @param l1
-         * @param l2
-         * @return
+         * @param l1 the first Layer.
+         * @param l2 the second Layer.
+         * @return realtionship of layers.
          */
-        public static int getNeighbotLevel(Layer l1, Layer l2)
+        public static int getNeighborLevel(Layer l1, Layer l2)
         {
             int level1 = l1.getFunction().getLevel();
             int level2 = l2.getFunction().getLevel();

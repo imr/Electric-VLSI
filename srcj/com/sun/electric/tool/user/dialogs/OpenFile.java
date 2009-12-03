@@ -137,7 +137,7 @@ public class OpenFile
 		/**
 		 * Overridden to return true when the currently selected file is a .delib file.
 		 * This allows .DELIB to be treated as files for the approve (open/save) button.
-		 * @return
+		 * @return true if the directory can be selected.
 		 */
 		public boolean isDirectorySelectionEnabled() {
 			File file = getSelectedFile();

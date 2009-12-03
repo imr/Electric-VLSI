@@ -444,7 +444,6 @@ public class EvalJavaBsh {
     /**
      * Execute a Java Bean Shell script file.
      * @param file the file to run.
-     * @return true on success.
      */
     public void doSource(String file) throws JobException {
         try {

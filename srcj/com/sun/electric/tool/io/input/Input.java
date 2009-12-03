@@ -203,7 +203,6 @@ public class Input
 	 * This method must be overridden by the various import modules.
 	 * @param lib the library to fill
 	 * @param currentCells this map will be filled with currentCells in Libraries found in library file
-     * @param nodesToExpand this map will contain node to expand en each read Cell
 	 * @return the created library (null on error).
 	 */
 	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells) { return lib; }

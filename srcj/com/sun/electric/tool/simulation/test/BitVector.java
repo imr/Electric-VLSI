@@ -740,9 +740,7 @@ public class BitVector {
     /**
      * Return a new BitVector that is the bit reverse of the
      * bits in this BitVector. That is the MSB
-     * moves to the LSB and all other bits are shifted to the 
-     * left.
-     * @param amountToRotate number of bit positions to rotate 
+     * moves to the LSB and all other bits are shifted to the left.
      * @return the new rotated BitVector
      */
     public BitVector bitReverse() {

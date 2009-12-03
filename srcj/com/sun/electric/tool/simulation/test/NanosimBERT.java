@@ -151,7 +151,7 @@ public class NanosimBERT implements BERT {
         /**
          * Return iterator over Terminal objects
          * that are part of this module
-         * @return
+         * @return Iterator over Terminals.
          */
         protected Iterator getTerminals() {
             return terminals.iterator();

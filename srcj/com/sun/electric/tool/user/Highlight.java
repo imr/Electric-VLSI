@@ -160,7 +160,7 @@ public abstract class Highlight implements Cloneable{
     /**
 	 * Method to display this Highlight in a window.
 	 * @param wnd the window in which to draw this highlight.
-	 * @param g the Graphics associated with the window.
+	 * @param g_ the Graphics associated with the window.
 	 */
 	public void showHighlight(EditWindow wnd, Graphics g_, int highOffX, int highOffY, boolean onlyHighlight,
                               Color mainColor, Stroke primaryStroke, boolean setConnected)
