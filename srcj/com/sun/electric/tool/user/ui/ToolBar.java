@@ -1169,6 +1169,7 @@ public class ToolBar extends JToolBar
                 {
                     JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Write can not be undone");
                     realUndo = false;
+                    Undo.removeLastChangeBatchTask();
                 }
                 if (realUndo)
                     Undo.undo();

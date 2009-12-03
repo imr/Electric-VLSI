@@ -191,6 +191,15 @@ public class Undo {
         return "";
     }
 
+    public static void removeLastChangeBatchTask()
+    {
+        if (!doneList.isEmpty())
+        {
+            ChangeBatch task = doneList.get(doneList.size() - 1);
+            invalidate(task.oldSnapshotId);
+        }
+    }
+
     /**
      * Method to undo a change.
      */
