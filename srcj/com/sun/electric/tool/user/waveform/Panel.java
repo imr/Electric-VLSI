@@ -29,6 +29,7 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
@@ -1486,7 +1487,7 @@ public class Panel extends JPanel
                     isUsingBTrees = false;
             }
         }
-        if (!isUsingBTrees && g!=null) {
+        if (!isUsingBTrees && g!=null && Job.getDebug()) {
             g.setColor(gridColor);
             g.setColor(Color.gray);
             g.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
