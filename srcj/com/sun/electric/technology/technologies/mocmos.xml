@@ -1663,6 +1663,45 @@
         <minSizeRule width="10.0" height="10.0" rule="?"/>
     </primitiveNode>
 
+    <primitiveNode name="Poly-Capacitor" fun="CAPAC">
+        <diskOffset untilVersion="2" x="10.0" y="10.0"/>
+        <nodeBase>
+            <box>
+                <lambdaBox klx="-5.0" khx="5.0" kly="-5.0" khy="5.0"/>
+            </box>
+        </nodeBase>
+        <nodeLayer layer="Metal-1" style="FILLED">
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Polysilicon-2" style="FILLED">
+            <box>
+                <lambdaBox klx="-5.0" khx="5.0" kly="-5.0" khy="5.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Polysilicon-1" style="FILLED">
+            <box>
+                <lambdaBox klx="-10.0" khx="10.0" kly="-10.0" khy="10.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Poly-Cut" style="FILLED">
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
+        </nodeLayer>
+        <primitivePort name="metal-1-polysilicon-2">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="-0.5" khx="0.5" kly="-0.5" khy="0.5"/>
+            </box>
+            <portArc>Polysilicon-1</portArc>
+            <portArc>Metal-1</portArc>
+        </primitivePort>
+        <minSizeRule width="10.0" height="10.0" rule="?"/>
+    </primitiveNode>
+
     <primitiveNode name="Metal-1-Polysilicon-1-2-Con" fun="CONTACT">
         <diskOffset untilVersion="2" x="7.5" y="7.5"/>
         <nodeBase>
@@ -2615,6 +2654,7 @@
 
         <menuBox>
             <menuNode>NPN-Transistor</menuNode>
+            <menuNodeInst protoName="Poly-Capacitor" function="CAPAC"/>
         </menuBox>
         <menuBox>
             <menuNodeInst protoName="P-Transistor" function="TRAPMOS">

@@ -675,6 +675,8 @@ public class MoCMOS extends Technology
         Xml.PrimitiveNodeGroup[] transistorNodeGroups = new Xml.PrimitiveNodeGroup[2];
         Xml.PrimitiveNodeGroup[] scalableTransistorNodes = new Xml.PrimitiveNodeGroup[2];
         Xml.PrimitiveNodeGroup npnTransistorNode = tech.findNodeGroup("NPN-Transistor");
+        Xml.PrimitiveNodeGroup polyCapNode = tech.findNodeGroup("Poly-Capacitor");
+        
         for (int i = 0; i < metalLayers.length; i++) {
             metalLayers[i] = tech.findLayer("Metal-" + (i + 1));
             metalArcs[i] = tech.findArc("Metal-" + (i + 1));
@@ -790,10 +792,21 @@ public class MoCMOS extends Technology
 
         if (isAnalog) {
             npnTransistorNode.notUsed = false;
+            polyCapNode.notUsed = false;
+            // Clear palette box with capacitor if poly2 is on
+            if (!secondPolysilicon)
+            {
+            	assert tech.menuPalette.menuBoxes.get(0).get(1) == polyCapNode.nodes.get(0);
+            	// location of capacitor 
+            	tech.menuPalette.menuBoxes.get(0).remove(polyCapNode.nodes.get(0));
+                polyCapNode.notUsed = true;
+            }
         } else {
             // Clear palette box with NPN transisitor
             assert tech.menuPalette.menuBoxes.get(0).get(0) == npnTransistorNode.nodes.get(0);
             tech.menuPalette.menuBoxes.get(0).clear();
+            npnTransistorNode.notUsed = true;
+            polyCapNode.notUsed = true;
         }
 
         return tech;
