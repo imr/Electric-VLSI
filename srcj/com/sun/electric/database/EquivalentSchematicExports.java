@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: EquivPorts.java
+ * File: EquivalentSchematicsExports.java
  * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2009 Sun Microsystems and Static Free Software
@@ -103,10 +103,10 @@ public class EquivalentSchematicExports {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof EquivPorts)) {
+        if (!(o instanceof EquivalentSchematicExports)) {
             return false;
         }
-        EquivPorts that = (EquivPorts)o;
+        EquivalentSchematicExports that = (EquivalentSchematicExports)o;
         if (this.exports != that.exports) {
             if (this.exports.size() != that.exports.size()) {
                 return false;
