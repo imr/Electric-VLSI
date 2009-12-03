@@ -25,18 +25,24 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.network.Global;
 import com.sun.electric.database.text.ImmutableArrayList;
-import com.sun.electric.database.text.Name;
 
+import com.sun.electric.database.text.Name;
 import java.util.Arrays;
+import java.util.HashMap;
 
 /**
  *
  */
-public class EquivPorts {
+public class EquivalentSchematicExports {
     private final CellId cellId;
+    private final Global.Set globals;
     final int numExports;
+    private final int numExpandedExports;
     private final ImmutableArrayList<ImmutableExport> exports;
+    private final HashMap<ExportId,Global.Set[]> globalPartitions;
     /**
      * Equivalence of ports.
      * equivPorts.size == ports.size.
@@ -46,18 +52,24 @@ public class EquivPorts {
     final int[] equivPortsP;
     final int[] equivPortsA;
 
-    EquivPorts(CellTree cellTree) {
+    EquivalentSchematicExports(CellTree cellTree) {
         cellId = cellTree.top.cellRevision.d.cellId;
         exports = cellTree.top.cellRevision.exports;
-        numExports = exports.size();
+        numExpandedExports = numExports = exports.size();
+        globals = Global.Set.empty;
+        globalPartitions = null;
         ImmutableNetLayout netCell = new ImmutableNetLayout(cellTree);
         equivPortsN = netCell.equivPortsN;
         equivPortsP = netCell.equivPortsP;
         equivPortsA = netCell.equivPortsA;
     }
-    
+
     public CellId getCellId() {
         return cellId;
+    }
+
+    public Global.Set getGlobals() {
+        return Global.Set.empty;
     }
 
     public int getNumExports() {
@@ -66,6 +78,10 @@ public class EquivPorts {
 
     public Name getExportName(int exportIndex) {
         return exports.get(exportIndex).name;
+    }
+
+    public int getNumExpandedExports() {
+        return numExports;
     }
 
     public int[] getEquivPortsN() {
@@ -80,12 +96,17 @@ public class EquivPorts {
         return equivPortsA.clone();
     }
 
-//    @Override
-//    public int hashCode() {
-//        return Arrays.hashCode(equivPortsN);
-//    }
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(equivPortsN);
+    }
 
-    public boolean equalsPorts(EquivPorts that) {
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof EquivPorts)) {
+            return false;
+        }
+        EquivPorts that = (EquivPorts)o;
         if (this.exports != that.exports) {
             if (this.exports.size() != that.exports.size()) {
                 return false;
