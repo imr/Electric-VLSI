@@ -150,9 +150,9 @@ public class WaveSignal
 		{
 			color = new Color(User.getColor(User.ColorPrefType.WAVE_STIMULI));
 			sigButton = wavePanel.getDigitalSignalButton();
-			sigButton.setText(sigName);
+			sigButton.setText(wavePanel.getPanelNumber() + ": " + sigName);
 			wavePanel.addSignal(this, sigButton);
-//			sigButton.setForeground(color);
+			sigButton.setForeground(color);
 		}
 	}
 

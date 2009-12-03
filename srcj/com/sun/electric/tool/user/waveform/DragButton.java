@@ -75,16 +75,16 @@ public class DragButton extends JButton implements DragGestureListener, DragSour
 //                }
 //            });
 //        add(label);
-		super(panelNumber + ": " + s);
+		super(s);
 		this.panelNumber = panelNumber;
 		dragSource = DragSource.getDefaultDragSource();
 		dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, this);
 	}
 
-	public void setText(String txt)
-	{
-		super.setText(panelNumber + ": " + txt);
-	}
+//	public void setText(String txt)
+//	{
+//		super.setText(panelNumber + ": " + txt);
+//	}
 
 //	public void setForeground(Color c) {
 //        if (label != null) label.setForeground(c);

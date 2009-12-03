@@ -148,12 +148,12 @@ public class HorizRuler extends JPanel implements MouseListener, MouseMotionList
 			}
 			int newWid = waveWindow.getScreenHighX() - waveWindow.getScreenLowX();
 
-			// the main horizontal ruler needs a Panel (won't work if there aren't any)
-			if (newWid == 0 || waveWindow.getNumPanels() == 0) return;
-
 			// clear the panel
 			g.setColor(WaveformWindow.getBackgroundColor());
 			g.fillRect(0, 0, wid, hei);
+
+			// the main horizontal ruler needs a Panel (won't work if there aren't any)
+			if (newWid == 0 || waveWindow.getNumPanels() == 0) return;
 
 			if (offX + newWid > wid) newWid = wid - offX;
 			wid = newWid;
