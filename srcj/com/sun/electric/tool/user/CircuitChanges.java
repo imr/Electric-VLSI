@@ -25,6 +25,7 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
@@ -178,8 +179,20 @@ public class CircuitChanges
 		for(NodeInst ni : addedNodes)
 			selected.add(ni);
 
+		if (selected.size() == 0)
+		{
+			System.out.println("Must select something before aligning it to the grid");
+			return;
+		}
+		Dimension2D alignment = User.getAlignmentToGrid();
+		if (alignment.getWidth() <= 0 || alignment.getHeight() <= 0)
+		{
+			System.out.println("No alignment given: set Alignment Options first");
+			return;
+		}
+
 		// now align them
-		new CircuitChangeJobs.AlignObjects(selected, User.getAlignmentToGrid());
+		new CircuitChangeJobs.AlignObjects(selected, alignment);
 	}
 
 	/**
@@ -450,6 +463,11 @@ public class CircuitChanges
 		{
             EditWindow wnd = EditWindow.getCurrent();
             Rectangle2D bounds = highlighter.getHighlightedArea(wnd);
+			if (bounds == null)
+			{
+				System.out.println("Nothing is selected");
+				return;
+			}
 			new CircuitChangeJobs.DeleteSelectedGeometry(cell, bounds);
 		} else
 		{

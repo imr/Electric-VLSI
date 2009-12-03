@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.user;
 
+import static com.sun.electric.database.text.ArrayIterator.i2i;
+
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.DBMath;
@@ -43,7 +45,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
-import static com.sun.electric.database.text.ArrayIterator.i2i;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
@@ -60,8 +61,8 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
@@ -142,7 +143,7 @@ public class CircuitChangeJobs
                 PortInst tail = ai.getTailPortInst();
                 PortInst head = ai.getHeadPortInst();
 
-                if (highs.contains(tail) && highs.contains(tail))
+                if (highs.contains(head) && highs.contains(tail))
                     highs.add(ai); // better to add the arc here
             }
 
@@ -301,17 +302,6 @@ public class CircuitChangeJobs
 
 		public boolean doIt() throws JobException
 		{
-			if (list.size() == 0)
-			{
-				System.out.println("Must select something before aligning it to the grid");
-				return false;
-			}
-			if (alignment.getWidth() <= 0 || alignment.getHeight() <= 0)
-			{
-				System.out.println("No alignment given: set Alignment Options first");
-				return false;
-			}
-
 			// first adjust the nodes
 			int adjustedNodes = 0;
 			for(Geometric geom : list)
@@ -1003,8 +993,7 @@ public class CircuitChangeJobs
 					if (eObj instanceof ArcInst)
 					{
 						ArcInst ai = (ArcInst)eObj;
-//						if (ai.isLinked())
-							thingsToHighlight.add(ai);
+						thingsToHighlight.add(ai);
 					} else if (eObj instanceof Export)
 					{
 						Export e = (Export)eObj;
@@ -1050,25 +1039,8 @@ public class CircuitChangeJobs
 
 		public boolean doIt() throws JobException
 		{
-			if (cell == null)
-			{
-				System.out.println("No current cell");
-				return false;
-			}
-			if (bounds == null)
-			{
-				System.out.println("Nothing selected");
-				return false;
-			}
-
 			// disallow erasing if lock is on
 			if (cantEdit(cell, null, true, false, true) != 0) return false;
-
-			if (bounds == null)
-			{
-				System.out.println("Outline an area first");
-				return false;
-			}
 
 			// grid the area
 			double lX = Math.floor(bounds.getMinX());
@@ -2748,8 +2720,6 @@ public class CircuitChangeJobs
 			}
 		} else {
 			ni.addVar(var);
-//			newVar = ni.updateVar(var.getKey(), inheritAddress(np, var));
-//			updateInheritedVar(newVar, ni, np, icon);
 		}
 	}
 
@@ -2790,7 +2760,6 @@ public class CircuitChangeJobs
 			td = td.withOff(xd, yd);
 			Object value = inheritAddress(cell, var);
             ni.addParameter(Variable.newInstance(var.getKey(), value, td));
-//			ni.newVar(var.getKey(), value, td);
 		}
 	}
 
