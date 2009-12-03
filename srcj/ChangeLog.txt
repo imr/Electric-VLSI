@@ -2,10 +2,12 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.10n: ******************************
+************************* Version 8.10o: ******************************
 
 BUG: (12/3/09, SMR) Should detect errors outside of jobs (Bug #2505).
 FIX: Fixed "Align to Grid" and others.
+
+************************* Version 8.10n: ******************************
 
 BUG: (12/3/09, GVG) Undo gets stuck after saving files (Bug #2503)
 FIX: Added extra condition to statement which brings up the dialog. Removing write from done/undone lists.
