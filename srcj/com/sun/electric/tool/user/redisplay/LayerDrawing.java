@@ -4476,6 +4476,9 @@ class LayerDrawing {
         if (endx > clipHX) {
             endx = clipHX;
         }
+        if (startx > endx) {
+            return;
+        }
         raster.fillHorLine(thisy, startx, endx);
     }
 

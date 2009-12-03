@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10n: ******************************
 
+BUG: (12/2/09, DN) ArrayIndexOutOfBoundsException in LayerDrawing.drawDiscRow during redraw (Bug #2504).
+FIX: Clip properly in LayerDrawing.discRow .
+
 IMP/MAN: (12/2/09, SMR) New Node Preference "Increment rightmost array index"
      allows export duplication to auto-increment from the left (if unchecked)
      (Bug #2501).
