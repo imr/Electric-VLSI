@@ -61,6 +61,8 @@ public class TechEditWizardData
     private boolean pSubstrateProcess = false; // to control if process is a pwell or psubstrate process or not. If true, Tech Creation Wizard will not create pwell layers
     private boolean horizontalFlag = true; // to control if transistor gates are aligned horizontally. True by default . If transistors are horizontal -> M1 is horizontal?
     private boolean extraInfoFlag = false; // to control if protection polys are added to transistors. False by default
+    private boolean analogElementsFlag = false; // to control if analog elements are generated. False by default
+    private boolean secondPolyFlag = false; // to control if second poly. False by default
 
     // DIFFUSION RULES
 	private WizardField diff_width = new WizardField();
@@ -99,20 +101,20 @@ public class TechEditWizardData
     private WizardField vthl_poly_overhang = new WizardField();     // Overhang of VTH/VTL with respecto to the gate
 
     // Special rules for resistors
-    private WizardField[] extraVariables = new WizardField[]{
-        new WizardField("poly_resistor_length"),   // Poly resistor length
-        new WizardField("poly_resistor_width"),   // Poly resistor width
-        new WizardField("rpo_contact_spacing"),   // Spacing btw rpo edge and contact cut
-        new WizardField("rpo_odpoly_overhang"),   // RPO overhang from poly/OD
-        new WizardField("rh_odpoly_overhang"),   // RH overhang from poly/OD
-        new WizardField("well_resistor_length"),   // Well resistor length
-        new WizardField("well_resistor_width"),   // Well resistor width
-        new WizardField("rpo_select_overlap"),   // RPO overlap in select from center
-        new WizardField("rpo_co_space_in_nwrod"),   // rpo co distance
-        new WizardField("co_nwrod_overhang"),   // overhang of co in nwrod
-        new WizardField("od_nwrod_overhang"),   // overhang of od in nwrod
-        new WizardField("rpo_nwrod_space"),   // rpo nwrod space     
-    };
+//    private WizardField[] extraVariables = new WizardField[]{
+//        new WizardField("poly_resistor_length"),   // Poly resistor length
+//        new WizardField("poly_resistor_width"),   // Poly resistor width
+//        new WizardField("rpo_contact_spacing"),   // Spacing btw rpo edge and contact cut
+//        new WizardField("rpo_odpoly_overhang"),   // RPO overhang from poly/OD
+//        new WizardField("rh_odpoly_overhang"),   // RH overhang from poly/OD
+//        new WizardField("well_resistor_length"),   // Well resistor length
+//        new WizardField("well_resistor_width"),   // Well resistor width
+//        new WizardField("rpo_select_overlap"),   // RPO overlap in select from center
+//        new WizardField("rpo_co_space_in_nwrod"),   // rpo co distance
+//        new WizardField("co_nwrod_overhang"),   // overhang of co in nwrod
+//        new WizardField("od_nwrod_overhang"),   // overhang of od in nwrod
+//        new WizardField("rpo_nwrod_space"),   // rpo nwrod space
+//    };
 
     // CONTACT RULES
 	private WizardField contact_size = new WizardField();
@@ -406,6 +408,7 @@ public class TechEditWizardData
 
     private LayerInfo diff_layer = new LayerInfo("Diff");
     private LayerInfo poly_layer = new LayerInfo("Poly");
+    private LayerInfo poly2_layer = new LayerInfo("Polysilicon-2");
     private LayerInfo nplus_layer = new LayerInfo("NPlus");
 	private LayerInfo pplus_layer = new LayerInfo("PPlus");
 	private LayerInfo nwell_layer = new LayerInfo("N-Well");
@@ -473,20 +476,20 @@ public class TechEditWizardData
 
 	/************************************** ACCESSOR METHODS **************************************/
 
-	public String getTechName() { return tech_name; }
-	public void setTechName(String s) { tech_name = s; }
+	String getTechName() { return tech_name; }
+	void setTechName(String s) { tech_name = s; }
 
-	public String getTechDescription() { return tech_description; }
-	public void setTechDescription(String s) { tech_description = s; }
+	String getTechDescription() { return tech_description; }
+	void setTechDescription(String s) { tech_description = s; }
 
-	public int getStepSize() { return stepsize; }
-	public void setStepSize(int n) { stepsize = n; }
+	int getStepSize() { return stepsize; }
+	void setStepSize(int n) { stepsize = n; }
 
-    public int getResolution() { return resolution; }
-	public void setResolution(int n) { resolution = n; }
+    int getResolution() { return resolution; }
+	void setResolution(int n) { resolution = n; }
 
-    public int getNumMetalLayers() { return num_metal_layers; }
-	public void setNumMetalLayers(int n)
+    int getNumMetalLayers() { return num_metal_layers; }
+	void setNumMetalLayers(int n)
 	{
         if (n < 1)
         {
@@ -553,8 +556,12 @@ public class TechEditWizardData
     void setPSubstratelProcess(boolean b) { pSubstrateProcess = b; }
     boolean getHorizontalTransistors() { return horizontalFlag;}
     void setHorizontalTransistors(boolean b) { horizontalFlag = b; }
-    boolean getExtraInfoFlag() { return extraInfoFlag;}
-    void setExtraInfoFlag(boolean b) { extraInfoFlag = b; }
+    private boolean getExtraInfoFlag() { return extraInfoFlag;}
+    private void setExtraInfoFlag(boolean b) { extraInfoFlag = b; }
+    private boolean getAnalogFlag() { return analogElementsFlag;}
+    private void setAnalogFlag(boolean b) { analogElementsFlag = b; }
+    private boolean getSecondPolyFlag() { return secondPolyFlag;}
+    private void setSecondPolyFlag(boolean b) { secondPolyFlag = b; }
 
     // DIFFUSION RULES
 	WizardField getDiffWidth() { return diff_width; }
@@ -802,6 +809,8 @@ public class TechEditWizardData
                     if (varName.equalsIgnoreCase("extra_info")) setExtraInfoFlag(Boolean.valueOf(varValue)); else
                     if (varName.equalsIgnoreCase("stepsize")) setStepSize(TextUtils.atoi(varValue)); else
                     if (varName.equalsIgnoreCase("resolution")) setResolution(TextUtils.atoi(varValue)); else
+                    if (varName.equalsIgnoreCase("analog_elements")) setAnalogFlag(Boolean.valueOf(varValue)); else
+                    if (varName.equalsIgnoreCase("second_poly")) setSecondPolyFlag(Boolean.valueOf(varValue)); else
 
                     if (varName.equalsIgnoreCase("diff_width")) diff_width.value = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("diff_width_rule")) diff_width.rule = stripQuotes(varValue); else
@@ -950,6 +959,8 @@ public class TechEditWizardData
 		return true;
 	}
 
+    private static List<WizardField> extraVariables = new ArrayList<WizardField>();
+
     private WizardField findWizardField(String varName)
     {
         for (WizardField wf : extraVariables)
@@ -957,7 +968,10 @@ public class TechEditWizardData
             if (wf.name.equals(varName))
                 return wf;
         }
-        return null;
+        // it doesn't exist yet. Adding it now.
+        WizardField w = new WizardField(varName);
+        extraVariables.add(w);
+        return w;
     }
 
     private String stripQuotes(String str)
@@ -2351,19 +2365,19 @@ public class TechEditWizardData
         }
 
         // Poly
-        String polyN = poly_layer.name;
+//        String polyN = poly_layer.name;
         EGraphics graph = new EGraphics(false, false, null, 1, 0, 0, 0, 1, true, nullPattern);
-        Xml.Layer polyLayer = makeXmlLayer(t.layers, layerMap, polyN, Layer.Function.POLY1, 0, graph,
+        Xml.Layer polyLayer = makeXmlLayer(t.layers, layerMap, poly_layer.name, Layer.Function.POLY1, 0, graph,
             poly_width, true, true);
         // PolyGate
-        Xml.Layer polyGateLayer = makeXmlLayer(t.layers, layerMap, polyN+"Gate", Layer.Function.GATE, 0, graph,
+        Xml.Layer polyGateLayer = makeXmlLayer(t.layers, layerMap, poly_layer.name+"Gate", Layer.Function.GATE, 0, graph,
             poly_width, true, false); // false for the port otherwise it won't find any type
 
         if (getExtraInfoFlag())
         {
             // exclusion layer poly
             graph = new EGraphics(true, true, null, 1, 0, 0, 0, 1, true, dexclPattern);
-            Xml.Layer exclusionPolyLayer = makeXmlLayer(t.layers, "DEXCL-"+polyN, Layer.Function.DEXCLPOLY1, 0, graph,
+            Xml.Layer exclusionPolyLayer = makeXmlLayer(t.layers, "DEXCL-"+poly_layer.name, Layer.Function.DEXCLPOLY1, 0, graph,
                 2*poly_width.value, true, false);
             makeLayerGDS(t, exclusionPolyLayer, "150/21");
         }
@@ -2570,13 +2584,20 @@ public class TechEditWizardData
         /**************************** POLY Nodes/Arcs ***********************************************/
         // poly arc
         double ant = (int)Math.round(poly_antenna_ratio) | 200;
+        List<PaletteGroup> polysGroup = new ArrayList<PaletteGroup>();
         PaletteGroup polyGroup = new PaletteGroup();
+        polysGroup.add(polyGroup);
+
         polyGroup.addArc(makeXmlArc(t, polyLayer.name, ArcProto.Function.getPoly(1), ant,
                 makeXmlArcLayer(polyLayer, poly_width)));
         // poly pin
         double hla = scaledValue(poly_width.value / 2);
         polyGroup.addPinOrResistor(makeXmlPrimitivePin(t, polyLayer.name, hla, null, // new SizeOffset(hla, hla, hla, hla),
             null, makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.CROSSED)), null);
+
+        if (getSecondPolyFlag()) createSecondPolyElements(t, layerMap, polysGroup);
+        if (getAnalogFlag()) createAnalogElements(t, polysGroup);
+
         // poly contact
         portNames.clear();
         portNames.add(polyLayer.name);
@@ -2588,7 +2609,7 @@ public class TechEditWizardData
         double contArraySpacing = scaledValue(contact_array_spacing.value);
         double metal1Over = scaledValue(contact_size.value /2 + contact_metal_overhang_all_sides.value);
 
-        // only for standard cases when getProtectionPoly() is false
+        // only for standard cases when getExtraInfoFlag() is false
         if (!getExtraInfoFlag())
         {
             if (via_overhang.length > 0)
@@ -2663,7 +2684,6 @@ public class TechEditWizardData
                     lx = polyLayer;
                     conLay = polyConLayer;
                     g = polyGroup;
-//                    extraName = "Poly"; // Poly as name is too long!
                 }
                 else
                     assert(false); // it should not happen
@@ -3138,16 +3158,6 @@ public class TechEditWizardData
             // Extra protection poly. No ports are necessary.
             if (getExtraInfoFlag())
             {
-                // removing well and select for simplicity
-//                nodesList.remove(xTranSelLayer);
-//                nodesList.remove(xTranWellLayer);
-//                // new sox and soy
-//                sox = scaledValue(poly_endcap.v);
-//                soy = scaledValue(diff_poly_overhang.v);
-//                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-S", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
-//                new SizeOffset(sox, sox, soy, soy), nodesListW, nodePorts, null, false);
-//                g.addElement(n);
-
                 /*************************************/
                 // Short transistors
                 // Adding extra transistors whose select and well are aligned with poly along the X axis
@@ -3522,7 +3532,7 @@ public class TechEditWizardData
         allGroups.add(transPalette[0]); allGroups.add(transPalette[1]);
         allGroups.add(diffPalette[0]); allGroups.add(diffPalette[1]);
         allGroups.add(wellPalette[0]); allGroups.add(wellPalette[1]);
-        allGroups.add(polyGroup);
+        allGroups.addAll(polysGroup);
         for (PaletteGroup g : metalPalette)
             allGroups.add(g);
         // Extra layers with pins/arcs
@@ -3787,60 +3797,180 @@ public class TechEditWizardData
 
     private double scaledValue(double val) { return DBMath.round(val / stepsize); }
 
+    /***************************************************************************************************
+     * Analog Elements
+     ***************************************************************************************************/
 
+    private void createSecondPolyElements(Xml.Technology t, Map<Xml.Layer,WizardField> layerMap,
+                                          List<PaletteGroup> polysGroup)
+    {
+        int[] nullPattern = new int[] {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+            0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
+        EGraphics graph = new EGraphics(false, false, null, 0, 255, 190, 6, 1, true, nullPattern);
+        Xml.Layer poly2Layer = makeXmlLayer(t.layers, layerMap, poly2_layer.name, Layer.Function.POLY2, 0, graph,
+            poly_width, true, true);
 
-        /***************************************************************************************************
-         * PrimitiveNodeGroup Comparator
-         ***************************************************************************************************/
+        PaletteGroup poly2Group = new PaletteGroup();
+        double ant = (int)Math.round(poly_antenna_ratio) | 200;
+        // Arc
+        poly2Group.addArc(makeXmlArc(t, poly2Layer.name, ArcProto.Function.getPoly(2), ant,
+            makeXmlArcLayer(poly2Layer, poly_width)));
+        polysGroup.add(poly2Group);
+
+        // pin
+        double hla = scaledValue(poly_width.value / 2);
+        poly2Group.addPinOrResistor(makeXmlPrimitivePin(t, poly2Layer.name, hla, null, // new SizeOffset(hla, hla, hla, hla),
+            null, makeXmlNodeLayer(hla, hla, hla, hla, poly2Layer, Poly.Type.CROSSED)), null);
+    }
+
+    private void createAnalogElements(Xml.Technology t, List<PaletteGroup> polysGroup)
+    {
+        List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>();
+        List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
+        List<String> portNames = new ArrayList<String>();
+
+//        Xml.Layer polyLayer = t.findLayer(poly_layer.name);
+        Xml.Layer poly2Layer = t.findLayer(poly2_layer.name);
+
+        assert(poly2Layer != null);
+
+        Xml.Layer hiRestLayer = t.findLayer("Hi_Res");
+        Xml.Layer m1Layer = t.findLayer("Metal-1");
+
+        PaletteGroup g = polysGroup.get(1); // second group in polys
+
+        /*************************************/
+        // Analog Hi Poly Resistors
+        WizardField polyRL = findWizardField("hi_poly_resistor_length");
+        WizardField polyRW = findWizardField("hi_poly_resistor_width");
+        WizardField poly2Overhang = findWizardField("contact_poly2_overhang");
+        
+        double resistorSpacing = contact_array_spacing.value; // using array value to guarantee proper spacing in nD cases
+
+            // poly
+            double soxNoScaled = (2 * poly2Overhang.value + 2 * contact_metal_overhang_all_sides.value + contact_size.value);
+            double halfTotalL = scaledValue(polyRL.value /2 + soxNoScaled);
+            double halfTotalW = scaledValue(polyRW.value /2);
+            nodesList.add(makeXmlNodeLayer(halfTotalL, halfTotalL, halfTotalW, halfTotalW, poly2Layer,
+                Poly.Type.FILLED, true, true, 0));
+//
+//            // RPO
+//            double rpoY = scaledValue(polyRW.value /2 + rpoODPolyEx.value);
+//            double rpoX = scaledValue(polyRL.value /2);
+//            Xml.Layer rpoLayer = t.findLayer("RPO");
+//            addXmlNodeLayerInternal(nodesList, t, "RPO", rpoX, rpoY, true, true, -1);
+//
+//            // left cuts
+//            double cutDistance = scaledValue(rpoS.value + polyRL.value /2);
+//            // M1 and Poly overhang will be the same for now
+////                double absVal = (contact_poly_overhang.v - via_overhang[0].v);
+//            double m1Distance = cutDistance - scaledValue(contact_poly_overhang.value);
+//            double m1Y = scaledValue(polyRW.value /2); // - absVal);
+//            double m1W = scaledValue(2 * contact_poly_overhang.value + resistorSpacing + 2 * contact_size.value);
+//            double cutSizeHalf = scaledValue(contact_size.value /2);
+//            double cutEnd = cutDistance+contSize;
+//            double cutSpacing = scaledValue(resistorSpacing);
+//            double cutEnd2 = cutEnd+contSize+cutSpacing;
+//
+        portNames.add(m1Layer.name);
+        // left port
+        double contSize = scaledValue(contact_size.value);
+        double cutSizeHalf = scaledValue(contact_size.value /2);
+        double cutStart = scaledValue(polyRL.value /2 + poly2Overhang.value + contact_metal_overhang_all_sides.value);
+        Xml.PrimitivePort port = makeXmlPrimitivePort("left-rpo", 0, 180, 0, null,
+            -(cutStart + contSize), -1, -cutStart, -1, -cutSizeHalf, -1, cutSizeHalf, 1, portNames);
+        nodePorts.add(port);
+        // right port
+        port = makeXmlPrimitivePort("right-rpo", 0, 180, 1, null,
+            cutStart, 1, (cutStart + contSize), 1, -cutSizeHalf, -1, cutSizeHalf, 1, portNames);
+        nodePorts.add(port);
+//
+//            // metal left
+//            nodesList.add(makeXmlNodeLayer((m1Distance + m1W), -1, -m1Distance, -1, m1Y, -1, m1Y, 1, m1Layer,
+//                Poly.Type.FILLED, true, true, 0));
+//            // right metal
+//            nodesList.add(makeXmlNodeLayer(-m1Distance, 1, (m1Distance + m1W), 1, m1Y, -1, m1Y, 1, m1Layer,
+//                Poly.Type.FILLED, true, true, 1));
+//
+//            // select
+//            double selectY = scaledValue(polyRW.value /2 + rhOverhang.value);
+//            double selectX = scaledValue(polyRL.value /2 + soxNoScaled + extraSelX);
+//            nodesList.add(makeXmlNodeLayer(selectX, selectX, selectY, selectY, selectLayer,
+//                Poly.Type.FILLED, true, true, -1));
+//            // RH
+//            addXmlNodeLayerInternal(nodesList, t, "RH", selectX, selectY, true, true, -1);
+//
+//            // RPDMY
+//            addXmlNodeLayerInternal(nodesList, t, "RPDMY", selectX, selectY, true, true, -1);
+//
+//            // cuts
+//            nodesList.add(makeXmlMulticut(cutEnd2, -1, -cutDistance, -1, cutSizeHalf, -1, cutSizeHalf, 1,
+//                polyConLayer, contSize, contArraySpacing, contArraySpacing));
+//            nodesList.add(makeXmlMulticut(-cutDistance, 1, cutEnd2, 1, cutSizeHalf, -1, cutSizeHalf, 1,
+//                polyConLayer, contSize, contArraySpacing, contArraySpacing));
+//
+//            sox = scaledValue(soxNoScaled + extraSelX);
+//            soy = scaledValue(rpoODPolyEx.value);
+            Xml.PrimitiveNodeGroup n = makeXmlPrimitive(t.nodeGroups, "Hi-Poly-Resistor",
+                PrimitiveNode.Function.RESIST, 0, 0, 0, 0,
+                null
+                /*new SizeOffset(sox, sox, soy, soy)*/,
+                nodesList, nodePorts, null, false);
+            g.addPinOrResistor(n, "Hi-RPoly");
+    }
+    
+    /***************************************************************************************************
+     * PrimitiveNodeGroup Comparator
+     ***************************************************************************************************/
+    /**
+     * A comparator object for sorting NodeGroups
+     * Created once because it is used often.
+     */
+    private static final PrimitiveNodeGroupSort primitiveNodeGroupSort = new PrimitiveNodeGroupSort();
+
+    /**
+     * Comparator class for sorting PrimitiveNodeGroups by their name.
+     */
+    public static class PrimitiveNodeGroupSort implements Comparator<Xml.PrimitiveNodeGroup>
+    {
         /**
-         * A comparator object for sorting NodeGroups
-         * Created once because it is used often.
+         * Method to compare two PrimitiveNodeGroups by their name.
+         * @param l1 one PrimitiveNodeGroup.
+         * @param l2 another PrimitiveNodeGroup.
+         * @return an integer indicating their sorting order.
          */
-        private static final PrimitiveNodeGroupSort primitiveNodeGroupSort = new PrimitiveNodeGroupSort();
-
-        /**
-         * Comparator class for sorting PrimitiveNodeGroups by their name.
-         */
-        public static class PrimitiveNodeGroupSort implements Comparator<Xml.PrimitiveNodeGroup>
+        public int compare(Xml.PrimitiveNodeGroup l1, Xml.PrimitiveNodeGroup l2)
         {
-            /**
-             * Method to compare two PrimitiveNodeGroups by their name.
-             * @param l1 one PrimitiveNodeGroup.
-             * @param l2 another PrimitiveNodeGroup.
-             * @return an integer indicating their sorting order.
-             */
-            public int compare(Xml.PrimitiveNodeGroup l1, Xml.PrimitiveNodeGroup l2)
-            {
-                // Sorting by first element
-                Xml.PrimitiveNode n1 = l1.nodes.get(0);
-                Xml.PrimitiveNode n2 = l2.nodes.get(0);
-                return n1.name.compareTo(n2.name);
-            }
+            // Sorting by first element
+            Xml.PrimitiveNode n1 = l1.nodes.get(0);
+            Xml.PrimitiveNode n2 = l2.nodes.get(0);
+            return n1.name.compareTo(n2.name);
         }
+    }
 
-        /***************************************************************************************************
-         * NodeLayer Comparator
-         ***************************************************************************************************/
-        /**
-         * A comparator object for sorting NodeLayers
-         * Created once because it is used often.
-         */
-        private static final NodeLayerSort nodeLayerSort = new NodeLayerSort();
+    /***************************************************************************************************
+     * NodeLayer Comparator
+     ***************************************************************************************************/
+    /**
+     * A comparator object for sorting NodeLayers
+     * Created once because it is used often.
+     */
+    private static final NodeLayerSort nodeLayerSort = new NodeLayerSort();
 
+    /**
+     * Comparator class for sorting PrimitiveNodeGroups by their name.
+     */
+    public static class NodeLayerSort implements Comparator<Xml.NodeLayer>
+    {
         /**
-         * Comparator class for sorting PrimitiveNodeGroups by their name.
+         * Method to compare two NodeLayers by their name.
+         * @param l1 one NodeLayer.
+         * @param l2 another NodeLayer.
+         * @return an integer indicating their sorting order.
          */
-        public static class NodeLayerSort implements Comparator<Xml.NodeLayer>
+        public int compare(Xml.NodeLayer l1, Xml.NodeLayer l2)
         {
-            /**
-             * Method to compare two NodeLayers by their name.
-             * @param l1 one NodeLayer.
-             * @param l2 another NodeLayer.
-             * @return an integer indicating their sorting order.
-             */
-            public int compare(Xml.NodeLayer l1, Xml.NodeLayer l2)
-            {
-                return l1.layer.compareTo(l2.layer);
-            }
+            return l1.layer.compareTo(l2.layer);
         }
+    }
 }

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+IMP/MAN: (12/4/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
+Added capacitor and hi_res layer.
+
 BUG: (12/4/09, DN) Can no longer get polygons from dummy NodeInsts (Bug #2507).
 FIX: In NodeInst.getShapeOfPort() use getCellBackupUnsafe() instead of cell.backupUnsafe().
    In PortOriginal.traverse don't get database if cell is null.
