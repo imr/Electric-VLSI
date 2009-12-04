@@ -931,13 +931,13 @@ public class ELIB extends Output
             ImmutableArcInst a = arcs.get(i);
             boolean isHead = headEnds.get(i);
             PortProtoId portId = isHead ? a.headPortId : a.tailPortId;
-            sortedConnections.add(new ElibConnection(portId, a.arcId, isHead));
+            sortedConnections.add(new ElibConnection(portId, a.arcId, isHead, m.getArcIndex(a)));
         }
         assert sortedConnections.size() == arcs.size();
 
 		writeBigInteger(sortedConnections.size());
         for (ElibConnection c: sortedConnections) {
-             writeConnection(c.portId, arcBase + c.arcId, c.isHead ? 1 : 0);
+             writeConnection(c.portId, arcBase + c.arcIndex, c.isHead ? 1 : 0);
         }
 
         // write the exports
@@ -959,11 +959,13 @@ public class ELIB extends Output
         private final PortProtoId portId;
         private final int arcId;
         private final boolean isHead;
+        private final int arcIndex;
 
-        private ElibConnection(PortProtoId portId, int arcId, boolean isHead) {
+        private ElibConnection(PortProtoId portId, int arcId, boolean isHead, int arcIndex) {
             this.portId = portId;
             this.arcId = arcId;
             this.isHead = isHead;
+            this.arcIndex = arcIndex;
         }
 
         public int compareTo(ElibConnection that) {

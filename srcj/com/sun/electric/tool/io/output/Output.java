@@ -333,34 +333,34 @@ public class Output
         writeLibrary(lib, type, compatibleWith6, thisQuiet, delibHeaderOnly, backupScheme, null, null);
     }
 
-	/**
-	 * Method to write an entire Library with a particular format.
-	 * This is used for output formats that capture the entire library
-	 * (only the ELIB and Readable Dump formats).
-	 * The alternative to writing the entire library is writing a single
-	 * cell and the hierarchy below it (use "writeCell").
-	 * @param lib the Library to be written.
-	 * @param type the format of the output file.
-	 * @param compatibleWith6 true to write a library that is compatible with version 6 Electric.
-	 * @param thisQuiet true to save with less information displayed.
+    /**
+     * Method to write an entire Library with a particular format.
+     * This is used for output formats that capture the entire library
+     * (only the ELIB and Readable Dump formats).
+     * The alternative to writing the entire library is writing a single
+     * cell and the hierarchy below it (use "writeCell").
+     * @param lib the Library to be written.
+     * @param type the format of the output file.
+     * @param compatibleWith6 true to write a library that is compatible with version 6 Electric.
+     * @param thisQuiet true to save with less information displayed.
      * @param delibHeaderOnly true to write only the header for a DELIB type library
      * @param backupScheme controls how older files are backed-up.
      * @param deletedCellFiles output list of deleted cell files of DELIB library
      * @param writtenCellFiles output list of written cell files of DELIB library
-	 */
-	public static void writeLibrary(Library lib, FileType type, boolean compatibleWith6,
-		boolean thisQuiet, boolean delibHeaderOnly, int backupScheme,
+     */
+    public static void writeLibrary(Library lib, FileType type, boolean compatibleWith6,
+        boolean thisQuiet, boolean delibHeaderOnly, int backupScheme,
         List<String> deletedCellFiles, List<String> writtenCellFiles) throws JobException
-	{
-		// make sure that all "meaning" options are attached to the database
+    {
+        // make sure that all "meaning" options are attached to the database
 //		Pref.installMeaningVariables();
 
-		// make sure that this library save is announced
-		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
-		{
-			Listener listener = it.next();
-			listener.writeLibrary(lib);
-		}
+        // make sure that this library save is announced
+        for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
+        {
+            Listener listener = it.next();
+            listener.writeLibrary(lib);
+        }
         Snapshot snapshot = lib.getDatabase().backup();
         LibId libId = lib.getId();
 
@@ -384,23 +384,23 @@ public class Output
 //		}
 //        Setting.implementSettingChanges(changeBatch);
 
-		// handle different file types
-		URL libFile = lib.getLibFile();
-		if (libFile == null)
-			libFile = TextUtils.makeURLToFile(lib.getName());
+        // handle different file types
+        URL libFile = lib.getLibFile();
+        if (libFile == null)
+            libFile = TextUtils.makeURLToFile(lib.getName());
 
-		// make the proper output file name
-		File f = new File(libFile.getPath());
-		String fullOutputName = f.getAbsolutePath();
-		String properOutputNameWithoutExtension = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile);
-		String properOutputName = fullOutputName;
-		if (properOutputNameWithoutExtension.equals(fullOutputName))
-		{
-			if (type == FileType.ELIB) properOutputName = properOutputNameWithoutExtension + ".elib";
-			if (type == FileType.JELIB) properOutputName = properOutputNameWithoutExtension + ".jelib";
-			if (type == FileType.DELIB) properOutputName = properOutputNameWithoutExtension + ".delib";
-			if (type == FileType.READABLEDUMP) properOutputName = properOutputNameWithoutExtension + ".txt";
-		}
+        // make the proper output file name
+        File f = new File(libFile.getPath());
+        String fullOutputName = f.getAbsolutePath();
+        String properOutputNameWithoutExtension = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile);
+        String properOutputName = fullOutputName;
+        if (properOutputNameWithoutExtension.equals(fullOutputName))
+        {
+            if (type == FileType.ELIB) properOutputName = properOutputNameWithoutExtension + ".elib";
+            if (type == FileType.JELIB) properOutputName = properOutputNameWithoutExtension + ".jelib";
+            if (type == FileType.DELIB) properOutputName = properOutputNameWithoutExtension + ".delib";
+            if (type == FileType.READABLEDUMP) properOutputName = properOutputNameWithoutExtension + ".txt";
+        }
 
 //		String properOutputNameWithoutExtension = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile);
 //		String properOutputName = properOutputNameWithoutExtension;
@@ -408,105 +408,105 @@ public class Output
 //		if (type == FileType.JELIB) properOutputName += ".jelib";
 //		if (type == FileType.DELIB) properOutputName += ".delib";
 //		if (type == FileType.READABLEDUMP) properOutputName += ".txt";
-		if (type == FileType.ELIB || type == FileType.JELIB || type == FileType.DELIB)
-		{
-			// backup previous files if requested
-			if (backupScheme == 1)
-			{
-				// one-level backup
-				File newFile = new File(properOutputName);
-				if (newFile.exists())
-				{
-					String backupFileName = properOutputName + "~";
-					File oldFile = new File(backupFileName);
-					boolean canRename = true;
-					if (oldFile.exists())
-					{
-						if (!oldFile.delete())
-						{
-							System.out.println("Unable to delete former library file " + oldFile);
-							canRename = false;
-						}
-					}
-					if (canRename)
-					{
-						if (!newFile.renameTo(oldFile))
-						{
-							System.out.println("Unable to rename " + newFile + " to " + oldFile);
-						}
-					}
-				}
-			} else if (backupScheme == 2)
-			{
-				// full-history backup
-				File newFile = new File(properOutputName);
-				if (newFile.exists())
-				{
-					long modified = newFile.lastModified();
-					Date modifiedDate = new Date(modified);
-					SimpleDateFormat sdf = new SimpleDateFormat("-yyyy-MM-dd");
-					for(int i=0; i<1000; i++)
-					{
-						String backupFileName = properOutputNameWithoutExtension + sdf.format(modifiedDate);
-						if (i != 0)
-							backupFileName += "--" + i;
-						backupFileName += "." + type.getExtensions()[0];
-						File oldFile = new File(backupFileName);
-						if (oldFile.exists()) continue;
-						if (!newFile.renameTo(oldFile))
-						{
-							System.out.println("Unable to rename " + newFile + " to " + oldFile);
-						}
-						break;
-					}
-				}
-			}
+        if (type == FileType.ELIB || type == FileType.JELIB || type == FileType.DELIB)
+        {
+            // backup previous files if requested
+            if (backupScheme == 1)
+            {
+                // one-level backup
+                File newFile = new File(properOutputName);
+                if (newFile.exists())
+                {
+                    String backupFileName = properOutputName + "~";
+                    File oldFile = new File(backupFileName);
+                    boolean canRename = true;
+                    if (oldFile.exists())
+                    {
+                        if (!oldFile.delete())
+                        {
+                            System.out.println("Unable to delete former library file " + oldFile);
+                            canRename = false;
+                        }
+                    }
+                    if (canRename)
+                    {
+                        if (!newFile.renameTo(oldFile))
+                        {
+                            System.out.println("Unable to rename " + newFile + " to " + oldFile);
+                        }
+                    }
+                }
+            } else if (backupScheme == 2)
+            {
+                // full-history backup
+                File newFile = new File(properOutputName);
+                if (newFile.exists())
+                {
+                    long modified = newFile.lastModified();
+                    Date modifiedDate = new Date(modified);
+                    SimpleDateFormat sdf = new SimpleDateFormat("-yyyy-MM-dd");
+                    for(int i=0; i<1000; i++)
+                    {
+                        String backupFileName = properOutputNameWithoutExtension + sdf.format(modifiedDate);
+                        if (i != 0)
+                            backupFileName += "--" + i;
+                        backupFileName += "." + type.getExtensions()[0];
+                        File oldFile = new File(backupFileName);
+                        if (oldFile.exists()) continue;
+                        if (!newFile.renameTo(oldFile))
+                        {
+                            System.out.println("Unable to rename " + newFile + " to " + oldFile);
+                        }
+                        break;
+                    }
+                }
+            }
         }
         if (type == FileType.ELIB || type == FileType.JELIB)
         {
             if (type == FileType.ELIB)
-			{
-				ELIB elib = new ELIB();
-				elib.quiet = thisQuiet;
-				if (compatibleWith6) elib.write6Compatible();
-				if (elib.openBinaryOutputStream(properOutputName))
+            {
+                ELIB elib = new ELIB();
+                elib.quiet = thisQuiet;
+                if (compatibleWith6) elib.write6Compatible();
+                if (elib.openBinaryOutputStream(properOutputName))
                     throw new JobException("elib.openBinaryOutputStream() failed");
 //                if (CVS.isEnabled()) {
 //                    CVSLibrary.savingLibrary(lib);
 //                }
-				if (elib.writeLib(snapshot, libId))
+                if (elib.writeLib(snapshot, libId))
                     throw new JobException("elib.writeLib() failed");
-				if (elib.closeBinaryOutputStream())
+                if (elib.closeBinaryOutputStream())
                     throw new JobException("elib.closeBinaryOutputStream() failed");
 //                if (CVS.isEnabled()) {
 //                    CVSLibrary.savedLibrary(lib);
 //                }
-			} else
-			{
-				JELIB jelib = new JELIB();
-				jelib.quiet = thisQuiet;
-				if (jelib.openTextOutputStream(properOutputName))
+            } else
+            {
+                JELIB jelib = new JELIB();
+                jelib.quiet = thisQuiet;
+                if (jelib.openTextOutputStream(properOutputName))
                     throw new JobException("jelib.openTextOutputStream() failed");
 //                if (CVS.isEnabled()) {
 //                    CVSLibrary.savingLibrary(lib);
 //                }
-				if (jelib.writeLib(snapshot, libId, null, false))
+                if (jelib.writeLib(snapshot, libId, null, false))
                     throw new JobException("jelib.writeLib() failed");
-				if (jelib.closeTextOutputStream())
+                if (jelib.closeTextOutputStream())
                     throw new JobException("jelib.closeTextOutputStream() failed");
 //                if (CVS.isEnabled()) {
 //                    CVSLibrary.savedLibrary(lib);
 //                }
-			}
- 		} else if (type == FileType.READABLEDUMP)
-		{
+            }
+        } else if (type == FileType.READABLEDUMP)
+        {
             ReadableDump readableDump = new ReadableDump();
-			readableDump.quiet = thisQuiet;
-			if (readableDump.openTextOutputStream(properOutputName))
+            readableDump.quiet = thisQuiet;
+            if (readableDump.openTextOutputStream(properOutputName))
                 throw new JobException("readableDump.openTextOutputStream() failed");
-			if (readableDump.writeLib(snapshot, libId))
+            if (readableDump.writeLib(snapshot, libId))
                 throw new JobException("readableDump.writeLib() failed");
-			if (readableDump.closeTextOutputStream())
+            if (readableDump.closeTextOutputStream())
                 throw new JobException("readableDump.closeTextOutputStream() failed");
         } else if (type == FileType.DELIB)
         {
@@ -533,13 +533,13 @@ public class Output
 //            if (CVS.isEnabled() && !delibHeaderOnly) {
 //                CVSLibrary.savedLibrary(lib, delib.getDeletedCellFiles(), delib.getWrittenCellFiles());
 //            }
-		} else
-		{
+        } else
+        {
             throw new JobException("Unknown export type: " + type);
-		}
+        }
 		// clean up and return
         lib.setFromDisk();
-		if (!thisQuiet) System.out.println(properOutputName + " written");
+        if (!thisQuiet) System.out.println(properOutputName + " written");
         // Update the version in library read in memory
         lib.setVersion(Version.getVersion());
         // if using CVS, update state
@@ -550,15 +550,15 @@ public class Output
 */
         lib.clearChanged();
         Constraints.getCurrent().writeLibrary(lib);
-	}
+    }
 
-	/**
-	 * Returns variable disk name. Usually it is variable name.
-	 * Disk name of PortInst variables is key ATTRP_portName_varName.
+    /**
+     * Returns variable disk name. Usually it is variable name.
+     * Disk name of PortInst variables is key ATTRP_portName_varName.
      * @param owner owner of the Variable.
-	 * @param var Variable.
-	 * @return disk name of variable.
-	 */
+     * @param var Variable.
+     * @return disk name of variable.
+     */
     String diskName(ElectricObject owner, Variable var) {
         String portName = null;
         if (owner instanceof PortInst) {
