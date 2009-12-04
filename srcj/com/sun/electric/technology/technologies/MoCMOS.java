@@ -23,11 +23,8 @@
  */
 package com.sun.electric.technology.technologies;
 
-import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -789,25 +786,28 @@ public class MoCMOS extends Technology
             tech.menuPalette.menuBoxes.remove(3*5);
             tech.menuPalette.menuBoxes.remove(3*5);
         }
+        boolean polyFlag, npnTranFlag;
 
         if (isAnalog) {
-            npnTransistorNode.notUsed = false;
-            polyCapNode.notUsed = false;
+            npnTranFlag = false;
+            polyFlag = false;
             // Clear palette box with capacitor if poly2 is on
             if (!secondPolysilicon)
             {
             	assert tech.menuPalette.menuBoxes.get(0).get(1) == polyCapNode.nodes.get(0);
             	// location of capacitor 
             	tech.menuPalette.menuBoxes.get(0).remove(polyCapNode.nodes.get(0));
-                polyCapNode.notUsed = true;
+                polyFlag = true;
             }
         } else {
             // Clear palette box with NPN transisitor
             assert tech.menuPalette.menuBoxes.get(0).get(0) == npnTransistorNode.nodes.get(0);
             tech.menuPalette.menuBoxes.get(0).clear();
-            npnTransistorNode.notUsed = true;
-            polyCapNode.notUsed = true;
+            npnTranFlag = true;
+            polyFlag = true;
         }
+        if (polyCapNode != null) polyCapNode.notUsed = polyFlag;
+        if (npnTransistorNode != null) npnTransistorNode.notUsed = npnTranFlag;
 
         return tech;
     }
