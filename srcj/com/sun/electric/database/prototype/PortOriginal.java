@@ -108,7 +108,7 @@ public class PortOriginal {
         bottomCell = ni.getParent();
         bottomNode = ni.getD();
         bottomNi = ni;
-        EDatabase database = bottomCell.getDatabase();
+        EDatabase database = bottomCell != null ? bottomCell.getDatabase() : null;
         orient = bottomNode.orient;
         subrot = orient.rotateAbout(bottomNode.anchor.getLambdaX(), bottomNode.anchor.getLambdaY(), 0, 0);
         if (pre != null) {

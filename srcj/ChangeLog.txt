@@ -4,7 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
-BUG: (12/3/09, DL) New ELIB files don't read back in. (Bug #2506).
+BUG: (12/4/09, DN) Can no longer get polygons from dummy NodeInsts (Bug #2507).
+FIX: In NodeInst.getShapeOfPort() use getCellBackupUnsafe() instead of cell.backupUnsafe().
+   In PortOriginal.traverse don't get database if cell is null.
+
+BUG: (12/3/09, DN) New ELIB files don't read back in. (Bug #2506).
 FIX: In input.ELIB.convertPortProto return null when index is "-1".
     Add field output.ELIB.ElibConnection.arcIndex and use it for output.
 

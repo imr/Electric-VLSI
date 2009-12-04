@@ -24,6 +24,7 @@
  */
 package com.sun.electric.database.network;
 
+import com.sun.electric.database.EquivalentSchematicExports;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -1485,28 +1486,20 @@ class NetSchem extends NetCell {
             changed = true;
         }
         if (Job.getDebug()) {
-            ImmutableNetSchem netSchem = ImmutableNetSchem.makeNetSchem(cell.getDatabase().backup(), cell.getId());
-            assert Arrays.equals(ni_pi, netSchem.ni_pi);
-            assert arcsOffset == netSchem.arcsOffset;
-            assert Arrays.equals(drawns, netSchem.drawns);
-            assert Arrays.equals(drawnWidths, netSchem.drawnWidths);
-            assert Arrays.equals(drawnNames, netSchem.drawnNames);
-//            assert drawnOffsets.length == netSchem.drawnOffsets.length;
-//            for (int i = 0; i < drawnOffsets.length; i++) {
-//                if (drawnOffsets[i] != netSchem.drawnOffsets[i])
-//                    System.out.println(cell + " drawnOffsets[" + i + "] " + drawnOffsets[i] + " " + netSchem.drawnOffsets[i]);
-//            }
-//            if (!Arrays.equals(drawnOffsets, netSchem.drawnOffsets)) {
-//                ImmutableNetSchem.makeNetSchem(cell.getDatabase().backup(), cell.getId());
-//            }
-            assert Arrays.equals(drawnOffsets, netSchem.drawnOffsets);
-            assert Arrays.equals(nodeOffsets, netSchem.nodeOffsets);
+            EquivalentSchematicExports eq = EquivalentSchematicExports.make(cell.getDatabase().backup(), cell.getId());
+//            assert Arrays.equals(ni_pi, netSchem.ni_pi);
+//            assert arcsOffset == netSchem.arcsOffset;
+//            assert Arrays.equals(drawns, netSchem.drawns);
+//            assert Arrays.equals(drawnWidths, netSchem.drawnWidths);
+//            assert Arrays.equals(drawnNames, netSchem.drawnNames);
+//            assert Arrays.equals(drawnOffsets, netSchem.drawnOffsets);
+//            assert Arrays.equals(nodeOffsets, netSchem.nodeOffsets);
 
-            assert globals.equals(netSchem.globals);
-            assert Arrays.equals(portOffsets, netSchem.portOffsets);
-            assert Arrays.equals(equivPortsN, netSchem.equivPortsN);
-            assert Arrays.equals(equivPortsP, netSchem.equivPortsP);
-            assert Arrays.equals(equivPortsA, netSchem.equivPortsA);
+            assert globals.equals(eq.getGlobals());
+//            assert Arrays.equals(portOffsets, netSchem.portOffsets);
+            assert Arrays.equals(equivPortsN, eq.getEquivPortsN());
+            assert Arrays.equals(equivPortsP, eq.getEquivPortsP());
+            assert Arrays.equals(equivPortsA, eq.getEquivPortsA());
         }
         return changed;
     }

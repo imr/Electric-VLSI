@@ -22,16 +22,8 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database.network;
+package com.sun.electric.database;
 
-import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellRevision;
-import com.sun.electric.database.CellTree;
-import com.sun.electric.database.EquivPorts;
-import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.ImmutableExport;
-import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
@@ -39,6 +31,9 @@ import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
+import com.sun.electric.database.network.Global;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
@@ -63,7 +58,7 @@ import java.util.Set;
  *
  * @author dn146861
  */
-public class ImmutableNetSchem {
+class ImmutableNetSchem {
     private static final boolean DEBUG = false;
 
     private final Snapshot snapshot;
@@ -71,7 +66,7 @@ public class ImmutableNetSchem {
     private final Schematics schem;
     private final PrimitivePortId busPinPortId;
     private final ArcProto busArc;
-    private final CellTree cellTree;
+    final CellTree cellTree;
     private final CellBackup cellBackup;
     private final CellBackup.Memoization m;
     private final CellRevision cellRevision;
@@ -83,11 +78,11 @@ public class ImmutableNetSchem {
     private final int numNodes;
     private final int numArcs;
 
-    final int[] ni_pi;
-    final int arcsOffset;
+    private final int[] ni_pi;
+    private final int arcsOffset;
     private final int[] tailConn;
     private final int[] headConn;
-    final int[] drawns;
+    private final int[] drawns;
 
     private final ArrayList<PortInst> stack = new ArrayList<PortInst>();
     private int numDrawns;
@@ -102,15 +97,15 @@ public class ImmutableNetSchem {
     private int exportedNetNameCount;
 
     /** */
-    final int[] portOffsets;
+    private final int[] portOffsets;
     /** Node offsets. */
-    final int[] drawnOffsets;
+    private final int[] drawnOffsets;
     /** */
-    final Name[] drawnNames;
+    private final Name[] drawnNames;
     /** */
-    final int[] drawnWidths;
+    private final int[] drawnWidths;
     /** Node offsets. */
-    int[] nodeOffsets;
+    private int[] nodeOffsets;
 
     /** */
     Global.Set globals;
@@ -130,7 +125,7 @@ public class ImmutableNetSchem {
     /** */
     int netNamesOffset;
 
-    public ImmutableNetSchem(Snapshot snapshot, CellId cellId, Map<CellId,ImmutableNetSchem> netSchems) {
+    public ImmutableNetSchem(Snapshot snapshot, CellId cellId, Map<CellId,ImmutableNetSchem> netSchems, Map<CellId,EquivalentSchematicExports> eqs) {
         assert cellId.isIcon() || cellId.isSchematic();
         this.snapshot = snapshot;
         this.cellId = cellId;
@@ -153,7 +148,7 @@ public class ImmutableNetSchem {
         if (cellId.isIcon()) {
             CellId mainSchemId = snapshot.groupMainSchematics[snapshot.cellGroups[cellId.cellIndex]];
             if (mainSchemId != null)
-                implementation = getNetCell(mainSchemId, netSchems);
+                implementation = getNetCell(mainSchemId, netSchems, eqs);
         }
         this.implementation = implementation;
 
@@ -208,19 +203,19 @@ public class ImmutableNetSchem {
 
         nodeOffsets = new int[numNodes];
 
-        initNodables(netSchems);
+        initNodables(netSchems, eqs);
         
         int mapSize = netNamesOffset + netNames.size();
-        int[] netMapN = Netlist.initMap(mapSize);
-        localConnections(netMapN, netSchems);
+        int[] netMapN = ImmutableNetLayout.initMap(mapSize);
+        localConnections(netMapN, netSchems, eqs);
         
         int[] netMapP = netMapN.clone();
         int[] netMapA = netMapN.clone();
-        internalConnections(netMapN, netMapP, netMapA, netSchems);
+        internalConnections(netMapN, netMapP, netMapA, netSchems, eqs);
 
-        Netlist.closureMap(netMapN);
-        Netlist.closureMap(netMapP);
-        Netlist.closureMap(netMapA);
+        ImmutableNetLayout.closureMap(netMapN);
+        ImmutableNetLayout.closureMap(netMapP);
+        ImmutableNetLayout.closureMap(netMapA);
 
         updatePortImplementation();
 
@@ -228,7 +223,7 @@ public class ImmutableNetSchem {
     }
 
     static ImmutableNetSchem makeNetSchem(Snapshot snapshot, CellId top) {
-        return new ImmutableNetSchem(snapshot, top, new HashMap<CellId,ImmutableNetSchem>());
+        return new ImmutableNetSchem(snapshot, top, new HashMap<CellId,ImmutableNetSchem>(), new HashMap<CellId,EquivalentSchematicExports>());
     }
 
     private ImmutableNetSchem getSchem() {
@@ -595,7 +590,7 @@ public class ImmutableNetSchem {
 //        networkManager.logError(msg, NetworkTool.errorSortNetworks);
     }
 
-    private void initNodables(Map<CellId,ImmutableNetSchem> netSchems) {
+    private void initNodables(Map<CellId,ImmutableNetSchem> netSchems, Map<CellId,EquivalentSchematicExports> eqs) {
         Global.Buf globalBuf = new Global.Buf();
         int nodeProxiesOffset = 0;
         Map<ImmutableNodeInst, Set<Global>> nodeInstExcludeGlobal = null;
@@ -630,7 +625,7 @@ public class ImmutableNetSchem {
                     continue;
                 if (isIconOfParent(n))
                     continue;
-                ImmutableNetSchem netCell = getNetCell((CellId)n.protoId, netSchems);
+                ImmutableNetSchem netCell = getNetCell((CellId)n.protoId, netSchems, eqs);
                 ImmutableNetSchem sch = netCell.getSchem();
                 if (sch != null && sch != this) {
                     Global.Set gs = sch.globals;
@@ -742,7 +737,7 @@ public class ImmutableNetSchem {
         for (int i = 0; i < numDrawns; i++) {
             drawnOffsets[i] = mapOffset;
             mapOffset += drawnWidths[i];
-            if (NetworkTool.debug) {
+            if (DEBUG) {
                 System.out.println("Drawn " + i + " has offset " + drawnOffsets[i]);
             }
         }
@@ -765,7 +760,7 @@ public class ImmutableNetSchem {
                 continue;
             }
             CellBackup iconCell = snapshot.getCell((CellId)n.protoId);
-            ImmutableNetSchem netSchem = getNetCell((CellId)n.protoId, netSchems).getSchem();
+            ImmutableNetSchem netSchem = getNetCell((CellId)n.protoId, netSchems, eqs).getSchem();
             if (netSchem == null) {
                 continue;
             }
@@ -786,7 +781,7 @@ public class ImmutableNetSchem {
                     }
                     name2proxy.put(name, proxy);
                 }
-                if (NetworkTool.debug) {
+                if (DEBUG) {
                     System.out.println(proxy + " " + mapOffset + " " + netSchem.equivPortsN.length);
                 }
                 proxy.nodeOffset = mapOffset;
@@ -829,7 +824,7 @@ public class ImmutableNetSchem {
         return null;
     }
 
-    private void localConnections(int netMap[], Map<CellId,ImmutableNetSchem> netSchems) {
+    private void localConnections(int netMap[], Map<CellId,ImmutableNetSchem> netSchems, Map<CellId,EquivalentSchematicExports> eqs) {
 
         // Exports
         for (int k = 0; k < numExports; k++) {
@@ -840,9 +835,9 @@ public class ImmutableNetSchem {
             int drawn = drawns[k];
             int drawnOffset = drawnOffsets[drawn];
             for (int i = 0; i < busWidth; i++) {
-                Netlist.connectMap(netMap, portOffset + i, drawnOffset + (busWidth == drawnWidths[drawn] ? i : i % drawnWidths[drawn]));
+                ImmutableNetLayout.connectMap(netMap, portOffset + i, drawnOffset + (busWidth == drawnWidths[drawn] ? i : i % drawnWidths[drawn]));
                 GenMath.MutableInteger nn = netNames.get(expNm.subname(i));
-                Netlist.connectMap(netMap, portOffset + i, netNamesOffset + nn.intValue());
+                ImmutableNetLayout.connectMap(netMap, portOffset + i, netNamesOffset + nn.intValue());
             }
         }
 
@@ -858,7 +853,7 @@ public class ImmutableNetSchem {
                 Global g = globalInst(n);
                 if (g != null) {
                     int drawn = drawns[ni_pi[k]];
-                    Netlist.connectMap(netMap, globals.indexOf(g), drawnOffsets[drawn]);
+                    ImmutableNetLayout.connectMap(netMap, globals.indexOf(g), drawnOffsets[drawn]);
                 }
                 if (n.protoId == schem.wireConNode.getId()) {
                     connectWireCon(netMap, n);
@@ -873,7 +868,7 @@ public class ImmutableNetSchem {
             if (!(subCellId.isIcon() || subCellId.isSchematic())) {
                 continue;
             }
-            ImmutableNetSchem icon = getNetCell((CellId) n.protoId, netSchems);
+            ImmutableNetSchem icon = getNetCell((CellId) n.protoId, netSchems, eqs);
             ImmutableNetSchem schem = icon.getSchem();
             if (schem == null) {
                 continue;
@@ -911,7 +906,7 @@ public class ImmutableNetSchem {
                         busOffset += busWidth * i;
                     }
                     for (int j = 0; j < busWidth; j++) {
-                        Netlist.connectMap(netMap, busOffset + j, nodeOffset + j);
+                        ImmutableNetLayout.connectMap(netMap, busOffset + j, nodeOffset + j);
                     }
                 }
             }
@@ -935,7 +930,7 @@ public class ImmutableNetSchem {
             int drawnOffset = drawnOffsets[drawn];
             for (int i = 0; i < busWidth; i++) {
                 GenMath.MutableInteger nn = netNames.get(arcNm.subname(i));
-                Netlist.connectMap(netMap, drawnOffset + i, netNamesOffset + nn.intValue());
+                ImmutableNetLayout.connectMap(netMap, drawnOffset + i, netNamesOffset + nn.intValue());
             }
         }
 
@@ -945,8 +940,8 @@ public class ImmutableNetSchem {
             if (proxy == null) {
                 continue;
             }
-            CellBackup subCell = proxy.getProto(netSchems);
-            ImmutableNetSchem schem = getNetCell(subCell.cellRevision.d.cellId, netSchems);
+            CellBackup subCell = proxy.getProto(netSchems, eqs);
+            ImmutableNetSchem schem = getNetCell(subCell.cellRevision.d.cellId, netSchems, eqs);
             int numGlobals = schem.portOffsets[0];
             if (numGlobals == 0) {
                 continue;
@@ -960,11 +955,11 @@ public class ImmutableNetSchem {
                 if (excludeGlobals != null && excludeGlobals.contains(g)) {
                     continue;
                 }
-                Netlist.connectMap(netMap, this.globals.indexOf(g), proxy.nodeOffset + i);
+                ImmutableNetLayout.connectMap(netMap, this.globals.indexOf(g), proxy.nodeOffset + i);
             }
         }
 
-        Netlist.closureMap(netMap);
+        ImmutableNetLayout.closureMap(netMap);
 //        HashMap<String, Name> canonicToName = new HashMap<String, Name>();
 //        for (Map.Entry<Name, GenMath.MutableInteger> e : netNames.entrySet()) {
 //            Name name = e.getKey();
@@ -1021,11 +1016,11 @@ public class ImmutableNetSchem {
             large = temp;
         }
         for (int i = 0; i < drawnWidths[large]; i++) {
-            Netlist.connectMap(netMap, drawnOffsets[large] + i, drawnOffsets[small] + (i % drawnWidths[small]));
+            ImmutableNetLayout.connectMap(netMap, drawnOffsets[large] + i, drawnOffsets[small] + (i % drawnWidths[small]));
         }
     }
 
-    private void internalConnections(int[] netMapF, int[] netMapP, int[] netMapA, Map<CellId,ImmutableNetSchem> netSchems) {
+    private void internalConnections(int[] netMapF, int[] netMapP, int[] netMapA, Map<CellId,ImmutableNetSchem> netSchems, Map<CellId,EquivalentSchematicExports> eqs) {
         for (int k = 0; k < numNodes; k++) {
             ImmutableNodeInst n = nodes.get(k);
             int nodeOffset = ni_pi[k];
@@ -1033,10 +1028,10 @@ public class ImmutableNetSchem {
             if (n.protoId instanceof PrimitiveNodeId) {
                 PrimitiveNode.Function fun = getFunction(n);
                 if (fun == PrimitiveNode.Function.RESIST) {
-                    Netlist.connectMap(netMapP, drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
-                    Netlist.connectMap(netMapA, drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
+                    ImmutableNetLayout.connectMap(netMapP, drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
+                    ImmutableNetLayout.connectMap(netMapA, drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
                 } else if (fun.isPolyOrWellResistor()) {
-                    Netlist.connectMap(netMapA, drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
+                    ImmutableNetLayout.connectMap(netMapA, drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
                 }
                 continue;
             }
@@ -1059,21 +1054,21 @@ public class ImmutableNetSchem {
                 if (i != jN) {
                     int dj = drawns[nodeOffset + jN];
                     if (dj >= 0) {
-                        Netlist.connectMap(netMapF, drawnOffsets[di], drawnOffsets[dj]);
+                        ImmutableNetLayout.connectMap(netMapF, drawnOffsets[di], drawnOffsets[dj]);
                     }
                 }
                 int jP = epP[i];
                 if (i != jP) {
                     int dj = drawns[nodeOffset + jP];
                     if (dj >= 0) {
-                        Netlist.connectMap(netMapP, drawnOffsets[di], drawnOffsets[dj]);
+                        ImmutableNetLayout.connectMap(netMapP, drawnOffsets[di], drawnOffsets[dj]);
                     }
                 }
                 int jA = epA[i];
                 if (i != jA) {
                     int dj = drawns[nodeOffset + jA];
                     if (dj >= 0) {
-                        Netlist.connectMap(netMapA, drawnOffsets[di], drawnOffsets[dj]);
+                        ImmutableNetLayout.connectMap(netMapA, drawnOffsets[di], drawnOffsets[dj]);
                     }
                 }
             }
@@ -1083,8 +1078,8 @@ public class ImmutableNetSchem {
             if (proxy == null) {
                 continue;
             }
-            CellBackup subCell = proxy.getProto(netSchems);
-            ImmutableNetSchem schem = getNetCell(subCell.cellRevision.d.cellId, netSchems);
+            CellBackup subCell = proxy.getProto(netSchems, eqs);
+            ImmutableNetSchem schem = getNetCell(subCell.cellRevision.d.cellId, netSchems, eqs);
             int[] eqF = schem.equivPortsN;
             int[] eqP = schem.equivPortsP;
             int[] eqA = schem.equivPortsA;
@@ -1093,25 +1088,25 @@ public class ImmutableNetSchem {
 
                 int jF = eqF[i];
                 if (i != jF) {
-                    Netlist.connectMap(netMapF, io, proxy.nodeOffset + jF);
+                    ImmutableNetLayout.connectMap(netMapF, io, proxy.nodeOffset + jF);
                 }
 
                 int jP = eqP[i];
                 if (i != jP) {
-                    Netlist.connectMap(netMapP, io, proxy.nodeOffset + jP);
+                    ImmutableNetLayout.connectMap(netMapP, io, proxy.nodeOffset + jP);
                 }
 
                 int jA = eqA[i];
                 if (i != jA) {
-                    Netlist.connectMap(netMapA, io, proxy.nodeOffset + jA);
+                    ImmutableNetLayout.connectMap(netMapA, io, proxy.nodeOffset + jA);
                 }
             }
         }
         if (cellId.libId.libName.equals("spiceparts") && cellId.cellName.getName().equals("Ammeter") && cellId.isIcon()) {
             int mapOffset0 = drawnOffsets[drawns[0]];
             int mapOffset1 = drawnOffsets[drawns[1]];
-            Netlist.connectMap(netMapP, mapOffset0, mapOffset1);
-            Netlist.connectMap(netMapA, mapOffset0, mapOffset1);
+            ImmutableNetLayout.connectMap(netMapP, mapOffset0, mapOffset1);
+            ImmutableNetLayout.connectMap(netMapA, mapOffset0, mapOffset1);
         }
     }
 
@@ -1262,15 +1257,29 @@ public class ImmutableNetSchem {
         return np.getTechnology().getPrimitiveFunction(np, n.techBits);
     }
 
-    private ImmutableNetSchem getNetCell(CellId cellId, Map<CellId,ImmutableNetSchem> netSchems) {
+    private ImmutableNetSchem getNetCell(CellId cellId, Map<CellId,ImmutableNetSchem> netSchems, Map<CellId,EquivalentSchematicExports> eqs) {
         if (!(cellId.isIcon() || cellId.isSchematic()))
             throw new IllegalArgumentException();
         ImmutableNetSchem netCell = netSchems.get(cellId);
         if (netCell == null) {
-            netCell = new ImmutableNetSchem(snapshot, cellId, netSchems);
+            netCell = new ImmutableNetSchem(snapshot, cellId, netSchems, eqs);
             netSchems.put(cellId, netCell);
+            eqs.put(cellId, new EquivalentSchematicExports(netCell));
         }
         return netCell;
+    }
+
+    private EquivalentSchematicExports getEquivExports(CellId cellId, Map<CellId,ImmutableNetSchem> netSchems, Map<CellId,EquivalentSchematicExports> eqs) {
+        if (!(cellId.isIcon() || cellId.isSchematic()))
+            throw new IllegalArgumentException();
+        EquivalentSchematicExports eq = eqs.get(cellId);
+        if (eqs == null) {
+            ImmutableNetSchem netSchem = new ImmutableNetSchem(snapshot, cellId, netSchems, eqs);
+            netSchems.put(cellId, netSchem);
+            eq = new EquivalentSchematicExports(netSchem);
+            eqs.put(cellId, eq);
+        }
+        return eq;
     }
 
     private int getArcDrawn(ImmutableArcInst a) {
@@ -1348,8 +1357,8 @@ public class ImmutableNetSchem {
          * Method to return the prototype of this Nodable.
          * @return the prototype of this Nodable.
          */
-        public CellBackup getProto(Map<CellId,ImmutableNetSchem> netSchems) {
-            ImmutableNetSchem schem = getNetCell(((CellId)n.protoId), netSchems).getSchem();
+        public CellBackup getProto(Map<CellId,ImmutableNetSchem> netSchems, Map<CellId,EquivalentSchematicExports> eqs) {
+            ImmutableNetSchem schem = getNetCell(((CellId)n.protoId), netSchems, eqs).getSchem();
             return schem.cellBackup;
         }
 

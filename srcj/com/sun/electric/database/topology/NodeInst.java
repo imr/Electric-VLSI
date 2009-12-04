@@ -2139,7 +2139,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         PrimitiveNode np = pp.getParent();
 //        Technology tech = np.getTechnology();
         Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
-        Poly poly = polyBuilder.getShape(cell.backupUnsafe(), n, pp, selectPt);
+        Poly poly = polyBuilder.getShape(getCellBackupUnsafe(), n, pp, selectPt);
 //        Poly poly = tech.getShapeOfPort(ni, (PrimitivePort) pp, selectPt);
 
         // we only compress port if it is a rectangle

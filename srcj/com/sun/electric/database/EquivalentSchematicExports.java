@@ -32,6 +32,7 @@ import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -62,6 +63,29 @@ public class EquivalentSchematicExports {
         equivPortsN = netCell.equivPortsN;
         equivPortsP = netCell.equivPortsP;
         equivPortsA = netCell.equivPortsA;
+    }
+
+    EquivalentSchematicExports(ImmutableNetSchem netSchem) {
+        cellId = netSchem.cellTree.top.cellRevision.d.cellId;
+        exports = netSchem.cellTree.top.cellRevision.exports;
+        numExports = exports.size();
+        numExpandedExports = netSchem.equivPortsN.length;
+        globals = netSchem.globals;
+        globalPartitions = null;
+        equivPortsN = netSchem.equivPortsN;
+        equivPortsP = netSchem.equivPortsP;
+        equivPortsA = netSchem.equivPortsA;
+    }
+
+
+    public static EquivalentSchematicExports make(Snapshot snapshot, CellId top) {
+        ImmutableNetSchem netSchem = ImmutableNetSchem.makeNetSchem(snapshot, top);
+        return new EquivalentSchematicExports(netSchem);
+    }
+
+    public static EquivalentSchematicExports make(Snapshot snapshot, CellId top, Map<CellId,EquivalentSchematicExports> eqs) {
+        ImmutableNetSchem netSchem = ImmutableNetSchem.makeNetSchem(snapshot, top);
+        return new EquivalentSchematicExports(netSchem);
     }
 
     public CellId getCellId() {

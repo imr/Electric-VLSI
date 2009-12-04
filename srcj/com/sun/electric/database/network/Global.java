@@ -337,7 +337,7 @@ public class Global {
         /**
          * Constructs buffer.
          */
-        Buf() {
+        public Buf() {
         }
 
         /**
@@ -352,7 +352,7 @@ public class Global {
          * Add specified Global to the buffer.
          * @param g specified Global.
          */
-        String addToBuf(Global g, PortCharacteristic characteristic) {
+        public String addToBuf(Global g, PortCharacteristic characteristic) {
             String errorMsg = null;
             if (buf.length <= g.index) {
                 PortCharacteristic[] newBuf = new PortCharacteristic[g.index + 1];
@@ -372,7 +372,7 @@ public class Global {
          * Add specified Global.Set to the buffer.
          * @param set specified Global.Set.
          */
-        String addToBuf(Global.Set set) {
+        public String addToBuf(Global.Set set) {
             String errorMsg = null;
             for (int i = 0; i < set.elems.length; i++) {
                 int index = set.elems[i].index;
@@ -391,7 +391,7 @@ public class Global {
          * Returns Global.Set of element in the buffer.
          * @return set of Globals in the buffer.
          */
-        Global.Set getBuf() {
+        public Global.Set getBuf() {
             return Global.Set.newSet(buf);
         }
     }
