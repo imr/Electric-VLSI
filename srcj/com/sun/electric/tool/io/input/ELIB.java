@@ -2773,30 +2773,31 @@ public class ELIB extends LibraryFiles
 		return getArcProtoList(aindex);
 	}
 
-	/**
-	 * Method to convert the PortProto index "i" to a true PortProto pointer.
-	 */
-	private PortProto convertPortProto(int i)
-	{
-		if (i < 0)
-		{
-			int pindex = -i - 2;
-			if (pindex >= primPortProtoCount)
-			{
-				System.out.println("Error: want primitive port index " + pindex + " when limit is " + primPortProtoCount);
-				pindex = 0;
-			}
-			return getPrimPortProtoList(pindex);
-		}
+    /**
+     * Method to convert the PortProto index "i" to a true PortProto pointer.
+     */
+    private PortProto convertPortProto(int i)
+    {
+        if (i == -1) return null;
+        if (i < 0)
+        {
+            int pindex = -i - 2;
+            if (pindex >= primPortProtoCount)
+            {
+                System.out.println("Error: want primitive port index " + pindex + " when limit is " + primPortProtoCount);
+                pindex = 0;
+            }
+            return getPrimPortProtoList(pindex);
+        }
 
-		if (i >= exportCount)
-		{
-			System.out.println("Error: want port index " + i + " when limit is " + exportCount);
-			i = 0;
-		}
-		if (exportList[i] instanceof Cell) return null;
-		return (Export)exportList[i];
-	}
+        if (i >= exportCount)
+        {
+            System.out.println("Error: want port index " + i + " when limit is " + exportCount);
+            i = 0;
+        }
+        if (exportList[i] instanceof Cell) return null;
+        return (Export)exportList[i];
+    }
 
 	private NodeProto getPrimNodeProtoList(int i)
 	{
