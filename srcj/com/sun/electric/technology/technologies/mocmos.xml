@@ -1000,6 +1000,38 @@
         </pureLayerNode>
     </layer>
 
+    <layer name="Hi-Res" fun="ART">
+        <opaqueColor r="255" g="0" b="0"/>
+        <patternedOnDisplay>true</patternedOnDisplay>
+        <patternedOnPrinter>true</patternedOnPrinter>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <pattern>                </pattern>
+        <outlined>PAT_S</outlined>
+        <opacity>1.0</opacity>
+        <foreground>true</foreground>
+        <display3D thick="1.0" height="1.0" mode="NONE" factor="1.0"/>
+        <cifLayer cif="CHR"/>
+        <skillLayer skill="Hi-Res"/>
+        <parasitics resistance="1.0" capacitance="0.0" edgeCapacitance="0.0"/>
+        <pureLayerNode name="Hi-Res-Node" port="Port_Hi-Res">
+            <lambda>10.0</lambda>
+        </pureLayerNode>
+    </layer>
+
     <!-- ******************** ARCS ******************** -->
     <arcProto name="Metal-1" fun="METAL1">
         <wipable/>
@@ -2841,6 +2873,7 @@
         <layerGds layer="Thick-Active" gds="60"/>
         <layerGds layer="Pad-Frame" gds="26"/>
         <layerGds layer="P-Base" gds="58"/>
+        <layerGds layer="Hi-Res" gds="34"/>
 
         <LayerRule ruleName="1.1 Mosis" layerName="P-Well" type="MINWID" when="DE|SU" value="12.0"/>
         <LayerRule ruleName="1.1 Mosis" layerName="N-Well" type="MINWID" when="DE|SU" value="12.0"/>
