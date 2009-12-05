@@ -24,6 +24,7 @@
 package com.sun.electric.database.topology;
 
 import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellTree;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.EditingPreferences;
@@ -1252,6 +1253,25 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
     /**
+     * Returns CellTree containing this NodeInst.
+     * If this node hasn't parent, a dummy CellTree is returned.
+     * @return CellTree containing this NodeInst.
+     */
+    public CellTree getCellTreeUnsafe() {
+        if (topology != null) {
+            return topology.cell.treeUnsafe();
+        }
+        CellId clipCellId = Clipboard.getClipCellId();
+        ImmutableCell cell = ImmutableCell.newInstance(clipCellId, 0);
+        cell = cell.withTechId(getProto().getTechnology().getId());
+        TechPool techPool = TechPool.getThreadTechPool();
+        CellBackup cellBackup = CellBackup.newInstance(cell, techPool);
+        cellBackup = cellBackup.with(cell, new ImmutableNodeInst[]{getD()}, null, null, techPool);
+        CellTree cellTree = CellTree.newInstance(cell, techPool).with(cellBackup, CellTree.NULL_ARRAY, techPool);
+        return cellTree;
+    }
+
+    /**
      * Returns CellBackup containing this NodeInst.
      * If this node hasn't parent, a dummy CellBackup is returned.
      * @return CellBackup containing this NodeInst.
@@ -2139,7 +2159,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         PrimitiveNode np = pp.getParent();
 //        Technology tech = np.getTechnology();
         Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
-        Poly poly = polyBuilder.getShape(getCellBackupUnsafe(), n, pp, selectPt);
+        Poly poly = polyBuilder.getShape(getCellTreeUnsafe(), n, pp, selectPt);
 //        Poly poly = tech.getShapeOfPort(ni, (PrimitivePort) pp, selectPt);
 
         // we only compress port if it is a rectangle

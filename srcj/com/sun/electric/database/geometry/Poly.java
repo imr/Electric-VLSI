@@ -23,7 +23,7 @@
  */
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellTree;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.id.PrimitivePortId;
@@ -593,9 +593,9 @@ public class Poly extends PolyBase {
             return poly;
         }
 
-        public Poly getShape(CellBackup cellBackup, ImmutableNodeInst n, PrimitivePort pp, Point2D selectPt) {
+        public Poly getShape(CellTree cellTree, ImmutableNodeInst n, PrimitivePort pp, Point2D selectPt) {
             isChanging = true;
-            setup(cellBackup, null, false, true, false, null);
+            setup(cellTree, null, false, true, false, null);
             lastPolys.clear();
             genShapeOfPort(n, (PrimitivePortId)pp.getId(), selectPt);
             assert lastPolys.size() == 1;

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+BUG: (12/5/09, DN) Regressions failes in getShapeOfPort.
+FIX: Use cellTree.techPool instead of cellBackup.techPool for getShapeOfPort.
+
 IMP/MAN: (12/4/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
 Added capacitor and hi_res layer.
 

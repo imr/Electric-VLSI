@@ -26,6 +26,7 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
+import com.sun.electric.database.CellTree;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
@@ -78,6 +79,11 @@ public abstract class AbstractShapeBuilder {
 
     public void setup(Cell cell) {
         setup(cell.backupUnsafe(), null, false, true, false, null);
+    }
+
+    public void setup(CellTree cellTree, Orientation orient, boolean electrical, boolean wipePins, boolean reasonable, Layer.Function.Set onlyTheseLayers) {
+        setup(cellTree.top, orient, electrical, wipePins, reasonable, onlyTheseLayers);
+        techPool = cellTree.techPool;
     }
 
     public void setup(CellBackup cellBackup, Orientation orient, boolean electrical, boolean wipePins, boolean reasonable, Layer.Function.Set onlyTheseLayers) {

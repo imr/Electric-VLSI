@@ -93,7 +93,7 @@ public class EquivalentSchematicExports {
     }
 
     public Global.Set getGlobals() {
-        return Global.Set.empty;
+        return globals;
     }
 
     public int getNumExports() {
