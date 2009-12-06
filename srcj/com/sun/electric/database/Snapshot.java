@@ -70,6 +70,7 @@ public class Snapshot {
     public final ImmutableArrayList<LibraryBackup> libBackups;
     public final Environment environment;
     public final TechPool techPool;
+    final EquivalentSchematicExports[] equivSchemExports;
 
     /** Creates a new instance of Snapshot */
     private Snapshot(IdManager idManager, int snapshotId, Tool tool,
@@ -88,6 +89,7 @@ public class Snapshot {
         this.libBackups = libBackups;
         this.environment = environment;
         techPool = environment.techPool;
+        equivSchemExports = new EquivalentSchematicExports[cellTrees.size()];
 //        if (Job.getDebug())
 //            check();
     }
@@ -234,9 +236,62 @@ public class Snapshot {
         Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool,
                 cellTrees, cellBackups, cellGroups, groupMainSchematics,
                 libBackups, environment);
+
+        // Try to reuse EquivalenSchematicExports
+        for (CellTree cellTree: snapshot.cellTrees) {
+            if (cellTree == null) continue;
+            reuseSchemEq(snapshot, cellTree.top.cellRevision.d.cellId);
+        }
 //        long endTime = System.currentTimeMillis();
 //        System.out.println("Creating snapshot took: " + (endTime - startTime) + " msec");
         return snapshot;
+    }
+
+    private EquivalentSchematicExports reuseSchemEq(Snapshot snapshot, CellId cellId) {
+        EquivalentSchematicExports newSchemEq = snapshot.equivSchemExports[cellId.cellIndex];
+        if (newSchemEq != null) return newSchemEq;
+//        if (cellId.toString().equals("redFour:NMOS;1{sch}") || cellId.toString().equals("orangeST090nm:NMOSf;1{ic}"))
+//            cellId = cellId;
+        CellTree oldCellTree = getCellTree(cellId);
+        CellTree newCellTree = snapshot.getCellTree(cellId);
+        if (newCellTree != oldCellTree) return null;
+        newSchemEq = equivSchemExports[cellId.cellIndex];
+        if (newSchemEq == null) return null;
+        assert cellId.isIcon() || cellId.isSchematic();
+        CellId mainSchemId = snapshot.groupMainSchematics[snapshot.cellGroups[cellId.cellIndex]];
+        if (mainSchemId != groupMainSchematics[cellGroups[cellId.cellIndex]]) return null;
+        if (mainSchemId != cellId && mainSchemId != null) {
+            EquivalentSchematicExports oldMainSchemEq = equivSchemExports[mainSchemId.cellIndex];
+            assert oldMainSchemEq != null;
+            EquivalentSchematicExports newMainSchemEq = reuseSchemEq(snapshot, mainSchemId);
+            if (newMainSchemEq == null)
+                newMainSchemEq = EquivalentSchematicExports.getEquivExports(snapshot, mainSchemId);
+            if (newMainSchemEq != oldMainSchemEq)
+                newSchemEq = null;
+        }
+        for (CellTree subTree: newCellTree.subTrees) {
+            if (subTree == null) continue;
+            CellId subCellId = subTree.top.cellRevision.d.cellId;
+            if (subCellId.isIcon()) {
+                if (cellId.isSchematic() && snapshot.cellGroups[cellId.cellIndex] == snapshot.cellGroups[subCellId.cellIndex]) {
+                    // Icon of parent
+                    continue;
+                }
+            } else if (!subCellId.isSchematic()) {
+                continue;
+            }
+            EquivalentSchematicExports oldSubSchemEq = equivSchemExports[subCellId.cellIndex];
+            assert oldSubSchemEq != null;
+            EquivalentSchematicExports newSubSchemEq = reuseSchemEq(snapshot, subCellId);
+            if (newSubSchemEq == null)
+                newSubSchemEq = EquivalentSchematicExports.getEquivExports(snapshot, subCellId);
+            if (!newSubSchemEq.equals(oldSubSchemEq)) {
+                newSchemEq = null;
+            }
+        }
+        if (newSchemEq != null)
+            snapshot.equivSchemExports[cellId.cellIndex] = newSchemEq;
+        return newSchemEq;
     }
 
     public Snapshot with(Tool tool, Environment environment) {

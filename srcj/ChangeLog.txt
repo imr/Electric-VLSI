@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+IMP: (12/6/09, DN) Optimization of immutable algorithm of computing connected Exports in schematic cells.
+    Self-test is always on.
+
 BUG: (12/5/09, DN) Regressions failes in getShapeOfPort.
 FIX: Use cellTree.techPool instead of cellBackup.techPool for getShapeOfPort.
 

@@ -38,11 +38,14 @@ import java.util.Map;
  *
  */
 public class EquivalentSchematicExports {
-    private final CellId cellId;
+    final CellId cellId;
+    final EquivalentSchematicExports implementation;
+    final int[] portImplementation;
     private final Global.Set globals;
     final int numExports;
+    final int[] portOffsets;
     private final int numExpandedExports;
-    private final ImmutableArrayList<ImmutableExport> exports;
+    final ImmutableArrayList<ImmutableExport> exports;
     private final HashMap<ExportId,Global.Set[]> globalPartitions;
     /**
      * Equivalence of ports.
@@ -53,38 +56,33 @@ public class EquivalentSchematicExports {
     final int[] equivPortsP;
     final int[] equivPortsA;
 
-    EquivalentSchematicExports(CellTree cellTree) {
-        cellId = cellTree.top.cellRevision.d.cellId;
-        exports = cellTree.top.cellRevision.exports;
-        numExpandedExports = numExports = exports.size();
-        globals = Global.Set.empty;
-        globalPartitions = null;
-        ImmutableNetLayout netCell = new ImmutableNetLayout(cellTree);
-        equivPortsN = netCell.equivPortsN;
-        equivPortsP = netCell.equivPortsP;
-        equivPortsA = netCell.equivPortsA;
-    }
-
     EquivalentSchematicExports(ImmutableNetSchem netSchem) {
         cellId = netSchem.cellTree.top.cellRevision.d.cellId;
+        implementation = cellId == netSchem.implementationCellId ? this : netSchem.snapshot.equivSchemExports[netSchem.implementationCellId.cellIndex];
+        portImplementation = netSchem.portImplementation;
         exports = netSchem.cellTree.top.cellRevision.exports;
         numExports = exports.size();
         numExpandedExports = netSchem.equivPortsN.length;
+        portOffsets = netSchem.portOffsets;
         globals = netSchem.globals;
-        globalPartitions = null;
+        globalPartitions = netSchem.globalPartitions;
         equivPortsN = netSchem.equivPortsN;
         equivPortsP = netSchem.equivPortsP;
         equivPortsA = netSchem.equivPortsA;
     }
 
-
-    public static EquivalentSchematicExports make(Snapshot snapshot, CellId top) {
-        ImmutableNetSchem netSchem = ImmutableNetSchem.makeNetSchem(snapshot, top);
-        return new EquivalentSchematicExports(netSchem);
+    public static EquivalentSchematicExports getEquivExports(Snapshot snapshot, CellId top) {
+        EquivalentSchematicExports eq = snapshot.equivSchemExports[top.cellIndex];
+        if (eq == null) {
+            ImmutableNetSchem netSchem = new ImmutableNetSchem(snapshot, top);
+            eq = new EquivalentSchematicExports(netSchem);
+            snapshot.equivSchemExports[top.cellIndex] = eq;
+        }
+        return eq;
     }
 
-    public static EquivalentSchematicExports make(Snapshot snapshot, CellId top, Map<CellId,EquivalentSchematicExports> eqs) {
-        ImmutableNetSchem netSchem = ImmutableNetSchem.makeNetSchem(snapshot, top);
+    public static EquivalentSchematicExports computeEquivExports(Snapshot snapshot, CellId top) {
+        ImmutableNetSchem netSchem = new ImmutableNetSchem(snapshot, top);
         return new EquivalentSchematicExports(netSchem);
     }
 
@@ -131,6 +129,18 @@ public class EquivalentSchematicExports {
             return false;
         }
         EquivalentSchematicExports that = (EquivalentSchematicExports)o;
+        if (this.cellId != that.cellId || this.implementation.cellId != that.implementation.cellId) {
+            return false;
+        }
+        if (cellId != implementation.cellId && !this.implementation.equals(that.implementation)) {
+            return false;
+        }
+        if (!Arrays.equals(this.portImplementation, that.portImplementation)) {
+            return false;
+        }
+        if (this.globals != that.globals) {
+            return false;
+        }
         if (this.exports != that.exports) {
             if (this.exports.size() != that.exports.size()) {
                 return false;
@@ -139,6 +149,25 @@ public class EquivalentSchematicExports {
                 ImmutableExport e1 = this.exports.get(exportIndex);
                 ImmutableExport e2 = that.exports.get(exportIndex);
                 if (e1.exportId != e2.exportId || e1.name != e2.name) {
+                    return false;
+                }
+            }
+        }
+        assert this.numExpandedExports == that.numExpandedExports;
+        assert Arrays.equals(this.portOffsets, that.portOffsets);
+        if (this.globalPartitions == null || that.globalPartitions == null) {
+            if (this.globalPartitions != null || that.globalPartitions != null) {
+                return false;
+            }
+        } else {
+            if (this.globalPartitions.size() != that.globalPartitions.size()) {
+                return false;
+            }
+            for (Map.Entry<ExportId,Global.Set[]> e: this.globalPartitions.entrySet()) {
+                ExportId eId = e.getKey();
+                Global.Set[] thisG = e.getValue();
+                Global.Set[] thatG = that.globalPartitions.get(eId);
+                if (!Arrays.equals(thisG, thatG)) {
                     return false;
                 }
             }

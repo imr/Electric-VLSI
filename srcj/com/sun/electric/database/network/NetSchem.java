@@ -56,6 +56,9 @@ import java.util.Set;
  */
 class NetSchem extends NetCell {
 
+    /** Check immutable algorithm which computes equivalent ports */
+    private static final boolean CHECK_EQUIV_PORTS = true;
+
     static void updateCellGroup(Cell.CellGroup cellGroup) {
         NetworkManager mgr = cellGroup.getDatabase().getNetworkManager();
         Cell mainSchematics = cellGroup.getMainSchematics();
@@ -1485,8 +1488,8 @@ class NetSchem extends NetCell {
         if (updateInterface()) {
             changed = true;
         }
-        if (Job.getDebug()) {
-            EquivalentSchematicExports eq = EquivalentSchematicExports.make(cell.getDatabase().backup(), cell.getId());
+        if (CHECK_EQUIV_PORTS) {
+            EquivalentSchematicExports eq = EquivalentSchematicExports.getEquivExports(cell.getDatabase().backup(), cell.getId());
 //            assert Arrays.equals(ni_pi, netSchem.ni_pi);
 //            assert arcsOffset == netSchem.arcsOffset;
 //            assert Arrays.equals(drawns, netSchem.drawns);

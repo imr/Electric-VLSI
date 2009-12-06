@@ -32,8 +32,6 @@ import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.network.Global;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
@@ -61,7 +59,7 @@ import java.util.Set;
 class ImmutableNetSchem {
     private static final boolean DEBUG = false;
 
-    private final Snapshot snapshot;
+    final Snapshot snapshot;
     private final TechPool techPool;
     private final Schematics schem;
     private final PrimitivePortId busPinPortId;
@@ -70,7 +68,7 @@ class ImmutableNetSchem {
     private final CellBackup cellBackup;
     private final CellBackup.Memoization m;
     private final CellRevision cellRevision;
-    private final CellId cellId;
+    final CellId cellId;
     private final ImmutableArrayList<ImmutableExport> exports;
     private final ImmutableArrayList<ImmutableNodeInst> nodes;
     private final ImmutableArrayList<ImmutableArcInst> arcs;
@@ -97,7 +95,7 @@ class ImmutableNetSchem {
     private int exportedNetNameCount;
 
     /** */
-    private final int[] portOffsets;
+    final int[] portOffsets;
     /** Node offsets. */
     private final int[] drawnOffsets;
     /** */
@@ -112,8 +110,9 @@ class ImmutableNetSchem {
     int[] equivPortsN;
     int[] equivPortsP;
     int[] equivPortsA;
+    HashMap<ExportId,Global.Set[]> globalPartitions;
 
-    /* Implementation of this NetSchem. */ ImmutableNetSchem implementation;
+    /* Implementation of this NetSchem. */ CellId implementationCellId;
     /* Mapping from ports of this to ports of implementation. */ int[] portImplementation;
 
     /** Node offsets. */
@@ -125,10 +124,11 @@ class ImmutableNetSchem {
     /** */
     int netNamesOffset;
 
-    public ImmutableNetSchem(Snapshot snapshot, CellId cellId, Map<CellId,ImmutableNetSchem> netSchems, Map<CellId,EquivalentSchematicExports> eqs) {
+    ImmutableNetSchem(Snapshot snapshot, CellId cellId) {
         assert cellId.isIcon() || cellId.isSchematic();
         this.snapshot = snapshot;
         this.cellId = cellId;
+//        System.out.println("begin ImmutableNetSchem " + cellId);
         techPool = snapshot.techPool;
         schem = techPool.getSchematics();
         busPinPortId = schem != null ? schem.busPinNode.getPort(0).getId() : null;
@@ -144,13 +144,15 @@ class ImmutableNetSchem {
         numNodes = cellRevision.nodes.size();
         numArcs = cellRevision.arcs.size();
 
-        ImmutableNetSchem implementation = this;
+        CellId implementationCellId = cellId;
         if (cellId.isIcon()) {
             CellId mainSchemId = snapshot.groupMainSchematics[snapshot.cellGroups[cellId.cellIndex]];
-            if (mainSchemId != null)
-                implementation = getNetCell(mainSchemId, netSchems, eqs);
+            if (mainSchemId != null) {
+                getEquivExports(mainSchemId);
+                implementationCellId = mainSchemId;
+            }
         }
-        this.implementation = implementation;
+        this.implementationCellId = implementationCellId;
 
 
         // init connections
@@ -203,15 +205,15 @@ class ImmutableNetSchem {
 
         nodeOffsets = new int[numNodes];
 
-        initNodables(netSchems, eqs);
+        initNodables();
         
         int mapSize = netNamesOffset + netNames.size();
         int[] netMapN = ImmutableNetLayout.initMap(mapSize);
-        localConnections(netMapN, netSchems, eqs);
+        localConnections(netMapN);
         
         int[] netMapP = netMapN.clone();
         int[] netMapA = netMapN.clone();
-        internalConnections(netMapN, netMapP, netMapA, netSchems, eqs);
+        internalConnections(netMapN, netMapP, netMapA);
 
         ImmutableNetLayout.closureMap(netMapN);
         ImmutableNetLayout.closureMap(netMapP);
@@ -220,14 +222,7 @@ class ImmutableNetSchem {
         updatePortImplementation();
 
         updateInterface(netMapN, netMapP, netMapA);
-    }
-
-    static ImmutableNetSchem makeNetSchem(Snapshot snapshot, CellId top) {
-        return new ImmutableNetSchem(snapshot, top, new HashMap<CellId,ImmutableNetSchem>(), new HashMap<CellId,EquivalentSchematicExports>());
-    }
-
-    private ImmutableNetSchem getSchem() {
-        return implementation;
+//        System.out.println("end ImmutableNetSchem " + cellId);
     }
 
     private void addToDrawn1(PortInst pi) {
@@ -590,7 +585,7 @@ class ImmutableNetSchem {
 //        networkManager.logError(msg, NetworkTool.errorSortNetworks);
     }
 
-    private void initNodables(Map<CellId,ImmutableNetSchem> netSchems, Map<CellId,EquivalentSchematicExports> eqs) {
+    private void initNodables() {
         Global.Buf globalBuf = new Global.Buf();
         int nodeProxiesOffset = 0;
         Map<ImmutableNodeInst, Set<Global>> nodeInstExcludeGlobal = null;
@@ -625,60 +620,59 @@ class ImmutableNetSchem {
                     continue;
                 if (isIconOfParent(n))
                     continue;
-                ImmutableNetSchem netCell = getNetCell((CellId)n.protoId, netSchems, eqs);
-                ImmutableNetSchem sch = netCell.getSchem();
-                if (sch != null && sch != this) {
-                    Global.Set gs = sch.globals;
+                EquivalentSchematicExports netEq = getEquivExports((CellId)n.protoId);
+                EquivalentSchematicExports schemEq = netEq.implementation;
+                assert schemEq != null && schemEq.getCellId() != cellId;
+                Global.Set gs = schemEq.getGlobals();
 
-                    // Check for rebinding globals
-                    int numPortInsts = getNumPorts(n.protoId);
-                    Set<Global> gb = null;
-                    for (int j = 0; j < numPortInsts; j++) {
-                        PortInst pi = new PortInst(n.nodeId, getPortIdByIndex(n.protoId, j));
-                        int piOffset = pi.getPortInstOffset();
-                        int drawn = drawns[piOffset];
-                        if (drawn < 0 || drawn >= numConnectedDrawns) {
-                            continue;
-                        }
-                        int portIndex = netCell.portImplementation[j];
-                        if (portIndex < 0) {
-                            continue;
-                        }
-                        ImmutableExport e = sch.exports.get(portIndex);
-                        if (!isGlobalPartition(e)) {
-                            continue;
-                        }
-                        if (gb == null) {
-                            gb = new HashSet<Global>();
-                        }
-                        for (int k = 0, busWidth = e.name.busWidth(); k < busWidth; k++) {
-                            int q = sch.equivPortsN[sch.portOffsets[portIndex] + k];
-                            for (int l = 0; l < sch.globals.size(); l++) {
-                                if (sch.equivPortsN[l] == q) {
-                                    Global g = sch.globals.get(l);
-                                    gb.add(g);
-                                }
+                // Check for rebinding globals
+                int numPortInsts = getNumPorts(n.protoId);
+                Set<Global> gb = null;
+                for (int j = 0; j < numPortInsts; j++) {
+                    PortInst pi = new PortInst(n.nodeId, getPortIdByIndex(n.protoId, j));
+                    int piOffset = pi.getPortInstOffset();
+                    int drawn = drawns[piOffset];
+                    if (drawn < 0 || drawn >= numConnectedDrawns) {
+                        continue;
+                    }
+                    int portIndex = netEq.portImplementation[j];
+                    if (portIndex < 0) {
+                        continue;
+                    }
+                    ImmutableExport e = schemEq.exports.get(portIndex);
+                    if (!isGlobalPartition(e)) {
+                        continue;
+                    }
+                    if (gb == null) {
+                        gb = new HashSet<Global>();
+                    }
+                    for (int k = 0, busWidth = e.name.busWidth(); k < busWidth; k++) {
+                        int q = schemEq.equivPortsN[schemEq.portOffsets[portIndex] + k];
+                        for (int l = 0; l < schemEq.getGlobals().size(); l++) {
+                            if (schemEq.equivPortsN[l] == q) {
+                                Global g = schemEq.getGlobals().get(l);
+                                gb.add(g);
                             }
                         }
                     }
-                    if (gb != null) {
-                        // remember excluded globals for this NodeInst
-                        if (nodeInstExcludeGlobal == null) {
-                            nodeInstExcludeGlobal = new HashMap<ImmutableNodeInst, Set<Global>>();
-                        }
-                        nodeInstExcludeGlobal.put(n, gb);
-                        // fix Set of globals
-                        gs = gs.remove(gb.iterator());
+                }
+                if (gb != null) {
+                    // remember excluded globals for this NodeInst
+                    if (nodeInstExcludeGlobal == null) {
+                        nodeInstExcludeGlobal = new HashMap<ImmutableNodeInst, Set<Global>>();
                     }
+                    nodeInstExcludeGlobal.put(n, gb);
+                    // fix Set of globals
+                    gs = gs.remove(gb.iterator());
+                }
 
-                    String errorMsg = globalBuf.addToBuf(gs);
-                    if (errorMsg != null) {
-                        String msg = "Network: " + cellId + " has globals with conflicting characteristic " + errorMsg;
-                        System.out.println(msg);
+                String errorMsg = globalBuf.addToBuf(gs);
+                if (errorMsg != null) {
+                    String msg = "Network: " + cellId + " has globals with conflicting characteristic " + errorMsg;
+                    System.out.println(msg);
 //                        networkManager.logError(msg, NetworkTool.errorSortNetworks);
-                        // TODO: what to highlight?
-                        // log.addGeom(shared[i].nodeInst, true, 0, null);
-                    }
+                    // TODO: what to highlight?
+                    // log.addGeom(shared[i].nodeInst, true, 0, null);
                 }
             } else {
                 Global g = globalInst(n);
@@ -759,11 +753,9 @@ class ImmutableNetSchem {
             if (isIconOfParent(n)) {
                 continue;
             }
-            CellBackup iconCell = snapshot.getCell((CellId)n.protoId);
-            ImmutableNetSchem netSchem = getNetCell((CellId)n.protoId, netSchems, eqs).getSchem();
-            if (netSchem == null) {
-                continue;
-            }
+            EquivalentSchematicExports netEq = getEquivExports((CellId)n.protoId);
+            EquivalentSchematicExports schemEq = netEq.implementation;
+            assert schemEq != null;
             Set<Global> gs = nodeInstExcludeGlobal != null ? nodeInstExcludeGlobal.get(n) : null; // exclude set of globals
             for (int i = 0; i < n.name.busWidth(); i++) {
                 Proxy proxy = new Proxy(n, i);
@@ -782,10 +774,10 @@ class ImmutableNetSchem {
                     name2proxy.put(name, proxy);
                 }
                 if (DEBUG) {
-                    System.out.println(proxy + " " + mapOffset + " " + netSchem.equivPortsN.length);
+                    System.out.println(proxy + " " + mapOffset + " " + schemEq.equivPortsN.length);
                 }
                 proxy.nodeOffset = mapOffset;
-                mapOffset += netSchem.equivPortsN.length;
+                mapOffset += schemEq.equivPortsN.length;
                 if (gs != null) {
                     if (proxyExcludeGlobals == null) {
                         proxyExcludeGlobals = new HashMap<Proxy, Set<Global>>();
@@ -824,7 +816,7 @@ class ImmutableNetSchem {
         return null;
     }
 
-    private void localConnections(int netMap[], Map<CellId,ImmutableNetSchem> netSchems, Map<CellId,EquivalentSchematicExports> eqs) {
+    private void localConnections(int netMap[]) {
 
         // Exports
         for (int k = 0; k < numExports; k++) {
@@ -868,11 +860,9 @@ class ImmutableNetSchem {
             if (!(subCellId.isIcon() || subCellId.isSchematic())) {
                 continue;
             }
-            ImmutableNetSchem icon = getNetCell((CellId) n.protoId, netSchems, eqs);
-            ImmutableNetSchem schem = icon.getSchem();
-            if (schem == null) {
-                continue;
-            }
+            EquivalentSchematicExports iconEq = getEquivExports((CellId) n.protoId);
+            EquivalentSchematicExports schemEq = iconEq.implementation;
+            assert schemEq != null;
             Name nodeName = n.name;
             int arraySize = nodeName.busWidth();
             int proxyOffset = nodeOffsets[k];
@@ -881,11 +871,11 @@ class ImmutableNetSchem {
             for (int m = 0; m < numPorts; m++) {
                 ImmutableExport e = subCell.cellRevision.exports.get(m);
                 int portIndex = m;
-                portIndex = icon.portImplementation[portIndex];
+                portIndex = iconEq.portImplementation[portIndex];
                 if (portIndex < 0) {
                     continue;
                 }
-                int portOffset = schem.portOffsets[portIndex];
+                int portOffset = schemEq.portOffsets[portIndex];
                 int busWidth = e.name.busWidth();
                 int drawn = drawns[ni_pi[k] + m];
                 if (drawn < 0) {
@@ -940,9 +930,9 @@ class ImmutableNetSchem {
             if (proxy == null) {
                 continue;
             }
-            CellBackup subCell = proxy.getProto(netSchems, eqs);
-            ImmutableNetSchem schem = getNetCell(subCell.cellRevision.d.cellId, netSchems, eqs);
-            int numGlobals = schem.portOffsets[0];
+            CellBackup subCell = proxy.getProto();
+            EquivalentSchematicExports schemEq = getEquivExports(subCell.cellRevision.d.cellId);
+            int numGlobals = schemEq.portOffsets[0];
             if (numGlobals == 0) {
                 continue;
             }
@@ -951,7 +941,7 @@ class ImmutableNetSchem {
                 excludeGlobals = proxyExcludeGlobals.get(proxy);
             }
             for (int i = 0; i < numGlobals; i++) {
-                Global g = schem.globals.get(i);
+                Global g = schemEq.getGlobals().get(i);
                 if (excludeGlobals != null && excludeGlobals.contains(g)) {
                     continue;
                 }
@@ -1020,7 +1010,7 @@ class ImmutableNetSchem {
         }
     }
 
-    private void internalConnections(int[] netMapF, int[] netMapP, int[] netMapA, Map<CellId,ImmutableNetSchem> netSchems, Map<CellId,EquivalentSchematicExports> eqs) {
+    private void internalConnections(int[] netMapF, int[] netMapP, int[] netMapA) {
         for (int k = 0; k < numNodes; k++) {
             ImmutableNodeInst n = nodes.get(k);
             int nodeOffset = ni_pi[k];
@@ -1078,11 +1068,11 @@ class ImmutableNetSchem {
             if (proxy == null) {
                 continue;
             }
-            CellBackup subCell = proxy.getProto(netSchems, eqs);
-            ImmutableNetSchem schem = getNetCell(subCell.cellRevision.d.cellId, netSchems, eqs);
-            int[] eqF = schem.equivPortsN;
-            int[] eqP = schem.equivPortsP;
-            int[] eqA = schem.equivPortsA;
+            CellBackup subCell = proxy.getProto();
+            EquivalentSchematicExports schemEq = getEquivExports(subCell.cellRevision.d.cellId);
+            int[] eqF = schemEq.equivPortsN;
+            int[] eqP = schemEq.equivPortsP;
+            int[] eqA = schemEq.equivPortsA;
             for (int i = 0; i < eqF.length; i++) {
                 int io = proxy.nodeOffset + i;
 
@@ -1112,7 +1102,7 @@ class ImmutableNetSchem {
 
     private void updatePortImplementation() {
         portImplementation = new int[numExports];
-        CellRevision c = implementation.cellRevision;
+        CellRevision c = snapshot.getCellRevision(implementationCellId);
         for (int i = 0; i < numExports; i++) {
             ImmutableExport e = exports.get(i);
             int equivIndex = -1;
@@ -1152,6 +1142,34 @@ class ImmutableNetSchem {
             equivPortsN[i] = netMapN[i];
             equivPortsP[i] = netMapP[i];
             equivPortsA[i] = netMapA[i];
+        }
+        for (int exportIndex = 0; exportIndex < numExports; exportIndex++) {
+            ImmutableExport e = exports.get(exportIndex);
+            if (!isGlobalPartition(e)) {
+                continue;
+            }
+            Global.Set[] globs = null;
+            for (int k = 0, busWidth = e.name.busWidth(); k < busWidth; k++) {
+                Global.Buf globalBuf = null;
+                int q = equivPortsN[portOffsets[exportIndex] + k];
+                for (int l = 0; l < globals.size(); l++) {
+                    if (equivPortsN[l] == q) {
+                        Global g = globals.get(l);
+                        globalBuf = new Global.Buf();
+                        globalBuf.addToBuf(g, globals.getCharacteristic(g));
+                    }
+                }
+                if (globalBuf == null) continue;
+                if (globs == null) {
+                    globs = new Global.Set[busWidth];
+                }
+                globs[k] = globalBuf.getBuf();
+            }
+            if (globs == null) continue;
+            if (globalPartitions == null) {
+                globalPartitions = new HashMap<ExportId,Global.Set[]>();
+            }
+            globalPartitions.put(e.exportId, globs);
         }
     }
 
@@ -1257,27 +1275,14 @@ class ImmutableNetSchem {
         return np.getTechnology().getPrimitiveFunction(np, n.techBits);
     }
 
-    private ImmutableNetSchem getNetCell(CellId cellId, Map<CellId,ImmutableNetSchem> netSchems, Map<CellId,EquivalentSchematicExports> eqs) {
+    private EquivalentSchematicExports getEquivExports(CellId cellId) {
         if (!(cellId.isIcon() || cellId.isSchematic()))
             throw new IllegalArgumentException();
-        ImmutableNetSchem netCell = netSchems.get(cellId);
-        if (netCell == null) {
-            netCell = new ImmutableNetSchem(snapshot, cellId, netSchems, eqs);
-            netSchems.put(cellId, netCell);
-            eqs.put(cellId, new EquivalentSchematicExports(netCell));
-        }
-        return netCell;
-    }
-
-    private EquivalentSchematicExports getEquivExports(CellId cellId, Map<CellId,ImmutableNetSchem> netSchems, Map<CellId,EquivalentSchematicExports> eqs) {
-        if (!(cellId.isIcon() || cellId.isSchematic()))
-            throw new IllegalArgumentException();
-        EquivalentSchematicExports eq = eqs.get(cellId);
-        if (eqs == null) {
-            ImmutableNetSchem netSchem = new ImmutableNetSchem(snapshot, cellId, netSchems, eqs);
-            netSchems.put(cellId, netSchem);
+        EquivalentSchematicExports eq = snapshot.equivSchemExports[cellId.cellIndex];
+        if (eq == null) {
+            ImmutableNetSchem netSchem = new ImmutableNetSchem(snapshot, cellId);
             eq = new EquivalentSchematicExports(netSchem);
-            eqs.put(cellId, eq);
+            snapshot.equivSchemExports[cellId.cellIndex] = eq;
         }
         return eq;
     }
@@ -1357,9 +1362,8 @@ class ImmutableNetSchem {
          * Method to return the prototype of this Nodable.
          * @return the prototype of this Nodable.
          */
-        public CellBackup getProto(Map<CellId,ImmutableNetSchem> netSchems, Map<CellId,EquivalentSchematicExports> eqs) {
-            ImmutableNetSchem schem = getNetCell(((CellId)n.protoId), netSchems, eqs).getSchem();
-            return schem.cellBackup;
+        public CellBackup getProto() {
+            return snapshot.getCell(getEquivExports(((CellId)n.protoId)).implementation.cellId);
         }
 
     }
