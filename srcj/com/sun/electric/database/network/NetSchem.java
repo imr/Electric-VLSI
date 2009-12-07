@@ -24,7 +24,9 @@
  */
 package com.sun.electric.database.network;
 
+import com.sun.electric.database.EquivPorts;
 import com.sun.electric.database.EquivalentSchematicExports;
+import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -80,17 +82,21 @@ class NetSchem extends NetCell {
     private class IconInst {
 
         final NodeInst nodeInst;
+        final boolean iconOfParent;
         final Nodable[] iconNodables;
         final int netMapOffset;
         final int numExtendedExports;
+        final EquivalentSchematicExports eq;
 
-        private IconInst(NodeInst nodeInst, int nodeOffset, int numExtendedExports) {
+        private IconInst(NodeInst nodeInst, int nodeOffset) {
             Cell proto = (Cell) nodeInst.getProto();
-            assert (proto.isIcon() || proto.isSchematic()) && !nodeInst.isIconOfParent();
+            assert proto.isIcon() || proto.isSchematic();
             this.nodeInst = nodeInst;
-            iconNodables = new Nodable[nodeInst.getNameKey().busWidth()];
+            iconOfParent = nodeInst.isIconOfParent();
+            iconNodables = iconOfParent ? null : new Nodable[nodeInst.getNameKey().busWidth()];
             this.netMapOffset = nodeOffset;
-            this.numExtendedExports = numExtendedExports;
+            eq = iconOfParent ? null : nodeInst.getDatabase().backup().getEquivExports(proto.getId());
+            this.numExtendedExports = iconOfParent ? -1000000 : eq.implementation.numExpandedExports;
         }
 
         private int getNetMapOffset(Nodable proxy) {
@@ -103,13 +109,9 @@ class NetSchem extends NetCell {
     /* Implementation of this NetSchem. */ NetSchem implementation;
     /* Mapping from ports of this to ports of implementation. */ int[] portImplementation;
     /** Node offsets. */
-    int[] nodeOffsets;
-    /** Node offsets. */
     int[] drawnOffsets;
     /** Info for instances of Icons */
     IconInst[] iconInsts;
-    /** Node offsets. */
-    Nodable[] nodeProxies;
     /** Proxies with global rebindes. */
     Map<Nodable, Set<Global>> proxyExcludeGlobals;
     /** Map from names to proxies. Contains non-temporary names. */
@@ -202,16 +204,6 @@ class NetSchem extends NetCell {
         return implementation;
     }
 
-    static int getPortOffset(NetworkManager networkManager, PortProto pp, int busIndex) {
-        int portIndex = pp.getPortIndex();
-        NodeProto np = pp.getParent();
-        if (!(np instanceof Cell)) {
-            return busIndex == 0 ? portIndex : -1;
-        }
-        NetCell netCell = networkManager.getNetCell((Cell) np);
-        return netCell.getPortOffset(portIndex, busIndex);
-    }
-
     /**
      * Get an iterator over all of the Nodables of this Cell.
      */
@@ -220,17 +212,18 @@ class NetSchem extends NetCell {
         ArrayList<Nodable> nodables = new ArrayList<Nodable>();
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();) {
             NodeInst ni = it.next();
-            if (nodeOffsets[ni.getNodeIndex()] < 0) {
+            if (iconInsts[ni.getNodeIndex()] != null) {
                 continue;
             }
             nodables.add(ni);
         }
-        for (int i = 0; i < nodeProxies.length; i++) {
-            Nodable proxy = nodeProxies[i];
-            if (proxy == null) {
-                continue;
+        for (IconInst iconInst: iconInsts) {
+            if (iconInst == null || iconInst.iconOfParent) continue;
+            for (int i = 0; i < iconInst.iconNodables.length; i++) {
+                Nodable proxy = iconInst.iconNodables[i];
+                assert proxy != null;
+                nodables.add(proxy);
             }
-            nodables.add(proxy);
         }
         return nodables.iterator();
     }
@@ -259,17 +252,23 @@ class NetSchem extends NetCell {
      */
     @Override
     int getNetMapOffset(Nodable no, Global global) {
-        if (no instanceof NodeInst) {
-            int nodeIndex = ((NodeInst)no).getNodeIndex();
-            if (nodeIndex < 0 || nodeIndex >= iconInsts.length || iconInsts[nodeIndex] == null)
+        if (no == null) {
             return -1;
         }
-        NetSchem schem = networkManager.getNetCell((Cell) no.getNodeInst().getProto()).getSchem();
-        int i = schem.globals.indexOf(global);
-        if (i < 0) {
+        int nodeIndex = no.getNodeInst().getNodeIndex();
+        if (nodeIndex < 0 || nodeIndex >= iconInsts.length) {
             return -1;
         }
-        return getProxyNetMapOffset(no, i);
+        IconInst iconInst = iconInsts[nodeIndex];
+        if (iconInst == null || iconInst.iconOfParent) {
+            return -1;
+        }
+        assert !(no instanceof NodeInst);
+        int indexOfGlobal = iconInst.eq.implementation.globals.indexOf(global);
+        if (indexOfGlobal < 0) {
+            return -1;
+        }
+        return iconInst.getNetMapOffset(no) + indexOfGlobal;
     }
 
     /**
@@ -280,7 +279,15 @@ class NetSchem extends NetCell {
      */
     @Override
     int getNetMapOffset(Nodable no, int equivPortIndex) {
-        return getProxyNetMapOffset(no, equivPortIndex);
+        int nodeIndex = no.getNodeInst().getNodeIndex();
+        if (nodeIndex < 0 || nodeIndex >= iconInsts.length) {
+            return -1;
+        }
+        IconInst iconInst = iconInsts[nodeIndex];
+        if (iconInst == null || iconInst.iconOfParent) {
+            return -1;
+        }
+        return iconInst.getNetMapOffset(no) + equivPortIndex;
     }
 
     /*
@@ -288,41 +295,44 @@ class NetSchem extends NetCell {
      */
     @Override
     int getNetMapOffset(Nodable no, PortProto portProto, int busIndex) {
-        if (no instanceof NodeInst) {
-            NodeInst ni = (NodeInst) no;
-            int nodeIndex = ni.getNodeIndex();
-            if (iconInsts[nodeIndex] == null) {
-    //			int proxyOffset = nodeOffsets[nodeIndex];
-                //if (proxyOffset >= 0) {
-                int drawn = drawns[ni_pi[nodeIndex] + portProto.getPortIndex()];
-                if (drawn < 0) {
-                    return -1;
-                }
-                if (busIndex < 0 || busIndex >= drawnWidths[drawn]) {
-                    return -1;
-                }
-                return drawnOffsets[drawn] + busIndex;
-            }
-            //} else {
-            //	return -1;
-            //}
-// 			proxy = nodeProxies[~proxyOffset + arrayIndex];
-// 			NetCell netCell = networkManager.getNetCell((Cell)ni.getProto());
-        }
         if (no == null) {
             return -1;
         }
-        int portOffset = NetSchem.getPortOffset(networkManager, portProto, busIndex);
-        if (portOffset < 0) {
+        int nodeIndex = no.getNodeInst().getNodeIndex();
+        if (nodeIndex < 0 || nodeIndex >= iconInsts.length) {
             return -1;
         }
-        return getProxyNetMapOffset(no, portOffset);
-    }
-
-    private int getProxyNetMapOffset(Nodable proxy, int extendedPortOffset) {
-        IconInst iconInst = iconInsts[proxy.getNodeInst().getNodeIndex()];
-        int proxyNetMapOffset = iconInst.getNetMapOffset(proxy);
-        return proxyNetMapOffset + extendedPortOffset;
+        IconInst iconInst = iconInsts[nodeIndex];
+        if (iconInst == null) {
+            // primitive or layout cell
+            int drawn = drawns[ni_pi[nodeIndex] + portProto.getPortIndex()];
+            if (drawn < 0) {
+                return -1;
+            }
+            if (busIndex < 0 || busIndex >= drawnWidths[drawn]) {
+                return -1;
+            }
+            assert portProto.getParent() == ((NodeInst)no).getProto();
+            return drawnOffsets[drawn] + busIndex;
+        } else if (iconInst.iconOfParent) {
+            return -1;
+        } else {
+            // icon or schematic cell
+            Cell subCell = (Cell)portProto.getParent();
+            assert no.getProto() == subCell;
+            EquivalentSchematicExports eq = iconInst.eq;
+            assert eq.implementation.cellId == subCell.getId();
+            int portIndex = portProto.getPortIndex();
+            portIndex = eq.portImplementation[portIndex];
+            if (portIndex < 0) {
+                return -1;
+            }
+            int portOffset = eq.implementation.portOffsets[portIndex] + busIndex;
+            if (busIndex < 0 || portOffset >= eq.implementation.portOffsets[portIndex + 1]) {
+                return -1;
+            }
+            return iconInst.getNetMapOffset(no) + portOffset;
+        }
     }
 
     /**
@@ -420,92 +430,84 @@ class NetSchem extends NetCell {
     }
 
     private boolean initNodables() {
-        if (nodeOffsets == null || nodeOffsets.length != cell.getNumNodes()) {
-            nodeOffsets = new int[cell.getNumNodes()];
-        }
         int numNodes = cell.getNumNodes();
         Global.Buf globalBuf = new Global.Buf();
-        int nodeProxiesOffset = 0;
         Map<NodeInst, Set<Global>> nodeInstExcludeGlobal = null;
         for (int i = 0; i < numNodes; i++) {
             NodeInst ni = cell.getNode(i);
             NodeProto np = ni.getProto();
-            NetCell netCell = null;
             if (ni.isCellInstance()) {
-                netCell = networkManager.getNetCell((Cell) np);
-            }
-            if (netCell != null && netCell instanceof NetSchem) {
+                Cell subCell = (Cell)np;
+                if (!(subCell.isIcon() || subCell.isSchematic())) {
+                    if (ni.getNameKey().isBus()) {
+                        String msg = cell + ": Array name <" + ni.getNameKey() + "> can be assigned only to icon nodes";
+                        System.out.println(msg);
+                        networkManager.pushHighlight(ni);
+                        networkManager.logError(msg, NetworkTool.errorSortNodes);
+                    }
+                    continue;
+                }
                 if (ni.getNameKey().hasDuplicates()) {
                     String msg = cell + ": Node name <" + ni.getNameKey() + "> has duplicate subnames";
                     System.out.println(msg);
                     networkManager.pushHighlight(ni);
                     networkManager.logError(msg, NetworkTool.errorSortNodes);
                 }
-                nodeOffsets[i] = ~nodeProxiesOffset;
-                nodeProxiesOffset += ni.getNameKey().busWidth();
-            } else {
-                if (ni.getNameKey().isBus()) {
-                    String msg = cell + ": Array name <" + ni.getNameKey() + "> can be assigned only to icon nodes";
-                    System.out.println(msg);
-                    networkManager.pushHighlight(ni);
-                    networkManager.logError(msg, NetworkTool.errorSortNodes);
+                if (ni.isIconOfParent()) {
+                    continue;
                 }
-                nodeOffsets[i] = 0;
-            }
-            if (netCell != null) {
-                NetSchem sch = netCell.getSchem();
-                if (sch != null && sch != this) {
-                    Global.Set gs = sch.globals;
+                EquivalentSchematicExports eq = database.backup().getEquivExports(subCell.getId());
+                Global.Set gs = eq.implementation.globals;
 
-                    // Check for rebinding globals
-                    int numPortInsts = np.getNumPorts();
-                    Set<Global> gb = null;
-                    for (int j = 0; j < numPortInsts; j++) {
-                        PortInst pi = ni.getPortInst(j);
-                        int piOffset = getPortInstOffset(pi);
-                        int drawn = drawns[piOffset];
-                        if (drawn < 0 || drawn >= numConnectedDrawns) {
-                            continue;
-                        }
-                        int portIndex = ((NetSchem) netCell).portImplementation[j];
-                        if (portIndex < 0) {
-                            continue;
-                        }
-                        Export e = sch.cell.getPort(portIndex);
-                        if (!e.isGlobalPartition()) {
-                            continue;
-                        }
-                        if (gb == null) {
-                            gb = new HashSet<Global>();
-                        }
-                        for (int k = 0, busWidth = e.getNameKey().busWidth(); k < busWidth; k++) {
-                            int q = sch.equivPortsN[sch.portOffsets[portIndex] + k];
-                            for (int l = 0; l < sch.globals.size(); l++) {
-                                if (sch.equivPortsN[l] == q) {
-                                    Global g = sch.globals.get(l);
-                                    gb.add(g);
-                                }
+                // Check for rebinding globals
+                int numPortInsts = np.getNumPorts();
+                Set<Global> gb = null;
+                for (int j = 0; j < numPortInsts; j++) {
+                    PortInst pi = ni.getPortInst(j);
+                    int piOffset = getPortInstOffset(pi);
+                    int drawn = drawns[piOffset];
+                    if (drawn < 0 || drawn >= numConnectedDrawns) {
+                        continue;
+                    }
+                    int portIndex = eq.portImplementation[j];
+                    if (portIndex < 0) {
+                        continue;
+                    }
+                    Export e = database.getCell(eq.implementation.cellId).getPort(portIndex);
+                    if (!e.isGlobalPartition()) {
+                        continue;
+                    }
+                    if (gb == null) {
+                        gb = new HashSet<Global>();
+                    }
+                    int[] eqN = eq.implementation.getEquivPortsN();
+                    for (int k = 0, busWidth = e.getNameKey().busWidth(); k < busWidth; k++) {
+                        int q = eqN[eq.implementation.portOffsets[portIndex] + k];
+                        for (int l = 0; l < eq.implementation.globals.size(); l++) {
+                            if (eqN[l] == q) {
+                                Global g = eq.implementation.globals.get(l);
+                                gb.add(g);
                             }
                         }
                     }
-                    if (gb != null) {
-                        // remember excluded globals for this NodeInst
-                        if (nodeInstExcludeGlobal == null) {
-                            nodeInstExcludeGlobal = new HashMap<NodeInst, Set<Global>>();
-                        }
-                        nodeInstExcludeGlobal.put(ni, gb);
-                        // fix Set of globals
-                        gs = gs.remove(gb.iterator());
+                }
+                if (gb != null) {
+                    // remember excluded globals for this NodeInst
+                    if (nodeInstExcludeGlobal == null) {
+                        nodeInstExcludeGlobal = new HashMap<NodeInst, Set<Global>>();
                     }
+                    nodeInstExcludeGlobal.put(ni, gb);
+                    // fix Set of globals
+                    gs = gs.remove(gb.iterator());
+                }
 
-                    String errorMsg = globalBuf.addToBuf(gs);
-                    if (errorMsg != null) {
-                        String msg = "Network: " + cell + " has globals with conflicting characteristic " + errorMsg;
-                        System.out.println(msg);
-                        networkManager.logError(msg, NetworkTool.errorSortNetworks);
-                        // TODO: what to highlight?
-                        // log.addGeom(shared[i].nodeInst, true, 0, null);
-                    }
+                String errorMsg = globalBuf.addToBuf(gs);
+                if (errorMsg != null) {
+                    String msg = "Network: " + cell + " has globals with conflicting characteristic " + errorMsg;
+                    System.out.println(msg);
+                    networkManager.logError(msg, NetworkTool.errorSortNetworks);
+                    // TODO: what to highlight?
+                    // log.addGeom(shared[i].nodeInst, true, 0, null);
                 }
             } else {
                 Global g = globalInst(ni);
@@ -572,29 +574,25 @@ class NetSchem extends NetCell {
             }
         }
         iconInsts = new IconInst[cell.getNumNodes()];
-        if (nodeProxies == null || nodeProxies.length != nodeProxiesOffset) {
-            nodeProxies = new Nodable[nodeProxiesOffset];
-        }
-        Arrays.fill(nodeProxies, null);
         name2proxy.clear();
         proxyExcludeGlobals = null;
         for (int n = 0; n < numNodes; n++) {
             NodeInst ni = cell.getNode(n);
-            int proxyOffset = nodeOffsets[n];
-            if (NetworkTool.debug) {
-                System.out.println(ni + " " + proxyOffset);
-            }
-            if (proxyOffset >= 0) {
+            if (!ni.isCellInstance()) {
                 continue;
             }
             Cell iconCell = (Cell) ni.getProto();
-            NetSchem netSchem = networkManager.getNetCell(iconCell).getSchem();
-            if (netSchem == null || ni.isIconOfParent()) {
+            if (!(iconCell.isIcon() || iconCell.isSchematic())) {
+                continue;
+            }
+            if (ni.isIconOfParent()) {
+                iconInsts[n] = new IconInst(ni, mapOffset);
+                assert iconInsts[n].iconOfParent && iconInsts[n].iconNodables == null;
                 continue;
             }
             Set<Global> gs = nodeInstExcludeGlobal != null ? nodeInstExcludeGlobal.get(ni) : null; // exclude set of globals
 
-            IconInst iconInst = new IconInst(ni, mapOffset, netSchem.equivPortsN.length);
+            IconInst iconInst = new IconInst(ni, mapOffset);
             iconInsts[n] = iconInst;
             for (int i = 0; i < ni.getNameKey().busWidth(); i++) {
                 Nodable proxy;
@@ -619,10 +617,7 @@ class NetSchem extends NetCell {
                     }
                     name2proxy.put(name, proxy);
                 }
-                if (NetworkTool.debug) {
-                    System.out.println(proxy + " " + mapOffset + " " + netSchem.equivPortsN.length);
-                }
-                assert getProxyNetMapOffset(proxy, 0) == mapOffset;
+                assert iconInst.getNetMapOffset(proxy) == mapOffset;
                 mapOffset += iconInst.numExtendedExports;
                 if (gs != null) {
                     if (proxyExcludeGlobals == null) {
@@ -635,7 +630,6 @@ class NetSchem extends NetCell {
                     }
                     proxyExcludeGlobals.put(proxy, gs);
                 }
-                nodeProxies[~proxyOffset + i] = proxy;
             }
         }
         netNamesOffset = mapOffset;
@@ -645,13 +639,6 @@ class NetSchem extends NetCell {
         return changed;
     }
 
-// 	private static int portsSize(NodeProto np) {
-// 		if (np instanceof PrimitiveNode) return np.getNumPorts();
-// 		NetCell netCell = (NetCell) NetworkTool.getNetCell((Cell)np);
-// 		NetSchem sch = netCell.getSchem();
-// 		if (sch == null) return np.getNumPorts();
-// 		return sch.equivPorts.length - sch.globals.size();
-// 	}
     private static Global globalInst(NodeInst ni) {
         NodeProto np = ni.getProto();
         if (np == Schematics.tech().groundNode) {
@@ -761,9 +748,9 @@ class NetSchem extends NetCell {
                 int oldWidth = drawnWidths[drawn];
                 int newWidth = 1;
                 if (ni.isCellInstance()) {
-                    NetCell netCell = networkManager.getNetCell((Cell) np);
-                    if (netCell instanceof NetSchem) {
-                        int arraySize = ((Cell) np).isIcon() ? ni.getNameKey().busWidth() : 1;
+                    Cell subCell = (Cell)np;
+                    if (subCell.isIcon() || subCell.isSchematic()) {
+                        int arraySize = subCell.isIcon() ? ni.getNameKey().busWidth() : 1;
                         int portWidth = pi.getPortProto().getNameKey().busWidth();
                         if (oldWidth == portWidth) {
                             continue;
@@ -878,30 +865,24 @@ class NetSchem extends NetCell {
                 }
                 continue;
             }
-            if (nodeOffsets[k] >= 0) {
+            Cell subCell = (Cell)np;
+            IconInst iconInst = iconInsts[k];
+            if (iconInst == null || iconInst.iconOfParent) {
                 continue;
             }
-            NetCell netCell = networkManager.getNetCell((Cell) np);
-            if (!(netCell instanceof NetSchem)) {
-                continue;
-            }
-            NetSchem icon = (NetSchem) netCell;
-            NetSchem schem = netCell.getSchem();
-            if (schem == null) {
-                continue;
-            }
+            assert subCell.isIcon() || subCell.isSchematic();
+            EquivalentSchematicExports eq = iconInst.eq;
             Name nodeName = ni.getNameKey();
             int arraySize = nodeName.busWidth();
-            int proxyOffset = nodeOffsets[k];
             int numPorts = np.getNumPorts();
             for (int m = 0; m < numPorts; m++) {
                 Export e = (Export) np.getPort(m);
                 int portIndex = m;
-                portIndex = icon.portImplementation[portIndex];
+                portIndex = eq.portImplementation[portIndex];
                 if (portIndex < 0) {
                     continue;
                 }
-                int portOffset = schem.portOffsets[portIndex];
+                int portOffset = eq.implementation.portOffsets[portIndex];
                 int busWidth = e.getNameKey().busWidth();
                 int drawn = drawns[ni_pi[k] + m];
                 if (drawn < 0) {
@@ -911,11 +892,10 @@ class NetSchem extends NetCell {
                 if (width != busWidth && width != busWidth * arraySize) {
                     continue;
                 }
+                assert arraySize == iconInst.iconNodables.length;
                 for (int i = 0; i < arraySize; i++) {
-                    Nodable proxy = nodeProxies[~proxyOffset + i];
-                    if (proxy == null) {
-                        continue;
-                    }
+                    Nodable proxy = iconInst.iconNodables[i];
+                    assert proxy != null;
                     int nodeOffset = getNetMapOffset(proxy, portOffset);
                     int busOffset = drawnOffsets[drawn];
                     if (width != busWidth) {
@@ -952,27 +932,28 @@ class NetSchem extends NetCell {
         }
 
         // Globals of proxies
-        for (int k = 0; k < nodeProxies.length; k++) {
-            Nodable proxy = nodeProxies[k];
-            if (proxy == null) {
-                continue;
-            }
-            NodeProto np = proxy.getProto();
-            NetSchem schem = (NetSchem) networkManager.getNetCell((Cell) np);
-            int numGlobals = schem.portOffsets[0];
-            if (numGlobals == 0) {
-                continue;
-            }
-            Set/*<Global>*/ excludeGlobals = null;
-            if (proxyExcludeGlobals != null) {
-                excludeGlobals = proxyExcludeGlobals.get(proxy);
-            }
-            for (int i = 0; i < numGlobals; i++) {
-                Global g = schem.globals.get(i);
-                if (excludeGlobals != null && excludeGlobals.contains(g)) {
+        for (IconInst iconInst: iconInsts) {
+            if (iconInst == null || iconInst.iconOfParent) continue;
+            for (int k = 0; k < iconInst.iconNodables.length; k++) {
+                Nodable proxy = iconInst.iconNodables[k];
+                Cell np = (Cell)proxy.getProto();
+                EquivalentSchematicExports eq = iconInst.eq.implementation;
+                assert eq.implementation == eq;
+                int numGlobals = eq.portOffsets[0];
+                if (numGlobals == 0) {
                     continue;
                 }
-                Netlist.connectMap(netMap, this.globals.indexOf(g), getNetMapOffset(proxy, i));
+                Set/*<Global>*/ excludeGlobals = null;
+                if (proxyExcludeGlobals != null) {
+                    excludeGlobals = proxyExcludeGlobals.get(proxy);
+                }
+                for (int i = 0; i < numGlobals; i++) {
+                    Global g = eq.globals.get(i);
+                    if (excludeGlobals != null && excludeGlobals.contains(g)) {
+                        continue;
+                    }
+                    Netlist.connectMap(netMap, this.globals.indexOf(g), getNetMapOffset(proxy, i));
+                }
             }
         }
 
@@ -1078,30 +1059,36 @@ class NetSchem extends NetCell {
                 }
                 continue;
             }
-            NetCell netCell = networkManager.getNetCell((Cell) np);
-            if (nodeOffsets[k] < 0) {
+            IconInst iconInst = iconInsts[k];
+            if (iconInst != null) {
                 continue;
             }
-            for (int i = 0, numPorts = netCell.equivPortsN.length; i < numPorts; i++) {
+            Cell subCell = (Cell)np;
+            assert !(subCell.isIcon() || subCell.isSchematic());
+            EquivPorts eq = cell.tree().getEquivPorts();
+            int[] eqN = eq.getEquivPortsN();
+            int[] eqP = eq.getEquivPortsP();
+            int[] eqA = eq.getEquivPortsA();
+            for (int i = 0, numPorts = eq.getNumExports(); i < numPorts; i++) {
                 int di = drawns[nodeOffset + i];
                 if (di < 0) {
                     continue;
                 }
-                int jN = netCell.equivPortsN[i];
+                int jN = eqN[i];
                 if (i != jN) {
                     int dj = drawns[nodeOffset + jN];
                     if (dj >= 0) {
                         Netlist.connectMap(netMapF, drawnOffsets[di], drawnOffsets[dj]);
                     }
                 }
-                int jP = netCell.equivPortsP[i];
+                int jP = eqP[i];
                 if (i != jP) {
                     int dj = drawns[nodeOffset + jP];
                     if (dj >= 0) {
                         Netlist.connectMap(netMapP, drawnOffsets[di], drawnOffsets[dj]);
                     }
                 }
-                int jA = netCell.equivPortsA[i];
+                int jA = eqA[i];
                 if (i != jA) {
                     int dj = drawns[nodeOffset + jA];
                     if (dj >= 0) {
@@ -1110,32 +1097,33 @@ class NetSchem extends NetCell {
                 }
             }
         }
-        for (int k = 0; k < nodeProxies.length; k++) {
-            Nodable proxy = nodeProxies[k];
-            if (proxy == null) {
-                continue;
-            }
-            NodeProto np = proxy.getProto();
-            NetSchem schem = (NetSchem) networkManager.getNetCell((Cell) np);
-            int[] eqN = schem.equivPortsN;
-            int[] eqP = schem.equivPortsP;
-            int[] eqA = schem.equivPortsA;
-            for (int i = 0; i < eqN.length; i++) {
-                int io = getNetMapOffset(proxy, i);
+        for (IconInst iconInst: iconInsts) {
+            if (iconInst == null || iconInst.iconOfParent) continue;
+            for (int k = 0; k < iconInst.iconNodables.length; k++) {
+                Nodable proxy = iconInst.iconNodables[k];
+                Cell np = (Cell)proxy.getProto();
+                EquivalentSchematicExports eq = iconInst.eq.implementation;
+                assert eq.implementation == eq;
+                int[] eqN = eq.getEquivPortsN();
+                int[] eqP = eq.getEquivPortsP();
+                int[] eqA = eq.getEquivPortsA();
+                for (int i = 0; i < eqN.length; i++) {
+                    int io = getNetMapOffset(proxy, i);
 
-                int jF = eqN[i];
-                if (i != jF) {
-                    Netlist.connectMap(netMapF, io, getNetMapOffset(proxy, jF));
-                }
+                    int jF = eqN[i];
+                    if (i != jF) {
+                        Netlist.connectMap(netMapF, io, getNetMapOffset(proxy, jF));
+                    }
 
-                int jP = eqP[i];
-                if (i != jP) {
-                    Netlist.connectMap(netMapP, io, getNetMapOffset(proxy, jP));
-                }
+                    int jP = eqP[i];
+                    if (i != jP) {
+                        Netlist.connectMap(netMapP, io, getNetMapOffset(proxy, jP));
+                    }
 
-                int jA = eqA[i];
-                if (i != jA) {
-                    Netlist.connectMap(netMapA, io, getNetMapOffset(proxy, jA));
+                    int jA = eqA[i];
+                    if (i != jA) {
+                        Netlist.connectMap(netMapA, io, getNetMapOffset(proxy, jA));
+                    }
                 }
             }
         }
