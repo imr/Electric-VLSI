@@ -291,16 +291,18 @@ class NetSchem extends NetCell {
         if (no instanceof NodeInst) {
             NodeInst ni = (NodeInst) no;
             int nodeIndex = ni.getNodeIndex();
-//			int proxyOffset = nodeOffsets[nodeIndex];
-            //if (proxyOffset >= 0) {
-            int drawn = drawns[ni_pi[nodeIndex] + portProto.getPortIndex()];
-            if (drawn < 0) {
-                return -1;
+            if (iconInsts[nodeIndex] == null) {
+    //			int proxyOffset = nodeOffsets[nodeIndex];
+                //if (proxyOffset >= 0) {
+                int drawn = drawns[ni_pi[nodeIndex] + portProto.getPortIndex()];
+                if (drawn < 0) {
+                    return -1;
+                }
+                if (busIndex < 0 || busIndex >= drawnWidths[drawn]) {
+                    return -1;
+                }
+                return drawnOffsets[drawn] + busIndex;
             }
-            if (busIndex < 0 || busIndex >= drawnWidths[drawn]) {
-                return -1;
-            }
-            return drawnOffsets[drawn] + busIndex;
             //} else {
             //	return -1;
             //}
