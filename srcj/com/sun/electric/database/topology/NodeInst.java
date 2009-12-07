@@ -453,7 +453,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         String msg = null;
         if (name != null) {
             nameKey = Name.findName(name);
-            if (checkNameKey(nameKey, parent) || nameKey.isBus() && (!(protoType instanceof Cell) || !((Cell)protoType).isIcon())) {
+            if (checkNameKey(nameKey, parent) || nameKey.isBus() && (!(protoType instanceof Cell) || !((Cell) protoType).isIcon())) {
                 nameKey = null;
             } else if (parent.findNode(name) != null) {
                 if (!nameKey.isTempname()) {
@@ -2914,7 +2914,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             }
             key = topology.getNodeAutoname(getBasename());
         }
-        if (checkNameKey(key, parent) || key.isBus() && (!(protoType instanceof Cell) || !((Cell)protoType).isIcon())) {
+        if (checkNameKey(key, parent) || key.isBus() && (!(protoType instanceof Cell) || !((Cell) protoType).isIcon())) {
             return true;
         }
 
@@ -3238,11 +3238,20 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
     /**
      * Get the NodeInst associated with this Nodable
-     * For NodeInsts, this returns itself.
+     * For NodeInsts, returns this.
      * @return the NodeInst associate with this Nodable
      */
     public NodeInst getNodeInst() {
         return this;
+    }
+
+    /**
+     * Get array index of this Nodable
+     * For NodeInst, return 0
+     * @return the array index of this Nodable
+     */
+    public int getNodableArrayIndex() {
+        return 0;
     }
 
     /**

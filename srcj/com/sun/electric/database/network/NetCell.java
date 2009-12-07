@@ -54,9 +54,9 @@ import java.util.Map;
  * This is the Cell mirror in Network tool.
  */
 class NetCell {
+
     /** Check immutable algorithm which computes equivalent ports */
     private static final boolean CHECK_EQUIV_PORTS = true;
-
     /** If bit set, netlist is valid for cell tree.*/
     static final int VALID = 1;
     /** If bit set, netlist is valid with current  equivPorts of subcells.*/
@@ -617,16 +617,17 @@ class NetCell {
                 }
                 continue;
             }
-            NetCell netCell = networkManager.getNetCell((Cell) ni.getProto());
-            if (netCell instanceof NetSchem) {
+            Cell subCell = (Cell) ni.getProto();
+            if (subCell.isIcon() || subCell.isSchematic()) {
                 continue;
             }
-            int[] eqF = netCell.equivPortsN;
-            int[] eqP = netCell.equivPortsP;
-            int[] eqA = netCell.equivPortsA;
-            for (int i = 0; i < eqF.length; i++) {
-                if (eqF[i] != i) {
-                    Netlist.connectMap(netMapF, drawns[nodeOffset + i], drawns[nodeOffset + eqF[i]]);
+            EquivPorts eq = subCell.treeUnsafe().getEquivPorts();
+            int[] eqN = eq.getEquivPortsN();
+            int[] eqP = eq.getEquivPortsP();
+            int[] eqA = eq.getEquivPortsA();
+            for (int i = 0; i < eqN.length; i++) {
+                if (eqN[i] != i) {
+                    Netlist.connectMap(netMapF, drawns[nodeOffset + i], drawns[nodeOffset + eqN[i]]);
                 }
                 if (eqP[i] != i) {
                     Netlist.connectMap(netMapP, drawns[nodeOffset + i], drawns[nodeOffset + eqP[i]]);

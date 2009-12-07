@@ -26,7 +26,10 @@ package com.sun.electric.database.topology;
 import com.sun.electric.database.ImmutableIconInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.ArrayIterator;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -38,7 +41,9 @@ import java.util.Iterator;
 /**
  * Class defines NodeInsts that are icons.
  */
-class IconNodeInst extends NodeInst {
+public class IconNodeInst extends NodeInst {
+
+    private IconNodable[] nodables;
 
     /**
      * The constructor of IconNodeInst. Use the factory "newInstance" instead.
@@ -56,6 +61,15 @@ class IconNodeInst extends NodeInst {
     @Override
     public ImmutableIconInst getD() {
         return (ImmutableIconInst) super.getD();
+    }
+
+    /**
+     * Method to return the prototype of this IconNodeInst.
+     * @return the prototype of this IconNodeInst.
+     */
+    @Override
+    public Cell getProto() {
+        return (Cell) super.getProto();
     }
 
     /**
@@ -384,5 +398,154 @@ class IconNodeInst extends NodeInst {
             return instVar.withParam(true).withInherit(false).withInterior(false).withDisplay(display).withUnit(iconParam.getUnit());
         }
         return iconParam.withInherit(false).withInterior(false).withDisplay(display);
+    }
+
+    public Nodable getNodable(int arrayIndex) {
+        if (nodables == null) {
+            nodables = new IconNodable[getNameKey().busWidth()];
+            for (int i = 0; i < nodables.length; i++) {
+                nodables[i] = new IconNodable(i);
+            }
+        }
+        return nodables[arrayIndex];
+    }
+
+    private class IconNodable implements Nodable {
+
+        int arrayIndex;
+
+        IconNodable(int arrayIndex) {
+            this.arrayIndex = arrayIndex;
+        }
+
+        /**
+         * Method to return the prototype of this Nodable.
+         * @return the prototype of this Nodable.
+         */
+        public NodeProto getProto() {
+            Cell iconCell = IconNodeInst.this.getProto();
+            Cell mainSchematics = iconCell.getCellGroup().getMainSchematics();
+            return mainSchematics != null ? mainSchematics : iconCell;
+        }
+
+        /**
+         * Method to tell whether this is a cell instance.
+         * @return true becaue NetSchem objects are always cell instances.
+         */
+        public boolean isCellInstance() {
+            return true;
+        }
+
+        /**
+         * Method to return the Cell that contains this Nodable.
+         * @return the Cell that contains this Nodable.
+         */
+        public Cell getParent() {
+            return IconNodeInst.this.getParent();
+        }
+
+        /**
+         * Method to return the name of this Nodable.
+         * @return the name of this Nodable.
+         */
+        public String getName() {
+            return getNameKey().toString();
+        }
+
+        /**
+         * Method to return the name key of this Nodable.
+         * @return the name key of this Nodable.
+         */
+        public Name getNameKey() {
+            return IconNodeInst.this.getNameKey().subname(arrayIndex);
+        }
+
+        /**
+         * Method to return the Variable on this ElectricObject with a given key.
+         * @param key the key of the Variable.
+         * @return the Variable with that key, or null if there is no such Variable.
+         */
+        public Variable getVar(Variable.Key key) {
+            return IconNodeInst.this.getVar(key);
+        }
+
+        /**
+         * Method to return the Parameter on this Nodable with the given key.
+         * If the parameter is not found on this Nodable, it
+         * is also searched for on the default var owner.
+         * @param key the key of the parameter
+         * @return the Parameter with that key, that may exist either on this Nodable
+         * or the default owner.  Returns null if none found.
+         */
+        public Variable getParameter(Variable.Key key) {
+            return IconNodeInst.this.getParameter(key);
+        }
+
+        /**
+         * Method to return the Parameter or Variable on this Nodable with a given key.
+         * @param key the key of the Parameter or Variable.
+         * @return the Parameter or Variable with that key, or null if there is no such Parameter or Variable Variable.
+         * @throws NullPointerException if key is null
+         */
+        public Variable getParameterOrVariable(Variable.Key key) {
+            return IconNodeInst.this.getParameterOrVariable(key);
+        }
+
+        /**
+         * Method to tell if the Variable.Key is a defined parameters of this Nodable.
+         * Parameters which are not defined on Nodable take default values from Icon Cell.
+         * @param key the key of the parameter
+         * @return true if the key is a definded parameter of this Nodable
+         */
+        public boolean isDefinedParameter(Variable.Key key) {
+            return IconNodeInst.this.isDefinedParameter(key);
+        }
+
+        /**
+         * Method to return an Iterator over all Parameters on this Nodable.
+         * This may also include any Parameters on the defaultVarOwner object that are not on this Nodable.
+         * @return an Iterator over all Parameters on this Nodable.
+         */
+        public Iterator<Variable> getParameters() {
+            return IconNodeInst.this.getParameters();
+        }
+
+        /**
+         * Method to return an Iterator over defined Parameters on this Nodable.
+         * This doesn't include any Parameters on the defaultVarOwner object that are not on this Nodable.
+         * @return an Iterator over defined Parameters on this Nodable.
+         */
+        public Iterator<Variable> getDefinedParameters() {
+            return IconNodeInst.this.getDefinedParameters();
+        }
+
+        /**
+         * Returns a printable version of this Nodable.
+         * @return a printable version of this Nodable.
+         */
+        @Override
+        public String toString() {
+            return "NetSchem.Proxy " + getName();
+        }
+
+        // JKG: trying this out
+        public boolean contains(NodeInst ni, int arrayIndex) {
+            if (IconNodeInst.this == ni && this.arrayIndex == arrayIndex) {
+                return true;
+            }
+            return false;
+        }
+
+        public NodeInst getNodeInst() {
+            return IconNodeInst.this;
+        }
+
+        /**
+         * Get array index of this Nodable
+         * @return the array index of this Nodable
+         */
+        public int getNodableArrayIndex() {
+            return arrayIndex;
+        }
     }
 }

@@ -34,6 +34,7 @@ import java.util.Arrays;
  *
  */
 public class EquivPorts {
+
     private final CellId cellId;
     final int numExports;
     private final ImmutableArrayList<ImmutableExport> exports;
@@ -55,7 +56,7 @@ public class EquivPorts {
         equivPortsP = netCell.equivPortsP;
         equivPortsA = netCell.equivPortsA;
     }
-    
+
     public CellId getCellId() {
         return cellId;
     }
@@ -69,22 +70,21 @@ public class EquivPorts {
     }
 
     public int[] getEquivPortsN() {
-        return equivPortsN.clone();
+        return equivPortsN;
     }
 
     public int[] getEquivPortsP() {
-        return equivPortsP.clone();
+        return equivPortsP;
     }
 
     public int[] getEquivPortsA() {
-        return equivPortsA.clone();
+        return equivPortsA;
     }
 
 //    @Override
 //    public int hashCode() {
 //        return Arrays.hashCode(equivPortsN);
 //    }
-
     public boolean equalsPorts(EquivPorts that) {
         if (this.exports != that.exports) {
             if (this.exports.size() != that.exports.size()) {

@@ -35,13 +35,12 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.IconNodeInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Job;
 
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -78,140 +77,26 @@ class NetSchem extends NetCell {
         }
     }
 
-    private class Proxy implements Nodable {
+    private class IconInst {
 
-        NodeInst nodeInst;
-        int arrayIndex;
-        int nodeOffset;
+        final NodeInst nodeInst;
+        final Nodable[] iconNodables;
+        final int netMapOffset;
+        final int numExtendedExports;
 
-        Proxy(NodeInst nodeInst, int arrayIndex) {
+        private IconInst(NodeInst nodeInst, int nodeOffset, int numExtendedExports) {
+            Cell proto = (Cell) nodeInst.getProto();
+            assert (proto.isIcon() || proto.isSchematic()) && !nodeInst.isIconOfParent();
             this.nodeInst = nodeInst;
-            this.arrayIndex = arrayIndex;
+            iconNodables = new Nodable[nodeInst.getNameKey().busWidth()];
+            this.netMapOffset = nodeOffset;
+            this.numExtendedExports = numExtendedExports;
         }
 
-        /**
-         * Method to return the prototype of this Nodable.
-         * @return the prototype of this Nodable.
-         */
-        public NodeProto getProto() {
-            NetSchem schem = networkManager.getNetCell((Cell) nodeInst.getProto()).getSchem();
-            return schem.cell;
-        }
-
-        /**
-         * Method to tell whether this is a cell instance.
-         * @return true becaue NetSchem objects are always cell instances.
-         */
-        public boolean isCellInstance() {
-            return true;
-        }
-
-        /**
-         * Method to return the Cell that contains this Nodable.
-         * @return the Cell that contains this Nodable.
-         */
-        public Cell getParent() {
-            return cell;
-        }
-
-        /**
-         * Method to return the name of this Nodable.
-         * @return the name of this Nodable.
-         */
-        public String getName() {
-            return getNameKey().toString();
-        }
-
-        /**
-         * Method to return the name key of this Nodable.
-         * @return the name key of this Nodable.
-         */
-        public Name getNameKey() {
-            return nodeInst.getNameKey().subname(arrayIndex);
-        }
-
-        /**
-         * Method to return the Variable on this ElectricObject with a given key.
-         * @param key the key of the Variable.
-         * @return the Variable with that key, or null if there is no such Variable.
-         */
-        public Variable getVar(Variable.Key key) {
-            return nodeInst.getVar(key);
-        }
-
-//		/**
-//		 * Method to return an iterator over all Variables on this Nodable.
-//		 * @return an iterator over all Variables on this Nodable.
-//		 */
-//		public Iterator<Variable> getVariables() { return nodeInst.getVariables(); }
-        /**
-         * Method to return the Parameter on this Nodable with the given key.
-         * If the parameter is not found on this Nodable, it
-         * is also searched for on the default var owner.
-         * @param key the key of the parameter
-         * @return the Parameter with that key, that may exist either on this Nodable
-         * or the default owner.  Returns null if none found.
-         */
-        public Variable getParameter(Variable.Key key) {
-            return nodeInst.getParameter(key);
-        }
-
-        /**
-         * Method to return the Parameter or Variable on this Nodable with a given key.
-         * @param key the key of the Parameter or Variable.
-         * @return the Parameter or Variable with that key, or null if there is no such Parameter or Variable Variable.
-         * @throws NullPointerException if key is null
-         */
-        public Variable getParameterOrVariable(Variable.Key key) {
-            return nodeInst.getParameterOrVariable(key);
-        }
-
-        /**
-         * Method to tell if the Variable.Key is a defined parameters of this Nodable.
-         * Parameters which are not defined on Nodable take default values from Icon Cell.
-         * @param key the key of the parameter
-         * @return true if the key is a definded parameter of this Nodable
-         */
-        public boolean isDefinedParameter(Variable.Key key) {
-            return nodeInst.isDefinedParameter(key);
-        }
-
-        /**
-         * Method to return an Iterator over all Parameters on this Nodable.
-         * This may also include any Parameters on the defaultVarOwner object that are not on this Nodable.
-         * @return an Iterator over all Parameters on this Nodable.
-         */
-        public Iterator<Variable> getParameters() {
-            return nodeInst.getParameters();
-        }
-
-        /**
-         * Method to return an Iterator over defined Parameters on this Nodable.
-         * This doesn't include any Parameters on the defaultVarOwner object that are not on this Nodable.
-         * @return an Iterator over defined Parameters on this Nodable.
-         */
-        public Iterator<Variable> getDefinedParameters() {
-            return nodeInst.getDefinedParameters();
-        }
-
-        /**
-         * Returns a printable version of this Nodable.
-         * @return a printable version of this Nodable.
-         */
-        public String toString() {
-            return "NetSchem.Proxy " + getName();
-        }
-
-        // JKG: trying this out
-        public boolean contains(NodeInst ni, int arrayIndex) {
-            if (nodeInst == ni && this.arrayIndex == arrayIndex) {
-                return true;
-            }
-            return false;
-        }
-
-        public NodeInst getNodeInst() {
-            return nodeInst;
+        private int getNetMapOffset(Nodable proxy) {
+            int arrayIndex = proxy.getNodableArrayIndex();
+            assert iconNodables[arrayIndex] == proxy;
+            return netMapOffset + arrayIndex * numExtendedExports;
         }
     }
 
@@ -221,12 +106,14 @@ class NetSchem extends NetCell {
     int[] nodeOffsets;
     /** Node offsets. */
     int[] drawnOffsets;
+    /** Info for instances of Icons */
+    IconInst[] iconInsts;
     /** Node offsets. */
-    Proxy[] nodeProxies;
+    Nodable[] nodeProxies;
     /** Proxies with global rebindes. */
-    Map<Proxy, Set<Global>> proxyExcludeGlobals;
+    Map<Nodable, Set<Global>> proxyExcludeGlobals;
     /** Map from names to proxies. Contains non-temporary names. */
-    Map<Name, Proxy> name2proxy = new HashMap<Name, Proxy>();
+    Map<Name, Nodable> name2proxy = new HashMap<Name, Nodable>();
     /** */
     Global.Set globals = Global.Set.empty;
     /** */
@@ -339,7 +226,7 @@ class NetSchem extends NetCell {
             nodables.add(ni);
         }
         for (int i = 0; i < nodeProxies.length; i++) {
-            Proxy proxy = nodeProxies[i];
+            Nodable proxy = nodeProxies[i];
             if (proxy == null) {
                 continue;
             }
@@ -372,16 +259,17 @@ class NetSchem extends NetCell {
      */
     @Override
     int getNetMapOffset(Nodable no, Global global) {
-        if (!(no instanceof Proxy)) {
+        if (no instanceof NodeInst) {
+            int nodeIndex = ((NodeInst)no).getNodeIndex();
+            if (nodeIndex < 0 || nodeIndex >= iconInsts.length || iconInsts[nodeIndex] == null)
             return -1;
         }
-        Proxy proxy = (Proxy) no;
-        NetSchem schem = networkManager.getNetCell((Cell) proxy.nodeInst.getProto()).getSchem();
+        NetSchem schem = networkManager.getNetCell((Cell) no.getNodeInst().getProto()).getSchem();
         int i = schem.globals.indexOf(global);
         if (i < 0) {
             return -1;
         }
-        return proxy.nodeOffset + i;
+        return getProxyNetMapOffset(no, i);
     }
 
     /**
@@ -392,8 +280,7 @@ class NetSchem extends NetCell {
      */
     @Override
     int getNetMapOffset(Nodable no, int equivPortIndex) {
-        Proxy proxy = (Proxy) no;
-        return proxy.nodeOffset + equivPortIndex;
+        return getProxyNetMapOffset(no, equivPortIndex);
     }
 
     /*
@@ -401,7 +288,6 @@ class NetSchem extends NetCell {
      */
     @Override
     int getNetMapOffset(Nodable no, PortProto portProto, int busIndex) {
-        Proxy proxy;
         if (no instanceof NodeInst) {
             NodeInst ni = (NodeInst) no;
             int nodeIndex = ni.getNodeIndex();
@@ -420,17 +306,21 @@ class NetSchem extends NetCell {
             //}
 // 			proxy = nodeProxies[~proxyOffset + arrayIndex];
 // 			NetCell netCell = networkManager.getNetCell((Cell)ni.getProto());
-        } else {
-            proxy = (Proxy) no;
         }
-        if (proxy == null) {
+        if (no == null) {
             return -1;
         }
         int portOffset = NetSchem.getPortOffset(networkManager, portProto, busIndex);
         if (portOffset < 0) {
             return -1;
         }
-        return proxy.nodeOffset + portOffset;
+        return getProxyNetMapOffset(no, portOffset);
+    }
+
+    private int getProxyNetMapOffset(Nodable proxy, int extendedPortOffset) {
+        IconInst iconInst = iconInsts[proxy.getNodeInst().getNodeIndex()];
+        int proxyNetMapOffset = iconInst.getNetMapOffset(proxy);
+        return proxyNetMapOffset + extendedPortOffset;
     }
 
     /**
@@ -679,8 +569,9 @@ class NetSchem extends NetCell {
                 System.out.println("Drawn " + i + " has offset " + drawnOffsets[i]);
             }
         }
+        iconInsts = new IconInst[cell.getNumNodes()];
         if (nodeProxies == null || nodeProxies.length != nodeProxiesOffset) {
-            nodeProxies = new Proxy[nodeProxiesOffset];
+            nodeProxies = new Nodable[nodeProxiesOffset];
         }
         Arrays.fill(nodeProxies, null);
         name2proxy.clear();
@@ -700,18 +591,28 @@ class NetSchem extends NetCell {
                 continue;
             }
             Set<Global> gs = nodeInstExcludeGlobal != null ? nodeInstExcludeGlobal.get(ni) : null; // exclude set of globals
+
+            IconInst iconInst = new IconInst(ni, mapOffset, netSchem.equivPortsN.length);
+            iconInsts[n] = iconInst;
             for (int i = 0; i < ni.getNameKey().busWidth(); i++) {
-                Proxy proxy = new Proxy(ni, i);
+                Nodable proxy;
+                if (ni instanceof IconNodeInst) {
+                    proxy = ((IconNodeInst) ni).getNodable(i);
+                } else {
+                    assert ni.getNameKey().busWidth() == 1;
+                    proxy = ni;
+                }
+                iconInst.iconNodables[i] = proxy;
                 Name name = ni.getNameKey().subname(i);
                 if (!name.isTempname()) {
-                    Proxy namedProxy = name2proxy.get(name);
+                    Nodable namedProxy = name2proxy.get(name);
                     if (namedProxy != null) {
 //                        Cell namedIconCell = (Cell)namedProxy.nodeInst.getProto();
                         String msg = "Network: " + cell + " has instances " + ni + " and "
-                                + namedProxy.nodeInst + " with same name <" + name + ">";
+                                + namedProxy.getNodeInst() + " with same name <" + name + ">";
                         System.out.println(msg);
                         networkManager.pushHighlight(ni);
-                        networkManager.pushHighlight(namedProxy.nodeInst);
+                        networkManager.pushHighlight(namedProxy.getNodeInst());
                         networkManager.logError(msg, NetworkTool.errorSortNodes);
                     }
                     name2proxy.put(name, proxy);
@@ -719,11 +620,11 @@ class NetSchem extends NetCell {
                 if (NetworkTool.debug) {
                     System.out.println(proxy + " " + mapOffset + " " + netSchem.equivPortsN.length);
                 }
-                proxy.nodeOffset = mapOffset;
-                mapOffset += netSchem.equivPortsN.length;
+                assert getProxyNetMapOffset(proxy, 0) == mapOffset;
+                mapOffset += iconInst.numExtendedExports;
                 if (gs != null) {
                     if (proxyExcludeGlobals == null) {
-                        proxyExcludeGlobals = new HashMap<Proxy, Set<Global>>();
+                        proxyExcludeGlobals = new HashMap<Nodable, Set<Global>>();
                     }
                     Set<Global> gs0 = proxyExcludeGlobals.get(proxy);
                     if (gs0 != null) {
@@ -1009,11 +910,11 @@ class NetSchem extends NetCell {
                     continue;
                 }
                 for (int i = 0; i < arraySize; i++) {
-                    Proxy proxy = nodeProxies[~proxyOffset + i];
+                    Nodable proxy = nodeProxies[~proxyOffset + i];
                     if (proxy == null) {
                         continue;
                     }
-                    int nodeOffset = proxy.nodeOffset + portOffset;
+                    int nodeOffset = getNetMapOffset(proxy, portOffset);
                     int busOffset = drawnOffsets[drawn];
                     if (width != busWidth) {
                         busOffset += busWidth * i;
@@ -1050,7 +951,7 @@ class NetSchem extends NetCell {
 
         // Globals of proxies
         for (int k = 0; k < nodeProxies.length; k++) {
-            Proxy proxy = nodeProxies[k];
+            Nodable proxy = nodeProxies[k];
             if (proxy == null) {
                 continue;
             }
@@ -1069,7 +970,7 @@ class NetSchem extends NetCell {
                 if (excludeGlobals != null && excludeGlobals.contains(g)) {
                     continue;
                 }
-                Netlist.connectMap(netMap, this.globals.indexOf(g), proxy.nodeOffset + i);
+                Netlist.connectMap(netMap, this.globals.indexOf(g), getNetMapOffset(proxy, i));
             }
         }
 
@@ -1208,31 +1109,31 @@ class NetSchem extends NetCell {
             }
         }
         for (int k = 0; k < nodeProxies.length; k++) {
-            Proxy proxy = nodeProxies[k];
+            Nodable proxy = nodeProxies[k];
             if (proxy == null) {
                 continue;
             }
             NodeProto np = proxy.getProto();
             NetSchem schem = (NetSchem) networkManager.getNetCell((Cell) np);
-            int[] eqF = schem.equivPortsN;
+            int[] eqN = schem.equivPortsN;
             int[] eqP = schem.equivPortsP;
             int[] eqA = schem.equivPortsA;
-            for (int i = 0; i < eqF.length; i++) {
-                int io = proxy.nodeOffset + i;
+            for (int i = 0; i < eqN.length; i++) {
+                int io = getNetMapOffset(proxy, i);
 
-                int jF = eqF[i];
+                int jF = eqN[i];
                 if (i != jF) {
-                    Netlist.connectMap(netMapF, io, proxy.nodeOffset + jF);
+                    Netlist.connectMap(netMapF, io, getNetMapOffset(proxy, jF));
                 }
 
                 int jP = eqP[i];
                 if (i != jP) {
-                    Netlist.connectMap(netMapP, io, proxy.nodeOffset + jP);
+                    Netlist.connectMap(netMapP, io, getNetMapOffset(proxy, jP));
                 }
 
                 int jA = eqA[i];
                 if (i != jA) {
-                    Netlist.connectMap(netMapA, io, proxy.nodeOffset + jA);
+                    Netlist.connectMap(netMapA, io, getNetMapOffset(proxy, jA));
                 }
             }
         }

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+IMP: (12/6/09, DN) Move network.NetSchem.Proxy to topology.IconNodeInst.IconNodable.
+
 IMP: (12/6/09, DN) Optimization of immutable algorithm of computing connected Exports in schematic cells.
     Self-test is always on.
 

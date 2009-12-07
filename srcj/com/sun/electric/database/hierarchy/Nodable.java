@@ -141,4 +141,10 @@ public interface Nodable {
      * @return the NodeInst associate with this Nodable
      */
     public NodeInst getNodeInst();
+
+    /**
+     * Get array index of this Nodable
+     * @return the array index of this Nodable
+     */
+    public int getNodableArrayIndex();
 }

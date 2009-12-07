@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.IconNodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 
@@ -240,20 +241,14 @@ public abstract class Netlist {
      */
     public static Nodable getNodableFor(NodeInst ni, int arrayIndex) {
         Cell parent = ni.getParent();
-        NetworkManager networkManager = parent.getDatabase().getNetworkManager();
-        NetCell netCell = networkManager.getNetCell(parent);
-        if (netCell == null) {
-            return null;
-        }
-//        Netlist netlist = NetworkTool.getUserNetlist(parent);
-        for (Iterator<Nodable> it = netCell.getNodables(); it.hasNext();) {
-//        for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
-            Nodable no = it.next();
-            if (no.contains(ni, arrayIndex)) {
-                return no;
+        if (ni instanceof IconNodeInst) {
+            if (ni.isIconOfParent() || arrayIndex < 0 || arrayIndex >= ni.getNameKey().busWidth()) {
+                return null;
             }
+            return ((IconNodeInst) ni).getNodable(arrayIndex);
+        } else {
+            return ni;
         }
-        return null;
     }
 
     /**
@@ -275,7 +270,7 @@ public abstract class Netlist {
         if (!no.isCellInstance()) {
             return null;
         }
-        return netCell.networkManager.getNetCell((Cell) no.getProto()).getNetlist(shortResistors);
+        return ((Cell) no.getProto()).getNetlist(shortResistors);
 //		return subNetlists.get(no.getProto());
     }
 
