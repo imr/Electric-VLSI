@@ -38,13 +38,13 @@ import java.util.Map;
  *
  */
 public class EquivalentSchematicExports {
-    final CellId cellId;
-    final EquivalentSchematicExports implementation;
-    final int[] portImplementation;
-    private final Global.Set globals;
-    final int numExports;
-    final int[] portOffsets;
-    private final int numExpandedExports;
+    public final CellId cellId;
+    public final EquivalentSchematicExports implementation;
+    public final int[] portImplementation;
+    public final Global.Set globals;
+    public final int numExports;
+    public final int[] portOffsets;
+    public final int numExpandedExports;
     final ImmutableArrayList<ImmutableExport> exports;
     private final HashMap<ExportId,Global.Set[]> globalPartitions;
     /**
@@ -69,16 +69,6 @@ public class EquivalentSchematicExports {
         equivPortsN = netSchem.equivPortsN;
         equivPortsP = netSchem.equivPortsP;
         equivPortsA = netSchem.equivPortsA;
-    }
-
-    public static EquivalentSchematicExports getEquivExports(Snapshot snapshot, CellId top) {
-        EquivalentSchematicExports eq = snapshot.equivSchemExports[top.cellIndex];
-        if (eq == null) {
-            ImmutableNetSchem netSchem = new ImmutableNetSchem(snapshot, top);
-            eq = new EquivalentSchematicExports(netSchem);
-            snapshot.equivSchemExports[top.cellIndex] = eq;
-        }
-        return eq;
     }
 
     public static EquivalentSchematicExports computeEquivExports(Snapshot snapshot, CellId top) {

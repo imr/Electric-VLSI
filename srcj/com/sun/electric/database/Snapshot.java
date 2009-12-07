@@ -265,7 +265,7 @@ public class Snapshot {
             assert oldMainSchemEq != null;
             EquivalentSchematicExports newMainSchemEq = reuseSchemEq(snapshot, mainSchemId);
             if (newMainSchemEq == null)
-                newMainSchemEq = EquivalentSchematicExports.getEquivExports(snapshot, mainSchemId);
+                newMainSchemEq = snapshot.getEquivExports(mainSchemId);
             if (newMainSchemEq != oldMainSchemEq)
                 newSchemEq = null;
         }
@@ -284,7 +284,7 @@ public class Snapshot {
             assert oldSubSchemEq != null;
             EquivalentSchematicExports newSubSchemEq = reuseSchemEq(snapshot, subCellId);
             if (newSubSchemEq == null)
-                newSubSchemEq = EquivalentSchematicExports.getEquivExports(snapshot, subCellId);
+                newSubSchemEq = snapshot.getEquivExports(subCellId);
             if (!newSubSchemEq.equals(oldSubSchemEq)) {
                 newSchemEq = null;
             }
@@ -633,6 +633,16 @@ public class Snapshot {
         }
         assert groupName != null;
         return CellName.parseName(groupName + "{sch}");
+    }
+
+    public EquivalentSchematicExports getEquivExports(CellId top) {
+        EquivalentSchematicExports eq = equivSchemExports[top.cellIndex];
+        if (eq == null) {
+            ImmutableNetSchem netSchem = new ImmutableNetSchem(this, top);
+            eq = new EquivalentSchematicExports(netSchem);
+            equivSchemExports[top.cellIndex] = eq;
+        }
+        return eq;
     }
 
     public ERectangle getCellBounds(CellId cellId) {

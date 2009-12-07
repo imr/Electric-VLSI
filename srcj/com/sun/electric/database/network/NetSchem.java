@@ -1392,7 +1392,7 @@ class NetSchem extends NetCell {
             changed = true;
         }
         if (CHECK_EQUIV_PORTS) {
-            EquivalentSchematicExports eq = EquivalentSchematicExports.getEquivExports(cell.getDatabase().backup(), cell.getId());
+            EquivalentSchematicExports eq = cell.getDatabase().backup().getEquivExports(cell.getId());
 //            assert Arrays.equals(ni_pi, netSchem.ni_pi);
 //            assert arcsOffset == netSchem.arcsOffset;
 //            assert Arrays.equals(drawns, netSchem.drawns);
