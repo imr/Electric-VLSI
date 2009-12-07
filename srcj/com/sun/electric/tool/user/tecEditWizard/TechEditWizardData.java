@@ -239,12 +239,13 @@ public class TechEditWizardData
     public static class LayerInfo
     {
         String name;
-        int value; // normal value
-        int type; // datatype of the normal value
-        int pin; // pin value
-        int pinType; // pin datatype
-        int text; // text value
-        int textType; // text datatype
+        int value; // normal gds value
+        int type; // datatype of the normal gds value
+        int pin; // gds pin value
+        int pinType; // gds pin datatype
+        int text; // gds text value
+        int textType; // gds text datatype
+        String cif; // cif value
         String graphicsTemplate; // uses other template for the graphics
         Color graphicsColor; // uses this color with no fill
         EGraphics.Outline graphicsOutline; // uses this outline with graphicsColor
@@ -325,6 +326,11 @@ public class TechEditWizardData
                 {
                     assert(index != -1);
                     function = Layer.Function.valueOf(str.substring(index+1));
+                }
+                else if (str.startsWith("CIF")) // CIF
+                {
+                    assert(index != -1);
+                    cif = str.substring(index+1);
                 }
                 else if (str.startsWith("C")) // color
                 {
@@ -2547,6 +2553,7 @@ public class TechEditWizardData
             WizardField wf = new WizardField(info.width, info.name); // name is irrelevant
             Xml.Layer layer = makeXmlLayer(t.layers, layerMap, info.name, info.function, 0, graph,
                 wf, true, info.addArc, info.name);
+            if (info.cif != null) layer.cif = info.cif;
             makeLayerGDS(t, layer, String.valueOf(info));
 
             if (info.addArc)
@@ -3834,7 +3841,7 @@ public class TechEditWizardData
 
         assert(poly2Layer != null);
 
-        Xml.Layer hiRestLayer = t.findLayer("Hi_Res");
+        Xml.Layer hiRestLayer = t.findLayer("Hi-Res");
         Xml.Layer m1Layer = t.findLayer("Metal-1");
 
         PaletteGroup g = polysGroup.get(1); // second group in polys
@@ -3844,34 +3851,25 @@ public class TechEditWizardData
         WizardField polyRL = findWizardField("hi_poly_resistor_length");
         WizardField polyRW = findWizardField("hi_poly_resistor_width");
         WizardField poly2Overhang = findWizardField("contact_poly2_overhang");
+        WizardField hiRestOverhang = findWizardField("hi-res_overhang");
         
         double resistorSpacing = contact_array_spacing.value; // using array value to guarantee proper spacing in nD cases
 
-            // poly
-            double soxNoScaled = (2 * poly2Overhang.value + 2 * contact_metal_overhang_all_sides.value + contact_size.value);
-            double halfTotalL = scaledValue(polyRL.value /2 + soxNoScaled);
-            double halfTotalW = scaledValue(polyRW.value /2);
-            nodesList.add(makeXmlNodeLayer(halfTotalL, halfTotalL, halfTotalW, halfTotalW, poly2Layer,
-                Poly.Type.FILLED, true, true, 0));
-//
-//            // RPO
-//            double rpoY = scaledValue(polyRW.value /2 + rpoODPolyEx.value);
-//            double rpoX = scaledValue(polyRL.value /2);
-//            Xml.Layer rpoLayer = t.findLayer("RPO");
-//            addXmlNodeLayerInternal(nodesList, t, "RPO", rpoX, rpoY, true, true, -1);
-//
-//            // left cuts
-//            double cutDistance = scaledValue(rpoS.value + polyRL.value /2);
-//            // M1 and Poly overhang will be the same for now
-////                double absVal = (contact_poly_overhang.v - via_overhang[0].v);
-//            double m1Distance = cutDistance - scaledValue(contact_poly_overhang.value);
-//            double m1Y = scaledValue(polyRW.value /2); // - absVal);
-//            double m1W = scaledValue(2 * contact_poly_overhang.value + resistorSpacing + 2 * contact_size.value);
-//            double cutSizeHalf = scaledValue(contact_size.value /2);
-//            double cutEnd = cutDistance+contSize;
-//            double cutSpacing = scaledValue(resistorSpacing);
-//            double cutEnd2 = cutEnd+contSize+cutSpacing;
-//
+        // poly
+        double polyNoScaled = 2 * (poly2Overhang.value + contact_metal_overhang_all_sides.value) + contact_size.value;
+        double soxNoScaled = (hiRestOverhang.value) + polyNoScaled;
+        
+        double polyL = scaledValue(polyRL.value /2 + polyNoScaled);
+        double polyW = scaledValue(polyRW.value /2);
+        nodesList.add(makeXmlNodeLayer(polyL, polyL, polyW, polyW, poly2Layer,
+            Poly.Type.FILLED, true, true, 0));
+        
+        // hi res
+        double hiresL = scaledValue(polyRL.value /2 + soxNoScaled);
+        double hiresW = scaledValue(polyRW.value /2 + hiRestOverhang.value);
+        nodesList.add(makeXmlNodeLayer(hiresL, hiresL, hiresW, hiresW, hiRestLayer,
+            Poly.Type.FILLED, true, true, 0));
+        
         portNames.add(m1Layer.name);
         // left port
         double contSize = scaledValue(contact_size.value);
