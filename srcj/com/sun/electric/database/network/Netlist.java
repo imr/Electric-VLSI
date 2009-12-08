@@ -446,6 +446,7 @@ public abstract class Netlist {
                     return -1;
                 }
             }
+            no = no1;
         }
         if (no.getParent() != netCell.cell) {
             return -1;
