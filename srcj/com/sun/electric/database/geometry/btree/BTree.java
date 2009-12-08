@@ -147,6 +147,12 @@ public class BTree
     private       int    largestKeyPage = -1;  // or -1 if unknown
 
     public BTree(CachingPageStorage ps, UnboxedComparable<K> uk, UnboxedMonoid<S> monoid, Unboxed<V> uv) {
+        if (monoid!=null) {
+            if (!(monoid instanceof UnboxedCommutativeMonoid))
+                throw new RuntimeException("Only commutative monoids are supported (allows one-pass insertion)");
+            // FIXME: if the monoid is not invertible (ie a group) and commutative, we cannot do DELETE in a single pass
+            // I don't think we can ever do REPLACE in one pass unless we knew the previous value
+        }
         this.ps = ps;
         this.uk = uk;
         this.monoid = monoid;
