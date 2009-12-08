@@ -1124,18 +1124,27 @@ public class Xml {
                 case nodeLayer:
                     curNodeLayer = new NodeLayer();
                     curNodeLayer.layer = a("layer");
-                    curNodeLayer.style = Poly.Type.valueOf(a("style"));
-                    String portNum = a_("portNum");
-                    if (portNum != null)
-                        curNodeLayer.portNum = Integer.parseInt(portNum);
-                    String electrical = a_("electrical");
-                    if (electrical != null) {
-                        if (Boolean.parseBoolean(electrical))
-                            curNodeLayer.inElectricalLayers = true;
-                        else
-                            curNodeLayer.inLayers = true;
-                    } else {
-                        curNodeLayer.inElectricalLayers = curNodeLayer.inLayers = true;
+                    if (tech.findLayer(curNodeLayer.layer) == null)
+                    {
+                        System.out.println("Error: cannot find layer '" + curNodeLayer.layer + "' in primitive node '" +
+                        curNode.name + "'. Skiping this NodeLayer");
+                        curNodeLayer = null; // skip it
+                    }
+                    else
+                    {
+                        curNodeLayer.style = Poly.Type.valueOf(a("style"));
+                        String portNum = a_("portNum");
+                        if (portNum != null)
+                            curNodeLayer.portNum = Integer.parseInt(portNum);
+                        String electrical = a_("electrical");
+                        if (electrical != null) {
+                            if (Boolean.parseBoolean(electrical))
+                                curNodeLayer.inElectricalLayers = true;
+                            else
+                                curNodeLayer.inLayers = true;
+                        } else {
+                            curNodeLayer.inElectricalLayers = curNodeLayer.inLayers = true;
+                        }
                     }
                     break;
                 case box:
@@ -1479,8 +1488,11 @@ public class Xml {
                     }
                     break;
                 case nodeLayer:
-                    curNodeGroup.nodeLayers.add(curNodeLayer);
-                    curNodeLayer = null;
+                    if (curNodeLayer != null)
+                    {
+                        curNodeGroup.nodeLayers.add(curNodeLayer);
+                        curNodeLayer = null;
+                    }
                     break;
                 case primitivePort:
                     curNodeGroup.ports.add(curPort);

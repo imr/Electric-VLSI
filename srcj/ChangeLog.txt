@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+IMP: (12/8/09, GVG) Tech XML reader doesn't check if layer doesn't exist (Bug #2515).
+Electric will print error message during the reading and ignore that unknown layer.
+
 BUG: (12/8/09, DN) Netlist.getNetIndex(Nodable,PortProto,int) fails when IconNodeInst is passed as Nodable (Bug #2513).
 FIX: In Netlist.getNetIndex(Noable,PortProto,int) patch Nodable and PortProto when Nodale is IconNodeInst.
 
