@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+BUG: (12/8/09, DN) Netlist.getNetIndex(Nodable,PortProto,int) fails when IconNodeInst is passed as Nodable (Bug #2513).
+FIX: In Netlist.getNetIndex(Noable,PortProto,int) patch Nodable and PortProto when Nodale is IconNodeInst.
+
 BUG: (12/8/09, GVG) NPE if extension is not found (Bug #2514)
 FIX: Detect the case when the extension is not from FileType
 

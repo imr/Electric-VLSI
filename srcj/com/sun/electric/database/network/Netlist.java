@@ -434,6 +434,10 @@ public abstract class Netlist {
      */
     int getNetIndex(Nodable no, PortProto portProto, int busIndex) {
         checkForModification();
+        if (no instanceof IconNodeInst) {
+            no = ((IconNodeInst)no).getNodable(0);
+            portProto = ((Export)portProto).getEquivalent();
+        }
         if (no.getParent() != netCell.cell) {
             return -1;
         }
