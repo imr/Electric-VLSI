@@ -69,7 +69,8 @@ public class OpenFile
                 FileType selectedType = FileType.getType(getFileFilter());
                 String extension = TextUtils.getExtension(filename);
                 FileType givenExtension = FileType.findTypeByExtension(extension);
-                String actualGivenExtension = givenExtension.getExtensions()[0];
+                // givenExtension is null if extension is not one of the pre-defined ones.
+                String actualGivenExtension = (givenExtension != null) ? givenExtension.getExtensions()[0] : extension;
 
                 // givenExtension != selectedType to prevent jelib.delib file for example
                 if (givenExtension != selectedType &&

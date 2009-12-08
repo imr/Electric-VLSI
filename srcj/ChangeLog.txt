@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+BUG: (12/8/09, GVG) NPE if extension is not found (Bug #2514)
+FIX: Detect the case when the extension is not from FileType
+
 IMP: (12/8/09, DN) In threadsafe mode Netlists are weak-refrenced.
 
 IMP: (12/8/09, DN) Replace Netlist.expectedModCount by Netlist.expectedSnapshot and expected.CellTree .
@@ -30,7 +33,7 @@ FIX: In NodeInst.getShapeOfPort() use getCellBackupUnsafe() instead of cell.back
 
 BUG: (12/3/09, DN) New ELIB files don't read back in. (Bug #2506).
 FIX: In input.ELIB.convertPortProto return null when index is "-1".
-    Add field output.ELIB.ElibConnection.arcIndex and use it for output.
+    Add field output.ELIB.ElibConn2239ection.arcIndex and use it for output.
 
 BUG: (12/3/09, SMR) Should detect errors outside of jobs (Bug #2505).
 FIX: Fixed "Align to Grid" and others.
