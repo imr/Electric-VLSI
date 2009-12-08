@@ -525,7 +525,7 @@ public class IconNodeInst extends NodeInst {
          */
         @Override
         public String toString() {
-            return "NetSchem.Proxy " + getName();
+            return "IconNodable " + getName();
         }
 
         // JKG: trying this out

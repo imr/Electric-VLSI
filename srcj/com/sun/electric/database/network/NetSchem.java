@@ -26,7 +26,6 @@ package com.sun.electric.database.network;
 
 import com.sun.electric.database.EquivPorts;
 import com.sun.electric.database.EquivalentSchematicExports;
-import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -217,8 +216,10 @@ class NetSchem extends NetCell {
             }
             nodables.add(ni);
         }
-        for (IconInst iconInst: iconInsts) {
-            if (iconInst == null || iconInst.iconOfParent) continue;
+        for (IconInst iconInst : iconInsts) {
+            if (iconInst == null || iconInst.iconOfParent) {
+                continue;
+            }
             for (int i = 0; i < iconInst.iconNodables.length; i++) {
                 Nodable proxy = iconInst.iconNodables[i];
                 assert proxy != null;
@@ -312,18 +313,18 @@ class NetSchem extends NetCell {
             if (busIndex < 0 || busIndex >= drawnWidths[drawn]) {
                 return -1;
             }
-            assert portProto.getParent() == ((NodeInst)no).getProto();
+            assert portProto.getParent() == ((NodeInst) no).getProto();
             return drawnOffsets[drawn] + busIndex;
         } else if (iconInst.iconOfParent) {
             return -1;
         } else {
             // icon or schematic cell
-            Cell subCell = (Cell)portProto.getParent();
+            Cell subCell = (Cell) portProto.getParent();
             assert no.getProto() == subCell;
             EquivalentSchematicExports eq = iconInst.eq;
             assert eq.implementation.cellId == subCell.getId();
             int portIndex = portProto.getPortIndex();
-            portIndex = eq.portImplementation[portIndex];
+//            portIndex = eq.portImplementation[portIndex];
             if (portIndex < 0) {
                 return -1;
             }
@@ -437,7 +438,7 @@ class NetSchem extends NetCell {
             NodeInst ni = cell.getNode(i);
             NodeProto np = ni.getProto();
             if (ni.isCellInstance()) {
-                Cell subCell = (Cell)np;
+                Cell subCell = (Cell) np;
                 if (!(subCell.isIcon() || subCell.isSchematic())) {
                     if (ni.getNameKey().isBus()) {
                         String msg = cell + ": Array name <" + ni.getNameKey() + "> can be assigned only to icon nodes";
@@ -748,7 +749,7 @@ class NetSchem extends NetCell {
                 int oldWidth = drawnWidths[drawn];
                 int newWidth = 1;
                 if (ni.isCellInstance()) {
-                    Cell subCell = (Cell)np;
+                    Cell subCell = (Cell) np;
                     if (subCell.isIcon() || subCell.isSchematic()) {
                         int arraySize = subCell.isIcon() ? ni.getNameKey().busWidth() : 1;
                         int portWidth = pi.getPortProto().getNameKey().busWidth();
@@ -865,7 +866,7 @@ class NetSchem extends NetCell {
                 }
                 continue;
             }
-            Cell subCell = (Cell)np;
+            Cell subCell = (Cell) np;
             IconInst iconInst = iconInsts[k];
             if (iconInst == null || iconInst.iconOfParent) {
                 continue;
@@ -932,11 +933,13 @@ class NetSchem extends NetCell {
         }
 
         // Globals of proxies
-        for (IconInst iconInst: iconInsts) {
-            if (iconInst == null || iconInst.iconOfParent) continue;
+        for (IconInst iconInst : iconInsts) {
+            if (iconInst == null || iconInst.iconOfParent) {
+                continue;
+            }
             for (int k = 0; k < iconInst.iconNodables.length; k++) {
                 Nodable proxy = iconInst.iconNodables[k];
-                Cell np = (Cell)proxy.getProto();
+                Cell np = (Cell) proxy.getProto();
                 EquivalentSchematicExports eq = iconInst.eq.implementation;
                 assert eq.implementation == eq;
                 int numGlobals = eq.portOffsets[0];
@@ -1063,7 +1066,7 @@ class NetSchem extends NetCell {
             if (iconInst != null) {
                 continue;
             }
-            Cell subCell = (Cell)np;
+            Cell subCell = (Cell) np;
             assert !(subCell.isIcon() || subCell.isSchematic());
             EquivPorts eq = cell.tree().getEquivPorts();
             int[] eqN = eq.getEquivPortsN();
@@ -1097,11 +1100,13 @@ class NetSchem extends NetCell {
                 }
             }
         }
-        for (IconInst iconInst: iconInsts) {
-            if (iconInst == null || iconInst.iconOfParent) continue;
+        for (IconInst iconInst : iconInsts) {
+            if (iconInst == null || iconInst.iconOfParent) {
+                continue;
+            }
             for (int k = 0; k < iconInst.iconNodables.length; k++) {
                 Nodable proxy = iconInst.iconNodables[k];
-                Cell np = (Cell)proxy.getProto();
+                Cell np = (Cell) proxy.getProto();
                 EquivalentSchematicExports eq = iconInst.eq.implementation;
                 assert eq.implementation == eq;
                 int[] eqN = eq.getEquivPortsN();

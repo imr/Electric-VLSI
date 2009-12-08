@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+BUG: (12/7/09, DN) Library cannot be read (Bug #2510, #2511).
+FIX: In NetSchem.getNetMapOffset don't redirect portInex byu portImplementation.
+
 IMP: (12/6/09, DN) Move network.NetSchem.Proxy to topology.IconNodeInst.IconNodable.
 
 IMP: (12/6/09, DN) Optimization of immutable algorithm of computing connected Exports in schematic cells.
