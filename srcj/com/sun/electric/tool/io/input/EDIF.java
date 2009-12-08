@@ -1656,7 +1656,7 @@ public class EDIF extends Input
 	private void instantiatePlannedPort(PlannedPort plp, Rectangle2D cellBounds)
 	{
 		if (plp.createdPort != null) return;
-
+		PortInst pi = null;
 		if (plp.alreadyThere == null)
 		{
 			// now create the off-page reference
@@ -1690,7 +1690,8 @@ public class EDIF extends Input
 			List<PortInst> tList = findEDIFPort(curCell, plp.x, plp.y, type.getPort(0).getBasePort().getConnections()[0]);
 			if (tList.size() != 0)
 			{
-				plp.alreadyThere = tList.get(0).getNodeInst();
+				pi = tList.get(0);
+				plp.alreadyThere = pi.getNodeInst();
 			} else
 			{
 				double psX = type.getDefWidth();
@@ -1702,10 +1703,10 @@ public class EDIF extends Input
 					errorCount++;
 					return;
 				}
+				pi = plp.alreadyThere.getPortInst(0);
 			}
 		}
 
-		PortInst pi = plp.alreadyThere.getPortInst(0);
 		if (plp.alreadyThere.getProto() == Schematics.tech().offpageNode)
 		{
 			PortProto fPp = Schematics.tech().offpageNode.findPortProto("y");

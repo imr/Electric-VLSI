@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+BUG: (12/8/09, SMR) EDIF import places exports on instances incorrectly (Bug #2512).
+FIX: Use proper port instead of first one.
+
 IMP/MAN: (12/4/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
 Added active/poly/hi-res resistors. Only available in analog mode.
 
