@@ -110,7 +110,10 @@ public class Network implements Comparable {
 
     /** Get iterator over all PortInsts on Network.  Note that the
      * PortFilter class is useful for filtering out frequently excluded
-     * PortInsts.  */
+     * PortInsts.
+     * This is well-defined for Layout cells,
+     * but what is PortInst in Schematic cell with buses ???
+     */
     public Iterator<PortInst> getPorts() {
         List<PortInst> ports = getPortsList();
         return ports.iterator();

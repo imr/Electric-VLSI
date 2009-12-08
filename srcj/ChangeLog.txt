@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+BUG: (12/8/09, DN) HSpice1 regression fails in Netlist.getPorts method in schematic cell.
+FIX: More check in patching PortProto in Netlist.getNetIndex(Noable,PortProto,int).
+
 IMP: (12/8/09, GVG) Tech XML reader doesn't check if layer doesn't exist (Bug #2515).
 Electric will print error message during the reading and ignore that unknown layer.
 

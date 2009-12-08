@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.IconNodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 
+import com.sun.electric.tool.Job;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.Collection;
@@ -435,8 +436,16 @@ public abstract class Netlist {
     int getNetIndex(Nodable no, PortProto portProto, int busIndex) {
         checkForModification();
         if (no instanceof IconNodeInst) {
-            no = ((IconNodeInst)no).getNodable(0);
-            portProto = ((Export)portProto).getEquivalent();
+            Nodable no1 = ((IconNodeInst)no).getNodable(0);
+            if (Job.getDebug()) {
+                System.out.println("IconNodeInst " + no + " is passed to getNodeIndex. Replaced by IconNodeable " + no1);
+            }
+            if (no1.getProto() != no.getProto()) {
+                portProto = ((Export)portProto).getEquivalent();
+                if (portProto == null) {
+                    return -1;
+                }
+            }
         }
         if (no.getParent() != netCell.cell) {
             return -1;

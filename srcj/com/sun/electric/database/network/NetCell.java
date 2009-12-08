@@ -133,7 +133,7 @@ public class NetCell {
     private static ArcProto busArc = Schematics.tech().bus_arc;
 
     NetCell(Cell cell) {
-        System.out.println("Create NetCell " + cell.libDescribe());
+//        System.out.println("Create NetCell " + cell.libDescribe());
         this.database = cell.getDatabase();
         this.networkManager = database.getNetworkManager();
         this.isSchem = this instanceof NetSchem;
