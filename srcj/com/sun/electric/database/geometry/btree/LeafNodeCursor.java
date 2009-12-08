@@ -31,7 +31,6 @@ import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
 /**
  *  Page format:
  *
- *    int: pageid of parent (root points to self)
  *    int: 0
  *    int: pageid of left neighbor (not used)
  *    int: pageid of right neighbor (not used)
@@ -72,8 +71,6 @@ class LeafNodeCursor
         bt.ui.serializeInt(0, getBuf(), 1*SIZEOF_INT);
         setNumBuckets(0);
     }
-    public int  getParentPageId() { return bt.ui.deserializeInt(getBuf(), 0*SIZEOF_INT); }
-    public void setParentPageId(int pageid) { bt.ui.serializeInt(pageid, getBuf(), 0*SIZEOF_INT); }
     public int  getLeftNeighborPageId() { return bt.ui.deserializeInt(getBuf(), 2*SIZEOF_INT); }
     public int  getRightNeighborPageId() { return bt.ui.deserializeInt(getBuf(), 3*SIZEOF_INT); }
     public void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, getBuf(), 4*SIZEOF_INT); }

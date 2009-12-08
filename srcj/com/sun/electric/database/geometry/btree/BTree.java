@@ -95,16 +95,6 @@ import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
  *  Possible feature: COWTree like Oracle's btrfs:
  *      http://dx.doi.org/10.1145/1326542.1326544
  *
- *    -> I'm actually already most of the way there.  I don't have
- *       sibling pointers and I don't actually use the parent pointer;
- *       all my tree operations are done top-down already.  I just
- *       need to add lazy reference counts.  I guess I might need an
- *       "intent log".
- *
- *  Normal B-Trees don't have parent links; they use sibling links at
- *  the leaves instead.  But sibling trees inhibit COW, so we don't
- *  want them anyways.
- *
  *  Possible feature: use extents rather than blocks?
  *
  *  Possible feature: delete-range
@@ -168,7 +158,6 @@ public class BTree
         this.keybuf = new byte[uk.getSize()];
         this.largestKey = new byte[uk.getSize()];
         leafNodeCursor.initBuf(ps.getPage(rootpage, false));
-        leafNodeCursor.setParentPageId(rootpage);
         leafNodeCursor.writeBack();
     }
 
@@ -351,8 +340,7 @@ public class BTree
             comp = uk.compare(key, key_ofs, largestKey, 0);
             if (comp >= 0 && !leafNodeCursor.isFull()) {
                 pageid = largestKeyPage;
-                if (leafNodeCursor.getParentPageId()!=leafNodeCursor.getPageId())
-                    parentNodeCursor.setBuf(ps.getPage(leafNodeCursor.getParentPageId(), true));
+                parentNodeCursor.forgetCachedPage();
                 cheat = true;
                 cur = leafNodeCursor;
             }
@@ -374,7 +362,6 @@ public class BTree
                 if (pageid == rootpage) {
                     parentNodeCursor.initRoot();
                     parentNodeCursor.setBucketPageId(0, pageid);
-                    cur.setParentPageId(rootpage);
                     idx = 0;
                     old = size;
                     splitting_last_or_root = true;

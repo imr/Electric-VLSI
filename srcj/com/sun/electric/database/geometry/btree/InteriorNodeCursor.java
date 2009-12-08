@@ -31,7 +31,6 @@ import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
 /**
  *  Page format:
  *
- *    int: pageid of parent (root points to self)
  *    int: number of buckets
  *
  *    int: pageid of first bucket
@@ -96,8 +95,6 @@ class InteriorNodeCursor
     public static boolean isInteriorNode(byte[] buf) { return UnboxedInt.instance.deserializeInt(buf, 1*SIZEOF_INT)!=0; }
     public int getMaxBuckets() { return INTERIOR_MAX_BUCKETS; }
     public void initBuf(CachedPage cp) { super.setBuf(cp); }
-    public int  getParentPageId() { return bt.ui.deserializeInt(getBuf(), 0*SIZEOF_INT); }
-    public void setParentPageId(int pageid) { bt.ui.serializeInt(pageid, getBuf(), 0*SIZEOF_INT); }
     public int  getNumBuckets() { return numbuckets; }
     public void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, getBuf(), 1*SIZEOF_INT); }
 
@@ -110,7 +107,6 @@ class InteriorNodeCursor
     public void initRoot() {
         bt.rootpage = ps.createPage();
         super.setBuf(ps.getPage(bt.rootpage, false));
-        setParentPageId(bt.rootpage);
         setNumBuckets(1);
     }
 

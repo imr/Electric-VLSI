@@ -51,7 +51,7 @@ abstract class NodeCursor
     protected              CachingPageStorage  ps;
     protected static final int          SIZEOF_INT = 4;
     protected        final BTree<K,V,S> bt;
-    protected              CachedPage   cp;
+    protected              CachedPage   cp = null;
 
     protected NodeCursor(BTree<K,V,S> bt) {
         this.bt = bt;
@@ -64,6 +64,7 @@ abstract class NodeCursor
         this.cp = cp;
     }
     public CachedPage getCachedPage() { return cp; }
+    public void       forgetCachedPage() { cp = null; }
     public void writeBack() {
         dirty = false;
         cp.setDirty();
@@ -93,18 +94,14 @@ abstract class NodeCursor
 
         // move the second half of our entries to the front of the block, and write back
         byte[] oldbuf = cp.getBuf();
-        int parent = getParentPageId();
         initBuf(ps.getPage(ps.createPage(), false));
         setNumBuckets(getMaxBuckets()-splitPoint);
         scoot(oldbuf, endOfBuf, splitPoint);
-        setParentPageId(parent);
         writeBack();
         return ret;
     }
 
     public boolean isFull() { return getNumBuckets() >= getMaxBuckets(); }
-    public abstract int  getParentPageId();
-    public abstract void setParentPageId(int pageid);
     public int getPageId() { return cp.getPageId(); }
     public byte[] getBuf() { return cp.getBuf(); }
 
