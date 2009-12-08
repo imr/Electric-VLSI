@@ -49,7 +49,7 @@ IMP: (12/6/09, DN) Optimization of immutable algorithm of computing connected Ex
 BUG: (12/5/09, DN) Regressions failes in getShapeOfPort.
 FIX: Use cellTree.techPool instead of cellBackup.techPool for getShapeOfPort.
 
-IMP: (12/4/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
+IMP/MAN: (12/4/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
 Added capacitor and hi_res layer.
 
 BUG: (12/4/09, DN) Can no longer get polygons from dummy NodeInsts (Bug #2507).
@@ -71,7 +71,7 @@ FIX: Added extra condition to statement which brings up the dialog. Removing wri
 BUG: (12/2/09, DN) ArrayIndexOutOfBoundsException in LayerDrawing.drawDiscRow during redraw (Bug #2504).
 FIX: Clip properly in LayerDrawing.discRow .
 
-IMP: (12/2/09, SMR) New Node Preference "Increment rightmost array index"
+IMP/MAN: (12/2/09, SMR) New Node Preference "Increment rightmost array index"
      allows export duplication to auto-increment from the left (if unchecked)
      (Bug #2501).
 

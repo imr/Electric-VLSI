@@ -675,6 +675,13 @@ public class MoCMOS extends Technology
         Xml.PrimitiveNodeGroup polyCapNode = tech.findNodeGroup("Poly-Capacitor");
         List<Xml.PrimitiveNodeGroup> analogElems = new ArrayList<Xml.PrimitiveNodeGroup>();
         analogElems.add(tech.findNodeGroup("NPN-Transistor"));
+        analogElems.add(tech.findNodeGroup("Hi-Poly-Resistor"));
+        analogElems.add(tech.findNodeGroup("P-Active-Resistor"));
+        analogElems.add(tech.findNodeGroup("N-Active-Resistor"));
+        analogElems.add(tech.findNodeGroup("P-Well-Resistor"));
+        analogElems.add(tech.findNodeGroup("N-Well-Resistor"));
+        analogElems.add(tech.findNodeGroup("P-Poly-Resistor"));
+        analogElems.add(tech.findNodeGroup("N-Poly-Resistor"));
         
         for (int i = 0; i < metalLayers.length; i++) {
             metalLayers[i] = tech.findLayer("Metal-" + (i + 1));
@@ -813,7 +820,6 @@ public class MoCMOS extends Technology
         {
             if (elem != null) elem.notUsed = analogFlag;
         }
-//        if (npnTransistorNode != null) npnTransistorNode.notUsed = analogFlag;
 
         return tech;
     }
