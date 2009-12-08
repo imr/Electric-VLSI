@@ -26,6 +26,7 @@ package com.sun.electric.database.network;
 
 import com.sun.electric.database.EquivPorts;
 import com.sun.electric.database.EquivalentSchematicExports;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -1401,5 +1402,19 @@ class NetSchem extends NetCell {
             assert Arrays.equals(equivPortsA, eq.getEquivPortsA());
         }
         return changed;
+    }
+
+    /**
+     * Update netlists to current Snapshot
+     * Check if specified Netlist is no more fresh
+     * @param netlist
+     * @return true specified Netlist is no more fresh
+     */
+    @Override
+    boolean obsolete(Netlist netlist) {
+        redoNetworks();
+        Snapshot snapshot = database.backup();
+        netlistN.expectedSnapshot = netlistP.expectedSnapshot = netlistA.expectedSnapshot = snapshot;
+        return netlist != netlistN && netlist != netlistP && netlist != netlistA;
     }
 }

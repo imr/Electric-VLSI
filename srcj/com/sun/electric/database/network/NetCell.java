@@ -24,6 +24,7 @@
  */
 package com.sun.electric.database.network;
 
+import com.sun.electric.database.CellTree;
 import com.sun.electric.database.EquivPorts;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
@@ -53,7 +54,7 @@ import java.util.Map;
 /**
  * This is the Cell mirror in Network tool.
  */
-class NetCell {
+public class NetCell {
 
     /** Check immutable algorithm which computes equivalent ports */
     private static final boolean CHECK_EQUIV_PORTS = true;
@@ -83,7 +84,7 @@ class NetCell {
      * <i>fail-fast</i> behavior, rather than non-deterministic behavior in
      * the face of concurrent modification during netlist examination.<p>
      */
-    int modCount = 0;
+//    int modCount = 0;
     /**
      * Equivalence of ports.
      * equivPorts.size == ports.size.
@@ -167,7 +168,7 @@ class NetCell {
         }
     }
 
-    Netlist getNetlist(Netlist.ShortResistors shortResistors) {
+    public Netlist getNetlist(Netlist.ShortResistors shortResistors) {
         if ((flags & VALID) == 0) {
             redoNetworks();
         }
@@ -267,7 +268,7 @@ class NetCell {
      * Method to return the bus width on this ArcInst.
      * @return the either the bus width on this ArcInst.
      */
-    public int getBusWidth(ArcInst ai) {
+    int getBusWidth(ArcInst ai) {
         int drawn = getArcDrawn(ai);
         if (drawn < 0) {
             return 0;
@@ -889,7 +890,7 @@ class NetCell {
         }
 
         // Mark this netcell changed
-        modCount++;
+//        modCount++;
 
         // clear errors for cell
         networkManager.startErrorLogging(cell);
@@ -925,5 +926,18 @@ class NetCell {
         netlistP = new NetlistShorted(netlistN, Netlist.ShortResistors.PARASITIC, netMapP);
         netlistA = new NetlistShorted(netlistN, Netlist.ShortResistors.ALL, netMapA);
         return updateInterface();
+    }
+
+    /**
+     * Update netlists to current CellTree
+     * Check if specified Netlist is no more fresh
+     * @param netlist
+     * @return true specified Netlist is no more fresh
+     */
+    boolean obsolete(Netlist netlist) {
+        redoNetworks();
+        CellTree cellTree = cell.tree();
+        netlistN.expectedCellTree = netlistP.expectedCellTree = netlistA.expectedCellTree = cellTree;
+        return netlist != netlistN && netlist != netlistP && netlist != netlistA;
     }
 }

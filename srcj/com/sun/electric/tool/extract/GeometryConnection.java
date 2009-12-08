@@ -58,7 +58,7 @@ public class GeometryConnection
         AffineTransform rTransI = cellB.rotateIn(cellB.translateIn());
         AffineTransform cellUp = cellB.transformOut();
         DBMath.transformRect(cellBounds, rTransI);
-        Netlist topNetlist = NetworkTool.acquireUserNetlist(cellA.getParent());
+        Netlist topNetlist = cellA.getParent().acquireUserNetlist();
 
         if (cellB.isCellInstance() && cellA.isCellInstance())
         {

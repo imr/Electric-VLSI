@@ -876,7 +876,7 @@ public final class HierarchyEnumerator {
     }
 
     public static void enumerateCell(Cell root, VarContext context, Visitor visitor, Netlist.ShortResistors shortResistors) {
-        enumerateCell(NetworkTool.getNetlist(root, shortResistors), context, visitor);
+        enumerateCell(root.getNetlist(shortResistors), context, visitor);
     }
 
     public static void enumerateCell(Netlist rootNetlist, VarContext context, Visitor visitor) {

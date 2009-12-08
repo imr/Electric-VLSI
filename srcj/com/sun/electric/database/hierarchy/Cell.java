@@ -4021,7 +4021,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @return the Netlist structure for this cell.
      */
     public Netlist getUserNetlist() {
-        return NetworkTool.getUserNetlist(this);
+        return Job.isThreadSafe() ? getNetlist() : NetworkTool.getUserNetlist(this);
     }
 
     /** Returns the Netlist structure for this Cell, using current network options.
@@ -4029,7 +4029,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @return the Netlist structure for this cell.
      */
     public Netlist acquireUserNetlist() {
-        return NetworkTool.acquireUserNetlist(this);
+        return Job.isThreadSafe() ? getNetlist() : NetworkTool.acquireUserNetlist(this);
     }
 
     /****************************** DATES ******************************/

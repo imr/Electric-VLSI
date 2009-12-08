@@ -153,6 +153,7 @@ public class NetworkTool extends Tool {
      * @return Netlist of this cell.
      */
     public static Netlist acquireUserNetlist(Cell cell) {
+        assert !Job.isThreadSafe();
         Netlist netlist = null;
         try {
             netlist = getNetlist(cell, isIgnoreResistors_());
@@ -167,6 +168,7 @@ public class NetworkTool extends Tool {
      * @return Netlist of this cell.
      */
     public static Netlist getUserNetlist(Cell cell) {
+        assert !Job.isThreadSafe();
         EDatabase database = cell.getDatabase();
         NetworkManager mgr = database.getNetworkManager();
         if (database.canComputeNetlist()) {

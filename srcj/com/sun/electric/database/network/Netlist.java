@@ -24,6 +24,8 @@
  */
 package com.sun.electric.database.network;
 
+import com.sun.electric.database.CellTree;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -60,15 +62,17 @@ public abstract class Netlist {
     };
     // -------------------------- private data ---------------------------------
     /** NetCell which owns this Netlist. */
-    NetCell netCell;
-    ShortResistors shortResistors;
+    final NetCell netCell;
+    final ShortResistors shortResistors;
 //    HashMap/*<Cell,Netlist>*/ subNetlists;
     /**
      * The modCount value that the netlist believes that the backing
      * netCell should have.  If this expectation is violated, the netlist
      * has detected concurrent modification.
      */
-    int expectedModCount;
+    Snapshot expectedSnapshot; // for Schem netlists
+    CellTree expectedCellTree; // for Layout netlisits
+//    int expectedModCount;
     /** An equivalence map of PortInsts and NetNames. */
     final int[] netMap;
     final int[] nm_net;
@@ -85,7 +89,12 @@ public abstract class Netlist {
         this.netCell = netCell;
         this.shortResistors = shortResistors;
 //        this.subNetlists = subNetlists;
-        expectedModCount = netCell.modCount;
+//        expectedModCount = netCell.modCount;
+        if (netCell instanceof NetSchem) {
+            expectedSnapshot = netCell.database.backup();
+        } else {
+            expectedCellTree = netCell.cell.tree();
+        }
         netMap = map;
         nm_net = new int[netMap.length];
 
@@ -223,9 +232,18 @@ public abstract class Netlist {
     abstract int getEquivPortIndexByNetIndex(int netIndex);
 
     private final void checkForModification() {
-        if (expectedModCount != netCell.modCount) {
-            throw new ConcurrentModificationException();
+        if (expectedCellTree != null) {
+            if (netCell.cell.tree() != expectedCellTree && netCell.obsolete(this)) {
+                throw new ConcurrentModificationException();
+            }
+        } else {
+            if (netCell.database.backup() != expectedSnapshot && netCell.obsolete(this)) {
+                throw new ConcurrentModificationException();
+            }
         }
+//        if (expectedModCount != netCell.modCount) {
+//            throw new ConcurrentModificationException();
+//        }
         netCell.database.checkExamine();
     }
 
