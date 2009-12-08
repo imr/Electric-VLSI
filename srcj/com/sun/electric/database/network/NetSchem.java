@@ -44,6 +44,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
 
+import com.sun.electric.tool.Job;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -135,7 +136,7 @@ class NetSchem extends NetCell {
             if (cell.isIcon()) {
                 Cell mainSchematics = cell.getCellGroup().getMainSchematics();
                 if (mainSchematics != null) {
-                    NetSchem mainSchem = new NetSchem(cell);
+                    NetSchem mainSchem = new NetSchem(mainSchematics);
                     setImplementation(mainSchem);
                 }
             }
@@ -334,9 +335,18 @@ class NetSchem extends NetCell {
             Cell subCell = (Cell) portProto.getParent();
             assert no.getProto() == subCell;
             EquivalentSchematicExports eq = iconInst.eq;
-            assert eq.implementation.cellId == subCell.getId();
             int portIndex = portProto.getPortIndex();
-//            portIndex = eq.portImplementation[portIndex];
+            if (no instanceof IconNodeInst) {
+                Nodable no1 = ((IconNodeInst)no).getNodable(0);
+                if (Job.getDebug()) {
+                    System.out.println("IconNodeInst " + no + " is passed to getNodeIndex. Replaced by IconNodeable " + no1);
+                }
+                assert eq.cellId == subCell.getId();
+                no = no1;
+                portIndex = eq.portImplementation[portIndex];
+            } else {
+                assert eq.implementation.cellId == subCell.getId();
+            }
             if (portIndex < 0) {
                 return -1;
             }

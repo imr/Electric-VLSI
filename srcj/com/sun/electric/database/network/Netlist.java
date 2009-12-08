@@ -435,19 +435,19 @@ public abstract class Netlist {
      */
     int getNetIndex(Nodable no, PortProto portProto, int busIndex) {
         checkForModification();
-        if (no instanceof IconNodeInst) {
-            Nodable no1 = ((IconNodeInst)no).getNodable(0);
-            if (Job.getDebug()) {
-                System.out.println("IconNodeInst " + no + " is passed to getNodeIndex. Replaced by IconNodeable " + no1);
-            }
-            if (no1.getProto() != no.getProto()) {
-                portProto = ((Export)portProto).getEquivalent();
-                if (portProto == null) {
-                    return -1;
-                }
-            }
-            no = no1;
-        }
+//        if (no instanceof IconNodeInst) {
+//            Nodable no1 = ((IconNodeInst)no).getNodable(0);
+//            if (Job.getDebug()) {
+//                System.out.println("IconNodeInst " + no + " is passed to getNodeIndex. Replaced by IconNodeable " + no1);
+//            }
+//            if (no1.getProto() != no.getProto()) {
+//                portProto = ((Export)portProto).getEquivalent();
+//                if (portProto == null) {
+//                    return -1;
+//                }
+//            }
+//            no = no1;
+//        }
         if (no.getParent() != netCell.cell) {
             return -1;
         }
