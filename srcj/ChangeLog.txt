@@ -7,7 +7,7 @@ NOTE: Please place changes under the version that will be released next.
 BUG: (12/8/09, SMR) EDIF import places exports on instances incorrectly (Bug #2512).
 FIX: Use proper port instead of first one.
 
-IMP/MAN: (12/4/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
+IMP: (12/4/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
 Added active/poly/hi-res resistors. Only available in analog mode.
 
 BUG: (12/8/09, SMR) Technology Preferences don't update right when "Analog" is chosen (Bug #2520).
@@ -49,7 +49,7 @@ IMP: (12/6/09, DN) Optimization of immutable algorithm of computing connected Ex
 BUG: (12/5/09, DN) Regressions failes in getShapeOfPort.
 FIX: Use cellTree.techPool instead of cellBackup.techPool for getShapeOfPort.
 
-IMP/MAN: (12/4/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
+IMP: (12/4/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
 Added capacitor and hi_res layer.
 
 BUG: (12/4/09, DN) Can no longer get polygons from dummy NodeInsts (Bug #2507).
@@ -71,7 +71,7 @@ FIX: Added extra condition to statement which brings up the dialog. Removing wri
 BUG: (12/2/09, DN) ArrayIndexOutOfBoundsException in LayerDrawing.drawDiscRow during redraw (Bug #2504).
 FIX: Clip properly in LayerDrawing.discRow .
 
-IMP/MAN: (12/2/09, SMR) New Node Preference "Increment rightmost array index"
+IMP: (12/2/09, SMR) New Node Preference "Increment rightmost array index"
      allows export duplication to auto-increment from the left (if unchecked)
      (Bug #2501).
 
