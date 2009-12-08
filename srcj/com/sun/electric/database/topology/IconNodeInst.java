@@ -64,6 +64,30 @@ public class IconNodeInst extends NodeInst {
     }
 
     /**
+     * Modifies persistend data of this NodeInst.
+     * @param newD new persistent data.
+     * @param notify true to notify Undo system.
+     * @return true if persistent data was modified.
+     */
+    @Override
+    public boolean setD(ImmutableNodeInst newD, boolean notify) {
+        ImmutableIconInst oldD = getD();
+        if (newD.name != oldD.name) {
+            nodables = null;
+        }
+        return super.setD(newD, notify);
+    }
+
+    @Override
+    public void setDInUndo(ImmutableNodeInst newD) {
+        ImmutableIconInst oldD = getD();
+        if (newD.name != oldD.name) {
+            nodables = null;
+        }
+        super.setDInUndo(newD);
+    }
+
+    /**
      * Method to return the prototype of this IconNodeInst.
      * @return the prototype of this IconNodeInst.
      */

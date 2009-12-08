@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+BUG: (12/8/09, DN) Exception arrayout of bounds and crash (Bug #2519).
+FIX: Override IconNodeInst.setD and IconNodeInst.setDInUndo and clear nodables there.
+
 BUG: (12/8/09, DN) Frozen on NetSchem error (Bug #2518).
 FIX: In NetSchem constructor make implementation from mainSchematics instead of Icon Cell.
 
