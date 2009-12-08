@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+IMP: (12/8/09, SMR) Improved vector display memory usage by using immutable database (Bug #2517).
+
 IMP: (12/8/09, GVG) Multiple exceptions if PrimitiveNode is defined twice in XML tech file (Bug #2516)
 
 BUG: (12/8/09, DN) HSpice1 regression fails in Netlist.getPorts method in schematic cell.

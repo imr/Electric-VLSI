@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.GenMath.MutableDouble;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -280,8 +281,9 @@ class VectorDrawing
 		for(VectorCache.VectorSubCell vsc : vc.subCells)
 		{
 			if (stopRendering) throw new AbortRenderingException();
-			NodeInst ni = cell.getNodeById(vsc.n.nodeId);
-			Cell subCell = (Cell)ni.getProto();
+//			NodeInst ni = cell.getNodeById(vsc.n.nodeId);
+//			Cell subCell = (Cell)ni.getProto();
+            Cell subCell = cell.getDatabase().getCell((CellId)vsc.n.protoId);
 			subCellCount++;
 
 			// get instance location
@@ -304,7 +306,7 @@ class VectorDrawing
 			{
 				Orientation thisOrient = vsc.n.orient;
 				Orientation recurseTrans = vc.orient.concatenate(thisOrient);
-				VarContext subContext = context.push(ni);
+				VarContext subContext = context.push(cell, vsc.n);
 				VectorCache.VectorCell subVC_ = drawCell(subCell, recurseTrans, subContext);
 				assert subVC_ == subVC;
                 makeGreekedImage(subVC);
@@ -330,7 +332,8 @@ class VectorDrawing
 			}
 
 			// see if cell contents should be drawn
-			boolean expanded = ni.isExpanded() || fullInstantiate;
+            boolean isExpanded = cell.isExpanded(vsc.n.nodeId);
+			boolean expanded = isExpanded || fullInstantiate;
 
 			// if not expanded, but viewing this cell in-place, expand it
 			if (!expanded && onPathDown) expanded = true;
@@ -339,7 +342,7 @@ class VectorDrawing
 			{
 				Orientation thisOrient = vsc.n.orient;
 				Orientation recurseTrans = vc.orient.concatenate(thisOrient);
-				VarContext subContext = context.push(ni);
+				VarContext subContext = context.push(cell, vsc.n);
 				VectorCache.VectorCell subVC_ = drawCell(subCell, recurseTrans, subContext);
 				assert subVC_ == subVC;
 
@@ -888,14 +891,15 @@ class VectorDrawing
 		if (vc.maxFeatureSize > maxObjectSize) return false;
 		for(VectorCache.VectorSubCell vsc : vc.subCells)
 		{
-			NodeInst ni = cell.getNodeById(vsc.n.nodeId);
+            boolean isExpanded = cell.isExpanded(vsc.n.nodeId);
+//			NodeInst ni = cell.getNodeById(vsc.n.nodeId);
 			VectorCache.VectorCell subVC = VectorCache.theCache.findVectorCell(vsc.subCellId, vc.orient.concatenate(vsc.n.orient));
-			if (ni.isExpanded() || fullInstantiate)
+			if (isExpanded || fullInstantiate)
 			{
-				Orientation thisOrient = ni.getOrient();
+				Orientation thisOrient = vsc.n.orient;
 				Orientation recurseTrans = trans.concatenate(thisOrient);
-				VarContext subContext = context.push(ni);
-				Cell subCell = (Cell)ni.getProto();
+				VarContext subContext = context.push(cell, vsc.n);
+	            Cell subCell = VectorCache.theCache.database.getCell(vsc.subCellId);
 				VectorCache.VectorCell subVC_ = drawCell(subCell, recurseTrans, subContext);
 				assert subVC_ == subVC;
 				boolean subCellTiny = isContentsTiny(subCell, subVC, recurseTrans, subContext);
@@ -1087,10 +1091,13 @@ class VectorDrawing
 		{
 			VectorCache.VectorCellGroup vcg = VectorCache.theCache.findCellGroup(vsc.subCellId);
 			VectorCache.VectorCell subVC = vcg.getAnyCell();
-			NodeInst ni = cell.getNodeById(vsc.n.nodeId);
-			VarContext subContext = context.push(ni);
+			VarContext subContext = context.push(cell, vsc.n);
 			if (subVC == null)
-				subVC = drawCell((Cell)ni.getProto(), Orientation.IDENT, subContext);
+			{
+//				NodeInst ni = cell.getNodeById(vsc.n.nodeId);
+                Cell nodeProto = cell.getDatabase().getCell((CellId)vsc.n.protoId);
+				subVC = drawCell(nodeProto, Orientation.IDENT, subContext);
+			}
 			gatherContents(subVC, layerAreas, subContext);
 		}
 	}
