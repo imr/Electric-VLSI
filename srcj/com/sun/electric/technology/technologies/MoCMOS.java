@@ -47,12 +47,7 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.User;
 
 import java.io.PrintWriter;
-import java.util.List;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This is the MOSIS CMOS technology.
@@ -678,6 +673,8 @@ public class MoCMOS extends Technology
         Xml.PrimitiveNodeGroup[] scalableTransistorNodes = new Xml.PrimitiveNodeGroup[2];
         Xml.PrimitiveNodeGroup npnTransistorNode = tech.findNodeGroup("NPN-Transistor");
         Xml.PrimitiveNodeGroup polyCapNode = tech.findNodeGroup("Poly-Capacitor");
+        List<Xml.PrimitiveNodeGroup> analogElems = new ArrayList<Xml.PrimitiveNodeGroup>();
+        analogElems.add(tech.findNodeGroup("NPN-Transistor"));
         
         for (int i = 0; i < metalLayers.length; i++) {
             metalLayers[i] = tech.findLayer("Metal-" + (i + 1));
@@ -791,10 +788,10 @@ public class MoCMOS extends Technology
             tech.menuPalette.menuBoxes.remove(3*5);
             tech.menuPalette.menuBoxes.remove(3*5);
         }
-        boolean polyFlag, npnTranFlag;
+        boolean polyFlag, analogFlag;
 
         if (isAnalog) {
-            npnTranFlag = false;
+            analogFlag = false;
             polyFlag = false;
             // Clear palette box with capacitor if poly2 is on
             if (!secondPolysilicon)
@@ -808,11 +805,15 @@ public class MoCMOS extends Technology
             // Clear palette box with NPN transisitor
             assert tech.menuPalette.menuBoxes.get(0).get(0) == npnTransistorNode.nodes.get(0);
             tech.menuPalette.menuBoxes.get(0).clear();
-            npnTranFlag = true;
+            analogFlag = true;
             polyFlag = true;
         }
         if (polyCapNode != null) polyCapNode.notUsed = polyFlag;
-        if (npnTransistorNode != null) npnTransistorNode.notUsed = npnTranFlag;
+        for (Xml.PrimitiveNodeGroup elem : analogElems)
+        {
+            if (elem != null) elem.notUsed = analogFlag;
+        }
+//        if (npnTransistorNode != null) npnTransistorNode.notUsed = analogFlag;
 
         return tech;
     }
@@ -1171,29 +1172,29 @@ public class MoCMOS extends Technology
      * @param rules
      * @return value of the extension
      */
-    private double getTransistorExtension(PrimitiveNode primNode, boolean poly, DRCRules rules)
-    {
-    	if (rules == null)
-    		rules = DRC.getRules(this);
-        if (!primNode.getFunction().isTransistor()) return 0.0;
-
-        Technology.NodeLayer activeNode = primNode.getNodeLayers()[0]; // active
-        Technology.NodeLayer polyCNode;
-
-        if (scalableTransistorNodes != null && (primNode == scalableTransistorNodes[P_TYPE] || primNode == scalableTransistorNodes[N_TYPE]))
-        {
-            polyCNode = primNode.getNodeLayers()[SCALABLE_POLY]; // poly center
-        }
-        else
-        {
-            // Standard transistors
-            polyCNode = primNode.getElectricalLayers()[2]; // poly center
-        }
-        DRCTemplate overhang = (poly) ?
-                rules.getExtensionRule(polyCNode.getLayer(), activeNode.getLayer(), false) :
-                rules.getExtensionRule(activeNode.getLayer(), polyCNode.getLayer(), false);
-        return (overhang != null ? overhang.getValue(0) : 0.0);
-    }
+//    private double getTransistorExtension(PrimitiveNode primNode, boolean poly, DRCRules rules)
+//    {
+//    	if (rules == null)
+//    		rules = DRC.getRules(this);
+//        if (!primNode.getFunction().isTransistor()) return 0.0;
+//
+//        Technology.NodeLayer activeNode = primNode.getNodeLayers()[0]; // active
+//        Technology.NodeLayer polyCNode;
+//
+//        if (scalableTransistorNodes != null && (primNode == scalableTransistorNodes[P_TYPE] || primNode == scalableTransistorNodes[N_TYPE]))
+//        {
+//            polyCNode = primNode.getNodeLayers()[SCALABLE_POLY]; // poly center
+//        }
+//        else
+//        {
+//            // Standard transistors
+//            polyCNode = primNode.getElectricalLayers()[2]; // poly center
+//        }
+//        DRCTemplate overhang = (poly) ?
+//                rules.getExtensionRule(polyCNode.getLayer(), activeNode.getLayer(), false) :
+//                rules.getExtensionRule(activeNode.getLayer(), polyCNode.getLayer(), false);
+//        return (overhang != null ? overhang.getValue(0) : 0.0);
+//    }
 
 	/** Return a substrate PortInst for this transistor NodeInst
      * @param ni the NodeInst
