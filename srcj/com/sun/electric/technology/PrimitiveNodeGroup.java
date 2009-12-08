@@ -219,6 +219,9 @@ public class PrimitiveNodeGroup {
         PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, tech, sizeCorrector1, sizeCorrector2, EPoint.ORIGIN, minSizeRule,
                 defaultWidth, defaultHeight,
                 fullRectangle, baseRectangle, visualNodeLayers.toArray(new Technology.NodeLayer[visualNodeLayers.size()]));
+        if (pnp == null) // error creating the node. Eg. repeated name
+            return null;
+        
         if (n.oldName != null)
             tech.oldNodeNames.put(n.oldName, pnp);
         pnp.setFunction(n.function);
