@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+IMP: (12/8/09, DN) Field Cell.weakTopology is always nonnul to simplify Cell.getTopology().
+
 BUG: (12/7/09, DN) Library cannot be read (Bug #2510, #2511).
 FIX: In NetSchem.getNetMapOffset don't redirect portInex byu portImplementation.
 

@@ -479,7 +479,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     /** A sorted array of Exports on the Cell. */
     private Export[] exports = NULL_EXPORT_ARRAY;
     /** Cell's topology. */
-    private WeakReference<Topology> weakTopology;
+    private WeakReference<Topology> weakTopology = new WeakReference(null);
     /** Cell's topology. */
     private Topology strongTopology;
     /** Set containing nodeIds of expanded cells. */
@@ -1259,12 +1259,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     }
 
     public Topology getTopology() {
-
-        if (weakTopology != null) {
-            Topology topology = weakTopology.get();
-            if (topology != null) {
-                return topology;
-            }
+        Topology topology = weakTopology.get();
+        if (topology != null) {
+            return topology;
         }
         return createTopology();
     }
@@ -1279,7 +1276,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     }
 
     Topology getTopologyOptional() {
-        return weakTopology != null ? weakTopology.get() : null;
+        return weakTopology.get();
     }
 
     private CellTree doTree() {
