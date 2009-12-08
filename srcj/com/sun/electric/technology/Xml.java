@@ -1126,9 +1126,8 @@ public class Xml {
                     curNodeLayer.layer = a("layer");
                     if (tech.findLayer(curNodeLayer.layer) == null)
                     {
-                        System.out.println("Error: cannot find layer '" + curNodeLayer.layer + "' in primitive node '" +
+                        throw new SAXException("Error: cannot find layer '" + curNodeLayer.layer + "' in primitive node '" +
                         curNode.name + "'. Skiping this NodeLayer");
-                        curNodeLayer = null; // skip it
                     }
                     else
                     {

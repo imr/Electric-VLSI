@@ -181,7 +181,8 @@ public class PaletteFrame implements MouseListener
      */
 	public void loadForTechnology(Technology tech, WindowFrame ww)
 	{
-		techSelector.setSelectedItem(tech.getTechName());
+        if (tech == null) return; // in case of problems while loading the technology
+        techSelector.setSelectedItem(tech.getTechName());
         Dimension size = techPalette.loadForTechnology(tech, ww.getContent().getCell());
         if (techPalette.isVisible()) {
             setSize(size);

@@ -123,10 +123,12 @@ public class MoCMOS extends Technology
             if (!layer.getFunction().isUsed(getNumMetals(), isSecondPolysilicon() ? 2 : 1))
                 layer.getPureLayerNode().setNotUsed(true);
         }
-        findNodeProto("P-Transistor-Scalable").setCanShrink();
-        findNodeProto("N-Transistor-Scalable").setCanShrink();
-        findNodeProto("NPN-Transistor").setCanShrink();
-
+        PrimitiveNode np = findNodeProto("P-Transistor-Scalable");
+        if (np != null) np.setCanShrink();
+        np = findNodeProto("N-Transistor-Scalable");
+        if (np != null) np.setCanShrink();
+        np = findNodeProto("NPN-Transistor");
+        if (np != null) np.setCanShrink();
     }
 
 	/******************** SUPPORT METHODS ********************/
@@ -658,6 +660,9 @@ public class MoCMOS extends Technology
         boolean isAnalog = ((Boolean)params.get(techParamAnalog)).booleanValue();
 
         Xml.Technology tech = Xml.parseTechnology(MoCMOS.class.getResource("mocmos.xml"));
+        if (tech == null) // errors while reading the XML file
+            return null;
+        
         Xml.Layer[] metalLayers = new Xml.Layer[6];
         Xml.ArcProto[] metalArcs = new Xml.ArcProto[6];
         Xml.ArcProto[] activeArcs = new Xml.ArcProto[2];
