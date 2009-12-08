@@ -214,6 +214,10 @@ public class TechnologyTab extends PreferencePanel
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 					"The Analog setting requires 2 metals, 2 polys, SCMOS rules, and no alternate contact rules...making these changes");
+				techMetalLayers.setSelectedIndex(0);
+				techMOCMOSSCMOSRules.setSelected(true);
+				techMOCMOSSecondPoly.setSelected(true);
+				techMOCMOSAlternateContactRules.setSelected(true);
 				currentNumMetals = 2;
 				currentRules = MOCMOS_SCMOSRULES;
 				secondPoly = true;
