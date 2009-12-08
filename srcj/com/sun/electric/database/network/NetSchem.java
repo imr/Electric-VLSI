@@ -44,6 +44,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
 
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -130,7 +131,17 @@ class NetSchem extends NetCell {
     NetSchem(Cell cell) {
         super(cell);
         setImplementation(this);
-        updateCellGroup(cell.getCellGroup());
+        if (NetworkTool.isLazy()) {
+            if (cell.isIcon()) {
+                Cell mainSchematics = cell.getCellGroup().getMainSchematics();
+                if (mainSchematics != null) {
+                    NetSchem mainSchem = new NetSchem(cell);
+                    setImplementation(mainSchem);
+                }
+            }
+        } else {
+            updateCellGroup(cell.getCellGroup());
+        }
     }
 
 // 	NetSchem(Cell.CellGroup cellGroup) {
@@ -405,9 +416,9 @@ class NetSchem extends NetCell {
      */
     @Override
     public int getBusWidth(ArcInst ai) {
-        if ((flags & VALID) == 0) {
-            redoNetworks();
-        }
+//        if ((flags & VALID) == 0) {
+//            redoNetworks();
+//        }
         int drawn = getArcDrawn(ai);
         if (drawn < 0) {
             return 0;
@@ -1335,6 +1346,29 @@ class NetSchem extends NetCell {
         return changed;
     }
 
+    void updateSchematic() {
+        synchronized (networkManager) {
+            Snapshot oldSnapshot = expectedSnapshot.get();
+            Snapshot newSnapshot = database.backup();
+            if (oldSnapshot == newSnapshot) return;
+            if (oldSnapshot == null || !newSnapshot.sameNetlist(oldSnapshot, cell.getId())) {
+                // clear errors for cell
+                networkManager.startErrorLogging(cell);
+                try {
+
+                    makeDrawns();
+                    // Gather port and arc names
+                    initNetnames();
+
+                    redoNetworks1();
+                } finally {
+                    networkManager.finishErrorLogging();
+                }
+            }
+            expectedSnapshot = new WeakReference<Snapshot>(newSnapshot);
+        }
+    }
+
     @Override
     boolean redoNetworks1() {
 //		System.out.println("redoNetworks1 on " + cell);
@@ -1412,9 +1446,8 @@ class NetSchem extends NetCell {
      */
     @Override
     boolean obsolete(Netlist netlist) {
-        redoNetworks();
-        Snapshot snapshot = database.backup();
-        netlistN.expectedSnapshot = netlistP.expectedSnapshot = netlistA.expectedSnapshot = snapshot;
-        return netlist != netlistN && netlist != netlistP && netlist != netlistA;
+        Netlist newNetlist = getNetlist(netlist.shortResistors);
+        netlistN.expectedSnapshot = netlistP.expectedSnapshot = netlistA.expectedSnapshot = expectedSnapshot;
+        return newNetlist != netlist;
     }
 }

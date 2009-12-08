@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+IMP: (12/8/09, DN) In threadsafe mode Netlists are weak-refrenced.
+
 IMP: (12/8/09, DN) Replace Netlist.expectedModCount by Netlist.expectedSnapshot and expected.CellTree .
 
 IMP: (12/8/09, DN) Field Cell.weakTopology is always nonnul to simplify Cell.getTopology().

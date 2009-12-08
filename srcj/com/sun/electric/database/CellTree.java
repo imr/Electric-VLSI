@@ -213,6 +213,20 @@ public class CellTree {
         return newCellTree;
     }
 
+    public boolean sameNetlist(CellTree that) {
+        if (this.top != that.top) {
+            return false;
+        }
+        for (int i = 0; i < this.subTrees.length; i++) {
+            CellTree thisSubTree = this.subTrees[i];
+            if (thisSubTree == null) continue;
+            if (!this.subTrees[i].getEquivPorts().equalsPorts(that.subTrees[i].getEquivPorts())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public CellTree[] getSubTrees() {
         return subTrees.clone();
     }

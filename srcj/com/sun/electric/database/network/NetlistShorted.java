@@ -50,6 +50,8 @@ public class NetlistShorted extends Netlist {
     NetlistShorted(Netlist baseNetlist, Netlist.ShortResistors shortResistors, int[] netMap) {
         super(baseNetlist.netCell, shortResistors, baseNetlist.numExternalEntries, netMap);
         this.baseNetlist = baseNetlist;
+        expectedSnapshot = baseNetlist.expectedSnapshot;
+        expectedCellTree = baseNetlist.expectedCellTree;
 
         assert nm_net.length == baseNetlist.nm_net.length;
         int[] baseNetToThisNet = new int[baseNetlist.getNumNetworks()];

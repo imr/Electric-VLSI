@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.IconNodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -70,8 +71,8 @@ public abstract class Netlist {
      * netCell should have.  If this expectation is violated, the netlist
      * has detected concurrent modification.
      */
-    Snapshot expectedSnapshot; // for Schem netlists
-    CellTree expectedCellTree; // for Layout netlisits
+    WeakReference<Snapshot> expectedSnapshot; // for Schem netlists
+    WeakReference<CellTree> expectedCellTree; // for Layout netlisits
 //    int expectedModCount;
     /** An equivalence map of PortInsts and NetNames. */
     final int[] netMap;
@@ -90,11 +91,6 @@ public abstract class Netlist {
         this.shortResistors = shortResistors;
 //        this.subNetlists = subNetlists;
 //        expectedModCount = netCell.modCount;
-        if (netCell instanceof NetSchem) {
-            expectedSnapshot = netCell.database.backup();
-        } else {
-            expectedCellTree = netCell.cell.tree();
-        }
         netMap = map;
         nm_net = new int[netMap.length];
 
@@ -233,11 +229,11 @@ public abstract class Netlist {
 
     private final void checkForModification() {
         if (expectedCellTree != null) {
-            if (netCell.cell.tree() != expectedCellTree && netCell.obsolete(this)) {
+            if (netCell.cell.tree() != expectedCellTree.get() && netCell.obsolete(this)) {
                 throw new ConcurrentModificationException();
             }
         } else {
-            if (netCell.database.backup() != expectedSnapshot && netCell.obsolete(this)) {
+            if (netCell.database.backup() != expectedSnapshot.get() && netCell.obsolete(this)) {
                 throw new ConcurrentModificationException();
             }
         }
@@ -640,6 +636,7 @@ public abstract class Netlist {
             return false;
         }
 
+        checkForModification();
         int busWidth1 = netCell.getBusWidth(ai1);
         int busWidth2 = netCell.getBusWidth(ai2);
         if (busWidth1 != busWidth2) {
@@ -674,6 +671,7 @@ public abstract class Netlist {
         if (!ai.isLinked()) {
             return false;
         }
+        checkForModification();
         int busWidth1 = netCell.getBusWidth(no, pp);
         int busWidth2 = netCell.getBusWidth(ai);
         if (busWidth1 != busWidth2) {

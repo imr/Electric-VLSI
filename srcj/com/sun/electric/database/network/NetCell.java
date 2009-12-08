@@ -26,6 +26,7 @@ package com.sun.electric.database.network;
 
 import com.sun.electric.database.CellTree;
 import com.sun.electric.database.EquivPorts;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -45,6 +46,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -68,6 +70,8 @@ public class NetCell {
     final NetworkManager networkManager;
     /** Database to which this NetCell belongs. */
     final EDatabase database;
+    /** This NetCell is schematic */
+    final boolean isSchem;
     /** Cell from database. */
     final Cell cell;
     /** Flags of this NetCell. */
@@ -85,6 +89,8 @@ public class NetCell {
      * the face of concurrent modification during netlist examination.<p>
      */
 //    int modCount = 0;
+    WeakReference<Snapshot> expectedSnapshot; // for Schem netlists
+    WeakReference<CellTree> expectedCellTree; // for Layout netlisits
     /**
      * Equivalence of ports.
      * equivPorts.size == ports.size.
@@ -127,10 +133,23 @@ public class NetCell {
     private static ArcProto busArc = Schematics.tech().bus_arc;
 
     NetCell(Cell cell) {
+        System.out.println("Create NetCell " + cell.libDescribe());
         this.database = cell.getDatabase();
         this.networkManager = database.getNetworkManager();
+        this.isSchem = this instanceof NetSchem;
+        if (isSchem)
+            expectedSnapshot = new WeakReference<Snapshot>(null);
+        else
+            expectedCellTree = new WeakReference<CellTree>(null);
         this.cell = cell;
-        networkManager.setCell(cell, this);
+        if (!NetworkTool.isLazy()) {
+            networkManager.setCell(cell, this);
+        }
+    }
+
+    public static NetCell newInstance(Cell cell) {
+        assert NetworkTool.isLazy();
+        return cell.isIcon() || cell.isSchematic() ? new NetSchem(cell) : new NetCell(cell);
     }
 
     final void setNetworksDirty() {
@@ -169,7 +188,17 @@ public class NetCell {
     }
 
     public Netlist getNetlist(Netlist.ShortResistors shortResistors) {
-        if ((flags & VALID) == 0) {
+        if (NetworkTool.isLazy()) {
+            if (isSchem) {
+                if (database.backup() != expectedSnapshot.get()) {
+                    ((NetSchem)this).updateSchematic();
+                }
+            } else {
+                if (cell.tree() != expectedCellTree.get()) {
+                    updateLayout();
+                }
+            }
+        } else if ((flags & VALID) == 0) {
             redoNetworks();
         }
         switch (shortResistors) {
@@ -909,6 +938,29 @@ public class NetCell {
         flags |= (LOCALVALID | VALID);
     }
 
+    private void updateLayout() {
+        synchronized (networkManager) {
+            CellTree oldCellTree = expectedCellTree.get();
+            CellTree newCellTree = cell.tree();
+            if (oldCellTree == newCellTree) return;
+            if (oldCellTree == null || !newCellTree.sameNetlist(oldCellTree)) {
+                // clear errors for cell
+                networkManager.startErrorLogging(cell);
+                try {
+
+                    makeDrawns();
+                    // Gather port and arc names
+                    initNetnames();
+
+                    redoNetworks1();
+                } finally {
+                    networkManager.finishErrorLogging();
+                }
+            }
+            expectedCellTree = new WeakReference<CellTree>(newCellTree);
+        }
+    }
+
     boolean redoNetworks1() {
         /* Set index of NodeInsts */
 //        HashMap/*<Cell,Netlist>*/ subNetlists = new HashMap/*<Cell,Netlist>*/();
@@ -935,9 +987,8 @@ public class NetCell {
      * @return true specified Netlist is no more fresh
      */
     boolean obsolete(Netlist netlist) {
-        redoNetworks();
-        CellTree cellTree = cell.tree();
-        netlistN.expectedCellTree = netlistP.expectedCellTree = netlistA.expectedCellTree = cellTree;
-        return netlist != netlistN && netlist != netlistP && netlist != netlistA;
+        Netlist newNetlist = getNetlist(netlist.shortResistors);
+        netlistN.expectedCellTree = netlistP.expectedCellTree = netlistA.expectedCellTree = expectedCellTree;
+        return newNetlist != netlist;
     }
 }

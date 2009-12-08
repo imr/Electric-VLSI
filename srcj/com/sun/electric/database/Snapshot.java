@@ -294,6 +294,41 @@ public class Snapshot {
         return newSchemEq;
     }
 
+    public boolean sameNetlist(Snapshot that, CellId cellId) {
+        assert cellId.isIcon() || cellId.isSchematic();
+        CellTree thisTree = this.getCellTree(cellId);
+        CellTree thatTree = that.getCellTree(cellId);
+        if (thisTree != thatTree) {
+            return false;
+        }
+        CellId mainSchemId = that.groupMainSchematics[that.cellGroups[cellId.cellIndex]];
+        if (mainSchemId != groupMainSchematics[cellGroups[cellId.cellIndex]]) {
+            return false;
+        }
+        if (mainSchemId != cellId && mainSchemId != null) {
+            EquivalentSchematicExports thisMainSchemEq = this.getEquivExports(mainSchemId);
+            EquivalentSchematicExports thatMainSchemEq = that.getEquivExports(mainSchemId);
+            if (!this.getEquivExports(mainSchemId).equals(that.getEquivExports(mainSchemId)))
+                return false;
+        }
+        for (CellTree subTree: thatTree.subTrees) {
+            if (subTree == null) continue;
+            CellId subCellId = subTree.top.cellRevision.d.cellId;
+            if (subCellId.isIcon()) {
+                if (cellId.isSchematic() && cellGroups[cellId.cellIndex] == cellGroups[subCellId.cellIndex]) {
+                    // Icon of parent
+                    continue;
+                }
+            } else if (!subCellId.isSchematic()) {
+                continue;
+            }
+            if (!this.getEquivExports(subCellId).equals(that.getEquivExports(subCellId))) {
+                return false;
+            }
+        }
+        return true;
+     }
+
     public Snapshot with(Tool tool, Environment environment) {
         TechPool techPool = environment.techPool;
         CellBackup[] cellBackupArray = new CellBackup[cellBackups.size()];

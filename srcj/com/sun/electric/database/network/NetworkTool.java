@@ -51,6 +51,7 @@ import javax.swing.SwingUtilities;
  * This is the Network tool.
  */
 public class NetworkTool extends Tool {
+    private static final boolean WEAK_NET_CELL = true;
 
     /**
      * Signals that a method has been invoked at an illegal or
@@ -146,6 +147,14 @@ public class NetworkTool extends Tool {
         showInfo = infoOutput;
     }
 
+    /**
+     * Returns true if NetCells are allocated in a lazy manner
+     * @return true if NetCells are allocated in a lazy manner
+     */
+    public static boolean isLazy() {
+        return WEAK_NET_CELL && Job.isThreadSafe();
+    }
+
     /****************************** PUBLIC METHODS ******************************/
     /**
      * Returns Netlist for a given cell obtain with user-default set of options.
@@ -214,6 +223,7 @@ public class NetworkTool extends Tool {
      * @return the Netlist structure for Cell.
      */
     public static Netlist getNetlist(Cell cell, Netlist.ShortResistors shortResistors) {
+        assert !isLazy();
         EDatabase database = cell.getDatabase();
         NetworkManager mgr = database.getNetworkManager();
         if (database.canComputeNetlist()) {

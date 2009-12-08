@@ -24,10 +24,13 @@
  */
 package com.sun.electric.database.network;
 
+import com.sun.electric.database.CellTree;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
@@ -57,6 +60,11 @@ public class NetlistImpl extends Netlist {
 
     NetlistImpl(NetCell netCell, int numExternals, int[] map) {
         super(netCell, Netlist.ShortResistors.NO, numExternals, map);
+        if (netCell instanceof NetSchem) {
+            expectedSnapshot = new WeakReference<Snapshot>(netCell.database.backup());
+        } else {
+            expectedCellTree = new WeakReference<CellTree>(netCell.cell.tree());
+        }
         exportedNamesCount = new int[numExternalNets];
         equivPortIndexByNetIndex = new int[numExternalNets];
         Arrays.fill(equivPortIndexByNetIndex, -1);

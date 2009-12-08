@@ -71,6 +71,7 @@ public class NetworkManager {
     }
 
     void setCell(Cell cell, NetCell netCell) {
+        assert !NetworkTool.isLazy();
         int cellIndex = cell.getCellIndex();
         if (cellIndex >= cells.length) {
             int newLength = cells.length;
@@ -87,12 +88,14 @@ public class NetworkManager {
     }
 
     final NetCell getNetCell(Cell cell) {
+        assert !NetworkTool.isLazy();
         assert cell.getDatabase() == database;
         database.checkExamine();
         return cells[cell.getCellIndex()];
     }
 
     void redoNetworkNumbering(boolean reload) {
+        assert !NetworkTool.isLazy();
         // Check that we are in changing thread
         assert database.canComputeNetlist();
 
@@ -133,6 +136,7 @@ public class NetworkManager {
     }
 
     private void invalidate() {
+        assert !NetworkTool.isLazy();
         // Check that we are in changing thread
         assert database.canComputeNetlist();
 
@@ -146,6 +150,7 @@ public class NetworkManager {
     }
 
     void advanceSnapshot() {
+        assert !NetworkTool.isLazy();
         assert database.canComputeNetlist();
         Snapshot newSnapshot = database.backup();
         if (newSnapshot == lastSnapshot) {
@@ -158,6 +163,7 @@ public class NetworkManager {
 
     /****************************** CHANGE LISTENER ******************************/
     public void startBatch() {
+        if (NetworkTool.isLazy()) return;
         invalidate();
         if (!NetworkTool.debug) {
             return;
@@ -169,6 +175,7 @@ public class NetworkManager {
      * Method to annonunce database changes of a Job.
      */
     public void endBatch() {
+        if (NetworkTool.isLazy()) return;
         try {
             redoNetworkNumbering(false);
         } catch (Exception e) {
@@ -190,6 +197,7 @@ public class NetworkManager {
      * @param newSnapshot new immutable snapshot.
      */
     private void updateAll(Snapshot oldSnapshot, Snapshot newSnapshot) {
+        assert !NetworkTool.isLazy();
         invalidate();
         int maxCells = Math.max(oldSnapshot.cellBackups.size(), newSnapshot.cellBackups.size());
         if (cells.length < maxCells) {

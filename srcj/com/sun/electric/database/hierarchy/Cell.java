@@ -41,6 +41,7 @@ import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.TechId;
+import com.sun.electric.database.network.NetCell;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
@@ -504,6 +505,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     private boolean cellContentsFresh;
     /** True if cell revision date is just set by lowLevelSetRevisionDate*/
     private boolean revisionDateFresh;
+    /** A weak reference to NetCell object with Netlists */
+    private WeakReference<NetCell> weakNetCell = new WeakReference<NetCell>(null);
 
     // ------------------ protected and private methods -----------------------
     /**
@@ -4013,7 +4016,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @throws NetworkTool.NetlistNotReady if called from GUI thread and change Job hasn't prepared Netlist yet
      */
     public Netlist getNetlist(Netlist.ShortResistors shortResistors) {
-        return NetworkTool.getNetlist(this, shortResistors);
+        if (NetworkTool.isLazy()) {
+            NetCell netCell = weakNetCell.get();
+            if (netCell == null) {
+                netCell = NetCell.newInstance(this);
+                weakNetCell = new WeakReference<NetCell>(netCell);
+            }
+            return netCell.getNetlist(shortResistors);
+        } else {
+            return NetworkTool.getNetlist(this, shortResistors);
+        }
     }
 
     /** Returns the Netlist structure for this Cell, using current network options.
