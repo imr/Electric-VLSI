@@ -18,6 +18,7 @@ public class VerilogData implements Serializable
 {
     String name;
     private Map<String, VerilogModule> modules = new HashMap<String, VerilogModule>();
+    private VerilogModule firstModule; // for top cell info
 
     VerilogData(String name)
     {
@@ -30,12 +31,24 @@ public class VerilogData implements Serializable
     {
         String topCellName = TextUtils.getFileNameWithoutExtension(name, true);
         String cellName = topCellName + View.SCHEMATIC.getAbbreviationExtension();
-        return Library.findCellInLibraries(cellName, View.SCHEMATIC, null);
+        Cell top = Library.findCellInLibraries(cellName, View.SCHEMATIC, null);
+        if (top == null) // found a cell called like the filename
+        {
+            // taking the first cell found in module
+            top = Library.findCellInLibraries(firstModule.name + View.SCHEMATIC.getAbbreviationExtension(),
+                View.SCHEMATIC, null);
+        }
+        return top;
     }
 
     VerilogModule addModule(String name, boolean primitive)
     {
         VerilogModule module = new VerilogModule(name, primitive);
+        if (modules.isEmpty())
+        {
+            // first module in the system
+            firstModule = module;
+        }
         modules.put(name, module);
         return module;
     }
