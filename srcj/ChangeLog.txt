@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+IMP: (12/9/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
+Added unsiliced poly resistor. Fixed resizing of poly capacitor.
+
 BUG: (12/9/09, SMR) EDIF input doesn't convert all <> brackets, misses some renames (Bug #2526).
 FIX: Fix all brackets, consider all renames.
 

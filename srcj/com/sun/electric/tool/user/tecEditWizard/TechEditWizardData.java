@@ -405,7 +405,7 @@ public class TechEditWizardData
 	private LayerInfo contact_layer = new LayerInfo("Contact");
 	private LayerInfo [] metal_layers;
 	private LayerInfo [] via_layers;
-    private LayerInfo marking_layer = new LayerInfo("Marking");		// Device marking layer
+    private LayerInfo marking_layer = new LayerInfo("DeviceMark");		// Device marking layer
     private List<LayerInfo> extraLayers; // extra layers
 
     LayerInfo[] getBasicLayers()
@@ -2498,8 +2498,8 @@ public class TechEditWizardData
 
         // DeviceMark
         graph = new EGraphics(false, false, null, 0, 255, 0, 0, 0.4, true, nullPattern);
-        Xml.Layer deviceMarkLayer = makeXmlLayer(t.layers, layerMap, "DeviceMark", Layer.Function.CONTROL, 0, graph,
-            nplus_width, true, false);
+        Xml.Layer deviceMarkLayer = makeXmlLayer(t.layers, layerMap, marking_layer.name, Layer.Function.CONTROL, 0,
+            graph, nplus_width, true, false);
 
         // Extra layers
         List<PaletteGroup> extraPaletteList = new ArrayList<PaletteGroup>();
@@ -3869,7 +3869,7 @@ public class TechEditWizardData
         /*************************************/
         // Analog Active Resistors
         /*************************************/
-        WizardField activeyRL = findWizardField("active_resistor_length");  //
+        WizardField activeRL = findWizardField("active_resistor_length");  //
         String[] diffNames = {"P", "N"};
         Xml.Layer activeConLayer = t.findLayer(diff_layer.name+"-Cut");
 
@@ -3898,7 +3898,7 @@ public class TechEditWizardData
 
             // active layer
             double activeNoScaled = 2 * (diff_contact_overhang.value) + contact_size.value;
-            double activeL = scaledValue(activeyRL.value /2 + activeNoScaled);
+            double activeL = scaledValue(activeRL.value /2 + activeNoScaled);
             double activeWNoScaled = contact_size.value/2 + diff_contact_overhang.value;
             double activeW = scaledValue(activeWNoScaled);
             nodesList.add(makeXmlNodeLayer(activeL, activeL, activeW, activeW, activeLayer, Poly.Type.FILLED, true, true, 0));
@@ -3920,7 +3920,7 @@ public class TechEditWizardData
                 nodesList.add(wellNodeLayer);
             }
 
-            addMetalElements(t, activeConLayer, contact_array_spacing.value, activeyRL, diff_contact_overhang, nodesList, nodePorts);
+            addMetalElements(t, activeConLayer, contact_array_spacing.value, activeRL, diff_contact_overhang, nodesList, nodePorts);
 
             sox = scaledValue(nwell_overhang_diff_p.value + activeNoScaled);
             soy = scaledValue(nwell_overhang_diff_p.value);
@@ -3960,9 +3960,9 @@ public class TechEditWizardData
 
             // active layer
             double activeNoScaled = 2 * (diff_contact_overhang.value) + contact_size.value;
-            double activeDistance = scaledValue(activeyRL.value /2);
+            double activeDistance = scaledValue(wellRL.value /2);
             double activeX = scaledValue(2 * (diff_contact_overhang.value) + contact_size.value);
-            double activeL = scaledValue(activeyRL.value /2 + activeNoScaled);
+            double activeL = scaledValue(wellRL.value /2 + activeNoScaled);
             double activeWNoScaled = contact_size.value/2 + diff_contact_overhang.value;
             double activeW = scaledValue(activeWNoScaled);
             nodesList.add(makeXmlNodeLayer((activeDistance + activeX), -1, -activeDistance, 1, activeW, -1, activeW, 1, activeLayer,
@@ -3995,7 +3995,7 @@ public class TechEditWizardData
                 nodesList.add(wellNodeLayer);
             }
 
-            addMetalElements(t, activeConLayer, contact_array_spacing.value, activeyRL, diff_contact_overhang, nodesList, nodePorts);
+            addMetalElements(t, activeConLayer, contact_array_spacing.value, wellRL, diff_contact_overhang, nodesList, nodePorts);
 
             sox = scaledValue(nwell_overhang_diff_n.value) + activeX + selectOverhang;
             soy = scaledValue(nwell_overhang_diff_n.value);
@@ -4054,6 +4054,46 @@ public class TechEditWizardData
                 nodesList, nodePorts, null, false);
             g.addElement(n, diffNames[i]+"-RPoly");
         }
+
+
+        /*************************************/
+        // Analog unsilicided Poly Resistors (no hi res)
+        /*************************************/
+        WizardField silicide_overhang = findWizardField("silicide_overhang");
+        WizardField selectWF = nplus_overhang_diff;
+        Xml.Layer selectLayer = t.findLayer(nplus_layer.name);
+        nodesList.clear();
+        nodePorts.clear();
+
+        // poly layer
+        polyNoScaled = 2 * (contact_poly_overhang.value) + contact_size.value;
+        polyL = scaledValue(polyRL.value /2 + polyNoScaled);
+        polyWNoScaled = contact_size.value/2 + diff_contact_overhang.value;
+        polyW = scaledValue(polyWNoScaled);
+        nodesList.add(makeXmlNodeLayer(polyL, polyL, polyW, polyW, polyLayer, Poly.Type.FILLED, true, true, 0));
+
+        // select layer
+        double selectOverhang = scaledValue(selectWF.value);
+        double selectL = selectOverhang + polyL;
+        double selectW = selectOverhang + polyW;
+        nodesList.add(makeXmlNodeLayer(selectL, selectL, selectW, selectW, selectLayer, Poly.Type.FILLED, true, true, 0));
+
+        // silicide_block layer
+        Xml.Layer silicideLayer = t.findLayer(marking_layer.name);
+        double silicideOverhang = scaledValue(silicide_overhang.value);
+        double silicideL = silicideOverhang + selectL;
+        double silicideW = silicideOverhang + selectW;
+        nodesList.add(makeXmlNodeLayer(silicideL, silicideL, silicideW, silicideW, silicideLayer, Poly.Type.FILLED, true, true, 0));
+
+        addMetalElements(t, polyConLayer, contact_array_spacing.value, polyRL, contact_poly_overhang, nodesList, nodePorts);
+
+        sox = scaledValue(silicide_overhang.value + selectWF.value + polyNoScaled);
+        soy = scaledValue(silicide_overhang.value + selectWF.value);
+        n = makeXmlPrimitive(t.nodeGroups, "N-Un-Poly-Resistor",
+            PrimitiveNode.Function.RESIST, 0, 0, 0, 0,
+            new SizeOffset(sox, sox, soy, soy),
+            nodesList, nodePorts, null, false);
+        g.addElement(n, "N-RUPoly");
     }
 
     private void addMetalElements(Xml.Technology t, Xml.Layer conLayer, double spacing, WizardField width, WizardField overhang,

@@ -668,7 +668,8 @@ public class MoCMOS extends Technology
         Xml.PrimitiveNodeGroup[] metalContactNodes = new Xml.PrimitiveNodeGroup[8];
         Xml.PrimitiveNodeGroup[] metalWellContactNodes = new Xml.PrimitiveNodeGroup[2];
         Xml.PrimitiveNodeGroup[] metalActiveContactNodes = new Xml.PrimitiveNodeGroup[2];
-        Xml.PrimitiveNodeGroup[] metal1PolyContactNodes = new Xml.PrimitiveNodeGroup[3];
+        List<Xml.PrimitiveNodeGroup> metal1PolyContactNodes = new ArrayList<Xml.PrimitiveNodeGroup>(4);
+//        Xml.PrimitiveNodeGroup[] metal1PolyContactNodes = new Xml.PrimitiveNodeGroup[3];
         Xml.PrimitiveNodeGroup[] transistorNodeGroups = new Xml.PrimitiveNodeGroup[2];
         Xml.PrimitiveNodeGroup[] scalableTransistorNodes = new Xml.PrimitiveNodeGroup[2];
         Xml.PrimitiveNodeGroup npnTransistorNode = tech.findNodeGroup("NPN-Transistor");
@@ -682,6 +683,7 @@ public class MoCMOS extends Technology
         analogElems.add(tech.findNodeGroup("N-Well-Resistor"));
         analogElems.add(tech.findNodeGroup("P-Poly-Resistor"));
         analogElems.add(tech.findNodeGroup("N-Poly-Resistor"));
+        analogElems.add(tech.findNodeGroup("N-Un-Poly-Resistor"));
         
         for (int i = 0; i < metalLayers.length; i++) {
             metalLayers[i] = tech.findLayer("Metal-" + (i + 1));
@@ -693,9 +695,11 @@ public class MoCMOS extends Technology
         for (int i = 0; i < 2; i++) {
             polyArcs[i] = tech.findArc("Polysilicon-" + (i + 1));
             polyPinNodes[i] = tech.findNodeGroup("Polysilicon-" + (i + 1) + "-Pin");
-            metal1PolyContactNodes[i] = tech.findNodeGroup("Metal-1-Polysilicon-" + (i + 1) + "-Con");
+            metal1PolyContactNodes.add(tech.findNodeGroup("Metal-1-Polysilicon-" + (i + 1) + "-Con"));
         }
-		metal1PolyContactNodes[2] = tech.findNodeGroup("Metal-1-Polysilicon-1-2-Con");
+		metal1PolyContactNodes.add(tech.findNodeGroup("Metal-1-Polysilicon-1-2-Con"));
+        metal1PolyContactNodes.add(polyCapNode); // treating polyCapNode as contact for the resizing
+        
         for (int i = P_TYPE; i <= N_TYPE; i++) {
             String ts = i == P_TYPE ? "P" : "N";
     		activeArcs[i] = tech.findArc(ts + "-Active");
@@ -761,13 +765,13 @@ public class MoCMOS extends Technology
         }
         resizeContacts(npnTransistorNode, rd);
         {
-            Xml.PrimitiveNodeGroup con = metal1PolyContactNodes[0];
+            Xml.PrimitiveNodeGroup con = metal1PolyContactNodes.get(0);
             double metalC = 0.5*rd.contact_size + rd.contact_metal_overhang_all_sides;
             double polyC = 0.5*rd.contact_size + rd.contact_poly_overhang;
             resizeSquare(con, polyC, metalC, polyC, 0);
         }
-        for (int i = 0; i <= 2; i++)
-            resizeContacts(metal1PolyContactNodes[i], rd);
+        for (Xml.PrimitiveNodeGroup g : metal1PolyContactNodes)
+            resizeContacts(g, rd);
         resizeArcPin(polyArcs[0], polyPinNodes[0], 0.5*rd.poly_width);
         resizeArcPin(polyArcs[1], polyPinNodes[1], 0.5*rd.poly2_width);
 
@@ -787,8 +791,8 @@ public class MoCMOS extends Technology
         if (!secondPolysilicon) {
             polyArcs[1].notUsed = true;
             polyPinNodes[1].notUsed = true;
-            metal1PolyContactNodes[1].notUsed = true;
-            metal1PolyContactNodes[2].notUsed = true;
+            metal1PolyContactNodes.get(1).notUsed = true;
+            metal1PolyContactNodes.get(2).notUsed = true;
             // Remove palette row with polysilicon-2
             assert tech.menuPalette.menuBoxes.get(3*5).get(0) == polyArcs[1];
             tech.menuPalette.menuBoxes.remove(3*5);
