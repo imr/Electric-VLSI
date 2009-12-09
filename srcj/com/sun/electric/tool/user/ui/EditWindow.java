@@ -3795,7 +3795,7 @@ public class EditWindow extends JPanel
 	{
 		if (getCell() == null) return null;
 
-        GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
+        GraphicsPreferences gp = ep.getGraphicsPreferences();
 		int scaleFactor = ep.getDesiredDPI() / 72;
 		if (scaleFactor > 2) scaleFactor = 2; else
 			if (scaleFactor <= 0) scaleFactor = 1;
@@ -3843,7 +3843,7 @@ public class EditWindow extends JPanel
 			double scale = Math.min(scalex, scaley);
 			EPoint offset = new EPoint(cellBounds.getCenterX(), cellBounds.getCenterY());
 
-			offscreen.printImage(scale, offset, getCell(), getVarContext(), gp);
+			offscreen.printImage(scale, offset, getCell(), getVarContext(), ep);
 			img = offscreen.getBufferedImage();
 			ep.setBufferedImage(img);
 

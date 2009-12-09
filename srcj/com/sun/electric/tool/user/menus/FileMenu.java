@@ -1457,22 +1457,21 @@ public class FileMenu {
 	{
     	private String filePath;
 		private WindowContent wnd;
+        ElectricPrinter ep;
 
 		public ExportImage(String description, WindowContent wnd, String filePath)
 		{
 			super("Export "+description+" ("+FileType.PNG+")", User.getUserTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
 			this.wnd = wnd;
 			this.filePath = filePath;
+			PrinterJob pj = PrinterJob.getPrinterJob();
+			this.ep = getOutputPreferences(wnd, pj);
 			startJob();
 		}
 		public boolean doIt() throws JobException
         {
-			PrinterJob pj = PrinterJob.getPrinterJob();
-	        ElectricPrinter ep = getOutputPreferences(wnd, pj);
             // Export has to be done in same thread as offscreen raster (valid for 3D at least)
             wnd.writeImage(ep, filePath);
-//            BufferedImage img = wnd.getOffScreenImage(ep);
-//			PNG.writeImage(img, filePath);
             return true;
         }
 	}

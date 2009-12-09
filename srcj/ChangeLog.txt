@@ -4,10 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+IMP: (12/8/09, GVG) Part of export PNG and values not cached (Bug #2474).
+
 BUG: (12/8/09, SMR) EDIF import places exports on instances incorrectly (Bug #2512).
 FIX: Use proper port instead of first one.
 
-IMP: (12/4/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
+IMP: (12/8/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
 Added active/poly/hi-res/well resistors. Only available in analog mode.
 
 BUG: (12/8/09, SMR) Technology Preferences don't update right when "Analog" is chosen (Bug #2520).

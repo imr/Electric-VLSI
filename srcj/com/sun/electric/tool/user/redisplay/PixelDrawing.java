@@ -50,6 +50,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -613,9 +614,9 @@ public class PixelDrawing
 	 * It displays a cell in this offscreen window.
 	 * The rendered Image can then be obtained with "getImage()".
 	 */
-	public void printImage(double scale, Point2D offset, Cell cell, VarContext varContext, GraphicsPreferences gp)
+	public void printImage(double scale, Point2D offset, Cell cell, VarContext varContext, ElectricPrinter ep)
 	{
-        PixelDrawing.gp = gp;
+        PixelDrawing.gp = ep.getGraphicsPreferences();
         clearSubCellCache();
         lastFullInstantiate = false;
         expandedScale = this.scale = scale;
@@ -661,7 +662,7 @@ public class PixelDrawing
         }
         forceRedraw(changedCellsCopy);
         VectorCache.theCache.forceRedraw();
-		if (User.getDisplayAlgorithm() == 0)
+		if (ep.getDisplayAlgorithm() == 0)
 		{
 			// reset cached cell counts
 			numberToReconcile = SINGLETONSTOADD;
@@ -675,9 +676,9 @@ public class PixelDrawing
             drawCell(cell, null, false, Orientation.IDENT, DBMath.MATID, cell);
 		} else
 		{
-            VectorDrawing vd = new VectorDrawing(User.isUseCellGreekingImages());
+            VectorDrawing vd = new VectorDrawing(ep.isUseCellGreekingImages());
 			vd.render(this, scale, offset, cell, false, null, null, null, varContext,
-                    User.getGreekSizeLimit(), User.getGreekCellSizeLimit());
+                    ep.getGreekSizeLimit(), ep.getGreekCellSizeLimit());
 		}
 
 		// merge transparent image into opaque one

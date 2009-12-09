@@ -25,6 +25,9 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.GraphicsPreferences;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -54,7 +57,13 @@ public class ElectricPrinter implements Printable, ImageObserver
 	private Graphics graphics;
 	private Dimension oldSize;
 	private int desiredDPI = IOTool.getPrintResolution();
+	private GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
 	private Rectangle2D renderArea;
+	private int displayAlgorithm = User.getDisplayAlgorithm();
+	private boolean greekImages = User.isUseCellGreekingImages();
+	private double greekSizeLimit = User.getGreekSizeLimit();
+	private double greekCellSizeLimit = User.getGreekCellSizeLimit();
+	
 	/** text printing: the strings to print */								private String [] allStrings;
 	/** text printing: the starting line in the strings */					private int startLine;
 	/** text printing: the starting character on the current line */		private int startChar;
@@ -86,6 +95,11 @@ public class ElectricPrinter implements Printable, ImageObserver
 	public Dimension getOldSize() { return oldSize; }
 	public void setRenderArea(Rectangle2D rect) { renderArea = rect; }
 	public Rectangle2D getRenderArea() { return renderArea; }
+	public GraphicsPreferences getGraphicsPreferences() { return gp; }
+	public int getDisplayAlgorithm() { return displayAlgorithm; }
+	public boolean isUseCellGreekingImages() { return greekImages; }
+	public double getGreekSizeLimit() { return greekSizeLimit; }
+	public double getGreekCellSizeLimit() { return greekCellSizeLimit; }
 
 	public int print(Graphics g, PageFormat pf, int page)
 		throws PrinterException
