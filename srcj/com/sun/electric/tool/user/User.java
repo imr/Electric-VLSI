@@ -779,36 +779,28 @@ public class User extends Listener
         else
             return; // not the valid object
 
-        if (!(np instanceof PrimitiveNode))
-            return;
+        if (!(np instanceof PrimitiveNode)) return;
+    	updatePrimitiveNodeConnections((PrimitiveNode)np);
+    }
 
-        PrimitiveNode pn = (PrimitiveNode)np;
+    private void updatePrimitiveNodeConnections(PrimitiveNode pn)
+    {
         if (pn.isNotUsed()) return;
-
-        if (!pn.getFunction().isContact()) return; // only for contacts
-
-        int numPorts = np.getNumPorts();
+        if (!pn.getFunction().isContact()) return;
+        int numPorts = pn.getNumPorts();
         assert(numPorts == 1); // basic assumption for now.
-
         for (int j = 0; j < numPorts; j++)
         {
-            PortProto pp = pn.getPort(j);
-            if (pp instanceof PrimitivePort)
+        	PrimitivePort pp = pn.getPort(j);
+            List<String> list = getArcNamesSorted(pp);
+            for (int i = 1; i < list.size(); i++)
             {
-                PrimitivePort p = (PrimitivePort)pp;
-                List<String> list = getArcNamesSorted(p);
-
-                // Done only once per technology
-                String key1 = list.get(0);
-                for (int i = 0; i < list.size(); i++)
-                {
-                    String key = key1 + "@" + list.get(i); // @ is not valid for arc names
-                    // NOTE: other protos are found with the same key in case of diff/well contacts
-    //                if (currentContactPortProtoMap.get(key) != null && currentContactPortProtoMap.get(key) != p)
-    //                    System.out.println("??");
-                    // just 1 combination. getCurrentContactNodeProto would check for both possibilities
-                    currentContactPortProtoMap.put(key, p);
-                }
+            	for(int k=0; k<i; k++)
+            	{
+	                String key = list.get(k) + "@" + list.get(i); // @ is not valid for arc names
+	                // just 1 combination. getCurrentContactNodeProto would check for both possibilities
+	                currentContactPortProtoMap.put(key, pp);
+            	}
             }
         }
     }
@@ -819,10 +811,14 @@ public class User extends Listener
     public void uploadCurrentData(Technology tech, Xml.MenuPalette menuPalette)
     {
         currentTech = tech;
-        currentContactPortProtoMap.clear();
         equivalentPortProtoMap.clear();
         currentArcProto = null;
         setCurrentArcProto(tech.getArcs().next());
+
+        // rebuild the map of inter-layer contacts
+        currentContactPortProtoMap.clear();
+        for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
+        	updatePrimitiveNodeConnections(it.next());
 
         // Loading current elements from the XML information if available
 //        Xml.MenuPalette menuPalette = Job.getUserInterface().getXmlPalette(tech);
@@ -831,7 +827,6 @@ public class User extends Listener
         {
             List<?> menuBoxList = menuPalette.menuBoxes.get(i);
             if (menuBoxList == null || menuBoxList.isEmpty()) continue;
-
             setCurrentContactNodeProto(menuBoxList.get(0));
         }
     }
