@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+IMP: (12/9/09, GVG) Change Dialog should not list PrimitivesNodes not in used (Bug #2524)
+
 BUG: (12/9/09, SMR) Export PNG needs preferences (Bug #2474).
 FIX: Added the defaultFont to EditWindow0 and passed that class to the relevant modules
      so that both defaultFont and TextGlobalScale became available.

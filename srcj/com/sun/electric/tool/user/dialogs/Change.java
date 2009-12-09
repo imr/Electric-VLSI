@@ -436,7 +436,8 @@ public class Change extends EModelessDialog implements HighlightListener
 				// primitive: list primitives in this and the generic technology
 				for(PrimitiveNode np : curTech.getNodesSortedByName())
 				{
-					changeListModel.addElement(np.describe(false));
+                    if (np.isNotUsed()) continue; // skip primitives not in used.
+                    changeListModel.addElement(np.describe(false));
 					changeNodeProtoList.add(np);
 				}
 				if (curTech != Generic.tech())
