@@ -153,6 +153,7 @@ public class EditWindow extends JPanel
 	/** the window scale */									private double scale;
 	/** the requested window scale */						private double scaleRequested;
 	/** the global text scale in this window */				private double globalTextScale;
+	/** the default font in this window */					private String defaultFont;
 	/** the window offset */								private double offx = 0, offy = 0;
 	/** the requested window offset */						private double offxRequested, offyRequested;
 	/** the size of the window (in pixels) */				private Dimension sz;
@@ -237,6 +238,7 @@ public class EditWindow extends JPanel
 		scale = scaleRequested = 1;
 		textInCell = null;
 		globalTextScale = User.getGlobalTextScale();
+		defaultFont = User.getDefaultFont();
 
 		// the total panel in the edit window
 		overall = new JPanel();
@@ -2606,6 +2608,12 @@ public class EditWindow extends JPanel
 	 */
 	public double getGlobalTextScale() { return globalTextScale; }
 
+    /**
+     * Method to return the default font for this window.
+     * @return the default font for this window.
+     */
+    public String getDefaultFont() { return defaultFont; }
+
 	/**
 	 * Method to set the text scale factor for this window.
 	 * @param gts the text scale factor for this window.
@@ -3712,7 +3720,7 @@ public class EditWindow extends JPanel
 	 */
 	public Font getFont(TextDescriptor descript)
 	{
-		return descript != null ? descript.getFont(this, PixelDrawing.MINIMUMTEXTSIZE) : TextDescriptor.getDefaultFont();
+		return descript != null ? descript.getFont(this, PixelDrawing.MINIMUMTEXTSIZE) : TextDescriptor.getDefaultFont(this);
 	}
 
 	/**
@@ -3795,7 +3803,7 @@ public class EditWindow extends JPanel
 	{
 		if (getCell() == null) return null;
 
-        GraphicsPreferences gp = ep.getGraphicsPreferences();
+//        GraphicsPreferences gp = ep.getGraphicsPreferences();
 		int scaleFactor = ep.getDesiredDPI() / 72;
 		if (scaleFactor > 2) scaleFactor = 2; else
 			if (scaleFactor <= 0) scaleFactor = 1;
@@ -3807,6 +3815,7 @@ public class EditWindow extends JPanel
 		{
 			// change window size
 			PixelDrawing offscreen = new PixelDrawing(new Dimension(wid, hei));
+			offscreen.setWindow(ep.getWindow());
 
 			// prepare for printing
 			PrinterJob pj = ep.getPrintJob();

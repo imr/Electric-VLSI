@@ -50,42 +50,52 @@ public interface EditWindow0 {
     public double getGlobalTextScale();
 
     /**
+     * Method to return the default font for this window.
+     * @return the default font for this window.
+     */
+    public String getDefaultFont();
+
+    /**
      * Class to encapsulate the minimal EditWindow0 data needed to pass into Jobs.
      */
-    public static class EditWindowSmall implements EditWindow0, Serializable {
+    public static class EditWindowSmall implements EditWindow0, Serializable
+    {
 
         private VarContext context;
         private double scale;
         private double globalScale;
+        private String defaultFont;
 
-        public EditWindowSmall(EditWindow_ wnd) {
+        public EditWindowSmall(EditWindow_ wnd)
+        {
             context = wnd.getVarContext();
             scale = wnd.getScale();
             globalScale = wnd.getGlobalTextScale();
+            defaultFont = wnd.getDefaultFont();
         }
 
         /**
          * Get the window's VarContext
          * @return the current VarContext
          */
-        public VarContext getVarContext() {
-            return context;
-        }
+        public VarContext getVarContext() { return context; }
 
         /**
          * Method to return the scale factor for this window.
          * @return the scale factor for this window.
          */
-        public double getScale() {
-            return scale;
-        }
+        public double getScale() { return scale; }
 
         /**
          * Method to return the text scale factor for this window.
          * @return the text scale factor for this window.
          */
-        public double getGlobalTextScale() {
-            return globalScale;
-        }
+        public double getGlobalTextScale() { return globalScale; }
+
+        /**
+         * Method to return the default font for this window.
+         * @return the default font for this window.
+         */
+        public String getDefaultFont() { return defaultFont; }
     }
 }

@@ -1034,7 +1034,7 @@ abstract class AbstractTextDescriptor implements Serializable {
      */
     public Font getFont(EditWindow0 wnd, int minimalTextSize) {
         int fontStyle = Font.PLAIN;
-        String fontName = User.getDefaultFont();
+        String fontName = wnd == null ? User.getDefaultFont() : wnd.getDefaultFont();
         int size = (int) getTrueSize(wnd);
         if (size <= 0) {
             size = 1;
@@ -1062,10 +1062,12 @@ abstract class AbstractTextDescriptor implements Serializable {
 
     /**
      * Method to get a default Font to use.
+     * @param wnd the EditWindow0 to use with font information (may be null).
      * @return the Font to use (returns null if the text is too small to display).
      */
-    public static Font getDefaultFont() {
-        return new Font(User.getDefaultFont(), Font.PLAIN, TextDescriptor.getDefaultFontSize());
+    public static Font getDefaultFont(EditWindow0 wnd) {
+    	String fontName = wnd == null ? User.getDefaultFont() : wnd.getDefaultFont();
+        return new Font(fontName, Font.PLAIN, TextDescriptor.getDefaultFontSize());
     }
 
     /**

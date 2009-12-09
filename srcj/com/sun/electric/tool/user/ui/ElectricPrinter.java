@@ -24,6 +24,8 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.variable.EditWindow0;
+import com.sun.electric.database.variable.EditWindow0.EditWindowSmall;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
@@ -51,6 +53,7 @@ import java.awt.print.PrinterJob;
 public class ElectricPrinter implements Printable, ImageObserver
 {
 	private WindowContent context;
+	private EditWindowSmall wnd;
 	private PageFormat pageFormat;
 	private PrinterJob printJob;
 	private BufferedImage img = null;
@@ -80,6 +83,7 @@ public class ElectricPrinter implements Printable, ImageObserver
 
 	public ElectricPrinter(WindowContent context, PageFormat pageFormat, PrinterJob printJob)
 	{
+		this.wnd = new EditWindowSmall(EditWindow.getCurrent());
 		this.context = context;
 		this.pageFormat = pageFormat;
 		this.printJob = printJob;
@@ -100,6 +104,7 @@ public class ElectricPrinter implements Printable, ImageObserver
 	public boolean isUseCellGreekingImages() { return greekImages; }
 	public double getGreekSizeLimit() { return greekSizeLimit; }
 	public double getGreekCellSizeLimit() { return greekCellSizeLimit; }
+	public EditWindow0 getWindow() { return wnd; }
 
 	public int print(Graphics g, PageFormat pf, int page)
 		throws PrinterException

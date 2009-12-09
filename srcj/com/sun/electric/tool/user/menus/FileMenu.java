@@ -41,6 +41,7 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.EditWindow0.EditWindowSmall;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
@@ -1456,22 +1457,22 @@ public class FileMenu {
     private static class ExportImage extends Job
 	{
     	private String filePath;
-		private WindowContent wnd;
+		private WindowContent wc;
         ElectricPrinter ep;
 
-		public ExportImage(String description, WindowContent wnd, String filePath)
+		public ExportImage(String description, WindowContent wc, String filePath)
 		{
 			super("Export "+description+" ("+FileType.PNG+")", User.getUserTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
-			this.wnd = wnd;
+			this.wc = wc;
 			this.filePath = filePath;
 			PrinterJob pj = PrinterJob.getPrinterJob();
-			this.ep = getOutputPreferences(wnd, pj);
+			this.ep = getOutputPreferences(wc, pj);
 			startJob();
 		}
 		public boolean doIt() throws JobException
         {
             // Export has to be done in same thread as offscreen raster (valid for 3D at least)
-            wnd.writeImage(ep, filePath);
+			wc.writeImage(ep, filePath);
             return true;
         }
 	}

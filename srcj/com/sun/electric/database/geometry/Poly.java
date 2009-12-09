@@ -26,7 +26,6 @@ package com.sun.electric.database.geometry;
 import com.sun.electric.database.CellTree;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.DisplayedText;
@@ -347,7 +346,7 @@ public class Poly extends PolyBase {
 
 		Type style = getStyle();
 		style = rotateType(style, eObj);
-		Font font = descript != null ? descript.getFont(wnd, 0) : TextDescriptor.getDefaultFont();
+		Font font = descript != null ? descript.getFont(wnd, 0) : TextDescriptor.getDefaultFont(wnd);
 		if (font == null)
 		{
 			UserInterface ui = Job.getUserInterface();
@@ -582,7 +581,7 @@ public class Poly extends PolyBase {
             isChanging = true;
             setup(ni.getCellBackupUnsafe(), null, false, true, false, null);
             lastPolys.clear();
-            genShapeOfPort(ni.getD(), (PrimitivePortId)pp.getId(), selectPt);
+            genShapeOfPort(ni.getD(), pp.getId(), selectPt);
             assert lastPolys.size() == 1;
             Poly poly = lastPolys.get(0);
             if (inLambda) {
@@ -597,7 +596,7 @@ public class Poly extends PolyBase {
             isChanging = true;
             setup(cellTree, null, false, true, false, null);
             lastPolys.clear();
-            genShapeOfPort(n, (PrimitivePortId)pp.getId(), selectPt);
+            genShapeOfPort(n, pp.getId(), selectPt);
             assert lastPolys.size() == 1;
             Poly poly = lastPolys.get(0);
             if (inLambda) {

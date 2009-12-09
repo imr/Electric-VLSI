@@ -296,7 +296,7 @@ public class PixelDrawing
 	/** whether to occasionally update the display. */		private boolean periodicRefresh;
 	/** keeps track of when to update the display. */		private int objectCount;
 	/** keeps track of when to update the display. */		private long lastRefreshTime;
-	/** the EditWindow being drawn */						private EditWindow wnd;
+	/** the EditWindow being drawn */						private EditWindow0 wnd;
 
 	/** the size of the top-level EditWindow */				private static Dimension topSz;
 	/** the last Technology that had transparent layers */	private static Technology techWithLayers = null;
@@ -323,6 +323,11 @@ public class PixelDrawing
         public double getGlobalTextScale()
         {
             return wnd == null ? User.getGlobalTextScale() : wnd.getGlobalTextScale();
+        }
+
+        public String getDefaultFont()
+        {
+            return wnd == null ? User.getDefaultFont() : wnd.getDefaultFont();
         }
     };
 
@@ -470,6 +475,13 @@ public class PixelDrawing
 	{
 		expandedCells = new HashMap<ExpandedCellKey,ExpandedCellInfo>();
 	}
+
+	/**
+	 * Method to set the EditWindow0 associated with the rendering.
+	 * Useful when printing.
+	 * @param wnd the EditWindow0 to use for scaling, context, etc.
+	 */
+	public void setWindow(EditWindow0 wnd) { this.wnd = wnd; }
 
 	/**
 	 * This is the entry point for rendering.
@@ -1090,15 +1102,23 @@ public class PixelDrawing
 		numLayerBitMapsCreated = 0;
 	}
 
-    private void periodicRefresh() {
-        // handle refreshing
-        if (periodicRefresh) {
+	/**
+	 * Method to handle periodic refreshing during long rendering.
+	 */
+    private void periodicRefresh()
+    {
+        if (periodicRefresh)
+        {
             objectCount++;
-            if (objectCount > 100) {
+            if (objectCount > 100)
+            {
                 objectCount = 0;
-                long currentTime = System.currentTimeMillis();
-                if (currentTime - lastRefreshTime > 1000) {
-                    wnd.repaint();
+                if (wnd instanceof EditWindow)
+                {
+                	EditWindow wndFull = (EditWindow)wnd;
+	                long currentTime = System.currentTimeMillis();
+	                if (currentTime - lastRefreshTime > 1000)
+	                	wndFull.repaint();
                 }
             }
         }

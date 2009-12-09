@@ -259,6 +259,8 @@ class LayerDrawing {
     private double scale;
     /** the global text scale of the EditWindow */
     private double globalTextScale;
+    /** the default font of the EditWindow */
+    private String defaultFont;
     /** the VarContext of the EditWindow */
     private VarContext varContext;
     /** the X origin of the cell in display coordinates. */
@@ -338,20 +340,15 @@ class LayerDrawing {
     /** cache of port colors */
     private HashMap<PrimitivePort, Color> portColorsCache;
     private int clipLX, clipHX, clipLY, clipHY;
-//    private final int width;
-    private final EditWindow0 dummyWnd = new EditWindow0() {
+    private final EditWindow0 dummyWnd = new EditWindow0()
+    {
+        public VarContext getVarContext() { return varContext; }
 
-        public VarContext getVarContext() {
-            return varContext;
-        }
+        public double getScale() { return scale; }
 
-        public double getScale() {
-            return scale;
-        }
+        public double getGlobalTextScale() { return globalTextScale; }
 
-        public double getGlobalTextScale() {
-            return globalTextScale;
-        }
+        public String getDefaultFont() { return defaultFont; }
     };
 
     private static class DrawingData {
@@ -1428,6 +1425,7 @@ class LayerDrawing {
         }
         varContext = wnd.getVarContext();
         globalTextScale = wnd.getGlobalTextScale();
+        defaultFont = wnd.getDefaultFont();
         initOrigin(expandedScale, new Point2D.Double(drawing.da.offX, drawing.da.offY));
         patternedDisplay = expandedScale > patternedScaleLimit;
         alphaBlendingOvercolor = expandedScale > alphaBlendingOvercolorLimit;

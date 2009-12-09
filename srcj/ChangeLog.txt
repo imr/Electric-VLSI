@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+BUG: (12/9/09, SMR) Export PNG needs preferences (Bug #2474).
+FIX: Added the defaultFont to EditWindow0 and passed that class to the relevant modules
+     so that both defaultFont and TextGlobalScale became available.
+
 BUG: (12/8/09, GVG) Edit Key Bindings dialog hangs if no shortcut is selected in the list (Bug #2353)
 FIX: null as parent component in JOptionPane.showMessageDialog used.
 
