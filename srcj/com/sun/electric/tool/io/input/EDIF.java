@@ -1489,17 +1489,18 @@ public class EDIF extends Input
 
 	private String fixAngleBracketBusses(String busName)
 	{
-		int openAngle = busName.indexOf('<');
-		if (openAngle >= 0)
+		for(;;)
 		{
+			int openAngle = busName.indexOf('<');
+			if (openAngle < 0) break;
+
 			int closeAngle = busName.indexOf('>', openAngle);
-			if (closeAngle >= 0)
-			{
-				String busPart = busName.substring(openAngle+1, closeAngle);
-				if (busPart.startsWith("*")) busPart = ""; else
-					busPart = "[" + busPart + "]";
-				busName = busName.substring(0, openAngle) + busPart + busName.substring(closeAngle+1);
-			}
+			if (closeAngle < 0) break;
+
+			String busPart = busName.substring(openAngle+1, closeAngle);
+			if (busPart.startsWith("*")) busPart = ""; else
+				busPart = "[" + busPart + "]";
+			busName = busName.substring(0, openAngle) + busPart + busName.substring(closeAngle+1);
 		}
 		return busName;
 	}
@@ -1713,10 +1714,13 @@ public class EDIF extends Input
 			if (plp.direction == PortCharacteristic.OUT) fPp = Schematics.tech().offpageNode.findPortProto("a");
 			pi = plp.alreadyThere.findPortInstFromProto(fPp);
 		}
-		plp.createdPort = Export.newInstance(curCell, pi, convertParens(plp.name), plp.direction, false);
+		String name = plp.name;
+		String exportName = renamedObjects.get(name);
+		if (exportName != null) name = exportName;
+		plp.createdPort = Export.newInstance(curCell, pi, convertParens(name), plp.direction, false);
 		if (plp.createdPort == null)
 		{
-			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + plp.name + ">");
+			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + name + ">");
 			errorCount++;
 		}
 

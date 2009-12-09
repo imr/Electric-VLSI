@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+BUG: (12/9/09, SMR) EDIF input doesn't convert all <> brackets, misses some renames (Bug #2526).
+FIX: Fix all brackets, consider all renames.
+
 BUG: (12/9/09, GVG) Verilog not detecting top cell properly (Bug #2527)
 FIX: Look for first module read if no cell with the name of the file is found.
 
