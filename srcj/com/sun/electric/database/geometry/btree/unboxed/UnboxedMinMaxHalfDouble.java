@@ -34,8 +34,8 @@ public class UnboxedMinMaxHalfDouble
     public UnboxedMinMaxHalfDouble() { super(UnboxedHalfDouble.instance, UnboxedHalfDouble.instance); }
 
     public void identity(byte[] buf, int ofs) {
-        uhd.serializeFloat(Float.MIN_VALUE, buf, ofs);
-        uhd.serializeFloat(Float.MAX_VALUE, buf, ofs+uhd.getSize());
+        uhd.serializeFloat(Float.MAX_VALUE, buf, ofs);
+        uhd.serializeFloat(Float.MIN_VALUE, buf, ofs+uhd.getSize());
     }
   
     public void multiply(byte[] buf1, int ofs1,
