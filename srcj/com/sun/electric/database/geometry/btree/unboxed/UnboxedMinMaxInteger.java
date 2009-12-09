@@ -25,30 +25,30 @@ package com.sun.electric.database.geometry.btree.unboxed;
 
 import java.io.*;
 
-public class UnboxedMinMaxHalfDouble
-    extends UnboxedPair<Double,Double>
-    implements UnboxedCommutativeMonoid<Pair<Double,Double>> {
+public class UnboxedMinMaxInteger
+    extends UnboxedPair<Integer,Integer>
+    implements UnboxedCommutativeMonoid<Pair<Integer,Integer>> {
 
-    public static final UnboxedMinMaxHalfDouble instance = new UnboxedMinMaxHalfDouble();
+    public static final UnboxedMinMaxInteger instance = new UnboxedMinMaxInteger();
 
-    private final UnboxedHalfDouble uhd = UnboxedHalfDouble.instance;
+    private final UnboxedInt uhd = UnboxedInt.instance;
 
-    public UnboxedMinMaxHalfDouble() { super(UnboxedHalfDouble.instance, UnboxedHalfDouble.instance); }
+    public UnboxedMinMaxInteger() { super(UnboxedInt.instance, UnboxedInt.instance); }
 
     public void identity(byte[] buf, int ofs) {
-        uhd.serializeFloat(Float.MAX_VALUE, buf, ofs);
-        uhd.serializeFloat(Float.MIN_VALUE, buf, ofs+uhd.getSize());
+        uhd.serializeInt(Integer.MAX_VALUE, buf, ofs);
+        uhd.serializeInt(Integer.MIN_VALUE, buf, ofs+uhd.getSize());
     }
   
     public void multiply(byte[] buf1, int ofs1,
                          byte[] buf2, int ofs2,
                          byte[] buf_dest, int ofs_dest) {
-        float min1 = uhd.deserializeFloat(buf1, ofs1);
-        float max1 = uhd.deserializeFloat(buf1, ofs1+uhd.getSize());
-        float min2 = uhd.deserializeFloat(buf2, ofs2);
-        float max2 = uhd.deserializeFloat(buf2, ofs2+uhd.getSize());
-        uhd.serializeFloat(Math.min(min1,min2), buf_dest, ofs_dest);
-        uhd.serializeFloat(Math.max(max1,max2), buf_dest, ofs_dest+uhd.getSize());
+        int min1 = uhd.deserializeInt(buf1, ofs1);
+        int max1 = uhd.deserializeInt(buf1, ofs1+uhd.getSize());
+        int min2 = uhd.deserializeInt(buf2, ofs2);
+        int max2 = uhd.deserializeInt(buf2, ofs2+uhd.getSize());
+        uhd.serializeInt(Math.min(min1,min2), buf_dest, ofs_dest);
+        uhd.serializeInt(Math.max(max1,max2), buf_dest, ofs_dest+uhd.getSize());
     }
 
 }

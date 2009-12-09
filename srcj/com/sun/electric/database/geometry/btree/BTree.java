@@ -504,8 +504,10 @@ public class BTree
         int maxsize = Integer.parseInt(s[0]);
         int size = 0;
         CachingPageStorage ps = new CachingPageStorageWrapper(FilePageStorage.create(), cachesize, false);
-        BTree<Integer,Integer,Integer> btree =
-            new BTree<Integer,Integer,Integer>(ps, UnboxedInt.instance, null, UnboxedInt.instance);
+        BTree<Integer,Integer,Pair<Integer,Integer>> btree =
+            new BTree<Integer,Integer,Pair<Integer,Integer>>(ps, UnboxedInt.instance,
+                                                             UnboxedMinMaxInteger.instance,
+                                                             UnboxedInt.instance);
         TreeMap<Integer,Integer> tm = 
             new TreeMap<Integer,Integer>();
 
