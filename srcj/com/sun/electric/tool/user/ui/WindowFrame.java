@@ -1339,8 +1339,8 @@ public class WindowFrame extends Observable
 				wnd.getHighlighter().setHighlightList(history.highlights);
 				wnd.getHighlighter().setHighlightOffset((int)history.offX, (int)history.offY);
 			}
-			wnd.fullRepaint();
 		}
+		content.fullRepaint();
 
 		// point to new location *after* calling setCell, since setCell updates by current location
 		cellHistoryLocation = location;
