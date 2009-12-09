@@ -460,7 +460,7 @@ public class VerilogReader extends Input
 
         module = verilogData.getModule(cellName);
         if (module == null)
-            module = verilogData.addModule(cellName, primitive);
+            module = verilogData.addModule(cellName, primitive, true);
         module.setValid(true);
         // adding ports in modules: from 1 -> inputs.size()-1;
         for (int i = 1; i < inputs.size(); i++)
@@ -571,7 +571,7 @@ public class VerilogReader extends Input
 
             if (element == null) // it hasn't been created
             {
-                element = verilogData.addModule(key, false); // assuming latches and other elements are treat as subcells
+                element = verilogData.addModule(key, false, false); // assuming latches and other elements are treat as subcells
             }
 
             readInstance(module, element);
