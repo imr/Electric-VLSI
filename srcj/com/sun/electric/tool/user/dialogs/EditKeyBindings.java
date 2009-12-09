@@ -296,14 +296,14 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
         // get currently selected node
         EMenuItem item = getSelectedMenuItem();
         if (item == null || item == EMenuItem.SEPARATOR || item instanceof EMenu) {
-            JOptionPane.showMessageDialog(this, "Please select a menu item first", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Please select a menu item first", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         // get selected key binding
         KeyStrokePair pair = getListBoxSelected();
         if (pair == null) {
-            JOptionPane.showMessageDialog(this, "Please select the shortcut from the list to remove", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Please select the shortcut from the list to remove", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 

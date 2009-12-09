@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+BUG: (12/8/09, GVG) Edit Key Bindings dialog hangs if no shortcut is selected in the list (Bug #2353)
+FIX: null as parent component in JOptionPane.showMessageDialog used.
+
 BUG: (12/8/09, GVG) Missing refresh when cell is removed (Bug #2498)
 FIX: Always do fullRepaint.
 
