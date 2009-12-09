@@ -25,9 +25,9 @@ package com.sun.electric.database.geometry.btree.unboxed;
 
 import java.io.*;
 
-public class UnboxedMinMaxInteger
+public class UnboxedMinMaxInteger<K extends Serializable>
     extends UnboxedPair<Integer,Integer>
-    implements UnboxedCommutativeMonoid<Pair<Integer,Integer>> {
+    implements UnboxedCommutativeMonoid<K,Integer,Pair<Integer,Integer>> {
 
     public static final UnboxedMinMaxInteger instance = new UnboxedMinMaxInteger();
 
@@ -38,6 +38,13 @@ public class UnboxedMinMaxInteger
     public void identity(byte[] buf, int ofs) {
         uhd.serializeInt(Integer.MAX_VALUE, buf, ofs);
         uhd.serializeInt(Integer.MIN_VALUE, buf, ofs+uhd.getSize());
+    }
+
+    public void inject(byte[] buf_k, int ofs_k,
+                       byte[] buf_v, int ofs_v,
+                       byte[] buf_s, int ofs_s) {
+        System.arraycopy(buf_v, ofs_v, buf_s, ofs_s,               uhd.getSize());
+        System.arraycopy(buf_v, ofs_v, buf_s, ofs_s+uhd.getSize(), uhd.getSize());
     }
   
     public void multiply(byte[] buf1, int ofs1,

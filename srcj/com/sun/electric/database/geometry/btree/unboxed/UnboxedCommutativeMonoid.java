@@ -28,6 +28,6 @@ import java.io.*;
 /**
  *  An UnboxedMonoid whose multiply() operator is commutative (Abelian)
  */
-public interface UnboxedCommutativeMonoid<V extends Serializable>
-    extends UnboxedMonoid<V> {
+public interface UnboxedCommutativeMonoid<K extends Serializable,V extends Serializable,S extends Serializable>
+    extends UnboxedMonoid<K,V,S> {
 }

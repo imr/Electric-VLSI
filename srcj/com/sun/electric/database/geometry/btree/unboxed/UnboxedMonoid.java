@@ -31,11 +31,15 @@ import java.io.*;
  *
  *  http://en.wikipedia.org/wiki/Monoid
  */
-public interface UnboxedMonoid<V extends Serializable>
-    extends Unboxed<V> {
+public interface UnboxedMonoid<K extends Serializable,V extends Serializable,S extends Serializable>
+    extends Unboxed<S> {
 
     /** Write the monoid's identity value into the buffer at ofs */
     public void identity(byte[] buf, int ofs);
+  
+    public void inject(byte[] buf_k, int ofs_k,
+                       byte[] buf_v, int ofs_v,
+                       byte[] buf_s, int ofs_s);
   
     /**
      *  Compute (buf1,ofs1)*(buf2,ofs2) and write it to (buf_dest,ofs_dest).

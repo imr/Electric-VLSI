@@ -58,7 +58,7 @@ abstract class NodeCursor
         this.ps = bt.ps;
     }
     public abstract void initBuf(CachedPage cp);
-    public abstract void setNumBuckets(int num);
+    protected abstract void setNumBuckets(int num);
     public void setBuf(CachedPage cp) {
         assert !dirty;
         this.cp = cp;

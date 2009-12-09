@@ -89,6 +89,7 @@ class InteriorNodeCursor
                              getBuf(), INTERIOR_HEADER_SIZE + idx*INTERIOR_ENTRY_SIZE,
                              endOfBuf() - (INTERIOR_HEADER_SIZE + (idx-1)*INTERIOR_ENTRY_SIZE));
         setNumBuckets(getNumBuckets()+1);
+        bt.monoid.identity(getBuf(), INTERIOR_HEADER_SIZE+INTERIOR_ENTRY_SIZE*idx+SIZEOF_INT);
         return INTERIOR_HEADER_SIZE + idx*INTERIOR_ENTRY_SIZE - bt.uk.getSize();
     }
 
@@ -96,7 +97,7 @@ class InteriorNodeCursor
     public int getMaxBuckets() { return INTERIOR_MAX_BUCKETS; }
     public void initBuf(CachedPage cp) { super.setBuf(cp); }
     public int  getNumBuckets() { return numbuckets; }
-    public void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, getBuf(), 1*SIZEOF_INT); }
+    protected void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, getBuf(), 1*SIZEOF_INT); }
 
     public void setBuf(CachedPage cp) {
         super.setBuf(cp);
@@ -108,6 +109,7 @@ class InteriorNodeCursor
         bt.rootpage = ps.createPage();
         super.setBuf(ps.getPage(bt.rootpage, false));
         setNumBuckets(1);
+        bt.monoid.identity(getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT);
     }
 
     public boolean isLeafNode() { return false; }

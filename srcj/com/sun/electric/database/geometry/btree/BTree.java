@@ -132,7 +132,7 @@ public class BTree
 
     final CachingPageStorage   ps;
     final UnboxedComparable<K> uk;
-    final UnboxedMonoid<S>     monoid;    // XXX: would be nice if the monoid had acesss to the K-value too...
+    final UnboxedMonoid<K,V,S> monoid;    // XXX: would be nice if the monoid had acesss to the K-value too...
     final Unboxed<V>           uv;
     final UnboxedInt           ui = UnboxedInt.instance;
 
@@ -146,7 +146,7 @@ public class BTree
     private final byte[] largestKey;
     private       int    largestKeyPage = -1;  // or -1 if unknown
 
-    public BTree(CachingPageStorage ps, UnboxedComparable<K> uk, UnboxedMonoid<S> monoid, Unboxed<V> uv) {
+    public BTree(CachingPageStorage ps, UnboxedComparable<K> uk, UnboxedMonoid<K,V,S> monoid, Unboxed<V> uv) {
         if (monoid!=null) {
             if (!(monoid instanceof UnboxedCommutativeMonoid))
                 throw new RuntimeException("Only commutative monoids are supported (allows one-pass insertion)");

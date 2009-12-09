@@ -73,7 +73,7 @@ class LeafNodeCursor
     }
     public int  getLeftNeighborPageId() { return bt.ui.deserializeInt(getBuf(), 2*SIZEOF_INT); }
     public int  getRightNeighborPageId() { return bt.ui.deserializeInt(getBuf(), 3*SIZEOF_INT); }
-    public void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, getBuf(), 4*SIZEOF_INT); }
+    protected void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, getBuf(), 4*SIZEOF_INT); }
     public int  getNumBuckets() { return numbuckets; }
     public int  compare(byte[] key, int key_ofs, int keynum) {
         if (keynum<0) return 1;
