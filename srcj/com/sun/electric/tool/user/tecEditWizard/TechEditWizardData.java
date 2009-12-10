@@ -3970,10 +3970,10 @@ public class TechEditWizardData
             double activeL = scaledValue(wellRL.value /2 + activeNoScaled);
             double activeWNoScaled = contact_size.value/2 + diff_contact_overhang.value;
             double activeW = scaledValue(activeWNoScaled);
-            nodesList.add(makeXmlNodeLayer((activeDistance + activeX), -1, -activeDistance, 1, activeW, -1, activeW, 1, activeLayer,
+            nodesList.add(makeXmlNodeLayer((activeDistance + activeX), -1, -activeDistance, -1, activeW, -1, activeW, 1, activeLayer,
                 Poly.Type.FILLED, true, true, 0));
             // right metal
-            nodesList.add(makeXmlNodeLayer(-activeDistance, -1, (activeDistance + activeX), 1, activeW, -1, activeW, 1, activeLayer,
+            nodesList.add(makeXmlNodeLayer(-activeDistance, 1, (activeDistance + activeX), 1, activeW, -1, activeW, 1, activeLayer,
                 Poly.Type.FILLED, true, true, 1));
 
             // select layer
@@ -3982,11 +3982,10 @@ public class TechEditWizardData
             double selectW = selectOverhang + activeW;
             double selectDistance = activeDistance - scaledValue(selectWF.value);
             double selectX = activeX + 2 * (selectWF.value);
-//            nodesList.add(makeXmlNodeLayer(selectL, selectL, selectW, selectW, selectLayer, Poly.Type.FILLED, true, true, 0));
-            nodesList.add(makeXmlNodeLayer((selectDistance + selectX), -1, -selectDistance, 1, selectW, -1, selectW, 1, selectLayer,
+            nodesList.add(makeXmlNodeLayer((selectDistance + selectX), -1, -selectDistance, -1, selectW, -1, selectW, 1, selectLayer,
                 Poly.Type.FILLED, true, true, 0));
             // right metal
-            nodesList.add(makeXmlNodeLayer(-selectDistance, -1, (selectDistance + selectX), 1, selectW, -1, selectW, 1, selectLayer,
+            nodesList.add(makeXmlNodeLayer(-selectDistance, 1, (selectDistance + selectX), 1, selectW, -1, selectW, 1, selectLayer,
                 Poly.Type.FILLED, true, true, 1));
 
             // well layer
@@ -4003,7 +4002,7 @@ public class TechEditWizardData
             addMetalElements(t, activeConLayer, contact_array_spacing.value, wellRL, diff_contact_overhang, nodesList, nodePorts);
 
             sox = scaledValue(nwell_overhang_diff_n.value) + activeX + selectOverhang;
-            soy = scaledValue(nwell_overhang_diff_n.value);
+            soy = 0; // scaledValue(nwell_overhang_diff_n.value);
             n = makeXmlPrimitive(t.nodeGroups, diffNames[i]+"-Well-Resistor", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy),
                 nodesList, nodePorts, null, false);
@@ -4113,10 +4112,10 @@ public class TechEditWizardData
         double m1Y = scaledValue(contact_metal_overhang_all_sides.value + contact_size.value/2);
         double m1X = scaledValue(2*contact_metal_overhang_all_sides.value + contact_size.value);
         double m1Distance = scaledValue(width.value/2 + overhang.value - contact_metal_overhang_all_sides.value);
-        nodesList.add(makeXmlNodeLayer((m1Distance + m1X), -1, -m1Distance, 1, m1Y, -1, m1Y, 1, m1Layer,
+        nodesList.add(makeXmlNodeLayer((m1Distance + m1X), -1, -m1Distance, -1, m1Y, -1, m1Y, 1, m1Layer,
             Poly.Type.FILLED, true, true, 0));
         // right metal
-        nodesList.add(makeXmlNodeLayer(-m1Distance, -1, (m1Distance + m1X), 1, m1Y, -1, m1Y, 1, m1Layer,
+        nodesList.add(makeXmlNodeLayer(-m1Distance, 1, (m1Distance + m1X), 1, m1Y, -1, m1Y, 1, m1Layer,
             Poly.Type.FILLED, true, true, 1));
 
         // left port
