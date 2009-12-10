@@ -30,10 +30,12 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.ArcInst;
@@ -47,6 +49,7 @@ import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.result.NccResults;
 import com.sun.electric.tool.ncc.result.equivalence.Equivalence;
 import com.sun.electric.tool.user.User;
+import java.util.Collections;
 
 /** Copy schematic names to layout */
 public class SchemNamesToLay {
@@ -413,8 +416,27 @@ public class SchemNamesToLay {
     		prln("  No saved NCC results. Please run NCC first.");
     		return;
     	}
-    	
-    	for (NccResult r : results) {
+
+        // Reorder results by Layout Cells from top to down
+        EDatabase database = EDatabase.currentDatabase();
+        HashMap<CellId,NccResult> resultsByLayout = new HashMap<CellId,NccResult>();
+        for (NccResult r: results) {
+            Cell layout = r.getRootLayoutCell();
+            if (layout == null)
+                continue;
+            assert layout.getDatabase() == database;
+            resultsByLayout.put(layout.getId(), r);
+        }
+        ArrayList<NccResult> resultsTopDown = new ArrayList<NccResult>();
+        for (CellId cellId: database.backup().getCellsDownTop()) {
+            NccResult r = resultsByLayout.get(cellId);
+            if (r == null) continue;
+            resultsTopDown.add(r);
+        }
+        Collections.reverse(resultsTopDown);
+
+
+    	for (NccResult r : resultsTopDown) {
     		if (r.match())  copySchematicNamesToLayout(r);
     	}
     	prln("Done");

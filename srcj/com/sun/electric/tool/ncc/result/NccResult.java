@@ -165,6 +165,14 @@ public class NccResult implements Serializable {
 	}
 	/** return array of the top-level Cells being compared */
 	public Cell[] getRootCells() {return rootCells;}
+    
+    public Cell getRootLayoutCell() {
+        for (Cell c: rootCells) {
+            if (c.isLayout())
+                return c;
+        }
+        return null;
+    }
 	
 	public String[] getRootCellNames() {return rootCellNames;}
 	
