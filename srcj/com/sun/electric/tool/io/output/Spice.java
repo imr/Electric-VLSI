@@ -911,7 +911,7 @@ public class Spice extends Topology
 			{
 				if (fun.isResistor())
 				{
-                    if ((fun.isPolyOrWellResistor() && isShortExplicitResistors()) ||
+                    if ((fun.isNonNormalResistor() && isShortExplicitResistors()) ||
                         (fun == PrimitiveNode.Function.RESIST && isShortResistors()))
                         	continue;
 					Variable resistVar = ni.getVar(Schematics.SCHEM_RESISTANCE);

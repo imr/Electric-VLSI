@@ -1785,7 +1785,7 @@
         </primitivePort>
     </primitiveNode>
 
-    <primitiveNode name="N-Active-Resistor" fun="RESIST">
+    <primitiveNode name="N-Active-Resistor" fun="RESNACTIVE">
         <nodeBase>
             <box>
                 <lambdaBox klx="-22.5" khx="22.5" kly="-2.5" khy="2.5"/>
@@ -1844,7 +1844,7 @@
         </primitivePort>
     </primitiveNode>
 
-    <primitiveNode name="N-Poly-Resistor" fun="RESIST">
+    <primitiveNode name="N-Poly-Resistor" fun="RESNPOLY">
         <nodeBase>
             <box>
                 <lambdaBox klx="-22.5" khx="22.5" kly="-2.5" khy="2.5"/>
@@ -1957,7 +1957,7 @@
         </primitivePort>
     </primitiveNode>
 
-    <primitiveNode name="N-Well-Resistor" fun="RESIST">
+    <primitiveNode name="N-Well-Resistor" fun="RESNWELL">
             <nodeBase>
                 <box>
                     <lambdaBox klx="-20.5" khx="20.5" kly="-2.5" khy="2.5"/>
@@ -2026,7 +2026,7 @@
             </primitivePort>
         </primitiveNode>
 
-    <primitiveNode name="P-Active-Resistor" fun="RESIST">
+    <primitiveNode name="P-Active-Resistor" fun="RESPACTIVE">
             <nodeBase>
                 <box>
                     <lambdaBox klx="-22.5" khx="22.5" kly="-2.5" khy="2.5"/>
@@ -2085,7 +2085,7 @@
             </primitivePort>
         </primitiveNode>
 
-    <primitiveNode name="P-Poly-Resistor" fun="RESIST">
+    <primitiveNode name="P-Poly-Resistor" fun="RESPPOLY">
         <nodeBase>
             <box>
                 <lambdaBox klx="-22.5" khx="22.5" kly="-2.5" khy="2.5"/>
@@ -2139,7 +2139,7 @@
         </primitivePort>
     </primitiveNode>
 
-    <primitiveNode name="P-Well-Resistor" fun="RESIST">
+    <primitiveNode name="P-Well-Resistor" fun="RESPWELL">
         <nodeBase>
             <box>
                 <lambdaBox klx="-20.5" khx="20.5" kly="-2.5" khy="2.5"/>
@@ -3170,22 +3170,22 @@
             <menuNodeInst protoName="Hi-Poly-Resistor" function="RESIST">
                 <menuNodeText text="Hi-RPoly"/>
             </menuNodeInst>
-            <menuNodeInst protoName="P-Active-Resistor" function="RESIST">
+            <menuNodeInst protoName="P-Active-Resistor" function="RESPACTIVE">
                 <menuNodeText text="P-RActive"/>
             </menuNodeInst>
-            <menuNodeInst protoName="N-Active-Resistor" function="RESIST">
+            <menuNodeInst protoName="N-Active-Resistor" function="RESNACTIVE">
                 <menuNodeText text="N-RActive"/>
             </menuNodeInst>
-            <menuNodeInst protoName="P-Well-Resistor" function="RESIST">
+            <menuNodeInst protoName="P-Well-Resistor" function="RESPWELL">
                 <menuNodeText text="P-RWell"/>
             </menuNodeInst>
-            <menuNodeInst protoName="N-Well-Resistor" function="RESIST">
+            <menuNodeInst protoName="N-Well-Resistor" function="RESNWELL">
                 <menuNodeText text="N-RWell"/>
             </menuNodeInst>
-            <menuNodeInst protoName="P-Poly-Resistor" function="RESIST">
+            <menuNodeInst protoName="P-Poly-Resistor" function="RESPPOLY">
                 <menuNodeText text="P-RPoly"/>
             </menuNodeInst>
-            <menuNodeInst protoName="N-Poly-Resistor" function="RESIST">
+            <menuNodeInst protoName="N-Poly-Resistor" function="RESNPOLY">
                 <menuNodeText text="N-RPoly"/>
             </menuNodeInst>
             <menuNodeInst protoName="N-Un-Poly-Resistor" function="RESIST">

@@ -92,6 +92,12 @@
             <menuNodeInst protoName="Resistor" function="RESPWELL" techBits="4">
                 <menuNodeText text="P-Well" size="0"/>
             </menuNodeInst>
+            <menuNodeInst protoName="Resistor" function="RESNACTIVE" techBits="5">
+                <menuNodeText text="N-Active" size="0"/>
+            </menuNodeInst>
+            <menuNodeInst protoName="Resistor" function="RESPACTIVE" techBits="6">
+                <menuNodeText text="P-Active" size="0"/>
+            </menuNodeInst>
         </menuBox>
         <menuBox>
             <menuNode>Inductor</menuNode>

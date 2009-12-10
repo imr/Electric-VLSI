@@ -3879,6 +3879,7 @@ public class TechEditWizardData
             Xml.Layer activeLayer = t.findLayer(diffNames[i]+"-"+diff_layer.name);   //$nplus_overhang_diff
             Xml.Layer selectLayer, wellLayer;
             WizardField selectWF;
+            PrimitiveNode.Function func;
 
             nodesList.clear();
             nodePorts.clear();
@@ -3888,12 +3889,14 @@ public class TechEditWizardData
                 selectLayer = t.findLayer(pplus_layer.name);
                 selectWF = pplus_overhang_diff;
                 wellLayer = t.findLayer(nwell_layer.name);
+                func = PrimitiveNode.Function.RESPACTIVE;
             }
             else
             {
                 selectLayer = t.findLayer(nplus_layer.name);
                 selectWF = nplus_overhang_diff;
                 wellLayer = t.findLayer("P-Well");
+                func = PrimitiveNode.Function.RESNACTIVE;
             }
 
             // active layer
@@ -3924,8 +3927,7 @@ public class TechEditWizardData
 
             sox = scaledValue(nwell_overhang_diff_p.value + activeNoScaled);
             soy = scaledValue(nwell_overhang_diff_p.value);
-            n = makeXmlPrimitive(t.nodeGroups, diffNames[i]+"-Active-Resistor",
-                PrimitiveNode.Function.RESIST, 0, 0, 0, 0,
+            n = makeXmlPrimitive(t.nodeGroups, diffNames[i]+"-Active-Resistor", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy),
                 nodesList, nodePorts, null, false);
             g.addElement(n, diffNames[i]+"-RActive");
@@ -3941,6 +3943,7 @@ public class TechEditWizardData
             Xml.Layer activeLayer = t.findLayer(diffNames[i]+"-"+diff_layer.name);   //$nplus_overhang_diff
             Xml.Layer selectLayer, wellLayer;
             WizardField selectWF;
+            PrimitiveNode.Function func;
 
             nodesList.clear();
             nodePorts.clear();
@@ -3950,12 +3953,14 @@ public class TechEditWizardData
                 selectLayer = t.findLayer(pplus_layer.name);
                 selectWF = pplus_overhang_diff;
                 wellLayer = t.findLayer("P-Well");
+                func = PrimitiveNode.Function.RESPWELL;
             }
             else
             {
                 selectLayer = t.findLayer(nplus_layer.name);
                 selectWF = nplus_overhang_diff;
                 wellLayer = t.findLayer(nwell_layer.name);
+                func = PrimitiveNode.Function.RESNWELL;
             }
 
             // active layer
@@ -3999,8 +4004,7 @@ public class TechEditWizardData
 
             sox = scaledValue(nwell_overhang_diff_n.value) + activeX + selectOverhang;
             soy = scaledValue(nwell_overhang_diff_n.value);
-            n = makeXmlPrimitive(t.nodeGroups, diffNames[i]+"-Well-Resistor",
-                PrimitiveNode.Function.RESIST, 0, 0, 0, 0,
+            n = makeXmlPrimitive(t.nodeGroups, diffNames[i]+"-Well-Resistor", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy),
                 nodesList, nodePorts, null, false);
             g.addElement(n, diffNames[i]+"-RWell");
@@ -4016,6 +4020,7 @@ public class TechEditWizardData
         {
             Xml.Layer selectLayer;
             WizardField selectWF;
+            PrimitiveNode.Function func;
 
             nodesList.clear();
             nodePorts.clear();
@@ -4024,11 +4029,13 @@ public class TechEditWizardData
             {
                 selectLayer = t.findLayer(pplus_layer.name);
                 selectWF = pplus_overhang_diff;
+                func = PrimitiveNode.Function.RESPPOLY;
             }
             else
             {
                 selectLayer = t.findLayer(nplus_layer.name);
                 selectWF = nplus_overhang_diff;
+                func = PrimitiveNode.Function.RESNPOLY;
             }
 
             // poly layer
@@ -4048,8 +4055,7 @@ public class TechEditWizardData
 
             sox = scaledValue(selectWF.value + polyNoScaled);
             soy = scaledValue(selectWF.value);
-            n = makeXmlPrimitive(t.nodeGroups, diffNames[i]+"-Poly-Resistor",
-                PrimitiveNode.Function.RESIST, 0, 0, 0, 0,
+            n = makeXmlPrimitive(t.nodeGroups, diffNames[i]+"-Poly-Resistor", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy),
                 nodesList, nodePorts, null, false);
             g.addElement(n, diffNames[i]+"-RPoly");
@@ -4090,7 +4096,7 @@ public class TechEditWizardData
         sox = scaledValue(silicide_overhang.value + selectWF.value + polyNoScaled);
         soy = scaledValue(silicide_overhang.value + selectWF.value);
         n = makeXmlPrimitive(t.nodeGroups, "N-Un-Poly-Resistor",
-            PrimitiveNode.Function.RESIST, 0, 0, 0, 0,
+            PrimitiveNode.Function.RESNPOLY, 0, 0, 0, 0,
             new SizeOffset(sox, sox, soy, soy),
             nodesList, nodePorts, null, false);
         g.addElement(n, "N-RUPoly");

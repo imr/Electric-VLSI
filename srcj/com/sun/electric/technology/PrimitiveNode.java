@@ -381,7 +381,13 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		/** Describes a p-well resistor */
 		RESPWELL("p-type-well-resistor", "respwell", false, false),
 
-		/** Describes an esd device */
+        /** Describes an n-active resistor */
+		RESNACTIVE("n-type-active-resistor", "resnactive", false, false),
+
+		/** Describes a p-active resistor */
+		RESPACTIVE("p-type-active-resistor", "respactive", false, false),
+
+        /** Describes an esd device */
 		ESDDEVICE("esd-device", "esdd", false, false),
 
 		/** Describes a capacitor. */
@@ -588,16 +594,16 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
          * Method to tell whether this function describes a resistor (normal, poly or nwell resistor).
          * @return true if this function describes a resistor (normal, poly or nwell resistor).
          */
-        public boolean isResistor() { return this == RESIST || this == PRESIST || this == WRESIST ||
-                                      this == RESNPOLY || this == RESPPOLY || this == RESNWELL ||
-                                      this == RESPWELL;}
+        public boolean isResistor() { return this == RESIST || isNonNormalResistor();}
 
         /**
          * Method to tell whether this function describes a poly or well resistor.
          * @return true if this function describes a poly or well resistor.
          */
-        public boolean isPolyOrWellResistor() { return this == PRESIST || this == WRESIST ||
-                                      this == RESNPOLY || this == RESPPOLY || this == RESNWELL || this == RESPWELL;}
+        public boolean isNonNormalResistor() { return this == PRESIST || this == WRESIST ||                          
+            this == RESNPOLY || this == RESPPOLY ||
+            this == RESNWELL || this == RESPWELL ||
+            this == RESNACTIVE || this == RESPACTIVE;}
 
         /**
          * Method to tell whether this function describes an ESD device.

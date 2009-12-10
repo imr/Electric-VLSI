@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
+IMP: (12/10/09) First modifications for new capacitors and resistors in Schematics (Bug #2529)
+
+BUG: (12/10/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
+FIX: Some Functions were wrong. Added RESNACTIVE/RESPACTIVE
+
 BUG: (12/10/09, SMR) Text problems (highlighting doesn't match, dotted line wrong, anchor wrong on rotated nodes) (Bug #2528).
 FIX: Fixed ElectricObject.computeTextPoly(), Highlight.HighlightText.showInternalHighlight(), and PolyBase.rotateType().
 

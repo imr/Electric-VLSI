@@ -646,6 +646,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				textField1Label.setText("Poly resistance:");
             else if (fun == PrimitiveNode.Function.RESPWELL || fun == PrimitiveNode.Function.RESNWELL)
             	textField1Label.setText("Well resistance:");
+             else if (fun == PrimitiveNode.Function.RESPACTIVE || fun == PrimitiveNode.Function.RESNACTIVE)
+            	textField1Label.setText("Active resistance:");
             else
             	textField1Label.setText("Resistance:");
 //			formatinfstr(infstr, x_(" (%s):"),
@@ -1218,7 +1220,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 					np == Schematics.tech().resistorNode)
 				{
 					Object width, length;
-					if (ni.getFunction().isFET() || ni.getFunction().isPolyOrWellResistor())
+					if (ni.getFunction().isFET() || ni.getFunction().isNonNormalResistor())
 					{
 						// see if we can convert width and length to a Number
 						double w = TextUtils.atof(currentXSize, null);

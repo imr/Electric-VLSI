@@ -143,6 +143,8 @@ public class Schematics extends Technology
     /** Defines a p-poly Resistor. */                     	private static final int RESISTPPOLY =  2;
     /** Defines an n-well Resistor. */                     	private static final int RESISTNWELL =  3;
     /** Defines a p-well Resistor. */                     	private static final int RESISTPWELL =  4;
+    /** Defines a n-active Resistor. */                     private static final int RESISTNACTIVE =  5;
+    /** Defines a p-active Resistor. */                     private static final int RESISTPACTIVE =  6;
 
 	/** Defines a Transconductance two-port (VCCS). */		private static final int TWOPVCCS =  0;
 	/** Defines a Transresistance two-port (CCVS). */		private static final int TWOPCCVS =  1;
@@ -230,7 +232,8 @@ public class Schematics extends Technology
 	private Technology.NodeLayer [] tran4LayersDMES, tran4LayersEMES;
 	private Technology.NodeLayer [] diodeLayersNorm, diodeLayersZener;
 	private Technology.NodeLayer [] capacitorLayersNorm, capacitorLayersElectrolytic;
-    private Technology.NodeLayer [] resistorLayersNorm, resistorLayersNPoly, resistorLayersPPoly, resistorLayersNWell, resistorLayersPWell;
+    private Technology.NodeLayer [] resistorLayersNorm, resistorLayersNPoly, resistorLayersPPoly;
+    private Technology.NodeLayer [] resistorLayersNActive, resistorLayersPActive, resistorLayersNWell, resistorLayersPWell;
 
 	// this much from the center to the left edge
 	/* 0.1 */			private final EdgeH LEFTBYP1 = new EdgeH(-0.1/2,0);
@@ -1128,6 +1131,12 @@ public class Schematics extends Technology
 			new Technology.TechPoint(RIGHTBYP6, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(RIGHTBYP6, EdgeV.makeTopEdge()),
 			new Technology.TechPoint(LEFTBYP6, EdgeV.makeTopEdge())});
+        Technology.NodeLayer resistorLayerActive = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENEDT3, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(LEFTBYP6, EdgeV.makeTopEdge()),
+			new Technology.TechPoint(LEFTBYP6, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(RIGHTBYP6, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(RIGHTBYP6, EdgeV.makeTopEdge()),
+			new Technology.TechPoint(LEFTBYP6, EdgeV.makeTopEdge())});
         Technology.NodeLayer resistorLayerP = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(RIGHTBYP4, EdgeV.makeCenter()),
 			new Technology.TechPoint(RIGHTBYP4, EdgeV.makeTopEdge()),
@@ -1147,6 +1156,8 @@ public class Schematics extends Technology
         resistorLayersPPoly = new Technology.NodeLayer [] {resistorLayer, resistorLayerP};
         resistorLayersNWell = new Technology.NodeLayer [] {resistorLayer, resistorLayerN, resistorLayerWell};
         resistorLayersPWell = new Technology.NodeLayer [] {resistorLayer, resistorLayerP, resistorLayerWell};
+        resistorLayersNActive = new Technology.NodeLayer [] {resistorLayer, resistorLayerN, resistorLayerActive};
+        resistorLayersPActive = new Technology.NodeLayer [] {resistorLayer, resistorLayerP, resistorLayerActive};
 		resistorNode = PrimitiveNode.newInstance("Resistor", this, 6.0, 1.0, new SizeOffset(1, 1, 0, 0), resistorLayersNorm);
 		resistorNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
@@ -2080,6 +2091,8 @@ public class Schematics extends Technology
 				case RESISTPPOLY: primLayers = resistorLayersPPoly;   break;
 				case RESISTNWELL: primLayers = resistorLayersNWell;   break;
 				case RESISTPWELL: primLayers = resistorLayersPWell;   break;
+				case RESISTNACTIVE: primLayers = resistorLayersNActive;   break;
+				case RESISTPACTIVE: primLayers = resistorLayersPActive;   break;
 			}
 		} else if (pn == switchNode)
 		{
@@ -2597,6 +2610,8 @@ public class Schematics extends Technology
 			if (techBits == RESISTPPOLY) return PrimitiveNode.Function.RESPPOLY;
 			if (techBits == RESISTNWELL) return PrimitiveNode.Function.RESNWELL;
 			if (techBits == RESISTPWELL) return PrimitiveNode.Function.RESPWELL;
+			if (techBits == RESISTNACTIVE) return PrimitiveNode.Function.RESNACTIVE;
+			if (techBits == RESISTPACTIVE) return PrimitiveNode.Function.RESPACTIVE;
 			return PrimitiveNode.Function.RESIST;
 		}
 		if (pn == capacitorNode)
@@ -2737,6 +2752,8 @@ public class Schematics extends Technology
         if (function == PrimitiveNode.Function.RESPPOLY)      return RESISTPPOLY;
         if (function == PrimitiveNode.Function.RESNWELL)      return RESISTNWELL;
         if (function == PrimitiveNode.Function.RESPWELL)      return RESISTPWELL;
+        if (function == PrimitiveNode.Function.RESNACTIVE)    return RESISTNACTIVE;
+        if (function == PrimitiveNode.Function.RESPACTIVE)    return RESISTPACTIVE;
 		if (function == PrimitiveNode.Function.RESIST)        return RESISTNORM;
 
 		if (function == PrimitiveNode.Function.DIODEZ)        return DIODEZENER;
