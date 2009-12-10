@@ -41,6 +41,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Artwork;
@@ -1601,19 +1602,33 @@ class HighlightText extends Highlight
                 Geometric geom = (Geometric)eObj;
                 if (geom instanceof ArcInst || !((NodeInst)geom).isInvisiblePinWithText())
                 {
-                    Point c = wnd.databaseToScreen(geom.getTrueCenter());
-                    int lowX = Integer.MAX_VALUE, highX = Integer.MIN_VALUE;
-                    int lowY = Integer.MAX_VALUE, highY = Integer.MIN_VALUE;
-                    for(int i=0; i<points.length; i++)
+                    Point2D objCtr = geom.getTrueCenter();
+                    Point c = wnd.databaseToScreen(objCtr);
+
+                    TextDescriptor td = eobj.getTextDescriptor(varKey);
+                    double locX = objCtr.getX() + td.getXOff();
+                    double locY = objCtr.getY() + td.getYOff();
+                    Point2D txtAnchor = new Point2D.Double(locX, locY);
+                    if (geom instanceof NodeInst)
                     {
-                        Point a = wnd.databaseToScreen(points[i]);
-                        if (a.x < lowX) lowX = a.x;
-                        if (a.x > highX) highX = a.x;
-                        if (a.y < lowY) lowY = a.y;
-                        if (a.y > highY) highY = a.y;
+                    	NodeInst ni = (NodeInst)geom;
+                    	AffineTransform trans = ni.rotateOut();
+                    	trans.transform(txtAnchor, txtAnchor);
                     }
-                    int cX = (lowX+highX)/2;
-                    int cY = (lowY+highY)/2;
+                    Point a = wnd.databaseToScreen(txtAnchor);
+                    int cX = a.x, cY = a.y;
+//                    int lowX = Integer.MAX_VALUE, highX = Integer.MIN_VALUE;
+//                    int lowY = Integer.MAX_VALUE, highY = Integer.MIN_VALUE;
+//                    for(int i=0; i<points.length; i++)
+//                    {
+//                        Point a = wnd.databaseToScreen(points[i]);
+//                        if (a.x < lowX) lowX = a.x;
+//                        if (a.x > highX) highX = a.x;
+//                        if (a.y < lowY) lowY = a.y;
+//                        if (a.y > highY) highY = a.y;
+//                    }
+//                    int cX = (lowX+highX)/2;
+//                    int cY = (lowY+highY)/2;
                     if (Math.abs(cX - c.x) > 4 || Math.abs(cY - c.y) > 4)
                     {
                         g.fillOval(c.x-4, c.y-4, 8, 8);

@@ -316,9 +316,7 @@ public abstract class ElectricObject implements Serializable {
                 if (varKey == Export.EXPORT_NAME) {
                     poly = pp.getNamePoly();
                 } else {
-//					PortInst pi = pp.getOriginalPort();
                     Rectangle2D bounds = pp.getNamePoly().getBounds2D();
-//					TextDescriptor td = pp.getTextDescriptor(Export.EXPORT_NAME);
                     Poly[] polys = pp.getPolyList(pp.getVar(varKey), bounds.getCenterX(), bounds.getCenterY(), wnd, false);
                     if (polys.length > 0) {
                         poly = polys[0];
@@ -334,28 +332,29 @@ public abstract class ElectricObject implements Serializable {
                 }
             } else if (this instanceof Geometric) {
                 Geometric geom = (Geometric) this;
-                if (varKey == NodeInst.NODE_NAME || varKey == ArcInst.ARC_NAME) {
-                    TextDescriptor td = geom.getTextDescriptor(varKey);
-                    Poly.Type style = td.getPos().getPolyType();
-                    Point2D[] pointList = null;
-                    if (style == Poly.Type.TEXTBOX) {
-                        pointList = Poly.makePoints(geom.getBounds());
-                    } else {
-                        pointList = new Point2D.Double[1];
-                        pointList[0] = new Point2D.Double(geom.getTrueCenterX() + td.getXOff(), geom.getTrueCenterY() + td.getYOff());
-                    }
-                    poly = new Poly(pointList);
-                    poly.setStyle(style);
-                    if (geom instanceof NodeInst) {
-                        poly.transform(((NodeInst) geom).rotateOutAboutTrueCenter());
-                    }
-                    poly.setTextDescriptor(td);
-                    if (varKey == NodeInst.NODE_NAME) {
-                        poly.setString(((NodeInst) geom).getName());
-                    } else {
-                        poly.setString(((ArcInst) geom).getName());
-                    }
-                } else if (varKey == NodeInst.NODE_PROTO) {
+//                if (varKey == NodeInst.NODE_NAME || varKey == ArcInst.ARC_NAME) {
+//                    TextDescriptor td = geom.getTextDescriptor(varKey);
+//                    Poly.Type style = td.getPos().getPolyType();
+//                    Point2D[] pointList = null;
+//                    if (style == Poly.Type.TEXTBOX) {
+//                        pointList = Poly.makePoints(geom.getBounds());
+//                    } else {
+//                        pointList = new Point2D.Double[1];
+//                        pointList[0] = new Point2D.Double(geom.getTrueCenterX() + td.getXOff(), geom.getTrueCenterY() + td.getYOff());
+//                    }
+//                    poly = new Poly(pointList);
+//                    poly.setStyle(style);
+//                    if (geom instanceof NodeInst) {
+//                        poly.transform(((NodeInst) geom).rotateOutAboutTrueCenter());
+//                    }
+//                    poly.setTextDescriptor(td);
+//                    if (varKey == NodeInst.NODE_NAME) {
+//                        poly.setString(((NodeInst) geom).getName());
+//                    } else {
+//                        poly.setString(((ArcInst) geom).getName());
+//                    }
+//                } else
+                if (varKey == NodeInst.NODE_PROTO) {
                     if (!(geom instanceof NodeInst)) {
                         return null;
                     }
@@ -382,7 +381,22 @@ public abstract class ElectricObject implements Serializable {
                         x = uBounds.getCenterX();
                         y = uBounds.getCenterY();
                     }
-                    Poly[] polys = geom.getPolyList(geom.getParameterOrVariable(varKey), x, y, wnd, false);
+                    Poly[] polys;
+                    if (varKey == NodeInst.NODE_NAME || varKey == ArcInst.ARC_NAME)
+                    {
+	                    TextDescriptor td = geom.getTextDescriptor(varKey);
+	                    double offX = td.getXOff();
+	                    double offY = td.getYOff();
+	                    Poly.Type style = td.getPos().getPolyType();
+	                    String theText;
+	                    if (varKey == NodeInst.NODE_NAME) theText = ((NodeInst)geom).getName(); else
+							theText = ((ArcInst)geom).getName();
+	                    polys = ((ElectricObject)geom).getPolyListInternal(null, x, y, wnd, false, 1, offX, offY,
+	                    	style, td, varKey, theText);
+                    } else
+                    {
+                    	polys = geom.getPolyList(geom.getParameterOrVariable(varKey), x, y, wnd, false);
+                    }
                     if (polys.length > 0) {
                         poly = polys[0];
                         if (geom instanceof NodeInst) {
@@ -487,13 +501,40 @@ public abstract class ElectricObject implements Serializable {
         if (var == null) {
             return new Poly[0];
         }
+
         double offX = var.getXOff();
         double offY = var.getYOff();
         int varLength = var.getLength();
-        double lineOffX = 0, lineOffY = 0;
-        AffineTransform trans = null;
         Poly.Type style = var.getPos().getPolyType();
         TextDescriptor td = var.getTextDescriptor();
+
+        VarContext context = null;
+        if (wnd != null) context = wnd.getVarContext();
+        String firstLine = var.describe(0, context, this);
+        return getPolyListInternal(var, cX, cY, wnd, multipleStrings, varLength, offX, offY, style, td, var.getKey(), firstLine);
+    }
+
+    /**
+     * Method to create an array of Poly objects that describes text on this Electric object.
+     * @param var the Variable on this ElectricObject to describe (may be null for node/arc names).
+     * @param cX the center X coordinate of the ElectricObject.
+     * @param cY the center Y coordinate of the ElectricObject.
+     * @param wnd window in which the Variable will be displayed.
+     * @param multipleStrings true to break multiline text into multiple Polys.
+     * @param varLength the number of strings in the text.
+     * @param offX the X offset of the text.
+     * @param offY the Y offset of the text.
+     * @param style the style of the text.
+     * @param td the TextDescriptor of the text.
+     * @param varKey the Key of the text.
+     * @param firstLine the first line of text (all of it, unless a multi-line Variable).
+     * @return an array of Poly objects that describe the Variable. May return zero length array.
+     */
+    private Poly[] getPolyListInternal(Variable var, double cX, double cY, EditWindow0 wnd, boolean multipleStrings,
+    	int varLength, double offX, double offY, Poly.Type style, TextDescriptor td, Variable.Key varKey, String firstLine)
+    {
+        double lineOffX = 0, lineOffY = 0;
+        AffineTransform trans = null;
         if (this instanceof NodeInst && (offX != 0 || offY != 0)) {
             td = td.withOff(0, 0);
         }
@@ -582,10 +623,10 @@ public abstract class ElectricObject implements Serializable {
                     message = var.getTrueName() + "[" + (varLength - 1) + "]:";
                     entryTD = entryTD.withUnderline(true);
                 } else {
-                    message = var.describe(i - 1, context, this);
+                    message = i == 1 ? firstLine : var.describe(i - 1, context, this);
                 }
             } else {
-                message = var.describe(i, context, this);
+                message = i == 0 ? firstLine : var.describe(i, context, this);
             }
 
             Point2D[] pointList = null;
@@ -604,7 +645,7 @@ public abstract class ElectricObject implements Serializable {
             polys[i].setString(message);
             polys[i].setStyle(style);
             polys[i].setTextDescriptor(entryTD);
-            polys[i].setDisplayedText(new DisplayedText(this, var.getKey()));
+            polys[i].setDisplayedText(new DisplayedText(this, varKey));
             polys[i].setLayer(null);
             cX -= lineOffX;
             cY -= lineOffY;

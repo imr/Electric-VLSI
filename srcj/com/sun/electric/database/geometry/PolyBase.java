@@ -30,6 +30,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.Job;
 
@@ -786,14 +787,64 @@ public class PolyBase implements Shape, PolyNodeMerge
 		// can only rotate anchor when node is in a manhattan orientation
 		if ((nodeAngle%900) != 0) return origType;
 
+		// special case handling for left/right/top/bottom orientations
+		if (origType == Poly.Type.TEXTLEFT || origType == Poly.Type.TEXTRIGHT ||
+			origType == Poly.Type.TEXTTOP || origType == Poly.Type.TEXTBOT)
+		{
+			boolean flipAnchor = false;
+			if (ni.isMirroredAboutXAxis())
+			{
+				if (ni.isMirroredAboutYAxis())
+				{
+					// mirrored in both directions: flip only the 0-degree anchor
+					if (nodeAngle == 0) flipAnchor = true;
+				} else
+				{
+					// mirrored only U-D: flip conditionally
+					if (origType == Poly.Type.TEXTLEFT || origType == Poly.Type.TEXTRIGHT)
+					{
+						if (nodeAngle == 900 || nodeAngle == 1800) flipAnchor = true;
+					} else if (origType == Poly.Type.TEXTTOP || origType == Poly.Type.TEXTBOT)
+					{
+						if (nodeAngle == 0 || nodeAngle == 2700) flipAnchor = true;
+					}
+				}
+			} else
+			{
+				if (ni.isMirroredAboutYAxis())
+				{
+					// mirrored only L-R: flip  conditionally
+					if (origType == Poly.Type.TEXTLEFT || origType == Poly.Type.TEXTRIGHT)
+					{
+						if (nodeAngle == 0 || nodeAngle == 2700) flipAnchor = true;
+					} else if (origType == Poly.Type.TEXTTOP || origType == Poly.Type.TEXTBOT)
+					{
+						if (nodeAngle == 900 || nodeAngle == 1800) flipAnchor = true;
+					}
+				} else
+				{
+					// not mirrored: flip only 180-degree anchor
+					if (nodeAngle == 1800) flipAnchor = true;
+				}
+			}
+			if (flipAnchor)
+			{
+				if (origType == Poly.Type.TEXTLEFT) return Poly.Type.TEXTRIGHT;
+				if (origType == Poly.Type.TEXTRIGHT) return Poly.Type.TEXTLEFT;
+				if (origType == Poly.Type.TEXTTOP) return Poly.Type.TEXTBOT;
+				if (origType == Poly.Type.TEXTBOT) return Poly.Type.TEXTTOP;
+			}
+			return origType;
+		}
+
 		// determine angle of original style
 		int origAngle = origType.getTextAngle();
-		if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() && ((origAngle%1800) == 0 || (origAngle%1800) == 1350)) origAngle += 1800;
+		if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() && ((origAngle%1800) == 0 || (origAngle%1800) == 1350))
+			origAngle += 1800;
 
 		// determine change in angle because of node rotation
         Orientation orient = Orientation.fromJava(nodeAngle, ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
         AffineTransform trans = orient.pureRotate();
-//		AffineTransform trans = NodeInst.pureRotate(nodeAngle, ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
 		Point2D pt = new Point2D.Double(100, 0);
 		trans.transform(pt, pt);
 		int xAngle = GenMath.figureAngle(new Point2D.Double(0, 0), pt);
