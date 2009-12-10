@@ -4,10 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
-BUG: (12/9/09, GVG) Assertion in Netlist.concurrentModificationException(Nodable,Global) (NCC regression) (Bug #2523)
+BUG: (12/9/09, DN) Assertion in Netlist.concurrentModificationException(Nodable,Global) (NCC regression) (Bug #2523)
 FIX: In SchemNamesToLay.constructor order Layout Cells from top to down.
 
-BUG: (12/9/09, GVG) Assertion in NetSchem.getNetMapOffset(Nodable,Global) (NCC regression) (Bug #2523)
+BUG: (12/9/09, DN) Assertion in NetSchem.getNetMapOffset(Nodable,Global) (NCC regression) (Bug #2523)
 FIX: In NetSchem.getNetMapOffset(Nodable,Global) refine assertion.
 
 BUG: (12/9/09, GVG) Verilog not detecting top cell properly (Bug #2527)
