@@ -277,7 +277,8 @@ class NetSchem extends NetCell {
         if (iconInst == null || iconInst.iconOfParent) {
             return -1;
         }
-        assert !(no instanceof NodeInst);
+        assert !(no instanceof NodeInst)
+                || no == iconInst.nodeInst && ((Cell)iconInst.nodeInst.getProto()).isSchematic();
         int indexOfGlobal = iconInst.eq.implementation.globals.indexOf(global);
         if (indexOfGlobal < 0) {
             return -1;

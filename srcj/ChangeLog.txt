@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10o: ******************************
 
+BUG: (12/9/09, GVG) Assertion in NetSchem.getNetMapOffset(Nodable,Global) (NCC regression) (Bug #2523)
+FIX: In NetSchem.getNetMapOffset(Nodable,Global) refine assertion.
+
 BUG: (12/9/09, GVG) Verilog not detecting top cell properly (Bug #2527)
 FIX: Look for last module read if no cell with the name of the file is found.
 
