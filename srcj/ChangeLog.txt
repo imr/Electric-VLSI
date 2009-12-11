@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
+IMP: (12/10/09, GVG) Group mocmos rules options (Bug #2532).
+Subm, scmos and deep options added to a group.
+
 BUG: (12/10/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
 FIX: Wrong scaling in some layers.
 
