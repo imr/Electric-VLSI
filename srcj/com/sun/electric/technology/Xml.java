@@ -43,16 +43,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
@@ -109,6 +100,14 @@ public class Xml {
             return null;
         }
 
+        public Collection<String> getLayerNames()
+        {
+            List<String> l = new ArrayList<String>();
+            for (Layer layer: layers)
+                l.add(layer.name);
+            return l;
+        }
+
         public ArcProto findArc(String name) {
             for (ArcProto arc: arcs) {
                 if (arc.name.equals(name))
@@ -135,6 +134,16 @@ public class Xml {
                 }
             }
             return null;
+        }
+
+        public Collection<String> getNodeNames() {
+            List<String> l = new ArrayList<String>();
+            for (PrimitiveNodeGroup nodeGroup: nodeGroups) {
+                for (PrimitiveNode n: nodeGroup.nodes) {
+                    l.add(n.name);
+                }
+            }
+            return l;
         }
 
         /**
@@ -621,6 +630,8 @@ public class Xml {
         private Distance curDistance;
         private SpiceHeader curSpiceHeader;
         private Foundry curFoundry;
+        private Collection<String> curLayerNamesList;
+        private Collection<String> curNodeNamesList;
 
         private boolean acceptCharacters;
         private StringBuilder charBuffer = new StringBuilder();
@@ -1286,7 +1297,13 @@ public class Xml {
                 case LayersRule:
                 case NodeLayersRule:
                 case NodeRule:
-                    DRCTemplate.parseXmlElement(curFoundry.rules, key.name(), attributes, localName);
+                    if (curLayerNamesList == null)
+                        curLayerNamesList = tech.getLayerNames();
+                    if (curNodeNamesList == null)
+                        curNodeNamesList = tech.getNodeNames();
+                    if (!DRCTemplate.parseXmlElement(curFoundry.rules, curLayerNamesList, curNodeNamesList,
+                        key.name(), attributes, localName))
+                        System.out.println("Warning: cannot find layer name in DRC rule '" + key.name());
                     break;
                 default:
                     assert key.hasText;

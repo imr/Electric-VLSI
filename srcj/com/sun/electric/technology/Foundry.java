@@ -176,7 +176,7 @@ public class Foundry {
             System.out.println("Problems loading " + this + " deck for " + tech);
             return;
         }
-        DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(fileURL, false);
+        DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(fileURL, tech.getXmlTech(), false);
         assert(parser.getRules().size() == 1);
         assert(parser.isParseOK());
         setRules(parser.getRules().get(0).drcRules);

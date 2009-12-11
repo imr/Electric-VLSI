@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
+IMP: (12/11/09, GVG) XML Tech reader should verify if layer in DRC rule exists (Bug #2534)
+
 IMP/MAN: (12/11/09, GVG) Enable MoCMOS Subm rules with analog flag (Bug #2531)
 
 IMP: (12/10/09, GVG) Group mocmos rules options (Bug #2532).

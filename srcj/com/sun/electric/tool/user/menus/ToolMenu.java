@@ -2255,7 +2255,8 @@ public class ToolMenu
         String fileName = OpenFile.chooseInputFile(FileType.XML, "Open XML DRC deck", false);
         if (fileName == null) return;
         Technology tech = Technology.getCurrent();
-        DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(TextUtils.makeURLToFile(fileName), true);
+        DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(TextUtils.makeURLToFile(fileName),
+            tech.getXmlTech(), true);
         String message = "Deck file '" + fileName + "' loaded ";
 
         message += (parser.isParseOK()) ? "without errors." : " with errors. No rules loaded.";

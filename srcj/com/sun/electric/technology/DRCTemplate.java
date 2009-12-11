@@ -37,10 +37,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -284,10 +281,10 @@ public class DRCTemplate implements Serializable
      * @param verbose
      * @return parsed information
      */
-    public static DRCXMLParser importDRCDeck(URL fileURL, boolean verbose)
+    public static DRCXMLParser importDRCDeck(URL fileURL, Xml.Technology tech, boolean verbose)
     {
         DRCXMLParser parser = new DRCXMLParser();
-        parser.process(fileURL, verbose);
+        parser.process(fileURL, tech, verbose);
         return parser;
     }
 
@@ -508,8 +505,19 @@ public class DRCTemplate implements Serializable
         return n1;
     }
 
-    public static boolean parseXmlElement(List<DRCTemplate> drcRules, String qName, Attributes attributes,
-                                          String localName)
+    /**
+     * Old method to parse DRC rules. It doesn't check if layer/node exists.
+     * @return
+     */
+    public static boolean parseXmlElement(List<DRCTemplate> drcRules, String qName, Attributes attributes, String localName)
+    {
+        System.out.println("Layer/Node names not checked");
+        return parseXmlElement(drcRules, null, null, qName, attributes, localName);
+    }
+
+    public static boolean parseXmlElement(List<DRCTemplate> drcRules, Collection<String> layerNamesList,
+                                          Collection<String> nodeNamesList,
+                                          String qName, Attributes attributes, String localName)
     {
         boolean layerRule = qName.equals("LayerRule");
         boolean layersRule = qName.equals("LayersRule");
@@ -586,6 +594,11 @@ public class DRCTemplate implements Serializable
             String[] layers = TextUtils.parseString(layerNames, ",");
             for (String layer : layers)
             {
+                if (!layerNamesList.contains(layer))
+                {
+                    System.out.println("Invalid layer '" + layer + "' in DRCXMLParser in " + localName);
+                    return false; // layer not found
+                }
                 if (nodeNames == null)
                 {
                     DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layer,
@@ -597,6 +610,11 @@ public class DRCTemplate implements Serializable
                     String[] names = TextUtils.parseString(nodeNames, ",");
                     for (String name : names)
                     {
+                        if (!layerNamesList.contains(name))
+                        {
+                            System.out.println("Invalid node '" + name + "' in DRCXMLParser in " + localName);
+                            return false; // layer not found
+                        }
                         DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layer,
                                 null, values, name, null);
                         drcRules.add(tmp);
@@ -616,6 +634,11 @@ public class DRCTemplate implements Serializable
                 String[] names = TextUtils.parseString(nodeNames, ",");
                 for (String name : names)
                 {
+                    if (!nodeNamesList.contains(name))
+                    {
+                        System.out.println("Invalid node '" + name + "' in DRCXMLParser in " + localName);
+                        return false; // node not found
+                    }
                     DRCTemplate tmp = new DRCTemplate(ruleName, when, type,
                             null, null, values, name, null);
                     drcRules.add(tmp);
@@ -691,6 +714,8 @@ public class DRCTemplate implements Serializable
         private DRCXMLBucket current = null;
         private boolean fullLoaded = true;
         private String fileName;
+        private Collection<String> nodeNamesList = new ArrayList<String>();
+        private Collection<String> layerNamesList = new ArrayList<String>();
 
         public List<DRCXMLBucket> getRules() { return rulesList; }
         public boolean isParseOK() { return fullLoaded; }
@@ -701,9 +726,12 @@ public class DRCTemplate implements Serializable
          * @param verbose
          * @return true if file was loaded without problems
          */
-        protected boolean process(URL fileURL, boolean verbose)
+        protected boolean process(URL fileURL, Xml.Technology tech, boolean verbose)
         {
             fileName = TextUtils.getFileNameWithoutExtension(fileURL);
+            nodeNamesList = tech.getNodeNames();
+            layerNamesList = tech.getLayerNames();
+            
             try
             {
                 // Factory call
@@ -759,7 +787,7 @@ public class DRCTemplate implements Serializable
                     current.foundry = attributes.getValue(0);
                     return;
                 }
-                if (!parseXmlElement(current.drcRules, qName, attributes, localName))
+                if (!parseXmlElement(current.drcRules, layerNamesList, nodeNamesList, qName, attributes, localName))
                 {
                     passed = false;
                 }
