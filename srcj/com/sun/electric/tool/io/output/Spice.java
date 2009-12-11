@@ -186,6 +186,7 @@ public class Spice extends Topology
         public boolean                      ignoreParasiticResistors = false;
         public int                          epicMemorySize = Simulation.getFactorySpiceEpicMemorySize();
         public String                       extractedNetDelimiter = Simulation.getFactorySpiceExtractedNetDelimiter();
+        public boolean                      ignoreModelFiles = Simulation.isFactorySpiceIgnoreModelFiles();
 
         public String                       cdlLibName = Simulation.getFactoryCDLLibName();
         public String                       cdlLibPath = Simulation.getFactoryCDLLibPath();
@@ -241,6 +242,7 @@ public class Spice extends Topology
             ignoreParasiticResistors        = Simulation.isSpiceIgnoreParasiticResistors();
             epicMemorySize                  = Simulation.getSpiceEpicMemorySize();
             extractedNetDelimiter           = Simulation.getSpiceExtractedNetDelimiter();
+            ignoreModelFiles                = Simulation.isSpiceIgnoreModelFiles();
 
             cdlLibName                      = Simulation.getCDLLibName();
             cdlLibPath                      = Simulation.getCDLLibPath();
@@ -2353,7 +2355,7 @@ public class Spice extends Topology
                     fileName = str;
             }
         }
-        if (fileName != null) {
+        if (fileName != null && !localPrefs.ignoreModelFiles) {
             if (!modelOverrides.containsKey(cell))
             {
                 String absFileName = fileName;
