@@ -3860,7 +3860,7 @@ public class TechEditWizardData
 
         double sox = scaledValue(soxNoScaled);
         double soy = scaledValue(hiRestOverhang.value);
-        Xml.PrimitiveNodeGroup n = makeXmlPrimitive(t.nodeGroups, "Hi-Poly-Resistor",
+        Xml.PrimitiveNodeGroup n = makeXmlPrimitive(t.nodeGroups, "Hi-Res-Poly-Resistor",
             PrimitiveNode.Function.RESIST, 0, 0, 0, 0,
             new SizeOffset(sox, sox, soy, soy),
             nodesList, nodePorts, null, false);
@@ -4065,40 +4065,58 @@ public class TechEditWizardData
         // Analog unsilicided Poly Resistors (no hi res)
         /*************************************/
         WizardField silicide_overhang = findWizardField("silicide_overhang");
-        WizardField selectWF = nplus_overhang_diff;
-        Xml.Layer selectLayer = t.findLayer(nplus_layer.name);
-        nodesList.clear();
-        nodePorts.clear();
 
-        // poly layer
-        polyNoScaled = 2 * (contact_poly_overhang.value) + contact_size.value;
-        polyL = scaledValue(polyRL.value /2 + polyNoScaled);
-        polyWNoScaled = contact_size.value/2 + diff_contact_overhang.value;
-        polyW = scaledValue(polyWNoScaled);
-        nodesList.add(makeXmlNodeLayer(polyL, polyL, polyW, polyW, polyLayer, Poly.Type.FILLED, true, true, 0));
+        for (int i = 0; i < 2; i++)
+        {
+            Xml.Layer selectLayer;
+            PrimitiveNode.Function func;
+            WizardField selectWF;
 
-        // select layer
-        double selectOverhang = scaledValue(selectWF.value);
-        double selectL = selectOverhang + polyL;
-        double selectW = selectOverhang + polyW;
-        nodesList.add(makeXmlNodeLayer(selectL, selectL, selectW, selectW, selectLayer, Poly.Type.FILLED, true, true, 0));
+            if (i==Technology.P_TYPE)
+            {
+                selectLayer = t.findLayer(pplus_layer.name);
+                selectWF = pplus_overhang_diff;
+                func = PrimitiveNode.Function.RESPNSPOLY;
+            }
+            else
+            {
+                selectLayer = t.findLayer(nplus_layer.name);
+                selectWF = nplus_overhang_diff;
+                func = PrimitiveNode.Function.RESNNSPOLY;
+            }
+            nodesList.clear();
+            nodePorts.clear();
 
-        // silicide_block layer
-        Xml.Layer silicideLayer = t.findLayer(marking_layer.name);
-        double silicideOverhang = scaledValue(silicide_overhang.value);
-        double silicideL = silicideOverhang + selectL;
-        double silicideW = silicideOverhang + selectW;
-        nodesList.add(makeXmlNodeLayer(silicideL, silicideL, silicideW, silicideW, silicideLayer, Poly.Type.FILLED, true, true, 0));
+            // poly layer
+            polyNoScaled = 2 * (contact_poly_overhang.value) + contact_size.value;
+            polyL = scaledValue(polyRL.value /2 + polyNoScaled);
+            polyWNoScaled = contact_size.value/2 + diff_contact_overhang.value;
+            polyW = scaledValue(polyWNoScaled);
+            nodesList.add(makeXmlNodeLayer(polyL, polyL, polyW, polyW, polyLayer, Poly.Type.FILLED, true, true, 0));
 
-        addMetalElements(t, polyConLayer, contact_array_spacing.value, polyRL, contact_poly_overhang, nodesList, nodePorts);
+            // select layer
+            double selectOverhang = scaledValue(selectWF.value);
+            double selectL = selectOverhang + polyL;
+            double selectW = selectOverhang + polyW;
+            nodesList.add(makeXmlNodeLayer(selectL, selectL, selectW, selectW, selectLayer, Poly.Type.FILLED, true, true, 0));
 
-        sox = scaledValue(silicide_overhang.value + selectWF.value + polyNoScaled);
-        soy = scaledValue(silicide_overhang.value + selectWF.value);
-        n = makeXmlPrimitive(t.nodeGroups, "N-Un-Poly-Resistor",
-            PrimitiveNode.Function.RESNPOLY, 0, 0, 0, 0,
-            new SizeOffset(sox, sox, soy, soy),
-            nodesList, nodePorts, null, false);
-        g.addElement(n, "N-RUPoly");
+            // silicide_block layer
+            Xml.Layer silicideLayer = t.findLayer(marking_layer.name);
+            double silicideOverhang = scaledValue(silicide_overhang.value);
+            double silicideL = silicideOverhang + selectL;
+            double silicideW = silicideOverhang + selectW;
+            nodesList.add(makeXmlNodeLayer(silicideL, silicideL, silicideW, silicideW, silicideLayer, Poly.Type.FILLED, true, true, 0));
+
+            addMetalElements(t, polyConLayer, contact_array_spacing.value, polyRL, contact_poly_overhang, nodesList, nodePorts);
+
+            sox = scaledValue(silicide_overhang.value + selectWF.value + polyNoScaled);
+            soy = scaledValue(silicide_overhang.value + selectWF.value);
+            n = makeXmlPrimitive(t.nodeGroups, diffNames[i]+"-No-Silicide-Poly-Resistor",
+                func, 0, 0, 0, 0,
+                new SizeOffset(sox, sox, soy, soy),
+                nodesList, nodePorts, null, false);
+            g.addElement(n, diffNames[i]+"-RNSPoly");
+        }
     }
 
     private void addMetalElements(Xml.Technology t, Xml.Layer conLayer, double spacing, WizardField width, WizardField overhang,

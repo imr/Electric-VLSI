@@ -371,7 +371,13 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		/** Describes a p-poly resistor */
 		RESPPOLY("p-type-poly-resistor", "resppoly", false, false),
 
-		/** Describes a well resistor. */
+        /** Describes an n-poly no silicide resistor */
+		RESNNSPOLY("n-type-no-silicide-poly-resistor", "resnnspoly", false, false),
+
+		/** Describes a p-poly no silicide resistor */
+		RESPNSPOLY("p-type-no-silicide-poly-resistor", "respnspoly", false, false),
+
+        /** Describes a well resistor. */
 		//@Deprecated
 		WRESIST("well-resistor", "wres", false, false),
 

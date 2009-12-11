@@ -580,6 +580,8 @@
             <xsd:enumeration value="RESNWELL"/>
             <xsd:enumeration value="RESPPOLY"/>
             <xsd:enumeration value="RESNPOLY"/>
+            <xsd:enumeration value="RESPNSPOLY"/>
+            <xsd:enumeration value="RESNNSPOLY"/>
             <xsd:enumeration value="RESPACTIVE"/>
             <xsd:enumeration value="RESNACTIVE"/>
             <xsd:enumeration value="ESDDEVICE"/>

@@ -1698,7 +1698,7 @@
     <!--                                                             -->
     <!---               Start of New Analog Elements                 --> 
     <!--                                                             -->
-    <primitiveNode name="Poly-Capacitor" fun="CAPAC">
+    <primitiveNode name="Poly1-Poly2-Capacitor" fun="CAPAC">
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -1731,7 +1731,7 @@
         </primitivePort>
     </primitiveNode>
 
-    <primitiveNode name="Hi-Poly-Resistor" fun="RESIST">
+    <primitiveNode name="Hi-Res-Poly-Resistor" fun="RESIST">
         <nodeBase>
             <box>
                 <lambdaBox klx="-20.0" khx="20.0" kly="-5.0" khy="5.0"/>
@@ -1898,7 +1898,7 @@
         </primitivePort>
     </primitiveNode>
 
-    <primitiveNode name="N-Un-Poly-Resistor" fun="RESNPOLY">
+    <primitiveNode name="N-No-Silicide-Poly-Resistor" fun="RESNNSPOLY">
         <nodeBase>
             <box>
                 <lambdaBox klx="-22.5" khx="22.5" kly="-2.5" khy="2.5"/>
@@ -1960,7 +1960,7 @@
     <primitiveNode name="N-Well-Resistor" fun="RESNWELL">
         <nodeBase>
             <box>
-                <lambdaBox klx="-20.5" khx="20.5" kly="-5.5" khy="5.5"/>
+                <lambdaBox klx="-20.5" khx="20.5" kly="-6.0" khy="6.0"/>
             </box>
         </nodeBase>
         <nodeLayer layer="Active-Cut" style="FILLED">
@@ -1995,7 +1995,7 @@
         </nodeLayer>
         <nodeLayer layer="N-Well" style="FILLED">
             <box>
-                <lambdaBox klx="-30.5" khx="30.5" kly="-5.5" khy="5.5"/>
+                <lambdaBox klx="-31.0" khx="31.0" kly="-6.0" khy="6.0"/>
             </box>
         </nodeLayer>
         <nodeLayer layer="N-Select" style="FILLED">
@@ -2139,10 +2139,69 @@
         </primitivePort>
     </primitiveNode>
 
+    <primitiveNode name="P-No-Silicide-Poly-Resistor" fun="RESPNSPOLY">
+        <nodeBase>
+            <box>
+                <lambdaBox klx="-22.5" khx="22.5" kly="-2.5" khy="2.5"/>
+            </box>
+        </nodeBase>
+        <nodeLayer layer="Silicide-Block" style="FILLED">
+            <box>
+                <lambdaBox klx="-31.5" khx="31.5" kly="-6.5" khy="6.5"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Metal-1" style="FILLED">
+            <box khx="-1.0">
+                <lambdaBox klx="-27.0" khx="-23.0" kly="-2.0" khy="2.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Metal-1" style="FILLED" portNum="1">
+            <box klx="1.0">
+                <lambdaBox klx="23.0" khx="27.0" kly="-2.0" khy="2.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="P-Select" style="FILLED">
+            <box>
+                <lambdaBox klx="-29.5" khx="29.5" kly="-4.5" khy="4.5"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Polysilicon-1" style="FILLED">
+            <box>
+                <lambdaBox klx="-27.5" khx="27.5" kly="-2.5" khy="2.5"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Poly-Cut" style="FILLED">
+            <multicutbox khx="-1.0" sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
+                <lambdaBox klx="-26.0" khx="-24.0" kly="-1.0" khy="1.0"/>
+            </multicutbox>
+        </nodeLayer>
+        <nodeLayer layer="Poly-Cut" style="FILLED">
+            <multicutbox klx="1.0" sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
+                <lambdaBox klx="24.0" khx="26.0" kly="-1.0" khy="1.0"/>
+            </multicutbox>
+        </nodeLayer>
+        <primitivePort name="left">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box khx="-1.0">
+                <lambdaBox klx="-26.0" khx="-24.0" kly="-1.0" khy="1.0"/>
+            </box>
+            <portArc>Metal-1</portArc>
+        </primitivePort>
+        <primitivePort name="right">
+            <portAngle primary="0" range="180"/>
+            <portTopology>1</portTopology>
+            <box klx="1.0">
+                <lambdaBox klx="24.0" khx="26.0" kly="-1.0" khy="1.0"/>
+            </box>
+            <portArc>Metal-1</portArc>
+        </primitivePort>
+    </primitiveNode>
+
     <primitiveNode name="P-Well-Resistor" fun="RESPWELL">
         <nodeBase>
             <box>
-                <lambdaBox klx="-20.5" khx="20.5" kly="-5.5" khy="5.5"/>
+                <lambdaBox klx="-20.5" khx="20.5" kly="-6.0" khy="6.0"/>
             </box>
         </nodeBase>
         <nodeLayer layer="Active-Cut" style="FILLED">
@@ -2177,7 +2236,7 @@
         </nodeLayer>
         <nodeLayer layer="P-Well" style="FILLED">
             <box>
-                <lambdaBox klx="-30.5" khx="30.5" kly="-5.5" khy="5.5"/>
+                <lambdaBox klx="-31.0" khx="31.0" kly="-6.0" khy="6.0"/>
             </box>
         </nodeLayer>
         <nodeLayer layer="P-Select" style="FILLED">
@@ -3164,10 +3223,10 @@
 
         <menuBox>
             <menuNode>NPN-Transistor</menuNode>
-            <menuNodeInst protoName="Poly-Capacitor" function="CAPAC">
+            <menuNodeInst protoName="Poly1-Poly2-Capacitor" function="CAPAC">
                 <menuNodeText text="Cap"/>
             </menuNodeInst>
-            <menuNodeInst protoName="Hi-Poly-Resistor" function="RESIST">
+            <menuNodeInst protoName="Hi-Res-Poly-Resistor" function="RESIST">
                 <menuNodeText text="Hi-RPoly"/>
             </menuNodeInst>
             <menuNodeInst protoName="P-Active-Resistor" function="RESPACTIVE">
@@ -3188,8 +3247,11 @@
             <menuNodeInst protoName="N-Poly-Resistor" function="RESNPOLY">
                 <menuNodeText text="N-RPoly"/>
             </menuNodeInst>
-            <menuNodeInst protoName="N-Un-Poly-Resistor" function="RESIST">
-                <menuNodeText text="N-RUPoly"/>
+            <menuNodeInst protoName="P-No-Silicide-Poly-Resistor" function="RESPNSPOLY">
+                <menuNodeText text="P-RNSPoly"/>
+            </menuNodeInst>
+            <menuNodeInst protoName="N-No-Silicide-Poly-Resistor" function="RESNNSPOLY">
+                <menuNodeText text="N-RNSPoly"/>
             </menuNodeInst>
         </menuBox>
         <menuBox>
@@ -3605,6 +3667,10 @@
         <LayersRule ruleName="26.4 Mosis" layerNames="{Metal-5,Metal-5}" type="SPACING" when="M5" value="8.0" maxW="100.0" minLen="0.0"/>
         <LayersRule ruleName="26.4 Mosis" layerNames="{Metal-5,Metal-5}" type="SPACING" when="M6|DE" value="8.0" maxW="100.0" minLen="0.0"/>
         <LayersRule ruleName="26.4 Mosis" layerNames="{Metal-5,Metal-5}" type="SPACING" when="M6|SU" value="6.0" maxW="100.0" minLen="0.0"/>
+
+        <LayerRule ruleName="27.1 Mosis" layerName="Hi-Res" type="MINWID" when="SC|SU" value="4"/>
+        <LayersRule ruleName="27.2 Mosis" layerNames="{Hi-Res,Hi-Res}" type="SPACING" when="SC|SU" value="4.0"/>
+
         <LayerRule ruleName="29.1 Mosis" layerName="Via5" type="MINWID" when="DE" value="4.0"/>
         <NodeRule ruleName="29.1 Mosis" type="NODSIZ" when="DE" value="8.0" nodeName="Metal-5-Metal-6-Con"/>
         <LayerRule ruleName="29.1 Mosis" layerName="Via5" type="MINWID" when="SU" value="3.0"/>

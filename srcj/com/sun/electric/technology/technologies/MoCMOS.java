@@ -669,21 +669,22 @@ public class MoCMOS extends Technology
         Xml.PrimitiveNodeGroup[] metalWellContactNodes = new Xml.PrimitiveNodeGroup[2];
         Xml.PrimitiveNodeGroup[] metalActiveContactNodes = new Xml.PrimitiveNodeGroup[2];
         List<Xml.PrimitiveNodeGroup> metal1PolyContactNodes = new ArrayList<Xml.PrimitiveNodeGroup>(4);
-//        Xml.PrimitiveNodeGroup[] metal1PolyContactNodes = new Xml.PrimitiveNodeGroup[3];
         Xml.PrimitiveNodeGroup[] transistorNodeGroups = new Xml.PrimitiveNodeGroup[2];
         Xml.PrimitiveNodeGroup[] scalableTransistorNodes = new Xml.PrimitiveNodeGroup[2];
         Xml.PrimitiveNodeGroup npnTransistorNode = tech.findNodeGroup("NPN-Transistor");
-        Xml.PrimitiveNodeGroup polyCapNode = tech.findNodeGroup("Poly-Capacitor");
+        Xml.PrimitiveNodeGroup polyCapNode = tech.findNodeGroup("Poly1-Poly2-Capacitor");
         List<Xml.PrimitiveNodeGroup> analogElems = new ArrayList<Xml.PrimitiveNodeGroup>();
         analogElems.add(tech.findNodeGroup("NPN-Transistor"));
-        analogElems.add(tech.findNodeGroup("Hi-Poly-Resistor"));
+        analogElems.add(tech.findNodeGroup("Hi-Res-Poly-Resistor"));
         analogElems.add(tech.findNodeGroup("P-Active-Resistor"));
         analogElems.add(tech.findNodeGroup("N-Active-Resistor"));
         analogElems.add(tech.findNodeGroup("P-Well-Resistor"));
         analogElems.add(tech.findNodeGroup("N-Well-Resistor"));
         analogElems.add(tech.findNodeGroup("P-Poly-Resistor"));
         analogElems.add(tech.findNodeGroup("N-Poly-Resistor"));
-        analogElems.add(tech.findNodeGroup("N-Un-Poly-Resistor"));
+        analogElems.add(tech.findNodeGroup("N-No-Silicide-Poly-Resistor"));
+
+        assert(analogElems.size() == 9 &&  polyCapNode != null); // so far
         
         for (int i = 0; i < metalLayers.length; i++) {
             metalLayers[i] = tech.findLayer("Metal-" + (i + 1));
