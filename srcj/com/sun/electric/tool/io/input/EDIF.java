@@ -3437,22 +3437,25 @@ public class EDIF extends Input
 									tPi = nowBus.getOnlyPortInst();
 								}
 							}
-							ai = ArcInst.makeInstance(ap, fPi, tPi, fromPoint, toPoint, null);
-							if (ai == null)
+							if (fPi != tPi)
 							{
-								System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create path (arc)");
-								errorCount++;
-							} else
-							{
-								if (arcsOnNet != null) arcsOnNet.add(ai);
-								if (curGeometryType == GNET && i == 0)
+								ai = ArcInst.makeInstance(ap, fPi, tPi, fromPoint, toPoint, null);
+								if (ai == null)
 								{
-									if (netReference.length() > 0) ai.newVar("EDIF_name", stripPercentEscapes(netReference));
-									if (netName.length() > 0) putNameOnArcOnce(ai, convertParens(netName));
-								} else if (curGeometryType == GBUS && i == 0)
+									System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create path (arc)");
+									errorCount++;
+								} else
 								{
-									if (bundleReference.length() > 0) ai.newVar("EDIF_name", stripPercentEscapes(bundleReference));
-									if (bundleName.length() > 0) putNameOnArcOnce(ai, convertParens(bundleName));
+									if (arcsOnNet != null) arcsOnNet.add(ai);
+									if (curGeometryType == GNET && i == 0)
+									{
+										if (netReference.length() > 0) ai.newVar("EDIF_name", stripPercentEscapes(netReference));
+										if (netName.length() > 0) putNameOnArcOnce(ai, convertParens(netName));
+									} else if (curGeometryType == GBUS && i == 0)
+									{
+										if (bundleReference.length() > 0) ai.newVar("EDIF_name", stripPercentEscapes(bundleReference));
+										if (bundleName.length() > 0) putNameOnArcOnce(ai, convertParens(bundleName));
+									}
 								}
 							}
 						}

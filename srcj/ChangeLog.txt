@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
+BUG: (12/11/09, SMR) EDIF input makes too many arcs (Bug #2536).
+FIX: Stopped EDIF from making duplicate arcs and
+     Stopped AutoStitch from daisy-chaining busses.
+
 BUG: (12/11/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
 FIX: New names, new p non silicide poly resistor, min/spacing rules for hi-res layer.
 

@@ -60,8 +60,10 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.drc.Schematic;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.User;
 
@@ -641,6 +643,9 @@ public class AutoStitch
 	 */
 	private void checkDaisyChain(ArcInst ai, Map<NodeInst, ObjectQTree> nodePortBounds, PolyMerge stayInside, StitchingTopology top)
 	{
+		// do not daisy-chain busses
+		if (ai.getProto() == Schematics.tech().bus_arc) return;
+		
 		// make a list of PortInsts that are on the centerline of this arc
 		Cell cell = ai.getParent();
 
@@ -719,7 +724,7 @@ name=null;
         for(DaisyChainPoint dcp : daisyPoints)
         {
             RouteElementPort dcpRE = RouteElementPort.existingPortInst(dcp.pi, dcp.location);
-            if (headRE != null)
+            if (headRE != null && headRE.getPortInst() != tailRE.getPortInst())
             {
             	RouteElementArc re = RouteElementArc.newArc(cell, ai.getProto(), ai.getLambdaBaseWidth(), headRE, dcpRE,
 	        		headRE.getConnectingSite().getCenter(), dcpRE.getConnectingSite().getCenter(), name,
@@ -731,10 +736,13 @@ name=null;
         }
         if (tailRE != null)
         {
-        	RouteElementArc re = RouteElementArc.newArc(cell, ai.getProto(), ai.getLambdaBaseWidth(), headRE, tailRE,
-	    		headRE.getConnectingSite().getCenter(), tailRE.getConnectingSite().getCenter(), name,
-	    		ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
-	        route.add(re);
+        	if (headRE.getPortInst() != tailRE.getPortInst())
+        	{
+	        	RouteElementArc re = RouteElementArc.newArc(cell, ai.getProto(), ai.getLambdaBaseWidth(), headRE, tailRE,
+		    		headRE.getConnectingSite().getCenter(), tailRE.getConnectingSite().getCenter(), name,
+		    		ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
+		        route.add(re);
+        	}
         }
 		allRoutes.add(route);
 	}
