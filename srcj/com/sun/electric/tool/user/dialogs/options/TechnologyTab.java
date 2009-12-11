@@ -211,16 +211,18 @@ public class TechnologyTab extends PreferencePanel
 		{
 			// analog rules don't demand 2 metals, SCMOS  (Dec 09)
 			// Keeping the 2 poly, no stacked vias anymore though
-			if (/*currentNumMetals != 2 || currentRules != MOCMOS_SCMOSRULES ||*/ !secondPoly || alternateContactRules)
+			if (/*currentNumMetals != 2 || currentRules != MOCMOS_SCMOSRULES ||*/
+                currentRules == MOCMOS_DEEPRULES || !secondPoly || alternateContactRules)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"The Analog setting requires 2 polys and no alternate contact rules...making these changes");
+					"The Analog setting requires 2 polys, SCM or SUB rules and no alternate contact rules..." +
+                        " making these changes with SUB rules");
 //				techMetalLayers.setSelectedIndex(0);
-//				techMOCMOSSCMOSRules.setSelected(true);
+				techMOCMOSSubmicronRules.setSelected(true);
 				techMOCMOSSecondPoly.setSelected(true);
 				techMOCMOSAlternateContactRules.setSelected(true);
-//				currentNumMetals = 2;
-//				currentRules = MOCMOS_SCMOSRULES;
+//				currentNumMetals = 2;                        
+				currentRules = MOCMOS_SUBMRULES;
 				secondPoly = true;
 				alternateContactRules = false;
 			}
