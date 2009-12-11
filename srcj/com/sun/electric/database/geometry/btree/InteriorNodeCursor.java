@@ -118,13 +118,6 @@ class InteriorNodeCursor
 
     public int  getBucketPageId(int idx) { return bt.ui.deserializeInt(getBuf(), INTERIOR_HEADER_SIZE+INTERIOR_ENTRY_SIZE*idx); }
     public void setBucketPageId(int idx, int pageid) { bt.ui.serializeInt(pageid, getBuf(), INTERIOR_HEADER_SIZE+INTERIOR_ENTRY_SIZE*idx); }
-    public void setNumValsBelowBucket(int idx, int num) {
-        if (idx==getNumBuckets()-1)
-            throw new RuntimeException("InteriorNodeCursors don't store numValuesBelowBucket() for their last bucket");
-        assert idx>=0 && idx<getNumBuckets()-1;
-        bt.ui.serializeInt(num, getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+SIZEOF_SUMMARY+INTERIOR_ENTRY_SIZE*idx);
-    }
-
     public int  compare(byte[] key, int key_ofs, int keynum) {
         if (keynum<=0) return 1;
         if (keynum>=getNumBuckets()) return -1;
@@ -143,6 +136,13 @@ class InteriorNodeCursor
                          key, key_ofs, bt.uk.getSize());
     }
 
+    public void setNumValsBelowBucket(int idx, int num) {
+        if (idx==getNumBuckets()-1)
+            throw new RuntimeException("InteriorNodeCursors don't store numValuesBelowBucket() for their last bucket");
+        assert idx>=0 && idx<getNumBuckets()-1;
+        bt.ui.serializeInt(num, getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+SIZEOF_SUMMARY+INTERIOR_ENTRY_SIZE*idx);
+    }
+
     public int getNumValsBelowBucket(int bucket) {
         if (bucket>=getNumBuckets()) return 0;
 
@@ -151,5 +151,23 @@ class InteriorNodeCursor
             throw new RuntimeException("InteriorNodeCursors don't store numValuesBelowBucket() for their last bucket");
 
         return bt.ui.deserializeInt(getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+SIZEOF_SUMMARY+INTERIOR_ENTRY_SIZE*bucket);
+    }
+
+    public void multiplyMonoidCommutative(int idx, byte[] buf, int ofs) {
+        if (idx==getNumBuckets()-1)
+            throw new RuntimeException("InteriorNodeCursors don't store a monoid value for their last bucket");
+        assert idx>=0 && idx<getNumBuckets()-1;
+        bt.monoid.multiply(buf, ofs,
+                           getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx,
+                           getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx);
+    }
+
+    public void getMonoid(int idx, byte[] buf, int ofs) {
+        if (idx==getNumBuckets()-1)
+            throw new RuntimeException("InteriorNodeCursors don't store a monoid value for their last bucket");
+        assert idx>=0 && idx<getNumBuckets()-1;
+        System.arraycopy(getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx,
+                         buf, ofs,
+                         bt.monoid.getSize());
     }
 }

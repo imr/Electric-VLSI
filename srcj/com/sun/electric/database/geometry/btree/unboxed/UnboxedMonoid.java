@@ -45,6 +45,9 @@ public interface UnboxedMonoid<K extends Serializable,V extends Serializable,S e
      *  Compute (buf1,ofs1)*(buf2,ofs2) and write it to (buf_dest,ofs_dest).
      *  MUST support the case where (buf1,ofs1)==(buf_dest,ofs_dest)
      *  or (buf2,ofs2)==(buf_dest,ofs_dest) or ther is some overlap.
+     *
+     *  MUST BE ABLE TO DEAL WITH THE CASE WHERE DESTINATION BUFFER
+     *  OVERLAPS ONE OF SOURCE BUFFERS!!!
      */
     public void multiply(byte[] buf1, int ofs1,
                          byte[] buf2, int ofs2,

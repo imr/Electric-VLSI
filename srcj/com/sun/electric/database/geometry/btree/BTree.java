@@ -332,6 +332,14 @@ public class BTree
         int idx = -1;
         int global_ord = 0;
 
+        byte[] monbuf = null;
+        if (monoid != null && op==Op.INSERT) {
+            monbuf = new byte[monoid.getSize()];
+            byte[] vbuf = new byte[uv.getSize()];
+            uv.serialize(val, vbuf, 0);
+            monoid.inject(key, key_ofs, vbuf, 0, monbuf, 0);
+        }
+
         LeafNodeCursor<K,V,S>       leafNodeCursor = this.leafNodeCursor;
         InteriorNodeCursor<K,V,S>   interiorNodeCursor = this.interiorNodeCursor1;
         InteriorNodeCursor<K,V,S>   parentNodeCursor = this.interiorNodeCursor2;
@@ -445,6 +453,7 @@ public class BTree
                     throw new RuntimeException("need to adjust 'least value under X' on the way down for deletions");
                 if (op==Op.INSERT && idx < interiorNodeCursor.getNumBuckets()-1) {
                     interiorNodeCursor.setNumValsBelowBucket(idx, interiorNodeCursor.getNumValsBelowBucket(idx)+1);
+                    if (monoid != null) interiorNodeCursor.multiplyMonoidCommutative(idx, monbuf, 0);
                     interiorNodeCursor.writeBack();
                 }
                 if (op.isGetOrd())
