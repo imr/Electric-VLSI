@@ -84,6 +84,8 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -123,6 +125,7 @@ import java.util.prefs.Preferences;
  */
 public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> {
 
+    private static final boolean USE_WEAK_REFERENCES = false;
     private static final boolean LAZY_TOPOLOGY = true;
     // ------------------------- private classes -----------------------------
 
@@ -480,7 +483,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     /** A sorted array of Exports on the Cell. */
     private Export[] exports = NULL_EXPORT_ARRAY;
     /** Cell's topology. */
-    private WeakReference<Topology> weakTopology = new WeakReference(null);
+    private Reference<Topology> topologyRef = new WeakReference(null);
     /** Cell's topology. */
     private Topology strongTopology;
     /** Set containing nodeIds of expanded cells. */
@@ -506,7 +509,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     /** True if cell revision date is just set by lowLevelSetRevisionDate*/
     private boolean revisionDateFresh;
     /** A weak reference to NetCell object with Netlists */
-    private WeakReference<NetCell> weakNetCell = new WeakReference<NetCell>(null);
+    private Reference<NetCell> netCellRef;
 
     // ------------------ protected and private methods -----------------------
     /**
@@ -523,7 +526,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         }
         if (!LAZY_TOPOLOGY || !Job.isThreadSafe()) {
             strongTopology = new Topology(this, false);
-            weakTopology = new WeakReference(strongTopology);
+        }
+        setTopologyRef(strongTopology);
+        if (NetworkTool.isLazy()) {
+            setNetCellRef(null);
         }
     }
 
@@ -1262,7 +1268,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     }
 
     public Topology getTopology() {
-        Topology topology = weakTopology.get();
+        Topology topology = topologyRef.get();
         if (topology != null) {
             return topology;
         }
@@ -1273,13 +1279,17 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         assert strongTopology == null;
         assert LAZY_TOPOLOGY && Job.isThreadSafe();
         Topology topology = new Topology(this, backup != null);
-        weakTopology = new WeakReference(topology);
+        setTopologyRef(topology);
 //        System.out.println("Created topology "+database+":"+this);
         return topology;
     }
 
+    private void setTopologyRef(Topology topology) {
+        topologyRef = USE_WEAK_REFERENCES ? new WeakReference(topology) : new SoftReference(topology);
+    }
+
     Topology getTopologyOptional() {
-        return weakTopology.get();
+        return topologyRef.get();
     }
 
     private CellTree doTree() {
@@ -4017,15 +4027,19 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      */
     public Netlist getNetlist(Netlist.ShortResistors shortResistors) {
         if (NetworkTool.isLazy()) {
-            NetCell netCell = weakNetCell.get();
+            NetCell netCell = netCellRef.get();
             if (netCell == null) {
                 netCell = NetCell.newInstance(this);
-                weakNetCell = new WeakReference<NetCell>(netCell);
+                setNetCellRef(netCell);
             }
             return netCell.getNetlist(shortResistors);
         } else {
             return NetworkTool.getNetlist(this, shortResistors);
         }
+    }
+
+    private void setNetCellRef(NetCell netCell) {
+        netCellRef = USE_WEAK_REFERENCES ? new WeakReference<NetCell>(netCell) : new SoftReference<NetCell>(netCell);
     }
 
     /** Returns the Netlist structure for this Cell, using current network options.
