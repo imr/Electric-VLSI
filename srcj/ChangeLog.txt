@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
+IMP: (12/12/09, DN) Remove mutable computation of Technology.getShapeOfPort0().
+
 BUG: (12/12/09, DN) Can no longer get polygons from dummy NodeInsts (Bug #
     In PortOriginal.traverse and in NodeInst.getCellTreeUnsafe().
 

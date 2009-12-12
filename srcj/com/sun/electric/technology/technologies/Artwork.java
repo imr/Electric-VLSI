@@ -529,25 +529,6 @@ public class Artwork extends Technology
     }
 
 	/**
-	 * Returns a polygon that describes a particular port on a NodeInst.
-	 * @param ni the NodeInst that has the port of interest.
-	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
-	 * @param pp the PrimitivePort on that NodeInst that is being described.
-	 * @return a Poly object that describes this PrimitivePort graphically.
-	 */
-    @Override
-	protected Poly getShapeOfPort0(NodeInst ni, PrimitivePort pp, Point2D selectPt)
-	{
-		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		if (np == pinNode || np == arrowNode || np == circleNode || np == thickCircleNode || np == filledCircleNode)
-		{
-			return super.getShapeOfPort0(ni, pp, selectPt);
-		}
-		Poly [] polys = getShapeOfNode(ni);
-		return polys[0];
-	}
-
-	/**
 	 * Puts into shape builder s the polygons that describe node "n", given a set of
 	 * NodeLayer objects to use.
 	 * This method is overridden by specific Technologys.
