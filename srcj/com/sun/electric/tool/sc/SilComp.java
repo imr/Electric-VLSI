@@ -174,7 +174,7 @@ public class SilComp extends Tool
 	static double leafPortXPos(Export port)
 	{
 		if (port == null) return 0;
-		Poly poly = port.getOriginalPort().getPoly();
+		Poly poly = port.getPoly();
 		Rectangle2D bounds = port.getParent().getBounds();
 		return poly.getCenterX() - bounds.getMinX();
 	}
@@ -187,7 +187,7 @@ public class SilComp extends Tool
 	static double leafPortYPos(Export port)
 	{
 		if (port == null) return 0;
-		Poly poly = port.getOriginalPort().getPoly();
+		Poly poly = port.getPoly();
 		Rectangle2D bounds = port.getParent().getBounds();
 		return poly.getCenterY() - bounds.getMinY();
 	}

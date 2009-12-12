@@ -30,6 +30,7 @@ import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ExportId;
@@ -491,7 +492,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @return a Poly that describes this Export's name.
      */
     public Poly getNamePoly() {
-        Poly poly = getOriginalPort().getPoly();
+        Poly poly = getPoly();
         double cX = poly.getCenterX();
         double cY = poly.getCenterY();
         TextDescriptor td = getTextDescriptor(EXPORT_NAME);
@@ -521,6 +522,14 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         poly.setTextDescriptor(td);
         poly.setDisplayedText(new DisplayedText(this, EXPORT_NAME));
         return poly;
+    }
+
+    /**
+     * Method to return the Poly that describes this Export.
+     * @return the Poly that describes this Export.
+     */
+    public Poly getPoly() {
+        return getOriginalPort().getPoly();
     }
 
     /****************************** TEXT ******************************/

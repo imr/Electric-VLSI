@@ -463,7 +463,7 @@ public class VectorCache {
                 if (!vce.exportName.equals(e.getName())) {
                     return true;
                 }
-                Poly poly = e.getOriginalPort().getPoly();
+                Poly poly = e.getPoly();
                 if (vce.exportCtr.getX() != poly.getCenterX()
                         || vce.exportCtr.getY() != poly.getCenterY()) {
                     return true;

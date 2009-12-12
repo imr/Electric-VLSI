@@ -1611,7 +1611,7 @@ public class EDIF extends Topology
         writePoint(namePoly.getCenterX(), namePoly.getCenterY());
         blockClose("name");
         blockOpen("connectLocation");
-        Poly portPoly = e.getOriginalPort().getPoly();
+        Poly portPoly = e.getPoly();
         egraphic_override = EGWIRE;
         egraphic = EGUNKNOWN;
         writeSymbolPoly(portPoly, null, 1);

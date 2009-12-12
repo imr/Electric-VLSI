@@ -5558,7 +5558,7 @@ public class Connectivity
 		// first restore original exports (which were on pure-layer nodes and must now be placed back)
 		for(Export e : exportsToRestore)
 		{
-			EPoint loc = e.getOriginalPort().getPoly().getCenter();
+			EPoint loc = e.getPoly().getCenter();
 			boolean found = false;
 			Rectangle2D bounds = new Rectangle2D.Double(loc.getX(), loc.getY(), 0, 0);
 			for(Iterator<RTBounds> it = newCell.searchIterator(bounds); it.hasNext(); )

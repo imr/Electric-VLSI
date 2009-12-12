@@ -139,7 +139,7 @@ public class L extends Output
 		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 		{
 			Export e = (Export)it.next();
-			Poly poly = e.getOriginalPort().getPoly();
+			Poly poly = e.getPoly();
 			double xPos = poly.getCenterX();
 			double yPos = poly.getCenterY();
 			String type = "";

@@ -389,7 +389,7 @@ public class GDS extends Geometry
 		outputAngle(angle);
 		outputShort((short)12);
 		outputShort(HDR_XY);
-		Poly portPoly = pp.getOriginalPort().getPoly();
+		Poly portPoly = pp.getPoly();
 		outputInt(scaleDBUnit(portPoly.getCenterX()));
 		outputInt(scaleDBUnit(portPoly.getCenterY()));
 

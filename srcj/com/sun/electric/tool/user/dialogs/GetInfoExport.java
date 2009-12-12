@@ -174,7 +174,7 @@ public class GetInfoExport extends EModelessDialog implements HighlightListener,
 		theText.setText(initialName);
 
 		// set location
-		Poly poly = pp.getOriginalPort().getPoly();
+		Poly poly = pp.getPoly();
 		Technology tech = curWnd.getCell().getTechnology();
 		centerLoc.setText("Center: (" + TextUtils.formatDistance(poly.getCenterX(), tech) + "," +
 			TextUtils.formatDistance(poly.getCenterY(), tech) + ")");

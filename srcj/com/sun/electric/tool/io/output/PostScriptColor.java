@@ -480,7 +480,7 @@ public class PostScriptColor
 			Export pp = it.next();
 			PsLabel curLabel = new PsLabel();
 			curLabel.label = pp.getName();
-			Rectangle2D bounds = pp.getOriginalPort().getPoly().getBounds2D();
+			Rectangle2D bounds = pp.getPoly().getBounds2D();
 			curLabel.pos[0] = curLabel.pos[1] = bounds.getCenterX();
 			curLabel.pos[2] = curLabel.pos[3] = bounds.getCenterY();
 			curLabel.style = Poly.Type.TEXTCENT;

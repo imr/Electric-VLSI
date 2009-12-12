@@ -238,7 +238,7 @@ public final class ExportChanges
 						if (j != k) infstr += ", ";
 						Export opp = exports.get(k).pp;
 						infstr += "'" + opp.getName() + "'";
-						Poly poly = opp.getOriginalPort().getPoly();
+						Poly poly = opp.getPoly();
 						double x = poly.getCenterX();
 						double y = poly.getCenterY();
 						if (j == k)
@@ -273,7 +273,7 @@ public final class ExportChanges
 							if (j != k && exports.get(k).busList != j) continue;
 							tot++;
 							Export opp = exports.get(k).pp;
-							Poly poly = opp.getOriginalPort().getPoly();
+							Poly poly = opp.getPoly();
 							double x = poly.getCenterX();
 							double y = poly.getCenterY();
 							if (j == k)
@@ -323,7 +323,7 @@ public final class ExportChanges
 					} else
 					{
 						// isolated export
-						Poly poly = pp.getOriginalPort().getPoly();
+						Poly poly = pp.getPoly();
 						double x = poly.getCenterX();
 						double y = poly.getCenterY();
 						infstr += activity + " export '" + pp.getName() + "' at (" + x + ", " + y + ") connects to";
@@ -1511,7 +1511,7 @@ public final class ExportChanges
 			for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
-				Poly poly = pp.getOriginalPort().getPoly();
+				Poly poly = pp.getPoly();
 
 				Point2D ptOut = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
 				if (ptOut.getX() < displayable.getMinX() || ptOut.getX() > displayable.getMaxX() ||
