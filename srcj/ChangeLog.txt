@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
+IMP: (12/11/09, GVG) Updated capacitor info in LE.
+
 BUG: (12/11/09, SMR) EDIF input makes too many arcs (Bug #2536).
 FIX: Stopped EDIF from making duplicate arcs and
      Stopped AutoStitch from daisy-chaining busses.

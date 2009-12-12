@@ -79,7 +79,7 @@ public class LEInst {
         else if ((no.getProto() != null) && (no.getProto().getFunction().isTransistor())) {
             return Type.TRANSISTOR;
         }
-        else if ((no.getProto() != null) && (no.getProto().getFunction() == PrimitiveNode.Function.CAPAC)) {
+        else if ((no.getProto() != null) && (no.getProto().getFunction().isCapacitor())) {
             return Type.CAPACITOR;
         }
         else if (isVarValueOne(no, context, ATTR_LEIGNORE)) {
