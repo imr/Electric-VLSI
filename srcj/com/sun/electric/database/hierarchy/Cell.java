@@ -483,7 +483,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     /** A sorted array of Exports on the Cell. */
     private Export[] exports = NULL_EXPORT_ARRAY;
     /** Cell's topology. */
-    private Reference<Topology> topologyRef = new WeakReference(null);
+    private Reference<Topology> topologyRef;
     /** Cell's topology. */
     private Topology strongTopology;
     /** Set containing nodeIds of expanded cells. */
