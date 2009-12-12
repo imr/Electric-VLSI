@@ -450,20 +450,29 @@ public class PlacementFrame
 			if (validNode)
 			{
 				// make a list of PlacementPorts on this NodeInst
-				NodeProto np = ni.getProto();
+				Cell np = (Cell)ni.getProto();
 				List<PlacementPort> pl = new ArrayList<PlacementPort>();
-				NodeInst niDummy = NodeInst.makeDummyInstance(np);
 				Map<PortProto,PlacementPort> placedPorts = new HashMap<PortProto,PlacementPort>();
-				for(Iterator<PortInst> pIt = niDummy.getPortInsts(); pIt.hasNext(); )
+				for(Iterator<Export> eIt = np.getExports(); eIt.hasNext(); )
 				{
-					PortInst pi = pIt.next();
-					Poly poly = pi.getPoly();
-					double offX = poly.getCenterX() - niDummy.getTrueCenterX();
-					double offY = poly.getCenterY() - niDummy.getTrueCenterY();
-					PlacementPort plPort = new PlacementPort(offX, offY, pi.getPortProto());
+					Export e = eIt.next();
+					Poly poly = e.getPoly();
+					PlacementPort plPort = new PlacementPort(poly.getCenterX(), poly.getCenterY(), e);
 					pl.add(plPort);
-					placedPorts.put(pi.getPortProto(), plPort);
+					placedPorts.put(e, plPort);
 				}
+//				NodeInst niDummy = NodeInst.makeDummyInstance(np);
+//				Map<PortProto,PlacementPort> placedPorts = new HashMap<PortProto,PlacementPort>();
+//				for(Iterator<PortInst> pIt = niDummy.getPortInsts(); pIt.hasNext(); )
+//				{
+//					PortInst pi = pIt.next();
+//					Poly poly = pi.getPoly();
+//					double offX = poly.getCenterX() - niDummy.getTrueCenterX();
+//					double offY = poly.getCenterY() - niDummy.getTrueCenterY();
+//					PlacementPort plPort = new PlacementPort(offX, offY, pi.getPortProto());
+//					pl.add(plPort);
+//					placedPorts.put(pi.getPortProto(), plPort);
+//				}
 
 				// add to the list of PlacementExports
 				for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )

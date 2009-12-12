@@ -108,7 +108,14 @@ public class PortOriginal {
         bottomCell = ni.getParent();
         bottomNode = ni.getD();
         bottomNi = ni;
-        EDatabase database = bottomCell != null ? bottomCell.getDatabase() : null;
+        EDatabase database;
+        if (bottomCell != null) {
+            database = bottomCell.getDatabase();
+        } else if (ni.isCellInstance()) {
+            database = ((Cell)ni.getProto()).getDatabase();
+        } else {
+            database = null;
+        }
         orient = bottomNode.orient;
         subrot = orient.rotateAbout(bottomNode.anchor.getLambdaX(), bottomNode.anchor.getLambdaY(), 0, 0);
         if (pre != null) {
@@ -118,8 +125,6 @@ public class PortOriginal {
             bottomCell = database.getCell((CellId)bottomNode.protoId);
             ImmutableExport bottomExport = ((Export)pp).getD();
             bottomNode = bottomCell.backupUnsafe().getMemoization().getNodeById(bottomExport.originalNodeId);
-            if (bottomNode == null)
-                bottomNode = bottomNode;
             bottomPort = null;
             bottomNi = null;
 //            bottomPort = bottomExport.getOriginalPort();
