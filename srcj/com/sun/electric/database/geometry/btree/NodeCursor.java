@@ -57,7 +57,7 @@ abstract class NodeCursor
         this.bt = bt;
         this.ps = bt.ps;
     }
-    public abstract void initBuf(CachedPage cp);
+    public abstract void initBuf(CachedPage cp, boolean isRightMost);
     protected abstract void setNumBuckets(int num);
     public void setBuf(CachedPage cp) {
         assert !dirty;
@@ -75,7 +75,8 @@ abstract class NodeCursor
      *  deposits the second half on a new page, and (if key!=null)
      *  writes the least key beneath the right half into key[key_ofs];
      *  it then returns the number of values appearing anywhere below
-     *  the left page.
+     *  the left page.  After returning the cursor will be pointing at
+     *  the right half.
      */
     public int split(byte[] key, int key_ofs, int splitPoint) {
         assert isFull();
@@ -87,6 +88,8 @@ abstract class NodeCursor
 
         // chop off our second half, point our parent at the page-to-be, and write back
         setNumBuckets(splitPoint);
+        boolean wasRightMost = isRightMost();
+        setRightMost(false);
         writeBack();
 
         if (key!=null)
@@ -94,7 +97,7 @@ abstract class NodeCursor
 
         // move the second half of our entries to the front of the block, and write back
         byte[] oldbuf = cp.getBuf();
-        initBuf(ps.getPage(ps.createPage(), false));
+        initBuf(ps.getPage(ps.createPage(), false), wasRightMost);
         setNumBuckets(getMaxBuckets()-splitPoint);
         scoot(oldbuf, endOfBuf, splitPoint);
         writeBack();
@@ -168,6 +171,10 @@ abstract class NodeCursor
     protected abstract void scoot(byte[] oldbuf, int endOfBuf, int splitPoint);
 
     /** the total number of values stored in bucket or any descendent thereof */
-    public abstract int getNumValsBelowBucket(int bucket);
+    public abstract int  getNumValsBelowBucket(int bucket);
 
+    public abstract void getMonoid(int bucket, byte[] buf, int ofs);
+
+    public boolean isRightMost() { return bt.ui.deserializeInt(getBuf(), 0*SIZEOF_INT)!=0; }
+    protected void setRightMost(boolean r) { bt.ui.serializeInt(r?1:0, getBuf(), 0*SIZEOF_INT); }
 }

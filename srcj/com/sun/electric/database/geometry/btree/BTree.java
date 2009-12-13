@@ -163,7 +163,7 @@ public class BTree
         this.rootpage = ps.createPage();
         this.keybuf = new byte[uk.getSize()];
         this.largestKey = new byte[uk.getSize()];
-        leafNodeCursor.initBuf(ps.getPage(rootpage, false));
+        leafNodeCursor.initBuf(ps.getPage(rootpage, false), true);
         leafNodeCursor.writeBack();
     }
 
@@ -332,14 +332,6 @@ public class BTree
         int idx = -1;
         int global_ord = 0;
 
-        byte[] monbuf = null;
-        if (monoid != null && op==Op.INSERT) {
-            monbuf = new byte[monoid.getSize()];
-            byte[] vbuf = new byte[uv.getSize()];
-            uv.serialize(val, vbuf, 0);
-            monoid.inject(key, key_ofs, vbuf, 0, monbuf, 0);
-        }
-
         LeafNodeCursor<K,V,S>       leafNodeCursor = this.leafNodeCursor;
         InteriorNodeCursor<K,V,S>   interiorNodeCursor = this.interiorNodeCursor1;
         InteriorNodeCursor<K,V,S>   parentNodeCursor = this.interiorNodeCursor2;
@@ -394,14 +386,31 @@ public class BTree
 
                 int splitPoint = rightEdge ? cur.getNumBuckets()-1 : cur.getMaxBuckets()/2;
                 if (rightEdge) splitUnEven++; else splitEven++;
-                int num = cur.split(parentNodeCursor.getBuf(), ofs, splitPoint);
 
+                if (monoid!=null) {
+                    parentNodeCursor.clearMonoid(idx);
+                    byte[] monbuf = new byte[monoid.getSize()];
+                    for(int i=0; i<splitPoint; i++) {
+                        cur.getMonoid(i, monbuf, 0);
+                        parentNodeCursor.multiplyMonoidCommutative(idx, monbuf, 0);
+                    }
+                }
+                int num = cur.split(parentNodeCursor.getBuf(), ofs, splitPoint);
                 parentNodeCursor.setNumValsBelowBucket(idx, num);
                 int newpage = cur.getPageId();
                 if (largestKeyPage==oldpage) largestKeyPage = newpage;
                 parentNodeCursor.setBucketPageId(idx+1, newpage);
                 if (!splitting_last_or_root)
                     parentNodeCursor.setNumValsBelowBucket(idx+1, old-num);
+                if (monoid!=null && (!parentNodeCursor.isRightMost() || idx+1<parentNodeCursor.getNumBuckets()-1)) {
+                    parentNodeCursor.clearMonoid(idx+1);
+                    byte[] monbuf = new byte[monoid.getSize()];
+                    for(int i=0; i<cur.getNumBuckets() - (cur.isRightMost() ? 1 : 0); i++) {
+                        cur.getMonoid(i, monbuf, 0);
+                        parentNodeCursor.multiplyMonoidCommutative(idx+1, monbuf, 0);
+                    }
+                }
+
                 cur.writeBack();
                 parentNodeCursor.writeBack();
                 pageid = rootpage;
@@ -451,10 +460,21 @@ public class BTree
             } else {
                 if (op==Op.REMOVE)
                     throw new RuntimeException("need to adjust 'least value under X' on the way down for deletions");
-                if (op==Op.INSERT && idx < interiorNodeCursor.getNumBuckets()-1) {
-                    interiorNodeCursor.setNumValsBelowBucket(idx, interiorNodeCursor.getNumValsBelowBucket(idx)+1);
-                    if (monoid != null) interiorNodeCursor.multiplyMonoidCommutative(idx, monbuf, 0);
-                    interiorNodeCursor.writeBack();
+                if (op==Op.INSERT) {
+                    boolean wb = false;
+                    if (idx < interiorNodeCursor.getNumBuckets()-1) {
+                        interiorNodeCursor.setNumValsBelowBucket(idx, interiorNodeCursor.getNumValsBelowBucket(idx)+1);
+                        wb = true;
+                    }
+                    if (monoid != null && (idx < interiorNodeCursor.getNumBuckets()-1 || !interiorNodeCursor.isRightMost())) {
+                        // ugly..
+                        byte[] monbuf = new byte[monoid.getSize()];
+                        byte[] vbuf = new byte[uv.getSize()];
+                        uv.serialize(val, vbuf, 0);
+                        monoid.inject(key, key_ofs, vbuf, 0, monbuf, 0);
+                        interiorNodeCursor.multiplyMonoidCommutative(idx, monbuf, 0);
+                    }
+                    if (wb) interiorNodeCursor.writeBack();
                 }
                 if (op.isGetOrd())
                     for(int i = 0; i < idx; i++)

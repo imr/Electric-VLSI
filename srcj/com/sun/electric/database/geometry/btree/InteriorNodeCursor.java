@@ -31,8 +31,8 @@ import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
 /**
  *  Page format:
  *
+ *    int: isRightMost (1 or 0)
  *    int: number of buckets
- *
  *    int: pageid of first bucket
  *    S:   summary of first bucket
  *    repeat
@@ -95,7 +95,10 @@ class InteriorNodeCursor
 
     public static boolean isInteriorNode(byte[] buf) { return UnboxedInt.instance.deserializeInt(buf, 1*SIZEOF_INT)!=0; }
     public int getMaxBuckets() { return INTERIOR_MAX_BUCKETS; }
-    public void initBuf(CachedPage cp) { super.setBuf(cp); }
+    public void initBuf(CachedPage cp, boolean isRightMost) { 
+        super.setBuf(cp);
+        setRightMost(isRightMost);
+    }
     public int  getNumBuckets() { return numbuckets; }
     protected void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, getBuf(), 1*SIZEOF_INT); }
 
@@ -109,6 +112,7 @@ class InteriorNodeCursor
         bt.rootpage = ps.createPage();
         super.setBuf(ps.getPage(bt.rootpage, false));
         setNumBuckets(1);
+        setRightMost(true);
         bt.monoid.identity(getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT);
     }
 
@@ -154,20 +158,27 @@ class InteriorNodeCursor
     }
 
     public void multiplyMonoidCommutative(int idx, byte[] buf, int ofs) {
-        if (idx==getNumBuckets()-1)
-            throw new RuntimeException("InteriorNodeCursors don't store a monoid value for their last bucket");
-        assert idx>=0 && idx<getNumBuckets()-1;
+        if (idx==getNumBuckets()-1 && isRightMost())
+            throw new RuntimeException("RightMost InteriorNodeCursors don't store a monoid value for their last bucket");
+        assert idx>=0 && idx<getNumBuckets();
         bt.monoid.multiply(buf, ofs,
                            getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx,
                            getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx);
     }
 
     public void getMonoid(int idx, byte[] buf, int ofs) {
-        if (idx==getNumBuckets()-1)
-            throw new RuntimeException("InteriorNodeCursors don't store a monoid value for their last bucket");
-        assert idx>=0 && idx<getNumBuckets()-1;
+        if (idx==getNumBuckets()-1 && isRightMost())
+            throw new RuntimeException("RightMost InteriorNodeCursors don't store a monoid value for their last bucket");
+        assert idx>=0 && idx<getNumBuckets();
         System.arraycopy(getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx,
                          buf, ofs,
                          bt.monoid.getSize());
+    }
+
+    public void clearMonoid(int idx) {
+        if (idx==getNumBuckets()-1 && isRightMost())
+            throw new RuntimeException("RightMost InteriorNodeCursors don't store a monoid value for their last bucket");
+        assert idx>=0 && idx<getNumBuckets();
+        bt.monoid.identity(getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx);
     }
 }

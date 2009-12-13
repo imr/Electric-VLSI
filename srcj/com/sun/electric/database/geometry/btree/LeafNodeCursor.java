@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
 /**
  *  Page format:
  *
+ *    int: isRightMost (1 or 0) 
  *    int: 0
  *    int: pageid of left neighbor (not used)
  *    int: pageid of right neighbor (not used)
@@ -66,9 +67,10 @@ class LeafNodeCursor
         super.setBuf(cp);
         numbuckets = bt.ui.deserializeInt(getBuf(), 4*SIZEOF_INT);
     }
-    public void initBuf(CachedPage cp) {
+    public void initBuf(CachedPage cp, boolean isRightMost) {
         super.setBuf(cp);
         bt.ui.serializeInt(0, getBuf(), 1*SIZEOF_INT);
+        setRightMost(isRightMost);
         setNumBuckets(0);
     }
     public int  getLeftNeighborPageId() { return bt.ui.deserializeInt(getBuf(), 2*SIZEOF_INT); }
@@ -125,4 +127,10 @@ class LeafNodeCursor
 
     public K getKey(int bucket) { return bt.uk.deserialize(getBuf(), LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket); }
     public int getNumValsBelowBucket(int bucket) { return bucket < getNumBuckets() ? 1 : 0; }
+
+    public void getMonoid(int bucket, byte[] buf, int ofs) {
+        bt.monoid.inject(getBuf(), LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket,
+                         getBuf(), LEAF_HEADER_SIZE + bt.uk.getSize() + LEAF_ENTRY_SIZE*bucket,
+                         buf, ofs);
+    }
 }
