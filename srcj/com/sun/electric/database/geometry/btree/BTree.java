@@ -142,6 +142,8 @@ public class BTree
 
     int                  rootpage;
     private final byte[] keybuf;
+    private final byte[] keybuf2;
+    private final byte[] sbuf;
 
     private final byte[] largestKey;
     private       int    largestKeyPage = -1;  // or -1 if unknown
@@ -162,6 +164,8 @@ public class BTree
         this.interiorNodeCursor2 = new InteriorNodeCursor<K,V,S>(this);
         this.rootpage = ps.createPage();
         this.keybuf = new byte[uk.getSize()];
+        this.keybuf2 = new byte[uk.getSize()];
+        this.sbuf = monoid==null ? null : new byte[monoid.getSize()];
         this.largestKey = new byte[uk.getSize()];
         leafNodeCursor.initBuf(ps.getPage(rootpage, false), true);
         leafNodeCursor.writeBack();
@@ -245,6 +249,15 @@ public class BTree
         uk.serialize(key, keybuf, 0);
         return (V)walk(keybuf, 0, val, Op.REPLACE, 0);
     }
+
+    public S summarize(K min, K max) {
+        uk.serialize(min, keybuf, 0);
+        uk.serialize(max, keybuf2, 0);
+        walk(keybuf, 0, null, Op.SUMMARIZE_LEFT,  0, keybuf2, 0, sbuf, 0);
+        walk(keybuf, 0, null, Op.SUMMARIZE_MID,   0, keybuf2, 0, sbuf, 0);
+        walk(keybuf, 0, null, Op.SUMMARIZE_RIGHT, 0, keybuf2, 0, sbuf, 0);
+        return (S)monoid.deserialize(sbuf, 0);
+    }
     
     private static enum Op {
         GET_VAL_FROM_KEY,
@@ -259,7 +272,11 @@ public class BTree
         GET_PREV,
         REMOVE,
         INSERT,
-        REPLACE;
+        REPLACE,
+        SUMMARIZE_LEFT,
+        SUMMARIZE_MID,
+        SUMMARIZE_RIGHT,
+            ;
         public boolean isGetFromOrd() {
             switch(this) {
                 case GET_VAL_FROM_ORD:
@@ -313,6 +330,10 @@ public class BTree
     }
     
 
+    private Object walk(byte[] key, int key_ofs, V val, Op op, int ord) {
+        return walk(key, key_ofs, val, op, ord, null, 0, null, 0);
+    }
+
     /**
      *  B+Tree walking routine.
      *
@@ -327,7 +348,7 @@ public class BTree
      *  On writes/deletes, this returns the previous value.
      *
      */
-    private Object walk(byte[] key, int key_ofs, V val, Op op, int ord) {
+    private Object walk(byte[] key, int key_ofs, V val, Op op, int ord, byte[] key2, int key2_ofs, byte[] ret, int ret_ofs) {
         int pageid = rootpage;
         int idx = -1;
         int global_ord = 0;
