@@ -339,9 +339,9 @@ class NetSchem extends NetCell {
             int portIndex = portProto.getPortIndex();
             if (no instanceof IconNodeInst) {
                 Nodable no1 = ((IconNodeInst)no).getNodable(0);
-                if (Job.getDebug()) {
-                    System.out.println("IconNodeInst " + no + " is passed to getNodeIndex. Replaced by IconNodeable " + no1);
-                }
+//                if (Job.getDebug()) {
+//                    System.out.println("IconNodeInst " + no + " is passed to getNodeIndex. Replaced by IconNodeable " + no1);
+//                }
                 assert eq.cellId == subCell.getId();
                 no = no1;
                 portIndex = eq.portImplementation[portIndex];

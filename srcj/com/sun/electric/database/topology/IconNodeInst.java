@@ -424,6 +424,12 @@ public class IconNodeInst extends NodeInst {
         return iconParam.withInherit(false).withInterior(false).withDisplay(display);
     }
 
+    /**
+     * Get Nodable by array index
+     * @param arrayIndex
+     * @return
+     */
+    @Override
     public Nodable getNodable(int arrayIndex) {
         if (nodables == null) {
             nodables = new IconNodable[getNameKey().busWidth()];

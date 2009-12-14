@@ -3232,6 +3232,17 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         return protoType instanceof Cell;
     }
 
+    /**
+     * Get Nodable by array index
+     * @param arrayIndex
+     * @return
+     */
+    public Nodable getNodable(int arrayIndex) {
+        if (arrayIndex != 0)
+            throw new IndexOutOfBoundsException();
+        return this;
+    }
+
     // JKG: trying this out
     /**
      * Implements Nodable.contains(NodeInst ni).
