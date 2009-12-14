@@ -680,9 +680,10 @@ public class MoCMOS extends Technology
         analogElems.add(tech.findNodeGroup("N-Well-Resistor"));
         analogElems.add(tech.findNodeGroup("P-Poly-Resistor"));
         analogElems.add(tech.findNodeGroup("N-Poly-Resistor"));
+        analogElems.add(tech.findNodeGroup("P-No-Silicide-Poly-Resistor"));
         analogElems.add(tech.findNodeGroup("N-No-Silicide-Poly-Resistor"));
 
-        assert(analogElems.size() == 9 &&  polyCapNode != null); // so far
+        assert(analogElems.size() == 10 &&  polyCapNode != null); // so far
         
         for (int i = 0; i < metalLayers.length; i++) {
             metalLayers[i] = tech.findLayer("Metal-" + (i + 1));

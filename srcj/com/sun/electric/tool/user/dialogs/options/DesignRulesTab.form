@@ -43,7 +43,7 @@
       <SubComponents>
         <Component class="javax.swing.JLabel" name="drResolutionLabel">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Scaled Min. resolution:"/>
+            <Property name="text" type="java.lang.String" value="Min. resolution in lambda:"/>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

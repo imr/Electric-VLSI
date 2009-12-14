@@ -38,7 +38,7 @@
     <version tech="2" electric="8.05o"/>
     <numMetals min="6" max="6" default="6"/>
     <scale value="200.0" relevant="true"/>
-    <resolution value="2.0"/>
+    <resolution value="0.01"/> <!-- value in lambda -->
     <defaultFoundry value="MOSIS"/>
     <minResistance value="4.0"/>
     <minCapacitance value="0.1"/>

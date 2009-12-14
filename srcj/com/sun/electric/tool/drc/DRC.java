@@ -1983,7 +1983,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                 Technology tech = it.next();
 
                 String keyResolution = getKey(KEY_RESOLUTION, tech.getId());
-                double resolution = techPrefs.getDouble(keyResolution, tech.getFactoryScaledResolution());
+                double resolution = techPrefs.getDouble(keyResolution, tech.getFactoryResolution()); //tech.getFactoryScaledResolution());
                 resolutions.put(tech, Double.valueOf(resolution));
 
                 String keyOverrides = getKey(KEY_OVERRIDES, tech.getId());

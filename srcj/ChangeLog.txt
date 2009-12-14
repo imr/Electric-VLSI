@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
+BUG/MAN: (12/14/09, GVG) Inconsistency with DRC resolution (Bug #2540)
+FIX: Make sure the tech resolution is a lambda value rather than a
+scaled value.
+
 BUG: (12/14/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
 FIX: Issues with extension of ports and m1 surround. Hi-Res resistor
 named Hi-Res-Poly2-Resistor for consistency.

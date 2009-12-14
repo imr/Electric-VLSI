@@ -172,7 +172,7 @@ public class DesignRulesTab extends PreferencePanel
         designRules.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
         designRules.setLayout(new java.awt.GridBagLayout());
 
-        drResolutionLabel.setText("Scaled Min. resolution:");
+        drResolutionLabel.setText("Min. resolution in lambda:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
