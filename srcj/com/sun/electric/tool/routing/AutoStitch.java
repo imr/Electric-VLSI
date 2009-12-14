@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
@@ -63,7 +62,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.drc.Schematic;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.User;
 
@@ -400,7 +398,8 @@ public class AutoStitch
 				Rectangle2D bounds = new Rectangle2D.Double(rNi.getAnchorCenterX() - xSize/2,
 					rNi.getAnchorCenterY() - ySize/2, xSize, ySize);
 				DBMath.transformRect(bounds, trans);
-				oqt.add(pi, bounds);
+				if (!oqt.add(pi, bounds))
+					System.out.println("ERROR: Failed to construct quad-tree with port " + pp.getName() + " of node " + ni.describe(false));
 			}
 			nodePortBounds.put(ni, oqt);
 		}
@@ -853,8 +852,6 @@ name=null;
 
 		// now look at every layer in this node
 		Rectangle2D oBounds = oNi.getBounds();
-//System.out.println("BOUNDS OF "+oNi.describe(false)+" IS "+oBounds.getMinX()+"<=X<="+oBounds.getMaxX()+" AND "+oBounds.getMinY()+"<=Y<="+oBounds.getMaxY());
-//System.out.println("BUT NODE IS AT ("+oNi.getAnchorCenterX()+","+oNi.getAnchorCenterY()+") AND IS "+oNi.getLambdaBaseXSize()+"x"+oNi.getLambdaBaseYSize()+" WITH ORIENTATION "+oNi.getOrient().toJelibString());
 		if (ni.isCellInstance())
 		{
 			// complex node instance: look at all ports near this bound

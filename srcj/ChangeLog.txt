@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
+BUG: (12/14/09, SMR) Auto-stitch misses ports when all in a line (Bug #2535).
+FIX: In GenMath.getQuadrants() allow zero-size boxes to be in a quadrant.
+
 IMP: (12/14/09, GVG) First set of changes for New capacitors and resistors in
 Schematics (Bug #2529).
 

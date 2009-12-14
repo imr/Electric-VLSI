@@ -53,7 +53,8 @@ public class GenMath
     static final double HALF = 0.5 - 0.5/(1L << 53); // 0x1.fffffffffffffp-2;
     
     /**
-     * General method to obtain quadrant for a given box in a qTree based on the qTree center
+     * General method to obtain quadrant for a given box in a qTree based on the qTree center.
+     * Zero-size boxes are assigned to the positive side of the dividing line.
      * @param centerX the X center of the qTree.
      * @param centerY the Y center of the qTree.
      * @param box the given box.
@@ -68,15 +69,15 @@ public class GenMath
             // either 0 or 1 quadtrees
             if (box.getMinX() < centerX)
                 loc |= 1 << 0;
-            if (box.getMaxX() > centerX)
+            if (box.getMaxX() >= centerX)
                 loc |= 1 << 1;
         }
-        if (box.getMaxY() > centerY)
+        if (box.getMaxY() >= centerY)
         {
             // the other quadtrees
             if (box.getMinX() < centerX)
                 loc |= 1 << 2;
-            if (box.getMaxX() > centerX)
+            if (box.getMaxX() >= centerX)
                 loc |= 1 << 3;
         }
         return loc;
