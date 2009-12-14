@@ -189,7 +189,7 @@ class ImmutableNetLayout {
                     if (fun == PrimitiveNode.Function.RESIST) {
                         assert equivPortsN.length == 2;
                         equivPortsP = equivPortsA = new int[] { 0, 0 };
-                    } else if (fun.isNonNormalResistor()) {
+                    } else if (fun.isComplexResistor()) {
                         equivPortsP = equivPortsN;
                         equivPortsA = new int[] { 0, 0 };
                     } else {

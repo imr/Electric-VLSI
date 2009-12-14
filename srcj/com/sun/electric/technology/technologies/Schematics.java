@@ -137,6 +137,7 @@ public class Schematics extends Technology
 
 	/** Defines a normal Capacitor. */						private static final int CAPACNORM =  0;
 	/** Defines an Electrolytic Capacitor. */				private static final int CAPACELEC =  1;
+	/** Defines a Poly2 Capacitor. */				        private static final int CAPACPOLY2 =  2;
 
     /** Defines a normal Resistor. */                   	private static final int RESISTNORM  =  0;
     /** Defines an n-poly Resistor. */                     	private static final int RESISTNPOLY =  1;
@@ -145,6 +146,9 @@ public class Schematics extends Technology
     /** Defines a p-well Resistor. */                     	private static final int RESISTPWELL =  4;
     /** Defines a n-active Resistor. */                     private static final int RESISTNACTIVE =  5;
     /** Defines a p-active Resistor. */                     private static final int RESISTPACTIVE =  6;
+    /** Defines an n-poly non silicide Resistor. */         private static final int RESISTNNSPOLY =  7;
+    /** Defines a p-poly non silicide Resistor. */          private static final int RESISTPNSPOLY =  8;
+    /** Defines a poly2 Resistor. */                        private static final int RESISTPOLY2 =  9;
 
 	/** Defines a Transconductance two-port (VCCS). */		private static final int TWOPVCCS =  0;
 	/** Defines a Transresistance two-port (CCVS). */		private static final int TWOPCCVS =  1;
@@ -2472,15 +2476,19 @@ public class Schematics extends Technology
 		{
 			if (techBits == RESISTNPOLY) return PrimitiveNode.Function.RESNPOLY;
 			if (techBits == RESISTPPOLY) return PrimitiveNode.Function.RESPPOLY;
+			if (techBits == RESISTNNSPOLY) return PrimitiveNode.Function.RESNNSPOLY;
+			if (techBits == RESISTPNSPOLY) return PrimitiveNode.Function.RESPNSPOLY;
 			if (techBits == RESISTNWELL) return PrimitiveNode.Function.RESNWELL;
 			if (techBits == RESISTPWELL) return PrimitiveNode.Function.RESPWELL;
 			if (techBits == RESISTNACTIVE) return PrimitiveNode.Function.RESNACTIVE;
 			if (techBits == RESISTPACTIVE) return PrimitiveNode.Function.RESPACTIVE;
+			if (techBits == RESISTPOLY2) return PrimitiveNode.Function.RESPOLY2;
 			return PrimitiveNode.Function.RESIST;
 		}
-		if (pn == capacitorNode)
+		if (pn == capacitorNode)    //
 		{
 			if (techBits == CAPACELEC) return PrimitiveNode.Function.ECAPAC;
+			if (techBits == CAPACPOLY2) return PrimitiveNode.Function.POLY2CAPAC;
 			return PrimitiveNode.Function.CAPAC;
 		}
 		if (pn == diodeNode)
@@ -2609,16 +2617,20 @@ public class Schematics extends Technology
 	 */
 	public static int getPrimitiveFunctionBits(PrimitiveNode.Function function)
 	{
+		if (function == PrimitiveNode.Function.POLY2CAPAC)    return CAPACPOLY2;
 		if (function == PrimitiveNode.Function.ECAPAC)        return CAPACELEC;
 		if (function == PrimitiveNode.Function.CAPAC)         return CAPACNORM;
 
         if (function == PrimitiveNode.Function.RESNPOLY)      return RESISTNPOLY;
         if (function == PrimitiveNode.Function.RESPPOLY)      return RESISTPPOLY;
+        if (function == PrimitiveNode.Function.RESNNSPOLY)    return RESISTNNSPOLY;
+        if (function == PrimitiveNode.Function.RESPNSPOLY)    return RESISTPNSPOLY;
         if (function == PrimitiveNode.Function.RESNWELL)      return RESISTNWELL;
         if (function == PrimitiveNode.Function.RESPWELL)      return RESISTPWELL;
         if (function == PrimitiveNode.Function.RESNACTIVE)    return RESISTNACTIVE;
         if (function == PrimitiveNode.Function.RESPACTIVE)    return RESISTPACTIVE;
-		if (function == PrimitiveNode.Function.RESIST)        return RESISTNORM;
+        if (function == PrimitiveNode.Function.RESPOLY2)      return RESISTPOLY2;
+        if (function == PrimitiveNode.Function.RESIST)        return RESISTNORM;
 
 		if (function == PrimitiveNode.Function.DIODEZ)        return DIODEZENER;
 		if (function == PrimitiveNode.Function.DIODE)         return DIODENORM;

@@ -642,7 +642,7 @@ public class NetCell {
                 if (fun == PrimitiveNode.Function.RESIST) {
                     Netlist.connectMap(netMapP, drawns[nodeOffset], drawns[nodeOffset + 1]);
                     Netlist.connectMap(netMapA, drawns[nodeOffset], drawns[nodeOffset + 1]);
-                } else if (fun.isNonNormalResistor()) {
+                } else if (fun.isComplexResistor()) {
                     Netlist.connectMap(netMapA, drawns[nodeOffset], drawns[nodeOffset + 1]);
                 }
                 continue;

@@ -1080,7 +1080,7 @@ class NetSchem extends NetCell {
                 if (fun == PrimitiveNode.Function.RESIST) {
                     Netlist.connectMap(netMapP, drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
                     Netlist.connectMap(netMapA, drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
-                } else if (fun.isNonNormalResistor()) {
+                } else if (fun.isComplexResistor()) {
                     Netlist.connectMap(netMapA, drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
                 }
                 continue;

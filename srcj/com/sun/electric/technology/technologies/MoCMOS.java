@@ -33,7 +33,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.AbstractShapeBuilder;
-import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
@@ -43,7 +42,6 @@ import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
 import com.sun.electric.technology.Xml;
-import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.User;
 
 import java.io.PrintWriter;

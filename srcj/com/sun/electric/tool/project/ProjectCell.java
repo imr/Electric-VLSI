@@ -88,7 +88,7 @@ public class ProjectCell implements Serializable
 
 	FileType getLibType() { return libType; }
 
-	String getLibExtension() { return libType.getExtensions()[0]; }
+	String getLibExtension() { return libType.getFirstExtension(); }
 
 	void setLibType(FileType libType) { this.libType = libType; }
 

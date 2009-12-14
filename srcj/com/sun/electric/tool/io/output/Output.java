@@ -257,11 +257,11 @@ public class Output
             URL libURL = libBackup.d.libFile;
             File newLibFile;
             if (libURL == null || libURL.getPath() == null) {
-                newLibFile = new File(panicDir.getAbsolutePath(), libName + "." + type.getExtensions()[0]);
+                newLibFile = new File(panicDir.getAbsolutePath(), libName + "." + type.getFirstExtension());
             } else {
                 File libFile = new File(libURL.getPath());
                 String fileName = libFile.getName();
-                if (fileName == null) fileName = libName + "." + type.getExtensions()[0];
+                if (fileName == null) fileName = libName + "." + type.getFirstExtension();
                 newLibFile = new File(panicDir.getAbsolutePath(), fileName);
             }
             URL newLibURL = TextUtils.makeURLToFile(newLibFile.getAbsolutePath());
@@ -450,7 +450,7 @@ public class Output
                         String backupFileName = properOutputNameWithoutExtension + sdf.format(modifiedDate);
                         if (i != 0)
                             backupFileName += "--" + i;
-                        backupFileName += "." + type.getExtensions()[0];
+                        backupFileName += "." + type.getFirstExtension();
                         File oldFile = new File(backupFileName);
                         if (oldFile.exists()) continue;
                         if (!newFile.renameTo(oldFile))

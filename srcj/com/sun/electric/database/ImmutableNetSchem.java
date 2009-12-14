@@ -1020,7 +1020,7 @@ class ImmutableNetSchem {
                 if (fun == PrimitiveNode.Function.RESIST) {
                     ImmutableNetLayout.connectMap(netMapP, drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
                     ImmutableNetLayout.connectMap(netMapA, drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
-                } else if (fun.isNonNormalResistor()) {
+                } else if (fun.isComplexResistor()) {
                     ImmutableNetLayout.connectMap(netMapA, drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
                 }
                 continue;

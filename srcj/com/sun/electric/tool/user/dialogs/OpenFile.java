@@ -70,13 +70,13 @@ public class OpenFile
                 String extension = TextUtils.getExtension(filename);
                 FileType givenExtension = FileType.findTypeByExtension(extension);
                 // givenExtension is null if extension is not one of the pre-defined ones.
-                String actualGivenExtension = (givenExtension != null) ? givenExtension.getExtensions()[0] : extension;
+                String actualGivenExtension = (givenExtension != null) ? givenExtension.getFirstExtension() : extension;
 
                 // givenExtension != selectedType to prevent jelib.delib file for example
                 if (givenExtension != selectedType &&
                     !extension.toLowerCase().equals(actualGivenExtension.toLowerCase()) )
                 {
-                    f = new File(f.getAbsolutePath() + "." + selectedType.getExtensions()[0]);
+                    f = new File(f.getAbsolutePath() + "." + selectedType.getFirstExtension());
                 }
                 if (f.exists())
 				{
@@ -124,7 +124,7 @@ public class OpenFile
 		public boolean isTraversable(File f) {
 			lastDELIBVisit = null;
 			if (f == null) return false;
-			if (f.getName().toLowerCase().endsWith("."+FileType.DELIB.getExtensions()[0])) {
+			if (f.getName().toLowerCase().endsWith("."+FileType.DELIB.getFirstExtension())) {
 				lastDELIBVisit = f; // has to remember this value otherwise BasicFileChooserUI:actionPerformed will
 				// not ready DELIB file just typed in the TextField because isDir=true and isDirSelEnabled=false
 				// if ((isDir || !isFileSelEnabled)
@@ -147,7 +147,7 @@ public class OpenFile
 			// return true if a .delib file is selected, otherwise call the parent method
 			if (file != null &&
 				(super.getFileSelectionMode() != JFileChooser.DIRECTORIES_ONLY) &&
-				file.getName().toLowerCase().endsWith("."+FileType.DELIB.getExtensions()[0])) {
+				file.getName().toLowerCase().endsWith("."+FileType.DELIB.getFirstExtension())) {
 				return true;
 			}
 			return super.isDirectorySelectionEnabled();

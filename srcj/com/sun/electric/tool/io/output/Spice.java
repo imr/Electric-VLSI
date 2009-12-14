@@ -338,8 +338,8 @@ public class Spice extends Topology
 
                 // set up run probe
                 FileType type = Simulate.getSpiceOutputType(outputFormat, engine);
-                String [] extensions = type.getExtensions();
-                String outFile = rundir + File.separator + filename_noext + "." + extensions[0];
+//                String [] extensions = type.getExtensions();
+                String outFile = rundir + File.separator + filename_noext + "." + type.getFirstExtension();
                 Exec.FinishedListener l = new SpiceFinishedListener(cell, type, outFile);
 
                 if (runSpice.equals(Simulation.spiceRunChoiceRunIgnoreOutput)) {
@@ -913,7 +913,7 @@ public class Spice extends Topology
 			{
 				if (fun.isResistor())
 				{
-                    if ((fun.isNonNormalResistor() && isShortExplicitResistors()) ||
+                    if ((fun.isComplexResistor() && isShortExplicitResistors()) ||
                         (fun == PrimitiveNode.Function.RESIST && isShortResistors()))
                         	continue;
 					Variable resistVar = ni.getVar(Schematics.SCHEM_RESISTANCE);
@@ -953,8 +953,9 @@ public class Spice extends Topology
 //                            if (ni.getProto().getName().equals("P-Well-RPO-Resistor")) fun = PrimitiveNode.Function.RESPWELL;
 //                            if (ni.getProto().getName().equals("N-Well-RPO-Resistor")) fun = PrimitiveNode.Function.RESNWELL;
 //                        }
-                        if (fun == PrimitiveNode.Function.RESPPOLY || fun == PrimitiveNode.Function.RESNPOLY ||
-                        	fun == PrimitiveNode.Function.RESPWELL || fun == PrimitiveNode.Function.RESNWELL)
+                        if (fun.isComplexResistor())
+//                            fun == PrimitiveNode.Function.RESPPOLY || fun == PrimitiveNode.Function.RESNPOLY ||
+//                        	fun == PrimitiveNode.Function.RESPWELL || fun == PrimitiveNode.Function.RESNWELL)
                         {
                             partName = "XR";
                             double width = ni.getLambdaBaseYSize();
@@ -970,8 +971,12 @@ public class Spice extends Topology
                             String prepend = "";
                             if (fun == PrimitiveNode.Function.RESPPOLY) prepend = "rppo1rpo"; else
                             	if (fun == PrimitiveNode.Function.RESNPOLY) prepend = "rnpo1rpo"; else
-                                	if (fun == PrimitiveNode.Function.RESPWELL) prepend = "rpwod "; else
-                                    	if (fun == PrimitiveNode.Function.RESNWELL) prepend = "rnwod ";
+                                    if (fun == PrimitiveNode.Function.RESPNSPOLY) prepend = "rpponsrpo"; else   // made up value
+                            	        if (fun == PrimitiveNode.Function.RESNNSPOLY) prepend = "rnponsrpo"; else  // made up value
+                                            if (fun == PrimitiveNode.Function.RESPWELL) prepend = "rpwod "; else
+                                                if (fun == PrimitiveNode.Function.RESNWELL) prepend = "rnwod "; else
+                                                   if (fun == PrimitiveNode.Function.RESPACTIVE) prepend = "rpaod "; else
+                                                       if (fun == PrimitiveNode.Function.RESNACTIVE) prepend = "rnaod ";
                             if (layoutTechnology == Technology.getCMOS90Technology() ||
                                 (cell.getView() == View.LAYOUT && cell.getTechnology() == Technology.getCMOS90Technology()))
                             {

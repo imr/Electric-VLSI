@@ -421,7 +421,7 @@ public class FileMenu {
         FileType defType = getLibraryFormat(fileName, null);
         if (defType == null) {
             // no valid extension, search for file with extension
-            URL f = TextUtils.makeURLToFile(fileName + "." + FileType.JELIB.getExtensions()[0]);
+            URL f = TextUtils.makeURLToFile(fileName + "." + FileType.JELIB.getFirstExtension());
             if (TextUtils.URLExists(f, null)) {
                 defType = FileType.JELIB;
                 file = f;
@@ -429,7 +429,7 @@ public class FileMenu {
         }
         if (defType == null) {
             // no valid extension, search for file with extension
-            URL f = TextUtils.makeURLToFile(fileName + "." + FileType.ELIB.getExtensions()[0]);
+            URL f = TextUtils.makeURLToFile(fileName + "." + FileType.ELIB.getFirstExtension());
             if (TextUtils.URLExists(f, null)) {
                 defType = FileType.ELIB;
                 file = f;
@@ -437,7 +437,7 @@ public class FileMenu {
         }
         if (defType == null) {
             // no valid extension, search for file with extension
-            URL f = TextUtils.makeURLToFile(fileName + "." + FileType.DELIB.getExtensions()[0]);
+            URL f = TextUtils.makeURLToFile(fileName + "." + FileType.DELIB.getFirstExtension());
             if (TextUtils.URLExists(f, null)) {
                 defType = FileType.DELIB;
                 file = f;
@@ -445,7 +445,7 @@ public class FileMenu {
         }
         if (defType == null) {
             // no valid extension, search for file with extension
-            URL f = TextUtils.makeURLToFile(fileName + "." + FileType.READABLEDUMP.getExtensions()[0]);
+            URL f = TextUtils.makeURLToFile(fileName + "." + FileType.READABLEDUMP.getFirstExtension());
             if (TextUtils.URLExists(f, null)) {
                 defType = FileType.READABLEDUMP;
                 file = f;
@@ -1059,8 +1059,8 @@ public class FileMenu {
             if (val == 1) return null;
         }
 
-        String [] extensions = type.getExtensions();
-        String extension = extensions[0];
+//        String [] extensions = type.getFirstExtension();
+        String extension = type.getFirstExtension();
         String fileName = null;
         if (!saveAs && lib.isFromDisk())
         {
@@ -1287,7 +1287,7 @@ public class FileMenu {
                     String fullName = lib.getLibFile().getFile();
                     //if (fullName.endsWith("spiceparts.txt")) continue; // ignore spiceparts library
                     // match ".<word><endline>"
-                    fullName = fullName.replaceAll("\\.\\w*?$", "."+outType.getExtensions()[0]);
+                    fullName = fullName.replaceAll("\\.\\w*?$", "."+outType.getFirstExtension());
                     lib.setLibFile(TextUtils.makeURLToFile(fullName));
                 }
                 lib.setChanged();
@@ -1410,8 +1410,8 @@ public class FileMenu {
 			}
         }
 
-		String [] extensions = type.getExtensions();
-        String filePath = cell.getName() + "." + extensions[0];
+//		String [] extensions = type.getExtensions();
+        String filePath = cell.getName() + "." + type.getFirstExtension();
 
         // special case for spice
         if (type == FileType.SPICE &&

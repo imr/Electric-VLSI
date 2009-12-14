@@ -183,8 +183,8 @@ public class Simulate extends Input
 		{
 			if (fileURL == null)
 			{
-                String [] extensions = type.getExtensions();
-                String fileName = cell.getName() + "." + extensions[0];
+//                String [] extensions = type.getFirstExtension();
+                String fileName = cell.getName() + "." + type.getFirstExtension();
                 // look for file in library path
                 String filePath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
                 File file = new File(filePath, fileName);

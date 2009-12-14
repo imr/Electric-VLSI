@@ -365,16 +365,19 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		//@Deprecated
 		PRESIST("poly-resistor", "pres", false, false),
 
-		/** Describes an n-poly resistor */
+        /** Describes a poly resistor. */
+		RESPOLY2("poly2-resistor", "p2res", false, false),
+
+        /** Describes an n-poly resistor */
 		RESNPOLY("n-type-poly-resistor", "resnpoly", false, false),
 
 		/** Describes a p-poly resistor */
 		RESPPOLY("p-type-poly-resistor", "resppoly", false, false),
 
-        /** Describes an n-poly no silicide resistor */
+        /** Describes an n-poly non silicide resistor */
 		RESNNSPOLY("n-type-no-silicide-poly-resistor", "resnnspoly", false, false),
 
-		/** Describes a p-poly no silicide resistor */
+		/** Describes a p-poly non silicide resistor */
 		RESPNSPOLY("p-type-no-silicide-poly-resistor", "respnspoly", false, false),
 
         /** Describes a well resistor. */
@@ -402,7 +405,10 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		/** Describes an electrolytic capacitor. */
 		ECAPAC("electrolytic-capacitor", "ecap", false, false),
 
-		/** Describes a diode. */
+        /** Describes a poly2 capacitor. */
+		POLY2CAPAC("poly2-capacitor", "ecap", false, false),
+
+        /** Describes a diode. */
 		DIODE("diode", "diode", false, false),
 
 		/** Describes a zener diode. */
@@ -594,20 +600,21 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
          * Method to tell whether this function describes a capacitor (normal or electrolytic).
          * @return true if this function describes a capacitor (normal or electrolytic).
          */
-        public boolean isCapacitor() { return this == CAPAC || this == ECAPAC; }
+        public boolean isCapacitor() { return this == CAPAC || this == ECAPAC || this == POLY2CAPAC; }
 
         /**
          * Method to tell whether this function describes a resistor (normal, poly or nwell resistor).
          * @return true if this function describes a resistor (normal, poly or nwell resistor).
          */
-        public boolean isResistor() { return this == RESIST || isNonNormalResistor();}
+        public boolean isResistor() { return this == RESIST || isComplexResistor();}
 
         /**
-         * Method to tell whether this function describes a poly or well resistor.
-         * @return true if this function describes a poly or well resistor.
+         * Method to tell whether this function describes a non simple resistor
+         * @return true if this function describes a non simple resistor.
          */
-        public boolean isNonNormalResistor() { return this == PRESIST || this == WRESIST ||                          
+        public boolean isComplexResistor() { return this == PRESIST || this == WRESIST || this == RESPOLY2 ||
             this == RESNPOLY || this == RESPPOLY ||
+            this == RESNNSPOLY || this == RESPNSPOLY ||
             this == RESNWELL || this == RESPWELL ||
             this == RESNACTIVE || this == RESPACTIVE;}
 

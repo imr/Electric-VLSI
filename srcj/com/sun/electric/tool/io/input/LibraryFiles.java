@@ -208,12 +208,12 @@ public abstract class LibraryFiles extends Input
 				String fileName = fileURL.toString();
 				if (fileName.indexOf(".") == -1)
 				{
-					fileURL = TextUtils.makeURLToFile(fileName+"."+type.getExtensions()[0]);
+					fileURL = TextUtils.makeURLToFile(fileName+"."+type.getFirstExtension());
 					System.out.print("Attempting to open " + fileURL+"\n");
 					errmsg.setLength(0);
 					exists = TextUtils.URLExists(fileURL, errmsg);
 					if (!exists && (type != FileType.DELIB)) { // Check if this is a DELIB
-						fileURL = TextUtils.makeURLToFile(fileName+"."+FileType.DELIB.getExtensions()[0]);
+						fileURL = TextUtils.makeURLToFile(fileName+"."+FileType.DELIB.getFirstExtension());
 						System.out.print("Attempting to open " + fileURL+"\n");
 						errmsg.setLength(0);
 						exists = TextUtils.URLExists(fileURL, errmsg);
@@ -281,7 +281,7 @@ public abstract class LibraryFiles extends Input
             String fileName = fileURL.toString();
             if (fileName.indexOf(".") == -1)
             {
-                fileURL = TextUtils.makeURLToFile(fileName+"."+type.getExtensions()[0]);
+                fileURL = TextUtils.makeURLToFile(fileName+"."+type.getFirstExtension());
                 System.out.print("Attempting to open " + fileURL+"\n");
                 errmsg.setLength(0);
                 exists = TextUtils.URLExists(fileURL, errmsg);
@@ -389,7 +389,7 @@ public abstract class LibraryFiles extends Input
 		{
 			mainLibDirectory = TextUtils.getFilePath(fileURL);
             if (type == FileType.DELIB) {
-                mainLibDirectory = mainLibDirectory.replaceAll(libName+"."+type.getExtensions()[0], "");
+                mainLibDirectory = mainLibDirectory.replaceAll(libName+"."+type.getFirstExtension(), "");
             }
 			in.topLevelLibrary = true;
 		}
@@ -832,30 +832,30 @@ public abstract class LibraryFiles extends Input
 		} else
 		{
 			// no recognizable extension, add one to the file name
-			libFileName += "." + defaultType.getExtensions()[0];
+			libFileName += "." + defaultType.getFirstExtension();
 		}
 
         StringBuffer errmsg = new StringBuffer();
 
         // first try the library name with the extension it came with
         // However, do not look in electric library area to avoid problems with spice configurations for old chips
-        URL externalURL = getLibrary(libName + "." + preferredType.getExtensions()[0], theFileName, errmsg, true);
+        URL externalURL = getLibrary(libName + "." + preferredType.getFirstExtension(), theFileName, errmsg, true);
         // Now try all file types, starting with jelib
         // try JELIB
         if (externalURL == null && preferredType != FileType.JELIB) {
-            externalURL = getLibrary(libName + "." + FileType.JELIB.getExtensions()[0], theFileName, errmsg, true);
+            externalURL = getLibrary(libName + "." + FileType.JELIB.getFirstExtension(), theFileName, errmsg, true);
         }
         // try ELIB
         if (externalURL == null && preferredType != FileType.ELIB) {
-            externalURL = getLibrary(libName + "." + FileType.ELIB.getExtensions()[0], theFileName, errmsg, true);
+            externalURL = getLibrary(libName + "." + FileType.ELIB.getFirstExtension(), theFileName, errmsg, true);
         }
         // try DELIB
         if (externalURL == null && preferredType != FileType.DELIB) {
-            externalURL = getLibrary(libName + "." + FileType.DELIB.getExtensions()[0], theFileName, errmsg, true);
+            externalURL = getLibrary(libName + "." + FileType.DELIB.getFirstExtension(), theFileName, errmsg, true);
         }
         // try txt
         if (externalURL == null && preferredType != FileType.READABLEDUMP) {
-            externalURL = getLibrary(libName + "." + FileType.READABLEDUMP.getExtensions()[0], theFileName, errmsg, true);
+            externalURL = getLibrary(libName + "." + FileType.READABLEDUMP.getFirstExtension(), theFileName, errmsg, true);
         }
 
         boolean exists = (externalURL == null) ? false : true;

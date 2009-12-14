@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
+IMP: (12/14/09, GVG) First set of changes for New capacitors and resistors in
+Schematics (Bug #2529).
+
+IMP: (12/14/09, GVG) No longer direct access to first extension in a FileType.
+Using function instead.
+
 BUG: (12/14/09, GVG) Out of bounds exception while plotting waveform into PDF
      (Bug #2543)
 FIX: Extra code to detect if given extension is a known one.

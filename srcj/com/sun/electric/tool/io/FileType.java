@@ -265,7 +265,13 @@ public class FileType implements Serializable {
 
 	public String getName() { return name; }
 	public String getDescription() { return desc; }
-	public String [] getExtensions()
+    public String getFirstExtension()
+    {
+        String[] exts = getExtensions();
+        if (exts == null  || exts.length == 0) return "";
+        return exts[0];
+    }
+    public String [] getExtensions()
 	{
 		if (allowNumbers)
 		{
@@ -452,7 +458,7 @@ public class FileType implements Serializable {
             }
             for (FileType type :  FileType.libraryTypes)
             {
-                if (fileName.endsWith("."+type.getExtensions()[0])) return type;
+                if (fileName.endsWith("."+type.getFirstExtension())) return type;
             }
         }
         return defaultType;

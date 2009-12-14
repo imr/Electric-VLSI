@@ -578,6 +578,7 @@
             <xsd:enumeration value="RESIST"/>
             <xsd:enumeration value="RESPWELL"/>
             <xsd:enumeration value="RESNWELL"/>
+            <xsd:enumeration value="RESPOLY2"/>
             <xsd:enumeration value="RESPPOLY"/>
             <xsd:enumeration value="RESNPOLY"/>
             <xsd:enumeration value="RESPNSPOLY"/>
