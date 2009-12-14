@@ -459,7 +459,16 @@ public class CircuitChanges
         	return;
         }
 
-		if (ToolBar.getSelectMode() == ToolBar.SelectMode.AREA)
+        // see if a highlighted area is given
+        boolean highlightedArea = ToolBar.getSelectMode() == ToolBar.SelectMode.AREA;
+        List<Highlight> highlights = highlighter.getHighlights();
+        if (highlights.size() == 1)
+        {
+        	Highlight high = highlights.get(0);
+        	if (high instanceof HighlightArea) highlightedArea = true;
+        }
+
+        if (highlightedArea)
 		{
             EditWindow wnd = EditWindow.getCurrent();
             Rectangle2D bounds = highlighter.getHighlightedArea(wnd);
