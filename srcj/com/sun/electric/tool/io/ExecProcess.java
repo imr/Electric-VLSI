@@ -56,11 +56,19 @@ public class ExecProcess {
 
     /**
      *  @param command the command to run (separated into argv[])
-     *  @param workingDirectory the working directory on the host
-     *         where the command executes (might be a remote machine)
+     *  @param workingDirectory the working directory on the LOCAL machine
      */
-    public void ExecProcess(String[] command, File workingDirectory) {
+    public ExecProcess(String[] command, File workingDirectory) {
         this.command = command;
+
+        // Using java.io.tmpdir as the default working directory leads
+        // to far more predictable behavior than simply using the
+        // JVM's working directory.  Electric already has a lot of
+        // bugs and quirks that result from doing that -- let's not
+        // add more!
+        if (workingDirectory==null)
+            workingDirectory = new File(System.getProperty("java.io.tmpdir"));
+
         this.workingDirectory = workingDirectory;
     }
 
@@ -68,41 +76,49 @@ public class ExecProcess {
      *  @param host the hostname to run on
      *  @param user the username on the remote machine (or null to use
      *         whatever default ssh chooses)
-     *  @param localDirToSync if non-null, this directory will be
-     *         written over the remote directory via "rsync --delete"
-     *  @param syncBack if true and the command terminates with exit
-     *         code zero, the remote workingDirectory will be synced back via
-     *         "rsync --delete"
+     *  @param remoteWorkingDirectory the directory to work in on the remote machine
+     *  @param syncBefore if true then "rsync --delete
+     *         workingDirectory host:remoteWorkingDirectory" before
+     *         invoking command.
+     *  @param syncAfter if true and the command terminates with exit
+     *         code zero, then "rsync --delete
+     *         host:remoteWorkingDirectory workingDirectory" after
+     *         invoking command.
      */
-    public void setRemote(String host, String user, File localDirToSync, boolean syncBack) {
+    public synchronized void setRemote(String host, String user,
+                                       File remoteWorkingDirectory,
+                                       boolean syncBefore, boolean syncAfter) {
         if (proc!=null) throw new RuntimeException("you cannot invoke ExecProcess.setRemote() after ExecProcess.start()");
         throw new RuntimeException("not implemented");
     }
 
     /** undoes setRemote() */
-    public void setLocal() { }
+    public synchronized void setLocal() { }
 
-    public void redirectStdin(InputStream in) {
+    public synchronized void redirectStdin(InputStream in) {
         if (proc!=null) throw new RuntimeException("you cannot invoke ExecProcess.redirectStdin() after ExecProcess.start()");
         this.redirectStdin = in;
     }
 
-    public void redirectStdout(OutputStream os) {
+    public synchronized void redirectStdout(OutputStream os) {
         if (proc!=null) throw new RuntimeException("you cannot invoke ExecProcess.redirectStdout() after ExecProcess.start()");
         this.redirectStdout = os;
     }
 
-    public void redirectStderr(OutputStream os) {
+    public synchronized void redirectStderr(OutputStream os) {
         if (proc!=null) throw new RuntimeException("you cannot invoke ExecProcess.redirectStderr() after ExecProcess.start()");
         this.redirectStderr = os;
     }
 
-    public void start() throws IOException {
+    public synchronized void start() throws IOException {
         if (proc!=null) throw new RuntimeException("you cannot invoke ExecProcess.start() twice");
-        throw new RuntimeException("not implemented");
+        proc = Runtime.getRuntime().exec(command, null, workingDirectory);
+        if (redirectStdin != null) new StreamCopier(redirectStdin, proc.getOutputStream()).start();
+        if (redirectStdout != null) new StreamCopier(proc.getInputStream(), redirectStdout).start();
+        if (redirectStderr != null) new StreamCopier(proc.getErrorStream(), redirectStderr).start();
     }
 
-    public void destroy() throws IOException {
+    public synchronized void destroy() throws IOException {
         if (proc==null) throw new RuntimeException("you must invoke ExecProcess.start() first");
         proc.destroy();
     }
@@ -116,19 +132,19 @@ public class ExecProcess {
         }
     }
 
-    public OutputStream getStdin() {
+    public synchronized OutputStream getStdin() {
         if (proc==null) throw new RuntimeException("you must invoke ExecProcess.start() first");
         if (redirectStdin!=null) throw new RuntimeException("you cannot invoke getStdin() after redirectStdin()");
         return proc.getOutputStream();
     }
 
-    public InputStream getStdout() {
+    public synchronized InputStream getStdout() {
         if (proc==null) throw new RuntimeException("you must invoke ExecProcess.start() first");
         if (redirectStdout!=null) throw new RuntimeException("you cannot invoke getStdout() after redirectStdout()");
         return proc.getInputStream();
     }
 
-    public InputStream getStderr() {
+    public synchronized InputStream getStderr() {
         if (proc==null) throw new RuntimeException("you must invoke ExecProcess.start() first");
         if (redirectStderr!=null) throw new RuntimeException("you cannot invoke getStderr() after redirectStderr()");
         return proc.getErrorStream();
@@ -140,5 +156,28 @@ public class ExecProcess {
     private OutputStream redirectStderr;
     private String[]     command;
     private File         workingDirectory;
+
+    /**
+     *  Copies from an InputStream to an OutputStream; used to implement redirectXXX().
+     */
+    private static class StreamCopier extends Thread {
+        private final byte[] buf = new byte[16 * 1024];
+        private final InputStream is;
+        private final OutputStream os;
+        public StreamCopier(InputStream is, OutputStream os) {
+            setDaemon(true);
+            this.is = is;
+            this.os = os;
+        }
+        public void run() {
+            try {
+                while(true) {
+                    int numread = is.read(buf, 0, buf.length);
+                    if (numread==-1) break;
+                    os.write(buf, 0, numread);
+                }
+            } catch (Exception e) { throw new RuntimeException(e); }
+        }
+    }
 
 }
