@@ -89,7 +89,8 @@ class InteriorNodeCursor
                              getBuf(), INTERIOR_HEADER_SIZE + idx*INTERIOR_ENTRY_SIZE,
                              endOfBuf() - (INTERIOR_HEADER_SIZE + (idx-1)*INTERIOR_ENTRY_SIZE));
         setNumBuckets(getNumBuckets()+1);
-        bt.monoid.identity(getBuf(), INTERIOR_HEADER_SIZE+INTERIOR_ENTRY_SIZE*idx+SIZEOF_INT);
+        if (bt.monoid!=null)
+            bt.monoid.identity(getBuf(), INTERIOR_HEADER_SIZE+INTERIOR_ENTRY_SIZE*idx+SIZEOF_INT);
         return INTERIOR_HEADER_SIZE + idx*INTERIOR_ENTRY_SIZE - bt.uk.getSize();
     }
 
@@ -113,7 +114,8 @@ class InteriorNodeCursor
         super.setBuf(ps.getPage(bt.rootpage, false));
         setNumBuckets(1);
         setRightMost(true);
-        bt.monoid.identity(getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT);
+        if (bt.monoid!=null)
+            bt.monoid.identity(getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT);
     }
 
     public boolean isLeafNode() { return false; }
