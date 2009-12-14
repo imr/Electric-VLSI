@@ -116,6 +116,8 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 
+import java.io.*;
+
 /**
  * This class defines a single panel of WaveSignals with an associated list of signal names.
  */
@@ -546,6 +548,8 @@ public class Panel extends JPanel
 	public static Panel getCurrentPanel() { return curPanel; }
 
 	public static int getCurrentXPos() { return curXPos; }
+
+	public Dimension getSz() { return sz; }
 
 	// ************************************* SIGNALS IN THE PANEL *************************************
 
@@ -1452,6 +1456,24 @@ public class Panel extends JPanel
 			}
 		}
 	}
+
+	void dumpDataForGnuplot(PrintWriter pw) {
+		for(WaveSignal ws : waveSignals.values()) {
+			if (ws.getSignal() instanceof AnalogSignal) {
+				AnalogSignal as = (AnalogSignal)ws.getSignal();
+				AnalogAnalysis an = as.getAnalysis();
+				for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++) {
+                    pw.println();
+					Waveform wave = as.getWaveform(s);
+                    NewSignal.Approximation pref = wave.getPreferredApproximation();
+                    NewSignal.Approximation waveform = pref /* FIXME */;
+					int numEvents = waveform.getNumEvents();
+					for(int i=0; i<numEvents; i++)
+                        pw.println(waveform.getTime(i) + " " + ((ScalarSample)waveform.getSample(i)).getValue());
+                }
+            }
+        }
+    }
 
 	private List<WaveSelection> processSignals(Graphics g, Rectangle2D bounds, List<PolyBase> forPs)
 	{

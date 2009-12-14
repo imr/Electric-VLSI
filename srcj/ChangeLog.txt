@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
+IMP: (12/13/09, AM) Crude but usable support for plotting simulation
+     data via GnuPlot (both on-screen and as PDF for publication).
+
 IMP: (12/12/09, AM) BTree.summarize(min,max) and support therefor;
      still needs tested.  Can answer queries like "what is the
      minimum voltage in the time range [t0,t1]" with O(log|t1-t0|)

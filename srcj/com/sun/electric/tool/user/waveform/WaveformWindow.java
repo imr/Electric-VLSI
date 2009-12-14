@@ -153,6 +153,9 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import com.sun.electric.tool.io.*;
+import java.io.*;
+
 /**
  * This class defines the a screenful of Panels that make up a waveform display.
  */
@@ -941,6 +944,44 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (mainHorizRulerPanel != null)
 			mainHorizRulerPanel.repaint();
 	}
+
+    public static void plotSimulationData(String file) {
+        WindowFrame current = WindowFrame.getCurrentWindowFrame();
+        WindowContent content = current.getContent();
+        if (!(content instanceof WaveformWindow)) {
+            System.out.println("Must select a Waveform window first");
+            return;
+        }
+        WaveformWindow ww = (WaveformWindow)content;
+        try {
+            // FIXME: in progress, very crude right now
+            String commands = "";
+            double min = Double.MAX_VALUE;
+            double max = Double.MIN_VALUE;
+            double sr = 1;
+            for(Panel wp : ww.wavePanels) {
+                min = Math.min(min, wp.convertXScreenToData(0));
+                max = Math.max(max, wp.convertXScreenToData(wp.getSz().width));
+                sr  = Math.min(sr, ((double)wp.getSz().height)/((double)wp.getSz().width));
+            }
+            if (file!=null) {
+                commands += "set terminal pdf; ";
+                commands += "set output \""+file+"\"; ";
+            }
+            commands += "set size ratio "+sr+"; ";
+            commands += "set xrange [\""+min+"\":\""+max+"\"]; ";
+            commands += "plot \"-\" with lines; ";
+            System.out.println("invoking: gnuplot -e \""+commands+"\"");
+            ExecProcess ep = new ExecProcess(new String[] { "gnuplot", "-e", commands }, null);
+            ep.redirectStdout(System.out);
+            ep.redirectStderr(System.out);
+            ep.start();
+            PrintWriter pw = new PrintWriter(new OutputStreamWriter(ep.getStdin()));
+            for(Panel wp : ww.wavePanels)
+                wp.dumpDataForGnuplot(pw);
+            pw.close();
+        } catch (Exception e) { throw new RuntimeException(e); }
+    }
 
 	/**
 	 * Method to initialize for a new text search.

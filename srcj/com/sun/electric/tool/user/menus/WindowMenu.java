@@ -244,7 +244,7 @@ public class WindowMenu {
                     importCadencePreferences(); }}
                     ),
 
-		// mnemonic keys available: AB   FGHIJKLMNOPQ  TUVW  Z
+		// mnemonic keys available: AB   FGHIJKLMNO Q  TUVW  Z
             new EMenu("W_aveform Window",
 		        new EMenuItem("_Save Waveform Window Configuration to Disk...") { public void run() {
                     WaveformWindow.saveConfiguration(); }},
@@ -260,6 +260,11 @@ public class WindowMenu {
                 SEPARATOR,
                 new EMenuItem("_Export Simulation Data...") { public void run() {
                     WaveformWindow.exportSimulationData(); }},
+                new EMenuItem("_Plot Simulation Data On Screen") { public void run() {
+                    WaveformWindow.plotSimulationData(null); }},
+                new EMenuItem("Plot Simulation Data as PDF...") { public void run() {
+                    WaveformWindow.plotSimulationData(OpenFile.chooseOutputFile((FileType)null, "Save Plot as PDF", "plot.pdf"));
+                }},
                 SEPARATOR,
                 new EMenuItem("Fill Only in _X") { public void run() {
                     WaveformWindow.fillInX(); }},
