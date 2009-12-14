@@ -4,7 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
-BUG: (12/14/09, GVG) Out of bounds exception while plotting waveform into PDF (Bug #2543)
+BUG: (12/14/09, GVG) Out of bounds exception while plotting waveform into PDF
+     (Bug #2543)
 FIX: Extra code to detect if given extension is a known one.
 
 BUG: (12/14/09, GVG) NPE trying to print from Waveform viewer (Bug #2542)
@@ -13,19 +14,20 @@ FIX: Detects now non-EditWindow context and send error message.
 IMP: (12/13/09, AM) Crude but usable support for plotting simulation
      data via GnuPlot (both on-screen and as PDF for publication).
 
-IMP: (12/12/09, AM) BTree.summarize(min,max) and support therefor;
+IMP: (12/12/09, AM) BTree.summarize(min,max) and support therefore;
      still needs tested.  Can answer queries like "what is the
      minimum voltage in the time range [t0,t1]" with O(log|t1-t0|)
      operations, so a query on a simulation set with 200 million
      samples requires about a dozen operations rather than 200
      million operations.
 
-IMP: (12/12/09, DN) A reference from Cell to Topology and NetCell is SoftReference.
+IMP: (12/12/09, DN) A reference from Cell to Topology and NetCell is
+     SoftReference.
 
 IMP: (12/12/09, DN) Remove mutable computation of Technology.getShapeOfPort0().
 
 BUG: (12/12/09, DN) Can no longer get polygons from dummy NodeInsts (Bug #
-    In PortOriginal.traverse and in NodeInst.getCellTreeUnsafe().
+     In PortOriginal.traverse and in NodeInst.getCellTreeUnsafe().
 
 IMP: (12/11/09, GVG) Updated capacitor info in LE.
 
@@ -34,115 +36,140 @@ FIX: Stopped EDIF from making duplicate arcs and
      Stopped AutoStitch from daisy-chaining busses.
 
 BUG: (12/11/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
-FIX: New names, new p non silicide poly resistor, min/spacing rules for hi-res layer.
+FIX: New names, new p non silicide poly resistor, min/spacing rules for hi-res
+     layer.
 
-IMP: (12/11/09, GVG) XML Tech reader should verify if layer in DRC rule exists (Bug #2534)
+IMP: (12/11/09, GVG) XML Tech reader should verify if layer in DRC rule exists
+     (Bug #2534)
 
 IMP/MAN: (12/11/09, GVG) Enable MoCMOS Subm rules with analog flag (Bug #2531)
 
 IMP: (12/10/09, GVG) Group mocmos rules options (Bug #2532).
-Subm, scmos and deep options added to a group.
+     Subm, scmos and deep options added to a group.
 
 BUG: (12/10/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
 FIX: Wrong scaling in some layers.
 
-IMP: (12/10/09) First modifications for new capacitors and resistors in Schematics (Bug #2529)
+IMP: (12/10/09) First modifications for new capacitors and resistors in
+     Schematics (Bug #2529)
 
 BUG: (12/10/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
 FIX: Some Functions were wrong. Added RESNACTIVE/RESPACTIVE
 
-BUG: (12/10/09, SMR) Text problems (highlighting doesn't match, dotted line wrong, anchor wrong on rotated nodes) (Bug #2528).
-FIX: Fixed ElectricObject.computeTextPoly(), Highlight.HighlightText.showInternalHighlight(), and PolyBase.rotateType().
+BUG: (12/10/09, SMR) Text problems (highlighting doesn't match, dotted line
+     wrong, anchor wrong on rotated nodes) (Bug #2528).
+FIX: Fixed ElectricObject.computeTextPoly(),
+     Highlight.HighlightText.showInternalHighlight(), and PolyBase.rotateType().
 
 ************************* Version 8.10o: ******************************
 
-BUG: (12/9/09, DN) Assertion in Netlist.concurrentModificationException(Nodable,Global) (NCC regression) (Bug #2523)
+BUG: (12/9/09, DN) Assertion in 
+     Netlist.concurrentModificationException(Nodable,Global) (NCC regression)
+     (Bug #2523)
 FIX: In SchemNamesToLay.constructor order Layout Cells from top to down.
 
-BUG: (12/9/09, DN) Assertion in NetSchem.getNetMapOffset(Nodable,Global) (NCC regression) (Bug #2523)
+BUG: (12/9/09, DN) Assertion in NetSchem.getNetMapOffset(Nodable,Global) (NCC
+     regression) (Bug #2523)
 FIX: In NetSchem.getNetMapOffset(Nodable,Global) refine assertion.
 
 BUG: (12/9/09, GVG) Verilog not detecting top cell properly (Bug #2527)
 FIX: Look for last module read if no cell with the name of the file is found.
 
 IMP: (12/9/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
-Added unsiliced poly resistor. Fixed resizing of poly capacitor.
+     Added unsiliced poly resistor. Fixed resizing of poly capacitor.
 
-BUG: (12/9/09, SMR) EDIF input doesn't convert all <> brackets, misses some renames (Bug #2526).
+BUG: (12/9/09, SMR) EDIF input doesn't convert all <> brackets, misses some
+     renames (Bug #2526).
 FIX: Fix all brackets, consider all renames.
 
-BUG: (12/9/09, SMR) "Change" command crashes on "change nodes with arcs" (Bug #2525).
+BUG: (12/9/09, SMR) "Change" command crashes on "change nodes with arcs" (Bug
+     #2525).
 FIX: More robust calculation of contacts, eliminate unused arc choices.
 
-IMP: (12/9/09, GVG) Change Dialog should not list PrimitivesNodes not in used (Bug #2524)
+IMP: (12/9/09, GVG) Change Dialog should not list PrimitivesNodes not in used
+     (Bug #2524)
 
 BUG: (12/9/09, SMR) Export PNG needs preferences (Bug #2474).
-FIX: Added the defaultFont to EditWindow0 and passed that class to the relevant modules
-     so that both defaultFont and TextGlobalScale became available.
+FIX: Added the defaultFont to EditWindow0 and passed that class to the relevant
+     modules so that both defaultFont and TextGlobalScale became available.
 
-BUG: (12/8/09, GVG) Edit Key Bindings dialog hangs if no shortcut is selected in the list (Bug #2353)
+BUG: (12/8/09, GVG) Edit Key Bindings dialog hangs if no shortcut is selected in
+     the list (Bug #2353)
 FIX: null as parent component in JOptionPane.showMessageDialog used.
 
 BUG: (12/8/09, GVG) Missing refresh when cell is removed (Bug #2498)
-FIX: Always do fullRepaint.
+FIX: Always do full Repaint.
 
 IMP: (12/8/09, GVG) Part of export PNG and values not cached (Bug #2474).
 
-BUG: (12/8/09, SMR) EDIF import places exports on instances incorrectly (Bug #2512).
+BUG: (12/8/09, SMR) EDIF import places exports on instances incorrectly (Bug
+     #2512).
 FIX: Use proper port instead of first one.
 
 IMP: (12/8/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
-Added active/poly/hi-res/well resistors. Only available in analog mode.
+     Added active/poly/hi-res/well resistors. Only available in analog mode.
 
-BUG: (12/8/09, SMR) Technology Preferences don't update right when "Analog" is chosen (Bug #2520).
+BUG: (12/8/09, SMR) Technology Preferences don't update right when "Analog" is
+     chosen (Bug #2520).
 FIX: In TechnologyTab.term() must update dialog fields.
 
 BUG: (12/8/09, DN) Exception arrayout of bounds and crash (Bug #2519).
-FIX: Override IconNodeInst.setD and IconNodeInst.setDInUndo and clear nodables there.
+FIX: Override IconNodeInst.setD and IconNodeInst.setDInUndo and clear nodables
+     there.
 
 BUG: (12/8/09, DN) Frozen on NetSchem error (Bug #2518).
-FIX: In NetSchem constructor make implementation from mainSchematics instead of Icon Cell.
+FIX: In NetSchem constructor make implementation from mainSchematics instead of
+     Icon Cell.
 
-IMP: (12/8/09, SMR) Improved vector display memory usage by using immutable database (Bug #2517).
+IMP: (12/8/09, SMR) Improved vector display memory usage by using immutable
+     database (Bug #2517).
 
-IMP: (12/8/09, GVG) Multiple exceptions if PrimitiveNode is defined twice in XML tech file (Bug #2516)
+IMP: (12/8/09, GVG) Multiple exceptions if PrimitiveNode is defined twice in XML
+     tech file (Bug #2516)
 
-IMP: (12/8/09, GVG) Tech XML reader doesn't check if layer doesn't exist (Bug #2515).
-Electric will print error message during the reading and ignore that unknown layer.
+IMP: (12/8/09, GVG) Tech XML reader doesn't check if layer doesn't exist (Bug
+     #2515). Electric will print error message during the reading and ignore that
+     unknown layer.
 
-BUG: (12/8/09, DN) Netlist.getNetIndex(Nodable,PortProto,int) fails when IconNodeInst is passed as Nodable (Bug #2513).
-FIX: In Netlist.getNetMapOffsetIndex(Noable,PortProto,int) remap portIndex by ep.portImplementation .
+BUG: (12/8/09, DN) Netlist.getNetIndex(Nodable,PortProto,int) fails when
+     IconNodeInst is passed as Nodable (Bug #2513).
+FIX: In Netlist.getNetMapOffsetIndex(Noable,PortProto,int) remap portIndex by
+     ep.portImplementation .
 
 BUG: (12/8/09, GVG) NPE if extension is not found (Bug #2514)
 FIX: Detect the case when the extension is not from FileType
 
-IMP: (12/8/09, DN) In threadsafe mode Netlists are weak-refrenced.
+IMP: (12/8/09, DN) In threadsafe mode Netlists are weak-referenced.
 
-IMP: (12/8/09, DN) Replace Netlist.expectedModCount by Netlist.expectedSnapshot and expected.CellTree .
+IMP: (12/8/09, DN) Replace Netlist.expectedModCount by Netlist.expectedSnapshot
+     and expected.CellTree .
 
-IMP: (12/8/09, DN) Field Cell.weakTopology is always nonnul to simplify Cell.getTopology().
+IMP: (12/8/09, DN) Field Cell.weakTopology is always non-null to simplify
+     Cell.getTopology().
 
 BUG: (12/7/09, DN) Library cannot be read (Bug #2510, #2511).
-FIX: In NetSchem.getNetMapOffset don't redirect portInex byu portImplementation.
+FIX: In NetSchem.getNetMapOffset don't redirect portIndex by portImplementation.
 
-IMP: (12/6/09, DN) Move network.NetSchem.Proxy to topology.IconNodeInst.IconNodable.
+IMP: (12/6/09, DN) Move network.NetSchem.Proxy to
+     topology.IconNodeInst.IconNodable.
 
-IMP: (12/6/09, DN) Optimization of immutable algorithm of computing connected Exports in schematic cells.
-    Self-test is always on.
+IMP: (12/6/09, DN) Optimization of immutable algorithm of computing connected
+     Exports in schematic cells. Self-test is always on.
 
-BUG: (12/5/09, DN) Regressions failes in getShapeOfPort.
+BUG: (12/5/09, DN) Regressions fails in getShapeOfPort.
 FIX: Use cellTree.techPool instead of cellBackup.techPool for getShapeOfPort.
 
-IMP/MAN: (12/4/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
-Added capacitor and hi_res layer.
+IMP: (12/4/09, GVG) MoCMOS new capacitor and resistors (Bug #2509)
+     Added capacitor and hi_res layer.
 
 BUG: (12/4/09, DN) Can no longer get polygons from dummy NodeInsts (Bug #2507).
-FIX: In NodeInst.getShapeOfPort() use getCellBackupUnsafe() instead of cell.backupUnsafe().
-   In PortOriginal.traverse don't get database if cell is null.
+FIX: In NodeInst.getShapeOfPort() use getCellBackupUnsafe() instead of
+     cell.backupUnsafe(). In PortOriginal.traverse don't get database if cell is
+     null.
 
 BUG: (12/3/09, DN) New ELIB files don't read back in. (Bug #2506).
 FIX: In input.ELIB.convertPortProto return null when index is "-1".
-    Add field output.ELIB.ElibConn2239ection.arcIndex and use it for output.
+     Add field output.ELIB.ElibConn2239ection.arcIndex and use it for output.
 
 BUG: (12/3/09, SMR) Should detect errors outside of jobs (Bug #2505).
 FIX: Fixed "Align to Grid" and others.
@@ -150,105 +177,135 @@ FIX: Fixed "Align to Grid" and others.
 ************************* Version 8.10n: ******************************
 
 BUG: (12/3/09, GVG) Undo gets stuck after saving files (Bug #2503)
-FIX: Added extra condition to statement which brings up the dialog. Removing write from done/undone lists.
+FIX: Added extra condition to statement which brings up the dialog. Removing
+     write from done/undone lists.
 
-BUG: (12/2/09, DN) ArrayIndexOutOfBoundsException in LayerDrawing.drawDiscRow during redraw (Bug #2504).
+BUG: (12/2/09, DN) ArrayIndexOutOfBoundsException in LayerDrawing.drawDiscRow
+     during redraw (Bug #2504).
 FIX: Clip properly in LayerDrawing.discRow .
 
-IMP/MAN: (12/2/09, SMR) New Node Preference "Increment rightmost array index"
+IMP: (12/2/09, SMR) New Node Preference "Increment rightmost array index"
      allows export duplication to auto-increment from the left (if unchecked)
      (Bug #2501).
 
 BUG: (12/2/09, SMR) Missing plugins cause hang (Bug #2501).
 FIX: Cleaned-up warnings.
 
-IMP: (12/1/09, DN) Self-test in "-debug" mode for immutable algorithm of computing connected Exports in schematic cells.
+IMP: (12/1/09, DN) Self-test in "-debug" mode for immutable algorithm of
+     computing connected Exports in schematic cells.
 
-IMP: (12/1/09, DN) Self-test for immutable algorithm of computing connected Exports in layout cells.
+IMP: (12/1/09, DN) Self-test for immutable algorithm of computing connected
+     Exports in layout cells.
 
-BUG: (12/1/09, DN) Network could obtain incorrect name if the Cell contains nonelectric arcs.
-FIX: In NetSchem.calcDrawnWidth move ai = it.next() before any "continue" statements.
+BUG: (12/1/09, DN) Network could obtain incorrect name if the Cell contains
+     nonelectric arcs.
+FIX: In NetSchem.calcDrawnWidth move ai = it.next() before any "continue"
+     statements.
 
-IMP: (12/1/09, DN) Technology computes shape of ports in immuatble way.
+IMP: (12/1/09, DN) Technology computes shape of ports in immutable way.
 
-BUG: (11/30/09, GVG) No cleanUnusedNodesInLibrary for MoCMOS special nodes such as poly2 contact (Bug #2500)
-FIX: CMOS90.cleanUnusedNodesInLibrary functionality moved to Technology.cleanUnusedNodesInLibrary
+BUG: (11/30/09, GVG) No cleanUnusedNodesInLibrary for MoCMOS special nodes such
+     as poly2 contact (Bug #2500)
+FIX: CMOS90.cleanUnusedNodesInLibrary functionality moved to
+     Technology.cleanUnusedNodesInLibrary
 
 BUG: (11/30/09, SMR) MOSIS CMOS PLA generator fails (Bug #2499).
 FIX: In PLA.java, must start a Job.
 
-BUG: (11/30/09, SMR) Going Up-Hierarchy when editing down-in-place should not alter scale/pan (Bug #2497).
+BUG: (11/30/09, SMR) Going Up-Hierarchy when editing down-in-place should not
+     alter scale/pan (Bug #2497).
 FIX: In EditWindow.upHierarchy() always keep focus when editing down-in-place.
 
-IMP: (11/30/09, DN) Bus names of arcs and nodes are allowed only in icon and schematic cells.
-  The prototype of arc with bus name must be Schematics.bus_arc .
-  The prototype of node with bus name must be an Icon cell.
+IMP: (11/30/09, DN) Bus names of arcs and nodes are allowed only in icon and
+     schematic cells. The prototype of arc with bus name must be
+     Schematics.bus_arc . The prototype of node with bus name must be an Icon
+     cell.
 
 IMP: (11/30/09, DN) Remove diagnostics of case-insensitive match of Variables.
 
-IMP: (11/30/09, DN) Move diagnostics of Networks with case-insensitive match into Schematics DRC.
-    Remove field database.text.Name.canonicString.
+IMP: (11/30/09, DN) Move diagnostics of Networks with case-insensitive match into
+     Schematics DRC. Remove field database.text.Name.canonicString.
 
-IMP: (11/29/09, DN) CellTree containts EquivPorts which represents internal connections in Layout CellTree.
+IMP: (11/29/09, DN) CellTree contains EquivPorts which represents internal
+     connections in Layout CellTree.
 
-BUG: (11/27/09, DN) Incremental DRC used incorret conditions when to invoke.
-FIX: Move CellRevision.getNode()/getArc() to CellBackup.Memoization.getNodeById()/getArcById().
+BUG: (11/27/09, DN) Incremental DRC used incorrect conditions when to invoke.
+FIX: Move CellRevision.getNode()/getArc() to
+     CellBackup.Memoization.getNodeById()/getArcById().
 
 IMP: (11/27/09, DN) Move arcIndexByArcId from NetCell to CellBackup.Memoization.
 
-BUG: (11/25/09, GVG) Error Logger: first time you use next error, you go to error number 2 (Bug #2496)
+BUG: (11/25/09, GVG) Error Logger: first time you use next error, you go to error
+     number 2 (Bug #2496)
 FIX: Correct initialization of current log number
 
-BUG: (11/25/09, SMR) Digital waveforms show panel and signal name badly (Bug #2495).
+BUG: (11/25/09, SMR) Digital waveforms show panel and signal name badly (Bug
+     #2495).
 FIX: In DragButton.java, combine the names instead of overlapping them.
 
-IMP: (11/24/09, DN) Expand/unexpand command doesn't allocate Topologies of subcells.
+IMP: (11/24/09, DN) Expand/unexpand command doesn't allocate Topologies of
+     subcells.
 
 BUG: (11/24/09, SMR) Waveform window draws extra garbage (Bug #2493).
 FIX: In HorizRuler.renderRuler() clear the area first.
 
-BUG: (11/24/09, SMR) Export names not shown when editing down-in-place (Bug #2438).
+BUG: (11/24/09, SMR) Export names not shown when editing down-in-place (Bug
+     #2438).
 FIX: Patched all three display algorithms.
 
-IMP: (11/24/09, DN) Release arrays NetCell.headConn and NetCell.tailConn when they are no more used.
+IMP: (11/24/09, DN) Release arrays NetCell.headConn and NetCell.tailConn when
+     they are no more used.
 
-IMP: (11/24/09, DN) Redisplay in LayerDrawing doesn't allocate Topologies of subcells.
+IMP: (11/24/09, DN) Redisplay in LayerDrawing doesn't allocate Topologies of
+     subcells.
 
-BUG: (11/23/09, DN) ArrayIndexOutOfBoundsException when re-exporting highlighted ports (Bug #2491).
-FIX: In Cell.updatePortInsts don't update PortInsts of parent Cell if its Topology is not allocated.
+BUG: (11/23/09, DN) ArrayIndexOutOfBoundsException when re-exporting highlighted
+     ports (Bug #2491).
+FIX: In Cell.updatePortInsts don't update PortInsts of parent Cell if its
+     Topology is not allocated.
 
 BUG: (11/23/09, DN) Routing regressions crashed attempting to save preferences.
 FIX: In RoutingTest comment out ep.putPrefs .
 
-IMP: (11/22/09, DN) NodeInst.getShapeOfPort doen't allocate Topologies of subcells.
+IMP: (11/22/09, DN) NodeInst.getShapeOfPort doesn't allocate Topologies of
+     subcells.
 
 BUG: (11/20/09, DN) can't change export name (Bug #2490)
 FIX: In Cell.unfreshCellTree redoGeometric only if Topology is alive.
 
-BUG: (11/20/09, DN) UnsupportedOperationException in Quit with EmptyPreferencesFactory (Bug #2489)
+BUG: (11/20/09, DN) UnsupportedOperationException in Quit with
+     EmptyPreferencesFactory (Bug #2489)
 FIX: In EmptyPreferencesFactory.flushSpi don't throw an exception.
 
-BUG: (11/20/09, DN) UnsupportedOperationException on MacOSX with EmptyPreferencesFactory (Bug #2488)
-FIX: Don't setRemoteType in SunAsyncMenu class initialization. Instead replace TYPE_LOCAL
-     by TYPE_SSH in SunAsyncMenu.getExec and SunAsyncMenu.getCdToDir .
+BUG: (11/20/09, DN) UnsupportedOperationException on MacOSX with
+     EmptyPreferencesFactory (Bug #2488)
+FIX: Don't setRemoteType in SunAsyncMenu class initialization. Instead replace
+     TYPE_LOCAL by TYPE_SSH in SunAsyncMenu.getExec and SunAsyncMenu.getCdToDir .
 
-BUG: (11/19/09, DN) Bad diagnostics when ".bsh" script calls unavailable Java method. (Bug #2484).
-FIX: In EvalJavaBsh.doSource apply doGetTarget not only to bsh.TargetError but to any bsh.EvalError .
+BUG: (11/19/09, DN) Bad diagnostics when ".bsh" script calls unavailable Java
+     method. (Bug #2484).
+FIX: In EvalJavaBsh.doSource apply doGetTarget not only to bsh.TargetError but to
+     any bsh.EvalError .
 
-BUG: (11/19/09, DN) Exception in fill gen/gate generation with EmptyPreferencesFactory (Bug #2485).
-FIX: Use Cell.isTopologyModified() instead of Cell.isContentsModified() when changing nodes.
+BUG: (11/19/09, DN) Exception in fill gen/gate generation with
+     EmptyPreferencesFactory (Bug #2485).
+FIX: Use Cell.isTopologyModified() instead of Cell.isContentsModified() when
+     changing nodes.
 
 BUG: (11/19/09, GVG) NullPointerException importing GDS (Bug #2486).
-FIX: GenMath.getAreaOfPoints() didn't consider some points are null from GDS.buildComplexNode for example.
+FIX: GenMath.getAreaOfPoints() didn't consider some points are null from
+     GDS.buildComplexNode for example.
 
 BUG: (11/19/09, SMR) Auto-stitcher does too much (Bug #2363).
 FIX: Made stitcher shrink pin ports to the size of connected extended arcs.
 
 IMP: (11/18/09, DN) NodeInst are owned by Topology object.
-   So GarbageCollector can discard them in unused Topologies.
+     So GarbageCollector can discard them in unused Topologies.
 
-BUG: (11/18/09, GVG/JKG) NullPointerException on wiring switching wiring targets (Bug #2480)
-FIX: Rounding dbmouse in ClickZoomWireListener:switchWiringTarget. Extra DBMath in InteractiveRouter.getCornerLocation()
+BUG: (11/18/09, GVG/JKG) NullPointerException on wiring switching wiring targets
+     (Bug #2480)
+FIX: Rounding dbmouse in ClickZoomWireListener:switchWiringTarget. Extra DBMath
+     in InteractiveRouter.getCornerLocation()
 
 BUG: (11/18/09, GVG) Crash when typing "/" (Bug #2483)
 FIX: Load next message if nothing has been shown yet.
@@ -260,28 +317,34 @@ FIX: Do not request current technology in TextUtils.atof().
 
 IMP: (11/18/09, SMR) Arrow-key movement now goes by grid-aligned amount.
 
-BUG: (11/17/09, DN) datatbase exceptions, cannot save... (Bug #2479)
+BUG: (11/17/09, DN) database exceptions, cannot save... (Bug #2479)
 FIX: In CellTree.with() test for empty subTrees[i] .
 
-IMP: (11/17/09, GVG) Avoid NPE in Pad generation in case of errors in input (Bug #2478)
+IMP: (11/17/09, GVG) Avoid NPE in Pad generation in case of errors in input (Bug
+     #2478)
 
 BUG: (11/17/09, GVG) Electric postscript output not working (Bug #2477)
-FIX: Replaced "Rectangle2D printBound"; for "ERectangle printBound" in the postscript prefs.
+FIX: Replaced "Rectangle2D printBound"; for "ERectangle printBound" in the
+     postscript prefs.
 
 IMP: (11/17/09, GVG) 4 new layers in 40nm (Bug #2475)
 
 IMP: (11/16/09, DN) CellTree is cached in Cell.tree .
-    Remove cell bounds computation code from mutable database.
+     Remove cell bounds computation code from mutable database.
 
-BUG: (11/16/09, GVG) User Prefs/Proj Prefs/Text exports: double file extensions (Bug #2473)
+BUG: (11/16/09, GVG) User Prefs/Proj Prefs/Text exports: double file extensions
+     (Bug #2473)
 FIX: Considering case when two FileTypes have the same extensions
 
-BUG: (11/16/09, SMR) Auto-stitch broken: adjacent ports from two instances do not stitch (Bug #2472)
+BUG: (11/16/09, SMR) Auto-stitch broken: adjacent ports from two instances do not
+     stitch (Bug #2472)
 FIX: AutoStitch.ZEROSIZEPINS = false
 
-IMP: (11/16/09, DN) Don't check in Snapshot.with those invariants which were checked in CellTree.with .
+IMP: (11/16/09, DN) Don't check in Snapshot.with those invariants which were
+     checked in CellTree.with .
 
-IMP: (11/15/09, DN) Ensure that Cell.cellBounds are the same as CellTree.getBounds().
+IMP: (11/15/09, DN) Ensure that Cell.cellBounds are the same as
+     CellTree.getBounds().
 
 IMP: (11/15/09, DN) Don't need to supply cell bounds to Snapshot.
 
@@ -289,62 +352,74 @@ IMP: (11/15/09, DN) Move "packaging" upper due to netbeans project.
 
 IMP: (11/15/09, AM) Make legacy code off-by-default.
 
-BUG:(11/13/09, DN) NullPointerException in repaint when trying to highlight deleted port (Bug #2471).
-FIX: In Highlight.HighlightEOBJ.showInternalHighlight return when eobj is not linked.
+BUG:(11/13/09, DN) NullPointerException in repaint when trying to highlight
+     deleted port (Bug #2471).
+FIX: In Highlight.HighlightEOBJ.showInternalHighlight return when eobj is not
+     linked.
 
 IMP: (11/13/09, GVG) Working on a new DSPF reader
 
-IMP: (11/13/09, SMR) Arc Preferences now has control over "fat wiring mode" (Bug #2470).
+IMP: (11/13/09, SMR) Arc Preferences now has control over "fat wiring mode" (Bug
+     #2470).
 
 BUG: (11/12/09, DN) AssertionError in getShapeOfPort (Bug #2468)
 FIX: In Schematics.genShapeOfPort gen shape in grid units when lambda != 1.
-Not getting double polys in NodeInsts with outline.
+     Not getting double polys in NodeInsts with outline.
 
 IMP: (11/12/09, GVG) EditWindow0.globalScale cached during class creation.
-Caching placement prefs in Verilog input prefs.
+     Caching placement prefs in Verilog input prefs.
 
 IMP: (11/12/09, GVG) "\" character causing errors in VerilogReader (Bug #2465)
-Not removing "\" from cell instance name.
+     Not removing "\" from cell instance name.
 
-IMP: (11/12/09, DN) Technology.getShapeOfPort() computes shape of ports both in mutable and immutable way
-    for self-check.
+IMP: (11/12/09, DN) Technology.getShapeOfPort() computes shape of ports both in
+     mutable and immutable way for self-check.
 
 BUG: (11/11/09, GVG) "\" character causing errors in VerilogReader (Bug #2465)
 FIX: Assertion removed. The "\" removed from the name.
 
 IMP: (11/11/09, GVG) Run placement tool after Verilog reader (Bug #2467)
-New preferene added.
+     New preference added.
 
-BUG: (11/10/09, GVG) Verilog not including subcells found in other libraries (Bug #2466)
+BUG: (11/10/09, GVG) Verilog not including subcells found in other libraries (Bug
+     #2466)
 FIX: Using Library.findCellInLibraries() instead of lib.findNodeProto()
 
-IMP: (11/10/09, DN) Export doesn't contain a strong reference to original PortInst.
+IMP: (11/10/09, DN) Export doesn't contain a strong reference to original
+     PortInst.
 
 IMP: (11/09/09, GVG) TechEditorWizard should produce some 3D values (Bug #2235)
-Implemented with Bug #2460
+     Implemented with Bug #2460
 
-BUG: (11/09/09, GVG) Switching fro JELIB to DELIB generates wrong file extensions (Bug #2328)
+BUG: (11/09/09, GVG) Switching fro JELIB to DELIB generates wrong file extensions
+     (Bug #2328)
 FIX: Warns now about the correct filename. Points 1 and 3 not implemented.
 
 BUG: (11/9/09, DN) Null pointer exception while pasting layout cells (Bug #2462).
 FIX: In CellTree.with always continue cellUsages loop when cui == null.
 
-BUG: (11/9/09, GVG) Incorrrect verilog netlist for individual ports with bus tags (Bug #2461)
+BUG: (11/9/09, GVG) Incorrect verilog netlist for individual ports with bus tags
+     (Bug #2461)
 FIX: Fixed wrong export selection when the signal is descending.
 
-IMP: (11/9/09, DN) Snapshot contains CellTree objects which can compute Cell bounds.
-    For some time Cell bounds will be computed both by Snapshot and by EDatabase to self-check.
+IMP: (11/9/09, DN) Snapshot contains CellTree objects which can compute Cell
+     bounds. For some time Cell bounds will be computed both by Snapshot and by
+     EDatabase to self-check.
 
 BUG: (11/6/09, GVG) Writing Verilog deck from Verilog view (Bug #1323)
 FIX: Library_Cell format is just one option.
 
-IMP: (11/6/09, GVG) Ability to specify min/spacing rules for other layers (Bug #2460)
-IMP: (11/6/09, GVG) Improving syntaxt in TechEditorWizard file to include rules in @extra_layers
+IMP: (11/6/09, GVG) Ability to specify min/spacing rules for other layers (Bug
+     #2460)
+
+IMP: (11/6/09, GVG) Improving syntax in TechEditorWizard file to include rules
+     in @extra_layers
 
 BUG: (11/5/09, GVG) VerilogReader can't parser /* comments (Bug #2459)
 FIX: Added ability to read until end of the */ comment.
 
-BUG: (11/5/09, GVG) Out of bounds expection in Verilog writing with invalid syntax (Bug #2458)
+BUG: (11/5/09, GVG) Out of bounds exception in Verilog writing with invalid
+     syntax (Bug #2458)
 FIX: Added extra code to detect syntax errors in input/output lines
 
 IMP: (11/4/09, GVG) Ability to generate light internal version (Bug #2457)
@@ -359,8 +434,8 @@ FIX: Created EditWindow0.EditWindowSmall to pass to Jobs.
 
 IMP: (11/03/09, DN) Cell.computeBounds() doesn't use ArcInsts.
 
-IMP: (11/03/09, DN) Compaction.compactNow starts uses job.startOMyResult to be scheduled
-    in regressions before QuitJob.
+IMP: (11/03/09, DN) Compaction.compactNow starts uses job.startOMyResult to be
+     scheduled in regressions before QuitJob.
 
 IMP (11/02/09, GVG) Add Extra Layers in Palette (Bug #2454)
 
@@ -377,12 +452,13 @@ IMP: (11/01/09, AM) com.sun.electric.tool.simulation.test needs its
      point to them.
 
 IMP: (10/30/09, GVG) TechEditWizard improvements: scrolls in some tabs,
-image and labels overlap in well/implant tab (Bug #2452)
+     image and labels overlap in well/implant tab (Bug #2452)
 
 BUG: (10/30/09, GVG) Wrong setup of metal layers in Metal tab (Bug @2451)
 FIX: Wrong loop limit detected in TechEditWizardData.setNumMetalLayers.
 
-BUG: (10/30/09, GVG) Inconsistencies in 3D values for Active-cut and n-active (Bug #2450)
+BUG: (10/30/09, GVG) Inconsistencies in 3D values for Active-cut and n-active
+     (Bug #2450)
 FIX: 3D values for Active-cut and n-active in cmos90 fixed.
 
 IMP: (10/29/09, AM) Signalyzer: implementation complete, tested, and
@@ -399,8 +475,8 @@ IMP: (10/29/09, AM) Make ChainNode and
 IMP: (10/29/09, AM) Support HSpice output in BTree code.
 
 BUG: (10/28/09, GVG) Bizarre rotation with facet-center selected (Bug #2449)
-FIX: Facet center ignored if selected. Arcs whose both NI nodes are in the list are also
-included.
+FIX: Facet center ignored if selected. Arcs whose both NI nodes are in the list
+     are also included.
 
 BUG: (10/28/09, DN) Export not visible while editing in place (Bug #2438).
 FIX: In VectorDrawing.render and LayerDrawing.drawCell pass proper
@@ -451,12 +527,15 @@ IMP: (10/23/09, AM) Move com.sun.async.test to
      com.sun.electric.tool.simulation.test (as discussed with SMR,
      JKG)
 
-BUG: (10/23/09, GVG) Fill generator exception when cell already exists (Bug #2444)
+BUG: (10/23/09, GVG) Fill generator exception when cell already exists (Bug
+     #2444)
 FIX: Printing warning instead of throwing assertion.
 
-IMP: (10/23/09, JG) Added more invisible layer configs for metals 10, 11, 12 in 40nm
+IMP: (10/23/09, JG) Added more invisible layer configs for metals 10, 11, 12 in
+     40nm
 
-IMP: (10/23/09, GVG) Ability to provide layer functions in extra layer defintion (Bug #2445)
+IMP: (10/23/09, GVG) Ability to provide layer functions in extra layer definition
+     (Bug #2445)
 
 BUG: (10/23/09, SMR) Nodes in the component menu are drawn too small
      when there are larger nodes in the same class (Bug #2233).
@@ -474,18 +553,19 @@ FIX: Temporary patch to avoid the exception. Not the solution yet.
 
 ************************* Version 8.10k: ******************************
 
-BUG: (10/21/09, SMR) Verilog needs to separate instance names and network names (Bug #2430)
+BUG: (10/21/09, SMR) Verilog needs to separate instance names and network names
+     (Bug #2430)
 FIX: In Verilog.writeCellTopology() detect and modify instance names.
 
-BUG: (10/20/09, GVG) System clipboard data unavailable
-after second copy/ paste on MacOSX (Bug #2440)
+BUG: (10/20/09, GVG) System clipboard data unavailable after second copy/paste on
+     MacOSX (Bug #2440)
 FIX: Catching the exception on MacOSX. It is a known issue on that platform.
 
 BUG: (10/20/09, GVG) NPE on Window -> Move to other display (Bug #2436)
 FIX: Not finalizing old objects until new ones are created.
 
 IMP: (10/19/09, GVG) Ability to add pins/arcs to extra layers defined in txt file
-used by TechEditorWizard (Bug #2435)
+     used by TechEditorWizard (Bug #2435)
 
 IMP: (10/19/09, GVG) Scale GDS on export option (Bug #2434)
 
@@ -493,20 +573,22 @@ BUG: (10/18/09, AM) BTree waveform code randomly transposes signals.
 FIX: Heed the distinction between a signal's "index" and its "number".
 
 BUG: (10/18/09, DN) NPE while moving objects in threadsafe mode (Bug #2431).
-    Cell.getBounds() algorithm had a bug which appeared in threadsafe mode with
-    its lazy RTree calculation. Previously RTree calculated always and these calculation
-    hid this bug.
+     Cell.getBounds() algorithm had a bug which appeared in threadsafe mode with
+     its lazy RTree calculation. Previously RTree calculated always and these
+     calculation hid this bug.
 FIX: In Cell.getBounds() recalculate bounds of subcells in BOUNDS_CORRECT_GEOM
-    and BOUNDS_RECOMPUTE cases.
+     and BOUNDS_RECOMPUTE cases.
 
-BUG: (10/16/09, GVG) TechEditorWizard  doesn't write metal pin when numMetals=1 (Bug #2433)
-FIX: Pins not longer defined in same loop as the metal contacts. Extra code to detect arcs
-without pins associated (in an invalid tech for example).
+BUG: (10/16/09, GVG) TechEditorWizard  doesn't write metal pin when numMetals=1
+     (Bug #2433)
+FIX: Pins not longer defined in same loop as the metal contacts. Extra code to
+     detect arcs without pins associated (in an invalid tech for example).
 
-BUG: (10/16/09, GVG) NPE if no pin associated to the arc is found (bug #2432)
+BUG: (10/16/09, GVG) NPE if no pin associated to the arc is found (Bug #2432)
 FIX: Case detected (probably due to invalid tech) and routing path is discarded
 
-IMP: (10/16/09, GVG) Better caching of IllegalArgumentException in GDS IO (bug #2423)
+IMP: (10/16/09, GVG) Better caching of IllegalArgumentException in GDS IO (Bug
+     #2423)
 
 BUG: (10/16/09, DN) NPE while moving objects (Bug #2431).
 FIX: Measures to prevent Electric from hang:
@@ -516,18 +598,22 @@ FIX: Measures to prevent Electric from hang:
      4) Cell.recover() assign cellBounds to computed bounds instead of assert;
 
 BUG: (10/16/09, DN) NPE in CVS with threadsafe mode on (Bug #2429).
-FIX: In Edit.MarkForEditJob.doIt call fieldVariableChanged("uneditMatchedStrings") earlier.
+FIX: In Edit.MarkForEditJob.doIt call
+     fieldVariableChanged("uneditMatchedStrings") earlier.
 
 IMP: (10/13/09, GVG) Threadsafe (FULL_SCREEN_SAFE) mode back to default.
-Use -nothreadsafe to switch to previous mode.
+     Use -nothreadsafe to switch to previous mode.
 
-IMP: (10/12/09, GVG) Export names not sorted multi-object properties dialog (Bug #2419).
-Adding sorting of highlights before they added into the selection list.
+IMP: (10/12/09, GVG) Export names not sorted multi-object properties dialog (Bug
+     #2419).  Adding sorting of highlights before they added into the selection
+     list.
 
-BUG: (10/12/09, GVG) build.xml broken: not producing the right thing for GNU releases (Bug #2427)
+BUG: (10/12/09, GVG) build.xml broken: not producing the right thing for GNU
+     releases (Bug #2427)
 FIX: In generalPurposeJar, rolling back to unjarSun and zipfilesets commented out
 
-BUG: (10/12/09, GVG) NPE in Spice if no schematic associated to an icon is found (Bug #2428)
+BUG: (10/12/09, GVG) NPE in Spice if no schematic associated to an icon is found
+     (Bug #2428)
 FIX: Detecting the case and assigning icon name as unique name.
 
 BUG: (10/10/09, AM) Waveform viewer sometimes truncates data
@@ -543,16 +629,19 @@ IMP: (10/10/09, AM) NewSignal: request approximations by supplying a
 
 IMP: (10/10/09, AM) Implement BTree.{getOrdFromKey,getOrdFromKeyFloor}.
 
-BUG: (10/10/09, AM) changes to grid do not take effect until next repaint (Bug #2409)
+BUG: (10/10/09, AM) changes to grid do not take effect until next repaint (Bug
+     #2409)
 FIX: Invoke EditWindow.repaintAllContents() from GridAndAlignmentTab.
 
 BUG: (10/10/09, AM) Re-deprecate Infrastructure.waitSeconds() (Bug #2386)
 FIX: Use Thread.sleep() instead.
 
-BUG: (10/10/09, AM) Make of ColorPrefType.HIGHLIGH* values in pulsing highlight (Bug #2401)
+BUG: (10/10/09, AM) Make of ColorPrefType.HIGHLIGH* values in pulsing highlight
+     (Bug #2401)
 FIX: Convert HIGHLIGHT color to HSV, then use hue for pulsation.
 
-BUG: (10/10/09, AM) Reading Logical Effort libraries produces many errors (Bug #2410)
+BUG: (10/10/09, AM) Reading Logical Effort libraries produces many errors (Bug
+     #2410)
 FIX: Open each of the three libraries, change something, save it, and exit.
 
 IMP: (10/10/09, AM) update the LESettings{ic,sch} in purpleGeneric180.jelib.
@@ -569,12 +658,14 @@ FIX: Check that Environment.settingValues are of correct type.
 
 IMP: (10/8/09, GVG) Better error explanation while reading XML tech (Bug #2425)
 
-IMP: (10/8/09, GVG) Making extra_layers definition in TechEditorWizard available by default
+IMP: (10/8/09, GVG) Making extra_layers definition in TechEditorWizard available
+     by default
 
 BUG: (10/8/09, GVG) GDS and too large coordinates (Bug #2423)
 FIX: Caching IllegalArgumentException in EPoint
 
-BUG: (10/8/09, GVG) Exceptions in TechEditorWizard with incomplete tech txt files (Bug #2422)
+BUG: (10/8/09, GVG) Exceptions in TechEditorWizard with incomplete tech txt files
+     (Bug #2422)
 FIX: Consider incomplete metal definition.
 
 BUG: (10/8/09, DN) Threadsafe mode slow? (Bug #2420).
@@ -583,35 +674,41 @@ FIX: Disable database self-test in UserInterfaceMain.showSnapshot.
 BUG: (10/8/09, DN) Threadsafe mode slow? (Bug #2420).
 FIX: Disable database self-test in UserInterfaceMain.showSnapshot.
 
-IMP: (10/7/09, GVG) Show cell results in new window not working for errors? (Bug #2421)
+IMP: (10/7/09, GVG) Show cell results in new window not working for errors? (Bug
+     #2421)
 
 IMP: (10/7/09, AM) Ensure that the JVM exits with nonzero exit code if
     an exception is thrown in Batch mode (so Electric can be called
     from Makefiles).
 
 IMP: (10/7/09, GVG) Back to DEFAULT_MODE = Mode.FULL_SCREEN_UNSAFE until
-"threadsafe mode slow?" (bug #2420) is further investigated.
+     "threadsafe mode slow?" (bug #2420) is further investigated.
 
-IMP: (10/7/09, DN) cvspm.Edit.UneditResponder stores matched Strings in a list for later processing
-    in Edit.MarkForEditJob.terminateOK (Bug #2417).
+IMP: (10/7/09, DN) cvspm.Edit.UneditResponder stores matched Strings in a list
+     for later processing in Edit.MarkForEditJob.terminateOK (Bug #2417).
 
 BUG: (10/7/09, DN) Threadsafe mode doesn't remember cells expanded (Bug #2416).
-FIX: Move Cell.loadExpandStatus from Library readers to FileMenu.ReadLibrary.terminateOK.
+FIX: Move Cell.loadExpandStatus from Library readers to
+     FileMenu.ReadLibrary.terminateOK.
 
 BUG: (10/7/09, DN) DefGridXBoldFrequency is accessed from null (Bug #2415).
-FIX: Create class AbstractDrawing.DrawingPreferences to pass preferences to RenderJob.
+FIX: Create class AbstractDrawing.DrawingPreferences to pass preferences to
+     RenderJob.
 
-BUG: (10/7/09, DN) Inconsistent state of linkedlibs in DB after getting errors in SaveAs (Bug #2406).
-FIX: In FileMenu.RenameAndSaveLibraryTask.renameAndSave() throw JobException on failure in thread-safe mode.
+BUG: (10/7/09, DN) Inconsistent state of linkedlibs in DB after getting errors in
+     SaveAs (Bug #2406).
+FIX: In FileMenu.RenameAndSaveLibraryTask.renameAndSave() throw JobException on
+     failure in thread-safe mode.
 
-BUG: (10/7/09, DN) Marina scripts fail with "java.lang.AssertionError" (Bug #2414).
+BUG: (10/7/09, DN) Marina scripts fail with "java.lang.AssertionError" (Bug
+     #2414).
 FIX: Change Output.OutputCellInfo from CLIENT_EXAMINE to SERVER_EXAMINE .
      In Make.UserInterfacDummy.terminateJob check for Job.isThreadSeafe().
 
 IMP: (10/5/09, GVG) Toggle Grid and resolution warnings (Bug# 2404)
 
 BUG: (10/1/09, GVG) Marina scripts fail with "Conflicting thread modes:
-BATCH and THREAD_SAFE" (Bug #2411)
+     BATCH and THREAD_SAFE" (Bug #2411)
 FIX: New Mode.THREAD_SAFE is defined (bug #2293) before -batch condition.
 
 IMP: (9/30/09, AM) Rename com.sun.electric.tool.btree to
@@ -848,7 +945,7 @@ IMP: (9/9/09, AM) Remove com.sun.electric.tool.io.input.BTree (use
 ************************* Version 8.10f: *******************************
 
 BUG: (9/9/09, DN) Orientation JUnit test fails in JVM-1.6 64-bit.
-FIX: In Orientation consturctor use StringMath instead of Math.
+FIX: In Orientation constructor use StringMath instead of Math.
 
 BUG: (9/8/09, GVG) NPE while resetting all preferences in Preferences dialog (Bug
      #2376)
@@ -859,7 +956,7 @@ IMP: (9/8/09, DN) Move client queue from ClientJobManager to
 
 IMP: (9/7/09, DN) Job.currentUI is handled similar to StreamClient .
 
-BUG: (9/7/09, DN) Starting Jobs from Jobs failes.
+BUG: (9/7/09, DN) Starting Jobs from Jobs fails.
 FIX: In Job.startJob compute "startedByServer" correctly.
 
 IMP: (9/7/09, DN) Preparations for thread-safe database.
@@ -881,8 +978,8 @@ BUG: (9/3/09, JKG) bug 2351, logical effort had hard coded assumed values for
      They are now specifiable as logical effort settings
 
 IMP: (9/3/09, GVG) Build.xml modified to unjar Jython and to include it into
-     electric.jar (ant jar).
-That is to run Scripting regression in batch mode (part of Bug #2358)
+     electric.jar (ant jar).  That is to run Scripting regression in batch mode
+     (part of Bug #2358)
 
 BUG: (9/3/09, DN) Command line "-batch -s script.bsh" executes script without any
      EditingPreferences (Bug #2373)
@@ -1322,7 +1419,8 @@ IMP: (7/6/09, GVG) TechWizardEditor and non-deterministic XML output (Bug #2250)
 BUG: (7/6/09, GVG) Stitch fill generator and flat cap cells (Bug #2274)
 FIX: InteractiveRouter detecting singular lines (defined by same point).
 
-IMP: (7/6/09, GVG) Stitch fill generator needs to find all possible connections with cell instances (Bug #2273)
+IMP: (7/6/09, GVG) Stitch fill generator needs to find all possible connections
+     with cell instances (Bug #2273)
 
 BUG: (7/6/09, SMR) Extension renaming broken for DELIBs (Bug #2256).
 FIX: Fixed Output.writeLibrary().
