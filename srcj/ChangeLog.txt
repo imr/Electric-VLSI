@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
+BUG: (12/14/09, GVG) Out of bounds exception while plotting waveform into PDF (Bug #2543)
+FIX: Extra code to detect if given extension is a known one.
+
 BUG: (12/14/09, GVG) NPE trying to print from Waveform viewer (Bug #2542)
 FIX: Detects now non-EditWindow context and send error message.
 

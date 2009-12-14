@@ -352,15 +352,21 @@ public class OpenFile
 				{
 					String dir = TextUtils.getFilePath(TextUtils.makeURLToFile(fileName));
 					selectedType.setGroupPath(dir);
-					String extension = selectedType.getExtensions()[0];
-					int dotPos = fileName.lastIndexOf('.');
-					if (dotPos < 0)
-						fileName += "." + extension; else
-					{
-						if (!fileName.substring(dotPos+1).startsWith(extension))
-							fileName = fileName + "." + extension;
-					}
-				}
+                    String [] exts = selectedType.getExtensions();
+                    boolean validExtension = exts != null && exts.length > 0;
+                    if (validExtension)  // a known extension
+                    {
+                        String extension = exts[0];
+                        int dotPos = fileName.lastIndexOf('.');
+                        if (dotPos < 0)
+                            fileName += "." + extension;
+                        else
+                        {
+                            if (!fileName.substring(dotPos+1).startsWith(extension))
+                                fileName = fileName + "." + extension;
+                        }
+                    }
+                }
 				return fileName;
 			}
 			return null;
