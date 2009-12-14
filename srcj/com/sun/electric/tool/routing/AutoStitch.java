@@ -853,6 +853,8 @@ name=null;
 
 		// now look at every layer in this node
 		Rectangle2D oBounds = oNi.getBounds();
+//System.out.println("BOUNDS OF "+oNi.describe(false)+" IS "+oBounds.getMinX()+"<=X<="+oBounds.getMaxX()+" AND "+oBounds.getMinY()+"<=Y<="+oBounds.getMaxY());
+//System.out.println("BUT NODE IS AT ("+oNi.getAnchorCenterX()+","+oNi.getAnchorCenterY()+") AND IS "+oNi.getLambdaBaseXSize()+"x"+oNi.getLambdaBaseYSize()+" WITH ORIENTATION "+oNi.getOrient().toJelibString());
 		if (ni.isCellInstance())
 		{
 			// complex node instance: look at all ports near this bound
@@ -1378,7 +1380,8 @@ name=null;
 	{
 		// get network associated with the node/port
 		PortInst pi = ni.findPortInstFromProto(pp);
-        // keep track of which networks we've already tied together
+
+		// keep track of which networks we've already tied together
         Set<Network> netsConnectedTo = new TreeSet<Network>();
         Network net = top.getNodeNetwork(ni, pp);
         netsConnectedTo.add(net);
