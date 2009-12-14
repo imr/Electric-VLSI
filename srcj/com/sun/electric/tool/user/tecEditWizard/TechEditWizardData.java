@@ -4150,7 +4150,7 @@ public class TechEditWizardData
 
         // Cuts
         double cutEnd = scaledValue(width.value/2 + overhang.value);
-        double cutEndY = scaledValue(contact_size.value/2);
+        double cutEndY = 0; // not sure why has to be zero and not scaledValue(contact_size.value/2);
         // left
         nodesList.add(makeXmlMulticut(cutEnd+contSize, -1, -cutEnd, -1, cutEndY, -1, cutEndY, 1,
             conLayer, contSize, spacing, spacing));
