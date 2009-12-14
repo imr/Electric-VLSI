@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
+BUG: (12/14/09, GVG) NPE trying to print from Waveform viewer (Bug #2542)
+FIX: Detects now non-EditWindow context and send error message.
+
 IMP: (12/13/09, AM) Crude but usable support for plotting simulation
      data via GnuPlot (both on-screen and as PDF for publication).
 

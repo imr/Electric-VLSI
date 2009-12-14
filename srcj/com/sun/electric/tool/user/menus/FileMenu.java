@@ -41,7 +41,6 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.EditWindow0.EditWindowSmall;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
@@ -1556,7 +1555,16 @@ public class FileMenu {
 			RepaintManager currentManager = RepaintManager.currentManager(overall);
 			currentManager.setDoubleBufferingEnabled(false);
 
-		    ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
+            if (!(wf.getContent() instanceof EditWindow))
+            {
+                String message = "Can't print from a non-EditWindow.";
+                System.out.println(message);
+                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message,
+                    "Printing Cell", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
 			Dimension oldSize = overall.getSize();
 			ep.setOldSize(oldSize);
 
