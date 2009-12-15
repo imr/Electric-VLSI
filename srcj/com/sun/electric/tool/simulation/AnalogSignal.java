@@ -93,6 +93,21 @@ public class AnalogSignal extends Signal implements MultiSweepSignal
 		for (int sweep = 0, numSweeps = getNumSweeps(); sweep < numSweeps; sweep++)
 		{
 			Waveform waveform = getWaveform(sweep);
+            if (waveform instanceof BTreeNewSignal) {
+                // Hack
+                BTreeNewSignal btns = (BTreeNewSignal)waveform;
+                NewSignal.Approximation<ScalarSample> approx = btns.getPreferredApproximation();
+                if (approx.getTime(0) < lowTime)
+                    lowTime = approx.getTime(0);
+                if (approx.getTime(approx.getNumEvents()-1) > highTime)
+                    highTime = approx.getTime(approx.getNumEvents()-1);
+                if (approx.getSample(btns.eventWithMinValue).getValue() < lowValue)
+                    lowValue = approx.getSample(btns.eventWithMinValue).getValue();
+                if (approx.getSample(btns.eventWithMaxValue).getValue() > highValue)
+                    highValue = approx.getSample(btns.eventWithMaxValue).getValue();
+                continue;
+            }
+
 			for(int i=0, numEvents = waveform.getNumEvents(); i<numEvents; i++)
 			{
 				waveform.getEvent(i, result);

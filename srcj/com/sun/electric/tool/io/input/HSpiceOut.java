@@ -860,7 +860,8 @@ public class HSpiceOut extends Simulate
 				context = name.substring(0, lastDotPos);
 				name = name.substring(lastDotPos+1);
 			}
-			an.addSignal(name, context, minTime, maxTime, minValues[k], maxValues[k]);
+			AnalogSignal as = an.addSignal(name, context, minTime, maxTime, minValues[k], maxValues[k]);
+            an.getWaveform(as, 0);
 		}
 		stopProgressDialog();
 		System.out.println("Done reading " + analysisType.toString() + " analysis");
