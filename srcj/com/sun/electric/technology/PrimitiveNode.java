@@ -406,7 +406,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		ECAPAC("electrolytic-capacitor", "ecap", false, false),
 
         /** Describes a poly2 capacitor. */
-		POLY2CAPAC("poly2-capacitor", "ecap", false, false),
+		POLY2CAPAC("poly2-capacitor", "poly2cap", false, false),
 
         /** Describes a diode. */
 		DIODE("diode", "diode", false, false),
