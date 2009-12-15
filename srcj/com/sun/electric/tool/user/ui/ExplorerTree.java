@@ -2475,8 +2475,31 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			String defaultName = "";
 			if (cellGroup.getNumCells() > 0)
 				defaultName = (cellGroup.getCells().next()).getName();
-
-			String response = JOptionPane.showInputDialog(ExplorerTree.this, "New name for cells in this group", defaultName);
+			// check first if all cells in the group have the same name otherwise
+			// the new name is added as prefix
+			boolean allSameName = false;
+			String lastName = null;
+			for(Iterator<Cell> it = cellGroup.getCells(); it.hasNext(); )
+			{
+				String cellName = it.next().getName();
+				if (lastName != null && !lastName.equals(cellName))
+				{
+					allSameName = false;
+					break;
+				}
+				lastName = cellName;
+			}
+			if (!allSameName)
+			{
+				int ret = JOptionPane.showConfirmDialog(null,
+	                    "Warning: Renaming is not possible because cells in group\ndon't have same root name. "+
+	                    "New name will be added as prefix."+
+	                    "\nContinue Anyway?",
+	                    "Group Rename Warning", JOptionPane.YES_NO_OPTION);
+	            if (ret == JOptionPane.NO_OPTION) return;
+			}
+			String response = JOptionPane.showInputDialog(ExplorerTree.this, "New name for cells in this group", 
+					defaultName);
 			if (response == null) return;
 			CircuitChanges.renameCellGroupInJob(cellGroup, response);
 		}

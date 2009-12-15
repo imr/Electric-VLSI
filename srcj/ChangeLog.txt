@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
+IMP: (12/14/09, GVG) Rename of groups adds name instead of replacing it (Bug #2547)
+Added extra dialog to warn users about prefix action instead of replacement.
+
 IMP: (12/14/09, GVG) XML reader should report better Function errros in 
 XML tech file (Bug #2543). Better detection of the case and sending an
 error message instead of the exception.
