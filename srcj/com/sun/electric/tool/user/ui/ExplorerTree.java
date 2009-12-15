@@ -2477,7 +2477,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				defaultName = (cellGroup.getCells().next()).getName();
 			// check first if all cells in the group have the same name otherwise
 			// the new name is added as prefix
-			boolean allSameName = false;
+			boolean allSameName = true;
 			String lastName = null;
 			for(Iterator<Cell> it = cellGroup.getCells(); it.hasNext(); )
 			{

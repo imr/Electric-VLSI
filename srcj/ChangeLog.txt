@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+IMP: (12/15/09, GVG) Rename of groups adds name instead of replacing it (Bug #2547)
+Now the condition for the dialog should be the correct one.
+
 BUG: (12/15/09, AM) 12 second delay after loading tr0 file (Bug #2551)
 FIX: AnalogSignal.getBounds() was doing a linear scan.  Don't do that.
 
