@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Client;
+import com.sun.electric.tool.Job;
 
 import java.awt.Color;
 import java.awt.Toolkit;
@@ -1465,7 +1466,9 @@ public class TextUtils {
             System.out.println("URL -> File conversion error: " + e.getMessage());
             return new File(url.getPath());
         } catch (java.lang.IllegalArgumentException e) {
-            System.out.println("URL -> File conversion error: " + e.getMessage());
+        	// Libraries available in the jar fall in this case. Error message only in debug mode
+        	if (Job.getDebug())
+        		System.out.println("URL -> File conversion error: " + e.getMessage());
             return null;
         }
     }

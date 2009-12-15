@@ -1601,7 +1601,9 @@ public class CircuitChanges
 			if (lib.isHidden()) continue;
 			if (!lib.isFromDisk()) continue;
 			String dirName = lib.getLibFile().getFile();
-			String fileName = TextUtils.getFile(lib.getLibFile()).getName();
+			File file = TextUtils.getFile(lib.getLibFile());
+			if (file == null) continue; // in case of libraries included in jar package
+			String fileName = file.getName();
 
 			// ignore if a library file
 			URL libFile = LibFile.getLibFile(fileName);
