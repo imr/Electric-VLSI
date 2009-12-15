@@ -645,9 +645,11 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			if (fun == PrimitiveNode.Function.RESPPOLY || fun == PrimitiveNode.Function.RESNPOLY ||
                 fun == PrimitiveNode.Function.RESPNSPOLY || fun == PrimitiveNode.Function.RESNNSPOLY)
 				textField1Label.setText("Poly resistance:");
+            else if (fun == PrimitiveNode.Function.RESHIRESPOLY2)
+            	textField1Label.setText("Hi-Res Poly2 resistance:");
             else if (fun == PrimitiveNode.Function.RESPWELL || fun == PrimitiveNode.Function.RESNWELL)
             	textField1Label.setText("Well resistance:");
-             else if (fun == PrimitiveNode.Function.RESPACTIVE || fun == PrimitiveNode.Function.RESNACTIVE)
+            else if (fun == PrimitiveNode.Function.RESPACTIVE || fun == PrimitiveNode.Function.RESNACTIVE)
             	textField1Label.setText("Active resistance:");
             else
             	textField1Label.setText("Resistance:");
@@ -662,8 +664,11 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		if (fun.isCapacitor())
 		{
 			if (fun == PrimitiveNode.Function.ECAPAC)
-				textField1Label.setText("Electrolytic cap:"); else
-					textField1Label.setText("Capacitance:");
+				textField1Label.setText("Electrolytic cap:");
+			else if (fun == PrimitiveNode.Function.POLY2CAPAC)
+				textField1Label.setText("Poly2 cap:");
+            else
+			    textField1Label.setText("Capacitance:");
 //			formatinfstr(infstr, x_(" (%s):"),
 //				TRANSLATE(us_capacitancenames[(us_electricalunits&INTERNALCAPUNITS) >> INTERNALCAPUNITSSH]));
 			Variable var = ni.getVar(Schematics.SCHEM_CAPACITANCE);

@@ -1731,7 +1731,7 @@
         </primitivePort>
     </primitiveNode>
 
-    <primitiveNode name="Hi-Res-Poly2-Resistor" fun="RESPOLY2">
+    <primitiveNode name="Hi-Res-Poly2-Resistor" fun="RESHIRESPOLY2">
         <nodeBase>
             <box>
                 <lambdaBox klx="-20.0" khx="20.0" kly="-5.0" khy="5.0"/>
@@ -3226,7 +3226,7 @@
             <menuNodeInst protoName="Poly1-Poly2-Capacitor" function="CAPAC">
                 <menuNodeText text="Cap"/>
             </menuNodeInst>
-            <menuNodeInst protoName="Hi-Res-Poly2-Resistor" function="RESPOLY2">
+            <menuNodeInst protoName="Hi-Res-Poly2-Resistor" function="RESHIRESPOLY2">
                 <menuNodeText text="Hi-RPoly2"/>
             </menuNodeInst>
             <menuNodeInst protoName="P-Active-Resistor" function="RESPACTIVE">

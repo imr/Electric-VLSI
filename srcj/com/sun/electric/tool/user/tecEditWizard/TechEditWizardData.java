@@ -3861,7 +3861,7 @@ public class TechEditWizardData
         double sox = scaledValue(soxNoScaled);
         double soy = scaledValue(hiRestOverhang.value);
         Xml.PrimitiveNodeGroup n = makeXmlPrimitive(t.nodeGroups, "Hi-Res-Poly2-Resistor",
-            PrimitiveNode.Function.RESPOLY2, 0, 0, 0, 0,
+            PrimitiveNode.Function.RESHIRESPOLY2, 0, 0, 0, 0,
             new SizeOffset(sox, sox, soy, soy),
             nodesList, nodePorts, null, false);
         g.addElement(n, "Hi-RPoly2");

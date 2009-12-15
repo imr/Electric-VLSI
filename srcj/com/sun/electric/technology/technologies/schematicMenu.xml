@@ -98,6 +98,15 @@
             <menuNodeInst protoName="Resistor" function="RESPACTIVE" techBits="6">
                 <menuNodeText text="P-Active" size="0"/>
             </menuNodeInst>
+            <menuNodeInst protoName="Resistor" function="RESNNSPOLY" techBits="7">
+                <menuNodeText text="NoS-N-Poly" size="0"/>
+            </menuNodeInst>
+            <menuNodeInst protoName="Resistor" function="RESPNSPOLY" techBits="7">
+                <menuNodeText text="NoS-P-Poly" size="0"/>
+            </menuNodeInst>
+            <menuNodeInst protoName="Resistor" function="RESHIRESPOLY2" techBits="9">
+                <menuNodeText text="Hi-Res-Poly2" size="0"/>
+            </menuNodeInst>
         </menuBox>
         <menuBox>
             <menuNode>Inductor</menuNode>
@@ -109,6 +118,9 @@
             </menuNodeInst>
             <menuNodeInst protoName="Capacitor" function="ECAPAC" techBits="1">
                 <menuNodeText text="Electro" size="0"/>
+            </menuNodeInst>
+            <menuNodeInst protoName="Capacitor" function="POLY2CAPAC" techBits="2">
+                <menuNodeText text="Poly2" size="0"/>
             </menuNodeInst>
         </menuBox>
         <menuBox>

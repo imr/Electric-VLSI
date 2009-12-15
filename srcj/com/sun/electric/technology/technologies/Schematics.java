@@ -37,7 +37,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow0;
@@ -148,7 +147,7 @@ public class Schematics extends Technology
     /** Defines a p-active Resistor. */                     private static final int RESISTPACTIVE =  6;
     /** Defines an n-poly non silicide Resistor. */         private static final int RESISTNNSPOLY =  7;
     /** Defines a p-poly non silicide Resistor. */          private static final int RESISTPNSPOLY =  8;
-    /** Defines a poly2 Resistor. */                        private static final int RESISTPOLY2 =  9;
+    /** Defines a hi resisistant poly2 Resistor. */         private static final int RESISTHIRESPOLY2 =  9;
 
 	/** Defines a Transconductance two-port (VCCS). */		private static final int TWOPVCCS =  0;
 	/** Defines a Transresistance two-port (CCVS). */		private static final int TWOPCCVS =  1;
@@ -235,8 +234,9 @@ public class Schematics extends Technology
 	private Technology.NodeLayer [] tran4LayersNJFET, tran4LayersPJFET;
 	private Technology.NodeLayer [] tran4LayersDMES, tran4LayersEMES;
 	private Technology.NodeLayer [] diodeLayersNorm, diodeLayersZener;
-	private Technology.NodeLayer [] capacitorLayersNorm, capacitorLayersElectrolytic;
-    private Technology.NodeLayer [] resistorLayersNorm, resistorLayersNPoly, resistorLayersPPoly;
+	private Technology.NodeLayer [] capacitorLayersNorm, capacitorLayersElectrolytic, capacitorLayersPoly2;
+    private Technology.NodeLayer [] resistorLayersNorm, resistorLayersNPoly, resistorLayersPPoly, resistorLayersHiResPoly2;
+    private Technology.NodeLayer [] resistorLayersNNSPoly, resistorLayersPNSPoly;
     private Technology.NodeLayer [] resistorLayersNActive, resistorLayersPActive, resistorLayersNWell, resistorLayersPWell;
 
 	// this much from the center to the left edge
@@ -1129,6 +1129,18 @@ public class Schematics extends Technology
 					new Technology.TechPoint(RIGHTBYP5, EdgeV.makeBottomEdge()),
 					new Technology.TechPoint(RIGHTBYP6, EdgeV.makeCenter()),
 					new Technology.TechPoint(RIGHTBYP66, EdgeV.makeCenter())});
+        /* bold resistor */
+        Technology.NodeLayer resistorLayerBold = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENEDT3, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(LEFTBYP66, EdgeV.makeCenter()),
+					new Technology.TechPoint(LEFTBYP6, EdgeV.makeCenter()),
+					new Technology.TechPoint(LEFTBYP5, EdgeV.makeTopEdge()),
+					new Technology.TechPoint(LEFTBYP3, EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(LEFTBYP1, EdgeV.makeTopEdge()),
+					new Technology.TechPoint(RIGHTBYP1, EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(RIGHTBYP3, EdgeV.makeTopEdge()),
+					new Technology.TechPoint(RIGHTBYP5, EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(RIGHTBYP6, EdgeV.makeCenter()),
+					new Technology.TechPoint(RIGHTBYP66, EdgeV.makeCenter())});
         Technology.NodeLayer resistorLayerWell = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENEDT2, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP6, EdgeV.makeTopEdge()),
 			new Technology.TechPoint(LEFTBYP6, EdgeV.makeBottomEdge()),
@@ -1141,6 +1153,7 @@ public class Schematics extends Technology
 			new Technology.TechPoint(RIGHTBYP6, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(RIGHTBYP6, EdgeV.makeTopEdge()),
 			new Technology.TechPoint(LEFTBYP6, EdgeV.makeTopEdge())});
+        /* P letter */
         Technology.NodeLayer resistorLayerP = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(RIGHTBYP4, EdgeV.makeCenter()),
 			new Technology.TechPoint(RIGHTBYP4, EdgeV.makeTopEdge()),
@@ -1148,6 +1161,7 @@ public class Schematics extends Technology
 			new Technology.TechPoint(RIGHTBYP6, EdgeV.makeCenter())});
         resistorLayerP.setMessage("P");
         resistorLayerP.setDescriptor(tdBig);
+        /* N letter */
         Technology.NodeLayer resistorLayerN = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(RIGHTBYP4, EdgeV.makeCenter()),
 			new Technology.TechPoint(RIGHTBYP4, EdgeV.makeTopEdge()),
@@ -1155,9 +1169,28 @@ public class Schematics extends Technology
 			new Technology.TechPoint(RIGHTBYP6, EdgeV.makeCenter())});
         resistorLayerN.setMessage("N");
         resistorLayerN.setDescriptor(tdBig);
+        /* US-N string */
+        Technology.NodeLayer resistorUSP = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(RIGHTBYP4, EdgeV.makeCenter()),
+			new Technology.TechPoint(RIGHTBYP4, EdgeV.makeTopEdge()),
+			new Technology.TechPoint(RIGHTBYP6, EdgeV.makeTopEdge()),
+			new Technology.TechPoint(RIGHTBYP6, EdgeV.makeCenter())});
+        resistorUSP.setMessage("US-P");
+        resistorUSP.setDescriptor(tdBig);
+         /* US-N string */
+        Technology.NodeLayer resistorUSN = new Technology.NodeLayer(node_lay, 0, Poly.Type.TEXTBOX, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(RIGHTBYP4, EdgeV.makeCenter()),
+			new Technology.TechPoint(RIGHTBYP4, EdgeV.makeTopEdge()),
+			new Technology.TechPoint(RIGHTBYP6, EdgeV.makeTopEdge()),
+			new Technology.TechPoint(RIGHTBYP6, EdgeV.makeCenter())});
+        resistorUSN.setMessage("US-N");
+        resistorUSN.setDescriptor(tdBig);
         resistorLayersNorm = new Technology.NodeLayer [] {resistorLayer};
+        resistorLayersHiResPoly2 = new Technology.NodeLayer [] {resistorLayerBold}; // bold icon
         resistorLayersNPoly = new Technology.NodeLayer [] {resistorLayer, resistorLayerN};
         resistorLayersPPoly = new Technology.NodeLayer [] {resistorLayer, resistorLayerP};
+        resistorLayersNNSPoly = new Technology.NodeLayer [] {resistorLayer, resistorUSN};
+        resistorLayersPNSPoly = new Technology.NodeLayer [] {resistorLayer, resistorUSP};
         resistorLayersNWell = new Technology.NodeLayer [] {resistorLayer, resistorLayerN, resistorLayerWell};
         resistorLayersPWell = new Technology.NodeLayer [] {resistorLayer, resistorLayerP, resistorLayerWell};
         resistorLayersNActive = new Technology.NodeLayer [] {resistorLayer, resistorLayerN, resistorLayerActive};
@@ -1187,9 +1220,13 @@ public class Schematics extends Technology
 			new Technology.TechPoint(RIGHTBYP6, BOTBYP6),
 			new Technology.TechPoint(RIGHTBYP4, BOTBYP4),
 			new Technology.TechPoint(RIGHTBYP4, BOTBYP8)});
-		capacitorLayersNorm = new Technology.NodeLayer [] {capacitorLayer};
+        Technology.NodeLayer capacitorLayerPoly2 = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENEDT3, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP2),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), TOPBYP2)}); // thick top bar
+        capacitorLayersNorm = new Technology.NodeLayer [] {capacitorLayer};
 		capacitorLayersElectrolytic = new Technology.NodeLayer [] {capacitorLayer, capacitorLayerEl};
-		capacitorNode = PrimitiveNode.newInstance("Capacitor", this, 3.0, 4.0, null, capacitorLayersNorm);
+        capacitorLayersPoly2 = new Technology.NodeLayer [] {capacitorLayer, capacitorLayerPoly2};
+        capacitorNode = PrimitiveNode.newInstance("Capacitor", this, 3.0, 4.0, null, capacitorLayersNorm);
 		capacitorNode.addPrimitivePortsFixed(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, capacitorNode, new ArcProto[] {wire_arc, bus_arc}, "a", 90,90, 0, PortCharacteristic.UNKNOWN,
@@ -2083,7 +2120,8 @@ public class Schematics extends Technology
 			{
 				case CAPACNORM: primLayers = capacitorLayersNorm;           break;
 				case CAPACELEC: primLayers = capacitorLayersElectrolytic;   break;
-			}
+                case CAPACPOLY2: primLayers = capacitorLayersPoly2;   break;
+            }
         } else if (pn == resistorNode)
 		{
 			extraBlobs = true;
@@ -2093,10 +2131,13 @@ public class Schematics extends Technology
 				case RESISTNORM:  primLayers = resistorLayersNorm;    break;
 				case RESISTNPOLY: primLayers = resistorLayersNPoly;   break;
 				case RESISTPPOLY: primLayers = resistorLayersPPoly;   break;
+				case RESISTNNSPOLY: primLayers = resistorLayersNNSPoly;   break;  // unsilicide n poly
+				case RESISTPNSPOLY: primLayers = resistorLayersPNSPoly;   break;  // unsilicide p poly
 				case RESISTNWELL: primLayers = resistorLayersNWell;   break;
 				case RESISTPWELL: primLayers = resistorLayersPWell;   break;
 				case RESISTNACTIVE: primLayers = resistorLayersNActive;   break;
 				case RESISTPACTIVE: primLayers = resistorLayersPActive;   break;
+				case RESISTHIRESPOLY2: primLayers = resistorLayersHiResPoly2;   break;
 			}
 		} else if (pn == switchNode)
 		{
@@ -2482,7 +2523,7 @@ public class Schematics extends Technology
 			if (techBits == RESISTPWELL) return PrimitiveNode.Function.RESPWELL;
 			if (techBits == RESISTNACTIVE) return PrimitiveNode.Function.RESNACTIVE;
 			if (techBits == RESISTPACTIVE) return PrimitiveNode.Function.RESPACTIVE;
-			if (techBits == RESISTPOLY2) return PrimitiveNode.Function.RESPOLY2;
+			if (techBits == RESISTHIRESPOLY2) return PrimitiveNode.Function.RESHIRESPOLY2;
 			return PrimitiveNode.Function.RESIST;
 		}
 		if (pn == capacitorNode)    //
@@ -2629,7 +2670,7 @@ public class Schematics extends Technology
         if (function == PrimitiveNode.Function.RESPWELL)      return RESISTPWELL;
         if (function == PrimitiveNode.Function.RESNACTIVE)    return RESISTNACTIVE;
         if (function == PrimitiveNode.Function.RESPACTIVE)    return RESISTPACTIVE;
-        if (function == PrimitiveNode.Function.RESPOLY2)      return RESISTPOLY2;
+        if (function == PrimitiveNode.Function.RESHIRESPOLY2) return RESISTHIRESPOLY2;
         if (function == PrimitiveNode.Function.RESIST)        return RESISTNORM;
 
 		if (function == PrimitiveNode.Function.DIODEZ)        return DIODEZENER;

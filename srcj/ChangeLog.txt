@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
+IMP/MAN: (12/15/09, GVG) More changes for new capacitors and resistors in 
+Schematics (Bug #2529). Hi-Res poly2 resistor function is now RESHIRESPOLY2
+
 BUG: (12/15/09, GVG) NPE with Find Unused Libraries and spiceparts (Bug #2548)
 FIX: Detecting cases which don't have valid URL to work with (spiceparts for example)
 

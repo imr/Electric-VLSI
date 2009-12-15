@@ -365,8 +365,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		//@Deprecated
 		PRESIST("poly-resistor", "pres", false, false),
 
-        /** Describes a poly resistor. */
-		RESPOLY2("poly2-resistor", "p2res", false, false),
+        /** Describes a hi ressistant poly resistor. */
+		RESHIRESPOLY2("hi-res-poly2-resistor", "p2res", false, false),
 
         /** Describes an n-poly resistor */
 		RESNPOLY("n-type-poly-resistor", "resnpoly", false, false),
@@ -627,7 +627,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
          * Method to tell whether this function describes a non simple resistor
          * @return true if this function describes a non simple resistor.
          */
-        public boolean isComplexResistor() { return this == PRESIST || this == WRESIST || this == RESPOLY2 ||
+        public boolean isComplexResistor() { return this == PRESIST || this == WRESIST || this == RESHIRESPOLY2 ||
             this == RESNPOLY || this == RESPPOLY ||
             this == RESNNSPOLY || this == RESPNSPOLY ||
             this == RESNWELL || this == RESPWELL ||
