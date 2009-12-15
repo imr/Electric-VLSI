@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10p: ******************************
 
+IMP: (12/14/09, GVG) XML reader should report better Function errros in 
+XML tech file (Bug #2543). Better detection of the case and sending an
+error message instead of the exception.
+
 BUG/MAN: (12/14/09, GVG) Inconsistency with DRC resolution (Bug #2540)
 FIX: Make sure the tech resolution is a lambda value rather than a
 scaled value.

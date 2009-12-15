@@ -1274,7 +1274,10 @@ public class Xml {
                     curMenuNodeInst.protoName = a("protoName");
                     if (tech.findNode(curMenuNodeInst.protoName) == null)
                         System.out.println("Warning: cannot find node '" + curMenuNodeInst.protoName + "' for component menu");
-                    curMenuNodeInst.function =  com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("function"));
+                    curMenuNodeInst.function =  com.sun.electric.technology.PrimitiveNode.Function.findType(a("function"));
+                    if (curMenuNodeInst.function == null)
+                        System.out.println("Error: cannot find function '" + a("function") + "' for node '" +
+                        a("protoName" + "'"));
                     String techBits = a_("techBits");
                     if (techBits != null)
                         curMenuNodeInst.techBits = Integer.parseInt(techBits);
