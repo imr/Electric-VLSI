@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+IMP: (12/15/09, GVG) Generalizing usage of capacitors in LE and ViewChanges.
+Due to Bug #2529.
+
 BUG: (12/15/09, AM) export waveform data as CSV (Bug #2482)
 FIX: Fixed it.
 
