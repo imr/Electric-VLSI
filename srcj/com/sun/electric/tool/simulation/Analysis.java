@@ -135,7 +135,12 @@ public abstract class Analysis<S extends Signal>
 		return extrapolateToRight;
 	}
 
-	/**
+    public boolean isUseLegacySimulationCode()
+    {
+        return sd.isUseLegacySimulationCode();
+    }
+
+    /**
 	 * Method to get the list of signals in this Simulation Data object.
 	 * @return a List of signals.
 	 */
@@ -151,7 +156,7 @@ public abstract class Analysis<S extends Signal>
 			signalNames.put(name + "_", ws);
 
         // keep track of groups of signals that represent one extracted net
-        String baseName = getBaseNameFromExtractedNet(name);
+        String baseName = getBaseNameFromExtractedNet(name, sd.getNetDelimiter());
         List<S> sigs = signalGroup.get(baseName);
         if (sigs == null) {
             sigs = new ArrayList<S>();
@@ -174,8 +179,8 @@ public abstract class Analysis<S extends Signal>
 		setBoundsDirty();
 	}
 
-    public static String getBaseNameFromExtractedNet(String signalFullName) {
-        String delim = Simulation.getSpiceExtractedNetDelimiter();
+    private static String getBaseNameFromExtractedNet(String signalFullName, String delim) {
+//        String delim = Simulation.getSpiceExtractedNetDelimiter();
         int hashPos = signalFullName.indexOf(delim);
         if (hashPos > 0)
         {
@@ -195,7 +200,7 @@ public abstract class Analysis<S extends Signal>
         String sigName = ws.getFullName();
         if (sigName == null) return new ArrayList<S>();
         sigName = TextUtils.canonicString(sigName);
-        sigName = getBaseNameFromExtractedNet(sigName);
+        sigName = getBaseNameFromExtractedNet(sigName, sd.getNetDelimiter());
         return signalGroup.get(sigName);
     }
 

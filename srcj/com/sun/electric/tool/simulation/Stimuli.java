@@ -64,7 +64,10 @@ public class Stimuli
 	/** the list of analyses in this Stimuli */					private List<Analysis> analysisList;
 	/** control points when signals are selected */				private HashMap<Signal,Double[]> controlPointMap;
 
-	/**
+    /** Cached version of net delimiter**/                      private String delim = Simulation.getSpiceExtractedNetDelimiter();
+    /** Cached version of use of legacy simulation code **/     private boolean legacy = Simulation.isUseLegacySimulationCode();
+
+    /**
 	 * Constructor to build a new Simulation Data object.
 	 */
 	public Stimuli()
@@ -105,7 +108,11 @@ public class Stimuli
 		return an;
 	}
 
-	public int getNumAnalyses() { return analysisList.size(); }
+    public String getNetDelimiter() { return delim;}
+
+    public boolean isUseLegacySimulationCode() { return this.legacy; }
+
+    public int getNumAnalyses() { return analysisList.size(); }
 
 	public Iterator<Analysis> getAnalyses() { return analysisList.iterator(); }
 

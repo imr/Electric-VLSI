@@ -125,7 +125,7 @@ public class HSpiceOut extends Simulate
 					double[] values = new double[times.length];
 					for (int eventNum = 0; eventNum < values.length; eventNum++)
 						values[eventNum] = theSweep.get(eventNum)[sigIndex + 1];
-                    if (!Simulation.isUseLegacySimulationCode()) {
+                    if (!isUseLegacySimulationCode()) {
                         BTree<Double,Double,Serializable> tree = NewEpicAnalysis.getTree();
                         int evmax = 0;
                         int evmin = 0;
@@ -151,14 +151,13 @@ public class HSpiceOut extends Simulate
 
 	/**
 	 * Method to read HSpice output files.
+     * @param sd Stimuli associated to the reading.
 	 * @param fileURL the URL to one of the output files.
 	 * @param cell the Cell associated with these HSpice output files.
 	 */
-	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
+	protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
 		throws IOException
 	{
-		// create the Stimuli object
-		Stimuli sd = new Stimuli();
 		sd.setCell(cell);
 
 		// figure out file names
@@ -202,7 +201,7 @@ public class HSpiceOut extends Simulate
 		addMeasurementData(sd, fileURL);
 
 		// return the simulation data
-		return sd;
+//		return sd;
 	}
 
 	/**

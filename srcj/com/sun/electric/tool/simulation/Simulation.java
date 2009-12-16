@@ -42,7 +42,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.NewEpicAnalysis;
 import com.sun.electric.tool.io.output.GenerateVHDL;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;

@@ -134,7 +134,7 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	public AnalogSignal addSignal(String signalName, String signalContext, double[] values)
 	{
 		AnalogSignal as = addEmptySignal(signalName, signalContext);
-        if (!Simulation.isUseLegacySimulationCode()) {
+        if (!isUseLegacySimulationCode()) {
             BTree<Double,Double,Serializable> tree = NewEpicAnalysis.getTree();
             int evmax = 0;
             int evmin = 0;
@@ -164,7 +164,8 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	 * @param maxValue the maximum value.
 	 * @return new AnalogSignal of this AnalogAnalysis
 	 */
-	public AnalogSignal addSignal(String signalName, String signalContext, double minTime, double maxTime, double minValue, double maxValue)
+	public AnalogSignal addSignal(String signalName, String signalContext, double minTime, double maxTime, 
+                                  double minValue, double maxValue)
 	{
 		AnalogSignal as = addEmptySignal(signalName, signalContext);
 		return as;

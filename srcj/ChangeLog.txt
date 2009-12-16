@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+IMP: (12/16/09, GVG) Cache waveformview prefs from working threads (Bug #2556).
+
 BUG: (12/16/09, GVG) FillGen with templates and mocmos (Bug #2555)
 FIX: Extra code to deal with inconsistency in TSMC180 port names in transistors.
 
