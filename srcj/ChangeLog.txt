@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+BUG: (12/15/09, GVG) NPE if you cancel Export waveform to CSV (Bug #2553)
+FIX: Detect the cancel case (null file). Added an extra printing.
+
 IMP: (12/15/09, GVG) Generalizing usage of capacitors in LE and ViewChanges.
 Due to Bug #2529.
 

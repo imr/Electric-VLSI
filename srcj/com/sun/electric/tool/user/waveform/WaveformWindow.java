@@ -940,7 +940,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			mainHorizRulerPanel.repaint();
 	}
 
-    public static void exportSimulationDataAsCSV(String file) {
+    public static void exportSimulationDataAsCSV(String file) 
+    {
+    	if (file == null) // cancel operation for example
+    		return;
         WindowFrame current = WindowFrame.getCurrentWindowFrame();
         WindowContent content = current.getContent();
         if (!(content instanceof WaveformWindow)) {
@@ -953,6 +956,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
             for(Panel wp : ww.wavePanels)
                 wp.dumpDataCSV(pw);
             pw.close();
+            System.out.println("Exported Waveform in CSV format file '" + file + "'");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
