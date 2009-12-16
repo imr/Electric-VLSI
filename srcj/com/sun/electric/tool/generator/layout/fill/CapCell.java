@@ -1,5 +1,7 @@
 package com.sun.electric.tool.generator.layout.fill;
 
+import java.util.Iterator;
+
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -99,10 +101,10 @@ class CapCellMosis extends CapCell{
 	}
 
 	private final double POLY_CONT_WIDTH = 10;
-	private final String TOP_DIFF = "n-trans-diff-top";
-	private final String BOT_DIFF = "n-trans-diff-bottom";
-	private final String LEFT_POLY = "n-trans-poly-left";
-	private final String RIGHT_POLY = "n-trans-poly-right";
+	private final String TOP_DIFF = "diff-top";
+	private final String BOT_DIFF = "diff-bottom";
+	private final String LEFT_POLY = "poly-left";
+	private final String RIGHT_POLY = "poly-right";
 	private final ProtoPlan plan;
 	private final TechType tech;
 
@@ -144,6 +146,26 @@ class CapCellMosis extends CapCell{
 
 		return conts;
 	}
+	
+	/**
+	 * Method to look for PortInst in a NodeInst by a given name. One layout technology doesn't
+	 * follow the name convention for transistors and therefore this function is
+	 * needed.
+	 * @param mos NodeInst where to look the port in
+	 * @param name PortInst name
+	 * @return
+	 */
+	private PortInst findPortInst(NodeInst mos, String name)
+	{
+		for (Iterator<PortInst> it = mos.getPortInsts(); it.hasNext();)
+		{
+			PortInst pi = it.next();
+			if (pi.getPortProto().getName().contains(name))
+				return pi;
+		}
+		assert(false); // should not reach this point
+		return null;
+	}
 
 	/** Interleave gate contacts and MOS transistors left to right. Begin
 	 *  and end with gate contacts. */
@@ -164,7 +186,7 @@ class CapCellMosis extends CapCell{
 			NodeInst mos = LayoutLib.newNodeInst(tech.nmos(), x, y, plan.gateWidth,
 												 plan.gateLength, 0, cell);
 			G.noExtendArc(tech.p1(), POLY_CONT_HEIGHT, poly,
-						  mos.findPortInst(LEFT_POLY));
+					findPortInst(mos, LEFT_POLY));
 			x += plan.mosPitchX/2;
 			PortInst polyR = LayoutLib.newNodeInst(tech.p1m1(), x, y,
 												   POLY_CONT_WIDTH,
@@ -173,9 +195,9 @@ class CapCellMosis extends CapCell{
 			G.noExtendArc(tech.m1(), plan.vddWidth, poly, polyR);
 			poly = polyR;
 			G.noExtendArc(tech.p1(), POLY_CONT_HEIGHT, poly,
-						  mos.findPortInst(RIGHT_POLY));
-			botDiffs[i] = mos.findPortInst(BOT_DIFF);
-			topDiffs[i] = mos.findPortInst(TOP_DIFF);
+					findPortInst(mos, RIGHT_POLY));
+			botDiffs[i] = findPortInst(mos, BOT_DIFF);
+			topDiffs[i] = findPortInst(mos, TOP_DIFF);
 		}
 		PortInst rightCont = poly;
 

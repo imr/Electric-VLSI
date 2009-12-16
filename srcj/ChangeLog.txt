@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+BUG: (12/16/09, GVG) FillGen with templates and mocmos (Bug #2555)
+FIX: Extra code to deal with inconsistency in TSMC180 port names in transistors.
+
 BUG: (12/15/09, DN) Version 8.08 library reads differently in later versions.
 FIX: In MoCMOS.getSizeCorrector patch transistor size for library versions from 8.08h to 8.09c .
 
