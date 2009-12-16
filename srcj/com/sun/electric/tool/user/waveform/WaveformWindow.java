@@ -107,12 +107,7 @@ import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -944,6 +939,24 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (mainHorizRulerPanel != null)
 			mainHorizRulerPanel.repaint();
 	}
+
+    public static void exportSimulationDataAsCSV(String file) {
+        WindowFrame current = WindowFrame.getCurrentWindowFrame();
+        WindowContent content = current.getContent();
+        if (!(content instanceof WaveformWindow)) {
+            System.out.println("Must select a Waveform window first");
+            return;
+        }
+        WaveformWindow ww = (WaveformWindow)content;
+        try {
+            PrintWriter pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(file)));
+            for(Panel wp : ww.wavePanels)
+                wp.dumpDataCSV(pw);
+            pw.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static void plotSimulationData(String file) {
         WindowFrame current = WindowFrame.getCurrentWindowFrame();

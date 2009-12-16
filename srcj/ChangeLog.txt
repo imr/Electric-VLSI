@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+BUG: (12/15/09, AM) export waveform data as CSV (Bug #2482)
+FIX: Fixed it.
+
 IMP: (12/15/09, GVG) Correcting shortName in POLY2CAPAC (Bug #2529)
 
 IMP: (12/15/09, GVG) Rename of groups adds name instead of replacing it (Bug #2547)

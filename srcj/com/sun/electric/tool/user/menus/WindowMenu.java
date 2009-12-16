@@ -260,6 +260,8 @@ public class WindowMenu {
                 SEPARATOR,
                 new EMenuItem("_Export Simulation Data...") { public void run() {
                     WaveformWindow.exportSimulationData(); }},
+                new EMenuItem("_Export Simulation Data As CSV...") { public void run() {
+                    WaveformWindow.exportSimulationDataAsCSV(OpenFile.chooseOutputFile((FileType)null, "Save Simulation Data as CSV", "simulation.csv")); }},
                 new EMenuItem("_Plot Simulation Data On Screen") { public void run() {
                     WaveformWindow.plotSimulationData(null); }},
                 new EMenuItem("Plot Simulation Data as PDF...") { public void run() {

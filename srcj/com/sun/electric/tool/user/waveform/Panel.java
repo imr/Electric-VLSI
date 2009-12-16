@@ -1457,6 +1457,26 @@ public class Panel extends JPanel
 		}
 	}
 
+	void dumpDataCSV(PrintWriter pw) {
+		for(WaveSignal ws : waveSignals.values()) {
+			if (ws.getSignal() instanceof AnalogSignal) {
+				AnalogSignal as = (AnalogSignal)ws.getSignal();
+				AnalogAnalysis an = as.getAnalysis();
+				for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++) {
+                    pw.println();
+					Waveform wave = as.getWaveform(s);
+                    NewSignal.Approximation pref = wave.getPreferredApproximation();
+                    NewSignal.Approximation waveform = pref /* FIXME */;
+					int numEvents = waveform.getNumEvents();
+					for(int i=0; i<numEvents; i++)
+                        pw.println("\""+waveform.getTime(i) + "\""+
+                                   ","+
+                                   "\""+((ScalarSample)waveform.getSample(i)).getValue()+"\"");
+                }
+            }
+        }
+    }
+
 	void dumpDataForGnuplot(PrintWriter pw) {
 		for(WaveSignal ws : waveSignals.values()) {
 			if (ws.getSignal() instanceof AnalogSignal) {
