@@ -525,7 +525,7 @@ public class LENetlister2 extends LENetlister {
         else if ((ni.getProto() != null) && (ni.getProto().getFunction().isTransistor())) {
             return LENodable.Type.TRANSISTOR;
         }
-        else if ((ni.getProto() != null) && (ni.getProto().getFunction() == PrimitiveNode.Function.CAPAC)) {
+        else if ((ni.getProto() != null) && (ni.getProto().getFunction().isCapacitor())) {
             return LENodable.Type.CAPACITOR;
         }
         else if ((var = ni.getParameterOrVariable(ATTR_LEIGNORE)) != null) {

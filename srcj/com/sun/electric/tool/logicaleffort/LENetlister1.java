@@ -354,7 +354,7 @@ public class LENetlister1 extends LENetlister {
             leX = (float)(width/x1inverter_totalgate);
             primitiveTransistor = true;
         }
-        else if ((ni.getProto() != null) && (ni.getProto().getFunction() == PrimitiveNode.Function.CAPAC)) {
+        else if ((ni.getProto() != null) && (ni.getProto().getFunction().isCapacitor())) {
             type = Instance.Type.CAPACITOR;
             var = ni.getVar(Schematics.SCHEM_CAPACITANCE);
             if (var == null) {

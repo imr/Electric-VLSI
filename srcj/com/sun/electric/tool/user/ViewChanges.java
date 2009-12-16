@@ -2010,7 +2010,9 @@ public class ViewChanges
 				// special case again: one-port capacitors are OK
 				PrimitiveNode.Function oldFun = schConn.no.getNodeInst().getFunction();
 				PrimitiveNode.Function newFun = layNi.getFunction();
-				if (oldFun == PrimitiveNode.Function.CAPAC && newFun == PrimitiveNode.Function.ECAPAC) return layNi.getPortInst(0);
+				if (oldFun.isCapacitor() && newFun.isCapacitor()) 
+//				if (oldFun == PrimitiveNode.Function.CAPAC && newFun == PrimitiveNode.Function.ECAPAC) 
+					return layNi.getPortInst(0);
 
 				// association has failed: assume the first port
 				System.out.println("No port association between " + schConn.no.getName() + ", "
@@ -2635,7 +2637,8 @@ public class ViewChanges
 				// special case again: one-port capacitors are OK
 				PrimitiveNode.Function oldFun = ni.getFunction();
 				PrimitiveNode.Function newFun = newNi.getFunction();
-				if (oldFun == PrimitiveNode.Function.CAPAC && newFun == PrimitiveNode.Function.ECAPAC)
+				if (oldFun.isCapacitor() && newFun.isCapacitor())
+//				if (oldFun == PrimitiveNode.Function.CAPAC && newFun == PrimitiveNode.Function.ECAPAC)
 					return newNi.getProto().getPort(0);
 
 				// association has failed: assume the first port

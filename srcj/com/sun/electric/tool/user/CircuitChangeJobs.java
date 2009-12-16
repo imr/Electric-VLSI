@@ -1503,7 +1503,7 @@ public class CircuitChangeJobs
 				for(Reconnect re : pinsToPassThrough)
 				{
 					if (!re.ni.isLinked()) continue;
-					List created = re.reconnectArcs();
+					List<ArcInst> created = re.reconnectArcs();
 					if (created.size() > 0)
 					{
 						re.ni.kill();
