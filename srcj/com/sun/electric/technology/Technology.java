@@ -902,6 +902,20 @@ public class Technology implements Comparable<Technology>, Serializable
         }
     }
 
+    protected void setNodeCorrection(SizeCorrector sc, String nodeName, double lambdaBaseWidth, double lambdaBaseHeight) {
+        PrimitiveNode np = findNodeProto(nodeName);
+        EPoint correction = sc.nodeExtends.get(np.getId());
+        int gridWidthExtend = (int)DBMath.lambdaToGrid(0.5*lambdaBaseWidth);
+        int gridHeightExtend = (int)DBMath.lambdaToGrid(0.5*lambdaBaseHeight);
+        ERectangle baseRectangle = np.getBaseRectangle();
+        if (gridWidthExtend != baseRectangle.getGridWidth()/2 || gridHeightExtend != baseRectangle.getGridHeight()/2) {
+            correction = EPoint.fromGrid(
+                    correction.getGridX() + gridWidthExtend - baseRectangle.getGridWidth()/2,
+                    correction.getGridY() + gridHeightExtend - baseRectangle.getGridHeight()/2);
+            sc.nodeExtends.put(np.getId(), correction);
+        }
+    }
+
 	/** technology is not electrical */									private static final int NONELECTRICAL =       01;
 	/** has no directional arcs */										private static final int NODIRECTIONALARCS =   02;
 	/** has no negated arcs */											private static final int NONEGATEDARCS =       04;

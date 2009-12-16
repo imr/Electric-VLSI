@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+BUG: (12/15/09, DN) Version 8.08 library reads differently in later versions.
+FIX: In MoCMOS.getSizeCorrector patch transistor size for library versions from 8.08h to 8.09c .
+
 BUG: (12/15/09, GVG) NPE if you cancel Export waveform to CSV (Bug #2553)
 FIX: Detect the cancel case (null file). Added an extra printing.
 

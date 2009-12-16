@@ -60,6 +60,8 @@ public class MoCMOS extends Technology
 	public static final Variable.Key TECH_LAST_STATE = Variable.newKey("TECH_last_state");
 
     public static final Version changeOfMetal6 = Version.parseVersion("8.02o"); // Fix of bug #357
+    private static final Version scmosTransistorSizeBug = Version.parseVersion("8.08h");
+    private static final Version scmosTransistorSizeFix = Version.parseVersion("8.09d");
 
     private static final String TECH_NAME = "mocmos";
     private static final String XML_PREFIX = TECH_NAME + ".";
@@ -428,11 +430,19 @@ public class MoCMOS extends Technology
     @Override
     public SizeCorrector getSizeCorrector(Version version, Map<Setting,Object> projectSettings, boolean isJelib, boolean keepExtendOverMin) {
         SizeCorrector sc = super.getSizeCorrector(version, projectSettings, isJelib, keepExtendOverMin);
+        int ruleSet = SUBMRULES;
+        Object ruleSetValue = projectSettings.get(getRuleSetSetting());
+        if (ruleSetValue instanceof Integer)
+            ruleSet = ((Integer)ruleSetValue).intValue();
+
+        if (ruleSet == SCMOSRULES && version.compareTo(scmosTransistorSizeBug) >= 0 && version.compareTo(scmosTransistorSizeFix) < 0) {
+            setNodeCorrection(sc, "P-Transistor", 1, 2);
+            setNodeCorrection(sc, "N-Transistor", 1, 2);
+        }
         if (!keepExtendOverMin) return sc;
         boolean newDefaults = version.compareTo(Version.parseVersion("8.04u")) >= 0;
         int numMetals = newDefaults ? 6 : 4;
         boolean isSecondPolysilicon = newDefaults ? true : false;
-        int ruleSet = SUBMRULES;
 
         Object numMetalsValue = projectSettings.get(getNumMetalsSetting());
         if (numMetalsValue instanceof Integer)
@@ -443,10 +453,6 @@ public class MoCMOS extends Technology
             isSecondPolysilicon = ((Boolean)secondPolysiliconValue).booleanValue();
         else if (secondPolysiliconValue instanceof Integer)
             isSecondPolysilicon = ((Integer)secondPolysiliconValue).intValue() != 0;
-
-        Object ruleSetValue = projectSettings.get(getRuleSetSetting());
-        if (ruleSetValue instanceof Integer)
-            ruleSet = ((Integer)ruleSetValue).intValue();
 
         if (numMetals == getNumMetals() && isSecondPolysilicon == isSecondPolysilicon() && ruleSet == getRuleSet() && version.compareTo(changeOfMetal6) >= 0)
             return sc;
