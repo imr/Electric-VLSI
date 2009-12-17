@@ -120,7 +120,7 @@
                 <menuNodeText text="Electro" size="0"/>
             </menuNodeInst>
             <menuNodeInst protoName="Capacitor" function="POLY2CAPAC" techBits="2">
-                <menuNodeText text="Poly2" size="0"/>
+                <menuNodeText text="P1-P2" size="0"/>
             </menuNodeInst>
         </menuBox>
         <menuBox>
