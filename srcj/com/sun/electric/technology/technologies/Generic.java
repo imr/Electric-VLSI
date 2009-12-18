@@ -23,7 +23,6 @@
  */
 package com.sun.electric.technology.technologies;
 
-import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
