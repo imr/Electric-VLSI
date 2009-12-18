@@ -57,7 +57,7 @@ public class TechEditWizardData
 	private String tech_description;
 	private int num_metal_layers;
 	private int stepsize;   // value in nm
-    private int resolution; // technology resolution in the same scale as stepsize
+    private double resolution; // technology resolution for delta values (not in real scale)
     private boolean pSubstrateProcess = false; // to control if process is a pwell or psubstrate process or not. If true, Tech Creation Wizard will not create pwell layers
     private boolean horizontalFlag = true; // to control if transistor gates are aligned horizontally. True by default . If transistors are horizontal -> M1 is horizontal?
     private boolean extraInfoFlag = false; // to control if protection polys are added to transistors. False by default
@@ -475,8 +475,8 @@ public class TechEditWizardData
 	int getStepSize() { return stepsize; }
 	void setStepSize(int n) { stepsize = n; }
 
-    int getResolution() { return resolution; }
-	void setResolution(int n) { resolution = n; }
+    double getResolution() { return resolution; }
+	void setResolution(double n) { resolution = n; }
 
     int getNumMetalLayers() { return num_metal_layers; }
 	void setNumMetalLayers(int n)
@@ -798,7 +798,7 @@ public class TechEditWizardData
                     if (varName.equalsIgnoreCase("horizontal_transistors")) setHorizontalTransistors(Boolean.valueOf(varValue)); else
                     if (varName.equalsIgnoreCase("extra_info")) setExtraInfoFlag(Boolean.valueOf(varValue)); else
                     if (varName.equalsIgnoreCase("stepsize")) setStepSize(TextUtils.atoi(varValue)); else
-                    if (varName.equalsIgnoreCase("resolution")) setResolution(TextUtils.atoi(varValue)); else
+                    if (varName.equalsIgnoreCase("resolution")) setResolution(TextUtils.atof(varValue)); else
                     if (varName.equalsIgnoreCase("analog_elements")) setAnalogFlag(Boolean.valueOf(varValue)); else
                     if (varName.equalsIgnoreCase("second_poly")) setSecondPolyFlag(Boolean.valueOf(varValue)); else
 
@@ -2992,7 +2992,7 @@ public class TechEditWizardData
 
             double protectDist = scaledValue(poly_protection_spacing.value);
             double extraSelX = 0, extraSelY = 0;
-            PrimitiveNode.Function func = null, prFunc = null;
+            PrimitiveNode.Function func = null, prFunc = null, wrFunc;
 
             if (i==Technology.P_TYPE)
             {
@@ -3005,6 +3005,7 @@ public class TechEditWizardData
                 extraSelY = pplus_overhang_diff.value;
                 func = PrimitiveNode.Function.TRAPMOS;
                 prFunc = PrimitiveNode.Function.RESPPOLY;
+                wrFunc = PrimitiveNode.Function.RESPWELL;
             }
             else
             {
@@ -3015,6 +3016,7 @@ public class TechEditWizardData
                 extraSelY = nplus_overhang_diff.value;
                 func = PrimitiveNode.Function.TRANMOS;
                 prFunc = PrimitiveNode.Function.RESNPOLY;
+                wrFunc = PrimitiveNode.Function.RESNWELL;
                 if (!pSubstrateProcess)
                 {
                     nwell_overhangY = nwell_overhangX = nwell_overhang_diff_p.value;
@@ -3517,7 +3519,7 @@ public class TechEditWizardData
 
                 sox = scaledValue(soxNoScaled);
                 soy = scaledValue(soyNoScaled);
-                n = makeXmlPrimitive(t.nodeGroups, name + "-Well-RPO-Resistor", prFunc, 0, 0, 0, 0,
+                n = makeXmlPrimitive(t.nodeGroups, name + "-Well-RPO-Resistor", wrFunc, 0, 0, 0, 0,
                     new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                 g.addPinOrResistor(n, name + "-RWell");
             }

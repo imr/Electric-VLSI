@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+BUG: (12/17/09, GVG) Wrong function assigned to 40nm well resistors (Bug #2560)
+FIX: Function types changed. Amended code for resolution (Bug #2540)
+
 IMP: (12/16/09, GVG) Cache waveformview prefs from working threads (Bug #2556).
 
 BUG: (12/16/09, GVG) FillGen with templates and mocmos (Bug #2555)

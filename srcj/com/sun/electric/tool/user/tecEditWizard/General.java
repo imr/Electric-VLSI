@@ -53,7 +53,7 @@ public class General extends TechEditWizardPanel
 	{
 		TechEditWizardData data = wizard.getTechEditData();
 		stepSize.setText(Integer.toString(data.getStepSize()));
-        resolution.setText(Integer.toString(data.getResolution()));
+        resolution.setText(Double.toString(data.getResolution()));
         techName.setText(data.getTechName());
 		description.setText(data.getTechDescription());
 
@@ -69,7 +69,7 @@ public class General extends TechEditWizardPanel
 	{
 		TechEditWizardData data = wizard.getTechEditData();
 		data.setStepSize(TextUtils.atoi(stepSize.getText()));
-        data.setResolution(TextUtils.atoi(resolution.getText()));
+        data.setResolution(TextUtils.atof(resolution.getText()));
         data.setTechName(techName.getText());
 		data.setTechDescription(description.getText());
         data.setPSubstratelProcess(psubstrateButton.isSelected());
