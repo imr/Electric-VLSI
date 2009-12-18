@@ -263,9 +263,12 @@ public class WindowMenu {
                 new EMenuItem("_Export Simulation Data As CSV...") { public void run() {
                     WaveformWindow.exportSimulationDataAsCSV(OpenFile.chooseOutputFile((FileType)null, "Save Simulation Data as CSV", "simulation.csv")); }},
                 new EMenuItem("_Plot Simulation Data On Screen") { public void run() {
-                    WaveformWindow.plotSimulationData(null); }},
+                    WaveformWindow.plotSimulationData(null,null); }},
                 new EMenuItem("Plot Simulation Data as PDF...") { public void run() {
-                    WaveformWindow.plotSimulationData(OpenFile.chooseOutputFile((FileType)null, "Save Plot as PDF", "plot.pdf"));
+                    WaveformWindow.plotSimulationData(OpenFile.chooseOutputFile((FileType)null, "Save Plot as PDF", "plot.pdf"),"pdf");
+                }},
+                new EMenuItem("Plot Simulation Data as PS...") { public void run() {
+                    WaveformWindow.plotSimulationData(OpenFile.chooseOutputFile((FileType)null, "Save Plot as PS", "plot.ps"),"ps");
                 }},
                 SEPARATOR,
                 new EMenuItem("Fill Only in _X") { public void run() {

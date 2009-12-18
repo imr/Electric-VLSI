@@ -962,7 +962,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         }
     }
 
-    public static void plotSimulationData(String file) {
+    public static void plotSimulationData(String file, String format) {
         WindowFrame current = WindowFrame.getCurrentWindowFrame();
         WindowContent content = current.getContent();
         if (!(content instanceof WaveformWindow)) {
@@ -982,7 +982,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
                 sr  = Math.min(sr, ((double)wp.getSz().height)/((double)wp.getSz().width));
             }
             if (file!=null) {
-                commands += "set terminal pdf; ";
+                commands += "set terminal "+format+"; ";
                 commands += "set output \""+file+"\"; ";
             }
             commands += "set size ratio "+sr+"; ";
