@@ -1155,12 +1155,12 @@ class NetSchem extends NetCell {
                 }
             }
         }
-        if (cell.libDescribe().equals("spiceparts:Ammeter{ic}")) {
-            int mapOffset0 = getNetMapOffset(cell.getPort(0), 0);
-            int mapOffset1 = getNetMapOffset(cell.getPort(1), 0);
-            Netlist.connectMap(netMapP, mapOffset0, mapOffset1);
-            Netlist.connectMap(netMapA, mapOffset0, mapOffset1);
-        }
+//        if (cell.libDescribe().equals("spiceparts:Ammeter{ic}")) {
+//            int mapOffset0 = getNetMapOffset(cell.getPort(0), 0);
+//            int mapOffset1 = getNetMapOffset(cell.getPort(1), 0);
+//            Netlist.connectMap(netMapP, mapOffset0, mapOffset1);
+//            Netlist.connectMap(netMapA, mapOffset0, mapOffset1);
+//        }
     }
 
     private void buildNetworkLists(int[] netMapF) {

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+IMP: (12/19/09, DN) Remove hard-coded "spiceparts:Ammeter{ic}" from Network code (Bug #2558).
+    Add "spiceparts:Ammeter{sch}" with dummy resistor to force NCC short-cut.
+
 BUG: (12/17/09, GVG) Wrong function assigned to 40nm well resistors (Bug #2560)
 FIX: Function types changed. Amended code for resolution (Bug #2540)
 

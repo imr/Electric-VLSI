@@ -1,12 +1,9 @@
 # header information:
-Hspiceparts|8.10a|USER_electrical_units()I70464
+Hspiceparts|8.10q|USER_electrical_units()I70464
 
 # Views:
 Vicon|ic
 Vschematic|sch
-
-# Technologies:
-Tmocmos|MoCMOSAlternateActivePolyRules()BT
 
 # Cell ACCurrent;1{ic}
 CACCurrent;1{ic}||artwork|1006816118000|1103661154031|E|ATTR_ACCurrent(D5G0.5;HNPY0.75;)S1A|ATTR_DCCurrent(D5G0.5;HNPY0.25;)S1A|ATTR_Delay(D5G0.5;HNPY-0.75;)S1ns|ATTR_Frequency(D5G0.5;HNPY-0.25;)S800M|ATTR_SPICE_template(D5G0.5;NTY5;)SI$(node_name) $(plus) $(minus) DC=$(DCCurrent) AC=$(ACCurrent) SIN ($(DCCurrent) $(ACCurrent) $(Frequency) $(Delay))
@@ -45,6 +42,19 @@ Ngeneric:Invisible-Pin|pin@2||0|3|1|1||
 Ngeneric:Invisible-Pin|pin@3||0|-3|1|1||
 Eminus||D5G2;|pin@3||U
 Eplus||D5G2;|pin@2||U
+X
+
+# Cell Ammeter;1{sch}
+CAmmeter;1{sch}||schematic|1261209937794|1261214488908|
+IAmmeter;1{ic}|Ammeter@0||10|0|||D5G4;
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOff-Page|conn@0||0|10|||RRR|
+NOff-Page|conn@1||0|-10|||RRR|
+NResistor|ncc_shortcut|D5G1;R|0|0|||RRR|
+Awire|net@0|||900|conn@0|y|0|8|ncc_shortcut|a|0|2
+Awire|net@1|||900|ncc_shortcut|b|0|-2|conn@1|a|0|-8
+Eminus||D5G2;|conn@1|y|U
+Eplus||D5G2;|conn@0|a|U
 X
 
 # Cell Amp;1{ic}
@@ -236,7 +246,7 @@ X
 
 # Cell Probe;1{ic}
 CProbe;1{ic}||artwork|1123537748812|1156952212453|E|ATTR_SPICE_template(D5G0.5;NTY4;)S.print TRAN $(point)
-Ngeneric:Facet-Center|art@0||0|0|0|0||AV
+Ngeneric:Facet-Center|art@0||0|0||||AV
 NFilled-Polygon|art@17||1.5|1.5|3|3|||ART_color()I-16764159|trace()V[-1.5/-1.5,-1.5/0,-1/-0.5,1.5/1.5,-0.5/-1,0/-1.5]
 Ngeneric:Invisible-Pin|pin@3||0|0|1|1||
 Eminus|point|D5G1;|pin@3||U
@@ -288,7 +298,7 @@ Ey||D5G1;|pin@5||U
 X
 
 # Cell VCCS;1{ic}
-CVCCS;1{ic}||artwork|1006816118000|1246297898993|E|ATTR_Gain(D5G0.5;HNPY1;)F0.0010|ATTR_Maximum(D5G0.5;HNPY-1;)S1|ATTR_Minimum(D5G0.5;HNP)S-1|ATTR_SPICE_template(D5G0.5;NTY4;)SG$(node_name) $(x) $(y) vccs $(a) $(b) $(Gain) max=$(Maximum) min=$(Minimum)
+CVCCS;1{ic}||artwork|1006816118000|1246297898993|E|ATTR_Gain(D5G0.5;HNPY1;)F0.001|ATTR_Maximum(D5G0.5;HNPY-1;)S1|ATTR_Minimum(D5G0.5;HNP)S-1|ATTR_SPICE_template(D5G0.5;NTY4;)SG$(node_name) $(x) $(y) vccs $(a) $(b) $(Gain) max=$(Maximum) min=$(Minimum)
 NArrow|art@0||2|-1.5|1|1|RRR||ART_color()I10
 NOpened-Polygon|art@1||2|0||4|||ART_color()I10|trace()V[0/2,0/-2]
 NOpened-Polygon|art@2||-4|-2|2||||ART_color()I10|trace()V[-1/0,1/0]

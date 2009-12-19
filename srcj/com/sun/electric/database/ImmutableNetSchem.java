@@ -1092,12 +1092,12 @@ class ImmutableNetSchem {
                 }
             }
         }
-        if (cellId.libId.libName.equals("spiceparts") && cellId.cellName.getName().equals("Ammeter") && cellId.isIcon()) {
-            int mapOffset0 = drawnOffsets[drawns[0]];
-            int mapOffset1 = drawnOffsets[drawns[1]];
-            ImmutableNetLayout.connectMap(netMapP, mapOffset0, mapOffset1);
-            ImmutableNetLayout.connectMap(netMapA, mapOffset0, mapOffset1);
-        }
+//        if (cellId.libId.libName.equals("spiceparts") && cellId.cellName.getName().equals("Ammeter") && cellId.isIcon()) {
+//            int mapOffset0 = drawnOffsets[drawns[0]];
+//            int mapOffset1 = drawnOffsets[drawns[1]];
+//            ImmutableNetLayout.connectMap(netMapP, mapOffset0, mapOffset1);
+//            ImmutableNetLayout.connectMap(netMapA, mapOffset0, mapOffset1);
+//        }
     }
 
     private void updatePortImplementation() {
