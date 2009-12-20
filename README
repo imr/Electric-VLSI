@@ -10,5 +10,9 @@ To build and run Electric by ant:
 $ make
 $ cd srcj; ant runMain -DNO3D=1 -DNOMAC=1
 
+To build and run Electric by GNU make:
+$ make
+$ cd srcj; make
+
 Read package/README.txt for more information
 
