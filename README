@@ -1,0 +1,10 @@
+To build Electric by Netbeans:
+1) Download bean shell by: 
+$ make
+2) Open project in Netbeans on this path.
+
+To build Electric by ant:
+$ cd srcj; ant jarForGNURelease
+
+Read package/README.txt for more information
+
