@@ -66,6 +66,7 @@
         <exclude name="com/sun/electric/plugins/tsmc/" unless="SUN"/>
         <exclude name="com/sun/electric/tool/simulation/eventsim/" unless="SUN"/>
         <exclude name="com/sun/electric/tool/simulation/interval/" unless="SUN"/>
+        <exclude name="com/sun/electric/tool/user/MacOSXInterface.java" if="NOMAC"/>
     </patternset>
 
     <!-- Path for minimum set of external jars -->

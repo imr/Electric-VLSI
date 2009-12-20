@@ -1,10 +1,14 @@
-To build Electric by Netbeans:
+To build and debug Electric by NetBeans IDE 6.8:
 1) Download bean shell by: 
 $ make
-2) Open project in Netbeans on this path.
+2) Start Netbeans.
+3) "File|Open Porject..." on this path.
+4) "Run|Clean and build main project".
+5) "Debug|Debug main project"
 
-To build Electric by ant:
-$ cd srcj; ant jarForGNURelease
+To build and run Electric by ant:
+$ make
+$ cd srcj; ant runMain -DNO3D=1 -DNOMAC=1
 
 Read package/README.txt for more information
 
