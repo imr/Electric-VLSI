@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+IMP: (12/20,09, DN) Set java.tab-size=4 in Netbeans project.
+
+IMP: (12/20,09, DN) Exclude MacOSXInterface, JMF, Java3D from default Netbeans project.
+
 IMP: (12/19/09, DN) Remove hard-coded "spiceparts:Ammeter{ic}" from Network code (Bug #2558).
     Add "spiceparts:Ammeter{sch}" with dummy resistor to force NCC short-cut.
 
