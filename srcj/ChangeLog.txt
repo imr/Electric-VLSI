@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+IMP: (12/21/09, GVG) Changes for Get ERC to consider new resistors in layout (Bug #2557)
+
 IMP: (12/20,09, DN) NPE in network coming from autostitch (Bug #2562).
 FIX: In AutoStitich.java return false if specified "ni" doesn't have network (is icon of parent).
 
