@@ -41,6 +41,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.Variable.Key;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -87,12 +88,6 @@ public class PlacementFrame
 	 * When you create a new algorithm, add it to the following list.
 	 */
 	private static PlacementFrame [] placementAlgorithms = {
-//		new Team2SimulatedAnnealing(),
-//		new Team3GeneticPlacement(),
-//		new Team4Genetic(),
-//		new PlacementForceDirected(),
-//		new Team6SimulatedAnnealing(),
-//		new Team7ForceDirected(),
 		new PlacementMinCut(),
 		new PlacementSimple(),
 		new PlacementRandom()
@@ -174,19 +169,19 @@ public class PlacementFrame
 		 * Method to return a list of PlacementPorts on this PlacementNode.
 		 * @return a list of PlacementPorts on this PlacementNode.
 		 */
-		public List<PlacementPort> getPorts() { return ports; }
+		List<PlacementPort> getPorts() { return ports; }
 
 		/**
 		 * Method to return the width of this PlacementNode.
 		 * @return the width of this PlacementNode.
 		 */
-		public double getWidth() { return width; }
+		double getWidth() { return width; }
 
 		/**
 		 * Method to return the height of this PlacementNode.
 		 * @return the height of this PlacementNode.
 		 */
-		public double getHeight() { return height; }
+		double getHeight() { return height; }
 
 		/**
 		 * Method to set the location of this PlacementNode.
@@ -194,7 +189,7 @@ public class PlacementFrame
 		 * @param x the X-coordinate of the center of this PlacementNode.
 		 * @param y the Y-coordinate of the center of this PlacementNode.
 		 */
-		public void setPlacement(double x, double y) { xPos = x;   yPos = y; }
+		void setPlacement(double x, double y) { xPos = x;   yPos = y; }
 
 		/**
 		 * Method to set the orientation (rotation and mirroring) of this PlacementNode.
@@ -213,21 +208,21 @@ public class PlacementFrame
 		 * This is the location that the Placement algorithm has established for this PlacementNode.
 		 * @return the X-coordinate of the placed location of this PlacementNode.
 		 */
-		public double getPlacementX() { return xPos; }
+		double getPlacementX() { return xPos; }
 
 		/**
 		 * Method to return the Y-coordinate of the placed location of this PlacementNode.
 		 * This is the location that the Placement algorithm has established for this PlacementNode.
 		 * @return the Y-coordinate of the placed location of this PlacementNode.
 		 */
-		public double getPlacementY() { return yPos; }
+		double getPlacementY() { return yPos; }
 
 		/**
 		 * Method to return the Orientation of this PlacementNode.
 		 * This is the Orientation that the Placement algorithm has established for this PlacementNode.
 		 * @return the Orientation of this PlacementNode.
 		 */
-		public Orientation getPlacementOrientation() { return orient; }
+		Orientation getPlacementOrientation() { return orient; }
 
 		/**
 		 * Method to return the NodeProto of this PlacementNode.
@@ -285,7 +280,7 @@ public class PlacementFrame
 		 * Method to return the PlacementNode on which this PlacementPort resides.
 		 * @return the PlacementNode on which this PlacementPort resides.
 		 */
-		public PlacementNode getPlacementNode() { return plNode; }
+		PlacementNode getPlacementNode() { return plNode; }
 
 		/**
 		 * Method to return the PlacementNetwork on which this PlacementPort resides.
@@ -299,7 +294,7 @@ public class PlacementFrame
 		 * If this PlacementPort does not connect to any other PlacementPort,
 		 * the PlacementNetwork may be null.
 		 */
-		public PlacementNetwork getPlacementNetwork() { return plNet; }
+		PlacementNetwork getPlacementNetwork() { return plNet; }
 
 		/**
 		 * Method to return the Electric PortProto that this PlacementPort uses.
@@ -312,35 +307,34 @@ public class PlacementFrame
 		 * The offset is valid when no Orientation has been applied.
 		 * @return the offset of this PlacementPort's X coordinate from the center of its PlacementNode.
 		 */
-		public double getOffX() { return offX; }
+		double getOffX() { return offX; }
 
 		/**
 		 * Method to return the offset of this PlacementPort's Y coordinate from the center of its PlacementNode.
 		 * The offset is valid when no Orientation has been applied.
 		 * @return the offset of this PlacementPort's Y coordinate from the center of its PlacementNode.
 		 */
-		public double getOffY() { return offY; }
+		double getOffY() { return offY; }
 
 		/**
 		 * Method to return the offset of this PlacementPort's X coordinate from the center of its PlacementNode.
 		 * The coordinate assumes that the PlacementNode has been rotated by its Orientation.
 		 * @return the offset of this PlacementPort's X coordinate from the center of its PlacementNode.
 		 */
-		public double getRotatedOffX() { return rotatedOffX; }
+		double getRotatedOffX() { return rotatedOffX; }
 
 		/**
 		 * Method to return the offset of this PlacementPort's Y coordinate from the center of its PlacementNode.
 		 * The coordinate assumes that the PlacementNode has been rotated by its Orientation.
 		 * @return the offset of this PlacementPort's Y coordinate from the center of its PlacementNode.
 		 */
-		public double getRotatedOffY() { return rotatedOffY; }
+		double getRotatedOffY() { return rotatedOffY; }
 
 		/**
 		 * Internal method to compute the rotated offset of this PlacementPort
 		 * assuming that the Orientation of its PlacementNode has changed.
-		 * TODO: why is this public?  it should not be accessed!
 		 */
-		public void computeRotatedOffset()
+		private void computeRotatedOffset()
 		{
 			Orientation orient = plNode.getPlacementOrientation();
 			if (orient == Orientation.IDENT)
@@ -457,33 +451,29 @@ public class PlacementFrame
 			if (validNode)
 			{
 				// make a list of PlacementPorts on this NodeInst
-				NodeProto np = ni.getProto();
+				Cell np = (Cell)ni.getProto();
 				List<PlacementPort> pl = new ArrayList<PlacementPort>();
 				Map<PortProto,PlacementPort> placedPorts = new HashMap<PortProto,PlacementPort>();
-				if (ni.isCellInstance())
+				for(Iterator<Export> eIt = np.getExports(); eIt.hasNext(); )
 				{
-					for(Iterator<Export> eIt = ((Cell)np).getExports(); eIt.hasNext(); )
-					{
-						Export e = eIt.next();
-						Poly poly = e.getPoly();
-						PlacementPort plPort = new PlacementPort(poly.getCenterX(), poly.getCenterY(), e);
-						pl.add(plPort);
-						placedPorts.put(e, plPort);
-					}
-				} else
-				{
-					NodeInst niDummy = NodeInst.makeDummyInstance(np);
-					for(Iterator<PortInst> pIt = niDummy.getPortInsts(); pIt.hasNext(); )
-					{
-						PortInst pi = pIt.next();
-						Poly poly = pi.getPoly();
-						double offX = poly.getCenterX() - niDummy.getTrueCenterX();
-						double offY = poly.getCenterY() - niDummy.getTrueCenterY();
-						PlacementPort plPort = new PlacementPort(offX, offY, pi.getPortProto());
-						pl.add(plPort);
-						placedPorts.put(pi.getPortProto(), plPort);
-					}
+					Export e = eIt.next();
+					Poly poly = e.getPoly();
+					PlacementPort plPort = new PlacementPort(poly.getCenterX(), poly.getCenterY(), e);
+					pl.add(plPort);
+					placedPorts.put(e, plPort);
 				}
+//				NodeInst niDummy = NodeInst.makeDummyInstance(np);
+//				Map<PortProto,PlacementPort> placedPorts = new HashMap<PortProto,PlacementPort>();
+//				for(Iterator<PortInst> pIt = niDummy.getPortInsts(); pIt.hasNext(); )
+//				{
+//					PortInst pi = pIt.next();
+//					Poly poly = pi.getPoly();
+//					double offX = poly.getCenterX() - niDummy.getTrueCenterX();
+//					double offY = poly.getCenterY() - niDummy.getTrueCenterY();
+//					PlacementPort plPort = new PlacementPort(offX, offY, pi.getPortProto());
+//					pl.add(plPort);
+//					placedPorts.put(pi.getPortProto(), plPort);
+//				}
 
 				// add to the list of PlacementExports
 				for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
@@ -550,7 +540,10 @@ public class PlacementFrame
 	public Cell doPlacement(Library lib, String cellName, List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks,
 		List<PlacementExport> exportsToPlace, NodeProto iconToPlace)
 	{
-		// do the real work of placement
+       long startTime = System.currentTimeMillis();
+        System.out.println("Running placement on cell '" + cellName + "'");
+
+        // do the real work of placement
 		runPlacement(nodesToPlace, allNetworks, cellName);
 
 		// create a new cell for the placement results
@@ -646,6 +639,8 @@ public class PlacementFrame
 			}
 		}
 
+        long endTime = System.currentTimeMillis();
+        System.out.println("\t(took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 		return newCell;
 	}
 }
