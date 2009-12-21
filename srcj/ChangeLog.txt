@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+BUG: (12/21/09, SMR) "Cleanup Pins" warns about zero-size pins (Bug #2549).
+FIX: In CircuitChanges.cleanupCell() ignore zero-size pins and also
+     ignore artwork primitives with zero area.
+
 BUG: (12/21/09, SMR) Placement fails (Bug #2563).
 FIX: In PlacementFrame.doPlacement(), made conditional port location code.
 

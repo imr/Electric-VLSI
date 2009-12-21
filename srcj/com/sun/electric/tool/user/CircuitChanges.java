@@ -151,7 +151,7 @@ public class CircuitChanges
 		List<Geometric> selected = MenuCommands.getSelectedObjects(true, true);
 
 		// make a set of selected nodes
-		HashSet<NodeInst> selectedNodes = new HashSet<NodeInst>();
+		Set<NodeInst> selectedNodes = new HashSet<NodeInst>();
 		for(Geometric geom : selected)
 		{
 			if (geom instanceof NodeInst) selectedNodes.add((NodeInst)geom);
@@ -237,14 +237,9 @@ public class CircuitChanges
 		NodeInst [] nis = new NodeInst[total];
 		double [] dCX = new double[total];
 		double [] dCY = new double[total];
-//		double [] dSX = new double[total];
-//		double [] dSY = new double[total];
-//		int [] dRot = new int[total];
 		for(int i=0; i<total; i++)
 		{
 			nis[i] = nodes.get(i);
-//			dSX[i] = dSY[i] = 0;
-//			dRot[i] = 0;
 		}
 
 		// get bounds
@@ -390,7 +385,6 @@ public class CircuitChanges
 		if (cell == null) return;
 		new CircuitChangeJobs.ToggleNegationJob(cell, getHighlighted());
 	}
-
 
     /**
      * Get list of Highlights in current highlighter
@@ -823,11 +817,9 @@ public class CircuitChanges
 
 			// if the pin is an export, save it
 			if (ni.hasExports()) continue;
-//			if (ni.getNumExports() > 0) continue;
 
 			// if the pin is not connected or displayed, delete it
 			if (!ni.hasConnections())
-//			if (ni.getNumConnections() == 0)
 			{
 				// see if the pin has displayable variables on it
 				boolean hasDisplayable = false;
@@ -845,7 +837,7 @@ public class CircuitChanges
 		}
 
 		// look for oversized pins that can be reduced in size
-		HashMap<NodeInst,EPoint> pinsToScale = new HashMap<NodeInst,EPoint>();
+		Map<NodeInst,EPoint> pinsToScale = new HashMap<NodeInst,EPoint>();
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
@@ -884,7 +876,6 @@ public class CircuitChanges
 				Connection con = cIt.next();
 				ArcInst ai = con.getArc();
 				double overSize = ai.getLambdaBaseWidth() - ai.getProto().getDefaultLambdaBaseWidth();
-//				double overSize = ai.getLambdaFullWidth() - ai.getProto().getDefaultLambdaFullWidth();
 				if (overSize < 0) overSize = 0;
 				if (overSize > overSizeArc) overSizeArc = overSize;
 			}
@@ -946,7 +937,7 @@ public class CircuitChanges
 		}
 
 		// look for duplicate arcs
-		HashSet<ArcInst> arcsToKill = new HashSet<ArcInst>();
+		Set<ArcInst> arcsToKill = new HashSet<ArcInst>();
         for (Iterator<ArcInst> ait = cell.getArcs(); ait.hasNext(); ) {
             ArcInst ai = ait.next();
             int arcId = ai.getArcId();
@@ -1012,10 +1003,9 @@ public class CircuitChanges
 				ni.getProto() == Generic.tech().essentialBoundsNode) continue;
 			double sX = ni.getLambdaBaseXSize();
 			double sY = ni.getLambdaBaseYSize();
-//			SizeOffset so = ni.getSizeOffset();
-//			double sX = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-//			double sY = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 			if (sX > 0 && sY > 0) continue;
+			if (sX > 0 || sY > 0 && ni.getProto().getTechnology() == Artwork.tech()) continue;
+			if (sX == 0 && sY == 0 && ni.getFunction().isPin()) continue;
 			if (justThis)
 			{
 				highlighter.addElectricObject(ni, cell);
@@ -1056,7 +1046,7 @@ public class CircuitChanges
         if (highlighter == null) return;
 
 		// see which cells (in any library) have nonmanhattan stuff
-        HashSet<Cell> cellsSeen = new HashSet<Cell>();
+        Set<Cell> cellsSeen = new HashSet<Cell>();
 		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library lib = lIt.next();
@@ -1492,7 +1482,7 @@ public class CircuitChanges
 
 			// see if there are dependencies
 			Set<String> dummyLibs = new HashSet<String>();
-			HashSet<Library> markedLibs = new HashSet<Library>();
+			Set<Library> markedLibs = new HashSet<Library>();
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = cIt.next();
