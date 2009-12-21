@@ -27,7 +27,6 @@ import com.sun.electric.tool.placement.Placement;
 import com.sun.electric.tool.placement.PlacementFrame;
 
 import java.awt.Frame;
-import java.util.List;
 
 import javax.swing.JPanel;
 
