@@ -434,12 +434,6 @@ public class SeaOfGatesEngine
 			// get list of PortInsts that comprise this net
 			ArcInst ai = arcsToRoute.get(b);
 			Netlist netList = cell.getUserNetlist();
-//			Netlist netList = cell.acquireUserNetlist();
-//			if (netList == null)
-//			{
-//				System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
-//				break;
-//			}
 			Network net = netList.getNetwork(ai, 0);
 			if (net == null)
 			{
@@ -1111,8 +1105,6 @@ public class SeaOfGatesEngine
 	private void addBlockagesAtPorts(List<ArcInst> arcsToRoute, SeaOfGates.SeaOfGatesOptions prefs)
 	{
 		Netlist netList = cell.getUserNetlist();
-//		Netlist netList = cell.acquireUserNetlist();
-//		if (netList == null) return;
 
 		for(ArcInst ai : arcsToRoute)
 		{
@@ -1802,6 +1794,7 @@ public class SeaOfGatesEngine
 
 			// see if the adjacent point has already been visited
 			if (wf.getVertex(nX, nY, nZ)) { if (wf.debug) System.out.print(":AlreadyVisited");   continue; }
+
 			// see if the space is available
 			int whichContact = 0;
 			Point2D [] cuts = null;
@@ -2112,7 +2105,7 @@ public class SeaOfGatesEngine
 	}
 
 	/**
-	 * Method to convert a linked list of SearchVertex objecst to an optimized path.
+	 * Method to convert a linked list of SearchVertex objects to an optimized path.
 	 * @param initialThread the initial SearchVertex in the linked list.
 	 * @return a List of SearchVertex objects optimized to consolidate runs in the X
 	 * or Y axes.
