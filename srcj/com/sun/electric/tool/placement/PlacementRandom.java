@@ -47,7 +47,7 @@ public class PlacementRandom extends PlacementFrame
 	 * @param allNetworks a list of all networks that connect the nodes.
 	 * @param cellName the name of the cell being placed.
 	 */
-	protected void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks, String cellName)
+	public void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks, String cellName)
 	{
 		int numRows = (int)Math.round(Math.sqrt(nodesToPlace.size()));
 		double xPos = 0, yPos = 0;
