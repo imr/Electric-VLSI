@@ -279,6 +279,7 @@ public class Simulate extends Input
 	protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
 		throws IOException
 	{
+        assert(false); // this function should not be called.
 //		return null;
 	}
 
