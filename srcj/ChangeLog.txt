@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+IMP: (12/20,09, DN) NPE in network coming from autostitch (Bug #2562).
+FIX: In AutoStitich.java return false if specified "ni" doesn't have network (is icon of parent).
+
 IMP: (12/20,09, DN) Set java.tab-size=4 in Netbeans project.
 
 IMP: (12/20,09, DN) Exclude MacOSXInterface, JMF, Java3D from default Netbeans project.

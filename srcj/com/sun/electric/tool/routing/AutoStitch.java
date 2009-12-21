@@ -1381,6 +1381,8 @@ name=null;
 		// keep track of which networks we've already tied together
         Set<Network> netsConnectedTo = new TreeSet<Network>();
         Network net = top.getNodeNetwork(ni, pp);
+        if (net == null)
+            return false;
         netsConnectedTo.add(net);
 
         // now look at every layer in this node
@@ -1406,6 +1408,7 @@ name=null;
                     if (mPp instanceof Export) {
                         Export mPpe = (Export)mPp;
                         Network netm = netlist.getNetwork(mPpe, 0);
+                        assert netm != null;
                         if (netsConnectedTo.contains(netm)) continue;
                         netsConnectedTo.add(netm);
                     }
