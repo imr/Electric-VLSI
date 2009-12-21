@@ -46,29 +46,26 @@ public class SpiceOut extends Simulate
 	/**
 	 * Method to read an Spice output file.
 	 */
-	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
+	protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file
-		if (openTextInput(fileURL)) return null;
+		if (openTextInput(fileURL)) return;
 
 		// show progress reading .spo file
 		startProgressDialog("Spice output", fileURL.getFile());
 
 		// read the actual signal data from the .spo file
-		Stimuli sd = readSpiceFile(cell);
+		readSpiceFile(cell, sd);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
 		closeInput();
-
-		// return the simulation data
-		return sd;
 	}
 
 	private final static String CELLNAME_HEADER = "*** SPICE deck for cell ";
 
-	private Stimuli readSpiceFile(Cell cell)
+	private void readSpiceFile(Cell cell, Stimuli sd)
 		throws IOException
 	{
 		boolean dataMode = false;
@@ -93,7 +90,7 @@ public class SpiceOut extends Simulate
 					{
 						System.out.println("This is an HSPICE file, not a SPICE2 file");
 						System.out.println("Change the SPICE format (in Preferences) and reread");
-						return null;
+						return;
 					}
 				}
 			}
@@ -176,10 +173,9 @@ public class SpiceOut extends Simulate
 		if (mostSignals <= 0)
 		{
 			System.out.println("No data found in the file");
-			return null;
+			return;
 		}
 
-		Stimuli sd = new Stimuli();
 		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS, false);
 		sd.setCell(cell);
 
@@ -201,7 +197,6 @@ public class SpiceOut extends Simulate
 			}
 			an.addSignal("Signal " + (j+1), null, values);
 		}
-		return sd;
 	}
 
 }

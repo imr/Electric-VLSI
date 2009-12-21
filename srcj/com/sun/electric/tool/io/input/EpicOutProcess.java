@@ -65,20 +65,19 @@ public class EpicOutProcess extends Simulate implements Runnable
     /**
 	 * Method to read an Spice output file.
 	 */
-	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
+	protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
 		throws IOException
 	{
 		// show progress reading .spo file
 		startProgressDialog("EPIC output", fileURL.getFile());
 
 		// read the actual signal data from the .spo file
-        Stimuli sd = null;
         boolean eof = false;
         try {
             readerProcess = invokeEpicReader(fileURL);
             stdOut = new DataInputStream(readerProcess.getInputStream());
             (new Thread(this, "EpicReaderErrors")).start();
-            sd = readEpicFile();
+            readEpicFile(sd);
             sd.setCell(cell);
 
         } catch (EOFException e) {
@@ -118,9 +117,6 @@ public class EpicOutProcess extends Simulate implements Runnable
         stdOut.close();
         stdOut = null;
         readerProcess = null;
-
-        // return the simulation data
-        return sd;
     }
 
 //    private static String VERSION_STRING = ";! output_format 5.3";
@@ -137,11 +133,10 @@ public class EpicOutProcess extends Simulate implements Runnable
         }
     }
 
-	private Stimuli readEpicFile()
+	private void readEpicFile(Stimuli sd)
 		throws IOException
 	{
         char separator = '.';
-        Stimuli sd = new Stimuli();
         sd.setSeparatorChar(separator);
         EpicAnalysis an = new EpicAnalysis(sd);
         int numSignals = 0;
@@ -201,7 +196,7 @@ public class EpicOutProcess extends Simulate implements Runnable
         an.waveStarts = new int[numSignals];
         an.waveLengths = new int[numSignals];
 
-        ArrayList<SigInfo> sigInfoByEpicIndex = new ArrayList<SigInfo>();
+        List<SigInfo> sigInfoByEpicIndex = new ArrayList<SigInfo>();
         int start = 0;
         for (;;) {
             int sigNum = stdOut.readInt();
@@ -225,8 +220,6 @@ public class EpicOutProcess extends Simulate implements Runnable
             an.waveLengths[i] = si.len;
         }
         an.setWaveFile(new File(stdOut.readUTF()));
-
-        return sd;
     }
 
     private void printDebug(int level, char cmd, String arg) {
@@ -322,8 +315,8 @@ public class EpicOutProcess extends Simulate implements Runnable
      * Class which is used to restore Contexts from flat list of Signals.
      */
     private static class ContextBuilder {
-        ArrayList<String> strings = new ArrayList<String>();
-        ArrayList<EpicAnalysis.Context> contexts = new ArrayList<EpicAnalysis.Context>();
+        List<String> strings = new ArrayList<String>();
+        List<EpicAnalysis.Context> contexts = new ArrayList<EpicAnalysis.Context>();
 
         void clear() { strings.clear(); contexts.clear(); }
     }

@@ -51,31 +51,27 @@ public class PSpiceOut extends Simulate
 	/**
 	 * Method to read an PSpice output file.
 	 */
-	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
+	protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file
-		if (openTextInput(fileURL)) return null;
+		if (openTextInput(fileURL)) return;
 
 		// show progress reading .spo file
 		startProgressDialog("PSpice output", fileURL.getFile());
 
 		// read the actual signal data from the .spo file
-		Stimuli sd = readPSpiceFile(cell);
+		readPSpiceFile(cell, sd);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
 		closeInput();
-
-		// return the simulation data
-		return sd;
 	}
 
-	private Stimuli readPSpiceFile(Cell cell)
+	private void readPSpiceFile(Cell cell, Stimuli sd)
 		throws IOException
 	{
 		boolean first = true;
-		Stimuli sd = new Stimuli();
 		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS, false);
 		sd.setCell(cell);
 		List<String> signalNames = new ArrayList<String>();
@@ -97,7 +93,7 @@ public class PSpiceOut extends Simulate
 					{
 						System.out.println("This is an HSPICE file, not a SPICE3/PSPICE file");
 						System.out.println("Change the SPICE format (in Preferences) and reread");
-						return null;
+						return;
 					}
 				}
 
@@ -128,7 +124,7 @@ public class PSpiceOut extends Simulate
 				else
 				{
 					System.out.println("Missing value after '='.  This may not be a PSpice output file.");
-					return null;
+					return;
 				}
 			}
 
@@ -148,7 +144,7 @@ public class PSpiceOut extends Simulate
 			{
 				System.out.println("Line of data has " + position + " values, but expect " + numSignals +
 					". Unable to recover from error.  This may not be a PSpice output file.");
-				return null;
+				return;
 			}
 		}
 
@@ -156,7 +152,7 @@ public class PSpiceOut extends Simulate
 		if (numSignals == 0)
 		{
 			System.out.println("No data found in the file.  This may not be a PSpice output file.");
-			return null;
+			return;
 		}
 		int numEvents = values[0].size();
 		an.buildCommonTime(numEvents);
@@ -171,7 +167,6 @@ public class PSpiceOut extends Simulate
 				doubleValues[i] = values[j].get(i).doubleValue();
 			an.addSignal(signalNames.get(j), null, doubleValues);
 		}
-		return sd;
 	}
 
 }

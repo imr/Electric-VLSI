@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+BUG: (12/21/09, SMR) Many simulation outputs do not read in (Bug #2564).
+FIX: Fixed "readSimulationOutput()" method in Spice2, LTSpice, PSpice,
+     SmartSpice, Verilog, Epic, Raw format, and ArchSim.
+
 IMP: (12/21/09, GVG) Changes for Get ERC to consider new resistors in layout (Bug #2557)
 
 IMP: (12/20,09, DN) NPE in network coming from autostitch (Bug #2562).

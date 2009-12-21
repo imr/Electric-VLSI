@@ -44,32 +44,28 @@ public class RawSpiceOut extends Simulate
 	/**
 	 * Method to read an Raw Spice output file.
 	 */
-	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
+	protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file
-		if (openTextInput(fileURL)) return null;
+		if (openTextInput(fileURL)) return;
 
 		// show progress reading .raw file
 		startProgressDialog("Raw Spice output", fileURL.getFile());
 
 		// read the actual signal data from the .raw file
-		Stimuli sd = readRawFile(cell);
+		readRawFile(cell, sd);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
 		closeInput();
-
-		// return the simulation data
-		return sd;
 	}
 
-	private Stimuli readRawFile(Cell cell)
+	private void readRawFile(Cell cell, Stimuli sd)
 		throws IOException
 	{
 		// once per deck
 		boolean first = true;
-		Stimuli sd = new Stimuli();
 		sd.setCell(cell);
 
 		// once per analysis in the deck
@@ -94,7 +90,7 @@ public class RawSpiceOut extends Simulate
 					{
 						System.out.println("This is an HSPICE file, not a RAWFILE file");
 						System.out.println("Change the SPICE format (in Preferences) and reread");
-						return null;
+						return;
 					}
 				}
 			}
@@ -129,7 +125,7 @@ public class RawSpiceOut extends Simulate
 				} else
 				{
 					System.out.println("ERROR: Unknown analysis: " + postColon);
-					return null;
+					return;
 				}
 				continue;
 			}
@@ -152,7 +148,7 @@ public class RawSpiceOut extends Simulate
 				if (numSignals < 0)
 				{
 					System.out.println("Missing variable count in file");
-					return null;
+					return;
 				}
 				signalNames = new String[numSignals];
 				values = new double[numSignals][eventCount];
@@ -168,7 +164,7 @@ public class RawSpiceOut extends Simulate
 						if (line == null)
 						{
 							System.out.println("Error: end of file during signal names");
-							return null;
+							return;
 						}
 					}
 					line = line.trim();
@@ -199,12 +195,12 @@ public class RawSpiceOut extends Simulate
 				if (numSignals < 0)
 				{
 					System.out.println("Missing variable count in file");
-					return null;
+					return;
 				}
 				if (eventCount < 0)
 				{
 					System.out.println("Missing point count in file");
-					return null;
+					return;
 				}
 				for(int j=0; j<eventCount; j++)
 				{
@@ -214,7 +210,7 @@ public class RawSpiceOut extends Simulate
 						if (line == null)
 						{
 							System.out.println("Error: end of file during data points (read " + j + " out of " + eventCount);
-							return null;
+							return;
 						}
 						line = line.trim();
 						if (line.length() == 0) continue;
@@ -251,12 +247,12 @@ public class RawSpiceOut extends Simulate
 				if (numSignals < 0)
 				{
 					System.out.println("Missing variable count in file");
-					return null;
+					return;
 				}
 				if (eventCount < 0)
 				{
 					System.out.println("Missing point count in file");
-					return null;
+					return;
 				}
 
 				// read the data
@@ -269,8 +265,6 @@ public class RawSpiceOut extends Simulate
 				continue;
 			}
 		}
-
-	  	return sd;
 	}
 
 }

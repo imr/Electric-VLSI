@@ -380,14 +380,14 @@ public class NewEpicAnalysis extends AnalogAnalysis {
     @Override
         protected Waveform[] loadWaveforms(AnalogSignal signal) {
         int index = ((EpicSignal)signal).sigNum;
-        Waveform wave = loadWaveformCache.get(index);
+        Waveform wave = loadWaveformCache.get(new Integer(index));
         if (wave == null)
             return new Waveform[] { new WaveformImpl(new double[0], new double[0]) };
         return new Waveform[] { wave };
     }
 
     void putWaveform(int signum, Waveform w) {
-        loadWaveformCache.put(signum, w);
+        loadWaveformCache.put(new Integer(signum), w);
     }
     
 
@@ -789,9 +789,9 @@ public class NewEpicAnalysis extends AnalogAnalysis {
             if (!(wave instanceof BTreeNewSignal)) { super.calcBounds(); return; }
             BTreeNewSignal btns = (BTreeNewSignal)wave;
             this.bounds = new Rectangle2D.Double(btns.getPreferredApproximation().getTime(0),
-                                                 ((ScalarSample)btns.getPreferredApproximation().getSample(btns.eventWithMinValue)).getValue(),
+                                                 (btns.getPreferredApproximation().getSample(btns.eventWithMinValue)).getValue(),
                                                  btns.getPreferredApproximation().getTime(btns.getNumEvents()-1),
-                                                 ((ScalarSample)btns.getPreferredApproximation().getSample(btns.eventWithMaxValue)).getValue());
+                                                 (btns.getPreferredApproximation().getSample(btns.eventWithMaxValue)).getValue());
         }
         /*
         void setBounds(int minV, int maxV) {

@@ -81,27 +81,24 @@ public class LTSpiceOut extends Simulate
 	/**
 	 * Method to read an LTSpice output file.
 	 */
-	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
+	protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file
-		if (openBinaryInput(fileURL)) return null;
+		if (openBinaryInput(fileURL)) return;
 
 		// show progress reading .raw file
 		startProgressDialog("LTSpice output", fileURL.getFile());
 
 		// read the actual signal data from the .raw file
-		Stimuli sd = readRawLTSpiceFile(cell);
+		readRawLTSpiceFile(cell, sd);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
 		closeInput();
-
-		// return the simulation data
-		return sd;
 	}
 
-	private Stimuli readRawLTSpiceFile(Cell cell)
+	private void readRawLTSpiceFile(Cell cell, Stimuli sd)
 		throws IOException
 	{
 		complexValues = false;
@@ -157,7 +154,7 @@ public class LTSpiceOut extends Simulate
 				if (signalCount < 0)
 				{
 					System.out.println("Missing variable count in file");
-					return null;
+					return;
 				}
 				signalNames = new String[signalCount];
 				for(int i=0; i<=signalCount; i++)
@@ -189,16 +186,15 @@ public class LTSpiceOut extends Simulate
 				if (signalCount < 0)
 				{
 					System.out.println("Missing variable count in file");
-					return null;
+					return;
 				}
 				if (rowCount < 0)
 				{
 					System.out.println("Missing point count in file");
-					return null;
+					return;
 				}
 
 				// initialize the stimuli object
-				Stimuli sd = new Stimuli();
 				SweepAnalysisLT an = new SweepAnalysisLT(sd, aType);
 				sd.setCell(cell);
 				if (DEBUG)
@@ -280,10 +276,9 @@ public class LTSpiceOut extends Simulate
 					double minTime = 0, maxTime = 0, minValues = 0, maxValues = 0;
 					an.addSignal(signalNames[i], context, minTime, maxTime, minValues, maxValues);
 				}
-				return sd;
+				return;
 			}
 		}
-		return null;
 	}
 
 	private double getNextDouble()

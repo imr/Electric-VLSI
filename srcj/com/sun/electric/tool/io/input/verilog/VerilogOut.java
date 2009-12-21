@@ -38,6 +38,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class for reading and displaying waveforms from Verilog output.
@@ -62,38 +63,34 @@ public class VerilogOut extends Simulate
 	/**
 	 * Method to read an Verilog output file.
 	 */
-	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
+	protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file
-		if (openTextInput(fileURL)) return null;
+		if (openTextInput(fileURL)) return;
 
 		// show progress reading .dump file
 		startProgressDialog("Verilog output", fileURL.getFile());
 
 		// read the actual signal data from the .dump file
-		Stimuli sd = readVerilogFile(cell);
+		readVerilogFile(cell, sd);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
 		closeInput();
-
-		// return the simulation data
-		return sd;
 	}
 
-	private Stimuli readVerilogFile(Cell cell)
+	private void readVerilogFile(Cell cell, Stimuli sd)
 		throws IOException
 	{
-		Stimuli sd = new Stimuli();
 		DigitalAnalysis an = new DigitalAnalysis(sd, true);
 		sd.setCell(cell);
 		double timeScale = 1.0;
 		String currentScope = "";
 		int curLevel = 0;
 		int numSignals = 0;
-		HashMap<String,Object> symbolTable = new HashMap<String,Object>();
-		HashMap<DigitalSignal,List<VerilogStimuli>> dataMap = new HashMap<DigitalSignal,List<VerilogStimuli>>();
+		Map<String,Object> symbolTable = new HashMap<String,Object>();
+		Map<DigitalSignal,List<VerilogStimuli>> dataMap = new HashMap<DigitalSignal,List<VerilogStimuli>>();
 		List<DigitalSignal> curArray = null;
 		for(;;)
 		{
@@ -382,7 +379,6 @@ public class VerilogOut extends Simulate
 				}
 			}
 		}
-		return sd;
 	}
 
 	private void cleanUpScope(List<DigitalSignal> curArray, DigitalAnalysis an)
@@ -439,7 +435,7 @@ public class VerilogOut extends Simulate
 		}
 	}
 
-	private void addSignalToHashMap(DigitalSignal sig, String symbol, HashMap<String,Object> symbolTable)
+	private void addSignalToHashMap(DigitalSignal sig, String symbol, Map<String,Object> symbolTable)
 	{
 		Object entry = symbolTable.get(symbol);
 		if (entry == null)

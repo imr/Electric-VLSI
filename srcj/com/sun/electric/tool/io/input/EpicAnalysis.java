@@ -27,12 +27,11 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Waveform;
 import com.sun.electric.tool.simulation.WaveformImpl;
 import com.sun.electric.tool.user.ActivityLogger;
-
-import com.sun.electric.tool.simulation.Signal;
 
 import java.awt.geom.Rectangle2D;
 import java.io.File;
@@ -47,8 +46,10 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Vector;
+
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -175,7 +176,7 @@ public class EpicAnalysis extends AnalogAnalysis {
     }
 
     public List<AnalogSignal> getSignalsFromExtractedNet(Signal ws) {
-        ArrayList<AnalogSignal> ret = new ArrayList<AnalogSignal>();
+    	List<AnalogSignal> ret = new ArrayList<AnalogSignal>();
         ret.add((AnalogSignal)ws);
         return ret;
     }
@@ -304,7 +305,7 @@ public class EpicAnalysis extends AnalogAnalysis {
      * @param strings list of names.
      * @param contexts list of contexts.
      */
-    Context getContext(ArrayList<String> strings, ArrayList<Context> contexts) {
+    Context getContext(List<String> strings, List<Context> contexts) {
         assert strings.size() == contexts.size();
         int hashCode = Context.hashValue(strings, contexts);
         
@@ -554,11 +555,11 @@ public class EpicAnalysis extends AnalogAnalysis {
         /**
          * Map from name of subcontext to EpicTreeNode.
          */
-        private final HashMap<String,EpicTreeNode> subs = new HashMap<String,EpicTreeNode>();
+        private final Map<String,EpicTreeNode> subs = new HashMap<String,EpicTreeNode>();
         /**
          * Map from name of leaf npde to EpicTreeNode.
          */
-        private final HashMap<String,EpicTreeNode> sigs = new HashMap<String,EpicTreeNode>();
+        private final Map<String,EpicTreeNode> sigs = new HashMap<String,EpicTreeNode>();
  
         /**
          * Constructor of leaf fake context.
@@ -579,7 +580,7 @@ public class EpicAnalysis extends AnalogAnalysis {
          * @param contexts list of contexts.
          * @param hashCode precalculated hash code of new Context.
          */
-        private Context(ArrayList<String> names, ArrayList<Context> contexts, int hashCode) {
+        private Context(List<String> names, List<Context> contexts, int hashCode) {
             assert names.size() == contexts.size();
             type = 0;
             this.hashCode = hashCode;
@@ -614,7 +615,7 @@ public class EpicAnalysis extends AnalogAnalysis {
          * Returns true if contenst of this Context is equal to specified lists.
          * @returns true if contenst of this Context is equal to specified lists.
          */
-        private boolean equals(ArrayList<String> names, ArrayList<Context> contexts) {
+        private boolean equals(List<String> names, List<Context> contexts) {
             int len = nodes.length;
             if (names.size() != len || contexts.size() != len) return false;
             for (int i = 0; i < len; i++) {
@@ -636,7 +637,7 @@ public class EpicAnalysis extends AnalogAnalysis {
          * @param contexts list of contexts.
          * @return hash code
          */
-        private static int hashValue(ArrayList<String> names, ArrayList<Context> contexts) {
+        private static int hashValue(List<String> names, List<Context> contexts) {
             assert names.size() == contexts.size();
             int hash = 0;
             for (int i = 0; i < names.size(); i++)

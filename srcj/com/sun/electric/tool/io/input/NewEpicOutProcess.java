@@ -24,24 +24,38 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.Environment;
+import com.sun.electric.database.geometry.btree.BTree;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.UserInterfaceExec;
 import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.BTreeNewSignal;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.Waveform;
 import com.sun.electric.tool.user.ActivityLogger;
 
-import com.sun.electric.tool.simulation.*;
-import com.sun.electric.database.geometry.btree.*;
-import java.io.*;
-import java.util.*;
-
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
+import java.io.Serializable;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -70,7 +84,7 @@ public class NewEpicOutProcess extends Simulate implements Runnable
     /**
      * Method to read an Spice output file.
      */
-    protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
+    protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
         throws IOException
     {
         // show progress reading .spo file
@@ -84,7 +98,6 @@ public class NewEpicOutProcess extends Simulate implements Runnable
         epos = new PipedOutputStream();
         epis = new PipedInputStream(epos);
 
-        Stimuli sd = new Stimuli();
         char separator = '.';
         sd.setSeparatorChar(separator);
         this.epicAnalysis = new NewEpicAnalysis(sd);
@@ -118,9 +131,6 @@ public class NewEpicOutProcess extends Simulate implements Runnable
         stdOut.close();
         stdOut = null;
         readerProcess = null;
-
-        // return the simulation data
-        return sd;
     }
 
 
@@ -451,7 +461,7 @@ public class NewEpicOutProcess extends Simulate implements Runnable
                         signalsByEpicIndex.add(null);
                     EpicReaderSignal s = signalsByEpicIndex.get(sigNum);
                     if (s == null) {
-                        s = new EpicReaderSignal(sigNum, epicAnalysis.getTree());
+                        s = new EpicReaderSignal(sigNum, NewEpicAnalysis.getTree());
                         signalsByEpicIndex.set(sigNum, s);
                     }
                 
@@ -736,7 +746,6 @@ public class NewEpicOutProcess extends Simulate implements Runnable
                 stdOut.writeDouble(voltageResolution);
                 stdOut.writeDouble(currentResolution);
                 stdOut.writeDouble(curTime*timeResolution);
-                int size = 0;
                 for (EpicReaderSignal s: signalsByEpicIndex) {
                     if (s == null) continue;
                     epicAnalysis.putWaveform(s.sigNum, s.getBWaveform());
@@ -880,7 +889,7 @@ public class NewEpicOutProcess extends Simulate implements Runnable
             if (value < minValue) { minValue = value; evmin = count; }
             if (value > maxValue) { maxValue = value; evmax = count; }
             count++;
-            tree.insert(t*timeResolution, value);
+            tree.insert(new Double(t*timeResolution), new Double(value));
         }
 
         /**

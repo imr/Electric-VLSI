@@ -44,27 +44,24 @@ public class SmartSpiceOut extends Simulate
 	/**
 	 * Method to read an Smart Spice output file.
 	 */
-	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
+	protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file
-		if (openBinaryInput(fileURL)) return null;
+		if (openBinaryInput(fileURL)) return;
 
 		// show progress reading .dump file
 		startProgressDialog("SmartSpice output", fileURL.getFile());
 
 		// read the actual signal data from the .dump file
-		Stimuli sd = readRawSmartSpiceFile(cell);
+		readRawSmartSpiceFile(cell, sd);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
 		closeInput();
-
-		// return the simulation data
-		return sd;
 	}
 
-	private Stimuli readRawSmartSpiceFile(Cell cell)
+	private void readRawSmartSpiceFile(Cell cell, Stimuli sd)
 		throws IOException
 	{
 		boolean first = true;
@@ -89,7 +86,7 @@ public class SmartSpiceOut extends Simulate
 					{
 						System.out.println("This is an HSPICE file, not a SMARTSPICE file");
 						System.out.println("Change the SPICE format (in Preferences) and reread");
-						return null;
+						return;
 					}
 				}
 			}
@@ -117,9 +114,8 @@ public class SmartSpiceOut extends Simulate
 				if (signalCount < 0)
 				{
 					System.out.println("Missing variable count in file");
-					return null;
+					return;
 				}
-				Stimuli sd = new Stimuli();
 				an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS, false);
 				sd.setCell(cell);
 				signalNames = new String[signalCount];
@@ -161,12 +157,12 @@ public class SmartSpiceOut extends Simulate
 				if (signalCount < 0)
 				{
 					System.out.println("Missing variable count in file");
-					return null;
+					return;
 				}
 				if (rowCount < 0)
 				{
 					System.out.println("Missing point count in file");
-					return null;
+					return;
 				}
 				an.buildCommonTime(rowCount);
 
@@ -198,12 +194,12 @@ public class SmartSpiceOut extends Simulate
 				if (signalCount < 0)
 				{
 					System.out.println("Missing variable count in file");
-					return null;
+					return;
 				}
 				if (rowCount < 0)
 				{
 					System.out.println("Missing point count in file");
-					return null;
+					return;
 				}
 				an.buildCommonTime(rowCount);
 
@@ -232,16 +228,17 @@ public class SmartSpiceOut extends Simulate
 				}
 			}
 		}
-		for (int i = 0; i < signalCount; i++) {
+		for (int i = 0; i < signalCount; i++)
+		{
 			String name = signalNames[i];
 			int lastDotPos = name.lastIndexOf('.');
 			String context = null;
-			if (lastDotPos >= 0) {
+			if (lastDotPos >= 0)
+			{
 				context = name.substring(0, lastDotPos);
 				name = name.substring(lastDotPos + 1);
 			}
 			an.addSignal(signalNames[i], context, values[i]);
 		}
-		return an.getStimuli();
 	}
 }

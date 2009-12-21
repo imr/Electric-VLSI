@@ -37,6 +37,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class for reading and displaying waveforms from ArchSim output.
@@ -47,31 +48,28 @@ public class ArchSimOut extends Simulate
 	/**
 	 * Method to read an ArchSim output file.
 	 */
-	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
+	protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file
-		if (openTextInput(fileURL)) return null;
+		if (openTextInput(fileURL)) return;
 
 		// show progress reading .dump file
 		startProgressDialog("ArchSim output", fileURL.getFile());
 
 		// read the actual signal data from the .dump file
-		Stimuli sd = readArchSimFile(cell);
+		readArchSimFile(cell, sd);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
 		closeInput();
-
-		// return the simulation data
-		return sd;
 	}
 
-	private Stimuli readArchSimFile(Cell cell)
+	private void readArchSimFile(Cell cell, Stimuli sd)
 		throws IOException
 	{
 		// read all of the stimuli
-		HashMap<String,List<Point>> symbolTable = new HashMap<String,List<Point>>();
+		Map<String,List<Point>> symbolTable = new HashMap<String,List<Point>>();
 		int greatestTime = 0;
 		for(;;)
 		{
@@ -99,7 +97,6 @@ public class ArchSimOut extends Simulate
 		}
 
 		// make a data structure for it
-		Stimuli sd = new Stimuli();
 		DigitalAnalysis an = new DigitalAnalysis(sd, true);
 		sd.setCell(cell);
 		for(String signalName : symbolTable.keySet())
@@ -121,7 +118,6 @@ public class ArchSimOut extends Simulate
 				i++;
 			}
 		}
-		return sd;
 	}
 
 }
