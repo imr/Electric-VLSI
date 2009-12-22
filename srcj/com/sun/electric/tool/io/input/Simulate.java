@@ -49,7 +49,7 @@ import javax.swing.*;
 /**
  * This class reads simulation output files and plots them.
  */
-public class Simulate extends Input
+public abstract class Simulate extends Input
 {
 	public Simulate() {}
 
@@ -276,12 +276,7 @@ public class Simulate extends Input
 	/**
 	 * Method that is overridden by subclasses to actually do the work.
 	 */
-	protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
-		throws IOException
-	{
-        assert(false); // this function should not be called.
-//		return null;
-	}
+	protected abstract void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell) throws IOException;
 
 	public static FileType getSpiceOutputType(String format, Simulation.SpiceEngine engine)
 	{
