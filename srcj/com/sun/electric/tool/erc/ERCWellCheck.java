@@ -397,7 +397,7 @@ public class ERCWellCheck
 			// see if this contact is in a marked well
 			Rectangle2D searchArea = new Rectangle2D.Double(wc.ctr.getX(), wc.ctr.getY(), 0, 0);
 			RTNode topSearch = nWellRoot;
-			if (canBeWellTap(wc.fun)) topSearch = pWellRoot;
+			if (canBeSubstrateTap(wc.fun)) topSearch = pWellRoot;
 			boolean geomFound = false;
 			for(RTNode.Search sea = new RTNode.Search(searchArea, topSearch, true); sea.hasNext(); )
 			{
@@ -415,7 +415,7 @@ public class ERCWellCheck
 			if (!geomFound)
 			{
 				String errorMsg = "N-Well contact is floating";
-				if (canBeWellTap(wc.fun)) errorMsg = "P-Well contact is floating";
+				if (canBeSubstrateTap(wc.fun)) errorMsg = "P-Well contact is floating";
 				errorLogger.logError(errorMsg, new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
 				continue;
 			}
@@ -537,13 +537,13 @@ public class ERCWellCheck
 		boolean hasPCon = false, hasNCon = false;
 		for(WellCon wc : wellCons)
 		{
-			if (canBeWellTap(wc.fun))
+			if (canBeSubstrateTap(wc.fun))
                 hasPCon = true;
             else
 				hasNCon = true;
 			if (!wc.onProperRail)
 			{
-				if (canBeWellTap(wc.fun))
+				if (canBeSubstrateTap(wc.fun))
 				{
 					if (wellPrefs.mustConnectPWellToGround)
 					{
@@ -639,7 +639,7 @@ public class ERCWellCheck
 					}
 
 					// see if this distance is worst for the well type
-					if (canBeWellTap(wn.fun))
+					if (canBeSubstrateTap(wn.fun))
 					{
 						// pWell
 						if (closestDist > worstPWellDist)
@@ -1106,7 +1106,7 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 			// look for well and substrate contacts
 			PrimitiveNode.Function fun = ni.getFunction();
             Netlist netList = info.getNetlist();
-			if (canBeWellTap(fun) || canBeSubstrateTap(fun))
+			if (canBeSubstrateTap(fun) || canBeWellTap(fun))
 			{
                 // Allowing more than one port for well resistors.
                 for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext();)
@@ -1150,7 +1150,7 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
                                     if (exp.isPower()) nr.onPower = true;
                                 }
                             }
-                            boolean searchWell = (canBeWellTap(fun));
+                            boolean searchWell = (canBeSubstrateTap(fun));
                             if ((searchWell && nr.onGround) || (!searchWell && nr.onPower))
                                 wc.onProperRail = true;
                         }
@@ -1359,13 +1359,13 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 			if (wc.netNum == -1)
 			{
 				String errorMsg = "N-Well contact is floating";
-				if (canBeWellTap(wc.fun)) errorMsg = "P-Well contact is floating";
+				if (canBeSubstrateTap(wc.fun)) errorMsg = "P-Well contact is floating";
 				errorLogger.logError(errorMsg, new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
 				continue;
 			}
 			if (!wc.onProperRail)
 			{
-				if (canBeWellTap(wc.fun))
+				if (canBeSubstrateTap(wc.fun))
 				{
 					if (wellPrefs.mustConnectPWellToGround)
 					{
@@ -1387,7 +1387,7 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 			boolean found = false;
 			for(WellCon wc : wellCons)
 			{
-				if (canBeSubstrateTap(wc.fun)) { found = true;   break; }
+				if (canBeWellTap(wc.fun)) { found = true;   break; }
 			}
 			if (!found)
 			{
@@ -1401,7 +1401,7 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 			boolean found = false;
 			for(WellCon wc : wellCons)
 			{
-				if (canBeWellTap(wc.fun)) { found = true;   break; }
+				if (canBeSubstrateTap(wc.fun)) { found = true;   break; }
 			}
 			if (!found)
 			{
@@ -1666,7 +1666,7 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 
 			// look for well and substrate contacts
 			PrimitiveNode.Function fun = ni.getFunction();
-			if (canBeWellTap(fun) || canBeSubstrateTap(fun))
+			if (canBeSubstrateTap(fun) || canBeWellTap(fun))
 			{
 				WellCon wc = new WellCon();
 				wc.ctr = ni.getTrueCenter();
@@ -1681,7 +1681,7 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 				wc.onProperRail = false;
 				if (net != null)
 				{
-					boolean searchWell = canBeWellTap(fun);
+					boolean searchWell = canBeSubstrateTap(fun);
 
 					// PWell: must be on ground or  NWell: must be on power
 					Network parentNet = net;
@@ -1861,20 +1861,20 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 	}
 
     /**
-     * Method to tell whether this function describes an element which can be used as well tap (ERC)
+     * Method to tell whether this function describes an element which can be used as substrate tap (ERC)
      * @return
      */
-    private static boolean canBeWellTap(PrimitiveNode.Function fun)
+    private static boolean canBeSubstrateTap(PrimitiveNode.Function fun)
     {
-        return fun == PrimitiveNode.Function.WELL || fun == PrimitiveNode.Function.RESNWELL;
+        return fun == PrimitiveNode.Function.SUBSTRATE || fun == PrimitiveNode.Function.RESPWELL;
     }
 
     /**
      * Method to tell whether this function describes an element which can be used as well tap (ERC)
      * @return
      */
-    private static boolean canBeSubstrateTap(PrimitiveNode.Function fun)
+    private static boolean canBeWellTap(PrimitiveNode.Function fun)
     {
-        return fun == PrimitiveNode.Function.SUBSTRATE || fun == PrimitiveNode.Function.RESPWELL;
+        return fun == PrimitiveNode.Function.WELL || fun == PrimitiveNode.Function.RESNWELL;
     }
 }

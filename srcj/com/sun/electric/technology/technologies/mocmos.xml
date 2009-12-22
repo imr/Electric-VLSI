@@ -3091,7 +3091,7 @@
         <minSizeRule width="8.0" height="8.0" rule="29.3, 30.3"/>
     </primitiveNode>
 
-    <primitiveNode name="Metal-1-P-Well-Con" fun="WELL">
+    <primitiveNode name="Metal-1-P-Well-Con" fun="SUBSTRATE">
         <oldName>Metal-1-Well-Con</oldName>
         <diskOffset untilVersion="1" x="8.5" y="8.5"/>
         <diskOffset untilVersion="2" x="2.5" y="2.5"/>
@@ -3137,7 +3137,7 @@
         <minSizeRule width="17.0" height="17.0" rule="4.2, 6.2, 7.3"/>
     </primitiveNode>
 
-    <primitiveNode name="Metal-1-N-Well-Con" fun="SUBSTRATE">
+    <primitiveNode name="Metal-1-N-Well-Con" fun="WELL">
         <oldName>Metal-1-Substrate-Con</oldName>
         <diskOffset untilVersion="1" x="8.5" y="8.5"/>
         <diskOffset untilVersion="2" x="2.5" y="2.5"/>
@@ -3279,12 +3279,12 @@
 
         <menuBox/>
         <menuBox>
-            <menuNodeInst protoName="Metal-1-P-Well-Con" function="WELL">
+            <menuNodeInst protoName="Metal-1-P-Well-Con" function="SUBSTRATE">
                 <menuNodeText text="pWell" size="5.5"/>
             </menuNodeInst>
         </menuBox>
         <menuBox>
-            <menuNodeInst protoName="Metal-1-N-Well-Con" function="SUBSTRATE">
+            <menuNodeInst protoName="Metal-1-N-Well-Con" function="WELL">
                 <menuNodeText text="nWell" size="5.5"/>
             </menuNodeInst>
         </menuBox>
