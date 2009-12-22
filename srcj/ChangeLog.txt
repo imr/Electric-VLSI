@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.10r: ******************************
+
 ************************* Version 8.10q: ******************************
 
 IMP: (12/22/09, GVG) Review warning: "should connect to polysilicon-1 because that 
