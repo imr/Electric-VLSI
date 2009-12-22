@@ -535,25 +535,27 @@ public class ERCWellCheck
 
 		// more analysis
 		boolean hasPCon = false, hasNCon = false;
-		for(WellCon wc : wellCons)
+        List<NodeInst> niList = new ArrayList<NodeInst>(); // only to report once resistors which have two ports
+        for(WellCon wc : wellCons)
 		{
 			if (canBeSubstrateTap(wc.fun))
                 hasPCon = true;
             else
 				hasNCon = true;
-			if (!wc.onProperRail)
+			if (!wc.onProperRail && !niList.contains(wc.ni))
 			{
-				if (canBeSubstrateTap(wc.fun))
+                niList.add(wc.ni); // to report only once
+                if (canBeSubstrateTap(wc.fun))
 				{
 					if (wellPrefs.mustConnectPWellToGround)
 					{
-						errorLogger.logError("P-Well contact not connected to ground", new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
+						errorLogger.logError("P-Well contact '" + wc.ni.getName() + "' not connected to ground", new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
 					}
 				} else
 				{
 					if (wellPrefs.mustConnectNWellToPower)
 					{
-						errorLogger.logError("N-Well contact not connected to power", new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
+						errorLogger.logError("N-Well contact '" + wc.ni.getName() + "' not connected to power", new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
 					}
 				}
 			}

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+IMP: (12/21/09, GVG ) Get ERC to consider new resistors in layout (Bug #2557)
+It works now after Bug #2561 and extra checking to avoid reporting resistor
+errors twice (they have two ports).
+
 IMP: (12/21/09, GVG) Make mocmos/tsmc180/cmos90 p-substrate technologies (Bug #2561)
 Adding ERC tests for cmos90 and tsmc180 examples.
 
