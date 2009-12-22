@@ -462,6 +462,22 @@
         </exec>
     </target>
 
+	<!-- JavaCC here to recreate those *.jj files if needed -->
+	<!-- Gives an idea how to compile those files -->
+	<!-- ${setmeupDir} must be specified and it could be machine dependent -->
+	<!-- Not adding those files because the used ones are in Sun-only plugins for now -->
+	<!-- 
+    <target name="javacc" description="Build *.java from *.jj">
+    	<javacc
+    	    target="${PATH}/Example.jj"
+    	    outputdirectory="${PATH}/"
+    	    javacchome="${setmeupDir}/bin/javacc-5.0"
+    	/>
+    </target>
+    -->
+
+	<!-- To create the dmg file for Mac boxes -->
+	
     <target name="javadoc" depends="init" description="Create Javadoc">
         <mkdir dir="apidoc"/>
         <javadoc destdir="apidoc" private="false" use="true" source="1.5" maxmemory="400m">
