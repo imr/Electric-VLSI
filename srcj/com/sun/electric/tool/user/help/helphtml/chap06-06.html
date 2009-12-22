@@ -3,10 +3,10 @@
 <!-- COMMAND Edit/Change... -->
 <!-- COMMAND Cell/Merge Libraries/Replace Cells from Library... -->
 
+<TABLE><TR><TD>
 The <B>Change...</B> command (in menu <B>Edit</B>)
 removes the currently highlighted node or arc and replaces it with a new one of a different type.
 <P>
-<TABLE><TR><TD>
 This same effect can be had by copying one object and then pasting it onto another
 (see <A HREF="chap06-01.html#chap06-01">Section 6-1</A>).
 A dialog is presented in which the possible replacements are shown.
@@ -27,10 +27,10 @@ then the change will fail (unless "Allow missing ports" is checked).
 Besides replacing the currently highlighted node or arc ("Change selected ones only"),
 it is also possible to specify replacement of many other objects.
 <UL>
-<LI>"Change all connected to this" requests that other objects of the same type which are connected to the highlighted ones will be changed.
-<LI>"Change all in this cell" requests that all other objects of the same type in this cell will be changed.
-<LI>"Change all in this library" requests that all other objects of the same type in the current library will be changed.
-<LI>"Change all in all libraries" requests that all other objects of the same type in every library will be changed.
+<LI>"Change all connected to this" requests that objects of the same type, which are connected to the highlighted ones, be changed.
+<LI>"Change all in this cell" requests that all objects of the same type in this cell be changed.
+<LI>"Change all in this library" requests that all objects of the same type in the current library be changed.
+<LI>"Change all in all libraries" requests that all objects of the same type in every library be changed.
 </UL>
 <P>
 This is a modeless dialog: it can remain up while other editing is being done.
@@ -43,7 +43,8 @@ because it is not in the list.
 To change a capacitor into an electrolytic capacitor, paste an electrolytic capacitor onto it.
 Besides capacitors, parameters can be found on diodes, transistors,
 sources, and two-ports (the four-connection primitives such as VCCS).
-<P>
+
+<P>
 Another command for changing circuitry is <B>Replace Cells from Library...</B>
 (in menu <B>Cell / Merge Libraries</B>).
 This command replaces instances in the current cell with like-names ones from another library.

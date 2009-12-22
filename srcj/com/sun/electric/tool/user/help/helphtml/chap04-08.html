@@ -2,6 +2,9 @@
 
 <!-- COMMAND File/Print... -->
 <!-- COMMAND File/Page Setup... -->
+<!-- COMMAND Window/Waveform Window/Plot Simulation Data as PDF... -->
+<!-- COMMAND Window/Waveform Window/Plot Simulation Data as PS... -->
+<!-- COMMAND Window/Waveform Window/Plot Simulation Data On Screen -->
 <!-- PREFERENCE General/Printing -->
 
 To make a paper copy of the contents of the current window,
@@ -12,6 +15,14 @@ As an alternative to printing, you can request the system to write a PostScript,
 To do this,
 use the <B>PostScript...</B>, <B>HPGL</B>, and <B>PNG (Portable Network Graphics)...</B> commands
 (in menu <B>File / Export</B>).
+<P>
+To print a waveform window, use there are special commands in the <B>Window / Waveform Window</B> submenu
+that invoke "gnuplot" (which must be installed already):
+<UL>
+<LI><B>Plot Simulation Data as PDF...</B> creates an Acrobat file with the simulation data.</LI>
+<LI><B>Plot Simulation Data as PS...</B> creates a PostScript file with the simulation data.</LI>
+<LI><B>Plot Simulation Data On Screen</B> shows the simulation data in a Gnuplot window.</LI>
+</UL>
 <P>
 Finally, it is always possible to do a screen-capture in order to get a copy of the image.
 The following table shows the tradeoffs between the different ways of obtaining hardcopy from the screen:

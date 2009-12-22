@@ -988,7 +988,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
             commands += "set size ratio "+sr+"; ";
             commands += "set xrange [\""+min+"\":\""+max+"\"]; ";
             commands += "plot \"-\" with lines; ";
-            System.out.println("invoking: gnuplot -e \""+commands+"\"");
+            System.out.println("Running: gnuplot -e \""+commands+"\"");
             ExecProcess ep = new ExecProcess(new String[] { "gnuplot", "-e", commands }, null);
             ep.redirectStdout(System.out);
             ep.redirectStderr(System.out);
@@ -997,7 +997,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
             for(Panel wp : ww.wavePanels)
                 wp.dumpDataForGnuplot(pw);
             pw.close();
-        } catch (Exception e) { throw new RuntimeException(e); }
+        } catch (Exception e)
+        {
+        	System.out.println("ERROR: Unable to run 'gnuplot'");
+//        	throw new RuntimeException(e);
+        }
     }
 
 	/**

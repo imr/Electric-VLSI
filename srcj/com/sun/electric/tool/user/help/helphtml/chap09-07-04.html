@@ -27,7 +27,6 @@ The attribute's name is <i>NCC</i> and it contains one or more lines of text, ea
 Thus, although a cell can have at most one attribute named <i>NCC</i>,
 that attribute can contain any number of NCC annotations.
 </p>
-<BR>
 
 <H4>exportsConnectedByParent <i>&lt;string or regular expression&gt;</i></H4>
 <P>
@@ -60,7 +59,6 @@ When NCC encounters an instance of a cell
 with an <i>exportsConnectedByParent</i> annotation it reports an
 error if that assertion isn't satisfied.
 </p>
-<BR>
 
 <H4>exportsToIgnore <i>&lt;exportNames&gt;</i></H4>
 <p>
@@ -84,7 +82,6 @@ In the layout cell, add the annotation <i>exportsToIgnore E1 E2</i>.
 This will ignore the extra layout cells, and it will also ignore the use of these exports,
 higher up the hierarchy.
 </p>
-<BR>
 
 <H4>skipNCC <i>&lt;comment&gt;</i></H4>
 <p>
@@ -128,7 +125,6 @@ or layout cell in the cell group.
 In general, it is preferable to place the annotation on the schematic cell
 because it's more visible to the designer.
 </p>
-<BR>
 
 <H4>flattenInstances <i>&lt;string or regular expression&gt;</i> ...</H4>
 <P>
@@ -142,7 +138,6 @@ When that happens, the <i>flattenInstances</i> annotation can guide the heuristi
 The list of strings and/or regular expressions are used to match instance names within the cell.
 Those cell instances that match are always flattened.  
 </p>
-<br>
 
 <H4>notSubcircuit <i>&lt;comment&gt;</i></H4>
 <P>
@@ -176,7 +171,6 @@ command and may be placed on any schematic or layout cell in the cell group.
 In general, it is preferable to place the annotation on the schematic cell
 because it's more visible to the designer.
 </p>
-<br>
 
 <H4>joinGroup <i>&lt;cell name&gt;</i></H4>
 <p>
@@ -197,7 +191,6 @@ The cell group to move the cell to is
 the cell group that contains the cell named in the annotation.
 That specification should be fully qualified: "library:cell{view}".
 </p>
-<br>
 
 <H4>transistorType<i>&lt;type&gt;</i></H4>
 <p>
@@ -211,7 +204,6 @@ NT-OD25-N-Transistor, NT-OD33-N-Transistor, P-Transistor,
 VTH-P-Transistor, VTL-P-Transistor, OD18-P-Transistor,
 OD25-P-Transistor, or OD33-P-Transistor.
 </p>
-<br>
 
 <H4>resistorType<i>&lt;type&gt;</i></H4> 
 <p>
@@ -229,7 +221,6 @@ Typically it is used only inside special libraries such as the "red" library
 (see <A HREF="chap09-09.html#chap09-09">Section 9-9</A>).
 Most designers simply instantiate resistors from those special libraries.
 </p>
-<br>
 
 <H4>forcePartMatch <i>&lt;partName&gt;</i></H4> 
 <p>
