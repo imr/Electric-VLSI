@@ -535,19 +535,17 @@ public class ERCWellCheck
 
 		// more analysis
 		boolean hasPCon = false, hasNCon = false;
-        List<NodeInst> niList = new ArrayList<NodeInst>(); // only to report once resistors which have two ports
         for(WellCon wc : wellCons)
 		{
 			if (canBeSubstrateTap(wc.fun))
                 hasPCon = true;
             else
 				hasNCon = true;
-			if (!wc.onProperRail && !niList.contains(wc.ni))
+			if (!wc.onProperRail)
 			{
-                niList.add(wc.ni); // to report only once
                 if (canBeSubstrateTap(wc.fun))
 				{
-					if (wellPrefs.mustConnectPWellToGround)
+                    if (wellPrefs.mustConnectPWellToGround)
 					{
 						errorLogger.logError("P-Well contact '" + wc.ni.getName() + "' not connected to ground", new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
 					}
