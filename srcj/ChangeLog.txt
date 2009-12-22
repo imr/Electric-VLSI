@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+BUG: (12/21/09, DN) Version 8.08 library reads differently in later versions (Bug #2357).
+FIX: In MoCMOS.newState fix new states with incorrect ruleSet or numMetals.
+
 IMP: (12/21/09, GVG ) Get ERC to consider new resistors in layout (Bug #2557)
 It works now after Bug #2561 and extra checking to avoid reporting resistor
 errors twice (they have two ports).

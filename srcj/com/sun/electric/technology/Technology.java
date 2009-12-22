@@ -797,7 +797,7 @@ public class Technology implements Comparable<Technology>, Serializable
         }
     }
 
-    State newState(Map<TechFactory.Param,Object> paramValues) {
+    protected State newState(Map<TechFactory.Param,Object> paramValues) {
         LinkedHashMap<TechFactory.Param,Object> fixedParamValues = new LinkedHashMap<TechFactory.Param,Object>();
         for (TechFactory.Param param: techFactory.getTechParams()) {
             Object value = paramValues.get(param);

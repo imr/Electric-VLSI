@@ -1145,6 +1145,46 @@ public class MoCMOS extends Technology
     }
 
 /******************** OVERRIDES ********************/
+
+    @Override
+    protected State newState(Map<TechFactory.Param,Object> paramValues) {
+        LinkedHashMap<TechFactory.Param,Object> fixedParamValues = new LinkedHashMap<TechFactory.Param,Object>();
+        for (TechFactory.Param param: techFactory.getTechParams()) {
+            Object value = paramValues.get(param);
+            if (value == null || value.getClass() != param.factoryValue.getClass())
+                value = param.factoryValue;
+            fixedParamValues.put(param, value);
+        }
+        int ruleSet = ((Integer)fixedParamValues.get(techParamRuleSet)).intValue();
+        int numMetals = ((Integer)fixedParamValues.get(techParamNumMetalLayers)).intValue();
+        if (ruleSet < SCMOSRULES || ruleSet > DEEPRULES) {
+            ruleSet = SUBMRULES;
+            fixedParamValues.put(techParamRuleSet, ruleSet);
+        }
+        int minNumMetals, maxNumMetals;
+        switch (ruleSet) {
+            case SCMOSRULES:
+                minNumMetals = 2;
+                maxNumMetals = 4;
+                break;
+            case SUBMRULES:
+                minNumMetals = 2;
+                maxNumMetals = 6;
+                break;
+            case DEEPRULES:
+                minNumMetals = 5;
+                maxNumMetals = 6;
+                break;
+            default:
+                throw new AssertionError();
+        }
+        if (numMetals < minNumMetals || numMetals > maxNumMetals) {
+            numMetals = Math.min(Math.max(numMetals, minNumMetals), maxNumMetals);
+            fixedParamValues.put(techParamNumMetalLayers, numMetals);
+        }
+        return super.newState(fixedParamValues);
+    }
+
     /**
      * Method to convert old primitive port names to their proper PortProtos.
      * @param portName the unknown port name, read from an old Library.
