@@ -546,11 +546,14 @@ public class Schematic
                     canonicToNetwork.put(cs, net);
                 } else if (net1 != net) {
                     String message = "Network: Schematic " + cell.libDescribe() + " doesn't connect " + net + " and " + net1;
+                    boolean sameName = net1.hasName(s);
+                    if (sameName)
+                        message += " Like-named Global and Export may be connected in future releases";
                     System.out.println(message);
                     List<Geometric> geomList = new ArrayList<Geometric>();
                     push(geomList, net);
                     push(geomList, net1);
-                    errorLogger.logMessage(message, geomList, cell, eg.getSortKey(), false);
+                    errorLogger.logMessage(message, geomList, cell, eg.getSortKey(), sameName);
                 }
             }
         }
