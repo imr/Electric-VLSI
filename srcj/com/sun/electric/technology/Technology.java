@@ -4224,13 +4224,26 @@ public class Technology implements Comparable<Technology>, Serializable
 	    		        		" connects to " + ap.getName() + " but probably should not because that layer is not in the node");
 	        			}
 	        		}
-        			for(ArcProto.Function aFun : neededArcFunctions)
+                    for(ArcProto.Function aFun : neededArcFunctions)
         			{
         				if (foundArcFunctions.contains(aFun)) continue;
 
         				// well contacts do not have to connect to Active even if that layer is present
         				if (aFun.isDiffusion() && fun == PrimitiveNode.Function.WELL) continue;
-    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
+
+                        // Discard case if at least one poly arc was found in foundArcFunctions.
+                        // This is the case of poly2 contact with extra poly1 as capacitor.
+                        if (aFun.isPoly())
+                        {
+                            boolean found = false;
+                            for (ArcProto.Function f : foundArcFunctions)
+                            {
+                                if (!f.isPoly()) continue; // discard if it is not a poly function
+                                found = f != aFun;
+                            }
+                            if (found) continue; // it is a valid poly2 contact
+                        }
+                        System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
     		        		" should connect to " + aFun + " because that layer is in the node");
         			}
 	        	} else if (fun.isFET())

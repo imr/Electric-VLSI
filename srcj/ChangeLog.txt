@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
+IMP: (12/22/09, GVG) Review warning: "should connect to polysilicon-1 because that 
+layer is in the node" (Bug #2521). Added extra code to consider the case of a poly2 contact
+with extra poly1.
+
 IMP: (12/22/09, GVG) The 'Change' dialog cannot handle selection of both arcs and
 primitives (Bug #2565). Added extra message to deal with this case since the dialog is modeless.
 
