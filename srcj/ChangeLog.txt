@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10q: ******************************
 
-IMP: (12/22/09, GVG) Schematic DRC shows error when there is
+IMP: (12/22/09, GVG) The 'Change' dialog cannot handle selection of both arcs and
+primitives (Bug #2565). Added extra message to deal with this case since the dialog is modeless.
+
+IMP: (12/22/09, DN) Schematic DRC shows error when there is
     an export "vdd" which is not connected to global "vdd" (Bug #2538).
 
 IMP: (12/22/09, GVG) Get ERC to consider new resistors in layout (Bug #2557)

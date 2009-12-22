@@ -305,17 +305,20 @@ public class Change extends EModelessDialog implements HighlightListener
             }
             if (hasArcs && hasCells)
             {
-                System.out.println("The 'Change' dialog cannot handle selection of both arcs and cells");
+                System.out.println("The 'Change' dialog cannot handle selection of both arcs and cells." +
+                    "\n Close the dialog if the selection of elements is correct.");
                 geomsToChange.clear();
             }
             else if (hasArcs && hasPrimitives)
             {
-            	System.out.println("The 'Change' dialog cannot handle selection of both arcs and primitives");
+            	System.out.println("The 'Change' dialog cannot handle selection of both arcs and primitives." +
+                    "\n Close the dialog if the selection of elements is correct.");
                 geomsToChange.clear();
             }
             else if (hasCells && hasPrimitives)
             {
-            	System.out.println("The 'Change' dialog cannot handle selection of both cells and primitives");
+            	System.out.println("The 'Change' dialog cannot handle selection of both cells and primitives." +
+                "\n Close the dialog if the selection of elements is correct.");
                 geomsToChange.clear();
             }
         }
