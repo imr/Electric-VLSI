@@ -25,6 +25,7 @@ package com.sun.electric.database.text;
 
 import com.sun.electric.Main;
 import com.sun.electric.database.id.LibId;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 
@@ -339,7 +340,8 @@ public class Pref {
             transformer.setOutputProperty(OutputKeys.METHOD, "xml");
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            StreamResult result = new StreamResult(new OutputStreamWriter(bos, "utf-8"));
+            OutputStreamWriter outSW = (Client.isOSMac()) ? new OutputStreamWriter(bos) : new OutputStreamWriter(bos, "utf-8");
+            StreamResult result = new StreamResult(outSW);
             transformer.transform(source, result);
 
             // add the removed DTD line back into the XML

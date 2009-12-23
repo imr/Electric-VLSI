@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10r: ******************************
 
+BUG: (12/22/09, GVG) exporting preferences to xml and re-importing causes some 
+keybindings to disappear (Bug #2336)
+FIX: MacOSX doesn't support Charset="utf-8". Creating OutputStreamWriter with default
+on MacOSX (Snow Leopard)
+
 ************************* Version 8.10q: ******************************
 
 IMP: (12/22/09, GVG) Review warning: "should connect to polysilicon-1 because that 
