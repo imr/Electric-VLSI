@@ -552,6 +552,7 @@ public class PlacementFrame
 		List<PlacementExport> exportsToPlace, NodeProto iconToPlace)
 	{
         long startTime = System.currentTimeMillis();
+        String newCellName = "placed" + cellName;
         System.out.println("Running placement on cell '" + cellName + "' using the '" +
         Placement.getAlgorithmName() + "' algorithm");
 
@@ -559,7 +560,7 @@ public class PlacementFrame
 		runPlacement(nodesToPlace, allNetworks, cellName);
 
 		// create a new cell for the placement results
-		Cell newCell = Cell.makeInstance(lib, cellName);
+		Cell newCell = Cell.makeInstance(lib, newCellName);
 
 		// place the nodes in the new cell
 		Map<PlacementNode,NodeInst> placedNodes = new HashMap<PlacementNode,NodeInst>();
