@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
@@ -48,7 +49,10 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.IconNodeInst;
 import com.sun.electric.database.topology.PortInst;
+import static com.sun.electric.database.text.ArrayIterator.i2i;
+import static com.sun.electric.database.text.ArrayIterator.i2al;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
@@ -1408,106 +1412,112 @@ public class ToolMenu
         new ListGeomsAllNetworksJob(cell);
     }
 
-    private static void showUndrivenNetworks()
-    {
-        ErrorLogger errorLogger = ErrorLogger.newInstance("Undriven networks");
+    /*
+     * THE RULES:
+     *
+     * - The source and drain ports of a transistor are considered driven.
+     *
+     * - A network is considered driven if it is connected to power,
+     *   ground, or a driven port (with PortCharacteristic OUT or
+     *   BIDIR) on an instance.
+     *
+     * - It is an error for a network in a cell to be undriven unless
+     *   it is connected to an export with PortCharacteristic INPUT or INOUT
+     *
+     * Note that exporting a network as INPUT or INOUT does not make
+     * the network driven; it simply defers the possibility of an
+     * error to a higher level.
+     */
+    private static void showUndrivenNetworks() {
+        final ErrorLogger errorLogger = ErrorLogger.newInstance("Undriven networks");
 
-        for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
-        {
-	    	Library lib = lIt.next();
-	    	for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-	    	{
-	    		Cell cell = cIt.next();
-	    		if (cell.getView() == View.ICON) continue;
-	
-	    		// is it top-level?
-	    		boolean topLevel = !cell.getUsagesOf().hasNext();
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
 
-	    		// analyze the networks in the cell
-		        Netlist nl = cell.getNetlist();
-		        for(Iterator<Network> it = nl.getNetworks(); it.hasNext(); )
-		        {
-		        	Network net = it.next();
-		        	// is the network exported?
-		        	if (net.getExports().hasNext() && !topLevel) continue;
+        // Each cell visited is added to this hashset so we never visit a cell twice.
+        // Consider integrating this into HierarchyEnumerator; it's useful.
+        final HashSet<Cell> visited = new HashSet<Cell>();
 
-		        	boolean driven = isPortDriven(cell, net);
-		        	if (!driven)
-		        	{
-		        		// show error
-		        		List<Geometric> arcsOnNetwork = new ArrayList<Geometric>();
-		        		for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); )
-		        			arcsOnNetwork.add(aIt.next());
-		        		if (arcsOnNetwork.size() != 0)
-		        		{
-		    				errorLogger.logMessage("Undriven network", arcsOnNetwork, null, cell, 0, true);
-		        		} else
-		        		{
-		        			if (net.getPorts().hasNext())
-		        			{
-		        				PortInst pi = net.getPorts().next();
-		        				errorLogger.logMessage("Undriven network on node " + pi.getNodeInst().describe(false) + ", port " +
-		        					pi.getPortProto().getName(), null, null, cell, 0, true);
-		        			}
-		        		}
-		        	}
-		        }
-	    	}
-    	}
-		errorLogger.termLogging(true);
-    }
+        // After a Cell is visited, all of its driven ports are added to this hashset.
+        final HashSet<PortProto> drivenPorts = new HashSet<PortProto>();
 
-    private static boolean isPortDriven(Cell cell, Network net)
-    {
-    	// see if this network is "driven"
-    	boolean driven = false;
-    	for(Iterator<PortInst> nIt = net.getPorts(); nIt.hasNext(); )
-    	{
-    		PortInst pi = nIt.next();
-    		NodeInst ni = pi.getNodeInst();
-    		if (ni.isCellInstance())
-    		{
-    			// recurse
-    			Cell subCell = (Cell)ni.getProto();
-    			Export subPort = (Export)pi.getPortProto();
-    			if (subCell.getView() == View.ICON)
-    			{
-    				subCell = subCell.contentsView();
-    				subPort = subPort.getEquivalentPort(subCell);
-    			}
-    			Netlist subNL = subCell.getNetlist();
-    			Network subNet = subNL.getNetwork(subPort, 0);
-    			driven = isPortDriven(subCell, subNet);
-    			continue;
-    		}
-    		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-    		if (np.getFunction().isTransistor())
-    		{
-    			if (pi == ni.getTransistorDrainPort() || pi == ni.getTransistorSourcePort())
-    			{
-    				driven = true;
-    				break;
-    			}
-    		}
-    		if (np.getFunction() == PrimitiveNode.Function.CONGROUND ||
-    			np.getFunction() == PrimitiveNode.Function.CONPOWER)
-    		{
-				driven = true;
-				break;
-    		}
-    	}
-		for(Iterator<Export> eIt = net.getExports(); eIt.hasNext(); )
-		{
-			Export e = eIt.next();
-			if (e.getCharacteristic() == PortCharacteristic.GND || 
-				e.getCharacteristic() == PortCharacteristic.PWR ||
-				e.isNamedGround() || e.isNamedPower())
-			{
-				driven = true;
-				break;
-			}
-		}
-		return driven;
+        // We perform a bottom-up traversal, but never visit a Cell
+        // twice (even if it has many instances)
+        HierarchyEnumerator.Visitor visitor = new HierarchyEnumerator.Visitor() {
+                public CellInfo newCellInfo() { return new CellInfo(); }
+                public boolean enterCell(CellInfo cellInfo) {
+                    Cell cell = cellInfo.getCell();
+                    if (cell.getView() == View.ICON) return false;
+                    if (visited.contains(cell)) return false;
+                    visited.add(cell);
+                    return true;
+                }
+                public void exitCell(CellInfo cellInfo) {
+                    Cell cell = cellInfo.getCell();
+                    for(Network net : i2i(cell.getNetlist().getNetworks())) {
+                        boolean driven = false;
+                        boolean hasInputExport = false;
+
+                        // because we're in exitCell, we know that we've already added any Ports to drivenPorts
+                        for(PortInst pi : i2i(net.getPorts())) {
+                            NodeInst ni = pi.getNodeInst();
+                            PortProto pp = pi.getPortProto();
+                            if (ni.isCellInstance() && ((Cell)ni.getProto()).getView() == View.ICON)
+                                pp = ((Export)pp).getEquivalentPort(((Cell)ni.getProto()).contentsView());
+                            if (drivenPorts.contains(pp)) { driven = true; break; }
+                            if (ni.getProto() instanceof PrimitiveNode) {
+                                PrimitiveNode np = (PrimitiveNode)ni.getProto();
+                                if (np.getFunction().isResistor()) {
+                                    driven = true;
+                                    break;
+                                } else if (np.getFunction().isTransistor()) {
+                                    if (pi == ni.getTransistorDrainPort() || pi == ni.getTransistorSourcePort()) {
+                                        driven = true;
+                                        break;
+                                    }
+                                }
+                                if (np.getFunction() == PrimitiveNode.Function.CONGROUND ||
+                                    np.getFunction() == PrimitiveNode.Function.CONPOWER) {
+                                    driven = true;
+                                    break;
+                                }
+                            }
+                        }
+                        for(Export e : i2i(net.getExports())) {
+                            if (e.isNamedGround() || e.isNamedPower()) driven = true;
+                            switch (e.getCharacteristic()) {
+                                case IN:  case BIDIR:    hasInputExport = true; break;
+                                case GND: case PWR:      driven = true;         break;
+                            }
+                        }
+                        if (driven)
+                            for(Export e : i2i(net.getExports()))
+                                switch (e.getCharacteristic()) {
+                                    case OUT:  case BIDIR:    drivenPorts.add(e); break;
+                                }
+                        if (!driven && !hasInputExport) {
+                            // problem!
+                            if (net.getArcs().hasNext())
+                                errorLogger.logMessage("Undriven network", (ArrayList<ArcInst>)i2al(net.getArcs()), cell, 0, true);
+                            else if (net.getPorts().hasNext()) {
+                                PortInst pi = net.getPorts().next();
+                                errorLogger.logMessage("Undriven network on node " + pi.getNodeInst().describe(false) + ", port " +
+                                                       pi.getPortProto().getName(), null, null, cell, 0, true);
+                            }
+                        }
+                    }
+                }
+                public boolean visitNodeInst(Nodable ni, CellInfo info) {
+                    NodeProto np = ni.getNodeInst().getProto();
+                    if (!(np instanceof Cell)) return false;
+                    Cell cell = (Cell)np;
+                    if (visited.contains(cell)) return false;
+                    return true;
+                }
+            };
+
+        HierarchyEnumerator.enumerateCell(wnd.getCell(), wnd.getVarContext(), visitor); 
+        errorLogger.termLogging(true);
     }
 
     private static class ListGeomsAllNetworksJob extends Job {
