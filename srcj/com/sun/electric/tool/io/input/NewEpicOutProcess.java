@@ -381,10 +381,7 @@ public class NewEpicOutProcess extends Simulate implements Runnable
         }
 
         public void run() {
-            BTree.splitUnEven = 0;
-            BTree.splitEven = 0;
-            BTree.insertionFastPath = 0;
-            BTree.insertionSlowPath = 0;
+            BTree.clearStats();
             try {
             URL fileURL = new URL("file:"+urlName);
             long startTime = System.currentTimeMillis();
@@ -426,13 +423,7 @@ public class NewEpicOutProcess extends Simulate implements Runnable
             }
             err.println((stopTime - startTime)/1000.0 + " sec to read " + byteCount + " bytes " + numSignals + " signals (max " + (signalsByEpicIndex.size() - 1) + " ) "+ stringIds.size() + " strings " +
                                timesC + " timepoints " +  eventsC + " events from " + urlName);
-
-            err.println("BTree stats: insertion fastpath = " +
-                        BTree.insertionFastPath + "/" + (BTree.insertionFastPath+BTree.insertionSlowPath) + " = " +
-                        (int)(( BTree.insertionFastPath * 100 )/(float)(BTree.insertionFastPath+BTree.insertionSlowPath)) + "%");
-            err.println("             intelligent splits = " +
-                        BTree.splitUnEven + "/" + (BTree.splitUnEven+BTree.splitEven) + " = " +
-                        (int)(( BTree.splitUnEven * 100 )/(float)(BTree.splitUnEven+BTree.splitEven)) + "%");
+            BTree.dumpStats(err);
             writeOut();
             } catch (IOException e) { throw new RuntimeException(e); }
         }

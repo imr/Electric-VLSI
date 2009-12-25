@@ -549,9 +549,27 @@ public class BTree
         }
     }
 
-    public static long insertionFastPath = 0;
-    public static long insertionSlowPath = 0;
-    public static long splitEven = 0;
-    public static long splitUnEven = 0;
+    static long insertionFastPath = 0;
+    static long insertionSlowPath = 0;
+    static long splitEven = 0;
+    static long splitUnEven = 0;
+
+    /** debugging method; may go away in future releases */
+    public static void clearStats() {
+        BTree.splitUnEven = 0;
+        BTree.splitEven = 0;
+        BTree.insertionFastPath = 0;
+        BTree.insertionSlowPath = 0;
+    }
+
+    /** debugging method; may go away in future releases */
+    public static void dumpStats(PrintStream pw) {
+        pw.println("BTree stats: insertion fastpath = " +
+                   BTree.insertionFastPath + "/" + (BTree.insertionFastPath+BTree.insertionSlowPath) + " = " +
+                   (int)(( BTree.insertionFastPath * 100 )/(float)(BTree.insertionFastPath+BTree.insertionSlowPath)) + "%");
+        pw.println("             intelligent splits = " +
+                    BTree.splitUnEven + "/" + (BTree.splitUnEven+BTree.splitEven) + " = " +
+                    (int)(( BTree.splitUnEven * 100 )/(float)(BTree.splitUnEven+BTree.splitEven)) + "%");
+    }
 
 }
