@@ -26,17 +26,17 @@ package com.sun.electric.database.geometry.btree.unboxed;
 import java.io.*;
 
 /**
- *  An Unboxed for some type, paired with an associative operator on
- *  that type and an identity value for the operator.
+ *  An AssociativeOperation<K,V,S> is an Unboxed<S> plus an
+ *  associative operation that takes two S's and returns an S, plus an
+ *  "injection" from Pair<K,V> to S.
  *
  *  http://en.wikipedia.org/wiki/Monoid
+ *  http://en.wikipedia.org/wiki/Semigroup
  */
-public interface UnboxedMonoid<K extends Serializable,V extends Serializable,S extends Serializable>
+public interface AssociativeOperation<K extends Serializable,V extends Serializable,S extends Serializable>
     extends Unboxed<S> {
 
-    /** Write the monoid's identity value into the buffer at ofs */
-    public void identity(byte[] buf, int ofs);
-  
+    /** Compute the value representing a particular K,V and store it in S */
     public void inject(byte[] buf_k, int ofs_k,
                        byte[] buf_v, int ofs_v,
                        byte[] buf_s, int ofs_s);

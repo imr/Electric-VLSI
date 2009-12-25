@@ -27,7 +27,7 @@ import java.io.*;
 
 public class UnboxedMinMaxHalfDouble<K extends Serializable>
     extends UnboxedPair<Double,Double>
-    implements UnboxedCommutativeMonoid<K,Double,Pair<Double,Double>> {
+    implements AssociativeCommutativeOperation<K,Double,Pair<Double,Double>> {
 
     public static final UnboxedMinMaxHalfDouble instance = new UnboxedMinMaxHalfDouble();
 

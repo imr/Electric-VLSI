@@ -26,8 +26,8 @@ package com.sun.electric.database.geometry.btree.unboxed;
 import java.io.*;
 
 /**
- *  An UnboxedMonoid whose multiply() operator is commutative (Abelian)
+ *  An AssociativeOperation whose multiply() operator is also commutative
  */
-public interface UnboxedCommutativeMonoid<K extends Serializable,V extends Serializable,S extends Serializable>
-    extends UnboxedMonoid<K,V,S> {
+public interface AssociativeCommutativeOperation<K extends Serializable,V extends Serializable,S extends Serializable>
+    extends AssociativeOperation<K,V,S> {
 }

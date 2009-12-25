@@ -29,55 +29,55 @@ import com.sun.electric.database.geometry.btree.unboxed.*;
 import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
 
 /**
- *  A B+Tree implemented using PageStorage.
+ *  A <a href=http://www.youtube.com/watch?v=coRJrcIYbF4>B+Tree</a>
+ *  implemented using PageStorage.
  *
- *  http://www.youtube.com/watch?v=coRJrcIYbF4
+ *  This is a B-Plus-Tree; values are stored only in leaf nodes.<p>
  *
- *  This is a B-Plus-Tree; values are stored only in leaf nodes.
+ *  Each element in a BTree is conceptually a triple
+ *  &lt;ordinal,key,value&rt; where "key" is a user-supplied key
+ *  (belonging to a type that is Comparable), "value" is a
+ *  user-supplied value (no restrictions) and "ordinal" is an integer
+ *  indicating the number of keys in the tree less than this one.
+ *  Note that the ordinal is not actually stored on disk, and
+ *  inserting a new value can potentially modify the ordinals of all
+ *  preexisting elements!  Each of the getXXX() methods takes one of
+ *  these three coordinates (ordinal, key, or value) and returns one
+ *  of the others.  Additionally, the getXXXFromKey() methods include
+ *  floor/ceiling versions that take an upper/lower bound and search
+ *  for the largest/smallest key which is less/greater than the one
+ *  supplied.<p>
  *
- *  Each element in a BTree is conceptually a triple:
- *
- *      < ordinal, key, value >
- *
- *  Where "key" is a user-supplied key (belonging to a type that is
- *  Comparable), "value" is a user-supplied value (no restrictions)
- *  and "ordinal" is an integer indicating the number of keys in the
- *  tree less than this one.  Note that the ordinal is not actually
- *  stored on disk, and inserting a new value can potentially modify
- *  the ordinals of all preexisting elements!  Each of the getXXX()
- *  methods takes one of these three coordinates (ordinal, key, or
- *  value) and returns one of the others.  Additionally, the
- *  getXXXFromKey() methods include floor/ceiling versions that take
- *  an upper/lower bound and search for the largest/smallest key which
- *  is less/greater than the one supplied.
- *
- *  A value drawn from a monoid is associated with each node of the
- *  tree.  An interior node's value is the monoid-product of its
- *  childrens' values.  A query method is provided to return the
- *  monoid product of arbitrary contiguous ranges within the tree.
- *  This can be used to efficiently implement "min/max value over this
- *  range" queries.
+ *  Summary values (which is combined associatively) may be associated
+ *  with each node of the tree.  An interior node's summary value is the
+ *  associative product of its childrens' values.  A query method is
+ *  provided to return the associative product of arbitrary contiguous
+ *  ranges within the tree.  This can be used to efficiently implement
+ *  "min/max value over this range" queries.<p>
  *
  *  We proactively split nodes as soon as they become full rather than
  *  waiting for them to become overfull.  This has a space overhead of
  *  1/NUM_KEYS_PER_PAGE, but puts an O(1) bound on the number of pages
  *  written per operation (number of pages read is still O(log n)).
- *  It also makes the walk routine tail-recursive.
+ *  It also makes the walk routine tail-recursive.<p>
  *
  *  Each node of the BTree uses one page of the PageStorage; we don't
  *  yet support situations where a single page is too small for one
- *  key and one value.
+ *  key and one value.<p>
  *
  *  You must distinguish between insert() and replace() ahead of time;
  *  you can't call insert() on a key that is already in the tree or
- *  replace() on one that isn't.  This lets us update the interior
- *  node invariants as we walk down the tree and avoid having to walk
- *  back up afterwards.  If you're not sure if a key is in the tree,
- *  just do a get() -- the net result is two passes over the tree,
- *  which is what we'd have to do anyways if the user didn't
- *  distinguish insert() from replace().  We're just offering the option
- *  to double the performance in the case where the user already knows
- *  if the key is in the tree or not.
+ *  replace() on one that isn't.  In order to replace() on a BTree
+ *  with a summary the summary product operation must be commutative
+ *  and invertible, and you must know the old value which you are
+ *  replacing.  This lets us update the interior node invariants as we
+ *  walk down the tree and avoid having to walk back up afterwards.
+ *  If you're not sure if a key is in the tree, just do a get() -- the
+ *  net result is two passes over the tree, which is what we'd have to
+ *  do anyways if the user didn't distinguish insert() from replace().
+ *  We're just offering the option to double the performance in the
+ *  case where the user already knows if the key is in the tree or
+ *  not.<p>
  *
  *  The coding style in this file is pretty unusual; it looks a lot
  *  like "Java as a better C".  This is mainly because Hotspot is
@@ -87,41 +87,16 @@ import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
  *  don't worry at all about the overhead of method calls,
  *  particularly when made via "final" references (nearly always
  *  inlined).  I don't code this way very often -- I reserve this for
- *  the 2% of my code that bears 98% of the performance burden.
+ *  the 2% of my code that bears 98% of the performance burden.<p>
  *
- *  Possible feature: sibling-stealing
- *      http://en.wikipedia.org/wiki/B_sharp_tree
- *
- *  Possible feature: COWTree like Oracle's btrfs:
- *      http://dx.doi.org/10.1145/1326542.1326544
- *
- *  Possible feature: use extents rather than blocks?
- *
- *  Possible feature: delete-range
- *
- *  Possible feature: two btrees-of-extents, one indexed by starting
- *  offset, one indexed by size.  Lets you very efficiently respond to
- *  allocation requests of varying sizes.
- *
- *  Sub-block allocation using extents.
- *
- *  Crazy: you can even store the free extents in the very tree that
- *  uses those extents as its underlying storage!  The trick here is
- *  that performing an extent allocation merely reduces the length of
- *  some existing free extent (and perhaps also advances it), but does
- *  not change the number of free extents (it might reduce that number
- *  by one, unless you add a "I am not really free" bit to the free
- *  extents).  This means that you can always perform an allocation
- *  without modifying the structure of the btree, which might in turn
- *  require an allocation.  So allocations are never circular.  If you
- *  bootstrap all of this by initializing a tree that contains one big
- *  extent, you're all set.
- *
- *    So you have one big massive tree with three kinds of entries:
- *
- *       - Actual items
- *       - Free extent, indexed by starting offset
- *       - Free extent, indexed by length
+ *  Keys, values, and summary elements are stored in <i>unboxed</i>
+ *  form.  This means that each of these types must know how to
+ *  serialize itself to and deserialize itself from a sequence of
+ *  bytes, and <i>it must be possible to perform the important
+ *  operations (comparison for keys, product for summary values)
+ *  on these values in unboxed form.</i> The reasons for this are set
+ *  out in the previous paragraph.  See the package btree.unboxed for
+ *  further details.
  *
  *  @author Adam Megacz <adam.megacz@sun.com>
  */
@@ -132,7 +107,7 @@ public class BTree
 
     final CachingPageStorage   ps;
     final UnboxedComparable<K> uk;
-    final UnboxedMonoid<K,V,S> monoid;    // XXX: would be nice if the monoid had acesss to the K-value too...
+    final AssociativeOperation<K,V,S> ao;
     final Unboxed<V>           uv;
     final UnboxedInt           ui = UnboxedInt.instance;
 
@@ -148,16 +123,16 @@ public class BTree
     private final byte[] largestKey;
     private       int    largestKeyPage = -1;  // or -1 if unknown
 
-    public BTree(CachingPageStorage ps, UnboxedComparable<K> uk, UnboxedMonoid<K,V,S> monoid, Unboxed<V> uv) {
-        if (monoid!=null) {
-            if (!(monoid instanceof UnboxedCommutativeMonoid))
-                throw new RuntimeException("Only commutative monoids are supported (allows one-pass insertion)");
-            // FIXME: if the monoid is not invertible (ie a group) and commutative, we cannot do DELETE in a single pass
+    public BTree(CachingPageStorage ps, UnboxedComparable<K> uk, AssociativeOperation<K,V,S> ao, Unboxed<V> uv) {
+        if (ao!=null) {
+            if (!(ao instanceof AssociativeCommutativeOperation))
+                throw new RuntimeException("Only commutative summary operations are supported (allows one-pass insertion)");
+            // FIXME: if the summary is not invertible (ie a group) and commutative, we cannot do DELETE in a single pass
             // I don't think we can ever do REPLACE in one pass unless we knew the previous value
         }
         this.ps = ps;
         this.uk = uk;
-        this.monoid = monoid;
+        this.ao = ao;
         this.uv = uv;
         this.leafNodeCursor = new LeafNodeCursor<K,V,S>(this);
         this.interiorNodeCursor1 = new InteriorNodeCursor<K,V,S>(this);
@@ -165,7 +140,7 @@ public class BTree
         this.rootpage = ps.createPage();
         this.keybuf = new byte[uk.getSize()];
         this.keybuf2 = new byte[uk.getSize()];
-        this.sbuf = monoid==null ? null : new byte[monoid.getSize()];
+        this.sbuf = ao==null ? null : new byte[ao.getSize()];
         this.largestKey = new byte[uk.getSize()];
         leafNodeCursor.initBuf(ps.getPage(rootpage, false), true);
         leafNodeCursor.writeBack();
@@ -256,7 +231,7 @@ public class BTree
         walk(keybuf, 0, null, Op.SUMMARIZE_LEFT,  0, keybuf2, 0, sbuf, 0);
         walk(keybuf, 0, null, Op.SUMMARIZE_MID,   0, keybuf2, 0, sbuf, 0);
         walk(keybuf, 0, null, Op.SUMMARIZE_RIGHT, 0, keybuf2, 0, sbuf, 0);
-        return (S)monoid.deserialize(sbuf, 0);
+        return (S)ao.deserialize(sbuf, 0);
     }
     
     private static enum Op {
@@ -408,12 +383,12 @@ public class BTree
                 int splitPoint = rightEdge ? cur.getNumBuckets()-1 : cur.getMaxBuckets()/2;
                 if (rightEdge) splitUnEven++; else splitEven++;
 
-                if (monoid!=null) {
-                    parentNodeCursor.clearMonoid(idx);
-                    byte[] monbuf = new byte[monoid.getSize()];
-                    for(int i=0; i<splitPoint; i++) {
-                        cur.getMonoid(i, monbuf, 0);
-                        parentNodeCursor.multiplyMonoidCommutative(idx, monbuf, 0);
+                if (ao!=null) {
+                    byte[] monbuf = new byte[ao.getSize()];
+                    cur.getSummary(0, monbuf, 0);
+                    for(int i=1; i<splitPoint; i++) {
+                        cur.getSummary(i, monbuf, 0);
+                        parentNodeCursor.multiplySummaryCommutative(idx, monbuf, 0);
                     }
                 }
                 int num = cur.split(parentNodeCursor.getBuf(), ofs, splitPoint);
@@ -423,12 +398,12 @@ public class BTree
                 parentNodeCursor.setBucketPageId(idx+1, newpage);
                 if (!splitting_last_or_root)
                     parentNodeCursor.setNumValsBelowBucket(idx+1, old-num);
-                if (monoid!=null && (!parentNodeCursor.isRightMost() || idx+1<parentNodeCursor.getNumBuckets()-1)) {
-                    parentNodeCursor.clearMonoid(idx+1);
-                    byte[] monbuf = new byte[monoid.getSize()];
-                    for(int i=0; i<cur.getNumBuckets() - (cur.isRightMost() ? 1 : 0); i++) {
-                        cur.getMonoid(i, monbuf, 0);
-                        parentNodeCursor.multiplyMonoidCommutative(idx+1, monbuf, 0);
+                if (ao!=null && (!parentNodeCursor.isRightMost() || idx+1<parentNodeCursor.getNumBuckets()-1)) {
+                    byte[] monbuf = new byte[ao.getSize()];
+                    cur.getSummary(0, monbuf, 0);
+                    for(int i=1; i<cur.getNumBuckets() - (cur.isRightMost() ? 1 : 0); i++) {
+                        cur.getSummary(i, monbuf, 0);
+                        parentNodeCursor.multiplySummaryCommutative(idx+1, monbuf, 0);
                     }
                 }
 
@@ -487,13 +462,13 @@ public class BTree
                         interiorNodeCursor.setNumValsBelowBucket(idx, interiorNodeCursor.getNumValsBelowBucket(idx)+1);
                         wb = true;
                     }
-                    if (monoid != null && (idx < interiorNodeCursor.getNumBuckets()-1 || !interiorNodeCursor.isRightMost())) {
+                    if (ao != null && (idx < interiorNodeCursor.getNumBuckets()-1 || !interiorNodeCursor.isRightMost())) {
                         // ugly..
-                        byte[] monbuf = new byte[monoid.getSize()];
+                        byte[] monbuf = new byte[ao.getSize()];
                         byte[] vbuf = new byte[uv.getSize()];
                         uv.serialize(val, vbuf, 0);
-                        monoid.inject(key, key_ofs, vbuf, 0, monbuf, 0);
-                        interiorNodeCursor.multiplyMonoidCommutative(idx, monbuf, 0);
+                        ao.inject(key, key_ofs, vbuf, 0, monbuf, 0);
+                        interiorNodeCursor.multiplySummaryCommutative(idx, monbuf, 0);
                     }
                     if (wb) interiorNodeCursor.writeBack();
                 }

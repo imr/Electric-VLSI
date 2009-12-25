@@ -173,7 +173,7 @@ abstract class NodeCursor
     /** the total number of values stored in bucket or any descendent thereof */
     public abstract int  getNumValsBelowBucket(int bucket);
 
-    public abstract void getMonoid(int bucket, byte[] buf, int ofs);
+    public abstract void getSummary(int bucket, byte[] buf, int ofs);
 
     public boolean isRightMost() { return bt.ui.deserializeInt(getBuf(), 0*SIZEOF_INT)!=0; }
     protected void setRightMost(boolean r) { bt.ui.serializeInt(r?1:0, getBuf(), 0*SIZEOF_INT); }

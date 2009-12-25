@@ -27,7 +27,7 @@ import java.io.*;
 
 public class UnboxedMinMaxInteger<K extends Serializable>
     extends UnboxedPair<Integer,Integer>
-    implements UnboxedCommutativeMonoid<K,Integer,Pair<Integer,Integer>> {
+    implements AssociativeCommutativeOperation<K,Integer,Pair<Integer,Integer>> {
 
     public static final UnboxedMinMaxInteger instance = new UnboxedMinMaxInteger();
 
