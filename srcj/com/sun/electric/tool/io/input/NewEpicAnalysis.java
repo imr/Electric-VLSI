@@ -371,7 +371,7 @@ public class NewEpicAnalysis extends AnalogAnalysis {
                 throw new RuntimeException(e);
             }
         return new BTree<Double,Double,Serializable>
-            (ps, UnboxedHalfDouble.instance, null, UnboxedHalfDouble.instance);
+            (ps, UnboxedHalfDouble.instance, UnboxedHalfDouble.instance, null, null);
     }
 
     HashMap<Integer, Waveform> loadWaveformCache =

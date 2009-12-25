@@ -25,6 +25,7 @@ package com.sun.electric.database.geometry.btree.unboxed;
 
 import java.io.*;
 
+/** A 32-bit <tt>float</tt> in unboxed form */
 public class UnboxedFloat implements UnboxedComparable<Float> {
     public int getSize() { return 4; }
     public Float deserialize(byte[] buf, int ofs) { return new Float(deserializeFloat(buf, ofs)); }

@@ -24,10 +24,12 @@
 package com.sun.electric.database.geometry.btree;
 
 /**
- *  Merges two PageStorage objects, using the first until the "high
- *  water mark" is exceeded, then moving to the other.
+ *  Combines two PageStorage objects, using the first until the "high
+ *  water mark" is exceeded, then moving to the other.  Generally the
+ *  first PageStorage is "small but fast" and the second is "large but
+ *  slow".
  *
- *  Might not be thread-safe
+ *  Might not be thread-safe.
  */
 public class OverflowPageStorage extends PageStorage {
 

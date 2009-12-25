@@ -51,10 +51,10 @@ public abstract class PageStorage {
     /** reads a page */
     public abstract void readPage(int pageid, byte[] buf, int ofs);
 
-    /** ensure that the designated page is written to permanent storage */
+    /** ensure that the designated page is written to nonvolatile storage */
     public abstract void fsync(int pageid);
     
-    /** ensure that the all pages are written to permanent storage */
+    /** ensure that the all pages are written to nonvolatile storage */
     public abstract void fsync();
 
     /** close the PageStorage; invocation of any other methods after close() has undefined results */

@@ -30,41 +30,35 @@ import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
 
 /**
  *  A <a href=http://www.youtube.com/watch?v=coRJrcIYbF4>B+Tree</a>
- *  implemented using PageStorage.
+ *  implemented using {@see PageStorage}.<p>
  *
  *  This is a B-Plus-Tree; values are stored only in leaf nodes.<p>
  *
+ *  <h3>Usage Notes</h3>
+ *
  *  Each element in a BTree is conceptually a triple
- *  &lt;ordinal,key,value&rt; where "key" is a user-supplied key
- *  (belonging to a type that is Comparable), "value" is a
+ *  &lt;ordinal,key,value&gt; where "key" is a user-supplied key
+ *  (belonging to a type that is {@see Comparable}), "value" is a
  *  user-supplied value (no restrictions) and "ordinal" is an integer
  *  indicating the number of keys in the tree less than this one.
- *  Note that the ordinal is not actually stored on disk, and
+ *  Note that the ordinal is not actually stored in the tree, and
  *  inserting a new value can potentially modify the ordinals of all
  *  preexisting elements!  Each of the getXXX() methods takes one of
- *  these three coordinates (ordinal, key, or value) and returns one
- *  of the others.  Additionally, the getXXXFromKey() methods include
+ *  these three coordinates (<tt>Ord</tt>, <tt>Key</tt>, or
+ *  <tt>Val</tt>) and returns one of the others, or else a count
+ *  (<tt>Num</tt>).  Additionally, the getXXXFromKey() methods include
  *  floor/ceiling versions that take an upper/lower bound and search
  *  for the largest/smallest key which is less/greater than the one
  *  supplied.<p>
  *
- *  Summary values (which is combined associatively) may be associated
- *  with each node of the tree.  An interior node's summary value is the
- *  associative product of its childrens' values.  A query method is
- *  provided to return the associative product of arbitrary contiguous
- *  ranges within the tree.  This can be used to efficiently implement
- *  "min/max value over this range" queries.<p>
- *
- *  We proactively split nodes as soon as they become full rather than
- *  waiting for them to become overfull.  This has a space overhead of
- *  1/NUM_KEYS_PER_PAGE, but puts an O(1) bound on the number of pages
- *  written per operation (number of pages read is still O(log n)).
- *  It also makes the walk routine tail-recursive.<p>
- *
- *  Each node of the BTree uses one page of the PageStorage; we don't
- *  yet support situations where a single page is too small for one
- *  key and one value.<p>
- *
+ *  The BTree supports appending a new element (that is, inserting a value
+ *  with a key greater than any key in the table) in near-constant time
+ *  (Actually log<sup>*</sup>(n)) and all other queries in log(n) time.
+ *  All operations are done in a <i>single pass</i> down the BTree from
+ *  the root to the leaves; this brings two benefits: the data structure
+ *  can be made concurrent with very little lock contention and it can
+ *  support copy-on-write shadow versions.<p>
+ *  
  *  You must distinguish between insert() and replace() ahead of time;
  *  you can't call insert() on a key that is already in the tree or
  *  replace() on one that isn't.  In order to replace() on a BTree
@@ -79,6 +73,38 @@ import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
  *  case where the user already knows if the key is in the tree or
  *  not.<p>
  *
+ *  You can associate a <i>summary</i> with each leaf node of the BTree.
+ *  In order to do this, you must provide an instance of {@see
+ *  com.sun.electric.database.geometry.btree.unboxed.AssociativeOperation}
+ *  to the BTree when you construct it.  The AssociativeOperation knows
+ *  the key and value type of the BTree, and must know two things:
+ *  
+ *  <ul>
+ *    <li> How to calculate the summary of a single (key,value) pair.
+ *    <li> How to merge two summaries.
+ *  </ul>
+ *  
+ *  The process of merging two summaries must be associative; if we want
+ *  to merge three summaries (ABC) it must not matter if we merge them as
+ *  ((AB)C) or (A(BC)).  Technically this makes the merge operation
+ *  a <i><a href=http://en.wikipedia.org/wiki/Semigroup>semigroup</a></i>.
+ *  In exchange for providing all of this information
+ *  you can ask the BTree to calculate the summary of any contiguous
+ *  region of the keyspace in log(n) time.  For example, this can be used
+ *  to answer "min/max over this range" queries very efficiently.<p>
+ *
+ *  <h3>Implementation Notes</h3>
+ *
+ *  We proactively split nodes as soon as they become full rather than
+ *  waiting for them to become overfull.  This has a space overhead of
+ *  1/NUM_KEYS_PER_PAGE, but puts an O(1) bound on the number of pages
+ *  written per operation (number of pages read is still O(log n)).
+ *  It also makes the walk routine tail-recursive.<p>
+ *
+ *  Each node of the BTree uses one page of the PageStorage; we don't
+ *  yet support situations where a single page is too small for one
+ *  key and one value.<p>
+ *
  *  The coding style in this file is pretty unusual; it looks a lot
  *  like "Java as a better C".  This is mainly because Hotspot is
  *  remarkably good at inlining methods, but remarkably bad (still,
@@ -87,7 +113,11 @@ import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
  *  don't worry at all about the overhead of method calls,
  *  particularly when made via "final" references (nearly always
  *  inlined).  I don't code this way very often -- I reserve this for
- *  the 2% of my code that bears 98% of the performance burden.<p>
+ *  the 2% of my code that bears 98% of the performance burden.  There
+ *  is anecdotal evidence that using the server JVM rather than the
+ *  client JVM yields a dramatic increase in performance; this coding
+ *  style is especially friendly to the server JVM's optimization
+ *  techniques.<p>
  *
  *  Keys, values, and summary elements are stored in <i>unboxed</i>
  *  form.  This means that each of these types must know how to
@@ -107,7 +137,8 @@ public class BTree
 
     final CachingPageStorage   ps;
     final UnboxedComparable<K> uk;
-    final AssociativeOperation<K,V,S> ao;
+    final AssociativeOperation<S> ao;
+    final UnboxedFunction<Pair<K,V>,S> summarize;
     final Unboxed<V>           uv;
     final UnboxedInt           ui = UnboxedInt.instance;
 
@@ -123,7 +154,23 @@ public class BTree
     private final byte[] largestKey;
     private       int    largestKeyPage = -1;  // or -1 if unknown
 
-    public BTree(CachingPageStorage ps, UnboxedComparable<K> uk, AssociativeOperation<K,V,S> ao, Unboxed<V> uv) {
+    private       int    size = 0;
+
+    /**
+     *  Create a BTree.
+     *  @param ps the PageStorage to hold the underlying bytes
+     *  @param uk the unboxed type for keys (must be comparable)
+     *  @param uv the unboxed type for values
+     *  @param summarize the function which summarizes a single (key,value) pair
+     *  @param combine the function which associatively combines two summaries
+     */
+    public BTree(CachingPageStorage ps,
+                 UnboxedComparable<K> uk,
+                 Unboxed<V> uv,
+                 UnboxedFunction<Pair<K,V>,S> summarize,
+                 AssociativeOperation<S> combine) {
+        AssociativeOperation<S> ao = combine;
+        this.summarize = summarize;
         if (ao!=null) {
             if (!(ao instanceof AssociativeCommutativeOperation))
                 throw new RuntimeException("Only commutative summary operations are supported (allows one-pass insertion)");
@@ -146,10 +193,18 @@ public class BTree
         leafNodeCursor.writeBack();
     }
 
-    private int size = 0;
-    public int  size() {
-        return size;
+    /**
+     *  Returns the number of entries in the tree with a key between
+     *  min and max inclusive; if either min or max is null it is treated
+     *  as negative or positive infinity (respectively)
+     */
+    public int getNumFromKeys(K min, K max) {
+        if (min==null && max==null) return size;
+        throw new RuntimeException("not implemented");
     }
+
+    /** same as getNumFromKeys(null,null) */
+    public int  size() { return getNumFromKeys(null,null); }
 
     /** returns the value in the tree, or null if not found */
     public V getValFromKey(K key) {
@@ -187,12 +242,13 @@ public class BTree
         return ((Integer)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY_CEIL, 0)).intValue();
     }
 
-    /** returns the least key greater than  */
-    public V getNext(K key) {
+    /** returns the least key <i>strictly</i> greater than the argument */
+    public V getKeyFromKeyNext(K key) {
         throw new RuntimeException("not implemented");
     }
 
-    public V getPrev(K key) {
+    /** returns the greatest key <i>strictly</i> less than the argument */
+    public V getKeyFromKeyPrev(K key) {
         throw new RuntimeException("not implemented");
     }
 
@@ -214,18 +270,24 @@ public class BTree
     }
 
     /** returns value previously in the tree; will throw an exception if the key is not already in the tree */
-    public V remove(K key) {
-        throw new RuntimeException("not implemented");
-        // size--;
-    }
-
-    /** returns value previously in the tree; will throw an exception if the key is not already in the tree */
     public V replace(K key, V val) {
         uk.serialize(key, keybuf, 0);
         return (V)walk(keybuf, 0, val, Op.REPLACE, 0);
     }
 
-    public S summarize(K min, K max) {
+    /** returns value previously in the tree; will throw an exception if the key is not already in the tree */
+    public V remove(K key) {
+        throw new RuntimeException("not implemented");
+        // size--;
+    }
+
+    /** remove all entries */
+    public void clear() {
+        throw new RuntimeException("not implemented");
+    }
+
+    /** compute the summary of all (key,value) pairs between min and max, inclusive */
+    public S getSummaryFromKeys(K min, K max) {
         uk.serialize(min, keybuf, 0);
         uk.serialize(max, keybuf2, 0);
         walk(keybuf, 0, null, Op.SUMMARIZE_LEFT,  0, keybuf2, 0, sbuf, 0);
@@ -463,12 +525,15 @@ public class BTree
                         wb = true;
                     }
                     if (ao != null && (idx < interiorNodeCursor.getNumBuckets()-1 || !interiorNodeCursor.isRightMost())) {
-                        // ugly..
+                        throw new RuntimeException("not implemented");
+                        /*
+                          // FIXME
                         byte[] monbuf = new byte[ao.getSize()];
                         byte[] vbuf = new byte[uv.getSize()];
                         uv.serialize(val, vbuf, 0);
-                        ao.inject(key, key_ofs, vbuf, 0, monbuf, 0);
+                        summarize.call(key, key_ofs, vbuf, 0, monbuf, 0);
                         interiorNodeCursor.multiplySummaryCommutative(idx, monbuf, 0);
+                        */
                     }
                     if (wb) interiorNodeCursor.writeBack();
                 }
@@ -488,124 +553,5 @@ public class BTree
     public static long insertionSlowPath = 0;
     public static long splitEven = 0;
     public static long splitUnEven = 0;
-
-    //////////////////////////////////////////////////////////////////////////////
-
-    /** remove all entries */                                              public void clear() { throw new RuntimeException("not implemented"); }
-
-
-    /** returns the number of keys strictly after the one given */         public int  sizeAfter(K key) { throw new RuntimeException("not implemented"); }
-    /** returns the number of keys strictly after the one given */         public int  sizeBefore(K key) { throw new RuntimeException("not implemented"); }
-
-    /** returns the key with the given ordinal index */                    public K    seek(int ordinal) { throw new RuntimeException("not implemented"); }
-    /** returns the ordinal index of the given key */                      public int  ordinal(K key) { throw new RuntimeException("not implemented"); }
-
-    //////////////////////////////////////////////////////////////////////////////
-
-    /**
-     *  A simple regression test
-     *
-     *  Feature: test the case where we delete all the entries; there
-     *  are a lot of corner cases there.
-     */
-    public static void main(String[] s) throws Exception {
-        if (s.length != 4) {
-            System.err.println("");
-            System.err.println("usage: java " + BTree.class.getName() + " <maxsize> <numops> <cachesize> <seed>");
-            System.err.println("");
-            System.err.println("  Creates a BTree and runs random operations on both it and an in-memory TreeMap.");
-            System.err.println("  Reports any disagreements.");
-            System.err.println("");
-            System.err.println("    <maxsize>   maximum number of entries in the tree, or 0 for no limit");
-            System.err.println("    <numops>    number of operations to perform, or 0 for no limit");
-            System.err.println("    <cachesize> number of pages to cache in memory, or 0 for no cache");
-            System.err.println("    <seed>      seed for random number generator, in hex");
-            System.err.println("");
-            System.exit(-1);
-        }
-        Random rand = new Random(Integer.parseInt(s[3], 16));
-        int cachesize = Integer.parseInt(s[2]);
-        int numops = Integer.parseInt(s[1]);
-        int maxsize = Integer.parseInt(s[0]);
-        int size = 0;
-        CachingPageStorage ps = new CachingPageStorageWrapper(FilePageStorage.create(), cachesize, false);
-        BTree<Integer,Integer,Pair<Integer,Integer>> btree =
-            new BTree<Integer,Integer,Pair<Integer,Integer>>(ps, UnboxedInt.instance,
-                                                             UnboxedMinMaxInteger.instance,
-                                                             UnboxedInt.instance);
-        TreeMap<Integer,Integer> tm = 
-            new TreeMap<Integer,Integer>();
-
-        int puts=0, gets=0, deletes=0, misses=0, inserts=0;
-        long lastprint=0;
-
-        // you can switch one of these off to gather crude performance measurements and compare them to TreeMap
-        boolean do_tm = true;
-        boolean do_bt = true;
-
-        for(int i=0; numops==0 || i<numops; i++) {
-            if (System.currentTimeMillis()-lastprint > 200) {
-                lastprint = System.currentTimeMillis();
-                System.out.print("\r puts="+puts+" gets="+(gets-misses)+"/"+gets+" deletes="+deletes);
-            }
-            int key = rand.nextInt() % 1000000;
-            switch(rand.nextInt() % 3) {
-                case 0: { // get
-                    Integer tget = do_tm ? tm.get(key) : null;
-                    Integer bget = do_bt ? btree.getValFromKey(key) : null;
-                    gets++;
-                    if (do_tm && do_bt) {
-                        if (tget==null && bget==null) { misses++; break; }
-                        if (tget!=null && bget!=null && tget.equals(bget)) break;
-                        System.out.print("\r puts="+puts+" gets="+(gets-misses)+"/"+gets+" deletes="+deletes);
-                        System.out.println();
-                        System.out.println();
-                        throw new RuntimeException("  disagreement on key " + key + ": btree="+bget+", treemap="+tget);
-                    }
-                    break;
-                }
-
-                case 1: { // get ordinal
-                    int sz = do_bt ? btree.size() : tm.size();
-                    int ord = sz==0 ? 0 : Math.abs(rand.nextInt()) % sz;
-                    Integer tget = do_tm ? (sz==0 ? null : tm.values().toArray(new Integer[0])[ord]) : null;
-                    Integer bget = do_bt ? btree.getValFromOrd(ord) : null;
-                    gets++;
-                    if (do_tm && do_bt) {
-                        if (tget==null && bget==null) break;
-                        if (tget!=null && bget!=null && tget.equals(bget)) break;
-                        System.out.print("\r puts="+puts+" gets="+(gets-misses)+"/"+gets+" deletes="+deletes);
-                        System.out.println();
-                        System.out.println();
-                        System.out.println("dump:");
-                        throw new RuntimeException("  disagreement on ordinal " + ord + ": btree="+bget+", treemap="+tget);
-                    }
-                    break;
-                }
-
-                case 2: { // put
-                    int val = rand.nextInt();
-                    boolean already_there = false;
-                    if (do_tm) {
-                        if (do_bt) already_there = tm.get(key)!=null;
-                        tm.put(key, val);
-                    }
-                    if (do_bt) {
-                        if (!do_tm) already_there = btree.getValFromKey(key)!=null;
-                        if (already_there)
-                            btree.replace(key, val);
-                        else
-                            btree.insert(key, val);
-                    }
-                    puts++;
-                    break;
-                }
-
-                case 3: // delete
-                    deletes++;
-                    break;
-            }
-        }
-    }
 
 }

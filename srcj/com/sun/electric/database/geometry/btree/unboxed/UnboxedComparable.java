@@ -25,6 +25,10 @@ package com.sun.electric.database.geometry.btree.unboxed;
 
 import java.io.*;
 
+/**
+ *  An unboxed which is <tt>Comparable</tt>, and for which the
+ *  comparison can be performed directly on the unboxed form.
+ */
 public interface UnboxedComparable<V extends Serializable & Comparable>
     extends Unboxed<V> {
 

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10r: ******************************
 
+IMP: (12/25/09, AM) Final documentation and cleanup of BTree code.
+     Please try to include this in the GNU release.
+
 IMP: (12/23/09, AM) Make "show undriven networks" hierarchical (does
      not seem to handle arrays of NodeInsts, though).
 

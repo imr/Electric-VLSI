@@ -129,8 +129,11 @@ class LeafNodeCursor
     public int getNumValsBelowBucket(int bucket) { return bucket < getNumBuckets() ? 1 : 0; }
 
     public void getSummary(int bucket, byte[] buf, int ofs) {
-        bt.ao.inject(getBuf(), LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket,
-                     getBuf(), LEAF_HEADER_SIZE + bt.uk.getSize() + LEAF_ENTRY_SIZE*bucket,
-                     buf, ofs);
+        /*
+        bt.summary.call(getBuf(), LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket,
+                        getBuf(), LEAF_HEADER_SIZE + bt.uk.getSize() + LEAF_ENTRY_SIZE*bucket,
+                        buf, ofs);
+        */
+        throw new RuntimeException("not implemented");
     }
 }

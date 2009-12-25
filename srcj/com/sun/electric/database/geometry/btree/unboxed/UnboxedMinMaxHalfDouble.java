@@ -25,9 +25,12 @@ package com.sun.electric.database.geometry.btree.unboxed;
 
 import java.io.*;
 
+/** an example of an AssociativeCommutativeOperation */
 public class UnboxedMinMaxHalfDouble<K extends Serializable>
     extends UnboxedPair<Double,Double>
-    implements AssociativeCommutativeOperation<K,Double,Pair<Double,Double>> {
+    implements
+        AssociativeCommutativeOperation<Pair<Double,Double>>,
+        UnboxedFunction<Pair<K,Double>,Pair<Double,Double>> {
 
     public static final UnboxedMinMaxHalfDouble instance = new UnboxedMinMaxHalfDouble();
 
@@ -35,16 +38,13 @@ public class UnboxedMinMaxHalfDouble<K extends Serializable>
 
     public UnboxedMinMaxHalfDouble() { super(UnboxedHalfDouble.instance, UnboxedHalfDouble.instance); }
 
-    public void identity(byte[] buf, int ofs) {
-        uhd.serializeFloat(Float.MAX_VALUE, buf, ofs);
-        uhd.serializeFloat(Float.MIN_VALUE, buf, ofs+uhd.getSize());
-    }
-
-    public void inject(byte[] buf_k, int ofs_k,
-                       byte[] buf_v, int ofs_v,
-                       byte[] buf_s, int ofs_s) {
-        System.arraycopy(buf_v, ofs_v, buf_s, ofs_s,               uhd.getSize());
-        System.arraycopy(buf_v, ofs_v, buf_s, ofs_s+uhd.getSize(), uhd.getSize());
+    public void call(byte[] buf_kv, int ofs_kv,
+                     byte[] buf_s, int ofs_s) {
+        /*
+        System.arraycopy(buf_kv, ofs_v+FIXME, buf_s, ofs_s,               uhd.getSize());
+        System.arraycopy(buf_kv, ofs_v+FIXME, buf_s, ofs_s+uhd.getSize(), uhd.getSize());
+        */
+        throw new RuntimeException("not implemented");
     }
   
     public void multiply(byte[] buf1, int ofs1,

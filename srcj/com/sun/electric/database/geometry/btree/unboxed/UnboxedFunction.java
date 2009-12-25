@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: UnboxedCommutativeMonoid.java
+ * File: UnboxedFunction.java
  *
  * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
@@ -26,8 +26,15 @@ package com.sun.electric.database.geometry.btree.unboxed;
 import java.io.*;
 
 /**
- *  An AssociativeOperation whose multiply() operator is also commutative
+ *  A function from one Unboxed to another.
  */
-public interface AssociativeCommutativeOperation<S extends Serializable>
-    extends AssociativeOperation<S> {
+public interface UnboxedFunction<A extends Serializable, B extends Serializable> {
+
+    /**
+     *  The function <b>MUST</b> support situations where the argument
+     *  and return buffers overlap.
+     */
+    public void call(byte[] buf_a, int ofs_a,
+                     byte[] buf_b, int ofs_b);
+
 }

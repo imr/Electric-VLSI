@@ -27,7 +27,9 @@ import java.io.*;
 import java.util.*;
 
 /**
- *  PageStorage with a cache.
+ *  API for a PageStorage with some sort of cache; the {@see
+ *  CachedPage} class provides an interface for interacting with the
+ *  cache.
  */
 public abstract class CachingPageStorage extends PageStorage {
 
@@ -37,19 +39,34 @@ public abstract class CachingPageStorage extends PageStorage {
 
     /**
      *  Creates space in the cache for pageid, but only actually reads
-     *  the bytes if readBytes is true.  If the page was not already
+     *  the bytes if readBytes is true; if the page was not already
      *  in the cache and readBytes is false, subsequent calls to
      *  setDirty()/flush() will overwrite data previously on the page.
      */
     public abstract CachedPage getPage(int pageid, boolean readBytes);
 
-    /** A page which is currently in the cache. */
+    /** Write a page <i>through</i> the cache to nonvolatile storage */
+    public abstract void writePage(int pageid, byte[] buf, int ofs);
+
+    /** A page which is currently in the cache; pages can be dirty or clean. */
     public abstract class CachedPage {
+
+        /** gets the byte[] for this page; it is okay to manipulate it directly, but you must call setDirty() and flush() afterwards */
         public abstract byte[] getBuf();
+
+        /** the pageid of this cached page */
         public abstract int    getPageId();
+
+        /** indicates that the page has been accessed (either a read or a write) for purposes of least-recently-used calculations */
         public abstract void touch();
+
+        /** marks the page as "dirty"; that is, in need of being written back to nonvolatile storage */
         public abstract void setDirty();
+
+        /** if the page is dirty, write it back to nonvolatile storage and mark it not dirty */
         public abstract void flush();
+
+        /** returns true if the page is marked dirty */
         public abstract boolean isDirty();
     }
 }

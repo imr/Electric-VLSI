@@ -25,6 +25,7 @@ package com.sun.electric.database.geometry.btree.unboxed;
 
 import java.io.*;
 
+/** A 32-bit <tt>int</tt> in unboxed form */
 public class UnboxedInt implements UnboxedComparable<Integer> {
     public static final UnboxedInt instance = new UnboxedInt();
     public int getSize() { return 4; }

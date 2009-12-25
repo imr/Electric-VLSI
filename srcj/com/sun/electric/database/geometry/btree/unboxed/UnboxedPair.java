@@ -26,6 +26,7 @@ package com.sun.electric.database.geometry.btree.unboxed;
 import java.io.*;
 import java.util.*;
 
+/** an implementation of Pair<A,B> in unboxed form */
 public class UnboxedPair<A extends Serializable,B extends Serializable>
     implements Unboxed<Pair<A,B>> {
 

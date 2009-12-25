@@ -45,7 +45,9 @@ public class MemoryPageStorage extends CachingPageStorage {
         pages[numpages] = new CachedPageImpl(numpages);
         return numpages++;
     }
+    /** no-op */
     public void fsync(int pageid) { }
+    /** no-op */
     public void fsync() { }
     public void writePage(int pageid, byte[] buf, int ofs) {
         System.arraycopy(buf, ofs, pages[pageid].buf, 0, getPageSize());

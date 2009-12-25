@@ -27,7 +27,8 @@ import java.io.*;
 import java.util.*;
 
 /**
- *  A caching wrapper around PageStorage.
+ *  A wrapper around PageStorage that makes it a {@see
+ *  CachingPageStorage}.
  *
  *  This class is thread-safe; overlapped read/write and write/write
  *  pairs may produce undefined data, but are otherwise safe.
@@ -56,31 +57,31 @@ public class CachingPageStorageWrapper extends CachingPageStorage {
     *     CachedPage.setDirty() while holding the global lock.
     */
 
-    // FEATURE: use instances of SoftReference to react to memory pressure.  Probably only usable for non-dirty pages.
-    // FEATURE: use ARC http://en.wikipedia.org/wiki/Adaptive_Replacement_Cache
-    // FEATURE: implement asyncFlush
-    // FEATURE: detect new CachingPageStorageWrapper(new CachingPageStorageWrapper(...), 0)
-    // FEATURE: attempt to evict non-dirty pages first?
-
     /** underlying PageStorage */                 private final PageStorage                           ps;
     /** all CachedPage instances, even evicted */ private final WeakHashMap<Integer,CachedPageImpl>   allCachedPages = new WeakHashMap<Integer,CachedPageImpl>();
     /** non-evicted CachedPage instances */       private final LinkedHashMap<Integer,CachedPageImpl> cache;
     /** limit on cache.size() */                  private       int                                   cacheSize = 0;
 
     /**
-     *  The cacheSize limit applies only to pages which have not been
-     *  evicted.  An evicted page will be freed from memory (garbage
+     *  An evicted page will be freed from memory (garbage
      *  collected) if the user of this class has not retained a
      *  reference to it; otherwise it simply no longer counts towards
      *  the maximum cache size.  For this reason, applications should
      *  avoid holding a reference to a CachedPage for a long time.
      *
-     *  A CachingPageStorageWrapper with a limit of zero is useful; all of its
-     *  pages are always in the evicted state and it will act as a
-     *  "buffer manager" for classes that do not want to manage their
-     *  own byte[] pools.
+     *  A CachingPageStorageWrapper with a limit of zero is useful!
+     *  All of its pages are always in the evicted state and it will
+     *  act as a "buffer manager" for classes that do not want to
+     *  manage their own byte[] pools.
      *
-     *  If asyncFlush is true, a background thread will make a
+     *  @param cacheSize the maximum number of non-evicted PAGES in
+     *  the cache.  Note that the total number of pages (evicted and
+     *  non-evicted) may exceed this number; this class simply ensures
+     *  that once a page is evicted its reference to the page is
+     *  <i>weak</i>.  If the client application still holds a
+     *  reference to that page it will not be garbage collected.
+     *
+     *  @param asyncFlush if true, a background thread will make a
      *  best-effort attempt to flush dirty pages even before a flush()
      *  is explicitly requested.
      */
@@ -138,7 +139,6 @@ public class CachingPageStorageWrapper extends CachingPageStorage {
         return page;
     }
 
-    /** Write-through */
     public void writePage(int pageid, byte[] buf, int ofs) {
         CachedPage page = getPage(pageid, false);
         System.arraycopy(buf, ofs, page.getBuf(), 0, ps.getPageSize());

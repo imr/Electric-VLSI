@@ -26,13 +26,17 @@ package com.sun.electric.database.geometry.btree;
 import java.io.*;
 
 /**
- *  PageStorage implemented via a RandomAccessFile.
- *
+ *  PageStorage implemented via a RandomAccessFile.  No
+ *  PageStorage(RandomAccessFile) constructor is provided because the
+ *  on-disk format is not yet stable.
  */
 public class FilePageStorage extends PageStorage {
 
-    // FEATURE: use asynchronous I/O for background writes.
-
+    /**
+     *  Create a new FilePageStorage; no PageStorage(RandomAccessFile)
+     *  constructor is provided because the on-disk format is not yet
+     *  stable.
+     */
     public static FilePageStorage create() {
         return new FilePageStorage();
     }

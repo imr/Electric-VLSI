@@ -26,21 +26,14 @@ package com.sun.electric.database.geometry.btree.unboxed;
 import java.io.*;
 
 /**
- *  An AssociativeOperation<K,V,S> is an Unboxed<S> plus an
- *  associative operation that takes two S's and returns an S, plus an
- *  "injection" from Pair<K,V> to S.
+ *  An associative operation on unboxed values.
  *
  *  http://en.wikipedia.org/wiki/Monoid
  *  http://en.wikipedia.org/wiki/Semigroup
  */
-public interface AssociativeOperation<K extends Serializable,V extends Serializable,S extends Serializable>
-    extends Unboxed<S> {
+public interface AssociativeOperation<S extends Serializable>
+    extends Unboxed<S> /* and UnboxedFunction<Pair<S,S>,S> ... */ {
 
-    /** Compute the value representing a particular K,V and store it in S */
-    public void inject(byte[] buf_k, int ofs_k,
-                       byte[] buf_v, int ofs_v,
-                       byte[] buf_s, int ofs_s);
-  
     /**
      *  Compute (buf1,ofs1)*(buf2,ofs2) and write it to (buf_dest,ofs_dest).
      *  MUST support the case where (buf1,ofs1)==(buf_dest,ofs_dest)
