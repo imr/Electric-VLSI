@@ -971,7 +971,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         }
         WaveformWindow ww = (WaveformWindow)content;
         try {
-            // FIXME: in progress, very crude right now
             String commands = "";
             double min = Double.MAX_VALUE;
             double max = Double.MIN_VALUE;
@@ -997,10 +996,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
             for(Panel wp : ww.wavePanels)
                 wp.dumpDataForGnuplot(pw);
             pw.close();
-        } catch (Exception e)
-        {
-        	System.out.println("ERROR: Unable to run 'gnuplot'");
-//        	throw new RuntimeException(e);
+        } catch (Exception e) {
+        	System.out.println("ERROR: Unable to run 'gnuplot': " + e);
         }
     }
 
