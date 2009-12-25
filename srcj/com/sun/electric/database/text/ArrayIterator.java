@@ -25,6 +25,8 @@
 package com.sun.electric.database.text;
 
 import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
@@ -174,4 +176,13 @@ public class ArrayIterator<E> implements Iterator<E> {
             }
         };
     }
+
+    /** Turns an Iterator<T> into a List<T> because some of Electric's APIs ask for that */
+    public static <T> ArrayList<T> i2al(final Iterator<T> iterator) {
+        ArrayList<T> ret = new ArrayList<T>();
+        while(iterator.hasNext())
+            ret.add(iterator.next());
+        return ret;
+    }
+
 }
