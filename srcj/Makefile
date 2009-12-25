@@ -20,3 +20,9 @@ electric.jar: $(javas) Makefile
 
 clean:
 	rm -rf electric.jar build
+
+javadoc:
+	rm -rf ../../electric-apidoc/
+	mkdir ../../electric-apidoc/
+	javadoc -J-Xmx400m -d ../../electric-apidoc/ `find . -name \*.java`
+	open ../../electric-apidoc/index.html
