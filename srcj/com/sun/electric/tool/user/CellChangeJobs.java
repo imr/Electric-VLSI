@@ -24,7 +24,9 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.IdMapper;
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
@@ -873,6 +875,7 @@ public class CellChangeJobs
 		Cell curCell;
 		Set<Geometric> whatToPackage;
 		String newCellName;
+        private Set<NodeInst> expandedNodes = new HashSet<NodeInst>();
 
 		public PackageCell(Cell curCell, Set<Geometric> whatToPackage, String newCellName)
 		{
@@ -883,6 +886,7 @@ public class CellChangeJobs
 			startJob();
 		}
 
+        @Override
 		public boolean doIt() throws JobException
 		{
 			// create the new cell
@@ -904,6 +908,8 @@ public class CellChangeJobs
 				if (newNi == null) return false;
 				newNodes.put(ni, newNi);
 				newNi.copyStateBits(ni);
+                if(ni.isExpanded())
+                    expandedNodes.add(newNi);
 				newNi.copyVarsFrom(ni);
 				newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 
@@ -943,6 +949,12 @@ public class CellChangeJobs
 			System.out.println("Cell " + cell.describe(true) + " created");
 			return true;
 		}
+
+        @Override
+        public void terminateOK() {
+            for (NodeInst ni: expandedNodes)
+                ni.setExpanded(true);
+        }
 	}
 
 	/**
@@ -955,6 +967,7 @@ public class CellChangeJobs
 		private boolean copyExports;
 		private boolean fromRight;
 		private int depth;
+        private Set<NodeInst> expandedNodes = new HashSet<NodeInst>();
 
 		public ExtractCellInstances(Cell cell, List<NodeInst> highlighted, int depth, boolean copyExports,
 			boolean fromRight, boolean startNow)
@@ -973,14 +986,22 @@ public class CellChangeJobs
 			}
 		}
 
+        @Override
 		public boolean doIt() throws JobException
 		{
-			doArbitraryExtraction(cell, nodes, copyExports, depth, fromRight);
+			doArbitraryExtraction(cell, expandedNodes, nodes, copyExports, depth, fromRight);
+            fieldVariableChanged("expandedNodes");
 			return true;
 		}
+
+        @Override
+        public void terminateOK() {
+            for (NodeInst ni: expandedNodes)
+                ni.setExpanded(true);
+        }
 	}
 
-	private static void doArbitraryExtraction(Cell cell, List<NodeInst> nodes, boolean copyExports, int depth, boolean fromRight)
+	private static void doArbitraryExtraction(Cell cell, Set<NodeInst> expandedNodes, List<NodeInst> nodes, boolean copyExports, int depth, boolean fromRight)
 	{
 		Job.getUserInterface().startProgressDialog("Extracting " + nodes.size() + " cells", null);
 		Map<NodeInst,Map<PortInst,PortInst>> newNodes = new HashMap<NodeInst,Map<PortInst,PortInst>>();
@@ -991,7 +1012,7 @@ public class CellChangeJobs
 		{
 			if (!ni.isCellInstance()) continue;
 			Map<PortInst,PortInst> portMap = new HashMap<PortInst,PortInst>();
-			extractOneLevel(cell, ni, GenMath.MATID, portMap, 1, depth, fromRight);
+			extractOneLevel(cell, expandedNodes, ni, GenMath.MATID, portMap, 1, depth, fromRight);
 
 			newNodes.put(ni, portMap);
 			for (Iterator<Export> it = ni.getExports(); it.hasNext(); )
@@ -1003,7 +1024,7 @@ public class CellChangeJobs
 
 		// replace arcs to the cell and exports on the cell
 		Job.getUserInterface().setProgressNote("Replacing top-level arcs and exports");
-		replaceExtractedArcs(cell, newNodes, GenMath.MATID, fromRight);
+		replaceExtractedArcs(cell, cell, newNodes, GenMath.MATID, fromRight);
 
 		// replace the exports if needed
 		if (copyExports)
@@ -1028,7 +1049,7 @@ public class CellChangeJobs
 		Job.getUserInterface().stopProgressDialog();
 	}
 
-	private static void extractOneLevel(Cell cell, NodeInst topno, AffineTransform prevTrans,
+	private static void extractOneLevel(Cell cell, Set<NodeInst> expandedNodes, NodeInst topno, AffineTransform prevTrans,
 		Map<PortInst,PortInst> portMap, int curDepth, int totDepth, boolean fromRight)
 	{
 		Map<NodeInst,Map<PortInst,PortInst>> newNodes = new HashMap<NodeInst,Map<PortInst,PortInst>>();
@@ -1064,7 +1085,7 @@ public class CellChangeJobs
 			if (ni.isCellInstance() && curDepth < totDepth) extractCell = true;
 			if (extractCell)
 			{
-				extractOneLevel(cell, ni, localTrans, subPortMap, curDepth+1, totDepth, fromRight);
+				extractOneLevel(cell, expandedNodes, ni, localTrans, subPortMap, curDepth+1, totDepth, fromRight);
 
 				// add to the portmap
 				for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
@@ -1086,7 +1107,9 @@ public class CellChangeJobs
 				NodeInst newNi = NodeInst.makeInstance(np, pt, ni.getXSize(), ni.getYSize(), cell, orient, name);
 				if (newNi == null) continue;
 				newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
-				newNi.copyStateBits(ni);
+                newNi.copyStateBits(ni);
+                if (ni.isExpanded())
+                    expandedNodes.add(newNi);
 				newNi.copyVarsFrom(ni);
 
 				// add ports to the new node's portmap
@@ -1108,10 +1131,10 @@ public class CellChangeJobs
 			}
 		}
 
-		replaceExtractedArcs(subCell, newNodes, localTrans, fromRight);
+		replaceExtractedArcs(cell, subCell, newNodes, localTrans, fromRight);
 	}
 
-	private static void replaceExtractedArcs(Cell cell, Map<NodeInst,Map<PortInst,PortInst>> nodeMaps,
+	private static void replaceExtractedArcs(Cell destCell, Cell cell, Map<NodeInst,Map<PortInst,PortInst>> nodeMaps,
 		AffineTransform trans, boolean fromRight)
 	{
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
@@ -1166,7 +1189,10 @@ public class CellChangeJobs
 			if (ai.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false, fromRight);
 
-			ArcInst newAi = ArcInst.makeInstanceBase(ap, wid, newHeadPi, newTailPi, headLoc, tailLoc, name);
+            ImmutableArcInst a = ai.getD();
+            ArcInst newAi = ArcInst.newInstance(destCell, ap, name, a.nameDescriptor,
+                newHeadPi, newTailPi, EPoint.snap(headLoc), EPoint.snap(tailLoc), a.getGridExtendOverMin(), a.getAngle(), a.flags);
+//			ArcInst newAi = ArcInst.makeInstanceBase(ap, wid, newHeadPi, newTailPi, headLoc, tailLoc, name);
 			if (newAi == null)
 			{
 				System.out.println("Error: arc " + ai.describe(false) + " in cell " + cell.describe(false) +

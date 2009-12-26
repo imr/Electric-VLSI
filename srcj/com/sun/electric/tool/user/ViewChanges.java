@@ -2310,7 +2310,7 @@ public class ViewChanges
 					System.out.println("Could not create " + newNp + " in " + newCell);
 					return null;
 				}
-				newNi.copyStateBits(ni);
+				newNi.copyStateBitsAndExpandedFlag(ni);
 				if (!no.getParent().isSchematic())
 					newNi.copyVarsFrom(ni);
 

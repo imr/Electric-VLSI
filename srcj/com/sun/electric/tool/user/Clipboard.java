@@ -1042,7 +1042,7 @@ public class Clipboard //implements ClipboardOwner
 				System.out.println("Cannot create node");
 				return lastCreatedNode;
 			}
-			newNi.copyStateBits(ni);
+			newNi.copyStateBitsAndExpandedFlag(ni);
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO);
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 			newNi.copyVarsFrom(ni);
@@ -1259,7 +1259,7 @@ public class Clipboard //implements ClipboardOwner
 		destNode.copyVarsFrom(srcNode);
 
 		// copy any special user bits
-		destNode.copyStateBits(srcNode);
+		destNode.copyStateBitsAndExpandedFlag(srcNode);
 		destNode.setExpanded(false);
 		destNode.clearLocked();
 

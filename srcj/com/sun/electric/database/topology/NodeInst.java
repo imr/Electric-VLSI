@@ -1032,7 +1032,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         newNi.copyVarsFrom(this);
         newNi.copyTextDescriptorFrom(this, NodeInst.NODE_NAME);
         newNi.copyTextDescriptorFrom(this, NodeInst.NODE_PROTO);
-        newNi.copyStateBits(this);
+        newNi.copyStateBitsAndExpandedFlag(this);
         if (!getNameKey().isTempname()) {
             String savedName = getName();
             String tempName = ElectricObject.uniqueObjectName(savedName, topology.cell, NodeInst.class, true, true);
@@ -3690,16 +3690,25 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
     /**
      * Method to copy the various state bits from another NodeInst to this NodeInst.
-     * Includes all of the state bits stored in the flags word and also the "expanded" state.
+     * Includes all of the state bits stored in the flags word.
      * @param ni the other NodeInst to copy.
      */
     public void copyStateBits(NodeInst ni) {
         setD(d.withStateBits(ni.d), true);
-        setExpanded(ni.isExpanded());
     }
 
     private void setFlag(ImmutableNodeInst.Flag flag, boolean value) {
         setD(d.withFlag(flag, value), true);
+    }
+
+    /**
+     * Method to copy the various state bits from another NodeInst to this NodeInst.
+     * Includes all of the state bits stored in the flags word and also the "expanded" state.
+     * @param ni the other NodeInst to copy.
+     */
+    public void copyStateBitsAndExpandedFlag(NodeInst ni) {
+        copyStateBits(ni);
+        setExpanded(ni.isExpanded());
     }
 
     /**

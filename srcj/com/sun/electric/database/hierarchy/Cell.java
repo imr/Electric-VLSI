@@ -874,7 +874,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             // copy miscellaneous information
             toNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO);
             toNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
-            toNi.copyStateBits(ni);
+            toNi.copyStateBitsAndExpandedFlag(ni);
         }
 
         // now copy the variables on the nodes
