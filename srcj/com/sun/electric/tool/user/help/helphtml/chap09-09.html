@@ -134,32 +134,22 @@ This command computes load factors for every network in the cell.</LI>
 
 <H4>The <tt>LEsettings</tt> cell</H4>
 <P>
-There is an undocumented cell called <tt>LEsettings</tt> with the following undocumented attributes:
-<tt>su</tt>,
-<tt>wire_ratio</tt>,
-<tt>epsilon</tt>,
-<tt>max_iter</tt>,
-<tt>gate_cap</tt>,
-<tt>alpha</tt>,
-<tt>keeper_ratio</tt>,
-<tt>LESETTINGS</tt>.
-</P>
+There is a cell called <tt>LEsettings</tt> with the following attributes:
+<UL>
+<LI><tt>su</tt></LI>
+<LI><tt>wire_ratio</tt></LI>
+<LI><tt>epsilon</tt></LI>
+<LI><tt>max_iter</tt></LI>
+<LI><tt>gate_cap</tt></LI>
+<LI><tt>alpha</tt></LI>
+<LI><tt>LESETTINGS</tt></LI>
+</UL>
 
-<pre>
-Jonathan Gainsley writes:
-
-... alpha is a modulation applied to the logical effort
-defined on each gate's output.  Alpha is defined as the ratio of
-diffusion capacitance to gate capacitance; it converts the output
-self-loading (diffusion) capacitance to equivalent units of input
-loading capacitance.
-
+<tt>alpha</tt> a modulation applied to the logical effort defined on each gate's output.
+It is defined as the ratio of diffusion capacitance to gate capacitance and it converts the output
+self-loading (diffusion) capacitance to equivalent units of input loading capacitance.</LI>
 The self-loading is calculated as:
-
- selfXsize * outputLE * alpha
-
-Therefore, if you set alpha to 0, the self-loading load is ignored
-for LE calculation.
-</pre>
+<CENTER>selfXsize * outputLE * alpha</CENTER>
+Therefore, if you set alpha to 0, the self-loading load is ignored for logical effort calculation.
 
 <!-- TRAILER -->

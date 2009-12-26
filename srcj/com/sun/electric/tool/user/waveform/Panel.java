@@ -92,6 +92,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -115,8 +116,6 @@ import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
-
-import java.io.*;
 
 /**
  * This class defines a single panel of WaveSignals with an associated list of signal names.
@@ -1461,7 +1460,7 @@ public class Panel extends JPanel
 		for(WaveSignal ws : waveSignals.values()) {
 			if (ws.getSignal() instanceof AnalogSignal) {
 				AnalogSignal as = (AnalogSignal)ws.getSignal();
-				AnalogAnalysis an = as.getAnalysis();
+//				AnalogAnalysis an = as.getAnalysis();
 				for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++) {
                     pw.println();
 					Waveform wave = as.getWaveform(s);
@@ -1481,7 +1480,7 @@ public class Panel extends JPanel
 		for(WaveSignal ws : waveSignals.values()) {
 			if (ws.getSignal() instanceof AnalogSignal) {
 				AnalogSignal as = (AnalogSignal)ws.getSignal();
-				AnalogAnalysis an = as.getAnalysis();
+//				AnalogAnalysis an = as.getAnalysis();
 				for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++) {
                     pw.println();
 					Waveform wave = as.getWaveform(s);
@@ -1540,9 +1539,9 @@ public class Panel extends JPanel
                              getHeight()-10
                              );
             } else {
-                System.err.println("Note: panel " + panelNumber + " is using legacy codebase.  "+
-                                   "This is not displayed in the panel because Job.getDebug()==false.  "+
-                                   "Please be sure to mention this if you submit a bug report.");
+//                System.err.println("Note: panel " + panelNumber + " is using legacy codebase.  "+
+//                                   "This is not displayed in the panel because Job.getDebug()==false.  "+
+//                                   "Please be sure to mention this if you submit a bug report.");
             }
         }
 
