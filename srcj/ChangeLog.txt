@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10r: ******************************
 
+IMP: (12/27/09, AM) In debug mode, put an annotation on *all* panels
+     (not just legacy-code panels).  Simulation-code bug reports which
+     lack a debug-mode screenshot will be summarily INVALIDated.
+
 BUG: (12/26/09, DN) Version 8.08 library reads differently in later versions (Bug #2357).
 FIX: In Environment.withSettingChanges remove old change test.
 

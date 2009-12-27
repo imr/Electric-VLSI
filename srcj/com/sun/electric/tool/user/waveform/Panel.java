@@ -1528,21 +1528,15 @@ public class Panel extends JPanel
                     isUsingBTrees = false;
             }
         }
-        if (!isUsingBTrees && g!=null) {
-            if (Job.getDebug()) {
-                g.setColor(gridColor);
-                g.setColor(Color.gray);
-                g.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
-                String msg = "(using legacy simulation code)";
-                g.drawString(msg,
-                             getWidth()-g.getFontMetrics().stringWidth(msg)-10,
-                             getHeight()-10
-                             );
-            } else {
-//                System.err.println("Note: panel " + panelNumber + " is using legacy codebase.  "+
-//                                   "This is not displayed in the panel because Job.getDebug()==false.  "+
-//                                   "Please be sure to mention this if you submit a bug report.");
-            }
+        if (Job.getDebug() && g!=null) {
+            g.setColor(gridColor);
+            g.setColor(Color.gray);
+            g.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+            String msg = isUsingBTrees ? "(using new code)" : "(using legacy simulation code)";
+            g.drawString(msg,
+                         getWidth()-g.getFontMetrics().stringWidth(msg)-10,
+                         getHeight()-10
+                         );
         }
 
 		int sigIndex = 0;
