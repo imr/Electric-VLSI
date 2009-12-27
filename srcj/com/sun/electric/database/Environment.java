@@ -140,7 +140,6 @@ public class Environment {
 
         // Look for tech param changes
         Map<TechFactory.Param, Object> techParams = techPool.getTechParams();
-        boolean changed = false;
         for (Map.Entry<TechFactory.Param, Object> e : techParams.entrySet()) {
             TechFactory.Param param = e.getKey();
             Object oldValue = e.getValue();
@@ -158,11 +157,9 @@ public class Environment {
             if (newValue.getClass() != oldValue.getClass()) {
                 continue;
             }
-            changed = true;
             techParams.put(param, newValue);
         }
         TechPool newTechPool = techPool.withTechParams(techParams);
-        assert (newTechPool != techPool) == changed;
 
         // Gather by xmlPath
         HashMap<String, Object> valuesByXmlPath = new HashMap<String, Object>();

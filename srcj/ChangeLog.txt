@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.10r: ******************************
 
+BUG: (12/26/09, DN) Version 8.08 library reads differently in later versions (Bug #2357).
+FIX: In Environment.withSettingChanges remove old change test.
+
 BUG: (12/26/09, DN) Extract Cell Instance in v8.10 very slow (Bug #2566).
 FIX: In CellChangeJobs.PackageCell and CellChangeJobs.ExtractCellInstances Jobs expand cell
      instances in terminateOK phase.
