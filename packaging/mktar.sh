@@ -22,20 +22,10 @@ rm -Rf ~/electricExport/$VERSION
 svn export .. ~/electricExport/$VERSION
 cd ~/electricExport/$VERSION
 rm packaging/*.jar
-rm -Rf srcj/com/sun/electric/plugins/calibre
-rm -Rf srcj/com/sun/electric/plugins/csa
-rm -Rf srcj/com/sun/electric/plugins/dais
-rm -Rf srcj/com/sun/electric/plugins/generator
-rm -Rf srcj/com/sun/electric/plugins/irsim
-rm -Rf srcj/com/sun/electric/plugins/libertyRW
-rm -Rf srcj/com/sun/electric/plugins/manualRussian
-rm -Rf srcj/com/sun/electric/plugins/menus
-rm -Rf srcj/com/sun/electric/plugins/oyster
-rm -Rf srcj/com/sun/electric/plugins/sctiming
-rm -Rf srcj/com/sun/electric/plugins/skill
-rm -Rf srcj/com/sun/electric/plugins/sunRouter
-rm -Rf srcj/com/sun/electric/plugins/tests
-rm -Rf srcj/com/sun/electric/plugins/tsmc
+rm -Rf srcj/com/sun/electric/plugins/*
+rm -Rf srcj/com/sun/electric/tool/simulation/eventsim
+rm -Rf srcj/com/sun/electric/tool/simulation/interval/BigBinary.java
+rm -Rf srcj/com/sun/electric/tool/simulation/interval/UnivariateBigPolynomial.java
 cd ~/electricExport
 gtar -czf $VERSION.tar.gz $VERSION
 rm -Rf $VERSION
