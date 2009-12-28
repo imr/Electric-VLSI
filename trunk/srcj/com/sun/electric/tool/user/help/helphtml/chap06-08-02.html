@@ -1,0 +1,43 @@
+<!-- NEED 5in -->
+
+<!-- HEADER 6-8-2: Selecting Text -->
+
+The only category of text that is not selectable is the text that is integral to a node's graphics
+(i.e. the Flip-Flop).
+For the rest, you can select and manipulate the text just as you would the object on which the text resides.
+(Note that port names on cell instances are not selectable:
+instead, select their export name inside of the cell definition.)
+<P>
+Note that the name of an unexpanded cell instance is not easily selectable.
+This is a feature that prevents accidental selection of unimportant text.
+For these hard-to-select pieces of text,
+the only way to select them is to use
+<I>special select</I> mode (see <A HREF="chap02-01-05.html#chap02-01-05">section 2-1-5</A>).
+<P>
+<!-- NEED 3in -->
+<TABLE><TR><TD>
+All text is attached to its node, arc, or cell at an <I>anchor-point</I>.
+This is the one point on the text that never moves,
+regardless of the size of the text.
+The highlighting of selected text varies according to the anchor-point.
+Typically, the highlighting consists of an "X" through the text.
+This indicates that the anchor-point is in the center.
+If a "U" is drawn in any of four orientations,
+it indicates that the anchor-point is on the side and that the text grows out of the opened end.
+If an "L" is drawn in any of four orientations, it indicates that the anchor-point is in a corner.
+</TD><TD><CENTER><IMG SRC="fig06-13.png" ALT="Figure 6.13"></CENTER></TD></TR></TABLE>
+<P>
+Besides these 9 anchor points, there is one more special type of anchor called <I>boxed</I>.
+Boxed text has a centered anchor point, but is limited in size to a particular box.
+It appears as an "X" but also has four lines that indicate the edge of the box.
+Boxed text is typically used on unexpanded cell instance names
+so that the text does not exceed the size of the instance.
+
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig06-22.png" ALT="Figure 6.22"></CENTER></TD><TD>
+Note that text can be moved away from its attached node or arc.
+If this has been done, then selection of the text will also indicate the attached component
+by drawing a dashed line to it.
+</TD></TR></TABLE>
+
+<!-- TRAILER -->

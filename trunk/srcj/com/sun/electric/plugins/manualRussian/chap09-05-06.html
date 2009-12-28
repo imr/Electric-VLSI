@@ -1,0 +1,62 @@
+<!-- NEED 4in -->
+
+<!-- HEADER 9-5-6: ALS Models -->
+
+Как показал предыдущий пример, объект модели обеспечивает взаимосвязь между остальными объектами, 
+включая объекты других моделей.
+Модель можно использовать, в сочетании с gate(компанентом) и функциями, для описания схеемы.
+<P>
+Модель оглавляется как аргумент <B>model</B> и далее идут блкои, описывающие объекты, в соответствии с иерархией.
+Формат приведен ниже: 
+<P>
+<CENTER><TABLE>
+<TR><TD><B>Format:</B></TD><TD>model <I>name</I>(<I>signal1</I>, <I>signal2</I>,
+<I>signal3</I>, ... <I>signalN</I>)</TD></TR>
+<TR><TD><B>Example:</B></TD><TD>model dff(d, ck, set, reset, q, q_bar)</TD></TR>
+<TR><TD></TD><TD>model shift_reg(input, ck, q3, q2, q1, q0)</TD></TR>
+</TABLE></CENTER>
+<P>
+Ссылка на инстанции приметивов объекта(gate и функция) и на модели нижестоящего уровня используется
+для описания симулятору топологии новой модели.
+Формат ниже:
+<P>
+<CENTER><TABLE>
+<TR><TD><B>Format:</B></TD><TD><I>instance</I> : <I>model</I> ( <I>signal1</I>,
+<I>signal2</I>, <I>signal3</I>, ... <I>signalN</I> )</TD></TR>
+<TR><TD><B>Example:</B></TD><TD>gate1: subgate(input, en, mix)</TD></TR>
+<TR><TD></TD><TD>node5: inverter(mix, out_bar)</TD></TR>
+</TABLE></CENTER>
+<P>
+Отметьте, кажда ссылка на инстанцию в моде происходит по уникальному имени инстанции.
+Пример ниже:
+<PRE>
+   model latch(input, en, en_bar, out)
+   gate1: xgate(input, en, mix)
+   gate2: xgate(out, en_bar, mix)
+   gate3: inverter(mix, out_bar)
+   gate4: inverter(out_bar, out)
+
+   gate xgate(in, ctl, out)
+   t: delta=8.0e-9
+   t: delta=8.0e-9
+   i: ctl=L       o: out=X@0
+   i: ctl=H in=L  o: out=L
+   i: ctl=H in=H  o: out=H
+   i:             o: out=X@2
+
+   gate inverter(in, out)
+   t: delta=5.0e-9
+   i: in=L        o: out=H
+   i: in=H        o: out=L
+   i:             o: out=X@2
+</PRE>
+Этот пример содержит описание простой защелки.
+Когда (en=H, en_bar=L) входная информация проходит первый gate и
+через инверторы проходит к выходу. Если же (en=L, en_bar=H) то сигнал 
+не проходит защелку. Состояние защелки не изменяется. 
+<P>
+<H3>Установление первоночального параметра(set)</H3>
+<P>
+Установка <B>set</B> нужна если нужно установить какойто сигнал
+до проведения симуляции. Например, сигналы ground и power.
+<!-- TRAILER -->

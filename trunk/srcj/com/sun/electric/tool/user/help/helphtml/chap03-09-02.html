@@ -1,0 +1,126 @@
+<!-- NEED 3in -->
+
+<!-- HEADER 3-9-2: Reading Libraries -->
+
+<!-- COMMAND File/Open Library... -->
+<!-- COMMAND File/Import/LEF (Library Exchange Format)... -->
+<!-- COMMAND File/Import/Applicon 860... -->
+<!-- COMMAND File/Import/DEF (Design Exchange Format)... -->
+<!-- COMMAND File/Import/Verilog... -->
+<!-- COMMAND File/Import/Spice Decks... -->
+<!-- COMMAND File/Import/ELIB... -->
+<!-- COMMAND File/Import/Readable Dump... -->
+
+The <B>Open Library...</B> command (in menu <B>File</B>) brings a new library into Electric from disk.
+These libraries may have the extension ".elib", ".jelib", or ".delib" (the jelib format is the default,
+see <A HREF="chap10-01.html#chap10-01">Section 10-1</A>).
+There is also a <B>Open Recent Library</B> entry that lists all recently opened libraries.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig03-23.png" ALT="Figure 3.23"></CENTER></TD><TD>
+You can also use the open-library icon from the tool bar.
+</TD></TR></TABLE>
+<P>
+Electric users with very old ".elib" files may have difficulty reading them into Electric.
+If you have been using versions of Electric prior to 7.00, it may help to upgrade to that version and read the libraries.
+Saving ".elib" files from version 7.00 will work properly in the current system.
+<P>
+By default Electric searches for libraries in the working directory,
+absolute file path references, and Electric's internal library directory.
+Users can specify additional directories to search by using a file called
+"LIBDIRS" placed in the working directory.
+This file specifies additional paths to search for library files.
+The file has the following syntax:
+<P>
+<code>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <i>&lt;comments&gt;</i><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;include <i>&lt;another_LIBDIRS_file&gt;</i><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>&lt;library_directory&gt;</i>
+</code>
+<P>
+Paths may be absolute or relative.
+<P>
+Besides Electric libraries,
+it is possible to read circuit descriptions that are in other formats with these commands in the <B>File / Import</B> menu:
+<UL>
+<LI><B>CIF (Caltech Intermediate Format)</B> is used to describe integrated circuit layout.
+It contains no connectivity, so after the library is read, it does not know about transistors and contacts:
+just layers.
+You can use the node extractor to convert CIF to real Electric components
+(see <A HREF="chap09-10-02.html#chap09-10-02">Section 9-10-2</A>).
+To affect how CIF is read, use the CIF Preferences (in menu File / Preferences..., "I/O" section, "CIF" tab).
+See <A HREF="chap07-03-02.html#chap07-03-02">Section 7-3-2</A> for more on CIF.</LI>
+
+<LI><B>GDS II (Stream)</B> is also used to describe integrated circuit layout.
+It contains no connectivity, so after the library is read, it does not know about transistors and contacts: just layers.
+You can use the node extractor to convert GDS to real Electric components
+(see <A HREF="chap09-10-02.html#chap09-10-02">Section 9-10-2</A>).
+To affect how GDS is read, use the GDS Preferences (in menu File / Preferences..., "I/O" section, "GDS" tab).
+See <A HREF="chap07-03-03.html#chap07-03-03">Section 7-3-3</A> for more on GDS.</LI>
+
+<LI><B>EDIF (Electronic Design Interchange Format)</B> is used to describe both schematics and layout.
+Electric reads EDIF version 2 0 0.
+Use the EDIF Preferences (in menu File / Preferences..., "I/O" section, "EDIF" tab) to affect how EDIF is read
+(see <A HREF="chap07-03-04.html#chap07-03-04">Section 7-3-4</A>).</LI>
+
+<LI><B>LEF (Library Exchange Format)</B> is an interchange format that describes the cells in a library.
+The cells that are read in contain ports, but very little contents.</LI>
+
+<LI><B>DEF (Design Exchange Format)</B> is an interchange format that describes the contents of a library.
+DEF input often makes use of associated LEF files which must already have been read.
+Use the DEF Preferences (in menu File / Preferences..., "I/O" section, "DEF" tab) to affect how DEF is read
+(see <A HREF="chap07-03-05.html#chap07-03-05">Section 7-3-5</A>).</LI>
+
+<LI><B>DXF (AutoCAD)</B> is a solid-modeling interchange format, and so it may contain 3D objects that cannot be read into Electric.
+Nevertheless, Electric creates a library of artwork primitives as well as it can.
+Use the DXF Preferences (in menu File / Preferences..., "I/O" section, "DXF" tab) to affect how DXF is read
+(see <A HREF="chap07-03-07.html#chap07-03-07">Section 7-3-7</A>).</LI>
+
+<LI><B>SUE (Schematic User Environment)</B> is a schematic editor that captures a single cell in each file.
+The circuitry in SUE files is added to the current library instead of being placed in its own library
+(because many SUE files may have to be read to build up a single Electric library).
+When reading a SUE file, any subdirectories that start with "suelib_" will also be examined for dependent
+SUE cells.
+Use the SUE Preferences (in menu File / Preferences..., "I/O" section, "SUE" tab) to affect how SUE is read
+(see <A HREF="chap07-03-08.html#chap07-03-08">Section 7-3-8</A>).</LI>
+
+<LI><B>Spice Decks</B> are input to the Spice simulator and define a netlist of circuitry.
+See <A HREF="chap09-04-03.html#chap09-04-03">Section 9-4-3</A> for more on Spice.
+Reading Spice Decks will create wired instances, but the placement of the instances will be automatically
+generated because that information is not in the Spice deck.</LI>
+
+<LI><B>Applicon 860</B> is a layout format from old Applicon EDA systems.</LI>
+
+<LI><B>Verilog</B> is a hardware description language used for simulation and fabrication.
+Electric reads the Verilog file and constructs a schematic representation.
+Because there is no placement in Verilog files, the schematic is topologically correct, but visually messy.</LI>
+
+<LI><B>ELIB</B> is an older Electric library format that is in an undocumented binary format.
+</LI>
+
+<LI><B>Readable Dump</B> is an older Electric library format that captures the entire database in a text-readable format.
+These files were used when the ".elib" file was the main way of saving libraries, because a way was needed of reading
+library files.
+Now that the newer ".jelib" format is also text-readable, there is no need to use Readable Dumps anymore.</LI>
+
+<LI><B>Text Cell Contents</B> is used to read a text file into a text cell.
+The current window must be a textual view (such as VHDL, Verilog, documentation, etc.)
+
+See <A HREF="chap04-09.html#chap04-09">Section 4-9</A> for more on text windows.
+</LI>
+</UL>
+<P>
+Some file formats (CIF, GDS, EDIF, LEF, DEF, SUE, and Applicon 860) are technology-specific.
+Before reading them, you will be prompted for the layout technology to use.
+The default is to use the current technology.
+<P>
+If you import a library that already exists in Electric,
+the following warning appears:
+<CENTER><IMG SRC="fig03-36.png" ALT="Figure 36"></CENTER>
+<P>
+You can save the previous library, overwrite the previous library, cancel the operation,
+or merge the new library into the previous library.
+The "Merge" option creates new versions of cells when the names conflict,
+producing a library that has both the previous and new contents in it.
+
+
+<!-- TRAILER -->

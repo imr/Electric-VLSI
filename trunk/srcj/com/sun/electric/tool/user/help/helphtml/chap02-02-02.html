@@ -1,0 +1,82 @@
+<!-- NEED 3in -->
+<!-- HEADER 2-2-2: Arc Creation -->
+
+As the introductory example showed, arcs are created by clicking the
+<I><A HREF="chap01-08.html#chap01-08">right</A></I> button.
+This can actually function in two different ways, depending on what is highlighted.
+<P>
+<H4>Segment Wiring</H4>
+<P>
+If one node is highlighted, <I>segment wiring</I> is done,
+in which an arc is drawn from the highlighted node to the location of the cursor.
+If there is nothing at that location, a pin is created, and it is left highlighted.
+Using the <I>right</I> button again runs an arc from that pin to another location.
+By clicking and holding the <I>right</I> button,
+you can see the path that the new arc will follow.
+<P>
+In general, all wiring operations should be done by clicking and <U>holding</U> the <I>right</I> button,
+then moving the cursor until the intended wiring is shown,
+and finally releasing.
+This is recommended because wiring is quite complex and can follow many different paths.
+<P>
+If you type a digit key while the right button is pressed, it changes the wiring layer by inserting contacts
+to that layer of metal.
+For example, if you are running a metal-1 wire, and type "3" during the wiring, then two contacts will be
+added (metal-1-metal-2 and metal-2-metal-3) to make the wire run in metal-3.
+<P>
+If the cursor is over another object when the <I>right</I> button is released,
+the new wire attaches to that object.
+If there are multiple objects under the cursor, press the <I>space bar</I> (while the right button is pressed)
+to cycle through the possible endpoints (including the possibility of connecting to none of them).
+To prevent the wire from connecting to anything under the cursor, hold the
+<I><A HREF="chap01-08.html#chap01-08">control</A></I> key while routing.
+<P>
+If an Unrouted arc is attached to the original node, that arc moves to the new pin.
+This allows you to replace Unrouted arcs incrementally, one segment at a time.
+When both ends of the Unrouted arc are replaced by a segment, that arc is removed.
+See <A HREF="chap09-06-01.html#chap09-06-01">Section 9-6-1</A> for more about Unrouted Arcs.
+<P>
+<H4>Two-Point Wiring</H4>
+<P>
+The other way that the creation button can operate is <I>two-point wiring</I>,
+in which two nodes are highlighted and one or more arcs are created to connect them.
+Highlighting of these two nodes is done by clicking the
+<I><A HREF="chap01-08.html#chap01-08">left</A></I> button over the first one,
+and then using the <I><A HREF="chap01-08.html#chap01-08">shift-left</A></I> button on the second.
+Note that if the second node is obscured by other objects, you can cycle through the objects under the cursor with the
+<I><A HREF="chap01-08.html#chap01-08">control-shift-left</A></I> button.
+Once the two nodes are highlighted,
+use the <I><A HREF="chap01-08.html#chap01-08">right</A></I> button to wire them together.
+Note that the highlighted ports on the selected nodes are important:
+arcs will run between them, so they must be compatible in their wiring capabilities.
+<P>
+Two-point wire creation first attempts to run a single arc.
+Generally, this can happen only if the ports are lined up accurately.
+Failing single arc placement,
+an attempt is made to connect with two arcs and an intermediate node.
+These two arcs can bend in one of two directions, determined by the location of the cursor.
+<P>
+<!-- NEED 3in -->
+<H4>Special Considerations</H4>
+<P>
+In addition to running an arc between two nodes,
+you can also use arcs as the starting or ending point of arc creation.
+<P>
+<CENTER><IMG SRC="fig02-05.png" ALT="Figure 2.5"></CENTER>
+<P>
+If it is sensible,
+the creation command actually uses one of the nodes on an end of the selected arc.
+However, if the connection falls inside the arc,
+it is split and a new node is created to make a "T" connection.
+<P>
+Electric will allow you to connect two nodes or arcs as long as there is some way in the current
+technology for those objects to be connected.  For example, if connecting between metal-1-pin and
+a metal-3-pin in the MOSIS CMOS technology, Electric will place metal-1-metal-2 and metal-2-metal-3
+contact cuts down, and wire between all four nodes.
+When vias are inserted, they are placed closest to the "destination" node (or farthest from the original node).
+<P>
+As mentioned in <A HREF="chap01-08.html#chap01-08">Section 1-8</A>, pressing
+the number keys for a valid layer switches to that layer.  If a node is highlighted, it will
+route to that layer from the node, creating contacts as necessary.
+
+<!-- TRAILER -->

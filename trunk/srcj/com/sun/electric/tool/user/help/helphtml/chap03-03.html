@@ -1,0 +1,71 @@
+<!-- HEADER 3-3: Creating Instances -->
+
+<!-- COMMAND Cell/Place Cell Instance... -->
+<!-- COMMAND Edit/Move/Cell Center to Center of Selection -->
+
+To place an instance of a cell in another cell,
+use the "Cell" button in the component menu.
+After choosing a cell from the popup list, click in the edit window to place the instance.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig03-17.png" ALT="Figure 3.17"></CENTER></TD><TD>
+Another way to place an instance of a cell is to use the <B>Place Cell Instance...</B> command (in menu <B>Cell</B>).
+You will be shown a list of cells that are available for creation.
+After selecting one, click to create an instance in the current cell.
+<P>
+The cell selection dialog has three controls at the top for viewing cells.
+The "Library" popup lets you choose which library to examine.
+You can choose "ALL" to see cells from all libraries.
+The "View" popup lets you see only those cells in the specified view.
+Again, you can choose "All" to see all views.
+The "Filter" field contains a regular expression that must match a cell name in order to list it.
+For an explanation of the "Evaluate Numbers when Sorting Names" checkbox,
+see <A HREF="chap03-07-01.html#chap03-07-01">Section 3-7-1</A>.
+</TD></TR></TABLE>
+<P>
+If you place an instance from a different library, that library will be linked to the current one.
+Linked libraries are read from disk together, and form a single hierarchy that spans multiple files.
+See <A HREF="chap03-09-01.html#chap03-09-01">Section 3-9-1</A> for
+more on libraries.
+<P>
+An alternate way to create a cell instance is to duplicate an existing one on the screen.
+This requires that an instance of that particular cell already exist.
+Select the existing cell and use the <B>Duplicate</B> command (in menu <B>Edit</B>).
+Then move the cursor to the intended location of the new instance and click to create the copy.
+Note that this command copies all attributes of the original node including its orientation.
+<P>
+<!-- NEED 4in -->
+<TABLE><TR><TD>
+<BR><BR><BR><BR><BR><BR>
+When a cell instance is being created,
+the cursor points to its <I>anchor point</I>.
+The anchor point is that point inside of the cell where the coordinate space has its origin.
+This is often defined by the location of a <I>cell-center</I> node inside of the cell
+(see <A HREF="chap07-06-03.html#chap7-06-03">Section 7-6-3</A>).
+<BR><BR><BR><BR><BR><BR>
+</TD><TD><CENTER><IMG SRC="fig03-08.png" ALT="Figure 3.8"></CENTER></TD></TR></TABLE>
+
+<P>
+Most cells have a cell-center node placed automatically in them.
+If there isn't one and you want it, click on the "Misc" button in the component menu on the left,
+and choose "Cell Center".
+A cell-center node, placed inside of the cell definition, affects the anchor point for all subsequent
+creation of instances of the cell.
+<P>
+The cell-center is always at the origin of the cell.
+If you move it, then the origin moves
+(in other words, moving the cell center is really like moving everything else in the cell).
+Note that the cell center is "hard to select" and can only be moved in "special select" mode
+(see <A HREF="chap02-01-05.html#chap2-01-05">Section 2-1-5</A>).
+You can move the cell center to the center of the selected objects by using the
+<B>Cell Center to Center of Selection</B> command (from menu <B>Edit / Move</B>).
+
+<P>
+<H4>Schematic Instances</H4>
+<P>
+When drawing schematics, you place instances of the icon cell, not the schematics cell.
+An icon cell can be automatically created with the <B>Make Icon View</B> command
+(in menu <B>View</B>, see <A HREF="chap03-11-04.html#chap03-11-04">Section 3-11-4</A>).
+The icon cell can then be edited to have any appearance
+(see <A HREF="chap07-06-01.html#chap07-06-01">Section 7-6-1</A>).
+
+<!-- TRAILER -->

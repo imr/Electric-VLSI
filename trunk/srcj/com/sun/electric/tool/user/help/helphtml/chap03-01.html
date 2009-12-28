@@ -1,0 +1,47 @@
+<!-- HEADER 3-1: Cells -->
+
+<!-- COMMAND Cell/Rename Cell... -->
+
+A collection of nodes and arcs is called a <I>cell</I>,
+and instances of cells can be placed in other cells.
+When a cell instance is placed, that instance is also a node,
+and is treated just like the simpler transistor and contact nodes.
+Thus, nodes come in two forms: <I>primitive</I> and <I>complex</I>.
+Primitive nodes are found in the component menu and are pre-defined by the technologies
+(transistors, contacts, pins).
+Complex nodes are actually instances of other cells, and are found in libraries.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig03-12.png" ALT="Figure 3.12"></CENTER></TD><TD>
+Besides organizing cells into a hierarchy,
+Electric also organizes cells into <I>cell groups</I>
+and gives each cell a <I>view</I> and a <I>version</I>.
+A cell's view describes its contents (for example "layout", "schematics", "netlist", etc.)
+A cell's version defines its design age.
+The full name of a cell is:
+<P>
+<CENTER>CELLNAME;VERSION{VIEW}</CENTER>
+<P>
+where CELLNAME is the name of the cell,
+VIEW is the abbreviated name of this cell's view,
+and VERSION is the version number of this view of the cell.
+When no version number is displayed,
+it implies that this cell is the most recent version (has the largest number).
+Thus, the cell "gate;2{lay}" is more recent than "gate;1{lay}" but less recent than "gate{lay}"
+(which must have a higher version number, probably 3).
+</TD></TR></TABLE>
+<P>
+<TABLE><TR><TD WIDTH="60%">
+In this example, there is a library with two cell groups.
+One group has a set of cells called "gate" and the other has a set of cells called "latch".
+On the right is the explorer view of these cells.
+See <A HREF="chap04-05-02.html#chap04-05-02">Section 4-5-2</A> for more on the cell explorer.
+<P>
+Although it is not necessary for cells in a group to all have the same name,
+the system presumes that common names will be grouped together.
+Once in a group, you can rename a cell to give it a different name than the others
+in its group.
+Use the <B>Rename Cell...</B> command (in menu <B>Cell</B>).
+You can also use context menus in the cell explorer to rearrange groups.
+</TD><TD WIDTH="40%"><CENTER><IMG SRC="fig03-04.png" ALT="Figure 3.4"></CENTER></TD></TR></TABLE>
+
+<!-- TRAILER -->

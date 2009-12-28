@@ -1,0 +1,91 @@
+<!-- HEADER 7-1-1: Technologies -->
+
+<!-- COMMAND Help/Load Sample Cells Library -->
+
+A <I>technology</I> is an environment in which design is done.
+Technologies can be layout specific, for example MOSIS CMOS,
+or they can be abstract, for example Schematics and Artwork.
+There are multiple CMOS variations to handle popular design rules such as MOSIS, submicron,
+etc.
+<P>
+Each technology consists of a set of <I>primitive nodes</I> and <I>arcs</I>.
+These, in turn, are constructed from one or more <I>layers</I>.
+Each technology also includes information necessary to do design,
+such as design rules, connectivity rules, simulation information, etc.
+<P>
+The primitive nodes in a technology come in three styles:
+<UL>
+<LI>PINS are used to join arcs, so there is one pin for every arc in the technology.
+</LI>
+<LI>COMPONENTS are the basic nodes used in design: contacts, transistors, etc.
+</LI>
+<LI>PURE-LAYER NODES are used for geometric manipulation
+(see <A HREF="chap06-10-01.html#chap06-10-01">Section 6-10-1</A>).
+There is one pure-layer node for every layer in the technology.
+</LI>
+</UL>
+<P>
+The component menu in the side bar (on the left side of the editing window)
+shows arcs on the left (the menu entries with red border),
+pin nodes in the center column (these appear as boxes with a cross inside),
+and components on the right (the more complex layer combinations).
+See <A HREF="chap04-05-01.html#chap04-05-01">Section 4-5-1</A> for more on the component menu.
+<P>
+These are the technologies that come with Electric.
+Some of these technologies are illustrated with sample cells in the built-in "sample" library.
+To access this library, use the <B>Load Sample Cells Library</B> command (in menu <B>Help</B>).
+<UL>
+<LI><B>artwork</B> is used for drawing graphics, for example when designing icons.
+See <A HREF="chap07-06-01.html#chap07-06-01">Section 7-6-1</A> for more.
+The cell <CODE>tech-Artwork</CODE> in the sample library illustrates this technology.</LI>
+<LI><B>bicmos</B> a hybrid bipolar/CMOS technology, as specified by MOSIS using older N-Well SCE rules.</LI>
+<LI><B>bipolar</B> a bipolar technology (self-aligned, single-poly).
+The cell <CODE>tech-Bipolar{lay}</CODE> in the sample library illustrates this technology.</LI>
+<LI><B>cmos</B> a generic CMOS technology described in a old paper
+(Griswold, Thomas W., "Portable Design Rules for Bulk CMOS," VLSI Design, III:5, 62-67, September/October 1982).
+It was never aligned with an actual process and exists only for illustration.</LI>
+<LI><B>efido</B> a high-level digital-filter architecture technology.
+The cell <CODE>tech-DigitalFilter</CODE> in the sample library illustrates this technology.</LI>
+<LI><B>fpga</B> a customizable technology that can describe field-programmable gate array architectures.
+The basic technology does not have any FPGA capabilities: it must be customized with a special
+architecture file (see <A HREF="chap07-06-02.html#chap07-06-02">Section 7-6-2</A> for more).</LI>
+<LI><B>gem</B> a temporal-logic technology that illustrates Electric's capability to do graph editing
+in nonelectrical environments.
+Based on the paper: Lansky, A. L. and Owicki, S. S., "GEM: A Tool for Concurrency Specification and Verification,"
+Proceedings 2nd Annual ACM Symposium on Principles of Distributed Computing, 198-212, August 1983.
+The cell <CODE>tech-Gem</CODE> in the sample library illustrates this technology.</LI>
+<LI><B>generic</B> a technology used for special features such as inter-technology connections,
+routing specifications, cell definitions, etc.
+This technology is never used for actual design, but its nodes and arcs appear in many places.
+See <A HREF="chap07-06-03.html#chap07-06-03">Section 7-6-3</A> for more.</LI>
+<LI><B>mocmos</B> a CMOS technology that conforms to MOSIS design rules.
+This is the most used CMOS technology in Electric, because it is kept current with MOSIS rules.
+See <A HREF="chap07-04-02.html#chap07-04-02">Section 7-4-2</A> for more.
+The cell <CODE>tech-MOSISCMOS{lay}</CODE> in the sample library illustrates this technology.</LI>
+<LI><B>mocmosold</B> an older version of the "mocmos" technology, kept for compatibility with older designs.
+The technology should not be used for any new designs.</LI>
+<LI><B>mocmossub</B> an older version of the "mocmos" technology that focuses on submicron facilities.
+The technology should not be used for any new designs because the "mocmos" technology incorporates
+these submicron features.</LI>
+<LI><B>nmos</B> an old nMOS technology, based on the book:
+Mead, C. and Conway, L., <I>Introduction to VLSI Systems</I>, Addison-Wesley, Reading, Massachusetts, 1980. 
+The cell <CODE>tech-nMOS{lay}</CODE> in the sample library illustrates this technology.</LI>
+<LI><B>pcb</B> a printed-circuit board technology with 8 layers.
+The cell <CODE>tech-PCB{sch}</CODE> in the sample library illustrates this technology.</LI>
+<LI><B>rcmos</B> a round CMOS technology, based on work at CalTech.
+The cell <CODE>tech-RoundCMOS{lay}</CODE> in the sample library illustrates this technology.</LI>
+<LI><B>schematic</B> a schematic capture facility.
+See <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A> for more.
+The cells <CODE>tech-SchematicsDigital{sch}</CODE> and <CODE>tech-SchematicsAnalog{sch}</CODE>
+in the sample library illustrates the digital and analog capabilities of this technology.</LI>
+<LI><B>tft</B> an organic thin-film technology.
+Thin film transistors are p-type depletion devices formed with an aluminum gate, gold source/drain electrodes,
+and a pentacene active area.
+Two layers of metal are available for routing signals, Metal-1 (the aluminum gate metal)
+and Metal-2 (the source/drain metal).
+A capacitor is also available in the process and is formed between the gate electrode and a source/drain electrode.
+The cell <CODE>tech-TFTInverter{lay}</CODE> in the sample library illustrates this technology.
+</LI>
+</UL>
+
+<!-- TRAILER -->

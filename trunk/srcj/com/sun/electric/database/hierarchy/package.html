@@ -1,0 +1,28 @@
+<BODY>
+Package for hierarchy (cell instances inside of cells).
+Hierarchy is implemented by treating cells as node prototypes.
+Thus, in addition to primitive node prototypes (defined in the technologies)
+there are complex node prototypes, which are defined in the libraries.
+When placing an instance of a node, it doesn’t matter whether that instance’s prototype is primitive or complex.
+All that matters is that there is a node instance.
+This example shows how the “TwoGate” cell contains a primitive node (a transistor) and two complex nodes (“Gate” cell instances):
+<P>
+<CENTER><IMG SRC="doc-files/Hierarchy-1.gif"></CENTER>
+<P>
+Ports on cell instances are defined in terms of ports on subnodes inside of the cell.
+A port on the subnode becomes an export on the cell.
+For example, if the cell “MyCircuit” has a transistor in it, then the gate port of that transistor
+can be made into an export on the cell, which then creates ports on instances of the “MyCircuit” cell.
+The port on instances of this cell will actually be the same as the gate port of the
+transistor inside the cell.
+Exports can be repeatedly exported up the hierarchy.
+<P>
+All together, you have a complex internal representation.
+The figure here shows four node prototypes: two primitives (Transistor and Contact in the CMOS technology)
+and two cells (Gate and TwoGate in the MyCells library).
+All but the TwoGate have port prototypes.
+Note that the port prototype on the Gate cell points (with a double-headed arrow)
+to the port instance inside of the Gate cell which is the source of the export.
+<P>
+<CENTER><IMG SRC="doc-files/Hierarchy-2.gif"></CENTER>
+</BODY>

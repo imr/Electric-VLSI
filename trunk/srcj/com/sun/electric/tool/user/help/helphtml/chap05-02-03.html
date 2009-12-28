@@ -1,0 +1,31 @@
+<!-- HEADER 5-2-3: Constraint Propagation -->
+
+The last of Electric's constraints is the only one that is not actually programmable by the user.
+<P>
+<TABLE><TR><TD VALIGN=TOP>
+This is the constraint that all arcs must stay in their ports, even across hierarchical levels of design.
+When a node in a cell moves, and has an export on it, all the ports on instances of that cell also change.
+The constraint system therefore adjusts all arcs connected to those instances,
+and follows their constraints.
+If those constraints change nodes with exports in the higher-level cell,
+then the changes propagate up another level of hierarchy.
+</TD><TD><CENTER><IMG SRC="fig05-06.png" ALT="Figure 5.6"></CENTER></TD></TR></TABLE>
+<P>
+This bottom-up propagation of changes guarantees a correctly connected hierarchy,
+and allows top-down design.
+Users can create skeleton cells that are mostly empty and contain only exports on unconnected nodes.
+They can then do high-level design with these skeleton cell instances.
+Later, when circuitry is placed in the cells, or when layout views are substituted for the skeletons,
+the constraint system will maintain proper connectivity in all higher levels of hierarchy.
+<P>
+The hierarchical-propagation aspect of the constraint system leaves open the possibility of an overconstrained situation.
+For example, if two different cell instances are connected to each other with two rigid wires,
+and one connection point moves, then it is not possible to keep both wires rigid.
+Electric jogs an arc, converting it into three arcs that zigzag, to retain the connection.
+Although connectivity is retained, the geometry may be in the wrong place,
+causing unexpected changes to the circuit.
+Users are encouraged to examine the hierarchy to make sure that arbitrary hierarchical changes
+do not cause undetected damage to the layout.
+Electric will warn you of any changes which affect undisplayed cells farther up the hierarchy.
+
+<!-- TRAILER -->

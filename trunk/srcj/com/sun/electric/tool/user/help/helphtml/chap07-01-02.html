@@ -1,0 +1,62 @@
+<!-- HEADER 7-1-2: Controlling Technologies -->
+
+<!-- COMMAND Edit/Technology Specific/Describe this Technology -->
+<!-- COMMAND Edit/Technology Specific/Document Current Technology -->
+
+<!-- PREFERENCE Technology/Technology -->
+
+
+Electric has the concept of a <I>current technology</I> which is shown in the
+status bar.
+This technology affects many things, including the selection of nodes and arcs in the component menu.
+There are a number of ways to affect the current technology, both manual and automatic.
+<P>
+You can change the current technology by selecting it from the popup at the top of the
+side bar (either the "Components" or "Layers" tab).
+Electric automatically switches the current technology to match the cell being edited.
+If there are multiple cells being edited from different technologies, this switching can become annoying.
+To disable automatic technology switching,
+use the Nodes Preferences (in menu <B>File / Preferences...</B>, "General" section, "Nodes" tab),
+and uncheck "Switch technology to match current cell".
+<P>
+To see a list of primitive nodes and arcs in the current technology,
+use the <B>Describe this Technology</B> command (in menu <B>Edit / Technology Specific</B>).
+To see a detailed description of the current technology,
+use the <B>Document Current Technology</B> command.
+<P>
+<!-- NEED 3in -->
+Some technologies have preferences that further customize them.
+The Technology Preferences command (in menu <B>File / Preferences...</B>, "Technology" section, "Technology" tab)
+lets you control many User and Project preferences.
+The Project Preferences are on the left, and the bottom part of the Project Preferences
+is specific to the MOSIS CMOS technology.
+More information about this can be found in
+<A HREF="chap07-04-02.html#chap07-04-02">Section 7-4-2</A>.
+<P>
+<CENTER><IMG SRC="fig07-29.png" ALT="Figure 7.29"></CENTER>
+<P>
+The Defaults section at the top of the Project Preferences section has these controls:
+<UL>
+<LI>"Startup technology" controls the technology that is used when Electric first begins.
+It is also used when reading old libraries that are missing some technology information.
+</LI>
+<LI>"Layout technology to use for Schematics" sets the technology to use for real geometry
+(an integrated circuit technology, not a schematics or artwork technology).
+The default layout technology is used to give further information about schematics components
+(see, for example, <A HREF="chap09-04-03.html#chap09-04-03">Section 9-4-3</A>).
+</LI>
+<LI>"PWell process in Layout Technology" declares that the layout technologies are PWell,
+and therefore the PWell spacing and minimum width rules should be ignored by the design-rule checker.
+Since Electric displays both wells, users might be concerned with filling in notches in the PWell,
+but in these processes it is not necessary.
+</LI>
+</UL>
+<P>
+The User Preferences section is discussed elsewhere
+For information about rotating transistors in the menus, see <A HREF="chap07-04-02.html#chap07-04-02">Section 7-4-2</A>.
+For information about Schematic primitive names, see <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A>
+and <A HREF="chap03-11-02.html#chap03-11-02">Section 3-11-2</A>.
+</TD></TR></TABLE>
+<P>
+
+<!-- TRAILER -->

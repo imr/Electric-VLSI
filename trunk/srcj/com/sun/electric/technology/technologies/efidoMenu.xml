@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: efidoMenu.xml
+ * efido technology menu description
+ * Generated automatically from a library
+ *
+ * Copyright (c) 2009 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+-->
+
+    <menuPalette numColumns="2">
+
+        <menuBox>
+            <menuArc>wire</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNode>multiplier</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuArc>bus</menuArc>
+        </menuBox>
+        <menuBox>
+            <menuNode>timedelay</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuText>Cell</menuText>
+        </menuBox>
+        <menuBox>
+            <menuNode>multiplexer</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuText>Misc.</menuText>
+        </menuBox>
+        <menuBox>
+            <menuNode>subtractor</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuText>Pure</menuText>
+        </menuBox>
+        <menuBox>
+            <menuNode>divider</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuNodeInst protoName="wire_pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNode>padin</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuNodeInst protoName="bus_pin" function="PIN"/>
+        </menuBox>
+        <menuBox>
+            <menuNode>padout</menuNode>
+        </menuBox>
+
+        <menuBox>
+            <menuNode>adder</menuNode>
+        </menuBox>
+        <menuBox/>
+
+    </menuPalette>

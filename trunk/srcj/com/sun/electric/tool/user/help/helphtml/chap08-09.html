@@ -1,0 +1,113 @@
+<!-- HEADER 8-9: Examples of Use -->
+
+To fully understand technology editing,
+some examples are appropriate.
+Two examples will be given: a simple one that modifies the appearance of a pattern,
+and a more complex example in which a new primitive node is created.
+Both examples are based on the MOSIS CMOS technology,
+so they presume that the <B>Convert Technology to Library for Editing...</B> command
+(in menu <B>Edit / Technology Editing</B>) has been issued and the "mocmos" entry was selected.
+<P>
+<H4>Example: Modifying a Layer's Appearance</H4>
+<P>
+In this first example,
+the user simply wishes to change the Metal-2 layer from a solid fill to a stipple pattern.
+<P>
+This particular task is so basic that it can be done with the Layers Preferences,
+but it illustrates the basic steps of making a change.
+First, edit the layer cell for "metal-2".
+The display will show the layer with all of its associated information.
+<P>
+<CENTER><IMG SRC="fig08-16.png" ALT="Figure 8.16"></CENTER>
+<P>
+Because every layer has a default stipple pattern used for printing,
+all that is necessary is to change the "Style" field from solid to patterned.
+To do this, double-click on the "Style" text and select "Patterned/Outline=None".
+The technology is now modified and can be converted back with the <B>Convert Library to Technology...</B> command.
+<P>
+<!-- NEED 3in -->
+<H4>Example: Creating a New Node</H4>
+<P>
+The second example is more extensive: creation of a new primitive node.
+In this case, the new node is a contact between metal-2 and polysilicon.
+<TABLE><TR><TD>
+To create the node,
+use the context menu on the "TECHNOLOGY NODES" tab of the explorer window,
+select "Create New Node", and name the node appropriately.
+</TD><TD><CENTER><IMG SRC="fig08-17.png" ALT="Figure 8.17"></CENTER></TD></TR></TABLE>
+<P>
+At this point, the display will show only the textual information about the node
+(because the graphical information is yet to be supplied).
+The textual information consists of five factors that now fill the screen.
+<P>
+<TABLE><TR>
+<TD><CENTER><IMG SRC="fig08-18.png" ALT="Figure 8.18"></CENTER></TD><TD>
+You should begin by changing the "Function" factor to "contact"
+(double-click it and select the appropriate function).
+Then pan back so there is room to describe the node graphically.
+The other factors are properly set for a contact.
+</TD></TR></TABLE>
+<P>
+<TABLE><TR><TD>
+To place a piece of geometry (for example, some polysilicon),
+click over the Filled Box entry in the component menu
+(third from the top) and then click in the edit window.
+This geometry now has shape, but no layer associated with it.
+To assign a layer, double-click on the geometry.
+Then choose "polysilicon-1".
+The black box will change appearance to that of a polysilicon layer.
+You can move and stretch this box appropriately.
+</TD><TD><CENTER><IMG SRC="fig08-19.png" ALT="Figure 8.19"></CENTER></TD></TR></TABLE>
+<P>
+In this example, assume that a contact between polysilicon and metal-2 has three layers:
+polysilicon-1, metal-2, and contact cut.
+Therefore, the above operation must be done two more times to place the metal-2 and contact cut layers.
+<P>
+Besides this pure geometry, there must be two other items in the node:
+a highlight layer and a port.
+The highlight layer is obtained by selecting the "HIGH" entry from the component menu.
+It is then placed and stretched so that it encloses the contact
+(highlight layers define the size of the node,
+and this means that they will typically surround the geometry).
+<P>
+<!-- NEED 3in -->
+<TABLE><TR><TD><CENTER><IMG SRC="fig08-20.png" ALT="Figure 8.20"></CENTER></TD><TD>
+The other item that must be created is a port
+(more than one can be created, but for contacts, one is sufficient).
+Select the "PORT" entry from the menu on the left and place it in the display.
+You will be prompted for a port name, after which you can further move or stretch the port.
+Besides a location and a name, ports must specify which arcs may connect to them.
+To do this, double-click on the port.
+<P>
+The resulting menu lists all of the arcs and indicates possible connectivity.
+Note that the last two entries define the permissible range of angles to which arcs may connect.
+For a contact such as this, arcs may connect at any angle,
+so the default values are correct.
+</TD></TR></TABLE>
+<P>
+<TABLE><TR><TD>
+When all of the geometry, highlighting, and ports have been placed,
+you can double-check your work with the <B>Identify Primitive Layers</B> command
+(in menu <B>Edit / Technology Editing</B>),
+which will display this information
+(note that the port name "Center" has been moved away for clarity):
+</TD><TD><CENTER><IMG SRC="fig08-21.png" ALT="Figure 8.21"></CENTER></TD></TR></TABLE>
+<P>
+The final step in the definition of this node is to create three more copies that illustrate scaling in both axes.
+This is done simply by selecting all five objects and using the <B>Duplicate</B>
+command (in menu <B>Edit</B>).
+Once duplicated in a new location, each piece must be stretched appropriately.
+In this example, the contact cut is designed so that the number of cut elements grows with the node.
+Thus, when stretched horizontally or vertically, there are two cuts,
+and when stretched in both directions there are four cuts.
+The technology editor will determine precise multicut rules from the cut spacing and the amount of stretch,
+so that even more cuts will appear as the node grows larger.
+The finished node definition is shown below.
+All that is necessary is to convert this library back to a technology, and the new technology will have this node.
+<P>
+<CENTER><IMG SRC="fig08-22.png" ALT="Figure 8.22"></CENTER>
+<P>
+Of course, the newly created technology is valid only during the current session.
+Therefore, to preserve this technology, write XML and add it to the Added Technologies Preferences.
+
+<!-- TRAILER -->

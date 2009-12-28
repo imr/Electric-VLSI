@@ -1,0 +1,51 @@
+<body>
+
+<p>
+A B+Tree with many features.
+</p>
+
+<p>
+<font color=red>
+At the moment, the on-disk format is NOT stable.  It will almost
+certainly change in the future.  Please do not use the BTree to store
+data across invocations of the JVM.
+</font>
+</p>
+
+<p>
+<font color=red>
+At the moment, the BTree does not support deleting or replacing values.
+</font>
+</p>
+
+<p>
+There are three kinds of classes in this package:
+</p>
+
+<ul>
+  <li> The {@see
+       com.sun.electric.database.geometry.btree.BTree}<K,V,S> class
+       itself, which provides the B+Tree data structure parameterized
+       over a key type (K), value type (V), and optional summary (see
+       below) type (S).
+
+  <li> Subclasses of {@see
+       com.sun.electric.database.geometry.btree.NodeCursor}, which are
+       package-private.  These act like smart "pointers" to individual
+       pages within the BTree and help to simplify BTree.java.
+
+  <li> The {@see com.sun.electric.database.geometry.btree.PageStorage}
+       class and subclasses.  A PageStorage is sort of like
+       a <tt>HashMap&lt;Integer,byte[]&gt;</tt> with a few extra
+       features and restrictions.  A CachingPageStorage is like a
+       PageStorage that lets you write directly to the byte[]'s that
+       are resident in memory.
+</ul>
+
+<p>
+The subpackage <i>unboxed</i> provides "unboxed"
+versions of many data structures; please take a brief look at it
+first.
+<p>
+
+</body>

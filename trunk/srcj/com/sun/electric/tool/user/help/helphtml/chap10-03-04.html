@@ -1,0 +1,54 @@
+<!-- HEADER 10-3-4: Exports -->
+
+Inside of a cell definition, exports are declared with the "E" line.
+All exports are sorted by their name.
+The syntax is:
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="90%">
+<TR><TD COLSPAN=2><B>E&lt;portID&gt; | &lt;name&gt; | &lt;TD&gt; | &lt;originalNode&gt; | &lt;originalPort&gt; |
+&lt;flags&gt; [ | &lt;variable&gt; ]*</B></TD></TR>
+<TR><TD WIDTH="20%">&lt;portID&gt;</TD><TD WIDTH="80%">the export ID of the export.</TD></TR>
+<TR><TD>&lt;name&gt;</TD><TD>the name of the export.  If empty, the &lt;portID&gt; field is used.</TD></TR>
+<TR><TD>&lt;TD&gt;</TD><TD>the text descriptor for writing the port (described later).</TD></TR>
+<TR><TD>&lt;originalNode&gt;</TD><TD>the name of the node instance in this cell that the export resides on.</TD></TR>
+<TR><TD>&lt;originalPortID&gt;</TD><TD>the ID of the port on the exported node instance (may be blank if there are no choices).</TD></TR>
+<TR><TD>&lt;flags&gt;</TD><TD>flags for the export (see below).</TD></TR>
+<TR><TD>&lt;variable&gt;</TD><TD>a list of variables on the export
+(see <A HREF="chap10-04-01.html#chap10-04-01">Section 10-4-1</A>).</TD></TR>
+</TABLE>
+</CENTER>
+<P>
+The &lt;flags&gt; field has the format:
+<P>
+&lt;characteristics&gt; [ /A ] [ /B ]
+<P>
+&lt;characteristics&gt; the nature of the export.  Choose from the following:
+<P>
+"U" unknown.<BR>
+"I" input.<BR>
+"O" output.<BR>
+"B" bi-directional.<BR>
+"P" power.<BR>
+"G" ground. <BR>
+"C" clock.<BR>
+"C1" clock phase 1.<BR>
+"C2" clock phase 2.<BR>
+"C3" clock phase 3.<BR>
+"C4" clock phase 4.<BR>
+"C5" clock phase 5.<BR>
+"C6" clock phase 6.<BR>
+"RO" reference output.<BR>
+"RI" reference input.<BR>
+"RB" reference base.<BR>
+/A indicates that the export is always drawn<BR>
+/B indicates that the export is body-only (no equivalent on the icon)
+<P>
+Example:
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Es[18]||conn@14|a|D5G2;|I/B</CODE>
+<P>
+Exports port "a" of node instance "conn@14" and calls it "s[18]".
+The text of the export is attached at the center of the port ("D5") and is 2 units high ("G2;").
+It is of type input, and only appears in the contents (not the icon).
+
+<!-- TRAILER -->

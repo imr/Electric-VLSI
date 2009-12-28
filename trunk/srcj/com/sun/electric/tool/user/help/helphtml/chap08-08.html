@@ -1,0 +1,102 @@
+<!-- HEADER 8-8: How Technology Changes Affect Existing Libraries -->
+
+Once a technology is created, the components are available for design.
+Soon there will be many libraries of circuitry that makes use of this new technology.
+What happens to these libraries when the technology description changes?
+In most cases, the change correctly affects the existing libraries.
+However, some changes are more difficult and might invalidate the existing libraries.
+This section discusses the possible changes and shows workarounds for the difficult situations.
+<P>
+Technology information appears in four different places:
+the layers, the arcs, the nodes, and miscellaneous information on the technology
+(the support cell and color tables).
+Information in these areas can be added, deleted, or modified.
+The rest of this section outlines all of these situations.
+<P>
+<H4>Adding layers, arcs, nodes, and miscellaneous information</H4>
+<P>
+Adding information has no effect on the existing circuitry.
+All subsequent circuit design may make use of the new technology elements.
+<P>
+<H4>Deleting layers, nodes, arcs, and miscellaneous information</H4>
+<P>
+All references to a deleted layer, in any nodes or arcs of the technology,
+will become meaningless.
+This does not invalidate libraries that use the layers,
+but it does invalidate the node and arc descriptions in the technology.
+The geometry in these nodes and arcs will have to be moved to another layer.
+<P>
+Deleting nodes or arcs will cause error
+messages when libraries are read that make use of the deleted objects.
+When the library is read,
+you can substitute another node or arc to use in place of the now-unknown component.
+<P>
+Deleting miscellaneous information depends entirely on where that information is removed.
+For example, an analysis tool may fail to find the information that it requires.
+<P>
+<H4>Modifying layers, nodes, arcs, and miscellaneous information</H4>
+<P>
+Modifying layers is a totally transparent operation.
+Any change to the color, style, or stipple information (including changes to the color map)
+will appear in all libraries that use the technology.
+Changes to I/O equivalences or Spice parasitics will be available to all existing libraries.
+A change of the layer function may affect the technology editor's ability to decode the nodes and arcs that use this layer
+(for example,
+if you change the function of the "polysilicon" or "diffusion" layers that form a transistor,
+the editor will be unable to identify this transistor).
+Renaming a layer has no effect.
+<P>
+Modifying arcs and nodes is not as simple as layer modification because the arcs and nodes appear in the circuit libraries,
+whereas the layers do not.
+If you rename a node or arc,
+it will cause errors when libraries are read that make use of nodes with the old name.
+Therefore, you must create a new node or arc first, convert all existing ones to the new type,
+and then delete the old node or arc.
+<P>
+Many of the pieces of special information on the top of the node and arc cells apply to newly created circuitry only,
+and do NOT affect existing components already in libraries.
+The arc factors "Fixed-angle", "Wipes pins", "Extend arcs",
+and "Angle increment" have no effect on existing libraries.
+The node factor "Square node" also has no effect on existing circuitry and gets applied only in subsequent designs.
+<P>
+Other factors do affect existing circuitry.
+Changes to the "Function" field, in both arcs and nodes,
+pass to all existing components, thus affecting how analysis tools treat the old circuits.
+If the "Serpentine Transistor" field in nodes is turned off,
+any existing transistors that have serpentine descriptions will turn into large rectangular nodes with incorrect connections (i.e. get trashed).
+Unfortunately, it may become impossible to keep the "Serpentine Transistor"
+field on if the geometry does not conform to standards set by the technology editor for recognizing the parts.
+If a node is not serpentine, turning the factor on has no effect.
+Finally, the node factors "Invisible with 1 or 2 arcs" and "Lockable" correctly affect all existing circuitry.
+<P>
+A more common modification of arcs and nodes is to change their graphical descriptions.
+A simple rule applies to all such changes: the size of existing nodes and arcs is the amount that their
+highlighted area is larger than the default highlighted area.
+Thus, an arc or node that is at its default size will be saved with a zero size increase.
+If you change the default size, it will make all default-sized nodes and arcs change as well.
+If the node is larger than the default size, it will grow accordingly.
+<P>
+<TABLE><TR><TD>
+For example, assume that an arc has a default width of 2, and there are two of these arcs,
+one that is 2 wide (an increase of 0 beyond the default)
+and one that is 3 wide (an increase of 1 beyond the default).
+</TD><TD><CENTER><IMG SRC="fig08-15.png" ALT="Figure 8.15"></CENTER></TD></TR></TABLE>
+If you redefine the technology such that these arcs are now 4 wide by default,
+then the old 2-wide arc becomes 4 wide and the old 3-wide arc becomes 5 wide.
+<P>
+Because of these changes,
+it may be preferable to keep the old technology and give the new technology a different name.
+Then the old libraries can be read into the old technology,
+and the <B>Make Alternate Layout View...</B> command (in menu <B>View</B>)
+can be used to translate into the new technology.
+This command uses node and arc functionality to associate components,
+scaling them appropriately relative to their default sizes.
+The change is completed by deleting the old technology,
+renaming the new technology to the old name, and then saving the library.
+<P>
+Finally, modifying miscellaneous information is typically transparent:
+changed information appears in all existing libraries,
+and affects those subsystems that make use of the information.
+For example, a change to the Spice resistance will be seen when a Spice deck is next generated.
+
+<!-- TRAILER -->

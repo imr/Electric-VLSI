@@ -1,0 +1,234 @@
+<!-- HEADER 6-11: Interpretive Languages -->
+
+<!-- COMMAND Tools/Languages/Run Java Bean Shell Script... -->
+<!-- COMMAND Tools/Languages/Run Jython Script... -->
+<!-- COMMAND Tools/Languages/Manage Scripts... -->
+
+Electric has two scripting languages: Java (using the Bean Shell) and Python (using Jython).
+These languages enable you to load custom code that adds functionality to Electric.
+Neither of these languages is part of the default Electric distribution.
+You must add them as "plug ins"
+(see <A HREF="chap01-05.html#chap01-05">Section 1-5</A> for more on plug-ins).
+<P>
+To run a Java script, use the <B>Run Java Bean Shell Script...</B> command
+(in menu <B>Tools / Languages</B>).
+To run a Python script, use the <B>Run Jython Script...</B> command.
+<P>
+<TABLE><TR><TD>
+You can attach a script to the <B>Tools / Languages</B> menu by using the
+<B>Manage Scripts...</B> command.
+Scripts can have mnemonic letters assigned to them
+(see <A HREF="chap01-09.html#chap01-09">Section 1-9</A> for more on mnemonics).
+</TD><TD><CENTER><IMG SRC="fig06-30.png" ALT="Figure 6.30"></CENTER></TD></TR></TABLE>
+<P>
+<H4>Java Script Examples</H4>
+<P>
+Here are some example scripts in the Java Bean Shell.
+For more information about accessing the internals of Electric, read the Javadoc
+in the source code.
+<P>
+<TABLE WIDTH="100%"><TR>
+<TD WIDTH="75%"><TABLE WIDTH="100%" BORDER=1><TR><TD>
+<CODE><FONT SIZE="-1">
+import com.sun.electric.database.hierarchy.Cell;<BR>
+import com.sun.electric.database.topology.NodeInst;<BR>
+import com.sun.electric.tool.Job;<BR>
+import java.util.Iterator;<BR>
+<BR>
+// get the current cell<BR>
+Cell lay = Job.getUserInterface().getCurrentCell();<BR>
+<BR>
+// find all transistors<BR>
+for(Iterator it = c.getNodes(); it.hasNext(); ) {<BR>
+&nbsp;&nbsp;&nbsp;NodeInst ni = it.next();<BR>
+&nbsp;&nbsp;&nbsp;if (ni.getFunction().isTransistor())<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println("Found transistor: " +<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ni.describe(false));<BR>
+}<BR>
+<BR>
+// find all exports that start with "A"<BR>
+for(Iterator it = lay.getPorts(); it.hasNext(); ) {<BR>
+&nbsp;&nbsp;&nbsp;com.sun.electric.database.hierarchy.Export e =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(com.sun.electric.database.hierarchy.Export)it.next();<BR>
+&nbsp;&nbsp;&nbsp;if (e.getName().toLowerCase().startsWith("a"))<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println("Found export: " + e.getName());<BR>
+}
+</FONT></CODE>
+</TD></TR></TABLE></TD>
+<TD WIDTH="25%" VALIGN=TOP>
+This example searches the current cell, printing all transistors and all exports that start with the letter "a".
+<P>
+Notice that Electric's "Export" object must be a fully-qualified name, because the
+name "Export" is used for other reasons in the Bean Shell.
+This also applies to Electric's "EPoint" class.
+</TD></TR></TABLE>
+<P>
+
+<!-- NEED 2in -->
+<TABLE WIDTH="100%"><TR>
+<TD WIDTH="80%"><TABLE WIDTH="100%" BORDER=1><TR><TD>
+<CODE><FONT SIZE="-1">
+import com.sun.electric.database.hierarchy.Cell;<BR>
+import com.sun.electric.database.topology.NodeInst;<BR>
+import com.sun.electric.database.variable.EvalJavaBsh;<BR>
+import com.sun.electric.technology.PrimitiveNode;<BR>
+import com.sun.electric.technology.Technology;<BR>
+import java.awt.geom.Point2D;<BR>
+<BR>
+Cell newCell = Cell.makeInstance(Library.getCurrent(), "samp1{lay}");<BR>
+Technology tech = Technology.findTechnology("mocmos");<BR>
+PrimitiveNode trP = tech.findNodeProto("P-Transistor");<BR>
+NodeInst tP = NodeInst.makeInstance(trP, new Point2D.Double(10, 10),<BR>
+&nbsp;&nbsp;&nbsp;trP.getDefWidth(), trP.getDefHeight(), newCell);<BR>
+EvalJavaBsh.displayCell(newCell);
+</FONT></CODE>
+</TD></TR></TABLE></TD>
+<TD WIDTH="20%" VALIGN=TOP>
+This example creates a new cell, places a transistor in it, and displays the cell.
+</TD></TR></TABLE>
+<P>
+
+<TABLE WIDTH="100%"><TR>
+<TD WIDTH="80%"><TABLE WIDTH="100%" BORDER=1><TR><TD>
+<CODE><FONT SIZE="-1">
+import com.sun.electric.database.hierarchy.Cell;<BR>
+import com.sun.electric.database.geometry.Orientation;<BR>
+import com.sun.electric.database.topology.ArcInst;<BR>
+import com.sun.electric.database.topology.NodeInst;<BR>
+import com.sun.electric.technology.ArcProto;<BR>
+import com.sun.electric.technology.PrimitiveNode;<BR>
+import com.sun.electric.technology.Technology;<BR>
+import java.awt.geom.Point2D;<BR>
+<BR>
+// create the new cell<BR>
+Cell newCell = Cell.makeInstance(Library.getCurrent(), "samp2{lay}");<BR>
+<BR>
+Technology tech = Technology.findTechnology("mocmos");<BR>
+<BR>
+// place a rotated transistor<BR>
+PrimitiveNode trP = tech.findNodeProto("P-Transistor");<BR>
+NodeInst tP = NodeInst.makeInstance(trP, new Point2D.Double(0, 20),<BR>
+&nbsp;&nbsp;&nbsp;trP.getDefWidth(), trP.getDefHeight(), newCell,<BR>
+&nbsp;&nbsp;&nbsp;Orientation.R, "T1");<BR>
+<BR>
+// place a metal-Active contact<BR>
+PrimitiveNode coP = tech.findNodeProto("Metal-1-P-Active-Con");<BR>
+NodeInst maP = NodeInst.makeInstance(coP, new Point2D.Double(8, 20),<BR>
+&nbsp;&nbsp;&nbsp;coP.getDefWidth(), coP.getDefHeight(), newCell);<BR>
+<BR>
+// wire the transistor to the contact<BR>
+ArcProto aP = tech.findArcProto("P-Active");<BR>
+ArcInst.makeInstance(aP, tP.findPortInst("diff-bottom"),<BR>
+&nbsp;&nbsp;&nbsp;maP.findPortInst("metal-1-p-act"));<BR>
+<BR>
+// export the contact<BR>
+com.sun.electric.database.hierarchy.Export.newInstance(newCell,<BR>
+&nbsp;&nbsp;&nbsp;maP.findPortInst("metal-1-p-act"), "IN", PortCharacteristic.IN);
+</FONT></CODE>
+</TD></TR></TABLE></TD>
+<TD WIDTH="20%" VALIGN=TOP>
+This example goes a bit further: it creates a rotated transistor and a contact, wires them together,
+and exports the contact.
+The transistor is named "T1."
+</TD></TR></TABLE>
+
+<P>
+<!-- NEED 4in -->
+<H4>Python Script Examples</H4>
+
+<TABLE WIDTH="100%"><TR>
+<TD WIDTH="80%"><TABLE WIDTH="100%" BORDER=1><TR><TD>
+<CODE><FONT SIZE="-1">
+from com.sun.electric.database.hierarchy import Cell<BR>
+from com.sun.electric.database.topology import NodeInst<BR>
+from com.sun.electric.tool import Job<BR>
+from java.util import Iterator<BR>
+<BR>
+# get the current cell<BR>
+c = Job.getUserInterface().getCurrentCell()<BR>
+<BR>
+# find all transistors<BR>
+it = c.getNodes()<BR>
+while it.hasNext():<BR>
+&nbsp;&nbsp;&nbsp;ni = it.next()<BR>
+&nbsp;&nbsp;&nbsp;if ni.getFunction().isTransistor():<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print "Found transistor: " + ni.describe(0)<BR>
+<BR>
+# find all exports that start with "A"<BR>
+it = c.getPorts()<BR>
+while it.hasNext():<BR>
+&nbsp;&nbsp;&nbsp;e = it.next()<BR>
+&nbsp;&nbsp;&nbsp;if e.getName().lower().startswith("a"):<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print "Found export: " + e.getName()<BR>
+</FONT></CODE>
+</TD></TR></TABLE></TD>
+<TD WIDTH="20%" VALIGN=TOP>
+This example searches the current cell, printing all transistors and all exports that start with the letter "a".
+</TD></TR></TABLE>
+
+<P>
+
+<TABLE WIDTH="100%"><TR>
+<TD WIDTH="80%"><TABLE WIDTH="100%" BORDER=1><TR><TD>
+<CODE><FONT SIZE="-1">
+from com.sun.electric.database.hierarchy import Cell<BR>
+from com.sun.electric.database.hierarchy import Library<BR>
+from com.sun.electric.database.topology import NodeInst<BR>
+from com.sun.electric.database.variable import EvalJython<BR>
+from com.sun.electric.technology import Technology<BR>
+from java.awt.geom import Point2D<BR>
+
+newCell = Cell.makeInstance(Library.getCurrent(), "sample1{lay}")<BR>
+tech = Technology.findTechnology("mocmos")<BR>
+trP = tech.findNodeProto("P-Transistor")<BR>
+tP = NodeInst.makeInstance(trP, Point2D.Double(10, 10), trP.getDefWidth(), trP.getDefHeight(), newCell)<BR>
+EvalJython.displayCell(newCell)<BR>
+</FONT></CODE>
+</TD></TR></TABLE></TD>
+<TD WIDTH="20%" VALIGN=TOP>
+This example creates a new cell, places a transistor in it, and displays the cell.
+</TD></TR></TABLE>
+
+<P>
+<!-- NEED 4in -->
+<TABLE WIDTH="100%"><TR>
+<TD WIDTH="80%"><TABLE WIDTH="100%" BORDER=1><TR><TD>
+<CODE><FONT SIZE="-1">
+from com.sun.electric.database.geometry import Orientation<BR>
+from com.sun.electric.database.hierarchy import Cell<BR>
+from com.sun.electric.database.hierarchy import Library<BR>
+from com.sun.electric.database.hierarchy import Export<BR>
+from com.sun.electric.database.prototype import PortCharacteristic<BR>
+from com.sun.electric.database.topology import ArcInst<BR>
+from com.sun.electric.database.topology import NodeInst<BR>
+from com.sun.electric.technology import Technology<BR>
+from java.awt.geom import Point2D<BR>
+<BR>
+# create the new cell<BR>
+newCell = Cell.makeInstance(Library.getCurrent(), "sample2{lay}")<BR>
+<BR>
+tech = Technology.findTechnology("mocmos")<BR>
+<BR>
+# place a rotated transistor<BR>
+trP = tech.findNodeProto("P-Transistor")<BR>
+tP = NodeInst.makeInstance(trP, Point2D.Double(0, 20), trP.getDefWidth(), trP.getDefHeight(), newCell, Orientation.R, "T1")<BR>
+<BR>
+# place a metal-Active contact<BR>
+coP = tech.findNodeProto("Metal-1-P-Active-Con")<BR>
+maP = NodeInst.makeInstance(coP, Point2D.Double(8, 20), coP.getDefWidth(), coP.getDefHeight(), newCell)<BR>
+<BR>
+# wire the transistor to the contact<BR>
+aP = tech.findArcProto("P-Active")<BR>
+ArcInst.makeInstance(aP, tP.findPortInst("diff-bottom"), maP.findPortInst("metal-1-p-act"))<BR>
+<BR>
+# export the contact<BR>
+Export.newInstance(newCell, maP.findPortInst("metal-1-p-act"), "IN", PortCharacteristic.IN)<BR>
+</FONT></CODE>
+</TD></TR></TABLE></TD>
+<TD WIDTH="20%" VALIGN=TOP>
+This example goes a bit further: it creates a rotated transistor and a contact, wires them together,
+and exports the contact.
+The transistor is named "T1."
+</TD></TR></TABLE>
+
+<!-- TRAILER -->

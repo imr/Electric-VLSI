@@ -1,0 +1,61 @@
+<!-- HEADER 5-5: Default Arc Properties -->
+
+<!-- PREFERENCE General/Arcs -->
+
+The Arcs Preferences (in menu <B>File / Preferences...</B>, "General" section,
+"Arcs" tab) lets you control the arc creation process.
+It does not affect existing arcs, only those that are subsequently created.
+<P>
+The top part of the dialog allows you to set defaults for specific types of arcs.
+You select the "Technology" and "Arc Type", and then set defaults for it (such as the "Default width").
+<P>
+The "Default width" field specifies the width of newly placed arcs.
+When there are already arcs connected to one of the nodes being wired,
+the new wire is made as wide as the widest existing arc on either node.
+Also, when the nodes are larger than normal, arcs connected to them will be made appropriately wider.
+<P>
+The "Placement angle" is the granularity for running this type of arc (in degrees).
+A value of 90 lets arcs run at 0, 90, 180, or 270 degrees: manhattan geometry.
+A value of 45 lets it run at any of 8 angles (useful for schematics).
+A value of 0 lets it run at any angle (used in artwork).
+<P>
+The "Pin" is the node that gets used for connecting two of these arcs.
+It is typically a "Pin" node (see <A HREF="chap07-01-01.html#chap07-01-01">Section 7-1-1</A>).
+If changed to a node with geometry (such as a contact node) then these contacts will be placed
+at the bends of this arc.
+<P>
+<TABLE><TR><TD VALIGN=TOP>
+The checkboxes in the "Default State" section have these meanings:
+<UL>
+<LI>Rigid - whether the arc is rigid in length and relationship to its nodes
+(see <A HREF="chap05-02-01.html#chap05-02-01">Section 5-2-1</A>).</LI>
+
+<LI>Fixed-angle - whether the arc stays at the same angle when one end moves
+(see <A HREF="chap05-02-01.html#chap05-02-01">Section 5-2-1</A>).</LI>
+
+<LI>Slidable - whether the arc slides around in its node's port
+(see <A HREF="chap05-02-02.html#chap05-02-02">Section 5-2-2</A>).</LI>
+
+<LI>Directional - whether the arc has an arrow drawn on it
+(see <A HREF="chap05-04-01.html#chap05-04-01">Section 5-4-1</A>).</LI>
+
+<LI>Ends extended - whether the arc extends past its endpoint by half its width
+(see <A HREF="chap05-04-03.html#chap05-04-03">Section 5-4-3</A>).</LI>
+</UL>
+</TD><TD><CENTER><IMG SRC="fig05-04.png" ALT="Figure 5.4"></CENTER></TD></TR></TABLE>
+<P>
+<!-- NEED 2in -->
+The bottom portion of the dialog has controls for all arcs.
+<UL>
+<LI>"Play 'click' sounds when arcs are created" - plays a sound to confirm arc creation.
+The sound is a single click for one arc, a double-click for two arcs,
+and a triple-click for three or more arcs.</LI>
+<LI>"Duplicate/Array/Paste increments arc names" -
+sets whether the name on an arc should be kept unique by auto-incrementing
+after this arc has been duplicated, arrayed, or pasted.</LI>
+<LI>"Draw arcs as wide as their connecting nodes" -
+requests that arc widths expand when connected to wider-than-normal nodes
+(see <A HREF="chap02-02-03.html#chap02-02-03">Section 2-2-3</A>).</LI>
+</UL>
+
+<!-- TRAILER -->

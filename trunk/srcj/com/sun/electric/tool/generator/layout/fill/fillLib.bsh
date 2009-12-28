@@ -1,0 +1,120 @@
+/* -*- tab-width: 4 -*-
+ * Electric(tm) VLSI Design System
+ *
+ * File: fillLib.bsh
+ * bean shell script to generate fill cell library
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+import com.sun.electric.tool.generator.layout.fill.FillGeneratorTool;
+import com.sun.electric.tool.generator.layout.fill.FillGeneratorTool.Units;
+import com.sun.electric.tool.generator.layout.fill.FillGen;
+import com.sun.electric.tool.generator.layout.fill.ExportConfig;
+import com.sun.electric.tool.generator.layout.TechType;
+
+// These constant declarations make the following code more compact.
+// They won't be necessary once we upgrade to JDK 1.5.
+Units LAMBDA = FillGeneratorTool.LAMBDA;
+Units TRACKS = FillGeneratorTool.TRACKS;
+ExportConfig PERIMETER = ExportConfig.PERIMETER;
+ExportConfig PERIMETER_AND_INTERNAL = ExportConfig.PERIMETER_AND_INTERNAL;
+
+// The argument to the FillGenerator constructor may be 
+// TechType.MOCMOS or TechType.TSMC180 or TechType.CMOS90
+FillGen fg = new FillGen(TechType.MOCMOS);
+fg.setFillLibrary("fillLib");
+fg.setFillCellWidth(245);
+fg.setFillCellHeight(175);
+fg.makeEvenLayersHorizontal(true);
+
+// Floor plan of a typical fill Cell metal layer:
+//                          (ground space specified by user)/2
+//  gggggggggggggggggggg    ground bus bar
+//                          wide space set by design rules
+//  vvvvvvvvvvvvvvvvvvvv    vdd bus bar
+//                          Vdd space specified by user
+//  vvvvvvvvvvvvvvvvvvvv    vdd bus bar
+//                          wide space set by design rules
+//  gggggggggggggggggggg    ground bus bar
+//                          (ground space specified by user)/2
+//
+// Arguments to reserveSpaceOnLayer():
+//     layer number, 
+//     vdd space, 
+//     vdd space units (TRACKS or LAMBDA), 
+//     gnd space, 
+//     gnd space units (TRACKS or LAMBDA) 
+
+fg.reserveSpaceOnLayer(2, 3, TRACKS, 3, TRACKS);
+fg.reserveSpaceOnLayer(3, 3, TRACKS, 3, TRACKS);
+fg.reserveSpaceOnLayer(4, 3, TRACKS, 3, TRACKS);
+fg.reserveSpaceOnLayer(5, 3, TRACKS, 3, TRACKS);
+fg.reserveSpaceOnLayer(6, 2, TRACKS, 2, TRACKS);
+
+// Arguments to ExportConfig():
+//     perimeterExportLayers   // layers that should get perimeter exports
+//     internalExportLayers    // layers that should get internal exports
+ExportConfig exportsForVddGndPadConnections = 
+	new ExportConfig(new int[] {5,6}, new int[] {2,3});
+
+
+// create a procedure because I want to do this twice
+void makeCells() {
+	// Arguments to makeFillCell():
+	//     low layer number
+	//     high layer number
+	//     export configuration (PERIMETER or PERIMETER_AND_INTERNAL)
+	//     array of int's specifying how to tile this fill cell into 
+	//        larger ones. null means don't tile.
+	fg.makeFillCell(1, 6, PERIMETER, new int[] {2,3,4,5,10,12});
+	fg.makeFillCell(2, 6, PERIMETER, new int[] {2,3});
+	fg.makeFillCell(3, 6, PERIMETER, null);
+	fg.makeFillCell(4, 6, PERIMETER, null);
+	fg.makeFillCell(5, 6, PERIMETER, null);
+	fg.makeFillCell(6, 6, PERIMETER, new int[] {2,3,4,5,10,12});
+	
+	fg.makeFillCell(2, 6, PERIMETER_AND_INTERNAL, null);
+	fg.makeFillCell(3, 6, PERIMETER_AND_INTERNAL, null);
+	fg.makeFillCell(4, 6, PERIMETER_AND_INTERNAL, null);
+	fg.makeFillCell(5, 6, PERIMETER_AND_INTERNAL, null);
+	fg.makeFillCell(6, 6, PERIMETER_AND_INTERNAL, null);
+	
+	fg.makeFillCell(2, 6, exportsForVddGndPadConnections, null);
+	
+	fg.makeGallery();
+	fg.writeLibrary();
+}
+
+makeCells();
+
+// Now generate a library with no gap in the vdd strap
+// We must choose a different library because the Cell names
+// don't reflect all the different parameters.
+fg.setFillLibrary("noGapLib");
+fg.reserveSpaceOnLayer(2, 0, TRACKS, 6, TRACKS);
+fg.reserveSpaceOnLayer(3, 0, TRACKS, 6, TRACKS);
+fg.reserveSpaceOnLayer(4, 0, TRACKS, 6, TRACKS);
+fg.reserveSpaceOnLayer(5, 0, TRACKS, 6, TRACKS);
+fg.reserveSpaceOnLayer(6, 0, TRACKS, 4, TRACKS);
+
+makeCells();
+
+
+
+
+

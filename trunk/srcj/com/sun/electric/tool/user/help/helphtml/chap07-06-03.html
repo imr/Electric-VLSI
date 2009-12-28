@@ -1,0 +1,83 @@
+<!-- NEED 2in -->
+
+<!-- HEADER 7-6-3: The Generic Technology -->
+
+One particularly interesting technology is the Generic technology,
+which is a grab bag of miscellaneous facilities.
+It is not necessary to actually switch into this technology,
+for all of its nodes and arcs are available through other means.
+<P>
+<H4>Special Arcs</H4>
+<P>
+The <I>Universal arc</I> in the Generic technology is able to make a connection between any two components,
+even if they are in different technologies.
+This is useful when mixing technologies while still maintaining proper connectivity,
+for example when simulating.
+<P>
+The <I>Invisible arc</I> attaches any two components, but makes no electrical connection.
+It is useful for constraining otherwise unrelated components.
+<P>
+The <I>Unrouted arc</I> makes arbitrary electrical connections,
+like the universal arc, but routers know to replace them with real geometry.
+<P>
+None of these arcs produce any actual geometry in IC descriptions,
+but they make important conceptual connections.
+Any existing arc in a normal technology can be converted to one of these three special arcs by using the <B>Change...</B>
+command (in menu <B>Edit</B>).
+<P>
+<!-- NEED 4in -->
+<H4>Special Nodes</H4>
+<P>
+<TABLE><TR><TD>
+There are also special nodes in the Generic technology.
+They are all available from the "Misc." entry of the component menu.
+<P>
+A special primitive, called <I>Cell Center</I>, defines the origin of any cell.
+Once the node is placed, its location is at (0,0) for the cell.
+Since instances of the current cell use the origin as the <I>anchor point</I> for cursor-based references,
+the location of this node defines the anchor.
+For example, if you place this node in the upper-right corner of a cell,
+then creation commands place instances such that their upper-right corner is at the cursor.
+See <A HREF="chap03-03.html#chap03-03">Section 3-3</A> for more information on cell centers.
+<P>
+A special primitive, called <I>Essential Bounds</I>, defines an alternate boundary of any cell.
+At least two of them must be placed in opposite corners, although 4 can be place to make it look better.
+<P>
+Note that the Cell Center and Essential Bounds nodes are made "hard-to-select" by default,
+which means that they can be selected only by using "Special Select" mode
+(see <A HREF="chap02-01-05.html#chap02-01-05">Section 2-1-5</A> for more).
+<P>
+The <I>Spice Code</I> and <I>Spice Declaration</I> entries create text for Spice decks
+(see <A HREF="chap09-04-03.html#chap09-04-03">Section 9-4-3</A>).
+The <I>Verilog Code</I>, <I>Verilog Declaration</I>, <I>Verilog Parameter</I>,
+and <I>Verilog External Code</I> entries create text for Verilog decks
+(see <A HREF="chap09-04-02.html#chap09-04-02">Section 9-4-2</A>).
+These entries actually create Invisible Pin nodes with appropriate text on them.
+</TD><TD><CENTER><IMG SRC="fig02-17.png" ALT="Figure 2.17"></CENTER></TD></TR></TABLE>
+<P>
+A special primitive, called <I>Simulation Probe</I> is recognized by simulators and visually modified to reflect
+whatever it is connected to.
+The simulators that reflect the state of the circuit by drawing lines along arcs also fill-in these probe nodes.
+It provides a visual display of simulation activity, and works especially well with the
+VCR controls in the waveform window.
+See <A HREF="chap04-11-01.html#chap04-11-01">Section 4-11-1</A> for more.
+<P>
+The <I>DRC Exclusion</I> node is used by the design-rule checker
+(see <A HREF="chap09-02-03.html#chap09-02-03">Section 9-2-3</A>).
+The <I>AFG Exclusion</I> node is used by the auto-fill generator
+(see <A HREF="chap09-08-02.html#chap09-08-02">Section 9-8-2</A>).
+<P>
+The <I>Invisible Pin</I> is used for holding text,
+and it does not appear in hardcopy output
+(this is what is created when you use place Annotation Text).
+This pin can connect to any arc.
+<P>
+The <I>Universal Pin</I> is a node that can connect to any arc.
+This is useful as an intermediate component when replacing
+(first you replace the unwanted node with a Universal-Pin to allow it to fit with the existing arcs;
+then you replace the arcs; finally you put the desired new node in place).
+<P>
+The <I>Unrouted Pin</I> is used when joining unrouted arcs.
+It can also connect to anything.
+
+<!-- TRAILER -->

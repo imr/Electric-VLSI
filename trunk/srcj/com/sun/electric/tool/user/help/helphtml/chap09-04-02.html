@@ -1,0 +1,85 @@
+<!-- NEED 3in -->
+<!-- HEADER 9-4-2: Verilog -->
+
+<!-- COMMAND Tools/Simulation (Verilog)/Write Verilog Deck... -->
+<!-- COMMAND Tools/Simulation (Verilog)/Plot Verilog VCD Dump... -->
+<!-- COMMAND Tools/Simulation (Verilog)/Plot Verilog for This Cell -->
+<!-- COMMAND Tools/Simulation (Verilog)/Set Verilog Wire/Wire -->
+<!-- COMMAND Tools/Simulation (Verilog)/Set Verilog Wire/Trireg -->
+<!-- COMMAND Tools/Simulation (Verilog)/Set Verilog Wire/Default -->
+<!-- COMMAND Tools/Simulation (Verilog)/Transistor Strength/Weak -->
+<!-- COMMAND Tools/Simulation (Verilog)/Transistor Strength/Normal -->
+<!-- PREFERENCE Tools/Verilog -->
+<!-- PREFERENCE Tools/Verilog Model Files -->
+
+Electric can produce input decks for Verilog simulation with <B>Write Verilog Deck...</B> command
+(in menu <B>Tools / Simulation (Verilog)</B>).
+After this has been done, you must run Verilog externally to produce a ".dump" file.
+Note that the Electric distribution does not come with a Verilog simulator: you must obtain it separately.
+<P>
+After running a Verilog simulation, you can read the ".dump" file into Electric and display it in a waveform window.
+This is done with the <B>Plot Verilog VCD Dump...</B> command (in menu <B>Tools / Simulation (Verilog)</B>).
+You can also use the <B>Plot Verilog for This Cell</B> command if the cell name and file name are the same.
+The Verilog simulation information is then shown in a digital waveform window
+(see <A HREF="chap04-11-01.html#chap04-11-01">Section 4-11-1</A> for more).
+Electric also understands the output of Modelsim and can plot it.
+<P>
+Before generating Verilog decks,
+it is possible to annotate circuits with additional Verilog text that will be included in the deck.
+To add Verilog code to this cell, select "Verilog Code" under the "Misc." entry in the component menu of the side bar.
+To add a Verilog declaration in this cell, select "Verilog Declaration" under the "Misc." entry in the component menu.
+To add a Verilog parameter to this cell, select "Verilog Parameter" under the "Misc." entry in the component menu.
+To add external Verilog code, outside of this cell, select "Verilog External Code" under the "Misc." entry in the component menu.
+These pieces of text can be manipulated like any other text object
+(see <A HREF="chap06-08-01.html#chap06-08-01">Section 6-8-1</A> on text).
+For an example of Verilog layout and code, look at the cell "tool-SimulateVERILOG" in the Samples library
+(get this library with the <B>Load Sample Cells Library</B> command, in menu <B>Help</B>).
+<P>
+Additional control of Verilog deck generation is accomplished with the
+Verilog Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Verilog" tab).
+<P>
+<CENTER><IMG SRC="fig09-07.png" ALT="Figure 9.7"></CENTER>
+<P>
+<!-- NEED 2in -->
+The left side is the Verilog Project Preferences which has two controls:
+<UL>
+<LI>"Use ASSIGN Construct" lets you choose whether or not to use the Verilog "assign" construct.</LI>
+<LI>"Default wire is Trireg" lets you control the type of Verilog declaration that will be used for wires ("wire" by default, "trireg" if checked).
+Note that this can be overridden with the <B>Set Verilog Wire</B> command (in menu <B>Tools / Simulation (Verilog)</B>).
+</LI>
+</UL>
+<P>
+Another property that can be assigned to transistors is their strength.
+The <B>Weak</B> command (in menu <B>Tools / Simulation (Verilog) / Transistor Strength</B>)
+sets the transistor to be weak.
+The <B>Normal</B> command restores the transistor to be normal strength.
+<P>
+<!-- NEED 3in -->
+Still more control of Verilog deck generation is accomplished with the
+Verilog User Preferences in the right side of the dialog.
+<UL>
+<LI>"Run Placement after import" requests that the Placement tool be used
+to organize components after reading Verilog
+(see <A HREF="chap09-13.html#chap09-13">Section 9-13</A> for more on Placement).</LI>
+<LI>"Do not netlist Standard Cells" writes a netlist that excludes Standard Cells.
+Any cell marked as a Standard Cell will be netlisted only as instances,
+but no module definition will be written.
+This allows Standard Cell based simulation or Static Timing Analysis to be performed on the netlist.
+See <A HREF="chap03-07-03.html#chap03-07-03">Section 3-7-3</A> for more on marking cells as "standard cells".</LI>
+<LI>"Preserve Verilog formatting" keeps the indentation and other formatting of all inserted text.</LI>
+<LI>"Parameterize Verilog module names" causes Verilog deck generation to create multiple Verilog
+cell descriptions when the cells are parameterized.</LI>
+</UL>
+</TD></TR></TABLE>
+<P>
+A final set of Verilog controls can be found in the Verilog Model Files Preferences
+(in menu <B>File / Preferences...</B>, "Tools" section, "Verilog Model Files" tab).
+The Verilog Model Files Preferences dialog lets you attach disk files with Verilog code to any cell in the library.
+<P>
+<!-- NEED 5in -->
+<TABLE><TR><TD VALIGN=TOP>
+Once attached, the generated Verilog will use the contents of that file instead of examining the cell contents.
+This allows you to create your own definitions in situations where the derived Verilog would be too complex or otherwise incorrect.
+</TD><TD><CENTER><IMG SRC="fig09-39.png" ALT="Figure 9.39"></CENTER></TD></TR></TABLE>
+
+<!-- TRAILER -->

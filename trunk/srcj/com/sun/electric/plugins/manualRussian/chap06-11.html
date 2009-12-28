@@ -1,0 +1,44 @@
+<!-- HEADER 6-11: Interpretive Languages -->
+
+<!-- COMMAND Tool/Languages/Run Java Bean Shell Script -->
+
+Electric имеет встроенный Bean Shell . Это дает возможность Вам загрузить Java scripts, которые обращаются к  базе данных Electric.
+<P>
+Bean Shell  - не  задается по умолчанию в Electric. Вы должны добавить с помощью "plug in".
+(см. <A HREF="chap01-05.html#chap01-05">Section 1-5</A> for more on plug-ins).
+<P>
+Чтобы загрузить script, используйте <B> Run Java Bean Shell Script</B> команду (в меню <B> Tool / Languages</B>). Вот -  пример script, который ищет текущую ячейку для экспорта, начинающуюся с "a".
+<CENTER><TABLE BORDER=1><TR><TD>
+<PRE>
+   import com.sun.electric.database.hierarchy.Cell;
+   import com.sun.electric.tool.user.ui.WindowFrame;
+   import java.util.List;
+   import java.util.ArrayList;
+   import java.util.Iterator;
+
+   // read library with test setup
+   Cell lay = WindowFrame.getCurrentCell();
+
+   // find all exports
+   com.sun.electric.database.hierarchy.Export e;
+   List aList = new ArrayList();
+   for(Iterator it = lay.getPorts(); it.hasNext(); )
+   {
+       e = (com.sun.electric.database.hierarchy.Export)it.next();
+       if (e.getName().startsWith("a")) aList.add(e);
+   }
+
+   String aOut = "Exports that start with 'a':";
+   for(Iterator it = aList.iterator(); it.hasNext(); )
+   {
+       e = (com.sun.electric.database.hierarchy.Export)it.next();
+       aOut += " " + e.getName();
+   }
+   System.out.println(aOut);
+</PRE>
+</TD></TR></TABLE></CENTER>
+<P>Обратите внимание, что объект "Export" Electric  должен быть полностью-составным-именем, потому что название "Экспорт" используется  в Бобе Shell.
+<P>
+Для подробной информации о доступе к  Electric, читайте Javadoc в исходном коде.
+
+<!-- TRAILER -->

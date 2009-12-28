@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document      : Containing Mosis Rules
+    Author        : Gilda G
+    Description   : none
+-->
+
+<!DOCTYPE DRCRules SYSTEM "DRC.dtd">
+
+<DRCRules>
+    <Foundry name="MOSIS">
+    <!-- Well rules -->
+        <LayerRule ruleName="1.1 Mosis" layerName="P-Well, N-Well" type="MINWID" when="DE|SU" value="12"/>
+        <LayerRule ruleName="1.1 Mosis" layerName="P-Well, N-Well" type="MINWID" when="SC" value="10"/>
+        <LayersRule ruleName="1.2 Mosis" layerNames="{P-Well, P-Well}, {N-Well, N-Well}" type="UCONSPA" when="DE|SU" value="18"/>
+        <LayersRule ruleName="1.2 Mosis" layerNames="{P-Well, P-Well}, {N-Well, N-Well}" type="UCONSPA" when="SC" value="9"/>
+        <LayersRule ruleName="1.3 Mosis" layerNames="{P-Well, P-Well}, {N-Well, N-Well}" type="CONSPA" when="ALL" value="6"/>
+        <LayersRule ruleName="1.4 Mosis" layerNames="{P-Well, N-Well}" type="SPACING" when="ALL" value="0"/>
+
+        <!-- Active rules -->
+        <LayerRule ruleName="2.1 Mosis" layerName="P-Active, N-Active" type="MINWID" when="ALL" value="3"/>
+        <LayersRule ruleName="2.2 Mosis" layerNames="{P-Active, P-Active}, {N-Active, N-Active}, {P-Active-Well, P-Active-Well}, {P-Active, P-Active-Well}, {N-Active, P-Active-Well}"
+            type="SPACING" when="ALL" value="3"/>
+
+        <!-- Active contacts and transistors under DE|SU rules -->
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{N-Well, P-Active}" type="SURROUND" when="DE|SU" value="6" nodeName="Metal-1-P-Active-Con, P-Transistor"/>
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{N-Well, P-Active}" type="ASURROUND" when="DE|SU" value="6" nodeName="P-Active"/>
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{P-Well, N-Active}" type="SURROUND" when="DE|SU" value="6" nodeName="Metal-1-N-Active-Con, N-Transistor"/>
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{P-Well, N-Active}" type="ASURROUND" when="DE|SU" value="6" nodeName="N-Active"/>
+        <!--<NodeLayersRule ruleName="2.3 Mosis" layerNames="{N-Well, P-Active}" type="SURROUND" when="DE|SU|AC" value="6" nodeName="Metal-1-P-Active-Con, P-Transistor"/>-->
+        <!--<NodeLayersRule ruleName="2.3 Mosis" layerNames="{P-Well, N-Active}" type="SURROUND" when="DE|SU|AC" value="6" nodeName="Metal-1-N-Active-Con, N-Transistor"/>-->
+
+        <!-- Active contacts and transistors under SC rules -->
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{N-Well, P-Active}" type="SURROUND" when="SC" value="5" nodeName="Metal-1-P-Active-Con, P-Transistor"/>
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{P-Well, N-Active}" type="SURROUND" when="SC" value="5" nodeName="Metal-1-N-Active-Con, N-Transistor"/>
+        <!--<NodeLayersRule ruleName="2.3 Mosis" layerNames="{N-Well, P-Active}" type="SURROUND" when="SC|AC" value="5" nodeName="Metal-1-P-Active-Con, P-Transistor"/>-->
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{N-Well, P-Active}" type="ASURROUND" when="SC" value="5" nodeName="P-Active"/>
+        <!--<NodeLayersRule ruleName="2.3 Mosis" layerNames="{P-Well, N-Active}" type="SURROUND" when="SC|AC" value="5" nodeName="Metal-1-N-Active-Con, N-Transistor"/>-->
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{P-Well, N-Active}" type="ASURROUND" when="SC" value="5" nodeName="N-Active" />
+
+        <!-- Well layer -->
+        <NodeLayersRule ruleName="2.4 Mosis" layerNames="{P-Well, P-Active-Well}" type="SURROUND" when="ALL" value="3" nodeName="Metal-1-P-Well-Con"/>
+        <NodeLayersRule ruleName="2.4 Mosis" layerNames="{N-Well, N-Active}" type="SURROUND" when="ALL" value="3" nodeName="Metal-1-N-Well-Con"/>
+
+        <!-- Active layer -->
+        <LayersRule ruleName="2.5 Mosis" layerNames="{P-Active, N-Active}" type="SPACING" when="ALL" value="4"/>
+
+        <!-- polysilicon -->
+        <LayerRule ruleName="3.1 Mosis" layerName="Polysilicon-1" type="MINWID" when="ALL" value="2" />
+        <LayerRule ruleName="3.1 Mosis" layerName="Transistor-Poly" type="MINWID" when="ALL" value="2" />
+        <LayersRule ruleName="3.2 Mosis" layerNames="{Polysilicon-1, Polysilicon-1}" type="SPACING" when="DE|SU" value="3"/>
+        <LayersRule ruleName="3.2 Mosis" layerNames="{Polysilicon-1, Transistor-Poly}" type="SPACING" when="DE|SU" value="3"/>
+        <LayersRule ruleName="3.2 Mosis" layerNames="{Polysilicon-1, Polysilicon-1}" type="SPACING" when="SC" value="2"/>
+        <LayersRule ruleName="3.2 Mosis" layerNames="{Polysilicon-1, Transistor-Poly}" type="SPACING" when="SC" value="2"/>
+        <LayersRule ruleName="3.2a Mosis" layerNames="{Transistor-Poly, Transistor-Poly}" type="SPACING" when="DE" value="4"/>
+        <LayersRule ruleName="3.2a Mosis" layerNames="{Transistor-Poly, Transistor-Poly}" type="SPACING" when="SU" value="3"/>
+        <LayersRule ruleName="3.2a Mosis" layerNames="{Transistor-Poly, Transistor-Poly}" type="SPACING" when="SC" value="2"/>
+
+        <!-- Transistor poly Valid for N-Transistor, P-Transistor and scalable transistors -->
+        <LayersRule ruleName="3.3 Mosis" layerNames="{Transistor-Poly, P-Active}, {Transistor-Poly, N-Active}" type="EXTENSION" when="DE" value="2.5"/> <!-- Poly from active -->
+        <LayersRule ruleName="3.3 Mosis" layerNames="{Transistor-Poly, P-Active}, {Transistor-Poly, N-Active}" type="EXTENSION" when="SU|SC" value="2"/> <!-- Poly from active -->
+        <LayersRule ruleName="Active from Poly Mosis" layerNames="{P-Active, Transistor-Poly}, {N-Active, Transistor-Poly}" type="EXTENSION" when="DE" value="4"/> <!-- Active from poly -->
+        <LayersRule ruleName="Active from Poly Mosis" layerNames="{P-Active, Transistor-Poly}, {N-Active, Transistor-Poly}" type="EXTENSION" when="SU|SC" value="3"/> <!-- Active from poly -->
+        <NodeLayersRule ruleName="Trans SelPoly Surround Mosis" layerNames="{P-Select, Transistor-Poly}" type="SURROUND" when="ALL" value="2" nodeName="P-Transistor"/>
+        <NodeLayersRule ruleName="Trans SelPoly Surround Mosis" layerNames="{N-Select, Transistor-Poly}" type="SURROUND" when="ALL" value="2" nodeName="N-Transistor"/>
+
+        <!-- Poly and active layers -->
+         <LayersRule ruleName="3.5 Mosis" layerNames="{Polysilicon-1, P-Active}, {Transistor-Poly, P-Active}, {Polysilicon-1, N-Active},
+         {Transistor-Poly, N-Active}, {Polysilicon-1,  P-Active-Well}, {Transistor-Poly, P-Active-Well}"
+             type="SPACING" when="ALL" value="1"/>
+
+        <!-- Select layers -->
+        <!-- Data for transistors and active contacts -->
+        <NodeLayersRule ruleName="4.2 Mosis" layerNames="{P-Select, P-Active}" type="SURROUND" when="ALL" value="2" nodeName="Metal-1-P-Active-Con, P-Transistor"/>
+        <NodeLayersRule ruleName="4.2 Mosis" layerNames="{P-Select, P-Active-Well}" type="SURROUND" when="ALL" value="2" nodeName="Metal-1-P-Well-Con"/>
+        <NodeLayersRule ruleName="4.2 Mosis" layerNames="{N-Select, N-Active}" type="SURROUND" when="ALL" value="2" nodeName="Metal-1-N-Active-Con, N-Transistor, Metal-1-N-Well-Con"/>
+
+        <LayerRule ruleName="4.4 Mosis" layerName="P-Select, N-Select" type="MINWID" when="DE" value="4" />
+        <LayersRule ruleName="4.4 Mosis" layerNames="{P-Select, P-Select}, {N-Select, N-Select}" type="SPACING" when="DE" value="4"/>
+        <LayerRule ruleName="4.4 Mosis" layerName="P-Select, N-Select" type="MINWID" when="SU|SC" value="2" />
+        <LayersRule ruleName="4.4 Mosis" layerNames="{P-Select, P-Select}, {N-Select, N-Select}" type="SPACING" when="SU|SC" value="2"/>
+
+        <LayersRule ruleName="4.4 Mosis" layerNames="{P-Select, N-Select}" type="SPACING" when="ALL" value="0"/>
+
+        <!-- Poly cut -->
+        <LayerRule ruleName="5.1 Mosis" layerName="Poly-Cut" type="MINWID" when="ALL" value="2" />
+
+        <!-- Poly contact -->
+        <NodeRule ruleName="5.2 Mosis" type="NODSIZ" when="NAC" value="5" nodeName="Metal-1-Polysilicon-1-Con"/>
+        <!--<NodeLayersRule ruleName="5.2 Mosis" layerNames="{Polysilicon-1,  Metal-1}" type="SURROUND" when="NAC" value="0.5" nodeName="Metal-1-Polysilicon-1-Con"/>-->
+        <LayersRule ruleName="5.2 Mosis" layerNames="{Polysilicon-1, Poly-Cut}" type="SURROUND" when="NAC" value="1.5"/>
+        <NodeRule ruleName="5.2b Mosis" type="NODSIZ" when="AC" value="4" nodeName="Metal-1-Polysilicon-1-Con"/>
+        <!--<NodeLayersRule ruleName="5.2b Mosis" layerNames="{Polysilicon-1,  Metal-1}" type="SURROUND" when="AC" value="0" nodeName="Metal-1-Polysilicon-1-Con"/>-->
+        <LayersRule ruleName="5.2b Mosis" layerNames="{Polysilicon-1, Poly-Cut}" type="SURROUND" when="AC" value="1"/>
+        <LayersRule ruleName="5.2b Mosis" layerNames="{Metal-1, Poly-Cut}" type="SURROUND" when="ALL" value="1"/>
+
+        <!-- Multi poly contacts -->
+        <LayersRule ruleName="5.3 Mosis" layerNames="{Poly-Cut, Poly-Cut}" type="SPACING" when="DE" value="4"/>
+        <LayersRule ruleName="5.3,6.3 Mosis" layerNames="{Active-Cut, Poly-Cut}" type="SPACING" when="DE|NAC" value="4"/>
+
+        <LayersRule ruleName="5.3 Mosis" layerNames="{Poly-Cut, Poly-Cut}" type="SPACING" when="SC" value="2"/>
+        <LayersRule ruleName="5.3,6.3 Mosis" layerNames="{Active-Cut, Poly-Cut}" type="SPACING" when="SC|NAC" value="2"/>
+
+        <LayersRule ruleName="5.3 Mosis" layerNames="{Poly-Cut, Poly-Cut}" type="SPACING" when="SU" value="3"/>
+        <LayersRule ruleName="5.3,6.3 Mosis" layerNames="{Active-Cut, Poly-Cut}" type="SPACING" when="SU|NAC" value="3"/>
+
+        <LayersRule ruleName="5.4 Mosis" layerNames="{Poly-Cut, Transistor-Poly}" type="SPACING" when="ALL" value="2"/>
+
+        <LayersRule ruleName="5.5b Mosis" layerNames="{Poly-Cut, Polysilicon-1}" type="UCONSPA" when="DE|SU|AC" value="5"/>
+        <LayersRule ruleName="5.5b Mosis" layerNames="{Poly-Cut, Transistor-Poly}" type="UCONSPA" when="DE|SU|AC" value="5"/>
+        <LayersRule ruleName="5.5b Mosis" layerNames="{Poly-Cut, Polysilicon-1}" type="UCONSPA" when="SC|AC" value="4"/>
+        <LayersRule ruleName="5.5b Mosis" layerNames="{Poly-Cut, Transistor-Poly}" type="UCONSPA" when="SC|AC" value="4"/>
+
+        <LayersRule ruleName="5.6b Mosis" layerNames="{Poly-Cut, P-Active}" type="SPACING" when="AC" value="2"/>
+        <LayersRule ruleName="5.6b Mosis" layerNames="{Poly-Cut, N-Active}" type="SPACING" when="AC" value="2"/>
+
+        <!-- HAS TO BE REVISED -->
+        <LayersRule ruleName="5.7b Mosis" layerNames="{Poly-Cut, P-Active}" type="UCONSPA2D" when="AC" value="3"/>
+        <LayersRule ruleName="5.7b Mosis" layerNames="{Poly-Cut, N-Active}" type="UCONSPA2D" when="AC" value="3"/>
+
+        <!-- Active cut -->
+        <LayerRule ruleName="6.1 Mosis" layerName="Active-Cut" type="MINWID" when="ALL" value="2" />
+
+        <!-- Active/well contacts -->
+        <NodeRule ruleName="6.2 Mosis" type="NODSIZ" when="NAC" value="5" nodeName="Metal-1-P-Active-Con, Metal-1-N-Active-Con, Metal-1-P-Well-Con, Metal-1-N-Well-Con"/>
+        <NodeLayersRule ruleName="6.2-4.2 Mosis" layerNames="{P-Active, Metal-1}" type="SURROUND" when="NAC" value="0.5" nodeName="Metal-1-P-Active-Con"/>    <!--Not used! -->
+        <NodeLayersRule ruleName="6.2-4.2 Mosis" layerNames="{P-Active-Well, Metal-1}" type="SURROUND" when="NAC" value="0.5" nodeName="Metal-1-P-Well-Con"/>
+        <NodeLayersRule ruleName="6.2-4.2 Mosis" layerNames="{N-Active, Metal-1}" type="SURROUND" when="NAC" value="0.5" nodeName="Metal-1-N-Active-Con, Metal-1-N-Well-Con"/>
+        <LayersRule ruleName="6.2 Mosis" layerNames="{P-Active, Active-Cut}, {P-Active-Well, Active-Cut}, {N-Active, Active-Cut}" type="SURROUND" when="NAC" value="1.5"/>
+        <!-- Active/well contacts with alternative arcs -->
+        <NodeRule ruleName="6.2b Mosis" type="NODSIZ" when="AC" value="4" nodeName="Metal-1-P-Active-Con, Metal-1-N-Active-Con, Metal-1-P-Well-Con, Metal-1-N-Well-Con"/>
+        <NodeLayersRule ruleName="6.2b Mosis" layerNames="{P-Active, Metal-1}" type="SURROUND" when="AC" value="0" nodeName="Metal-1-P-Active-Con"/>
+        <NodeLayersRule ruleName="6.2b Mosis" layerNames="{P-Active-Well, Metal-1}" type="SURROUND" when="AC" value="0" nodeName="Metal-1-P-Well-Con"/>
+        <NodeLayersRule ruleName="6.2b Mosis" layerNames="{N-Active, Metal-1}" type="SURROUND" when="AC" value="0" nodeName="Metal-1-N-Active-Con, Metal-1-N-Well-Con"/>
+        <LayersRule ruleName="6.2b Mosis" layerNames="{P-Active, Active-Cut}, {P-Active-Well, Active-Cut}, {N-Active, Active-Cut}" type="SURROUND" when="AC" value="1"/>
+
+        <!-- Active contacts and multi cuts -->
+        <LayersRule ruleName="6.3 Mosis" layerNames="{Active-Cut, Active-Cut}" type="SPACING" when="DE" value="4"/>
+        <LayersRule ruleName="6.3 Mosis" layerNames="{Active-Cut, Active-Cut}" type="SPACING" when="SC" value="2"/>
+        <LayersRule ruleName="6.3 Mosis" layerNames="{Active-Cut, Active-Cut}" type="SPACING" when="SU" value="3"/>
+
+        <LayersRule ruleName="6.4 Mosis" layerNames="{Active-Cut, Transistor-Poly}" type="SPACING" when="ALL" value="2"/>
+
+        <LayersRule ruleName="6.5b Mosis" layerNames="{Active-Cut, P-Active}, {Active-Cut, N-Active}" type="UCONSPA" when="AC" value="5"/>
+
+        <LayersRule ruleName="6.6b Mosis" layerNames="{Active-Cut, Polysilicon-1}" type="SPACING" when="AC" value="2"/>
+
+        <LayersRule ruleName="6.8b Mosis" layerNames="{Active-Cut, Poly-Cut}" type="SPACING" when="AC" value="4"/>
+
+        <!-- Metal1 rules -->
+        <LayerRule ruleName="7.1 Mosis" layerName="Metal-1" type="MINWID" when="ALL" value="3" />
+
+        <LayersRule ruleName="7.2 Mosis" layerNames="{Metal-1, Metal-1}" type="SPACING" when="DE|SU" value="3"/>
+        <LayersRule ruleName="7.2 Mosis" layerNames="{Metal-1, Metal-1}" type="SPACING" when="SC" value="2"/>
+        <!-- Wide metals -->
+        <LayersRule ruleName="7.4 Mosis" layerNames="{Metal-1, Metal-1}" type="SPACING" when="DE|SU" value="6" maxW="100" minLen="0"/>
+        <LayersRule ruleName="7.4 Mosis" layerNames="{Metal-1, Metal-1}" type="SPACING" when="SC" value="4" maxW="100" minLen="0"/>
+
+        <!-- Metal1 contacts -->
+        <LayerRule ruleName="8.1 Mosis" layerName="Via1" type="MINWID" when="DE" value="3" />
+        <NodeRule ruleName="8.1 Mosis" type="NODSIZ" when="DE" value="5" nodeName="Metal-1-Metal-2-Con"/>
+        <LayerRule ruleName="8.1 Mosis" layerName="Via1" type="MINWID" when="SU|SC" value="2" />
+        <NodeRule ruleName="8.1 Mosis" type="NODSIZ" when="SU|SC" value="4" nodeName="Metal-1-Metal-2-Con"/>
+
+        <LayersRule ruleName="8.2 Mosis" layerNames="{Via1, Via1}" type="SPACING" when="ALL" value="3"/>
+
+        <LayersRule ruleName="8.3 Mosis" layerNames="{Via1, Metal-1}" type="SURROUND" when="ALL" value="1"/>
+
+        <LayersRule ruleName="8.4 Mosis" layerNames="{Poly-Cut, Via1}" type="SPACING" when="NSV" value="2"/>
+        <LayersRule ruleName="8.4 Mosis" layerNames="{Active-Cut, Via1}" type="SPACING" when="NSV" value="2"/>
+
+        <LayersRule ruleName="8.5 Mosis" layerNames="{Via1, Polysilicon-1}" type="SPACINGE" when="NSV" value="2"/>
+        <LayersRule ruleName="8.5 Mosis" layerNames="{Via1, Transistor-Poly}" type="SPACINGE" when="NSV" value="2"/>
+        <LayersRule ruleName="8.5 Mosis" layerNames="{Via1, Polysilicon-2}" type="SPACINGE" when="NSV" value="2"/>
+        <LayersRule ruleName="8.5 Mosis" layerNames="{Via1, P-Active}" type="SPACINGE" when="NSV" value="2"/>
+        <LayersRule ruleName="8.5 Mosis" layerNames="{Via1, N-Active}" type="SPACINGE" when="NSV" value="2"/>
+
+        <!-- Metal 2 -->
+        <LayerRule ruleName="9.1 Mosis" layerName="Metal-2" type="MINWID" when="ALL" value="3" />
+
+        <LayersRule ruleName="9.2 Mosis" layerNames="{Metal-2, Metal-2}" type="SPACING" when="DE" value="4"/>
+        <LayersRule ruleName="9.2 Mosis" layerNames="{Metal-2, Metal-2}" type="SPACING" when="SU|SC" value="3"/>
+        <LayersRule ruleName="9.3 Mosis" layerNames="{Via1, Metal-2}" type="SURROUND" when="ALL" value="1"/>
+
+        <!-- Wide metals -->
+        <LayersRule ruleName="9.4 Mosis" layerNames="{Metal-2, Metal-2}" type="SPACING" when="DE" value="8" maxW="100" minLen="0"/>
+        <LayersRule ruleName="9.4 Mosis" layerNames="{Metal-2, Metal-2}" type="SPACING" when="SU|SC" value="6" maxW="100" minLen="0"/>
+
+        <LayerRule ruleName="11.1 Mosis" layerName="Polysilicon-2" type="MINWID" when="SU" value="7" />
+        <LayerRule ruleName="11.1 Mosis" layerName="Polysilicon-2" type="MINWID" when="SC" value="3" />
+
+        <LayersRule ruleName="11.2 Mosis" layerNames="{Polysilicon-2, Polysilicon-2}" type="SPACING" when="ALL" value="3"/>
+
+        <NodeLayersRule ruleName="11.3 Mosis" layerNames="{Polysilicon-2, Polysilicon-1}" type="SURROUND" when="SU" value="5" nodeName="Metal-1-Polysilicon-1-2-Con"/>
+		<NodeRule ruleName="11.3 Mosis" type="NODSIZ" when="SU" value="15" nodeName="Metal-1-Polysilicon-1-2-Con"/>
+        <LayersRule ruleName="11.3 Mosis" layerNames="{Polysilicon-1, Polysilicon-2}" type="SURROUND" when="SU" value="6.5"/>
+        <NodeLayersRule ruleName="11.3 Mosis" layerNames="{Polysilicon-2, Polysilicon-1}" type="SURROUND" when="SC" value="2" nodeName="Metal-1-Polysilicon-1-2-Con"/>
+		<NodeRule ruleName="11.3 Mosis" type="NODSIZ" when="SC" value="9" nodeName="Metal-1-Polysilicon-1-2-Con"/>
+        <LayersRule ruleName="11.3 Mosis" layerNames="{Polysilicon-1, Polysilicon-2}" type="SURROUND" when="SC" value="9"/>
+
+        <!-- Metal2 contacts -->
+        <LayerRule ruleName="14.1 Mosis" layerName="Via2" type="MINWID" when="DE" value="3" />
+        <NodeRule ruleName="14.1 Mosis" type="NODSIZ" when="DE" value="5" nodeName="Metal-2-Metal-3-Con"/>
+        <LayerRule ruleName="14.1 Mosis" layerName="Via2" type="MINWID" when="SU|SC" value="2" />
+        <NodeRule ruleName="14.1 Mosis" type="NODSIZ" when="SU|SC|M23" value="6" nodeName="Metal-2-Metal-3-Con"/>
+        <NodeRule ruleName="14.1 Mosis" type="NODSIZ" when="SU|SC|M456" value="4" nodeName="Metal-2-Metal-3-Con"/>
+
+        <LayersRule ruleName="14.2 Mosis" layerNames="{Via2, Via2}" type="SPACING" when="ALL" value="3"/>
+
+        <LayersRule ruleName="14.3 Mosis" layerNames="{Via2, Metal-2}" type="SURROUND" when="ALL" value="1"/>
+
+        <LayersRule ruleName="15.3 Mosis" layerNames="{Via2, Metal-3}" type="SURROUND" when="DE" value="1"/>
+        <LayersRule ruleName="15.3 Mosis" layerNames="{Via2, Metal-3}" type="SURROUND" when="SU|SC|M3" value="2"/>
+        <LayersRule ruleName="15.3 Mosis" layerNames="{Via2, Metal-3}" type="SURROUND" when="SU|SC|M456" value="1"/>
+
+        <LayersRule ruleName="14.4 Mosis" layerNames="{Via1, Via2}" type="SPACING" when="SU|SC|NSV" value="2"/>
+
+        <!-- Metal3 -->
+        <LayerRule ruleName="15.1 Mosis" layerName="Metal-3" type="MINWID" when="SC|M3" value="6" />
+        <LayerRule ruleName="15.1 Mosis" layerName="Metal-3" type="MINWID" when="SU|M3" value="5" />
+        <LayerRule ruleName="15.1 Mosis" layerName="Metal-3" type="MINWID" when="SC|M456" value="3" />
+        <LayerRule ruleName="15.1 Mosis" layerName="Metal-3" type="MINWID" when="SU|M456" value="3" />
+        <LayerRule ruleName="15.1 Mosis" layerName="Metal-3" type="MINWID" when="DE" value="3" />
+
+        <LayersRule ruleName="15.2 Mosis" layerNames="{Metal-3, Metal-3}" type="SPACING" when="DE" value="4"/>
+        <LayersRule ruleName="15.2 Mosis" layerNames="{Metal-3, Metal-3}" type="SPACING" when="SU" value="3"/>
+        <LayersRule ruleName="15.2 Mosis" layerNames="{Metal-3, Metal-3}" type="SPACING" when="SC|M3" value="4"/>
+        <LayersRule ruleName="15.2 Mosis" layerNames="{Metal-3, Metal-3}" type="SPACING" when="SC|M456" value="4"/>
+        <!-- Wide metals -->
+        <LayersRule ruleName="15.4 Mosis" layerNames="{Metal-3, Metal-3}" type="SPACING" when="DE" value="8" maxW="100" minLen="0"/>
+        <LayersRule ruleName="15.4 Mosis" layerNames="{Metal-3, Metal-3}" type="SPACING" when="SU" value="6" maxW="100" minLen="0"/>
+        <LayersRule ruleName="15.4 Mosis" layerNames="{Metal-3, Metal-3}" type="SPACING" when="SC|M3" value="8" maxW="100" minLen="0"/>
+        <LayersRule ruleName="15.4 Mosis" layerNames="{Metal-3, Metal-3}" type="SPACING" when="SC|M456" value="6" maxW="100" minLen="0"/>
+
+        <!-- PBase -->
+        <LayersRule ruleName="16.3 Mosis" layerNames="{N-Select, P-Base}" type="SURROUND" when="AN" value="2" />
+        <LayersRule ruleName="16.5 Mosis" layerNames="{P-Select, P-Base}" type="SURROUND" when="AN" value="2" />
+        <LayersRule ruleName="16.7 Mosis" layerNames="{P-Base, N-Well}" type="SURROUND" when="AN" value="6" />
+        <LayersRule ruleName="16.8 Mosis" layerNames="{P-Base, P-Active}" type="SPACING" when="AN" value="4" />
+        
+        <!-- Metal3 contacts -->
+        <LayerRule ruleName="21.1 Mosis" layerName="Via3" type="MINWID" when="DE" value="3" />
+        <NodeRule ruleName="21.1 Mosis" type="NODSIZ" when="DE" value="5" nodeName="Metal-3-Metal-4-Con"/>
+        <LayerRule ruleName="21.1 Mosis" layerName="Via3" type="MINWID" when="SU|SC" value="2" />
+        <NodeRule ruleName="21.1 Mosis" type="NODSIZ" when="SU|M4" value="6" nodeName="Metal-3-Metal-4-Con"/>
+        <NodeRule ruleName="21.1 Mosis" type="NODSIZ" when="SU|M56" value="4" nodeName="Metal-3-Metal-4-Con"/>
+        <NodeRule ruleName="21.1 Mosis" type="NODSIZ" when="SC" value="6" nodeName="Metal-3-Metal-4-Con"/>
+
+        <LayersRule ruleName="21.2 Mosis" layerNames="{Via3, Via3}" type="SPACING" when="ALL" value="3"/>
+        <LayersRule ruleName="21.3 Mosis" layerNames="{Via3, Metal-3}" type="SURROUND" when="ALL" value="1"/>
+
+        <!-- Metal4 -->
+        <LayerRule ruleName="22.1 Mosis" layerName="Metal-4" type="MINWID" when="M4" value="6" />
+        <LayerRule ruleName="22.1 Mosis" layerName="Metal-4" type="MINWID" when="M56" value="3" />
+
+        <LayersRule ruleName="22.2 Mosis" layerNames="{Metal-4, Metal-4}" type="SPACING" when="M4" value="6"/>
+        <LayersRule ruleName="22.2 Mosis" layerNames="{Metal-4, Metal-4}" type="SPACING" when="DE|M56" value="4"/>
+        <LayersRule ruleName="22.2 Mosis" layerNames="{Metal-4, Metal-4}" type="SPACING" when="SU|M56" value="3"/>
+
+        <!-- Metal4 contacts -->
+        <LayersRule ruleName="22.3 Mosis" layerNames="{Via3, Metal-4}" type="SURROUND" when="M4" value="2"/>
+        <LayersRule ruleName="22.3 Mosis" layerNames="{Via3, Metal-4}" type="SURROUND" when="M56" value="1"/>
+        <!-- Wide metals -->
+        <LayersRule ruleName="22.4 Mosis" layerNames="{Metal-4, Metal-4}" type="SPACING" when="M4" value="12" maxW="100" minLen="0"/>
+        <LayersRule ruleName="22.4 Mosis" layerNames="{Metal-4, Metal-4}" type="SPACING" when="DE|M56" value="8" maxW="100" minLen="0"/>
+        <LayersRule ruleName="22.4 Mosis" layerNames="{Metal-4, Metal-4}" type="SPACING" when="SU|M56" value="6" maxW="100" minLen="0"/>
+
+        <!-- Thick-Active -->
+        <LayerRule ruleName="24.1 Mosis" layerName="Thick-Active" type="MINWID" when="ALL" value="4" />
+        <LayersRule ruleName="24.2 Mosis" layerNames="{Thick-Active, Thick-Active}" type="SPACING" when="ALL" value="4"/>
+        <LayersRule ruleName="24.3 Mosis" layerNames="{Thick-Active, P-Active}" type="SURROUND" when="ALL" value="4"/>
+        <LayersRule ruleName="24.3 Mosis" layerNames="{Thick-Active, N-Active}" type="SURROUND" when="ALL" value="4"/>
+
+        <!-- Metal45 contact -->
+        <LayerRule ruleName="25.1 Mosis" layerName="Via4" type="MINWID" when="DE" value="3" />
+        <NodeRule ruleName="25.1 Mosis" type="NODSIZ" when="DE|M5" value="7" nodeName="Metal-4-Metal-5-Con"/>
+        <NodeRule ruleName="25.1 Mosis" type="NODSIZ" when="DE|M6" value="5" nodeName="Metal-4-Metal-5-Con"/>
+        <LayerRule ruleName="25.1 Mosis" layerName="Via4" type="MINWID" when="SU" value="2" />
+        <NodeRule ruleName="25.1 Mosis" type="NODSIZ" when="SU" value="4" nodeName="Metal-4-Metal-5-Con"/>
+
+        <LayersRule ruleName="25.2 Mosis" layerNames="{Via4, Via4}" type="SPACING" when="ALL" value="3"/>
+        <LayersRule ruleName="25.3 Mosis" layerNames="{Via4, Metal-4}" type="SURROUND" when="ALL" value="1"/>
+
+        <!-- Metal5 -->
+        <LayerRule ruleName="26.1 Mosis" layerName="Metal-5" type="MINWID" when="M5" value="4" />
+        <LayerRule ruleName="26.1 Mosis" layerName="Metal-5" type="MINWID" when="M6" value="3" />
+
+        <LayersRule ruleName="26.2 Mosis" layerNames="{Metal-5, Metal-5}" type="SPACING" when="M5" value="4"/>
+        <LayersRule ruleName="26.2 Mosis" layerNames="{Metal-5, Metal-5}" type="SPACING" when="DE|M6" value="4"/>
+        <LayersRule ruleName="26.2 Mosis" layerNames="{Metal-5, Metal-5}" type="SPACING" when="SU|M6" value="3"/>
+
+        <!-- Metal5 contacts -->
+        <LayersRule ruleName="26.3 Mosis" layerNames="{Via4, Metal-5}" type="SURROUND" when="DE|M5" value="2"/>
+        <LayersRule ruleName="26.3 Mosis" layerNames="{Via4, Metal-5}" type="SURROUND" when="SU|M5" value="1"/>
+        <LayersRule ruleName="26.3 Mosis" layerNames="{Via4, Metal-5}" type="SURROUND" when="M6" value="1"/>
+
+        <!-- Wide metals -->
+        <LayersRule ruleName="26.4 Mosis" layerNames="{Metal-5, Metal-5}" type="SPACING" when="M5" value="8" maxW="100" minLen="0"/>
+        <LayersRule ruleName="26.4 Mosis" layerNames="{Metal-5, Metal-5}" type="SPACING" when="DE|M6" value="8" maxW="100" minLen="0"/>
+        <LayersRule ruleName="26.4 Mosis" layerNames="{Metal-5, Metal-5}" type="SPACING" when="SU|M6" value="6" maxW="100" minLen="0"/>
+
+        <!-- Metal56 contacts -->
+        <LayerRule ruleName="29.1 Mosis" layerName="Via5" type="MINWID" when="DE" value="4" />
+        <NodeRule ruleName="29.1 Mosis" type="NODSIZ" when="DE" value="8" nodeName="Metal-5-Metal-6-Con"/>
+        <LayerRule ruleName="29.1 Mosis" layerName="Via5" type="MINWID" when="SU" value="3" />
+        <NodeRule ruleName="29.1 Mosis" type="NODSIZ" when="SU" value="5" nodeName="Metal-5-Metal-6-Con"/>
+
+        <LayersRule ruleName="29.2 Mosis" layerNames="{Via5, Via5}" type="SPACING" when="ALL" value="4"/>
+
+        <LayersRule ruleName="29.3 Mosis" layerNames="{Via5, Metal-5}" type="SURROUND" when="ALL" value="1"/>
+
+        <!-- Metal6 -->
+        <LayerRule ruleName="30.1 Mosis" layerName="Metal-6" type="MINWID" when="ALL" value="5" />
+
+        <LayersRule ruleName="30.2 Mosis" layerNames="{Metal-6, Metal-6}" type="SPACING" when="ALL" value="5"/>
+
+        <LayersRule ruleName="30.3 Mosis" layerNames="{Via5, Metal-6}" type="SURROUND" when="DE" value="2"/>
+        <LayersRule ruleName="30.3 Mosis" layerNames="{Via5, Metal-6}" type="SURROUND" when="SU" value="1"/>
+        <LayersRule ruleName="30.4 Mosis" layerNames="{Metal-6, Metal-6}" type="SPACING" when="ALL" value="10" maxW="100" minLen="0"/>
+    </Foundry>
+</DRCRules>

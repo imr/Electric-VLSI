@@ -1,0 +1,58 @@
+<!-- HEADER 10-2-2: External References -->
+
+After the header line, all external libraries cells and exports must be declared.
+This allows the file reader to quickly find all libraries that will be needed for the design,
+and to reconstruct any missing cells and exports.
+The cells are listed under their libraries.
+The exports are listed under their cells.
+If there are multiple external library lines, they are sorted by library name;
+where there are multiple external cells in a library, they are sorted by their name;
+and where there are multiple external exports in a cell, they are sorted by their name.
+<P>
+The syntax of an external library reference is:
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="90%">
+<TR><TD COLSPAN=2><B>L&lt;name&gt; | &lt;path&gt;</B></TD></TR>
+<TR><TD WIDTH="20%">&lt;name&gt;</TD><TD WIDTH="80%">the name of the external library.</TD></TR>
+<TR><TD>&lt;path&gt;</TD><TD>the full path to the disk file with the library.</TD></TR>
+</TABLE>
+</CENTER>
+<P>
+The name of the library is used in JELIB file to references to this library.
+The actual name of this library is obtained from the path.
+<P>
+The syntax of an external cell reference is:
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="90%">
+<TR><TD COLSPAN=2><B>R&lt;name&gt; | &lt;lowX&gt; | &lt;highX&gt; | &lt;lowY&gt; | &lt;highY&gt;</B></TD></TR>
+<TR><TD WIDTH="20%">&lt;name&gt;</TD><TD WIDTH="80%">the name of the external cell.</TD></TR>
+<TR><TD>&lt;lowX&gt;</TD><TD>reserved for the low X bounds of the cell contents.</TD></TR>
+<TR><TD>&lt;highX&gt;</TD><TD>reserved for the high X bounds of the cell contents.</TD></TR>
+<TR><TD>&lt;lowY&gt;</TD><TD>reserved for the low Y bounds of the cell contents.</TD></TR>
+<TR><TD>&lt;highY&gt;</TD><TD>reserved for the high Y bounds of the cell contents.</TD></TR>
+</TABLE>
+</CENTER>
+<P>
+<!-- NEED 2in -->
+The syntax of an external export reference is:
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="90%">
+<TR><TD COLSPAN=2><B>F&lt;name&gt; | &lt;centerX&gt; | &lt;centerY&gt;</B></TD></TR>
+<TR><TD WIDTH="20%">&lt;name&gt;</TD><TD WIDTH="80%">the name of the external export.</TD></TR>
+<TR><TD>&lt;centerX&gt;</TD><TD>reserved for the X coordinate of the center of export polygon.</TD></TR>
+<TR><TD>&lt;centerY&gt;</TD><TD>reserved for the Y coordinate of the center of export polygon.</TD></TR>
+</TABLE>
+</CENTER>
+<P>
+Examples:
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Lspiceparts|/home/strubin/electric/spiceparts.jelib</CODE><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Rgate;1{sch}|-4|4|0|2</CODE><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Fout|0|2</CODE>
+<P>
+Declares that an external library called "spiceparts" will be used by the current library, and that it can be found at
+"/home/strubin/electric/spiceparts.jelib".
+In that library is a cell called "gate;1{sch}" whose contents run from -4 to 4 in X and 0 to 2 in Y.
+In that cell is an export called "out" with center at (0,2).
+
+<!-- TRAILER -->

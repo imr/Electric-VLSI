@@ -1,0 +1,97 @@
+<!-- HEADER 4-8: Printing -->
+
+<!-- COMMAND File/Print... -->
+<!-- COMMAND File/Page Setup... -->
+<!-- COMMAND Window/Waveform Window/Plot Simulation Data as PDF... -->
+<!-- COMMAND Window/Waveform Window/Plot Simulation Data as PS... -->
+<!-- COMMAND Window/Waveform Window/Plot Simulation Data On Screen -->
+<!-- PREFERENCE General/Printing -->
+
+To make a paper copy of the contents of the current window,
+use the <B>Print...</B> command (in menu <B>File</B>).
+You can use the <B>Page Setup...</B> command for general print settings.
+<P>
+As an alternative to printing, you can request the system to write a PostScript, HPGL, or PNG file.
+To do this,
+use the <B>PostScript...</B>, <B>HPGL</B>, and <B>PNG (Portable Network Graphics)...</B> commands
+(in menu <B>File / Export</B>).
+<P>
+To print a waveform window, use there are special commands in the <B>Window / Waveform Window</B> submenu
+that invoke "gnuplot" (which must be installed already):
+<UL>
+<LI><B>Plot Simulation Data as PDF...</B> creates an Acrobat file with the simulation data.</LI>
+<LI><B>Plot Simulation Data as PS...</B> creates a PostScript file with the simulation data.</LI>
+<LI><B>Plot Simulation Data On Screen</B> shows the simulation data in a Gnuplot window.</LI>
+</UL>
+<P>
+Finally, it is always possible to do a screen-capture in order to get a copy of the image.
+The following table shows the tradeoffs between the different ways of obtaining hardcopy from the screen:
+<CENTER><TABLE BORDER=1 WIDTH="80%">
+<TR><TD><B>METHOD</B></TD><TD><B>TEXT QUALITY</B></TD><TD><B>LAYOUT QUALITY</B></TD></TR>
+<TR><TD>Print command</TD><TD>High</TD><TD>May be dithered</TD></TR>
+<TR><TD>Screen capture</TD><TD>Low</TD><TD>High</TD></TR>
+<TR><TD>PostScript export</TD><TD>High but different fonts</TD><TD>Dithered</TD></TR>
+<TR><TD>HPGL export</TD><TD>High but different fonts</TD><TD>Dithered</TD></TR>
+<TR><TD>PNG export</TD><TD>Low</TD><TD>High</TD></TR>
+</TABLE></CENTER>									
+<P>
+<!-- NEED 4in -->
+For specific printing and PostScript settings, use the
+Printing Preferences (in menu <B>File / Preferences...</B>, "General" section, "Printing" tab).
+<P>
+<TABLE><TR><TD>
+The "For all printing" section at the top has some general options.
+The default is to include the entire cell,
+but you can choose to print only what is highlighted or only what is displayed by selecting the appropriate buttons.
+</TD><TD><CENTER><IMG SRC="fig04-05.png" ALT="Figure 4.5"></CENTER></TD></TR></TABLE>
+<P>
+<!-- NEED 3in -->
+Note that when printing the highlighted area,
+a precise selection can be made with Area selection
+(see <A HREF="chap02-01-03.html#chap02-01-03">Section 2-1-3</A>).
+<P>
+The "Print resolution" is the number of dots-per-inch (DPI) that the printer expects.
+Higher resolutions use more memory for the print image.
+<P>
+There are many PostScript options, available in the lower section.
+<UL>
+<LI>"Encapsulated" requests that the PostScript output to be insertable in other documents (EPS).
+</LI>
+<LI>"Color" offers four color choices: "Black&amp;White",
+uses stipple patterns for the layers;
+"Color" uses solid colors,
+but does not handle overlap (because PostScript does not handle transparency);
+"Color Stippled" uses color stipple patterns for better overlap; and
+"Color Merged" computes layer overlap and generates blended colors to recreate the appearance on the screen
+(this takes time and memory).
+</LI>
+<LI>"Printer" and "Plotter" let you specify the size of the page
+(choose "Printer" for devices that print onto single pieces of paper,
+and "Plotter" for devices that print onto continuous rolls of paper).
+The "Margin" field is the amount of white space to leave on the sides.
+All distances in the "Height", "Width", and "Margin" fields are in inches.
+</LI>
+<LI>"Line Width" controls the width of PostScript lines.  Although they default to 1, this may be too thin
+on some printers.
+</LI>
+<LI>"Rotation" controls rotation of the image by 90 degrees so that it fits better on the page.
+The default is "No Rotation", but the popup can switch to "Rotate plot 90 degrees" or
+"Auto-rotate plot to fit".
+</LI>
+<LI>"Plot Date In Corner" requests that additional information appear in the corner of the plot.
+</LI>
+<LI>"EPS Scale" sets the scale factor of the specified cell when it is written as encapsulated PostScript.
+</LI>
+<LI>
+"Synchronize to file" requests that PostScript files be synchronized with the current cell.
+Clicking the "Set" button prompts you for a file name,
+which is stored with the current cell.
+Whenever you write any PostScript,
+Electric checks all synchronized cells to see if they are newer than their associated disk file.
+If they are newer, the files are regenerated.
+Thus, you can specify PostScript files for many different cells in a library,
+and when PostScript is generated, all of the files will be properly updated to reflect the state of the design.
+</LI>
+</UL>
+
+<!-- TRAILER -->

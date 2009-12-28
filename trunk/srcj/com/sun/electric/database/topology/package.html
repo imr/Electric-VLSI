@@ -1,0 +1,18 @@
+<BODY>
+Package for connected Nodes and Arcs.
+Each facet consists of a network of nodes and arcs.
+Nodes are electrical components such as transistors and contacts.
+Arcs are wires that connect nodes.
+Each node has ports on it which are the sites of arc connections.
+A port may connect to any number of arcs, but every arc connects exactly two ports.
+<P>
+<CENTER><IMG SRC="doc-files/Topology-1.gif"></CENTER>
+<P>
+Actual implementation of the database uses two types of objects for the nodes, arcs, and ports.
+A single prototype object describes the typical node, arc, or port;
+and multiple instance objects are created for every actual node, arc, and port used in a circuit.
+Thus, the transistor is represented as a node prototype and four port prototypes in the technology.
+Every use of a transistor in a circuit is then represented as a node instance with port instances for the connections.
+<P>
+<CENTER><IMG SRC="doc-files/Topology-2.gif"></CENTER>
+</BODY>

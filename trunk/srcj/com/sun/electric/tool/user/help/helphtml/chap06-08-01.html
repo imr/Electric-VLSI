@@ -1,0 +1,33 @@
+<!-- HEADER 6-8-1: Understanding Text -->
+
+There are a number of ways to place text in a circuit.
+<UL>
+<LI>
+Each unexpanded instance of a cell has text that describes it, and its ports.
+</LI>
+<LI>Each export has a text label.
+</LI>
+<LI>Nodes and arcs can be named (with <B>Object Properties...</B>) so that they have text on them.
+They can also have additional <I>attributes</I> that appear as text (for example, NCC annotations,
+Spice multipliers, Verilog transistor strength, etc.)
+</LI>
+<LI>Certain primitive nodes (such as the Flip-Flop component of the Schematic technology)
+have text as an integral part of their image.
+</LI>
+<LI>It is even possible to create a special node that is only text
+(with some of the commands under the "Misc" entry of the component menu:
+"Annotation Text", "Spice Code", "Spice Declaration", "Verilog Code", and "Verilog Declaration").
+</LI>
+<LI>Schematic and icon cells can have parameter definitions,
+and the instances of those cells can have parameter values
+(see <A HREF="chap06-08-05.html#chap06-08-05">Section 6-8-5</A>).
+</UL>
+Essentially, every piece of text on the display is tied to some node or arc (or occasionally a cell).
+By understanding the relationship between text and its attached object,
+it becomes easy to manipulate that text.
+<P>
+The visibility of text can be controlled with the "Layers" tab of the sidebar
+(see <A HREF="chap04-05-03.html#chap04-05-03">Section 4-5-3</A>).
+This allows you to reduce the clutter of text on the display.
+
+<!-- TRAILER -->

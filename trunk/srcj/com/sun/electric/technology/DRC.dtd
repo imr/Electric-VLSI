@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- First attemp to store DRC rules in files -->
+<!--<!ELEMENT ruleName (#PCDATA)> -->
+ <!ELEMENT DRCRules (Foundry)*>
+ <!ELEMENT Foundry ((LayerRule|LayersRule|NodeLayersRule|NodeRule)*)>
+ <!ELEMENT LayerRule ANY>   <!-- Rules for particular layers -->
+ <!ELEMENT LayersRule ANY>  <!-- Spacing rules between layers -->
+ <!ELEMENT NodeLayersRule ANY> <!-- Spacing between layers in a node -->
+ <!ELEMENT NodeRule ANY> <!-- special for transistors so far -->
+ <!ATTLIST Foundry name CDATA #REQUIRED>
+ <!ATTLIST LayerRule
+    ruleName CDATA #REQUIRED
+    layerName CDATA #REQUIRED
+    type (MINWID | MINWIDCOND | MINAREA | MINENCLOSEDAREA | SURROUND) #REQUIRED
+    when CDATA #REQUIRED
+    value CDATA #REQUIRED
+    condition CDATA #IMPLIED
+ >
+ <!-- value in LayersRule is implied due to COMBINATION -->
+ <!ATTLIST LayersRule
+    ruleName CDATA #REQUIRED
+    layerNames CDATA #REQUIRED
+    type (CONSPA | UCONSPA | UCONSPA2D | SPACING | SPACINGE | FORBIDDEN | EXTENSION | EXTENSIONGATE | SURROUND) #REQUIRED
+    when CDATA #REQUIRED
+    valueX CDATA #IMPLIED
+    valueY CDATA #IMPLIED
+    value CDATA #IMPLIED
+    maxW CDATA #IMPLIED
+    minLen CDATA #IMPLIED
+    nodeName CDATA #IMPLIED
+    condition CDATA #IMPLIED
+ >
+ <!ATTLIST NodeLayersRule
+    ruleName CDATA #REQUIRED
+    layerNames CDATA #REQUIRED
+    nodeName CDATA #REQUIRED
+    type (SURROUND | ASURROUND) #REQUIRED
+    when CDATA #REQUIRED
+    value CDATA #IMPLIED
+    valueX CDATA #IMPLIED
+    valueY CDATA #IMPLIED
+ >
+ <!ATTLIST NodeRule
+    ruleName CDATA #REQUIRED
+    type (NODSIZ | FORBIDDEN) #REQUIRED
+    when CDATA #REQUIRED
+    value CDATA #IMPLIED
+    valueX CDATA #IMPLIED
+    valueY CDATA #IMPLIED
+    nodeName CDATA #REQUIRED
+ >

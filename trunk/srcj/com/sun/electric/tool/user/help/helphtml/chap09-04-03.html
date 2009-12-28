@@ -1,0 +1,242 @@
+<!-- NEED 5in -->
+<!-- HEADER 9-4-3: Spice -->
+
+<!-- COMMAND Tools/Simulation (Spice)/Write Spice Deck... -->
+<!-- COMMAND Tools/Simulation (Spice)/Plot Spice Listing... -->
+<!-- COMMAND Tools/Simulation (Spice)/Plot Spice for This Cell -->
+<!-- COMMAND Tools/Simulation (Spice)/Add Multiplier -->
+<!-- COMMAND Tools/Simulation (Spice)/Add Flat Code -->
+<!-- COMMAND Tools/Simulation (Spice)/Set Spice Model... -->
+<!-- COMMAND Tools/Simulation (Spice)/Set Netlist Cell From File -->
+<!-- PREFERENCE Tools/Spice -->
+<!-- PREFERENCE Tools/Spice Model Files -->
+
+Electric can produce input decks for Spice simulation with <B>Write Spice Deck...</B> command
+(in menu <B>Tools / Simulation (Spice)</B>).
+After this has been done, you must run Spice externally to produce a simulation output file.
+Note that the Electric distribution does not come with a Spice simulator: you must obtain it separately.
+<P>
+Once Spice has been run,
+you can see a plot of the simulation by reading the Spice output file back into Electric.
+Since there are may formats of Spice output, you must first set the "Spice Engine" and the "Output format" fields of the
+Spice Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice" tab).
+The "Output format" field is "Standard" for the default output of the Spice engine; "Raw" for rawfile dumps;
+and "Raw/Smart" for the rawfile dumps from SmartSpice.
+<P>
+When Electric knows what type of Spice output file to expect, use the <B>Plot Spice Listing...</B>
+command (in menu <B>Tools / Simulation (Spice)</B>) to read the file.
+If the file has the same name as the current cell, you can more simply use <B>Plot Spice for This Cell</B>,
+which does not need to prompt for a file name.
+The Spice simulation information is shown in an analog waveform window
+(see <A HREF="chap04-11-02.html#chap04-11-02">Section 4-11-2</A> for more).
+<P>
+<H4>Special Spice Nodes</H4>
+<P>
+<TABLE><TR><TD VALIGN=TOP>
+There are many powerful facilities for running Spice with Electric.
+The example shown here illustrates some of these facilities.
+This example is available in the Samples library as cell "tool-SimulateSpice"
+(you can read the library with the <B>Load Sample Cells Library</B> command, in menu <B>Help</B>).
+<P>
+All input values to Spice are controlled with special nodes,
+found in the "Spice" component menu entry.
+Note that the first time any Spice node is placed, the library of Spice parts is loaded into Electric,
+so there may be a delay.
+</TD><TD><CENTER><IMG SRC="fig09-30.png" ALT="Figure 9.30"></CENTER></TD></TR></TABLE>
+<P>
+The Spice nodes described here are Electric's default set.
+However, additional sets can (and have) been written.
+To choose another set, use the
+Spice Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice" tab).
+Under the setting "Spice primitive set", choose another set.
+A second set of nodes, called "SpicePartsS3", is tailored towards special Spice3.
+<P>
+<!-- NEED 3in -->
+<TABLE><TR>
+<TD><CENTER><IMG SRC="fig09-08.png" ALT="Figure 9.8"></CENTER></TD><TD>
+In this example, there is a 5-volt supply on the left.
+It was created by using the "DC Voltage" entry under "Spice" entry of the component menu.
+Once placed, the text that reads "Voltage=0V" can be selected and modified
+(either with <B>Object Properties...</B> or by double-clicking on it).
+The Pulse input signal on the right is created with the "Pulse" entry under "Spice" (it has 7 parameters).
+<P>
+There are both voltage and current sources, in AC and DC form.
+There is a piecewise-linear (PWL) source, and two pulses (voltage and current).
+A set of "two-gate" devices are also available: "CCCS", "CCVS", "VCCS", "VCVS",
+and "Transmission".
+<P>
+It is possible to specify Transient, DC, or AC analysis by using the "Transient Analysis",
+"DC Analysis", and "AC Analysis" subcommands.
+The "Probe" lets you graphically specify signals of interest to Spice.
+Only one such element may exist in a circuit.
+</TD></TR></TABLE>
+<P>
+For advanced users, there are two special Spice nodes: "Node Set" and "Extension".
+The Node Set may be parameterized with an arbitrary piece of Spice code.
+Truly advanced users may create their own Spice nodes by modifying the cells in the Spice library
+(see <A HREF="chap09-04-04.html#chap09-04-04">next Section</A>).
+<P>
+<H4>Spice Text</H4>
+<P>
+This example also shows the ability to add arbitrary text to the Spice deck, as shown in the lower-right.
+To create this text, use the "Spice Code" or "Spice Declaration" entries under the "Misc." button in the component menu.
+These command create text that can be modified arbitrarily.
+Whatever the text says will be added to the Spice deck (declarations go near the top).
+<P>
+Another option that can be used when modeling transistors and other component is to set a specific Spice model to use for that component.
+To set a node's model, select it and use the <B>Set Spice Model...</B> command (in menu <B>Tools / Simulation (Spice)</B>).
+<P>
+The <B>Add Multiplier</B> subcommand places a multiplier on the currently selected node.
+Multipliers (also called "M" factors) scale the size of transistors inside of them.
+<P>
+Another piece of text that can be added to a circuit is for separate flattened analysis files.
+This is useful for Nanosim timing assertions, hierarchical measurements, etc.
+The <B>Add Flat Code</B> subcommand places a piece of text in the circuit that will be flattened
+and written to a separate file with the "flatcode" extension.
+Flattening adds global scope to these statements.
+For example, if you place a Nanosim timing assertion in a cell with the flat code
+<BR><CODE>&nbsp;&nbsp;&nbsp;tv_node_setuphold $(clk) rf $(in) rf 100p 100p</CODE><BR>
+and there are 3 instances of the cell, then there will be 3 flattened assertions in the flatcode file:
+<BR><CODE>&nbsp;&nbsp;&nbsp;tv_node_setuphold xtop.xflop1.clk rf xtop.flop1.in rf 100p 100p<BR>
+&nbsp;&nbsp;&nbsp;tv_node_setuphold xtop.xflop2.clk rf xtop.flop2.in rf 100p 100p<BR>
+&nbsp;&nbsp;&nbsp;tv_node_setuphold xtop.xflop3.clk rf xtop.flop3.in rf 100p 100p</CODE><BR>
+If <CODE>clk</CODE> is actually a single signal that comes from the top level, it is smart enough to recognize this:
+<BR><CODE>&nbsp;&nbsp;&nbsp;tv_node_setuphold clk rf xtop.flop1.in rf 100p 100p<BR>
+&nbsp;&nbsp;&nbsp;tv_node_setuphold clk rf xtop.flop2.in rf 100p 100p<BR>
+&nbsp;&nbsp;&nbsp;tv_node_setuphold clk rf xtop.flop3.in rf 100p 100p</CODE><BR>
+<P>
+<!-- NEED 7in -->
+<H4>Spice Preferences</H4>
+<P>
+Some nongraphical information can also be given to the Spice simulator with the
+Spice Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice" tab).
+<P>
+<CENTER><IMG SRC="fig09-03.png" ALT="Figure 9.3"></CENTER>
+<P>
+<!-- NEED 3in -->
+The top part of this dialog allows you to control Spice deck generation:
+<UL>
+<LI><B>Spice engine</B> Can be Spice 2, Spice 3, HSpice, PSpice, Gnucap, or SmartSpice.</LI>
+<LI><B>Spice level</B> Can be 1, 2, or 3 (not used anymore).</LI>
+<LI><B>Resistor shorting</B> Specifies which resistors get shorted when writing a Spice netlist from a schematic.
+Choices are:
+  <UL>
+  <LI>"none" no resistors are shorted.
+  This preserves all resistors (useful for simulations).</LI>
+  <LI>"normal only" only normal schematic resistors are shorted.
+  This is useful when running external LVS tools like Calibre and Assura against a Spice netlist because
+  it shorts out parasitic resistors (such as from wire models)
+  but preserves poly resistors which are actual devices in the layout.</LI>
+  <LI>"normal and poly" both normal and poly schematic resistors are shorted.
+  This is available only because the Verilog netlister uses the same netlisting subsystem;
+  it is unlikely that you will want this setting for Spice netlisting.</LI>
+  </UL>
+<LI><B>Parasitics</B> Controls the writing of parasitics in the Spice deck.
+Choices are:
+  <UL>
+  <LI>"Trans area/perim only" which writes the area and perimeter of transistor active but
+does not write any Resistor/Capacitor information.</LI>
+  <LI>"Conservative RC" writes Resistor/Capacitor information (in addition to the area/perimeter).</LI>
+  </UL>
+</LI>
+<LI><B>Globals</B> Has three options for the treatment of global signals (such as power and ground):
+  <UL>
+  <LI>"No special treatment" causes globals to be treated like other signals.</LI>
+  <LI>"Use .GLOBAL block" places global signals in a .GLOBAL block (not supported by all versions of Spice).</LI>
+  <LI>"Create .SUBCKT ports" causes globals to be added to .SUBCKT headers as explicit ports.
+      Note that this preference should be used when Global Partitions are in use
+      (see <A HREF="chap06-09-05.html#chap06-09-05">Section 6-9-5</A>).</LI>
+  </UL>
+</LI>
+<LI><B>Spice primitive set</B> Switches between Spice primitive sets.
+Currently there are only two: "spiceparts" and "spicepartsG3".</LI>
+<LI><B>Write VDD/GND in top cell</B> Whether to write power and ground signals in the top-level cell.</LI>
+<LI><B>Use cell parameters</B> When set, any parameters defined on the cell will appear in the Spice deck.
+When not checked, each parameterized cell appears multiple times in the deck,
+once for each different parameter combination.
+See <A HREF="chap06-08-05.html#chap06-08-05">Section 6-8-5</A> for more on parameters.
+<LI><B>Write trans sizes in units</B> Requests that the Spice deck contain scalable size information
+instead of absolute size information.</LI>
+<LI><B>Write .subckt for top cell</B> Requests that a the top-level cell be written
+as a subcircuit, and a call made to it.
+The default is to write the top-level cell without a subcircuit wrapper.</LI>
+<LI><B>Write .end statement</B> Requests that an .end statement be written at the end of the deck.
+This can be disabled in situations where the deck is part of a larger Spice deck.</LI>
+<LI><B>Use Header cards from files with extension</B>
+specifies that header cards (placed at the start of the Spice deck)
+can be found in a file with the cell's name and the given extension.</LI>
+<LI><B>Use Header cards from file</B> lets you specify the file with header cards.</LI>
+<LI><B>No Header cards</B> prevents any header cards from being written to the Spice deck.</LI>
+<LI><B>Use Trailer cards from files with extension</B>
+specifies that trailer cards (placed at the end of the Spice deck)
+can be found in a file with the cell's name and the given extension.</LI>
+<LI><B>Use Trailer cards from file</B> lets you specify the file with trailer cards.</LI>
+<LI><B>No Trailer cards</B> prevents any trailer cards from being written to the Spice deck.</LI>
+</UL>
+<P>
+Note that the header and trailer information is specific to a particular technology.
+If you set this information for one technology, but then use another technology when generating the Spice deck,
+the information that you set will not be used.
+Note also that schematics, although a technology in Electric, are not considered to be Spice technology.
+You can set the proper layout technology that you want to use when dealing with schematics by using the
+"Layout technology to use for schematics" popup.
+This popup can be found in the
+Technology Preferences (in menu <B>File / Preferences...</B>, "Technology" tab,
+see <A HREF="chap07-01-02.html#chap07-01-02">Section 7-1-2</A>).
+<P>
+The middle part of the dialog controls how Spice can be run after a deck has been written:
+<UL>
+<LI><B>After writing deck</B> Electric can create an external process as specified by the user to
+run Spice on the generated netlist.
+If the pull-down box is set to "Don't Run", nothing is done.
+If the pull-down box is set to "Run, Ignore Output", the external process is run,
+and the user is notified when it is finished.
+If set to "Run, Report Output", a dialog box is opened to show the user the output produced by the process.
+Please note that this is a <I>process</I>, and not a command line command.
+For example, <CODE>echo blah &gt; file</CODE> will NOT work.
+Encapsulate it in a script if you want to do such things.</LI>
+<LI><B>Run program</B> Identifies the Spice program to run.</LI>
+<LI><B>With args</B> the arguments passed to the program.</LI>
+<LI><B>Use dir</B> if specified, this is the working directory of the program.</LI>
+<LI><B>Overwrite existing file (no prompts)</B> this will overwrite the existing netlist without prompting the user.</LI>
+<LI><B>Run probe</B> this will run the waveform viewer on the output of the Spice run.</LI>
+<LI><B>Help</B> tells which environment variables are exported to be used by the process.</LI>
+</UL>
+<P>
+The following variables are available to use in the program name and arguments:
+<UL>
+<LI><B>${WORKING_DIR}</B> The current working directory.</LI>
+<LI><B>${USE_DIR}</B> The Use Dir field, if specified (otherwise defaults to WORKING_DIR).</LI>
+<LI><B>${FILENAME}</B> The output file name (with extension).</LI>
+<LI><B>${FILENAME_NO_EXT}</B> The output file name (without extension).</LI>
+<LI><B>${FILEPATH}</B> The full path to the output file.</LI>
+</UL>
+<P>
+The bottom part of the dialog controls the reading back of Spice output for plotting in the waveform window:
+<UL>
+<LI><B>Output format</B> The format to expect when reading Spice output.
+The choices are "Standard" (the default),
+"Raw" (raw format),
+"RawSmart" (SmartSpice raw format),
+"RawLT" (LTSpice raw format),
+and "Epic" (for Nanosim).</LI>
+<LI><B>Epic reader memory size</B> Sets the amount of memory to allocate to the separate reader process
+(which is only valid if the Output format is set to Epic).</LI>
+<LI><B>Extracted network delimiter character</B> The character that separates automatically-extracted
+networks in the Spice output.
+Some Spice engines use ":" and others use "#".</LI>
+</UL>
+<P>
+<!-- NEED 5in -->
+Another set of controls can be used is the Spice Model Files Preferences
+(in menu <B>File / Preferences...</B>, "Tools" section, "Spice Model Files" tab).
+This dialog allows you to specify a disk file of Spice cards that will be used to describe any cell.
+Instead of the cell subcircuit, the specified disk file is "included" in the deck.
+<P>
+<CENTER><IMG SRC="fig09-11.png" ALT="Figure 9.11"></CENTER>
+<P>
+The same function can be done by using the <B>Set Netlist Cell From File</B> command
+(in menu <B>Tools / Simulation (Spice)</B>).
+This places a piece of text in the cell, which you must edit to be the path to a disk file.
+That file will then be included in the Spice deck instead of the actual subcircuit of the cell.
+<!-- TRAILER -->

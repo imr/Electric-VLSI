@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- -*- tab-width: 4 -*-  -->
+
+<!-- Electric(tm) VLSI Design System -->
+
+<!-- File: build.xml -->
+
+<!-- Copyright (c) 2005 Sun Microsystems and Static Free Software -->
+
+<!-- Electric(tm) is free software; you can redistribute it and/or modify -->
+<!-- it under the terms of the GNU General Public License as published by -->
+<!-- the Free Software Foundation; either version 3 of the License, or -->
+<!-- (at your option) any later version. -->
+
+<!-- Electric(tm) is distributed in the hope that it will be useful, -->
+<!-- but WITHOUT ANY WARRANTY; without even the implied warranty of -->
+<!-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the -->
+<!-- GNU General Public License for more details. -->
+
+<!-- You should have received a copy of the GNU General Public License -->
+<!-- along with Electric(tm); see the file COPYING.  If not, write to -->
+<!-- the Free Software Foundation, Inc., 59 Temple Place, Suite 330, -->
+<!-- Boston, Mass 02111-1307, USA. -->
+
+<project basedir="." default="jar" name="electric">
+
+    <target name="init" description="Initialization">
+        <property name="beanshell" value="../packaging/bsh-2.0b4.jar"/>
+        <property name="AppleJava" value="../packaging/AppleJavaExtensions.jar"/>
+        <property name="JUnit" value="../packaging/junit-4.5.jar"/>
+        <property name="lucene" value="../packaging/lucene-1.4.3.jar"/>
+        <property name="prefuse" value="../packaging/prefuse.jar"/>
+        <property name="jython" value="../packaging/jython.jar"/>
+    </target>
+
+    <!-- Patternset for 3D dependencies -->
+    <patternset id="exclusion3D">
+        <exclude name="com/sun/electric/plugins/JMF/" unless="JMF"/>
+        <exclude name="com/sun/electric/plugins/j3d/" if="NO3D"/>
+        <!-- you don't include either Java3D plugin if 3D option is out -->
+        <!-- this is valid when Java3D is not installed -->
+        <exclude name="com/sun/electric/plugins/Java3D/" if="NO3D"/>
+    </patternset>
+
+    <!-- Patternset for all exclusions -->
+    <patternset id="exclusion">
+        <patternset refid="exclusion3D" />
+        <exclude name="com/sun/electric/plugins/calibre/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/csa/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/dais/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/generator/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/Java3D/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/jogl/" unless="JOGL"/>
+        <exclude name="com/sun/electric/plugins/irsim/" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/libertyRW/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/manualRussian/"/>
+        <exclude name="com/sun/electric/plugins/menus/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/oa/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/oyster/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/pie/"/>
+        <exclude name="com/sun/electric/plugins/prefuse/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/sctiming/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/skill/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/sunRouter/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/tests/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/tsmc/" unless="SUN"/>
+        <exclude name="com/sun/electric/tool/simulation/eventsim/" unless="SUN"/>
+        <exclude name="com/sun/electric/tool/simulation/interval/" unless="SUN"/>
+        <exclude name="com/sun/electric/tool/user/MacOSXInterface.java" if="NOMAC"/>
+    </patternset>
+
+    <!-- Path for minimum set of external jars -->
+    <path id="externalClassPath">
+        <pathelement location="../packaging/bsh-2.0b2.jar"/>
+        <pathelement location="../packaging/AppleJavaExtensions.jar"/>
+    </path>
+
+    <!-- Path for prefuse libraries -->
+    <path id="prefuseClassPath">
+        <!--<pathelement location="${lucene}"/>-->
+        <pathelement location="../packaging/prefuse.jar"/>
+    </path>
+
+    <!-- Path for Jython -->
+    <path id="jythonClassPath">
+        <pathelement location="../packaging/jython.jar"/>
+    </path>
+
+    <!-- Use -DGNU=1 to build the GNU release -->
+    <!-- Use -DSFS=1 to build the SFS release -->
+    <!-- Use -DSUN=1 to build the Sun release -->
+    <!-- Use -Dsource=1 to include source code in the release -->
+    <!-- Use -DJMF=1 to include JMF plugin -->
+    <target name="compile" depends="init" description="Compile">
+        <javac debug="true" deprecation="true" destdir="." srcdir="."
+            fork="true" memoryMaximumSize="512m" source="1.5" target="1.5">
+            <!--compilerarg value="-Xlint:unchecked"/-->
+            <classpath refid="externalClassPath" />
+            <classpath refid="prefuseClassPath" />
+            <patternset refid="exclusion" />
+        </javac>
+    </target>
+
+    <target name="compileToBin" depends="init" description="Compile to 'bin' directory">
+        <javac debug="true" deprecation="true" destdir="bin" srcdir="." source="1.5" target="1.5"
+            fork="true" memoryMaximumSize="512m">
+            <classpath refid="externalClassPath" />
+            <classpath refid="prefuseClassPath" />
+            <patternset refid="exclusion" />
+        </javac>
+        <copy todir="bin/com">
+            <fileset dir="com">
+                <include name="**/*.bsh"/>
+                <include name="**/*.gif"/>
+                <include name="**/*.html"/>
+                <include name="**/*.jelib"/>
+                <include name="**/*.png"/>
+                <include name="**/*.prm"/>
+                <include name="**/*.txt"/>
+                <include name="**/*.wav"/>
+                <include name="**/*.xml"/>
+                <include name="**/*.xsd"/>
+                <include name="**/*.dtd"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="compileTests" depends="init,compile" description="Compile tests">
+        <javac debug="true" deprecation="true" destdir="." srcdir="../tests" source="1.5" target="1.5"
+            fork="true" memoryMaximumSize="512m">
+            <classpath><pathelement location="${JUnit}"/></classpath>
+        </javac>
+    </target>
+
+    <target name="runFromBin" depends="init,compileToBin" description="Run from 'bin' directory">
+        <java classname="com.sun.electric.Launcher" failonerror="true"
+            fork="true" maxmemory="1024m">
+            <classpath>
+                <pathelement location="bin"/>
+           </classpath>
+            <classpath refid="externalClassPath" />
+            <classpath refid="prefuseClassPath" />
+           <arg value="-debug"/>
+        </java>
+    </target>
+
+    <target name="runMain" depends="init,compile" description="Run the Main class">
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="1024m">
+            <jvmarg value="-enableassertions"/>
+            <classpath>
+                <pathelement location="."/>
+           </classpath>
+            <classpath refid="externalClassPath" />
+            <classpath refid="prefuseClassPath" />
+            <arg value="-debug"/>
+        </java>
+    </target>
+
+    <target name="runTests" depends="compileTests" description="Run unit tests">
+        <java classname="org.junit.runner.JUnitCore" failonerror="true" fork="true" maxmemory="1024m">
+            <jvmarg value="-enableassertions"/>
+            <classpath>
+                <pathelement location="${JUnit}"/>
+                <pathelement location="."/>
+           </classpath>
+            <classpath refid="externalClassPath" />
+            <classpath refid="prefuseClassPath" />
+           <arg value="com.sun.electric.database.ImmutableArcInstTest"/>
+           <arg value="com.sun.electric.database.ImmutableCellTest"/>
+           <arg value="com.sun.electric.database.ImmutableElectricObjectTest"/>
+           <arg value="com.sun.electric.database.ImmutableNodeInstTest"/>
+           <arg value="com.sun.electric.database.SerializationTest"/>
+           <arg value="com.sun.electric.database.SnapshotTest"/>
+           <arg value="com.sun.electric.database.geometry.EPointTest"/>
+           <arg value="com.sun.electric.database.geometry.ERectangleTest"/>
+           <arg value="com.sun.electric.database.geometry.GenMathTest"/>
+           <arg value="com.sun.electric.database.geometry.OrientationTest"/>
+           <arg value="com.sun.electric.database.id.CellIdTest"/>
+           <arg value="com.sun.electric.database.id.IdManagerTest"/>
+           <arg value="com.sun.electric.database.id.IdReaderWriterTest"/>
+           <arg value="com.sun.electric.database.id.TechIdTest"/>
+           <arg value="com.sun.electric.database.variable.CodeExpressionTest"/>
+           <arg value="com.sun.electric.database.variable.TextDescriptorTest"/>
+        </java>
+    </target>
+
+    <!-- Delete Electric packages -->
+    <target name="deleteElectric" description="Delete .class files after build">
+        <delete quiet="true">
+            <fileset dir=".">
+                <include name="**/*.class"/>
+            </fileset>
+        </delete>
+    </target>
+
+    <!-- Delete jar files in packages -->
+     <target name="deleteExternalJars" description="Delete extracted Jar files to cleanup after build">
+        <delete dir="META-INF"/>
+        <delete dir="bsh"/>   <!-- beanshell -->
+        <delete dir="org"/>   <!-- lucene, jython -->
+        <delete dir="prefuse"/>
+        <delete dir="com/apple"/>
+        <delete dir="com/xhaus"/> <!--jython -->
+        <delete dir="com/ziclix"/> <!--jython -->
+        <delete dir="javatests"/> <!--jython -->
+        <delete dir="jline"/> <!--jython -->
+        <delete dir="com/sun/jna"/> <!--jython -->
+        <delete dir="Lib"/> <!--jython -->
+        <delete dir="junit"/>
+        <delete dir="junit4.0"/>
+        <delete dir="junit4.1"/>
+        <delete file="acknowledgements.txt"/>
+    </target>
+
+    <target name="jarForGNUBinary" description="Make binary Jar file for GNU">
+        <antcall target="generalPurposeJar">
+            <param name="GNU" value="1"/>
+        </antcall>
+    </target>
+
+    <target name="jarForGNUSource" description="Make source Jar file for GNU">
+        <antcall target="generalPurposeJar">
+            <param name="GNU" value="1"/>
+            <param name="source" value="1"/>
+        </antcall>
+    </target>
+
+    <target name="jarForSFSSource" description="Make source Jar file for SFS">
+        <antcall target="generalPurposeJar">
+            <param name="SFS" value="1"/>
+            <param name="source" value="1"/>
+        </antcall>
+    </target>
+
+    <target name="jarWithVersion" description="Make source Jar file for Sun">
+        <antcall target="generalPurposeJar">
+            <param name="SUN" value="1"/>
+            <param name="source" value="1"/>
+        </antcall>
+    </target>
+
+    <target name="jarForIRSIM" depends="init,compile" description="Make source Jar file for IRSIM">
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+                <arg value="-v"/>
+        </java>
+        <copy file="../packaging/LicenseIRSIM.txt" tofile="LicenseIRSIM.txt"/>
+        <jar basedir="." compress="true" jarfile="electricIRSIM-${version}.jar">
+                <include name="LicenseIRSIM.txt"/>
+                <include name="com/sun/electric/plugins/irsim/*.*"/>
+        </jar>
+        <antcall target="deleteElectric"></antcall>
+        <delete file="LicenseIRSIM.txt"/>
+    </target>
+
+    <target name="jarForPIE" depends="init,compile" description="Make source Jar file for Port Interchange Experiment">
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+                <arg value="-v"/>
+        </java>
+        <jar basedir="." compress="true" jarfile="electricPIE-${version}.jar">
+                <include name="com/sun/electric/plugins/pie/*"/>
+                <include name="com/sun/electric/plugins/pie/*/*"/>
+        </jar>
+        <antcall target="deleteElectric"></antcall>
+    </target>
+
+    <target name="jarForRussianManual" depends="init,compile" description="Make Jar file for Russian User's Manual">
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+                <arg value="-v"/>
+        </java>
+        <jar basedir="." compress="true" jarfile="electricRussianManual-${version}.jar">
+                <include name="com/sun/electric/plugins/manualRussian/*.*"/>
+        </jar>
+        <antcall target="deleteElectric"></antcall>
+    </target>
+
+    <target name="jarForJava3D" depends="init,compile" description="Make source Jar file for Java3D plugin">
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+                <arg value="-v"/>
+        </java>
+        <jar basedir="." compress="true" jarfile="electricJava3D-${version}.jar">
+                <include name="com/sun/electric/plugins/Java3D/*.*"/>
+        </jar>
+        <antcall target="deleteElectric"></antcall>
+    </target>
+
+    <target name="jarForJMF" depends="init" description="Make source Jar file for JMF plugin">
+        <antcall target="compile">
+                <param name="JMF" value="1"/>
+            </antcall>
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+                <arg value="-v"/>
+        </java>
+        <jar basedir="." compress="true" jarfile="electricJMF-${version}.jar">
+                <include name="com/sun/electric/plugins/JMF/*.*"/>
+        </jar>
+        <antcall target="deleteElectric"></antcall>
+    </target>
+
+    <!-- Not able to put if condition inside unjar -->
+    <target name="unjarSUN" if="SUN" description="Extract Jar files used in Sun release">
+        <unjar dest="." src="${beanshell}"/>
+        <unjar dest="." src="${lucene}"/>
+        <unjar dest="." src="${prefuse}"/>
+        <antcall target="unjarJython"></antcall>
+    </target>
+
+    <target name="unjarJython" unless="NOJYTHON" description="Extract Jython if used in Sun release">
+        <unjar dest="." src="${jython}"/>
+    </target>
+    
+    <target name="generalPurposeJar" depends="init,compile" description="Make Jar file with version">
+        <!-- -->
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+                <arg value="-v"/>
+        </java>
+        <antcall target="unjarSUN"></antcall>
+        <delete dir="META-INF"/>
+        <copy file="../packaging/electric.mf" tofile="electric.mf"/>
+        <copy file="../packaging/LicenseGNU.txt" tofile="COPYING.txt"/>
+        <copy file="../packaging/ReadmeGNUSrcDwn.txt" tofile="README.txt"/>
+        <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="electric.mf">
+            <exclude name="**/.nfs*"/>
+            <exclude name="apidoc/"/>
+            <exclude name="build.xml" unless="source"/>
+            <exclude name="ChangeLog.txt" unless="source"/>
+            <exclude name="classes/" unless="source"/>
+            <exclude name="dotClasspath.txt"/>
+            <exclude name="dotProject.txt"/>
+            <exclude name="electric*.jar"/>
+            <exclude name="electric.log"/>
+            <exclude name="electric.mf"/>
+            <exclude name="nbproject/"/>
+            <exclude name="OLDChangeLog.txt"/>
+            <exclude name=".settings/"/>
+            <exclude name="../packaging/*.jar"/>
+            <exclude name="../packaging/*.gif"/>
+            <exclude name="../packaging/*.lsm"/>
+            <exclude name="../packaging/MakePDF.book"/>
+            <exclude name=".settings"/>
+            <exclude name="xml/"/>
+            <patternset refid="exclusion" />
+            <exclude name="**/*.java" unless="source"/>
+            <exclude name="**/*.form" unless="source"/>
+            <!-- out due to #2427
+            <zipfileset src="${beanshell}"/>
+            <zipfileset src="${lucene}"/>
+            <zipfileset src="${jython}"/>
+            <zipfileset src="${prefuse}"/>
+            -->
+        </jar>
+        <delete file="electric.mf"/>
+        <delete file="COPYING.txt"/>
+        <delete file="README.txt"/>
+        <antcall target="deleteExternalJars"></antcall>
+        <antcall target="deleteElectric"></antcall>
+            <!-- Don't move this property definition up -->
+        <property name="version" value=""/>
+    </target>
+
+    <target name="jar" description="Make binary Jar file">
+            <antcall target="jarWithTests">
+                <param name="SUN" value="1"/>
+            </antcall>
+    </target>
+
+    <target name="jarLight" description="Make binary Jar file without Jython">
+            <antcall target="jarWithTests">
+                <param name="SUN" value="1"/>
+                <param name="NOJYTHON" value="1"/>
+            </antcall>
+    </target>
+
+    <target name="jarWithTests" depends="clean,init,compileTests" description="Make binary Jar file">
+        <antcall target="unjarSUN"></antcall>
+        <copy file="../packaging/electric.mf" tofile="electric.mf"/>
+        <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
+            <exclude name="**/.nfs*"/>
+            <exclude name="apidoc/"/>
+            <exclude name="build.xml" unless="source"/>
+            <exclude name="ChangeLog.txt" unless="source"/>
+            <exclude name="classes/" unless="source"/>
+            <exclude name="dotClasspath.txt"/>
+            <exclude name="dotProject.txt"/>
+            <exclude name="electric*.jar"/>
+            <exclude name="electric.log"/>
+            <exclude name="electric.mf"/>
+            <exclude name="nbproject/"/>
+            <exclude name="OLDChangeLog.txt"/>
+            <exclude name="../packaging/"/>
+            <exclude name=".settings"/>
+            <exclude name="xml/"/>
+            <patternset refid="exclusion" />
+            <exclude name="**/*.java" unless="source"/>
+            <exclude name="**/*.form" unless="source"/>
+            <zipfileset src="${AppleJava}" excludes="META-INF/**"/>
+            <zipfileset src="${JUnit}" excludes="META-INF/**"/>
+            <!--
+            <zipfileset src="${beanshell}" excludes="META-INF/**">
+                <selector if="SUN">
+                    <filename name="**/*"/>
+                </selector>
+            </zipfileset>
+            <zipfileset src="${lucene}" excludes="META-INF/**">
+                <selector if="SUN">
+                    <filename name="**/*"/>
+                </selector>
+            </zipfileset>
+            <zipfileset src="${jython}" excludes="META-INF/**">
+                <selector if="SUN">
+                    <filename name="**/*"/>
+                </selector>
+            </zipfileset>
+
+            <zipfileset src="${prefuse}" excludes="META-INF/**">
+                <selector if="SUN">
+                    <filename name="**/*"/>
+                </selector>
+            </zipfileset>
+            -->
+        </jar>
+        <delete file="electric.mf"/>
+        <antcall target="deleteExternalJars"></antcall>
+        <antcall target="deleteElectric"></antcall>
+        <delete quiet="true"> <!-- For JUnit? -->
+                    <fileset dir=".">
+                        <include name="to-do.txt"/>
+                                <include name="done.txt"/>
+                                <include name=".temp$junit.arx"/>
+                                <include name="stylesheet.css"/>
+                    </fileset>
+        </delete>
+    </target>
+
+    <target name="mac-app" description="Build Macintosh Application">
+        <!--
+        <java classpath="." classname="com.sun.electric.Main" fork="true" outputproperty="version">
+                <arg value="-v"/>
+        </java>
+        -->
+        <java jar="electric.jar" fork="true" outputproperty="version">
+                <arg value="-v"/>
+            <jvmarg value="-Xmx1000m"/>
+        </java>
+        <property name="releasedir" value="Release${version}"/>
+        <property name="appdir" value="${releasedir}/Electric.app"/>
+        <mkdir dir="${releasedir}"/>
+        <mkdir dir="${appdir}"/>
+        <mkdir dir="${appdir}/Contents"/>
+        <mkdir dir="${appdir}/Contents/MacOS"/>
+        <mkdir dir="${appdir}/Contents/Resources"/>
+        <mkdir dir="${appdir}/Contents/Resources/Java"/>
+        <copy file="/System/Library/Frameworks/JavaVM.framework/Versions/Current/Resources/MacOS/JavaApplicationStub" todir="${appdir}/Contents/MacOS"/>
+        <chmod file="${appdir}/Contents/MacOS/JavaApplicationStub" perm="755"/>
+        <copy file="../packaging/Info.plist" todir="${appdir}/Contents"/>
+        <replace file="${appdir}/Contents/Info.plist" token="@VERSION" value="${version}"/>
+        <copy file="../packaging/PkgInfo" todir="${appdir}/Contents"/>
+        <copy file="../packaging/electric.icns" todir="${appdir}/Contents/Resources"/>
+        <copy file="electric.jar" todir="${appdir}/Contents/Resources/Java"/>
+        <exec executable="/Developer/Tools/SetFile">
+            <arg value="-a"/> <arg value="B" /> <arg value="${appdir}" />
+        </exec>
+        <exec executable="../packaging/mkdmg.sh">
+            <arg value="Electric${version}"/> <arg value="${releasedir}" />
+        </exec>
+    </target>
+
+	<!-- JavaCC here to recreate those *.jj files if needed -->
+	<!-- Gives an idea how to compile those files -->
+	<!-- ${setmeupDir} must be specified and it could be machine dependent -->
+	<!-- Not adding those files because the used ones are in Sun-only plugins for now -->
+	<!-- 
+    <target name="javacc" description="Build *.java from *.jj">
+    	<javacc
+    	    target="${PATH}/Example.jj"
+    	    outputdirectory="${PATH}/"
+    	    javacchome="${setmeupDir}/bin/javacc-5.0"
+    	/>
+    </target>
+    -->
+
+	<!-- To create the dmg file for Mac boxes -->
+	
+    <target name="javadoc" depends="init" description="Create Javadoc">
+        <mkdir dir="apidoc"/>
+        <javadoc destdir="apidoc" private="false" use="true" source="1.5" maxmemory="400m">
+                <packageset dir=".">
+                        <include name="com/sun/electric/**"/>
+                        <exclude name="com/sun/electric/plugins/**"/>
+                </packageset>
+            <classpath>
+                <pathelement location="${beanshell}"/>
+                <pathelement location="${AppleJava}"/>
+            </classpath>
+            <sourcepath>
+                <pathelement location="."/>
+            </sourcepath>
+        </javadoc>
+    </target>
+
+    <target name="clean" depends="init" description="Clean all build products">
+        <antcall target="deleteElectric"></antcall>
+        <antcall target="deleteExternalJars"></antcall>
+        <delete dir="apidoc"/>
+        <delete dir="bin/com"/>
+        <delete file="electric.mf"/>
+
+        <!--<delete file="electric*.jar"/>-->   <!-- doesn't work on Linux at least -->
+        <delete quiet="false">
+            <fileset dir=".">
+                <include name="electric*.jar"/>
+            </fileset>
+        </delete>
+    </target>
+
+    <target name="compileTestCode">
+        <javac debug="true" deprecation="true" destdir="." srcdir="com/sun/electric/tool/simulation/test/"
+               fork="true" memoryMaximumSize="512m" source="1.5" target="1.5">
+            <include name="*.java"/>
+        </javac>
+        <jar basedir="." compress="true" jarfile="test.jar">
+            <include name="com/sun/electric/tool/simulation/test/**"/>
+        </jar>
+    </target>
+
+</project>

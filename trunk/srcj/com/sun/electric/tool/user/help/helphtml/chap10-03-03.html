@@ -1,0 +1,59 @@
+<!-- HEADER 10-3-3: Arc Instances -->
+
+Inside of a cell definition, arc instances are declared with the "A" line.
+All arcs are sorted by the arc name.
+The syntax is:
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="90%">
+<TR><TD COLSPAN=2><B>A&lt;type&gt; | &lt;name&gt; | &lt;nameTD&gt; | &lt;width&gt; | &lt;flags&gt; |
+&lt;headNode&gt; | &lt;headPortID&gt; | &lt;headX&gt; | &lt;headY&gt; | 
+&lt;tailNode&gt; | &lt;tailPortID&gt; | &lt;tailX&gt; | &lt;tailY&gt; [ | &lt;variable&gt; ]*</B></TD></TR>
+<TR><TD WIDTH="20%">&lt;type&gt;</TD><TD WIDTH="80%">the type of the arc instance.  It has the form: [&lt;technology&gt;:]&lt;arc&gt;.
+If technology is omitted, the technology of the cell is assumed.</TD></TR>
+<TR><TD>&lt;name&gt;</TD><TD>the name of the arc instance.</TD></TR>
+<TR><TD>&lt;nameTD&gt;</TD><TD>a text descriptor for the name (when displayed).</TD></TR>
+<TR><TD>&lt;width&gt;</TD><TD>the difference between width of the arc instance and standard width of this arc's prototype.</TD></TR>
+<TR><TD>&lt;flags&gt;</TD><TD>flags for the arc instance (see below).</TD></TR>
+<TR><TD>&lt;headNode&gt;</TD><TD>the name of the node at the head of the arc instance.</TD></TR>
+<TR><TD>&lt;headPortID&gt;</TD><TD>the ID of the port on the head node (may be blank if there are no choices).</TD></TR>
+<TR><TD>&lt;headX&gt;</TD><TD>the X coordinate of the head of the arc instance.</TD></TR>
+<TR><TD>&lt;headY&gt;</TD><TD>the Y coordinate of the head of the arc instance.</TD></TR>
+<TR><TD>&lt;tailNode&gt;</TD><TD>the name of the node at the tail of the arc instance.</TD></TR>
+<TR><TD>&lt;tailPortID&gt;</TD><TD>the ID of the port on the tail node (may be blank if there are no choices).</TD></TR>
+<TR><TD>&lt;tailX&gt;</TD><TD>the X coordinate of the tail of the arc instance.</TD></TR>
+<TR><TD>&lt;tailY&gt;</TD><TD>the Y coordinate of the tail of the arc instance.</TD></TR>
+<TR><TD>&lt;variable&gt;</TD><TD>a list of variables on the arc instance
+(see <A HREF="chap10-04-01.html#chap10-04-01">Section 10-4-1</A>).</TD></TR>
+</TABLE>
+</CENTER>
+<P>
+The &lt;flags&gt; field consists of any of the following letters, sorted alphabetically, with the numeric part at the end:
+<P>
+"A"	if the arc instance is hard-to-select.<BR>
+"B"	if the arc instance has an arrow line on the body (use "X" and "Y" for arrow heads).<BR>
+"F"	if the arc instance is NOT fixed-angle (fixed-angle is more common).<BR>
+"G"	if the arc instance has its head connection negated.<BR>
+"I"	if the arc instance has its head NOT extended.<BR>
+"J"	if the arc instance has its tail NOT extended.<BR>
+"N"	if the arc instance has its tail connection negated.<BR>
+"R"	if the arc instance is rigid.<BR>
+"S"	if the arc instance is slidable.<BR>
+"X"	if the arc instance has an arrow on the head (use "B" for an arrow body).<BR>
+"Y"	if the arc instance has an arrow on the tail (use "B" for an arrow body).<BR>
+Num	Any digits at the end are the angle of the arc (in tenths of a degree).
+<P>
+Examples:
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>AMetal-1|net@0||1|S1800|contact@0||10|10|pin@0||20|10</CODE>
+<P>
+Places a metal-1 arc (from the technology of the cell).
+The arc is named "net@0", is 1 wider than standard, slidable, and at a 180 degree angle.
+The arc runs from (10,10) on node "contact@0", to (20,10) on node "pin@0".
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Aschematic:bus|net@161|||IJ2700|busHat@4|s[1:8]|42|14|conn@15|y|42|25</CODE>
+<P>
+Places a bus arc (from schematic) named "net@161", standard width, not end-extended on either end, at 270 degrees angle.
+The bus runs from (42,14) on node busHat@4 (port "s[1:8]") to (42,25) on node "conn@15" (port "y").
+
+
+<!-- TRAILER -->
