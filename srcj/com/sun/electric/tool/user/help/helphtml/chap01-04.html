@@ -5,7 +5,9 @@ For people who wish to explore the source code, this section describes some of t
 <P>
 The first step in building the source code is to extract it from the ".jar" file.
 To do this, place the ".jar" file in its own directory, change to that directory, and run the following command:
-<CENTER>jar xf electric-<I>version</I>.jar</CENTER>
+<BR>
+<CODE>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jar xf electric-<I>version</I>.jar</CODE>
+<BR>
 (Windows users may want to install "cygwin," from <A HREF="http://www.cygwin.com">www.cygwin.com</A>,
 in order to more easily run "jar" and other commands.)
 The "jar" command will create a number of files and folders on your disk:
@@ -18,6 +20,11 @@ The "jar" command will create a number of files and folders on your disk:
 <LI><B>COPYING.txt</B> is the GNU copyright document that applies to your use of Electric.</LI>
 <LI><B>README.txt</B> is a file of notes about Electric.</LI>
 </UL>
+<P>
+Electric source code is also available from the GNU Savannah repository with one of these commands:
+<BR><CODE>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;svn co svn://svn.savannah.gnu.org/electric/trunk<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;svn co http://svn.savannah.gnu.org/electric/trunk</CODE><BR>
+which will extract the code into the current directory (preferably a clean directory with nothing else in it).
 <P>
 The next step is to get a version of Java that can build source code.
 Although a "JRE" (Java Runtime Environment) is sufficient for running Electric,
@@ -32,7 +39,7 @@ Eclipse (at <A HREF="http://www.eclipse.org">www.eclipse.org</A>).
 Here are some notes about building Electric under Eclipse:
 <UL>
 <LI><B>Setup Workspace.</B>  The Workspace is a point in the file system where all source code can be found.
-You can use the directory where you extracted the Electric source code, or any point above that on your disk.</LI>
+You can use the directory where you extracted the Electric source code, or any point above that.</LI>
 <LI><B>Create Project.</B> The Project defines a single program that is being built.
 Use <B>New Project</B> under the <B>File</B> menu and choose "Java Project".
 Choose "Create project from existing source" and browse to the folder where the files were extracted.
@@ -64,6 +71,16 @@ and set the "Main class" to be "com.sun.electric.Launcher".
 Under the "Arguments" section of the dialog,
 it is a good idea to increase Electric's memory size by entering "-mx1000m" under "VM arguments".</LI>
 </UL>
+<P>
+<H4>Running under Netbeans</H4>
+<P>
+The best way to use Netbeans is to extract the source code from the Savannah repository, as described above.
+If you do this, you will have a directory called "trunk".
+The first step is to add the Bean Shell to the build,
+which can be done by changing to the "trunk" directory and running the "make" command.
+<P>
+Next start Netbeans and open the "electric-netbeans" project that is in the "trunk" folder.
+You should be able to build the man project (under the "Run" menu)and then run or debug the main project.
 <P>
 <H4>Using Ant</H4>
 <P>

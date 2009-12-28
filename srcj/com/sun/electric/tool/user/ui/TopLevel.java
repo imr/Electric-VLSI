@@ -420,7 +420,14 @@ public class TopLevel extends JFrame
         	if (add)
         	{
 	            desktop.add(jif);
-		        jif.show();
+	            try
+	            {
+	            	jif.show();
+	            } catch (ClassCastException e)
+	            {
+	            	// Jake Baker keeps getting a ClassCastException here, so for now, let's catch it
+	            	System.out.println("ERROR: Could not show new window: " + e.getMessage());
+	            }
         	} else
         	{
                 desktop.remove(jif);

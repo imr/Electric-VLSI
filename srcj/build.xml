@@ -56,6 +56,7 @@
         <exclude name="com/sun/electric/plugins/libertyRW/" unless="SUN"/>
         <exclude name="com/sun/electric/plugins/manualRussian/"/>
         <exclude name="com/sun/electric/plugins/menus/" unless="SUN"/>
+        <exclude name="com/sun/electric/plugins/oa/" unless="SUN"/>
         <exclude name="com/sun/electric/plugins/oyster/" unless="SUN"/>
         <exclude name="com/sun/electric/plugins/pie/"/>
         <exclude name="com/sun/electric/plugins/prefuse/" unless="SUN"/>
@@ -330,6 +331,7 @@
             <exclude name="electric.log"/>
             <exclude name="electric.mf"/>
             <exclude name="nbproject/"/>
+            <exclude name="OLDChangeLog.txt"/>
             <exclude name=".settings/"/>
             <exclude name="../packaging/*.jar"/>
             <exclude name="../packaging/*.gif"/>
@@ -384,6 +386,7 @@
             <exclude name="electric.log"/>
             <exclude name="electric.mf"/>
             <exclude name="nbproject/"/>
+            <exclude name="OLDChangeLog.txt"/>
             <exclude name="../packaging/"/>
             <exclude name=".settings"/>
             <exclude name="xml/"/>

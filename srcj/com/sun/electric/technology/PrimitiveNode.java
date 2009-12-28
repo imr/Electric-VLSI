@@ -546,7 +546,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
         /**
          * Method to find a Function by its type name.
-         * @param name the name of the type to find.
+         * @param typeName the name of the type to find.
 		 * @return a Function (null if not found).
 		 */
 		public static Function findType(String typeName)

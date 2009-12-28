@@ -117,11 +117,12 @@ Spice Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice
 The top part of this dialog allows you to control Spice deck generation:
 <UL>
 <LI><B>Spice engine</B> Can be Spice 2, Spice 3, HSpice, PSpice, Gnucap, or SmartSpice.</LI>
-<LI><B>Spice level</B> Can be 1, 2, or 3.</LI>
+<LI><B>Spice level</B> Can be 1, 2, or 3 (not used anymore).</LI>
 <LI><B>Resistor shorting</B> Specifies which resistors get shorted when writing a Spice netlist from a schematic.
 Choices are:
   <UL>
-  <LI>"none" no resistors are shorted.  This preserves all resistors and is the correct setting for simulations.</LI>
+  <LI>"none" no resistors are shorted.
+  This preserves all resistors (useful for simulations).</LI>
   <LI>"normal only" only normal schematic resistors are shorted.
   This is useful when running external LVS tools like Calibre and Assura against a Spice netlist because
   it shorts out parasitic resistors (such as from wire models)

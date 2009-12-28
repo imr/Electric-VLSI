@@ -238,7 +238,7 @@ public class IconNodeInst extends NodeInst {
     /**
      * Method to add a Parameter to this NodeInst.
      * Overridden in IconNodeInst
-     * @param key the key of the Variable to delete.
+     * @param param the Variable to delete.
      */
     public void addParameter(Variable param) {
         if (!isParam(param.getKey())) {
@@ -425,9 +425,9 @@ public class IconNodeInst extends NodeInst {
     }
 
     /**
-     * Get Nodable by array index
-     * @param arrayIndex
-     * @return
+     * Get Nodable by array index.
+     * @param arrayIndex the Nodable index.
+     * @return the desired Nodable.
      */
     @Override
     public Nodable getNodable(int arrayIndex) {

@@ -507,7 +507,7 @@ public class DRCTemplate implements Serializable
 
     /**
      * Old method to parse DRC rules. It doesn't check if layer/node exists.
-     * @return
+     * @return true if successful, false on error.
      */
     public static boolean parseXmlElement(List<DRCTemplate> drcRules, String qName, Attributes attributes, String localName)
     {

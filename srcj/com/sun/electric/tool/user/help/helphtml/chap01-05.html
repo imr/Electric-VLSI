@@ -60,18 +60,22 @@ This manual is available from <A HREF="http://www.staticfreesoft.com">Static Fre
 To attach a plugin, it must be in the CLASSPATH.
 The simplest way to do that is to invoked Electric from the command line, and specify the classpath.
 For example, to add the beanshell (a file named "bsh-2.0b1.jar"), type:
-<CENTER><CODE>java -classpath electric.jar:bsh-2.0b1.jar com.sun.electric.Launcher</CODE></CENTER>
+<BR><CODE><FONT SIZE="-1">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;java -classpath electric.jar:bsh-2.0b1.jar com.sun.electric.Launcher</CODE></FONT>
+<BR>
 Note that you must explicitly mention the main Electric class (com.sun.electric.Launcher)
 when using plug-ins since all of the jar files are grouped together as the "classpath".
 <P>
 On Windows, you must use the ";" to separate jar files,
 and you might also have to quote the collection since ";" separates commands:
-<CENTER><CODE>java -classpath "electric.jar;bsh-2.0b1.jar" com.sun.electric.Launcher</CODE></CENTER>
+<BR><CODE><FONT SIZE="-1">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;java -classpath "electric.jar;bsh-2.0b1.jar" com.sun.electric.Launcher</CODE></FONT>
+<BR>
 The above text can be placed into a ".bat" file to make a double-clickable Electric launch.
 You can also add Java switches and special Electric controls mentioned in <A HREF="chap01-03.html#chap01-03">Section 1-3</A>.
 For example, to add in IRSIM and extend the memory to 1GB, you can put this line in the ".bat" file:
-<CENTER><CODE>java -classpath "electric.jar;electricIRSIM.jar" -mx1000m com.sun.electric.Launcher</CODE></CENTER>
-
+<BR><CODE><FONT SIZE="-1">
+&nbsp;&nbsp;java -classpath "electric.jar;electricIRSIM.jar" -mx1000m com.sun.electric.Launcher</CODE></FONT>
 <P>
 
 <!-- TRAILER -->

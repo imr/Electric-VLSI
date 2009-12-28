@@ -2,6 +2,7 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* END OF Version 8.10, GNU RELEASE *************
 ************************* Version 8.10r: ******************************
 
 IMP: (12/27/09, AM) In debug mode, put an annotation on *all* panels

@@ -3233,9 +3233,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
     /**
-     * Get Nodable by array index
-     * @param arrayIndex
-     * @return
+     * Get Nodable by array index.
+     * @param arrayIndex the index of the desired Nodable.
+     * @return the desired Nodable.
      */
     public Nodable getNodable(int arrayIndex) {
         if (arrayIndex != 0)
