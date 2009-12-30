@@ -40,16 +40,13 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.IconNodeInst;
 import com.sun.electric.database.topology.PortInst;
 import static com.sun.electric.database.text.ArrayIterator.i2i;
 import static com.sun.electric.database.text.ArrayIterator.i2al;
@@ -104,7 +101,6 @@ import com.sun.electric.tool.ncc.NccCrossProbing;
 import com.sun.electric.tool.ncc.NccJob;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.PassedNcc;
-import com.sun.electric.tool.ncc.Pie;
 import com.sun.electric.tool.ncc.SchemNamesToLay;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
@@ -447,7 +443,7 @@ public class ToolMenu
 
         //------------------- Network
 
-			// mnemonic keys available:    D F  IJK M O Q S   W YZ
+			// mnemonic keys available:    D F  IJK M O Q S U W YZ
             new EMenu("Net_work",
 		        new EMenuItem("Show _Network", 'K') { public void run() {
                     showNetworkCommand(); }},
@@ -482,9 +478,9 @@ public class ToolMenu
 		        new EMenuItem("_Validate Power and Ground") { public void run() {
                     validatePowerAndGround(false); }},
 		        new EMenuItem("_Repair Power and Ground") { public void run() {
-                    new RepairPowerAndGround(); }},
+                    new RepairPowerAndGround(); }}/*,
 		        new EMenuItem("Redo Network N_umbering") { public void run() {
-                    NetworkTool.renumberNetlists(); }}),
+                    NetworkTool.renumberNetlists(); }}*/),
 
 		//------------------- Logical Effort
 
@@ -1516,7 +1512,7 @@ public class ToolMenu
                 }
             };
 
-        HierarchyEnumerator.enumerateCell(wnd.getCell(), wnd.getVarContext(), visitor); 
+        HierarchyEnumerator.enumerateCell(wnd.getCell(), wnd.getVarContext(), visitor);
         errorLogger.termLogging(true);
     }
 

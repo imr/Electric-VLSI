@@ -758,25 +758,21 @@ public class UserInterfaceMain extends AbstractUserInterface
         assert Job.isClientThread();
         DatabaseChangeEvent event = new DatabaseChangeEvent(currentSnapshot, newSnapshot);
         Snapshot oldSnapshot = currentSnapshot;
-        if (Job.isThreadSafe()) {
-            EDatabase database = EDatabase.clientDatabase();
-            database.lock(true);
-            try {
+        EDatabase database = EDatabase.clientDatabase();
+        database.lock(true);
+        try {
 //                database.checkFresh(oldSnapshot);
-                database.lowLevelSetCanUndoing(true);
-                database.getNetworkManager().startBatch();
-                try {
-                    database.undo(newSnapshot);
-                } catch (Throwable e) {
-                    ActivityLogger.logException(e);
-                    database.recover(newSnapshot);
-                }
-                database.getNetworkManager().endBatch();
-                database.lowLevelSetCanUndoing(false);
-            } finally {
-                database.unlock();
-                endChanging();
+            database.lowLevelSetCanUndoing(true);
+            try {
+                database.undo(newSnapshot);
+            } catch (Throwable e) {
+                ActivityLogger.logException(e);
+                database.recover(newSnapshot);
             }
+            database.lowLevelSetCanUndoing(false);
+        } finally {
+            database.unlock();
+            endChanging();
         }
         currentSnapshot = newSnapshot;
         if (newSnapshot.environment != oldSnapshot.environment) {

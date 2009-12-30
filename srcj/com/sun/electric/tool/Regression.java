@@ -66,7 +66,6 @@ public class Regression {
 
     public static boolean runScript(Process process, String script) {
         Pref.forbidPreferences();
-        Job.setThreadSafe();
         IdReader reader = null;
         Snapshot currentSnapshot = IdManager.stdIdManager.getInitialSnapshot();
 //        EDatabase database = new EDatabase(currentSnapshot);

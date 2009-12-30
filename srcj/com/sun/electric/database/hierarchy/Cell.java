@@ -43,7 +43,6 @@ import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.network.NetCell;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ArrayIterator;
@@ -524,13 +523,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         if (d.techId != null) {
             tech = database.getTech(d.techId);
         }
-        if (!LAZY_TOPOLOGY || !Job.isThreadSafe()) {
+        if (!LAZY_TOPOLOGY) {
             strongTopology = new Topology(this, false);
         }
         setTopologyRef(strongTopology);
-        if (NetworkTool.isLazy()) {
-            setNetCellRef(null);
-        }
+        setNetCellRef(null);
     }
 
     private Object writeReplace() {
@@ -1182,13 +1179,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         if (cellTreeFresh) {
             return tree;
         }
-        if (Job.isThreadSafe()) {
-            checkChanging();
-        } else {
-            if (!database.canComputeBounds()) {
-                throw new IllegalStateException();
-            }
-        }
+        checkChanging();
         return doTree();
     }
 
@@ -1201,13 +1192,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         if (cellBackupFresh) {
             return backup;
         }
-        if (Job.isThreadSafe()) {
-            checkChanging();
-        } else {
-            if (!database.canComputeBounds()) {
-                throw new IllegalStateException();
-            }
-        }
+        checkChanging();
         return doBackup();
     }
 
@@ -1221,13 +1206,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         if (cellTreeFresh) {
             return tree;
         }
-        if (Job.isThreadSafe()) {
-            checkChanging();
-        } else {
-            if (!database.canComputeBounds()) {
-                return tree;
-            }
-        }
+        checkChanging();
         return doTree();
     }
 
@@ -1241,13 +1220,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         if (cellBackupFresh) {
             return backup;
         }
-        if (Job.isThreadSafe()) {
-            checkChanging();
-        } else {
-            if (!database.canComputeBounds()) {
-                return backup;
-            }
-        }
+        checkChanging();
         return doBackup();
     }
 
@@ -1277,7 +1250,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
 
     private synchronized Topology createTopology() {
         assert strongTopology == null;
-        assert LAZY_TOPOLOGY && Job.isThreadSafe();
+        assert LAZY_TOPOLOGY;
         Topology topology = new Topology(this, backup != null);
         setTopologyRef(topology);
 //        System.out.println("Created topology "+database+":"+this);
@@ -1328,7 +1301,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         backup = backup.with(getD(), nodes, arcs, exports, techPool);
         cellBackupFresh = true;
         cellContentsFresh = true;
-        if (LAZY_TOPOLOGY && Job.isThreadSafe()) {
+        if (LAZY_TOPOLOGY) {
             strongTopology = null;
         }
         if (backup.modified) {
@@ -1352,9 +1325,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
 
     void recover(CellTree newTree) {
         update(true, newTree, null);
-        if (!Job.isThreadSafe()) {
-            getTopology().getRTree();
-        }
     }
 
     void undo(CellTree newTree, BitSet exportsModified, BitSet boundsModified) {
@@ -1375,9 +1345,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             }
             cellTreeFresh = true;
             tree = newTree;
-        }
-        if (!Job.isThreadSafe()) {
-            getTopology().getRTree();
         }
     }
 
@@ -1442,7 +1409,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         cellTreeFresh = true;
         cellBackupFresh = true;
         cellContentsFresh = true;
-        if (LAZY_TOPOLOGY && Job.isThreadSafe()) {
+        if (LAZY_TOPOLOGY) {
             strongTopology = null;
         }
         revisionDateFresh = true;
@@ -2508,7 +2475,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @param pattern array with elements describing new PortInsts.
      */
     public void updatePortInsts(int[] pattern) {
-        for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); ) {
+        for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext();) {
             CellUsage cu = it.next();
             Cell parentCell = cu.getParent(database);
             Topology topology = parentCell.getTopologyOptional();
@@ -4026,16 +3993,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @throws NetworkTool.NetlistNotReady if called from GUI thread and change Job hasn't prepared Netlist yet
      */
     public Netlist getNetlist(Netlist.ShortResistors shortResistors) {
-        if (NetworkTool.isLazy()) {
-            NetCell netCell = netCellRef.get();
-            if (netCell == null) {
-                netCell = NetCell.newInstance(this);
-                setNetCellRef(netCell);
-            }
-            return netCell.getNetlist(shortResistors);
-        } else {
-            return NetworkTool.getNetlist(this, shortResistors);
+        NetCell netCell = netCellRef.get();
+        if (netCell == null) {
+            netCell = NetCell.newInstance(this);
+            setNetCellRef(netCell);
         }
+        return netCell.getNetlist(shortResistors);
     }
 
     private void setNetCellRef(NetCell netCell) {
@@ -4047,7 +4010,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @return the Netlist structure for this cell.
      */
     public Netlist getUserNetlist() {
-        return Job.isThreadSafe() ? getNetlist() : NetworkTool.getUserNetlist(this);
+        return getNetlist();
     }
 
     /** Returns the Netlist structure for this Cell, using current network options.
@@ -4055,7 +4018,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @return the Netlist structure for this cell.
      */
     public Netlist acquireUserNetlist() {
-        return Job.isThreadSafe() ? getNetlist() : NetworkTool.acquireUserNetlist(this);
+        return getNetlist();
     }
 
     /****************************** DATES ******************************/
@@ -4610,7 +4573,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         }
         if (cellContentsFresh) {
             assert cellRevision.exports.size() == exports.length;
-            if (LAZY_TOPOLOGY && Job.isThreadSafe()) {
+            if (LAZY_TOPOLOGY) {
                 assert strongTopology == null;
             }
         }

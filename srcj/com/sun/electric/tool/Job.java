@@ -98,7 +98,6 @@ import javax.swing.SwingUtilities;
 public abstract class Job implements Serializable {
 
     private static boolean GLOBALDEBUG = false;
-    private static boolean threadSafe;
     static final int PROTOCOL_VERSION = 19; // Apr 17
     public static boolean LOCALDEBUGFLAG; // Gilda's case
 //    private static final String CLASS_NAME = Job.class.getName();
@@ -170,17 +169,13 @@ public abstract class Job implements Serializable {
     transient EJob ejob;
     transient EDatabase database;
 
-    public static void initJobManager(int numThreads, String loggingFilePath, int socketPort, AbstractUserInterface ui, Job initDatabaseJob, boolean threadSafe) {
-        if (threadSafe) {
-            setThreadSafe();
-        }
+    public static void initJobManager(int numThreads, String loggingFilePath, int socketPort, AbstractUserInterface ui, Job initDatabaseJob) {
         currentUI = ui;
         serverJobManager = new ServerJobManager(numThreads, loggingFilePath, false, socketPort);
         serverJobManager.runLoop(initDatabaseJob);
     }
 
     public static void pipeServer(int numThreads, String loggingFilePath, int socketPort) {
-        setThreadSafe();
         Pref.forbidPreferences();
         EDatabase.setServerDatabase(new EDatabase(IdManager.stdIdManager.getInitialSnapshot()));
         Tool.initAllTools();
@@ -188,7 +183,6 @@ public abstract class Job implements Serializable {
     }
 
     public static void socketClient(String serverMachineName, int socketPort, AbstractUserInterface ui, Job initDatabaseJob) {
-        setThreadSafe();
         currentUI = ui;
         try {
             clientJobManager = new ClientJobManager(serverMachineName, socketPort);
@@ -199,7 +193,6 @@ public abstract class Job implements Serializable {
     }
 
     public static void pipeClient(Process process, AbstractUserInterface ui, Job initDatabaseJob, boolean skipOneLine) {
-        setThreadSafe();
         currentUI = ui;
         try {
             clientJobManager = new ClientJobManager(process, skipOneLine);
@@ -313,9 +306,6 @@ public abstract class Job implements Serializable {
                 }
             } else {
                 Job.currentUI.putProcessingEJob(ejob, onMySnapshot);
-                if (!isThreadSafe()) {
-                    serverJobManager.addJob(ejob, onMySnapshot);
-                }
             }
         }
     }
@@ -591,14 +581,6 @@ public abstract class Job implements Serializable {
      */
     public static Snapshot findValidSnapshot() {
         return EThread.findValidSnapshot();
-    }
-
-    public static boolean isThreadSafe() {
-        return threadSafe;
-    }
-
-    static void setThreadSafe() {
-        threadSafe = true;
     }
 
 	//-------------------------------JOB UI--------------------------------

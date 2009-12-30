@@ -63,20 +63,20 @@ public class Crash {
             String rootPath = "../../";
             boolean caching = true;
 
-            String logname = "output/"+libname+"_"+cellname+"_LE_"+(caching ? "C" : "NC")+"-"+Version.getVersion()+".log";
+            String logname = "output/" + libname + "_" + cellname + "_LE_" + (caching ? "C" : "NC") + "-" + Version.getVersion() + ".log";
 
             MessagesStream.getMessagesStream().save(logname);
 
-            Library rootLib = LayoutLib.openLibForRead(rootPath+"data/"+regressionname+"/"+libname);
+            Library rootLib = LayoutLib.openLibForRead(rootPath + "data/" + regressionname + "/" + libname);
             ErrorLogger repairLogger = ErrorLogger.newInstance("Repair Libraries");
-            for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
-                Library lib = (Library)it.next();
+            for (Iterator it = Library.getLibraries(); it.hasNext();) {
+                Library lib = (Library) it.next();
                 lib.checkAndRepair(true, repairLogger);
             }
 
             System.out.println("Repair Libraries: " + repairLogger.getNumErrors() + " errors," + repairLogger.getNumWarnings() + " warnings");
-            Cell lay = rootLib.findNodeProto(cellname+"{sch}");
-            System.out.println("Cell = "+lay);
+            Cell lay = rootLib.findNodeProto(cellname + "{sch}");
+            System.out.println("Cell = " + lay);
             System.exit(0);
             return true;
         }
@@ -92,20 +92,21 @@ public class Crash {
         Tool.initAllTools();
 
         EditingPreferences ep = new EditingPreferences(true, database.getTechPool());
-        
+
         // Init Job
         Job.setUserInterface(new UserInterfaceInitial(database));
         database.lock(true);
         database.lowLevelBeginChanging(null);
-        database.setToolSettings((Setting.RootGroup)ToolSettings.getToolSettings(""));
+        database.setToolSettings((Setting.RootGroup) ToolSettings.getToolSettings(""));
         assert database.getGeneric() == null;
         Generic generic = Generic.newInstance(database.getIdManager());
         database.addTech(generic);
-        for (TechFactory techFactory: TechFactory.getKnownTechs("").values()) {
-            Map<TechFactory.Param,Object> paramValues = Collections.emptyMap();
+        for (TechFactory techFactory : TechFactory.getKnownTechs("").values()) {
+            Map<TechFactory.Param, Object> paramValues = Collections.emptyMap();
             Technology tech = techFactory.newInstance(generic, paramValues);
-            if (tech != null)
+            if (tech != null) {
                 database.addTech(tech);
+            }
         }
         database.lowLevelEndChanging();
         database.unlock();
@@ -148,12 +149,12 @@ public class Crash {
         database.lock(!ejob.isExamine());
         ejob.oldSnapshot = database.backup();
         database.lowLevelBeginChanging(ejob.serverJob.tool);
-        database.getNetworkManager().startBatch();
         Constraints.getCurrent().startBatch(ejob.oldSnapshot);
         userInterface.setCurrents(ejob.serverJob);
         try {
-            if (!ejob.serverJob.doIt())
+            if (!ejob.serverJob.doIt()) {
                 throw new JobException("Job '" + ejob.jobName + "' failed");
+            }
         } catch (JobException e) {
             e.printStackTrace();
         }
@@ -181,12 +182,12 @@ public class Crash {
         database.lock(!ejob.isExamine());
         ejob.oldSnapshot = database.backup();
         database.lowLevelBeginChanging(ejob.serverJob.tool);
-        database.getNetworkManager().startBatch();
 //        Constraints.getCurrent().startBatch(ejob.oldSnapshot);
 //        userInterface.setCurrents(ejob.serverJob);
         try {
-            if (!ejob.serverJob.doIt())
+            if (!ejob.serverJob.doIt()) {
                 throw new JobException("Job '" + ejob.jobName + "' failed");
+            }
         } catch (JobException e) {
             e.printStackTrace();
         }
@@ -219,8 +220,9 @@ public class Crash {
 //        Constraints.getCurrent().startBatch(ejob.oldSnapshot);
 //        userInterface.setCurrents(ejob.serverJob);
         try {
-            if (!ejob.serverJob.doIt())
+            if (!ejob.serverJob.doIt()) {
                 throw new JobException("Job '" + ejob.jobName + "' failed");
+            }
         } catch (JobException e) {
             e.printStackTrace();
         }

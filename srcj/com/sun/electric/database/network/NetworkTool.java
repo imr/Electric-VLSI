@@ -24,8 +24,6 @@
  */
 package com.sun.electric.database.network;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
@@ -45,13 +43,11 @@ import com.sun.electric.tool.user.User;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.HashSet;
-import javax.swing.SwingUtilities;
 
 /**
  * This is the Network tool.
  */
 public class NetworkTool extends Tool {
-    private static final boolean WEAK_NET_CELL = true;
 
     /**
      * Signals that a method has been invoked at an illegal or
@@ -96,15 +92,13 @@ public class NetworkTool extends Tool {
         }
 
         public boolean doIt() throws JobException {
-            EDatabase.serverDatabase().getNetworkManager().redoNetworkNumbering(true);
+//            EDatabase.serverDatabase().getNetworkManager().redoNetworkNumbering(true);
             return true;
         }
     }
     // ---------------------- private and protected methods -----------------
     /** the Network tool. */
     private static final NetworkTool tool = new NetworkTool();
-    /** Mutex object */
-    static Object mutex = new Object();
     /** flag for debug print. */
     static boolean debug = false;
     /** flag for information print. */
@@ -127,17 +121,6 @@ public class NetworkTool extends Tool {
         return tool;
     }
 
-//	/**
-//	 * Method to set the subsequent changes to be "quiet".
-//	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
-//	 */
-//	public static void changesQuiet(boolean quiet) {
-//		if (quiet) {
-//			invalidate();
-//		} else {
-//			redoNetworkNumbering(true);
-//		}
-//    }
     /**
      * Method to set the level of information that is displayed.
      * When libraries are being read "quietly", no information should be output.
@@ -147,114 +130,7 @@ public class NetworkTool extends Tool {
         showInfo = infoOutput;
     }
 
-    /**
-     * Returns true if NetCells are allocated in a lazy manner
-     * @return true if NetCells are allocated in a lazy manner
-     */
-    public static boolean isLazy() {
-        return WEAK_NET_CELL && Job.isThreadSafe();
-    }
-
     /****************************** PUBLIC METHODS ******************************/
-    /**
-     * Returns Netlist for a given cell obtain with user-default set of options.
-     * @param cell cell to get Netlist.
-     * @return Netlist of this cell.
-     */
-    public static Netlist acquireUserNetlist(Cell cell) {
-        assert !Job.isThreadSafe();
-        Netlist netlist = null;
-        try {
-            netlist = getNetlist(cell, isIgnoreResistors_());
-        } catch (NetlistNotReady e) {
-        }
-        return netlist;
-    }
-
-    /**
-     * Returns Netlist for a given cell obtain with user-default set of options.
-     * @param cell cell to get Netlist.
-     * @return Netlist of this cell.
-     */
-    public static Netlist getUserNetlist(Cell cell) {
-        assert !Job.isThreadSafe();
-        EDatabase database = cell.getDatabase();
-        NetworkManager mgr = database.getNetworkManager();
-        if (database.canComputeNetlist()) {
-            mgr.advanceSnapshot();
-            NetCell netCell = mgr.getNetCell(cell);
-            return netCell.getNetlist(isIgnoreResistors_());
-        }
-        if (Job.getDebug() && SwingUtilities.isEventDispatchThread()) {
-            System.out.println("getUserNetlist() used in GUI thread");
-        }
-        Netlist.ShortResistors shortResistors = isIgnoreResistors_();
-        if (Job.isThreadSafe()) {
-            assert mgr.networksValid;
-            if (!cell.isLinked()) {
-                return null;
-            }
-            NetCell netCell = mgr.getNetCell(cell);
-            return netCell.getNetlist(shortResistors);
-        } else {
-            synchronized (NetworkTool.mutex) {
-                while (!mgr.networksValid) {
-                    try {
-                        System.out.println("Waiting for User Netlist...");
-                        NetworkTool.mutex.wait(1000);
-                        if (!mgr.networksValid) {
-                            throw new NetlistNotReady();
-                        }
-                    } catch (InterruptedException e) {
-                    } catch (NetlistNotReady e) {
-                        e.printStackTrace(System.err);
-                    }
-                }
-                NetCell netCell = mgr.getNetCell(cell);
-                return netCell.getNetlist(shortResistors);
-            }
-        }
-    }
-
-    /** Recompute the Netlist structure for given Cell.
-     * @param cell cell to recompute Netlist structure.
-     * <p>Because shorting resistors is a fairly common request, it is
-     * implemented in the method if @param shortResistors is set to true.
-     * @return the Netlist structure for Cell.
-     */
-    public static Netlist getNetlist(Cell cell, Netlist.ShortResistors shortResistors) {
-        assert !isLazy();
-        EDatabase database = cell.getDatabase();
-        NetworkManager mgr = database.getNetworkManager();
-        if (database.canComputeNetlist()) {
-            if (!cell.isLinked()) {
-                return null;
-            }
-            mgr.advanceSnapshot();
-            NetCell netCell = mgr.getNetCell(cell);
-            return netCell.getNetlist(shortResistors);
-        }
-        if (Job.isThreadSafe()) {
-            assert mgr.networksValid;
-            if (!cell.isLinked()) {
-                return null;
-            }
-            NetCell netCell = mgr.getNetCell(cell);
-            return netCell.getNetlist(shortResistors);
-        } else {
-            synchronized (NetworkTool.mutex) {
-                if (!mgr.networksValid) {
-                    throw new NetlistNotReady();
-                }
-                if (!cell.isLinked()) {
-                    return null;
-                }
-                NetCell netCell = mgr.getNetCell(cell);
-                return netCell.getNetlist(shortResistors);
-            }
-        }
-    }
-
     /**
      * Method to retrieve all networks for a portInst.
      * Used by Highlighter and Connection

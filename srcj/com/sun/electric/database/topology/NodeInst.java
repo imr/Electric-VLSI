@@ -1270,7 +1270,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         cellBackup = cellBackup.with(cell, new ImmutableNodeInst[]{getD()}, null, null, techPool);
         CellTree[] subTrees = CellTree.NULL_ARRAY;
         if (isCellInstance()) {
-            Cell subCell = (Cell)protoType;
+            Cell subCell = (Cell) protoType;
             CellUsage cu = clipCellId.getUsageIn(subCell.getId());
             subTrees = new CellTree[cu.indexInParent + 1];
             subTrees[cu.indexInParent] = subCell.treeUnsafe();
@@ -1523,12 +1523,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
     private void computeBounds() {
-        if (!Job.isThreadSafe()) {
-            EDatabase database = getDatabase();
-            if (database != null && !database.canComputeBounds()) {
-                return;
-            }
-        }
         double oldX = visBounds.x;
         double oldY = visBounds.y;
         double oldWidth = visBounds.width;
@@ -3238,8 +3232,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return the desired Nodable.
      */
     public Nodable getNodable(int arrayIndex) {
-        if (arrayIndex != 0)
+        if (arrayIndex != 0) {
             throw new IndexOutOfBoundsException();
+        }
         return this;
     }
 

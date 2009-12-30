@@ -42,24 +42,22 @@ import java.util.logging.Level;
  * Thread for execution Jobs in Electric.
  */
 class EThread extends Thread {
+
     private static final String CLASS_NAME = EThread.class.getName();
-
     private static final ArrayList<Snapshot> snapshotCache = new ArrayList<Snapshot>();
-	private static int maximumSnapshots = StartupPrefs.getMaxUndoHistory();
-
+    private static int maximumSnapshots = StartupPrefs.getMaxUndoHistory();
     /** EJob which Thread is executing now. */
     EJob ejob;
     /** True if this EThread is execution server job. */
     boolean isServerThread;
     /* Database in which thread is executing. */
     EDatabase database;
-
     ServerJobManager.UserInterfaceRedirect userInterface;
 
     /** Creates a new instance of EThread */
     EThread(int id) {
         super("EThread-" + id);
- //       setUserInterface(Job.currentUI);
+        //       setUserInterface(Job.currentUI);
         Job.logger.logp(Level.FINER, CLASS_NAME, "constructor", getName());
         start();
     }
@@ -86,50 +84,52 @@ class EThread extends Thread {
             try {
                 if (ejob.jobType != Job.Type.CLIENT_EXAMINE && !ejob.jobKey.startedByServer()) {
                     Throwable e = ejob.deserializeToServer();
-                    if (e != null)
+                    if (e != null) {
                         throw e;
+                    }
                 }
                 switch (ejob.jobType) {
                     case CHANGE:
                         database.lowLevelBeginChanging(ejob.serverJob.tool);
-                        database.getNetworkManager().startBatch();
                         Constraints.getCurrent().startBatch(ejob.oldSnapshot);
                         userInterface.setCurrents(ejob.serverJob);
-                        if (!ejob.serverJob.doIt())
+                        if (!ejob.serverJob.doIt()) {
                             throw new JobException("Job '" + ejob.jobName + "' failed");
+                        }
                         Constraints.getCurrent().endBatch(ejob.client.userName);
-                        database.getNetworkManager().endBatch();
                         database.lowLevelEndChanging();
                         ejob.newSnapshot = database.backup();
                         break;
                     case UNDO:
                         database.lowLevelSetCanUndoing(true);
-                        database.getNetworkManager().startBatch();
 //                        userInterface.curTechId = null;
 //                        userInterface.curLibId = null;
 //                        userInterface.curCellId = null;
-                        int snapshotId = ((Undo.UndoJob)ejob.serverJob).getSnapshotId();
+                        int snapshotId = ((Undo.UndoJob) ejob.serverJob).getSnapshotId();
                         Snapshot undoSnapshot = findInCache(snapshotId);
-                        if (undoSnapshot == null)
+                        if (undoSnapshot == null) {
                             throw new JobException("Snapshot " + snapshotId + " not found");
+                        }
                         database.undo(undoSnapshot);
-                        database.getNetworkManager().endBatch();
                         database.lowLevelSetCanUndoing(false);
                         break;
                     case SERVER_EXAMINE:
                         userInterface.setCurrents(ejob.serverJob);
-                        if (!ejob.serverJob.doIt())
+                        if (!ejob.serverJob.doIt()) {
                             throw new JobException("Job '" + ejob.jobName + "' failed");
+                        }
                         break;
                     case CLIENT_EXAMINE:
                         if (ejob.jobKey.startedByServer()) {
                             Throwable e = ejob.deserializeToClient();
-                            if (e != null)
+                            if (e != null) {
                                 throw e;
+                            }
                         }
                         userInterface.setCurrents(ejob.clientJob);
-                        if (!ejob.clientJob.doIt())
+                        if (!ejob.clientJob.doIt()) {
                             throw new JobException("Job '" + ejob.jobName + "' failed");
+                        }
                         break;
                 }
                 ejob.serializeResult(database);
@@ -147,8 +147,9 @@ class EThread extends Thread {
                 }
 
                 e.getStackTrace();
-                if (!(e instanceof JobException))
+                if (!(e instanceof JobException)) {
                     e.printStackTrace();
+                }
                 if (!ejob.isExamine()) {
                     recoverDatabase(e instanceof JobException);
                     database.lowLevelEndChanging();
@@ -176,11 +177,11 @@ class EThread extends Thread {
     private void recoverDatabase(boolean quick) {
         database.lowLevelSetCanUndoing(true);
         try {
-            if (quick)
+            if (quick) {
                 database.undo(ejob.oldSnapshot);
-            else
+            } else {
                 database.recover(ejob.oldSnapshot);
-            database.getNetworkManager().endBatch();
+            }
             ejob.newSnapshot = ejob.oldSnapshot;
             return;
         } catch (Throwable e) {
@@ -190,7 +191,6 @@ class EThread extends Thread {
             try {
                 Snapshot snapshot = findValidSnapshot();
                 database.recover(snapshot);
-                database.getNetworkManager().endBatch();
                 ejob.newSnapshot = snapshot;
                 return;
             } catch (Throwable e) {
@@ -199,7 +199,9 @@ class EThread extends Thread {
         }
     }
 
-    UserInterface getUserInterface() { return userInterface; }
+    UserInterface getUserInterface() {
+        return userInterface;
+    }
 
     /**
      * Find some valid snapshot in cache.
@@ -208,7 +210,9 @@ class EThread extends Thread {
         for (;;) {
             Snapshot snapshot;
             synchronized (snapshotCache) {
-                if (snapshotCache.isEmpty()) return EDatabase.serverDatabase().getInitialSnapshot();
+                if (snapshotCache.isEmpty()) {
+                    return EDatabase.serverDatabase().getInitialSnapshot();
+                }
                 snapshot = snapshotCache.remove(snapshotCache.size() - 1);
             }
             try {
@@ -224,41 +228,46 @@ class EThread extends Thread {
         synchronized (snapshotCache) {
             for (int i = snapshotCache.size() - 1; i >= 0; i--) {
                 Snapshot snapshot = snapshotCache.get(i);
-                if (snapshot.snapshotId == snapshotId)
+                if (snapshot.snapshotId == snapshotId) {
                     return snapshot;
+                }
             }
         }
         return null;
     }
 
-
     private static void putInCache(Snapshot oldSnapshot, Snapshot newSnapshot) {
         synchronized (snapshotCache) {
             if (!snapshotCache.contains(newSnapshot)) {
-                while (!snapshotCache.isEmpty() && snapshotCache.get(snapshotCache.size() - 1) != oldSnapshot)
+                while (!snapshotCache.isEmpty() && snapshotCache.get(snapshotCache.size() - 1) != oldSnapshot) {
                     snapshotCache.remove(snapshotCache.size() - 1);
+                }
                 snapshotCache.add(newSnapshot);
             }
-            while (snapshotCache.size() > maximumSnapshots)
+            while (snapshotCache.size() > maximumSnapshots) {
                 snapshotCache.remove(0);
+            }
         }
     }
 
-	/**
-	 * Method to set the size of the history list and return the former size.
-	 * @param newSize the new size of the history list (number of batches of changes).
-	 * If not positive, the list size is not changed.
-	 * @return the former size of the history list.
-	 */
-	public static int setHistoryListSize(int newSize) {
-		if (newSize <= 0) return maximumSnapshots;
+    /**
+     * Method to set the size of the history list and return the former size.
+     * @param newSize the new size of the history list (number of batches of changes).
+     * If not positive, the list size is not changed.
+     * @return the former size of the history list.
+     */
+    public static int setHistoryListSize(int newSize) {
+        if (newSize <= 0) {
+            return maximumSnapshots;
+        }
 
-		int oldSize = maximumSnapshots;
-		maximumSnapshots = newSize;
-		while (snapshotCache.size() > maximumSnapshots)
-			snapshotCache.remove(0);
-		return oldSize;
-	}
+        int oldSize = maximumSnapshots;
+        maximumSnapshots = newSize;
+        while (snapshotCache.size() > maximumSnapshots) {
+            snapshotCache.remove(0);
+        }
+        return oldSize;
+    }
 
     /**
      * If this EThread is running a Job return it.
@@ -266,7 +275,9 @@ class EThread extends Thread {
      * @return a running Job or null
      */
     Job getRunningJob() {
-        if (ejob == null) return null;
+        if (ejob == null) {
+            return null;
+        }
         return ejob.jobType == Job.Type.CLIENT_EXAMINE ? ejob.clientJob : ejob.serverJob;
     }
 

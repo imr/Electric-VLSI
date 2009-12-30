@@ -32,7 +32,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -137,69 +136,27 @@ public class NetCell {
         this.database = cell.getDatabase();
         this.networkManager = database.getNetworkManager();
         this.isSchem = this instanceof NetSchem;
-        if (isSchem)
+        if (isSchem) {
             expectedSnapshot = new WeakReference<Snapshot>(null);
-        else
+        } else {
             expectedCellTree = new WeakReference<CellTree>(null);
-        this.cell = cell;
-        if (!NetworkTool.isLazy()) {
-            networkManager.setCell(cell, this);
         }
+        this.cell = cell;
     }
 
     public static NetCell newInstance(Cell cell) {
-        assert NetworkTool.isLazy();
         return cell.isIcon() || cell.isSchematic() ? new NetSchem(cell) : new NetCell(cell);
     }
 
-    final void setNetworksDirty() {
-        setInvalid(true, false);
-    }
-
-    void exportsChanged() {
-        setInvalid(true, true);
-    }
-
-    void setInvalid(boolean strongMe, boolean strongUsages) {
-//		System.out.println("setInvalid " + cell + " " + strongMe + " " + strongUsages);
-        if (strongMe) {
-            flags &= ~LOCALVALID;
-        }
-        if ((flags & VALID) == 0 && !strongUsages) {
-            return;
-        }
-        flags &= ~VALID;
-        invalidateUsagesOf(strongUsages);
-    }
-
-    void invalidateUsagesOf(boolean strong) {
-//		System.out.println("NetSchem.invalidateUsagesOf " + cell + " " + strong);
-        for (Iterator<CellUsage> it = cell.getUsagesOf(); it.hasNext();) {
-            CellUsage u = it.next();
-            Cell parent = u.getParent(database);
-            if (cell.isIconOf(parent)) {
-                continue;
-            }
-            NetCell netCell = networkManager.getNetCell(parent);
-            if (netCell != null) {
-                netCell.setInvalid(strong, false);
-            }
-        }
-    }
-
     public Netlist getNetlist(Netlist.ShortResistors shortResistors) {
-        if (NetworkTool.isLazy()) {
-            if (isSchem) {
-                if (database.backup() != expectedSnapshot.get()) {
-                    ((NetSchem)this).updateSchematic();
-                }
-            } else {
-                if (cell.tree() != expectedCellTree.get()) {
-                    updateLayout();
-                }
+        if (isSchem) {
+            if (database.backup() != expectedSnapshot.get()) {
+                ((NetSchem) this).updateSchematic();
             }
-        } else if ((flags & VALID) == 0) {
-            redoNetworks();
+        } else {
+            if (cell.tree() != expectedCellTree.get()) {
+                updateLayout();
+            }
         }
         switch (shortResistors) {
             case NO:
@@ -888,61 +845,13 @@ public class NetCell {
 //		}
 //		System.out.println(s);
 //	}
-    void redoNetworks() {
-        if ((flags & VALID) != 0) {
-            return;
-        }
-
-        // redo descendents
-        for (Iterator<CellUsage> it = cell.getUsagesIn(); it.hasNext();) {
-            CellUsage u = it.next();
-            Cell subCell = u.getProto(database);
-            if (subCell.isIconOf(cell)) {
-                continue;
-            }
-
-            NetCell netCell = networkManager.getNetCell(subCell);
-            if ((netCell.flags & VALID) == 0) {
-                netCell.redoNetworks();
-            }
-        }
-
-        // redo implementation
-        NetSchem schem = getSchem();
-        if (schem != null && schem != this) {
-            schem.redoNetworks();
-        }
-
-        if ((flags & LOCALVALID) != 0) {
-            flags |= VALID;
-            return;
-        }
-
-        // Mark this netcell changed
-//        modCount++;
-
-        // clear errors for cell
-        networkManager.startErrorLogging(cell);
-        try {
-
-            makeDrawns();
-            // Gather port and arc names
-            initNetnames();
-
-            if (redoNetworks1()) {
-                setInvalid(false, true);
-            }
-        } finally {
-            networkManager.finishErrorLogging();
-        }
-        flags |= (LOCALVALID | VALID);
-    }
-
     private void updateLayout() {
         synchronized (networkManager) {
             CellTree oldCellTree = expectedCellTree.get();
             CellTree newCellTree = cell.tree();
-            if (oldCellTree == newCellTree) return;
+            if (oldCellTree == newCellTree) {
+                return;
+            }
             if (oldCellTree == null || !newCellTree.sameNetlist(oldCellTree)) {
                 // clear errors for cell
                 networkManager.startErrorLogging(cell);

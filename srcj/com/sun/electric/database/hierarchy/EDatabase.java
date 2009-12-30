@@ -150,7 +150,7 @@ public class EDatabase {
         undo(snapshot);
         canUndoing = false;
         unlock();
-        networkManager = new NetworkManager(this);
+        networkManager = new NetworkManager();
     }
 
     public IdManager getIdManager() {
@@ -330,15 +330,6 @@ public class EDatabase {
         throw e;
     }
 
-    public boolean canComputeBounds() {
-        assert !Job.isThreadSafe();
-        return Thread.currentThread() == writingThread && (canChanging || canUndoing);
-    }
-
-    public boolean canComputeNetlist() {
-        return Thread.currentThread() == writingThread && (canChanging || canUndoing);
-    }
-
     /**
      * Method to check whether examining of database is allowed.
      */
@@ -500,13 +491,7 @@ public class EDatabase {
         if (snapshotFresh) {
             return snapshot;
         }
-        if (Job.isThreadSafe()) {
-            checkChanging();
-        } else {
-            if (!canComputeBounds()) {
-                throw new IllegalStateException();
-            }
-        }
+        checkChanging();
         return doBackup();
     }
 
@@ -519,13 +504,7 @@ public class EDatabase {
         if (snapshotFresh) {
             return snapshot;
         }
-        if (Job.isThreadSafe()) {
-            checkChanging();
-        } else {
-            if (!canComputeBounds()) {
-                return snapshot;
-            }
-        }
+        checkChanging();
         return doBackup();
     }
 
@@ -563,9 +542,6 @@ public class EDatabase {
                 continue;
             }
             Cell cell = getCell(cellTree.top.cellRevision.d.cellId);
-            if (!Job.isThreadSafe()) {
-                cell.getTopology().getRTree();
-            }
             assert cell.tree() == cellTree;
         }
 //        long endTime = System.currentTimeMillis();

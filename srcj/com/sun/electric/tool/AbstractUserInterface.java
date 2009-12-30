@@ -150,7 +150,7 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     }
 
     private synchronized Job.Inform[] getFullJobQueue() {
-        if (clientJobs.isEmpty() || !Job.isThreadSafe())
+        if (clientJobs.isEmpty())
             return serverJobQueue;
         Job.Inform[] sq = serverJobQueue;
         Job.Inform[] q = new Job.Inform[sq.length + clientJobs.size()];
@@ -191,7 +191,6 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
                 clientJobs.add(ejob);
             showJobQueue();
             if (goSleeping) {
-                assert Job.isThreadSafe();
                 uiDispatcher.interrupt();
             }
         }
@@ -298,7 +297,6 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
 
         private void doClientExamine(EJob ejob) {
             assert ejob.jobType == Job.Type.CLIENT_EXAMINE;
-            assert Job.isThreadSafe();
             ejob.state = EJob.State.RUNNING;
             Job.currentUI.showJobQueue();
             ejob.changedFields = new ArrayList<Field>();
@@ -333,30 +331,11 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
                     EJob.State.SERVER_DONE));
         }
 
-        private void doUnsafe() {
-            try {
-                lastEvent = Client.getEvent(lastEvent);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            for (;;) {
-                addEvent(lastEvent);
-                Client.ServerEvent event = lastEvent.getNext();
-                if (event == null)
-                    break;
-                lastEvent = event;
-            }
-        }
-
         @Override
         public void run() {
             try {
                 for (;;) {
-                    if (Job.isThreadSafe()) {
-                        doSafe();
-                    } else {
-                        doUnsafe();
-                    }
+                    doSafe();
                 }
             } catch (Exception e) {
                 e.printStackTrace();

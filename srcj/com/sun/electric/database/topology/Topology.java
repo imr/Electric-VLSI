@@ -43,7 +43,6 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.Job;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -60,12 +59,11 @@ import java.util.Set;
 public class Topology {
 
     private class MaxSuffix {
+
         int v = 0;
     }
-
     /** Owner cell of this Topology. */
     final Cell cell;
-
     /** The Cell's essential-bounds. */
     private final ArrayList<NodeInst> essenBounds = new ArrayList<NodeInst>();
     /** Chronological list of NodeInsts in this Cell. */
@@ -74,7 +72,6 @@ public class Topology {
     private final ArrayList<NodeInst> nodes = new ArrayList<NodeInst>();
     /** A map from canonic String to Integer maximal numeric suffix */
     private final HashMap<String, MaxSuffix> maxSuffix = new HashMap<String, MaxSuffix>();
-
     /** A maximal suffix of temporary arc name. */
     private int maxArcSuffix = -1;
     /** Chronological list of ArcInst in this Cell. */
@@ -83,7 +80,6 @@ public class Topology {
     private final ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
     /** True if arc bounds are valid. */
     boolean validArcBounds;
-
     /** The geometric data structure. */
     private RTNode rTree = RTNode.makeTopLevel();
     /** True of RTree matches node/arc sizes */
@@ -187,7 +183,6 @@ public class Topology {
 //            setExpanded(nodeId, true);
 //        }
 //    }
-
     /**
      * Update PortInsts of all instances of specified Cell accoding to pattern.
      * Pattern contains an element for each Export.
@@ -196,13 +191,14 @@ public class Topology {
      * @param pattern array with elements describing new PortInsts.
      */
     public void updatePortInsts(Cell proto, int[] pattern) {
-        for (NodeInst ni: nodes) {
+        for (NodeInst ni : nodes) {
             if (ni.getProto() == proto) {
                 ni.updatePortInsts(pattern);
                 ni.check();
             }
         }
     }
+
     /**
      * Method to return the PortInst by nodeId and PortProtoId.
      * @param nodeId specified NodeId.
@@ -821,9 +817,6 @@ public class Topology {
      * Low-level routine.
      */
     void computeArcBounds() {
-        if (!Job.isThreadSafe() && !cell.getDatabase().canComputeBounds()) {
-            return;
-        }
         int[] intCoords = new int[4];
         BoundsBuilder b = new BoundsBuilder(cell.backupUnsafe());
         for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
@@ -913,15 +906,8 @@ public class Topology {
         if (rTreeFresh) {
             return rTree;
         }
-        EDatabase database = cell.getDatabase();
-        if (Job.isThreadSafe() || database.canComputeBounds()) {
-            rebuildRTree();
-            rTreeFresh = true;
-//        } else {
-//            Snapshot snapshotBefore = database.getFreshSnapshot();
-//            rebuildRTree();
-//            rTreeFresh = snapshotBefore != null && database.getFreshSnapshot() == snapshotBefore;
-        }
+        rebuildRTree();
+        rTreeFresh = true;
         return rTree;
     }
 
@@ -1023,7 +1009,7 @@ public class Topology {
         for (int i = cellUsages.length; i < usages.length; i++) {
             assert usages[i] == 0;
         }
-        
+
         if (rTreeFresh) {
             rTree.checkRTree(0, cell.getId());
         }
