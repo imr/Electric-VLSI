@@ -472,6 +472,48 @@ public class LibraryStatistics implements Serializable
 		}
 	}
 
+    public static void parseLibraries(ErrorLogger errorLogger, File[] dirs) {
+        for (File dir: dirs) {
+            parseLibrariesInProject(errorLogger, dir);
+        }
+
+    }
+
+    private static void parseLibrariesInProject(ErrorLogger errorLogger, File dir) {
+        File[] files = dir.listFiles();
+        if (files == null) {
+            System.out.println(dir + " ACCESS DENIED");
+            return;
+        }
+//        System.out.println("Dir " + dir);
+        for (File file: files) {
+            String name = file.getName();
+            if (name.endsWith(".jelib")) {
+                parseJelib(errorLogger, file, FileType.JELIB);
+            } else if (name.endsWith(".delib")) {
+                parseJelib(errorLogger, file, FileType.DELIB);
+            }
+        }
+    }
+
+    private static void parseJelib(ErrorLogger errorLogger, File file, FileType fileType) {
+        try {
+            System.out.println("Parsing " + file);
+            IdManager idManager = new IdManager();
+            String libName = file.getName();
+			int extPos = libName.lastIndexOf('.');
+			if (extPos >= 0)
+    			libName = libName.substring(0, extPos);
+            LibId libId = idManager.newLibId(LibId.legalLibraryName(libName));
+            URL fileUrl = file.toURI().toURL();
+
+            JelibParser parser = JelibParser.parse(libId, fileUrl, fileType, false, errorLogger);
+        } catch (Exception e) {
+            System.out.println("Error reading " + file + " " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     public static void checkLibraries(ErrorLogger errorLogger, File[] dirs) {
         for (File dir: dirs) {
             checkLibrariesInProject(errorLogger, dir);

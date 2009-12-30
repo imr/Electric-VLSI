@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -39,6 +40,7 @@ import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -51,6 +53,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -230,6 +233,19 @@ public class JELIB extends LibraryFiles
 	{
         HashMap<Technology,Technology.SizeCorrector> sizeCorrectors = new HashMap<Technology,Technology.SizeCorrector>();
 
+        boolean immutableInstantiateOK = true;
+        for (int nodeId = 0; nodeId < cc.nodes.size(); nodeId++) {
+            JelibParser.NodeContents n = cc.nodes.get(nodeId);
+            try {
+                n.n = ImmutableNodeInst.newInstance(nodeId, n.protoId, Name.findName(n.nodeName), n.nameTextDescriptor,
+                        n.orient, n.anchor, n.size, n.flags, n.techBits, n.protoTextDescriptor);
+            } catch (Exception e) {
+                immutableInstantiateOK = false;
+                System.out.println("Exception in immutable instantiate " + cell);
+                break;
+            }
+        }
+        
 		// place all nodes
         for (JelibParser.NodeContents n: cc.nodes) {
             int line = n.line;
@@ -340,6 +356,10 @@ public class JELIB extends LibraryFiles
 					" (" + cell + ") cannot create node " + n.protoId, cell, -1);
 				continue;
 			}
+            if (immutableInstantiateOK && !ni.getD().equalsExceptVariables(n.n)) {
+                System.out.println("Difference between immutable and mutable nodes in " + cell);
+                immutableInstantiateOK = false;
+            }
 
 			// add variables
             realizeVariables(ni, n.vars);

@@ -118,6 +118,7 @@ public class JelibParser
         int techBits;
         Variable[] vars;
 
+        ImmutableNodeInst n;
         NodeInst ni;
     }
 
