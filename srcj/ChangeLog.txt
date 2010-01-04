@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+IMP: (01/04/10, GVG) Fix "AlgorithmName is accessed from Place cells" (Bug #2580)
+
 BUG: (01/04/10, GVG) JELIB reader reporting errors in non-existing lines (Bug #2579)
 FIX: Removed the adding of cc.lineNumber in the error report.
 

@@ -498,7 +498,8 @@ public class PlacementFrame
 				// make the PlacementNode for this NodeInst
 				String name = ni.getName();
 				if (ni.getNameKey().isTempname()) name = null;
-				PlacementNode plNode = new PlacementNode(np, name, ni.getTechSpecific(), np.getDefWidth(), np.getDefHeight(), pl);
+				PlacementNode plNode = new PlacementNode(np, name, ni.getTechSpecific(), np.getDefWidth(),
+                    np.getDefHeight(), pl);
 				nodesToPlace.add(plNode);
 				for(PlacementPort plPort : pl)
 					plPort.setPlacementNode(plNode);
@@ -533,7 +534,8 @@ public class PlacementFrame
 		}
 
 		// do the placement from the shadow objects
-		Cell newCell = doPlacement(cell.getLibrary(), cell.noLibDescribe(), nodesToPlace, allNetworks, exportsToPlace, iconToPlace);
+		Cell newCell = doPlacement(cell.getLibrary(), cell.noLibDescribe(), nodesToPlace, allNetworks, exportsToPlace,
+            iconToPlace);
 		return newCell;
 	}
 
@@ -553,8 +555,7 @@ public class PlacementFrame
 	{
         long startTime = System.currentTimeMillis();
         String newCellName = "placed" + cellName;
-        System.out.println("Running placement on cell '" + cellName + "' using the '" +
-        Placement.getAlgorithmName() + "' algorithm");
+        System.out.println("Running placement on cell '" + cellName + "' using the '" + getAlgorithmName() + "' algorithm");
 
         // do the real work of placement
 		runPlacement(nodesToPlace, allNetworks, cellName);
