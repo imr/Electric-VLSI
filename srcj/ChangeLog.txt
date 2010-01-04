@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+BUG: (01/04/10, GVG) JELIB reader reporting errors in non-existing lines (Bug #2579)
+FIX: Removed the adding of cc.lineNumber in the error report.
+
 ************************* END OF Version 8.10, GNU RELEASE *************
 
 IMP/MAN: (12/30/09, DN) Remove thread-unsafe code.

@@ -53,7 +53,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -401,7 +400,7 @@ public class JELIB extends LibraryFiles
                     ap = cell.getTechnology().convertOldArcName(a.arcProtoId.name);
                 if (ap == null)
                 {
-                    Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+                    Input.errorLogger.logError(cc.fileName + ", line " + line +
 					" (" + cell + ") cannot find arc " + a.arcProtoId, cell, -1);
 				    continue;
                 }
