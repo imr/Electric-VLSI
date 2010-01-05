@@ -543,17 +543,17 @@ public class MoCMOS extends Technology
 	 */
 	public Setting getAlternateActivePolyRulesSetting() { return cacheAlternateActivePolyRules; }
 
-	private final Setting cacheAnalog = makeBooleanSetting(getTechName() + "Analog", "Technology tab", "MOSIS CMOS: Vertical NPN transistor pbase",
+	private final Setting cacheAnalog = makeBooleanSetting(getTechName() + "Analog", "Technology tab", "MOSIS CMOS: Analog",
 		techParamAnalog.xmlPath.substring(TECH_NAME.length() + 1), false);
 	/**
-	 * Method to tell whether this technology has layers for vertical NPN transistor pbase.
+	 * Method to tell whether this technology provides analog elements.
 	 * The default is false.
-	 * @return true if this Technology has layers for vertical NPN transistor pbase.
+	 * @return true if this Technology provides analog elements..
 	 */
 	public boolean isAnalog() { return paramAnalog.booleanValue(); }
 	/**
-	 * Returns project preferences to tell whether this technology has layers for vertical NPN transistor pbase.
-	 * @return project preferences to tell whether this technology has layers for vertical NPN transistor pbase.
+	 * Returns project preferences to tell whether this technology provides analog elements.
+	 * @return project preferences to tell whether this technology provides analog elements.
 	 */
 	public Setting getAnalogSetting() { return cacheAnalog; }
 

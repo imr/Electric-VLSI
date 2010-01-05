@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+IMP/MAN: (01/04/10, GVG) Analog flag reported as "Vertical NPN Transistor pbase" preference (Bug #2581)
+Manual might need to be reviewed.
+
 IMP/MAN: (01/04/10, GVG) Calling the default PSubstrate process instead of PWell. This goes aligned
 with the changes done for Bug #2561. Figure in 7-1-2 needs to be updated.
 
