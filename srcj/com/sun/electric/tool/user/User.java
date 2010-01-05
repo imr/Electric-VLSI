@@ -1059,13 +1059,12 @@ public class User extends Listener
 	public static Setting getIncludeDateAndVersionInOutputSetting() { return ToolSettings.getIncludeDateAndVersionInOutputSetting(); }
 
 	/**
-	 * Method to tell whether the process is a PWell process. If true, it will ignore the pwell spacing rule.
+	 * Method to tell whether the process is a PSubstrate process. If true, it will ignore the pwell spacing rule.
 	 * The default is "true".
-	 * @return true if the process is PWell
+	 * @return true if the process is PSubstrate
 	 */
-	public static Setting getPWellProcessLayoutTechnologySetting() {return ToolSettings.getPWellProcessLayoutTechnologySetting(); }
-	public static boolean isPWellProcessLayoutTechnology() {return getPWellProcessLayoutTechnologySetting().getBoolean();}
-//	public static void setPWellProcessLayoutTechnology(boolean on) {getPWellProcessLayoutTechnologySetting().set(Boolean.valueOf(on));}
+	public static Setting getPSubstrateProcessLayoutTechnologySetting() {return ToolSettings.getPSubstrateProcessLayoutTechnologySetting(); }
+	public static boolean isPSubstrateProcessLayoutTechnology() {return getPSubstrateProcessLayoutTechnologySetting().getBoolean();}
 
 	/**
 	 * Returns project preference with additional technologies.

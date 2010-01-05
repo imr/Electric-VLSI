@@ -132,13 +132,13 @@ public class DRCTemplate implements Serializable
     public String condition;
 
     /**
-     * Method to detect if a given rule could be ignored if the process is a PWell process
-     * @param pWellProcess
-     * @return true if a given rule could be ignored if the process is a PWell process.
+     * Method to detect if a given rule could be ignored if the process is a PSubstrate process
+     * @param pSubstrateProcess
+     * @return true if a given rule could be ignored if the process is a PSubstrate process.
      */
-    public boolean isRuleIgnoredInPWellProcess(boolean pWellProcess)
+    public boolean isRuleIgnoredInPSubstrateProcess(boolean pSubstrateProcess)
     {
-        if (!pWellProcess) return false; // never ignore
+        if (!pSubstrateProcess) return false; // never ignore
 
         if (ruleType == DRCRuleType.SPACING ||
             ruleType == DRCRuleType.SPACINGE ||

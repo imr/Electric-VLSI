@@ -883,9 +883,13 @@ public class XMLRules implements DRCRules, Serializable
 			pos = endKey + 1;
 		}
 	}
-
-
-    public void loadDRCRules(Technology tech, Foundry foundry, DRCTemplate theRule, boolean pWellProcess)
+	
+    /**
+	 * Method to build "factory" design rules, given the current technology settings.
+	 * @return the "factory" design rules for this Technology.
+	 * Returns null if there is an error loading the rules.
+     */
+    public void loadDRCRules(Technology tech, Foundry foundry, DRCTemplate theRule, boolean pSubstrateProcess)
     {
         int numMetals = tech.getNumMetals();
         DRCTemplate.DRCMode m = DRCTemplate.DRCMode.ALL;
@@ -902,7 +906,7 @@ public class XMLRules implements DRCRules, Serializable
             System.out.println("Trying to upload metal layer that does not exist:" + numMetals);
         }
 
-        if (theRule.isRuleIgnoredInPWellProcess(pWellProcess))  // Skip this rule in pwell process
+        if (theRule.isRuleIgnoredInPSubstrateProcess(pSubstrateProcess))  // Skip this rule in PSubstrate process
             return;
 
         // load the DRC tables from the explanation table

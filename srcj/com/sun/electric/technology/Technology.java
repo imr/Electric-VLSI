@@ -3821,19 +3821,19 @@ public class Technology implements Comparable<Technology>, Serializable
 
         Foundry foundry = getSelectedFoundry();
         List<DRCTemplate> rulesList = foundry.getRules();
-        boolean pWellProcess = User.isPWellProcessLayoutTechnology();
+        boolean pSubstrateProcess = User.isPSubstrateProcessLayoutTechnology();
 
         // load the DRC tables from the explanation table
         if (rulesList != null) {
             for(DRCTemplate rule : rulesList)
             {
                 if (rule.ruleType != DRCTemplate.DRCRuleType.NODSIZ)
-                    rules.loadDRCRules(this, foundry, rule, pWellProcess);
+                    rules.loadDRCRules(this, foundry, rule, pSubstrateProcess);
             }
             for(DRCTemplate rule : rulesList)
             {
                 if (rule.ruleType == DRCTemplate.DRCRuleType.NODSIZ)
-                    rules.loadDRCRules(this, foundry, rule, pWellProcess);
+                    rules.loadDRCRules(this, foundry, rule, pSubstrateProcess);
             }
         }
 

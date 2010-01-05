@@ -68,7 +68,7 @@ public class TechnologyTab extends PreferencePanel
 
 	private Setting defaultTechnologySetting = User.getDefaultTechnologySetting();
 	private Setting schematicTechnologySetting = User.getSchematicTechnologySetting();
-    private Setting processLayoutTechnologySetting = User.getPWellProcessLayoutTechnologySetting();
+    private Setting processLayoutTechnologySetting = User.getPSubstrateProcessLayoutTechnologySetting();
 
     private Technology mocmos = Technology.getMocmosTechnology();
 	private Setting mocmosRuleSetSetting                  = mocmos.getSetting("MOCMOS Rule Set");
@@ -595,7 +595,12 @@ public class TechnologyTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         defaultsPanel.add(technologyPopup, gridBagConstraints);
 
-        technologyProcess.setText("PWell process in Layout Technology");
+        technologyProcess.setText("PSubstrate process in Layout Technology");
+        technologyProcess.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                technologyProcessActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -737,6 +742,10 @@ public class TechnologyTab extends PreferencePanel
 		setVisible(false);
 		dispose();
 	}//GEN-LAST:event_closeDialog
+
+        private void technologyProcessActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_technologyProcessActionPerformed
+            // TODO add your handling code here:
+        }//GEN-LAST:event_technologyProcessActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel cmos90Panel;

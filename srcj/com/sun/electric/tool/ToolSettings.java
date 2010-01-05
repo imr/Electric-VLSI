@@ -69,11 +69,11 @@ public class ToolSettings extends AbstractToolSettings {
 	 */
 	public static Setting getIncludeDateAndVersionInOutputSetting() { return t.cacheIncludeDateAndVersionInOutput; }
 	/**
-	 * Method to tell whether the process is a PWell process. If true, it will ignore the pwell spacing rule.
+	 * Method to tell whether the process is a PSubstrate process. If true, it will ignore the pwell spacing rule.
 	 * The default is "true".
-	 * @return true if the process is PWell
+	 * @return true if the process is PSubstrate
 	 */
-	public static Setting getPWellProcessLayoutTechnologySetting() {return t.cachePWellProcess;}
+	public static Setting getPSubstrateProcessLayoutTechnologySetting() {return t.cachePSubstrateProcess;}
 	/**
 	 * Returns project preference with additional technologies.
 	 * @return project preference with additional technologies.
@@ -267,7 +267,7 @@ public class ToolSettings extends AbstractToolSettings {
 	private final Setting cacheDefaultTechnology = makeStringSetting("DefaultTechnology", "Technology tab", "Default Technology for editing", "mocmos");
 	private final Setting cacheSchematicTechnology = makeStringSetting("SchematicTechnology", "Technology tab", "Schematics use scale values from this technology", "mocmos");
 	private final Setting cacheIncludeDateAndVersionInOutput = makeBooleanSetting("IncludeDateAndVersionInOutput", "Netlists tab", "Include date and version in output", true);
-	private final Setting cachePWellProcess = makeBooleanSetting("PWellProcess", "Technology tab", "Define Layout Technology as a PWell process", true);
+	private final Setting cachePSubstrateProcess = makeBooleanSetting("PSubstrateProcess", "Technology tab", "Define Layout Technology as a PSubstrate process", true);
     private final Setting cacheSoftTechnologies = makeStringSetting(StartupPrefs.SoftTechnologiesKey, "Technology tab", "A list of added Xml Technologies", StartupPrefs.SoftTechnologiesDef);
 
     { tool("networkTool", "database/network"); }

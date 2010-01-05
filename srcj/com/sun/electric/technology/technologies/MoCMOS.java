@@ -323,7 +323,7 @@ public class MoCMOS extends Technology
         Foundry foundry = getSelectedFoundry();
         List<DRCTemplate> theRules = foundry.getRules();
         XMLRules rules = new XMLRules(this);
-        boolean pWellProcess = User.isPWellProcessLayoutTechnology();
+        boolean pSubstrateProcess = User.isPSubstrateProcessLayoutTechnology();
 
         assert(foundry != null);
 
@@ -420,7 +420,7 @@ public class MoCMOS extends Technology
                     rule.ruleName +=  ", " +  extraString;
                 }
 
-                rules.loadDRCRules(this, foundry, rule, pWellProcess);
+                rules.loadDRCRules(this, foundry, rule, pSubstrateProcess);
 			}
 		}
 
